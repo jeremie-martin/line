@@ -2,6 +2,22 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - axis-decoupled transition finalist
+
+Reason: the accepted transition finalist changes every material following-span motion target as a
+coherent bundle. This additive follow-up kept that finalist and every baseline candidate, then
+sampled four single-axis variants round-robin when at least two motion axes transitioned. The
+unchanged zero-frame objective admitted one extra finalist and the unchanged forward evaluator
+judged it. The existing slack/material gates, scorer, specs, seeds, and budgets were unchanged.
+
+Focused tests passed (5 files, 57 tests). On all 40 specs at 200k/seed 0, arithmetic mean score
+moved 693.33->693.21. Only three final tracks changed, and none selected the new lane directly:
+`mini_burst` +2.30 and `valley_bounce` +2.85 were outweighed by `opening_burst` -9.96. The extra
+candidate work changed downstream budget allocation without a stable selection benefit. Archives:
+`generated/studies/accepted-transition-combined-all40-b200-s0-a01.json` and
+`generated/studies/transition-axis-decoupled-all40-b200-s0-a01.json`. Source was reverted without
+a fixed probe.
+
 ## 2026-07-09 - NOT KEPT - positive fallback for zero-cost repair suffixes
 
 Reason: detailed repair traces showed nodes first reached after first completion receive a

@@ -1,6 +1,7 @@
 import {
   AXES,
   ELEVATION,
+  REPORT_ONLY_AXIS_SET,
   type AxisValues,
   type Gap,
   type TrackLine,
@@ -10,7 +11,8 @@ import {
   type BallisticAxisPrefixSummary,
   type BallisticAxisSuffix,
 } from "../core/measure.ts";
-import { axisCost } from "../core/candidate.ts";
+import { LOCAL_IMPACT_COST_WEIGHT } from "../core/candidate.ts";
+import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
 
 export type ArcKnobs = {
   /** Rotate the last third of the arc about the suffix joint, in degrees. */
@@ -690,9 +692,9 @@ function reduceLatentJointArcOutputsInto(
   const suffixState = suffixStateFromLatent(latent);
   if (suffixState === null || !Number.isFinite(suffixFrame)) return;
 
-  addFinite(outputs, "current.releaseSpeedPx", suffixState.speed);
-  addFinite(outputs, "current.releaseVy", suffixState.vy);
-  addExitStateOutputs(outputs, suffixState, suffixFrame);
+  outputs["current.releaseSpeedPx"] = suffixState.speed;
+  outputs["current.releaseVy"] = suffixState.vy;
+  addValidatedExitStateOutputs(outputs, suffixState, suffixFrame);
 
   const prefix = prefixSummaryFromLatent(latent, context.gap.startFrame, suffixFrame, context.axisMeasureEnd);
   if (prefix !== null) {
@@ -703,16 +705,57 @@ function reduceLatentJointArcOutputsInto(
 
   if (suffixFrame <= context.nextFrame) {
     const nextState = propagateBallisticArrivalState(suffixState, context.nextFrame - suffixFrame);
-    addStateOutputs(outputs, nextState);
+    addValidatedStateOutputs(outputs, nextState);
   }
 }
 
 function currentCostFromPredictedAxes(outputs: Record<string, number>, gap: Gap): number | null {
-  const axes = predictedCurrentAxes(outputs);
-  for (const axis of AXES) {
-    if (gap.targets[axis] !== undefined && axes[axis] !== undefined) return axisCost(gap.targets, axes);
+  let cost = 0;
+  let hasTargetedAxis = false;
+  const targets = gap.targets;
+  const airTarget = targets.air;
+  const air = outputs["current.axis.air"];
+  if (airTarget !== undefined && Number.isFinite(air)) {
+    const d = airTarget - air;
+    cost += d * d;
+    hasTargetedAxis = true;
   }
-  return null;
+  const speedTarget = targets.speed;
+  const speed = outputs["current.axis.speed"];
+  if (speedTarget !== undefined && Number.isFinite(speed)) {
+    const d = speedTarget - speed;
+    cost += d * d;
+    hasTargetedAxis = true;
+  }
+  const grainTarget = targets.grain;
+  const grain = outputs["current.axis.grain"];
+  if (grainTarget !== undefined && Number.isFinite(grain)) {
+    const d = grainTarget - grain;
+    cost += d * d;
+    hasTargetedAxis = true;
+  }
+  const elevationTarget = targets.elevation;
+  const elevation = outputs["current.axis.elevation"];
+  if (elevationTarget !== undefined && Number.isFinite(elevation)) {
+    const d = elevationTarget - elevation;
+    cost += d * d;
+    hasTargetedAxis = true;
+  }
+  const amplitudeTarget = targets.amplitude;
+  const amplitude = outputs["current.axis.amplitude"];
+  if (amplitudeTarget !== undefined && Number.isFinite(amplitude)) {
+    const d = amplitudeTarget - amplitude;
+    cost += d * d;
+    hasTargetedAxis = true;
+  }
+  const impactTarget = targets.impact;
+  const impact = outputs["current.axis.impact"];
+  if (impactTarget !== undefined && Number.isFinite(impact)) {
+    const d = impactTarget - impact;
+    cost += LOCAL_IMPACT_COST_WEIGHT * d * d;
+    hasTargetedAxis = true;
+  }
+  return hasTargetedAxis ? cost : null;
 }
 
 function suffixStateFromLatent(latent: Record<string, number>): RiderArrivalState | null {
@@ -785,15 +828,31 @@ export function exitStateOutputs(state: RiderArrivalState, frame: number): Recor
 }
 
 function addExitStateOutputs(outputs: Record<string, number>, state: RiderArrivalState, frame: number): void {
-  addFinite(outputs, "exit.frame", frame);
-  addFinite(outputs, "exit.x", state.x);
-  addFinite(outputs, "exit.y", state.y);
-  addFinite(outputs, "exit.vx", state.vx);
-  addFinite(outputs, "exit.vy", state.vy);
-  addFinite(outputs, "exit.speed", state.speed);
-  addFinite(outputs, "exit.comAngleDeg", state.comAngleDeg);
-  addFinite(outputs, "exit.sledPoseDeg", state.sledPoseDeg);
-  addFinite(outputs, "exit.sledPoseRateDegPerFrame", state.sledPoseRateDegPerFrame);
+  if (Number.isFinite(frame)) outputs["exit.frame"] = frame;
+  if (Number.isFinite(state.x)) outputs["exit.x"] = state.x;
+  if (Number.isFinite(state.y)) outputs["exit.y"] = state.y;
+  if (Number.isFinite(state.vx)) outputs["exit.vx"] = state.vx;
+  if (Number.isFinite(state.vy)) outputs["exit.vy"] = state.vy;
+  if (Number.isFinite(state.speed)) outputs["exit.speed"] = state.speed;
+  if (state.comAngleDeg !== null && Number.isFinite(state.comAngleDeg)) outputs["exit.comAngleDeg"] = state.comAngleDeg;
+  if (state.sledPoseDeg !== null && Number.isFinite(state.sledPoseDeg)) outputs["exit.sledPoseDeg"] = state.sledPoseDeg;
+  if (state.sledPoseRateDegPerFrame !== null && Number.isFinite(state.sledPoseRateDegPerFrame)) {
+    outputs["exit.sledPoseRateDegPerFrame"] = state.sledPoseRateDegPerFrame;
+  }
+}
+
+function addValidatedExitStateOutputs(outputs: Record<string, number>, state: RiderArrivalState, frame: number): void {
+  outputs["exit.frame"] = frame;
+  outputs["exit.x"] = state.x;
+  outputs["exit.y"] = state.y;
+  outputs["exit.vx"] = state.vx;
+  outputs["exit.vy"] = state.vy;
+  outputs["exit.speed"] = state.speed;
+  if (state.comAngleDeg !== null) outputs["exit.comAngleDeg"] = state.comAngleDeg;
+  if (state.sledPoseDeg !== null) outputs["exit.sledPoseDeg"] = state.sledPoseDeg;
+  if (state.sledPoseRateDegPerFrame !== null) {
+    outputs["exit.sledPoseRateDegPerFrame"] = state.sledPoseRateDegPerFrame;
+  }
 }
 
 export function stateOutputs(state: RiderArrivalState): Record<string, number> {
@@ -803,14 +862,29 @@ export function stateOutputs(state: RiderArrivalState): Record<string, number> {
 }
 
 function addStateOutputs(outputs: Record<string, number>, state: RiderArrivalState): void {
-  addFinite(outputs, "next.x", state.x);
-  addFinite(outputs, "next.y", state.y);
-  addFinite(outputs, "next.vx", state.vx);
-  addFinite(outputs, "next.vy", state.vy);
-  addFinite(outputs, "next.speed", state.speed);
-  addFinite(outputs, "next.comAngleDeg", state.comAngleDeg);
-  addFinite(outputs, "next.sledPoseDeg", state.sledPoseDeg);
-  addFinite(outputs, "next.sledPoseRateDegPerFrame", state.sledPoseRateDegPerFrame);
+  if (Number.isFinite(state.x)) outputs["next.x"] = state.x;
+  if (Number.isFinite(state.y)) outputs["next.y"] = state.y;
+  if (Number.isFinite(state.vx)) outputs["next.vx"] = state.vx;
+  if (Number.isFinite(state.vy)) outputs["next.vy"] = state.vy;
+  if (Number.isFinite(state.speed)) outputs["next.speed"] = state.speed;
+  if (state.comAngleDeg !== null && Number.isFinite(state.comAngleDeg)) outputs["next.comAngleDeg"] = state.comAngleDeg;
+  if (state.sledPoseDeg !== null && Number.isFinite(state.sledPoseDeg)) outputs["next.sledPoseDeg"] = state.sledPoseDeg;
+  if (state.sledPoseRateDegPerFrame !== null && Number.isFinite(state.sledPoseRateDegPerFrame)) {
+    outputs["next.sledPoseRateDegPerFrame"] = state.sledPoseRateDegPerFrame;
+  }
+}
+
+function addValidatedStateOutputs(outputs: Record<string, number>, state: RiderArrivalState): void {
+  outputs["next.x"] = state.x;
+  outputs["next.y"] = state.y;
+  outputs["next.vx"] = state.vx;
+  outputs["next.vy"] = state.vy;
+  outputs["next.speed"] = state.speed;
+  if (state.comAngleDeg !== null) outputs["next.comAngleDeg"] = state.comAngleDeg;
+  if (state.sledPoseDeg !== null) outputs["next.sledPoseDeg"] = state.sledPoseDeg;
+  if (state.sledPoseRateDegPerFrame !== null) {
+    outputs["next.sledPoseRateDegPerFrame"] = state.sledPoseRateDegPerFrame;
+  }
 }
 
 export function arcResponseOutputs(
@@ -820,7 +894,7 @@ export function arcResponseOutputs(
   nextState: RiderArrivalState | null,
 ): Record<string, number> {
   const outputs: Record<string, number> = {};
-  addFinite(outputs, "current.cost", cost);
+  if (cost !== null && cost !== undefined && Number.isFinite(cost)) outputs["current.cost"] = cost;
   addAxisResponseOutputs(outputs, targets, achieved);
   if (nextState !== null) addStateOutputs(outputs, nextState);
   return outputs;
@@ -840,12 +914,64 @@ function addAxisResponseOutputs(
   targets: AxisValues,
   achieved: AxisValues,
 ): void {
-  for (const axis of AXES) {
-    const actual = achieved[axis];
-    if (actual === undefined) continue;
-    addFinite(outputs, `current.axis.${axis}`, actual);
-    const target = targets[axis];
-    if (target !== undefined) addFinite(outputs, `current.error.${axis}`, actual - target);
+  const air = achieved.air;
+  if (Number.isFinite(air)) {
+    outputs["current.axis.air"] = air;
+    const target = targets.air;
+    if (target !== undefined) {
+      const error = air - target;
+      if (Number.isFinite(error)) outputs["current.error.air"] = error;
+    }
+  }
+
+  const speed = achieved.speed;
+  if (Number.isFinite(speed)) {
+    outputs["current.axis.speed"] = speed;
+    const target = targets.speed;
+    if (target !== undefined) {
+      const error = speed - target;
+      if (Number.isFinite(error)) outputs["current.error.speed"] = error;
+    }
+  }
+
+  const grain = achieved.grain;
+  if (Number.isFinite(grain)) {
+    outputs["current.axis.grain"] = grain;
+    const target = targets.grain;
+    if (target !== undefined) {
+      const error = grain - target;
+      if (Number.isFinite(error)) outputs["current.error.grain"] = error;
+    }
+  }
+
+  const elevation = achieved.elevation;
+  if (Number.isFinite(elevation)) {
+    outputs["current.axis.elevation"] = elevation;
+    const target = targets.elevation;
+    if (target !== undefined) {
+      const error = elevation - target;
+      if (Number.isFinite(error)) outputs["current.error.elevation"] = error;
+    }
+  }
+
+  const amplitude = achieved.amplitude;
+  if (Number.isFinite(amplitude)) {
+    outputs["current.axis.amplitude"] = amplitude;
+    const target = targets.amplitude;
+    if (target !== undefined) {
+      const error = amplitude - target;
+      if (Number.isFinite(error)) outputs["current.error.amplitude"] = error;
+    }
+  }
+
+  const impact = achieved.impact;
+  if (Number.isFinite(impact)) {
+    outputs["current.axis.impact"] = impact;
+    const target = targets.impact;
+    if (target !== undefined) {
+      const error = impact - target;
+      if (Number.isFinite(error)) outputs["current.error.impact"] = error;
+    }
   }
 }
 
@@ -856,6 +982,67 @@ export function predictedCurrentAxes(outputs: Record<string, number>): AxisValue
     if (Number.isFinite(value)) axes[axis] = value;
   }
   return axes;
+}
+
+export function predictedCurrentQuality(outputs: Record<string, number>, targets: AxisValues): number {
+  let count = 0;
+  let sumSq = 0;
+  if (!REPORT_ONLY_AXIS_SET.has("air")) {
+    const target = targets.air;
+    const value = outputs["current.axis.air"];
+    if (Number.isFinite(target) && Number.isFinite(value)) {
+      const error = value - target;
+      sumSq += error * error;
+      count++;
+    }
+  }
+  if (!REPORT_ONLY_AXIS_SET.has("speed")) {
+    const target = targets.speed;
+    const value = outputs["current.axis.speed"];
+    if (Number.isFinite(target) && Number.isFinite(value)) {
+      const error = value - target;
+      sumSq += error * error;
+      count++;
+    }
+  }
+  if (!REPORT_ONLY_AXIS_SET.has("grain")) {
+    const target = targets.grain;
+    const value = outputs["current.axis.grain"];
+    if (Number.isFinite(target) && Number.isFinite(value)) {
+      const error = value - target;
+      sumSq += error * error;
+      count++;
+    }
+  }
+  if (!REPORT_ONLY_AXIS_SET.has("elevation")) {
+    const target = targets.elevation;
+    const value = outputs["current.axis.elevation"];
+    if (Number.isFinite(target) && Number.isFinite(value)) {
+      const error = value - target;
+      sumSq += error * error;
+      count++;
+    }
+  }
+  if (!REPORT_ONLY_AXIS_SET.has("amplitude")) {
+    const target = targets.amplitude;
+    const value = outputs["current.axis.amplitude"];
+    if (Number.isFinite(target) && Number.isFinite(value)) {
+      const error = value - target;
+      sumSq += error * error;
+      count++;
+    }
+  }
+  if (!REPORT_ONLY_AXIS_SET.has("impact")) {
+    const target = targets.impact;
+    const value = outputs["current.axis.impact"];
+    if (Number.isFinite(target) && Number.isFinite(value)) {
+      const error = value - target;
+      sumSq += error * error;
+      count++;
+    }
+  }
+  if (count === 0) return 1;
+  return Math.exp(-(Math.sqrt(sumSq / count) / AXIS_QUALITY_TOLERANCE));
 }
 
 export function predictedArrivalState(outputs: Record<string, number>): RiderArrivalState | null {

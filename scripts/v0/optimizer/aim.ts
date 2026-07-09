@@ -72,6 +72,7 @@ import {
   fitJointArcResponseModel,
   predictedArrivalState,
   predictedCurrentAxes,
+  predictedCurrentQuality,
   predictJointArcOutputs,
   type ArcKnobs,
   type ArcProbeDesignName,
@@ -90,6 +91,7 @@ import {
   predictArrivalAtNextContact,
   predictedNextGapAir,
   scoreGapObjectiveForTargets,
+  scoreGapObjectiveWithCurrentQuality,
   scoreNextTargetReadiness,
   type ObjectiveArrivalState,
 } from "./objective.ts";
@@ -911,9 +913,8 @@ function scoreJointKnobs(
     arrival.nextAir = predictedNextGapAir(exitFrame, nextGap);
     arrival.nextGapFrames = nextGapFrameCount(nextGap);
   }
-  const objective = scoreGapObjectiveForTargets(
-    currentTargets,
-    predictedCurrentAxes(outputs),
+  const objective = scoreGapObjectiveWithCurrentQuality(
+    predictedCurrentQuality(outputs, currentTargets),
     arrival,
     nextTargets,
   );

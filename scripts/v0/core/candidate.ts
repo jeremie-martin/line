@@ -220,7 +220,7 @@ const RELEASE_STATE_SPEED_WEIGHT = LEGACY_RELEASE_STATE_SPEED_WEIGHT *
  *  its original suite-wide win having eroded as the baseline moved. Removing it also
  *  de-couples candidate cost from per-compile budget state. LR_IMPACT_LOCAL_W
  *  overrides the weight for studies. */
-const LOCAL_IMPACT_COST_WEIGHT = Math.max(0, impactEnvNum("LR_IMPACT_LOCAL_W", 0.5));
+export const LOCAL_IMPACT_COST_WEIGHT = Math.max(0, impactEnvNum("LR_IMPACT_LOCAL_W", 0.5));
 
 // ─────────── Landing-window probe hook (study-only, off by default) ───────────
 // Read-only diagnostic seam for the landing-redefinition / impact-funnel studies.

@@ -139,9 +139,17 @@ export function scoreGapObjectiveForTargets(
   arrival: ObjectiveArrivalState,
   nextTargets: AxisValues,
 ): GapObjectiveScore | null {
+  const currentQuality = scoreCurrentTargetQuality(currentTargets, currentAxes);
+  return scoreGapObjectiveWithCurrentQuality(currentQuality, arrival, nextTargets);
+}
+
+export function scoreGapObjectiveWithCurrentQuality(
+  currentQuality: number,
+  arrival: ObjectiveArrivalState,
+  nextTargets: AxisValues,
+): GapObjectiveScore | null {
   const readiness = scoreNextTargetReadiness(arrival, nextTargets);
   if (readiness === null) return null;
-  const currentQuality = scoreCurrentTargetQuality(currentTargets, currentAxes);
   return {
     ...readiness,
     currentQuality,

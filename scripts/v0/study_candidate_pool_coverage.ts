@@ -1,18 +1,17 @@
 /**
  * Candidate-pool coverage study (observation only).
  *
- * For each targeted gap, compare the best viable candidate on every scored axis
- * with the best candidate that reached handoff scoring and the final selected
- * track. This isolates generation, bounded-pool admission, and downstream
- * selection loss on the current compiler without changing any policy.
+ * Every row compares candidates produced from one exact SearchNode prefix. It
+ * separates quality-sort admission from handoff selection without combining
+ * candidates that reached the same authored gap through different states.
  */
 import { writeFileSync } from "node:fs";
 import {
-  drainLandingWindowProbe,
-  enableLandingWindowProbe,
-  type LandingWindowProbeRecord,
-} from "./landing_probe.ts";
-import { compileHandoff } from "./optimizer/handoff.ts";
+  compileHandoff,
+  setHandoffPoolProbeHook,
+  type HandoffPoolProbeCandidate,
+  type HandoffPoolProbeRecord,
+} from "./optimizer/handoff.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { AXES, type AxisName, type AxisValues } from "./types.ts";
 
@@ -35,107 +34,149 @@ const seeds = (argValue("seeds") ?? "0,1,2").split(",").map(Number);
 const budget = Number(argValue("budget") ?? "200000");
 const outPath = argValue("out");
 for (const spec of specNames) {
-  if (!(GOLDEN_SPECS as readonly string[]).includes(spec)) {
-    throw new Error(`unknown spec "${spec}"`);
-  }
+  if (!(GOLDEN_SPECS as readonly string[]).includes(spec)) throw new Error(`unknown spec "${spec}"`);
 }
 
 type CoverageRow = {
   spec: string;
   seed: number;
+  pool: number;
   gapIndex: number;
   axis: AxisName;
   target: number;
   viableCandidates: number;
   scoredCandidates: number;
-  selectedAbsError: number;
+  winnerAbsError: number;
   bestViableAbsError: number;
-  bestScoredAbsError: number | null;
+  bestScoredAbsError: number;
+  winnerAxisRms: number;
+  bestViableCandidateAxisRms: number;
+  bestScoredCandidateAxisRms: number;
+  bestCurrentQualityAdmitted: boolean;
 };
 
 const rows: CoverageRow[] = [];
-enableLandingWindowProbe();
+let activeSpec = "";
+let activeSeed = 0;
+let poolCount = 0;
+
+const axesOf = (candidate: HandoffPoolProbeCandidate): AxisValues =>
+  candidate.achievedAtEnd ?? candidate.achieved;
+
+function axisRms(candidate: HandoffPoolProbeCandidate, targets: AxisValues): number {
+  const achieved = axesOf(candidate);
+  const squared: number[] = [];
+  for (const axis of AXES) {
+    const target = targets[axis];
+    const value = achieved[axis];
+    if (target !== undefined && value !== undefined && Number.isFinite(value)) {
+      squared.push((value - target) ** 2);
+    }
+  }
+  return squared.length === 0
+    ? Infinity
+    : Math.sqrt(squared.reduce((sum, value) => sum + value, 0) / squared.length);
+}
+
+setHandoffPoolProbeHook((record: HandoffPoolProbeRecord) => {
+  const pool = poolCount++;
+  const scored = record.candidates.filter(
+    (candidate): candidate is HandoffPoolProbeCandidate & { handoffScore: number } =>
+      candidate.handoffScore !== undefined && Number.isFinite(candidate.handoffScore),
+  );
+  if (scored.length === 0) return;
+  const winner = scored.reduce((best, candidate) =>
+    candidate.handoffScore < best.handoffScore ? candidate : best
+  );
+  const bestCurrentQuality = record.candidates.reduce((best, candidate) =>
+    axisRms(candidate, record.targets) < axisRms(best, record.targets) ? candidate : best
+  );
+
+  for (const axis of AXES) {
+    const target = record.targets[axis];
+    if (target === undefined) continue;
+    const withError = (candidates: HandoffPoolProbeCandidate[]) => candidates
+      .map((candidate) => ({
+        candidate,
+        error: Math.abs((axesOf(candidate)[axis] ?? Infinity) - target),
+      }))
+      .filter((entry) => Number.isFinite(entry.error));
+    const viable = withError(record.candidates);
+    const admitted = withError(scored);
+    if (viable.length === 0 || admitted.length === 0) continue;
+    const bestViable = viable.reduce((best, entry) => entry.error < best.error ? entry : best);
+    const bestScored = admitted.reduce((best, entry) => entry.error < best.error ? entry : best);
+    rows.push({
+      spec: activeSpec,
+      seed: activeSeed,
+      pool,
+      gapIndex: record.gapIndex,
+      axis,
+      target,
+      viableCandidates: viable.length,
+      scoredCandidates: admitted.length,
+      winnerAbsError: Math.abs((axesOf(winner)[axis] ?? Infinity) - target),
+      bestViableAbsError: bestViable.error,
+      bestScoredAbsError: bestScored.error,
+      winnerAxisRms: axisRms(winner, record.targets),
+      bestViableCandidateAxisRms: axisRms(bestViable.candidate, record.targets),
+      bestScoredCandidateAxisRms: axisRms(bestScored.candidate, record.targets),
+      bestCurrentQualityAdmitted: bestCurrentQuality.admitted,
+    });
+  }
+});
 
 for (const specName of specNames) {
   const spec = await loadGoldenSpec(specName, "base");
   for (const seed of seeds) {
+    activeSpec = specName;
+    activeSeed = seed;
+    const beforePools = poolCount;
+    const beforeRows = rows.length;
     const started = Date.now();
-    const checkpoint = compileHandoff(spec, seed, { budget });
-    const { records, dropped } = drainLandingWindowProbe();
-    if (dropped > 0) throw new Error(`${specName}/s${seed}: dropped ${dropped} probe records`);
-    const byGap = new Map<number, LandingWindowProbeRecord[]>();
-    for (const record of records) {
-      if (record.cost === null || record.achieved === undefined) continue;
-      const group = byGap.get(record.gapIndex) ?? [];
-      group.push(record);
-      byGap.set(record.gapIndex, group);
-    }
-
-    for (const gapReport of checkpoint.report.gaps) {
-      const candidates = byGap.get(gapReport.gap_index) ?? [];
-      if (candidates.length === 0) continue;
-      const scored = candidates.filter((candidate) => candidate.handoffScore !== undefined);
-      for (const axis of AXES) {
-        const selected = gapReport.axes[axis];
-        if (selected === undefined) continue;
-        const errorOf = (candidate: LandingWindowProbeRecord): number | null => {
-          const achieved: AxisValues = candidate.achievedAtEnd ?? candidate.achieved ?? {};
-          const value = achieved[axis];
-          return value === undefined || !Number.isFinite(value)
-            ? null
-            : Math.abs(value - selected.target);
-        };
-        const viableErrors = candidates.map(errorOf).filter((v): v is number => v !== null);
-        if (viableErrors.length === 0) continue;
-        const scoredErrors = scored.map(errorOf).filter((v): v is number => v !== null);
-        rows.push({
-          spec: specName,
-          seed,
-          gapIndex: gapReport.gap_index,
-          axis,
-          target: selected.target,
-          viableCandidates: viableErrors.length,
-          scoredCandidates: scoredErrors.length,
-          selectedAbsError: Math.abs(selected.error),
-          bestViableAbsError: Math.min(...viableErrors),
-          bestScoredAbsError: scoredErrors.length === 0 ? null : Math.min(...scoredErrors),
-        });
-      }
-    }
+    compileHandoff(spec, seed, { budget });
     console.error(
-      `  ${specName}/s${seed}: ${records.length} candidates, ${byGap.size} gaps, ` +
+      `  ${specName}/s${seed}: ${poolCount - beforePools} pools, ${rows.length - beforeRows} axis rows, ` +
         `${((Date.now() - started) / 1000).toFixed(1)}s`,
     );
   }
 }
+setHandoffPoolProbeHook(null);
 
 const mean = (values: number[]): number =>
   values.length === 0 ? NaN : values.reduce((sum, value) => sum + value, 0) / values.length;
 const f3 = (value: number): string => Number.isFinite(value) ? value.toFixed(3) : "n/a";
 const material = 0.025;
 
-console.log(`\n=== candidate pool coverage (budget ${budget}, ${specNames.length} specs x ${seeds.length} seeds) ===`);
+console.log(`\n=== per-prefix candidate pool coverage (budget ${budget}, ${specNames.length} specs x ${seeds.length} seeds) ===`);
 for (const axis of AXES) {
   const axisRows = rows.filter((row) => row.axis === axis);
   if (axisRows.length === 0) continue;
-  const withScored = axisRows.filter((row) => row.bestScoredAbsError !== null);
   const generationOpportunity = axisRows.filter(
-    (row) => row.bestViableAbsError + material < row.selectedAbsError,
+    (row) => row.bestViableAbsError + material < row.winnerAbsError,
   );
   const poolOpportunity = axisRows.filter(
-    (row) => row.bestScoredAbsError !== null &&
-      row.bestViableAbsError + material < (row.bestScoredAbsError ?? Infinity),
+    (row) => row.bestViableAbsError + material < row.bestScoredAbsError,
   );
-  const selectionOpportunity = withScored.filter(
-    (row) => (row.bestScoredAbsError ?? Infinity) + material < row.selectedAbsError,
+  const selectionOpportunity = axisRows.filter(
+    (row) => row.bestScoredAbsError + material < row.winnerAbsError,
   );
+  const viableSpecialistNetGain = generationOpportunity.filter(
+    (row) => row.bestViableCandidateAxisRms < row.winnerAxisRms,
+  );
+  const scoredSpecialistNetGain = selectionOpportunity.filter(
+    (row) => row.bestScoredCandidateAxisRms < row.winnerAxisRms,
+  );
+  const currentWinnerAdmissionRate = mean(axisRows.map((row) => row.bestCurrentQualityAdmitted ? 1 : 0));
   console.log(
-    `${axis.padEnd(10)} rows=${String(axisRows.length).padStart(5)}` +
-      ` selected=${f3(mean(axisRows.map((row) => row.selectedAbsError)))}` +
+    `${axis.padEnd(10)} rows=${String(axisRows.length).padStart(6)}` +
+      ` winner=${f3(mean(axisRows.map((row) => row.winnerAbsError)))}` +
       ` viable=${f3(mean(axisRows.map((row) => row.bestViableAbsError)))}` +
-      ` scored=${f3(mean(withScored.map((row) => row.bestScoredAbsError ?? NaN)))}` +
+      ` scored=${f3(mean(axisRows.map((row) => row.bestScoredAbsError)))}` +
       ` opportunities generated/pool/selection=` +
-      `${generationOpportunity.length}/${poolOpportunity.length}/${selectionOpportunity.length}`,
+      `${generationOpportunity.length}/${poolOpportunity.length}/${selectionOpportunity.length}` +
+      ` · locally net-positive viable/scored=${viableSpecialistNetGain.length}/${scoredSpecialistNetGain.length}` +
+      ` · current-quality winner admitted=${f3(currentWinnerAdmissionRate)}`,
   );
 }
 

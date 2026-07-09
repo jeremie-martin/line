@@ -210,6 +210,30 @@ type RankedOption = {
   previewSurvivors: number;
 };
 
+export type HandoffPoolProbeCandidate = {
+  qualityRank: number;
+  cost: number;
+  achieved: AxisValues;
+  achievedAtEnd?: AxisValues;
+  qualityObjective: number | null;
+  admitted: boolean;
+  handoffScore?: number;
+};
+
+export type HandoffPoolProbeRecord = {
+  gapIndex: number;
+  targets: AxisValues;
+  candidates: HandoffPoolProbeCandidate[];
+};
+
+type HandoffPoolProbeHook = (record: HandoffPoolProbeRecord) => void;
+let handoffPoolProbeHook: HandoffPoolProbeHook | null = null;
+
+/** Observation-only pool hook. Production never installs one. */
+export function setHandoffPoolProbeHook(hook: HandoffPoolProbeHook | null): void {
+  handoffPoolProbeHook = hook;
+}
+
 type HandoffSearchPolicy = {
   nCand: number;
   preview: boolean;
@@ -2776,6 +2800,38 @@ function rankedOptions(
       openingBestOpportunity,
     )
   );
+  if (handoffPoolProbeHook !== null) {
+    const handoffScores = new Map(
+      scored.flatMap((option) => option.candidate === null
+        ? []
+        : [[option.candidate, option.score] as const]),
+    );
+    const admitted = new Set(pool.map((entry) => entry.candidate));
+    const gap = gaps[node.gapIndex];
+    handoffPoolProbeHook({
+      gapIndex: gap.index,
+      targets: ctx.gapAxisTargets?.[gap.index] ?? gap.targets,
+      candidates: sorted.map((candidate, qualityRank) => ({
+        qualityRank,
+        cost: candidate.cost,
+        achieved: candidate.achieved,
+        ...(candidate.achievedAtEnd === undefined
+          ? {}
+          : { achievedAtEnd: candidate.achievedAtEnd }),
+        qualityObjective: candidateQualityObjective(
+          node.prefixEngine,
+          candidate,
+          gap,
+          gaps,
+          ctx,
+        ),
+        admitted: admitted.has(candidate),
+        ...(handoffScores.has(candidate)
+          ? { handoffScore: handoffScores.get(candidate) }
+          : {}),
+      })),
+    });
+  }
   // Agreement instrument (measure-only): record ONLY when the pool was scored via the
   // forward-eval path (mirror scoreCandidateForHandoff's condition), over the POOL-SOURCE
   // entries only — this is before reuse/brake extras are pushed onto `scored`.

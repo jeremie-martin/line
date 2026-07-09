@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - opening branch-2-only selector
+
+Reason: the opening best-forward selector is still one of the few mechanisms that can move scores
+with a small footprint. This trial kept candidate generation, start selection, ambiguity gating,
+slack gating, opportunity gating, repair, scorer, specs, evaluator fingerprint, seed policy, budget
+grid, and acceptance rule unchanged, and changed only the accepted opening structural selector after
+the existing gate fired: it capped the selector at `best:1:2` instead of probabilistically escalating
+some high-slack cases to `best:1:3`.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-opening-branch2-only-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-opening-branch2-only-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.07 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.79. Per-budget point estimates were 75k 661.85, 200k 688.76, and 500k 702.57.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-opening-branch2-only-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.1, delta -0.0,
+CI [-0.2, 0.1], P(delta<=0)=69.9%, effect -0.32. Per-budget deltas were 75k +0.0,
+200k +0.0, and 500k -0.0, with unchanged 100% pass rates.
+
+Why it was not kept: the branch-3 cap was too sparse and not clearly positive. Across paired
+checkpoints, 18/1440 track hashes changed and 18 scores changed, with 8 improvements and 10
+regressions. The raw paired row-score sum was -17.32: 75k stayed byte-identical, 200k gained
++9.26, and 500k lost -26.58. `tiny_dance` gained +26.56 total, mostly from 200k seed 10 and
+several 500k seeds, but `mini_burst` lost -43.88 total, led by 500k seeds 6 and 0. The result
+does not show that branch 3 is broadly harmful, but it does keep the opening-selector mechanism
+alive as a low-footprint tuning surface. No full run was launched. Source edits were reverted; no
+baseline was advanced.
+
 ## 2026-07-09 - REJECTED PROBE - current-incumbent repair cost refresh
 
 Reason: the local repair-reopen family suggested that accepted repair improvements can make later

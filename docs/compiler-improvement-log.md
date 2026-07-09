@@ -2,6 +2,24 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - OBSERVATION ONLY - repair improvement timing
+
+Question: the stop-on-first-accept probe gained at 200k but lost terminal breadth, so determine
+whether a principled patience rule could retain later improvements while trimming dead restart
+tails. Log-gated repair records now capture every register-improvement frame offset inside each
+restart ceiling; ordinary compiles take the unchanged traversal path and allocate no timing data.
+
+Study: `generated/golden-runs/study-repair-improvement-timing-all-b500-s24-26-a01/golden.json`,
+all 40 specs x seeds 24..26 at 500k with `LR_REPAIR_LOG=1`. It reproduced the accepted baseline
+exactly for all 120 tracks and recorded 3,906 restarts, 413 accepted.
+
+Result: accepted restarts contained 514 register improvements; 80/413 improved more than once.
+The first improvement arrived at a mean 84.3% and median 96.3% of frames spent, while 139 accepted
+restarts ended exactly on their last improvement. Only 0.95M frames occurred after the final
+improvement across 192.9M repair frames in these rows. Inter-improvement gaps had median 949,
+p75 2,984, and p90 5,422 frames, so short patience would discard real later improvements while
+long patience saves negligible work. Restart-tail trimming is closed as a headline mechanism.
+
 ## 2026-07-09 - NOT KEPT - repair restart stop on first accepted improvement
 
 Reason: each fresh-seed repair restart currently explores its old suffix until a precomputed frame

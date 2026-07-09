@@ -1115,7 +1115,7 @@ function completeBallisticScoreAxesFromSummary(
     let speedFrames = Math.max(0, Math.min(prefixFrames, summary.speedFrames));
     for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
       const vy = suffixVy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
-      speedSumPx += Math.hypot(suffixVx, vy);
+      speedSumPx += Math.sqrt(suffixVx * suffixVx + vy * vy);
       speedFrames++;
     }
     if (speedFrames > 0) out.speed = speedPxToAuthored(speedSumPx / speedFrames);

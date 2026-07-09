@@ -2,6 +2,43 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - repair error-per-suffix-cost priority
+
+Reason: current repair selects the largest affordable per-gap axis SSE and uses measured suffix
+cost only as a feasibility gate. In the current 500k trace, positive-cost chains in the top
+quartile of `SSE / estimated cost` accepted 72.7% with 7.47 score points per selected chain,
+versus 42.1% and 2.02 points in the bottom quartile. The temporary general allocator ranked
+affordable gaps by that value density; nonpositive/unknown estimates ranked behind measured
+choices but remained fallbacks. Restart execution, seeds, upstream walk, attempt limits, ceilings,
+budgets, main search, scorer, specs, evaluator fingerprint, seed policy, budget grid, and acceptance
+rule stayed unchanged. Repair's 100k gate kept 75k byte-identical.
+
+Focused tests passed before the probe (7 files, 114 tests, `LR_ENGINE=wasm`), including a temporary
+unit test for density ordering, affordability, and unknown-cost fallback.
+
+Probe: `generated/golden-runs/probe-repair-value-density-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-value-density-j32-a01`.
+It was valid 1440/1440. Raw HEADLINE fell to 693.77 versus the current probe baseline 695.09;
+HEADLINE excluding impact was 712.60. The 75k tier was bit-identical at 661.85; 200k regressed to
+688.54 (-0.2), and 500k regressed to 700.65 (-2.0).
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-repair-value-density-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: REJECT`: delta -1.3, CI [-2.6, -0.1], P(delta<=0)=98.7%, effect -2.18.
+Validity stayed 100% at every budget.
+
+Why it was not kept: the observational yield correlation was not causal. Density priority changed
+803/1440 hashes and 802 scores, split 374 improvements to 428 regressions. `opening_burst` (+3.20
+mean), `float_bounds` (+2.47), and `drums_crosscut` (+2.12) gained, but losses were broad and led
+by `syncopated_lift` (-3.88), `syncopated_switchback` (-3.37), `drums_pulse` (-3.30), and
+`cold_start` (-3.01). More strikingly, repair accepts increased by 0.67/1.15 per row and unique
+full evaluations by 18.8/53.4 at 200k/500k while final score fell. High-density gaps are productive
+when they become the worst gap naturally; selecting them early changes the incumbent sequence and
+later repair basins. Raw worst-error order therefore carries useful global context that local
+acceptance yield misses. Source and test changes were reverted; no full run was launched and
+baselines remain `probe-baseline-fp6f760d-j32-a01` (695.09) and
+`full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - OBSERVATION ONLY - repair elevation ceiling check
 
 Question: `pickFeasibleWeakGap` ranks raw per-gap axis SSE even though elevation reports carry a

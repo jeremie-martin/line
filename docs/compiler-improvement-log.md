@@ -2,6 +2,58 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - opening ambiguity margin 0.07
+
+Reason: continue the opening-selector mechanism after `0.06` probe-accepted but failed full
+canonical transfer, while the low/mid-budget fade narrowly missed the probe accept gate. This trial
+kept candidate generation, start selection, branch-2/branch-3 slack activation, structural/contact
+pressure, repair, scorer, specs, evaluator fingerprint, seed policy, budget grid, and acceptance
+rule unchanged. It changed only `OPENING_BEST_FWD_REL_MARGIN_ZERO` from 0.12 to 0.07, testing
+whether a slightly less aggressive scalar tightening could preserve the corrected-probe win without
+the full-suite 350k/475k losses seen at 0.06.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-opening-margin07-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-opening-margin07-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.15 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.92. Per-budget point estimates were 75k 661.88, 200k 688.81, and 500k 702.68.
+
+Probe decision:
+`npm run decide -- generated/golden-runs/probe-opening-margin07-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: ACCEPT`: baseline 695.1 -> candidate 695.2, delta +0.1,
+CI [-0.0, 0.3], P(delta<=0)=17.3%, effect 0.78. Per-budget deltas were 75k +0.0,
+200k +0.1, and 500k +0.1, with unchanged 100% pass rates.
+
+Full:
+`generated/golden-runs/full-opening-margin07-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --full --jobs=32 --archive-dir=generated/golden-runs/full-opening-margin07-j32-a01`.
+It was valid 2880/2880, invalid 0, timeout 0. Raw HEADLINE was 697.22 vs the accepted full
+baseline 697.22; HEADLINE excl. impact was 715.42. Per-budget point estimates were 75k 661.88,
+150k 685.45, 225k 692.59, 350k 697.82, 475k 700.61, and 550k 703.85.
+
+Full decision:
+`npm run decide -- generated/golden-runs/full-opening-margin07-j32-a01/golden.json generated/golden-runs/full-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 697.2 -> candidate 697.2, delta -0.0,
+CI [-0.1, 0.1], P(delta<=0)=66.9%, effect -0.04. Per-budget deltas were 75k +0.0,
+150k +0.0, 225k +0.0, 350k -0.1, 475k +0.0, and 550k +0.0, with unchanged 100% pass rates.
+
+Why it was not kept: the 12-seed probe accepted, but full canonical transfer was essentially flat
+and failed the keep gate. Across paired full checkpoints, only 22/2880 track hashes and scores
+changed, with 11 improvements and 11 regressions. The raw paired row-score sum was +11.68: 75k
++13.07, 150k +14.42, 225k +17.10, 350k -52.23, 475k +19.36, and 550k -0.04. Movement stayed
+limited to the intended compact opening specs: `mini_burst` gained +43.17 total while `tiny_dance`
+lost -31.49 total. The largest gains were `mini_burst` seed 6 at 225k (+44.22), `mini_burst` seed 6
+at 475k (+19.72), and `mini_burst` seed 0 at 75k (+13.07); the largest losses were `mini_burst`
+seed 9 at 350k (-20.39), `mini_burst` seed 10 at 350k (-19.17), and `tiny_dance` seed 9 at 350k
+(-12.37). This reinforces that the scalar ambiguity margin can win the corrected probe while still
+failing disjoint full-budget transfer, with 350k as the main instability point. Source edits were
+reverted; no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - low/mid-budget opening margin 0.06 fade
 
 Reason: the global `0.06` opening ambiguity margin cleared the corrected 12-seed probe but failed

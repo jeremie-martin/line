@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - global mature next-elevation readiness
+
+Reason: the exact-prefix pool study showed next-elevation targets rising from roughly 0.48 to 0.60
+on `dense_echo_climb`, while every candidate's `elevationFit` remained exactly 1 because the
+compile-level sparse-cadence gate disabled the term. Final residuals also showed systematic high-
+elevation undershoot and late-third concentration. The temporary general mechanism enabled the
+existing next-elevation readiness factor for every mature compile. Its own per-gap pressure stayed
+unchanged and inert without an elevation ask or at asks at/below 0.5. Candidate generation,
+prediction formula, objective powers, forward evaluation, repair, budgets, scorer, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged; 75k was
+disabled by the existing 200k maturity gate.
+
+Focused tests passed before the probe (7 files, 113 tests, `LR_ENGINE=wasm`).
+
+Probe: `generated/golden-runs/probe-mature-elevation-readiness-global-j32-a01/golden.json`, run
+with `LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-mature-elevation-readiness-global-j32-a01`.
+It was valid 1440/1440. Raw HEADLINE was 694.81 versus the current probe baseline 695.09;
+HEADLINE excluding impact was 713.64. The 75k tier was bit-identical at 661.85; 200k improved to
+688.83 (+0.1), but 500k regressed to 702.15 (-0.5).
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-mature-elevation-readiness-global-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: REJECT`: delta -0.3, CI [-0.8, 0.1], P(delta<=0)=92.3%, effect -1.25.
+Validity stayed 100% at every budget.
+
+Why it was not kept: the term moved only the intended newly enabled vertical families (196/1440
+hashes and 195 scores, split 96 improvements to 99 regressions), but it did not scale. At 200k,
+`skyline_push` gained +3.92 and `canyon_steps` +0.72; at 500k they flipped to -4.19 and -3.87,
+with `ridge_pulse` -4.60 and `syncopated_lift` -3.15. The missing elevation signal is real, but
+the current ballistic predictor is not reliable enough across dense/compact sequences at mature
+depth. The existing sparse profile gate remains load-bearing; further work needs prediction-truth
+calibration, not suite-specific activation gates. Source changes were reverted; no full run was
+launched and baselines remain `probe-baseline-fp6f760d-j32-a01` (695.09) and
+`full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - NOT KEPT - geometry-only jitter with true local objectives
 
 Reason: the final residual audit found candidate fit cost and some local gates reading jittered

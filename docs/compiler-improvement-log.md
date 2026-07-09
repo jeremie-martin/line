@@ -2,6 +2,33 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - SOURCE-FREE NOT KEPT - repair max96 cap-heavy paired screen
+
+Reason: current accepted probe telemetry still shows some mature-budget rows reaching the
+64-restart repair cap, especially on mixed vertical and sparse pop families. Before adding a
+repair allocator or another source-level scheduler change, this source-free screen tested whether
+simply raising `LR_REPAIR_MAX_ATTEMPTS` to 96 can unlock accepted suffix repairs on a cap-heavy
+500k slice. Candidate generation, start selection, forward eval, repair ranking, scorer, specs,
+evaluator fingerprint, seed policy, source files, and acceptance rule stayed unchanged.
+
+Screen:
+`generated/golden-runs/screen-repair-max96-capheavy-paired500-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_REPAIR_MAX_ATTEMPTS=96 npm run golden -- --specs=drums_crescendo,climb_terrace,swoop_dive,dense_echo_climb,ridge_pulse,glide_stairs,switchback_pop --budgets=500000 --seed-base=24 --seed-count=12 --jobs=32 --archive-dir=generated/golden-runs/screen-repair-max96-capheavy-paired500-j32-a01`.
+It was paired against the accepted probe baseline's same 500k specs/seeds. The screen was valid
+84/84.
+
+Decision: paired manual comparison to
+`generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json` showed mean score delta
++0.00 across 84 checkpoints, 0 score changes, and 0 track-hash changes. Repair restarts increased
+slightly on a few rows (mean restart delta +0.37), but accepted repair count stayed unchanged
+(mean accept delta +0.00) and the track outputs did not move.
+
+Why it was not kept: the cap can still bind in telemetry, but a static higher cap is not the
+current limiter on this cap-heavy paired slice. Extra permitted restarts do not convert into
+accepted suffix repairs or different tracks, so future repair iterations need a different value or
+placement signal rather than more global attempts. No source changes were made, no canonical probe
+or full run was launched, and no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - repair impact-anchor half weight
 
 Reason: post-completion repair spends a large mature-budget tail on the remaining weak rows, and

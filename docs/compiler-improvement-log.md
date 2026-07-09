@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - opening expected-value forward eval
+
+Reason: prior opening-margin tuning showed that the opening ambiguity mechanism can move scores,
+but it was effectively a threshold nudge. This trial kept the existing opening ambiguity, slack,
+and structural gate unchanged and changed only the forward-eval aggregation selected by the gate:
+from optimistic `best:1:k` to expected-value `avg:1:k`.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-opening-avg-expected-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-opening-avg-expected-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.00 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.71. Per-budget point estimates were 75k 661.82, 200k 688.66, and 500k 702.52.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-opening-avg-expected-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: REJECT`: baseline 695.1 -> candidate 695.0, delta -0.1,
+CI [-0.3, 0.0], P(delta<=0)=94.8%, effect -0.97. Per-budget deltas were 75k -0.0,
+200k -0.1, and 500k -0.1, with unchanged 100% pass rates.
+
+Why it was not kept: the change was sparse but clearly wrong-shaped. Across paired checkpoints,
+23/1440 track hashes changed and 23 scores changed, with 7 improvements and 16 regressions. The
+raw paired row-score sum was -130.83: 75k lost -21.80, 200k lost -52.50, and 500k lost -56.53.
+All movement was limited to `tiny_dance` (-80.96 total) and `mini_burst` (-49.87 total). The
+largest gain, `mini_burst` seed 5 at 200k (+32.51), was outweighed by losses such as
+`mini_burst` seed 8 at 200k (-36.14), `tiny_dance` seed 2 at 500k (-20.73), and
+`mini_burst` seed 8 at 500k (-19.07). Expected-value selection is too conservative for these
+small opening cases and sends some seeds into worse opening basins. No full run was launched.
+Source edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - mature-budget local repair reopen
 
 Reason: anchor-only reopening improved the 200k probe rung but hurt 500k, while local-window

@@ -364,3 +364,15 @@ accepted WASM artifact remained `433a35ba440b6c773f3a6c5d4fdcbd91`.
     **7,018.8 ns/frame**, delta median/mean **+0.06% / +0.24%**, 95% CI
     **[-0.07%, 0.55%]**, candidate won **13/30** rounds,
     `P(candidate faster)=7.0%`.
+
+- **Single-pass joint fit rows: REJECT**
+  - Mechanism: in `fitJointValueModels`, build finite fit rows in one pass
+    instead of allocating `finiteRows`, re-reading row values, and mapping a
+    second array for every output key.
+  - Correctness: focused optimizer tests passed; quick `npm run cbench -- --spec=mini_burst --seed=0 --budget=50000 --reps=5 --warmup=1`
+    kept result signature `6143:34`; `npm run verify:compiler:behavior` passed
+    48/48 cells, repair_cells=33, repair_restarts=676.
+  - JS A/B screen was inconclusive: base mean **7,016.2 ns/frame**, candidate
+    mean **7,006.5 ns/frame**, delta median/mean **-0.08% / -0.14%**, 95% CI
+    **[-0.37%, 0.11%]**, candidate won **17/30** rounds,
+    `P(candidate faster)=84.4%`.

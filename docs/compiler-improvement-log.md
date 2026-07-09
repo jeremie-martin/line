@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - air/impact Pareto span for SLAM-HOP exits
+
+Reason: the preceding air-tail fidelity probe showed that low-air residuals are concentrated in
+coupled air+impact asks, while the impact template used one fixed ballistic hop duration. The
+temporary mechanism mapped an authored air fraction to the equal-height ballistic flight time
+(`T = air * nextGapFrames`) and used the existing deterministic attempt lattice to span between
+that air-sized exit turn and the accepted impact-sized exit turn. Gaps without an air ask retained
+the existing `0.72` hop scale. No new RNG draws, candidates, feature gates, or budget thresholds;
+candidate validation, search, repair, scorer, specs, evaluator fingerprint, seed policy, budget
+grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 94 tests, `LR_ENGINE=wasm`), including a temporary
+geometry test that verified low- and high-air template exits covered distinct ballistic angles.
+
+Probe: `generated/golden-runs/probe-impact-template-air-pareto-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-template-air-pareto-j32-a01`.
+It was valid 1440/1440, invalid 0, timeout 0. Raw HEADLINE was 694.39 versus the current probe
+baseline 695.09; HEADLINE excluding impact was 712.34. Per-budget scores were 75k 660.50, 200k
+687.97, and 500k 702.04.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-impact-template-air-pareto-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: delta -0.7, CI [-2.6, 1.1], P(delta<=0)=78.3%, effect -0.77.
+Per-budget deltas were 75k -1.4, 200k -0.8, and 500k -0.6, with unchanged 100% validity.
+
+Why it was not kept: the intended `drums_pendulum` row was effectively flat (+0.004 mean across
+the probe grid), so air-sized template exits did not break its detector/impact floor. The mechanism
+changed 692/1440 track hashes and 691 scores, split 338 improvements to 353 regressions. Useful
+movement in `grain_staircase` (+4.09 mean), `drums_zigzag` (+3.99), and `dense_sprint` (+3.76)
+was outweighed by broad dense-family losses led by `drums_swell` (-14.22), `drums_dropout`
+(-11.22), `syncopated_lift` (-7.37), and `drums_signature` (-4.79). Replacing existing template
+turn allocation with a broad air/impact Pareto span destabilizes more selected basins than it
+repairs. Source and test changes were reverted; no full run was launched and baselines remain
+`probe-baseline-fp6f760d-j32-a01` (695.09) and `full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - METADATA REBASELINE - evaluator fingerprint refresh after measure.ts speed refactors
 
 The committed `EVALUATOR_FINGERPRINT` (5198f9897033) predated the behavior-preserving

@@ -352,3 +352,15 @@ accepted WASM artifact remained `433a35ba440b6c773f3a6c5d4fdcbd91`.
     mean **6,983.2 ns/frame**, delta median/mean **-0.33% / -0.04%**, 95% CI
     **[-0.88%, 1.13%]**, candidate won **18/30** rounds,
     `P(candidate faster)=56.6%`.
+
+- **Candidate contact-frame scan cleanup: REJECT**
+  - Mechanism: cache the next-contact bound once per `evaluateGapFit` call for
+    the release-frame and release-exit checks, and replace the off-beat
+    `contactFrames.some(...)` callback with an equivalent explicit loop.
+  - Correctness: focused optimizer/handoff tests passed; quick `npm run cbench -- --spec=mini_burst --seed=0 --budget=50000 --reps=5 --warmup=1`
+    kept result signature `6143:34`; `npm run verify:compiler:behavior` passed
+    48/48 cells, repair_cells=33, repair_restarts=676.
+  - JS A/B screen rejected: base mean **7,002.4 ns/frame**, candidate mean
+    **7,018.8 ns/frame**, delta median/mean **+0.06% / +0.24%**, 95% CI
+    **[-0.07%, 0.55%]**, candidate won **13/30** rounds,
+    `P(candidate faster)=7.0%`.

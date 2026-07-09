@@ -2,6 +2,34 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - geometry-only jitter with true local objectives
+
+Reason: the final residual audit found candidate fit cost and some local gates reading jittered
+`gap.targets`, while quality ranking, forward evaluation, and the scorer read true targets. The
+sampler already supported geometry-only targets. The temporary general mechanism preserved every
+target RNG draw and used the same sampled targets only to shape proposal geometry, while installing
+true targets in `gap.targets` for fit cost/gates/ranking. Contact-authored impact remained
+unjittered. Candidate count, proposal diversity, forward evaluation, repair, budgets, scorer,
+specs, evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 114 tests, `LR_ENGINE=wasm`), including a temporary
+unit test for proposal/objective target separation and fallback behavior.
+
+Probe: `generated/golden-runs/probe-geometry-jitter-true-objective-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-geometry-jitter-true-objective-j32-a01`.
+It was valid 1440/1440, with raw HEADLINE 695.09 and HEADLINE excluding impact 713.83.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-geometry-jitter-true-objective-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE` with delta, CI, and effect all exactly zero.
+
+Why it was not kept: all 1440 paired track hashes and scores were identical at 75k, 200k, and
+500k. True-target quality ranking and forward evaluation already dominate the jittered local cost
+on every selected path; the systematic final-axis residuals come from geometry/response limits,
+not this target-plumbing inconsistency. Source and test changes were reverted; no full run was
+launched and baselines remain `probe-baseline-fp6f760d-j32-a01` (695.09) and
+`full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - OBSERVATION ONLY - exact final-axis residual decomposition
 
 Question: after closing local aim-basis and repair-scheduling changes, identify whether current

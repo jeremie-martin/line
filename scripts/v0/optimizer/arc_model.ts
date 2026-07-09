@@ -744,19 +744,44 @@ export function predictJointArcScoreReadout(
           model.context.axisMeasureEnd,
         );
         if (prefix !== null) {
-          const axes = completeBallisticScoreAxesFromSummary(
-            prefix,
-            model.context.axisMeasureEnd,
-            suffixFrame,
-            suffixState.vx,
-            suffixState.vy,
-            scoreAir,
-            scoreSpeed,
-            scoreElevation,
+          const prefixEnd = Math.max(
+            prefix.startFrame,
+            Math.min(model.context.axisMeasureEnd, Math.round(prefix.prefixEndFrame)),
           );
-          if (axes.air !== undefined) air = axes.air;
-          if (axes.speed !== undefined) speedAxis = axes.speed;
-          if (axes.elevation !== undefined) elevation = axes.elevation;
+          const prefixFrames = Math.max(0, prefixEnd - prefix.startFrame + 1);
+          const suffixFrames = Math.max(0, model.context.axisMeasureEnd - prefixEnd);
+          if (scoreAir) {
+            const totalFrames = prefixFrames + suffixFrames;
+            if (totalFrames > 0) {
+              const prefixAirFrames = Math.max(0, Math.min(prefixFrames, prefix.airFrames));
+              air = (prefixAirFrames + suffixFrames) / totalFrames;
+            }
+          }
+          if (scoreSpeed) {
+            let speedSumPx = prefix.speedSumPx;
+            let speedFrames = Math.max(0, Math.min(prefixFrames, prefix.speedFrames));
+            for (let f = prefixEnd + 1; f <= model.context.axisMeasureEnd; f++) {
+              const vy = suffixState.vy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
+              speedSumPx += Math.sqrt(suffixState.vx * suffixState.vx + vy * vy);
+              speedFrames++;
+            }
+            if (speedFrames > 0) speedAxis = speedPxToAuthored(speedSumPx / speedFrames);
+          }
+          if (
+            scoreElevation &&
+            model.context.axisMeasureEnd > prefix.startFrame &&
+            Number.isFinite(prefix.v0SpeedPx)
+          ) {
+            let dy = prefix.dy;
+            for (let f = prefixEnd + 1; f <= model.context.axisMeasureEnd; f++) {
+              dy += suffixState.vy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
+            }
+            elevation = netDyToElevation(
+              dy,
+              Math.max(0, prefix.v0SpeedPx),
+              model.context.axisMeasureEnd - prefix.startFrame,
+            );
+          }
         }
       }
       if (suffixFrame <= model.context.nextFrame) {
@@ -1086,49 +1111,6 @@ function prefixSummaryFromDirectLatent(
     dy: latent.prefixDy,
     v0SpeedPx: latent.prefixV0SpeedPx,
   };
-}
-
-function completeBallisticScoreAxesFromSummary(
-  summary: BallisticAxisPrefixSummary,
-  rangeEndFrame: number,
-  suffixFrame: number,
-  suffixVx: number,
-  suffixVy: number,
-  needAir: boolean,
-  needSpeed: boolean,
-  needElevation: boolean,
-): AxisValues {
-  const out: AxisValues = {};
-  const prefixEnd = Math.max(summary.startFrame, Math.min(rangeEndFrame, Math.round(summary.prefixEndFrame)));
-  const prefixFrames = Math.max(0, prefixEnd - summary.startFrame + 1);
-  const suffixFrames = Math.max(0, rangeEndFrame - prefixEnd);
-  if (needAir) {
-    const totalFrames = prefixFrames + suffixFrames;
-    if (totalFrames > 0) {
-      const prefixAirFrames = Math.max(0, Math.min(prefixFrames, summary.airFrames));
-      out.air = (prefixAirFrames + suffixFrames) / totalFrames;
-    }
-  }
-
-  if (needSpeed) {
-    let speedSumPx = summary.speedSumPx;
-    let speedFrames = Math.max(0, Math.min(prefixFrames, summary.speedFrames));
-    for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
-      const vy = suffixVy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
-      speedSumPx += Math.sqrt(suffixVx * suffixVx + vy * vy);
-      speedFrames++;
-    }
-    if (speedFrames > 0) out.speed = speedPxToAuthored(speedSumPx / speedFrames);
-  }
-
-  if (needElevation && rangeEndFrame > summary.startFrame && Number.isFinite(summary.v0SpeedPx)) {
-    let dy = summary.dy;
-    for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
-      dy += suffixVy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
-    }
-    out.elevation = netDyToElevation(dy, Math.max(0, summary.v0SpeedPx), rangeEndFrame - summary.startFrame);
-  }
-  return out;
 }
 
 /** The 9-key `exit.*` block at the suffix/exit frame: the suffix launch state

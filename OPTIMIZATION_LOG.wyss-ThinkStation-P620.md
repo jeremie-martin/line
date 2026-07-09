@@ -295,3 +295,30 @@ accepted WASM artifact remained `433a35ba440b6c773f3a6c5d4fdcbd91`.
     **7,069.5 ns/frame**, candidate mean **7,079.5 ns/frame**, delta
     median/mean **+0.11% / +0.16%**, 95% CI **[-0.16%, 0.57%]**,
     candidate won **47/100** rounds, `P(candidate faster)=19.2%`.
+
+- **Line-cell cache 128 slots: REJECT**
+  - Mechanism: increase the per-frame `LineCellCache` from 64 to 128 slots in
+    the Rust collision lookup path.
+  - Correctness: `cargo test`, `npm run build:wasm`, and `npm run
+    verify:compiler:behavior` passed. Candidate artifact:
+    `483463b97d04259c677b3d6ebc6d8c19`.
+  - WASM A/B screen was inconclusive: base mean **7,017.8 ns/frame**,
+    candidate mean **6,985.7 ns/frame**, delta median/mean **-0.11% / -0.45%**,
+    95% CI **[-1.06%, 0.11%]**, candidate won **16/30** rounds,
+    `P(candidate faster)=94.0%`.
+
+- **Line-cell cache direct slot hash: REJECT**
+  - Mechanism: keep `LineCellCache` at 64 slots but replace its extra
+    golden-ratio slot multiply with direct low-bit masking of the already-encoded
+    cell key.
+  - Correctness: `cargo test`, `npm run build:wasm`, and `npm run
+    verify:compiler:behavior` passed. Candidate artifact:
+    `070177b2f3c9bd5dcad6e6ab9586ce64`.
+  - WASM A/B screen kept: base mean **7,039.8 ns/frame**, candidate mean
+    **6,985.1 ns/frame**, delta median/mean **-0.77% / -0.75%**, 95% CI
+    **[-1.56%, 0.05%]**, candidate won **23/30** rounds,
+    `P(candidate faster)=96.8%`.
+  - Full WASM A/B rejected as inconclusive/regressive: base mean
+    **6,999.6 ns/frame**, candidate mean **7,006.8 ns/frame**, delta
+    median/mean **+0.13% / +0.11%**, 95% CI **[-0.10%, 0.36%]**,
+    candidate won **46/100** rounds, `P(candidate faster)=17.2%`.

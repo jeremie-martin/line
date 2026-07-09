@@ -2,6 +2,43 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - current-quality-diverse aim basis replacement
+
+Reason: exact-prefix telemetry showed the best current-gap quality candidate was absent even from
+the eight-entry scored pool in roughly 62% of the studied weak-prefix pools, while admitting that
+candidate directly was decisively harmful because its future readiness was poor. The existing aim
+lane is the appropriate transformation layer: it fits a response model around each basis, searches
+for higher current-quality x readiness variants, and exactly validates emitted candidates. The
+temporary general mechanism kept `K=1` byte-identical, but whenever the already accepted aim lane
+could afford multiple bases, it preserved the first K-1 product-objective bases and used the last
+basis for the best current-quality component candidate. Base count, probe design, emitted-candidate
+cap per basis, candidate pool, forward evaluation, repair, budgets, scorer, specs, evaluator
+fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 94 tests, `LR_ENGINE=wasm`), including a temporary
+unit test for exact K=1 preservation and component diversification at wider K.
+
+Probe: `generated/golden-runs/probe-current-quality-aim-base-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-current-quality-aim-base-j32-a01`.
+It was valid 1440/1440. Raw HEADLINE was 695.06 versus the current probe baseline 695.09;
+HEADLINE excluding impact improved to 714.22. The 75k tier was bit-identical at 661.85; 200k
+improved to 689.87 (+1.1), while 500k regressed to 702.12 (-0.5).
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-current-quality-aim-base-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: delta -0.0, CI [-1.7, 1.8], P(delta<=0)=51.6%, effect
+-0.03. Validity stayed 100% at every budget.
+
+Why it was not kept: the component basis is useful at 200k, but replacing the sixth mature product
+basis gives that value back at 500k. The mechanism changed 868/1440 hashes and 866 scores, split
+414 improvements to 452 regressions. Winners included `drums_tide` (+5.53 mean), `verse_chorus`
+(+4.74), `tiny_dance` (+3.58), `opening_burst` (+3.52), and `drums_pendulum` (+3.16); losses
+were led by `drums_pulse` (-7.91), `drums_crescendo` (-6.24), `syncopated_switchback` (-4.89),
+and `drums_dropout` (-4.41). At 500k it emitted 11.35 fewer aimed candidates per row despite
+spending about 676 additional aim-probe frames, confirming that the displaced product basis remains
+productive. Source and test changes were reverted; no full run was launched and baselines remain
+`probe-baseline-fp6f760d-j32-a01` (695.09) and `full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - REJECTED PROBE - Pareto-spanned next-impact template scoop duration
 
 Reason: the forced next-impact scoop-duration inverse moved several intended impact chains but was

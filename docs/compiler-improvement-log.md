@@ -2,6 +2,34 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - next-gap vertical launch target alignment
+
+Reason: an exact-prefix study compared the forward-ranker winner with the best proposed and
+admitted candidates for the following elevation target. Across 15 vertical specs at 200k/seed 0,
+3,316 material opportunities showed winner next-elevation error .294, best admitted .245, and
+best proposed .023. The exact proposed specialist sat near quality rank 27 and lost next-state
+readiness (.597->.131), especially speed fit (.900->.374) and impact feasibility (.862->.500).
+Current-gap elevation was identical across candidates at one prefix: the controllable elevation
+state is inherited from the previous catch's post-contact launch.
+
+The temporary general mechanism carried each sampled next gap's elevation/amplitude targets to
+that preceding post-contact launch, analogous to the existing `nextImpact` lookahead. Current-beat
+catch/impact geometry, candidate count, ranking, exact evaluation, repair, budgets, scorer, specs,
+fingerprint, seeds, grid, and acceptance rule stayed unchanged. Focused tests passed (7 files,
+93 tests).
+
+On 15 vertical specs x seeds 0..2 at 200k, mean score improved only +0.40 across 45 rows and was
+dominated by one `skyline_push` seed. Family means were unstable: `glide_stairs` +9.89 and
+`skyline_push` +37.09, but `syncopated_lift` -14.30, `terrace_sprint` -11.65, and
+`dense_echo_climb` -6.17. Archives are
+`generated/studies/next-elevation-specialist-15spec-b200-s0-a01.json` and the paired
+`generated/studies/next-vertical-launch{,-off}-15spec-b200-s{0,1-2}-a01.json` studies.
+
+Why it was not probed: direct target shifting changes the launch while speed, air, contact, and
+survival controls still describe the current candidate state, producing basin swaps rather than a
+stable correction. The behavior was reverted before the fixed probe. A useful vertical primitive
+must preserve future speed/catchability while increasing climb, not merely retime the target.
+
 ## 2026-07-09 - OBSERVATION ONLY - start-option basin oracle
 
 Question: the compiler evaluates and sorts ten start conditions, but accepted golden runs almost

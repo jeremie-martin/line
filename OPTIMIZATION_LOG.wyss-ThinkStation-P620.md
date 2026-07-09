@@ -263,3 +263,20 @@ Verdict: kept. The behavior gate remained bit-identical and the full JS paired
 gate barely cleared the probability threshold with a negative median delta. The
 single `npm run perf` standing remains noisy and above the `<5,000
 ns/physics-frame` objective, so the goal remains open.
+
+## Rejected probes (2026-07-09 after Attempt 4)
+
+All source candidates below were reverted after the listed speed gate. The
+accepted WASM artifact remained `433a35ba440b6c773f3a6c5d4fdcbd91`.
+
+- **Candidate-window single-contact array reuse: REJECT**
+  - Mechanism: in `detectCandidateWindowBuffer`, reuse the previous one-element
+    `contactLineIds` array for consecutive frames with the same single contact
+    line id, mirroring the existing shared empty-contact singleton.
+  - Correctness: focused optimizer tests passed; quick `npm run cbench -- --spec=mini_burst --seed=0 --budget=50000 --reps=5 --warmup=1`
+    kept result signature `6143:34`; `npm run verify:compiler:behavior` passed
+    48/48 cells, repair_cells=33, repair_restarts=676.
+  - JS A/B screen was inconclusive: base mean **7,046.1 ns/frame**, candidate
+    mean **7,023.5 ns/frame**, delta median/mean **-0.23% / -0.31%**, 95% CI
+    **[-0.79%, 0.13%]**, candidate won **19/30** rounds,
+    `P(candidate faster)=90.2%`.

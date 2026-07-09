@@ -76,3 +76,46 @@ scorer inputs, specs, or baselines.
 Verdict: kept. The full paired gate cleared the probability and median-delta
 thresholds, and the confidence interval stayed below zero. The `<5,000
 ns/physics-frame` objective remains open.
+
+## Attempt 2 (2026-07-09) - precompute joint current score axes, KEEP
+
+Mechanism kept: compute the current-axis scoring mask once per joint aimed
+candidate set and pass it through to `predictJointArcScoreReadout`. The current
+targets are fixed while enumerating pitch/rotate knob candidates, so this avoids
+six repeated `shouldScoreCurrentAxis` checks per score readout without changing
+the scored axes or model arithmetic.
+
+This is a TypeScript compiler hot-path change only; the accepted Rust/WASM
+artifact remains `433a35ba440b6c773f3a6c5d4fdcbd91`.
+
+- **Focused correctness:**
+  - `npx vitest run tests/optimizer_sample.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts`
+    passed: 38/38 tests.
+- **Behavior gate:**
+  - `npm run verify:compiler:behavior` passed before and after A/B:
+    48/48 cells byte-identical, repair_cells=33, repair_restarts=676.
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=30 --reps=4 --warmup=1`
+  - swapped files: `scripts/v0/optimizer/aim.ts`,
+    `scripts/v0/optimizer/arc_model.ts`
+  - base mean **7,164.7 ns/frame**
+  - candidate mean **7,098.4 ns/frame**
+  - delta median/mean **-0.82% / -0.91%**
+  - 95% CI **[-1.47%, -0.32%]**
+  - candidate won **25/30** rounds
+  - `P(candidate faster)=99.9%`
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **7,152.5 ns/frame**
+  - candidate mean **7,083.8 ns/frame**
+  - delta median/mean **-0.86% / -0.95%**
+  - 95% CI **[-1.20%, -0.75%]**
+  - candidate won **83/100** rounds
+  - `P(candidate faster)=100.0%`
+- **Current standing:** `npm run perf`
+  - mean **6,861.6 ns/physics-frame**
+  - median **6,468.9 ns/physics-frame**
+  - stddev **752.4**
+  - frames **50,003**
+
+Verdict: kept. The behavior gate remained bit-identical and the full JS paired
+gate showed a repeatable win. The `<5,000 ns/physics-frame` objective remains
+open.

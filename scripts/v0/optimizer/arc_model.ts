@@ -211,6 +211,15 @@ export type JointArcScoreReadout = {
   exitSpeed: number;
 };
 
+export type JointArcCurrentScoreAxes = {
+  air: boolean;
+  speed: boolean;
+  grain: boolean;
+  elevation: boolean;
+  amplitude: boolean;
+  impact: boolean;
+};
+
 export const ARC_RESPONSE_MODEL_NAMES = [
   "linear",
   "additive_quadratic",
@@ -834,14 +843,15 @@ export function predictJointArcScoreReadout(
   model: JointArcResponseModel,
   knobs: ArcKnobs,
   currentTargets: AxisValues,
+  scoreAxes: JointArcCurrentScoreAxes = jointArcCurrentScoreAxes(currentTargets),
 ): JointArcScoreReadout {
   const readout = model.scoreReadout;
-  const scoreAir = shouldScoreCurrentAxis(currentTargets, "air");
-  const scoreSpeed = shouldScoreCurrentAxis(currentTargets, "speed");
-  const scoreGrain = shouldScoreCurrentAxis(currentTargets, "grain");
-  const scoreElevation = shouldScoreCurrentAxis(currentTargets, "elevation");
-  const scoreAmplitude = shouldScoreCurrentAxis(currentTargets, "amplitude");
-  const scoreImpact = shouldScoreCurrentAxis(currentTargets, "impact");
+  const scoreAir = scoreAxes.air;
+  const scoreSpeed = scoreAxes.speed;
+  const scoreGrain = scoreAxes.grain;
+  const scoreElevation = scoreAxes.elevation;
+  const scoreAmplitude = scoreAxes.amplitude;
+  const scoreImpact = scoreAxes.impact;
 
   let air = scoreAir ? predictEntryValue(readout.outputAir, knobs) : NaN;
   let speedAxis = scoreSpeed ? predictEntryValue(readout.outputSpeed, knobs) : NaN;
@@ -963,6 +973,17 @@ export function predictJointArcScoreReadout(
     state,
     exitFrame,
     exitSpeed,
+  };
+}
+
+export function jointArcCurrentScoreAxes(targets: AxisValues): JointArcCurrentScoreAxes {
+  return {
+    air: shouldScoreCurrentAxis(targets, "air"),
+    speed: shouldScoreCurrentAxis(targets, "speed"),
+    grain: shouldScoreCurrentAxis(targets, "grain"),
+    elevation: shouldScoreCurrentAxis(targets, "elevation"),
+    amplitude: shouldScoreCurrentAxis(targets, "amplitude"),
+    impact: shouldScoreCurrentAxis(targets, "impact"),
   };
 }
 

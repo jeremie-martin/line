@@ -70,11 +70,13 @@ import {
   arcKnobSpan,
   arcProbeDesign,
   fitJointArcResponseModel,
+  jointArcCurrentScoreAxes,
   predictedCurrentAxes,
   predictJointArcScoreReadout,
   predictJointArcOutputs,
   type ArcKnobs,
   type ArcProbeDesignName,
+  type JointArcCurrentScoreAxes,
   type JointArcResponseModel,
   type RiderArrivalState,
 } from "./arc_model.ts";
@@ -714,11 +716,13 @@ function makeJointAimedCandidates(
   const baseOutputs = predictJointArcOutputs(model, baseKnobs);
   recordJointModelCoverage(model, baseOutputs, gap);
   const currentTargets = objectiveTargetsForGap(gap, ctx);
+  const currentScoreAxes = jointArcCurrentScoreAxes(currentTargets);
   const nextTargets = objectiveTargetsForGap(nextGap, ctx);
   const baseScore = scoreJointKnobs(
     model,
     baseKnobs,
     currentTargets,
+    currentScoreAxes,
     nextTargets,
     nextGap,
   );
@@ -745,6 +749,7 @@ function makeJointAimedCandidates(
         model,
         { pitchDeg, rotateDeg },
         currentTargets,
+        currentScoreAxes,
         nextTargets,
         nextGap,
       );
@@ -889,10 +894,11 @@ function scoreJointKnobs(
   model: ReturnType<typeof fitJointArcResponseModel>,
   knobs: ArcKnobs,
   currentTargets: AxisValues,
+  currentScoreAxes: JointArcCurrentScoreAxes,
   nextTargets: AxisValues,
   nextGap: Pick<Gap, "startFrame" | "endFrame">,
 ): JointScoreResult {
-  const readout = predictJointArcScoreReadout(model, knobs, currentTargets);
+  const readout = predictJointArcScoreReadout(model, knobs, currentTargets, currentScoreAxes);
   const exitFrame = readout.exitFrame;
   if (Number.isFinite(exitFrame) && exitFrame > nextGap.endFrame) return "next_before_exit";
   const state = readout.state;

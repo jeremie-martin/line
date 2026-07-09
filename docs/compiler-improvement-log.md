@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - OBSERVATION ONLY - start-option basin oracle
+
+Question: the compiler evaluates and sorts ten start conditions, but accepted golden runs almost
+always expand only rank 0 deeply. An inert study hook now isolates one already-ranked start option;
+ordinary compiles retain the exact ten-option traversal. The study script can also stop at first
+completion to separate basin choice from later repair.
+
+At 200k, ten representative specs x seeds 0..2 showed a rank-0 mean of 649.42 and an oracle over
+ranks 0/1 of 657.34, a +7.92 upper bound; rank 1 won 7/30 rows. First-completion outputs selected
+the eventual better rank in 26/30 rows and captured +4.62 of that bound, but reaching both first
+completions cost roughly 140k frames. An equal 100k/100k split increased its own rank-0 mean by
++13.43 under an oracle, yet reached only 638.52, 10.90 below the single 200k rank-0 traversal.
+Archives: `generated/studies/start-rank-oracle-10spec-b200-s0-2-r0-1-a01.json`,
+`generated/studies/start-rank-first-completion-10spec-b200-s0-2-r0-1-a01.json`, and
+`generated/studies/start-rank-split-10spec-b100-s0-2-r0-1-a01.json`.
+
+A charged depth-4 greedy rescore of the top two finalists was also tested on the same 30 rows. It
+frequently selected rank 1 but reduced mean score from 649.42 to 646.46, including several large
+wrong-basin choices. Archive:
+`generated/studies/start-finalist-depth4-10spec-b200-s0-2-a01.json`. The temporary selector was
+removed. The result closes both cheap greedy reranking and equal budget splitting; a future basin
+portfolio would need resumable real-policy evidence substantially cheaper than first completion.
+
 ## 2026-07-09 - OBSERVATION ONLY - repair improvement timing
 
 Question: the stop-on-first-accept probe gained at 200k but lost terminal breadth, so determine

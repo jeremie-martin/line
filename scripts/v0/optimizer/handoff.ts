@@ -156,6 +156,9 @@ export type CompileHandoffOptions = {
   /** Study hook: stop as soon as the first full-duration traversal is considered.
    *  This isolates path quality from post-completion search and repair budget. */
   stopAfterFirstCompletion?: boolean;
+  /** Study hook: run only one option from the start evaluator's sorted list.
+   *  Production leaves this unset and traverses the normal option list. */
+  startOptionRank?: number;
   /** Test hook: called for each prefix output offered to the register. */
   onNode?: (node: HandoffNode, key: LeafKey, event: HandoffNodeEvent) => void;
 };
@@ -876,9 +879,24 @@ function compileHandoffInternal(
     const budgetSlackTelemetry = round3(budgetSlack);
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContactCadence = usesSparseContactCadenceProfile(targetProfile);
-    const startOptions = initialSnapshot === null
+    const allStartOptions = initialSnapshot === null
       ? buildStartOptions(userSpec, spec, gaps, ctx, searchSeed, targetBudget)
       : [];
+    const startOptions = opts.startOptionRank === undefined
+      ? allStartOptions
+      : (() => {
+        if (!Number.isInteger(opts.startOptionRank) || opts.startOptionRank < 0) {
+          throw new Error(`compileHandoff: startOptionRank must be a non-negative integer`);
+        }
+        const option = allStartOptions[opts.startOptionRank];
+        if (option === undefined) {
+          throw new Error(
+            `compileHandoff: startOptionRank ${opts.startOptionRank} is outside ` +
+              `${allStartOptions.length} start options`,
+          );
+        }
+        return [option];
+      })();
     const root: HandoffNode = initialSnapshot === null
       ? {
         search: startOptions[0].root,

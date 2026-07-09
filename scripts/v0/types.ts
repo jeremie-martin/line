@@ -776,7 +776,7 @@ export type CompileStats = {
       inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
       weakAxis?: string | null;
       weakAxisTarget?: number | null; weakAxisAchieved?: number | null;
-      weakAxisError?: number | null; weakGapSse?: number | null;
+      weakAxisError?: number | null; weakAxisCeiling?: number | null; weakGapSse?: number | null;
       weakArrivalSpeed?: number | null; weakArrivalAngle?: number | null;
       weakArrivalReadiness?: number | null; weakArrivalCatchability?: number | null;
       weakArrivalSpeedFit?: number | null; weakArrivalImpactFeasibility?: number | null;

@@ -2,6 +2,31 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - OBSERVATION ONLY - repair elevation ceiling check
+
+Question: `pickFeasibleWeakGap` ranks raw per-gap axis SSE even though elevation reports carry a
+physical ceiling and document target-above-ceiling shortfall as expected rather than a compiler
+miss. The inherited-state trace also showed unusually low elevation repair yield (3.9% direct,
+8.8% eventual upstream). Test whether repair is spending its tail on irreducible elevation error
+before changing the ranking objective.
+
+Scaffolding: log-gated repair records now include the dominant axis ceiling, and
+`study_repair_anchor_causality.ts` reports ceiling-limited and mostly-irreducible elevation chains.
+No policy reads the field. Focused tests passed (3 files, 50 tests, `LR_ENGINE=wasm`).
+
+Study archive:
+`generated/golden-runs/study-repair-elevation-ceiling-all-b500-s24-26-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_REPAIR_LOG=1 npm run golden -- --budgets=500000 --seed-base=24 --seed-count=3 --jobs=32 --archive-dir=generated/golden-runs/study-repair-elevation-ceiling-all-b500-s24-26-a01`.
+It was valid 120/120 and exactly reproduced the accepted baseline score (702.47). Analysis is
+archived at `generated/studies/repair-elevation-ceiling-all-b500-s24-26-a01.json`.
+
+Result: all 283 elevation-dominant repair chains had a finite ceiling, but zero had
+`target > ceiling`; consequently zero had mostly irreducible error by the proposed definition.
+The implementation mismatch is only latent on this current suite and cannot explain the observed
+low elevation repair yield. No production mechanism or fixed probe was run. The accepted baselines
+remain `probe-baseline-fp6f760d-j32-a01` (695.09) and
+`full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - NOT KEPT - stable-seed causal parent-first repair
 
 Reason: the first parent-first trial reassigned restart seeds with execution order, so its parent

@@ -21,7 +21,10 @@ type RepairRecord = {
   afterScore: number;
   beforeScore: number;
   weakAxis?: string | null;
+  weakAxisTarget?: number | null;
+  weakAxisAchieved?: number | null;
   weakAxisError?: number | null;
+  weakAxisCeiling?: number | null;
   weakGapSse?: number | null;
   weakArrivalReadiness?: number | null;
   weakArrivalCatchability?: number | null;
@@ -152,6 +155,24 @@ for (const row of archive.rows) {
 }
 
 const axes = [...new Set(chains.map((chain) => chain.records[0]?.weakAxis ?? "unknown"))].sort();
+const elevationWithCeiling = chains.filter((chain) => {
+  const record = chain.records[0];
+  return record?.weakAxis === "elevation" &&
+    finite(record.weakAxisTarget) &&
+    finite(record.weakAxisAchieved) &&
+    finite(record.weakAxisError) &&
+    finite(record.weakAxisCeiling);
+});
+const elevationCeilingLimited = elevationWithCeiling.filter((chain) => {
+  const record = chain.records[0];
+  return record.weakAxisTarget! > record.weakAxisCeiling!;
+});
+const elevationMostlyIrreducible = elevationCeilingLimited.filter((chain) => {
+  const record = chain.records[0];
+  const error = Math.abs(record.weakAxisError!);
+  const irreducible = Math.max(0, record.weakAxisTarget! - record.weakAxisCeiling!);
+  return error > 0 && irreducible / error >= 0.75;
+});
 const result = {
   source: goldenPath,
   checkpoints: archive.rows.reduce((sum, row) => sum + row.checkpoints.length, 0),
@@ -161,6 +182,11 @@ const result = {
     axis,
     summarize(chains.filter((chain) => (chain.records[0]?.weakAxis ?? "unknown") === axis)),
   ])),
+  elevation_ceiling: {
+    with_ceiling: summarize(elevationWithCeiling),
+    ceiling_limited: summarize(elevationCeilingLimited),
+    at_least_75pct_irreducible: summarize(elevationMostlyIrreducible),
+  },
   by_factor_bin: Object.fromEntries(FACTORS.map((factor) => [factor, factorBins(chains, factor)])),
 };
 

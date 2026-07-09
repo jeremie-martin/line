@@ -965,7 +965,7 @@ function compileHandoffInternal(
       inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
       weakAxis: string | null;
       weakAxisTarget: number | null; weakAxisAchieved: number | null;
-      weakAxisError: number | null; weakGapSse: number | null;
+      weakAxisError: number | null; weakAxisCeiling: number | null; weakGapSse: number | null;
       weakArrivalSpeed: number | null; weakArrivalAngle: number | null;
       weakArrivalReadiness: number | null; weakArrivalCatchability: number | null;
       weakArrivalSpeedFit: number | null; weakArrivalImpactFeasibility: number | null;
@@ -1420,6 +1420,7 @@ function compileHandoffInternal(
               weakAxisTarget: weakValue?.target ?? null,
               weakAxisAchieved: weakValue?.achieved ?? null,
               weakAxisError: weakValue?.error ?? null,
+              weakAxisCeiling: weakValue?.ceiling ?? null,
               weakGapSse,
               weakArrivalSpeed: arrival?.speed ?? null,
               weakArrivalAngle: arrival?.comAngleDeg ?? null,
@@ -1436,6 +1437,7 @@ function compileHandoffInternal(
             weakAxisTarget: null,
             weakAxisAchieved: null,
             weakAxisError: null,
+            weakAxisCeiling: null,
             weakGapSse: null,
             weakArrivalSpeed: null,
             weakArrivalAngle: null,

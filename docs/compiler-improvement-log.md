@@ -2,6 +2,78 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - Pareto-spanned next-impact template scoop duration
+
+Reason: the forced next-impact scoop-duration inverse moved several intended impact chains but was
+negative because it removed the accepted duration from every qualifying template. This distinct
+trial used the existing deterministic 16-step contact-centered attempt lattice to span between the
+unchanged baseline scoop duration and the gravity/redirection-derived next-impact duration. Thus
+some template attempts retained the exact incumbent geometry while others sampled the next-ready
+endpoint and intermediates. No new RNG draws, candidates, lane rate, thresholds, or constants;
+ranking, forward evaluation, repair, budgets, scorer, specs, evaluator fingerprint, seed policy,
+budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 94 tests, `LR_ENGINE=wasm`).
+
+Probe: `generated/golden-runs/probe-impact-chain-scoop-span-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-chain-scoop-span-j32-a01`.
+It completed 1439/1440 valid, with `drums_dropout` seed 2 failing at 75k. Raw HEADLINE was
+694.34 versus the current probe baseline 695.09; HEADLINE excluding impact was 713.16. Per-budget
+scores were 75k 660.48, 200k 688.35, and 500k 701.81.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-impact-chain-scoop-span-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: REJECT`: delta -0.8, CI [-2.7, 1.0], P(delta<=0)=80.3%, effect -0.82.
+Per-budget deltas were 75k -1.4, 200k -0.4, and 500k -0.8.
+
+Why it was not kept: preserving baseline-duration candidates changed the winner mix but did not
+make duration shaping robust. It changed 601/1440 hashes and 597 scores, split 258 improvements
+to 339 regressions. Stronger intended gains in `drums_tide` (+5.51 mean), `drums_swell` (+5.17),
+`syncopated_switchback` (+3.07), `switchback_pop` (+2.64), and `drums_pendulum` (+2.09) were
+overwhelmed by `drums_dropout` (-20.01, including the failure), `drums_zigzag` (-10.77),
+`drums_signature` (-5.12), and `drums_pulse` (-3.20). The impact specialist's missing future
+readiness requires a different release state, not merely more ballistic time. Source and test
+changes were reverted; no full run was launched and baselines remain
+`probe-baseline-fp6f760d-j32-a01` (695.09) and `full-baseline-fp6f760d-j32-a01` (697.22).
+
+## 2026-07-09 - NOT KEPT - next-impact ballistic-time template scoop
+
+Reason: the exact-prefix objective-factor study explained why locally superior impact candidates
+lose admission. Across 912 material impact opportunities, the impact specialist improved current
+quality from .636 to .720 on average but reduced predicted next-gap readiness from .609 to .185:
+catchability .860->.687, speed fit .872->.575, next-impact feasibility .881->.464, and air fit
+.916->.827. The temporary mechanism shortened only impact-template scoops whose default grounded
+duration left less ballistic time than the following impact ask's conservative redirection inverse
+required. The duration came from the existing gravity, delivery-efficiency, impact normalization,
+catchability cap, speed, release angle, and next-gap frames; it introduced no suite-derived gate.
+Candidate count, template lane rate, ranking, forward evaluation, repair, budgets, scorer, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 94 tests, `LR_ENGINE=wasm`), including a temporary
+unit test that a harder following impact never reserved less ballistic time while no following ask
+kept the baseline duration.
+
+Probe: `generated/golden-runs/probe-impact-chain-scoop-time-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-chain-scoop-time-j32-a01`.
+It was valid 1440/1440. Raw HEADLINE was 694.54 versus the current probe baseline 695.09;
+HEADLINE excluding impact was 713.45. Per-budget scores were 75k 661.69, 200k 688.38, and
+500k 701.94.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-impact-chain-scoop-time-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: delta -0.5, CI [-2.4, 1.0], P(delta<=0)=74.8%, effect
+-0.66. Per-budget deltas were 75k -0.2, 200k -0.4, and 500k -0.7, with unchanged validity.
+
+Why it was not kept: the physical direction moved several intended chains but replacing every
+qualifying template duration removed useful baseline shapes. It changed 629/1440 hashes and 623
+scores, split 280 improvements to 343 regressions. Gains included `drums_crosscut` (+3.74 mean),
+`grain_staircase` (+3.49), `drums_swell` (+2.14), `drums_crescendo` (+1.77), `drums_tide`
+(+1.50), `syncopated_switchback` (+1.48), and `drums_pendulum` (+1.18); losses were led by
+`drums_signature` (-6.26), `drums_pulse` (-5.58), `dense_sprint` (-5.55), and `mini_burst`
+(-3.37). The next-impact state deficit is real, but a forced duration inverse is not robust.
+Source and test changes were reverted; no full run was launched and baselines remain
+`probe-baseline-fp6f760d-j32-a01` (695.09) and `full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - REJECTED PROBE - whole-gap current-quality admission slot
 
 Reason: a corrected observation-only study captured each quality-sorted candidate pool at one exact

@@ -2,6 +2,8 @@ import {
   AXES,
   ELEVATION,
   REPORT_ONLY_AXIS_SET,
+  netDyToElevation,
+  speedPxToAuthored,
   type AxisValues,
   type Gap,
   type TrackLine,
@@ -723,6 +725,9 @@ export function predictJointArcScoreReadout(
   let state: RiderArrivalState | null = null;
   let exitFrame = predictEntryValue(readout.outputExitFrame, knobs);
   let exitSpeed = predictEntryValue(readout.outputExitSpeed, knobs);
+  const scoreAir = shouldScoreCurrentAxis(currentTargets, "air");
+  const scoreSpeed = shouldScoreCurrentAxis(currentTargets, "speed");
+  const scoreElevation = shouldScoreCurrentAxis(currentTargets, "elevation");
 
   if (readout.hasLatent) {
     const latent = predictLatentReadout(readout, knobs);
@@ -731,18 +736,28 @@ export function predictJointArcScoreReadout(
     if (suffixState !== null && Number.isFinite(suffixFrame)) {
       exitFrame = suffixFrame;
       exitSpeed = suffixState.speed;
-      const prefix = prefixSummaryFromDirectLatent(
-        latent,
-        model.context.gap.startFrame,
-        suffixFrame,
-        model.context.axisMeasureEnd,
-      );
-      if (prefix !== null) {
-        const suffix: BallisticAxisSuffix = { frame: suffixFrame, vx: suffixState.vx, vy: suffixState.vy };
-        const axes = completeBallisticSpanAxesFromSummary(prefix, model.context.axisMeasureEnd, suffix);
-        if (axes.air !== undefined) air = axes.air;
-        if (axes.speed !== undefined) speedAxis = axes.speed;
-        if (axes.elevation !== undefined) elevation = axes.elevation;
+      if (scoreAir || scoreSpeed || scoreElevation) {
+        const prefix = prefixSummaryFromDirectLatent(
+          latent,
+          model.context.gap.startFrame,
+          suffixFrame,
+          model.context.axisMeasureEnd,
+        );
+        if (prefix !== null) {
+          const axes = completeBallisticScoreAxesFromSummary(
+            prefix,
+            model.context.axisMeasureEnd,
+            suffixFrame,
+            suffixState.vx,
+            suffixState.vy,
+            scoreAir,
+            scoreSpeed,
+            scoreElevation,
+          );
+          if (axes.air !== undefined) air = axes.air;
+          if (axes.speed !== undefined) speedAxis = axes.speed;
+          if (axes.elevation !== undefined) elevation = axes.elevation;
+        }
       }
       if (suffixFrame <= model.context.nextFrame) {
         state = propagateBallisticArrivalState(suffixState, model.context.nextFrame - suffixFrame);
@@ -766,6 +781,10 @@ export function predictJointArcScoreReadout(
     exitFrame,
     exitSpeed,
   };
+}
+
+function shouldScoreCurrentAxis(targets: AxisValues, axis: string): boolean {
+  return !REPORT_ONLY_AXIS_SET.has(axis) && Number.isFinite(targets[axis as keyof AxisValues]);
 }
 
 /** Axes the latent reducer reconstructs ballistically (via
@@ -1067,6 +1086,49 @@ function prefixSummaryFromDirectLatent(
     dy: latent.prefixDy,
     v0SpeedPx: latent.prefixV0SpeedPx,
   };
+}
+
+function completeBallisticScoreAxesFromSummary(
+  summary: BallisticAxisPrefixSummary,
+  rangeEndFrame: number,
+  suffixFrame: number,
+  suffixVx: number,
+  suffixVy: number,
+  needAir: boolean,
+  needSpeed: boolean,
+  needElevation: boolean,
+): AxisValues {
+  const out: AxisValues = {};
+  const prefixEnd = Math.max(summary.startFrame, Math.min(rangeEndFrame, Math.round(summary.prefixEndFrame)));
+  const prefixFrames = Math.max(0, prefixEnd - summary.startFrame + 1);
+  const suffixFrames = Math.max(0, rangeEndFrame - prefixEnd);
+  if (needAir) {
+    const totalFrames = prefixFrames + suffixFrames;
+    if (totalFrames > 0) {
+      const prefixAirFrames = Math.max(0, Math.min(prefixFrames, summary.airFrames));
+      out.air = (prefixAirFrames + suffixFrames) / totalFrames;
+    }
+  }
+
+  if (needSpeed) {
+    let speedSumPx = summary.speedSumPx;
+    let speedFrames = Math.max(0, Math.min(prefixFrames, summary.speedFrames));
+    for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
+      const vy = suffixVy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
+      speedSumPx += Math.hypot(suffixVx, vy);
+      speedFrames++;
+    }
+    if (speedFrames > 0) out.speed = speedPxToAuthored(speedSumPx / speedFrames);
+  }
+
+  if (needElevation && rangeEndFrame > summary.startFrame && Number.isFinite(summary.v0SpeedPx)) {
+    let dy = summary.dy;
+    for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
+      dy += suffixVy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
+    }
+    out.elevation = netDyToElevation(dy, Math.max(0, summary.v0SpeedPx), rangeEndFrame - summary.startFrame);
+  }
+  return out;
 }
 
 /** The 9-key `exit.*` block at the suffix/exit frame: the suffix launch state

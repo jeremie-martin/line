@@ -2,6 +2,48 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - positive fallback for zero-cost repair suffixes
+
+Reason: detailed repair traces showed nodes first reached after first completion receive a
+clamped measured cost-to-end of zero. The temporary allocator treated those as unknown and used
+the existing positive coarse per-gap estimate, giving each late-suffix restart a real frame
+ceiling instead of a zero-frame attempt. Search, restart seeds, gap selection, geometry, scorer,
+and budgets were unchanged. Focused tests passed (3 files, 42 tests).
+
+On the twelve worst-impact specs at 200k/seed 0, mean score regressed 625.50->624.14. The direct
+late-suffix work changed restart-seed progression and lost better upstream basins:
+`dense_echo_climb` -5.85 and `ridge_pulse` -10.86, against only +0.24 on `rhythm_ladder` and
++0.17 on `solo_run`. Archives:
+`generated/studies/impact-local-weight-accepted-w0.5-12spec-b200-s0-a01.json` and
+`generated/studies/repair-zero-cost-floor-12spec-b200-s0-a01.json`. Source was reverted without
+a fixed probe.
+
+## 2026-07-09 - OBSERVATION ONLY - accepted-baseline impact residual anatomy
+
+Question: locate the dominant residual on the new 697.63 full baseline without relying on prior
+campaign interpretations. Exact rescoring of all 2,880 archived reports found removable headline
+headroom of impact +54.32, air +29.38, elevation +26.43, amplitude +22.07, and speed +15.08.
+At 550k, impact still had RMS error .118, mean signed residual -.053, and 66.1% under-target
+measurements. Archive:
+`generated/studies/final-axis-residuals-full-transition-motion-finalist-a01.json`.
+
+The current local impact-cost weight was not the cause: `LR_IMPACT_LOCAL_W=1` was track-hash
+identical to the default 0.5 on the twelve worst-impact specs at 200k/seed 0. An exact-prefix pool
+study found 2,187 material impact-specialist opportunities. The forward winner averaged impact
+error .167 and readiness .553; the best admitted impact specialist improved error to .125 with
+readiness .527, while the best of all proposed candidates reached .023 error but collapsed
+readiness to .180, principally speed fit (.818->.491) and next-impact feasibility (.853->.509).
+Archive: `generated/studies/current-impact-specialist-12spec-b200-s0-a01.json`.
+
+Composed-track remeasurement on `drums_dropout`, `dense_echo_climb`, and `float_bounds` matched
+the committed candidate's impact exactly, ruling out a measurement/composition drift. Detailed
+repair traces on the same twelve rows chose impact as the weakest axis in 129/265 restart
+decisions; only 6/24 impact restarts that spent frames were accepted, for +30.89 total score from
+589k repair frames. Archive: `generated/studies/repair-impact-anatomy-12spec-b200-s0-a01.json`.
+The next impact mechanism must preserve the following launch state while increasing current
+redirection; scalar weighting, target pursuit, or late-suffix allocation alone do not address the
+measured tradeoff.
+
 ## 2026-07-09 - KEPT - transition-aware motion finalist
 
 Reason: direct ownership changes improved mature routes but destabilized scarce search. This

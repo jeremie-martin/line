@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - earlier opening branch-2 pressure
+
+Reason: continue the accepted structural opening best-lookahead mechanism by testing whether the
+cheap `best:1:2` opening promotion should start slightly earlier while keeping the same full-pressure
+slack point. The trial changed only `OPENING_BEST_FWD_SLACK_BRANCH2_START` from 2.75 to 2.50 and
+`OPENING_BEST_FWD_SLACK_BRANCH2_SPAN` from 2.25 to 2.50. Branch-3 activation, structural/contact-count
+pressure, local opportunity gating, candidate generation, start selection, repair, scorer, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-opening-branch2-slack25-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-opening-branch2-slack25-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.09, with per-budget point estimates 75k 661.85, 200k 688.75,
+and 500k 702.61.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-opening-branch2-slack25-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.1, delta +0.0,
+CI [0.0, 0.0], P(delta<=0)=100.0%, effect 0.00. Per-budget deltas were exactly
++0.0 at 75k, 200k, and 500k, with unchanged 100% pass rates.
+
+Why it was not kept: this constant movement did not cross any deterministic opening-selection
+boundary on the 12-seed probe grid. Paired scores, track hashes, and forward-eval frame counters
+were unchanged on the compared rows, so there is no evidence to justify a full run or a baseline
+advance. This suggests the accepted branch-2 slack pressure is already sitting between active
+decision bands on the current suite; future opening-lookahead iterations need a different value
+signal, not a tiny pressure-threshold nudge. Source edits were reverted; no full run was launched
+and no baseline was advanced.
+
 ## 2026-07-09 - SOURCE-FREE NOT KEPT - vertical residual q32 breadth
 
 Reason: the remaining weak vertical/amplitude rows are all valid but under-shaped, and several run

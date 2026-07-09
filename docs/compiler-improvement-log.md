@@ -2,6 +2,42 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - mixed elevation pop tilt
+
+Reason: current full-baseline diagnostics showed several combined elevation+amplitude rows
+under-achieving upward elevation, especially `skyline_push`, `terrace_sprint`, and
+`dense_echo_climb`, while amplitude was often close to target. The contact-centered sampler first
+applies elevation steering, then lets the amplitude block blend the launch toward a symmetric pop
+arc; at strong amplitude pressure this can nearly erase the upward trend. This trial preserved part
+of the elevation launch angle after amplitude shaping for upward mixed climb/pop asks, scaled by
+the existing launch span and smooth elevation/amplitude pressures. Candidate count, scorer, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 94 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-mixed-elevation-pop-tilt-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-mixed-elevation-pop-tilt-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+HEADLINE was 695.05 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact was
+713.78. Per-budget point estimates were 75k 661.28, 200k 688.72, and 500k 702.64.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-mixed-elevation-pop-tilt-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.0, delta -0.0,
+CI [-0.5, 0.3], P(delta<=0)=61.5%, effect -0.25. Per-budget deltas were
+75k -0.6, 200k -0.0, and 500k +0.0, with unchanged pass rates.
+
+Why it was not kept: the geometry invariant worked locally, but the suite signal was not
+promotable. Across paired probe checkpoints, 288/1440 track hashes changed, with 139 score
+improvements, 148 regressions, and 1153 unchanged scores. It improved `canyon_steps` (+2.41
+average score points across the probe grid) but regressed `syncopated_lift` (-5.61),
+`rolling_drop` (-2.28), `skyline_push` (-0.52), and `terrace_sprint` (-0.50). The 75k aggregate
+loss shows the partial tilt still leaks into scarce-budget continuations. No full run was launched.
+Source and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - KEPT - final-contact tail off-beat gate
 
 Reason: the remaining accepted-baseline invalids were two scarce-budget `drums_crescendo` rows

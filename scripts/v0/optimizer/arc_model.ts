@@ -76,6 +76,11 @@ export type LinearModel = {
 
 export type KnobSurfaceModel = {
   samples: Array<{ knobs: ArcKnobs; value: number }>;
+  pitches: number[];
+  rotates: number[];
+  valueByPitchRotate: Map<number, Map<number, number>>;
+  pitchAxisSamples: Array<{ x: number; value: number }>;
+  rotateAxisSamples: Array<{ x: number; value: number }>;
 };
 
 export type ArcProbeDesignName = "cross5" | "grid9" | "pitch3";
@@ -598,9 +603,12 @@ function jointArcOutputKeys(rows: readonly JointArcProbeRow[], source: JointArcV
 }
 
 export function predictJointArcOutputs(model: JointArcResponseModel, knobs: ArcKnobs): Record<string, number> {
-  const outputs = predictFittedValues(model.outputModels, knobs);
+  const outputs: Record<string, number> = {};
+  predictFittedValuesInto(model.outputModels, knobs, outputs);
   if (model.latentModels.size > 0) clearReducerOwnedOutputs(outputs);
-  Object.assign(outputs, reduceLatentJointArcOutputs(predictFittedValues(model.latentModels, knobs), model.context));
+  const latent: Record<string, number> = {};
+  predictFittedValuesInto(model.latentModels, knobs, latent);
+  reduceLatentJointArcOutputsInto(latent, model.context, outputs);
   const computedCost = currentCostFromPredictedAxes(outputs, model.context.gap);
   if (computedCost !== null) outputs["current.cost"] = computedCost;
   return outputs;
@@ -645,11 +653,19 @@ function predictFittedValues(
   knobs: ArcKnobs,
 ): Record<string, number> {
   const values: Record<string, number> = {};
+  predictFittedValuesInto(models, knobs, values);
+  return values;
+}
+
+function predictFittedValuesInto(
+  models: JointArcResponseModel["outputModels"],
+  knobs: ArcKnobs,
+  values: Record<string, number>,
+): void {
   for (const [output, fitted] of models) {
     const pred = fitted.model.predict(knobs);
     values[output] = fitted.angle ? unwrapAngleAround(pred, fitted.ref) : pred;
   }
-  return values;
 }
 
 /** The fast-physics reducer: latent suffix state + prefix summaries → final
@@ -660,27 +676,35 @@ export function reduceLatentJointArcOutputs(
   context: JointArcResponseContext,
 ): Record<string, number> {
   const outputs: Record<string, number> = {};
+  reduceLatentJointArcOutputsInto(latent, context, outputs);
+  return outputs;
+}
+
+function reduceLatentJointArcOutputsInto(
+  latent: Record<string, number>,
+  context: JointArcResponseContext,
+  outputs: Record<string, number>,
+): void {
 
   const suffixFrame = latent["latent.suffix.frame"];
   const suffixState = suffixStateFromLatent(latent);
-  if (suffixState === null || !Number.isFinite(suffixFrame)) return outputs;
+  if (suffixState === null || !Number.isFinite(suffixFrame)) return;
 
   addFinite(outputs, "current.releaseSpeedPx", suffixState.speed);
   addFinite(outputs, "current.releaseVy", suffixState.vy);
-  Object.assign(outputs, exitStateOutputs(suffixState, suffixFrame));
+  addExitStateOutputs(outputs, suffixState, suffixFrame);
 
   const prefix = prefixSummaryFromLatent(latent, context.gap.startFrame, suffixFrame, context.axisMeasureEnd);
   if (prefix !== null) {
     const suffix: BallisticAxisSuffix = { frame: suffixFrame, vx: suffixState.vx, vy: suffixState.vy };
     const axes = completeBallisticSpanAxesFromSummary(prefix, context.axisMeasureEnd, suffix);
-    Object.assign(outputs, axisResponseOutputs(context.gap.targets, axes));
+    addAxisResponseOutputs(outputs, context.gap.targets, axes);
   }
 
   if (suffixFrame <= context.nextFrame) {
     const nextState = propagateBallisticArrivalState(suffixState, context.nextFrame - suffixFrame);
-    Object.assign(outputs, stateOutputs(nextState));
+    addStateOutputs(outputs, nextState);
   }
-  return outputs;
 }
 
 function currentCostFromPredictedAxes(outputs: Record<string, number>, gap: Gap): number | null {
@@ -756,6 +780,11 @@ function prefixSummaryFromLatent(
  *  set and values stay identical across model spaces. */
 export function exitStateOutputs(state: RiderArrivalState, frame: number): Record<string, number> {
   const outputs: Record<string, number> = {};
+  addExitStateOutputs(outputs, state, frame);
+  return outputs;
+}
+
+function addExitStateOutputs(outputs: Record<string, number>, state: RiderArrivalState, frame: number): void {
   addFinite(outputs, "exit.frame", frame);
   addFinite(outputs, "exit.x", state.x);
   addFinite(outputs, "exit.y", state.y);
@@ -765,11 +794,15 @@ export function exitStateOutputs(state: RiderArrivalState, frame: number): Recor
   addFinite(outputs, "exit.comAngleDeg", state.comAngleDeg);
   addFinite(outputs, "exit.sledPoseDeg", state.sledPoseDeg);
   addFinite(outputs, "exit.sledPoseRateDegPerFrame", state.sledPoseRateDegPerFrame);
-  return outputs;
 }
 
 export function stateOutputs(state: RiderArrivalState): Record<string, number> {
   const outputs: Record<string, number> = {};
+  addStateOutputs(outputs, state);
+  return outputs;
+}
+
+function addStateOutputs(outputs: Record<string, number>, state: RiderArrivalState): void {
   addFinite(outputs, "next.x", state.x);
   addFinite(outputs, "next.y", state.y);
   addFinite(outputs, "next.vx", state.vx);
@@ -778,7 +811,6 @@ export function stateOutputs(state: RiderArrivalState): Record<string, number> {
   addFinite(outputs, "next.comAngleDeg", state.comAngleDeg);
   addFinite(outputs, "next.sledPoseDeg", state.sledPoseDeg);
   addFinite(outputs, "next.sledPoseRateDegPerFrame", state.sledPoseRateDegPerFrame);
-  return outputs;
 }
 
 export function arcResponseOutputs(
@@ -789,8 +821,8 @@ export function arcResponseOutputs(
 ): Record<string, number> {
   const outputs: Record<string, number> = {};
   addFinite(outputs, "current.cost", cost);
-  Object.assign(outputs, axisResponseOutputs(targets, achieved));
-  if (nextState !== null) Object.assign(outputs, stateOutputs(nextState));
+  addAxisResponseOutputs(outputs, targets, achieved);
+  if (nextState !== null) addStateOutputs(outputs, nextState);
   return outputs;
 }
 
@@ -799,6 +831,15 @@ function axisResponseOutputs(
   achieved: AxisValues,
 ): Record<string, number> {
   const outputs: Record<string, number> = {};
+  addAxisResponseOutputs(outputs, targets, achieved);
+  return outputs;
+}
+
+function addAxisResponseOutputs(
+  outputs: Record<string, number>,
+  targets: AxisValues,
+  achieved: AxisValues,
+): void {
   for (const axis of AXES) {
     const actual = achieved[axis];
     if (actual === undefined) continue;
@@ -806,7 +847,6 @@ function axisResponseOutputs(
     const target = targets[axis];
     if (target !== undefined) addFinite(outputs, `current.error.${axis}`, actual - target);
   }
-  return outputs;
 }
 
 export function predictedCurrentAxes(outputs: Record<string, number>): AxisValues {
@@ -867,22 +907,43 @@ export function fitKnobSurfaceModel(rows: Array<{ knobs: ArcKnobs; value: number
   const samples = rows
     .filter((row) => Number.isFinite(row.value))
     .map((row) => ({ knobs: { ...row.knobs }, value: row.value }));
-  return samples.length >= minRows ? { samples } : null;
+  if (samples.length < minRows) return null;
+
+  const valueByPitchRotate = new Map<number, Map<number, number>>();
+  for (const sample of samples) {
+    const pitchKey = surfaceKey(sample.knobs.pitchDeg);
+    const rotateKey = surfaceKey(sample.knobs.rotateDeg);
+    let row = valueByPitchRotate.get(pitchKey);
+    if (row === undefined) {
+      row = new Map();
+      valueByPitchRotate.set(pitchKey, row);
+    }
+    // Preserve the previous Array.find semantics if duplicate probe keys appear.
+    if (!row.has(rotateKey)) row.set(rotateKey, sample.value);
+  }
+  return {
+    samples,
+    pitches: sortedUnique(samples.map((sample) => sample.knobs.pitchDeg)),
+    rotates: sortedUnique(samples.map((sample) => sample.knobs.rotateDeg)),
+    valueByPitchRotate,
+    pitchAxisSamples: surfaceAxisSamples(samples, "pitch"),
+    rotateAxisSamples: surfaceAxisSamples(samples, "rotate"),
+  };
 }
 
 export function predictKnobSurfaceModel(model: KnobSurfaceModel, knobs: ArcKnobs): number {
-  const exact = surfaceValueAt(model.samples, knobs.pitchDeg, knobs.rotateDeg);
+  const exact = surfaceValueAt(model, knobs.pitchDeg, knobs.rotateDeg);
   if (exact !== null) return exact;
 
-  const pitches = sortedUnique(model.samples.map((sample) => sample.knobs.pitchDeg));
-  const rotates = sortedUnique(model.samples.map((sample) => sample.knobs.rotateDeg));
+  const pitches = model.pitches;
+  const rotates = model.rotates;
   if (pitches.length >= 2 && rotates.length >= 2) {
     const [p0, p1] = bounds(pitches, knobs.pitchDeg);
     const [r0, r1] = bounds(rotates, knobs.rotateDeg);
-    const v00 = surfaceValueAt(model.samples, p0, r0);
-    const v01 = surfaceValueAt(model.samples, p0, r1);
-    const v10 = surfaceValueAt(model.samples, p1, r0);
-    const v11 = surfaceValueAt(model.samples, p1, r1);
+    const v00 = surfaceValueAt(model, p0, r0);
+    const v01 = surfaceValueAt(model, p0, r1);
+    const v10 = surfaceValueAt(model, p1, r0);
+    const v11 = surfaceValueAt(model, p1, r1);
     if (v00 !== null && v01 !== null && v10 !== null && v11 !== null) {
       const pt = p1 === p0 ? 0 : (knobs.pitchDeg - p0) / (p1 - p0);
       const rt = r1 === r0 ? 0 : (knobs.rotateDeg - r0) / (r1 - r0);
@@ -892,9 +953,9 @@ export function predictKnobSurfaceModel(model: KnobSurfaceModel, knobs: ArcKnobs
     }
   }
 
-  const center = surfaceValueAt(model.samples, 0, 0);
-  const pitch = interpolateAxis(model.samples, "pitch", knobs.pitchDeg);
-  const rotate = interpolateAxis(model.samples, "rotate", knobs.rotateDeg);
+  const center = surfaceValueAt(model, 0, 0);
+  const pitch = interpolateAxis(model.pitchAxisSamples, knobs.pitchDeg);
+  const rotate = interpolateAxis(model.rotateAxisSamples, knobs.rotateDeg);
   if (center !== null && pitch !== null && rotate !== null) return pitch + rotate - center;
   return nearestSurfaceValue(model.samples, knobs);
 }
@@ -916,23 +977,29 @@ function bounds(xs: number[], x: number): [number, number] {
   return [lo, hi];
 }
 
-function surfaceValueAt(samples: Array<{ knobs: ArcKnobs; value: number }>, pitchDeg: number, rotateDeg: number): number | null {
-  const sample = samples.find((s) =>
-    s.knobs.pitchDeg.toFixed(6) === pitchDeg.toFixed(6) &&
-    s.knobs.rotateDeg.toFixed(6) === rotateDeg.toFixed(6)
-  );
-  return sample?.value ?? null;
+function surfaceKey(value: number): number {
+  const scaled = value * 1_000_000;
+  return scaled < 0 ? Math.ceil(scaled - 0.5) : Math.floor(scaled + 0.5);
 }
 
-function interpolateAxis(
+function surfaceValueAt(model: KnobSurfaceModel, pitchDeg: number, rotateDeg: number): number | null {
+  return model.valueByPitchRotate.get(surfaceKey(pitchDeg))?.get(surfaceKey(rotateDeg)) ?? null;
+}
+
+function surfaceAxisSamples(
   samples: Array<{ knobs: ArcKnobs; value: number }>,
   axis: "pitch" | "rotate",
-  value: number,
-): number | null {
-  const axisSamples = samples
+): Array<{ x: number; value: number }> {
+  return samples
     .filter((sample) => axis === "pitch" ? sample.knobs.rotateDeg === 0 : sample.knobs.pitchDeg === 0)
     .map((sample) => ({ x: axis === "pitch" ? sample.knobs.pitchDeg : sample.knobs.rotateDeg, value: sample.value }))
     .sort((a, b) => a.x - b.x);
+}
+
+function interpolateAxis(
+  axisSamples: Array<{ x: number; value: number }>,
+  value: number,
+): number | null {
   if (axisSamples.length === 0) return null;
   if (value <= axisSamples[0].x) return axisSamples[0].value;
   for (let i = 1; i < axisSamples.length; i++) {

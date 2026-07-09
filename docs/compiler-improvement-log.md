@@ -2,6 +2,43 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - additive current-quality aim basis
+
+Reason: the preceding replacement trial improved 200k but regressed 500k because it displaced the
+sixth mature product-objective basis. This distinct trial preserved every existing basis and, only
+when the lane already had multi-base capacity, appended the best missing current-gap-quality
+candidate as an additional response-model basis. `K=1` paths stayed byte-identical. Candidate
+sampling, product ranking, response model, emitted-candidate cap per basis, forward evaluation,
+repair, budgets, scorer, specs, evaluator fingerprint, seed policy, budget grid, and acceptance
+rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 94 tests, `LR_ENGINE=wasm`), including a temporary
+unit test for exact K=1 preservation, unchanged product bases, and addition of the missing component
+optimum.
+
+Probe: `generated/golden-runs/probe-current-quality-aim-base-additive-j32-a01/golden.json`, run
+with `LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-current-quality-aim-base-additive-j32-a01`.
+It was valid 1440/1440. Raw HEADLINE was 694.87 versus the current probe baseline 695.09;
+HEADLINE excluding impact was 713.64. The 75k tier was bit-identical at 661.85; 200k regressed
+to 688.27 (-0.5), and 500k regressed to 702.47 (-0.1).
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-current-quality-aim-base-additive-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: delta -0.2, CI [-1.9, 1.3], P(delta<=0)=59.6%, effect
+-0.27. Validity stayed 100% at every budget.
+
+Why it was not kept: preserving the accepted bases did not recover the 200k gain from the
+replacement trial. The extra model work delayed first completion by about 2381/2286 frames per
+row at 200k/500k and displaced about 144/359 sampled candidates, while adding about 1983/4744
+charged aim-probe frames. It changed 758/1440 hashes and 752 scores, split 360 improvements to
+392 regressions. Winners included `drums_swell` (+5.25 mean), `verse_chorus` (+4.62),
+`drums_zigzag` (+3.71), `drums_crosscut` (+3.49), and `tiny_dance` (+3.30); losses were led by
+`drums_pulse` (-10.27), `syncopated_switchback` (-9.23), `drums_tide` (-3.96), and
+`rolling_drop` (-2.73). Together with the replacement result, this closes direct current-quality
+basis diversification: the component optimum needs a better inherited state, not more local aim
+model capacity. Source and test changes were reverted; no full run was launched and baselines
+remain `probe-baseline-fp6f760d-j32-a01` (695.09) and `full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - NOT KEPT - current-quality-diverse aim basis replacement
 
 Reason: exact-prefix telemetry showed the best current-gap quality candidate was absent even from

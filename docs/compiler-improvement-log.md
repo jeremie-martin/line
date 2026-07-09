@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - global mature full-gap elevation readiness
+
+Reason: raw global next-elevation readiness was rejected because its suffix-normalized prediction
+was severely biased; standalone full-gap normalization was accurate but too narrow under the
+accepted sparse gate. This distinct integrated mechanism combined the analytically corrected
+full-gap coordinate with mature activation for every authored climb ask. The existing per-gap
+pressure remained inert without elevation or at asks at/below 0.5. Candidate generation, objective
+powers/asymmetry, forward evaluation, repair, budgets, scorer, specs, evaluator fingerprint, seed
+policy, budget grid, and acceptance rule stayed unchanged; 75k remained below the 200k gate.
+
+Focused tests passed before the probe (7 files, 114 tests, `LR_ENGINE=wasm`).
+
+Probe: `generated/golden-runs/probe-mature-elevation-readiness-full-gap-j32-a01/golden.json`, run
+with `LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-mature-elevation-readiness-full-gap-j32-a01`.
+It was valid 1440/1440. Raw HEADLINE was exactly 695.09; HEADLINE excluding impact was 713.71.
+The 75k tier was bit-identical; 200k regressed by -0.2 and 500k improved by +0.1.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-mature-elevation-readiness-full-gap-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: delta +0.0, CI [-0.4, 0.4], P(delta<=0)=50.7%, effect
+-0.00. Validity stayed 100% at every budget.
+
+Why it was not kept: prediction calibration removed the prior global gate's decisive 500k loss,
+but did not create a promotable improvement. The mechanism changed 270 hashes and 269 scores,
+split 138 improvements to 131 regressions. Budget reversals remained: `syncopated_lift` moved
++2.91 at 200k and -2.83 at 500k, while `rolling_hills` moved -7.66 then +4.48. Corrected
+elevation readiness changes search basins but does not reliably improve the anytime register;
+family/budget gates would be suite-specific overfitting. Source and test changes were reverted,
+no full run was launched, and baselines remain `probe-baseline-fp6f760d-j32-a01` (695.09) and
+`full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - NOT KEPT - full-gap next-elevation normalization
 
 Reason: the prediction-truth study showed the objective's elevation prediction was expressed in

@@ -26,6 +26,7 @@ const seeds = (argValue("seeds") ?? "0").split(",").map(Number);
 const ranks = (argValue("ranks") ?? "0,1,2,3").split(",").map(Number);
 const budget = Number(argValue("budget") ?? "200000");
 const firstCompletion = argFlag("first-completion");
+const polish = argFlag("polish");
 const outPath = argValue("out");
 for (const spec of specs) {
   if (!(GOLDEN_SPECS as readonly string[]).includes(spec)) throw new Error(`unknown spec "${spec}"`);
@@ -53,6 +54,7 @@ for (const specName of specs) {
         budget,
         startOptionRank: rank,
         stopAfterFirstCompletion: firstCompletion,
+        polish,
       });
       const score = scoreDriftReport(checkpoint.report, { totalFrames: secToFrame(spec.duration) });
       rows.push({
@@ -101,7 +103,7 @@ console.log(`nonzero-rank winners ${nonzeroWins}/${n}`);
 if (outPath !== undefined) {
   writeFileSync(
     outPath,
-    JSON.stringify({ budget, firstCompletion, specs, seeds, ranks, rows }, null, 2) + "\n",
+    JSON.stringify({ budget, firstCompletion, polish, specs, seeds, ranks, rows }, null, 2) + "\n",
   );
   console.log(`rows -> ${outPath}`);
 }

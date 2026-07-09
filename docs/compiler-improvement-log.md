@@ -2,6 +2,43 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - OBSERVATION ONLY - dormant terminal polish cost
+
+Question: quantify the existing optional clone-and-test air/contact polish path, which golden
+compiles never enable. The start-rank study scaffold now accepts `--polish`; production behavior is
+unchanged. On the ten-spec x seeds 0..2 panel at 200k, polish reduced mean score 649.42->647.94.
+Most rows were exact because generated start support lines intentionally disable the old rebuild;
+on `skyline_push`, one attempted variant consumed about 134k frames, changed geometry, was not
+adopted, and starved ordinary search. Archive:
+`generated/studies/terminal-polish-10spec-b200-s0-2-a01.json`. The existing multi-rebuild polish is
+not a viable budgeted mechanism without a new bounded implementation.
+
+## 2026-07-09 - NOT KEPT - next-gap motion target alignment
+
+Reason: the vertical-only target shift was internally inconsistent, so this distinct general
+mechanism assigned temporal ownership coherently. Current-beat impact and grain remained attached
+to the terminating catch; all post-contact motion controls (air, speed, elevation, amplitude)
+read the sampled following-span targets, matching the existing `nextImpact` convention. Candidate
+count, target RNG draws, ranking, exact evaluation, repair, budgets, scorer, specs, fingerprint,
+seed policy, grid, and acceptance rule stayed unchanged.
+
+Focused tests passed (7 files, 93 tests). A ten-spec x seeds 0..2 study at 200k improved mean score
+by +2.24, so the mechanism advanced to the fixed probe. Probe:
+`generated/golden-runs/probe-next-motion-targets-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-next-motion-targets-j32-a01`.
+It completed 1438/1440 valid with HEADLINE 694.17 versus 695.09 and excluding-impact HEADLINE
+713.04 versus 713.83.
+
+Decision versus `probe-baseline-fp6f760d-j32-a01`: `VERDICT: INCONCLUSIVE`, delta -0.9,
+CI [-7.5, 3.1], P(delta<=0)=58.1%, effect -0.34. Per-budget deltas were -15.0 at 75k,
++0.9 at 200k, and +0.5 at 500k. The scarce loss came primarily from `solo_run` (-105.8 mean,
+two failures), while mature improvements were broad but offset by fewer large regressions.
+
+Why it was not kept: semantic alignment improves most mature rows but is not affordable/reliable
+before a route is secure, and the fixed gate did not accept it. Source was reverted and no full run
+was launched. A further test must be a separately logged budget-slack allocation mechanism, not an
+unconditional target switch.
+
 ## 2026-07-09 - NOT KEPT - accelerated climb ride-out variants
 
 Reason: next-elevation specialists reached their target but lost future speed and readiness. The

@@ -499,10 +499,118 @@ function fitLinearArcOutput(
 ): FittedArcOutputModel | null {
   const model = fitLinearLeastSquares(rows.map((row) => ({ features: features(row.knobs), value: row.value })));
   return model === null ? null : {
-    predict: (knobs) => predictLinearModel(model, features(knobs)),
+    predict: makeLinearArcPredictor(model, features, form),
     form,
     degraded: false,
   };
+}
+
+function makeLinearArcPredictor(
+  model: LinearModel,
+  features: (knobs: ArcKnobs) => number[],
+  form: ArcResponseFitForm,
+): (knobs: ArcKnobs) => number {
+  const c = model.coefficients;
+  switch (form) {
+    case "linear": {
+      if (c.length !== 3) break;
+      const [c0, c1, c2] = c;
+      return (knobs) => {
+        let y = 0;
+        y += c0 * 1;
+        y += c1 * knobs.pitchDeg;
+        y += c2 * knobs.rotateDeg;
+        return y;
+      };
+    }
+    case "additive_quadratic": {
+      if (c.length !== 5) break;
+      const [c0, c1, c2, c3, c4] = c;
+      return (knobs) => {
+        const p = knobs.pitchDeg;
+        const r = knobs.rotateDeg;
+        const pp = p * p;
+        const rr = r * r;
+        let y = 0;
+        y += c0 * 1;
+        y += c1 * p;
+        y += c2 * r;
+        y += c3 * pp;
+        y += c4 * rr;
+        return y;
+      };
+    }
+    case "joint_quadratic": {
+      if (c.length !== 6) break;
+      const [c0, c1, c2, c3, c4, c5] = c;
+      return (knobs) => {
+        const p = knobs.pitchDeg;
+        const r = knobs.rotateDeg;
+        const pp = p * p;
+        const pr = p * r;
+        const rr = r * r;
+        let y = 0;
+        y += c0 * 1;
+        y += c1 * p;
+        y += c2 * r;
+        y += c3 * pp;
+        y += c4 * pr;
+        y += c5 * rr;
+        return y;
+      };
+    }
+    case "biquadratic": {
+      if (c.length !== 9) break;
+      const [c0, c1, c2, c3, c4, c5, c6, c7, c8] = c;
+      return (knobs) => {
+        const p = knobs.pitchDeg / 9;
+        const r = knobs.rotateDeg / 3;
+        const pp = p * p;
+        const pr = p * r;
+        const rr = r * r;
+        const ppr = pp * r;
+        const prr = pr * r;
+        const pprr = ppr * r;
+        let y = 0;
+        y += c0 * 1;
+        y += c1 * p;
+        y += c2 * r;
+        y += c3 * pp;
+        y += c4 * pr;
+        y += c5 * rr;
+        y += c6 * ppr;
+        y += c7 * prr;
+        y += c8 * pprr;
+        return y;
+      };
+    }
+    case "pitch_quadratic": {
+      if (c.length !== 3) break;
+      const [c0, c1, c2] = c;
+      return (knobs) => {
+        const p = knobs.pitchDeg;
+        const pp = p * p;
+        let y = 0;
+        y += c0 * 1;
+        y += c1 * p;
+        y += c2 * pp;
+        return y;
+      };
+    }
+    case "pitch_linear": {
+      if (c.length !== 2) break;
+      const [c0, c1] = c;
+      return (knobs) => {
+        let y = 0;
+        y += c0 * 1;
+        y += c1 * knobs.pitchDeg;
+        return y;
+      };
+    }
+    case "surface":
+      break;
+  }
+  return (knobs) => predictLinearModel(model, features(knobs));
 }
 
 /** The production per-output fit: the richest functional form the rows can

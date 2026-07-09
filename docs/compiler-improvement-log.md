@@ -2,6 +2,42 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - repair reopen accepted anchor only
+
+Reason: the local exhausted-window reopen was positive but inconclusive, while the broad downstream
+reopen was too noisy. This narrower trial kept candidate generation, start selection, forward
+eval, repair ranking, repair caps, scorer, specs, evaluator fingerprint, seed policy, budget grid,
+and acceptance rule unchanged. After an accepted upstream repair restart, it cleared only the
+accepted restart anchor from the exhausted set, leaving intermediate downstream exhausted gaps
+locked until selected directly.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-repair-reopen-anchor-exhaust-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-reopen-anchor-exhaust-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.07 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.84. Per-budget point estimates were 75k 661.85, 200k 688.79, and 500k 702.57.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-repair-reopen-anchor-exhaust-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.1, delta -0.0,
+CI [-0.2, 0.1], P(delta<=0)=64.0%, effect -0.29. Per-budget deltas were 75k +0.0,
+200k +0.0, and 500k -0.0, with unchanged 100% pass rates.
+
+Why it was not kept: anchor-only reopening was too narrow and underperformed the local-window
+version. Across paired checkpoints, 37/1440 track hashes changed and 36 scores changed, with
+19 improvements and 17 regressions. The raw paired row-score sum was only +6.35; 200k improved
+(+23.88), but 500k regressed (-17.53). Gains on `tiny_dance` (+45.79 total),
+`glide_stairs` (+6.51), and `big_air_ramp` (+3.35) were offset by losses on
+`leap_cadence` (-11.37), `skyline_push` (-11.06), `summit_push` (-10.01), and
+`mini_burst` (-6.82). Compared with the local-window trial, this removed too much of the useful
+intermediate-window reopening and flipped mature-budget movement negative. No full run was
+launched. Source edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - local repair reopen exhausted window
 
 Reason: the broad downstream exhausted-gap reopen confirmed that an accepted upstream repair can

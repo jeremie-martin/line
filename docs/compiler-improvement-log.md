@@ -2,6 +2,45 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - mature-budget local repair reopen
+
+Reason: anchor-only reopening improved the 200k probe rung but hurt 500k, while local-window
+reopening improved 500k but gave back some 200k. Because golden budgets are independent compiles,
+this hybrid kept candidate generation, start selection, forward eval, repair ranking, repair caps,
+scorer, specs, evaluator fingerprint, seed policy, budget grid, and acceptance rule unchanged and
+changed only the post-accept exhausted-set reset: below 350k it reopened only the accepted repair
+anchor; at 350k and above it reopened the local exhausted window between accepted anchor and
+original weak gap.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-repair-reopen-mature-local-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-reopen-mature-local-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.12 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.85. Per-budget point estimates were 75k 661.85, 200k 688.79, and 500k 702.64.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-repair-reopen-mature-local-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.1, delta +0.0,
+CI [-0.2, 0.3], P(delta<=0)=43.9%, effect +0.23. Per-budget deltas were 75k +0.0,
+200k +0.0, and 500k +0.0, with unchanged 100% pass rates. The decision hint estimated roughly
+677 more seed slots would likely be needed to resolve this effect size.
+
+Why it was not kept: this is the best-shaped reopen variant so far, but it still did not clear the
+probe acceptance gate. Across paired checkpoints, 44/1440 track hashes changed and 43 scores
+changed, with 22 improvements and 21 regressions. The raw paired row-score sum was +43.27:
+75k stayed byte-identical, 200k improved +23.88, and 500k improved +19.39. Gains on
+`tiny_dance` (+56.39 total), `swoop_dive` (+14.19), `glide_stairs` (+6.51),
+`dense_echo_climb` (+5.66), and `mini_burst` (+4.47) were offset by losses on
+`leap_cadence` (-11.37), `skyline_push` (-11.06), `summit_push` (-10.53),
+`valley_bounce` (-6.02), and `verse_chorus` (-4.89). The budget-gated shape is promising enough
+to inform later repair allocation, but it is too small/noisy as a production policy. No full run
+was launched. Source edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - repair reopen accepted anchor only
 
 Reason: the local exhausted-window reopen was positive but inconclusive, while the broad downstream

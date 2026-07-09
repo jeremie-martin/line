@@ -2,6 +2,43 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - low/mid-budget opening margin 0.06 fade
+
+Reason: the global `0.06` opening ambiguity margin cleared the corrected 12-seed probe but failed
+the full canonical run because the 350k and 475k seed blocks were negative. This trial kept
+candidate generation, start selection, branch-2/branch-3 slack activation, structural/contact-count
+pressure, repair, scorer, specs, evaluator fingerprint, seed policy, budget grid, and acceptance
+rule unchanged. It used the tighter `0.06` opening top-two relative margin through 225k, then
+smoothly faded back to the accepted `0.12` margin by 350k so mature budgets would retain the
+baseline selector.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-opening-margin06-lowmid-fade-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-opening-margin06-lowmid-fade-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.11 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.87. Per-budget point estimates were 75k 661.88, 200k 688.81, and 500k 702.61.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-opening-margin06-lowmid-fade-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.1, delta +0.0,
+CI [-0.0, 0.1], P(delta<=0)=21.8%, effect 0.83. Per-budget deltas were 75k +0.0,
+200k +0.1, and 500k +0.0, with unchanged 100% pass rates. The probe hint estimated roughly
+six more seed slots would likely resolve the positive signal.
+
+Why it was not kept: it narrowly missed the probe accept gate, so no full run was launched. Across
+paired probe checkpoints, 7/1440 track hashes and scores changed, with 5 improvements and
+2 regressions. The raw paired row-score sum was +51.20: 75k +13.07, 200k +38.13, and 500k +0.00.
+Movement stayed limited to `mini_burst` (+36.69) and `tiny_dance` (+14.51). The largest gains were
+`mini_burst` seed 0 at 200k (+22.52), `mini_burst` seed 0 at 75k (+13.07), and `tiny_dance` seed 7
+at 200k (+12.86); the two losses were `tiny_dance` seed 6 at 200k (-3.24) and `mini_burst` seed 10
+at 200k (-3.24). This supports the low/mid-budget shape but does not meet the canonical workflow's
+promotion rule. Source edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - opening ambiguity margin 0.06
 
 Reason: the earlier `0.08` opening ambiguity margin probe was directionally positive but just below

@@ -173,3 +173,50 @@ accepted WASM artifact was restored to `433a35ba440b6c773f3a6c5d4fdcbd91`.
   - JS A/B screen was inconclusive: base mean **7,057.8 ns/frame**, candidate
     mean **7,067.8 ns/frame**, delta median/mean **-0.04% / +0.15%**, 95% CI
     **[-0.21%, 0.52%]**, `P(candidate faster)=25.5%`.
+
+## Attempt 3 (2026-07-09) - direct all-axis measurement scan, KEEP
+
+Mechanism kept: specialize `measureGapAxes` for the hot all-axis path so
+air/speed/elevation/amplitude share the common frame scan. The per-axis
+`AXIS_MEASURE` registry remains available for individual reductions, and
+`measureGapAxes` preserves the previous output key order
+`air,speed,grain,elevation,amplitude,impact`.
+
+This is a TypeScript compiler hot-path change only; the accepted Rust/WASM
+artifact remains `433a35ba440b6c773f3a6c5d4fdcbd91`.
+
+- **Profile basis:** fresh `npm run cbench:prof -- --spec=mini_burst --seed=0 --budget=50000 --reps=10 --warmup=2`
+  showed `scripts/v0/core/measure.ts` at **100.8 ms / 2.2%** self time, with
+  repeated axis-reduction loops in the measured hot path.
+- **Focused correctness:**
+  - `npx vitest run tests/optimizer_sample.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts`
+    passed: 38/38 tests.
+  - Quick `npm run cbench -- --spec=mini_burst --seed=0 --budget=50000 --reps=5 --warmup=1`
+    kept result signature `6143:34`.
+- **Behavior gate:**
+  - `npm run verify:compiler:behavior` passed before and after A/B:
+    48/48 cells byte-identical, repair_cells=33, repair_restarts=676.
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=30 --reps=4 --warmup=1`
+  - swapped file: `scripts/v0/core/measure.ts`
+  - base mean **7,097.2 ns/frame**
+  - candidate mean **7,057.2 ns/frame**
+  - delta median/mean **-0.36% / -0.55%**
+  - 95% CI **[-1.03%, -0.17%]**
+  - candidate won **22/30** rounds
+  - `P(candidate faster)=99.9%`
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **7,092.2 ns/frame**
+  - candidate mean **7,068.6 ns/frame**
+  - delta median/mean **-0.35% / -0.32%**
+  - 95% CI **[-0.63%, -0.02%]**
+  - candidate won **65/100** rounds
+  - `P(candidate faster)=98.2%`
+- **Current standing:** `npm run perf`
+  - mean **6,747.6 ns/physics-frame**
+  - median **6,348.1 ns/physics-frame**
+  - stddev **713.0**
+  - frames **50,003**
+
+Verdict: kept. The behavior gate remained bit-identical and the full JS paired
+gate cleared the probability and median-delta criteria. The `<5,000
+ns/physics-frame` objective remains open.

@@ -15,7 +15,6 @@
 
 import type { Detection } from "../../lib/detector.ts";
 import {
-  AXES,
   type AxisName,
   type AxisValues,
   type Gap,
@@ -29,7 +28,7 @@ import {
 import { netDyToElevation } from "../types.ts";
 import {
   airborneAt, findLandingNearFrame, meanSpeedPxOverRange, redirArcPxAtLanding,
-  measurementLastFrame, median, velocityAt,
+  measurementLastFrame, median, speedAt, velocityAt,
 } from "./substrate.ts";
 
 /** Everything a per-gap reduction may need. Each reduction uses the subset it cares about. */
@@ -172,12 +171,62 @@ export const AXIS_MEASURE: Record<AxisName, AxisReduction> = {
 export function measureGapAxes(
   det: Detection, gap: Gap, gapLines: TrackLine[], rangeEndFrame = gap.endFrame,
 ): AxisValues {
-  const ctx: GapMeasureCtx = { det, gap, gapLines, rangeEndFrame };
   const out: AxisValues = {};
-  for (const name of AXES) {
-    const v = AXIS_MEASURE[name](ctx);
-    if (v !== undefined) out[name] = v;
+
+  // Hot all-axis path: preserve AXES output order while sharing the common frame
+  // scan across air/speed/elevation/amplitude. AXIS_MEASURE remains the per-axis
+  // registry for callers that need individual reductions.
+  const a = gap.startFrame;
+  const b = Math.min(rangeEndFrame, measurementLastFrame(det));
+  let airFrames = 0;
+  let totalFrames = 0;
+  let speedSumPx = 0;
+  let speedFrames = 0;
+  let dyTotal = 0;
+
+  for (let f = a; f <= b; f++) {
+    if (airborneAt(det, f)) airFrames++;
+    totalFrames++;
+
+    const speed = speedAt(det, f);
+    if (speed !== undefined) {
+      speedSumPx += speed;
+      speedFrames++;
+    }
+
+    if (f > a) {
+      const v = velocityAt(det, f);
+      if (v !== undefined) dyTotal += v.y;
+      else dyTotal = NaN;
+    }
   }
+
+  if (totalFrames > 0) out.air = airFrames / totalFrames;
+  if (speedFrames > 0) out.speed = speedPxToAuthored(speedSumPx / speedFrames);
+
+  const lineLens = gapLines.map((l) => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
+  if (lineLens.length > 0) out.grain = Math.min(1, median(lineLens) / CALIB.LINE_LENGTH_CAP);
+
+  const span = b - a;
+  if (span > 0) {
+    const v0 = velocityAt(det, a);
+    if (v0 !== undefined && Number.isFinite(dyTotal)) {
+      const speed = Math.hypot(v0.x, v0.y);
+      out.elevation = netDyToElevation(dyTotal, speed, span);
+
+      let dy = 0, peak = 0;
+      for (let f = a + 1; f <= b; f++) {
+        dy += velocityAt(det, f)!.y;
+        const chord = ((f - a) / span) * dyTotal;
+        const above = chord - dy;
+        if (above > peak) peak = above;
+      }
+      out.amplitude = Math.min(1, peak / CALIB.AMPLITUDE_CAP);
+    }
+  }
+
+  const impact = measureImpact({ det, gap, gapLines, rangeEndFrame });
+  if (impact !== undefined) out.impact = impact;
   return out;
 }
 

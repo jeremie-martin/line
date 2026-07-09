@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - stable-seed causal parent-first repair
+
+Reason: the first parent-first trial reassigned restart seeds with execution order, so its parent
+did not receive the alternative observed after the direct failure in the causal trace. This
+corrected intervention kept each upstream distance on its original seed slot: `up=0` used ordinal
+one, `up=1` ordinal two, and so on, even when the low-readiness causal selector ran `up=1` first.
+The same narrow `impact`/`speed`/`elevation` plus inherited-readiness-below-0.2 selector, direct
+fallback, attempt cap, ceilings, budgets, main search, scorer, specs, evaluator fingerprint, seed
+policy, budget grid, and acceptance rule were unchanged. Repair's 100k gate kept 75k byte-identical.
+
+Focused tests passed before the probe (7 files, 114 tests, `LR_ENGINE=wasm`).
+
+Probe:
+`generated/golden-runs/probe-repair-causal-parent-first-stable-seed-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-causal-parent-first-stable-seed-j32-a01`.
+It was valid 1440/1440. Raw HEADLINE was 694.96 versus the current probe baseline 695.09;
+HEADLINE excluding impact was 713.31. The 75k tier was bit-identical at 661.85; 200k improved to
+689.00 (+0.3), but 500k regressed to 702.30 (-0.3).
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-repair-causal-parent-first-stable-seed-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: delta -0.1, CI [-1.1, 0.6], P(delta<=0)=61.0%, effect
+-0.31. Validity stayed 100% at every budget.
+
+Why it was not kept: preserving the observed alternative reduced the footprint but did not fix the
+high-budget reversal. It changed 140/1440 hashes and 138 scores, split 73 improvements to 65
+regressions; negative tails still dominated. Winners included `rhythm_ladder` (+2.70 mean),
+`grain_staircase` (+1.45), and `drums_swell` (+1.31), while `big_air_ramp` (-2.10),
+`syncopated_switchback` (-1.95), and `drums_crescendo` (-1.47) led the losses. Mean repair work
+was essentially flat: frames -218/-74 and accepts -0.02/-0.02 per row at 200k/500k. Together with
+the ordinary-seed trial, this closes low-readiness anchor reordering: useful upstream alternatives
+do not imply that early upstream execution improves the anytime register. Source and test changes
+were reverted; no full run was launched and baselines remain
+`probe-baseline-fp6f760d-j32-a01` (695.09) and `full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - NOT KEPT - low-readiness causal parent-first repair
 
 Reason: the inherited-state repair study found that when the dominant weak axis was `impact`,

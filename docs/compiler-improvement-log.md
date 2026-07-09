@@ -2,6 +2,21 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - graduated transition-strength span
+
+Reason: replace no work and add no candidates, but use the accepted finalist's four existing
+attempts to span 25%, 50%, 75%, and 100% of the coherent current-to-next motion transition. The
+original full transition remained as the fourth attempt; the same zero-frame objective and forward
+evaluator selected among attempts. Specs, scorer, seeds, budgets, and acceptance were unchanged.
+
+Focused tests passed (5 files, 57 tests). On all 40 specs at 200k/seed 0, arithmetic mean score
+regressed 693.33->692.75. Eleven tracks changed (six improved, five regressed). Large gains on
+`pop_train` (+23.98) and `swoop_dive` (+23.11) were outweighed by `syncopated_switchback`
+(-41.79) and `verse_chorus` (-28.33). Archive:
+`generated/studies/transition-strength-span-all40-b200-s0-a01.json`, paired against
+`generated/studies/accepted-transition-combined-all40-b200-s0-a01.json`. Partial ownership creates
+unstable route basins; source was reverted without a fixed probe.
+
 ## 2026-07-09 - NOT KEPT - axis-decoupled transition finalist
 
 Reason: the accepted transition finalist changes every material following-span motion target as a

@@ -2,6 +2,32 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - OBSERVATION ONLY - next-elevation prediction truth
+
+Question: global mature elevation-readiness activation failed despite strong high-target residuals.
+`predictedNextGapElevation` projects the current catch's ballistic release over the next gap, but it
+normalizes only the post-release suffix; the scorer's elevation measure covers the full gap,
+including the grounded prefix before release. Measure the predictor directly before changing its
+activation or strength again.
+
+Scaffolding: `scripts/v0/study_next_elevation_prediction.ts` captures each improved terminal
+incumbent through the existing `onNode` callback, retains its `GapFit` chain, and compares the prior
+fit's predicted next elevation with the returned report's achieved elevation. It reports bias,
+MAE/RMSE, correlation, target/time bins, and the full-gap normalization counterfactual.
+
+Study: `generated/studies/next-elevation-prediction-newly-gated-b200-s0-a01.json`, covering the ten
+vertical families newly affected by the rejected global gate at 200k, seed 0 (190 gap rows). Raw
+ballistic-suffix prediction averaged 0.288 versus actual 0.408, bias -0.120, MAE 0.132, and RMSE
+0.170. Correlation was still useful at 0.667, so the issue is scale, not absence of signal.
+
+Result: elevation is centered at 0.5, and the suffix occupies `nextAir` of the scored full gap.
+The coordinate-correct conversion `0.5 + nextAir * (suffixElevation - 0.5)` reduced aggregate bias
+to -0.009, MAE to 0.026, and RMSE to 0.038. It improved every studied family; examples were
+`dense_echo_climb` MAE 0.250 -> 0.026, `ridge_pulse` 0.195 -> 0.040, `syncopated_lift`
+0.104 -> 0.015, and `valley_bounce` 0.047 -> 0.013. This supports correcting the prediction
+coordinate first under the accepted sparse activation gate, then separately testing broader
+activation only if that correction is accepted.
+
 ## 2026-07-09 - REJECTED PROBE - global mature next-elevation readiness
 
 Reason: the exact-prefix pool study showed next-elevation targets rising from roughly 0.48 to 0.60

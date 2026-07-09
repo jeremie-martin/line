@@ -280,3 +280,18 @@ accepted WASM artifact remained `433a35ba440b6c773f3a6c5d4fdcbd91`.
     mean **7,023.5 ns/frame**, delta median/mean **-0.23% / -0.31%**, 95% CI
     **[-0.79%, 0.13%]**, candidate won **19/30** rounds,
     `P(candidate faster)=90.2%`.
+
+- **Candidate-window detector constant hoist: REJECT**
+  - Mechanism: hoist `DEFAULT_PARAMS` values out of
+    `detectCandidateWindowBuffer`'s per-frame loop and replace
+    `Math.abs(pos) > worldEnvelope` with equivalent direct bound comparisons.
+  - Correctness: focused optimizer tests passed; quick `npm run cbench -- --spec=mini_burst --seed=0 --budget=50000 --reps=5 --warmup=1`
+    kept result signature `6143:34`; `npm run verify:compiler:behavior` passed
+    48/48 cells, repair_cells=33, repair_restarts=676.
+  - JS A/B screen kept: base mean **7,104.5 ns/frame**, candidate mean
+    **7,040.3 ns/frame**, delta median/mean **-0.66% / -0.88%**, 95% CI
+    **[-1.54%, -0.29%]**, `P(candidate faster)=99.9%`.
+  - Full JS A/B rejected as inconclusive/regressive: base mean
+    **7,069.5 ns/frame**, candidate mean **7,079.5 ns/frame**, delta
+    median/mean **+0.11% / +0.16%**, 95% CI **[-0.16%, 0.57%]**,
+    candidate won **47/100** rounds, `P(candidate faster)=19.2%`.

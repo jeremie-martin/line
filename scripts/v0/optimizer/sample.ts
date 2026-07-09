@@ -57,7 +57,7 @@ export type SpecContext = {
   gapAxisTargets?: AxisValues[];
   /** Per-compile, per-engine/gap probe cache. The engine objects are immutable
    *  prefix states, so a WeakMap keeps the cache scoped to live search nodes. */
-  probeCache?: WeakMap<object, Map<string, CandidateProbe>>;
+  probeCache?: WeakMap<object, Map<number, CandidateProbe>>;
 };
 
 export type CandidateProbe = {
@@ -86,14 +86,13 @@ export function getViableCandidates(): number {
 
 // deno-lint-ignore no-explicit-any
 export function getCandidateProbe(engine: any, gap: Gap, ctx: SpecContext): CandidateProbe {
-  const key = `${gap.index}:${gap.startFrame}:${gap.endFrame}`;
-  const cache = ctx.probeCache ??= new WeakMap<object, Map<string, CandidateProbe>>();
+  const cache = ctx.probeCache ??= new WeakMap<object, Map<number, CandidateProbe>>();
   let byGap = cache.get(engine);
   if (byGap === undefined) {
-    byGap = new Map<string, CandidateProbe>();
+    byGap = new Map<number, CandidateProbe>();
     cache.set(engine, byGap);
   }
-  const cached = byGap.get(key);
+  const cached = byGap.get(gap.index);
   if (cached !== undefined) return cached;
 
   // Use the METERED rider read for the first probe: a raw engine.getRider
@@ -109,7 +108,7 @@ export function getCandidateProbe(engine: any, gap: Gap, ctx: SpecContext): Cand
     targetState,
     preTargetSledTrace: () => preTargetTrace ??= readPreTargetSledTrace(engine, gap),
   };
-  byGap.set(key, probe);
+  byGap.set(gap.index, probe);
   return probe;
 }
 

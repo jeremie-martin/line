@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - smooth impact proposal target calibration
+
+Reason: the exact final residual study showed impact asks near 0.13 roughly balanced, while asks
+from 0.2 through 0.8 undershot by about 0.06 to 0.11 at every budget. The temporary general
+mechanism left all objective/scoring targets unchanged and increased only sampled geometry's
+impact ask with a smooth ramp above 0.15, capped at +0.08 by 0.30. The intent was inverse response
+calibration: offer stronger redirection geometry, then let unchanged true-target ranking reject
+overshoot. Candidate count, RNG draws, aim, forward evaluation, repair, budgets, scorer, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 114 tests, `LR_ENGINE=wasm`), including temporary
+checks for the calibration curve and geometry-only target plumbing.
+
+Probe: `generated/golden-runs/probe-impact-proposal-calibration008-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-proposal-calibration008-j32-a01`.
+It completed 1439/1440 valid; `solo_run` seed 7 failed at 75k. Raw HEADLINE fell to 689.40 versus
+695.09, and HEADLINE excluding impact fell to 705.31. Per-budget scores were 652.45 at 75k,
+682.79 at 200k, and 697.58 at 500k.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-impact-proposal-calibration008-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: REJECT`: delta -5.7, CI [-10.7, -1.7], P(delta<=0)=99.8%, effect -2.46.
+
+Why it was not kept: stronger impact proposals changed entry energy and global basins without
+delivering cleaner redirection. At 500k, impact signed bias improved only -0.0538 -> -0.0515 while
+impact RMS worsened 0.11926 -> 0.11973; speed RMS worsened 0.05843 -> 0.06412 and air RMS
+0.08980 -> 0.09614. The same pattern held at 200k. This closes direct impact-target amplification:
+the residual is constrained by cross-gap state/geometry, not insufficient scalar pressure. Source
+and test changes were reverted; no full run was launched and baselines remain
+`probe-baseline-fp6f760d-j32-a01` (695.09) and `full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - NOT KEPT - global mature full-gap elevation readiness
 
 Reason: raw global next-elevation readiness was rejected because its suffix-normalized prediction

@@ -2,6 +2,35 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - forward acceleration impact-template scoop
+
+Reason: the release-state study showed current-impact specialists lost about 0.7 px/frame against
+the following speed target while traversing the strong scoop. The compiler currently emits only
+solid physics lines. The temporary general primitive converted only the existing impact-template
+post-contact scoop/hold to forward-oriented Line Rider acceleration lines: endpoints and collision
+side were reversed together, preserving geometric support while applying the engine's fixed
+0.1 px/frame acceleration in the original contact-to-exit direction. Every normal solid candidate
+remained in the sample batch; ranking, hard gates, exact evaluation, repair, budgets, scorer,
+specs, fingerprint, seeds, grid, and acceptance rule stayed unchanged.
+
+Focused tests passed (2 files, 23 tests). A four-spec 200k/seed-0 exact-prefix study showed the
+primitive was physically active: material impact-specialist opportunities fell 868->677,
+predicted next-arrival angle improved 4.17->6.72 degrees, next-impact feasibility .464->.601,
+and specialist readiness .185->.247.
+
+Probe: `generated/golden-runs/probe-impact-template-forward-accel-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-template-forward-accel-j32-a01`.
+It completed 1440/1440 valid with HEADLINE 694.51 versus 695.09 and excluding-impact HEADLINE
+713.29. The paired decision was `INCONCLUSIVE`: delta -0.6, CI [-2.4, 0.8], P(delta<=0)=77.6%,
+effect -0.73. Per-budget deltas were -0.6 at 75k, +0.0 at 200k, and -0.8 at 500k.
+
+Why it was not kept: improved candidate-level delivery did not survive whole-search coupling. At
+200k impact RMS moved .12557->.12545 and speed .06928->.06867, but air and amplitude worsened.
+At 500k impact .11926->.11975, speed .05843->.05864, air .08980->.09017, and amplitude
+.12954->.13012 all worsened. Accelerating the entire contact episode perturbs more than it
+restores. Source was reverted; no full run was launched and authoritative baselines remain
+unchanged.
+
 ## 2026-07-09 - REJECTED PROBE - impact-readiness exit-turn allowance
 
 Reason: the new exact-prefix impact release study found 868 material opportunities across four

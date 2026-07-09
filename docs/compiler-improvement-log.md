@@ -2,6 +2,44 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - current-incumbent repair cost refresh
+
+Reason: the local repair-reopen family suggested that accepted repair improvements can make later
+repair state stale. This trial kept candidate generation, start selection, forward eval, repair
+ranking, repair caps, scorer, specs, evaluator fingerprint, seed policy, budget grid, and
+acceptance rule unchanged, and changed only the measured repair suffix-cost profile used for
+feasibility and restart ceilings: instead of reusing the first complete incumbent's cost-to-end
+profile for the whole repair phase, it refreshed cost-to-end from the current accepted incumbent.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-repair-cost-refresh-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-cost-refresh-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 693.54 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 711.91. Per-budget point estimates were 75k 661.85, 200k 688.34, and 500k 700.38.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-repair-cost-refresh-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: REJECT`: baseline 695.1 -> candidate 693.5, delta -1.6,
+CI [-3.0, -0.4], P(delta<=0)=99.8%, effect -2.43. Per-budget deltas were 75k +0.0,
+200k -0.4, and 500k -2.2, with unchanged 100% pass rates.
+
+Why it was not kept: refreshing the cost profile was a plausible lifecycle fix, but it was far too
+broad in practice. Across paired checkpoints, 687/1440 track hashes changed and 677 scores changed,
+with 298 improvements and 379 regressions. The raw paired row-score sum was -1268.81: 75k stayed
+byte-identical, 200k lost -206.10, and 500k lost -1062.71. Repair restarts increased by 2810 while
+accepted repairs fell by 97, so the refreshed costs sent repair attention into more restarts but
+fewer adopted suffixes. Gains on `leap_cadence` (+125.44 total), `tiny_dance` (+103.86),
+`dense_sprint` (+29.70), and `rolling_hills` (+29.08) were overwhelmed by losses on
+`mini_burst` (-342.71), `syncopated_switchback` (-214.17), `cold_start` (-127.68),
+`drums_swell` (-124.35), and `rhythm_ladder` (-97.41). The stable first-incumbent cost profile is
+acting as a useful throttle. No full run was launched. Source edits were reverted; no baseline was
+advanced.
+
 ## 2026-07-09 - REJECTED PROBE - opening expected-value forward eval
 
 Reason: prior opening-margin tuning showed that the opening ambiguity mechanism can move scores,

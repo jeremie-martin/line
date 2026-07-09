@@ -226,6 +226,17 @@ export type HandoffPoolProbeCandidate = {
   impactFeasibility: number | null;
   airFit: number | null;
   elevationFit: number | null;
+  releaseFrame: number | null;
+  releaseSpeed: number | null;
+  releaseVx: number | null;
+  releaseVy: number | null;
+  releaseGrounded: number | null;
+  releaseAirborne: boolean | null;
+  arrivalSpeed: number | null;
+  arrivalAngleDeg: number | null;
+  arrivalAir: number | null;
+  arrivalGapFrames: number | null;
+  arrivalElevation: number | null;
   admitted: boolean;
   handoffScore?: number;
 };
@@ -233,6 +244,7 @@ export type HandoffPoolProbeCandidate = {
 export type HandoffPoolProbeRecord = {
   gapIndex: number;
   targets: AxisValues;
+  nextTargets: AxisValues | null;
   candidates: HandoffPoolProbeCandidate[];
 };
 
@@ -2892,13 +2904,13 @@ function rankedOptions(
     handoffPoolProbeHook({
       gapIndex: gap.index,
       targets: currentTargets,
+      nextTargets,
       candidates: sorted.map((candidate, qualityRank) => {
-        const readiness = nextGap === null || nextTargets === null
+        const release = candidate.releaseArrivalState;
+        const arrival = nextGap === null ? null : predictArrivalAtNextContact(candidate, nextGap);
+        const readiness = arrival === null || nextTargets === null
           ? null
-          : (() => {
-            const arrival = predictArrivalAtNextContact(candidate, nextGap);
-            return arrival === null ? null : scoreNextTargetReadiness(arrival, nextTargets);
-          })();
+          : scoreNextTargetReadiness(arrival, nextTargets);
         return {
           qualityRank,
           cost: candidate.cost,
@@ -2920,6 +2932,17 @@ function rankedOptions(
           impactFeasibility: readiness?.impactFeasibility ?? null,
           airFit: readiness?.airFit ?? null,
           elevationFit: readiness?.elevationFit ?? null,
+          releaseFrame: release?.frame ?? null,
+          releaseSpeed: release === undefined ? null : Math.hypot(release.vx, release.vy),
+          releaseVx: release?.vx ?? null,
+          releaseVy: release?.vy ?? null,
+          releaseGrounded: release?.grounded ?? null,
+          releaseAirborne: release?.airborne ?? null,
+          arrivalSpeed: arrival?.speed ?? null,
+          arrivalAngleDeg: arrival?.comAngleDeg ?? null,
+          arrivalAir: arrival?.nextAir ?? null,
+          arrivalGapFrames: arrival?.nextGapFrames ?? null,
+          arrivalElevation: arrival?.nextElevation ?? null,
           admitted: admitted.has(candidate),
           ...(handoffScores.has(candidate)
             ? { handoffScore: handoffScores.get(candidate) }

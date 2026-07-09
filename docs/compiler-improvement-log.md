@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - weak-amplitude climb shortening
+
+Reason: the contact-centered sampler had a geometry dead zone around the amplitude pressure onset:
+`amplitude >= 0.30` disabled elevation ride-out shortening, but amplitude's own pop shortening only
+starts at 0.30 and is still weak until later in the ramp. This trial bridged that cliff for upward
+elevation asks by fading elevation shortening out over the first weak-amplitude part of the pop
+ramp. Candidate count, scorer, specs, evaluator fingerprint, seed policy, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 94 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-weak-amplitude-climb-shortening-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-weak-amplitude-climb-shortening-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+HEADLINE was 694.98 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact was
+713.73. Per-budget point estimates were 75k 661.57, 200k 688.99, and 500k 702.39.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-weak-amplitude-climb-shortening-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.0, delta -0.1,
+CI [-0.5, 0.3], P(delta<=0)=75.0%, effect -0.58. Per-budget deltas were
+75k -0.3, 200k +0.2, and 500k -0.2, with unchanged pass rates.
+
+Why it was not kept: the mechanism did bridge the local discontinuity, but the suite tradeoff was
+negative at the probe gate. Across paired checkpoints, 286/1440 track hashes changed, with 123
+score improvements, 156 regressions, and 1161 unchanged scores. It helped `canyon_steps` (+0.76
+average score points across the probe grid), `rolling_drop` (+0.69), and `syncopated_lift` (+0.58),
+but regressed `terrace_sprint` (-2.28), `skyline_push` (-1.94), and `valley_bounce` (-1.00).
+The useful row-level direction is real, but the fade still shortens too much in sparse mixed rows
+whose amplitude/elevation tradeoff needs the longer ride-out. No full run was launched. Source and
+test edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - mixed elevation pop tilt
 
 Reason: current full-baseline diagnostics showed several combined elevation+amplitude rows

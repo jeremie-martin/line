@@ -24,6 +24,17 @@ The oracle is exact and monotonic but full coordinate descent is not budget-free
 simulations per gap would consume a material share of the production budget. It justifies testing
 a contained fallback where normal repair has already exhausted a weak gap, not a blanket post-pass.
 
+That production test ran the four fine parent rotations only after fresh-seed suffix repair and
+upstream escalation failed for the selected weak gap, using only the existing repair slice and the
+same exact register. Focused tests passed after fixing terminal fit padding (7 files, 91 tests).
+On the paired 12-spec x seeds 0..2 panel at 200k it remained valid 36/36 but lost 1.03 mean.
+Exact acceptance prevented a pitch variant from lowering its incumbent; the loss came from budget
+opportunity and later repair scheduling, including `drums_dropout` seed 1 (-20.39) and
+`drums_crescendo` seed 0 (-17.50). Archive:
+`generated/studies/repair-parent-pitch-fallback-impact12-b200-s0-2-a01.json`. The oracle's extra-
+budget ceiling does not compete with ordinary suffix repair inside the fixed budget, so production
+source was reverted without a fixed probe.
+
 ## 2026-07-10 - NOT KEPT - next-elevation response finalist
 
 Reason: current full residuals showed achieved elevation pinned near 0.426 across target deciles,

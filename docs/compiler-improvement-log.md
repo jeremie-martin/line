@@ -24,6 +24,16 @@ predicted readiness. It added no samples, evaluations, or branches. Focused test
 mostly off productive DFS paths, so a third-branch reorder cannot harvest their local headroom;
 source was reverted without a fixed probe.
 
+A follow-up selective adjudicator tested whether the default `greedy:2` forward judge was merely
+unlucky because each rolled gap samples one deterministic continuation. At the same strict
+boundary disagreements it compared the forward winner and strongest dominator using the mean of
+two one-gap continuations, promoted the dominator only when that independent comparison agreed,
+and kept the original winner as branch two. Focused tests again passed (7 files, 91 tests), but the
+same 36-row panel lost 5.26 mean despite remaining fully valid. Archive:
+`generated/studies/dominance-avg2-adjudicator-impact12-b200-s0-2-a01.json`. One-step prediction and
+short robust rollout can agree while still redirecting the real DFS into worse long-horizon basins;
+this behavior was also reverted without a fixed probe.
+
 ## 2026-07-10 - INCONCLUSIVE PROBE - reserved second-start endgame
 
 Reason: avoid the false promotions in the immediate sequential-start trial by preserving normal

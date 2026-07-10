@@ -2,6 +2,31 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - rank-7 accelerated impact entry
+
+Reason: the forced-rank-0 acceleration probe never let the forward evaluator compare the solid
+quality winner with its accelerated variant. This distinct integration preserved rank 0 and the
+next six admitted candidates, replacing only rank 7 with the same exact-qualified accelerated
+entry variant. Pool width and forward-scored candidate count stayed at eight, so the established
+suffix judge could retain the solid winner; only exact candidate validation added work. The same
+material-variation, non-vertical, long-profile, impact-undershoot, branch-slack, exact-impact, and
+exact-objective gates were retained.
+
+Focused tests passed (7 files, 98 tests). The all-40 x seeds 0..2 screen at 200k was +1.16 mean
+over 120 rows. It retained the direct `drums_crescendo` and `dense_sprint` wins while rejecting all
+large forced-substitution losses; only three rows improved, five regressed, and 112 tied. Archives:
+`generated/studies/accelerated-impact-entry-rank7-all40-b200-s0-a01.json` and
+`generated/studies/accelerated-impact-entry-rank7-all40-b200-s1-2-a01.json`.
+
+Fixed probe:
+`generated/golden-runs/probe-accelerated-impact-entry-rank7-j32-a01/golden.json`, valid
+1440/1440 with HEADLINE 695.37 and excluding-impact HEADLINE 714.08. Decision versus
+`probe-transition-motion-finalist-j32-a01`: `VERDICT: INCONCLUSIVE`, delta -0.2,
+CI [-0.9, 0.4], P(delta<=0)=72.6%, effect -0.57. Per-budget deltas were +0.0 at 75k,
++0.3 at 200k, and -0.4 at 500k. Exact suffix comparison removed bad direct substitutions but
+validating the variant and displacing the weakest pool option still reduced mature search value.
+Source was reverted and no full run was launched.
+
 ## 2026-07-09 - NOT KEPT - accelerated impact entry segment
 
 Reason: unlike prior post-contact acceleration experiments, raise the `speed * redirection` impact

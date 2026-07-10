@@ -2,6 +2,55 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - accelerated impact entry segment
+
+Reason: unlike prior post-contact acceleration experiments, raise the `speed * redirection` impact
+primitive by accelerating only the final pre-contact approach segment of the normal quality winner.
+The variant preserved collision geometry by reversing endpoints and collision side together, then
+used exact candidate validation. It could replace, not widen, pool rank 0 only when current impact
+undershot by at least `CALIB.SIGMA`, exact impact error improved, and the exact zero-frame handoff
+objective exceeded the solid winner. The final structural screen used only existing boundaries:
+material authored air and speed variation, no elevation/amplitude objectives, more than the existing
+32-contact short-profile limit, and the accepted 1.5 branch-slack threshold. The scorer, specs,
+fingerprint, seeds, budgets, and acceptance rule were unchanged.
+
+Focused tests passed (7 files, 98 tests). The final all-40 x seeds 0..2 screen at 200k was strongly
+positive: mean +1.77 over 120 rows, with 7 improvements, 4 regressions, and 109 exact ties. Seven
+returned tracks contained acceleration lines; major wins on `drums_crescendo`, `drums_swell`,
+`rhythm_ladder`, and `dense_sprint` reduced impact RMS. Archive:
+`generated/studies/accelerated-impact-entry-varied-pure-long-all40-b200-s0-2-a01.json`.
+
+Fixed probe:
+`generated/golden-runs/probe-accelerated-impact-entry-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-accelerated-impact-entry-j32-a01`.
+It completed 1440/1440 valid with HEADLINE 695.37 versus 695.55 and excluding-impact HEADLINE
+714.07. Decision versus `probe-transition-motion-finalist-j32-a01`: `VERDICT: INCONCLUSIVE`,
+delta -0.2, CI [-1.0, 0.5], P(delta<=0)=68.9%, effect -0.49. Per-budget deltas were +0.0 at
+75k, +0.0 at 200k, and -0.3 at 500k.
+
+Why it was not kept: the full seeds reversed the panel's mature winners. At 500k,
+`drums_crescendo`, `dense_sprint`, and `drums_swell` lost in aggregate while `drums_tide`,
+`drums_crosscut`, and `rhythm_ladder` gained; their general authored profiles do not provide a
+defensible separator. Entry acceleration is a real impact primitive, but the current local
+objective cannot predict its mature suffix basin reliably. Source was reverted and no full run
+was launched. The panel scaffold now records final acceleration-line counts for future physical
+primitive studies.
+
+## 2026-07-09 - OBSERVATION ONLY - mature repair restart anatomy
+
+Question: characterize repair from current behavior rather than infer from aggregate counters.
+`LR_REPAIR_LOG=1` on all 40 specs at 550k/seed 0 recorded 1,302 restart records: 594 positive-work
+restarts spending 17.93M frames, 708 zero-frame records, and 148 accepts totaling 1,154.65 raw
+score points. Eighteen rows produced zero-frame records. Among positive-work restarts, accept rates
+were similar across impact 26.8%, air 22.2%, elevation 21.3%, amplitude 28.0%, and speed 26.9%;
+value depended much more on error scale than axis identity. Archive:
+`generated/studies/repair-anatomy-all40-b550-s0-a01.json`.
+
+The zero-frame pathology is real but not a new promotion path: prior controlled skip-zero and
+positive-fallback probes respectively regressed and stayed negative/inconclusive because they
+redirected work into expensive low-yield anchors. This study therefore supports outcome/error-scale
+modeling, not another generic zero-cost cleanup or static axis weight.
+
 ## 2026-07-09 - NOT KEPT - steady true-motion finalist
 
 Reason: the accepted motion finalist spends four geometry-only attempts at material authored

@@ -47,6 +47,7 @@ type Row = {
   axisErrorRms: number;
   contractPassed: boolean;
   trackHash: string;
+  accelerationLines: number;
   simFrames: number;
   candidatesSampled: number;
   selectedSources: Record<string, number>;
@@ -94,6 +95,7 @@ for (const specName of specs) {
       axisErrorRms: round(score.axis_error_rms),
       contractPassed: score.contract_passed,
       trackHash: createHash("sha256").update(JSON.stringify(checkpoint.track)).digest("hex"),
+      accelerationLines: checkpoint.track.lines.filter((line) => line.type === 2).length,
       simFrames: checkpoint.stats.sim_frames,
       candidatesSampled: checkpoint.stats.candidates_sampled,
       selectedSources: checkpoint.stats.handoff_selected_candidate_by_source ?? {},

@@ -2,6 +2,25 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - NOT KEPT - linear impact-curve pressure
+
+Reason: current 550k landing re-simulation showed a cycle-level impact separator: high-residual
+families entered contacts at roughly 9-16 degrees, while families close to their impact targets
+entered around 19-27 degrees. Separately, the worst residual families had bounded targets around
+0.26-0.36, where the existing `smoothstep` across the calibrated 0.25-0.65 curve-pressure band
+provides little authority. This trial retained exactly those endpoints but used linear pressure,
+raising low-band curvature while reducing it near the high end. It introduced no new constants,
+selectors, RNG draws, candidates, or ranker changes.
+
+Focused tests passed (7 files, 91 tests). On the paired 12-spec x seeds 0..2 panel at 200k, all
+36 tracks changed and mean score lost 4.98 despite 36/36 validity. Gains were basin-dependent and
+did not generalize across seeds; losses included `drums_pulse` seed 2 (-80.74) and `float_bounds`
+seed 0 (-91.77). Archives:
+`generated/studies/accepted-transition-baseline-impact12-b200-s0-2-a01.json` and
+`generated/studies/linear-impact-curve-pressure-impact12-b200-s0-2-a01.json`. A broad geometry
+response change redirects survival and search paths before local residual improvements can be
+selected; source was reverted without a fixed probe.
+
 ## 2026-07-10 - NOT KEPT - one-step-dominant third branch
 
 Reason: a new exact-prefix Pareto study tested whether current-impact specialists inherently

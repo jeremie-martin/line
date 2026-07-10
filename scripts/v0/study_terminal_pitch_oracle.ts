@@ -24,7 +24,16 @@ const budget = Number(argValue("budget") ?? "200000");
 const outPath = argValue("out");
 const deltas = (argValue("deltas") ?? "-4,-2,2,4").split(",").map(Number);
 const mode = argValue("mode") ?? "pitch";
-if (mode !== "pitch" && mode !== "entry-accel") throw new Error(`unknown mode "${mode}"`);
+if (
+  mode !== "pitch" &&
+  mode !== "contact-pitch" &&
+  mode !== "contact-normal" &&
+  mode !== "contact-normal-all" &&
+  mode !== "contact-normal-sweep" &&
+  mode !== "entry-accel"
+) {
+  throw new Error(`unknown mode "${mode}"`);
+}
 
 for (const spec of specs) {
   if (!(GOLDEN_SPECS as readonly string[]).includes(spec)) throw new Error(`unknown spec "${spec}"`);
@@ -36,7 +45,13 @@ type Track = {
   lines?: TrackLine[];
 };
 
-type Variant = { delta: number; score: number; contractPassed: boolean };
+type Variant = {
+  delta: number;
+  score: number;
+  contractPassed: boolean;
+  targetLineId?: number;
+  targetGap?: number;
+};
 type Row = {
   spec: GoldenSpecName;
   seed: number;
@@ -44,6 +59,7 @@ type Row = {
   weakGap: number;
   weakSse: number;
   variants: Variant[];
+  acceptedEdits?: Variant[];
   bestDelta: number;
   bestScore: number;
 };
@@ -82,6 +98,37 @@ function pitchExit(lines: readonly TrackLine[], degrees: number): TrackLine[] {
     const [x2, y2] = rotate(line.x2, line.y2);
     return { ...line, x1, y1, x2, y2 };
   });
+}
+
+function pitchLine(line: TrackLine, degrees: number): TrackLine {
+  const pivot = { x: (line.x1 + line.x2) / 2, y: (line.y1 + line.y2) / 2 };
+  const radians = degrees * Math.PI / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const rotate = (x: number, y: number): [number, number] => {
+    const dx = x - pivot.x;
+    const dy = y - pivot.y;
+    return [pivot.x + dx * cos - dy * sin, pivot.y + dx * sin + dy * cos];
+  };
+  const [x1, y1] = rotate(line.x1, line.y1);
+  const [x2, y2] = rotate(line.x2, line.y2);
+  return { ...line, x1, y1, x2, y2 };
+}
+
+function shiftLineNormal(line: TrackLine, pixels: number): TrackLine {
+  const dx = line.x2 - line.x1;
+  const dy = line.y2 - line.y1;
+  const length = Math.hypot(dx, dy);
+  if (length === 0) return { ...line };
+  const shiftX = -dy / length * pixels;
+  const shiftY = dx / length * pixels;
+  return {
+    ...line,
+    x1: line.x1 + shiftX,
+    y1: line.y1 + shiftY,
+    x2: line.x2 + shiftX,
+    y2: line.y2 + shiftY,
+  };
 }
 
 function targetsFromReport(report: ReturnType<typeof compileHandoff>["report"], gaps: Gap[]): AxisValues[] {
@@ -179,29 +226,115 @@ for (const specName of specs) {
 
     const baselineRun = simulate(lines);
     const baseline = baselineRun.variant;
-    const variants = mode === "pitch"
-      ? deltas.map((delta) => {
+    const acceptedEdits: Variant[] = [];
+    let sweepBest: Variant | null = null;
+    const variants = mode === "contact-normal-sweep"
+      ? (() => {
+        const tested: Variant[] = [];
+        let currentLines = [...lines];
+        let currentRun = baselineRun;
+        let currentBest: Variant = baseline;
+        const gapOrder = checkpoint.report.gaps
+          .map((gap) => ({
+            index: gap.gap_index,
+            sse: Object.values(gap.axes).reduce(
+              (sum, value) => sum + value.error * value.error,
+              0,
+            ),
+          }))
+          .sort((a, b) => b.sse - a.sse || a.index - b.index);
+        for (const { index: gapIndex } of gapOrder) {
+          const contactIds = new Set(
+            currentRun.det.measurements.contactLineIds[gaps[gapIndex].endFrame] ?? [],
+          );
+          const currentById = new Map(currentLines.map((line) => [line.id, line]));
+          const targets = (groups[offset + gapIndex] ?? [])
+            .flatMap((line) => contactIds.has(line.id) ? [currentById.get(line.id) ?? line] : []);
+          let gapWinner: {
+            variant: Variant;
+            lines: TrackLine[];
+            run: ReturnType<typeof simulate>;
+          } | null = null;
+          for (const target of targets) {
+            for (const delta of deltas) {
+              const replacement = shiftLineNormal(target, delta);
+              const candidateLines = currentLines.map(
+                (line) => line.id === target.id ? replacement : line,
+              );
+              const run = simulate(candidateLines);
+              const variant: Variant = {
+                ...run.variant,
+                delta,
+                targetLineId: target.id,
+                targetGap: gapIndex,
+              };
+              tested.push(variant);
+              if (
+                variant.contractPassed &&
+                variant.score > currentBest.score &&
+                (gapWinner === null || variant.score > gapWinner.variant.score)
+              ) {
+                gapWinner = { variant, lines: candidateLines, run };
+              }
+            }
+          }
+          if (gapWinner !== null) {
+            currentBest = gapWinner.variant;
+            currentLines = gapWinner.lines;
+            currentRun = gapWinner.run;
+            acceptedEdits.push(gapWinner.variant);
+          }
+        }
+        sweepBest = currentBest;
+        return tested;
+      })()
+      : mode === "pitch"
+      ? deltas.map((delta): Variant => {
         const replacement = pitchExit(weakGroup, delta);
         const replacementById = new Map(replacement.map((line) => [line.id, line]));
         const result = simulate(lines.map((line) => replacementById.get(line.id) ?? line)).variant;
         return { ...result, delta };
       })
-      : (() => {
-        const contactIds = new Set(
-          baselineRun.det.measurements.contactLineIds[gaps[weak.index].endFrame] ?? [],
-        );
-        const firedIndices = weakGroup.flatMap((line, index) => contactIds.has(line.id) ? [index] : []);
-        const candidateIndices = [...new Set(firedIndices.flatMap((index) => [index - 1, index]))]
-          .filter((index) => index >= 0 && weakGroup[index]?.type === 0);
-        return candidateIndices.map((index) => {
-          const entry = weakGroup[index];
-          const result = simulate(
-            lines.map((line) => line.id === entry.id ? accelerateLine(line) : line),
-          ).variant;
-          return { ...result, delta: index - Math.min(...firedIndices) };
-        });
-      })();
-    const best = variants
+      : mode === "contact-pitch" || mode === "contact-normal" || mode === "contact-normal-all"
+        ? (() => {
+          const targetGaps = mode === "contact-normal-all"
+            ? gaps.flatMap((gap) => gap.endsWithContact ? [gap.index] : [])
+            : [weak.index];
+          return targetGaps.flatMap((gapIndex) => {
+            const contactIds = new Set(
+              baselineRun.det.measurements.contactLineIds[gaps[gapIndex].endFrame] ?? [],
+            );
+            return (groups[offset + gapIndex] ?? [])
+              .filter((line) => contactIds.has(line.id))
+              .flatMap((target) => deltas.map((delta): Variant => {
+                const replacement = mode === "contact-pitch"
+                  ? pitchLine(target, delta)
+                  : shiftLineNormal(target, delta);
+                const result = simulate(
+                  lines.map((line) => line.id === target.id ? replacement : line),
+                ).variant;
+                return { ...result, delta, targetLineId: target.id, targetGap: gapIndex };
+              }));
+          });
+        })()
+        : (() => {
+          const contactIds = new Set(
+            baselineRun.det.measurements.contactLineIds[gaps[weak.index].endFrame] ?? [],
+          );
+          const firedIndices = weakGroup.flatMap(
+            (line, index) => contactIds.has(line.id) ? [index] : [],
+          );
+          const candidateIndices = [...new Set(firedIndices.flatMap((index) => [index - 1, index]))]
+            .filter((index) => index >= 0 && weakGroup[index]?.type === 0);
+          return candidateIndices.map((index): Variant => {
+            const entry = weakGroup[index];
+            const result = simulate(
+              lines.map((line) => line.id === entry.id ? accelerateLine(line) : line),
+            ).variant;
+            return { ...result, delta: index - Math.min(...firedIndices) };
+          });
+        })();
+    const best = sweepBest ?? variants
       .filter((variant) => variant.contractPassed)
       .reduce((winner, variant) => variant.score > winner.score ? variant : winner, {
         delta: 0,
@@ -215,12 +348,16 @@ for (const specName of specs) {
       weakGap: weak.index,
       weakSse: weak.sse,
       variants,
+      ...(acceptedEdits.length === 0 ? {} : { acceptedEdits }),
       bestDelta: best.delta,
       bestScore: best.score,
     });
     console.error(
       `  ${specName}/s${seed}: ${baseline.score.toFixed(2)} -> ${best.score.toFixed(2)} ` +
-        `(${best.delta}deg) ${((Date.now() - started) / 1000).toFixed(1)}s`,
+        `(${best.delta}${mode.includes("normal") ? "px" : "deg"}` +
+        `${best.targetLineId === undefined ? "" : `/line${best.targetLineId}`}` +
+        `${best.targetGap === undefined ? "" : `/gap${best.targetGap}`}) ` +
+        `${((Date.now() - started) / 1000).toFixed(1)}s`,
     );
   }
 }
@@ -241,6 +378,7 @@ const result = {
       (sum, row) => sum + row.variants.filter((variant) => variant.contractPassed).length,
       0,
     ),
+    acceptedEdits: rows.reduce((sum, row) => sum + (row.acceptedEdits?.length ?? 0), 0),
   },
   rows,
 };

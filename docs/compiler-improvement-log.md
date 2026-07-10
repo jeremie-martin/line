@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - OBSERVATION ONLY - exact fired-contact subpixel polish oracle
+
+Question: the earlier terminal pitch oracle rotated the final third of one gap and usually missed
+the line producing the scored contact. Extend the exact post-compile oracle to identify detector-
+fired contact lines, rotate them around their midpoint, or translate them along their normal, then
+rerun the unchanged full detector and scorer. An all-gap mode tests every fired contact; a greedy
+sweep visits gaps by baseline SSE and adopts only contract-valid strict full-score improvements.
+
+On twelve difficult specs at 200k/seed 0, contact-line rotations of +/-1/0.5 degrees produced only
+5 valid variants and no gain; +/-0.25/0.1 degrees produced 13 valid variants and no gain. Subpixel
+normal shifts were responsive: at only the weakest gap, 1/12 rows improved and mean oracle lift
+was +0.047. Across all contacts in a four-spec screen, 3/4 rows had a positive best single edit,
+but mean lift was only +0.150.
+
+The cumulative exact sweep tested 364 full-track variants and accepted seven edits. Mean lift was
+only +0.212: `dense_echo_climb` gained 0.801 from four edits, `skyline_push` 0.045,
+`drums_dropout` 0.001, and `drums_pendulum` zero. Archives:
+`generated/studies/terminal-contact-pitch-oracle-fine-12spec-b200-s0-a01.json`,
+`generated/studies/terminal-contact-normal-oracle-12spec-b200-s0-a01.json`, and
+`generated/studies/terminal-contact-normal-sweep-4spec-b200-s0-a01.json`. Exact subpixel contact
+headroom exists but is far too small for its full-trajectory evaluation cost; no production polish
+was added.
+
 ## 2026-07-10 - OBSERVATION ONLY - fixed-seed policy-budget continuation
 
 Question: separate the hard frame ceiling from budget-aware policy and test whether a lower-budget

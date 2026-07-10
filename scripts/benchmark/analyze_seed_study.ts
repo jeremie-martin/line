@@ -242,7 +242,7 @@ function markdown(report: any): string {
     `The reference contains ${report.reference.seeds.length} seeds at each of ${report.reference.budgets.length} budgets. ` +
       `Reference headline: **${report.reference.headline.toFixed(2)}**; valid ${report.reference.validRuns}/${report.reference.totalRuns}.`,
     "",
-    "Schedule trials allocate disjoint actual seeds to budgets, matching the canonical seed policy.",
+    "Schedule trials estimate the effect of seed count using disjoint budget blocks. The frozen V2 policy additionally separates probe and canonical actual-seed ranges; numeric seed labels are deterministic IID inputs.",
     "",
     "| Profile | Seeds / budget | Compiles | Headline abs. error p50 / p95 / max | Valid-rate abs. error p95 | Worst stratum p95 |",
     "|---|---:|---:|---:|---:|---:|",
@@ -262,7 +262,6 @@ function markdown(report: any): string {
     lines.push(`| ${entry.budget / 1000}k | ${entry.seedCount} | ${entry.subsets} | ` +
       `${entry.absoluteError.p50.toFixed(2)} / ${entry.absoluteError.p95.toFixed(2)} / ${entry.absoluteError.max.toFixed(2)} |`);
   }
-  lines.push("");
   return `${lines.join("\n")}\n`;
 }
 

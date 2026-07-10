@@ -10,9 +10,12 @@ historical record, not live guidance.
 
 | Doc | Tag | What |
 |---|---|---|
-| [`HOW_TO_WORK.md`](HOW_TO_WORK.md) | LIVE | The entry point. Workflow, run tiers, decision rule, principles. |
-| [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen contract + the **HEADLINE metric** definition (the metric's single source of truth). |
-| [`REBASELINE.md`](REBASELINE.md) | LIVE | How to record a new baseline from a canonical golden run. |
+| [`HOW_TO_WORK.md`](HOW_TO_WORK.md) | LIVE | The entry point for the Benchmark V2 compiler workflow. |
+| [`benchmark-v2-context.md`](benchmark-v2-context.md) | LIVE | Product distribution, scoring, holdout, compute, and governance contract. |
+| [`benchmark-v2-decisions.md`](benchmark-v2-decisions.md) | LIVE | Statistical estimand, confidence method, policies, artifacts, and exit codes. |
+| [`benchmark-v2.md`](benchmark-v2.md) | LIVE | Benchmark V2 commands and operations. |
+| [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
+| [`REBASELINE.md`](REBASELINE.md) | LIVE | How to freeze linked probe, canonical, and qualification baseline evidence. |
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | LIVE | The active compiler's search algorithm. |
@@ -40,7 +43,11 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 |---|---|---|
 | [`../README.md`](../README.md) | REFERENCE | Repo overview, quick start, architecture, engine choice. |
 | [`../PROBLEM.md`](../PROBLEM.md) | REFERENCE | Problem statement and success criteria. |
-| [`metric_problem_statement.md`](metric_problem_statement.md) | REFERENCE | Statistical rationale behind the metric (noise floor, seed counts). |
+| [`benchmark-v2-seed-allocation.md`](benchmark-v2-seed-allocation.md) | REFERENCE | Empirical V2 seed-count allocation study. |
+| [`benchmark-v2-decision-calibration.md`](benchmark-v2-decision-calibration.md) | REFERENCE | Empirical and simulated V2 decision-rule calibration. |
+| [`benchmark-v2-responsiveness.md`](benchmark-v2-responsiveness.md) | REFERENCE | Graded and contract-level negative controls for the V2 score and gate. |
+| [`benchmark-v2-resources.md`](benchmark-v2-resources.md) | REFERENCE | Measured 48-worker CPU, memory, and wall-time envelope. |
+| [`metric_problem_statement.md`](metric_problem_statement.md) | ARCHIVE | Statistical rationale for the retired V1 metric and decision rule. |
 | [`creative_workflow.md`](creative_workflow.md) | REFERENCE | Worked song→track→video example, and the `productions/<song>/` pipeline: `analyze_audio.py` → `characterize` → `select.json` → `npm run produce` (`scripts/produce/`). |
 | [`engine_speed_methodology.md`](engine_speed_methodology.md) | REFERENCE | Detailed engine-perf statistics and historical method; see `engine-workflow.md` for current workflow. |
 | [`impact_contract.md`](impact_contract.md) | REFERENCE | Self-contained per-beat impact contract (the impact metric definition). |
@@ -50,9 +57,8 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`difficulty-model-study.md`](difficulty-model-study.md) | REFERENCE | First-completion cost vs full-score difficulty characterization. |
 | [`../TOOLING_NOTES.md`](../TOOLING_NOTES.md) | REFERENCE | Living log of tooling/harness friction + resolutions. |
 
-HTML views: `handoff-compiler.html` is **generated** — its baseline-of-record regions are
-spliced in by `scripts/v0/update_compiler_doc.ts` (edit the data via the generator, the
-prose by hand). `forward-eval-map.html` is **hand-maintained** (no generator); re-verify its
+HTML views: `handoff-compiler.html` is a historical V1 generated view. The V2 baseline of
+record is `../benchmark/v2/baseline.json`. `forward-eval-map.html` is **hand-maintained** (no generator); re-verify its
 `scripts/v0/*.ts` file:line anchors when that code changes.
 
 ## Component READMEs (co-located with code)

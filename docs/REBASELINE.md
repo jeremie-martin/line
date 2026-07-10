@@ -1,102 +1,47 @@
-# Re-baselining the golden budget curve
+# Re-baselining Benchmark V2
 
-When you change the compiler and want to record a new score baseline, source
-numbers from the golden JSON. Do not transcribe scores by hand.
+A baseline is a single compiler identity measured on three linked surfaces:
 
-## 1. Run the curve and capture JSON
+- probe development evidence;
+- canonical development evidence;
+- canonical qualification monitoring evidence.
 
-```bash
-# Full canonical run = 40 specs × 12 seed slots × budgets {75,150,225,350,475,550}k
-# with disjoint per-budget actual seeds. Each budget is an independent run.
-npm run golden -- --full --archive-dir=generated/golden-runs/rebaseline
-```
+Do not hand-edit baseline scores or pointers.
 
-The JSON contains the `headline` block (`kind`, `tier`, `score`, `weight_by_budget`,
-`budgets`, `validity`) — the **baseline of record** — plus `seed_policy`,
-`budget_scores`, `evaluator_fingerprint`, `source` git metadata, `scope`, and
-checkpoint rows with compact stats, actual seeds, and track hashes. The run writes
-`generated/golden-runs/rebaseline/golden.json` and
-checkpoint track/report artifacts under `generated/golden-runs/rebaseline/checkpoints/`.
-
-Quick peek (prints the HEADLINE metric and the per-budget curve):
+## Create
 
 ```bash
-npx tsx scripts/v0/analyze_golden_curve.ts generated/golden-runs/rebaseline/golden.json
+npm run benchmark -- baseline --label=NAME
 ```
 
-To decide whether a candidate beats a baseline, use the paired-bootstrap VERDICT,
-not an eyeballed score delta:
+The command prepares the typed catalog, runs the probe, runs canonical development and qualification, verifies complete worker-success scope, retains compressed archives under `benchmark/v2/runs/`, writes a combined baseline bundle, and regenerates:
+
+- `benchmark/v2/baseline.json`
+- `docs/benchmark-v2-baseline.md`
+
+Use `--resume` after an interrupted run with the same label. Use `--jobs=N` to reduce host pressure.
+
+## Verify
 
 ```bash
-npx tsx scripts/v0/analyze_golden_curve.ts decide CANDIDATE/golden.json BASELINE/golden.json
-# or: npm run decide -- CANDIDATE/golden.json BASELINE/golden.json
+npm test
+npm run benchmark -- prepare
+npm run decide -- PATH_TO_BASELINE_PROBE --no-gate-exit
+npm run decide -- PATH_TO_BASELINE_CANONICAL --no-gate-exit
 ```
 
-## 2. Does the fingerprint change?
+The two self-comparisons must be exactly zero and unresolved/inconclusive. Check that archive and compressed hashes match the baseline reference and that probe/canonical actual seeds do not overlap at 250k or 500k.
 
-`EVALUATOR_FINGERPRINT` in `scripts/v0/golden_suite.ts` is a sha256 of the
-ruler: `scripts/v0/score.ts`, live impact anchors, impact migration config/source,
-the authored-speed ruler/conversions, axis measurement/report assembly, and every
-`specs/golden/*.ts`. The harness prints the live fingerprint on every run and warns
-when it differs from the committed constant.
+## When Required
 
-- Compiler-only changes leave the ruler unchanged. Do not touch the constant.
-- Changes to the scorer, speed ruler, axis measurement/report assembly, or any
-  golden spec are deliberate ruler changes. Update the constant in the same
-  commit; scores before and after are not comparable.
-- Changing seed slots, `DEFAULT_BUDGETS`, the budget weights, seed policy, or the
-  headline aggregation (`metric.ts`) does NOT change the fingerprint (it hashes the
-  per-run ruler + golden specs only). It does change what a "canonical run" is, so
-  re-baseline the recorded numbers — and `decide` will refuse to compare archives
-  whose fingerprint differs, whose budget weighting differs, whose seed policy
-  differs, or that predate the weighted-average metric / seed-policy metadata.
+Establish a new baseline after intentionally changing any of:
 
-Recompute without a full run using the same source slices as
-`scripts/v0/golden.ts`:
+- typed cases, catalog membership, parents, groups, strata, or weights;
+- scoring, measurements, target interpretation, or transform;
+- budgets, seed counts, seed ranges, or profile authority;
+- engine artifact or semantic execution protocol;
+- the promoted compiler of record.
 
-```bash
-npx tsx -e 'import{readFileSync,readdirSync}from"node:fs";import{resolve}from"node:path";import{createHash}from"node:crypto";import{REDIRARC,impactEnvNum}from"./scripts/v0/types.ts";const z="\u0000";const s=(p:string,a:string,b?:string)=>{const x=readFileSync(resolve(p),"utf8"),i=x.indexOf(a);if(i<0)throw Error(a);if(b===undefined)return x.slice(i);const j=x.indexOf(b,i);if(j<0)throw Error(b);return x.slice(i,j)};const mode=process.env.LR_IMPACT_MIGRATE==="legacy"?"legacy":"affine";const mig=mode==="legacy"?mode:[mode,impactEnvNum("LR_IMPACT_MIGRATE_SOFT",0.2),impactEnvNum("LR_IMPACT_MIGRATE_SPAN",0.8)].join(z);const h=createHash("sha256");h.update(readFileSync(resolve("scripts/v0/score.ts")));h.update(`${z}impact-anchors${z}${REDIRARC.SOFT}${z}${REDIRARC.VERY_STRONG}`);h.update(`${z}impact-migration-config${z}${mig}`);h.update(`${z}impact-migration-source${z}`);h.update(s("scripts/v0/core/beats.ts","/**\n * Migrate an OLD-convention authored impact"));h.update(`${z}speed-ruler${z}`);h.update(s("scripts/v0/types.ts","export const SPEED_RULER","export const SPEED_AXIS"));h.update(`${z}effective-axes${z}`);h.update(s("scripts/v0/core/substrate.ts","export function effectiveAxes","// ─────────── Cross-gap target sampling"));h.update(`${z}axis-measurement${z}`);h.update(s("scripts/v0/core/measure.ts","/** Airborne-frame fraction over [gap.start, rangeEndFrame]. */"));h.update(`${z}drift-report${z}`);h.update(s("scripts/v0/core/substrate.ts","export function buildDriftReport","export function measureAxisOverRange"));for(const f of readdirSync(resolve("specs/golden")).filter(n=>n.endsWith(".ts")).sort()){h.update(`${z}golden-spec${z}`);h.update(readFileSync(resolve("specs/golden",f)))}console.log(h.digest("hex").slice(0,12))'
-```
+An operational-only runner change may retain semantic comparability when the explicit execution protocol is unchanged and output equivalence is demonstrated. It still receives a new implementation fingerprint.
 
-## 3. Files to update
-
-### a) `docs/handoff-compiler.html`
-
-Run the generator:
-
-```bash
-npx tsx scripts/v0/update_compiler_doc.ts generated/golden-runs/rebaseline/golden.json
-```
-
-It fills the baseline regions from the curve JSON: hero label, weighted HEADLINE
-score, the budget table, largest-budget per-spec rows, and the campaign chart point.
-
-### b) `docs/HOW_TO_WORK.md` — "Current baseline (of record)"
-
-Step (a) already regenerates the full per-budget / per-spec baseline into
-`docs/handoff-compiler.html` from the curve JSON — that generated doc **is** the
-recorded baseline; do not hand-transcribe a second copy. Just refresh the one-line
-orientation snapshot in HOW_TO_WORK's "Current baseline" section (headline figure,
-default placement, fingerprint) so a reader sees the current number at a glance.
-
-### c) `scripts/v0/golden_suite.ts`
-
-Update `EVALUATOR_FINGERPRINT` when the live ruler hash changes. If the constant is
-stale relative to an already-recorded same-ruler baseline, refresh it as metadata
-hygiene and say explicitly that scorer/spec/ruler source did not change.
-
-## 4. Verify and commit
-
-```bash
-npx vitest run tests/v0_golden_config.test.ts
-git add -A && git commit
-```
-
-A fresh run should print no fingerprint drift warning.
-
-## What is not a re-baseline
-
-- Golden archives under `generated/golden-runs/` are working artifacts, not
-  source. They are gitignored by the top-level `generated/` rule.
-- The dashboard reads report JSON live; regenerate artifacts instead of
-  committing them.
+The archived V1 procedure is `archive/REBASELINE_V1.md`.

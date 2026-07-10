@@ -1,23 +1,174 @@
 {
-  "schema": "line.benchmark-v2.baseline-reference.v3",
+  "schema": "line.benchmark-v2.baseline-reference.v5",
   "status": "canonical-baseline",
-  "label": "v2.1-final",
-  "generated_at": "2026-07-10T14:43:42.370Z",
-  "bundle": "benchmark/v2/runs/v2.1-final-canonical.json",
-  "catalog_fingerprint": "b5e0506864782753fea7c59f9bf079ad867e227db699018eab8cee1b31e5dd8c",
-  "suite_fingerprint": "194ef720c9b58bbc4e0eb90690b86da45970a1cd9bd0d008d24497bc85a10923",
+  "label": "v2.2-decision-protocol",
+  "generated_at": "2026-07-10T16:13:25.200Z",
+  "bundle": "benchmark/v2/runs/v2.2-decision-protocol-baseline.json",
+  "catalog_fingerprint": "3989ba526bf0d112c36ecd1fb5b4faea21486e18cb888aa9edb19deb58f8ff3b",
+  "suite_fingerprint": "b118882720a968548323b5c53691a3e812df7733d0d931a579ad9aef57f5e470",
+  "execution_protocol": "line.benchmark-v2.execution-protocol.v2",
   "engine": "wasm",
-  "compiler_source_fingerprint": "2cdbe6cddf1fc6c63146c3942404e40ca49ff9a18621817aa1f616a3a5c13036",
+  "compiler_identity_protocol": "line.compiler-source-identity.v2",
+  "compiler_source_fingerprint": "2d40016aef2a2bd4e678f7483c7f6f63a6e616760b351c0931a97e80e119aa80",
+  "compiler_source_files": [
+    "engine-rs/.gitignore",
+    "engine-rs/Cargo.lock",
+    "engine-rs/Cargo.toml",
+    "engine-rs/README.md",
+    "engine-rs/src/abi.rs",
+    "engine-rs/src/engine.rs",
+    "engine-rs/src/frame.rs",
+    "engine-rs/src/grid.rs",
+    "engine-rs/src/kernel.rs",
+    "engine-rs/src/lib.rs",
+    "engine-rs/src/line.rs",
+    "package-lock.json",
+    "package.json",
+    "scripts/lib/_lr_engine.ts",
+    "scripts/lib/_lr_engine_record.ts",
+    "scripts/lib/_lr_engine_wasm.ts",
+    "scripts/lib/adapt.ts",
+    "scripts/lib/arc.ts",
+    "scripts/lib/arcLines.ts",
+    "scripts/lib/beam_prune.ts",
+    "scripts/lib/beam_search.ts",
+    "scripts/lib/detector.ts",
+    "scripts/lib/export.ts",
+    "scripts/lib/metrics.ts",
+    "scripts/lib/moves.ts",
+    "scripts/lib/precise_landings.ts",
+    "scripts/lib/primitive.ts",
+    "scripts/lib/primitive_search.ts",
+    "scripts/lib/ride.ts",
+    "scripts/lib/rng.ts",
+    "scripts/lib/rotation.ts",
+    "scripts/lib/route.ts",
+    "scripts/lib/search.ts",
+    "scripts/lib/tune.ts",
+    "scripts/lib/update_types.ts",
+    "scripts/v0/arc.ts",
+    "scripts/v0/arc_placement.ts",
+    "scripts/v0/core/beats.ts",
+    "scripts/v0/core/camera.ts",
+    "scripts/v0/core/candidate.ts",
+    "scripts/v0/core/compile_lifecycle.ts",
+    "scripts/v0/core/curves.ts",
+    "scripts/v0/core/exit_read.ts",
+    "scripts/v0/core/launch_read.ts",
+    "scripts/v0/core/measure.ts",
+    "scripts/v0/core/polish.ts",
+    "scripts/v0/core/substrate.ts",
+    "scripts/v0/core/trace.ts",
+    "scripts/v0/optimizer/README.md",
+    "scripts/v0/optimizer/aim.ts",
+    "scripts/v0/optimizer/arc_model.ts",
+    "scripts/v0/optimizer/arc_probe.ts",
+    "scripts/v0/optimizer/budget_model.ts",
+    "scripts/v0/optimizer/handoff.ts",
+    "scripts/v0/optimizer/node.ts",
+    "scripts/v0/optimizer/objective.ts",
+    "scripts/v0/optimizer/polish.ts",
+    "scripts/v0/optimizer/readiness.ts",
+    "scripts/v0/optimizer/register.ts",
+    "scripts/v0/optimizer/sample.ts",
+    "scripts/v0/optimizer/sim_frames.ts",
+    "scripts/v0/optimizer/solver.ts",
+    "scripts/v0/optimizer/types.ts",
+    "scripts/v0/score.ts",
+    "scripts/v0/types.ts",
+    "tsconfig.json"
+  ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
-  "candidate_fingerprint": "44bac2ac3d88ad27a9fb29c56a89bb11544f9d985f56e588195b98e3360ab4a5",
+  "candidate_fingerprint": "dea2e1a77af547571849bf96ccc60264f04afd62a0407efe7e04f15e3ebd2e25",
+  "probe": {
+    "execution_policy_fingerprint": "31a5fbc3054b87a1f8baf2993f0d89784e8b335929c3dbb3a0402093e3d6c870",
+    "implementation_fingerprint": "00a98db6137f47cf689ee148520efbbec22354412d80936135ae021b2e9f5ba4",
+    "archive_sha256": "e6d1a3c6a91eb874f4531db972c01acb93f04b8a97e7e7125825c36302ca7ce8",
+    "compressed_archive": "benchmark/v2/runs/v2.2-decision-protocol-probe.json.gz",
+    "compressed_archive_sha256": "88ccff4ae0c5a6ce226348df88b8370702d8ee72dac8d529d34a646d0d9788f7",
+    "canonical_headline": 442.997,
+    "seed_schedule": {
+      "kind": "profile_budget_disjoint_contiguous",
+      "profile": "probe",
+      "seedBase": 12,
+      "seedsPerBudget": 3,
+      "byBudget": [
+        {
+          "budget": 250000,
+          "actualSeeds": [
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "budget": 500000,
+          "actualSeeds": [
+            15,
+            16,
+            17
+          ]
+        }
+      ]
+    },
+    "budgets": [
+      {
+        "budget": 250000,
+        "score": 418.5091,
+        "valid_runs": 107,
+        "total_runs": 126
+      },
+      {
+        "budget": 500000,
+        "score": 452.7921,
+        "valid_runs": 113,
+        "total_runs": 126
+      }
+    ]
+  },
   "development": {
-    "execution_policy_fingerprint": "6e00cb8fd918327d6fb8d3fd1cfe0b56ae1f66877d91600fbf1ca042c3aa751b",
-    "harness_fingerprint": "024851d2db540f4f28a9b83a6ff31944ba6971e751f7dba06e030289e51fd132",
-    "archive_sha256": "adb4bfecfbef4cb4b0d7f6df71ff563a3dd64b11d42f84994707b64c66ce3fce",
-    "compressed_archive": "benchmark/v2/runs/v2.1-final-development.json.gz",
-    "compressed_archive_sha256": "960c37b4177689160a8f998fbc0388d87d343943e00792266aeca132dff6ddb0",
+    "execution_policy_fingerprint": "0ab7f717fecf0412e3e0d5e9ef325146325a5689c4e8c17136e16af9a99aacab",
+    "implementation_fingerprint": "00a98db6137f47cf689ee148520efbbec22354412d80936135ae021b2e9f5ba4",
+    "archive_sha256": "a693893e5fc06067271f71f3f56bb3ae7a097bce14404ee20cb6153a787ebd5c",
+    "compressed_archive": "benchmark/v2/runs/v2.2-decision-protocol-development.json.gz",
+    "compressed_archive_sha256": "3606a4155aed799d994af2699d8fe81213151f34ad60cb3d49108e92565022c2",
     "canonical_headline": 451.3303,
+    "seed_schedule": {
+      "kind": "profile_budget_disjoint_contiguous",
+      "profile": "canonical",
+      "seedBase": 0,
+      "seedsPerBudget": 4,
+      "byBudget": [
+        {
+          "budget": 250000,
+          "actualSeeds": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "budget": 500000,
+          "actualSeeds": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "budget": 750000,
+          "actualSeeds": [
+            8,
+            9,
+            10,
+            11
+          ]
+        }
+      ]
+    },
     "budgets": [
       {
         "budget": 250000,
@@ -40,12 +191,47 @@
     ]
   },
   "qualification": {
-    "execution_policy_fingerprint": "0160467aca20ee931d8df41e301eb20a047a0293de2c9132c5fff607a8a52c01",
-    "harness_fingerprint": "024851d2db540f4f28a9b83a6ff31944ba6971e751f7dba06e030289e51fd132",
-    "archive_sha256": "07d543f86bab0d4d8d0806d9e7fca12e7ba20213b97485d4180ad2a4195e6e2e",
-    "compressed_archive": "benchmark/v2/runs/v2.1-final-qualification.json.gz",
-    "compressed_archive_sha256": "cd85f714dd7c9f8d2bc6e9054356e392431408bb59a22957806d5aa67e21b7f0",
+    "execution_policy_fingerprint": "39a185aa2230dd234fa82e5aa953df7cb66ec2fc599e737cb31525501818ef34",
+    "implementation_fingerprint": "00a98db6137f47cf689ee148520efbbec22354412d80936135ae021b2e9f5ba4",
+    "archive_sha256": "350dbae6b2a978cf025710edec2828492e0480fc87edeec74745f7a9cad3cfb9",
+    "compressed_archive": "benchmark/v2/runs/v2.2-decision-protocol-qualification.json.gz",
+    "compressed_archive_sha256": "b4d0fa426b666aca73b697496a14da91d3875a50b05f3e5093864844ce5966d6",
     "monitor_score": 385.6812,
+    "seed_schedule": {
+      "kind": "profile_budget_disjoint_contiguous",
+      "profile": "canonical",
+      "seedBase": 0,
+      "seedsPerBudget": 4,
+      "byBudget": [
+        {
+          "budget": 250000,
+          "actualSeeds": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "budget": 500000,
+          "actualSeeds": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "budget": 750000,
+          "actualSeeds": [
+            8,
+            9,
+            10,
+            11
+          ]
+        }
+      ]
+    },
     "budgets": [
       {
         "budget": 250000,
@@ -66,6 +252,6 @@
         "total_runs": 20
       }
     ],
-    "linked_development_archive_sha256": "adb4bfecfbef4cb4b0d7f6df71ff563a3dd64b11d42f84994707b64c66ce3fce"
+    "linked_development_archive_sha256": "a693893e5fc06067271f71f3f56bb3ae7a097bce14404ee20cb6153a787ebd5c"
   }
 }

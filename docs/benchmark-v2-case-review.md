@@ -1,6 +1,6 @@
 # Benchmark V2 Case Review
 
-Characterization: `712719f7dcf9d148`. Audit: `d732ad2a1e4f6c87`.
+Characterization: `712719f7dcf9d148`. Audit: `4818602c37f62878`.
 
 Selection is based on source structure and stated benchmark intent. It contains no compiler or qualification result.
 

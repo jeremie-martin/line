@@ -10,6 +10,11 @@ import { compilerWorkerTimeoutMs } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
 import type { CompileStats, DriftReport, Spec } from "../types.ts";
 import {
+  BENCHMARK_EXECUTION_PROTOCOL,
+  BENCHMARK_RUN_ARCHIVE_SCHEMA,
+  COMPILER_IDENTITY_PROTOCOL,
+} from "../../../benchmark/v2/decision-policy.ts";
+import {
   auditDataFingerprint,
   auditRuleFingerprint,
   buildAuditReport,
@@ -37,7 +42,7 @@ import {
   type ResolvedSource,
 } from "./model.ts";
 import {
-  HARNESS_SOURCE_FILES,
+  RUNNER_IMPLEMENTATION_SOURCE_FILES,
   canonicalMembers,
   executionPolicyIdentity,
   fingerprintFiles,
@@ -47,9 +52,24 @@ import {
   suiteIdentity,
 } from "./suite_model.ts";
 
-export const RUN_ARCHIVE_SCHEMA = "line.benchmark-v2.run-archive.v2" as const;
+export const RUN_ARCHIVE_SCHEMA = BENCHMARK_RUN_ARCHIVE_SCHEMA;
+export { COMPILER_IDENTITY_PROTOCOL };
 const CHECKPOINT_SCHEMA = "line.benchmark-v2.checkpoint.v1" as const;
-const SUMMARY_SCHEMA = "line.benchmark-v2.run-summary.v1" as const;
+const SUMMARY_SCHEMA = "line.benchmark-v2.run-summary.v2" as const;
+
+const COMPILER_SOURCE_PATHS = [
+  "scripts/v0/optimizer",
+  "scripts/v0/core",
+  "scripts/v0/types.ts",
+  "scripts/v0/arc.ts",
+  "scripts/v0/arc_placement.ts",
+  "scripts/v0/score.ts",
+  "scripts/lib",
+  "engine-rs",
+  "package.json",
+  "package-lock.json",
+  "tsconfig.json",
+] as const;
 
 type RunnerMode = "development" | "qualification";
 
@@ -155,12 +175,13 @@ export async function runBenchmarkV2(
       throw new Error(`development source scope does not match the canonical suite`);
     }
   }
-  const schedule = resolvedSeedSchedule(suite, profile.budgets, profile.seeds_per_budget);
+  const schedule = resolvedSeedSchedule(suite, profileName, profile.budgets, profile.seeds_per_budget);
   const engine = process.env.LR_ENGINE ?? "typescript";
-  const harnessFingerprint = fingerprintFiles(HARNESS_SOURCE_FILES);
+  const implementationFingerprint = fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES);
   const execution = executionPolicyIdentity({
     suiteFingerprint: suiteId.suiteFingerprint,
-    harnessFingerprint,
+    executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
+    implementationFingerprint,
     engine,
     compiler: "compileHandoff",
     profile: profileName,
@@ -206,6 +227,7 @@ export async function runBenchmarkV2(
   );
   const runPlanFingerprint = sha256(JSON.stringify({
     executionPolicyFingerprint: execution.executionPolicyFingerprint,
+    implementationFingerprint,
     characterizationFingerprint: characterization.dataFingerprint,
     auditFingerprint: audit.auditFingerprint,
     candidateReviewFingerprint: sourceInventoryFingerprint(reviewContents),
@@ -329,7 +351,11 @@ export async function runBenchmarkV2(
     compressedArchiveSha256,
     suiteFingerprint: suiteId.suiteFingerprint,
     executionPolicyFingerprint: execution.executionPolicyFingerprint,
+    executionProtocol: execution.executionProtocol,
+    implementationFingerprint: execution.implementationFingerprint,
+    compilerIdentityProtocol: git.compilerIdentityProtocol,
     compilerSourceFingerprint: git.compilerSourceFingerprint,
+    compilerSourceFiles: git.compilerSourceFiles,
     compilerEnvironment: git.compilerEnvironment,
     engineArtifactFingerprint: git.engineArtifactFingerprint,
     candidateFingerprint: git.candidateFingerprint,
@@ -643,18 +669,19 @@ function loadOrInitializeCheckpoint(
 function gitIdentity(engine: string): {
   head: string;
   compilerDiffSha256: string;
+  compilerIdentityProtocol: typeof COMPILER_IDENTITY_PROTOCOL;
   compilerSourceFingerprint: string;
+  compilerSourceFiles: string[];
   compilerEnvironment: Record<string, string>;
   engineArtifactFingerprint: string | null;
   candidateFingerprint: string;
   trackedChanges: string[];
 } {
   const git = (args: string[]): string => execFileSync("git", args, { encoding: "utf8" }).trimEnd();
-  const compilerPaths = ["scripts/v0/optimizer", "scripts/v0/core", "scripts/v0/types.ts", "engine-rs"];
-  const compilerDiff = git(["diff", "--binary", "HEAD", "--", ...compilerPaths]);
+  const compilerDiff = git(["diff", "--binary", "HEAD", "--", ...COMPILER_SOURCE_PATHS]);
   const compilerFiles = git([
-    "ls-files", "--cached", "--others", "--exclude-standard", "--", ...compilerPaths,
-  ]).split("\n").filter(Boolean);
+    "ls-files", "--cached", "--others", "--exclude-standard", "--", ...COMPILER_SOURCE_PATHS,
+  ]).split("\n").filter(Boolean).sort();
   const compilerSourceFingerprint = fingerprintFiles(compilerFiles);
   const compilerEnvironment = Object.fromEntries(
     Object.entries(process.env)
@@ -668,6 +695,7 @@ function gitIdentity(engine: string): {
     ? sha256(readFileSync(engineArtifactPath))
     : null;
   const candidateFingerprint = sha256(JSON.stringify({
+    compilerIdentityProtocol: COMPILER_IDENTITY_PROTOCOL,
     compilerSourceFingerprint,
     compilerEnvironment,
     engine,
@@ -676,7 +704,9 @@ function gitIdentity(engine: string): {
   return {
     head: git(["rev-parse", "HEAD"]),
     compilerDiffSha256: sha256(compilerDiff),
+    compilerIdentityProtocol: COMPILER_IDENTITY_PROTOCOL,
     compilerSourceFingerprint,
+    compilerSourceFiles: compilerFiles,
     compilerEnvironment,
     engineArtifactFingerprint,
     candidateFingerprint,

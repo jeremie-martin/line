@@ -44,7 +44,15 @@ export const benchmarkPolicy = {
   componentWeights: { air: 0.30, speed: 0.30, impact: 0.30, amplitude: 0.10 },
   axisQualityTolerance: 0.25,
   transform: { kind: "production_felt_jolt", joltMs: -15 },
-  seedPolicy: { kind: "budget_disjoint_contiguous", seedBase: 0 },
+  seedPolicy: {
+    kind: "profile_budget_disjoint_contiguous",
+    profileSeedBases: {
+      // Probe evidence is exploratory. Canonical uses the independently studied
+      // 0..11 range and is disjoint from every probe seed at the same budget.
+      probe: 12,
+      canonical: 0,
+    },
+  },
   profiles: {
     probe: { budgets: [250_000, 500_000], seedsPerBudget: 3 },
     canonical: { budgets: [250_000, 500_000, 750_000], seedsPerBudget: 4 },

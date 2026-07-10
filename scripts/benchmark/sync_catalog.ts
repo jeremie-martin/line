@@ -36,7 +36,7 @@ const heldoutManifest = {
   references: qualificationEntries.map(stripCohort),
 };
 const suiteManifest = {
-  schema: "line.benchmark-v2.suite.v2",
+  schema: "line.benchmark-v2.suite.v3",
   status: "selected-canonical-development-suite",
   description: "Generated compatibility policy. benchmark/v2/policy.ts is the editable source of truth.",
   strata: benchmarkPolicy.strata.map((stratum) => ({
@@ -55,7 +55,10 @@ const suiteManifest = {
   component_weights: benchmarkPolicy.componentWeights,
   axis_quality_tolerance: benchmarkPolicy.axisQualityTolerance,
   transform: { kind: benchmarkPolicy.transform.kind, jolt_ms: benchmarkPolicy.transform.joltMs },
-  seed_policy: { kind: benchmarkPolicy.seedPolicy.kind, seed_base: benchmarkPolicy.seedPolicy.seedBase },
+  seed_policy: {
+    kind: benchmarkPolicy.seedPolicy.kind,
+    profile_seed_bases: benchmarkPolicy.seedPolicy.profileSeedBases,
+  },
   profiles: {
     probe: {
       budgets: [...benchmarkPolicy.profiles.probe.budgets],

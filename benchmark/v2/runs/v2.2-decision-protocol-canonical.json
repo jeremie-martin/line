@@ -1,0 +1,23 @@
+{
+  "schema": "line.benchmark-v2.canonical-bundle.v1",
+  "label": "v2.2-decision-protocol",
+  "generatedAt": "2026-07-10T16:13:25.200Z",
+  "development": {
+    "archive": "/home/wyss/line/generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-development.json",
+    "summary": "/home/wyss/line/generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-development.json.summary.json",
+    "sha256": "a693893e5fc06067271f71f3f56bb3ae7a097bce14404ee20cb6153a787ebd5c",
+    "compressedSha256": "3606a4155aed799d994af2699d8fe81213151f34ad60cb3d49108e92565022c2",
+    "retainedCompressedArchive": "benchmark/v2/runs/v2.2-decision-protocol-development.json.gz",
+    "retainedSummary": "benchmark/v2/runs/v2.2-decision-protocol-development.summary.json",
+    "headline": 451.3303
+  },
+  "qualification": {
+    "archive": "/home/wyss/line/generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-qualification.json",
+    "summary": "/home/wyss/line/generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-qualification.json.summary.json",
+    "sha256": "350dbae6b2a978cf025710edec2828492e0480fc87edeec74745f7a9cad3cfb9",
+    "compressedSha256": "b4d0fa426b666aca73b697496a14da91d3875a50b05f3e5093864844ce5966d6",
+    "retainedCompressedArchive": "benchmark/v2/runs/v2.2-decision-protocol-qualification.json.gz",
+    "retainedSummary": "benchmark/v2/runs/v2.2-decision-protocol-qualification.summary.json",
+    "monitorScore": 385.6812
+  }
+}

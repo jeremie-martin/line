@@ -1,21 +1,28 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { RUN_ARCHIVE_SCHEMA } from "../v0/benchmark_v2/runner.ts";
+import { pairedV2Decision, type DecisionRun } from "../v0/benchmark_v2/decision_model.ts";
+import { loadSourceManifest, resolveSources } from "../v0/benchmark_v2/model.ts";
+import { DECISION_SOURCE_FILES, fingerprintFiles, loadSuiteManifest } from "../v0/benchmark_v2/suite_model.ts";
 
 const paths = {
-  baseline: "generated/benchmark-v2/calibration/baseline-probe.json",
-  impactOff: "generated/benchmark-v2/calibration/impact-off-probe.json",
-  narrowBreadth: "generated/benchmark-v2/calibration/quality-ncand-1-probe.json",
+  baseline: "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+  impactOff: "generated/benchmark-v2/calibration/v2.2-impact-off-probe.json",
+  narrowBreadth: "generated/benchmark-v2/calibration/v2.2-quality-ncand-1-probe.json",
 };
 const archives = Object.fromEntries(Object.entries(paths).map(([id, path]) => [id, verified(path)])) as
   Record<keyof typeof paths, any>;
 const policies = new Set(Object.values(archives).map((archive) => archive.identity.executionPolicyFingerprint));
 if (policies.size !== 1) throw new Error(`responsiveness archives do not use one execution policy`);
+const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
+const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);
 const report = {
   schema: "line.benchmark-v2.responsiveness-study.v1",
   status: "complete",
   purpose: "Confirm that the frozen probe detects broad and axis-specific compiler degradations under an identical execution policy.",
   executionPolicyFingerprint: archives.baseline.identity.executionPolicyFingerprint,
+  decisionFingerprint: fingerprintFiles(DECISION_SOURCE_FILES),
   cases: [
     summarize("baseline", archives.baseline),
     summarize("impact_blindness", archives.impactOff),
@@ -45,7 +52,32 @@ function summarize(id: string, archive: any): Record<string, unknown> {
     })),
     strata: weightedStrata(archive),
     hardFailures: counts(archive.runs.flatMap((run: any) => run.score.hardFailures.map((failure: string) => failure.split(":")[0]))),
+    decision: id === "baseline" ? null : decisionSummary(archive),
   };
+}
+
+function decisionSummary(candidate: any): Record<string, unknown> {
+  const result = pairedV2Decision(toRuns(archives.baseline), toRuns(candidate), suite, {
+    profile: "probe",
+    mode: "improvement",
+  });
+  return {
+    outcome: result.outcome,
+    delta: result.delta,
+    centralInterval: [result.confidence.centralLo, result.confidence.centralHi],
+    lowerBound: result.confidence.lowerBound,
+    upperBound: result.confidence.upperBound,
+  };
+}
+
+function toRuns(archive: any): DecisionRun[] {
+  return archive.runs.map((row: any) => ({
+    sourceId: row.task.sourceId,
+    budget: row.task.budget,
+    seedSlot: row.task.seedSlot,
+    actualSeed: row.task.actualSeed,
+    score: { score: row.score.score, valid: row.score.valid },
+  }));
 }
 
 function weightedStrata(archive: any): Record<string, number> {
@@ -65,7 +97,7 @@ function verified(path: string): any {
   const expected = readFileSync(`${path}.sha256`, "utf8").trim().split(/\s+/)[0];
   if (sha256 !== expected) throw new Error(`${path}: checksum mismatch`);
   const archive = JSON.parse(bytes.toString("utf8"));
-  if (archive.schema !== "line.benchmark-v2.run-archive.v2" || archive.profile !== "probe") {
+  if (archive.schema !== RUN_ARCHIVE_SCHEMA || archive.profile !== "probe") {
     throw new Error(`${path}: not a V2 probe archive`);
   }
   return { ...archive, __sha256: sha256 };
@@ -75,7 +107,7 @@ function markdown(report: any): string {
   const lines = [
     "# Benchmark V2 Responsiveness Calibration",
     "",
-    "All runs use the same catalog, budgets, disjoint seeds, scoring, engine, and harness. Only the declared compiler environment changes.",
+    "All runs use the same catalog, budgets, seed blocks, scoring, engine, and semantic execution protocol. Only the declared compiler environment changes.",
     "",
     "| Case | Environment | Headline | Delta | Valid |",
     "|---|---|---:|---:|---:|",
@@ -84,9 +116,10 @@ function markdown(report: any): string {
       `${entry.deltaFromBaseline.toFixed(2)} | ${entry.validRuns}/${entry.totalRuns} |`
     ),
     "",
-    "`LR_QUALITY_NCAND=1` is the graded calibration: it lowers every stratum and the paired decision rejects it with a 159.63-point headline loss. " +
+    `\`LR_QUALITY_NCAND=1\` is the graded calibration: it lowers every stratum and the probe decision returns ` +
+      `\`${report.cases.find((entry: any) => entry.id === "candidate_breadth_1").decision.outcome}\` with a ` +
+      `${Math.abs(report.cases.find((entry: any) => entry.id === "candidate_breadth_1").decision.delta).toFixed(2)}-point headline loss. ` +
       "`LR_IMPACT_OFF=1` is the contract calibration: authored impact measurements disappear, so every run is invalid rather than silently ignoring the axis.",
-    "",
   ];
   return `${lines.join("\n")}\n`;
 }

@@ -98,7 +98,6 @@ function renderCaseReview(review: {
     ...review.decisions.map((decision) =>
       `| ${decision.id} | ${decision.parent_id ?? "normative"} | ${decision.phases.length} | ${decision.rationale.replaceAll("|", "\\|")} |`
     ),
-    "",
   ];
   return `${lines.join("\n")}\n`;
 }

@@ -2,7 +2,7 @@
 
 The reference contains 12 seeds at each of 3 budgets. Reference headline: **450.84**; valid 1358/1512.
 
-Schedule trials allocate disjoint actual seeds to budgets, matching the canonical seed policy.
+Schedule trials estimate the effect of seed count using disjoint budget blocks. The frozen V2 policy additionally separates probe and canonical actual-seed ranges; numeric seed labels are deterministic IID inputs.
 
 | Profile | Seeds / budget | Compiles | Headline abs. error p50 / p95 / max | Valid-rate abs. error p95 | Worst stratum p95 |
 |---|---:|---:|---:|---:|---:|

@@ -117,8 +117,9 @@ weight. The V2 score scale is independent of V1 and its historical headline.
 
 ## Compute profiles
 
-Probe and canonical use the same 42 development cases and disjoint actual seeds across
-budgets.
+Probe and canonical use the same 42 development cases. Actual seeds are disjoint across
+budgets and also between profiles at every shared budget, so canonical evidence does not
+reuse seeds exposed during probe-driven development.
 
 | Profile | Budgets | Seeds per budget | Development compiles |
 |---|---|---:|---:|
@@ -130,6 +131,8 @@ budget. One-seed probes had 20.87 points of p95 headline error; three-seed probe
 that to 7.38. Four-seed canonicals use all 12 seeds disjointly and had 6.07 points of p95
 headline error. The 750k ceiling bounds per-compile compute. Public execution defaults to
 48 workers on the 64-logical-CPU reference host and reports resource use while running.
+The seed-count study estimates allocation behavior; actual seed labels are deterministic
+IID inputs and the profile ranges are separated for confirmation.
 
 ## Identity and evidence
 
@@ -138,8 +141,9 @@ the typed case contract, materialized variant catalog, target resolution and key
 interpolation, measurement, scoring, weights, budgets, transform, and seed policy.
 
 Each archive also records an execution-policy fingerprint covering suite identity,
-harness, engine, compiler entry point, profile, exact sources, budgets, resolved seeds,
-and transform. Comparisons require matching execution policies and exact
+explicit execution protocol, engine, compiler entry point, profile, exact sources,
+budgets, resolved seeds, and transform. Exact runner bytes are recorded separately as an
+implementation fingerprint. Comparisons require matching semantic policies and exact
 `source/budget/seed-slot/actual-seed` scope. Compiler source and non-engine `LR_*`
 environment form the candidate identity and may differ by design.
 
@@ -156,7 +160,7 @@ recomputed audit. Behavior-defining interpolation code is included in suite iden
 4. Freeze catalog, weights, evaluator, profiles, and fingerprints.
 5. Establish a checksummed canonical baseline.
 6. Improve the compiler using development results only.
-7. Compare candidates only under an identical execution policy.
+7. Screen candidates on probe evidence, then compare promotable candidates on independent canonical seeds using `docs/benchmark-v2-decisions.md`.
 8. Run qualification only as the linked sidecar of a canonical milestone.
 
 Any change to cases, membership, parent structure, weights, scoring, target

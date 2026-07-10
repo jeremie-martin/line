@@ -21,10 +21,11 @@ references are qualification-only. Benchmark V1 remains available explicitly thr
 
 ```bash
 npm run benchmark -- prepare
+npm run benchmark -- baseline --label=NAME
 npm run benchmark -- probe
 npm run benchmark -- canonical --label=NAME
 npm run benchmark -- explain ARCHIVE.json
-npm run benchmark:v2:decide -- BASE.json CANDIDATE.json
+npm run benchmark -- decide CANDIDATE.json
 npm run benchmark:v2:clicks
 ```
 
@@ -63,15 +64,18 @@ archives, SHA-256 sidecars, compact summaries, per-budget/stratum/group/parent/c
 per-seed scores, component errors, phase completion, reports, and track hashes.
 
 Qualification archives contain the development archive hash. `baseline.json` records
-suite, execution, harness, compiler, engine, compressed archive, and linkage identities.
+probe and canonical execution policies, implementation bytes, compiler, engine, the
+versioned compiler-source inventory, dependency and TypeScript configuration, compressed
+archives, independent seed schedules, and qualification linkage.
 
 ## Comparison
 
-The decision command requires checksummed development archives with identical suite and
-execution-policy fingerprints and complete paired scope. It reports headline and
-budget/stratum/group deltas, a family-aware confidence interval, verdict, decision-rule
-fingerprint, and verified archive hashes. Candidate compiler bytes and `LR_*` environment
-may differ and are independently checked for self-consistency.
+The decision command requires checksummed development archives with identical semantic
+execution policies and complete paired scope. Probe decisions screen; only canonical
+decisions can promote. Improvement and explicit-margin simplification policies use paired
+budget seed-block jackknife Student-t bounds. Parent-preserving bootstraps are reported as
+catalog sensitivity, not as posterior probabilities. The complete contract and exit codes
+are in `docs/benchmark-v2-decisions.md`.
 
 ## Diagnostics
 

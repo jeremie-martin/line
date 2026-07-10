@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { BENCHMARK_EXECUTION_PROTOCOL } from "../../../benchmark/v2/decision-policy.ts";
 import type { ResolvedSource, SourceRole } from "./model.ts";
 
-export const SUITE_MANIFEST_SCHEMA = "line.benchmark-v2.suite.v2" as const;
+export const SUITE_MANIFEST_SCHEMA = "line.benchmark-v2.suite.v3" as const;
 
 export type ComponentName = "air" | "speed" | "impact" | "amplitude";
 export type CanonicalStratumId =
@@ -28,7 +29,10 @@ export type SuiteManifest = {
   component_weights: Record<ComponentName, number>;
   axis_quality_tolerance: number;
   transform: { kind: "production_felt_jolt"; jolt_ms: number };
-  seed_policy: { kind: "budget_disjoint_contiguous"; seed_base: number };
+  seed_policy: {
+    kind: "profile_budget_disjoint_contiguous";
+    profile_seed_bases: Record<"probe" | "canonical", number>;
+  };
   profiles: Record<"probe" | "canonical", { budgets: number[]; seeds_per_budget: number }>;
   budget_weights: Array<{ budget: number; weight: number }>;
 };
@@ -41,7 +45,8 @@ export type SuiteIdentity = {
 };
 
 export type ResolvedSeedSchedule = {
-  kind: "budget_disjoint_contiguous";
+  kind: "profile_budget_disjoint_contiguous";
+  profile: "probe" | "canonical";
   seedBase: number;
   seedsPerBudget: number;
   byBudget: Array<{ budget: number; actualSeeds: number[] }>;
@@ -50,7 +55,8 @@ export type ResolvedSeedSchedule = {
 export type ExecutionPolicyIdentity = {
   executionPolicyFingerprint: string;
   suiteFingerprint: string;
-  harnessFingerprint: string;
+  executionProtocol: typeof BENCHMARK_EXECUTION_PROTOCOL;
+  implementationFingerprint: string;
   engine: string;
   compiler: string;
   profile: "probe" | "canonical";
@@ -77,14 +83,19 @@ export const BENCHMARK_DEFINITION_SOURCE_FILES = [
   "scripts/produce/seed.ts",
 ] as const;
 
-export const HARNESS_SOURCE_FILES = [
+export const RUNNER_IMPLEMENTATION_SOURCE_FILES = [
   "scripts/v0/benchmark_v2/runner.ts",
   "scripts/v0/golden_suite.ts",
 ] as const;
 
 export const DECISION_SOURCE_FILES = [
+  "benchmark/v2/decision-policy.ts",
   "scripts/v0/benchmark_v2/decide.ts",
   "scripts/v0/benchmark_v2/decision_model.ts",
+  "scripts/v0/benchmark_v2/evaluator.ts",
+  "scripts/v0/benchmark_v2/model.ts",
+  "scripts/v0/benchmark_v2/suite_model.ts",
+  "scripts/v0/score.ts",
 ] as const;
 
 export function loadSuiteManifest(path: string, sources?: ResolvedSource[]): SuiteManifest {
@@ -139,11 +150,16 @@ export function validateSuiteManifest(suite: SuiteManifest, sources?: ResolvedSo
   if (!finitePositive(suite.axis_quality_tolerance)) throw new Error(`invalid axis quality tolerance`);
   if (!Number.isFinite(suite.transform.jolt_ms)) throw new Error(`invalid jolt`);
   if (
-    suite.seed_policy.kind !== "budget_disjoint_contiguous" ||
-    !Number.isSafeInteger(suite.seed_policy.seed_base) || suite.seed_policy.seed_base < 0
+    suite.seed_policy?.kind !== "profile_budget_disjoint_contiguous" ||
+    suite.seed_policy.profile_seed_bases === null ||
+    typeof suite.seed_policy.profile_seed_bases !== "object" ||
+    Object.values(suite.seed_policy.profile_seed_bases).some((seed) =>
+      !Number.isSafeInteger(seed) || seed < 0
+    )
   ) {
     throw new Error(`invalid seed policy`);
   }
+  assertSameSet(Object.keys(suite.seed_policy.profile_seed_bases), ["probe", "canonical"], "profile seed bases");
   for (const profileName of ["probe", "canonical"] as const) {
     const profile = suite.profiles[profileName];
     if (
@@ -155,6 +171,7 @@ export function validateSuiteManifest(suite: SuiteManifest, sources?: ResolvedSo
       throw new Error(`${profileName}: invalid budget/seed profile`);
     }
   }
+  assertProfileSeedDisjointness(suite);
   assertUnique(suite.budget_weights.map((entry) => String(entry.budget)), "budget weight keys");
   assertSum(suite.budget_weights.map((entry) => entry.weight), 1, "budget weights");
   assertSameSet(
@@ -198,27 +215,47 @@ export function canonicalMembers(suite: Pick<SuiteManifest, "strata">): string[]
 
 export function resolvedSeedSchedule(
   suite: Pick<SuiteManifest, "seed_policy">,
+  profile: "probe" | "canonical",
   budgets: number[],
   seedsPerBudget: number,
 ): ResolvedSeedSchedule {
+  const seedBase = suite.seed_policy.profile_seed_bases[profile];
   return {
     kind: suite.seed_policy.kind,
-    seedBase: suite.seed_policy.seed_base,
+    profile,
+    seedBase,
     seedsPerBudget,
     byBudget: budgets.map((budget, budgetIndex) => ({
       budget,
       actualSeeds: Array.from(
         { length: seedsPerBudget },
-        (_, seedSlot) => suite.seed_policy.seed_base + seedSlot + budgetIndex * seedsPerBudget,
+        (_, seedSlot) => seedBase + seedSlot + budgetIndex * seedsPerBudget,
       ),
     })),
   };
 }
 
+function assertProfileSeedDisjointness(suite: SuiteManifest): void {
+  const schedules = (["probe", "canonical"] as const).map((profileName) => {
+    const profile = suite.profiles[profileName];
+    return resolvedSeedSchedule(suite, profileName, profile.budgets, profile.seeds_per_budget);
+  });
+  const probeByBudget = new Map(schedules[0].byBudget.map((entry) => [entry.budget, new Set(entry.actualSeeds)]));
+  for (const entry of schedules[1].byBudget) {
+    const probeSeeds = probeByBudget.get(entry.budget);
+    if (probeSeeds !== undefined && entry.actualSeeds.some((seed) => probeSeeds.has(seed))) {
+      throw new Error(`${entry.budget}: probe and canonical actual seeds must be disjoint`);
+    }
+  }
+}
+
 export function executionPolicyIdentity(input: Omit<ExecutionPolicyIdentity, "executionPolicyFingerprint">): ExecutionPolicyIdentity {
+  // Exact runner bytes remain auditable, but operational-only changes do not alter
+  // semantic comparison identity unless BENCHMARK_EXECUTION_PROTOCOL is bumped.
+  const { implementationFingerprint: _implementationFingerprint, ...semanticPolicy } = input;
   return {
     ...input,
-    executionPolicyFingerprint: sha256(JSON.stringify(input)),
+    executionPolicyFingerprint: sha256(JSON.stringify(semanticPolicy)),
   };
 }
 

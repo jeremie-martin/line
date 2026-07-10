@@ -42,25 +42,17 @@ npx tsx scripts/stress.ts
 # verify lr-core (Node-native physics) still matches the bundle exactly
 npm run parity
 
-# v0 handoff compiler golden benchmark (metric, run tiers, decide: docs/HOW_TO_WORK.md)
-npm run golden -- --full  # canonical full run, the promotable basis
+# Benchmark V2 is the default compiler benchmark.
+npm run benchmark -- probe
+npm run benchmark -- canonical --label=NAME
+npm run decide -- CANDIDATE_DEVELOPMENT_ARCHIVE.json
 
-# decide whether a candidate beats a baseline (paired-bootstrap verdict)
-npm run decide -- CANDIDATE/golden.json BASELINE/golden.json
+# Freeze probe + canonical + qualification evidence for a new compiler baseline.
+npm run benchmark -- baseline --label=NAME
 
-# same compiler, explicit selector kept for future compiler additions
-npm run golden -- --full --compiler=handoff
-
-# normalized probe tier
-npm run golden -- --probe
-
-# compact machine-readable output
-npm run golden -- --full --json
-
-# every golden run archives golden.json plus checkpoint tracks/reports under generated/golden-runs/
-
-# alias for the same benchmark
-npm run goal
+# Historical V1 reproduction remains explicit.
+npm run golden:v1 -- --full
+npm run decide:v1 -- CANDIDATE/golden.json BASELINE/golden.json
 ```
 
 To visually inspect a run (events, plots, video):

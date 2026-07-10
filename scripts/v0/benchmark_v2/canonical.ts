@@ -38,8 +38,8 @@ const qualification = await runBenchmarkV2("qualification", [
   `--development-archive=${developmentPath}`,
   ...forwarded,
 ]);
-const retainedDevelopment = retainCompressed(development, archiveDir, `${label}-development`);
-const retainedQualification = retainCompressed(qualification, archiveDir, `${label}-qualification`);
+const retainedDevelopment = retainBenchmarkArchive(development, archiveDir, `${label}-development`);
+const retainedQualification = retainBenchmarkArchive(qualification, archiveDir, `${label}-qualification`);
 const bundlePath = resolve(archiveDir, `${label}-canonical.json`);
 writeFileSync(bundlePath, `${JSON.stringify({
   schema: "line.benchmark-v2.canonical-bundle.v1",
@@ -68,7 +68,7 @@ console.log(`Canonical bundle: ${bundlePath}`);
 return { bundlePath, development, qualification };
 }
 
-function retainCompressed(
+export function retainBenchmarkArchive(
   run: Awaited<ReturnType<typeof runBenchmarkV2>>,
   archiveDir: string,
   stem: string,

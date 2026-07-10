@@ -26,14 +26,13 @@ The compiler work does not change:
 - `Spec` and `DriftReport` shapes
 - `lr-core` physics
 - detector semantics
-- per-run scoring formula (`score.ts`) and `EVALUATOR_FINGERPRINT`
+- Benchmark V2 evaluator and suite fingerprint within a comparison
 - axis definitions and normalization
-- golden specs
+- frozen Benchmark V2 development cases and qualification references
 - contact/off-beat/survival hard-contract semantics
 
-(The HEADLINE aggregation and the accept/reject decision rule are **not** part of
-this frozen ruler — they live in `metric.ts` and `analyze_golden_curve.ts decide`
-and may evolve independently of the per-run scorer.)
+(The V2 decision rule has its own fingerprint and explicit execution protocol. Its
+contract is `benchmark-v2-decisions.md`.)
 
 ## Acceptance
 
@@ -41,19 +40,13 @@ and may evolve independently of the per-run scorer.)
   handoff-specific diagnostics.
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
-- `npm run golden -- --full` runs the full suite (40 specs × 12 seed slots,
-  budgets `{75,150,225,350,475,550}k`, with disjoint actual seed blocks per budget)
-  and reports the **HEADLINE** metric (the budget-value-weighted average of the
-  per-budget suite scores) plus the per-budget curve. The full preset uses
-  `LR_ENGINE=wasm` and `--jobs=32` unless explicitly overridden.
-- To decide a change is a real improvement, run
-  `npm run decide -- <candidate>/golden.json <baseline>/golden.json` — a paired
-  cluster-bootstrap VERDICT (accept iff the headline-Δ is significant one-sided at
-  α=0.10, i.e. `P(Δ≤0) < 0.10`), with
-  per-budget deltas reported. Validity is reported per budget but does not gate. Raw
-  score deltas are not an acceptance rule; promotion thresholds live in active campaign docs.
+- `npm run benchmark -- probe` produces screening evidence on 42 development cases.
+- `npm run benchmark -- canonical --label=NAME` produces canonical development evidence
+  plus linked held-out qualification monitoring.
+- `npm run decide -- CANDIDATE.json` applies paired budget seed-block confidence bounds.
+  Only a canonical `accept` promotes an improvement. Simplifications require an explicit
+  non-inferiority margin.
 
 Any compiler change should preserve these tests and report its impact through the
-golden breakdown: the `headline` block (score / weight_by_budget / tier / validity),
-per-budget scores, pass/fail rows, checkpoint hashes, worst contacts, worst axes,
-and `compile_stats`.
+V2 breakdown: headline, budgets, strata, groups, parents, cases, validity flips,
+checkpoint hashes, weak contacts/axes, phases, and compiler statistics.

@@ -1,0 +1,241 @@
+{
+  "schema": "line.benchmark-v2.decision-calibration.v1",
+  "generatedAt": "2026-07-10T16:20:01.353Z",
+  "suiteFingerprint": "b118882720a968548323b5c53691a3e812df7733d0d931a579ad9aef57f5e470",
+  "decisionFingerprint": "752eb26e92f834cf32f4320c1ab428b8aeede8fd06192c44f78025288e761bf4",
+  "policy": {
+    "schema": "line.benchmark-v2.decision-policy.v1",
+    "method": "paired_budget_seed_block_jackknife_t_with_parent_bootstrap_sensitivity",
+    "bootstrapIterations": 20000,
+    "bootstrapSeed": 1592594996,
+    "centralIntervalLevel": 0.95,
+    "profiles": {
+      "probe": {
+        "authority": "screening",
+        "alpha": 0.1,
+        "positiveOutcome": "advance",
+        "negativeOutcome": "stop",
+        "unresolvedOutcome": "unresolved"
+      },
+      "canonical": {
+        "authority": "promotion",
+        "alpha": 0.05,
+        "positiveOutcome": "accept",
+        "negativeOutcome": "reject",
+        "unresolvedOutcome": "inconclusive"
+      }
+    }
+  },
+  "simulation": {
+    "trials": 200,
+    "bootstrapIterationsPerTrial": 100,
+    "design": "Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.",
+    "note": "Bootstrap iterations only exercise sensitivity diagnostics; the formal seed-block gate and its coverage do not depend on them."
+  },
+  "controls": {
+    "identical": {
+      "available": true,
+      "baseArchive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+      "candidateArchive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+      "delta": 0,
+      "centralInterval": [
+        0,
+        0
+      ],
+      "lowerBound": 0,
+      "upperBound": 0,
+      "outcome": "unresolved"
+    },
+    "knownBroadDegradation": {
+      "available": true,
+      "baseArchive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+      "candidateArchive": "generated/benchmark-v2/calibration/v2.2-quality-ncand-1-probe.json",
+      "delta": -141.1791,
+      "centralInterval": [
+        -216.654,
+        -65.7042
+      ],
+      "lowerBound": -176.0248,
+      "upperBound": -106.3334,
+      "outcome": "stop"
+    },
+    "correlatedSeedAdversary": {
+      "design": "Every case shares the same three seed effects [-10,-10,+30]. Independent-cell resampling previously accepted this control.",
+      "delta": 2.9868,
+      "centralInterval": [
+        -31.7753,
+        37.7489
+      ],
+      "lowerBound": -14.1414,
+      "upperBound": 20.115,
+      "seedOnlyStandardError": 10.0567,
+      "outcome": "unresolved"
+    }
+  },
+  "simulations": [
+    {
+      "profile": "probe",
+      "scenario": "null",
+      "injectedLogScaleShift": 0,
+      "meanObservedDelta": 0.1562,
+      "meanTrueCatalogDelta": 0,
+      "outcomes": {
+        "unresolved": {
+          "count": 167,
+          "rate": 0.835
+        },
+        "stop": {
+          "count": 16,
+          "rate": 0.08
+        },
+        "advance": {
+          "count": 17,
+          "rate": 0.085
+        }
+      },
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.95
+    },
+    {
+      "profile": "probe",
+      "scenario": "small_gain",
+      "injectedLogScaleShift": 5,
+      "meanObservedDelta": 4.9379,
+      "meanTrueCatalogDelta": 5.0002,
+      "outcomes": {
+        "unresolved": {
+          "count": 135,
+          "rate": 0.675
+        },
+        "advance": {
+          "count": 60,
+          "rate": 0.3
+        },
+        "stop": {
+          "count": 5,
+          "rate": 0.025
+        }
+      },
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.955
+    },
+    {
+      "profile": "probe",
+      "scenario": "clear_gain",
+      "injectedLogScaleShift": 15,
+      "meanObservedDelta": 14.9687,
+      "meanTrueCatalogDelta": 15.0015,
+      "outcomes": {
+        "advance": {
+          "count": 172,
+          "rate": 0.86
+        },
+        "unresolved": {
+          "count": 28,
+          "rate": 0.14
+        }
+      },
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.915
+    },
+    {
+      "profile": "probe",
+      "scenario": "small_regression",
+      "injectedLogScaleShift": -5,
+      "meanObservedDelta": -4.7681,
+      "meanTrueCatalogDelta": -5.0004,
+      "outcomes": {
+        "advance": {
+          "count": 4,
+          "rate": 0.02
+        },
+        "unresolved": {
+          "count": 136,
+          "rate": 0.68
+        },
+        "stop": {
+          "count": 60,
+          "rate": 0.3
+        }
+      },
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.945
+    },
+    {
+      "profile": "canonical",
+      "scenario": "null",
+      "injectedLogScaleShift": 0,
+      "meanObservedDelta": 0.2753,
+      "meanTrueCatalogDelta": 0,
+      "outcomes": {
+        "inconclusive": {
+          "count": 184,
+          "rate": 0.92
+        },
+        "accept": {
+          "count": 11,
+          "rate": 0.055
+        },
+        "reject": {
+          "count": 5,
+          "rate": 0.025
+        }
+      },
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.95
+    },
+    {
+      "profile": "canonical",
+      "scenario": "small_gain",
+      "injectedLogScaleShift": 5,
+      "meanObservedDelta": 5.1363,
+      "meanTrueCatalogDelta": 5.0002,
+      "outcomes": {
+        "inconclusive": {
+          "count": 132,
+          "rate": 0.66
+        },
+        "accept": {
+          "count": 67,
+          "rate": 0.335
+        },
+        "reject": {
+          "count": 1,
+          "rate": 0.005
+        }
+      },
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.96
+    },
+    {
+      "profile": "canonical",
+      "scenario": "clear_gain",
+      "injectedLogScaleShift": 15,
+      "meanObservedDelta": 15.2101,
+      "meanTrueCatalogDelta": 15.0015,
+      "outcomes": {
+        "accept": {
+          "count": 192,
+          "rate": 0.96
+        },
+        "inconclusive": {
+          "count": 8,
+          "rate": 0.04
+        }
+      },
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.96
+    },
+    {
+      "profile": "canonical",
+      "scenario": "small_regression",
+      "injectedLogScaleShift": -5,
+      "meanObservedDelta": -4.7765,
+      "meanTrueCatalogDelta": -5.0004,
+      "outcomes": {
+        "reject": {
+          "count": 56,
+          "rate": 0.28
+        },
+        "inconclusive": {
+          "count": 144,
+          "rate": 0.72
+        }
+      },
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.96
+    }
+  ]
+}

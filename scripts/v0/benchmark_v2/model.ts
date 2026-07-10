@@ -660,7 +660,6 @@ export function renderCharacterizationMarkdown(report: CharacterizationReport): 
   lines.push(
     "",
     "AMOUR air and speed remain diagnostic because its source labels them as placeholders.",
-    "",
   );
   return `${lines.join("\n")}\n`;
 }

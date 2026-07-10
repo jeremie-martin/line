@@ -1,5 +1,5 @@
 {
-  "schema": "line.benchmark-v2.suite.v2",
+  "schema": "line.benchmark-v2.suite.v3",
   "status": "selected-canonical-development-suite",
   "description": "Generated compatibility policy. benchmark/v2/policy.ts is the editable source of truth.",
   "strata": [
@@ -341,8 +341,11 @@
     "jolt_ms": -15
   },
   "seed_policy": {
-    "kind": "budget_disjoint_contiguous",
-    "seed_base": 0
+    "kind": "profile_budget_disjoint_contiguous",
+    "profile_seed_bases": {
+      "probe": 12,
+      "canonical": 0
+    }
   },
   "profiles": {
     "probe": {

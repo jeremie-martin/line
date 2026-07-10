@@ -2,7 +2,7 @@
   "schema": "line.benchmark-v2.candidate-review.v2",
   "status": "canonical-selected-without-compiler-results",
   "characterization_fingerprint": "712719f7dcf9d148de8bfd2ad3fa31cbd00a6a0d3adccce12607a0aecb5eb39a",
-  "audit_fingerprint": "d732ad2a1e4f6c87e348b8dc705f990dfd3466e323f0dfc90d90a19cae6e5c99",
+  "audit_fingerprint": "4818602c37f62878630b886b0ac523227afe10bd61a7718dee8a1d457033c73f",
   "selection_basis": "Typed catalog membership, static source characterization, explicit parent variants, and static independence audit only. No compiler or qualification outcome was used.",
   "decisions": [
     {

@@ -1,0 +1,134 @@
+# How to work — the handoff compiler
+
+The single entry point for working on the compiler. **Read this first**, then open the
+campaign doc for whatever you're improving. The doc map is `docs/README.md`.
+
+## Goal & boundary
+
+- **What:** turn a musical/rhythm `Spec` into a beat-synced Line Rider `Track`. Problem
+  statement and success criteria: [`PROBLEM.md`](../PROBLEM.md).
+- **Frozen contract** (what must not change) **and the HEADLINE metric definition:**
+  [`docs/compiler_goals.md`](compiler_goals.md) — the single source of truth for both.
+- **Active algorithm reference:** [`docs/optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md).
+
+## How to run
+
+Each budget is an **independent full run** (no anytime/shared checkpoints): passing N
+budgets runs N compiles per (spec, seed slot). Each budget gets a disjoint actual seed
+block, recorded in `seed_policy`. Two tiers, cheap → authoritative:
+
+1. **probe** — fast iteration, **not a promotion basis**. Runs 40 specs × 12 seed
+   slots × budgets `{75,200,500}k`, with disjoint actual seed blocks
+   `{0..11}`, `{12..23}`, `{24..35}`. Compare probe archives only against probe
+   baselines with the same seed policy; archives are `tier:"probe"` and
+   non-promotable:
+
+   ```bash
+   npm run golden -- --probe --archive-dir=generated/golden-runs/<probe-label>
+   ```
+
+2. **full/canonical** — 40 headline specs × 12 seed slots × budgets
+   `{75,150,225,350,475,550}k`, with disjoint actual seed blocks
+   `{0..11}`, `{12..23}`, `{24..35}`, `{36..47}`, `{48..59}`, `{60..71}`.
+   This is the **only promotable basis**:
+
+   ```bash
+   npm run golden -- --full --archive-dir=generated/golden-runs/<attempt-label>
+   ```
+
+- **Jobs/engine:** `--full` and `--probe` default to `--jobs=32` and set
+  `LR_ENGINE=wasm` when it is not already set. A non-`wasm` `LR_ENGINE` fails
+  loudly for golden runs.
+- **Custom studies:** use `--seed=N` for one seed slot, or
+  `--seed-base=N --seed-count=M` for disjoint per-budget blocks. The old
+  `GOLDEN_SEEDS_OVERRIDE` reused seeds across budgets and is no longer accepted.
+- **Baseline reuse:** the baseline is produced **once and reused**. For each idea, run
+  only the *candidate*, then `decide` it against the committed baseline — do **not**
+  re-run the baseline per candidate. There is intentionally no "two configs in one run"
+  mode: when memory caps usable cores, two runs at N/2 cores ≈ two serial runs at N
+  cores, so it saves no wall-clock.
+- **Artifacts:** every run archives `golden.json` + checkpoint tracks/reports under
+  `generated/golden-runs/` (gitignored working artifacts, not source).
+- **Per-axis diagnostics** need `--details` (or `--json-full`); plain `--json` is compact
+  and drops the per-axis data.
+
+## Deciding
+
+```bash
+npm run decide -- <candidate>/golden.json <baseline>/golden.json
+```
+
+Paired cluster-bootstrap VERDICT: **accept** iff the headline-Δ is significant at the
+standard one-sided α=0.10 (`P(Δ≤0) < 0.10`); **reject** iff `P(Δ≥0) < 0.10`; else
+inconclusive. (The 95% CI is reported for context but does not define the verdict.)
+The HEADLINE is the budget-value-weighted average of the per-budget suite scores;
+validity is **reported per budget but never gates** (an invalid run already scores ~0).
+`decide` requires matching evaluator fingerprint, budget weighting, and
+`seed_policy`. Probe-vs-probe comparisons are indicative/non-promotable, and full-vs-full
+comparisons are promotable when canonical. It **refuses** legacy
+(pre-weighted-average or pre-seed-policy) archives and never compares raw scalars
+across different budget grids. The metric and ruler live in
+[`docs/compiler_goals.md`](compiler_goals.md); the implementation is
+`scripts/v0/metric.ts` + `scripts/v0/analyze_golden_curve.ts`. A raw score delta is not
+an acceptance rule; the active compiler campaign adds a promotion threshold after
+`decide`. On a positive-but-inconclusive result, `decide` prints how many more seed
+slots would resolve it. Statistical rationale (noise floor, seed counts):
+[`docs/metric_problem_statement.md`](metric_problem_statement.md).
+
+## Current baseline (of record)
+
+The baseline of record is the **generated** [`docs/handoff-compiler.html`](handoff-compiler.html)
+(per-budget / per-spec table), regenerated from a canonical `golden.json` — never
+hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
+
+- Evaluator fingerprint: **`de24a421f751`** (`scripts/v0/golden_suite.ts`).
+- Current baseline: **pending re-baseline on the new full grid/seed policy**. Old
+  `{125,250,375,500}k` archives predate `seed_policy` and are intentionally not
+  comparable to new `--full` runs.
+
+## Active campaigns
+
+Point work at one of these; each carries its own particularities (the *what to try* and
+the *scoreboard*), but all share the metric, decision rule, and principles here:
+
+- **Compiler improvement** — [`GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md).
+  The primary (and current standard) campaign for raising HEADLINE across the compiler.
+
+Earlier campaigns (arc placement, fragile specs, plateau, low-budget) live under
+`docs/archive/` (historical record, not live guidance).
+
+## Working principles
+
+- **Be honest.** Report what the data shows, including failures and "polish was a
+  no-op." Never claim a win without a measured number behind it. If a property turns
+  out unreachable, that finding is a deliverable — say so.
+- **Decide, don't stall.** When the data points somewhere (e.g. "d=0 doesn't complete
+  drums → backtracking is the real next step"), take that decision and act, recording why.
+- **Diagnose every failure.** When something fails, find the cause before reacting — is
+  it one off-beat frame, a dead gap, or budget starvation? Fix the cause, not the symptom.
+- **Fast first, big later.** Before any big sweep: a quick rough run (one spec / tiny
+  budget / `polish:false`) to surface bugs cheaply. Fix, re-probe, then launch the real
+  sweep. Never burn an hour to discover a typo.
+- **Sweeps are for understanding the equation, not ritual.** The deliverable of a sweep
+  is the *shape*: budget→quality and budget→wall_ms per spec, first-completion cost,
+  the saturation knee, ms/physframe stability. If a curve looks
+  wrong, explain why before moving on.
+- **No bandaids, no overfitting.** No spec-name branching. Density/contact-spacing
+  heuristics are OK (they generalize); re-baseline any constant kept. Prefer the simple
+  change that's correct by construction.
+- **Don't change everything at once.** One mechanism per step, validated before the next.
+- **Never break what already works — at EVERY step.** Before moving on, confirm the
+  change didn't regress other specs, the CI property tests, or any of the four properties.
+  A gain on one spec that breaks another, or any overfit / spec-name special-case / bandaid
+  workaround, is not acceptable — back it out and find the sane change. Everything must stay
+  compatible with the goals AND with the rest of the system, and we must understand *why* a
+  change helps before keeping it.
+- **COMMIT AFTER EVERY POINT.** Each work item ends with a commit to `master` (clear
+  message, no push) once it is validated. This is mandatory, not optional — do not batch
+  multiple items into one commit, and do not proceed to the next item with the previous one
+  uncommitted. Keep throwaway probes (`_probe_*`) out of commits.
+- **Be smart about cost.** Empirical evidence for every decision, but don't launch a
+  3-hour run for every point. Use the smallest experiment that answers the question
+  (one/few specs, small budget, fast mode); only scale up when the question genuinely needs it.
+- **Don't spawn polling loops.** Long runs background and notify on completion; wait on
+  the notification, don't spin `until ...; sleep` shells (that caused stray shells today).

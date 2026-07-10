@@ -215,7 +215,6 @@ export function renderAuditMarkdown(report: AuditReport): string {
     "",
     "Warnings identify correlated evidence for source review; they are not automatic rejection. " +
       "Generic musical pulse can be similar across independent scores, while direct nonuniform timing copies are hard failures.",
-    "",
   ];
   return `${lines.join("\n")}\n`;
 }

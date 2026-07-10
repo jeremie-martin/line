@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { RUN_ARCHIVE_SCHEMA } from "./runner.ts";
 
 const args = process.argv.slice(2);
-const archiveArgument = args.find((arg) => !arg.startsWith("--")) ??
-  "generated/benchmark-v2/canonical-runs/baseline-revised-v2-development.json";
+const archiveArgument = args.find((arg) => !arg.startsWith("--"));
+if (archiveArgument === undefined) throw new Error(`usage: benchmark explain <development-archive.json>`);
 const argument = (name: string): string | undefined => {
   const prefix = `--${name}=`;
   return args.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
@@ -14,7 +15,7 @@ const outputStem = resolve(argument("out") ?? archivePath.replace(/\.json$/, ".e
 const bytes = readFileSync(archivePath);
 verifySidecar(archivePath, bytes);
 const archive = JSON.parse(bytes.toString("utf8"));
-if (archive.schema !== "line.benchmark-v2.run-archive.v2" || archive.mode !== "development") {
+if (archive.schema !== RUN_ARCHIVE_SCHEMA || archive.mode !== "development") {
   throw new Error(`explanation requires a Benchmark V2 development archive`);
 }
 

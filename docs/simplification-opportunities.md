@@ -9,20 +9,16 @@ near-duplicate helpers. This file catalogs candidate **simplifications** — dea
 code to remove, reverse-fit gates to collapse, duplicates to unify, and
 grid-anchored magic constants to generalize.
 
-A separate **execution phase** will attempt these one at a time against the
-canonical golden benchmark: **40 specs × 12 seeds × budgets {125k, 250k, 375k,
-500k}, `LR_ENGINE=wasm --jobs=32`**. That phase uses explicit decide
-simplification mode:
+A separate execution phase attempts these one at a time against Benchmark V2. Use an
+explicit, predeclared non-inferiority margin:
 
 ```bash
-npm run decide -- --mode=simplification --margin=0.1 --alpha=0.20 CANDIDATE/golden.json BASELINE/golden.json
+npm run decide -- CANDIDATE.json --mode=simplification --margin=0.1
 ```
 
-Simplification mode is a paired-bootstrap non-inferiority test on the total
-headline: accept when `P(Δheadline ≤ -0.1) < 0.20`. The `0.1` margin is the
-declared maximum headline regression worth trading for genuine compiler
-simplification; unlike improvement mode, this does not require evidence that the
-candidate is better than baseline.
+Simplification mode accepts only when the canonical lower 95% one-sided seed-block
+confidence bound exceeds `-0.1`. The historical outcomes below used the retired V1
+procedure and remain a campaign record; new work follows `benchmark-v2-decisions.md`.
 
 **Hard invariant — do NOT change any of these:** the scorer, the golden spec
 set, the evaluator/scoring ruler, the metric definition, the seed set, or the

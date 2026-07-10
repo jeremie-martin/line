@@ -1,0 +1,363 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { benchmarkDecisionPolicy } from "../../benchmark/v2/decision-policy.ts";
+import {
+  pairedV2Decision,
+  v2HeadlineForDecisionRuns,
+  type DecisionProfile,
+  type DecisionRun,
+} from "../v0/benchmark_v2/decision_model.ts";
+import { loadSourceManifest, resolveSources } from "../v0/benchmark_v2/model.ts";
+import {
+  DECISION_SOURCE_FILES,
+  canonicalMembers,
+  fingerprintFiles,
+  loadSuiteManifest,
+  resolvedSeedSchedule,
+  suiteIdentity,
+} from "../v0/benchmark_v2/suite_model.ts";
+
+const outPath = resolve(argument("out") ?? "benchmark/v2/studies/decision-calibration.json");
+const markdownPath = resolve(argument("markdown") ?? "docs/benchmark-v2-decision-calibration.md");
+const trials = integerArgument("trials", 200, 20);
+const iterations = integerArgument("iterations", 100, 100);
+const sourcePath = "benchmark/v2/compat/source-manifest.json";
+const suitePath = "benchmark/v2/compat/suite-manifest.json";
+const sources = resolveSources(loadSourceManifest(sourcePath));
+const suite = loadSuiteManifest(suitePath, sources);
+const identity = suiteIdentity(suitePath, sourcePath, sources);
+
+const controls = {
+  identical: empiricalControl(
+    "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+    "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+  ),
+  knownBroadDegradation: empiricalControl(
+    "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+    "generated/benchmark-v2/calibration/v2.2-quality-ncand-1-probe.json",
+  ),
+  correlatedSeedAdversary: correlatedSeedControl(),
+};
+
+const simulations = (["probe", "canonical"] as const).flatMap((profile) => [
+  simulate(profile, "null", 0),
+  simulate(profile, "small_gain", 5),
+  simulate(profile, "clear_gain", 15),
+  simulate(profile, "small_regression", -5),
+]);
+
+const report = {
+  schema: "line.benchmark-v2.decision-calibration.v1",
+  generatedAt: new Date().toISOString(),
+  suiteFingerprint: identity.suiteFingerprint,
+  decisionFingerprint: fingerprintFiles(DECISION_SOURCE_FILES),
+  policy: benchmarkDecisionPolicy,
+  simulation: {
+    trials,
+    bootstrapIterationsPerTrial: iterations,
+    design: "Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.",
+    note: "Bootstrap iterations only exercise sensitivity diagnostics; the formal seed-block gate and its coverage do not depend on them.",
+  },
+  controls,
+  simulations,
+};
+
+write(outPath, `${JSON.stringify(report, null, 2)}\n`);
+write(markdownPath, renderMarkdown(report));
+console.log(renderMarkdown(report));
+
+function empiricalControl(basePath: string, candidatePath: string): Record<string, unknown> {
+  if (!existsSync(basePath) || !existsSync(candidatePath)) return { available: false };
+  const base = JSON.parse(readFileSync(basePath, "utf8"));
+  const candidate = JSON.parse(readFileSync(candidatePath, "utf8"));
+  const decision = pairedV2Decision(toRuns(base), toRuns(candidate), suite, {
+    profile: "probe",
+    mode: "improvement",
+    iterations: 5_000,
+    bootstrapSeed: 0x51a7,
+  });
+  return {
+    available: true,
+    baseArchive: basePath,
+    candidateArchive: candidatePath,
+    delta: decision.delta,
+    centralInterval: [decision.confidence.centralLo, decision.confidence.centralHi],
+    lowerBound: decision.confidence.lowerBound,
+    upperBound: decision.confidence.upperBound,
+    outcome: decision.outcome,
+  };
+}
+
+function correlatedSeedControl(): Record<string, unknown> {
+  const effects = [-10, -10, 30];
+  const base = syntheticRuns("probe", () => 0);
+  const candidate = syntheticRuns("probe", (_parent, _budget, seedSlot) => effects[seedSlot]);
+  const decision = pairedV2Decision(base, candidate, suite, {
+    profile: "probe",
+    mode: "improvement",
+    iterations: 5_000,
+    bootstrapSeed: 42,
+  });
+  return {
+    design: "Every case shares the same three seed effects [-10,-10,+30]. Independent-cell resampling previously accepted this control.",
+    delta: decision.delta,
+    centralInterval: [decision.confidence.centralLo, decision.confidence.centralHi],
+    lowerBound: decision.confidence.lowerBound,
+    upperBound: decision.confidence.upperBound,
+    seedOnlyStandardError: decision.uncertainty.seed.standardError,
+    outcome: decision.outcome,
+  };
+}
+
+function simulate(profile: DecisionProfile, scenario: string, shift: number): Record<string, unknown> {
+  const random = mulberry32(hashSeed(`${profile}:${scenario}`));
+  const parentRandom = mulberry32(hashSeed("fixed-catalog"));
+  const rawParentEffects = new Map(parentIds().map((parent) => [
+    parent,
+    scenario === "null" ? 0 : normal(parentRandom) * 12,
+  ]));
+  const parentEffects = centerParentEffects(profile, rawParentEffects);
+  const outcomes = new Map<string, number>();
+  const deltas: number[] = [];
+  const trueDeltas: number[] = [];
+  const coveredThreshold: boolean[] = [];
+  for (let trial = 0; trial < trials; trial++) {
+    const schedule = resolvedSeedSchedule(
+      suite,
+      profile,
+      suite.profiles[profile].budgets,
+      suite.profiles[profile].seeds_per_budget,
+    );
+    const seedEffects = new Map<string, number>();
+    const interactions = new Map<string, number>();
+    for (const { budget, actualSeeds } of schedule.byBudget) {
+      for (const [seedSlot] of actualSeeds.entries()) {
+        seedEffects.set(`${budget}\0${seedSlot}`, normal(random) * 12);
+        for (const parent of parentIds()) {
+          interactions.set(`${parent}\0${budget}\0${seedSlot}`, normal(random) * 4);
+        }
+      }
+    }
+    const base: DecisionRun[] = [];
+    const candidate: DecisionRun[] = [];
+    for (const run of syntheticRuns(profile, (parent, budget, seedSlot) => {
+      return shift + parentEffects.get(parent)! + seedEffects.get(`${budget}\0${seedSlot}`)! +
+        interactions.get(`${parent}\0${budget}\0${seedSlot}`)!;
+    }, true)) {
+      const delta = run.score.score;
+      const pair = symmetricScores(delta);
+      base.push({ ...run, score: { score: pair.base, valid: true } });
+      candidate.push({ ...run, score: { score: pair.candidate, valid: true } });
+    }
+    const truth = pairedSyntheticScores(profile, (parent) => shift + parentEffects.get(parent)!);
+    const trueDelta = v2HeadlineForDecisionRuns(truth.candidate, suite, profile) -
+      v2HeadlineForDecisionRuns(truth.base, suite, profile);
+    const decision = pairedV2Decision(base, candidate, suite, {
+      profile,
+      mode: "improvement",
+      iterations,
+      bootstrapSeed: 0x9000 + trial,
+    });
+    outcomes.set(decision.outcome, (outcomes.get(decision.outcome) ?? 0) + 1);
+    deltas.push(decision.delta);
+    trueDeltas.push(trueDelta);
+    coveredThreshold.push(decision.confidence.centralLo <= trueDelta && decision.confidence.centralHi >= trueDelta);
+  }
+  return {
+    profile,
+    scenario,
+    injectedLogScaleShift: shift,
+    meanObservedDelta: round(mean(deltas)),
+    meanTrueCatalogDelta: round(mean(trueDeltas)),
+    outcomes: Object.fromEntries([...outcomes].map(([outcome, count]) => [outcome, {
+      count,
+      rate: round(count / trials),
+    }])),
+    centralIntervalCoverageOfTrueCatalogDelta: round(mean(coveredThreshold.map(Number))),
+  };
+}
+
+function syntheticRuns(
+  profile: DecisionProfile,
+  effect: (parentId: string, budget: number, seedSlot: number) => number,
+  rawEffect = false,
+): DecisionRun[] {
+  const parentBySource = new Map(suite.strata.flatMap((stratum) => stratum.groups.flatMap((group) =>
+    (group.parents ?? group.members.map((id) => ({ id, members: [id] }))).flatMap((parent) =>
+      parent.members.map((sourceId) => [sourceId, parent.id] as const)
+    )
+  )));
+  const schedule = resolvedSeedSchedule(
+    suite,
+    profile,
+    suite.profiles[profile].budgets,
+    suite.profiles[profile].seeds_per_budget,
+  );
+  return schedule.byBudget.flatMap(({ budget, actualSeeds }) => actualSeeds.flatMap((actualSeed, seedSlot) =>
+    canonicalMembers(suite).map((sourceId) => {
+      const value = effect(parentBySource.get(sourceId)!, budget, seedSlot);
+      return {
+        sourceId,
+        budget,
+        seedSlot,
+        actualSeed,
+        score: { score: rawEffect ? value : 500 + value, valid: true },
+      };
+    })
+  ));
+}
+
+function symmetricScores(logScaleDelta: number): { base: number; candidate: number } {
+  const center = 501;
+  return {
+    base: center * Math.exp(-logScaleDelta / (2 * center)) - 1,
+    candidate: center * Math.exp(logScaleDelta / (2 * center)) - 1,
+  };
+}
+
+function pairedSyntheticScores(
+  profile: DecisionProfile,
+  effect: (parentId: string, budget: number, seedSlot: number) => number,
+): { base: DecisionRun[]; candidate: DecisionRun[] } {
+  const base: DecisionRun[] = [];
+  const candidate: DecisionRun[] = [];
+  for (const run of syntheticRuns(profile, effect, true)) {
+    const pair = symmetricScores(run.score.score);
+    base.push({ ...run, score: { score: pair.base, valid: true } });
+    candidate.push({ ...run, score: { score: pair.candidate, valid: true } });
+  }
+  return { base, candidate };
+}
+
+function centerParentEffects(
+  profile: DecisionProfile,
+  effects: Map<string, number>,
+): Map<string, number> {
+  if ([...effects.values()].every((value) => value === 0)) return effects;
+  const deltaAt = (offset: number): number => {
+    const truth = pairedSyntheticScores(profile, (parent) => effects.get(parent)! + offset);
+    return v2HeadlineForDecisionRuns(truth.candidate, suite, profile) -
+      v2HeadlineForDecisionRuns(truth.base, suite, profile);
+  };
+  let low = -100;
+  let high = 100;
+  for (let iteration = 0; iteration < 60; iteration++) {
+    const middle = (low + high) / 2;
+    if (deltaAt(middle) < 0) low = middle;
+    else high = middle;
+  }
+  const offset = (low + high) / 2;
+  return new Map([...effects].map(([parent, value]) => [parent, value + offset]));
+}
+
+function parentIds(): string[] {
+  return suite.strata.flatMap((stratum) => stratum.groups.flatMap((group) =>
+    (group.parents ?? group.members.map((id) => ({ id, members: [id] }))).map((parent) => parent.id)
+  ));
+}
+
+function toRuns(archive: any): DecisionRun[] {
+  return archive.runs.map((row: any) => ({
+    sourceId: row.task.sourceId,
+    budget: row.task.budget,
+    seedSlot: row.task.seedSlot,
+    actualSeed: row.task.actualSeed,
+    score: { score: row.score.score, valid: row.score.valid },
+  }));
+}
+
+function renderMarkdown(report: any): string {
+  const lines = [
+    "# Benchmark V2 Decision Calibration",
+    "",
+    `Suite: \`${report.suiteFingerprint.slice(0, 16)}\`. Decision rule: \`${report.decisionFingerprint.slice(0, 16)}\`.`,
+    "",
+    `Simulation uses ${report.simulation.trials} trials and ${report.simulation.bootstrapIterationsPerTrial} bootstrap iterations per trial. ` +
+      report.simulation.design,
+    "",
+    report.simulation.note,
+    "",
+    "## Empirical controls",
+    "",
+    "| Control | Delta | 95% interval | One-sided bounds | Outcome |",
+    "|---|---:|---:|---:|---|",
+    controlRow("identical archive", report.controls.identical),
+    controlRow("known broad degradation", report.controls.knownBroadDegradation),
+    controlRow("catalog-wide correlated seed adversary", report.controls.correlatedSeedAdversary),
+    "",
+    "## Repeated-sampling simulation",
+    "",
+    "| Profile | Scenario | Injected shift | True catalog delta | Mean observed | Positive | Negative | Unresolved | 95% coverage |",
+    "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+    ...report.simulations.map((entry: any) => {
+      const positive = entry.outcomes.advance ?? entry.outcomes.accept;
+      const negative = entry.outcomes.stop ?? entry.outcomes.reject;
+      const unresolved = entry.outcomes.unresolved ?? entry.outcomes.inconclusive;
+      return `| ${entry.profile} | ${entry.scenario} | ${entry.injectedLogScaleShift.toFixed(1)} | ` +
+        `${entry.meanTrueCatalogDelta.toFixed(2)} | ${entry.meanObservedDelta.toFixed(2)} | ` +
+        `${formatRate(positive)} | ${formatRate(negative)} | ${formatRate(unresolved)} | ` +
+        `${(entry.centralIntervalCoverageOfTrueCatalogDelta * 100).toFixed(1)}% |`;
+    }),
+    "",
+    "The repeated-sampling target is the frozen catalog, not a hypothetical random population of authored works. The formal gate uses the seed-block t interval. Parent-preserving catalog and crossed bootstrap intervals are sensitivity diagnostics only.",
+  ];
+  return `${lines.join("\n")}\n`;
+}
+
+function controlRow(label: string, value: any): string {
+  if (value?.available === false) return `| ${label} | unavailable | - | - | - |`;
+  return `| ${label} | ${Number(value.delta).toFixed(2)} | ` +
+    `[${Number(value.centralInterval[0]).toFixed(2)}, ${Number(value.centralInterval[1]).toFixed(2)}] | ` +
+    `[${Number(value.lowerBound).toFixed(2)}, ${Number(value.upperBound).toFixed(2)}] | ${value.outcome} |`;
+}
+
+function formatRate(value: { rate: number } | undefined): string {
+  return `${((value?.rate ?? 0) * 100).toFixed(1)}%`;
+}
+
+function argument(name: string): string | undefined {
+  return process.argv.slice(2).find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+}
+
+function integerArgument(name: string, fallback: number, minimum: number): number {
+  const raw = argument(name);
+  const value = raw === undefined ? fallback : Number(raw);
+  if (!Number.isSafeInteger(value) || value < minimum) throw new Error(`--${name} must be an integer >= ${minimum}`);
+  return value;
+}
+
+function write(path: string, value: string): void {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, value);
+}
+
+function normal(random: () => number): number {
+  const u = Math.max(Number.EPSILON, random());
+  const v = random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function mulberry32(seed: number): () => number {
+  let value = seed >>> 0;
+  return () => {
+    value = (value + 0x6d2b79f5) | 0;
+    let t = value;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function hashSeed(value: string): number {
+  let hash = 2166136261;
+  for (const char of value) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+  return hash >>> 0;
+}
+
+function mean(values: number[]): number {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function round(value: number): number {
+  return Math.round(value * 10_000) / 10_000;
+}

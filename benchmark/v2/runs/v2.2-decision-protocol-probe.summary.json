@@ -1,0 +1,1406 @@
+{
+  "schema": "line.benchmark-v2.run-summary.v2",
+  "mode": "development",
+  "profile": "probe",
+  "generatedAt": "2026-07-10T16:10:46.882Z",
+  "archive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+  "compressedArchive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json.gz",
+  "archiveSha256": "e6d1a3c6a91eb874f4531db972c01acb93f04b8a97e7e7125825c36302ca7ce8",
+  "compressedArchiveSha256": "88ccff4ae0c5a6ce226348df88b8370702d8ee72dac8d529d34a646d0d9788f7",
+  "suiteFingerprint": "b118882720a968548323b5c53691a3e812df7733d0d931a579ad9aef57f5e470",
+  "executionPolicyFingerprint": "31a5fbc3054b87a1f8baf2993f0d89784e8b335929c3dbb3a0402093e3d6c870",
+  "executionProtocol": "line.benchmark-v2.execution-protocol.v2",
+  "implementationFingerprint": "00a98db6137f47cf689ee148520efbbec22354412d80936135ae021b2e9f5ba4",
+  "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+  "compilerSourceFingerprint": "2d40016aef2a2bd4e678f7483c7f6f63a6e616760b351c0931a97e80e119aa80",
+  "compilerSourceFiles": [
+    "engine-rs/.gitignore",
+    "engine-rs/Cargo.lock",
+    "engine-rs/Cargo.toml",
+    "engine-rs/README.md",
+    "engine-rs/src/abi.rs",
+    "engine-rs/src/engine.rs",
+    "engine-rs/src/frame.rs",
+    "engine-rs/src/grid.rs",
+    "engine-rs/src/kernel.rs",
+    "engine-rs/src/lib.rs",
+    "engine-rs/src/line.rs",
+    "package-lock.json",
+    "package.json",
+    "scripts/lib/_lr_engine.ts",
+    "scripts/lib/_lr_engine_record.ts",
+    "scripts/lib/_lr_engine_wasm.ts",
+    "scripts/lib/adapt.ts",
+    "scripts/lib/arc.ts",
+    "scripts/lib/arcLines.ts",
+    "scripts/lib/beam_prune.ts",
+    "scripts/lib/beam_search.ts",
+    "scripts/lib/detector.ts",
+    "scripts/lib/export.ts",
+    "scripts/lib/metrics.ts",
+    "scripts/lib/moves.ts",
+    "scripts/lib/precise_landings.ts",
+    "scripts/lib/primitive.ts",
+    "scripts/lib/primitive_search.ts",
+    "scripts/lib/ride.ts",
+    "scripts/lib/rng.ts",
+    "scripts/lib/rotation.ts",
+    "scripts/lib/route.ts",
+    "scripts/lib/search.ts",
+    "scripts/lib/tune.ts",
+    "scripts/lib/update_types.ts",
+    "scripts/v0/arc.ts",
+    "scripts/v0/arc_placement.ts",
+    "scripts/v0/core/beats.ts",
+    "scripts/v0/core/camera.ts",
+    "scripts/v0/core/candidate.ts",
+    "scripts/v0/core/compile_lifecycle.ts",
+    "scripts/v0/core/curves.ts",
+    "scripts/v0/core/exit_read.ts",
+    "scripts/v0/core/launch_read.ts",
+    "scripts/v0/core/measure.ts",
+    "scripts/v0/core/polish.ts",
+    "scripts/v0/core/substrate.ts",
+    "scripts/v0/core/trace.ts",
+    "scripts/v0/optimizer/README.md",
+    "scripts/v0/optimizer/aim.ts",
+    "scripts/v0/optimizer/arc_model.ts",
+    "scripts/v0/optimizer/arc_probe.ts",
+    "scripts/v0/optimizer/budget_model.ts",
+    "scripts/v0/optimizer/handoff.ts",
+    "scripts/v0/optimizer/node.ts",
+    "scripts/v0/optimizer/objective.ts",
+    "scripts/v0/optimizer/polish.ts",
+    "scripts/v0/optimizer/readiness.ts",
+    "scripts/v0/optimizer/register.ts",
+    "scripts/v0/optimizer/sample.ts",
+    "scripts/v0/optimizer/sim_frames.ts",
+    "scripts/v0/optimizer/solver.ts",
+    "scripts/v0/optimizer/types.ts",
+    "scripts/v0/score.ts",
+    "scripts/v0/types.ts",
+    "tsconfig.json"
+  ],
+  "compilerEnvironment": {},
+  "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
+  "candidateFingerprint": "dea2e1a77af547571849bf96ccc60264f04afd62a0407efe7e04f15e3ebd2e25",
+  "canonicalHeadline": 442.997,
+  "qualificationMonitorScore": null,
+  "developmentSummaries": [
+    {
+      "budget": 250000,
+      "score": 418.5091,
+      "validRuns": 107,
+      "totalRuns": 126,
+      "specifications": [
+        {
+          "id": "river_reentry",
+          "score": 557.3835,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "river_reentry_tempo_fast_5",
+          "score": 507.4636,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "countercurrent",
+          "score": 590.6866,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "countercurrent_impact_contrast_12",
+          "score": 627.203,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "split_signal",
+          "score": 475.2756,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "split_signal_impact_relief_12",
+          "score": 466.1441,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "pickup_lattice",
+          "score": 524.1202,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "pickup_lattice_speed_minus_4",
+          "score": 549.6345,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "loose_pocket",
+          "score": 498.0891,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "loose_pocket_drag_later_20ms",
+          "score": 515.5451,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "offgrid_conversation",
+          "score": 664.2274,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "offgrid_conversation_answer_early_25ms",
+          "score": 674.8444,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "rising_switch",
+          "score": 523.9089,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "rising_switch_tempo_fast_5",
+          "score": 501.4011,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "meter_exchange",
+          "score": 507.4508,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "meter_exchange_speed_plus_4",
+          "score": 548.5355,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "wide_breaths",
+          "score": 701.283,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "wide_breaths_air_plus_5",
+          "score": 617.66,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "open_hook",
+          "score": 447.0971,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "open_hook_amplitude_plus_8",
+          "score": 452.1664,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amplitude_tides",
+          "score": 560.3428,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amplitude_tides_restrained_10",
+          "score": 570.5051,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "dense_dialogue",
+          "score": 421.6914,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "score": 6.4887,
+          "validRuns": 1,
+          "totalRuns": 3
+        },
+        {
+          "id": "high_air_drive",
+          "score": 522.939,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "score": 553.8532,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "sparse_lowline",
+          "score": 536.5791,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "sparse_lowline_air_minus_4",
+          "score": 507.34,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_pickup_progression",
+          "score": 6.2347,
+          "validRuns": 1,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_pickup_progression_shifted",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_low_air_endurance",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_transition_mosaic",
+          "score": 522.5881,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_transition_mosaic_tempo_fast_5",
+          "score": 522.6233,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_amplitude_mosaic",
+          "score": 492.3152,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_amplitude_mosaic_contrast_10",
+          "score": 480.4679,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_56_6s",
+          "score": 291.7724,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_56_6s_impact_relief",
+          "score": 321.3818,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_impact_56s",
+          "score": 601.1084,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_impact_56s_amplitude_plus_5",
+          "score": 530.0326,
+          "validRuns": 3,
+          "totalRuns": 3
+        }
+      ],
+      "groups": [
+        {
+          "id": "regular_exceptions",
+          "stratum": "representative",
+          "weight": 0.2,
+          "score": 568.9622,
+          "members": [
+            "river_reentry",
+            "river_reentry_tempo_fast_5",
+            "countercurrent",
+            "countercurrent_impact_contrast_12"
+          ],
+          "parents": [
+            {
+              "id": "river_reentry",
+              "score": 531.8393,
+              "members": [
+                "river_reentry",
+                "river_reentry_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "countercurrent",
+              "score": 608.6715,
+              "members": [
+                "countercurrent",
+                "countercurrent_impact_contrast_12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "subdivision_pickup",
+          "stratum": "representative",
+          "weight": 0.15,
+          "score": 502.6256,
+          "members": [
+            "split_signal",
+            "split_signal_impact_relief_12",
+            "pickup_lattice",
+            "pickup_lattice_speed_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "split_signal",
+              "score": 470.6878,
+              "members": [
+                "split_signal",
+                "split_signal_impact_relief_12"
+              ]
+            },
+            {
+              "id": "pickup_lattice",
+              "score": 536.726,
+              "members": [
+                "pickup_lattice",
+                "pickup_lattice_speed_minus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "irregular_microtimed",
+          "stratum": "representative",
+          "weight": 0.15,
+          "score": 582.4798,
+          "members": [
+            "loose_pocket",
+            "loose_pocket_drag_later_20ms",
+            "offgrid_conversation",
+            "offgrid_conversation_answer_early_25ms"
+          ],
+          "parents": [
+            {
+              "id": "loose_pocket",
+              "score": 506.7421,
+              "members": [
+                "loose_pocket",
+                "loose_pocket_drag_later_20ms"
+              ]
+            },
+            {
+              "id": "offgrid_conversation",
+              "score": 669.5149,
+              "members": [
+                "offgrid_conversation",
+                "offgrid_conversation_answer_early_25ms"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cadence_transition",
+          "stratum": "representative",
+          "weight": 0.12,
+          "score": 520.0085,
+          "members": [
+            "rising_switch",
+            "rising_switch_tempo_fast_5",
+            "meter_exchange",
+            "meter_exchange_speed_plus_4"
+          ],
+          "parents": [
+            {
+              "id": "rising_switch",
+              "score": 512.5317,
+              "members": [
+                "rising_switch",
+                "rising_switch_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "meter_exchange",
+              "score": 527.5941,
+              "members": [
+                "meter_exchange",
+                "meter_exchange_speed_plus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "spacious_amplitude",
+          "stratum": "representative",
+          "weight": 0.13,
+          "score": 551.044,
+          "members": [
+            "wide_breaths",
+            "wide_breaths_air_plus_5",
+            "open_hook",
+            "open_hook_amplitude_plus_8",
+            "amplitude_tides",
+            "amplitude_tides_restrained_10"
+          ],
+          "parents": [
+            {
+              "id": "wide_breaths",
+              "score": 658.1467,
+              "members": [
+                "wide_breaths",
+                "wide_breaths_air_plus_5"
+              ]
+            },
+            {
+              "id": "open_hook",
+              "score": 449.6246,
+              "members": [
+                "open_hook",
+                "open_hook_amplitude_plus_8"
+              ]
+            },
+            {
+              "id": "amplitude_tides",
+              "score": 565.4012,
+              "members": [
+                "amplitude_tides",
+                "amplitude_tides_restrained_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_musical",
+          "stratum": "representative",
+          "weight": 0.1,
+          "score": 55.262,
+          "members": [
+            "dense_dialogue",
+            "dense_dialogue_impact_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "dense_dialogue",
+              "score": 55.262,
+              "members": [
+                "dense_dialogue",
+                "dense_dialogue_impact_contrast_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "high_air_energy",
+          "stratum": "representative",
+          "weight": 0.08,
+          "score": 538.1746,
+          "members": [
+            "high_air_drive",
+            "high_air_drive_air_minus_5"
+          ],
+          "parents": [
+            {
+              "id": "high_air_drive",
+              "score": 538.1746,
+              "members": [
+                "high_air_drive",
+                "high_air_drive_air_minus_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sparse_transition",
+          "stratum": "representative",
+          "weight": 0.07,
+          "score": 521.7552,
+          "members": [
+            "sparse_lowline",
+            "sparse_lowline_air_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "sparse_lowline",
+              "score": 521.7552,
+              "members": [
+                "sparse_lowline",
+                "sparse_lowline_air_minus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rapid_pickup_frontier",
+          "stratum": "capability",
+          "weight": 0.4,
+          "score": 1.6897,
+          "members": [
+            "frontier_pickup_progression",
+            "frontier_pickup_progression_shifted"
+          ],
+          "parents": [
+            {
+              "id": "frontier_pickup_progression",
+              "score": 1.6897,
+              "members": [
+                "frontier_pickup_progression",
+                "frontier_pickup_progression_shifted"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_recovery_frontier",
+          "stratum": "capability",
+          "weight": 0.35,
+          "score": 0,
+          "members": [
+            "frontier_dense_recovery",
+            "frontier_dense_recovery_240ms_figures"
+          ],
+          "parents": [
+            {
+              "id": "frontier_dense_recovery",
+              "score": 0,
+              "members": [
+                "frontier_dense_recovery",
+                "frontier_dense_recovery_240ms_figures"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "low_air_frontier",
+          "stratum": "capability",
+          "weight": 0.25,
+          "score": 0,
+          "members": [
+            "frontier_low_air_endurance",
+            "frontier_low_air_endurance_4s"
+          ],
+          "parents": [
+            {
+              "id": "frontier_low_air_endurance",
+              "score": 0,
+              "members": [
+                "frontier_low_air_endurance",
+                "frontier_low_air_endurance_4s"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legacy_transition_regression",
+          "stratum": "legacy_regression",
+          "weight": 0.55,
+          "score": 522.6057,
+          "members": [
+            "regression_transition_mosaic",
+            "regression_transition_mosaic_tempo_fast_5"
+          ],
+          "parents": [
+            {
+              "id": "regression_transition_mosaic",
+              "score": 522.6057,
+              "members": [
+                "regression_transition_mosaic",
+                "regression_transition_mosaic_tempo_fast_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legacy_amplitude_regression",
+          "stratum": "legacy_regression",
+          "weight": 0.45,
+          "score": 486.3556,
+          "members": [
+            "regression_amplitude_mosaic",
+            "regression_amplitude_mosaic_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "regression_amplitude_mosaic",
+              "score": 486.3556,
+              "members": [
+                "regression_amplitude_mosaic",
+                "regression_amplitude_mosaic_contrast_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "believer_56s",
+          "stratum": "development_music",
+          "weight": 1,
+          "score": 415.7966,
+          "members": [
+            "believer_56_6s",
+            "believer_56_6s_impact_relief",
+            "believer_impact_56s",
+            "believer_impact_56s_amplitude_plus_5"
+          ],
+          "parents": [
+            {
+              "id": "believer_56_6s",
+              "score": 306.2206,
+              "members": [
+                "believer_56_6s",
+                "believer_56_6s_impact_relief"
+              ]
+            },
+            {
+              "id": "believer_impact_56s",
+              "score": 564.4549,
+              "members": [
+                "believer_impact_56s",
+                "believer_impact_56s_amplitude_plus_5"
+              ]
+            }
+          ]
+        }
+      ],
+      "strata": [
+        {
+          "id": "representative",
+          "weight": 0.7,
+          "score": 495.698,
+          "groups": [
+            "regular_exceptions",
+            "subdivision_pickup",
+            "irregular_microtimed",
+            "cadence_transition",
+            "spacious_amplitude",
+            "dense_musical",
+            "high_air_energy",
+            "sparse_transition"
+          ]
+        },
+        {
+          "id": "capability",
+          "weight": 0.15,
+          "score": 0.6759,
+          "groups": [
+            "rapid_pickup_frontier",
+            "dense_recovery_frontier",
+            "low_air_frontier"
+          ]
+        },
+        {
+          "id": "legacy_regression",
+          "weight": 0.1,
+          "score": 506.2932,
+          "groups": [
+            "legacy_transition_regression",
+            "legacy_amplitude_regression"
+          ]
+        },
+        {
+          "id": "development_music",
+          "weight": 0.05,
+          "score": 415.7966,
+          "groups": [
+            "believer_56s"
+          ]
+        }
+      ]
+    },
+    {
+      "budget": 500000,
+      "score": 452.7921,
+      "validRuns": 113,
+      "totalRuns": 126,
+      "specifications": [
+        {
+          "id": "river_reentry",
+          "score": 550.0464,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "river_reentry_tempo_fast_5",
+          "score": 520.0463,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "countercurrent",
+          "score": 609.7907,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "countercurrent_impact_contrast_12",
+          "score": 650.1825,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "split_signal",
+          "score": 472.5868,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "split_signal_impact_relief_12",
+          "score": 494.5775,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "pickup_lattice",
+          "score": 547.577,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "pickup_lattice_speed_minus_4",
+          "score": 560.3111,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "loose_pocket",
+          "score": 510.5475,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "loose_pocket_drag_later_20ms",
+          "score": 528.7715,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "offgrid_conversation",
+          "score": 687.8688,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "offgrid_conversation_answer_early_25ms",
+          "score": 686.4043,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "rising_switch",
+          "score": 511.6361,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "rising_switch_tempo_fast_5",
+          "score": 487.9074,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "meter_exchange",
+          "score": 512.8417,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "meter_exchange_speed_plus_4",
+          "score": 497.3479,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "wide_breaths",
+          "score": 690.2016,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "wide_breaths_air_plus_5",
+          "score": 716.717,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "open_hook",
+          "score": 454.0382,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "open_hook_amplitude_plus_8",
+          "score": 441.467,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amplitude_tides",
+          "score": 564.5944,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amplitude_tides_restrained_10",
+          "score": 557.8778,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "dense_dialogue",
+          "score": 394.7324,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "score": 397.3471,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "high_air_drive",
+          "score": 543.2876,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "score": 542.5663,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "sparse_lowline",
+          "score": 540.2793,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "sparse_lowline_air_minus_4",
+          "score": 513.5752,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_pickup_progression",
+          "score": 52.6766,
+          "validRuns": 2,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_pickup_progression_shifted",
+          "score": 49.9716,
+          "validRuns": 2,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "score": 6.0317,
+          "validRuns": 1,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_low_air_endurance",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_transition_mosaic",
+          "score": 555.9426,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_transition_mosaic_tempo_fast_5",
+          "score": 540.5096,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_amplitude_mosaic",
+          "score": 470.8042,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_amplitude_mosaic_contrast_10",
+          "score": 496.9433,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_56_6s",
+          "score": 313.4633,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_56_6s_impact_relief",
+          "score": 319.0764,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_impact_56s",
+          "score": 627.4347,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_impact_56s_amplitude_plus_5",
+          "score": 617.6905,
+          "validRuns": 3,
+          "totalRuns": 3
+        }
+      ],
+      "groups": [
+        {
+          "id": "regular_exceptions",
+          "stratum": "representative",
+          "weight": 0.2,
+          "score": 580.3195,
+          "members": [
+            "river_reentry",
+            "river_reentry_tempo_fast_5",
+            "countercurrent",
+            "countercurrent_impact_contrast_12"
+          ],
+          "parents": [
+            {
+              "id": "river_reentry",
+              "score": 534.8364,
+              "members": [
+                "river_reentry",
+                "river_reentry_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "countercurrent",
+              "score": 629.6633,
+              "members": [
+                "countercurrent",
+                "countercurrent_impact_contrast_12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "subdivision_pickup",
+          "stratum": "representative",
+          "weight": 0.15,
+          "score": 517.4873,
+          "members": [
+            "split_signal",
+            "split_signal_impact_relief_12",
+            "pickup_lattice",
+            "pickup_lattice_speed_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "split_signal",
+              "score": 483.4574,
+              "members": [
+                "split_signal",
+                "split_signal_impact_relief_12"
+              ]
+            },
+            {
+              "id": "pickup_lattice",
+              "score": 553.9075,
+              "members": [
+                "pickup_lattice",
+                "pickup_lattice_speed_minus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "irregular_microtimed",
+          "stratum": "representative",
+          "weight": 0.15,
+          "score": 597.523,
+          "members": [
+            "loose_pocket",
+            "loose_pocket_drag_later_20ms",
+            "offgrid_conversation",
+            "offgrid_conversation_answer_early_25ms"
+          ],
+          "parents": [
+            {
+              "id": "loose_pocket",
+              "score": 519.5798,
+              "members": [
+                "loose_pocket",
+                "loose_pocket_drag_later_20ms"
+              ]
+            },
+            {
+              "id": "offgrid_conversation",
+              "score": 687.1362,
+              "members": [
+                "offgrid_conversation",
+                "offgrid_conversation_answer_early_25ms"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cadence_transition",
+          "stratum": "representative",
+          "weight": 0.12,
+          "score": 502.3261,
+          "members": [
+            "rising_switch",
+            "rising_switch_tempo_fast_5",
+            "meter_exchange",
+            "meter_exchange_speed_plus_4"
+          ],
+          "parents": [
+            {
+              "id": "rising_switch",
+              "score": 499.6312,
+              "members": [
+                "rising_switch",
+                "rising_switch_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "meter_exchange",
+              "score": 505.0355,
+              "members": [
+                "meter_exchange",
+                "meter_exchange_speed_plus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "spacious_amplitude",
+          "stratum": "representative",
+          "weight": 0.13,
+          "score": 561.1922,
+          "members": [
+            "wide_breaths",
+            "wide_breaths_air_plus_5",
+            "open_hook",
+            "open_hook_amplitude_plus_8",
+            "amplitude_tides",
+            "amplitude_tides_restrained_10"
+          ],
+          "parents": [
+            {
+              "id": "wide_breaths",
+              "score": 703.3345,
+              "members": [
+                "wide_breaths",
+                "wide_breaths_air_plus_5"
+              ]
+            },
+            {
+              "id": "open_hook",
+              "score": 447.7086,
+              "members": [
+                "open_hook",
+                "open_hook_amplitude_plus_8"
+              ]
+            },
+            {
+              "id": "amplitude_tides",
+              "score": 561.2261,
+              "members": [
+                "amplitude_tides",
+                "amplitude_tides_restrained_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_musical",
+          "stratum": "representative",
+          "weight": 0.1,
+          "score": 396.0376,
+          "members": [
+            "dense_dialogue",
+            "dense_dialogue_impact_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "dense_dialogue",
+              "score": 396.0376,
+              "members": [
+                "dense_dialogue",
+                "dense_dialogue_impact_contrast_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "high_air_energy",
+          "stratum": "representative",
+          "weight": 0.08,
+          "score": 542.9268,
+          "members": [
+            "high_air_drive",
+            "high_air_drive_air_minus_5"
+          ],
+          "parents": [
+            {
+              "id": "high_air_drive",
+              "score": 542.9268,
+              "members": [
+                "high_air_drive",
+                "high_air_drive_air_minus_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sparse_transition",
+          "stratum": "representative",
+          "weight": 0.07,
+          "score": 526.7584,
+          "members": [
+            "sparse_lowline",
+            "sparse_lowline_air_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "sparse_lowline",
+              "score": 526.7584,
+              "members": [
+                "sparse_lowline",
+                "sparse_lowline_air_minus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rapid_pickup_frontier",
+          "stratum": "capability",
+          "weight": 0.4,
+          "score": 51.3066,
+          "members": [
+            "frontier_pickup_progression",
+            "frontier_pickup_progression_shifted"
+          ],
+          "parents": [
+            {
+              "id": "frontier_pickup_progression",
+              "score": 51.3066,
+              "members": [
+                "frontier_pickup_progression",
+                "frontier_pickup_progression_shifted"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_recovery_frontier",
+          "stratum": "capability",
+          "weight": 0.35,
+          "score": 1.6517,
+          "members": [
+            "frontier_dense_recovery",
+            "frontier_dense_recovery_240ms_figures"
+          ],
+          "parents": [
+            {
+              "id": "frontier_dense_recovery",
+              "score": 1.6517,
+              "members": [
+                "frontier_dense_recovery",
+                "frontier_dense_recovery_240ms_figures"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "low_air_frontier",
+          "stratum": "capability",
+          "weight": 0.25,
+          "score": 0,
+          "members": [
+            "frontier_low_air_endurance",
+            "frontier_low_air_endurance_4s"
+          ],
+          "parents": [
+            {
+              "id": "frontier_low_air_endurance",
+              "score": 0,
+              "members": [
+                "frontier_low_air_endurance",
+                "frontier_low_air_endurance_4s"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legacy_transition_regression",
+          "stratum": "legacy_regression",
+          "weight": 0.55,
+          "score": 548.1719,
+          "members": [
+            "regression_transition_mosaic",
+            "regression_transition_mosaic_tempo_fast_5"
+          ],
+          "parents": [
+            {
+              "id": "regression_transition_mosaic",
+              "score": 548.1719,
+              "members": [
+                "regression_transition_mosaic",
+                "regression_transition_mosaic_tempo_fast_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legacy_amplitude_regression",
+          "stratum": "legacy_regression",
+          "weight": 0.45,
+          "score": 483.6976,
+          "members": [
+            "regression_amplitude_mosaic",
+            "regression_amplitude_mosaic_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "regression_amplitude_mosaic",
+              "score": 483.6976,
+              "members": [
+                "regression_amplitude_mosaic",
+                "regression_amplitude_mosaic_contrast_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "believer_56s",
+          "stratum": "development_music",
+          "weight": 1,
+          "score": 443.7739,
+          "members": [
+            "believer_56_6s",
+            "believer_56_6s_impact_relief",
+            "believer_impact_56s",
+            "believer_impact_56s_amplitude_plus_5"
+          ],
+          "parents": [
+            {
+              "id": "believer_56_6s",
+              "score": 316.2574,
+              "members": [
+                "believer_56_6s",
+                "believer_56_6s_impact_relief"
+              ]
+            },
+            {
+              "id": "believer_impact_56s",
+              "score": 622.5436,
+              "members": [
+                "believer_impact_56s",
+                "believer_impact_56s_amplitude_plus_5"
+              ]
+            }
+          ]
+        }
+      ],
+      "strata": [
+        {
+          "id": "representative",
+          "weight": 0.7,
+          "score": 536.4606,
+          "groups": [
+            "regular_exceptions",
+            "subdivision_pickup",
+            "irregular_microtimed",
+            "cadence_transition",
+            "spacious_amplitude",
+            "dense_musical",
+            "high_air_energy",
+            "sparse_transition"
+          ]
+        },
+        {
+          "id": "capability",
+          "weight": 0.15,
+          "score": 21.1007,
+          "groups": [
+            "rapid_pickup_frontier",
+            "dense_recovery_frontier",
+            "low_air_frontier"
+          ]
+        },
+        {
+          "id": "legacy_regression",
+          "weight": 0.1,
+          "score": 519.1585,
+          "groups": [
+            "legacy_transition_regression",
+            "legacy_amplitude_regression"
+          ]
+        },
+        {
+          "id": "development_music",
+          "weight": 0.05,
+          "score": 443.7739,
+          "groups": [
+            "believer_56s"
+          ]
+        }
+      ]
+    }
+  ],
+  "qualificationSummaries": [],
+  "retainedCompressedArchive": "benchmark/v2/runs/v2.2-decision-protocol-probe.json.gz",
+  "retainedCompressedArchiveSha256": "88ccff4ae0c5a6ce226348df88b8370702d8ee72dac8d529d34a646d0d9788f7"
+}

@@ -1,0 +1,212 @@
+{
+  "schema": "line.benchmark-v2.run-summary.v2",
+  "mode": "qualification",
+  "profile": "canonical",
+  "generatedAt": "2026-07-10T16:13:24.816Z",
+  "archive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-qualification.json",
+  "compressedArchive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-qualification.json.gz",
+  "archiveSha256": "350dbae6b2a978cf025710edec2828492e0480fc87edeec74745f7a9cad3cfb9",
+  "compressedArchiveSha256": "b4d0fa426b666aca73b697496a14da91d3875a50b05f3e5093864844ce5966d6",
+  "suiteFingerprint": "b118882720a968548323b5c53691a3e812df7733d0d931a579ad9aef57f5e470",
+  "executionPolicyFingerprint": "39a185aa2230dd234fa82e5aa953df7cb66ec2fc599e737cb31525501818ef34",
+  "executionProtocol": "line.benchmark-v2.execution-protocol.v2",
+  "implementationFingerprint": "00a98db6137f47cf689ee148520efbbec22354412d80936135ae021b2e9f5ba4",
+  "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+  "compilerSourceFingerprint": "2d40016aef2a2bd4e678f7483c7f6f63a6e616760b351c0931a97e80e119aa80",
+  "compilerSourceFiles": [
+    "engine-rs/.gitignore",
+    "engine-rs/Cargo.lock",
+    "engine-rs/Cargo.toml",
+    "engine-rs/README.md",
+    "engine-rs/src/abi.rs",
+    "engine-rs/src/engine.rs",
+    "engine-rs/src/frame.rs",
+    "engine-rs/src/grid.rs",
+    "engine-rs/src/kernel.rs",
+    "engine-rs/src/lib.rs",
+    "engine-rs/src/line.rs",
+    "package-lock.json",
+    "package.json",
+    "scripts/lib/_lr_engine.ts",
+    "scripts/lib/_lr_engine_record.ts",
+    "scripts/lib/_lr_engine_wasm.ts",
+    "scripts/lib/adapt.ts",
+    "scripts/lib/arc.ts",
+    "scripts/lib/arcLines.ts",
+    "scripts/lib/beam_prune.ts",
+    "scripts/lib/beam_search.ts",
+    "scripts/lib/detector.ts",
+    "scripts/lib/export.ts",
+    "scripts/lib/metrics.ts",
+    "scripts/lib/moves.ts",
+    "scripts/lib/precise_landings.ts",
+    "scripts/lib/primitive.ts",
+    "scripts/lib/primitive_search.ts",
+    "scripts/lib/ride.ts",
+    "scripts/lib/rng.ts",
+    "scripts/lib/rotation.ts",
+    "scripts/lib/route.ts",
+    "scripts/lib/search.ts",
+    "scripts/lib/tune.ts",
+    "scripts/lib/update_types.ts",
+    "scripts/v0/arc.ts",
+    "scripts/v0/arc_placement.ts",
+    "scripts/v0/core/beats.ts",
+    "scripts/v0/core/camera.ts",
+    "scripts/v0/core/candidate.ts",
+    "scripts/v0/core/compile_lifecycle.ts",
+    "scripts/v0/core/curves.ts",
+    "scripts/v0/core/exit_read.ts",
+    "scripts/v0/core/launch_read.ts",
+    "scripts/v0/core/measure.ts",
+    "scripts/v0/core/polish.ts",
+    "scripts/v0/core/substrate.ts",
+    "scripts/v0/core/trace.ts",
+    "scripts/v0/optimizer/README.md",
+    "scripts/v0/optimizer/aim.ts",
+    "scripts/v0/optimizer/arc_model.ts",
+    "scripts/v0/optimizer/arc_probe.ts",
+    "scripts/v0/optimizer/budget_model.ts",
+    "scripts/v0/optimizer/handoff.ts",
+    "scripts/v0/optimizer/node.ts",
+    "scripts/v0/optimizer/objective.ts",
+    "scripts/v0/optimizer/polish.ts",
+    "scripts/v0/optimizer/readiness.ts",
+    "scripts/v0/optimizer/register.ts",
+    "scripts/v0/optimizer/sample.ts",
+    "scripts/v0/optimizer/sim_frames.ts",
+    "scripts/v0/optimizer/solver.ts",
+    "scripts/v0/optimizer/types.ts",
+    "scripts/v0/score.ts",
+    "scripts/v0/types.ts",
+    "tsconfig.json"
+  ],
+  "compilerEnvironment": {},
+  "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
+  "candidateFingerprint": "dea2e1a77af547571849bf96ccc60264f04afd62a0407efe7e04f15e3ebd2e25",
+  "canonicalHeadline": null,
+  "qualificationMonitorScore": 385.6812,
+  "developmentSummaries": [],
+  "qualificationSummaries": [
+    {
+      "budget": 250000,
+      "monitorScore": 389.1223,
+      "validRuns": 20,
+      "totalRuns": 20,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 554.4912,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 525.3015,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 455.6921,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 518.3068,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 129.33,
+          "validRuns": 4,
+          "totalRuns": 4
+        }
+      ]
+    },
+    {
+      "budget": 500000,
+      "monitorScore": 385.3739,
+      "validRuns": 20,
+      "totalRuns": 20,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 538.5301,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 540.0232,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 442.6439,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 520.5936,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 126.4796,
+          "validRuns": 4,
+          "totalRuns": 4
+        }
+      ]
+    },
+    {
+      "budget": 750000,
+      "monitorScore": 383.8993,
+      "validRuns": 20,
+      "totalRuns": 20,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 550.2392,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 510.1892,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 443.7492,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 526.0064,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 126.9036,
+          "validRuns": 4,
+          "totalRuns": 4
+        }
+      ]
+    }
+  ],
+  "linkedDevelopment": {
+    "path": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-development.json",
+    "sha256": "a693893e5fc06067271f71f3f56bb3ae7a097bce14404ee20cb6153a787ebd5c"
+  },
+  "retainedCompressedArchive": "benchmark/v2/runs/v2.2-decision-protocol-qualification.json.gz",
+  "retainedCompressedArchiveSha256": "b4d0fa426b666aca73b697496a14da91d3875a50b05f3e5093864844ce5966d6"
+}

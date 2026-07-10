@@ -2,6 +2,24 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - NOT KEPT - repair-only transition motion ownership
+
+Reason: compile-wide next-span motion geometry previously had a strong panel signal but unstable
+whole-search outcomes. This trial activated the same calibrated geometry-only ownership only
+inside contained repair restarts: at material unjittered transitions, normal candidate generation
+used the following span's sampled air/speed/elevation/amplitude targets. First traversal, impact
+and contact targets, non-normal candidate streams, transition finalist, repair scheduling and
+seeds, scorer, specs, fingerprint, budget grid, and exact register acceptance were unchanged.
+
+Focused tests passed (7 files, 78 tests). The all-40 seed-0 screen at 200k gained +0.63 mean with
+13 improvements, 10 regressions, and 17 ties. Across seeds 0..2 the signal reversed to -0.08 mean:
+32 rows improved, 33 regressed, and 55 tied. Seed means were +0.63, -0.46, and -0.40;
+`syncopated_switchback` lost 12.53 mean across the three seeds. Archives:
+`generated/studies/repair-transition-motion-ownership-all40-b200-s0-a01.json` and
+`generated/studies/repair-transition-motion-ownership-all40-b200-s1-2-a01.json`. Exact incumbent
+acceptance prevents a bad candidate from replacing the current track, but changed repair outcomes
+still redirect later restart seeds and frontier work. Source was reverted without a fixed probe.
+
 ## 2026-07-10 - OBSERVATION ONLY - exact terminal gap-swap oracle
 
 Question: repair rebuilds a complete suffix after changing one weak gap. Test whether a cheaper

@@ -2,6 +2,28 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - NOT KEPT - one-step-dominant third branch
+
+Reason: a new exact-prefix Pareto study tested whether current-impact specialists inherently
+destroy the following state. Across six impact-heavy specs x seeds 0..2 at 200k, the forward
+winner's mean current-impact error was 0.108 versus 0.024 for the unrestricted specialist. More
+importantly, 776/3187 pools contained a candidate improving impact by at least 0.025 without any
+loss of predicted next-contact readiness. On that subset the candidate also improved exact
+scorer-window RMS from 0.097 to 0.082, and 749/776 were already admitted to forward evaluation,
+but their mean exact-forward rank was 4.0 and only 208 entered the three DFS branches. Archive:
+`generated/studies/current-impact-readiness-pareto-6spec-b200-s0-2-a02.json`; reusable diagnostic:
+`scripts/v0/study_impact_readiness_pareto.ts`.
+
+The temporary general mechanism retained exact-forward ranks 1 and 2, then replaced rank 3 with
+the best lower-ranked candidate that strictly improved scorer-window quality without lowering
+predicted readiness. It added no samples, evaluations, or branches. Focused tests passed (7 files,
+91 tests). A paired 12-spec x seeds 0..2 panel at 200k changed only 2/36 rows and lost 0.075 mean:
+`drums_signature` gained 0.01 while `float_bounds` lost 2.70. Archives:
+`generated/studies/accepted-transition-baseline-impact12-b200-s0-2-a01.json` and
+`generated/studies/dominant-third-branch-impact12-b200-s0-2-a01.json`. The opportunities occur
+mostly off productive DFS paths, so a third-branch reorder cannot harvest their local headroom;
+source was reverted without a fixed probe.
+
 ## 2026-07-10 - INCONCLUSIVE PROBE - reserved second-start endgame
 
 Reason: avoid the false promotions in the immediate sequential-start trial by preserving normal

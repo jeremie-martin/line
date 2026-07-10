@@ -2,6 +2,26 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - eight-sample transition finalist
+
+Reason: double only the accepted coherent transition lane's internal sample prefix from four to
+eight, while still admitting and forward-scoring exactly one zero-objective-best finalist. This
+isolated proposal quality from forward-rollout breadth; all baseline candidates, gates, ranking,
+scorer, specs, seeds, budgets, and acceptance stayed unchanged.
+
+Focused tests passed (7 files, 93 tests). A standalone all-40 x seeds 0..2 screen at 200k was
+positive but volatile: +0.50 arithmetic mean over 120 rows, 35 changed tracks, seed means +0.99,
++3.12, and -2.62. The fixed probe is
+`generated/golden-runs/probe-transition-motion-k8-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-transition-motion-k8-j32-a01`.
+It completed 1440/1440 valid with HEADLINE 695.53 versus 695.55 and excluding-impact HEADLINE
+714.19 versus 714.32.
+
+Decision versus `probe-transition-motion-finalist-j32-a01`: `VERDICT: INCONCLUSIVE`, delta -0.0,
+CI [-1.5, 1.2], P(delta<=0)=48.7%, effect -0.03. Per-budget deltas were +0.3 at 75k, +0.0 at
+200k, and -0.1 at 500k. The broader fixed seeds erased the panel signal; source was reverted and
+no full run was launched.
+
 ## 2026-07-09 - NOT KEPT - graduated transition-strength span
 
 Reason: replace no work and add no candidates, but use the accepted finalist's four existing

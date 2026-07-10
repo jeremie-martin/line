@@ -35,6 +35,17 @@ opportunity and later repair scheduling, including `drums_dropout` seed 1 (-20.3
 budget ceiling does not compete with ordinary suffix repair inside the fixed budget, so production
 source was reverted without a fixed probe.
 
+A residual-directed oracle then used only one 0.5-degree probe per gap: upward for missing
+air/elevation/amplitude, downward for missing speed/impact, with the sign reversed for overshoot.
+It retained 4 accepted edits, +0.29 mean, and the +2.00 maximum on the same seed-0 panel at roughly
+one quarter of the exact-evaluation count. Archive:
+`generated/studies/terminal-parent-pitch-directed-sweep-12spec-b200-s0-a01.json`. Integrating that
+single directed probe at the repair-exhaustion boundary still lost 0.90 mean on the paired 36-row
+panel: `drums_pendulum` seed 1 gained 1.82 and `drums_signature` seed 2 gained 1.22, but one shifted
+budget boundary made `drums_dropout` seed 1 lose 33.68. Archive:
+`generated/studies/repair-directed-parent-pitch-impact12-b200-s0-2-a01.json`. Even one full-track
+probe is not competitive with the displaced repair restart; all production hooks were reverted.
+
 ## 2026-07-10 - NOT KEPT - next-elevation response finalist
 
 Reason: current full residuals showed achieved elevation pinned near 0.426 across target deciles,

@@ -28,6 +28,7 @@ if (
   mode !== "pitch" &&
   mode !== "parent-pitch" &&
   mode !== "parent-pitch-sweep" &&
+  mode !== "parent-pitch-directed-sweep" &&
   mode !== "contact-pitch" &&
   mode !== "contact-normal" &&
   mode !== "contact-normal-all" &&
@@ -227,6 +228,7 @@ for (const specName of specs) {
       return {
         variant: { delta: 0, score: score.score, contractPassed: score.contract_passed },
         det,
+        report,
       };
     };
 
@@ -234,7 +236,60 @@ for (const specName of specs) {
     const baseline = baselineRun.variant;
     const acceptedEdits: Variant[] = [];
     let sweepBest: Variant | null = null;
-    const variants = mode === "parent-pitch-sweep"
+    const variants = mode === "parent-pitch-directed-sweep"
+      ? (() => {
+        const tested: Variant[] = [];
+        let currentLines = [...lines];
+        let currentRun = baselineRun;
+        let currentBest: Variant = baseline;
+        const gapOrder = checkpoint.report.gaps
+          .map((gap) => ({
+            index: gap.gap_index,
+            sse: Object.values(gap.axes).reduce(
+              (sum, value) => sum + value.error * value.error,
+              0,
+            ),
+          }))
+          .filter(({ index }) => index > 0)
+          .sort((a, b) => b.sse - a.sse || a.index - b.index);
+        const upwardAxes = new Set(["air", "elevation", "amplitude"]);
+        for (const { index: gapIndex } of gapOrder) {
+          const gapReport = currentRun.report.gaps.find((gap) => gap.gap_index === gapIndex);
+          const dominant = Object.entries(gapReport?.axes ?? {})
+            .sort((a, b) => b[1].error * b[1].error - a[1].error * a[1].error)[0];
+          if (dominant === undefined || dominant[0] === "grain") continue;
+          const [axis, value] = dominant;
+          const missing = value.achieved < value.target;
+          const baseSign = upwardAxes.has(axis) ? -1 : 1;
+          const delta = baseSign * (missing ? 1 : -1) * 0.5;
+          const owner = gapIndex - 1;
+          const currentById = new Map(currentLines.map((line) => [line.id, line]));
+          const parentGroup = (groups[offset + owner] ?? [])
+            .map((line) => currentById.get(line.id) ?? line);
+          if (parentGroup.length === 0) continue;
+          const replacement = pitchExit(parentGroup, delta);
+          const replacementById = new Map(replacement.map((line) => [line.id, line]));
+          const candidateLines = currentLines.map(
+            (line) => replacementById.get(line.id) ?? line,
+          );
+          const run = simulate(candidateLines);
+          const variant: Variant = {
+            ...run.variant,
+            delta,
+            targetGap: owner,
+          };
+          tested.push(variant);
+          if (variant.contractPassed && variant.score > currentBest.score) {
+            currentBest = variant;
+            currentLines = candidateLines;
+            currentRun = run;
+            acceptedEdits.push(variant);
+          }
+        }
+        sweepBest = currentBest;
+        return tested;
+      })()
+      : mode === "parent-pitch-sweep"
       ? (() => {
         const tested: Variant[] = [];
         let currentLines = [...lines];

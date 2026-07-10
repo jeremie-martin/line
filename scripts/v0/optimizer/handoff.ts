@@ -153,6 +153,11 @@ export type CompileHandoffOptions = {
    *  changing only search sampling/start lookahead. Defaults to `seed`, so normal
    *  compiler behavior is unchanged. */
   searchSeed?: number;
+  /** Diagnostic/research hook: resolve budget-aware search policy and its
+   *  repair-allocation phase at a lower ceiling, then spend any remaining hard
+   *  `budget` on the preserved main frontier. Defaults to `budget`, so normal
+   *  compiler behavior is unchanged. */
+  policyBudget?: number;
   /** Study hook: stop as soon as the first full-duration traversal is considered.
    *  This isolates path quality from post-completion search and repair budget. */
   stopAfterFirstCompletion?: boolean;
@@ -807,10 +812,18 @@ function compileHandoffInternal(
     throw new Error(`compileHandoff: searchSeed must be a safe integer, got ${searchSeed}`);
   }
   const targetBudget = validateBudget(opts.budget);
+  const policyBudget = opts.policyBudget === undefined
+    ? targetBudget
+    : validateBudget(opts.policyBudget);
+  if (policyBudget > targetBudget) {
+    throw new Error(
+      `compileHandoff: policyBudget ${policyBudget} exceeds hard budget ${targetBudget}`,
+    );
+  }
   setObjectiveBlendPowers();
   // Budget-aware geometry reads this (per-compile constant) for the curvature fade.
-  setCompileBudgetFrames(targetBudget);
-  setAimCompileBudgetFrames(targetBudget);
+  setCompileBudgetFrames(policyBudget);
+  setAimCompileBudgetFrames(policyBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {
     throw new Error(`compileHandoff: maxNodes must be a positive integer, got ${maxNodes}`);
@@ -849,9 +862,9 @@ function compileHandoffInternal(
     const spec: Spec = { ...userSpec, preroll: undefined, contacts: feasibleContacts };
     const specProfile = buildHandoffSpecProfile(spec);
     setObjectiveBlendPowers({
-      currentQualityPower: objectiveBlendCurrentPowerForSpec(targetBudget, specProfile),
-      readinessPower: objectiveBlendReadinessPowerForSpec(targetBudget, specProfile),
-      elevationReadiness: objectiveElevationReadinessForSpec(targetBudget, specProfile),
+      currentQualityPower: objectiveBlendCurrentPowerForSpec(policyBudget, specProfile),
+      readinessPower: objectiveBlendReadinessPowerForSpec(policyBudget, specProfile),
+      elevationReadiness: objectiveElevationReadinessForSpec(policyBudget, specProfile),
     });
     const durationFrames = secToFrame(spec.duration);
     const allContactFrames = [...spec.contacts]
@@ -876,12 +889,12 @@ function compileHandoffInternal(
     const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     const targetProfile = buildHandoffTargetProfile(gaps, ctx);
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
-    const budgetSlack = traversalBudgetSlack(targetBudget, spec);
+    const budgetSlack = traversalBudgetSlack(policyBudget, spec);
     const budgetSlackTelemetry = round3(budgetSlack);
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContactCadence = usesSparseContactCadenceProfile(targetProfile);
     const allStartOptions = initialSnapshot === null
-      ? buildStartOptions(userSpec, spec, gaps, ctx, searchSeed, targetBudget)
+      ? buildStartOptions(userSpec, spec, gaps, ctx, searchSeed, policyBudget)
       : [];
     const startOptions = opts.startOptionRank === undefined
       ? allStartOptions
@@ -974,8 +987,8 @@ function compileHandoffInternal(
     // the weakest gap of the complete incumbent (see runRepairPhase). `bestCompleteNode` is
     // the live incumbent HandoffNode (updated on every register improvement) so repair can
     // replay its fits to reconstruct any prefix node for free (extendNodeCached memoizes).
-    const repair = repairConfig(targetBudget, specProfile);
-    const repairEnabled = targetBudget >= repair.minBudget && startOptions.length > 0;
+    const repair = repairConfig(policyBudget, specProfile);
+    const repairEnabled = policyBudget >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
     let firstTerminalFrame = -1;
     let firstCompletionFrame = -1;
@@ -1223,7 +1236,7 @@ function compileHandoffInternal(
           targetProfile,
           telemetry,
           sparseContactCadence,
-          targetBudget,
+          targetBudget: policyBudget,
           budgetSlack,
           hasCompletion: firstCompletionFrame >= 0,
         });
@@ -1236,7 +1249,7 @@ function compileHandoffInternal(
         telemetry,
         policy,
         resolvePolicy,
-        targetBudget,
+        policyBudget,
       );
       if (tailNode !== null) {
         const result = consider(tailNode, "tail");
@@ -1332,7 +1345,7 @@ function compileHandoffInternal(
         startOptions,
         telemetry,
         policy,
-        targetBudget,
+        policyBudget,
       );
       telemetry.nodesExpanded++;
       return { kind: "expanded", children };
@@ -1395,6 +1408,7 @@ function compileHandoffInternal(
     // (sims charged), deterministic per (spec,seed,budget). See docs/archive/TRACK_REPAIR_EXPERIMENTS.md.
     const runRepairPhase = (): void => {
       if (repair === null) return;
+      const repairBudget = policyBudget;
       // Coarse fallback cost model: avg frames per contact-gap of the full search.
       const perGap = firstCompletionFrame > 0
         ? firstCompletionFrame / Math.max(1, telemetry.deepestSeenGap + 1)
@@ -1426,14 +1440,14 @@ function compileHandoffInternal(
       let repairRound = 0;
       while (
         attempts < repair.maxAttempts &&
-        getSimFrames() < targetBudget &&
+        getSimFrames() < repairBudget &&
         bestCompleteNode !== null &&
         isTerminalNode(bestCompleteNode.search, gaps)
       ) {
         const incumbent = bestCompleteNode;
         const root = startOptions.find((o) => o.rank === incumbent.startRank)?.root;
         if (root === undefined) break;
-        const remaining = targetBudget - getSimFrames();
+        const remaining = repairBudget - getSimFrames();
         const incumbentEvaluation = evaluateCached(incumbent);
         // Worst AFFORDABLE gap: largest axis-error² whose measured cost-to-re-complete fits the
         // remaining budget (×feasMargin). Falls back to later/cheaper gaps when budget is tight.
@@ -1505,10 +1519,10 @@ function compileHandoffInternal(
         let improvedAny = false;
         for (let up = 0; up <= repair.maxUpstream; up++) {
           const k = kWorst - up;
-          if (k < 0 || attempts >= repair.maxAttempts || getSimFrames() >= targetBudget) break;
+          if (k < 0 || attempts >= repair.maxAttempts || getSimFrames() >= repairBudget) break;
           const estCost = estCostOf(k);
           // Walking upstream only gets more expensive; stop if we can't afford to finish.
-          if (estCost > 0 && estCost * repair.feasMargin > targetBudget - getSimFrames()) break;
+          if (estCost > 0 && estCost * repair.feasMargin > repairBudget - getSimFrames()) break;
           attempts++;
           restartCounter++;
           const restartSeed = ((incumbent.searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
@@ -1526,12 +1540,16 @@ function compileHandoffInternal(
             rankTrace: [],
             skippedContacts: 0,
           };
-          const ceiling = Math.min(targetBudget, getSimFrames() + Math.ceil(estCost * repair.feasMargin));
+          const ceiling = Math.min(
+            repairBudget,
+            getSimFrames() + Math.ceil(estCost * repair.feasMargin),
+          );
           const beforeScore = evaluateCached(incumbent).key.full_score;
           const framesBefore = getSimFrames();
           const incumbentBefore = bestCompleteNode;
           const terminalsBefore = terminalConsiders;
-          const predictedFeasible = estCost <= 0 || estCost * repair.feasMargin <= targetBudget - framesBefore;
+          const predictedFeasible = estCost <= 0 ||
+            estCost * repair.feasMargin <= repairBudget - framesBefore;
           const improvementFrameOffsets = runFrontierFrom(prefixNode, ceiling);
           const completed = terminalConsiders > terminalsBefore;
           // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
@@ -1555,7 +1573,8 @@ function compileHandoffInternal(
           });
           if (repair.log) {
             process.stderr.write(
-              `repair seed=${seed} budget=${targetBudget} worst=${kWorst} anchor=${k} up=${up} ` +
+              `repair seed=${seed} budget=${targetBudget} policy=${policyBudget} ` +
+              `worst=${kWorst} anchor=${k} up=${up} ` +
               `accepted=${improved ? "yes" : "no"} dScore=${(afterScore - beforeScore).toFixed(2)} ` +
               `frames=${getSimFrames() - framesBefore} estCost=${Math.round(estCost)} ` +
               `framesAtAnchor=${framesAtReach.get(prefix) ?? -1} ` +

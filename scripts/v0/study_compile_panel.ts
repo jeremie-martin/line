@@ -19,10 +19,18 @@ const specArg = argValue("specs") ?? defaultSpecs;
 const specs = (specArg === "all" ? [...GOLDEN_SPECS] : specArg.split(",")) as GoldenSpecName[];
 const seeds = (argValue("seeds") ?? "0").split(",").map(Number);
 const budget = Number(argValue("budget") ?? "200000");
+const policyBudgetArg = argValue("policy-budget");
+const policyBudget = policyBudgetArg === undefined ? undefined : Number(policyBudgetArg);
 const label = argValue("label") ?? "panel";
 const outPath = argValue("out");
 
 if (!Number.isSafeInteger(budget) || budget <= 0) throw new Error(`invalid budget ${budget}`);
+if (
+  policyBudget !== undefined &&
+  (!Number.isSafeInteger(policyBudget) || policyBudget <= 0 || policyBudget > budget)
+) {
+  throw new Error(`invalid policy budget ${policyBudget} for hard budget ${budget}`);
+}
 for (const seed of seeds) {
   if (!Number.isSafeInteger(seed)) throw new Error(`invalid seed ${seed}`);
 }
@@ -66,7 +74,7 @@ for (const specName of specs) {
   const spec = await loadGoldenSpec(specName, "base");
   for (const seed of seeds) {
     const started = Date.now();
-    const checkpoint = compileHandoff(spec, seed, { budget });
+    const checkpoint = compileHandoff(spec, seed, { budget, policyBudget });
     const score = scoreDriftReport(checkpoint.report, { totalFrames: secToFrame(spec.duration) });
     const axisValues = new Map<string, number[]>();
     for (const gap of checkpoint.report.gaps) {
@@ -115,6 +123,7 @@ const mean = (values: number[]): number =>
 const result = {
   label,
   budget,
+  ...(policyBudget === undefined ? {} : { policyBudget }),
   specs,
   seeds,
   summary: {

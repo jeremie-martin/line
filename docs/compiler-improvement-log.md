@@ -2,6 +2,19 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - OBSERVATION ONLY - exact terminal pitch oracle
+
+Question: can a bounded full-track edit replace an expensive suffix repair? A new exact oracle
+finds the final track's highest-SSE gap, rotates only the last third of that committed line chain,
+then reruns the full detector and unchanged scorer. On the twelve worst-impact specs at
+200k/seed 0, only 11/48 variants at +/-2 and +/-4 degrees remained contract-valid and none
+improved. A fine follow-up at +/-0.25 and +/-0.5 degrees produced 12/48 valid variants, all on
+three tracks where the edited tail was physically irrelevant and every score stayed exactly
+unchanged. Archives: `generated/studies/terminal-pitch-oracle-12spec-b200-s0-a01.json` and
+`generated/studies/terminal-pitch-oracle-fine-12spec-b200-s0-a01.json`. The final routes are either
+locally timing-fragile or insensitive; terminal exit-pitch polish is closed as a useful bounded
+endgame.
+
 ## 2026-07-09 - NOT KEPT - eight-sample transition finalist
 
 Reason: double only the accepted coherent transition lane's internal sample prefix from four to

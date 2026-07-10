@@ -2,6 +2,24 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - repair-targeted accelerated impact entry
+
+Reason: pay for the new entry-acceleration primitive only when repair had already selected an
+affordable gap whose dominant residual was an impact undershoot. During that contained restart,
+and only at the weak gap, the exact-qualified accelerated quality-winner variant replaced rank 7;
+rank 0 and pool width stayed unchanged. The mutable plan lived in the per-compile context and was
+cleared after every restart. Ordinary main search, non-impact repairs, restart selection, seeds,
+ceilings, scorer, specs, and budgets were unchanged; the full-track register remained the acceptor.
+
+Focused tests passed (4 files, 67 tests). On the twelve worst-impact specs at 200k/seed 0, mean
+score moved 625.496->625.795. On all 40 specs the gain collapsed to +0.09 mean: 38 rows were exact
+ties, `canyon_steps` gained +5.76 through changed repair allocation without retaining an
+acceleration line, and `ridge_pulse` directly retained one acceleration line but lost 2.18.
+Archives: `generated/studies/repair-impact-entry-12spec-b200-s0-a01.json` and
+`generated/studies/repair-impact-entry-all40-b200-s0-a01.json`. Dominant impact undershoot is not
+enough to predict this primitive on mixed vertical suffixes; source was reverted without a fixed
+probe.
+
 ## 2026-07-09 - NOT KEPT - rank-7 accelerated impact entry
 
 Reason: the forced-rank-0 acceleration probe never let the forward evaluator compare the solid

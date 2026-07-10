@@ -2,6 +2,44 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - REJECTED PROBE - high-slack sequential second-start completion
+
+Reason: the isolated start-rank oracle had +7.92 mean rank-1 headroom at 200k, and first-completion
+quality predicted the eventual better isolated lane on 26/30 rows. This trial kept normal main
+search first, then only on passing incumbents below 0.60 quality with at least the existing
+branch-3 slack threshold (10 predicted traversals) ran the next ranked start through one honestly
+charged first completion in a private register. The alternate could replace the pre-repair
+incumbent only by at least `CALIB.SIGMA`; rejected leaves were discarded. Repair, scorer, specs,
+fingerprint, seed policy, grid, and acceptance were otherwise unchanged. `LR_SECOND_START_PROBE=0`
+was a study escape hatch.
+
+Focused tests passed (7 files, 78 tests). At 200k/seed 0 across all 40 specs, an earlier lower-slack
+version gained +2.46 mean from one `skyline_push` track (+98.58), but seeds 1-2 reversed it because
+the alternate start changed the later repair basin. Tightening to slack 10 made 75k and 200k
+byte-identical. On a paired ten-spec x seeds 0..2 panel at 500k, 27/30 rows tied; all movement was
+`skyline_push`, with +41.03, -1.55, and -2.08, for +1.25 panel mean. Archives:
+`generated/studies/sequential-second-start-probe-all40-b200-s0-a01.json`,
+`generated/studies/sequential-second-start-probe-all40-b200-s1-2-a01.json`, and
+`generated/studies/high-slack-second-start-probe-10spec-b500-s{0,1-2}-a01.json`.
+
+Fixed probe:
+`generated/golden-runs/probe-high-slack-second-start-j32-a01/golden.json`, valid 1440/1440 with
+HEADLINE 695.26 and excluding-impact HEADLINE 714.00. Decision versus
+`probe-transition-motion-finalist-j32-a01`: `VERDICT: REJECT`, delta -0.3,
+CI [-1.1, 0.3], P(delta<=0)=85.4%, effect -0.89. Per-budget deltas were +0.0 at 75k,
++0.0 at 200k, and -0.5 at 500k. At 500k, 20 rows changed: 7 improved, 12 regressed, and one
+score-tied. Large true wins (`canyon_steps` +55.03, `syncopated_switchback` +16.37) were outweighed
+by false promotions (`pop_train` -68.47, `valley_bounce` -64.72/-57.76,
+`syncopated_switchback` -40.65, `syncopated_lift` -34.67).
+
+A follow-up exact first-completion study on the seven moved families and actual seeds 24..35
+showed that no stronger margin separates them. False promotions had some of the largest rank-1
+margins: `valley_bounce` +174.4, `syncopated_lift` +123.4, and `pop_train` +115.8, overlapping
+true wins at +134.5 and +78.6. Archive:
+`generated/studies/start-first-margin-moved-7spec-b500-s24-35-a01.json`. First-completion quality
+is not a causal predictor of post-repair basin quality; source was reverted and no full run was
+launched.
+
 ## 2026-07-10 - NOT KEPT - causal parent motion target in repair
 
 Reason: narrow the broad repair ownership trial to the actual inherited-state boundary. Only when

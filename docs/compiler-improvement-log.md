@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - NOT KEPT - next-elevation response finalist
+
+Reason: current full residuals showed achieved elevation pinned near 0.426 across target deciles,
+with high asks around 0.62 undershooting by 0.194 and low asks around 0.27 overshooting by 0.152.
+An exact-prefix study confirmed that the candidate placed at contact k cannot change gap k's
+elevation, but the preceding pool spans the following gap widely. Across 15 vertical specs x
+seeds 0..2 at 200k, the best generated next-elevation specialist cut predicted error from 0.294
+to 0.023, but ranked around 27 and reduced composite readiness from 0.602 to 0.134. The best
+already-admitted specialist improved error only to 0.246. Archives:
+`generated/studies/current-elevation-specialist-deficit-15spec-b200-s0-2-a01.json` and
+`generated/studies/current-next-elevation-specialist-deficit-15spec-b200-s0-2-a01.json`.
+
+The temporary additive finalist reflected the authored next target farther from level
+(`e' = clamp(2e - 0.5)`), sampled four candidates without removing normal/transition shapes, and
+offered only the closest predicted response to the unchanged true forward evaluator. Focused tests
+passed (7 files, 91 tests). On a paired 12-spec x seeds 0..2 panel at 200k it remained valid 36/36
+but lost 0.41 mean; 15 tracks changed. `swoop_dive` seed 0 gained 12.74, while
+`dense_echo_climb` lost 13.65/4.08/5.06 across all seeds. Most moved rows barely changed final
+elevation, confirming basin replacement rather than response correction. Archives:
+`generated/studies/accepted-transition-baseline-vertical12-b200-s0-2-a01.json` and
+`generated/studies/elevation-response-finalist-vertical12-b200-s0-2-a01.json`. Source was reverted
+without a fixed probe.
+
 ## 2026-07-10 - NOT KEPT - linear impact-curve pressure
 
 Reason: current 550k landing re-simulation showed a cycle-level impact separator: high-residual

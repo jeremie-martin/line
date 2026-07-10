@@ -2,6 +2,23 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - steady true-motion finalist
+
+Reason: the accepted motion finalist spends four geometry-only attempts at material authored
+transitions, but steady spans still generate around jittered targets while the objective and scorer
+read unjittered targets. The temporary mutually exclusive fallback preserved transition priority
+and the one-finalist maximum. Only steady contact spans whose largest sampled-vs-true motion-axis
+difference exceeded `CALIB.SIGMA` sampled four attempts against true air/speed/elevation/amplitude;
+the zero-frame objective had to beat the normal pool frontier before forward scoring. Baseline
+candidates, RNG policy, scorer, specs, seeds, and budgets were unchanged.
+
+Focused tests passed (4 files, 67 tests). On all 40 specs at 200k/seed 0, the trial was exactly
+byte-identical to the accepted transition baseline: mean score 693.333841, 40/40 identical track
+hashes, zero score changes, and zero selected-source changes. Archive:
+`generated/studies/steady-true-motion-all40-b200-s0-a01.json`, paired against
+`generated/studies/accepted-transition-combined-all40-b200-s0-a01.json`. The normal pool already
+spans this small proposal displacement; source was reverted without a fixed probe.
+
 ## 2026-07-09 - NOT KEPT - exact-frontier accelerated impact specialist
 
 Reason: isolate selective admission from the earlier rejected global acceleration primitive. The

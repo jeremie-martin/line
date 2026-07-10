@@ -26,6 +26,8 @@ const deltas = (argValue("deltas") ?? "-4,-2,2,4").split(",").map(Number);
 const mode = argValue("mode") ?? "pitch";
 if (
   mode !== "pitch" &&
+  mode !== "parent-pitch" &&
+  mode !== "parent-pitch-sweep" &&
   mode !== "contact-pitch" &&
   mode !== "contact-normal" &&
   mode !== "contact-normal-all" &&
@@ -201,6 +203,10 @@ for (const specName of specs) {
     const weak = weakestGap(checkpoint.report);
     const weakGroup = groups[offset + weak.index];
     if (weak.index < 0 || weakGroup === undefined) continue;
+    const pitchGroup = mode === "parent-pitch"
+      ? groups[offset + weak.index - 1]
+      : weakGroup;
+    if ((mode === "pitch" || mode === "parent-pitch") && pitchGroup === undefined) continue;
 
     const simulate = (candidateLines: TrackLine[]) => {
       let engine = new LineRiderEngine();
@@ -228,7 +234,58 @@ for (const specName of specs) {
     const baseline = baselineRun.variant;
     const acceptedEdits: Variant[] = [];
     let sweepBest: Variant | null = null;
-    const variants = mode === "contact-normal-sweep"
+    const variants = mode === "parent-pitch-sweep"
+      ? (() => {
+        const tested: Variant[] = [];
+        let currentLines = [...lines];
+        let currentBest: Variant = baseline;
+        const gapOrder = checkpoint.report.gaps
+          .map((gap) => ({
+            index: gap.gap_index,
+            sse: Object.values(gap.axes).reduce(
+              (sum, value) => sum + value.error * value.error,
+              0,
+            ),
+          }))
+          .filter(({ index }) => index > 0)
+          .sort((a, b) => b.sse - a.sse || a.index - b.index);
+        for (const { index: gapIndex } of gapOrder) {
+          const owner = gapIndex - 1;
+          const currentById = new Map(currentLines.map((line) => [line.id, line]));
+          const parentGroup = (groups[offset + owner] ?? [])
+            .map((line) => currentById.get(line.id) ?? line);
+          if (parentGroup.length === 0) continue;
+          let winner: { variant: Variant; lines: TrackLine[] } | null = null;
+          for (const delta of deltas) {
+            const replacement = pitchExit(parentGroup, delta);
+            const replacementById = new Map(replacement.map((line) => [line.id, line]));
+            const candidateLines = currentLines.map(
+              (line) => replacementById.get(line.id) ?? line,
+            );
+            const variant: Variant = {
+              ...simulate(candidateLines).variant,
+              delta,
+              targetGap: owner,
+            };
+            tested.push(variant);
+            if (
+              variant.contractPassed &&
+              variant.score > currentBest.score &&
+              (winner === null || variant.score > winner.variant.score)
+            ) {
+              winner = { variant, lines: candidateLines };
+            }
+          }
+          if (winner !== null) {
+            currentBest = winner.variant;
+            currentLines = winner.lines;
+            acceptedEdits.push(winner.variant);
+          }
+        }
+        sweepBest = currentBest;
+        return tested;
+      })()
+      : mode === "contact-normal-sweep"
       ? (() => {
         const tested: Variant[] = [];
         let currentLines = [...lines];
@@ -288,12 +345,16 @@ for (const specName of specs) {
         sweepBest = currentBest;
         return tested;
       })()
-      : mode === "pitch"
+      : mode === "pitch" || mode === "parent-pitch"
       ? deltas.map((delta): Variant => {
-        const replacement = pitchExit(weakGroup, delta);
+        const replacement = pitchExit(pitchGroup!, delta);
         const replacementById = new Map(replacement.map((line) => [line.id, line]));
         const result = simulate(lines.map((line) => replacementById.get(line.id) ?? line)).variant;
-        return { ...result, delta };
+        return {
+          ...result,
+          delta,
+          targetGap: mode === "parent-pitch" ? weak.index - 1 : weak.index,
+        };
       })
       : mode === "contact-pitch" || mode === "contact-normal" || mode === "contact-normal-all"
         ? (() => {

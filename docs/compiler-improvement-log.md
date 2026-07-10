@@ -2,6 +2,28 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - OBSERVATION ONLY - exact causal parent-exit pitch oracle
+
+Question: the existing terminal pitch oracle chose weak gap k but rotated gap k's exit, which
+controls k+1 rather than the measured residual. Add `parent-pitch` and `parent-pitch-sweep` modes
+that rotate the final third of gap k-1's arc, exact-resimulate the full accepted track, require the
+contract, and adopt only strict full-score improvements. The sweep visits all residual gaps in
+descending SSE order and carries accepted edits forward as monotonic coordinate descent.
+
+At 12 difficult specs x seeds 0..2 x 200k, coarse +/-2/4 degree parent edits had no gains and only
+33/144 variants remained valid. Tightening to +/-0.5/1 degree raised validity to 49/144 and found
+one `dense_echo_climb` gain of +0.71 (+0.020 mean over 36). Across the 12-spec seed-0 coordinate
+sweep, 6/12 tracks improved, 12 edits were accepted, mean lift was +0.61, and maximum lift was
++2.00. Gains included `dense_echo_climb` +2.00, `drums_pulse` +2.00, `canyon_steps` +1.50, and
+`skyline_push` +1.03. Archives:
+`generated/studies/terminal-parent-pitch-oracle-12spec-b200-s0-2-a01.json`,
+`generated/studies/terminal-parent-pitch-oracle-fine-12spec-b200-s0-2-a01.json`, and
+`generated/studies/terminal-parent-pitch-sweep-12spec-b200-s0-a01.json`.
+
+The oracle is exact and monotonic but full coordinate descent is not budget-free: four full-track
+simulations per gap would consume a material share of the production budget. It justifies testing
+a contained fallback where normal repair has already exhausted a weak gap, not a blanket post-pass.
+
 ## 2026-07-10 - NOT KEPT - next-elevation response finalist
 
 Reason: current full residuals showed achieved elevation pinned near 0.426 across target deciles,

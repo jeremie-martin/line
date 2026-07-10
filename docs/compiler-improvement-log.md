@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - decelerated impact entry segment
+
+Reason: test the converse of forward entry acceleration on low or already-overshooting impact
+targets. The temporary rank-7 variant changed the final approach segment to an acceleration line
+without reversing its endpoints, producing an impulse opposite travel while preserving collision
+geometry. Admission required exact candidate validation and improvement in both impact error and
+the unchanged local objective; the normal quality winner and top seven pool options were retained.
+
+On the twelve worst-impact specs at 200k/seed 0, mean score moved 625.495804->625.493817. No
+returned track retained the intended acceleration line and the only score change was a -0.024
+`drums_pendulum` regression caused by validation work changing search allocation. Archive:
+`generated/studies/decelerated-impact-entry-12spec-b200-s0-a01.json`. The primitive produced no
+qualified search option, so source was reverted without a wider panel or fixed probe.
+
 ## 2026-07-09 - OBSERVATION ONLY - exact terminal entry-acceleration oracle
 
 Question: remove local-objective and forward-prediction uncertainty by editing a completed track.

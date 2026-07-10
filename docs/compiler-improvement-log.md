@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - NOT KEPT - causal parent motion target in repair
+
+Reason: narrow the broad repair ownership trial to the actual inherited-state boundary. Only when
+repair selected an air/speed/elevation/amplitude-dominant weak gap, found a material authored
+transition, and walked at least one gap upstream, normal generation at the immediately preceding
+gap used the weak gap's sampled motion targets. Direct repair, every other suffix gap, first
+traversal, non-normal streams, restart order/seeds/ceilings, scorer, and exact acceptance were
+unchanged.
+
+Focused tests passed (7 files, 78 tests). At all 40 specs x seed 0 x 200k, mean score gained +0.77;
+only six tracks changed, split four gains and two losses. Across seeds 0..2 the effect shrank to
++0.20 mean with 7 improvements, 6 regressions, 107 ties, and 13 changed hashes. Seed means were
++0.77, +0.25, and -0.41. The largest family mean was `syncopated_switchback` +7.99, while losses
+included `tiny_dance` -3.22, `opening_burst` -3.12, and `mini_burst` -2.49. Archives:
+`generated/studies/repair-parent-motion-target-all40-b200-s0-a01.json` and
+`generated/studies/repair-parent-motion-target-all40-b200-s1-2-a01.json`.
+
+An `LR_REPAIR_LOG=1` follow-up on moved families found no causal axis separator: gains and losses
+both arose under air and vertical parent plans, while excluding speed would not address the other
+losses. Archive: `generated/studies/repair-parent-motion-target-trace-11spec-b200-s0-a01.json`.
+The intervention is principled and low-blast but underpowered and seed-sensitive; source was
+reverted without a fixed probe.
+
 ## 2026-07-10 - NOT KEPT - repair-only transition motion ownership
 
 Reason: compile-wide next-span motion geometry previously had a strong panel signal but unstable

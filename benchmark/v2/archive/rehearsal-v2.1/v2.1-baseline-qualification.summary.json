@@ -1,0 +1,141 @@
+{
+  "schema": "line.benchmark-v2.run-summary.v1",
+  "mode": "qualification",
+  "profile": "canonical",
+  "generatedAt": "2026-07-10T13:40:54.271Z",
+  "archive": "generated/benchmark-v2/canonical-runs/v2.1-baseline-qualification.json",
+  "compressedArchive": "generated/benchmark-v2/canonical-runs/v2.1-baseline-qualification.json.gz",
+  "archiveSha256": "42b7338b21b3cf2e095e0dfa7ad2e10bb31b1d820ad4505e0eae9d233a04f0c4",
+  "compressedArchiveSha256": "2432272349c6d2c8a14e3089a9049c52191fff203e25bd8ce50b7302be7e1a1c",
+  "suiteFingerprint": "870fdd7b7afb45a5123c165de4a3108f94ac10db80bd5573ded9f50e916a14a5",
+  "executionPolicyFingerprint": "5860c8df57571f4c483471cdc5e287b936d0b1e7928055dce400f8de815b259c",
+  "compilerSourceFingerprint": "2cdbe6cddf1fc6c63146c3942404e40ca49ff9a18621817aa1f616a3a5c13036",
+  "compilerEnvironment": {},
+  "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
+  "candidateFingerprint": "44bac2ac3d88ad27a9fb29c56a89bb11544f9d985f56e588195b98e3360ab4a5",
+  "canonicalHeadline": null,
+  "qualificationMonitorScore": 385.6812,
+  "developmentSummaries": [],
+  "qualificationSummaries": [
+    {
+      "budget": 250000,
+      "monitorScore": 389.1223,
+      "validRuns": 20,
+      "totalRuns": 20,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 554.4912,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 525.3015,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 455.6921,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 518.3068,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 129.33,
+          "validRuns": 4,
+          "totalRuns": 4
+        }
+      ]
+    },
+    {
+      "budget": 500000,
+      "monitorScore": 385.3739,
+      "validRuns": 20,
+      "totalRuns": 20,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 538.5301,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 540.0232,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 442.6439,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 520.5936,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 126.4796,
+          "validRuns": 4,
+          "totalRuns": 4
+        }
+      ]
+    },
+    {
+      "budget": 750000,
+      "monitorScore": 383.8993,
+      "validRuns": 20,
+      "totalRuns": 20,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 550.2392,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 510.1892,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 443.7492,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 526.0064,
+          "validRuns": 4,
+          "totalRuns": 4
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 126.9036,
+          "validRuns": 4,
+          "totalRuns": 4
+        }
+      ]
+    }
+  ],
+  "linkedDevelopment": {
+    "path": "generated/benchmark-v2/canonical-runs/v2.1-baseline-development.json",
+    "sha256": "7f678e7fdfbd584be369546633c1e01ec10cc0b3eb11a8b549da7abbbbf3063d"
+  },
+  "retainedCompressedArchive": "benchmark/v2/runs/v2.1-baseline-qualification.json.gz",
+  "retainedCompressedArchiveSha256": "2432272349c6d2c8a14e3089a9049c52191fff203e25bd8ce50b7302be7e1a1c"
+}

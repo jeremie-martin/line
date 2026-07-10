@@ -1,0 +1,1662 @@
+{
+  "schema": "line.benchmark-v2.audit.v2",
+  "characterizationFingerprint": "d693c8e5a1262c1033383a59435bb2cea851ab7dd75022af5cee0088f089bf3a",
+  "auditRuleFingerprint": "daccead6106215e41c29a0a1fe3afd1271cd6bd3cd7559c0a5d3c3c22f9670a0",
+  "hardFailures": [],
+  "warnings": [
+    "impact periodicity: frontier_pickup_progression lag 8 (0.8227)",
+    "impact periodicity: meter_exchange lag 8 (0.829)",
+    "impact periodicity: rising_switch lag 8 (0.843)",
+    "near-identical gap distribution: countercurrent, sparse_lowline (0.9975)",
+    "near-identical gap distribution: frontier_low_air_endurance, amor_na_praia_46s (0.9961)",
+    "near-identical gap distribution: frontier_low_air_endurance, frontier_pickup_progression (0.9898)",
+    "near-identical gap distribution: frontier_low_air_endurance, shelter_impact_sync_81s (0.9847)",
+    "near-identical gap distribution: frontier_pickup_progression, amor_na_praia_46s (0.9883)",
+    "near-identical gap distribution: high_air_drive, amor_na_praia_46s (0.9962)",
+    "near-identical gap distribution: high_air_drive, frontier_low_air_endurance (0.9994)",
+    "near-identical gap distribution: high_air_drive, frontier_pickup_progression (0.9899)",
+    "near-identical gap distribution: high_air_drive, river_reentry (0.9976)",
+    "near-identical gap distribution: high_air_drive, shelter_impact_sync_81s (0.9885)",
+    "near-identical gap distribution: open_hook, believer_56_6s (0.9849)",
+    "near-identical gap distribution: river_reentry, amor_na_praia_46s (0.9961)",
+    "near-identical gap distribution: river_reentry, frontier_low_air_endurance (0.9975)",
+    "near-identical gap distribution: river_reentry, frontier_pickup_progression (0.9885)",
+    "near-identical gap distribution: river_reentry, shelter_impact_sync_81s (0.9829)",
+    "target similarity: dense_dialogue, sparse_lowline, speed (0.9506)",
+    "target similarity: frontier_pickup_progression, believer_impact_56s, speed (0.9848)",
+    "target similarity: loose_pocket, river_reentry, air (0.9569)",
+    "target similarity: loose_pocket, split_signal, speed (0.9597)",
+    "target similarity: offgrid_conversation, pickup_lattice, speed (0.957)"
+  ],
+  "directSequenceMatches": [],
+  "targetSimilarities": [
+    {
+      "a": "dense_dialogue",
+      "b": "sparse_lowline",
+      "axis": "speed",
+      "correlation": 0.9506
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "believer_impact_56s",
+      "axis": "speed",
+      "correlation": 0.9848
+    },
+    {
+      "a": "loose_pocket",
+      "b": "river_reentry",
+      "axis": "air",
+      "correlation": 0.9569
+    },
+    {
+      "a": "loose_pocket",
+      "b": "split_signal",
+      "axis": "speed",
+      "correlation": 0.9597
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "pickup_lattice",
+      "axis": "speed",
+      "correlation": 0.957
+    }
+  ],
+  "impactPeriodicity": [
+    {
+      "source": "frontier_pickup_progression",
+      "lag": 8,
+      "correlation": 0.8227,
+      "coverage": 0.9273
+    },
+    {
+      "source": "meter_exchange",
+      "lag": 8,
+      "correlation": 0.829,
+      "coverage": 0.9167
+    },
+    {
+      "source": "rising_switch",
+      "lag": 8,
+      "correlation": 0.843,
+      "coverage": 0.9091
+    }
+  ],
+  "gapDistributionSimilarities": [
+    {
+      "a": "amplitude_tides",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.0744
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.0108
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "believer_56_6s",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "believer_impact_56s",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "countercurrent",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "dense_dialogue",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "frontier_dense_recovery",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "frontier_pickup_progression",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "high_air_drive",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "loose_pocket",
+      "cosine": 0.8261
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "luna_bala_44s",
+      "cosine": 0.6939
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "meter_exchange",
+      "cosine": 0.4978
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "offgrid_conversation",
+      "cosine": 0.3677
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "open_hook",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "pickup_lattice",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.059
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.4225
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "rising_switch",
+      "cosine": 0.6939
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "river_reentry",
+      "cosine": 0.0131
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "sparse_lowline",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "split_signal",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "wide_breaths",
+      "cosine": 0
+    },
+    {
+      "a": "believer_56_6s",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.0003
+    },
+    {
+      "a": "believer_56_6s",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.0285
+    },
+    {
+      "a": "believer_56_6s",
+      "b": "believer_impact_56s",
+      "cosine": 0.3839
+    },
+    {
+      "a": "believer_56_6s",
+      "b": "luna_bala_44s",
+      "cosine": 0.0047
+    },
+    {
+      "a": "believer_56_6s",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "believer_56_6s",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.0654
+    },
+    {
+      "a": "believer_impact_56s",
+      "b": "amor_na_praia_46s",
+      "cosine": 0
+    },
+    {
+      "a": "believer_impact_56s",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0
+    },
+    {
+      "a": "believer_impact_56s",
+      "b": "luna_bala_44s",
+      "cosine": 0
+    },
+    {
+      "a": "believer_impact_56s",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.0011
+    },
+    {
+      "a": "believer_impact_56s",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.03
+    },
+    {
+      "a": "countercurrent",
+      "b": "amor_na_praia_46s",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.0349
+    },
+    {
+      "a": "countercurrent",
+      "b": "believer_56_6s",
+      "cosine": 0.0599
+    },
+    {
+      "a": "countercurrent",
+      "b": "believer_impact_56s",
+      "cosine": 0.0036
+    },
+    {
+      "a": "countercurrent",
+      "b": "dense_dialogue",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "frontier_dense_recovery",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "frontier_pickup_progression",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "high_air_drive",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "loose_pocket",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "luna_bala_44s",
+      "cosine": 0.0022
+    },
+    {
+      "a": "countercurrent",
+      "b": "meter_exchange",
+      "cosine": 0.0216
+    },
+    {
+      "a": "countercurrent",
+      "b": "offgrid_conversation",
+      "cosine": 0.6605
+    },
+    {
+      "a": "countercurrent",
+      "b": "open_hook",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "pickup_lattice",
+      "cosine": 0.0432
+    },
+    {
+      "a": "countercurrent",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.0244
+    },
+    {
+      "a": "countercurrent",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.0331
+    },
+    {
+      "a": "countercurrent",
+      "b": "rising_switch",
+      "cosine": 0.3735
+    },
+    {
+      "a": "countercurrent",
+      "b": "river_reentry",
+      "cosine": 0.0406
+    },
+    {
+      "a": "countercurrent",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "sparse_lowline",
+      "cosine": 0.9975
+    },
+    {
+      "a": "countercurrent",
+      "b": "split_signal",
+      "cosine": 0.0019
+    },
+    {
+      "a": "countercurrent",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.0003
+    },
+    {
+      "a": "countercurrent",
+      "b": "wide_breaths",
+      "cosine": 0.0457
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.0185
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.5147
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "believer_56_6s",
+      "cosine": 0.1129
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "believer_impact_56s",
+      "cosine": 0.0122
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "frontier_dense_recovery",
+      "cosine": 0.1006
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.0843
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "high_air_drive",
+      "cosine": 0
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "loose_pocket",
+      "cosine": 0.0231
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "luna_bala_44s",
+      "cosine": 0.0315
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "meter_exchange",
+      "cosine": 0.0944
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "offgrid_conversation",
+      "cosine": 0.149
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "open_hook",
+      "cosine": 0.1164
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "pickup_lattice",
+      "cosine": 0.1771
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.093
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.2782
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "rising_switch",
+      "cosine": 0.0658
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "river_reentry",
+      "cosine": 0.0111
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "sparse_lowline",
+      "cosine": 0
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "split_signal",
+      "cosine": 0.3852
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.4172
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "wide_breaths",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.9003
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.0358
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "believer_56_6s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "believer_impact_56s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0.9032
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.9414
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "luna_bala_44s",
+      "cosine": 0.6362
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.1453
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.8899
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.9961
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "believer_56_6s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "believer_impact_56s",
+      "cosine": 0.0004
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.9898
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "luna_bala_44s",
+      "cosine": 0.704
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.1611
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.9847
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.9883
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.0281
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "believer_56_6s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "believer_impact_56s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "luna_bala_44s",
+      "cosine": 0.7018
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.1658
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.9754
+    },
+    {
+      "a": "frontier_pickup_progression",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.0571
+    },
+    {
+      "a": "high_air_drive",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.9962
+    },
+    {
+      "a": "high_air_drive",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "believer_56_6s",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "believer_impact_56s",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "frontier_dense_recovery",
+      "cosine": 0.9032
+    },
+    {
+      "a": "high_air_drive",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0.9994
+    },
+    {
+      "a": "high_air_drive",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.9899
+    },
+    {
+      "a": "high_air_drive",
+      "b": "loose_pocket",
+      "cosine": 0.5089
+    },
+    {
+      "a": "high_air_drive",
+      "b": "luna_bala_44s",
+      "cosine": 0.704
+    },
+    {
+      "a": "high_air_drive",
+      "b": "meter_exchange",
+      "cosine": 0.505
+    },
+    {
+      "a": "high_air_drive",
+      "b": "offgrid_conversation",
+      "cosine": 0.2487
+    },
+    {
+      "a": "high_air_drive",
+      "b": "open_hook",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "pickup_lattice",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.1608
+    },
+    {
+      "a": "high_air_drive",
+      "b": "rising_switch",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "river_reentry",
+      "cosine": 0.9976
+    },
+    {
+      "a": "high_air_drive",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.9885
+    },
+    {
+      "a": "high_air_drive",
+      "b": "sparse_lowline",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "split_signal",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    },
+    {
+      "a": "high_air_drive",
+      "b": "wide_breaths",
+      "cosine": 0
+    },
+    {
+      "a": "loose_pocket",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.5705
+    },
+    {
+      "a": "loose_pocket",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0
+    },
+    {
+      "a": "loose_pocket",
+      "b": "believer_56_6s",
+      "cosine": 0.1843
+    },
+    {
+      "a": "loose_pocket",
+      "b": "believer_impact_56s",
+      "cosine": 0.02
+    },
+    {
+      "a": "loose_pocket",
+      "b": "frontier_dense_recovery",
+      "cosine": 0.4599
+    },
+    {
+      "a": "loose_pocket",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0.5089
+    },
+    {
+      "a": "loose_pocket",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.5041
+    },
+    {
+      "a": "loose_pocket",
+      "b": "luna_bala_44s",
+      "cosine": 0.9489
+    },
+    {
+      "a": "loose_pocket",
+      "b": "meter_exchange",
+      "cosine": 0.6807
+    },
+    {
+      "a": "loose_pocket",
+      "b": "offgrid_conversation",
+      "cosine": 0.4698
+    },
+    {
+      "a": "loose_pocket",
+      "b": "open_hook",
+      "cosine": 0.1905
+    },
+    {
+      "a": "loose_pocket",
+      "b": "pickup_lattice",
+      "cosine": 0
+    },
+    {
+      "a": "loose_pocket",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.2015
+    },
+    {
+      "a": "loose_pocket",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.4414
+    },
+    {
+      "a": "loose_pocket",
+      "b": "rising_switch",
+      "cosine": 0.5904
+    },
+    {
+      "a": "loose_pocket",
+      "b": "river_reentry",
+      "cosine": 0.5217
+    },
+    {
+      "a": "loose_pocket",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.5014
+    },
+    {
+      "a": "loose_pocket",
+      "b": "sparse_lowline",
+      "cosine": 0
+    },
+    {
+      "a": "loose_pocket",
+      "b": "split_signal",
+      "cosine": 0
+    },
+    {
+      "a": "loose_pocket",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.0119
+    },
+    {
+      "a": "loose_pocket",
+      "b": "wide_breaths",
+      "cosine": 0
+    },
+    {
+      "a": "meter_exchange",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.5415
+    },
+    {
+      "a": "meter_exchange",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.3785
+    },
+    {
+      "a": "meter_exchange",
+      "b": "believer_56_6s",
+      "cosine": 0.0176
+    },
+    {
+      "a": "meter_exchange",
+      "b": "believer_impact_56s",
+      "cosine": 0
+    },
+    {
+      "a": "meter_exchange",
+      "b": "frontier_dense_recovery",
+      "cosine": 0.4564
+    },
+    {
+      "a": "meter_exchange",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0.505
+    },
+    {
+      "a": "meter_exchange",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.5002
+    },
+    {
+      "a": "meter_exchange",
+      "b": "luna_bala_44s",
+      "cosine": 0.7218
+    },
+    {
+      "a": "meter_exchange",
+      "b": "offgrid_conversation",
+      "cosine": 0.4824
+    },
+    {
+      "a": "meter_exchange",
+      "b": "open_hook",
+      "cosine": 0
+    },
+    {
+      "a": "meter_exchange",
+      "b": "pickup_lattice",
+      "cosine": 0.4689
+    },
+    {
+      "a": "meter_exchange",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.2948
+    },
+    {
+      "a": "meter_exchange",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.6353
+    },
+    {
+      "a": "meter_exchange",
+      "b": "rising_switch",
+      "cosine": 0.7786
+    },
+    {
+      "a": "meter_exchange",
+      "b": "river_reentry",
+      "cosine": 0.5173
+    },
+    {
+      "a": "meter_exchange",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.4976
+    },
+    {
+      "a": "meter_exchange",
+      "b": "sparse_lowline",
+      "cosine": 0
+    },
+    {
+      "a": "meter_exchange",
+      "b": "split_signal",
+      "cosine": 0
+    },
+    {
+      "a": "meter_exchange",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    },
+    {
+      "a": "meter_exchange",
+      "b": "wide_breaths",
+      "cosine": 0.4826
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.2827
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.1702
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "believer_56_6s",
+      "cosine": 0.1909
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "believer_impact_56s",
+      "cosine": 0.016
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "frontier_dense_recovery",
+      "cosine": 0.2248
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0.2487
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.2616
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "luna_bala_44s",
+      "cosine": 0.4765
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "open_hook",
+      "cosine": 0.1522
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "pickup_lattice",
+      "cosine": 0.2108
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.3905
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.3918
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "rising_switch",
+      "cosine": 0.6467
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "river_reentry",
+      "cosine": 0.2855
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.2451
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "sparse_lowline",
+      "cosine": 0.651
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "split_signal",
+      "cosine": 0.2476
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.2279
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "wide_breaths",
+      "cosine": 0.217
+    },
+    {
+      "a": "open_hook",
+      "b": "amor_na_praia_46s",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "believer_56_6s",
+      "cosine": 0.9849
+    },
+    {
+      "a": "open_hook",
+      "b": "believer_impact_56s",
+      "cosine": 0.2842
+    },
+    {
+      "a": "open_hook",
+      "b": "frontier_dense_recovery",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "frontier_pickup_progression",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "luna_bala_44s",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "pickup_lattice",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.7658
+    },
+    {
+      "a": "open_hook",
+      "b": "regression_transition_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "rising_switch",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "river_reentry",
+      "cosine": 0.013
+    },
+    {
+      "a": "open_hook",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "sparse_lowline",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "split_signal",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.064
+    },
+    {
+      "a": "open_hook",
+      "b": "wide_breaths",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.0017
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.876
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "believer_56_6s",
+      "cosine": 0.0353
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "believer_impact_56s",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "frontier_dense_recovery",
+      "cosine": 0.0663
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.0204
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "luna_bala_44s",
+      "cosine": 0.0207
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.5304
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.7551
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "rising_switch",
+      "cosine": 0.4902
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "river_reentry",
+      "cosine": 0.0144
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "sparse_lowline",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "split_signal",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.0032
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "wide_breaths",
+      "cosine": 0.9654
+    },
+    {
+      "a": "regression_amplitude_mosaic",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.0044
+    },
+    {
+      "a": "regression_amplitude_mosaic",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.4281
+    },
+    {
+      "a": "regression_amplitude_mosaic",
+      "b": "believer_56_6s",
+      "cosine": 0.7609
+    },
+    {
+      "a": "regression_amplitude_mosaic",
+      "b": "believer_impact_56s",
+      "cosine": 0.0803
+    },
+    {
+      "a": "regression_amplitude_mosaic",
+      "b": "luna_bala_44s",
+      "cosine": 0.0647
+    },
+    {
+      "a": "regression_amplitude_mosaic",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.4068
+    },
+    {
+      "a": "regression_amplitude_mosaic",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "regression_amplitude_mosaic",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.0479
+    },
+    {
+      "a": "regression_transition_mosaic",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.2003
+    },
+    {
+      "a": "regression_transition_mosaic",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.7509
+    },
+    {
+      "a": "regression_transition_mosaic",
+      "b": "believer_56_6s",
+      "cosine": 0.0254
+    },
+    {
+      "a": "regression_transition_mosaic",
+      "b": "believer_impact_56s",
+      "cosine": 0.0009
+    },
+    {
+      "a": "regression_transition_mosaic",
+      "b": "luna_bala_44s",
+      "cosine": 0.4301
+    },
+    {
+      "a": "regression_transition_mosaic",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.1584
+    },
+    {
+      "a": "regression_transition_mosaic",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.0208
+    },
+    {
+      "a": "rising_switch",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.0532
+    },
+    {
+      "a": "rising_switch",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.3957
+    },
+    {
+      "a": "rising_switch",
+      "b": "believer_56_6s",
+      "cosine": 0.0377
+    },
+    {
+      "a": "rising_switch",
+      "b": "believer_impact_56s",
+      "cosine": 0
+    },
+    {
+      "a": "rising_switch",
+      "b": "frontier_dense_recovery",
+      "cosine": 0
+    },
+    {
+      "a": "rising_switch",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0
+    },
+    {
+      "a": "rising_switch",
+      "b": "frontier_pickup_progression",
+      "cosine": 0
+    },
+    {
+      "a": "rising_switch",
+      "b": "luna_bala_44s",
+      "cosine": 0.5067
+    },
+    {
+      "a": "rising_switch",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.3185
+    },
+    {
+      "a": "rising_switch",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.6547
+    },
+    {
+      "a": "rising_switch",
+      "b": "river_reentry",
+      "cosine": 0.0302
+    },
+    {
+      "a": "rising_switch",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "rising_switch",
+      "b": "sparse_lowline",
+      "cosine": 0.351
+    },
+    {
+      "a": "rising_switch",
+      "b": "split_signal",
+      "cosine": 0
+    },
+    {
+      "a": "rising_switch",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    },
+    {
+      "a": "rising_switch",
+      "b": "wide_breaths",
+      "cosine": 0.5045
+    },
+    {
+      "a": "river_reentry",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.9961
+    },
+    {
+      "a": "river_reentry",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.0177
+    },
+    {
+      "a": "river_reentry",
+      "b": "believer_56_6s",
+      "cosine": 0.0153
+    },
+    {
+      "a": "river_reentry",
+      "b": "believer_impact_56s",
+      "cosine": 0.0014
+    },
+    {
+      "a": "river_reentry",
+      "b": "frontier_dense_recovery",
+      "cosine": 0.9015
+    },
+    {
+      "a": "river_reentry",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0.9975
+    },
+    {
+      "a": "river_reentry",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.9885
+    },
+    {
+      "a": "river_reentry",
+      "b": "luna_bala_44s",
+      "cosine": 0.7124
+    },
+    {
+      "a": "river_reentry",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.0185
+    },
+    {
+      "a": "river_reentry",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.1797
+    },
+    {
+      "a": "river_reentry",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.9829
+    },
+    {
+      "a": "river_reentry",
+      "b": "sparse_lowline",
+      "cosine": 0.0398
+    },
+    {
+      "a": "river_reentry",
+      "b": "split_signal",
+      "cosine": 0.0002
+    },
+    {
+      "a": "river_reentry",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.0008
+    },
+    {
+      "a": "river_reentry",
+      "b": "wide_breaths",
+      "cosine": 0.0143
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "amor_na_praia_46s",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "believer_56_6s",
+      "cosine": 0.0545
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "believer_impact_56s",
+      "cosine": 0.0014
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "frontier_dense_recovery",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "frontier_pickup_progression",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "luna_bala_44s",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "regression_transition_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "split_signal",
+      "cosine": 0.0022
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "wide_breaths",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.0212
+    },
+    {
+      "a": "split_signal",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
+      "b": "believer_56_6s",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
+      "b": "believer_impact_56s",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
+      "b": "frontier_dense_recovery",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.0547
+    },
+    {
+      "a": "split_signal",
+      "b": "luna_bala_44s",
+      "cosine": 0.0501
+    },
+    {
+      "a": "split_signal",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.2002
+    },
+    {
+      "a": "split_signal",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
+      "b": "tiki_tiki_48s",
+      "cosine": 0.6638
+    },
+    {
+      "a": "split_signal",
+      "b": "wide_breaths",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths",
+      "b": "amor_na_praia_46s",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0.7793
+    },
+    {
+      "a": "wide_breaths",
+      "b": "believer_56_6s",
+      "cosine": 0.0363
+    },
+    {
+      "a": "wide_breaths",
+      "b": "believer_impact_56s",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths",
+      "b": "frontier_dense_recovery",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths",
+      "b": "frontier_low_air_endurance",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths",
+      "b": "frontier_pickup_progression",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths",
+      "b": "luna_bala_44s",
+      "cosine": 0.0213
+    },
+    {
+      "a": "wide_breaths",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0.5459
+    },
+    {
+      "a": "wide_breaths",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.7053
+    },
+    {
+      "a": "wide_breaths",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    }
+  ],
+  "auditFingerprint": "cdb90642c0652a1c31091a48d3d3d642b19ab3cc41247c983693835b65c3138b"
+}

@@ -457,8 +457,8 @@ export function axesAtFrame(frame: number, spec: Spec): AxisValues {
 const IMPACT_BOUND_GRAVITY_PX_PER_FRAME2 = 0.175;
 
 /**
- * DERIVED per-beat feasibility bound on the SCORED impact target (part of the
- * evaluator ruler — this function is inside the fingerprinted source slice).
+ * DERIVED per-beat diagnostic for the scored impact request (part of the
+ * evaluator report — this function is inside the fingerprinted source slice).
  *
  * Impact is the redirection arc: redirArc = v·Δθ. The turn a catch can
  * deliver is bounded by pure ballistics around the beat:
@@ -476,10 +476,10 @@ const IMPACT_BOUND_GRAVITY_PX_PER_FRAME2 = 0.175;
  * percent across density × speed strata (dense/fast bound 0.474 vs p95 0.480;
  * mixed 0.67 vs 0.66; sparse 0.85 vs 0.72 — stretch where the search has room).
  *
- * The scored target is min(authored, bound): authored impact keeps its absolute
- * musical meaning ("how hard the music wants this hit"); the ruler grades the
- * compiler on the hardest PHYSICAL version of that ask. The bound only ever
- * lowers targets — soft asks are untouched.
+ * This estimate is diagnostic only. Authored impact keeps its absolute musical
+ * meaning ("how hard the music wants this hit") in both optimization and scoring;
+ * a bound below the request describes a difficult or inconsistent ask without
+ * silently rewriting it.
  */
 export function impactFeasibilityBound(
   speedTarget: number | undefined,
@@ -692,15 +692,6 @@ export function buildDriftReport(
       if (t === undefined) continue;
       const a = achievedAll[name];
       if (a === undefined) continue;
-      if (name === "impact") {
-        // Scored impact target = min(authored, derived feasibility bound).
-        // Applied HERE (fingerprinted ruler authority) as well as at the
-        // compiler's target resolution, so the two cannot drift apart.
-        const nextContact = contactFrames.find((f) => f > g.endFrame);
-        const nextGapSeconds = nextContact === undefined ? 1.5 : (nextContact - g.endFrame) / FPS;
-        const prevGapSeconds = (g.endFrame - g.startFrame) / FPS;
-        t = Math.min(t, impactFeasibilityBound(targets.speed, prevGapSeconds, nextGapSeconds));
-      }
       axes[name] = { target: t, achieved: a, error: Math.abs(t - a) };
       if (name === "elevation") {
         const v0 = velocityAt(det, g.startFrame);
@@ -708,6 +699,14 @@ export function buildDriftReport(
         axes[name].ceiling = elevationCeiling(speed, g.endFrame - g.startFrame);
       }
       if (name === "impact") {
+        const nextContact = contactFrames.find((frame) => frame > g.endFrame);
+        const nextGapSeconds = nextContact === undefined ? 1.5 : (nextContact - g.endFrame) / FPS;
+        const prevGapSeconds = (g.endFrame - g.startFrame) / FPS;
+        axes[name].feasibility_bound = impactFeasibilityBound(
+          targets.speed,
+          prevGapSeconds,
+          nextGapSeconds,
+        );
         // Speed entering the landing bounds the catchable redirection (you can't
         // acquire more perpendicular velocity than you carry, and beyond the
         // catchable ceiling the hit ejects). Use the speed at the contact frame.

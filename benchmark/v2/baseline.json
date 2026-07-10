@@ -1,0 +1,71 @@
+{
+  "schema": "line.benchmark-v2.baseline-reference.v3",
+  "status": "canonical-baseline",
+  "label": "v2.1-final",
+  "generated_at": "2026-07-10T14:43:42.370Z",
+  "bundle": "benchmark/v2/runs/v2.1-final-canonical.json",
+  "catalog_fingerprint": "b5e0506864782753fea7c59f9bf079ad867e227db699018eab8cee1b31e5dd8c",
+  "suite_fingerprint": "194ef720c9b58bbc4e0eb90690b86da45970a1cd9bd0d008d24497bc85a10923",
+  "engine": "wasm",
+  "compiler_source_fingerprint": "2cdbe6cddf1fc6c63146c3942404e40ca49ff9a18621817aa1f616a3a5c13036",
+  "compiler_environment": {},
+  "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
+  "candidate_fingerprint": "44bac2ac3d88ad27a9fb29c56a89bb11544f9d985f56e588195b98e3360ab4a5",
+  "development": {
+    "execution_policy_fingerprint": "6e00cb8fd918327d6fb8d3fd1cfe0b56ae1f66877d91600fbf1ca042c3aa751b",
+    "harness_fingerprint": "024851d2db540f4f28a9b83a6ff31944ba6971e751f7dba06e030289e51fd132",
+    "archive_sha256": "adb4bfecfbef4cb4b0d7f6df71ff563a3dd64b11d42f84994707b64c66ce3fce",
+    "compressed_archive": "benchmark/v2/runs/v2.1-final-development.json.gz",
+    "compressed_archive_sha256": "960c37b4177689160a8f998fbc0388d87d343943e00792266aeca132dff6ddb0",
+    "canonical_headline": 451.3303,
+    "budgets": [
+      {
+        "budget": 250000,
+        "score": 420.8035,
+        "valid_runs": 142,
+        "total_runs": 168
+      },
+      {
+        "budget": 500000,
+        "score": 452.203,
+        "valid_runs": 152,
+        "total_runs": 168
+      },
+      {
+        "budget": 750000,
+        "score": 470.227,
+        "valid_runs": 156,
+        "total_runs": 168
+      }
+    ]
+  },
+  "qualification": {
+    "execution_policy_fingerprint": "0160467aca20ee931d8df41e301eb20a047a0293de2c9132c5fff607a8a52c01",
+    "harness_fingerprint": "024851d2db540f4f28a9b83a6ff31944ba6971e751f7dba06e030289e51fd132",
+    "archive_sha256": "07d543f86bab0d4d8d0806d9e7fca12e7ba20213b97485d4180ad2a4195e6e2e",
+    "compressed_archive": "benchmark/v2/runs/v2.1-final-qualification.json.gz",
+    "compressed_archive_sha256": "cd85f714dd7c9f8d2bc6e9054356e392431408bb59a22957806d5aa67e21b7f0",
+    "monitor_score": 385.6812,
+    "budgets": [
+      {
+        "budget": 250000,
+        "score": 389.1223,
+        "valid_runs": 20,
+        "total_runs": 20
+      },
+      {
+        "budget": 500000,
+        "score": 385.3739,
+        "valid_runs": 20,
+        "total_runs": 20
+      },
+      {
+        "budget": 750000,
+        "score": 383.8993,
+        "valid_runs": 20,
+        "total_runs": 20
+      }
+    ],
+    "linked_development_archive_sha256": "adb4bfecfbef4cb4b0d7f6df71ff563a3dd64b11d42f84994707b64c66ce3fce"
+  }
+}

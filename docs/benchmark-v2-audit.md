@@ -1,0 +1,199 @@
+# Benchmark V2 Static Audit
+
+Characterization: `712719f7dcf9d148`. Audit: `d732ad2a1e4f6c87`.
+
+This report contains no compiler or heldout outcome.
+
+## Verdict
+
+PASS: no structural or direct-copy failure was detected.
+
+## Hard failures
+
+None.
+
+## Review warnings
+
+- impact periodicity: frontier_pickup_progression lag 8 (0.8227)
+- impact periodicity: frontier_pickup_progression_shifted lag 8 (0.8227)
+- impact periodicity: meter_exchange lag 8 (0.829)
+- impact periodicity: meter_exchange_speed_plus_4 lag 8 (0.829)
+- impact periodicity: rising_switch lag 8 (0.843)
+- impact periodicity: rising_switch_tempo_fast_5 lag 8 (0.843)
+- near-identical gap distribution: amplitude_tides, amplitude_tides_restrained_10 (1)
+- near-identical gap distribution: amplitude_tides, river_reentry_tempo_fast_5 (0.983)
+- near-identical gap distribution: amplitude_tides_restrained_10, river_reentry_tempo_fast_5 (0.983)
+- near-identical gap distribution: believer_56_6s, believer_56_6s_impact_relief (1)
+- near-identical gap distribution: believer_impact_56s, believer_impact_56s_amplitude_plus_5 (1)
+- near-identical gap distribution: countercurrent, countercurrent_impact_contrast_12 (1)
+- near-identical gap distribution: countercurrent, sparse_lowline (0.9975)
+- near-identical gap distribution: countercurrent, sparse_lowline_air_minus_4 (0.9975)
+- near-identical gap distribution: countercurrent_impact_contrast_12, sparse_lowline (0.9975)
+- near-identical gap distribution: countercurrent_impact_contrast_12, sparse_lowline_air_minus_4 (0.9975)
+- near-identical gap distribution: dense_dialogue, dense_dialogue_impact_contrast_10 (1)
+- near-identical gap distribution: frontier_dense_recovery, frontier_dense_recovery_240ms_figures (0.9987)
+- near-identical gap distribution: frontier_low_air_endurance, amor_na_praia_46s (0.9961)
+- near-identical gap distribution: frontier_low_air_endurance, frontier_low_air_endurance_4s (0.9999)
+- near-identical gap distribution: frontier_low_air_endurance, frontier_pickup_progression (0.9898)
+- near-identical gap distribution: frontier_low_air_endurance, frontier_pickup_progression_shifted (0.9923)
+- near-identical gap distribution: frontier_low_air_endurance, shelter_impact_sync_81s (0.9847)
+- near-identical gap distribution: frontier_low_air_endurance_4s, amor_na_praia_46s (0.996)
+- near-identical gap distribution: frontier_low_air_endurance_4s, frontier_pickup_progression (0.9898)
+- near-identical gap distribution: frontier_low_air_endurance_4s, frontier_pickup_progression_shifted (0.9922)
+- near-identical gap distribution: frontier_low_air_endurance_4s, shelter_impact_sync_81s (0.9846)
+- near-identical gap distribution: frontier_pickup_progression, amor_na_praia_46s (0.9883)
+- near-identical gap distribution: frontier_pickup_progression, frontier_pickup_progression_shifted (0.9976)
+- near-identical gap distribution: frontier_pickup_progression_shifted, amor_na_praia_46s (0.9907)
+- near-identical gap distribution: high_air_drive, amor_na_praia_46s (0.9962)
+- near-identical gap distribution: high_air_drive, frontier_low_air_endurance (0.9994)
+- near-identical gap distribution: high_air_drive, frontier_low_air_endurance_4s (0.9993)
+- near-identical gap distribution: high_air_drive, frontier_pickup_progression (0.9899)
+- near-identical gap distribution: high_air_drive, frontier_pickup_progression_shifted (0.9923)
+- near-identical gap distribution: high_air_drive, high_air_drive_air_minus_5 (1)
+- near-identical gap distribution: high_air_drive, river_reentry (0.9976)
+- near-identical gap distribution: high_air_drive, shelter_impact_sync_81s (0.9885)
+- near-identical gap distribution: high_air_drive_air_minus_5, amor_na_praia_46s (0.9962)
+- near-identical gap distribution: high_air_drive_air_minus_5, frontier_low_air_endurance (0.9994)
+- near-identical gap distribution: high_air_drive_air_minus_5, frontier_low_air_endurance_4s (0.9993)
+- near-identical gap distribution: high_air_drive_air_minus_5, frontier_pickup_progression (0.9899)
+- near-identical gap distribution: high_air_drive_air_minus_5, frontier_pickup_progression_shifted (0.9923)
+- near-identical gap distribution: high_air_drive_air_minus_5, river_reentry (0.9976)
+- near-identical gap distribution: high_air_drive_air_minus_5, shelter_impact_sync_81s (0.9885)
+- near-identical gap distribution: loose_pocket, loose_pocket_drag_later_20ms (1)
+- near-identical gap distribution: meter_exchange, meter_exchange_speed_plus_4 (1)
+- near-identical gap distribution: offgrid_conversation, offgrid_conversation_answer_early_25ms (0.9835)
+- near-identical gap distribution: open_hook, believer_56_6s (0.9849)
+- near-identical gap distribution: open_hook, believer_56_6s_impact_relief (0.9849)
+- near-identical gap distribution: open_hook, open_hook_amplitude_plus_8 (1)
+- near-identical gap distribution: open_hook_amplitude_plus_8, believer_56_6s (0.9849)
+- near-identical gap distribution: open_hook_amplitude_plus_8, believer_56_6s_impact_relief (0.9849)
+- near-identical gap distribution: pickup_lattice, pickup_lattice_speed_minus_4 (1)
+- near-identical gap distribution: regression_amplitude_mosaic, regression_amplitude_mosaic_contrast_10 (1)
+- near-identical gap distribution: river_reentry, amor_na_praia_46s (0.9961)
+- near-identical gap distribution: river_reentry, frontier_low_air_endurance (0.9975)
+- near-identical gap distribution: river_reentry, frontier_low_air_endurance_4s (0.9975)
+- near-identical gap distribution: river_reentry, frontier_pickup_progression (0.9885)
+- near-identical gap distribution: river_reentry, frontier_pickup_progression_shifted (0.9914)
+- near-identical gap distribution: river_reentry, shelter_impact_sync_81s (0.9829)
+- near-identical gap distribution: sparse_lowline, sparse_lowline_air_minus_4 (1)
+- near-identical gap distribution: split_signal, split_signal_impact_relief_12 (1)
+- near-identical gap distribution: wide_breaths, wide_breaths_air_plus_5 (1)
+- parent variant shares exact contact skeleton: amplitude_tides, amplitude_tides_restrained_10
+- parent variant shares exact contact skeleton: believer_56_6s, believer_56_6s_impact_relief
+- parent variant shares exact contact skeleton: believer_impact_56s, believer_impact_56s_amplitude_plus_5
+- parent variant shares exact contact skeleton: countercurrent, countercurrent_impact_contrast_12
+- parent variant shares exact contact skeleton: dense_dialogue, dense_dialogue_impact_contrast_10
+- parent variant shares exact contact skeleton: high_air_drive, high_air_drive_air_minus_5
+- parent variant shares exact contact skeleton: meter_exchange, meter_exchange_speed_plus_4
+- parent variant shares exact contact skeleton: open_hook, open_hook_amplitude_plus_8
+- parent variant shares exact contact skeleton: pickup_lattice, pickup_lattice_speed_minus_4
+- parent variant shares exact contact skeleton: regression_amplitude_mosaic, regression_amplitude_mosaic_contrast_10
+- parent variant shares exact contact skeleton: sparse_lowline, sparse_lowline_air_minus_4
+- parent variant shares exact contact skeleton: split_signal, split_signal_impact_relief_12
+- parent variant shares exact contact skeleton: wide_breaths, wide_breaths_air_plus_5
+- parent variant shares exact frame gaps: amplitude_tides, amplitude_tides_restrained_10
+- parent variant shares exact frame gaps: believer_56_6s, believer_56_6s_impact_relief
+- parent variant shares exact frame gaps: believer_impact_56s, believer_impact_56s_amplitude_plus_5
+- parent variant shares exact frame gaps: countercurrent, countercurrent_impact_contrast_12
+- parent variant shares exact frame gaps: dense_dialogue, dense_dialogue_impact_contrast_10
+- parent variant shares exact frame gaps: high_air_drive, high_air_drive_air_minus_5
+- parent variant shares exact frame gaps: meter_exchange, meter_exchange_speed_plus_4
+- parent variant shares exact frame gaps: open_hook, open_hook_amplitude_plus_8
+- parent variant shares exact frame gaps: pickup_lattice, pickup_lattice_speed_minus_4
+- parent variant shares exact frame gaps: regression_amplitude_mosaic, regression_amplitude_mosaic_contrast_10
+- parent variant shares exact frame gaps: sparse_lowline, sparse_lowline_air_minus_4
+- parent variant shares exact frame gaps: split_signal, split_signal_impact_relief_12
+- parent variant shares exact frame gaps: wide_breaths, wide_breaths_air_plus_5
+- target similarity: amplitude_tides, amplitude_tides_restrained_10, air (1)
+- target similarity: amplitude_tides, amplitude_tides_restrained_10, amplitude (1)
+- target similarity: amplitude_tides, amplitude_tides_restrained_10, impact (1)
+- target similarity: amplitude_tides, amplitude_tides_restrained_10, speed (1)
+- target similarity: believer_56_6s, believer_56_6s_impact_relief, air (1)
+- target similarity: believer_56_6s, believer_56_6s_impact_relief, impact (1)
+- target similarity: believer_56_6s, believer_56_6s_impact_relief, speed (1)
+- target similarity: believer_impact_56s, believer_impact_56s_amplitude_plus_5, air (1)
+- target similarity: believer_impact_56s, believer_impact_56s_amplitude_plus_5, amplitude (1)
+- target similarity: believer_impact_56s, believer_impact_56s_amplitude_plus_5, impact (1)
+- target similarity: believer_impact_56s, believer_impact_56s_amplitude_plus_5, speed (1)
+- target similarity: countercurrent, countercurrent_impact_contrast_12, air (1)
+- target similarity: countercurrent, countercurrent_impact_contrast_12, impact (1)
+- target similarity: countercurrent, countercurrent_impact_contrast_12, speed (1)
+- target similarity: dense_dialogue, dense_dialogue_impact_contrast_10, air (1)
+- target similarity: dense_dialogue, dense_dialogue_impact_contrast_10, impact (1)
+- target similarity: dense_dialogue, dense_dialogue_impact_contrast_10, speed (1)
+- target similarity: dense_dialogue, sparse_lowline, speed (0.9506)
+- target similarity: dense_dialogue, sparse_lowline_air_minus_4, speed (0.9506)
+- target similarity: dense_dialogue_impact_contrast_10, sparse_lowline, speed (0.9506)
+- target similarity: dense_dialogue_impact_contrast_10, sparse_lowline_air_minus_4, speed (0.9506)
+- target similarity: frontier_dense_recovery, frontier_dense_recovery_240ms_figures, air (1)
+- target similarity: frontier_dense_recovery, frontier_dense_recovery_240ms_figures, impact (1)
+- target similarity: frontier_dense_recovery, frontier_dense_recovery_240ms_figures, speed (1)
+- target similarity: frontier_low_air_endurance, frontier_low_air_endurance_4s, air (1)
+- target similarity: frontier_low_air_endurance, frontier_low_air_endurance_4s, impact (1)
+- target similarity: frontier_low_air_endurance, frontier_low_air_endurance_4s, speed (0.9988)
+- target similarity: frontier_pickup_progression, believer_impact_56s, speed (0.9848)
+- target similarity: frontier_pickup_progression, believer_impact_56s_amplitude_plus_5, speed (0.9848)
+- target similarity: frontier_pickup_progression, frontier_pickup_progression_shifted, air (1)
+- target similarity: frontier_pickup_progression, frontier_pickup_progression_shifted, impact (1)
+- target similarity: frontier_pickup_progression, frontier_pickup_progression_shifted, speed (1)
+- target similarity: frontier_pickup_progression_shifted, believer_impact_56s, speed (0.9848)
+- target similarity: frontier_pickup_progression_shifted, believer_impact_56s_amplitude_plus_5, speed (0.9848)
+- target similarity: high_air_drive, high_air_drive_air_minus_5, air (1)
+- target similarity: high_air_drive, high_air_drive_air_minus_5, impact (1)
+- target similarity: high_air_drive, high_air_drive_air_minus_5, speed (1)
+- target similarity: loose_pocket, loose_pocket_drag_later_20ms, air (1)
+- target similarity: loose_pocket, loose_pocket_drag_later_20ms, impact (1)
+- target similarity: loose_pocket, loose_pocket_drag_later_20ms, speed (1)
+- target similarity: loose_pocket, river_reentry, air (0.9569)
+- target similarity: loose_pocket, river_reentry_tempo_fast_5, air (0.957)
+- target similarity: loose_pocket, split_signal, speed (0.9597)
+- target similarity: loose_pocket, split_signal_impact_relief_12, speed (0.9597)
+- target similarity: loose_pocket_drag_later_20ms, river_reentry, air (0.9569)
+- target similarity: loose_pocket_drag_later_20ms, river_reentry_tempo_fast_5, air (0.957)
+- target similarity: loose_pocket_drag_later_20ms, split_signal, speed (0.9595)
+- target similarity: loose_pocket_drag_later_20ms, split_signal_impact_relief_12, speed (0.9595)
+- target similarity: meter_exchange, meter_exchange_speed_plus_4, air (1)
+- target similarity: meter_exchange, meter_exchange_speed_plus_4, impact (1)
+- target similarity: meter_exchange, meter_exchange_speed_plus_4, speed (1)
+- target similarity: offgrid_conversation, offgrid_conversation_answer_early_25ms, air (1)
+- target similarity: offgrid_conversation, offgrid_conversation_answer_early_25ms, impact (1)
+- target similarity: offgrid_conversation, offgrid_conversation_answer_early_25ms, speed (1)
+- target similarity: offgrid_conversation, pickup_lattice, speed (0.957)
+- target similarity: offgrid_conversation, pickup_lattice_speed_minus_4, speed (0.957)
+- target similarity: offgrid_conversation_answer_early_25ms, pickup_lattice, speed (0.9577)
+- target similarity: offgrid_conversation_answer_early_25ms, pickup_lattice_speed_minus_4, speed (0.9577)
+- target similarity: open_hook, open_hook_amplitude_plus_8, air (1)
+- target similarity: open_hook, open_hook_amplitude_plus_8, amplitude (1)
+- target similarity: open_hook, open_hook_amplitude_plus_8, impact (1)
+- target similarity: open_hook, open_hook_amplitude_plus_8, speed (1)
+- target similarity: pickup_lattice, pickup_lattice_speed_minus_4, air (1)
+- target similarity: pickup_lattice, pickup_lattice_speed_minus_4, impact (1)
+- target similarity: pickup_lattice, pickup_lattice_speed_minus_4, speed (1)
+- target similarity: regression_amplitude_mosaic, regression_amplitude_mosaic_contrast_10, air (1)
+- target similarity: regression_amplitude_mosaic, regression_amplitude_mosaic_contrast_10, amplitude (1)
+- target similarity: regression_amplitude_mosaic, regression_amplitude_mosaic_contrast_10, impact (1)
+- target similarity: regression_amplitude_mosaic, regression_amplitude_mosaic_contrast_10, speed (1)
+- target similarity: regression_transition_mosaic, regression_transition_mosaic_tempo_fast_5, air (1)
+- target similarity: regression_transition_mosaic, regression_transition_mosaic_tempo_fast_5, impact (1)
+- target similarity: regression_transition_mosaic, regression_transition_mosaic_tempo_fast_5, speed (1)
+- target similarity: rising_switch, rising_switch_tempo_fast_5, air (1)
+- target similarity: rising_switch, rising_switch_tempo_fast_5, impact (1)
+- target similarity: rising_switch, rising_switch_tempo_fast_5, speed (1)
+- target similarity: river_reentry, river_reentry_tempo_fast_5, air (1)
+- target similarity: river_reentry, river_reentry_tempo_fast_5, impact (1)
+- target similarity: river_reentry, river_reentry_tempo_fast_5, speed (1)
+- target similarity: sparse_lowline, sparse_lowline_air_minus_4, air (1)
+- target similarity: sparse_lowline, sparse_lowline_air_minus_4, impact (1)
+- target similarity: sparse_lowline, sparse_lowline_air_minus_4, speed (1)
+- target similarity: split_signal, split_signal_impact_relief_12, air (1)
+- target similarity: split_signal, split_signal_impact_relief_12, amplitude (1)
+- target similarity: split_signal, split_signal_impact_relief_12, impact (1)
+- target similarity: split_signal, split_signal_impact_relief_12, speed (1)
+- target similarity: wide_breaths, wide_breaths_air_plus_5, air (1)
+- target similarity: wide_breaths, wide_breaths_air_plus_5, amplitude (1)
+- target similarity: wide_breaths, wide_breaths_air_plus_5, impact (1)
+- target similarity: wide_breaths, wide_breaths_air_plus_5, speed (1)
+
+## Interpretation
+
+Warnings identify correlated evidence for source review; they are not automatic rejection. Generic musical pulse can be similar across independent scores, while direct nonuniform timing copies are hard failures.

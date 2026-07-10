@@ -1,0 +1,53 @@
+{
+  "schema": "line.benchmark-v2.qualification-registry.v2",
+  "status": "qualification-monitor",
+  "description": "Production references compiled only after a canonical development result is frozen. They are reported as a sidecar and never enter development decisions or the canonical headline.",
+  "references": [
+    {
+      "id": "amor_na_praia_46s",
+      "module": "productions/amor_na_praia_46s/spec.ts",
+      "source_files": ["productions/amor_na_praia_46s/spec.ts", "productions/amor_na_praia_46s/audio.json"],
+      "rhythm_source": "productions/amor_na_praia_46s/audio.json",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.55,
+      "eligible_components": ["sync", "survival", "air", "speed", "impact"]
+    },
+    {
+      "id": "luna_bala_44s",
+      "module": "productions/luna_bala_44s/spec.ts",
+      "source_files": ["productions/luna_bala_44s/spec.ts", "productions/luna_bala_44s/audio.json"],
+      "rhythm_source": "productions/luna_bala_44s/audio.json",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.55,
+      "eligible_components": ["sync", "survival", "air", "speed", "impact"]
+    },
+    {
+      "id": "tiki_tiki_48s",
+      "module": "productions/tiki_tiki_48s/spec.ts",
+      "source_files": ["productions/tiki_tiki_48s/spec.ts", "productions/tiki_tiki_48s/audio.json"],
+      "rhythm_source": "productions/tiki_tiki_48s/audio.json",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.87,
+      "eligible_components": ["sync", "survival", "air", "speed", "amplitude", "impact"]
+    },
+    {
+      "id": "shelter_impact_sync_81s",
+      "module": "scripts/v0/specs/shelter_impact_sync.ts",
+      "source_files": ["scripts/v0/specs/shelter_impact_sync.ts", "scripts/v0/specs/_music.ts"],
+      "music_backed": true,
+      "reference_pulse_seconds": 0.6,
+      "eligible_components": ["sync", "survival", "air", "speed", "amplitude", "impact"]
+    },
+    {
+      "id": "amour_de_ma_vie_short_44s",
+      "module": "scripts/v0/specs/amour_de_ma_vie_short.ts",
+      "source_files": ["scripts/v0/specs/amour_de_ma_vie_short.ts", "beats/amour_de_ma_vie_short.rhythm.json"],
+      "rhythm_source": "beats/amour_de_ma_vie_short.rhythm.json",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.67,
+      "eligible_components": ["sync", "survival", "impact"],
+      "diagnostic_components": ["air", "speed"],
+      "notes": "Air and speed remain diagnostic because the source labels them as placeholders."
+    }
+  ]
+}

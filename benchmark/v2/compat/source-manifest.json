@@ -1,0 +1,2972 @@
+{
+  "schema": "line.benchmark-v2.source-inventory.v4",
+  "status": "canonical-development-inventory",
+  "description": "Generated compatibility inventory. benchmark/v2/catalog.ts is the editable source of truth.",
+  "representative_candidates": [
+    {
+      "id": "river_reentry",
+      "module": "benchmark/v2/cases/normative/representative/river_reentry.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/river_reentry.ts"
+      ],
+      "origin_family": "regular_exceptions",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "River Reentry",
+        "diagnostic_tags": [
+          "reentry",
+          "bounded_fill",
+          "long_form"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "arrival",
+            "start": 0,
+            "end": 6,
+            "intent": "arrival"
+          },
+          {
+            "id": "first_current",
+            "start": 6,
+            "end": 24.24,
+            "intent": "first current"
+          },
+          {
+            "id": "displaced_fill",
+            "start": 24.24,
+            "end": 28.47,
+            "intent": "displaced fill"
+          },
+          {
+            "id": "second_current",
+            "start": 28.47,
+            "end": 46.71,
+            "intent": "second current"
+          },
+          {
+            "id": "release",
+            "start": 46.71,
+            "end": 58,
+            "intent": "release"
+          }
+        ],
+        "event_role_counts": {
+          "support": 39,
+          "primary": 24,
+          "accent": 12,
+          "reentry": 5,
+          "pickup": 1,
+          "fill": 1,
+          "breath_exit": 1,
+          "tail": 5
+        }
+      }
+    },
+    {
+      "id": "countercurrent",
+      "module": "benchmark/v2/cases/normative/representative/countercurrent.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/countercurrent.ts"
+      ],
+      "origin_family": "regular_exceptions",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Countercurrent",
+        "diagnostic_tags": [
+          "support_intro",
+          "omission",
+          "impact_phrasing"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "quiet_support",
+            "start": 0,
+            "end": 8.38,
+            "intent": "quiet support"
+          },
+          {
+            "id": "first_pulse_body",
+            "start": 8.38,
+            "end": 21.4,
+            "intent": "first pulse body"
+          },
+          {
+            "id": "open_turn",
+            "start": 21.4,
+            "end": 25.74,
+            "intent": "open turn"
+          },
+          {
+            "id": "second_pulse_body",
+            "start": 25.74,
+            "end": 47.44,
+            "intent": "second pulse body"
+          },
+          {
+            "id": "tail",
+            "start": 47.44,
+            "end": 55,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "support": 33,
+          "primary": 23,
+          "accent": 15,
+          "reentry": 2,
+          "breath_exit": 1,
+          "tail": 5
+        }
+      }
+    },
+    {
+      "id": "split_signal",
+      "module": "benchmark/v2/cases/normative/representative/split_signal.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/split_signal.ts"
+      ],
+      "origin_family": "subdivision_pickup",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Split Signal",
+        "diagnostic_tags": [
+          "half_pulse",
+          "density_change",
+          "amplitude"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "primary_open",
+            "start": 0,
+            "end": 10.66,
+            "intent": "primary open"
+          },
+          {
+            "id": "dense_answer_one",
+            "start": 10.66,
+            "end": 18.86,
+            "intent": "dense answer one"
+          },
+          {
+            "id": "primary_return",
+            "start": 18.86,
+            "end": 28.7,
+            "intent": "primary return"
+          },
+          {
+            "id": "dense_answer_two",
+            "start": 28.7,
+            "end": 36.9,
+            "intent": "dense answer two"
+          },
+          {
+            "id": "open_signal",
+            "start": 36.9,
+            "end": 46.74,
+            "intent": "open signal"
+          },
+          {
+            "id": "tail_answer",
+            "start": 46.74,
+            "end": 60,
+            "intent": "tail answer"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 23,
+          "support": 33,
+          "accent": 18,
+          "reentry": 9,
+          "breath_exit": 2,
+          "fill": 3,
+          "tail": 4
+        }
+      }
+    },
+    {
+      "id": "pickup_lattice",
+      "module": "benchmark/v2/cases/normative/representative/pickup_lattice.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/pickup_lattice.ts"
+      ],
+      "origin_family": "subdivision_pickup",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Pickup Lattice",
+        "diagnostic_tags": [
+          "pickup",
+          "resolution",
+          "high_speed"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "alternating_pickups",
+            "start": 0,
+            "end": 14.74,
+            "intent": "alternating pickups"
+          },
+          {
+            "id": "double_answers_one",
+            "start": 14.74,
+            "end": 28.81,
+            "intent": "double answers one"
+          },
+          {
+            "id": "double_answers_two",
+            "start": 28.81,
+            "end": 42.88,
+            "intent": "double answers two"
+          },
+          {
+            "id": "final_lattice",
+            "start": 42.88,
+            "end": 58,
+            "intent": "final lattice"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 29,
+          "support": 36,
+          "pickup": 15,
+          "accent": 12,
+          "reentry": 7
+        }
+      }
+    },
+    {
+      "id": "loose_pocket",
+      "module": "benchmark/v2/cases/normative/representative/loose_pocket.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/loose_pocket.ts"
+      ],
+      "origin_family": "irregular_microtimed",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Loose Pocket",
+        "diagnostic_tags": [
+          "microtiming",
+          "pocket",
+          "frame_quantization"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "push_drag_one",
+            "start": 0,
+            "end": 13.28,
+            "intent": "push drag one"
+          },
+          {
+            "id": "turn_one",
+            "start": 13.28,
+            "end": 26.03,
+            "intent": "turn one"
+          },
+          {
+            "id": "middle_pocket",
+            "start": 26.03,
+            "end": 38.78,
+            "intent": "middle pocket"
+          },
+          {
+            "id": "late_turn",
+            "start": 38.78,
+            "end": 51.53,
+            "intent": "late turn"
+          },
+          {
+            "id": "release",
+            "start": 51.53,
+            "end": 56,
+            "intent": "release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 27,
+          "support": 48,
+          "accent": 17,
+          "reentry": 4,
+          "fill": 4,
+          "breath_exit": 4
+        }
+      }
+    },
+    {
+      "id": "offgrid_conversation",
+      "module": "benchmark/v2/cases/normative/representative/offgrid_conversation.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/offgrid_conversation.ts"
+      ],
+      "origin_family": "irregular_microtimed",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Off-grid Conversation",
+        "diagnostic_tags": [
+          "asymmetric_phrase",
+          "offgrid",
+          "call_response"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "question_answer",
+            "start": 0,
+            "end": 13.66,
+            "intent": "question answer"
+          },
+          {
+            "id": "first_overlap",
+            "start": 13.66,
+            "end": 26.4,
+            "intent": "first overlap"
+          },
+          {
+            "id": "tightened_answer",
+            "start": 26.4,
+            "end": 40.06,
+            "intent": "tightened answer"
+          },
+          {
+            "id": "late_overlap",
+            "start": 40.06,
+            "end": 56,
+            "intent": "late overlap"
+          }
+        ],
+        "event_role_counts": {
+          "support": 33,
+          "primary": 17,
+          "accent": 12,
+          "pickup": 8,
+          "reentry": 7,
+          "fill": 4,
+          "breath_exit": 3,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "rising_switch",
+      "module": "benchmark/v2/cases/normative/representative/rising_switch.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/rising_switch.ts"
+      ],
+      "origin_family": "cadence_transition",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Rising Switch",
+        "diagnostic_tags": [
+          "tempo_change",
+          "speed_density",
+          "release"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "wide_open",
+            "start": 0,
+            "end": 12.58,
+            "intent": "wide open"
+          },
+          {
+            "id": "middle_switch",
+            "start": 12.58,
+            "end": 22.66,
+            "intent": "middle switch"
+          },
+          {
+            "id": "driving_crest",
+            "start": 22.66,
+            "end": 39.3,
+            "intent": "driving crest"
+          },
+          {
+            "id": "measured_release",
+            "start": 39.3,
+            "end": 58,
+            "intent": "measured release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 22,
+          "support": 28,
+          "accent": 19,
+          "reentry": 8,
+          "fill": 2,
+          "tail": 9
+        }
+      }
+    },
+    {
+      "id": "meter_exchange",
+      "module": "benchmark/v2/cases/normative/representative/meter_exchange.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/meter_exchange.ts"
+      ],
+      "origin_family": "cadence_transition",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Meter Exchange",
+        "diagnostic_tags": [
+          "meter_exchange",
+          "nonmonotonic_tempo",
+          "target_continuity"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "compact_spacious_one",
+            "start": 0,
+            "end": 15.67,
+            "intent": "compact spacious one"
+          },
+          {
+            "id": "compact_spacious_two",
+            "start": 15.67,
+            "end": 31.54,
+            "intent": "compact spacious two"
+          },
+          {
+            "id": "compact_drive",
+            "start": 31.54,
+            "end": 43.54,
+            "intent": "compact drive"
+          },
+          {
+            "id": "broad_release",
+            "start": 43.54,
+            "end": 60,
+            "intent": "broad release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 24,
+          "support": 30,
+          "accent": 21,
+          "fill": 3,
+          "reentry": 6,
+          "breath_exit": 3,
+          "tail": 9
+        }
+      }
+    },
+    {
+      "id": "wide_breaths",
+      "module": "benchmark/v2/cases/normative/representative/wide_breaths.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/wide_breaths.ts"
+      ],
+      "origin_family": "spacious_amplitude",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Wide Breaths",
+        "diagnostic_tags": [
+          "spacious",
+          "amplitude",
+          "ordinary_arc"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "opening_groove",
+            "start": 0,
+            "end": 17.25,
+            "intent": "opening groove"
+          },
+          {
+            "id": "single_breath",
+            "start": 17.25,
+            "end": 22.08,
+            "intent": "single breath"
+          },
+          {
+            "id": "middle_groove",
+            "start": 22.08,
+            "end": 38.64,
+            "intent": "middle groove"
+          },
+          {
+            "id": "double_breath",
+            "start": 38.64,
+            "end": 44.16,
+            "intent": "double breath"
+          },
+          {
+            "id": "late_groove",
+            "start": 44.16,
+            "end": 62,
+            "intent": "late groove"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 19,
+          "support": 37,
+          "accent": 18,
+          "breath_exit": 2,
+          "reentry": 2,
+          "tail": 4
+        }
+      }
+    },
+    {
+      "id": "open_hook",
+      "module": "benchmark/v2/cases/normative/representative/open_hook.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/open_hook.ts"
+      ],
+      "origin_family": "spacious_amplitude",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Open Hook",
+        "diagnostic_tags": [
+          "dense_sparse",
+          "amplitude",
+          "hook_response"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "compact_hooks",
+            "start": 0,
+            "end": 10.29,
+            "intent": "compact hooks"
+          },
+          {
+            "id": "open_response_one",
+            "start": 10.29,
+            "end": 15.68,
+            "intent": "open response one"
+          },
+          {
+            "id": "hook_body",
+            "start": 15.68,
+            "end": 28.42,
+            "intent": "hook body"
+          },
+          {
+            "id": "open_response_two",
+            "start": 28.42,
+            "end": 34.79,
+            "intent": "open response two"
+          },
+          {
+            "id": "final_hook",
+            "start": 34.79,
+            "end": 43.61,
+            "intent": "final hook"
+          },
+          {
+            "id": "tail",
+            "start": 43.61,
+            "end": 58,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 17,
+          "support": 26,
+          "accent": 16,
+          "fill": 7,
+          "reentry": 9,
+          "breath_exit": 2,
+          "tail": 5
+        }
+      }
+    },
+    {
+      "id": "amplitude_tides",
+      "module": "benchmark/v2/cases/normative/representative/amplitude_tides.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/amplitude_tides.ts"
+      ],
+      "origin_family": "spacious_amplitude",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Amplitude Tides",
+        "diagnostic_tags": [
+          "high_amplitude",
+          "compact_to_spacious",
+          "settle"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "compact_opening",
+            "start": 0,
+            "end": 8.84,
+            "intent": "compact opening"
+          },
+          {
+            "id": "first_tide",
+            "start": 8.84,
+            "end": 21.32,
+            "intent": "first tide"
+          },
+          {
+            "id": "middle_compact",
+            "start": 21.32,
+            "end": 33.8,
+            "intent": "middle compact"
+          },
+          {
+            "id": "second_tide",
+            "start": 33.8,
+            "end": 46.28,
+            "intent": "second tide"
+          },
+          {
+            "id": "final_tide",
+            "start": 46.28,
+            "end": 62,
+            "intent": "final tide"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 18,
+          "support": 44,
+          "accent": 20,
+          "breath_exit": 6,
+          "reentry": 6,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "dense_dialogue",
+      "module": "benchmark/v2/cases/normative/representative/dense_dialogue.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/dense_dialogue.ts"
+      ],
+      "origin_family": "dense_musical",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Dense Dialogue",
+        "diagnostic_tags": [
+          "sustained_density",
+          "played_microtiming",
+          "release"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "compact_exchange_one",
+            "start": 0,
+            "end": 12.16,
+            "intent": "compact exchange one"
+          },
+          {
+            "id": "compact_exchange_two",
+            "start": 12.16,
+            "end": 22.4,
+            "intent": "compact exchange two"
+          },
+          {
+            "id": "breathing_release",
+            "start": 22.4,
+            "end": 29.2,
+            "intent": "breathing release"
+          },
+          {
+            "id": "dense_return_one",
+            "start": 29.2,
+            "end": 41.68,
+            "intent": "dense return one"
+          },
+          {
+            "id": "dense_return_two",
+            "start": 41.68,
+            "end": 51.6,
+            "intent": "dense return two"
+          },
+          {
+            "id": "tail",
+            "start": 51.6,
+            "end": 58,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 31,
+          "support": 40,
+          "accent": 24,
+          "pickup": 14,
+          "reentry": 9,
+          "breath_exit": 9,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "high_air_drive",
+      "module": "benchmark/v2/cases/normative/representative/high_air_drive.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/high_air_drive.ts"
+      ],
+      "origin_family": "high_air_energy",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "High Air Drive",
+        "diagnostic_tags": [
+          "high_air",
+          "energy_crest",
+          "impact_contrast"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "lift_opening",
+            "start": 0,
+            "end": 9.86,
+            "intent": "lift opening"
+          },
+          {
+            "id": "first_crest",
+            "start": 9.86,
+            "end": 23.78,
+            "intent": "first crest"
+          },
+          {
+            "id": "middle_breath",
+            "start": 23.78,
+            "end": 33.06,
+            "intent": "middle breath"
+          },
+          {
+            "id": "late_crest",
+            "start": 33.06,
+            "end": 46.98,
+            "intent": "late crest"
+          },
+          {
+            "id": "floating_release",
+            "start": 46.98,
+            "end": 60,
+            "intent": "floating release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 23,
+          "support": 41,
+          "accent": 19,
+          "reentry": 4,
+          "breath_exit": 4,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "sparse_lowline",
+      "module": "benchmark/v2/cases/normative/representative/sparse_lowline.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/representative/sparse_lowline.ts"
+      ],
+      "origin_family": "sparse_transition",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Sparse Lowline",
+        "diagnostic_tags": [
+          "sparse",
+          "low_air",
+          "reentry"
+        ],
+        "provenance_kind": "reference_informed_manual",
+        "phases": [
+          {
+            "id": "supported_opening",
+            "start": 0,
+            "end": 9.3,
+            "intent": "supported opening"
+          },
+          {
+            "id": "first_omissions",
+            "start": 9.3,
+            "end": 22.32,
+            "intent": "first omissions"
+          },
+          {
+            "id": "middle_support",
+            "start": 22.32,
+            "end": 35.34,
+            "intent": "middle support"
+          },
+          {
+            "id": "second_omissions",
+            "start": 35.34,
+            "end": 48.36,
+            "intent": "second omissions"
+          },
+          {
+            "id": "tail",
+            "start": 48.36,
+            "end": 60,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 18,
+          "support": 35,
+          "accent": 16,
+          "breath_exit": 5,
+          "reentry": 5,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "river_reentry_tempo_fast_5",
+      "module": "benchmark/v2/cases/variants/representative/river_reentry_tempo_fast_5.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/river_reentry_tempo_fast_5.ts"
+      ],
+      "origin_family": "regular_exceptions",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "River Reentry, 5% Faster",
+        "parent_id": "river_reentry",
+        "variant": {
+          "kind": "global_tempo",
+          "rationale": "The complete authored program is time-scaled by 0.95 while preserving phrase structure and axis intent.",
+          "parameters": {
+            "time_scale": 0.95
+          }
+        },
+        "diagnostic_tags": [
+          "reentry",
+          "bounded_fill",
+          "long_form"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "arrival",
+            "start": 0,
+            "end": 5.7,
+            "intent": "arrival"
+          },
+          {
+            "id": "first_current",
+            "start": 5.7,
+            "end": 23.028,
+            "intent": "first current"
+          },
+          {
+            "id": "displaced_fill",
+            "start": 23.028,
+            "end": 27.046,
+            "intent": "displaced fill"
+          },
+          {
+            "id": "second_current",
+            "start": 27.046,
+            "end": 44.374,
+            "intent": "second current"
+          },
+          {
+            "id": "release",
+            "start": 44.374,
+            "end": 55.1,
+            "intent": "release"
+          }
+        ],
+        "event_role_counts": {
+          "support": 39,
+          "primary": 24,
+          "accent": 12,
+          "reentry": 5,
+          "pickup": 1,
+          "fill": 1,
+          "breath_exit": 1,
+          "tail": 5
+        }
+      }
+    },
+    {
+      "id": "countercurrent_impact_contrast_12",
+      "module": "benchmark/v2/cases/variants/representative/countercurrent_impact_contrast_12.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/countercurrent_impact_contrast_12.ts"
+      ],
+      "origin_family": "regular_exceptions",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Countercurrent, Stronger Impact Contrast",
+        "parent_id": "countercurrent",
+        "variant": {
+          "kind": "impact_contrast",
+          "rationale": "Impact contrast is scaled by 1.12 around the neutral midpoint without changing rhythm.",
+          "parameters": {
+            "contrast": 1.12
+          }
+        },
+        "diagnostic_tags": [
+          "support_intro",
+          "omission",
+          "impact_phrasing"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "quiet_support",
+            "start": 0,
+            "end": 8.38,
+            "intent": "quiet support"
+          },
+          {
+            "id": "first_pulse_body",
+            "start": 8.38,
+            "end": 21.4,
+            "intent": "first pulse body"
+          },
+          {
+            "id": "open_turn",
+            "start": 21.4,
+            "end": 25.74,
+            "intent": "open turn"
+          },
+          {
+            "id": "second_pulse_body",
+            "start": 25.74,
+            "end": 47.44,
+            "intent": "second pulse body"
+          },
+          {
+            "id": "tail",
+            "start": 47.44,
+            "end": 55,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "support": 33,
+          "primary": 23,
+          "accent": 15,
+          "reentry": 2,
+          "breath_exit": 1,
+          "tail": 5
+        }
+      }
+    },
+    {
+      "id": "split_signal_impact_relief_12",
+      "module": "benchmark/v2/cases/variants/representative/split_signal_impact_relief_12.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/split_signal_impact_relief_12.ts"
+      ],
+      "origin_family": "subdivision_pickup",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Split Signal, Softer Impact Contrast",
+        "parent_id": "split_signal",
+        "variant": {
+          "kind": "impact_contrast",
+          "rationale": "Impact contrast is scaled by 0.88 around the neutral midpoint without changing rhythm.",
+          "parameters": {
+            "contrast": 0.88
+          }
+        },
+        "diagnostic_tags": [
+          "half_pulse",
+          "density_change",
+          "amplitude"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "primary_open",
+            "start": 0,
+            "end": 10.66,
+            "intent": "primary open"
+          },
+          {
+            "id": "dense_answer_one",
+            "start": 10.66,
+            "end": 18.86,
+            "intent": "dense answer one"
+          },
+          {
+            "id": "primary_return",
+            "start": 18.86,
+            "end": 28.7,
+            "intent": "primary return"
+          },
+          {
+            "id": "dense_answer_two",
+            "start": 28.7,
+            "end": 36.9,
+            "intent": "dense answer two"
+          },
+          {
+            "id": "open_signal",
+            "start": 36.9,
+            "end": 46.74,
+            "intent": "open signal"
+          },
+          {
+            "id": "tail_answer",
+            "start": 46.74,
+            "end": 60,
+            "intent": "tail answer"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 23,
+          "support": 33,
+          "accent": 18,
+          "reentry": 9,
+          "breath_exit": 2,
+          "fill": 3,
+          "tail": 4
+        }
+      }
+    },
+    {
+      "id": "pickup_lattice_speed_minus_4",
+      "module": "benchmark/v2/cases/variants/representative/pickup_lattice_speed_minus_4.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/pickup_lattice_speed_minus_4.ts"
+      ],
+      "origin_family": "subdivision_pickup",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Pickup Lattice, Slower Surface",
+        "parent_id": "pickup_lattice",
+        "variant": {
+          "kind": "axis_offset",
+          "rationale": "speed is shifted by -0.04 with clamping; rhythm and other authored axes remain fixed.",
+          "parameters": {
+            "axis": "speed",
+            "offset": -0.04
+          }
+        },
+        "diagnostic_tags": [
+          "pickup",
+          "resolution",
+          "high_speed"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "alternating_pickups",
+            "start": 0,
+            "end": 14.74,
+            "intent": "alternating pickups"
+          },
+          {
+            "id": "double_answers_one",
+            "start": 14.74,
+            "end": 28.81,
+            "intent": "double answers one"
+          },
+          {
+            "id": "double_answers_two",
+            "start": 28.81,
+            "end": 42.88,
+            "intent": "double answers two"
+          },
+          {
+            "id": "final_lattice",
+            "start": 42.88,
+            "end": 58,
+            "intent": "final lattice"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 29,
+          "support": 36,
+          "pickup": 15,
+          "accent": 12,
+          "reentry": 7
+        }
+      }
+    },
+    {
+      "id": "loose_pocket_drag_later_20ms",
+      "module": "benchmark/v2/cases/variants/representative/loose_pocket_drag_later_20ms.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/loose_pocket_drag_later_20ms.ts"
+      ],
+      "origin_family": "irregular_microtimed",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Loose Pocket, Later Drag",
+        "parent_id": "loose_pocket",
+        "variant": {
+          "kind": "phrase_microtiming",
+          "rationale": "Only drag phrase placements move by 0.02s; the rest of the musical grid is unchanged.",
+          "parameters": {
+            "phrase": "drag",
+            "seconds": 0.02
+          }
+        },
+        "diagnostic_tags": [
+          "microtiming",
+          "pocket",
+          "frame_quantization"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "push_drag_one",
+            "start": 0,
+            "end": 13.28,
+            "intent": "push drag one"
+          },
+          {
+            "id": "turn_one",
+            "start": 13.28,
+            "end": 26.03,
+            "intent": "turn one"
+          },
+          {
+            "id": "middle_pocket",
+            "start": 26.03,
+            "end": 38.78,
+            "intent": "middle pocket"
+          },
+          {
+            "id": "late_turn",
+            "start": 38.78,
+            "end": 51.53,
+            "intent": "late turn"
+          },
+          {
+            "id": "release",
+            "start": 51.53,
+            "end": 56,
+            "intent": "release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 27,
+          "support": 48,
+          "accent": 17,
+          "reentry": 4,
+          "fill": 4,
+          "breath_exit": 4
+        }
+      }
+    },
+    {
+      "id": "offgrid_conversation_answer_early_25ms",
+      "module": "benchmark/v2/cases/variants/representative/offgrid_conversation_answer_early_25ms.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/offgrid_conversation_answer_early_25ms.ts"
+      ],
+      "origin_family": "irregular_microtimed",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Off-grid Conversation, Earlier Answer",
+        "parent_id": "offgrid_conversation",
+        "variant": {
+          "kind": "phrase_microtiming",
+          "rationale": "Only answer phrase placements move by -0.025s; the rest of the musical grid is unchanged.",
+          "parameters": {
+            "phrase": "answer",
+            "seconds": -0.025
+          }
+        },
+        "diagnostic_tags": [
+          "asymmetric_phrase",
+          "offgrid",
+          "call_response"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "question_answer",
+            "start": 0,
+            "end": 13.66,
+            "intent": "question answer"
+          },
+          {
+            "id": "first_overlap",
+            "start": 13.66,
+            "end": 26.4,
+            "intent": "first overlap"
+          },
+          {
+            "id": "tightened_answer",
+            "start": 26.4,
+            "end": 40.06,
+            "intent": "tightened answer"
+          },
+          {
+            "id": "late_overlap",
+            "start": 40.06,
+            "end": 56,
+            "intent": "late overlap"
+          }
+        ],
+        "event_role_counts": {
+          "support": 33,
+          "primary": 17,
+          "accent": 12,
+          "pickup": 8,
+          "reentry": 7,
+          "fill": 4,
+          "breath_exit": 3,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "rising_switch_tempo_fast_5",
+      "module": "benchmark/v2/cases/variants/representative/rising_switch_tempo_fast_5.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/rising_switch_tempo_fast_5.ts"
+      ],
+      "origin_family": "cadence_transition",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Rising Switch, 5% Faster",
+        "parent_id": "rising_switch",
+        "variant": {
+          "kind": "global_tempo",
+          "rationale": "The complete authored program is time-scaled by 0.95 while preserving phrase structure and axis intent.",
+          "parameters": {
+            "time_scale": 0.95
+          }
+        },
+        "diagnostic_tags": [
+          "tempo_change",
+          "speed_density",
+          "release"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "wide_open",
+            "start": 0,
+            "end": 11.951,
+            "intent": "wide open"
+          },
+          {
+            "id": "middle_switch",
+            "start": 11.951,
+            "end": 21.527,
+            "intent": "middle switch"
+          },
+          {
+            "id": "driving_crest",
+            "start": 21.527,
+            "end": 37.335,
+            "intent": "driving crest"
+          },
+          {
+            "id": "measured_release",
+            "start": 37.335,
+            "end": 55.1,
+            "intent": "measured release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 22,
+          "support": 28,
+          "accent": 19,
+          "reentry": 8,
+          "fill": 2,
+          "tail": 9
+        }
+      }
+    },
+    {
+      "id": "meter_exchange_speed_plus_4",
+      "module": "benchmark/v2/cases/variants/representative/meter_exchange_speed_plus_4.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/meter_exchange_speed_plus_4.ts"
+      ],
+      "origin_family": "cadence_transition",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Meter Exchange, Faster Drive",
+        "parent_id": "meter_exchange",
+        "variant": {
+          "kind": "axis_offset",
+          "rationale": "speed is shifted by 0.04 with clamping; rhythm and other authored axes remain fixed.",
+          "parameters": {
+            "axis": "speed",
+            "offset": 0.04
+          }
+        },
+        "diagnostic_tags": [
+          "meter_exchange",
+          "nonmonotonic_tempo",
+          "target_continuity"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "compact_spacious_one",
+            "start": 0,
+            "end": 15.67,
+            "intent": "compact spacious one"
+          },
+          {
+            "id": "compact_spacious_two",
+            "start": 15.67,
+            "end": 31.54,
+            "intent": "compact spacious two"
+          },
+          {
+            "id": "compact_drive",
+            "start": 31.54,
+            "end": 43.54,
+            "intent": "compact drive"
+          },
+          {
+            "id": "broad_release",
+            "start": 43.54,
+            "end": 60,
+            "intent": "broad release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 24,
+          "support": 30,
+          "accent": 21,
+          "fill": 3,
+          "reentry": 6,
+          "breath_exit": 3,
+          "tail": 9
+        }
+      }
+    },
+    {
+      "id": "wide_breaths_air_plus_5",
+      "module": "benchmark/v2/cases/variants/representative/wide_breaths_air_plus_5.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/wide_breaths_air_plus_5.ts"
+      ],
+      "origin_family": "spacious_amplitude",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Wide Breaths, Higher Air",
+        "parent_id": "wide_breaths",
+        "variant": {
+          "kind": "axis_offset",
+          "rationale": "air is shifted by 0.05 with clamping; rhythm and other authored axes remain fixed.",
+          "parameters": {
+            "axis": "air",
+            "offset": 0.05
+          }
+        },
+        "diagnostic_tags": [
+          "spacious",
+          "amplitude",
+          "ordinary_arc"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "opening_groove",
+            "start": 0,
+            "end": 17.25,
+            "intent": "opening groove"
+          },
+          {
+            "id": "single_breath",
+            "start": 17.25,
+            "end": 22.08,
+            "intent": "single breath"
+          },
+          {
+            "id": "middle_groove",
+            "start": 22.08,
+            "end": 38.64,
+            "intent": "middle groove"
+          },
+          {
+            "id": "double_breath",
+            "start": 38.64,
+            "end": 44.16,
+            "intent": "double breath"
+          },
+          {
+            "id": "late_groove",
+            "start": 44.16,
+            "end": 62,
+            "intent": "late groove"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 19,
+          "support": 37,
+          "accent": 18,
+          "breath_exit": 2,
+          "reentry": 2,
+          "tail": 4
+        }
+      }
+    },
+    {
+      "id": "open_hook_amplitude_plus_8",
+      "module": "benchmark/v2/cases/variants/representative/open_hook_amplitude_plus_8.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/open_hook_amplitude_plus_8.ts"
+      ],
+      "origin_family": "spacious_amplitude",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Open Hook, Wider Responses",
+        "parent_id": "open_hook",
+        "variant": {
+          "kind": "axis_offset",
+          "rationale": "amplitude is shifted by 0.08 with clamping; rhythm and other authored axes remain fixed.",
+          "parameters": {
+            "axis": "amplitude",
+            "offset": 0.08
+          }
+        },
+        "diagnostic_tags": [
+          "dense_sparse",
+          "amplitude",
+          "hook_response"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "compact_hooks",
+            "start": 0,
+            "end": 10.29,
+            "intent": "compact hooks"
+          },
+          {
+            "id": "open_response_one",
+            "start": 10.29,
+            "end": 15.68,
+            "intent": "open response one"
+          },
+          {
+            "id": "hook_body",
+            "start": 15.68,
+            "end": 28.42,
+            "intent": "hook body"
+          },
+          {
+            "id": "open_response_two",
+            "start": 28.42,
+            "end": 34.79,
+            "intent": "open response two"
+          },
+          {
+            "id": "final_hook",
+            "start": 34.79,
+            "end": 43.61,
+            "intent": "final hook"
+          },
+          {
+            "id": "tail",
+            "start": 43.61,
+            "end": 58,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 17,
+          "support": 26,
+          "accent": 16,
+          "fill": 7,
+          "reentry": 9,
+          "breath_exit": 2,
+          "tail": 5
+        }
+      }
+    },
+    {
+      "id": "amplitude_tides_restrained_10",
+      "module": "benchmark/v2/cases/variants/representative/amplitude_tides_restrained_10.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/amplitude_tides_restrained_10.ts"
+      ],
+      "origin_family": "spacious_amplitude",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Amplitude Tides, Restrained Contrast",
+        "parent_id": "amplitude_tides",
+        "variant": {
+          "kind": "axis_contrast",
+          "rationale": "amplitude contrast is scaled by 0.9 around the midpoint; timing remains fixed.",
+          "parameters": {
+            "axis": "amplitude",
+            "contrast": 0.9
+          }
+        },
+        "diagnostic_tags": [
+          "high_amplitude",
+          "compact_to_spacious",
+          "settle"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "compact_opening",
+            "start": 0,
+            "end": 8.84,
+            "intent": "compact opening"
+          },
+          {
+            "id": "first_tide",
+            "start": 8.84,
+            "end": 21.32,
+            "intent": "first tide"
+          },
+          {
+            "id": "middle_compact",
+            "start": 21.32,
+            "end": 33.8,
+            "intent": "middle compact"
+          },
+          {
+            "id": "second_tide",
+            "start": 33.8,
+            "end": 46.28,
+            "intent": "second tide"
+          },
+          {
+            "id": "final_tide",
+            "start": 46.28,
+            "end": 62,
+            "intent": "final tide"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 18,
+          "support": 44,
+          "accent": 20,
+          "breath_exit": 6,
+          "reentry": 6,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "dense_dialogue_impact_contrast_10",
+      "module": "benchmark/v2/cases/variants/representative/dense_dialogue_impact_contrast_10.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/dense_dialogue_impact_contrast_10.ts"
+      ],
+      "origin_family": "dense_musical",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Dense Dialogue, Stronger Impact Contrast",
+        "parent_id": "dense_dialogue",
+        "variant": {
+          "kind": "impact_contrast",
+          "rationale": "Impact contrast is scaled by 1.1 around the neutral midpoint without changing rhythm.",
+          "parameters": {
+            "contrast": 1.1
+          }
+        },
+        "diagnostic_tags": [
+          "sustained_density",
+          "played_microtiming",
+          "release"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "compact_exchange_one",
+            "start": 0,
+            "end": 12.16,
+            "intent": "compact exchange one"
+          },
+          {
+            "id": "compact_exchange_two",
+            "start": 12.16,
+            "end": 22.4,
+            "intent": "compact exchange two"
+          },
+          {
+            "id": "breathing_release",
+            "start": 22.4,
+            "end": 29.2,
+            "intent": "breathing release"
+          },
+          {
+            "id": "dense_return_one",
+            "start": 29.2,
+            "end": 41.68,
+            "intent": "dense return one"
+          },
+          {
+            "id": "dense_return_two",
+            "start": 41.68,
+            "end": 51.6,
+            "intent": "dense return two"
+          },
+          {
+            "id": "tail",
+            "start": 51.6,
+            "end": 58,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 31,
+          "support": 40,
+          "accent": 24,
+          "pickup": 14,
+          "reentry": 9,
+          "breath_exit": 9,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "high_air_drive_air_minus_5",
+      "module": "benchmark/v2/cases/variants/representative/high_air_drive_air_minus_5.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/high_air_drive_air_minus_5.ts"
+      ],
+      "origin_family": "high_air_energy",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "High Air Drive, Lower Flight",
+        "parent_id": "high_air_drive",
+        "variant": {
+          "kind": "axis_offset",
+          "rationale": "air is shifted by -0.05 with clamping; rhythm and other authored axes remain fixed.",
+          "parameters": {
+            "axis": "air",
+            "offset": -0.05
+          }
+        },
+        "diagnostic_tags": [
+          "high_air",
+          "energy_crest",
+          "impact_contrast"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "lift_opening",
+            "start": 0,
+            "end": 9.86,
+            "intent": "lift opening"
+          },
+          {
+            "id": "first_crest",
+            "start": 9.86,
+            "end": 23.78,
+            "intent": "first crest"
+          },
+          {
+            "id": "middle_breath",
+            "start": 23.78,
+            "end": 33.06,
+            "intent": "middle breath"
+          },
+          {
+            "id": "late_crest",
+            "start": 33.06,
+            "end": 46.98,
+            "intent": "late crest"
+          },
+          {
+            "id": "floating_release",
+            "start": 46.98,
+            "end": 60,
+            "intent": "floating release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 23,
+          "support": 41,
+          "accent": 19,
+          "reentry": 4,
+          "breath_exit": 4,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "sparse_lowline_air_minus_4",
+      "module": "benchmark/v2/cases/variants/representative/sparse_lowline_air_minus_4.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/representative/sparse_lowline_air_minus_4.ts"
+      ],
+      "origin_family": "sparse_transition",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Sparse Lowline, Lower Omissions",
+        "parent_id": "sparse_lowline",
+        "variant": {
+          "kind": "axis_offset",
+          "rationale": "air is shifted by -0.04 with clamping; rhythm and other authored axes remain fixed.",
+          "parameters": {
+            "axis": "air",
+            "offset": -0.04
+          }
+        },
+        "diagnostic_tags": [
+          "sparse",
+          "low_air",
+          "reentry"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "supported_opening",
+            "start": 0,
+            "end": 9.3,
+            "intent": "supported opening"
+          },
+          {
+            "id": "first_omissions",
+            "start": 9.3,
+            "end": 22.32,
+            "intent": "first omissions"
+          },
+          {
+            "id": "middle_support",
+            "start": 22.32,
+            "end": 35.34,
+            "intent": "middle support"
+          },
+          {
+            "id": "second_omissions",
+            "start": 35.34,
+            "end": 48.36,
+            "intent": "second omissions"
+          },
+          {
+            "id": "tail",
+            "start": 48.36,
+            "end": 60,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 18,
+          "support": 35,
+          "accent": 16,
+          "breath_exit": 5,
+          "reentry": 5,
+          "tail": 3
+        }
+      }
+    }
+  ],
+  "capability_candidates": [
+    {
+      "id": "frontier_pickup_progression",
+      "module": "benchmark/v2/cases/normative/capability/frontier_pickup_progression.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/capability/frontier_pickup_progression.ts"
+      ],
+      "origin_family": "rapid_pickup_frontier",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Frontier Pickup Progression",
+        "diagnostic_tags": [
+          "capability",
+          "pickup_threshold",
+          "progressive"
+        ],
+        "provenance_kind": "capability_manual",
+        "phases": [
+          {
+            "id": "control",
+            "start": 0,
+            "end": 8.4,
+            "intent": "ordinary pulse establishes the control"
+          },
+          {
+            "id": "pickup_300ms",
+            "start": 8.4,
+            "end": 21,
+            "intent": "isolated 300ms anticipations"
+          },
+          {
+            "id": "pickup_250ms",
+            "start": 21,
+            "end": 33.6,
+            "intent": "bounded 250ms anticipations"
+          },
+          {
+            "id": "pickup_200ms",
+            "start": 33.6,
+            "end": 46.2,
+            "intent": "bounded 200ms anticipations"
+          },
+          {
+            "id": "pickup_180ms",
+            "start": 46.2,
+            "end": 60,
+            "intent": "ambitious 180ms boundary and release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 40,
+          "support": 30,
+          "accent": 16,
+          "pickup": 12,
+          "reentry": 12
+        }
+      }
+    },
+    {
+      "id": "frontier_dense_recovery",
+      "module": "benchmark/v2/cases/normative/capability/frontier_dense_recovery.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/capability/frontier_dense_recovery.ts"
+      ],
+      "origin_family": "dense_recovery_frontier",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Frontier Dense Recovery",
+        "diagnostic_tags": [
+          "capability",
+          "dense_run",
+          "recovery"
+        ],
+        "provenance_kind": "capability_manual",
+        "phases": [
+          {
+            "id": "control",
+            "start": 0,
+            "end": 10,
+            "intent": "ordinary cadence control"
+          },
+          {
+            "id": "two_contact_figures",
+            "start": 10,
+            "end": 24,
+            "intent": "two-contact figures and clean recovery"
+          },
+          {
+            "id": "three_contact_figures",
+            "start": 24,
+            "end": 39,
+            "intent": "three-contact figures and clean recovery"
+          },
+          {
+            "id": "dense_stream",
+            "start": 39,
+            "end": 50,
+            "intent": "short sustained dense stream"
+          },
+          {
+            "id": "final_recovery",
+            "start": 50,
+            "end": 58,
+            "intent": "return to ordinary pulse"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 28,
+          "support": 55,
+          "accent": 24,
+          "pickup": 4,
+          "reentry": 7,
+          "fill": 2,
+          "breath_exit": 3
+        }
+      }
+    },
+    {
+      "id": "frontier_low_air_endurance",
+      "module": "benchmark/v2/cases/normative/capability/frontier_low_air_endurance.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/capability/frontier_low_air_endurance.ts"
+      ],
+      "origin_family": "low_air_frontier",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Frontier Low-Air Endurance",
+        "diagnostic_tags": [
+          "capability",
+          "low_air",
+          "rideout"
+        ],
+        "provenance_kind": "capability_manual",
+        "phases": [
+          {
+            "id": "control",
+            "start": 0,
+            "end": 9,
+            "intent": "supported ordinary cadence"
+          },
+          {
+            "id": "rideout_2s",
+            "start": 9,
+            "end": 20,
+            "intent": "2s low-air rideout and recovery"
+          },
+          {
+            "id": "rideout_3s",
+            "start": 20,
+            "end": 34,
+            "intent": "3s low-air rideout and recovery"
+          },
+          {
+            "id": "rideout_5s",
+            "start": 34,
+            "end": 49,
+            "intent": "5s low-air rideout and recovery"
+          },
+          {
+            "id": "final_control",
+            "start": 49,
+            "end": 62,
+            "intent": "ordinary cadence after the frontier"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 21,
+          "support": 42,
+          "accent": 21,
+          "breath_exit": 3,
+          "reentry": 3
+        }
+      }
+    },
+    {
+      "id": "frontier_pickup_progression_shifted",
+      "module": "benchmark/v2/cases/variants/capability/frontier_pickup_progression_shifted.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/capability/frontier_pickup_progression_shifted.ts"
+      ],
+      "origin_family": "rapid_pickup_frontier",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Frontier Pickup Progression, Shifted Thresholds",
+        "parent_id": "frontier_pickup_progression",
+        "variant": {
+          "kind": "pickup_thresholds",
+          "rationale": "Nearby but nonuniform 320/270/220/160ms pickup-to-accent boundaries test threshold generalization.",
+          "parameters": {
+            "p300_ms": 320,
+            "p250_ms": 270,
+            "p200_ms": 220,
+            "p180_ms": 160
+          }
+        },
+        "diagnostic_tags": [
+          "capability",
+          "pickup_threshold",
+          "progressive"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "control",
+            "start": 0,
+            "end": 8.4,
+            "intent": "ordinary pulse establishes the control"
+          },
+          {
+            "id": "pickup_300ms",
+            "start": 8.4,
+            "end": 21,
+            "intent": "isolated 300ms anticipations"
+          },
+          {
+            "id": "pickup_250ms",
+            "start": 21,
+            "end": 33.6,
+            "intent": "bounded 250ms anticipations"
+          },
+          {
+            "id": "pickup_200ms",
+            "start": 33.6,
+            "end": 46.2,
+            "intent": "bounded 200ms anticipations"
+          },
+          {
+            "id": "pickup_180ms",
+            "start": 46.2,
+            "end": 60,
+            "intent": "ambitious 180ms boundary and release"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 40,
+          "support": 30,
+          "accent": 16,
+          "pickup": 12,
+          "reentry": 12
+        }
+      }
+    },
+    {
+      "id": "frontier_dense_recovery_240ms_figures",
+      "module": "benchmark/v2/cases/variants/capability/frontier_dense_recovery_240ms_figures.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/capability/frontier_dense_recovery_240ms_figures.ts"
+      ],
+      "origin_family": "dense_recovery_frontier",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Frontier Dense Recovery, 240ms Figures",
+        "parent_id": "frontier_dense_recovery",
+        "variant": {
+          "kind": "dense_figure_spacing",
+          "rationale": "A nearby 240ms pickup/fill cluster checks whether recovery behavior generalizes around the 220ms base boundary.",
+          "parameters": {
+            "cluster_gap_ms": 240
+          }
+        },
+        "diagnostic_tags": [
+          "capability",
+          "dense_run",
+          "recovery"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "control",
+            "start": 0,
+            "end": 10,
+            "intent": "ordinary cadence control"
+          },
+          {
+            "id": "two_contact_figures",
+            "start": 10,
+            "end": 24,
+            "intent": "two-contact figures and clean recovery"
+          },
+          {
+            "id": "three_contact_figures",
+            "start": 24,
+            "end": 39,
+            "intent": "three-contact figures and clean recovery"
+          },
+          {
+            "id": "dense_stream",
+            "start": 39,
+            "end": 50,
+            "intent": "short sustained dense stream"
+          },
+          {
+            "id": "final_recovery",
+            "start": 50,
+            "end": 58,
+            "intent": "return to ordinary pulse"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 28,
+          "support": 55,
+          "accent": 24,
+          "pickup": 4,
+          "reentry": 7,
+          "fill": 2,
+          "breath_exit": 3
+        }
+      }
+    },
+    {
+      "id": "frontier_low_air_endurance_4s",
+      "module": "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_4s.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_4s.ts"
+      ],
+      "origin_family": "low_air_frontier",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Frontier Low-Air Endurance, 4 Second Boundary",
+        "parent_id": "frontier_low_air_endurance",
+        "variant": {
+          "kind": "rideout_duration",
+          "rationale": "A four-second supported rideout brackets the aspirational five-second base without changing its surrounding groove.",
+          "parameters": {
+            "rideout_seconds": 4
+          }
+        },
+        "diagnostic_tags": [
+          "capability",
+          "low_air",
+          "rideout"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "control",
+            "start": 0,
+            "end": 9,
+            "intent": "supported ordinary cadence"
+          },
+          {
+            "id": "rideout_2s",
+            "start": 9,
+            "end": 20,
+            "intent": "2s low-air rideout and recovery"
+          },
+          {
+            "id": "rideout_3s",
+            "start": 20,
+            "end": 34,
+            "intent": "3s low-air rideout and recovery"
+          },
+          {
+            "id": "rideout_5s",
+            "start": 34,
+            "end": 49,
+            "intent": "5s low-air rideout and recovery"
+          },
+          {
+            "id": "final_control",
+            "start": 49,
+            "end": 62,
+            "intent": "ordinary cadence after the frontier"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 21,
+          "support": 42,
+          "accent": 21,
+          "breath_exit": 3,
+          "reentry": 3
+        }
+      }
+    }
+  ],
+  "regression_candidates": [
+    {
+      "id": "regression_transition_mosaic",
+      "module": "benchmark/v2/cases/normative/regression/regression_transition_mosaic.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/regression/regression_transition_mosaic.ts"
+      ],
+      "origin_family": "legacy_transition_regression",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Regression Transition Mosaic",
+        "diagnostic_tags": [
+          "regression",
+          "cold_start",
+          "target_reversal",
+          "mixed_cadence"
+        ],
+        "provenance_kind": "legacy_informed_manual",
+        "phases": [
+          {
+            "id": "cold_initialization",
+            "start": 0,
+            "end": 13.6,
+            "intent": "cold initialization"
+          },
+          {
+            "id": "compact_ladder",
+            "start": 13.6,
+            "end": 24.4,
+            "intent": "compact ladder"
+          },
+          {
+            "id": "switchback_drive",
+            "start": 24.4,
+            "end": 35.2,
+            "intent": "switchback drive"
+          },
+          {
+            "id": "expanded_section",
+            "start": 35.2,
+            "end": 49.9,
+            "intent": "expanded section"
+          },
+          {
+            "id": "tail",
+            "start": 49.9,
+            "end": 60,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 24,
+          "support": 24,
+          "accent": 13,
+          "reentry": 13,
+          "pickup": 7,
+          "fill": 3,
+          "breath_exit": 4,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "regression_amplitude_mosaic",
+      "module": "benchmark/v2/cases/normative/regression/regression_amplitude_mosaic.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/regression/regression_amplitude_mosaic.ts"
+      ],
+      "origin_family": "legacy_amplitude_regression",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Regression Amplitude Mosaic",
+        "diagnostic_tags": [
+          "regression",
+          "amplitude",
+          "cadence_change",
+          "dense_to_spacious"
+        ],
+        "provenance_kind": "legacy_informed_manual",
+        "phases": [
+          {
+            "id": "amplitude_ramp",
+            "start": 0,
+            "end": 19.5,
+            "intent": "amplitude ramp"
+          },
+          {
+            "id": "dense_settle",
+            "start": 19.5,
+            "end": 38.7,
+            "intent": "dense settle"
+          },
+          {
+            "id": "spacious_canyon",
+            "start": 38.7,
+            "end": 53.65,
+            "intent": "spacious canyon"
+          },
+          {
+            "id": "tail",
+            "start": 53.65,
+            "end": 60,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 22,
+          "support": 39,
+          "accent": 12,
+          "breath_exit": 7,
+          "reentry": 8,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "regression_transition_mosaic_tempo_fast_5",
+      "module": "benchmark/v2/cases/variants/regression/regression_transition_mosaic_tempo_fast_5.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/regression/regression_transition_mosaic_tempo_fast_5.ts"
+      ],
+      "origin_family": "legacy_transition_regression",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Regression Transition Mosaic, 5% Faster",
+        "parent_id": "regression_transition_mosaic",
+        "variant": {
+          "kind": "global_tempo",
+          "rationale": "The complete authored program is time-scaled by 0.95 while preserving phrase structure and axis intent.",
+          "parameters": {
+            "time_scale": 0.95
+          }
+        },
+        "diagnostic_tags": [
+          "regression",
+          "cold_start",
+          "target_reversal",
+          "mixed_cadence"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "cold_initialization",
+            "start": 0,
+            "end": 12.92,
+            "intent": "cold initialization"
+          },
+          {
+            "id": "compact_ladder",
+            "start": 12.92,
+            "end": 23.18,
+            "intent": "compact ladder"
+          },
+          {
+            "id": "switchback_drive",
+            "start": 23.18,
+            "end": 33.44,
+            "intent": "switchback drive"
+          },
+          {
+            "id": "expanded_section",
+            "start": 33.44,
+            "end": 47.405,
+            "intent": "expanded section"
+          },
+          {
+            "id": "tail",
+            "start": 47.405,
+            "end": 57,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 24,
+          "support": 24,
+          "accent": 13,
+          "reentry": 13,
+          "pickup": 7,
+          "fill": 3,
+          "breath_exit": 4,
+          "tail": 3
+        }
+      }
+    },
+    {
+      "id": "regression_amplitude_mosaic_contrast_10",
+      "module": "benchmark/v2/cases/variants/regression/regression_amplitude_mosaic_contrast_10.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/regression/regression_amplitude_mosaic_contrast_10.ts"
+      ],
+      "origin_family": "legacy_amplitude_regression",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Regression Amplitude Mosaic, Stronger Contrast",
+        "parent_id": "regression_amplitude_mosaic",
+        "variant": {
+          "kind": "axis_contrast",
+          "rationale": "amplitude contrast is scaled by 1.1 around the midpoint; timing remains fixed.",
+          "parameters": {
+            "axis": "amplitude",
+            "contrast": 1.1
+          }
+        },
+        "diagnostic_tags": [
+          "regression",
+          "amplitude",
+          "cadence_change",
+          "dense_to_spacious"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "amplitude_ramp",
+            "start": 0,
+            "end": 19.5,
+            "intent": "amplitude ramp"
+          },
+          {
+            "id": "dense_settle",
+            "start": 19.5,
+            "end": 38.7,
+            "intent": "dense settle"
+          },
+          {
+            "id": "spacious_canyon",
+            "start": 38.7,
+            "end": 53.65,
+            "intent": "spacious canyon"
+          },
+          {
+            "id": "tail",
+            "start": 53.65,
+            "end": 60,
+            "intent": "tail"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 22,
+          "support": 39,
+          "accent": 12,
+          "breath_exit": 7,
+          "reentry": 8,
+          "tail": 3
+        }
+      }
+    }
+  ],
+  "development_music_candidates": [
+    {
+      "id": "believer_56_6s",
+      "module": "benchmark/v2/cases/normative/development_music/believer_56_6s.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/development_music/believer_56_6s.ts"
+      ],
+      "origin_family": "believer_56s",
+      "music_backed": true,
+      "music_work_id": "believer",
+      "reference_pulse_seconds": 0.48,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Believer Rhythm Interpretation",
+        "diagnostic_tags": [
+          "development_music"
+        ],
+        "provenance_kind": "materialized_music",
+        "phases": [
+          {
+            "id": "intro",
+            "start": 0,
+            "end": 7.7,
+            "intent": "music-authored intro section"
+          },
+          {
+            "id": "build",
+            "start": 7.7,
+            "end": 15.38,
+            "intent": "music-authored build section"
+          },
+          {
+            "id": "verse",
+            "start": 15.38,
+            "end": 23.06,
+            "intent": "music-authored verse section"
+          },
+          {
+            "id": "ramp",
+            "start": 23.06,
+            "end": 30.74,
+            "intent": "music-authored ramp section"
+          },
+          {
+            "id": "coil",
+            "start": 30.74,
+            "end": 38.42,
+            "intent": "music-authored coil section"
+          },
+          {
+            "id": "chorus",
+            "start": 38.42,
+            "end": 53.3,
+            "intent": "music-authored chorus section"
+          },
+          {
+            "id": "outro",
+            "start": 53.3,
+            "end": 56.6,
+            "intent": "music-authored outro section"
+          }
+        ],
+        "event_role_counts": {}
+      }
+    },
+    {
+      "id": "believer_impact_56s",
+      "module": "benchmark/v2/cases/normative/development_music/believer_impact_56s.ts",
+      "source_files": [
+        "benchmark/v2/cases/normative/development_music/believer_impact_56s.ts"
+      ],
+      "origin_family": "believer_56s",
+      "music_backed": true,
+      "music_work_id": "believer",
+      "reference_pulse_seconds": 0.48,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Believer Impact Interpretation",
+        "diagnostic_tags": [
+          "development_music"
+        ],
+        "provenance_kind": "materialized_music",
+        "phases": [
+          {
+            "id": "intro",
+            "start": 0,
+            "end": 7.69,
+            "intent": "music-authored intro section"
+          },
+          {
+            "id": "build",
+            "start": 7.69,
+            "end": 15.36,
+            "intent": "music-authored build section"
+          },
+          {
+            "id": "verse",
+            "start": 15.36,
+            "end": 23.04,
+            "intent": "music-authored verse section"
+          },
+          {
+            "id": "pre_chorus",
+            "start": 23.04,
+            "end": 38.42,
+            "intent": "music-authored pre-chorus section"
+          },
+          {
+            "id": "chorus",
+            "start": 38.42,
+            "end": 53.78,
+            "intent": "music-authored chorus section"
+          }
+        ],
+        "event_role_counts": {}
+      }
+    },
+    {
+      "id": "believer_56_6s_impact_relief",
+      "module": "benchmark/v2/cases/variants/development_music/believer_56_6s_impact_relief.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/development_music/believer_56_6s_impact_relief.ts"
+      ],
+      "origin_family": "believer_56s",
+      "music_backed": true,
+      "music_work_id": "believer",
+      "reference_pulse_seconds": 0.48,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Believer Rhythm Interpretation, Impact Relief",
+        "parent_id": "believer_56_6s",
+        "variant": {
+          "kind": "music_axis_perturbation",
+          "rationale": "The synchronized rhythm remains fixed while extreme authored impacts are compressed toward the center.",
+          "parameters": {
+            "impact_contrast": 0.9
+          }
+        },
+        "diagnostic_tags": [
+          "development_music",
+          "materialized_variant"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "intro",
+            "start": 0,
+            "end": 7.7,
+            "intent": "music-authored intro section"
+          },
+          {
+            "id": "build",
+            "start": 7.7,
+            "end": 15.38,
+            "intent": "music-authored build section"
+          },
+          {
+            "id": "verse",
+            "start": 15.38,
+            "end": 23.06,
+            "intent": "music-authored verse section"
+          },
+          {
+            "id": "ramp",
+            "start": 23.06,
+            "end": 30.74,
+            "intent": "music-authored ramp section"
+          },
+          {
+            "id": "coil",
+            "start": 30.74,
+            "end": 38.42,
+            "intent": "music-authored coil section"
+          },
+          {
+            "id": "chorus",
+            "start": 38.42,
+            "end": 53.3,
+            "intent": "music-authored chorus section"
+          },
+          {
+            "id": "outro",
+            "start": 53.3,
+            "end": 56.6,
+            "intent": "music-authored outro section"
+          }
+        ],
+        "event_role_counts": {}
+      }
+    },
+    {
+      "id": "believer_impact_56s_amplitude_plus_5",
+      "module": "benchmark/v2/cases/variants/development_music/believer_impact_56s_amplitude_plus_5.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/development_music/believer_impact_56s_amplitude_plus_5.ts"
+      ],
+      "origin_family": "believer_56s",
+      "music_backed": true,
+      "music_work_id": "believer",
+      "reference_pulse_seconds": 0.48,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Believer Impact Interpretation, Wider Amplitude",
+        "parent_id": "believer_impact_56s",
+        "variant": {
+          "kind": "music_axis_perturbation",
+          "rationale": "The synchronized rhythm and impact program remain fixed while the authored amplitude surface opens slightly.",
+          "parameters": {
+            "amplitude_offset": 0.05
+          }
+        },
+        "diagnostic_tags": [
+          "development_music",
+          "materialized_variant"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "intro",
+            "start": 0,
+            "end": 7.69,
+            "intent": "music-authored intro section"
+          },
+          {
+            "id": "build",
+            "start": 7.69,
+            "end": 15.36,
+            "intent": "music-authored build section"
+          },
+          {
+            "id": "verse",
+            "start": 15.36,
+            "end": 23.04,
+            "intent": "music-authored verse section"
+          },
+          {
+            "id": "pre_chorus",
+            "start": 23.04,
+            "end": 38.42,
+            "intent": "music-authored pre-chorus section"
+          },
+          {
+            "id": "chorus",
+            "start": 38.42,
+            "end": 53.78,
+            "intent": "music-authored chorus section"
+          }
+        ],
+        "event_role_counts": {}
+      }
+    }
+  ]
+}

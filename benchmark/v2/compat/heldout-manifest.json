@@ -1,0 +1,156 @@
+{
+  "schema": "line.benchmark-v2.qualification-registry.v2",
+  "status": "qualification-monitor",
+  "description": "Generated qualification registry. Qualification is a linked sidecar and never enters the optimization headline.",
+  "references": [
+    {
+      "id": "amor_na_praia_46s",
+      "module": "benchmark/v2/cases/qualification/amor_na_praia_46s.ts",
+      "source_files": [
+        "benchmark/v2/cases/qualification/amor_na_praia_46s.ts",
+        "productions/amor_na_praia_46s/spec.ts",
+        "productions/amor_na_praia_46s/audio.json"
+      ],
+      "origin_family": "production_reference",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.55,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Amor Na Praia",
+        "diagnostic_tags": [
+          "qualification"
+        ],
+        "provenance_kind": "qualification_reference",
+        "phases": [],
+        "event_role_counts": {}
+      }
+    },
+    {
+      "id": "luna_bala_44s",
+      "module": "benchmark/v2/cases/qualification/luna_bala_44s.ts",
+      "source_files": [
+        "benchmark/v2/cases/qualification/luna_bala_44s.ts",
+        "productions/luna_bala_44s/spec.ts",
+        "productions/luna_bala_44s/audio.json"
+      ],
+      "origin_family": "production_reference",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.55,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Luna Bala",
+        "diagnostic_tags": [
+          "qualification"
+        ],
+        "provenance_kind": "qualification_reference",
+        "phases": [],
+        "event_role_counts": {}
+      }
+    },
+    {
+      "id": "tiki_tiki_48s",
+      "module": "benchmark/v2/cases/qualification/tiki_tiki_48s.ts",
+      "source_files": [
+        "benchmark/v2/cases/qualification/tiki_tiki_48s.ts",
+        "productions/tiki_tiki_48s/spec.ts",
+        "productions/tiki_tiki_48s/audio.json"
+      ],
+      "origin_family": "production_reference",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.87,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Tiki Tiki",
+        "diagnostic_tags": [
+          "qualification"
+        ],
+        "provenance_kind": "qualification_reference",
+        "phases": [],
+        "event_role_counts": {}
+      }
+    },
+    {
+      "id": "shelter_impact_sync_81s",
+      "module": "benchmark/v2/cases/qualification/shelter_impact_sync_81s.ts",
+      "source_files": [
+        "benchmark/v2/cases/qualification/shelter_impact_sync_81s.ts",
+        "scripts/v0/specs/shelter_impact_sync.ts",
+        "scripts/v0/specs/_music.ts"
+      ],
+      "origin_family": "production_reference",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.6,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "amplitude",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Shelter Impact Sync",
+        "diagnostic_tags": [
+          "qualification"
+        ],
+        "provenance_kind": "qualification_reference",
+        "phases": [],
+        "event_role_counts": {}
+      }
+    },
+    {
+      "id": "amour_de_ma_vie_short_44s",
+      "module": "benchmark/v2/cases/qualification/amour_de_ma_vie_short_44s.ts",
+      "source_files": [
+        "benchmark/v2/cases/qualification/amour_de_ma_vie_short_44s.ts",
+        "scripts/v0/specs/amour_de_ma_vie_short.ts",
+        "beats/amour_de_ma_vie_short.rhythm.json"
+      ],
+      "origin_family": "production_reference",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.67,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "impact"
+      ],
+      "diagnostic_components": [
+        "air",
+        "speed"
+      ],
+      "notes": "Air and speed remain diagnostic because the source labels them as placeholders.",
+      "case_metadata": {
+        "title": "Amour De Ma Vie Short",
+        "diagnostic_tags": [
+          "qualification"
+        ],
+        "provenance_kind": "qualification_reference",
+        "phases": [],
+        "event_role_counts": {}
+      }
+    }
+  ]
+}

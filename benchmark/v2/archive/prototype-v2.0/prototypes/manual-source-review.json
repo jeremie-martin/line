@@ -1,0 +1,96 @@
+{
+  "schema": "line.benchmark-v2.manual-source-review.v1",
+  "status": "source-reviewed-not-suite-selected",
+  "characterization_fingerprint": "6c5014eccb342476b7de32439b4fdb12d3fc1e8eb20ab7a9b0066fe36c523a4f",
+  "scope": "Direct review of manually authored contact scores and target programs. No compiler or qualification outcome was used.",
+  "family_constraints": [
+    {
+      "id": "dense_sparse_amplitude",
+      "members": ["manual_amplitude_breaths", "manual_breathing_grid"],
+      "max_primary_members": 1,
+      "rationale": "Both cases test a regular dense bed, omitted beats, and amplitude opened into musical space. Different tempi and gap distributions do not justify two independent family allocations."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "manual_steady_reentry",
+      "disposition": "advance_to_click_review",
+      "cadence_assessment": "A varied arrival resolves into a 560ms body, with one short burst gap and two long transition openings. The opening, body, re-entry, and fade are structurally distinct.",
+      "target_assessment": "Speed establishes two energetic bodies while impact marks the entries. Air remains deliberately smooth and does not merely encode every gap.",
+      "concern": "The long regular body may sound repetitive if the sparse impact pattern does not establish larger phrases.",
+      "next_action": "Judge body phrasing and the two re-entry landings in the click track."
+    },
+    {
+      "id": "manual_vocal_to_pulse",
+      "disposition": "advance_to_click_review",
+      "cadence_assessment": "The irregular support opening, 540ms bed, replacement breakdown, and short tail provide a coherent change from melodic timing to percussion timing.",
+      "target_assessment": "Quiet opening impacts and the speed lift into the body support the cadence transition without adding amplitude or elevation.",
+      "concern": "The voice-like opening is inferred rather than derived from an independent musical work.",
+      "next_action": "Confirm that the opening reads as an intentional phrase rather than arbitrary irregular timestamps."
+    },
+    {
+      "id": "manual_halfstep_hook",
+      "disposition": "advance_to_click_review",
+      "cadence_assessment": "Alternating 880ms primary and 440ms half-pulse passages isolate a production-relevant density change without short-gap stress behavior.",
+      "target_assessment": "Amplitude is low in dense passages and opens in primary-pulse passages, giving this case a clear cadence-target interaction.",
+      "concern": "The repeated blocks are the most mechanically regular construction in the manual cohort and are conceptually close to the half/full-pulse reference principle.",
+      "next_action": "Review every block transition and reject or revise the case if repetition overwhelms its hook-like structure."
+    },
+    {
+      "id": "manual_syncopated_current",
+      "disposition": "advance_to_click_review",
+      "cadence_assessment": "A stable 680ms pulse contains isolated anticipations and one bounded three-contact figure; eleven quantized gaps are below 350ms with no sustained rapid stream.",
+      "target_assessment": "High speed makes the pickup recovery physically relevant while impact distinguishes pickups from primary returns.",
+      "concern": "The central rapid figure is intentionally prominent and must not cause this one motif to dominate family weight.",
+      "next_action": "Check that each pickup resolves audibly to the backbone and that the central run remains exceptional."
+    },
+    {
+      "id": "manual_breathing_grid",
+      "disposition": "family_comparison_required",
+      "cadence_assessment": "A 600ms bed is interrupted by fourteen double-pulse and five triple-pulse gaps, creating repeated dense-to-spacious transitions.",
+      "target_assessment": "Amplitude has a positive 0.61 gap correlation and is deliberately suppressed on dense passages, so the target program expresses available space.",
+      "concern": "It overlaps both the held-out Shelter principle and manual_amplitude_breaths; distinct timing alone is insufficient evidence for an additional primary slot.",
+      "next_action": "Compare directly with manual_amplitude_breaths and retain at most one primary member of the family."
+    },
+    {
+      "id": "manual_sparse_arc",
+      "disposition": "advance_to_click_review",
+      "cadence_assessment": "A 720ms pulse uses single- and double-beat omissions, then relaxes into a sparse outro. It covers ordinary spacious cadence without becoming the low-air boundary probe.",
+      "target_assessment": "Amplitude opens selectively around long gaps while air remains moderate, distinguishing visible arcs from low-air runouts.",
+      "concern": "The sparse outro may contribute little beyond duration if it does not complete the preceding phrase.",
+      "next_action": "Review whether the outro is a musical release and whether amplitude accents align with the intended openings."
+    },
+    {
+      "id": "manual_microtimed_drive",
+      "disposition": "advance_to_click_review",
+      "cadence_assessment": "The authored offsets survive 40 fps quantization: five common frame gaps span 475-575ms and cadence entropy remains 2.29 bits despite low overall gap variance.",
+      "target_assessment": "Smooth air and speed isolate synchronization on played timing; per-contact impact supplies the faster accent layer.",
+      "concern": "The offsets are manually constructed rather than measured from a separate performance, so they must sound played rather than algorithmically jittered.",
+      "next_action": "Listen for a stable pocket and reject the case if the offsets read as random timing noise."
+    },
+    {
+      "id": "manual_tempo_crossfade",
+      "disposition": "advance_to_click_review",
+      "cadence_assessment": "Five local pulses move through 720ms, 640ms, 560ms, 480ms, and 620ms, producing the cohort's highest cadence entropy without abrupt short-gap figures.",
+      "target_assessment": "Speed deliberately rises with density, yielding a strong -0.90 gap-speed correlation while air follows a different slower contour.",
+      "concern": "The stepped acceleration is synthetic and strongly couples one target to difficulty, so it may be more diagnostic than representative.",
+      "next_action": "Review whether transitions feel like musical tempo changes; keep its eventual family weight bounded if it remains diagnostic."
+    },
+    {
+      "id": "manual_low_air_runout",
+      "disposition": "advance_to_click_review",
+      "cadence_assessment": "An otherwise regular 550ms groove contains two 2.2s and one 3.3s openings, keeping the desired boundary embedded in a long production-like score.",
+      "target_assessment": "Air falls to 0.04-0.07 throughout each opening while speed remains high, producing the intended low-air riding interaction rather than a jump.",
+      "concern": "This is capability-adjacent and should not gain representative weight merely because the boundary is strategically important.",
+      "next_action": "Review entry and exit phrasing, then keep representative and capability reporting separate."
+    },
+    {
+      "id": "manual_amplitude_breaths",
+      "disposition": "family_comparison_required",
+      "cadence_assessment": "A 500ms bed occupies 85% of quantized gaps, with selected 1.0-2.0s openings and a progressively sparse outro.",
+      "target_assessment": "Amplitude has a positive 0.78 gap correlation and stays restrained on the dense bed, providing a strong but narrow spacing interaction.",
+      "concern": "Its central intent overlaps manual_breathing_grid and the regular bed may overpower its less frequent openings.",
+      "next_action": "Compare directly with manual_breathing_grid and retain at most one primary member of the family."
+    }
+  ]
+}

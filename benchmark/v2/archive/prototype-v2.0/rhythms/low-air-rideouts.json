@@ -1,0 +1,30 @@
+{
+  "schema": "line.benchmark-v2.rideout-motif.v1",
+  "description": "Capability click grid with controlled low-air rideouts. It is not inferred from a qualification track.",
+  "duration_seconds": 20,
+  "pulse_seconds": 0.5,
+  "contacts": [
+    { "t": 0.5, "role": "ordinary" },
+    { "t": 1.0, "role": "ordinary" },
+    { "t": 1.5, "role": "ordinary" },
+    { "t": 2.0, "role": "ordinary" },
+    { "t": 2.5, "role": "ordinary" },
+    { "t": 3.0, "role": "rideout_entry_2s" },
+    { "t": 5.0, "role": "rideout_exit_2s" },
+    { "t": 5.5, "role": "ordinary" },
+    { "t": 6.0, "role": "ordinary" },
+    { "t": 6.5, "role": "rideout_entry_3s" },
+    { "t": 9.5, "role": "rideout_exit_3s" },
+    { "t": 10.0, "role": "ordinary" },
+    { "t": 10.5, "role": "ordinary" },
+    { "t": 11.0, "role": "rideout_entry_5s" },
+    { "t": 16.0, "role": "rideout_exit_5s" },
+    { "t": 16.5, "role": "ordinary" },
+    { "t": 17.0, "role": "ordinary" },
+    { "t": 17.5, "role": "ordinary" },
+    { "t": 18.0, "role": "ordinary" },
+    { "t": 18.5, "role": "ordinary" },
+    { "t": 19.0, "role": "ordinary" },
+    { "t": 19.5, "role": "ordinary" }
+  ]
+}

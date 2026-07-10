@@ -1,0 +1,37 @@
+{
+  "schema": "line.benchmark-v2.candidate-review.v2",
+  "status": "canonical-selected-without-compiler-results",
+  "characterization_fingerprint": "d693c8e5a1262c1033383a59435bb2cea851ab7dd75022af5cee0088f089bf3a",
+  "audit_fingerprint": "cdb90642c0652a1c31091a48d3d3d642b19ab3cc41247c983693835b65c3138b",
+  "scope": "Static source, target-program, coverage, and cohort review only. No revised-suite compiler or qualification outcome influenced selection.",
+  "warning_dispositions": [
+    { "warning": "lag-8 impact periodicity in frontier_pickup_progression, meter_exchange, and rising_switch", "disposition": "accepted", "rationale": "Each repeated impact unit is explicit phrase structure local to one score. The capability progression intentionally holds musical impact grammar stable while shortening pickup timing." },
+    { "warning": "near-identical coarse gap histograms among regular-pulse scores and qualification references", "disposition": "accepted", "rationale": "The histogram uses broad cadence bins and intentionally flags ordinary 550-600ms pulse. Exact and nonuniform sequence-copy checks pass, and phrase architectures remain distinct." },
+    { "warning": "dense_dialogue and sparse_lowline speed correlation", "disposition": "accepted_with_monitoring", "rationale": "Their cadence and air interactions are deliberately opposite: sustained compact dialogue versus sparse low-air omissions." },
+    { "warning": "frontier_pickup_progression and believer_impact_56s speed correlation", "disposition": "accepted_with_monitoring", "rationale": "The capability score uses a monotonic speed frontier while Believer is a correlated music comparator; they occupy separately capped strata." },
+    { "warning": "three pre-existing representative smooth-axis correlations", "disposition": "accepted_with_monitoring", "rationale": "The affected scores differ in cadence, target range, interaction direction, and fixed coverage group." }
+  ],
+  "decisions": [
+    { "id": "river_reentry", "disposition": "selected", "rationale": "Regular body, independently timed fill, and explicit reentry." },
+    { "id": "countercurrent", "disposition": "selected", "rationale": "Quiet support and omission contrast within regular cadence." },
+    { "id": "split_signal", "disposition": "selected", "rationale": "Primary/half-pulse alternation with amplitude response." },
+    { "id": "pickup_lattice", "disposition": "selected", "rationale": "Isolated 280-350ms anticipations resolve into an ordinary high-speed pulse." },
+    { "id": "loose_pocket", "disposition": "selected", "rationale": "Played push-and-drag microtiming without random jitter." },
+    { "id": "offgrid_conversation", "disposition": "selected", "rationale": "Asymmetric call and response differs from locally regular microtiming." },
+    { "id": "rising_switch", "disposition": "selected", "rationale": "Directional cadence tightening and release." },
+    { "id": "meter_exchange", "disposition": "selected", "rationale": "Nonmonotonic cadence exchange complements directional transition." },
+    { "id": "wide_breaths", "disposition": "selected", "rationale": "Spacious ordinary arcs and selective amplitude." },
+    { "id": "open_hook", "disposition": "selected", "rationale": "Compact hooks alternate with open amplitude responses." },
+    { "id": "amplitude_tides", "disposition": "selected", "rationale": "Extends representative amplitude to the upper production envelope without elevation." },
+    { "id": "dense_dialogue", "disposition": "selected", "rationale": "Adds sustained 300-430ms musical density and controlled release." },
+    { "id": "high_air_drive", "disposition": "selected", "rationale": "Adds sustained high-air intent with independent speed and impact motion." },
+    { "id": "sparse_lowline", "disposition": "selected", "rationale": "Adds sparse supported omissions below the explicit rideout frontier." },
+    { "id": "frontier_pickup_progression", "disposition": "selected", "rationale": "Long progressive 300/250/200/180ms pickup threshold with named phases." },
+    { "id": "frontier_dense_recovery", "disposition": "selected", "rationale": "Long progressive dense figures test both threshold and return to ordinary cadence." },
+    { "id": "frontier_low_air_endurance", "disposition": "selected", "rationale": "Long progressive 2s/3s/5s low-air endurance boundary with recovery." },
+    { "id": "regression_transition_mosaic", "disposition": "selected", "rationale": "Purposeful V1-inspired initialization and target-transition regression coverage." },
+    { "id": "regression_amplitude_mosaic", "disposition": "selected", "rationale": "Purposeful V1-inspired amplitude and cadence regression coverage without elevation." },
+    { "id": "believer_56_6s", "disposition": "selected", "rationale": "Music-backed development evidence sharing one bounded Believer allocation." },
+    { "id": "believer_impact_56s", "disposition": "selected", "rationale": "Second target arrangement of the same Believer work; correlated by construction." }
+  ]
+}

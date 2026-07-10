@@ -1,0 +1,393 @@
+import { defineScoreCase } from "../../case.ts";
+import type { BenchmarkScoreDocument } from "../../../../../scripts/v0/benchmark_v2/score_model.ts";
+
+export const scoreDocument = {
+  "schema": "line.benchmark-v2.score.v1",
+  "id": "regression_transition_mosaic",
+  "title": "Regression Transition Mosaic",
+  "duration": 60,
+  "provenance": {
+    "kind": "legacy_informed_manual",
+    "authoring_brief": "A clean long-form rewrite of useful V1 initialization, verse/chorus, rhythm-ladder, and switchback behaviors without importing their timelines, grain, or elevation."
+  },
+  "primary_family": "legacy_transition_regression",
+  "diagnostic_tags": [
+    "regression",
+    "cold_start",
+    "target_reversal",
+    "mixed_cadence"
+  ],
+  "pulse_regions": [
+    {
+      "start": 0.8,
+      "end": 13.6,
+      "pulse_seconds": 0.8,
+      "intent": "spacious initialization"
+    },
+    {
+      "start": 13.6,
+      "end": 35.2,
+      "pulse_seconds": 0.54,
+      "intent": "compact middle with cadence reversals"
+    },
+    {
+      "start": 35.2,
+      "end": 53.8,
+      "pulse_seconds": 0.68,
+      "intent": "expanded final section"
+    }
+  ],
+  "phrases": {
+    "cold_open": [
+      {
+        "offset": 0,
+        "role": "primary",
+        "impact": 0.42
+      },
+      {
+        "offset": 0.8,
+        "role": "support",
+        "impact": 0.24
+      },
+      {
+        "offset": 1.6,
+        "role": "primary",
+        "impact": 0.52
+      },
+      {
+        "offset": 2.4,
+        "role": "support",
+        "impact": 0.28
+      },
+      {
+        "offset": 3.2,
+        "role": "accent",
+        "impact": 0.7
+      },
+      {
+        "offset": 4,
+        "role": "reentry",
+        "impact": 0.62
+      }
+    ],
+    "ladder": [
+      {
+        "offset": 0,
+        "role": "primary",
+        "impact": 0.64
+      },
+      {
+        "offset": 0.54,
+        "role": "support",
+        "impact": 0.29
+      },
+      {
+        "offset": 0.9,
+        "role": "pickup",
+        "impact": 0.22
+      },
+      {
+        "offset": 1.44,
+        "role": "accent",
+        "impact": 0.82
+      },
+      {
+        "offset": 2.12,
+        "role": "support",
+        "impact": 0.34
+      },
+      {
+        "offset": 2.66,
+        "role": "primary",
+        "impact": 0.57
+      },
+      {
+        "offset": 3.2,
+        "role": "reentry",
+        "impact": 0.73
+      }
+    ],
+    "switchback": [
+      {
+        "offset": 0,
+        "role": "accent",
+        "impact": 0.86
+      },
+      {
+        "offset": 0.36,
+        "role": "pickup",
+        "impact": 0.25
+      },
+      {
+        "offset": 0.96,
+        "role": "primary",
+        "impact": 0.61
+      },
+      {
+        "offset": 2.01,
+        "role": "support",
+        "impact": 0.31
+      },
+      {
+        "offset": 2.36,
+        "role": "fill",
+        "impact": 0.46
+      },
+      {
+        "offset": 2.96,
+        "role": "reentry",
+        "impact": 0.78
+      }
+    ],
+    "expanded": [
+      {
+        "offset": 0,
+        "role": "primary",
+        "impact": 0.6
+      },
+      {
+        "offset": 0.68,
+        "role": "support",
+        "impact": 0.3
+      },
+      {
+        "offset": 1.36,
+        "role": "accent",
+        "impact": 0.76
+      },
+      {
+        "offset": 2.04,
+        "role": "support",
+        "impact": 0.27
+      },
+      {
+        "offset": 2.72,
+        "role": "primary",
+        "impact": 0.55
+      },
+      {
+        "offset": 4.08,
+        "role": "breath_exit",
+        "impact": 0.84
+      },
+      {
+        "offset": 4.76,
+        "role": "reentry",
+        "impact": 0.7
+      }
+    ],
+    "tail": [
+      {
+        "offset": 0,
+        "role": "primary",
+        "impact": 0.52
+      },
+      {
+        "offset": 0.68,
+        "role": "support",
+        "impact": 0.26
+      },
+      {
+        "offset": 1.36,
+        "role": "tail",
+        "impact": 0.32
+      },
+      {
+        "offset": 2.72,
+        "role": "tail",
+        "impact": 0.2
+      },
+      {
+        "offset": 4.76,
+        "role": "tail",
+        "impact": 0.11
+      }
+    ]
+  },
+  "placements": [
+    {
+      "at": 0.8,
+      "phrase": "cold_open"
+    },
+    {
+      "at": 5.6,
+      "phrase": "cold_open"
+    },
+    {
+      "at": 10.4,
+      "phrase": "ladder"
+    },
+    {
+      "at": 13.96,
+      "phrase": "ladder"
+    },
+    {
+      "at": 17.52,
+      "phrase": "switchback"
+    },
+    {
+      "at": 20.84,
+      "phrase": "ladder"
+    },
+    {
+      "at": 24.4,
+      "phrase": "switchback"
+    },
+    {
+      "at": 27.72,
+      "phrase": "ladder"
+    },
+    {
+      "at": 31.28,
+      "phrase": "switchback"
+    },
+    {
+      "at": 34.6,
+      "phrase": "expanded"
+    },
+    {
+      "at": 39.7,
+      "phrase": "expanded"
+    },
+    {
+      "at": 44.8,
+      "phrase": "expanded"
+    },
+    {
+      "at": 49.9,
+      "phrase": "expanded"
+    },
+    {
+      "at": 55,
+      "phrase": "tail"
+    }
+  ],
+  "axes": {
+    "air": [
+      {
+        "t": 0,
+        "v": 0.3,
+        "ease": "smooth",
+        "intent": "cold supported initialization"
+      },
+      {
+        "t": 14,
+        "v": 0.64,
+        "ease": "smooth",
+        "intent": "first section opens"
+      },
+      {
+        "t": 23,
+        "v": 0.38,
+        "ease": "smooth",
+        "intent": "switchback reverses air"
+      },
+      {
+        "t": 35,
+        "v": 0.72,
+        "ease": "smooth",
+        "intent": "expanded final section"
+      },
+      {
+        "t": 47,
+        "v": 0.46,
+        "ease": "easeOut",
+        "intent": "late reversal"
+      },
+      {
+        "t": 60,
+        "v": 0.58,
+        "intent": "tail"
+      }
+    ],
+    "speed": [
+      {
+        "t": 0,
+        "v": 0.34,
+        "ease": "smooth",
+        "intent": "cold start"
+      },
+      {
+        "t": 12,
+        "v": 0.76,
+        "ease": "smooth",
+        "intent": "initial acceleration"
+      },
+      {
+        "t": 22,
+        "v": 0.48,
+        "ease": "smooth",
+        "intent": "opposes air reversal"
+      },
+      {
+        "t": 34,
+        "v": 0.86,
+        "ease": "smooth",
+        "intent": "compact drive"
+      },
+      {
+        "t": 46,
+        "v": 0.56,
+        "ease": "smooth",
+        "intent": "expanded relaxation"
+      },
+      {
+        "t": 60,
+        "v": 0.72,
+        "intent": "final carry"
+      }
+    ]
+  },
+  "preroll": 5,
+  "jitter": 0,
+  "phases": [
+    {
+      "id": "cold_initialization",
+      "start": 0,
+      "end": 13.6,
+      "intent": "cold initialization"
+    },
+    {
+      "id": "compact_ladder",
+      "start": 13.6,
+      "end": 24.4,
+      "intent": "compact ladder"
+    },
+    {
+      "id": "switchback_drive",
+      "start": 24.4,
+      "end": 35.2,
+      "intent": "switchback drive"
+    },
+    {
+      "id": "expanded_section",
+      "start": 35.2,
+      "end": 49.9,
+      "intent": "expanded section"
+    },
+    {
+      "id": "tail",
+      "start": 49.9,
+      "end": 60,
+      "intent": "tail"
+    }
+  ]
+} as const satisfies BenchmarkScoreDocument;
+
+export const benchmarkCase = defineScoreCase({
+  metadata: {
+  "cohort": "regression",
+  "musicBacked": false,
+  "eligibleComponents": [
+    "sync",
+    "survival",
+    "air",
+    "speed",
+    "impact"
+  ],
+  "diagnosticComponents": []
+},
+  document: scoreDocument,
+});
+
+export default benchmarkCase.spec;

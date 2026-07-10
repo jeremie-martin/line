@@ -1,0 +1,116 @@
+{
+  "schema": "line.benchmark-v1.audit-review.v1",
+  "status": "historical-audit-only",
+  "characterization_fingerprint": "c769e61e11ade2f3349213553629be673d2a84728ab3059cb9dcbeda97645dbd",
+  "description": "Historical coverage review of the V1 inventory. It is retained for context and does not define Benchmark V2 membership or workflow.",
+  "family_proposals": [
+    {
+      "id": "detected_drums_30s",
+      "provisional_tier": "secondary_regression",
+      "members": ["drums_breath", "drums_crescendo", "drums_crosscut", "drums_dropout", "drums_pendulum", "drums_pulse", "drums_signature", "drums_swell", "drums_tide", "drums_zigzag"],
+      "candidate_members": ["drums_breath", "drums_crescendo"],
+      "max_selected": 2,
+      "rationale": "All ten programs use the same detected 30s Believer onset skeleton, while fuller 56s Believer candidates now provide development evidence. Breath and crescendo remain useful opposing-axis and co-directed target diagnostics; the family must retain one total secondary allocation."
+    },
+    {
+      "id": "mixed_cadence_rewrite",
+      "provisional_tier": "primary_development",
+      "members": ["rhythm_ladder", "syncopated_switchback"],
+      "candidate_members": ["rhythm_ladder", "syncopated_switchback"],
+      "max_selected": 2,
+      "rationale": "These synthetic phrases contain useful mixed-gap and target-transition motifs, but they require independent musical timing before headline eligibility."
+    },
+    {
+      "id": "amplitude_cadence_rewrite",
+      "provisional_tier": "primary_development",
+      "members": ["soar_settle", "canyon_steps"],
+      "candidate_members": ["soar_settle", "canyon_steps"],
+      "max_selected": 2,
+      "rationale": "These are the strongest legacy donors for cadence-aware amplitude. Revisions should remove unneeded elevation and attach the timing and target program to reviewed music."
+    },
+    {
+      "id": "rapid_boundary_precursors",
+      "provisional_tier": "capability_boundary",
+      "members": ["dense_sprint", "opening_burst", "solo_run"],
+      "candidate_members": ["dense_sprint", "opening_burst", "solo_run"],
+      "max_selected": 3,
+      "rationale": "The cases distinguish a short 250ms opening, a longer 250ms opening, and a sustained 320ms run. They are stress precursors, not evidence that production music is dominated by rapid contacts."
+    },
+    {
+      "id": "legacy_regression_guards",
+      "provisional_tier": "secondary_regression",
+      "members": ["cold_start", "verse_chorus", "big_air_ramp", "swoop_dive", "dense_echo_climb", "switchback_pop"],
+      "candidate_members": ["cold_start", "verse_chorus", "big_air_ramp", "swoop_dive", "dense_echo_climb", "switchback_pop"],
+      "max_selected": 6,
+      "rationale": "These preserve distinct initialization, duration, amplitude, elevation, density, and irregular multi-axis failure modes without claiming representative headline weight."
+    }
+  ],
+  "missing_coverage": [
+    {
+      "id": "music_derived_short_pickups",
+      "requirement": "Reviewed musical pickups below 250ms plus isolated two- and three-contact short runs transitioning back to an ordinary pulse.",
+      "evidence": "The qualification inventory bottoms out at 294ms raw; legacy 250ms cases are synthetic and use longer sustained runs.",
+      "next_action": "Author from a new development-only song or percussion source, not by copying a qualification timeline."
+    },
+    {
+      "id": "low_air_rideouts",
+      "requirement": "Low-air, mostly-riding intervals at 2s, 3s, and approximately 5s, including entry and exit contacts, plus an eventual music-derived example.",
+      "evidence": "The explicit capability family now isolates all three durations. Its initial screen reaches the 2s and 3s exits but misses low-air intent and stalls before the 5s exit at every tested budget and seed.",
+      "next_action": "Use the capability family as a compiler mechanism gate and source an independent development song with a real rideout when available."
+    },
+    {
+      "id": "independent_music_cadences",
+      "requirement": "At least two development-only music-derived onset skeletons with subdivisions, omissions, and cadence transitions.",
+      "evidence": "All ten music-backed legacy candidates reuse one detected drum skeleton.",
+      "next_action": "Select independent music excerpts and freeze their timing before compiler evaluation."
+    },
+    {
+      "id": "independent_amplitude_cadence",
+      "requirement": "Music-backed amplitude intent across compact and spacious cadence in a second independent musical work, without requiring elevation scoring.",
+      "evidence": "believer_impact_56s provides this interaction for one work; the useful mixed legacy donors are synthetic and canyon_steps couples amplitude to low-priority elevation.",
+      "next_action": "Revise the donor concepts against a new development music source and keep elevation absent unless that track explicitly needs it."
+    }
+  ],
+  "decisions": [
+    { "id": "drums_signature", "disposition": "collapse_family", "rationale": "Same detected contact skeleton as the other nine drum programs; its active target profile is covered by the family review.", "required_action": "Do not allocate independent cadence weight." },
+    { "id": "drums_pendulum", "disposition": "collapse_family", "rationale": "Same detected contact skeleton; extreme air isolation is less representative than the two provisional family candidates.", "required_action": "Keep available for targeted air diagnostics only." },
+    { "id": "drums_crescendo", "disposition": "secondary_candidate", "rationale": "Music-derived cadence with broad co-directed air, speed, and impact motion, but it is a short variant of the same Believer work as fuller development candidates.", "required_action": "Measure target-interaction diagnostic value without assigning independent music or headline weight." },
+    { "id": "dense_sprint", "disposition": "capability_candidate", "rationale": "Four consecutive 250ms opening gaps followed by ordinary 500ms cadence isolate hot-start handling.", "required_action": "Treat as a rapid-boundary precursor, not representative rhythm." },
+    { "id": "syncopated_switchback", "disposition": "rewrite_candidate", "rationale": "A useful repeating 350/600/1050ms phrase with strong target reversals, but the timing is synthetic.", "required_action": "Re-author the motif from independent reviewed music." },
+    { "id": "opening_burst", "disposition": "capability_candidate", "rationale": "Ten consecutive 250ms gaps expose sustained rapid-contact and initialization fragility.", "required_action": "Keep outside the representative headline and compare against shorter music-derived pickups." },
+    { "id": "grain_staircase", "disposition": "defer", "rationale": "Uniform 500ms cadence and inert grain make it redundant for V2 product coverage.", "required_action": "Use only for historical debugging when needed." },
+    { "id": "rhythm_ladder", "disposition": "rewrite_candidate", "rationale": "Mixed 300/350/520/560/670ms phrase and crossed targets are useful donor structure, but timing is synthetic.", "required_action": "Re-author from independent reviewed music and remove inert grain." },
+    { "id": "cold_start", "disposition": "secondary_candidate", "rationale": "A compact initialization guard distinct from the longer production distribution.", "required_action": "Measure whether it catches failures not covered by rapid-boundary cases." },
+    { "id": "mini_burst", "disposition": "defer", "rationale": "Six uniform 650ms gaps provide little coverage beyond longer candidates.", "required_action": "Drop unless empirical failure independence is demonstrated." },
+    { "id": "tiny_dance", "disposition": "defer", "rationale": "Only four contacts and no unique product cadence cell.", "required_action": "Retain as a smoke test, not a benchmark member." },
+    { "id": "solo_run", "disposition": "capability_candidate", "rationale": "Seventy-six consecutive 320ms gaps test sustained density and scaling, unlike reviewed production patterns.", "required_action": "Report as stress capacity and do not give it representative cadence weight." },
+    { "id": "verse_chorus", "disposition": "secondary_candidate", "rationale": "Longer timeline and repeated target-section changes are useful regression coverage despite uniform 780ms timing.", "required_action": "Measure incremental failure and runtime value." },
+    { "id": "drums_swell", "disposition": "collapse_family", "rationale": "Same detected contact skeleton; smooth co-directed motion overlaps crescendo family coverage.", "required_action": "Compare target-program stability only if crescendo proves noisy." },
+    { "id": "drums_crosscut", "disposition": "collapse_family", "rationale": "Same detected contact skeleton; alternating impact is a target variant, not independent rhythm evidence.", "required_action": "Do not allocate independent cadence weight." },
+    { "id": "drums_tide", "disposition": "collapse_family", "rationale": "Same detected contact skeleton; periodic target motion is a correlated family variant.", "required_action": "Do not allocate independent cadence weight." },
+    { "id": "drums_dropout", "disposition": "collapse_family", "rationale": "Same detected contact skeleton; target dropout is a correlated family variant.", "required_action": "Keep as a targeted fallback if family review needs a discontinuity case." },
+    { "id": "drums_breath", "disposition": "secondary_candidate", "rationale": "Opposing air, speed, and impact motion complements co-directed behavior, but it is a short variant of the same Believer work as fuller development candidates.", "required_action": "Measure target-interaction diagnostic value without assigning independent music or headline weight." },
+    { "id": "drums_pulse", "disposition": "collapse_family", "rationale": "Same detected contact skeleton and mostly single-axis active variation.", "required_action": "Do not allocate independent cadence weight." },
+    { "id": "drums_zigzag", "disposition": "collapse_family", "rationale": "Same detected contact skeleton; periodic target crossing overlaps drums_breath's interaction role.", "required_action": "Do not allocate independent cadence weight." },
+    { "id": "climb_terrace", "disposition": "defer", "rationale": "Uniform 1s elevation-only variation has low current product priority.", "required_action": "Run only for explicit elevation work." },
+    { "id": "swoop_dive", "disposition": "secondary_candidate", "rationale": "Largest elevation range among the pure-elevation cases and useful historical axis coverage.", "required_action": "Keep outside representative headline weighting." },
+    { "id": "rolling_hills", "disposition": "defer", "rationale": "Uniform 900ms elevation coverage is subsumed by the stronger swoop_dive guard.", "required_action": "Drop unless it shows independent failures." },
+    { "id": "summit_push", "disposition": "defer", "rationale": "Uniform 1.1s cadence and modest elevation range add little beyond selected secondary guards.", "required_action": "Drop unless it shows independent failures." },
+    { "id": "mixed_grade", "disposition": "defer", "rationale": "Mixed cadence is useful, but its primary distinction is low-priority elevation and synthetic timing.", "required_action": "Borrow no timing without independent musical provenance." },
+    { "id": "big_air_ramp", "disposition": "secondary_candidate", "rationale": "Broad air/amplitude/impact range at spacious 1.3s cadence is a useful amplitude regression guard.", "required_action": "Measure incremental value against revised amplitude cases." },
+    { "id": "pop_train", "disposition": "defer", "rationale": "Uniform 1.1s amplitude cadence is covered by stronger amplitude candidates.", "required_action": "Drop unless it shows independent failures." },
+    { "id": "soar_settle", "disposition": "rewrite_candidate", "rationale": "Strong cadence-aware amplitude transition from 1.3s to 700ms with broad target range, but synthetic timing.", "required_action": "Attach the motif to independent reviewed music." },
+    { "id": "leap_cadence", "disposition": "defer", "rationale": "Uniform 1.2s amplitude cadence is redundant with broader amplitude guards.", "required_action": "Drop unless it shows independent failures." },
+    { "id": "float_bounds", "disposition": "defer", "rationale": "Uniform 1.2s cadence and narrower amplitude range do not justify another canonical case.", "required_action": "Use only for targeted bound debugging." },
+    { "id": "canyon_steps", "disposition": "rewrite_candidate", "rationale": "Mixed 550ms, 1.15s, and 650ms sections couple cadence, amplitude, and impact in a useful donor pattern.", "required_action": "Remove incidental elevation and re-author timing from reviewed music." },
+    { "id": "ridge_pulse", "disposition": "defer", "rationale": "Uniform 600ms combined-vertical cadence lacks unique product relevance.", "required_action": "Run only for explicit combined-axis work." },
+    { "id": "valley_bounce", "disposition": "defer", "rationale": "Uniform 1.1s cadence duplicates amplitude/elevation stress already represented by stronger guards.", "required_action": "Drop unless it shows independent failures." },
+    { "id": "switchback_pop", "disposition": "secondary_candidate", "rationale": "Highest cadence entropy in the combined-vertical family and alternating impact expose irregular multi-axis regressions.", "required_action": "Keep secondary; elevation prevents representative promotion without revision." },
+    { "id": "terrace_sprint", "disposition": "defer", "rationale": "Its 1.75s vertical transition is superseded by the explicit 2s, 3s, and 5s low-air capability construction.", "required_action": "Run only for explicit combined-vertical regression work." },
+    { "id": "glide_stairs", "disposition": "defer", "rationale": "Uniform 950ms combined-vertical cadence adds no distinct product rhythm cell.", "required_action": "Run only for explicit elevation work." },
+    { "id": "dense_echo_climb", "disposition": "secondary_candidate", "rationale": "Uniform dense 500ms combined-axis case is a useful regression contrast to sparse amplitude cases.", "required_action": "Keep outside representative headline weighting." },
+    { "id": "rolling_drop", "disposition": "defer", "rationale": "Uniform 1.15s combined-vertical behavior overlaps stronger amplitude and elevation guards.", "required_action": "Drop unless it shows independent failures." },
+    { "id": "skyline_push", "disposition": "defer", "rationale": "Its 1.7s transition is subsumed by terrace_sprint as the long-interval precursor.", "required_action": "Do not duplicate the capability-boundary allocation." },
+    { "id": "syncopated_lift", "disposition": "defer", "rationale": "Synthetic irregular timing is less representative than rewrite donors and remains elevation-coupled.", "required_action": "Drop unless it shows independent failures." }
+  ]
+}

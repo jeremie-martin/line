@@ -1,0 +1,434 @@
+import { defineScoreCase } from "../../case.ts";
+import type { BenchmarkScoreDocument } from "../../../../../scripts/v0/benchmark_v2/score_model.ts";
+
+export const scoreDocument = {
+  "schema": "line.benchmark-v2.score.v1",
+  "id": "frontier_dense_recovery_240ms_figures",
+  "title": "Frontier Dense Recovery, 240ms Figures",
+  "duration": 58,
+  "provenance": {
+    "kind": "capability_manual",
+    "authoring_brief": "Progressive two- and three-contact figures lead into a bounded dense stream, each followed by an ordinary-cadence recovery. Variant: A nearby 240ms pickup/fill cluster checks whether recovery behavior generalizes around the 220ms base boundary."
+  },
+  "primary_family": "dense_recovery_frontier",
+  "diagnostic_tags": [
+    "capability",
+    "dense_run",
+    "recovery"
+  ],
+  "pulse_regions": [
+    {
+      "start": 0.56,
+      "end": 55.44,
+      "pulse_seconds": 0.56,
+      "intent": "ordinary grid frames increasingly dense figures"
+    }
+  ],
+  "phases": [
+    {
+      "id": "control",
+      "start": 0,
+      "end": 10,
+      "intent": "ordinary cadence control"
+    },
+    {
+      "id": "two_contact_figures",
+      "start": 10,
+      "end": 24,
+      "intent": "two-contact figures and clean recovery"
+    },
+    {
+      "id": "three_contact_figures",
+      "start": 24,
+      "end": 39,
+      "intent": "three-contact figures and clean recovery"
+    },
+    {
+      "id": "dense_stream",
+      "start": 39,
+      "end": 50,
+      "intent": "short sustained dense stream"
+    },
+    {
+      "id": "final_recovery",
+      "start": 50,
+      "end": 58,
+      "intent": "return to ordinary pulse"
+    }
+  ],
+  "phrases": {
+    "control": [
+      {
+        "offset": 0,
+        "role": "primary",
+        "impact": 0.62
+      },
+      {
+        "offset": 0.56,
+        "role": "support",
+        "impact": 0.3
+      },
+      {
+        "offset": 1.12,
+        "role": "accent",
+        "impact": 0.76
+      },
+      {
+        "offset": 1.68,
+        "role": "support",
+        "impact": 0.28
+      },
+      {
+        "offset": 2.24,
+        "role": "primary",
+        "impact": 0.56
+      },
+      {
+        "offset": 2.8,
+        "role": "support",
+        "impact": 0.32
+      },
+      {
+        "offset": 3.36,
+        "role": "accent",
+        "impact": 0.7
+      },
+      {
+        "offset": 3.92,
+        "role": "support",
+        "impact": 0.27
+      }
+    ],
+    "double": [
+      {
+        "offset": 0,
+        "role": "primary",
+        "impact": 0.66
+      },
+      {
+        "offset": 0.56,
+        "role": "support",
+        "impact": 0.29
+      },
+      {
+        "offset": 1.12,
+        "role": "primary",
+        "impact": 0.54
+      },
+      {
+        "offset": 1.4,
+        "role": "pickup",
+        "impact": 0.23
+      },
+      {
+        "offset": 1.68,
+        "role": "accent",
+        "impact": 0.86
+      },
+      {
+        "offset": 2.24,
+        "role": "support",
+        "impact": 0.31
+      },
+      {
+        "offset": 2.8,
+        "role": "reentry",
+        "impact": 0.74
+      },
+      {
+        "offset": 3.36,
+        "role": "support",
+        "impact": 0.28
+      }
+    ],
+    "triple": [
+      {
+        "offset": 0,
+        "role": "primary",
+        "impact": 0.68
+      },
+      {
+        "offset": 0.56,
+        "role": "support",
+        "impact": 0.28
+      },
+      {
+        "offset": 1.08,
+        "role": "primary",
+        "impact": 0.52
+      },
+      {
+        "offset": 1.32,
+        "role": "pickup",
+        "impact": 0.2
+      },
+      {
+        "offset": 1.56,
+        "role": "fill",
+        "impact": 0.27
+      },
+      {
+        "offset": 1.8,
+        "role": "accent",
+        "impact": 0.9
+      },
+      {
+        "offset": 2.34,
+        "role": "support",
+        "impact": 0.33
+      },
+      {
+        "offset": 2.9,
+        "role": "reentry",
+        "impact": 0.77
+      },
+      {
+        "offset": 3.46,
+        "role": "support",
+        "impact": 0.29
+      }
+    ],
+    "stream": [
+      {
+        "offset": 0,
+        "role": "reentry",
+        "impact": 0.82
+      },
+      {
+        "offset": 0.3,
+        "role": "support",
+        "impact": 0.28
+      },
+      {
+        "offset": 0.6,
+        "role": "primary",
+        "impact": 0.6
+      },
+      {
+        "offset": 0.9,
+        "role": "support",
+        "impact": 0.26
+      },
+      {
+        "offset": 1.2,
+        "role": "accent",
+        "impact": 0.88
+      },
+      {
+        "offset": 1.5,
+        "role": "support",
+        "impact": 0.31
+      },
+      {
+        "offset": 1.8,
+        "role": "primary",
+        "impact": 0.64
+      },
+      {
+        "offset": 2.1,
+        "role": "support",
+        "impact": 0.27
+      },
+      {
+        "offset": 2.4,
+        "role": "accent",
+        "impact": 0.84
+      },
+      {
+        "offset": 2.7,
+        "role": "support",
+        "impact": 0.3
+      },
+      {
+        "offset": 3,
+        "role": "breath_exit",
+        "impact": 0.72
+      }
+    ]
+  },
+  "placements": [
+    {
+      "at": 0.56,
+      "phrase": "control"
+    },
+    {
+      "at": 5.04,
+      "phrase": "control"
+    },
+    {
+      "at": 9.52,
+      "phrase": "double"
+    },
+    {
+      "at": 13.44,
+      "phrase": "control"
+    },
+    {
+      "at": 17.92,
+      "phrase": "double"
+    },
+    {
+      "at": 21.84,
+      "phrase": "control"
+    },
+    {
+      "at": 26.32,
+      "phrase": "triple"
+    },
+    {
+      "at": 30.34,
+      "phrase": "control"
+    },
+    {
+      "at": 34.82,
+      "phrase": "triple"
+    },
+    {
+      "at": 38.84,
+      "phrase": "stream"
+    },
+    {
+      "at": 42.14,
+      "phrase": "stream"
+    },
+    {
+      "at": 45.44,
+      "phrase": "stream"
+    },
+    {
+      "at": 48.74,
+      "phrase": "control"
+    },
+    {
+      "at": 53.22,
+      "phrase": "control"
+    }
+  ],
+  "axes": {
+    "air": [
+      {
+        "t": 0,
+        "v": 0.38,
+        "ease": "smooth",
+        "intent": "ordinary control"
+      },
+      {
+        "t": 24,
+        "v": 0.24,
+        "ease": "smooth",
+        "intent": "three-contact support"
+      },
+      {
+        "t": 42,
+        "v": 0.12,
+        "ease": "smooth",
+        "intent": "dense stream stays grounded"
+      },
+      {
+        "t": 50,
+        "v": 0.3,
+        "ease": "smooth",
+        "intent": "recovery opens"
+      },
+      {
+        "t": 58,
+        "v": 0.4,
+        "intent": "ordinary finish"
+      }
+    ],
+    "speed": [
+      {
+        "t": 0,
+        "v": 0.62,
+        "ease": "smooth",
+        "intent": "control"
+      },
+      {
+        "t": 20,
+        "v": 0.74,
+        "ease": "smooth",
+        "intent": "double figures"
+      },
+      {
+        "t": 36,
+        "v": 0.84,
+        "ease": "smooth",
+        "intent": "triple figures"
+      },
+      {
+        "t": 45,
+        "v": 0.92,
+        "ease": "easeOut",
+        "intent": "dense stream"
+      },
+      {
+        "t": 58,
+        "v": 0.66,
+        "intent": "recovery"
+      }
+    ]
+  },
+  "preroll": 5,
+  "jitter": 0
+} satisfies BenchmarkScoreDocument;
+
+export const benchmarkCase = defineScoreCase({
+  metadata: {
+  "cohort": "capability",
+  "musicBacked": false,
+  "eligibleComponents": [
+    "sync",
+    "survival",
+    "air",
+    "speed",
+    "impact"
+  ],
+  "diagnosticComponents": [],
+  "id": "frontier_dense_recovery_240ms_figures",
+  "title": "Frontier Dense Recovery, 240ms Figures",
+  "originFamily": "dense_recovery_frontier",
+  "phases": [
+    {
+      "id": "control",
+      "start": 0,
+      "end": 10,
+      "intent": "ordinary cadence control"
+    },
+    {
+      "id": "two_contact_figures",
+      "start": 10,
+      "end": 24,
+      "intent": "two-contact figures and clean recovery"
+    },
+    {
+      "id": "three_contact_figures",
+      "start": 24,
+      "end": 39,
+      "intent": "three-contact figures and clean recovery"
+    },
+    {
+      "id": "dense_stream",
+      "start": 39,
+      "end": 50,
+      "intent": "short sustained dense stream"
+    },
+    {
+      "id": "final_recovery",
+      "start": 50,
+      "end": 58,
+      "intent": "return to ordinary pulse"
+    }
+  ],
+  "variant": {
+    "parentId": "frontier_dense_recovery",
+    "kind": "dense_figure_spacing",
+    "rationale": "A nearby 240ms pickup/fill cluster checks whether recovery behavior generalizes around the 220ms base boundary.",
+    "parameters": {
+      "cluster_gap_ms": 240
+    }
+  }
+},
+  document: scoreDocument,
+});
+
+export default benchmarkCase.spec;

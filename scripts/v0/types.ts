@@ -820,6 +820,11 @@ export type GapAxisValueReport = {
    *  asked for more than physics allowed at this gap, so the shortfall is expected,
    *  not a compiler miss. Absent for axes without a meaningful per-gap ceiling. */
   ceiling?: number;
+  /** Static planning estimate for the hardest target likely to fit around this
+   *  beat. Unlike `ceiling`, this is derived from authored neighboring gaps and
+   *  speed rather than the achieved rider state. It is diagnostic only and must
+   *  never replace the authored target. */
+  feasibility_bound?: number;
   /** Raw diagnostic units for axes whose authored scale hides physical units. */
   raw?: {
     unit: "px/frame";
@@ -842,7 +847,7 @@ export type Gap = {
   endsWithContact: boolean;
   /** Per-axis targets sampled for this gap. */
   targets: AxisValues;
-  /** Bounded impact target of the NEXT contact (the beat this gap's launch
+  /** Authored impact target of the NEXT contact (the beat this gap's launch
    *  flies toward), resolved by the compiler alongside `targets.impact`.
    *  Lets generation plan the ARRIVAL into a hard beat (launch steeper so the
    *  crossing angle carries the redirection budget). Undefined when the next

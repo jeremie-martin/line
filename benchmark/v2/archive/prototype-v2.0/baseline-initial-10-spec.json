@@ -1,0 +1,19 @@
+{
+  "schema": "line.benchmark-v2.baseline-reference.v1",
+  "status": "superseded-development-only",
+  "archive": "generated/benchmark-v2/baseline-full.json",
+  "suite_fingerprint": "b68a1e76a02c3c925211e8bea2dc3b0b286275e391a435691184ff28baad554a",
+  "characterization_fingerprint": "a81f64f37bd1df9c56626881e1e2108015248320520d7f0c3b896b46b430b089",
+  "audit_fingerprint": "648a865ebb6708d7b00f3cd456f5475f3f0d084f46e570dac67593d7a94e5d80",
+  "compiler_diff_sha256": "16bccdba1b19f2b54719c373efcd52ea45c32dcc4a38a0e9a5488d23512fa28f",
+  "profile": "full",
+  "headline": 602.0885,
+  "budgets": [
+    { "budget": 125000, "score": 0, "valid_runs": 0, "total_runs": 30 },
+    { "budget": 250000, "score": 661.43, "valid_runs": 30, "total_runs": 30 },
+    { "budget": 375000, "score": 667.4681, "valid_runs": 30, "total_runs": 30 },
+    { "budget": 500000, "score": 673.9052, "valid_runs": 30, "total_runs": 30 }
+  ],
+  "heldout_compiled": false,
+  "superseded_reason": "The canonical suite expanded and impact scoring stopped silently applying the feasibility bound."
+}

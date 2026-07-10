@@ -1,0 +1,23 @@
+{
+  "schema": "line.benchmark-v2.canonical-bundle.v1",
+  "label": "v2.1-baseline",
+  "generatedAt": "2026-07-10T13:40:54.622Z",
+  "development": {
+    "archive": "/home/wyss/line/generated/benchmark-v2/canonical-runs/v2.1-baseline-development.json",
+    "summary": "/home/wyss/line/generated/benchmark-v2/canonical-runs/v2.1-baseline-development.json.summary.json",
+    "sha256": "7f678e7fdfbd584be369546633c1e01ec10cc0b3eb11a8b549da7abbbbf3063d",
+    "compressedSha256": "ae9cbe20ecb56154e8c9179d0385b194148abc8480e28f927b6d5a27439275e0",
+    "retainedCompressedArchive": "benchmark/v2/runs/v2.1-baseline-development.json.gz",
+    "retainedSummary": "benchmark/v2/runs/v2.1-baseline-development.summary.json",
+    "headline": 451.3303
+  },
+  "qualification": {
+    "archive": "/home/wyss/line/generated/benchmark-v2/canonical-runs/v2.1-baseline-qualification.json",
+    "summary": "/home/wyss/line/generated/benchmark-v2/canonical-runs/v2.1-baseline-qualification.json.summary.json",
+    "sha256": "42b7338b21b3cf2e095e0dfa7ad2e10bb31b1d820ad4505e0eae9d233a04f0c4",
+    "compressedSha256": "2432272349c6d2c8a14e3089a9049c52191fff203e25bd8ce50b7302be7e1a1c",
+    "retainedCompressedArchive": "benchmark/v2/runs/v2.1-baseline-qualification.json.gz",
+    "retainedSummary": "benchmark/v2/runs/v2.1-baseline-qualification.summary.json",
+    "monitorScore": 385.6812
+  }
+}

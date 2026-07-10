@@ -1,0 +1,378 @@
+{
+  "schema": "line.benchmark-v2.suite.v2",
+  "status": "selected-canonical-development-suite",
+  "description": "Generated compatibility policy. benchmark/v2/policy.ts is the editable source of truth.",
+  "strata": [
+    {
+      "id": "representative",
+      "weight": 0.7,
+      "groups": [
+        {
+          "id": "regular_exceptions",
+          "weight": 0.2,
+          "members": [
+            "river_reentry",
+            "river_reentry_tempo_fast_5",
+            "countercurrent",
+            "countercurrent_impact_contrast_12"
+          ],
+          "parents": [
+            {
+              "id": "river_reentry",
+              "members": [
+                "river_reentry",
+                "river_reentry_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "countercurrent",
+              "members": [
+                "countercurrent",
+                "countercurrent_impact_contrast_12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "subdivision_pickup",
+          "weight": 0.15,
+          "members": [
+            "split_signal",
+            "split_signal_impact_relief_12",
+            "pickup_lattice",
+            "pickup_lattice_speed_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "split_signal",
+              "members": [
+                "split_signal",
+                "split_signal_impact_relief_12"
+              ]
+            },
+            {
+              "id": "pickup_lattice",
+              "members": [
+                "pickup_lattice",
+                "pickup_lattice_speed_minus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "irregular_microtimed",
+          "weight": 0.15,
+          "members": [
+            "loose_pocket",
+            "loose_pocket_drag_later_20ms",
+            "offgrid_conversation",
+            "offgrid_conversation_answer_early_25ms"
+          ],
+          "parents": [
+            {
+              "id": "loose_pocket",
+              "members": [
+                "loose_pocket",
+                "loose_pocket_drag_later_20ms"
+              ]
+            },
+            {
+              "id": "offgrid_conversation",
+              "members": [
+                "offgrid_conversation",
+                "offgrid_conversation_answer_early_25ms"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cadence_transition",
+          "weight": 0.12,
+          "members": [
+            "rising_switch",
+            "rising_switch_tempo_fast_5",
+            "meter_exchange",
+            "meter_exchange_speed_plus_4"
+          ],
+          "parents": [
+            {
+              "id": "rising_switch",
+              "members": [
+                "rising_switch",
+                "rising_switch_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "meter_exchange",
+              "members": [
+                "meter_exchange",
+                "meter_exchange_speed_plus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "spacious_amplitude",
+          "weight": 0.13,
+          "members": [
+            "wide_breaths",
+            "wide_breaths_air_plus_5",
+            "open_hook",
+            "open_hook_amplitude_plus_8",
+            "amplitude_tides",
+            "amplitude_tides_restrained_10"
+          ],
+          "parents": [
+            {
+              "id": "wide_breaths",
+              "members": [
+                "wide_breaths",
+                "wide_breaths_air_plus_5"
+              ]
+            },
+            {
+              "id": "open_hook",
+              "members": [
+                "open_hook",
+                "open_hook_amplitude_plus_8"
+              ]
+            },
+            {
+              "id": "amplitude_tides",
+              "members": [
+                "amplitude_tides",
+                "amplitude_tides_restrained_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_musical",
+          "weight": 0.1,
+          "members": [
+            "dense_dialogue",
+            "dense_dialogue_impact_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "dense_dialogue",
+              "members": [
+                "dense_dialogue",
+                "dense_dialogue_impact_contrast_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "high_air_energy",
+          "weight": 0.08,
+          "members": [
+            "high_air_drive",
+            "high_air_drive_air_minus_5"
+          ],
+          "parents": [
+            {
+              "id": "high_air_drive",
+              "members": [
+                "high_air_drive",
+                "high_air_drive_air_minus_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sparse_transition",
+          "weight": 0.07,
+          "members": [
+            "sparse_lowline",
+            "sparse_lowline_air_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "sparse_lowline",
+              "members": [
+                "sparse_lowline",
+                "sparse_lowline_air_minus_4"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "capability",
+      "weight": 0.15,
+      "groups": [
+        {
+          "id": "rapid_pickup_frontier",
+          "weight": 0.4,
+          "members": [
+            "frontier_pickup_progression",
+            "frontier_pickup_progression_shifted"
+          ],
+          "parents": [
+            {
+              "id": "frontier_pickup_progression",
+              "members": [
+                "frontier_pickup_progression",
+                "frontier_pickup_progression_shifted"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_recovery_frontier",
+          "weight": 0.35,
+          "members": [
+            "frontier_dense_recovery",
+            "frontier_dense_recovery_240ms_figures"
+          ],
+          "parents": [
+            {
+              "id": "frontier_dense_recovery",
+              "members": [
+                "frontier_dense_recovery",
+                "frontier_dense_recovery_240ms_figures"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "low_air_frontier",
+          "weight": 0.25,
+          "members": [
+            "frontier_low_air_endurance",
+            "frontier_low_air_endurance_4s"
+          ],
+          "parents": [
+            {
+              "id": "frontier_low_air_endurance",
+              "members": [
+                "frontier_low_air_endurance",
+                "frontier_low_air_endurance_4s"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "legacy_regression",
+      "weight": 0.1,
+      "groups": [
+        {
+          "id": "legacy_transition_regression",
+          "weight": 0.55,
+          "members": [
+            "regression_transition_mosaic",
+            "regression_transition_mosaic_tempo_fast_5"
+          ],
+          "parents": [
+            {
+              "id": "regression_transition_mosaic",
+              "members": [
+                "regression_transition_mosaic",
+                "regression_transition_mosaic_tempo_fast_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legacy_amplitude_regression",
+          "weight": 0.45,
+          "members": [
+            "regression_amplitude_mosaic",
+            "regression_amplitude_mosaic_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "regression_amplitude_mosaic",
+              "members": [
+                "regression_amplitude_mosaic",
+                "regression_amplitude_mosaic_contrast_10"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "development_music",
+      "weight": 0.05,
+      "groups": [
+        {
+          "id": "believer_56s",
+          "weight": 1,
+          "members": [
+            "believer_56_6s",
+            "believer_56_6s_impact_relief",
+            "believer_impact_56s",
+            "believer_impact_56s_amplitude_plus_5"
+          ],
+          "parents": [
+            {
+              "id": "believer_56_6s",
+              "members": [
+                "believer_56_6s",
+                "believer_56_6s_impact_relief"
+              ]
+            },
+            {
+              "id": "believer_impact_56s",
+              "members": [
+                "believer_impact_56s",
+                "believer_impact_56s_amplitude_plus_5"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "component_weights": {
+    "air": 0.3,
+    "speed": 0.3,
+    "impact": 0.3,
+    "amplitude": 0.1
+  },
+  "axis_quality_tolerance": 0.25,
+  "transform": {
+    "kind": "production_felt_jolt",
+    "jolt_ms": -15
+  },
+  "seed_policy": {
+    "kind": "budget_disjoint_contiguous",
+    "seed_base": 0
+  },
+  "profiles": {
+    "probe": {
+      "budgets": [
+        250000,
+        500000
+      ],
+      "seeds_per_budget": 3
+    },
+    "canonical": {
+      "budgets": [
+        250000,
+        500000,
+        750000
+      ],
+      "seeds_per_budget": 4
+    }
+  },
+  "budget_weights": [
+    {
+      "budget": 250000,
+      "weight": 0.2
+    },
+    {
+      "budget": 500000,
+      "weight": 0.5
+    },
+    {
+      "budget": 750000,
+      "weight": 0.3
+    }
+  ]
+}

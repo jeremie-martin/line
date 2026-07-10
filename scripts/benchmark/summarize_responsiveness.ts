@@ -1,0 +1,108 @@
+import { createHash } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+
+const paths = {
+  baseline: "generated/benchmark-v2/calibration/baseline-probe.json",
+  impactOff: "generated/benchmark-v2/calibration/impact-off-probe.json",
+  narrowBreadth: "generated/benchmark-v2/calibration/quality-ncand-1-probe.json",
+};
+const archives = Object.fromEntries(Object.entries(paths).map(([id, path]) => [id, verified(path)])) as
+  Record<keyof typeof paths, any>;
+const policies = new Set(Object.values(archives).map((archive) => archive.identity.executionPolicyFingerprint));
+if (policies.size !== 1) throw new Error(`responsiveness archives do not use one execution policy`);
+const report = {
+  schema: "line.benchmark-v2.responsiveness-study.v1",
+  status: "complete",
+  purpose: "Confirm that the frozen probe detects broad and axis-specific compiler degradations under an identical execution policy.",
+  executionPolicyFingerprint: archives.baseline.identity.executionPolicyFingerprint,
+  cases: [
+    summarize("baseline", archives.baseline),
+    summarize("impact_blindness", archives.impactOff),
+    summarize("candidate_breadth_1", archives.narrowBreadth),
+  ],
+};
+write("benchmark/v2/studies/responsiveness.json", `${JSON.stringify(report, null, 2)}\n`);
+write("docs/benchmark-v2-responsiveness.md", markdown(report));
+console.log(markdown(report));
+
+function summarize(id: string, archive: any): Record<string, unknown> {
+  const baselineHeadline = archives.baseline.canonicalHeadline;
+  return {
+    id,
+    archive: paths[id === "baseline" ? "baseline" : id === "impact_blindness" ? "impactOff" : "narrowBreadth"],
+    archiveSha256: archive.__sha256,
+    compilerEnvironment: archive.git.compilerEnvironment,
+    headline: archive.canonicalHeadline,
+    deltaFromBaseline: round(archive.canonicalHeadline - baselineHeadline),
+    validRuns: archive.runs.filter((run: any) => run.score.valid).length,
+    totalRuns: archive.runs.length,
+    budgets: archive.developmentSummaries.map((summary: any) => ({
+      budget: summary.budget,
+      score: summary.score,
+      validRuns: summary.validRuns,
+      totalRuns: summary.totalRuns,
+    })),
+    strata: weightedStrata(archive),
+    hardFailures: counts(archive.runs.flatMap((run: any) => run.score.hardFailures.map((failure: string) => failure.split(":")[0]))),
+  };
+}
+
+function weightedStrata(archive: any): Record<string, number> {
+  const weights = new Map([[250_000, 2 / 7], [500_000, 5 / 7]]);
+  const out: Record<string, number> = {};
+  for (const summary of archive.developmentSummaries) {
+    for (const stratum of summary.strata) {
+      out[stratum.id] = (out[stratum.id] ?? 0) + (weights.get(summary.budget) ?? 0) * stratum.score;
+    }
+  }
+  return Object.fromEntries(Object.entries(out).map(([id, score]) => [id, round(score)]));
+}
+
+function verified(path: string): any {
+  const bytes = readFileSync(path);
+  const sha256 = createHash("sha256").update(bytes).digest("hex");
+  const expected = readFileSync(`${path}.sha256`, "utf8").trim().split(/\s+/)[0];
+  if (sha256 !== expected) throw new Error(`${path}: checksum mismatch`);
+  const archive = JSON.parse(bytes.toString("utf8"));
+  if (archive.schema !== "line.benchmark-v2.run-archive.v2" || archive.profile !== "probe") {
+    throw new Error(`${path}: not a V2 probe archive`);
+  }
+  return { ...archive, __sha256: sha256 };
+}
+
+function markdown(report: any): string {
+  const lines = [
+    "# Benchmark V2 Responsiveness Calibration",
+    "",
+    "All runs use the same catalog, budgets, disjoint seeds, scoring, engine, and harness. Only the declared compiler environment changes.",
+    "",
+    "| Case | Environment | Headline | Delta | Valid |",
+    "|---|---|---:|---:|---:|",
+    ...report.cases.map((entry: any) =>
+      `| ${entry.id} | ${JSON.stringify(entry.compilerEnvironment)} | ${entry.headline.toFixed(2)} | ` +
+      `${entry.deltaFromBaseline.toFixed(2)} | ${entry.validRuns}/${entry.totalRuns} |`
+    ),
+    "",
+    "`LR_QUALITY_NCAND=1` is the graded calibration: it lowers every stratum and the paired decision rejects it with a 159.63-point headline loss. " +
+      "`LR_IMPACT_OFF=1` is the contract calibration: authored impact measurements disappear, so every run is invalid rather than silently ignoring the axis.",
+    "",
+  ];
+  return `${lines.join("\n")}\n`;
+}
+
+function counts(values: string[]): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const value of values) result[value] = (result[value] ?? 0) + 1;
+  return result;
+}
+
+function write(path: string, contents: string): void {
+  const absolute = resolve(path);
+  mkdirSync(dirname(absolute), { recursive: true });
+  writeFileSync(absolute, contents);
+}
+
+function round(value: number): number {
+  return Math.round(value * 10_000) / 10_000;
+}

@@ -1,0 +1,1036 @@
+{
+  "schema": "line.benchmark-v2.seed-allocation-study.v1",
+  "sourceStudy": "generated/benchmark-v2/studies/v2.1-seed-reference-750k.json",
+  "sourceSuite": "benchmark/v2/compat/suite-manifest.json",
+  "suiteFingerprint": "64d94d89701f575d7c373197fd9000b7e58d4fef963f3e1d1de2db6f4a93a374",
+  "reference": {
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "budgets": [
+      250000,
+      500000,
+      750000
+    ],
+    "headline": 450.8381,
+    "validRuns": 1358,
+    "totalRuns": 1512,
+    "budgetScores": [
+      {
+        "budget": 250000,
+        "score": 423.2919,
+        "validRuns": 428,
+        "totalRuns": 504
+      },
+      {
+        "budget": 500000,
+        "score": 453.6698,
+        "validRuns": 460,
+        "totalRuns": 504
+      },
+      {
+        "budget": 750000,
+        "score": 464.4826,
+        "validRuns": 470,
+        "totalRuns": 504
+      }
+    ]
+  },
+  "method": {
+    "singleBudget": "All seed subsets of the requested size are compared with the corresponding 12-seed budget reference.",
+    "schedules": "4096 deterministic shuffled allocations assign disjoint actual seeds to each budget; no seed is reused across budgets within a schedule."
+  },
+  "singleBudget": [
+    {
+      "budget": 250000,
+      "seedCount": 1,
+      "subsets": 12,
+      "absoluteError": {
+        "p50": 17.0185,
+        "p90": 23.3901,
+        "p95": 23.8446,
+        "max": 24.1927
+      }
+    },
+    {
+      "budget": 250000,
+      "seedCount": 2,
+      "subsets": 66,
+      "absoluteError": {
+        "p50": 4.5373,
+        "p90": 21.4029,
+        "p95": 22.4457,
+        "max": 23.785
+      }
+    },
+    {
+      "budget": 250000,
+      "seedCount": 3,
+      "subsets": 220,
+      "absoluteError": {
+        "p50": 3.6859,
+        "p90": 19.9968,
+        "p95": 21.0926,
+        "max": 23.091
+      }
+    },
+    {
+      "budget": 250000,
+      "seedCount": 4,
+      "subsets": 495,
+      "absoluteError": {
+        "p50": 3.9539,
+        "p90": 8.087,
+        "p95": 19.8643,
+        "max": 22.5358
+      }
+    },
+    {
+      "budget": 250000,
+      "seedCount": 6,
+      "subsets": 924,
+      "absoluteError": {
+        "p50": 2.5692,
+        "p90": 8.1994,
+        "p95": 9.2941,
+        "max": 21.1062
+      }
+    },
+    {
+      "budget": 250000,
+      "seedCount": 8,
+      "subsets": 495,
+      "absoluteError": {
+        "p50": 1.7254,
+        "p90": 4.7926,
+        "p95": 5.8087,
+        "max": 12.548
+      }
+    },
+    {
+      "budget": 500000,
+      "seedCount": 1,
+      "subsets": 12,
+      "absoluteError": {
+        "p50": 3.3759,
+        "p90": 19.5009,
+        "p95": 21.2105,
+        "max": 22.5956
+      }
+    },
+    {
+      "budget": 500000,
+      "seedCount": 2,
+      "subsets": 66,
+      "absoluteError": {
+        "p50": 2.1721,
+        "p90": 4.8949,
+        "p95": 6.2557,
+        "max": 21.2545
+      }
+    },
+    {
+      "budget": 500000,
+      "seedCount": 3,
+      "subsets": 220,
+      "absoluteError": {
+        "p50": 1.4702,
+        "p90": 3.5545,
+        "p95": 5.2185,
+        "max": 9.4703
+      }
+    },
+    {
+      "budget": 500000,
+      "seedCount": 4,
+      "subsets": 495,
+      "absoluteError": {
+        "p50": 1.1223,
+        "p90": 2.8678,
+        "p95": 3.4186,
+        "max": 6.0157
+      }
+    },
+    {
+      "budget": 500000,
+      "seedCount": 6,
+      "subsets": 924,
+      "absoluteError": {
+        "p50": 0.8227,
+        "p90": 1.8814,
+        "p95": 2.3087,
+        "max": 3.3315
+      }
+    },
+    {
+      "budget": 500000,
+      "seedCount": 8,
+      "subsets": 495,
+      "absoluteError": {
+        "p50": 0.5561,
+        "p90": 1.3337,
+        "p95": 1.5515,
+        "max": 1.9881
+      }
+    },
+    {
+      "budget": 750000,
+      "seedCount": 1,
+      "subsets": 12,
+      "absoluteError": {
+        "p50": 14.6569,
+        "p90": 34.8169,
+        "p95": 36.2075,
+        "max": 37.6767
+      }
+    },
+    {
+      "budget": 750000,
+      "seedCount": 2,
+      "subsets": 66,
+      "absoluteError": {
+        "p50": 6.4292,
+        "p90": 20.6526,
+        "p95": 24.332,
+        "max": 36.0427
+      }
+    },
+    {
+      "budget": 750000,
+      "seedCount": 3,
+      "subsets": 220,
+      "absoluteError": {
+        "p50": 4.6417,
+        "p90": 18.5971,
+        "p95": 21.089,
+        "max": 34.9964
+      }
+    },
+    {
+      "budget": 750000,
+      "seedCount": 4,
+      "subsets": 495,
+      "absoluteError": {
+        "p50": 4.0675,
+        "p90": 11.5777,
+        "p95": 14.9971,
+        "max": 26.5425
+      }
+    },
+    {
+      "budget": 750000,
+      "seedCount": 6,
+      "subsets": 924,
+      "absoluteError": {
+        "p50": 2.7394,
+        "p90": 7.0228,
+        "p95": 8.9676,
+        "max": 20.8692
+      }
+    },
+    {
+      "budget": 750000,
+      "seedCount": 8,
+      "subsets": 495,
+      "absoluteError": {
+        "p50": 1.8417,
+        "p90": 4.5575,
+        "p95": 5.8466,
+        "max": 10.0661
+      }
+    }
+  ],
+  "schedules": [
+    {
+      "profile": "probe",
+      "seedCount": 1,
+      "allocations": 4096,
+      "compileCount": 84,
+      "headlineAbsoluteError": {
+        "p50": 5.1637,
+        "p90": 14.9571,
+        "p95": 20.8731,
+        "max": 23.0519
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.0119,
+        "p90": 0.0119,
+        "p95": 0.0119,
+        "max": 0.0238
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 6.448,
+          "p90": 11.1381,
+          "p95": 13.4925,
+          "max": 17.5013
+        },
+        "capability": {
+          "p50": 2.8533,
+          "p90": 102.2543,
+          "p95": 102.2543,
+          "max": 105.362
+        },
+        "legacy_regression": {
+          "p50": 4.3077,
+          "p90": 10.8752,
+          "p95": 13.2954,
+          "max": 20.6864
+        },
+        "development_music": {
+          "p50": 6.9657,
+          "p90": 16.8121,
+          "p95": 20.3251,
+          "max": 25.1987
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "p95": 341.73192857142857
+        },
+        {
+          "id": "frontier_pickup_progression_shifted",
+          "p95": 267.1737142857143
+        },
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 264.35850000000005
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 254.7199285714286
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 122.91168571428568
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 106.59912857142854
+        },
+        {
+          "id": "meter_exchange_speed_plus_4",
+          "p95": 82.13717142857138
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 69.95024285714283
+        }
+      ]
+    },
+    {
+      "profile": "probe",
+      "seedCount": 2,
+      "allocations": 4096,
+      "compileCount": 168,
+      "headlineAbsoluteError": {
+        "p50": 2.7415,
+        "p90": 7.8125,
+        "p95": 9.0976,
+        "max": 21.9775
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.006,
+        "p90": 0.0119,
+        "p95": 0.0119,
+        "max": 0.0179
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 3.3167,
+          "p90": 9.7843,
+          "p95": 11.094,
+          "max": 15.8719
+        },
+        "capability": {
+          "p50": 5.8361,
+          "p90": 16.9801,
+          "p95": 17.5158,
+          "max": 103.118
+        },
+        "legacy_regression": {
+          "p50": 3.3313,
+          "p90": 7.5058,
+          "p95": 8.7595,
+          "max": 12.9628
+        },
+        "development_music": {
+          "p50": 4.8451,
+          "p90": 10.7112,
+          "p95": 12.713,
+          "max": 18.8932
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "p95": 335.44107142857143
+        },
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 254.06721428571433
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 249.78650000000002
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 114.82000357142857
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 65.40603214285716
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 64.0838
+        },
+        {
+          "id": "believer_impact_56s",
+          "p95": 54.93301785714283
+        },
+        {
+          "id": "meter_exchange_speed_plus_4",
+          "p95": 43.70721428571426
+        }
+      ]
+    },
+    {
+      "profile": "probe",
+      "seedCount": 3,
+      "allocations": 4096,
+      "compileCount": 252,
+      "headlineAbsoluteError": {
+        "p50": 1.5813,
+        "p90": 6.3473,
+        "p95": 7.3816,
+        "max": 12.9654
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.004,
+        "p90": 0.0079,
+        "p95": 0.0079,
+        "max": 0.0159
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 1.9775,
+          "p90": 8.5076,
+          "p95": 9.8361,
+          "max": 13.5836
+        },
+        "capability": {
+          "p50": 5.201,
+          "p90": 7.309,
+          "p95": 14.7383,
+          "max": 40.8404
+        },
+        "legacy_regression": {
+          "p50": 2.219,
+          "p90": 5.4347,
+          "p95": 6.3256,
+          "max": 9.4202
+        },
+        "development_music": {
+          "p50": 3.2638,
+          "p90": 7.6971,
+          "p95": 9.1364,
+          "max": 13.4942
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 248.55528571428573
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 109.97367857142855
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 60.48664285714291
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 48.898150000000015
+        },
+        {
+          "id": "believer_impact_56s",
+          "p95": 44.207232142857094
+        },
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "p95": 40.864
+        },
+        {
+          "id": "rising_switch",
+          "p95": 29.09918571428574
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 28.17207142857143
+        }
+      ]
+    },
+    {
+      "profile": "probe",
+      "seedCount": 4,
+      "allocations": 4096,
+      "compileCount": 336,
+      "headlineAbsoluteError": {
+        "p50": 1.3643,
+        "p90": 3.7034,
+        "p95": 5.6352,
+        "max": 10.6128
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.003,
+        "p90": 0.006,
+        "p95": 0.0089,
+        "max": 0.0119
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 1.7124,
+          "p90": 4.4356,
+          "p95": 7.6717,
+          "max": 11.6994
+        },
+        "capability": {
+          "p50": 3.5833,
+          "p90": 14.1866,
+          "p95": 16.7434,
+          "max": 22.2145
+        },
+        "legacy_regression": {
+          "p50": 1.7875,
+          "p90": 4.1924,
+          "p95": 4.8839,
+          "max": 7.5444
+        },
+        "development_music": {
+          "p50": 2.5144,
+          "p90": 5.7998,
+          "p95": 6.7649,
+          "max": 10.6012
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 107.2116035714286
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 55.27979285714285
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 49.24803571428571
+        },
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 47.517785714285715
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 36.68560357142859
+        },
+        {
+          "id": "believer_impact_56s",
+          "p95": 35.825600000000065
+        },
+        {
+          "id": "rising_switch",
+          "p95": 23.02846785714283
+        },
+        {
+          "id": "rising_switch_tempo_fast_5",
+          "p95": 19.26757500000005
+        }
+      ]
+    },
+    {
+      "profile": "probe",
+      "seedCount": 5,
+      "allocations": 4096,
+      "compileCount": 420,
+      "headlineAbsoluteError": {
+        "p50": 1.1035,
+        "p90": 3.0841,
+        "p95": 3.7842,
+        "max": 8.8641
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.0024,
+        "p90": 0.0071,
+        "p95": 0.0071,
+        "max": 0.0119
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 1.3625,
+          "p90": 3.9733,
+          "p95": 4.6647,
+          "max": 10.5883
+        },
+        "capability": {
+          "p50": 2.43,
+          "p90": 10.2582,
+          "p95": 10.5325,
+          "max": 14.4364
+        },
+        "legacy_regression": {
+          "p50": 1.3293,
+          "p90": 3.0758,
+          "p95": 3.5508,
+          "max": 6.0867
+        },
+        "development_music": {
+          "p50": 1.8156,
+          "p90": 4.2947,
+          "p95": 5.0173,
+          "max": 8.8086
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 103.2358535714286
+        },
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 67.8932142857143
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 51.85853214285716
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 27.18368214285715
+        },
+        {
+          "id": "believer_impact_56s",
+          "p95": 25.84510000000003
+        },
+        {
+          "id": "rising_switch",
+          "p95": 17.926699999999983
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 16.244285714285713
+        },
+        {
+          "id": "rising_switch_tempo_fast_5",
+          "p95": 13.893975000000012
+        }
+      ]
+    },
+    {
+      "profile": "probe",
+      "seedCount": 6,
+      "allocations": 4096,
+      "compileCount": 504,
+      "headlineAbsoluteError": {
+        "p50": 0.8879,
+        "p90": 2.4965,
+        "p95": 3.0979,
+        "max": 6.7147
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.002,
+        "p90": 0.006,
+        "p95": 0.006,
+        "max": 0.0099
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 1.1911,
+          "p90": 3.5374,
+          "p95": 4.2919,
+          "max": 9.0511
+        },
+        "capability": {
+          "p50": 2.5231,
+          "p90": 6.9826,
+          "p95": 9.766,
+          "max": 10.1751
+        },
+        "legacy_regression": {
+          "p50": 0.9636,
+          "p90": 2.2869,
+          "p95": 2.5624,
+          "max": 3.4994
+        },
+        "development_music": {
+          "p50": 1.1131,
+          "p90": 2.5952,
+          "p95": 2.9765,
+          "max": 4.2125
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 84.35549999999999
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 49.18625714285719
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 34.265871428571415
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 27.189357142857144
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 17.595771428571425
+        },
+        {
+          "id": "believer_impact_56s",
+          "p95": 16.199971428571416
+        },
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "p95": 12.265142857142855
+        },
+        {
+          "id": "rising_switch",
+          "p95": 12.23751428571427
+        }
+      ]
+    },
+    {
+      "profile": "canonical",
+      "seedCount": 1,
+      "allocations": 4096,
+      "compileCount": 126,
+      "headlineAbsoluteError": {
+        "p50": 6.5077,
+        "p90": 14.4394,
+        "p95": 17.8522,
+        "max": 27.4393
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.0066,
+        "p90": 0.0172,
+        "p95": 0.0172,
+        "max": 0.0251
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 4.0676,
+          "p90": 7.6662,
+          "p95": 9.3611,
+          "max": 13.2755
+        },
+        "capability": {
+          "p50": 26.0142,
+          "p90": 85.0309,
+          "p95": 97.1468,
+          "max": 142.2118
+        },
+        "legacy_regression": {
+          "p50": 3.6362,
+          "p90": 7.895,
+          "p95": 9.3955,
+          "max": 16.8729
+        },
+        "development_music": {
+          "p50": 4.9854,
+          "p90": 12.0374,
+          "p95": 14.6864,
+          "max": 21.7234
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 276.74798
+        },
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 251.87489
+        },
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "p95": 241.84068000000002
+        },
+        {
+          "id": "frontier_pickup_progression_shifted",
+          "p95": 188.79675
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 87.92171000000008
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 74.89160999999996
+        },
+        {
+          "id": "meter_exchange_speed_plus_4",
+          "p95": 51.97331999999997
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 49.69324
+        }
+      ]
+    },
+    {
+      "profile": "canonical",
+      "seedCount": 2,
+      "allocations": 4096,
+      "compileCount": 252,
+      "headlineAbsoluteError": {
+        "p50": 3.5955,
+        "p90": 10.0656,
+        "p95": 11.7441,
+        "max": 21.9051
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.0053,
+        "p90": 0.0132,
+        "p95": 0.0146,
+        "max": 0.0212
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 2.2658,
+          "p90": 6.9746,
+          "p95": 7.856,
+          "max": 10.8895
+        },
+        "capability": {
+          "p50": 13.6288,
+          "p90": 48.154,
+          "p95": 67.1094,
+          "max": 141.6919
+        },
+        "legacy_regression": {
+          "p50": 2.2182,
+          "p90": 5.1423,
+          "p95": 6.0712,
+          "max": 8.9415
+        },
+        "development_music": {
+          "p50": 3.2335,
+          "p90": 7.4465,
+          "p95": 8.7061,
+          "max": 13.774
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 245.57013750000002
+        },
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "p95": 233.70868000000002
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 172.50361
+        },
+        {
+          "id": "frontier_pickup_progression_shifted",
+          "p95": 118.98895999999999
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 80.80168750000004
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 47.12159749999999
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 44.992084999999946
+        },
+        {
+          "id": "believer_impact_56s",
+          "p95": 41.066934999999944
+        }
+      ]
+    },
+    {
+      "profile": "canonical",
+      "seedCount": 3,
+      "allocations": 4096,
+      "compileCount": 378,
+      "headlineAbsoluteError": {
+        "p50": 2.1311,
+        "p90": 6.6104,
+        "p95": 7.8839,
+        "max": 16.7875
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.004,
+        "p90": 0.0093,
+        "p95": 0.0093,
+        "max": 0.0172
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 1.2961,
+          "p90": 5.9747,
+          "p95": 6.809,
+          "max": 9.1891
+        },
+        "capability": {
+          "p50": 9.8188,
+          "p90": 37.7687,
+          "p95": 42.7573,
+          "max": 79.5181
+        },
+        "legacy_regression": {
+          "p50": 1.4541,
+          "p90": 3.4234,
+          "p95": 3.9427,
+          "max": 7.3441
+        },
+        "development_music": {
+          "p50": 2.0422,
+          "p90": 4.7414,
+          "p95": 5.5861,
+          "max": 9.549
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 150.50394
+        },
+        {
+          "id": "frontier_pickup_progression_shifted",
+          "p95": 110.41780999999999
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 99.34999000000002
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 77.803985
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 42.25559500000003
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 29.991787500000015
+        },
+        {
+          "id": "believer_impact_56s",
+          "p95": 29.20179999999999
+        },
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "p95": 29.01012
+        }
+      ]
+    },
+    {
+      "profile": "canonical",
+      "seedCount": 4,
+      "allocations": 4096,
+      "compileCount": 504,
+      "headlineAbsoluteError": {
+        "p50": 1.6187,
+        "p90": 5.1409,
+        "p95": 6.066,
+        "max": 11.823
+      },
+      "validRateAbsoluteError": {
+        "p50": 0.0033,
+        "p90": 0.0073,
+        "p95": 0.0086,
+        "max": 0.0146
+      },
+      "stratumAbsoluteError": {
+        "representative": {
+          "p50": 1.252,
+          "p90": 2.6385,
+          "p95": 5.6839,
+          "max": 7.3898
+        },
+        "capability": {
+          "p50": 7.9433,
+          "p90": 25.425,
+          "p95": 33.5679,
+          "max": 54.8269
+        },
+        "legacy_regression": {
+          "p50": 0.9286,
+          "p90": 2.1822,
+          "p95": 2.5441,
+          "max": 3.9621
+        },
+        "development_music": {
+          "p50": 1.2554,
+          "p90": 2.9023,
+          "p95": 3.3757,
+          "max": 5.5652
+        }
+      },
+      "worstSourceP95AbsoluteError": [
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "p95": 103.83832500000001
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "p95": 94.13725
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "p95": 75.94621500000002
+        },
+        {
+          "id": "dense_dialogue",
+          "p95": 38.168347499999996
+        },
+        {
+          "id": "frontier_pickup_progression_shifted",
+          "p95": 21.43862
+        },
+        {
+          "id": "believer_impact_56s",
+          "p95": 19.49364750000001
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "p95": 17.89399000000006
+        },
+        {
+          "id": "rising_switch",
+          "p95": 10.950212499999978
+        }
+      ]
+    }
+  ]
+}

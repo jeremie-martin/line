@@ -1,0 +1,46 @@
+{
+  "schema": "line.benchmark-v2.baseline-reference.v2",
+  "status": "canonical-baseline",
+  "label": "baseline-revised-v2",
+  "generated_at": "2026-07-10T11:05:32.080Z",
+  "bundle": "benchmark/v2/runs/baseline-revised-v2-canonical.json",
+  "suite_fingerprint": "901e0efdcf312642aed62225e5e9ae114c0d44889bf0b0a41ee5eb5a5e54235e",
+  "engine": "wasm",
+  "compiler_source_fingerprint": "2cdbe6cddf1fc6c63146c3942404e40ca49ff9a18621817aa1f616a3a5c13036",
+  "compiler_environment": {},
+  "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
+  "candidate_fingerprint": "44bac2ac3d88ad27a9fb29c56a89bb11544f9d985f56e588195b98e3360ab4a5",
+  "development": {
+    "execution_policy_fingerprint": "5a290965e385be2f6c81c8f45527bc7e232f4f5dbebc3039a9cd7d02bd1762f8",
+    "archive_sha256": "66aedd255a3c7493e1f6d6cdfcfca20168c02ac8b7b0d5271fb27c6027e82ff1",
+    "compressed_archive": "benchmark/v2/runs/baseline-revised-v2-development.json.gz",
+    "compressed_archive_sha256": "2b34363b52bb3f5132f8ceb9e5db8dfc50cd1b04604a124aef915ad1d274bf5d",
+    "canonical_headline": 412.8268,
+    "strata": [
+      { "id": "representative", "weight": 0.70, "weighted_budget_score": 480.7014 },
+      { "id": "capability", "weight": 0.15, "weighted_budget_score": 68.4451 },
+      { "id": "legacy_regression", "weight": 0.10, "weighted_budget_score": 472.1955 },
+      { "id": "development_music", "weight": 0.05, "weighted_budget_score": 376.9897 }
+    ],
+    "budgets": [
+      { "budget": 125000, "score": 1.0918, "valid_runs": 3, "total_runs": 63 },
+      { "budget": 250000, "score": 423.5162, "valid_runs": 53, "total_runs": 63 },
+      { "budget": 375000, "score": 455.3839, "valid_runs": 56, "total_runs": 63 },
+      { "budget": 500000, "score": 478.4979, "valid_runs": 57, "total_runs": 63 }
+    ]
+  },
+  "qualification": {
+    "execution_policy_fingerprint": "bcaa56db64b77b2bf2e3ea354d11b3e89630618da3deac12e0b7c85467b250f5",
+    "archive_sha256": "8039c4e38d3d15117588384ddac7cfc4a865e4d5cd7865e498bd826a657f5db5",
+    "compressed_archive": "benchmark/v2/runs/baseline-revised-v2-qualification.json.gz",
+    "compressed_archive_sha256": "17ea7cc067dc27c5407826d08fa2249d0fd0eababc9ff14bc228d426cd6ca0df",
+    "linked_development_archive_sha256": "66aedd255a3c7493e1f6d6cdfcfca20168c02ac8b7b0d5271fb27c6027e82ff1",
+    "monitor_score": 317.86,
+    "budgets": [
+      { "budget": 125000, "monitor_score": 6.2367, "valid_runs": 5, "total_runs": 15 },
+      { "budget": 250000, "monitor_score": 253.6021, "valid_runs": 14, "total_runs": 15 },
+      { "budget": 375000, "monitor_score": 380.1709, "valid_runs": 15, "total_runs": 15 },
+      { "budget": 500000, "monitor_score": 381.1615, "valid_runs": 15, "total_runs": 15 }
+    ]
+  }
+}

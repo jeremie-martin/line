@@ -1,0 +1,100 @@
+{
+  "schema": "line.benchmark-v2.score.v1",
+  "id": "open_hook",
+  "title": "Open Hook",
+  "duration": 58,
+  "provenance": { "kind": "reference_informed_manual", "authoring_brief": "Dense 490ms hooks alternate with open 980ms responses whose amplitude is authored as phrase intent rather than gap length alone." },
+  "primary_family": "spacious_amplitude",
+  "diagnostic_tags": ["dense_sparse", "amplitude", "hook_response"],
+  "pulse_regions": [
+    { "start": 0.49, "end": 10.29, "pulse_seconds": 0.49, "intent": "compact opening hooks" },
+    { "start": 10.29, "end": 15.19, "pulse_seconds": 0.98, "intent": "first open response" },
+    { "start": 15.19, "end": 28.42, "pulse_seconds": 0.49, "intent": "extended hook body" },
+    { "start": 28.42, "end": 33.32, "pulse_seconds": 0.98, "intent": "second open response" },
+    { "start": 33.32, "end": 43.12, "pulse_seconds": 0.49, "intent": "final compact body" }
+  ],
+  "phrases": {
+    "hook_a": [
+      { "offset": 0, "role": "primary", "impact": 0.68 },
+      { "offset": 0.49, "role": "support", "impact": 0.34 },
+      { "offset": 0.98, "role": "accent", "impact": 0.78 },
+      { "offset": 1.47, "role": "support", "impact": 0.37 },
+      { "offset": 1.96, "role": "primary", "impact": 0.61 },
+      { "offset": 2.45, "role": "fill", "impact": 0.46 },
+      { "offset": 2.94, "role": "accent", "impact": 0.82 },
+      { "offset": 3.43, "role": "support", "impact": 0.39 },
+      { "offset": 3.92, "role": "reentry", "impact": 0.87 }
+    ],
+    "open_response": [
+      { "offset": 0, "role": "primary", "impact": 0.72 },
+      { "offset": 0.98, "role": "support", "impact": 0.30 },
+      { "offset": 1.96, "role": "accent", "impact": 0.76 },
+      { "offset": 2.94, "role": "support", "impact": 0.34 },
+      { "offset": 3.92, "role": "breath_exit", "impact": 0.90 },
+      { "offset": 4.90, "role": "reentry", "impact": 0.69 }
+    ],
+    "hook_b": [
+      { "offset": 0, "role": "accent", "impact": 0.84 },
+      { "offset": 0.49, "role": "support", "impact": 0.40 },
+      { "offset": 0.98, "role": "primary", "impact": 0.65 },
+      { "offset": 1.47, "role": "support", "impact": 0.35 },
+      { "offset": 1.96, "role": "fill", "impact": 0.51 },
+      { "offset": 2.45, "role": "accent", "impact": 0.88 },
+      { "offset": 2.94, "role": "support", "impact": 0.43 },
+      { "offset": 3.43, "role": "primary", "impact": 0.67 },
+      { "offset": 3.92, "role": "reentry", "impact": 0.91 }
+    ],
+    "tail": [
+      { "offset": 0, "role": "primary", "impact": 0.62 },
+      { "offset": 0.49, "role": "support", "impact": 0.31 },
+      { "offset": 1.47, "role": "tail", "impact": 0.26 },
+      { "offset": 2.45, "role": "tail", "impact": 0.21 },
+      { "offset": 3.92, "role": "tail", "impact": 0.16 },
+      { "offset": 5.39, "role": "tail", "impact": 0.11 },
+      { "offset": 7.35, "role": "tail", "impact": 0.08 }
+    ]
+  },
+  "placements": [
+    { "at": 0.49, "phrase": "hook_a" },
+    { "at": 4.90, "phrase": "hook_a" },
+    { "at": 10.29, "phrase": "open_response" },
+    { "at": 15.68, "phrase": "hook_b" },
+    { "at": 20.09, "phrase": "hook_b" },
+    { "at": 24.50, "phrase": "hook_b" },
+    { "at": 29.40, "phrase": "open_response" },
+    { "at": 34.79, "phrase": "hook_a" },
+    { "at": 39.20, "phrase": "hook_b" },
+    { "at": 43.61, "phrase": "tail" }
+  ],
+  "axes": {
+    "air": [
+      { "t": 0, "v": 0.40, "ease": "smooth", "intent": "compact opening" },
+      { "t": 10.29, "v": 0.68, "ease": "smooth", "intent": "first open response" },
+      { "t": 15.68, "v": 0.50, "ease": "smooth", "intent": "hook returns" },
+      { "t": 29.40, "v": 0.74, "ease": "smooth", "intent": "second response wider" },
+      { "t": 38, "v": 0.56, "ease": "smooth", "intent": "late hook controlled" },
+      { "t": 58, "v": 0.48, "intent": "tail supported" }
+    ],
+    "speed": [
+      { "t": 0, "v": 0.42, "ease": "smooth", "intent": "first hook" },
+      { "t": 12, "v": 0.62, "ease": "smooth", "intent": "open response carries momentum" },
+      { "t": 25, "v": 0.82, "ease": "easeOut", "intent": "extended hook crest" },
+      { "t": 34, "v": 0.72, "ease": "smooth", "intent": "second response releases" },
+      { "t": 44, "v": 0.78, "ease": "smooth", "intent": "late hook" },
+      { "t": 58, "v": 0.52, "intent": "tail" }
+    ],
+    "amplitude": [
+      { "t": 0, "v": 0.10, "ease": "smooth", "intent": "dense hook restrained" },
+      { "t": 9.8, "v": 0.14, "ease": "easeOut", "intent": "prepare first response" },
+      { "t": 14.21, "v": 0.64, "ease": "smooth", "intent": "first response arc" },
+      { "t": 15.68, "v": 0.09, "ease": "smooth", "intent": "return to compact hook" },
+      { "t": 28.9, "v": 0.16, "ease": "easeOut", "intent": "prepare second response" },
+      { "t": 33.32, "v": 0.78, "ease": "smooth", "intent": "second response arc" },
+      { "t": 34.79, "v": 0.08, "ease": "smooth", "intent": "late hook compact" },
+      { "t": 49, "v": 0.52, "ease": "smooth", "intent": "tail opens" },
+      { "t": 58, "v": 0.28, "intent": "finish" }
+    ]
+  },
+  "preroll": 5,
+  "jitter": 0
+}

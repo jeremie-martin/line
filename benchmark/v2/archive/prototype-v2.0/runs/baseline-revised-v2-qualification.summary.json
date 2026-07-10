@@ -1,0 +1,179 @@
+{
+  "schema": "line.benchmark-v2.run-summary.v1",
+  "mode": "qualification",
+  "profile": "full",
+  "generatedAt": "2026-07-10T11:05:31.722Z",
+  "archive": "generated/benchmark-v2/canonical-runs/baseline-revised-v2-qualification.json",
+  "compressedArchive": "generated/benchmark-v2/canonical-runs/baseline-revised-v2-qualification.json.gz",
+  "archiveSha256": "8039c4e38d3d15117588384ddac7cfc4a865e4d5cd7865e498bd826a657f5db5",
+  "compressedArchiveSha256": "17ea7cc067dc27c5407826d08fa2249d0fd0eababc9ff14bc228d426cd6ca0df",
+  "suiteFingerprint": "901e0efdcf312642aed62225e5e9ae114c0d44889bf0b0a41ee5eb5a5e54235e",
+  "executionPolicyFingerprint": "bcaa56db64b77b2bf2e3ea354d11b3e89630618da3deac12e0b7c85467b250f5",
+  "compilerSourceFingerprint": "2cdbe6cddf1fc6c63146c3942404e40ca49ff9a18621817aa1f616a3a5c13036",
+  "compilerEnvironment": {},
+  "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
+  "candidateFingerprint": "44bac2ac3d88ad27a9fb29c56a89bb11544f9d985f56e588195b98e3360ab4a5",
+  "canonicalHeadline": null,
+  "qualificationMonitorScore": 317.86,
+  "developmentSummaries": [],
+  "qualificationSummaries": [
+    {
+      "budget": 125000,
+      "monitorScore": 6.2367,
+      "validRuns": 5,
+      "totalRuns": 15,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 528.8316,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 6.5603,
+          "validRuns": 1,
+          "totalRuns": 3
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 3.9548,
+          "validRuns": 1,
+          "totalRuns": 3
+        }
+      ]
+    },
+    {
+      "budget": 250000,
+      "monitorScore": 253.6021,
+      "validRuns": 14,
+      "totalRuns": 15,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 66.0299,
+          "validRuns": 2,
+          "totalRuns": 3
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 540.005,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 446.5143,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 522.4947,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 124.9275,
+          "validRuns": 3,
+          "totalRuns": 3
+        }
+      ]
+    },
+    {
+      "budget": 375000,
+      "monitorScore": 380.1709,
+      "validRuns": 15,
+      "totalRuns": 15,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 541.8378,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 503.3229,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 437.2312,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 528.0179,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 125.7787,
+          "validRuns": 3,
+          "totalRuns": 3
+        }
+      ]
+    },
+    {
+      "budget": 500000,
+      "monitorScore": 381.1615,
+      "validRuns": 15,
+      "totalRuns": 15,
+      "specifications": [
+        {
+          "id": "amor_na_praia_46s",
+          "score": 552.2502,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "luna_bala_44s",
+          "score": 499.5129,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "tiki_tiki_48s",
+          "score": 442.5302,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "shelter_impact_sync_81s",
+          "score": 520.5211,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amour_de_ma_vie_short_44s",
+          "score": 126.2631,
+          "validRuns": 3,
+          "totalRuns": 3
+        }
+      ]
+    }
+  ],
+  "linkedDevelopment": {
+    "path": "generated/benchmark-v2/canonical-runs/baseline-revised-v2-development.json",
+    "sha256": "66aedd255a3c7493e1f6d6cdfcfca20168c02ac8b7b0d5271fb27c6027e82ff1"
+  },
+  "retainedCompressedArchive": "benchmark/v2/runs/baseline-revised-v2-qualification.json.gz",
+  "retainedCompressedArchiveSha256": "17ea7cc067dc27c5407826d08fa2249d0fd0eababc9ff14bc228d426cd6ca0df"
+}

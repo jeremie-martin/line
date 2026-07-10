@@ -29,7 +29,6 @@ import {
   copyOptionalGapFitFields,
   effectiveAxes,
   engineLineFromTrackLine,
-  impactFeasibilityBound,
   makeBaseEngine,
   resolveStartState,
   sampleGapTargets,
@@ -274,6 +273,7 @@ type HandoffSearchPolicy = {
   branchLimit: number;
   reuseLimit: number;
   tailBranching: number;
+  forwardStageTop: number;
 };
 
 type NumericAccumulator = {
@@ -722,7 +722,7 @@ export function checkpointAt(curve: CompileCheckpoint[], budget: number): Compil
  * pressure globals. Called once from `compileHandoffInternal`, AFTER all
  * `sampleGapTargets` RNG draws, so it consumes NO rng and the candidate geometry
  * stays byte-identical. Mutates `gaps` (`targets.impact`, `nextImpact`) and
- * `gapAxisTargets[*].impact` in place. Owning the feasibility capping, the
+ * `gapAxisTargets[*].impact` in place. Owning the authored target transfer, the
  * arrival lookahead, and the three curve-pressure setters in one place keeps the
  * globals from desyncing.
  */
@@ -730,7 +730,6 @@ function resolveImpactTargets(
   spec: Spec,
   gaps: Gap[],
   gapAxisTargets: AxisValues[],
-  allContactFrames: number[],
 ): void {
   // LR_IMPACT_OFF=1: drop all authored impact targets. Because every impact effect
   // (drift-report axis → scorer, candidate axisCost, geometry steers) is gated on
@@ -755,29 +754,17 @@ function resolveImpactTargets(
       if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
     }
   }
-  let maxBoundedImpact = 0;
+  let maxAuthoredImpact = 0;
   if (impactByFrame.size > 0) {
     for (const gap of gaps) {
       if (!gap.endsWithContact) continue;
       const impact = impactByFrame.get(gap.endFrame);
       if (impact === undefined) continue;
-      // Scored target = min(authored, derived feasibility bound). The bound
-      // (fingerprinted, substrate.ts — ballistics around the beat) caps impact
-      // by what physics permits; buildDriftReport applies the same cap, so
-      // search and scorer chase one coherent target.
-      const nextContact = allContactFrames.find((f) => f > gap.endFrame);
-      const nextGapSeconds = nextContact === undefined ? 1.5 : (nextContact - gap.endFrame) / FPS;
-      const prevGapSeconds = (gap.endFrame - gap.startFrame) / FPS;
-      const t = gapAxisTargets[gap.index];
-      const bounded = Math.min(
-        impact,
-        impactFeasibilityBound(t.speed, prevGapSeconds, nextGapSeconds),
-      );
-      gap.targets.impact = bounded;
-      gapAxisTargets[gap.index].impact = bounded;
-      maxBoundedImpact = Math.max(maxBoundedImpact, bounded);
+      gap.targets.impact = impact;
+      gapAxisTargets[gap.index].impact = impact;
+      maxAuthoredImpact = Math.max(maxAuthoredImpact, impact);
     }
-    // Second pass: give each gap the BOUNDED impact target of the beat its
+    // Second pass: give each gap the AUTHORED impact target of the beat its
     // launch flies toward (the immediately following contact gap), so
     // generation can plan the ARRIVAL — launch steeper into a hard beat.
     // Pure lookahead copy: no RNG, no target changes.
@@ -789,7 +776,7 @@ function resolveImpactTargets(
       }
     }
   }
-  setSteepArrivalSpecMaxImpact(impactOff ? 0 : maxBoundedImpact);
+  setSteepArrivalSpecMaxImpact(impactOff ? 0 : maxAuthoredImpact);
   const impactProfile = impactOff ? null : impactCurveProfileStats(gaps, gapAxisTargets);
   setImpactProfilePressures({
     elevationRoom: impactProfile === null ? 0 : impactCurveElevationRoomPressure(impactProfile),
@@ -881,10 +868,10 @@ function compileHandoffInternal(
     // impact is authored on the Contact (not a curve), so it bypasses effectiveAxes/
     // sampleGapTargets entirely and is written here, AFTER all sampleGapTargets RNG
     // draws — so it consumes NO rng and the candidate GEOMETRY stays byte-identical.
-    // Extracted into one helper (feasibility capping + arrival lookahead + the three
+    // Extracted into one helper (authored target transfer + arrival lookahead + the three
     // impact-curve-pressure globals) so those setters live at a single call site and
     // cannot desync.
-    resolveImpactTargets(spec, gaps, gapAxisTargets, allContactFrames);
+    resolveImpactTargets(spec, gaps, gapAxisTargets);
 
     const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     const targetProfile = buildHandoffTargetProfile(gaps, ctx);
@@ -2533,6 +2520,7 @@ function expandNode(
     preview: policy.preview,
     axisQualitySearch: policy.axisQualitySearch,
     releaseSetup: policy.releaseSetup,
+    forwardStageTop: policy.forwardStageTop,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
     previewScorePressure: policy.previewScorePressure,
@@ -2639,6 +2627,7 @@ function rescueOptions(
     preview: policy.preview,
     axisQualitySearch: policy.axisQualitySearch,
     releaseSetup: policy.releaseSetup,
+    forwardStageTop: policy.forwardStageTop,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
     previewScorePressure: policy.previewScorePressure,
@@ -2974,6 +2963,7 @@ function rankedOptions(
     releaseSetup?: boolean;
     targetBudget?: number;
     budgetSlack?: number;
+    forwardStageTop?: number;
   } = {},
 ): RankedOption[] {
   const requestedCandidates = config.nCand ?? HANDOFF_QUALITY_N_CAND;
@@ -3000,8 +2990,11 @@ function rankedOptions(
     targetBudget,
     config.budgetSlack ?? 0,
   );
-  const scored = pool.map(({ candidate, rank }) =>
-    scoreCandidateForHandoff(
+  const scorePoolCandidate = (
+    candidate: Candidate,
+    rank: number,
+    forwardConfigOverride?: CandidateForwardPolicy,
+  ): RankedOption => scoreCandidateForHandoff(
       node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
       previewScorePressure,
       config.releaseSetup ?? false,
@@ -3009,8 +3002,46 @@ function rankedOptions(
       undefined,
       config.budgetSlack ?? 0,
       openingBestOpportunity,
-    )
-  );
+      forwardConfigOverride,
+    );
+  const stageTop = Math.min(Math.max(0, config.forwardStageTop ?? 0), pool.length);
+  const baseForwardConfig = fwdEvalRuntime.config;
+  const effectiveForwardConfig = baseForwardConfig === null
+    ? null
+    : adaptiveForwardEvalConfig(
+      baseForwardConfig,
+      node,
+      gaps,
+      targetBudget,
+      config.budgetSlack ?? 0,
+      openingBestOpportunity,
+    );
+  const stagedForwardEval = stageTop >= HANDOFF_BRANCHING &&
+    stageTop < pool.length &&
+    usesForwardEvalAtBudget(targetBudget) &&
+    effectiveForwardConfig?.variant === "greedy" &&
+    effectiveForwardConfig.depth === 2 &&
+    effectiveForwardConfig.branch === 1;
+  let scored: RankedOption[];
+  if (stagedForwardEval && effectiveForwardConfig !== null) {
+    const shallowConfig: CandidateForwardPolicy = { ...effectiveForwardConfig, depth: 1 };
+    const shallow = pool.map(({ candidate, rank }) =>
+      scorePoolCandidate(candidate, rank, shallowConfig)
+    );
+    const finalists = new Set(
+      [...shallow]
+        .sort((a, b) => a.score - b.score || a.rank - b.rank)
+        .slice(0, stageTop)
+        .map((option) => option.candidate),
+    );
+    scored = shallow.map((option) =>
+      option.candidate !== null && finalists.has(option.candidate)
+        ? scorePoolCandidate(option.candidate, option.rank, effectiveForwardConfig)
+        : { ...option, score: Infinity }
+    );
+  } else {
+    scored = pool.map(({ candidate, rank }) => scorePoolCandidate(candidate, rank));
+  }
   const transitionCandidate = transitionMotionCandidate(
     node,
     gaps,
@@ -3508,6 +3539,7 @@ function completeNearTailSuffix(
       preview: false,
       axisQualitySearch: policy.axisQualitySearch,
       releaseSetup: policy.releaseSetup,
+      forwardStageTop: policy.forwardStageTop,
       reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
       targetBudget,
@@ -3588,6 +3620,9 @@ function resolveHandoffSearchPolicy({
     branchLimit: lowSlackTraversalBranchLimit(budgetSlack, hasCompletion),
     reuseLimit: reuseCandidateLimit(node, targetBudget, telemetry),
     tailBranching: TAIL_COMPLETION_FALLBACK_BRANCHING,
+    forwardStageTop: hasCompletion
+      ? Math.max(0, Number.parseInt(readEnv("LR_POST_COMPLETION_FWD_STAGE_TOP") ?? "0", 10) || 0)
+      : 0,
   };
 }
 
@@ -4224,6 +4259,7 @@ function scoreCandidateForHandoff(
   sourceAxis?: AxisName,
   budgetSlack = 0,
   openingBestOpportunity = 0,
+  forwardConfigOverride?: CandidateForwardPolicy,
 ): RankedOption {
   const child = extendNodeCached(node, candidate);
   // Forward-eval ranking (DEFAULT ≥75k): rank purely by the true metric score of where this arc
@@ -4235,7 +4271,7 @@ function scoreCandidateForHandoff(
       gaps,
       ctx,
       seed,
-      adaptiveForwardEvalConfig(
+      forwardConfigOverride ?? adaptiveForwardEvalConfig(
         fwdCfg,
         node,
         gaps,

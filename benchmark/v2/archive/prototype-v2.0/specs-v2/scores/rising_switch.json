@@ -1,0 +1,89 @@
+{
+  "schema": "line.benchmark-v2.score.v1",
+  "id": "rising_switch",
+  "title": "Rising Switch",
+  "duration": 58,
+  "provenance": { "kind": "reference_informed_manual", "authoring_brief": "Cadence tightens in several independently phrased stages, crests, and releases without making every target jump at a boundary." },
+  "primary_family": "cadence_transition",
+  "diagnostic_tags": ["tempo_change", "speed_density", "release"],
+  "pulse_regions": [
+    { "start": 0.74, "end": 12.58, "pulse_seconds": 0.74, "intent": "wide opening cadence" },
+    { "start": 12.58, "end": 22.66, "pulse_seconds": 0.63, "intent": "middle cadence" },
+    { "start": 22.66, "end": 39.30, "pulse_seconds": 0.52, "intent": "driving crest" },
+    { "start": 39.30, "end": 56.24, "pulse_seconds": 0.68, "intent": "measured release" }
+  ],
+  "phrases": {
+    "wide": [
+      { "offset": 0, "role": "primary", "impact": 0.58 },
+      { "offset": 0.74, "role": "support", "impact": 0.30 },
+      { "offset": 1.48, "role": "accent", "impact": 0.70 },
+      { "offset": 2.22, "role": "support", "impact": 0.34 },
+      { "offset": 2.96, "role": "primary", "impact": 0.55 },
+      { "offset": 3.70, "role": "support", "impact": 0.27 },
+      { "offset": 4.44, "role": "accent", "impact": 0.66 },
+      { "offset": 5.18, "role": "reentry", "impact": 0.76 }
+    ],
+    "middle": [
+      { "offset": 0, "role": "primary", "impact": 0.68 },
+      { "offset": 0.63, "role": "support", "impact": 0.36 },
+      { "offset": 1.26, "role": "accent", "impact": 0.75 },
+      { "offset": 1.89, "role": "support", "impact": 0.41 },
+      { "offset": 2.52, "role": "primary", "impact": 0.60 },
+      { "offset": 3.15, "role": "fill", "impact": 0.48 },
+      { "offset": 3.78, "role": "accent", "impact": 0.79 },
+      { "offset": 4.41, "role": "reentry", "impact": 0.84 }
+    ],
+    "drive": [
+      { "offset": 0, "role": "accent", "impact": 0.82 },
+      { "offset": 0.52, "role": "support", "impact": 0.43 },
+      { "offset": 1.04, "role": "primary", "impact": 0.67 },
+      { "offset": 1.56, "role": "support", "impact": 0.38 },
+      { "offset": 2.08, "role": "accent", "impact": 0.88 },
+      { "offset": 2.60, "role": "support", "impact": 0.46 },
+      { "offset": 3.12, "role": "primary", "impact": 0.71 },
+      { "offset": 3.64, "role": "reentry", "impact": 0.91 }
+    ],
+    "release": [
+      { "offset": 0, "role": "primary", "impact": 0.72 },
+      { "offset": 0.68, "role": "support", "impact": 0.37 },
+      { "offset": 1.36, "role": "accent", "impact": 0.74 },
+      { "offset": 2.04, "role": "support", "impact": 0.33 },
+      { "offset": 2.72, "role": "primary", "impact": 0.56 },
+      { "offset": 3.40, "role": "tail", "impact": 0.29 },
+      { "offset": 4.08, "role": "tail", "impact": 0.22 },
+      { "offset": 4.76, "role": "tail", "impact": 0.16 }
+    ]
+  },
+  "placements": [
+    { "at": 0.74, "phrase": "wide" },
+    { "at": 6.66, "phrase": "wide" },
+    { "at": 12.58, "phrase": "middle" },
+    { "at": 17.62, "phrase": "middle" },
+    { "at": 22.66, "phrase": "drive" },
+    { "at": 26.82, "phrase": "drive" },
+    { "at": 30.98, "phrase": "drive" },
+    { "at": 35.14, "phrase": "drive" },
+    { "at": 39.30, "phrase": "release" },
+    { "at": 44.74, "phrase": "release" },
+    { "at": 50.18, "phrase": "release" }
+  ],
+  "axes": {
+    "air": [
+      { "t": 0, "v": 0.46, "ease": "smooth", "intent": "wide cadence remains supported" },
+      { "t": 16, "v": 0.62, "ease": "smooth", "intent": "middle opens gradually" },
+      { "t": 30, "v": 0.68, "ease": "smooth", "intent": "drive has moderate air" },
+      { "t": 43, "v": 0.58, "ease": "smooth", "intent": "release comes closer" },
+      { "t": 58, "v": 0.72, "intent": "last release floats" }
+    ],
+    "speed": [
+      { "t": 0, "v": 0.34, "ease": "smooth", "intent": "wide opening" },
+      { "t": 12.58, "v": 0.52, "ease": "smooth", "intent": "first switch" },
+      { "t": 22.66, "v": 0.70, "ease": "smooth", "intent": "drive begins" },
+      { "t": 34, "v": 0.90, "ease": "easeOut", "intent": "cadence crest" },
+      { "t": 44, "v": 0.76, "ease": "smooth", "intent": "release" },
+      { "t": 58, "v": 0.56, "intent": "finish" }
+    ]
+  },
+  "preroll": 5,
+  "jitter": 0
+}

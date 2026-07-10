@@ -1,0 +1,120 @@
+{
+  "schema": "line.benchmark-v2.responsiveness-study.v1",
+  "status": "complete",
+  "purpose": "Confirm that the frozen probe detects broad and axis-specific compiler degradations under an identical execution policy.",
+  "executionPolicyFingerprint": "4ecd4e15bd91bd0a9b9ed042719d32b67e3151e4579068aba65d5007fb3a765e",
+  "cases": [
+    {
+      "id": "baseline",
+      "archive": "generated/benchmark-v2/calibration/baseline-probe.json",
+      "archiveSha256": "712242f5be23b3cf364ae608f06806e8299ee605bab0e506149298d14d9110e9",
+      "compilerEnvironment": {},
+      "headline": 441.6099,
+      "deltaFromBaseline": 0,
+      "validRuns": 221,
+      "totalRuns": 252,
+      "budgets": [
+        {
+          "budget": 250000,
+          "score": 417.134,
+          "validRuns": 106,
+          "totalRuns": 126
+        },
+        {
+          "budget": 500000,
+          "score": 451.4002,
+          "validRuns": 115,
+          "totalRuns": 126
+        }
+      ],
+      "strata": {
+        "representative": 523.6486,
+        "capability": 10.2511,
+        "legacy_regression": 517.8768,
+        "development_music": 434.6103
+      },
+      "hardFailures": {
+        "terminus": 31,
+        "reported_contacts": 24,
+        "missing": 31,
+        "missing_measurement": 93
+      }
+    },
+    {
+      "id": "impact_blindness",
+      "archive": "generated/benchmark-v2/calibration/impact-off-probe.json",
+      "archiveSha256": "36949f1fa3496af3cdc2f964aa0a062c58de3e20bc71403989b141118b1cd9d3",
+      "compilerEnvironment": {
+        "LR_IMPACT_OFF": "1"
+      },
+      "headline": 0,
+      "deltaFromBaseline": -441.6099,
+      "validRuns": 0,
+      "totalRuns": 252,
+      "budgets": [
+        {
+          "budget": 250000,
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 126
+        },
+        {
+          "budget": 500000,
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 126
+        }
+      ],
+      "strata": {
+        "representative": 0,
+        "capability": 0,
+        "legacy_regression": 0,
+        "development_music": 0
+      },
+      "hardFailures": {
+        "missing_measurement": 302,
+        "terminus": 25,
+        "reported_contacts": 23,
+        "missing": 25
+      }
+    },
+    {
+      "id": "candidate_breadth_1",
+      "archive": "generated/benchmark-v2/calibration/quality-ncand-1-probe.json",
+      "archiveSha256": "171422555e0e54bc82fd11498d590967d0289b6762086749fa1713ba79a872f4",
+      "compilerEnvironment": {
+        "LR_QUALITY_NCAND": "1"
+      },
+      "headline": 281.9763,
+      "deltaFromBaseline": -159.6336,
+      "validRuns": 208,
+      "totalRuns": 252,
+      "budgets": [
+        {
+          "budget": 250000,
+          "score": 272.1455,
+          "validRuns": 103,
+          "totalRuns": 126
+        },
+        {
+          "budget": 500000,
+          "score": 285.9086,
+          "validRuns": 105,
+          "totalRuns": 126
+        }
+      ],
+      "strata": {
+        "representative": 321.926,
+        "capability": 0,
+        "legacy_regression": 412.9179,
+        "development_music": 306.7249
+      },
+      "hardFailures": {
+        "terminus": 40,
+        "reported_contacts": 40,
+        "missing": 44,
+        "missing_measurement": 132
+      }
+    }
+  ]
+}

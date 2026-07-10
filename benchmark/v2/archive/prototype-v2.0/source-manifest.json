@@ -1,0 +1,54 @@
+{
+  "schema": "line.benchmark-v2.source-inventory.v4",
+  "status": "canonical-development-inventory",
+  "description": "All development sources eligible for the stratified canonical headline. Qualification references are stored separately.",
+  "representative_candidates": [
+    { "id": "river_reentry", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/river_reentry.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/river_reentry.json"], "origin_family": "regular_exceptions", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "countercurrent", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/countercurrent.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/countercurrent.json"], "origin_family": "regular_exceptions", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "split_signal", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/split_signal.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/split_signal.json"], "origin_family": "subdivision_pickup", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "amplitude", "impact"] },
+    { "id": "pickup_lattice", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/pickup_lattice.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/pickup_lattice.json"], "origin_family": "subdivision_pickup", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "loose_pocket", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/loose_pocket.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/loose_pocket.json"], "origin_family": "irregular_microtimed", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "offgrid_conversation", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/offgrid_conversation.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/offgrid_conversation.json"], "origin_family": "irregular_microtimed", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "rising_switch", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/rising_switch.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/rising_switch.json"], "origin_family": "cadence_transition", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "meter_exchange", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/meter_exchange.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/meter_exchange.json"], "origin_family": "cadence_transition", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "wide_breaths", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/wide_breaths.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/wide_breaths.json"], "origin_family": "spacious_amplitude", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "amplitude", "impact"] },
+    { "id": "open_hook", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/open_hook.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/open_hook.json"], "origin_family": "spacious_amplitude", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "amplitude", "impact"] },
+    { "id": "amplitude_tides", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/amplitude_tides.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/amplitude_tides.json"], "origin_family": "spacious_amplitude", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "amplitude", "impact"] },
+    { "id": "dense_dialogue", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/dense_dialogue.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/dense_dialogue.json"], "origin_family": "dense_musical", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "high_air_drive", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/high_air_drive.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/high_air_drive.json"], "origin_family": "high_air_energy", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "sparse_lowline", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/sparse_lowline.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/sparse_lowline.json"], "origin_family": "sparse_transition", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] }
+  ],
+  "capability_candidates": [
+    { "id": "frontier_pickup_progression", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/frontier_pickup_progression.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/frontier_pickup_progression.json"], "origin_family": "rapid_pickup_frontier", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "frontier_dense_recovery", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/frontier_dense_recovery.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/frontier_dense_recovery.json"], "origin_family": "dense_recovery_frontier", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "frontier_low_air_endurance", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/frontier_low_air_endurance.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/frontier_low_air_endurance.json"], "origin_family": "low_air_frontier", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] }
+  ],
+  "regression_candidates": [
+    { "id": "regression_transition_mosaic", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/regression_transition_mosaic.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/regression_transition_mosaic.json"], "origin_family": "legacy_transition_regression", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "impact"] },
+    { "id": "regression_amplitude_mosaic", "score_source": "benchmark/v2/archive/prototype-v2.0/specs-v2/scores/regression_amplitude_mosaic.json", "source_files": ["benchmark/v2/archive/prototype-v2.0/specs-v2/scores/regression_amplitude_mosaic.json"], "origin_family": "legacy_amplitude_regression", "music_backed": false, "eligible_components": ["sync", "survival", "air", "speed", "amplitude", "impact"] }
+  ],
+  "development_music_candidates": [
+    {
+      "id": "believer_56_6s",
+      "module": "scripts/v0/specs/believer_56_6s.ts",
+      "source_files": ["scripts/v0/specs/believer_56_6s.ts", "beats/believer_56_6s.rhythm.json"],
+      "origin_family": "believer_56s",
+      "music_work_id": "believer",
+      "rhythm_source": "beats/believer_56_6s.rhythm.json",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.48,
+      "eligible_components": ["sync", "survival", "air", "speed", "impact"]
+    },
+    {
+      "id": "believer_impact_56s",
+      "module": "scripts/v0/specs/believer_impact.ts",
+      "source_files": ["scripts/v0/specs/believer_impact.ts", "scripts/v0/specs/_music.ts", "beats/drums_0_56s.json"],
+      "origin_family": "believer_56s",
+      "music_work_id": "believer",
+      "rhythm_source": "beats/drums_0_56s.json",
+      "music_backed": true,
+      "reference_pulse_seconds": 0.48,
+      "eligible_components": ["sync", "survival", "air", "speed", "amplitude", "impact"]
+    }
+  ]
+}

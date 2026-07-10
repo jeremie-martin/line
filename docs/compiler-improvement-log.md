@@ -2,6 +2,23 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - OBSERVATION ONLY - exact terminal entry-acceleration oracle
+
+Question: remove local-objective and forward-prediction uncertainty by editing a completed track.
+The terminal oracle now supports `--mode=entry-accel`: it selects the largest impact undershoot,
+uses the baseline detector's fired line IDs to test the contact segment and its predecessor, changes
+one line to forward acceleration with collision geometry preserved, then reruns the full detector
+and unchanged scorer. It also now passes edited line geometry into `buildDriftReport`; the old
+version detected edited tracks but retained original fit geometry during report construction.
+
+On the twelve worst-impact specs at 200k/seed 0, the first fired-line pass produced 0/12 valid
+variants. The corrected adjacent-line pass produced only 1 valid variant and no improvement.
+Archives: `generated/studies/terminal-entry-accel-oracle-12spec-b200-s0-a01.json` and
+`generated/studies/terminal-entry-accel-oracle-adjacent-12spec-b200-s0-a01.json`. Completed routes
+are too timing-fragile for a one-line acceleration endgame. A corrected rerun of the prior fine
+pitch study reproduced its result exactly: 12/48 valid variants, all score-neutral, archive
+`generated/studies/terminal-pitch-oracle-fine-corrected-12spec-b200-s0-a01.json`.
+
 ## 2026-07-09 - NOT KEPT - repair-targeted accelerated impact entry
 
 Reason: pay for the new entry-acceleration primitive only when repair had already selected an

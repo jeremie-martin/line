@@ -1,4 +1,4 @@
-/** Exact post-compile oracle for a small exit-pitch edit at the weakest gap. */
+/** Exact post-compile oracle for a bounded edit at the weakest gap. */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
@@ -23,6 +23,8 @@ const seeds = (argValue("seeds") ?? "0").split(",").map(Number);
 const budget = Number(argValue("budget") ?? "200000");
 const outPath = argValue("out");
 const deltas = (argValue("deltas") ?? "-4,-2,2,4").split(",").map(Number);
+const mode = argValue("mode") ?? "pitch";
+if (mode !== "pitch" && mode !== "entry-accel") throw new Error(`unknown mode "${mode}"`);
 
 for (const spec of specs) {
   if (!(GOLDEN_SPECS as readonly string[]).includes(spec)) throw new Error(`unknown spec "${spec}"`);
@@ -95,9 +97,26 @@ function targetsFromReport(report: ReturnType<typeof compileHandoff>["report"], 
 
 function weakestGap(report: ReturnType<typeof compileHandoff>["report"]): { index: number; sse: number } {
   return report.gaps.reduce((worst, gap) => {
-    const sse = Object.values(gap.axes).reduce((sum, value) => sum + value.error * value.error, 0);
+    const impact = gap.axes.impact;
+    const sse = mode === "entry-accel"
+      ? impact !== undefined && impact.achieved < impact.target ? impact.error * impact.error : -Infinity
+      : Object.values(gap.axes).reduce((sum, value) => sum + value.error * value.error, 0);
     return sse > worst.sse ? { index: gap.gap_index, sse } : worst;
   }, { index: -1, sse: -Infinity });
+}
+
+function accelerateLine(line: TrackLine): TrackLine {
+  return {
+    ...line,
+    type: 2,
+    x1: line.x2,
+    y1: line.y2,
+    x2: line.x1,
+    y2: line.y1,
+    flipped: !line.flipped,
+    leftExtended: line.rightExtended,
+    rightExtended: line.leftExtended,
+  };
 }
 
 const rows: Row[] = [];
@@ -136,7 +155,7 @@ for (const specName of specs) {
     const weakGroup = groups[offset + weak.index];
     if (weak.index < 0 || weakGroup === undefined) continue;
 
-    const simulate = (candidateLines: TrackLine[]): Variant => {
+    const simulate = (candidateLines: TrackLine[]) => {
       let engine = new LineRiderEngine();
       engine = engine.setStart(
         track.startPosition ?? { x: 0, y: 0 },
@@ -144,18 +163,44 @@ for (const specName of specs) {
       );
       engine = engine.addLine(candidateLines.map(createLineFromJson));
       const det = detect(extractRawTrajectory(engine, durationFrames + 20));
-      const report = buildDriftReport(det, spec, gaps, contactFrames, durationFrames, [], fits, gapTargets);
+      const candidateById = new Map(candidateLines.map((line) => [line.id, line]));
+      const candidateFits = fits.map((fit) => fit === null
+        ? null
+        : { ...fit, lines: fit.lines.map((line) => candidateById.get(line.id) ?? line) });
+      const report = buildDriftReport(
+        det, spec, gaps, contactFrames, durationFrames, [], candidateFits, gapTargets,
+      );
       const score = scoreDriftReport(report, { totalFrames: durationFrames });
-      return { delta: 0, score: score.score, contractPassed: score.contract_passed };
+      return {
+        variant: { delta: 0, score: score.score, contractPassed: score.contract_passed },
+        det,
+      };
     };
 
-    const baseline = simulate(lines);
-    const variants = deltas.map((delta) => {
-      const replacement = pitchExit(weakGroup, delta);
-      const replacementById = new Map(replacement.map((line) => [line.id, line]));
-      const result = simulate(lines.map((line) => replacementById.get(line.id) ?? line));
-      return { ...result, delta };
-    });
+    const baselineRun = simulate(lines);
+    const baseline = baselineRun.variant;
+    const variants = mode === "pitch"
+      ? deltas.map((delta) => {
+        const replacement = pitchExit(weakGroup, delta);
+        const replacementById = new Map(replacement.map((line) => [line.id, line]));
+        const result = simulate(lines.map((line) => replacementById.get(line.id) ?? line)).variant;
+        return { ...result, delta };
+      })
+      : (() => {
+        const contactIds = new Set(
+          baselineRun.det.measurements.contactLineIds[gaps[weak.index].endFrame] ?? [],
+        );
+        const firedIndices = weakGroup.flatMap((line, index) => contactIds.has(line.id) ? [index] : []);
+        const candidateIndices = [...new Set(firedIndices.flatMap((index) => [index - 1, index]))]
+          .filter((index) => index >= 0 && weakGroup[index]?.type === 0);
+        return candidateIndices.map((index) => {
+          const entry = weakGroup[index];
+          const result = simulate(
+            lines.map((line) => line.id === entry.id ? accelerateLine(line) : line),
+          ).variant;
+          return { ...result, delta: index - Math.min(...firedIndices) };
+        });
+      })();
     const best = variants
       .filter((variant) => variant.contractPassed)
       .reduce((winner, variant) => variant.score > winner.score ? variant : winner, {
@@ -183,6 +228,7 @@ for (const specName of specs) {
 const lifts = rows.map((row) => row.bestScore - row.baselineScore);
 const result = {
   budget,
+  mode,
   specs,
   seeds,
   deltas,

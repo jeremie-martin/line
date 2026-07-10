@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - INCONCLUSIVE PROBE - reserved second-start endgame
+
+Reason: avoid the false promotions in the immediate sequential-start trial by preserving normal
+main search and repair semantics, then reserving one measured first-completion slice only for weak
+passing incumbents below 0.60 quality with branch-3 start slack. Repair ran to the reduced ceiling;
+the alternate start then ran in a private register and could replace the actual post-repair
+incumbent only through the exact production key comparison. Unused budget returned to the original
+frontier. Scorer, specs, fingerprint, seed policy, grid, and acceptance were unchanged.
+
+Focused tests passed (7 files, 78 tests). On a paired ten-spec x seeds 0..2 panel at 500k, 29/30
+rows tied. Only `skyline_push` moved: +28.42, -0.57, and -2.59, for +0.84 panel mean while
+consuming about 410 fewer repair frames per row. Archives:
+`generated/studies/accepted-transition-baseline-10spec-b500-s0-2-a01.json` and
+`generated/studies/reserved-second-start-endgame-10spec-b500-s0-2-a01.json`.
+
+Fixed probe:
+`generated/golden-runs/probe-reserved-second-start-endgame-j32-a01/golden.json`, valid 1440/1440
+with HEADLINE 695.53 and excluding-impact HEADLINE 714.33. Decision versus
+`probe-transition-motion-finalist-j32-a01`: `VERDICT: INCONCLUSIVE`, delta -0.02,
+CI [-0.2, 0.2], P(delta<=0)=64.3%, effect -0.19. The 75k and 200k checkpoints were identical;
+the 500k delta was approximately -0.04 with CI [-0.4, 0.3]. The narrow panel result did not
+generalize, so source was reverted and no full run was launched.
+
 ## 2026-07-10 - REJECTED PROBE - high-slack sequential second-start completion
 
 Reason: the isolated start-rank oracle had +7.92 mean rank-1 headroom at 200k, and first-completion

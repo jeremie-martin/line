@@ -2,6 +2,24 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - exact-frontier accelerated impact specialist
+
+Reason: isolate selective admission from the earlier rejected global acceleration primitive. The
+temporary lane chose only the best impact specialist already admitted to the normal pool,
+converted its complete post-contact chain to forward-oriented acceleration lines, exact-validated
+the result, required the specialist's impact advantage to survive, and admitted it only if its
+local handoff objective exceeded the normal pool frontier. Thus ordinary and impact-template
+generation were untouched; at most one exact-qualified finalist could be added.
+
+Focused tests passed (4 files, 67 tests). The same twelve-spec 200k/seed-0 panel produced exactly
+the post-window experiment's outputs: mean 625.4938 versus the accepted 625.4958, eleven
+byte-identical final tracks, and one `drums_pendulum` loss of 0.024. No returned route selected an
+impact-axis finalist. Archive:
+`generated/studies/accelerated-impact-frontier-12spec-b200-s0-a01.json`. Whole-scoop acceleration
+does not cross the local objective frontier while exactly preserving the specialist's impact
+advantage; stronger acceleration alone is not the missing primitive. Source was reverted without
+a fixed probe.
+
 ## 2026-07-09 - NOT KEPT - post-window impact-specialist acceleration
 
 Reason: revisit the rejected whole-scoop acceleration primitive without perturbing the scored

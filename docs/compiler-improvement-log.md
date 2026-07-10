@@ -2,6 +2,26 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - post-window impact-specialist acceleration
+
+Reason: revisit the rejected whole-scoop acceleration primitive without perturbing the scored
+impact episode. The temporary lane found the best current-impact specialist already admitted to
+the eight-candidate pool, required at least a sigma of impact-error improvement over the normal
+quality winner, preserved solid support for seven frames after contact, and converted only later
+ride-out segments to forward-oriented acceleration lines. Exact candidate validation then required
+the specialist's impact advantage to survive and its zero-frame handoff objective to exceed the
+normal pool winner before spending one forward evaluation. Baseline candidates, the accepted
+transition finalist, ranking, scheduler, scorer, specs, seeds, and budgets were otherwise unchanged.
+
+Focused tests passed (4 files, 67 tests). On the twelve worst-impact specs at 200k/seed 0, mean
+score moved 625.4958->625.4938. Eleven final tracks were byte-identical; the only changed track,
+`drums_pendulum`, lost 0.024, and no returned route selected an impact-axis finalist. Exact
+validation work still changed downstream frame allocation on several unchanged outputs. Archive:
+`generated/studies/late-impact-recovery-12spec-b200-s0-a01.json`, paired against
+`generated/studies/impact-local-weight-accepted-w0.5-12spec-b200-s0-a01.json`. Delaying
+acceleration until after the impact window removes the earlier physical interference, but also
+removes useful end-to-end leverage; source was reverted without a fixed probe.
+
 ## 2026-07-09 - OBSERVATION ONLY - exact terminal pitch oracle
 
 Question: can a bounded full-track edit replace an expensive suffix repair? A new exact oracle

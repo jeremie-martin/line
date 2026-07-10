@@ -2,6 +2,30 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - OBSERVATION ONLY - fixed-seed policy-budget continuation
+
+Question: separate the hard frame ceiling from budget-aware policy and test whether a lower-budget
+policy can retain its incumbent while spending the remainder on the preserved main frontier. A
+default-identical `policyBudget` study hook now controls geometry pressure, objective blends, start
+ranking, branch/tail policy, and the repair-allocation phase; `budget` remains the hard stop. The
+panel runner accepts `--policy-budget`. Focused tests passed (7 files, 78 tests), including explicit
+default-policy identity.
+
+An initial archive comparison appeared to show 8.90 mean points of cross-budget incumbent
+headroom, but that interpretation was invalid: the canonical policy deliberately uses disjoint
+actual seeds by budget. For example, row slot 0 is actual seed 48 at 475k and seed 60 at 550k.
+Direct current-source reruns reproduced the archive when the actual seed was used
+(`drums_pendulum` seed 60 at 550k: 467.780).
+
+The corrected fixed-seed experiment ran hard 550k with policy 475k on twelve difficult specs at
+actual seed 60. Mean score fell 1.47 versus the native 550k archive rows: `drums_crescendo` gained
+6.26, `drums_signature` 2.48, and `solo_run` 1.55, but `float_bounds` lost 19.11 and `drums_pulse`
+lost 8.46. A one-row trace confirmed the intended continuation semantics: `drums_pendulum` scored
+467.774 at hard 475k and retained that exact track through hard 550k, while native 550k scored
+467.780. Archive: `generated/studies/policy475-hard550-12spec-s60-a01.json`. A static lower policy
+cap does not convert the remaining frames into consistent gains and was not promoted; the study
+hook remains as default-identical scaffolding.
+
 ## 2026-07-09 - NOT KEPT - bounded-width transition finalist
 
 Reason: the accepted transition-motion finalist is additive, so a material transition can score

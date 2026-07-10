@@ -2,6 +2,24 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - bounded-width transition finalist
+
+Reason: the accepted transition-motion finalist is additive, so a material transition can score
+nine candidates instead of the normal eight. This trial kept the finalist inside the existing
+pool width: it filled an unused slot or replaced only rank 7, preserving the top seven normal
+candidates. Generation, transition gate, four attempts, local finalist selection, forward scorer,
+branching, and all evaluation contracts were unchanged. Reuse and brake rank offsets remained
+after the fixed-width pool.
+
+Focused tests passed (7 files, 77 tests). On all 40 specs at 200k/seed 0, mean score fell by 1.04,
+with 5 improvements, 5 regressions, and 30 ties. `dense_sprint` gained 11.03, but
+`drums_dropout` lost 33.82 and `syncopated_lift` lost 17.56; mean consumed frames increased by
+1,061 because the changed option set redirected later traversal. Archive:
+`generated/studies/transition-finalist-rank7-all40-b200-s0-a01.json`, paired against
+`generated/studies/accepted-transition-combined-all40-b200-s0-a01.json`. The weak normal tail is
+still valuable as basin diversity, and bounded width did not reliably reinvest the saved forward
+evaluation. Source was reverted without more seeds or a fixed probe.
+
 ## 2026-07-09 - NOT KEPT - decelerated impact entry segment
 
 Reason: test the converse of forward entry acceleration on low or already-overshooting impact

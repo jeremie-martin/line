@@ -16,8 +16,8 @@ const argFlag = (name: string): boolean => argv.includes(`--${name}`);
 const axis = (argValue("axis") ?? "elevation") as AxisName;
 if (!(AXES as readonly string[]).includes(axis)) throw new Error(`unknown axis "${axis}"`);
 const nextGap = argFlag("next");
-if (nextGap && axis !== "elevation") {
-  throw new Error(`--next currently requires --axis=elevation`);
+if (nextGap && axis !== "elevation" && axis !== "impact") {
+  throw new Error(`--next currently requires --axis=elevation or --axis=impact`);
 }
 const defaultSpecs = [
   "climb_terrace", "swoop_dive", "rolling_hills", "summit_push", "mixed_grade",
@@ -45,6 +45,8 @@ type CandidateSummary = {
   impactFeasibility: number | null;
   airFit: number | null;
   elevationFit: number | null;
+  arrivalSpeed: number | null;
+  arrivalAngleDeg: number | null;
   axes: AxisValues;
   axisValue: number;
   axisError: number;
@@ -72,7 +74,11 @@ const axesOf = (candidate: HandoffPoolProbeCandidate): AxisValues =>
   candidate.achievedAtEnd ?? candidate.achieved;
 
 function candidateAxisValue(candidate: HandoffPoolProbeCandidate): number | null {
-  const value = nextGap ? candidate.arrivalElevation : axesOf(candidate)[axis];
+  const value = nextGap
+    ? axis === "impact"
+      ? candidate.impactFeasibility
+      : candidate.arrivalElevation
+    : axesOf(candidate)[axis];
   return value !== null && value !== undefined && Number.isFinite(value) ? value : null;
 }
 
@@ -91,6 +97,8 @@ function summary(candidate: HandoffPoolProbeCandidate, target: number): Candidat
     impactFeasibility: candidate.impactFeasibility,
     airFit: candidate.airFit,
     elevationFit: candidate.elevationFit,
+    arrivalSpeed: candidate.arrivalSpeed,
+    arrivalAngleDeg: candidate.arrivalAngleDeg,
     axes,
     axisValue,
     axisError: Math.abs(axisValue - target),
@@ -103,7 +111,9 @@ function minBy<T>(values: T[], value: (item: T) => number): T {
 
 setHandoffPoolProbeHook((record: HandoffPoolProbeRecord) => {
   const pool = poolCount++;
-  const target = nextGap ? record.nextTargets?.[axis] : record.targets[axis];
+  const target = nextGap && axis === "impact"
+    ? record.nextTargets?.impact === undefined ? undefined : 1
+    : nextGap ? record.nextTargets?.[axis] : record.targets[axis];
   if (target === undefined) return;
   const viable = record.candidates.filter((candidate) => candidateAxisValue(candidate) !== null);
   const admitted = viable.filter((candidate) => Number.isFinite(candidate.handoffScore));
@@ -175,6 +185,8 @@ for (const specialist of ["admittedSpecialist", "proposedSpecialist"] as const) 
     ["impactFeasibility", (candidate) => candidate.impactFeasibility],
     ["airFit", (candidate) => candidate.airFit],
     ["elevationFit", (candidate) => candidate.elevationFit],
+    ["arrivalSpeed", (candidate) => candidate.arrivalSpeed],
+    ["arrivalAngleDeg", (candidate) => candidate.arrivalAngleDeg],
   ];
   for (const [name, select] of metrics) {
     const pairs = finitePairs(select, specialist);

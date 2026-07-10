@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - OBSERVATION ONLY - causal impact entry/catch pair study
+
+Question: current accepted tracks enter the hardest missed impact contacts around 9-16 degrees,
+while low-residual families enter around 19-27 degrees. Extend the exact-prefix axis-specialist
+study so `--axis=impact --next` measures the preceding candidate's predicted next-impact
+feasibility and reports arrival speed/angle. On twelve difficult specs at 200k/seed 0, 1,194
+material pools contained an already-admitted upstream specialist: it raised next-impact
+feasibility from 0.740 to 0.893 and arrival angle from 14.1 to 17.8 degrees, but reduced current
+quality from 0.631 to 0.569. Archive:
+`generated/studies/current-next-impact-feasibility-deficit-impact12-b200-s0-a01.json`.
+
+The current-contact funnel found the complementary half of the conflict. Across 492 impact gaps,
+61% generated and admitted sufficient-turn geometry but ranked it below the selected path. The
+closest admitted candidate reduced mean impact error from 0.12 to 0.01 in 390 material pools.
+Those specialists improved current quality from 0.615 to 0.673, but flipped release `vy` from
++0.75 to -0.63 and reduced next readiness from 0.553 to 0.180. Archives:
+`generated/studies/current-impact-funnel-impact12-b200-s0-a01.jsonl` and
+`generated/studies/current-impact-release-deficit-impact12-b200-s0-a01.json`.
+
+Three exact-physics template variants tested whether the release conflict was incidental. A
+gradual post-window recovery tail was either not ridden or, when shortened, worsened release
+`vy` to -0.85. Removing the normal family's contact flattening before the explicit template scoop
+lost 2.76 mean on a paired 12-spec x seeds 0..2 panel; a 0.25 dose already lost 9.87 on seed 0.
+An equal-magnitude downward template survived but delivered only 0.19 impact against 0.43 asks,
+because the sled launched rather than followed the convex turn. An incoming-heading analytical
+endpoint improved release modestly but left next readiness at 0.165. Production hooks were
+reverted. Relevant archives use the `impact-template-{recovery,unflatten,dive,incoming-end}` names
+under `generated/studies/`.
+
+Finally, generic child width does not hide a usable pair. Charged `best:1:8` completed only 1/6
+impact rows at 200k. Refunding rollout frames restored validity but still lost 4.8 mean across the
+six-row screen: `drums_crescendo` gained +72.5 and `rhythm_ladder` +39.3, while `drums_dropout`
+lost 90.6 and other rows regressed. The pair conflict is real and profile-dependent; broad child
+width or another fixed template turn is not a production path.
+
 ## 2026-07-10 - OBSERVATION ONLY - exact causal parent-exit pitch oracle
 
 Question: the existing terminal pitch oracle chose weak gap k but rotated gap k's exit, which

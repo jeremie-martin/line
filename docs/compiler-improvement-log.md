@@ -2,6 +2,23 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-10 - OBSERVATION ONLY - exact terminal gap-swap oracle
+
+Question: repair rebuilds a complete suffix after changing one weak gap. Test whether a cheaper
+surgical edit can substitute another production-sampled candidate at the exact incumbent prefix,
+retain the existing suffix geometry, and survive unchanged full detection. The new oracle captures
+the final complete `HandoffNode`, reconstructs the weak-gap entry state, calls the production
+candidate sampler, renumbers the composed fits, and exact-scores every distinct swap. A second mode
+rigidly translates all downstream lines by the candidate-versus-incumbent release-position delta.
+
+On `drums_pendulum`, `drums_dropout`, `dense_echo_climb`, and `skyline_push` at 200k/seed 0, fixed
+suffix geometry produced only 1 contract-valid swap among 150 distinct candidates and no score
+gain. Release-aligned suffix translation produced 0/150 valid swaps. Archives:
+`generated/studies/terminal-gap-swap-4spec-b200-s0-a01.json` and
+`generated/studies/terminal-gap-swap-release-translate-4spec-b200-s0-a01.json`. Suffix catchability
+depends on the changed release velocity, pose, and contact history, not merely line position;
+full suffix reconstruction remains necessary. No production behavior was changed.
+
 ## 2026-07-10 - OBSERVATION ONLY - exact fired-contact subpixel polish oracle
 
 Question: the earlier terminal pitch oracle rotated the final third of one gap and usually missed

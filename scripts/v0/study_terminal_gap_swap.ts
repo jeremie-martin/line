@@ -13,7 +13,13 @@ import {
   sliceTimeline,
   type GapFit,
 } from "./core/substrate.ts";
-import { detectWindow } from "./core/candidate.ts";
+import {
+  axisLookaheadEndFrame,
+  detectWindow,
+  translateTrackLines,
+  tryCandidate,
+  tryCandidateLines,
+} from "./core/candidate.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import {
   compileHandoff,
@@ -26,6 +32,7 @@ import {
   makeRootNode,
   type SearchNode,
 } from "./optimizer/node.ts";
+import { getCandidateProbe } from "./optimizer/sample.ts";
 import { isStrictlyBetter, type LeafKey } from "./optimizer/register.ts";
 import type { Candidate, SpecContext } from "./optimizer/sample.ts";
 import { scoreDriftReport } from "./score.ts";
@@ -50,6 +57,7 @@ const specs = (specArg === "all" ? [...GOLDEN_SPECS] : specArg.split(",")) as Go
 const seeds = (argValue("seeds") ?? "0").split(",").map(Number);
 const budget = Number(argValue("budget") ?? "200000");
 const candidateCount = Number(argValue("candidates") ?? "32");
+const candidateSeedCount = Number(argValue("candidate-seed-count") ?? "1");
 const suffixMode = argValue("suffix") ?? "fixed";
 const outPath = argValue("out");
 
@@ -57,7 +65,14 @@ if (!Number.isSafeInteger(budget) || budget <= 0) throw new Error(`invalid budge
 if (!Number.isSafeInteger(candidateCount) || candidateCount <= 0) {
   throw new Error(`invalid candidate count ${candidateCount}`);
 }
-if (suffixMode !== "fixed" && suffixMode !== "release-translate") {
+if (!Number.isSafeInteger(candidateSeedCount) || candidateSeedCount <= 0) {
+  throw new Error(`invalid candidate seed count ${candidateSeedCount}`);
+}
+if (
+  suffixMode !== "fixed" &&
+  suffixMode !== "release-translate" &&
+  suffixMode !== "guided-rebuild"
+) {
   throw new Error(`invalid suffix mode "${suffixMode}"`);
 }
 for (const spec of specs) {
@@ -159,6 +174,61 @@ function geometryKey(lines: readonly TrackLine[]): string {
   ]));
 }
 
+function rebuildGuidedSuffix(
+  entry: SearchNode,
+  anchorCandidate: Candidate,
+  incumbentFits: readonly (GapFit | null)[],
+  gaps: Gap[],
+  ctx: SpecContext,
+): SearchNode | null {
+  let node = extendNodeCached(entry, anchorCandidate);
+  for (let index = node.gapIndex; index < gaps.length; index++) {
+    const gap = gaps[index];
+    if (!gap.endsWithContact) {
+      node = extendNodeCached(node, null);
+      continue;
+    }
+    const guide = incumbentFits[index];
+    if (guide === null || guide === undefined || guide.ref === undefined) return null;
+    const probe = getCandidateProbe(node.prefixEngine, gap, ctx);
+    const dx = probe.targetState.sledX - guide.ref.x;
+    const dy = probe.targetState.sledY - guide.ref.y;
+    const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+    const candidate = guide.arc === null
+      ? tryCandidateLines(
+        node.prefixEngine,
+        gap,
+        translateTrackLines(guide.lines, dx, dy, node.prefixNextLineId),
+        node.prefixNextLineId,
+        ctx.allContactFrames,
+        axisMeasureEnd,
+        gap.targets,
+        true,
+        undefined,
+        probe.preTargetSledTrace,
+      )
+      : tryCandidate(
+        node.prefixEngine,
+        gap,
+        {
+          ...guide.arc,
+          anchor: { x: guide.arc.anchor.x + dx, y: guide.arc.anchor.y + dy },
+        },
+        node.prefixNextLineId,
+        ctx.allContactFrames,
+        axisMeasureEnd,
+        gap.targets,
+        true,
+        undefined,
+        probe.preTargetSledTrace,
+      );
+    if (candidate === null) return null;
+    candidate.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+    node = extendNodeCached(node, candidate);
+  }
+  return node;
+}
+
 type SwapRow = {
   spec: GoldenSpecName;
   seed: number;
@@ -207,7 +277,12 @@ for (const specName of specs) {
     if (gap === undefined) throw new Error(`${specName}/s${seed}: no swappable gap`);
 
     const entry = reconstructEntry(winner, gaps, gap.index);
-    const candidates = getCandidatesSorted(entry, gaps, ctx, winner.searchSeed, candidateCount);
+    const candidates = Array.from({ length: candidateSeedCount }, (_, ordinal) => {
+      const candidateSeed = ordinal === 0
+        ? winner.searchSeed
+        : ((winner.searchSeed | 0) ^ Math.imul(ordinal, 0x9e3779b1)) | 0;
+      return getCandidatesSorted(entry, gaps, ctx, candidateSeed, candidateCount);
+    }).flat();
     const incumbentFit = winner.search.prefixFits[gap.index];
     if (incumbentFit === null || incumbentFit === undefined) {
       throw new Error(`${specName}/s${seed}: weak gap ${gap.index} has no fit`);
@@ -223,6 +298,36 @@ for (const specName of specs) {
       const candidate = candidates[rank];
       if (geometryKey(candidate.lines) === incumbentGeometry) continue;
       distinct++;
+      if (suffixMode === "guided-rebuild") {
+        const terminal = rebuildGuidedSuffix(
+          entry,
+          candidate,
+          winner.search.prefixFits,
+          gaps,
+          ctx,
+        );
+        if (terminal === null) continue;
+        const detection = detectWindow(terminal.prefixEngine, 0, durationFrames + 20);
+        const report = buildDriftReport(
+          detection,
+          spec,
+          gaps,
+          contactFrames,
+          durationFrames,
+          [],
+          terminal.prefixFits,
+          gapAxisTargets,
+        );
+        const score = scoreDriftReport(report, { totalFrames: durationFrames });
+        if (!score.contract_passed) continue;
+        valid++;
+        if (score.score > baselineScore) improved++;
+        if (score.score > bestScore) {
+          bestScore = score.score;
+          bestCandidateRank = rank;
+        }
+        continue;
+      }
       const rawFits = [...winner.search.prefixFits];
       rawFits[gap.index] = candidate;
       if (suffixMode === "release-translate") {
@@ -298,6 +403,7 @@ const lifts = rows.map((row) => row.bestScore - row.baselineScore);
 const result = {
   budget,
   candidateCount,
+  candidateSeedCount,
   suffixMode,
   specs,
   seeds,

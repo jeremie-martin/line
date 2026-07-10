@@ -10,6 +10,8 @@ retain the existing suffix geometry, and survive unchanged full detection. The n
 the final complete `HandoffNode`, reconstructs the weak-gap entry state, calls the production
 candidate sampler, renumbers the composed fits, and exact-scores every distinct swap. A second mode
 rigidly translates all downstream lines by the candidate-versus-incumbent release-position delta.
+The final mode rebuilds the suffix one gap at a time by translating each corresponding incumbent
+fit to the new sled entry and revalidating it, testing a warm repair path rather than rigid geometry.
 
 On `drums_pendulum`, `drums_dropout`, `dense_echo_climb`, and `skyline_push` at 200k/seed 0, fixed
 suffix geometry produced only 1 contract-valid swap among 150 distinct candidates and no score
@@ -18,6 +20,15 @@ gain. Release-aligned suffix translation produced 0/150 valid swaps. Archives:
 `generated/studies/terminal-gap-swap-release-translate-4spec-b200-s0-a01.json`. Suffix catchability
 depends on the changed release velocity, pose, and contact history, not merely line position;
 full suffix reconstruction remains necessary. No production behavior was changed.
+
+Guided rebuilding made alternatives much more feasible but did not expose useful score headroom.
+The incumbent-seed pool produced 22 valid completions among 150 alternatives and no improvements.
+Combining that pool with four repair-style derived anchor seeds produced 117 valid completions
+among 738 alternatives; only one improved, `dense_echo_climb` by 0.064, for +0.016 mean across the
+four rows. Archive:
+`generated/studies/terminal-gap-swap-guided-rebuild-4spec-b200-s0-k5-a01.json`. The guide reliably
+reconstructs the incumbent basin and consequently preserves its score profile; it does not justify
+an added repair candidate lane.
 
 ## 2026-07-10 - OBSERVATION ONLY - exact fired-contact subpixel polish oracle
 

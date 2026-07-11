@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import {
   appendAttemptEvent,
-  initializeLedgerFromConfirmationState,
+  initializeLedgerFromBaseline,
   projectEraState,
   readAttemptEvents,
   readEraState,
@@ -303,48 +303,26 @@ describe("era-start guards", () => {
   });
 });
 
-describe("bootstrap from confirmation state", () => {
-  test("initializes ledger + projection without mutating the confirmation state", () => {
+describe("bootstrap from the baseline of record", () => {
+  test("initializes ledger + projection read-only against the frozen baseline", () => {
     const paths = tmpPaths();
-    const confPath = join(mkdtempSync(join(tmpdir(), "attempts-conf-")), "confirmation-state.json");
-    const confirmation = {
-      schema: "line.benchmark-v2.confirmation-state.v4",
-      status: "available",
-      reason: null,
-      baseline: {
-        label: "v2-test-baseline",
-        suiteFingerprint: "s".repeat(64),
-        archiveSha256: "d".repeat(64),
-        candidateFingerprint: "9".repeat(64),
-        listeningReviewFingerprint: null,
-        compilerSnapshot: null,
-        inferenceFingerprint: null,
-        protocolFingerprint: null,
-        calibrationFingerprint: null,
-      },
-      seedLedger: [
-        { attemptId: "legacy-1", canonicalSeedBase: 1_234_567, seedCount: 96, seedScheduleFingerprint: "legacy-fp" },
-      ],
-      attempt: null,
-    };
-    writeFileSync(confPath, `${JSON.stringify(confirmation, null, 2)}\n`);
+    const baselineBytesBefore = readFileSync("benchmark/v2/baseline.json", "utf8");
+    const baselineLabel = JSON.parse(baselineBytesBefore).label;
 
-    const state = initializeLedgerFromConfirmationState(confPath, paths, "2026-07-11T09:00:00.000Z");
+    const state = initializeLedgerFromBaseline(undefined, paths, "2026-07-11T09:00:00.000Z");
     expect(existsSync(paths.ledger!)).toBe(true);
     expect(existsSync(paths.projection!)).toBe(true);
     expect(state.eraCause).toBe("bootstrap");
     expect(state.eraId).toBe("era-2026-07-11T09-00-00.000Z");
-    expect(state.baselineLabel).toBe("v2-test-baseline");
+    expect(state.baselineLabel).toBe(baselineLabel);
     expect(state.budgetCap).toBe(0.05);
-    expect(state.seedLedger).toEqual([
-      { attemptId: "legacy-1", canonicalSeedBase: 1_234_567, seedCount: 96, seedScheduleFingerprint: "legacy-fp" },
-    ]);
+    expect(state.seedLedger).toEqual([]);
 
-    // The confirmation state is read, never rewritten.
-    expect(JSON.parse(readFileSync(confPath, "utf8"))).toEqual(confirmation);
+    // The baseline of record is read, never rewritten.
+    expect(readFileSync("benchmark/v2/baseline.json", "utf8")).toBe(baselineBytesBefore);
 
     expect(() =>
-      initializeLedgerFromConfirmationState(confPath, paths, "2026-07-11T10:00:00.000Z"),
+      initializeLedgerFromBaseline(undefined, paths, "2026-07-11T10:00:00.000Z"),
     ).toThrow(/already exists/);
   });
 });

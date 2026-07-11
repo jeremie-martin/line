@@ -1,48 +1,28 @@
+/**
+ * Eval-attempt declarations and the baseline decision contract.
+ *
+ * The one-shot canonical confirmation machinery (confirmation state file,
+ * single promotion slot, consume-on-decide) was retired at the eval-chain
+ * cutover after the live validation (docs/benchmark-v2-validation.md):
+ * `benchmark/v2/baseline.json` is the sole record of the baseline contract,
+ * and `benchmark/v2/attempts.jsonl` is the sole ledger of attempts and
+ * seed epochs.
+ */
+
 import { createHash, randomBytes } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import {
-  createCompilerSnapshot,
-  runSnapshotBenchmark,
   validateCompilerSnapshot,
   type CompilerSnapshot,
   type SnapshotBenchmarkRun,
 } from "./compiler_snapshot.ts";
-import { loadSourceManifest, resolveSources } from "./model.ts";
-import { compilerCandidateIdentity } from "./runner.ts";
-import { loadSuiteManifest, resolvedSeedSchedule, suiteIdentity } from "./suite_model.ts";
-import {
-  requireCurrentDecisionCalibration,
-  type DecisionContractIdentity,
-} from "./calibration_guard.ts";
+import { type DecisionContractIdentity } from "./calibration_guard.ts";
 
-export const CONFIRMATION_STATE_SCHEMA = "line.benchmark-v2.confirmation-state.v4" as const;
-export const CONFIRMATION_DECLARATION_SCHEMA = "line.benchmark-v2.confirmation-declaration.v5" as const;
 export const EVAL_DECLARATION_SCHEMA = "line.benchmark-v2.eval-declaration.v6" as const;
-const LEGACY_STATE_SCHEMA_V3 = "line.benchmark-v2.confirmation-state.v3" as const;
-export const DEFAULT_CONFIRMATION_STATE_PATH = "benchmark/v2/confirmation-state.json";
+export const DEFAULT_BASELINE_PATH = "benchmark/v2/baseline.json";
 
 export type ConfirmationMode = "improvement" | "simplification";
-
-export type ConfirmationDeclaration = {
-  schema: typeof CONFIRMATION_DECLARATION_SCHEMA;
-  attemptId: string;
-  declaredAt: string;
-  baselineLabel: string;
-  baselineCandidateFingerprint: string;
-  baselineSuiteFingerprint: string;
-  baselineSnapshotSha256: string;
-  baselineInferenceFingerprint: string;
-  baselineProtocolFingerprint: string;
-  baselineCalibrationFingerprint: string;
-  candidateFingerprint: string;
-  candidateSnapshot: CompilerSnapshot;
-  canonicalSeedBase: number;
-  seedScheduleFingerprint: string;
-  mode: ConfirmationMode;
-  margin: number | null;
-  statement: string;
-};
 
 export type SeedLedgerEntry = {
   attemptId: string;
@@ -51,36 +31,17 @@ export type SeedLedgerEntry = {
   seedScheduleFingerprint: string;
 };
 
-export type ConfirmationState = {
-  schema: typeof CONFIRMATION_STATE_SCHEMA;
-  status: "blocked" | "available" | "running" | "evidence-ready" | "consumed";
-  reason: string | null;
-  baseline: {
-    label: string;
-    suiteFingerprint: string;
-    archiveSha256: string;
-    candidateFingerprint: string | null;
-    listeningReviewFingerprint: string | null;
-    compilerSnapshot: CompilerSnapshot | null;
-    inferenceFingerprint: string | null;
-    protocolFingerprint: string | null;
-    calibrationFingerprint: string | null;
-  };
-  seedLedger: SeedLedgerEntry[];
-  attempt: null | {
-    declarationPath: string;
-    declarationSha256: string;
-    declaration: ConfirmationDeclaration;
-    baseArchivePath?: string;
-    baseArchiveSha256?: string;
-    baseRetainedCompressedArchive?: string;
-    baseRetainedCompressedSha256?: string;
-    developmentArchivePath?: string;
-    developmentArchiveSha256?: string;
-    decisionArtifactPath?: string;
-    decisionArtifactSha256?: string;
-    outcome?: string;
-  };
+/** The baseline block the eval chain declares against, read from the frozen
+ *  baseline of record. */
+export type BaselineContract = {
+  label: string;
+  suiteFingerprint: string;
+  candidateFingerprint: string;
+  listeningReviewFingerprint: string;
+  compilerSnapshot: CompilerSnapshot;
+  inferenceFingerprint: string;
+  protocolFingerprint: string;
+  calibrationFingerprint: string;
 };
 
 export type EvalDeclaration = {
@@ -111,6 +72,60 @@ export type EvalDeclaration = {
   statement: string;
 };
 
+/** Read and validate the frozen baseline of record as the decision contract
+ *  every attempt declares against. */
+export function readBaselineContract(baselinePath = DEFAULT_BASELINE_PATH): BaselineContract {
+  const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
+  if (
+    baseline.schema !== "line.benchmark-v2.baseline-reference.v9" ||
+    baseline.status !== "canonical-baseline"
+  ) {
+    throw new Error(`unsupported baseline reference; establish a new baseline`);
+  }
+  if (baseline.listening_review_status !== "approved") {
+    throw new Error(`the baseline of record lacks an approved listening review`);
+  }
+  for (const field of [
+    baseline.candidate_fingerprint,
+    baseline.suite_fingerprint,
+    baseline.listening_review_fingerprint,
+    baseline.decision_inference_fingerprint,
+    baseline.decision_protocol_fingerprint,
+    baseline.decision_calibration_fingerprint,
+  ]) {
+    if (!isFingerprint(field)) throw new Error(`the baseline of record has an incomplete decision contract`);
+  }
+  if (baseline.compiler_snapshot === undefined) {
+    throw new Error(`the baseline of record has no compiler snapshot`);
+  }
+  validateCompilerSnapshot(baseline.compiler_snapshot);
+  return {
+    label: baseline.label,
+    suiteFingerprint: baseline.suite_fingerprint,
+    candidateFingerprint: baseline.candidate_fingerprint,
+    listeningReviewFingerprint: baseline.listening_review_fingerprint,
+    compilerSnapshot: baseline.compiler_snapshot,
+    inferenceFingerprint: baseline.decision_inference_fingerprint,
+    protocolFingerprint: baseline.decision_protocol_fingerprint,
+    calibrationFingerprint: baseline.decision_calibration_fingerprint,
+  };
+}
+
+export function assertCurrentDecisionContract(
+  baseline: BaselineContract,
+  current: DecisionContractIdentity,
+): void {
+  if (
+    baseline.inferenceFingerprint !== current.inferenceFingerprint ||
+    baseline.calibrationFingerprint !== current.calibrationFingerprint
+  ) {
+    throw new Error(`inference or calibration contract differs from the baseline; regenerate calibration and run \`benchmark migrate\``);
+  }
+  if (baseline.protocolFingerprint !== current.protocolFingerprint) {
+    throw new Error(`decision-protocol identity changed; run \`benchmark migrate --scope=protocol\` to re-stamp the contract`);
+  }
+}
+
 /**
  * Freeze an eval attempt before any confirmation compile: candidate snapshot,
  * operating point, fresh epoch, and the exact certification evidence that
@@ -119,7 +134,7 @@ export type EvalDeclaration = {
  */
 export function declareEvalAttempt(input: {
   attemptId: string;
-  baseline: ConfirmationState["baseline"];
+  baseline: BaselineContract;
   decisionContract: DecisionContractIdentity;
   candidateFingerprint: string;
   candidateSnapshot: CompilerSnapshot;
@@ -137,9 +152,6 @@ export function declareEvalAttempt(input: {
   certificationFingerprint: string;
   declarationDir: string;
 }): { declaration: EvalDeclaration; declarationPath: string; declarationSha256: string } {
-  if (input.baseline.compilerSnapshot === null || input.baseline.candidateFingerprint === null) {
-    throw new Error(`an approved baseline with a compiler snapshot is required before an eval attempt`);
-  }
   validateCompilerSnapshot(input.baseline.compilerSnapshot);
   validateCompilerSnapshot(input.candidateSnapshot);
   const attemptId = input.attemptId;
@@ -186,395 +198,11 @@ export function freshAttemptId(): string {
   return `${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}-${randomBytes(4).toString("hex")}`;
 }
 
-/**
- * Record an eval epoch in the legacy one-shot ledger too: both allocation
- * systems must see every allocated epoch or a later canonical attempt could
- * reuse eval seeds.
- */
-export function appendSeedLedgerEntry(statePath: string, entry: SeedLedgerEntry): void {
-  const state = readConfirmationState(statePath);
-  if (state.seedLedger.some((existing) => existing.attemptId === entry.attemptId)) {
-    throw new Error(`seed ledger already holds attempt ${entry.attemptId}`);
-  }
-  state.seedLedger = [...state.seedLedger, entry];
-  writeAtomic(statePath, state);
-}
-
 export function readEvalDeclaration(path: string): { declaration: EvalDeclaration; declarationSha256: string } {
   const bytes = readFileSync(resolve(path));
   const declaration = JSON.parse(bytes.toString("utf8")) as EvalDeclaration;
   if (declaration.schema !== EVAL_DECLARATION_SCHEMA) throw new Error(`unsupported eval declaration`);
   return { declaration, declarationSha256: sha256(bytes) };
-}
-
-export function assertBaselineTransitionAllowed(
-  candidateFingerprint: string,
-  suiteFingerprint?: string,
-  statePath = DEFAULT_CONFIRMATION_STATE_PATH,
-): void {
-  if (!existsSync(statePath)) {
-    throw new Error(`confirmation state is missing; restore the tracked ledger before rebaselining`);
-  }
-  const state = readConfirmationState(statePath);
-  if (state.status === "blocked") return;
-  if (suiteFingerprint !== undefined && state.baseline.suiteFingerprint !== suiteFingerprint) return;
-  if (
-    state.status === "consumed" && state.attempt?.outcome === "accept" &&
-    state.attempt.declaration.candidateFingerprint === candidateFingerprint
-  ) return;
-  throw new Error(
-    `a new baseline is allowed only for the initially blocked workflow or the candidate accepted by the last canonical attempt`,
-  );
-}
-
-export function initializeConfirmationStateFromBaseline(
-  baselinePath = "benchmark/v2/baseline.json",
-  statePath = DEFAULT_CONFIRMATION_STATE_PATH,
-): ConfirmationState {
-  const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
-  const previous = existsSync(statePath) ? readConfirmationStateForLedger(statePath) : undefined;
-  const approved = baseline.schema === "line.benchmark-v2.baseline-reference.v9" &&
-    baseline.status === "canonical-baseline" && baseline.listening_review_status === "approved" &&
-    baseline.compiler_snapshot !== undefined && isFingerprint(baseline.decision_inference_fingerprint) &&
-    isFingerprint(baseline.decision_protocol_fingerprint) &&
-    isFingerprint(baseline.decision_calibration_fingerprint);
-  if (approved) validateCompilerSnapshot(baseline.compiler_snapshot);
-  const state: ConfirmationState = {
-    schema: CONFIRMATION_STATE_SCHEMA,
-    status: approved ? "available" : "blocked",
-    reason: approved
-      ? null
-      : "An approved listening review and a V8 baseline with compiler and decision snapshots are required.",
-    baseline: {
-      label: baseline.label,
-      suiteFingerprint: baseline.suite_fingerprint,
-      archiveSha256: baseline.development.archive_sha256,
-      candidateFingerprint: baseline.candidate_fingerprint ?? null,
-      listeningReviewFingerprint: baseline.listening_review_fingerprint ?? null,
-      compilerSnapshot: approved ? baseline.compiler_snapshot : null,
-      inferenceFingerprint: approved ? baseline.decision_inference_fingerprint : null,
-      protocolFingerprint: approved ? baseline.decision_protocol_fingerprint : null,
-      calibrationFingerprint: approved ? baseline.decision_calibration_fingerprint : null,
-    },
-    seedLedger: previous?.seedLedger ?? [],
-    attempt: null,
-  };
-  writeAtomic(statePath, state);
-  return state;
-}
-
-export async function runCanonicalConfirmation(args = process.argv.slice(2)): Promise<string> {
-  const argument = (name: string): string | undefined =>
-    args.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-  const statePath = resolve(argument("confirmation-state") ?? DEFAULT_CONFIRMATION_STATE_PATH);
-  const declarationDir = resolve(argument("declaration-dir") ?? "benchmark/v2/confirmations");
-  const outDir = resolve(argument("out-dir") ?? "generated/benchmark-v2/canonical-runs");
-  const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
-  const sourceManifestPath = argument("manifest") ?? "benchmark/v2/compat/source-manifest.json";
-  const suiteManifestPath = argument("suite") ?? "benchmark/v2/compat/suite-manifest.json";
-  const resume = args.includes("--resume");
-  const identity = compilerCandidateIdentity(process.env.LR_ENGINE ?? "typescript");
-  if (process.env.LR_ENGINE !== "wasm") throw new Error(`canonical confirmation requires LR_ENGINE=wasm`);
-
-  let state = readConfirmationState(statePath);
-  let declaration: ConfirmationDeclaration;
-  let declarationPath: string;
-  if (resume) {
-    if (state.status !== "running" || state.attempt === null) {
-      throw new Error(`--resume requires a running confirmation attempt`);
-    }
-    declaration = state.attempt.declaration;
-    declarationPath = resolve(state.attempt.declarationPath);
-    const decisionContract = requireCurrentDecisionCalibration(state.baseline.suiteFingerprint);
-    assertCurrentDecisionContract(state, decisionContract);
-    if (
-      declaration.baselineInferenceFingerprint !== decisionContract.inferenceFingerprint ||
-      declaration.baselineProtocolFingerprint !== decisionContract.protocolFingerprint ||
-      declaration.baselineCalibrationFingerprint !== decisionContract.calibrationFingerprint
-    ) throw new Error(`running confirmation declaration does not match the baseline decision contract`);
-    if (declaration.candidateFingerprint !== identity.candidateFingerprint) {
-      throw new Error(`current compiler identity does not match the running confirmation declaration`);
-    }
-    validateCompilerSnapshot(declaration.candidateSnapshot);
-  } else {
-    if (state.status !== "available" || state.attempt !== null || state.baseline.compilerSnapshot === null) {
-      throw new Error(`canonical confirmation is ${state.status}; establish a new approved baseline before another attempt`);
-    }
-    validateCompilerSnapshot(state.baseline.compilerSnapshot);
-    const sources = resolveSources(loadSourceManifest(sourceManifestPath));
-    const currentSuite = suiteIdentity(suiteManifestPath, sourceManifestPath, sources);
-    if (currentSuite.suiteFingerprint !== state.baseline.suiteFingerprint) {
-      throw new Error(`canonical suite differs from the baseline contract; establish a new baseline`);
-    }
-    const decisionContract = requireCurrentDecisionCalibration(currentSuite.suiteFingerprint);
-    assertCurrentDecisionContract(state, decisionContract);
-    const mode = parseMode(argument("decision-mode"));
-    const margin = parseMargin(mode, argument("margin"));
-    const suite = loadSuiteManifest(suiteManifestPath, sources);
-    const profile = suite.profiles.canonical;
-    const seedCount = profile.budgets.length * profile.seeds_per_budget;
-    const canonicalSeedBase = allocateCanonicalSeedBase(state.seedLedger, seedCount);
-    const schedule = resolvedSeedSchedule(
-      suite,
-      "canonical",
-      profile.budgets,
-      profile.seeds_per_budget,
-      canonicalSeedBase,
-    );
-    const seedScheduleFingerprint = sha256(Buffer.from(JSON.stringify(schedule)));
-    const attemptId = `${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}-${randomBytes(4).toString("hex")}`;
-    const candidateSnapshot = createCompilerSnapshot(`${attemptId}-candidate`, archiveDir);
-    if (candidateSnapshot.candidateFingerprint !== identity.candidateFingerprint) {
-      throw new Error(`candidate changed while its canonical snapshot was being created`);
-    }
-    declaration = {
-      schema: CONFIRMATION_DECLARATION_SCHEMA,
-      attemptId,
-      declaredAt: new Date().toISOString(),
-      baselineLabel: state.baseline.label,
-      baselineCandidateFingerprint: state.baseline.candidateFingerprint!,
-      baselineSuiteFingerprint: state.baseline.suiteFingerprint,
-      baselineSnapshotSha256: state.baseline.compilerSnapshot.archiveSha256,
-      baselineInferenceFingerprint: decisionContract.inferenceFingerprint,
-      baselineProtocolFingerprint: decisionContract.protocolFingerprint,
-      baselineCalibrationFingerprint: decisionContract.calibrationFingerprint,
-      candidateFingerprint: identity.candidateFingerprint,
-      candidateSnapshot,
-      canonicalSeedBase,
-      seedScheduleFingerprint,
-      mode,
-      margin,
-      statement: mode === "improvement"
-        ? "This candidate and fresh seed epoch are frozen before either paired canonical run."
-        : `This candidate, margin ${margin}, and fresh seed epoch are frozen before either paired canonical run.`,
-    };
-    declarationPath = resolve(declarationDir, `${attemptId}.json`);
-    writeAtomic(declarationPath, declaration);
-    state = {
-      ...state,
-      status: "running",
-      reason: null,
-      seedLedger: [...state.seedLedger, {
-        attemptId,
-        canonicalSeedBase,
-        seedCount,
-        seedScheduleFingerprint,
-      }],
-      attempt: {
-        declarationPath: relativeToCwd(declarationPath),
-        declarationSha256: sha256(readFileSync(declarationPath)),
-        declaration,
-      },
-    };
-    writeAtomic(statePath, state);
-  }
-
-  const forwarded = args.filter((arg) =>
-    !arg.startsWith("--confirmation-state=") && !arg.startsWith("--declaration-dir=") &&
-    !arg.startsWith("--decision-mode=") && !arg.startsWith("--margin=") &&
-    !arg.startsWith("--label=") && !arg.startsWith("--canonical-seed-base=")
-  );
-  mkdirSync(outDir, { recursive: true });
-  mkdirSync(archiveDir, { recursive: true });
-  const common = [
-    ...forwarded,
-    `--confirmation-declaration=${declarationPath}`,
-    `--canonical-seed-base=${declaration.canonicalSeedBase}`,
-  ];
-  const basePath = resolve(outDir, `${declaration.attemptId}-baseline-development.json`);
-  const baseRun = runSnapshotBenchmark(
-    state.baseline.compilerSnapshot!,
-    "development",
-    ["--profile=canonical", ...common],
-    basePath,
-  );
-  if (baseRun.workerFailures > 0) throw new Error(`fresh baseline execution has worker failures`);
-  const baseBytes = readFileSync(basePath);
-  const baseArchive = JSON.parse(baseBytes.toString("utf8"));
-  if (baseArchive.git?.candidateFingerprint !== declaration.baselineCandidateFingerprint) {
-    throw new Error(`fresh baseline execution does not reproduce the frozen compiler snapshot identity`);
-  }
-  const retainedBase = retainSnapshotRun(baseRun, archiveDir, `${declaration.attemptId}-baseline-development`);
-
-  const candidatePath = resolve(outDir, `${declaration.attemptId}-development.json`);
-  const candidateRun = runSnapshotBenchmark(
-    declaration.candidateSnapshot,
-    "development",
-    ["--profile=canonical", ...common],
-    candidatePath,
-  );
-  if (candidateRun.workerFailures > 0) throw new Error(`canonical candidate execution has worker failures`);
-  const candidateArchive = JSON.parse(readFileSync(candidatePath, "utf8"));
-  if (candidateArchive.git?.candidateFingerprint !== declaration.candidateFingerprint) {
-    throw new Error(`canonical candidate execution does not reproduce its declared compiler snapshot`);
-  }
-  const retainedCandidate = retainSnapshotRun(
-    candidateRun,
-    archiveDir,
-    `${declaration.attemptId}-development`,
-  );
-
-  const qualificationPath = resolve(outDir, `${declaration.attemptId}-qualification.json`);
-  const qualificationRun = runSnapshotBenchmark(
-    declaration.candidateSnapshot,
-    "qualification",
-    ["--profile=canonical", `--development-archive=${candidatePath}`, ...common],
-    qualificationPath,
-  );
-  if (qualificationRun.workerFailures > 0) throw new Error(`canonical qualification execution has worker failures`);
-  const retainedQualification = retainSnapshotRun(
-    qualificationRun,
-    archiveDir,
-    `${declaration.attemptId}-qualification`,
-  );
-  writeFileSync(resolve(archiveDir, `${declaration.attemptId}-canonical.json`), `${JSON.stringify({
-    schema: "line.benchmark-v2.canonical-bundle.v1",
-    label: declaration.attemptId,
-    generatedAt: new Date().toISOString(),
-    development: retainedCandidate,
-    qualification: retainedQualification,
-  }, null, 2)}\n`);
-  state = readConfirmationState(statePath);
-  if (state.status !== "running" || state.attempt?.declarationSha256 !== sha256(readFileSync(declarationPath))) {
-    throw new Error(`confirmation state changed while paired canonical evidence was running`);
-  }
-  state.status = "evidence-ready";
-  state.attempt.baseArchivePath = relativeToCwd(basePath);
-  state.attempt.baseArchiveSha256 = sha256(baseBytes);
-  state.attempt.baseRetainedCompressedArchive = retainedBase.archive;
-  state.attempt.baseRetainedCompressedSha256 = retainedBase.compressedSha256;
-  state.attempt.developmentArchivePath = relativeToCwd(candidateRun.outputPath);
-  state.attempt.developmentArchiveSha256 = candidateRun.archiveSha256;
-  writeAtomic(statePath, state);
-  return candidateRun.outputPath;
-}
-
-export function readConfirmationState(path = DEFAULT_CONFIRMATION_STATE_PATH): ConfirmationState {
-  const state = JSON.parse(readFileSync(path, "utf8")) as ConfirmationState;
-  if (state.schema !== CONFIRMATION_STATE_SCHEMA) throw new Error(`unsupported confirmation state`);
-  return state;
-}
-
-/** Bootstrap-only lenient read: a legacy v3 state may seed the ledger (the
- *  never-reuse guarantee must survive schema migrations). */
-function readConfirmationStateForLedger(path: string): { seedLedger: SeedLedgerEntry[] } {
-  const state = JSON.parse(readFileSync(path, "utf8"));
-  if (state.schema !== CONFIRMATION_STATE_SCHEMA && state.schema !== LEGACY_STATE_SCHEMA_V3) {
-    throw new Error(`unsupported confirmation state`);
-  }
-  return { seedLedger: Array.isArray(state.seedLedger) ? state.seedLedger : [] };
-}
-
-export function consumeConfirmation(
-  statePath: string,
-  candidateArchiveSha256: string,
-  mode: ConfirmationMode,
-  margin: number | undefined,
-  decisionArtifactPath: string,
-  outcome: string,
-): void {
-  const state = readConfirmationState(statePath);
-  validateConfirmationStateFields(state, candidateArchiveSha256, mode, margin);
-  const artifactBytes = readFileSync(decisionArtifactPath);
-  state.status = "consumed";
-  state.attempt!.decisionArtifactPath = relativeToCwd(resolve(decisionArtifactPath));
-  state.attempt!.decisionArtifactSha256 = sha256(artifactBytes);
-  state.attempt!.outcome = outcome;
-  writeAtomic(statePath, state);
-}
-
-export function confirmationBaseArchive(statePath: string): { path: string; archiveSha256: string; label: string } {
-  const state = readConfirmationState(statePath);
-  if (state.status !== "evidence-ready" || state.attempt?.baseArchivePath === undefined ||
-    state.attempt.baseArchiveSha256 === undefined) {
-    throw new Error(`fresh paired baseline evidence is unavailable for this canonical attempt`);
-  }
-  return {
-    path: resolve(state.attempt.baseArchivePath),
-    archiveSha256: state.attempt.baseArchiveSha256,
-    label: `${state.baseline.label}-fresh-paired`,
-  };
-}
-
-export function validateConfirmationEvidence(
-  statePath: string,
-  input: {
-    baseArchiveSha256: string;
-    baseCandidateFingerprint: string;
-    candidateArchiveSha256: string;
-    candidateFingerprint: string;
-    suiteFingerprint: string;
-    baseConfirmationDeclaration?: { path: string; sha256: string };
-    confirmationDeclaration?: { path: string; sha256: string };
-    seedSchedule: unknown;
-    mode: ConfirmationMode;
-    margin?: number;
-  },
-): ConfirmationDeclaration {
-  const state = readConfirmationState(statePath);
-  validateConfirmationStateFields(state, input.candidateArchiveSha256, input.mode, input.margin);
-  const attempt = state.attempt!;
-  const declaration = attempt.declaration;
-  const decisionContract = requireCurrentDecisionCalibration(input.suiteFingerprint);
-  assertCurrentDecisionContract(state, decisionContract);
-  validateCompilerSnapshot(declaration.candidateSnapshot);
-  if (state.baseline.compilerSnapshot === null) throw new Error(`baseline compiler snapshot is unavailable`);
-  validateCompilerSnapshot(state.baseline.compilerSnapshot);
-  const expectedDeclarationPath = resolve(attempt.declarationPath);
-  const linked = [input.baseConfirmationDeclaration, input.confirmationDeclaration];
-  if (
-    attempt.baseArchiveSha256 !== input.baseArchiveSha256 ||
-    declaration.baselineCandidateFingerprint !== input.baseCandidateFingerprint ||
-    declaration.baselineSuiteFingerprint !== input.suiteFingerprint ||
-    declaration.baselineInferenceFingerprint !== decisionContract.inferenceFingerprint ||
-    declaration.baselineProtocolFingerprint !== decisionContract.protocolFingerprint ||
-    declaration.baselineCalibrationFingerprint !== decisionContract.calibrationFingerprint ||
-    declaration.candidateFingerprint !== input.candidateFingerprint ||
-    declaration.seedScheduleFingerprint !== sha256(Buffer.from(JSON.stringify(input.seedSchedule))) ||
-    linked.some((entry) => entry === undefined || resolve(entry.path) !== expectedDeclarationPath ||
-      entry.sha256 !== attempt.declarationSha256) ||
-    sha256(readFileSync(expectedDeclarationPath)) !== attempt.declarationSha256
-  ) {
-    throw new Error(`canonical archives are not paired to the fresh seed epoch and immutable declaration`);
-  }
-  return declaration;
-}
-
-export function assertCurrentDecisionContract(
-  state: ConfirmationState,
-  current: DecisionContractIdentity,
-): void {
-  if (
-    state.baseline.inferenceFingerprint !== current.inferenceFingerprint ||
-    state.baseline.calibrationFingerprint !== current.calibrationFingerprint
-  ) {
-    throw new Error(`inference or calibration contract differs from the baseline; regenerate calibration and run \`benchmark migrate\``);
-  }
-  if (state.baseline.protocolFingerprint !== current.protocolFingerprint) {
-    throw new Error(`decision-protocol identity changed; run \`benchmark migrate --scope=protocol\` to re-stamp the contract`);
-  }
-}
-
-function isFingerprint(value: unknown): value is string {
-  return typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
-}
-
-function validateConfirmationStateFields(
-  state: ConfirmationState,
-  candidateArchiveSha256: string,
-  mode: ConfirmationMode,
-  margin: number | undefined,
-): void {
-  if (state.status !== "evidence-ready" || state.attempt === null) {
-    throw new Error(`canonical evidence is not linked to an available one-shot confirmation declaration`);
-  }
-  const declaration = state.attempt.declaration;
-  if (
-    state.attempt.developmentArchiveSha256 !== candidateArchiveSha256 ||
-    declaration.mode !== mode || declaration.margin !== (mode === "simplification" ? margin : null)
-  ) {
-    throw new Error(`canonical evidence does not match its predeclared candidate, mode, margin, and archive`);
-  }
 }
 
 export function retainSnapshotRun(
@@ -617,24 +245,8 @@ export function allocateCanonicalSeedBase(ledger: SeedLedgerEntry[], seedCount: 
   throw new Error(`unable to allocate a fresh canonical seed epoch`);
 }
 
-function parseMode(raw: string | undefined): ConfirmationMode {
-  const mode = raw ?? "improvement";
-  if (mode !== "improvement" && mode !== "simplification") {
-    throw new Error(`--decision-mode must be improvement or simplification`);
-  }
-  return mode;
-}
-
-function parseMargin(mode: ConfirmationMode, raw: string | undefined): number | null {
-  if (mode === "improvement") {
-    if (raw !== undefined) throw new Error(`--margin is only valid for a simplification confirmation`);
-    return null;
-  }
-  const margin = Number(raw);
-  if (!Number.isFinite(margin) || margin <= 0) {
-    throw new Error(`simplification confirmation requires --margin=<positive headline points>`);
-  }
-  return margin;
+function isFingerprint(value: unknown): value is string {
+  return typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
 }
 
 function writeAtomic(path: string, value: unknown): void {

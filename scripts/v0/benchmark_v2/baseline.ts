@@ -7,10 +7,10 @@ import { runBenchmarkV2 } from "./runner.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
 import { suiteIdentity } from "./suite_model.ts";
 import { loadListeningReview, requireApprovedListeningReview } from "./listening_review.ts";
-import {
-  assertBaselineTransitionAllowed,
-  initializeConfirmationStateFromBaseline,
-} from "./confirmation.ts";
+import { existsSync } from "node:fs";
+import { readEraState, appendAttemptEvent, initializeLedgerFromBaseline, DEFAULT_ATTEMPTS_LEDGER_PATH } from "./attempts.ts";
+import { readBaselineContract } from "./confirmation.ts";
+import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import { createCompilerSnapshot } from "./compiler_snapshot.ts";
 import { compilerCandidateIdentity } from "./runner.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
@@ -33,10 +33,7 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
     identity.sourceManifestFingerprint,
     sources,
   ));
-  assertBaselineTransitionAllowed(
-    compilerCandidateIdentity("wasm").candidateFingerprint,
-    identity.suiteFingerprint,
-  );
+  assertFullFreezeAllowed(identity.suiteFingerprint);
   const outDir = resolve(argument("out-dir") ?? "generated/benchmark-v2/baseline-runs");
   const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
   const forwarded = args.filter((arg) =>
@@ -85,9 +82,33 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
     qualification: canonicalBundle.qualification,
   }, null, 2)}\n`);
   freezeBaseline(bundlePath);
-  initializeConfirmationStateFromBaseline();
+  if (!existsSync(DEFAULT_ATTEMPTS_LEDGER_PATH)) {
+    initializeLedgerFromBaseline();
+  } else {
+    appendAttemptEvent({
+      type: "era-start",
+      eraId: `era-${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}`,
+      cause: "suite-rollover",
+      baselineLabel: label,
+      budgetCap: benchmarkEvalPolicy.eraBudget.cap,
+    });
+  }
   console.log(`Baseline bundle: ${relativeToCwd(bundlePath)}`);
   return bundlePath;
+}
+
+/** The full freeze is the bootstrap and suite-rollover path only; within a
+ *  suite the light `rebaseline` after an accepted eval attempt is the way
+ *  baselines move. */
+function assertFullFreezeAllowed(suiteFingerprint: string): void {
+  if (!existsSync(DEFAULT_ATTEMPTS_LEDGER_PATH)) return; // bootstrap
+  const era = readEraState();
+  void era;
+  const previous = readBaselineContract();
+  if (previous.suiteFingerprint !== suiteFingerprint) return; // suite rollover
+  throw new Error(
+    `a full baseline freeze within the current suite was retired; accept an eval attempt and run \`benchmark rebaseline\``,
+  );
 }
 
 function relativeToCwd(path: string): string {

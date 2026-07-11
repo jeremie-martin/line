@@ -38,12 +38,6 @@ import {
   requireApprovedListeningReview,
 } from "./listening_review.ts";
 import {
-  DEFAULT_CONFIRMATION_STATE_PATH,
-  confirmationBaseArchive,
-  consumeConfirmation,
-  validateConfirmationEvidence,
-} from "./confirmation.ts";
-import {
   canonicalMembers,
   executionPolicyIdentity,
   fingerprintFiles,
@@ -78,7 +72,6 @@ type ParsedArgs = {
   margin?: number;
   printJson: boolean;
   noGateExit: boolean;
-  confirmationStatePath: string;
 };
 
 type VerifiedArchive = {
@@ -139,17 +132,12 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
   const args = parseArgs(argv);
   const candidate = loadVerifiedArchive(args.candidatePath);
   const profile = archiveProfile(candidate.archive);
-  const pairedBase = profile === "canonical" && args.basePath === undefined
-    ? confirmationBaseArchive(args.confirmationStatePath)
-    : undefined;
-  const baselineResolution = pairedBase !== undefined
-    ? {
-      path: pairedBase.path,
-      expected: { archive_sha256: pairedBase.archiveSha256 },
-      label: pairedBase.label,
-      reference: undefined,
-    }
-    : args.basePath === undefined
+  if (profile === "canonical") {
+    // Canonical evidence is judged inside its predeclared eval attempt; a
+    // standalone re-decide would double-judge the same draw.
+    throw new Error(`the one-shot canonical decide path was retired; \`npm run benchmark -- eval --to-verdict\` judges canonical evidence`);
+  }
+  const baselineResolution = args.basePath === undefined
     ? baselineArchive(profile)
     : { path: resolve(args.basePath), expected: undefined, label: "explicit-base", reference: undefined };
   const base = loadVerifiedArchive(baselineResolution.path, baselineResolution.expected);
@@ -163,20 +151,6 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
   }
   const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(base, candidate);
   requireCurrentDecisionCalibration(candidate.archive.identity.suiteFingerprint);
-  if (profile === "canonical") {
-    validateConfirmationEvidence(args.confirmationStatePath, {
-      baseArchiveSha256: base.archiveSha256,
-      baseCandidateFingerprint: base.archive.git.candidateFingerprint,
-      candidateArchiveSha256: candidate.archiveSha256,
-      candidateFingerprint: candidate.archive.git.candidateFingerprint,
-      suiteFingerprint: candidate.archive.identity.suiteFingerprint,
-      baseConfirmationDeclaration: base.archive.confirmationDeclaration,
-      confirmationDeclaration: candidate.archive.confirmationDeclaration,
-      seedSchedule: candidate.archive.identity.seedSchedule,
-      mode: args.mode,
-      margin: args.margin,
-    });
-  }
   const result = pairedV2Decision(baseRuns, candidateRuns, suite, {
     profile,
     mode: args.mode,
@@ -204,16 +178,6 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
   };
   const outPath = resolve(args.outPath ?? defaultOutput(candidate, baselineResolution.label, args.mode, args.margin));
   writeDecisionArtifact(outPath, artifact);
-  if (profile === "canonical") {
-    consumeConfirmation(
-      args.confirmationStatePath,
-      candidate.archiveSha256,
-      args.mode,
-      args.margin,
-      outPath,
-      result.outcome,
-    );
-  }
   if (args.printJson) {
     console.log(JSON.stringify(artifact, null, 2));
   } else {
@@ -230,7 +194,6 @@ function parseArgs(argv: string[]): ParsedArgs {
   let outPath: string | undefined;
   let printJson = false;
   let noGateExit = false;
-  let confirmationStatePath = DEFAULT_CONFIRMATION_STATE_PATH;
   const positional: string[] = [];
 
   for (const arg of argv) {
@@ -254,8 +217,6 @@ function parseArgs(argv: string[]): ParsedArgs {
       printJson = true;
     } else if (arg === "--no-gate-exit") {
       noGateExit = true;
-    } else if (arg.startsWith("--confirmation-state=")) {
-      confirmationStatePath = arg.slice("--confirmation-state=".length);
     } else {
       throw new Error(`unsupported decide flag ${arg}`);
     }
@@ -286,7 +247,6 @@ function parseArgs(argv: string[]): ParsedArgs {
     margin,
     printJson,
     noGateExit,
-    confirmationStatePath: resolve(confirmationStatePath),
   };
 }
 

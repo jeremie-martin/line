@@ -4,15 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import {
-  CONFIRMATION_DECLARATION_SCHEMA,
-  CONFIRMATION_STATE_SCHEMA,
   allocateCanonicalSeedBase,
-  assertBaselineTransitionAllowed,
-  consumeConfirmation,
-  initializeConfirmationStateFromBaseline,
-  validateConfirmationEvidence,
-  type ConfirmationDeclaration,
-  type ConfirmationState,
+  assertCurrentDecisionContract,
+  readBaselineContract,
+  type SeedLedgerEntry,
 } from "../scripts/v0/benchmark_v2/confirmation.ts";
 import {
   removeAmbientCompilerSources,
@@ -95,25 +90,24 @@ describe("Benchmark V2 governance", () => {
     )).rejects.toThrow(/audio (file does not match|is stale)/);
   });
 
-  test("a provisional baseline creates a blocked confirmation state", () => {
+  test("a provisional or incomplete baseline is refused as a decision contract", () => {
     const dir = mkdtempSync(join(tmpdir(), "v2-governance-"));
     const baselinePath = join(dir, "baseline.json");
-    const statePath = join(dir, "state.json");
     const provisional = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8"));
     provisional.schema = "line.benchmark-v2.baseline-reference.v6";
     provisional.status = "provisional-listening-review-required";
-    provisional.listening_review_status = "awaiting-human-review";
-    delete provisional.compiler_snapshot;
-    delete provisional.decision_inference_fingerprint;
-    delete provisional.decision_protocol_fingerprint;
-    delete provisional.decision_calibration_fingerprint;
     writeFileSync(baselinePath, `${JSON.stringify(provisional)}\n`);
+    expect(() => readBaselineContract(baselinePath)).toThrow(/unsupported baseline reference/);
 
-    const state = initializeConfirmationStateFromBaseline(baselinePath, statePath);
-    expect(state.status).toBe("blocked");
-    expect(state.attempt).toBeNull();
-    expect(() => assertBaselineTransitionAllowed("candidate", "suite", join(dir, "missing.json")))
-      .toThrow(/confirmation state is missing/);
+    const unreviewed = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8"));
+    unreviewed.listening_review_status = "awaiting-human-review";
+    writeFileSync(baselinePath, `${JSON.stringify(unreviewed)}\n`);
+    expect(() => readBaselineContract(baselinePath)).toThrow(/approved listening review/);
+
+    const incomplete = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8"));
+    delete incomplete.decision_protocol_fingerprint;
+    writeFileSync(baselinePath, `${JSON.stringify(incomplete)}\n`);
+    expect(() => readBaselineContract(baselinePath)).toThrow(/incomplete decision contract/);
   });
 
   test("mechanically rejects stale decision calibration", () => {
@@ -194,7 +188,7 @@ describe("Benchmark V2 governance", () => {
   });
 
   test("allocates non-overlapping canonical epochs above the probe and calibration range", () => {
-    const ledger: ConfirmationState["seedLedger"] = [];
+    const ledger: SeedLedgerEntry[] = [];
     for (let index = 0; index < 20; index++) {
       const canonicalSeedBase = allocateCanonicalSeedBase(ledger, 24);
       expect(canonicalSeedBase).toBeGreaterThanOrEqual(1_000_000);
@@ -242,162 +236,30 @@ describe("Benchmark V2 governance", () => {
     ]);
   });
 
-  test("binds one canonical archive to its predeclared mode and consumes it exactly once", () => {
+  test("the baseline of record binds the three-fingerprint decision contract", () => {
+    const baseline = readBaselineContract();
     const sources = resolveSources(loadSourceManifest(sourcePath));
     const suiteFingerprint = suiteIdentity(suitePath, sourcePath, sources).suiteFingerprint;
-    const decisionContract = requireCurrentDecisionCalibration(suiteFingerprint);
-    const dir = mkdtempSync(join(tmpdir(), "v2-governance-"));
-    const declarationPath = join(dir, "declaration.json");
-    const statePath = join(dir, "state.json");
-    const decisionPath = join(dir, "decision.json");
-    const candidatePath = join(dir, "candidate.json");
-    const snapshotPath = join(dir, "candidate-snapshot.tar.gz");
-    const baselineFingerprint = "3".repeat(64);
-    const candidateFingerprint = "4".repeat(64);
-    writeFileSync(candidatePath, "candidate evidence\n");
-    writeFileSync(snapshotPath, "candidate snapshot\n");
-    writeFileSync(decisionPath, "decision evidence\n");
-    const declaration: ConfirmationDeclaration = {
-      schema: CONFIRMATION_DECLARATION_SCHEMA,
-      attemptId: "attempt",
-      declaredAt: "2026-07-10T12:00:00.000Z",
-      baselineLabel: "baseline",
-      baselineCandidateFingerprint: baselineFingerprint,
-      baselineSuiteFingerprint: suiteFingerprint,
-      baselineSnapshotSha256: "snapshot-sha",
-      baselineInferenceFingerprint: decisionContract.inferenceFingerprint,
-      baselineProtocolFingerprint: decisionContract.protocolFingerprint,
-      baselineCalibrationFingerprint: decisionContract.calibrationFingerprint,
-      candidateFingerprint,
-      candidateSnapshot: {
-        schema: "line.benchmark-v2.compiler-snapshot.v1",
-        archive: snapshotPath,
-        archiveSha256: sha256(readFileSync(snapshotPath)),
-        candidateFingerprint,
-        compilerSourceFingerprint: "1".repeat(64),
-        compilerEnvironment: {},
-        engineArtifactFingerprint: "2".repeat(64),
-      },
-      canonicalSeedBase: 100,
-      seedScheduleFingerprint: sha256(Buffer.from(JSON.stringify({ seedBase: 100 }))),
-      mode: "simplification",
-      margin: 0.5,
-      statement: "predeclared",
+    expect(baseline.suiteFingerprint).toBe(suiteFingerprint);
+    const contract = requireCurrentDecisionCalibration(suiteFingerprint);
+    // Currency itself (baseline fingerprints == current) is asserted by the
+    // chain at declare/resume time and re-established by `migrate`; asserting
+    // it here would deadlock the migration's own conformance run. The gate
+    // logic is what this test pins, via synthetic mismatches:
+    const current = {
+      ...contract,
+      inferenceFingerprint: baseline.inferenceFingerprint,
+      protocolFingerprint: baseline.protocolFingerprint,
+      calibrationFingerprint: baseline.calibrationFingerprint,
     };
-    writeFileSync(declarationPath, `${JSON.stringify(declaration)}\n`);
-    const declarationSha = sha256(readFileSync(declarationPath));
-    const state: ConfirmationState = {
-      schema: CONFIRMATION_STATE_SCHEMA,
-      status: "evidence-ready",
-      reason: null,
-      baseline: {
-        label: "baseline",
-        suiteFingerprint,
-        archiveSha256: "base-sha",
-        candidateFingerprint: baselineFingerprint,
-        listeningReviewFingerprint: "review",
-        compilerSnapshot: declaration.candidateSnapshot,
-        inferenceFingerprint: decisionContract.inferenceFingerprint,
-        protocolFingerprint: decisionContract.protocolFingerprint,
-        calibrationFingerprint: decisionContract.calibrationFingerprint,
-      },
-      seedLedger: [{
-        attemptId: "attempt",
-        canonicalSeedBase: 100,
-        seedCount: 24,
-        seedScheduleFingerprint: declaration.seedScheduleFingerprint,
-      }],
-      attempt: {
-        declarationPath,
-        declarationSha256: declarationSha,
-        declaration,
-        baseArchivePath: "base.json",
-        baseArchiveSha256: "base-sha",
-        developmentArchivePath: candidatePath,
-        developmentArchiveSha256: "candidate-sha",
-      },
-    };
-    writeFileSync(statePath, `${JSON.stringify(state)}\n`);
+    expect(() => assertCurrentDecisionContract(baseline, current)).not.toThrow();
 
-    expect(() => validateConfirmationEvidence(statePath, {
-      baseArchiveSha256: "base-sha",
-      baseCandidateFingerprint: baselineFingerprint,
-      candidateArchiveSha256: "candidate-sha",
-      candidateFingerprint,
-      suiteFingerprint,
-      baseConfirmationDeclaration: { path: declarationPath, sha256: declarationSha },
-      confirmationDeclaration: { path: declarationPath, sha256: declarationSha },
-      seedSchedule: { seedBase: 100 },
-      mode: "simplification",
-      margin: 0.5,
-    })).not.toThrow();
-    const staleContractState = structuredClone(state);
-    staleContractState.baseline.inferenceFingerprint = "0".repeat(64);
-    writeFileSync(statePath, `${JSON.stringify(staleContractState)}\n`);
-    expect(() => validateConfirmationEvidence(statePath, {
-      baseArchiveSha256: "base-sha",
-      baseCandidateFingerprint: baselineFingerprint,
-      candidateArchiveSha256: "candidate-sha",
-      candidateFingerprint,
-      suiteFingerprint,
-      baseConfirmationDeclaration: { path: declarationPath, sha256: declarationSha },
-      confirmationDeclaration: { path: declarationPath, sha256: declarationSha },
-      seedSchedule: { seedBase: 100 },
-      mode: "simplification",
-      margin: 0.5,
-    })).toThrow(/inference or calibration contract differs/);
-    writeFileSync(statePath, `${JSON.stringify(state)}\n`);
-    expect(() => validateConfirmationEvidence(statePath, {
-      baseArchiveSha256: "base-sha",
-      baseCandidateFingerprint: baselineFingerprint,
-      candidateArchiveSha256: "candidate-sha",
-      candidateFingerprint,
-      suiteFingerprint,
-      baseConfirmationDeclaration: { path: declarationPath, sha256: declarationSha },
-      confirmationDeclaration: { path: declarationPath, sha256: declarationSha },
-      seedSchedule: { seedBase: 100 },
-      mode: "simplification",
-      margin: 0.6,
-    })).toThrow(/predeclared candidate, mode, margin/);
-    expect(() => validateConfirmationEvidence(statePath, {
-      baseArchiveSha256: "base-sha",
-      baseCandidateFingerprint: baselineFingerprint,
-      candidateArchiveSha256: "candidate-sha",
-      candidateFingerprint,
-      suiteFingerprint,
-      baseConfirmationDeclaration: { path: declarationPath, sha256: declarationSha },
-      confirmationDeclaration: { path: declarationPath, sha256: declarationSha },
-      seedSchedule: { seedBase: 101 },
-      mode: "simplification",
-      margin: 0.5,
-    })).toThrow(/fresh seed epoch/);
-
-    consumeConfirmation(
-      statePath,
-      "candidate-sha",
-      "simplification",
-      0.5,
-      decisionPath,
-      "inconclusive",
-    );
-    const consumed = JSON.parse(readFileSync(statePath, "utf8"));
-    expect(consumed.status).toBe("consumed");
-    expect(consumed.attempt.outcome).toBe("inconclusive");
-    expect(() => assertBaselineTransitionAllowed("candidate-id", suiteFingerprint, statePath)).toThrow(/new baseline is allowed only/);
-    expect(() => assertBaselineTransitionAllowed("candidate-id", "new-suite", statePath)).not.toThrow();
-    expect(() => consumeConfirmation(
-      statePath,
-      "candidate-sha",
-      "simplification",
-      0.5,
-      decisionPath,
-      "inconclusive",
-    )).toThrow(/one-shot confirmation/);
-
-    consumed.attempt.outcome = "accept";
-    writeFileSync(statePath, `${JSON.stringify(consumed)}\n`);
-    expect(() => assertBaselineTransitionAllowed(candidateFingerprint, suiteFingerprint, statePath)).not.toThrow();
-    expect(() => assertBaselineTransitionAllowed("different-candidate", suiteFingerprint, statePath)).toThrow(/new baseline is allowed only/);
+    const staleInference = { ...baseline, inferenceFingerprint: "0".repeat(64) };
+    expect(() => assertCurrentDecisionContract(staleInference, current))
+      .toThrow(/inference or calibration contract differs/);
+    const staleProtocol = { ...baseline, protocolFingerprint: "0".repeat(64) };
+    expect(() => assertCurrentDecisionContract(staleProtocol, current))
+      .toThrow(/migrate --scope=protocol/);
   });
 });
 

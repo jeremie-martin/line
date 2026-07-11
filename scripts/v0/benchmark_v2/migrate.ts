@@ -48,7 +48,7 @@ import {
   suiteIdentity,
   type SuiteManifest,
 } from "./suite_model.ts";
-import { initializeConfirmationStateFromBaseline, readConfirmationState } from "./confirmation.ts";
+import { readEraState } from "./attempts.ts";
 import { requireCurrentDecisionCalibration, type DecisionContractIdentity } from "./calibration_guard.ts";
 
 export const MIGRATIONS_LEDGER_PATH = "benchmark/v2/migrations.jsonl";
@@ -83,7 +83,7 @@ type MigrationRecord = {
   changedFiles: Array<{ path: string; fromSha256: string | null; toSha256: string }>;
   fileHashes: Record<string, string>;
   conformance: { vitest: "passed" | "skipped"; fixtures: Array<{ name: string; result: string }> };
-  restamped: { baselineSha256: string; confirmationStateSha256: string };
+  restamped: { baselineSha256: string };
   bootstrap: boolean;
 };
 
@@ -112,11 +112,10 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   }
 
   // No attempt may be in flight.
-  const statePath = "benchmark/v2/confirmation-state.json";
-  if (existsSync(statePath)) {
-    const status = JSON.parse(readFileSync(statePath, "utf8")).status;
-    if (status === "running" || status === "evidence-ready") {
-      throw new Error(`a canonical attempt is in flight (${status}); migrations require no attempt in flight`);
+  if (existsSync("benchmark/v2/attempts.jsonl")) {
+    const era = readEraState();
+    if (era.inFlightAttemptId !== null) {
+      throw new Error(`an eval attempt is in flight (${era.inFlightAttemptId}); migrations require no attempt in flight`);
     }
   }
 
@@ -210,7 +209,6 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   baseline.decision_calibration_fingerprint = contract.calibrationFingerprint;
   const baselineBytes = `${JSON.stringify(baseline, null, 2)}\n`;
   writeAtomic(baselinePath, baselineBytes);
-  const state = initializeConfirmationStateFromBaseline(baselinePath);
   restampBaselineDoc(baseline);
 
   const record: MigrationRecord = {
@@ -236,7 +234,6 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     conformance: { vitest: "passed", fixtures: fixtureResults },
     restamped: {
       baselineSha256: createHash("sha256").update(baselineBytes).digest("hex"),
-      confirmationStateSha256: sha256File("benchmark/v2/confirmation-state.json"),
     },
     bootstrap,
   };
@@ -246,11 +243,10 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     effectiveScope,
     changedFiles: changedFiles.map((file) => file.path),
     to: record.to,
-    stateStatus: state.status,
-    nextCommand: "npm run benchmark -- probe",
+    nextCommand: "npm run benchmark -- eval",
   };
   console.log(json ? JSON.stringify(summary, null, 2)
-    : `migrated (${effectiveScope}): ${record.migrationId}\n  inference ${contract.inferenceFingerprint.slice(0, 12)}  protocol ${contract.protocolFingerprint.slice(0, 12)}  calibration ${contract.calibrationFingerprint.slice(0, 12)}\n  state: ${state.status}\n  nextCommand: ${summary.nextCommand}`);
+    : `migrated (${effectiveScope}): ${record.migrationId}\n  inference ${contract.inferenceFingerprint.slice(0, 12)}  protocol ${contract.protocolFingerprint.slice(0, 12)}  calibration ${contract.calibrationFingerprint.slice(0, 12)}\n  nextCommand: ${summary.nextCommand}`);
   return 0;
 }
 

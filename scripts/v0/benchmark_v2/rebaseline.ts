@@ -25,10 +25,7 @@ import {
   type DeclareEvent,
 } from "./attempts.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
-import {
-  initializeConfirmationStateFromBaseline,
-  DEFAULT_CONFIRMATION_STATE_PATH,
-} from "./confirmation.ts";
+
 import { runBenchmarkV2, compilerCandidateIdentity } from "./runner.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
 import { suiteIdentity } from "./suite_model.ts";
@@ -40,7 +37,6 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
   const label = argument("label");
   if (label === undefined || label.trim() === "") throw new Error(`rebaseline requires --label=<new baseline label>`);
   const safeLabel = label.replace(/[^a-zA-Z0-9_.-]+/g, "-");
-  const statePath = resolve(argument("confirmation-state") ?? DEFAULT_CONFIRMATION_STATE_PATH);
   const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
   const ledgerPaths = {
     ledger: resolve(argument("attempts-ledger") ?? "benchmark/v2/attempts.jsonl"),
@@ -138,7 +134,6 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
   }
 
   freezeBaseline(bundlePath);
-  initializeConfirmationStateFromBaseline("benchmark/v2/baseline.json", statePath);
   const newEra = appendAttemptEvent({
     type: "era-start",
     eraId: `era-${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}`,

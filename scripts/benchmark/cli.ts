@@ -2,8 +2,6 @@ import { execFileSync } from "node:child_process";
 import { availableParallelism } from "node:os";
 import { prepareBenchmarkV2, benchmarkV2Paths } from "./prepare.ts";
 import { runBaselineBenchmark } from "../v0/benchmark_v2/baseline.ts";
-import { runCanonicalConfirmation } from "../v0/benchmark_v2/confirmation.ts";
-import { runBenchmarkV2 } from "../v0/benchmark_v2/runner.ts";
 import { startResourceMonitor } from "./resource_monitor.ts";
 import { runDecisionCommand } from "../v0/benchmark_v2/decide.ts";
 import { runEvalCommand } from "../v0/benchmark_v2/eval.ts";
@@ -46,7 +44,7 @@ if (command === "help") {
   } else if (command === "rebaseline") {
     process.exitCode = await monitored("rebaseline", args, () => runRebaselineCommand(args));
   } else if (command === "canonical") {
-    await monitored("canonical", args, () => runCanonicalConfirmation(benchmarkArgs("canonical", args)));
+    throw new Error(`the one-shot canonical path was retired after the eval chain's live validation; use \`npm run benchmark -- eval --to-verdict\``);
   } else if (command === "baseline") {
     await monitored("baseline", args, () => runBaselineBenchmark(benchmarkArgs("canonical", args)));
   } else {
@@ -119,8 +117,7 @@ function printHelp(): void {
     `                                   Declared, certified confirmation: fresh paired epoch, futility looks, verdict\n` +
     `  npm run benchmark -- rebaseline --label=LABEL   After an accepted eval attempt: light rebaseline (era record + fresh probe reference)\n` +
     `  npm run benchmark -- transition --reason=...    Ledger an operator transition (no budget reset)\n` +
-    `  npm run benchmark -- canonical   [legacy] Fresh paired one-shot confirmation (retires after the eval chain is validated)\n` +
-    `  npm run benchmark -- baseline    [legacy] Freeze all baseline evidence from a canonical bundle\n` +
+    `  npm run benchmark -- baseline    Bootstrap or suite-rollover full freeze (within a suite, use rebaseline)\n` +
     `  npm run benchmark -- decide CANDIDATE [--base=BASE] [--mode=simplification --margin=POINTS]\n` +
     `  npm run benchmark -- migrate --scope=protocol|calibration|inference --alters-decision-behavior=yes|no --reason=... --approve\n` +
     `  npm run benchmark -- prepare     Regenerate and validate catalog evidence\n` +

@@ -15,14 +15,13 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import { requireCurrentDecisionCalibration } from "../v0/benchmark_v2/calibration_guard.ts";
+import { readBaselineContract, assertCurrentDecisionContract } from "../v0/benchmark_v2/confirmation.ts";
 
 const ROOT = resolve("generated/benchmark-v2/smoke-eval");
-const STATE = resolve(ROOT, "confirmation-state.json");
 const FLAGS = [
-  `--confirmation-state=${STATE}`,
   `--attempts-ledger=${resolve(ROOT, "attempts.jsonl")}`,
   `--era-state=${resolve(ROOT, "era-state.json")}`,
   `--declaration-dir=${resolve(ROOT, "confirmations")}`,
@@ -58,17 +57,12 @@ const realLedgerExistedBefore = existsSync("benchmark/v2/attempts.jsonl");
 const realEraStateExistedBefore = existsSync("benchmark/v2/era-state.json");
 rmSync(ROOT, { recursive: true, force: true });
 mkdirSync(ROOT, { recursive: true });
-copyFileSync("benchmark/v2/confirmation-state.json", STATE);
-// The scratch copy is stamped to the CURRENT contract so the smoke can run
-// against in-flight protocol edits before their closing migration lands; the
-// real state is only ever re-stamped by `benchmark migrate`.
+// The smoke declares against the REAL baseline of record (read-only), so the
+// decision contract must be current: run `benchmark migrate` before smoking
+// in-flight protocol edits.
 {
-  const state = JSON.parse(readFileSync(STATE, "utf8"));
-  const contract = requireCurrentDecisionCalibration(state.baseline.suiteFingerprint);
-  state.baseline.inferenceFingerprint = contract.inferenceFingerprint;
-  state.baseline.protocolFingerprint = contract.protocolFingerprint;
-  state.baseline.calibrationFingerprint = contract.calibrationFingerprint;
-  writeFileSync(STATE, `${JSON.stringify(state, null, 2)}\n`);
+  const baseline = readBaselineContract();
+  assertCurrentDecisionContract(baseline, requireCurrentDecisionCalibration(baseline.suiteFingerprint));
 }
 
 step("stage 0 (informational screen, real compiles)", () => {
@@ -96,10 +90,10 @@ step("--resume short-circuits on the durable futility stop", () => {
 step("real state untouched", () => {
   const changed = execFileSync(
     "git",
-    ["diff", "--name-only", "--", "benchmark/v2/confirmation-state.json"],
+    ["diff", "--name-only", "--", "benchmark/v2/baseline.json", "benchmark/v2/attempts.jsonl", "benchmark/v2/era-state.json"],
     { encoding: "utf8" },
   ).trim();
-  if (changed !== "") throw new Error(`smoke modified the real confirmation state`);
+  if (changed !== "") throw new Error(`smoke modified real state:\n${changed}`);
   if (existsSync("benchmark/v2/attempts.jsonl") !== realLedgerExistedBefore ||
     existsSync("benchmark/v2/era-state.json") !== realEraStateExistedBefore) {
     throw new Error(`smoke created or removed the real eval ledger files`);

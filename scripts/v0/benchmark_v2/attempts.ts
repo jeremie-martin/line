@@ -13,11 +13,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
-import {
-  DEFAULT_CONFIRMATION_STATE_PATH,
-  readConfirmationState,
-  type SeedLedgerEntry,
-} from "./confirmation.ts";
+import { readBaselineContract, type SeedLedgerEntry } from "./confirmation.ts";
 
 export const ATTEMPT_EVENT_SCHEMA = "line.benchmark-v2.attempt-event.v1" as const;
 export const ERA_STATE_SCHEMA = "line.benchmark-v2.era-state.v1" as const;
@@ -303,7 +299,7 @@ export function readEraState(paths?: AttemptPaths): EraState {
   if (!existsSync(projection)) {
     throw new Error(
       `era state is missing at ${projection}; bootstrap it with \`npm run benchmark -- eval\` ` +
-      `(initializeLedgerFromConfirmationState)`,
+      `(initializeLedgerFromBaseline)`,
     );
   }
   const onDisk = JSON.parse(readFileSync(projection, "utf8"));
@@ -360,13 +356,13 @@ export function retryStatus(
 }
 
 /**
- * Bootstrap: seed a fresh eval ledger from an existing v4 confirmation state
- * WITHOUT modifying it. The bootstrap era-start carries the legacy seedLedger
- * verbatim (importedSeedLedger) so the never-reuse guarantee spans both
- * systems. Refuses if the ledger already exists.
+ * Bootstrap: open the first era against the frozen baseline of record.
+ * Refuses if the ledger already exists. (The repo's tracked ledger was
+ * originally bootstrapped from the retired one-shot confirmation state and
+ * carries its seed ledger verbatim in the bootstrap era-start.)
  */
-export function initializeLedgerFromConfirmationState(
-  confirmationStatePath?: string,
+export function initializeLedgerFromBaseline(
+  baselinePath?: string,
   paths?: AttemptPaths,
   at?: string,
 ): EraState {
@@ -377,7 +373,7 @@ export function initializeLedgerFromConfirmationState(
       `remove it deliberately to re-bootstrap`,
     );
   }
-  const state = readConfirmationState(confirmationStatePath ?? DEFAULT_CONFIRMATION_STATE_PATH);
+  const baseline = readBaselineContract(baselinePath);
   const timestamp = at ?? new Date().toISOString();
   const event: EraStartEvent = {
     schema: ATTEMPT_EVENT_SCHEMA,
@@ -385,9 +381,8 @@ export function initializeLedgerFromConfirmationState(
     at: timestamp,
     eraId: `era-${timestamp.replaceAll(":", "-")}`,
     cause: "bootstrap",
-    baselineLabel: state.baseline.label,
+    baselineLabel: baseline.label,
     budgetCap: benchmarkEvalPolicy.eraBudget.cap,
-    importedSeedLedger: state.seedLedger,
   };
   return appendAttemptEvent(event, paths, timestamp);
 }

@@ -22,7 +22,7 @@ import { benchmarkEvalPolicy, cheapestOperatingPoint } from "../../../benchmark/
 import { applyJolt } from "../../produce/seed.ts";
 import {
   appendAttemptEvent,
-  initializeLedgerFromConfirmationState,
+  initializeLedgerFromBaseline,
   readEraState,
   retryStatus,
   assertBudgetAllows,
@@ -42,15 +42,15 @@ import {
   type SnapshotWorkspace,
 } from "./compiler_snapshot.ts";
 import {
-  appendSeedLedgerEntry,
   assertCurrentDecisionContract,
   allocateCanonicalSeedBase,
   declareEvalAttempt,
   freshAttemptId,
-  readConfirmationState,
+  readBaselineContract,
   readEvalDeclaration,
   retainSnapshotRun,
-  DEFAULT_CONFIRMATION_STATE_PATH,
+  DEFAULT_BASELINE_PATH,
+  type BaselineContract,
   type ConfirmationMode,
   type EvalDeclaration,
 } from "./confirmation.ts";
@@ -179,7 +179,7 @@ async function runStage0(argv: string[]): Promise<number> {
 async function runToVerdict(argv: string[]): Promise<number> {
   const argument = argumentIn(argv);
   if (process.env.LR_ENGINE !== "wasm") throw new Error(`eval requires LR_ENGINE=wasm`);
-  const statePath = resolve(argument("confirmation-state") ?? DEFAULT_CONFIRMATION_STATE_PATH);
+  const baselinePath = resolve(argument("baseline") ?? DEFAULT_BASELINE_PATH);
   const declarationDir = resolve(argument("declaration-dir") ?? "benchmark/v2/confirmations");
   const outDir = resolve(argument("out-dir") ?? "generated/benchmark-v2/eval");
   const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
@@ -188,18 +188,15 @@ async function runToVerdict(argv: string[]): Promise<number> {
   const json = argv.includes("--json");
 
   const context = await loadEvalContext();
-  const state = readConfirmationState(statePath);
-  if (state.baseline.compilerSnapshot === null) {
-    throw new Error(`eval requires an approved baseline with a compiler snapshot`);
-  }
-  if (context.suiteFingerprint !== state.baseline.suiteFingerprint) {
+  const baseline = readBaselineContract(baselinePath);
+  if (context.suiteFingerprint !== baseline.suiteFingerprint) {
     throw new Error(`suite differs from the baseline contract; establish a new baseline`);
   }
   const decisionContract = requireCurrentDecisionCalibration(context.suiteFingerprint);
-  assertCurrentDecisionContract(state, decisionContract);
+  assertCurrentDecisionContract(baseline, decisionContract);
 
   if (argv.includes("--resume")) {
-    return resumeAttempt(argv, context, state, statePath, outDir, archiveDir, ledgerPaths, jobs, json);
+    return resumeAttempt(argv, context, baseline, outDir, archiveDir, ledgerPaths, jobs, json);
   }
 
   const mode = parseEvalMode(argument("mode"));
@@ -211,8 +208,8 @@ async function runToVerdict(argv: string[]): Promise<number> {
   const certified = requireCertifiedOperatingPoint(mode, margin, depth, context.suiteFingerprint);
 
   if (!existsSync(ledgerPaths.ledger)) {
-    initializeLedgerFromConfirmationState(statePath, ledgerPaths);
-    console.log(`eval ledger bootstrapped from the confirmation state`);
+    initializeLedgerFromBaseline(baselinePath, ledgerPaths);
+    console.log(`eval ledger bootstrapped from the baseline of record`);
   }
   let era = readEraState(ledgerPaths);
   const overrideCap = argument("override-era-budget");
@@ -244,8 +241,7 @@ async function runToVerdict(argv: string[]): Promise<number> {
   // and from the fixed manifest schedules.
   const budgets = context.suite.profiles.canonical.budgets;
   const seedCount = budgets.length * depth;
-  const mergedLedger = mergeSeedLedgers(era.seedLedger, state.seedLedger);
-  const canonicalSeedBase = allocateCanonicalSeedBase(mergedLedger, seedCount);
+  const canonicalSeedBase = allocateCanonicalSeedBase(era.seedLedger, seedCount);
   const schedule = resolvedSeedSchedule(context.suite, "canonical", [...budgets], depth, canonicalSeedBase);
   assertEpochDisjointFromManifest(context.suite, schedule);
   const seedScheduleFingerprint = sha256(JSON.stringify(schedule));
@@ -257,7 +253,7 @@ async function runToVerdict(argv: string[]): Promise<number> {
   }
   const declared = declareEvalAttempt({
     attemptId,
-    baseline: state.baseline,
+    baseline,
     decisionContract,
     candidateFingerprint: identity.candidateFingerprint,
     candidateSnapshot,
@@ -293,14 +289,13 @@ async function runToVerdict(argv: string[]): Promise<number> {
     seedScheduleFingerprint,
     retryAcknowledged: argv.includes("--acknowledge-retry"),
   }, ledgerPaths);
-  appendSeedLedgerEntry(statePath, { attemptId, canonicalSeedBase, seedCount, seedScheduleFingerprint });
   console.log(`declared eval attempt ${attemptId}: ${certified.point.id}, epoch base ${canonicalSeedBase}, spend ${certified.spend}`);
 
   return executeAttempt(
     declared.declaration,
     declared.declarationPath,
     context,
-    state,
+    baseline,
     certified,
     era,
     retry,
@@ -311,8 +306,7 @@ async function runToVerdict(argv: string[]): Promise<number> {
 async function resumeAttempt(
   argv: string[],
   context: EvalContext,
-  state: ReturnType<typeof readConfirmationState>,
-  statePath: string,
+  baseline: BaselineContract,
   outDir: string,
   archiveDir: string,
   ledgerPaths: ReturnType<typeof attemptPaths>,
@@ -347,9 +341,9 @@ async function resumeAttempt(
     throw new Error(`eval declaration changed since it was ledgered; the attempt is void`);
   }
   if (
-    declaration.baselineInferenceFingerprint !== state.baseline.inferenceFingerprint ||
-    declaration.baselineProtocolFingerprint !== state.baseline.protocolFingerprint ||
-    declaration.baselineCalibrationFingerprint !== state.baseline.calibrationFingerprint
+    declaration.baselineInferenceFingerprint !== baseline.inferenceFingerprint ||
+    declaration.baselineProtocolFingerprint !== baseline.protocolFingerprint ||
+    declaration.baselineCalibrationFingerprint !== baseline.calibrationFingerprint
   ) throw new Error(`running eval declaration does not match the baseline decision contract`);
   const certified = requireCertifiedOperatingPoint(
     declaration.mode,
@@ -366,7 +360,7 @@ async function resumeAttempt(
     declaration,
     resolve(declareEvent.declarationPath),
     context,
-    state,
+    baseline,
     certified,
     era,
     { priorAttempts: Math.max(0, retry.priorAttempts - 1), compoundAlpha: retry.compoundAlpha },
@@ -378,7 +372,7 @@ async function executeAttempt(
   declaration: EvalDeclaration,
   declarationPath: string,
   context: EvalContext,
-  state: ReturnType<typeof readConfirmationState>,
+  baseline: BaselineContract,
   certified: CertifiedOperatingPoint,
   era: EraState,
   retry: { priorAttempts: number; compoundAlpha: number },
@@ -405,7 +399,7 @@ async function executeAttempt(
     .map((k) => ({ k, fired: false }));
 
   console.log(`eval attempt ${declaration.attemptId}: ${segments.length} segments to depth ${declaration.depth}`);
-  const baseWorkspace = createSnapshotWorkspace(state.baseline.compilerSnapshot!);
+  const baseWorkspace = createSnapshotWorkspace(baseline.compilerSnapshot);
   let candidateWorkspace: SnapshotWorkspace | undefined;
   try {
     candidateWorkspace = createSnapshotWorkspace(declaration.candidateSnapshot);
@@ -737,15 +731,6 @@ function scoreIdenticalFraction(baseArchive: any, candidateArchive: any): number
   const identical = candidateArchive.runs
     .filter((row: any) => base.get(key(row)) === row.score.score).length;
   return candidateArchive.runs.length === 0 ? 0 : identical / candidateArchive.runs.length;
-}
-
-function mergeSeedLedgers(
-  a: Array<{ attemptId: string; canonicalSeedBase: number; seedCount: number; seedScheduleFingerprint: string }>,
-  b: Array<{ attemptId: string; canonicalSeedBase: number; seedCount: number; seedScheduleFingerprint: string }>,
-): Array<{ attemptId: string; canonicalSeedBase: number; seedCount: number; seedScheduleFingerprint: string }> {
-  const merged = new Map<string, (typeof a)[number]>();
-  for (const entry of [...a, ...b]) merged.set(entry.attemptId, entry);
-  return [...merged.values()];
 }
 
 function assertEpochDisjointFromManifest(

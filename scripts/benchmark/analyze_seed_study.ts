@@ -1,5 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { gunzipSync } from "node:zlib";
 import {
   summarizeDevelopmentBudget,
   weightedBudgetHeadline,
@@ -7,7 +8,14 @@ import {
   type V2BudgetSummary,
   type V2RunScore,
 } from "../v0/benchmark_v2/evaluator.ts";
-import { loadSuiteManifest } from "../v0/benchmark_v2/suite_model.ts";
+import { loadSourceManifest, resolveSources } from "../v0/benchmark_v2/model.ts";
+import {
+  canonicalMembers,
+  fingerprintFiles,
+  loadSuiteManifest,
+  suiteIdentity,
+} from "../v0/benchmark_v2/suite_model.ts";
+import { argumentReader, round, sha256 } from "../v0/benchmark_v2/util.ts";
 
 type StudyRow = {
   task: { sourceId: string; budget: number; seedSlot: number; actualSeed: number };
@@ -17,29 +25,49 @@ type StudyRow = {
 type Study = {
   schema: string;
   suiteFingerprint: string;
+  sourceManifestFingerprint: string;
+  definitionFingerprint: string;
+  scorerFingerprint: string;
+  transform: unknown;
   budgets: number[];
   seeds: number[];
   runs: StudyRow[];
 };
 
 const args = process.argv.slice(2);
-const argument = (name: string): string | undefined => {
-  const prefix = `--${name}=`;
-  return args.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
-};
-const studyPath = resolve(argument("study") ?? "generated/benchmark-v2/studies/v2.1-seed-reference-750k.json");
+const argument = argumentReader(args);
+const studyPath = resolve(
+  argument("study") ?? "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+);
+const sourcePath = resolve(argument("manifest") ?? "benchmark/v2/compat/source-manifest.json");
 const suitePath = resolve(argument("suite") ?? "benchmark/v2/compat/suite-manifest.json");
 const outputPath = resolve(argument("out") ?? "benchmark/v2/studies/seed-allocation.json");
 const markdownPath = resolve(argument("markdown") ?? "docs/benchmark-v2-seed-allocation.md");
 const trials = Number(argument("trials") ?? 4096);
 if (!Number.isSafeInteger(trials) || trials < 100) throw new Error(`--trials must be an integer >= 100`);
 
-const study = JSON.parse(readFileSync(studyPath, "utf8")) as Study;
+const study = readVerifiedStudy(studyPath);
 if (study.schema !== "line.benchmark-v2.budget-scale-study.v1") throw new Error(`unsupported seed study archive`);
 if (study.seeds.length !== 12) throw new Error(`seed allocation study requires exactly 12 reference seeds`);
-const suite = loadSuiteManifest(suitePath);
-const budgets = [250_000, 500_000, 750_000];
+const sources = resolveSources(loadSourceManifest(sourcePath));
+const suite = loadSuiteManifest(suitePath, sources);
+const identity = suiteIdentity(suitePath, sourcePath, sources);
+const scorerFingerprint = fingerprintFiles([
+  "scripts/v0/benchmark_v2/evaluator.ts",
+  "scripts/v0/benchmark_v2/score_model.ts",
+  "scripts/v0/score.ts",
+]);
+if (
+  study.suiteFingerprint !== identity.suiteFingerprint ||
+  study.sourceManifestFingerprint !== identity.sourceManifestFingerprint ||
+  study.definitionFingerprint !== identity.definitionFingerprint ||
+  study.scorerFingerprint !== scorerFingerprint ||
+  JSON.stringify(study.transform) !== JSON.stringify(suite.transform)
+) throw new Error(`seed allocation reference is stale for the current suite, sources, transform, or scorer`);
+const members = canonicalMembers(suite);
+const budgets = [...suite.profiles.canonical.budgets];
 if (budgets.some((budget) => !study.budgets.includes(budget))) throw new Error(`study is missing a target budget`);
+validateStudyScope(study, members, budgets);
 
 const runs = study.runs.map((row): ScoredDevelopmentRun => ({
   sourceId: row.task.sourceId,
@@ -48,11 +76,7 @@ const runs = study.runs.map((row): ScoredDevelopmentRun => ({
   actualSeed: row.task.actualSeed,
   score: row.score,
 }));
-const candidateWeights = [
-  { budget: 250_000, weight: 0.20 },
-  { budget: 500_000, weight: 0.50 },
-  { budget: 750_000, weight: 0.30 },
-];
+const candidateWeights = suite.budget_weights.map((entry) => ({ ...entry }));
 const reference = summarize(runs, Object.fromEntries(budgets.map((budget) => [budget, study.seeds])), candidateWeights);
 const singleBudget = budgets.flatMap((budget) => [1, 2, 3, 4, 6, 8].map((seedCount) => {
   const referenceSummary = reference.summaries.find((summary) => summary.budget === budget)!;
@@ -68,7 +92,9 @@ const singleBudget = budgets.flatMap((budget) => [1, 2, 3, 4, 6, 8].map((seedCou
 }));
 
 const schedules = [
-  ...[1, 2, 3, 4, 5, 6].map((seedCount) => scheduleAnalysis("probe", [250_000, 500_000], seedCount)),
+  ...[1, 2, 3, 4, 5, 6].map((seedCount) =>
+    scheduleAnalysis("probe", [...suite.profiles.probe.budgets], seedCount)
+  ),
   ...[1, 2, 3, 4].map((seedCount) => scheduleAnalysis("canonical", budgets, seedCount)),
 ];
 const report = {
@@ -141,7 +167,7 @@ function scheduleAnalysis(profile: "probe" | "canonical", profileBudgets: number
     profile,
     seedCount,
     allocations: trials,
-    compileCount: profileBudgets.length * seedCount * 42,
+    compileCount: profileBudgets.length * seedCount * members.length,
     headlineAbsoluteError: distribution(headlineErrors),
     validRateAbsoluteError: distribution(validRateErrors),
     stratumAbsoluteError: Object.fromEntries([...stratumErrors].map(([id, values]) => [id, distribution(values)])),
@@ -244,6 +270,14 @@ function markdown(report: any): string {
     "",
     "Schedule trials estimate the effect of seed count using disjoint budget blocks. The frozen V2 policy additionally separates probe and canonical actual-seed ranges; numeric seed labels are deterministic IID inputs.",
     "",
+    "Benchmark V2 retains three probe seeds per budget and uses eight canonical seeds per",
+    "budget. The increase is a promotion-stability decision informed jointly by this allocation",
+    "study and the zero-inflated coverage study; it is not inferred from the four-seed row alone.",
+    "Probe uses the fixed 24-29 schedule for reusable screening. Each canonical attempt declares",
+    "a fresh random base of at least 1,000,000 and consumes 24 contiguous actual seeds across its",
+    "three budgets. The confirmation ledger prevents epoch reuse; the high reserved boundary",
+    "also makes promotion disjoint from probe and low-numbered calibration/reference studies.",
+    "",
     "| Profile | Seeds / budget | Compiles | Headline abs. error p50 / p95 / max | Valid-rate abs. error p95 | Worst stratum p95 |",
     "|---|---:|---:|---:|---:|---:|",
   ];
@@ -270,10 +304,36 @@ function write(path: string, contents: string): void {
   writeFileSync(path, contents);
 }
 
-function relative(path: string): string {
-  return path.startsWith(`${process.cwd()}/`) ? path.slice(process.cwd().length + 1) : path;
+function readVerifiedStudy(path: string): Study {
+  const sidecar = `${path}.sha256`;
+  if (!existsSync(sidecar)) throw new Error(`seed allocation reference checksum sidecar is missing`);
+  const bytes = readFileSync(path);
+  const expected = readFileSync(sidecar, "utf8").trim().split(/\s+/)[0];
+  if (sha256(bytes) !== expected) throw new Error(`seed allocation reference checksum mismatch`);
+  const raw = path.endsWith(".gz") ? gunzipSync(bytes) : bytes;
+  return JSON.parse(raw.toString("utf8")) as Study;
 }
 
-function round(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
+function validateStudyScope(study: Study, members: string[], budgets: number[]): void {
+  const expectedSources = new Set(members);
+  const expectedBudgets = new Set(budgets);
+  const expectedSeeds = new Set(study.seeds);
+  const cells = new Set<string>();
+  for (const row of study.runs) {
+    if (
+      !expectedSources.has(row.task.sourceId) || !expectedBudgets.has(row.task.budget) ||
+      !expectedSeeds.has(row.task.actualSeed)
+    ) throw new Error(`seed allocation reference contains an out-of-scope run`);
+    const key = `${row.task.sourceId}\0${row.task.budget}\0${row.task.actualSeed}`;
+    if (cells.has(key)) throw new Error(`seed allocation reference contains a duplicate run`);
+    cells.add(key);
+  }
+  const expected = members.length * budgets.length * study.seeds.length;
+  if (cells.size !== expected) {
+    throw new Error(`seed allocation reference is incomplete: expected ${expected}, found ${cells.size}`);
+  }
+}
+
+function relative(path: string): string {
+  return path.startsWith(`${process.cwd()}/`) ? path.slice(process.cwd().length + 1) : path;
 }

@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -19,6 +18,9 @@ import {
   suiteIdentity,
   type SuiteManifest,
 } from "../v0/benchmark_v2/suite_model.ts";
+import { argumentReader, round, sha256 } from "../v0/benchmark_v2/util.ts";
+
+const argument = argumentReader(process.argv.slice(2));
 
 const referencePath = resolve(
   argument("reference") ?? "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
@@ -505,9 +507,6 @@ function percent(value: { rate: number; wilson95: [number, number] }): string {
 function cellKey(sourceId: string, budget: number, seed: number): string {
   return `${sourceId}\0${budget}\0${seed}`;
 }
-function argument(name: string): string | undefined {
-  return process.argv.slice(2).find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-}
 function integerArgument(name: string, fallback: number, minimum: number): number {
   const value = Number(argument(name) ?? fallback);
   if (!Number.isSafeInteger(value) || value < minimum) throw new Error(`--${name} must be an integer >= ${minimum}`);
@@ -532,12 +531,6 @@ function hashSeed(value: string): number {
   for (const char of value) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
   return hash >>> 0;
 }
-function sha256(value: Buffer): string {
-  return createHash("sha256").update(value).digest("hex");
-}
 function relative(path: string): string {
   return path.startsWith(`${process.cwd()}/`) ? path.slice(process.cwd().length + 1) : path;
-}
-function round(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
 }

@@ -1,4 +1,5 @@
 import type { AxisName } from "../types.ts";
+import { round } from "./util.ts";
 
 export type ScreenRun = {
   sourceId: string;
@@ -184,8 +185,4 @@ function aggregate(values: number[]): NumericAggregate {
     mean: round(values.reduce((sum, value) => sum + value, 0) / values.length),
     max: round(Math.max(...values)),
   };
-}
-
-function round(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
 }

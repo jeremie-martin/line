@@ -21,6 +21,9 @@ import {
 } from "../v0/benchmark_v2/suite_model.ts";
 import { loadValidatedDecisionPairForCalibration } from "../v0/benchmark_v2/decide.ts";
 import { assertDecisionCoverageAdequate } from "../v0/benchmark_v2/calibration_guard.ts";
+import { argumentReader, mean, round, sha256File } from "../v0/benchmark_v2/util.ts";
+
+const argument = argumentReader(process.argv.slice(2));
 
 const outPath = resolve(argument("out") ?? "benchmark/v2/studies/decision-calibration.json");
 const markdownPath = resolve(argument("markdown") ?? "docs/benchmark-v2-decision-calibration.md");
@@ -87,6 +90,8 @@ const report = {
     design: "Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.",
     note: "Repeated-sampling trials skip sensitivity bootstraps because they cannot affect the formal gate. Production decisions still use the policy's full sensitivity iteration count.",
   },
+  empiricalControlPolicy:
+    "Retained probe controls may carry a historical listening-review fingerprint because listening evidence is not an input to probe execution or scoring. Every archive remains checksummed, scope-validated, and rescored from raw reports. Ordinary decisions and all canonical promotion evidence still require the current listening review.",
   controls,
   coverageStudy: {
     path: coverageStudyPath,
@@ -129,12 +134,12 @@ async function empiricalControl(basePath: string, candidatePath: string): Promis
   };
 }
 
-function sha256File(path: string): string {
-  return createHash("sha256").update(readFileSync(path)).digest("hex");
-}
-
 function correlatedSeedControl(): Record<string, unknown> {
   const effects = [-10, -10, 30];
+  const seedsPerBudget = suite.profiles.probe.seeds_per_budget;
+  if (effects.length !== seedsPerBudget) {
+    throw new Error(`correlatedSeedControl effects (${effects.length}) must match probe seeds_per_budget (${seedsPerBudget})`);
+  }
   const base = syntheticRuns("probe", () => 0);
   const candidate = syntheticRuns("probe", (_parent, _budget, seedSlot) => effects[seedSlot]);
   const decision = pairedV2Decision(base, candidate, suite, {
@@ -313,6 +318,8 @@ function renderMarkdown(report: any): string {
     "",
     "## Empirical controls",
     "",
+    report.empiricalControlPolicy,
+    "",
     "| Control | Delta | Stress-calibrated interval | One-sided bounds | Outcome |",
     "|---|---:|---:|---:|---|",
     controlRow("identical archive", report.controls.identical),
@@ -395,10 +402,6 @@ function formatRate(value: { rate: number } | undefined): string {
   return `${((value?.rate ?? 0) * 100).toFixed(1)}%`;
 }
 
-function argument(name: string): string | undefined {
-  return process.argv.slice(2).find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-}
-
 function integerArgument(name: string, fallback: number, minimum: number): number {
   const raw = argument(name);
   const value = raw === undefined ? fallback : Number(raw);
@@ -432,12 +435,4 @@ function hashSeed(value: string): number {
   let hash = 2166136261;
   for (const char of value) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
   return hash >>> 0;
-}
-
-function mean(values: number[]): number {
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-function round(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
 }

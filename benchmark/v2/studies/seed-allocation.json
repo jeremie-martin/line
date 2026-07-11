@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.seed-allocation-study.v1",
-  "sourceStudy": "generated/benchmark-v2/studies/v2.1-seed-reference-750k.json",
+  "sourceStudy": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
   "sourceSuite": "benchmark/v2/compat/suite-manifest.json",
-  "suiteFingerprint": "64d94d89701f575d7c373197fd9000b7e58d4fef963f3e1d1de2db6f4a93a374",
+  "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
   "reference": {
     "seeds": [
       0,

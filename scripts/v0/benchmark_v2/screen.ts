@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -17,6 +16,7 @@ import {
 } from "./model.ts";
 import { aggregateScreenRuns, renderScreenMarkdown, type ScreenRun } from "./screen_model.ts";
 import { sourceInventoryFingerprint } from "./suite_model.ts";
+import { relativeToCwd, round, sha256 } from "./util.ts";
 
 const SCREEN_SCHEMA = "line.benchmark-v2.development-screen.v1";
 const args = process.argv.slice(2);
@@ -71,6 +71,7 @@ const harnessFingerprint = sha256([
   "scripts/v0/benchmark_v2/model.ts",
   "scripts/v0/benchmark_v2/screen_model.ts",
   "scripts/v0/benchmark_v2/screen.ts",
+  "scripts/v0/benchmark_v2/util.ts",
 ].map((path) => readFileSync(resolve(path), "utf8")).join("\n---\n"));
 const trackedStatus = git(["status", "--short", "--untracked-files=no"])
   .split("\n")
@@ -240,17 +241,4 @@ function finiteNumber(name: string, fallback: number): number {
 
 function git(gitArgs: string[]): string {
   return execFileSync("git", gitArgs, { encoding: "utf8" }).trimEnd();
-}
-
-function sha256(value: string): string {
-  return createHash("sha256").update(value).digest("hex");
-}
-
-function round(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
-}
-
-function relativeToCwd(path: string): string {
-  const cwd = `${process.cwd()}/`;
-  return path.startsWith(cwd) ? path.slice(cwd.length) : path;
 }

@@ -139,7 +139,7 @@ like a +160 win at 50k seed-0 but was a regression across 3 seeds. Always
 multi-seed before forming a hypothesis.
 
 ## current-fingerprint baseline drift (2026-06-06)
-`npm run golden` currently prints live evaluator fingerprint `816c00d44528`
+`npm run golden:v1` currently prints live evaluator fingerprint `816c00d44528`
 while `scripts/v0/golden_suite.ts` still records `9b9776df145f`. The focused
 optimizer tests pass and a fresh canonical baseline completed, but historical
 archives with the old fingerprint correctly refuse `decide` comparison. Treat

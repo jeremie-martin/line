@@ -1,20 +1,23 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { gunzipSync } from "node:zlib";
 import { RUN_ARCHIVE_SCHEMA } from "./runner.ts";
+import { round } from "./util.ts";
 
 const args = process.argv.slice(2);
 const archiveArgument = args.find((arg) => !arg.startsWith("--"));
-if (archiveArgument === undefined) throw new Error(`usage: benchmark explain <development-archive.json>`);
+if (archiveArgument === undefined) throw new Error(`usage: benchmark explain <development-archive.json[.gz]>`);
 const argument = (name: string): string | undefined => {
   const prefix = `--${name}=`;
   return args.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
 };
 const archivePath = resolve(archiveArgument);
-const outputStem = resolve(argument("out") ?? archivePath.replace(/\.json$/, ".explanation"));
+const outputStem = resolve(argument("out") ?? archivePath.replace(/\.json(?:\.gz)?$/, ".explanation"));
 const bytes = readFileSync(archivePath);
 verifySidecar(archivePath, bytes);
-const archive = JSON.parse(bytes.toString("utf8"));
+const archiveBytes = archivePath.endsWith(".gz") ? gunzipSync(bytes) : bytes;
+const archive = JSON.parse(archiveBytes.toString("utf8"));
 if (archive.schema !== RUN_ARCHIVE_SCHEMA || archive.mode !== "development") {
   throw new Error(`explanation requires a Benchmark V2 development archive`);
 }
@@ -190,10 +193,6 @@ function verifySidecar(path: string, data: Buffer): void {
   const expected = readFileSync(sidecar, "utf8").trim().split(/\s+/)[0];
   const actual = createHash("sha256").update(data).digest("hex");
   if (actual !== expected) throw new Error(`archive checksum mismatch`);
-}
-
-function round(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
 }
 
 function relative(path: string): string {

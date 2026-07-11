@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import type { CharacterizationReport } from "./model.ts";
 import { buildAuditReport, renderAuditMarkdown } from "./audit_model.ts";
+import { relativeToCwd } from "./util.ts";
 
 const args = process.argv.slice(2);
 const characterizationPath = resolve(argument("characterization") ?? "benchmark/v2/evidence/characterization.json");
@@ -26,9 +27,4 @@ if (report.hardFailures.length > 0) process.exitCode = 1;
 function argument(name: string): string | undefined {
   const prefix = `--${name}=`;
   return args.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
-}
-
-function relativeToCwd(path: string): string {
-  const cwd = `${process.cwd()}/`;
-  return path.startsWith(cwd) ? path.slice(cwd.length) : path;
 }

@@ -5,7 +5,10 @@ import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { BENCHMARK_EXECUTION_PROTOCOL } from "../benchmark/v2/decision-policy.ts";
-import { runDecisionCommand } from "../scripts/v0/benchmark_v2/decide.ts";
+import {
+  loadValidatedDecisionPairForCalibration,
+  runDecisionCommand,
+} from "../scripts/v0/benchmark_v2/decide.ts";
 import { COMPILER_IDENTITY_PROTOCOL } from "../scripts/v0/benchmark_v2/runner.ts";
 import { executionPolicyIdentity } from "../scripts/v0/benchmark_v2/suite_model.ts";
 
@@ -114,6 +117,16 @@ describe("Benchmark V2 decision command", () => {
       .rejects.toThrow(/--margin/);
     await expect(runDecisionCommand(["/tmp/candidate.json", "--margin=0.1"]))
       .rejects.toThrow(/only valid in simplification/);
+  });
+
+  test("retains historical listening evidence only for probe calibration controls", async () => {
+    const calibrationProbe = "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz";
+
+    await expect(runDecisionCommand([calibrationProbe, "--no-gate-exit"]))
+      .rejects.toThrow(/execution policies|listening-review evidence is stale/);
+    const validated = await loadValidatedDecisionPairForCalibration(calibrationProbe, calibrationProbe);
+    expect(validated.baseRuns).toHaveLength(252);
+    expect(validated.candidateRuns).toEqual(validated.baseRuns);
   });
 });
 

@@ -139,6 +139,16 @@ describe("Benchmark V2 governance", () => {
     expect(decisionCalibrationFingerprint(changedEvidence)).not.toBe(decisionCalibrationFingerprint(calibration));
   });
 
+  test("responsiveness evidence retains current decision and archive identities", () => {
+    const calibration = JSON.parse(readFileSync("benchmark/v2/studies/decision-calibration.json", "utf8"));
+    const responsiveness = JSON.parse(readFileSync("benchmark/v2/studies/responsiveness.json", "utf8"));
+    expect(responsiveness.decisionFingerprint).toBe(calibration.decisionFingerprint);
+    for (const entry of responsiveness.cases) {
+      expect(entry.archiveSha256).toMatch(/^[0-9a-f]{64}$/);
+      expect(entry.archiveSha256).toBe(sha256(readFileSync(entry.archive)));
+    }
+  });
+
   test("mechanically rejects missing retained calibration evidence", () => {
     const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
     const identity = suiteIdentity(

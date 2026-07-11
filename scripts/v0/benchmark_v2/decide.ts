@@ -289,13 +289,14 @@ export async function loadValidatedDecisionPairForCalibration(
 }> {
   const base = loadVerifiedArchive(basePath);
   const candidate = loadVerifiedArchive(candidatePath);
-  const { suite, baseRuns, candidateRuns } = await validateComparison(base, candidate);
+  const { suite, baseRuns, candidateRuns } = await validateComparison(base, candidate, "calibration");
   return { suite, baseRuns, candidateRuns };
 }
 
 async function validateComparison(
   base: VerifiedArchive,
   candidate: VerifiedArchive,
+  purpose: "decision" | "calibration" = "decision",
 ): Promise<{
   suite: ReturnType<typeof loadSuiteManifest>;
   baseRuns: DecisionRun[];
@@ -311,6 +312,9 @@ async function validateComparison(
     throw new Error(`decision requires development archives`);
   }
   if (baseArchive.profile !== candidateArchive.profile) throw new Error(`archives use different profiles`);
+  if (purpose === "calibration" && baseArchive.profile !== "probe") {
+    throw new Error(`retained empirical calibration controls must use probe archives`);
+  }
   if (baseArchive.identity?.suiteFingerprint !== candidateArchive.identity?.suiteFingerprint) {
     throw new Error(`archives use different suite fingerprints`);
   }
@@ -357,8 +361,9 @@ async function validateComparison(
       buildAxisContract(spec, source.eligibleComponents, source.diagnosticComponents),
     );
   }
-  validateArchiveScope(baseArchive, suite, sources, contracts, listeningReview.fingerprint);
-  validateArchiveScope(candidateArchive, suite, sources, contracts, listeningReview.fingerprint);
+  const requiredListeningReview = purpose === "decision" ? listeningReview.fingerprint : null;
+  validateArchiveScope(baseArchive, suite, sources, contracts, requiredListeningReview);
+  validateArchiveScope(candidateArchive, suite, sources, contracts, requiredListeningReview);
   validateCandidateIdentity(baseArchive);
   validateCandidateIdentity(candidateArchive);
   const compatibilityApproval = runnerCompatibilityApproval(
@@ -379,7 +384,7 @@ function validateArchiveScope(
   suite: ReturnType<typeof loadSuiteManifest>,
   sources: ReturnType<typeof resolveSources>,
   contracts: Map<string, AxisContract>,
-  listeningReviewFingerprint: string,
+  listeningReviewFingerprint: string | null,
 ): void {
   const profileName = archiveProfile(archive);
   const profile = suite.profiles[profileName];
@@ -420,7 +425,10 @@ function validateArchiveScope(
   if (recomputed.executionPolicyFingerprint !== archive.identity.executionPolicyFingerprint) {
     throw new Error(`archive execution-policy fingerprint is not self-consistent`);
   }
-  if (archive.identity.listeningReviewFingerprint !== listeningReviewFingerprint) {
+  if (
+    listeningReviewFingerprint !== null &&
+    archive.identity.listeningReviewFingerprint !== listeningReviewFingerprint
+  ) {
     throw new Error(`archive listening-review evidence is stale`);
   }
   if (JSON.stringify(archive.identity.sources) !== JSON.stringify(expectedSources)) {

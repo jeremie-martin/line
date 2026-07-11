@@ -329,7 +329,7 @@ function specListCacheKey(): string {
   parts.push(`v2-catalog=${Math.trunc(statSync(resolve(ROOT, "benchmark/v2/catalog.ts")).mtimeMs)}`);
   for (const entry of BENCHMARK_V2_CASES) {
     const path = resolve(ROOT, entry.sourcePath);
-    parts.push(`${entry.sourcePath}=${Math.trunc(statSync(path).mtimeMs)}`);
+    parts.push(`${entry.sourcePath}=${existsSync(path) ? Math.trunc(statSync(path).mtimeMs) : "-"}`);
   }
   return parts.join("|");
 }

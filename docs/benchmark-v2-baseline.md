@@ -1,6 +1,6 @@
 # Benchmark V2 Baseline
 
-Label: `v2-initial-2026-07-11`. Suite: `517e044103a5fef3`.
+Label: `v2-initial-2026-07-11-decision-contract-r2`. Suite: `517e044103a5fef3`.
 
 Probe headline: **446.09**. Canonical headline: **453.11**. Qualification monitor: **373.47** (indicative only).
 
@@ -13,5 +13,5 @@ Probe and canonical actual seeds are disjoint at every shared budget. Probe evid
 | 750k | - | - | 461.28 | 314/336 | 390.69 | 40/40 |
 
 Candidate: `95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40`.
-Decision rule: `ae72a898f0c774d281ec980784c3177388ab98294475ca4d08d43f4a85b626d3`.
-Decision calibration: `0b34a27cc267859afa3edd2fa7f5a587efb9a1722c3d75d87358b4b83ff12afc`.
+Decision rule: `a14cb5c7f9871ba637ea224d3503f7eb4c7bb4e72a9db5c3ae9eb06efce8a7ce`.
+Decision calibration: `6613c01d918a8d5ad548dff7a8695b44c2cff5554fec3a71268174e611799699`.

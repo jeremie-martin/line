@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.probe-baseline-reference.v1",
   "status": "screening-baseline",
-  "label": "v2-initial-2026-07-11",
-  "generated_at": "2026-07-11T06:22:03.373Z",
+  "label": "v2-initial-2026-07-11-decision-contract-r2",
+  "generated_at": "2026-07-11T09:57:36.433Z",
   "suite_fingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
   "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
   "listening_review_fingerprint": "4cb27e1f4f195cf082b6ea0f80b80dfc55ac5e8b2bc23e35d84a3fb1f57f66d0",

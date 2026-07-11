@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -6,6 +5,7 @@ import { RUN_ARCHIVE_SCHEMA } from "../v0/benchmark_v2/runner.ts";
 import { pairedV2Decision, type DecisionRun } from "../v0/benchmark_v2/decision_model.ts";
 import { loadSourceManifest, resolveSources } from "../v0/benchmark_v2/model.ts";
 import { DECISION_SOURCE_FILES, fingerprintFiles, loadSuiteManifest } from "../v0/benchmark_v2/suite_model.ts";
+import { round, sha256 } from "../v0/benchmark_v2/util.ts";
 
 const paths = {
   baseline: "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
@@ -94,14 +94,14 @@ function weightedStrata(archive: any): Record<string, number> {
 
 function verified(path: string): any {
   const bytes = readFileSync(path);
-  const sha256 = createHash("sha256").update(bytes).digest("hex");
+  const digest = sha256(bytes);
   const expected = readFileSync(`${path}.sha256`, "utf8").trim().split(/\s+/)[0];
-  if (sha256 !== expected) throw new Error(`${path}: checksum mismatch`);
+  if (digest !== expected) throw new Error(`${path}: checksum mismatch`);
   const archive = JSON.parse((path.endsWith(".gz") ? gunzipSync(bytes) : bytes).toString("utf8"));
   if (archive.schema !== RUN_ARCHIVE_SCHEMA || archive.profile !== "probe") {
     throw new Error(`${path}: not a V2 probe archive`);
   }
-  return { ...archive, __sha256: sha256 };
+  return { ...archive, __sha256: digest };
 }
 
 function markdown(report: any): string {
@@ -136,8 +136,4 @@ function write(path: string, contents: string): void {
   const absolute = resolve(path);
   mkdirSync(dirname(absolute), { recursive: true });
   writeFileSync(absolute, contents);
-}
-
-function round(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
 }

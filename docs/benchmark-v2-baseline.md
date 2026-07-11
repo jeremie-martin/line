@@ -14,5 +14,5 @@ Probe and canonical actual seeds are disjoint at every shared budget. Probe evid
 
 Candidate: `95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40`.
 Inference rule: `a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21`.
-Decision protocol: `d4148b3693a734ab3dd6d26de54125721a1c50246ead62c62e0f773e9ab9c5a6`.
+Decision protocol: `fd9560e9d827d5a95b2ca8ed323c6733b320318169f3d1dc3ad2b1ffbdec0cb1`.
 Decision calibration: `51ca5ed7a5d8ec74d5c846d4ebd91a9f9a4d5829d1592a8ced0d2a35d028184d`.

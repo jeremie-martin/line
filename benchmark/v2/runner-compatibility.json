@@ -28,6 +28,20 @@
         "sha256": "028c964302ae7847beccaaa2dcecb7f9c554795f901e725c8ace0ed08fe14329",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "5e0dadcc68b7aac4dbfd41d03ff8e0d788f00480c47413e05a77310e50fee39e",
+      "toImplementationFingerprint": "a9236901186f2e3977b2857bc00fce8643c02a82d7e0a78e8480b29fa38b87e0",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+      "reviewedBy": "Jérémie Martin (via Claude Fable 5 implementation run)",
+      "reviewedAt": "2026-07-11T20:55:59.757Z",
+      "rationale": "RFC D step 5: eval chain (wave subset flags, workspace handle, eval/attempts/rebaseline protocol modules) moved the runner implementation fingerprint; compile path untouched (replay bit-identical on report, score, trackHash)",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-5e0dadcc-a9236901.json",
+        "sha256": "7334b01a002fbad06635e7bee320fac57de71fb818bb562edbe6a20a736801c3",
+        "result": "bit-identical"
+      }
     }
   ]
 }

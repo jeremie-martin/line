@@ -18,6 +18,7 @@ import {
 
 export const CONFIRMATION_STATE_SCHEMA = "line.benchmark-v2.confirmation-state.v4" as const;
 export const CONFIRMATION_DECLARATION_SCHEMA = "line.benchmark-v2.confirmation-declaration.v5" as const;
+export const EVAL_DECLARATION_SCHEMA = "line.benchmark-v2.eval-declaration.v6" as const;
 const LEGACY_STATE_SCHEMA_V3 = "line.benchmark-v2.confirmation-state.v3" as const;
 export const DEFAULT_CONFIRMATION_STATE_PATH = "benchmark/v2/confirmation-state.json";
 
@@ -81,6 +82,130 @@ export type ConfirmationState = {
     outcome?: string;
   };
 };
+
+export type EvalDeclaration = {
+  schema: typeof EVAL_DECLARATION_SCHEMA;
+  attemptId: string;
+  declaredAt: string;
+  baselineLabel: string;
+  baselineCandidateFingerprint: string;
+  baselineSuiteFingerprint: string;
+  baselineSnapshotSha256: string;
+  baselineInferenceFingerprint: string;
+  baselineProtocolFingerprint: string;
+  baselineCalibrationFingerprint: string;
+  candidateFingerprint: string;
+  candidateSnapshot: CompilerSnapshot;
+  canonicalSeedBase: number;
+  seedScheduleFingerprint: string;
+  mode: ConfirmationMode;
+  margin: number | null;
+  operatingPointId: string;
+  depth: number;
+  criticalAlpha: number;
+  futilitySchedule: number[];
+  futilityAlpha: number;
+  eraBudgetSpend: number;
+  retryAcknowledged: boolean;
+  certificationFingerprint: string;
+  statement: string;
+};
+
+/**
+ * Freeze an eval attempt before any confirmation compile: candidate snapshot,
+ * operating point, fresh epoch, and the exact certification evidence that
+ * authorized the point. The declaration is immutable; every later stage
+ * (waves, looks, resume, verdict) revalidates against it.
+ */
+export function declareEvalAttempt(input: {
+  attemptId: string;
+  baseline: ConfirmationState["baseline"];
+  decisionContract: DecisionContractIdentity;
+  candidateFingerprint: string;
+  candidateSnapshot: CompilerSnapshot;
+  canonicalSeedBase: number;
+  seedScheduleFingerprint: string;
+  mode: ConfirmationMode;
+  margin: number | null;
+  operatingPointId: string;
+  depth: number;
+  criticalAlpha: number;
+  futilitySchedule: number[];
+  futilityAlpha: number;
+  eraBudgetSpend: number;
+  retryAcknowledged: boolean;
+  certificationFingerprint: string;
+  declarationDir: string;
+}): { declaration: EvalDeclaration; declarationPath: string; declarationSha256: string } {
+  if (input.baseline.compilerSnapshot === null || input.baseline.candidateFingerprint === null) {
+    throw new Error(`an approved baseline with a compiler snapshot is required before an eval attempt`);
+  }
+  validateCompilerSnapshot(input.baseline.compilerSnapshot);
+  validateCompilerSnapshot(input.candidateSnapshot);
+  const attemptId = input.attemptId;
+  const declaration: EvalDeclaration = {
+    schema: EVAL_DECLARATION_SCHEMA,
+    attemptId,
+    declaredAt: new Date().toISOString(),
+    baselineLabel: input.baseline.label,
+    baselineCandidateFingerprint: input.baseline.candidateFingerprint,
+    baselineSuiteFingerprint: input.baseline.suiteFingerprint,
+    baselineSnapshotSha256: input.baseline.compilerSnapshot.archiveSha256,
+    baselineInferenceFingerprint: input.decisionContract.inferenceFingerprint,
+    baselineProtocolFingerprint: input.decisionContract.protocolFingerprint,
+    baselineCalibrationFingerprint: input.decisionContract.calibrationFingerprint,
+    candidateFingerprint: input.candidateFingerprint,
+    candidateSnapshot: input.candidateSnapshot,
+    canonicalSeedBase: input.canonicalSeedBase,
+    seedScheduleFingerprint: input.seedScheduleFingerprint,
+    mode: input.mode,
+    margin: input.mode === "simplification" ? input.margin : null,
+    operatingPointId: input.operatingPointId,
+    depth: input.depth,
+    criticalAlpha: input.criticalAlpha,
+    futilitySchedule: [...input.futilitySchedule],
+    futilityAlpha: input.futilityAlpha,
+    eraBudgetSpend: input.eraBudgetSpend,
+    retryAcknowledged: input.retryAcknowledged,
+    certificationFingerprint: input.certificationFingerprint,
+    statement: input.mode === "improvement"
+      ? `This candidate, operating point ${input.operatingPointId}, and fresh seed epoch are frozen before either paired arm runs.`
+      : `This candidate, margin ${input.margin}, operating point ${input.operatingPointId}, and fresh seed epoch are frozen before either paired arm runs.`,
+  };
+  const declarationPath = resolve(input.declarationDir, `${attemptId}.json`);
+  if (existsSync(declarationPath)) throw new Error(`eval declaration ${declarationPath} already exists`);
+  writeAtomic(declarationPath, declaration);
+  return {
+    declaration,
+    declarationPath,
+    declarationSha256: sha256(readFileSync(declarationPath)),
+  };
+}
+
+export function freshAttemptId(): string {
+  return `${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}-${randomBytes(4).toString("hex")}`;
+}
+
+/**
+ * Record an eval epoch in the legacy one-shot ledger too: both allocation
+ * systems must see every allocated epoch or a later canonical attempt could
+ * reuse eval seeds.
+ */
+export function appendSeedLedgerEntry(statePath: string, entry: SeedLedgerEntry): void {
+  const state = readConfirmationState(statePath);
+  if (state.seedLedger.some((existing) => existing.attemptId === entry.attemptId)) {
+    throw new Error(`seed ledger already holds attempt ${entry.attemptId}`);
+  }
+  state.seedLedger = [...state.seedLedger, entry];
+  writeAtomic(statePath, state);
+}
+
+export function readEvalDeclaration(path: string): { declaration: EvalDeclaration; declarationSha256: string } {
+  const bytes = readFileSync(resolve(path));
+  const declaration = JSON.parse(bytes.toString("utf8")) as EvalDeclaration;
+  if (declaration.schema !== EVAL_DECLARATION_SCHEMA) throw new Error(`unsupported eval declaration`);
+  return { declaration, declarationSha256: sha256(bytes) };
+}
 
 export function assertBaselineTransitionAllowed(
   candidateFingerprint: string,
@@ -415,7 +540,7 @@ export function validateConfirmationEvidence(
   return declaration;
 }
 
-function assertCurrentDecisionContract(
+export function assertCurrentDecisionContract(
   state: ConfirmationState,
   current: DecisionContractIdentity,
 ): void {
@@ -452,7 +577,7 @@ function validateConfirmationStateFields(
   }
 }
 
-function retainSnapshotRun(
+export function retainSnapshotRun(
   run: SnapshotBenchmarkRun,
   archiveDir: string,
   stem: string,

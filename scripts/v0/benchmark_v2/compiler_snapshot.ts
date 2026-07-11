@@ -93,12 +93,18 @@ export function runSnapshotDevelopment(
   runSnapshotBenchmark(snapshot, "development", args, outputPath);
 }
 
-export function runSnapshotBenchmark(
-  snapshot: CompilerSnapshot,
-  mode: "development" | "qualification",
-  args: string[],
-  outputPath: string,
-): SnapshotBenchmarkRun {
+export type SnapshotWorkspace = {
+  snapshot: CompilerSnapshot;
+  directory: string;
+  disposed: boolean;
+};
+
+/**
+ * Materialize a snapshot compiler once (worktree + rsync + npm ci, ~1-2 min)
+ * so wave-based execution can run many benchmark invocations against it.
+ * Callers own the lifecycle: always disposeSnapshotWorkspace in a finally.
+ */
+export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWorkspace {
   validateCompilerSnapshot(snapshot);
   const workspace = mkdtempSync(resolve(tmpdir(), "line-v2-baseline-"));
   let worktreeCreated = false;
@@ -131,33 +137,61 @@ export function runSnapshotBenchmark(
       cwd: workspace,
       stdio: "inherit",
     });
-    const environment = { ...process.env };
-    for (const name of Object.keys(environment)) {
-      if (name.startsWith("LR_")) delete environment[name];
-    }
-    Object.assign(environment, snapshot.compilerEnvironment, { LR_ENGINE: "wasm" });
-    execFileSync(process.execPath, [
-      "--import",
-      "tsx",
-      "scripts/v0/benchmark_v2/run_benchmark.ts",
-      `--runner-mode=${mode}`,
-      ...args.filter((arg) => !arg.startsWith("--out=")),
-      `--out=${resolve(outputPath)}`,
-    ], {
-      cwd: workspace,
-      env: environment,
-      stdio: "inherit",
-    });
-  } finally {
+  } catch (error) {
     if (worktreeCreated) {
       execFileSync("git", ["worktree", "remove", "--force", workspace], { stdio: "ignore" });
     } else {
       rmSync(workspace, { recursive: true, force: true });
     }
+    throw error;
   }
+  return { snapshot, directory: workspace, disposed: false };
+}
+
+export function runInWorkspace(
+  workspace: SnapshotWorkspace,
+  mode: "development" | "qualification",
+  args: string[],
+  outputPath: string,
+): SnapshotBenchmarkRun {
+  if (workspace.disposed) throw new Error(`snapshot workspace was already disposed`);
+  const environment = { ...process.env };
+  for (const name of Object.keys(environment)) {
+    if (name.startsWith("LR_")) delete environment[name];
+  }
+  Object.assign(environment, workspace.snapshot.compilerEnvironment, { LR_ENGINE: "wasm" });
+  execFileSync(process.execPath, [
+    "--import",
+    "tsx",
+    "scripts/v0/benchmark_v2/run_benchmark.ts",
+    `--runner-mode=${mode}`,
+    ...args.filter((arg) => !arg.startsWith("--out=")),
+    `--out=${resolve(outputPath)}`,
+  ], {
+    cwd: workspace.directory,
+    env: environment,
+    stdio: "inherit",
+  });
   const absoluteOutput = resolve(outputPath);
   if (!existsSync(absoluteOutput) && existsSync(`${absoluteOutput}.failed`)) {
     throw new Error(`snapshot run had worker failures; failed archive retained at ${absoluteOutput}.failed (re-run with --resume to retry)`);
+  }
+  const partialPath = `${absoluteOutput}.partial.json`;
+  if (!existsSync(absoluteOutput) && existsSync(partialPath)) {
+    // A subset wave (--through-seed-slot below the declared depth) assembles
+    // no archive; surface the partial summary instead.
+    const partialBytes = readFileSync(partialPath);
+    const partial = JSON.parse(partialBytes.toString("utf8"));
+    return {
+      mode,
+      outputPath: partialPath,
+      summaryPath: partialPath,
+      archiveSha256: sha256(partialBytes),
+      compressedArchiveSha256: sha256(partialBytes),
+      headline: null,
+      qualificationMonitorScore: null,
+      workerFailures: partial.workerFailures ?? 0,
+    };
   }
   const archiveBytes = readFileSync(absoluteOutput);
   const archive = JSON.parse(archiveBytes.toString("utf8"));
@@ -172,6 +206,26 @@ export function runSnapshotBenchmark(
     qualificationMonitorScore: archive.qualificationMonitorScore,
     workerFailures: archive.runs.filter((row: { status: string }) => row.status !== "ok").length,
   };
+}
+
+export function disposeSnapshotWorkspace(workspace: SnapshotWorkspace): void {
+  if (workspace.disposed) return;
+  workspace.disposed = true;
+  execFileSync("git", ["worktree", "remove", "--force", workspace.directory], { stdio: "ignore" });
+}
+
+export function runSnapshotBenchmark(
+  snapshot: CompilerSnapshot,
+  mode: "development" | "qualification",
+  args: string[],
+  outputPath: string,
+): SnapshotBenchmarkRun {
+  const workspace = createSnapshotWorkspace(snapshot);
+  try {
+    return runInWorkspace(workspace, mode, args, outputPath);
+  } finally {
+    disposeSnapshotWorkspace(workspace);
+  }
 }
 
 export function removeAmbientCompilerSources(workspace: string): void {

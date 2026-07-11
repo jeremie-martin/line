@@ -2,6 +2,13 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { benchmarkDecisionCalibrationPolicy } from "../../../benchmark/v2/decision-policy.ts";
+import {
+  benchmarkEvalPolicy,
+  evalOperatingPoint,
+  EVAL_CERTIFICATION_ARTIFACT_PATHS,
+  type CertifiedCellReference,
+  type EvalOperatingPoint,
+} from "../../../benchmark/v2/eval-policy.ts";
 import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
 import { fingerprintFiles } from "./suite_model.ts";
@@ -55,6 +62,167 @@ export function requireCurrentDecisionCalibration(
     protocolFingerprint: decisionProtocolFingerprint(),
     calibrationFingerprint: decisionCalibrationFingerprint(calibration),
   };
+}
+
+export type CertifiedOperatingPoint = {
+  point: EvalOperatingPoint;
+  /** Era-budget spend: the row's certified Wilson-upper null-accept bound. */
+  spend: number;
+  /** The true effect (headline points) at which the row's power is certified. */
+  mde80: number;
+  /** The certified seed-block SE envelope (the power cell's mean realized SE). */
+  envelopeSe: number;
+  /** Binds the exact evidence that authorized this point; declarations pin it. */
+  certificationFingerprint: string;
+  artifacts: {
+    menuCertification: { path: string; sha256: string };
+    holdoutValidation: { path: string; sha256: string };
+  };
+};
+
+/**
+ * The eval chain's operating-point guard. A menu row in eval-policy.ts is an
+ * offer; this function is the authorization: the row's cells must meet the
+ * policy bars in the CURRENT certification artifacts, and those artifacts
+ * must be current for the suite and the inference identity. Every certified
+ * number the chain relies on (spend, envelope) is read from the artifacts
+ * here — never hardcoded.
+ */
+export function requireCertifiedOperatingPoint(
+  mode: "improvement" | "simplification",
+  margin: number | null,
+  depth: number,
+  suiteFingerprint: string,
+  artifactPaths: { menuCertification: string; holdoutValidation: string } = EVAL_CERTIFICATION_ARTIFACT_PATHS,
+): CertifiedOperatingPoint {
+  const point = evalOperatingPoint(mode, margin, depth);
+  if (point === undefined) {
+    const menu = benchmarkEvalPolicy.operatingPoints
+      .map((row) => `${row.id} (${row.mode}${row.margin === null ? "" : ` m=${row.margin}`}, depth ${row.depth})`)
+      .join(", ");
+    throw new Error(
+      `operating point (${mode}${margin === null ? "" : ` m=${margin}`}, depth ${depth}) is not on the certified menu; certified rows: ${menu}`,
+    );
+  }
+  const inferenceFingerprint = fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES);
+  const menu = readCertificationArtifact(
+    artifactPaths.menuCertification,
+    "certify",
+    suiteFingerprint,
+    inferenceFingerprint,
+  );
+  const holdout = readCertificationArtifact(
+    artifactPaths.holdoutValidation,
+    "holdout",
+    suiteFingerprint,
+    inferenceFingerprint,
+  );
+  for (const artifact of [menu, holdout]) {
+    if (
+      artifact.report.predeclared?.depth !== point.depth ||
+      artifact.report.predeclared?.criticalAlpha !== point.criticalAlpha ||
+      artifact.report.predeclared?.futilityAlpha !== point.futilityAlpha
+    ) throw new Error(`${artifact.path} does not certify depth ${point.depth} at the declared alpha levels`);
+  }
+  if (
+    point.futilitySchedule.length > 0 &&
+    JSON.stringify(menu.report.predeclared?.futilitySchedule) !== JSON.stringify([...point.futilitySchedule])
+  ) throw new Error(`the certified futility schedule differs from the declared operating point`);
+  const bars = benchmarkEvalPolicy.bars;
+  if (
+    menu.report.predeclared?.bars?.nullFalseAcceptWilsonUpperMax !== bars.nullFalseAcceptWilsonUpperMax ||
+    menu.report.predeclared?.bars?.powerAtPlus5WilsonLowerMin !== bars.powerWilsonLowerMin
+  ) throw new Error(`certification bars in ${menu.path} do not match the eval policy bars`);
+
+  const power = certifiedRate(menu.report, point.cells.power, menu.path);
+  if (power.wilson95[0] < bars.powerWilsonLowerMin) {
+    throw new Error(`certified power lower bound ${power.wilson95[0]} for ${point.id} is below ${bars.powerWilsonLowerMin}`);
+  }
+  const spendRate = certifiedRate(menu.report, point.cells.spendNull, menu.path);
+  for (const cell of [point.cells.spendNull, ...point.cells.additionalNulls]) {
+    for (const artifact of [menu, holdout]) {
+      const rate = certifiedRate(artifact.report, cell, artifact.path);
+      if (rate.wilson95[1] > bars.nullFalseAcceptWilsonUpperMax) {
+        throw new Error(`${cell.id} false-accept upper bound ${rate.wilson95[1]} in ${artifact.path} exceeds ${bars.nullFalseAcceptWilsonUpperMax}`);
+      }
+    }
+  }
+  const powerCell = findCertificationCell(menu.report, point.cells.power.id, menu.path);
+  const envelopeSe = powerCell.combined?.meanSeedBlockSe;
+  if (typeof envelopeSe !== "number" || !(envelopeSe > 0)) {
+    throw new Error(`certified SE envelope is missing from ${menu.path}`);
+  }
+
+  const certificationFingerprint = sha256(Buffer.from(JSON.stringify({
+    menuCertification: menu.sha256,
+    holdoutValidation: holdout.sha256,
+    powerGrid: menu.report.upstream?.powerGrid?.sha256,
+    probeFutility: menu.report.upstream?.probeFutility?.sha256,
+    evalPolicy: fingerprintFiles(["benchmark/v2/eval-policy.ts"]),
+    operatingPointId: point.id,
+  })));
+  return {
+    point,
+    spend: spendRate.wilson95[1],
+    mde80: point.certifiedDetectableEffect,
+    envelopeSe,
+    certificationFingerprint,
+    artifacts: {
+      menuCertification: { path: menu.path, sha256: menu.sha256 },
+      holdoutValidation: { path: holdout.path, sha256: holdout.sha256 },
+    },
+  };
+}
+
+const CERTIFICATION_REGEN_HINT =
+  "regenerate with `node --import tsx scripts/benchmark/validate_independent_reference.ts` " +
+  "(--mode=certify --allow-in-sample against the pooled reference for the menu; --mode=holdout for the holdout)";
+
+function readCertificationArtifact(
+  path: string,
+  expectedMode: "certify" | "holdout",
+  suiteFingerprint: string,
+  inferenceFingerprint: string,
+): { path: string; sha256: string; report: any } {
+  const absolute = resolve(path);
+  if (!existsSync(absolute)) {
+    throw new Error(`certification artifact ${path} is missing; ${CERTIFICATION_REGEN_HINT}`);
+  }
+  const bytes = readFileSync(absolute);
+  const report = JSON.parse(bytes.toString("utf8"));
+  if (report.schema !== "line.benchmark-v2.independent-validation.v2" || report.mode !== expectedMode) {
+    throw new Error(`certification artifact ${path} has an unsupported schema or mode`);
+  }
+  if (report.suiteFingerprint !== suiteFingerprint || report.decisionInferenceFingerprint !== inferenceFingerprint) {
+    throw new Error(`certification artifact ${path} is stale for the current suite or inference identity; ${CERTIFICATION_REGEN_HINT}`);
+  }
+  if (report.allBarsMet !== true) {
+    throw new Error(`certification artifact ${path} did not meet its predeclared bars; the menu is not certified`);
+  }
+  return { path, sha256: sha256(bytes), report };
+}
+
+function findCertificationCell(report: any, id: string, path: string): any {
+  const cell = (report.cells ?? []).find((entry: any) => entry.id === id);
+  if (cell === undefined) throw new Error(`certification cell ${id} is missing from ${path}`);
+  return cell;
+}
+
+function certifiedRate(
+  report: any,
+  reference: CertifiedCellReference,
+  path: string,
+): ValidatedRate {
+  const cell = findCertificationCell(report, reference.id, path);
+  const combined = cell.combined;
+  if (!Number.isSafeInteger(combined?.trials) || combined.trials < 1000) {
+    throw new Error(`certification cell ${reference.id} in ${path} has fewer than 1000 trials`);
+  }
+  const value = combined[reference.statistic];
+  if (value === null || value === undefined) {
+    throw new Error(`certification cell ${reference.id} in ${path} lacks the ${reference.statistic} statistic`);
+  }
+  return validatedRate(value, combined.trials, `${reference.id} ${reference.statistic}`);
 }
 
 export function decisionCalibrationFingerprint(calibration: any): string {

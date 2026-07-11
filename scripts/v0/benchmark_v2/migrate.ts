@@ -61,6 +61,8 @@ const CONFORMANCE_TEST_FILES = [
   "tests/benchmark_v2_decide_cli.test.ts",
   "tests/benchmark_v2_numeric_fixtures.test.ts",
   "tests/benchmark_v2_protocol_surface.test.ts",
+  "tests/benchmark_v2_attempts.test.ts",
+  "tests/benchmark_v2_eval_policy.test.ts",
 ];
 
 type Scope = "protocol" | "calibration" | "inference";

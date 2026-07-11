@@ -13,10 +13,12 @@ import { fingerprintFiles } from "./suite_model.ts";
  * semantics are bound by the suite fingerprint (BENCHMARK_DEFINITION_SOURCE_FILES).
  */
 export const DECISION_PROTOCOL_SOURCE_FILES = [
+  "benchmark/v2/eval-policy.ts",
   "benchmark/v2/runner-compatibility.json",
   "scripts/benchmark/cli.ts",
   "scripts/benchmark/freeze_baseline.ts",
   "scripts/benchmark/verify_runner_compatibility.ts",
+  "scripts/v0/benchmark_v2/attempts.ts",
   "scripts/v0/benchmark_v2/baseline.ts",
   "scripts/v0/benchmark_v2/calibration_guard.ts",
   "scripts/v0/benchmark_v2/compiler_identity.ts",
@@ -24,8 +26,11 @@ export const DECISION_PROTOCOL_SOURCE_FILES = [
   "scripts/v0/benchmark_v2/confirmation.ts",
   "scripts/v0/benchmark_v2/decide.ts",
   "scripts/v0/benchmark_v2/decision_protocol.ts",
+  "scripts/v0/benchmark_v2/eval.ts",
+  "scripts/v0/benchmark_v2/eval_report.ts",
   "scripts/v0/benchmark_v2/listening_review.ts",
   "scripts/v0/benchmark_v2/migrate.ts",
+  "scripts/v0/benchmark_v2/rebaseline.ts",
   "scripts/v0/benchmark_v2/runner_compatibility.ts",
 ] as const;
 

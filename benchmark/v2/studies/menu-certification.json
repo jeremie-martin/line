@@ -105,11 +105,12 @@
     },
     "determinismCheck": {
       "path": "benchmark/v2/studies/determinism-check.json",
-      "sha256": "3b784761f84c334facd23229e4a0dca4e0332ff5571946e478e7b22063496064"
+      "sha256": "d6828b978683002ee25432d22de07cba8e698d05d0ea2efbcfdfea1066e72496"
     }
   },
   "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
   "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
+  "decisionInferenceFingerprint": "a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21",
   "methodology": {
     "independenceDiscipline": "Primary validation applies the power grid's frozen perturbation recipes and shift values (solved on seeds 0..11) unchanged to the independent seeds-12..23 blocks; achievedTrueDeltas reports the resulting true effects on the independent blocks. resolvedDiagnostic (shifts re-solved on the independent blocks) is a secondary diagnostic only and feeds no bar.",
     "dgp": "Identical to the power grid: unpaired empirical block resampling per (budget, slot) from the verified independent reference; validity flips and catalog-wide hard-zero stress mirror study_decision_coverage.ts.",

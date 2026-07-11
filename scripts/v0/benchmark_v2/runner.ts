@@ -53,6 +53,7 @@ import {
   resolvedSeedSchedule,
   sourceInventoryFingerprint,
   suiteIdentity,
+  type ResolvedSeedSchedule,
 } from "./suite_model.ts";
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
@@ -62,10 +63,11 @@ export const RUN_ARCHIVE_SCHEMA = BENCHMARK_RUN_ARCHIVE_SCHEMA;
 export { COMPILER_IDENTITY_PROTOCOL };
 const CHECKPOINT_SCHEMA = "line.benchmark-v2.checkpoint.v1" as const;
 const SUMMARY_SCHEMA = "line.benchmark-v2.run-summary.v3" as const;
+const PARTIAL_RUN_SCHEMA = "line.benchmark-v2.partial-run.v1" as const;
 
 type RunnerMode = "development" | "qualification";
 
-type WorkerTask = {
+export type WorkerTask = {
   mode: RunnerMode;
   sourceId: string;
   budget: number;
@@ -105,6 +107,7 @@ export type CompletedBenchmarkRun = {
   headline: number | null;
   qualificationMonitorScore: number | null;
   workerFailures: number;
+  partialThroughSeedSlot?: number;
 };
 
 export async function runBenchmarkV2(
@@ -148,6 +151,12 @@ export async function runBenchmarkV2(
   if (seedBaseOverride !== undefined && (profileName !== "canonical" || confirmationDeclarationPath === undefined)) {
     throw new Error(`--canonical-seed-base is reserved for a predeclared canonical confirmation`);
   }
+  const seedsPerBudgetOverride = argument("seeds-per-budget") === undefined
+    ? undefined
+    : Number(argument("seeds-per-budget"));
+  const throughSeedSlot = argument("through-seed-slot") === undefined
+    ? undefined
+    : Number(argument("through-seed-slot"));
 
   const sourceManifestContents = readFileSync(sourceManifestPath, "utf8");
   const heldoutManifestContents = readFileSync(heldoutManifestPath, "utf8");
@@ -181,6 +190,14 @@ export async function runBenchmarkV2(
   );
   if (profileName === "canonical") requireApprovedListeningReview(listeningReview);
   const profile = suite.profiles[profileName];
+  const effectiveSeedsPerBudget = seedsPerBudgetOverride ?? profile.seeds_per_budget;
+  validateSubsetFlags({
+    profileName,
+    hasDeclaration: confirmationDeclarationPath !== undefined,
+    seedsPerBudget: seedsPerBudgetOverride,
+    throughSeedSlot,
+    effectiveDepth: effectiveSeedsPerBudget,
+  });
   const sources = mode === "qualification" ? qualificationSources : developmentSources;
   if (mode === "development") {
     const selected = canonicalMembers(suite);
@@ -192,7 +209,7 @@ export async function runBenchmarkV2(
     suite,
     profileName,
     profile.budgets,
-    profile.seeds_per_budget,
+    effectiveSeedsPerBudget,
     seedBaseOverride,
   );
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -241,17 +258,13 @@ export async function runBenchmarkV2(
     );
   }
 
-  const tasks = schedule.byBudget.flatMap(({ budget, actualSeeds }) =>
-    actualSeeds.flatMap((actualSeed, seedSlot) => sources.map((source) => ({
-      mode,
-      sourceId: source.id,
-      budget,
-      seedSlot,
-      actualSeed,
-      joltMs: suite.transform.jolt_ms,
-      sourceManifestPath,
-      heldoutManifestPath,
-    })))
+  const tasks = buildWorkerTasks(
+    schedule,
+    sources,
+    mode,
+    suite.transform.jolt_ms,
+    { sourceManifestPath, heldoutManifestPath },
+    throughSeedSlot,
   );
   const runPlanFingerprint = sha256(JSON.stringify({
     executionPolicyFingerprint: execution.executionPolicyFingerprint,
@@ -266,6 +279,9 @@ export async function runBenchmarkV2(
   }));
   mkdirSync(dirname(outputPath), { recursive: true });
   mkdirSync(dirname(checkpointPath), { recursive: true });
+  if (throughSeedSlot !== undefined && existsSync(checkpointPath) && !hasFlag("resume")) {
+    throw new Error(`wave execution must resume its attempt checkpoint; pass --resume`);
+  }
   const restored = loadOrInitializeCheckpoint(checkpointPath, runPlanFingerprint, hasFlag("resume"));
   const restoredByKey = new Map(restored.map((result) => [taskKey(result.task), result]));
   const pending = tasks.filter((task) => !restoredByKey.has(taskKey(task)));
@@ -281,7 +297,7 @@ export async function runBenchmarkV2(
   console.log(`Benchmark V2 ${mode} ${profileName}`);
   console.log(
     `  ${tasks.length} compiles (${sources.length} sources, ${profile.budgets.length} budgets, ` +
-    `${profile.seeds_per_budget} seed slots); ${restored.length} restored`,
+    `${effectiveSeedsPerBudget} seed slots); ${restored.length} restored`,
   );
   console.log(
     `  suite ${suiteId.suiteFingerprint.slice(0, 16)}, policy ` +
@@ -303,6 +319,44 @@ export async function runBenchmarkV2(
   });
   const allByKey = new Map([...restored, ...fresh].map((result) => [taskKey(result.task), result]));
   const results = tasks.map((task) => allByKey.get(taskKey(task))!);
+  const workerFailures = results.filter((result) => result.status !== "ok").length;
+  if (throughSeedSlot !== undefined && throughSeedSlot < effectiveSeedsPerBudget) {
+    // Sub-depth wave: leave a partial-run summary (no archive/summary/sidecars)
+    // recording progress and the shared checkpoint so a later wave can resume.
+    const totalDeclaredTasks =
+      schedule.byBudget.reduce((sum, entry) => sum + entry.actualSeeds.length, 0) * sources.length;
+    const completedTasks = results.filter((result) => result.status === "ok").length;
+    const partialPath = `${outputPath}.partial.json`;
+    const partialBytes = Buffer.from(`${JSON.stringify(partialRunSummary({
+      mode,
+      profile: profileName,
+      throughSeedSlot,
+      seedsPerBudget: effectiveSeedsPerBudget,
+      totalDeclaredTasks,
+      completedTasks,
+      workerFailures,
+      runPlanFingerprint,
+      checkpoint: relativeToCwd(checkpointPath),
+    }), null, 2)}\n`);
+    writeFileSync(partialPath, partialBytes);
+    const partialSha256 = sha256(partialBytes);
+    console.log(
+      `  partial wave through seed slot ${throughSeedSlot}/${effectiveSeedsPerBudget}: ` +
+      `${completedTasks}/${totalDeclaredTasks} tasks ok, ${workerFailures} failed; ${relativeToCwd(partialPath)}`,
+    );
+    if (workerFailures > 0) process.exitCode = 1;
+    return {
+      mode,
+      outputPath: partialPath,
+      summaryPath: partialPath,
+      archiveSha256: partialSha256,
+      compressedArchiveSha256: partialSha256,
+      headline: null,
+      qualificationMonitorScore: null,
+      workerFailures,
+      partialThroughSeedSlot: throughSeedSlot,
+    };
+  }
   const scored = results.map((result) => scoreWorkerResult(
     result,
     suite,
@@ -363,7 +417,6 @@ export async function runBenchmarkV2(
     runs: scored,
   };
   const archiveBytes = Buffer.from(`${JSON.stringify(archive, null, 2)}\n`);
-  const workerFailures = results.filter((result) => result.status !== "ok").length;
   const failed = workerFailures > 0;
   const { archiveOut, summaryPath, archiveSha256, compressedArchiveSha256 } =
     writeArchiveArtifacts(outputPath, archiveBytes, failed);
@@ -426,6 +479,111 @@ export async function runBenchmarkV2(
     headline,
     qualificationMonitorScore,
     workerFailures,
+  };
+}
+
+/**
+ * Builds the full worker-task cross product from a resolved seed schedule, then
+ * (optionally) keeps only the leading `throughSeedSlot` seed slots per budget.
+ * Wave-based execution runs a growing prefix of the declared schedule while all
+ * waves share one attempt checkpoint. With no `throughSeedSlot` this is the full
+ * declared task list, identical to the historical inline construction.
+ */
+export function buildWorkerTasks(
+  schedule: ResolvedSeedSchedule,
+  sources: Array<{ id: string }>,
+  mode: RunnerMode,
+  joltMs: number,
+  manifests: { sourceManifestPath: string; heldoutManifestPath: string },
+  throughSeedSlot?: number,
+): WorkerTask[] {
+  const tasks = schedule.byBudget.flatMap(({ budget, actualSeeds }) =>
+    actualSeeds.flatMap((actualSeed, seedSlot) => sources.map((source) => ({
+      mode,
+      sourceId: source.id,
+      budget,
+      seedSlot,
+      actualSeed,
+      joltMs,
+      sourceManifestPath: manifests.sourceManifestPath,
+      heldoutManifestPath: manifests.heldoutManifestPath,
+    })))
+  );
+  return throughSeedSlot === undefined
+    ? tasks
+    : tasks.filter((task) => task.seedSlot < throughSeedSlot);
+}
+
+/**
+ * Guards the wave-execution flags. `--seeds-per-budget` and `--through-seed-slot`
+ * are reserved for a predeclared canonical confirmation, exactly like
+ * `--canonical-seed-base`: both require the canonical profile and a confirmation
+ * declaration. The through-slot must be a positive integer no deeper than the
+ * effective seed depth.
+ */
+export function validateSubsetFlags(input: {
+  profileName: "probe" | "canonical";
+  hasDeclaration: boolean;
+  seedsPerBudget: number | undefined;
+  throughSeedSlot: number | undefined;
+  effectiveDepth: number;
+}): void {
+  const { profileName, hasDeclaration, seedsPerBudget, throughSeedSlot, effectiveDepth } = input;
+  if (seedsPerBudget === undefined && throughSeedSlot === undefined) return;
+  if (profileName !== "canonical" || !hasDeclaration) {
+    throw new Error(`--seeds-per-budget and --through-seed-slot are reserved for a predeclared canonical confirmation`);
+  }
+  if (seedsPerBudget !== undefined && (!Number.isSafeInteger(seedsPerBudget) || seedsPerBudget < 1)) {
+    throw new Error(`seeds-per-budget must be a positive integer`);
+  }
+  if (throughSeedSlot !== undefined) {
+    if (!Number.isSafeInteger(throughSeedSlot) || throughSeedSlot < 1) {
+      throw new Error(`through-seed-slot must be a positive integer`);
+    }
+    if (throughSeedSlot > effectiveDepth) {
+      throw new Error(`--through-seed-slot=${throughSeedSlot} exceeds seeds-per-budget=${effectiveDepth}`);
+    }
+  }
+}
+
+/**
+ * The on-disk summary a sub-depth wave leaves in place of an archive: it records
+ * how far the attempt has progressed and where its shared checkpoint lives, so a
+ * later wave can resume and eventually assemble the full archive.
+ */
+export function partialRunSummary(input: {
+  mode: RunnerMode;
+  profile: "probe" | "canonical";
+  throughSeedSlot: number;
+  seedsPerBudget: number;
+  totalDeclaredTasks: number;
+  completedTasks: number;
+  workerFailures: number;
+  runPlanFingerprint: string;
+  checkpoint: string;
+}): {
+  schema: typeof PARTIAL_RUN_SCHEMA;
+  mode: RunnerMode;
+  profile: "probe" | "canonical";
+  throughSeedSlot: number;
+  seedsPerBudget: number;
+  totalDeclaredTasks: number;
+  completedTasks: number;
+  workerFailures: number;
+  runPlanFingerprint: string;
+  checkpoint: string;
+} {
+  return {
+    schema: PARTIAL_RUN_SCHEMA,
+    mode: input.mode,
+    profile: input.profile,
+    throughSeedSlot: input.throughSeedSlot,
+    seedsPerBudget: input.seedsPerBudget,
+    totalDeclaredTasks: input.totalDeclaredTasks,
+    completedTasks: input.completedTasks,
+    workerFailures: input.workerFailures,
+    runPlanFingerprint: input.runPlanFingerprint,
+    checkpoint: input.checkpoint,
   };
 }
 

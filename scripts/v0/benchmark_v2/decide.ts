@@ -304,10 +304,106 @@ export async function loadValidatedDecisionPairForCalibration(
   return { suite, baseRuns, candidateRuns };
 }
 
+/** Clone the frozen suite with the canonical allocation set to an eval depth. */
+export function suiteAtDepth(
+  suite: ReturnType<typeof loadSuiteManifest>,
+  depth: number,
+): ReturnType<typeof loadSuiteManifest> {
+  if (!Number.isSafeInteger(depth) || depth < 1) throw new Error(`eval depth must be a positive integer`);
+  const clone = structuredClone(suite);
+  clone.profiles.canonical.seeds_per_budget = depth;
+  return clone;
+}
+
+/**
+ * Stage 0 of the eval chain: the full integrity path (verified archives,
+ * scope revalidation, per-row rescoring, calibration currency) with NO
+ * gating and NO state writes — an informational screen, repeatable all day.
+ */
+export async function screeningComparison(
+  candidatePath: string,
+  options: { basePath?: string; mode?: DecisionMode; margin?: number } = {},
+): Promise<{
+  result: V2Decision;
+  base: VerifiedArchive;
+  candidate: VerifiedArchive;
+  baseLabel: string;
+  compatibilityApproval: RunnerCompatibilityApproval | null;
+}> {
+  const candidate = loadVerifiedArchive(candidatePath);
+  if (archiveProfile(candidate.archive) !== "probe") {
+    throw new Error(`stage-0 screening compares probe archives; run \`npm run benchmark -- eval\` to produce one`);
+  }
+  const resolution = options.basePath === undefined
+    ? baselineArchive("probe")
+    : { path: resolve(options.basePath), expected: undefined, label: "explicit-base", reference: undefined };
+  const base = loadVerifiedArchive(resolution.path, resolution.expected);
+  const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(base, candidate);
+  requireCurrentDecisionCalibration(candidate.archive.identity.suiteFingerprint);
+  const mode = options.mode ?? "improvement";
+  const result = pairedV2Decision(baseRuns, candidateRuns, suite, {
+    profile: "probe",
+    mode,
+    margin: mode === "simplification" ? options.margin : undefined,
+  });
+  assertStoredHeadline(base.archive, result.baseHeadline, "base");
+  assertStoredHeadline(candidate.archive, result.candidateHeadline, "candidate");
+  return { result, base, candidate, baseLabel: resolution.label, compatibilityApproval };
+}
+
+/**
+ * The eval chain's verdict inference: the same integrity path and certified
+ * decision rule as `decide`, parameterized by the declared depth, with no
+ * confirmation-state coupling — the eval orchestrator owns declaration
+ * validation and the ledger.
+ */
+export async function evalDecision(
+  basePath: string,
+  candidatePath: string,
+  options: { mode: DecisionMode; margin: number | null; depth: number },
+): Promise<{ artifact: DecisionArtifact; base: VerifiedArchive; candidate: VerifiedArchive }> {
+  const base = loadVerifiedArchive(basePath);
+  const candidate = loadVerifiedArchive(candidatePath);
+  if (archiveProfile(base.archive) !== "canonical" || archiveProfile(candidate.archive) !== "canonical") {
+    throw new Error(`eval verdicts require canonical archives`);
+  }
+  const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(
+    base,
+    candidate,
+    "decision",
+    options.depth,
+  );
+  requireCurrentDecisionCalibration(candidate.archive.identity.suiteFingerprint);
+  const result = pairedV2Decision(baseRuns, candidateRuns, suiteAtDepth(suite, options.depth), {
+    profile: "canonical",
+    mode: options.mode,
+    margin: options.mode === "simplification" ? options.margin ?? undefined : undefined,
+  });
+  assertStoredHeadline(base.archive, result.baseHeadline, "base");
+  assertStoredHeadline(candidate.archive, result.candidateHeadline, "candidate");
+  const artifact: DecisionArtifact = {
+    schema: DECISION_SCHEMA,
+    generatedAt: new Date().toISOString(),
+    decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
+    decisionProtocolFingerprint: decisionProtocolFingerprint(),
+    executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
+    base: archiveReference(base),
+    candidate: archiveReference(candidate),
+    implementationFingerprintsMatch:
+      base.archive.identity.implementationFingerprint === candidate.archive.identity.implementationFingerprint,
+    runnerCompatibilityApproval: compatibilityApproval,
+    result,
+    hint: underPoweredHint(result, options.depth),
+    nextCommand: nextCommandFor(result),
+  };
+  return { artifact, base, candidate };
+}
+
 async function validateComparison(
   base: VerifiedArchive,
   candidate: VerifiedArchive,
   purpose: "decision" | "calibration" = "decision",
+  depthOverride?: number,
 ): Promise<{
   suite: ReturnType<typeof loadSuiteManifest>;
   baseRuns: DecisionRun[];
@@ -373,8 +469,8 @@ async function validateComparison(
     );
   }
   const requiredListeningReview = purpose === "decision" ? listeningReview.fingerprint : null;
-  validateArchiveScope(baseArchive, suite, sources, contracts, requiredListeningReview);
-  validateArchiveScope(candidateArchive, suite, sources, contracts, requiredListeningReview);
+  validateArchiveScope(baseArchive, suite, sources, contracts, requiredListeningReview, depthOverride);
+  validateArchiveScope(candidateArchive, suite, sources, contracts, requiredListeningReview, depthOverride);
   validateCandidateIdentity(baseArchive);
   validateCandidateIdentity(candidateArchive);
   const compatibilityApproval = runnerCompatibilityApproval(
@@ -396,6 +492,7 @@ function validateArchiveScope(
   sources: ReturnType<typeof resolveSources>,
   contracts: Map<string, AxisContract>,
   listeningReviewFingerprint: string | null,
+  depthOverride?: number,
 ): void {
   const profileName = archiveProfile(archive);
   const profile = suite.profiles[profileName];
@@ -448,11 +545,16 @@ function validateArchiveScope(
   const customCanonicalSeedBase = profileName === "canonical" && archive.confirmationDeclaration !== undefined
     ? archive.identity?.seedSchedule?.seedBase
     : undefined;
+  // A declared eval depth replaces the manifest allocation; the caller
+  // cross-checks the override against the immutable declaration.
+  if (depthOverride !== undefined && profileName !== "canonical") {
+    throw new Error(`depth-parameterized scope validation applies to canonical archives only`);
+  }
   const schedule = resolvedSeedSchedule(
     suite,
     profileName,
     profile.budgets,
-    profile.seeds_per_budget,
+    depthOverride ?? profile.seeds_per_budget,
     customCanonicalSeedBase,
   );
   if (
@@ -746,7 +848,7 @@ export function renderDecision(artifact: DecisionArtifact, outPath: string): str
   return lines.join("\n");
 }
 
-function writeDecisionArtifact(path: string, artifact: DecisionArtifact): void {
+export function writeDecisionArtifact(path: string, artifact: DecisionArtifact): void {
   const bytes = Buffer.from(`${JSON.stringify(artifact, null, 2)}\n`);
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, bytes);

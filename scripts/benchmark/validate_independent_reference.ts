@@ -35,6 +35,7 @@ import {
   studentTQuantile,
   type DecisionRun,
 } from "../v0/benchmark_v2/decision_model.ts";
+import { DECISION_INFERENCE_SOURCE_FILES } from "../v0/benchmark_v2/decision_model.ts";
 import { buildAxisContract, type AxisContract } from "../v0/benchmark_v2/evaluator.ts";
 import { loadSourceManifest, loadSourceSpec, resolveSources } from "../v0/benchmark_v2/model.ts";
 import {
@@ -552,6 +553,7 @@ async function main(): Promise<void> {
     },
     suiteFingerprint: identity.suiteFingerprint,
     scorerFingerprint,
+    decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
     methodology: {
       independenceDiscipline:
         "Primary validation applies the power grid's frozen perturbation recipes and shift values (solved on seeds 0..11) unchanged to the independent seeds-12..23 blocks; achievedTrueDeltas reports the resulting true effects on the independent blocks. resolvedDiagnostic (shifts re-solved on the independent blocks) is a secondary diagnostic only and feeds no bar.",

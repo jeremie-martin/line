@@ -1,0 +1,339 @@
+{
+  "schema": "line.benchmark-v2.pairing-study.v1",
+  "title": "Paired (shared-seed) base-vs-candidate correlation vs candidate change size",
+  "hypothesis": "Same seed + different compiler behaves like independent draws (chaotic hand-off DFS), so the within-(case,budget) base<->candidate correlation collapses toward 0 and paired comparison buys no variance reduction over an unpaired mean.",
+  "methodology": {
+    "pairingUnit": "One paired observation = (sourceId, budget, seedSlot) where both arms produced a VALID score and share the same actualSeed. actualSeed equality is verified per slot; mismatched slots are excluded and counted.",
+    "withinCellCorrelation": "For each (sourceId, budget) cell, Pearson r between base and candidate scores across the cell's shared valid seeds. Cells with < 2 valid pairs are skipped (insufficientPairCells). Cells where base OR candidate has zero variance across seeds are skipped (zeroVarianceCells; Pearson undefined) - these are dominated by base==candidate identical compiles for tiny changes. meanWithinCellPearson / medianWithinCellPearson aggregate over the remaining cellsWithVariation.",
+    "pooledVarianceRatio": "pooledVarDeltaOverVarBasePlusVarCand = SS(delta) / (SS(base) + SS(cand)), where each cell's base, candidate and delta=(cand-base) are centered by the cell mean before pooling across all cells at that budget (so between-case level differences do not enter). Independent equal-variance draws -> ratio ~1; perfectly paired -> ratio ~0. For equal within-cell variances the ratio ~= 1 - rho.",
+    "effectSize": "meanPairedRunDelta = mean over valid paired runs of (candidate - baseline) score; catalogHeadlineDelta = candidate minus baseline catalog headline (summary score) for the budget. Pairing benefit must be read ALONGSIDE effect size and fractionIdenticalValidPairs.",
+    "changedPairsOnly": "Secondary diagnostic isolating the chaos hypothesis: cell-centered (base, cand) points restricted to valid pairs whose scores DIFFER (centering by the cell's full valid-pair means). pooledPearsonCellCentered near 0 = once the compile actually diverges, base and candidate are effectively independent draws; the aggregate pairing benefit then comes entirely from the identical-compile mass. Computed only when >= 3 changed pairs exist at the budget.",
+    "purity": "This script performs no compilation and contains no nondeterministic fields; output is a pure function of the input archives (referenced above by sha256)."
+  },
+  "knobStudyNote": "Knob selection: grepped process.env.LR_* across scripts/v0, scripts/lib. Clean CONTINUOUS knobs that do not touch scoring or the suite transform and have no code-path guard are scarce. LR_IMPACT_LOCAL_W (impact candidate-cost weight, default 0.5) is the one clean scalar; on this suite it is low-traction (a +/-10..300% nudge perturbs only ~2-4% of compiles - forward-eval dominates the ranking). The objective-power knobs (LR_M64/M75_OBJECTIVE_*_POWER) perturb ~86% of compiles but do so by replacing a spec-adaptive path with a flat power (a broad reshaping), not a pure scalar nudge. No clean 'medium' knob exists, so the change-size ladder is tiny -> broad -> invasive.",
+  "baselineProvenance": "The 12-seed baseline arm REUSES benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz: the current working-tree compiler reproduced a 84-run subset (250k, seeds 0,1) of it BIT-IDENTICALLY, so a fresh baseline arm was unnecessary. The two candidate arms were compiled fresh from the same tree with only the one LR_ knob changed.",
+  "inputs": {
+    "coverageReference": {
+      "path": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+      "sha256": "842c66d8d1dc4aaad2b5c07c395f9d35d9e9f63deb920f2d792f30c5be71630a",
+      "schema": "line.benchmark-v2.budget-scale-study.v1",
+      "runs": 1512
+    },
+    "smallArm": {
+      "path": "generated/benchmark-v2/studies/pairing-small-arm.json",
+      "sha256": "462c7ceaf304f484f04d1b0315cf8f8d251c4f6f78d843c8a19213739f41c2c3",
+      "schema": "line.benchmark-v2.budget-scale-study.v1",
+      "runs": 1512
+    },
+    "broadArm": {
+      "path": "generated/benchmark-v2/studies/pairing-broad-arm.json",
+      "sha256": "eecfb169c7437be59c0649f400dd50862745152e44df21e77488b31961c92ec5",
+      "schema": "line.benchmark-v2.budget-scale-study.v1",
+      "runs": 1512
+    },
+    "probeBaseline": {
+      "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+      "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4",
+      "schema": "line.benchmark-v2.run-archive.v5",
+      "runs": 252
+    },
+    "probeNcand1": {
+      "path": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
+      "sha256": "dd875f118eadce0c5f703e7b16fb3bb3b61f961532f93ae6ea97a4c3dc1ffb01",
+      "schema": "line.benchmark-v2.run-archive.v5",
+      "runs": 252
+    }
+  },
+  "comparisons": [
+    {
+      "name": "small_impact_local_w",
+      "label": "SMALL: impact candidate-cost weight +10%",
+      "changeClass": "tiny",
+      "knob": "LR_IMPACT_LOCAL_W",
+      "baselineValue": "0.5 (default)",
+      "candidateValue": "0.55",
+      "sharedSeedsPerCell": 12,
+      "baselineArchive": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+      "candidateArchive": "generated/benchmark-v2/studies/pairing-small-arm.json",
+      "note": "Clean continuous cost-weight of the impact axis in the hand-off candidate ranker (candidate.ts LOCAL_IMPACT_COST_WEIGHT, arc_model.ts). No code-path guard: nudging it only changes the scalar. Decision-relevant SMALL-change cell.",
+      "budgets": [
+        {
+          "budget": 250000,
+          "cellCounts": {
+            "totalSharedCells": 42,
+            "cellsWithVariation": 36,
+            "zeroVarianceCells": 0,
+            "insufficientPairCells": 6,
+            "actualSeedMismatchSlots": 0
+          },
+          "pairing": {
+            "meanWithinCellPearson": 0.999758,
+            "medianWithinCellPearson": 1,
+            "pooledVarDeltaOverVarBasePlusVarCand": 0.000186
+          },
+          "pairs": {
+            "totalValidPairs": 428,
+            "identicalValidPairs": 427,
+            "fractionIdenticalValidPairs": 0.997664
+          },
+          "changedPairsOnly": {
+            "count": 1,
+            "pooledPearsonCellCentered": null,
+            "pooledVarRatio": null
+          },
+          "effectSize": {
+            "meanPairedRunDelta": 0.029437,
+            "catalogHeadlineDelta": 0.0215,
+            "baselineCatalogHeadline": 423.2919,
+            "candidateCatalogHeadline": 423.3134
+          }
+        },
+        {
+          "budget": 500000,
+          "cellCounts": {
+            "totalSharedCells": 42,
+            "cellsWithVariation": 41,
+            "zeroVarianceCells": 0,
+            "insufficientPairCells": 1,
+            "actualSeedMismatchSlots": 0
+          },
+          "pairing": {
+            "meanWithinCellPearson": 0.998065,
+            "medianWithinCellPearson": 1,
+            "pooledVarDeltaOverVarBasePlusVarCand": 0.001833
+          },
+          "pairs": {
+            "totalValidPairs": 460,
+            "identicalValidPairs": 458,
+            "fractionIdenticalValidPairs": 0.995652
+          },
+          "changedPairsOnly": {
+            "count": 2,
+            "pooledPearsonCellCentered": null,
+            "pooledVarRatio": null
+          },
+          "effectSize": {
+            "meanPairedRunDelta": 0.076593,
+            "catalogHeadlineDelta": 0.0609,
+            "baselineCatalogHeadline": 453.6698,
+            "candidateCatalogHeadline": 453.7307
+          }
+        },
+        {
+          "budget": 750000,
+          "cellCounts": {
+            "totalSharedCells": 42,
+            "cellsWithVariation": 41,
+            "zeroVarianceCells": 0,
+            "insufficientPairCells": 1,
+            "actualSeedMismatchSlots": 0
+          },
+          "pairing": {
+            "meanWithinCellPearson": 0.992925,
+            "medianWithinCellPearson": 1,
+            "pooledVarDeltaOverVarBasePlusVarCand": 0.00548
+          },
+          "pairs": {
+            "totalValidPairs": 470,
+            "identicalValidPairs": 468,
+            "fractionIdenticalValidPairs": 0.995745
+          },
+          "changedPairsOnly": {
+            "count": 2,
+            "pooledPearsonCellCentered": null,
+            "pooledVarRatio": null
+          },
+          "effectSize": {
+            "meanPairedRunDelta": 0.121828,
+            "catalogHeadlineDelta": 0.0986,
+            "baselineCatalogHeadline": 464.4826,
+            "candidateCatalogHeadline": 464.5812
+          }
+        }
+      ]
+    },
+    {
+      "name": "broad_readiness_power",
+      "label": "BROAD: objective readiness power forced flat 1.1",
+      "changeClass": "broad",
+      "knob": "LR_M75_OBJECTIVE_READINESS_POWER",
+      "baselineValue": "spec-adaptive (unset)",
+      "candidateValue": "1.1",
+      "sharedSeedsPerCell": 12,
+      "baselineArchive": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+      "candidateArchive": "generated/benchmark-v2/studies/pairing-broad-arm.json",
+      "note": "Second clean knob at a larger nudge. Setting it replaces the spec-adaptive readiness-power gates with a flat 1.1 in the forward-eval objective (mature budgets >=200k). A BROAD but smooth reshaping: perturbs ~86% of compiles yet shifts the headline only ~+27. There is NO clean 'medium' knob on this compiler (see study note): clean numeric knobs are bimodal - either tiny (impact cost, ~2% perturbed) or broad (objective power, ~86% perturbed).",
+      "budgets": [
+        {
+          "budget": 250000,
+          "cellCounts": {
+            "totalSharedCells": 42,
+            "cellsWithVariation": 36,
+            "zeroVarianceCells": 0,
+            "insufficientPairCells": 6,
+            "actualSeedMismatchSlots": 0
+          },
+          "pairing": {
+            "meanWithinCellPearson": 0.20502,
+            "medianWithinCellPearson": 0.226466,
+            "pooledVarDeltaOverVarBasePlusVarCand": 0.775568
+          },
+          "pairs": {
+            "totalValidPairs": 425,
+            "identicalValidPairs": 0,
+            "fractionIdenticalValidPairs": 0
+          },
+          "changedPairsOnly": {
+            "count": 425,
+            "pooledPearsonCellCentered": 0.224857,
+            "pooledVarRatio": 0.775568
+          },
+          "effectSize": {
+            "meanPairedRunDelta": 0.43385,
+            "catalogHeadlineDelta": 10.1756,
+            "baselineCatalogHeadline": 423.2919,
+            "candidateCatalogHeadline": 433.4675
+          }
+        },
+        {
+          "budget": 500000,
+          "cellCounts": {
+            "totalSharedCells": 42,
+            "cellsWithVariation": 40,
+            "zeroVarianceCells": 0,
+            "insufficientPairCells": 2,
+            "actualSeedMismatchSlots": 0
+          },
+          "pairing": {
+            "meanWithinCellPearson": 0.0482,
+            "medianWithinCellPearson": 0.059326,
+            "pooledVarDeltaOverVarBasePlusVarCand": 0.796068
+          },
+          "pairs": {
+            "totalValidPairs": 452,
+            "identicalValidPairs": 0,
+            "fractionIdenticalValidPairs": 0
+          },
+          "changedPairsOnly": {
+            "count": 451,
+            "pooledPearsonCellCentered": 0.205253,
+            "pooledVarRatio": 0.796068
+          },
+          "effectSize": {
+            "meanPairedRunDelta": -0.037962,
+            "catalogHeadlineDelta": 3.5343,
+            "baselineCatalogHeadline": 453.6698,
+            "candidateCatalogHeadline": 457.2041
+          }
+        },
+        {
+          "budget": 750000,
+          "cellCounts": {
+            "totalSharedCells": 42,
+            "cellsWithVariation": 41,
+            "zeroVarianceCells": 0,
+            "insufficientPairCells": 1,
+            "actualSeedMismatchSlots": 0
+          },
+          "pairing": {
+            "meanWithinCellPearson": 0.037528,
+            "medianWithinCellPearson": 0.030882,
+            "pooledVarDeltaOverVarBasePlusVarCand": 0.826332
+          },
+          "pairs": {
+            "totalValidPairs": 465,
+            "identicalValidPairs": 0,
+            "fractionIdenticalValidPairs": 0
+          },
+          "changedPairsOnly": {
+            "count": 465,
+            "pooledPearsonCellCentered": 0.175319,
+            "pooledVarRatio": 0.826332
+          },
+          "effectSize": {
+            "meanPairedRunDelta": -0.026982,
+            "catalogHeadlineDelta": 0.8086,
+            "baselineCatalogHeadline": 464.4826,
+            "candidateCatalogHeadline": 465.2912
+          }
+        }
+      ]
+    },
+    {
+      "name": "invasive_quality_ncand1",
+      "label": "INVASIVE: quality NCAND=1 (retained preliminary probe)",
+      "changeClass": "invasive",
+      "knob": "LR_QUALITY_NCAND",
+      "baselineValue": "default",
+      "candidateValue": "1",
+      "sharedSeedsPerCell": 3,
+      "baselineArchive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+      "candidateArchive": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
+      "note": "The retained preliminary probe pair (3 shared seeds/cell, budgets 250k/500k). An invasive search-structure change: collapses the quality pool to a single candidate, moving the headline ~-140. Reproduced here as the large-change end.",
+      "budgets": [
+        {
+          "budget": 250000,
+          "cellCounts": {
+            "totalSharedCells": 42,
+            "cellsWithVariation": 34,
+            "zeroVarianceCells": 0,
+            "insufficientPairCells": 8,
+            "actualSeedMismatchSlots": 0
+          },
+          "pairing": {
+            "meanWithinCellPearson": 0.169831,
+            "medianWithinCellPearson": 0.359959,
+            "pooledVarDeltaOverVarBasePlusVarCand": 1.072342
+          },
+          "pairs": {
+            "totalValidPairs": 102,
+            "identicalValidPairs": 0,
+            "fractionIdenticalValidPairs": 0
+          },
+          "changedPairsOnly": {
+            "count": 101,
+            "pooledPearsonCellCentered": -0.074638,
+            "pooledVarRatio": 1.072342
+          },
+          "effectSize": {
+            "meanPairedRunDelta": -149.374062,
+            "catalogHeadlineDelta": -140.4221,
+            "baselineCatalogHeadline": 438.5814,
+            "candidateCatalogHeadline": 298.1593
+          }
+        },
+        {
+          "budget": 500000,
+          "cellCounts": {
+            "totalSharedCells": 42,
+            "cellsWithVariation": 34,
+            "zeroVarianceCells": 1,
+            "insufficientPairCells": 7,
+            "actualSeedMismatchSlots": 0
+          },
+          "pairing": {
+            "meanWithinCellPearson": -0.045528,
+            "medianWithinCellPearson": -0.090428,
+            "pooledVarDeltaOverVarBasePlusVarCand": 1.076134
+          },
+          "pairs": {
+            "totalValidPairs": 105,
+            "identicalValidPairs": 0,
+            "fractionIdenticalValidPairs": 0
+          },
+          "changedPairsOnly": {
+            "count": 104,
+            "pooledPearsonCellCentered": -0.118692,
+            "pooledVarRatio": 1.076134
+          },
+          "effectSize": {
+            "meanPairedRunDelta": -140.864237,
+            "catalogHeadlineDelta": -154.1162,
+            "baselineCatalogHeadline": 449.0998,
+            "candidateCatalogHeadline": 294.9836
+          }
+        }
+      ]
+    }
+  ]
+}

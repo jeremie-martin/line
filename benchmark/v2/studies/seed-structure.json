@@ -1,0 +1,437 @@
+{
+  "schema": "line.benchmark-v2.seed-structure-study.v1",
+  "hypothesis": "Benchmark seeds act as independent per-case RNG noise, not as a common shock shared across cases within a budget. Under independence the mean pairwise correlation between cases' per-seed score series is ~0 and the variance of the catalog mean per seed matches the (1/K^2) sum-of-per-case-variance prediction (variance ratio ~1). A common shock would inflate both.",
+  "inputs": {
+    "archives": [
+      {
+        "role": "development",
+        "path": "benchmark/v2/runs/v2-initial-2026-07-11-development.json.gz",
+        "sha256": "79d6dd437d926f04e2549ff11db5dd3026214090279c7bea34601b6e2d961dd8",
+        "sha256Verified": true,
+        "schema": "line.benchmark-v2.run-archive.v5"
+      },
+      {
+        "role": "coverageReference",
+        "path": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+        "sha256": "842c66d8d1dc4aaad2b5c07c395f9d35d9e9f63deb920f2d792f30c5be71630a",
+        "sha256Verified": true,
+        "schema": "line.benchmark-v2.budget-scale-study.v1"
+      }
+    ],
+    "suiteManifest": {
+      "path": "benchmark/v2/compat/suite-manifest.json",
+      "sha256": "d65e68bc271a9038563c2231f3b916bb2d269b2de8e838d28bffd606102d521f"
+    }
+  },
+  "methodology": {
+    "scoreMatrix": "Per archive, per budget the (case x seed) matrix uses the stored per-run score.score with hard-zero (invalid) runs included; seedSlot indexes the seed axis (all 42 cases at a seedSlot share the same actual RNG seed within a budget).",
+    "correlation": "Pearson correlation is computed across the seed axis for every unordered pair of cases. A case series with zero variance across seeds makes its correlations undefined, so any pair touching such a series is skipped; the count of skipped pairs and zero-variance series is reported. Mean and median are over valid pairs.",
+    "catalogMeanPerSeed": "For seed s the catalog mean is the arithmetic mean over the 42 cases of that seed's score. Its spread across seeds is summarised by the population SD.",
+    "independentPrediction": "Under independent per-case noise Var(catalog mean per seed) = (1/K^2) * sum_i Var_i, where Var_i is the population variance of case i across seeds and K=42. predictionSD = sqrt of that; varianceRatio = observed Var(catalog mean per seed) / prediction. Population variance (divide by n) is used throughout so the ratio is exact and estimator choice cancels.",
+    "singleSeedHeadline": "The single-seed headline applies the real V2 aggregation (summarizeDevelopmentBudget) to the runs of one seedSlot: case score = that seed's stored score; parent = shifted geometric mean (shift 1) over members; group = shifted geomean over parents; stratum = arithmetic weighted over groups; budget score = arithmetic weighted over strata. Per budget the SD across seeds of this single-seed budget score is reported (sample and population), with the implied SE of an n-seed mean = sampleSD / sqrt(n) at the native seed count and at n=8 for comparison with the ~4.0 headline seed-block back-solve.",
+    "crossBudgetHeadline": "The cross-budget single-seed headline weights the three single-seed budget scores of one seedSlot by budget_weights (weightedBudgetHeadline); its SD across seed slots and implied SE quantify the full-headline seed-block noise directly."
+  },
+  "results": {
+    "development": {
+      "cases": 42,
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "budgets": [
+        250000,
+        500000,
+        750000
+      ],
+      "budgetResults": {
+        "250000": {
+          "cases": 42,
+          "seeds": 8,
+          "correlation": {
+            "meanPairwisePearson": -0.003683,
+            "medianPairwisePearson": -0.026538,
+            "validPairs": 630,
+            "totalPairs": 861,
+            "skippedPairs": 231,
+            "zeroVarianceSeries": 6
+          },
+          "catalogMeanPerSeed": {
+            "values": [
+              450.934267,
+              434.254767,
+              435.406926,
+              452.541462,
+              445.870557,
+              439.032479,
+              448.583414,
+              439.474624
+            ],
+            "sdPopulation": 6.662954
+          },
+          "independentPrediction": {
+            "predictionSD": 7.026296,
+            "varianceOfCatalogMeanPerSeed": 44.394952,
+            "independentVariancePrediction": 49.36884,
+            "varianceRatio": 0.89925
+          },
+          "singleSeedHeadline": {
+            "perSeed": [
+              446.8516,
+              412.6798,
+              412.6804,
+              447.4846,
+              439.8589,
+              415.7234,
+              445.1554,
+              418.0727
+            ],
+            "mean": 429.81335,
+            "sdSample": 16.310963,
+            "sdPopulation": 15.257509,
+            "nSeeds": 8,
+            "seMeanNativeSeeds": 5.766796,
+            "seMean8Seeds": 5.766796
+          }
+        },
+        "500000": {
+          "cases": 42,
+          "seeds": 8,
+          "correlation": {
+            "meanPairwisePearson": -0.010133,
+            "medianPairwisePearson": -0.026275,
+            "validPairs": 780,
+            "totalPairs": 861,
+            "skippedPairs": 81,
+            "zeroVarianceSeries": 2
+          },
+          "catalogMeanPerSeed": {
+            "values": [
+              485.055071,
+              482.156826,
+              471.613076,
+              480.653143,
+              485.518681,
+              473.267405,
+              494.251486,
+              484.39006
+            ],
+            "sdPopulation": 6.739884
+          },
+          "independentPrediction": {
+            "predictionSD": 8.525317,
+            "varianceOfCatalogMeanPerSeed": 45.426043,
+            "independentVariancePrediction": 72.681024,
+            "varianceRatio": 0.625006
+          },
+          "singleSeedHeadline": {
+            "perSeed": [
+              476.2654,
+              461.5799,
+              449.9025,
+              473.7471,
+              476.021,
+              453.7486,
+              495.1795,
+              477.4039
+            ],
+            "mean": 470.480987,
+            "sdSample": 14.713639,
+            "sdPopulation": 13.763349,
+            "nSeeds": 8,
+            "seMeanNativeSeeds": 5.202057,
+            "seMean8Seeds": 5.202057
+          }
+        },
+        "750000": {
+          "cases": 42,
+          "seeds": 8,
+          "correlation": {
+            "meanPairwisePearson": -0.007404,
+            "medianPairwisePearson": -0.042883,
+            "validPairs": 820,
+            "totalPairs": 861,
+            "skippedPairs": 41,
+            "zeroVarianceSeries": 1
+          },
+          "catalogMeanPerSeed": {
+            "values": [
+              477.432836,
+              495.723514,
+              504.737493,
+              479.679471,
+              479.192526,
+              484.624588,
+              511.193769,
+              493.726764
+            ],
+            "sdPopulation": 11.822552
+          },
+          "independentPrediction": {
+            "predictionSD": 9.79604,
+            "varianceOfCatalogMeanPerSeed": 139.772734,
+            "independentVariancePrediction": 95.962409,
+            "varianceRatio": 1.456536
+          },
+          "singleSeedHeadline": {
+            "perSeed": [
+              454.5848,
+              496.1531,
+              486.8595,
+              458.0104,
+              478.7366,
+              473.6679,
+              503.3952,
+              474.7713
+            ],
+            "mean": 478.27235,
+            "sdSample": 17.029128,
+            "sdPopulation": 15.929291,
+            "nSeeds": 8,
+            "seMeanNativeSeeds": 6.020706,
+            "seMean8Seeds": 6.020706
+          }
+        }
+      },
+      "crossBudgetSingleSeedHeadline": {
+        "perSeedSlot": [
+          463.8785,
+          462.1718,
+          453.5452,
+          463.7736,
+          469.6033,
+          452.1194,
+          487.6394,
+          464.7479
+        ],
+        "mean": 464.684887,
+        "sdSample": 10.960219,
+        "nSeeds": 8,
+        "seMeanNativeSeeds": 3.875023,
+        "seMean8Seeds": 3.875023
+      }
+    },
+    "coverageReference": {
+      "cases": 42,
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "budgets": [
+        250000,
+        500000,
+        750000
+      ],
+      "budgetResults": {
+        "250000": {
+          "cases": 42,
+          "seeds": 12,
+          "correlation": {
+            "meanPairwisePearson": 0.008103,
+            "medianPairwisePearson": -0.011841,
+            "validPairs": 666,
+            "totalPairs": 861,
+            "skippedPairs": 195,
+            "zeroVarianceSeries": 5
+          },
+          "catalogMeanPerSeed": {
+            "values": [
+              450.934267,
+              434.254767,
+              435.406926,
+              452.541462,
+              445.870557,
+              439.032479,
+              448.583414,
+              439.474624,
+              446.283445,
+              458.182183,
+              448.229781,
+              444.521279
+            ],
+            "sdPopulation": 6.85856
+          },
+          "independentPrediction": {
+            "predictionSD": 7.387555,
+            "varianceOfCatalogMeanPerSeed": 47.039839,
+            "independentVariancePrediction": 54.575968,
+            "varianceRatio": 0.861915
+          },
+          "singleSeedHeadline": {
+            "perSeed": [
+              446.8516,
+              412.6798,
+              412.6804,
+              447.4846,
+              439.8589,
+              415.7234,
+              445.1554,
+              418.0727,
+              444.4597,
+              427.3696,
+              442.7318,
+              440.7618
+            ],
+            "mean": 432.819142,
+            "sdSample": 14.337356,
+            "sdPopulation": 13.726974,
+            "nSeeds": 12,
+            "seMeanNativeSeeds": 4.138838,
+            "seMean8Seeds": 5.069021
+          }
+        },
+        "500000": {
+          "cases": 42,
+          "seeds": 12,
+          "correlation": {
+            "meanPairwisePearson": -0.002231,
+            "medianPairwisePearson": -0.016318,
+            "validPairs": 820,
+            "totalPairs": 861,
+            "skippedPairs": 41,
+            "zeroVarianceSeries": 1
+          },
+          "catalogMeanPerSeed": {
+            "values": [
+              474.249226,
+              479.938795,
+              483.362676,
+              476.054683,
+              472.222221,
+              482.922276,
+              467.106329,
+              480.381762,
+              485.055071,
+              482.156826,
+              471.613076,
+              480.653143
+            ],
+            "sdPopulation": 5.379008
+          },
+          "independentPrediction": {
+            "predictionSD": 9.265068,
+            "varianceOfCatalogMeanPerSeed": 28.933722,
+            "independentVariancePrediction": 85.841491,
+            "varianceRatio": 0.33706
+          },
+          "singleSeedHeadline": {
+            "perSeed": [
+              452.7732,
+              467.9829,
+              452.1214,
+              454.6439,
+              449.8817,
+              450.6854,
+              454.3875,
+              456.6286,
+              476.2654,
+              461.5799,
+              449.9025,
+              473.7471
+            ],
+            "mean": 458.383292,
+            "sdSample": 9.368023,
+            "sdPopulation": 8.969199,
+            "nSeeds": 12,
+            "seMeanNativeSeeds": 2.704315,
+            "seMean8Seeds": 3.312096
+          }
+        },
+        "750000": {
+          "cases": 42,
+          "seeds": 12,
+          "correlation": {
+            "meanPairwisePearson": -0.005108,
+            "medianPairwisePearson": -0.028188,
+            "validPairs": 820,
+            "totalPairs": 861,
+            "skippedPairs": 41,
+            "zeroVarianceSeries": 1
+          },
+          "catalogMeanPerSeed": {
+            "values": [
+              489.620119,
+              484.156607,
+              485.753357,
+              490.896521,
+              496.354336,
+              496.960864,
+              471.730088,
+              511.240693,
+              489.088969,
+              495.535186,
+              476.91019,
+              497.06346
+            ],
+            "sdPopulation": 9.904835
+          },
+          "independentPrediction": {
+            "predictionSD": 9.191997,
+            "varianceOfCatalogMeanPerSeed": 98.105751,
+            "independentVariancePrediction": 84.4928,
+            "varianceRatio": 1.161114
+          },
+          "singleSeedHeadline": {
+            "perSeed": [
+              480.5949,
+              472.2975,
+              454.2365,
+              477.8954,
+              497.6026,
+              474.9413,
+              458.8974,
+              502.1593,
+              480.3837,
+              488.3431,
+              454.7755,
+              499.4881
+            ],
+            "mean": 478.467942,
+            "sdSample": 16.671466,
+            "sdPopulation": 15.961713,
+            "nSeeds": 12,
+            "seMeanNativeSeeds": 4.812638,
+            "seMean8Seeds": 5.894253
+          }
+        }
+      },
+      "crossBudgetSingleSeedHeadline": {
+        "perSeedSlot": [
+          459.9354,
+          458.2167,
+          444.8677,
+          460.1875,
+          462.1934,
+          450.9698,
+          453.8941,
+          462.5766,
+          471.1397,
+          462.7668,
+          449.9303,
+          474.8723
+        ],
+        "mean": 459.295858,
+        "sdSample": 8.585743,
+        "nSeeds": 12,
+        "seMeanNativeSeeds": 2.478491,
+        "seMean8Seeds": 3.035519
+      }
+    }
+  },
+  "interpretation": "development (8 seeds): mean pairwise Pearson -0.0037 / -0.0101 / -0.0074 and variance ratio 0.90 / 0.63 / 1.46 across 250k / 500k / 750k; per-budget single-seed headline SE at 8 seeds 5.77 / 5.20 / 6.02; cross-budget weighted single-seed headline SE at 8 seeds 3.88 (sample SD 10.96).\ncoverageReference (12 seeds): mean pairwise Pearson 0.0081 / -0.0022 / -0.0051 and variance ratio 0.86 / 0.34 / 1.16 across 250k / 500k / 750k; per-budget single-seed headline SE at 8 seeds 5.07 / 3.31 / 5.89; cross-budget weighted single-seed headline SE at 8 seeds 3.04 (sample SD 8.59).\nThe mean pairwise correlations sit at essentially zero and the variance ratios scatter both below and above 1 with no systematic inflation, so seeds behave as independent per-case noise rather than a common shock: the no-common-seed-effect hypothesis is supported. The nonlinear aggregation (shifted geomeans over members/parents/groups) amplifies the single-seed spread far above the plain catalog-mean SD: single-seed budget scores swing with a sample SD near 15-17, giving a per-budget 8-seed SE of ~5-6, while the budget-weighted headline SE at 8 seeds is ~3.9 (development) — consistent with the prior ~4.0 headline seed-block back-solve."
+}

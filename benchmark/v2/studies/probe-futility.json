@@ -1,0 +1,6834 @@
+{
+  "schema": "line.benchmark-v2.probe-futility-study.v1",
+  "generatedAt": "2026-07-11T11:50:08.347Z",
+  "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+  "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
+  "decisionInferenceFingerprint": "a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21",
+  "reference": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+  "referenceArtifactSha256": "842c66d8d1dc4aaad2b5c07c395f9d35d9e9f63deb920f2d792f30c5be71630a",
+  "referenceRawSha256": "6b636fb686f2c72e41da67f695d7e44574073ced6e4eeb0920cbf20d91f4f755",
+  "referenceCandidateFingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40",
+  "runtimeSeconds": 340.134,
+  "probeProfile": {
+    "budgets": [
+      250000,
+      500000
+    ],
+    "seedsPerBudget": 3,
+    "alpha": 0.1,
+    "criticalAlpha": 0.05
+  },
+  "canonicalProfile": {
+    "budgets": [
+      250000,
+      500000,
+      750000
+    ],
+    "nativeSeedsPerBudget": 8,
+    "alpha": 0.05,
+    "criticalAlpha": 0.01
+  },
+  "methodology": {
+    "dgp": "Unpaired empirical blocks: base and candidate independently resample whole observed catalog seed blocks within each budget from the retained reference; candidates receive +shift on valid cells to reach a target delta. Null/validity-flip/catalog-wide DGPs mirror study_decision_coverage.ts.",
+    "truthDefinition": "pairedTruthDelta is the headline delta when every valid cell of the full 12-seed catalog receives +shift (paired), reused as the reference true delta as in the coverage study; meanDelta reports the realized unpaired Monte Carlo mean.",
+    "partA": "Probe profile (2 budgets [250k,500k], 3 seeds/budget, alpha 0.10 / criticalAlpha 0.05). Decisions call pairedV2DecisionForCalibration with profile 'probe'; advance/stop use the one-sided criticalAlpha (0.05) bounds. The probe budget subset is respected automatically (weightedBudgets renormalizes over the profile budgets).",
+    "partB": "One canonical-style run at n=32 seeds/budget (3 budgets) per trial. Interim looks read the FIRST k blocks of the SAME run (not a fresh draw) via seeds_per_budget=k. Final outcome at n=32 recorded at criticalAlpha 0.01 (native, = decision.outcome) AND recomputed at 0.05 via studentTQuantile on (estimate, se, df).",
+    "futilityRules": "Concrete rules only: estimate<0, one-sided upper bound (alpha 0.05 and 0.01) < 0, and an estimate<threshold sweep at k=3. Single-look = rule evaluated at exactly look k; cumulative = rule fired at any look <= k (first-hit sequential).",
+    "legacyTwoStage": "Independent probe draw and independent canonical (8-seed) draw per trial to characterize the legacy screening value P(canonical accept | probe outcome), for comparison against interim looks inside one run.",
+    "seeding": "Deterministic per-(scenario,trial) mulberry32 seeds, so results are independent of shard/worker layout. bootstrapSeed is irrelevant for calibration decisions (sensitivity iterations are 0).",
+    "parallelism": "Self-forking child_process workers (concurrency 32); Part B sharded by trial ranges of 125."
+  },
+  "partA": {
+    "trials": 1000,
+    "nullCalibration": [
+      {
+        "scenario": "empirical_blocks",
+        "trueDelta": 0,
+        "meanDelta": 0.1721,
+        "falseAdvance": {
+          "count": 50,
+          "total": 1000,
+          "rate": 0.05,
+          "wilson95": [
+            0.0381,
+            0.0653
+          ]
+        },
+        "falseStop": {
+          "count": 47,
+          "total": 1000,
+          "rate": 0.047,
+          "wilson95": [
+            0.0355,
+            0.0619
+          ]
+        },
+        "unresolved": {
+          "count": 903,
+          "total": 1000,
+          "rate": 0.903,
+          "wilson95": [
+            0.8831,
+            0.9198
+          ]
+        },
+        "centralCoverage": {
+          "count": 986,
+          "total": 1000,
+          "rate": 0.986,
+          "wilson95": [
+            0.9766,
+            0.9916
+          ]
+        }
+      },
+      {
+        "scenario": "symmetric_validity_flips",
+        "trueDelta": 0,
+        "meanDelta": -1.2818,
+        "falseAdvance": {
+          "count": 58,
+          "total": 1000,
+          "rate": 0.058,
+          "wilson95": [
+            0.0451,
+            0.0742
+          ]
+        },
+        "falseStop": {
+          "count": 63,
+          "total": 1000,
+          "rate": 0.063,
+          "wilson95": [
+            0.0495,
+            0.0798
+          ]
+        },
+        "unresolved": {
+          "count": 879,
+          "total": 1000,
+          "rate": 0.879,
+          "wilson95": [
+            0.8573,
+            0.8978
+          ]
+        },
+        "centralCoverage": {
+          "count": 978,
+          "total": 1000,
+          "rate": 0.978,
+          "wilson95": [
+            0.9669,
+            0.9854
+          ]
+        }
+      },
+      {
+        "scenario": "catalog_wide_hard_zero",
+        "trueDelta": 0,
+        "meanDelta": 1.366,
+        "falseAdvance": {
+          "count": 62,
+          "total": 1000,
+          "rate": 0.062,
+          "wilson95": [
+            0.0487,
+            0.0787
+          ]
+        },
+        "falseStop": {
+          "count": 54,
+          "total": 1000,
+          "rate": 0.054,
+          "wilson95": [
+            0.0416,
+            0.0698
+          ]
+        },
+        "unresolved": {
+          "count": 884,
+          "total": 1000,
+          "rate": 0.884,
+          "wilson95": [
+            0.8627,
+            0.9024
+          ]
+        },
+        "centralCoverage": {
+          "count": 914,
+          "total": 1000,
+          "rate": 0.914,
+          "wilson95": [
+            0.895,
+            0.9298
+          ]
+        }
+      }
+    ],
+    "powerCurve": [
+      {
+        "targetDelta": 3,
+        "shift": 3.5157,
+        "pairedTruthDelta": 3,
+        "meanDelta": 3.0017,
+        "advance": {
+          "count": 106,
+          "total": 1000,
+          "rate": 0.106,
+          "wilson95": [
+            0.0884,
+            0.1266
+          ]
+        },
+        "stop": {
+          "count": 21,
+          "total": 1000,
+          "rate": 0.021,
+          "wilson95": [
+            0.0138,
+            0.0319
+          ]
+        },
+        "unresolved": {
+          "count": 873,
+          "total": 1000,
+          "rate": 0.873,
+          "wilson95": [
+            0.8509,
+            0.8922
+          ]
+        }
+      },
+      {
+        "targetDelta": 5,
+        "shift": 5.8598,
+        "pairedTruthDelta": 4.9999,
+        "meanDelta": 4.9302,
+        "advance": {
+          "count": 156,
+          "total": 1000,
+          "rate": 0.156,
+          "wilson95": [
+            0.1348,
+            0.1798
+          ]
+        },
+        "stop": {
+          "count": 7,
+          "total": 1000,
+          "rate": 0.007,
+          "wilson95": [
+            0.0034,
+            0.0144
+          ]
+        },
+        "unresolved": {
+          "count": 837,
+          "total": 1000,
+          "rate": 0.837,
+          "wilson95": [
+            0.8128,
+            0.8586
+          ]
+        }
+      },
+      {
+        "targetDelta": 8,
+        "shift": 9.3763,
+        "pairedTruthDelta": 7.9999,
+        "meanDelta": 7.8589,
+        "advance": {
+          "count": 281,
+          "total": 1000,
+          "rate": 0.281,
+          "wilson95": [
+            0.254,
+            0.3097
+          ]
+        },
+        "stop": {
+          "count": 0,
+          "total": 1000,
+          "rate": 0,
+          "wilson95": [
+            0,
+            0.0038
+          ]
+        },
+        "unresolved": {
+          "count": 719,
+          "total": 1000,
+          "rate": 0.719,
+          "wilson95": [
+            0.6903,
+            0.746
+          ]
+        }
+      },
+      {
+        "targetDelta": 12,
+        "shift": 14.0659,
+        "pairedTruthDelta": 11.9999,
+        "meanDelta": 11.8811,
+        "advance": {
+          "count": 458,
+          "total": 1000,
+          "rate": 0.458,
+          "wilson95": [
+            0.4273,
+            0.489
+          ]
+        },
+        "stop": {
+          "count": 1,
+          "total": 1000,
+          "rate": 0.001,
+          "wilson95": [
+            0.0002,
+            0.0056
+          ]
+        },
+        "unresolved": {
+          "count": 541,
+          "total": 1000,
+          "rate": 0.541,
+          "wilson95": [
+            0.51,
+            0.5717
+          ]
+        }
+      },
+      {
+        "targetDelta": 15,
+        "shift": 17.5835,
+        "pairedTruthDelta": 14.9999,
+        "meanDelta": 14.9363,
+        "advance": {
+          "count": 601,
+          "total": 1000,
+          "rate": 0.601,
+          "wilson95": [
+            0.5703,
+            0.6309
+          ]
+        },
+        "stop": {
+          "count": 1,
+          "total": 1000,
+          "rate": 0.001,
+          "wilson95": [
+            0.0002,
+            0.0056
+          ]
+        },
+        "unresolved": {
+          "count": 398,
+          "total": 1000,
+          "rate": 0.398,
+          "wilson95": [
+            0.3681,
+            0.4287
+          ]
+        }
+      }
+    ],
+    "simplificationScreening": [
+      {
+        "margin": 2,
+        "targetTrueDelta": 0,
+        "pairedTruthDelta": 0,
+        "meanDelta": 0.0272,
+        "advance": {
+          "count": 62,
+          "total": 1000,
+          "rate": 0.062,
+          "wilson95": [
+            0.0487,
+            0.0787
+          ]
+        },
+        "stop": {
+          "count": 29,
+          "total": 1000,
+          "rate": 0.029,
+          "wilson95": [
+            0.0203,
+            0.0413
+          ]
+        },
+        "unresolved": {
+          "count": 909,
+          "total": 1000,
+          "rate": 0.909,
+          "wilson95": [
+            0.8896,
+            0.9253
+          ]
+        }
+      },
+      {
+        "margin": 2,
+        "targetTrueDelta": -2,
+        "pairedTruthDelta": -2.0001,
+        "meanDelta": -2.0818,
+        "advance": {
+          "count": 39,
+          "total": 1000,
+          "rate": 0.039,
+          "wilson95": [
+            0.0287,
+            0.0529
+          ]
+        },
+        "stop": {
+          "count": 48,
+          "total": 1000,
+          "rate": 0.048,
+          "wilson95": [
+            0.0364,
+            0.0631
+          ]
+        },
+        "unresolved": {
+          "count": 913,
+          "total": 1000,
+          "rate": 0.913,
+          "wilson95": [
+            0.8939,
+            0.9289
+          ]
+        }
+      },
+      {
+        "margin": 5,
+        "targetTrueDelta": 0,
+        "pairedTruthDelta": 0,
+        "meanDelta": 0.08,
+        "advance": {
+          "count": 166,
+          "total": 1000,
+          "rate": 0.166,
+          "wilson95": [
+            0.1442,
+            0.1903
+          ]
+        },
+        "stop": {
+          "count": 6,
+          "total": 1000,
+          "rate": 0.006,
+          "wilson95": [
+            0.0028,
+            0.013
+          ]
+        },
+        "unresolved": {
+          "count": 828,
+          "total": 1000,
+          "rate": 0.828,
+          "wilson95": [
+            0.8034,
+            0.8501
+          ]
+        }
+      },
+      {
+        "margin": 5,
+        "targetTrueDelta": -5,
+        "pairedTruthDelta": -5,
+        "meanDelta": -5.0821,
+        "advance": {
+          "count": 51,
+          "total": 1000,
+          "rate": 0.051,
+          "wilson95": [
+            0.039,
+            0.0664
+          ]
+        },
+        "stop": {
+          "count": 59,
+          "total": 1000,
+          "rate": 0.059,
+          "wilson95": [
+            0.046,
+            0.0754
+          ]
+        },
+        "unresolved": {
+          "count": 890,
+          "total": 1000,
+          "rate": 0.89,
+          "wilson95": [
+            0.8691,
+            0.9079
+          ]
+        }
+      }
+    ]
+  },
+  "partB": {
+    "trials": 500,
+    "depthSeeds": 32,
+    "interimLooks": [
+      2,
+      3,
+      4,
+      8,
+      16
+    ],
+    "budgets": [
+      250000,
+      500000,
+      750000
+    ],
+    "deltas": [
+      {
+        "targetDelta": 0,
+        "shift": 0,
+        "pairedTruthDelta": 0,
+        "trials": 500,
+        "meanFinalDelta": -0.0281,
+        "final01": {
+          "accept": {
+            "count": 2,
+            "total": 500,
+            "rate": 0.004,
+            "wilson95": [
+              0.0011,
+              0.0145
+            ]
+          },
+          "reject": {
+            "count": 6,
+            "total": 500,
+            "rate": 0.012,
+            "wilson95": [
+              0.0055,
+              0.0259
+            ]
+          },
+          "inconclusive": {
+            "count": 492,
+            "total": 500,
+            "rate": 0.984,
+            "wilson95": [
+              0.9687,
+              0.9919
+            ]
+          }
+        },
+        "final05": {
+          "accept": {
+            "count": 20,
+            "total": 500,
+            "rate": 0.04,
+            "wilson95": [
+              0.026,
+              0.061
+            ]
+          },
+          "reject": {
+            "count": 23,
+            "total": 500,
+            "rate": 0.046,
+            "wilson95": [
+              0.0308,
+              0.0681
+            ]
+          },
+          "inconclusive": {
+            "count": 457,
+            "total": 500,
+            "rate": 0.914,
+            "wilson95": [
+              0.8862,
+              0.9355
+            ]
+          }
+        }
+      },
+      {
+        "targetDelta": 2,
+        "shift": 2.3438,
+        "pairedTruthDelta": 2,
+        "trials": 500,
+        "meanFinalDelta": 1.9765,
+        "final01": {
+          "accept": {
+            "count": 100,
+            "total": 500,
+            "rate": 0.2,
+            "wilson95": [
+              0.1673,
+              0.2373
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 400,
+            "total": 500,
+            "rate": 0.8,
+            "wilson95": [
+              0.7627,
+              0.8327
+            ]
+          }
+        },
+        "final05": {
+          "accept": {
+            "count": 234,
+            "total": 500,
+            "rate": 0.468,
+            "wilson95": [
+              0.4247,
+              0.5118
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 266,
+            "total": 500,
+            "rate": 0.532,
+            "wilson95": [
+              0.4882,
+              0.5753
+            ]
+          }
+        }
+      },
+      {
+        "targetDelta": 3,
+        "shift": 3.5157,
+        "pairedTruthDelta": 3,
+        "trials": 500,
+        "meanFinalDelta": 3.0268,
+        "final01": {
+          "accept": {
+            "count": 257,
+            "total": 500,
+            "rate": 0.514,
+            "wilson95": [
+              0.4703,
+              0.5575
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 243,
+            "total": 500,
+            "rate": 0.486,
+            "wilson95": [
+              0.4425,
+              0.5297
+            ]
+          }
+        },
+        "final05": {
+          "accept": {
+            "count": 385,
+            "total": 500,
+            "rate": 0.77,
+            "wilson95": [
+              0.7311,
+              0.8047
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 115,
+            "total": 500,
+            "rate": 0.23,
+            "wilson95": [
+              0.1953,
+              0.2689
+            ]
+          }
+        }
+      },
+      {
+        "targetDelta": 5,
+        "shift": 5.8598,
+        "pairedTruthDelta": 4.9999,
+        "trials": 500,
+        "meanFinalDelta": 4.9013,
+        "final01": {
+          "accept": {
+            "count": 461,
+            "total": 500,
+            "rate": 0.922,
+            "wilson95": [
+              0.8951,
+              0.9424
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 39,
+            "total": 500,
+            "rate": 0.078,
+            "wilson95": [
+              0.0576,
+              0.1049
+            ]
+          }
+        },
+        "final05": {
+          "accept": {
+            "count": 490,
+            "total": 500,
+            "rate": 0.98,
+            "wilson95": [
+              0.9636,
+              0.9891
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 10,
+            "total": 500,
+            "rate": 0.02,
+            "wilson95": [
+              0.0109,
+              0.0364
+            ]
+          }
+        }
+      },
+      {
+        "targetDelta": 8,
+        "shift": 9.3763,
+        "pairedTruthDelta": 7.9999,
+        "trials": 500,
+        "meanFinalDelta": 8.0516,
+        "final01": {
+          "accept": {
+            "count": 500,
+            "total": 500,
+            "rate": 1,
+            "wilson95": [
+              0.9924,
+              1
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          }
+        },
+        "final05": {
+          "accept": {
+            "count": 500,
+            "total": 500,
+            "rate": 1,
+            "wilson95": [
+              0.9924,
+              1
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          }
+        }
+      },
+      {
+        "targetDelta": 12,
+        "shift": 14.0659,
+        "pairedTruthDelta": 11.9999,
+        "trials": 500,
+        "meanFinalDelta": 11.9669,
+        "final01": {
+          "accept": {
+            "count": 500,
+            "total": 500,
+            "rate": 1,
+            "wilson95": [
+              0.9924,
+              1
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          }
+        },
+        "final05": {
+          "accept": {
+            "count": 500,
+            "total": 500,
+            "rate": 1,
+            "wilson95": [
+              0.9924,
+              1
+            ]
+          },
+          "reject": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "inconclusive": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          }
+        }
+      },
+      {
+        "targetDelta": -5,
+        "shift": -5.8582,
+        "pairedTruthDelta": -5,
+        "trials": 500,
+        "meanFinalDelta": -5.0379,
+        "final01": {
+          "accept": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "reject": {
+            "count": 478,
+            "total": 500,
+            "rate": 0.956,
+            "wilson95": [
+              0.9343,
+              0.9708
+            ]
+          },
+          "inconclusive": {
+            "count": 22,
+            "total": 500,
+            "rate": 0.044,
+            "wilson95": [
+              0.0292,
+              0.0657
+            ]
+          }
+        },
+        "final05": {
+          "accept": {
+            "count": 0,
+            "total": 500,
+            "rate": 0,
+            "wilson95": [
+              0,
+              0.0076
+            ]
+          },
+          "reject": {
+            "count": 495,
+            "total": 500,
+            "rate": 0.99,
+            "wilson95": [
+              0.9768,
+              0.9957
+            ]
+          },
+          "inconclusive": {
+            "count": 5,
+            "total": 500,
+            "rate": 0.01,
+            "wilson95": [
+              0.0043,
+              0.0232
+            ]
+          }
+        }
+      }
+    ],
+    "calibrationByInterimEstimate": {
+      "note": "Pooled across the simulated delta grid (equal trials per delta). P(final accept) vs interim delta-estimate bin.",
+      "finalAccept01": {
+        "k2": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 685,
+            "pFinalAccept": {
+              "count": 105,
+              "total": 685,
+              "rate": 0.1533,
+              "wilson95": [
+                0.1282,
+                0.1822
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 229,
+            "pFinalAccept": {
+              "count": 74,
+              "total": 229,
+              "rate": 0.3231,
+              "wilson95": [
+                0.2659,
+                0.3862
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 141,
+            "pFinalAccept": {
+              "count": 62,
+              "total": 141,
+              "rate": 0.4397,
+              "wilson95": [
+                0.3605,
+                0.5222
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 133,
+            "pFinalAccept": {
+              "count": 53,
+              "total": 133,
+              "rate": 0.3985,
+              "wilson95": [
+                0.3193,
+                0.4834
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 170,
+            "pFinalAccept": {
+              "count": 69,
+              "total": 170,
+              "rate": 0.4059,
+              "wilson95": [
+                0.3349,
+                0.481
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 171,
+            "pFinalAccept": {
+              "count": 74,
+              "total": 171,
+              "rate": 0.4327,
+              "wilson95": [
+                0.3608,
+                0.5077
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 302,
+            "pFinalAccept": {
+              "count": 155,
+              "total": 302,
+              "rate": 0.5132,
+              "wilson95": [
+                0.4571,
+                0.5691
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 609,
+            "pFinalAccept": {
+              "count": 367,
+              "total": 609,
+              "rate": 0.6026,
+              "wilson95": [
+                0.5632,
+                0.6407
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 1060,
+            "pFinalAccept": {
+              "count": 861,
+              "total": 1060,
+              "rate": 0.8123,
+              "wilson95": [
+                0.7876,
+                0.8346
+              ]
+            }
+          }
+        ],
+        "k3": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 552,
+            "pFinalAccept": {
+              "count": 49,
+              "total": 552,
+              "rate": 0.0888,
+              "wilson95": [
+                0.0678,
+                0.1154
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 272,
+            "pFinalAccept": {
+              "count": 66,
+              "total": 272,
+              "rate": 0.2426,
+              "wilson95": [
+                0.1955,
+                0.2969
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 148,
+            "pFinalAccept": {
+              "count": 44,
+              "total": 148,
+              "rate": 0.2973,
+              "wilson95": [
+                0.2295,
+                0.3753
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 197,
+            "pFinalAccept": {
+              "count": 64,
+              "total": 197,
+              "rate": 0.3249,
+              "wilson95": [
+                0.2634,
+                0.3931
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 157,
+            "pFinalAccept": {
+              "count": 60,
+              "total": 157,
+              "rate": 0.3822,
+              "wilson95": [
+                0.3098,
+                0.4601
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 170,
+            "pFinalAccept": {
+              "count": 62,
+              "total": 170,
+              "rate": 0.3647,
+              "wilson95": [
+                0.2961,
+                0.4393
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 369,
+            "pFinalAccept": {
+              "count": 187,
+              "total": 369,
+              "rate": 0.5068,
+              "wilson95": [
+                0.456,
+                0.5575
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 656,
+            "pFinalAccept": {
+              "count": 431,
+              "total": 656,
+              "rate": 0.657,
+              "wilson95": [
+                0.6199,
+                0.6923
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 979,
+            "pFinalAccept": {
+              "count": 857,
+              "total": 979,
+              "rate": 0.8754,
+              "wilson95": [
+                0.8532,
+                0.8946
+              ]
+            }
+          }
+        ],
+        "k4": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 494,
+            "pFinalAccept": {
+              "count": 24,
+              "total": 494,
+              "rate": 0.0486,
+              "wilson95": [
+                0.0329,
+                0.0713
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 243,
+            "pFinalAccept": {
+              "count": 42,
+              "total": 243,
+              "rate": 0.1728,
+              "wilson95": [
+                0.1305,
+                0.2254
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 142,
+            "pFinalAccept": {
+              "count": 33,
+              "total": 142,
+              "rate": 0.2324,
+              "wilson95": [
+                0.1705,
+                0.3084
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 192,
+            "pFinalAccept": {
+              "count": 40,
+              "total": 192,
+              "rate": 0.2083,
+              "wilson95": [
+                0.1569,
+                0.2712
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 182,
+            "pFinalAccept": {
+              "count": 58,
+              "total": 182,
+              "rate": 0.3187,
+              "wilson95": [
+                0.2553,
+                0.3895
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 199,
+            "pFinalAccept": {
+              "count": 85,
+              "total": 199,
+              "rate": 0.4271,
+              "wilson95": [
+                0.3604,
+                0.4966
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 436,
+            "pFinalAccept": {
+              "count": 211,
+              "total": 436,
+              "rate": 0.4839,
+              "wilson95": [
+                0.4374,
+                0.5308
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 729,
+            "pFinalAccept": {
+              "count": 515,
+              "total": 729,
+              "rate": 0.7064,
+              "wilson95": [
+                0.6724,
+                0.7384
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 883,
+            "pFinalAccept": {
+              "count": 812,
+              "total": 883,
+              "rate": 0.9196,
+              "wilson95": [
+                0.8998,
+                0.9358
+              ]
+            }
+          }
+        ],
+        "k8": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 378,
+            "pFinalAccept": {
+              "count": 1,
+              "total": 378,
+              "rate": 0.0026,
+              "wilson95": [
+                0.0005,
+                0.0148
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 248,
+            "pFinalAccept": {
+              "count": 3,
+              "total": 248,
+              "rate": 0.0121,
+              "wilson95": [
+                0.0041,
+                0.035
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 142,
+            "pFinalAccept": {
+              "count": 12,
+              "total": 142,
+              "rate": 0.0845,
+              "wilson95": [
+                0.049,
+                0.1419
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 193,
+            "pFinalAccept": {
+              "count": 20,
+              "total": 193,
+              "rate": 0.1036,
+              "wilson95": [
+                0.0681,
+                0.1546
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 204,
+            "pFinalAccept": {
+              "count": 40,
+              "total": 204,
+              "rate": 0.1961,
+              "wilson95": [
+                0.1474,
+                0.256
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 250,
+            "pFinalAccept": {
+              "count": 78,
+              "total": 250,
+              "rate": 0.312,
+              "wilson95": [
+                0.2578,
+                0.3719
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 517,
+            "pFinalAccept": {
+              "count": 259,
+              "total": 517,
+              "rate": 0.501,
+              "wilson95": [
+                0.458,
+                0.5439
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 787,
+            "pFinalAccept": {
+              "count": 634,
+              "total": 787,
+              "rate": 0.8056,
+              "wilson95": [
+                0.7765,
+                0.8317
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 781,
+            "pFinalAccept": {
+              "count": 773,
+              "total": 781,
+              "rate": 0.9898,
+              "wilson95": [
+                0.9799,
+                0.9948
+              ]
+            }
+          }
+        ],
+        "k16": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 367,
+            "pFinalAccept": {
+              "count": 0,
+              "total": 367,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0104
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 185,
+            "pFinalAccept": {
+              "count": 0,
+              "total": 185,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0203
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 138,
+            "pFinalAccept": {
+              "count": 0,
+              "total": 138,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0271
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 167,
+            "pFinalAccept": {
+              "count": 0,
+              "total": 167,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0225
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 229,
+            "pFinalAccept": {
+              "count": 13,
+              "total": 229,
+              "rate": 0.0568,
+              "wilson95": [
+                0.0335,
+                0.0947
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 293,
+            "pFinalAccept": {
+              "count": 34,
+              "total": 293,
+              "rate": 0.116,
+              "wilson95": [
+                0.0842,
+                0.1578
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 583,
+            "pFinalAccept": {
+              "count": 294,
+              "total": 583,
+              "rate": 0.5043,
+              "wilson95": [
+                0.4638,
+                0.5447
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 767,
+            "pFinalAccept": {
+              "count": 708,
+              "total": 767,
+              "rate": 0.9231,
+              "wilson95": [
+                0.902,
+                0.9399
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 771,
+            "pFinalAccept": {
+              "count": 771,
+              "total": 771,
+              "rate": 1,
+              "wilson95": [
+                0.995,
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "finalAccept05": {
+        "k2": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 685,
+            "pFinalAccept": {
+              "count": 149,
+              "total": 685,
+              "rate": 0.2175,
+              "wilson95": [
+                0.1882,
+                0.2499
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 229,
+            "pFinalAccept": {
+              "count": 95,
+              "total": 229,
+              "rate": 0.4148,
+              "wilson95": [
+                0.353,
+                0.4796
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 141,
+            "pFinalAccept": {
+              "count": 77,
+              "total": 141,
+              "rate": 0.5461,
+              "wilson95": [
+                0.4638,
+                0.626
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 133,
+            "pFinalAccept": {
+              "count": 70,
+              "total": 133,
+              "rate": 0.5263,
+              "wilson95": [
+                0.4419,
+                0.6092
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 170,
+            "pFinalAccept": {
+              "count": 88,
+              "total": 170,
+              "rate": 0.5176,
+              "wilson95": [
+                0.443,
+                0.5915
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 171,
+            "pFinalAccept": {
+              "count": 107,
+              "total": 171,
+              "rate": 0.6257,
+              "wilson95": [
+                0.5512,
+                0.6948
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 302,
+            "pFinalAccept": {
+              "count": 187,
+              "total": 302,
+              "rate": 0.6192,
+              "wilson95": [
+                0.5633,
+                0.6721
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 609,
+            "pFinalAccept": {
+              "count": 429,
+              "total": 609,
+              "rate": 0.7044,
+              "wilson95": [
+                0.667,
+                0.7393
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 1060,
+            "pFinalAccept": {
+              "count": 927,
+              "total": 1060,
+              "rate": 0.8745,
+              "wilson95": [
+                0.8532,
+                0.8931
+              ]
+            }
+          }
+        ],
+        "k3": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 552,
+            "pFinalAccept": {
+              "count": 79,
+              "total": 552,
+              "rate": 0.1431,
+              "wilson95": [
+                0.1164,
+                0.1748
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 272,
+            "pFinalAccept": {
+              "count": 96,
+              "total": 272,
+              "rate": 0.3529,
+              "wilson95": [
+                0.2986,
+                0.4114
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 148,
+            "pFinalAccept": {
+              "count": 60,
+              "total": 148,
+              "rate": 0.4054,
+              "wilson95": [
+                0.3297,
+                0.4859
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 197,
+            "pFinalAccept": {
+              "count": 90,
+              "total": 197,
+              "rate": 0.4569,
+              "wilson95": [
+                0.3888,
+                0.5266
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 157,
+            "pFinalAccept": {
+              "count": 74,
+              "total": 157,
+              "rate": 0.4713,
+              "wilson95": [
+                0.3949,
+                0.5492
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 170,
+            "pFinalAccept": {
+              "count": 84,
+              "total": 170,
+              "rate": 0.4941,
+              "wilson95": [
+                0.4199,
+                0.5686
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 369,
+            "pFinalAccept": {
+              "count": 228,
+              "total": 369,
+              "rate": 0.6179,
+              "wilson95": [
+                0.5673,
+                0.666
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 656,
+            "pFinalAccept": {
+              "count": 507,
+              "total": 656,
+              "rate": 0.7729,
+              "wilson95": [
+                0.7393,
+                0.8033
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 979,
+            "pFinalAccept": {
+              "count": 911,
+              "total": 979,
+              "rate": 0.9305,
+              "wilson95": [
+                0.9129,
+                0.9448
+              ]
+            }
+          }
+        ],
+        "k4": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 494,
+            "pFinalAccept": {
+              "count": 46,
+              "total": 494,
+              "rate": 0.0931,
+              "wilson95": [
+                0.0705,
+                0.122
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 243,
+            "pFinalAccept": {
+              "count": 65,
+              "total": 243,
+              "rate": 0.2675,
+              "wilson95": [
+                0.2158,
+                0.3264
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 142,
+            "pFinalAccept": {
+              "count": 43,
+              "total": 142,
+              "rate": 0.3028,
+              "wilson95": [
+                0.2333,
+                0.3828
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 192,
+            "pFinalAccept": {
+              "count": 71,
+              "total": 192,
+              "rate": 0.3698,
+              "wilson95": [
+                0.3047,
+                0.44
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 182,
+            "pFinalAccept": {
+              "count": 76,
+              "total": 182,
+              "rate": 0.4176,
+              "wilson95": [
+                0.3484,
+                0.4902
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 199,
+            "pFinalAccept": {
+              "count": 116,
+              "total": 199,
+              "rate": 0.5829,
+              "wilson95": [
+                0.5135,
+                0.6492
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 436,
+            "pFinalAccept": {
+              "count": 269,
+              "total": 436,
+              "rate": 0.617,
+              "wilson95": [
+                0.5705,
+                0.6614
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 729,
+            "pFinalAccept": {
+              "count": 598,
+              "total": 729,
+              "rate": 0.8203,
+              "wilson95": [
+                0.7908,
+                0.8465
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 883,
+            "pFinalAccept": {
+              "count": 845,
+              "total": 883,
+              "rate": 0.957,
+              "wilson95": [
+                0.9415,
+                0.9685
+              ]
+            }
+          }
+        ],
+        "k8": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 378,
+            "pFinalAccept": {
+              "count": 1,
+              "total": 378,
+              "rate": 0.0026,
+              "wilson95": [
+                0.0005,
+                0.0148
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 248,
+            "pFinalAccept": {
+              "count": 18,
+              "total": 248,
+              "rate": 0.0726,
+              "wilson95": [
+                0.0464,
+                0.1118
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 142,
+            "pFinalAccept": {
+              "count": 22,
+              "total": 142,
+              "rate": 0.1549,
+              "wilson95": [
+                0.1046,
+                0.2234
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 193,
+            "pFinalAccept": {
+              "count": 38,
+              "total": 193,
+              "rate": 0.1969,
+              "wilson95": [
+                0.1469,
+                0.2587
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 204,
+            "pFinalAccept": {
+              "count": 77,
+              "total": 204,
+              "rate": 0.3775,
+              "wilson95": [
+                0.3138,
+                0.4457
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 250,
+            "pFinalAccept": {
+              "count": 130,
+              "total": 250,
+              "rate": 0.52,
+              "wilson95": [
+                0.4582,
+                0.5812
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 517,
+            "pFinalAccept": {
+              "count": 360,
+              "total": 517,
+              "rate": 0.6963,
+              "wilson95": [
+                0.6554,
+                0.7344
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 787,
+            "pFinalAccept": {
+              "count": 708,
+              "total": 787,
+              "rate": 0.8996,
+              "wilson95": [
+                0.8766,
+                0.9187
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 781,
+            "pFinalAccept": {
+              "count": 775,
+              "total": 781,
+              "rate": 0.9923,
+              "wilson95": [
+                0.9833,
+                0.9965
+              ]
+            }
+          }
+        ],
+        "k16": [
+          {
+            "bin": "(-inf, -4)",
+            "count": 367,
+            "pFinalAccept": {
+              "count": 0,
+              "total": 367,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0104
+              ]
+            }
+          },
+          {
+            "bin": "[-4, -2)",
+            "count": 185,
+            "pFinalAccept": {
+              "count": 0,
+              "total": 185,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0203
+              ]
+            }
+          },
+          {
+            "bin": "[-2, -1)",
+            "count": 138,
+            "pFinalAccept": {
+              "count": 1,
+              "total": 138,
+              "rate": 0.0072,
+              "wilson95": [
+                0.0013,
+                0.0399
+              ]
+            }
+          },
+          {
+            "bin": "[-1, 0)",
+            "count": 167,
+            "pFinalAccept": {
+              "count": 10,
+              "total": 167,
+              "rate": 0.0599,
+              "wilson95": [
+                0.0328,
+                0.1067
+              ]
+            }
+          },
+          {
+            "bin": "[0, 1)",
+            "count": 229,
+            "pFinalAccept": {
+              "count": 47,
+              "total": 229,
+              "rate": 0.2052,
+              "wilson95": [
+                0.158,
+                0.2622
+              ]
+            }
+          },
+          {
+            "bin": "[1, 2)",
+            "count": 293,
+            "pFinalAccept": {
+              "count": 107,
+              "total": 293,
+              "rate": 0.3652,
+              "wilson95": [
+                0.3121,
+                0.4217
+              ]
+            }
+          },
+          {
+            "bin": "[2, 4)",
+            "count": 583,
+            "pFinalAccept": {
+              "count": 444,
+              "total": 583,
+              "rate": 0.7616,
+              "wilson95": [
+                0.7253,
+                0.7944
+              ]
+            }
+          },
+          {
+            "bin": "[4, 8)",
+            "count": 767,
+            "pFinalAccept": {
+              "count": 749,
+              "total": 767,
+              "rate": 0.9765,
+              "wilson95": [
+                0.9632,
+                0.9851
+              ]
+            }
+          },
+          {
+            "bin": "[8, +inf)",
+            "count": 771,
+            "pFinalAccept": {
+              "count": 771,
+              "total": 771,
+              "rate": 1,
+              "wilson95": [
+                0.995,
+                1
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "futilityRules": {
+      "note": "killAmongAccepts = fraction of eventual-accept runs the rule would stop (single-look = rule fires at exactly look k; cumulative = rule fired at some look <= k). nullStop = fraction of true-null (delta 0) runs stopped.",
+      "rules": [
+        {
+          "rule": "estimateBelowZero",
+          "description": "Stop after look k if the interim delta estimate < 0.",
+          "perK": [
+            {
+              "k": 2,
+              "killAmongAccepts01_singleLook": {
+                "count": 294,
+                "total": 1820,
+                "rate": 0.1615,
+                "wilson95": [
+                  0.1453,
+                  0.1792
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 294,
+                "total": 1820,
+                "rate": 0.1615,
+                "wilson95": [
+                  0.1453,
+                  0.1792
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 391,
+                "total": 2129,
+                "rate": 0.1837,
+                "wilson95": [
+                  0.1678,
+                  0.2007
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 391,
+                "total": 2129,
+                "rate": 0.1837,
+                "wilson95": [
+                  0.1678,
+                  0.2007
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 236,
+                "total": 500,
+                "rate": 0.472,
+                "wilson95": [
+                  0.4286,
+                  0.5158
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 236,
+                "total": 500,
+                "rate": 0.472,
+                "wilson95": [
+                  0.4286,
+                  0.5158
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 236,
+                    "total": 500,
+                    "rate": 0.472,
+                    "wilson95": [
+                      0.4286,
+                      0.5158
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 236,
+                    "total": 500,
+                    "rate": 0.472,
+                    "wilson95": [
+                      0.4286,
+                      0.5158
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 191,
+                    "total": 500,
+                    "rate": 0.382,
+                    "wilson95": [
+                      0.3405,
+                      0.4253
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 191,
+                    "total": 500,
+                    "rate": 0.382,
+                    "wilson95": [
+                      0.3405,
+                      0.4253
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 153,
+                    "total": 500,
+                    "rate": 0.306,
+                    "wilson95": [
+                      0.2672,
+                      0.3477
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 153,
+                    "total": 500,
+                    "rate": 0.306,
+                    "wilson95": [
+                      0.2672,
+                      0.3477
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 124,
+                    "total": 500,
+                    "rate": 0.248,
+                    "wilson95": [
+                      0.2122,
+                      0.2877
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 124,
+                    "total": 500,
+                    "rate": 0.248,
+                    "wilson95": [
+                      0.2122,
+                      0.2877
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 62,
+                    "total": 500,
+                    "rate": 0.124,
+                    "wilson95": [
+                      0.0979,
+                      0.1558
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 62,
+                    "total": 500,
+                    "rate": 0.124,
+                    "wilson95": [
+                      0.0979,
+                      0.1558
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 19,
+                    "total": 500,
+                    "rate": 0.038,
+                    "wilson95": [
+                      0.0245,
+                      0.0586
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 19,
+                    "total": 500,
+                    "rate": 0.038,
+                    "wilson95": [
+                      0.0245,
+                      0.0586
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 403,
+                    "total": 500,
+                    "rate": 0.806,
+                    "wilson95": [
+                      0.7691,
+                      0.8383
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 403,
+                    "total": 500,
+                    "rate": 0.806,
+                    "wilson95": [
+                      0.7691,
+                      0.8383
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 3,
+              "killAmongAccepts01_singleLook": {
+                "count": 223,
+                "total": 1820,
+                "rate": 0.1225,
+                "wilson95": [
+                  0.1083,
+                  0.1384
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 362,
+                "total": 1820,
+                "rate": 0.1989,
+                "wilson95": [
+                  0.1812,
+                  0.2179
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 325,
+                "total": 2129,
+                "rate": 0.1527,
+                "wilson95": [
+                  0.138,
+                  0.1686
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 495,
+                "total": 2129,
+                "rate": 0.2325,
+                "wilson95": [
+                  0.2151,
+                  0.2509
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 260,
+                "total": 500,
+                "rate": 0.52,
+                "wilson95": [
+                  0.4762,
+                  0.5635
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 308,
+                "total": 500,
+                "rate": 0.616,
+                "wilson95": [
+                  0.5726,
+                  0.6576
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 260,
+                    "total": 500,
+                    "rate": 0.52,
+                    "wilson95": [
+                      0.4762,
+                      0.5635
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 308,
+                    "total": 500,
+                    "rate": 0.616,
+                    "wilson95": [
+                      0.5726,
+                      0.6576
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 185,
+                    "total": 500,
+                    "rate": 0.37,
+                    "wilson95": [
+                      0.3288,
+                      0.4132
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 236,
+                    "total": 500,
+                    "rate": 0.472,
+                    "wilson95": [
+                      0.4286,
+                      0.5158
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 148,
+                    "total": 500,
+                    "rate": 0.296,
+                    "wilson95": [
+                      0.2577,
+                      0.3374
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 199,
+                    "total": 500,
+                    "rate": 0.398,
+                    "wilson95": [
+                      0.356,
+                      0.4415
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 100,
+                    "total": 500,
+                    "rate": 0.2,
+                    "wilson95": [
+                      0.1673,
+                      0.2373
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 158,
+                    "total": 500,
+                    "rate": 0.316,
+                    "wilson95": [
+                      0.2768,
+                      0.358
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 42,
+                    "total": 500,
+                    "rate": 0.084,
+                    "wilson95": [
+                      0.0627,
+                      0.1116
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 74,
+                    "total": 500,
+                    "rate": 0.148,
+                    "wilson95": [
+                      0.1196,
+                      0.1818
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 6,
+                    "total": 500,
+                    "rate": 0.012,
+                    "wilson95": [
+                      0.0055,
+                      0.0259
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 23,
+                    "total": 500,
+                    "rate": 0.046,
+                    "wilson95": [
+                      0.0308,
+                      0.0681
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 428,
+                    "total": 500,
+                    "rate": 0.856,
+                    "wilson95": [
+                      0.8225,
+                      0.8841
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 449,
+                    "total": 500,
+                    "rate": 0.898,
+                    "wilson95": [
+                      0.8684,
+                      0.9216
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 4,
+              "killAmongAccepts01_singleLook": {
+                "count": 139,
+                "total": 1820,
+                "rate": 0.0764,
+                "wilson95": [
+                  0.065,
+                  0.0895
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 378,
+                "total": 1820,
+                "rate": 0.2077,
+                "wilson95": [
+                  0.1897,
+                  0.2269
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 225,
+                "total": 2129,
+                "rate": 0.1057,
+                "wilson95": [
+                  0.0933,
+                  0.1195
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 519,
+                "total": 2129,
+                "rate": 0.2438,
+                "wilson95": [
+                  0.226,
+                  0.2625
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 241,
+                "total": 500,
+                "rate": 0.482,
+                "wilson95": [
+                  0.4385,
+                  0.5258
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 335,
+                "total": 500,
+                "rate": 0.67,
+                "wilson95": [
+                  0.6276,
+                  0.7098
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 241,
+                    "total": 500,
+                    "rate": 0.482,
+                    "wilson95": [
+                      0.4385,
+                      0.5258
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 335,
+                    "total": 500,
+                    "rate": 0.67,
+                    "wilson95": [
+                      0.6276,
+                      0.7098
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 154,
+                    "total": 500,
+                    "rate": 0.308,
+                    "wilson95": [
+                      0.2691,
+                      0.3498
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 254,
+                    "total": 500,
+                    "rate": 0.508,
+                    "wilson95": [
+                      0.4643,
+                      0.5516
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 127,
+                    "total": 500,
+                    "rate": 0.254,
+                    "wilson95": [
+                      0.2178,
+                      0.2939
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 213,
+                    "total": 500,
+                    "rate": 0.426,
+                    "wilson95": [
+                      0.3834,
+                      0.4697
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 73,
+                    "total": 500,
+                    "rate": 0.146,
+                    "wilson95": [
+                      0.1177,
+                      0.1796
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 166,
+                    "total": 500,
+                    "rate": 0.332,
+                    "wilson95": [
+                      0.2921,
+                      0.3744
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 16,
+                    "total": 500,
+                    "rate": 0.032,
+                    "wilson95": [
+                      0.0198,
+                      0.0513
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 76,
+                    "total": 500,
+                    "rate": 0.152,
+                    "wilson95": [
+                      0.1232,
+                      0.1861
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 24,
+                    "total": 500,
+                    "rate": 0.048,
+                    "wilson95": [
+                      0.0325,
+                      0.0704
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 457,
+                    "total": 500,
+                    "rate": 0.914,
+                    "wilson95": [
+                      0.8862,
+                      0.9355
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 478,
+                    "total": 500,
+                    "rate": 0.956,
+                    "wilson95": [
+                      0.9343,
+                      0.9708
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 8,
+              "killAmongAccepts01_singleLook": {
+                "count": 36,
+                "total": 1820,
+                "rate": 0.0198,
+                "wilson95": [
+                  0.0143,
+                  0.0273
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 383,
+                "total": 1820,
+                "rate": 0.2104,
+                "wilson95": [
+                  0.1923,
+                  0.2298
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 79,
+                "total": 2129,
+                "rate": 0.0371,
+                "wilson95": [
+                  0.0299,
+                  0.046
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 533,
+                "total": 2129,
+                "rate": 0.2504,
+                "wilson95": [
+                  0.2324,
+                  0.2692
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 266,
+                "total": 500,
+                "rate": 0.532,
+                "wilson95": [
+                  0.4882,
+                  0.5753
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 371,
+                "total": 500,
+                "rate": 0.742,
+                "wilson95": [
+                  0.7019,
+                  0.7784
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 266,
+                    "total": 500,
+                    "rate": 0.532,
+                    "wilson95": [
+                      0.4882,
+                      0.5753
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 371,
+                    "total": 500,
+                    "rate": 0.742,
+                    "wilson95": [
+                      0.7019,
+                      0.7784
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 109,
+                    "total": 500,
+                    "rate": 0.218,
+                    "wilson95": [
+                      0.184,
+                      0.2563
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 270,
+                    "total": 500,
+                    "rate": 0.54,
+                    "wilson95": [
+                      0.4962,
+                      0.5832
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 65,
+                    "total": 500,
+                    "rate": 0.13,
+                    "wilson95": [
+                      0.1033,
+                      0.1623
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 229,
+                    "total": 500,
+                    "rate": 0.458,
+                    "wilson95": [
+                      0.4148,
+                      0.5018
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 29,
+                    "total": 500,
+                    "rate": 0.058,
+                    "wilson95": [
+                      0.0407,
+                      0.0821
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 170,
+                    "total": 500,
+                    "rate": 0.34,
+                    "wilson95": [
+                      0.2998,
+                      0.3826
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 76,
+                    "total": 500,
+                    "rate": 0.152,
+                    "wilson95": [
+                      0.1232,
+                      0.1861
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 24,
+                    "total": 500,
+                    "rate": 0.048,
+                    "wilson95": [
+                      0.0325,
+                      0.0704
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 491,
+                    "total": 500,
+                    "rate": 0.982,
+                    "wilson95": [
+                      0.9661,
+                      0.9905
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 497,
+                    "total": 500,
+                    "rate": 0.994,
+                    "wilson95": [
+                      0.9825,
+                      0.998
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 16,
+              "killAmongAccepts01_singleLook": {
+                "count": 0,
+                "total": 1820,
+                "rate": 0,
+                "wilson95": [
+                  0,
+                  0.0021
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 383,
+                "total": 1820,
+                "rate": 0.2104,
+                "wilson95": [
+                  0.1923,
+                  0.2298
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 11,
+                "total": 2129,
+                "rate": 0.0052,
+                "wilson95": [
+                  0.0029,
+                  0.0092
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 534,
+                "total": 2129,
+                "rate": 0.2508,
+                "wilson95": [
+                  0.2329,
+                  0.2697
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 260,
+                "total": 500,
+                "rate": 0.52,
+                "wilson95": [
+                  0.4762,
+                  0.5635
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 392,
+                "total": 500,
+                "rate": 0.784,
+                "wilson95": [
+                  0.7458,
+                  0.8178
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 260,
+                    "total": 500,
+                    "rate": 0.52,
+                    "wilson95": [
+                      0.4762,
+                      0.5635
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 392,
+                    "total": 500,
+                    "rate": 0.784,
+                    "wilson95": [
+                      0.7458,
+                      0.8178
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 70,
+                    "total": 500,
+                    "rate": 0.14,
+                    "wilson95": [
+                      0.1123,
+                      0.1732
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 279,
+                    "total": 500,
+                    "rate": 0.558,
+                    "wilson95": [
+                      0.5142,
+                      0.6009
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 22,
+                    "total": 500,
+                    "rate": 0.044,
+                    "wilson95": [
+                      0.0292,
+                      0.0657
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 231,
+                    "total": 500,
+                    "rate": 0.462,
+                    "wilson95": [
+                      0.4188,
+                      0.5058
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 7,
+                    "total": 500,
+                    "rate": 0.014,
+                    "wilson95": [
+                      0.0068,
+                      0.0286
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 172,
+                    "total": 500,
+                    "rate": 0.344,
+                    "wilson95": [
+                      0.3037,
+                      0.3867
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 76,
+                    "total": 500,
+                    "rate": 0.152,
+                    "wilson95": [
+                      0.1232,
+                      0.1861
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 24,
+                    "total": 500,
+                    "rate": 0.048,
+                    "wilson95": [
+                      0.0325,
+                      0.0704
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 498,
+                    "total": 500,
+                    "rate": 0.996,
+                    "wilson95": [
+                      0.9855,
+                      0.9989
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 500,
+                    "total": 500,
+                    "rate": 1,
+                    "wilson95": [
+                      0.9924,
+                      1
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "rule": "upperBound05BelowZero",
+          "description": "Stop after look k if the one-sided 95% upper bound (alpha 0.05) < 0.",
+          "perK": [
+            {
+              "k": 2,
+              "killAmongAccepts01_singleLook": {
+                "count": 5,
+                "total": 1820,
+                "rate": 0.0027,
+                "wilson95": [
+                  0.0012,
+                  0.0064
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 5,
+                "total": 1820,
+                "rate": 0.0027,
+                "wilson95": [
+                  0.0012,
+                  0.0064
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 7,
+                "total": 2129,
+                "rate": 0.0033,
+                "wilson95": [
+                  0.0016,
+                  0.0068
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 7,
+                "total": 2129,
+                "rate": 0.0033,
+                "wilson95": [
+                  0.0016,
+                  0.0068
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 11,
+                "total": 500,
+                "rate": 0.022,
+                "wilson95": [
+                  0.0123,
+                  0.039
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 11,
+                "total": 500,
+                "rate": 0.022,
+                "wilson95": [
+                  0.0123,
+                  0.039
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 11,
+                    "total": 500,
+                    "rate": 0.022,
+                    "wilson95": [
+                      0.0123,
+                      0.039
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 11,
+                    "total": 500,
+                    "rate": 0.022,
+                    "wilson95": [
+                      0.0123,
+                      0.039
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 7,
+                    "total": 500,
+                    "rate": 0.014,
+                    "wilson95": [
+                      0.0068,
+                      0.0286
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 7,
+                    "total": 500,
+                    "rate": 0.014,
+                    "wilson95": [
+                      0.0068,
+                      0.0286
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 2,
+                    "total": 500,
+                    "rate": 0.004,
+                    "wilson95": [
+                      0.0011,
+                      0.0145
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 2,
+                    "total": 500,
+                    "rate": 0.004,
+                    "wilson95": [
+                      0.0011,
+                      0.0145
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 40,
+                    "total": 500,
+                    "rate": 0.08,
+                    "wilson95": [
+                      0.0593,
+                      0.1071
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 40,
+                    "total": 500,
+                    "rate": 0.08,
+                    "wilson95": [
+                      0.0593,
+                      0.1071
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 3,
+              "killAmongAccepts01_singleLook": {
+                "count": 8,
+                "total": 1820,
+                "rate": 0.0044,
+                "wilson95": [
+                  0.0022,
+                  0.0086
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 11,
+                "total": 1820,
+                "rate": 0.006,
+                "wilson95": [
+                  0.0034,
+                  0.0108
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 11,
+                "total": 2129,
+                "rate": 0.0052,
+                "wilson95": [
+                  0.0029,
+                  0.0092
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 15,
+                "total": 2129,
+                "rate": 0.007,
+                "wilson95": [
+                  0.0043,
+                  0.0116
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 13,
+                "total": 500,
+                "rate": 0.026,
+                "wilson95": [
+                  0.0153,
+                  0.044
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 24,
+                "total": 500,
+                "rate": 0.048,
+                "wilson95": [
+                  0.0325,
+                  0.0704
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 13,
+                    "total": 500,
+                    "rate": 0.026,
+                    "wilson95": [
+                      0.0153,
+                      0.044
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 24,
+                    "total": 500,
+                    "rate": 0.048,
+                    "wilson95": [
+                      0.0325,
+                      0.0704
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 10,
+                    "total": 500,
+                    "rate": 0.02,
+                    "wilson95": [
+                      0.0109,
+                      0.0364
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 13,
+                    "total": 500,
+                    "rate": 0.026,
+                    "wilson95": [
+                      0.0153,
+                      0.044
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 7,
+                    "total": 500,
+                    "rate": 0.014,
+                    "wilson95": [
+                      0.0068,
+                      0.0286
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 11,
+                    "total": 500,
+                    "rate": 0.022,
+                    "wilson95": [
+                      0.0123,
+                      0.039
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 4,
+                    "total": 500,
+                    "rate": 0.008,
+                    "wilson95": [
+                      0.0031,
+                      0.0204
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 6,
+                    "total": 500,
+                    "rate": 0.012,
+                    "wilson95": [
+                      0.0055,
+                      0.0259
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 68,
+                    "total": 500,
+                    "rate": 0.136,
+                    "wilson95": [
+                      0.1087,
+                      0.1688
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 93,
+                    "total": 500,
+                    "rate": 0.186,
+                    "wilson95": [
+                      0.1543,
+                      0.2225
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 4,
+              "killAmongAccepts01_singleLook": {
+                "count": 10,
+                "total": 1820,
+                "rate": 0.0055,
+                "wilson95": [
+                  0.003,
+                  0.0101
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 18,
+                "total": 1820,
+                "rate": 0.0099,
+                "wilson95": [
+                  0.0063,
+                  0.0156
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 13,
+                "total": 2129,
+                "rate": 0.0061,
+                "wilson95": [
+                  0.0036,
+                  0.0104
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 23,
+                "total": 2129,
+                "rate": 0.0108,
+                "wilson95": [
+                  0.0072,
+                  0.0162
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 15,
+                "total": 500,
+                "rate": 0.03,
+                "wilson95": [
+                  0.0183,
+                  0.0489
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 29,
+                "total": 500,
+                "rate": 0.058,
+                "wilson95": [
+                  0.0407,
+                  0.0821
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 15,
+                    "total": 500,
+                    "rate": 0.03,
+                    "wilson95": [
+                      0.0183,
+                      0.0489
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 29,
+                    "total": 500,
+                    "rate": 0.058,
+                    "wilson95": [
+                      0.0407,
+                      0.0821
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 6,
+                    "total": 500,
+                    "rate": 0.012,
+                    "wilson95": [
+                      0.0055,
+                      0.0259
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 18,
+                    "total": 500,
+                    "rate": 0.036,
+                    "wilson95": [
+                      0.0229,
+                      0.0562
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 8,
+                    "total": 500,
+                    "rate": 0.016,
+                    "wilson95": [
+                      0.0081,
+                      0.0313
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 16,
+                    "total": 500,
+                    "rate": 0.032,
+                    "wilson95": [
+                      0.0198,
+                      0.0513
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 5,
+                    "total": 500,
+                    "rate": 0.01,
+                    "wilson95": [
+                      0.0043,
+                      0.0232
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 10,
+                    "total": 500,
+                    "rate": 0.02,
+                    "wilson95": [
+                      0.0109,
+                      0.0364
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 112,
+                    "total": 500,
+                    "rate": 0.224,
+                    "wilson95": [
+                      0.1896,
+                      0.2626
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 150,
+                    "total": 500,
+                    "rate": 0.3,
+                    "wilson95": [
+                      0.2615,
+                      0.3416
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 8,
+              "killAmongAccepts01_singleLook": {
+                "count": 0,
+                "total": 1820,
+                "rate": 0,
+                "wilson95": [
+                  0,
+                  0.0021
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 18,
+                "total": 1820,
+                "rate": 0.0099,
+                "wilson95": [
+                  0.0063,
+                  0.0156
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 1,
+                "total": 2129,
+                "rate": 0.0005,
+                "wilson95": [
+                  0.0001,
+                  0.0027
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 24,
+                "total": 2129,
+                "rate": 0.0113,
+                "wilson95": [
+                  0.0076,
+                  0.0167
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 19,
+                "total": 500,
+                "rate": 0.038,
+                "wilson95": [
+                  0.0245,
+                  0.0586
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 41,
+                "total": 500,
+                "rate": 0.082,
+                "wilson95": [
+                  0.061,
+                  0.1094
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 19,
+                    "total": 500,
+                    "rate": 0.038,
+                    "wilson95": [
+                      0.0245,
+                      0.0586
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 41,
+                    "total": 500,
+                    "rate": 0.082,
+                    "wilson95": [
+                      0.061,
+                      0.1094
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 20,
+                    "total": 500,
+                    "rate": 0.04,
+                    "wilson95": [
+                      0.026,
+                      0.061
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 16,
+                    "total": 500,
+                    "rate": 0.032,
+                    "wilson95": [
+                      0.0198,
+                      0.0513
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 2,
+                    "total": 500,
+                    "rate": 0.004,
+                    "wilson95": [
+                      0.0011,
+                      0.0145
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 12,
+                    "total": 500,
+                    "rate": 0.024,
+                    "wilson95": [
+                      0.0138,
+                      0.0415
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 260,
+                    "total": 500,
+                    "rate": 0.52,
+                    "wilson95": [
+                      0.4762,
+                      0.5635
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 298,
+                    "total": 500,
+                    "rate": 0.596,
+                    "wilson95": [
+                      0.5524,
+                      0.6381
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 16,
+              "killAmongAccepts01_singleLook": {
+                "count": 0,
+                "total": 1820,
+                "rate": 0,
+                "wilson95": [
+                  0,
+                  0.0021
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 18,
+                "total": 1820,
+                "rate": 0.0099,
+                "wilson95": [
+                  0.0063,
+                  0.0156
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 0,
+                "total": 2129,
+                "rate": 0,
+                "wilson95": [
+                  0,
+                  0.0018
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 24,
+                "total": 2129,
+                "rate": 0.0113,
+                "wilson95": [
+                  0.0076,
+                  0.0167
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 23,
+                "total": 500,
+                "rate": 0.046,
+                "wilson95": [
+                  0.0308,
+                  0.0681
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 55,
+                "total": 500,
+                "rate": 0.11,
+                "wilson95": [
+                  0.0855,
+                  0.1405
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 23,
+                    "total": 500,
+                    "rate": 0.046,
+                    "wilson95": [
+                      0.0308,
+                      0.0681
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 55,
+                    "total": 500,
+                    "rate": 0.11,
+                    "wilson95": [
+                      0.0855,
+                      0.1405
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 21,
+                    "total": 500,
+                    "rate": 0.042,
+                    "wilson95": [
+                      0.0276,
+                      0.0634
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 16,
+                    "total": 500,
+                    "rate": 0.032,
+                    "wilson95": [
+                      0.0198,
+                      0.0513
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 12,
+                    "total": 500,
+                    "rate": 0.024,
+                    "wilson95": [
+                      0.0138,
+                      0.0415
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 415,
+                    "total": 500,
+                    "rate": 0.83,
+                    "wilson95": [
+                      0.7946,
+                      0.8604
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 432,
+                    "total": 500,
+                    "rate": 0.864,
+                    "wilson95": [
+                      0.8312,
+                      0.8913
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "rule": "upperBound01BelowZero",
+          "description": "Stop after look k if the one-sided 99% upper bound (alpha 0.01) < 0.",
+          "perK": [
+            {
+              "k": 2,
+              "killAmongAccepts01_singleLook": {
+                "count": 1,
+                "total": 1820,
+                "rate": 0.0005,
+                "wilson95": [
+                  0.0001,
+                  0.0031
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 1,
+                "total": 1820,
+                "rate": 0.0005,
+                "wilson95": [
+                  0.0001,
+                  0.0031
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 1,
+                "total": 2129,
+                "rate": 0.0005,
+                "wilson95": [
+                  0.0001,
+                  0.0027
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 1,
+                "total": 2129,
+                "rate": 0.0005,
+                "wilson95": [
+                  0.0001,
+                  0.0027
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 1,
+                "total": 500,
+                "rate": 0.002,
+                "wilson95": [
+                  0.0004,
+                  0.0112
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 1,
+                "total": 500,
+                "rate": 0.002,
+                "wilson95": [
+                  0.0004,
+                  0.0112
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 3,
+              "killAmongAccepts01_singleLook": {
+                "count": 2,
+                "total": 1820,
+                "rate": 0.0011,
+                "wilson95": [
+                  0.0003,
+                  0.004
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 3,
+                "total": 1820,
+                "rate": 0.0016,
+                "wilson95": [
+                  0.0006,
+                  0.0048
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 2,
+                "total": 2129,
+                "rate": 0.0009,
+                "wilson95": [
+                  0.0003,
+                  0.0034
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 3,
+                "total": 2129,
+                "rate": 0.0014,
+                "wilson95": [
+                  0.0005,
+                  0.0041
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 4,
+                "total": 500,
+                "rate": 0.008,
+                "wilson95": [
+                  0.0031,
+                  0.0204
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 5,
+                "total": 500,
+                "rate": 0.01,
+                "wilson95": [
+                  0.0043,
+                  0.0232
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 4,
+                    "total": 500,
+                    "rate": 0.008,
+                    "wilson95": [
+                      0.0031,
+                      0.0204
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 5,
+                    "total": 500,
+                    "rate": 0.01,
+                    "wilson95": [
+                      0.0043,
+                      0.0232
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 2,
+                    "total": 500,
+                    "rate": 0.004,
+                    "wilson95": [
+                      0.0011,
+                      0.0145
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 2,
+                    "total": 500,
+                    "rate": 0.004,
+                    "wilson95": [
+                      0.0011,
+                      0.0145
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 2,
+                    "total": 500,
+                    "rate": 0.004,
+                    "wilson95": [
+                      0.0011,
+                      0.0145
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 16,
+                    "total": 500,
+                    "rate": 0.032,
+                    "wilson95": [
+                      0.0198,
+                      0.0513
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 18,
+                    "total": 500,
+                    "rate": 0.036,
+                    "wilson95": [
+                      0.0229,
+                      0.0562
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 4,
+              "killAmongAccepts01_singleLook": {
+                "count": 1,
+                "total": 1820,
+                "rate": 0.0005,
+                "wilson95": [
+                  0.0001,
+                  0.0031
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 4,
+                "total": 1820,
+                "rate": 0.0022,
+                "wilson95": [
+                  0.0009,
+                  0.0056
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 1,
+                "total": 2129,
+                "rate": 0.0005,
+                "wilson95": [
+                  0.0001,
+                  0.0027
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 4,
+                "total": 2129,
+                "rate": 0.0019,
+                "wilson95": [
+                  0.0007,
+                  0.0048
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 4,
+                "total": 500,
+                "rate": 0.008,
+                "wilson95": [
+                  0.0031,
+                  0.0204
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 8,
+                "total": 500,
+                "rate": 0.016,
+                "wilson95": [
+                  0.0081,
+                  0.0313
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 4,
+                    "total": 500,
+                    "rate": 0.008,
+                    "wilson95": [
+                      0.0031,
+                      0.0204
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 8,
+                    "total": 500,
+                    "rate": 0.016,
+                    "wilson95": [
+                      0.0081,
+                      0.0313
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 33,
+                    "total": 500,
+                    "rate": 0.066,
+                    "wilson95": [
+                      0.0474,
+                      0.0912
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 42,
+                    "total": 500,
+                    "rate": 0.084,
+                    "wilson95": [
+                      0.0627,
+                      0.1116
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 8,
+              "killAmongAccepts01_singleLook": {
+                "count": 0,
+                "total": 1820,
+                "rate": 0,
+                "wilson95": [
+                  0,
+                  0.0021
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 4,
+                "total": 1820,
+                "rate": 0.0022,
+                "wilson95": [
+                  0.0009,
+                  0.0056
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 0,
+                "total": 2129,
+                "rate": 0,
+                "wilson95": [
+                  0,
+                  0.0018
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 4,
+                "total": 2129,
+                "rate": 0.0019,
+                "wilson95": [
+                  0.0007,
+                  0.0048
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 2,
+                "total": 500,
+                "rate": 0.004,
+                "wilson95": [
+                  0.0011,
+                  0.0145
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 10,
+                "total": 500,
+                "rate": 0.02,
+                "wilson95": [
+                  0.0109,
+                  0.0364
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 2,
+                    "total": 500,
+                    "rate": 0.004,
+                    "wilson95": [
+                      0.0011,
+                      0.0145
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 10,
+                    "total": 500,
+                    "rate": 0.02,
+                    "wilson95": [
+                      0.0109,
+                      0.0364
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 4,
+                    "total": 500,
+                    "rate": 0.008,
+                    "wilson95": [
+                      0.0031,
+                      0.0204
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 108,
+                    "total": 500,
+                    "rate": 0.216,
+                    "wilson95": [
+                      0.1822,
+                      0.2542
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 128,
+                    "total": 500,
+                    "rate": 0.256,
+                    "wilson95": [
+                      0.2197,
+                      0.296
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "k": 16,
+              "killAmongAccepts01_singleLook": {
+                "count": 0,
+                "total": 1820,
+                "rate": 0,
+                "wilson95": [
+                  0,
+                  0.0021
+                ]
+              },
+              "killAmongAccepts01_cumulative": {
+                "count": 4,
+                "total": 1820,
+                "rate": 0.0022,
+                "wilson95": [
+                  0.0009,
+                  0.0056
+                ]
+              },
+              "killAmongAccepts05_singleLook": {
+                "count": 0,
+                "total": 2129,
+                "rate": 0,
+                "wilson95": [
+                  0,
+                  0.0018
+                ]
+              },
+              "killAmongAccepts05_cumulative": {
+                "count": 4,
+                "total": 2129,
+                "rate": 0.0019,
+                "wilson95": [
+                  0.0007,
+                  0.0048
+                ]
+              },
+              "nullStop_singleLook": {
+                "count": 5,
+                "total": 500,
+                "rate": 0.01,
+                "wilson95": [
+                  0.0043,
+                  0.0232
+                ]
+              },
+              "nullStop_cumulative": {
+                "count": 13,
+                "total": 500,
+                "rate": 0.026,
+                "wilson95": [
+                  0.0153,
+                  0.044
+                ]
+              },
+              "perDelta": [
+                {
+                  "delta": 0,
+                  "stopSingleLook": {
+                    "count": 5,
+                    "total": 500,
+                    "rate": 0.01,
+                    "wilson95": [
+                      0.0043,
+                      0.0232
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 13,
+                    "total": 500,
+                    "rate": 0.026,
+                    "wilson95": [
+                      0.0153,
+                      0.044
+                    ]
+                  }
+                },
+                {
+                  "delta": 2,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 4,
+                    "total": 500,
+                    "rate": 0.008,
+                    "wilson95": [
+                      0.0031,
+                      0.0204
+                    ]
+                  }
+                },
+                {
+                  "delta": 3,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 3,
+                    "total": 500,
+                    "rate": 0.006,
+                    "wilson95": [
+                      0.002,
+                      0.0175
+                    ]
+                  }
+                },
+                {
+                  "delta": 5,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 1,
+                    "total": 500,
+                    "rate": 0.002,
+                    "wilson95": [
+                      0.0004,
+                      0.0112
+                    ]
+                  }
+                },
+                {
+                  "delta": 8,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": 12,
+                  "stopSingleLook": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 0,
+                    "total": 500,
+                    "rate": 0,
+                    "wilson95": [
+                      0,
+                      0.0076
+                    ]
+                  }
+                },
+                {
+                  "delta": -5,
+                  "stopSingleLook": {
+                    "count": 309,
+                    "total": 500,
+                    "rate": 0.618,
+                    "wilson95": [
+                      0.5747,
+                      0.6595
+                    ]
+                  },
+                  "stopCumulative": {
+                    "count": 324,
+                    "total": 500,
+                    "rate": 0.648,
+                    "wilson95": [
+                      0.6052,
+                      0.6886
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "thresholdSweepK3": {
+      "note": "Rule: stop at k=3 if interim estimate < threshold. Single-look.",
+      "cells": [
+        {
+          "threshold": -2,
+          "killAmongAccepts01": {
+            "count": 115,
+            "total": 1820,
+            "rate": 0.0632,
+            "wilson95": [
+              0.0529,
+              0.0753
+            ]
+          },
+          "killAmongAccepts05": {
+            "count": 175,
+            "total": 2129,
+            "rate": 0.0822,
+            "wilson95": [
+              0.0713,
+              0.0946
+            ]
+          },
+          "nullStop": {
+            "count": 176,
+            "total": 500,
+            "rate": 0.352,
+            "wilson95": [
+              0.3114,
+              0.3948
+            ]
+          },
+          "perDelta": [
+            {
+              "delta": 0,
+              "stopRate": {
+                "count": 176,
+                "total": 500,
+                "rate": 0.352,
+                "wilson95": [
+                  0.3114,
+                  0.3948
+                ]
+              }
+            },
+            {
+              "delta": 2,
+              "stopRate": {
+                "count": 106,
+                "total": 500,
+                "rate": 0.212,
+                "wilson95": [
+                  0.1784,
+                  0.25
+                ]
+              }
+            },
+            {
+              "delta": 3,
+              "stopRate": {
+                "count": 95,
+                "total": 500,
+                "rate": 0.19,
+                "wilson95": [
+                  0.158,
+                  0.2267
+                ]
+              }
+            },
+            {
+              "delta": 5,
+              "stopRate": {
+                "count": 54,
+                "total": 500,
+                "rate": 0.108,
+                "wilson95": [
+                  0.0837,
+                  0.1383
+                ]
+              }
+            },
+            {
+              "delta": 8,
+              "stopRate": {
+                "count": 16,
+                "total": 500,
+                "rate": 0.032,
+                "wilson95": [
+                  0.0198,
+                  0.0513
+                ]
+              }
+            },
+            {
+              "delta": 12,
+              "stopRate": {
+                "count": 4,
+                "total": 500,
+                "rate": 0.008,
+                "wilson95": [
+                  0.0031,
+                  0.0204
+                ]
+              }
+            },
+            {
+              "delta": -5,
+              "stopRate": {
+                "count": 373,
+                "total": 500,
+                "rate": 0.746,
+                "wilson95": [
+                  0.7061,
+                  0.7822
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "threshold": -1,
+          "killAmongAccepts01": {
+            "count": 159,
+            "total": 1820,
+            "rate": 0.0874,
+            "wilson95": [
+              0.0752,
+              0.1012
+            ]
+          },
+          "killAmongAccepts05": {
+            "count": 235,
+            "total": 2129,
+            "rate": 0.1104,
+            "wilson95": [
+              0.0978,
+              0.1244
+            ]
+          },
+          "nullStop": {
+            "count": 207,
+            "total": 500,
+            "rate": 0.414,
+            "wilson95": [
+              0.3716,
+              0.4577
+            ]
+          },
+          "perDelta": [
+            {
+              "delta": 0,
+              "stopRate": {
+                "count": 207,
+                "total": 500,
+                "rate": 0.414,
+                "wilson95": [
+                  0.3716,
+                  0.4577
+                ]
+              }
+            },
+            {
+              "delta": 2,
+              "stopRate": {
+                "count": 146,
+                "total": 500,
+                "rate": 0.292,
+                "wilson95": [
+                  0.2539,
+                  0.3333
+                ]
+              }
+            },
+            {
+              "delta": 3,
+              "stopRate": {
+                "count": 113,
+                "total": 500,
+                "rate": 0.226,
+                "wilson95": [
+                  0.1915,
+                  0.2647
+                ]
+              }
+            },
+            {
+              "delta": 5,
+              "stopRate": {
+                "count": 73,
+                "total": 500,
+                "rate": 0.146,
+                "wilson95": [
+                  0.1177,
+                  0.1796
+                ]
+              }
+            },
+            {
+              "delta": 8,
+              "stopRate": {
+                "count": 27,
+                "total": 500,
+                "rate": 0.054,
+                "wilson95": [
+                  0.0374,
+                  0.0774
+                ]
+              }
+            },
+            {
+              "delta": 12,
+              "stopRate": {
+                "count": 4,
+                "total": 500,
+                "rate": 0.008,
+                "wilson95": [
+                  0.0031,
+                  0.0204
+                ]
+              }
+            },
+            {
+              "delta": -5,
+              "stopRate": {
+                "count": 402,
+                "total": 500,
+                "rate": 0.804,
+                "wilson95": [
+                  0.7669,
+                  0.8364
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "threshold": 0,
+          "killAmongAccepts01": {
+            "count": 223,
+            "total": 1820,
+            "rate": 0.1225,
+            "wilson95": [
+              0.1083,
+              0.1384
+            ]
+          },
+          "killAmongAccepts05": {
+            "count": 325,
+            "total": 2129,
+            "rate": 0.1527,
+            "wilson95": [
+              0.138,
+              0.1686
+            ]
+          },
+          "nullStop": {
+            "count": 260,
+            "total": 500,
+            "rate": 0.52,
+            "wilson95": [
+              0.4762,
+              0.5635
+            ]
+          },
+          "perDelta": [
+            {
+              "delta": 0,
+              "stopRate": {
+                "count": 260,
+                "total": 500,
+                "rate": 0.52,
+                "wilson95": [
+                  0.4762,
+                  0.5635
+                ]
+              }
+            },
+            {
+              "delta": 2,
+              "stopRate": {
+                "count": 185,
+                "total": 500,
+                "rate": 0.37,
+                "wilson95": [
+                  0.3288,
+                  0.4132
+                ]
+              }
+            },
+            {
+              "delta": 3,
+              "stopRate": {
+                "count": 148,
+                "total": 500,
+                "rate": 0.296,
+                "wilson95": [
+                  0.2577,
+                  0.3374
+                ]
+              }
+            },
+            {
+              "delta": 5,
+              "stopRate": {
+                "count": 100,
+                "total": 500,
+                "rate": 0.2,
+                "wilson95": [
+                  0.1673,
+                  0.2373
+                ]
+              }
+            },
+            {
+              "delta": 8,
+              "stopRate": {
+                "count": 42,
+                "total": 500,
+                "rate": 0.084,
+                "wilson95": [
+                  0.0627,
+                  0.1116
+                ]
+              }
+            },
+            {
+              "delta": 12,
+              "stopRate": {
+                "count": 6,
+                "total": 500,
+                "rate": 0.012,
+                "wilson95": [
+                  0.0055,
+                  0.0259
+                ]
+              }
+            },
+            {
+              "delta": -5,
+              "stopRate": {
+                "count": 428,
+                "total": 500,
+                "rate": 0.856,
+                "wilson95": [
+                  0.8225,
+                  0.8841
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "threshold": 1,
+          "killAmongAccepts01": {
+            "count": 283,
+            "total": 1820,
+            "rate": 0.1555,
+            "wilson95": [
+              0.1396,
+              0.1729
+            ]
+          },
+          "killAmongAccepts05": {
+            "count": 399,
+            "total": 2129,
+            "rate": 0.1874,
+            "wilson95": [
+              0.1714,
+              0.2045
+            ]
+          },
+          "nullStop": {
+            "count": 298,
+            "total": 500,
+            "rate": 0.596,
+            "wilson95": [
+              0.5524,
+              0.6381
+            ]
+          },
+          "perDelta": [
+            {
+              "delta": 0,
+              "stopRate": {
+                "count": 298,
+                "total": 500,
+                "rate": 0.596,
+                "wilson95": [
+                  0.5524,
+                  0.6381
+                ]
+              }
+            },
+            {
+              "delta": 2,
+              "stopRate": {
+                "count": 221,
+                "total": 500,
+                "rate": 0.442,
+                "wilson95": [
+                  0.3991,
+                  0.4858
+                ]
+              }
+            },
+            {
+              "delta": 3,
+              "stopRate": {
+                "count": 171,
+                "total": 500,
+                "rate": 0.342,
+                "wilson95": [
+                  0.3018,
+                  0.3846
+                ]
+              }
+            },
+            {
+              "delta": 5,
+              "stopRate": {
+                "count": 128,
+                "total": 500,
+                "rate": 0.256,
+                "wilson95": [
+                  0.2197,
+                  0.296
+                ]
+              }
+            },
+            {
+              "delta": 8,
+              "stopRate": {
+                "count": 56,
+                "total": 500,
+                "rate": 0.112,
+                "wilson95": [
+                  0.0873,
+                  0.1427
+                ]
+              }
+            },
+            {
+              "delta": 12,
+              "stopRate": {
+                "count": 8,
+                "total": 500,
+                "rate": 0.016,
+                "wilson95": [
+                  0.0081,
+                  0.0313
+                ]
+              }
+            },
+            {
+              "delta": -5,
+              "stopRate": {
+                "count": 444,
+                "total": 500,
+                "rate": 0.888,
+                "wilson95": [
+                  0.8573,
+                  0.9127
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "legacyTwoStage": {
+    "trials": 200,
+    "note": "Independent probe draw (2 budgets x 3 seeds) then independent canonical draw (3 budgets x 8 seeds). P(canonical accept | probe outcome).",
+    "deltas": [
+      {
+        "targetDelta": 0,
+        "pairedTruthDelta": 0,
+        "marginalProbeAdvance": {
+          "count": 8,
+          "total": 200,
+          "rate": 0.04,
+          "wilson95": [
+            0.0204,
+            0.0769
+          ]
+        },
+        "marginalCanonicalAccept": {
+          "count": 2,
+          "total": 200,
+          "rate": 0.01,
+          "wilson95": [
+            0.0027,
+            0.0357
+          ]
+        },
+        "conditional": [
+          {
+            "probeOutcome": "advance",
+            "probeOutcomeRate": {
+              "count": 8,
+              "total": 200,
+              "rate": 0.04,
+              "wilson95": [
+                0.0204,
+                0.0769
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 8,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.3244
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 8,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.3244
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 8,
+              "total": 8,
+              "rate": 1,
+              "wilson95": [
+                0.6756,
+                1
+              ]
+            }
+          },
+          {
+            "probeOutcome": "stop",
+            "probeOutcomeRate": {
+              "count": 3,
+              "total": 200,
+              "rate": 0.015,
+              "wilson95": [
+                0.0051,
+                0.0432
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 3,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.5615
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 3,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.5615
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 3,
+              "total": 3,
+              "rate": 1,
+              "wilson95": [
+                0.4385,
+                1
+              ]
+            }
+          },
+          {
+            "probeOutcome": "unresolved",
+            "probeOutcomeRate": {
+              "count": 189,
+              "total": 200,
+              "rate": 0.945,
+              "wilson95": [
+                0.9042,
+                0.969
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 2,
+              "total": 189,
+              "rate": 0.0106,
+              "wilson95": [
+                0.0029,
+                0.0378
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 189,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0199
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 187,
+              "total": 189,
+              "rate": 0.9894,
+              "wilson95": [
+                0.9622,
+                0.9971
+              ]
+            }
+          }
+        ],
+        "contingency": {
+          "advance": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 8
+          },
+          "stop": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 3
+          },
+          "unresolved": {
+            "accept": 2,
+            "reject": 0,
+            "inconclusive": 187
+          }
+        }
+      },
+      {
+        "targetDelta": 2,
+        "pairedTruthDelta": 2,
+        "marginalProbeAdvance": {
+          "count": 14,
+          "total": 200,
+          "rate": 0.07,
+          "wilson95": [
+            0.0422,
+            0.1141
+          ]
+        },
+        "marginalCanonicalAccept": {
+          "count": 6,
+          "total": 200,
+          "rate": 0.03,
+          "wilson95": [
+            0.0138,
+            0.0639
+          ]
+        },
+        "conditional": [
+          {
+            "probeOutcome": "advance",
+            "probeOutcomeRate": {
+              "count": 14,
+              "total": 200,
+              "rate": 0.07,
+              "wilson95": [
+                0.0422,
+                0.1141
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 14,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.2153
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 14,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.2153
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 14,
+              "total": 14,
+              "rate": 1,
+              "wilson95": [
+                0.7847,
+                1
+              ]
+            }
+          },
+          {
+            "probeOutcome": "stop",
+            "probeOutcomeRate": {
+              "count": 4,
+              "total": 200,
+              "rate": 0.02,
+              "wilson95": [
+                0.0078,
+                0.0503
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 4,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.4899
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 4,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.4899
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 4,
+              "total": 4,
+              "rate": 1,
+              "wilson95": [
+                0.5101,
+                1
+              ]
+            }
+          },
+          {
+            "probeOutcome": "unresolved",
+            "probeOutcomeRate": {
+              "count": 182,
+              "total": 200,
+              "rate": 0.91,
+              "wilson95": [
+                0.8622,
+                0.9423
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 6,
+              "total": 182,
+              "rate": 0.033,
+              "wilson95": [
+                0.0152,
+                0.07
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 1,
+              "total": 182,
+              "rate": 0.0055,
+              "wilson95": [
+                0.001,
+                0.0305
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 175,
+              "total": 182,
+              "rate": 0.9615,
+              "wilson95": [
+                0.9227,
+                0.9812
+              ]
+            }
+          }
+        ],
+        "contingency": {
+          "advance": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 14
+          },
+          "stop": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 4
+          },
+          "unresolved": {
+            "accept": 6,
+            "reject": 1,
+            "inconclusive": 175
+          }
+        }
+      },
+      {
+        "targetDelta": 3,
+        "pairedTruthDelta": 3,
+        "marginalProbeAdvance": {
+          "count": 11,
+          "total": 200,
+          "rate": 0.055,
+          "wilson95": [
+            0.031,
+            0.0958
+          ]
+        },
+        "marginalCanonicalAccept": {
+          "count": 10,
+          "total": 200,
+          "rate": 0.05,
+          "wilson95": [
+            0.0274,
+            0.0896
+          ]
+        },
+        "conditional": [
+          {
+            "probeOutcome": "advance",
+            "probeOutcomeRate": {
+              "count": 11,
+              "total": 200,
+              "rate": 0.055,
+              "wilson95": [
+                0.031,
+                0.0958
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 11,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.2588
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 11,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.2588
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 11,
+              "total": 11,
+              "rate": 1,
+              "wilson95": [
+                0.7412,
+                1
+              ]
+            }
+          },
+          {
+            "probeOutcome": "stop",
+            "probeOutcomeRate": {
+              "count": 4,
+              "total": 200,
+              "rate": 0.02,
+              "wilson95": [
+                0.0078,
+                0.0503
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 4,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.4899
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 4,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.4899
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 4,
+              "total": 4,
+              "rate": 1,
+              "wilson95": [
+                0.5101,
+                1
+              ]
+            }
+          },
+          {
+            "probeOutcome": "unresolved",
+            "probeOutcomeRate": {
+              "count": 185,
+              "total": 200,
+              "rate": 0.925,
+              "wilson95": [
+                0.88,
+                0.954
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 10,
+              "total": 185,
+              "rate": 0.0541,
+              "wilson95": [
+                0.0296,
+                0.0966
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 1,
+              "total": 185,
+              "rate": 0.0054,
+              "wilson95": [
+                0.001,
+                0.03
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 174,
+              "total": 185,
+              "rate": 0.9405,
+              "wilson95": [
+                0.8967,
+                0.9665
+              ]
+            }
+          }
+        ],
+        "contingency": {
+          "advance": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 11
+          },
+          "stop": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 4
+          },
+          "unresolved": {
+            "accept": 10,
+            "reject": 1,
+            "inconclusive": 174
+          }
+        }
+      },
+      {
+        "targetDelta": 5,
+        "pairedTruthDelta": 4.9999,
+        "marginalProbeAdvance": {
+          "count": 33,
+          "total": 200,
+          "rate": 0.165,
+          "wilson95": [
+            0.12,
+            0.2227
+          ]
+        },
+        "marginalCanonicalAccept": {
+          "count": 35,
+          "total": 200,
+          "rate": 0.175,
+          "wilson95": [
+            0.1286,
+            0.2336
+          ]
+        },
+        "conditional": [
+          {
+            "probeOutcome": "advance",
+            "probeOutcomeRate": {
+              "count": 33,
+              "total": 200,
+              "rate": 0.165,
+              "wilson95": [
+                0.12,
+                0.2227
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 4,
+              "total": 33,
+              "rate": 0.1212,
+              "wilson95": [
+                0.0482,
+                0.2733
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 33,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.1043
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 29,
+              "total": 33,
+              "rate": 0.8788,
+              "wilson95": [
+                0.7267,
+                0.9518
+              ]
+            }
+          },
+          {
+            "probeOutcome": "stop",
+            "probeOutcomeRate": {
+              "count": 1,
+              "total": 200,
+              "rate": 0.005,
+              "wilson95": [
+                0.0009,
+                0.0278
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.7935
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.7935
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": [
+                0.2065,
+                1
+              ]
+            }
+          },
+          {
+            "probeOutcome": "unresolved",
+            "probeOutcomeRate": {
+              "count": 166,
+              "total": 200,
+              "rate": 0.83,
+              "wilson95": [
+                0.7718,
+                0.8757
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 31,
+              "total": 166,
+              "rate": 0.1867,
+              "wilson95": [
+                0.1348,
+                0.2529
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 166,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0226
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 135,
+              "total": 166,
+              "rate": 0.8133,
+              "wilson95": [
+                0.7471,
+                0.8652
+              ]
+            }
+          }
+        ],
+        "contingency": {
+          "advance": {
+            "accept": 4,
+            "reject": 0,
+            "inconclusive": 29
+          },
+          "stop": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 1
+          },
+          "unresolved": {
+            "accept": 31,
+            "reject": 0,
+            "inconclusive": 135
+          }
+        }
+      },
+      {
+        "targetDelta": 8,
+        "pairedTruthDelta": 7.9999,
+        "marginalProbeAdvance": {
+          "count": 52,
+          "total": 200,
+          "rate": 0.26,
+          "wilson95": [
+            0.2041,
+            0.3249
+          ]
+        },
+        "marginalCanonicalAccept": {
+          "count": 122,
+          "total": 200,
+          "rate": 0.61,
+          "wilson95": [
+            0.5409,
+            0.6749
+          ]
+        },
+        "conditional": [
+          {
+            "probeOutcome": "advance",
+            "probeOutcomeRate": {
+              "count": 52,
+              "total": 200,
+              "rate": 0.26,
+              "wilson95": [
+                0.2041,
+                0.3249
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 35,
+              "total": 52,
+              "rate": 0.6731,
+              "wilson95": [
+                0.5376,
+                0.7848
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 52,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0688
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 17,
+              "total": 52,
+              "rate": 0.3269,
+              "wilson95": [
+                0.2152,
+                0.4624
+              ]
+            }
+          },
+          {
+            "probeOutcome": "stop",
+            "probeOutcomeRate": {
+              "count": 0,
+              "total": 200,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0188
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 0,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 0,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 0,
+              "total": 0,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0
+              ]
+            }
+          },
+          {
+            "probeOutcome": "unresolved",
+            "probeOutcomeRate": {
+              "count": 148,
+              "total": 200,
+              "rate": 0.74,
+              "wilson95": [
+                0.6751,
+                0.7959
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 87,
+              "total": 148,
+              "rate": 0.5878,
+              "wilson95": [
+                0.5073,
+                0.6639
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 148,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0253
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 61,
+              "total": 148,
+              "rate": 0.4122,
+              "wilson95": [
+                0.3361,
+                0.4927
+              ]
+            }
+          }
+        ],
+        "contingency": {
+          "advance": {
+            "accept": 35,
+            "reject": 0,
+            "inconclusive": 17
+          },
+          "stop": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 0
+          },
+          "unresolved": {
+            "accept": 87,
+            "reject": 0,
+            "inconclusive": 61
+          }
+        }
+      },
+      {
+        "targetDelta": 12,
+        "pairedTruthDelta": 11.9999,
+        "marginalProbeAdvance": {
+          "count": 101,
+          "total": 200,
+          "rate": 0.505,
+          "wilson95": [
+            0.4363,
+            0.5735
+          ]
+        },
+        "marginalCanonicalAccept": {
+          "count": 176,
+          "total": 200,
+          "rate": 0.88,
+          "wilson95": [
+            0.8277,
+            0.918
+          ]
+        },
+        "conditional": [
+          {
+            "probeOutcome": "advance",
+            "probeOutcomeRate": {
+              "count": 101,
+              "total": 200,
+              "rate": 0.505,
+              "wilson95": [
+                0.4363,
+                0.5735
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 84,
+              "total": 101,
+              "rate": 0.8317,
+              "wilson95": [
+                0.7469,
+                0.8922
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 101,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0366
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 17,
+              "total": 101,
+              "rate": 0.1683,
+              "wilson95": [
+                0.1078,
+                0.2531
+              ]
+            }
+          },
+          {
+            "probeOutcome": "stop",
+            "probeOutcomeRate": {
+              "count": 0,
+              "total": 200,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0188
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 0,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 0,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 0,
+              "total": 0,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0
+              ]
+            }
+          },
+          {
+            "probeOutcome": "unresolved",
+            "probeOutcomeRate": {
+              "count": 99,
+              "total": 200,
+              "rate": 0.495,
+              "wilson95": [
+                0.4265,
+                0.5637
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 92,
+              "total": 99,
+              "rate": 0.9293,
+              "wilson95": [
+                0.8612,
+                0.9653
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 99,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0374
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 7,
+              "total": 99,
+              "rate": 0.0707,
+              "wilson95": [
+                0.0347,
+                0.1388
+              ]
+            }
+          }
+        ],
+        "contingency": {
+          "advance": {
+            "accept": 84,
+            "reject": 0,
+            "inconclusive": 17
+          },
+          "stop": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 0
+          },
+          "unresolved": {
+            "accept": 92,
+            "reject": 0,
+            "inconclusive": 7
+          }
+        }
+      },
+      {
+        "targetDelta": -5,
+        "pairedTruthDelta": -5,
+        "marginalProbeAdvance": {
+          "count": 0,
+          "total": 200,
+          "rate": 0,
+          "wilson95": [
+            0,
+            0.0188
+          ]
+        },
+        "marginalCanonicalAccept": {
+          "count": 0,
+          "total": 200,
+          "rate": 0,
+          "wilson95": [
+            0,
+            0.0188
+          ]
+        },
+        "conditional": [
+          {
+            "probeOutcome": "advance",
+            "probeOutcomeRate": {
+              "count": 0,
+              "total": 200,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0188
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 0,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 0,
+              "total": 0,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 0,
+              "total": 0,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0
+              ]
+            }
+          },
+          {
+            "probeOutcome": "stop",
+            "probeOutcomeRate": {
+              "count": 32,
+              "total": 200,
+              "rate": 0.16,
+              "wilson95": [
+                0.1157,
+                0.2171
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 32,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.1072
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 7,
+              "total": 32,
+              "rate": 0.2188,
+              "wilson95": [
+                0.1102,
+                0.3875
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 25,
+              "total": 32,
+              "rate": 0.7813,
+              "wilson95": [
+                0.6125,
+                0.8898
+              ]
+            }
+          },
+          {
+            "probeOutcome": "unresolved",
+            "probeOutcomeRate": {
+              "count": 168,
+              "total": 200,
+              "rate": 0.84,
+              "wilson95": [
+                0.7829,
+                0.8843
+              ]
+            },
+            "canonicalAcceptGivenProbe": {
+              "count": 0,
+              "total": 168,
+              "rate": 0,
+              "wilson95": [
+                0,
+                0.0224
+              ]
+            },
+            "canonicalRejectGivenProbe": {
+              "count": 38,
+              "total": 168,
+              "rate": 0.2262,
+              "wilson95": [
+                0.1695,
+                0.2952
+              ]
+            },
+            "canonicalInconclusiveGivenProbe": {
+              "count": 130,
+              "total": 168,
+              "rate": 0.7738,
+              "wilson95": [
+                0.7048,
+                0.8305
+              ]
+            }
+          }
+        ],
+        "contingency": {
+          "advance": {
+            "accept": 0,
+            "reject": 0,
+            "inconclusive": 0
+          },
+          "stop": {
+            "accept": 0,
+            "reject": 7,
+            "inconclusive": 25
+          },
+          "unresolved": {
+            "accept": 0,
+            "reject": 38,
+            "inconclusive": 130
+          }
+        }
+      }
+    ]
+  }
+}

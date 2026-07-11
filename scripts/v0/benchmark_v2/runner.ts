@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { availableParallelism, arch, cpus, platform } from "node:os";
 import { dirname, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
@@ -135,6 +135,7 @@ export async function runBenchmarkV2(
   );
   const outputPath = resolve(argument("out") ?? defaultOutput(mode, profileName));
   const checkpointPath = resolve(argument("checkpoint") ?? `${outputPath}.checkpoint.jsonl`);
+  acquireRunLock(outputPath);
   const linkedDevelopmentPath = argument("development-archive") === undefined
     ? undefined
     : resolve(argument("development-archive")!);
@@ -362,21 +363,17 @@ export async function runBenchmarkV2(
     runs: scored,
   };
   const archiveBytes = Buffer.from(`${JSON.stringify(archive, null, 2)}\n`);
-  const archiveSha256 = sha256(archiveBytes);
-  const compressedBytes = gzipSync(archiveBytes, { level: 9 });
-  const compressedArchiveSha256 = sha256(compressedBytes);
-  writeFileSync(outputPath, archiveBytes);
-  writeFileSync(`${outputPath}.gz`, compressedBytes);
-  writeFileSync(`${outputPath}.sha256`, `${archiveSha256}  ${relativeToCwd(outputPath)}\n`);
-  writeFileSync(`${outputPath}.gz.sha256`, `${compressedArchiveSha256}  ${relativeToCwd(`${outputPath}.gz`)}\n`);
-  const summaryPath = `${outputPath}.summary.json`;
+  const workerFailures = results.filter((result) => result.status !== "ok").length;
+  const failed = workerFailures > 0;
+  const { archiveOut, summaryPath, archiveSha256, compressedArchiveSha256 } =
+    writeArchiveArtifacts(outputPath, archiveBytes, failed);
   writeFileSync(summaryPath, `${JSON.stringify({
     schema: SUMMARY_SCHEMA,
     mode,
     profile: profileName,
     generatedAt: archive.generatedAt,
-    archive: relativeToCwd(outputPath),
-    compressedArchive: relativeToCwd(`${outputPath}.gz`),
+    archive: relativeToCwd(archiveOut),
+    compressedArchive: relativeToCwd(`${archiveOut}.gz`),
     archiveSha256,
     compressedArchiveSha256,
     suiteFingerprint: suiteId.suiteFingerprint,
@@ -413,14 +410,16 @@ export async function runBenchmarkV2(
   }
   if (headline !== null) console.log(`  canonical headline: ${headline.toFixed(2)}`);
   if (qualificationMonitorScore !== null) console.log(`  qualification monitor: ${qualificationMonitorScore.toFixed(2)}`);
-  console.log(`  archive: ${relativeToCwd(outputPath)} (${archiveSha256.slice(0, 16)})`);
-  console.log(`  compressed: ${relativeToCwd(`${outputPath}.gz`)}`);
+  console.log(`  archive: ${relativeToCwd(archiveOut)} (${archiveSha256.slice(0, 16)})`);
+  console.log(`  compressed: ${relativeToCwd(`${archiveOut}.gz`)}`);
   console.log(`  summary: ${relativeToCwd(summaryPath)}`);
-  const workerFailures = results.filter((result) => result.status !== "ok").length;
-  if (workerFailures > 0) process.exitCode = 1;
+  if (failed) {
+    console.error(`  FAILED: ${workerFailures} worker failure(s); archive retained at ${relativeToCwd(archiveOut)}; re-run with --resume to retry the failed tasks`);
+    process.exitCode = 1;
+  }
   return {
     mode,
-    outputPath,
+    outputPath: archiveOut,
     summaryPath,
     archiveSha256,
     compressedArchiveSha256,
@@ -555,13 +554,15 @@ function runTask(task: WorkerTask): Promise<WorkerResult> {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
-      done({
+      const result: WorkerResult = {
         status: "error",
         task,
         elapsedMs: performance.now() - started,
         error: error.stack ?? error.message,
         authoredContacts: 0,
-      });
+      };
+      // Do not release this pool slot until the thread and its engine memory are gone.
+      void worker.terminate().then(() => done(result), () => done(result));
     });
   });
 }
@@ -728,6 +729,66 @@ function nonNegativeInteger(value: string, label: string): number {
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < 0) throw new Error(`${label} must be a non-negative integer`);
   return parsed;
+}
+
+/**
+ * A failed run must never look complete on disk: the archive lands at a
+ * .failed path with NO checksum sidecars (decision loaders require the
+ * sidecar, so it cannot be consumed accidentally); the checkpoint is kept
+ * so --resume retries the failures.
+ */
+export function writeArchiveArtifacts(
+  outputPath: string,
+  archiveBytes: Buffer,
+  failed: boolean,
+): { archiveOut: string; summaryPath: string; archiveSha256: string; compressedArchiveSha256: string } {
+  const archiveSha256 = sha256(archiveBytes);
+  const compressedBytes = gzipSync(archiveBytes, { level: 9 });
+  const compressedArchiveSha256 = sha256(compressedBytes);
+  const archiveOut = failed ? `${outputPath}.failed` : outputPath;
+  writeFileSync(archiveOut, archiveBytes);
+  writeFileSync(`${archiveOut}.gz`, compressedBytes);
+  if (!failed) {
+    writeFileSync(`${outputPath}.sha256`, `${archiveSha256}  ${relativeToCwd(outputPath)}\n`);
+    writeFileSync(`${outputPath}.gz.sha256`, `${compressedArchiveSha256}  ${relativeToCwd(`${outputPath}.gz`)}\n`);
+  }
+  return {
+    archiveOut,
+    summaryPath: failed ? `${outputPath}.failed.summary.json` : `${outputPath}.summary.json`,
+    archiveSha256,
+    compressedArchiveSha256,
+  };
+}
+
+/**
+ * Two concurrent runs sharing one --out would interleave the same checkpoint
+ * JSONL and clobber each other's archives. An exclusive pid lockfile refuses
+ * the second run while the first is alive and steals stale locks from dead
+ * processes; it is removed on any exit.
+ */
+export function acquireRunLock(outputPath: string): void {
+  const lockPath = `${outputPath}.lock`;
+  const payload = `${JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() })}\n`;
+  try {
+    writeFileSync(lockPath, payload, { flag: "wx" });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    const holder = JSON.parse(readFileSync(lockPath, "utf8"));
+    let alive = false;
+    try {
+      process.kill(holder.pid, 0);
+      alive = true;
+    } catch {
+      alive = false;
+    }
+    if (alive) {
+      throw new Error(`another benchmark run (pid ${holder.pid}, started ${holder.startedAt}) is writing ${relativeToCwd(outputPath)}; pass a distinct --out=`);
+    }
+    writeFileSync(lockPath, payload);
+  }
+  process.on("exit", () => {
+    rmSync(lockPath, { force: true });
+  });
 }
 
 function defaultOutput(mode: RunnerMode, profile: string): string {

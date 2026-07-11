@@ -107,5 +107,6 @@ function printHelp(): void {
     `  npm run benchmark -- prepare     Regenerate and validate catalog evidence\n` +
     `  npm run benchmark -- explain <archive.json>\n\n` +
     `Probe decisions are reusable screening only; canonical is a predeclared one-shot promotion gate. Qualification is an indicative sidecar.\n` +
+    `Decide exit codes: 0 favorable (advance/accept), 2 unresolved/inconclusive, 3 unfavorable (stop/reject), 1 invalid invocation or integrity failure; 4 is reserved for the eval chain's futility stop.\n` +
     `Compiler execution defaults to 48 workers and prints resource samples every five seconds.`);
 }

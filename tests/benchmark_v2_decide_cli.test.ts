@@ -31,7 +31,7 @@ describe("Benchmark V2 decision command", () => {
     const artifact = JSON.parse(readFileSync(out, "utf8"));
 
     expect(exitCode).toBe(0);
-    expect(artifact.schema).toBe("line.benchmark-v2.decision.v3");
+    expect(artifact.schema).toBe("line.benchmark-v2.decision.v4");
     expect(artifact.result.outcome).toBe("unresolved");
     expect(artifact.result.promotable).toBe(false);
     expect(artifact.implementationFingerprintsMatch).toBe(true);

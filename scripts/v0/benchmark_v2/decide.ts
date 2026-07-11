@@ -11,6 +11,7 @@ import {
 } from "../../../benchmark/v2/decision-policy.ts";
 import {
   pairedV2Decision,
+  studentTQuantile,
   type DecisionMode,
   type DecisionProfile,
   type DecisionRun,
@@ -54,7 +55,7 @@ import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 
-const DECISION_SCHEMA = "line.benchmark-v2.decision.v3" as const;
+const DECISION_SCHEMA = "line.benchmark-v2.decision.v4" as const;
 const BASELINE_SCHEMA = "line.benchmark-v2.baseline-reference.v9" as const;
 const DEFAULT_BASELINE_PATH = "benchmark/v2/baseline.json";
 const PROBE_BASELINE_SCHEMA = "line.benchmark-v2.probe-baseline-reference.v1" as const;
@@ -121,6 +122,8 @@ export type DecisionArtifact = {
   implementationFingerprintsMatch: boolean;
   runnerCompatibilityApproval: RunnerCompatibilityApproval | null;
   result: V2Decision;
+  hint: string | null;
+  nextCommand: string;
 };
 
 type ArchiveReference = {
@@ -181,6 +184,8 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
   });
   assertStoredHeadline(base.archive, result.baseHeadline, "base");
   assertStoredHeadline(candidate.archive, result.candidateHeadline, "candidate");
+  const hint = underPoweredHint(result, suite.profiles[profile].seeds_per_budget);
+  const nextCommand = nextCommandFor(result);
 
   const artifact: DecisionArtifact = {
     schema: DECISION_SCHEMA,
@@ -194,6 +199,8 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
       base.archive.identity.implementationFingerprint === candidate.archive.identity.implementationFingerprint,
     runnerCompatibilityApproval: compatibilityApproval,
     result,
+    hint,
+    nextCommand,
   };
   const outPath = resolve(args.outPath ?? defaultOutput(candidate, baselineResolution.label, args.mode, args.margin));
   writeDecisionArtifact(outPath, artifact);
@@ -635,7 +642,47 @@ function assertStoredHeadline(archive: any, recomputed: number, label: string): 
   }
 }
 
-function renderDecision(artifact: DecisionArtifact, outPath: string): string {
+/**
+ * Positive-but-unresolved verdicts get an indicative resolution estimate:
+ * the seed depth at which an effect of the observed size would typically
+ * clear the one-sided bound at 80% power. Output-only; no policy weight.
+ */
+export function underPoweredHint(result: V2Decision, seedsPerBudget: number): string | null {
+  const unresolved = result.outcome === "unresolved" || result.outcome === "inconclusive";
+  const se = result.uncertainty.seed.standardError;
+  const df = result.uncertainty.seed.degreesOfFreedom ?? Infinity;
+  const distance = result.delta - result.threshold;
+  if (!unresolved || distance <= 0 || se <= 0) return null;
+  const requiredSe = distance / (studentTQuantile(1 - result.criticalAlpha, df) + 0.8416212335729143);
+  const suggestedDepth = Math.ceil(seedsPerBudget * (se / requiredSe) ** 2);
+  if (suggestedDepth <= seedsPerBudget) return null;
+  return `delta ${formatSigned(result.delta)} is positive but under-powered at ${seedsPerBudget} seeds/budget; ` +
+    `an effect of this size would typically resolve at ~${suggestedDepth} seeds/budget (indicative; see the power grid)`;
+}
+
+export function nextCommandFor(result: V2Decision): string {
+  const modeFlags = result.mode === "simplification"
+    ? ` --decision-mode=simplification --margin=${result.margin}`
+    : "";
+  const decideFlags = result.mode === "simplification"
+    ? ` --mode=simplification --margin=${result.margin}`
+    : "";
+  switch (result.outcome) {
+    case "advance":
+      return `npm run benchmark -- canonical${modeFlags}`;
+    case "accept":
+      return `npm run benchmark -- baseline --label=<new-baseline-label>`;
+    case "unresolved":
+    case "inconclusive":
+      return result.authority === "screening"
+        ? `npm run benchmark -- canonical${modeFlags}  # if the mechanism is worth canonical evidence despite the unresolved screen`
+        : `npm run benchmark -- decide <fresh-canonical-archive>${decideFlags}  # a retry requires a new predeclared attempt on fresh seeds`;
+    default:
+      return `npm run benchmark -- probe --out=generated/benchmark-v2/candidates/<next-iteration>-probe.json`;
+  }
+}
+
+export function renderDecision(artifact: DecisionArtifact, outPath: string): string {
   const result = artifact.result;
   const central = result.confidence;
   const thresholdText = result.mode === "improvement"
@@ -685,11 +732,13 @@ function renderDecision(artifact: DecisionArtifact, outPath: string): string {
     ...caseLines,
     `  OUTCOME: ${result.outcome.toUpperCase()}` +
       (result.authority === "screening" ? " (screening only; canonical evidence is required)" : ""),
+    ...(artifact.hint === null ? [] : [`  hint: ${artifact.hint}`]),
     `  artifact: ${relativeToCwd(outPath)}`,
+    `  nextCommand: ${artifact.nextCommand}`,
   ];
   if (!artifact.implementationFingerprintsMatch) {
     lines.splice(
-      lines.length - 2,
+      lines.findIndex((line) => line.startsWith("  OUTCOME:")),
       0,
       `  runner compatibility: approved by ${artifact.runnerCompatibilityApproval!.reviewedBy}`,
     );
@@ -716,10 +765,27 @@ function defaultOutput(
   return `generated/benchmark-v2/decisions/${stem}-${candidate.archiveSha256.slice(0, 8)}-vs-${safeBaseline}-${policy}.json`;
 }
 
-function outcomeExitCode(outcome: V2Decision["outcome"]): number {
-  if (outcome === "advance" || outcome === "accept") return 0;
-  if (outcome === "unresolved" || outcome === "inconclusive") return 2;
-  return 3;
+/**
+ * The frozen decision exit-code contract (protocol-fingerprinted):
+ *   0 = favorable verdict (advance / accept)
+ *   2 = unresolved or inconclusive (evidence did not resolve the question)
+ *   3 = unfavorable verdict (stop / reject)
+ *   1 = invalid invocation or integrity failure (thrown before any verdict)
+ *   4 = reserved for the eval chain's futility stop (never emitted here)
+ * Agents may branch on these codes without parsing output.
+ */
+export const DECISION_EXIT_CODES = Object.freeze({
+  favorable: 0,
+  invalid: 1,
+  unresolved: 2,
+  unfavorable: 3,
+  futilityStop: 4,
+} as const);
+
+export function outcomeExitCode(outcome: V2Decision["outcome"]): number {
+  if (outcome === "advance" || outcome === "accept") return DECISION_EXIT_CODES.favorable;
+  if (outcome === "unresolved" || outcome === "inconclusive") return DECISION_EXIT_CODES.unresolved;
+  return DECISION_EXIT_CODES.unfavorable;
 }
 
 function readSidecarSha(path: string): string | undefined {

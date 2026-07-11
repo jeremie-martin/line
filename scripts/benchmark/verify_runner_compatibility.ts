@@ -20,6 +20,7 @@ import { dirname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { benchmarkV2Paths, prepareBenchmarkV2 } from "./prepare.ts";
 import { runSnapshotBenchmark } from "../v0/benchmark_v2/compiler_snapshot.ts";
+import { compareArchiveRows } from "../v0/benchmark_v2/runner_compatibility.ts";
 
 const REPO = resolve(dirname(new URL(import.meta.url).pathname), "..", "..");
 
@@ -78,56 +79,13 @@ if (fromFingerprint === toFingerprint) {
   process.exit(0);
 }
 
-type CanonicalRow = {
-  task: unknown;
-  report: unknown;
-  score: unknown;
-  trackHash: unknown;
-  authoredContacts: unknown;
-};
-
-function canonicalRows(archive: any, label: string): Map<string, string> {
-  const map = new Map<string, string>();
-  for (const run of archive.runs ?? []) {
-    if (run.status !== "ok") throw new Error(`${label}: non-ok run ${run.task?.sourceId}`);
-    const key = `${run.task.sourceId}\0${run.task.budget}\0${run.task.seedSlot}\0${run.task.actualSeed}`;
-    const row: CanonicalRow = {
-      // Semantic task fields only: the manifest paths are machine-local
-      // absolute paths whose CONTENT is already bound by the suite and
-      // source fingerprints.
-      task: {
-        mode: run.task.mode,
-        sourceId: run.task.sourceId,
-        budget: run.task.budget,
-        seedSlot: run.task.seedSlot,
-        actualSeed: run.task.actualSeed,
-        joltMs: run.task.joltMs,
-      },
-      report: run.report,
-      score: run.score,
-      trackHash: run.trackHash,
-      authoredContacts: run.authoredContacts,
-    };
-    map.set(key, JSON.stringify(row));
-  }
-  return map;
-}
-
-const retainedRows = canonicalRows(retained, "retained");
-const replayRows = canonicalRows(replay, "replay");
-if (retainedRows.size !== replayRows.size) {
-  throw new Error(`row counts differ: retained ${retainedRows.size} vs replay ${replayRows.size}`);
-}
-const mismatches: string[] = [];
-for (const [key, row] of retainedRows) {
-  if (replayRows.get(key) !== row) mismatches.push(key.replaceAll("\0", "/"));
-}
+const { comparedRows, mismatches } = compareArchiveRows(retained, replay);
 if (mismatches.length > 0) {
   console.error(`NOT bit-identical: ${mismatches.length} rows differ; first: ${mismatches[0]}`);
   console.error(`a differing row means the runner change altered compiler behavior — this is NOT approvable as operational-only`);
   process.exit(1);
 }
-console.log(`bit-identical: ${retainedRows.size}/${retainedRows.size} rows match (task, report, score, trackHash, authoredContacts)`);
+console.log(`bit-identical: ${comparedRows}/${comparedRows} rows match (task, report, score, trackHash, authoredContacts)`);
 
 const evidence = {
   schema: "line.benchmark-v2.runner-compat-evidence.v1",
@@ -144,7 +102,7 @@ const evidence = {
     compressedSha256: replayRun.compressedArchiveSha256,
     headline: replayRun.headline,
   },
-  comparedRows: retainedRows.size,
+  comparedRows,
   comparedFields: ["task", "report", "score", "trackHash", "authoredContacts"],
   result: "bit-identical",
 };

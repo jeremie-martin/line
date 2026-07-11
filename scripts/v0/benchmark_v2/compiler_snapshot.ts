@@ -156,6 +156,9 @@ export function runSnapshotBenchmark(
     }
   }
   const absoluteOutput = resolve(outputPath);
+  if (!existsSync(absoluteOutput) && existsSync(`${absoluteOutput}.failed`)) {
+    throw new Error(`snapshot run had worker failures; failed archive retained at ${absoluteOutput}.failed (re-run with --resume to retry)`);
+  }
   const archiveBytes = readFileSync(absoluteOutput);
   const archive = JSON.parse(archiveBytes.toString("utf8"));
   const compressedBytes = readFileSync(`${absoluteOutput}.gz`);

@@ -1,0 +1,9 @@
+{
+  "schema": "line.benchmark-v2.study-provenance.v1",
+  "artifact": "benchmark/v2/studies/holdout-validation.json",
+  "artifactSha256": "67ece6290276abc3db594c59cc1b0a90bc70d8bda5fd86f5a0e151d9d1b43354",
+  "generatedAt": "2026-07-11T19:48:35.957Z",
+  "runtimeSeconds": 597.96,
+  "workers": 48,
+  "command": "node --import tsx scripts/benchmark/validate_independent_reference.ts"
+}

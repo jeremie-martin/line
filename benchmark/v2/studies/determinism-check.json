@@ -1,18 +1,18 @@
 {
   "schema": "line.benchmark-v2.determinism-check.v1",
   "reference": {
-    "path": "benchmark/v2/runs/calibration-v2.4-independent-reference-seeds-12-23.json.gz",
-    "artifactSha256": "11271025209c1b10f081402be5385fb6a95575cc85c1845db5e2451ee8e35ad9"
+    "path": "benchmark/v2/runs/calibration-v2.4-holdout-reference-seeds-36-47.json.gz",
+    "artifactSha256": "acd56f2a34f8164098822ecba735a0242174d08802ba04694de499e5e8884a09"
   },
   "recheck": {
-    "path": "generated/benchmark-v2/studies/independent-reference-recheck.json",
-    "artifactSha256": "f8b774b533c751be093fef570d360d599ba70c904143d9c0c4f7a54dda992956",
+    "path": "generated/benchmark-v2/studies/holdout-recheck.json",
+    "artifactSha256": "e2589a9605b74c847c1496625f4a43a3a537c2bedaa57c80b9be99a823628adf",
     "budgets": [
       250000
     ],
     "seeds": [
-      12,
-      13
+      36,
+      37
     ]
   },
   "cells": 84,
@@ -24,506 +24,506 @@
     {
       "sourceId": "amplitude_tides_restrained_10",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "787c912933e1c8d342408edf966b41e4c5b2b3fb4d6ab524c5e60653b19fa0ae"
+      "actualSeed": 36,
+      "trackHash": "a9b702d820e66bd5ded7e1cdce368be316998a068051aa443051f16f96315741"
     },
     {
       "sourceId": "amplitude_tides_restrained_10",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "2a844a6456dd2342b337e943ed0bf12d079835b0bf2084fea5725cc0c69ef95f"
+      "actualSeed": 37,
+      "trackHash": "7c4ac986ae050917e50835fc1b06cb0a8419f134347b693e67c87086ee530a8f"
     },
     {
       "sourceId": "amplitude_tides",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "210f03909dba4598fc238d36b7cfb8cfbf727bef5af070a50cb7ff6c5c7e50af"
+      "actualSeed": 36,
+      "trackHash": "40c3a0b88587bce25b887e7682537c24896b7361926ed32094a66b8df528bfea"
     },
     {
       "sourceId": "amplitude_tides",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "03054fbd5637e05d5c3734f20623428080b609eb82cd2179c73755e34764f6f1"
+      "actualSeed": 37,
+      "trackHash": "6d3c8ff7d7f1d211c38172351e48d307eb13a939818541e09206208027e3df14"
     },
     {
       "sourceId": "believer_56_6s_impact_relief",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "41a3d509bfb3fb2bd2352df29a6f6c69aab3b4751628a887090d69a467bc36fd"
+      "actualSeed": 36,
+      "trackHash": "a76f8f3e87487256a8e6845119cfc108a6c72e1a60a40fc9dd7eb89dd007bf78"
     },
     {
       "sourceId": "believer_56_6s_impact_relief",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "a231021826223f54e5f554c17167e4609eb3692ba98840a95c1eb1db87648a31"
+      "actualSeed": 37,
+      "trackHash": "e8c7ebd42a661638d4fa335e80bad785e5cc429e1c2c9b6a6fef6669d00ae3b9"
     },
     {
       "sourceId": "believer_56_6s",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "a08dc53fbd34083a09577ea0c53e4d4620e08d03096525d0645a979b7ba06e40"
+      "actualSeed": 36,
+      "trackHash": "02732352c5c9042bd4ff811bca57e9aaa9b1414adbf433ae168792ba23ff82c3"
     },
     {
       "sourceId": "believer_56_6s",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "2cb28bf1899aeca0f0870769abbdf96e58b12f9ce50fe40f23972ccebeb28b55"
+      "actualSeed": 37,
+      "trackHash": "099ee3cceb3baa299093c227fc12e62d30cd59891d664df7cdfa0a4b1ffe6942"
     },
     {
       "sourceId": "believer_impact_56s_amplitude_plus_5",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "cfe28ccf66b3ab28d244304b7c70c05a8ecc2da2458a18c2631a4a005641caff"
+      "actualSeed": 36,
+      "trackHash": "e4bcafe68ab59c9e3fc14ba56820e4b03101c715bb134a6c0f6d0307c6b2ca49"
     },
     {
       "sourceId": "believer_impact_56s_amplitude_plus_5",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "c6d1064ae513481f458ce1f9570612c561432706b97ba743a86a65e55b72ecc4"
+      "actualSeed": 37,
+      "trackHash": "03d99ad1d3fde81c9071ed547162151e6a4817fdc16e90a42fef41b0ce3674f8"
     },
     {
       "sourceId": "believer_impact_56s",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "e7f4bbc63580e7bf86c820bd0f9494494fa3d27df9641a239f0fe93bd640e1ae"
+      "actualSeed": 36,
+      "trackHash": "1f8d52f07b150de79f7a63ea5138188bbe184e39665363015925a5ac503f16f6"
     },
     {
       "sourceId": "believer_impact_56s",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "b30c5aa09327f1e18954eb402183ae9c33d1962945e86c83e9a57a52b481d064"
+      "actualSeed": 37,
+      "trackHash": "5ac689b4177e5fa00374ba87264ce88e0866bde665336bbe002ac9147c732cd2"
     },
     {
       "sourceId": "countercurrent_impact_contrast_12",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "099c5cf025419b686d9ddf4182f3e65cc155cc179b1fe8d3a3e796918b7262ce"
+      "actualSeed": 36,
+      "trackHash": "e468f573dbde156d19414f6313d68630e9c926a252dff131c9d924bd11b59937"
     },
     {
       "sourceId": "countercurrent_impact_contrast_12",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "632e745b42fed2389a02edc3f52474a6e2f40cac12dc394db794cc04f7a1dda3"
+      "actualSeed": 37,
+      "trackHash": "5cb700b6c12d680bb3d6f880fa49341f5171302b9e1c8fd8d407bc3fdfd76fc8"
     },
     {
       "sourceId": "countercurrent",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "207642869f1b99202994c400c03c839a1a3af3f4b7283ad582323848a49e7804"
+      "actualSeed": 36,
+      "trackHash": "12a9af0e5494f6f2cd6fb31b2b6f0320c78e122a2d455385636d3a39f09a0747"
     },
     {
       "sourceId": "countercurrent",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "0cd2f53259476f9c7252eb49aafa2ff13ae6e7677468530ac0219001b055502f"
+      "actualSeed": 37,
+      "trackHash": "05a81eebe01c5bc9a0d98980c432ee35b2d6777d6fdd3567b5a52c1c57dd91c8"
     },
     {
       "sourceId": "dense_dialogue_impact_contrast_10",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "9b7a7bcfb76a4e2f8bf1d412bc87ffc487568c21bfe80c808fb5459b5b557e05"
+      "actualSeed": 36,
+      "trackHash": "5e31c7f60e45d7b6ecc399dde60ad280cd5bbdcab9e065700d01d7cfaf76f74f"
     },
     {
       "sourceId": "dense_dialogue_impact_contrast_10",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "6f3f5aefb9aa227da0da8b755a80412e8ada72bec33cf8a109903d0a3d4abaf4"
+      "actualSeed": 37,
+      "trackHash": "98d22d8de8e9d4022f028a64a0007a2b07d73913f2aae019cbecb901a8c6b519"
     },
     {
       "sourceId": "dense_dialogue",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "31421bbb06f4928de386a396b54eb2818df00b1d5c65e219c0170e968eacacc1"
+      "actualSeed": 36,
+      "trackHash": "fb0f48da3014366c6789ad3d11a7984bdd650af9948be5b361cb0aeca960a997"
     },
     {
       "sourceId": "dense_dialogue",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "bf6690fcaaaf1f5e7a72b075ab80934069975485bf96daec14bd512d952e7fce"
+      "actualSeed": 37,
+      "trackHash": "51b21102cd1b265193b81da0a4af4417e02df32d8897f09558d9e9fdbf04e33d"
     },
     {
       "sourceId": "frontier_dense_recovery_240ms_figures",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "2c9babe16c7371094da0fa90e48d9037dac2eb02c7aaf4aa53eb15b84164d79b"
+      "actualSeed": 36,
+      "trackHash": "ae00e33b6e1bb13663a271da7a7dd1b291871f3d9db286a447fdb45a967b9af0"
     },
     {
       "sourceId": "frontier_dense_recovery_240ms_figures",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "34bd20ca46efe8faa6cce76b8251bff9b26c7fc171d3d829870727c0261b5e05"
+      "actualSeed": 37,
+      "trackHash": "95c0f9606ef4edee02d7f3c537e8ad5591817d618343c15f7c1f157808f44cc1"
     },
     {
       "sourceId": "frontier_dense_recovery",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "e7bd69ea33eba46bd4a7a096e75684297f70b86ead55f2faa2d262ca52d609d5"
+      "actualSeed": 36,
+      "trackHash": "c6cd480d63d1bbf91386932ab2f0f8d3b30cf8a8413bea2779ecabe0354458e7"
     },
     {
       "sourceId": "frontier_dense_recovery",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "76ee17d338c7cf411221f9a6778c0b3a3331dfdb1b7ebe2cd94caa40e7556d86"
+      "actualSeed": 37,
+      "trackHash": "8dc6ef91bdfdfcb26b7bfc944653b586ad73dcdbd5f9701faadd19439142a60e"
     },
     {
       "sourceId": "frontier_low_air_endurance_4s",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "e5453e09e92e13f48d7631884a8c6b741e90b9a6414b7a9142d8c611c3880c00"
+      "actualSeed": 36,
+      "trackHash": "20a8bc43d5def3c608e1355c9d781c586d8700231ab8c92d23b96ddfe1610ab8"
     },
     {
       "sourceId": "frontier_low_air_endurance_4s",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "546826640b179bb22dbe6690ca568a4a28646b37d9cfc392bdc561aa78d8eb38"
+      "actualSeed": 37,
+      "trackHash": "ff2850311f26c85b93f5fe72249fd25122e03a58f04493add23150fc5ef99aeb"
     },
     {
       "sourceId": "frontier_low_air_endurance",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "46221c59e19cbcaa50c45a885f66f89fb35237f13cbd6c12140cbaa037d8fd8b"
+      "actualSeed": 36,
+      "trackHash": "d7cc7914646a394861031f6516a5e66a1a2b9d1cd40f92064ae4a4cc87fd96e0"
     },
     {
       "sourceId": "frontier_low_air_endurance",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "dd8337ca7616b9fc06ef8223960e6008c25b73c0de289bc51d76f3e596229a7b"
+      "actualSeed": 37,
+      "trackHash": "9f23f740a9417b0952e575e20705524edcf5283c563909d3798ce9bbe3137885"
     },
     {
       "sourceId": "frontier_pickup_progression_shifted",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "63387b8e7d44982d175fa8c213be52e4d7479ac33f45a60d4bc7ba3f7712f296"
+      "actualSeed": 36,
+      "trackHash": "97ba12f19d33306fb535e88f8ae9ef557c94eb71ff1838ea98cfdef47682f83c"
     },
     {
       "sourceId": "frontier_pickup_progression_shifted",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "0387e64a7483a847d9c7f95c651f19b7b523534a56da5b5ff757c596f8d8073b"
+      "actualSeed": 37,
+      "trackHash": "8539d916ea7f875db92210f01fcae5e81b790a313312300bfaa32b4a85f93161"
     },
     {
       "sourceId": "frontier_pickup_progression",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "5cfc75dd4acce02931bdfb6ddceac3f0f9553569ab524162bb7faefd6b003a08"
+      "actualSeed": 36,
+      "trackHash": "135655ff59c5e7f5f6f388e51b334a4316b4da32d84706f6bca2fe1f81073394"
     },
     {
       "sourceId": "frontier_pickup_progression",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "8f8da0f68609d4d0eabca4b26f46571ae301ab39a5ca854ffbe9b9e048584207"
+      "actualSeed": 37,
+      "trackHash": "ab8e26e6bfb43d7c1182d3b9639e8cd06a354196766fa47edf6faf8864c500e8"
     },
     {
       "sourceId": "high_air_drive_air_minus_5",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "1d0ad403312ed8374aa47170434b83235e114a3aee747f9563d86c5beb2b87be"
+      "actualSeed": 36,
+      "trackHash": "b1f7698a0153ea91e769b6860ffcfe8bf8c05882881a49c58026e97e9670ab6e"
     },
     {
       "sourceId": "high_air_drive_air_minus_5",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "e3a3da120f0249230d4f1d08318c30c6fda7116b7295af67ba535048be7807b1"
+      "actualSeed": 37,
+      "trackHash": "852a367a3d8441dc7680e77eb96462bb0cc04226bd260a9061c7c668fa584859"
     },
     {
       "sourceId": "high_air_drive",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "29456865eec6e0946b2db145e4f23f1f93317d9e16d9e3d3b0d088ad585a979e"
+      "actualSeed": 36,
+      "trackHash": "da0f778b92bb2bc40194bf7f34219d452b3121e8d7653ac19cc642acfe7d6e3d"
     },
     {
       "sourceId": "high_air_drive",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "2367ebde8a85deca87d3c8969c0727a9aa59baa5cb0ab99b87791ec84cc48dc2"
+      "actualSeed": 37,
+      "trackHash": "e352915d74d9991a973e0dc5dc8acc7bea06e3cd6004a134f89c4373823d4cbc"
     },
     {
       "sourceId": "loose_pocket_drag_later_20ms",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "bfa79fbc3ca9b26ec27183fefab2d5418ab74183f9803e0155e31329d4c18c1f"
+      "actualSeed": 36,
+      "trackHash": "3cd71e263abfbdc50f751baca3b1a45f336f5eb5e6a77f21cb6b657aea21d458"
     },
     {
       "sourceId": "loose_pocket_drag_later_20ms",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "8dfff78f44d715e6cc85a9a4bf6c67ced9b4f4e71e9d8089ef889c2d386a97d0"
+      "actualSeed": 37,
+      "trackHash": "74c3e538ecad7460c08ca942bf84b3d67fb3a70729e5319849134c8b86260271"
     },
     {
       "sourceId": "loose_pocket",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "1643f6f013f4e17d49b2afbc9fdf3bddf470d9661447dba1ff7fea9fd0c3d02b"
+      "actualSeed": 36,
+      "trackHash": "f124c26a3fdd803d3ae477ebe330b63f88962a99116ebb671c1b26dcc70b7599"
     },
     {
       "sourceId": "loose_pocket",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "ab8ca6bc3bbc760c92790cc19a258f0d908f6dd0cc81c277a00c038588fbdf7d"
+      "actualSeed": 37,
+      "trackHash": "533c3a2d56372619129c78b57199a84e4da820ddddc43f562ecabddf5e807d35"
     },
     {
       "sourceId": "meter_exchange_speed_plus_4",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "840d92363875058191ca27e44951cbd217708015ffa8f4e25259c777d46f2391"
+      "actualSeed": 36,
+      "trackHash": "7957b7f16f68dbdb9bfc54c7e75cb09494ff3662f17f825c75035cd02649edfe"
     },
     {
       "sourceId": "meter_exchange_speed_plus_4",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "6d28d174dc1438c7c3662f3cc167eb2df874a8e4ebf5df13dfd4bec9b70c5792"
+      "actualSeed": 37,
+      "trackHash": "fb61dcfc2e079c4bca33df895a04e1b7abab949bdb6b7f2d4e0266428ecd8ee9"
     },
     {
       "sourceId": "meter_exchange",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "f66b56eafbb36567adf08484a6c8f0e431c8ae2a562bb6d410a4b745104d1487"
+      "actualSeed": 36,
+      "trackHash": "9b8d0f22a98b6f510cbcf718dd33e15d6abb77a0b248d6b58da9e2c509a90119"
     },
     {
       "sourceId": "meter_exchange",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "e394540de766e799ecd6b930865f53299475e6b9782a8c5d6ff63918aa490f01"
+      "actualSeed": 37,
+      "trackHash": "dd8c26a67ee50de0a7afcaea6c5fc0c13e5b8467a705f65e9b1caf0821eb5939"
     },
     {
       "sourceId": "offgrid_conversation_answer_early_25ms",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "e27044a66364a04c371f66685f2c85e57ba5a8aa97f6170d8fc5c5906ca931e4"
+      "actualSeed": 36,
+      "trackHash": "58185cab7dd0ef1aaf2cb351aef96812bdaa800117788f573ae7b9c3dd66fec0"
     },
     {
       "sourceId": "offgrid_conversation_answer_early_25ms",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "f23c43931741063746cd02431feb425444bb9e42edcd2e17a66f4d870876d5a1"
+      "actualSeed": 37,
+      "trackHash": "f15e4b49ede360054fbc80271ac8f785d93bfa88f8249539c90b228fc86d619f"
     },
     {
       "sourceId": "offgrid_conversation",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "78323ed120fb168e237bdf065beed4f5849d7915e58db32e9be85e812516833b"
+      "actualSeed": 36,
+      "trackHash": "086833e53e7b549e794a6aa7e05f129bd3e99bd59fc6db7907763e07d8a84673"
     },
     {
       "sourceId": "offgrid_conversation",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "9f77c87b1f87613b896f3d21f5f780c3a2c5372d3a18178460f8a7dd9e365e84"
+      "actualSeed": 37,
+      "trackHash": "28c03866a9829c2948e92cd95f2d1e5df17ab379bb9996a492d5f6c062a58198"
     },
     {
       "sourceId": "open_hook_amplitude_plus_8",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "55075c2e8f3837910310355ee7945616600ec513a84615f7d627ec57d3f6562a"
+      "actualSeed": 36,
+      "trackHash": "8d05cecc91f81f6fcc1a4d5ba246a5eb8b9476f222c045b061f1814f626116b5"
     },
     {
       "sourceId": "open_hook_amplitude_plus_8",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "d2675bcc0f43bb516331cf0495c9586cff11fd1a60fdf251053cae5226dbec79"
+      "actualSeed": 37,
+      "trackHash": "663cfd3e5522a2778c81d015d8a1b7b79e05495a0869f54086c6caf65fcb66ea"
     },
     {
       "sourceId": "open_hook",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "83c683f41b47ce2b3c815a88f6d7e624337f65a84a758042ef724620e3f718f4"
+      "actualSeed": 36,
+      "trackHash": "4f79db39bd2d1093488297f860a8a549e3e8a0a2881a321d547c084d0f39f0bd"
     },
     {
       "sourceId": "open_hook",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "a647c4f6f656b0648ac00dc6eeb56c3c8864ac05e8df48f7fea6d2b93c075dee"
+      "actualSeed": 37,
+      "trackHash": "5d34217101579c9fcc2590a7fa7794d6b9265a7d5e94062893e0c89e2c4548f8"
     },
     {
       "sourceId": "pickup_lattice_speed_minus_4",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "c3d5652d47993e1cd3ef7a456a0b0476e3ac3e12be4c82153c2e866a0c5514c8"
+      "actualSeed": 36,
+      "trackHash": "c2a88f04dfc8c04d1bc5f23f0a6f54a294b342ebd371ae25544b734ebbcc9bc1"
     },
     {
       "sourceId": "pickup_lattice_speed_minus_4",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "1d160cebf8a1a6e1c4330275c7b436c4b20e3dd4120c46ec48dd0c684c704bf3"
+      "actualSeed": 37,
+      "trackHash": "c122e8ce98822d953b0ca97c2f55c4db8569c61d453662a226328bc98f0e977d"
     },
     {
       "sourceId": "pickup_lattice",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "3e6950553915318abe6b446017f201348f282ae3772f269f477f5d8203b9ea0a"
+      "actualSeed": 36,
+      "trackHash": "b16eabac6c4001117ffbb98463c56e59bb779f481d1afd0d79e2fc98994ce50d"
     },
     {
       "sourceId": "pickup_lattice",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "ebf7936f6fc8204e1e48787e1c86a09ffb76153c15b79a38537a832d3369c4a5"
+      "actualSeed": 37,
+      "trackHash": "109ffa2af7fa1e483388a994039d3e9e57ed97882d0239c71486154dc4918f17"
     },
     {
       "sourceId": "regression_amplitude_mosaic_contrast_10",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "330fbbd6960e91f897141e7c4e661db6b1c7bdabf385d952754ed903a8f10b83"
+      "actualSeed": 36,
+      "trackHash": "8a8b494c5889755e2ba2a2999c9dcca6d497df06b1073ec903c18e1f3bf06601"
     },
     {
       "sourceId": "regression_amplitude_mosaic_contrast_10",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "883d8d5798fa0479f011f14a7e9b174b9756eeb3e91630ec053c35b58e8f783f"
+      "actualSeed": 37,
+      "trackHash": "f0b8eaae77c2dce4427e75ec2bdf4e692f4bc26e32cda0c04a456a4a06eaa2e9"
     },
     {
       "sourceId": "regression_amplitude_mosaic",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "2e545937f61da44a8632cd6bd9f89d1fb09f2a699e05a7f578de001443b7f3e5"
+      "actualSeed": 36,
+      "trackHash": "f891fc463b707199444c38a26750d371cb505b2216136e3056d9741db43db845"
     },
     {
       "sourceId": "regression_amplitude_mosaic",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "11606ea59e20b3d7c1a70eba708220f95d990cdcf225b1e8db7a99e9abbe7bd0"
+      "actualSeed": 37,
+      "trackHash": "d94c51016dfe4f7896a56157d349d66b1edb7a78ffacc0f810e4b2b201ceef00"
     },
     {
       "sourceId": "regression_transition_mosaic_tempo_fast_5",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "1c87ab442e538545c8cc28998e73c0c28fa0062dfa1c751f54bbbdf5e5c82b7d"
+      "actualSeed": 36,
+      "trackHash": "e4b9d542aa87cff7eae1f852a1f2a3dd4f8079ae7766a43acf135da706918fed"
     },
     {
       "sourceId": "regression_transition_mosaic_tempo_fast_5",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "503819555008819dab722c97d001940dddb01a162e6a2f9872db81862b5ce1da"
+      "actualSeed": 37,
+      "trackHash": "4273025244d930ee2c97d55e6e6ba8c9798d27f031e44320154da5f27aefa28c"
     },
     {
       "sourceId": "regression_transition_mosaic",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "740e0f5588ceb9e2fbbd75e6fe8071e66af451517b92edd0528eb06602476ef8"
+      "actualSeed": 36,
+      "trackHash": "9db47796feb8ee8e80ab1385d28766ff9a36e025023500eac7292bdd5f79309c"
     },
     {
       "sourceId": "regression_transition_mosaic",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "86037e5f060315d44c30d62bb5e91bc2a49270538ef19539a4fdb6f606f47bb9"
+      "actualSeed": 37,
+      "trackHash": "826a08724c3dff40241ba58555d3b5136778bfc795c9475a80d2f8e655f586e8"
     },
     {
       "sourceId": "rising_switch_tempo_fast_5",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "dd282f6208d72e5d942f528ce3b303a95ab2203c0649862168308ff6aa383107"
+      "actualSeed": 36,
+      "trackHash": "49be8269a6ececaf89908332fc42809236756febb9883845a3d4d6062039e8ff"
     },
     {
       "sourceId": "rising_switch_tempo_fast_5",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "ff2823f47afe98dc3dcc52ec9ceada651fc5c2f6e544efa8443ca5e232992b76"
+      "actualSeed": 37,
+      "trackHash": "a7706f47b8e6e8061011c9bfd0464747469a58e321c015ad42efc5ebde79eac1"
     },
     {
       "sourceId": "rising_switch",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "de909f6544008b9f6f555afadc9f21225db1bb0698f33179163f64e8af8779ee"
+      "actualSeed": 36,
+      "trackHash": "3c5f953e0f5d81838a687818b7a22b743e80ae0076d445ccafbf5d564f715ea9"
     },
     {
       "sourceId": "rising_switch",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "508aee05c567e6f02459dac05c5360765a2cb650ad881811caab4f70fe58d518"
+      "actualSeed": 37,
+      "trackHash": "3a359ff0ff02bee0f3cf2f21d6c4573af09d99f96f471d790e30037bf72ec1de"
     },
     {
       "sourceId": "river_reentry_tempo_fast_5",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "2679af304f54c0385c2d2df958486336e1672e2bb886d9b230314f316aee332e"
+      "actualSeed": 36,
+      "trackHash": "407a703907dd01495744fab9b41929bb356706c5c94d49d3cb22e7ce7f8b8049"
     },
     {
       "sourceId": "river_reentry_tempo_fast_5",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "f040e8b1d0ad58cdb189994688bc6130d03810d4f6859911f157d436f51608a4"
+      "actualSeed": 37,
+      "trackHash": "2a62c24621a3c897c120d41abea741c8fa5161c930e5c2eb2861bcce2d6d0a5a"
     },
     {
       "sourceId": "river_reentry",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "1960cac95bff2517b6118480303fd8fabad7eb96e77bcc4456a4d353449db3dc"
+      "actualSeed": 36,
+      "trackHash": "b9846647d2bc327b20ede23b425e100ff862c231c230c3bef73e410b50aa4eaf"
     },
     {
       "sourceId": "river_reentry",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "86c562ca66fc77589bdb706bc2ec868b83ab7e7c40b1439a9ac34d9493292882"
+      "actualSeed": 37,
+      "trackHash": "e889970addc85373e983bb2e66edc8629fb0dab35d535673c7bacba33a07732c"
     },
     {
       "sourceId": "sparse_lowline_air_minus_4",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "23151e51275cb2346f39c764f0172a6cdef5be8dc03dda2ab1ab66e0f460d985"
+      "actualSeed": 36,
+      "trackHash": "5219f5aa5ff40e323d1c95ae961614983c25100a4e7a749894ce3cc2993b1299"
     },
     {
       "sourceId": "sparse_lowline_air_minus_4",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "0cc7aa98a333f547d6da6b4cafe23eaacda6f87c1d1f2f3408182d5ab6470f0f"
+      "actualSeed": 37,
+      "trackHash": "f185eb36b91bb683a20e8ae6639a5f4f6c5a0731cf51587e817545ff81f1af72"
     },
     {
       "sourceId": "sparse_lowline",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "497563925a524c7e45a1c8d45c90f7bcc9d19d2ab0808c03a30ca3ffc82e79ab"
+      "actualSeed": 36,
+      "trackHash": "2ac76353c4e2a0c0643170a6411a5412c3c400f7b1d538f52c9d073c017bee14"
     },
     {
       "sourceId": "sparse_lowline",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "86e65c5ad955d8470ee845bb7e24e5382d3a48c26b8b61c280c882e4f8e6133a"
+      "actualSeed": 37,
+      "trackHash": "c39db926d506bd7cca1a9442661c30ef81060a1b4c24db5dfd0651ce88609b01"
     },
     {
       "sourceId": "split_signal_impact_relief_12",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "82c44421754abd1953d81a63f3c55882d189d44f5060505d8c89e602aa3337d6"
+      "actualSeed": 36,
+      "trackHash": "5dbba05ff5455862ddcadcfa99340618b0c80cac0186077b1162fe92d7c4da72"
     },
     {
       "sourceId": "split_signal_impact_relief_12",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "95e6e4b9e980f1b8afda1e748e9ab4bd6ab361f52b26b02ab2256c8c50ad9ca3"
+      "actualSeed": 37,
+      "trackHash": "47c4541cd2c4237ba3ce8a48856dd96437aa80e330bb9414088e2a34660cb101"
     },
     {
       "sourceId": "split_signal",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "c0186b23941a21a700de7c2da87ad2e2c4144b58138cbef85a3c10ec270dad56"
+      "actualSeed": 36,
+      "trackHash": "344f23527bb615beb140c5080ba684a422529721d7a4769fd37f4466c073b30d"
     },
     {
       "sourceId": "split_signal",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "3f8c600c97846a732e0f9fccf912985bf0aa1d1c1dff58c667b8f6f42bdb4872"
+      "actualSeed": 37,
+      "trackHash": "f23b4e1f1db4a76ccfaa4a1094c89f780778464c8ff88f715d610f8ac3cb0be4"
     },
     {
       "sourceId": "wide_breaths_air_plus_5",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "91e3e264094f354a30439e9450685ce4f39145d762df1423eb3267ebc07ea958"
+      "actualSeed": 36,
+      "trackHash": "8764deedf14ec2311c53553a40fefc187ee44ac6fa43c46f94f5bb391cd191ea"
     },
     {
       "sourceId": "wide_breaths_air_plus_5",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "f9cdb44d733b77e4a8b59c8edc33647f3eec21ecf512ba0b38c592dc6719b809"
+      "actualSeed": 37,
+      "trackHash": "b7ef79434db58423fc607d66cc06b19518771d1459d72b53534fbe69196a3ff2"
     },
     {
       "sourceId": "wide_breaths",
       "budget": 250000,
-      "actualSeed": 12,
-      "trackHash": "dec0c47f08f2327db2af1457050cdca94e26827ec23b1fd8abb34de2196a407a"
+      "actualSeed": 36,
+      "trackHash": "8c0466886ac5a205ab07236e1d698632f2f0ac22957c2808b1b5735aa754c479"
     },
     {
       "sourceId": "wide_breaths",
       "budget": 250000,
-      "actualSeed": 13,
-      "trackHash": "8748977b3e75036447b4a439e1b51fd88ada1740378912c7b259d731bcdcb6c6"
+      "actualSeed": 37,
+      "trackHash": "11083dc7843926e335d60920df24474de084e92cded41719dd1ff4fc24db0820"
     }
   ]
 }

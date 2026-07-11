@@ -1,5 +1,9 @@
 # The forward-eval lookahead — campaign
 
+> **ARCHIVE (Benchmark V1).** This campaign used the retired 40-case golden
+> workflow. Its commands and scores are historical evidence, not current
+> promotion guidance. Use `docs/HOW_TO_WORK.md` for Benchmark V2.
+
 ## Goal
 
 Improve the compiler by improving the **forward-eval lookahead** — the greedy:2
@@ -51,5 +55,5 @@ the campaign's measure of record (probe tier — a canonical run promotes).
 
 ## Companion
 
-`docs/lookahead-log.md` — terse running log of every attempt (hypothesis · change ·
+`docs/archive/lookahead-log-v1.md` — terse running log of every attempt (hypothesis · change ·
 result · verdict).

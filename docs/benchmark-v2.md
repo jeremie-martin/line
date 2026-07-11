@@ -74,7 +74,8 @@ records the reusable screening reference. `baseline.json` records probe and mile
 canonical execution policies, implementation bytes, compiler, engine, the versioned
 compiler-source inventory, dependency and TypeScript configuration, checksummed
 compiler/WASM snapshot, compressed archives, independent seed schedules, and qualification
-linkage. Confirmation state additionally retains the never-reused seed ledger and both
+linkage. A V8 baseline also records the complete decision fingerprint and stable calibration
+fingerprint. Confirmation state additionally retains the never-reused seed ledger and both
 fresh paired archive identities.
 
 ## Comparison
@@ -87,7 +88,9 @@ policies use stress-calibrated paired budget seed-block jackknife Student-t boun
 Parent-preserving bootstraps are reported as catalog sensitivity, not as posterior
 probabilities. The complete contract and exit codes are in `docs/benchmark-v2-decisions.md`.
 Baseline, canonical, and decision commands refuse to operate when retained calibration or
-its zero-inflated coverage evidence is stale for the current suite or decision code.
+its zero-inflated coverage evidence is stale for the current suite or decision code. Canonical
+confirmation additionally requires those decision and calibration fingerprints to equal the
+V8 baseline contract.
 
 ## Diagnostics
 

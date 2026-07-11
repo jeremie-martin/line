@@ -1,5 +1,5 @@
 /**
- * Regenerate the hand-maintained baseline regions of docs/handoff-compiler.html
+ * Regenerate the historical V1 baseline regions of docs/archive/handoff-compiler-v1.html
  * from a golden budget-curve JSON.
  *
  * Usage:
@@ -43,7 +43,7 @@ type GoldenCurve = {
   budget_scores: BudgetScore[];
 };
 
-const HTML_PATH = resolve("docs/handoff-compiler.html");
+const HTML_PATH = resolve("docs/archive/handoff-compiler-v1.html");
 const HEADLINE_KIND = "weighted_budget_average";
 
 function readGolden(arg: string): GoldenCurve {
@@ -155,7 +155,7 @@ function main(): void {
 
   writeFileSync(HTML_PATH, html);
   console.log(
-    `updated docs/handoff-compiler.html -> headline ${d.headline.score.toFixed(2)}, ` +
+    `updated docs/archive/handoff-compiler-v1.html -> headline ${d.headline.score.toFixed(2)}, ` +
       `${last.passed}/${last.total} valid at ${last.budget}, fp ${d.evaluator_fingerprint}`,
   );
 }

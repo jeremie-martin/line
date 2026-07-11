@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.decision-calibration.v1",
-  "generatedAt": "2026-07-10T23:16:30.928Z",
-  "suiteFingerprint": "126414401682030b3ca604ed7a40d60f18bd9a06e0a68228a02a5c74f82096e5",
-  "decisionFingerprint": "72ef09e0ebe579fdb1f4818057baf4c5993273843e5abe47f7008aebeabea6c4",
+  "generatedAt": "2026-07-11T05:53:50.196Z",
+  "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+  "decisionFingerprint": "ae72a898f0c774d281ec980784c3177388ab98294475ca4d08d43f4a85b626d3",
   "policy": {
     "schema": "line.benchmark-v2.decision-policy.v2",
     "method": "stress_calibrated_paired_budget_seed_block_jackknife_t_with_parent_bootstrap_sensitivity",
@@ -40,9 +40,9 @@
     "identical": {
       "available": true,
       "baseArchive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
-      "baseArchiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
+      "baseArchiveSha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4",
       "candidateArchive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
-      "candidateArchiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
+      "candidateArchiveSha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4",
       "delta": 0,
       "centralInterval": [
         0,
@@ -55,9 +55,9 @@
     "knownBroadDegradation": {
       "available": true,
       "baseArchive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
-      "baseArchiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
+      "baseArchiveSha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4",
       "candidateArchive": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
-      "candidateArchiveSha256": "758b2fed2f4953fd7c252e4adc86ff6a465e6c82073bebaf21fe91165dcfaf85",
+      "candidateArchiveSha256": "dd875f118eadce0c5f703e7b16fb3bb3b61f961532f93ae6ea97a4c3dc1ffb01",
       "delta": -150.2036,
       "centralInterval": [
         -224.0893,
@@ -70,9 +70,9 @@
     "impactContractFailure": {
       "available": true,
       "baseArchive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
-      "baseArchiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
+      "baseArchiveSha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4",
       "candidateArchive": "benchmark/v2/runs/calibration-v2.4-impact-off-probe.json.gz",
-      "candidateArchiveSha256": "98f12eb9709f20d0e20a613e3bb5dae58a1480e61cbf10f8837fefe1bbce1da8",
+      "candidateArchiveSha256": "a4f6d05f1f2a698823f0c3fc9fe0746894d22ca55576cf9248477ee2b3191c25",
       "delta": -446.0945,
       "centralInterval": [
         -462.1357,
@@ -97,7 +97,7 @@
   },
   "coverageStudy": {
     "path": "benchmark/v2/studies/decision-coverage.json",
-    "sha256": "ce4bf07c06839156bff9e75d77e6de0a97f7795c3e204a0563735e0fb090ca9c",
+    "sha256": "6e8e9e6da8fe080ff3b82316e260b5a0c339db3c0c19b84afce75469ec7f446a",
     "trials": 1000,
     "results": [
       {
@@ -313,8 +313,98 @@
             0.0952
           ]
         },
-        "candidateValidityProbability": null
+        "candidateValidityProbability": null,
+        "scoreShift": 15
       },
+      {
+        "scenario": "paired_empirical_noninferiority_inside",
+        "mode": "simplification",
+        "margin": 5,
+        "seedsPerBudget": 8,
+        "trials": 1000,
+        "trueDelta": -2.5001,
+        "meanDelta": -2.5073,
+        "centralCoverage": {
+          "count": 973,
+          "rate": 0.973,
+          "wilson95": [
+            0.961,
+            0.9814
+          ]
+        },
+        "positiveOutcome": {
+          "count": 1000,
+          "rate": 1,
+          "wilson95": [
+            0.9962,
+            1
+          ]
+        },
+        "negativeOutcome": {
+          "count": 0,
+          "rate": 0,
+          "wilson95": [
+            0,
+            0.0038
+          ]
+        },
+        "unresolvedOutcome": {
+          "count": 0,
+          "rate": 0,
+          "wilson95": [
+            0,
+            0.0038
+          ]
+        },
+        "candidateValidityProbability": null,
+        "scoreShift": -2.9293
+      }
+    ],
+    "safetyResults": [
+      {
+        "scenario": "hard_zero_noninferiority_boundary",
+        "mode": "simplification",
+        "margin": 5,
+        "seedsPerBudget": 8,
+        "trials": 1000,
+        "trueDelta": -5,
+        "meanDelta": -5.5005,
+        "centralCoverage": {
+          "count": 964,
+          "rate": 0.964,
+          "wilson95": [
+            0.9506,
+            0.9739
+          ]
+        },
+        "positiveOutcome": {
+          "count": 29,
+          "rate": 0.029,
+          "wilson95": [
+            0.0203,
+            0.0413
+          ]
+        },
+        "negativeOutcome": {
+          "count": 26,
+          "rate": 0.026,
+          "wilson95": [
+            0.0178,
+            0.0378
+          ]
+        },
+        "unresolvedOutcome": {
+          "count": 945,
+          "rate": 0.945,
+          "wilson95": [
+            0.9291,
+            0.9575
+          ]
+        },
+        "candidateValidityProbability": 0.794801886486721
+      }
+    ],
+    "diagnosticResults": [
       {
         "scenario": "hard_zero_validity_gain",
         "mode": "improvement",
@@ -358,72 +448,22 @@
         "candidateValidityProbability": 0.86
       },
       {
-        "scenario": "noninferiority_inside",
+        "scenario": "hard_zero_noninferiority_inside",
         "mode": "simplification",
         "margin": 5,
         "seedsPerBudget": 8,
         "trials": 1000,
         "trueDelta": -2.5,
-        "meanDelta": -8.6033,
+        "meanDelta": -4.6336,
         "centralCoverage": {
-          "count": 962,
-          "rate": 0.962,
+          "count": 964,
+          "rate": 0.964,
           "wilson95": [
-            0.9483,
-            0.9722
+            0.9506,
+            0.9739
           ]
         },
         "positiveOutcome": {
-          "count": 21,
-          "rate": 0.021,
-          "wilson95": [
-            0.0138,
-            0.0319
-          ]
-        },
-        "negativeOutcome": {
-          "count": 29,
-          "rate": 0.029,
-          "wilson95": [
-            0.0203,
-            0.0413
-          ]
-        },
-        "unresolvedOutcome": {
-          "count": 950,
-          "rate": 0.95,
-          "wilson95": [
-            0.9347,
-            0.9619
-          ]
-        },
-        "candidateValidityProbability": 0.7974152858762409
-      },
-      {
-        "scenario": "noninferiority_boundary",
-        "mode": "simplification",
-        "margin": 5,
-        "seedsPerBudget": 8,
-        "trials": 1000,
-        "trueDelta": -5,
-        "meanDelta": -9.9765,
-        "centralCoverage": {
-          "count": 956,
-          "rate": 0.956,
-          "wilson95": [
-            0.9414,
-            0.9671
-          ]
-        },
-        "positiveOutcome": {
-          "count": 29,
-          "rate": 0.029,
-          "wilson95": [
-            0.0203,
-            0.0413
-          ]
-        },
-        "negativeOutcome": {
           "count": 28,
           "rate": 0.028,
           "wilson95": [
@@ -431,15 +471,23 @@
             0.0402
           ]
         },
-        "unresolvedOutcome": {
-          "count": 943,
-          "rate": 0.943,
+        "negativeOutcome": {
+          "count": 31,
+          "rate": 0.031,
           "wilson95": [
-            0.9269,
-            0.9557
+            0.0219,
+            0.0437
           ]
         },
-        "candidateValidityProbability": 0.794801886486721
+        "unresolvedOutcome": {
+          "count": 941,
+          "rate": 0.941,
+          "wilson95": [
+            0.9246,
+            0.954
+          ]
+        },
+        "candidateValidityProbability": 0.7974152858762409
       }
     ]
   },

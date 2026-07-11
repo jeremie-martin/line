@@ -12,11 +12,12 @@ import {
   validateCompilerSnapshot,
   type CompilerSnapshot,
 } from "../v0/benchmark_v2/compiler_snapshot.ts";
+import { requireCurrentDecisionCalibration } from "../v0/benchmark_v2/calibration_guard.ts";
 
 export function freezeBaseline(bundleArgument: string): void {
   const bundlePath = resolve(bundleArgument);
   const bundle = JSON.parse(readFileSync(bundlePath, "utf8"));
-  if (bundle.schema !== "line.benchmark-v2.baseline-bundle.v1") {
+  if (bundle.schema !== "line.benchmark-v2.baseline-bundle.v2") {
     throw new Error(`unsupported baseline bundle`);
   }
   validateCompilerSnapshot(bundle.compilerSnapshot as CompilerSnapshot);
@@ -78,9 +79,13 @@ export function freezeBaseline(bundleArgument: string): void {
     throw new Error(`baseline compiler snapshot does not reproduce the measured compiler identity`);
   }
   assertProfileSeedsDisjoint(probe, development);
+  const decisionContract = requireCurrentDecisionCalibration(development.identity.suiteFingerprint);
+  if (JSON.stringify(bundle.decisionContract) !== JSON.stringify(decisionContract)) {
+    throw new Error(`decision or calibration contract changed while baseline evidence was running`);
+  }
   const catalogLock = JSON.parse(readFileSync("benchmark/v2/catalog.lock.json", "utf8"));
   const baseline = {
-    schema: "line.benchmark-v2.baseline-reference.v7",
+    schema: "line.benchmark-v2.baseline-reference.v8",
     status: "canonical-baseline",
     label: bundle.label,
     generated_at: bundle.generatedAt,
@@ -97,6 +102,8 @@ export function freezeBaseline(bundleArgument: string): void {
     compiler_environment: development.git.compilerEnvironment,
     engine_artifact_fingerprint: development.git.engineArtifactFingerprint,
     candidate_fingerprint: development.git.candidateFingerprint,
+    decision_fingerprint: decisionContract.decisionFingerprint,
+    decision_calibration_fingerprint: decisionContract.calibrationFingerprint,
     compiler_snapshot: bundle.compilerSnapshot,
     probe: archiveSummary(probe, bundle.probe),
     development: archiveSummary(development, bundle.development),
@@ -217,6 +224,8 @@ function renderMarkdown(baseline: any): string {
     }),
     "",
     `Candidate: \`${baseline.candidate_fingerprint}\`.`,
+    `Decision rule: \`${baseline.decision_fingerprint}\`.`,
+    `Decision calibration: \`${baseline.decision_calibration_fingerprint}\`.`,
   ];
   return `${lines.join("\n")}\n`;
 }

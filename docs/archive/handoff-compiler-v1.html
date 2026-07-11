@@ -45,6 +45,14 @@
     text-rendering: optimizeLegibility;
   }
 
+  .archive-notice {
+    padding: 10px 28px;
+    background: #fff2cc;
+    border-bottom: 1px solid #b58326;
+    font-family: var(--sans);
+    font-weight: 600;
+  }
+
   a { color: var(--ink); text-decoration-color: var(--accent); text-underline-offset: 3px; }
   code, .mono {
     font-family: var(--mono);
@@ -516,11 +524,17 @@
 </head>
 <body>
 
+<div class="archive-notice">
+  Archived V1 generated view. It is not current workflow guidance; use
+  <a href="../HOW_TO_WORK.md">Benchmark V2 HOW_TO_WORK.md</a>. Historical commands require
+  <code>npm run golden:v1</code> and <code>npm run decide:v1</code>.
+</div>
+
 <header class="topbar">
   <div class="crumbs">
-    <a class="brand" href="../dashboard/">line</a>
+    <a class="brand" href="../../dashboard/">line</a>
     <span class="crumb">DOC <strong>handoff compiler</strong></span>
-    <span class="crumb">STATUS <strong>default</strong></span>
+    <span class="crumb">STATUS <strong>archived V1</strong></span>
   </div>
   <nav class="tabs" aria-label="Page sections">
     <button class="tab active" data-tab="compiler">Compiler</button>

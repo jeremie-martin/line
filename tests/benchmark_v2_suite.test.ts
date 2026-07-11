@@ -12,6 +12,8 @@ import {
 } from "../scripts/v0/benchmark_v2/model.ts";
 import { COMPILER_IDENTITY_PROTOCOL } from "../scripts/v0/benchmark_v2/runner.ts";
 import {
+  BENCHMARK_DEFINITION_SOURCE_FILES,
+  RUNNER_IMPLEMENTATION_SOURCE_FILES,
   canonicalMembers,
   executionPolicyIdentity,
   loadSuiteManifest,
@@ -21,6 +23,11 @@ import {
 } from "../scripts/v0/benchmark_v2/suite_model.ts";
 
 describe("Benchmark V2 suite identity", () => {
+  test("binds the shared headline scorer to suite and execution identity", () => {
+    expect(BENCHMARK_DEFINITION_SOURCE_FILES).toContain("scripts/v0/score.ts");
+    expect(RUNNER_IMPLEMENTATION_SOURCE_FILES).toContain("scripts/v0/score.ts");
+  });
+
   test("pins all canonical strata and membership", () => {
     const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
     const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);

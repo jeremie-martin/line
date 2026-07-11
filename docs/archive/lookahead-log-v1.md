@@ -1,10 +1,13 @@
 # Forward-eval lookahead — attempt log
 
+> **ARCHIVE (Benchmark V1).** Scores and commands below belong to the retired
+> 40-case workflow and are not comparable to Benchmark V2.
+
 Terse. One entry per attempt: hypothesis · change · result (headline Δ + per-budget) · verdict.
 
 ---
 
-## CANONICAL PHASE (full golden suite, modify-production workflow) — see docs/lookahead-prompt.md
+## CANONICAL PHASE (full golden suite, modify-production workflow) — see `docs/archive/lookahead-prompt-v1.md`
 
 Measure: full canonical `npm run golden` (40 specs × 12 seeds × **100k/200k/300k** — 50k dropped
 2026-06-13, completion-knee noise / lowest weight / not optimized for), `decide` vs the committed

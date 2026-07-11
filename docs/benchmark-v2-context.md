@@ -144,6 +144,8 @@ IID inputs and the profile ranges are separated for confirmation.
 The suite fingerprint covers generated policy and inventory, every case and dependency,
 the typed case contract, materialized variant catalog, target resolution and keyframe
 interpolation, measurement, scoring, weights, budgets, transform, and seed policy.
+The scoring boundary explicitly includes the shared shifted-geometric-mean helper in
+`scripts/v0/score.ts`; changing headline aggregation therefore changes the suite identity.
 
 Each archive also records an execution-policy fingerprint covering suite identity,
 explicit execution protocol, engine, compiler entry point, profile, exact sources,
@@ -152,6 +154,10 @@ implementation fingerprint. Mismatched runner bytes require an explicit reviewed
 bit-identity approval. Comparisons require matching semantic policies and exact
 `source/budget/seed-slot/actual-seed` scope. Compiler source and non-engine `LR_*`
 environment form the candidate identity and may differ by design.
+
+A canonical V8 baseline separately freezes the complete decision-code fingerprint and
+stable validated-calibration fingerprint. Suite identity alone is not authority to reuse
+a promotion slot after thresholds, critical levels, inference, or calibration change.
 
 Before compilation, deterministic preparation regenerates compatibility manifests,
 characterization, static audit, and candidate review from the typed catalog, and validates
@@ -174,4 +180,5 @@ suite identity.
 
 Any change to cases, membership, parent structure, weights, scoring, target
 interpretation, budgets, or seed policy creates a new suite fingerprint and requires a
-new baseline.
+new baseline. Decision-policy, inference, or calibration changes also require a new
+baseline even when the suite itself is unchanged.

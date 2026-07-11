@@ -1,6 +1,6 @@
 # Benchmark V2 Decision Calibration
 
-Suite: `126414401682030b`. Decision rule: `72ef09e0ebe579fd`.
+Suite: `517e044103a5fef3`. Decision rule: `ae72a898f0c774d2`.
 
 Simulation uses 200 formal-gate trials per scenario. Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.
 
@@ -38,11 +38,20 @@ Retained study: `benchmark/v2/studies/decision-coverage.json` (1000 trials per c
 | symmetric_validity_flips | 8 | 98.7% | 2.1% | 0.5% |
 | catalog_wide_hard_zero | 8 | 96.8% | 2.0% | 2.7% |
 
-| Alternative | Mode | True delta | Positive | Negative | Unresolved | Coverage |
+| Supported alternative | Mode | True delta | Positive | Negative | Unresolved | Coverage |
 |---|---|---:|---:|---:|---:|---:|
 | empirical_score_gain | improvement | 12.80 | 92.3% | 0.0% | 7.7% | 99.3% |
+| paired_empirical_noninferiority_inside | simplification (margin 5) | -2.50 | 100.0% | 0.0% | 0.0% | 97.3% |
+
+| Safety boundary | Mode | True delta | False accept | Negative | Unresolved | Coverage |
+|---|---|---:|---:|---:|---:|---:|
+| hard_zero_noninferiority_boundary | simplification (margin 5) | -5.00 | 2.9% | 2.6% | 94.5% | 96.4% |
+
+Known low-power hard-zero diagnostics (not supported power claims):
+
+| Diagnostic | Mode | True delta | Positive | Negative | Unresolved | Coverage |
+|---|---|---:|---:|---:|---:|---:|
 | hard_zero_validity_gain | improvement | 66.34 | 7.0% | 0.6% | 92.4% | 95.6% |
-| noninferiority_inside | simplification (margin 5) | -2.50 | 2.1% | 2.9% | 95.0% | 96.2% |
-| noninferiority_boundary | simplification (margin 5) | -5.00 | 2.9% | 2.8% | 94.3% | 95.6% |
+| hard_zero_noninferiority_inside | simplification (margin 5) | -2.50 | 2.8% | 3.1% | 94.1% | 96.4% |
 
 The repeated-sampling target is the frozen catalog, not a hypothetical random population of authored works. The formal gate uses the seed-block t interval. Parent-preserving catalog and crossed bootstrap intervals are sensitivity diagnostics only.

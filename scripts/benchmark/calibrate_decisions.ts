@@ -36,10 +36,12 @@ if (!existsSync(coverageStudyPath)) throw new Error(`required decision coverage 
 const coverageStudyBytes = readFileSync(coverageStudyPath);
 const coverageStudy = JSON.parse(coverageStudyBytes.toString("utf8"));
 if (
-  coverageStudy.schema !== "line.benchmark-v2.decision-coverage-study.v2" ||
+  coverageStudy.schema !== "line.benchmark-v2.decision-coverage-study.v3" ||
   coverageStudy.suiteFingerprint !== identity.suiteFingerprint ||
   coverageStudy.decisionInferenceFingerprint !== fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES) ||
-  !Array.isArray(coverageStudy.powerResults) || coverageStudy.powerResults.length === 0
+  !Array.isArray(coverageStudy.powerResults) || coverageStudy.powerResults.length === 0 ||
+  !Array.isArray(coverageStudy.safetyResults) || coverageStudy.safetyResults.length === 0 ||
+  !Array.isArray(coverageStudy.diagnosticResults) || coverageStudy.diagnosticResults.length === 0
 ) {
   throw new Error(`decision coverage study is stale for the current suite`);
 }
@@ -92,6 +94,8 @@ const report = {
     trials: coverageStudy.trials,
     results: coverageStudy.results,
     powerResults: coverageStudy.powerResults,
+    safetyResults: coverageStudy.safetyResults,
+    diagnosticResults: coverageStudy.diagnosticResults,
   },
   simulations,
 };
@@ -343,9 +347,31 @@ function renderMarkdown(report: any): string {
         `${formatRate(entry.falseAccept)} | ${formatRate(entry.falseReject)} |`
       ),
     "",
-    "| Alternative | Mode | True delta | Positive | Negative | Unresolved | Coverage |",
+    "| Supported alternative | Mode | True delta | Positive | Negative | Unresolved | Coverage |",
     "|---|---|---:|---:|---:|---:|---:|",
     ...report.coverageStudy.powerResults
+      .filter((entry: any) => entry.seedsPerBudget === suite.profiles.canonical.seeds_per_budget)
+      .map((entry: any) =>
+        `| ${entry.scenario} | ${entry.mode}${entry.margin === null ? "" : ` (margin ${entry.margin})`} | ` +
+        `${entry.trueDelta.toFixed(2)} | ${formatRate(entry.positiveOutcome)} | ${formatRate(entry.negativeOutcome)} | ` +
+        `${formatRate(entry.unresolvedOutcome)} | ${formatRate(entry.centralCoverage)} |`
+      ),
+    "",
+    "| Safety boundary | Mode | True delta | False accept | Negative | Unresolved | Coverage |",
+    "|---|---|---:|---:|---:|---:|---:|",
+    ...report.coverageStudy.safetyResults
+      .filter((entry: any) => entry.seedsPerBudget === suite.profiles.canonical.seeds_per_budget)
+      .map((entry: any) =>
+        `| ${entry.scenario} | ${entry.mode} (margin ${entry.margin}) | ${entry.trueDelta.toFixed(2)} | ` +
+        `${formatRate(entry.positiveOutcome)} | ${formatRate(entry.negativeOutcome)} | ` +
+        `${formatRate(entry.unresolvedOutcome)} | ${formatRate(entry.centralCoverage)} |`
+      ),
+    "",
+    "Known low-power hard-zero diagnostics (not supported power claims):",
+    "",
+    "| Diagnostic | Mode | True delta | Positive | Negative | Unresolved | Coverage |",
+    "|---|---|---:|---:|---:|---:|---:|",
+    ...report.coverageStudy.diagnosticResults
       .filter((entry: any) => entry.seedsPerBudget === suite.profiles.canonical.seeds_per_budget)
       .map((entry: any) =>
         `| ${entry.scenario} | ${entry.mode}${entry.margin === null ? "" : ` (margin ${entry.margin})`} | ` +

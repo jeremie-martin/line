@@ -77,7 +77,7 @@ slots would resolve it. Statistical rationale (noise floor, seed counts):
 
 ## Current baseline (of record)
 
-The baseline of record is the **generated** [`docs/handoff-compiler.html`](handoff-compiler.html)
+The baseline of record is the **generated** [`handoff-compiler-v1.html`](handoff-compiler-v1.html)
 (per-budget / per-spec table), regenerated from a canonical `golden.json` — never
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 

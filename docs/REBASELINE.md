@@ -6,7 +6,7 @@ A baseline is a single compiler identity measured on three linked surfaces:
 - canonical development evidence;
 - canonical qualification monitoring evidence.
 
-It also contains a checksummed snapshot of the exact compiler source boundary, non-engine `LR_*` environment, and optimized WASM artifact. Replay installs the snapshotted lockfile with `npm ci`; it never shares candidate dependencies. Milestone canonical scores document the compiler of record; future promotion decisions execute this snapshot again on a fresh declared seed epoch.
+It also contains a checksummed snapshot of the exact compiler source boundary, non-engine `LR_*` environment, and optimized WASM artifact, plus the complete decision-code and validated-calibration fingerprints. Replay removes ambient compiler files before extracting the snapshot and installs its lockfile with `npm ci`; it never shares candidate sources or dependencies. Milestone canonical scores document the compiler of record; future promotion decisions execute this snapshot again on a fresh declared seed epoch under exactly the frozen decision contract.
 
 Do not hand-edit baseline scores or pointers.
 
@@ -30,7 +30,7 @@ overwriting the tracked review.
 npm run benchmark -- baseline --label=NAME
 ```
 
-The command verifies the approved listening review, verifies that the state transition is legal, snapshots the compiler, prepares the typed catalog, runs the probe, runs canonical development and qualification, verifies complete worker-success scope and snapshot identity, retains compressed archives under `benchmark/v2/runs/`, writes a combined baseline bundle, and regenerates:
+The command verifies the approved listening review and current calibration, freezes the decision contract before execution, verifies that the state transition is legal, snapshots the compiler, prepares the typed catalog, runs the probe, runs canonical development and qualification, rejects any mid-run decision-contract change, verifies complete worker-success scope and snapshot identity, retains compressed archives under `benchmark/v2/runs/`, writes a combined baseline bundle, and regenerates:
 
 - `benchmark/v2/baseline.json`
 - `docs/benchmark-v2-baseline.md`
@@ -58,6 +58,7 @@ Establish a new baseline after intentionally changing any of:
 - scoring, measurements, target interpretation, or transform;
 - budgets, seed counts, seed ranges, or profile authority;
 - engine artifact or semantic execution protocol;
+- decision thresholds, critical levels, promotion semantics, inference code, or calibration evidence;
 - the promoted compiler of record.
 
 An operational-only runner change is incomparable by default. It may retain semantic comparability only through a reviewed suite-specific entry in `benchmark/v2/runner-compatibility.json` backed by checksummed bit-identity evidence.

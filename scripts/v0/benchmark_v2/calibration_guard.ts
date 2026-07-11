@@ -5,10 +5,15 @@ import { benchmarkDecisionCalibrationPolicy } from "../../../benchmark/v2/decisi
 import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
 import { DECISION_SOURCE_FILES, fingerprintFiles } from "./suite_model.ts";
 
+export type DecisionContractIdentity = {
+  decisionFingerprint: string;
+  calibrationFingerprint: string;
+};
+
 export function requireCurrentDecisionCalibration(
   suiteFingerprint: string,
   calibrationPath = "benchmark/v2/studies/decision-calibration.json",
-): void {
+): DecisionContractIdentity {
   const absolute = resolve(calibrationPath);
   if (!existsSync(absolute)) throw new Error(`current decision calibration artifact is missing`);
   const calibration = JSON.parse(readFileSync(absolute, "utf8"));
@@ -24,7 +29,7 @@ export function requireCurrentDecisionCalibration(
   const coverage = JSON.parse(coverageBytes.toString("utf8"));
   if (
     sha256(coverageBytes) !== calibration.coverageStudy?.sha256 ||
-    coverage.schema !== "line.benchmark-v2.decision-coverage-study.v2" ||
+    coverage.schema !== "line.benchmark-v2.decision-coverage-study.v3" ||
     coverage.suiteFingerprint !== suiteFingerprint ||
     coverage.decisionInferenceFingerprint !== fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES)
   ) throw new Error(`zero-inflated coverage evidence is stale for the current decision rule`);
@@ -40,6 +45,15 @@ export function requireCurrentDecisionCalibration(
     requireArtifact(control?.baseArchive, control?.baseArchiveSha256, `${name} base control`);
     requireArtifact(control?.candidateArchive, control?.candidateArchiveSha256, `${name} candidate control`);
   }
+  return {
+    decisionFingerprint: calibration.decisionFingerprint,
+    calibrationFingerprint: decisionCalibrationFingerprint(calibration),
+  };
+}
+
+export function decisionCalibrationFingerprint(calibration: any): string {
+  const { generatedAt: _generatedAt, ...stable } = calibration;
+  return sha256(Buffer.from(JSON.stringify(stable)));
 }
 
 export function assertDecisionCoverageAdequate(coverage: any): void {
@@ -48,7 +62,9 @@ export function assertDecisionCoverageAdequate(coverage: any): void {
     throw new Error(`decision coverage has fewer than ${policy.minimumTrialsPerCell} trials per cell`);
   }
   const nullRows = coverage.results ?? [];
-  const alternativeRows = coverage.powerResults ?? [];
+  const poweredRows = coverage.powerResults ?? [];
+  const safetyRows = coverage.safetyResults ?? [];
+  const diagnosticRows = coverage.diagnosticResults ?? [];
   for (const scenario of policy.requiredNullScenarios) {
     const row: any = nullRows.find((entry: any) =>
       entry.scenario === scenario && entry.seedsPerBudget === policy.seedsPerBudget
@@ -62,11 +78,11 @@ export function assertDecisionCoverageAdequate(coverage: any): void {
     requireUpperBound(falseAccept, policy.maximumFalseDecisionWilsonUpper, `${scenario} false accept`);
     requireUpperBound(falseReject, policy.maximumFalseDecisionWilsonUpper, `${scenario} false reject`);
   }
-  for (const scenario of policy.requiredAlternativeScenarios) {
-    const row: any = alternativeRows.find((entry: any) =>
+  for (const scenario of policy.requiredPoweredScenarios) {
+    const row: any = poweredRows.find((entry: any) =>
       entry.scenario === scenario && entry.seedsPerBudget === policy.seedsPerBudget
     );
-    const simplification = scenario.startsWith("noninferiority_");
+    const simplification = scenario === "paired_empirical_noninferiority_inside";
     requireCoverageRow(
       row,
       scenario,
@@ -74,26 +90,39 @@ export function assertDecisionCoverageAdequate(coverage: any): void {
       simplification ? policy.simplificationStudyMargin : null,
       coverage.trials,
     );
-    if (scenario === "empirical_score_gain") {
-      const lower = validatedRate(row.positiveOutcome, row.trials, `${scenario} positive outcome`).wilson95[0];
-      if (lower < policy.minimumEmpiricalGainPowerWilsonLower) {
-        throw new Error(`${scenario} power lower bound ${lower} is below ${policy.minimumEmpiricalGainPowerWilsonLower}`);
-      }
+    const lower = validatedRate(row.positiveOutcome, row.trials, `${scenario} positive outcome`).wilson95[0];
+    if (lower < policy.minimumSupportedPowerWilsonLower) {
+      throw new Error(`${scenario} power lower bound ${lower} is below ${policy.minimumSupportedPowerWilsonLower}`);
     }
-    if (scenario === "hard_zero_validity_gain" || scenario === "noninferiority_inside") {
-      requireUpperBound(
-        validatedRate(row.negativeOutcome, row.trials, `${scenario} negative outcome`),
-        policy.maximumFalseDecisionWilsonUpper,
-        `${scenario} false reject`,
-      );
-    }
-    if (scenario === "noninferiority_boundary") {
-      requireUpperBound(
-        validatedRate(row.positiveOutcome, row.trials, `${scenario} positive outcome`),
-        policy.maximumFalseDecisionWilsonUpper,
-        `${scenario} false accept`,
-      );
-    }
+  }
+  for (const scenario of policy.requiredSafetyScenarios) {
+    const row: any = safetyRows.find((entry: any) =>
+      entry.scenario === scenario && entry.seedsPerBudget === policy.seedsPerBudget
+    );
+    requireCoverageRow(row, scenario, "simplification", policy.simplificationStudyMargin, coverage.trials);
+    requireUpperBound(
+      validatedRate(row.positiveOutcome, row.trials, `${scenario} positive outcome`),
+      policy.maximumFalseDecisionWilsonUpper,
+      `${scenario} false accept`,
+    );
+  }
+  for (const scenario of policy.requiredDiagnosticScenarios) {
+    const row: any = diagnosticRows.find((entry: any) =>
+      entry.scenario === scenario && entry.seedsPerBudget === policy.seedsPerBudget
+    );
+    const simplification = scenario === "hard_zero_noninferiority_inside";
+    requireCoverageRow(
+      row,
+      scenario,
+      simplification ? "simplification" : "improvement",
+      simplification ? policy.simplificationStudyMargin : null,
+      coverage.trials,
+    );
+    requireUpperBound(
+      validatedRate(row.negativeOutcome, row.trials, `${scenario} negative outcome`),
+      policy.maximumFalseDecisionWilsonUpper,
+      `${scenario} false reject`,
+    );
   }
 }
 

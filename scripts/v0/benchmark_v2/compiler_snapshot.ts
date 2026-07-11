@@ -9,7 +9,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
-import { compilerCandidateIdentity } from "./runner.ts";
+import { COMPILER_SOURCE_PATHS, compilerCandidateIdentity } from "./compiler_identity.ts";
 
 const ENGINE_ARTIFACT = "engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm";
 
@@ -115,6 +115,7 @@ export function runSnapshotBenchmark(
       "./",
       `${workspace}/`,
     ], { cwd: process.cwd(), stdio: "inherit" });
+    removeAmbientCompilerSources(workspace);
     execFileSync("tar", ["-xzf", resolve(snapshot.archive), "-C", workspace], { stdio: "inherit" });
     execFileSync("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund"], {
       cwd: workspace,
@@ -158,6 +159,12 @@ export function runSnapshotBenchmark(
     qualificationMonitorScore: archive.qualificationMonitorScore,
     workerFailures: archive.runs.filter((row: { status: string }) => row.status !== "ok").length,
   };
+}
+
+export function removeAmbientCompilerSources(workspace: string): void {
+  for (const path of COMPILER_SOURCE_PATHS) {
+    rmSync(resolve(workspace, path), { recursive: true, force: true });
+  }
 }
 
 function sha256(value: Buffer): string {

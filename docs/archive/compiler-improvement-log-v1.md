@@ -1,5 +1,9 @@
 # Compiler Improvement Log
 
+> **ARCHIVE (Benchmark V1).** Entries in this log use the retired golden suite
+> and decision rule. Preserve them as an experiment audit; use
+> `GOAL_LDS_COMPILER_IMPROVEMENT.md` and `docs/HOW_TO_WORK.md` for V2.
+
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
 ## 2026-07-10 - OBSERVATION ONLY - causal impact entry/catch pair study

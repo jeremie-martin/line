@@ -53,7 +53,7 @@ An inconclusive non-inferiority result is not permission to accept the simplific
 
 ## Baseline
 
-`benchmark/v2/probe-baseline.json` is the reusable screening reference. `benchmark/v2/baseline.json` records the compiler of record, its checksummed compiler/WASM snapshot, and its baseline milestone evidence. A canonical decision does not compare against that already-visible milestone run: before either outcome exists it freezes both baseline and candidate, then executes both snapshots in clean isolated worktrees on one newly allocated seed epoch. A provisional promotion baseline cannot promote candidates.
+`benchmark/v2/probe-baseline.json` is the reusable screening reference. `benchmark/v2/baseline.json` records the compiler of record, its checksummed compiler/WASM snapshot, baseline milestone evidence, and frozen decision/calibration contract. A canonical decision does not compare against that already-visible milestone run: before either outcome exists it freezes both baseline and candidate, then executes both snapshots in clean isolated worktrees on one newly allocated seed epoch. A suite, decision, or calibration change requires a new baseline. A provisional promotion baseline cannot promote candidates.
 
 Create a new baseline only through:
 
@@ -71,7 +71,7 @@ The command requires an approved tracked listening review, freezes checksummed c
 - Diagnose invalid runs, validity flips, termini, phases, and case-level deltas before changing policy.
 - Never tune case by case against qualification monitor outputs.
 - Never edit generated compatibility manifests directly; edit typed cases or `benchmark/v2/policy.ts` and run `prepare`.
-- Any suite, scorer, target interpretation, weight, profile, seed-policy, or execution-protocol change requires a new baseline.
+- Any suite, scorer, target interpretation, weight, profile, seed-policy, execution-protocol, decision-rule, or calibration change requires a new baseline.
 - Operational runner changes require a reviewed, checksummed bit-identity approval for the exact implementation pair.
 
 V1 remains explicitly available for historical reproduction:

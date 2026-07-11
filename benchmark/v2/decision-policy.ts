@@ -31,18 +31,23 @@ export const benchmarkDecisionCalibrationPolicy = {
   minimumTrialsPerCell: 1_000,
   minimumCoverageWilsonLower: 0.93,
   maximumFalseDecisionWilsonUpper: 0.05,
-  minimumEmpiricalGainPowerWilsonLower: 0.85,
+  minimumSupportedPowerWilsonLower: 0.80,
   simplificationStudyMargin: 5,
   requiredNullScenarios: [
     "empirical_blocks",
     "symmetric_validity_flips",
     "catalog_wide_hard_zero",
   ],
-  requiredAlternativeScenarios: [
+  requiredPoweredScenarios: [
     "empirical_score_gain",
+    "paired_empirical_noninferiority_inside",
+  ],
+  requiredSafetyScenarios: [
+    "hard_zero_noninferiority_boundary",
+  ],
+  requiredDiagnosticScenarios: [
     "hard_zero_validity_gain",
-    "noninferiority_inside",
-    "noninferiority_boundary",
+    "hard_zero_noninferiority_inside",
   ],
 } as const;
 

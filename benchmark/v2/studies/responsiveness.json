@@ -2,13 +2,13 @@
   "schema": "line.benchmark-v2.responsiveness-study.v1",
   "status": "complete",
   "purpose": "Confirm that the frozen probe detects broad and axis-specific compiler degradations under an identical execution policy.",
-  "executionPolicyFingerprint": "023b4f8080b9132cd660d31be2922e94be588cfc67120c0f93be2c2574597714",
-  "decisionFingerprint": "72ef09e0ebe579fdb1f4818057baf4c5993273843e5abe47f7008aebeabea6c4",
+  "executionPolicyFingerprint": "99404b5702a73040a83fd95cf3fad62d4c1f63ca97882f8dd4e030137663c3d4",
+  "decisionFingerprint": "1a4ddef6857949a8ff9de8ef506f07042e1d73d058312bf4b99c4029fbb309db",
   "cases": [
     {
       "id": "baseline",
       "archive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
-      "archiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
+      "archiveSha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4",
       "compilerEnvironment": {},
       "headline": 446.0945,
       "deltaFromBaseline": 0,
@@ -46,7 +46,7 @@
     {
       "id": "impact_blindness",
       "archive": "benchmark/v2/runs/calibration-v2.4-impact-off-probe.json.gz",
-      "archiveSha256": "98f12eb9709f20d0e20a613e3bb5dae58a1480e61cbf10f8837fefe1bbce1da8",
+      "archiveSha256": "a4f6d05f1f2a698823f0c3fc9fe0746894d22ca55576cf9248477ee2b3191c25",
       "compilerEnvironment": {
         "LR_IMPACT_OFF": "1"
       },
@@ -94,7 +94,7 @@
     {
       "id": "candidate_breadth_1",
       "archive": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
-      "archiveSha256": "758b2fed2f4953fd7c252e4adc86ff6a465e6c82073bebaf21fe91165dcfaf85",
+      "archiveSha256": "dd875f118eadce0c5f703e7b16fb3bb3b61f961532f93ae6ea97a4c3dc1ffb01",
       "compilerEnvironment": {
         "LR_QUALITY_NCAND": "1"
       },

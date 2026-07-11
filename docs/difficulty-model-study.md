@@ -151,7 +151,7 @@ The current repair phase already has a measured per-incumbent `costToEnd`:
 with the static model, run:
 
 ```bash
-LR_ENGINE=wasm LR_REPAIR_LOG=1 GOLDEN_SEEDS_OVERRIDE=0,1 npm run golden -- \
+LR_ENGINE=wasm LR_REPAIR_LOG=1 GOLDEN_SEEDS_OVERRIDE=0,1 npm run golden:v1 -- \
   --specs=drums_pendulum,solo_run,skyline_push,tiny_dance,dense_echo_climb \
   --budgets=250000 \
   --jobs=5 \

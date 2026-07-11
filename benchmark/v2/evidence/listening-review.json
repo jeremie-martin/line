@@ -1,9 +1,9 @@
 {
   "schema": "line.benchmark-v2.listening-review.v2",
   "status": "awaiting-human-review",
-  "suiteFingerprint": "126414401682030b3ca604ed7a40d60f18bd9a06e0a68228a02a5c74f82096e5",
+  "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
   "sourceManifestFingerprint": "72f9e3e17abf05edb1b5858d2862668eb09eaa3144f5dc3ec2fa030ceb9c7dba",
-  "generatedAt": "2026-07-10T22:42:04.467Z",
+  "generatedAt": "2026-07-11T05:25:49.006Z",
   "instructions": "Listen without compiler outcomes. Judge musical plausibility, phrase coherence, and whether each variant remains recognizably related to its parent. To approve, fill every judgment, reviewer, reviewedAt, and use this exact attestation: I reviewed these click tracks without consulting compiler or qualification outcomes.",
   "reviewer": null,
   "reviewedAt": null,

@@ -2,7 +2,8 @@
 
 Status: **provisional and not promotion-eligible**. The required human listening review
 was not completed before this evidence was generated, and the current Benchmark V2 changes
-the canonical seed allocation, paired-snapshot workflow, and execution protocol. These values are retained for audit
+the canonical seed allocation, paired-snapshot workflow, execution protocol, and V8
+decision/calibration contract. These values are retained for audit
 only. Complete the tracked listening review and run `benchmark -- baseline` to establish
 the next compiler baseline.
 

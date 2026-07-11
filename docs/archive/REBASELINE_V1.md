@@ -60,7 +60,7 @@ npx tsx -e 'import{readFileSync,readdirSync}from"node:fs";import{resolve}from"no
 
 ## 3. Files to update
 
-### a) `docs/handoff-compiler.html`
+### a) `docs/archive/handoff-compiler-v1.html`
 
 Run the generator:
 
@@ -74,7 +74,7 @@ score, the budget table, largest-budget per-spec rows, and the campaign chart po
 ### b) `docs/HOW_TO_WORK.md` — "Current baseline (of record)"
 
 Step (a) already regenerates the full per-budget / per-spec baseline into
-`docs/handoff-compiler.html` from the curve JSON — that generated doc **is** the
+`docs/archive/handoff-compiler-v1.html` from the curve JSON — that generated doc **is** the
 recorded baseline; do not hand-transcribe a second copy. Just refresh the one-line
 orientation snapshot in HOW_TO_WORK's "Current baseline" section (headline figure,
 default placement, fingerprint) so a reader sees the current number at a glance.

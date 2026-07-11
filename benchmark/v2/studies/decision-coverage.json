@@ -1,19 +1,21 @@
 {
-  "schema": "line.benchmark-v2.decision-coverage-study.v2",
-  "generatedAt": "2026-07-10T22:59:02.242Z",
-  "suiteFingerprint": "126414401682030b3ca604ed7a40d60f18bd9a06e0a68228a02a5c74f82096e5",
+  "schema": "line.benchmark-v2.decision-coverage-study.v3",
+  "generatedAt": "2026-07-11T05:41:13.885Z",
+  "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
   "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
-  "decisionInferenceFingerprint": "2b8b0fcd850eb9ec050ca481854568a24dab5ee42fd418de4369e1d68726b0bd",
+  "decisionInferenceFingerprint": "a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21",
   "reference": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
-  "referenceArtifactSha256": "a77a14c3c4a3768226a1aa574d4a7a3ac99f9580eb6a5276c6c46e8f90ff6527",
-  "referenceRawSha256": "02a364f0e9f8e6880aa7b0bdaec30c59d18818ddccb2224d49ffd6834fd437a8",
+  "referenceArtifactSha256": "842c66d8d1dc4aaad2b5c07c395f9d35d9e9f63deb920f2d792f30c5be71630a",
+  "referenceRawSha256": "6b636fb686f2c72e41da67f695d7e44574073ced6e4eeb0920cbf20d91f4f755",
   "referenceCandidateFingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40",
   "trials": 1000,
   "design": {
     "empirical_blocks": "Base and candidate independently resample whole observed catalog seed blocks within each budget.",
     "symmetric_validity_flips": "Both sides share an observed block; one random side receives an 8% hard-zero cell flip.",
     "catalog_wide_hard_zero": "Each catalog-wide block independently takes score 500 or hard-zero with 80% validity.",
-    "alternatives": "Power covers an empirical +15 score shift, a zero-inflated +6 percentage-point validity gain, and simplification effects inside and exactly at a 5-point non-inferiority margin."
+    "poweredAlternatives": "Supported power claims cover an independently resampled empirical +15 score shift and a shared-seed paired simplification halfway inside a 5-point non-inferiority margin.",
+    "safetyBoundary": "A catalog-wide hard-zero process exactly at the simplification margin calibrates false acceptance.",
+    "diagnosticLimits": "Catalog-wide hard-zero validity gain and inside-margin simplification are retained as known low-power diagnostics, not supported power claims."
   },
   "results": [
     {
@@ -229,8 +231,98 @@
           0.0952
         ]
       },
-      "candidateValidityProbability": null
+      "candidateValidityProbability": null,
+      "scoreShift": 15
     },
+    {
+      "scenario": "paired_empirical_noninferiority_inside",
+      "mode": "simplification",
+      "margin": 5,
+      "seedsPerBudget": 8,
+      "trials": 1000,
+      "trueDelta": -2.5001,
+      "meanDelta": -2.5073,
+      "centralCoverage": {
+        "count": 973,
+        "rate": 0.973,
+        "wilson95": [
+          0.961,
+          0.9814
+        ]
+      },
+      "positiveOutcome": {
+        "count": 1000,
+        "rate": 1,
+        "wilson95": [
+          0.9962,
+          1
+        ]
+      },
+      "negativeOutcome": {
+        "count": 0,
+        "rate": 0,
+        "wilson95": [
+          0,
+          0.0038
+        ]
+      },
+      "unresolvedOutcome": {
+        "count": 0,
+        "rate": 0,
+        "wilson95": [
+          0,
+          0.0038
+        ]
+      },
+      "candidateValidityProbability": null,
+      "scoreShift": -2.9293
+    }
+  ],
+  "safetyResults": [
+    {
+      "scenario": "hard_zero_noninferiority_boundary",
+      "mode": "simplification",
+      "margin": 5,
+      "seedsPerBudget": 8,
+      "trials": 1000,
+      "trueDelta": -5,
+      "meanDelta": -5.5005,
+      "centralCoverage": {
+        "count": 964,
+        "rate": 0.964,
+        "wilson95": [
+          0.9506,
+          0.9739
+        ]
+      },
+      "positiveOutcome": {
+        "count": 29,
+        "rate": 0.029,
+        "wilson95": [
+          0.0203,
+          0.0413
+        ]
+      },
+      "negativeOutcome": {
+        "count": 26,
+        "rate": 0.026,
+        "wilson95": [
+          0.0178,
+          0.0378
+        ]
+      },
+      "unresolvedOutcome": {
+        "count": 945,
+        "rate": 0.945,
+        "wilson95": [
+          0.9291,
+          0.9575
+        ]
+      },
+      "candidateValidityProbability": 0.794801886486721
+    }
+  ],
+  "diagnosticResults": [
     {
       "scenario": "hard_zero_validity_gain",
       "mode": "improvement",
@@ -274,72 +366,22 @@
       "candidateValidityProbability": 0.86
     },
     {
-      "scenario": "noninferiority_inside",
+      "scenario": "hard_zero_noninferiority_inside",
       "mode": "simplification",
       "margin": 5,
       "seedsPerBudget": 8,
       "trials": 1000,
       "trueDelta": -2.5,
-      "meanDelta": -8.6033,
+      "meanDelta": -4.6336,
       "centralCoverage": {
-        "count": 962,
-        "rate": 0.962,
+        "count": 964,
+        "rate": 0.964,
         "wilson95": [
-          0.9483,
-          0.9722
+          0.9506,
+          0.9739
         ]
       },
       "positiveOutcome": {
-        "count": 21,
-        "rate": 0.021,
-        "wilson95": [
-          0.0138,
-          0.0319
-        ]
-      },
-      "negativeOutcome": {
-        "count": 29,
-        "rate": 0.029,
-        "wilson95": [
-          0.0203,
-          0.0413
-        ]
-      },
-      "unresolvedOutcome": {
-        "count": 950,
-        "rate": 0.95,
-        "wilson95": [
-          0.9347,
-          0.9619
-        ]
-      },
-      "candidateValidityProbability": 0.7974152858762409
-    },
-    {
-      "scenario": "noninferiority_boundary",
-      "mode": "simplification",
-      "margin": 5,
-      "seedsPerBudget": 8,
-      "trials": 1000,
-      "trueDelta": -5,
-      "meanDelta": -9.9765,
-      "centralCoverage": {
-        "count": 956,
-        "rate": 0.956,
-        "wilson95": [
-          0.9414,
-          0.9671
-        ]
-      },
-      "positiveOutcome": {
-        "count": 29,
-        "rate": 0.029,
-        "wilson95": [
-          0.0203,
-          0.0413
-        ]
-      },
-      "negativeOutcome": {
         "count": 28,
         "rate": 0.028,
         "wilson95": [
@@ -347,15 +389,23 @@
           0.0402
         ]
       },
-      "unresolvedOutcome": {
-        "count": 943,
-        "rate": 0.943,
+      "negativeOutcome": {
+        "count": 31,
+        "rate": 0.031,
         "wilson95": [
-          0.9269,
-          0.9557
+          0.0219,
+          0.0437
         ]
       },
-      "candidateValidityProbability": 0.794801886486721
+      "unresolvedOutcome": {
+        "count": 941,
+        "rate": 0.941,
+        "wilson95": [
+          0.9246,
+          0.954
+        ]
+      },
+      "candidateValidityProbability": 0.7974152858762409
     }
   ]
 }

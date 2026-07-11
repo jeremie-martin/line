@@ -1,5 +1,8 @@
 # Push-700 campaign log
 
+> **ARCHIVE (Benchmark V1).** This log preserves the retired 40-case campaign.
+> Its headline, budgets, archives, and decision commands are not V2 evidence.
+
 Goal: canonical HEADLINE ≥ 700. Canonical = 40 specs × 12 seeds × {125k,250k,375k,500k},
 `LR_ENGINE=wasm`, `--jobs=32` (equals form!). Decide = paired cluster bootstrap, α=0.20;
 only `VERDICT: ACCEPT` is kept. Scorer / specs / fingerprint / seeds / budgets / decide

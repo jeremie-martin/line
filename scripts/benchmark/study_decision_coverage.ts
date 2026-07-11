@@ -92,10 +92,20 @@ for (const budget of baseSuite.profiles.canonical.budgets) {
 }
 
 const nullScenarios = ["empirical_blocks", "symmetric_validity_flips", "catalog_wide_hard_zero"] as const;
-const alternativeScenarios = ["empirical_score_gain", "hard_zero_validity_gain", "noninferiority_inside", "noninferiority_boundary"] as const;
+const poweredScenarios = ["empirical_score_gain", "paired_empirical_noninferiority_inside"] as const;
+const safetyScenarios = ["hard_zero_noninferiority_boundary"] as const;
+const diagnosticScenarios = ["hard_zero_validity_gain", "hard_zero_noninferiority_inside"] as const;
+type StudyScenario =
+  | typeof nullScenarios[number]
+  | typeof poweredScenarios[number]
+  | typeof safetyScenarios[number]
+  | typeof diagnosticScenarios[number];
 const catalogHeadlineCache = new Map<number, number[]>();
 const results = [];
 const powerResults = [];
+const safetyResults = [];
+const diagnosticResults = [];
+const pairedNoninferiorityShift = solveEmpiricalShift(baseSuite, -2.5);
 for (const seedsPerBudget of seedCounts) {
   const suite = suiteForSeeds(baseSuite, seedsPerBudget);
   for (const scenario of nullScenarios) {
@@ -107,19 +117,11 @@ for (const seedsPerBudget of seedCounts) {
     });
     console.log(`  null ${scenario}/${seedsPerBudget}: coverage ${(100 * result.centralCoverage.rate).toFixed(1)}%`);
   }
-  for (const scenario of alternativeScenarios) {
-    const mode: DecisionMode = scenario.startsWith("noninferiority") ? "simplification" : "improvement";
+  for (const scenario of poweredScenarios) {
+    const mode: DecisionMode = scenario === "empirical_score_gain" ? "improvement" : "simplification";
     const margin = mode === "simplification" ? 5 : undefined;
-    const candidateValidityProbability = scenario === "hard_zero_validity_gain"
-      ? 0.86
-      : scenario === "noninferiority_inside"
-      ? solveValidityProbability(suite, -2.5)
-      : scenario === "noninferiority_boundary"
-      ? solveValidityProbability(suite, -5)
-      : undefined;
-    const trueDelta = scenario === "empirical_score_gain"
-      ? empiricalShiftTruth(baseSuite, 15)
-      : exactCatalogWideDelta(suite, 0.8, candidateValidityProbability!);
+    const scoreShift = scenario === "empirical_score_gain" ? 15 : pairedNoninferiorityShift;
+    const trueDelta = empiricalShiftTruth(baseSuite, scoreShift);
     const result = simulate(
       scenario,
       suite,
@@ -127,15 +129,47 @@ for (const seedsPerBudget of seedCounts) {
       mode,
       margin,
       trueDelta,
+      undefined,
+      scoreShift,
+    );
+    powerResults.push({ ...result, candidateValidityProbability: null, scoreShift: round(scoreShift) });
+    console.log(`  power ${scenario}/${seedsPerBudget}: positive ${(100 * result.positiveOutcome.rate).toFixed(1)}%`);
+  }
+  const boundaryProbability = solveValidityProbability(suite, -5);
+  const boundary = simulate(
+    "hard_zero_noninferiority_boundary",
+    suite,
+    seedsPerBudget,
+    "simplification",
+    5,
+    exactCatalogWideDelta(suite, 0.8, boundaryProbability),
+    boundaryProbability,
+  );
+  safetyResults.push({ ...boundary, candidateValidityProbability: boundaryProbability });
+  console.log(`  safety hard_zero_noninferiority_boundary/${seedsPerBudget}: false accept ${(100 * boundary.positiveOutcome.rate).toFixed(1)}%`);
+
+  for (const scenario of diagnosticScenarios) {
+    const mode: DecisionMode = scenario === "hard_zero_validity_gain" ? "improvement" : "simplification";
+    const margin = mode === "simplification" ? 5 : undefined;
+    const candidateValidityProbability = scenario === "hard_zero_validity_gain"
+      ? 0.86
+      : solveValidityProbability(suite, -2.5);
+    const result = simulate(
+      scenario,
+      suite,
+      seedsPerBudget,
+      mode,
+      margin,
+      exactCatalogWideDelta(suite, 0.8, candidateValidityProbability),
       candidateValidityProbability,
     );
-    powerResults.push({ ...result, candidateValidityProbability: candidateValidityProbability ?? null });
-    console.log(`  power ${scenario}/${seedsPerBudget}: positive ${(100 * result.positiveOutcome.rate).toFixed(1)}%`);
+    diagnosticResults.push({ ...result, candidateValidityProbability });
+    console.log(`  diagnostic ${scenario}/${seedsPerBudget}: positive ${(100 * result.positiveOutcome.rate).toFixed(1)}%`);
   }
 }
 
 const report = {
-  schema: "line.benchmark-v2.decision-coverage-study.v2",
+  schema: "line.benchmark-v2.decision-coverage-study.v3",
   generatedAt: new Date().toISOString(),
   suiteFingerprint: identity.suiteFingerprint,
   scorerFingerprint,
@@ -149,23 +183,28 @@ const report = {
     empirical_blocks: "Base and candidate independently resample whole observed catalog seed blocks within each budget.",
     symmetric_validity_flips: "Both sides share an observed block; one random side receives an 8% hard-zero cell flip.",
     catalog_wide_hard_zero: "Each catalog-wide block independently takes score 500 or hard-zero with 80% validity.",
-    alternatives: "Power covers an empirical +15 score shift, a zero-inflated +6 percentage-point validity gain, and simplification effects inside and exactly at a 5-point non-inferiority margin.",
+    poweredAlternatives: "Supported power claims cover an independently resampled empirical +15 score shift and a shared-seed paired simplification halfway inside a 5-point non-inferiority margin.",
+    safetyBoundary: "A catalog-wide hard-zero process exactly at the simplification margin calibrates false acceptance.",
+    diagnosticLimits: "Catalog-wide hard-zero validity gain and inside-margin simplification are retained as known low-power diagnostics, not supported power claims.",
   },
   results,
   powerResults,
+  safetyResults,
+  diagnosticResults,
 };
 write(outPath, `${JSON.stringify(report, null, 2)}\n`);
 write(markdownPath, renderMarkdown(report));
 console.log(renderMarkdown(report));
 
 function simulate(
-  scenario: typeof nullScenarios[number] | typeof alternativeScenarios[number],
+  scenario: StudyScenario,
   suite: SuiteManifest,
   seedsPerBudget: number,
   mode: DecisionMode,
   margin: number | undefined,
   trueDelta: number,
   candidateValidityProbability?: number,
+  scoreShift?: number,
 ): any {
   const random = mulberry32(hashSeed(`${scenario}:${seedsPerBudget}`));
   let covered = 0;
@@ -180,6 +219,7 @@ function simulate(
       seedsPerBudget,
       random,
       candidateValidityProbability,
+      scoreShift,
     );
     const decision = pairedV2DecisionForCalibration(base, candidate, suite, {
       profile: "canonical",
@@ -209,11 +249,12 @@ function simulate(
 }
 
 function trialRuns(
-  scenario: typeof nullScenarios[number] | typeof alternativeScenarios[number],
+  scenario: StudyScenario,
   suite: SuiteManifest,
   seedsPerBudget: number,
   random: () => number,
   candidateValidityProbability?: number,
+  scoreShift?: number,
 ): { base: DecisionRun[]; candidate: DecisionRun[] } {
   const base: DecisionRun[] = [];
   const candidate: DecisionRun[] = [];
@@ -232,8 +273,14 @@ function trialRuns(
           baseScore = referenceByCell.get(cellKey(sourceId, budget, baseSeed))!;
           candidateScore = referenceByCell.get(cellKey(sourceId, budget, candidateSeed))!;
           if (scenario === "empirical_score_gain" && candidateScore.valid) {
-            candidateScore = { ...candidateScore, score: Math.min(1000, candidateScore.score + 15) };
+            candidateScore = { ...candidateScore, score: clampScore(candidateScore.score + (scoreShift ?? 15)) };
           }
+        } else if (scenario === "paired_empirical_noninferiority_inside") {
+          const original = referenceByCell.get(cellKey(sourceId, budget, sharedSeed))!;
+          baseScore = original;
+          candidateScore = original.valid
+            ? { ...original, score: clampScore(original.score + scoreShift!) }
+            : original;
         } else if (scenario === "symmetric_validity_flips") {
           const original = referenceByCell.get(cellKey(sourceId, budget, sharedSeed))!;
           baseScore = original;
@@ -253,6 +300,21 @@ function trialRuns(
     }
   }
   return { base, candidate };
+}
+
+function solveEmpiricalShift(suite: SuiteManifest, targetDelta: number): number {
+  let low = -25;
+  let high = 0;
+  for (let iteration = 0; iteration < 50; iteration++) {
+    const middle = (low + high) / 2;
+    if (empiricalShiftTruth(suite, middle) < targetDelta) low = middle;
+    else high = middle;
+  }
+  return (low + high) / 2;
+}
+
+function clampScore(value: number): number {
+  return Math.max(0, Math.min(1000, value));
 }
 
 function solveValidityProbability(suite: SuiteManifest, targetDelta: number): number {
@@ -329,7 +391,7 @@ function empiricalShiftTruth(suite: SuiteManifest, shift: number): number {
         base.push({ ...task, score: { ...original } });
         candidate.push({
           ...task,
-          score: original.valid ? { ...original, score: Math.min(1000, original.score + shift) } : { ...original },
+          score: original.valid ? { ...original, score: clampScore(original.score + shift) } : { ...original },
         });
       }
     });
@@ -412,11 +474,25 @@ function renderMarkdown(report: any): string {
     "|---|---:|---:|---:|---:|---:|",
     ...report.results.map((entry: any) => `| ${entry.scenario} | ${entry.seedsPerBudget} | ${entry.meanDelta.toFixed(2)} | ${percent(entry.centralCoverage)} | ${percent(entry.falseAccept)} | ${percent(entry.falseReject)} |`),
     "",
-    "## Alternative power and non-inferiority",
+    "## Supported power claims",
     "",
     "| Scenario | Mode | True delta | Mean delta | Positive | Negative | Unresolved | Coverage |",
     "|---|---|---:|---:|---:|---:|---:|---:|",
     ...report.powerResults.map((entry: any) => `| ${entry.scenario} | ${entry.mode}${entry.margin === null ? "" : ` (margin ${entry.margin})`} | ${entry.trueDelta.toFixed(2)} | ${entry.meanDelta.toFixed(2)} | ${percent(entry.positiveOutcome)} | ${percent(entry.negativeOutcome)} | ${percent(entry.unresolvedOutcome)} | ${percent(entry.centralCoverage)} |`),
+    "",
+    "## Safety boundary",
+    "",
+    "| Scenario | Mode | True delta | Mean delta | False accept | Negative | Unresolved | Coverage |",
+    "|---|---|---:|---:|---:|---:|---:|---:|",
+    ...report.safetyResults.map((entry: any) => `| ${entry.scenario} | ${entry.mode} (margin ${entry.margin}) | ${entry.trueDelta.toFixed(2)} | ${entry.meanDelta.toFixed(2)} | ${percent(entry.positiveOutcome)} | ${percent(entry.negativeOutcome)} | ${percent(entry.unresolvedOutcome)} | ${percent(entry.centralCoverage)} |`),
+    "",
+    "## Known power limits",
+    "",
+    "These hard-zero cases are coverage and false-rejection diagnostics. Their positive rate is reported explicitly and is not a supported power claim.",
+    "",
+    "| Scenario | Mode | True delta | Mean delta | Positive | Negative | Unresolved | Coverage |",
+    "|---|---|---:|---:|---:|---:|---:|---:|",
+    ...report.diagnosticResults.map((entry: any) => `| ${entry.scenario} | ${entry.mode}${entry.margin === null ? "" : ` (margin ${entry.margin})`} | ${entry.trueDelta.toFixed(2)} | ${entry.meanDelta.toFixed(2)} | ${percent(entry.positiveOutcome)} | ${percent(entry.negativeOutcome)} | ${percent(entry.unresolvedOutcome)} | ${percent(entry.centralCoverage)} |`),
     "",
     "All stored empirical scores were recomputed from retained raw reports before simulation. Wilson 95% intervals accompany every Monte Carlo rate in the JSON artifact.",
   ].join("\n")}\n`;

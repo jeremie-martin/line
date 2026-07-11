@@ -144,16 +144,22 @@ LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts
 ## Campaign Command
 
 ```bash
-npm run golden -- --full --compiler=handoff
+npm run benchmark -- probe --out=generated/benchmark-v2/candidates/NAME-probe.json
+npm run decide -- generated/benchmark-v2/candidates/NAME-probe.json
 ```
 
-The command reports the **HEADLINE** metric, per-budget scores, row checkpoint
-hashes, seed-policy metadata, and compact checkpoint stats. Normalized probes use
-the probe preset:
+The probe reports the V2 headline, per-budget scores, checkpoint identity,
+seed-policy metadata, and compact compiler statistics. Only a screened candidate
+should consume the baseline's one-shot canonical confirmation:
 
 ```bash
-npm run golden -- --probe --archive-dir=generated/golden-runs/<probe-label>
+npm run benchmark -- canonical --decision-mode=improvement
+npm run decide -- GENERATED_DEVELOPMENT_ARCHIVE
 ```
+
+Historical `--full`, `--compiler`, custom V1 budget grids, and `golden.json`
+archives require `npm run golden:v1` and `npm run decide:v1`; they are not V2
+promotion evidence.
 
 ## Known Frontier
 

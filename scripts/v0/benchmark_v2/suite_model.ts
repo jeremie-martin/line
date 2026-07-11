@@ -76,6 +76,7 @@ export const BENCHMARK_DEFINITION_SOURCE_FILES = [
   "scripts/v0/benchmark_v2/suite_model.ts",
   "scripts/v0/benchmark_v2/score_model.ts",
   "scripts/v0/benchmark_v2/model.ts",
+  "scripts/v0/score.ts",
   "scripts/v0/core/substrate.ts",
   "scripts/v0/core/measure.ts",
   "scripts/v0/core/beats.ts",
@@ -100,6 +101,7 @@ export const RUNNER_IMPLEMENTATION_SOURCE_FILES = [
   "scripts/v0/benchmark_v2/run_development.ts",
   "scripts/v0/benchmark_v2/run_benchmark.ts",
   "scripts/v0/benchmark_v2/suite_model.ts",
+  "scripts/v0/score.ts",
   "scripts/v0/golden_suite.ts",
 ] as const;
 

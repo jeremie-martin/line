@@ -1,4 +1,4 @@
-> **ARCHIVED** — historical record, not live guidance. Live docs: [`docs/README.md`](../README.md). The baseline of record now lives in [`docs/HOW_TO_WORK.md`](../HOW_TO_WORK.md) + the generated `docs/handoff-compiler.html`.
+> **ARCHIVED** — historical record, not live guidance. Live docs: [`docs/README.md`](../README.md). The historical generated V1 view is `docs/archive/handoff-compiler-v1.html`; the current baseline is documented by [`docs/HOW_TO_WORK.md`](../HOW_TO_WORK.md).
 
 # Goal - budget-curve handoff compiler
 

@@ -272,18 +272,18 @@ Conclusions:
   **aim ↔ forward-eval interface**, and the **pose / reduction floor** (after
   which model accuracy may start to matter again).
 
-Repro (each archive a full `npm run golden` curve):
+Historical V1 reproduction (these archives are not V2 promotion evidence):
 
 ```text
 # arms — vary the flags, archive, then decide vs baseline
-LR_ENGINE=wasm LR_AIM_JOINT_PROBE_DESIGN=pitch3 npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/pitch3-canon-01
-LR_ENGINE=wasm LR_AIM_MODEL_SPACE=direct      npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/direct-cross5-canon-01
-LR_ENGINE=wasm LR_AIM_MODEL_SPACE=direct LR_AIM_JOINT_PROBE_DESIGN=pitch3 npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/direct-pitch3-canon-01
-LR_ENGINE=wasm LR_AIM_PROBE_MODE=full         npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/fullsim-cross5-canon-01
-LR_ENGINE=wasm LR_AIM_PROBE_MODE=full LR_AIM_JOINT_PROBE_DESIGN=pitch3 npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/fullsim-pitch3-canon-01
-LR_ENGINE=wasm LR_AIM_ENUM=0                  npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/aim-off-canon-01
+LR_ENGINE=wasm LR_AIM_JOINT_PROBE_DESIGN=pitch3 npm run golden:v1 -- --jobs=32 --json --archive-dir=generated/golden-runs/pitch3-canon-01
+LR_ENGINE=wasm LR_AIM_MODEL_SPACE=direct      npm run golden:v1 -- --jobs=32 --json --archive-dir=generated/golden-runs/direct-cross5-canon-01
+LR_ENGINE=wasm LR_AIM_MODEL_SPACE=direct LR_AIM_JOINT_PROBE_DESIGN=pitch3 npm run golden:v1 -- --jobs=32 --json --archive-dir=generated/golden-runs/direct-pitch3-canon-01
+LR_ENGINE=wasm LR_AIM_PROBE_MODE=full         npm run golden:v1 -- --jobs=32 --json --archive-dir=generated/golden-runs/fullsim-cross5-canon-01
+LR_ENGINE=wasm LR_AIM_PROBE_MODE=full LR_AIM_JOINT_PROBE_DESIGN=pitch3 npm run golden:v1 -- --jobs=32 --json --archive-dir=generated/golden-runs/fullsim-pitch3-canon-01
+LR_ENGINE=wasm LR_AIM_ENUM=0                  npm run golden:v1 -- --jobs=32 --json --archive-dir=generated/golden-runs/aim-off-canon-01
 # decide each against baseline-shorthorizon-61175-20260612
-npm run decide -- <cand>/golden.json <base>/golden.json
+npm run decide:v1 -- <cand>/golden.json <base>/golden.json
 # truth study
 LR_ENGINE=wasm npx tsx scripts/v0/study_prediction_truth.ts
 ```

@@ -642,8 +642,9 @@ Studies (read-only): `scripts/v0/study_arc_sensitivity.ts`,
 `study_knob_additivity.ts`, `study_impact_funnel.ts`,
 `study_catchability.ts`, `study_joint_enum.ts`,
 `study_joint_arc_model.ts`; artifacts under `generated/analysis/`.
-Decision workflow: `LR_ENGINE=wasm npm run golden --
---jobs=32 --archive-dir=generated/golden-runs/<name>`, then `npm run decide
--- <candidate>/golden.json <baseline>/golden.json` (candidate first). After
+Decision workflow: `npm run benchmark -- probe
+--out=generated/benchmark-v2/candidates/<name>.json`, then `npm run decide --
+generated/benchmark-v2/candidates/<name>.json`. After an `advance`, use the
+one-shot canonical workflow in `docs/HOW_TO_WORK.md`. After
 any behavior or stats-key change: `LR_ENGINE=wasm npm run verify:optimizer
 -- --update` + full test suite.

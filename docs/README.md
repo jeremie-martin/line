@@ -33,7 +33,6 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 |---|---|---|
 | [`../GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md) | LIVE | The current standard campaign: raise HEADLINE (budget-value-weighted average) across the compiler. |
 | [`geometry-campaign.md`](geometry-campaign.md) | LIVE | Arc shape/placement/aim is the ceiling. Board `eval_geometry.sh`; companions `geometry-prompt.md`, `geometry-log.md`. |
-| [`lookahead-campaign.md`](lookahead-campaign.md) | LIVE | Forward-eval / rollout ranking. Companions `lookahead-log.md`, `forward-eval-map.html`. |
 | [`planning-campaign.md`](planning-campaign.md) | LIVE | Long-horizon / global planning. Board `eval_planning.sh`; companion `global-planning.md`. |
 | [`impact-mission.md`](impact-mission.md) | LIVE | Impact metric + steering (the campaign that produced the current baseline). Board `eval_impact.sh`; companions `impact-campaign.md`, `IMPACT_PAIR_PLANNING.md`. |
 
@@ -58,7 +57,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`difficulty-model-study.md`](difficulty-model-study.md) | REFERENCE | First-completion cost vs full-score difficulty characterization. |
 | [`../TOOLING_NOTES.md`](../TOOLING_NOTES.md) | REFERENCE | Living log of tooling/harness friction + resolutions. |
 
-HTML views: `handoff-compiler.html` is a historical V1 generated view. The V2 baseline of
+HTML views: `archive/handoff-compiler-v1.html` is a historical V1 generated view. The V2 baseline of
 record is `../benchmark/v2/baseline.json`. `forward-eval-map.html` is **hand-maintained** (no generator); re-verify its
 `scripts/v0/*.ts` file:line anchors when that code changes.
 
@@ -73,6 +72,9 @@ metric/workflow.
 `GOAL_LDS_ARC_PLACEMENT.md`, `FOCUS_FRAGILE_SPECS.md`, `PLATEAU_CAMPAIGN_LOG.md`,
 `GOAL_LDS_PLATEAU_BREAKOUT.md`, `GOAL_LDS_LOW_BUDGET.md`, `speed_policy_followups.md`,
 `arc_placement.md`, `TODO.md`, `short-leaf-campaign.md`, `short-leaf-campaign-log.md`,
+`lookahead-campaign-v1.md`, `lookahead-prompt-v1.md`, `lookahead-log-v1.md`,
+`push-700-log-v1.md`, `compiler-improvement-log-v1.md`,
+`compiler-baseline-evolution-v1.csv`, `handoff-compiler-v1.html`,
 `SEARCH_ALGORITHM_ANALYSIS.md`, `FORWARD_EVAL_EXPERIMENTS.md`, `TRACK_REPAIR_EXPERIMENTS.md`.
 Kept for the "don't-retry" record and design rationale; their scores predate the current
 budget-aware / weighted-average metric (HEADLINE) and baseline.

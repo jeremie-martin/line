@@ -1,0 +1,130 @@
+{
+  "schema": "line.benchmark-v2.decision-conformance.v1",
+  "note": "Expected decision outcomes for the migration conformance replay. Re-recorded only by an inference-scope migration with an attested behavior change.",
+  "cases": [
+    {
+      "name": "identical_probe",
+      "kind": "retained-pair",
+      "base": {
+        "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+        "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4"
+      },
+      "candidate": {
+        "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+        "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4"
+      },
+      "options": {
+        "profile": "probe",
+        "mode": "improvement"
+      },
+      "expected": {
+        "outcome": "unresolved",
+        "delta": 0,
+        "lowerBound": 0,
+        "upperBound": 0,
+        "baseHeadline": 446.0945,
+        "candidateHeadline": 446.0945
+      }
+    },
+    {
+      "name": "broad_degradation_probe",
+      "kind": "retained-pair",
+      "base": {
+        "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+        "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4"
+      },
+      "candidate": {
+        "path": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
+        "sha256": "dd875f118eadce0c5f703e7b16fb3bb3b61f961532f93ae6ea97a4c3dc1ffb01"
+      },
+      "options": {
+        "profile": "probe",
+        "mode": "improvement"
+      },
+      "expected": {
+        "outcome": "stop",
+        "delta": -150.2036,
+        "lowerBound": -173.5339,
+        "upperBound": -126.8733,
+        "baseHeadline": 446.0945,
+        "candidateHeadline": 295.8909
+      }
+    },
+    {
+      "name": "impact_contract_failure_probe",
+      "kind": "retained-pair",
+      "base": {
+        "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+        "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4"
+      },
+      "candidate": {
+        "path": "benchmark/v2/runs/calibration-v2.4-impact-off-probe.json.gz",
+        "sha256": "a4f6d05f1f2a698823f0c3fc9fe0746894d22ca55576cf9248477ee2b3191c25"
+      },
+      "options": {
+        "profile": "probe",
+        "mode": "improvement"
+      },
+      "expected": {
+        "outcome": "stop",
+        "delta": -446.0945,
+        "lowerBound": -453.2402,
+        "upperBound": -438.9488,
+        "baseHeadline": 446.0945,
+        "candidateHeadline": 0
+      }
+    },
+    {
+      "name": "correlated_seed_adversary",
+      "kind": "synthetic",
+      "construction": "correlated_seed_adversary",
+      "options": {
+        "profile": "probe",
+        "mode": "improvement"
+      },
+      "expected": {
+        "outcome": "unresolved",
+        "delta": 2.9868,
+        "lowerBound": -22.1287,
+        "upperBound": 28.1023,
+        "baseHeadline": 500,
+        "candidateHeadline": 502.9868
+      }
+    },
+    {
+      "name": "uniform_gain_15",
+      "kind": "synthetic",
+      "construction": "uniform_gain_15",
+      "options": {
+        "profile": "probe",
+        "mode": "improvement"
+      },
+      "expected": {
+        "outcome": "advance",
+        "delta": 15,
+        "lowerBound": 15,
+        "upperBound": 15,
+        "baseHeadline": 500,
+        "candidateHeadline": 515
+      }
+    },
+    {
+      "name": "noninferiority_margin5",
+      "kind": "synthetic",
+      "construction": "noninferiority_margin5",
+      "options": {
+        "profile": "canonical",
+        "mode": "simplification",
+        "margin": 5
+      },
+      "expected": {
+        "outcome": "accept",
+        "delta": -2,
+        "lowerBound": -2,
+        "upperBound": -2,
+        "baseHeadline": 500,
+        "candidateHeadline": 498
+      }
+    }
+  ]
+}

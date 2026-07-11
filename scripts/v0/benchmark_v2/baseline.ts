@@ -67,7 +67,7 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
   const canonicalBundle = JSON.parse(readFileSync(canonical.bundlePath, "utf8"));
   const bundlePath = resolve(archiveDir, `${label}-baseline.json`);
   writeFileSync(bundlePath, `${JSON.stringify({
-    schema: "line.benchmark-v2.baseline-bundle.v2",
+    schema: "line.benchmark-v2.baseline-bundle.v3",
     label,
     generatedAt: new Date().toISOString(),
     decisionContract,

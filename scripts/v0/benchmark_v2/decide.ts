@@ -43,7 +43,6 @@ import {
   validateConfirmationEvidence,
 } from "./confirmation.ts";
 import {
-  DECISION_SOURCE_FILES,
   canonicalMembers,
   executionPolicyIdentity,
   fingerprintFiles,
@@ -51,10 +50,12 @@ import {
   resolvedSeedSchedule,
   suiteIdentity,
 } from "./suite_model.ts";
+import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
+import { decisionProtocolFingerprint } from "./decision_protocol.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 
 const DECISION_SCHEMA = "line.benchmark-v2.decision.v3" as const;
-const BASELINE_SCHEMA = "line.benchmark-v2.baseline-reference.v8" as const;
+const BASELINE_SCHEMA = "line.benchmark-v2.baseline-reference.v9" as const;
 const DEFAULT_BASELINE_PATH = "benchmark/v2/baseline.json";
 const PROBE_BASELINE_SCHEMA = "line.benchmark-v2.probe-baseline-reference.v1" as const;
 const DEFAULT_PROBE_BASELINE_PATH = "benchmark/v2/probe-baseline.json";
@@ -96,7 +97,8 @@ type BaselineReference = {
   compiler_identity_protocol: typeof COMPILER_IDENTITY_PROTOCOL;
   listening_review_status: "approved" | "awaiting-human-review" | "rejected";
   candidate_fingerprint: string;
-  decision_fingerprint?: string;
+  decision_inference_fingerprint?: string;
+  decision_protocol_fingerprint?: string;
   decision_calibration_fingerprint?: string;
   probe: RetainedReference;
   development: RetainedReference;
@@ -111,7 +113,8 @@ type RetainedReference = {
 export type DecisionArtifact = {
   schema: typeof DECISION_SCHEMA;
   generatedAt: string;
-  decisionFingerprint: string;
+  decisionInferenceFingerprint: string;
+  decisionProtocolFingerprint: string;
   executionProtocol: typeof BENCHMARK_EXECUTION_PROTOCOL;
   base: ArchiveReference;
   candidate: ArchiveReference;
@@ -182,7 +185,8 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
   const artifact: DecisionArtifact = {
     schema: DECISION_SCHEMA,
     generatedAt: new Date().toISOString(),
-    decisionFingerprint: fingerprintFiles(DECISION_SOURCE_FILES),
+    decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
+    decisionProtocolFingerprint: decisionProtocolFingerprint(),
     executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
     base: archiveReference(base),
     candidate: archiveReference(candidate),
@@ -590,7 +594,8 @@ function baselineArchive(profile: DecisionProfile): {
     profile === "canonical" &&
     (
       baseline.status !== "canonical-baseline" || baseline.listening_review_status !== "approved" ||
-      !isSha256(baseline.decision_fingerprint) || !isSha256(baseline.decision_calibration_fingerprint)
+      !isSha256(baseline.decision_inference_fingerprint) || !isSha256(baseline.decision_protocol_fingerprint) ||
+      !isSha256(baseline.decision_calibration_fingerprint)
     )
   ) {
     throw new Error(`canonical baseline is not approved or lacks its frozen decision contract`);

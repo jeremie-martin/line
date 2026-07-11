@@ -13,5 +13,6 @@ Probe and canonical actual seeds are disjoint at every shared budget. Probe evid
 | 750k | - | - | 461.28 | 314/336 | 390.69 | 40/40 |
 
 Candidate: `95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40`.
-Decision rule: `a14cb5c7f9871ba637ea224d3503f7eb4c7bb4e72a9db5c3ae9eb06efce8a7ce`.
-Decision calibration: `6613c01d918a8d5ad548dff7a8695b44c2cff5554fec3a71268174e611799699`.
+Inference rule: `a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21`.
+Decision protocol: `38b4aab58bf0e32deb5df78c546e5b9dca07d44ceccbe0a77c4a201cb0fceca9`.
+Decision calibration: `51ca5ed7a5d8ec74d5c846d4ebd91a9f9a4d5829d1592a8ced0d2a35d028184d`.

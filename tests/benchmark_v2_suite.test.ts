@@ -64,7 +64,8 @@ describe("Benchmark V2 suite identity", () => {
       compiler_environment: Record<string, string>;
       engine_artifact_fingerprint: string;
       candidate_fingerprint: string;
-      decision_fingerprint: string;
+      decision_inference_fingerprint: string;
+      decision_protocol_fingerprint: string;
       decision_calibration_fingerprint: string;
       probe: { compressed_archive: string; compressed_archive_sha256: string; canonical_headline: number };
       development: { compressed_archive: string; compressed_archive_sha256: string; canonical_headline: number };
@@ -80,12 +81,13 @@ describe("Benchmark V2 suite identity", () => {
     });
     expect(createHash("sha256").update(readFileSync(probeBaseline.probe.compressed_archive)).digest("hex"))
       .toBe(probeBaseline.probe.compressed_archive_sha256);
-    expect(baseline.schema).toBe("line.benchmark-v2.baseline-reference.v8");
+    expect(baseline.schema).toBe("line.benchmark-v2.baseline-reference.v9");
     expect(baseline.status).toBe("canonical-baseline");
     expect(baseline.listening_review_status).toBe("approved");
     expect(baseline.suite_fingerprint).toBe(identity.suiteFingerprint);
     expect(baseline.execution_protocol).toBe(BENCHMARK_EXECUTION_PROTOCOL);
-    expect(baseline.decision_fingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(baseline.decision_inference_fingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(baseline.decision_protocol_fingerprint).toMatch(/^[a-f0-9]{64}$/);
     expect(baseline.decision_calibration_fingerprint).toMatch(/^[a-f0-9]{64}$/);
     expect(baseline.compiler_identity_protocol).toBe(COMPILER_IDENTITY_PROTOCOL);
     expect(baseline.compiler_source_files).toContain("scripts/v0/score.ts");

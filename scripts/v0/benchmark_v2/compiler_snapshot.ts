@@ -115,6 +115,16 @@ export function runSnapshotBenchmark(
       "./",
       `${workspace}/`,
     ], { cwd: process.cwd(), stdio: "inherit" });
+    // The approved listening-review audio is validation evidence the runner
+    // requires; it lives under the otherwise-excluded generated/ tree.
+    if (existsSync("generated/benchmark-v2/listening-review")) {
+      mkdirSync(resolve(workspace, "generated/benchmark-v2"), { recursive: true });
+      execFileSync("cp", [
+        "-r",
+        "generated/benchmark-v2/listening-review",
+        resolve(workspace, "generated/benchmark-v2/"),
+      ], { stdio: "inherit" });
+    }
     removeAmbientCompilerSources(workspace);
     execFileSync("tar", ["-xzf", resolve(snapshot.archive), "-C", workspace], { stdio: "inherit" });
     execFileSync("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund"], {

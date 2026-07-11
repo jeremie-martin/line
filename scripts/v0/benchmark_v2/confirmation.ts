@@ -16,8 +16,9 @@ import {
   type DecisionContractIdentity,
 } from "./calibration_guard.ts";
 
-export const CONFIRMATION_STATE_SCHEMA = "line.benchmark-v2.confirmation-state.v3" as const;
-export const CONFIRMATION_DECLARATION_SCHEMA = "line.benchmark-v2.confirmation-declaration.v4" as const;
+export const CONFIRMATION_STATE_SCHEMA = "line.benchmark-v2.confirmation-state.v4" as const;
+export const CONFIRMATION_DECLARATION_SCHEMA = "line.benchmark-v2.confirmation-declaration.v5" as const;
+const LEGACY_STATE_SCHEMA_V3 = "line.benchmark-v2.confirmation-state.v3" as const;
 export const DEFAULT_CONFIRMATION_STATE_PATH = "benchmark/v2/confirmation-state.json";
 
 export type ConfirmationMode = "improvement" | "simplification";
@@ -30,7 +31,8 @@ export type ConfirmationDeclaration = {
   baselineCandidateFingerprint: string;
   baselineSuiteFingerprint: string;
   baselineSnapshotSha256: string;
-  baselineDecisionFingerprint: string;
+  baselineInferenceFingerprint: string;
+  baselineProtocolFingerprint: string;
   baselineCalibrationFingerprint: string;
   candidateFingerprint: string;
   candidateSnapshot: CompilerSnapshot;
@@ -59,7 +61,8 @@ export type ConfirmationState = {
     candidateFingerprint: string | null;
     listeningReviewFingerprint: string | null;
     compilerSnapshot: CompilerSnapshot | null;
-    decisionFingerprint: string | null;
+    inferenceFingerprint: string | null;
+    protocolFingerprint: string | null;
     calibrationFingerprint: string | null;
   };
   seedLedger: SeedLedgerEntry[];
@@ -104,10 +107,11 @@ export function initializeConfirmationStateFromBaseline(
   statePath = DEFAULT_CONFIRMATION_STATE_PATH,
 ): ConfirmationState {
   const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
-  const previous = existsSync(statePath) ? readConfirmationState(statePath) : undefined;
-  const approved = baseline.schema === "line.benchmark-v2.baseline-reference.v8" &&
+  const previous = existsSync(statePath) ? readConfirmationStateForLedger(statePath) : undefined;
+  const approved = baseline.schema === "line.benchmark-v2.baseline-reference.v9" &&
     baseline.status === "canonical-baseline" && baseline.listening_review_status === "approved" &&
-    baseline.compiler_snapshot !== undefined && isFingerprint(baseline.decision_fingerprint) &&
+    baseline.compiler_snapshot !== undefined && isFingerprint(baseline.decision_inference_fingerprint) &&
+    isFingerprint(baseline.decision_protocol_fingerprint) &&
     isFingerprint(baseline.decision_calibration_fingerprint);
   if (approved) validateCompilerSnapshot(baseline.compiler_snapshot);
   const state: ConfirmationState = {
@@ -123,7 +127,8 @@ export function initializeConfirmationStateFromBaseline(
       candidateFingerprint: baseline.candidate_fingerprint ?? null,
       listeningReviewFingerprint: baseline.listening_review_fingerprint ?? null,
       compilerSnapshot: approved ? baseline.compiler_snapshot : null,
-      decisionFingerprint: approved ? baseline.decision_fingerprint : null,
+      inferenceFingerprint: approved ? baseline.decision_inference_fingerprint : null,
+      protocolFingerprint: approved ? baseline.decision_protocol_fingerprint : null,
       calibrationFingerprint: approved ? baseline.decision_calibration_fingerprint : null,
     },
     seedLedger: previous?.seedLedger ?? [],
@@ -158,7 +163,8 @@ export async function runCanonicalConfirmation(args = process.argv.slice(2)): Pr
     const decisionContract = requireCurrentDecisionCalibration(state.baseline.suiteFingerprint);
     assertCurrentDecisionContract(state, decisionContract);
     if (
-      declaration.baselineDecisionFingerprint !== decisionContract.decisionFingerprint ||
+      declaration.baselineInferenceFingerprint !== decisionContract.inferenceFingerprint ||
+      declaration.baselineProtocolFingerprint !== decisionContract.protocolFingerprint ||
       declaration.baselineCalibrationFingerprint !== decisionContract.calibrationFingerprint
     ) throw new Error(`running confirmation declaration does not match the baseline decision contract`);
     if (declaration.candidateFingerprint !== identity.candidateFingerprint) {
@@ -204,7 +210,8 @@ export async function runCanonicalConfirmation(args = process.argv.slice(2)): Pr
       baselineCandidateFingerprint: state.baseline.candidateFingerprint!,
       baselineSuiteFingerprint: state.baseline.suiteFingerprint,
       baselineSnapshotSha256: state.baseline.compilerSnapshot.archiveSha256,
-      baselineDecisionFingerprint: decisionContract.decisionFingerprint,
+      baselineInferenceFingerprint: decisionContract.inferenceFingerprint,
+      baselineProtocolFingerprint: decisionContract.protocolFingerprint,
       baselineCalibrationFingerprint: decisionContract.calibrationFingerprint,
       candidateFingerprint: identity.candidateFingerprint,
       candidateSnapshot,
@@ -323,6 +330,16 @@ export function readConfirmationState(path = DEFAULT_CONFIRMATION_STATE_PATH): C
   return state;
 }
 
+/** Bootstrap-only lenient read: a legacy v3 state may seed the ledger (the
+ *  never-reuse guarantee must survive schema migrations). */
+function readConfirmationStateForLedger(path: string): { seedLedger: SeedLedgerEntry[] } {
+  const state = JSON.parse(readFileSync(path, "utf8"));
+  if (state.schema !== CONFIRMATION_STATE_SCHEMA && state.schema !== LEGACY_STATE_SCHEMA_V3) {
+    throw new Error(`unsupported confirmation state`);
+  }
+  return { seedLedger: Array.isArray(state.seedLedger) ? state.seedLedger : [] };
+}
+
 export function consumeConfirmation(
   statePath: string,
   candidateArchiveSha256: string,
@@ -384,7 +401,8 @@ export function validateConfirmationEvidence(
     attempt.baseArchiveSha256 !== input.baseArchiveSha256 ||
     declaration.baselineCandidateFingerprint !== input.baseCandidateFingerprint ||
     declaration.baselineSuiteFingerprint !== input.suiteFingerprint ||
-    declaration.baselineDecisionFingerprint !== decisionContract.decisionFingerprint ||
+    declaration.baselineInferenceFingerprint !== decisionContract.inferenceFingerprint ||
+    declaration.baselineProtocolFingerprint !== decisionContract.protocolFingerprint ||
     declaration.baselineCalibrationFingerprint !== decisionContract.calibrationFingerprint ||
     declaration.candidateFingerprint !== input.candidateFingerprint ||
     declaration.seedScheduleFingerprint !== sha256(Buffer.from(JSON.stringify(input.seedSchedule))) ||
@@ -402,10 +420,13 @@ function assertCurrentDecisionContract(
   current: DecisionContractIdentity,
 ): void {
   if (
-    state.baseline.decisionFingerprint !== current.decisionFingerprint ||
+    state.baseline.inferenceFingerprint !== current.inferenceFingerprint ||
     state.baseline.calibrationFingerprint !== current.calibrationFingerprint
   ) {
-    throw new Error(`decision or calibration contract differs from the baseline; establish a new baseline`);
+    throw new Error(`inference or calibration contract differs from the baseline; regenerate calibration and run \`benchmark migrate\``);
+  }
+  if (state.baseline.protocolFingerprint !== current.protocolFingerprint) {
+    throw new Error(`decision-protocol identity changed; run \`benchmark migrate --scope=protocol\` to re-stamp the contract`);
   }
 }
 

@@ -3,10 +3,12 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { benchmarkDecisionCalibrationPolicy } from "../../../benchmark/v2/decision-policy.ts";
 import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
-import { DECISION_SOURCE_FILES, fingerprintFiles } from "./suite_model.ts";
+import { decisionProtocolFingerprint } from "./decision_protocol.ts";
+import { fingerprintFiles } from "./suite_model.ts";
 
 export type DecisionContractIdentity = {
-  decisionFingerprint: string;
+  inferenceFingerprint: string;
+  protocolFingerprint: string;
   calibrationFingerprint: string;
 };
 
@@ -17,11 +19,14 @@ export function requireCurrentDecisionCalibration(
   const absolute = resolve(calibrationPath);
   if (!existsSync(absolute)) throw new Error(`current decision calibration artifact is missing`);
   const calibration = JSON.parse(readFileSync(absolute, "utf8"));
+  // Calibration binds the INFERENCE identity only (the code and constants
+  // that map data to verdicts). Protocol-surface edits never invalidate
+  // statistical evidence; they are re-stamped via `migrate --scope=protocol`.
   if (
-    calibration.schema !== "line.benchmark-v2.decision-calibration.v1" ||
+    calibration.schema !== "line.benchmark-v2.decision-calibration.v2" ||
     calibration.suiteFingerprint !== suiteFingerprint ||
-    calibration.decisionFingerprint !== fingerprintFiles(DECISION_SOURCE_FILES)
-  ) throw new Error(`decision calibration is stale for the current suite or decision implementation`);
+    calibration.decisionInferenceFingerprint !== fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES)
+  ) throw new Error(`decision calibration is stale for the current suite or inference implementation`);
 
   const coveragePath = resolve(calibration.coverageStudy?.path ?? "");
   if (!existsSync(coveragePath)) throw new Error(`calibrated zero-inflated coverage evidence is missing`);
@@ -46,7 +51,8 @@ export function requireCurrentDecisionCalibration(
     requireArtifact(control?.candidateArchive, control?.candidateArchiveSha256, `${name} candidate control`);
   }
   return {
-    decisionFingerprint: calibration.decisionFingerprint,
+    inferenceFingerprint: calibration.decisionInferenceFingerprint,
+    protocolFingerprint: decisionProtocolFingerprint(),
     calibrationFingerprint: decisionCalibrationFingerprint(calibration),
   };
 }

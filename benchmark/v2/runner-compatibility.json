@@ -1,4 +1,19 @@
 {
   "schema": "line.benchmark-v2.runner-compatibility.v1",
-  "approvals": []
+  "approvals": [
+    {
+      "fromImplementationFingerprint": "5e0dadcc68b7aac4dbfd41d03ff8e0d788f00480c47413e05a77310e50fee39e",
+      "toImplementationFingerprint": "6cb8cdc91b0224565618335dfbc0764de9ff371e0fd336426e7ae9f1db4c8be0",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+      "reviewedBy": "Jérémie Martin (via Claude Fable 5 implementation run)",
+      "reviewedAt": "2026-07-11T19:49:57.501Z",
+      "rationale": "RFC D step 3: calibration_guard rebind + snapshot listening-audio carry moved the runner implementation fingerprint; compile path untouched (252/252 rows bit-identical on report, score, trackHash)",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-5e0dadcc-6cb8cdc9.json",
+        "sha256": "05e862353a4b1d8e5ae8a4f8ad269f27f70973e194e71de00e8d379427f27692",
+        "result": "bit-identical"
+      }
+    }
+  ]
 }

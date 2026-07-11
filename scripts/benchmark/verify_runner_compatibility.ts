@@ -1,0 +1,179 @@
+/**
+ * Runner-compatibility evidence (RFC D steps 3–5).
+ *
+ * The runner implementation fingerprint changed (an operational-only edit).
+ * This tool proves the change did not alter compiler behavior: it replays the
+ * frozen baseline compiler snapshot as a probe run under the CURRENT tree's
+ * runner and compares every successful row bit-level — (task, report, score,
+ * trackHash, authoredContacts) — against the retained probe reference. On a
+ * bit-identical result it writes a checksummed evidence file and, with
+ * --approve, appends the reviewed approval to benchmark/v2/runner-compatibility.json.
+ *
+ * The semantic execution-policy fingerprint must be unchanged (asserted);
+ * only the implementation fingerprint may differ.
+ */
+
+import { createHash } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { availableParallelism } from "node:os";
+import { dirname, resolve } from "node:path";
+import { gunzipSync } from "node:zlib";
+import { benchmarkV2Paths, prepareBenchmarkV2 } from "./prepare.ts";
+import { runSnapshotBenchmark } from "../v0/benchmark_v2/compiler_snapshot.ts";
+
+const REPO = resolve(dirname(new URL(import.meta.url).pathname), "..", "..");
+
+function argument(name: string): string | undefined {
+  const prefix = `--${name}=`;
+  return process.argv.find((value) => value.startsWith(prefix))?.slice(prefix.length);
+}
+
+const reviewedBy = argument("reviewed-by");
+const rationale = argument("rationale");
+const approve = process.argv.includes("--approve");
+const jobs = argument("jobs") ?? String(Math.min(48, availableParallelism()));
+const outDir = resolve(REPO, argument("out-dir") ?? "generated/benchmark-v2/runner-compat");
+if (approve && (reviewedBy === undefined || rationale === undefined)) {
+  throw new Error(`--approve requires --reviewed-by=... and --rationale=...`);
+}
+
+await prepareBenchmarkV2();
+
+const probeBaseline = JSON.parse(readFileSync(resolve(REPO, "benchmark/v2/probe-baseline.json"), "utf8"));
+const retainedPath = resolve(REPO, probeBaseline.probe.compressed_archive);
+const retainedBytes = readFileSync(retainedPath);
+if (createHash("sha256").update(retainedBytes).digest("hex") !== probeBaseline.probe.compressed_archive_sha256) {
+  throw new Error(`retained probe reference checksum mismatch`);
+}
+const retained = JSON.parse(gunzipSync(retainedBytes).toString("utf8"));
+
+const baseline = JSON.parse(readFileSync(resolve(REPO, "benchmark/v2/baseline.json"), "utf8"));
+if (baseline.compiler_snapshot === undefined) throw new Error(`baseline has no compiler snapshot to replay`);
+
+mkdirSync(outDir, { recursive: true });
+const replayPath = resolve(outDir, `replay-probe-${Date.now()}.json`);
+console.log(`replaying the baseline compiler snapshot as a probe run (252 compiles)...`);
+const replayRun = runSnapshotBenchmark(baseline.compiler_snapshot, "development", [
+  "--profile=probe",
+  `--manifest=${benchmarkV2Paths.sourceManifest}`,
+  `--heldout-manifest=${benchmarkV2Paths.heldoutManifest}`,
+  `--suite=${benchmarkV2Paths.suiteManifest}`,
+  `--characterization=${benchmarkV2Paths.characterization}`,
+  `--audit=${benchmarkV2Paths.audit}`,
+  `--review=${benchmarkV2Paths.review}`,
+  `--listening-review=${benchmarkV2Paths.listeningReview}`,
+  `--jobs=${jobs}`,
+], replayPath);
+if (replayRun.workerFailures > 0) throw new Error(`replay run has worker failures; not usable as compatibility evidence`);
+const replay = JSON.parse(readFileSync(replayPath, "utf8"));
+
+// Identities: semantic policy must be unchanged; implementation may differ.
+if (replay.identity.executionPolicyFingerprint !== retained.identity.executionPolicyFingerprint) {
+  throw new Error(`execution-policy fingerprint changed — this is a semantic change, not runner-compatibility material`);
+}
+const fromFingerprint = retained.identity.implementationFingerprint;
+const toFingerprint = replay.identity.implementationFingerprint;
+if (fromFingerprint === toFingerprint) {
+  console.log(`implementation fingerprints already equal (${fromFingerprint.slice(0, 12)}); nothing to approve`);
+  process.exit(0);
+}
+
+type CanonicalRow = {
+  task: unknown;
+  report: unknown;
+  score: unknown;
+  trackHash: unknown;
+  authoredContacts: unknown;
+};
+
+function canonicalRows(archive: any, label: string): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const run of archive.runs ?? []) {
+    if (run.status !== "ok") throw new Error(`${label}: non-ok run ${run.task?.sourceId}`);
+    const key = `${run.task.sourceId}\0${run.task.budget}\0${run.task.seedSlot}\0${run.task.actualSeed}`;
+    const row: CanonicalRow = {
+      // Semantic task fields only: the manifest paths are machine-local
+      // absolute paths whose CONTENT is already bound by the suite and
+      // source fingerprints.
+      task: {
+        mode: run.task.mode,
+        sourceId: run.task.sourceId,
+        budget: run.task.budget,
+        seedSlot: run.task.seedSlot,
+        actualSeed: run.task.actualSeed,
+        joltMs: run.task.joltMs,
+      },
+      report: run.report,
+      score: run.score,
+      trackHash: run.trackHash,
+      authoredContacts: run.authoredContacts,
+    };
+    map.set(key, JSON.stringify(row));
+  }
+  return map;
+}
+
+const retainedRows = canonicalRows(retained, "retained");
+const replayRows = canonicalRows(replay, "replay");
+if (retainedRows.size !== replayRows.size) {
+  throw new Error(`row counts differ: retained ${retainedRows.size} vs replay ${replayRows.size}`);
+}
+const mismatches: string[] = [];
+for (const [key, row] of retainedRows) {
+  if (replayRows.get(key) !== row) mismatches.push(key.replaceAll("\0", "/"));
+}
+if (mismatches.length > 0) {
+  console.error(`NOT bit-identical: ${mismatches.length} rows differ; first: ${mismatches[0]}`);
+  console.error(`a differing row means the runner change altered compiler behavior — this is NOT approvable as operational-only`);
+  process.exit(1);
+}
+console.log(`bit-identical: ${retainedRows.size}/${retainedRows.size} rows match (task, report, score, trackHash, authoredContacts)`);
+
+const evidence = {
+  schema: "line.benchmark-v2.runner-compat-evidence.v1",
+  fromImplementationFingerprint: fromFingerprint,
+  toImplementationFingerprint: toFingerprint,
+  executionPolicyFingerprint: replay.identity.executionPolicyFingerprint,
+  suiteFingerprint: replay.identity.suiteFingerprint,
+  retained: {
+    path: probeBaseline.probe.compressed_archive,
+    compressedSha256: probeBaseline.probe.compressed_archive_sha256,
+  },
+  replay: {
+    archiveSha256: replayRun.archiveSha256,
+    compressedSha256: replayRun.compressedArchiveSha256,
+    headline: replayRun.headline,
+  },
+  comparedRows: retainedRows.size,
+  comparedFields: ["task", "report", "score", "trackHash", "authoredContacts"],
+  result: "bit-identical",
+};
+const evidencePath = resolve(
+  REPO,
+  `benchmark/v2/evidence/runner-compat-${fromFingerprint.slice(0, 8)}-${toFingerprint.slice(0, 8)}.json`,
+);
+const evidenceBytes = `${JSON.stringify(evidence, null, 2)}\n`;
+writeFileSync(evidencePath, evidenceBytes);
+console.log(`evidence: ${evidencePath}`);
+
+if (approve) {
+  const compatPath = resolve(REPO, "benchmark/v2/runner-compatibility.json");
+  const compat = JSON.parse(readFileSync(compatPath, "utf8"));
+  compat.approvals = compat.approvals ?? [];
+  compat.approvals.push({
+    fromImplementationFingerprint: fromFingerprint,
+    toImplementationFingerprint: toFingerprint,
+    executionProtocol: replay.identity.executionProtocol,
+    suiteFingerprint: replay.identity.suiteFingerprint,
+    reviewedBy,
+    reviewedAt: new Date().toISOString(),
+    rationale,
+    evidence: {
+      path: `benchmark/v2/evidence/runner-compat-${fromFingerprint.slice(0, 8)}-${toFingerprint.slice(0, 8)}.json`,
+      sha256: createHash("sha256").update(evidenceBytes).digest("hex"),
+      result: "bit-identical",
+    },
+  });
+  writeFileSync(compatPath, `${JSON.stringify(compat, null, 2)}\n`);
+  console.log(`approval appended: ${fromFingerprint.slice(0, 12)} -> ${toFingerprint.slice(0, 12)}`);
+}

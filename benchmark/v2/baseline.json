@@ -1,5 +1,5 @@
 {
-  "schema": "line.benchmark-v2.baseline-reference.v8",
+  "schema": "line.benchmark-v2.baseline-reference.v9",
   "status": "canonical-baseline",
   "label": "v2-initial-2026-07-11-decision-contract-r2",
   "generated_at": "2026-07-11T09:57:36.433Z",
@@ -83,8 +83,7 @@
   "compiler_environment": {},
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
   "candidate_fingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40",
-  "decision_fingerprint": "a14cb5c7f9871ba637ea224d3503f7eb4c7bb4e72a9db5c3ae9eb06efce8a7ce",
-  "decision_calibration_fingerprint": "6613c01d918a8d5ad548dff7a8695b44c2cff5554fec3a71268174e611799699",
+  "decision_calibration_fingerprint": "51ca5ed7a5d8ec74d5c846d4ebd91a9f9a4d5829d1592a8ced0d2a35d028184d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
     "archive": "benchmark/v2/runs/v2-initial-2026-07-11-compiler-snapshot.tar.gz",
@@ -290,5 +289,7 @@
       }
     ],
     "linked_development_archive_sha256": "d97157c9cb49b37ff96976c60a45772483a6f0233ed4f9af99f59dcf9b9d2f7d"
-  }
+  },
+  "decision_inference_fingerprint": "a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21",
+  "decision_protocol_fingerprint": "38b4aab58bf0e32deb5df78c546e5b9dca07d44ceccbe0a77c4a201cb0fceca9"
 }

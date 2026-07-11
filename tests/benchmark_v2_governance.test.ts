@@ -104,7 +104,8 @@ describe("Benchmark V2 governance", () => {
     provisional.status = "provisional-listening-review-required";
     provisional.listening_review_status = "awaiting-human-review";
     delete provisional.compiler_snapshot;
-    delete provisional.decision_fingerprint;
+    delete provisional.decision_inference_fingerprint;
+    delete provisional.decision_protocol_fingerprint;
     delete provisional.decision_calibration_fingerprint;
     writeFileSync(baselinePath, `${JSON.stringify(provisional)}\n`);
 
@@ -122,7 +123,7 @@ describe("Benchmark V2 governance", () => {
     const dir = mkdtempSync(join(tmpdir(), "v2-calibration-"));
     const calibrationPath = join(dir, "calibration.json");
     const calibration = JSON.parse(readFileSync("benchmark/v2/studies/decision-calibration.json", "utf8"));
-    calibration.decisionFingerprint = "0".repeat(64);
+    calibration.decisionInferenceFingerprint = "0".repeat(64);
     writeFileSync(calibrationPath, `${JSON.stringify(calibration)}\n`);
     expect(() => requireCurrentDecisionCalibration(identity.suiteFingerprint, calibrationPath))
       .toThrow(/decision calibration is stale/);
@@ -142,7 +143,7 @@ describe("Benchmark V2 governance", () => {
   test("responsiveness evidence retains current decision and archive identities", () => {
     const calibration = JSON.parse(readFileSync("benchmark/v2/studies/decision-calibration.json", "utf8"));
     const responsiveness = JSON.parse(readFileSync("benchmark/v2/studies/responsiveness.json", "utf8"));
-    expect(responsiveness.decisionFingerprint).toBe(calibration.decisionFingerprint);
+    expect(responsiveness.decisionInferenceFingerprint).toBe(calibration.decisionInferenceFingerprint);
     for (const entry of responsiveness.cases) {
       expect(entry.archiveSha256).toMatch(/^[0-9a-f]{64}$/);
       expect(entry.archiveSha256).toBe(sha256(readFileSync(entry.archive)));
@@ -264,7 +265,8 @@ describe("Benchmark V2 governance", () => {
       baselineCandidateFingerprint: baselineFingerprint,
       baselineSuiteFingerprint: suiteFingerprint,
       baselineSnapshotSha256: "snapshot-sha",
-      baselineDecisionFingerprint: decisionContract.decisionFingerprint,
+      baselineInferenceFingerprint: decisionContract.inferenceFingerprint,
+      baselineProtocolFingerprint: decisionContract.protocolFingerprint,
       baselineCalibrationFingerprint: decisionContract.calibrationFingerprint,
       candidateFingerprint,
       candidateSnapshot: {
@@ -295,7 +297,8 @@ describe("Benchmark V2 governance", () => {
         candidateFingerprint: baselineFingerprint,
         listeningReviewFingerprint: "review",
         compilerSnapshot: declaration.candidateSnapshot,
-        decisionFingerprint: decisionContract.decisionFingerprint,
+        inferenceFingerprint: decisionContract.inferenceFingerprint,
+        protocolFingerprint: decisionContract.protocolFingerprint,
         calibrationFingerprint: decisionContract.calibrationFingerprint,
       },
       seedLedger: [{
@@ -329,7 +332,7 @@ describe("Benchmark V2 governance", () => {
       margin: 0.5,
     })).not.toThrow();
     const staleContractState = structuredClone(state);
-    staleContractState.baseline.decisionFingerprint = "0".repeat(64);
+    staleContractState.baseline.inferenceFingerprint = "0".repeat(64);
     writeFileSync(statePath, `${JSON.stringify(staleContractState)}\n`);
     expect(() => validateConfirmationEvidence(statePath, {
       baseArchiveSha256: "base-sha",
@@ -342,7 +345,7 @@ describe("Benchmark V2 governance", () => {
       seedSchedule: { seedBase: 100 },
       mode: "simplification",
       margin: 0.5,
-    })).toThrow(/decision or calibration contract differs/);
+    })).toThrow(/inference or calibration contract differs/);
     writeFileSync(statePath, `${JSON.stringify(state)}\n`);
     expect(() => validateConfirmationEvidence(statePath, {
       baseArchiveSha256: "base-sha",

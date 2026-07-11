@@ -12,7 +12,6 @@ import {
 } from "../v0/benchmark_v2/decision_model.ts";
 import { loadSourceManifest, resolveSources } from "../v0/benchmark_v2/model.ts";
 import {
-  DECISION_SOURCE_FILES,
   canonicalMembers,
   fingerprintFiles,
   loadSuiteManifest,
@@ -78,10 +77,10 @@ const simulations = (["probe", "canonical"] as const).flatMap((profile) => [
 ]);
 
 const report = {
-  schema: "line.benchmark-v2.decision-calibration.v1",
+  schema: "line.benchmark-v2.decision-calibration.v2",
   generatedAt: new Date().toISOString(),
   suiteFingerprint: identity.suiteFingerprint,
-  decisionFingerprint: fingerprintFiles(DECISION_SOURCE_FILES),
+  decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
   policy: benchmarkDecisionPolicy,
   simulation: {
     trials,
@@ -310,7 +309,7 @@ function renderMarkdown(report: any): string {
   const lines = [
     "# Benchmark V2 Decision Calibration",
     "",
-    `Suite: \`${report.suiteFingerprint.slice(0, 16)}\`. Decision rule: \`${report.decisionFingerprint.slice(0, 16)}\`.`,
+    `Suite: \`${report.suiteFingerprint.slice(0, 16)}\`. Inference rule: \`${report.decisionInferenceFingerprint.slice(0, 16)}\`.`,
     "",
     `Simulation uses ${report.simulation.trials} formal-gate trials per scenario. ` + report.simulation.design,
     "",

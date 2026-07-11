@@ -6,9 +6,10 @@ import { runCanonicalConfirmation } from "../v0/benchmark_v2/confirmation.ts";
 import { runBenchmarkV2 } from "../v0/benchmark_v2/runner.ts";
 import { startResourceMonitor } from "./resource_monitor.ts";
 import { runDecisionCommand } from "../v0/benchmark_v2/decide.ts";
+import { runMigrationCommand } from "../v0/benchmark_v2/migrate.ts";
 
 const COMMAND_ALIASES = new Set([
-  "probe", "canonical", "baseline", "decide", "prepare", "explain", "help", "--probe", "--help", "-h",
+  "probe", "canonical", "baseline", "decide", "migrate", "prepare", "explain", "help", "--probe", "--help", "-h",
 ]);
 const raw = process.argv.slice(2);
 const command = commandName(raw);
@@ -22,6 +23,8 @@ if (command === "help") {
   });
 } else if (command === "decide") {
   process.exitCode = await runDecisionCommand(args);
+} else if (command === "migrate") {
+  process.exitCode = await runMigrationCommand(args);
 } else {
   const prepared = await prepareBenchmarkV2();
   console.log(
@@ -78,7 +81,7 @@ async function monitored<T>(label: string, args: string[], run: () => Promise<T>
   }
 }
 
-function commandName(args: string[]): "probe" | "canonical" | "baseline" | "decide" | "prepare" | "explain" | "help" {
+function commandName(args: string[]): "probe" | "canonical" | "baseline" | "decide" | "migrate" | "prepare" | "explain" | "help" {
   if (args.includes("full") || args.includes("--full")) {
     throw new Error(`the full profile was retired; use the canonical command`);
   }
@@ -86,6 +89,7 @@ function commandName(args: string[]): "probe" | "canonical" | "baseline" | "deci
   if (args.includes("canonical")) return "canonical";
   if (args.includes("baseline")) return "baseline";
   if (args.includes("decide")) return "decide";
+  if (args.includes("migrate")) return "migrate";
   if (args.includes("prepare")) return "prepare";
   if (args.includes("explain")) return "explain";
   const unknown = args.find((arg) => !arg.startsWith("--"));
@@ -99,6 +103,7 @@ function printHelp(): void {
     `  npm run benchmark -- canonical   Fresh paired one-shot confirmation plus qualification monitor\n` +
     `  npm run benchmark -- baseline    After listening approval, freeze all baseline evidence\n` +
     `  npm run benchmark -- decide CANDIDATE [--base=BASE] [--mode=simplification --margin=POINTS]\n` +
+    `  npm run benchmark -- migrate --scope=protocol|calibration|inference --alters-decision-behavior=yes|no --reason=... --approve\n` +
     `  npm run benchmark -- prepare     Regenerate and validate catalog evidence\n` +
     `  npm run benchmark -- explain <archive.json>\n\n` +
     `Probe decisions are reusable screening only; canonical is a predeclared one-shot promotion gate. Qualification is an indicative sidecar.\n` +

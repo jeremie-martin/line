@@ -1,6 +1,6 @@
 # Benchmark V2 Decision Calibration
 
-Suite: `517e044103a5fef3`. Decision rule: `a14cb5c7f9871ba6`.
+Suite: `517e044103a5fef3`. Inference rule: `a4221accc55324d1`.
 
 Simulation uses 200 formal-gate trials per scenario. Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.
 

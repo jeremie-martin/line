@@ -1,6 +1,5 @@
 {
-  "schema": "line.benchmark-v2.power-grid-study.v1",
-  "generatedAt": "2026-07-11T12:21:30.196Z",
+  "schema": "line.benchmark-v2.power-grid-study.v2",
   "smoke": false,
   "methodology": {
     "summary": "Empirical effect-size x seed-depth x policy operating-characteristic grid. Real observed 12-seed catalog blocks are resampled with replacement (rescored from raw reports before use) to synthesize base and candidate DecisionRun sets; the frozen pairedV2DecisionForCalibration produces the jackknife seed-block confidence; accept/reject/inconclusive is the one-sided Student-t rule (accept iff lower bound > threshold, reject iff upper bound < threshold).",
@@ -31,8 +30,6 @@
     "centralCriticalIntervalLevel": 0.99
   },
   "config": {
-    "workers": 32,
-    "runtimeSeconds": 1535.933,
     "totalDecisions": 36800,
     "droppedDepth64": false,
     "improvementDepths": [

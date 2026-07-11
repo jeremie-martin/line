@@ -41,6 +41,7 @@ type StudyWorkerResult = {
   authoredContacts: number;
   report?: DriftReport;
   stats?: CompileStats;
+  trackHash?: string;
   error?: string;
 };
 
@@ -154,6 +155,7 @@ async function main(): Promise<void> {
       error: result.error,
       authoredContacts: result.authoredContacts,
       report: result.report ?? null,
+      trackHash: result.trackHash ?? null,
       score,
       stats: result.stats,
       phaseResults: result.status === "ok" ? phases(source, result.report!) : [],
@@ -171,7 +173,7 @@ async function main(): Promise<void> {
     suite,
   ));
   const report = {
-    schema: "line.benchmark-v2.budget-scale-study.v1",
+    schema: "line.benchmark-v2.budget-scale-study.v2",
     generatedAt: new Date().toISOString(),
     note: "Exploratory paired-seed study. Not a canonical headline or candidate decision.",
     suiteFingerprint: identity.suiteFingerprint,
@@ -306,7 +308,14 @@ function runTask(task: StudyTask): Promise<StudyWorkerResult> {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
-      done({ task, status: "error", elapsedMs: performance.now() - started, authoredContacts: 0, error: error.stack ?? error.message });
+      const result: StudyWorkerResult = {
+        task,
+        status: "error",
+        elapsedMs: performance.now() - started,
+        authoredContacts: 0,
+        error: error.stack ?? error.message,
+      };
+      void worker.terminate().then(() => done(result), () => done(result));
     });
   });
 }
@@ -321,8 +330,9 @@ async function workerMain(task: StudyTask): Promise<void> {
     const base = await loadSourceSpec(source);
     authoredContacts = base.contacts.length;
     const spec = applyJolt(base, task.joltMs);
-    const { report, stats } = compileHandoff(spec, task.actualSeed, { budget: task.budget });
-    parentPort!.postMessage({ task, status: "ok", elapsedMs: performance.now() - started, authoredContacts, report, stats } satisfies StudyWorkerResult);
+    const { track, report, stats } = compileHandoff(spec, task.actualSeed, { budget: task.budget });
+    const trackHash = createHash("sha256").update(JSON.stringify(track)).digest("hex");
+    parentPort!.postMessage({ task, status: "ok", elapsedMs: performance.now() - started, authoredContacts, report, stats, trackHash } satisfies StudyWorkerResult);
   } catch (error) {
     parentPort!.postMessage({
       task,

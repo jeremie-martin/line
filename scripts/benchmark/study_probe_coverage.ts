@@ -18,6 +18,7 @@
 
 import { spawnSync } from "node:child_process";
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
@@ -419,7 +420,7 @@ async function mainOrchestrator(): Promise<void> {
   ]);
   const decisionInferenceFingerprint = fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES);
   if (
-    reference.schema !== "line.benchmark-v2.budget-scale-study.v1" ||
+    !["line.benchmark-v2.budget-scale-study.v1", "line.benchmark-v2.budget-scale-study.v2"].includes(reference.schema) ||
     reference.suiteFingerprint !== identity.suiteFingerprint ||
     reference.sourceManifestFingerprint !== identity.sourceManifestFingerprint ||
     reference.definitionFingerprint !== identity.definitionFingerprint ||
@@ -859,8 +860,7 @@ async function mainOrchestrator(): Promise<void> {
 
   const runtimeSeconds = round((Date.now() - startedAt) / 1000);
   const report = {
-    schema: "line.benchmark-v2.probe-futility-study.v1",
-    generatedAt: new Date().toISOString(),
+    schema: "line.benchmark-v2.probe-futility-study.v2",
     suiteFingerprint: identity.suiteFingerprint,
     scorerFingerprint,
     decisionInferenceFingerprint,
@@ -868,7 +868,6 @@ async function mainOrchestrator(): Promise<void> {
     referenceArtifactSha256: referenceArtifact.artifactSha256,
     referenceRawSha256: referenceArtifact.rawSha256,
     referenceCandidateFingerprint: reference.candidate?.candidateFingerprint ?? null,
-    runtimeSeconds,
     probeProfile: {
       budgets: [...baseSuite.profiles.probe.budgets],
       seedsPerBudget: baseSuite.profiles.probe.seeds_per_budget,
@@ -889,15 +888,26 @@ async function mainOrchestrator(): Promise<void> {
       futilityRules: "Concrete rules only: estimate<0, one-sided upper bound (alpha 0.05 and 0.01) < 0, and an estimate<threshold sweep at k=3. Single-look = rule evaluated at exactly look k; cumulative = rule fired at any look <= k (first-hit sequential).",
       legacyTwoStage: "Independent probe draw and independent canonical (8-seed) draw per trial to characterize the legacy screening value P(canonical accept | probe outcome), for comparison against interim looks inside one run.",
       seeding: "Deterministic per-(scenario,trial) mulberry32 seeds, so results are independent of shard/worker layout. bootstrapSeed is irrelevant for calibration decisions (sensitivity iterations are 0).",
-      parallelism: `Self-forking child_process workers (concurrency ${concurrency}); Part B sharded by trial ranges of ${partBShardSize}.`,
+      parallelism: "Results are independent of worker/shard layout: every trial is seeded per (scenario, trial). Realized concurrency and shard sizes are recorded in the provenance sidecar.",
     },
     partA,
     partB,
     legacyTwoStage: legacy,
   };
 
-  write(outPath, `${JSON.stringify(report, null, 2)}\n`);
-  console.log(`\nwrote ${relative(outPath)} in ${runtimeSeconds}s`);
+  const reportBytes = `${JSON.stringify(report, null, 2)}\n`;
+  write(outPath, reportBytes);
+  write(`${outPath.replace(/\.json$/, "")}.provenance.json`, `${JSON.stringify({
+    schema: "line.benchmark-v2.study-provenance.v1",
+    artifact: relative(outPath),
+    artifactSha256: createHash("sha256").update(reportBytes).digest("hex"),
+    generatedAt: new Date().toISOString(),
+    runtimeSeconds,
+    workers: concurrency,
+    partBShardSize,
+    command: "node --import tsx scripts/benchmark/study_probe_coverage.ts",
+  }, null, 2)}\n`);
+  console.log(`\nwrote ${relative(outPath)} in ${runtimeSeconds}s (+ provenance sidecar)`);
   printSummary(report);
 }
 

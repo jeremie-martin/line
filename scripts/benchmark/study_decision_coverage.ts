@@ -47,7 +47,7 @@ const scorerFingerprint = fingerprintFiles([
 ]);
 const decisionInferenceFingerprint = fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES);
 if (
-  reference.schema !== "line.benchmark-v2.budget-scale-study.v1" ||
+  !["line.benchmark-v2.budget-scale-study.v1", "line.benchmark-v2.budget-scale-study.v2"].includes(reference.schema) ||
   reference.suiteFingerprint !== identity.suiteFingerprint ||
   reference.sourceManifestFingerprint !== identity.sourceManifestFingerprint ||
   reference.definitionFingerprint !== identity.definitionFingerprint ||

@@ -1,0 +1,10 @@
+{
+  "schema": "line.benchmark-v2.study-provenance.v1",
+  "artifact": "benchmark/v2/studies/probe-futility.json",
+  "artifactSha256": "1dfe849630e3a43a8fb439d153d32b4f25f05561e68bcb9e676c7edacc1b2d80",
+  "generatedAt": "2026-07-11T17:19:35.533Z",
+  "runtimeSeconds": 252.433,
+  "workers": 32,
+  "partBShardSize": 125,
+  "command": "node --import tsx scripts/benchmark/study_probe_coverage.ts"
+}

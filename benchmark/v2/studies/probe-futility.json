@@ -1,6 +1,5 @@
 {
-  "schema": "line.benchmark-v2.probe-futility-study.v1",
-  "generatedAt": "2026-07-11T11:50:08.347Z",
+  "schema": "line.benchmark-v2.probe-futility-study.v2",
   "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
   "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
   "decisionInferenceFingerprint": "a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21",
@@ -8,7 +7,6 @@
   "referenceArtifactSha256": "842c66d8d1dc4aaad2b5c07c395f9d35d9e9f63deb920f2d792f30c5be71630a",
   "referenceRawSha256": "6b636fb686f2c72e41da67f695d7e44574073ced6e4eeb0920cbf20d91f4f755",
   "referenceCandidateFingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40",
-  "runtimeSeconds": 340.134,
   "probeProfile": {
     "budgets": [
       250000,
@@ -36,7 +34,7 @@
     "futilityRules": "Concrete rules only: estimate<0, one-sided upper bound (alpha 0.05 and 0.01) < 0, and an estimate<threshold sweep at k=3. Single-look = rule evaluated at exactly look k; cumulative = rule fired at any look <= k (first-hit sequential).",
     "legacyTwoStage": "Independent probe draw and independent canonical (8-seed) draw per trial to characterize the legacy screening value P(canonical accept | probe outcome), for comparison against interim looks inside one run.",
     "seeding": "Deterministic per-(scenario,trial) mulberry32 seeds, so results are independent of shard/worker layout. bootstrapSeed is irrelevant for calibration decisions (sensitivity iterations are 0).",
-    "parallelism": "Self-forking child_process workers (concurrency 32); Part B sharded by trial ranges of 125."
+    "parallelism": "Results are independent of worker/shard layout: every trial is seeded per (scenario, trial). Realized concurrency and shard sizes are recorded in the provenance sidecar."
   },
   "partA": {
     "trials": 1000,

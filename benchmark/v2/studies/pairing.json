@@ -1,5 +1,5 @@
 {
-  "schema": "line.benchmark-v2.pairing-study.v1",
+  "schema": "line.benchmark-v2.pairing-study.v2",
   "title": "Paired (shared-seed) base-vs-candidate correlation vs candidate change size",
   "hypothesis": "Same seed + different compiler behaves like independent draws (chaotic hand-off DFS), so the within-(case,budget) base<->candidate correlation collapses toward 0 and paired comparison buys no variance reduction over an unpaired mean.",
   "methodology": {
@@ -12,34 +12,50 @@
   },
   "knobStudyNote": "Knob selection: grepped process.env.LR_* across scripts/v0, scripts/lib. Clean CONTINUOUS knobs that do not touch scoring or the suite transform and have no code-path guard are scarce. LR_IMPACT_LOCAL_W (impact candidate-cost weight, default 0.5) is the one clean scalar; on this suite it is low-traction (a +/-10..300% nudge perturbs only ~2-4% of compiles - forward-eval dominates the ranking). The objective-power knobs (LR_M64/M75_OBJECTIVE_*_POWER) perturb ~86% of compiles but do so by replacing a spec-adaptive path with a flat power (a broad reshaping), not a pure scalar nudge. No clean 'medium' knob exists, so the change-size ladder is tiny -> broad -> invasive.",
   "baselineProvenance": "The 12-seed baseline arm REUSES benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz: the current working-tree compiler reproduced a 84-run subset (250k, seeds 0,1) of it BIT-IDENTICALLY, so a fresh baseline arm was unnecessary. The two candidate arms were compiled fresh from the same tree with only the one LR_ knob changed.",
+  "verification": {
+    "currentSuiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+    "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
+    "checks": [
+      "sidecar sha256 verified for all five input artifacts",
+      "scale-study arms: suite/sources/transform/scorer fingerprints current; compiler identity self-consistent; complete member x budget x seed scope; every stored score rescored from its raw report",
+      "probe pair: full decision-calibration validation path (identity, scope, raw-report rescoring)",
+      "knob attestation: each candidate arm's compiler differs from its baseline by exactly the declared LR_ knob",
+      "actualSeed equality enforced per paired slot (any mismatch is a hard failure)"
+    ]
+  },
   "inputs": {
     "coverageReference": {
       "path": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
       "sha256": "842c66d8d1dc4aaad2b5c07c395f9d35d9e9f63deb920f2d792f30c5be71630a",
+      "rawSha256": "6b636fb686f2c72e41da67f695d7e44574073ced6e4eeb0920cbf20d91f4f755",
       "schema": "line.benchmark-v2.budget-scale-study.v1",
       "runs": 1512
     },
     "smallArm": {
-      "path": "generated/benchmark-v2/studies/pairing-small-arm.json",
-      "sha256": "462c7ceaf304f484f04d1b0315cf8f8d251c4f6f78d843c8a19213739f41c2c3",
+      "path": "benchmark/v2/studies/arms/pairing-small-arm.json.gz",
+      "sha256": "260ef0012d5a90484f35f2c20e98d0c752b72df91504ac35430b9fdf3e006a0f",
+      "rawSha256": "462c7ceaf304f484f04d1b0315cf8f8d251c4f6f78d843c8a19213739f41c2c3",
       "schema": "line.benchmark-v2.budget-scale-study.v1",
       "runs": 1512
     },
     "broadArm": {
-      "path": "generated/benchmark-v2/studies/pairing-broad-arm.json",
-      "sha256": "eecfb169c7437be59c0649f400dd50862745152e44df21e77488b31961c92ec5",
+      "path": "benchmark/v2/studies/arms/pairing-broad-arm.json.gz",
+      "sha256": "134d55ad3a9ca13ca5051a9e0bf4533b4107c1134403417aecdffdd0c54a1224",
+      "rawSha256": "eecfb169c7437be59c0649f400dd50862745152e44df21e77488b31961c92ec5",
       "schema": "line.benchmark-v2.budget-scale-study.v1",
       "runs": 1512
     },
     "probeBaseline": {
       "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
       "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4",
+      "rawSha256": "292746c69b171ba6ea4018e37fc6fd3553769776a3bbc939687280cb793cf277",
       "schema": "line.benchmark-v2.run-archive.v5",
       "runs": 252
     },
     "probeNcand1": {
       "path": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
       "sha256": "dd875f118eadce0c5f703e7b16fb3bb3b61f961532f93ae6ea97a4c3dc1ffb01",
+      "rawSha256": "020a6a93a367817cbef953fc8679de0980145d37799523872a4888e400160456",
       "schema": "line.benchmark-v2.run-archive.v5",
       "runs": 252
     }
@@ -54,7 +70,7 @@
       "candidateValue": "0.55",
       "sharedSeedsPerCell": 12,
       "baselineArchive": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
-      "candidateArchive": "generated/benchmark-v2/studies/pairing-small-arm.json",
+      "candidateArchive": "benchmark/v2/studies/arms/pairing-small-arm.json.gz",
       "note": "Clean continuous cost-weight of the impact axis in the hand-off candidate ranker (candidate.ts LOCAL_IMPACT_COST_WEIGHT, arc_model.ts). No code-path guard: nudging it only changes the scalar. Decision-relevant SMALL-change cell.",
       "budgets": [
         {
@@ -161,7 +177,7 @@
       "candidateValue": "1.1",
       "sharedSeedsPerCell": 12,
       "baselineArchive": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
-      "candidateArchive": "generated/benchmark-v2/studies/pairing-broad-arm.json",
+      "candidateArchive": "benchmark/v2/studies/arms/pairing-broad-arm.json.gz",
       "note": "Second clean knob at a larger nudge. Setting it replaces the spec-adaptive readiness-power gates with a flat 1.1 in the forward-eval objective (mature budgets >=200k). A BROAD but smooth reshaping: perturbs ~86% of compiles yet shifts the headline only ~+27. There is NO clean 'medium' knob on this compiler (see study note): clean numeric knobs are bimodal - either tiny (impact cost, ~2% perturbed) or broad (objective power, ~86% perturbed).",
       "budgets": [
         {

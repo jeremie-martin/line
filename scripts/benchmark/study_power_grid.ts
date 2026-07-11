@@ -24,6 +24,7 @@
  * Writes benchmark/v2/studies/power-grid.json (schema
  * line.benchmark-v2.power-grid-study.v1). Modifies no existing file.
  */
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -330,7 +331,7 @@ async function main(): Promise<void> {
   ]);
   const decisionInferenceFingerprint = fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES);
   if (
-    reference.schema !== "line.benchmark-v2.budget-scale-study.v1" ||
+    !["line.benchmark-v2.budget-scale-study.v1", "line.benchmark-v2.budget-scale-study.v2"].includes(reference.schema) ||
     reference.suiteFingerprint !== identity.suiteFingerprint ||
     reference.sourceManifestFingerprint !== identity.sourceManifestFingerprint ||
     reference.definitionFingerprint !== identity.definitionFingerprint ||
@@ -555,8 +556,18 @@ async function main(): Promise<void> {
     smoke, dropDepth64, workerCount, runtimeSeconds, totalDecisions: totalDecisions.value, tasks, tallies,
   });
   mkdirSync(dirname(outPath), { recursive: true });
-  writeFileSync(outPath, `${JSON.stringify(report, null, 2)}\n`);
-  console.log(`wrote ${relative(outPath)}`);
+  const reportBytes = `${JSON.stringify(report, null, 2)}\n`;
+  writeFileSync(outPath, reportBytes);
+  writeFileSync(`${outPath.replace(/\.json$/, "")}.provenance.json`, `${JSON.stringify({
+    schema: "line.benchmark-v2.study-provenance.v1",
+    artifact: relative(outPath),
+    artifactSha256: createHash("sha256").update(reportBytes).digest("hex"),
+    generatedAt: new Date().toISOString(),
+    runtimeSeconds,
+    workers: workerCount,
+    command: "node --import tsx scripts/benchmark/study_power_grid.ts",
+  }, null, 2)}\n`);
+  console.log(`wrote ${relative(outPath)} (+ provenance sidecar)`);
   printConsoleSummary(report);
 }
 
@@ -712,8 +723,7 @@ function assembleReport(ctx: any): any {
   }
 
   return {
-    schema: "line.benchmark-v2.power-grid-study.v1",
-    generatedAt: new Date().toISOString(),
+    schema: "line.benchmark-v2.power-grid-study.v2",
     smoke: ctx.smoke,
     methodology: {
       summary: "Empirical effect-size x seed-depth x policy operating-characteristic grid. Real observed 12-seed catalog blocks are resampled with replacement (rescored from raw reports before use) to synthesize base and candidate DecisionRun sets; the frozen pairedV2DecisionForCalibration produces the jackknife seed-block confidence; accept/reject/inconclusive is the one-sided Student-t rule (accept iff lower bound > threshold, reject iff upper bound < threshold).",
@@ -744,8 +754,6 @@ function assembleReport(ctx: any): any {
       centralCriticalIntervalLevel: benchmarkDecisionPolicy.centralCriticalIntervalLevel,
     },
     config: {
-      workers: ctx.workerCount,
-      runtimeSeconds: ctx.runtimeSeconds,
       totalDecisions: ctx.totalDecisions,
       droppedDepth64: ctx.dropDepth64,
       improvementDepths: ctx.improvementDepths,

@@ -29,6 +29,16 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
+import { applyJolt } from "../produce/seed.ts";
+import { loadValidatedDecisionPairForCalibration } from "../v0/benchmark_v2/decide.ts";
+import { buildAxisContract, type AxisContract } from "../v0/benchmark_v2/evaluator.ts";
+import { loadSourceManifest, loadSourceSpec, resolveSources } from "../v0/benchmark_v2/model.ts";
+import { canonicalMembers, fingerprintFiles, loadSuiteManifest, suiteIdentity } from "../v0/benchmark_v2/suite_model.ts";
+import {
+  assertKnobOnlyDelta,
+  readVerifiedArtifact,
+  verifyScaleStudyArchive,
+} from "./study_lib.ts";
 
 const REPO = resolve(dirname(new URL(import.meta.url).pathname), "..", "..");
 
@@ -39,8 +49,8 @@ const REPO = resolve(dirname(new URL(import.meta.url).pathname), "..", "..");
 // (sourceId, budget, seedSlot) with actualSeed verified equal per cell.
 const ARCHIVES = {
   coverageReference: "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
-  smallArm: "generated/benchmark-v2/studies/pairing-small-arm.json",
-  broadArm: "generated/benchmark-v2/studies/pairing-broad-arm.json",
+  smallArm: "benchmark/v2/studies/arms/pairing-small-arm.json.gz",
+  broadArm: "benchmark/v2/studies/arms/pairing-broad-arm.json.gz",
   probeBaseline: "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
   probeNcand1: "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
 } as const;
@@ -121,7 +131,9 @@ type Run = {
 type LoadedArchive = {
   path: string;
   sha256: string;
+  rawSha256: string;
   schema: string;
+  json: any;
   runs: Run[];
   budgets: number[];
   headlineByBudget: Map<number, number>;
@@ -129,10 +141,9 @@ type LoadedArchive = {
 
 function loadArchive(rel: string): LoadedArchive {
   const abs = resolve(REPO, rel);
-  const bytes = readFileSync(abs);
-  const sha256 = createHash("sha256").update(bytes).digest("hex");
-  const text = rel.endsWith(".gz") ? gunzipSync(bytes).toString("utf8") : bytes.toString("utf8");
-  const json = JSON.parse(text);
+  const verified = readVerifiedArtifact(abs);
+  const sha256 = verified.artifactSha256;
+  const json = JSON.parse(verified.bytes.toString("utf8"));
   const runs: Run[] = json.runs.map((r: any) => ({
     sourceId: r.task.sourceId,
     budget: r.task.budget,
@@ -148,7 +159,7 @@ function loadArchive(rel: string): LoadedArchive {
   const headlineByBudget = new Map<number, number>(
     summaries.map((s: any) => [s.budget as number, s.score as number]),
   );
-  return { path: rel, sha256, schema: json.schema, runs, budgets, headlineByBudget };
+  return { path: rel, sha256, rawSha256: verified.rawSha256, schema: json.schema, json, runs, budgets, headlineByBudget };
 }
 
 function mean(xs: number[]): number {
@@ -339,19 +350,86 @@ function analyzeComparison(base: LoadedArchive, cand: LoadedArchive) {
   return perBudget;
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const loaded = Object.fromEntries(
     Object.entries(ARCHIVES).map(([k, rel]) => [k, loadArchive(rel)]),
   ) as Record<keyof typeof ARCHIVES, LoadedArchive>;
 
+  // ── Retained-evidence verification ─────────────────────────────────────────
+  // Scale-study arms: suite/scorer/compiler identity, complete scope, and every
+  // stored score rescored from its raw report. Probe pair: the full decision
+  // validation path (sidecars, identity, scope, rescoring). Knob attestations
+  // prove each candidate arm differs from its baseline by exactly one LR_ knob.
+  const sourceManifestPath = "benchmark/v2/compat/source-manifest.json";
+  const suiteManifestPath = "benchmark/v2/compat/suite-manifest.json";
+  const sources = resolveSources(loadSourceManifest(sourceManifestPath));
+  const suite = loadSuiteManifest(suiteManifestPath, sources);
+  const identity = suiteIdentity(suiteManifestPath, sourceManifestPath, sources);
+  const scorerFingerprint = fingerprintFiles([
+    "scripts/v0/benchmark_v2/evaluator.ts",
+    "scripts/v0/benchmark_v2/score_model.ts",
+    "scripts/v0/score.ts",
+  ]);
+  const members = canonicalMembers(suite);
+  const contracts = new Map<string, AxisContract>();
+  for (const source of sources) {
+    const spec = applyJolt(await loadSourceSpec(source), suite.transform.jolt_ms);
+    contracts.set(source.id, buildAxisContract(spec, source.eligibleComponents, source.diagnosticComponents));
+  }
+  const scaleStudyKeys = ["coverageReference", "smallArm", "broadArm"] as const;
+  for (const key of scaleStudyKeys) {
+    verifyScaleStudyArchive(loaded[key].json, {
+      label: key,
+      identity,
+      suite,
+      sources,
+      contracts,
+      scorerFingerprint,
+      members,
+      expectedSeeds: loaded.coverageReference.json.seeds,
+      expectedBudgets: loaded.coverageReference.json.budgets,
+    });
+  }
+  assertKnobOnlyDelta(
+    loaded.coverageReference.json.candidate,
+    loaded.smallArm.json.candidate,
+    "LR_IMPACT_LOCAL_W",
+    "0.55",
+    "smallArm",
+  );
+  assertKnobOnlyDelta(
+    loaded.coverageReference.json.candidate,
+    loaded.broadArm.json.candidate,
+    "LR_M75_OBJECTIVE_READINESS_POWER",
+    "1.1",
+    "broadArm",
+  );
+  await loadValidatedDecisionPairForCalibration(
+    resolve(REPO, ARCHIVES.probeBaseline),
+    resolve(REPO, ARCHIVES.probeNcand1),
+  );
+  assertKnobOnlyDelta(
+    runArchiveCandidate(loaded.probeBaseline.json),
+    runArchiveCandidate(loaded.probeNcand1.json),
+    "LR_QUALITY_NCAND",
+    "1",
+    "probeNcand1",
+  );
+
   const inputs = Object.fromEntries(
     (Object.keys(ARCHIVES) as Array<keyof typeof ARCHIVES>).map((k) => [
       k,
-      { path: loaded[k].path, sha256: loaded[k].sha256, schema: loaded[k].schema, runs: loaded[k].runs.length },
+      {
+        path: loaded[k].path,
+        sha256: loaded[k].sha256,
+        rawSha256: loaded[k].rawSha256,
+        schema: loaded[k].schema,
+        runs: loaded[k].runs.length,
+      },
     ]),
   );
 
-  const comparisons = COMPARISONS.map((cfg) => ({
+  const comparisonsRaw = COMPARISONS.map((cfg) => ({
     name: cfg.name,
     label: cfg.label,
     changeClass: cfg.changeClass,
@@ -364,9 +442,17 @@ function main(): void {
     note: cfg.note,
     budgets: analyzeComparison(loaded[cfg.baseline], loaded[cfg.candidate]),
   }));
+  for (const cmp of comparisonsRaw) {
+    for (const b of cmp.budgets) {
+      if (b.cellCounts.actualSeedMismatchSlots > 0) {
+        throw new Error(`${cmp.name}: ${b.cellCounts.actualSeedMismatchSlots} paired slots disagree on actualSeed at ${b.budget}`);
+      }
+    }
+  }
+  const comparisons = comparisonsRaw;
 
   const report = {
-    schema: "line.benchmark-v2.pairing-study.v1",
+    schema: "line.benchmark-v2.pairing-study.v2",
     title: "Paired (shared-seed) base-vs-candidate correlation vs candidate change size",
     hypothesis:
       "Same seed + different compiler behaves like independent draws (chaotic hand-off " +
@@ -415,6 +501,17 @@ function main(): void {
       "current working-tree compiler reproduced a 84-run subset (250k, seeds 0,1) of it BIT-IDENTICALLY, so " +
       "a fresh baseline arm was unnecessary. The two candidate arms were compiled fresh from the same tree " +
       "with only the one LR_ knob changed.",
+    verification: {
+      currentSuiteFingerprint: identity.suiteFingerprint,
+      scorerFingerprint,
+      checks: [
+        "sidecar sha256 verified for all five input artifacts",
+        "scale-study arms: suite/sources/transform/scorer fingerprints current; compiler identity self-consistent; complete member x budget x seed scope; every stored score rescored from its raw report",
+        "probe pair: full decision-calibration validation path (identity, scope, raw-report rescoring)",
+        "knob attestation: each candidate arm's compiler differs from its baseline by exactly the declared LR_ knob",
+        "actualSeed equality enforced per paired slot (any mismatch is a hard failure)",
+      ],
+    },
     inputs,
     comparisons,
   };
@@ -442,4 +539,16 @@ function main(): void {
   console.log(`\nwrote ${relative(REPO, outAbs)}`);
 }
 
-main();
+function runArchiveCandidate(archive: any): any {
+  return {
+    compilerIdentityProtocol: archive.git?.compilerIdentityProtocol,
+    compilerSourceFingerprint: archive.git?.compilerSourceFingerprint,
+    compilerEnvironment: archive.git?.compilerEnvironment,
+    engine: archive.identity?.engine,
+    engineArtifactFingerprint: archive.git?.engineArtifactFingerprint,
+    candidateFingerprint: archive.git?.candidateFingerprint,
+    compilerSourceFiles: archive.git?.compilerSourceFiles,
+  };
+}
+
+await main();

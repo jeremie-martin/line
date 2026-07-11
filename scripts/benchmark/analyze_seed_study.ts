@@ -47,7 +47,7 @@ const trials = Number(argument("trials") ?? 4096);
 if (!Number.isSafeInteger(trials) || trials < 100) throw new Error(`--trials must be an integer >= 100`);
 
 const study = readVerifiedStudy(studyPath);
-if (study.schema !== "line.benchmark-v2.budget-scale-study.v1") throw new Error(`unsupported seed study archive`);
+if (!["line.benchmark-v2.budget-scale-study.v1", "line.benchmark-v2.budget-scale-study.v2"].includes(study.schema)) throw new Error(`unsupported seed study archive`);
 if (study.seeds.length !== 12) throw new Error(`seed allocation study requires exactly 12 reference seeds`);
 const sources = resolveSources(loadSourceManifest(sourcePath));
 const suite = loadSuiteManifest(suitePath, sources);

@@ -225,14 +225,11 @@ export function recordLaneBaseSkip(): void {
  *  — current-axis-quality × composite next-gap readiness, computed from each
  *  candidate's ACHIEVED axes and its arrival state at the next contact — the
  *  JUDGE of the per-gap pool sort (node.ts), so the aim lane refines the
- *  quality-best base instead of the cost-best one. Two modes:
- *    "pool" (DEFAULT / any value other than "off"): the per-gap pool sort ranks
- *            by the objective; handoff branch selection still uses mature
- *            forward eval or the measured handoff score.
- *    "off"  (LR_RANK_QUALITY=off): escape hatch — bit-identical to the
- *            pre-ranking path; the ranking helpers below are never called and no
- *            arrival ride is taken.
- *  The env parse lives in core/candidate.ts (single owner, shared with the
+ *  quality-best base instead of the cost-best one. The per-gap pool sort ranks
+ *  by the objective; handoff branch selection still uses mature forward eval
+ *  or the measured handoff score. (The former LR_RANK_QUALITY=off escape
+ *  hatch was deleted after the pool sort soaked as the sole production path.)
+ *  The constant lives in core/candidate.ts (single owner, shared with the
  *  predict-arrival capture gate there). */
 export function rankQualityEnabled(): boolean {
   return POOL_MODE;

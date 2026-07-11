@@ -42,6 +42,20 @@
         "sha256": "7334b01a002fbad06635e7bee320fac57de71fb818bb562edbe6a20a736801c3",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "5e0dadcc68b7aac4dbfd41d03ff8e0d788f00480c47413e05a77310e50fee39e",
+      "toImplementationFingerprint": "c703ab4fb50fbace785f8f5d69d6732a8acc1f348a659af2eaf5adea5991894c",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+      "reviewedBy": "Jérémie Martin (via Claude Fable 5 implementation run)",
+      "reviewedAt": "2026-07-11T22:32:47.939Z",
+      "rationale": "live-validation V3 finding: single-string archive serialization exceeded the V8 string cap at depth 48; assembly now streams chunked JSON (skeleton pretty, rows compact) with incremental hashing and gzip; compile path untouched (replay bit-identical on report, score, trackHash)",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-5e0dadcc-c703ab4f.json",
+        "sha256": "a4629fc2b9aaf6cfd37ace220f1afde258bdf13df04326af8112b3d10671ebc8",
+        "result": "bit-identical"
+      }
     }
   ]
 }

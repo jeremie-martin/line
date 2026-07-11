@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, createWriteStream, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { availableParallelism, arch, cpus, platform } from "node:os";
 import { dirname, resolve } from "node:path";
-import { gzipSync } from "node:zlib";
+import { pipeline } from "node:stream/promises";
+import { createGzip } from "node:zlib";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { applyJolt } from "../../produce/seed.ts";
 import { compilerWorkerTimeoutMs } from "../golden_suite.ts";
@@ -416,10 +417,9 @@ export async function runBenchmarkV2(
     sources: sources.map((source) => sourceArchiveIdentity(source)),
     runs: scored,
   };
-  const archiveBytes = Buffer.from(`${JSON.stringify(archive, null, 2)}\n`);
   const failed = workerFailures > 0;
   const { archiveOut, summaryPath, archiveSha256, compressedArchiveSha256 } =
-    writeArchiveArtifacts(outputPath, archiveBytes, failed);
+    await writeArchiveArtifacts(outputPath, archiveChunks(archive), failed);
   writeFileSync(summaryPath, `${JSON.stringify({
     schema: SUMMARY_SCHEMA,
     mode,
@@ -890,22 +890,61 @@ function nonNegativeInteger(value: string, label: string): number {
 }
 
 /**
+ * Serialize a run archive as a chunk stream: the skeleton stays pretty-printed
+ * but each run row is one compact line. A depth-48 archive is ~380 MB — a
+ * single pretty-printed JSON.stringify (~640 MB) exceeds V8's string cap and
+ * crashed the first depth-48 attempt (live-validation V3 finding). Chunked
+ * serialization removes the WRITE-side cap at any depth; the read side stays
+ * a single-string parse and is comfortable through depth 48 (a streaming
+ * reader is v2 debt for deeper rows).
+ */
+export function* archiveChunks(archive: Record<string, unknown> & { runs: unknown[] }): Generator<string> {
+  const skeleton = `${JSON.stringify({ ...archive, runs: [] }, null, 2)}\n`;
+  const marker = `"runs": []`;
+  const markerIndex = skeleton.lastIndexOf(marker);
+  if (markerIndex < 0) throw new Error(`archive skeleton lost its runs marker`);
+  yield skeleton.slice(0, markerIndex + marker.length - 1);
+  for (let index = 0; index < archive.runs.length; index++) {
+    yield `${index === 0 ? "" : ","}\n    ${JSON.stringify(archive.runs[index])}`;
+  }
+  if (archive.runs.length > 0) yield "\n  ";
+  yield skeleton.slice(markerIndex + marker.length - 1);
+}
+
+/**
  * A failed run must never look complete on disk: the archive lands at a
  * .failed path with NO checksum sidecars (decision loaders require the
  * sidecar, so it cannot be consumed accidentally); the checkpoint is kept
  * so --resume retries the failures.
  */
-export function writeArchiveArtifacts(
+export async function writeArchiveArtifacts(
   outputPath: string,
-  archiveBytes: Buffer,
+  chunks: Iterable<string | Buffer>,
   failed: boolean,
-): { archiveOut: string; summaryPath: string; archiveSha256: string; compressedArchiveSha256: string } {
-  const archiveSha256 = sha256(archiveBytes);
-  const compressedBytes = gzipSync(archiveBytes, { level: 9 });
-  const compressedArchiveSha256 = sha256(compressedBytes);
+): Promise<{ archiveOut: string; summaryPath: string; archiveSha256: string; compressedArchiveSha256: string }> {
   const archiveOut = failed ? `${outputPath}.failed` : outputPath;
-  writeFileSync(archiveOut, archiveBytes);
-  writeFileSync(`${archiveOut}.gz`, compressedBytes);
+  const archiveHash = createHash("sha256");
+  const compressedHash = createHash("sha256");
+  const gzip = createGzip({ level: 9 });
+  const fileStream = createWriteStream(archiveOut);
+  const compressedStream = createWriteStream(`${archiveOut}.gz`);
+  gzip.on("data", (block: Buffer) => compressedHash.update(block));
+  const gzipDone = pipeline(gzip, compressedStream);
+  const write = (stream: NodeJS.WritableStream, block: Buffer): Promise<void> =>
+    new Promise((resolveWrite, rejectWrite) => {
+      stream.write(block, (error) => error ? rejectWrite(error) : resolveWrite());
+    });
+  for (const chunk of chunks) {
+    const block = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    archiveHash.update(block);
+    await write(fileStream, block);
+    await write(gzip, block);
+  }
+  await new Promise<void>((resolveEnd, rejectEnd) => fileStream.end((error?: Error) => error ? rejectEnd(error) : resolveEnd()));
+  gzip.end();
+  await gzipDone;
+  const archiveSha256 = archiveHash.digest("hex");
+  const compressedArchiveSha256 = compressedHash.digest("hex");
   if (!failed) {
     writeFileSync(`${outputPath}.sha256`, `${archiveSha256}  ${relativeToCwd(outputPath)}\n`);
     writeFileSync(`${outputPath}.gz.sha256`, `${compressedArchiveSha256}  ${relativeToCwd(`${outputPath}.gz`)}\n`);

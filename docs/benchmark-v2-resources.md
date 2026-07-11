@@ -13,6 +13,11 @@ Reference host: 64 logical CPUs, 62.6 GiB RAM. Engine: WASM. Concurrency: 48.
 | Canonical development pass, 1,008 compiles | 4m21s | — | — | — | derived from the retained v2-initial baseline summaries |
 | Qualification sidecar, 120 compiles | 43s | — | — | — | derived from the retained v2-initial baseline summaries |
 | Full promotion confirmation, 2,136 compiles | ~10–12 min | — | — | — | 2 × development pass + qualification + two snapshot worktrees (`npm ci` ≈ 1–2 min each) |
+| Eval stage 0 (probe + integrity screen) | 74–75 s | — | — | — | measured, live validation V1 |
+| Eval wave, 126 compiles/arm + interim look | ~90 s | — | — | — | measured, live validation V3 |
+| Eval futility stop at look k=2 (two-arm) | 173 s | — | — | — | measured (smoke): ~96% of the attempt's compute saved |
+| Eval depth-48 confirmation, 12,096 compiles two-arm + workspaces | ~45–50 min | — | — | — | measured, live validation V3 |
+| Runner-compat replay (252 compiles in a workspace) | ~4 min | — | — | — | measured, three approvals |
 
 The first 48-worker trial exposed a worker-lifecycle defect: the pool reused a slot when
 a worker posted its result, before the worker thread and WASM memory had terminated. RSS

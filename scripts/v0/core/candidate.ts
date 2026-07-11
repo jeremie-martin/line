@@ -96,30 +96,25 @@ const FINAL_CONTACT_OFFBEAT_TAIL_FRAMES = AXIS_SAFE_CAP_MIN_FRAMES;
  *  `nextFrame+2` lookahead boundary. */
 const AXIS_SAFE_CAP_MEASURE_END_OFFSET = 2;
 
-/** Single parse of LR_RANK_QUALITY (the quality-objective pool-sort mode switch),
- *  collapsed to the one bit it structurally is. POOL_MODE is true — the shipped
- *  quality-objective pool sort — for every value except LR_RANK_QUALITY=off, the
- *  study-only escape hatch (never set in production) that keeps the pool-mode
- *  captures fully gated OFF, bit-identical to the pre-ranking path. Owned here in
- *  core (single owner, shared with the pool ranker in optimizer/aim.ts so a mode
- *  change can't desync) and read once at import (env is constant per run).
- *  This one flag gates three things that ALWAYS move together — they share it
- *  rather than aliasing it under separate names:
+/** The quality-objective pool sort is unconditional. This constant is what
+ *  remains of the LR_RANK_QUALITY=off study-only escape hatch (deleted after
+ *  the pool sort soaked as the sole production path; the benchmark attempts
+ *  ledger holds the simplification attempt that judged the removal). Owned
+ *  here in core (single owner, shared with the pool ranker in
+ *  optimizer/aim.ts so the gated call sites stay in one mode).
+ *  It gates three things that ALWAYS move together:
  *    · PREDICTED-ARRIVAL capture — the detection loops below record the rider's
  *      position so `evaluateGapFit` can hand the ranker a full launch/exit state
  *      to propagate ballistically to the next contact (vs charging a probe ride);
  *    · the pool-time `releaseArrivalState` field that carries it; and
  *    · the GEOMETRIC ARC-EXIT release read (see the `evaluateGapFit` call site)
  *      that supplies that state from the arc-exit frame instead of catch+8. */
-export const POOL_MODE: boolean =
-  (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_RANK_QUALITY !== "off";
+export const POOL_MODE: boolean = true;
 
 /** Telemetry for the geometric-exit release read. Module-level counters in the
  *  established candidate-side style; snapshot/reset are wired through
  *  optimizer/handoff.ts into the per-budget compile stats so the `release_exit_*`
- *  names stay greppable in golden output (the fallback-rate monitor). All zero
- *  under LR_RANK_QUALITY=off. */
+ *  names stay greppable in golden output (the fallback-rate monitor). */
 /** Generic module-level counter bundle: a mutable `counters` object plus a
  *  `reset` that restores every field to its initial value (via a retained copy
  *  of `initial`, so adding a field can never desync a hand-enumerated reset) and
@@ -219,7 +214,10 @@ const RELEASE_STATE_SPEED_WEIGHT = LEGACY_RELEASE_STATE_SPEED_WEIGHT *
  *  100k/200k/300k) showed it no longer pays — dead-flat parity, validity unchanged —
  *  its original suite-wide win having eroded as the baseline moved. Removing it also
  *  de-couples candidate cost from per-compile budget state. LR_IMPACT_LOCAL_W
- *  overrides the weight for studies. */
+ *  overrides the weight for studies. A 0.5 -> 0.8 re-tune screened ~+0.46 on
+ *  the 3-seed stage-0 probe (2026-07-11) but flattened to -0.05 [-0.55, +0.45]
+ *  on a fresh 48-seed paired epoch (benchmark attempts f99e71f1/f77fe7f3) —
+ *  the screen was probe-draw noise; the weight is inert on the V2 suite. */
 export const LOCAL_IMPACT_COST_WEIGHT = Math.max(0, impactEnvNum("LR_IMPACT_LOCAL_W", 0.5));
 
 // ─────────── Landing-window probe hook (study-only, off by default) ───────────
@@ -1006,8 +1004,7 @@ function evaluateGapFit(
   }
   // PREDICTED-ARRIVAL: full launch/exit state for the ranker to propagate
   // ballistically to the next contact instead of charging a probe ride, read off
-  // the SAME detection (zero extra frames). Gated on pool mode so the
-  // LR_RANK_QUALITY=off path never allocates the field. The catch+8 read is the
+  // the SAME detection (zero extra frames). The catch+8 read is the
   // load-bearing FALLBACK; the geometric arc-exit read below is the default.
   let releaseArrivalState = POOL_MODE
     ? releaseArrivalStateAt(det, gap.endFrame, releaseFrame, releaseGroundedFrames, releaseAirborne)

@@ -537,10 +537,13 @@ function runWave(
   outputPath: string,
   label: string,
 ): ReturnType<typeof runInWorkspace> {
-  const invoke = (): ReturnType<typeof runInWorkspace> => runInWorkspace(workspace, "development", [
-    ...waveArgs,
-    ...(existsSync(`${outputPath}.checkpoint.jsonl`) ? ["--resume"] : []),
-  ], outputPath);
+  const invoke = (): ReturnType<typeof runInWorkspace> => {
+    waitForRunLock(outputPath, label);
+    return runInWorkspace(workspace, "development", [
+      ...waveArgs,
+      ...(existsSync(`${outputPath}.checkpoint.jsonl`) ? ["--resume"] : []),
+    ], outputPath);
+  };
   try {
     const run = invoke();
     if (run.workerFailures === 0) return run;
@@ -674,6 +677,36 @@ function validateAttemptArchives(
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * A crash can orphan a wave's runner child; its exclusive run lock outlives
+ * the parent until the child drains. Waiting for the holder (instead of
+ * treating the refusal as a wave failure) keeps a resumed attempt from
+ * aborting itself against its own orphan.
+ */
+function waitForRunLock(outputPath: string, label: string, timeoutMs = 15 * 60_000): void {
+  const lockPath = `${outputPath}.lock`;
+  const startedAt = Date.now();
+  for (;;) {
+    if (!existsSync(lockPath)) return;
+    let holder: { pid?: number };
+    try {
+      holder = JSON.parse(readFileSync(lockPath, "utf8"));
+    } catch {
+      return; // partially written or removed mid-read; the runner re-checks
+    }
+    try {
+      process.kill(holder.pid!, 0);
+    } catch {
+      return; // holder is dead; the runner steals stale locks itself
+    }
+    if (Date.now() - startedAt > timeoutMs) {
+      throw new Error(`${label}: run lock ${lockPath} is still held by live pid ${holder.pid} after ${timeoutMs / 60_000} minutes`);
+    }
+    console.log(`${label}: waiting for the previous wave's runner (pid ${holder.pid}) to drain...`);
+    execFileSync("sleep", ["5"]);
+  }
+}
 
 /** The certified futility rule's bound: one-sided upper at the futility level. */
 export function futilityUpperBound(

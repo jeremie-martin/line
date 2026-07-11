@@ -1,15 +1,19 @@
 # Benchmark V2 — Purpose, Assessment, and Target Design
 
-Date: 2026-07-11. Status: **draft RFC** — it becomes the implementation
-contract only after the studies are hardened and certified against the
-independent reference (Part D, steps 1–2) and that milestone is explicitly
-approved. **Parts 0 and C describe the target — what the system
-should be. Part A describes what exists today. Part B is the measured
-evidence, Part D the path from A to C, Part E the register.** Every
-load-bearing number comes from a study artifact in `benchmark/v2/studies/`
-with a deterministic reproducing script in `scripts/benchmark/`; hardening
-these studies to the full retained-evidence standard and adopting the menu
-into the guard is Part D work (steps 2 and 5).
+Date: 2026-07-11. Status: **implementation contract; Part D steps 1–5
+executed** (commits 8841276 → 040187b), step 6 (docs + live validation
+V1–V7 + legacy cutover) in progress. The step-2 gate FIRED on the first
+independent reference — the depth-32 power bars failed on seeds 12–23
+because 12-block variance estimates carry ~40% sampling error — and was
+resolved by re-deriving the menu from the pooled 24-block reference with a
+two-mode validation protocol (in-sample certify + fresh-holdout robustness
+on seeds 36–47). The certified v1 operating points are therefore **depth
+48**, not the depth 32 this document originally projected; Part D records
+all deviations. **Parts 0 and C describe the target design. Part A
+describes the system as originally assessed; the eval chain now implements
+C.2 with the deviations listed in D.** Every load-bearing number comes from
+a study artifact in `benchmark/v2/studies/` with a deterministic reproducing
+script in `scripts/benchmark/`.
 
 ---
 
@@ -406,21 +410,26 @@ possible and would be certified from the same grid.)
 
 | Intent | Declaration | Depth | Total cost | Measured performance | Status |
 |---|---|---:|---:|---|---|
-| Designed to detect +5 (milestone) | improve θ=0 | 32 | ~32 min | 92% at +5, ≤0.4% false-accept | bars met¹ |
-| Designed to detect +3 (standard) | improve θ=0 | 64 | ~62 min | 86% at +3, 100% at +5 | needs trials² |
+| Designed to detect +5 (milestone) | improve θ=0 | 48 | ~50 min | 92.8% at +5 (net 91.5% with futility), false-accept Wilson-upper 1.57% | **CERTIFIED** (v1 menu) |
+| Ablation, margin 5 | simplify m=5 | 48 | ~50 min | 94.7% non-inf power, boundary leak upper 1.96% | **CERTIFIED** (v1 menu) |
+| Designed to detect +3 (standard) | improve θ=0 | 64+ | ~62 min | 86% at +3, 100% at +5 | needs trials² |
 | Designed to detect +2 (fine) | improve θ=0 | 128 | ~2.1 h | 85% at +2, 99% at +3 | needs trials² |
-| Ablation, margin 5 | simplify m=5 | 32 | ~32 min | 94% non-inf power, 1% leak | bars met¹ |
 | Ablation, margin 3 | simplify m=3 | 128 | ~2.1 h | 100% / 0.7% | needs trials² |
 | Ablation, margin 2 | simplify m=2 | 128 | ~2.1 h | 85% / 1.0% | needs trials² |
 
-¹ Meets the numeric bars on today's grid; becomes "certified" when the guard
-adopts the menu (D step 5).
+The original depth-32 rows were retired by the step-2 gate: their power
+bars failed on the independent reference (12-block variance estimates carry
+~40% sampling error), and the re-derived pooled-reference grid certifies
+depth 48 instead — the same +5/m=5 intents at honest error rates, enforced
+by `requireCertifiedOperatingPoint` against `menu-certification.json` and
+`holdout-validation.json`.
+
 ² Provisional in the strong sense: at 300 trials the holdout Wilson lower
 bounds sit below 0.80 (d64/+3: 78.0%; d128/+2: 74.3%), and deep-depth cells
-resample only 12 observed seed blocks. Certification requires more trials
-**and** validation against the independent seeds-12–23 compile reference,
-which precedes any menu adoption (D step 2) and doubles the empirical block
-support. These rows ship in v2.
+resample only 12 observed seed blocks (the pooled reference now provides
+24). Certification of deeper rows requires more trials and the same
+two-mode (certify + fresh-holdout) protocol the depth-48 menu passed. These
+rows ship in v2.
 
 **Depth must be decoupled from the suite fingerprint** (the main engineering
 prerequisite, D step 5): today `seeds_per_budget` is hashed inside the suite
@@ -518,35 +527,64 @@ Part C remains the design target and ships only after v1 has real usage
 evidence. Ordered so the system stays operational and no step forces the
 manual re-freeze the plan retires.
 
-1. **Identity-neutral fixes** (no fingerprint moves): `sync_catalog --check`
-   (check-only — regeneration would move the suite fingerprint); doc fixes;
-   in-repo jackknife/Wilson fixture tests.
-2. **Evidence hardening + independent reference**: harden the four studies
-   to the retained-evidence standard (sidecar/scope/rescoring checks in
-   `study_pairing.ts`, compressed retained arms, volatile fields out of
-   artifact identity, track-hash comparison); compile the independent
-   seeds-12–23 reference (1,512 compiles) and re-validate the depth-32
-   cells against it — the prerequisite for any menu adoption, and the
-   milestone whose explicit approval turns this RFC into the implementation
-   contract.
-3. **Two-identity contract + migration command with behavioral escalation**
-   (C.5), preceded by extracting the inference-pure suite logic into its own
-   module so the inference identity binds it rather than all of
-   `suite_model.ts`. Bootstrap: implement the command, then use it to adopt
-   its own contract change (one coverage-study regeneration — the extraction
-   touches the inference set).
-4. **Decision-surface ergonomics + runner fixes** (one protocol-scope
-   re-stamp plus one reviewed runner-compatibility record proving unchanged
-   successful outputs — `runner.ts` is in the implementation fingerprint,
-   `suite_model.ts:92`): next-command prints, `--mode` unification,
-   `centralLevel` rename, exit-code contract, inconclusive hint; `runner.ts`
-   error-path `terminate()`, failed-archive marking, default-out collision.
-5. **`eval` v1**: stage 0 (informational) + waves + the calibrated futility
-   schedule + partial-depth inference + depth decoupling, certifying **one
-   confirmation point: depth 32, improve θ=0 and simplify m=5**;
-   qualification only on accept; ledger + era α-budget; light rebaseline;
-   retire the probe verdict and the one-shot slot.
-6. **Docs pass** (C.6).
+1. **Identity-neutral fixes** — DONE (8841276): `sync_catalog --check`,
+   doc fixes, in-repo jackknife/Wilson/WS-dof fixture tests against
+   external oracles.
+2. **Evidence hardening + independent reference** — DONE (4e5b173,
+   433aaf4, 079e19e, 72b2321, 0911a59). The gate FIRED: depth-32 power
+   bars failed on the independent seeds-12–23 reference (single-seed
+   headline SD 12.96 vs 8.59 in the original blocks — 12-block variance
+   estimates carry ~40% sampling error; three independent draws gave SE
+   0.89/1.28/2.00). Resolution, explicitly approved: pooled 24-block
+   reference; a seeds-vs-cases power study (`study_power_levers.ts`:
+   catalog growth buys no power — variance concentrates in the
+   capability/frontier components — while seeds scale ~1/√n); a two-mode
+   validation protocol (`--mode=certify` in-sample with hard power bars;
+   `--mode=holdout` on fresh seeds 36–47 with variance-robust bars +
+   frozen-shift truth transfer); and a deeper operating point. **Certified
+   v1 menu: depth 48** (improve θ=0: +5 net power 91.5%, null
+   false-accept Wilson-upper 1.57%; simplify m=5: 94.7% / 1.96%).
+3. **Two-identity contract + migration command** — DONE (da1dd34), with
+   one deliberate deviation: the inference-pure suite-module extraction is
+   DEFERRED to the next intentional suite rollover. `suite_model.ts` is
+   suite-fingerprinted, so the extraction would have forced a full rollover
+   (listening review included) for a purely structural edit; keeping
+   `suite_model.ts` conservatively inside the inference identity loses
+   nothing (any edit already forces a rollover). Bootstrap migration
+   recorded as ledger record #1.
+4. **Decision-surface ergonomics + runner fixes** — DONE (a629600), lean
+   scope: exit-code contract frozen (0/2/3/1; 4 reserved for eval
+   futility), `nextCommand` + under-powered hint in every decision
+   artifact (schema v4), runner failed-archive marking + run lock +
+   error-path terminate. DROPPED: canonical-verb handoff prints and
+   `--mode` alias (the canonical verb retires at the 6.3 cutover —
+   polishing a marked-legacy path is waste); the `centralLevel` rename
+   moved to the rollover batch (inference-file edit). Runner-compat
+   record fp₀→e3fe7fd7; protocol-scope migration #2.
+5. **`eval` v1** — DONE (040187b): stage 0 + waves
+   (`--seeds-per-budget`/`--through-seed-slot` subset execution, one
+   checkpoint per attempt) + the certified futility schedule +
+   partial-depth inference (`suiteAtDepth`, depth-aware scope validation)
+   + `benchmark/v2/eval-policy.ts` menu + `requireCertifiedOperatingPoint`
+   guard (spend and SE envelope read from the certification artifacts,
+   which now stamp `decisionInferenceFingerprint`; declarations pin a
+   `certificationFingerprint` that resume re-verifies) + attempts ledger /
+   era α-budget + light rebaseline + `transition`. Deviations: the probe
+   verb is a deprecated alias (not retired) and the one-shot slot stays
+   fully operational until the 6.3 cutover — the replacement is not
+   trusted before it is validated; no npm script alias for the smoke
+   (package.json carries unrelated local changes); eval CLI exit codes are
+   covered by the policy tests + the real smoke rather than a fake-executor
+   harness. Smoke-proven end to end on scratch state: stage 0 75 s; a
+   known-broken candidate declared, futility-stopped at look k=2 (UB95
+   −120.7 < 0), exit 4, 173 s; durable resume 4 s. Runner-compat record
+   fp₀→a9236901; inference-scope migration #3 (behavior attested:
+   futility/depth/ledger, certified by the two-mode validation; inference
+   fingerprint unchanged, so coverage and calibration remained current).
+6. **Docs pass + live validation** (C.6) — IN PROGRESS: HOW_TO_WORK
+   rewritten around the chain; live validation V1–V7 under predeclared
+   success criteria in `benchmark-v2-validation.md`; the legacy one-shot
+   path is deleted only after V1–V7 pass.
 
 **Deferred to v2** (designed in Part C, gated on v1 usage evidence and the
 independent-reference validation): depths 64/128 and margins 2–3 (their
@@ -565,21 +603,21 @@ next intentional suite change: preroll default unification (E.1 #13), any
 
 | # | Where | Class | Finding | Step |
 |---|---|---|---|---|
-| 1 | `runner.ts:554-565` | bug | Worker error path releases the pool slot without `terminate()`. | D step 4 |
-| 2 | `runner.ts:364-371` | bug | Archive written before the worker-failure gate; failed probe looks complete on disk. | D step 4 |
-| 3 | `runner.ts:733-735` | footgun | Concurrent probes share the default `--out`/checkpoint. | D step 4 |
-| 4 | `confirmation.ts:461` | latent | Epoch disjointness from probe/calibration seeds rests on the 1e6 floor convention; unasserted. | D step 5 |
-| 5 | `decision_model.ts:596` | polish | `centralLevel: 0.95` mislabels the adjacent 99%-critical bounds. | D step 4 |
-| 6 | `cli.ts:35`, `benchmark-v2-decisions.md:93` | doc/code | Canonical prints only three unlabeled inner-runner `archive:` lines — no labeled handoff or next command; the doc claims it prints the attempt id and path. | D step 4 |
-| 7 | `confirmation.ts:180` vs `decide.ts:228` | ergonomics | `--decision-mode=` vs `--mode=`. | D step 4 |
-| 8 | `sync_catalog.ts` | process | No regeneration-equality check for `compat/*.json`. | D step 1 |
+| 1 | `runner.ts:554-565` | bug | Worker error path releases the pool slot without `terminate()`. | FIXED (a629600) |
+| 2 | `runner.ts:364-371` | bug | Archive written before the worker-failure gate; failed probe looks complete on disk. | FIXED (a629600): `.failed` path, no sidecars |
+| 3 | `runner.ts:733-735` | footgun | Concurrent probes share the default `--out`/checkpoint. | FIXED (a629600): exclusive pid lockfile |
+| 4 | `confirmation.ts:461` | latent | Epoch disjointness from probe/calibration seeds rests on the 1e6 floor convention; unasserted. | FIXED (040187b): explicit assertion + cross-system ledger union |
+| 5 | `decision_model.ts:596` | polish | `centralLevel: 0.95` mislabels the adjacent 99%-critical bounds. | rollover (inference-file edit) |
+| 6 | `cli.ts:35`, `benchmark-v2-decisions.md:93` | doc/code | Canonical prints only three unlabeled inner-runner `archive:` lines. | dropped — canonical retires at the 6.3 cutover |
+| 7 | `confirmation.ts:180` vs `decide.ts:228` | ergonomics | `--decision-mode=` vs `--mode=`. | dropped — same; `eval` uses `--mode=improve\|simplify` |
+| 8 | `sync_catalog.ts` | process | No regeneration-equality check for `compat/*.json`. | FIXED (8841276) |
 | 9 | listening evidence | signal | 9/21 variants byte-identical click audio → no listening signal; single self-attestation. | rollover |
-| 10 | tests | coverage | No in-repo numeric fixture for jackknife SE / WS dof / Wilson. | D step 1 |
-| 11 | `TOOLING_NOTES.md:84`, `screen.ts` | staleness | `npm run screen` gone; `screen.ts` orphaned. | D step 1 |
-| 12 | `benchmark-v2-resources.md` | doc | No wall-clock row for the 2,136-compile confirmation. | D step 1 |
+| 10 | tests | coverage | No in-repo numeric fixture for jackknife SE / WS dof / Wilson. | FIXED (8841276) |
+| 11 | `TOOLING_NOTES.md:84`, `screen.ts` | staleness | `npm run screen` gone; `screen.ts` orphaned. | FIXED (8841276) |
+| 12 | `benchmark-v2-resources.md` | doc | No wall-clock row for the confirmation. | FIXED (8841276); depth-48 rows land in step 6 |
 | 13 | `score_model.ts:121` vs `case.ts:113-116` | inconsistency | Preroll default differs by case kind — suite-semantic. | rollover |
 | 14 | `policy.ts:51-52` | stale comment | Canonical seeds are 0–23, not "the studied 0..11 range" — `policy.ts` is suite-fingerprinted, so even a comment edit is a rollover event. | rollover |
-| 15 | `README.md:27` | trivial | Hardcoded foreign path. | D step 1 |
+| 15 | `README.md:27` | trivial | Hardcoded foreign path. | FIXED (8841276) |
 
 ### E.2 Design debt superseded by Part C
 

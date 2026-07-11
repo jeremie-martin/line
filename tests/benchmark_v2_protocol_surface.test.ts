@@ -12,7 +12,7 @@ import {
   type DecisionArtifact,
 } from "../scripts/v0/benchmark_v2/decide.ts";
 import { studentTQuantile, type V2Decision } from "../scripts/v0/benchmark_v2/decision_model.ts";
-import { acquireRunLock, writeArchiveArtifacts } from "../scripts/v0/benchmark_v2/runner.ts";
+import { acquireRunLock, archiveChunks, writeArchiveArtifacts } from "../scripts/v0/benchmark_v2/runner.ts";
 import { canonicalArchiveRows, compareArchiveRows } from "../scripts/v0/benchmark_v2/runner_compatibility.ts";
 
 const temporaries: string[] = [];
@@ -92,10 +92,10 @@ describe("run lock", () => {
 });
 
 describe("archive artifacts", () => {
-  test("a clean run writes the archive with both checksum sidecars", () => {
+  test("a clean run writes the archive with both checksum sidecars", async () => {
     const out = join(tempDir(), "run.json");
     const bytes = Buffer.from(`${JSON.stringify({ runs: [] }, null, 2)}\n`);
-    const written = writeArchiveArtifacts(out, bytes, false);
+    const written = await writeArchiveArtifacts(out, [bytes], false);
     expect(written.archiveOut).toBe(out);
     expect(written.summaryPath).toBe(`${out}.summary.json`);
     expect(readFileSync(out)).toEqual(bytes);
@@ -104,10 +104,10 @@ describe("archive artifacts", () => {
     expect(readFileSync(`${out}.gz.sha256`, "utf8")).toContain(written.compressedArchiveSha256);
   });
 
-  test("a failed run lands at .failed with no checksum sidecars", () => {
+  test("a failed run lands at .failed with no checksum sidecars", async () => {
     const out = join(tempDir(), "run.json");
     const bytes = Buffer.from(`${JSON.stringify({ runs: [] }, null, 2)}\n`);
-    const written = writeArchiveArtifacts(out, bytes, true);
+    const written = await writeArchiveArtifacts(out, [bytes], true);
     expect(written.archiveOut).toBe(`${out}.failed`);
     expect(written.summaryPath).toBe(`${out}.failed.summary.json`);
     expect(existsSync(`${out}.failed`)).toBe(true);
@@ -118,6 +118,32 @@ describe("archive artifacts", () => {
     expect(existsSync(`${out}.sha256`)).toBe(false);
     expect(existsSync(`${out}.gz.sha256`)).toBe(false);
     expect(existsSync(`${out}.failed.sha256`)).toBe(false);
+  });
+
+  test("chunked archive serialization round-trips and streams row-by-row", async () => {
+    const archive = {
+      schema: "line.benchmark-v2.run-archive.test",
+      generatedAt: "2026-07-12T00:00:00.000Z",
+      canonicalHeadline: 446.09,
+      runs: [
+        { task: { sourceId: "a", budget: 250_000, seedSlot: 0 }, score: { score: 0.8, valid: true } },
+        { task: { sourceId: "b", budget: 500_000, seedSlot: 1 }, score: { score: 0.9, valid: false } },
+      ],
+    };
+    const chunks = [...archiveChunks(archive)];
+    expect(chunks.length).toBeGreaterThan(3);
+    const text = chunks.join("");
+    expect(text.endsWith("\n")).toBe(true);
+    expect(JSON.parse(text)).toEqual(archive);
+
+    const out = join(tempDir(), "chunked.json");
+    const written = await writeArchiveArtifacts(out, archiveChunks(archive), false);
+    expect(readFileSync(out, "utf8")).toBe(text);
+    expect(gunzipSync(readFileSync(`${out}.gz`)).toString("utf8")).toBe(text);
+    expect(written.archiveSha256).toMatch(/^[a-f0-9]{64}$/);
+
+    const empty = [...archiveChunks({ schema: "x", runs: [] })].join("");
+    expect(JSON.parse(empty)).toEqual({ schema: "x", runs: [] });
   });
 });
 

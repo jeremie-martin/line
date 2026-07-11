@@ -143,7 +143,9 @@ export function renderEvalVerdict(input: {
 export function evalNextCommand(outcome: string, attemptId: string): string {
   switch (outcome) {
     case "accept":
-      return `npm run benchmark -- rebaseline --label=<new-baseline-label>`;
+      // Concrete and runnable verbatim (agents execute nextCommand blindly);
+      // a human may of course substitute a nicer label.
+      return `npm run benchmark -- rebaseline --label=accept-${attemptId}`;
     case "inconclusive":
     case "unresolved":
       return `npm run benchmark -- eval --to-verdict --acknowledge-retry  # fresh epoch; prior evidence is not pooled`;

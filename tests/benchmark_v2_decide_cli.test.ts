@@ -9,7 +9,8 @@ import { runDecisionCommand } from "../scripts/v0/benchmark_v2/decide.ts";
 import { COMPILER_IDENTITY_PROTOCOL } from "../scripts/v0/benchmark_v2/runner.ts";
 import { executionPolicyIdentity } from "../scripts/v0/benchmark_v2/suite_model.ts";
 
-const retainedProbe = "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz";
+const retainedProbe = JSON.parse(readFileSync("benchmark/v2/probe-baseline.json", "utf8"))
+  .probe.compressed_archive as string;
 
 afterEach(() => vi.restoreAllMocks());
 

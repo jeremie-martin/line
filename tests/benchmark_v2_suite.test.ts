@@ -48,7 +48,7 @@ describe("Benchmark V2 suite identity", () => {
       .toThrow(/reserved heldout source fingerprint/);
   });
 
-  test("freezes resolved seeds and marks the pre-review baseline provisional", () => {
+  test("freezes resolved seeds and the approved V8 baseline", () => {
     const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
     const identity = suiteIdentity("benchmark/v2/compat/suite-manifest.json", "benchmark/v2/compat/source-manifest.json", sources);
     const baseline = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8")) as {
@@ -64,6 +64,8 @@ describe("Benchmark V2 suite identity", () => {
       compiler_environment: Record<string, string>;
       engine_artifact_fingerprint: string;
       candidate_fingerprint: string;
+      decision_fingerprint: string;
+      decision_calibration_fingerprint: string;
       probe: { compressed_archive: string; compressed_archive_sha256: string; canonical_headline: number };
       development: { compressed_archive: string; compressed_archive_sha256: string; canonical_headline: number };
       qualification: { compressed_archive: string; compressed_archive_sha256: string; monitor_score: number };
@@ -78,17 +80,19 @@ describe("Benchmark V2 suite identity", () => {
     });
     expect(createHash("sha256").update(readFileSync(probeBaseline.probe.compressed_archive)).digest("hex"))
       .toBe(probeBaseline.probe.compressed_archive_sha256);
-    expect(baseline.schema).toBe("line.benchmark-v2.baseline-reference.v6");
-    expect(baseline.status).toBe("provisional-listening-review-required");
-    expect(baseline.listening_review_status).toBe("awaiting-human-review");
-    expect(baseline.suite_fingerprint).not.toBe(identity.suiteFingerprint);
-    expect(baseline.execution_protocol).toBe("line.benchmark-v2.execution-protocol.v2");
+    expect(baseline.schema).toBe("line.benchmark-v2.baseline-reference.v8");
+    expect(baseline.status).toBe("canonical-baseline");
+    expect(baseline.listening_review_status).toBe("approved");
+    expect(baseline.suite_fingerprint).toBe(identity.suiteFingerprint);
+    expect(baseline.execution_protocol).toBe(BENCHMARK_EXECUTION_PROTOCOL);
+    expect(baseline.decision_fingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(baseline.decision_calibration_fingerprint).toMatch(/^[a-f0-9]{64}$/);
     expect(baseline.compiler_identity_protocol).toBe(COMPILER_IDENTITY_PROTOCOL);
     expect(baseline.compiler_source_files).toContain("scripts/v0/score.ts");
     expect(baseline.compiler_source_files).toContain("scripts/lib/detector.ts");
-    expect(baseline.probe.canonical_headline).toBe(442.997);
-    expect(baseline.development.canonical_headline).toBe(451.3303);
-    expect(baseline.qualification.monitor_score).toBe(385.6812);
+    expect(baseline.probe.canonical_headline).toBe(446.0945);
+    expect(baseline.development.canonical_headline).toBe(453.1102);
+    expect(baseline.qualification.monitor_score).toBe(373.4677);
     expect(createHash("sha256").update(JSON.stringify({
       compilerIdentityProtocol: baseline.compiler_identity_protocol,
       compilerSourceFingerprint: baseline.compiler_source_fingerprint,

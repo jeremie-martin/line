@@ -1,13 +1,16 @@
 {
   "schema": "line.benchmark-v2.listening-review.v2",
-  "status": "awaiting-human-review",
+  "status": "approved",
   "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
   "sourceManifestFingerprint": "72f9e3e17abf05edb1b5858d2862668eb09eaa3144f5dc3ec2fa030ceb9c7dba",
   "generatedAt": "2026-07-11T05:25:49.006Z",
   "instructions": "Listen without compiler outcomes. Judge musical plausibility, phrase coherence, and whether each variant remains recognizably related to its parent. To approve, fill every judgment, reviewer, reviewedAt, and use this exact attestation: I reviewed these click tracks without consulting compiler or qualification outcomes.",
-  "reviewer": null,
-  "reviewedAt": null,
-  "attestation": null,
+  "reviewer": {
+    "name": "Project owner",
+    "role": "benchmark specification author"
+  },
+  "reviewedAt": "2026-07-11T06:14:02.612Z",
+  "attestation": "I reviewed these click tracks without consulting compiler or qualification outcomes.",
   "items": [
     {
       "id": "river_reentry",
@@ -26,8 +29,8 @@
       "audio": "generated/benchmark-v2/listening-review/river_reentry.wav",
       "audioSha256": "7ad3a1de868c4d65f673ceab4d2dc0f6a4c29c0db4e252cdfe90cde41d40759f",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -49,8 +52,8 @@
       "audio": "generated/benchmark-v2/listening-review/countercurrent.wav",
       "audioSha256": "bc48ef969202ffdd24fc027661ff4c916306ff67783665a02b797362194e07a2",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -73,8 +76,8 @@
       "audio": "generated/benchmark-v2/listening-review/split_signal.wav",
       "audioSha256": "9c779ca12dcc489f73560f71b7bb609a2fab7a35382efe2836d3abe01123c509",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -95,8 +98,8 @@
       "audio": "generated/benchmark-v2/listening-review/pickup_lattice.wav",
       "audioSha256": "90d22c1a093bcb040a7d83aec9d708d9c72962a921ee2ef4fc01cdef2bfd6228",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -118,8 +121,8 @@
       "audio": "generated/benchmark-v2/listening-review/loose_pocket.wav",
       "audioSha256": "8f86555e3ab3ea0f2552ffb69b29cdd42df61ea7f71438f66365634fb25266ff",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -140,8 +143,8 @@
       "audio": "generated/benchmark-v2/listening-review/offgrid_conversation.wav",
       "audioSha256": "a14e6cf4b42014997a4bae74df8d9248175a3673900d5a6c1e94d94c5601bb0a",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -162,8 +165,8 @@
       "audio": "generated/benchmark-v2/listening-review/rising_switch.wav",
       "audioSha256": "ab7cbea150cfe6955d2e6ff9c3912bfbfc56f8f0dde3d6ba7738f07ae7e5fe4f",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -184,8 +187,8 @@
       "audio": "generated/benchmark-v2/listening-review/meter_exchange.wav",
       "audioSha256": "c18ba3b0e86f96cc10409c79c74ec3e575cb984b3934ef256edad863a8e30878",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -207,8 +210,8 @@
       "audio": "generated/benchmark-v2/listening-review/wide_breaths.wav",
       "audioSha256": "6504006d56675f3a336b446c4fedd2c613b472b30597cfe8c4f21b05ae928d44",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -231,8 +234,8 @@
       "audio": "generated/benchmark-v2/listening-review/open_hook.wav",
       "audioSha256": "936cd057087b8bcea8e5b971b232b2663a8b4f7f5c4d6cae534c1b7ec9e9e397",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -254,8 +257,8 @@
       "audio": "generated/benchmark-v2/listening-review/amplitude_tides.wav",
       "audioSha256": "6f23c4a57ec05cb6a263ca69b075c02b8e94927a7e9d22e5128336f5ffe14394",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -278,8 +281,8 @@
       "audio": "generated/benchmark-v2/listening-review/dense_dialogue.wav",
       "audioSha256": "ea8d1c3799b6849520b8ad7484cb7b62aacf8459261eb5fb00dddf6739d6b7bd",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -301,8 +304,8 @@
       "audio": "generated/benchmark-v2/listening-review/high_air_drive.wav",
       "audioSha256": "2357c6a6af5f4a14406dccf60d5108392c53f9438391533737341f6ab4ff8107",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -324,8 +327,8 @@
       "audio": "generated/benchmark-v2/listening-review/sparse_lowline.wav",
       "audioSha256": "5de503d9e6bdbe9fb06232c45a810a1fc195fe5fb068a85d5a0016266c982c82",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -348,9 +351,9 @@
       "audio": "generated/benchmark-v2/listening-review/river_reentry_tempo_fast_5.wav",
       "audioSha256": "846656c6eb91042c94fb21efe8efa7f90f2b2df6194abca2a08b92b323f0489d",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -372,9 +375,9 @@
       "audio": "generated/benchmark-v2/listening-review/countercurrent_impact_contrast_12.wav",
       "audioSha256": "36a4a43433ca77ee8915d64fa38c4592e25601629d4a24f9a15270cb86cc3669",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -397,9 +400,9 @@
       "audio": "generated/benchmark-v2/listening-review/split_signal_impact_relief_12.wav",
       "audioSha256": "5caa49768ec5dea7007c6e1eabf2199d007c3179341b3d8e7fb6a84980d12a31",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -420,9 +423,9 @@
       "audio": "generated/benchmark-v2/listening-review/pickup_lattice_speed_minus_4.wav",
       "audioSha256": "90d22c1a093bcb040a7d83aec9d708d9c72962a921ee2ef4fc01cdef2bfd6228",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -444,9 +447,9 @@
       "audio": "generated/benchmark-v2/listening-review/loose_pocket_drag_later_20ms.wav",
       "audioSha256": "f09a4f197cfcd3a0cf4c961f154eae1c50bfa164a8029a48c3b3d88e0796a6cd",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -467,9 +470,9 @@
       "audio": "generated/benchmark-v2/listening-review/offgrid_conversation_answer_early_25ms.wav",
       "audioSha256": "8253b0084aa1729e0b9431b40e5839e9a8a633cbd06acdbd132b43d39e6b2975",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -490,9 +493,9 @@
       "audio": "generated/benchmark-v2/listening-review/rising_switch_tempo_fast_5.wav",
       "audioSha256": "c66fbb0df2df2ca5caac6c3b16c23c86d046dfe39159ccf9d30f4e3ed10d7ad9",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -513,9 +516,9 @@
       "audio": "generated/benchmark-v2/listening-review/meter_exchange_speed_plus_4.wav",
       "audioSha256": "c18ba3b0e86f96cc10409c79c74ec3e575cb984b3934ef256edad863a8e30878",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -537,9 +540,9 @@
       "audio": "generated/benchmark-v2/listening-review/wide_breaths_air_plus_5.wav",
       "audioSha256": "6504006d56675f3a336b446c4fedd2c613b472b30597cfe8c4f21b05ae928d44",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -562,9 +565,9 @@
       "audio": "generated/benchmark-v2/listening-review/open_hook_amplitude_plus_8.wav",
       "audioSha256": "936cd057087b8bcea8e5b971b232b2663a8b4f7f5c4d6cae534c1b7ec9e9e397",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -586,9 +589,9 @@
       "audio": "generated/benchmark-v2/listening-review/amplitude_tides_restrained_10.wav",
       "audioSha256": "6f23c4a57ec05cb6a263ca69b075c02b8e94927a7e9d22e5128336f5ffe14394",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -611,9 +614,9 @@
       "audio": "generated/benchmark-v2/listening-review/dense_dialogue_impact_contrast_10.wav",
       "audioSha256": "38bd2b3a682bf309b3bdec96dd3e172b22bc0df846b9fe02e36a97138d3ae066",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -635,9 +638,9 @@
       "audio": "generated/benchmark-v2/listening-review/high_air_drive_air_minus_5.wav",
       "audioSha256": "2357c6a6af5f4a14406dccf60d5108392c53f9438391533737341f6ab4ff8107",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -659,9 +662,9 @@
       "audio": "generated/benchmark-v2/listening-review/sparse_lowline_air_minus_4.wav",
       "audioSha256": "5de503d9e6bdbe9fb06232c45a810a1fc195fe5fb068a85d5a0016266c982c82",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -682,8 +685,8 @@
       "audio": "generated/benchmark-v2/listening-review/frontier_pickup_progression.wav",
       "audioSha256": "cd6bf6c25612067956cda0bd882d2bd4a75ad59324efe57022fd986b1b2d7207",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -705,8 +708,8 @@
       "audio": "generated/benchmark-v2/listening-review/frontier_dense_recovery.wav",
       "audioSha256": "5f90523f035a7aadcf59080442d7fca1d82596ba503b7c5e0e89ad51f9a9b294",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -728,8 +731,8 @@
       "audio": "generated/benchmark-v2/listening-review/frontier_low_air_endurance.wav",
       "audioSha256": "5bd9d774b38645592b5f838996af6979e3bfb72523e5b9ad6965b0b9a9173218",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -752,9 +755,9 @@
       "audio": "generated/benchmark-v2/listening-review/frontier_pickup_progression_shifted.wav",
       "audioSha256": "de00a47533a3e80236bd786b88a79d87ec43a14aeeacb2f24c3b351b753246b9",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -776,9 +779,9 @@
       "audio": "generated/benchmark-v2/listening-review/frontier_dense_recovery_240ms_figures.wav",
       "audioSha256": "cf447aef14fc145af75ac194767cdf2bc921dc1ffc966b02674ebd120e3b76be",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -800,9 +803,9 @@
       "audio": "generated/benchmark-v2/listening-review/frontier_low_air_endurance_4s.wav",
       "audioSha256": "7abeb627d4789a9ce8ec23558a104e254cf1d38ee2435242ebbf3c340712e235",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -823,8 +826,8 @@
       "audio": "generated/benchmark-v2/listening-review/regression_transition_mosaic.wav",
       "audioSha256": "5404a02f493536c79fae2a3fdf58aa4fc0bdb27cefde3fc6d51757561ba357e4",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -845,8 +848,8 @@
       "audio": "generated/benchmark-v2/listening-review/regression_amplitude_mosaic.wav",
       "audioSha256": "3c71d29cc1e099d8bd06d67df5ab32437a7a547f0c36171917ba6abda708aeb8",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -869,9 +872,9 @@
       "audio": "generated/benchmark-v2/listening-review/regression_transition_mosaic_tempo_fast_5.wav",
       "audioSha256": "949b132d9c0b57e32b442450e0cda69c1c545caf1c824673bb2f6bf031788520",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -892,9 +895,9 @@
       "audio": "generated/benchmark-v2/listening-review/regression_amplitude_mosaic_contrast_10.wav",
       "audioSha256": "3c71d29cc1e099d8bd06d67df5ab32437a7a547f0c36171917ba6abda708aeb8",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -917,8 +920,8 @@
       "audio": "generated/benchmark-v2/listening-review/believer_56_6s.wav",
       "audioSha256": "6c7ef9fa3ec93ca15d07c32745124a6a803c054641a4aed5ed70ca3d9da8180e",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -940,8 +943,8 @@
       "audio": "generated/benchmark-v2/listening-review/believer_impact_56s.wav",
       "audioSha256": "2d2d1fd2f09848b9935f8692b80b65ffbc341c7dc5dcdd6c140e341e88eb81ec",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
         "variantFaithfulToParent": "not_applicable",
         "notes": null
       }
@@ -966,9 +969,9 @@
       "audio": "generated/benchmark-v2/listening-review/believer_56_6s_impact_relief.wav",
       "audioSha256": "eb8658e1c4d9872017a872e149f61adf01f7e5e6d9748d76ff718623bac49b66",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     },
@@ -990,9 +993,9 @@
       "audio": "generated/benchmark-v2/listening-review/believer_impact_56s_amplitude_plus_5.wav",
       "audioSha256": "2d2d1fd2f09848b9935f8692b80b65ffbc341c7dc5dcdd6c140e341e88eb81ec",
       "review": {
-        "rhythmPlausible": null,
-        "phraseCoherent": null,
-        "variantFaithfulToParent": null,
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
         "notes": null
       }
     }

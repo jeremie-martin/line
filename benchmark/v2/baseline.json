@@ -1,17 +1,17 @@
 {
-  "schema": "line.benchmark-v2.baseline-reference.v6",
-  "status": "provisional-listening-review-required",
-  "label": "v2.2-decision-protocol",
-  "generated_at": "2026-07-10T16:13:25.200Z",
-  "bundle": "benchmark/v2/runs/v2.2-decision-protocol-baseline.json",
-  "catalog_fingerprint": "3989ba526bf0d112c36ecd1fb5b4faea21486e18cb888aa9edb19deb58f8ff3b",
-  "suite_fingerprint": "b118882720a968548323b5c53691a3e812df7733d0d931a579ad9aef57f5e470",
-  "execution_protocol": "line.benchmark-v2.execution-protocol.v2",
-  "listening_review_fingerprint": "e534e2a5b8e74eda9287c9679d0bf06372c6a4fbe14c1d426580a17df6a20dae",
-  "listening_review_status": "awaiting-human-review",
+  "schema": "line.benchmark-v2.baseline-reference.v8",
+  "status": "canonical-baseline",
+  "label": "v2-initial-2026-07-11",
+  "generated_at": "2026-07-11T06:22:03.373Z",
+  "bundle": "benchmark/v2/runs/v2-initial-2026-07-11-baseline.json",
+  "catalog_fingerprint": "d51d71ab1a82e37f56aca573d6eaad0f8868e50b7860f12b4464a7f1342c71b4",
+  "suite_fingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+  "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
+  "listening_review_fingerprint": "4cb27e1f4f195cf082b6ea0f80b80dfc55ac5e8b2bc23e35d84a3fb1f57f66d0",
+  "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "2d40016aef2a2bd4e678f7483c7f6f63a6e616760b351c0931a97e80e119aa80",
+  "compiler_source_fingerprint": "d1c4951189ad104b6a5e46bc6e056484551b45eb7701d1f133b126f90dbcabb8",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -82,34 +82,45 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
-  "candidate_fingerprint": "dea2e1a77af547571849bf96ccc60264f04afd62a0407efe7e04f15e3ebd2e25",
+  "candidate_fingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40",
+  "decision_fingerprint": "ae72a898f0c774d281ec980784c3177388ab98294475ca4d08d43f4a85b626d3",
+  "decision_calibration_fingerprint": "0b34a27cc267859afa3edd2fa7f5a587efb9a1722c3d75d87358b4b83ff12afc",
+  "compiler_snapshot": {
+    "schema": "line.benchmark-v2.compiler-snapshot.v1",
+    "archive": "benchmark/v2/runs/v2-initial-2026-07-11-compiler-snapshot.tar.gz",
+    "archiveSha256": "ee92a0793a080d48f7290f09b91212ed89ecebb744dda9947877c62159422643",
+    "candidateFingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40",
+    "compilerSourceFingerprint": "d1c4951189ad104b6a5e46bc6e056484551b45eb7701d1f133b126f90dbcabb8",
+    "compilerEnvironment": {},
+    "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
+  },
   "probe": {
-    "execution_policy_fingerprint": "31a5fbc3054b87a1f8baf2993f0d89784e8b335929c3dbb3a0402093e3d6c870",
-    "implementation_fingerprint": "00a98db6137f47cf689ee148520efbbec22354412d80936135ae021b2e9f5ba4",
-    "archive_sha256": "e6d1a3c6a91eb874f4531db972c01acb93f04b8a97e7e7125825c36302ca7ce8",
-    "compressed_archive": "benchmark/v2/runs/v2.2-decision-protocol-probe.json.gz",
-    "compressed_archive_sha256": "88ccff4ae0c5a6ce226348df88b8370702d8ee72dac8d529d34a646d0d9788f7",
-    "canonical_headline": 442.997,
+    "execution_policy_fingerprint": "fdd9dc9666e6f7ea18a4d05eedee8fbec46f97e9abab58c8fa6ef335d77de579",
+    "implementation_fingerprint": "5e0dadcc68b7aac4dbfd41d03ff8e0d788f00480c47413e05a77310e50fee39e",
+    "archive_sha256": "7bc89dc99fcabd9d3e439e87a4f5fad50e415fc4603e563108910fccec70350b",
+    "compressed_archive": "benchmark/v2/runs/v2-initial-2026-07-11-probe.json.gz",
+    "compressed_archive_sha256": "4b3c4861c243764add5722c35fbdbd6d3591ac7e8e95f554cad3673b12132192",
+    "canonical_headline": 446.0945,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "probe",
-      "seedBase": 12,
+      "seedBase": 24,
       "seedsPerBudget": 3,
       "byBudget": [
         {
           "budget": 250000,
           "actualSeeds": [
-            12,
-            13,
-            14
+            24,
+            25,
+            26
           ]
         },
         {
           "budget": 500000,
           "actualSeeds": [
-            15,
-            16,
-            17
+            27,
+            28,
+            29
           ]
         }
       ]
@@ -117,30 +128,30 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 418.5091,
+        "score": 438.5814,
         "valid_runs": 107,
         "total_runs": 126
       },
       {
         "budget": 500000,
-        "score": 452.7921,
-        "valid_runs": 113,
+        "score": 449.0998,
+        "valid_runs": 114,
         "total_runs": 126
       }
     ]
   },
   "development": {
-    "execution_policy_fingerprint": "0ab7f717fecf0412e3e0d5e9ef325146325a5689c4e8c17136e16af9a99aacab",
-    "implementation_fingerprint": "00a98db6137f47cf689ee148520efbbec22354412d80936135ae021b2e9f5ba4",
-    "archive_sha256": "a693893e5fc06067271f71f3f56bb3ae7a097bce14404ee20cb6153a787ebd5c",
-    "compressed_archive": "benchmark/v2/runs/v2.2-decision-protocol-development.json.gz",
-    "compressed_archive_sha256": "3606a4155aed799d994af2699d8fe81213151f34ad60cb3d49108e92565022c2",
-    "canonical_headline": 451.3303,
+    "execution_policy_fingerprint": "430e896d4c3833b7ad05056f60f75fce7de5494e45f59207e1665ca5cba0cb47",
+    "implementation_fingerprint": "5e0dadcc68b7aac4dbfd41d03ff8e0d788f00480c47413e05a77310e50fee39e",
+    "archive_sha256": "d97157c9cb49b37ff96976c60a45772483a6f0233ed4f9af99f59dcf9b9d2f7d",
+    "compressed_archive": "benchmark/v2/runs/v2-initial-2026-07-11-development.json.gz",
+    "compressed_archive_sha256": "79d6dd437d926f04e2549ff11db5dd3026214090279c7bea34601b6e2d961dd8",
+    "canonical_headline": 453.1102,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
       "seedBase": 0,
-      "seedsPerBudget": 4,
+      "seedsPerBudget": 8,
       "byBudget": [
         {
           "budget": 250000,
@@ -148,12 +159,7 @@
             0,
             1,
             2,
-            3
-          ]
-        },
-        {
-          "budget": 500000,
-          "actualSeeds": [
+            3,
             4,
             5,
             6,
@@ -161,12 +167,29 @@
           ]
         },
         {
-          "budget": 750000,
+          "budget": 500000,
           "actualSeeds": [
             8,
             9,
             10,
-            11
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "budget": 750000,
+          "actualSeeds": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
           ]
         }
       ]
@@ -174,36 +197,36 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 420.8035,
-        "valid_runs": 142,
-        "total_runs": 168
+        "score": 420.7762,
+        "valid_runs": 284,
+        "total_runs": 336
       },
       {
         "budget": 500000,
-        "score": 452.203,
-        "valid_runs": 152,
-        "total_runs": 168
+        "score": 461.14,
+        "valid_runs": 310,
+        "total_runs": 336
       },
       {
         "budget": 750000,
-        "score": 470.227,
-        "valid_runs": 156,
-        "total_runs": 168
+        "score": 461.2832,
+        "valid_runs": 314,
+        "total_runs": 336
       }
     ]
   },
   "qualification": {
-    "execution_policy_fingerprint": "39a185aa2230dd234fa82e5aa953df7cb66ec2fc599e737cb31525501818ef34",
-    "implementation_fingerprint": "00a98db6137f47cf689ee148520efbbec22354412d80936135ae021b2e9f5ba4",
-    "archive_sha256": "350dbae6b2a978cf025710edec2828492e0480fc87edeec74745f7a9cad3cfb9",
-    "compressed_archive": "benchmark/v2/runs/v2.2-decision-protocol-qualification.json.gz",
-    "compressed_archive_sha256": "b4d0fa426b666aca73b697496a14da91d3875a50b05f3e5093864844ce5966d6",
-    "monitor_score": 385.6812,
+    "execution_policy_fingerprint": "107c9e56ea048f2dd773a65dd45c5c0763ba7086c2b2f725fcc959314e7356ad",
+    "implementation_fingerprint": "5e0dadcc68b7aac4dbfd41d03ff8e0d788f00480c47413e05a77310e50fee39e",
+    "archive_sha256": "2df0e643868f8a46a987d3675619250caec08709c321bbdaf56e8c6a6e8277cd",
+    "compressed_archive": "benchmark/v2/runs/v2-initial-2026-07-11-qualification.json.gz",
+    "compressed_archive_sha256": "539af4b94ce330741db365d1c2c0ac94af3dbbcb3dae36baf85862afde86c7b7",
+    "monitor_score": 373.4677,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
       "seedBase": 0,
-      "seedsPerBudget": 4,
+      "seedsPerBudget": 8,
       "byBudget": [
         {
           "budget": 250000,
@@ -211,12 +234,7 @@
             0,
             1,
             2,
-            3
-          ]
-        },
-        {
-          "budget": 500000,
-          "actualSeeds": [
+            3,
             4,
             5,
             6,
@@ -224,12 +242,29 @@
           ]
         },
         {
-          "budget": 750000,
+          "budget": 500000,
           "actualSeeds": [
             8,
             9,
             10,
-            11
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "budget": 750000,
+          "actualSeeds": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
           ]
         }
       ]
@@ -237,23 +272,23 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 389.1223,
-        "valid_runs": 20,
-        "total_runs": 20
+        "score": 328.8673,
+        "valid_runs": 39,
+        "total_runs": 40
       },
       {
         "budget": 500000,
-        "score": 385.3739,
-        "valid_runs": 20,
-        "total_runs": 20
+        "score": 380.9754,
+        "valid_runs": 40,
+        "total_runs": 40
       },
       {
         "budget": 750000,
-        "score": 383.8993,
-        "valid_runs": 20,
-        "total_runs": 20
+        "score": 390.6884,
+        "valid_runs": 40,
+        "total_runs": 40
       }
     ],
-    "linked_development_archive_sha256": "a693893e5fc06067271f71f3f56bb3ae7a097bce14404ee20cb6153a787ebd5c"
+    "linked_development_archive_sha256": "d97157c9cb49b37ff96976c60a45772483a6f0233ed4f9af99f59dcf9b9d2f7d"
   }
 }

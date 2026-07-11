@@ -1,25 +1,17 @@
 # Benchmark V2 Baseline
 
-Status: **provisional and not promotion-eligible**. The required human listening review
-was not completed before this evidence was generated, and the current Benchmark V2 changes
-the canonical seed allocation, paired-snapshot workflow, execution protocol, and V8
-decision/calibration contract. These values are retained for audit
-only. Complete the tracked listening review and run `benchmark -- baseline` to establish
-the next compiler baseline.
+Label: `v2-initial-2026-07-11`. Suite: `517e044103a5fef3`.
 
-Reusable probe screening remains available through `benchmark/v2/probe-baseline.json`
-and its retained V2.4 raw archive. Screening cannot promote a compiler.
-
-Label: `v2.2-decision-protocol`. Suite: `b118882720a96854`.
-
-Probe headline: **443.00**. Canonical headline: **451.33**. Qualification monitor: **385.68** (indicative only).
+Probe headline: **446.09**. Canonical headline: **453.11**. Qualification monitor: **373.47** (indicative only).
 
 Probe and canonical actual seeds are disjoint at every shared budget. Probe evidence screens candidates; only canonical evidence can promote one.
 
 | Budget | Probe | Valid | Canonical | Valid | Qualification | Valid |
 |---:|---:|---:|---:|---:|---:|---:|
-| 250k | 418.51 | 107/126 | 420.80 | 142/168 | 389.12 | 20/20 |
-| 500k | 452.79 | 113/126 | 452.20 | 152/168 | 385.37 | 20/20 |
-| 750k | - | - | 470.23 | 156/168 | 383.90 | 20/20 |
+| 250k | 438.58 | 107/126 | 420.78 | 284/336 | 328.87 | 39/40 |
+| 500k | 449.10 | 114/126 | 461.14 | 310/336 | 380.98 | 40/40 |
+| 750k | - | - | 461.28 | 314/336 | 390.69 | 40/40 |
 
-Candidate: `dea2e1a77af547571849bf96ccc60264f04afd62a0407efe7e04f15e3ebd2e25`.
+Candidate: `95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40`.
+Decision rule: `ae72a898f0c774d281ec980784c3177388ab98294475ca4d08d43f4a85b626d3`.
+Decision calibration: `0b34a27cc267859afa3edd2fa7f5a587efb9a1722c3d75d87358b4b83ff12afc`.

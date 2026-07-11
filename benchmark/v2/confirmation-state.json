@@ -1,16 +1,24 @@
 {
   "schema": "line.benchmark-v2.confirmation-state.v3",
-  "status": "blocked",
-  "reason": "An approved listening review and a V8 baseline with compiler and decision snapshots are required.",
+  "status": "available",
+  "reason": null,
   "baseline": {
-    "label": "v2.2-decision-protocol",
-    "suiteFingerprint": "b118882720a968548323b5c53691a3e812df7733d0d931a579ad9aef57f5e470",
-    "archiveSha256": "a693893e5fc06067271f71f3f56bb3ae7a097bce14404ee20cb6153a787ebd5c",
-    "candidateFingerprint": "dea2e1a77af547571849bf96ccc60264f04afd62a0407efe7e04f15e3ebd2e25",
-    "listeningReviewFingerprint": "e534e2a5b8e74eda9287c9679d0bf06372c6a4fbe14c1d426580a17df6a20dae",
-    "compilerSnapshot": null,
-    "decisionFingerprint": null,
-    "calibrationFingerprint": null
+    "label": "v2-initial-2026-07-11",
+    "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+    "archiveSha256": "d97157c9cb49b37ff96976c60a45772483a6f0233ed4f9af99f59dcf9b9d2f7d",
+    "candidateFingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40",
+    "listeningReviewFingerprint": "4cb27e1f4f195cf082b6ea0f80b80dfc55ac5e8b2bc23e35d84a3fb1f57f66d0",
+    "compilerSnapshot": {
+      "schema": "line.benchmark-v2.compiler-snapshot.v1",
+      "archive": "benchmark/v2/runs/v2-initial-2026-07-11-compiler-snapshot.tar.gz",
+      "archiveSha256": "ee92a0793a080d48f7290f09b91212ed89ecebb744dda9947877c62159422643",
+      "candidateFingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40",
+      "compilerSourceFingerprint": "d1c4951189ad104b6a5e46bc6e056484551b45eb7701d1f133b126f90dbcabb8",
+      "compilerEnvironment": {},
+      "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
+    },
+    "decisionFingerprint": "ae72a898f0c774d281ec980784c3177388ab98294475ca4d08d43f4a85b626d3",
+    "calibrationFingerprint": "0b34a27cc267859afa3edd2fa7f5a587efb9a1722c3d75d87358b4b83ff12afc"
   },
   "seedLedger": [],
   "attempt": null

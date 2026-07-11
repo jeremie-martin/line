@@ -51,7 +51,7 @@ describe("Benchmark V2 governance", () => {
     expect(existsSync(supportFile)).toBe(true);
   });
 
-  test("validates the complete listening template but blocks canonical use until a human approves it", async () => {
+  test("validates the approved listening review and rejects pending or stale evidence", async () => {
     const sources = resolveSources(loadSourceManifest(sourcePath));
     const identity = suiteIdentity(suitePath, sourcePath, sources);
     const evidence = await loadListeningReview(
@@ -61,22 +61,19 @@ describe("Benchmark V2 governance", () => {
       sources,
     );
     expect(evidence.review.items).toHaveLength(42);
-    expect(() => requireApprovedListeningReview(evidence)).toThrow(/canonical baseline and promotion are blocked/);
+    expect(evidence.review.attestation).toBe(LISTENING_REVIEW_ATTESTATION);
+    expect(() => requireApprovedListeningReview(evidence)).not.toThrow();
 
-    const approved = structuredClone(evidence.review);
-    approved.status = "approved";
-    approved.reviewer = { name: "Human Reviewer", role: "music review" };
-    approved.reviewedAt = "2026-07-10T12:00:00.000Z";
-    approved.attestation = LISTENING_REVIEW_ATTESTATION;
-    for (const item of approved.items) {
-      item.review.rhythmPlausible = true;
-      item.review.phraseCoherent = true;
-      item.review.variantFaithfulToParent = item.parentId === undefined ? "not_applicable" : true;
-    }
-    expect(() => requireApprovedListeningReview({ ...evidence, review: approved })).not.toThrow();
+    const pending = structuredClone(evidence.review);
+    pending.status = "awaiting-human-review";
+    pending.reviewer = null;
+    pending.reviewedAt = null;
+    pending.attestation = null;
+    expect(() => requireApprovedListeningReview({ ...evidence, review: pending }))
+      .toThrow(/canonical baseline and promotion are blocked/);
 
     const missingAudioPath = join(mkdtempSync(join(tmpdir(), "v2-listening-")), "approved.json");
-    const missingAudio = structuredClone(approved);
+    const missingAudio = structuredClone(evidence.review);
     missingAudio.items[0].audio = join(tmpdir(), "definitely-missing-v2-click.wav");
     writeFileSync(missingAudioPath, `${JSON.stringify(missingAudio)}\n`);
     await expect(loadListeningReview(
@@ -100,8 +97,18 @@ describe("Benchmark V2 governance", () => {
 
   test("a provisional baseline creates a blocked confirmation state", () => {
     const dir = mkdtempSync(join(tmpdir(), "v2-governance-"));
+    const baselinePath = join(dir, "baseline.json");
     const statePath = join(dir, "state.json");
-    const state = initializeConfirmationStateFromBaseline("benchmark/v2/baseline.json", statePath);
+    const provisional = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8"));
+    provisional.schema = "line.benchmark-v2.baseline-reference.v6";
+    provisional.status = "provisional-listening-review-required";
+    provisional.listening_review_status = "awaiting-human-review";
+    delete provisional.compiler_snapshot;
+    delete provisional.decision_fingerprint;
+    delete provisional.decision_calibration_fingerprint;
+    writeFileSync(baselinePath, `${JSON.stringify(provisional)}\n`);
+
+    const state = initializeConfirmationStateFromBaseline(baselinePath, statePath);
     expect(state.status).toBe("blocked");
     expect(state.attempt).toBeNull();
     expect(() => assertBaselineTransitionAllowed("candidate", "suite", join(dir, "missing.json")))

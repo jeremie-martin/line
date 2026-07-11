@@ -1,0 +1,9 @@
+{
+  "schema": "line.benchmark-v2.study-provenance.v1",
+  "artifact": "benchmark/v2/studies/power-levers.json",
+  "artifactSha256": "d238162cd60226b67ba13efe64929202d235e7289cb7041ef4be4b033aaea454",
+  "generatedAt": "2026-07-11T18:47:55.588Z",
+  "runtimeSeconds": 144.083,
+  "workers": 24,
+  "command": "node --import tsx scripts/benchmark/study_power_levers.ts"
+}

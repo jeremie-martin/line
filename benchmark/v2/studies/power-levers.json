@@ -1,0 +1,153 @@
+{
+  "schema": "line.benchmark-v2.power-levers-study.v1",
+  "question": "Seeds versus specifications: how does the paired seed-block jackknife SE of the headline delta scale with seeds per budget versus catalog size, and which lever buys more power per compile?",
+  "reference": "benchmark/v2/runs/calibration-v2.4-pooled-reference-seeds-0-23.json.gz",
+  "referenceArtifactSha256": "796c6188c515ac4aa702349e1861f659145fc39f910d49bebd17f080fe44f5d7",
+  "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+  "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
+  "methodology": {
+    "dgp": "Null unpaired empirical blocks resampled from the pooled reference (the SE is effect-independent; power at any effect follows from SE and dof via the one-sided Student-t rule).",
+    "catalogAxis": "Parent-preserving subsample per trial: each group keeps a deterministic random subset of its parents (at least one) with all their members; group and stratum weights are unchanged (the geometric means renormalize over remaining parents).",
+    "seedsAxis": "profiles.canonical.seeds_per_budget overridden per cell via the suite-clone pattern.",
+    "mde": "MDE(80%) = (t(1-alpha, mean dof) + z(0.80)) x mean SE at alpha=0.01 (the current policy critical).",
+    "extrapolationCaveat": "Subsampling measures SE shrinkage as the existing catalog grows toward full size; projecting beyond the full catalog assumes new specifications resemble the current variance mix. Composition effects are visible across fraction cells (frontier-heavy subsets are noisier).",
+    "rng": "Deterministic per (cell, trial); independent of worker layout."
+  },
+  "fullCatalog": {
+    "members": 42,
+    "parents": 21
+  },
+  "criticalAlpha": 0.01,
+  "cells": [
+    {
+      "id": "d8-f100",
+      "depth": 8,
+      "fraction": 1,
+      "trials": 300,
+      "approxMembers": 42,
+      "meanSeedBlockSe": 3.7014,
+      "seSd": 0.7548,
+      "meanDof": 15.6182,
+      "mde80": 12.7033,
+      "compilesPerArm": 1008,
+      "compilesTwoArms": 2016
+    },
+    {
+      "id": "d16-f100",
+      "depth": 16,
+      "fraction": 1,
+      "trials": 300,
+      "approxMembers": 42,
+      "meanSeedBlockSe": 2.3651,
+      "seSd": 0.3225,
+      "meanDof": 36.3342,
+      "mde80": 7.7459,
+      "compilesPerArm": 2016,
+      "compilesTwoArms": 4032
+    },
+    {
+      "id": "d32-f100",
+      "depth": 32,
+      "fraction": 1,
+      "trials": 300,
+      "approxMembers": 42,
+      "meanSeedBlockSe": 1.5998,
+      "seSd": 0.1703,
+      "meanDof": 76.364,
+      "mde80": 5.1477,
+      "compilesPerArm": 4032,
+      "compilesTwoArms": 8064
+    },
+    {
+      "id": "d64-f100",
+      "depth": 64,
+      "fraction": 1,
+      "trials": 300,
+      "approxMembers": 42,
+      "meanSeedBlockSe": 1.0964,
+      "seSd": 0.0788,
+      "meanDof": 158.0165,
+      "mde80": 3.4995,
+      "compilesPerArm": 8064,
+      "compilesTwoArms": 16128
+    },
+    {
+      "id": "d16-f25",
+      "depth": 16,
+      "fraction": 0.25,
+      "trials": 300,
+      "approxMembers": 11,
+      "meanSeedBlockSe": 2.4255,
+      "seSd": 0.3483,
+      "meanDof": 36.597,
+      "mde80": 7.9416,
+      "compilesPerArm": 504,
+      "compilesTwoArms": 1008
+    },
+    {
+      "id": "d32-f25",
+      "depth": 32,
+      "fraction": 0.25,
+      "trials": 300,
+      "approxMembers": 11,
+      "meanSeedBlockSe": 1.6779,
+      "seSd": 0.2032,
+      "meanDof": 77.8681,
+      "mde80": 5.3974,
+      "compilesPerArm": 1008,
+      "compilesTwoArms": 2016
+    },
+    {
+      "id": "d16-f50",
+      "depth": 16,
+      "fraction": 0.5,
+      "trials": 300,
+      "approxMembers": 21,
+      "meanSeedBlockSe": 2.4429,
+      "seSd": 0.3789,
+      "meanDof": 36.2638,
+      "mde80": 8.0013,
+      "compilesPerArm": 1008,
+      "compilesTwoArms": 2016
+    },
+    {
+      "id": "d32-f50",
+      "depth": 32,
+      "fraction": 0.5,
+      "trials": 300,
+      "approxMembers": 21,
+      "meanSeedBlockSe": 1.6698,
+      "seSd": 0.1973,
+      "meanDof": 76.9645,
+      "mde80": 5.3724,
+      "compilesPerArm": 2016,
+      "compilesTwoArms": 4032
+    },
+    {
+      "id": "d16-f75",
+      "depth": 16,
+      "fraction": 0.75,
+      "trials": 300,
+      "approxMembers": 32,
+      "meanSeedBlockSe": 2.3924,
+      "seSd": 0.3502,
+      "meanDof": 36.3753,
+      "mde80": 7.8349,
+      "compilesPerArm": 1512,
+      "compilesTwoArms": 3024
+    },
+    {
+      "id": "d32-f75",
+      "depth": 32,
+      "fraction": 0.75,
+      "trials": 300,
+      "approxMembers": 32,
+      "meanSeedBlockSe": 1.5937,
+      "seSd": 0.1566,
+      "meanDof": 77.0039,
+      "mde80": 5.1274,
+      "compilesPerArm": 3024,
+      "compilesTwoArms": 6048
+    }
+  ]
+}

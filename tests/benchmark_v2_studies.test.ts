@@ -59,6 +59,47 @@ describe("retained study artifacts", () => {
     }
   });
 
+  test("two-mode validation artifacts recompute barsMet correctly", () => {
+    // v2 artifacts: certify (in-sample pooled, hard power bars) and holdout
+    // (variance-robust bars + truth transfer; power reported, not gated).
+    for (const name of ["menu-certification", "holdout-validation"]) {
+      const path = `benchmark/v2/studies/${name}.json`;
+      if (!existsSync(path)) continue;
+      const v = loadJson(path);
+      expect(v.schema).toBe("line.benchmark-v2.independent-validation.v2");
+      const bars = v.predeclared.bars;
+      const byId = new Map<string, any>(v.cells.map((cell: any) => [cell.id, cell]));
+      const robust = {
+        improve_null_empirical: byId.get("improve_null_empirical").combined.accept.wilson95[1] <= bars.nullFalseAcceptWilsonUpperMax,
+        improve_null_validity_flips: byId.get("improve_null_validity_flips").combined.accept.wilson95[1] <= bars.nullFalseAcceptWilsonUpperMax,
+        improve_null_hard_zero: byId.get("improve_null_hard_zero").combined.accept.wilson95[1] <= bars.nullFalseAcceptWilsonUpperMax,
+        simplify_m5_boundary: byId.get("simplify_m5_boundary").combined.accept.wilson95[1] <= bars.boundaryFalseAcceptWilsonUpperMax,
+        futility_null: byId.get("futility_null").combined.netAccept.wilson95[1] <= bars.futilityNullFalseAcceptWilsonUpperMax,
+        determinism: v.barsMet.determinism,
+      };
+      const power = {
+        improve_power_5: byId.get("improve_power_5").combined.accept.wilson95[0] >= bars.powerAtPlus5WilsonLowerMin,
+        simplify_m5_noninferiority: byId.get("simplify_m5_noninferiority").combined.accept.wilson95[0] >= bars.noninferiorityPowerWilsonLowerMin,
+        futility_power_5: byId.get("futility_power_5").combined.netAccept.wilson95[0] >= bars.futilityNetPowerAtPlus5WilsonLowerMin,
+      };
+      if (v.mode === "certify") {
+        expect(v.barsMet).toEqual({ ...robust, ...power });
+        expect(v.inSample).toBe(true);
+      } else {
+        const a = v.achievedTrueDeltas;
+        const truth = Math.abs(a.improve2 - 2) <= 0.3 && Math.abs(a.improve3 - 3) <= 0.3 &&
+          Math.abs(a.improve5 - 5) <= 0.3 && Math.abs(a.boundaryM5 + 5) <= 0.3;
+        expect(v.barsMet).toEqual({ ...robust, truth_transfer: truth });
+        expect(v.powerReported).toEqual(power);
+      }
+      expect(v.allBarsMet).toBe(Object.values(v.barsMet).every((met: boolean) => met));
+      for (const cell of v.cells) {
+        expect(cell.combined.accept.count + cell.combined.reject.count + cell.combined.inconclusive.count, cell.id)
+          .toBe(cell.combined.trials);
+      }
+    }
+  });
+
   test("independent-validation barsMet is correctly recomputed from stored counts and predeclared bars", () => {
     // A failed validation study must remain valid retained evidence: this test
     // verifies internal consistency of barsMet, NOT that the bars passed

@@ -72,11 +72,6 @@ const suiteManifest = {
   budget_weights: benchmarkPolicy.budgetWeights,
 };
 
-mkdirSync(COMPAT_DIR, { recursive: true });
-writeJson(resolve(COMPAT_DIR, "source-manifest.json"), sourceManifest);
-writeJson(resolve(COMPAT_DIR, "heldout-manifest.json"), heldoutManifest);
-writeJson(resolve(COMPAT_DIR, "suite-manifest.json"), suiteManifest);
-
 const lockWithoutFingerprint = {
   schema: "line.benchmark-v2.catalog-lock.v1",
   status: benchmarkPolicy.status,
@@ -88,18 +83,47 @@ const lockWithoutFingerprint = {
   profiles: benchmarkPolicy.profiles,
   strata: benchmarkPolicy.strata,
 };
-writeJson(LOCK_PATH, {
-  ...lockWithoutFingerprint,
-  fingerprint: hashJsonAndFiles(lockWithoutFingerprint, [
-    ...CASE_DEFINITION_FILES,
-    ...developmentCases.flatMap(sourceFiles),
-    ...qualificationCases.flatMap(sourceFiles),
-  ]),
-});
+const outputs: Array<{ path: string; content: string }> = [
+  { path: resolve(COMPAT_DIR, "source-manifest.json"), content: renderJson(sourceManifest) },
+  { path: resolve(COMPAT_DIR, "heldout-manifest.json"), content: renderJson(heldoutManifest) },
+  { path: resolve(COMPAT_DIR, "suite-manifest.json"), content: renderJson(suiteManifest) },
+  {
+    path: LOCK_PATH,
+    content: renderJson({
+      ...lockWithoutFingerprint,
+      fingerprint: hashJsonAndFiles(lockWithoutFingerprint, [
+        ...CASE_DEFINITION_FILES,
+        ...developmentCases.flatMap(sourceFiles),
+        ...qualificationCases.flatMap(sourceFiles),
+      ]),
+    }),
+  },
+];
 
-console.log(`Catalog: ${developmentCases.length} development (${developmentCases.filter((entry) => entry.case.metadata.variant !== undefined).length} variants), ${qualificationCases.length} qualification`);
-console.log(`Lock: benchmark/v2/catalog.lock.json`);
-console.log(`Compatibility: benchmark/v2/compat/`);
+if (process.argv.includes("--check")) {
+  const drifted = outputs.filter((output) => {
+    try {
+      return readFileSync(output.path, "utf8") !== output.content;
+    } catch {
+      return true;
+    }
+  });
+  if (drifted.length > 0) {
+    for (const output of drifted) console.error(`catalog drift: ${relativeToCwd(output.path)} does not match a regeneration from the typed catalog/policy`);
+    console.error(`run \`node --import tsx scripts/benchmark/sync_catalog.ts\` to regenerate (this changes the suite fingerprint)`);
+    process.exit(1);
+  }
+  console.log(`catalog check: ${outputs.length} generated files match the typed catalog and policy`);
+} else {
+  mkdirSync(COMPAT_DIR, { recursive: true });
+  for (const output of outputs) {
+    mkdirSync(dirname(output.path), { recursive: true });
+    writeFileSync(output.path, output.content);
+  }
+  console.log(`Catalog: ${developmentCases.length} development (${developmentCases.filter((entry) => entry.case.metadata.variant !== undefined).length} variants), ${qualificationCases.length} qualification`);
+  console.log(`Lock: benchmark/v2/catalog.lock.json`);
+  console.log(`Compatibility: benchmark/v2/compat/`);
+}
 
 function manifestEntry(entry: CatalogEntry): any {
   const metadata = entry.case.metadata;
@@ -162,9 +186,13 @@ function eventRoleCounts(document: NonNullable<BenchmarkCaseLike["scoreDocument"
 
 type BenchmarkCaseLike = CatalogEntry["case"];
 
-function writeJson(path: string, value: unknown): void {
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(removeUndefined(value), null, 2)}\n`);
+function renderJson(value: unknown): string {
+  return `${JSON.stringify(removeUndefined(value), null, 2)}\n`;
+}
+
+function relativeToCwd(path: string): string {
+  const prefix = `${process.cwd()}/`;
+  return path.startsWith(prefix) ? path.slice(prefix.length) : path;
 }
 
 function removeUndefined<T>(value: T): T {

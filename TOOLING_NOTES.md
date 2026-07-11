@@ -1,4 +1,9 @@
-# Tooling / harness / workflow notes
+# Tooling / harness / workflow notes (V1-historical)
+
+> **V1-historical document.** This log covers the retired Benchmark V1
+> workflow (`golden:v1` / `decide:v1`); command names and mechanisms below
+> may no longer exist. The current system is Benchmark V2 — start at
+> `docs/HOW_TO_WORK.md`.
 
 Running log of friction points hit while working the arc-placement campaign
 (`GOAL_LDS_ARC_PLACEMENT.md`). Newest at the bottom of each section.
@@ -81,8 +86,8 @@ Running log of friction points hit while working the arc-placement campaign
   "screen" that's ~10 min and statistically powered enough to pre-filter before the
   full decide — would make the loop much tighter. Right now it's easy to either burn
   an hour on a probe-rejected idea or wrongly reject on an under-powered smoke.
-  - **RESOLVED 2026-06-05:** added the `screen` middle tier (`npm run screen` /
-    `golden --screen`): `SCREEN_SPECS` (6 representative specs) × full 8 seeds ×
+  - **RESOLVED 2026-06-05 (V1; the `screen` tier was retired with V1 — no
+    `npm run screen` exists today):** added the `screen` middle tier: `SCREEN_SPECS` (6 representative specs) × full 8 seeds ×
     `SCREEN_BUDGETS` (coarse grid), ~10 min. Strict subset ⇒ `decide` flags it
     INDICATIVE, so it self-labels as a pre-filter, not a promotion.
 - **You cannot run two `--jobs=32` canonical runs in parallel** on a 62 GB box

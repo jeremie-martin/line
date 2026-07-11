@@ -578,7 +578,7 @@ next intentional suite change: preroll default unification (E.1 #13), any
 | 11 | `TOOLING_NOTES.md:84`, `screen.ts` | staleness | `npm run screen` gone; `screen.ts` orphaned. | D step 1 |
 | 12 | `benchmark-v2-resources.md` | doc | No wall-clock row for the 2,136-compile confirmation. | D step 1 |
 | 13 | `score_model.ts:121` vs `case.ts:113-116` | inconsistency | Preroll default differs by case kind — suite-semantic. | rollover |
-| 14 | `policy.ts:51-52` | stale comment | Canonical seeds are 0–23, not "the studied 0..11 range". | D step 1 |
+| 14 | `policy.ts:51-52` | stale comment | Canonical seeds are 0–23, not "the studied 0..11 range" — `policy.ts` is suite-fingerprinted, so even a comment edit is a rollover event. | rollover |
 | 15 | `README.md:27` | trivial | Hardcoded foreign path. | D step 1 |
 
 ### E.2 Design debt superseded by Part C

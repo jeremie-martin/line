@@ -25,7 +25,7 @@ npx playwright install chromium
 
 # in one terminal: serve the local linerider.com mirror
 python3 -m http.server 8765 --bind 127.0.0.1
-# (run this from /home/holo/prog/line/mirror/)
+# (run this from your local linerider.com mirror checkout)
 
 # in another: render a track to mp4
 npx tsx scripts/export.ts \

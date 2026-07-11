@@ -10,6 +10,9 @@ Reference host: 64 logical CPUs, 62.6 GiB RAM. Engine: WASM. Concurrency: 48.
 | Canonical plus qualification, 564 compiles | 2m36s | 50.6 cores | 79% | 7.39 GiB | 451.3303 / 385.6812 |
 | Linked baseline, 816 compiles | 3m35s | 50.5 cores | 79% | 7.80 GiB | 442.997 / 451.3303 / 385.6812 |
 | Current probe, 252 compiles | 58.6s | 50.5 cores | 81% | 6.36 GiB | 446.0945 |
+| Canonical development pass, 1,008 compiles | 4m21s | — | — | — | derived from the retained v2-initial baseline summaries |
+| Qualification sidecar, 120 compiles | 43s | — | — | — | derived from the retained v2-initial baseline summaries |
+| Full promotion confirmation, 2,136 compiles | ~10–12 min | — | — | — | 2 × development pass + qualification + two snapshot worktrees (`npm ci` ≈ 1–2 min each) |
 
 The first 48-worker trial exposed a worker-lifecycle defect: the pool reused a slot when
 a worker posted its result, before the worker thread and WASM memory had terminated. RSS
@@ -22,11 +25,11 @@ below 7.39 GiB. No swap was required. Track hashes, scores, validity, and the he
 are unchanged, establishing that the lifecycle correction affects resource ownership,
 not compiler behavior.
 
-The first three rows are retained V2.2 measurements. The current initial baseline uses
-1,008 development and 120 qualification compiles plus its 252-compile probe. A promotion
-confirmation is larger: 1,008 fresh baseline-snapshot development compiles, 1,008 candidate
-development compiles, and 120 candidate qualification compiles. It remains blocked until
-the required listening review is approved. The current probe establishes that the 48-worker
+The first three rows are retained V2.2 measurements; the last three derive
+from the retained v2-initial baseline artifacts (summary timestamps and
+per-run elapsed times). A promotion confirmation runs 1,008 fresh
+baseline-snapshot development compiles, 1,008 candidate development compiles,
+and 120 candidate qualification compiles. The current probe establishes that the 48-worker
 memory envelope remains controlled under execution protocol V4; the 12-seed calibration
 reference deliberately uses 32 workers for additional memory margin.
 

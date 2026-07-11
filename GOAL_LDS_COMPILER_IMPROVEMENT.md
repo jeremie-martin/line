@@ -29,24 +29,26 @@ The former 40-spec V1 campaign is preserved at `docs/archive/GOAL_LDS_COMPILER_I
    npm run decide -- generated/benchmark-v2/candidates/NAME-probe.json
    ```
 
-6. Spend canonical compute only after `advance` or when a deliberately informative result justifies it:
+6. Spend the baseline's single canonical confirmation only after `advance` and after freezing the candidate:
 
    ```bash
-   npm run benchmark -- canonical --label=NAME
-   npm run decide -- generated/benchmark-v2/canonical-runs/NAME-development.json
+   npm run benchmark -- canonical --decision-mode=improvement
+   npm run decide -- GENERATED_DEVELOPMENT_ARCHIVE
    ```
 
-Only canonical `accept` is a promotion. Qualification is produced beside every canonical run and reported as held-out monitoring evidence; it never enters the development headline or decision.
+Only canonical `accept` is a promotion. Qualification is produced beside the canonical run as indicative monitoring evidence; it never enters the development headline or decision.
 
-Probe and canonical use disjoint actual seeds. Do not inspect canonical results and then continue tuning the same candidate under the guise of one confirmation. A revised compiler is a new candidate and must repeat the workflow.
+Probe and canonical use disjoint actual seeds. Each canonical attempt declares a fresh, never-reused random seed epoch before freshly executing both the frozen baseline compiler snapshot and candidate. Canonical is not a reusable development set: every result consumes the confirmation state. Only an accepted candidate can establish the next baseline; deleting or editing the ledger invalidates the audit trail.
 
 ## Simplification
 
-Choose the largest acceptable headline regression before examining the candidate result:
+Choose the largest acceptable headline regression before canonical compilation:
 
 ```bash
 npm run decide -- generated/benchmark-v2/candidates/NAME-probe.json \
   --mode=simplification --margin=0.5
+npm run benchmark -- canonical --decision-mode=simplification --margin=0.5
+npm run decide -- GENERATED_DEVELOPMENT_ARCHIVE --mode=simplification --margin=0.5
 ```
 
 The margin is explicit and has no default. Canonical non-inferiority is required before merging a behavior-changing simplification. Byte-identical refactors should additionally demonstrate matching track hashes.

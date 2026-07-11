@@ -343,7 +343,7 @@
   "seed_policy": {
     "kind": "profile_budget_disjoint_contiguous",
     "profile_seed_bases": {
-      "probe": 12,
+      "probe": 24,
       "canonical": 0
     }
   },
@@ -361,7 +361,7 @@
         500000,
         750000
       ],
-      "seeds_per_budget": 4
+      "seeds_per_budget": 8
     }
   },
   "budget_weights": [

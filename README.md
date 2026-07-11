@@ -44,8 +44,10 @@ npm run parity
 
 # Benchmark V2 is the default compiler benchmark.
 npm run benchmark -- probe
-npm run benchmark -- canonical --label=NAME
+npm run benchmark -- canonical --decision-mode=improvement
 npm run decide -- CANDIDATE_DEVELOPMENT_ARCHIVE.json
+
+# Canonical executes the frozen baseline snapshot and candidate on one fresh seed epoch.
 
 # Freeze probe + canonical + qualification evidence for a new compiler baseline.
 npm run benchmark -- baseline --label=NAME

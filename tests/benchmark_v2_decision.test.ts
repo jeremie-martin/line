@@ -93,6 +93,8 @@ describe("Benchmark V2 decision model", () => {
     expect(first).toEqual(second);
     expect(first.outcome).toBe("advance");
     expect(first.promotable).toBe(false);
+    expect(first.confidence.oneSidedLevel).toBe(0.9);
+    expect(first.confidence.oneSidedCriticalLevel).toBe(0.95);
 
     const canonical = pairedV2Decision(
       runs(s, "canonical", () => 0),
@@ -103,6 +105,9 @@ describe("Benchmark V2 decision model", () => {
     expect(canonical.outcome).toBe("accept");
     expect(canonical.promotable).toBe(true);
     expect(canonical.confidence.oneSidedLevel).toBe(0.95);
+    expect(canonical.confidence.oneSidedCriticalLevel).toBe(0.99);
+    expect(canonical.confidence.centralLevel).toBe(0.95);
+    expect(canonical.confidence.centralCriticalLevel).toBe(0.99);
   });
 
   test("keeps an identical comparison unresolved rather than manufacturing evidence", () => {

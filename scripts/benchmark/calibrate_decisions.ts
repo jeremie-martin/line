@@ -1,8 +1,11 @@
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { benchmarkDecisionPolicy } from "../../benchmark/v2/decision-policy.ts";
 import {
+  DECISION_INFERENCE_SOURCE_FILES,
   pairedV2Decision,
+  pairedV2DecisionForCalibration,
   v2HeadlineForDecisionRuns,
   type DecisionProfile,
   type DecisionRun,
@@ -16,6 +19,8 @@ import {
   resolvedSeedSchedule,
   suiteIdentity,
 } from "../v0/benchmark_v2/suite_model.ts";
+import { loadValidatedDecisionPairForCalibration } from "../v0/benchmark_v2/decide.ts";
+import { assertDecisionCoverageAdequate } from "../v0/benchmark_v2/calibration_guard.ts";
 
 const outPath = resolve(argument("out") ?? "benchmark/v2/studies/decision-calibration.json");
 const markdownPath = resolve(argument("markdown") ?? "docs/benchmark-v2-decision-calibration.md");
@@ -26,15 +31,36 @@ const suitePath = "benchmark/v2/compat/suite-manifest.json";
 const sources = resolveSources(loadSourceManifest(sourcePath));
 const suite = loadSuiteManifest(suitePath, sources);
 const identity = suiteIdentity(suitePath, sourcePath, sources);
+const coverageStudyPath = "benchmark/v2/studies/decision-coverage.json";
+if (!existsSync(coverageStudyPath)) throw new Error(`required decision coverage study is missing`);
+const coverageStudyBytes = readFileSync(coverageStudyPath);
+const coverageStudy = JSON.parse(coverageStudyBytes.toString("utf8"));
+if (
+  coverageStudy.schema !== "line.benchmark-v2.decision-coverage-study.v2" ||
+  coverageStudy.suiteFingerprint !== identity.suiteFingerprint ||
+  coverageStudy.decisionInferenceFingerprint !== fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES) ||
+  !Array.isArray(coverageStudy.powerResults) || coverageStudy.powerResults.length === 0
+) {
+  throw new Error(`decision coverage study is stale for the current suite`);
+}
+assertDecisionCoverageAdequate(coverageStudy);
+const coverageReferenceBytes = readFileSync(coverageStudy.reference);
+if (createHash("sha256").update(coverageReferenceBytes).digest("hex") !== coverageStudy.referenceArtifactSha256) {
+  throw new Error(`decision coverage reference is missing or stale`);
+}
 
 const controls = {
-  identical: empiricalControl(
-    "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
-    "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+  identical: await empiricalControl(
+    "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+    "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
   ),
-  knownBroadDegradation: empiricalControl(
-    "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
-    "generated/benchmark-v2/calibration/v2.2-quality-ncand-1-probe.json",
+  knownBroadDegradation: await empiricalControl(
+    "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+    "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
+  ),
+  impactContractFailure: await empiricalControl(
+    "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+    "benchmark/v2/runs/calibration-v2.4-impact-off-probe.json.gz",
   ),
   correlatedSeedAdversary: correlatedSeedControl(),
 };
@@ -54,11 +80,19 @@ const report = {
   policy: benchmarkDecisionPolicy,
   simulation: {
     trials,
-    bootstrapIterationsPerTrial: iterations,
+    sensitivityBootstrapIterationsPerTrial: 0,
+    configuredSensitivityIterations: iterations,
     design: "Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.",
-    note: "Bootstrap iterations only exercise sensitivity diagnostics; the formal seed-block gate and its coverage do not depend on them.",
+    note: "Repeated-sampling trials skip sensitivity bootstraps because they cannot affect the formal gate. Production decisions still use the policy's full sensitivity iteration count.",
   },
   controls,
+  coverageStudy: {
+    path: coverageStudyPath,
+    sha256: createHash("sha256").update(coverageStudyBytes).digest("hex"),
+    trials: coverageStudy.trials,
+    results: coverageStudy.results,
+    powerResults: coverageStudy.powerResults,
+  },
   simulations,
 };
 
@@ -66,11 +100,12 @@ write(outPath, `${JSON.stringify(report, null, 2)}\n`);
 write(markdownPath, renderMarkdown(report));
 console.log(renderMarkdown(report));
 
-function empiricalControl(basePath: string, candidatePath: string): Record<string, unknown> {
-  if (!existsSync(basePath) || !existsSync(candidatePath)) return { available: false };
-  const base = JSON.parse(readFileSync(basePath, "utf8"));
-  const candidate = JSON.parse(readFileSync(candidatePath, "utf8"));
-  const decision = pairedV2Decision(toRuns(base), toRuns(candidate), suite, {
+async function empiricalControl(basePath: string, candidatePath: string): Promise<Record<string, unknown>> {
+  if (!existsSync(basePath) || !existsSync(candidatePath)) {
+    throw new Error(`required retained calibration control is missing: ${basePath} or ${candidatePath}`);
+  }
+  const validated = await loadValidatedDecisionPairForCalibration(basePath, candidatePath);
+  const decision = pairedV2Decision(validated.baseRuns, validated.candidateRuns, validated.suite, {
     profile: "probe",
     mode: "improvement",
     iterations: 5_000,
@@ -79,13 +114,19 @@ function empiricalControl(basePath: string, candidatePath: string): Record<strin
   return {
     available: true,
     baseArchive: basePath,
+    baseArchiveSha256: sha256File(basePath),
     candidateArchive: candidatePath,
+    candidateArchiveSha256: sha256File(candidatePath),
     delta: decision.delta,
     centralInterval: [decision.confidence.centralLo, decision.confidence.centralHi],
     lowerBound: decision.confidence.lowerBound,
     upperBound: decision.confidence.upperBound,
     outcome: decision.outcome,
   };
+}
+
+function sha256File(path: string): string {
+  return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
 function correlatedSeedControl(): Record<string, unknown> {
@@ -152,7 +193,7 @@ function simulate(profile: DecisionProfile, scenario: string, shift: number): Re
     const truth = pairedSyntheticScores(profile, (parent) => shift + parentEffects.get(parent)!);
     const trueDelta = v2HeadlineForDecisionRuns(truth.candidate, suite, profile) -
       v2HeadlineForDecisionRuns(truth.base, suite, profile);
-    const decision = pairedV2Decision(base, candidate, suite, {
+    const decision = pairedV2DecisionForCalibration(base, candidate, suite, {
       profile,
       mode: "improvement",
       iterations,
@@ -256,33 +297,23 @@ function parentIds(): string[] {
   ));
 }
 
-function toRuns(archive: any): DecisionRun[] {
-  return archive.runs.map((row: any) => ({
-    sourceId: row.task.sourceId,
-    budget: row.task.budget,
-    seedSlot: row.task.seedSlot,
-    actualSeed: row.task.actualSeed,
-    score: { score: row.score.score, valid: row.score.valid },
-  }));
-}
-
 function renderMarkdown(report: any): string {
   const lines = [
     "# Benchmark V2 Decision Calibration",
     "",
     `Suite: \`${report.suiteFingerprint.slice(0, 16)}\`. Decision rule: \`${report.decisionFingerprint.slice(0, 16)}\`.`,
     "",
-    `Simulation uses ${report.simulation.trials} trials and ${report.simulation.bootstrapIterationsPerTrial} bootstrap iterations per trial. ` +
-      report.simulation.design,
+    `Simulation uses ${report.simulation.trials} formal-gate trials per scenario. ` + report.simulation.design,
     "",
     report.simulation.note,
     "",
     "## Empirical controls",
     "",
-    "| Control | Delta | 95% interval | One-sided bounds | Outcome |",
+    "| Control | Delta | Stress-calibrated interval | One-sided bounds | Outcome |",
     "|---|---:|---:|---:|---|",
     controlRow("identical archive", report.controls.identical),
     controlRow("known broad degradation", report.controls.knownBroadDegradation),
+    controlRow("impact contract failure", report.controls.impactContractFailure),
     controlRow("catalog-wide correlated seed adversary", report.controls.correlatedSeedAdversary),
     "",
     "## Repeated-sampling simulation",
@@ -298,6 +329,29 @@ function renderMarkdown(report: any): string {
         `${formatRate(positive)} | ${formatRate(negative)} | ${formatRate(unresolved)} | ` +
         `${(entry.centralIntervalCoverageOfTrueCatalogDelta * 100).toFixed(1)}% |`;
     }),
+    "",
+    "## Zero-inflated fixed-catalog stress",
+    "",
+    `Retained study: \`${report.coverageStudy.path}\` (${report.coverageStudy.trials} trials per cell).`,
+    "",
+    "| Scenario | Seeds / budget | Coverage target | False accept | False reject |",
+    "|---|---:|---:|---:|---:|",
+    ...report.coverageStudy.results
+      .filter((entry: any) => entry.seedsPerBudget === suite.profiles.canonical.seeds_per_budget)
+      .map((entry: any) =>
+        `| ${entry.scenario} | ${entry.seedsPerBudget} | ${formatRate(entry.centralCoverage)} | ` +
+        `${formatRate(entry.falseAccept)} | ${formatRate(entry.falseReject)} |`
+      ),
+    "",
+    "| Alternative | Mode | True delta | Positive | Negative | Unresolved | Coverage |",
+    "|---|---|---:|---:|---:|---:|---:|",
+    ...report.coverageStudy.powerResults
+      .filter((entry: any) => entry.seedsPerBudget === suite.profiles.canonical.seeds_per_budget)
+      .map((entry: any) =>
+        `| ${entry.scenario} | ${entry.mode}${entry.margin === null ? "" : ` (margin ${entry.margin})`} | ` +
+        `${entry.trueDelta.toFixed(2)} | ${formatRate(entry.positiveOutcome)} | ${formatRate(entry.negativeOutcome)} | ` +
+        `${formatRate(entry.unresolvedOutcome)} | ${formatRate(entry.centralCoverage)} |`
+      ),
     "",
     "The repeated-sampling target is the frozen catalog, not a hypothetical random population of authored works. The formal gate uses the seed-block t interval. Parent-preserving catalog and crossed bootstrap intervals are sensitivity diagnostics only.",
   ];

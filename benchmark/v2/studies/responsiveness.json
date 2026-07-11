@@ -2,55 +2,56 @@
   "schema": "line.benchmark-v2.responsiveness-study.v1",
   "status": "complete",
   "purpose": "Confirm that the frozen probe detects broad and axis-specific compiler degradations under an identical execution policy.",
-  "executionPolicyFingerprint": "31a5fbc3054b87a1f8baf2993f0d89784e8b335929c3dbb3a0402093e3d6c870",
-  "decisionFingerprint": "752eb26e92f834cf32f4320c1ab428b8aeede8fd06192c44f78025288e761bf4",
+  "executionPolicyFingerprint": "023b4f8080b9132cd660d31be2922e94be588cfc67120c0f93be2c2574597714",
+  "decisionFingerprint": "72ef09e0ebe579fdb1f4818057baf4c5993273843e5abe47f7008aebeabea6c4",
   "cases": [
     {
       "id": "baseline",
-      "archive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
-      "archiveSha256": "e6d1a3c6a91eb874f4531db972c01acb93f04b8a97e7e7125825c36302ca7ce8",
+      "archive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+      "archiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
       "compilerEnvironment": {},
-      "headline": 442.997,
+      "headline": 446.0945,
       "deltaFromBaseline": 0,
-      "validRuns": 220,
+      "validRuns": 221,
       "totalRuns": 252,
       "budgets": [
         {
           "budget": 250000,
-          "score": 418.5091,
+          "score": 438.5814,
           "validRuns": 107,
           "totalRuns": 126
         },
         {
           "budget": 500000,
-          "score": 452.7921,
-          "validRuns": 113,
+          "score": 449.0998,
+          "validRuns": 114,
           "totalRuns": 126
         }
       ],
       "strata": {
-        "representative": 524.8141,
-        "capability": 15.265,
-        "legacy_regression": 515.4827,
-        "development_music": 435.7804
+        "representative": 534.3879,
+        "capability": 6.7304,
+        "legacy_regression": 517.8593,
+        "development_music": 384.5504
       },
       "hardFailures": {
-        "terminus": 32,
-        "reported_contacts": 26,
-        "missing": 32,
-        "missing_measurement": 96
+        "terminus": 30,
+        "reported_contacts": 23,
+        "missing": 30,
+        "missing_measurement": 90,
+        "off_beat": 1
       },
       "decision": null
     },
     {
       "id": "impact_blindness",
-      "archive": "generated/benchmark-v2/calibration/v2.2-impact-off-probe.json",
-      "archiveSha256": "ed2f9c607fcd0f9705dbfd457686e8e6ee2acecec1a14fd76c6d4f57ca4013d8",
+      "archive": "benchmark/v2/runs/calibration-v2.4-impact-off-probe.json.gz",
+      "archiveSha256": "98f12eb9709f20d0e20a613e3bb5dae58a1480e61cbf10f8837fefe1bbce1da8",
       "compilerEnvironment": {
         "LR_IMPACT_OFF": "1"
       },
       "headline": 0,
-      "deltaFromBaseline": -442.997,
+      "deltaFromBaseline": -446.0945,
       "validRuns": 0,
       "totalRuns": 252,
       "budgets": [
@@ -76,66 +77,66 @@
       "hardFailures": {
         "missing_measurement": 300,
         "terminus": 24,
-        "reported_contacts": 22,
+        "reported_contacts": 21,
         "missing": 24
       },
       "decision": {
         "outcome": "stop",
-        "delta": -442.997,
+        "delta": -446.0945,
         "centralInterval": [
-          -494.9706,
-          -391.0234
+          -462.1357,
+          -430.0533
         ],
-        "lowerBound": -465.8481,
-        "upperBound": -420.1459
+        "lowerBound": -453.2402,
+        "upperBound": -438.9488
       }
     },
     {
       "id": "candidate_breadth_1",
-      "archive": "generated/benchmark-v2/calibration/v2.2-quality-ncand-1-probe.json",
-      "archiveSha256": "7d327f4353840d5ccffeeefa7386e7a5507cd0d9a0f8bd67d7161a4b36a1344f",
+      "archive": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
+      "archiveSha256": "758b2fed2f4953fd7c252e4adc86ff6a465e6c82073bebaf21fe91165dcfaf85",
       "compilerEnvironment": {
         "LR_QUALITY_NCAND": "1"
       },
-      "headline": 301.8179,
-      "deltaFromBaseline": -141.1791,
-      "validRuns": 210,
+      "headline": 295.8909,
+      "deltaFromBaseline": -150.2036,
+      "validRuns": 208,
       "totalRuns": 252,
       "budgets": [
         {
           "budget": 250000,
-          "score": 283.7595,
+          "score": 298.1593,
           "validRuns": 103,
           "totalRuns": 126
         },
         {
           "budget": 500000,
-          "score": 309.0413,
-          "validRuns": 107,
+          "score": 294.9836,
+          "validRuns": 105,
           "totalRuns": 126
         }
       ],
       "strata": {
-        "representative": 350.2299,
+        "representative": 341.022,
         "capability": 0,
-        "legacy_regression": 415.7554,
-        "development_music": 301.6281
+        "legacy_regression": 419.5245,
+        "development_music": 304.4619
       },
       "hardFailures": {
-        "terminus": 41,
-        "reported_contacts": 41,
-        "missing": 42,
-        "missing_measurement": 126
+        "terminus": 42,
+        "reported_contacts": 42,
+        "missing": 44,
+        "missing_measurement": 132
       },
       "decision": {
         "outcome": "stop",
-        "delta": -141.1791,
+        "delta": -150.2036,
         "centralInterval": [
-          -216.654,
-          -65.7042
+          -224.0893,
+          -76.3179
         ],
-        "lowerBound": -176.0248,
-        "upperBound": -106.3334
+        "lowerBound": -173.5339,
+        "upperBound": -126.8733
       }
     }
   ]

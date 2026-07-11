@@ -2,187 +2,122 @@ import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { gunzipSync } from "node:zlib";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { BENCHMARK_EXECUTION_PROTOCOL } from "../benchmark/v2/decision-policy.ts";
 import { runDecisionCommand } from "../scripts/v0/benchmark_v2/decide.ts";
-import {
-  summarizeDevelopmentBudget,
-  weightedBudgetHeadline,
-  type V2RunScore,
-} from "../scripts/v0/benchmark_v2/evaluator.ts";
-import { loadSourceManifest, resolveSources } from "../scripts/v0/benchmark_v2/model.ts";
-import {
-  COMPILER_IDENTITY_PROTOCOL,
-  RUN_ARCHIVE_SCHEMA,
-} from "../scripts/v0/benchmark_v2/runner.ts";
-import {
-  executionPolicyIdentity,
-  loadSuiteManifest,
-  resolvedSeedSchedule,
-  suiteIdentity,
-} from "../scripts/v0/benchmark_v2/suite_model.ts";
+import { COMPILER_IDENTITY_PROTOCOL } from "../scripts/v0/benchmark_v2/runner.ts";
+import { executionPolicyIdentity } from "../scripts/v0/benchmark_v2/suite_model.ts";
 
-const sourcePath = "benchmark/v2/compat/source-manifest.json";
-const suitePath = "benchmark/v2/compat/suite-manifest.json";
-const sources = resolveSources(loadSourceManifest(sourcePath));
-const suite = loadSuiteManifest(suitePath, sources);
+const retainedProbe = "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz";
 
 afterEach(() => vi.restoreAllMocks());
 
 describe("Benchmark V2 decision command", () => {
-  test("writes a checksummed screening artifact and tolerates operational implementation changes", () => {
+  test("rescoring raw reports writes a checksummed screening artifact", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const dir = mkdtempSync(join(tmpdir(), "v2-decide-"));
-    const base = writeArchive(dir, "base", 500, "implementation-a", {});
-    const candidate = writeArchive(dir, "candidate", 520, "implementation-b", { LR_TEST_CANDIDATE: "1" });
     const out = join(dir, "decision.json");
 
-    const exitCode = runDecisionCommand([
-      candidate,
-      `--base=${base}`,
+    const exitCode = await runDecisionCommand([
+      retainedProbe,
       `--out=${out}`,
       "--no-gate-exit",
     ]);
     const artifact = JSON.parse(readFileSync(out, "utf8"));
 
     expect(exitCode).toBe(0);
-    expect(artifact.schema).toBe("line.benchmark-v2.decision.v2");
-    expect(artifact.result.outcome).toBe("advance");
+    expect(artifact.schema).toBe("line.benchmark-v2.decision.v3");
+    expect(artifact.result.outcome).toBe("unresolved");
     expect(artifact.result.promotable).toBe(false);
-    expect(artifact.implementationFingerprintsMatch).toBe(false);
-    expect(artifact.result.confidence.lowerBound).toBeGreaterThan(0);
+    expect(artifact.implementationFingerprintsMatch).toBe(true);
+    expect(artifact.runnerCompatibilityApproval).toBeNull();
+    expect(artifact.result.confidence.lowerBound).toBe(0);
     const bytes = readFileSync(out);
     expect(readFileSync(`${out}.sha256`, "utf8")).toContain(sha256(bytes));
   });
 
-  test("refuses worker failures, engine changes, and corrupted archive bytes", () => {
+  test("refuses failures, identity gaps, runner drift, and evidence tampering", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const dir = mkdtempSync(join(tmpdir(), "v2-decide-"));
-    const base = writeArchive(dir, "base", 500, "implementation", {});
-    const failed = writeArchive(dir, "failed", 500, "implementation", { LR_FAILURE: "1" }, (archive) => {
+    const base = materialize(dir, "base");
+
+    const failed = materialize(dir, "failed", (archive) => {
       archive.runs[0].status = "error";
     });
-    expect(() => runDecisionCommand([failed, `--base=${base}`, "--no-gate-exit"]))
-      .toThrow(/worker failures/);
+    await expect(runDecisionCommand([failed, `--base=${base}`, "--no-gate-exit"]))
+      .rejects.toThrow(/worker failures/);
 
-    const engineChanged = writeArchive(dir, "engine", 500, "implementation", {}, (archive) => {
+    const engineChanged = materialize(dir, "engine", (archive) => {
       archive.git.engineArtifactFingerprint = "different-engine";
-      archive.git.candidateFingerprint = candidateFingerprint(
-        archive.git.compilerSourceFingerprint,
-        archive.git.compilerEnvironment,
-        "different-engine",
-      );
+      archive.git.candidateFingerprint = candidateFingerprint(archive);
     });
-    expect(() => runDecisionCommand([engineChanged, `--base=${base}`, "--no-gate-exit"]))
-      .toThrow(/different engine artifacts/);
+    await expect(runDecisionCommand([engineChanged, `--base=${base}`, "--no-gate-exit"]))
+      .rejects.toThrow(/different engine artifacts/);
 
-    const staleIdentity = writeArchive(dir, "stale-identity", 500, "implementation", {}, (archive) => {
+    const staleIdentity = materialize(dir, "stale-identity", (archive) => {
       archive.git.compilerIdentityProtocol = "line.compiler-source-identity.v1";
     });
-    expect(() => runDecisionCommand([staleIdentity, `--base=${base}`, "--no-gate-exit"]))
-      .toThrow(/compiler identity protocol is stale/);
+    await expect(runDecisionCommand([staleIdentity, `--base=${base}`, "--no-gate-exit"]))
+      .rejects.toThrow(/compiler identity protocol is stale/);
 
-    const incompleteBoundary = writeArchive(dir, "incomplete-boundary", 500, "implementation", {}, (archive) => {
+    const incompleteBoundary = materialize(dir, "incomplete-boundary", (archive) => {
       archive.git.compilerSourceFiles = archive.git.compilerSourceFiles.filter(
         (path: string) => path !== "scripts/v0/score.ts",
       );
     });
-    expect(() => runDecisionCommand([incompleteBoundary, `--base=${base}`, "--no-gate-exit"]))
-      .toThrow(/compiler source boundary is incomplete/);
+    await expect(runDecisionCommand([incompleteBoundary, `--base=${base}`, "--no-gate-exit"]))
+      .rejects.toThrow(/compiler source boundary is incomplete/);
+
+    const tamperedScore = materialize(dir, "tampered-score", (archive) => {
+      archive.runs[0].score.score -= 1;
+      archive.canonicalHeadline -= 1;
+    });
+    await expect(runDecisionCommand([tamperedScore, `--base=${base}`, "--no-gate-exit"]))
+      .rejects.toThrow(/stored score does not match/);
+
+    const tamperedReport = materialize(dir, "tampered-report", (archive) => {
+      const firstGap = archive.runs[0].report.gaps.find((gap: any) => Object.keys(gap.axes).length > 0);
+      const axis = Object.keys(firstGap.axes)[0];
+      firstGap.axes[axis].error += 0.1;
+    });
+    await expect(runDecisionCommand([tamperedReport, `--base=${base}`, "--no-gate-exit"]))
+      .rejects.toThrow(/stored score does not match/);
+
+    const runnerChanged = materialize(dir, "runner-changed", (archive) => {
+      archive.identity.implementationFingerprint = "unapproved-runner";
+      archive.identity.executionPolicyFingerprint = executionPolicyIdentity({
+        suiteFingerprint: archive.identity.suiteFingerprint,
+        executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
+        listeningReviewFingerprint: archive.identity.listeningReviewFingerprint,
+        implementationFingerprint: archive.identity.implementationFingerprint,
+        engine: archive.identity.engine,
+        compiler: archive.identity.compiler,
+        profile: archive.identity.profile,
+        budgets: archive.identity.budgets,
+        seedSchedule: archive.identity.seedSchedule,
+        sources: archive.identity.sources,
+        transform: archive.identity.transform,
+      }).executionPolicyFingerprint;
+    });
+    await expect(runDecisionCommand([runnerChanged, `--base=${base}`, "--no-gate-exit"]))
+      .rejects.toThrow(/without an approved compatibility record/);
 
     writeFileSync(base, `${readFileSync(base, "utf8")} `);
-    expect(() => runDecisionCommand([engineChanged, `--base=${base}`, "--no-gate-exit"]))
-      .toThrow(/checksum mismatch/);
+    await expect(runDecisionCommand([engineChanged, `--base=${base}`, "--no-gate-exit"]))
+      .rejects.toThrow(/checksum mismatch/);
   });
 
-  test("requires an explicit positive simplification margin", () => {
-    expect(() => runDecisionCommand(["/tmp/candidate.json", "--mode=simplification"]))
-      .toThrow(/--margin/);
-    expect(() => runDecisionCommand(["/tmp/candidate.json", "--margin=0.1"]))
-      .toThrow(/only valid in simplification/);
+  test("requires an explicit positive simplification margin", async () => {
+    await expect(runDecisionCommand(["/tmp/candidate.json", "--mode=simplification"]))
+      .rejects.toThrow(/--margin/);
+    await expect(runDecisionCommand(["/tmp/candidate.json", "--margin=0.1"]))
+      .rejects.toThrow(/only valid in simplification/);
   });
 });
 
-function writeArchive(
-  dir: string,
-  name: string,
-  scoreValue: number,
-  implementationFingerprint: string,
-  compilerEnvironment: Record<string, string>,
-  mutate?: (archive: any) => void,
-): string {
-  const profile = suite.profiles.probe;
-  const schedule = resolvedSeedSchedule(suite, "probe", profile.budgets, profile.seeds_per_budget);
-  const suiteId = suiteIdentity(suitePath, sourcePath, sources);
-  const execution = executionPolicyIdentity({
-    suiteFingerprint: suiteId.suiteFingerprint,
-    executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
-    implementationFingerprint,
-    engine: "wasm",
-    compiler: "compileHandoff",
-    profile: "probe",
-    budgets: [...profile.budgets],
-    seedSchedule: schedule,
-    sources: sources.map((source) => ({
-      id: source.id,
-      role: source.role,
-      sourceFingerprint: source.sourceFingerprint,
-    })),
-    transform: suite.transform,
-  });
-  const runs = schedule.byBudget.flatMap(({ budget, actualSeeds }) =>
-    actualSeeds.flatMap((actualSeed, seedSlot) => sources.map((source) => ({
-      status: "ok",
-      task: {
-        mode: "development",
-        sourceId: source.id,
-        budget,
-        seedSlot,
-        actualSeed,
-        joltMs: suite.transform.jolt_ms,
-      },
-      score: runScore(scoreValue),
-    })))
-  );
-  const aggregateRuns = runs.map((row) => ({
-    sourceId: row.task.sourceId,
-    budget: row.task.budget,
-    seedSlot: row.task.seedSlot,
-    actualSeed: row.task.actualSeed,
-    score: row.score,
-  }));
-  const summaries = profile.budgets.map((budget) => summarizeDevelopmentBudget(aggregateRuns, budget, suite));
-  const compilerSourceFingerprint = "compiler-source";
-  const engineArtifactFingerprint = "engine-artifact";
-  const archive: any = {
-    schema: RUN_ARCHIVE_SCHEMA,
-    mode: "development",
-    profile: "probe",
-    identity: { ...suiteId, ...execution },
-    environment: { node: process.version, platform: process.platform, architecture: process.arch },
-    git: {
-      compilerIdentityProtocol: COMPILER_IDENTITY_PROTOCOL,
-      compilerSourceFingerprint,
-      compilerSourceFiles: [
-        "package.json",
-        "package-lock.json",
-        "tsconfig.json",
-        "scripts/v0/optimizer/handoff.ts",
-        "scripts/v0/score.ts",
-        "scripts/lib/detector.ts",
-        "engine-rs/Cargo.toml",
-      ],
-      compilerEnvironment,
-      engineArtifactFingerprint,
-      candidateFingerprint: candidateFingerprint(
-        compilerSourceFingerprint,
-        compilerEnvironment,
-        engineArtifactFingerprint,
-      ),
-    },
-    canonicalHeadline: weightedBudgetHeadline(summaries, suite.budget_weights),
-    runs,
-  };
+function materialize(dir: string, name: string, mutate?: (archive: any) => void): string {
+  const archive = JSON.parse(gunzipSync(readFileSync(retainedProbe)).toString("utf8"));
   mutate?.(archive);
   const path = join(dir, `${name}.json`);
   const bytes = Buffer.from(`${JSON.stringify(archive)}\n`);
@@ -191,34 +126,14 @@ function writeArchive(
   return path;
 }
 
-function runScore(score: number): V2RunScore {
-  return {
-    schema: "line.benchmark-v2.run-score.v2",
-    score,
-    valid: true,
-    scoringMode: "axis_quality",
-    hardFailures: [],
-    contacts: { authored: 1, reported: 1, hit: 1, drift: 0, missing: 0 },
-    offBeatLandings: 0,
-    terminus: { frame: 1, reason: "endOfSpec" },
-    weightedAxisRms: 0,
-    expectedObservations: {},
-    components: {},
-    diagnostics: {},
-  };
-}
-
-function candidateFingerprint(
-  compilerSourceFingerprint: string,
-  compilerEnvironment: Record<string, string>,
-  engineArtifactFingerprint: string,
-): string {
+function candidateFingerprint(archive: any): string {
+  expect(archive.git.compilerIdentityProtocol).toBe(COMPILER_IDENTITY_PROTOCOL);
   return sha256(JSON.stringify({
-    compilerIdentityProtocol: COMPILER_IDENTITY_PROTOCOL,
-    compilerSourceFingerprint,
-    compilerEnvironment,
-    engine: "wasm",
-    engineArtifactFingerprint,
+    compilerIdentityProtocol: archive.git.compilerIdentityProtocol,
+    compilerSourceFingerprint: archive.git.compilerSourceFingerprint,
+    compilerEnvironment: archive.git.compilerEnvironment,
+    engine: archive.identity.engine,
+    engineArtifactFingerprint: archive.git.engineArtifactFingerprint,
   }));
 }
 

@@ -12,7 +12,12 @@ import {
   resolveHeldoutSources,
   resolveSources,
 } from "../v0/benchmark_v2/model.ts";
-import { canonicalMembers, loadSuiteManifest } from "../v0/benchmark_v2/suite_model.ts";
+import {
+  canonicalMembers,
+  loadSuiteManifest,
+  suiteIdentity,
+} from "../v0/benchmark_v2/suite_model.ts";
+import { loadListeningReview } from "../v0/benchmark_v2/listening_review.ts";
 
 export const benchmarkV2Paths = {
   sourceManifest: "benchmark/v2/compat/source-manifest.json",
@@ -21,6 +26,7 @@ export const benchmarkV2Paths = {
   characterization: "benchmark/v2/evidence/characterization.json",
   audit: "benchmark/v2/evidence/audit.json",
   review: "benchmark/v2/evidence/candidate-review.json",
+  listeningReview: "benchmark/v2/evidence/listening-review.json",
 } as const;
 
 export async function prepareBenchmarkV2(): Promise<{
@@ -28,6 +34,8 @@ export async function prepareBenchmarkV2(): Promise<{
   qualificationCases: number;
   characterizationFingerprint: string;
   auditFingerprint: string;
+  listeningReviewFingerprint: string;
+  listeningReviewStatus: string;
 }> {
   await import("./sync_catalog.ts");
 
@@ -50,12 +58,25 @@ export async function prepareBenchmarkV2(): Promise<{
     throw new Error(`Benchmark V2 static audit failed:\n${audit.hardFailures.map((failure) => `- ${failure}`).join("\n")}`);
   }
   const suite = loadSuiteManifest(benchmarkV2Paths.suiteManifest, development);
+  const identity = suiteIdentity(
+    benchmarkV2Paths.suiteManifest,
+    benchmarkV2Paths.sourceManifest,
+    development,
+  );
+  const listeningReview = await loadListeningReview(
+    benchmarkV2Paths.listeningReview,
+    identity.suiteFingerprint,
+    identity.sourceManifestFingerprint,
+    development,
+  );
   const selected = new Set(canonicalMembers(suite));
   const review = {
     schema: "line.benchmark-v2.candidate-review.v2",
     status: "canonical-selected-without-compiler-results",
     characterization_fingerprint: characterization.dataFingerprint,
     audit_fingerprint: audit.auditFingerprint,
+    listening_review_fingerprint: listeningReview.fingerprint,
+    listening_review_status: listeningReview.review.status,
     selection_basis: "Typed catalog membership, static source characterization, explicit parent variants, and static independence audit only. No compiler or qualification outcome was used.",
     decisions: developmentCases.map((entry) => ({
       id: entry.case.metadata.id,
@@ -78,18 +99,23 @@ export async function prepareBenchmarkV2(): Promise<{
     qualificationCases: qualification.length,
     characterizationFingerprint: characterization.dataFingerprint,
     auditFingerprint: audit.auditFingerprint,
+    listeningReviewFingerprint: listeningReview.fingerprint,
+    listeningReviewStatus: listeningReview.review.status,
   };
 }
 
 function renderCaseReview(review: {
   characterization_fingerprint: string;
   audit_fingerprint: string;
+  listening_review_fingerprint: string;
+  listening_review_status: string;
   decisions: Array<{ id: string; disposition: string; parent_id?: string; rationale: string; phases: string[] }>;
 }): string {
   const lines = [
     "# Benchmark V2 Case Review",
     "",
     `Characterization: \`${review.characterization_fingerprint.slice(0, 16)}\`. Audit: \`${review.audit_fingerprint.slice(0, 16)}\`.`,
+    `Listening review: **${review.listening_review_status}** (\`${review.listening_review_fingerprint.slice(0, 16)}\`).`,
     "",
     "Selection is based on source structure and stated benchmark intent. It contains no compiler or qualification result.",
     "",

@@ -16,8 +16,32 @@ import {
   type DecisionRun,
   type V2Decision,
 } from "./decision_model.ts";
-import { V2_RUN_SCORE_SCHEMA } from "./evaluator.ts";
-import { loadSourceManifest, resolveSources } from "./model.ts";
+import {
+  V2_RUN_SCORE_SCHEMA,
+  buildAxisContract,
+  scoreV2Report,
+  type AxisContract,
+} from "./evaluator.ts";
+import {
+  loadSourceManifest,
+  loadSourceSpec,
+  resolveSources,
+} from "./model.ts";
+import { applyJolt } from "../../produce/seed.ts";
+import {
+  runnerCompatibilityApproval,
+  type RunnerCompatibilityApproval,
+} from "./runner_compatibility.ts";
+import {
+  loadListeningReview,
+  requireApprovedListeningReview,
+} from "./listening_review.ts";
+import {
+  DEFAULT_CONFIRMATION_STATE_PATH,
+  confirmationBaseArchive,
+  consumeConfirmation,
+  validateConfirmationEvidence,
+} from "./confirmation.ts";
 import {
   DECISION_SOURCE_FILES,
   canonicalMembers,
@@ -27,10 +51,13 @@ import {
   resolvedSeedSchedule,
   suiteIdentity,
 } from "./suite_model.ts";
+import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 
-const DECISION_SCHEMA = "line.benchmark-v2.decision.v2" as const;
-const BASELINE_SCHEMA = "line.benchmark-v2.baseline-reference.v5" as const;
+const DECISION_SCHEMA = "line.benchmark-v2.decision.v3" as const;
+const BASELINE_SCHEMA = "line.benchmark-v2.baseline-reference.v7" as const;
 const DEFAULT_BASELINE_PATH = "benchmark/v2/baseline.json";
+const PROBE_BASELINE_SCHEMA = "line.benchmark-v2.probe-baseline-reference.v1" as const;
+const DEFAULT_PROBE_BASELINE_PATH = "benchmark/v2/probe-baseline.json";
 const REQUIRED_COMPILER_IDENTITY_FILES = [
   "package.json",
   "package-lock.json",
@@ -49,6 +76,7 @@ type ParsedArgs = {
   margin?: number;
   printJson: boolean;
   noGateExit: boolean;
+  confirmationStatePath: string;
 };
 
 type VerifiedArchive = {
@@ -60,11 +88,13 @@ type VerifiedArchive = {
 };
 
 type BaselineReference = {
-  schema: typeof BASELINE_SCHEMA;
+  schema: typeof BASELINE_SCHEMA | typeof PROBE_BASELINE_SCHEMA;
   label: string;
+  status: "canonical-baseline" | "provisional-listening-review-required" | "screening-baseline";
   suite_fingerprint: string;
   execution_protocol: typeof BENCHMARK_EXECUTION_PROTOCOL;
   compiler_identity_protocol: typeof COMPILER_IDENTITY_PROTOCOL;
+  listening_review_status: "approved" | "awaiting-human-review" | "rejected";
   candidate_fingerprint: string;
   probe: RetainedReference;
   development: RetainedReference;
@@ -72,8 +102,8 @@ type BaselineReference = {
 
 type RetainedReference = {
   archive_sha256: string;
-  compressed_archive: string;
-  compressed_archive_sha256: string;
+  compressed_archive?: string;
+  compressed_archive_sha256?: string;
 };
 
 export type DecisionArtifact = {
@@ -84,6 +114,7 @@ export type DecisionArtifact = {
   base: ArchiveReference;
   candidate: ArchiveReference;
   implementationFingerprintsMatch: boolean;
+  runnerCompatibilityApproval: RunnerCompatibilityApproval | null;
   result: V2Decision;
 };
 
@@ -96,11 +127,21 @@ type ArchiveReference = {
   headline: number;
 };
 
-export function runDecisionCommand(argv = process.argv.slice(2)): number {
+export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<number> {
   const args = parseArgs(argv);
   const candidate = loadVerifiedArchive(args.candidatePath);
   const profile = archiveProfile(candidate.archive);
-  const baselineResolution = args.basePath === undefined
+  const pairedBase = profile === "canonical" && args.basePath === undefined
+    ? confirmationBaseArchive(args.confirmationStatePath)
+    : undefined;
+  const baselineResolution = pairedBase !== undefined
+    ? {
+      path: pairedBase.path,
+      expected: { archive_sha256: pairedBase.archiveSha256 },
+      label: pairedBase.label,
+      reference: undefined,
+    }
+    : args.basePath === undefined
     ? baselineArchive(profile)
     : { path: resolve(args.basePath), expected: undefined, label: "explicit-base", reference: undefined };
   const base = loadVerifiedArchive(baselineResolution.path, baselineResolution.expected);
@@ -112,7 +153,22 @@ export function runDecisionCommand(argv = process.argv.slice(2)): number {
       throw new Error(`frozen baseline metadata does not match its retained archive`);
     }
   }
-  const { suite, baseRuns, candidateRuns } = validateComparison(base, candidate);
+  const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(base, candidate);
+  requireCurrentDecisionCalibration(candidate.archive.identity.suiteFingerprint);
+  if (profile === "canonical") {
+    validateConfirmationEvidence(args.confirmationStatePath, {
+      baseArchiveSha256: base.archiveSha256,
+      baseCandidateFingerprint: base.archive.git.candidateFingerprint,
+      candidateArchiveSha256: candidate.archiveSha256,
+      candidateFingerprint: candidate.archive.git.candidateFingerprint,
+      suiteFingerprint: candidate.archive.identity.suiteFingerprint,
+      baseConfirmationDeclaration: base.archive.confirmationDeclaration,
+      confirmationDeclaration: candidate.archive.confirmationDeclaration,
+      seedSchedule: candidate.archive.identity.seedSchedule,
+      mode: args.mode,
+      margin: args.margin,
+    });
+  }
   const result = pairedV2Decision(baseRuns, candidateRuns, suite, {
     profile,
     mode: args.mode,
@@ -130,10 +186,21 @@ export function runDecisionCommand(argv = process.argv.slice(2)): number {
     candidate: archiveReference(candidate),
     implementationFingerprintsMatch:
       base.archive.identity.implementationFingerprint === candidate.archive.identity.implementationFingerprint,
+    runnerCompatibilityApproval: compatibilityApproval,
     result,
   };
   const outPath = resolve(args.outPath ?? defaultOutput(candidate, baselineResolution.label, args.mode, args.margin));
   writeDecisionArtifact(outPath, artifact);
+  if (profile === "canonical") {
+    consumeConfirmation(
+      args.confirmationStatePath,
+      candidate.archiveSha256,
+      args.mode,
+      args.margin,
+      outPath,
+      result.outcome,
+    );
+  }
   if (args.printJson) {
     console.log(JSON.stringify(artifact, null, 2));
   } else {
@@ -150,6 +217,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   let outPath: string | undefined;
   let printJson = false;
   let noGateExit = false;
+  let confirmationStatePath = DEFAULT_CONFIRMATION_STATE_PATH;
   const positional: string[] = [];
 
   for (const arg of argv) {
@@ -173,6 +241,8 @@ function parseArgs(argv: string[]): ParsedArgs {
       printJson = true;
     } else if (arg === "--no-gate-exit") {
       noGateExit = true;
+    } else if (arg.startsWith("--confirmation-state=")) {
+      confirmationStatePath = arg.slice("--confirmation-state=".length);
     } else {
       throw new Error(`unsupported decide flag ${arg}`);
     }
@@ -203,13 +273,33 @@ function parseArgs(argv: string[]): ParsedArgs {
     margin,
     printJson,
     noGateExit,
+    confirmationStatePath: resolve(confirmationStatePath),
   };
 }
 
-function validateComparison(
+export async function loadValidatedDecisionPairForCalibration(
+  basePath: string,
+  candidatePath: string,
+): Promise<{
+  suite: ReturnType<typeof loadSuiteManifest>;
+  baseRuns: DecisionRun[];
+  candidateRuns: DecisionRun[];
+}> {
+  const base = loadVerifiedArchive(basePath);
+  const candidate = loadVerifiedArchive(candidatePath);
+  const { suite, baseRuns, candidateRuns } = await validateComparison(base, candidate);
+  return { suite, baseRuns, candidateRuns };
+}
+
+async function validateComparison(
   base: VerifiedArchive,
   candidate: VerifiedArchive,
-): { suite: ReturnType<typeof loadSuiteManifest>; baseRuns: DecisionRun[]; candidateRuns: DecisionRun[] } {
+): Promise<{
+  suite: ReturnType<typeof loadSuiteManifest>;
+  baseRuns: DecisionRun[];
+  candidateRuns: DecisionRun[];
+  compatibilityApproval: RunnerCompatibilityApproval | null;
+}> {
   const baseArchive = base.archive;
   const candidateArchive = candidate.archive;
   if (baseArchive.schema !== BENCHMARK_RUN_ARCHIVE_SCHEMA || candidateArchive.schema !== BENCHMARK_RUN_ARCHIVE_SCHEMA) {
@@ -245,17 +335,40 @@ function validateComparison(
   const sources = resolveSources(loadSourceManifest(sourceManifestPath));
   const suite = loadSuiteManifest(suiteManifestPath, sources);
   const identity = suiteIdentity(suiteManifestPath, sourceManifestPath, sources);
+  const listeningReview = await loadListeningReview(
+    "benchmark/v2/evidence/listening-review.json",
+    identity.suiteFingerprint,
+    identity.sourceManifestFingerprint,
+    sources,
+  );
+  if (archiveProfile(candidateArchive) === "canonical") {
+    requireApprovedListeningReview(listeningReview);
+  }
   if (baseArchive.identity.suiteFingerprint !== identity.suiteFingerprint) {
     throw new Error(`archives do not match the current suite fingerprint`);
   }
-  validateArchiveScope(baseArchive, suite, sources);
-  validateArchiveScope(candidateArchive, suite, sources);
+  const contracts = new Map<string, AxisContract>();
+  for (const source of sources) {
+    const spec = applyJolt(await loadSourceSpec(source), suite.transform.jolt_ms);
+    contracts.set(
+      source.id,
+      buildAxisContract(spec, source.eligibleComponents, source.diagnosticComponents),
+    );
+  }
+  validateArchiveScope(baseArchive, suite, sources, contracts, listeningReview.fingerprint);
+  validateArchiveScope(candidateArchive, suite, sources, contracts, listeningReview.fingerprint);
   validateCandidateIdentity(baseArchive);
   validateCandidateIdentity(candidateArchive);
+  const compatibilityApproval = runnerCompatibilityApproval(
+    baseArchive.identity.implementationFingerprint,
+    candidateArchive.identity.implementationFingerprint,
+    identity.suiteFingerprint,
+  );
   return {
     suite,
     baseRuns: toDecisionRuns(baseArchive),
     candidateRuns: toDecisionRuns(candidateArchive),
+    compatibilityApproval,
   };
 }
 
@@ -263,6 +376,8 @@ function validateArchiveScope(
   archive: any,
   suite: ReturnType<typeof loadSuiteManifest>,
   sources: ReturnType<typeof resolveSources>,
+  contracts: Map<string, AxisContract>,
+  listeningReviewFingerprint: string,
 ): void {
   const profileName = archiveProfile(archive);
   const profile = suite.profiles[profileName];
@@ -290,6 +405,7 @@ function validateArchiveScope(
   const recomputed = executionPolicyIdentity({
     suiteFingerprint: archive.identity.suiteFingerprint,
     executionProtocol: archive.identity.executionProtocol,
+    listeningReviewFingerprint: archive.identity.listeningReviewFingerprint,
     implementationFingerprint: archive.identity.implementationFingerprint,
     engine: archive.identity.engine,
     compiler: archive.identity.compiler,
@@ -302,10 +418,22 @@ function validateArchiveScope(
   if (recomputed.executionPolicyFingerprint !== archive.identity.executionPolicyFingerprint) {
     throw new Error(`archive execution-policy fingerprint is not self-consistent`);
   }
+  if (archive.identity.listeningReviewFingerprint !== listeningReviewFingerprint) {
+    throw new Error(`archive listening-review evidence is stale`);
+  }
   if (JSON.stringify(archive.identity.sources) !== JSON.stringify(expectedSources)) {
     throw new Error(`archive source identities do not match the current canonical sources`);
   }
-  const schedule = resolvedSeedSchedule(suite, profileName, profile.budgets, profile.seeds_per_budget);
+  const customCanonicalSeedBase = profileName === "canonical" && archive.confirmationDeclaration !== undefined
+    ? archive.identity?.seedSchedule?.seedBase
+    : undefined;
+  const schedule = resolvedSeedSchedule(
+    suite,
+    profileName,
+    profile.budgets,
+    profile.seeds_per_budget,
+    customCanonicalSeedBase,
+  );
   if (
     JSON.stringify(archive.identity.budgets) !== JSON.stringify(profile.budgets) ||
     JSON.stringify(archive.identity.seedSchedule) !== JSON.stringify(schedule) ||
@@ -336,6 +464,26 @@ function validateArchiveScope(
       !Number.isFinite(row.score.score) || row.score.score < 0 || row.score.score > 1000
     ) {
       throw new Error(`archive contains malformed run scores`);
+    }
+    const source = sources.find((entry) => entry.id === row.task.sourceId)!;
+    if (
+      row.source?.id !== source.id || row.source?.sourceFingerprint !== source.sourceFingerprint ||
+      JSON.stringify(row.source?.eligibleComponents) !== JSON.stringify(source.eligibleComponents) ||
+      JSON.stringify(row.source?.diagnosticComponents) !== JSON.stringify(source.diagnosticComponents)
+    ) {
+      throw new Error(`${row.task.sourceId}: archived run source identity is stale or incomplete`);
+    }
+    if (row.report === null || typeof row.report !== "object" || !Number.isSafeInteger(row.authoredContacts)) {
+      throw new Error(`${row.task.sourceId}: archived raw report is missing`);
+    }
+    const rescored = scoreV2Report(
+      row.report,
+      row.authoredContacts,
+      contracts.get(row.task.sourceId)!,
+      suite,
+    );
+    if (JSON.stringify(rescored) !== JSON.stringify(row.score)) {
+      throw new Error(`${row.task.sourceId}: stored score does not match its raw report and axis contract`);
     }
   }
 }
@@ -392,7 +540,7 @@ function loadVerifiedArchive(path: string, expected?: RetainedReference): Verifi
   const expectedArtifactSha = compressed ? expected?.compressed_archive_sha256 : expected?.archive_sha256;
   const sidecarSha = readSidecarSha(absolute);
   if (expectedArtifactSha === undefined && sidecarSha === undefined) {
-    throw new Error(`${basename(absolute)}: missing trusted SHA-256 evidence`);
+    throw new Error(`${basename(absolute)}: missing SHA-256 integrity sidecar`);
   }
   for (const trusted of [expectedArtifactSha, sidecarSha]) {
     if (trusted !== undefined && trusted !== artifactSha256) {
@@ -419,14 +567,25 @@ function baselineArchive(profile: DecisionProfile): {
   label: string;
   reference: BaselineReference;
 } {
-  const baseline = JSON.parse(readFileSync(DEFAULT_BASELINE_PATH, "utf8")) as BaselineReference;
+  const path = profile === "probe" ? DEFAULT_PROBE_BASELINE_PATH : DEFAULT_BASELINE_PATH;
+  const baseline = JSON.parse(readFileSync(path, "utf8")) as BaselineReference;
+  const expectedSchema = profile === "probe" ? PROBE_BASELINE_SCHEMA : BASELINE_SCHEMA;
   if (
-    baseline.schema !== BASELINE_SCHEMA || baseline.execution_protocol !== BENCHMARK_EXECUTION_PROTOCOL ||
+    baseline.schema !== expectedSchema || baseline.execution_protocol !== BENCHMARK_EXECUTION_PROTOCOL ||
     baseline.compiler_identity_protocol !== COMPILER_IDENTITY_PROTOCOL
   ) {
     throw new Error(`the frozen baseline predates the V2 decision protocol; establish a new baseline`);
   }
+  if (
+    profile === "canonical" &&
+    (baseline.status !== "canonical-baseline" || baseline.listening_review_status !== "approved")
+  ) {
+    throw new Error(`canonical baseline is not approved for promotion`);
+  }
   const expected = profile === "probe" ? baseline.probe : baseline.development;
+  if (expected.compressed_archive === undefined || expected.compressed_archive_sha256 === undefined) {
+    throw new Error(`frozen baseline archive reference is incomplete`);
+  }
   return { path: resolve(expected.compressed_archive), expected, label: baseline.label, reference: baseline };
 }
 
@@ -475,10 +634,12 @@ function renderDecision(artifact: DecisionArtifact, outPath: string): string {
   ];
   const lines = [
     `Benchmark V2 decision - ${result.profile} ${result.authority}`,
-    `  policy: ${result.mode}; ${thresholdText}; ${(central.oneSidedLevel * 100).toFixed(0)}% one-sided confidence`,
+    `  policy: ${result.mode}; ${thresholdText}; ${(central.oneSidedLevel * 100).toFixed(0)}% coverage target ` +
+      `using a ${(central.oneSidedCriticalLevel * 100).toFixed(0)}% one-sided t critical`,
     `  headline: ${result.baseHeadline.toFixed(2)} -> ${result.candidateHeadline.toFixed(2)} ` +
       `(delta ${formatSigned(result.delta)})`,
-    `  ${(central.centralLevel * 100).toFixed(0)}% seed-block t interval: ` +
+    `  ${(central.centralLevel * 100).toFixed(0)}% coverage-target seed-block interval ` +
+      `(${(central.centralCriticalLevel * 100).toFixed(0)}% t critical): ` +
       `[${formatSigned(central.centralLo)}, ${formatSigned(central.centralHi)}]`,
     `  one-sided bounds: lower ${formatSigned(central.lowerBound)}, upper ${formatSigned(central.upperBound)}`,
     `  formal seed-block SE: ${result.uncertainty.seed.standardError.toFixed(2)} ` +
@@ -488,13 +649,13 @@ function renderDecision(artifact: DecisionArtifact, outPath: string): string {
     `  validity: ${result.validity.baseValid}/${result.validity.total} -> ` +
       `${result.validity.candidateValid}/${result.validity.total} ` +
       `(gained ${result.validity.gained}, lost ${result.validity.lost})`,
-    "  budgets (delta; 95% seed-block t interval):",
+    "  budgets (delta; stress-calibrated coverage-target interval):",
     ...result.perBudget.map((entry) =>
       `    ${(entry.budget / 1000).toFixed(0).padStart(4)}k  ${formatSigned(entry.delta)}  ` +
       `[${formatSigned(entry.confidence.centralLo)}, ${formatSigned(entry.confidence.centralHi)}]  ` +
       `valid ${entry.baseValid}->${entry.candidateValid}/${entry.total}`
     ),
-    "  strata (delta; 95% seed-block t interval):",
+    "  strata (delta; stress-calibrated coverage-target interval):",
     ...result.perStratum.map((entry) =>
       `    ${entry.stratum.padEnd(20)} ${formatSigned(entry.delta)}  ` +
       `[${formatSigned(entry.confidence.centralLo)}, ${formatSigned(entry.confidence.centralHi)}]`
@@ -505,7 +666,11 @@ function renderDecision(artifact: DecisionArtifact, outPath: string): string {
     `  artifact: ${relativeToCwd(outPath)}`,
   ];
   if (!artifact.implementationFingerprintsMatch) {
-    lines.splice(lines.length - 2, 0, "  note: runner implementation bytes differ; the explicit execution protocol is unchanged");
+    lines.splice(
+      lines.length - 2,
+      0,
+      `  runner compatibility: approved by ${artifact.runnerCompatibilityApproval!.reviewedBy}`,
+    );
   }
   return lines.join("\n");
 }
@@ -561,7 +726,7 @@ function relativeToCwd(path: string): string {
 
 if (resolve(process.argv[1] ?? "") === resolve(fileURLToPath(import.meta.url))) {
   try {
-    process.exitCode = runDecisionCommand();
+    process.exitCode = await runDecisionCommand();
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;

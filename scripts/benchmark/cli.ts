@@ -1,8 +1,8 @@
 import { execFileSync } from "node:child_process";
 import { availableParallelism } from "node:os";
 import { prepareBenchmarkV2, benchmarkV2Paths } from "./prepare.ts";
-import { runCanonicalBenchmark } from "../v0/benchmark_v2/canonical.ts";
 import { runBaselineBenchmark } from "../v0/benchmark_v2/baseline.ts";
+import { runCanonicalConfirmation } from "../v0/benchmark_v2/confirmation.ts";
 import { runBenchmarkV2 } from "../v0/benchmark_v2/runner.ts";
 import { startResourceMonitor } from "./resource_monitor.ts";
 import { runDecisionCommand } from "../v0/benchmark_v2/decide.ts";
@@ -21,19 +21,19 @@ if (command === "help") {
     stdio: "inherit",
   });
 } else if (command === "decide") {
-  process.exitCode = runDecisionCommand(args);
+  process.exitCode = await runDecisionCommand(args);
 } else {
   const prepared = await prepareBenchmarkV2();
   console.log(
     `Prepared ${prepared.developmentCases} development + ${prepared.qualificationCases} qualification cases; ` +
-    `audit ${prepared.auditFingerprint.slice(0, 16)}`,
+    `audit ${prepared.auditFingerprint.slice(0, 16)}; listening review ${prepared.listeningReviewStatus}`,
   );
   if (command === "prepare") {
     // Preparation above is the complete command.
   } else if (command === "probe") {
     await monitored("probe", args, () => runBenchmarkV2("development", benchmarkArgs("probe", args)));
   } else if (command === "canonical") {
-    await monitored("canonical", args, () => runCanonicalBenchmark(benchmarkArgs("canonical", args)));
+    await monitored("canonical", args, () => runCanonicalConfirmation(benchmarkArgs("canonical", args)));
   } else if (command === "baseline") {
     await monitored("baseline", args, () => runBaselineBenchmark(benchmarkArgs("canonical", args)));
   } else {
@@ -42,7 +42,9 @@ if (command === "help") {
 }
 
 function benchmarkArgs(profile: "probe" | "canonical", args: string[]): string[] {
-  const reserved = ["manifest", "heldout-manifest", "suite", "characterization", "audit", "review", "profile"];
+  const reserved = [
+    "manifest", "heldout-manifest", "suite", "characterization", "audit", "review", "listening-review", "profile",
+  ];
   const forwarded = args.filter((arg) =>
     !reserved.some((name) => arg.startsWith(`--${name}=`)) &&
     arg !== "--no-resource-stats" && !arg.startsWith("--resource-interval=")
@@ -58,6 +60,7 @@ function benchmarkArgs(profile: "probe" | "canonical", args: string[]): string[]
     `--characterization=${benchmarkV2Paths.characterization}`,
     `--audit=${benchmarkV2Paths.audit}`,
     `--review=${benchmarkV2Paths.review}`,
+    `--listening-review=${benchmarkV2Paths.listeningReview}`,
     ...forwarded,
   ];
 }
@@ -93,11 +96,11 @@ function commandName(args: string[]): "probe" | "canonical" | "baseline" | "deci
 function printHelp(): void {
   console.log(`Benchmark V2\n\n` +
     `  npm run benchmark -- probe       Development headline, probe allocation\n` +
-    `  npm run benchmark -- canonical   Development canonical run plus linked qualification monitor\n` +
-    `  npm run benchmark -- baseline    Freeze probe + canonical + qualification evidence for the current compiler\n` +
+    `  npm run benchmark -- canonical   Fresh paired one-shot confirmation plus qualification monitor\n` +
+    `  npm run benchmark -- baseline    After listening approval, freeze all baseline evidence\n` +
     `  npm run benchmark -- decide CANDIDATE [--base=BASE] [--mode=simplification --margin=POINTS]\n` +
     `  npm run benchmark -- prepare     Regenerate and validate catalog evidence\n` +
     `  npm run benchmark -- explain <archive.json>\n\n` +
-    `Probe decisions are screening-only; canonical decisions are the promotion gate. Qualification runs only as a canonical sidecar.\n` +
+    `Probe decisions are reusable screening only; canonical is a predeclared one-shot promotion gate. Qualification is an indicative sidecar.\n` +
     `Compiler execution defaults to 48 workers and prints resource samples every five seconds.`);
 }

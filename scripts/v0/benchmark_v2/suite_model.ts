@@ -56,6 +56,7 @@ export type ExecutionPolicyIdentity = {
   executionPolicyFingerprint: string;
   suiteFingerprint: string;
   executionProtocol: typeof BENCHMARK_EXECUTION_PROTOCOL;
+  listeningReviewFingerprint: string;
   implementationFingerprint: string;
   engine: string;
   compiler: string;
@@ -84,18 +85,37 @@ export const BENCHMARK_DEFINITION_SOURCE_FILES = [
 ] as const;
 
 export const RUNNER_IMPLEMENTATION_SOURCE_FILES = [
+  "benchmark/v2/decision-policy.ts",
+  "scripts/v0/benchmark_v2/audit_model.ts",
+  "scripts/v0/benchmark_v2/calibration_guard.ts",
   "scripts/v0/benchmark_v2/runner.ts",
+  "scripts/v0/benchmark_v2/canonical.ts",
+  "scripts/v0/benchmark_v2/click_model.ts",
+  "scripts/v0/benchmark_v2/checkpoint_model.ts",
+  "scripts/v0/benchmark_v2/compiler_identity.ts",
+  "scripts/v0/benchmark_v2/compiler_snapshot.ts",
+  "scripts/v0/benchmark_v2/evaluator.ts",
+  "scripts/v0/benchmark_v2/listening_review.ts",
+  "scripts/v0/benchmark_v2/model.ts",
+  "scripts/v0/benchmark_v2/run_development.ts",
+  "scripts/v0/benchmark_v2/run_benchmark.ts",
+  "scripts/v0/benchmark_v2/suite_model.ts",
   "scripts/v0/golden_suite.ts",
 ] as const;
 
 export const DECISION_SOURCE_FILES = [
   "benchmark/v2/decision-policy.ts",
   "scripts/v0/benchmark_v2/decide.ts",
+  "scripts/v0/benchmark_v2/confirmation.ts",
+  "scripts/v0/benchmark_v2/calibration_guard.ts",
   "scripts/v0/benchmark_v2/decision_model.ts",
   "scripts/v0/benchmark_v2/evaluator.ts",
   "scripts/v0/benchmark_v2/model.ts",
+  "scripts/v0/benchmark_v2/listening_review.ts",
+  "scripts/v0/benchmark_v2/runner_compatibility.ts",
   "scripts/v0/benchmark_v2/suite_model.ts",
   "scripts/v0/score.ts",
+  "benchmark/v2/runner-compatibility.json",
 ] as const;
 
 export function loadSuiteManifest(path: string, sources?: ResolvedSource[]): SuiteManifest {
@@ -218,8 +238,10 @@ export function resolvedSeedSchedule(
   profile: "probe" | "canonical",
   budgets: number[],
   seedsPerBudget: number,
+  seedBaseOverride?: number,
 ): ResolvedSeedSchedule {
-  const seedBase = suite.seed_policy.profile_seed_bases[profile];
+  const seedBase = seedBaseOverride ?? suite.seed_policy.profile_seed_bases[profile];
+  if (!Number.isSafeInteger(seedBase) || seedBase < 0) throw new Error(`seed base must be a non-negative safe integer`);
   return {
     kind: suite.seed_policy.kind,
     profile,

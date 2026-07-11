@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { availableParallelism, arch, cpus, platform } from "node:os";
 import { dirname, resolve } from "node:path";
@@ -42,6 +41,10 @@ import {
   type ResolvedSource,
 } from "./model.ts";
 import {
+  loadListeningReview,
+  requireApprovedListeningReview,
+} from "./listening_review.ts";
+import {
   RUNNER_IMPLEMENTATION_SOURCE_FILES,
   canonicalMembers,
   executionPolicyIdentity,
@@ -51,25 +54,14 @@ import {
   sourceInventoryFingerprint,
   suiteIdentity,
 } from "./suite_model.ts";
+import { compilerCandidateIdentity } from "./compiler_identity.ts";
+import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
+import { latestSuccessfulResults } from "./checkpoint_model.ts";
 
 export const RUN_ARCHIVE_SCHEMA = BENCHMARK_RUN_ARCHIVE_SCHEMA;
 export { COMPILER_IDENTITY_PROTOCOL };
 const CHECKPOINT_SCHEMA = "line.benchmark-v2.checkpoint.v1" as const;
-const SUMMARY_SCHEMA = "line.benchmark-v2.run-summary.v2" as const;
-
-const COMPILER_SOURCE_PATHS = [
-  "scripts/v0/optimizer",
-  "scripts/v0/core",
-  "scripts/v0/types.ts",
-  "scripts/v0/arc.ts",
-  "scripts/v0/arc_placement.ts",
-  "scripts/v0/score.ts",
-  "scripts/lib",
-  "engine-rs",
-  "package.json",
-  "package-lock.json",
-  "tsconfig.json",
-] as const;
+const SUMMARY_SCHEMA = "line.benchmark-v2.run-summary.v3" as const;
 
 type RunnerMode = "development" | "qualification";
 
@@ -130,6 +122,9 @@ export async function runBenchmarkV2(
   const characterizationPath = resolve(argument("characterization") ?? "benchmark/v2/evidence/characterization.json");
   const auditPath = resolve(argument("audit") ?? "benchmark/v2/evidence/audit.json");
   const reviewPath = resolve(argument("review") ?? "benchmark/v2/evidence/candidate-review.json");
+  const listeningReviewPath = resolve(
+    argument("listening-review") ?? "benchmark/v2/evidence/listening-review.json",
+  );
   const profileName = (argument("profile") ?? "probe") as "probe" | "canonical";
   if (profileName !== "probe" && profileName !== "canonical") {
     throw new Error(`--profile must be probe or canonical`);
@@ -143,6 +138,15 @@ export async function runBenchmarkV2(
   const linkedDevelopmentPath = argument("development-archive") === undefined
     ? undefined
     : resolve(argument("development-archive")!);
+  const confirmationDeclarationPath = argument("confirmation-declaration") === undefined
+    ? undefined
+    : resolve(argument("confirmation-declaration")!);
+  const seedBaseOverride = argument("canonical-seed-base") === undefined
+    ? undefined
+    : nonNegativeInteger(argument("canonical-seed-base")!, "canonical-seed-base");
+  if (seedBaseOverride !== undefined && (profileName !== "canonical" || confirmationDeclarationPath === undefined)) {
+    throw new Error(`--canonical-seed-base is reserved for a predeclared canonical confirmation`);
+  }
 
   const sourceManifestContents = readFileSync(sourceManifestPath, "utf8");
   const heldoutManifestContents = readFileSync(heldoutManifestPath, "utf8");
@@ -167,6 +171,14 @@ export async function runBenchmarkV2(
   validateSelectionReview(review, characterization, audit, suite);
 
   const suiteId = suiteIdentity(suiteManifestPath, sourceManifestPath, developmentSources);
+  if (profileName === "canonical") requireCurrentDecisionCalibration(suiteId.suiteFingerprint);
+  const listeningReview = await loadListeningReview(
+    listeningReviewPath,
+    suiteId.suiteFingerprint,
+    suiteId.sourceManifestFingerprint,
+    developmentSources,
+  );
+  if (profileName === "canonical") requireApprovedListeningReview(listeningReview);
   const profile = suite.profiles[profileName];
   const sources = mode === "qualification" ? qualificationSources : developmentSources;
   if (mode === "development") {
@@ -175,12 +187,19 @@ export async function runBenchmarkV2(
       throw new Error(`development source scope does not match the canonical suite`);
     }
   }
-  const schedule = resolvedSeedSchedule(suite, profileName, profile.budgets, profile.seeds_per_budget);
+  const schedule = resolvedSeedSchedule(
+    suite,
+    profileName,
+    profile.budgets,
+    profile.seeds_per_budget,
+    seedBaseOverride,
+  );
   const engine = process.env.LR_ENGINE ?? "typescript";
   const implementationFingerprint = fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES);
   const execution = executionPolicyIdentity({
     suiteFingerprint: suiteId.suiteFingerprint,
     executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
+    listeningReviewFingerprint: listeningReview.fingerprint,
     implementationFingerprint,
     engine,
     compiler: "compileHandoff",
@@ -194,10 +213,18 @@ export async function runBenchmarkV2(
     })),
     transform: suite.transform,
   });
-  const git = gitIdentity(engine);
+  const git = compilerCandidateIdentity(engine);
+  const runtime = {
+    node: process.version,
+    platform: platform(),
+    architecture: arch(),
+  };
   const linkedDevelopment = linkedDevelopmentPath === undefined
     ? undefined
     : archiveLink(linkedDevelopmentPath);
+  const confirmationDeclaration = confirmationDeclarationPath === undefined
+    ? undefined
+    : archiveLink(confirmationDeclarationPath);
   if (mode === "qualification" && linkedDevelopment === undefined) {
     throw new Error(`qualification execution requires --development-archive=<frozen canonical archive>`);
   }
@@ -232,7 +259,9 @@ export async function runBenchmarkV2(
     auditFingerprint: audit.auditFingerprint,
     candidateReviewFingerprint: sourceInventoryFingerprint(reviewContents),
     compilerSourceFingerprint: git.compilerSourceFingerprint,
+    runtime,
     linkedDevelopment,
+    confirmationDeclaration,
   }));
   mkdirSync(dirname(outputPath), { recursive: true });
   mkdirSync(dirname(checkpointPath), { recursive: true });
@@ -311,6 +340,8 @@ export async function runBenchmarkV2(
       ...suiteId,
       ...execution,
       candidateReviewFingerprint: sourceInventoryFingerprint(reviewContents),
+      listeningReviewFingerprint: listeningReview.fingerprint,
+      listeningReviewStatus: listeningReview.review.status,
       characterizationFingerprint: characterization.dataFingerprint,
       auditFingerprint: audit.auditFingerprint,
       heldoutManifestFingerprint: characterization.heldoutManifestFingerprint,
@@ -318,12 +349,11 @@ export async function runBenchmarkV2(
     },
     git,
     environment: {
-      node: process.version,
-      platform: platform(),
-      architecture: arch(),
+      ...runtime,
       logicalCpus: cpus().length,
     },
     linkedDevelopment,
+    confirmationDeclaration,
     canonicalHeadline: headline,
     qualificationMonitorScore,
     developmentSummaries,
@@ -353,6 +383,9 @@ export async function runBenchmarkV2(
     executionPolicyFingerprint: execution.executionPolicyFingerprint,
     executionProtocol: execution.executionProtocol,
     implementationFingerprint: execution.implementationFingerprint,
+    listeningReviewFingerprint: listeningReview.fingerprint,
+    listeningReviewStatus: listeningReview.review.status,
+    seedSchedule: schedule,
     compilerIdentityProtocol: git.compilerIdentityProtocol,
     compilerSourceFingerprint: git.compilerSourceFingerprint,
     compilerSourceFiles: git.compilerSourceFiles,
@@ -364,6 +397,7 @@ export async function runBenchmarkV2(
     developmentSummaries,
     qualificationSummaries,
     linkedDevelopment,
+    confirmationDeclaration,
   }, null, 2)}\n`);
 
   for (const budget of profile.budgets) {
@@ -660,59 +694,13 @@ function loadOrInitializeCheckpoint(
   if (header?.schema !== CHECKPOINT_SCHEMA || header.runPlanFingerprint !== runPlanFingerprint) {
     throw new Error(`checkpoint does not match the current run plan`);
   }
-  const results = lines.slice(1).filter((row) => row.type === "result").map((row) => row.result as WorkerResult);
-  const keys = results.map((result) => taskKey(result.task));
-  if (new Set(keys).size !== keys.length) throw new Error(`checkpoint contains duplicate tasks`);
-  return results;
+  const results = lines.slice(1)
+    .filter((entry) => entry.type === "result")
+    .map((row) => row.result as WorkerResult);
+  return latestSuccessfulResults(results, (result) => taskKey(result.task));
 }
 
-function gitIdentity(engine: string): {
-  head: string;
-  compilerDiffSha256: string;
-  compilerIdentityProtocol: typeof COMPILER_IDENTITY_PROTOCOL;
-  compilerSourceFingerprint: string;
-  compilerSourceFiles: string[];
-  compilerEnvironment: Record<string, string>;
-  engineArtifactFingerprint: string | null;
-  candidateFingerprint: string;
-  trackedChanges: string[];
-} {
-  const git = (args: string[]): string => execFileSync("git", args, { encoding: "utf8" }).trimEnd();
-  const compilerDiff = git(["diff", "--binary", "HEAD", "--", ...COMPILER_SOURCE_PATHS]);
-  const compilerFiles = git([
-    "ls-files", "--cached", "--others", "--exclude-standard", "--", ...COMPILER_SOURCE_PATHS,
-  ]).split("\n").filter(Boolean).sort();
-  const compilerSourceFingerprint = fingerprintFiles(compilerFiles);
-  const compilerEnvironment = Object.fromEntries(
-    Object.entries(process.env)
-      .filter(([name, value]) => name.startsWith("LR_") && name !== "LR_ENGINE" && value !== undefined)
-      .sort(([a], [b]) => a.localeCompare(b)) as Array<[string, string]>,
-  );
-  const engineArtifactPath = engine === "wasm"
-    ? "engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm"
-    : null;
-  const engineArtifactFingerprint = engineArtifactPath !== null && existsSync(engineArtifactPath)
-    ? sha256(readFileSync(engineArtifactPath))
-    : null;
-  const candidateFingerprint = sha256(JSON.stringify({
-    compilerIdentityProtocol: COMPILER_IDENTITY_PROTOCOL,
-    compilerSourceFingerprint,
-    compilerEnvironment,
-    engine,
-    engineArtifactFingerprint,
-  }));
-  return {
-    head: git(["rev-parse", "HEAD"]),
-    compilerDiffSha256: sha256(compilerDiff),
-    compilerIdentityProtocol: COMPILER_IDENTITY_PROTOCOL,
-    compilerSourceFingerprint,
-    compilerSourceFiles: compilerFiles,
-    compilerEnvironment,
-    engineArtifactFingerprint,
-    candidateFingerprint,
-    trackedChanges: git(["status", "--short"]).split("\n").filter(Boolean),
-  };
-}
+export { compilerCandidateIdentity } from "./compiler_identity.ts";
 
 function archiveLink(path: string): { path: string; sha256: string } {
   return { path: relativeToCwd(path), sha256: sha256(readFileSync(path)) };
@@ -733,6 +721,12 @@ function taskKey(task: WorkerTask): string {
 function positiveInteger(value: string, label: string): number {
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < 1) throw new Error(`${label} must be a positive integer`);
+  return parsed;
+}
+
+function nonNegativeInteger(value: string, label: string): number {
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed < 0) throw new Error(`${label} must be a non-negative integer`);
   return parsed;
 }
 

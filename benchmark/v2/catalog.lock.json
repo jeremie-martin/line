@@ -3183,7 +3183,7 @@
         500000,
         750000
       ],
-      "seedsPerBudget": 4
+      "seedsPerBudget": 8
     }
   },
   "strata": [
@@ -3317,5 +3317,5 @@
       ]
     }
   ],
-  "fingerprint": "3989ba526bf0d112c36ecd1fb5b4faea21486e18cb888aa9edb19deb58f8ff3b"
+  "fingerprint": "d51d71ab1a82e37f56aca573d6eaad0f8868e50b7860f12b4464a7f1342c71b4"
 }

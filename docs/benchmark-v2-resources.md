@@ -9,6 +9,7 @@ Reference host: 64 logical CPUs, 62.6 GiB RAM. Engine: WASM. Concurrency: 48.
 | Probe, 252 compiles | 57.6s | 48.8 cores | 77% | 6.67 GiB | 441.6099, bit-identical |
 | Canonical plus qualification, 564 compiles | 2m36s | 50.6 cores | 79% | 7.39 GiB | 451.3303 / 385.6812 |
 | Linked baseline, 816 compiles | 3m35s | 50.5 cores | 79% | 7.80 GiB | 442.997 / 451.3303 / 385.6812 |
+| Current probe, 252 compiles | 58.6s | 50.5 cores | 81% | 6.36 GiB | 446.0945 |
 
 The first 48-worker trial exposed a worker-lifecycle defect: the pool reused a slot when
 a worker posted its result, before the worker thread and WASM memory had terminated. RSS
@@ -21,8 +22,13 @@ below 7.39 GiB. No swap was required. Track hashes, scores, validity, and the he
 are unchanged, establishing that the lifecycle correction affects resource ownership,
 not compiler behavior.
 
-The linked-baseline row is the complete `baseline` command: probe, canonical development,
-and qualification in one process under the final decision and compiler-identity protocols.
+The first three rows are retained V2.2 measurements. The current initial baseline uses
+1,008 development and 120 qualification compiles plus its 252-compile probe. A promotion
+confirmation is larger: 1,008 fresh baseline-snapshot development compiles, 1,008 candidate
+development compiles, and 120 candidate qualification compiles. It remains blocked until
+the required listening review is approved. The current probe establishes that the 48-worker
+memory envelope remains controlled under execution protocol V4; the 12-seed calibration
+reference deliberately uses 32 workers for additional memory margin.
 
 Public commands default to 48 workers and print a resource sample every five seconds:
 process cores, whole-host CPU, RSS, JavaScript heap, system memory, and one-minute load.

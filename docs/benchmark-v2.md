@@ -23,7 +23,7 @@ references are qualification-only. Benchmark V1 remains available explicitly thr
 npm run benchmark -- prepare
 npm run benchmark -- baseline --label=NAME
 npm run benchmark -- probe
-npm run benchmark -- canonical --label=NAME
+npm run benchmark -- canonical --decision-mode=improvement
 npm run benchmark -- explain ARCHIVE.json
 npm run benchmark -- decide CANDIDATE.json
 npm run benchmark:v2:clicks
@@ -31,9 +31,11 @@ npm run benchmark:v2:clicks
 
 `npm run benchmark`, `npm run golden`, and `npm run goal` default to the V2 probe.
 Probe and canonical use the same 42 development cases. Probe performs 252 compiles:
-250k/500k with three disjoint seeds per budget. Canonical performs 504 development
-compiles at 250k/500k/750k with four disjoint seeds per budget, seals the archive, then
-runs 60 qualification compiles as a linked sidecar.
+250k/500k with three disjoint seeds per budget. A canonical confirmation performs two
+paired 1,008-compile development runs at 250k/500k/750k with eight fresh seeds per budget:
+one from the frozen baseline compiler snapshot and one from the predeclared candidate
+snapshot. Both execute after declaration in isolated clean `npm ci` worktrees. It then
+runs 120 candidate-snapshot qualification compiles as a linked sidecar (2,136 total).
 
 The default engine is WASM and public commands use 48 workers on this host. Override with
 `--jobs=N` when appropriate. Process CPU, host CPU, RSS, heap, system memory, and load are
@@ -41,6 +43,9 @@ sampled every five seconds; use `--resource-interval=N` or `--no-resource-stats`
 that diagnostic output. The reference 48-worker measurements are recorded in
 `docs/benchmark-v2-resources.md`. Use `--resume` with unchanged output and checkpoint paths;
 each completed result is appended to a run-plan-fingerprinted JSONL checkpoint.
+The plan fingerprint includes Node version, platform, and architecture. Failed and
+timed-out tasks are scheduled again on resume; only the latest successful row
+for each task is restored.
 
 ## Preparation
 
@@ -49,8 +54,9 @@ Every public run deterministically prepares the suite first:
 1. generate compatibility manifests and the catalog lock from TypeScript;
 2. load and characterize all 42 development and five qualification cases;
 3. run the structural independence and cohort audit;
-4. write a compiler-outcome-free selection review;
-5. validate all evidence again inside the runner.
+4. write a compiler-outcome-free selection review and validate the tracked listening review;
+5. expose a pending review during development, but block baseline and canonical execution;
+6. validate all evidence again inside the runner.
 
 `scripts/benchmark/materialize_normative.ts` is a migration/reproducibility utility.
 `scripts/benchmark/materialize_variants.ts` materializes deliberate variant modules; it
@@ -61,21 +67,27 @@ uses no runtime randomness.
 Progress is reported once per complete catalog pass with completion, validity,
 throughput, ETA, and provisional budget means. Final artifacts include full and gzip
 archives, SHA-256 sidecars, compact summaries, per-budget/stratum/group/parent/case data,
-per-seed scores, component errors, phase completion, reports, and track hashes.
+per-seed scores, component errors, phase completion, raw reports, and track hashes.
 
-Qualification archives contain the development archive hash. `baseline.json` records
-probe and canonical execution policies, implementation bytes, compiler, engine, the
-versioned compiler-source inventory, dependency and TypeScript configuration, compressed
-archives, independent seed schedules, and qualification linkage.
+Qualification archives contain the development archive hash. `probe-baseline.json`
+records the reusable screening reference. `baseline.json` records probe and milestone
+canonical execution policies, implementation bytes, compiler, engine, the versioned
+compiler-source inventory, dependency and TypeScript configuration, checksummed
+compiler/WASM snapshot, compressed archives, independent seed schedules, and qualification
+linkage. Confirmation state additionally retains the never-reused seed ledger and both
+fresh paired archive identities.
 
 ## Comparison
 
 The decision command requires checksummed development archives with identical semantic
-execution policies and complete paired scope. Probe decisions screen; only canonical
-decisions can promote. Improvement and explicit-margin simplification policies use paired
-budget seed-block jackknife Student-t bounds. Parent-preserving bootstraps are reported as
-catalog sensitivity, not as posterior probabilities. The complete contract and exit codes
-are in `docs/benchmark-v2-decisions.md`.
+execution policies and complete paired scope. It reconstructs every stored score from the
+raw report and current transformed axis contract. Probe decisions screen; only the one-shot,
+predeclared canonical decision can promote. Improvement and explicit-margin simplification
+policies use stress-calibrated paired budget seed-block jackknife Student-t bounds.
+Parent-preserving bootstraps are reported as catalog sensitivity, not as posterior
+probabilities. The complete contract and exit codes are in `docs/benchmark-v2-decisions.md`.
+Baseline, canonical, and decision commands refuse to operate when retained calibration or
+its zero-inflated coverage evidence is stale for the current suite or decision code.
 
 ## Diagnostics
 

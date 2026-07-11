@@ -1,5 +1,14 @@
 # Benchmark V2 Baseline
 
+Status: **provisional and not promotion-eligible**. The required human listening review
+was not completed before this evidence was generated, and the current Benchmark V2 changes
+the canonical seed allocation, paired-snapshot workflow, and execution protocol. These values are retained for audit
+only. Complete the tracked listening review and run `benchmark -- baseline` to establish
+the next compiler baseline.
+
+Reusable probe screening remains available through `benchmark/v2/probe-baseline.json`
+and its retained V2.4 raw archive. Screening cannot promote a compiler.
+
 Label: `v2.2-decision-protocol`. Suite: `b118882720a96854`.
 
 Probe headline: **443.00**. Canonical headline: **451.33**. Qualification monitor: **385.68** (indicative only).

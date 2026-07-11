@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { describe, expect, test } from "vitest";
+import { BENCHMARK_EXECUTION_PROTOCOL } from "../benchmark/v2/decision-policy.ts";
 import {
   assertNoHeldoutIdentity,
   loadHeldoutManifest,
@@ -40,7 +41,7 @@ describe("Benchmark V2 suite identity", () => {
       .toThrow(/reserved heldout source fingerprint/);
   });
 
-  test("freezes resolved seeds and pins the checksummed canonical baseline", () => {
+  test("freezes resolved seeds and marks the pre-review baseline provisional", () => {
     const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
     const identity = suiteIdentity("benchmark/v2/compat/suite-manifest.json", "benchmark/v2/compat/source-manifest.json", sources);
     const baseline = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8")) as {
@@ -50,6 +51,7 @@ describe("Benchmark V2 suite identity", () => {
       execution_protocol: string;
       engine: string;
       compiler_identity_protocol: string;
+      listening_review_status: string;
       compiler_source_fingerprint: string;
       compiler_source_files: string[];
       compiler_environment: Record<string, string>;
@@ -59,10 +61,20 @@ describe("Benchmark V2 suite identity", () => {
       development: { compressed_archive: string; compressed_archive_sha256: string; canonical_headline: number };
       qualification: { compressed_archive: string; compressed_archive_sha256: string; monitor_score: number };
     };
+    const probeBaseline = JSON.parse(readFileSync("benchmark/v2/probe-baseline.json", "utf8"));
     expect(identity.suiteFingerprint).toHaveLength(64);
-    expect(baseline.schema).toBe("line.benchmark-v2.baseline-reference.v5");
-    expect(baseline.status).toBe("canonical-baseline");
-    expect(baseline.suite_fingerprint).toBe(identity.suiteFingerprint);
+    expect(probeBaseline).toMatchObject({
+      schema: "line.benchmark-v2.probe-baseline-reference.v1",
+      status: "screening-baseline",
+      suite_fingerprint: identity.suiteFingerprint,
+      execution_protocol: BENCHMARK_EXECUTION_PROTOCOL,
+    });
+    expect(createHash("sha256").update(readFileSync(probeBaseline.probe.compressed_archive)).digest("hex"))
+      .toBe(probeBaseline.probe.compressed_archive_sha256);
+    expect(baseline.schema).toBe("line.benchmark-v2.baseline-reference.v6");
+    expect(baseline.status).toBe("provisional-listening-review-required");
+    expect(baseline.listening_review_status).toBe("awaiting-human-review");
+    expect(baseline.suite_fingerprint).not.toBe(identity.suiteFingerprint);
     expect(baseline.execution_protocol).toBe("line.benchmark-v2.execution-protocol.v2");
     expect(baseline.compiler_identity_protocol).toBe(COMPILER_IDENTITY_PROTOCOL);
     expect(baseline.compiler_source_files).toContain("scripts/v0/score.ts");
@@ -93,11 +105,12 @@ describe("Benchmark V2 suite identity", () => {
       });
     }
     const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);
-    const schedule = resolvedSeedSchedule(suite, "canonical", suite.profiles.canonical.budgets, 4);
+    const schedule = resolvedSeedSchedule(suite, "canonical", suite.profiles.canonical.budgets, 8);
     const probeSchedule = resolvedSeedSchedule(suite, "probe", suite.profiles.probe.budgets, 3);
     const policyInput: Parameters<typeof executionPolicyIdentity>[0] = {
       suiteFingerprint: identity.suiteFingerprint,
-      executionProtocol: "line.benchmark-v2.execution-protocol.v2",
+      executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
+      listeningReviewFingerprint: "review-fingerprint",
       implementationFingerprint: "implementation",
       engine: "wasm",
       compiler: "compileHandoff",
@@ -109,13 +122,13 @@ describe("Benchmark V2 suite identity", () => {
     };
     const policy = executionPolicyIdentity(policyInput);
     expect(schedule.byBudget.map((entry) => entry.actualSeeds)).toEqual([
-      [0, 1, 2, 3],
-      [4, 5, 6, 7],
-      [8, 9, 10, 11],
+      [0, 1, 2, 3, 4, 5, 6, 7],
+      [8, 9, 10, 11, 12, 13, 14, 15],
+      [16, 17, 18, 19, 20, 21, 22, 23],
     ]);
     expect(probeSchedule.byBudget.map((entry) => entry.actualSeeds)).toEqual([
-      [12, 13, 14],
-      [15, 16, 17],
+      [24, 25, 26],
+      [27, 28, 29],
     ]);
     for (const probeBudget of probeSchedule.byBudget) {
       const canonicalBudget = schedule.byBudget.find((entry) => entry.budget === probeBudget.budget)!;

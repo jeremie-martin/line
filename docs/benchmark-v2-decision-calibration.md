@@ -1,30 +1,48 @@
 # Benchmark V2 Decision Calibration
 
-Suite: `b118882720a96854`. Decision rule: `752eb26e92f834cf`.
+Suite: `126414401682030b`. Decision rule: `72ef09e0ebe579fd`.
 
-Simulation uses 200 trials and 100 bootstrap iterations per trial. Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.
+Simulation uses 200 formal-gate trials per scenario. Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.
 
-Bootstrap iterations only exercise sensitivity diagnostics; the formal seed-block gate and its coverage do not depend on them.
+Repeated-sampling trials skip sensitivity bootstraps because they cannot affect the formal gate. Production decisions still use the policy's full sensitivity iteration count.
 
 ## Empirical controls
 
-| Control | Delta | 95% interval | One-sided bounds | Outcome |
+| Control | Delta | Stress-calibrated interval | One-sided bounds | Outcome |
 |---|---:|---:|---:|---|
 | identical archive | 0.00 | [0.00, 0.00] | [0.00, 0.00] | unresolved |
-| known broad degradation | -141.18 | [-216.65, -65.70] | [-176.02, -106.33] | stop |
-| catalog-wide correlated seed adversary | 2.99 | [-31.78, 37.75] | [-14.14, 20.11] | unresolved |
+| known broad degradation | -150.20 | [-224.09, -76.32] | [-173.53, -126.87] | stop |
+| impact contract failure | -446.09 | [-462.14, -430.05] | [-453.24, -438.95] | stop |
+| catalog-wide correlated seed adversary | 2.99 | [-64.93, 70.90] | [-22.13, 28.10] | unresolved |
 
 ## Repeated-sampling simulation
 
 | Profile | Scenario | Injected shift | True catalog delta | Mean observed | Positive | Negative | Unresolved | 95% coverage |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| probe | null | 0.0 | 0.00 | 0.16 | 8.5% | 8.0% | 83.5% | 95.0% |
-| probe | small_gain | 5.0 | 5.00 | 4.94 | 30.0% | 2.5% | 67.5% | 95.5% |
-| probe | clear_gain | 15.0 | 15.00 | 14.97 | 86.0% | 0.0% | 14.0% | 91.5% |
-| probe | small_regression | -5.0 | -5.00 | -4.77 | 2.0% | 30.0% | 68.0% | 94.5% |
-| canonical | null | 0.0 | 0.00 | 0.28 | 5.5% | 2.5% | 92.0% | 95.0% |
-| canonical | small_gain | 5.0 | 5.00 | 5.14 | 33.5% | 0.5% | 66.0% | 96.0% |
-| canonical | clear_gain | 15.0 | 15.00 | 15.21 | 96.0% | 0.0% | 4.0% | 96.0% |
-| canonical | small_regression | -5.0 | -5.00 | -4.78 | 0.0% | 28.0% | 72.0% | 96.0% |
+| probe | null | 0.0 | 0.00 | 0.16 | 3.5% | 5.0% | 91.5% | 100.0% |
+| probe | small_gain | 5.0 | 5.00 | 4.94 | 18.5% | 0.5% | 81.0% | 99.0% |
+| probe | clear_gain | 15.0 | 15.00 | 14.97 | 66.0% | 0.0% | 34.0% | 97.5% |
+| probe | small_regression | -5.0 | -5.00 | -4.77 | 0.5% | 16.5% | 83.0% | 99.5% |
+| canonical | null | 0.0 | 0.00 | 0.09 | 1.0% | 1.0% | 98.0% | 100.0% |
+| canonical | small_gain | 5.0 | 5.00 | 4.90 | 25.5% | 0.0% | 74.5% | 99.0% |
+| canonical | clear_gain | 15.0 | 15.00 | 15.41 | 100.0% | 0.0% | 0.0% | 99.5% |
+| canonical | small_regression | -5.0 | -5.00 | -4.96 | 0.0% | 26.5% | 73.5% | 99.5% |
+
+## Zero-inflated fixed-catalog stress
+
+Retained study: `benchmark/v2/studies/decision-coverage.json` (1000 trials per cell).
+
+| Scenario | Seeds / budget | Coverage target | False accept | False reject |
+|---|---:|---:|---:|---:|
+| empirical_blocks | 8 | 99.6% | 0.5% | 0.5% |
+| symmetric_validity_flips | 8 | 98.7% | 2.1% | 0.5% |
+| catalog_wide_hard_zero | 8 | 96.8% | 2.0% | 2.7% |
+
+| Alternative | Mode | True delta | Positive | Negative | Unresolved | Coverage |
+|---|---|---:|---:|---:|---:|---:|
+| empirical_score_gain | improvement | 12.80 | 92.3% | 0.0% | 7.7% | 99.3% |
+| hard_zero_validity_gain | improvement | 66.34 | 7.0% | 0.6% | 92.4% | 95.6% |
+| noninferiority_inside | simplification (margin 5) | -2.50 | 2.1% | 2.9% | 95.0% | 96.2% |
+| noninferiority_boundary | simplification (margin 5) | -5.00 | 2.9% | 2.8% | 94.3% | 95.6% |
 
 The repeated-sampling target is the frozen catalog, not a hypothetical random population of authored works. The formal gate uses the seed-block t interval. Parent-preserving catalog and crossed bootstrap intervals are sensitivity diagnostics only.

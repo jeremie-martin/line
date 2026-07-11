@@ -52,8 +52,10 @@ Five production references form a linked qualification monitor:
 
 A canonical command first seals the complete development archive, then runs qualification
 and links it to that archive by SHA-256. Qualification is displayed and trended but never
-enters the headline, accepts a compiler candidate, or guides optimization. New production
-works preserve genuinely unseen evidence when frozen before their first compile.
+enters the headline or accepts a compiler candidate. Because these five results are shown
+at canonical milestones, they are monitors rather than untouched statistical holdouts;
+case-specific tuning against them is prohibited. New production works preserve genuinely
+unseen evidence only when frozen before their first compile.
 
 ## Authoring contract
 
@@ -124,12 +126,15 @@ reuse seeds exposed during probe-driven development.
 | Profile | Budgets | Seeds per budget | Development compiles |
 |---|---|---:|---:|
 | probe | 250k / 500k | 3 | 252 |
-| canonical | 250k / 500k / 750k | 4 | 504 |
+| canonical (per compiler side) | 250k / 500k / 750k | 8 | 1,008 |
+
+A promotion attempt runs both the checksummed baseline compiler snapshot and the declared candidate on one fresh canonical schedule, for 2,016 paired development compiles, then adds 120 candidate-only qualification monitor compiles. Canonical seed epochs are allocated after declaration and never reused.
 
 The allocation was frozen from a 1,512-run study using 12 reference seeds at every
 budget. One-seed probes had 20.87 points of p95 headline error; three-seed probes reduced
-that to 7.38. Four-seed canonicals use all 12 seeds disjointly and had 6.07 points of p95
-headline error. The 750k ceiling bounds per-compile compute. Public execution defaults to
+that to 7.38. Eight canonical seeds per budget provide a more stable promotion surface;
+the separate zero-inflated coverage study drove the conservative critical values used by
+the gate. The 750k ceiling bounds per-compile compute. Public execution defaults to
 48 workers on the 64-logical-CPU reference host and reports resource use while running.
 The seed-count study estimates allocation behavior; actual seed labels are deterministic
 IID inputs and the profile ranges are separated for confirmation.
@@ -143,24 +148,28 @@ interpolation, measurement, scoring, weights, budgets, transform, and seed polic
 Each archive also records an execution-policy fingerprint covering suite identity,
 explicit execution protocol, engine, compiler entry point, profile, exact sources,
 budgets, resolved seeds, and transform. Exact runner bytes are recorded separately as an
-implementation fingerprint. Comparisons require matching semantic policies and exact
+implementation fingerprint. Mismatched runner bytes require an explicit reviewed
+bit-identity approval. Comparisons require matching semantic policies and exact
 `source/budget/seed-slot/actual-seed` scope. Compiler source and non-engine `LR_*`
 environment form the candidate identity and may differ by design.
 
 Before compilation, deterministic preparation regenerates compatibility manifests,
-characterization, static audit, and candidate review from the typed catalog. The runner
-then validates their hashes, current source identities, audit-rule identity, and a
-recomputed audit. Behavior-defining interpolation code is included in suite identity.
+characterization, static audit, and candidate review from the typed catalog, and validates
+the tracked listening review against the current suite. Canonical baseline and promotion
+remain blocked until every judgment and the reviewer attestation are complete. The runner
+then validates their hashes, current source identities, audit-rule identity, raw-report
+rescoring, and a recomputed audit. Behavior-defining interpolation code is included in
+suite identity.
 
 ## Governance
 
 1. Author or revise cases without compiler or qualification outcomes.
 2. Materialize variants and regenerate static evidence.
-3. Complete structural and listening review.
+3. Complete and sign the tracked structural and listening review without compiler outcomes.
 4. Freeze catalog, weights, evaluator, profiles, and fingerprints.
 5. Establish a checksummed canonical baseline.
 6. Improve the compiler using development results only.
-7. Screen candidates on probe evidence, then compare promotable candidates on independent canonical seeds using `docs/benchmark-v2-decisions.md`.
+7. Screen candidates on reusable probe evidence, then spend the baseline's single predeclared canonical confirmation using `docs/benchmark-v2-decisions.md`.
 8. Run qualification only as the linked sidecar of a canonical milestone.
 
 Any change to cases, membership, parent structure, weights, scoring, target

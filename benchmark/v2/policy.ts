@@ -49,13 +49,13 @@ export const benchmarkPolicy = {
     profileSeedBases: {
       // Probe evidence is exploratory. Canonical uses the independently studied
       // 0..11 range and is disjoint from every probe seed at the same budget.
-      probe: 12,
+      probe: 24,
       canonical: 0,
     },
   },
   profiles: {
     probe: { budgets: [250_000, 500_000], seedsPerBudget: 3 },
-    canonical: { budgets: [250_000, 500_000, 750_000], seedsPerBudget: 4 },
+    canonical: { budgets: [250_000, 500_000, 750_000], seedsPerBudget: 8 },
   },
   budgetWeights: [
     { budget: 250_000, weight: 0.20 },

@@ -8,6 +8,10 @@ import {
   BENCHMARK_RUN_ARCHIVE_SCHEMA,
   COMPILER_IDENTITY_PROTOCOL,
 } from "../../benchmark/v2/decision-policy.ts";
+import {
+  validateCompilerSnapshot,
+  type CompilerSnapshot,
+} from "../v0/benchmark_v2/compiler_snapshot.ts";
 
 export function freezeBaseline(bundleArgument: string): void {
   const bundlePath = resolve(bundleArgument);
@@ -15,6 +19,7 @@ export function freezeBaseline(bundleArgument: string): void {
   if (bundle.schema !== "line.benchmark-v2.baseline-bundle.v1") {
     throw new Error(`unsupported baseline bundle`);
   }
+  validateCompilerSnapshot(bundle.compilerSnapshot as CompilerSnapshot);
   const probe = loadRetained(
     bundle.probe.retainedCompressedArchive,
     bundle.probe.compressedSha256,
@@ -41,8 +46,15 @@ export function freezeBaseline(bundleArgument: string): void {
   const archives = [probe, development, qualification];
   if (
     archives.some((archive) => archive.identity.executionProtocol !== BENCHMARK_EXECUTION_PROTOCOL) ||
+    archives.some((archive) => archive.identity.listeningReviewStatus !== "approved") ||
+    archives.some((archive) =>
+      archive.identity.listeningReviewFingerprint !== development.identity.listeningReviewFingerprint
+    ) ||
     archives.some((archive) => archive.identity.engine !== "wasm" || archive.identity.compiler !== "compileHandoff") ||
     archives.some((archive) => archive.identity.suiteFingerprint !== development.identity.suiteFingerprint) ||
+    archives.some((archive) =>
+      archive.identity.implementationFingerprint !== development.identity.implementationFingerprint
+    ) ||
     archives.some((archive) => archive.git.candidateFingerprint !== development.git.candidateFingerprint) ||
     archives.some((archive) => archive.git.compilerIdentityProtocol !== COMPILER_IDENTITY_PROTOCOL) ||
     archives.some((archive) => !validCompilerSourceFiles(archive.git.compilerSourceFiles)) ||
@@ -57,10 +69,18 @@ export function freezeBaseline(bundleArgument: string): void {
   ) {
     throw new Error(`baseline archives do not share the suite, protocol, candidate, engine, and canonical linkage`);
   }
+  if (
+    bundle.compilerSnapshot.candidateFingerprint !== development.git.candidateFingerprint ||
+    bundle.compilerSnapshot.compilerSourceFingerprint !== development.git.compilerSourceFingerprint ||
+    JSON.stringify(bundle.compilerSnapshot.compilerEnvironment) !== JSON.stringify(development.git.compilerEnvironment) ||
+    bundle.compilerSnapshot.engineArtifactFingerprint !== development.git.engineArtifactFingerprint
+  ) {
+    throw new Error(`baseline compiler snapshot does not reproduce the measured compiler identity`);
+  }
   assertProfileSeedsDisjoint(probe, development);
   const catalogLock = JSON.parse(readFileSync("benchmark/v2/catalog.lock.json", "utf8"));
   const baseline = {
-    schema: "line.benchmark-v2.baseline-reference.v5",
+    schema: "line.benchmark-v2.baseline-reference.v7",
     status: "canonical-baseline",
     label: bundle.label,
     generated_at: bundle.generatedAt,
@@ -68,6 +88,8 @@ export function freezeBaseline(bundleArgument: string): void {
     catalog_fingerprint: catalogLock.fingerprint,
     suite_fingerprint: development.identity.suiteFingerprint,
     execution_protocol: BENCHMARK_EXECUTION_PROTOCOL,
+    listening_review_fingerprint: development.identity.listeningReviewFingerprint,
+    listening_review_status: development.identity.listeningReviewStatus,
     engine: development.identity.engine,
     compiler_identity_protocol: development.git.compilerIdentityProtocol,
     compiler_source_fingerprint: development.git.compilerSourceFingerprint,
@@ -75,6 +97,7 @@ export function freezeBaseline(bundleArgument: string): void {
     compiler_environment: development.git.compilerEnvironment,
     engine_artifact_fingerprint: development.git.engineArtifactFingerprint,
     candidate_fingerprint: development.git.candidateFingerprint,
+    compiler_snapshot: bundle.compilerSnapshot,
     probe: archiveSummary(probe, bundle.probe),
     development: archiveSummary(development, bundle.development),
     qualification: {
@@ -83,6 +106,19 @@ export function freezeBaseline(bundleArgument: string): void {
     },
   };
   write("benchmark/v2/baseline.json", `${JSON.stringify(baseline, null, 2)}\n`);
+  write("benchmark/v2/probe-baseline.json", `${JSON.stringify({
+    schema: "line.benchmark-v2.probe-baseline-reference.v1",
+    status: "screening-baseline",
+    label: baseline.label,
+    generated_at: baseline.generated_at,
+    suite_fingerprint: baseline.suite_fingerprint,
+    execution_protocol: baseline.execution_protocol,
+    listening_review_fingerprint: baseline.listening_review_fingerprint,
+    listening_review_status: baseline.listening_review_status,
+    compiler_identity_protocol: baseline.compiler_identity_protocol,
+    candidate_fingerprint: baseline.candidate_fingerprint,
+    probe: baseline.probe,
+  }, null, 2)}\n`);
   write("docs/benchmark-v2-baseline.md", renderMarkdown(baseline));
   console.log(renderMarkdown(baseline));
 }
@@ -121,7 +157,7 @@ function candidateFingerprint(archive: any): string {
 }
 
 function assertProfileSeedsDisjoint(probe: any, canonical: any): void {
-  const probeByBudget = new Map(probe.identity.seedSchedule.byBudget.map((entry: any) => [
+  const probeByBudget = new Map<number, Set<number>>(probe.identity.seedSchedule.byBudget.map((entry: any) => [
     entry.budget,
     new Set<number>(entry.actualSeeds),
   ]));

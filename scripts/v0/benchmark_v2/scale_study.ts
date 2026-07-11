@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { availableParallelism } from "node:os";
+import { arch, availableParallelism, platform } from "node:os";
 import { dirname, resolve } from "node:path";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
+import { gzipSync } from "node:zlib";
 import { applyJolt } from "../../produce/seed.ts";
 import { compilerWorkerTimeoutMs } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
@@ -22,6 +22,8 @@ import {
   type ResolvedSource,
 } from "./model.ts";
 import { fingerprintFiles, loadSuiteManifest, suiteIdentity } from "./suite_model.ts";
+import { compilerCandidateIdentity } from "./compiler_identity.ts";
+import { latestSuccessfulResults } from "./checkpoint_model.ts";
 
 type StudyTask = {
   sourceId: string;
@@ -80,10 +82,17 @@ async function main(): Promise<void> {
     joltMs: suite.transform.jolt_ms,
     sourceManifestPath,
   }))));
-  const candidate = candidateIdentity(process.env.LR_ENGINE ?? "typescript");
+  const engine = process.env.LR_ENGINE ?? "typescript";
+  const candidate = { ...compilerCandidateIdentity(engine), engine };
+  const runtime = {
+    node: process.version,
+    platform: platform(),
+    architecture: arch(),
+  };
   const planInput = {
     suiteFingerprint: identity.suiteFingerprint,
     candidateFingerprint: candidate.candidateFingerprint as string,
+    runtime,
     budgets,
     seeds,
     joltMs: suite.transform.jolt_ms,
@@ -134,9 +143,17 @@ async function main(): Promise<void> {
       : failedScore(result);
     return {
       task: result.task,
+      source: {
+        id: source.id,
+        sourceFingerprint: source.sourceFingerprint,
+        eligibleComponents: source.eligibleComponents,
+        diagnosticComponents: source.diagnosticComponents,
+      },
       elapsedMs: result.elapsedMs,
       status: result.status,
       error: result.error,
+      authoredContacts: result.authoredContacts,
+      report: result.report ?? null,
       score,
       stats: result.stats,
       phaseResults: result.status === "ok" ? phases(source, result.report!) : [],
@@ -158,13 +175,27 @@ async function main(): Promise<void> {
     generatedAt: new Date().toISOString(),
     note: "Exploratory paired-seed study. Not a canonical headline or candidate decision.",
     suiteFingerprint: identity.suiteFingerprint,
+    sourceManifestFingerprint: identity.sourceManifestFingerprint,
+    definitionFingerprint: identity.definitionFingerprint,
+    scorerFingerprint: fingerprintFiles([
+      "scripts/v0/benchmark_v2/evaluator.ts",
+      "scripts/v0/benchmark_v2/score_model.ts",
+      "scripts/v0/score.ts",
+    ]),
+    transform: suite.transform,
     candidate,
+    environment: runtime,
     budgets,
     seeds,
     summaries,
     runs: scored,
   };
-  writeFileSync(outputPath, `${JSON.stringify(report, null, 2)}\n`);
+  const reportBytes = Buffer.from(`${JSON.stringify(report, null, 2)}\n`);
+  writeFileSync(outputPath, reportBytes);
+  const compressedBytes = gzipSync(reportBytes, { level: 9 });
+  writeFileSync(`${outputPath}.gz`, compressedBytes);
+  writeFileSync(`${outputPath}.sha256`, `${createHash("sha256").update(reportBytes).digest("hex")}  ${relative(outputPath)}\n`);
+  writeFileSync(`${outputPath}.gz.sha256`, `${createHash("sha256").update(compressedBytes).digest("hex")}  ${relative(`${outputPath}.gz`)}\n`);
   for (const summary of summaries) {
     const invalid = scored.filter((row) => row.task.budget === summary.budget && !row.score.valid)
       .map((row) => row.task.sourceId);
@@ -190,10 +221,10 @@ function loadOrInitializeCheckpoint(
   if (lines[0]?.schema !== STUDY_CHECKPOINT_SCHEMA || lines[0].planFingerprint !== planFingerprint) {
     throw new Error(`study checkpoint does not match the current catalog, compiler, budgets, and seeds`);
   }
-  const results = lines.slice(1).filter((row) => row.type === "result").map((row) => row.result as StudyWorkerResult);
-  const keys = results.map((result) => taskKey(result.task));
-  if (new Set(keys).size !== keys.length) throw new Error(`study checkpoint contains duplicate tasks`);
-  return results;
+  const results = lines.slice(1)
+    .filter((entry) => entry.type === "result")
+    .map((row) => row.result as StudyWorkerResult);
+  return latestSuccessfulResults(results, (result) => taskKey(result.task));
 }
 
 function importCheckpoint(
@@ -209,14 +240,13 @@ function importCheckpoint(
     .filter((row) => row.type === "result")
     .map((row) => row.result as StudyWorkerResult)
     .filter((result) => targetKeys.has(taskKey(result.task)));
-  const keys = imported.map((result) => taskKey(result.task));
-  if (new Set(keys).size !== keys.length) throw new Error(`import checkpoint contains duplicate overlapping tasks`);
-  return imported;
+  return latestSuccessfulResults(imported, (result) => taskKey(result.task));
 }
 
 function studyPlanFingerprint(input: {
   suiteFingerprint: string;
   candidateFingerprint: string;
+  runtime: { node: string; platform: string; architecture: string };
   budgets: number[];
   seeds: number[];
   joltMs: number;
@@ -336,27 +366,6 @@ function failedScore(result: StudyWorkerResult): V2RunScore {
     components: {},
     diagnostics: {},
   };
-}
-
-function candidateIdentity(engine: string): Record<string, unknown> {
-  const paths = ["scripts/v0/optimizer", "scripts/v0/core", "scripts/v0/types.ts", "engine-rs"];
-  const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "--", ...paths], { encoding: "utf8" })
-    .trim().split("\n").filter(Boolean);
-  const compilerSourceFingerprint = fingerprintFiles(files);
-  const compilerEnvironment = Object.fromEntries(Object.entries(process.env)
-    .filter(([name, value]) => name.startsWith("LR_") && name !== "LR_ENGINE" && value !== undefined)
-    .sort(([a], [b]) => a.localeCompare(b)) as Array<[string, string]>);
-  const artifact = engine === "wasm" ? "engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm" : null;
-  const engineArtifactFingerprint = artifact !== null && existsSync(artifact)
-    ? createHash("sha256").update(readFileSync(artifact)).digest("hex")
-    : null;
-  const candidateFingerprint = createHash("sha256").update(JSON.stringify({
-    compilerSourceFingerprint,
-    compilerEnvironment,
-    engine,
-    engineArtifactFingerprint,
-  })).digest("hex");
-  return { compilerSourceFingerprint, compilerEnvironment, engine, engineArtifactFingerprint, candidateFingerprint };
 }
 
 function integerList(text: string, name: string, allowZero = false): number[] {

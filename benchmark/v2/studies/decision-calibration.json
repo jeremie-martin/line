@@ -1,18 +1,20 @@
 {
   "schema": "line.benchmark-v2.decision-calibration.v1",
-  "generatedAt": "2026-07-10T16:20:01.353Z",
-  "suiteFingerprint": "b118882720a968548323b5c53691a3e812df7733d0d931a579ad9aef57f5e470",
-  "decisionFingerprint": "752eb26e92f834cf32f4320c1ab428b8aeede8fd06192c44f78025288e761bf4",
+  "generatedAt": "2026-07-10T23:16:30.928Z",
+  "suiteFingerprint": "126414401682030b3ca604ed7a40d60f18bd9a06e0a68228a02a5c74f82096e5",
+  "decisionFingerprint": "72ef09e0ebe579fdb1f4818057baf4c5993273843e5abe47f7008aebeabea6c4",
   "policy": {
-    "schema": "line.benchmark-v2.decision-policy.v1",
-    "method": "paired_budget_seed_block_jackknife_t_with_parent_bootstrap_sensitivity",
+    "schema": "line.benchmark-v2.decision-policy.v2",
+    "method": "stress_calibrated_paired_budget_seed_block_jackknife_t_with_parent_bootstrap_sensitivity",
     "bootstrapIterations": 20000,
     "bootstrapSeed": 1592594996,
     "centralIntervalLevel": 0.95,
+    "centralCriticalIntervalLevel": 0.99,
     "profiles": {
       "probe": {
         "authority": "screening",
         "alpha": 0.1,
+        "criticalAlpha": 0.05,
         "positiveOutcome": "advance",
         "negativeOutcome": "stop",
         "unresolvedOutcome": "unresolved"
@@ -20,6 +22,7 @@
       "canonical": {
         "authority": "promotion",
         "alpha": 0.05,
+        "criticalAlpha": 0.01,
         "positiveOutcome": "accept",
         "negativeOutcome": "reject",
         "unresolvedOutcome": "inconclusive"
@@ -28,15 +31,18 @@
   },
   "simulation": {
     "trials": 200,
-    "bootstrapIterationsPerTrial": 100,
+    "sensitivityBootstrapIterationsPerTrial": 0,
+    "configuredSensitivityIterations": 100,
     "design": "Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.",
-    "note": "Bootstrap iterations only exercise sensitivity diagnostics; the formal seed-block gate and its coverage do not depend on them."
+    "note": "Repeated-sampling trials skip sensitivity bootstraps because they cannot affect the formal gate. Production decisions still use the policy's full sensitivity iteration count."
   },
   "controls": {
     "identical": {
       "available": true,
-      "baseArchive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
-      "candidateArchive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
+      "baseArchive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+      "baseArchiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
+      "candidateArchive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+      "candidateArchiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
       "delta": 0,
       "centralInterval": [
         0,
@@ -48,29 +54,394 @@
     },
     "knownBroadDegradation": {
       "available": true,
-      "baseArchive": "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
-      "candidateArchive": "generated/benchmark-v2/calibration/v2.2-quality-ncand-1-probe.json",
-      "delta": -141.1791,
+      "baseArchive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+      "baseArchiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
+      "candidateArchive": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
+      "candidateArchiveSha256": "758b2fed2f4953fd7c252e4adc86ff6a465e6c82073bebaf21fe91165dcfaf85",
+      "delta": -150.2036,
       "centralInterval": [
-        -216.654,
-        -65.7042
+        -224.0893,
+        -76.3179
       ],
-      "lowerBound": -176.0248,
-      "upperBound": -106.3334,
+      "lowerBound": -173.5339,
+      "upperBound": -126.8733,
+      "outcome": "stop"
+    },
+    "impactContractFailure": {
+      "available": true,
+      "baseArchive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+      "baseArchiveSha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
+      "candidateArchive": "benchmark/v2/runs/calibration-v2.4-impact-off-probe.json.gz",
+      "candidateArchiveSha256": "98f12eb9709f20d0e20a613e3bb5dae58a1480e61cbf10f8837fefe1bbce1da8",
+      "delta": -446.0945,
+      "centralInterval": [
+        -462.1357,
+        -430.0533
+      ],
+      "lowerBound": -453.2402,
+      "upperBound": -438.9488,
       "outcome": "stop"
     },
     "correlatedSeedAdversary": {
       "design": "Every case shares the same three seed effects [-10,-10,+30]. Independent-cell resampling previously accepted this control.",
       "delta": 2.9868,
       "centralInterval": [
-        -31.7753,
-        37.7489
+        -64.9255,
+        70.8991
       ],
-      "lowerBound": -14.1414,
-      "upperBound": 20.115,
+      "lowerBound": -22.1287,
+      "upperBound": 28.1023,
       "seedOnlyStandardError": 10.0567,
       "outcome": "unresolved"
     }
+  },
+  "coverageStudy": {
+    "path": "benchmark/v2/studies/decision-coverage.json",
+    "sha256": "ce4bf07c06839156bff9e75d77e6de0a97f7795c3e204a0563735e0fb090ca9c",
+    "trials": 1000,
+    "results": [
+      {
+        "scenario": "empirical_blocks",
+        "mode": "improvement",
+        "margin": null,
+        "seedsPerBudget": 8,
+        "trials": 1000,
+        "trueDelta": 0,
+        "meanDelta": -0.1004,
+        "centralCoverage": {
+          "count": 996,
+          "rate": 0.996,
+          "wilson95": [
+            0.9898,
+            0.9984
+          ]
+        },
+        "positiveOutcome": {
+          "count": 5,
+          "rate": 0.005,
+          "wilson95": [
+            0.0021,
+            0.0117
+          ]
+        },
+        "negativeOutcome": {
+          "count": 5,
+          "rate": 0.005,
+          "wilson95": [
+            0.0021,
+            0.0117
+          ]
+        },
+        "unresolvedOutcome": {
+          "count": 990,
+          "rate": 0.99,
+          "wilson95": [
+            0.9817,
+            0.9946
+          ]
+        },
+        "falseAccept": {
+          "count": 5,
+          "rate": 0.005,
+          "wilson95": [
+            0.0021,
+            0.0117
+          ]
+        },
+        "falseReject": {
+          "count": 5,
+          "rate": 0.005,
+          "wilson95": [
+            0.0021,
+            0.0117
+          ]
+        }
+      },
+      {
+        "scenario": "symmetric_validity_flips",
+        "mode": "improvement",
+        "margin": null,
+        "seedsPerBudget": 8,
+        "trials": 1000,
+        "trueDelta": 0,
+        "meanDelta": -0.2037,
+        "centralCoverage": {
+          "count": 987,
+          "rate": 0.987,
+          "wilson95": [
+            0.9779,
+            0.9924
+          ]
+        },
+        "positiveOutcome": {
+          "count": 21,
+          "rate": 0.021,
+          "wilson95": [
+            0.0138,
+            0.0319
+          ]
+        },
+        "negativeOutcome": {
+          "count": 5,
+          "rate": 0.005,
+          "wilson95": [
+            0.0021,
+            0.0117
+          ]
+        },
+        "unresolvedOutcome": {
+          "count": 974,
+          "rate": 0.974,
+          "wilson95": [
+            0.9622,
+            0.9822
+          ]
+        },
+        "falseAccept": {
+          "count": 21,
+          "rate": 0.021,
+          "wilson95": [
+            0.0138,
+            0.0319
+          ]
+        },
+        "falseReject": {
+          "count": 5,
+          "rate": 0.005,
+          "wilson95": [
+            0.0021,
+            0.0117
+          ]
+        }
+      },
+      {
+        "scenario": "catalog_wide_hard_zero",
+        "mode": "improvement",
+        "margin": null,
+        "seedsPerBudget": 8,
+        "trials": 1000,
+        "trueDelta": 0,
+        "meanDelta": 1.6556,
+        "centralCoverage": {
+          "count": 968,
+          "rate": 0.968,
+          "wilson95": [
+            0.9552,
+            0.9772
+          ]
+        },
+        "positiveOutcome": {
+          "count": 20,
+          "rate": 0.02,
+          "wilson95": [
+            0.013,
+            0.0307
+          ]
+        },
+        "negativeOutcome": {
+          "count": 27,
+          "rate": 0.027,
+          "wilson95": [
+            0.0186,
+            0.039
+          ]
+        },
+        "unresolvedOutcome": {
+          "count": 953,
+          "rate": 0.953,
+          "wilson95": [
+            0.9381,
+            0.9645
+          ]
+        },
+        "falseAccept": {
+          "count": 20,
+          "rate": 0.02,
+          "wilson95": [
+            0.013,
+            0.0307
+          ]
+        },
+        "falseReject": {
+          "count": 27,
+          "rate": 0.027,
+          "wilson95": [
+            0.0186,
+            0.039
+          ]
+        }
+      }
+    ],
+    "powerResults": [
+      {
+        "scenario": "empirical_score_gain",
+        "mode": "improvement",
+        "margin": null,
+        "seedsPerBudget": 8,
+        "trials": 1000,
+        "trueDelta": 12.7967,
+        "meanDelta": 12.7122,
+        "centralCoverage": {
+          "count": 993,
+          "rate": 0.993,
+          "wilson95": [
+            0.9856,
+            0.9966
+          ]
+        },
+        "positiveOutcome": {
+          "count": 923,
+          "rate": 0.923,
+          "wilson95": [
+            0.9048,
+            0.938
+          ]
+        },
+        "negativeOutcome": {
+          "count": 0,
+          "rate": 0,
+          "wilson95": [
+            0,
+            0.0038
+          ]
+        },
+        "unresolvedOutcome": {
+          "count": 77,
+          "rate": 0.077,
+          "wilson95": [
+            0.062,
+            0.0952
+          ]
+        },
+        "candidateValidityProbability": null
+      },
+      {
+        "scenario": "hard_zero_validity_gain",
+        "mode": "improvement",
+        "margin": null,
+        "seedsPerBudget": 8,
+        "trials": 1000,
+        "trueDelta": 66.3391,
+        "meanDelta": 66.6159,
+        "centralCoverage": {
+          "count": 956,
+          "rate": 0.956,
+          "wilson95": [
+            0.9414,
+            0.9671
+          ]
+        },
+        "positiveOutcome": {
+          "count": 70,
+          "rate": 0.07,
+          "wilson95": [
+            0.0558,
+            0.0875
+          ]
+        },
+        "negativeOutcome": {
+          "count": 6,
+          "rate": 0.006,
+          "wilson95": [
+            0.0028,
+            0.013
+          ]
+        },
+        "unresolvedOutcome": {
+          "count": 924,
+          "rate": 0.924,
+          "wilson95": [
+            0.9059,
+            0.9389
+          ]
+        },
+        "candidateValidityProbability": 0.86
+      },
+      {
+        "scenario": "noninferiority_inside",
+        "mode": "simplification",
+        "margin": 5,
+        "seedsPerBudget": 8,
+        "trials": 1000,
+        "trueDelta": -2.5,
+        "meanDelta": -8.6033,
+        "centralCoverage": {
+          "count": 962,
+          "rate": 0.962,
+          "wilson95": [
+            0.9483,
+            0.9722
+          ]
+        },
+        "positiveOutcome": {
+          "count": 21,
+          "rate": 0.021,
+          "wilson95": [
+            0.0138,
+            0.0319
+          ]
+        },
+        "negativeOutcome": {
+          "count": 29,
+          "rate": 0.029,
+          "wilson95": [
+            0.0203,
+            0.0413
+          ]
+        },
+        "unresolvedOutcome": {
+          "count": 950,
+          "rate": 0.95,
+          "wilson95": [
+            0.9347,
+            0.9619
+          ]
+        },
+        "candidateValidityProbability": 0.7974152858762409
+      },
+      {
+        "scenario": "noninferiority_boundary",
+        "mode": "simplification",
+        "margin": 5,
+        "seedsPerBudget": 8,
+        "trials": 1000,
+        "trueDelta": -5,
+        "meanDelta": -9.9765,
+        "centralCoverage": {
+          "count": 956,
+          "rate": 0.956,
+          "wilson95": [
+            0.9414,
+            0.9671
+          ]
+        },
+        "positiveOutcome": {
+          "count": 29,
+          "rate": 0.029,
+          "wilson95": [
+            0.0203,
+            0.0413
+          ]
+        },
+        "negativeOutcome": {
+          "count": 28,
+          "rate": 0.028,
+          "wilson95": [
+            0.0194,
+            0.0402
+          ]
+        },
+        "unresolvedOutcome": {
+          "count": 943,
+          "rate": 0.943,
+          "wilson95": [
+            0.9269,
+            0.9557
+          ]
+        },
+        "candidateValidityProbability": 0.794801886486721
+      }
+    ]
   },
   "simulations": [
     {
@@ -81,19 +452,19 @@
       "meanTrueCatalogDelta": 0,
       "outcomes": {
         "unresolved": {
-          "count": 167,
-          "rate": 0.835
+          "count": 183,
+          "rate": 0.915
         },
         "stop": {
-          "count": 16,
-          "rate": 0.08
+          "count": 10,
+          "rate": 0.05
         },
         "advance": {
-          "count": 17,
-          "rate": 0.085
+          "count": 7,
+          "rate": 0.035
         }
       },
-      "centralIntervalCoverageOfTrueCatalogDelta": 0.95
+      "centralIntervalCoverageOfTrueCatalogDelta": 1
     },
     {
       "profile": "probe",
@@ -103,19 +474,19 @@
       "meanTrueCatalogDelta": 5.0002,
       "outcomes": {
         "unresolved": {
-          "count": 135,
-          "rate": 0.675
+          "count": 162,
+          "rate": 0.81
         },
         "advance": {
-          "count": 60,
-          "rate": 0.3
+          "count": 37,
+          "rate": 0.185
         },
         "stop": {
-          "count": 5,
-          "rate": 0.025
+          "count": 1,
+          "rate": 0.005
         }
       },
-      "centralIntervalCoverageOfTrueCatalogDelta": 0.955
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.99
     },
     {
       "profile": "probe",
@@ -125,15 +496,15 @@
       "meanTrueCatalogDelta": 15.0015,
       "outcomes": {
         "advance": {
-          "count": 172,
-          "rate": 0.86
+          "count": 132,
+          "rate": 0.66
         },
         "unresolved": {
-          "count": 28,
-          "rate": 0.14
+          "count": 68,
+          "rate": 0.34
         }
       },
-      "centralIntervalCoverageOfTrueCatalogDelta": 0.915
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.975
     },
     {
       "profile": "probe",
@@ -142,100 +513,92 @@
       "meanObservedDelta": -4.7681,
       "meanTrueCatalogDelta": -5.0004,
       "outcomes": {
-        "advance": {
-          "count": 4,
-          "rate": 0.02
-        },
         "unresolved": {
-          "count": 136,
-          "rate": 0.68
+          "count": 166,
+          "rate": 0.83
         },
         "stop": {
-          "count": 60,
-          "rate": 0.3
+          "count": 33,
+          "rate": 0.165
+        },
+        "advance": {
+          "count": 1,
+          "rate": 0.005
         }
       },
-      "centralIntervalCoverageOfTrueCatalogDelta": 0.945
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.995
     },
     {
       "profile": "canonical",
       "scenario": "null",
       "injectedLogScaleShift": 0,
-      "meanObservedDelta": 0.2753,
+      "meanObservedDelta": 0.0856,
       "meanTrueCatalogDelta": 0,
       "outcomes": {
         "inconclusive": {
-          "count": 184,
-          "rate": 0.92
+          "count": 196,
+          "rate": 0.98
         },
         "accept": {
-          "count": 11,
-          "rate": 0.055
+          "count": 2,
+          "rate": 0.01
         },
         "reject": {
-          "count": 5,
-          "rate": 0.025
+          "count": 2,
+          "rate": 0.01
         }
       },
-      "centralIntervalCoverageOfTrueCatalogDelta": 0.95
+      "centralIntervalCoverageOfTrueCatalogDelta": 1
     },
     {
       "profile": "canonical",
       "scenario": "small_gain",
       "injectedLogScaleShift": 5,
-      "meanObservedDelta": 5.1363,
+      "meanObservedDelta": 4.902,
       "meanTrueCatalogDelta": 5.0002,
       "outcomes": {
         "inconclusive": {
-          "count": 132,
-          "rate": 0.66
+          "count": 149,
+          "rate": 0.745
         },
         "accept": {
-          "count": 67,
-          "rate": 0.335
-        },
-        "reject": {
-          "count": 1,
-          "rate": 0.005
+          "count": 51,
+          "rate": 0.255
         }
       },
-      "centralIntervalCoverageOfTrueCatalogDelta": 0.96
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.99
     },
     {
       "profile": "canonical",
       "scenario": "clear_gain",
       "injectedLogScaleShift": 15,
-      "meanObservedDelta": 15.2101,
+      "meanObservedDelta": 15.4126,
       "meanTrueCatalogDelta": 15.0015,
       "outcomes": {
         "accept": {
-          "count": 192,
-          "rate": 0.96
-        },
-        "inconclusive": {
-          "count": 8,
-          "rate": 0.04
+          "count": 200,
+          "rate": 1
         }
       },
-      "centralIntervalCoverageOfTrueCatalogDelta": 0.96
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.995
     },
     {
       "profile": "canonical",
       "scenario": "small_regression",
       "injectedLogScaleShift": -5,
-      "meanObservedDelta": -4.7765,
+      "meanObservedDelta": -4.962,
       "meanTrueCatalogDelta": -5.0004,
       "outcomes": {
-        "reject": {
-          "count": 56,
-          "rate": 0.28
-        },
         "inconclusive": {
-          "count": 144,
-          "rate": 0.72
+          "count": 147,
+          "rate": 0.735
+        },
+        "reject": {
+          "count": 53,
+          "rate": 0.265
         }
       },
-      "centralIntervalCoverageOfTrueCatalogDelta": 0.96
+      "centralIntervalCoverageOfTrueCatalogDelta": 0.995
     }
   ]
 }

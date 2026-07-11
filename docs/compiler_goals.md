@@ -41,11 +41,12 @@ contract is `benchmark-v2-decisions.md`.)
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
 - `npm run benchmark -- probe` produces screening evidence on 42 development cases.
-- `npm run benchmark -- canonical --label=NAME` produces canonical development evidence
-  plus linked held-out qualification monitoring.
+- `npm run benchmark -- canonical --decision-mode=improvement` spends the baseline's
+  one-shot canonical declaration and produces development evidence plus linked
+  qualification monitoring.
 - `npm run decide -- CANDIDATE.json` applies paired budget seed-block confidence bounds.
-  Only a canonical `accept` promotes an improvement. Simplifications require an explicit
-  non-inferiority margin.
+  Only a canonical `accept` promotes an improvement. Simplification margins are bound to
+  the declaration before canonical compilation.
 
 Any compiler change should preserve these tests and report its impact through the
 V2 breakdown: headline, budgets, strata, groups, parents, cases, validity flips,

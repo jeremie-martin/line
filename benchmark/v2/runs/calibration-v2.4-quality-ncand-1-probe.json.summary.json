@@ -1,0 +1,1433 @@
+{
+  "schema": "line.benchmark-v2.run-summary.v3",
+  "mode": "development",
+  "profile": "probe",
+  "generatedAt": "2026-07-10T23:13:45.058Z",
+  "archive": "generated/benchmark-v2/calibration-v2.4-quality-ncand-1-probe.json",
+  "compressedArchive": "generated/benchmark-v2/calibration-v2.4-quality-ncand-1-probe.json.gz",
+  "archiveSha256": "1f9858ac1d91df0f1864b5982982a584525a525949cb46831f8bfbe42babbace",
+  "compressedArchiveSha256": "758b2fed2f4953fd7c252e4adc86ff6a465e6c82073bebaf21fe91165dcfaf85",
+  "suiteFingerprint": "126414401682030b3ca604ed7a40d60f18bd9a06e0a68228a02a5c74f82096e5",
+  "executionPolicyFingerprint": "023b4f8080b9132cd660d31be2922e94be588cfc67120c0f93be2c2574597714",
+  "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+  "implementationFingerprint": "2c06dd21f54edd18aea243d58c9603967736a434020e2f9ac37de60f35e4d300",
+  "listeningReviewFingerprint": "46803b63e26d5188395b17f8a1cb410886f066ce0ae2d4355c2c6e44ceff17e8",
+  "listeningReviewStatus": "awaiting-human-review",
+  "seedSchedule": {
+    "kind": "profile_budget_disjoint_contiguous",
+    "profile": "probe",
+    "seedBase": 24,
+    "seedsPerBudget": 3,
+    "byBudget": [
+      {
+        "budget": 250000,
+        "actualSeeds": [
+          24,
+          25,
+          26
+        ]
+      },
+      {
+        "budget": 500000,
+        "actualSeeds": [
+          27,
+          28,
+          29
+        ]
+      }
+    ]
+  },
+  "compilerIdentityProtocol": "line.compiler-source-identity.v2",
+  "compilerSourceFingerprint": "d1c4951189ad104b6a5e46bc6e056484551b45eb7701d1f133b126f90dbcabb8",
+  "compilerSourceFiles": [
+    "engine-rs/.gitignore",
+    "engine-rs/Cargo.lock",
+    "engine-rs/Cargo.toml",
+    "engine-rs/README.md",
+    "engine-rs/src/abi.rs",
+    "engine-rs/src/engine.rs",
+    "engine-rs/src/frame.rs",
+    "engine-rs/src/grid.rs",
+    "engine-rs/src/kernel.rs",
+    "engine-rs/src/lib.rs",
+    "engine-rs/src/line.rs",
+    "package-lock.json",
+    "package.json",
+    "scripts/lib/_lr_engine.ts",
+    "scripts/lib/_lr_engine_record.ts",
+    "scripts/lib/_lr_engine_wasm.ts",
+    "scripts/lib/adapt.ts",
+    "scripts/lib/arc.ts",
+    "scripts/lib/arcLines.ts",
+    "scripts/lib/beam_prune.ts",
+    "scripts/lib/beam_search.ts",
+    "scripts/lib/detector.ts",
+    "scripts/lib/export.ts",
+    "scripts/lib/metrics.ts",
+    "scripts/lib/moves.ts",
+    "scripts/lib/precise_landings.ts",
+    "scripts/lib/primitive.ts",
+    "scripts/lib/primitive_search.ts",
+    "scripts/lib/ride.ts",
+    "scripts/lib/rng.ts",
+    "scripts/lib/rotation.ts",
+    "scripts/lib/route.ts",
+    "scripts/lib/search.ts",
+    "scripts/lib/tune.ts",
+    "scripts/lib/update_types.ts",
+    "scripts/v0/arc.ts",
+    "scripts/v0/arc_placement.ts",
+    "scripts/v0/core/beats.ts",
+    "scripts/v0/core/camera.ts",
+    "scripts/v0/core/candidate.ts",
+    "scripts/v0/core/compile_lifecycle.ts",
+    "scripts/v0/core/curves.ts",
+    "scripts/v0/core/exit_read.ts",
+    "scripts/v0/core/launch_read.ts",
+    "scripts/v0/core/measure.ts",
+    "scripts/v0/core/polish.ts",
+    "scripts/v0/core/substrate.ts",
+    "scripts/v0/core/trace.ts",
+    "scripts/v0/optimizer/README.md",
+    "scripts/v0/optimizer/aim.ts",
+    "scripts/v0/optimizer/arc_model.ts",
+    "scripts/v0/optimizer/arc_probe.ts",
+    "scripts/v0/optimizer/budget_model.ts",
+    "scripts/v0/optimizer/handoff.ts",
+    "scripts/v0/optimizer/node.ts",
+    "scripts/v0/optimizer/objective.ts",
+    "scripts/v0/optimizer/polish.ts",
+    "scripts/v0/optimizer/readiness.ts",
+    "scripts/v0/optimizer/register.ts",
+    "scripts/v0/optimizer/sample.ts",
+    "scripts/v0/optimizer/sim_frames.ts",
+    "scripts/v0/optimizer/solver.ts",
+    "scripts/v0/optimizer/types.ts",
+    "scripts/v0/score.ts",
+    "scripts/v0/types.ts",
+    "tsconfig.json"
+  ],
+  "compilerEnvironment": {
+    "LR_QUALITY_NCAND": "1"
+  },
+  "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
+  "candidateFingerprint": "f5ae308d6cc0ea11b885a61e33b5f4605069172177c8a5f5f7ec2e44a8ef9cab",
+  "canonicalHeadline": 295.8909,
+  "qualificationMonitorScore": null,
+  "developmentSummaries": [
+    {
+      "budget": 250000,
+      "score": 298.1593,
+      "validRuns": 103,
+      "totalRuns": 126,
+      "specifications": [
+        {
+          "id": "river_reentry",
+          "score": 361.5497,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "river_reentry_tempo_fast_5",
+          "score": 331.2983,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "countercurrent",
+          "score": 408.2173,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "countercurrent_impact_contrast_12",
+          "score": 392.0421,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "split_signal",
+          "score": 369.8648,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "split_signal_impact_relief_12",
+          "score": 377.2174,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "pickup_lattice",
+          "score": 407.8983,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "pickup_lattice_speed_minus_4",
+          "score": 395.6624,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "loose_pocket",
+          "score": 342.914,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "loose_pocket_drag_later_20ms",
+          "score": 337.2229,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "offgrid_conversation",
+          "score": 483.3874,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "offgrid_conversation_answer_early_25ms",
+          "score": 477.5697,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "rising_switch",
+          "score": 367.2464,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "rising_switch_tempo_fast_5",
+          "score": 353.6443,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "meter_exchange",
+          "score": 372.1432,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "meter_exchange_speed_plus_4",
+          "score": 365.7383,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "wide_breaths",
+          "score": 543.4143,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "wide_breaths_air_plus_5",
+          "score": 540.3873,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "open_hook",
+          "score": 331.395,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "open_hook_amplitude_plus_8",
+          "score": 335.5186,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amplitude_tides",
+          "score": 416.8281,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amplitude_tides_restrained_10",
+          "score": 407.9238,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "dense_dialogue",
+          "score": 5.9322,
+          "validRuns": 1,
+          "totalRuns": 3
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "high_air_drive",
+          "score": 343.8579,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "score": 323.6697,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "sparse_lowline",
+          "score": 411.3863,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "sparse_lowline_air_minus_4",
+          "score": 366.9706,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_pickup_progression",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_pickup_progression_shifted",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_low_air_endurance",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_transition_mosaic",
+          "score": 444.3741,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_transition_mosaic_tempo_fast_5",
+          "score": 428.1864,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_amplitude_mosaic",
+          "score": 386.2852,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_amplitude_mosaic_contrast_10",
+          "score": 378.9879,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_56_6s",
+          "score": 234.7182,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_56_6s_impact_relief",
+          "score": 248.0814,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_impact_56s",
+          "score": 375.2212,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_impact_56s_amplitude_plus_5",
+          "score": 368.6559,
+          "validRuns": 3,
+          "totalRuns": 3
+        }
+      ],
+      "groups": [
+        {
+          "id": "regular_exceptions",
+          "stratum": "representative",
+          "weight": 0.2,
+          "score": 372.0974,
+          "members": [
+            "river_reentry",
+            "river_reentry_tempo_fast_5",
+            "countercurrent",
+            "countercurrent_impact_contrast_12"
+          ],
+          "parents": [
+            {
+              "id": "river_reentry",
+              "score": 346.0946,
+              "members": [
+                "river_reentry",
+                "river_reentry_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "countercurrent",
+              "score": 400.0482,
+              "members": [
+                "countercurrent",
+                "countercurrent_impact_contrast_12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "subdivision_pickup",
+          "stratum": "representative",
+          "weight": 0.15,
+          "score": 387.3724,
+          "members": [
+            "split_signal",
+            "split_signal_impact_relief_12",
+            "pickup_lattice",
+            "pickup_lattice_speed_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "split_signal",
+              "score": 373.5231,
+              "members": [
+                "split_signal",
+                "split_signal_impact_relief_12"
+              ]
+            },
+            {
+              "id": "pickup_lattice",
+              "score": 401.7339,
+              "members": [
+                "pickup_lattice",
+                "pickup_lattice_speed_minus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "irregular_microtimed",
+          "stratum": "representative",
+          "weight": 0.15,
+          "score": 404.2264,
+          "members": [
+            "loose_pocket",
+            "loose_pocket_drag_later_20ms",
+            "offgrid_conversation",
+            "offgrid_conversation_answer_early_25ms"
+          ],
+          "parents": [
+            {
+              "id": "loose_pocket",
+              "score": 340.0566,
+              "members": [
+                "loose_pocket",
+                "loose_pocket_drag_later_20ms"
+              ]
+            },
+            {
+              "id": "offgrid_conversation",
+              "score": 480.4698,
+              "members": [
+                "offgrid_conversation",
+                "offgrid_conversation_answer_early_25ms"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cadence_transition",
+          "stratum": "representative",
+          "weight": 0.12,
+          "score": 364.6292,
+          "members": [
+            "rising_switch",
+            "rising_switch_tempo_fast_5",
+            "meter_exchange",
+            "meter_exchange_speed_plus_4"
+          ],
+          "parents": [
+            {
+              "id": "rising_switch",
+              "score": 360.3814,
+              "members": [
+                "rising_switch",
+                "rising_switch_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "meter_exchange",
+              "score": 368.9269,
+              "members": [
+                "meter_exchange",
+                "meter_exchange_speed_plus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "spacious_amplitude",
+          "stratum": "representative",
+          "weight": 0.13,
+          "score": 420.8165,
+          "members": [
+            "wide_breaths",
+            "wide_breaths_air_plus_5",
+            "open_hook",
+            "open_hook_amplitude_plus_8",
+            "amplitude_tides",
+            "amplitude_tides_restrained_10"
+          ],
+          "parents": [
+            {
+              "id": "wide_breaths",
+              "score": 541.8987,
+              "members": [
+                "wide_breaths",
+                "wide_breaths_air_plus_5"
+              ]
+            },
+            {
+              "id": "open_hook",
+              "score": 333.4504,
+              "members": [
+                "open_hook",
+                "open_hook_amplitude_plus_8"
+              ]
+            },
+            {
+              "id": "amplitude_tides",
+              "score": 412.352,
+              "members": [
+                "amplitude_tides",
+                "amplitude_tides_restrained_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_musical",
+          "stratum": "representative",
+          "weight": 0.1,
+          "score": 1.6329,
+          "members": [
+            "dense_dialogue",
+            "dense_dialogue_impact_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "dense_dialogue",
+              "score": 1.6329,
+              "members": [
+                "dense_dialogue",
+                "dense_dialogue_impact_contrast_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "high_air_energy",
+          "stratum": "representative",
+          "weight": 0.08,
+          "score": 333.6116,
+          "members": [
+            "high_air_drive",
+            "high_air_drive_air_minus_5"
+          ],
+          "parents": [
+            {
+              "id": "high_air_drive",
+              "score": 333.6116,
+              "members": [
+                "high_air_drive",
+                "high_air_drive_air_minus_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sparse_transition",
+          "stratum": "representative",
+          "weight": 0.07,
+          "score": 388.5459,
+          "members": [
+            "sparse_lowline",
+            "sparse_lowline_air_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "sparse_lowline",
+              "score": 388.5459,
+              "members": [
+                "sparse_lowline",
+                "sparse_lowline_air_minus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rapid_pickup_frontier",
+          "stratum": "capability",
+          "weight": 0.4,
+          "score": 0,
+          "members": [
+            "frontier_pickup_progression",
+            "frontier_pickup_progression_shifted"
+          ],
+          "parents": [
+            {
+              "id": "frontier_pickup_progression",
+              "score": 0,
+              "members": [
+                "frontier_pickup_progression",
+                "frontier_pickup_progression_shifted"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_recovery_frontier",
+          "stratum": "capability",
+          "weight": 0.35,
+          "score": 0,
+          "members": [
+            "frontier_dense_recovery",
+            "frontier_dense_recovery_240ms_figures"
+          ],
+          "parents": [
+            {
+              "id": "frontier_dense_recovery",
+              "score": 0,
+              "members": [
+                "frontier_dense_recovery",
+                "frontier_dense_recovery_240ms_figures"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "low_air_frontier",
+          "stratum": "capability",
+          "weight": 0.25,
+          "score": 0,
+          "members": [
+            "frontier_low_air_endurance",
+            "frontier_low_air_endurance_4s"
+          ],
+          "parents": [
+            {
+              "id": "frontier_low_air_endurance",
+              "score": 0,
+              "members": [
+                "frontier_low_air_endurance",
+                "frontier_low_air_endurance_4s"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legacy_transition_regression",
+          "stratum": "legacy_regression",
+          "weight": 0.55,
+          "score": 436.2053,
+          "members": [
+            "regression_transition_mosaic",
+            "regression_transition_mosaic_tempo_fast_5"
+          ],
+          "parents": [
+            {
+              "id": "regression_transition_mosaic",
+              "score": 436.2053,
+              "members": [
+                "regression_transition_mosaic",
+                "regression_transition_mosaic_tempo_fast_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legacy_amplitude_regression",
+          "stratum": "legacy_regression",
+          "weight": 0.45,
+          "score": 382.6192,
+          "members": [
+            "regression_amplitude_mosaic",
+            "regression_amplitude_mosaic_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "regression_amplitude_mosaic",
+              "score": 382.6192,
+              "members": [
+                "regression_amplitude_mosaic",
+                "regression_amplitude_mosaic_contrast_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "believer_56s",
+          "stratum": "development_music",
+          "weight": 1,
+          "score": 299.6034,
+          "members": [
+            "believer_56_6s",
+            "believer_56_6s_impact_relief",
+            "believer_impact_56s",
+            "believer_impact_56s_amplitude_plus_5"
+          ],
+          "parents": [
+            {
+              "id": "believer_56_6s",
+              "score": 241.3077,
+              "members": [
+                "believer_56_6s",
+                "believer_56_6s_impact_relief"
+              ]
+            },
+            {
+              "id": "believer_impact_56s",
+              "score": 371.9241,
+              "members": [
+                "believer_impact_56s",
+                "believer_impact_56s_amplitude_plus_5"
+              ]
+            }
+          ]
+        }
+      ],
+      "strata": [
+        {
+          "id": "representative",
+          "weight": 0.7,
+          "score": 345.6714,
+          "groups": [
+            "regular_exceptions",
+            "subdivision_pickup",
+            "irregular_microtimed",
+            "cadence_transition",
+            "spacious_amplitude",
+            "dense_musical",
+            "high_air_energy",
+            "sparse_transition"
+          ]
+        },
+        {
+          "id": "capability",
+          "weight": 0.15,
+          "score": 0,
+          "groups": [
+            "rapid_pickup_frontier",
+            "dense_recovery_frontier",
+            "low_air_frontier"
+          ]
+        },
+        {
+          "id": "legacy_regression",
+          "weight": 0.1,
+          "score": 412.0916,
+          "groups": [
+            "legacy_transition_regression",
+            "legacy_amplitude_regression"
+          ]
+        },
+        {
+          "id": "development_music",
+          "weight": 0.05,
+          "score": 299.6034,
+          "groups": [
+            "believer_56s"
+          ]
+        }
+      ]
+    },
+    {
+      "budget": 500000,
+      "score": 294.9836,
+      "validRuns": 105,
+      "totalRuns": 126,
+      "specifications": [
+        {
+          "id": "river_reentry",
+          "score": 357.8313,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "river_reentry_tempo_fast_5",
+          "score": 347.4124,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "countercurrent",
+          "score": 425.1201,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "countercurrent_impact_contrast_12",
+          "score": 406.6178,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "split_signal",
+          "score": 373.0369,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "split_signal_impact_relief_12",
+          "score": 382.7687,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "pickup_lattice",
+          "score": 54.4599,
+          "validRuns": 2,
+          "totalRuns": 3
+        },
+        {
+          "id": "pickup_lattice_speed_minus_4",
+          "score": 6.4977,
+          "validRuns": 1,
+          "totalRuns": 3
+        },
+        {
+          "id": "loose_pocket",
+          "score": 348.1752,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "loose_pocket_drag_later_20ms",
+          "score": 337.9307,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "offgrid_conversation",
+          "score": 488.1605,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "offgrid_conversation_answer_early_25ms",
+          "score": 485.7909,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "rising_switch",
+          "score": 372.046,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "rising_switch_tempo_fast_5",
+          "score": 356.9801,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "meter_exchange",
+          "score": 362.2365,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "meter_exchange_speed_plus_4",
+          "score": 371.4639,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "wide_breaths",
+          "score": 564.615,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "wide_breaths_air_plus_5",
+          "score": 531.719,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "open_hook",
+          "score": 347.5697,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "open_hook_amplitude_plus_8",
+          "score": 335.3774,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amplitude_tides",
+          "score": 410.3285,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "amplitude_tides_restrained_10",
+          "score": 411.4736,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "dense_dialogue",
+          "score": 334.327,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "dense_dialogue_impact_contrast_10",
+          "score": 331.6278,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "high_air_drive",
+          "score": 348.5733,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "high_air_drive_air_minus_5",
+          "score": 327.5035,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "sparse_lowline",
+          "score": 417.9097,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "sparse_lowline_air_minus_4",
+          "score": 404.0616,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_pickup_progression",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_pickup_progression_shifted",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_dense_recovery",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_dense_recovery_240ms_figures",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_low_air_endurance",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "frontier_low_air_endurance_4s",
+          "score": 0,
+          "validRuns": 0,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_transition_mosaic",
+          "score": 440.647,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_transition_mosaic_tempo_fast_5",
+          "score": 428.4152,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_amplitude_mosaic",
+          "score": 409.9588,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "regression_amplitude_mosaic_contrast_10",
+          "score": 405.7368,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_56_6s",
+          "score": 237.1609,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_56_6s_impact_relief",
+          "score": 254.4809,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_impact_56s",
+          "score": 382.6156,
+          "validRuns": 3,
+          "totalRuns": 3
+        },
+        {
+          "id": "believer_impact_56s_amplitude_plus_5",
+          "score": 381.5781,
+          "validRuns": 3,
+          "totalRuns": 3
+        }
+      ],
+      "groups": [
+        {
+          "id": "regular_exceptions",
+          "stratum": "representative",
+          "weight": 0.2,
+          "score": 382.8772,
+          "members": [
+            "river_reentry",
+            "river_reentry_tempo_fast_5",
+            "countercurrent",
+            "countercurrent_impact_contrast_12"
+          ],
+          "parents": [
+            {
+              "id": "river_reentry",
+              "score": 352.5835,
+              "members": [
+                "river_reentry",
+                "river_reentry_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "countercurrent",
+              "score": 415.7663,
+              "members": [
+                "countercurrent",
+                "countercurrent_impact_contrast_12"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "subdivision_pickup",
+          "stratum": "representative",
+          "weight": 0.15,
+          "score": 86.8967,
+          "members": [
+            "split_signal",
+            "split_signal_impact_relief_12",
+            "pickup_lattice",
+            "pickup_lattice_speed_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "split_signal",
+              "score": 377.8716,
+              "members": [
+                "split_signal",
+                "split_signal_impact_relief_12"
+              ]
+            },
+            {
+              "id": "pickup_lattice",
+              "score": 19.3917,
+              "members": [
+                "pickup_lattice",
+                "pickup_lattice_speed_minus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "irregular_microtimed",
+          "stratum": "representative",
+          "weight": 0.15,
+          "score": 408.7199,
+          "members": [
+            "loose_pocket",
+            "loose_pocket_drag_later_20ms",
+            "offgrid_conversation",
+            "offgrid_conversation_answer_early_25ms"
+          ],
+          "parents": [
+            {
+              "id": "loose_pocket",
+              "score": 343.0148,
+              "members": [
+                "loose_pocket",
+                "loose_pocket_drag_later_20ms"
+              ]
+            },
+            {
+              "id": "offgrid_conversation",
+              "score": 486.9743,
+              "members": [
+                "offgrid_conversation",
+                "offgrid_conversation_answer_early_25ms"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cadence_transition",
+          "stratum": "representative",
+          "weight": 0.12,
+          "score": 365.6264,
+          "members": [
+            "rising_switch",
+            "rising_switch_tempo_fast_5",
+            "meter_exchange",
+            "meter_exchange_speed_plus_4"
+          ],
+          "parents": [
+            {
+              "id": "rising_switch",
+              "score": 364.4354,
+              "members": [
+                "rising_switch",
+                "rising_switch_tempo_fast_5"
+              ]
+            },
+            {
+              "id": "meter_exchange",
+              "score": 366.8213,
+              "members": [
+                "meter_exchange",
+                "meter_exchange_speed_plus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "spacious_amplitude",
+          "stratum": "representative",
+          "weight": 0.13,
+          "score": 425.2065,
+          "members": [
+            "wide_breaths",
+            "wide_breaths_air_plus_5",
+            "open_hook",
+            "open_hook_amplitude_plus_8",
+            "amplitude_tides",
+            "amplitude_tides_restrained_10"
+          ],
+          "parents": [
+            {
+              "id": "wide_breaths",
+              "score": 547.9206,
+              "members": [
+                "wide_breaths",
+                "wide_breaths_air_plus_5"
+              ]
+            },
+            {
+              "id": "open_hook",
+              "score": 341.4193,
+              "members": [
+                "open_hook",
+                "open_hook_amplitude_plus_8"
+              ]
+            },
+            {
+              "id": "amplitude_tides",
+              "score": 410.9007,
+              "members": [
+                "amplitude_tides",
+                "amplitude_tides_restrained_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_musical",
+          "stratum": "representative",
+          "weight": 0.1,
+          "score": 332.9747,
+          "members": [
+            "dense_dialogue",
+            "dense_dialogue_impact_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "dense_dialogue",
+              "score": 332.9747,
+              "members": [
+                "dense_dialogue",
+                "dense_dialogue_impact_contrast_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "high_air_energy",
+          "stratum": "representative",
+          "weight": 0.08,
+          "score": 337.8747,
+          "members": [
+            "high_air_drive",
+            "high_air_drive_air_minus_5"
+          ],
+          "parents": [
+            {
+              "id": "high_air_drive",
+              "score": 337.8747,
+              "members": [
+                "high_air_drive",
+                "high_air_drive_air_minus_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sparse_transition",
+          "stratum": "representative",
+          "weight": 0.07,
+          "score": 410.9275,
+          "members": [
+            "sparse_lowline",
+            "sparse_lowline_air_minus_4"
+          ],
+          "parents": [
+            {
+              "id": "sparse_lowline",
+              "score": 410.9275,
+              "members": [
+                "sparse_lowline",
+                "sparse_lowline_air_minus_4"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rapid_pickup_frontier",
+          "stratum": "capability",
+          "weight": 0.4,
+          "score": 0,
+          "members": [
+            "frontier_pickup_progression",
+            "frontier_pickup_progression_shifted"
+          ],
+          "parents": [
+            {
+              "id": "frontier_pickup_progression",
+              "score": 0,
+              "members": [
+                "frontier_pickup_progression",
+                "frontier_pickup_progression_shifted"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense_recovery_frontier",
+          "stratum": "capability",
+          "weight": 0.35,
+          "score": 0,
+          "members": [
+            "frontier_dense_recovery",
+            "frontier_dense_recovery_240ms_figures"
+          ],
+          "parents": [
+            {
+              "id": "frontier_dense_recovery",
+              "score": 0,
+              "members": [
+                "frontier_dense_recovery",
+                "frontier_dense_recovery_240ms_figures"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "low_air_frontier",
+          "stratum": "capability",
+          "weight": 0.25,
+          "score": 0,
+          "members": [
+            "frontier_low_air_endurance",
+            "frontier_low_air_endurance_4s"
+          ],
+          "parents": [
+            {
+              "id": "frontier_low_air_endurance",
+              "score": 0,
+              "members": [
+                "frontier_low_air_endurance",
+                "frontier_low_air_endurance_4s"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legacy_transition_regression",
+          "stratum": "legacy_regression",
+          "weight": 0.55,
+          "score": 434.4882,
+          "members": [
+            "regression_transition_mosaic",
+            "regression_transition_mosaic_tempo_fast_5"
+          ],
+          "parents": [
+            {
+              "id": "regression_transition_mosaic",
+              "score": 434.4882,
+              "members": [
+                "regression_transition_mosaic",
+                "regression_transition_mosaic_tempo_fast_5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legacy_amplitude_regression",
+          "stratum": "legacy_regression",
+          "weight": 0.45,
+          "score": 407.8424,
+          "members": [
+            "regression_amplitude_mosaic",
+            "regression_amplitude_mosaic_contrast_10"
+          ],
+          "parents": [
+            {
+              "id": "regression_amplitude_mosaic",
+              "score": 407.8424,
+              "members": [
+                "regression_amplitude_mosaic",
+                "regression_amplitude_mosaic_contrast_10"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "believer_56s",
+          "stratum": "development_music",
+          "weight": 1,
+          "score": 306.4053,
+          "members": [
+            "believer_56_6s",
+            "believer_56_6s_impact_relief",
+            "believer_impact_56s",
+            "believer_impact_56s_amplitude_plus_5"
+          ],
+          "parents": [
+            {
+              "id": "believer_56_6s",
+              "score": 245.6689,
+              "members": [
+                "believer_56_6s",
+                "believer_56_6s_impact_relief"
+              ]
+            },
+            {
+              "id": "believer_impact_56s",
+              "score": 382.0965,
+              "members": [
+                "believer_impact_56s",
+                "believer_impact_56s_amplitude_plus_5"
+              ]
+            }
+          ]
+        }
+      ],
+      "strata": [
+        {
+          "id": "representative",
+          "weight": 0.7,
+          "score": 339.1623,
+          "groups": [
+            "regular_exceptions",
+            "subdivision_pickup",
+            "irregular_microtimed",
+            "cadence_transition",
+            "spacious_amplitude",
+            "dense_musical",
+            "high_air_energy",
+            "sparse_transition"
+          ]
+        },
+        {
+          "id": "capability",
+          "weight": 0.15,
+          "score": 0,
+          "groups": [
+            "rapid_pickup_frontier",
+            "dense_recovery_frontier",
+            "low_air_frontier"
+          ]
+        },
+        {
+          "id": "legacy_regression",
+          "weight": 0.1,
+          "score": 422.4976,
+          "groups": [
+            "legacy_transition_regression",
+            "legacy_amplitude_regression"
+          ]
+        },
+        {
+          "id": "development_music",
+          "weight": 0.05,
+          "score": 306.4053,
+          "groups": [
+            "believer_56s"
+          ]
+        }
+      ]
+    }
+  ],
+  "qualificationSummaries": [],
+  "retainedCompressedArchive": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz"
+}

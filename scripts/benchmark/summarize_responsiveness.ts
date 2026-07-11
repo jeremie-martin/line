@@ -1,15 +1,16 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { gunzipSync } from "node:zlib";
 import { RUN_ARCHIVE_SCHEMA } from "../v0/benchmark_v2/runner.ts";
 import { pairedV2Decision, type DecisionRun } from "../v0/benchmark_v2/decision_model.ts";
 import { loadSourceManifest, resolveSources } from "../v0/benchmark_v2/model.ts";
 import { DECISION_SOURCE_FILES, fingerprintFiles, loadSuiteManifest } from "../v0/benchmark_v2/suite_model.ts";
 
 const paths = {
-  baseline: "generated/benchmark-v2/baseline-runs/v2.2-decision-protocol-probe.json",
-  impactOff: "generated/benchmark-v2/calibration/v2.2-impact-off-probe.json",
-  narrowBreadth: "generated/benchmark-v2/calibration/v2.2-quality-ncand-1-probe.json",
+  baseline: "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+  impactOff: "benchmark/v2/runs/calibration-v2.4-impact-off-probe.json.gz",
+  narrowBreadth: "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
 };
 const archives = Object.fromEntries(Object.entries(paths).map(([id, path]) => [id, verified(path)])) as
   Record<keyof typeof paths, any>;
@@ -96,7 +97,7 @@ function verified(path: string): any {
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const expected = readFileSync(`${path}.sha256`, "utf8").trim().split(/\s+/)[0];
   if (sha256 !== expected) throw new Error(`${path}: checksum mismatch`);
-  const archive = JSON.parse(bytes.toString("utf8"));
+  const archive = JSON.parse((path.endsWith(".gz") ? gunzipSync(bytes) : bytes).toString("utf8"));
   if (archive.schema !== RUN_ARCHIVE_SCHEMA || archive.profile !== "probe") {
     throw new Error(`${path}: not a V2 probe archive`);
   }
@@ -108,6 +109,7 @@ function markdown(report: any): string {
     "# Benchmark V2 Responsiveness Calibration",
     "",
     "All runs use the same catalog, budgets, seed blocks, scoring, engine, and semantic execution protocol. Only the declared compiler environment changes.",
+    "The row named `baseline` is the retained calibration reference, not an approved promotion baseline.",
     "",
     "| Case | Environment | Headline | Delta | Valid |",
     "|---|---|---:|---:|---:|",

@@ -4,6 +4,14 @@ The reference contains 12 seeds at each of 3 budgets. Reference headline: **450.
 
 Schedule trials estimate the effect of seed count using disjoint budget blocks. The frozen V2 policy additionally separates probe and canonical actual-seed ranges; numeric seed labels are deterministic IID inputs.
 
+Benchmark V2 retains three probe seeds per budget and uses eight canonical seeds per
+budget. The increase is a promotion-stability decision informed jointly by this allocation
+study and the zero-inflated coverage study; it is not inferred from the four-seed row alone.
+Probe uses the fixed 24-29 schedule for reusable screening. Each canonical attempt declares
+a fresh random base of at least 1,000,000 and consumes 24 contiguous actual seeds across its
+three budgets. The confirmation ledger prevents epoch reuse; the high reserved boundary
+also makes promotion disjoint from probe and low-numbered calibration/reference studies.
+
 | Profile | Seeds / budget | Compiles | Headline abs. error p50 / p95 / max | Valid-rate abs. error p95 | Worst stratum p95 |
 |---|---:|---:|---:|---:|---:|
 | probe | 1 | 84 | 5.16 / 20.87 / 23.05 | 1.2pp | 102.25 |

@@ -4,6 +4,16 @@ import { fileURLToPath } from "node:url";
 import { freezeBaseline } from "../../benchmark/freeze_baseline.ts";
 import { runCanonicalBenchmark, retainBenchmarkArchive } from "./canonical.ts";
 import { runBenchmarkV2 } from "./runner.ts";
+import { loadSourceManifest, resolveSources } from "./model.ts";
+import { suiteIdentity } from "./suite_model.ts";
+import { loadListeningReview, requireApprovedListeningReview } from "./listening_review.ts";
+import {
+  assertBaselineTransitionAllowed,
+  initializeConfirmationStateFromBaseline,
+} from "./confirmation.ts";
+import { createCompilerSnapshot } from "./compiler_snapshot.ts";
+import { compilerCandidateIdentity } from "./runner.ts";
+import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 
 export async function runBaselineBenchmark(args = process.argv.slice(2)): Promise<string> {
   const argument = (name: string): string | undefined => {
@@ -11,6 +21,22 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
     return args.find((value) => value.startsWith(prefix))?.slice(prefix.length);
   };
   const label = argument("label") ?? new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z");
+  const sourceManifestPath = argument("manifest") ?? "benchmark/v2/compat/source-manifest.json";
+  const suiteManifestPath = argument("suite") ?? "benchmark/v2/compat/suite-manifest.json";
+  const listeningReviewPath = argument("listening-review") ?? "benchmark/v2/evidence/listening-review.json";
+  const sources = resolveSources(loadSourceManifest(sourceManifestPath));
+  const identity = suiteIdentity(suiteManifestPath, sourceManifestPath, sources);
+  requireCurrentDecisionCalibration(identity.suiteFingerprint);
+  requireApprovedListeningReview(await loadListeningReview(
+    listeningReviewPath,
+    identity.suiteFingerprint,
+    identity.sourceManifestFingerprint,
+    sources,
+  ));
+  assertBaselineTransitionAllowed(
+    compilerCandidateIdentity("wasm").candidateFingerprint,
+    identity.suiteFingerprint,
+  );
   const outDir = resolve(argument("out-dir") ?? "generated/benchmark-v2/baseline-runs");
   const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
   const forwarded = args.filter((arg) =>
@@ -20,6 +46,7 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
   );
   mkdirSync(outDir, { recursive: true });
   mkdirSync(archiveDir, { recursive: true });
+  const compilerSnapshot = createCompilerSnapshot(label, archiveDir);
 
   const probePath = resolve(outDir, `${label}-probe.json`);
   const probe = await runBenchmarkV2("development", [
@@ -43,6 +70,7 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
     schema: "line.benchmark-v2.baseline-bundle.v1",
     label,
     generatedAt: new Date().toISOString(),
+    compilerSnapshot,
     probe: {
       archive: probe.outputPath,
       summary: probe.summaryPath,
@@ -56,6 +84,7 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
     qualification: canonicalBundle.qualification,
   }, null, 2)}\n`);
   freezeBaseline(bundlePath);
+  initializeConfirmationStateFromBaseline();
   console.log(`Baseline bundle: ${relativeToCwd(bundlePath)}`);
   return bundlePath;
 }

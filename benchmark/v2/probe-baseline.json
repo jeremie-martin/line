@@ -1,0 +1,34 @@
+{
+  "schema": "line.benchmark-v2.probe-baseline-reference.v1",
+  "status": "screening-baseline",
+  "label": "calibration-v2.4-probe-baseline",
+  "generated_at": "2026-07-10T23:12:52.867Z",
+  "suite_fingerprint": "126414401682030b3ca604ed7a40d60f18bd9a06e0a68228a02a5c74f82096e5",
+  "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
+  "listening_review_fingerprint": "46803b63e26d5188395b17f8a1cb410886f066ce0ae2d4355c2c6e44ceff17e8",
+  "listening_review_status": "awaiting-human-review",
+  "compiler_identity_protocol": "line.compiler-source-identity.v2",
+  "candidate_fingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40",
+  "probe": {
+    "execution_policy_fingerprint": "023b4f8080b9132cd660d31be2922e94be588cfc67120c0f93be2c2574597714",
+    "implementation_fingerprint": "2c06dd21f54edd18aea243d58c9603967736a434020e2f9ac37de60f35e4d300",
+    "archive_sha256": "60fcec54a28c9cc989e1bba82a4ff364be619415486c9d17a554136a1b9b7606",
+    "compressed_archive": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+    "compressed_archive_sha256": "7dec3a42599991d80bbcbddafcfc40f64b46a640d66dbdfcdd22485cf9b14289",
+    "canonical_headline": 446.0945,
+    "seed_schedule": {
+      "kind": "profile_budget_disjoint_contiguous",
+      "profile": "probe",
+      "seedBase": 24,
+      "seedsPerBudget": 3,
+      "byBudget": [
+        { "budget": 250000, "actualSeeds": [24, 25, 26] },
+        { "budget": 500000, "actualSeeds": [27, 28, 29] }
+      ]
+    },
+    "budgets": [
+      { "budget": 250000, "score": 438.5814, "valid_runs": 107, "total_runs": 126 },
+      { "budget": 500000, "score": 449.0998, "valid_runs": 114, "total_runs": 126 }
+    ]
+  }
+}

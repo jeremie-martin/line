@@ -7,6 +7,14 @@ import {
   type SuiteParent,
 } from "./suite_model.ts";
 
+export const DECISION_INFERENCE_SOURCE_FILES = [
+  "benchmark/v2/decision-policy.ts",
+  "scripts/v0/benchmark_v2/decision_model.ts",
+  "scripts/v0/benchmark_v2/evaluator.ts",
+  "scripts/v0/benchmark_v2/suite_model.ts",
+  "scripts/v0/score.ts",
+] as const;
+
 export type DecisionProfile = "probe" | "canonical";
 export type DecisionMode = "improvement" | "simplification";
 export type DecisionOutcome = "advance" | "stop" | "unresolved" | "accept" | "reject" | "inconclusive";
@@ -32,14 +40,17 @@ export type ConfidenceBounds = {
   standardError: number;
   degreesOfFreedom: number | null;
   centralLevel: number;
+  centralCriticalLevel: number;
   centralLo: number;
   centralHi: number;
   oneSidedLevel: number;
+  oneSidedCriticalLevel: number;
   lowerBound: number;
   upperBound: number;
 };
 
 export type SensitivityInterval = {
+  available: boolean;
   estimate: number;
   bootstrapMedian: number;
   standardError: number;
@@ -70,6 +81,7 @@ export type V2Decision = {
   margin: number | null;
   threshold: number;
   alpha: number;
+  criticalAlpha: number;
   iterations: number;
   bootstrapSeed: number;
   baseHeadline: number;
@@ -112,6 +124,25 @@ export function pairedV2Decision(
   suite: SuiteManifest,
   options: DecisionOptions,
 ): V2Decision {
+  return pairedV2DecisionCore(baseRuns, candidateRuns, suite, options, true);
+}
+
+export function pairedV2DecisionForCalibration(
+  baseRuns: DecisionRun[],
+  candidateRuns: DecisionRun[],
+  suite: SuiteManifest,
+  options: DecisionOptions,
+): V2Decision {
+  return pairedV2DecisionCore(baseRuns, candidateRuns, suite, options, false);
+}
+
+function pairedV2DecisionCore(
+  baseRuns: DecisionRun[],
+  candidateRuns: DecisionRun[],
+  suite: SuiteManifest,
+  options: DecisionOptions,
+  includeSensitivity: boolean,
+): V2Decision {
   const policy = resolvePolicy(options);
   assertPairedScope(baseRuns, candidateRuns);
   const budgets = [...suite.profiles[options.profile].budgets];
@@ -127,7 +158,7 @@ export function pairedV2Decision(
   const jointDeltas: number[] = [];
   const catalogOnlyDeltas: number[] = [];
 
-  for (let iteration = 0; iteration < policy.iterations; iteration++) {
+  for (let iteration = 0; iteration < (includeSensitivity ? policy.iterations : 0); iteration++) {
     const parents = sampledParentPlan(suite, random);
     const seeds = sampledSeedPlan(base.slotsByBudget, random);
     const baseJoint = scorePlan(base, suite, budgets, parents, seeds);
@@ -149,9 +180,14 @@ export function pairedV2Decision(
     pointDelta,
     (breakdown, budget) => breakdown.budgets.get(budget)!,
     policy.alpha,
+    policy.criticalAlpha,
   );
-  const jointSensitivity = sensitivityInterval(pointDelta, jointDeltas);
-  const catalogSensitivity = sensitivityInterval(pointDelta, catalogOnlyDeltas);
+  const jointSensitivity = includeSensitivity
+    ? sensitivityInterval(pointDelta, jointDeltas)
+    : unavailableSensitivity(pointDelta);
+  const catalogSensitivity = includeSensitivity
+    ? sensitivityInterval(pointDelta, catalogOnlyDeltas)
+    : unavailableSensitivity(pointDelta);
   const positive = seedConfidence.lowerBound > policy.threshold;
   const negative = seedConfidence.upperBound < policy.threshold;
   const outcome = positive
@@ -169,7 +205,8 @@ export function pairedV2Decision(
     margin: options.mode === "simplification" ? policy.margin : null,
     threshold: round(policy.threshold),
     alpha: policy.alpha,
-    iterations: policy.iterations,
+    criticalAlpha: policy.criticalAlpha,
+    iterations: includeSensitivity ? policy.iterations : 0,
     bootstrapSeed: policy.bootstrapSeed,
     baseHeadline: round(basePoint.headline),
     candidateHeadline: round(candidatePoint.headline),
@@ -196,6 +233,7 @@ export function pairedV2Decision(
         candidatePoint.budgets.get(budget)! - basePoint.budgets.get(budget)!,
         (breakdown, selectedBudget) => breakdown.budgets.get(selectedBudget)!,
         policy.alpha,
+        policy.criticalAlpha,
       ),
     })),
     perStratum: suite.strata.map((stratum) => {
@@ -217,6 +255,7 @@ export function pairedV2Decision(
           candidatePoint.strata.get(stratum.id)! - basePoint.strata.get(stratum.id)!,
           (breakdown) => breakdown.strata.get(stratum.id)!,
           policy.alpha,
+          policy.criticalAlpha,
         ),
       };
     }),
@@ -263,6 +302,7 @@ export function v2HeadlineForDecisionRuns(
 function resolvePolicy(options: DecisionOptions): {
   authority: "screening" | "promotion";
   alpha: number;
+  criticalAlpha: number;
   margin: number;
   threshold: number;
   iterations: number;
@@ -288,6 +328,7 @@ function resolvePolicy(options: DecisionOptions): {
   return {
     authority: profile.authority,
     alpha: profile.alpha,
+    criticalAlpha: profile.criticalAlpha,
     margin: margin!,
     threshold: options.mode === "simplification" ? -margin! : 0,
     iterations,
@@ -471,12 +512,25 @@ function sensitivityInterval(estimate: number, samples: number[]): SensitivityIn
   const sorted = [...samples].sort((a, b) => a - b);
   const average = mean(sorted);
   return {
+    available: true,
     estimate: round(estimate),
     bootstrapMedian: round(quantile(sorted, 0.5)),
     standardError: round(Math.sqrt(mean(sorted.map((value) => (value - average) ** 2)))),
     centralLevel: benchmarkDecisionPolicy.centralIntervalLevel,
     centralLo: round(quantile(sorted, (1 - benchmarkDecisionPolicy.centralIntervalLevel) / 2)),
     centralHi: round(quantile(sorted, 1 - (1 - benchmarkDecisionPolicy.centralIntervalLevel) / 2)),
+  };
+}
+
+function unavailableSensitivity(estimate: number): SensitivityInterval {
+  return {
+    available: false,
+    estimate: round(estimate),
+    bootstrapMedian: round(estimate),
+    standardError: 0,
+    centralLevel: benchmarkDecisionPolicy.centralIntervalLevel,
+    centralLo: round(estimate),
+    centralHi: round(estimate),
   };
 }
 
@@ -490,6 +544,7 @@ function seedBlockConfidence(
   estimate: number,
   metric: (breakdown: ScoreBreakdown, budget: number) => number,
   alpha: number,
+  criticalAlpha: number,
 ): ConfidenceBounds {
   const rawWeights = new Map(suite.budget_weights.map((entry) => [entry.budget, entry.weight]));
   const weightTotal = budgets.reduce((sum, budget) => sum + (rawWeights.get(budget) ?? 0), 0);
@@ -531,17 +586,19 @@ function seedBlockConfidence(
     0,
   );
   const degreesOfFreedom = variance > 0 && denominator > 0 ? variance ** 2 / denominator : Infinity;
-  const centralTail = (1 - benchmarkDecisionPolicy.centralIntervalLevel) / 2;
+  const centralTail = (1 - benchmarkDecisionPolicy.centralCriticalIntervalLevel) / 2;
   const centralCritical = standardError === 0 ? 0 : studentTQuantile(1 - centralTail, degreesOfFreedom);
-  const oneSidedCritical = standardError === 0 ? 0 : studentTQuantile(1 - alpha, degreesOfFreedom);
+  const oneSidedCritical = standardError === 0 ? 0 : studentTQuantile(1 - criticalAlpha, degreesOfFreedom);
   return {
     estimate: round(estimate),
     standardError: round(standardError),
     degreesOfFreedom: Number.isFinite(degreesOfFreedom) ? round(degreesOfFreedom) : null,
     centralLevel: benchmarkDecisionPolicy.centralIntervalLevel,
+    centralCriticalLevel: benchmarkDecisionPolicy.centralCriticalIntervalLevel,
     centralLo: round(estimate - centralCritical * standardError),
     centralHi: round(estimate + centralCritical * standardError),
     oneSidedLevel: round(1 - alpha),
+    oneSidedCriticalLevel: round(1 - criticalAlpha),
     lowerBound: round(estimate - oneSidedCritical * standardError),
     upperBound: round(estimate + oneSidedCritical * standardError),
   };

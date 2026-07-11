@@ -1,0 +1,15 @@
+{
+  "schema": "line.benchmark-v2.confirmation-state.v2",
+  "status": "blocked",
+  "reason": "An approved listening review and a V7 baseline with a compiler snapshot are required.",
+  "baseline": {
+    "label": "v2.2-decision-protocol",
+    "suiteFingerprint": "b118882720a968548323b5c53691a3e812df7733d0d931a579ad9aef57f5e470",
+    "archiveSha256": "a693893e5fc06067271f71f3f56bb3ae7a097bce14404ee20cb6153a787ebd5c",
+    "candidateFingerprint": "dea2e1a77af547571849bf96ccc60264f04afd62a0407efe7e04f15e3ebd2e25",
+    "listeningReviewFingerprint": "e534e2a5b8e74eda9287c9679d0bf06372c6a4fbe14c1d426580a17df6a20dae",
+    "compilerSnapshot": null
+  },
+  "seedLedger": [],
+  "attempt": null
+}

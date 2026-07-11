@@ -278,7 +278,12 @@ async function loadSpecList() {
   const res = await fetch("/api/specs", { cache: "no-cache" });
   if (!res.ok) throw new Error(`spec list HTTP ${res.status}`);
   const body = await res.json();
-  state.specs = body.specs || [];
+  const params = new URLSearchParams(location.search);
+  const collection = params.get("collection");
+  const allSpecs = body.specs || [];
+  state.specs = collection === "v2"
+    ? allSpecs.filter((spec) => spec.group.startsWith("v2/"))
+    : allSpecs;
   refs.specSelect.innerHTML = "";
   for (const spec of state.specs) {
     const opt = document.createElement("option");
@@ -286,9 +291,10 @@ async function loadSpecList() {
     opt.textContent = spec.label;
     refs.specSelect.appendChild(opt);
   }
-  const params = new URLSearchParams(location.search);
   const requested = params.get("spec");
-  const preferred = state.specs.find((spec) => spec.group === "production")
+  const preferred = collection === "v2"
+    ? state.specs.find((spec) => spec.group === "v2/representative")
+    : state.specs.find((spec) => spec.group === "production")
     || state.specs.find((spec) => spec.path === "scripts/v0/specs/drums_0_56s_creative.ts");
   const first = state.specs.find((spec) => spec.path === requested) || preferred || state.specs[0];
   if (!first) throw new Error("no specs found");

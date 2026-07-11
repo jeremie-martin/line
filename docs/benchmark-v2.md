@@ -29,6 +29,14 @@ npm run benchmark -- decide CANDIDATE.json
 npm run benchmark:v2:clicks
 ```
 
+Inspect every development and qualification specification in the existing timeline
+dashboard, including contacts, gaps, axes, authored phases, and review-click playback:
+
+```bash
+HOST=0.0.0.0 PORT=8080 npm run dash
+# http://127.0.0.1:8080/spec-dashboard/?collection=v2
+```
+
 `npm run benchmark`, `npm run golden`, and `npm run goal` default to the V2 probe.
 Probe and canonical use the same 42 development cases. Probe performs 252 compiles:
 250k/500k with three disjoint seeds per budget. A canonical confirmation performs two

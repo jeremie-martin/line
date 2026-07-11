@@ -35,6 +35,15 @@ import {
   type CalibrationSelection,
   type SpecCalibration,
 } from "./v0/spec_modifiers.ts";
+import {
+  developmentCases as benchmarkV2DevelopmentCases,
+  qualificationCases as benchmarkV2QualificationCases,
+  type CatalogEntry as BenchmarkV2CatalogEntry,
+} from "../benchmark/v2/catalog.ts";
+import {
+  BENCHMARK_CASE_SCHEMA,
+  type BenchmarkCase,
+} from "../benchmark/v2/cases/case.ts";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
 const HOST = process.env.HOST ?? "127.0.0.1";
@@ -254,9 +263,13 @@ const SPEC_GROUP_DIRS = [
   { group: "golden", dir: resolve(ROOT, "specs", "golden") },
   { group: "production", dir: resolve(ROOT, "productions") },
 ];
+const BENCHMARK_V2_CASES = [
+  ...benchmarkV2DevelopmentCases,
+  ...benchmarkV2QualificationCases,
+];
 let specListCache: { key: string; specs: SpecEntry[] } | null = null;
 
-function listV0Specs(): SpecEntry[] {
+export function listDashboardSpecs(): SpecEntry[] {
   // Cache keyed by the corpus dirs' mtimes. Every spec API call resolves through here and
   // the dashboard fires several per interaction; without the cache each one re-readdirs +
   // existsSyncs the whole corpus. A cache hit costs a handful of statSync instead. The key
@@ -295,13 +308,13 @@ function listV0Specs(): SpecEntry[] {
       specs.push({ name, label: `${group}/${name}`, path: rel, group });
     }
   }
+  specs.push(...BENCHMARK_V2_CASES.map(benchmarkV2SpecEntry));
   specs.sort((a, b) => a.label.localeCompare(b.label));
   specListCache = { key, specs };
   return specs;
 }
 
-/** Freshness key for listV0Specs: each group dir's mtime, plus each production subdir's
- *  mtime (nested spec.ts add/remove only bumps the subdir, not productions/). */
+/** Freshness key for dashboard specs: corpus directories plus the selected V2 catalog. */
 function specListCacheKey(): string {
   const parts: string[] = [];
   for (const { group, dir } of SPEC_GROUP_DIRS) {
@@ -313,12 +326,30 @@ function specListCacheKey(): string {
       }
     }
   }
+  parts.push(`v2-catalog=${Math.trunc(statSync(resolve(ROOT, "benchmark/v2/catalog.ts")).mtimeMs)}`);
+  for (const entry of BENCHMARK_V2_CASES) {
+    const path = resolve(ROOT, entry.sourcePath);
+    parts.push(`${entry.sourcePath}=${Math.trunc(statSync(path).mtimeMs)}`);
+  }
   return parts.join("|");
+}
+
+function benchmarkV2SpecEntry(entry: BenchmarkV2CatalogEntry): SpecEntry {
+  const metadata = entry.case.metadata;
+  const group = metadata.variant === undefined
+    ? `v2/${metadata.cohort}`
+    : `v2/variants/${metadata.cohort}`;
+  return {
+    name: metadata.id,
+    label: `${group}/${metadata.id}`,
+    path: entry.sourcePath,
+    group,
+  };
 }
 
 function resolveListedSpec(rawSpec: string): ResolvedSpecEntry | null {
   const specAbs = normalize(resolve(ROOT, rawSpec));
-  for (const entry of listV0Specs()) {
+  for (const entry of listDashboardSpecs()) {
     const absPath = normalize(resolve(ROOT, entry.path));
     if (absPath === specAbs) return { entry, absPath };
   }
@@ -695,7 +726,7 @@ function normalizeSpecCamera(spec: Spec, requestedSamples: number, sourceIndex: 
   };
 }
 
-async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<Record<string, unknown>> {
+export async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<Record<string, unknown>> {
   const resolvedSpec = resolveListedSpec(rawSpec);
   if (!resolvedSpec) throw new Error(`unsupported spec path: ${rawSpec}`);
 
@@ -813,6 +844,8 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
     .filter((impact): impact is number => typeof impact === "number");
   const durations = gaps.map((gap) => gap.duration).filter((value) => Number.isFinite(value));
 
+  const benchmarkCase = benchmarkCaseMetadata(mod.benchmarkCase);
+  const authoredOverlay = jsonClone(mod.overlayMeta);
   return {
     spec: {
       name: resolvedSpec.entry.name,
@@ -847,8 +880,76 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
     keyframes,
     camera,
     calibration: calibrationInfo(mod, resolvedSpec.absPath, resolvedSpec.entry.path),
-    overlayMeta: jsonClone(mod.overlayMeta),
-    music: normalizeSpecMusic(spec.music),
+    overlayMeta: benchmarkOverlayMeta(authoredOverlay, benchmarkCase),
+    benchmark: benchmarkCase,
+    music: normalizeSpecMusic(spec.music) ?? benchmarkReviewMusic(benchmarkCase),
+  };
+}
+
+type DashboardBenchmarkCase = {
+  id: string;
+  title: string;
+  cohort: string;
+  originFamily: string;
+  variant: { parentId: string; kind: string; rationale: string } | null;
+  phases: Array<{ id: string; start: number; end: number; intent: string }>;
+};
+
+function benchmarkCaseMetadata(value: unknown): DashboardBenchmarkCase | null {
+  const benchmarkCase = value as BenchmarkCase | undefined;
+  if (benchmarkCase?.schema !== BENCHMARK_CASE_SCHEMA) return null;
+  const metadata = benchmarkCase.metadata;
+  return {
+    id: metadata.id,
+    title: metadata.title,
+    cohort: metadata.cohort,
+    originFamily: metadata.originFamily,
+    variant: metadata.variant === undefined
+      ? null
+      : {
+          parentId: metadata.variant.parentId,
+          kind: metadata.variant.kind,
+          rationale: metadata.variant.rationale,
+        },
+    phases: metadata.phases.map(({ id, start, end, intent }) => ({ id, start, end, intent })),
+  };
+}
+
+function benchmarkOverlayMeta(
+  authored: unknown,
+  benchmarkCase: DashboardBenchmarkCase | null,
+): Record<string, unknown> | null {
+  const base = authored && typeof authored === "object" && !Array.isArray(authored)
+    ? authored as Record<string, unknown>
+    : {};
+  if (Array.isArray(base.phases) || benchmarkCase === null || benchmarkCase.phases.length === 0) {
+    return Object.keys(base).length > 0 ? base : null;
+  }
+  return {
+    ...base,
+    phases: benchmarkCase.phases.map((phase) => ({
+      name: phase.id.replaceAll("_", " "),
+      t0: phase.start,
+      t1: phase.end,
+      intent: phase.intent,
+    })),
+  };
+}
+
+function benchmarkReviewMusic(benchmarkCase: DashboardBenchmarkCase | null): Record<string, unknown> | null {
+  if (benchmarkCase === null || benchmarkCase.cohort === "qualification") return null;
+  const audioPath = resolve(ROOT, "generated/benchmark-v2/listening-review", `${benchmarkCase.id}.wav`);
+  if (!existsSync(audioPath)) return null;
+  return {
+    title: `${benchmarkCase.title} review clicks`,
+    artist: "Benchmark V2",
+    tempo: null,
+    offset: 0,
+    audio: toPosixPath(relative(ROOT, audioPath)),
+    audioUrl: workspaceUrl(audioPath),
+    beats: null,
+    beatsUrl: null,
+    spectrogram: null,
   };
 }
 
@@ -1436,7 +1537,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     return json(res, { runs: listGoldenRuns() });
   }
   if (url.pathname === "/api/specs") {
-    return json(res, { specs: listV0Specs() });
+    return json(res, { specs: listDashboardSpecs() });
   }
   if (url.pathname === "/api/spec-view") {
     if (req.method !== "GET") return json(res, { error: "method not allowed" }, 405);

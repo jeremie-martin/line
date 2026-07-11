@@ -31,12 +31,19 @@ export const SCALE_STUDY_SCHEMAS = [
 ] as const;
 
 export function readVerifiedArtifact(path: string): VerifiedArtifact {
-  if (!existsSync(path) || !existsSync(`${path}.sha256`)) {
+  // Compile archives carry `<path>.sha256` sidecars; byte-stable study
+  // artifacts carry `<stem>.provenance.json` sidecars whose artifactSha256
+  // pins the same bytes. Either form is an acceptable checksum witness.
+  const shaSidecar = `${path}.sha256`;
+  const provenanceSidecar = `${path.replace(/\.json(\.gz)?$/, "")}.provenance.json`;
+  if (!existsSync(path) || (!existsSync(shaSidecar) && !existsSync(provenanceSidecar))) {
     throw new Error(`${path}: retained artifact and checksum sidecar are required`);
   }
   const artifact = readFileSync(path);
   const artifactSha256 = sha256(artifact);
-  const expected = readFileSync(`${path}.sha256`, "utf8").trim().split(/\s+/)[0];
+  const expected = existsSync(shaSidecar)
+    ? readFileSync(shaSidecar, "utf8").trim().split(/\s+/)[0]
+    : JSON.parse(readFileSync(provenanceSidecar, "utf8")).artifactSha256;
   if (artifactSha256 !== expected) throw new Error(`${path}: artifact checksum mismatch`);
   const bytes = path.endsWith(".gz") ? gunzipSync(artifact) : artifact;
   return { path, bytes, artifactSha256, rawSha256: sha256(bytes) };

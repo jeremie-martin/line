@@ -1,0 +1,529 @@
+{
+  "schema": "line.benchmark-v2.determinism-check.v1",
+  "reference": {
+    "path": "benchmark/v2/runs/calibration-v2.4-independent-reference-seeds-12-23.json.gz",
+    "artifactSha256": "11271025209c1b10f081402be5385fb6a95575cc85c1845db5e2451ee8e35ad9"
+  },
+  "recheck": {
+    "path": "generated/benchmark-v2/studies/independent-reference-recheck.json",
+    "artifactSha256": "f8b774b533c751be093fef570d360d599ba70c904143d9c0c4f7a54dda992956",
+    "budgets": [
+      250000
+    ],
+    "seeds": [
+      12,
+      13
+    ]
+  },
+  "cells": 84,
+  "allTrackHashesEqual": true,
+  "allScoresEqual": true,
+  "trackHashEqualCells": 84,
+  "scoreEqualCells": 84,
+  "perCell": [
+    {
+      "sourceId": "amplitude_tides_restrained_10",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "787c912933e1c8d342408edf966b41e4c5b2b3fb4d6ab524c5e60653b19fa0ae"
+    },
+    {
+      "sourceId": "amplitude_tides_restrained_10",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "2a844a6456dd2342b337e943ed0bf12d079835b0bf2084fea5725cc0c69ef95f"
+    },
+    {
+      "sourceId": "amplitude_tides",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "210f03909dba4598fc238d36b7cfb8cfbf727bef5af070a50cb7ff6c5c7e50af"
+    },
+    {
+      "sourceId": "amplitude_tides",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "03054fbd5637e05d5c3734f20623428080b609eb82cd2179c73755e34764f6f1"
+    },
+    {
+      "sourceId": "believer_56_6s_impact_relief",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "41a3d509bfb3fb2bd2352df29a6f6c69aab3b4751628a887090d69a467bc36fd"
+    },
+    {
+      "sourceId": "believer_56_6s_impact_relief",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "a231021826223f54e5f554c17167e4609eb3692ba98840a95c1eb1db87648a31"
+    },
+    {
+      "sourceId": "believer_56_6s",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "a08dc53fbd34083a09577ea0c53e4d4620e08d03096525d0645a979b7ba06e40"
+    },
+    {
+      "sourceId": "believer_56_6s",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "2cb28bf1899aeca0f0870769abbdf96e58b12f9ce50fe40f23972ccebeb28b55"
+    },
+    {
+      "sourceId": "believer_impact_56s_amplitude_plus_5",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "cfe28ccf66b3ab28d244304b7c70c05a8ecc2da2458a18c2631a4a005641caff"
+    },
+    {
+      "sourceId": "believer_impact_56s_amplitude_plus_5",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "c6d1064ae513481f458ce1f9570612c561432706b97ba743a86a65e55b72ecc4"
+    },
+    {
+      "sourceId": "believer_impact_56s",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "e7f4bbc63580e7bf86c820bd0f9494494fa3d27df9641a239f0fe93bd640e1ae"
+    },
+    {
+      "sourceId": "believer_impact_56s",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "b30c5aa09327f1e18954eb402183ae9c33d1962945e86c83e9a57a52b481d064"
+    },
+    {
+      "sourceId": "countercurrent_impact_contrast_12",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "099c5cf025419b686d9ddf4182f3e65cc155cc179b1fe8d3a3e796918b7262ce"
+    },
+    {
+      "sourceId": "countercurrent_impact_contrast_12",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "632e745b42fed2389a02edc3f52474a6e2f40cac12dc394db794cc04f7a1dda3"
+    },
+    {
+      "sourceId": "countercurrent",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "207642869f1b99202994c400c03c839a1a3af3f4b7283ad582323848a49e7804"
+    },
+    {
+      "sourceId": "countercurrent",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "0cd2f53259476f9c7252eb49aafa2ff13ae6e7677468530ac0219001b055502f"
+    },
+    {
+      "sourceId": "dense_dialogue_impact_contrast_10",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "9b7a7bcfb76a4e2f8bf1d412bc87ffc487568c21bfe80c808fb5459b5b557e05"
+    },
+    {
+      "sourceId": "dense_dialogue_impact_contrast_10",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "6f3f5aefb9aa227da0da8b755a80412e8ada72bec33cf8a109903d0a3d4abaf4"
+    },
+    {
+      "sourceId": "dense_dialogue",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "31421bbb06f4928de386a396b54eb2818df00b1d5c65e219c0170e968eacacc1"
+    },
+    {
+      "sourceId": "dense_dialogue",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "bf6690fcaaaf1f5e7a72b075ab80934069975485bf96daec14bd512d952e7fce"
+    },
+    {
+      "sourceId": "frontier_dense_recovery_240ms_figures",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "2c9babe16c7371094da0fa90e48d9037dac2eb02c7aaf4aa53eb15b84164d79b"
+    },
+    {
+      "sourceId": "frontier_dense_recovery_240ms_figures",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "34bd20ca46efe8faa6cce76b8251bff9b26c7fc171d3d829870727c0261b5e05"
+    },
+    {
+      "sourceId": "frontier_dense_recovery",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "e7bd69ea33eba46bd4a7a096e75684297f70b86ead55f2faa2d262ca52d609d5"
+    },
+    {
+      "sourceId": "frontier_dense_recovery",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "76ee17d338c7cf411221f9a6778c0b3a3331dfdb1b7ebe2cd94caa40e7556d86"
+    },
+    {
+      "sourceId": "frontier_low_air_endurance_4s",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "e5453e09e92e13f48d7631884a8c6b741e90b9a6414b7a9142d8c611c3880c00"
+    },
+    {
+      "sourceId": "frontier_low_air_endurance_4s",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "546826640b179bb22dbe6690ca568a4a28646b37d9cfc392bdc561aa78d8eb38"
+    },
+    {
+      "sourceId": "frontier_low_air_endurance",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "46221c59e19cbcaa50c45a885f66f89fb35237f13cbd6c12140cbaa037d8fd8b"
+    },
+    {
+      "sourceId": "frontier_low_air_endurance",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "dd8337ca7616b9fc06ef8223960e6008c25b73c0de289bc51d76f3e596229a7b"
+    },
+    {
+      "sourceId": "frontier_pickup_progression_shifted",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "63387b8e7d44982d175fa8c213be52e4d7479ac33f45a60d4bc7ba3f7712f296"
+    },
+    {
+      "sourceId": "frontier_pickup_progression_shifted",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "0387e64a7483a847d9c7f95c651f19b7b523534a56da5b5ff757c596f8d8073b"
+    },
+    {
+      "sourceId": "frontier_pickup_progression",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "5cfc75dd4acce02931bdfb6ddceac3f0f9553569ab524162bb7faefd6b003a08"
+    },
+    {
+      "sourceId": "frontier_pickup_progression",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "8f8da0f68609d4d0eabca4b26f46571ae301ab39a5ca854ffbe9b9e048584207"
+    },
+    {
+      "sourceId": "high_air_drive_air_minus_5",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "1d0ad403312ed8374aa47170434b83235e114a3aee747f9563d86c5beb2b87be"
+    },
+    {
+      "sourceId": "high_air_drive_air_minus_5",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "e3a3da120f0249230d4f1d08318c30c6fda7116b7295af67ba535048be7807b1"
+    },
+    {
+      "sourceId": "high_air_drive",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "29456865eec6e0946b2db145e4f23f1f93317d9e16d9e3d3b0d088ad585a979e"
+    },
+    {
+      "sourceId": "high_air_drive",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "2367ebde8a85deca87d3c8969c0727a9aa59baa5cb0ab99b87791ec84cc48dc2"
+    },
+    {
+      "sourceId": "loose_pocket_drag_later_20ms",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "bfa79fbc3ca9b26ec27183fefab2d5418ab74183f9803e0155e31329d4c18c1f"
+    },
+    {
+      "sourceId": "loose_pocket_drag_later_20ms",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "8dfff78f44d715e6cc85a9a4bf6c67ced9b4f4e71e9d8089ef889c2d386a97d0"
+    },
+    {
+      "sourceId": "loose_pocket",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "1643f6f013f4e17d49b2afbc9fdf3bddf470d9661447dba1ff7fea9fd0c3d02b"
+    },
+    {
+      "sourceId": "loose_pocket",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "ab8ca6bc3bbc760c92790cc19a258f0d908f6dd0cc81c277a00c038588fbdf7d"
+    },
+    {
+      "sourceId": "meter_exchange_speed_plus_4",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "840d92363875058191ca27e44951cbd217708015ffa8f4e25259c777d46f2391"
+    },
+    {
+      "sourceId": "meter_exchange_speed_plus_4",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "6d28d174dc1438c7c3662f3cc167eb2df874a8e4ebf5df13dfd4bec9b70c5792"
+    },
+    {
+      "sourceId": "meter_exchange",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "f66b56eafbb36567adf08484a6c8f0e431c8ae2a562bb6d410a4b745104d1487"
+    },
+    {
+      "sourceId": "meter_exchange",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "e394540de766e799ecd6b930865f53299475e6b9782a8c5d6ff63918aa490f01"
+    },
+    {
+      "sourceId": "offgrid_conversation_answer_early_25ms",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "e27044a66364a04c371f66685f2c85e57ba5a8aa97f6170d8fc5c5906ca931e4"
+    },
+    {
+      "sourceId": "offgrid_conversation_answer_early_25ms",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "f23c43931741063746cd02431feb425444bb9e42edcd2e17a66f4d870876d5a1"
+    },
+    {
+      "sourceId": "offgrid_conversation",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "78323ed120fb168e237bdf065beed4f5849d7915e58db32e9be85e812516833b"
+    },
+    {
+      "sourceId": "offgrid_conversation",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "9f77c87b1f87613b896f3d21f5f780c3a2c5372d3a18178460f8a7dd9e365e84"
+    },
+    {
+      "sourceId": "open_hook_amplitude_plus_8",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "55075c2e8f3837910310355ee7945616600ec513a84615f7d627ec57d3f6562a"
+    },
+    {
+      "sourceId": "open_hook_amplitude_plus_8",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "d2675bcc0f43bb516331cf0495c9586cff11fd1a60fdf251053cae5226dbec79"
+    },
+    {
+      "sourceId": "open_hook",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "83c683f41b47ce2b3c815a88f6d7e624337f65a84a758042ef724620e3f718f4"
+    },
+    {
+      "sourceId": "open_hook",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "a647c4f6f656b0648ac00dc6eeb56c3c8864ac05e8df48f7fea6d2b93c075dee"
+    },
+    {
+      "sourceId": "pickup_lattice_speed_minus_4",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "c3d5652d47993e1cd3ef7a456a0b0476e3ac3e12be4c82153c2e866a0c5514c8"
+    },
+    {
+      "sourceId": "pickup_lattice_speed_minus_4",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "1d160cebf8a1a6e1c4330275c7b436c4b20e3dd4120c46ec48dd0c684c704bf3"
+    },
+    {
+      "sourceId": "pickup_lattice",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "3e6950553915318abe6b446017f201348f282ae3772f269f477f5d8203b9ea0a"
+    },
+    {
+      "sourceId": "pickup_lattice",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "ebf7936f6fc8204e1e48787e1c86a09ffb76153c15b79a38537a832d3369c4a5"
+    },
+    {
+      "sourceId": "regression_amplitude_mosaic_contrast_10",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "330fbbd6960e91f897141e7c4e661db6b1c7bdabf385d952754ed903a8f10b83"
+    },
+    {
+      "sourceId": "regression_amplitude_mosaic_contrast_10",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "883d8d5798fa0479f011f14a7e9b174b9756eeb3e91630ec053c35b58e8f783f"
+    },
+    {
+      "sourceId": "regression_amplitude_mosaic",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "2e545937f61da44a8632cd6bd9f89d1fb09f2a699e05a7f578de001443b7f3e5"
+    },
+    {
+      "sourceId": "regression_amplitude_mosaic",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "11606ea59e20b3d7c1a70eba708220f95d990cdcf225b1e8db7a99e9abbe7bd0"
+    },
+    {
+      "sourceId": "regression_transition_mosaic_tempo_fast_5",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "1c87ab442e538545c8cc28998e73c0c28fa0062dfa1c751f54bbbdf5e5c82b7d"
+    },
+    {
+      "sourceId": "regression_transition_mosaic_tempo_fast_5",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "503819555008819dab722c97d001940dddb01a162e6a2f9872db81862b5ce1da"
+    },
+    {
+      "sourceId": "regression_transition_mosaic",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "740e0f5588ceb9e2fbbd75e6fe8071e66af451517b92edd0528eb06602476ef8"
+    },
+    {
+      "sourceId": "regression_transition_mosaic",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "86037e5f060315d44c30d62bb5e91bc2a49270538ef19539a4fdb6f606f47bb9"
+    },
+    {
+      "sourceId": "rising_switch_tempo_fast_5",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "dd282f6208d72e5d942f528ce3b303a95ab2203c0649862168308ff6aa383107"
+    },
+    {
+      "sourceId": "rising_switch_tempo_fast_5",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "ff2823f47afe98dc3dcc52ec9ceada651fc5c2f6e544efa8443ca5e232992b76"
+    },
+    {
+      "sourceId": "rising_switch",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "de909f6544008b9f6f555afadc9f21225db1bb0698f33179163f64e8af8779ee"
+    },
+    {
+      "sourceId": "rising_switch",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "508aee05c567e6f02459dac05c5360765a2cb650ad881811caab4f70fe58d518"
+    },
+    {
+      "sourceId": "river_reentry_tempo_fast_5",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "2679af304f54c0385c2d2df958486336e1672e2bb886d9b230314f316aee332e"
+    },
+    {
+      "sourceId": "river_reentry_tempo_fast_5",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "f040e8b1d0ad58cdb189994688bc6130d03810d4f6859911f157d436f51608a4"
+    },
+    {
+      "sourceId": "river_reentry",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "1960cac95bff2517b6118480303fd8fabad7eb96e77bcc4456a4d353449db3dc"
+    },
+    {
+      "sourceId": "river_reentry",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "86c562ca66fc77589bdb706bc2ec868b83ab7e7c40b1439a9ac34d9493292882"
+    },
+    {
+      "sourceId": "sparse_lowline_air_minus_4",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "23151e51275cb2346f39c764f0172a6cdef5be8dc03dda2ab1ab66e0f460d985"
+    },
+    {
+      "sourceId": "sparse_lowline_air_minus_4",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "0cc7aa98a333f547d6da6b4cafe23eaacda6f87c1d1f2f3408182d5ab6470f0f"
+    },
+    {
+      "sourceId": "sparse_lowline",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "497563925a524c7e45a1c8d45c90f7bcc9d19d2ab0808c03a30ca3ffc82e79ab"
+    },
+    {
+      "sourceId": "sparse_lowline",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "86e65c5ad955d8470ee845bb7e24e5382d3a48c26b8b61c280c882e4f8e6133a"
+    },
+    {
+      "sourceId": "split_signal_impact_relief_12",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "82c44421754abd1953d81a63f3c55882d189d44f5060505d8c89e602aa3337d6"
+    },
+    {
+      "sourceId": "split_signal_impact_relief_12",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "95e6e4b9e980f1b8afda1e748e9ab4bd6ab361f52b26b02ab2256c8c50ad9ca3"
+    },
+    {
+      "sourceId": "split_signal",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "c0186b23941a21a700de7c2da87ad2e2c4144b58138cbef85a3c10ec270dad56"
+    },
+    {
+      "sourceId": "split_signal",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "3f8c600c97846a732e0f9fccf912985bf0aa1d1c1dff58c667b8f6f42bdb4872"
+    },
+    {
+      "sourceId": "wide_breaths_air_plus_5",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "91e3e264094f354a30439e9450685ce4f39145d762df1423eb3267ebc07ea958"
+    },
+    {
+      "sourceId": "wide_breaths_air_plus_5",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "f9cdb44d733b77e4a8b59c8edc33647f3eec21ecf512ba0b38c592dc6719b809"
+    },
+    {
+      "sourceId": "wide_breaths",
+      "budget": 250000,
+      "actualSeed": 12,
+      "trackHash": "dec0c47f08f2327db2af1457050cdca94e26827ec23b1fd8abb34de2196a407a"
+    },
+    {
+      "sourceId": "wide_breaths",
+      "budget": 250000,
+      "actualSeed": 13,
+      "trackHash": "8748977b3e75036447b4a439e1b51fd88ada1740378912c7b259d731bcdcb6c6"
+    }
+  ]
+}

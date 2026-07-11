@@ -1,0 +1,7 @@
+{
+  "schema": "line.benchmark-v2.study-provenance.v1",
+  "artifact": "benchmark/v2/studies/determinism-check.json",
+  "artifactSha256": "3b784761f84c334facd23229e4a0dca4e0332ff5571946e478e7b22063496064",
+  "generatedAt": "2026-07-11T17:29:56.889Z",
+  "command": "node --import tsx scripts/benchmark/check_track_determinism.ts"
+}

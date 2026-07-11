@@ -1,0 +1,9 @@
+{
+  "schema": "line.benchmark-v2.study-provenance.v1",
+  "artifact": "benchmark/v2/studies/independent-validation.json",
+  "artifactSha256": "b8ca9eec9985f27a93cf59559056441236a91b3717f0fec5f8d2fa1ffe029265",
+  "generatedAt": "2026-07-11T17:55:58.924Z",
+  "runtimeSeconds": 262.005,
+  "workers": 32,
+  "command": "node --import tsx scripts/benchmark/validate_independent_reference.ts"
+}

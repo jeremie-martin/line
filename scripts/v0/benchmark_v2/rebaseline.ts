@@ -12,7 +12,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -32,6 +32,7 @@ import {
 } from "./baseline_publication.ts";
 
 import { runBenchmarkV2, compilerCandidateIdentity } from "./runner.ts";
+import { copyFileDurable, writeFileAtomicDurable } from "./durable_fs.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
 import { suiteIdentity } from "./suite_model.ts";
 
@@ -118,8 +119,8 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
     ]);
     if (probeRun.workerFailures > 0) throw new Error(`fresh probe reference has worker failures; re-run with --resume`);
     const probeRetained = resolve(archiveDir, `${safeLabel}-probe.json.gz`);
-    copyFileSync(`${probeOut}.gz`, probeRetained);
-    writeFileSync(`${probeRetained}.sha256`, `${probeRun.compressedArchiveSha256}  ${relativeToCwd(probeRetained)}\n`);
+    copyFileDurable(`${probeOut}.gz`, probeRetained);
+    writeFileAtomicDurable(`${probeRetained}.sha256`, `${probeRun.compressedArchiveSha256}  ${relativeToCwd(probeRetained)}\n`);
 
     const bundle = {
       schema: "line.benchmark-v2.baseline-bundle.v3",
@@ -138,7 +139,7 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
       qualification: retainedEntry(qualificationArchive),
     };
     bundlePath = resolve(archiveDir, `${safeLabel}-baseline.json`);
-    writeFileSync(bundlePath, `${JSON.stringify(bundle, null, 2)}\n`);
+    writeFileAtomicDurable(bundlePath, `${JSON.stringify(bundle, null, 2)}\n`);
   }
 
   assertBaselineBundleLabel(bundlePath, safeLabel);

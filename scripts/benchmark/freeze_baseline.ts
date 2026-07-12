@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 import {
@@ -13,6 +13,7 @@ import {
   type CompilerSnapshot,
 } from "../v0/benchmark_v2/compiler_snapshot.ts";
 import { requireCurrentDecisionCalibration } from "../v0/benchmark_v2/calibration_guard.ts";
+import { writeFileAtomicDurable } from "../v0/benchmark_v2/durable_fs.ts";
 
 export function freezeBaseline(bundleArgument: string): void {
   const bundlePath = resolve(bundleArgument);
@@ -233,9 +234,7 @@ function renderMarkdown(baseline: any): string {
 }
 
 function write(path: string, value: string): void {
-  const absolute = resolve(path);
-  mkdirSync(dirname(absolute), { recursive: true });
-  writeFileSync(absolute, value);
+  writeFileAtomicDurable(path, value);
 }
 
 function relative(path: string): string {

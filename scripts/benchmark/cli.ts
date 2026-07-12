@@ -9,10 +9,11 @@ import { runEvalCommand } from "../v0/benchmark_v2/eval.ts";
 import { runMigrationCommand } from "../v0/benchmark_v2/migrate.ts";
 import { runRebaselineCommand, runTransitionCommand } from "../v0/benchmark_v2/rebaseline.ts";
 import { benchmarkEvalPolicy } from "../../benchmark/v2/eval-policy.ts";
+import { runStatusCommand } from "../v0/benchmark_v2/status.ts";
 
 const COMMAND_ALIASES = new Set([
   "probe", "eval", "canonical", "baseline", "rebaseline", "transition", "decide", "migrate", "prepare", "explain",
-  "help", "--probe", "--help", "-h",
+  "status", "help", "--probe", "--help", "-h",
 ]);
 const raw = process.argv.slice(2);
 const jsonOutput = raw.includes("--json");
@@ -37,6 +38,8 @@ async function main(rawArgs: string[]): Promise<void> {
 
   if (command === "help") {
     printHelp();
+  } else if (command === "status") {
+    process.exitCode = runStatusCommand(commandArgs);
   } else if (command === "explain") {
     if (jsonOutput) {
       throw new Error(`explain does not support --json; use --out=<path> for its report artifacts`);
@@ -177,11 +180,12 @@ async function monitored<T>(label: string, args: string[], run: () => Promise<T>
 
 function commandName(
   args: string[],
-): "probe" | "eval" | "canonical" | "baseline" | "rebaseline" | "transition" | "decide" | "migrate" | "prepare" | "explain" | "help" {
+): "probe" | "eval" | "canonical" | "baseline" | "rebaseline" | "transition" | "decide" | "migrate" | "prepare" | "explain" | "status" | "help" {
   if (args.includes("full") || args.includes("--full")) {
     throw new Error(`the full profile was retired; use \`eval --to-verdict\` for certified confirmation`);
   }
   if (args.includes("help") || args.includes("--help") || args.includes("-h")) return "help";
+  if (args.includes("status")) return "status";
   if (args.includes("eval")) return "eval";
   if (args.includes("canonical")) return "canonical";
   if (args.includes("rebaseline")) return "rebaseline";
@@ -204,6 +208,7 @@ function printHelp(): void {
   ).join("\n");
   console.log(`Benchmark V2\n\n` +
     `  npm run benchmark -- eval        Stage 0: informational screen of the current tree vs the baseline (probe is a deprecated alias)\n` +
+    `  npm run benchmark -- status      Read-only baseline, era budget, certified cost, timing, and rebaseline blockers\n` +
     `  npm run benchmark -- eval --to-verdict [--mode=improve] [--acknowledge-retry] [--resume] [--json]\n` +
     `  npm run benchmark -- eval --to-verdict --mode=simplify --margin=5 [--acknowledge-retry] [--resume] [--json]\n` +
     `                                   Declared, certified confirmation: fresh paired epoch, futility looks, verdict\n` +

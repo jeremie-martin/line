@@ -48,7 +48,7 @@ describe("Benchmark V2 suite identity", () => {
       .toThrow(/reserved heldout source fingerprint/);
   });
 
-  test("freezes resolved seeds and the approved V8 baseline", () => {
+  test("freezes resolved seeds and the approved V9 baseline", () => {
     const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
     const identity = suiteIdentity("benchmark/v2/compat/suite-manifest.json", "benchmark/v2/compat/source-manifest.json", sources);
     const baseline = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8")) as {

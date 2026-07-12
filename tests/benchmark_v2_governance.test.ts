@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
@@ -10,7 +10,11 @@ import {
   type SeedLedgerEntry,
 } from "../scripts/v0/benchmark_v2/confirmation.ts";
 import {
+  cleanupStaleSnapshotWorkspaces,
+  allocateSnapshotWorkspacePath,
   removeAmbientCompilerSources,
+  SNAPSHOT_WORKSPACE_OWNER,
+  SNAPSHOT_WORKSPACE_PREFIX,
   validateCompilerSnapshot,
 } from "../scripts/v0/benchmark_v2/compiler_snapshot.ts";
 import { latestSuccessfulResults } from "../scripts/v0/benchmark_v2/checkpoint_model.ts";
@@ -31,6 +35,56 @@ const sourcePath = "benchmark/v2/compat/source-manifest.json";
 const suitePath = "benchmark/v2/compat/suite-manifest.json";
 
 describe("Benchmark V2 governance", () => {
+  test("runner compatibility approvals are unique and retain immutable evidence", () => {
+    const manifest = JSON.parse(readFileSync("benchmark/v2/runner-compatibility.json", "utf8"));
+    const keys = manifest.approvals.map((entry: any) => [
+      entry.fromImplementationFingerprint,
+      entry.toImplementationFingerprint,
+      entry.executionProtocol,
+      entry.suiteFingerprint,
+    ].join("\0"));
+    expect(new Set(keys).size).toBe(keys.length);
+    for (const entry of manifest.approvals) {
+      expect(existsSync(entry.evidence.path)).toBe(true);
+      expect(sha256(readFileSync(entry.evidence.path))).toBe(entry.evidence.sha256);
+    }
+  });
+
+  test("reserves a unique absent path for git worktree creation", () => {
+    const root = mkdtempSync(join(tmpdir(), "v2-workspace-path-"));
+    const path = allocateSnapshotWorkspacePath(root);
+    expect(path.startsWith(join(root, SNAPSHOT_WORKSPACE_PREFIX))).toBe(true);
+    expect(existsSync(path)).toBe(false);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("reclaims dead snapshot workspaces but preserves a live owner", () => {
+    const root = mkdtempSync(join(tmpdir(), "v2-workspace-cleanup-"));
+    const live = mkdtempSync(join(root, SNAPSHOT_WORKSPACE_PREFIX));
+    const dead = mkdtempSync(join(root, SNAPSHOT_WORKSPACE_PREFIX));
+    writeFileSync(join(live, SNAPSHOT_WORKSPACE_OWNER), JSON.stringify({
+      schema: "line.benchmark-v2.snapshot-workspace-owner.v1",
+      pid: 100,
+      processStart: "live",
+      createdAt: "2026-07-12T00:00:00.000Z",
+    }));
+    writeFileSync(join(dead, SNAPSHOT_WORKSPACE_OWNER), JSON.stringify({
+      schema: "line.benchmark-v2.snapshot-workspace-owner.v1",
+      pid: 200,
+      processStart: "dead",
+      createdAt: "2026-07-12T00:00:00.000Z",
+    }));
+    const removed = cleanupStaleSnapshotWorkspaces({
+      root,
+      markerlessGraceMs: 0,
+      ownerAlive: (owner) => owner.pid === 100,
+    });
+    expect(removed).toEqual([dead]);
+    expect(existsSync(live)).toBe(true);
+    expect(existsSync(dead)).toBe(false);
+    rmSync(root, { recursive: true, force: true });
+  });
+
   test("removes candidate-only compiler files before extracting a frozen snapshot", () => {
     const workspace = mkdtempSync(join(tmpdir(), "v2-snapshot-boundary-"));
     const candidateOnly = join(workspace, "scripts/v0/optimizer/candidate_only.ts");

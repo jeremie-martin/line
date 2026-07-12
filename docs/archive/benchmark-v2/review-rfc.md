@@ -583,7 +583,7 @@ manual re-freeze the plan retires.
    fingerprint unchanged, so coverage and calibration remained current).
 6. **Docs pass + live validation** (C.6) — DONE: HOW_TO_WORK is organized
    around the eval chain; live validation V1–V7 passed under the predeclared
-   criteria in `benchmark-v2-validation.md`; the legacy one-shot path is
+   criteria in `eval-chain-validation.md`; the legacy one-shot path is
    retired and its historical guidance is archived.
 
 **Deferred to v2** (designed in Part C, gated on v1 usage evidence and the

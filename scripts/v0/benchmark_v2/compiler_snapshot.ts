@@ -5,13 +5,19 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
+  statSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { COMPILER_SOURCE_PATHS, compilerCandidateIdentity } from "./compiler_identity.ts";
 
 const ENGINE_ARTIFACT = "engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm";
+export const SNAPSHOT_WORKSPACE_PREFIX = "line-v2-baseline-";
+export const SNAPSHOT_WORKSPACE_OWNER = ".line-v2-workspace-owner.json";
+const MARKERLESS_WORKSPACE_GRACE_MS = 10 * 60_000;
 
 export type CompilerSnapshot = {
   schema: "line.benchmark-v2.compiler-snapshot.v1";
@@ -27,6 +33,7 @@ export type SnapshotBenchmarkRun = {
   mode: "development" | "qualification";
   outputPath: string;
   summaryPath: string;
+  decisionIndexPath?: string;
   archiveSha256: string;
   compressedArchiveSha256: string;
   headline: number | null;
@@ -106,11 +113,18 @@ export type SnapshotWorkspace = {
  */
 export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWorkspace {
   validateCompilerSnapshot(snapshot);
-  const workspace = mkdtempSync(resolve(tmpdir(), "line-v2-baseline-"));
+  cleanupStaleSnapshotWorkspaces();
+  const workspace = allocateSnapshotWorkspacePath();
   let worktreeCreated = false;
   try {
     execFileSync("git", ["worktree", "add", "--detach", workspace, "HEAD"], { stdio: diagnosticStdio() });
     worktreeCreated = true;
+    writeFileSync(resolve(workspace, SNAPSHOT_WORKSPACE_OWNER), `${JSON.stringify({
+      schema: "line.benchmark-v2.snapshot-workspace-owner.v1",
+      pid: process.pid,
+      processStart: processStart(process.pid),
+      createdAt: new Date().toISOString(),
+    })}\n`);
     execFileSync("rsync", [
       "-a",
       "--exclude=/.git",
@@ -146,6 +160,13 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
     throw error;
   }
   return { snapshot, directory: workspace, disposed: false };
+}
+
+/** Reserve a collision-free name without leaving a directory that blocks git worktree add. */
+export function allocateSnapshotWorkspacePath(root = tmpdir()): string {
+  const path = mkdtempSync(resolve(root, SNAPSHOT_WORKSPACE_PREFIX));
+  rmSync(path, { recursive: true, force: true });
+  return path;
 }
 
 export function runInWorkspace(
@@ -193,18 +214,24 @@ export function runInWorkspace(
       workerFailures: partial.workerFailures ?? 0,
     };
   }
-  const archiveBytes = readFileSync(absoluteOutput);
-  const archive = JSON.parse(archiveBytes.toString("utf8"));
-  const compressedBytes = readFileSync(`${absoluteOutput}.gz`);
+  const summaryPath = `${absoluteOutput}.summary.json`;
+  const summary = JSON.parse(readFileSync(summaryPath, "utf8"));
+  if (
+    typeof summary.archiveSha256 !== "string" || typeof summary.compressedArchiveSha256 !== "string" ||
+    !Number.isSafeInteger(summary.workerFailures)
+  ) {
+    throw new Error(`snapshot run summary is incomplete at ${summaryPath}`);
+  }
   return {
     mode,
     outputPath: absoluteOutput,
-    summaryPath: `${absoluteOutput}.summary.json`,
-    archiveSha256: sha256(archiveBytes),
-    compressedArchiveSha256: sha256(compressedBytes),
-    headline: archive.canonicalHeadline,
-    qualificationMonitorScore: archive.qualificationMonitorScore,
-    workerFailures: archive.runs.filter((row: { status: string }) => row.status !== "ok").length,
+    summaryPath,
+    decisionIndexPath: `${absoluteOutput}.decision-index.json`,
+    archiveSha256: summary.archiveSha256,
+    compressedArchiveSha256: summary.compressedArchiveSha256,
+    headline: summary.canonicalHeadline,
+    qualificationMonitorScore: summary.qualificationMonitorScore,
+    workerFailures: summary.workerFailures,
   };
 }
 
@@ -218,6 +245,48 @@ export function disposeSnapshotWorkspace(workspace: SnapshotWorkspace): void {
   if (workspace.disposed) return;
   workspace.disposed = true;
   execFileSync("git", ["worktree", "remove", "--force", workspace.directory], { stdio: "ignore" });
+}
+
+/** Remove only owner-dead (or old markerless legacy) snapshot workspaces. */
+export function cleanupStaleSnapshotWorkspaces(options: {
+  root?: string;
+  markerlessGraceMs?: number;
+  ownerAlive?: (owner: { pid: number; processStart: string | null }) => boolean;
+} = {}): string[] {
+  const root = resolve(options.root ?? tmpdir());
+  if (!existsSync(root)) return [];
+  const ownerAlive = options.ownerAlive ?? snapshotOwnerAlive;
+  const grace = options.markerlessGraceMs ?? MARKERLESS_WORKSPACE_GRACE_MS;
+  const removed: string[] = [];
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    if (!entry.isDirectory() || !entry.name.startsWith(SNAPSHOT_WORKSPACE_PREFIX)) continue;
+    const directory = resolve(root, entry.name);
+    const marker = resolve(directory, SNAPSHOT_WORKSPACE_OWNER);
+    let reclaim = false;
+    if (existsSync(marker)) {
+      try {
+        const owner = JSON.parse(readFileSync(marker, "utf8"));
+        reclaim =
+          !Number.isSafeInteger(owner.pid) || owner.pid <= 0 ||
+          !(typeof owner.processStart === "string" || owner.processStart === null) ||
+          !ownerAlive({ pid: owner.pid, processStart: owner.processStart });
+      } catch {
+        reclaim = Date.now() - statSync(marker).mtimeMs >= grace;
+      }
+    } else {
+      reclaim = Date.now() - statSync(directory).mtimeMs >= grace;
+    }
+    if (!reclaim) continue;
+    try {
+      execFileSync("git", ["worktree", "remove", "--force", directory], { stdio: "ignore" });
+    } catch {
+      rmSync(directory, { recursive: true, force: true });
+    }
+    if (existsSync(directory)) rmSync(directory, { recursive: true, force: true });
+    removed.push(directory);
+  }
+  if (removed.length > 0) execFileSync("git", ["worktree", "prune"], { stdio: "ignore" });
+  return removed;
 }
 
 export function runSnapshotBenchmark(
@@ -247,4 +316,23 @@ function sha256(value: Buffer): string {
 function relativeToCwd(path: string): string {
   const prefix = `${process.cwd()}/`;
   return path.startsWith(prefix) ? path.slice(prefix.length) : path;
+}
+
+function snapshotOwnerAlive(owner: { pid: number; processStart: string | null }): boolean {
+  try {
+    process.kill(owner.pid, 0);
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === "EPERM";
+  }
+  const current = processStart(owner.pid);
+  return owner.processStart === null || current === null || owner.processStart === current;
+}
+
+function processStart(pid: number): string | null {
+  try {
+    const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+    return stat.slice(stat.lastIndexOf(")") + 2).trim().split(/\s+/)[19] ?? null;
+  } catch {
+    return null;
+  }
 }

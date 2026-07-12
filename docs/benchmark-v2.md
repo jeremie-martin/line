@@ -111,13 +111,19 @@ retained for optional probe archive analysis only and rejects canonical evidence
 ## Diagnostics
 
 ```bash
-npm run benchmark -- explain generated/benchmark-v2/canonical-runs/NAME-development.json
+npm run benchmark -- status
+npm run benchmark -- explain benchmark/v2/runs/ATTEMPT-development.json.gz
 ```
 
 The explanation identifies invalid sources, failure progress, termini, pooled axis RMS,
 and phase completion. Undefined axes remain absent; a missing expected measurement is a
 hard run failure. The physical `feasibility_bound` is diagnostic only and never changes
 authored impact truth.
+
+`status` is read-only. It reports contract freshness, current era spend and capacity,
+exact compile counts, the dated host-specific timing reference, rebaseline blockers,
+and retained-evidence references. `status --evidence` lists reviewable unreferenced
+files; it never deletes evidence.
 
 ## Changing V2
 

@@ -108,6 +108,7 @@ type SeedPlan = Map<number, number[]>;
 type RunIndex = {
   byCell: Map<string, DecisionRun>;
   slotsByBudget: Map<number, number[]>;
+  scoresBySourceBudget: Map<string, number[]>;
 };
 type ScoreBreakdown = {
   headline: number;
@@ -150,6 +151,8 @@ function pairedV2DecisionCore(
   const candidate = indexRuns(candidateRuns, suite, options.profile);
   const fullParents = fullParentPlan(suite);
   const fullSeeds = new Map([...base.slotsByBudget].map(([budget, slots]) => [budget, [...slots]]));
+  const baseFullCaseScores = caseScoreCache(base, budgets, fullSeeds);
+  const candidateFullCaseScores = caseScoreCache(candidate, budgets, fullSeeds);
   const basePoint = scorePlan(base, suite, budgets, fullParents, fullSeeds);
   const candidatePoint = scorePlan(candidate, suite, budgets, fullParents, fullSeeds);
   const pointDelta = candidatePoint.headline - basePoint.headline;
@@ -161,13 +164,13 @@ function pairedV2DecisionCore(
   for (let iteration = 0; iteration < (includeSensitivity ? policy.iterations : 0); iteration++) {
     const parents = sampledParentPlan(suite, random);
     const seeds = sampledSeedPlan(base.slotsByBudget, random);
-    const baseJoint = scorePlan(base, suite, budgets, parents, seeds);
-    const candidateJoint = scorePlan(candidate, suite, budgets, parents, seeds);
-    const baseCatalogOnly = scorePlan(base, suite, budgets, parents, fullSeeds);
-    const candidateCatalogOnly = scorePlan(candidate, suite, budgets, parents, fullSeeds);
+    const baseJoint = scoreHeadline(base, suite, budgets, parents, seeds);
+    const candidateJoint = scoreHeadline(candidate, suite, budgets, parents, seeds);
+    const baseCatalogOnly = scoreHeadline(base, suite, budgets, parents, fullSeeds, baseFullCaseScores);
+    const candidateCatalogOnly = scoreHeadline(candidate, suite, budgets, parents, fullSeeds, candidateFullCaseScores);
 
-    jointDeltas.push(candidateJoint.headline - baseJoint.headline);
-    catalogOnlyDeltas.push(candidateCatalogOnly.headline - baseCatalogOnly.headline);
+    jointDeltas.push(candidateJoint - baseJoint);
+    catalogOnlyDeltas.push(candidateCatalogOnly - baseCatalogOnly);
   }
 
   const seedConfidence = seedBlockConfidence(
@@ -391,6 +394,12 @@ function indexRuns(runs: DecisionRun[], suite: SuiteManifest, profile: DecisionP
   return {
     byCell,
     slotsByBudget: new Map([...slotsByBudget].map(([budget, slots]) => [budget, [...slots].sort((a, b) => a - b)])),
+    scoresBySourceBudget: new Map(members.flatMap((sourceId) => expectedBudgets.map((budget) => [
+      sourceBudgetKey(sourceId, budget),
+      [...slotsByBudget.get(budget)!].sort((a, b) => a - b).map((slot) =>
+        byCell.get(cellKey(sourceId, budget, slot))!.score.score
+      ),
+    ] as const))),
   };
 }
 
@@ -449,6 +458,65 @@ function scorePlan(
     parents: aggregateBudgetMaps(parentsByBudget, budgets, suite),
     cases: aggregateBudgetMaps(casesByBudget, budgets, suite),
   };
+}
+
+/** Exact headline-only form of scorePlan for bootstrap iterations. */
+function scoreHeadline(
+  runs: RunIndex,
+  suite: SuiteManifest,
+  budgets: number[],
+  parentPlan: ParentPlan,
+  seedPlan: SeedPlan,
+  cachedCaseScores?: Map<string, number>,
+): number {
+  const budgetScores = new Map<number, number>();
+  for (const budget of budgets) {
+    const seedSlots = seedPlan.get(budget);
+    if (seedSlots === undefined || seedSlots.length === 0) throw new Error(`${budget}: empty seed sample`);
+    let budgetScore = 0;
+    for (const stratum of suite.strata) {
+      let stratumScore = 0;
+      for (const group of stratum.groups) {
+        const selectedParents = parentPlan.get(group.id);
+        if (selectedParents === undefined || selectedParents.length === 0) {
+          throw new Error(`${group.id}: empty parent sample`);
+        }
+        const parentScores = selectedParents.map((parent) => round(shiftedGeometricMean(
+          parent.members.map((sourceId) => cachedCaseScores?.get(sourceBudgetKey(sourceId, budget)) ??
+            round(shiftedGeometricMeanSlots(runs.scoresBySourceBudget.get(sourceBudgetKey(sourceId, budget))!, seedSlots))
+          ),
+        )));
+        stratumScore += group.weight * round(shiftedGeometricMean(parentScores));
+      }
+      budgetScore += stratum.weight * round(stratumScore);
+    }
+    budgetScores.set(budget, round(budgetScore));
+  }
+  return weightedBudgets(budgetScores, budgets, suite);
+}
+
+function caseScoreCache(runs: RunIndex, budgets: number[], seedPlan: SeedPlan): Map<string, number> {
+  const scores = new Map<string, number>();
+  for (const [key, values] of runs.scoresBySourceBudget) {
+    const budget = Number(key.slice(key.lastIndexOf("\0") + 1));
+    if (!budgets.includes(budget)) continue;
+    scores.set(key, round(shiftedGeometricMeanSlots(values, seedPlan.get(budget)!)));
+  }
+  return scores;
+}
+
+function shiftedGeometricMeanSlots(values: number[], slots: number[]): number {
+  let sum = 0;
+  for (const slot of slots) {
+    const value = values[slot];
+    const safe = Number.isFinite(value) ? Math.max(0, value) : 0;
+    sum += Math.log(safe + 1);
+  }
+  return Math.exp(sum / slots.length) - 1;
+}
+
+function sourceBudgetKey(sourceId: string, budget: number): string {
+  return `${sourceId}\0${budget}`;
 }
 
 function aggregateBudgetMaps(

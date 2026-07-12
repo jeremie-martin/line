@@ -14,7 +14,7 @@ historical record, not live guidance.
 | [`benchmark-v2-context.md`](benchmark-v2-context.md) | LIVE | Product distribution, scoring, holdout, compute, and governance contract. |
 | [`benchmark-v2-decisions.md`](benchmark-v2-decisions.md) | LIVE | Statistical estimand, confidence method, policies, artifacts, and exit codes. |
 | [`benchmark-v2.md`](benchmark-v2.md) | LIVE | Benchmark V2 commands and operations. |
-| [`benchmark-v2-reliability-validation.md`](benchmark-v2-reliability-validation.md) | VALIDATION | Adversarial repair findings, retained fingerprints, and empirical proof. |
+| [`benchmark-v2-closure-register.md`](benchmark-v2-closure-register.md) | VALIDATION | Current adversarial audit, dispositions, and retained proof. |
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
 | [`REBASELINE.md`](REBASELINE.md) | LIVE | Accepted-attempt rebaseline and initial/suite-rollover bootstrap semantics. |
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
@@ -82,3 +82,5 @@ budget-aware / weighted-average metric (HEADLINE) and baseline.
 
 `archive/benchmark-v2-one-shot/` preserves the retired pre-eval V2 promotion
 procedure. Its commands are historical records, not live operational guidance.
+`archive/benchmark-v2/` preserves the completed eval-chain RFC and validation
+campaigns; they are evidence history, not current operating instructions.

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { freezeBaseline } from "../../benchmark/freeze_baseline.ts";
 import {
@@ -9,6 +9,7 @@ import {
   type AttemptPaths,
   type EraState,
 } from "./attempts.ts";
+import { removeFileDurable, writeFileExclusiveDurable } from "./durable_fs.ts";
 
 export const BASELINE_PUBLICATION_PENDING_PATH = "benchmark/v2/baseline-publication-pending.json";
 
@@ -54,14 +55,14 @@ export function publishBaselineWithLedger(
       event: pendingEvent,
     };
     assertPinnedBundleMatchesEvent(pending);
-    writeFileSync(pendingPath, `${JSON.stringify(pending, null, 2)}\n`, { flag: "wx" });
+    writeFileExclusiveDurable(pendingPath, `${JSON.stringify(pending, null, 2)}\n`);
     try {
       assertBundleCurrent(pending);
       freeze(pending.bundlePath);
       options.afterFreeze?.();
       const state = transaction.append(event);
       options.afterLedgerAppend?.();
-      rmSync(pendingPath, { force: true });
+      removeFileDurable(pendingPath);
       return state;
     } catch (error) {
       // The journal is intentionally retained. A rerun completes the same
@@ -90,7 +91,7 @@ export function recoverPendingBaselinePublication(options: PublicationOptions = 
       throw new Error(`migration publication is pending; recover it before recovering a baseline publication`);
     }
     if (publicationEventApplied(transaction.state, pending.event)) {
-      rmSync(pendingPath, { force: true });
+      removeFileDurable(pendingPath);
       return transaction.state;
     }
     transaction.assertAllowed(pending.event);
@@ -98,7 +99,7 @@ export function recoverPendingBaselinePublication(options: PublicationOptions = 
     freeze(pending.bundlePath);
     options.afterFreeze?.();
     const state = transaction.append(pending.event);
-    rmSync(pendingPath, { force: true });
+    removeFileDurable(pendingPath);
     return state;
   });
 }

@@ -59,11 +59,13 @@ import {
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import { latestSuccessfulResults } from "./checkpoint_model.ts";
+import { syncFile, writeFileAtomicDurable } from "./durable_fs.ts";
 
 export const RUN_ARCHIVE_SCHEMA = BENCHMARK_RUN_ARCHIVE_SCHEMA;
 export { COMPILER_IDENTITY_PROTOCOL };
 const CHECKPOINT_SCHEMA = "line.benchmark-v2.checkpoint.v1" as const;
 const SUMMARY_SCHEMA = "line.benchmark-v2.run-summary.v3" as const;
+export const DECISION_INDEX_SCHEMA = "line.benchmark-v2.decision-index.v1" as const;
 const PARTIAL_RUN_SCHEMA = "line.benchmark-v2.partial-run.v1" as const;
 
 type RunnerMode = "development" | "qualification";
@@ -103,6 +105,7 @@ export type CompletedBenchmarkRun = {
   mode: RunnerMode;
   outputPath: string;
   summaryPath: string;
+  decisionIndexPath?: string;
   archiveSha256: string;
   compressedArchiveSha256: string;
   headline: number | null;
@@ -393,7 +396,7 @@ export async function runBenchmarkV2(
   const qualificationMonitorScore = qualificationSummaries.length === 0
     ? null
     : weightedMonitorScore(qualificationSummaries, suite.budget_weights);
-  const archive = {
+  const archive = bindDecisionIndexArchive({
     schema: RUN_ARCHIVE_SCHEMA,
     mode,
     profile: profileName,
@@ -422,11 +425,13 @@ export async function runBenchmarkV2(
     qualificationSummaries,
     sources: sources.map((source) => sourceArchiveIdentity(source)),
     runs: scored,
-  };
+  });
   const failed = workerFailures > 0;
   const { archiveOut, summaryPath, archiveSha256, compressedArchiveSha256 } =
     await writeArchiveArtifacts(outputPath, archiveChunks(archive), failed);
-  writeFileSync(summaryPath, `${JSON.stringify({
+  const decisionIndexPath = `${archiveOut}.decision-index.json`;
+  if (!failed) writeDecisionIndexArtifacts(archiveOut, archive, archiveSha256, compressedArchiveSha256);
+  writeFileAtomicDurable(summaryPath, `${JSON.stringify({
     schema: SUMMARY_SCHEMA,
     mode,
     profile: profileName,
@@ -450,6 +455,7 @@ export async function runBenchmarkV2(
     candidateFingerprint: git.candidateFingerprint,
     canonicalHeadline: headline,
     qualificationMonitorScore,
+    workerFailures,
     developmentSummaries,
     qualificationSummaries,
     linkedDevelopment,
@@ -472,6 +478,7 @@ export async function runBenchmarkV2(
   console.log(`  archive: ${relativeToCwd(archiveOut)} (${archiveSha256.slice(0, 16)})`);
   console.log(`  compressed: ${relativeToCwd(`${archiveOut}.gz`)}`);
   console.log(`  summary: ${relativeToCwd(summaryPath)}`);
+  if (!failed) console.log(`  decision index: ${relativeToCwd(decisionIndexPath)}`);
   if (failed) {
     console.error(`  FAILED: ${workerFailures} worker failure(s); archive retained at ${relativeToCwd(archiveOut)}; re-run with --resume to retry the failed tasks`);
     process.exitCode = 1;
@@ -480,11 +487,88 @@ export async function runBenchmarkV2(
     mode,
     outputPath: archiveOut,
     summaryPath,
+    ...(failed ? {} : { decisionIndexPath }),
     archiveSha256,
     compressedArchiveSha256,
     headline,
     qualificationMonitorScore,
     workerFailures,
+  };
+}
+
+export function writeDecisionIndexArtifacts(
+  archivePath: string,
+  archive: Record<string, any> & { runs: Array<Record<string, any>> },
+  archiveSha256: string,
+  compressedArchiveSha256: string,
+): string {
+  const decisionIndexPath = `${archivePath}.decision-index.json`;
+  const decisionArchive = decisionArchiveProjection(archive);
+  const payloadSha256 = sha256(JSON.stringify(decisionArchive));
+  if (archive.decisionIndexPayloadSha256 !== payloadSha256) {
+    throw new Error(`raw archive does not commit to its decision-index payload`);
+  }
+  const decisionIndexBytes = `${JSON.stringify({
+    schema: DECISION_INDEX_SCHEMA,
+    payloadSha256,
+    archiveSha256,
+    compressedArchiveSha256,
+    archive: decisionArchive,
+  })}\n`;
+  writeFileAtomicDurable(decisionIndexPath, decisionIndexBytes);
+  writeFileAtomicDurable(
+    `${decisionIndexPath}.sha256`,
+    `${sha256(decisionIndexBytes)}  ${relativeToCwd(decisionIndexPath)}\n`,
+  );
+  return decisionIndexPath;
+}
+
+export function bindDecisionIndexArchive<T extends Record<string, any> & { runs: Array<Record<string, any>> }>(
+  archive: T,
+): T & { decisionIndexPayloadSha256: string } {
+  const { runs, ...core } = archive;
+  const projected = decisionArchiveProjection(archive);
+  return {
+    ...core,
+    decisionIndexPayloadSha256: sha256(JSON.stringify(projected)),
+    runs,
+  } as T & { decisionIndexPayloadSha256: string };
+}
+
+export function validateDecisionIndexAgainstArchive(
+  indexPath: string,
+  archive: Record<string, any> & { runs: Array<Record<string, any>> },
+): number {
+  const bytes = readFileSync(indexPath);
+  const sidecar = readFileSync(`${indexPath}.sha256`, "utf8").trim().split(/\s+/)[0];
+  if (sidecar !== sha256(bytes)) throw new Error(`decision-index checksum mismatch`);
+  const index = JSON.parse(bytes.toString("utf8"));
+  if (index.schema !== DECISION_INDEX_SCHEMA) throw new Error(`unsupported decision index`);
+  const expected = decisionArchiveProjection(archive);
+  if (
+    index.payloadSha256 !== sha256(JSON.stringify(expected)) ||
+    archive.decisionIndexPayloadSha256 !== index.payloadSha256
+  ) throw new Error(`raw archive does not commit to its decision-index payload`);
+  if (JSON.stringify(index.archive) !== JSON.stringify(expected)) {
+    throw new Error(`decision index differs from its raw archive projection`);
+  }
+  return expected.runs.length;
+}
+
+function decisionArchiveProjection(
+  archive: Record<string, any> & { runs: Array<Record<string, any>> },
+): Record<string, any> & { runs: Array<Record<string, any>> } {
+  const { decisionIndexPayloadSha256: _binding, ...withoutBinding } = archive;
+  return {
+    ...withoutBinding,
+    runs: archive.runs.map((row) => ({
+      status: row.status,
+      task: row.task,
+      source: row.source,
+      authoredContacts: row.authoredContacts,
+      score: row.score,
+      rawReportSha256: sha256(JSON.stringify(row.report)),
+    })),
   };
 }
 
@@ -953,11 +1037,13 @@ export async function writeArchiveArtifacts(
   await new Promise<void>((resolveEnd, rejectEnd) => fileStream.end((error?: Error) => error ? rejectEnd(error) : resolveEnd()));
   gzip.end();
   await gzipDone;
+  syncFile(archiveOut);
+  syncFile(`${archiveOut}.gz`);
   const archiveSha256 = archiveHash.digest("hex");
   const compressedArchiveSha256 = compressedHash.digest("hex");
   if (!failed) {
-    writeFileSync(`${outputPath}.sha256`, `${archiveSha256}  ${relativeToCwd(outputPath)}\n`);
-    writeFileSync(`${outputPath}.gz.sha256`, `${compressedArchiveSha256}  ${relativeToCwd(`${outputPath}.gz`)}\n`);
+    writeFileAtomicDurable(`${outputPath}.sha256`, `${archiveSha256}  ${relativeToCwd(outputPath)}\n`);
+    writeFileAtomicDurable(`${outputPath}.gz.sha256`, `${compressedArchiveSha256}  ${relativeToCwd(`${outputPath}.gz`)}\n`);
   }
   return {
     archiveOut,
@@ -980,6 +1066,8 @@ export function invalidatePublishedRunArtifacts(outputPath: string): void {
     `${outputPath}.sha256`,
     `${outputPath}.gz.sha256`,
     `${outputPath}.summary.json`,
+    `${outputPath}.decision-index.json`,
+    `${outputPath}.decision-index.json.sha256`,
   ]) {
     rmSync(path, { force: true });
   }

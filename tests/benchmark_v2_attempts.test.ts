@@ -277,6 +277,47 @@ describe("era alpha-budget", () => {
       adjustments: [{ attemptId: "undercharged", previousSpend: 0.0157, correctedSpend: 0.0196 }],
     } as AttemptEventInput, paths, nextAt())).toThrow(/expected spend 0.0157, found 0.0196/);
   });
+
+  test("refunds only an audited no-look infrastructure abort and keeps its seeds reserved", () => {
+    const paths = tmpPaths();
+    appendAttemptEvent(bootstrap({ budgetCap: 0.05 }), paths, nextAt());
+    const declared = declare({ attemptId: "infra-abort", spend: 0.0196, candidateFingerprint: fp("infra") });
+    appendAttemptEvent(declared, paths, nextAt());
+    appendAttemptEvent({ type: "abort", attemptId: "infra-abort", reason: "checkpoint integration failure" }, paths, nextAt());
+    const corrected = appendAttemptEvent({
+      type: "accounting-correction",
+      reason: "independent audit proved no formal look or verdict was possible",
+      operator: "test-auditor",
+      adjustments: [{ attemptId: "infra-abort", previousSpend: 0.0196, correctedSpend: 0 }],
+    }, paths, nextAt());
+    expect(corrected.budgetSpent).toBe(0);
+    expect(corrected.cumulativeExpectedFalseAccepts).toBe(0);
+    expect(corrected.attempts[0]).toMatchObject({ outcome: "aborted", spend: 0, lookCount: 0 });
+    expect(corrected.seedLedger).toHaveLength(1);
+    expect(retryStatus(corrected, fp("infra"), 0.01)).toEqual({ priorAttempts: 0, compoundAlpha: 0.01 });
+  });
+
+  test("refuses to refund an abort after a formal look", () => {
+    const paths = tmpPaths();
+    appendAttemptEvent(bootstrap({ budgetCap: 0.05 }), paths, nextAt());
+    appendAttemptEvent(declare({ attemptId: "looked", spend: 0.0196 }), paths, nextAt());
+    appendAttemptEvent({
+      type: "look",
+      attemptId: "looked",
+      k: 2,
+      delta: 0,
+      standardError: 1,
+      upperBound: 2,
+      fired: false,
+    }, paths, nextAt());
+    appendAttemptEvent({ type: "abort", attemptId: "looked", reason: "operator stop" }, paths, nextAt());
+    expect(() => appendAttemptEvent({
+      type: "accounting-correction",
+      reason: "invalid refund",
+      operator: "test",
+      adjustments: [{ attemptId: "looked", previousSpend: 0.0196, correctedSpend: 0 }],
+    }, paths, nextAt())).toThrow(/no formal look/);
+  });
 });
 
 describe("retry compounding", () => {

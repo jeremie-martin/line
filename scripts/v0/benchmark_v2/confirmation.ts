@@ -3,20 +3,21 @@
  *
  * The one-shot canonical confirmation machinery (confirmation state file,
  * single promotion slot, consume-on-decide) was retired at the eval-chain
- * cutover after the live validation (docs/benchmark-v2-validation.md):
+ * cutover after the live validation (docs/archive/benchmark-v2/eval-chain-validation.md):
  * `benchmark/v2/baseline.json` is the sole record of the baseline contract,
  * and `benchmark/v2/attempts.jsonl` is the sole ledger of attempts and
  * seed epochs.
  */
 
 import { createHash, randomBytes } from "node:crypto";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import {
   validateCompilerSnapshot,
   type CompilerSnapshot,
   type SnapshotBenchmarkRun,
 } from "./compiler_snapshot.ts";
+import { copyFileDurable, writeFileAtomicDurable } from "./durable_fs.ts";
 import { type DecisionContractIdentity } from "./calibration_guard.ts";
 
 export const EVAL_DECLARATION_SCHEMA = "line.benchmark-v2.eval-declaration.v6" as const;
@@ -245,9 +246,14 @@ export function retainSnapshotRun(
 } {
   const archivePath = resolve(archiveDir, `${stem}.json.gz`);
   const summaryPath = resolve(archiveDir, `${stem}.summary.json`);
-  copyFileSync(`${run.outputPath}.gz`, archivePath);
-  copyFileSync(run.summaryPath, summaryPath);
-  writeFileSync(`${archivePath}.sha256`, `${run.compressedArchiveSha256}  ${relativeToCwd(archivePath)}\n`);
+  const decisionIndexPath = resolve(archiveDir, `${stem}.decision-index.json`);
+  copyFileDurable(`${run.outputPath}.gz`, archivePath);
+  copyFileDurable(run.summaryPath, summaryPath);
+  if (run.decisionIndexPath !== undefined) {
+    copyFileDurable(run.decisionIndexPath, decisionIndexPath);
+    copyFileDurable(`${run.decisionIndexPath}.sha256`, `${decisionIndexPath}.sha256`);
+  }
+  writeFileAtomicDurable(`${archivePath}.sha256`, `${run.compressedArchiveSha256}  ${relativeToCwd(archivePath)}\n`);
   return {
     archive: relativeToCwd(archivePath),
     summary: relativeToCwd(summaryPath),

@@ -8,8 +8,8 @@ always end with evidence you can trust.**
 
 - `benchmark-v2-context.md`: what the benchmark represents and how qualification is interpreted.
 - `benchmark-v2-decisions.md`: estimand, confidence method, outcomes, and limits.
-- `benchmark-v2-review.md`: the eval-chain design, its certified evidence, and the governance contract.
 - `benchmark-v2.md`: commands, artifacts, preparation, and diagnostics.
+- `benchmark-v2-closure-register.md`: the latest adversarial workflow audit and its evidence-backed dispositions.
 - `compiler_goals.md`: compiler behavior and budget contract.
 - `../GOAL_LDS_COMPILER_IMPROVEMENT.md`: active improvement loop.
 
@@ -23,12 +23,16 @@ Everything is one command, `eval`, used at two intensities.
 # Validate and regenerate deterministic benchmark evidence.
 npm run benchmark -- prepare
 
-# STAGE 0 (~2 min): informational screen of the current tree vs the stored
+# READ-ONLY PREFLIGHT: current contract, era capacity, certified cost,
+# retained-evidence health, and rebaseline blockers.
+npm run benchmark -- status
+
+# STAGE 0 (74 s on the dated 48-worker reference run): informational screen
 # baseline probe reference. Repeatable all day; consumes nothing. Explore
 # LR_ knobs freely here — e.g. LR_IMPACT_LOCAL_W=0.65 npm run benchmark -- eval
 npm run benchmark -- eval
 
-# CONFIRMATION (~50 min two-arm at depth 48): declare a certified operating
+# CONFIRMATION (57 min on the dated 48-worker reference run): declare a certified operating
 # point, run both frozen snapshots on a fresh paired epoch in waves, take the
 # declared futility looks, decide at the declared depth.
 npm run benchmark -- eval --to-verdict                          # improve, θ=0
@@ -48,7 +52,7 @@ candidate may be uncommitted while it is evaluated, but after an accept the
 exact compiler-bound bytes must be committed before `rebaseline`; promotion
 refuses staged, unstaged, deleted, or untracked compiler-bound paths.
 
-Public physics runs use WASM, default to 48 workers, cap budgets at 750k, report host/process resources, and retain resumable checkpoints. Use `--jobs=N` when the host is shared. `--resume` continues a crashed attempt from its checkpoint; a fired futility stop is durable.
+Public physics runs use WASM, default to 48 workers, cap budgets at 750k, report host/process resources, and retain resumable checkpoints. Use `--jobs=N` when the host is shared. `--resume` continues a crashed attempt from its checkpoint; a fired futility stop is durable. The status command distinguishes normative compile counts from dated, host-specific timing and memory measurements.
 
 ## Meaning of results
 
@@ -62,9 +66,9 @@ A `--to-verdict` attempt ends one of four ways (exit code):
 - **accept** (0) — the one-sided 99% lower bound cleared the threshold.
   Only this promotes. `rebaseline` is the next command.
 - **inconclusive** (2) — the evidence did not resolve the question. The
-  report names the depth that would likely have resolved the observed
-  delta. The sanctioned path is an acknowledged retry on a fresh epoch
-  (`--acknowledge-retry`; prior evidence is never pooled).
+  interval states what remains plausible. A fresh acknowledged retry
+  (`--acknowledge-retry`) is permitted but is not automatic: it spends another
+  certified era charge, compounds nominal alpha, and never pools prior evidence.
 - **reject** (3) — the upper bound fell below the threshold.
 - **futility stop** (4) — an interim look showed the attempt cannot
   realistically end in accept; most of the compute was saved. The spend
@@ -88,9 +92,12 @@ the retained compile references (`menu-certification.json`,
 menu: improve θ=0 at depth 48 (futility looks at 2/3/4/8/16 blocks) and
 simplify m=5 at depth 48. Anything else is refused.
 
-Each attempt charges the largest certified false-accept upper bound across
+Each attempt with at least one formal look charges the largest certified false-accept upper bound across
 the menu and independent holdout null/stress cells to the **era α-budget**
-(cap 0.05; currently two standard attempts fit without an override). The budget
+(cap 0.05). Run `status` for current capacity before declaration. A strictly
+infrastructure-only abort before any formal look may be corrected to zero spend;
+the seed epoch remains permanently reserved. Once a look exists, refunds are
+refused. The budget
 resets only on an accepted rebaseline or a suite rollover. Exhaustion blocks
 declarations until a ledgered `--override-era-budget=<cap> --reason=…`. The
 permanent ledger (`benchmark/v2/attempts.jsonl`) accumulates every attempt

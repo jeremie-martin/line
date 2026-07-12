@@ -1,0 +1,81 @@
+{
+  "schema": "line.benchmark-v2.workflow-closure.v1",
+  "recordedAt": "2026-07-12T11:34:00.000Z",
+  "migrationId": "2026-07-12T11-57-36Z-f7241fc4",
+  "decisionContract": {
+    "inferenceFingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
+    "protocolFingerprint": "22066a654d3945973b3e4d30656c2eadf1f031fd5e861a9c3892b4c7db98b150",
+    "calibrationFingerprint": "47e01c64b50b0c1ad1f06c30ab25c6021c4cca48fabd66966951e236ea46c79d"
+  },
+  "reliabilityEvidence": {
+    "directTests": [
+      "tests/benchmark_v2_migration_recovery.test.ts: SIGKILL after durable migration journal, exactly-once recovery",
+      "tests/benchmark_v2_declaration_race.test.ts: serialized baseline mutation wins pre-append race, declaration refuses",
+      "tests/benchmark_v2_governance.test.ts: dead snapshot workspace reclaimed, live owner preserved, absent worktree path allocated",
+      "tests/benchmark_v2_durable_fs.test.ts: durable atomic/exclusive/append/copy/remove primitives",
+      "tests/benchmark_v2_attempts.test.ts: no-look infrastructure abort accounting and post-look refund refusal"
+    ],
+    "runnerCompatibility": {
+      "path": "benchmark/v2/evidence/runner-compat-c703ab4f-02380003-ead8b486.json",
+      "sha256": "ead8b4869a66c9aed036fcccd7176614df4589a9aa9e956a7463ad31cca98542",
+      "rawRowsBitIdentical": 252,
+      "decisionIndexRowsValidatedAgainstRaw": 252
+    }
+  },
+  "statisticalEvidence": {
+    "coverage": {
+      "path": "benchmark/v2/studies/decision-coverage.json",
+      "sha256": "3aece89992e21f27aeb005fc0e859d6f2ed2cb450b6fa9ca204a0f3b02c43421"
+    },
+    "calibration": {
+      "path": "benchmark/v2/studies/decision-calibration.json",
+      "sha256": "829f94c1f7181c7dda0ce71b6b9dc217576d2f5333b1d698ed324e23858fd3f5"
+    },
+    "menuCertification": {
+      "path": "benchmark/v2/studies/menu-certification.json",
+      "sha256": "49bfb27295b2050ed69fbbbdad3dfcad331d1faef72b33ac52baa91b7ed6c828",
+      "allPredeclaredBarsMet": true
+    },
+    "disjointHoldout": {
+      "path": "benchmark/v2/studies/holdout-validation.json",
+      "sha256": "c209f03fc51a7dcbae16c06df898b657551e23bb2306edb8d990171e5beccae3",
+      "allPredeclaredBarsMet": true
+    },
+    "retainedDepth48Decision": {
+      "path": "benchmark/v2/runs/2026-07-12T07-49-30Z-36432e51-verdict-inconclusive.json",
+      "resultReplay": "bit-identical",
+      "delta": 2.9057,
+      "outcome": "inconclusive"
+    }
+  },
+  "performanceEvidence": {
+    "originalFinalAssembly": {
+      "wallSeconds": 157.43,
+      "peakProcessRssMiB": 1669.12
+    },
+    "indexedBeforeInferenceOptimization": {
+      "wallSeconds": 139.2,
+      "peakProcessRssMiB": 321.33
+    },
+    "archiveBoundIndexAfterExactInferenceOptimization": {
+      "wallSeconds": 9.61,
+      "peakProcessRssMiB": 197.58,
+      "retainedResult": "bit-identical"
+    }
+  },
+  "qualificationEvidence": {
+    "path": "benchmark/v2/runs/2026-07-11T22-38-42Z-d7b3f327-qualification.json.gz",
+    "sha256": "151598fc66f565442e4e5ec34e5ce7da5933bbf1c3b4c3a2a298039b9b4b9d0d",
+    "successfulRuns": 120,
+    "failedRuns": 0,
+    "monitorScore": 383.0495,
+    "note": "Qualification is accept-only and uses the canonical profile's 8 seeds per budget: 5 references x 3 budgets x 8 = 120. Confirmation depth 48 applies only to the paired development arms."
+  },
+  "evidenceInventoryAtClosure": {
+    "retainedFiles": 73,
+    "referencedFiles": 67,
+    "unreferencedBytes": 12017,
+    "missingReferences": 0,
+    "deletionPolicy": "Inventory only. No evidence is auto-deleted."
+  }
+}

@@ -2,7 +2,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { gunzipSync } from "node:zlib";
+import { gzipSync, gunzipSync } from "node:zlib";
 import { afterAll, describe, expect, test } from "vitest";
 import {
   assertEvalArchiveDeclaration,
@@ -11,6 +11,7 @@ import {
   outcomeExitCode,
   renderDecision,
   underPoweredHint,
+  loadVerifiedArchive,
   type DecisionArtifact,
 } from "../scripts/v0/benchmark_v2/decide.ts";
 import { createHash } from "node:crypto";
@@ -18,10 +19,13 @@ import { studentTQuantile, type V2Decision } from "../scripts/v0/benchmark_v2/de
 import {
   acquireRunLock,
   archiveChunks,
+  bindDecisionIndexArchive,
   checkpointPlanFingerprint,
   invalidatePublishedRunArtifacts,
   loadOrInitializeCheckpoint,
   writeArchiveArtifacts,
+  writeDecisionIndexArtifacts,
+  validateDecisionIndexAgainstArchive,
 } from "../scripts/v0/benchmark_v2/runner.ts";
 import { canonicalArchiveRows, compareArchiveRows } from "../scripts/v0/benchmark_v2/runner_compatibility.ts";
 
@@ -144,6 +148,47 @@ describe("run lock", () => {
 });
 
 describe("archive artifacts", () => {
+  test("a checksummed decision index is bound to both archive hashes", () => {
+    const dir = tempDir();
+    const out = join(dir, "run.json");
+    const archive = bindDecisionIndexArchive({
+      marker: "raw-audit-source",
+      runs: [{
+        status: "ok",
+        task: { sourceId: "case", budget: 1, seedSlot: 0, actualSeed: 1 },
+        source: { id: "case" },
+        authoredContacts: 2,
+        score: { score: 3, valid: true },
+        report: { raw: "report" },
+      }],
+    });
+    const bytes = Buffer.from(`${JSON.stringify(archive)}\n`);
+    const compressed = gzipSync(bytes);
+    writeFileSync(out, bytes);
+    writeFileSync(`${out}.gz`, compressed);
+    const archiveSha = createHash("sha256").update(bytes).digest("hex");
+    const compressedSha = createHash("sha256").update(compressed).digest("hex");
+    writeFileSync(`${out}.sha256`, `${archiveSha}  ${out}\n`);
+    const indexPath = writeDecisionIndexArtifacts(out, archive, archiveSha, compressedSha);
+
+    const loaded = loadVerifiedArchive(out);
+    expect(loaded.indexed).toBe(true);
+    expect(loaded.archiveSha256).toBe(archiveSha);
+    expect(loaded.archive.runs[0]).not.toHaveProperty("report");
+    expect(loaded.archive.runs[0].rawReportSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(validateDecisionIndexAgainstArchive(indexPath, archive)).toBe(1);
+
+    const detached = JSON.parse(readFileSync(indexPath, "utf8"));
+    detached.archive.runs[0].score.score = 4;
+    const detachedBytes = `${JSON.stringify(detached)}\n`;
+    writeFileSync(indexPath, detachedBytes);
+    writeFileSync(`${indexPath}.sha256`, `${createHash("sha256").update(detachedBytes).digest("hex")}  ${indexPath}\n`);
+    expect(() => loadVerifiedArchive(out)).toThrow(/detached from its raw archive/);
+
+    writeFileSync(indexPath, `${readFileSync(indexPath, "utf8")} `);
+    expect(() => loadVerifiedArchive(out)).toThrow(/decision-index checksum mismatch/);
+  });
+
   test("a clean run writes the archive with both checksum sidecars", async () => {
     const out = join(tempDir(), "run.json");
     const bytes = Buffer.from(`${JSON.stringify({ runs: [] }, null, 2)}\n`);

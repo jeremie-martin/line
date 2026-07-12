@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
@@ -81,6 +81,7 @@ type VerifiedArchive = {
   archiveSha256: string;
   artifactSha256: string;
   compressed: boolean;
+  indexed: boolean;
 };
 
 type BaselineReference = {
@@ -489,8 +490,8 @@ async function validateComparison(
     );
   }
   const requiredListeningReview = purpose === "decision" ? listeningReview.fingerprint : null;
-  validateArchiveScope(baseArchive, suite, sources, contracts, requiredListeningReview, depthOverride);
-  validateArchiveScope(candidateArchive, suite, sources, contracts, requiredListeningReview, depthOverride);
+  validateArchiveScope(baseArchive, suite, sources, contracts, requiredListeningReview, depthOverride, base.indexed);
+  validateArchiveScope(candidateArchive, suite, sources, contracts, requiredListeningReview, depthOverride, candidate.indexed);
   validateCandidateIdentity(baseArchive);
   validateCandidateIdentity(candidateArchive);
   const compatibilityApproval = runnerCompatibilityApproval(
@@ -513,6 +514,7 @@ function validateArchiveScope(
   contracts: Map<string, AxisContract>,
   listeningReviewFingerprint: string | null,
   depthOverride?: number,
+  indexed = false,
 ): void {
   const profileName = archiveProfile(archive);
   const profile = suite.profiles[profileName];
@@ -616,17 +618,26 @@ function validateArchiveScope(
     ) {
       throw new Error(`${row.task.sourceId}: archived run source identity is stale or incomplete`);
     }
-    if (row.report === null || typeof row.report !== "object" || !Number.isSafeInteger(row.authoredContacts)) {
-      throw new Error(`${row.task.sourceId}: archived raw report is missing`);
+    if (!Number.isSafeInteger(row.authoredContacts)) {
+      throw new Error(`${row.task.sourceId}: archived authored-contact count is missing`);
     }
-    const rescored = scoreV2Report(
-      row.report,
-      row.authoredContacts,
-      contracts.get(row.task.sourceId)!,
-      suite,
-    );
-    if (JSON.stringify(rescored) !== JSON.stringify(row.score)) {
-      throw new Error(`${row.task.sourceId}: stored score does not match its raw report and axis contract`);
+    if (indexed) {
+      if (typeof row.rawReportSha256 !== "string" || !/^[a-f0-9]{64}$/.test(row.rawReportSha256)) {
+        throw new Error(`${row.task.sourceId}: decision index is not bound to its raw report`);
+      }
+    } else {
+      if (row.report === null || typeof row.report !== "object") {
+        throw new Error(`${row.task.sourceId}: archived raw report is missing`);
+      }
+      const rescored = scoreV2Report(
+        row.report,
+        row.authoredContacts,
+        contracts.get(row.task.sourceId)!,
+        suite,
+      );
+      if (JSON.stringify(rescored) !== JSON.stringify(row.score)) {
+        throw new Error(`${row.task.sourceId}: stored score does not match its raw report and axis contract`);
+      }
     }
   }
 }
@@ -675,10 +686,9 @@ function toDecisionRuns(archive: any): DecisionRun[] {
   }));
 }
 
-function loadVerifiedArchive(path: string, expected?: RetainedReference): VerifiedArchive {
+export function loadVerifiedArchive(path: string, expected?: RetainedReference): VerifiedArchive {
   const absolute = resolve(path);
-  const artifactBytes = readFileSync(absolute);
-  const artifactSha256 = sha256(artifactBytes);
+  const artifactSha256 = sha256FileStreaming(absolute);
   const compressed = absolute.endsWith(".gz");
   const expectedArtifactSha = compressed ? expected?.compressed_archive_sha256 : expected?.archive_sha256;
   const sidecarSha = readSidecarSha(absolute);
@@ -690,6 +700,50 @@ function loadVerifiedArchive(path: string, expected?: RetainedReference): Verifi
       throw new Error(`${basename(absolute)}: archive checksum mismatch`);
     }
   }
+  // Only an uncompressed archive can expose its embedded payload commitment
+  // without inflating the complete raw evidence. Compressed historical or
+  // standalone inputs deliberately use the full rescoring path below.
+  const indexPath = compressed
+    ? undefined
+    : decisionIndexCandidates(absolute).find((candidate) => existsSync(candidate));
+  if (indexPath !== undefined) {
+    const indexBytes = readFileSync(indexPath);
+    const indexSidecarSha = readSidecarSha(indexPath);
+    if (indexSidecarSha === undefined || indexSidecarSha !== sha256(indexBytes)) {
+      throw new Error(`${basename(indexPath)}: decision-index checksum mismatch or missing sidecar`);
+    }
+    const index = JSON.parse(indexBytes.toString("utf8"));
+    if (
+      index.schema !== "line.benchmark-v2.decision-index.v1" || typeof index.archiveSha256 !== "string" ||
+      typeof index.payloadSha256 !== "string"
+    ) {
+      throw new Error(`${basename(indexPath)}: unsupported decision index`);
+    }
+    if (compressed ? index.compressedArchiveSha256 !== artifactSha256 : index.archiveSha256 !== artifactSha256) {
+      throw new Error(`${basename(indexPath)}: decision index does not describe its archive`);
+    }
+    if (
+      expected?.archive_sha256 !== undefined && expected.archive_sha256 !== index.archiveSha256 ||
+      expected?.compressed_archive_sha256 !== undefined &&
+        expected.compressed_archive_sha256 !== index.compressedArchiveSha256
+    ) {
+      throw new Error(`${basename(indexPath)}: decision index does not match the retained reference`);
+    }
+    const computedPayloadSha256 = sha256(JSON.stringify(index.archive));
+    const rawPayloadSha256 = readRawDecisionIndexCommitment(absolute);
+    if (computedPayloadSha256 !== index.payloadSha256 || rawPayloadSha256 !== index.payloadSha256) {
+      throw new Error(`${basename(indexPath)}: decision index is detached from its raw archive`);
+    }
+    return {
+      path: absolute,
+      archive: index.archive,
+      archiveSha256: index.archiveSha256,
+      artifactSha256,
+      compressed,
+      indexed: true,
+    };
+  }
+  const artifactBytes = readFileSync(absolute);
   const archiveBytes = compressed ? gunzipSync(artifactBytes) : artifactBytes;
   const archiveSha256 = sha256(archiveBytes);
   if (expected?.archive_sha256 !== undefined && expected.archive_sha256 !== archiveSha256) {
@@ -701,7 +755,55 @@ function loadVerifiedArchive(path: string, expected?: RetainedReference): Verifi
     archiveSha256,
     artifactSha256,
     compressed,
+    indexed: false,
   };
+}
+
+function readRawDecisionIndexCommitment(path: string): string {
+  const descriptor = openSync(path, "r");
+  try {
+    const buffer = Buffer.allocUnsafe(64 * 1024);
+    let prefix = "";
+    let position = 0;
+    while (position < 16 * 1024 * 1024) {
+      const length = readSync(descriptor, buffer, 0, buffer.length, position);
+      if (length === 0) break;
+      position += length;
+      prefix += buffer.subarray(0, length).toString("utf8");
+      const match = prefix.match(/"decisionIndexPayloadSha256"\s*:\s*"([a-f0-9]{64})"/);
+      if (match !== null) return match[1];
+      if (/"runs"\s*:\s*\[/.test(prefix)) break;
+    }
+    throw new Error(`${basename(path)}: raw archive has no decision-index commitment before runs`);
+  } finally {
+    closeSync(descriptor);
+  }
+}
+
+function sha256FileStreaming(path: string): string {
+  const descriptor = openSync(path, "r");
+  const hash = createHash("sha256");
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  try {
+    let position = 0;
+    while (true) {
+      const length = readSync(descriptor, buffer, 0, buffer.length, position);
+      if (length === 0) break;
+      hash.update(buffer.subarray(0, length));
+      position += length;
+    }
+    return hash.digest("hex");
+  } finally {
+    closeSync(descriptor);
+  }
+}
+
+function decisionIndexCandidates(archivePath: string): string[] {
+  if (!archivePath.endsWith(".gz")) return [`${archivePath}.decision-index.json`];
+  return [
+    `${archivePath.slice(0, -3)}.decision-index.json`,
+    `${archivePath.replace(/\.json\.gz$/, "")}.decision-index.json`,
+  ];
 }
 
 function baselineArchive(profile: DecisionProfile): {

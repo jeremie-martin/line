@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCanonicalBenchmark, retainBenchmarkArchive } from "./canonical.ts";
@@ -18,6 +18,7 @@ import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import { createCompilerSnapshot } from "./compiler_snapshot.ts";
 import { assertCompilerSourcesCommitted } from "./compiler_identity.ts";
 import { compilerCandidateIdentity } from "./runner.ts";
+import { writeFileAtomicDurable } from "./durable_fs.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import {
   publishBaselineWithLedger,
@@ -74,7 +75,7 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
   if (canonical.qualification.workerFailures > 0) throw new Error(`baseline qualification has worker failures`);
   const canonicalBundle = JSON.parse(readFileSync(canonical.bundlePath, "utf8"));
   const bundlePath = resolve(archiveDir, `${label}-baseline.json`);
-  writeFileSync(bundlePath, `${JSON.stringify({
+  writeFileAtomicDurable(bundlePath, `${JSON.stringify({
     schema: "line.benchmark-v2.baseline-bundle.v3",
     label,
     generatedAt: new Date().toISOString(),

@@ -162,6 +162,8 @@ export type EraAttempt = {
   spend: number;
   declaredAt: string;
   outcome: string | null;
+  /** Formal interim looks recorded for this attempt; progress output is not a look. */
+  lookCount: number;
 };
 
 export type EraState = {
@@ -292,6 +294,7 @@ export function projectEraState(events: AttemptEvent[]): EraState {
           spend,
           declaredAt: event.at,
           outcome: null,
+          lookCount: 0,
         });
         declaredSeedLedger.push({
           attemptId: event.attemptId,
@@ -302,8 +305,12 @@ export function projectEraState(events: AttemptEvent[]): EraState {
         inFlightAttemptId = event.attemptId;
         break;
       }
-      case "look":
+      case "look": {
+        const index = attempts.findIndex((attempt) => attempt.attemptId === event.attemptId);
+        if (index < 0) throw new Error(`malformed attempts ledger: look references unknown attempt ${event.attemptId}`);
+        attempts[index] = { ...attempts[index], lookCount: attempts[index].lookCount + 1 };
         break;
+      }
       case "futility":
         settle(event.attemptId, "futility-stop");
         break;
@@ -498,7 +505,7 @@ export function retryStatus(
   criticalAlpha: number,
 ): { priorAttempts: number; compoundAlpha: number } {
   const priorAttempts = state.attempts.filter(
-    (attempt) => attempt.candidateFingerprint === candidateFingerprint,
+    (attempt) => attempt.candidateFingerprint === candidateFingerprint && attempt.spend > 0,
   ).length;
   const compoundAlpha = round6(1 - Math.pow(1 - criticalAlpha, priorAttempts + 1));
   return { priorAttempts, compoundAlpha };
@@ -609,9 +616,15 @@ function assertAccountingCorrection(state: EraState, event: AccountingCorrection
     }
     if (
       !Number.isFinite(adjustment.previousSpend) || !Number.isFinite(adjustment.correctedSpend) ||
-      adjustment.previousSpend < 0 || adjustment.correctedSpend < adjustment.previousSpend
+      adjustment.previousSpend < 0 || adjustment.correctedSpend < 0
+    ) throw new Error(`accounting correction spends must be finite and non-negative`);
+    if (
+      adjustment.correctedSpend < adjustment.previousSpend &&
+      !(adjustment.correctedSpend === 0 && attempt.outcome === "aborted" && attempt.lookCount === 0)
     ) {
-      throw new Error(`accounting correction spends must be finite, non-negative, and non-decreasing`);
+      throw new Error(
+        `spend may decrease only to zero for an aborted attempt with no formal look`,
+      );
     }
     if (round4(attempt.spend) !== round4(adjustment.previousSpend)) {
       throw new Error(

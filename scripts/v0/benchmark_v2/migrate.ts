@@ -30,8 +30,8 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import {
@@ -42,6 +42,7 @@ import {
 import { DECISION_PROTOCOL_SOURCE_FILES } from "./decision_protocol.ts";
 import { EVAL_CHAIN_INFERENCE_SOURCE_FILES } from "./eval_chain_inference.ts";
 import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "./certification_identity.ts";
+import { appendFileDurable, removeFileDurable, writeFileAtomicDurable } from "./durable_fs.ts";
 import { loadValidatedDecisionPairForCalibration } from "./decide.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
 import {
@@ -55,6 +56,7 @@ import {
   assertNoAttemptInFlight,
   readEraState,
   withAttemptLedgerTransaction,
+  type AttemptPaths,
 } from "./attempts.ts";
 import {
   requireCertifiedOperatingPoint,
@@ -81,7 +83,7 @@ const CONFORMANCE_TEST_FILES = [
 type Scope = "protocol" | "calibration" | "inference";
 const SCOPE_ORDER: Scope[] = ["calibration", "protocol", "inference"];
 
-type MigrationRecord = {
+export type MigrationRecord = {
   schema: typeof MIGRATION_RECORD_SCHEMA;
   migrationId: string;
   performedAt: string;
@@ -104,7 +106,7 @@ type MigrationRecord = {
   bootstrap: boolean;
 };
 
-type PendingMigration = {
+export type PendingMigration = {
   schema: "line.benchmark-v2.migration-publication.v1";
   previousMigrationId: string | null;
   baselinePath: string;
@@ -114,6 +116,19 @@ type PendingMigration = {
   fixtureBeforeSha256: string;
   fixtureBytes: string | null;
   record: MigrationRecord;
+};
+
+export type MigrationPublicationOptions = {
+  attemptPaths?: AttemptPaths;
+  pendingPath?: string;
+  conflictingPendingPath?: string;
+  migrationsLedgerPath?: string;
+  fixturePath?: string;
+  restampBaselineDoc?: (baseline: any) => void;
+  afterJournal?: () => void;
+  afterFixture?: () => void;
+  afterBaseline?: () => void;
+  afterLedgerAppend?: () => void;
 };
 
 export async function runMigrationCommand(argv = process.argv.slice(2)): Promise<number> {
@@ -366,7 +381,7 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   return 0;
 }
 
-function publishMigration(input: {
+export function publishMigration(input: {
   record: MigrationRecord;
   previousMigrationId: string | null;
   baselinePath: string;
@@ -375,20 +390,25 @@ function publishMigration(input: {
   baseline: any;
   fixtureBeforeSha256: string;
   fixtureBytes: string | null;
-}): void {
-  withAttemptLedgerTransaction(undefined, (transaction) => {
+}, options: MigrationPublicationOptions = {}): void {
+  const pendingPath = options.pendingPath ?? MIGRATION_PENDING_PATH;
+  const conflictingPendingPath = options.conflictingPendingPath ?? BASELINE_PUBLICATION_PENDING_PATH;
+  const migrationsLedgerPath = options.migrationsLedgerPath ?? MIGRATIONS_LEDGER_PATH;
+  const fixturePath = options.fixturePath ?? CONFORMANCE_FIXTURE_PATH;
+  const restamp = options.restampBaselineDoc ?? restampBaselineDoc;
+  withAttemptLedgerTransaction(options.attemptPaths, (transaction) => {
     assertNoAttemptInFlight(transaction.state, "migration publication");
-    if (existsSync(BASELINE_PUBLICATION_PENDING_PATH)) {
+    if (existsSync(conflictingPendingPath)) {
       throw new Error(`baseline publication became pending while migration conformance was running; recover it first`);
     }
     if (sha256(readFileSync(input.baselinePath)) !== input.baselineBeforeSha256) {
       throw new Error(`baseline changed while migration conformance was running; restart the migration`);
     }
-    const currentLastRecord = readLastRecord();
+    const currentLastRecord = readLastRecord(migrationsLedgerPath);
     if ((currentLastRecord?.migrationId ?? null) !== input.previousMigrationId) {
       throw new Error(`migration ledger changed while conformance was running; restart the migration`);
     }
-    if (sha256(readFileSync(CONFORMANCE_FIXTURE_PATH)) !== input.fixtureBeforeSha256) {
+    if (sha256(readFileSync(fixturePath)) !== input.fixtureBeforeSha256) {
       throw new Error(`conformance fixture changed while migration conformance was running; restart the migration`);
     }
     const pending: PendingMigration = {
@@ -397,38 +417,46 @@ function publishMigration(input: {
       baselinePath: input.baselinePath,
       baselineBeforeSha256: input.baselineBeforeSha256,
       baselineBytes: input.baselineBytes,
-      fixturePath: CONFORMANCE_FIXTURE_PATH,
+      fixturePath,
       fixtureBeforeSha256: input.fixtureBeforeSha256,
       fixtureBytes: input.fixtureBytes,
       record: input.record,
     };
-    writeAtomic(MIGRATION_PENDING_PATH, `${JSON.stringify(pending, null, 2)}\n`);
-    if (input.fixtureBytes !== null) writeAtomic(CONFORMANCE_FIXTURE_PATH, input.fixtureBytes);
+    writeAtomic(pendingPath, `${JSON.stringify(pending, null, 2)}\n`);
+    options.afterJournal?.();
+    if (input.fixtureBytes !== null) writeAtomic(fixturePath, input.fixtureBytes);
+    options.afterFixture?.();
     writeAtomic(input.baselinePath, input.baselineBytes);
-    restampBaselineDoc(input.baseline);
-    appendFileSync(MIGRATIONS_LEDGER_PATH, `${JSON.stringify(input.record)}\n`);
-    rmSync(MIGRATION_PENDING_PATH, { force: true });
+    options.afterBaseline?.();
+    restamp(input.baseline);
+    appendFileDurable(migrationsLedgerPath, `${JSON.stringify(input.record)}\n`);
+    options.afterLedgerAppend?.();
+    removeFileDurable(pendingPath);
   });
 }
 
 /** Complete or clean up a publication interrupted after its durable journal. */
-function recoverPendingMigration(): MigrationRecord | null {
-  if (!existsSync(MIGRATION_PENDING_PATH)) return null;
-  const pending = JSON.parse(readFileSync(MIGRATION_PENDING_PATH, "utf8")) as PendingMigration;
+export function recoverPendingMigration(options: MigrationPublicationOptions = {}): MigrationRecord | null {
+  const pendingPath = options.pendingPath ?? MIGRATION_PENDING_PATH;
+  const conflictingPendingPath = options.conflictingPendingPath ?? BASELINE_PUBLICATION_PENDING_PATH;
+  const migrationsLedgerPath = options.migrationsLedgerPath ?? MIGRATIONS_LEDGER_PATH;
+  const restamp = options.restampBaselineDoc ?? restampBaselineDoc;
+  if (!existsSync(pendingPath)) return null;
+  const pending = JSON.parse(readFileSync(pendingPath, "utf8")) as PendingMigration;
   if (
     pending.schema !== "line.benchmark-v2.migration-publication.v1" ||
     pending.record?.schema !== MIGRATION_RECORD_SCHEMA ||
     sha256(pending.baselineBytes) !== pending.record.restamped.baselineSha256 ||
     (pending.fixtureBytes !== null && sha256(pending.fixtureBytes) !== pending.record.conformance.fixture.afterSha256)
   ) {
-    throw new Error(`pending migration publication is malformed; inspect ${MIGRATION_PENDING_PATH}`);
+    throw new Error(`pending migration publication is malformed; inspect ${pendingPath}`);
   }
-  return withAttemptLedgerTransaction(undefined, (transaction) => {
+  return withAttemptLedgerTransaction(options.attemptPaths, (transaction) => {
     assertNoAttemptInFlight(transaction.state, "migration recovery");
-    if (existsSync(BASELINE_PUBLICATION_PENDING_PATH)) {
+    if (existsSync(conflictingPendingPath)) {
       throw new Error(`baseline publication is also pending; inspect both journals before recovery`);
     }
-    const last = readLastRecord();
+    const last = readLastRecord(migrationsLedgerPath);
     const lastId = last?.migrationId ?? null;
     if (lastId !== pending.previousMigrationId && lastId !== pending.record.migrationId) {
       throw new Error(`pending migration no longer follows the migration ledger; inspect before recovery`);
@@ -448,11 +476,11 @@ function recoverPendingMigration(): MigrationRecord | null {
       writeAtomic(pending.fixturePath, pending.fixtureBytes);
     }
     if (baselineSha !== targetBaselineSha) writeAtomic(pending.baselinePath, pending.baselineBytes);
-    restampBaselineDoc(JSON.parse(pending.baselineBytes));
+    restamp(JSON.parse(pending.baselineBytes));
     if (lastId !== pending.record.migrationId) {
-      appendFileSync(MIGRATIONS_LEDGER_PATH, `${JSON.stringify(pending.record)}\n`);
+      appendFileDurable(migrationsLedgerPath, `${JSON.stringify(pending.record)}\n`);
     }
-    rmSync(MIGRATION_PENDING_PATH, { force: true });
+    removeFileDurable(pendingPath);
     return pending.record;
   });
 }
@@ -630,9 +658,9 @@ export function assertConformanceFixtureCases(cases: unknown): asserts cases is 
 
 export { syntheticCase, conformanceSuite };
 
-function readLastRecord(): MigrationRecord | null {
-  if (!existsSync(MIGRATIONS_LEDGER_PATH)) return null;
-  const lines = readFileSync(MIGRATIONS_LEDGER_PATH, "utf8").trim().split("\n").filter((line) => line !== "");
+function readLastRecord(path = MIGRATIONS_LEDGER_PATH): MigrationRecord | null {
+  if (!existsSync(path)) return null;
+  const lines = readFileSync(path, "utf8").trim().split("\n").filter((line) => line !== "");
   if (lines.length === 0) return null;
   const record = JSON.parse(lines[lines.length - 1]);
   if (record.schema !== MIGRATION_RECORD_SCHEMA) throw new Error(`unsupported migration record in ledger`);
@@ -649,14 +677,11 @@ function restampBaselineDoc(baseline: any): void {
     `Decision protocol: \`${baseline.decision_protocol_fingerprint}\`.\nDecision calibration: \`${baseline.decision_calibration_fingerprint}\`.`);
   doc = doc.replace(/^Decision protocol: `.*`\.\nDecision protocol: `.*`\.$/m,
     `Decision protocol: \`${baseline.decision_protocol_fingerprint}\`.`);
-  writeFileSync(docPath, doc);
+  writeFileAtomicDurable(docPath, doc);
 }
 
 function writeAtomic(path: string, contents: string): void {
-  const absolute = resolve(path);
-  mkdirSync(dirname(absolute), { recursive: true });
-  writeFileSync(`${absolute}.tmp`, contents);
-  renameSync(`${absolute}.tmp`, absolute);
+  writeFileAtomicDurable(path, contents);
 }
 
 function sha256File(path: string): string {

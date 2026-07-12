@@ -5,8 +5,8 @@
   "eraCause": "rebaseline-accept",
   "baselineLabel": "accept-2026-07-11T22-38-42Z-d7b3f327",
   "budgetCap": 0.05,
-  "budgetSpent": 0.0392,
-  "cumulativeExpectedFalseAccepts": 0.098,
+  "budgetSpent": 0.0196,
+  "cumulativeExpectedFalseAccepts": 0.0784,
   "attempts": [
     {
       "attemptId": "2026-07-11T21-25-55Z-f99e71f1",
@@ -15,7 +15,8 @@
       "operatingPointId": "improve-t0-d48",
       "spend": 0.0196,
       "declaredAt": "2026-07-11T21:25:55.332Z",
-      "outcome": "aborted"
+      "outcome": "aborted",
+      "lookCount": 3
     },
     {
       "attemptId": "2026-07-11T21-36-21Z-f77fe7f3",
@@ -24,7 +25,8 @@
       "operatingPointId": "improve-t0-d48",
       "spend": 0.0196,
       "declaredAt": "2026-07-11T21:36:21.416Z",
-      "outcome": "aborted"
+      "outcome": "aborted",
+      "lookCount": 5
     },
     {
       "attemptId": "2026-07-11T22-38-42Z-d7b3f327",
@@ -33,16 +35,18 @@
       "operatingPointId": "simplify-m5-d48",
       "spend": 0.0196,
       "declaredAt": "2026-07-11T22:38:42.172Z",
-      "outcome": "accept"
+      "outcome": "accept",
+      "lookCount": 0
     },
     {
       "attemptId": "2026-07-12T07-35-24Z-97196f0b",
       "eraId": "era-2026-07-11T23-36-00Z",
       "candidateFingerprint": "bfa554f17b75da327b25d9948dab0536cd16dc561be5c570c387b102eb420950",
       "operatingPointId": "improve-t0-d48",
-      "spend": 0.0196,
+      "spend": 0,
       "declaredAt": "2026-07-12T07:35:24.800Z",
-      "outcome": "aborted"
+      "outcome": "aborted",
+      "lookCount": 0
     },
     {
       "attemptId": "2026-07-12T07-49-30Z-36432e51",
@@ -51,7 +55,8 @@
       "operatingPointId": "improve-t0-d48",
       "spend": 0.0196,
       "declaredAt": "2026-07-12T07:49:30.963Z",
-      "outcome": "inconclusive"
+      "outcome": "inconclusive",
+      "lookCount": 5
     }
   ],
   "inFlightAttemptId": null,

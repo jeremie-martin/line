@@ -29,12 +29,14 @@ export const DECISION_PROTOCOL_SOURCE_FILES = [
   "scripts/v0/benchmark_v2/decide.ts",
   "scripts/v0/benchmark_v2/decision_protocol.ts",
   "scripts/v0/benchmark_v2/eval.ts",
+  "scripts/v0/benchmark_v2/evidence_inventory.ts",
   "scripts/v0/benchmark_v2/eval_chain_inference.ts",
   "scripts/v0/benchmark_v2/eval_report.ts",
   "scripts/v0/benchmark_v2/listening_review.ts",
   "scripts/v0/benchmark_v2/migrate.ts",
   "scripts/v0/benchmark_v2/rebaseline.ts",
   "scripts/v0/benchmark_v2/runner_compatibility.ts",
+  "scripts/v0/benchmark_v2/status.ts",
 ] as const;
 
 export function decisionProtocolFingerprint(): string {

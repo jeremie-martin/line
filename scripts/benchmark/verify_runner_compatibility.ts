@@ -21,6 +21,7 @@ import { gunzipSync } from "node:zlib";
 import { benchmarkV2Paths, prepareBenchmarkV2 } from "./prepare.ts";
 import { runSnapshotBenchmark } from "../v0/benchmark_v2/compiler_snapshot.ts";
 import { compareArchiveRows } from "../v0/benchmark_v2/runner_compatibility.ts";
+import { validateDecisionIndexAgainstArchive } from "../v0/benchmark_v2/runner.ts";
 import { withAttemptLedgerTransaction } from "../v0/benchmark_v2/attempts.ts";
 
 const REPO = resolve(dirname(new URL(import.meta.url).pathname), "..", "..");
@@ -80,6 +81,7 @@ const replayRun = runSnapshotBenchmark(baseline.compiler_snapshot, "development"
 ], replayPath);
 if (replayRun.workerFailures > 0) throw new Error(`replay run has worker failures; not usable as compatibility evidence`);
 const replay = JSON.parse(readFileSync(replayPath, "utf8"));
+const indexedRows = validateDecisionIndexAgainstArchive(`${replayPath}.decision-index.json`, replay);
 
 // Identities: semantic policy must be unchanged; implementation may differ.
 if (replay.identity.executionPolicyFingerprint !== retained.identity.executionPolicyFingerprint) {
@@ -116,21 +118,37 @@ const evidence = {
     headline: replayRun.headline,
   },
   comparedRows,
-  comparedFields: ["task", "report", "score", "trackHash", "authoredContacts"],
+  decisionIndexRows: indexedRows,
+  comparedFields: ["task", "report", "score", "trackHash", "authoredContacts", "decisionIndexProjection"],
   result: "bit-identical",
 };
-const evidencePath = resolve(
-  REPO,
-  `benchmark/v2/evidence/runner-compat-${fromFingerprint.slice(0, 8)}-${toFingerprint.slice(0, 8)}.json`,
-);
 const evidenceBytes = `${JSON.stringify(evidence, null, 2)}\n`;
-writeFileSync(evidencePath, evidenceBytes);
-console.log(`evidence: ${evidencePath}`);
+const evidenceSha256 = createHash("sha256").update(evidenceBytes).digest("hex");
+const evidenceRelativePath =
+  `benchmark/v2/evidence/runner-compat-${fromFingerprint.slice(0, 8)}-${toFingerprint.slice(0, 8)}-${evidenceSha256.slice(0, 8)}.json`;
+const evidencePath = resolve(REPO, evidenceRelativePath);
 
 if (approve) {
   const compatPath = resolve(REPO, "benchmark/v2/runner-compatibility.json");
   const compat = JSON.parse(readFileSync(compatPath, "utf8"));
   compat.approvals = compat.approvals ?? [];
+  const existing = compat.approvals.find((entry: any) =>
+    entry.fromImplementationFingerprint === fromFingerprint &&
+    entry.toImplementationFingerprint === toFingerprint &&
+    entry.executionProtocol === replay.identity.executionProtocol &&
+    entry.suiteFingerprint === replay.identity.suiteFingerprint
+  );
+  if (existing !== undefined) {
+    const existingPath = resolve(REPO, existing.evidence?.path ?? "");
+    if (
+      !existsSync(existingPath) ||
+      createHash("sha256").update(readFileSync(existingPath)).digest("hex") !== existing.evidence?.sha256
+    ) throw new Error(`existing runner compatibility approval has missing or stale evidence`);
+    console.log(`approval already exists and remains valid: ${fromFingerprint.slice(0, 12)} -> ${toFingerprint.slice(0, 12)}`);
+    process.exit(0);
+  }
+  writeFileSync(evidencePath, evidenceBytes);
+  console.log(`evidence: ${evidencePath}`);
   compat.approvals.push({
     fromImplementationFingerprint: fromFingerprint,
     toImplementationFingerprint: toFingerprint,
@@ -140,11 +158,14 @@ if (approve) {
     reviewedAt: new Date().toISOString(),
     rationale,
     evidence: {
-      path: `benchmark/v2/evidence/runner-compat-${fromFingerprint.slice(0, 8)}-${toFingerprint.slice(0, 8)}.json`,
-      sha256: createHash("sha256").update(evidenceBytes).digest("hex"),
+      path: evidenceRelativePath,
+      sha256: evidenceSha256,
       result: "bit-identical",
     },
   });
   writeFileSync(compatPath, `${JSON.stringify(compat, null, 2)}\n`);
   console.log(`approval appended: ${fromFingerprint.slice(0, 12)} -> ${toFingerprint.slice(0, 12)}`);
+} else {
+  writeFileSync(evidencePath, evidenceBytes);
+  console.log(`evidence: ${evidencePath}`);
 }

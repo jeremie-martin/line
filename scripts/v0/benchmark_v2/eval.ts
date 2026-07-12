@@ -102,6 +102,45 @@ type EvalContext = {
   suiteFingerprint: string;
 };
 
+export type DeclarationFreshness = {
+  baseline: BaselineContract;
+  decisionContract: ReturnType<typeof requireCurrentDecisionCalibration>;
+  certified: CertifiedOperatingPoint;
+};
+
+/**
+ * Re-read every mutable declaration dependency while the attempt-ledger lock
+ * is held. This closes the scheduler window between snapshot preparation and
+ * the append that spends alpha and reserves a seed epoch.
+ */
+export function revalidateDeclarationUnderLock(input: {
+  state: EraState;
+  expectedSuiteFingerprint: string;
+  sources: EvalContext["sources"];
+  baselinePath: string;
+  mode: ConfirmationMode;
+  margin: number | null;
+  depth: number;
+}): DeclarationFreshness {
+  const freshSuite = suiteIdentity(SUITE_MANIFEST, SOURCE_MANIFEST, input.sources);
+  if (freshSuite.suiteFingerprint !== input.expectedSuiteFingerprint) {
+    throw new Error(`suite changed while the eval attempt was being prepared; restart the declaration`);
+  }
+  const baseline = readBaselineContract(input.baselinePath);
+  if (input.state.baselineLabel !== baseline.label) {
+    throw new Error(`baseline or era changed while the eval attempt was being prepared; restart the declaration`);
+  }
+  const decisionContract = requireCurrentDecisionCalibration(input.expectedSuiteFingerprint);
+  assertCurrentDecisionContract(baseline, decisionContract);
+  const certified = requireCertifiedOperatingPoint(
+    input.mode,
+    input.margin,
+    input.depth,
+    input.expectedSuiteFingerprint,
+  );
+  return { baseline, decisionContract, certified };
+}
+
 export async function runEvalCommand(argv = process.argv.slice(2)): Promise<number> {
   const hasFlag = (name: string): boolean => argv.includes(`--${name}`);
   if (hasFlag("abort-in-flight")) return abortInFlightAttempt(argv);
@@ -309,20 +348,18 @@ async function runToVerdict(argv: string[]): Promise<number> {
     // the candidate snapshot was being created. Re-read them under the same
     // lock that commits the declaration so migration/rebaseline cannot land
     // in the check-to-append window.
-    const freshSuite = suiteIdentity(SUITE_MANIFEST, SOURCE_MANIFEST, context.sources);
-    if (freshSuite.suiteFingerprint !== context.suiteFingerprint) {
-      throw new Error(`suite changed while the eval attempt was being prepared; restart the declaration`);
-    }
-    const freshBaseline = readBaselineContract(baselinePath);
-    if (transaction.state.baselineLabel !== freshBaseline.label) {
-      throw new Error(`baseline or era changed while the eval attempt was being prepared; restart the declaration`);
-    }
-    const freshDecisionContract = requireCurrentDecisionCalibration(context.suiteFingerprint);
-    assertCurrentDecisionContract(freshBaseline, freshDecisionContract);
-    const freshCertified = requireCertifiedOperatingPoint(mode, margin, depth, context.suiteFingerprint);
-    baseline = freshBaseline;
-    decisionContract = freshDecisionContract;
-    certified = freshCertified;
+    const fresh = revalidateDeclarationUnderLock({
+      state: transaction.state,
+      expectedSuiteFingerprint: context.suiteFingerprint,
+      sources: context.sources,
+      baselinePath,
+      mode,
+      margin,
+      depth,
+    });
+    baseline = fresh.baseline;
+    decisionContract = fresh.decisionContract;
+    certified = fresh.certified;
 
     const retry = retryStatus(
       transaction.state,

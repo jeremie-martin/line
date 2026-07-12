@@ -84,6 +84,34 @@
         "sha256": "a30060cfaed379db96103f848b2c718b32e0de097ca12690a28a0400078daf78",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "c703ab4fb50fbace785f8f5d69d6732a8acc1f348a659af2eaf5adea5991894c",
+      "toImplementationFingerprint": "b5089cb180667a7124b9420f0a05a20af481b2209e6094251f3b291bc973fc9f",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+      "reviewedBy": "codex",
+      "reviewedAt": "2026-07-12T11:14:24.116Z",
+      "rationale": "Durability sync, summary-only orchestration, archive-bound decision indexes, and stale-workspace recovery are operational changes; frozen baseline replay plus raw-index projection validation must remain bit-identical.",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-c703ab4f-b5089cb1.json",
+        "sha256": "956d988a82f265a24569ac28bc96d771ff8e869782a45a1e2a584a59da18febe",
+        "result": "bit-identical"
+      }
+    },
+    {
+      "fromImplementationFingerprint": "c703ab4fb50fbace785f8f5d69d6732a8acc1f348a659af2eaf5adea5991894c",
+      "toImplementationFingerprint": "023800038f01d3274cc240e7736c7996d05a2858d73f393cacf04261ac29e12a",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+      "reviewedBy": "codex",
+      "reviewedAt": "2026-07-12T11:54:28.051Z",
+      "rationale": "Final compact-index loader reads the raw embedded payload commitment incrementally until the runs boundary; frozen baseline replay and raw-index projection remain bit-identical.",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-c703ab4f-02380003-ead8b486.json",
+        "sha256": "ead8b4869a66c9aed036fcccd7176614df4589a9aa9e956a7463ad31cca98542",
+        "result": "bit-identical"
+      }
     }
   ]
 }

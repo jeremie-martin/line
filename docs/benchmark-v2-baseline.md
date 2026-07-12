@@ -13,6 +13,6 @@ Probe and confirmation actual seeds are disjoint at every shared budget. Probe e
 | 750k | - | - | 461.37 | 1881/2016 | 388.32 | 40/40 |
 
 Candidate: `d1f9d8a5e0dd5820f3e383e8c0b19db2493e33ce0dd305433d79effcef2a7315`.
-Inference rule: `a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21`.
-Decision protocol: `b1934122370df63ac47295ab8cc9050bc5409e9f68cef9840ae8bd7210825d69`.
-Decision calibration: `51ca5ed7a5d8ec74d5c846d4ebd91a9f9a4d5829d1592a8ced0d2a35d028184d`.
+Inference rule: `0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273`.
+Decision protocol: `22066a654d3945973b3e4d30656c2eadf1f031fd5e861a9c3892b4c7db98b150`.
+Decision calibration: `47e01c64b50b0c1ad1f06c30ab25c6021c4cca48fabd66966951e236ea46c79d`.

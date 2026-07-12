@@ -2,16 +2,17 @@
   "schema": "line.benchmark-v2.operational-profile.v1",
   "measuredAt": "2026-07-12T08:46:45.000Z",
   "jobs": 48,
-  "developmentSources": 42,
+  "developmentSources": 44,
   "qualificationSources": 5,
   "budgets": [250000, 500000, 750000],
   "stage0": {
-    "compiles": 252,
+    "compiles": 264,
     "wallSeconds": 73.57,
     "peakAggregateRssGiB": 6.86
   },
   "confirmationDepth48": {
-    "developmentCompiles": 12096,
+    "developmentCompiles": 12672,
+    "measuredDevelopmentSources": 42,
     "qualificationCompilesOnAccept": 120,
     "wallSeconds": 3445.65,
     "peakAggregateRssGiB": 9.51
@@ -24,5 +25,5 @@
     "resultReplay": "bit-identical",
     "evidence": "benchmark/v2/evidence/workflow-closure-2026-07-12.json"
   },
-  "scope": "Reference measurements from one 48-worker run on this host; compile counts are normative, wall and memory measurements are not predictions for another host."
+  "scope": "Compile counts are normative for the current 44-case suite. Confirmation wall and memory measurements were recorded on the same host with 42 development sources, as named by measuredDevelopmentSources, and are not predictions for another host."
 }

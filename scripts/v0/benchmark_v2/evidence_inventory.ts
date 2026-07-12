@@ -88,11 +88,24 @@ function collectDocumentReferences(path: string, references: Set<string>, identi
         collectStrings(JSON.parse(line), references, identifiers);
       }
     } else {
-      collectStrings(JSON.parse(text), references, identifiers);
+      collectDocumentValue(JSON.parse(text), references, identifiers);
     }
   } catch (error) {
     throw new Error(`cannot inventory retained evidence: ${relative(process.cwd(), path)} is invalid: ${(error as Error).message}`);
   }
+}
+
+function collectDocumentValue(value: unknown, references: Set<string>, identifiers: Set<string>): void {
+  if (
+    value !== null && typeof value === "object" && !Array.isArray(value) &&
+    (value as any).schema === "line.benchmark-v2.run-summary.v3" &&
+    typeof (value as any).retainedCompressedArchive === "string"
+  ) {
+    const { archive: _raw, compressedArchive: _workingCompressed, ...retained } = value as Record<string, unknown>;
+    collectStrings(retained, references, identifiers);
+    return;
+  }
+  collectStrings(value, references, identifiers);
 }
 
 function collectStrings(value: unknown, references: Set<string>, identifiers: Set<string>): void {

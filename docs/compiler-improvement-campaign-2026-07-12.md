@@ -75,6 +75,20 @@ report on a worker error was hashed as `undefined`, so archive assembly crashed
 instead of retaining the promised failed archive. Failed reports now bind the
 deterministic JSON `null` representation and a regression test covers it.
 
+The governed baseline freeze completed in 6m22s at 48 workers and 9.20 GiB peak
+RSS. The new baseline is `v2.5-low-air-frontier-2026-07-12`: probe 446.06,
+canonical 453.11, and indicative qualification 373.47. A suite-rollover
+sequencing defect was also found: the newly published baseline was rejected by
+the previous suite's migration ledger. Cross-suite baseline authority is now
+recognized only until a migration anchors the new suite; same-suite divergence
+still fails closed. The anchor migration re-recorded the three empirical
+fixtures and left all three synthetic statistical fixtures bit-identical.
+
+Finally, retained control summaries now distinguish intentionally pruned raw
+working archives from their checksummed compressed retention copies. Status
+reports no missing evidence and shows the current normative costs: 264 stage-0
+compiles and 12,672 depth-48 development compiles.
+
 ## Causal studies
 
 ### H1: traversal policy is the primary failure

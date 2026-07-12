@@ -25,6 +25,12 @@ describe("retained evidence inventory", () => {
       archive: kept,
       missing: "benchmark/v2/runs/does-not-exist.json.gz",
     }));
+    writeFileSync(join(temporary, "retained-summary.json"), JSON.stringify({
+      schema: "line.benchmark-v2.run-summary.v3",
+      archive: "benchmark/v2/runs/intentionally-not-retained.json",
+      compressedArchive: "benchmark/v2/runs/intentionally-not-retained.json.gz",
+      retainedCompressedArchive: kept,
+    }));
 
     const inventory = retainedEvidenceInventory({ runsRoot: runs, benchmarkRoot: temporary });
     expect(inventory.totalFiles).toBe(3);

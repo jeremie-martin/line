@@ -18,10 +18,10 @@ describe("Benchmark V2 status", () => {
       id: "improve-t0-d48",
       depth: 48,
       spend: 0.0196,
-      developmentCompiles: 12_096,
+      developmentCompiles: 12_672,
       qualificationCompilesOnAccept: 120,
     });
-    expect(payload.operationalReference).toMatchObject({ jobs: 48, stage0: { compiles: 252 } });
+    expect(payload.operationalReference).toMatchObject({ jobs: 48, stage0: { compiles: 264 } });
     expect(typeof payload.baseline.current).toBe("boolean");
     expect(sha(readFileSync("benchmark/v2/attempts.jsonl"))).toBe(before);
   }, 15_000);
@@ -65,7 +65,7 @@ describe("Benchmark V2 status", () => {
         depth: 48,
         spend: 0.0196,
         mde80: 5,
-        developmentCompiles: 12_096,
+        developmentCompiles: 12_672,
         qualificationCompilesOnAccept: 120,
         budgetAfterDeclaration: 0.0588,
         declarationAllowed: false,
@@ -80,7 +80,7 @@ describe("Benchmark V2 status", () => {
       },
     } satisfies BenchmarkStatus;
     const output = renderBenchmarkStatus(status);
-    expect(output).toContain("12096 development compiles + 120 qualification");
+    expect(output).toContain("12672 development compiles + 120 qualification");
     expect(output).toContain("BLOCKED: era spend would exceed cap");
     expect(output).toContain("host-specific reference");
     expect(output).toContain("BLOCKED by package.json");

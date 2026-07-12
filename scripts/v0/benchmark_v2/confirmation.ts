@@ -129,6 +129,11 @@ function assertMigrationLedgerMatchesBaseline(baseline: any): void {
   const lines = readFileSync(path, "utf8").trim().split("\n").filter(Boolean);
   if (lines.length === 0) return;
   const latest = JSON.parse(lines.at(-1)!);
+  // A full suite rollover publishes a complete baseline contract before the
+  // migration ledger is anchored to the new suite. Records from another suite
+  // are not authoritative over that new baseline; same-suite records remain
+  // strict and the next migration records the cross-suite hash transition.
+  if (latest.to?.suite !== baseline.suite_fingerprint) return;
   if (
     latest.to?.inference !== baseline.decision_inference_fingerprint ||
     latest.to?.protocol !== baseline.decision_protocol_fingerprint ||

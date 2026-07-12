@@ -105,8 +105,8 @@ describe("Benchmark V2 numeric fixtures (external oracles)", () => {
     expect(byScenario.get("empirical_blocks").falseAccept.wilson95).toEqual([0.0021, 0.0117]);
     expect(byScenario.get("empirical_blocks").centralCoverage.count).toBe(996);
     expect(byScenario.get("empirical_blocks").centralCoverage.wilson95).toEqual([0.9898, 0.9984]);
-    expect(byScenario.get("symmetric_validity_flips").falseAccept.count).toBe(21);
-    expect(byScenario.get("symmetric_validity_flips").falseAccept.wilson95).toEqual([0.0138, 0.0319]);
+    expect(byScenario.get("symmetric_validity_flips").falseAccept.count).toBe(9);
+    expect(byScenario.get("symmetric_validity_flips").falseAccept.wilson95).toEqual([0.0047, 0.017]);
     expect(byScenario.get("empirical_score_gain").positiveOutcome.count).toBe(923);
     expect(byScenario.get("empirical_score_gain").positiveOutcome.wilson95).toEqual([0.9048, 0.938]);
     expect(byScenario.get("empirical_score_gain").negativeOutcome.count).toBe(0);

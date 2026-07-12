@@ -193,6 +193,17 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   const fileHashes = Object.fromEntries(allFiles.map((path) => [path, sha256File(path)]));
   const lastRecord = readLastRecord();
   const bootstrap = lastRecord === null;
+  const sourceManifestPath = "benchmark/v2/compat/source-manifest.json";
+  const suiteManifestPath = "benchmark/v2/compat/suite-manifest.json";
+  const sources = resolveSources(loadSourceManifest(sourceManifestPath));
+  const identity = suiteIdentity(suiteManifestPath, sourceManifestPath, sources);
+  const baselinePath = "benchmark/v2/baseline.json";
+  const baselineBeforeBytes = readFileSync(baselinePath);
+  const baselineBeforeSha256 = sha256(baselineBeforeBytes);
+  const baseline = JSON.parse(baselineBeforeBytes.toString("utf8"));
+  const suiteRolloverAnchor = !bootstrap &&
+    lastRecord.to.suite !== identity.suiteFingerprint &&
+    baseline.suite_fingerprint === identity.suiteFingerprint;
   const changedFiles = bootstrap ? [] : allFiles
     .filter((path) => lastRecord.fileHashes[path] !== fileHashes[path])
     .map((path) => ({ path, fromSha256: lastRecord.fileHashes[path] ?? null, toSha256: fileHashes[path] }));
@@ -207,15 +218,17 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
 
   const definitionChanged = changedFiles.some((file) =>
     (BENCHMARK_DEFINITION_SOURCE_FILES as readonly string[]).includes(file.path));
-  if (definitionChanged) {
+  if (definitionChanged && !suiteRolloverAnchor) {
     throw new Error(
       `a suite-definition file changed (${changedFiles.filter((f) =>
         (BENCHMARK_DEFINITION_SOURCE_FILES as readonly string[]).includes(f.path)).map((f) => f.path).join(", ")}); ` +
       `that is a suite rollover, not a contract migration — batch it with the next intentional suite change`,
     );
   }
-  const minimumScope = detectMinimumScope(changedFiles.map((file) => file.path));
-  if (minimumScope === "suite") throw new Error(`unreachable: definition changes refuse above`);
+  const detectedMinimumScope = detectMinimumScope(changedFiles.map((file) => file.path));
+  const minimumScope: Scope | "none" = detectedMinimumScope === "suite"
+    ? "inference"
+    : detectedMinimumScope;
   let effectiveScope: Scope = declaredScope;
   if (behavior === "yes") effectiveScope = "inference";
   if (minimumScope !== "none" && SCOPE_ORDER.indexOf(effectiveScope) < SCOPE_ORDER.indexOf(minimumScope)) {
@@ -225,10 +238,6 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   // Freshness: the guards verify final-decision coverage/calibration and, for
   // inference scope, every certified eval-chain operating point. Only the
   // evidence whose fingerprint changed needs regeneration.
-  const sourceManifestPath = "benchmark/v2/compat/source-manifest.json";
-  const suiteManifestPath = "benchmark/v2/compat/suite-manifest.json";
-  const sources = resolveSources(loadSourceManifest(sourceManifestPath));
-  const identity = suiteIdentity(suiteManifestPath, sourceManifestPath, sources);
   let contract: DecisionContractIdentity;
   try {
     contract = requireCurrentDecisionCalibration(identity.suiteFingerprint);
@@ -253,11 +262,7 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   }
 
   // Ledger/baseline divergence guard (skipped at bootstrap).
-  const baselinePath = "benchmark/v2/baseline.json";
-  const baselineBeforeBytes = readFileSync(baselinePath);
-  const baselineBeforeSha256 = sha256(baselineBeforeBytes);
-  const baseline = JSON.parse(baselineBeforeBytes.toString("utf8"));
-  if (!bootstrap) {
+  if (!bootstrap && !suiteRolloverAnchor) {
     const stampedInference = baseline.decision_inference_fingerprint ?? null;
     const stampedProtocol = baseline.decision_protocol_fingerprint ?? null;
     if (lastRecord.to.inference !== stampedInference || lastRecord.to.protocol !== stampedProtocol) {

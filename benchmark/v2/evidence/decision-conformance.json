@@ -6,12 +6,12 @@
       "name": "identical_probe",
       "kind": "retained-pair",
       "base": {
-        "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
-        "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4"
+        "path": "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
+        "sha256": "99cfc4f405b99944fd7ed0aab96840ee4de8f2e04fab9aea9624430cb5e28d80"
       },
       "candidate": {
-        "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
-        "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4"
+        "path": "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
+        "sha256": "99cfc4f405b99944fd7ed0aab96840ee4de8f2e04fab9aea9624430cb5e28d80"
       },
       "options": {
         "profile": "probe",
@@ -22,20 +22,20 @@
         "delta": 0,
         "lowerBound": 0,
         "upperBound": 0,
-        "baseHeadline": 446.0945,
-        "candidateHeadline": 446.0945
+        "baseHeadline": 446.0645,
+        "candidateHeadline": 446.0645
       }
     },
     {
       "name": "broad_degradation_probe",
       "kind": "retained-pair",
       "base": {
-        "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
-        "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4"
+        "path": "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
+        "sha256": "99cfc4f405b99944fd7ed0aab96840ee4de8f2e04fab9aea9624430cb5e28d80"
       },
       "candidate": {
-        "path": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
-        "sha256": "dd875f118eadce0c5f703e7b16fb3bb3b61f961532f93ae6ea97a4c3dc1ffb01"
+        "path": "benchmark/v2/runs/calibration-v2.5-quality-ncand-1-probe.json.gz",
+        "sha256": "049a25ffd6d32fa862048009b7bc57cfe6d4cb8a2b12cb969c2cc87b1a6989e0"
       },
       "options": {
         "profile": "probe",
@@ -43,10 +43,10 @@
       },
       "expected": {
         "outcome": "stop",
-        "delta": -150.2036,
-        "lowerBound": -173.5339,
-        "upperBound": -126.8733,
-        "baseHeadline": 446.0945,
+        "delta": -150.1736,
+        "lowerBound": -173.623,
+        "upperBound": -126.7242,
+        "baseHeadline": 446.0645,
         "candidateHeadline": 295.8909
       }
     },
@@ -54,12 +54,12 @@
       "name": "impact_contract_failure_probe",
       "kind": "retained-pair",
       "base": {
-        "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
-        "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4"
+        "path": "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
+        "sha256": "99cfc4f405b99944fd7ed0aab96840ee4de8f2e04fab9aea9624430cb5e28d80"
       },
       "candidate": {
-        "path": "benchmark/v2/runs/calibration-v2.4-impact-off-probe.json.gz",
-        "sha256": "a4f6d05f1f2a698823f0c3fc9fe0746894d22ca55576cf9248477ee2b3191c25"
+        "path": "benchmark/v2/runs/calibration-v2.5-impact-off-probe.json.gz",
+        "sha256": "35c9afaf859ad0f96e55e081a6d0118d809a0c8a866096a59a94a35d10f8e3d5"
       },
       "options": {
         "profile": "probe",
@@ -67,10 +67,10 @@
       },
       "expected": {
         "outcome": "stop",
-        "delta": -446.0945,
-        "lowerBound": -453.2402,
-        "upperBound": -438.9488,
-        "baseHeadline": 446.0945,
+        "delta": -446.0645,
+        "lowerBound": -453.3089,
+        "upperBound": -438.8201,
+        "baseHeadline": 446.0645,
         "candidateHeadline": 0
       }
     },

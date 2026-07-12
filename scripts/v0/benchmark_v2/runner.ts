@@ -613,7 +613,7 @@ function decisionArchiveProjection(
       source: row.source,
       authoredContacts: row.authoredContacts,
       score: row.score,
-      rawReportSha256: sha256(JSON.stringify(row.report)),
+      rawReportSha256: sha256(JSON.stringify(row.report ?? null)),
     })),
   };
 }

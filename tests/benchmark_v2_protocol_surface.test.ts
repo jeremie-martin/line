@@ -148,6 +148,22 @@ describe("run lock", () => {
 });
 
 describe("archive artifacts", () => {
+  test("failed rows bind an absent raw report as JSON null", () => {
+    const archive = bindDecisionIndexArchive({
+      marker: "failed-audit-source",
+      runs: [{
+        status: "error",
+        task: { sourceId: "case", budget: 1, seedSlot: 0, actualSeed: 1 },
+        source: { id: "case" },
+        authoredContacts: 0,
+        score: { score: 0, valid: false },
+        report: undefined,
+      }],
+    });
+
+    expect(archive.decisionIndexPayloadSha256).toMatch(/^[a-f0-9]{64}$/);
+  });
+
   test("a checksummed decision index is bound to both archive hashes", () => {
     const dir = tempDir();
     const out = join(dir, "run.json");

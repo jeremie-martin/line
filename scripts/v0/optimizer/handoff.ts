@@ -91,8 +91,11 @@ import {
   TRAVERSAL_BUDGET_MODEL_V1,
 } from "./budget_model.ts";
 import {
+  effectiveAirAsk,
   frontierReadinessFromFit,
+  nextContactGap,
   nextContactGapIndex,
+  OBJECTIVE_AIR_DEADBAND,
   OBJECTIVE_IMPACT_TARGETED_ASK,
   predictArrivalAtNextContact,
   scoreCurrentTargetQuality,
@@ -109,6 +112,7 @@ import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { getEngineRebuildCount } from "../core/polish.ts";
 import { registerCompileReset, resetPerCompileState } from "../core/compile_lifecycle.ts";
+import { supportExtensionPressure } from "../core/support_geometry.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import {
   getSimFrames,
@@ -224,6 +228,10 @@ export type HandoffPoolProbeCandidate = {
   qualityRank: number;
   lineLength: number;
   lineCount: number;
+  meanSegmentLength: number;
+  minSegmentLength: number;
+  maxSegmentLength: number;
+  totalTurnDeg: number;
   cost: number;
   achieved: AxisValues;
   achievedAtEnd?: AxisValues;
@@ -236,6 +244,9 @@ export type HandoffPoolProbeCandidate = {
   airFit: number | null;
   elevationFit: number | null;
   releaseFrame: number | null;
+  releaseElapsedFrames: number | null;
+  catchWindowGroundedFrames: number | null;
+  releaseDisplacement: number | null;
   releaseSpeed: number | null;
   releaseVx: number | null;
   releaseVy: number | null;
@@ -252,6 +263,7 @@ export type HandoffPoolProbeCandidate = {
 
 export type HandoffPoolProbeRecord = {
   gapIndex: number;
+  entrySpeed: number;
   targets: AxisValues;
   nextTargets: AxisValues | null;
   candidates: HandoffPoolProbeCandidate[];
@@ -409,6 +421,8 @@ type ExtraCandidateCache = {
   reuse?: Candidate[];
   brakeSeed?: number;
   brake?: Candidate[];
+  supportKey?: string;
+  support?: Candidate[];
 };
 
 
@@ -613,6 +627,9 @@ const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
 const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
 const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
+const HANDOFF_SUPPORT_TIME_BASE_K = 8;
+const HANDOFF_SUPPORT_TIME_MAX_K = 32;
+const HANDOFF_SUPPORT_TIME_FULL_DEFICIT = 0.5;
 const HANDOFF_RELEASE_VERTICAL_WEIGHT = 0.045;
 const HANDOFF_RELEASE_VERTICAL_LOW_AIR_TARGET_SCALE = 0.45;
 const HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_FRAMES = Math.round(FPS * 0.72);
@@ -2703,8 +2720,8 @@ export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
     : 0;
 }
 
-// Shared scoring context for the three EXTRA-candidate lanes (reuse / brake /
-// startup). Every lane maps its generated candidates 1:1 through
+// Shared scoring context for the EXTRA-candidate lanes. Every lane maps its
+// generated candidates 1:1 through
 // scoreCandidateForHandoff with the same preview/budget context; only the tag and
 // the rank offset differ (captured per-lane in ExtraCandidateLaneSpec).
 type ExtraCandidateScoring = {
@@ -2717,17 +2734,18 @@ type ExtraCandidateScoring = {
   openingBestOpportunity: number;
 };
 
-// Per-node memo slot descriptor. Reuse keys on its reuse limit, brake keys on the
-// search seed; startup does not memoize (no `cache`). read/write bind a lane to
+// Per-node memo slot descriptor. Reuse keys on its reuse limit, seeded lanes key
+// on the search seed; startup does not memoize (no `cache`). read/write bind a lane to
 // its own fields in the shared ExtraCandidateCache.
 type ExtraCandidateCacheSlot = {
-  key: number;
-  read: (cache: ExtraCandidateCache) => { value?: Candidate[]; key?: number };
-  write: (cache: ExtraCandidateCache, value: Candidate[], key: number) => void;
+  key: number | string;
+  read: (cache: ExtraCandidateCache) => { value?: Candidate[]; key?: number | string };
+  write: (cache: ExtraCandidateCache, value: Candidate[], key: number | string) => void;
 };
 
 type ExtraCandidateLaneSpec = {
   tag: HandoffCandidateSource;
+  sourceAxis?: AxisName;
   rankBase: number;
   // Lane-specific generator; owns that lane's telemetry counters and ref handling.
   generate: () => Candidate[];
@@ -2748,7 +2766,7 @@ function resolveExtraCandidates(node: SearchNode, spec: ExtraCandidateLaneSpec):
   return generated;
 }
 
-// One shared lane runner for reuse / brake / startup: (optionally memoized)
+// One shared lane runner for every extra stream: (optionally memoized)
 // generation, then a 1:1 map through scoreCandidateForHandoff stamping the lane
 // tag and offsetting the rank past the pool. Returns the scored options for the
 // caller to push/sort — reuse and brake feed the shared pool, startup its own.
@@ -2766,13 +2784,13 @@ function extraCandidateLane(
     scoreCandidateForHandoff(
       node, candidate, spec.rankBase + j, spec.tag, gaps, ctx, seed, telemetry,
       scoring.preview, scoring.previewCostWeight, scoring.previewScorePressure,
-      scoring.releaseSetup, scoring.targetBudget, undefined,
+      scoring.releaseSetup, scoring.targetBudget, spec.sourceAxis,
       scoring.budgetSlack, scoring.openingBestOpportunity,
     )
   );
 }
 
-// Shared seeded-RNG catch generator for the brake + startup lanes: one makeRng
+// Shared seeded-RNG catch generator for the seeded lanes: one makeRng
 // stream mixed from (seed, gapIndex, seedSalt), a K-attempt sample loop with
 // paired attempt/success telemetry, and ref cleared (an extra catch is never a
 // steady-state reuse seed). The two lanes differ only in seedSalt, the per-attempt
@@ -2787,6 +2805,7 @@ function sampleSeededCatchCandidates(
     seedSalt: number;
     sampleSeed: (attempt: number) => number;
     mode: CandidateSampleMode;
+    timeSupport?: boolean;
     onAttempt: () => void;
     onSuccess: () => void;
   },
@@ -2797,6 +2816,8 @@ function sampleSeededCatchCandidates(
     spec.onAttempt();
     const cand = sampleOneCandidate(
       node.prefixEngine, gap, rng, ctx, node.prefixNextLineId, spec.sampleSeed(attempt), spec.mode,
+      gap.targets,
+      spec.timeSupport ? "time-extend" : undefined,
     );
     if (cand !== null) {
       spec.onSuccess();
@@ -2867,6 +2888,103 @@ function startupDeadEndCandidates(
       telemetry.startupSuccesses++;
     },
   });
+}
+
+/**
+ * The normal pool owns the common path. Support-time candidates are additive
+ * only when that pool has no predicted next-contact air inside the objective's
+ * existing deadband. This is an observed coverage trigger: it contains no gap
+ * duration or case class, and it stays inert when ordinary geometry already
+ * spans the authored support timing.
+ */
+function supportTimeCoverageDeficit(
+  node: SearchNode,
+  gap: Gap,
+  gaps: Gap[],
+  ctx: SpecContext,
+  pool: readonly HandoffAdmittedCandidate[],
+): number {
+  const nextGap = nextContactGap(gap, gaps);
+  if (nextGap === null) return 0;
+  const nextTargets = ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
+  if (nextTargets.air === undefined) return 0;
+  const gapFrames = Math.max(1, nextGap.endFrame - nextGap.startFrame);
+  const ask = effectiveAirAsk(nextTargets.air, gapFrames);
+  const entrySpeed = getCandidateProbe(node.prefixEngine, gap, ctx).targetState.speed;
+  if (supportExtensionPressure({ air: nextTargets.air, gapFrames, speed: entrySpeed }) <= 0) {
+    return 0;
+  }
+  const predictedAir = pool.flatMap(({ candidate }) => {
+    const arrival = predictArrivalAtNextContact(candidate, nextGap);
+    return arrival?.nextAir === undefined ? [] : [arrival.nextAir];
+  });
+  return predictedAir.length === 0
+    ? 0
+    : Math.max(0, Math.min(...predictedAir) - ask - OBJECTIVE_AIR_DEADBAND);
+}
+
+function supportTimeCandidates(
+  node: SearchNode,
+  gap: Gap,
+  ctx: SpecContext,
+  seed: number,
+  count: number,
+  telemetry: HandoffTelemetry,
+): Candidate[] {
+  return sampleSeededCatchCandidates(node, gap, ctx, seed, count, {
+    seedSalt: 0x27d4eb2d,
+    sampleSeed: (attempt) => attempt,
+    mode: "normal",
+    timeSupport: true,
+    onAttempt: () => {
+      telemetry.axisQualityAttempts++;
+      telemetry.axisQualityAttemptsByAxis.air =
+        (telemetry.axisQualityAttemptsByAxis.air ?? 0) + 1;
+    },
+    onSuccess: () => {
+      telemetry.axisQualitySuccesses++;
+      telemetry.axisQualitySuccessesByAxis.air =
+        (telemetry.axisQualitySuccessesByAxis.air ?? 0) + 1;
+    },
+  });
+}
+
+function retainAirCoverageImprovements(
+  candidates: Candidate[],
+  gap: Gap,
+  gaps: Gap[],
+  ctx: SpecContext,
+  pool: readonly HandoffAdmittedCandidate[],
+): Candidate[] {
+  const nextGap = nextContactGap(gap, gaps);
+  if (nextGap === null) return [];
+  const nextTargets = ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
+  if (nextTargets.air === undefined) return [];
+  const gapFrames = Math.max(1, nextGap.endFrame - nextGap.startFrame);
+  const ask = effectiveAirAsk(nextTargets.air, gapFrames);
+  const incumbentErrors = pool.flatMap(({ candidate }) => {
+    const air = predictArrivalAtNextContact(candidate, nextGap)?.nextAir;
+    return air === undefined ? [] : [Math.abs(air - ask)];
+  });
+  if (incumbentErrors.length === 0) return [];
+  const bestIncumbentError = Math.min(...incumbentErrors);
+  return candidates.filter((candidate) => {
+    const air = predictArrivalAtNextContact(candidate, nextGap)?.nextAir;
+    return air !== undefined && Math.abs(air - ask) + 1e-9 < bestIncumbentError;
+  });
+}
+
+function supportTimeCandidateCount(deficit: number): number {
+  if (deficit <= 0) return 0;
+  const pressure = smoothstep(clamp01(deficit / HANDOFF_SUPPORT_TIME_FULL_DEFICIT));
+  return HANDOFF_SUPPORT_TIME_BASE_K + Math.round(
+    (HANDOFF_SUPPORT_TIME_MAX_K - HANDOFF_SUPPORT_TIME_BASE_K) * pressure,
+  );
+}
+
+function supportTimeCoverageLaneEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_SUPPORT_COVERAGE_LANE !== "0";
 }
 
 function startupDeadEndCandidateCount(gap: Gap): number {
@@ -2970,6 +3088,7 @@ function rankedOptions(
 ): RankedOption[] {
   const requestedCandidates = config.nCand ?? HANDOFF_QUALITY_N_CAND;
   const targetBudget = config.targetBudget ?? 0;
+  const gap = gaps[node.gapIndex];
   const normalCandidates = requestedCandidates;
   const sorted = getCandidatesSorted(
     node,
@@ -3078,18 +3197,30 @@ function rankedOptions(
         : [[option.candidate, option.score] as const]),
     );
     const admitted = new Set(pool.map((entry) => entry.candidate));
-    const gap = gaps[node.gapIndex];
     const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex + 1);
     const nextGap = nextGapIndex < 0 ? null : gaps[nextGapIndex];
     const currentTargets = ctx.gapAxisTargets?.[gap.index] ?? gap.targets;
     const nextTargets = nextGap === null
       ? null
       : ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
+    const entrySpeed = getCandidateProbe(node.prefixEngine, gap, ctx).targetState.speed;
     handoffPoolProbeHook({
       gapIndex: gap.index,
+      entrySpeed,
       targets: currentTargets,
       nextTargets,
       candidates: sorted.map((candidate, qualityRank) => {
+        const segmentLengths = candidate.lines.map((line) =>
+          Math.hypot(line.x2 - line.x1, line.y2 - line.y1)
+        );
+        const segmentAngles = candidate.lines.map((line) =>
+          Math.atan2(line.y2 - line.y1, line.x2 - line.x1) * 180 / Math.PI
+        );
+        const totalTurnDeg = segmentAngles.slice(1).reduce((sum, angle, index) =>
+          sum + Math.abs(
+            ((angle - segmentAngles[index] + 180) % 360 + 360) % 360 - 180,
+          ), 0
+        );
         const release = candidate.releaseArrivalState;
         const arrival = nextGap === null ? null : predictArrivalAtNextContact(candidate, nextGap);
         const readiness = arrival === null || nextTargets === null
@@ -3102,6 +3233,11 @@ function rankedOptions(
             0,
           ),
           lineCount: candidate.lines.length,
+          meanSegmentLength: segmentLengths.reduce((sum, value) => sum + value, 0) /
+            segmentLengths.length,
+          minSegmentLength: Math.min(...segmentLengths),
+          maxSegmentLength: Math.max(...segmentLengths),
+          totalTurnDeg,
           cost: candidate.cost,
           achieved: candidate.achieved,
           ...(candidate.achievedAtEnd === undefined
@@ -3122,6 +3258,11 @@ function rankedOptions(
           airFit: readiness?.airFit ?? null,
           elevationFit: readiness?.elevationFit ?? null,
           releaseFrame: release?.frame ?? null,
+          releaseElapsedFrames: release === undefined ? null : release.frame - gap.endFrame,
+          catchWindowGroundedFrames: candidate.releaseGroundedFrames ?? null,
+          releaseDisplacement: release === undefined || candidate.ref === undefined
+            ? null
+            : Math.hypot(release.x - candidate.ref.x, release.y - candidate.ref.y),
           releaseSpeed: release === undefined ? null : Math.hypot(release.vx, release.vy),
           releaseVx: release?.vx ?? null,
           releaseVy: release?.vy ?? null,
@@ -3166,31 +3307,58 @@ function rankedOptions(
     budgetSlack: config.budgetSlack ?? 0,
     openingBestOpportunity,
   };
+  const supportCount = supportTimeCoverageLaneEnabled()
+    ? supportTimeCandidateCount(supportTimeCoverageDeficit(node, gap, gaps, ctx, pool))
+    : 0;
+  const supportOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
+    tag: "axisq",
+    sourceAxis: "air",
+    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1),
+    generate: () => supportCount > 0
+      ? retainAirCoverageImprovements(
+        supportTimeCandidates(node, gap, ctx, seed, supportCount, telemetry),
+        gap,
+        gaps,
+        ctx,
+        pool,
+      )
+      : [],
+    cache: {
+      key: `${seed}:${supportCount}`,
+      read: (cache) => ({ value: cache.support, key: cache.supportKey }),
+      write: (cache, value, key) => {
+        cache.support = value;
+        cache.supportKey = String(key);
+      },
+    },
+  });
+  for (const option of supportOptions) scored.push(option);
   const reuseLimit = config.reuseLimit ?? reuseCandidateLimit(node, targetBudget, telemetry);
   const reuseOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "reuse",
-    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1),
+    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1) + supportOptions.length,
     generate: () => reuseCatchCandidates(node, gaps, ctx, telemetry, reuseLimit),
     cache: {
       key: reuseLimit,
       read: (cache) => ({ value: cache.reuse, key: cache.reuseK }),
       write: (cache, value, key) => {
         cache.reuse = value;
-        cache.reuseK = key;
+        cache.reuseK = Number(key);
       },
     },
   });
   for (const option of reuseOptions) scored.push(option);
   const brakeOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "brake",
-    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1) + reuseOptions.length,
+    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1) +
+      supportOptions.length + reuseOptions.length,
     generate: () => brakeCatchCandidates(node, gaps, ctx, seed, telemetry),
     cache: {
       key: seed,
       read: (cache) => ({ value: cache.brake, key: cache.brakeSeed }),
       write: (cache, value, key) => {
         cache.brake = value;
-        cache.brakeSeed = key;
+        cache.brakeSeed = Number(key);
       },
     },
   });

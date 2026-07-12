@@ -56,7 +56,28 @@ const NO_COLLISION_UPDATES: any[] = (() => {
 // Engines are immutable: setStart/addLine fork a new handle. The compiler holds
 // many live engines (beam frontier) and discards transient candidates — free
 // their handles when the JS wrapper is GC'd, or a real compile leaks/OOMs.
-const FINALIZER = new FinalizationRegistry<number>((h) => ex.free_engine(h));
+type EngineRegistration = { handle: number };
+const LIVE_ENGINES = new Set<EngineRegistration>();
+const FINALIZER = new FinalizationRegistry<EngineRegistration>((registration) => {
+  LIVE_ENGINES.delete(registration);
+  ex.free_engine(registration.handle);
+});
+
+/**
+ * Release every engine handle in this isolate after a self-contained study
+ * compile. Production code must not call this while it still owns an engine.
+ * Repeated calls and later FinalizationRegistry callbacks are safe because the
+ * Rust ABI treats freeing an invalid/already-freed handle as a no-op.
+ */
+export function disposeAllWasmEnginesForStudy(): number {
+  const count = LIVE_ENGINES.size;
+  for (const registration of LIVE_ENGINES) {
+    FINALIZER.unregister(registration);
+    ex.free_engine(registration.handle);
+  }
+  LIVE_ENGINES.clear();
+  return count;
+}
 
 // The scratch address is static. Only the backing ArrayBuffer can change after
 // memory.grow, so reuse the view until the buffer identity changes.
@@ -136,7 +157,9 @@ export class LineRiderEngine {
   private h: number;
   constructor(handle?: number) {
     this.h = handle ?? ex.create_engine();
-    FINALIZER.register(this, this.h);
+    const registration = { handle: this.h };
+    LIVE_ENGINES.add(registration);
+    FINALIZER.register(this, registration, registration);
   }
   // deno-lint-ignore no-explicit-any
   setStart(position: any, velocity: any): LineRiderEngine {
@@ -153,7 +176,7 @@ export class LineRiderEngine {
     for (const l of lines) {
       const flags = (l.flipped ? 1 : 0) | (l.leftExtended ? 2 : 0) | (l.rightExtended ? 4 : 0);
       const next = ex.add_line(h, l.id ?? 0, l.type ?? 0, l.x1, l.y1, l.x2, l.y2, flags);
-      if (h !== this.h) ex.free_engine(h); // free transient intermediate handles
+      if (h !== this.h) ex.free_engine(h); // free unwrapped transient handles
       h = next;
     }
     return new LineRiderEngine(h);

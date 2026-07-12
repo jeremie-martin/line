@@ -5,8 +5,8 @@
   "eraCause": "suite-rollover",
   "baselineLabel": "v2.5-low-air-frontier-2026-07-12",
   "budgetCap": 0.05,
-  "budgetSpent": 0,
-  "cumulativeExpectedFalseAccepts": 0.0784,
+  "budgetSpent": 0.0196,
+  "cumulativeExpectedFalseAccepts": 0.098,
   "attempts": [
     {
       "attemptId": "2026-07-11T21-25-55Z-f99e71f1",
@@ -57,6 +57,16 @@
       "declaredAt": "2026-07-12T07:49:30.963Z",
       "outcome": "inconclusive",
       "lookCount": 5
+    },
+    {
+      "attemptId": "2026-07-12T20-14-09Z-c8f9c284",
+      "eraId": "era-2026-07-12T16-24-15Z",
+      "candidateFingerprint": "9fd0347bd108d6b9497e6206a3005764826dee1455a6b10f8b9e7b7155f5a12f",
+      "operatingPointId": "improve-t0-d48",
+      "spend": 0.0196,
+      "declaredAt": "2026-07-12T20:14:09.881Z",
+      "outcome": "accept",
+      "lookCount": 5
     }
   ],
   "inFlightAttemptId": null,
@@ -91,6 +101,12 @@
       "canonicalSeedBase": 1896893702,
       "seedCount": 144,
       "seedScheduleFingerprint": "441672edd4d90e197a908e2183852262d386c2805872231974c4a7977eb145d7"
+    },
+    {
+      "attemptId": "2026-07-12T20-14-09Z-c8f9c284",
+      "canonicalSeedBase": 377703393,
+      "seedCount": 144,
+      "seedScheduleFingerprint": "6d0b101c155427b22954aaf67d7f485cf753e2facb3908061204bd20b98dceba"
     }
   ]
 }

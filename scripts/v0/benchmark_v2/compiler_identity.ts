@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { COMPILER_IDENTITY_PROTOCOL } from "../../../benchmark/v2/decision-policy.ts";
 import { fingerprintFiles } from "./suite_model.ts";
 
@@ -66,9 +67,7 @@ export function assertCompilerSourcesCommitted(
 export function compilerCandidateIdentity(engine: string): CompilerCandidateIdentity {
   const git = (args: string[]): string => execFileSync("git", args, { encoding: "utf8" }).trimEnd();
   const compilerDiff = git(["diff", "--binary", "HEAD", "--", ...COMPILER_SOURCE_PATHS]);
-  const compilerFiles = git([
-    "ls-files", "--cached", "--others", "--exclude-standard", "--", ...COMPILER_SOURCE_PATHS,
-  ]).split("\n").filter(Boolean).sort();
+  const compilerFiles = materializedCompilerSourceFiles();
   const compilerSourceFingerprint = fingerprintFiles(compilerFiles);
   const compilerEnvironment = Object.fromEntries(
     Object.entries(process.env)
@@ -99,6 +98,25 @@ export function compilerCandidateIdentity(engine: string): CompilerCandidateIden
     candidateFingerprint,
     trackedChanges: git(["status", "--short"]).split("\n").filter(Boolean),
   };
+}
+
+/**
+ * Enumerate the compiler bytes present in a materialized workspace. Snapshot
+ * replay intentionally uses a baseline Git index plus extracted candidate
+ * bytes, so cached paths deleted by the candidate must not be hashed while
+ * candidate-only extracted files must be included.
+ */
+export function materializedCompilerSourceFiles(
+  cwd = process.cwd(),
+  paths: readonly string[] = COMPILER_SOURCE_PATHS,
+): string[] {
+  return execFileSync(
+    "git",
+    ["-C", cwd, "ls-files", "--cached", "--others", "--exclude-standard", "--", ...paths],
+    { encoding: "utf8" },
+  ).split("\n")
+    .filter((path) => path !== "" && existsSync(resolve(cwd, path)))
+    .sort();
 }
 
 function sha256(value: string | Buffer): string {

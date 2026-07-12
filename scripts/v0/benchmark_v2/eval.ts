@@ -82,8 +82,11 @@ import {
 import { buildAxisContract, scoreV2Report, type AxisContract } from "./evaluator.ts";
 import { loadSourceManifest, loadSourceSpec, resolveSources } from "./model.ts";
 import { runBenchmarkV2, compilerCandidateIdentity } from "./runner.ts";
+import { runnerCompatibilityApproval } from "./runner_compatibility.ts";
 import {
+  RUNNER_IMPLEMENTATION_SOURCE_FILES,
   canonicalMembers,
+  fingerprintFiles,
   loadSuiteManifest,
   resolvedSeedSchedule,
   suiteIdentity,
@@ -229,6 +232,7 @@ async function loadEvalContext(): Promise<EvalContext> {
 async function runStage0(argv: string[]): Promise<number> {
   const argument = argumentIn(argv);
   if (process.env.LR_ENGINE !== "wasm") throw new Error(`eval requires LR_ENGINE=wasm`);
+  assertStage0ReferenceComparable();
   const jobs = Number(argument("jobs") ?? Math.min(48, availableParallelism()));
   const stamp = new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z");
   const outPath = resolve(argument("out") ?? `generated/benchmark-v2/eval/stage0-${stamp}.json`);
@@ -277,6 +281,23 @@ async function runStage0(argv: string[]): Promise<number> {
     console.log(renderStage0(report, probeDepth, confirmDepth));
   }
   return EXIT.stage0.completed;
+}
+
+/** Refuse known identity mismatches before paying for the probe compile. */
+export function assertStage0ReferenceComparable(): void {
+  const baseline = readBaselineContract();
+  const probe = JSON.parse(readFileSync(resolve("benchmark/v2/probe-baseline.json"), "utf8"));
+  const currentCompiler = compilerCandidateIdentity("wasm");
+  if (currentCompiler.engineArtifactFingerprint !== baseline.compilerSnapshot.engineArtifactFingerprint) {
+    throw new Error(
+      `stage 0 engine artifact differs from the retained probe reference; restore the accepted artifact or establish a new baseline`,
+    );
+  }
+  runnerCompatibilityApproval(
+    probe.probe.implementation_fingerprint,
+    fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES),
+    baseline.suiteFingerprint,
+  );
 }
 
 // ── Verdict chain ────────────────────────────────────────────────────────────

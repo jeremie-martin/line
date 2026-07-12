@@ -14,5 +14,5 @@ Probe and confirmation actual seeds are disjoint at every shared budget. Probe e
 
 Candidate: `46268f4a68227f7de95a7963cd3b9d1245a65738a2eee7f6e535349ee882bdab`.
 Inference rule: `0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273`.
-Decision protocol: `bcb66b5ca1fd7538f30ab2d6ee108d7733c571b6e4aff0ed4a2a218009be5138`.
+Decision protocol: `86b8fbc578fd0ae4f1ea2fdd55ba1d505dc2d3ea2f3f7cfede077988752036b3`.
 Decision calibration: `0b73a9d59cfc7dfd247f641960dc4987889d309044ac136a673f2a640b173b35`.

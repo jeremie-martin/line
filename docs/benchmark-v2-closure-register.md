@@ -59,7 +59,7 @@ Status vocabulary:
 
 | ID | Finding | Status | Closure evidence / requirement |
 |---|---|---|---|
-| PERF-01 | Final decision assembly took about 157 s and 1.63 GiB RSS. | closed | New raw archives commit to checksummed decision-index payloads; exact headline-only bootstrap evaluation preserves the retained result byte-for-byte. Measured depth-48 assembly is 9.61 s / 198 MiB. Raw/index replay is part of 252-row runner compatibility. |
+| PERF-01 | Final decision assembly took about 157 s and 1.63 GiB RSS. | closed | New raw archives commit to checksummed decision-index payloads; exact headline-only bootstrap evaluation preserves the retained result byte-for-byte. Measured depth-48 assembly is 9.61 s / 198 MiB. Raw/index replay is part of the full probe runner-compatibility check (currently 264 rows). |
 | PERF-02 | Depth-48 retained evidence adds about 200 MiB per two-arm attempt. | closed | `status` inventories retention units and `status --evidence` lists reviewable unreferenced files. At closure: 67/73 referenced, zero missing, 11.7 KiB unreferenced. Nothing is auto-deleted. |
 | PERF-03 | Confirmation cost is hard to estimate from compile count alone at the command boundary. | closed | Status prints exact 12,096 development compiles plus 120 accept-only qualification compiles and labels 74 s / 57 min / 9.51 GiB as a dated host reference. |
 

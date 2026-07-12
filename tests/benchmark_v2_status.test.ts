@@ -23,6 +23,9 @@ describe("Benchmark V2 status", () => {
     });
     expect(payload.operationalReference).toMatchObject({ jobs: 48, stage0: { compiles: 264 } });
     expect(typeof payload.baseline.current).toBe("boolean");
+    expect(typeof payload.stage0.comparable).toBe("boolean");
+    expect(Array.isArray(payload.stage0.refusalReasons)).toBe(true);
+    expect(payload.stage0.comparable || payload.stage0.refusalReasons.length > 0).toBe(true);
     expect(sha(readFileSync("benchmark/v2/attempts.jsonl"))).toBe(before);
   }, 15_000);
 
@@ -46,6 +49,7 @@ describe("Benchmark V2 status", () => {
         transitionPending: false,
       },
       compiler: { cleanForRebaseline: false, dirtyPaths: ["package.json"] },
+      stage0: { comparable: false, refusalReasons: ["runner reference is stale"] },
       publication: { pending: [] },
       evidence: {
         root: "benchmark/v2/runs",
@@ -84,6 +88,7 @@ describe("Benchmark V2 status", () => {
     expect(output).toContain("BLOCKED: era spend would exceed cap");
     expect(output).toContain("host-specific reference");
     expect(output).toContain("BLOCKED by package.json");
+    expect(output).toContain("stage 0 reference: BLOCKED: runner reference is stale");
   });
 });
 

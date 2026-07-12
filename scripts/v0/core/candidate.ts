@@ -35,7 +35,6 @@ import {
   type CandidateSampleMode,
   SPEED_RULER,
   speedPxToAuthored,
-  authoredSpeedToPx,
 } from "../types.ts";
 import {
   type GapFit,
@@ -56,7 +55,6 @@ import {
 import { gravityCorrectedLaunchAverage } from "./launch_read.ts";
 import { firstAirborneExitFrame, growShortHorizon } from "./exit_read.ts";
 import { registerCompileReset } from "./compile_lifecycle.ts";
-import { supportedRideoutDeficitPressure } from "./supported_rideout.ts";
 
 const AIR_POLISH_LOCAL_CONTINUATION_LENGTH_PX = 50;
 const AIR_POLISH_RUNWAY_CONTINUATION_LENGTH_PX = 300;
@@ -1025,7 +1023,7 @@ function evaluateGapFit(
     // pass it through so the release read does not scan the same window again.
     releaseArrivalState = releaseExitArrivalState(
       det, gap, lines, horizon, allContactFrames, ballisticExitFrame,
-    ) ?? supportedRideoutArrivalState(det, gap, allContactFrames) ?? releaseArrivalState;
+    ) ?? releaseArrivalState;
   }
   return {
     fit: {
@@ -1152,39 +1150,6 @@ function releaseExitArrivalState(
   releaseExitTotals.release_exit_used++;
   if (state.airborne) releaseExitTotals.release_exit_airborne++;
   return state;
-}
-
-/** Study path for long supported rides that leave the surface naturally before
- *  crossing the generated line chain's geometric end plane. The detector has
- *  already simulated through the next contact, so recognize the final sustained
- *  airborne suffix and read its launch state without another physics frame. */
-function supportedRideoutArrivalState(
-  det: Detection,
-  gap: Gap,
-  allContactFrames: number[],
-): GapFit["releaseArrivalState"] | null {
-  if (process.env.LR_SUPPORTED_RIDEOUT_STUDY !== "coordinated") return null;
-  const bound = nextContactBound(gap, allContactFrames);
-  if (bound === null) return null;
-  const targetAir = gap.targets.air;
-  if (targetAir === undefined) return null;
-  const targetSpeed = gap.targets.speed === undefined
-    ? speedAt(det, gap.endFrame) ?? 1
-    : authoredSpeedToPx(gap.targets.speed);
-  if (supportedRideoutDeficitPressure({
-    air: targetAir,
-    gapFrames: bound.nextContact - gap.endFrame,
-    speed: targetSpeed,
-  }) === 0) return null;
-
-  let end = bound.nextContact - 1;
-  while (end >= gap.endFrame && airborneAt(det, end) !== true) end--;
-  if (end < bound.latestBallisticFrame) return null;
-
-  let start = end;
-  while (start > gap.endFrame && airborneAt(det, start - 1) === true) start--;
-  if (end - start + 1 < K_BOUNCE_LANDING) return null;
-  return releaseArrivalStateAt(det, gap.endFrame, start, 0, true) ?? null;
 }
 
 function groundedFramesInRange(det: Detection, startFrame: number, endFrame: number): number {

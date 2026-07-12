@@ -67,7 +67,7 @@ if (baseline.compiler_snapshot === undefined) throw new Error(`baseline has no c
 
 mkdirSync(outDir, { recursive: true });
 const replayPath = resolve(outDir, `replay-probe-${Date.now()}.json`);
-console.log(`replaying the baseline compiler snapshot as a probe run (252 compiles)...`);
+console.log(`replaying the baseline compiler snapshot as a probe run...`);
 const replayRun = runSnapshotBenchmark(baseline.compiler_snapshot, "development", [
   "--profile=probe",
   `--manifest=${benchmarkV2Paths.sourceManifest}`,

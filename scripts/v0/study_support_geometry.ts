@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { runInNewContext } from "node:vm";
+import { setFlagsFromString } from "node:v8";
 import base5 from "../../benchmark/v2/cases/normative/capability/frontier_low_air_endurance.ts";
 import base4 from "../../benchmark/v2/cases/variants/capability/frontier_low_air_endurance_4s.ts";
 import base6 from "../../benchmark/v2/cases/variants/capability/frontier_low_air_endurance_6s.ts";
@@ -8,17 +10,23 @@ import base7 from "../../benchmark/v2/cases/variants/capability/frontier_low_air
 import sparseLowline from "../../benchmark/v2/cases/normative/representative/sparse_lowline.ts";
 import sparseLowlineLowerAir from "../../benchmark/v2/cases/variants/representative/sparse_lowline_air_minus_4.ts";
 import denseDialogue from "../../benchmark/v2/cases/normative/representative/dense_dialogue.ts";
+import highAirDrive from "../../benchmark/v2/cases/normative/representative/high_air_drive.ts";
+import highAirDriveLowerAir from "../../benchmark/v2/cases/variants/representative/high_air_drive_air_minus_5.ts";
+import meterExchange from "../../benchmark/v2/cases/normative/representative/meter_exchange.ts";
+import risingSwitch from "../../benchmark/v2/cases/normative/representative/rising_switch.ts";
+import offgridConversation from "../../benchmark/v2/cases/normative/representative/offgrid_conversation.ts";
 import {
-  setSupportedRideoutGeometryProbeHook,
-  type SupportedRideoutGeometryProbeRecord,
+  setSupportGeometryProbeHook,
+  type SupportGeometryProbeRecord,
 } from "./arc_placement.ts";
 import { setLandingProbeHook, type LandingProbeCostSink } from "./core/candidate.ts";
+import { disposeAllWasmEnginesForStudy } from "../lib/_lr_engine_wasm.ts";
 import {
   compileHandoff,
   setHandoffPoolProbeHook,
   type HandoffPoolProbeCandidate,
 } from "./optimizer/handoff.ts";
-import type { SupportedRideoutStudyMode } from "./core/supported_rideout.ts";
+import type { SupportGeometryMode } from "./core/support_geometry.ts";
 import { scoreDriftReport } from "./score.ts";
 import { FPS, type Spec } from "./types.ts";
 
@@ -36,13 +44,25 @@ const requestedDurations = new Set(
 const requestedControls = new Set(
   (argument("controls") ?? "").split(",").filter((value) => value !== ""),
 );
-const modes = (argument("modes") ?? "off,length,coordinated").split(",") as SupportedRideoutStudyMode[];
+const modes = (argument("modes") ?? "off,time,time-shape-span").split(",") as SupportGeometryMode[];
 const outPath = argument("out");
+const generatedAt = new Date().toISOString();
+
+// A study runs many complete compiler invocations in one process. WASM engine
+// handles are released by FinalizationRegistry, whose scheduling is otherwise
+// nondeterministic; forcing collection between rows prevents completed engines
+// from accumulating until the isolate's WASM memory ceiling is reached.
+setFlagsFromString("--expose_gc");
+const collectGarbage = runInNewContext("gc") as () => void;
 
 if (!Number.isSafeInteger(budget) || budget <= 0) throw new Error(`invalid budget ${budget}`);
 if (seeds.some((seed) => !Number.isSafeInteger(seed))) throw new Error(`invalid seeds`);
-if (modes.some((mode) => !["off", "length", "coordinated"].includes(mode))) {
-  throw new Error(`modes must be off,length,coordinated`);
+if (
+  modes.some((mode) =>
+    !["off", "time", "time-shape-span", "shape-time-log", "shape-time-deficit"].includes(mode)
+  )
+) {
+  throw new Error(`modes must be off,time,time-shape-span,shape-time-log,shape-time-deficit`);
 }
 
 const cases: Array<{ rideoutSeconds: number | null; id: string; spec: Spec }> = [
@@ -56,12 +76,17 @@ const cases: Array<{ rideoutSeconds: number | null; id: string; spec: Spec }> = 
     { rideoutSeconds: null, id: "sparse_lowline", spec: sparseLowline },
     { rideoutSeconds: null, id: "sparse_lowline_air_minus_4", spec: sparseLowlineLowerAir },
     { rideoutSeconds: null, id: "dense_dialogue", spec: denseDialogue },
+    { rideoutSeconds: null, id: "high_air_drive", spec: highAirDrive },
+    { rideoutSeconds: null, id: "high_air_drive_air_minus_5", spec: highAirDriveLowerAir },
+    { rideoutSeconds: null, id: "meter_exchange", spec: meterExchange },
+    { rideoutSeconds: null, id: "rising_switch", spec: risingSwitch },
+    { rideoutSeconds: null, id: "offgrid_conversation", spec: offgridConversation },
   ].filter((entry) => requestedControls.has(entry.id)),
 ];
 
 const rows = [];
 for (const mode of modes) {
-  process.env.LR_SUPPORTED_RIDEOUT_STUDY = mode;
+  process.env.LR_SUPPORT_GEOMETRY = mode;
   for (const testCase of cases) {
     for (const seed of seeds) {
       const geometry = emptyGeometryProbe();
@@ -69,7 +94,7 @@ for (const mode of modes) {
       const landingGates = emptyGateProbe();
       const poolProbe = emptyPoolProbe();
       const candidateRecords = new WeakMap<object, GateCandidateRecord>();
-      setSupportedRideoutGeometryProbeHook((record) => recordGeometry(geometry, record));
+      setSupportGeometryProbeHook((record) => recordGeometry(geometry, record));
       setHandoffPoolProbeHook((record) => {
         if (record.gapIndex !== SUPPORT_GAP_INDEX) return;
         poolProbe.pools++;
@@ -103,7 +128,7 @@ for (const mode of modes) {
       const checkpoint = compileHandoff(testCase.spec, seed, { budget });
       const elapsedMs = performance.now() - started;
       setLandingProbeHook(null);
-      setSupportedRideoutGeometryProbeHook(null);
+      setSupportGeometryProbeHook(null);
       setHandoffPoolProbeHook(null);
       const score = scoreDriftReport(checkpoint.report, {
         totalFrames: Math.round(testCase.spec.duration * FPS),
@@ -143,6 +168,9 @@ for (const mode of modes) {
         supportPool: summarizePoolProbe(poolProbe),
       };
       rows.push(row);
+      writeCheckpoint(false);
+      disposeAllWasmEnginesForStudy();
+      collectGarbage();
       console.error(
         `${mode.padEnd(11)} ${testCase.id} seed=${seed} ` +
           `valid=${row.valid} score=${row.score} deepest=${row.deepestGap} ` +
@@ -153,27 +181,37 @@ for (const mode of modes) {
     }
   }
 }
-delete process.env.LR_SUPPORTED_RIDEOUT_STUDY;
+delete process.env.LR_SUPPORT_GEOMETRY;
 setLandingProbeHook(null);
-setSupportedRideoutGeometryProbeHook(null);
+setSupportGeometryProbeHook(null);
 setHandoffPoolProbeHook(null);
 
-const output = {
-  schema: "line.study-supported-rideout.v1",
-  generatedAt: new Date().toISOString(),
-  hypothesis: "Long low-air failures are caused by fixed rideout length/segmentation and launch timing rather than traversal policy.",
-  budget,
-  seeds,
-  modes,
-  rows,
-};
-const json = `${JSON.stringify(output, null, 2)}\n`;
-if (outPath === undefined) process.stdout.write(json);
+if (outPath === undefined) process.stdout.write(studyJson(true));
 else {
-  const absolute = resolve(outPath);
-  mkdirSync(dirname(absolute), { recursive: true });
-  writeFileSync(absolute, json);
+  writeCheckpoint(true);
   console.error(`wrote ${outPath}`);
+}
+
+function studyJson(complete: boolean): string {
+  return `${JSON.stringify({
+    schema: "line.study-support-geometry.v3",
+    generatedAt,
+    complete,
+    hypothesis: "One continuous speed/gap/air support model can cover ordinary and frontier gaps without a duration threshold.",
+    budget,
+    seeds,
+    modes,
+    rows,
+  }, null, 2)}\n`;
+}
+
+function writeCheckpoint(complete: boolean): void {
+  if (outPath === undefined) return;
+  const absolute = resolve(outPath);
+  const temporary = `${absolute}.tmp`;
+  mkdirSync(dirname(absolute), { recursive: true });
+  writeFileSync(temporary, studyJson(complete));
+  renameSync(temporary, absolute);
 }
 
 function boundary(report: ReturnType<typeof compileHandoff>["report"], seconds: number, endTime: number) {
@@ -221,7 +259,7 @@ function emptyGeometryProbe(): GeometryProbe {
   };
 }
 
-function recordGeometry(acc: GeometryProbe, record: SupportedRideoutGeometryProbeRecord): void {
+function recordGeometry(acc: GeometryProbe, record: SupportGeometryProbeRecord): void {
   if (record.gapIndex !== SUPPORT_GAP_INDEX) return;
   acc.generated++;
   acc.minLength = Math.min(acc.minLength, record.postLength);

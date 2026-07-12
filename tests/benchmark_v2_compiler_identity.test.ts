@@ -1,11 +1,12 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import {
   assertCompilerSourcesCommitted,
   compilerDirtyPathsAgainstHead,
+  materializedCompilerSourceFiles,
 } from "../scripts/v0/benchmark_v2/compiler_identity.ts";
 
 describe("Benchmark V2 compiler source cleanliness", () => {
@@ -36,5 +37,26 @@ describe("Benchmark V2 compiler source cleanliness", () => {
     ]);
     expect(() => assertCompilerSourcesCommitted(["compiler.ts", "compiler-extra.ts"], cwd))
       .toThrow(/compiler-extra\.ts, compiler\.ts/);
+  });
+
+  test("enumerates extracted replacement files instead of missing baseline-index paths", () => {
+    const cwd = mkdtempSync(join(tmpdir(), "v2-compiler-materialized-"));
+    const git = (args: string[]): void => {
+      execFileSync("git", ["-C", cwd, ...args], { stdio: "ignore" });
+    };
+    git(["init"]);
+    git(["config", "user.email", "benchmark-v2@example.invalid"]);
+    git(["config", "user.name", "Benchmark V2 Test"]);
+    mkdirSync(join(cwd, "compiler"));
+    writeFileSync(join(cwd, "compiler/old.ts"), "export const old = true;\n");
+    git(["add", "."]);
+    git(["commit", "-m", "baseline"]);
+
+    rmSync(join(cwd, "compiler/old.ts"));
+    writeFileSync(join(cwd, "compiler/replacement.ts"), "export const replacement = true;\n");
+
+    expect(materializedCompilerSourceFiles(cwd, ["compiler"])).toEqual([
+      "compiler/replacement.ts",
+    ]);
   });
 });

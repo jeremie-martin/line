@@ -19,7 +19,7 @@ const GENERATOR = "scripts/benchmark/analyze_alpha_counterfactual.ts";
 
 export type AlphaCounterfactual = ReturnType<typeof buildAlphaCounterfactual>;
 
-export function buildAlphaCounterfactual(menu: any, powerGrid: any): {
+export function buildAlphaCounterfactual(menu: any, powerGrid: any, powerGridSha256: string): {
   schema: "line.benchmark-v2.alpha-counterfactual.v1";
   authority: "diagnostic-only";
   statement: string;
@@ -62,11 +62,11 @@ export function buildAlphaCounterfactual(menu: any, powerGrid: any): {
   if (
     menu?.schema !== "line.benchmark-v2.independent-validation.v4" ||
     powerGrid?.schema !== "line.benchmark-v2.power-grid-study.v2" ||
-    menu.suiteFingerprint !== powerGrid.suiteFingerprint ||
+    menu.upstream?.powerGrid?.sha256 !== powerGridSha256 ||
     menu.predeclared?.depth !== 48 || menu.predeclared?.criticalAlpha !== 0.01 ||
     !Array.isArray(powerGrid.config?.criticals) ||
     !powerGrid.config.criticals.includes(0.01) || !powerGrid.config.criticals.includes(0.05)
-  ) throw new Error(`counterfactual inputs do not describe the current depth-48 99% evidence`);
+  ) throw new Error(`counterfactual inputs are not bound to the current depth-48 99% evidence`);
 
   const currentAlpha = 0.01;
   const counterfactualAlpha = 0.02;
@@ -206,7 +206,7 @@ async function main(): Promise<void> {
     throw new Error(`menu certification is not bound to the supplied power grid`);
   }
   const result = {
-    ...buildAlphaCounterfactual(menu, JSON.parse(gridBytes.toString("utf8"))),
+    ...buildAlphaCounterfactual(menu, JSON.parse(gridBytes.toString("utf8")), gridSha256),
     generatedAt: new Date().toISOString(),
     inputs: {
       menu: { path: relative(menuPath), sha256: sha256(menuBytes) },

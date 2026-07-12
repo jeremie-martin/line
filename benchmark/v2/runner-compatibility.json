@@ -126,6 +126,20 @@
         "sha256": "ef7539ceab26ea70b9f69f745059affe91b0bccbad0f8fc3fffd0390f1384ed4",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "f48d24631c1ebafdd468f958eab1462299d25a8b58a656328e027393bd16d7db",
+      "toImplementationFingerprint": "d3efb0c83de68e1d8beb7d75fda8a50737d850b7846899c118c44b0e6f76135a",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "9bd5bf1c988dbe8022386f0f7edddda4ba9836d0aee01e1b7d8d735c85ec297c",
+      "reviewedBy": "Codex",
+      "reviewedAt": "2026-07-12T20:11:25.478Z",
+      "rationale": "Compiler snapshot replay now enumerates materialized source files and stage-0 preflights artifact/runner identity before compiling; execution policy and compiler behavior are unchanged, subject to full row replay",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-f48d2463-d3efb0c8-6a3b0f76.json",
+        "sha256": "6a3b0f76ac90d0e88e56f6950f632bed4b053a29abf5763e172bfd4f68fc927b",
+        "result": "bit-identical"
+      }
     }
   ]
 }

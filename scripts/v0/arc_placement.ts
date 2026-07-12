@@ -12,11 +12,12 @@ import { appendSledPointPositionsRangeMetered, getRiderMetered } from "../lib/de
 import { registerCompileReset } from "./core/compile_lifecycle.ts";
 import { makeSolidLine } from "./arc.ts";
 import {
-  planSupportedRideout,
-  supportedRideoutFlightFrames,
-  supportedRideoutSegments,
-  supportedRideoutStudyMode,
-} from "./core/supported_rideout.ts";
+  planSupportGeometry,
+  supportReferenceLength,
+  supportGeometryMode,
+  type SupportGeometryMode,
+  type SupportGeometryPlan,
+} from "./core/support_geometry.ts";
 import {
   CALIB,
   CANDIDATE_SAMPLE_MODES,
@@ -359,25 +360,26 @@ type SegmentCollisionRiskLines = number[];
 export type ArcPlacementStats = NonNullable<CompileStats["arc_placement"]>;
 export type ArcPlacementDirectFailureReason = "survival" | "landing" | "offbeat";
 
-export type SupportedRideoutGeometryProbeRecord = {
+export type SupportGeometryProbeRecord = {
   gapIndex: number;
   attempt: number;
   mode: string;
   gapFrames: number | null;
   targetAir: number | null;
   targetLength: number | null;
+  extensionPressure: number | null;
   postLength: number;
   postSegments: number;
 };
 
-let supportedRideoutGeometryProbeHook:
-  ((record: SupportedRideoutGeometryProbeRecord) => void) | null = null;
+let supportGeometryProbeHook:
+  ((record: SupportGeometryProbeRecord) => void) | null = null;
 
 /** Observation-only geometry hook for the supported-rideout study. */
-export function setSupportedRideoutGeometryProbeHook(
-  hook: ((record: SupportedRideoutGeometryProbeRecord) => void) | null,
+export function setSupportGeometryProbeHook(
+  hook: ((record: SupportGeometryProbeRecord) => void) | null,
 ): void {
-  supportedRideoutGeometryProbeHook = hook;
+  supportGeometryProbeHook = hook;
 }
 
 export type ImpactTargetPointState = {
@@ -531,6 +533,7 @@ export function sampleArcPlacementGeometry(
   lineIdStart: number,
   mode: CandidateSampleMode = "normal",
   allContactFrames: readonly number[] = [],
+  geometryModeOverride?: SupportGeometryMode,
 ): ArcPlacementGeometry {
   recordArcPlacementSample(mode);
   lastGeometryWasImpactTemplate = false;
@@ -539,6 +542,7 @@ export function sampleArcPlacementGeometry(
       kind: "lines",
       lines: sampleContactCenteredLines(
         rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
+        geometryModeOverride ?? supportGeometryMode(),
       ),
     };
   }
@@ -758,7 +762,6 @@ function targetStateControls(
     startupLandingPressure,
     nextGapFrames,
   });
-
   return {
     segmentLength,
     contactAngleDeg,
@@ -1016,6 +1019,7 @@ function sampleContactCenteredLines(
   lineIdStart: number,
   allContactFrames: readonly number[],
   attempt: number,
+  geometryMode: ReturnType<typeof supportGeometryMode>,
 ): TrackLine[] {
   const rawRolls: ContactCenteredRolls = {
     segmentLengthRoll: rng(),
@@ -1190,50 +1194,27 @@ function sampleContactCenteredLines(
   // toward (1−air) of the span to the next contact, capped so it never reaches the
   // next beat. Spanned across the attempt batch.
   let postLength = clamp(sampledPostLength, 28, 220);
-  let supportedRideout = null;
-  const supportedRideoutMode = supportedRideoutStudyMode();
+  let supportPlan: SupportGeometryPlan | null = null;
   if (nextGapFrames !== null && targets.air !== undefined) {
     const speed = Math.max(1, targetState.speed);
-    const groundedTargetLen = speed * clamp(1 - air, 0, 1) * nextGapFrames;
-    const safeCap = speed * nextGapFrames * 0.55;
-    const targetLen = clamp(Math.min(groundedTargetLen, safeCap), 28, 360);
+    const targetLen = supportReferenceLength({ air, gapFrames: nextGapFrames, speed });
     const blend = clamp(ccSpanBlends(attempt).length, 0, 1);
     const highAirPressure = clamp(
       (air - HIGH_AIR_LENGTH_BLEND_PRESSURE_START) / HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN, 0, 1,
     );
     const blendStrength = 0.6 + HIGH_AIR_LENGTH_BLEND_EXTRA * highAirPressure;
     postLength = clamp(lerp(sampledPostLength, targetLen, blend * blendStrength), 28, 360);
-    supportedRideout = planSupportedRideout({
-      mode: supportedRideoutMode,
+    supportPlan = planSupportGeometry({
+      mode: geometryMode,
       air,
       gapFrames: nextGapFrames,
       speed,
-      sampledPostLength,
       legacyPostLength: postLength,
-      lengthBlend: supportedRideoutMode === "off"
-        ? blend
-        : lowDiscrepancyRoll(attempt, 17),
-      legacyBlendStrength: blendStrength,
+      shapeReferenceLength: targetLen,
+      coordinate: lowDiscrepancyRoll(attempt, 17),
+      shapeTimeBlend: supportScaleCoordinate(attempt),
     });
-    postLength = supportedRideout.postLength;
-    if (supportedRideoutMode === "coordinated" && supportedRideout.deficitPressure > 0) {
-      const N = supportedRideoutFlightFrames(
-        supportedRideoutMode,
-        supportedRideout,
-        nextGapFrames,
-        speed,
-      );
-      const g = LAUNCH_GRAVITY_PX_PER_FRAME2;
-      const vIn = Math.max(1, targetState.velocity.x);
-      const vT = Math.max(1, targetSpeedPx);
-      const dhDown = (vT * vT - vIn * vIn) / (2 * g);
-      const vyTarget = dhDown / N - 0.5 * g * N;
-      const vyClamped = clamp(vyTarget, -0.92 * g * N, 0.45 * g * N);
-      const energyLaunchDeg = (Math.atan2(vyClamped, vIn) * 180) / Math.PI;
-      const launchBlend = clamp(ccSpanBlends(attempt).launch, 0, 1) *
-        supportedRideout.deficitPressure;
-      postAngleDeg = lerp(postAngleDeg, energyLaunchDeg, launchBlend);
-    }
+    postLength = supportPlan.postLength;
   }
 
   // Elevation ride-out shortening. A steep launch ANGLE alone does not climb if the
@@ -1283,20 +1264,15 @@ function sampleContactCenteredLines(
   }));
 
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
-  const legacyPostSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
-  const postSegments = supportedRideoutSegments(
-    supportedRideout?.deficitPressure === 0 ? "off" : supportedRideoutMode,
-    postLength,
-    segmentLength,
-    legacyPostSegments,
-  );
-  supportedRideoutGeometryProbeHook?.({
+  const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
+  supportGeometryProbeHook?.({
     gapIndex: gap.index,
     attempt,
-    mode: supportedRideoutMode,
+    mode: geometryMode,
     gapFrames: nextGapFrames,
     targetAir: targets.air ?? null,
-    targetLength: supportedRideout?.targetLength ?? null,
+    targetLength: supportPlan?.targetLength ?? null,
+    extensionPressure: supportPlan?.extensionPressure ?? null,
     postLength,
     postSegments,
   });
@@ -2025,6 +2001,14 @@ function ccSpanBlends(attempt: number): { launch: number; length: number } {
   }
   const b = (k - 8) / 7;
   return { launch: b, length: clamp(1 - b, 0, 1) };
+}
+
+/** Four support scales crossed with the established 16-step launch path. Each
+ * scale, including both physical endpoints, is therefore evaluated at several
+ * launch coordinates instead of being accidentally bound to one shape. */
+function supportScaleCoordinate(attempt: number): number {
+  const k = ((attempt % 4) + 4) % 4;
+  return k / 3;
 }
 
 function denseSpacingPostLengthCap(

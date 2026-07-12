@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import { readEraState, type EraState } from "./attempts.ts";
 import { requireCertifiedOperatingPoint, requireCurrentDecisionCalibration } from "./calibration_guard.ts";
-import { compilerDirtyPathsAgainstHead } from "./compiler_identity.ts";
+import { compilerCandidateIdentity, compilerDirtyPathsAgainstHead } from "./compiler_identity.ts";
 import { readBaselineContract } from "./confirmation.ts";
 import { retainedEvidenceInventory, type RetainedEvidenceInventory } from "./evidence_inventory.ts";
 import {
@@ -12,7 +12,14 @@ import {
   resolveHeldoutSources,
   resolveSources,
 } from "./model.ts";
-import { canonicalMembers, loadSuiteManifest, suiteIdentity } from "./suite_model.ts";
+import { runnerCompatibilityApproval } from "./runner_compatibility.ts";
+import {
+  RUNNER_IMPLEMENTATION_SOURCE_FILES,
+  canonicalMembers,
+  fingerprintFiles,
+  loadSuiteManifest,
+  suiteIdentity,
+} from "./suite_model.ts";
 
 const SOURCE_MANIFEST = "benchmark/v2/compat/source-manifest.json";
 const HELDOUT_MANIFEST = "benchmark/v2/compat/heldout-manifest.json";
@@ -48,6 +55,7 @@ export type BenchmarkStatus = {
     "inFlightAttemptId" | "transitionPending"
   >;
   compiler: { cleanForRebaseline: boolean; dirtyPaths: string[] };
+  stage0: { comparable: boolean; refusalReasons: string[] };
   publication: { pending: string[] };
   evidence: RetainedEvidenceInventory;
   menu: StatusRow[];
@@ -101,6 +109,20 @@ export function benchmarkStatus(): BenchmarkStatus {
     };
   });
   const dirtyPaths = compilerDirtyPathsAgainstHead();
+  const probe = JSON.parse(readFileSync(resolve("benchmark/v2/probe-baseline.json"), "utf8"));
+  const currentCompiler = compilerCandidateIdentity("wasm");
+  const stage0RefusalReasons = currentCompiler.engineArtifactFingerprint === baseline.compilerSnapshot.engineArtifactFingerprint
+    ? []
+    : ["engine artifact differs from the retained probe reference"];
+  try {
+    runnerCompatibilityApproval(
+      probe.probe.implementation_fingerprint,
+      fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES),
+      baseline.suiteFingerprint,
+    );
+  } catch (error) {
+    stage0RefusalReasons.push(error instanceof Error ? error.message : String(error));
+  }
   return {
     schema: "line.benchmark-v2.status.v1",
     baseline: {
@@ -120,6 +142,7 @@ export function benchmarkStatus(): BenchmarkStatus {
       transitionPending: era.transitionPending,
     },
     compiler: { cleanForRebaseline: dirtyPaths.length === 0, dirtyPaths },
+    stage0: { comparable: stage0RefusalReasons.length === 0, refusalReasons: stage0RefusalReasons },
     publication: { pending: publicationPending },
     evidence: retainedEvidenceInventory(),
     menu: rows,
@@ -138,6 +161,7 @@ export function renderBenchmarkStatus(status: BenchmarkStatus): string {
     `  state: ${status.era.inFlightAttemptId === null ? "no attempt in flight" : `attempt ${status.era.inFlightAttemptId} in flight`}; ` +
       `${status.era.transitionPending ? "transition pending" : "no transition pending"}`,
     `  compiler baseline gate: ${status.compiler.cleanForRebaseline ? "clean" : `BLOCKED by ${status.compiler.dirtyPaths.join(", ")}`}`,
+    `  stage 0 reference: ${status.stage0.comparable ? "comparable" : `BLOCKED: ${status.stage0.refusalReasons.join("; ")}`}`,
     `  retained evidence: ${status.evidence.referencedFiles}/${status.evidence.totalFiles} files referenced; ` +
       `${formatBytes(status.evidence.unreferencedBytes)} unreferenced and reviewable; ` +
       `${status.evidence.missingReferences.length} missing reference(s)`,

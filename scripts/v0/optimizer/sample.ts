@@ -34,6 +34,7 @@ import {
 import { getRiderMetered } from "../../lib/detector.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
+import type { SupportGeometryMode } from "../core/support_geometry.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
@@ -143,6 +144,9 @@ export function sampleOneCandidate(
    *  still use `gap.targets`; this only shapes the sampled line fragment. Defaults
    *  to `gap.targets`, so generation pursues the literal per-gap target. */
   geometryTargets: AxisValues = gap.targets,
+  /** Optional normal-stream support envelope for a compiler-owned specialist
+   *  lane. It changes geometry only; hard gates and scoring remain literal. */
+  supportGeometryMode?: SupportGeometryMode,
 ): Candidate | null {
   candidateSampleCount++;
   const probe = getCandidateProbe(engine, gap, ctx);
@@ -152,7 +156,7 @@ export function sampleOneCandidate(
   // the attempt arg is unused and the RNG drives diversity.
   const geometry = sampleArcPlacementGeometry(
     rng, probe.refX, probe.refY, geometryTargets, probe.targetState, attempt, gap, lineIdStart, mode,
-    ctx.allContactFrames,
+    ctx.allContactFrames, supportGeometryMode,
   );
 
   const fit = tryCandidateGeometry(

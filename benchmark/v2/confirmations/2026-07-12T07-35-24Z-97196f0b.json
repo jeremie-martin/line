@@ -1,0 +1,41 @@
+{
+  "schema": "line.benchmark-v2.eval-declaration.v6",
+  "attemptId": "2026-07-12T07-35-24Z-97196f0b",
+  "declaredAt": "2026-07-12T07:35:24.799Z",
+  "baselineLabel": "accept-2026-07-11T22-38-42Z-d7b3f327",
+  "baselineCandidateFingerprint": "d1f9d8a5e0dd5820f3e383e8c0b19db2493e33ce0dd305433d79effcef2a7315",
+  "baselineSuiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+  "baselineSnapshotSha256": "7f3f1654d271d51df94888ae84c173548acef6135c7071926d9805c19f07624c",
+  "baselineInferenceFingerprint": "a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21",
+  "baselineProtocolFingerprint": "9ac85b1ff0c472e7692b706c25ef53c58c9cc2a775ff3508303dfb26fd22a359",
+  "baselineCalibrationFingerprint": "51ca5ed7a5d8ec74d5c846d4ebd91a9f9a4d5829d1592a8ced0d2a35d028184d",
+  "candidateFingerprint": "bfa554f17b75da327b25d9948dab0536cd16dc561be5c570c387b102eb420950",
+  "candidateSnapshot": {
+    "schema": "line.benchmark-v2.compiler-snapshot.v1",
+    "archive": "benchmark/v2/runs/2026-07-12T07-35-24Z-97196f0b-candidate-compiler-snapshot.tar.gz",
+    "archiveSha256": "fd32699cdc6297a8e8e793ccd81f93c280b6f398e43c86dcd35713239f6a3401",
+    "candidateFingerprint": "bfa554f17b75da327b25d9948dab0536cd16dc561be5c570c387b102eb420950",
+    "compilerSourceFingerprint": "b3a2563961d75db6ff80e5565d9ffd4e7814d2a8147f4693d4a3f2d63aada735",
+    "compilerEnvironment": {},
+    "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
+  },
+  "canonicalSeedBase": 651677207,
+  "seedScheduleFingerprint": "24eb9ac6d450dbaf019a01613071c3b7a737be0561bdb8b1f6d9f617ab6753cf",
+  "mode": "improvement",
+  "margin": null,
+  "operatingPointId": "improve-t0-d48",
+  "depth": 48,
+  "criticalAlpha": 0.01,
+  "futilitySchedule": [
+    2,
+    3,
+    4,
+    8,
+    16
+  ],
+  "futilityAlpha": 0.05,
+  "eraBudgetSpend": 0.0196,
+  "retryAcknowledged": false,
+  "certificationFingerprint": "bc8260ef05632bac1833c85b8f6c4754e46d0a045dfe640fc9f00eb3e246ad69",
+  "statement": "This candidate, operating point improve-t0-d48, and fresh seed epoch are frozen before either paired arm runs."
+}

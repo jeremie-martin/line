@@ -55,6 +55,8 @@ export function startResourceMonitor(label: string, intervalSeconds = 5): Resour
       if (stopped) return;
       stopped = true;
       clearInterval(interval);
+      // Sub-second policy refusals have no meaningful utilization sample.
+      if (performance.now() - startedAt < 1_000) return;
       sample();
       console.error(
         `  [resources:${label}:peak] elapsed ${formatDuration((performance.now() - startedAt) / 1000)}; ` +

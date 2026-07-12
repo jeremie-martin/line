@@ -8,6 +8,7 @@ import { runDecisionCommand } from "../v0/benchmark_v2/decide.ts";
 import { runEvalCommand } from "../v0/benchmark_v2/eval.ts";
 import { runMigrationCommand } from "../v0/benchmark_v2/migrate.ts";
 import { runRebaselineCommand, runTransitionCommand } from "../v0/benchmark_v2/rebaseline.ts";
+import { benchmarkEvalPolicy } from "../../benchmark/v2/eval-policy.ts";
 
 const COMMAND_ALIASES = new Set([
   "probe", "eval", "canonical", "baseline", "rebaseline", "transition", "decide", "migrate", "prepare", "explain",
@@ -30,6 +31,9 @@ try {
 async function main(rawArgs: string[]): Promise<void> {
   const command = commandName(rawArgs);
   const args = rawArgs.filter((arg) => !COMMAND_ALIASES.has(arg));
+  const commandArgs = args.filter((arg) =>
+    arg !== "--no-resource-stats" && !arg.startsWith("--resource-interval=")
+  );
 
   if (command === "help") {
     printHelp();
@@ -37,15 +41,15 @@ async function main(rawArgs: string[]): Promise<void> {
     if (jsonOutput) {
       throw new Error(`explain does not support --json; use --out=<path> for its report artifacts`);
     }
-    execFileSync(process.execPath, ["--import", "tsx", "scripts/v0/benchmark_v2/explain.ts", ...args], {
+    execFileSync(process.execPath, ["--import", "tsx", "scripts/v0/benchmark_v2/explain.ts", ...commandArgs], {
       stdio: "inherit",
     });
   } else if (command === "decide") {
-    process.exitCode = await runDecisionCommand(args);
+    process.exitCode = await runDecisionCommand(commandArgs);
   } else if (command === "migrate") {
-    process.exitCode = await runMigrationCommand(args);
+    process.exitCode = await runMigrationCommand(commandArgs);
   } else if (command === "transition") {
-    process.exitCode = runTransitionCommand(args);
+    process.exitCode = runTransitionCommand(commandArgs);
   } else {
     const prepared = await prepareBenchmarkV2();
     console.log(
@@ -58,9 +62,9 @@ async function main(rawArgs: string[]): Promise<void> {
       if (command === "probe") {
         console.log(`note: probe is the eval chain's stage 0; \`npm run benchmark -- eval\` is the primary spelling`);
       }
-      process.exitCode = await monitored("eval", args, () => runEvalCommand(args));
+      process.exitCode = await monitored("eval", args, () => runEvalCommand(commandArgs));
     } else if (command === "rebaseline") {
-      process.exitCode = await monitored("rebaseline", args, () => runRebaselineCommand(args));
+      process.exitCode = await monitored("rebaseline", args, () => runRebaselineCommand(commandArgs));
     } else if (command === "canonical") {
       throw new Error(`the one-shot canonical path was retired after the eval chain's live validation; use \`npm run benchmark -- eval --to-verdict\``);
     } else if (command === "baseline") {
@@ -193,10 +197,18 @@ function commandName(
 }
 
 function printHelp(): void {
+  const menu = benchmarkEvalPolicy.operatingPoints.map((point) =>
+    `    ${point.id}: ${point.mode}` +
+    `${point.margin === null ? "" : `, margin ${point.margin}`}, depth ${point.depth}` +
+    `${point.futilitySchedule.length === 0 ? ", no interim looks" : `, looks ${point.futilitySchedule.join("/")}`}`
+  ).join("\n");
   console.log(`Benchmark V2\n\n` +
     `  npm run benchmark -- eval        Stage 0: informational screen of the current tree vs the baseline (probe is a deprecated alias)\n` +
-    `  npm run benchmark -- eval --to-verdict [--mode=improve|simplify --margin=POINTS] [--depth=N] [--acknowledge-retry] [--resume] [--json]\n` +
+    `  npm run benchmark -- eval --to-verdict [--mode=improve] [--acknowledge-retry] [--resume] [--json]\n` +
+    `  npm run benchmark -- eval --to-verdict --mode=simplify --margin=5 [--acknowledge-retry] [--resume] [--json]\n` +
     `                                   Declared, certified confirmation: fresh paired epoch, futility looks, verdict\n` +
+    `  npm run benchmark -- eval --abort-in-flight --reason=...\n` +
+    `                                   Settle an infrastructure-broken attempt; its declared spend remains charged\n` +
     `  npm run benchmark -- rebaseline --label=LABEL   After an accepted eval attempt: light rebaseline (era record + fresh probe reference)\n` +
     `  npm run benchmark -- transition --reason=...    Ledger an operator transition (no budget reset)\n` +
     `  npm run benchmark -- baseline    Bootstrap or suite-rollover full freeze (within a suite, use rebaseline)\n` +
@@ -204,6 +216,9 @@ function printHelp(): void {
     `  npm run benchmark -- migrate --scope=protocol|calibration|inference --alters-decision-behavior=yes|no --reason=... --approve\n` +
     `  npm run benchmark -- prepare     Regenerate and validate catalog evidence\n` +
     `  npm run benchmark -- explain <archive.json>\n\n` +
+    `  Certified operating points:\n${menu}\n\n` +
+    `  Common execution flags: --jobs=N, --no-resource-stats, --resource-interval=SECONDS\n` +
+    `  Eval paths: stage 0 --out=FILE; confirmation --out-dir=DIR --archive-dir=DIR\n\n` +
     `Stage 0 is reusable screening only; --to-verdict is a predeclared certified promotion gate. Standalone decide is probe analysis only. Qualification is an indicative sidecar.\n` +
     `With --json, invoke through \`npm run --silent benchmark -- ...\` or call this CLI directly so npm's script banner does not prefix stdout.\n` +
     `Eval verdict exit codes: 0 accept, 2 inconclusive, 3 reject, 4 futility stop, 1 invalid; stage 0 emits 0/1. Decide: 0 favorable, 2 unresolved, 3 unfavorable, 1 invalid.\n` +

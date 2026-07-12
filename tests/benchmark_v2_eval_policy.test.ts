@@ -16,7 +16,12 @@ import {
 } from "../scripts/v0/benchmark_v2/eval_chain_inference.ts";
 import {
   assertQualificationSucceeded,
+  checkpointResultToDecisionRun,
+  evalWorkerFailurePayload,
+  evalVerdictJsonPayload,
+  evalVerdictArtifactPath,
   recoverDurableFutilityStop,
+  runEvalCommand,
 } from "../scripts/v0/benchmark_v2/eval.ts";
 import {
   appendAttemptEvent,
@@ -238,6 +243,161 @@ describe("futility bound", () => {
     const runs = [{ seedSlot: 2 }, { seedSlot: 0 }, { seedSlot: 1 }, { seedSlot: 3 }];
     expect(evalRunsAtLook(runs, 2)).toEqual([{ seedSlot: 0 }, { seedSlot: 1 }]);
     expect(() => evalRunsAtLook(runs, 0)).toThrow(/positive integer/);
+  });
+
+  test("flattens nested runner checkpoint rows before selecting a live look", () => {
+    const nested = [2, 0, 1, 3].map((seedSlot) => ({
+      status: "ok",
+      task: { sourceId: "case", budget: 250_000, seedSlot, actualSeed: 100 + seedSlot },
+    }));
+    const decisionRuns = nested.map((row) =>
+      checkpointResultToDecisionRun(row, { score: 400 + row.task.seedSlot, valid: true })
+    );
+    expect(evalRunsAtLook(decisionRuns, 2).map((row) => row.seedSlot)).toEqual([0, 1]);
+  });
+
+  test("operator abort settles only the current attempt and keeps its spend charged", async () => {
+    const dir = tempDir();
+    const paths = { ledger: join(dir, "attempts.jsonl"), projection: join(dir, "era-state.json") };
+    appendAttemptEvent({
+      type: "era-start",
+      eraId: "era-abort",
+      cause: "bootstrap",
+      baselineLabel: "base-test",
+      budgetCap: 0.05,
+    }, paths, "2026-07-12T00:00:00.000Z");
+    const declare = {
+      type: "declare",
+      eraId: "era-abort",
+      attemptId: "attempt-abort",
+      candidateFingerprint: "b".repeat(64),
+      operatingPointId: "improve-t0-d48",
+      mode: "improvement",
+      margin: null,
+      depth: 48,
+      spend: 0.0196,
+      certificationFingerprint: "c".repeat(64),
+      canonicalSeedBase: 100,
+      seedCount: 144,
+      seedScheduleFingerprint: "d".repeat(64),
+      retryAcknowledged: false,
+    } as const;
+    const declarationPath = join(dir, "abort-declaration.json");
+    const declarationBytes = `${JSON.stringify({
+      schema: "line.benchmark-v2.eval-declaration.v6",
+      ...declare,
+      candidateSnapshot: { candidateFingerprint: declare.candidateFingerprint },
+      criticalAlpha: 0.01,
+      futilitySchedule: [2, 3, 4, 8, 16],
+      futilityAlpha: 0.05,
+      eraBudgetSpend: declare.spend,
+    })}\n`;
+    writeFileSync(declarationPath, declarationBytes);
+    appendAttemptEvent({
+      ...declare,
+      declarationPath,
+      declarationSha256: createHash("sha256").update(declarationBytes).digest("hex"),
+    }, paths, "2026-07-12T00:00:01.000Z");
+
+    await expect(runEvalCommand([
+      "--abort-in-flight",
+      "--reason=infrastructure failure",
+      `--attempts-ledger=${paths.ledger}`,
+      `--era-state=${paths.projection}`,
+    ])).resolves.toBe(1);
+    const state = readEraState(paths);
+    expect(state.inFlightAttemptId).toBeNull();
+    expect(state.budgetSpent).toBe(0.0196);
+    expect(state.attempts.at(-1)?.outcome).toBe("aborted");
+  });
+
+  test("worker-failure JSON is actionable for automation", () => {
+    expect(evalWorkerFailurePayload({
+      stage: "confirmation",
+      reason: "persistent worker failures",
+      attemptId: "attempt-1",
+      workerFailures: 2,
+      spendCharged: 0.0196,
+      evidencePaths: ["baseline.checkpoint.jsonl", "candidate.checkpoint.jsonl"],
+      nextCommand: "npm run benchmark -- eval --to-verdict --acknowledge-retry",
+    })).toEqual({
+      schema: "line.benchmark-v2.eval-failure.v1",
+      status: "aborted",
+      stage: "confirmation",
+      reason: "persistent worker failures",
+      attemptId: "attempt-1",
+      workerFailures: 2,
+      spendCharged: 0.0196,
+      evidencePaths: ["baseline.checkpoint.jsonl", "candidate.checkpoint.jsonl"],
+      nextCommand: "npm run benchmark -- eval --to-verdict --acknowledge-retry",
+    });
+  });
+
+  test("verdict JSON is a compact envelope over the complete artifact", () => {
+    const result = {
+      outcome: "inconclusive",
+      promotable: false,
+      baseHeadline: 450,
+      candidateHeadline: 453,
+      delta: 3,
+      confidence: { lowerBound: -0.5, upperBound: 6.5 },
+      uncertainty: { seed: { standardError: 1.5 } },
+      validity: { baseValid: 100, candidateValid: 101, total: 120, gained: 2, lost: 1 },
+      perBudget: [{
+        budget: 250_000,
+        delta: 8,
+        confidence: { lowerBound: 1, upperBound: 15 },
+        baseValid: 50,
+        candidateValid: 52,
+        total: 60,
+      }],
+      perStratum: [{
+        stratum: "representative",
+        delta: 4,
+        confidence: { lowerBound: 0.5, upperBound: 7.5 },
+        baseValid: 80,
+        candidateValid: 81,
+        total: 84,
+      }],
+      perCase: Array.from({ length: 42 }, (_, index) => ({ sourceId: `case-${index}` })),
+    };
+    const payload = evalVerdictJsonPayload({
+      attemptId: "attempt-1",
+      artifactPath: "verdict.json",
+      artifact: {
+        schema: "line.benchmark-v2.decision.v4",
+        result,
+        hint: "diagnostic only",
+        nextCommand: "npm run benchmark -- eval --to-verdict --acknowledge-retry",
+      },
+      era: {
+        eraId: "era-1",
+        budgetSpent: 0.0392,
+        budgetCap: 0.05,
+        cumulativeExpectedFalseAccepts: 0.098,
+        attempts: Array.from({ length: 100 }, () => ({})),
+      } as any,
+      baseArchive: "base.json.gz",
+      candidateArchive: "candidate.json.gz",
+      certified: {
+        point: { id: "improve-t0-d48", depth: 48, criticalAlpha: 0.01 },
+        mde80: 5,
+      } as any,
+      spendCharged: 0.0196,
+    });
+    expect(payload).toMatchObject({
+      schema: "line.benchmark-v2.eval-result.v1",
+      status: "inconclusive",
+      artifact: { result: { delta: 3 }, nextCommand: expect.stringContaining("--acknowledge-retry") },
+      era: { budgetSpent: 0.0392, spendCharged: 0.0196 },
+    });
+    expect(JSON.stringify(payload)).not.toContain("perCase");
+    expect(JSON.stringify(payload)).not.toContain("attempts");
+  });
+
+  test("stores verdict artifacts with retained run evidence", () => {
+    expect(evalVerdictArtifactPath("benchmark/v2/runs", "attempt-1", "inconclusive"))
+      .toBe(join(process.cwd(), "benchmark/v2/runs/attempt-1-verdict-inconclusive.json"));
   });
 
   test("settles a fired look after a crash before the futility event", () => {

@@ -104,7 +104,55 @@ type EvalContext = {
 
 export async function runEvalCommand(argv = process.argv.slice(2)): Promise<number> {
   const hasFlag = (name: string): boolean => argv.includes(`--${name}`);
+  if (hasFlag("abort-in-flight")) return abortInFlightAttempt(argv);
   return hasFlag("to-verdict") ? runToVerdict(argv) : runStage0(argv);
+}
+
+function abortInFlightAttempt(argv: string[]): number {
+  const argument = argumentIn(argv);
+  const reason = argument("reason")?.trim();
+  if (reason === undefined || reason === "") {
+    throw new Error(`--abort-in-flight requires --reason=...`);
+  }
+  const ledgerPaths = attemptPaths(argument);
+  const era = readEraState(ledgerPaths);
+  if (era.inFlightAttemptId === null) throw new Error(`there is no in-flight eval attempt to abort`);
+  const attemptId = era.inFlightAttemptId;
+  appendAttemptEvent({ type: "abort", attemptId, reason }, ledgerPaths);
+  const payload = evalWorkerFailurePayload({
+    stage: "confirmation",
+    reason,
+    attemptId,
+    workerFailures: 0,
+    spendCharged: era.attempts.find((attempt) => attempt.attemptId === attemptId)?.spend ?? null,
+    evidencePaths: [],
+    nextCommand: `npm run benchmark -- eval --to-verdict --acknowledge-retry`,
+  });
+  if (argv.includes("--json")) console.log(JSON.stringify(payload, null, 2));
+  else console.log(`aborted eval attempt ${attemptId}: ${reason}; declared spend stays charged`);
+  return EXIT.verdict.invalid;
+}
+
+export function evalWorkerFailurePayload(input: {
+  stage: "stage0" | "confirmation";
+  reason: string;
+  attemptId?: string;
+  workerFailures: number;
+  spendCharged: number | null;
+  evidencePaths: string[];
+  nextCommand: string;
+}): Record<string, unknown> {
+  return {
+    schema: "line.benchmark-v2.eval-failure.v1",
+    status: input.stage === "confirmation" ? "aborted" : "invalid",
+    stage: input.stage,
+    reason: input.reason,
+    ...(input.attemptId === undefined ? {} : { attemptId: input.attemptId }),
+    workerFailures: input.workerFailures,
+    spendCharged: input.spendCharged,
+    evidencePaths: input.evidencePaths,
+    nextCommand: input.nextCommand,
+  };
 }
 
 function argumentIn(argv: string[]) {
@@ -154,6 +202,16 @@ async function runStage0(argv: string[]): Promise<number> {
   ]);
   if (run.workerFailures > 0) {
     console.error(`stage 0 has ${run.workerFailures} worker failure(s); re-run with --resume`);
+    if (argv.includes("--json")) {
+      console.log(JSON.stringify(evalWorkerFailurePayload({
+        stage: "stage0",
+        reason: "one or more compiler workers failed; no screening decision was made",
+        workerFailures: run.workerFailures,
+        spendCharged: null,
+        evidencePaths: [relativeToCwd(run.outputPath)],
+        nextCommand: `npm run benchmark -- eval --resume --out=${relativeToCwd(outPath)}`,
+      }), null, 2));
+    }
     return EXIT.stage0.invalid;
   }
   const screen = await screeningComparison(outPath, { basePath: argument("base") });
@@ -443,11 +501,21 @@ async function executeAttempt(
 
   const durableStop = recoverDurableFutilityStop(declaration, ledgerPaths);
   if (durableStop !== null) {
-    console.log(
-      `recovered durable futility stop at k=${durableStop.k}: fired look upper bound ` +
-      `${durableStop.upperBound.toFixed(2)} is below ${durableStop.threshold.toFixed(2)}; spend stays charged`,
-    );
-    console.log(`  nextCommand: ${evalNextCommand("futility-stop", declaration.attemptId)}`);
+    if (json) {
+      console.log(JSON.stringify(evalFutilityJsonPayload({
+        attemptId: declaration.attemptId,
+        k: durableStop.k,
+        upperBound: durableStop.upperBound,
+        threshold: durableStop.threshold,
+        spendCharged: declaration.eraBudgetSpend,
+      }), null, 2));
+    } else {
+      console.log(
+        `recovered durable futility stop at k=${durableStop.k}: fired look upper bound ` +
+        `${durableStop.upperBound.toFixed(2)} is below ${durableStop.threshold.toFixed(2)}; spend stays charged`,
+      );
+      console.log(`  nextCommand: ${evalNextCommand("futility-stop", declaration.attemptId)}`);
+    }
     return EXIT.verdict.futilityStop;
   }
 
@@ -472,12 +540,31 @@ async function executeAttempt(
       const candidateRun = runWave(candidateWorkspace, waveArgs, candidatePath, "candidate arm");
       declareEvent = assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
       if (baseRun.workerFailures > 0 || candidateRun.workerFailures > 0) {
+        const reason = `persistent worker failures at segment k=${k} after one retry`;
         appendAttemptEvent({
           type: "abort",
           attemptId: declaration.attemptId,
-          reason: `persistent worker failures at segment k=${k} after one retry`,
+          reason,
         }, ledgerPaths);
-        console.error(`persistent worker failures at k=${k}; attempt aborted (failures never become verdicts)`);
+        const payload = evalWorkerFailurePayload({
+          stage: "confirmation",
+          reason,
+          attemptId: declaration.attemptId,
+          workerFailures: baseRun.workerFailures + candidateRun.workerFailures,
+          spendCharged: declaration.eraBudgetSpend,
+          evidencePaths: [
+            relativeToCwd(`${basePath}.checkpoint.jsonl`),
+            relativeToCwd(`${candidatePath}.checkpoint.jsonl`),
+          ],
+          nextCommand: `npm run benchmark -- eval --to-verdict --acknowledge-retry`,
+        });
+        if (json) console.log(JSON.stringify(payload, null, 2));
+        else {
+          console.error(
+            `persistent worker failures at k=${k}; attempt aborted, spend ${declaration.eraBudgetSpend} stays charged; ` +
+            `retry with --acknowledge-retry (failures never become verdicts)`,
+          );
+        }
         return EXIT.verdict.invalid;
       }
       if (k < declaration.depth) {
@@ -502,8 +589,18 @@ async function executeAttempt(
             upperBound: look.upperBound,
             threshold: look.threshold,
           }, ledgerPaths);
-          console.log(`futility stop at k=${k}: the 95% upper bound ${look.upperBound.toFixed(2)} is below ${look.threshold.toFixed(2)}; spend stays charged`);
-          console.log(`  nextCommand: ${evalNextCommand("futility-stop", declaration.attemptId)}`);
+          if (json) {
+            console.log(JSON.stringify(evalFutilityJsonPayload({
+              attemptId: declaration.attemptId,
+              k,
+              upperBound: look.upperBound,
+              threshold: look.threshold,
+              spendCharged: declaration.eraBudgetSpend,
+            }), null, 2));
+          } else {
+            console.log(`futility stop at k=${k}: the 95% upper bound ${look.upperBound.toFixed(2)} is below ${look.threshold.toFixed(2)}; spend stays charged`);
+            console.log(`  nextCommand: ${evalNextCommand("futility-stop", declaration.attemptId)}`);
+          }
           return EXIT.verdict.futilityStop;
         }
         continue;
@@ -511,17 +608,24 @@ async function executeAttempt(
 
       // Final segment: full-scope archives assembled by the runner.
       const retainedBase = retainSnapshotRun(baseRun, archiveDir, `${declaration.attemptId}-baseline-development`);
-      retainSnapshotRun(candidateRun, archiveDir, `${declaration.attemptId}-development`);
-      validateAttemptArchives(basePath, candidatePath, declaration, declarationPath, declareEvent.declarationSha256);
+      const retainedCandidate = retainSnapshotRun(candidateRun, archiveDir, `${declaration.attemptId}-development`);
       const decided = await evalDecision(basePath, candidatePath, {
         mode: declaration.mode,
         margin: declaration.margin,
         depth: declaration.depth,
+        declaration: {
+          path: declarationPath,
+          sha256: declareEvent.declarationSha256,
+          seedScheduleFingerprint: declaration.seedScheduleFingerprint,
+          baselineCandidateFingerprint: declaration.baselineCandidateFingerprint,
+          candidateFingerprint: declaration.candidateFingerprint,
+        },
       });
       decided.artifact.nextCommand = evalNextCommand(decided.artifact.result.outcome, declaration.attemptId);
-      const artifactPath = resolve(
-        outDir,
-        `${declaration.attemptId}-verdict-${decided.artifact.result.outcome}.json`,
+      const artifactPath = evalVerdictArtifactPath(
+        archiveDir,
+        declaration.attemptId,
+        decided.artifact.result.outcome,
       );
       writeDecisionArtifact(artifactPath, decided.artifact);
       if (decided.artifact.result.outcome === "accept") {
@@ -549,13 +653,16 @@ async function executeAttempt(
         decisionArtifactSha256: sha256(readFileSync(artifactPath).toString("utf8")),
       }, ledgerPaths);
       if (json) {
-        console.log(JSON.stringify({
+        console.log(JSON.stringify(evalVerdictJsonPayload({
           attemptId: declaration.attemptId,
           artifactPath: relativeToCwd(artifactPath),
           artifact: decided.artifact,
           era: finalEra,
           baseArchive: retainedBase.archive,
-        }, null, 2));
+          candidateArchive: retainedCandidate.archive,
+          certified,
+          spendCharged: declaration.eraBudgetSpend,
+        }), null, 2));
       } else {
         console.log(renderEvalVerdict({
           artifact: decided.artifact,
@@ -580,6 +687,97 @@ async function executeAttempt(
     if (candidateWorkspace !== undefined) disposeSnapshotWorkspace(candidateWorkspace);
     disposeSnapshotWorkspace(baseWorkspace);
   }
+}
+
+export function evalVerdictJsonPayload(input: {
+  attemptId: string;
+  artifactPath: string;
+  artifact: { schema: string; result: any; hint: string | null; nextCommand: string };
+  era: EraState;
+  baseArchive: string;
+  candidateArchive: string;
+  certified: CertifiedOperatingPoint;
+  spendCharged: number;
+}): Record<string, unknown> {
+  const result = input.artifact.result;
+  return {
+    schema: "line.benchmark-v2.eval-result.v1",
+    status: result.outcome,
+    attemptId: input.attemptId,
+    artifactPath: input.artifactPath,
+    artifact: {
+      schema: input.artifact.schema,
+      result: {
+        outcome: result.outcome,
+        promotable: result.promotable,
+        baseHeadline: result.baseHeadline,
+        candidateHeadline: result.candidateHeadline,
+        delta: result.delta,
+        standardError: result.uncertainty.seed.standardError,
+        lowerBound: result.confidence.lowerBound,
+        upperBound: result.confidence.upperBound,
+        validity: result.validity,
+        perBudget: result.perBudget.map((entry: any) => ({
+          budget: entry.budget,
+          delta: entry.delta,
+          lowerBound: entry.confidence.lowerBound,
+          upperBound: entry.confidence.upperBound,
+          baseValid: entry.baseValid,
+          candidateValid: entry.candidateValid,
+          total: entry.total,
+        })),
+        perStratum: result.perStratum.map((entry: any) => ({
+          stratum: entry.stratum,
+          delta: entry.delta,
+          lowerBound: entry.confidence.lowerBound,
+          upperBound: entry.confidence.upperBound,
+          baseValid: entry.baseValid,
+          candidateValid: entry.candidateValid,
+          total: entry.total,
+        })),
+      },
+      hint: input.artifact.hint,
+      nextCommand: input.artifact.nextCommand,
+    },
+    operatingPoint: {
+      id: input.certified.point.id,
+      depth: input.certified.point.depth,
+      criticalAlpha: input.certified.point.criticalAlpha,
+      certifiedDetectableEffect: input.certified.mde80,
+    },
+    era: {
+      eraId: input.era.eraId,
+      budgetSpent: input.era.budgetSpent,
+      budgetCap: input.era.budgetCap,
+      cumulativeExpectedFalseAccepts: input.era.cumulativeExpectedFalseAccepts,
+      spendCharged: input.spendCharged,
+    },
+    evidence: {
+      baseArchive: input.baseArchive,
+      candidateArchive: input.candidateArchive,
+    },
+  };
+}
+
+export function evalVerdictArtifactPath(archiveDir: string, attemptId: string, outcome: string): string {
+  return resolve(archiveDir, `${attemptId}-verdict-${outcome}.json`);
+}
+
+export function evalFutilityJsonPayload(input: {
+  attemptId: string;
+  k: number;
+  upperBound: number;
+  threshold: number;
+  spendCharged: number;
+}): Record<string, unknown> {
+  return {
+    schema: "line.benchmark-v2.eval-result.v1",
+    status: "futility-stop",
+    attemptId: input.attemptId,
+    look: { k: input.k, upperBound: input.upperBound, threshold: input.threshold },
+    era: { spendCharged: input.spendCharged },
+    nextCommand: evalNextCommand("futility-stop", input.attemptId),
+  };
 }
 
 /**
@@ -720,50 +918,32 @@ function checkpointDecisionRuns(
     results,
     (result: any) => `${result.task.sourceId}\0${result.task.budget}\0${result.task.seedSlot}\0${result.task.actualSeed}`,
   );
-  const lookResults = evalRunsAtLook(latest, k);
+  const decisionRuns = latest.map((result: any) => {
+    const rescored = rescoreCheckpointRow(result, context);
+    return checkpointResultToDecisionRun(result, rescored);
+  });
+  const lookResults = evalRunsAtLook(decisionRuns, k);
   const expected = context.suite.profiles.canonical.budgets.length * k * canonicalMembers(context.suite).length;
   if (lookResults.length !== expected) {
     throw new Error(`${checkpointPath}: incomplete scope for look k=${k} (${lookResults.length}/${expected} rows)`);
   }
-  return lookResults.map((result: any) => {
-    const rescored = rescoreCheckpointRow(result, context);
-    return {
-      sourceId: result.task.sourceId,
-      budget: result.task.budget,
-      seedSlot: result.task.seedSlot,
-      actualSeed: result.task.actualSeed,
-      score: { score: rescored.score, valid: rescored.valid },
-    };
-  });
+  return lookResults;
 }
 
-function validateAttemptArchives(
-  basePath: string,
-  candidatePath: string,
-  declaration: EvalDeclaration,
-  declarationPath: string,
-  declarationSha: string,
-): void {
-  for (const [path, expectedFingerprint, label] of [
-    [basePath, declaration.baselineCandidateFingerprint, "baseline arm"],
-    [candidatePath, declaration.candidateFingerprint, "candidate arm"],
-  ] as const) {
-    const archive = JSON.parse(readFileSync(path, "utf8"));
-    if (archive.git?.candidateFingerprint !== expectedFingerprint) {
-      throw new Error(`${label} did not reproduce its frozen compiler snapshot identity`);
-    }
-    const link = archive.confirmationDeclaration;
-    if (link === undefined || resolve(link.path) !== resolve(declarationPath) || link.sha256 !== declarationSha) {
-      throw new Error(`${label} is not linked to the immutable eval declaration`);
-    }
-    const schedule = archive.identity?.seedSchedule;
-    if (sha256(JSON.stringify(schedule)) !== declaration.seedScheduleFingerprint) {
-      throw new Error(`${label} did not run the declared fresh seed epoch`);
-    }
-    if (schedule?.seedsPerBudget !== declaration.depth) {
-      throw new Error(`${label} depth does not match the declaration`);
-    }
-  }
+/** Flatten the runner's nested checkpoint shape before applying look-depth inference. */
+export function checkpointResultToDecisionRun(
+  result: {
+    task: { sourceId: string; budget: number; seedSlot: number; actualSeed: number };
+  },
+  score: { score: number; valid: boolean },
+): DecisionRun {
+  return {
+    sourceId: result.task.sourceId,
+    budget: result.task.budget,
+    seedSlot: result.task.seedSlot,
+    actualSeed: result.task.actualSeed,
+    score: { score: score.score, valid: score.valid },
+  };
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

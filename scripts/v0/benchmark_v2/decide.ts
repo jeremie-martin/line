@@ -48,6 +48,7 @@ import {
 import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
+import { cheapestOperatingPoint } from "../../../benchmark/v2/eval-policy.ts";
 
 const DECISION_SCHEMA = "line.benchmark-v2.decision.v4" as const;
 const BASELINE_SCHEMA = "line.benchmark-v2.baseline-reference.v9" as const;
@@ -320,12 +321,41 @@ export async function screeningComparison(
 export async function evalDecision(
   basePath: string,
   candidatePath: string,
-  options: { mode: DecisionMode; margin: number | null; depth: number },
+  options: {
+    mode: DecisionMode;
+    margin: number | null;
+    depth: number;
+    declaration?: {
+      path: string;
+      sha256: string;
+      seedScheduleFingerprint: string;
+      baselineCandidateFingerprint: string;
+      candidateFingerprint: string;
+    };
+  },
 ): Promise<{ artifact: DecisionArtifact; base: VerifiedArchive; candidate: VerifiedArchive }> {
   const base = loadVerifiedArchive(basePath);
   const candidate = loadVerifiedArchive(candidatePath);
   if (archiveProfile(base.archive) !== "canonical" || archiveProfile(candidate.archive) !== "canonical") {
     throw new Error(`eval verdicts require canonical archives`);
+  }
+  if (options.declaration !== undefined) {
+    assertEvalArchiveDeclaration(base.archive, {
+      label: "baseline arm",
+      candidateFingerprint: options.declaration.baselineCandidateFingerprint,
+      declarationPath: options.declaration.path,
+      declarationSha256: options.declaration.sha256,
+      seedScheduleFingerprint: options.declaration.seedScheduleFingerprint,
+      depth: options.depth,
+    });
+    assertEvalArchiveDeclaration(candidate.archive, {
+      label: "candidate arm",
+      candidateFingerprint: options.declaration.candidateFingerprint,
+      declarationPath: options.declaration.path,
+      declarationSha256: options.declaration.sha256,
+      seedScheduleFingerprint: options.declaration.seedScheduleFingerprint,
+      depth: options.depth,
+    });
   }
   const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(
     base,
@@ -357,6 +387,36 @@ export async function evalDecision(
     nextCommand: nextCommandFor(result),
   };
   return { artifact, base, candidate };
+}
+
+export function assertEvalArchiveDeclaration(
+  archive: any,
+  expected: {
+    label: string;
+    candidateFingerprint: string;
+    declarationPath: string;
+    declarationSha256: string;
+    seedScheduleFingerprint: string;
+    depth: number;
+  },
+): void {
+  if (archive.git?.candidateFingerprint !== expected.candidateFingerprint) {
+    throw new Error(`${expected.label} did not reproduce its frozen compiler snapshot identity`);
+  }
+  const link = archive.confirmationDeclaration;
+  if (
+    link === undefined || resolve(link.path) !== resolve(expected.declarationPath) ||
+    link.sha256 !== expected.declarationSha256
+  ) {
+    throw new Error(`${expected.label} is not linked to the immutable eval declaration`);
+  }
+  const schedule = archive.identity?.seedSchedule;
+  if (sha256(JSON.stringify(schedule)) !== expected.seedScheduleFingerprint) {
+    throw new Error(`${expected.label} did not run the declared fresh seed epoch`);
+  }
+  if (schedule?.seedsPerBudget !== expected.depth) {
+    throw new Error(`${expected.label} depth does not match the declaration`);
+  }
 }
 
 async function validateComparison(
@@ -726,8 +786,12 @@ export function underPoweredHint(result: V2Decision, seedsPerBudget: number): st
   const requiredSe = distance / (studentTQuantile(1 - result.criticalAlpha, df) + 0.8416212335729143);
   const suggestedDepth = Math.ceil(seedsPerBudget * (se / requiredSe) ** 2);
   if (suggestedDepth <= seedsPerBudget) return null;
+  const certified = cheapestOperatingPoint(result.mode, result.mode === "simplification" ? result.margin : null);
+  const certifiedText = certified === undefined
+    ? `no matching confirmation row is currently certified`
+    : `the executable certified row remains ${certified.id} at depth ${certified.depth}`;
   return `delta ${formatSigned(result.delta)} is positive but under-powered at ${seedsPerBudget} seeds/budget; ` +
-    `an effect of this size would typically resolve at ~${suggestedDepth} seeds/budget (indicative; see the power grid)`;
+    `~${suggestedDepth} seeds/budget is a non-runnable diagnostic estimate, not a certified recommendation; ${certifiedText}`;
 }
 
 export function nextCommandFor(result: V2Decision): string {
@@ -798,7 +862,7 @@ export function renderDecision(artifact: DecisionArtifact, outPath: string): str
     ),
     ...caseLines,
     `  OUTCOME: ${result.outcome.toUpperCase()}` +
-      (result.authority === "screening" ? " (screening only; canonical evidence is required)" : ""),
+      (result.authority === "screening" ? " (screening only; certified eval --to-verdict confirmation is required)" : ""),
     ...(artifact.hint === null ? [] : [`  hint: ${artifact.hint}`]),
     `  artifact: ${relativeToCwd(outPath)}`,
     `  nextCommand: ${artifact.nextCommand}`,

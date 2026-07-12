@@ -115,16 +115,36 @@ const capabilityPhases = budgets.flatMap((budget) => {
   });
 });
 
+const weakestFullyValid = perSource.flatMap((source) => source.budgets.map((entry) => ({
+  sourceId: source.sourceId,
+  stratum: source.stratum,
+  ...entry,
+}))).filter((entry) => entry.totalRuns > 0 && entry.validRuns === entry.totalRuns)
+  .sort((a, b) => a.score - b.score || a.budget - b.budget || a.sourceId.localeCompare(b.sourceId))
+  .slice(0, 8);
+const nearestIncompleteCapabilityPhases = capabilityPhases
+  .filter((phase) => phase.completeRuns < phase.totalRuns)
+  .sort((a, b) =>
+    (b.completeRuns / b.totalRuns) - (a.completeRuns / a.totalRuns) ||
+    b.contactHitRate - a.contactHitRate ||
+    a.budget - b.budget ||
+    a.sourceId.localeCompare(b.sourceId) ||
+    a.phaseId.localeCompare(b.phaseId)
+  ).slice(0, 8);
+
 const report = {
   schema: "line.benchmark-v2.explanation.v1",
   archive: archiveArgument,
   archiveSha256: createHash("sha256").update(bytes).digest("hex"),
+  mode: archive.mode,
+  profile: archive.profile,
   suiteFingerprint: archive.identity.suiteFingerprint,
   candidateFingerprint: archive.git.candidateFingerprint,
   canonicalHeadline: archive.canonicalHeadline,
   perBudget,
   perSource,
   capabilityPhases,
+  priorities: { weakestFullyValid, nearestIncompleteCapabilityPhases },
 };
 mkdirSync(dirname(outputStem), { recursive: true });
 writeFileSync(`${outputStem}.json`, `${JSON.stringify(report, null, 2)}\n`);
@@ -157,10 +177,14 @@ function counts(values: string[]): Record<string, number> {
 }
 
 function markdown(report: any): string {
+  const headlineLabel = report.profile === "probe"
+    ? "Probe development headline (screening only)"
+    : "Canonical development headline";
   const lines = [
     "# Benchmark V2 Archive Explanation",
     "",
-    `Canonical headline: **${report.canonicalHeadline.toFixed(2)}**.`,
+    `Evidence: **${report.profile} ${report.mode}**; candidate \`${report.candidateFingerprint.slice(0, 16)}\`.`,
+    `${headlineLabel}: **${report.canonicalHeadline.toFixed(2)}**.`,
     "",
     "| Budget | Score | Valid | First completion | Invalid progress | Pooled RMS |",
     "|---:|---:|---:|---:|---:|---|",
@@ -182,6 +206,21 @@ function markdown(report: any): string {
       return `${source.sourceId} ${entry.validRuns}/${entry.totalRuns}`;
     });
     lines.push(`- ${budget.budget / 1000}k: ${invalid.length === 0 ? "none" : invalid.join(", ")}`);
+  }
+  lines.push("", "## Priority findings", "", "Nearest incomplete capability phases:");
+  if (report.priorities.nearestIncompleteCapabilityPhases.length === 0) {
+    lines.push("- none");
+  } else {
+    for (const phase of report.priorities.nearestIncompleteCapabilityPhases) {
+      lines.push(`- ${phase.sourceId} / ${phase.phaseId} at ${phase.budget / 1000}k: ` +
+        `${phase.completeRuns}/${phase.totalRuns} complete, ${(100 * phase.contactHitRate).toFixed(1)}% contacts hit`);
+    }
+  }
+  lines.push("", "Lowest-scoring fully valid source/budgets:");
+  for (const entry of report.priorities.weakestFullyValid) {
+    lines.push(`- ${entry.sourceId} at ${entry.budget / 1000}k: ${entry.score.toFixed(2)} ` +
+      `(dominant ${entry.dominantValidAxis?.axis ?? "none"}` +
+      `${entry.dominantValidAxis === null ? "" : ` ${entry.dominantValidAxis.rmsError.toFixed(3)}`})`);
   }
   lines.push("");
   return `${lines.join("\n")}\n`;

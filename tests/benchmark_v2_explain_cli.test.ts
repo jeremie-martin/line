@@ -18,8 +18,12 @@ describe("Benchmark V2 archive explanation", () => {
 
     const report = JSON.parse(readFileSync(`${outputStem}.json`, "utf8"));
     expect(report.schema).toBe("line.benchmark-v2.explanation.v1");
+    expect(report.profile).toBe("probe");
+    expect(report.mode).toBe("development");
     expect(report.canonicalHeadline).toBe(446.0945);
     expect(report.perBudget).toHaveLength(2);
-    expect(readFileSync(`${outputStem}.md`, "utf8")).toContain("Canonical headline: **446.09**");
+    const markdown = readFileSync(`${outputStem}.md`, "utf8");
+    expect(markdown).toContain("Probe development headline (screening only): **446.09**");
+    expect(markdown).not.toContain("Canonical headline");
   });
 });

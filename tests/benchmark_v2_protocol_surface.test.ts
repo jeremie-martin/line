@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { afterAll, describe, expect, test } from "vitest";
 import {
+  assertEvalArchiveDeclaration,
   DECISION_EXIT_CODES,
   nextCommandFor,
   outcomeExitCode,
@@ -12,6 +13,7 @@ import {
   underPoweredHint,
   type DecisionArtifact,
 } from "../scripts/v0/benchmark_v2/decide.ts";
+import { createHash } from "node:crypto";
 import { studentTQuantile, type V2Decision } from "../scripts/v0/benchmark_v2/decision_model.ts";
 import {
   acquireRunLock,
@@ -280,7 +282,8 @@ describe("under-powered hint", () => {
     const expectedDepth = Math.ceil(12 * (2 / requiredSe) ** 2);
     expect(hint).toContain(`under-powered at 12 seeds/budget`);
     expect(hint).toContain(`~${expectedDepth} seeds/budget`);
-    expect(hint).toContain("indicative");
+    expect(hint).toContain("non-runnable diagnostic estimate");
+    expect(hint).toContain("improve-t0-d48 at depth 48");
   });
 
   test("stays silent on resolved outcomes, non-positive distance, and already-sufficient depth", () => {
@@ -301,6 +304,30 @@ describe("under-powered hint", () => {
     });
     result.uncertainty.seed.standardError = 4;
     expect(underPoweredHint(result, 12)).toContain("delta -1.00 is positive but under-powered");
+  });
+});
+
+describe("eval archive declaration linkage", () => {
+  test("validates linkage on the already-parsed archive", () => {
+    const schedule = { seedsPerBudget: 48, seedBase: 123 };
+    const expected = {
+      label: "candidate arm",
+      candidateFingerprint: "a".repeat(64),
+      declarationPath: "/tmp/declaration.json",
+      declarationSha256: "b".repeat(64),
+      seedScheduleFingerprint: createHash("sha256").update(JSON.stringify(schedule)).digest("hex"),
+      depth: 48,
+    };
+    const archive = {
+      git: { candidateFingerprint: expected.candidateFingerprint },
+      confirmationDeclaration: { path: expected.declarationPath, sha256: expected.declarationSha256 },
+      identity: { seedSchedule: schedule },
+    };
+    expect(() => assertEvalArchiveDeclaration(archive, expected)).not.toThrow();
+    expect(() => assertEvalArchiveDeclaration({
+      ...archive,
+      confirmationDeclaration: { ...archive.confirmationDeclaration, sha256: "c".repeat(64) },
+    }, expected)).toThrow(/immutable eval declaration/);
   });
 });
 
@@ -326,6 +353,18 @@ describe("next command", () => {
 });
 
 describe("JSON CLI surface", () => {
+  test("help lists the exact certified menu and operational flags", () => {
+    const result = spawnSync(process.execPath, [
+      "--import", "tsx", "scripts/benchmark/cli.ts", "help",
+    ], { cwd: process.cwd(), encoding: "utf8" });
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("improve-t0-d48: improvement, depth 48, looks 2/3/4/8/16");
+    expect(result.stdout).toContain("simplify-m5-d48: simplification, margin 5, depth 48, no interim looks");
+    expect(result.stdout).toContain("--no-resource-stats");
+    expect(result.stdout).toContain("--abort-in-flight --reason=...");
+    expect(result.stdout).not.toContain("--depth=N");
+  });
+
   test("writes exactly one structured JSON object to stdout on success", () => {
     const result = spawnSync(process.execPath, [
       "--import", "tsx", "scripts/benchmark/cli.ts", "help", "--json",
@@ -373,6 +412,15 @@ describe("JSON CLI surface", () => {
     expect(JSON.parse(result.stdout).error.message).toMatch(/explain does not support --json/);
     expect(result.stderr).toBe("");
   });
+
+  test("accepts global resource flags on strict decide commands", () => {
+    const result = spawnSync(process.execPath, [
+      "--import", "tsx", "scripts/benchmark/cli.ts", "decide", "missing.json", "--json", "--no-resource-stats",
+    ], { cwd: process.cwd(), encoding: "utf8" });
+    expect(result.status).toBe(1);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed.error.message).not.toMatch(/unexpected argument.*no-resource-stats/);
+  });
 });
 
 describe("decision rendering", () => {
@@ -404,6 +452,15 @@ describe("decision rendering", () => {
 
     const withoutHint = renderDecision(artifact({}), "out/decision.json");
     expect(withoutHint).not.toContain("  hint:");
+  });
+
+  test("screening output names the executable confirmation path, not a retired canonical command", () => {
+    const rendered = renderDecision(
+      artifact({ result: decision({ profile: "probe", authority: "screening" }) }),
+      "out/decision.json",
+    );
+    expect(rendered).toContain("certified eval --to-verdict confirmation is required");
+    expect(rendered).not.toContain("canonical evidence is required");
   });
 
   test("places the runner-compatibility note above the outcome line", () => {

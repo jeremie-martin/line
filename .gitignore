@@ -20,6 +20,10 @@ bench/v2/records.jsonl
 bench/v2/per_beat.csv
 benchmark-results/**/*.local.json
 benchmark-results/**/*.tmp.json
+# Benchmark V2 run artifacts are reproducible and can be very large.
+# Keep the directory marker, but do not stage generated run outputs.
+benchmark/v2/runs/*
+!benchmark/v2/runs/.gitkeep
 new/
 
 # Large binaries — audio/video sources, archives, vendored repos

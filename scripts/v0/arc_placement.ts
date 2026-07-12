@@ -12,6 +12,12 @@ import { appendSledPointPositionsRangeMetered, getRiderMetered } from "../lib/de
 import { registerCompileReset } from "./core/compile_lifecycle.ts";
 import { makeSolidLine } from "./arc.ts";
 import {
+  planSupportedRideout,
+  supportedRideoutFlightFrames,
+  supportedRideoutSegments,
+  supportedRideoutStudyMode,
+} from "./core/supported_rideout.ts";
+import {
   CALIB,
   CANDIDATE_SAMPLE_MODES,
   FPS,
@@ -352,6 +358,27 @@ type SegmentCollisionRiskLines = number[];
 
 export type ArcPlacementStats = NonNullable<CompileStats["arc_placement"]>;
 export type ArcPlacementDirectFailureReason = "survival" | "landing" | "offbeat";
+
+export type SupportedRideoutGeometryProbeRecord = {
+  gapIndex: number;
+  attempt: number;
+  mode: string;
+  gapFrames: number | null;
+  targetAir: number | null;
+  targetLength: number | null;
+  postLength: number;
+  postSegments: number;
+};
+
+let supportedRideoutGeometryProbeHook:
+  ((record: SupportedRideoutGeometryProbeRecord) => void) | null = null;
+
+/** Observation-only geometry hook for the supported-rideout study. */
+export function setSupportedRideoutGeometryProbeHook(
+  hook: ((record: SupportedRideoutGeometryProbeRecord) => void) | null,
+): void {
+  supportedRideoutGeometryProbeHook = hook;
+}
 
 export type ImpactTargetPointState = {
   sledX: number;
@@ -1163,6 +1190,8 @@ function sampleContactCenteredLines(
   // toward (1−air) of the span to the next contact, capped so it never reaches the
   // next beat. Spanned across the attempt batch.
   let postLength = clamp(sampledPostLength, 28, 220);
+  let supportedRideout = null;
+  const supportedRideoutMode = supportedRideoutStudyMode();
   if (nextGapFrames !== null && targets.air !== undefined) {
     const speed = Math.max(1, targetState.speed);
     const groundedTargetLen = speed * clamp(1 - air, 0, 1) * nextGapFrames;
@@ -1174,6 +1203,37 @@ function sampleContactCenteredLines(
     );
     const blendStrength = 0.6 + HIGH_AIR_LENGTH_BLEND_EXTRA * highAirPressure;
     postLength = clamp(lerp(sampledPostLength, targetLen, blend * blendStrength), 28, 360);
+    supportedRideout = planSupportedRideout({
+      mode: supportedRideoutMode,
+      air,
+      gapFrames: nextGapFrames,
+      speed,
+      sampledPostLength,
+      legacyPostLength: postLength,
+      lengthBlend: supportedRideoutMode === "off"
+        ? blend
+        : lowDiscrepancyRoll(attempt, 17),
+      legacyBlendStrength: blendStrength,
+    });
+    postLength = supportedRideout.postLength;
+    if (supportedRideoutMode === "coordinated" && supportedRideout.deficitPressure > 0) {
+      const N = supportedRideoutFlightFrames(
+        supportedRideoutMode,
+        supportedRideout,
+        nextGapFrames,
+        speed,
+      );
+      const g = LAUNCH_GRAVITY_PX_PER_FRAME2;
+      const vIn = Math.max(1, targetState.velocity.x);
+      const vT = Math.max(1, targetSpeedPx);
+      const dhDown = (vT * vT - vIn * vIn) / (2 * g);
+      const vyTarget = dhDown / N - 0.5 * g * N;
+      const vyClamped = clamp(vyTarget, -0.92 * g * N, 0.45 * g * N);
+      const energyLaunchDeg = (Math.atan2(vyClamped, vIn) * 180) / Math.PI;
+      const launchBlend = clamp(ccSpanBlends(attempt).launch, 0, 1) *
+        supportedRideout.deficitPressure;
+      postAngleDeg = lerp(postAngleDeg, energyLaunchDeg, launchBlend);
+    }
   }
 
   // Elevation ride-out shortening. A steep launch ANGLE alone does not climb if the
@@ -1223,7 +1283,23 @@ function sampleContactCenteredLines(
   }));
 
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
-  const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
+  const legacyPostSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
+  const postSegments = supportedRideoutSegments(
+    supportedRideout?.deficitPressure === 0 ? "off" : supportedRideoutMode,
+    postLength,
+    segmentLength,
+    legacyPostSegments,
+  );
+  supportedRideoutGeometryProbeHook?.({
+    gapIndex: gap.index,
+    attempt,
+    mode: supportedRideoutMode,
+    gapFrames: nextGapFrames,
+    targetAir: targets.air ?? null,
+    targetLength: supportedRideout?.targetLength ?? null,
+    postLength,
+    postSegments,
+  });
 
   const contactAngleRad = (contactAngleDeg * Math.PI) / 180;
   const tangentX = Math.cos(contactAngleRad);

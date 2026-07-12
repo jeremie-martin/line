@@ -222,6 +222,8 @@ type RankedOption = {
 
 export type HandoffPoolProbeCandidate = {
   qualityRank: number;
+  lineLength: number;
+  lineCount: number;
   cost: number;
   achieved: AxisValues;
   achievedAtEnd?: AxisValues;
@@ -3095,6 +3097,11 @@ function rankedOptions(
           : scoreNextTargetReadiness(arrival, nextTargets);
         return {
           qualityRank,
+          lineLength: candidate.lines.reduce(
+            (sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1),
+            0,
+          ),
+          lineCount: candidate.lines.length,
           cost: candidate.cost,
           achieved: candidate.achieved,
           ...(candidate.achievedAtEnd === undefined

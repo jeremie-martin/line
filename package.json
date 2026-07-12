@@ -80,6 +80,7 @@
     "webcrack": "^2.16.0"
   },
   "dependencies": {
+    "@openai/codex": "^0.144.0",
     "playwright": "^1.49.0",
     "uplot": "^1.6.32"
   }

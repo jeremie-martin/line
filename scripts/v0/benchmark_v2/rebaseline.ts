@@ -2,7 +2,7 @@
  * Light rebaseline after an accepted eval attempt (RFC C.5): under
  * fresh-paired attempts the baseline archive is never comparison evidence —
  * only the snapshot is. The accepting attempt's retained canonical archives
- * become the era's record, one fresh 252-compile probe run becomes the
+ * become the era's record, one fresh probe run becomes the
  * dev-screen reference, and the heavyweight freeze validations are reused
  * verbatim via freezeBaseline. Minutes, not hours.
  *
@@ -103,7 +103,7 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
     );
     const probeOut = resolve(`generated/benchmark-v2/eval/${safeLabel}-probe.json`);
     mkdirSync(resolve("generated/benchmark-v2/eval"), { recursive: true });
-    console.log(`rebaseline ${safeLabel}: running the fresh probe dev-screen reference (252 compiles)`);
+    console.log(`rebaseline ${safeLabel}: running the fresh probe dev-screen reference`);
     const probeRun = await runBenchmarkV2("development", [
       "--profile=probe",
       `--manifest=${resolve("benchmark/v2/compat/source-manifest.json")}`,

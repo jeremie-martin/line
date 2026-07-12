@@ -1,21 +1,21 @@
 {
   "schema": "line.benchmark-v2.probe-baseline-reference.v1",
   "status": "screening-baseline",
-  "label": "v2.5-low-air-frontier-2026-07-12",
-  "generated_at": "2026-07-12T16:24:15.349Z",
+  "label": "accept-2026-07-12T20-14-09Z-c8f9c284",
+  "generated_at": "2026-07-12T21:16:33.963Z",
   "suite_fingerprint": "9bd5bf1c988dbe8022386f0f7edddda4ba9836d0aee01e1b7d8d735c85ec297c",
   "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
   "listening_review_fingerprint": "973af98ec3de6eba662298115e07792e35d859063bbbb3839cdf5e07409a314f",
   "listening_review_status": "approved",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "candidate_fingerprint": "46268f4a68227f7de95a7963cd3b9d1245a65738a2eee7f6e535349ee882bdab",
+  "candidate_fingerprint": "9fd0347bd108d6b9497e6206a3005764826dee1455a6b10f8b9e7b7155f5a12f",
   "probe": {
     "execution_policy_fingerprint": "7209456eb339fb9292f859d38f23a4d6b214ae1437ca0ca2abaa6da1fc3fb896",
-    "implementation_fingerprint": "f48d24631c1ebafdd468f958eab1462299d25a8b58a656328e027393bd16d7db",
-    "archive_sha256": "0fc2a511a408de8c7771cc649d46c6a058101399afa9d7645c050ef93b38af7c",
-    "compressed_archive": "benchmark/v2/runs/v2.5-low-air-frontier-2026-07-12-probe.json.gz",
-    "compressed_archive_sha256": "ebd3973803af70359b2b395c92c81ec7fd8233214a0a7f48969ef6fd7932369f",
-    "canonical_headline": 446.0645,
+    "implementation_fingerprint": "d3efb0c83de68e1d8beb7d75fda8a50737d850b7846899c118c44b0e6f76135a",
+    "archive_sha256": "0eeaec061bb76bff27480c7c6e8d618d197bcd896786cb6d0f036ccb65862b78",
+    "compressed_archive": "benchmark/v2/runs/accept-2026-07-12T20-14-09Z-c8f9c284-probe.json.gz",
+    "compressed_archive_sha256": "18801ecbf2c247c5886e7002f47d3be79d824f5b42ce319677fa3c3678fcfe0f",
+    "canonical_headline": 462.7273,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "probe",
@@ -43,14 +43,14 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 438.5814,
-        "valid_runs": 107,
+        "score": 449.7127,
+        "valid_runs": 118,
         "total_runs": 132
       },
       {
         "budget": 500000,
-        "score": 449.0578,
-        "valid_runs": 114,
+        "score": 467.9331,
+        "valid_runs": 125,
         "total_runs": 132
       }
     ]

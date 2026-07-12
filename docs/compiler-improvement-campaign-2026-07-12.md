@@ -367,3 +367,12 @@ neutral; the low-air frontier gained +447.72. The largest non-frontier gain was
 `-0.00`, with no validity loss. The held-out qualification monitor was 383.97
 with 120/120 valid, versus the prior baseline reference of 373.47; this sidecar
 was not used in promotion. The formal outcome was ACCEPT.
+
+The accepted source was committed as `188bcbd`, then the ledger-provided light
+rebaseline completed its fresh 264-compile probe in 1m10s. It published
+`accept-2026-07-12T20-14-09Z-c8f9c284` with probe 462.73, canonical 467.07,
+qualification monitor 383.97, and a new era at 0/0.05. The rebaseline's first
+banner still contained a stale hard-coded 252 count even though the runner's
+authoritative plan correctly said 264; the banner was changed to omit derived
+counts and the resource documentation now separates historical 42-case rows
+from current 44-case measurements.

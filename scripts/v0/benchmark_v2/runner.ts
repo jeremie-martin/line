@@ -148,18 +148,38 @@ export async function runBenchmarkV2(
   const confirmationDeclarationPath = argument("confirmation-declaration") === undefined
     ? undefined
     : resolve(argument("confirmation-declaration")!);
-  const seedBaseOverride = argument("canonical-seed-base") === undefined
+  const exploration = hasFlag("exploration");
+  const explorationId = argument("exploration-id");
+  const canonicalSeedBaseOverride = argument("canonical-seed-base") === undefined
     ? undefined
     : nonNegativeInteger(argument("canonical-seed-base")!, "canonical-seed-base");
-  if (seedBaseOverride !== undefined && (profileName !== "canonical" || confirmationDeclarationPath === undefined)) {
+  if (canonicalSeedBaseOverride !== undefined && (profileName !== "canonical" || confirmationDeclarationPath === undefined)) {
     throw new Error(`--canonical-seed-base is reserved for a predeclared canonical confirmation`);
   }
-  const seedsPerBudgetOverride = argument("seeds-per-budget") === undefined
+  const confirmationSeedsPerBudgetOverride = argument("seeds-per-budget") === undefined
     ? undefined
     : Number(argument("seeds-per-budget"));
+  const explorationSeedBase = argument("exploration-seed-base") === undefined
+    ? undefined
+    : nonNegativeInteger(argument("exploration-seed-base")!, "exploration-seed-base");
+  const explorationSeedsPerBudget = argument("exploration-seeds-per-budget") === undefined
+    ? undefined
+    : Number(argument("exploration-seeds-per-budget"));
   const throughSeedSlot = argument("through-seed-slot") === undefined
     ? undefined
     : Number(argument("through-seed-slot"));
+  validateExplorationFlags({
+    exploration,
+    explorationId,
+    mode,
+    profileName,
+    hasDeclaration: confirmationDeclarationPath !== undefined,
+    canonicalSeedBaseOverride,
+    confirmationSeedsPerBudgetOverride,
+    explorationSeedBase,
+    explorationSeedsPerBudget,
+    throughSeedSlot,
+  });
 
   const sourceManifestContents = readFileSync(sourceManifestPath, "utf8");
   const heldoutManifestContents = readFileSync(heldoutManifestPath, "utf8");
@@ -193,14 +213,16 @@ export async function runBenchmarkV2(
   );
   if (profileName === "canonical") requireApprovedListeningReview(listeningReview);
   const profile = suite.profiles[profileName];
-  const effectiveSeedsPerBudget = seedsPerBudgetOverride ?? profile.seeds_per_budget;
-  validateSubsetFlags({
-    profileName,
-    hasDeclaration: confirmationDeclarationPath !== undefined,
-    seedsPerBudget: seedsPerBudgetOverride,
-    throughSeedSlot,
-    effectiveDepth: effectiveSeedsPerBudget,
-  });
+  const effectiveSeedsPerBudget = explorationSeedsPerBudget ?? confirmationSeedsPerBudgetOverride ?? profile.seeds_per_budget;
+  if (!exploration) {
+    validateSubsetFlags({
+      profileName,
+      hasDeclaration: confirmationDeclarationPath !== undefined,
+      seedsPerBudget: confirmationSeedsPerBudgetOverride,
+      throughSeedSlot,
+      effectiveDepth: effectiveSeedsPerBudget,
+    });
+  }
   const sources = mode === "qualification" ? qualificationSources : developmentSources;
   if (mode === "development") {
     const selected = canonicalMembers(suite);
@@ -213,8 +235,14 @@ export async function runBenchmarkV2(
     profileName,
     profile.budgets,
     effectiveSeedsPerBudget,
-    seedBaseOverride,
+    explorationSeedBase ?? canonicalSeedBaseOverride,
   );
+  if (exploration) {
+    const actualSeeds = schedule.byBudget.flatMap((entry) => entry.actualSeeds);
+    if (actualSeeds.some((seed) => seed < 3_000_000_000 || seed >= 4_000_000_000)) {
+      throw new Error(`exploration seed schedule exceeds its reserved [3000000000, 4000000000) range`);
+    }
+  }
   const engine = process.env.LR_ENGINE ?? "typescript";
   const implementationFingerprint = fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES);
   const execution = executionPolicyIdentity({
@@ -304,7 +332,7 @@ export async function runBenchmarkV2(
   ));
   const startedAt = performance.now();
 
-  console.log(`Benchmark V2 ${mode} ${profileName}`);
+  console.log(`Benchmark V2 ${mode} ${profileName}${exploration ? ` exploration ${explorationId}` : ""}`);
   console.log(
     `  ${tasks.length} compiles (${sources.length} sources, ${profile.budgets.length} budgets, ` +
     `${effectiveSeedsPerBudget} seed slots); ${restored.length} restored`,
@@ -419,6 +447,15 @@ export async function runBenchmarkV2(
     },
     linkedDevelopment,
     confirmationDeclaration,
+    ...(exploration ? {
+      exploration: {
+        schema: "line.benchmark-v2.exploration-run.v1",
+        authority: "exploration-only",
+        id: explorationId,
+        seedBase: explorationSeedBase,
+        seedsPerBudget: explorationSeedsPerBudget,
+      },
+    } : {}),
     canonicalHeadline: headline,
     qualificationMonitorScore,
     developmentSummaries,
@@ -460,6 +497,15 @@ export async function runBenchmarkV2(
     qualificationSummaries,
     linkedDevelopment,
     confirmationDeclaration,
+    ...(exploration ? {
+      exploration: {
+        schema: "line.benchmark-v2.exploration-run.v1",
+        authority: "exploration-only",
+        id: explorationId,
+        seedBase: explorationSeedBase,
+        seedsPerBudget: explorationSeedsPerBudget,
+      },
+    } : {}),
   }, null, 2)}\n`);
 
   for (const budget of profile.budgets) {
@@ -633,6 +679,47 @@ export function validateSubsetFlags(input: {
     if (throughSeedSlot > effectiveDepth) {
       throw new Error(`--through-seed-slot=${throughSeedSlot} exceeds seeds-per-budget=${effectiveDepth}`);
     }
+  }
+}
+
+export function validateExplorationFlags(input: {
+  exploration: boolean;
+  explorationId: string | undefined;
+  mode: RunnerMode;
+  profileName: "probe" | "canonical";
+  hasDeclaration: boolean;
+  canonicalSeedBaseOverride: number | undefined;
+  confirmationSeedsPerBudgetOverride: number | undefined;
+  explorationSeedBase: number | undefined;
+  explorationSeedsPerBudget: number | undefined;
+  throughSeedSlot: number | undefined;
+}): void {
+  const hasExplorationArgument =
+    input.explorationId !== undefined || input.explorationSeedBase !== undefined ||
+    input.explorationSeedsPerBudget !== undefined;
+  if (!input.exploration) {
+    if (hasExplorationArgument) throw new Error(`exploration arguments require --exploration`);
+    return;
+  }
+  if (
+    input.mode !== "development" || input.profileName !== "probe" || input.hasDeclaration ||
+    input.canonicalSeedBaseOverride !== undefined || input.confirmationSeedsPerBudgetOverride !== undefined ||
+    input.throughSeedSlot !== undefined
+  ) {
+    throw new Error(`exploration is development-only and cannot use canonical confirmation or wave arguments`);
+  }
+  if (input.explorationId === undefined || !/^[a-zA-Z0-9][a-zA-Z0-9_.\/-]{0,127}$/.test(input.explorationId)) {
+    throw new Error(`--exploration-id must be a non-empty stable identifier`);
+  }
+  if (
+    input.explorationSeedBase === undefined || input.explorationSeedsPerBudget === undefined ||
+    !Number.isSafeInteger(input.explorationSeedsPerBudget) || input.explorationSeedsPerBudget < 2 ||
+    input.explorationSeedsPerBudget > 16
+  ) {
+    throw new Error(`exploration requires a seed base and 2..16 seeds per budget`);
+  }
+  if (input.explorationSeedBase < 3_000_000_000 || input.explorationSeedBase >= 4_000_000_000) {
+    throw new Error(`exploration seed bases must be in the reserved [3000000000, 4000000000) range`);
   }
 }
 

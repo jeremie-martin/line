@@ -48,6 +48,14 @@ Stage 0 is reusable, informational screening against the stored probe
 reference. It reports the observed delta, paired uncertainty, and a labeled
 resolution heuristic, but cannot promote or spend era budget.
 
+Family exploration is also non-authoritative. It may compare a small set of
+deliberately authored implementations on one fresh shared probe epoch and report
+paired rankings or ranking instability. Because the family and any adaptive
+follow-up are selected after viewing development evidence, those reports are
+selection-biased diagnostics, not hypothesis tests. Exploration archives are
+explicitly rejected by the decision command. Only one source-baked selection may
+proceed to a separately declared confirmation on a fresh certified epoch.
+
 `eval --to-verdict` is the promotion authority. It accepts only certified rows
 from `benchmark/v2/eval-policy.ts`. The mode, margin, depth, stopping schedule,
 fresh paired seed epoch, candidate and baseline snapshots, certification
@@ -167,5 +175,11 @@ executing both compilers after declaration prevents adapting the candidate to
 visible per-seed baseline outcomes. The five production references are
 qualification monitors: they never enter the headline or decision and must not
 be tuned case by case.
+
+Likewise, family rounds may guide development but do not accumulate promotion
+evidence. A new round after inspecting results uses new seeds, carries the prior
+selection explicitly, and does not pool earlier rounds. Trying more family
+members improves search coverage but does not make the observed winner's
+exploration interval a multiplicity-adjusted confirmation interval.
 
 The retained calibration studies are `docs/benchmark-v2-decision-calibration.md` and `docs/benchmark-v2-decision-coverage.md`. They include identical-archive, known-degradation, impact-contract, correlated-seed, empirical-block, validity-flip, hard-zero, supported-power, safety-boundary, known-power-limit, non-inferiority, and interval-coverage controls. Their raw probe controls and compressed 12-seed raw-report coverage reference are retained; sidecars and complete identities are checked and every stored reference score is recomputed from its raw report before simulation. The operational guard later rechecks the exact retained artifact hashes and quantitative acceptance limits. A clean clone treats missing, stale, inadequate, or checksum-inconsistent evidence as an error. Policy or decision changes require the governed migration path, regenerated evidence at the required scope, and a baseline contract whose inference, protocol, and calibration fingerprints match.

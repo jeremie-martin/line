@@ -6,7 +6,9 @@ only by code plus evidence, or by an explicit boundary with an owner and a
 testable condition for reopening it.
 
 Machine-readable closure evidence is retained at
-`benchmark/v2/evidence/workflow-closure-2026-07-12.json`.
+`benchmark/v2/evidence/workflow-closure-2026-07-12.json`; the subsequent
+family-workflow extension and live exercise are recorded at
+`benchmark/v2/evidence/family-exploration-validation-2026-07-12.json`.
 
 Status vocabulary:
 
@@ -28,6 +30,7 @@ Status vocabulary:
 | OP-06 | Invalid/futility JSON could omit attempt, reason, evidence, spend, and recovery action. | closed | Structured failure, futility, and compact verdict envelopes are tested. |
 | OP-07 | A sub-second refusal printed meaningless resource summaries. | closed | The monitor suppresses samples below one second. |
 | OP-08 | Verdict artifacts were written only under ignored generated output. | closed | New verdicts live beside retained runs; the live inconclusive artifact has an identical retained mirror. |
+| OP-09 | Promoting the first workable member of a parameterized mechanism could strand a better nearby implementation, while manual multi-variant work encouraged seed reuse and informal headline picking. | closed | The `family capture/run/select` lane snapshots up to eight deliberate members, uses one fresh shared probe epoch, reports paired and prefix-stability diagnostics, forbids qualification/decision use/alpha spend, requires exact source-default selection, and hands one winner to a fresh certified eval. Adaptive rounds allocate new seeds and never pool viewed evidence. The 504-compile live exercise and boundary checks are recorded in `family-exploration-validation-2026-07-12.json`. |
 
 ## Reliability and recovery
 

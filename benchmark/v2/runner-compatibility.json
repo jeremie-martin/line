@@ -112,6 +112,20 @@
         "sha256": "ead8b4869a66c9aed036fcccd7176614df4589a9aa9e956a7463ad31cca98542",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "c703ab4fb50fbace785f8f5d69d6732a8acc1f348a659af2eaf5adea5991894c",
+      "toImplementationFingerprint": "018f99b6cfe6f746728e9230506b28601b709cecebc3ea4866834faff7238504",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+      "reviewedBy": "Codex",
+      "reviewedAt": "2026-07-12T13:17:42.579Z",
+      "rationale": "Exploration-only_seed_overrides_and_archive_labels_leave_normal_probe_execution_bit-identical",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-c703ab4f-018f99b6-ef7539ce.json",
+        "sha256": "ef7539ceab26ea70b9f69f745059affe91b0bccbad0f8fc3fffd0390f1384ed4",
+        "result": "bit-identical"
+      }
     }
   ]
 }

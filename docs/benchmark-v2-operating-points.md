@@ -113,3 +113,30 @@ increasing order of risk:
 The instrument's recommendation is 1 for standard work and 2 for low-stakes
 exploration; 3 trades away exactly the guarantee that makes an accept mean
 something.
+
+## Preliminary 98% counterfactual
+
+The reproducible diagnostic command below asks what changing only the final
+one-sided critical from 99% (`alpha=0.01`) to 98% (`alpha=0.02`) might buy:
+
+```bash
+node --import tsx scripts/benchmark/analyze_alpha_counterfactual.ts
+```
+
+It is intentionally **not certification**. It anchors a local Gaussian-shift
+projection to the retained depth-48 empirical powers. At 47 degrees of freedom,
+the critical falls from about 2.408 to 2.112. The projection is:
+
+| true effect | retained power at 99% | projected power at 98% |
+|---:|---:|---:|
+| +2 | 22.3% | 32.1% |
+| +3 | 50.5% | 62.1% |
+| +5 | 92.8% | 96.1% |
+
+That is a moderate iteration-speed gain, especially around +2/+3, but not a
+change that makes sub-point effects routinely resolvable. More importantly,
+no retained trial has been re-judged at 98%: the null/validity/hard-zero stress
+rates, futility interaction, independent-holdout behavior, and resulting era
+charge are unknown. The artifact therefore recommends retaining 99%. A 98%
+menu row would require the ordinary inference migration plus full calibration
+and independent-holdout certification; it cannot be enabled as a runtime flag.

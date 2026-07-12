@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   buildWorkerTasks,
   partialRunSummary,
+  validateExplorationFlags,
   validateSubsetFlags,
 } from "../scripts/v0/benchmark_v2/runner.ts";
 import type { ResolvedSeedSchedule } from "../scripts/v0/benchmark_v2/suite_model.ts";
@@ -72,6 +73,51 @@ describe("buildWorkerTasks", () => {
     expect(tasks.length).toBe(2 * 1 * 2);
     expect(tasks.every((task) => task.seedSlot === 0)).toBe(true);
     expect(tasks.every((task) => task.mode === "qualification")).toBe(true);
+  });
+});
+
+describe("validateExplorationFlags", () => {
+  const valid = {
+    exploration: true,
+    explorationId: "family-a/round-001",
+    mode: "development" as const,
+    profileName: "probe" as const,
+    hasDeclaration: false,
+    canonicalSeedBaseOverride: undefined,
+    confirmationSeedsPerBudgetOverride: undefined,
+    explorationSeedBase: 3_100_000_000,
+    explorationSeedsPerBudget: 6,
+    throughSeedSlot: undefined,
+  };
+
+  test("accepts only a complete development-probe exploration declaration", () => {
+    expect(() => validateExplorationFlags(valid)).not.toThrow();
+    expect(() => validateExplorationFlags({ ...valid, exploration: false }))
+      .toThrow(/require --exploration/);
+    expect(() => validateExplorationFlags({ ...valid, mode: "qualification" }))
+      .toThrow(/development-only/);
+    expect(() => validateExplorationFlags({ ...valid, profileName: "canonical" }))
+      .toThrow(/development-only/);
+    expect(() => validateExplorationFlags({ ...valid, hasDeclaration: true }))
+      .toThrow(/development-only/);
+  });
+
+  test("reserves a bounded, fresh seed namespace", () => {
+    expect(() => validateExplorationFlags({ ...valid, explorationSeedBase: 2_999_999_999 }))
+      .toThrow(/reserved/);
+    expect(() => validateExplorationFlags({ ...valid, explorationSeedsPerBudget: 1 }))
+      .toThrow(/2\.\.16/);
+    expect(() => validateExplorationFlags({ ...valid, explorationSeedsPerBudget: 17 }))
+      .toThrow(/2\.\.16/);
+  });
+
+  test("cannot borrow confirmation or wave controls", () => {
+    expect(() => validateExplorationFlags({ ...valid, canonicalSeedBaseOverride: 10 }))
+      .toThrow(/development-only/);
+    expect(() => validateExplorationFlags({ ...valid, confirmationSeedsPerBudgetOverride: 4 }))
+      .toThrow(/development-only/);
+    expect(() => validateExplorationFlags({ ...valid, throughSeedSlot: 2 }))
+      .toThrow(/development-only/);
   });
 });
 

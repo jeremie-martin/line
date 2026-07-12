@@ -1,0 +1,93 @@
+{
+  "schema": "line.benchmark-v2.family-exploration-validation.v1",
+  "recordedAt": "2026-07-12T13:30:00.000Z",
+  "decisionContract": {
+    "migrationId": "2026-07-12T13-18-46Z-57b54e6b",
+    "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+    "inferenceFingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
+    "protocolFingerprint": "a56cd94b23baf6e1756bfe3f6f970cd9b8cc35dd8630fa20416a5c5c971fd7f7",
+    "calibrationFingerprint": "47e01c64b50b0c1ad1f06c30ab25c6021c4cca48fabd66966951e236ea46c79d"
+  },
+  "runnerCompatibility": {
+    "path": "benchmark/v2/evidence/runner-compat-c703ab4f-018f99b6-ef7539ce.json",
+    "sha256": "ef7539ceab26ea70b9f69f745059affe91b0bccbad0f8fc3fffd0390f1384ed4",
+    "rowsBitIdentical": 252,
+    "fromImplementationFingerprintPrefix": "c703ab4fb50f",
+    "toImplementationFingerprintPrefix": "018f99b6cfe6"
+  },
+  "tests": {
+    "full": {
+      "filesPassed": 63,
+      "testsPassed": 520,
+      "durationSeconds": 94.96,
+      "workers": 2
+    },
+    "postStateHardeningFocused": {
+      "filesPassed": 3,
+      "testsPassed": 20
+    }
+  },
+  "liveRound": {
+    "family": "workflow-smoke-20260712",
+    "round": 1,
+    "authority": "exploration-only",
+    "elapsedSeconds": 196,
+    "compiles": 504,
+    "qualificationCompiles": 0,
+    "budgets": [250000, 500000],
+    "seedsPerBudget": 2,
+    "seedBase": 3565726629,
+    "report": {
+      "localPath": "generated/benchmark-v2/families/workflow-smoke-20260712/round-001/report.json",
+      "sha256": "6adcc63037c8f946f900068ac393a5dce389a71b18a60e6548b28e4b851883ab",
+      "retained": false
+    },
+    "baseline": {
+      "headline": 426.6318,
+      "valid": 148,
+      "archiveSha256": "a89fdeb48686a46c57dc82a542c07d6cf79eca95e822f359ba91456cf311bc63"
+    },
+    "control": {
+      "headline": 426.6318,
+      "delta": 0,
+      "valid": 148,
+      "scoreIdenticalFraction": 1,
+      "archiveSha256": "2f6926079e0015f65e22af251131bbcf91fb66f59965e78a973b262fc7eddc5d"
+    },
+    "environmentNegativeControl": {
+      "id": "impact-w02",
+      "headline": 426.5145,
+      "delta": -0.1173,
+      "standardError": 0.0515,
+      "valid": 148,
+      "validityGained": 0,
+      "validityLost": 0,
+      "scoreIdenticalFraction": 0.970238,
+      "archiveSha256": "22fa593d663bec42ef3b4b6e98f4d3cc2eb444c234ec962c43adff4e1215b2b1"
+    },
+    "observedChampion": "control",
+    "stableAcrossObservedPrefixes": true
+  },
+  "boundaryChecks": {
+    "environmentOnlySelection": "refused with exit 1 before source matching",
+    "exactSourceSelection": "selected control and emitted fresh eval --to-verdict handoff only",
+    "eraSpendBefore": 0.0196,
+    "eraSpendAfter": 0.0196,
+    "attemptInFlightAfter": false,
+    "adaptiveRound": "round 2 carried only control; new member captured; seedBase and seedsPerBudget remain null until run"
+  },
+  "alphaCounterfactual": {
+    "authority": "diagnostic-only",
+    "localArtifact": "generated/benchmark-v2/studies/alpha-98-counterfactual.json",
+    "localArtifactSha256": "893c2c4c5b3b0812de3e60f13fdcd11aa87aa8cfa417d52f4c0fc5aadc991407",
+    "menuCertificationSha256": "49bfb27295b2050ed69fbbbdad3dfcad331d1faef72b33ac52baa91b7ed6c828",
+    "powerGridSha256": "9191b3862585e0a6dc928b0eff8f2f853aefdae33c2ea8a6b36e1f3ca2c9465e",
+    "projectedPowerAt98": {
+      "plus2": 0.321,
+      "plus3": 0.621,
+      "plus5": 0.961
+    },
+    "policyChanged": false,
+    "unresolved": "98% false-accept stress, futility, independent-holdout, and era-spend behavior require full certification"
+  }
+}

@@ -119,6 +119,24 @@ describe("Benchmark V2 decision command", () => {
       .rejects.toThrow(/only valid in simplification/);
   });
 
+  test("refuses exploration-only archives in every decision mode", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "v2-decide-exploration-"));
+    const ordinary = writeArtifact(join(dir, "ordinary.json"), { schema: "placeholder", profile: "probe" });
+    const exploration = writeArtifact(join(dir, "exploration.json"), {
+      exploration: {
+        schema: "line.benchmark-v2.exploration-run.v1",
+        authority: "exploration-only",
+        id: "test/round-001",
+        seedBase: 3_100_000_000,
+        seedsPerBudget: 3,
+      },
+    });
+    await expect(runDecisionCommand([exploration, `--base=${ordinary}`, "--no-gate-exit"]))
+      .rejects.toThrow(/descriptive only/);
+    await expect(runDecisionCommand([ordinary, `--base=${exploration}`, "--no-gate-exit"]))
+      .rejects.toThrow(/descriptive only/);
+  });
+
   test("retains historical listening evidence only for probe calibration controls", async () => {
     const calibrationProbe = "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz";
 
@@ -149,6 +167,13 @@ function candidateFingerprint(archive: any): string {
     engine: archive.identity.engine,
     engineArtifactFingerprint: archive.git.engineArtifactFingerprint,
   }));
+}
+
+function writeArtifact(path: string, value: unknown): string {
+  const bytes = Buffer.from(`${JSON.stringify(value)}\n`);
+  writeFileSync(path, bytes);
+  writeFileSync(`${path}.sha256`, `${sha256(bytes)}  ${path}\n`);
+  return path;
 }
 
 function sha256(value: string | Buffer): string {

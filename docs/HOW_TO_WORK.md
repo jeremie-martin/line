@@ -32,6 +32,13 @@ npm run benchmark -- status
 # LR_ knobs freely here — e.g. LR_IMPACT_LOCAL_W=0.65 npm run benchmark -- eval
 npm run benchmark -- eval
 
+# VARIANT FAMILY (descriptive development evidence): capture each deliberate
+# implementation, then compare every arm and the baseline on one fresh shared
+# probe epoch. No qualification, promotion verdict, or era spend occurs here.
+npm run benchmark -- family capture MECHANISM --variant=MEMBER
+npm run benchmark -- family run MECHANISM
+npm run benchmark -- family select MECHANISM --variant=MEMBER
+
 # CONFIRMATION (57 min on the dated 48-worker reference run): declare a certified operating
 # point, run both frozen snapshots on a fresh paired epoch in waves, take the
 # declared futility looks, decide at the declared depth.
@@ -51,6 +58,24 @@ A candidate for confirmation must be an **actual source-default change**
 candidate may be uncommitted while it is evaluated, but after an accept the
 exact compiler-bound bytes must be committed before `rebaseline`; promotion
 refuses staged, unstaged, deleted, or untracked compiler-bound paths.
+
+Use a family before confirmation when one mechanism has several plausible
+constants or implementations. `capture` snapshots the exact current compiler;
+the default `run` executes up to eight members at six fresh seeds per probe
+budget, with one freshly replayed baseline and identical seeds for every arm.
+Its paired ranking, uncertainty, validity changes, case/stratum breakdowns,
+pairwise contrasts, and early-prefix ranking reversals are deliberately labeled
+selection-biased exploration. They cannot enter `decide`, consume era alpha, or
+run qualification. `select` requires the working compiler to exactly match the
+captured member; an `LR_*`-only member must first be baked into source defaults.
+The selected source then enters the ordinary fresh `eval --to-verdict` gate.
+
+If results motivate another adaptive round, select the current champion first.
+The next capture carries that member forward automatically and allocates a new
+seed epoch. Evidence from viewed rounds is never pooled. Selecting a member
+other than the observed leader requires a recorded reason. This is the lean
+default for the "+3 first implementation, +4 better implementation" problem:
+explore the declared family first, then confirm one frozen winner once.
 
 Public physics runs use WASM, default to 48 workers, cap budgets at 750k, report host/process resources, and retain resumable checkpoints. Use `--jobs=N` when the host is shared. `--resume` continues a crashed attempt from its checkpoint; a fired futility stop is durable. The status command distinguishes normative compile counts from dated, host-specific timing and memory measurements.
 
@@ -131,6 +156,7 @@ and statistical evidence.
 ## Discipline
 
 - Keep one mechanism per candidate when feasible.
+- For a parameterized mechanism, compare a small deliberate family before promoting any member; do not turn the compiler or benchmark into a parameter-search language.
 - Run focused tests before a screen and the full test suite before confirmation.
 - Declare before looking: mode, margin, and depth are frozen in the attempt declaration; heed the printed budget and retry warnings.
 - Diagnose invalid runs, validity flips, termini, phases, and case-level deltas before changing policy.

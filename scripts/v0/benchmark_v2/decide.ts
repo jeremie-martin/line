@@ -133,6 +133,7 @@ type ArchiveReference = {
 export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<number> {
   const args = parseArgs(argv);
   const candidate = loadVerifiedArchive(args.candidatePath);
+  assertNotExplorationArchive(candidate.archive);
   const profile = archiveProfile(candidate.archive);
   if (profile === "canonical") {
     // Canonical evidence is judged inside its predeclared eval attempt; a
@@ -143,6 +144,7 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
     ? baselineArchive(profile)
     : { path: resolve(args.basePath), expected: undefined, label: "explicit-base", reference: undefined };
   const base = loadVerifiedArchive(baselineResolution.path, baselineResolution.expected);
+  assertNotExplorationArchive(base.archive);
   if (baselineResolution.reference !== undefined) {
     if (
       base.archive.identity?.suiteFingerprint !== baselineResolution.reference.suite_fingerprint ||
@@ -262,6 +264,8 @@ export async function loadValidatedDecisionPairForCalibration(
 }> {
   const base = loadVerifiedArchive(basePath);
   const candidate = loadVerifiedArchive(candidatePath);
+  assertNotExplorationArchive(base.archive);
+  assertNotExplorationArchive(candidate.archive);
   const { suite, baseRuns, candidateRuns } = await validateComparison(base, candidate, "calibration");
   return { suite, baseRuns, candidateRuns };
 }
@@ -293,6 +297,7 @@ export async function screeningComparison(
   compatibilityApproval: RunnerCompatibilityApproval | null;
 }> {
   const candidate = loadVerifiedArchive(candidatePath);
+  assertNotExplorationArchive(candidate.archive);
   if (archiveProfile(candidate.archive) !== "probe") {
     throw new Error(`stage-0 screening compares probe archives; run \`npm run benchmark -- eval\` to produce one`);
   }
@@ -300,6 +305,7 @@ export async function screeningComparison(
     ? baselineArchive("probe")
     : { path: resolve(options.basePath), expected: undefined, label: "explicit-base", reference: undefined };
   const base = loadVerifiedArchive(resolution.path, resolution.expected);
+  assertNotExplorationArchive(base.archive);
   const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(base, candidate);
   requireCurrentDecisionCalibration(candidate.archive.identity.suiteFingerprint);
   const mode = options.mode ?? "improvement";
@@ -337,6 +343,8 @@ export async function evalDecision(
 ): Promise<{ artifact: DecisionArtifact; base: VerifiedArchive; candidate: VerifiedArchive }> {
   const base = loadVerifiedArchive(basePath);
   const candidate = loadVerifiedArchive(candidatePath);
+  assertNotExplorationArchive(base.archive);
+  assertNotExplorationArchive(candidate.archive);
   if (archiveProfile(base.archive) !== "canonical" || archiveProfile(candidate.archive) !== "canonical") {
     throw new Error(`eval verdicts require canonical archives`);
   }
@@ -433,6 +441,9 @@ async function validateComparison(
 }> {
   const baseArchive = base.archive;
   const candidateArchive = candidate.archive;
+  if (baseArchive?.exploration !== undefined || candidateArchive?.exploration !== undefined) {
+    throw new Error(`exploration archives are descriptive only and cannot enter a decision`);
+  }
   if (baseArchive.schema !== BENCHMARK_RUN_ARCHIVE_SCHEMA || candidateArchive.schema !== BENCHMARK_RUN_ARCHIVE_SCHEMA) {
     throw new Error(`decision requires ${BENCHMARK_RUN_ARCHIVE_SCHEMA} archives`);
   }
@@ -505,6 +516,12 @@ async function validateComparison(
     candidateRuns: toDecisionRuns(candidateArchive),
     compatibilityApproval,
   };
+}
+
+function assertNotExplorationArchive(archive: any): void {
+  if (archive?.exploration !== undefined) {
+    throw new Error(`exploration archives are descriptive only and cannot enter a decision`);
+  }
 }
 
 function validateArchiveScope(

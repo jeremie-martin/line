@@ -22,6 +22,9 @@ references are qualification-only. Benchmark V1 remains available explicitly thr
 ```bash
 npm run benchmark -- prepare
 npm run benchmark -- eval
+npm run benchmark -- family capture MECHANISM --variant=MEMBER
+npm run benchmark -- family run MECHANISM
+npm run benchmark -- family select MECHANISM --variant=MEMBER
 npm run benchmark -- eval --to-verdict
 npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
 npm run benchmark -- rebaseline --label=NAME       # after accept only
@@ -55,6 +58,17 @@ The plan fingerprint includes Node version, platform, architecture, complete
 candidate fingerprint, compiler-source fingerprint, compiler environment, and
 WASM artifact fingerprint. Failed and timed-out tasks are scheduled again on
 resume; only the latest successful row for each task is restored.
+
+Family exploration is a separate descriptive lane for choosing one implementation
+from a small mechanism family before confirmation. It snapshots arbitrary source
+states, runs the production baseline once and every member on the same fresh probe
+seeds, and stores an immutable round report under
+`generated/benchmark-v2/families/`. The report includes paired uncertainty,
+validity changes, all pairwise contrasts, and seed-prefix ranking stability. It
+does not run qualification, issue a verdict, spend era alpha, or permit its
+archives into `decide`. Adaptive follow-up starts a fresh round and never pools
+viewed evidence. Selection records the choice and requires an exact source-default
+fingerprint before handing off to `eval --to-verdict`.
 
 ## Preparation
 

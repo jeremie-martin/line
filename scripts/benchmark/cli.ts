@@ -10,10 +10,11 @@ import { runMigrationCommand } from "../v0/benchmark_v2/migrate.ts";
 import { runRebaselineCommand, runTransitionCommand } from "../v0/benchmark_v2/rebaseline.ts";
 import { benchmarkEvalPolicy } from "../../benchmark/v2/eval-policy.ts";
 import { runStatusCommand } from "../v0/benchmark_v2/status.ts";
+import { runFamilyCommand } from "../v0/benchmark_v2/family.ts";
 
 const COMMAND_ALIASES = new Set([
   "probe", "eval", "canonical", "baseline", "rebaseline", "transition", "decide", "migrate", "prepare", "explain",
-  "status", "help", "--probe", "--help", "-h",
+  "status", "family", "help", "--probe", "--help", "-h",
 ]);
 const raw = process.argv.slice(2);
 const jsonOutput = raw.includes("--json");
@@ -53,6 +54,18 @@ async function main(rawArgs: string[]): Promise<void> {
     process.exitCode = await runMigrationCommand(commandArgs);
   } else if (command === "transition") {
     process.exitCode = runTransitionCommand(commandArgs);
+  } else if (command === "family") {
+    const action = commandArgs.find((arg) => !arg.startsWith("--"));
+    if (action === "run") {
+      const prepared = await prepareBenchmarkV2();
+      console.log(
+        `Prepared ${prepared.developmentCases} development + ${prepared.qualificationCases} qualification cases; ` +
+        `audit ${prepared.auditFingerprint.slice(0, 16)}; listening review ${prepared.listeningReviewStatus}`,
+      );
+      process.exitCode = await monitored("family", args, () => runFamilyCommand(commandArgs));
+    } else {
+      process.exitCode = await runFamilyCommand(commandArgs);
+    }
   } else {
     const prepared = await prepareBenchmarkV2();
     console.log(
@@ -97,7 +110,9 @@ function installJsonOutputRouter(): {
     }
     diagnostic(format(...values));
   };
-  const write = (value: unknown): void => process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
+  const write = (value: unknown): void => {
+    process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
+  };
   return {
     flush: (exitCode): void => {
       if (payloadCount > 1) {
@@ -180,12 +195,13 @@ async function monitored<T>(label: string, args: string[], run: () => Promise<T>
 
 function commandName(
   args: string[],
-): "probe" | "eval" | "canonical" | "baseline" | "rebaseline" | "transition" | "decide" | "migrate" | "prepare" | "explain" | "status" | "help" {
+): "probe" | "eval" | "canonical" | "baseline" | "rebaseline" | "transition" | "decide" | "migrate" | "prepare" | "explain" | "status" | "family" | "help" {
   if (args.includes("full") || args.includes("--full")) {
     throw new Error(`the full profile was retired; use \`eval --to-verdict\` for certified confirmation`);
   }
   if (args.includes("help") || args.includes("--help") || args.includes("-h")) return "help";
   if (args.includes("status")) return "status";
+  if (args.includes("family")) return "family";
   if (args.includes("eval")) return "eval";
   if (args.includes("canonical")) return "canonical";
   if (args.includes("rebaseline")) return "rebaseline";
@@ -209,6 +225,10 @@ function printHelp(): void {
   console.log(`Benchmark V2\n\n` +
     `  npm run benchmark -- eval        Stage 0: informational screen of the current tree vs the baseline (probe is a deprecated alias)\n` +
     `  npm run benchmark -- status      Read-only baseline, era budget, certified cost, timing, and rebaseline blockers\n` +
+    `  npm run benchmark -- family capture NAME --variant=ID [--note=TEXT]\n` +
+    `  npm run benchmark -- family run NAME [--seeds=6] [--jobs=N]\n` +
+    `  npm run benchmark -- family select NAME --variant=ID [--reason=TEXT]\n` +
+    `                                   Shared-seed descriptive variant exploration; selection then enters fresh certified eval\n` +
     `  npm run benchmark -- eval --to-verdict [--mode=improve] [--acknowledge-retry] [--resume] [--json]\n` +
     `  npm run benchmark -- eval --to-verdict --mode=simplify --margin=5 [--acknowledge-retry] [--resume] [--json]\n` +
     `                                   Declared, certified confirmation: fresh paired epoch, futility looks, verdict\n` +

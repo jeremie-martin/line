@@ -46,9 +46,34 @@ increase the capability family's headline influence. `benchmark prepare` took
 
 The suite change correctly invalidated the old baseline, decision calibration,
 and listening attestation. Forty-one byte-identical item judgments were carried
-forward. The corrected 4s and new 6s/7s click tracks remain pending human review.
-Certified eval/family promotion must remain blocked until review, recalibration,
-and suite rebaseline are complete.
+forward. The project owner reviewed and approved the corrected 4s and new 6s/7s
+click tracks without consulting compiler or qualification outcomes. The tracked
+review binds all 44 current source and audio hashes. Certified eval/family
+promotion remains blocked until suite rebaseline is complete.
+
+## Suite-rollover calibration
+
+The 44-case rollover was recalibrated from fresh raw evidence rather than
+restamping the former 42-case studies:
+
+- 12-seed coverage reference: 1,584/1,584 tasks, 6m49s, 9.08 GiB peak RSS;
+- 24-seed pooled reference: 1,584 restored plus 1,584 fresh tasks, 7m00s,
+  9.50 GiB peak RSS;
+- disjoint seeds 36-47 holdout: 1,584/1,584 tasks, 6m49s, 9.04 GiB peak RSS;
+- menu certification: all nine predeclared bars passed in 9m19s;
+- independent holdout: all seven predeclared bars passed in 8m52s.
+
+The retained 1,000-trial coverage study reports false-accept rates of 0.5% for
+empirical blocks, 0.9% for symmetric validity flips, and 2.0% for the
+catalog-wide hard-zero null. The simplification boundary false-accept rate is
+2.9%. Supported +12.8-point power is 92.3%; the paired inside-margin
+simplification power is 100%. Hard-zero validity gains remain explicitly
+documented low-power diagnostics rather than supported claims.
+
+The live rollover also exposed and fixed a runner failure path: an absent raw
+report on a worker error was hashed as `undefined`, so archive assembly crashed
+instead of retaining the promised failed archive. Failed reports now bind the
+deterministic JSON `null` representation and a regression test covers it.
 
 ## Causal studies
 
@@ -155,18 +180,29 @@ mechanism.
 
 ## Current conclusion and next steps
 
-The evidence supports two non-dominated family members. Both use duration-derived
-support length and low-discrepancy length coverage. Length-only retains historical
-segmentation/launch; coordinated also derives segment count and remaining-flight
-launch and recognizes sustained-air release at actual deficits. Both improve
-frontier completion and ordinary sparse low-air score, while unaffected behavior
-is exact by the zero-deficit contract.
+The causal evidence supports duration-derived support extent, but the existing
+`length` and `coordinated` modes remain prototypes rather than production family
+members. Their activation pressure above the historical 360px cap was useful for
+isolating causality, but it is still a regime switch. The production mechanism
+must instead treat short, ordinary, and long support as one continuous kinematic
+problem:
+
+- derive supported distance from speed, gap duration, and requested airborne time;
+- share that physical envelope between target-state and contact-centered samplers;
+- express slack as deterministic search coverage around the target, not a special
+  long-ride branch;
+- derive launch timing from flight time remaining after the sampled support;
+- separate total support extent from geometric resolution, using curvature and
+  explicit grain rather than adding segments merely because duration is long;
+- retain ordinary candidates inside the distribution so the mechanism can improve
+  frontiers without making classical specifications brittle.
 
 Next steps:
 
-1. Human-review the corrected 4s and new 6s/7s click tracks.
-2. Recharacterize decision calibration and bootstrap the 44-case suite baseline.
-3. Capture the source-default-off control, length-only member, and coordinated member.
+1. Bootstrap the calibrated 44-case suite baseline.
+2. Replace the cap-triggered prototypes with a clean control, universal physical
+   extent member, and universal extent plus flight-geometry member.
+3. Re-run focused causal and ordinary-case controls before family capture.
 4. Run the governed family screen across the complete suite.
 5. If selected, enter a fresh certified eval. Treat 7s seed 27 as an explicit
    residual re-entry problem, not a reason to tune duration-specific constants.

@@ -138,12 +138,12 @@ describe("Benchmark V2 decision command", () => {
   });
 
   test("retains historical listening evidence only for probe calibration controls", async () => {
-    const calibrationProbe = "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz";
+    const calibrationProbe = "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz";
 
     await expect(runDecisionCommand([calibrationProbe, "--no-gate-exit"]))
       .rejects.toThrow(/execution policies|listening-review evidence is stale/);
     const validated = await loadValidatedDecisionPairForCalibration(calibrationProbe, calibrationProbe);
-    expect(validated.baseRuns).toHaveLength(252);
+    expect(validated.baseRuns).toHaveLength(264);
     expect(validated.candidateRuns).toEqual(validated.baseRuns);
   });
 });

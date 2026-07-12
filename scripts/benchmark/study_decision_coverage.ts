@@ -23,7 +23,7 @@ import { argumentReader, round, sha256 } from "../v0/benchmark_v2/util.ts";
 const argument = argumentReader(process.argv.slice(2));
 
 const referencePath = resolve(
-  argument("reference") ?? "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+  argument("reference") ?? "benchmark/v2/runs/calibration-v2.5-coverage-reference.json.gz",
 );
 const outPath = resolve(argument("out") ?? "benchmark/v2/studies/decision-coverage.json");
 const markdownPath = resolve(argument("markdown") ?? "docs/benchmark-v2-decision-coverage.md");

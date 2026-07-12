@@ -37,7 +37,7 @@ type Study = {
 const args = process.argv.slice(2);
 const argument = argumentReader(args);
 const studyPath = resolve(
-  argument("study") ?? "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+  argument("study") ?? "benchmark/v2/runs/calibration-v2.5-coverage-reference.json.gz",
 );
 const sourcePath = resolve(argument("manifest") ?? "benchmark/v2/compat/source-manifest.json");
 const suitePath = resolve(argument("suite") ?? "benchmark/v2/compat/suite-manifest.json");

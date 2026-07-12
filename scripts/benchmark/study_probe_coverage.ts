@@ -401,7 +401,7 @@ async function mainOrchestrator(): Promise<void> {
   const concurrency = integerArgument(argument, "concurrency", smoke ? 4 : 32, 1);
   const partBShardSize = integerArgument(argument, "partB-shard-size", smoke ? 12 : 125, 1);
   const referencePath = resolve(
-    argument("reference") ?? "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+    argument("reference") ?? "benchmark/v2/runs/calibration-v2.5-coverage-reference.json.gz",
   );
   const outPath = resolve(argument("out") ?? "benchmark/v2/studies/probe-futility.json");
 

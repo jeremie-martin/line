@@ -33,9 +33,9 @@
     }
   },
   "independentReference": {
-    "path": "benchmark/v2/runs/calibration-v2.4-holdout-reference-seeds-36-47.json.gz",
-    "artifactSha256": "acd56f2a34f8164098822ecba735a0242174d08802ba04694de499e5e8884a09",
-    "rawSha256": "3f75406ce7c2937688303c481e93c45c5db1a1e72b9ed89d14f3ef9e1e337e83",
+    "path": "benchmark/v2/runs/calibration-v2.5-holdout-reference-seeds-36-47.json.gz",
+    "artifactSha256": "fb755733c67b724e91aa7edb4013976466d8d17428e8836ac45549ea6991d0de",
+    "rawSha256": "1feaec22a6f2a54951d3451397a68a3f270512e366f4abdc26060ac054f5d5f2",
     "seeds": [
       36,
       37,
@@ -50,12 +50,12 @@
       46,
       47
     ],
-    "candidateFingerprint": "95a3b786c7fc72546290d7a4b2c5e606f4c7e0cb90416e4994840157a94dfa40"
+    "candidateFingerprint": "46268f4a68227f7de95a7963cd3b9d1245a65738a2eee7f6e535349ee882bdab"
   },
   "originalReference": {
-    "path": "benchmark/v2/runs/calibration-v2.4-pooled-reference-seeds-0-23.json.gz",
-    "artifactSha256": "796c6188c515ac4aa702349e1861f659145fc39f910d49bebd17f080fe44f5d7",
-    "rawSha256": "9ee36c0d539993928cf6bf5628c12e7fa57a004797de16f26120894cfc6b4e30",
+    "path": "benchmark/v2/runs/calibration-v2.5-pooled-reference-seeds-0-23.json.gz",
+    "artifactSha256": "2edcadcf7a59d25845993848d47a3d7909ba055795eec436d23961eb1e897c2a",
+    "rawSha256": "d840a964bd18cde9c417c2162d52a814198368803f27e9175ca45412563578bd",
     "seeds": [
       0,
       1,
@@ -97,11 +97,11 @@
       "sha256": "d6828b978683002ee25432d22de07cba8e698d05d0ea2efbcfdfea1066e72496"
     }
   },
-  "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+  "suiteFingerprint": "9bd5bf1c988dbe8022386f0f7edddda4ba9836d0aee01e1b7d8d735c85ec297c",
   "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
   "decisionInferenceFingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
   "evalChainInferenceFingerprint": "4694360852f907e3ba0d2bb239f8bec65d5dac66710e82d9eb76772dfd9286c7",
-  "certificationGeneratorFingerprint": "9ed276d95fb82aab49603763f6a454f3959d20ee2de90d920dcf75134d7f50cd",
+  "certificationGeneratorFingerprint": "6f01155b2a30206ae93d24f8a2eb53f51ec938998ce40b37b19558b4b2dce861",
   "methodology": {
     "independenceDiscipline": "Primary validation applies the power grid's frozen perturbation recipes and shift values (solved on seeds 0..11) unchanged to the independent seeds-12..23 blocks; achievedTrueDeltas reports the resulting true effects on the independent blocks. resolvedDiagnostic (shifts re-solved on the independent blocks) is a secondary diagnostic only and feeds no bar.",
     "dgp": "Identical to the power grid: unpaired empirical block resampling per (budget, slot) from the verified independent reference; validity flips and catalog-wide hard-zero stress mirror study_decision_coverage.ts.",
@@ -110,13 +110,13 @@
   },
   "achievedTrueDeltas": {
     "improve2": 1.9925,
-    "improve3": 2.9889,
-    "improve5": 4.9814,
+    "improve3": 2.9888,
+    "improve5": 4.9815,
     "boundaryM5": -4.9815,
     "null": 0
   },
   "resolvedDiagnostic": {
-    "improve5": 5.8712,
+    "improve5": 5.8713,
     "boundaryM5": -5.8699
   },
   "trialsPerCell": 1000,
@@ -132,7 +132,7 @@
       "calibration": {
         "trials": 500,
         "meanDelta": 0.0181,
-        "meanSeedBlockSe": 0.8858,
+        "meanSeedBlockSe": 0.8867,
         "accept": {
           "count": 4,
           "total": 500,
@@ -172,12 +172,12 @@
           ]
         },
         "centralCoverageNominal95": {
-          "count": 470,
+          "count": 471,
           "total": 500,
-          "rate": 0.94,
+          "rate": 0.942,
           "wilson95": [
-            0.9156,
-            0.9577
+            0.9179,
+            0.9593
           ]
         },
         "policyDisagreement": 0
@@ -185,7 +185,7 @@
       "holdout": {
         "trials": 500,
         "meanDelta": -0.0362,
-        "meanSeedBlockSe": 0.8882,
+        "meanSeedBlockSe": 0.8891,
         "accept": {
           "count": 4,
           "total": 500,
@@ -196,21 +196,21 @@
           ]
         },
         "reject": {
-          "count": 6,
+          "count": 5,
           "total": 500,
-          "rate": 0.012,
+          "rate": 0.01,
           "wilson95": [
-            0.0055,
-            0.0259
+            0.0043,
+            0.0232
           ]
         },
         "inconclusive": {
-          "count": 490,
+          "count": 491,
           "total": 500,
-          "rate": 0.98,
+          "rate": 0.982,
           "wilson95": [
-            0.9636,
-            0.9891
+            0.9661,
+            0.9905
           ]
         },
         "netAccept": null,
@@ -225,12 +225,12 @@
           ]
         },
         "centralCoverageNominal95": {
-          "count": 470,
+          "count": 469,
           "total": 500,
-          "rate": 0.94,
+          "rate": 0.938,
           "wilson95": [
-            0.9156,
-            0.9577
+            0.9133,
+            0.956
           ]
         },
         "policyDisagreement": 0
@@ -238,7 +238,7 @@
       "combined": {
         "trials": 1000,
         "meanDelta": -0.0091,
-        "meanSeedBlockSe": 0.887,
+        "meanSeedBlockSe": 0.8879,
         "accept": {
           "count": 8,
           "total": 1000,
@@ -249,21 +249,21 @@
           ]
         },
         "reject": {
-          "count": 11,
+          "count": 10,
           "total": 1000,
-          "rate": 0.011,
+          "rate": 0.01,
           "wilson95": [
-            0.0062,
-            0.0196
+            0.0054,
+            0.0183
           ]
         },
         "inconclusive": {
-          "count": 981,
+          "count": 982,
           "total": 1000,
-          "rate": 0.981,
+          "rate": 0.982,
           "wilson95": [
-            0.9705,
-            0.9878
+            0.9717,
+            0.9886
           ]
         },
         "netAccept": null,
@@ -299,8 +299,8 @@
       "trueDelta": 0,
       "calibration": {
         "trials": 500,
-        "meanDelta": 0.8036,
-        "meanSeedBlockSe": 9.7316,
+        "meanDelta": 0.1827,
+        "meanSeedBlockSe": 9.7195,
         "accept": {
           "count": 3,
           "total": 500,
@@ -311,21 +311,74 @@
           ]
         },
         "reject": {
-          "count": 8,
+          "count": 7,
           "total": 500,
-          "rate": 0.016,
+          "rate": 0.014,
           "wilson95": [
-            0.0081,
-            0.0313
+            0.0068,
+            0.0286
           ]
         },
         "inconclusive": {
-          "count": 489,
+          "count": 490,
           "total": 500,
-          "rate": 0.978,
+          "rate": 0.98,
           "wilson95": [
-            0.961,
-            0.9877
+            0.9636,
+            0.9891
+          ]
+        },
+        "netAccept": null,
+        "firedCumulativeByLook": null,
+        "centralCoverageDerated99": {
+          "count": 492,
+          "total": 500,
+          "rate": 0.984,
+          "wilson95": [
+            0.9687,
+            0.9919
+          ]
+        },
+        "centralCoverageNominal95": {
+          "count": 472,
+          "total": 500,
+          "rate": 0.944,
+          "wilson95": [
+            0.9203,
+            0.961
+          ]
+        },
+        "policyDisagreement": 0
+      },
+      "holdout": {
+        "trials": 500,
+        "meanDelta": -0.0542,
+        "meanSeedBlockSe": 9.6748,
+        "accept": {
+          "count": 3,
+          "total": 500,
+          "rate": 0.006,
+          "wilson95": [
+            0.002,
+            0.0175
+          ]
+        },
+        "reject": {
+          "count": 5,
+          "total": 500,
+          "rate": 0.01,
+          "wilson95": [
+            0.0043,
+            0.0232
+          ]
+        },
+        "inconclusive": {
+          "count": 492,
+          "total": 500,
+          "rate": 0.984,
+          "wilson95": [
+            0.9687,
+            0.9919
           ]
         },
         "netAccept": null,
@@ -340,89 +393,36 @@
           ]
         },
         "centralCoverageNominal95": {
-          "count": 474,
+          "count": 479,
           "total": 500,
-          "rate": 0.948,
+          "rate": 0.958,
           "wilson95": [
-            0.9249,
-            0.9643
-          ]
-        },
-        "policyDisagreement": 0
-      },
-      "holdout": {
-        "trials": 500,
-        "meanDelta": 0.1699,
-        "meanSeedBlockSe": 9.7256,
-        "accept": {
-          "count": 5,
-          "total": 500,
-          "rate": 0.01,
-          "wilson95": [
-            0.0043,
-            0.0232
-          ]
-        },
-        "reject": {
-          "count": 2,
-          "total": 500,
-          "rate": 0.004,
-          "wilson95": [
-            0.0011,
-            0.0145
-          ]
-        },
-        "inconclusive": {
-          "count": 493,
-          "total": 500,
-          "rate": 0.986,
-          "wilson95": [
-            0.9714,
-            0.9932
-          ]
-        },
-        "netAccept": null,
-        "firedCumulativeByLook": null,
-        "centralCoverageDerated99": {
-          "count": 498,
-          "total": 500,
-          "rate": 0.996,
-          "wilson95": [
-            0.9855,
-            0.9989
-          ]
-        },
-        "centralCoverageNominal95": {
-          "count": 478,
-          "total": 500,
-          "rate": 0.956,
-          "wilson95": [
-            0.9343,
-            0.9708
+            0.9366,
+            0.9724
           ]
         },
         "policyDisagreement": 0
       },
       "combined": {
         "trials": 1000,
-        "meanDelta": 0.4867,
-        "meanSeedBlockSe": 9.7286,
+        "meanDelta": 0.0642,
+        "meanSeedBlockSe": 9.6972,
         "accept": {
-          "count": 8,
+          "count": 6,
           "total": 1000,
-          "rate": 0.008,
+          "rate": 0.006,
           "wilson95": [
-            0.0041,
-            0.0157
+            0.0028,
+            0.013
           ]
         },
         "reject": {
-          "count": 10,
+          "count": 12,
           "total": 1000,
-          "rate": 0.01,
+          "rate": 0.012,
           "wilson95": [
-            0.0054,
-            0.0183
+            0.0069,
+            0.0209
           ]
         },
         "inconclusive": {
@@ -437,21 +437,21 @@
         "netAccept": null,
         "firedCumulativeByLook": null,
         "centralCoverageDerated99": {
-          "count": 993,
+          "count": 987,
           "total": 1000,
-          "rate": 0.993,
+          "rate": 0.987,
           "wilson95": [
-            0.9856,
-            0.9966
+            0.9779,
+            0.9924
           ]
         },
         "centralCoverageNominal95": {
-          "count": 952,
+          "count": 951,
           "total": 1000,
-          "rate": 0.952,
+          "rate": 0.951,
           "wilson95": [
-            0.9369,
-            0.9636
+            0.9358,
+            0.9627
           ]
         },
         "policyDisagreement": 0
@@ -635,8 +635,8 @@
       "trueDelta": 1.9925,
       "calibration": {
         "trials": 500,
-        "meanDelta": 1.9739,
-        "meanSeedBlockSe": 0.8911,
+        "meanDelta": 1.974,
+        "meanSeedBlockSe": 0.892,
         "accept": {
           "count": 223,
           "total": 500,
@@ -689,14 +689,14 @@
       "holdout": {
         "trials": 500,
         "meanDelta": 2.0426,
-        "meanSeedBlockSe": 0.8893,
+        "meanSeedBlockSe": 0.8902,
         "accept": {
-          "count": 237,
+          "count": 235,
           "total": 500,
-          "rate": 0.474,
+          "rate": 0.47,
           "wilson95": [
-            0.4306,
-            0.5178
+            0.4266,
+            0.5138
           ]
         },
         "reject": {
@@ -709,12 +709,12 @@
           ]
         },
         "inconclusive": {
-          "count": 263,
+          "count": 265,
           "total": 500,
-          "rate": 0.526,
+          "rate": 0.53,
           "wilson95": [
-            0.4822,
-            0.5694
+            0.4862,
+            0.5734
           ]
         },
         "netAccept": null,
@@ -742,14 +742,14 @@
       "combined": {
         "trials": 1000,
         "meanDelta": 2.0083,
-        "meanSeedBlockSe": 0.8902,
+        "meanSeedBlockSe": 0.8911,
         "accept": {
-          "count": 460,
+          "count": 458,
           "total": 1000,
-          "rate": 0.46,
+          "rate": 0.458,
           "wilson95": [
-            0.4293,
-            0.491
+            0.4273,
+            0.489
           ]
         },
         "reject": {
@@ -762,12 +762,12 @@
           ]
         },
         "inconclusive": {
-          "count": 540,
+          "count": 542,
           "total": 1000,
-          "rate": 0.54,
+          "rate": 0.542,
           "wilson95": [
-            0.509,
-            0.5707
+            0.511,
+            0.5727
           ]
         },
         "netAccept": null,
@@ -800,18 +800,18 @@
       "threshold": 0,
       "futility": false,
       "role": "informational",
-      "trueDelta": 2.9889,
+      "trueDelta": 2.9888,
       "calibration": {
         "trials": 500,
-        "meanDelta": 3.0066,
-        "meanSeedBlockSe": 0.8896,
+        "meanDelta": 3.0069,
+        "meanSeedBlockSe": 0.8905,
         "accept": {
-          "count": 424,
+          "count": 423,
           "total": 500,
-          "rate": 0.848,
+          "rate": 0.846,
           "wilson95": [
-            0.8139,
-            0.8768
+            0.8117,
+            0.875
           ]
         },
         "reject": {
@@ -824,12 +824,12 @@
           ]
         },
         "inconclusive": {
-          "count": 76,
+          "count": 77,
           "total": 500,
-          "rate": 0.152,
+          "rate": 0.154,
           "wilson95": [
-            0.1232,
-            0.1861
+            0.125,
+            0.1883
           ]
         },
         "netAccept": null,
@@ -844,27 +844,27 @@
           ]
         },
         "centralCoverageNominal95": {
-          "count": 485,
+          "count": 486,
           "total": 500,
-          "rate": 0.97,
+          "rate": 0.972,
           "wilson95": [
-            0.9511,
-            0.9817
+            0.9536,
+            0.9832
           ]
         },
         "policyDisagreement": 0
       },
       "holdout": {
         "trials": 500,
-        "meanDelta": 3.0154,
-        "meanSeedBlockSe": 0.8914,
+        "meanDelta": 3.0151,
+        "meanSeedBlockSe": 0.8923,
         "accept": {
-          "count": 433,
+          "count": 432,
           "total": 500,
-          "rate": 0.866,
+          "rate": 0.864,
           "wilson95": [
-            0.8333,
-            0.8931
+            0.8312,
+            0.8913
           ]
         },
         "reject": {
@@ -877,23 +877,23 @@
           ]
         },
         "inconclusive": {
-          "count": 67,
+          "count": 68,
           "total": 500,
-          "rate": 0.134,
+          "rate": 0.136,
           "wilson95": [
-            0.1069,
-            0.1667
+            0.1087,
+            0.1688
           ]
         },
         "netAccept": null,
         "firedCumulativeByLook": null,
         "centralCoverageDerated99": {
-          "count": 498,
+          "count": 497,
           "total": 500,
-          "rate": 0.996,
+          "rate": 0.994,
           "wilson95": [
-            0.9855,
-            0.9989
+            0.9825,
+            0.998
           ]
         },
         "centralCoverageNominal95": {
@@ -910,14 +910,14 @@
       "combined": {
         "trials": 1000,
         "meanDelta": 3.011,
-        "meanSeedBlockSe": 0.8905,
+        "meanSeedBlockSe": 0.8914,
         "accept": {
-          "count": 857,
+          "count": 855,
           "total": 1000,
-          "rate": 0.857,
+          "rate": 0.855,
           "wilson95": [
-            0.8339,
-            0.8773
+            0.8318,
+            0.8755
           ]
         },
         "reject": {
@@ -930,32 +930,32 @@
           ]
         },
         "inconclusive": {
-          "count": 143,
+          "count": 145,
           "total": 1000,
-          "rate": 0.143,
+          "rate": 0.145,
           "wilson95": [
-            0.1227,
-            0.1661
+            0.1245,
+            0.1682
           ]
         },
         "netAccept": null,
         "firedCumulativeByLook": null,
         "centralCoverageDerated99": {
-          "count": 994,
+          "count": 993,
           "total": 1000,
-          "rate": 0.994,
+          "rate": 0.993,
           "wilson95": [
-            0.987,
-            0.9972
+            0.9856,
+            0.9966
           ]
         },
         "centralCoverageNominal95": {
-          "count": 966,
+          "count": 967,
           "total": 1000,
-          "rate": 0.966,
+          "rate": 0.967,
           "wilson95": [
-            0.9529,
-            0.9756
+            0.954,
+            0.9764
           ]
         },
         "policyDisagreement": 0
@@ -968,11 +968,11 @@
       "threshold": 0,
       "futility": false,
       "role": "bar",
-      "trueDelta": 4.9814,
+      "trueDelta": 4.9815,
       "calibration": {
         "trials": 500,
-        "meanDelta": 4.9899,
-        "meanSeedBlockSe": 0.8942,
+        "meanDelta": 4.9903,
+        "meanSeedBlockSe": 0.8951,
         "accept": {
           "count": 500,
           "total": 500,
@@ -1024,8 +1024,8 @@
       },
       "holdout": {
         "trials": 500,
-        "meanDelta": 4.979,
-        "meanSeedBlockSe": 0.8907,
+        "meanDelta": 4.9792,
+        "meanSeedBlockSe": 0.8916,
         "accept": {
           "count": 500,
           "total": 500,
@@ -1077,8 +1077,8 @@
       },
       "combined": {
         "trials": 1000,
-        "meanDelta": 4.9845,
-        "meanSeedBlockSe": 0.8925,
+        "meanDelta": 4.9847,
+        "meanSeedBlockSe": 0.8934,
         "accept": {
           "count": 1000,
           "total": 1000,
@@ -1140,7 +1140,7 @@
       "calibration": {
         "trials": 500,
         "meanDelta": -0.0174,
-        "meanSeedBlockSe": 0.8861,
+        "meanSeedBlockSe": 0.887,
         "accept": {
           "count": 500,
           "total": 500,
@@ -1192,8 +1192,8 @@
       },
       "holdout": {
         "trials": 500,
-        "meanDelta": -0.0269,
-        "meanSeedBlockSe": 0.8909,
+        "meanDelta": -0.0271,
+        "meanSeedBlockSe": 0.8918,
         "accept": {
           "count": 500,
           "total": 500,
@@ -1245,8 +1245,8 @@
       },
       "combined": {
         "trials": 1000,
-        "meanDelta": -0.0221,
-        "meanSeedBlockSe": 0.8885,
+        "meanDelta": -0.0222,
+        "meanSeedBlockSe": 0.8894,
         "accept": {
           "count": 1000,
           "total": 1000,
@@ -1307,8 +1307,8 @@
       "trueDelta": -4.9815,
       "calibration": {
         "trials": 500,
-        "meanDelta": -4.9549,
-        "meanSeedBlockSe": 0.891,
+        "meanDelta": -4.955,
+        "meanSeedBlockSe": 0.8919,
         "accept": {
           "count": 4,
           "total": 500,
@@ -1339,12 +1339,12 @@
         "netAccept": null,
         "firedCumulativeByLook": null,
         "centralCoverageDerated99": {
-          "count": 494,
+          "count": 495,
           "total": 500,
-          "rate": 0.988,
+          "rate": 0.99,
           "wilson95": [
-            0.9741,
-            0.9945
+            0.9768,
+            0.9957
           ]
         },
         "centralCoverageNominal95": {
@@ -1360,8 +1360,8 @@
       },
       "holdout": {
         "trials": 500,
-        "meanDelta": -4.9995,
-        "meanSeedBlockSe": 0.8874,
+        "meanDelta": -4.9997,
+        "meanSeedBlockSe": 0.8882,
         "accept": {
           "count": 3,
           "total": 500,
@@ -1401,20 +1401,20 @@
           ]
         },
         "centralCoverageNominal95": {
-          "count": 476,
+          "count": 477,
           "total": 500,
-          "rate": 0.952,
+          "rate": 0.954,
           "wilson95": [
-            0.9296,
-            0.9675
+            0.9319,
+            0.9692
           ]
         },
         "policyDisagreement": 0
       },
       "combined": {
         "trials": 1000,
-        "meanDelta": -4.9772,
-        "meanSeedBlockSe": 0.8892,
+        "meanDelta": -4.9773,
+        "meanSeedBlockSe": 0.8901,
         "accept": {
           "count": 7,
           "total": 1000,
@@ -1445,21 +1445,21 @@
         "netAccept": null,
         "firedCumulativeByLook": null,
         "centralCoverageDerated99": {
-          "count": 991,
+          "count": 992,
           "total": 1000,
-          "rate": 0.991,
+          "rate": 0.992,
           "wilson95": [
-            0.983,
-            0.9953
+            0.9843,
+            0.9959
           ]
         },
         "centralCoverageNominal95": {
-          "count": 955,
+          "count": 956,
           "total": 1000,
-          "rate": 0.955,
+          "rate": 0.956,
           "wilson95": [
-            0.9403,
-            0.9662
+            0.9414,
+            0.9671
           ]
         },
         "policyDisagreement": 0
@@ -1475,8 +1475,8 @@
       "trueDelta": 0,
       "calibration": {
         "trials": 500,
-        "meanDelta": 0.0022,
-        "meanSeedBlockSe": 0.8935,
+        "meanDelta": 0.0021,
+        "meanSeedBlockSe": 0.8944,
         "accept": {
           "count": 7,
           "total": 500,
@@ -1582,8 +1582,8 @@
       },
       "holdout": {
         "trials": 500,
-        "meanDelta": -0.0208,
-        "meanSeedBlockSe": 0.8902,
+        "meanDelta": -0.0207,
+        "meanSeedBlockSe": 0.8912,
         "accept": {
           "count": 5,
           "total": 500,
@@ -1658,12 +1658,12 @@
             ]
           },
           "16": {
-            "count": 52,
+            "count": 53,
             "total": 500,
-            "rate": 0.104,
+            "rate": 0.106,
             "wilson95": [
-              0.0802,
-              0.1338
+              0.082,
+              0.1361
             ]
           }
         },
@@ -1690,7 +1690,7 @@
       "combined": {
         "trials": 1000,
         "meanDelta": -0.0093,
-        "meanSeedBlockSe": 0.8919,
+        "meanSeedBlockSe": 0.8928,
         "accept": {
           "count": 12,
           "total": 1000,
@@ -1765,12 +1765,12 @@
             ]
           },
           "16": {
-            "count": 116,
+            "count": 117,
             "total": 1000,
-            "rate": 0.116,
+            "rate": 0.117,
             "wilson95": [
-              0.0976,
-              0.1373
+              0.0985,
+              0.1384
             ]
           }
         },
@@ -1802,11 +1802,11 @@
       "threshold": 0,
       "futility": true,
       "role": "bar",
-      "trueDelta": 4.9814,
+      "trueDelta": 4.9815,
       "calibration": {
         "trials": 500,
         "meanDelta": 4.9294,
-        "meanSeedBlockSe": 0.8905,
+        "meanSeedBlockSe": 0.8914,
         "accept": {
           "count": 499,
           "total": 500,
@@ -1913,7 +1913,7 @@
       "holdout": {
         "trials": 500,
         "meanDelta": 4.986,
-        "meanSeedBlockSe": 0.8909,
+        "meanSeedBlockSe": 0.8919,
         "accept": {
           "count": 499,
           "total": 500,
@@ -2020,7 +2020,7 @@
       "combined": {
         "trials": 1000,
         "meanDelta": 4.9577,
-        "meanSeedBlockSe": 0.8907,
+        "meanSeedBlockSe": 0.8916,
         "accept": {
           "count": 998,
           "total": 1000,
@@ -2136,7 +2136,7 @@
       "calibration": {
         "trials": 500,
         "meanDelta": -4.9817,
-        "meanSeedBlockSe": 0.8823,
+        "meanSeedBlockSe": 0.8832,
         "accept": {
           "count": 0,
           "total": 500,
@@ -2184,30 +2184,30 @@
             ]
           },
           "3": {
-            "count": 102,
+            "count": 101,
             "total": 500,
-            "rate": 0.204,
+            "rate": 0.202,
             "wilson95": [
-              0.171,
-              0.2415
+              0.1691,
+              0.2394
             ]
           },
           "4": {
-            "count": 156,
+            "count": 155,
             "total": 500,
-            "rate": 0.312,
+            "rate": 0.31,
             "wilson95": [
-              0.273,
-              0.3539
+              0.271,
+              0.3519
             ]
           },
           "8": {
-            "count": 334,
+            "count": 335,
             "total": 500,
-            "rate": 0.668,
+            "rate": 0.67,
             "wilson95": [
-              0.6256,
-              0.7079
+              0.6276,
+              0.7098
             ]
           },
           "16": {
@@ -2242,8 +2242,8 @@
       },
       "holdout": {
         "trials": 500,
-        "meanDelta": -5.0514,
-        "meanSeedBlockSe": 0.8849,
+        "meanDelta": -5.0515,
+        "meanSeedBlockSe": 0.8858,
         "accept": {
           "count": 0,
           "total": 500,
@@ -2282,12 +2282,12 @@
         },
         "firedCumulativeByLook": {
           "2": {
-            "count": 37,
+            "count": 35,
             "total": 500,
-            "rate": 0.074,
+            "rate": 0.07,
             "wilson95": [
-              0.0542,
-              0.1003
+              0.0508,
+              0.0958
             ]
           },
           "3": {
@@ -2318,12 +2318,12 @@
             ]
           },
           "16": {
-            "count": 468,
+            "count": 465,
             "total": 500,
-            "rate": 0.936,
+            "rate": 0.93,
             "wilson95": [
-              0.911,
-              0.9543
+              0.9042,
+              0.9492
             ]
           }
         },
@@ -2350,7 +2350,7 @@
       "combined": {
         "trials": 1000,
         "meanDelta": -5.0166,
-        "meanSeedBlockSe": 0.8836,
+        "meanSeedBlockSe": 0.8845,
         "accept": {
           "count": 0,
           "total": 1000,
@@ -2389,48 +2389,48 @@
         },
         "firedCumulativeByLook": {
           "2": {
-            "count": 77,
+            "count": 75,
             "total": 1000,
-            "rate": 0.077,
+            "rate": 0.075,
             "wilson95": [
-              0.062,
-              0.0952
+              0.0603,
+              0.093
             ]
           },
           "3": {
-            "count": 227,
+            "count": 226,
             "total": 1000,
-            "rate": 0.227,
+            "rate": 0.226,
             "wilson95": [
-              0.2021,
-              0.254
+              0.2012,
+              0.2529
             ]
           },
           "4": {
-            "count": 345,
+            "count": 344,
             "total": 1000,
-            "rate": 0.345,
+            "rate": 0.344,
             "wilson95": [
-              0.3162,
-              0.375
+              0.3152,
+              0.374
             ]
           },
           "8": {
-            "count": 688,
+            "count": 689,
             "total": 1000,
-            "rate": 0.688,
+            "rate": 0.689,
             "wilson95": [
-              0.6586,
-              0.716
+              0.6596,
+              0.7169
             ]
           },
           "16": {
-            "count": 931,
+            "count": 928,
             "total": 1000,
-            "rate": 0.931,
+            "rate": 0.928,
             "wilson95": [
-              0.9136,
-              0.9451
+              0.9103,
+              0.9424
             ]
           }
         },

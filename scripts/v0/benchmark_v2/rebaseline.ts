@@ -17,14 +17,19 @@ import { availableParallelism } from "node:os";
 import { resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
-import { freezeBaseline } from "../../benchmark/freeze_baseline.ts";
 import {
-  appendAttemptEvent,
+  assertNoAttemptInFlight,
   readAttemptEvents,
   readEraState,
+  type AttemptEventInput,
   type DeclareEvent,
 } from "./attempts.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
+import { assertCompilerSourcesCommitted } from "./compiler_identity.ts";
+import {
+  publishBaselineWithLedger,
+  recoverPendingBaselinePublication,
+} from "./baseline_publication.ts";
 
 import { runBenchmarkV2, compilerCandidateIdentity } from "./runner.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
@@ -43,8 +48,11 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
     projection: resolve(argument("era-state") ?? "benchmark/v2/era-state.json"),
   };
   const jobs = Number(argument("jobs") ?? Math.min(48, availableParallelism()));
+  recoverPendingBaselinePublication({ paths: ledgerPaths });
+  assertCompilerSourcesCommitted();
 
   const era = readEraState(ledgerPaths);
+  assertNoAttemptInFlight(era, "rebaseline");
   const explicitBundle = argument("bundle");
   let cause: "rebaseline-accept" | "transition-rebaseline";
   let bundlePath: string;
@@ -133,14 +141,20 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
     writeFileSync(bundlePath, `${JSON.stringify(bundle, null, 2)}\n`);
   }
 
-  freezeBaseline(bundlePath);
-  const newEra = appendAttemptEvent({
-    type: "era-start",
-    eraId: `era-${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}`,
-    cause,
-    baselineLabel: safeLabel,
-    budgetCap: benchmarkEvalPolicy.eraBudget.cap,
-  }, ledgerPaths);
+  assertBaselineBundleLabel(bundlePath, safeLabel);
+  const ledgerEvent = cause === "rebaseline-accept"
+    ? {
+      type: "era-start",
+      eraId: `era-${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}`,
+      cause,
+      baselineLabel: safeLabel,
+      budgetCap: benchmarkEvalPolicy.eraBudget.cap,
+    } as AttemptEventInput
+    : {
+      type: "baseline-transition-complete",
+      baselineLabel: safeLabel,
+    } as AttemptEventInput;
+  const newEra = publishBaselineWithLedger(bundlePath, ledgerEvent, { paths: ledgerPaths });
   console.log(
     `rebaselined to ${safeLabel} (${cause}); era budget ` +
     `${cause === "rebaseline-accept" ? "reset" : "carried"} (cap ${newEra.budgetCap}); ` +
@@ -148,6 +162,22 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
   );
   console.log(`  nextCommand: npm run benchmark -- eval`);
   return 0;
+}
+
+/** The ledger label and the frozen baseline label must describe one object. */
+export function assertBaselineBundleLabel(bundlePath: string, expectedLabel: string): void {
+  const bundle = JSON.parse(readFileSync(resolve(bundlePath), "utf8"));
+  if (bundle.schema !== "line.benchmark-v2.baseline-bundle.v3") {
+    throw new Error(`unsupported baseline bundle`);
+  }
+  if (typeof bundle.label !== "string" || bundle.label.trim() === "") {
+    throw new Error(`baseline bundle label must be a non-empty string`);
+  }
+  if (bundle.label !== expectedLabel) {
+    throw new Error(
+      `rebaseline label ${JSON.stringify(expectedLabel)} does not match bundle label ${JSON.stringify(bundle.label)}`,
+    );
+  }
 }
 
 export function runTransitionCommand(argv = process.argv.slice(2)): number {
@@ -159,6 +189,7 @@ export function runTransitionCommand(argv = process.argv.slice(2)): number {
     ledger: resolve(argument("attempts-ledger") ?? "benchmark/v2/attempts.jsonl"),
     projection: resolve(argument("era-state") ?? "benchmark/v2/era-state.json"),
   };
+  recoverPendingBaselinePublication({ paths: ledgerPaths });
   const state = appendAttemptEvent({
     type: "transition",
     reason,

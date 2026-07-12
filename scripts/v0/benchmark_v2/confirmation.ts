@@ -21,6 +21,8 @@ import { type DecisionContractIdentity } from "./calibration_guard.ts";
 
 export const EVAL_DECLARATION_SCHEMA = "line.benchmark-v2.eval-declaration.v6" as const;
 export const DEFAULT_BASELINE_PATH = "benchmark/v2/baseline.json";
+const MIGRATION_PENDING_PATH = "benchmark/v2/migration-pending.json";
+const BASELINE_PUBLICATION_PENDING_PATH = "benchmark/v2/baseline-publication-pending.json";
 
 export type ConfirmationMode = "improvement" | "simplification";
 
@@ -75,6 +77,12 @@ export type EvalDeclaration = {
 /** Read and validate the frozen baseline of record as the decision contract
  *  every attempt declares against. */
 export function readBaselineContract(baselinePath = DEFAULT_BASELINE_PATH): BaselineContract {
+  if (existsSync(MIGRATION_PENDING_PATH)) {
+    throw new Error(`migration publication is incomplete; rerun the migration command to recover it`);
+  }
+  if (existsSync(BASELINE_PUBLICATION_PENDING_PATH)) {
+    throw new Error(`baseline publication is incomplete; rerun baseline or rebaseline to recover it`);
+  }
   const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
   if (
     baseline.schema !== "line.benchmark-v2.baseline-reference.v9" ||
@@ -98,6 +106,9 @@ export function readBaselineContract(baselinePath = DEFAULT_BASELINE_PATH): Base
   if (baseline.compiler_snapshot === undefined) {
     throw new Error(`the baseline of record has no compiler snapshot`);
   }
+  if (resolve(baselinePath) === resolve(DEFAULT_BASELINE_PATH)) {
+    assertMigrationLedgerMatchesBaseline(baseline);
+  }
   validateCompilerSnapshot(baseline.compiler_snapshot);
   return {
     label: baseline.label,
@@ -109,6 +120,21 @@ export function readBaselineContract(baselinePath = DEFAULT_BASELINE_PATH): Base
     protocolFingerprint: baseline.decision_protocol_fingerprint,
     calibrationFingerprint: baseline.decision_calibration_fingerprint,
   };
+}
+
+function assertMigrationLedgerMatchesBaseline(baseline: any): void {
+  const path = "benchmark/v2/migrations.jsonl";
+  if (!existsSync(path)) return;
+  const lines = readFileSync(path, "utf8").trim().split("\n").filter(Boolean);
+  if (lines.length === 0) return;
+  const latest = JSON.parse(lines.at(-1)!);
+  if (
+    latest.to?.inference !== baseline.decision_inference_fingerprint ||
+    latest.to?.protocol !== baseline.decision_protocol_fingerprint ||
+    latest.to?.calibration !== baseline.decision_calibration_fingerprint
+  ) {
+    throw new Error(`baseline decision contract does not match the latest migration record`);
+  }
 }
 
 export function assertCurrentDecisionContract(

@@ -211,7 +211,7 @@ function renderMarkdown(baseline: any): string {
       `Canonical headline: **${development.canonical_headline.toFixed(2)}**. ` +
       `Qualification monitor: **${qualification.monitor_score.toFixed(2)}** (indicative only).`,
     "",
-    "Probe and canonical actual seeds are disjoint at every shared budget. Probe evidence screens candidates; only canonical evidence can promote one.",
+    "Probe and confirmation actual seeds are disjoint at every shared budget. Probe evidence screens candidates; only a declared `eval --to-verdict` confirmation can promote one.",
     "",
     "| Budget | Probe | Valid | Canonical | Valid | Qualification | Valid |",
     "|---:|---:|---:|---:|---:|---:|---:|",
@@ -243,7 +243,8 @@ function relative(path: string): string {
 }
 
 if (resolve(process.argv[1] ?? "") === resolve(fileURLToPath(import.meta.url))) {
-  const bundleArgument = process.argv.slice(2).find((arg) => !arg.startsWith("--"));
-  if (bundleArgument === undefined) throw new Error(`usage: freeze_baseline.ts <baseline-bundle.json>`);
-  freezeBaseline(bundleArgument);
+  throw new Error(
+    `direct baseline freeze is retired; use \`npm run benchmark -- baseline\` for bootstrap/suite rollover ` +
+    `or \`npm run benchmark -- rebaseline\` after an accepted eval or ledgered transition`,
+  );
 }

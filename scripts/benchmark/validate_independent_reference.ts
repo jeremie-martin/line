@@ -36,6 +36,12 @@ import {
   type DecisionRun,
 } from "../v0/benchmark_v2/decision_model.ts";
 import { DECISION_INFERENCE_SOURCE_FILES } from "../v0/benchmark_v2/decision_model.ts";
+import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "../v0/benchmark_v2/certification_identity.ts";
+import {
+  EVAL_CHAIN_INFERENCE_SOURCE_FILES,
+  evalFutilityStops,
+  evalRunsAtLook,
+} from "../v0/benchmark_v2/eval_chain_inference.ts";
 import { buildAxisContract, type AxisContract } from "../v0/benchmark_v2/evaluator.ts";
 import { loadSourceManifest, loadSourceSpec, resolveSources } from "../v0/benchmark_v2/model.ts";
 import {
@@ -206,10 +212,6 @@ function trialRuns(
   return { base, candidate };
 }
 
-function truncateToDepth(runs: DecisionRun[], depth: number): DecisionRun[] {
-  return runs.filter((run) => run.seedSlot < depth);
-}
-
 // ── Worker ───────────────────────────────────────────────────────────────────
 
 function workerLoop(): void {
@@ -257,14 +259,16 @@ function workerLoop(): void {
         let firedAt: number | null = null;
         for (const k of PREDECLARED.futilitySchedule) {
           const look = pairedV2DecisionForCalibration(
-            truncateToDepth(base, k), truncateToDepth(candidate, k), lookSuites.get(k)!,
+            evalRunsAtLook(base, k), evalRunsAtLook(candidate, k), lookSuites.get(k)!,
             { profile: "canonical", mode: "improvement", bootstrapSeed: 0 },
           );
-          const lookSe = look.confidence.standardError;
-          const lookDf = look.confidence.degreesOfFreedom ?? Infinity;
-          const ub05 = look.confidence.estimate +
-            (lookSe === 0 ? 0 : studentTQuantile(1 - PREDECLARED.futilityAlpha, lookDf)) * lookSe;
-          if (ub05 < cell.threshold) {
+          if (evalFutilityStops({
+            estimate: look.confidence.estimate,
+            standardError: look.confidence.standardError,
+            degreesOfFreedom: look.confidence.degreesOfFreedom,
+            futilityAlpha: PREDECLARED.futilityAlpha,
+            threshold: cell.threshold,
+          })) {
             firedAt = k;
             break;
           }
@@ -293,6 +297,7 @@ function workerLoop(): void {
 
 async function main(): Promise<void> {
   const startedAt = Date.now();
+  const certificationGeneratorFingerprint = fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES);
   const argument = (name: string): string | undefined => {
     const prefix = `--${name}=`;
     return process.argv.find((value) => value.startsWith(prefix))?.slice(prefix.length);
@@ -528,9 +533,12 @@ async function main(): Promise<void> {
     : { ...robustBars, ...truthTransferBar };
   const powerReported = mode === "holdout" ? powerBars : undefined;
   const allBarsMet = Object.values(barsMet).every((met) => met);
+  if (fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES) !== certificationGeneratorFingerprint) {
+    throw new Error(`certification generator sources changed while the study was running; discard and rerun`);
+  }
 
   const report = {
-    schema: "line.benchmark-v2.independent-validation.v2",
+    schema: "line.benchmark-v2.independent-validation.v4",
     mode,
     inSample: allowInSample,
     predeclared: PREDECLARED,
@@ -544,6 +552,7 @@ async function main(): Promise<void> {
     originalReference: {
       path: relative(originalPath),
       artifactSha256: originalArtifact.artifactSha256,
+      rawSha256: originalArtifact.rawSha256,
       seeds: original.seeds,
     },
     upstream: {
@@ -554,11 +563,13 @@ async function main(): Promise<void> {
     suiteFingerprint: identity.suiteFingerprint,
     scorerFingerprint,
     decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
+    evalChainInferenceFingerprint: fingerprintFiles(EVAL_CHAIN_INFERENCE_SOURCE_FILES),
+    certificationGeneratorFingerprint,
     methodology: {
       independenceDiscipline:
         "Primary validation applies the power grid's frozen perturbation recipes and shift values (solved on seeds 0..11) unchanged to the independent seeds-12..23 blocks; achievedTrueDeltas reports the resulting true effects on the independent blocks. resolvedDiagnostic (shifts re-solved on the independent blocks) is a secondary diagnostic only and feeds no bar.",
       dgp: "Identical to the power grid: unpaired empirical block resampling per (budget, slot) from the verified independent reference; validity flips and catalog-wide hard-zero stress mirror study_decision_coverage.ts.",
-      futility: "One depth-32 draw per trial; looks read the first k blocks of the same draw at k in the declared schedule; rule = one-sided upper bound at alpha 0.05 below the threshold; netAccept = final accept at criticalAlpha 0.01 AND never stopped.",
+      futility: `One depth-${PREDECLARED.depth} draw per trial; looks read the first k blocks of the same draw at k in the declared schedule; rule = one-sided upper bound at alpha ${PREDECLARED.futilityAlpha} below the threshold; netAccept = final accept at criticalAlpha ${PREDECLARED.criticalAlpha} AND never stopped.`,
       rng: "Deterministic per (cell, stream, trial); results are independent of worker/shard layout.",
     },
     achievedTrueDeltas,

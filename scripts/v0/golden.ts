@@ -1,17 +1,17 @@
 /**
  * v0 golden budget-curve benchmark — single source of truth for compiler work.
  *
- *   npm run golden -- --full
- *   npm run golden -- --probe
- *   npm run golden -- --full --json
- *   npm run golden -- --full --json-full
- *   npm run golden -- --full --details
- *   npm run golden -- --full --seed=42
- *   npm run golden -- --probe --specs=tiny_dance,opening_burst
- *   npm run golden -- --full --budgets=50000,300000
- *   npm run golden -- --full --archive-dir=generated/golden-runs/my-run
- *   npm run golden -- --full --variants
- *   npm run golden -- --full --jobs=6  # override preset jobs=32
+ *   npm run golden:v1 -- --full
+ *   npm run golden:v1 -- --probe
+ *   npm run golden:v1 -- --full --json
+ *   npm run golden:v1 -- --full --json-full
+ *   npm run golden:v1 -- --full --details
+ *   npm run golden:v1 -- --full --seed=42
+ *   npm run golden:v1 -- --probe --specs=tiny_dance,opening_burst
+ *   npm run golden:v1 -- --full --budgets=50000,300000
+ *   npm run golden:v1 -- --full --archive-dir=generated/golden-runs/my-run
+ *   npm run golden:v1 -- --full --variants
+ *   npm run golden:v1 -- --full --jobs=6  # override preset jobs=32
  *
  * Each budget is an INDEPENDENT full run (no anytime sharing): passing N budgets
  * runs N compiles per (spec, seed slot). The headline metric (see metric.ts) is the

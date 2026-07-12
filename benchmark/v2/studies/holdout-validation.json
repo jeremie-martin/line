@@ -1,5 +1,5 @@
 {
-  "schema": "line.benchmark-v2.independent-validation.v2",
+  "schema": "line.benchmark-v2.independent-validation.v4",
   "mode": "holdout",
   "inSample": false,
   "predeclared": {
@@ -55,6 +55,7 @@
   "originalReference": {
     "path": "benchmark/v2/runs/calibration-v2.4-pooled-reference-seeds-0-23.json.gz",
     "artifactSha256": "796c6188c515ac4aa702349e1861f659145fc39f910d49bebd17f080fe44f5d7",
+    "rawSha256": "9ee36c0d539993928cf6bf5628c12e7fa57a004797de16f26120894cfc6b4e30",
     "seeds": [
       0,
       1,
@@ -99,10 +100,12 @@
   "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
   "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
   "decisionInferenceFingerprint": "a4221accc55324d18b1a4d21731d1d65102399cc400278d8d2a366ed45037d21",
+  "evalChainInferenceFingerprint": "4694360852f907e3ba0d2bb239f8bec65d5dac66710e82d9eb76772dfd9286c7",
+  "certificationGeneratorFingerprint": "9ed276d95fb82aab49603763f6a454f3959d20ee2de90d920dcf75134d7f50cd",
   "methodology": {
     "independenceDiscipline": "Primary validation applies the power grid's frozen perturbation recipes and shift values (solved on seeds 0..11) unchanged to the independent seeds-12..23 blocks; achievedTrueDeltas reports the resulting true effects on the independent blocks. resolvedDiagnostic (shifts re-solved on the independent blocks) is a secondary diagnostic only and feeds no bar.",
     "dgp": "Identical to the power grid: unpaired empirical block resampling per (budget, slot) from the verified independent reference; validity flips and catalog-wide hard-zero stress mirror study_decision_coverage.ts.",
-    "futility": "One depth-32 draw per trial; looks read the first k blocks of the same draw at k in the declared schedule; rule = one-sided upper bound at alpha 0.05 below the threshold; netAccept = final accept at criticalAlpha 0.01 AND never stopped.",
+    "futility": "One depth-48 draw per trial; looks read the first k blocks of the same draw at k in the declared schedule; rule = one-sided upper bound at alpha 0.05 below the threshold; netAccept = final accept at criticalAlpha 0.01 AND never stopped.",
     "rng": "Deterministic per (cell, stream, trial); results are independent of worker/shard layout."
   },
   "achievedTrueDeltas": {

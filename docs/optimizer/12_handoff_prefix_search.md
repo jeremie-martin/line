@@ -144,17 +144,15 @@ LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts
 ## Campaign Command
 
 ```bash
-npm run benchmark -- probe --out=generated/benchmark-v2/candidates/NAME-probe.json
-npm run decide -- generated/benchmark-v2/candidates/NAME-probe.json
+npm run benchmark -- eval
 ```
 
 The probe reports the V2 headline, per-budget scores, checkpoint identity,
-seed-policy metadata, and compact compiler statistics. Only a screened candidate
-should consume the baseline's one-shot canonical confirmation:
+seed-policy metadata, and compact compiler statistics. Take a worthwhile
+source-default candidate to the certified confirmation chain:
 
 ```bash
-npm run benchmark -- canonical --decision-mode=improvement
-npm run decide -- GENERATED_DEVELOPMENT_ARCHIVE
+npm run benchmark -- eval --to-verdict
 ```
 
 Historical `--full`, `--compiler`, custom V1 budget grids, and `golden.json`

@@ -41,7 +41,7 @@ export function startResourceMonitor(label: string, intervalSeconds = 5): Resour
     lastProcess = currentProcess;
     lastHost = currentHost;
 
-    console.log(
+    console.error(
       `  [resources:${label}] process ${processCores.toFixed(1)} cores; ` +
       `host ${hostBusyPercent.toFixed(0)}%; RSS ${gib(memory.rss)} GiB; ` +
       `heap ${gib(memory.heapUsed)} GiB; system ${gib(systemUsed)}/${gib(totalmem())} GiB; ` +
@@ -56,7 +56,7 @@ export function startResourceMonitor(label: string, intervalSeconds = 5): Resour
       stopped = true;
       clearInterval(interval);
       sample();
-      console.log(
+      console.error(
         `  [resources:${label}:peak] elapsed ${formatDuration((performance.now() - startedAt) / 1000)}; ` +
         `process ${peakProcessCores.toFixed(1)}/${availableParallelism()} cores; ` +
         `host ${peakHostBusyPercent.toFixed(0)}%; RSS ${gib(peakRss)} GiB; ` +

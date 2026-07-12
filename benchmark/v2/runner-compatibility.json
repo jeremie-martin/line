@@ -56,6 +56,34 @@
         "sha256": "a4629fc2b9aaf6cfd37ace220f1afde258bdf13df04326af8112b3d10671ebc8",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "c703ab4fb50fbace785f8f5d69d6732a8acc1f348a659af2eaf5adea5991894c",
+      "toImplementationFingerprint": "f67ed8dd9afb0020a30a7f404aaf37cadf6b4dd2029a2285687fca4c00ac42a9",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+      "reviewedBy": "Codex independent reliability repair",
+      "reviewedAt": "2026-07-12T05:56:15.817Z",
+      "rationale": "Benchmark V2 reliability repairs: transactional ledger, clean-source guard, stale archive invalidation, strict JSON diagnostics, and certification binding; compiler execution semantics intentionally unchanged",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-c703ab4f-f67ed8dd.json",
+        "sha256": "d34cc0ad02e7fa8b9c2536e6c4490fac5612b6be1aaac55fbb47008b562f279a",
+        "result": "bit-identical"
+      }
+    },
+    {
+      "fromImplementationFingerprint": "c703ab4fb50fbace785f8f5d69d6732a8acc1f348a659af2eaf5adea5991894c",
+      "toImplementationFingerprint": "8f31c63424e3a776044f2d5d39e4ee2488e7f8c33a0232ec906be831e99ddf0a",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
+      "reviewedBy": "Codex independent reliability repair, second adversarial pass",
+      "reviewedAt": "2026-07-12T06:41:47.728Z",
+      "rationale": "The repaired runner changes checkpoint identity and crash recovery only. This replay verifies every frozen baseline compile and score is bit-identical before the new implementation is authorized.",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-c703ab4f-8f31c634.json",
+        "sha256": "a30060cfaed379db96103f848b2c718b32e0de097ca12690a28a0400078daf78",
+        "result": "bit-identical"
+      }
     }
   ]
 }

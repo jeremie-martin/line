@@ -642,9 +642,7 @@ Studies (read-only): `scripts/v0/study_arc_sensitivity.ts`,
 `study_knob_additivity.ts`, `study_impact_funnel.ts`,
 `study_catchability.ts`, `study_joint_enum.ts`,
 `study_joint_arc_model.ts`; artifacts under `generated/analysis/`.
-Decision workflow: `npm run benchmark -- probe
---out=generated/benchmark-v2/candidates/<name>.json`, then `npm run decide --
-generated/benchmark-v2/candidates/<name>.json`. After an `advance`, use the
-one-shot canonical workflow in `docs/HOW_TO_WORK.md`. After
+Decision workflow: use `npm run benchmark -- eval` for stage-0 screening and
+`npm run benchmark -- eval --to-verdict` for certified confirmation. After
 any behavior or stats-key change: `LR_ENGINE=wasm npm run verify:optimizer
 -- --update` + full test suite.

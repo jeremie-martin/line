@@ -1,3 +1,4 @@
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -12,7 +13,14 @@ import {
   type DecisionArtifact,
 } from "../scripts/v0/benchmark_v2/decide.ts";
 import { studentTQuantile, type V2Decision } from "../scripts/v0/benchmark_v2/decision_model.ts";
-import { acquireRunLock, archiveChunks, writeArchiveArtifacts } from "../scripts/v0/benchmark_v2/runner.ts";
+import {
+  acquireRunLock,
+  archiveChunks,
+  checkpointPlanFingerprint,
+  invalidatePublishedRunArtifacts,
+  loadOrInitializeCheckpoint,
+  writeArchiveArtifacts,
+} from "../scripts/v0/benchmark_v2/runner.ts";
 import { canonicalArchiveRows, compareArchiveRows } from "../scripts/v0/benchmark_v2/runner_compatibility.ts";
 
 const temporaries: string[] = [];
@@ -89,6 +97,48 @@ describe("run lock", () => {
     expect(() => acquireRunLock(out)).not.toThrow();
     expect(JSON.parse(readFileSync(`${out}.lock`, "utf8")).pid).toBe(process.pid);
   });
+
+  test("only one concurrent contender can reclaim a stale lock", async () => {
+    const dir = tempDir();
+    const out = join(dir, "run.json");
+    const barrier = join(dir, "start");
+    writeFileSync(`${out}.lock`, `${JSON.stringify({ pid: 999_999_999, startedAt: "2026-01-01T00:00:00Z" })}\n`);
+    const source = `
+      import { existsSync, writeFileSync } from "node:fs";
+      import { setTimeout as sleep } from "node:timers/promises";
+      import { acquireRunLock } from "./scripts/v0/benchmark_v2/runner.ts";
+      writeFileSync(process.env.READY, "ready\\n");
+      while (!existsSync(process.env.BARRIER)) await sleep(5);
+      try {
+        acquireRunLock(process.env.OUT);
+        console.log("acquired");
+        await sleep(500);
+      } catch {
+        console.log("refused");
+      }
+    `;
+    const readyPaths = [join(dir, "ready-0"), join(dir, "ready-1")];
+    const contenders = readyPaths.map((ready) => spawn(process.execPath, [
+      "--import", "tsx", "--input-type=module", "--eval", source,
+    ], {
+      cwd: process.cwd(),
+      env: { ...process.env, OUT: out, BARRIER: barrier, READY: ready },
+      stdio: ["ignore", "pipe", "pipe"],
+    }));
+    const outputs = contenders.map((child) => new Promise<string>((resolveOutput, rejectOutput) => {
+      let stdout = "";
+      let stderr = "";
+      child.stdout.on("data", (chunk) => { stdout += chunk; });
+      child.stderr.on("data", (chunk) => { stderr += chunk; });
+      child.on("error", rejectOutput);
+      child.on("exit", (code) => code === 0 ? resolveOutput(stdout.trim()) : rejectOutput(new Error(stderr)));
+    }));
+    while (!readyPaths.every((path) => existsSync(path))) {
+      await new Promise((resolveWait) => setTimeout(resolveWait, 5));
+    }
+    writeFileSync(barrier, "go\n");
+    expect((await Promise.all(outputs)).sort()).toEqual(["acquired", "refused"]);
+  }, 5_000);
 });
 
 describe("archive artifacts", () => {
@@ -120,6 +170,29 @@ describe("archive artifacts", () => {
     expect(existsSync(`${out}.failed.sha256`)).toBe(false);
   });
 
+  test("a failed same-path rerun cannot leave an earlier success eligible", async () => {
+    const out = join(tempDir(), "run.json");
+    const success = Buffer.from(`${JSON.stringify({ generation: "old-success", runs: [] })}\n`);
+    await writeArchiveArtifacts(out, [success], false);
+    writeFileSync(`${out}.summary.json`, `${JSON.stringify({ generation: "old-success" })}\n`);
+
+    // runBenchmarkV2 performs this after acquiring its lock and validating the
+    // checkpoint, immediately before the new execution starts.
+    invalidatePublishedRunArtifacts(out);
+    await writeArchiveArtifacts(
+      out,
+      [Buffer.from(`${JSON.stringify({ generation: "new-failure", runs: [] })}\n`)],
+      true,
+    );
+
+    expect(existsSync(`${out}.failed`)).toBe(true);
+    expect(existsSync(out)).toBe(false);
+    expect(existsSync(`${out}.gz`)).toBe(false);
+    expect(existsSync(`${out}.sha256`)).toBe(false);
+    expect(existsSync(`${out}.gz.sha256`)).toBe(false);
+    expect(existsSync(`${out}.summary.json`)).toBe(false);
+  });
+
   test("chunked archive serialization round-trips and streams row-by-row", async () => {
     const archive = {
       schema: "line.benchmark-v2.run-archive.test",
@@ -144,6 +217,37 @@ describe("archive artifacts", () => {
 
     const empty = [...archiveChunks({ schema: "x", runs: [] })].join("");
     expect(JSON.parse(empty)).toEqual({ schema: "x", runs: [] });
+  });
+});
+
+describe("checkpoint candidate identity", () => {
+  test("refuses resume after source, environment, artifact, or aggregate identity changes", () => {
+    const checkpoint = join(tempDir(), "run.checkpoint.jsonl");
+    const candidateIdentity = {
+      candidateFingerprint: "a".repeat(64),
+      compilerSourceFingerprint: "b".repeat(64),
+      compilerEnvironment: { LR_EXAMPLE: "1" },
+      engineArtifactFingerprint: "c".repeat(64),
+    };
+    const plan = (identity: typeof candidateIdentity) => checkpointPlanFingerprint({
+      executionPolicyFingerprint: "d".repeat(64),
+      implementationFingerprint: "e".repeat(64),
+      candidateIdentity: identity,
+    });
+    const original = plan(candidateIdentity);
+    expect(loadOrInitializeCheckpoint(checkpoint, original, false)).toEqual([]);
+
+    const mutations = [
+      { ...candidateIdentity, candidateFingerprint: "f".repeat(64) },
+      { ...candidateIdentity, compilerSourceFingerprint: "0".repeat(64) },
+      { ...candidateIdentity, compilerEnvironment: { LR_EXAMPLE: "2" } },
+      { ...candidateIdentity, engineArtifactFingerprint: "1".repeat(64) },
+    ];
+    for (const identity of mutations) {
+      expect(plan(identity)).not.toBe(original);
+      expect(() => loadOrInitializeCheckpoint(checkpoint, plan(identity), true))
+        .toThrow(/checkpoint does not match the current run plan/);
+    }
   });
 });
 
@@ -203,21 +307,71 @@ describe("under-powered hint", () => {
 describe("next command", () => {
   test("maps every outcome to a runnable follow-up", () => {
     expect(nextCommandFor(decision({ outcome: "advance", authority: "screening" })))
-      .toBe("npm run benchmark -- canonical");
+      .toBe("npm run benchmark -- eval --to-verdict");
     expect(nextCommandFor(decision({
       outcome: "advance",
       authority: "screening",
       mode: "simplification",
       margin: 5,
       threshold: -5,
-    }))).toBe("npm run benchmark -- canonical --decision-mode=simplification --margin=5");
-    expect(nextCommandFor(decision({ outcome: "accept" }))).toContain("baseline --label=");
+    }))).toBe("npm run benchmark -- eval --to-verdict --mode=simplify --margin=5");
+    expect(nextCommandFor(decision({ outcome: "accept" }))).toContain("rebaseline --label=");
     expect(nextCommandFor(decision({ outcome: "unresolved", authority: "screening" })))
-      .toContain("canonical");
+      .toContain("eval --to-verdict");
     expect(nextCommandFor(decision({ outcome: "unresolved", authority: "promotion" })))
-      .toContain("decide <fresh-canonical-archive>");
-    expect(nextCommandFor(decision({ outcome: "stop", authority: "screening" }))).toContain("probe");
-    expect(nextCommandFor(decision({ outcome: "reject" }))).toContain("probe");
+      .toContain("--acknowledge-retry");
+    expect(nextCommandFor(decision({ outcome: "stop", authority: "screening" }))).toBe("npm run benchmark -- eval");
+    expect(nextCommandFor(decision({ outcome: "reject" }))).toBe("npm run benchmark -- eval");
+  });
+});
+
+describe("JSON CLI surface", () => {
+  test("writes exactly one structured JSON object to stdout on success", () => {
+    const result = spawnSync(process.execPath, [
+      "--import", "tsx", "scripts/benchmark/cli.ts", "help", "--json",
+    ], { cwd: process.cwd(), encoding: "utf8" });
+    expect(result.status).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      schema: "line.benchmark-v2.cli-result.v1",
+      ok: true,
+      exitCode: 0,
+      status: "completed",
+    });
+    expect(result.stderr).toContain("Benchmark V2");
+  });
+
+  test("writes exactly one structured JSON object to stdout on invalid input", () => {
+    const result = spawnSync(process.execPath, [
+      "--import",
+      "tsx",
+      "scripts/benchmark/cli.ts",
+      "canonical",
+      "--json",
+      "--no-resource-stats",
+    ], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: { ...process.env, LR_ENGINE: "wasm" },
+    });
+    expect(result.status).toBe(1);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed).toMatchObject({
+      schema: "line.benchmark-v2.cli-result.v1",
+      ok: false,
+      exitCode: 1,
+      status: "invalid",
+    });
+    expect(parsed.error.message).toMatch(/one-shot canonical path was retired/);
+    expect(result.stderr).toContain("Prepared ");
+  }, 15_000);
+
+  test("rejects unsupported JSON commands without leaking child stdout", () => {
+    const result = spawnSync(process.execPath, [
+      "--import", "tsx", "scripts/benchmark/cli.ts", "explain", "missing.json", "--json",
+    ], { cwd: process.cwd(), encoding: "utf8" });
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.stdout).error.message).toMatch(/explain does not support --json/);
+    expect(result.stderr).toBe("");
   });
 });
 

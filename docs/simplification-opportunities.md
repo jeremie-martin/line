@@ -13,12 +13,13 @@ A separate execution phase attempts these one at a time against Benchmark V2. Us
 explicit, predeclared non-inferiority margin:
 
 ```bash
-npm run decide -- CANDIDATE.json --mode=simplification --margin=0.1
+npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
 ```
 
-Simplification mode accepts only when the canonical lower 95% one-sided seed-block
-confidence bound exceeds `-0.1`. The historical outcomes below used the retired V1
-procedure and remain a campaign record; new work follows `benchmark-v2-decisions.md`.
+The margin must be one of the certified operating points and must be declared
+before confirmation evidence is generated. The historical outcomes below used
+the retired V1 procedure and remain a campaign record; new work follows
+`benchmark-v2-decisions.md`.
 
 **Hard invariant — do NOT change any of these:** the scorer, the golden spec
 set, the evaluator/scoring ruler, the metric definition, the seed set, or the
@@ -1347,7 +1348,7 @@ reverse-fit gate collapses (high risk) should come later.
 ## How to use this file
 
 - Work **top-to-bottom**, or by **risk** (attempt all `low` first, then `medium`, then `high`) — the low-risk dead-code and de-duplication items are the cheapest wins and least likely to move the headline.
-- Attempt **one item at a time.** Make the change on a branch, run a V2 probe, then use the predeclared simplification workflow from `docs/HOW_TO_WORK.md`: `npm run decide -- CANDIDATE.json --mode=simplification --margin=0.1`. Only a canonical `accept` promotes it.
+- Attempt **one item at a time.** Make the source-default change, run `npm run benchmark -- eval`, then use the certified simplification workflow from `docs/HOW_TO_WORK.md`: `npm run benchmark -- eval --to-verdict --mode=simplify --margin=5`. Only an eval-chain `accept` promotes it.
 - When you attempt an item, **update its `Status:` line in place** — `Not Started` → `Accepted` / `Rejected` / `Abandoned` — with a one-line note (step headline Δ, `P(Δ≤-0.1)`, cumulative Δ vs the campaign-start baseline when available, reason for abandoning, follow-up needed). Do **not** add a new section per attempt; this file is the running log.
 - Respect the hard invariant: the scorer, golden specs, evaluator/scoring ruler, headline metric, seed set, and budget grid are fixed. Compiler behavior may change; the measuring ruler may not. If a candidate's `evaluator_fingerprint` differs from the baseline's, mark the item out of scope for this campaign.
 - Several entries note **cross-references** (e.g. #29↔#72 impact-ask thresholds; #46↔#125/#126 study arms; #64↔#117 reachability probe). Prefer landing the shared/underlying item first, then revisit its dependents.

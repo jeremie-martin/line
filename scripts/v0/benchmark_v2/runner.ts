@@ -139,7 +139,6 @@ export async function runBenchmarkV2(
   );
   const outputPath = resolve(argument("out") ?? defaultOutput(mode, profileName));
   const checkpointPath = resolve(argument("checkpoint") ?? `${outputPath}.checkpoint.jsonl`);
-  acquireRunLock(outputPath);
   const linkedDevelopmentPath = argument("development-archive") === undefined
     ? undefined
     : resolve(argument("development-archive")!);
@@ -267,23 +266,30 @@ export async function runBenchmarkV2(
     { sourceManifestPath, heldoutManifestPath },
     throughSeedSlot,
   );
-  const runPlanFingerprint = sha256(JSON.stringify({
+  const runPlanFingerprint = checkpointPlanFingerprint({
     executionPolicyFingerprint: execution.executionPolicyFingerprint,
     implementationFingerprint,
     characterizationFingerprint: characterization.dataFingerprint,
     auditFingerprint: audit.auditFingerprint,
     candidateReviewFingerprint: sourceInventoryFingerprint(reviewContents),
-    compilerSourceFingerprint: git.compilerSourceFingerprint,
+    candidateIdentity: {
+      candidateFingerprint: git.candidateFingerprint,
+      compilerSourceFingerprint: git.compilerSourceFingerprint,
+      compilerEnvironment: git.compilerEnvironment,
+      engineArtifactFingerprint: git.engineArtifactFingerprint,
+    },
     runtime,
     linkedDevelopment,
     confirmationDeclaration,
-  }));
+  });
   mkdirSync(dirname(outputPath), { recursive: true });
   mkdirSync(dirname(checkpointPath), { recursive: true });
+  acquireRunLock(outputPath);
   if (throughSeedSlot !== undefined && existsSync(checkpointPath) && !hasFlag("resume")) {
     throw new Error(`wave execution must resume its attempt checkpoint; pass --resume`);
   }
   const restored = loadOrInitializeCheckpoint(checkpointPath, runPlanFingerprint, hasFlag("resume"));
+  invalidatePublishedRunArtifacts(outputPath);
   const restoredByKey = new Map(restored.map((result) => [taskKey(result.task), result]));
   const pending = tasks.filter((task) => !restoredByKey.has(taskKey(task)));
   const sourceById = new Map(sources.map((source) => [source.id, source]));
@@ -839,7 +845,11 @@ function printProgress(
   );
 }
 
-function loadOrInitializeCheckpoint(
+export function checkpointPlanFingerprint(plan: Record<string, unknown>): string {
+  return sha256(JSON.stringify(plan));
+}
+
+export function loadOrInitializeCheckpoint(
   path: string,
   runPlanFingerprint: string,
   resume: boolean,
@@ -958,6 +968,24 @@ export async function writeArchiveArtifacts(
 }
 
 /**
+ * Once a locked run is ready to execute, its output path must no longer name
+ * evidence from an earlier invocation. Otherwise a failed rerun would leave
+ * the old checksummed success eligible for comparison beside the new .failed
+ * artifact.
+ */
+export function invalidatePublishedRunArtifacts(outputPath: string): void {
+  for (const path of [
+    outputPath,
+    `${outputPath}.gz`,
+    `${outputPath}.sha256`,
+    `${outputPath}.gz.sha256`,
+    `${outputPath}.summary.json`,
+  ]) {
+    rmSync(path, { force: true });
+  }
+}
+
+/**
  * Two concurrent runs sharing one --out would interleave the same checkpoint
  * JSONL and clobber each other's archives. An exclusive pid lockfile refuses
  * the second run while the first is alive and steals stale locks from dead
@@ -970,22 +998,52 @@ export function acquireRunLock(outputPath: string): void {
     writeFileSync(lockPath, payload, { flag: "wx" });
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-    const holder = JSON.parse(readFileSync(lockPath, "utf8"));
-    let alive = false;
-    try {
-      process.kill(holder.pid, 0);
-      alive = true;
-    } catch {
-      alive = false;
-    }
-    if (alive) {
+    const holder = readLockHolder(lockPath);
+    if (processIsAlive(holder.pid)) {
       throw new Error(`another benchmark run (pid ${holder.pid}, started ${holder.startedAt}) is writing ${relativeToCwd(outputPath)}; pass a distinct --out=`);
     }
-    writeFileSync(lockPath, payload);
+
+    // Serialize stale-lock reclamation separately. Without this guard, two
+    // contenders can both observe the dead pid and one can overwrite/remove
+    // the live lock just acquired by the other.
+    const takeoverPath = `${lockPath}.takeover`;
+    try {
+      writeFileSync(takeoverPath, payload, { flag: "wx" });
+    } catch (takeoverError) {
+      if ((takeoverError as NodeJS.ErrnoException).code !== "EEXIST") throw takeoverError;
+      throw new Error(`another process is reclaiming the stale benchmark lock for ${relativeToCwd(outputPath)}; retry shortly`);
+    }
+    try {
+      const current = readLockHolder(lockPath);
+      if (processIsAlive(current.pid)) {
+        throw new Error(`another benchmark run (pid ${current.pid}, started ${current.startedAt}) is writing ${relativeToCwd(outputPath)}; pass a distinct --out=`);
+      }
+      rmSync(lockPath, { force: true });
+      writeFileSync(lockPath, payload, { flag: "wx" });
+    } finally {
+      rmSync(takeoverPath, { force: true });
+    }
   }
   process.on("exit", () => {
     rmSync(lockPath, { force: true });
   });
+}
+
+function readLockHolder(lockPath: string): { pid: number; startedAt: string } {
+  const holder = JSON.parse(readFileSync(lockPath, "utf8"));
+  if (!Number.isInteger(holder.pid) || typeof holder.startedAt !== "string") {
+    throw new Error(`benchmark lock ${relativeToCwd(lockPath)} is malformed; inspect it before retrying`);
+  }
+  return holder;
+}
+
+function processIsAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function defaultOutput(mode: RunnerMode, profile: string): string {

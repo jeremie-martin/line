@@ -3,7 +3,7 @@
  *
  *   npx tsx scripts/v0/analyze_golden_curve.ts /tmp/golden.json
  *   npx tsx scripts/v0/analyze_golden_curve.ts probe/golden.json baseline/golden.json
- *   npm run golden -- --full --json --specs=tiny_dance --seed=0 --jobs=6 | npx tsx scripts/v0/analyze_golden_curve.ts -
+ *   npm run golden:v1 -- --full --json --specs=tiny_dance --seed=0 --jobs=6 | npx tsx scripts/v0/analyze_golden_curve.ts -
  */
 
 import { readFileSync } from "node:fs";

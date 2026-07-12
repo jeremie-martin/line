@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import { gunzipSync } from "node:zlib";
 import { benchmarkDecisionCalibrationPolicy } from "../../../benchmark/v2/decision-policy.ts";
 import {
   benchmarkEvalPolicy,
@@ -11,6 +12,8 @@ import {
 } from "../../../benchmark/v2/eval-policy.ts";
 import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
+import { EVAL_CHAIN_INFERENCE_SOURCE_FILES } from "./eval_chain_inference.ts";
+import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "./certification_identity.ts";
 import { fingerprintFiles } from "./suite_model.ts";
 
 export type DecisionContractIdentity = {
@@ -105,43 +108,63 @@ export function requireCertifiedOperatingPoint(
     );
   }
   const inferenceFingerprint = fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES);
+  const evalChainInferenceFingerprint = fingerprintFiles(EVAL_CHAIN_INFERENCE_SOURCE_FILES);
+  const certificationGeneratorFingerprint = fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES);
+  const verifiedReferences = new Set<string>();
   const menu = readCertificationArtifact(
     artifactPaths.menuCertification,
     "certify",
     suiteFingerprint,
     inferenceFingerprint,
+    evalChainInferenceFingerprint,
+    certificationGeneratorFingerprint,
+    verifiedReferences,
   );
   const holdout = readCertificationArtifact(
     artifactPaths.holdoutValidation,
     "holdout",
     suiteFingerprint,
     inferenceFingerprint,
+    evalChainInferenceFingerprint,
+    certificationGeneratorFingerprint,
+    verifiedReferences,
   );
+  if (JSON.stringify(menu.report.predeclared) !== JSON.stringify(holdout.report.predeclared)) {
+    throw new Error(`menu and holdout certification predeclarations differ`);
+  }
+  const expectedFutilitySchedule = benchmarkEvalPolicy.operatingPoints.find(
+    (entry) => entry.futilitySchedule.length > 0,
+  )?.futilitySchedule ?? [];
   for (const artifact of [menu, holdout]) {
     if (
       artifact.report.predeclared?.depth !== point.depth ||
       artifact.report.predeclared?.criticalAlpha !== point.criticalAlpha ||
-      artifact.report.predeclared?.futilityAlpha !== point.futilityAlpha
-    ) throw new Error(`${artifact.path} does not certify depth ${point.depth} at the declared alpha levels`);
+      artifact.report.predeclared?.futilityAlpha !== point.futilityAlpha ||
+      JSON.stringify(artifact.report.predeclared?.futilitySchedule) !== JSON.stringify([...expectedFutilitySchedule])
+    ) throw new Error(`${artifact.path} does not certify the declared depth, alpha levels, and futility schedule`);
   }
-  if (
-    point.futilitySchedule.length > 0 &&
-    JSON.stringify(menu.report.predeclared?.futilitySchedule) !== JSON.stringify([...point.futilitySchedule])
-  ) throw new Error(`the certified futility schedule differs from the declared operating point`);
   const bars = benchmarkEvalPolicy.bars;
-  if (
-    menu.report.predeclared?.bars?.nullFalseAcceptWilsonUpperMax !== bars.nullFalseAcceptWilsonUpperMax ||
-    menu.report.predeclared?.bars?.powerAtPlus5WilsonLowerMin !== bars.powerWilsonLowerMin
-  ) throw new Error(`certification bars in ${menu.path} do not match the eval policy bars`);
+  for (const artifact of [menu, holdout]) {
+    const declaredBars = artifact.report.predeclared?.bars;
+    if (
+      declaredBars?.nullFalseAcceptWilsonUpperMax !== bars.nullFalseAcceptWilsonUpperMax ||
+      declaredBars?.boundaryFalseAcceptWilsonUpperMax !== bars.nullFalseAcceptWilsonUpperMax ||
+      declaredBars?.futilityNullFalseAcceptWilsonUpperMax !== bars.nullFalseAcceptWilsonUpperMax ||
+      declaredBars?.powerAtPlus5WilsonLowerMin !== bars.powerWilsonLowerMin ||
+      declaredBars?.noninferiorityPowerWilsonLowerMin !== bars.powerWilsonLowerMin ||
+      declaredBars?.futilityNetPowerAtPlus5WilsonLowerMin !== bars.powerWilsonLowerMin
+    ) throw new Error(`certification bars in ${artifact.path} do not match the eval policy bars`);
+  }
 
   const power = certifiedRate(menu.report, point.cells.power, menu.path);
   if (power.wilson95[0] < bars.powerWilsonLowerMin) {
     throw new Error(`certified power lower bound ${power.wilson95[0]} for ${point.id} is below ${bars.powerWilsonLowerMin}`);
   }
-  const spendRate = certifiedRate(menu.report, point.cells.spendNull, menu.path);
+  const nullRates: ValidatedRate[] = [];
   for (const cell of [point.cells.spendNull, ...point.cells.additionalNulls]) {
     for (const artifact of [menu, holdout]) {
       const rate = certifiedRate(artifact.report, cell, artifact.path);
+      nullRates.push(rate);
       if (rate.wilson95[1] > bars.nullFalseAcceptWilsonUpperMax) {
         throw new Error(`${cell.id} false-accept upper bound ${rate.wilson95[1]} in ${artifact.path} exceeds ${bars.nullFalseAcceptWilsonUpperMax}`);
       }
@@ -159,11 +182,21 @@ export function requireCertifiedOperatingPoint(
     powerGrid: menu.report.upstream?.powerGrid?.sha256,
     probeFutility: menu.report.upstream?.probeFutility?.sha256,
     evalPolicy: fingerprintFiles(["benchmark/v2/eval-policy.ts"]),
+    evalChainInference: evalChainInferenceFingerprint,
+    certificationGenerator: certificationGeneratorFingerprint,
+    menuIndependentReference: menu.report.independentReference?.artifactSha256,
+    menuIndependentReferenceRaw: menu.report.independentReference?.rawSha256,
+    menuOriginalReference: menu.report.originalReference?.artifactSha256,
+    menuOriginalReferenceRaw: menu.report.originalReference?.rawSha256,
+    holdoutIndependentReference: holdout.report.independentReference?.artifactSha256,
+    holdoutIndependentReferenceRaw: holdout.report.independentReference?.rawSha256,
+    holdoutOriginalReference: holdout.report.originalReference?.artifactSha256,
+    holdoutOriginalReferenceRaw: holdout.report.originalReference?.rawSha256,
     operatingPointId: point.id,
   })));
   return {
     point,
-    spend: spendRate.wilson95[1],
+    spend: Math.max(...nullRates.map((rate) => rate.wilson95[1])),
     mde80: point.certifiedDetectableEffect,
     envelopeSe,
     certificationFingerprint,
@@ -175,14 +208,21 @@ export function requireCertifiedOperatingPoint(
 }
 
 const CERTIFICATION_REGEN_HINT =
-  "regenerate with `node --import tsx scripts/benchmark/validate_independent_reference.ts` " +
-  "(--mode=certify --allow-in-sample against the pooled reference for the menu; --mode=holdout for the holdout)";
+  "regenerate both menu and holdout artifacts with " +
+  "`node --import tsx scripts/benchmark/validate_independent_reference.ts --mode=certify " +
+  "--allow-in-sample --independent-reference=benchmark/v2/runs/calibration-v2.4-pooled-reference-seeds-0-23.json.gz " +
+  "--original-reference=benchmark/v2/runs/calibration-v2.4-pooled-reference-seeds-0-23.json.gz " +
+  "--out=benchmark/v2/studies/menu-certification.json` and the corresponding `--mode=holdout` command " +
+  "using calibration-v2.4-holdout-reference-seeds-36-47.json.gz and holdout-validation.json";
 
 function readCertificationArtifact(
   path: string,
   expectedMode: "certify" | "holdout",
   suiteFingerprint: string,
   inferenceFingerprint: string,
+  evalChainInferenceFingerprint: string,
+  certificationGeneratorFingerprint: string,
+  verifiedReferences: Set<string>,
 ): { path: string; sha256: string; report: any } {
   const absolute = resolve(path);
   if (!existsSync(absolute)) {
@@ -190,17 +230,61 @@ function readCertificationArtifact(
   }
   const bytes = readFileSync(absolute);
   const report = JSON.parse(bytes.toString("utf8"));
-  if (report.schema !== "line.benchmark-v2.independent-validation.v2" || report.mode !== expectedMode) {
+  if (report.schema !== "line.benchmark-v2.independent-validation.v4" || report.mode !== expectedMode) {
     throw new Error(`certification artifact ${path} has an unsupported schema or mode`);
   }
   if (report.suiteFingerprint !== suiteFingerprint || report.decisionInferenceFingerprint !== inferenceFingerprint) {
     throw new Error(`certification artifact ${path} is stale for the current suite or inference identity; ${CERTIFICATION_REGEN_HINT}`);
+  }
+  if (report.evalChainInferenceFingerprint !== evalChainInferenceFingerprint) {
+    throw new Error(`certification artifact ${path} is stale for the current eval-chain inference implementation; ${CERTIFICATION_REGEN_HINT}`);
+  }
+  if (report.certificationGeneratorFingerprint !== certificationGeneratorFingerprint) {
+    throw new Error(`certification artifact ${path} is stale for the current certification generator or methodology; ${CERTIFICATION_REGEN_HINT}`);
+  }
+  requireReferenceArtifact(report.independentReference, `${expectedMode} independent reference`, verifiedReferences);
+  requireReferenceArtifact(report.originalReference, `${expectedMode} original reference`, verifiedReferences);
+  for (const [name, reference] of Object.entries(report.upstream ?? {})) {
+    requireArtifact(
+      (reference as any)?.path,
+      (reference as any)?.sha256,
+      `${expectedMode} certification upstream ${name}`,
+    );
   }
   if (report.allBarsMet !== true) {
     throw new Error(`certification artifact ${path} did not meet its predeclared bars; the menu is not certified`);
   }
   return { path, sha256: sha256(bytes), report };
 }
+
+function requireReferenceArtifact(reference: any, label: string, verified: Set<string>): void {
+  if (
+    typeof reference?.path !== "string" ||
+    !/^[a-f0-9]{64}$/.test(reference?.artifactSha256 ?? "") ||
+    !/^[a-f0-9]{64}$/.test(reference?.rawSha256 ?? "")
+  ) throw new Error(`${label} identity is incomplete`);
+  const cacheKey = `${reference.path}\0${reference.artifactSha256}\0${reference.rawSha256}`;
+  if (verified.has(cacheKey)) return;
+  const absolute = resolve(reference.path);
+  if (!existsSync(absolute)) throw new Error(`${label} is missing`);
+  const stat = statSync(absolute);
+  const cached = verifiedReferenceArtifacts.get(cacheKey);
+  if (
+    cached !== undefined && cached.size === stat.size && cached.mtimeMs === stat.mtimeMs &&
+    cached.ino === stat.ino
+  ) {
+    verified.add(cacheKey);
+    return;
+  }
+  const artifact = readFileSync(absolute);
+  if (sha256(artifact) !== reference.artifactSha256) throw new Error(`${label} artifact checksum mismatch`);
+  const raw = reference.path.endsWith(".gz") ? gunzipSync(artifact) : artifact;
+  if (sha256(raw) !== reference.rawSha256) throw new Error(`${label} raw checksum mismatch`);
+  verifiedReferenceArtifacts.set(cacheKey, { size: stat.size, mtimeMs: stat.mtimeMs, ino: stat.ino });
+  verified.add(cacheKey);
+}
+
+const verifiedReferenceArtifacts = new Map<string, { size: number; mtimeMs: number; ino: number }>();
 
 function findCertificationCell(report: any, id: string, path: string): any {
   const cell = (report.cells ?? []).find((entry: any) => entry.id === id);

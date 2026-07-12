@@ -50,10 +50,11 @@ Five production references form a linked qualification monitor:
 - `scripts/v0/specs/shelter_impact_sync.ts`;
 - `scripts/v0/specs/amour_de_ma_vie_short.ts`.
 
-A canonical command first seals the complete development archive, then runs qualification
-and links it to that archive by SHA-256. Qualification is displayed and trended but never
-enters the headline or accepts a compiler candidate. Because these five results are shown
-at canonical milestones, they are monitors rather than untouched statistical holdouts;
+A favorable eval confirmation first seals the complete development archive,
+then runs qualification and links it to that archive by SHA-256. Qualification
+is displayed and trended but never enters the headline or accepts a compiler
+candidate. Because these five results are shown at accepted milestones, they
+are monitors rather than untouched statistical holdouts;
 case-specific tuning against them is prohibited. New production works preserve genuinely
 unseen evidence only when frozen before their first compile.
 
@@ -119,16 +120,19 @@ weight. The V2 score scale is independent of V1 and its historical headline.
 
 ## Compute profiles
 
-Probe and canonical use the same 42 development cases. Actual seeds are disjoint across
-budgets and also between profiles at every shared budget, so canonical evidence does not
-reuse seeds exposed during probe-driven development.
+Stage 0 and confirmation use the same 42 development cases. Actual seeds are
+disjoint across budgets, and every confirmation declaration allocates a fresh
+canonical epoch that does not reuse stage-0 development seeds or a prior attempt.
 
 | Profile | Budgets | Seeds per budget | Development compiles |
 |---|---|---:|---:|
 | probe | 250k / 500k | 3 | 252 |
 | canonical (per compiler side) | 250k / 500k / 750k | 8 | 1,008 |
 
-A promotion attempt runs both the checksummed baseline compiler snapshot and the declared candidate on one fresh canonical schedule, for 2,016 paired development compiles, then adds 120 candidate-only qualification monitor compiles. Canonical seed epochs are allocated after declaration and never reused.
+A certified promotion attempt runs both the checksummed baseline compiler
+snapshot and the declared candidate on one fresh canonical schedule at its
+declared depth. Qualification is candidate-only and runs after an accept.
+Canonical seed epochs are allocated after declaration and never reused.
 
 The allocation was frozen from a 1,512-run study using 12 reference seeds at every
 budget. One-seed probes had 20.87 points of p95 headline error; three-seed probes reduced
@@ -173,10 +177,11 @@ suite identity.
 2. Materialize variants and regenerate static evidence.
 3. Complete and sign the tracked structural and listening review without compiler outcomes.
 4. Freeze catalog, weights, evaluator, profiles, and fingerprints.
-5. Establish a checksummed canonical baseline.
+5. Establish a checksummed initial or suite-rollover baseline.
 6. Improve the compiler using development results only.
-7. Screen candidates on reusable probe evidence, then spend the baseline's single predeclared canonical confirmation using `docs/benchmark-v2-decisions.md`.
-8. Run qualification only as the linked sidecar of a canonical milestone.
+7. Screen with reusable stage-0 evidence, then declare a certified eval
+   confirmation using `docs/benchmark-v2-decisions.md`.
+8. Run qualification only as the linked sidecar of an accepted confirmation.
 
 Any change to cases, membership, parent structure, weights, scoring, target
 interpretation, budgets, or seed policy creates a new suite fingerprint and requires a

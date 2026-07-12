@@ -22,10 +22,13 @@ import { benchmarkEvalPolicy, cheapestOperatingPoint } from "../../../benchmark/
 import { applyJolt } from "../../produce/seed.ts";
 import {
   appendAttemptEvent,
+  assertAttemptDeclarationCurrent,
   initializeLedgerFromBaseline,
   readEraState,
   retryStatus,
   assertBudgetAllows,
+  withAttemptLedgerTransaction,
+  type AttemptPaths,
   type EraState,
 } from "./attempts.ts";
 import {
@@ -39,6 +42,7 @@ import {
   createSnapshotWorkspace,
   disposeSnapshotWorkspace,
   runInWorkspace,
+  type SnapshotBenchmarkRun,
   type SnapshotWorkspace,
 } from "./compiler_snapshot.ts";
 import {
@@ -62,9 +66,13 @@ import {
 } from "./decide.ts";
 import {
   pairedV2DecisionForCalibration,
-  studentTQuantile,
   type DecisionRun,
 } from "./decision_model.ts";
+import {
+  evalFutilityStops,
+  evalFutilityUpperBound,
+  evalRunsAtLook,
+} from "./eval_chain_inference.ts";
 import {
   evalNextCommand,
   renderEvalVerdict,
@@ -188,11 +196,11 @@ async function runToVerdict(argv: string[]): Promise<number> {
   const json = argv.includes("--json");
 
   const context = await loadEvalContext();
-  const baseline = readBaselineContract(baselinePath);
+  let baseline = readBaselineContract(baselinePath);
   if (context.suiteFingerprint !== baseline.suiteFingerprint) {
     throw new Error(`suite differs from the baseline contract; establish a new baseline`);
   }
-  const decisionContract = requireCurrentDecisionCalibration(context.suiteFingerprint);
+  let decisionContract = requireCurrentDecisionCalibration(context.suiteFingerprint);
   assertCurrentDecisionContract(baseline, decisionContract);
 
   if (argv.includes("--resume")) {
@@ -205,90 +213,126 @@ async function runToVerdict(argv: string[]): Promise<number> {
     ? (cheapestOperatingPoint(mode, margin)?.depth ??
       (() => { throw new Error(`no certified operating point offers mode ${mode}${margin === null ? "" : ` m=${margin}`}`); })())
     : Number(argument("depth"));
-  const certified = requireCertifiedOperatingPoint(mode, margin, depth, context.suiteFingerprint);
+  let certified = requireCertifiedOperatingPoint(mode, margin, depth, context.suiteFingerprint);
 
   if (!existsSync(ledgerPaths.ledger)) {
     initializeLedgerFromBaseline(baselinePath, ledgerPaths);
     console.log(`eval ledger bootstrapped from the baseline of record`);
   }
-  let era = readEraState(ledgerPaths);
   const overrideCap = argument("override-era-budget");
   if (overrideCap !== undefined) {
     const reason = argument("reason");
     if (reason === undefined || reason.trim() === "") {
       throw new Error(`--override-era-budget requires --reason=...`);
     }
-    era = appendAttemptEvent({
-      type: "override",
-      eraId: era.eraId!,
-      previousCap: era.budgetCap,
-      newCap: Number(overrideCap),
-      reason,
-      operator: argument("operator") ?? "unspecified",
-    }, ledgerPaths);
-  }
-  const identity = compilerCandidateIdentity("wasm");
-  const retry = retryStatus(era, identity.candidateFingerprint, certified.point.criticalAlpha);
-  if (retry.priorAttempts > 0 && !argv.includes("--acknowledge-retry")) {
-    throw new Error(
-      `this candidate was already attempted ${retry.priorAttempts} time(s); ` +
-      `a retry compounds alpha to ${retry.compoundAlpha} — pass --acknowledge-retry to proceed`,
+    withAttemptLedgerTransaction(ledgerPaths, (transaction) =>
+      transaction.append({
+        type: "override",
+        eraId: transaction.state.eraId!,
+        previousCap: transaction.state.budgetCap,
+        newCap: Number(overrideCap),
+        reason,
+        operator: argument("operator") ?? "unspecified",
+      })
     );
   }
-  assertBudgetAllows(era, certified.spend);
-
-  // Fresh epoch, disjoint from every prior epoch in BOTH allocation systems
-  // and from the fixed manifest schedules.
+  const identity = compilerCandidateIdentity("wasm");
   const budgets = context.suite.profiles.canonical.budgets;
   const seedCount = budgets.length * depth;
-  const canonicalSeedBase = allocateCanonicalSeedBase(era.seedLedger, seedCount);
-  const schedule = resolvedSeedSchedule(context.suite, "canonical", [...budgets], depth, canonicalSeedBase);
-  assertEpochDisjointFromManifest(context.suite, schedule);
-  const seedScheduleFingerprint = sha256(JSON.stringify(schedule));
-
   const attemptId = freshAttemptId();
   const candidateSnapshot = createCompilerSnapshot(`${attemptId}-candidate`, archiveDir);
   if (candidateSnapshot.candidateFingerprint !== identity.candidateFingerprint) {
     throw new Error(`candidate changed while its eval snapshot was being created`);
   }
-  const declared = declareEvalAttempt({
-    attemptId,
-    baseline,
-    decisionContract,
-    candidateFingerprint: identity.candidateFingerprint,
-    candidateSnapshot,
-    canonicalSeedBase,
-    seedScheduleFingerprint,
-    mode,
-    margin,
-    operatingPointId: certified.point.id,
-    depth,
-    criticalAlpha: certified.point.criticalAlpha,
-    futilitySchedule: [...certified.point.futilitySchedule],
-    futilityAlpha: certified.point.futilityAlpha,
-    eraBudgetSpend: certified.spend,
-    retryAcknowledged: argv.includes("--acknowledge-retry"),
-    certificationFingerprint: certified.certificationFingerprint,
-    declarationDir,
+
+  const acknowledgedRetry = argv.includes("--acknowledge-retry");
+  const declaration = withAttemptLedgerTransaction(ledgerPaths, (transaction) => {
+    // Baseline, suite, calibration, and certification may have changed while
+    // the candidate snapshot was being created. Re-read them under the same
+    // lock that commits the declaration so migration/rebaseline cannot land
+    // in the check-to-append window.
+    const freshSuite = suiteIdentity(SUITE_MANIFEST, SOURCE_MANIFEST, context.sources);
+    if (freshSuite.suiteFingerprint !== context.suiteFingerprint) {
+      throw new Error(`suite changed while the eval attempt was being prepared; restart the declaration`);
+    }
+    const freshBaseline = readBaselineContract(baselinePath);
+    if (transaction.state.baselineLabel !== freshBaseline.label) {
+      throw new Error(`baseline or era changed while the eval attempt was being prepared; restart the declaration`);
+    }
+    const freshDecisionContract = requireCurrentDecisionCalibration(context.suiteFingerprint);
+    assertCurrentDecisionContract(freshBaseline, freshDecisionContract);
+    const freshCertified = requireCertifiedOperatingPoint(mode, margin, depth, context.suiteFingerprint);
+    baseline = freshBaseline;
+    decisionContract = freshDecisionContract;
+    certified = freshCertified;
+
+    const retry = retryStatus(
+      transaction.state,
+      identity.candidateFingerprint,
+      certified.point.criticalAlpha,
+    );
+    if (retry.priorAttempts > 0 && !acknowledgedRetry) {
+      throw new Error(
+        `this candidate was already attempted ${retry.priorAttempts} time(s); ` +
+        `a retry compounds nominal alpha to ${retry.compoundAlpha} ` +
+        `(certified spend is accounted separately) — pass --acknowledge-retry to proceed`,
+      );
+    }
+    assertBudgetAllows(transaction.state, certified.spend);
+
+    // The epoch is derived and committed under the same lock, so two eval
+    // processes cannot observe the same seed ledger or both declare.
+    const canonicalSeedBase = allocateCanonicalSeedBase(transaction.state.seedLedger, seedCount);
+    const schedule = resolvedSeedSchedule(
+      context.suite,
+      "canonical",
+      [...budgets],
+      depth,
+      canonicalSeedBase,
+    );
+    assertEpochDisjointFromManifest(context.suite, schedule);
+    const seedScheduleFingerprint = sha256(JSON.stringify(schedule));
+    const declared = declareEvalAttempt({
+      attemptId,
+      baseline,
+      decisionContract,
+      candidateFingerprint: identity.candidateFingerprint,
+      candidateSnapshot,
+      canonicalSeedBase,
+      seedScheduleFingerprint,
+      mode,
+      margin,
+      operatingPointId: certified.point.id,
+      depth,
+      criticalAlpha: certified.point.criticalAlpha,
+      futilitySchedule: [...certified.point.futilitySchedule],
+      futilityAlpha: certified.point.futilityAlpha,
+      eraBudgetSpend: certified.spend,
+      retryAcknowledged: acknowledgedRetry,
+      certificationFingerprint: certified.certificationFingerprint,
+      declarationDir,
+    });
+    const era = transaction.append({
+      type: "declare",
+      eraId: transaction.state.eraId!,
+      attemptId,
+      declarationPath: relativeToCwd(declared.declarationPath),
+      declarationSha256: declared.declarationSha256,
+      candidateFingerprint: identity.candidateFingerprint,
+      operatingPointId: certified.point.id,
+      mode,
+      margin,
+      depth,
+      spend: certified.spend,
+      certificationFingerprint: certified.certificationFingerprint,
+      canonicalSeedBase,
+      seedCount,
+      seedScheduleFingerprint,
+      retryAcknowledged: acknowledgedRetry,
+    });
+    return { declared, era, retry, canonicalSeedBase };
   });
-  era = appendAttemptEvent({
-    type: "declare",
-    eraId: era.eraId!,
-    attemptId,
-    declarationPath: relativeToCwd(declared.declarationPath),
-    declarationSha256: declared.declarationSha256,
-    candidateFingerprint: identity.candidateFingerprint,
-    operatingPointId: certified.point.id,
-    mode,
-    margin,
-    depth,
-    spend: certified.spend,
-    certificationFingerprint: certified.certificationFingerprint,
-    canonicalSeedBase,
-    seedCount,
-    seedScheduleFingerprint,
-    retryAcknowledged: argv.includes("--acknowledge-retry"),
-  }, ledgerPaths);
+  const { declared, era, retry, canonicalSeedBase } = declaration;
   console.log(`declared eval attempt ${attemptId}: ${certified.point.id}, epoch base ${canonicalSeedBase}, spend ${certified.spend}`);
 
   return executeAttempt(
@@ -390,20 +434,31 @@ async function executeAttempt(
   const basePath = resolve(outDir, `${declaration.attemptId}-baseline-development.json`);
   const candidatePath = resolve(outDir, `${declaration.attemptId}-development.json`);
   const segments = [...declaration.futilitySchedule, declaration.depth];
-  const takenLooks = new Set(
-    readAttemptEventsFor(ledgerPaths, declaration.attemptId)
-      .filter((event) => event.type === "look")
-      .map((event) => event.k as number),
-  );
-  const looksSummary: Array<{ k: number; fired: boolean }> = [...takenLooks].sort((a, b) => a - b)
-    .map((k) => ({ k, fired: false }));
+  const attemptEvents = readAttemptEventsFor(ledgerPaths, declaration.attemptId);
+  const lookEvents = attemptEvents.filter((event) => event.type === "look");
+  const takenLooks = new Set(lookEvents.map((event) => event.k));
+  const looksSummary: Array<{ k: number; fired: boolean }> = lookEvents
+    .map((event) => ({ k: event.k, fired: event.fired }))
+    .sort((a, b) => a.k - b.k);
 
+  const durableStop = recoverDurableFutilityStop(declaration, ledgerPaths);
+  if (durableStop !== null) {
+    console.log(
+      `recovered durable futility stop at k=${durableStop.k}: fired look upper bound ` +
+      `${durableStop.upperBound.toFixed(2)} is below ${durableStop.threshold.toFixed(2)}; spend stays charged`,
+    );
+    console.log(`  nextCommand: ${evalNextCommand("futility-stop", declaration.attemptId)}`);
+    return EXIT.verdict.futilityStop;
+  }
+
+  let declareEvent = assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
   console.log(`eval attempt ${declaration.attemptId}: ${segments.length} segments to depth ${declaration.depth}`);
   const baseWorkspace = createSnapshotWorkspace(baseline.compilerSnapshot);
   let candidateWorkspace: SnapshotWorkspace | undefined;
   try {
     candidateWorkspace = createSnapshotWorkspace(declaration.candidateSnapshot);
     for (const k of segments) {
+      declareEvent = assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
       const waveArgs = [
         "--profile=canonical",
         ...runnerBaseArgs(jobs),
@@ -413,7 +468,9 @@ async function executeAttempt(
         `--through-seed-slot=${k}`,
       ];
       const baseRun = runWave(baseWorkspace, waveArgs, basePath, "baseline arm");
+      assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
       const candidateRun = runWave(candidateWorkspace, waveArgs, candidatePath, "candidate arm");
+      declareEvent = assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
       if (baseRun.workerFailures > 0 || candidateRun.workerFailures > 0) {
         appendAttemptEvent({
           type: "abort",
@@ -455,7 +512,7 @@ async function executeAttempt(
       // Final segment: full-scope archives assembled by the runner.
       const retainedBase = retainSnapshotRun(baseRun, archiveDir, `${declaration.attemptId}-baseline-development`);
       retainSnapshotRun(candidateRun, archiveDir, `${declaration.attemptId}-development`);
-      validateAttemptArchives(basePath, candidatePath, declaration, declarationPath);
+      validateAttemptArchives(basePath, candidatePath, declaration, declarationPath, declareEvent.declarationSha256);
       const decided = await evalDecision(basePath, candidatePath, {
         mode: declaration.mode,
         margin: declaration.margin,
@@ -468,6 +525,7 @@ async function executeAttempt(
       );
       writeDecisionArtifact(artifactPath, decided.artifact);
       if (decided.artifact.result.outcome === "accept") {
+        assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
         const qualificationPath = resolve(outDir, `${declaration.attemptId}-qualification.json`);
         const qualificationRun = runInWorkspace(candidateWorkspace, "qualification", [
           "--profile=canonical",
@@ -475,14 +533,14 @@ async function executeAttempt(
           `--development-archive=${candidatePath}`,
           `--confirmation-declaration=${declarationPath}`,
           `--canonical-seed-base=${declaration.canonicalSeedBase}`,
+          ...(existsSync(`${qualificationPath}.checkpoint.jsonl`) ? ["--resume"] : []),
         ], qualificationPath);
-        if (qualificationRun.workerFailures === 0) {
-          retainSnapshotRun(qualificationRun, archiveDir, `${declaration.attemptId}-qualification`);
-          console.log(`qualification monitor: ${qualificationRun.qualificationMonitorScore?.toFixed(2)} (indicative sidecar)`);
-        } else {
-          console.error(`qualification sidecar has worker failures; the accept verdict stands (the sidecar is indicative)`);
-        }
+        assertQualificationSucceeded(qualificationRun);
+        assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
+        retainSnapshotRun(qualificationRun, archiveDir, `${declaration.attemptId}-qualification`);
+        console.log(`qualification monitor: ${qualificationRun.qualificationMonitorScore?.toFixed(2)} (indicative sidecar)`);
       }
+      assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
       const finalEra = appendAttemptEvent({
         type: "verdict",
         attemptId: declaration.attemptId,
@@ -522,6 +580,37 @@ async function executeAttempt(
     if (candidateWorkspace !== undefined) disposeSnapshotWorkspace(candidateWorkspace);
     disposeSnapshotWorkspace(baseWorkspace);
   }
+}
+
+/**
+ * A fired look is already binding evidence. If the process died between the
+ * look append and its settlement event, resume must settle that stop before
+ * opening workspaces or executing another row.
+ */
+export function recoverDurableFutilityStop(
+  declaration: Pick<EvalDeclaration, "attemptId" | "mode" | "margin">,
+  ledgerPaths: AttemptPaths,
+): { k: number; upperBound: number; threshold: number } | null {
+  return withAttemptLedgerTransaction(ledgerPaths, (transaction) => {
+    const events = transaction.events.filter((event) =>
+      "attemptId" in event && event.attemptId === declaration.attemptId
+    );
+    const existing = events.find((event) => event.type === "futility");
+    if (existing?.type === "futility") {
+      return { k: existing.k, upperBound: existing.upperBound, threshold: existing.threshold };
+    }
+    const fired = events.find((event) => event.type === "look" && event.fired);
+    if (fired?.type !== "look") return null;
+    const threshold = declaration.mode === "simplification" ? -(declaration.margin ?? 0) : 0;
+    transaction.append({
+      type: "futility",
+      attemptId: declaration.attemptId,
+      k: fired.k,
+      upperBound: fired.upperBound,
+      threshold,
+    });
+    return { k: fired.k, upperBound: fired.upperBound, threshold };
+  });
 }
 
 /** One wave on one arm; a failed wave is retried once before the caller aborts. */
@@ -590,7 +679,7 @@ function interimLook(
     },
   );
   const seed = decision.uncertainty.seed;
-  const upperBound = futilityUpperBound(
+  const upperBound = evalFutilityUpperBound(
     seed.estimate,
     seed.standardError,
     seed.degreesOfFreedom,
@@ -604,7 +693,13 @@ function interimLook(
     standardError: seed.standardError,
     upperBound: round4(upperBound),
     threshold,
-    fired: upperBound < threshold,
+    fired: evalFutilityStops({
+      estimate: seed.estimate,
+      standardError: seed.standardError,
+      degreesOfFreedom: seed.degreesOfFreedom,
+      futilityAlpha: declaration.futilityAlpha,
+      threshold,
+    }),
     scoreIdenticalFraction: candidateRuns.length === 0 ? 0 : identical / candidateRuns.length,
   };
 }
@@ -624,12 +719,13 @@ function checkpointDecisionRuns(
   const latest = latestSuccessfulResults(
     results,
     (result: any) => `${result.task.sourceId}\0${result.task.budget}\0${result.task.seedSlot}\0${result.task.actualSeed}`,
-  ).filter((result: any) => result.task.seedSlot < k);
+  );
+  const lookResults = evalRunsAtLook(latest, k);
   const expected = context.suite.profiles.canonical.budgets.length * k * canonicalMembers(context.suite).length;
-  if (latest.length !== expected) {
-    throw new Error(`${checkpointPath}: incomplete scope for look k=${k} (${latest.length}/${expected} rows)`);
+  if (lookResults.length !== expected) {
+    throw new Error(`${checkpointPath}: incomplete scope for look k=${k} (${lookResults.length}/${expected} rows)`);
   }
-  return latest.map((result: any) => {
+  return lookResults.map((result: any) => {
     const rescored = rescoreCheckpointRow(result, context);
     return {
       sourceId: result.task.sourceId,
@@ -646,8 +742,8 @@ function validateAttemptArchives(
   candidatePath: string,
   declaration: EvalDeclaration,
   declarationPath: string,
+  declarationSha: string,
 ): void {
-  const declarationSha = sha256(readFileSync(declarationPath).toString("utf8"));
   for (const [path, expectedFingerprint, label] of [
     [basePath, declaration.baselineCandidateFingerprint, "baseline arm"],
     [candidatePath, declaration.candidateFingerprint, "candidate arm"],
@@ -702,17 +798,6 @@ function waitForRunLock(outputPath: string, label: string, timeoutMs = 15 * 60_0
   }
 }
 
-/** The certified futility rule's bound: one-sided upper at the futility level. */
-export function futilityUpperBound(
-  estimate: number,
-  standardError: number,
-  degreesOfFreedom: number | null,
-  futilityAlpha: number,
-): number {
-  if (standardError === 0) return estimate;
-  return estimate + studentTQuantile(1 - futilityAlpha, degreesOfFreedom ?? Infinity) * standardError;
-}
-
 function rescoreCheckpointRow(result: any, context: EvalContext): { score: number; valid: boolean } {
   const contract = context.contracts.get(result.task.sourceId);
   if (contract === undefined) throw new Error(`${result.task.sourceId}: unknown source in checkpoint`);
@@ -722,6 +807,17 @@ function rescoreCheckpointRow(result: any, context: EvalContext): { score: numbe
 
 function decisionRunKey(run: DecisionRun): string {
   return `${run.sourceId}\0${run.budget}\0${run.seedSlot}\0${run.actualSeed}`;
+}
+
+export function assertQualificationSucceeded(
+  run: Pick<SnapshotBenchmarkRun, "workerFailures">,
+): void {
+  if (run.workerFailures > 0) {
+    throw new Error(
+      `qualification sidecar has ${run.workerFailures} worker failure(s); ` +
+      `the attempt remains in flight and must be resumed before an accept can be recorded`,
+    );
+  }
 }
 
 function scoreIdenticalFraction(baseArchive: any, candidateArchive: any): number {

@@ -1,8 +1,8 @@
 # Benchmark V2 — Purpose, Assessment, and Target Design
 
-Date: 2026-07-11. Status: **implementation contract; Part D steps 1–5
-executed** (commits 8841276 → 040187b), step 6 (docs + live validation
-V1–V7 + legacy cutover) in progress. The step-2 gate FIRED on the first
+Date: 2026-07-11. Status: **implemented and live-validated; Part D steps
+1–6 executed** (commits 8841276 → eca58d9, followed by the reliability
+hardening review). The step-2 gate FIRED on the first
 independent reference — the depth-32 power bars failed on seeds 12–23
 because 12-block variance estimates carry ~40% sampling error — and was
 resolved by re-deriving the menu from the pooled 24-block reference with a
@@ -581,10 +581,10 @@ manual re-freeze the plan retires.
    fp₀→a9236901; inference-scope migration #3 (behavior attested:
    futility/depth/ledger, certified by the two-mode validation; inference
    fingerprint unchanged, so coverage and calibration remained current).
-6. **Docs pass + live validation** (C.6) — IN PROGRESS: HOW_TO_WORK
-   rewritten around the chain; live validation V1–V7 under predeclared
-   success criteria in `benchmark-v2-validation.md`; the legacy one-shot
-   path is deleted only after V1–V7 pass.
+6. **Docs pass + live validation** (C.6) — DONE: HOW_TO_WORK is organized
+   around the eval chain; live validation V1–V7 passed under the predeclared
+   criteria in `benchmark-v2-validation.md`; the legacy one-shot path is
+   retired and its historical guidance is archived.
 
 **Deferred to v2** (designed in Part C, gated on v1 usage evidence and the
 independent-reference validation): depths 64/128 and margins 2–3 (their

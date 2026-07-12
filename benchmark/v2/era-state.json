@@ -6,14 +6,14 @@
   "baselineLabel": "accept-2026-07-11T22-38-42Z-d7b3f327",
   "budgetCap": 0.05,
   "budgetSpent": 0,
-  "cumulativeExpectedFalseAccepts": 0.051,
+  "cumulativeExpectedFalseAccepts": 0.0588,
   "attempts": [
     {
       "attemptId": "2026-07-11T21-25-55Z-f99e71f1",
       "eraId": "era-2026-07-11T21-25-55.202Z",
       "candidateFingerprint": "53dd5998cddddd2231f2cf974693f945d76c0c86fe76e89ca07413f438c7b938",
       "operatingPointId": "improve-t0-d48",
-      "spend": 0.0157,
+      "spend": 0.0196,
       "declaredAt": "2026-07-11T21:25:55.332Z",
       "outcome": "aborted"
     },
@@ -22,7 +22,7 @@
       "eraId": "era-2026-07-11T21-25-55.202Z",
       "candidateFingerprint": "53dd5998cddddd2231f2cf974693f945d76c0c86fe76e89ca07413f438c7b938",
       "operatingPointId": "improve-t0-d48",
-      "spend": 0.0157,
+      "spend": 0.0196,
       "declaredAt": "2026-07-11T21:36:21.416Z",
       "outcome": "aborted"
     },

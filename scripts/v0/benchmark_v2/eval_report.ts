@@ -128,7 +128,8 @@ export function renderEvalVerdict(input: {
       `(this attempt ${round4(input.attemptSpend)}); ` +
       `cumulative expected false accepts ${round4(input.era.cumulativeExpectedFalseAccepts)}`,
     ...(input.priorAttempts > 0
-      ? [`  retry: attempt ${input.priorAttempts + 1} of this candidate; compound alpha ${input.compoundAlpha}`]
+      ? [`  retry: attempt ${input.priorAttempts + 1} of this candidate; ` +
+        `compound nominal alpha ${input.compoundAlpha} (certified spend accounted separately)`]
       : []),
     ...(input.looks.length > 0
       ? [`  futility looks: ${input.looks.map((look) => `k=${look.k}${look.fired ? " FIRED" : ""}`).join(", ")}`]

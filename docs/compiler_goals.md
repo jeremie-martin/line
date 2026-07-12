@@ -40,13 +40,14 @@ contract is `benchmark-v2-decisions.md`.)
   handoff-specific diagnostics.
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
-- `npm run benchmark -- probe` produces screening evidence on 42 development cases.
-- `npm run benchmark -- canonical --decision-mode=improvement` spends the baseline's
-  one-shot canonical declaration and produces development evidence plus linked
-  qualification monitoring.
-- `npm run decide -- CANDIDATE.json` applies paired budget seed-block confidence bounds.
-  Only a canonical `accept` promotes an improvement. Simplification margins are bound to
-  the declaration before canonical compilation.
+- `npm run benchmark -- eval` produces reusable stage-0 screening evidence on
+  42 development cases.
+- `npm run benchmark -- eval --to-verdict` predeclares a certified operating
+  point and executes the candidate and baseline snapshots on a fresh paired
+  seed epoch. Only its `accept` outcome can promote an improvement.
+- Simplification margins are bound to the eval declaration before confirmation
+  compilation. After an accept, `rebaseline` promotes the retained attempt and
+  refreshes the stage-0 reference.
 
 Any compiler change should preserve these tests and report its impact through the
 V2 breakdown: headline, budgets, strata, groups, parents, cases, validity flips,

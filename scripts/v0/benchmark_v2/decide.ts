@@ -650,6 +650,14 @@ function baselineArchive(profile: DecisionProfile): {
   label: string;
   reference: BaselineReference;
 } {
+  for (const [pendingPath, recovery] of [
+    ["benchmark/v2/migration-pending.json", "rerun the migration command"],
+    ["benchmark/v2/baseline-publication-pending.json", "rerun baseline or rebaseline"],
+  ] as const) {
+    if (existsSync(pendingPath)) {
+      throw new Error(`baseline publication state is incomplete; ${recovery} before deciding`);
+    }
+  }
   const path = profile === "probe" ? DEFAULT_PROBE_BASELINE_PATH : DEFAULT_BASELINE_PATH;
   const baseline = JSON.parse(readFileSync(path, "utf8")) as BaselineReference;
   const expectedSchema = profile === "probe" ? PROBE_BASELINE_SCHEMA : BASELINE_SCHEMA;
@@ -724,23 +732,20 @@ export function underPoweredHint(result: V2Decision, seedsPerBudget: number): st
 
 export function nextCommandFor(result: V2Decision): string {
   const modeFlags = result.mode === "simplification"
-    ? ` --decision-mode=simplification --margin=${result.margin}`
-    : "";
-  const decideFlags = result.mode === "simplification"
-    ? ` --mode=simplification --margin=${result.margin}`
+    ? ` --mode=simplify --margin=${result.margin}`
     : "";
   switch (result.outcome) {
     case "advance":
-      return `npm run benchmark -- canonical${modeFlags}`;
+      return `npm run benchmark -- eval --to-verdict${modeFlags}`;
     case "accept":
-      return `npm run benchmark -- baseline --label=<new-baseline-label>`;
+      return `npm run benchmark -- rebaseline --label=accepted-candidate`;
     case "unresolved":
     case "inconclusive":
       return result.authority === "screening"
-        ? `npm run benchmark -- canonical${modeFlags}  # if the mechanism is worth canonical evidence despite the unresolved screen`
-        : `npm run benchmark -- decide <fresh-canonical-archive>${decideFlags}  # a retry requires a new predeclared attempt on fresh seeds`;
+        ? `npm run benchmark -- eval --to-verdict${modeFlags}  # if the mechanism merits fresh confirmation evidence`
+        : `npm run benchmark -- eval --to-verdict${modeFlags} --acknowledge-retry  # fresh epoch; prior evidence is not pooled`;
     default:
-      return `npm run benchmark -- probe --out=generated/benchmark-v2/candidates/<next-iteration>-probe.json`;
+      return `npm run benchmark -- eval`;
   }
 }
 

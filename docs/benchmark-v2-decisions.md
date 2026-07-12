@@ -44,67 +44,73 @@ The sensitivity bootstraps keep every normative case and its variants inside one
 
 ## Decision Policies
 
-| Profile | Authority | Error target | Critical used | Positive | Negative | Otherwise |
-|---|---|---:|---:|---|---|---|
-| probe | screening only | 0.10 | 0.05 | `advance` | `stop` | `unresolved` |
-| canonical | promotion | 0.05 | 0.01 | `accept` | `reject` | `inconclusive` |
+Stage 0 is reusable, informational screening against the stored probe
+reference. It reports the observed delta, paired uncertainty, and a labeled
+resolution heuristic, but cannot promote or spend era budget.
 
-Probe and canonical use the same catalog and scorer but disjoint actual seeds at every shared budget. A probe can never promote a candidate. Its purpose is to decide whether spending canonical compute is justified.
+`eval --to-verdict` is the promotion authority. It accepts only certified rows
+from `benchmark/v2/eval-policy.ts`. The mode, margin, depth, stopping schedule,
+fresh paired seed epoch, candidate and baseline snapshots, certification
+fingerprint, and era spend are frozen in an immutable declaration before
+either arm executes. Acceptance requires the stress-calibrated lower bound to
+exceed the declared threshold; rejection requires the upper bound to be below
+it; otherwise the result is inconclusive. Certified futility looks may stop a
+clearly unpromising attempt without converting failure into a verdict.
 
-`baseline`, canonical execution, and `decide` mechanically require `benchmark/v2/studies/decision-calibration.json` to match the current suite and complete decision implementation fingerprint. That artifact binds the exact zero-inflated coverage study, its raw reference, every empirical control archive, and the inference fingerprint. The guard also enforces the predeclared calibration policy: at least 1,000 trials per required cell, all named null, supported-power, safety-boundary, and diagnostic scenarios, a Wilson lower coverage bound of 0.93, a Wilson upper false-decision bound of 0.05, and a Wilson lower supported-power bound of 0.80. Rates and Wilson intervals are recomputed from integer counts, stored summaries must match, and outcome counts must partition all trials. A missing artifact, inconsistent or inadequate study, or policy/decision-code edit blocks operational use; this is not merely a documentation rule.
-
-Canonical acceptance requires the stress-calibrated lower bound to exceed the policy threshold. Canonical rejection requires the corresponding upper bound to be below it. Everything between those bounds is inconclusive. The retained zero-inflated study uses real 12-seed blocks, symmetric validity flips, and catalog-wide hard-zero blocks; at the selected eight canonical seeds per budget, all studied false-accept rates are below the 5% target.
+The calibration and certification guards recompute outcome counts and
+quantitative bars from retained evidence and bind them to the current suite,
+decision implementation, eval policy, and shared eval-chain inference
+implementation. Behavior-changing edits to inference, interim looks, futility,
+or final evidence selection require fresh menu and independent holdout
+certification. Operational logging and ledger edits do not. Missing, stale,
+inconsistent, or inadequate evidence blocks declaration rather than weakening
+the rule.
 
 Two modes are supported:
 
 - `improvement`: threshold `0` headline points.
 - `simplification`: threshold `-margin` headline points.
 
-Simplification has no default margin. The acceptable regression must be chosen in headline points before examining the candidate result. Failure to establish non-inferiority is `inconclusive`, not proof of inferiority; `reject` is reserved for a candidate confidently below the margin. At eight seeds per budget the retained study supports high power for shared-seed, strongly paired score changes halfway inside a five-point margin. Catalog-wide hard-zero changes are explicitly low-power diagnostics and should be expected to remain inconclusive.
+Simplification has no default margin. The acceptable regression must be chosen
+from a certified operating point before examining confirmation evidence.
+Failure to establish non-inferiority is `inconclusive`, not permission to
+promote and not proof of inferiority.
 
 ## Commands
 
-Establish a baseline for a frozen suite and compiler:
+Run stage 0 and confirm an improvement:
+
+```bash
+npm run benchmark -- eval
+npm run benchmark -- eval --to-verdict
+```
+
+Confirm a simplification with the currently certified margin:
+
+```bash
+npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
+```
+
+After `accept`, execute the artifact's concrete `nextCommand`, equivalent to:
+
+```bash
+npm run benchmark -- rebaseline --label=NAME
+```
+
+`rebaseline` requires the accepted candidate to match the working compiler and
+promotes the retained attempt; it does not rerun confirmation. Use the heavier
+baseline command only for initial bootstrap or an intentional suite rollover:
 
 ```bash
 npm run benchmark -- baseline --label=NAME
 ```
 
-This command first requires a complete approved `benchmark/v2/evidence/listening-review.json`. It then runs and retains a probe, canonical development, and linked qualification archive, and snapshots the exact compiler source inventory plus WASM artifact. The V8 baseline also freezes the complete decision-code fingerprint and a timestamp-independent fingerprint of the validated calibration evidence. `benchmark/v2/baseline.json` records those identities and opens one canonical confirmation slot.
-
-Screen an improvement:
-
-```bash
-npm run benchmark -- probe --out=generated/benchmark-v2/candidates/NAME-probe.json
-npm run benchmark -- decide generated/benchmark-v2/candidates/NAME-probe.json
-```
-
-Screen a simplification using the intended canonical margin:
-
-```bash
-npm run benchmark -- decide generated/benchmark-v2/candidates/NAME-probe.json \
-  --mode=simplification --margin=0.5
-```
-
-Confirm a candidate:
-
-```bash
-npm run benchmark -- canonical --decision-mode=improvement
-# The command prints the generated attempt id and development archive path.
-npm run benchmark -- decide GENERATED_DEVELOPMENT_ARCHIVE
-```
-
-For simplification, the declaration is created before compilation:
-
-```bash
-npm run benchmark -- canonical --decision-mode=simplification --margin=0.5
-npm run benchmark -- decide GENERATED_DEVELOPMENT_ARCHIVE \
-  --mode=simplification --margin=0.5
-```
-
-`benchmark/v2/confirmation-state.json` permits exactly one canonical attempt per baseline. The complete candidate and baseline snapshots, suite, decision fingerprint, calibration fingerprint, mode, simplification margin, fresh random seed base, and seed-schedule hash are written to an immutable declaration before either paired result exists. A permanent ledger prevents seed-epoch reuse across later baselines. A suite, decision, or calibration mismatch refuses confirmation before compilation and requires a new baseline. Both snapshots then run the identical schedule in isolated clean worktrees; only the candidate snapshot receives the linked qualification sidecar. The state is consumed by `decide` regardless of outcome. Rebaseline is rejected unless the prior outcome was `accept` for the exact current candidate; `--resume` may only continue the same declaration.
-
-The reusable screening reference in `benchmark/v2/probe-baseline.json` is selected automatically for probes. Canonical `decide` resolves the fresh paired baseline archive from confirmation state. Use `--base=ARCHIVE` only for non-promotable controlled analysis; candidate is always the first positional archive.
+`benchmark/v2/attempts.jsonl` records declarations, looks, stops, verdicts,
+transitions, and era budget. Fresh epochs are never reused. `--resume` may only
+continue the in-flight declaration, and `--acknowledge-retry` creates a fresh
+declared epoch after an inconclusive result; prior evidence is not pooled.
+Standalone `decide` remains available only for optional probe archive analysis
+and cannot judge canonical evidence.
 
 ## Outcomes And Artifacts
 
@@ -114,10 +120,11 @@ Exit codes are stable:
 
 | Exit | Meaning |
 |---:|---|
-| 0 | `advance` or `accept` |
+| 0 | stage 0 completed, or confirmation `accept` |
 | 1 | malformed, stale, incomplete, or incomparable evidence |
-| 2 | `unresolved` or `inconclusive` |
-| 3 | `stop` or `reject` |
+| 2 | confirmation `inconclusive` |
+| 3 | confirmation `reject` |
+| 4 | certified futility stop |
 
 `--no-gate-exit` keeps a valid statistical outcome at exit code zero for reporting scripts. It does not alter the artifact.
 
@@ -128,7 +135,7 @@ Archives carry two distinct identities:
 - the execution protocol identifies comparison semantics and enters the execution-policy fingerprint;
 - the implementation fingerprint records exact runner bytes for audit and reproducibility.
 
-Different runner implementation fingerprints are rejected by default. An operational-only change is eligible only when `benchmark/v2/runner-compatibility.json` contains a reviewed, checksummed, suite-specific bit-identity approval for the exact old and new fingerprints. Any semantic change to tasks, scoring, seeds, engine, compiler entry point, sources, transform, or protocol changes the comparison identity. Worker failures are never interpreted as compiler regressions; an archive containing one is ineligible. Checkpoint plan identity includes Node version, platform, and architecture, so rows cannot be resumed or imported across runtimes and then relabeled. On `--resume`, only the latest successful result for a task is restored; error and timeout rows are retried and a later success supersedes the failed checkpoint row.
+Different runner implementation fingerprints are rejected by default. An operational-only change is eligible only when `benchmark/v2/runner-compatibility.json` contains a reviewed, checksummed, suite-specific bit-identity approval for the exact old and new fingerprints. Any semantic change to tasks, scoring, seeds, engine, compiler entry point, sources, transform, or protocol changes the comparison identity. Worker failures are never interpreted as compiler regressions; an archive containing one is ineligible. Checkpoint plan identity includes Node version, platform, architecture, the complete candidate fingerprint, compiler-source fingerprint, compiler environment, and WASM artifact fingerprint, so rows cannot be resumed under a different runtime or compiler and then relabeled. On `--resume`, only the latest successful result for a task is restored; error and timeout rows are retried and a later success supersedes the failed checkpoint row.
 
 Compiler source and non-engine `LR_*` variables define the candidate and may differ. The WASM engine artifact and Node/platform/architecture identity must be identical. Suite, execution protocol, profile, task scope, and scoring identity must match.
 
@@ -136,10 +143,21 @@ Compiler identity uses an explicit versioned protocol. Its content fingerprint c
 
 Each compiler snapshot retains that same file inventory, its non-engine `LR_*` environment, and the optimized WASM bytes. Replay first removes the entire ambient compiler-source boundary from the isolated worktree, then extracts the snapshot; candidate-only added files therefore cannot leak into baseline replay. It removes ambient `LR_*` variables, restores the recorded environment, and runs `npm ci` from the snapshotted lockfile instead of sharing the caller's `node_modules`. Both resulting development archives must reproduce their predeclared candidate fingerprints before they can enter a decision; qualification uses the same candidate snapshot.
 
-`decide` reloads every current canonical specification, rebuilds its transformed axis contract, and recomputes every run score from the archived raw `DriftReport`. Report-free archives and stored-score tampering are ineligible. A neighboring SHA-256 sidecar is an integrity check, not independent provenance. Probe baseline hashes are anchored in the checked-in screening reference. Canonical provenance additionally requires the baseline compiler snapshot, both fresh archive hashes, their shared pre-run declaration and seed schedule, and the one-shot state transition.
+Eval inference reloads every current canonical specification, rebuilds its
+transformed axis contract, and recomputes every run score from the archived raw
+`DriftReport`. Report-free archives and stored-score tampering are ineligible.
+A neighboring SHA-256 sidecar is an integrity check, not independent provenance.
+Confirmation provenance additionally requires the baseline compiler snapshot,
+both fresh archive hashes, and their shared pre-run declaration and seed schedule.
 
 ## Interpretation Limits
 
-Canonical inference remains conditional on the frozen catalog. Probe evidence may be reused for development, but canonical evidence is a one-shot confirmation and cannot become an adaptive development loop. Fresh, non-reused seed epochs prevent retrying a known canonical draw; executing both compilers after declaration prevents adapting the candidate to visible per-seed baseline outcomes. The five production references are qualification monitors, not untouched statistical holdouts: their scores are displayed at canonical milestones, never enter the headline or decision, and must not be tuned case by case.
+Confirmation inference remains conditional on the frozen catalog. Stage-0
+evidence may be reused for development, but confirmation evidence cannot become
+an adaptive loop. Fresh, non-reused seed epochs prevent retrying a known draw;
+executing both compilers after declaration prevents adapting the candidate to
+visible per-seed baseline outcomes. The five production references are
+qualification monitors: they never enter the headline or decision and must not
+be tuned case by case.
 
 The retained calibration studies are `docs/benchmark-v2-decision-calibration.md` and `docs/benchmark-v2-decision-coverage.md`. They include identical-archive, known-degradation, impact-contract, correlated-seed, empirical-block, validity-flip, hard-zero, supported-power, safety-boundary, known-power-limit, non-inferiority, and interval-coverage controls. Their raw probe controls and compressed 12-seed raw-report coverage reference are retained; sidecars and complete identities are checked and every stored reference score is recomputed from its raw report before simulation. The operational guard later rechecks the exact retained artifact hashes and quantitative acceptance limits. A clean clone treats missing, stale, inadequate, or checksum-inconsistent evidence as an error. Policy or decision changes require rerunning both studies and establishing a V8 baseline whose decision and calibration fingerprints match.

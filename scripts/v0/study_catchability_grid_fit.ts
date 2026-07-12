@@ -17,7 +17,7 @@
  * To A/B the emitted fine table, temporarily replace the constants in
  * optimizer/readiness.ts, then run:
  *
- *   LR_ENGINE=wasm npm run golden -- --jobs=32 \
+ *   LR_ENGINE=wasm npm run golden:v1 -- --jobs=32 \
  *     --archive-dir=generated/golden-runs/catchability-fine-current-01
  *   npx tsx scripts/v0/analyze_golden_curve.ts decide \
  *     generated/golden-runs/catchability-fine-current-01/golden.json \

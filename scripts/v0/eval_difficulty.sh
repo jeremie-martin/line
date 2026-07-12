@@ -11,7 +11,8 @@
 #
 # A/B on a flag: BASELINE = greedy:2 default. CANDIDATE = difficulty-aware (LR_FWD_EVAL_BPG =
 # budget/gap threshold above which the rollout uses best:1:N; LR_FWD_EVAL_BPG_N = N). Sweep via
-# BPG / BPG_N env. Confirm winners on the full canonical (npm run golden + decide) before promoting.
+# BPG / BPG_N env. This is legacy V1 tooling; use `golden:v1` + `decide:v1`
+# for its historical full confirmation, not the Benchmark V2 default aliases.
 #
 # -------------------------------------------------------------------------------
 # (original template header follows)

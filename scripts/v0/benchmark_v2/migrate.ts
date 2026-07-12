@@ -13,10 +13,10 @@
  *                 no study regeneration.
  *   calibration — the calibration artifact itself was regenerated (same
  *                 inference code); verify + re-stamp.
- *   inference   — inference files changed OR --alters-decision-behavior=yes:
- *                 the coverage study must be regenerated FIRST, then the
- *                 calibration; this is a rule change re-earning its
- *                 certification, and the record says so.
+ *   inference   — inference files, certified eval-chain semantics, or
+ *                 --alters-decision-behavior=yes: final-decision changes
+ *                 require fresh coverage/calibration; eval-chain changes
+ *                 require fresh menu/holdout certification.
  * Any change to a suite-definition file refuses outright (suite rollover).
  *
  * Conformance (all scopes): the governance/decision vitest subset must pass,
@@ -30,15 +30,18 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import {
   DECISION_INFERENCE_SOURCE_FILES,
   pairedV2DecisionForCalibration,
   type DecisionRun,
 } from "./decision_model.ts";
 import { DECISION_PROTOCOL_SOURCE_FILES } from "./decision_protocol.ts";
+import { EVAL_CHAIN_INFERENCE_SOURCE_FILES } from "./eval_chain_inference.ts";
+import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "./certification_identity.ts";
 import { loadValidatedDecisionPairForCalibration } from "./decide.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
 import {
@@ -48,11 +51,21 @@ import {
   suiteIdentity,
   type SuiteManifest,
 } from "./suite_model.ts";
-import { readEraState } from "./attempts.ts";
-import { requireCurrentDecisionCalibration, type DecisionContractIdentity } from "./calibration_guard.ts";
+import {
+  assertNoAttemptInFlight,
+  readEraState,
+  withAttemptLedgerTransaction,
+} from "./attempts.ts";
+import {
+  requireCertifiedOperatingPoint,
+  requireCurrentDecisionCalibration,
+  type DecisionContractIdentity,
+} from "./calibration_guard.ts";
 
 export const MIGRATIONS_LEDGER_PATH = "benchmark/v2/migrations.jsonl";
 export const CONFORMANCE_FIXTURE_PATH = "benchmark/v2/evidence/decision-conformance.json";
+export const MIGRATION_PENDING_PATH = "benchmark/v2/migration-pending.json";
+const BASELINE_PUBLICATION_PENDING_PATH = "benchmark/v2/baseline-publication-pending.json";
 const MIGRATION_RECORD_SCHEMA = "line.benchmark-v2.migration-record.v1" as const;
 const CONFORMANCE_SCHEMA = "line.benchmark-v2.decision-conformance.v1" as const;
 const CONFORMANCE_TEST_FILES = [
@@ -82,25 +95,59 @@ type MigrationRecord = {
   to: Record<string, string>;
   changedFiles: Array<{ path: string; fromSha256: string | null; toSha256: string }>;
   fileHashes: Record<string, string>;
-  conformance: { vitest: "passed" | "skipped"; fixtures: Array<{ name: string; result: string }> };
+  conformance: {
+    vitest: "passed" | "skipped";
+    fixtures: Array<{ name: string; result: string }>;
+    fixture: { beforeSha256: string; afterSha256: string; replaced: boolean };
+  };
   restamped: { baselineSha256: string };
   bootstrap: boolean;
+};
+
+type PendingMigration = {
+  schema: "line.benchmark-v2.migration-publication.v1";
+  previousMigrationId: string | null;
+  baselinePath: string;
+  baselineBeforeSha256: string;
+  baselineBytes: string;
+  fixturePath: string;
+  fixtureBeforeSha256: string;
+  fixtureBytes: string | null;
+  record: MigrationRecord;
 };
 
 export async function runMigrationCommand(argv = process.argv.slice(2)): Promise<number> {
   const argument = (name: string): string | undefined =>
     argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+  const json = argv.includes("--json");
+  if (existsSync(BASELINE_PUBLICATION_PENDING_PATH)) {
+    throw new Error(`baseline publication is incomplete; rerun baseline or rebaseline before migrating`);
+  }
+  const recovered = recoverPendingMigration();
+  if (recovered !== null) {
+    const summary = {
+      migrationId: recovered.migrationId,
+      recovered: true,
+      effectiveScope: recovered.effectiveScope,
+      to: recovered.to,
+      nextCommand: "npm run benchmark -- eval",
+    };
+    console.log(json ? JSON.stringify(summary, null, 2)
+      : `recovered migration ${recovered.migrationId}; nextCommand: ${summary.nextCommand}`);
+    return 0;
+  }
   const recordFixtures = argv.includes("--record-fixtures");
   if (recordFixtures) {
-    await recordConformanceFixture();
-    return 0;
+    throw new Error(
+      `--record-fixtures was removed: fixture replacement is staged and published only by an approved ` +
+      `inference migration with --alters-decision-behavior=yes`,
+    );
   }
   const declaredScope = argument("scope") as Scope | undefined;
   const behavior = argument("alters-decision-behavior");
   const reason = argument("reason");
   const operator = argument("operator") ?? process.env.USER ?? "";
   const approve = argv.includes("--approve");
-  const json = argv.includes("--json");
   if (declaredScope === undefined || !SCOPE_ORDER.includes(declaredScope)) {
     throw new Error(`--scope must be protocol|calibration|inference`);
   }
@@ -122,8 +169,11 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   // File-hash diff against the last ledger record.
   const allFiles = [...new Set([
     ...DECISION_INFERENCE_SOURCE_FILES,
+    ...EVAL_CHAIN_INFERENCE_SOURCE_FILES,
+    ...CERTIFICATION_GENERATOR_SOURCE_FILES,
     ...DECISION_PROTOCOL_SOURCE_FILES,
     ...BENCHMARK_DEFINITION_SOURCE_FILES,
+    CONFORMANCE_FIXTURE_PATH,
   ])].sort();
   const fileHashes = Object.fromEntries(allFiles.map((path) => [path, sha256File(path)]));
   const lastRecord = readLastRecord();
@@ -131,6 +181,14 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   const changedFiles = bootstrap ? [] : allFiles
     .filter((path) => lastRecord.fileHashes[path] !== fileHashes[path])
     .map((path) => ({ path, fromSha256: lastRecord.fileHashes[path] ?? null, toSha256: fileHashes[path] }));
+  if (
+    !bootstrap && lastRecord.fileHashes[CONFORMANCE_FIXTURE_PATH] !== undefined &&
+    lastRecord.fileHashes[CONFORMANCE_FIXTURE_PATH] !== fileHashes[CONFORMANCE_FIXTURE_PATH]
+  ) {
+    throw new Error(
+      `decision-conformance fixture changed outside a migration; restore the ledgered fixture before proceeding`,
+    );
+  }
 
   const definitionChanged = changedFiles.some((file) =>
     (BENCHMARK_DEFINITION_SOURCE_FILES as readonly string[]).includes(file.path));
@@ -149,9 +207,9 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     throw new Error(`declared scope ${declaredScope} is below the detected minimum ${minimumScope}; re-declare (deliberate upward escalation is allowed)`);
   }
 
-  // Freshness: the guard verifies calibration (inference-bound) and coverage.
-  // For inference scope the operator must already have regenerated coverage
-  // then calibration; the guard's errors name exactly what is stale.
+  // Freshness: the guards verify final-decision coverage/calibration and, for
+  // inference scope, every certified eval-chain operating point. Only the
+  // evidence whose fingerprint changed needs regeneration.
   const sourceManifestPath = "benchmark/v2/compat/source-manifest.json";
   const suiteManifestPath = "benchmark/v2/compat/suite-manifest.json";
   const sources = resolveSources(loadSourceManifest(sourceManifestPath));
@@ -159,18 +217,31 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   let contract: DecisionContractIdentity;
   try {
     contract = requireCurrentDecisionCalibration(identity.suiteFingerprint);
+    if (effectiveScope === "inference") {
+      for (const point of benchmarkEvalPolicy.operatingPoints) {
+        requireCertifiedOperatingPoint(
+          point.mode,
+          point.margin,
+          point.depth,
+          identity.suiteFingerprint,
+        );
+      }
+    }
   } catch (error) {
     throw new Error(
       `${error instanceof Error ? error.message : String(error)}\n` +
       `regenerate first (in order):\n` +
       `  node --import tsx scripts/benchmark/study_decision_coverage.ts   # inference scope only\n` +
-      `  node --import tsx scripts/benchmark/calibrate_decisions.ts`,
+      `  node --import tsx scripts/benchmark/calibrate_decisions.ts\n` +
+      `  node --import tsx scripts/benchmark/validate_independent_reference.ts  # inference scope: menu + holdout`,
     );
   }
 
   // Ledger/baseline divergence guard (skipped at bootstrap).
   const baselinePath = "benchmark/v2/baseline.json";
-  const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
+  const baselineBeforeBytes = readFileSync(baselinePath);
+  const baselineBeforeSha256 = sha256(baselineBeforeBytes);
+  const baseline = JSON.parse(baselineBeforeBytes.toString("utf8"));
   if (!bootstrap) {
     const stampedInference = baseline.decision_inference_fingerprint ?? null;
     const stampedProtocol = baseline.decision_protocol_fingerprint ?? null;
@@ -184,14 +255,40 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
 
   // Conformance: vitest subset + fixture replay.
   console.log(`conformance: vitest subset (${CONFORMANCE_TEST_FILES.length} files)...`);
-  execFileSync("npx", ["vitest", "run", ...CONFORMANCE_TEST_FILES], { stdio: "inherit" });
-  const fixtureResults = await replayConformanceFixture(behavior === "yes");
+  execFileSync("npx", ["vitest", "run", ...CONFORMANCE_TEST_FILES], {
+    stdio: process.env.LINE_BENCHMARK_JSON_STDOUT === "1"
+      ? ["inherit", process.stderr, process.stderr]
+      : "inherit",
+  });
+  const fixtureBeforeBytes = readFileSync(CONFORMANCE_FIXTURE_PATH);
+  const fixtureBeforeSha256 = sha256(fixtureBeforeBytes);
+  const fixtureResults = await replayConformanceFixture();
   const drifted = fixtureResults.filter((result) => result.result !== "matched");
   if (drifted.length > 0 && behavior === "no") {
     throw new Error(
       `unattested behavioral drift: ${drifted.map((d) => d.name).join(", ")} — ` +
       `declare --alters-decision-behavior=yes (inference scope) if the change is intentional`,
     );
+  }
+  const replacementFixtureBytes = drifted.length > 0
+    ? conformanceFixtureBytes(await computeFixtureCases())
+    : null;
+  const fixtureAfterSha256 = replacementFixtureBytes === null
+    ? fixtureBeforeSha256
+    : sha256(replacementFixtureBytes);
+  fileHashes[CONFORMANCE_FIXTURE_PATH] = fixtureAfterSha256;
+  if (replacementFixtureBytes !== null) {
+    const existingChange = changedFiles.find((file) => file.path === CONFORMANCE_FIXTURE_PATH);
+    if (existingChange === undefined) {
+      changedFiles.push({
+        path: CONFORMANCE_FIXTURE_PATH,
+        fromSha256: fixtureBeforeSha256,
+        toSha256: fixtureAfterSha256,
+      });
+      changedFiles.sort((a, b) => a.path.localeCompare(b.path));
+    } else {
+      existingChange.toSha256 = fixtureAfterSha256;
+    }
   }
 
   // Re-stamp baseline (v8 -> v9 upgrade on bootstrap), state, and the doc.
@@ -208,8 +305,6 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   baseline.decision_protocol_fingerprint = contract.protocolFingerprint;
   baseline.decision_calibration_fingerprint = contract.calibrationFingerprint;
   const baselineBytes = `${JSON.stringify(baseline, null, 2)}\n`;
-  writeAtomic(baselinePath, baselineBytes);
-  restampBaselineDoc(baseline);
 
   const record: MigrationRecord = {
     schema: MIGRATION_RECORD_SCHEMA,
@@ -231,13 +326,34 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     },
     changedFiles,
     fileHashes,
-    conformance: { vitest: "passed", fixtures: fixtureResults },
+    conformance: {
+      vitest: "passed",
+      fixtures: fixtureResults.map((result) =>
+        replacementFixtureBytes !== null && result.result === "drifted"
+          ? { ...result, result: "re-recorded" }
+          : result
+      ),
+      fixture: {
+        beforeSha256: fixtureBeforeSha256,
+        afterSha256: fixtureAfterSha256,
+        replaced: replacementFixtureBytes !== null,
+      },
+    },
     restamped: {
       baselineSha256: createHash("sha256").update(baselineBytes).digest("hex"),
     },
     bootstrap,
   };
-  appendFileSync(MIGRATIONS_LEDGER_PATH, `${JSON.stringify(record)}\n`);
+  publishMigration({
+    record,
+    previousMigrationId: lastRecord?.migrationId ?? null,
+    baselinePath,
+    baselineBeforeSha256,
+    baselineBytes,
+    baseline,
+    fixtureBeforeSha256,
+    fixtureBytes: replacementFixtureBytes,
+  });
   const summary = {
     migrationId: record.migrationId,
     effectiveScope,
@@ -248,6 +364,97 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   console.log(json ? JSON.stringify(summary, null, 2)
     : `migrated (${effectiveScope}): ${record.migrationId}\n  inference ${contract.inferenceFingerprint.slice(0, 12)}  protocol ${contract.protocolFingerprint.slice(0, 12)}  calibration ${contract.calibrationFingerprint.slice(0, 12)}\n  nextCommand: ${summary.nextCommand}`);
   return 0;
+}
+
+function publishMigration(input: {
+  record: MigrationRecord;
+  previousMigrationId: string | null;
+  baselinePath: string;
+  baselineBeforeSha256: string;
+  baselineBytes: string;
+  baseline: any;
+  fixtureBeforeSha256: string;
+  fixtureBytes: string | null;
+}): void {
+  withAttemptLedgerTransaction(undefined, (transaction) => {
+    assertNoAttemptInFlight(transaction.state, "migration publication");
+    if (existsSync(BASELINE_PUBLICATION_PENDING_PATH)) {
+      throw new Error(`baseline publication became pending while migration conformance was running; recover it first`);
+    }
+    if (sha256(readFileSync(input.baselinePath)) !== input.baselineBeforeSha256) {
+      throw new Error(`baseline changed while migration conformance was running; restart the migration`);
+    }
+    const currentLastRecord = readLastRecord();
+    if ((currentLastRecord?.migrationId ?? null) !== input.previousMigrationId) {
+      throw new Error(`migration ledger changed while conformance was running; restart the migration`);
+    }
+    if (sha256(readFileSync(CONFORMANCE_FIXTURE_PATH)) !== input.fixtureBeforeSha256) {
+      throw new Error(`conformance fixture changed while migration conformance was running; restart the migration`);
+    }
+    const pending: PendingMigration = {
+      schema: "line.benchmark-v2.migration-publication.v1",
+      previousMigrationId: input.previousMigrationId,
+      baselinePath: input.baselinePath,
+      baselineBeforeSha256: input.baselineBeforeSha256,
+      baselineBytes: input.baselineBytes,
+      fixturePath: CONFORMANCE_FIXTURE_PATH,
+      fixtureBeforeSha256: input.fixtureBeforeSha256,
+      fixtureBytes: input.fixtureBytes,
+      record: input.record,
+    };
+    writeAtomic(MIGRATION_PENDING_PATH, `${JSON.stringify(pending, null, 2)}\n`);
+    if (input.fixtureBytes !== null) writeAtomic(CONFORMANCE_FIXTURE_PATH, input.fixtureBytes);
+    writeAtomic(input.baselinePath, input.baselineBytes);
+    restampBaselineDoc(input.baseline);
+    appendFileSync(MIGRATIONS_LEDGER_PATH, `${JSON.stringify(input.record)}\n`);
+    rmSync(MIGRATION_PENDING_PATH, { force: true });
+  });
+}
+
+/** Complete or clean up a publication interrupted after its durable journal. */
+function recoverPendingMigration(): MigrationRecord | null {
+  if (!existsSync(MIGRATION_PENDING_PATH)) return null;
+  const pending = JSON.parse(readFileSync(MIGRATION_PENDING_PATH, "utf8")) as PendingMigration;
+  if (
+    pending.schema !== "line.benchmark-v2.migration-publication.v1" ||
+    pending.record?.schema !== MIGRATION_RECORD_SCHEMA ||
+    sha256(pending.baselineBytes) !== pending.record.restamped.baselineSha256 ||
+    (pending.fixtureBytes !== null && sha256(pending.fixtureBytes) !== pending.record.conformance.fixture.afterSha256)
+  ) {
+    throw new Error(`pending migration publication is malformed; inspect ${MIGRATION_PENDING_PATH}`);
+  }
+  return withAttemptLedgerTransaction(undefined, (transaction) => {
+    assertNoAttemptInFlight(transaction.state, "migration recovery");
+    if (existsSync(BASELINE_PUBLICATION_PENDING_PATH)) {
+      throw new Error(`baseline publication is also pending; inspect both journals before recovery`);
+    }
+    const last = readLastRecord();
+    const lastId = last?.migrationId ?? null;
+    if (lastId !== pending.previousMigrationId && lastId !== pending.record.migrationId) {
+      throw new Error(`pending migration no longer follows the migration ledger; inspect before recovery`);
+    }
+    const baselineSha = sha256(readFileSync(pending.baselinePath));
+    const targetBaselineSha = pending.record.restamped.baselineSha256;
+    if (baselineSha !== pending.baselineBeforeSha256 && baselineSha !== targetBaselineSha) {
+      throw new Error(`baseline changed outside the pending migration; inspect before recovery`);
+    }
+    const fixtureSha = sha256(readFileSync(pending.fixturePath));
+    const targetFixtureSha = pending.record.conformance.fixture.afterSha256;
+    if (fixtureSha !== pending.fixtureBeforeSha256 && fixtureSha !== targetFixtureSha) {
+      throw new Error(`conformance fixture changed outside the pending migration; inspect before recovery`);
+    }
+    if (fixtureSha !== targetFixtureSha) {
+      if (pending.fixtureBytes === null) throw new Error(`pending migration lacks its fixture replacement bytes`);
+      writeAtomic(pending.fixturePath, pending.fixtureBytes);
+    }
+    if (baselineSha !== targetBaselineSha) writeAtomic(pending.baselinePath, pending.baselineBytes);
+    restampBaselineDoc(JSON.parse(pending.baselineBytes));
+    if (lastId !== pending.record.migrationId) {
+      appendFileSync(MIGRATIONS_LEDGER_PATH, `${JSON.stringify(pending.record)}\n`);
+    }
+    rmSync(MIGRATION_PENDING_PATH, { force: true });
+    return pending.record;
+  });
 }
 
 // ── Conformance fixture ──────────────────────────────────────────────────────
@@ -286,6 +493,12 @@ const RETAINED_PAIRS: Array<{ name: string; base: string; candidate: string }> =
     candidate: "benchmark/v2/runs/calibration-v2.4-impact-off-probe.json.gz",
   },
 ];
+const EXPECTED_FIXTURE_NAMES = [
+  ...RETAINED_PAIRS.map((pair) => pair.name),
+  "correlated_seed_adversary",
+  "uniform_gain_15",
+  "noninferiority_margin5",
+].sort();
 
 async function computeFixtureCases(): Promise<FixtureCase[]> {
   const cases: FixtureCase[] = [];
@@ -312,42 +525,33 @@ async function computeFixtureCases(): Promise<FixtureCase[]> {
   return cases;
 }
 
-async function recordConformanceFixture(): Promise<void> {
-  const cases = await computeFixtureCases();
+function conformanceFixtureBytes(cases: FixtureCase[]): string {
   const fixture = {
     schema: CONFORMANCE_SCHEMA,
     note: "Expected decision outcomes for the migration conformance replay. Re-recorded only by an inference-scope migration with an attested behavior change.",
     cases,
   };
-  mkdirSync(dirname(CONFORMANCE_FIXTURE_PATH), { recursive: true });
-  writeFileSync(CONFORMANCE_FIXTURE_PATH, `${JSON.stringify(fixture, null, 2)}\n`);
-  console.log(`recorded ${cases.length} conformance cases -> ${CONFORMANCE_FIXTURE_PATH}`);
+  return `${JSON.stringify(fixture, null, 2)}\n`;
 }
 
-async function replayConformanceFixture(reRecordOnDrift: boolean): Promise<Array<{ name: string; result: string }>> {
+async function replayConformanceFixture(): Promise<Array<{ name: string; result: string }>> {
   if (!existsSync(CONFORMANCE_FIXTURE_PATH)) {
-    throw new Error(`decision-conformance fixture is missing; record it with \`benchmark migrate --record-fixtures\``);
+    throw new Error(`decision-conformance fixture is missing; restore the governed fixture before migrating`);
   }
   const fixture = JSON.parse(readFileSync(CONFORMANCE_FIXTURE_PATH, "utf8"));
   if (fixture.schema !== CONFORMANCE_SCHEMA) throw new Error(`unsupported conformance fixture`);
+  assertConformanceFixtureCases(fixture.cases);
   const current = await computeFixtureCases();
   const currentByName = new Map(current.map((c) => [c.name, c]));
   const results: Array<{ name: string; result: string }> = [];
-  let drift = false;
   for (const recorded of fixture.cases as FixtureCase[]) {
     const replay = currentByName.get(recorded.name);
     if (replay === undefined) {
       results.push({ name: recorded.name, result: "missing" });
-      drift = true;
       continue;
     }
     const matched = JSON.stringify(replay.expected) === JSON.stringify(recorded.expected);
     results.push({ name: recorded.name, result: matched ? "matched" : "drifted" });
-    if (!matched) drift = true;
-  }
-  if (drift && reRecordOnDrift) {
-    await recordConformanceFixture();
-    return results.map((r) => r.result === "drifted" ? { ...r, result: "re-recorded" } : r);
   }
   console.log(`conformance fixtures: ${results.map((r) => `${r.name}=${r.result}`).join(", ")}`);
   return results;
@@ -405,9 +609,23 @@ function syntheticCase(
 
 export function detectMinimumScope(changedPaths: string[]): Scope | "none" | "suite" {
   if (changedPaths.some((path) => (BENCHMARK_DEFINITION_SOURCE_FILES as readonly string[]).includes(path))) return "suite";
+  if (changedPaths.includes(CONFORMANCE_FIXTURE_PATH)) return "inference";
+  if (changedPaths.some((path) => (EVAL_CHAIN_INFERENCE_SOURCE_FILES as readonly string[]).includes(path))) return "inference";
+  if (changedPaths.some((path) => (CERTIFICATION_GENERATOR_SOURCE_FILES as readonly string[]).includes(path))) return "inference";
   if (changedPaths.some((path) => (DECISION_INFERENCE_SOURCE_FILES as readonly string[]).includes(path))) return "inference";
   if (changedPaths.some((path) => (DECISION_PROTOCOL_SOURCE_FILES as readonly string[]).includes(path))) return "protocol";
   return "none";
+}
+
+export function assertConformanceFixtureCases(cases: unknown): asserts cases is FixtureCase[] {
+  if (!Array.isArray(cases)) throw new Error(`decision-conformance fixture cases must be an array`);
+  const names = cases.map((entry) => (entry as FixtureCase)?.name).sort();
+  if (new Set(names).size !== names.length || JSON.stringify(names) !== JSON.stringify(EXPECTED_FIXTURE_NAMES)) {
+    throw new Error(
+      `decision-conformance fixture must contain exactly the six unique governed cases: ` +
+      `${EXPECTED_FIXTURE_NAMES.join(", ")}`,
+    );
+  }
 }
 
 export { syntheticCase, conformanceSuite };
@@ -442,7 +660,11 @@ function writeAtomic(path: string, contents: string): void {
 }
 
 function sha256File(path: string): string {
-  return createHash("sha256").update(readFileSync(path)).digest("hex");
+  return sha256(readFileSync(path));
+}
+
+function sha256(value: string | Buffer): string {
+  return createHash("sha256").update(value).digest("hex");
 }
 
 if (resolve(process.argv[1] ?? "") === resolve(fileURLToPath(import.meta.url))) {

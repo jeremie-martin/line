@@ -92,8 +92,12 @@ debt for depth 64+.
 the completed checkpoints (labeled non-binding — computed outside the
 retained-archive path) gave **delta −0.05, one-sided bounds [−0.55, +0.45],
 outcome inconclusive**. The 0.8 default was reverted with a source note so
-the phantom is not rediscovered. Budget state after V3: spent 0.0314 of
-0.05, both attempts on the permanent ledger.
+the phantom is not rediscovered. Budget state recorded after V3: spent 0.0314
+of 0.05, both attempts on the permanent ledger. This is historical pre-fix
+accounting: those attempts used the menu-only 0.0157 charge. The current guard
+charges the cross-artifact worst-case 0.0196 per improvement attempt; the
+historical declaration events remain immutable, and an append-only
+`accounting-correction` event records the corrected charges.
 
 The two aborted attempts each cost ~45 min of compute and 0.0157 of budget
 to infrastructure defects rather than statistics. That is what a first live
@@ -120,7 +124,9 @@ the V7 driver (attempt d7b3f327):
   attempt the era record: baseline of record
   `accept-2026-07-11T22-38-42Z-d7b3f327`, canonical headline 449.83 at
   depth 48, fresh 252-compile probe reference 446.09, **era budget reset**
-  (cap 0.05, spent 0), cumulative expected false accepts 0.051 preserved.
+  (cap 0.05, spent 0). The cumulative expected-false-accept total was 0.051
+  at validation time and is now 0.0588 after the append-only accounting
+  correction.
 
 Footprint note: retaining the depth-48 era record costs ~200 MB of
 compressed archives per accepted baseline (vs ~35 MB at the legacy depth
@@ -156,9 +162,9 @@ checkpoint rows). Findings:
 
 | Drill | Result |
 |---|---|
-| Retry without acknowledgment | refused, exit 1: "this candidate was already attempted 1 time(s); a retry compounds alpha to 0.0199 — pass --acknowledge-retry to proceed" |
+| Retry without acknowledgment | refused, exit 1: the retry compounds nominal alpha to 0.0199; certified spend is accounted separately |
 | Uncertified operating point (`--depth=32`) | refused, exit 1: "not on the certified menu; certified rows: improve-t0-d48 (improvement, depth 48), simplify-m5-d48 (simplification m=5, depth 48)" |
-| Budget exhaustion (scratch ledger, 3×0.0157 on cap 0.05) | fourth declare refused with the numbers and the `--override-era-budget` command named |
+| Budget exhaustion (historical scratch policy, 3×0.0157 on cap 0.05) | fourth declare refused with the numbers and the `--override-era-budget` command named; the corrected 0.0196 charge now permits two attempts under the default cap |
 | Override below current cap | refused (must exceed) — and after a valid override to 0.08 the declare passes while cumulative expected-false-accepts keeps the pre-override history |
 | Decision-surface edit without migration | every verdict path refused with "run `benchmark migrate --scope=protocol`" until the migration landed (observed twice for real: after the P5 edits and after the V5 fix) |
 
@@ -178,7 +184,9 @@ purely by the per-mode exit-code contract (0 accept), extracted
 (`npm run benchmark -- rebaseline --label=accept-<attemptId>` — the accept
 nextCommand was made concretely runnable during validation, migration #5),
 which completed the rebaseline and closed the chain. Total: one driver
-invocation, zero prose parsed.
+invocation, zero prose parsed. The post-validation hardening pass made this
+contract literal: stdout is now one JSON value, diagnostics use stderr, and
+the driver calls `JSON.parse(stdout)` without substring extraction.
 
 ## Friction log
 
@@ -198,9 +206,10 @@ invocation, zero prose parsed.
    *resolvable but unconfirmed*; the projection line already says which
    depth resolves them, and the confirmation is what settles it.
 5. **Aborted attempts consume budget** (design, not defect): attempt 1's
-   0.0157 stayed charged after the infrastructure abort. Conservative and
-   simple; if aborts-without-evidence turn out to be common, a v2 refinement
-   could refund infrastructure-only aborts under a ledgered rule.
+   charge stayed after the infrastructure abort and was later corrected from
+   0.0157 to 0.0196 by an append-only event. Conservative and simple; if
+   aborts-without-evidence turn out to be common, a future refinement could
+   refund infrastructure-only aborts under a ledgered rule.
 
 ## Wall-clocks measured (48 workers)
 

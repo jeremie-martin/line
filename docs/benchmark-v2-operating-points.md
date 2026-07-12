@@ -29,11 +29,12 @@ accumulating noise wins.
 
 Measured at depth 48 (1000 simulated attempts per scenario on real compile
 data): a truly-zero candidate accepts 0.8% of the time through the full
-chain with futility looks; the statistical 95% upper bound on that rate is
-**1.57%**, and that upper bound — not the point estimate — is what each
-attempt charges to the era budget. Stress scenarios (validity flips,
-catalog-wide zero inflation) stay within the same 5% bar; this is why the
-99% level is load-bearing — at 95% the stress scenarios breached it.
+chain with futility looks. Era spend is not based only on that selected menu
+cell: the guard takes the largest Wilson upper bound across the menu and
+independent holdout null/stress cells. The current improvement charge is
+**1.96%** per attempt. Stress scenarios (validity flips, catalog-wide zero
+inflation) stay within the same 5% bar; this is why the 99% level is
+load-bearing — at 95% the stress scenarios breached it.
 
 ## Power and MDE: what "certified to detect +5" means
 
@@ -81,11 +82,12 @@ power. A stop is durable and charges its spend.
 
 ## The era budget
 
-Each attempt charges its certified worst-case false-accept bound (improve:
-0.0157; ablation m=5: 0.0196) against an era cap of 0.05. Plainly: **between
-rebaselines, the expected number of noise wins booked into the baseline is
-kept below 0.05** — the era is expected to stay clean. Roughly three
-attempts fit an era. The budget resets only when an accept genuinely ends
+Each attempt charges its certified cross-artifact worst-case false-accept
+bound (currently 0.0196 for improve and ablation m=5) against an era cap of
+0.05. Plainly: **between rebaselines, the expected number of noise wins
+booked into the baseline is kept below 0.05** — the era is expected to stay
+clean. Two standard attempts fit an era without an override. The budget
+resets only when an accept genuinely ends
 the era (or a suite rollover); overrides are possible but permanent ledger
 records, and the cumulative expected-false-accept sum across all eras is
 printed in every report and never resets.

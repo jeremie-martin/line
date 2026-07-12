@@ -1,26 +1,37 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { freezeBaseline } from "../../benchmark/freeze_baseline.ts";
 import { runCanonicalBenchmark, retainBenchmarkArchive } from "./canonical.ts";
 import { runBenchmarkV2 } from "./runner.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
 import { suiteIdentity } from "./suite_model.ts";
 import { loadListeningReview, requireApprovedListeningReview } from "./listening_review.ts";
-import { existsSync } from "node:fs";
-import { readEraState, appendAttemptEvent, initializeLedgerFromBaseline, DEFAULT_ATTEMPTS_LEDGER_PATH } from "./attempts.ts";
+import {
+  assertNoAttemptInFlight,
+  readAttemptEvents,
+  readEraState,
+  DEFAULT_ATTEMPTS_LEDGER_PATH,
+  type AttemptEventInput,
+} from "./attempts.ts";
 import { readBaselineContract } from "./confirmation.ts";
 import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import { createCompilerSnapshot } from "./compiler_snapshot.ts";
+import { assertCompilerSourcesCommitted } from "./compiler_identity.ts";
 import { compilerCandidateIdentity } from "./runner.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
+import {
+  publishBaselineWithLedger,
+  recoverPendingBaselinePublication,
+} from "./baseline_publication.ts";
 
 export async function runBaselineBenchmark(args = process.argv.slice(2)): Promise<string> {
   const argument = (name: string): string | undefined => {
     const prefix = `--${name}=`;
     return args.find((value) => value.startsWith(prefix))?.slice(prefix.length);
   };
+  recoverPendingBaselinePublication();
   const label = argument("label") ?? new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z");
+  assertCompilerSourcesCommitted();
   const sourceManifestPath = argument("manifest") ?? "benchmark/v2/compat/source-manifest.json";
   const suiteManifestPath = argument("suite") ?? "benchmark/v2/compat/suite-manifest.json";
   const listeningReviewPath = argument("listening-review") ?? "benchmark/v2/evidence/listening-review.json";
@@ -81,18 +92,15 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
     development: canonicalBundle.development,
     qualification: canonicalBundle.qualification,
   }, null, 2)}\n`);
-  freezeBaseline(bundlePath);
-  if (!existsSync(DEFAULT_ATTEMPTS_LEDGER_PATH)) {
-    initializeLedgerFromBaseline();
-  } else {
-    appendAttemptEvent({
-      type: "era-start",
-      eraId: `era-${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}`,
-      cause: "suite-rollover",
-      baselineLabel: label,
-      budgetCap: benchmarkEvalPolicy.eraBudget.cap,
-    });
-  }
+  const cause = readAttemptEvents().length === 0 ? "bootstrap" : "suite-rollover";
+  const eraStart = {
+    type: "era-start",
+    eraId: `era-${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}`,
+    cause,
+    baselineLabel: label,
+    budgetCap: benchmarkEvalPolicy.eraBudget.cap,
+  } as AttemptEventInput;
+  publishBaselineWithLedger(bundlePath, eraStart);
   console.log(`Baseline bundle: ${relativeToCwd(bundlePath)}`);
   return bundlePath;
 }
@@ -103,7 +111,7 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
 function assertFullFreezeAllowed(suiteFingerprint: string): void {
   if (!existsSync(DEFAULT_ATTEMPTS_LEDGER_PATH)) return; // bootstrap
   const era = readEraState();
-  void era;
+  assertNoAttemptInFlight(era, "suite rollover");
   const previous = readBaselineContract();
   if (previous.suiteFingerprint !== suiteFingerprint) return; // suite rollover
   throw new Error(

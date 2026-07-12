@@ -49,17 +49,16 @@ contract is that probe rides can fit local models and propose extra candidates,
 but every candidate that enters the sorted pool has still passed the normal
 engine/detector validation path.
 
-## Benchmark
+## Legacy V1 Benchmark
 
-The default golden compiler is handoff. The benchmark, the HEADLINE metric, the run
-tiers, the `decide` rule, and the jobs/OOM caveat are documented once in
-[`docs/HOW_TO_WORK.md`](../../../docs/HOW_TO_WORK.md) (metric formula + frozen contract:
-[`docs/compiler_goals.md`](../../../docs/compiler_goals.md)).
+These narrow compiler/debug invocations use the archived V1 runner. Current
+compiler-development decisions use Benchmark V2 as documented in
+[`docs/HOW_TO_WORK.md`](../../../docs/HOW_TO_WORK.md).
 
 ```bash
-LR_ENGINE=wasm npm run golden -- --jobs=6
-LR_ENGINE=wasm npm run golden -- --compiler=handoff --jobs=6
-LR_ENGINE=wasm npm run golden -- --budgets=30000,50000,70000 --specs=tiny_dance --seed=0 --jobs=6
+LR_ENGINE=wasm npm run golden:v1 -- --jobs=6
+LR_ENGINE=wasm npm run golden:v1 -- --compiler=handoff --jobs=6
+LR_ENGINE=wasm npm run golden:v1 -- --budgets=30000,50000,70000 --specs=tiny_dance --seed=0 --jobs=6
 LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts --budget=200000 --seeds=0,1
 ```
 

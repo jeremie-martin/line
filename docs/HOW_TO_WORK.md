@@ -43,8 +43,10 @@ npm run benchmark -- explain ARCHIVE.json
 ```
 
 A candidate for confirmation must be an **actual source-default change**
-(a real `candidateFingerprint`), never an `LR_` environment override — an
-accepted baseline must be reproducible from the tree alone.
+(a real `candidateFingerprint`), never an `LR_` environment override. The
+candidate may be uncommitted while it is evaluated, but after an accept the
+exact compiler-bound bytes must be committed before `rebaseline`; promotion
+refuses staged, unstaged, deleted, or untracked compiler-bound paths.
 
 Public physics runs use WASM, default to 48 workers, cap budgets at 750k, report host/process resources, and retain resumable checkpoints. Use `--jobs=N` when the host is shared. `--resume` continues a crashed attempt from its checkpoint; a fired futility stop is durable.
 
@@ -68,6 +70,11 @@ A `--to-verdict` attempt ends one of four ways (exit code):
   realistically end in accept; most of the compute was saved. The spend
   stays charged.
 
+For automation, `--json` reserves benchmark stdout for one structured value;
+diagnostics go to stderr. Invoke the npm wrapper as
+`npm run --silent benchmark -- eval ... --json` so npm's own banner does not
+prefix stdout.
+
 For a simplification, the margin is declared before any confirmation
 compile; accept means "not worse than −m at 99% confidence". An
 inconclusive non-inferiority result is not permission to accept.
@@ -81,8 +88,9 @@ the retained compile references (`menu-certification.json`,
 menu: improve θ=0 at depth 48 (futility looks at 2/3/4/8/16 blocks) and
 simplify m=5 at depth 48. Anything else is refused.
 
-Each attempt charges its row's certified worst-case false-accept bound to
-the **era α-budget** (cap 0.05, roughly three attempts per era). The budget
+Each attempt charges the largest certified false-accept upper bound across
+the menu and independent holdout null/stress cells to the **era α-budget**
+(cap 0.05; currently two standard attempts fit without an override). The budget
 resets only on an accepted rebaseline or a suite rollover. Exhaustion blocks
 declarations until a ledgered `--override-era-budget=<cap> --reason=…`. The
 permanent ledger (`benchmark/v2/attempts.jsonl`) accumulates every attempt
@@ -94,21 +102,24 @@ and the project-wide expected-false-accept sum.
 
 A suite change is an era rollover (new listening review included). A
 decision-surface change requires `npm run benchmark -- migrate` (scopes:
-protocol / calibration / inference; behavior changes escalate to inference
-scope and re-certification). Operational runner changes require a reviewed,
+protocol / calibration / inference). Behavior-changing edits to the shared
+eval-chain inference or stopping logic require fresh menu and independent
+holdout certification; operational logging and ledger edits do not.
+Operational runner changes require a reviewed,
 checksummed bit-identity approval for the exact implementation pair.
 
-## Legacy path (until the eval chain's live validation completes)
+## Retired interfaces
 
-The one-shot `canonical` + `decide` + `baseline` commands remain fully
-operational as the trusted legacy path and retire only after the eval
-chain passes its live validation (V1–V7, `benchmark-v2-validation.md`).
+The pre-eval one-shot `canonical` promotion command is retired and fails
+closed. Standalone `decide` remains available only for optional probe archive
+analysis; it cannot judge canonical evidence or promote a compiler. Historical
+one-shot V2 instructions are preserved under
+`archive/benchmark-v2-one-shot/` and are not runnable guidance.
 
-```bash
-npm run benchmark -- canonical --decision-mode=improvement
-npm run decide -- GENERATED_DEVELOPMENT_ARCHIVE
-npm run benchmark -- baseline --label=NAME
-```
+`baseline` is not the normal post-accept command. Use `rebaseline` after an
+accepted eval attempt. Use `baseline` only to bootstrap Benchmark V2 or after
+an intentional suite-fingerprint rollover with a refreshed listening review
+and statistical evidence.
 
 ## Discipline
 

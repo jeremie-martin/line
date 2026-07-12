@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import {
+  assertConformanceFixtureCases,
   conformanceSuite,
   detectMinimumScope,
   runMigrationCommand,
@@ -44,6 +45,10 @@ describe("migration scope detection", () => {
     expect(detectMinimumScope(["benchmark/v2/runner-compatibility.json"])).toBe("protocol");
     expect(detectMinimumScope(["scripts/v0/benchmark_v2/decision_model.ts"])).toBe("inference");
     expect(detectMinimumScope(["benchmark/v2/decision-policy.ts"])).toBe("inference");
+    expect(detectMinimumScope(["scripts/v0/benchmark_v2/eval_chain_inference.ts"])).toBe("inference");
+    expect(detectMinimumScope(["benchmark/v2/eval-policy.ts"])).toBe("inference");
+    expect(detectMinimumScope(["scripts/benchmark/validate_independent_reference.ts"])).toBe("inference");
+    expect(detectMinimumScope(["benchmark/v2/evidence/decision-conformance.json"])).toBe("inference");
     // inference wins over protocol when both changed
     expect(detectMinimumScope([
       "scripts/v0/benchmark_v2/decide.ts",
@@ -69,6 +74,23 @@ describe("migration command argument gates", () => {
     await expect(runMigrationCommand([
       "--scope=protocol", "--alters-decision-behavior=no", "--approve", "--reason=  ", "--operator=x",
     ])).rejects.toThrow(/--approve, --reason/);
+  });
+
+  test("cannot rewrite governed conformance fixtures out of band", async () => {
+    await expect(runMigrationCommand(["--record-fixtures"]))
+      .rejects.toThrow(/replacement is staged and published only/);
+  });
+});
+
+describe("conformance fixture governance", () => {
+  const fixture = JSON.parse(readFileSync("benchmark/v2/evidence/decision-conformance.json", "utf8"));
+
+  test("requires the exact unique governed case set", () => {
+    expect(() => assertConformanceFixtureCases(fixture.cases)).not.toThrow();
+    expect(() => assertConformanceFixtureCases([])).toThrow(/exactly the six unique/);
+    expect(() => assertConformanceFixtureCases(fixture.cases.slice(1))).toThrow(/exactly the six unique/);
+    expect(() => assertConformanceFixtureCases([...fixture.cases, fixture.cases[0]]))
+      .toThrow(/exactly the six unique/);
   });
 });
 

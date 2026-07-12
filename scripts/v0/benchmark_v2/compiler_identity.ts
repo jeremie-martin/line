@@ -30,6 +30,39 @@ export type CompilerCandidateIdentity = {
   trackedChanges: string[];
 };
 
+/**
+ * Compiler-bound paths whose bytes or file identity differ from HEAD.
+ * This deliberately ignores unrelated worktree changes while including
+ * staged changes, deletions, mode changes, and untracked compiler files.
+ */
+export function compilerDirtyPathsAgainstHead(
+  paths: readonly string[] = COMPILER_SOURCE_PATHS,
+  cwd = process.cwd(),
+): string[] {
+  const git = (args: string[]): string[] => execFileSync(
+    "git",
+    ["-C", cwd, ...args],
+    { encoding: "utf8" },
+  ).split("\0").filter(Boolean);
+  return [...new Set([
+    ...git(["diff", "--name-only", "-z", "HEAD", "--", ...paths]),
+    ...git(["ls-files", "--others", "--exclude-standard", "-z", "--", ...paths]),
+  ])].sort();
+}
+
+export function assertCompilerSourcesCommitted(
+  paths: readonly string[] = COMPILER_SOURCE_PATHS,
+  cwd = process.cwd(),
+): void {
+  const dirty = compilerDirtyPathsAgainstHead(paths, cwd);
+  if (dirty.length > 0) {
+    throw new Error(
+      `compiler-bound source bytes must be committed before establishing a baseline; ` +
+      `dirty paths: ${dirty.join(", ")}`,
+    );
+  }
+}
+
 export function compilerCandidateIdentity(engine: string): CompilerCandidateIdentity {
   const git = (args: string[]): string => execFileSync("git", args, { encoding: "utf8" }).trimEnd();
   const compilerDiff = git(["diff", "--binary", "HEAD", "--", ...COMPILER_SOURCE_PATHS]);

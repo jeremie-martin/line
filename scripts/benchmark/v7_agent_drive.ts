@@ -30,10 +30,8 @@ function benchmark(args: string[]): Invocation {
   }
 }
 
-function lastJson(stdout: string): any {
-  const start = stdout.indexOf("{");
-  if (start < 0) throw new Error(`driver: no JSON object in output`);
-  return JSON.parse(stdout.slice(start));
+function parseJson(stdout: string): any {
+  return JSON.parse(stdout);
 }
 
 const mode = argument("mode") ?? "simplify";
@@ -44,13 +42,17 @@ const modeArgs = mode === "simplify" ? [`--mode=simplify`, `--margin=${margin ??
 const stage0 = benchmark(["eval", "--json"]);
 console.log(`driver: stage0 exit=${stage0.code}`);
 if (stage0.code !== 0) process.exit(1);
-const screen = lastJson(stage0.stdout);
+const screen = parseJson(stage0.stdout);
 console.log(`driver: screen delta=${screen.result.delta} identical=${screen.scoreIdenticalFraction}`);
 
 // 2. Confirmation. On era-budget exhaustion (exit 1), react like an agent:
 //    raise the cap with a ledgered override and retry once.
 let verdict = benchmark(["eval", "--to-verdict", ...modeArgs, "--json"]);
 if (verdict.code === 1) {
+  const refusal = parseJson(verdict.stdout);
+  if (!refusal.error?.message?.includes("era budget")) {
+    throw new Error(`driver: confirmation failed: ${refusal.error?.message ?? "unknown invalid outcome"}`);
+  }
   console.log(`driver: declare refused; raising the era cap with a ledgered override and retrying once`);
   verdict = benchmark([
     "eval", "--to-verdict", ...modeArgs, "--json",
@@ -74,7 +76,7 @@ if (verdict.code === 2 || verdict.code === 3) {
 if (verdict.code !== 0) process.exit(1);
 
 // 4. Accept: execute nextCommand verbatim.
-const artifact = lastJson(verdict.stdout);
+const artifact = parseJson(verdict.stdout);
 const nextCommand: string = artifact.artifact.nextCommand;
 console.log(`driver: ACCEPT; executing nextCommand verbatim: ${nextCommand}`);
 execSync(nextCommand, { stdio: "inherit", env: { ...process.env, LR_ENGINE: "wasm" } });

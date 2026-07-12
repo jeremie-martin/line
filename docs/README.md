@@ -14,8 +14,9 @@ historical record, not live guidance.
 | [`benchmark-v2-context.md`](benchmark-v2-context.md) | LIVE | Product distribution, scoring, holdout, compute, and governance contract. |
 | [`benchmark-v2-decisions.md`](benchmark-v2-decisions.md) | LIVE | Statistical estimand, confidence method, policies, artifacts, and exit codes. |
 | [`benchmark-v2.md`](benchmark-v2.md) | LIVE | Benchmark V2 commands and operations. |
+| [`benchmark-v2-reliability-validation.md`](benchmark-v2-reliability-validation.md) | VALIDATION | Adversarial repair findings, retained fingerprints, and empirical proof. |
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
-| [`REBASELINE.md`](REBASELINE.md) | LIVE | How to freeze linked probe, canonical, and qualification baseline evidence. |
+| [`REBASELINE.md`](REBASELINE.md) | LIVE | Accepted-attempt rebaseline and initial/suite-rollover bootstrap semantics. |
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | LIVE | The active compiler's search algorithm. |
@@ -78,3 +79,6 @@ metric/workflow.
 `SEARCH_ALGORITHM_ANALYSIS.md`, `FORWARD_EVAL_EXPERIMENTS.md`, `TRACK_REPAIR_EXPERIMENTS.md`.
 Kept for the "don't-retry" record and design rationale; their scores predate the current
 budget-aware / weighted-average metric (HEADLINE) and baseline.
+
+`archive/benchmark-v2-one-shot/` preserves the retired pre-eval V2 promotion
+procedure. Its commands are historical records, not live operational guidance.

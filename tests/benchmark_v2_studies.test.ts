@@ -2,8 +2,11 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { gzipSync } from "node:zlib";
+import { gunzipSync, gzipSync } from "node:zlib";
 import { describe, expect, test } from "vitest";
+import { EVAL_CHAIN_INFERENCE_SOURCE_FILES } from "../scripts/v0/benchmark_v2/eval_chain_inference.ts";
+import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "../scripts/v0/benchmark_v2/certification_identity.ts";
+import { fingerprintFiles } from "../scripts/v0/benchmark_v2/suite_model.ts";
 import {
   assertKnobOnlyDelta,
   readVerifiedArtifact,
@@ -60,13 +63,22 @@ describe("retained study artifacts", () => {
   });
 
   test("two-mode validation artifacts recompute barsMet correctly", () => {
-    // v2 artifacts: certify (in-sample pooled, hard power bars) and holdout
+    // v4 artifacts: certify (in-sample pooled, hard power bars) and holdout
     // (variance-robust bars + truth transfer; power reported, not gated).
     for (const name of ["menu-certification", "holdout-validation"]) {
       const path = `benchmark/v2/studies/${name}.json`;
       if (!existsSync(path)) continue;
       const v = loadJson(path);
-      expect(v.schema).toBe("line.benchmark-v2.independent-validation.v2");
+      expect(v.schema).toBe("line.benchmark-v2.independent-validation.v4");
+      expect(v.evalChainInferenceFingerprint).toBe(fingerprintFiles(EVAL_CHAIN_INFERENCE_SOURCE_FILES));
+      expect(v.certificationGeneratorFingerprint).toBe(fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES));
+      expect(v.methodology.futility).toContain(`depth-${v.predeclared.depth}`);
+      expect(v.methodology.futility).not.toContain("depth-32");
+      for (const reference of [v.independentReference, v.originalReference]) {
+        const artifact = readFileSync(reference.path);
+        expect(reference.artifactSha256).toBe(sha256(artifact));
+        expect(reference.rawSha256).toBe(sha256(reference.path.endsWith(".gz") ? gunzipSync(artifact) : artifact));
+      }
       const bars = v.predeclared.bars;
       const byId = new Map<string, any>(v.cells.map((cell: any) => [cell.id, cell]));
       const robust = {

@@ -17,41 +17,43 @@ The former 40-spec V1 campaign is preserved at `docs/archive/GOAL_LDS_COMPILER_I
 1. Diagnose the current baseline with its summaries and `benchmark explain`.
 2. Make one coherent compiler change.
 3. Run focused tests and deterministic checks.
-4. Produce a candidate probe:
+4. Run stage-0 screening against the frozen probe reference:
 
    ```bash
-   npm run benchmark -- probe --out=generated/benchmark-v2/candidates/NAME-probe.json
+   npm run benchmark -- eval
    ```
 
-5. Screen it against the frozen probe baseline:
+5. If the mechanism is worthwhile, declare the certified confirmation before
+   inspecting any fresh confirmation evidence:
 
    ```bash
-   npm run decide -- generated/benchmark-v2/candidates/NAME-probe.json
+   npm run benchmark -- eval --to-verdict
    ```
 
-6. Spend the baseline's single canonical confirmation only after `advance` and after freezing the candidate:
+6. After `accept`, execute the verdict artifact's concrete `nextCommand`:
 
    ```bash
-   npm run benchmark -- canonical --decision-mode=improvement
-   npm run decide -- GENERATED_DEVELOPMENT_ARCHIVE
+   npm run benchmark -- rebaseline --label=NAME
    ```
 
-Only canonical `accept` is a promotion. Qualification is produced beside the canonical run as indicative monitoring evidence; it never enters the development headline or decision.
+Only eval-chain `accept` is a promotion. Qualification is produced as an indicative sidecar after a favorable confirmation; it never enters the development headline or decision.
 
-Probe and canonical use disjoint actual seeds. Each canonical attempt declares a fresh, never-reused random seed epoch before freshly executing both the frozen baseline compiler snapshot and candidate. Canonical is not a reusable development set: every result consumes the confirmation state. Only an accepted candidate can establish the next baseline; deleting or editing the ledger invalidates the audit trail.
+Stage 0 and confirmation use disjoint actual seeds. Each confirmation declares
+a fresh, never-reused epoch before executing both snapshots. Confirmation is
+not a reusable development set; retries require acknowledgement and fresh
+evidence. Only an accepted candidate can establish the next baseline; deleting
+or editing the ledger invalidates the audit trail.
 
 ## Simplification
 
-Choose the largest acceptable headline regression before canonical compilation:
+Choose a certified acceptable headline regression before confirmation compilation:
 
 ```bash
-npm run decide -- generated/benchmark-v2/candidates/NAME-probe.json \
-  --mode=simplification --margin=0.5
-npm run benchmark -- canonical --decision-mode=simplification --margin=0.5
-npm run decide -- GENERATED_DEVELOPMENT_ARCHIVE --mode=simplification --margin=0.5
+npm run benchmark -- eval
+npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
 ```
 
-The margin is explicit and has no default. Canonical non-inferiority is required before merging a behavior-changing simplification. Byte-identical refactors should additionally demonstrate matching track hashes.
+The margin is explicit and has no default. Certified non-inferiority is required before merging a behavior-changing simplification. Byte-identical refactors should additionally demonstrate matching track hashes.
 
 ## Engineering Rules
 

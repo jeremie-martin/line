@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,8 +9,20 @@ import {
   evalOperatingPoint,
 } from "../benchmark/v2/eval-policy.ts";
 import { requireCertifiedOperatingPoint } from "../scripts/v0/benchmark_v2/calibration_guard.ts";
-import { futilityUpperBound } from "../scripts/v0/benchmark_v2/eval.ts";
 import { studentTQuantile } from "../scripts/v0/benchmark_v2/decision_model.ts";
+import {
+  evalFutilityUpperBound,
+  evalRunsAtLook,
+} from "../scripts/v0/benchmark_v2/eval_chain_inference.ts";
+import {
+  assertQualificationSucceeded,
+  recoverDurableFutilityStop,
+} from "../scripts/v0/benchmark_v2/eval.ts";
+import {
+  appendAttemptEvent,
+  readAttemptEvents,
+  readEraState,
+} from "../scripts/v0/benchmark_v2/attempts.ts";
 import { suiteIdentity } from "../scripts/v0/benchmark_v2/suite_model.ts";
 import { loadSourceManifest, resolveSources } from "../scripts/v0/benchmark_v2/model.ts";
 
@@ -68,10 +81,13 @@ describe("certified operating-point guard", () => {
     const certified = requireCertifiedOperatingPoint("improvement", null, 48, suiteFingerprint);
     expect(certified.point.id).toBe("improve-t0-d48");
     const menu = JSON.parse(readFileSync("benchmark/v2/studies/menu-certification.json", "utf8"));
-    const futilityNull = menu.cells.find((cell: any) => cell.id === "futility_null");
+    const holdout = JSON.parse(readFileSync("benchmark/v2/studies/holdout-validation.json", "utf8"));
     const futilityPower = menu.cells.find((cell: any) => cell.id === "futility_power_5");
-    // Spend and envelope are read from the artifact, never hardcoded.
-    expect(certified.spend).toBe(futilityNull.combined.netAccept.wilson95[1]);
+    // Spend is the worst relevant null upper bound across both artifacts.
+    expect(certified.spend).toBe(0.0196);
+    expect(certified.spend).toBe(
+      holdout.cells.find((cell: any) => cell.id === "futility_null").combined.netAccept.wilson95[1],
+    );
     expect(certified.envelopeSe).toBe(futilityPower.combined.meanSeedBlockSe);
     expect(certified.mde80).toBe(5);
     expect(certified.certificationFingerprint).toMatch(/^[a-f0-9]{64}$/);
@@ -93,7 +109,7 @@ describe("certified operating-point guard", () => {
       .toThrow(/not on the certified menu/);
   });
 
-  test("refuses stale artifacts: wrong suite, wrong inference identity, failed bars", () => {
+  test("refuses stale artifacts: wrong suite, inference identities, or failed bars", () => {
     expect(() => requireCertifiedOperatingPoint("improvement", null, 48, "0".repeat(64)))
       .toThrow(/stale for the current suite or inference identity/);
 
@@ -108,6 +124,40 @@ describe("certified operating-point guard", () => {
       menuCertification: wrongInferencePath,
       holdoutValidation: holdoutPath,
     })).toThrow(/stale for the current suite or inference identity/);
+
+    const wrongEvalChain = { ...menu, evalChainInferenceFingerprint: "2".repeat(64) };
+    const wrongEvalChainPath = join(dir, "menu-wrong-eval-chain.json");
+    writeFileSync(wrongEvalChainPath, JSON.stringify(wrongEvalChain));
+    expect(() => requireCertifiedOperatingPoint("improvement", null, 48, suiteFingerprint, {
+      menuCertification: wrongEvalChainPath,
+      holdoutValidation: holdoutPath,
+    })).toThrow(/stale for the current eval-chain inference implementation/);
+
+    const wrongGenerator = { ...menu, certificationGeneratorFingerprint: "4".repeat(64) };
+    const wrongGeneratorPath = join(dir, "menu-wrong-generator.json");
+    writeFileSync(wrongGeneratorPath, JSON.stringify(wrongGenerator));
+    expect(() => requireCertifiedOperatingPoint("improvement", null, 48, suiteFingerprint, {
+      menuCertification: wrongGeneratorPath,
+      holdoutValidation: holdoutPath,
+    })).toThrow(/stale for the current certification generator or methodology/);
+
+    const wrongReference = structuredClone(menu);
+    wrongReference.independentReference.rawSha256 = "5".repeat(64);
+    const wrongReferencePath = join(dir, "menu-wrong-reference.json");
+    writeFileSync(wrongReferencePath, JSON.stringify(wrongReference));
+    expect(() => requireCertifiedOperatingPoint("improvement", null, 48, suiteFingerprint, {
+      menuCertification: wrongReferencePath,
+      holdoutValidation: holdoutPath,
+    })).toThrow(/independent reference raw checksum mismatch/);
+
+    const wrongUpstream = structuredClone(menu);
+    wrongUpstream.upstream.powerGrid.sha256 = "3".repeat(64);
+    const wrongUpstreamPath = join(dir, "menu-wrong-upstream.json");
+    writeFileSync(wrongUpstreamPath, JSON.stringify(wrongUpstream));
+    expect(() => requireCertifiedOperatingPoint("improvement", null, 48, suiteFingerprint, {
+      menuCertification: wrongUpstreamPath,
+      holdoutValidation: holdoutPath,
+    })).toThrow(/certification upstream powerGrid is missing or does not match/);
 
     const failedBars = { ...menu, allBarsMet: false };
     const failedBarsPath = join(dir, "menu-failed-bars.json");
@@ -143,13 +193,127 @@ describe("certified operating-point guard", () => {
       holdoutValidation: "benchmark/v2/studies/holdout-validation.json",
     })).toThrow(/power lower bound/);
   });
+
+  test("requires matching menu and holdout predeclarations", () => {
+    const dir = tempDir();
+    const holdout = JSON.parse(readFileSync("benchmark/v2/studies/holdout-validation.json", "utf8"));
+    holdout.predeclared = structuredClone(holdout.predeclared);
+    holdout.predeclared.futilitySchedule = [2, 4, 8];
+    const path = join(dir, "holdout-wrong-schedule.json");
+    writeFileSync(path, JSON.stringify(holdout));
+    expect(() => requireCertifiedOperatingPoint("improvement", null, 48, suiteFingerprint, {
+      menuCertification: "benchmark/v2/studies/menu-certification.json",
+      holdoutValidation: path,
+    })).toThrow(/predeclarations differ/);
+  });
+
+  test("checks policy bars in both certification artifacts", () => {
+    const dir = tempDir();
+    const menu = JSON.parse(readFileSync("benchmark/v2/studies/menu-certification.json", "utf8"));
+    const holdout = JSON.parse(readFileSync("benchmark/v2/studies/holdout-validation.json", "utf8"));
+    for (const artifact of [menu, holdout]) {
+      artifact.predeclared = structuredClone(artifact.predeclared);
+      artifact.predeclared.bars.futilityNullFalseAcceptWilsonUpperMax = 0.1;
+    }
+    const menuPath = join(dir, "menu-wrong-bars.json");
+    const holdoutPath = join(dir, "holdout-wrong-bars.json");
+    writeFileSync(menuPath, JSON.stringify(menu));
+    writeFileSync(holdoutPath, JSON.stringify(holdout));
+    expect(() => requireCertifiedOperatingPoint("improvement", null, 48, suiteFingerprint, {
+      menuCertification: menuPath,
+      holdoutValidation: holdoutPath,
+    })).toThrow(/certification bars.*do not match/);
+  });
 });
 
 describe("futility bound", () => {
   test("matches the certified one-sided t rule", () => {
-    const bound = futilityUpperBound(-2.5, 1.2, 11, 0.05);
+    const bound = evalFutilityUpperBound(-2.5, 1.2, 11, 0.05);
     expect(bound).toBeCloseTo(-2.5 + studentTQuantile(0.95, 11) * 1.2, 12);
-    expect(futilityUpperBound(-2.5, 0, null, 0.05)).toBe(-2.5);
-    expect(futilityUpperBound(1, 1, null, 0.05)).toBeCloseTo(1 + studentTQuantile(0.95, Infinity), 12);
+    expect(evalFutilityUpperBound(-2.5, 0, null, 0.05)).toBe(-2.5);
+    expect(evalFutilityUpperBound(1, 1, null, 0.05)).toBeCloseTo(1 + studentTQuantile(0.95, Infinity), 12);
+  });
+
+  test("uses the same seed-block prefix selector as live eval", () => {
+    const runs = [{ seedSlot: 2 }, { seedSlot: 0 }, { seedSlot: 1 }, { seedSlot: 3 }];
+    expect(evalRunsAtLook(runs, 2)).toEqual([{ seedSlot: 0 }, { seedSlot: 1 }]);
+    expect(() => evalRunsAtLook(runs, 0)).toThrow(/positive integer/);
+  });
+
+  test("settles a fired look after a crash before the futility event", () => {
+    const dir = tempDir();
+    const paths = { ledger: join(dir, "attempts.jsonl"), projection: join(dir, "era-state.json") };
+    appendAttemptEvent({
+      type: "era-start",
+      eraId: "era-test",
+      cause: "bootstrap",
+      baselineLabel: "base-test",
+      budgetCap: 0.05,
+    }, paths, "2026-07-12T00:00:00.000Z");
+    const declare = {
+      type: "declare",
+      eraId: "era-test",
+      attemptId: "attempt-fired",
+      candidateFingerprint: "b".repeat(64),
+      operatingPointId: "improve-t0-d48",
+      mode: "improvement",
+      margin: null,
+      depth: 48,
+      spend: 0.0196,
+      certificationFingerprint: "c".repeat(64),
+      canonicalSeedBase: 1_500_000,
+      seedCount: 144,
+      seedScheduleFingerprint: "d".repeat(64),
+      retryAcknowledged: false,
+    } as const;
+    const declarationPath = join(dir, "declaration.json");
+    const declarationBytes = `${JSON.stringify({
+      schema: "line.benchmark-v2.eval-declaration.v6",
+      ...declare,
+      candidateSnapshot: { candidateFingerprint: declare.candidateFingerprint },
+      criticalAlpha: 0.01,
+      futilitySchedule: [2, 3, 4, 8, 16],
+      futilityAlpha: 0.05,
+      eraBudgetSpend: declare.spend,
+    })}\n`;
+    writeFileSync(declarationPath, declarationBytes);
+    appendAttemptEvent({
+      ...declare,
+      declarationPath,
+      declarationSha256: createHash("sha256").update(declarationBytes).digest("hex"),
+    }, paths, "2026-07-12T00:00:01.000Z");
+    appendAttemptEvent({
+      type: "look",
+      attemptId: "attempt-fired",
+      k: 2,
+      delta: -3,
+      standardError: 0.5,
+      upperBound: -2.1,
+      fired: true,
+    }, paths, "2026-07-12T00:00:02.000Z");
+
+    expect(recoverDurableFutilityStop({
+      attemptId: "attempt-fired",
+      mode: "improvement",
+      margin: null,
+    }, paths)).toEqual({ k: 2, upperBound: -2.1, threshold: 0 });
+    expect(readEraState(paths).attempts.at(-1)?.outcome).toBe("futility-stop");
+    expect(readAttemptEvents(paths).filter((event) => event.type === "futility")).toHaveLength(1);
+
+    // A second resume sees the existing settlement and cannot duplicate it.
+    expect(recoverDurableFutilityStop({
+      attemptId: "attempt-fired",
+      mode: "improvement",
+      margin: null,
+    }, paths)).toEqual({ k: 2, upperBound: -2.1, threshold: 0 });
+    expect(readAttemptEvents(paths).filter((event) => event.type === "futility")).toHaveLength(1);
+  });
+});
+
+describe("acceptance qualification gate", () => {
+  test("keeps a failed qualification from reaching the verdict append", () => {
+    expect(() => assertQualificationSucceeded({ workerFailures: 1 }))
+      .toThrow(/attempt remains in flight.*resumed/);
+    expect(() => assertQualificationSucceeded({ workerFailures: 0 })).not.toThrow();
   });
 });

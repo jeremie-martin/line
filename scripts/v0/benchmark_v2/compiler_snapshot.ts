@@ -109,7 +109,7 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
   const workspace = mkdtempSync(resolve(tmpdir(), "line-v2-baseline-"));
   let worktreeCreated = false;
   try {
-    execFileSync("git", ["worktree", "add", "--detach", workspace, "HEAD"], { stdio: "inherit" });
+    execFileSync("git", ["worktree", "add", "--detach", workspace, "HEAD"], { stdio: diagnosticStdio() });
     worktreeCreated = true;
     execFileSync("rsync", [
       "-a",
@@ -120,7 +120,7 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
       "--exclude=/engine-rs/target",
       "./",
       `${workspace}/`,
-    ], { cwd: process.cwd(), stdio: "inherit" });
+    ], { cwd: process.cwd(), stdio: diagnosticStdio() });
     // The approved listening-review audio is validation evidence the runner
     // requires; it lives under the otherwise-excluded generated/ tree.
     if (existsSync("generated/benchmark-v2/listening-review")) {
@@ -129,13 +129,13 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
         "-r",
         "generated/benchmark-v2/listening-review",
         resolve(workspace, "generated/benchmark-v2/"),
-      ], { stdio: "inherit" });
+      ], { stdio: diagnosticStdio() });
     }
     removeAmbientCompilerSources(workspace);
-    execFileSync("tar", ["-xzf", resolve(snapshot.archive), "-C", workspace], { stdio: "inherit" });
+    execFileSync("tar", ["-xzf", resolve(snapshot.archive), "-C", workspace], { stdio: diagnosticStdio() });
     execFileSync("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund"], {
       cwd: workspace,
-      stdio: "inherit",
+      stdio: diagnosticStdio(),
     });
   } catch (error) {
     if (worktreeCreated) {
@@ -170,7 +170,7 @@ export function runInWorkspace(
   ], {
     cwd: workspace.directory,
     env: environment,
-    stdio: "inherit",
+    stdio: diagnosticStdio(),
   });
   const absoluteOutput = resolve(outputPath);
   if (!existsSync(absoluteOutput) && existsSync(`${absoluteOutput}.failed`)) {
@@ -206,6 +206,12 @@ export function runInWorkspace(
     qualificationMonitorScore: archive.qualificationMonitorScore,
     workerFailures: archive.runs.filter((row: { status: string }) => row.status !== "ok").length,
   };
+}
+
+function diagnosticStdio(): "inherit" | ["inherit", NodeJS.WritableStream, NodeJS.WritableStream] {
+  return process.env.LINE_BENCHMARK_JSON_STDOUT === "1"
+    ? ["inherit", process.stderr, process.stderr]
+    : "inherit";
 }
 
 export function disposeSnapshotWorkspace(workspace: SnapshotWorkspace): void {

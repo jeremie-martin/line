@@ -221,7 +221,7 @@ per-gap telemetry in evaluateNode/buildNodeOutput; archive
   × lanes on/off). Expected: enumerative ≥ lanes; if so the lane triggers
   retire INTO the proposer (geometry like `buildArrivalScoopLines` stays —
   it is a knob/template, not a trigger).
-- Judged: canonical + decide vs current baseline; all five invariants hold
+- Judged: certified eval confirmation vs current baseline; all five invariants hold
   (zero rng draws, metered probes, no charged-rollout multiplication, no
   sampleAttempt, diversity preserved — aimed proposals ADD to the pool).
 - Success metric: commits and headline — NOT pool rank0 (a
@@ -340,8 +340,8 @@ pose-rate`), sweeps pitch+rotation jointly, then sends only the top two
   "current instance" in code comments and doc.
 - All five invariants of `ARC_STATE_CONTROL` §1 apply verbatim.
 - Workflow per rung: studies are read-only scripts with archived artifacts;
-  behavior changes are flag-gated, judged by canonical + decide (candidate
-  first), `verify:optimizer -- --update` after any behavior/stats change;
+  behavior changes are flag-gated and judged by the certified eval chain,
+  `verify:optimizer -- --update` after any behavior/stats change;
   full test suite; fingerprint untouchables never edited; docs +
   `ARC_STATE_CONTROL.md` cross-references updated the same day; memory
   updated at each verdict.

@@ -43,13 +43,14 @@ npx tsx scripts/stress.ts
 npm run parity
 
 # Benchmark V2 is the default compiler benchmark.
-npm run benchmark -- probe
-npm run benchmark -- canonical --decision-mode=improvement
-npm run decide -- CANDIDATE_DEVELOPMENT_ARCHIVE.json
+npm run benchmark -- eval
+npm run benchmark -- eval --to-verdict
 
-# Canonical executes the frozen baseline snapshot and candidate on one fresh seed epoch.
+# Confirmation executes both frozen snapshots on one fresh paired seed epoch.
+# After an accept, promote the retained attempt and refresh the screening reference.
+npm run benchmark -- rebaseline --label=NAME
 
-# Freeze probe + canonical + qualification evidence for a new compiler baseline.
+# Bootstrap a new suite, or perform an intentional suite rollover only.
 npm run benchmark -- baseline --label=NAME
 
 # Historical V1 reproduction remains explicit.

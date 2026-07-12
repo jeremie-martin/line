@@ -242,14 +242,18 @@
           "weight": 0.25,
           "members": [
             "frontier_low_air_endurance",
-            "frontier_low_air_endurance_4s"
+            "frontier_low_air_endurance_4s",
+            "frontier_low_air_endurance_6s",
+            "frontier_low_air_endurance_7s"
           ],
           "parents": [
             {
               "id": "frontier_low_air_endurance",
               "members": [
                 "frontier_low_air_endurance",
-                "frontier_low_air_endurance_4s"
+                "frontier_low_air_endurance_4s",
+                "frontier_low_air_endurance_6s",
+                "frontier_low_air_endurance_7s"
               ]
             }
           ]

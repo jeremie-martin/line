@@ -1,13 +1,13 @@
 # Benchmark V2 Static Characterization
 
-Data fingerprint: `712719f7dcf9d148`.
+Data fingerprint: `2ae982a1b58fc399`.
 
 This report inspects source only. It contains no compiler run or heldout outcome.
 
 ## Inventory
 
 - Representative candidates: 28.
-- Capability candidates: 6.
+- Capability candidates: 8.
 - Legacy-derived regression candidates: 4.
 - Development-music candidates: 4.
 - Qualification references: 5.
@@ -68,7 +68,9 @@ Capability cases are long-form frontier scores and contribute through a fixed ca
 | frontier_dense_recovery | dense_recovery_frontier | 58.0s | 123 | 220ms / 560ms / 560ms | 6 | 0 | air, speed, impact |
 | frontier_dense_recovery_240ms_figures | dense_recovery_frontier | 58.0s | 123 | 240ms / 560ms / 560ms | 2 | 0 | air, speed, impact |
 | frontier_low_air_endurance | low_air_frontier | 62.0s | 90 | 550ms / 550ms / 5000ms | 0 | 3 | air, speed, impact |
-| frontier_low_air_endurance_4s | low_air_frontier | 62.0s | 90 | 550ms / 550ms / 4000ms | 0 | 3 | air, speed, impact |
+| frontier_low_air_endurance_4s | low_air_frontier | 61.0s | 90 | 550ms / 550ms / 4000ms | 0 | 3 | air, speed, impact |
+| frontier_low_air_endurance_6s | low_air_frontier | 63.0s | 90 | 550ms / 550ms / 6000ms | 0 | 3 | air, speed, impact |
+| frontier_low_air_endurance_7s | low_air_frontier | 64.0s | 90 | 550ms / 550ms / 7000ms | 0 | 3 | air, speed, impact |
 | frontier_pickup_progression | rapid_pickup_frontier | 60.0s | 110 | 180ms / 600ms / 600ms | 6 | 0 | air, speed, impact |
 | frontier_pickup_progression_shifted | rapid_pickup_frontier | 60.0s | 110 | 160ms / 600ms / 600ms | 6 | 0 | air, speed, impact |
 

@@ -1,6 +1,6 @@
 {
   "schema": "line.benchmark-v2.audit.v2",
-  "characterizationFingerprint": "712719f7dcf9d148de8bfd2ad3fa31cbd00a6a0d3adccce12607a0aecb5eb39a",
+  "characterizationFingerprint": "2ae982a1b58fc399f1231bf499e3daec251f16573d4e74b28c6678ac04805985",
   "auditRuleFingerprint": "84e049510a2e2782c2f2a4bbabde691e54472e821d2afcdc14824f8545b92d46",
   "hardFailures": [],
   "warnings": [
@@ -23,20 +23,35 @@
     "near-identical gap distribution: dense_dialogue, dense_dialogue_impact_contrast_10 (1)",
     "near-identical gap distribution: frontier_dense_recovery, frontier_dense_recovery_240ms_figures (0.9987)",
     "near-identical gap distribution: frontier_low_air_endurance, amor_na_praia_46s (0.9961)",
-    "near-identical gap distribution: frontier_low_air_endurance, frontier_low_air_endurance_4s (0.9999)",
+    "near-identical gap distribution: frontier_low_air_endurance, frontier_low_air_endurance_4s (1)",
+    "near-identical gap distribution: frontier_low_air_endurance, frontier_low_air_endurance_6s (1)",
+    "near-identical gap distribution: frontier_low_air_endurance, frontier_low_air_endurance_7s (1)",
     "near-identical gap distribution: frontier_low_air_endurance, frontier_pickup_progression (0.9898)",
     "near-identical gap distribution: frontier_low_air_endurance, frontier_pickup_progression_shifted (0.9923)",
     "near-identical gap distribution: frontier_low_air_endurance, shelter_impact_sync_81s (0.9847)",
-    "near-identical gap distribution: frontier_low_air_endurance_4s, amor_na_praia_46s (0.996)",
+    "near-identical gap distribution: frontier_low_air_endurance_4s, amor_na_praia_46s (0.9961)",
+    "near-identical gap distribution: frontier_low_air_endurance_4s, frontier_low_air_endurance_6s (1)",
+    "near-identical gap distribution: frontier_low_air_endurance_4s, frontier_low_air_endurance_7s (1)",
     "near-identical gap distribution: frontier_low_air_endurance_4s, frontier_pickup_progression (0.9898)",
-    "near-identical gap distribution: frontier_low_air_endurance_4s, frontier_pickup_progression_shifted (0.9922)",
-    "near-identical gap distribution: frontier_low_air_endurance_4s, shelter_impact_sync_81s (0.9846)",
+    "near-identical gap distribution: frontier_low_air_endurance_4s, frontier_pickup_progression_shifted (0.9923)",
+    "near-identical gap distribution: frontier_low_air_endurance_4s, shelter_impact_sync_81s (0.9847)",
+    "near-identical gap distribution: frontier_low_air_endurance_6s, amor_na_praia_46s (0.9961)",
+    "near-identical gap distribution: frontier_low_air_endurance_6s, frontier_low_air_endurance_7s (1)",
+    "near-identical gap distribution: frontier_low_air_endurance_6s, frontier_pickup_progression (0.9898)",
+    "near-identical gap distribution: frontier_low_air_endurance_6s, frontier_pickup_progression_shifted (0.9923)",
+    "near-identical gap distribution: frontier_low_air_endurance_6s, shelter_impact_sync_81s (0.9847)",
+    "near-identical gap distribution: frontier_low_air_endurance_7s, amor_na_praia_46s (0.9961)",
+    "near-identical gap distribution: frontier_low_air_endurance_7s, frontier_pickup_progression (0.9898)",
+    "near-identical gap distribution: frontier_low_air_endurance_7s, frontier_pickup_progression_shifted (0.9923)",
+    "near-identical gap distribution: frontier_low_air_endurance_7s, shelter_impact_sync_81s (0.9847)",
     "near-identical gap distribution: frontier_pickup_progression, amor_na_praia_46s (0.9883)",
     "near-identical gap distribution: frontier_pickup_progression, frontier_pickup_progression_shifted (0.9976)",
     "near-identical gap distribution: frontier_pickup_progression_shifted, amor_na_praia_46s (0.9907)",
     "near-identical gap distribution: high_air_drive, amor_na_praia_46s (0.9962)",
     "near-identical gap distribution: high_air_drive, frontier_low_air_endurance (0.9994)",
-    "near-identical gap distribution: high_air_drive, frontier_low_air_endurance_4s (0.9993)",
+    "near-identical gap distribution: high_air_drive, frontier_low_air_endurance_4s (0.9994)",
+    "near-identical gap distribution: high_air_drive, frontier_low_air_endurance_6s (0.9994)",
+    "near-identical gap distribution: high_air_drive, frontier_low_air_endurance_7s (0.9994)",
     "near-identical gap distribution: high_air_drive, frontier_pickup_progression (0.9899)",
     "near-identical gap distribution: high_air_drive, frontier_pickup_progression_shifted (0.9923)",
     "near-identical gap distribution: high_air_drive, high_air_drive_air_minus_5 (1)",
@@ -44,7 +59,9 @@
     "near-identical gap distribution: high_air_drive, shelter_impact_sync_81s (0.9885)",
     "near-identical gap distribution: high_air_drive_air_minus_5, amor_na_praia_46s (0.9962)",
     "near-identical gap distribution: high_air_drive_air_minus_5, frontier_low_air_endurance (0.9994)",
-    "near-identical gap distribution: high_air_drive_air_minus_5, frontier_low_air_endurance_4s (0.9993)",
+    "near-identical gap distribution: high_air_drive_air_minus_5, frontier_low_air_endurance_4s (0.9994)",
+    "near-identical gap distribution: high_air_drive_air_minus_5, frontier_low_air_endurance_6s (0.9994)",
+    "near-identical gap distribution: high_air_drive_air_minus_5, frontier_low_air_endurance_7s (0.9994)",
     "near-identical gap distribution: high_air_drive_air_minus_5, frontier_pickup_progression (0.9899)",
     "near-identical gap distribution: high_air_drive_air_minus_5, frontier_pickup_progression_shifted (0.9923)",
     "near-identical gap distribution: high_air_drive_air_minus_5, river_reentry (0.9976)",
@@ -62,6 +79,8 @@
     "near-identical gap distribution: river_reentry, amor_na_praia_46s (0.9961)",
     "near-identical gap distribution: river_reentry, frontier_low_air_endurance (0.9975)",
     "near-identical gap distribution: river_reentry, frontier_low_air_endurance_4s (0.9975)",
+    "near-identical gap distribution: river_reentry, frontier_low_air_endurance_6s (0.9975)",
+    "near-identical gap distribution: river_reentry, frontier_low_air_endurance_7s (0.9975)",
     "near-identical gap distribution: river_reentry, frontier_pickup_progression (0.9885)",
     "near-identical gap distribution: river_reentry, frontier_pickup_progression_shifted (0.9914)",
     "near-identical gap distribution: river_reentry, shelter_impact_sync_81s (0.9829)",
@@ -120,7 +139,22 @@
     "target similarity: frontier_dense_recovery, frontier_dense_recovery_240ms_figures, speed (1)",
     "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_4s, air (1)",
     "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_4s, impact (1)",
-    "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_4s, speed (0.9988)",
+    "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_4s, speed (0.9998)",
+    "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_6s, air (1)",
+    "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_6s, impact (1)",
+    "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_6s, speed (0.9998)",
+    "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_7s, air (1)",
+    "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_7s, impact (1)",
+    "target similarity: frontier_low_air_endurance, frontier_low_air_endurance_7s, speed (0.9993)",
+    "target similarity: frontier_low_air_endurance_4s, frontier_low_air_endurance_6s, air (1)",
+    "target similarity: frontier_low_air_endurance_4s, frontier_low_air_endurance_6s, impact (1)",
+    "target similarity: frontier_low_air_endurance_4s, frontier_low_air_endurance_6s, speed (0.9992)",
+    "target similarity: frontier_low_air_endurance_4s, frontier_low_air_endurance_7s, air (1)",
+    "target similarity: frontier_low_air_endurance_4s, frontier_low_air_endurance_7s, impact (1)",
+    "target similarity: frontier_low_air_endurance_4s, frontier_low_air_endurance_7s, speed (0.9983)",
+    "target similarity: frontier_low_air_endurance_6s, frontier_low_air_endurance_7s, air (1)",
+    "target similarity: frontier_low_air_endurance_6s, frontier_low_air_endurance_7s, impact (1)",
+    "target similarity: frontier_low_air_endurance_6s, frontier_low_air_endurance_7s, speed (0.9998)",
     "target similarity: frontier_pickup_progression, believer_impact_56s, speed (0.9848)",
     "target similarity: frontier_pickup_progression, believer_impact_56s_amplitude_plus_5, speed (0.9848)",
     "target similarity: frontier_pickup_progression, frontier_pickup_progression_shifted, air (1)",
@@ -346,7 +380,97 @@
       "a": "frontier_low_air_endurance",
       "b": "frontier_low_air_endurance_4s",
       "axis": "speed",
-      "correlation": 0.9988
+      "correlation": 0.9998
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "frontier_low_air_endurance_6s",
+      "axis": "air",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "frontier_low_air_endurance_6s",
+      "axis": "impact",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "frontier_low_air_endurance_6s",
+      "axis": "speed",
+      "correlation": 0.9998
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "frontier_low_air_endurance_7s",
+      "axis": "air",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "frontier_low_air_endurance_7s",
+      "axis": "impact",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "frontier_low_air_endurance_7s",
+      "axis": "speed",
+      "correlation": 0.9993
+    },
+    {
+      "a": "frontier_low_air_endurance_4s",
+      "b": "frontier_low_air_endurance_6s",
+      "axis": "air",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance_4s",
+      "b": "frontier_low_air_endurance_6s",
+      "axis": "impact",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance_4s",
+      "b": "frontier_low_air_endurance_6s",
+      "axis": "speed",
+      "correlation": 0.9992
+    },
+    {
+      "a": "frontier_low_air_endurance_4s",
+      "b": "frontier_low_air_endurance_7s",
+      "axis": "air",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance_4s",
+      "b": "frontier_low_air_endurance_7s",
+      "axis": "impact",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance_4s",
+      "b": "frontier_low_air_endurance_7s",
+      "axis": "speed",
+      "correlation": 0.9983
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "frontier_low_air_endurance_7s",
+      "axis": "air",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "frontier_low_air_endurance_7s",
+      "axis": "impact",
+      "correlation": 1
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "frontier_low_air_endurance_7s",
+      "axis": "speed",
+      "correlation": 0.9998
     },
     {
       "a": "frontier_pickup_progression",
@@ -833,7 +957,17 @@
     {
       "a": "amplitude_tides",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.0001
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
     },
     {
       "a": "amplitude_tides",
@@ -1058,7 +1192,17 @@
     {
       "a": "amplitude_tides_restrained_10",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.0001
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides_restrained_10",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "amplitude_tides_restrained_10",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
     },
     {
       "a": "amplitude_tides_restrained_10",
@@ -1412,6 +1556,16 @@
     },
     {
       "a": "countercurrent",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent",
       "b": "frontier_pickup_progression",
       "cosine": 0
     },
@@ -1627,6 +1781,16 @@
     },
     {
       "a": "countercurrent_impact_contrast_12",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent_impact_contrast_12",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "countercurrent_impact_contrast_12",
       "b": "frontier_pickup_progression",
       "cosine": 0
     },
@@ -1837,6 +2001,16 @@
     },
     {
       "a": "dense_dialogue",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "dense_dialogue",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "dense_dialogue",
       "b": "frontier_pickup_progression",
       "cosine": 0.0843
     },
@@ -2042,6 +2216,16 @@
     },
     {
       "a": "dense_dialogue_impact_contrast_10",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "dense_dialogue_impact_contrast_10",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "dense_dialogue_impact_contrast_10",
       "b": "frontier_pickup_progression",
       "cosine": 0.0843
     },
@@ -2238,7 +2422,17 @@
     {
       "a": "frontier_dense_recovery",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.9031
+      "cosine": 0.9032
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.9032
+    },
+    {
+      "a": "frontier_dense_recovery",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.9032
     },
     {
       "a": "frontier_dense_recovery",
@@ -2323,7 +2517,17 @@
     {
       "a": "frontier_dense_recovery_240ms_figures",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.8931
+      "cosine": 0.8932
+    },
+    {
+      "a": "frontier_dense_recovery_240ms_figures",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.8932
+    },
+    {
+      "a": "frontier_dense_recovery_240ms_figures",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.8932
     },
     {
       "a": "frontier_dense_recovery_240ms_figures",
@@ -2403,7 +2607,17 @@
     {
       "a": "frontier_low_air_endurance",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.9999
+      "cosine": 1
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 1
+    },
+    {
+      "a": "frontier_low_air_endurance",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 1
     },
     {
       "a": "frontier_low_air_endurance",
@@ -2453,7 +2667,7 @@
     {
       "a": "frontier_low_air_endurance_4s",
       "b": "amor_na_praia_46s",
-      "cosine": 0.996
+      "cosine": 0.9961
     },
     {
       "a": "frontier_low_air_endurance_4s",
@@ -2482,28 +2696,38 @@
     },
     {
       "a": "frontier_low_air_endurance_4s",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 1
+    },
+    {
+      "a": "frontier_low_air_endurance_4s",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 1
+    },
+    {
+      "a": "frontier_low_air_endurance_4s",
       "b": "frontier_pickup_progression",
       "cosine": 0.9898
     },
     {
       "a": "frontier_low_air_endurance_4s",
       "b": "frontier_pickup_progression_shifted",
-      "cosine": 0.9922
+      "cosine": 0.9923
     },
     {
       "a": "frontier_low_air_endurance_4s",
       "b": "luna_bala_44s",
-      "cosine": 0.7039
+      "cosine": 0.704
     },
     {
       "a": "frontier_low_air_endurance_4s",
       "b": "regression_amplitude_mosaic",
-      "cosine": 0.0012
+      "cosine": 0
     },
     {
       "a": "frontier_low_air_endurance_4s",
       "b": "regression_amplitude_mosaic_contrast_10",
-      "cosine": 0.0012
+      "cosine": 0
     },
     {
       "a": "frontier_low_air_endurance_4s",
@@ -2518,10 +2742,165 @@
     {
       "a": "frontier_low_air_endurance_4s",
       "b": "shelter_impact_sync_81s",
-      "cosine": 0.9846
+      "cosine": 0.9847
     },
     {
       "a": "frontier_low_air_endurance_4s",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.9961
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "believer_56_6s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "believer_56_6s_impact_relief",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "believer_impact_56s",
+      "cosine": 0.0004
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "believer_impact_56s_amplitude_plus_5",
+      "cosine": 0.0004
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 1
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.9898
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "frontier_pickup_progression_shifted",
+      "cosine": 0.9923
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "luna_bala_44s",
+      "cosine": 0.704
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "regression_amplitude_mosaic_contrast_10",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.1611
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "regression_transition_mosaic_tempo_fast_5",
+      "cosine": 0.1505
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.9847
+    },
+    {
+      "a": "frontier_low_air_endurance_6s",
+      "b": "tiki_tiki_48s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "amor_na_praia_46s",
+      "cosine": 0.9961
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "amour_de_ma_vie_short_44s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "believer_56_6s",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "believer_56_6s_impact_relief",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "believer_impact_56s",
+      "cosine": 0.0004
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "believer_impact_56s_amplitude_plus_5",
+      "cosine": 0.0004
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "frontier_pickup_progression",
+      "cosine": 0.9898
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "frontier_pickup_progression_shifted",
+      "cosine": 0.9923
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "luna_bala_44s",
+      "cosine": 0.704
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "regression_amplitude_mosaic",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "regression_amplitude_mosaic_contrast_10",
+      "cosine": 0
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "regression_transition_mosaic",
+      "cosine": 0.1611
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "regression_transition_mosaic_tempo_fast_5",
+      "cosine": 0.1505
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
+      "b": "shelter_impact_sync_81s",
+      "cosine": 0.9847
+    },
+    {
+      "a": "frontier_low_air_endurance_7s",
       "b": "tiki_tiki_48s",
       "cosine": 0
     },
@@ -2708,7 +3087,17 @@
     {
       "a": "high_air_drive",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.9993
+      "cosine": 0.9994
+    },
+    {
+      "a": "high_air_drive",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.9994
+    },
+    {
+      "a": "high_air_drive",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.9994
     },
     {
       "a": "high_air_drive",
@@ -2908,7 +3297,17 @@
     {
       "a": "high_air_drive_air_minus_5",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.9993
+      "cosine": 0.9994
+    },
+    {
+      "a": "high_air_drive_air_minus_5",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.9994
+    },
+    {
+      "a": "high_air_drive_air_minus_5",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.9994
     },
     {
       "a": "high_air_drive_air_minus_5",
@@ -3103,7 +3502,17 @@
     {
       "a": "loose_pocket",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.5088
+      "cosine": 0.5089
+    },
+    {
+      "a": "loose_pocket",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.5089
+    },
+    {
+      "a": "loose_pocket",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.5089
     },
     {
       "a": "loose_pocket",
@@ -3293,7 +3702,17 @@
     {
       "a": "loose_pocket_drag_later_20ms",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.5088
+      "cosine": 0.5089
+    },
+    {
+      "a": "loose_pocket_drag_later_20ms",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.5089
+    },
+    {
+      "a": "loose_pocket_drag_later_20ms",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.5089
     },
     {
       "a": "loose_pocket_drag_later_20ms",
@@ -3482,6 +3901,16 @@
     },
     {
       "a": "meter_exchange",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.505
+    },
+    {
+      "a": "meter_exchange",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.505
+    },
+    {
+      "a": "meter_exchange",
       "b": "frontier_pickup_progression",
       "cosine": 0.5002
     },
@@ -3662,6 +4091,16 @@
     },
     {
       "a": "meter_exchange_speed_plus_4",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.505
+    },
+    {
+      "a": "meter_exchange_speed_plus_4",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.505
+    },
+    {
+      "a": "meter_exchange_speed_plus_4",
       "b": "frontier_pickup_progression",
       "cosine": 0.5002
     },
@@ -3837,6 +4276,16 @@
     },
     {
       "a": "offgrid_conversation",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.2487
+    },
+    {
+      "a": "offgrid_conversation",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.2487
+    },
+    {
+      "a": "offgrid_conversation",
       "b": "frontier_pickup_progression",
       "cosine": 0.2616
     },
@@ -4007,6 +4456,16 @@
     },
     {
       "a": "offgrid_conversation_answer_early_25ms",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.2557
+    },
+    {
+      "a": "offgrid_conversation_answer_early_25ms",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.2557
+    },
+    {
+      "a": "offgrid_conversation_answer_early_25ms",
       "b": "frontier_pickup_progression",
       "cosine": 0.2689
     },
@@ -4172,6 +4631,16 @@
     },
     {
       "a": "open_hook",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook",
       "b": "frontier_pickup_progression",
       "cosine": 0
     },
@@ -4332,6 +4801,16 @@
     },
     {
       "a": "open_hook_amplitude_plus_8",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook_amplitude_plus_8",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "open_hook_amplitude_plus_8",
       "b": "frontier_pickup_progression",
       "cosine": 0
     },
@@ -4487,6 +4966,16 @@
     },
     {
       "a": "pickup_lattice",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice",
       "b": "frontier_pickup_progression",
       "cosine": 0.0204
     },
@@ -4633,6 +5122,16 @@
     {
       "a": "pickup_lattice_speed_minus_4",
       "b": "frontier_low_air_endurance_4s",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice_speed_minus_4",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "pickup_lattice_speed_minus_4",
+      "b": "frontier_low_air_endurance_7s",
       "cosine": 0
     },
     {
@@ -4992,6 +5491,16 @@
     },
     {
       "a": "rising_switch",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "rising_switch",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "rising_switch",
       "b": "frontier_pickup_progression",
       "cosine": 0
     },
@@ -5128,7 +5637,17 @@
     {
       "a": "rising_switch_tempo_fast_5",
       "b": "frontier_low_air_endurance_4s",
-      "cosine": 0.3519
+      "cosine": 0.352
+    },
+    {
+      "a": "rising_switch_tempo_fast_5",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.352
+    },
+    {
+      "a": "rising_switch_tempo_fast_5",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.352
     },
     {
       "a": "rising_switch_tempo_fast_5",
@@ -5267,6 +5786,16 @@
     },
     {
       "a": "river_reentry",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.9975
+    },
+    {
+      "a": "river_reentry",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.9975
+    },
+    {
+      "a": "river_reentry",
       "b": "frontier_pickup_progression",
       "cosine": 0.9885
     },
@@ -5397,6 +5926,16 @@
     },
     {
       "a": "river_reentry_tempo_fast_5",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0.0399
+    },
+    {
+      "a": "river_reentry_tempo_fast_5",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0.0399
+    },
+    {
+      "a": "river_reentry_tempo_fast_5",
       "b": "frontier_pickup_progression",
       "cosine": 0.0409
     },
@@ -5522,6 +6061,16 @@
     },
     {
       "a": "sparse_lowline",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline",
       "b": "frontier_pickup_progression",
       "cosine": 0
     },
@@ -5642,6 +6191,16 @@
     },
     {
       "a": "sparse_lowline_air_minus_4",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline_air_minus_4",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "sparse_lowline_air_minus_4",
       "b": "frontier_pickup_progression",
       "cosine": 0
     },
@@ -5757,6 +6316,16 @@
     },
     {
       "a": "split_signal",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal",
       "b": "frontier_pickup_progression",
       "cosine": 0.0547
     },
@@ -5867,6 +6436,16 @@
     },
     {
       "a": "split_signal_impact_relief_12",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal_impact_relief_12",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "split_signal_impact_relief_12",
       "b": "frontier_pickup_progression",
       "cosine": 0.0547
     },
@@ -5972,6 +6551,16 @@
     },
     {
       "a": "wide_breaths",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths",
       "b": "frontier_pickup_progression",
       "cosine": 0
     },
@@ -6072,6 +6661,16 @@
     },
     {
       "a": "wide_breaths_air_plus_5",
+      "b": "frontier_low_air_endurance_6s",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths_air_plus_5",
+      "b": "frontier_low_air_endurance_7s",
+      "cosine": 0
+    },
+    {
+      "a": "wide_breaths_air_plus_5",
       "b": "frontier_pickup_progression",
       "cosine": 0
     },
@@ -6116,5 +6715,5 @@
       "cosine": 0
     }
   ],
-  "auditFingerprint": "4818602c37f62878630b886b0ac523227afe10bd61a7718dee8a1d457033c73f"
+  "auditFingerprint": "edc200a0d11c45b1a7da2dbc80ca7ffe6202df9b76bd9b81c6abacc72c8fc87a"
 }

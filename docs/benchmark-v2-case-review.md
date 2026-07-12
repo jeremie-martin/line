@@ -1,7 +1,7 @@
 # Benchmark V2 Case Review
 
-Characterization: `712719f7dcf9d148`. Audit: `4818602c37f62878`.
-Listening review: **approved** (`4cb27e1f4f195cf0`).
+Characterization: `2ae982a1b58fc399`. Audit: `edc200a0d11c45b1`.
+Listening review: **approved** (`973af98ec3de6eba`).
 
 Selection is based on source structure and stated benchmark intent. It contains no compiler or qualification result.
 
@@ -44,7 +44,9 @@ Selection is based on source structure and stated benchmark intent. It contains 
 | sparse_lowline_air_minus_4 | sparse_lowline | 5 | air is shifted by -0.04 with clamping; rhythm and other authored axes remain fixed. |
 | frontier_pickup_progression_shifted | frontier_pickup_progression | 5 | Nearby but nonuniform 320/270/220/160ms pickup-to-accent boundaries test threshold generalization. |
 | frontier_dense_recovery_240ms_figures | frontier_dense_recovery | 5 | A nearby 240ms pickup/fill cluster checks whether recovery behavior generalizes around the 220ms base boundary. |
-| frontier_low_air_endurance_4s | frontier_low_air_endurance | 5 | A four-second supported rideout brackets the aspirational five-second base without changing its surrounding groove. |
+| frontier_low_air_endurance_4s | frontier_low_air_endurance | 5 | A 4-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression. |
+| frontier_low_air_endurance_6s | frontier_low_air_endurance | 5 | A 6-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression. |
+| frontier_low_air_endurance_7s | frontier_low_air_endurance | 5 | A 7-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression. |
 | regression_transition_mosaic_tempo_fast_5 | regression_transition_mosaic | 5 | The complete authored program is time-scaled by 0.95 while preserving phrase structure and axis intent. |
 | regression_amplitude_mosaic_contrast_10 | regression_amplitude_mosaic | 4 | amplitude contrast is scaled by 1.1 around the midpoint; timing remains fixed. |
 | believer_56_6s_impact_relief | believer_56_6s | 7 | The synchronized rhythm remains fixed while extreme authored impacts are compressed toward the center. |

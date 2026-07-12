@@ -5,8 +5,8 @@ describe("Benchmark V2 specification dashboard", () => {
   test("lists exactly the authoritative development and qualification catalog", () => {
     const specs = listDashboardSpecs().filter((entry) => entry.group.startsWith("v2/"));
 
-    expect(specs).toHaveLength(47);
-    expect(new Set(specs.map((entry) => entry.path)).size).toBe(47);
+    expect(specs).toHaveLength(49);
+    expect(new Set(specs.map((entry) => entry.path)).size).toBe(49);
     expect(specs.filter((entry) => entry.group === "v2/qualification")).toHaveLength(5);
     expect(specs).toContainEqual(expect.objectContaining({
       name: "river_reentry",

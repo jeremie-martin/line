@@ -20,7 +20,7 @@ import { argumentReader, sha256 } from "../v0/benchmark_v2/util.ts";
 //       12 seeds/budget, same seed set reused across budgets.
 // Both expose runs[].task.{sourceId,budget,seedSlot,actualSeed} and runs[].score,
 // so a common (case x seed) score matrix is built from each. Within a budget all
-// 42 cases at a given seedSlot share the same actual RNG seed, so seedSlot is the
+// All cases at a given seedSlot share the same actual RNG seed, so seedSlot is the
 // shared draw the common-shock hypothesis is about.
 
 type ArchiveRun = {
@@ -81,18 +81,18 @@ const report = {
     scoreMatrix:
       "Per archive, per budget the (case x seed) matrix uses the stored per-run " +
       "score.score with hard-zero (invalid) runs included; seedSlot indexes the seed " +
-      "axis (all 42 cases at a seedSlot share the same actual RNG seed within a budget).",
+      "axis (all cases at a seedSlot share the same actual RNG seed within a budget).",
     correlation:
       "Pearson correlation is computed across the seed axis for every unordered pair " +
       "of cases. A case series with zero variance across seeds makes its correlations " +
       "undefined, so any pair touching such a series is skipped; the count of skipped " +
       "pairs and zero-variance series is reported. Mean and median are over valid pairs.",
     catalogMeanPerSeed:
-      "For seed s the catalog mean is the arithmetic mean over the 42 cases of that " +
+      "For seed s the catalog mean is the arithmetic mean over the full catalog for that " +
       "seed's score. Its spread across seeds is summarised by the population SD.",
     independentPrediction:
       "Under independent per-case noise Var(catalog mean per seed) = (1/K^2) * sum_i " +
-      "Var_i, where Var_i is the population variance of case i across seeds and K=42. " +
+      `Var_i, where Var_i is the population variance of case i across seeds and K=${dev.caseIds.length}. ` +
       "predictionSD = sqrt of that; varianceRatio = observed Var(catalog mean per seed) " +
       "/ prediction. Population variance (divide by n) is used throughout so the ratio " +
       "is exact and estimator choice cancels.",

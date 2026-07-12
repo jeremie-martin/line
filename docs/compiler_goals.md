@@ -41,7 +41,7 @@ contract is `benchmark-v2-decisions.md`.)
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
 - `npm run benchmark -- eval` produces reusable stage-0 screening evidence on
-  42 development cases.
+  44 development cases.
 - `npm run benchmark -- eval --to-verdict` predeclares a certified operating
   point and executes the candidate and baseline snapshots on a fresh paired
   seed epoch. Only its `accept` outcome can promote an improvement.

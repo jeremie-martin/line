@@ -32,7 +32,7 @@ describe("Benchmark V2 suite identity", () => {
     const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
     const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);
     expect(suite.strata.map((stratum) => stratum.weight)).toEqual([0.7, 0.15, 0.1, 0.05]);
-    expect(canonicalMembers(suite)).toHaveLength(42);
+    expect(canonicalMembers(suite)).toHaveLength(44);
     expect(canonicalMembers(suite)).toContain("frontier_low_air_endurance");
   });
 

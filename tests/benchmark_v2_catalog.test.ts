@@ -9,15 +9,16 @@ import {
 import { FPS, TARGET_AXES, secToFrame } from "../scripts/v0/types.ts";
 
 describe("Benchmark V2 typed catalog", () => {
-  test("has one deliberate variant per normative parent and complete phase metadata", () => {
+  test("has the deliberate variant inventory and complete phase metadata", () => {
     expect(normativeCases).toHaveLength(21);
-    expect(variantCases).toHaveLength(21);
-    expect(developmentCases).toHaveLength(42);
+    expect(variantCases).toHaveLength(23);
+    expect(developmentCases).toHaveLength(44);
     expect(qualificationCases).toHaveLength(5);
     for (const parent of normativeCases) {
       const parentId = parent.case.metadata.id;
+      const expectedVariants = parentId === "frontier_low_air_endurance" ? 3 : 1;
       expect(variantCases.filter((entry) => entry.case.metadata.variant?.parentId === parentId), parentId)
-        .toHaveLength(1);
+        .toHaveLength(expectedVariants);
     }
     for (const entry of developmentCases) {
       expect(entry.case.metadata.phases.length, entry.case.metadata.id).toBeGreaterThan(0);

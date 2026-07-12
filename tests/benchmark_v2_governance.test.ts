@@ -109,7 +109,7 @@ describe("Benchmark V2 governance", () => {
       identity.sourceManifestFingerprint,
       sources,
     );
-    expect(evidence.review.items).toHaveLength(42);
+    expect(evidence.review.items).toHaveLength(44);
     expect(evidence.review.attestation).toBe(LISTENING_REVIEW_ATTESTATION);
     expect(() => requireApprovedListeningReview(evidence)).not.toThrow();
 

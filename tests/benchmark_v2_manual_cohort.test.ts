@@ -11,14 +11,14 @@ import {
 import { canonicalMembers, loadSuiteManifest } from "../scripts/v0/benchmark_v2/suite_model.ts";
 
 describe("Benchmark V2 canonical cohort", () => {
-  test("uses typed long-form parents plus one deliberate variant per parent", async () => {
+  test("uses typed long-form parents plus deliberate variants", async () => {
     const manifest = loadSourceManifest("benchmark/v2/compat/source-manifest.json");
     const sources = resolveSources(manifest)
       .filter((source) => source.role === "representative_candidate");
     const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", resolveSources(manifest));
     expect(sources).toHaveLength(28);
     expect(suite.strata.map((stratum) => stratum.weight)).toEqual([0.7, 0.15, 0.1, 0.05]);
-    expect(canonicalMembers(suite)).toHaveLength(42);
+    expect(canonicalMembers(suite)).toHaveLength(44);
     expect(sources.every((source) => source.module?.startsWith("benchmark/v2/cases/"))).toBe(true);
     expect(sources.every((source) => !source.musicBacked)).toBe(true);
     expect(sources.filter((source) => source.parentId === undefined)).toHaveLength(14);

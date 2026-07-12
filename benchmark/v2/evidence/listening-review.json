@@ -1,15 +1,15 @@
 {
   "schema": "line.benchmark-v2.listening-review.v2",
   "status": "approved",
-  "suiteFingerprint": "517e044103a5fef381ba5970a9906a688fe859e9fb6d28f04d58c60ee751a54a",
-  "sourceManifestFingerprint": "72f9e3e17abf05edb1b5858d2862668eb09eaa3144f5dc3ec2fa030ceb9c7dba",
-  "generatedAt": "2026-07-11T05:25:49.006Z",
+  "suiteFingerprint": "9bd5bf1c988dbe8022386f0f7edddda4ba9836d0aee01e1b7d8d735c85ec297c",
+  "sourceManifestFingerprint": "819b36376e45c76c81dad87a74bc085024538d8a8d6069051e760b8f95efc378",
+  "generatedAt": "2026-07-12T13:56:04.197Z",
   "instructions": "Listen without compiler outcomes. Judge musical plausibility, phrase coherence, and whether each variant remains recognizably related to its parent. To approve, fill every judgment, reviewer, reviewedAt, and use this exact attestation: I reviewed these click tracks without consulting compiler or qualification outcomes.",
   "reviewer": {
-    "name": "Project owner",
-    "role": "benchmark specification author"
+    "name": "Jérémie Martin",
+    "role": "Project owner"
   },
-  "reviewedAt": "2026-07-11T06:14:02.612Z",
+  "reviewedAt": "2026-07-12T14:56:58.000Z",
   "attestation": "I reviewed these click tracks without consulting compiler or qualification outcomes.",
   "items": [
     {
@@ -787,21 +787,69 @@
     },
     {
       "id": "frontier_low_air_endurance_4s",
-      "sourceFingerprint": "d11c5d910b2c2edf6a8d79dd06642949f653c570e89882fa65f4b620cbcd25c8",
+      "sourceFingerprint": "e04dd1837ed755b26bd9656cdbd457912faab785712a76e88b78fdece88f8118",
       "parentId": "frontier_low_air_endurance",
       "cohort": "capability_candidate",
       "title": "Frontier Low-Air Endurance, 4 Second Boundary",
-      "durationSeconds": 62,
+      "durationSeconds": 61,
       "contacts": 90,
       "phases": [
         "control",
         "rideout_2s",
         "rideout_3s",
-        "rideout_5s",
+        "rideout_4s",
         "final_control"
       ],
       "audio": "generated/benchmark-v2/listening-review/frontier_low_air_endurance_4s.wav",
-      "audioSha256": "7abeb627d4789a9ce8ec23558a104e254cf1d38ee2435242ebbf3c340712e235",
+      "audioSha256": "fbd3f968334c0f798b811fab2fd10347342a7eb9c18091db9f1045348e032ffe",
+      "review": {
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "frontier_low_air_endurance_6s",
+      "sourceFingerprint": "a2855fea40024c8072840f2bade105db143cadd4493b7dadb248ffa0892cdb5b",
+      "parentId": "frontier_low_air_endurance",
+      "cohort": "capability_candidate",
+      "title": "Frontier Low-Air Endurance, 6 Second Boundary",
+      "durationSeconds": 63,
+      "contacts": 90,
+      "phases": [
+        "control",
+        "rideout_2s",
+        "rideout_3s",
+        "rideout_6s",
+        "final_control"
+      ],
+      "audio": "generated/benchmark-v2/listening-review/frontier_low_air_endurance_6s.wav",
+      "audioSha256": "3f22e67004703b4d232b787cd2d5b9254d7ebd0fa58e0ddf153db7da0b940eab",
+      "review": {
+        "rhythmPlausible": true,
+        "phraseCoherent": true,
+        "variantFaithfulToParent": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "frontier_low_air_endurance_7s",
+      "sourceFingerprint": "9dc910a4fcb7275dec8fc615b45177af627798ae82069a5201fee930749a412d",
+      "parentId": "frontier_low_air_endurance",
+      "cohort": "capability_candidate",
+      "title": "Frontier Low-Air Endurance, 7 Second Boundary",
+      "durationSeconds": 64,
+      "contacts": 90,
+      "phases": [
+        "control",
+        "rideout_2s",
+        "rideout_3s",
+        "rideout_7s",
+        "final_control"
+      ],
+      "audio": "generated/benchmark-v2/listening-review/frontier_low_air_endurance_7s.wav",
+      "audioSha256": "2fb502cd84d0a4f84eb0cca5636ffef85cfdc203da3da141bbcd4ae6193e2d49",
       "review": {
         "rhythmPlausible": true,
         "phraseCoherent": true,

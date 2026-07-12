@@ -92,8 +92,9 @@ function assertCatalog(): void {
   for (const parent of normativeCases) {
     const parentId = parent.case.metadata.id;
     const variants = variantCases.filter((entry) => entry.case.metadata.variant?.parentId === parentId);
-    if (variants.length !== 1) {
-      throw new Error(`${parentId}: expected exactly one deliberate variant, found ${variants.length}`);
+    const expectedVariants = parentId === "frontier_low_air_endurance" ? 3 : 1;
+    if (variants.length !== expectedVariants) {
+      throw new Error(`${parentId}: expected ${expectedVariants} deliberate variant(s), found ${variants.length}`);
     }
   }
 }

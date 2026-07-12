@@ -90,26 +90,9 @@ const plans: VariantPlan[] = [
       triple.sort((a, b) => a.offset - b.offset);
     },
   },
-  {
-    parentId: "frontier_low_air_endurance",
-    id: "frontier_low_air_endurance_4s",
-    title: "Frontier Low-Air Endurance, 4 Second Boundary",
-    kind: "rideout_duration",
-    rationale: "A four-second supported rideout brackets the aspirational five-second base without changing its surrounding groove.",
-    parameters: { rideout_seconds: 4 },
-    transformScore: (document) => {
-      const ride = document.phrases.ride5;
-      for (const event of ride) {
-        if (event.role === "breath_exit") event.offset = 5.10;
-        if (event.role === "reentry") event.offset = 5.65;
-        if (event.role === "support" && event.offset > 6) event.offset = 6.20;
-      }
-      const recovery = document.axes.air.find((point) => point.intent.includes("5s recovery"));
-      if (recovery !== undefined) recovery.t = 38.15;
-      const boundary = document.axes.air.find((point) => point.intent.includes("5s endurance"));
-      if (boundary !== undefined) boundary.intent = "4s endurance boundary";
-    },
-  },
+  rideoutDuration(4),
+  rideoutDuration(6),
+  rideoutDuration(7),
   tempo("regression_transition_mosaic", "regression_transition_mosaic_tempo_fast_5", "Regression Transition Mosaic, 5% Faster", 0.95),
   axisContrast("regression_amplitude_mosaic", "regression_amplitude_mosaic_contrast_10", "Regression Amplitude Mosaic, Stronger Contrast", "amplitude", 1.10),
   sampledVariant(
@@ -224,6 +207,64 @@ function axisContrast(parentId: string, id: string, title: string, axis: "air" |
       const points = document.axes[axis];
       if (points === undefined) throw new Error(`${document.id}: ${axis} is absent`);
       for (const point of points) point.v = contrast(point.v, factor);
+    },
+  };
+}
+
+function rideoutDuration(seconds: 4 | 6 | 7): VariantPlan {
+  const delta = seconds - 5;
+  return {
+    parentId: "frontier_low_air_endurance",
+    id: `frontier_low_air_endurance_${seconds}s`,
+    title: `Frontier Low-Air Endurance, ${seconds} Second Boundary`,
+    kind: "rideout_duration",
+    rationale: `A ${seconds}-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression.`,
+    parameters: { rideout_seconds: seconds },
+    transformScore: (document) => {
+      const ride = document.phrases.ride5;
+      for (const event of ride) {
+        if (event.role === "breath_exit") event.offset = time(seconds + 1.10, 1);
+        if (event.role === "reentry") event.offset = time(seconds + 1.65, 1);
+        if (event.role === "support" && event.offset > 6) event.offset = time(seconds + 2.20, 1);
+      }
+
+      // Move the untouched suffix with the frontier boundary so the transform
+      // changes one duration rather than creating a second accidental omission.
+      for (const placement of document.placements) {
+        if (placement.at >= 40.8) placement.at = time(placement.at + delta, 1);
+      }
+      document.duration = time(document.duration + delta, 1);
+      for (const region of document.pulse_regions) {
+        if (region.end >= 40.8) region.end = time(region.end + delta, 1);
+      }
+      for (const phase of document.phases ?? []) {
+        if (phase.id === "rideout_5s") {
+          phase.id = `rideout_${seconds}s`;
+          phase.intent = `${seconds}s low-air rideout and recovery`;
+        }
+        if (phase.start >= 40.8) phase.start = time(phase.start + delta, 1);
+        if (phase.end >= 40.8) phase.end = time(phase.end + delta, 1);
+      }
+
+      for (const points of Object.values(document.axes)) {
+        for (const point of points ?? []) {
+          if (point.t >= 40.8) point.t = time(point.t + delta, 1);
+        }
+      }
+      const air = document.axes.air;
+      const recovery = air?.find((point) => point.intent.includes("5s recovery"));
+      if (recovery !== undefined) {
+        recovery.t = time(34.15 + seconds, 1);
+        recovery.intent = `${seconds}s recovery`;
+      }
+      const boundary = air?.find((point) => point.intent.includes("5s endurance"));
+      if (boundary !== undefined) boundary.intent = `${seconds}s endurance boundary`;
+      const speed = document.axes.speed;
+      const rideoutSpeed = speed?.find((point) => point.intent.includes("5s rideout"));
+      if (rideoutSpeed !== undefined) {
+        rideoutSpeed.t = time(34.15 + 0.57 * seconds, 1);
+        rideoutSpeed.intent = `${seconds}s rideout at high speed`;
+      }
     },
   };
 }

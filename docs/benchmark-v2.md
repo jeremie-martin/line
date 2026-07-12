@@ -75,7 +75,7 @@ fingerprint before handing off to `eval --to-verdict`.
 Every public run deterministically prepares the suite first:
 
 1. generate compatibility manifests and the catalog lock from TypeScript;
-2. load and characterize all 42 development and five qualification cases;
+2. load and characterize all 44 development and five qualification cases;
 3. run the structural independence and cohort audit;
 4. write a compiler-outcome-free selection review and validate the tracked listening review;
 5. expose a pending review during development, but block confirmation and baseline execution;

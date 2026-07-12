@@ -3,12 +3,12 @@ import type { BenchmarkScoreDocument } from "../../../../../scripts/v0/benchmark
 
 export const scoreDocument = {
   "schema": "line.benchmark-v2.score.v1",
-  "id": "frontier_low_air_endurance_4s",
-  "title": "Frontier Low-Air Endurance, 4 Second Boundary",
-  "duration": 61,
+  "id": "frontier_low_air_endurance_6s",
+  "title": "Frontier Low-Air Endurance, 6 Second Boundary",
+  "duration": 63,
   "provenance": {
     "kind": "capability_manual",
-    "authoring_brief": "Ordinary supported riding surrounds progressive 2s, 3s, and 5s omissions whose explicit intent is low-air endurance rather than a large jump. Variant: A 4-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression."
+    "authoring_brief": "Ordinary supported riding surrounds progressive 2s, 3s, and 5s omissions whose explicit intent is low-air endurance rather than a large jump. Variant: A 6-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression."
   },
   "primary_family": "low_air_frontier",
   "diagnostic_tags": [
@@ -19,7 +19,7 @@ export const scoreDocument = {
   "pulse_regions": [
     {
       "start": 0.55,
-      "end": 58.4,
+      "end": 60.4,
       "pulse_seconds": 0.55,
       "intent": "ordinary groove frames progressive low-air rideouts"
     }
@@ -44,15 +44,15 @@ export const scoreDocument = {
       "intent": "3s low-air rideout and recovery"
     },
     {
-      "id": "rideout_4s",
+      "id": "rideout_6s",
       "start": 34,
-      "end": 48,
-      "intent": "4s low-air rideout and recovery"
+      "end": 50,
+      "intent": "6s low-air rideout and recovery"
     },
     {
       "id": "final_control",
-      "start": 48,
-      "end": 61,
+      "start": 50,
+      "end": 63,
       "intent": "ordinary cadence after the frontier"
     }
   ],
@@ -180,17 +180,17 @@ export const scoreDocument = {
         "impact": 0.8
       },
       {
-        "offset": 5.1,
+        "offset": 7.1,
         "role": "breath_exit",
         "impact": 0.94
       },
       {
-        "offset": 5.65,
+        "offset": 7.65,
         "role": "reentry",
         "impact": 0.78
       },
       {
-        "offset": 6.2,
+        "offset": 8.2,
         "role": "support",
         "impact": 0.34
       }
@@ -230,19 +230,19 @@ export const scoreDocument = {
       "phrase": "ride5"
     },
     {
-      "at": 39.8,
+      "at": 41.8,
       "phrase": "groove"
     },
     {
-      "at": 44.2,
+      "at": 46.2,
       "phrase": "groove"
     },
     {
-      "at": 48.6,
+      "at": 50.6,
       "phrase": "groove"
     },
     {
-      "at": 53,
+      "at": 55,
       "phrase": "groove"
     }
   ],
@@ -282,16 +282,16 @@ export const scoreDocument = {
         "t": 34.15,
         "v": 0.02,
         "ease": "hold",
-        "intent": "4s endurance boundary"
+        "intent": "6s endurance boundary"
       },
       {
-        "t": 38.15,
+        "t": 40.15,
         "v": 0.32,
         "ease": "smooth",
-        "intent": "4s recovery"
+        "intent": "6s recovery"
       },
       {
-        "t": 61,
+        "t": 63,
         "v": 0.34,
         "intent": "ordinary finish"
       }
@@ -316,19 +316,19 @@ export const scoreDocument = {
         "intent": "3s rideout"
       },
       {
-        "t": 36.43,
+        "t": 37.57,
         "v": 0.86,
         "ease": "easeOut",
-        "intent": "4s rideout at high speed"
+        "intent": "6s rideout at high speed"
       },
       {
-        "t": 48,
+        "t": 50,
         "v": 0.68,
         "ease": "smooth",
         "intent": "recovery"
       },
       {
-        "t": 61,
+        "t": 63,
         "v": 0.6,
         "intent": "finish"
       }
@@ -350,8 +350,8 @@ export const benchmarkCase = defineScoreCase({
     "impact"
   ],
   "diagnosticComponents": [],
-  "id": "frontier_low_air_endurance_4s",
-  "title": "Frontier Low-Air Endurance, 4 Second Boundary",
+  "id": "frontier_low_air_endurance_6s",
+  "title": "Frontier Low-Air Endurance, 6 Second Boundary",
   "originFamily": "low_air_frontier",
   "phases": [
     {
@@ -373,24 +373,24 @@ export const benchmarkCase = defineScoreCase({
       "intent": "3s low-air rideout and recovery"
     },
     {
-      "id": "rideout_4s",
+      "id": "rideout_6s",
       "start": 34,
-      "end": 48,
-      "intent": "4s low-air rideout and recovery"
+      "end": 50,
+      "intent": "6s low-air rideout and recovery"
     },
     {
       "id": "final_control",
-      "start": 48,
-      "end": 61,
+      "start": 50,
+      "end": 63,
       "intent": "ordinary cadence after the frontier"
     }
   ],
   "variant": {
     "parentId": "frontier_low_air_endurance",
     "kind": "rideout_duration",
-    "rationale": "A 4-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression.",
+    "rationale": "A 6-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression.",
     "parameters": {
-      "rideout_seconds": 4
+      "rideout_seconds": 6
     }
   }
 },

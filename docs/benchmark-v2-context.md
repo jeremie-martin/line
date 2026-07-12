@@ -18,22 +18,28 @@ collection of isolated axis probes.
 
 ## Catalog
 
-The development headline contains 42 specifications: 21 normative scores and one
-deliberate, materialized variant of every normative parent. All cases are TypeScript
-modules under `benchmark/v2/cases/`; `benchmark/v2/catalog.ts` is the membership source
-of truth.
+The development headline contains 44 specifications: 21 normative scores and 23
+deliberate, materialized variants. Every normative parent has one variant except the
+low-air endurance frontier, whose 4s, 6s, and 7s duration variants surround the
+normative 5s case. All cases are TypeScript modules under `benchmark/v2/cases/`;
+`benchmark/v2/catalog.ts` is the membership source of truth.
+
+The low-air endurance score itself contains 2s and 3s stages before its terminal
+frontier. Together, the parent and its variants therefore exercise a continuous 2s-7s
+duration ladder without assigning each duration an independent parent weight.
 
 | Stratum | Weight | Parents | Materialized cases | Purpose |
 |---|---:|---:|---:|---|
 | representative | 70% | 14 | 28 | production-distribution performance |
-| capability | 15% | 3 | 6 | explicit desired frontiers |
+| capability | 15% | 3 | 8 | explicit desired frontiers |
 | legacy regression | 10% | 2 | 4 | useful V1 mechanisms, manually recomposed |
 | development music | 5% | 2 | 4 | two Believer interpretations and nearby axis variants |
 
 Variants are authored transformations, not runtime randomness. Each records its parent,
 kind, parameters, and rationale. Examples include bounded tempo changes, phrase
 microtiming, impact contrast, target offsets, 240ms dense figures, shifted pickup
-thresholds, and a four-second low-air boundary around the normative five-second case.
+thresholds, and four-, six-, and seven-second low-air boundaries around the normative
+five-second case.
 Static audit prevents variants from crossing cohort rules or becoming unacknowledged
 copies of unrelated scores.
 
@@ -120,7 +126,7 @@ weight. The V2 score scale is independent of V1 and its historical headline.
 
 ## Compute profiles
 
-Stage 0 and confirmation use the same 42 development cases. Actual seeds are
+Stage 0 and confirmation use the same 44 development cases. Actual seeds are
 disjoint across budgets, and every confirmation declaration allocates a fresh
 canonical epoch that does not reuse stage-0 development seeds or a prior attempt.
 

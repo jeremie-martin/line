@@ -2659,7 +2659,7 @@
         "parent_id": "frontier_low_air_endurance",
         "variant": {
           "kind": "rideout_duration",
-          "rationale": "A four-second supported rideout brackets the aspirational five-second base without changing its surrounding groove.",
+          "rationale": "A 4-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression.",
           "parameters": {
             "rideout_seconds": 4
           }
@@ -2690,15 +2690,163 @@
             "intent": "3s low-air rideout and recovery"
           },
           {
-            "id": "rideout_5s",
+            "id": "rideout_4s",
             "start": 34,
-            "end": 49,
-            "intent": "5s low-air rideout and recovery"
+            "end": 48,
+            "intent": "4s low-air rideout and recovery"
           },
           {
             "id": "final_control",
-            "start": 49,
-            "end": 62,
+            "start": 48,
+            "end": 61,
+            "intent": "ordinary cadence after the frontier"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 21,
+          "support": 42,
+          "accent": 21,
+          "breath_exit": 3,
+          "reentry": 3
+        }
+      }
+    },
+    {
+      "cohort": "capability",
+      "id": "frontier_low_air_endurance_6s",
+      "module": "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_6s.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_6s.ts"
+      ],
+      "origin_family": "low_air_frontier",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Frontier Low-Air Endurance, 6 Second Boundary",
+        "parent_id": "frontier_low_air_endurance",
+        "variant": {
+          "kind": "rideout_duration",
+          "rationale": "A 6-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression.",
+          "parameters": {
+            "rideout_seconds": 6
+          }
+        },
+        "diagnostic_tags": [
+          "capability",
+          "low_air",
+          "rideout"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "control",
+            "start": 0,
+            "end": 9,
+            "intent": "supported ordinary cadence"
+          },
+          {
+            "id": "rideout_2s",
+            "start": 9,
+            "end": 20,
+            "intent": "2s low-air rideout and recovery"
+          },
+          {
+            "id": "rideout_3s",
+            "start": 20,
+            "end": 34,
+            "intent": "3s low-air rideout and recovery"
+          },
+          {
+            "id": "rideout_6s",
+            "start": 34,
+            "end": 50,
+            "intent": "6s low-air rideout and recovery"
+          },
+          {
+            "id": "final_control",
+            "start": 50,
+            "end": 63,
+            "intent": "ordinary cadence after the frontier"
+          }
+        ],
+        "event_role_counts": {
+          "primary": 21,
+          "support": 42,
+          "accent": 21,
+          "breath_exit": 3,
+          "reentry": 3
+        }
+      }
+    },
+    {
+      "cohort": "capability",
+      "id": "frontier_low_air_endurance_7s",
+      "module": "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_7s.ts",
+      "source_files": [
+        "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_7s.ts"
+      ],
+      "origin_family": "low_air_frontier",
+      "music_backed": false,
+      "eligible_components": [
+        "sync",
+        "survival",
+        "air",
+        "speed",
+        "impact"
+      ],
+      "diagnostic_components": [],
+      "case_metadata": {
+        "title": "Frontier Low-Air Endurance, 7 Second Boundary",
+        "parent_id": "frontier_low_air_endurance",
+        "variant": {
+          "kind": "rideout_duration",
+          "rationale": "A 7-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression.",
+          "parameters": {
+            "rideout_seconds": 7
+          }
+        },
+        "diagnostic_tags": [
+          "capability",
+          "low_air",
+          "rideout"
+        ],
+        "provenance_kind": "materialized_parent_specific_variant",
+        "phases": [
+          {
+            "id": "control",
+            "start": 0,
+            "end": 9,
+            "intent": "supported ordinary cadence"
+          },
+          {
+            "id": "rideout_2s",
+            "start": 9,
+            "end": 20,
+            "intent": "2s low-air rideout and recovery"
+          },
+          {
+            "id": "rideout_3s",
+            "start": 20,
+            "end": 34,
+            "intent": "3s low-air rideout and recovery"
+          },
+          {
+            "id": "rideout_7s",
+            "start": 34,
+            "end": 51,
+            "intent": "7s low-air rideout and recovery"
+          },
+          {
+            "id": "final_control",
+            "start": 51,
+            "end": 64,
             "intent": "ordinary cadence after the frontier"
           }
         ],
@@ -3317,5 +3465,5 @@
       ]
     }
   ],
-  "fingerprint": "d51d71ab1a82e37f56aca573d6eaad0f8868e50b7860f12b4464a7f1342c71b4"
+  "fingerprint": "7dca7a96370bcc3545bfc66b704941aa1501558134007b1194d3c655379931f5"
 }

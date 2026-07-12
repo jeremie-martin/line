@@ -150,7 +150,7 @@ describe("Benchmark V2 static characterization", () => {
     ) as { sources: Array<{ id: string }> };
 
     expect(parsed).not.toHaveProperty("legacy_candidates");
-    expect(sources).toHaveLength(42);
+    expect(sources).toHaveLength(44);
     expect(heldout).toHaveLength(5);
     expect(audit.sources).toHaveLength(40);
     const auditIds = new Set(audit.sources.map((entry) => entry.id));

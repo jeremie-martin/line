@@ -1,9 +1,9 @@
 {
   "schema": "line.benchmark-v2.candidate-review.v2",
   "status": "canonical-selected-without-compiler-results",
-  "characterization_fingerprint": "712719f7dcf9d148de8bfd2ad3fa31cbd00a6a0d3adccce12607a0aecb5eb39a",
-  "audit_fingerprint": "4818602c37f62878630b886b0ac523227afe10bd61a7718dee8a1d457033c73f",
-  "listening_review_fingerprint": "4cb27e1f4f195cf082b6ea0f80b80dfc55ac5e8b2bc23e35d84a3fb1f57f66d0",
+  "characterization_fingerprint": "2ae982a1b58fc399f1231bf499e3daec251f16573d4e74b28c6678ac04805985",
+  "audit_fingerprint": "edc200a0d11c45b1a7da2dbc80ca7ffe6202df9b76bd9b81c6abacc72c8fc87a",
+  "listening_review_fingerprint": "973af98ec3de6eba662298115e07792e35d859063bbbb3839cdf5e07409a314f",
   "listening_review_status": "approved",
   "selection_basis": "Typed catalog membership, static source characterization, explicit parent variants, and static independence audit only. No compiler or qualification outcome was used.",
   "decisions": [
@@ -470,12 +470,38 @@
       "id": "frontier_low_air_endurance_4s",
       "disposition": "selected",
       "parent_id": "frontier_low_air_endurance",
-      "rationale": "A four-second supported rideout brackets the aspirational five-second base without changing its surrounding groove.",
+      "rationale": "A 4-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression.",
       "phases": [
         "control",
         "rideout_2s",
         "rideout_3s",
-        "rideout_5s",
+        "rideout_4s",
+        "final_control"
+      ]
+    },
+    {
+      "id": "frontier_low_air_endurance_6s",
+      "disposition": "selected",
+      "parent_id": "frontier_low_air_endurance",
+      "rationale": "A 6-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression.",
+      "phases": [
+        "control",
+        "rideout_2s",
+        "rideout_3s",
+        "rideout_6s",
+        "final_control"
+      ]
+    },
+    {
+      "id": "frontier_low_air_endurance_7s",
+      "disposition": "selected",
+      "parent_id": "frontier_low_air_endurance",
+      "rationale": "A 7-second supported rideout extends the duration frontier while preserving its surrounding groove and axis progression.",
+      "phases": [
+        "control",
+        "rideout_2s",
+        "rideout_3s",
+        "rideout_7s",
         "final_control"
       ]
     },

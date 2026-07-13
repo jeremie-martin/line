@@ -55,16 +55,16 @@ if (createHash("sha256").update(coverageReferenceBytes).digest("hex") !== covera
 
 const controls = {
   identical: await empiricalControl(
-    "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-    "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
+    "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+    "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
   ),
   knownBroadDegradation: await empiricalControl(
-    "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-    "benchmark/v2/runs/calibration-v2.5-quality-ncand-1-probe.json.gz",
+    "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+    "benchmark/v2/runs/calibration-v2.6-quality-ncand-1-probe.json.gz",
   ),
   impactContractFailure: await empiricalControl(
-    "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-    "benchmark/v2/runs/calibration-v2.5-impact-off-probe.json.gz",
+    "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+    "benchmark/v2/runs/calibration-v2.6-impact-off-probe.json.gz",
   ),
   correlatedSeedAdversary: correlatedSeedControl(),
 };

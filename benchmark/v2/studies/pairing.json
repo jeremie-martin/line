@@ -25,7 +25,7 @@
   },
   "inputs": {
     "coverageReference": {
-      "path": "benchmark/v2/runs/calibration-v2.4-coverage-reference.json.gz",
+      "path": "benchmark/v2/studies/inputs/pairing-coverage-reference.json.gz",
       "sha256": "842c66d8d1dc4aaad2b5c07c395f9d35d9e9f63deb920f2d792f30c5be71630a",
       "rawSha256": "6b636fb686f2c72e41da67f695d7e44574073ced6e4eeb0920cbf20d91f4f755",
       "schema": "line.benchmark-v2.budget-scale-study.v1",
@@ -46,14 +46,14 @@
       "runs": 1512
     },
     "probeBaseline": {
-      "path": "benchmark/v2/runs/calibration-v2.4-probe-baseline.json.gz",
+      "path": "benchmark/v2/studies/inputs/pairing-probe-baseline.json.gz",
       "sha256": "e6d93fa7a97a9267f2c73e4d64c7077b1273072ddd44c629c043ec6bcd9928e4",
       "rawSha256": "292746c69b171ba6ea4018e37fc6fd3553769776a3bbc939687280cb793cf277",
       "schema": "line.benchmark-v2.run-archive.v5",
       "runs": 252
     },
     "probeNcand1": {
-      "path": "benchmark/v2/runs/calibration-v2.4-quality-ncand-1-probe.json.gz",
+      "path": "benchmark/v2/studies/inputs/pairing-quality-ncand-1-probe.json.gz",
       "sha256": "dd875f118eadce0c5f703e7b16fb3bb3b61f961532f93ae6ea97a4c3dc1ffb01",
       "rawSha256": "020a6a93a367817cbef953fc8679de0980145d37799523872a4888e400160456",
       "schema": "line.benchmark-v2.run-archive.v5",

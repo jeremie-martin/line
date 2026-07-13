@@ -1,12 +1,12 @@
 {
   "schema": "line.benchmark-v2.era-state.v1",
-  "eraId": "era-2026-07-12T21-16-35Z",
-  "eraStartedAt": "2026-07-12T21:16:40.985Z",
-  "eraCause": "rebaseline-accept",
-  "baselineLabel": "accept-2026-07-12T20-14-09Z-c8f9c284",
+  "eraId": "era-2026-07-13T00-34-17Z",
+  "eraStartedAt": "2026-07-13T00:34:18.707Z",
+  "eraCause": "suite-rollover",
+  "baselineLabel": "v2.6-detector-limited-contact-2026-07-13",
   "budgetCap": 0.05,
-  "budgetSpent": 0,
-  "cumulativeExpectedFalseAccepts": 0.098,
+  "budgetSpent": 0.0418,
+  "cumulativeExpectedFalseAccepts": 0.1398,
   "attempts": [
     {
       "attemptId": "2026-07-11T21-25-55Z-f99e71f1",
@@ -67,6 +67,26 @@
       "declaredAt": "2026-07-12T20:14:09.881Z",
       "outcome": "accept",
       "lookCount": 5
+    },
+    {
+      "attemptId": "2026-07-13T01-43-56Z-52c52c7a",
+      "eraId": "era-2026-07-13T00-34-17Z",
+      "candidateFingerprint": "2c9220031c3885c9e92e14113413f16eea26e4857c4f2f8312a0bf556caf12fd",
+      "operatingPointId": "improve-t0-d48",
+      "spend": 0.0209,
+      "declaredAt": "2026-07-13T01:43:56.838Z",
+      "outcome": "aborted",
+      "lookCount": 0
+    },
+    {
+      "attemptId": "2026-07-13T01-51-38Z-da99767b",
+      "eraId": "era-2026-07-13T00-34-17Z",
+      "candidateFingerprint": "2c9220031c3885c9e92e14113413f16eea26e4857c4f2f8312a0bf556caf12fd",
+      "operatingPointId": "improve-t0-d48",
+      "spend": 0.0209,
+      "declaredAt": "2026-07-13T01:51:39.297Z",
+      "outcome": "inconclusive",
+      "lookCount": 5
     }
   ],
   "inFlightAttemptId": null,
@@ -107,6 +127,18 @@
       "canonicalSeedBase": 377703393,
       "seedCount": 144,
       "seedScheduleFingerprint": "6d0b101c155427b22954aaf67d7f485cf753e2facb3908061204bd20b98dceba"
+    },
+    {
+      "attemptId": "2026-07-13T01-43-56Z-52c52c7a",
+      "canonicalSeedBase": 658999243,
+      "seedCount": 144,
+      "seedScheduleFingerprint": "f2a047ae5f34d7decdea3ec41e8e367212653fad51f6eec34ae51076ae841b1d"
+    },
+    {
+      "attemptId": "2026-07-13T01-51-38Z-da99767b",
+      "canonicalSeedBase": 1404608934,
+      "seedCount": 144,
+      "seedScheduleFingerprint": "0690b8acc6dec19e9f84739bc297a4c9540d7dc42d081396562dea77123d4e8a"
     }
   ]
 }

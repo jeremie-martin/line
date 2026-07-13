@@ -8,7 +8,7 @@
 
 import { LineRiderEngine, createLineFromJson } from "../../lib/_lr_engine.ts";
 import {
-  type Detection, type DetEvent,
+  MIN_LANDING_AIRBORNE_FRAMES, type Detection, type DetEvent,
 } from "../../lib/detector.ts";
 import type { TrackJson } from "../../lib/primitive.ts";
 import {
@@ -192,6 +192,14 @@ export function positionAt(det: Detection, frame: number): { x: number; y: numbe
   return index >= 0 ? det.measurements.position[index] : undefined;
 }
 
+/** A persistent event that can satisfy an authored contact interval. Normal
+ * intervals require a landing; detector-limited intervals may only be expressed
+ * as a bounce because they cannot contain more than K airborne frames. */
+export function isAuthoredContactEvent(event: DetEvent, gapFrames: number): boolean {
+  return event.type === "landing" ||
+    (event.type === "bounce" && gapFrames <= MIN_LANDING_AIRBORNE_FRAMES);
+}
+
 export function offBeatLandingEvents(det: Detection, contactFrames: number[]): DetEvent[] {
   return det.events.filter((e) =>
     e.type === "landing" && !contactFrames.some((cf) => Math.abs(cf - e.frame) <= 1)
@@ -199,15 +207,20 @@ export function offBeatLandingEvents(det: Detection, contactFrames: number[]): D
 }
 
 /**
- * The `landing` event that registers a contact at `targetFrame`: the first (in
- * event order) within `tol` frames. This is the single definition of "the landing
- * for this beat" — `buildDriftReport`'s contact match and `measureImpact` share it
- * so the ±1 rule lives in one place. (The candidate gate in core/candidate.ts uses
- * a related but distinct check — *any* such landing that also fired an owned line —
- * and stays separate to avoid a measure↔candidate import cycle.)
+ * The persistent event that registers an authored contact at `targetFrame`: the
+ * first (in event order) within `tol` frames. `buildDriftReport` and axis
+ * measurement share this lookup so timing and detector-limit semantics live in
+ * one place. The candidate gate also requires the event to fire an owned line.
  */
-export function findLandingNearFrame(det: Detection, targetFrame: number, tol = 1): DetEvent | undefined {
-  return det.events.find((e) => e.type === "landing" && Math.abs(e.frame - targetFrame) <= tol);
+export function findAuthoredContactNearFrame(
+  det: Detection,
+  targetFrame: number,
+  tol = 1,
+  gapFrames = Infinity,
+): DetEvent | undefined {
+  return det.events.find((e) =>
+    isAuthoredContactEvent(e, gapFrames) && Math.abs(e.frame - targetFrame) <= tol
+  );
 }
 
 /**
@@ -252,9 +265,11 @@ export function addMissedContactRetryOwners(
   fits: (GapFit | null)[],
   contactFrames: number[],
 ): void {
-  for (const frame of contactFrames) {
+  for (let contactIndex = 0; contactIndex < contactFrames.length; contactIndex++) {
+    const frame = contactFrames[contactIndex];
+    const previousFrame = contactIndex === 0 ? 0 : contactFrames[contactIndex - 1];
     const hasLanding = det.events.some((e) =>
-      e.type === "landing" && Math.abs(e.frame - frame) <= 1
+      isAuthoredContactEvent(e, frame - previousFrame) && Math.abs(e.frame - frame) <= 1
     );
     if (hasLanding) continue;
 
@@ -658,15 +673,19 @@ export function buildDriftReport(
   fits: (GapFit | null)[],
   gapAxisTargets?: AxisValues[],
 ): DriftReport {
-  const contacts: ContactReport[] = spec.contacts.map((c) => {
+  const contacts: ContactReport[] = spec.contacts.map((c, contactIndex) => {
     const target = secToFrame(c.t);
-    const matched = findLandingNearFrame(det, target, 1);
+    const contactGap = gaps[contactIndex];
+    const gapFrames = contactGap === undefined
+      ? Infinity
+      : contactGap.endFrame - contactGap.startFrame;
+    const matched = findAuthoredContactNearFrame(det, target, 1, gapFrames);
     if (matched) {
       return { t_target: c.t, t_actual: matched.frame / FPS, frame_error: matched.frame - target, status: "hit" };
     }
-    // No tight match — find nearest landing within 5 frames (drift) or report missing.
+    // No tight match — find the nearest eligible contact within 5 frames (drift) or report missing.
     const near = det.events
-      .filter((e) => e.type === "landing")
+      .filter((e) => isAuthoredContactEvent(e, gapFrames))
       .map((e) => ({ e, d: Math.abs(e.frame - target) }))
       .sort((a, b) => a.d - b.d)[0];
     if (near && near.d <= 5) {

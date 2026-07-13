@@ -1,17 +1,17 @@
 {
   "schema": "line.benchmark-v2.baseline-reference.v9",
   "status": "canonical-baseline",
-  "label": "accept-2026-07-12T20-14-09Z-c8f9c284",
-  "generated_at": "2026-07-12T21:16:33.963Z",
-  "bundle": "benchmark/v2/runs/accept-2026-07-12T20-14-09Z-c8f9c284-baseline.json",
+  "label": "v2.6-detector-limited-contact-2026-07-13",
+  "generated_at": "2026-07-13T00:34:17.137Z",
+  "bundle": "benchmark/v2/runs/v2.6-detector-limited-contact-2026-07-13-baseline.json",
   "catalog_fingerprint": "7dca7a96370bcc3545bfc66b704941aa1501558134007b1194d3c655379931f5",
-  "suite_fingerprint": "9bd5bf1c988dbe8022386f0f7edddda4ba9836d0aee01e1b7d8d735c85ec297c",
+  "suite_fingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
   "listening_review_fingerprint": "973af98ec3de6eba662298115e07792e35d859063bbbb3839cdf5e07409a314f",
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "2b78a33a24ebc7e0a318713964d71d2ba8ba4326b5e6b13e17353e47fdcc5139",
+  "compiler_source_fingerprint": "cc282eebaa16fe36984099264f8cd5b1e9f9a7a37a84faebde9df3fd23514da0",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -83,25 +83,25 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
-  "candidate_fingerprint": "9fd0347bd108d6b9497e6206a3005764826dee1455a6b10f8b9e7b7155f5a12f",
+  "candidate_fingerprint": "fec9529eaa1904f1924f1e1d1bc986b9f53cedb44b1d74e43d763efaf52eacd7",
   "decision_inference_fingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
-  "decision_protocol_fingerprint": "d0393246599ca0255d8199042b0462f90bc3c729646b4bbff6e8ee239dbfcf78",
-  "decision_calibration_fingerprint": "0b73a9d59cfc7dfd247f641960dc4987889d309044ac136a673f2a640b173b35",
+  "decision_protocol_fingerprint": "514135f2c60988c37f685c9d721cc8336c0f76d0450d613f70040e87dd3d7704",
+  "decision_calibration_fingerprint": "49f0a249ed152b0e51cfc94607284dbac48baf67c15296a2aa1818aa1242ca32",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/2026-07-12T20-14-09Z-c8f9c284-candidate-compiler-snapshot.tar.gz",
-    "archiveSha256": "0a49c30ddb1ea2a1e7e33dfe230b36ce3cdba09bef919df6f5b1d404d4d22c69",
-    "candidateFingerprint": "9fd0347bd108d6b9497e6206a3005764826dee1455a6b10f8b9e7b7155f5a12f",
-    "compilerSourceFingerprint": "2b78a33a24ebc7e0a318713964d71d2ba8ba4326b5e6b13e17353e47fdcc5139",
+    "archive": "benchmark/v2/runs/v2.6-detector-limited-contact-2026-07-13-compiler-snapshot.tar.gz",
+    "archiveSha256": "56e7dd4529270891c2c48f8203c0c752ad539cf82d22dcd090ee09d9dfecc388",
+    "candidateFingerprint": "fec9529eaa1904f1924f1e1d1bc986b9f53cedb44b1d74e43d763efaf52eacd7",
+    "compilerSourceFingerprint": "cc282eebaa16fe36984099264f8cd5b1e9f9a7a37a84faebde9df3fd23514da0",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
   },
   "probe": {
-    "execution_policy_fingerprint": "7209456eb339fb9292f859d38f23a4d6b214ae1437ca0ca2abaa6da1fc3fb896",
-    "implementation_fingerprint": "d3efb0c83de68e1d8beb7d75fda8a50737d850b7846899c118c44b0e6f76135a",
-    "archive_sha256": "0eeaec061bb76bff27480c7c6e8d618d197bcd896786cb6d0f036ccb65862b78",
-    "compressed_archive": "benchmark/v2/runs/accept-2026-07-12T20-14-09Z-c8f9c284-probe.json.gz",
-    "compressed_archive_sha256": "18801ecbf2c247c5886e7002f47d3be79d824f5b42ce319677fa3c3678fcfe0f",
+    "execution_policy_fingerprint": "5e336cda28b31c14ba42bcafd6d695f492b62b2df370fcd95ccd4725e476b92a",
+    "implementation_fingerprint": "872bef8ba426f8c6a970b687a2c9f2d0288a4efbeeb7fbcc9abf639fba093348",
+    "archive_sha256": "54c391ca0f97d34f643480b7713f53c6b1f24887bf9cf28fc315f94b619b78ce",
+    "compressed_archive": "benchmark/v2/runs/v2.6-detector-limited-contact-2026-07-13-probe.json.gz",
+    "compressed_archive_sha256": "809561f12aed65f3e30f3223a3a5396622449e3a446dacec68525bebd564d11b",
     "canonical_headline": 462.7273,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
@@ -143,250 +143,55 @@
     ]
   },
   "development": {
-    "execution_policy_fingerprint": "afc21c096300b07952e00c190f35c20045162a97dd1ee883781ecb848c852ff3",
-    "implementation_fingerprint": "d3efb0c83de68e1d8beb7d75fda8a50737d850b7846899c118c44b0e6f76135a",
-    "archive_sha256": "17f72a85dfdbc34a55ff4f426d1486c57fa1cafa2d3375f4736a53d16df1e4c3",
-    "compressed_archive": "benchmark/v2/runs/2026-07-12T20-14-09Z-c8f9c284-development.json.gz",
-    "compressed_archive_sha256": "c820c5b2ecdb14e856dff0532f5abe574917b99f79cd906346c6b46526124f85",
-    "canonical_headline": 467.0694,
+    "execution_policy_fingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
+    "implementation_fingerprint": "872bef8ba426f8c6a970b687a2c9f2d0288a4efbeeb7fbcc9abf639fba093348",
+    "archive_sha256": "6ddfbe1848e929dc5a4776b622bfc584f55fddf6eac990024e5fe5d104f0b8bd",
+    "compressed_archive": "benchmark/v2/runs/v2.6-detector-limited-contact-2026-07-13-development.json.gz",
+    "compressed_archive_sha256": "2f373ce855a1b5e99525e40d6d9a53f6b67892cd12ed418a59135c7141f5d3bf",
+    "canonical_headline": 469.5384,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
-      "seedBase": 377703393,
-      "seedsPerBudget": 48,
-      "byBudget": [
-        {
-          "budget": 250000,
-          "actualSeeds": [
-            377703393,
-            377703394,
-            377703395,
-            377703396,
-            377703397,
-            377703398,
-            377703399,
-            377703400,
-            377703401,
-            377703402,
-            377703403,
-            377703404,
-            377703405,
-            377703406,
-            377703407,
-            377703408,
-            377703409,
-            377703410,
-            377703411,
-            377703412,
-            377703413,
-            377703414,
-            377703415,
-            377703416,
-            377703417,
-            377703418,
-            377703419,
-            377703420,
-            377703421,
-            377703422,
-            377703423,
-            377703424,
-            377703425,
-            377703426,
-            377703427,
-            377703428,
-            377703429,
-            377703430,
-            377703431,
-            377703432,
-            377703433,
-            377703434,
-            377703435,
-            377703436,
-            377703437,
-            377703438,
-            377703439,
-            377703440
-          ]
-        },
-        {
-          "budget": 500000,
-          "actualSeeds": [
-            377703441,
-            377703442,
-            377703443,
-            377703444,
-            377703445,
-            377703446,
-            377703447,
-            377703448,
-            377703449,
-            377703450,
-            377703451,
-            377703452,
-            377703453,
-            377703454,
-            377703455,
-            377703456,
-            377703457,
-            377703458,
-            377703459,
-            377703460,
-            377703461,
-            377703462,
-            377703463,
-            377703464,
-            377703465,
-            377703466,
-            377703467,
-            377703468,
-            377703469,
-            377703470,
-            377703471,
-            377703472,
-            377703473,
-            377703474,
-            377703475,
-            377703476,
-            377703477,
-            377703478,
-            377703479,
-            377703480,
-            377703481,
-            377703482,
-            377703483,
-            377703484,
-            377703485,
-            377703486,
-            377703487,
-            377703488
-          ]
-        },
-        {
-          "budget": 750000,
-          "actualSeeds": [
-            377703489,
-            377703490,
-            377703491,
-            377703492,
-            377703493,
-            377703494,
-            377703495,
-            377703496,
-            377703497,
-            377703498,
-            377703499,
-            377703500,
-            377703501,
-            377703502,
-            377703503,
-            377703504,
-            377703505,
-            377703506,
-            377703507,
-            377703508,
-            377703509,
-            377703510,
-            377703511,
-            377703512,
-            377703513,
-            377703514,
-            377703515,
-            377703516,
-            377703517,
-            377703518,
-            377703519,
-            377703520,
-            377703521,
-            377703522,
-            377703523,
-            377703524,
-            377703525,
-            377703526,
-            377703527,
-            377703528,
-            377703529,
-            377703530,
-            377703531,
-            377703532,
-            377703533,
-            377703534,
-            377703535,
-            377703536
-          ]
-        }
-      ]
-    },
-    "budgets": [
-      {
-        "budget": 250000,
-        "score": 432.6266,
-        "valid_runs": 1884,
-        "total_runs": 2112
-      },
-      {
-        "budget": 500000,
-        "score": 471.2519,
-        "valid_runs": 2023,
-        "total_runs": 2112
-      },
-      {
-        "budget": 750000,
-        "score": 483.0605,
-        "valid_runs": 2064,
-        "total_runs": 2112
-      }
-    ]
-  },
-  "qualification": {
-    "execution_policy_fingerprint": "41dddd59fd6f070d51c86add27662bdef0118eed66e519c242c73b418d0522ca",
-    "implementation_fingerprint": "d3efb0c83de68e1d8beb7d75fda8a50737d850b7846899c118c44b0e6f76135a",
-    "archive_sha256": "d1139e118b69b588844d744e0db373d8328b1a5c916e3febfafbda525e899cc9",
-    "compressed_archive": "benchmark/v2/runs/2026-07-12T20-14-09Z-c8f9c284-qualification.json.gz",
-    "compressed_archive_sha256": "7f944811dc2d3bfb6e8824bfab0c06e8d85915155a6f7d36c137aeb4a4917121",
-    "monitor_score": 383.9738,
-    "seed_schedule": {
-      "kind": "profile_budget_disjoint_contiguous",
-      "profile": "canonical",
-      "seedBase": 377703393,
+      "seedBase": 0,
       "seedsPerBudget": 8,
       "byBudget": [
         {
           "budget": 250000,
           "actualSeeds": [
-            377703393,
-            377703394,
-            377703395,
-            377703396,
-            377703397,
-            377703398,
-            377703399,
-            377703400
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
           ]
         },
         {
           "budget": 500000,
           "actualSeeds": [
-            377703401,
-            377703402,
-            377703403,
-            377703404,
-            377703405,
-            377703406,
-            377703407,
-            377703408
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
           ]
         },
         {
           "budget": 750000,
           "actualSeeds": [
-            377703409,
-            377703410,
-            377703411,
-            377703412,
-            377703413,
-            377703414,
-            377703415,
-            377703416
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
           ]
         }
       ]
@@ -394,23 +199,98 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 380.9565,
-        "valid_runs": 40,
+        "score": 429.51,
+        "valid_runs": 312,
+        "total_runs": 352
+      },
+      {
+        "budget": 500000,
+        "score": 479.4696,
+        "valid_runs": 342,
+        "total_runs": 352
+      },
+      {
+        "budget": 750000,
+        "score": 479.6719,
+        "valid_runs": 343,
+        "total_runs": 352
+      }
+    ]
+  },
+  "qualification": {
+    "execution_policy_fingerprint": "6aead4041cc8bef727be3feb1fca610e1c3a8d994bf6cfce387d50ffea42611e",
+    "implementation_fingerprint": "872bef8ba426f8c6a970b687a2c9f2d0288a4efbeeb7fbcc9abf639fba093348",
+    "archive_sha256": "f9511cfddbac8ed7fbf7a5fe8c725dc7080d4757aa2c8efc3a47a0162adc8804",
+    "compressed_archive": "benchmark/v2/runs/v2.6-detector-limited-contact-2026-07-13-qualification.json.gz",
+    "compressed_archive_sha256": "7756cdc5bdfae877e3e71d426cf3759b3a51c8f97662d0258230f97cf530eb9f",
+    "monitor_score": 373.4677,
+    "seed_schedule": {
+      "kind": "profile_budget_disjoint_contiguous",
+      "profile": "canonical",
+      "seedBase": 0,
+      "seedsPerBudget": 8,
+      "byBudget": [
+        {
+          "budget": 250000,
+          "actualSeeds": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "budget": 500000,
+          "actualSeeds": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "budget": 750000,
+          "actualSeeds": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ]
+        }
+      ]
+    },
+    "budgets": [
+      {
+        "budget": 250000,
+        "score": 328.8673,
+        "valid_runs": 39,
         "total_runs": 40
       },
       {
         "budget": 500000,
-        "score": 383.8159,
+        "score": 380.9754,
         "valid_runs": 40,
         "total_runs": 40
       },
       {
         "budget": 750000,
-        "score": 386.2485,
+        "score": 390.6884,
         "valid_runs": 40,
         "total_runs": 40
       }
     ],
-    "linked_development_archive_sha256": "17f72a85dfdbc34a55ff4f426d1486c57fa1cafa2d3375f4736a53d16df1e4c3"
+    "linked_development_archive_sha256": "6ddfbe1848e929dc5a4776b622bfc584f55fddf6eac990024e5fe5d104f0b8bd"
   }
 }

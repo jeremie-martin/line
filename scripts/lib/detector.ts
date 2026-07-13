@@ -20,6 +20,8 @@ import { COLLISION_UPDATE_TYPE } from "./update_types.ts";
 
 /** Bounce-vs-landing threshold: airborne for >K frames ⇒ landing, 1..K ⇒ bounce. */
 export const K_BOUNCE_LANDING = 5;
+/** Smallest airborne run the detector can classify as a landing. */
+export const MIN_LANDING_AIRBORNE_FRAMES = K_BOUNCE_LANDING + 1;
 /** Kick threshold: angle change per frame, degrees. */
 export const THETA_KICK_DEG = 20;
 /** Stall threshold (engine units / frame). */

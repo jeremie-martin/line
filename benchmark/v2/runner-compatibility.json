@@ -140,6 +140,20 @@
         "sha256": "6a3b0f76ac90d0e88e56f6950f632bed4b053a29abf5763e172bfd4f68fc927b",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "872bef8ba426f8c6a970b687a2c9f2d0288a4efbeeb7fbcc9abf639fba093348",
+      "toImplementationFingerprint": "f28ee5d20ae55c888a3da779e50d3815b87f924d1872a54acad51ef246052b78",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
+      "reviewedBy": "Codex",
+      "reviewedAt": "2026-07-13T01:49:59.121Z",
+      "rationale": "Tracked-only",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-872bef8b-f28ee5d2-a3d808bb.json",
+        "sha256": "a3d808bbb87c3ca00e1f4c254938c2a42bc1d201596e8ec7d792234228b8c29a",
+        "result": "bit-identical"
+      }
     }
   ]
 }

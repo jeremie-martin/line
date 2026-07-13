@@ -138,7 +138,7 @@ describe("Benchmark V2 decision command", () => {
   });
 
   test("retains historical runner evidence only for probe calibration controls", async () => {
-    const calibrationProbe = "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz";
+    const calibrationProbe = "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz";
 
     await expect(runDecisionCommand([calibrationProbe, "--no-gate-exit"]))
       .rejects.toThrow(/runner implementation fingerprints differ|execution policies/);

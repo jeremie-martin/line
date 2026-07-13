@@ -1,7 +1,7 @@
 {
   "schema": "line.benchmark-v2.decision-calibration.v2",
-  "generatedAt": "2026-07-12T15:19:30.678Z",
-  "suiteFingerprint": "9bd5bf1c988dbe8022386f0f7edddda4ba9836d0aee01e1b7d8d735c85ec297c",
+  "generatedAt": "2026-07-12T23:59:34.402Z",
+  "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "decisionInferenceFingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
   "policy": {
     "schema": "line.benchmark-v2.decision-policy.v2",
@@ -40,10 +40,10 @@
   "controls": {
     "identical": {
       "available": true,
-      "baseArchive": "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-      "baseArchiveSha256": "99cfc4f405b99944fd7ed0aab96840ee4de8f2e04fab9aea9624430cb5e28d80",
-      "candidateArchive": "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-      "candidateArchiveSha256": "99cfc4f405b99944fd7ed0aab96840ee4de8f2e04fab9aea9624430cb5e28d80",
+      "baseArchive": "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+      "baseArchiveSha256": "ac20948e9bf55151b1ad44e264eda46fb66bf06c9c28edcb67cac4dedb2a6c3e",
+      "candidateArchive": "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+      "candidateArchiveSha256": "ac20948e9bf55151b1ad44e264eda46fb66bf06c9c28edcb67cac4dedb2a6c3e",
       "delta": 0,
       "centralInterval": [
         0,
@@ -55,32 +55,32 @@
     },
     "knownBroadDegradation": {
       "available": true,
-      "baseArchive": "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-      "baseArchiveSha256": "99cfc4f405b99944fd7ed0aab96840ee4de8f2e04fab9aea9624430cb5e28d80",
-      "candidateArchive": "benchmark/v2/runs/calibration-v2.5-quality-ncand-1-probe.json.gz",
-      "candidateArchiveSha256": "049a25ffd6d32fa862048009b7bc57cfe6d4cb8a2b12cb969c2cc87b1a6989e0",
-      "delta": -150.1736,
+      "baseArchive": "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+      "baseArchiveSha256": "ac20948e9bf55151b1ad44e264eda46fb66bf06c9c28edcb67cac4dedb2a6c3e",
+      "candidateArchive": "benchmark/v2/runs/calibration-v2.6-quality-ncand-1-probe.json.gz",
+      "candidateArchiveSha256": "ab497db96a9c582fca56499c7bca506965041ff28e85a1bd7f7216f77e787e70",
+      "delta": -151.8607,
       "centralInterval": [
-        -224.4828,
-        -75.8644
+        -227.9286,
+        -75.7928
       ],
-      "lowerBound": -173.623,
-      "upperBound": -126.7242,
+      "lowerBound": -175.5894,
+      "upperBound": -128.132,
       "outcome": "stop"
     },
     "impactContractFailure": {
       "available": true,
-      "baseArchive": "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-      "baseArchiveSha256": "99cfc4f405b99944fd7ed0aab96840ee4de8f2e04fab9aea9624430cb5e28d80",
-      "candidateArchive": "benchmark/v2/runs/calibration-v2.5-impact-off-probe.json.gz",
-      "candidateArchiveSha256": "35c9afaf859ad0f96e55e081a6d0118d809a0c8a866096a59a94a35d10f8e3d5",
-      "delta": -446.0645,
+      "baseArchive": "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+      "baseArchiveSha256": "ac20948e9bf55151b1ad44e264eda46fb66bf06c9c28edcb67cac4dedb2a6c3e",
+      "candidateArchive": "benchmark/v2/runs/calibration-v2.6-impact-off-probe.json.gz",
+      "candidateArchiveSha256": "310bc3b6091320e569a4ccf5e404974f405e4da2271e031fb6daf4131afb1a91",
+      "delta": -462.7273,
       "centralInterval": [
-        -462.3906,
-        -429.7384
+        -479.8846,
+        -445.57
       ],
-      "lowerBound": -453.3089,
-      "upperBound": -438.8201,
+      "lowerBound": -470.0537,
+      "upperBound": -455.4009,
       "outcome": "stop"
     },
     "correlatedSeedAdversary": {
@@ -98,7 +98,7 @@
   },
   "coverageStudy": {
     "path": "benchmark/v2/studies/decision-coverage.json",
-    "sha256": "2abe96ee3fb57676e771474884ab260d8d4f861e9499a59f0ef3be968be4608f",
+    "sha256": "4fb01490aa4141eb2c2914f5b7b6edb2cf4d5212a86406282ffcd18b3846d098",
     "trials": 1000,
     "results": [
       {
@@ -108,53 +108,53 @@
         "seedsPerBudget": 8,
         "trials": 1000,
         "trueDelta": 0,
-        "meanDelta": -0.0989,
+        "meanDelta": 0.1236,
         "centralCoverage": {
-          "count": 996,
-          "rate": 0.996,
+          "count": 991,
+          "rate": 0.991,
           "wilson95": [
-            0.9898,
-            0.9984
+            0.983,
+            0.9953
           ]
         },
         "positiveOutcome": {
-          "count": 5,
-          "rate": 0.005,
+          "count": 7,
+          "rate": 0.007,
           "wilson95": [
-            0.0021,
-            0.0117
+            0.0034,
+            0.0144
           ]
         },
         "negativeOutcome": {
-          "count": 5,
-          "rate": 0.005,
+          "count": 9,
+          "rate": 0.009,
           "wilson95": [
-            0.0021,
-            0.0117
+            0.0047,
+            0.017
           ]
         },
         "unresolvedOutcome": {
-          "count": 990,
-          "rate": 0.99,
+          "count": 984,
+          "rate": 0.984,
           "wilson95": [
-            0.9817,
-            0.9946
+            0.9742,
+            0.9901
           ]
         },
         "falseAccept": {
-          "count": 5,
-          "rate": 0.005,
+          "count": 7,
+          "rate": 0.007,
           "wilson95": [
-            0.0021,
-            0.0117
+            0.0034,
+            0.0144
           ]
         },
         "falseReject": {
-          "count": 5,
-          "rate": 0.005,
+          "count": 9,
+          "rate": 0.009,
           "wilson95": [
-            0.0021,
-            0.0117
+            0.0047,
+            0.017
           ]
         }
       },
@@ -165,40 +165,24 @@
         "seedsPerBudget": 8,
         "trials": 1000,
         "trueDelta": 0,
-        "meanDelta": -0.9079,
+        "meanDelta": -0.713,
         "centralCoverage": {
-          "count": 990,
-          "rate": 0.99,
+          "count": 992,
+          "rate": 0.992,
           "wilson95": [
-            0.9817,
-            0.9946
+            0.9843,
+            0.9959
           ]
         },
         "positiveOutcome": {
-          "count": 9,
-          "rate": 0.009,
+          "count": 7,
+          "rate": 0.007,
           "wilson95": [
-            0.0047,
-            0.017
+            0.0034,
+            0.0144
           ]
         },
         "negativeOutcome": {
-          "count": 13,
-          "rate": 0.013,
-          "wilson95": [
-            0.0076,
-            0.0221
-          ]
-        },
-        "unresolvedOutcome": {
-          "count": 978,
-          "rate": 0.978,
-          "wilson95": [
-            0.9669,
-            0.9854
-          ]
-        },
-        "falseAccept": {
           "count": 9,
           "rate": 0.009,
           "wilson95": [
@@ -206,12 +190,28 @@
             0.017
           ]
         },
-        "falseReject": {
-          "count": 13,
-          "rate": 0.013,
+        "unresolvedOutcome": {
+          "count": 984,
+          "rate": 0.984,
           "wilson95": [
-            0.0076,
-            0.0221
+            0.9742,
+            0.9901
+          ]
+        },
+        "falseAccept": {
+          "count": 7,
+          "rate": 0.007,
+          "wilson95": [
+            0.0034,
+            0.0144
+          ]
+        },
+        "falseReject": {
+          "count": 9,
+          "rate": 0.009,
+          "wilson95": [
+            0.0047,
+            0.017
           ]
         }
       },
@@ -280,22 +280,22 @@
         "margin": null,
         "seedsPerBudget": 8,
         "trials": 1000,
-        "trueDelta": 12.7965,
-        "meanDelta": 12.7123,
+        "trueDelta": 13.3258,
+        "meanDelta": 13.3893,
         "centralCoverage": {
-          "count": 994,
-          "rate": 0.994,
+          "count": 992,
+          "rate": 0.992,
           "wilson95": [
-            0.987,
-            0.9972
+            0.9843,
+            0.9959
           ]
         },
         "positiveOutcome": {
-          "count": 923,
-          "rate": 0.923,
+          "count": 829,
+          "rate": 0.829,
           "wilson95": [
-            0.9048,
-            0.938
+            0.8044,
+            0.8511
           ]
         },
         "negativeOutcome": {
@@ -307,11 +307,11 @@
           ]
         },
         "unresolvedOutcome": {
-          "count": 77,
-          "rate": 0.077,
+          "count": 171,
+          "rate": 0.171,
           "wilson95": [
-            0.062,
-            0.0952
+            0.1489,
+            0.1956
           ]
         },
         "candidateValidityProbability": null,
@@ -323,14 +323,14 @@
         "margin": 5,
         "seedsPerBudget": 8,
         "trials": 1000,
-        "trueDelta": -2.5,
-        "meanDelta": -2.5073,
+        "trueDelta": -2.5001,
+        "meanDelta": -2.5091,
         "centralCoverage": {
-          "count": 974,
-          "rate": 0.974,
+          "count": 978,
+          "rate": 0.978,
           "wilson95": [
-            0.9622,
-            0.9822
+            0.9669,
+            0.9854
           ]
         },
         "positiveOutcome": {
@@ -358,7 +358,7 @@
           ]
         },
         "candidateValidityProbability": null,
-        "scoreShift": -2.9294
+        "scoreShift": -2.813
       }
     ],
     "safetyResults": [

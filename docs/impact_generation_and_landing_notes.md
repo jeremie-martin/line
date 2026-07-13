@@ -114,7 +114,7 @@ is the empirical proof that the lever is **sustained curvature, not instant angl
 ## Correctness flag before any hard-impact push: ejection saturation
 
 The metric INVERTS at the violent extreme: a head-on catch with normal closing ≳8 px/f
-EJECTS the rider → reclassified as bounce/flyThrough → `findLandingNearFrame` returns
+EJECTS the rider → reclassified as bounce/flyThrough → `findAuthoredContactNearFrame` returns
 undefined → impact reads *undefined/off-scale* instead of pegging to MAX. Today the
 compiler self-limits to the gentle regime so this is rare. But the moment steering
 deliberately pushes into hard catches (the whole point of v2), the optimizer gets a

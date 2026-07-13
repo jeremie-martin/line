@@ -104,6 +104,12 @@ A run is valid only if it reaches end-of-spec, reports and hits every authored c
 within the one-frame contract, creates no off-beat landing, and supplies every expected
 axis measurement. Invalid runs score zero.
 
+A normal authored interval is hit by a detector landing. When the interval is no longer
+than the detector's minimum landing run, a persistent bounce may represent the authored
+ground contact because a distinct landing cannot physically occur between those beats.
+This exception is interval-derived; bounces remain excluded from ordinary contacts and
+from off-beat landing accounting.
+
 For valid runs:
 
 `1000 * exp(-weighted_axis_rms / 0.25)`
@@ -171,7 +177,8 @@ a promotion slot after thresholds, critical levels, inference, or calibration ch
 
 Before compilation, deterministic preparation regenerates compatibility manifests,
 characterization, static audit, and candidate review from the typed catalog, and validates
-the tracked listening review against the current suite. Canonical baseline and promotion
+the tracked listening review against the current musical source manifest and click hashes.
+Canonical baseline and promotion
 remain blocked until every judgment and the reviewer attestation are complete. The runner
 then validates their hashes, current source identities, audit-rule identity, raw-report
 rescoring, and a recomputed audit. Behavior-defining interpolation code is included in

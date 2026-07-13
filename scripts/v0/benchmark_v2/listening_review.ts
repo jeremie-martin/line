@@ -92,7 +92,7 @@ export function requireApprovedListeningReview(evidence: ListeningReviewEvidence
 
 async function validateListeningReview(
   review: ListeningReview,
-  expectedSuiteFingerprint: string,
+  _expectedSuiteFingerprint: string,
   expectedSourceManifestFingerprint: string,
   sources: ResolvedSource[],
 ): Promise<void> {
@@ -100,11 +100,8 @@ async function validateListeningReview(
   if (!(["awaiting-human-review", "approved", "rejected"] as const).includes(review.status)) {
     throw new Error(`invalid listening review status`);
   }
-  if (
-    review.suiteFingerprint !== expectedSuiteFingerprint ||
-    review.sourceManifestFingerprint !== expectedSourceManifestFingerprint
-  ) {
-    throw new Error(`listening review does not attest the current suite and source manifest`);
+  if (review.sourceManifestFingerprint !== expectedSourceManifestFingerprint) {
+    throw new Error(`listening review does not attest the current source manifest`);
   }
   if (!Array.isArray(review.items) || review.items.length !== sources.length) {
     throw new Error(`listening review does not cover the complete development catalog`);

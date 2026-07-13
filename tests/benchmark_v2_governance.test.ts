@@ -224,7 +224,7 @@ describe("Benchmark V2 governance", () => {
     const inadequate = structuredClone(coverage);
     const row = inadequate.results.find((entry: any) => entry.scenario === "empirical_blocks");
     row.positiveOutcome = row.falseAccept = { count: 900, rate: 0.9, wilson95: [0.8798, 0.9171] };
-    row.unresolvedOutcome = { count: 95, rate: 0.095, wilson95: [0.0783, 0.1148] };
+    row.unresolvedOutcome = { count: 91, rate: 0.091, wilson95: [0.0747, 0.1104] };
     expect(() => assertDecisionCoverageAdequate(inadequate)).toThrow(/false accept upper bound/);
     const incomplete = JSON.parse(readFileSync("benchmark/v2/studies/decision-coverage.json", "utf8"));
     incomplete.results = incomplete.results.filter((row: any) => row.scenario !== "catalog_wide_hard_zero");

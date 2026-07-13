@@ -81,6 +81,11 @@ Every public run deterministically prepares the suite first:
 5. expose a pending review during development, but block confirmation and baseline execution;
 6. validate all evidence again inside the runner.
 
+Listening approval is bound to the musical material: the source-manifest and per-case
+fingerprints, deterministic click encoder output, and exact WAV hashes. It therefore
+carries across a scorer or execution-only suite rollover when those inputs are unchanged;
+catalog or click changes still invalidate it mechanically.
+
 `scripts/benchmark/materialize_normative.ts` is a migration/reproducibility utility.
 `scripts/benchmark/materialize_variants.ts` materializes deliberate variant modules; it
 uses no runtime randomness.
@@ -136,8 +141,13 @@ authored impact truth.
 
 `status` is read-only. It reports contract freshness, current era spend and capacity,
 exact compile counts, the dated host-specific timing reference, rebaseline blockers,
-and retained-evidence references. `status --evidence` lists reviewable unreferenced
-files; it never deletes evidence.
+and retained-evidence references. Active contract inputs (the current probe, compiler
+snapshot, calibration controls, and certification references) are retained locally and
+validated before status is returned. Large confirmation and qualification archives are
+external historical evidence: their hashes remain in the baseline and ledger, but they
+are not required to run a fresh snapshot replay. `status --evidence` distinguishes those
+unavailable historical references from reviewable unreferenced local files; it never
+deletes evidence.
 
 ## Changing V2
 

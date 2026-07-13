@@ -46,6 +46,7 @@ import {
   speedAt,
   velocityAt,
   positionAt,
+  isAuthoredContactEvent,
 } from "./substrate.ts";
 import {
   measureGapAxes,
@@ -411,6 +412,8 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
 
       if (airborneRun > DEFAULT_PARAMS.K && groundedInWindow / windowLen >= DEFAULT_PARAMS.persistenceRatio) {
         events.push({ frame, type: "landing", airborneFrom });
+      } else if (groundedInWindow / windowLen >= DEFAULT_PARAMS.persistenceRatio) {
+        events.push({ frame, type: "bounce", airborneFrom });
       }
       airborneRun = 0;
       airborneFrom = -1;
@@ -537,6 +540,8 @@ function detectCandidateWindowFrames(reader: CandidateWindowFrameReader): Window
 
       if (airborneRun > DEFAULT_PARAMS.K && groundedInWindow / windowLen >= DEFAULT_PARAMS.persistenceRatio) {
         events.push({ frame, type: "landing", airborneFrom });
+      } else if (groundedInWindow / windowLen >= DEFAULT_PARAMS.persistenceRatio) {
+        events.push({ frame, type: "bounce", airborneFrom });
       }
       airborneRun = 0;
       airborneFrom = -1;
@@ -969,7 +974,7 @@ function evaluateGapFit(
   // Hard gate 2: a landing event near gap.endFrame ±1.
   const owned = new Set(lines.map((l) => l.id));
   const landingNearTarget = det.events.some(
-    (e) => e.type === "landing"
+    (e) => isAuthoredContactEvent(e, gap.endFrame - gap.startFrame)
       && Math.abs(e.frame - gap.endFrame) <= 1
       && intersectsLineIds(e, det, owned),
   );

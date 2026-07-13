@@ -210,10 +210,10 @@ export function requireCertifiedOperatingPoint(
 const CERTIFICATION_REGEN_HINT =
   "regenerate both menu and holdout artifacts with " +
   "`node --import tsx scripts/benchmark/validate_independent_reference.ts --mode=certify " +
-  "--allow-in-sample --independent-reference=benchmark/v2/runs/calibration-v2.5-pooled-reference-seeds-0-23.json.gz " +
-  "--original-reference=benchmark/v2/runs/calibration-v2.5-pooled-reference-seeds-0-23.json.gz " +
+  "--allow-in-sample --independent-reference=benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz " +
+  "--original-reference=benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz " +
   "--out=benchmark/v2/studies/menu-certification.json` and the corresponding `--mode=holdout` command " +
-  "using calibration-v2.5-holdout-reference-seeds-36-47.json.gz and holdout-validation.json";
+  "using calibration-v2.6-holdout-reference-seeds-36-47.json.gz and holdout-validation.json";
 
 function readCertificationArtifact(
   path: string,

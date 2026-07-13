@@ -24,6 +24,8 @@ benchmark-results/**/*.tmp.json
 # Keep the directory marker, but do not stage generated run outputs.
 benchmark/v2/runs/*
 !benchmark/v2/runs/.gitkeep
+# Calibration inputs are also regenerated locally from benchmark runs.
+benchmark/v2/studies/inputs/
 new/
 
 # Large binaries — audio/video sources, archives, vendored repos

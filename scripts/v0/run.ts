@@ -22,6 +22,7 @@ import { AXES, FPS, type Spec } from "./types.ts";
 import { axisDetails, scoreDriftReport } from "./score.ts";
 import { specCameraToSidecar } from "./core/camera.ts";
 import { extractTrace, TRACE_EMIT } from "./core/trace.ts";
+import { compiledSpecFingerprint, identifyRunReport } from "../report_identity.ts";
 
 const COMPILERS = {
   handoff: compileHandoff,
@@ -104,7 +105,16 @@ const elapsedMs = Date.now() - t0;
 
 mkdirSync(dirname(resolve(`${outPrefix}.track.json`)), { recursive: true });
 writeFileSync(resolve(`${outPrefix}.track.json`), JSON.stringify(track, null, 2));
-writeFileSync(resolve(`${outPrefix}.report.json`), JSON.stringify(report, null, 2));
+const reportArtifact = identifyRunReport(report, {
+  compiledSpecFingerprint: compiledSpecFingerprint(compiledSpec),
+  specPath,
+  compiler,
+  engine: process.env.LR_ENGINE ?? "js",
+  seed,
+  budget: budgetUnits,
+  totalFrames: track.duration,
+});
+writeFileSync(resolve(`${outPrefix}.report.json`), JSON.stringify(reportArtifact, null, 2));
 const cameraSidecar = specCameraToSidecar(spec);
 const cameraPath = resolve(`${outPrefix}.camera.json`);
 if (cameraSidecar !== null) {

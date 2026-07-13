@@ -1,6 +1,6 @@
 # Benchmark V2 Decision Calibration
 
-Suite: `9bd5bf1c988dbe80`. Inference rule: `0933b77d36314cdd`.
+Suite: `d01c8a064a201b08`. Inference rule: `0933b77d36314cdd`.
 
 Simulation uses 200 formal-gate trials per scenario. Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.
 
@@ -13,8 +13,8 @@ Retained probe controls may carry a historical listening-review fingerprint beca
 | Control | Delta | Stress-calibrated interval | One-sided bounds | Outcome |
 |---|---:|---:|---:|---|
 | identical archive | 0.00 | [0.00, 0.00] | [0.00, 0.00] | unresolved |
-| known broad degradation | -150.17 | [-224.48, -75.86] | [-173.62, -126.72] | stop |
-| impact contract failure | -446.06 | [-462.39, -429.74] | [-453.31, -438.82] | stop |
+| known broad degradation | -151.86 | [-227.93, -75.79] | [-175.59, -128.13] | stop |
+| impact contract failure | -462.73 | [-479.88, -445.57] | [-470.05, -455.40] | stop |
 | catalog-wide correlated seed adversary | 2.99 | [-64.93, 70.90] | [-22.13, 28.10] | unresolved |
 
 ## Repeated-sampling simulation
@@ -36,14 +36,14 @@ Retained study: `benchmark/v2/studies/decision-coverage.json` (1000 trials per c
 
 | Scenario | Seeds / budget | Coverage target | False accept | False reject |
 |---|---:|---:|---:|---:|
-| empirical_blocks | 8 | 99.6% | 0.5% | 0.5% |
-| symmetric_validity_flips | 8 | 99.0% | 0.9% | 1.3% |
+| empirical_blocks | 8 | 99.1% | 0.7% | 0.9% |
+| symmetric_validity_flips | 8 | 99.2% | 0.7% | 0.9% |
 | catalog_wide_hard_zero | 8 | 96.8% | 2.0% | 2.7% |
 
 | Supported alternative | Mode | True delta | Positive | Negative | Unresolved | Coverage |
 |---|---|---:|---:|---:|---:|---:|
-| empirical_score_gain | improvement | 12.80 | 92.3% | 0.0% | 7.7% | 99.4% |
-| paired_empirical_noninferiority_inside | simplification (margin 5) | -2.50 | 100.0% | 0.0% | 0.0% | 97.4% |
+| empirical_score_gain | improvement | 13.33 | 82.9% | 0.0% | 17.1% | 99.2% |
+| paired_empirical_noninferiority_inside | simplification (margin 5) | -2.50 | 100.0% | 0.0% | 0.0% | 97.8% |
 
 | Safety boundary | Mode | True delta | False accept | Negative | Unresolved | Coverage |
 |---|---|---:|---:|---:|---:|---:|

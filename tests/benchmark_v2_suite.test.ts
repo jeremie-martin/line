@@ -67,6 +67,7 @@ describe("Benchmark V2 suite identity", () => {
       decision_inference_fingerprint: string;
       decision_protocol_fingerprint: string;
       decision_calibration_fingerprint: string;
+      compiler_snapshot: { archive: string; archiveSha256: string };
       probe: { compressed_archive: string; compressed_archive_sha256: string; canonical_headline: number };
       development: { compressed_archive: string; compressed_archive_sha256: string; canonical_headline: number };
       qualification: { compressed_archive: string; compressed_archive_sha256: string; monitor_score: number };
@@ -92,8 +93,8 @@ describe("Benchmark V2 suite identity", () => {
     expect(baseline.compiler_identity_protocol).toBe(COMPILER_IDENTITY_PROTOCOL);
     expect(baseline.compiler_source_files).toContain("scripts/v0/score.ts");
     expect(baseline.compiler_source_files).toContain("scripts/lib/detector.ts");
-    expect(baseline.probe.canonical_headline).toBe(446.0645);
-    expect(baseline.development.canonical_headline).toBe(453.1078);
+    expect(baseline.probe.canonical_headline).toBe(462.7273);
+    expect(baseline.development.canonical_headline).toBe(469.5384);
     expect(baseline.qualification.monitor_score).toBe(373.4677);
     expect(createHash("sha256").update(JSON.stringify({
       compilerIdentityProtocol: baseline.compiler_identity_protocol,
@@ -102,20 +103,25 @@ describe("Benchmark V2 suite identity", () => {
       engine: baseline.engine,
       engineArtifactFingerprint: baseline.engine_artifact_fingerprint,
     })).digest("hex")).toBe(baseline.candidate_fingerprint);
-    for (const artifact of [baseline.probe, baseline.development, baseline.qualification]) {
-      const compressed = readFileSync(artifact.compressed_archive);
-      expect(createHash("sha256").update(compressed).digest("hex"))
-        .toBe(artifact.compressed_archive_sha256);
-      const archive = JSON.parse(gunzipSync(compressed).toString("utf8"));
-      expect(archive.identity.engine).toBe(baseline.engine);
-      expect(archive.git).toMatchObject({
-        compilerIdentityProtocol: baseline.compiler_identity_protocol,
-        compilerSourceFingerprint: baseline.compiler_source_fingerprint,
-        compilerSourceFiles: baseline.compiler_source_files,
-        compilerEnvironment: baseline.compiler_environment,
-        engineArtifactFingerprint: baseline.engine_artifact_fingerprint,
-        candidateFingerprint: baseline.candidate_fingerprint,
-      });
+    const compressedProbe = readFileSync(baseline.probe.compressed_archive);
+    expect(createHash("sha256").update(compressedProbe).digest("hex"))
+      .toBe(baseline.probe.compressed_archive_sha256);
+    const probeArchive = JSON.parse(gunzipSync(compressedProbe).toString("utf8"));
+    expect(probeArchive.identity.engine).toBe(baseline.engine);
+    expect(probeArchive.git).toMatchObject({
+      compilerIdentityProtocol: baseline.compiler_identity_protocol,
+      compilerSourceFingerprint: baseline.compiler_source_fingerprint,
+      compilerSourceFiles: baseline.compiler_source_files,
+      compilerEnvironment: baseline.compiler_environment,
+      engineArtifactFingerprint: baseline.engine_artifact_fingerprint,
+      candidateFingerprint: baseline.candidate_fingerprint,
+    });
+    const snapshot = readFileSync(baseline.compiler_snapshot.archive);
+    expect(createHash("sha256").update(snapshot).digest("hex"))
+      .toBe(baseline.compiler_snapshot.archiveSha256);
+    for (const external of [baseline.development, baseline.qualification]) {
+      expect(external.compressed_archive).toMatch(/^benchmark\/v2\/runs\/.*\.json\.gz$/);
+      expect(external.compressed_archive_sha256).toMatch(/^[a-f0-9]{64}$/);
     }
     const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);
     const schedule = resolvedSeedSchedule(suite, "canonical", suite.profiles.canonical.budgets, 8);

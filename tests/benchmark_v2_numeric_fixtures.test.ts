@@ -18,7 +18,7 @@ import {
 // means the statistics core changed behavior, not that a constant drifted.
 
 const FROZEN_DEFINITION_FINGERPRINT =
-  "2fd6a06973be1f024256f3ff5fef9527332c289c2cb479711ec1fdcb3b3a7b52";
+  "0efcfbf205a19df8c6b6a46defce18a7d1b6546ba28db2f3e510aa01dc0611f5";
 
 function fixtureSuite(): SuiteManifest {
   return {
@@ -101,14 +101,14 @@ describe("Benchmark V2 numeric fixtures (external oracles)", () => {
     ].filter((row: any) => row.seedsPerBudget === 8);
     const byScenario = new Map(rows.map((row: any) => [row.scenario, row]));
     // R: binom.wilson / prop.test-derived 95% intervals, rounded at 1e-4.
-    expect(byScenario.get("empirical_blocks").falseAccept.count).toBe(5);
-    expect(byScenario.get("empirical_blocks").falseAccept.wilson95).toEqual([0.0021, 0.0117]);
-    expect(byScenario.get("empirical_blocks").centralCoverage.count).toBe(996);
-    expect(byScenario.get("empirical_blocks").centralCoverage.wilson95).toEqual([0.9898, 0.9984]);
-    expect(byScenario.get("symmetric_validity_flips").falseAccept.count).toBe(9);
-    expect(byScenario.get("symmetric_validity_flips").falseAccept.wilson95).toEqual([0.0047, 0.017]);
-    expect(byScenario.get("empirical_score_gain").positiveOutcome.count).toBe(923);
-    expect(byScenario.get("empirical_score_gain").positiveOutcome.wilson95).toEqual([0.9048, 0.938]);
+    expect(byScenario.get("empirical_blocks").falseAccept.count).toBe(7);
+    expect(byScenario.get("empirical_blocks").falseAccept.wilson95).toEqual([0.0034, 0.0144]);
+    expect(byScenario.get("empirical_blocks").centralCoverage.count).toBe(991);
+    expect(byScenario.get("empirical_blocks").centralCoverage.wilson95).toEqual([0.983, 0.9953]);
+    expect(byScenario.get("symmetric_validity_flips").falseAccept.count).toBe(7);
+    expect(byScenario.get("symmetric_validity_flips").falseAccept.wilson95).toEqual([0.0034, 0.0144]);
+    expect(byScenario.get("empirical_score_gain").positiveOutcome.count).toBe(829);
+    expect(byScenario.get("empirical_score_gain").positiveOutcome.wilson95).toEqual([0.8044, 0.8511]);
     expect(byScenario.get("empirical_score_gain").negativeOutcome.count).toBe(0);
     expect(byScenario.get("empirical_score_gain").negativeOutcome.wilson95).toEqual([0, 0.0038]);
     expect(byScenario.get("paired_empirical_noninferiority_inside").positiveOutcome.count).toBe(1000);

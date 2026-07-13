@@ -4,10 +4,21 @@
  * off-beat violations, and the full v0 contract score.
  *
  *   npx tsx scripts/compare_reports.ts --a=<report.json> --b=<report.json> [--an=NAME --bn=NAME]
+ *
+ * Identified reports must bind the same report semantics and compiled spec.
+ * Historical reports without identity can only be compared after explicitly
+ * normalizing both achieved tracks to A or B's target surface:
+ *
+ *   ... --normalize-targets=b
  */
 import { readFileSync } from "node:fs";
 import { scoreDriftReport } from "./v0/score.ts";
 import type { DriftReport } from "./v0/types.ts";
+import {
+  type IdentifiedDriftReport,
+  normalizeReportTargets,
+  reportComparisonIssue,
+} from "./report_identity.ts";
 
 const argv = process.argv.slice(2);
 const arg = (n: string): string | null => {
@@ -17,8 +28,25 @@ const arg = (n: string): string | null => {
 
 const aPath = arg("a")!, bPath = arg("b")!;
 const aName = arg("an") ?? "A", bName = arg("bn") ?? "B";
-const A = JSON.parse(readFileSync(aPath, "utf8")) as DriftReport;
-const B = JSON.parse(readFileSync(bPath, "utf8")) as DriftReport;
+let A = JSON.parse(readFileSync(aPath, "utf8")) as IdentifiedDriftReport;
+let B = JSON.parse(readFileSync(bPath, "utf8")) as IdentifiedDriftReport;
+const normalizeTargets = arg("normalize-targets");
+if (normalizeTargets !== null && normalizeTargets !== "a" && normalizeTargets !== "b") {
+  throw new Error(`--normalize-targets must be a or b, got ${normalizeTargets}`);
+}
+const comparisonIssue = reportComparisonIssue(A, B);
+if (normalizeTargets === null && comparisonIssue !== null) {
+  console.error(
+    `reports are not score-comparable: ${comparisonIssue}.\n` +
+      `Use --normalize-targets=a or --normalize-targets=b only when the reports describe ` +
+      `the same contact topology and you intentionally want one report's target surface.`,
+  );
+  process.exit(2);
+}
+if (normalizeTargets !== null) {
+  [A, B] = normalizeReportTargets(A, B, normalizeTargets);
+  console.error(`normalized both reports to ${normalizeTargets.toUpperCase()}'s target surface`);
+}
 
 type Agg = { n: number; mean: number; p50: number; max: number };
 function agg(xs: number[]): Agg {
@@ -32,7 +60,7 @@ function agg(xs: number[]): Agg {
   };
 }
 
-function summarize(r: DriftReport) {
+function summarize(r: IdentifiedDriftReport) {
   const by = { hit: 0, drift: 0, missing: 0 } as Record<string, number>;
   const hitErr: number[] = [], driftErr: number[] = [];
   for (const c of r.contacts) {
@@ -48,7 +76,7 @@ function summarize(r: DriftReport) {
     driftErr: agg(driftErr),
     offbeat: r.off_beat_landings.length,
     term: `${r.terminus.reason} @ ${r.terminus.frame} (${(r.terminus.frame / 40).toFixed(2)}s)`,
-    score: scoreDriftReport(r),
+    score: scoreDriftReport(r, { totalFrames: r._line?.totalFrames }),
   };
 }
 

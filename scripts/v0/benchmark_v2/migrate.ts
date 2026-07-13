@@ -512,18 +512,18 @@ type FixtureCase = {
 const RETAINED_PAIRS: Array<{ name: string; base: string; candidate: string }> = [
   {
     name: "identical_probe",
-    base: "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-    candidate: "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
+    base: "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+    candidate: "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
   },
   {
     name: "broad_degradation_probe",
-    base: "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-    candidate: "benchmark/v2/runs/calibration-v2.5-quality-ncand-1-probe.json.gz",
+    base: "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+    candidate: "benchmark/v2/runs/calibration-v2.6-quality-ncand-1-probe.json.gz",
   },
   {
     name: "impact_contract_failure_probe",
-    base: "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-    candidate: "benchmark/v2/runs/calibration-v2.5-impact-off-probe.json.gz",
+    base: "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+    candidate: "benchmark/v2/runs/calibration-v2.6-impact-off-probe.json.gz",
   },
 ];
 const EXPECTED_FIXTURE_NAMES = [

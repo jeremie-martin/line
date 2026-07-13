@@ -303,9 +303,9 @@ async function main(): Promise<void> {
     return process.argv.find((value) => value.startsWith(prefix))?.slice(prefix.length);
   };
   const independentPath = resolve(REPO, argument("independent-reference") ??
-    "benchmark/v2/runs/calibration-v2.5-holdout-reference-seeds-36-47.json.gz");
+    "benchmark/v2/runs/calibration-v2.6-holdout-reference-seeds-36-47.json.gz");
   const originalPath = resolve(REPO, argument("original-reference") ??
-    "benchmark/v2/runs/calibration-v2.5-pooled-reference-seeds-0-23.json.gz");
+    "benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz");
   const powerGridPath = resolve(REPO, "benchmark/v2/studies/power-grid.json");
   const probeFutilityPath = resolve(REPO, "benchmark/v2/studies/probe-futility.json");
   const determinismPath = resolve(REPO, "benchmark/v2/studies/determinism-check.json");

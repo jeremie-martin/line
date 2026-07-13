@@ -171,7 +171,7 @@ async function main(): Promise<void> {
     return process.argv.find((value) => value.startsWith(prefix))?.slice(prefix.length);
   };
   const referencePath = resolve(REPO, argument("reference") ??
-    "benchmark/v2/runs/calibration-v2.5-pooled-reference-seeds-0-23.json.gz");
+    "benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz");
   const outPath = resolve(REPO, argument("out") ?? "benchmark/v2/studies/power-levers.json");
   const workerCount = Number(argument("workers") ?? 32);
   const trials = Number(argument("trials") ?? TRIALS);

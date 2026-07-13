@@ -27,7 +27,7 @@ import {
 } from "../types.ts";
 import { netDyToElevation } from "../types.ts";
 import {
-  airborneAt, findLandingNearFrame, meanSpeedPxOverRange, redirArcPxAtLanding,
+  airborneAt, findAuthoredContactNearFrame, meanSpeedPxOverRange, redirArcPxAtLanding,
   measurementLastFrame, median, speedAt, velocityAt,
 } from "./substrate.ts";
 
@@ -147,7 +147,12 @@ const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
  */
 const measureImpact: AxisReduction = ({ det, gap }) => {
   if (gap.targets.impact === undefined) return undefined;
-  const landing = findLandingNearFrame(det, gap.endFrame);
+  const landing = findAuthoredContactNearFrame(
+    det,
+    gap.endFrame,
+    1,
+    gap.endFrame - gap.startFrame,
+  );
   if (landing === undefined) return undefined;
   const px = redirArcPxAtLanding(det, landing.frame, IMPACT_WINDOW);
   return px === undefined ? undefined : normImpact(px);

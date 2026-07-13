@@ -35,6 +35,7 @@ import {
   measureAxisOverRange,
   engineLineFromTrackLine,
   findGapOwning,
+  isAuthoredContactEvent,
   velocityAt,
 } from "./substrate.ts";
 import { AXIS_MEASURE, type GapMeasureCtx } from "./measure.ts";
@@ -323,9 +324,11 @@ function hasAirOnlyPolishTargets(spec: Spec): boolean {
 
 function passesFinalHardGates(det: Detection, contactFrames: number[]): boolean {
   if (det.terminus.reason !== "endOfSpec") return false;
-  for (const cf of contactFrames) {
+  for (let contactIndex = 0; contactIndex < contactFrames.length; contactIndex++) {
+    const cf = contactFrames[contactIndex];
+    const previous = contactIndex === 0 ? 0 : contactFrames[contactIndex - 1];
     const hit = det.events.some(
-      (e) => e.type === "landing" && Math.abs(e.frame - cf) <= 1,
+      (e) => isAuthoredContactEvent(e, cf - previous) && Math.abs(e.frame - cf) <= 1,
     );
     if (!hit) return false;
   }

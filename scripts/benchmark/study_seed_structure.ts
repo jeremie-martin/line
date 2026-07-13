@@ -35,7 +35,7 @@ const devPath = resolve(
   argument("development") ?? "benchmark/v2/runs/v2-initial-2026-07-11-development.json.gz",
 );
 const coveragePath = resolve(
-  argument("coverage") ?? "benchmark/v2/runs/calibration-v2.5-coverage-reference.json.gz",
+  argument("coverage") ?? "benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz",
 );
 const suitePath = resolve(argument("suite") ?? "benchmark/v2/compat/suite-manifest.json");
 const outputPath = resolve(argument("out") ?? "benchmark/v2/studies/seed-structure.json");

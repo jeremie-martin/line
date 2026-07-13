@@ -8,9 +8,9 @@ import { fingerprintFiles, loadSuiteManifest } from "../v0/benchmark_v2/suite_mo
 import { round, sha256 } from "../v0/benchmark_v2/util.ts";
 
 const paths = {
-  baseline: "benchmark/v2/runs/calibration-v2.5-probe-baseline.json.gz",
-  impactOff: "benchmark/v2/runs/calibration-v2.5-impact-off-probe.json.gz",
-  narrowBreadth: "benchmark/v2/runs/calibration-v2.5-quality-ncand-1-probe.json.gz",
+  baseline: "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+  impactOff: "benchmark/v2/runs/calibration-v2.6-impact-off-probe.json.gz",
+  narrowBreadth: "benchmark/v2/runs/calibration-v2.6-quality-ncand-1-probe.json.gz",
 };
 const archives = Object.fromEntries(Object.entries(paths).map(([id, path]) => [id, verified(path)])) as
   Record<keyof typeof paths, any>;

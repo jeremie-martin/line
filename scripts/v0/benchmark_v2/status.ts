@@ -162,9 +162,10 @@ export function renderBenchmarkStatus(status: BenchmarkStatus): string {
       `${status.era.transitionPending ? "transition pending" : "no transition pending"}`,
     `  compiler baseline gate: ${status.compiler.cleanForRebaseline ? "clean" : `BLOCKED by ${status.compiler.dirtyPaths.join(", ")}`}`,
     `  stage 0 reference: ${status.stage0.comparable ? "comparable" : `BLOCKED: ${status.stage0.refusalReasons.join("; ")}`}`,
-    `  retained evidence: ${status.evidence.referencedFiles}/${status.evidence.totalFiles} files referenced; ` +
+    `  retained evidence: active contract evidence validated; ` +
+      `${status.evidence.referencedFiles}/${status.evidence.totalFiles} local files referenced; ` +
       `${formatBytes(status.evidence.unreferencedBytes)} unreferenced and reviewable; ` +
-      `${status.evidence.missingReferences.length} missing reference(s)`,
+      `${status.evidence.missingReferences.length} external historical reference(s) unavailable locally`,
     "  certified menu:",
   ];
   for (const row of status.menu) {
@@ -190,11 +191,23 @@ export function runStatusCommand(argv: string[]): number {
   if (argv.includes("--json")) {
     console.log(JSON.stringify(status, null, 2));
   } else {
-    const detail = argv.includes("--evidence") && status.evidence.unreferenced.length > 0
-      ? `\n  unreferenced evidence (review only; never auto-deleted):\n${status.evidence.unreferenced
-        .map((entry) => `    ${entry.path} (${formatBytes(entry.bytes)})`).join("\n")}`
+    const detail = argv.includes("--evidence")
+      ? [
+          ...(status.evidence.unreferenced.length > 0
+            ? [
+                "  unreferenced evidence (review only; never auto-deleted):",
+                ...status.evidence.unreferenced.map((entry) => `    ${entry.path} (${formatBytes(entry.bytes)})`),
+              ]
+            : []),
+          ...(status.evidence.missingReferences.length > 0
+            ? [
+                "  external historical references unavailable locally (not active-contract inputs):",
+                ...status.evidence.missingReferences.map((path) => `    ${path}`),
+              ]
+            : []),
+        ].join("\n")
       : "";
-    console.log(`${renderBenchmarkStatus(status)}${detail}`);
+    console.log(`${renderBenchmarkStatus(status)}${detail === "" ? "" : `\n${detail}`}`);
   }
   return 0;
 }

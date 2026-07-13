@@ -89,7 +89,7 @@ describe("certified operating-point guard", () => {
     const holdout = JSON.parse(readFileSync("benchmark/v2/studies/holdout-validation.json", "utf8"));
     const futilityPower = menu.cells.find((cell: any) => cell.id === "futility_power_5");
     // Spend is the worst relevant null upper bound across both artifacts.
-    expect(certified.spend).toBe(0.0196);
+    expect(certified.spend).toBe(0.0209);
     expect(certified.spend).toBe(
       holdout.cells.find((cell: any) => cell.id === "futility_null").combined.netAccept.wilson95[1],
     );

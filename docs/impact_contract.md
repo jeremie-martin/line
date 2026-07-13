@@ -67,7 +67,9 @@ kept only for the dashboard's comparison lane.)
 
 - Measured per landing (`measureImpact`, `core/measure.ts`), gated on the beat
   having an authored impact (impact-free specs pay zero cost).
-- A landing is matched to its beat within ±1 frame (`findLandingNearFrame`).
+- An authored contact is matched to its beat within ±1 frame
+  (`findAuthoredContactNearFrame`). Detector-limited intervals may use a
+  persistent bounce because a distinct landing is not representable there.
 - The scale `REDIRARC.SOFT = 2.0` / `VERY_STRONG = 6.5` (px/frame) is felt-anchored
   to the user's labels (soft ≈ 2.0, very strong ≈ 6.5; `normImpact`/`impactToRedirArcPx`
   in types.ts). The achievable-envelope distribution (calibrate_corpus.ts: 11,607

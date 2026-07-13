@@ -17,7 +17,7 @@ describe("Benchmark V2 status", () => {
     expect(payload.menu[0]).toMatchObject({
       id: "improve-t0-d48",
       depth: 48,
-      spend: 0.0196,
+      spend: 0.0209,
       developmentCompiles: 12_672,
       qualificationCompilesOnAccept: 120,
     });

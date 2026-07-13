@@ -107,7 +107,8 @@ export type SnapshotWorkspace = {
 };
 
 /**
- * Materialize a snapshot compiler once (worktree + rsync + npm ci, ~1-2 min)
+ * Materialize a snapshot compiler once (worktree + tracked overlay + npm ci,
+ * ~1-2 min)
  * so wave-based execution can run many benchmark invocations against it.
  * Callers own the lifecycle: always disposeSnapshotWorkspace in a finally.
  */
@@ -125,16 +126,21 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
       processStart: processStart(process.pid),
       createdAt: new Date().toISOString(),
     })}\n`);
+    // The detached worktree already has every committed file. Overlay only
+    // tracked working-tree paths so dirty source edits are visible without ever
+    // copying untracked/generated media into the temporary workspace.
+    const trackedFiles = execFileSync("git", ["ls-files", "-z"], { cwd: process.cwd() });
     execFileSync("rsync", [
       "-a",
-      "--exclude=/.git",
-      "--exclude=/node_modules",
-      "--exclude=/generated",
-      "--exclude=/benchmark/v2/runs",
-      "--exclude=/engine-rs/target",
+      "--from0",
+      "--files-from=-",
       "./",
       `${workspace}/`,
-    ], { cwd: process.cwd(), stdio: diagnosticStdio() });
+    ], {
+      cwd: process.cwd(),
+      input: trackedFiles,
+      stdio: diagnosticStdioWithInput(),
+    });
     // The approved listening-review audio is validation evidence the runner
     // requires; it lives under the otherwise-excluded generated/ tree.
     if (existsSync("generated/benchmark-v2/listening-review")) {
@@ -239,6 +245,12 @@ function diagnosticStdio(): "inherit" | ["inherit", NodeJS.WritableStream, NodeJ
   return process.env.LINE_BENCHMARK_JSON_STDOUT === "1"
     ? ["inherit", process.stderr, process.stderr]
     : "inherit";
+}
+
+function diagnosticStdioWithInput(): ["pipe", "inherit" | NodeJS.WritableStream, "inherit" | NodeJS.WritableStream] {
+  return process.env.LINE_BENCHMARK_JSON_STDOUT === "1"
+    ? ["pipe", process.stderr, process.stderr]
+    : ["pipe", "inherit", "inherit"];
 }
 
 export function disposeSnapshotWorkspace(workspace: SnapshotWorkspace): void {

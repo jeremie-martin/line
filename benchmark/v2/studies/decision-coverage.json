@@ -1,13 +1,13 @@
 {
   "schema": "line.benchmark-v2.decision-coverage-study.v3",
-  "generatedAt": "2026-07-12T15:13:25.870Z",
-  "suiteFingerprint": "9bd5bf1c988dbe8022386f0f7edddda4ba9836d0aee01e1b7d8d735c85ec297c",
+  "generatedAt": "2026-07-12T23:56:18.517Z",
+  "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
   "decisionInferenceFingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
-  "reference": "benchmark/v2/runs/calibration-v2.5-coverage-reference.json.gz",
-  "referenceArtifactSha256": "6ff32b57ab3e0c53d78af27ecea4af4014fbf016034901f2cdab63fb74f7b971",
-  "referenceRawSha256": "dfbf28a6f073129dff908369bf3b9f7bb57285b34dc50851f6ed810247cbdccf",
-  "referenceCandidateFingerprint": "46268f4a68227f7de95a7963cd3b9d1245a65738a2eee7f6e535349ee882bdab",
+  "reference": "benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz",
+  "referenceArtifactSha256": "1c7974d210d108da28db5ffaeb0f13a226025bc6fda99e9f4b136788992f3c1d",
+  "referenceRawSha256": "e2f00892f68fe9127b8788cf22aadc2765502e7af5c1b2ca46d9221fe2fa4c17",
+  "referenceCandidateFingerprint": "fec9529eaa1904f1924f1e1d1bc986b9f53cedb44b1d74e43d763efaf52eacd7",
   "trials": 1000,
   "design": {
     "empirical_blocks": "Base and candidate independently resample whole observed catalog seed blocks within each budget.",
@@ -25,53 +25,53 @@
       "seedsPerBudget": 8,
       "trials": 1000,
       "trueDelta": 0,
-      "meanDelta": -0.0989,
+      "meanDelta": 0.1236,
       "centralCoverage": {
-        "count": 996,
-        "rate": 0.996,
+        "count": 991,
+        "rate": 0.991,
         "wilson95": [
-          0.9898,
-          0.9984
+          0.983,
+          0.9953
         ]
       },
       "positiveOutcome": {
-        "count": 5,
-        "rate": 0.005,
+        "count": 7,
+        "rate": 0.007,
         "wilson95": [
-          0.0021,
-          0.0117
+          0.0034,
+          0.0144
         ]
       },
       "negativeOutcome": {
-        "count": 5,
-        "rate": 0.005,
+        "count": 9,
+        "rate": 0.009,
         "wilson95": [
-          0.0021,
-          0.0117
+          0.0047,
+          0.017
         ]
       },
       "unresolvedOutcome": {
-        "count": 990,
-        "rate": 0.99,
+        "count": 984,
+        "rate": 0.984,
         "wilson95": [
-          0.9817,
-          0.9946
+          0.9742,
+          0.9901
         ]
       },
       "falseAccept": {
-        "count": 5,
-        "rate": 0.005,
+        "count": 7,
+        "rate": 0.007,
         "wilson95": [
-          0.0021,
-          0.0117
+          0.0034,
+          0.0144
         ]
       },
       "falseReject": {
-        "count": 5,
-        "rate": 0.005,
+        "count": 9,
+        "rate": 0.009,
         "wilson95": [
-          0.0021,
-          0.0117
+          0.0047,
+          0.017
         ]
       }
     },
@@ -82,40 +82,24 @@
       "seedsPerBudget": 8,
       "trials": 1000,
       "trueDelta": 0,
-      "meanDelta": -0.9079,
+      "meanDelta": -0.713,
       "centralCoverage": {
-        "count": 990,
-        "rate": 0.99,
+        "count": 992,
+        "rate": 0.992,
         "wilson95": [
-          0.9817,
-          0.9946
+          0.9843,
+          0.9959
         ]
       },
       "positiveOutcome": {
-        "count": 9,
-        "rate": 0.009,
+        "count": 7,
+        "rate": 0.007,
         "wilson95": [
-          0.0047,
-          0.017
+          0.0034,
+          0.0144
         ]
       },
       "negativeOutcome": {
-        "count": 13,
-        "rate": 0.013,
-        "wilson95": [
-          0.0076,
-          0.0221
-        ]
-      },
-      "unresolvedOutcome": {
-        "count": 978,
-        "rate": 0.978,
-        "wilson95": [
-          0.9669,
-          0.9854
-        ]
-      },
-      "falseAccept": {
         "count": 9,
         "rate": 0.009,
         "wilson95": [
@@ -123,12 +107,28 @@
           0.017
         ]
       },
-      "falseReject": {
-        "count": 13,
-        "rate": 0.013,
+      "unresolvedOutcome": {
+        "count": 984,
+        "rate": 0.984,
         "wilson95": [
-          0.0076,
-          0.0221
+          0.9742,
+          0.9901
+        ]
+      },
+      "falseAccept": {
+        "count": 7,
+        "rate": 0.007,
+        "wilson95": [
+          0.0034,
+          0.0144
+        ]
+      },
+      "falseReject": {
+        "count": 9,
+        "rate": 0.009,
+        "wilson95": [
+          0.0047,
+          0.017
         ]
       }
     },
@@ -197,22 +197,22 @@
       "margin": null,
       "seedsPerBudget": 8,
       "trials": 1000,
-      "trueDelta": 12.7965,
-      "meanDelta": 12.7123,
+      "trueDelta": 13.3258,
+      "meanDelta": 13.3893,
       "centralCoverage": {
-        "count": 994,
-        "rate": 0.994,
+        "count": 992,
+        "rate": 0.992,
         "wilson95": [
-          0.987,
-          0.9972
+          0.9843,
+          0.9959
         ]
       },
       "positiveOutcome": {
-        "count": 923,
-        "rate": 0.923,
+        "count": 829,
+        "rate": 0.829,
         "wilson95": [
-          0.9048,
-          0.938
+          0.8044,
+          0.8511
         ]
       },
       "negativeOutcome": {
@@ -224,11 +224,11 @@
         ]
       },
       "unresolvedOutcome": {
-        "count": 77,
-        "rate": 0.077,
+        "count": 171,
+        "rate": 0.171,
         "wilson95": [
-          0.062,
-          0.0952
+          0.1489,
+          0.1956
         ]
       },
       "candidateValidityProbability": null,
@@ -240,14 +240,14 @@
       "margin": 5,
       "seedsPerBudget": 8,
       "trials": 1000,
-      "trueDelta": -2.5,
-      "meanDelta": -2.5073,
+      "trueDelta": -2.5001,
+      "meanDelta": -2.5091,
       "centralCoverage": {
-        "count": 974,
-        "rate": 0.974,
+        "count": 978,
+        "rate": 0.978,
         "wilson95": [
-          0.9622,
-          0.9822
+          0.9669,
+          0.9854
         ]
       },
       "positiveOutcome": {
@@ -275,7 +275,7 @@
         ]
       },
       "candidateValidityProbability": null,
-      "scoreShift": -2.9294
+      "scoreShift": -2.813
     }
   ],
   "safetyResults": [

@@ -12,7 +12,7 @@ describe("Benchmark V2 archive explanation", () => {
       "--import",
       "tsx",
       "scripts/v0/benchmark_v2/explain.ts",
-      "benchmark/v2/runs/v2-initial-2026-07-11-probe.json.gz",
+      "benchmark/v2/runs/accept-2026-07-12T20-14-09Z-c8f9c284-probe.json.gz",
       `--out=${outputStem}`,
     ]);
 
@@ -20,10 +20,10 @@ describe("Benchmark V2 archive explanation", () => {
     expect(report.schema).toBe("line.benchmark-v2.explanation.v1");
     expect(report.profile).toBe("probe");
     expect(report.mode).toBe("development");
-    expect(report.canonicalHeadline).toBe(446.0945);
+    expect(report.canonicalHeadline).toBe(462.7273);
     expect(report.perBudget).toHaveLength(2);
     const markdown = readFileSync(`${outputStem}.md`, "utf8");
-    expect(markdown).toContain("Probe development headline (screening only): **446.09**");
+    expect(markdown).toContain("Probe development headline (screening only): **462.73**");
     expect(markdown).not.toContain("Canonical headline");
   });
 });

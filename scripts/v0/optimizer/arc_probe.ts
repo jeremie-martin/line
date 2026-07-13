@@ -14,6 +14,7 @@ import {
   airborneAt,
   contactLineIdsAt,
   engineLineFromTrackLine,
+  isAuthoredContactEvent,
 } from "../core/substrate.ts";
 import { gravityCorrectedLaunchAverage } from "../core/launch_read.ts";
 import { firstAirborneExitFrame, growShortHorizon } from "../core/exit_read.ts";
@@ -243,7 +244,7 @@ function observeFullJointArcLines(
 function landingOnOwnedArc(det: ReturnType<typeof detectWindow>, lines: readonly TrackLine[], gap: Gap): boolean {
   const owned = new Set(lines.map((line) => line.id));
   return det.events.some((e) =>
-    e.type === "landing" &&
+    isAuthoredContactEvent(e, gap.endFrame - gap.startFrame) &&
     Math.abs(e.frame - gap.endFrame) <= 1 &&
     contactLineIdsAt(det, e.frame).some((id) => owned.has(id))
   );

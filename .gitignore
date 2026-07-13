@@ -26,11 +26,14 @@ benchmark/v2/runs/*
 !benchmark/v2/runs/.gitkeep
 # Calibration inputs are also regenerated locally from benchmark runs.
 benchmark/v2/studies/inputs/
-# Pairing arms and historical archived runs are likewise raw, reproducible payloads.
-benchmark/v2/studies/arms/*.json.gz
-benchmark/v2/studies/arms/*.json.gz.sha256
-benchmark/v2/archive/**/runs/*.json.gz
-benchmark/v2/archive/**/runs/*.json.gz.sha256
+# Pairing arms and historical archived runs are likewise raw, reproducible
+# payloads. Keep these directory-scoped so compact study summaries and contract
+# records elsewhere in benchmark/v2 remain reviewable.
+benchmark/v2/studies/arms/*
+benchmark/v2/archive/**/runs/*
+# Snapshot tarballs are raw replay inputs even when an archival command writes
+# them beside, rather than inside, its runs directory.
+benchmark/v2/archive/**/*-compiler-snapshot.tar.gz
 new/
 
 # Large binaries — audio/video sources, archives, vendored repos

@@ -5,7 +5,7 @@ import { prepareBenchmarkV2, benchmarkV2Paths } from "./prepare.ts";
 import { runBaselineBenchmark } from "../v0/benchmark_v2/baseline.ts";
 import { startResourceMonitor } from "./resource_monitor.ts";
 import { runDecisionCommand } from "../v0/benchmark_v2/decide.ts";
-import { runEvalCommand } from "../v0/benchmark_v2/eval.ts";
+import { assertEvalArguments, runEvalCommand } from "../v0/benchmark_v2/eval.ts";
 import { runMigrationCommand } from "../v0/benchmark_v2/migrate.ts";
 import { runRebaselineCommand, runTransitionCommand } from "../v0/benchmark_v2/rebaseline.ts";
 import { benchmarkEvalPolicy } from "../../benchmark/v2/eval-policy.ts";
@@ -67,6 +67,9 @@ async function main(rawArgs: string[]): Promise<void> {
       process.exitCode = await runFamilyCommand(commandArgs);
     }
   } else {
+    // Validate eval mode-specific flags before deterministic preparation. This
+    // keeps a misspelled output destination from doing any paid work.
+    if (command === "probe" || command === "eval") assertEvalArguments(commandArgs);
     const prepared = await prepareBenchmarkV2();
     console.log(
       `Prepared ${prepared.developmentCases} development + ${prepared.qualificationCases} qualification cases; ` +

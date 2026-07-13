@@ -145,9 +145,58 @@ export function revalidateDeclarationUnderLock(input: {
 }
 
 export async function runEvalCommand(argv = process.argv.slice(2)): Promise<number> {
+  assertEvalArguments(argv);
   const hasFlag = (name: string): boolean => argv.includes(`--${name}`);
   if (hasFlag("abort-in-flight")) return abortInFlightAttempt(argv);
   return hasFlag("to-verdict") ? runToVerdict(argv) : runStage0(argv);
+}
+
+type EvalInvocation = "stage 0" | "confirmation" | "abort";
+
+/**
+ * Eval arguments are deliberately mode-scoped. A misspelled or misplaced
+ * output flag must fail before preparation or a paid compiler run, rather
+ * than being silently ignored by the branch that does not consume it.
+ */
+export function assertEvalArguments(argv: string[]): void {
+  const abort = argv.includes("--abort-in-flight");
+  const verdict = argv.includes("--to-verdict");
+  if (abort && verdict) throw new Error(`--abort-in-flight cannot be combined with --to-verdict`);
+
+  const invocation: EvalInvocation = abort ? "abort" : verdict ? "confirmation" : "stage 0";
+  const booleans = new Set<string>(
+    invocation === "stage 0" ? ["resume", "json"]
+      : invocation === "confirmation" ? ["to-verdict", "resume", "json", "acknowledge-retry"]
+        : ["abort-in-flight", "json"],
+  );
+  const values = new Set<string>(
+    invocation === "stage 0"
+      ? ["out", "base", "jobs", "attempts-ledger", "era-state"]
+      : invocation === "confirmation"
+        ? [
+          "baseline", "declaration-dir", "out-dir", "archive-dir", "attempts-ledger", "era-state", "jobs",
+          "mode", "margin", "depth", "override-era-budget", "reason", "operator",
+        ]
+        : ["reason", "attempts-ledger", "era-state"],
+  );
+  const accepted = [...booleans, ...[...values].map((name) => `${name}=VALUE`)].join(", ");
+
+  for (const arg of argv) {
+    if (!arg.startsWith("--")) {
+      throw new Error(`${invocation} eval does not accept positional argument ${arg}`);
+    }
+    const equals = arg.indexOf("=");
+    const name = arg.slice(2, equals === -1 ? undefined : equals);
+    if (equals === -1 && booleans.has(name)) continue;
+    if (equals !== -1 && values.has(name) && arg.slice(equals + 1) !== "") continue;
+    if (equals === -1 && values.has(name)) {
+      throw new Error(`${invocation} eval requires --${name}=VALUE`);
+    }
+    if (equals !== -1 && booleans.has(name)) {
+      throw new Error(`${invocation} eval flag --${name} does not take a value`);
+    }
+    throw new Error(`${invocation} eval does not accept ${arg}; accepted flags: ${accepted}`);
+  }
 }
 
 function abortInFlightAttempt(argv: string[]): number {

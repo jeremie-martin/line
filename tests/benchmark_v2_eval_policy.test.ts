@@ -15,6 +15,7 @@ import {
   evalRunsAtLook,
 } from "../scripts/v0/benchmark_v2/eval_chain_inference.ts";
 import {
+  assertEvalArguments,
   assertQualificationSucceeded,
   checkpointResultToDecisionRun,
   evalWorkerFailurePayload,
@@ -76,6 +77,31 @@ describe("eval policy menu", () => {
       reject: 3,
       futilityStop: 4,
     });
+  });
+});
+
+describe("eval argument contract", () => {
+  test("rejects confirmation-only output paths before a stage-0 run", () => {
+    expect(() => assertEvalArguments(["--archive-dir=generated/evidence"])).toThrow(
+      /stage 0 eval does not accept --archive-dir=generated\/evidence/,
+    );
+  });
+
+  test("accepts the explicit stage-0 output path", () => {
+    expect(() => assertEvalArguments(["--out=generated/benchmark-v2/eval/candidate.json", "--jobs=48"]))
+      .not.toThrow();
+  });
+
+  test("rejects stage-0-only flags on confirmation", () => {
+    expect(() => assertEvalArguments(["--to-verdict", "--out=probe.json"])).toThrow(
+      /confirmation eval does not accept --out=probe\.json/,
+    );
+  });
+
+  test("requires values for value-bearing flags and keeps abort separate", () => {
+    expect(() => assertEvalArguments(["--out"])).toThrow(/requires --out=VALUE/);
+    expect(() => assertEvalArguments(["--abort-in-flight", "--to-verdict", "--reason=test"]))
+      .toThrow(/cannot be combined/);
   });
 });
 

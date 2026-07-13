@@ -23,6 +23,7 @@ references are qualification-only. Benchmark V1 remains available explicitly thr
 ```bash
 npm run benchmark -- prepare
 npm run benchmark -- eval
+npm run benchmark -- eval --out=generated/benchmark-v2/eval/EXPERIMENT.json
 npm run benchmark -- family capture MECHANISM --variant=MEMBER
 npm run benchmark -- family run MECHANISM
 npm run benchmark -- family select MECHANISM --variant=MEMBER
@@ -48,6 +49,9 @@ reference and is informational. `eval --to-verdict` selects a certified
 operating point, declares its mode, margin, depth, fresh seed epoch, snapshots,
 and era spend before execution, then runs candidate and baseline in paired
 waves. A favorable final verdict runs qualification as an indicative sidecar.
+Stage 0 writes one probe archive via `--out=FILE`; `--archive-dir` and
+`--out-dir` are confirmation-only paths and are rejected in stage 0 so an
+evidence destination cannot be silently ignored.
 
 The default engine is WASM and public commands use 48 workers on this host. Override with
 `--jobs=N` when appropriate. Process CPU, host CPU, RSS, heap, system memory, and load are

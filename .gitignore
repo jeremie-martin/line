@@ -26,6 +26,11 @@ benchmark/v2/runs/*
 !benchmark/v2/runs/.gitkeep
 # Calibration inputs are also regenerated locally from benchmark runs.
 benchmark/v2/studies/inputs/
+# Pairing arms and historical archived runs are likewise raw, reproducible payloads.
+benchmark/v2/studies/arms/*.json.gz
+benchmark/v2/studies/arms/*.json.gz.sha256
+benchmark/v2/archive/**/runs/*.json.gz
+benchmark/v2/archive/**/runs/*.json.gz.sha256
 new/
 
 # Large binaries — audio/video sources, archives, vendored repos

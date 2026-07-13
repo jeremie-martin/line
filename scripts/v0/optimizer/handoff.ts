@@ -85,6 +85,13 @@ import {
   setAimCompileBudgetFrames,
   snapshotAimStats,
 } from "./aim.ts";
+import { snapshotDetectorRunwayStats } from "./contact_phase.ts";
+import {
+  isKinematicSupportCandidate,
+  makeKinematicSupportCandidates,
+  recordKinematicSupportContinuation,
+  snapshotKinematicSupportStats,
+} from "./kinematic_support.ts";
 import {
   predictFirstCompletionFrames,
   traversalBudgetSlack,
@@ -222,6 +229,7 @@ type RankedOption = {
   score: number;
   previewContacts: number;
   previewSurvivors: number;
+  forwardContinuation?: boolean;
 };
 
 export type HandoffPoolProbeCandidate = {
@@ -317,6 +325,8 @@ type HandoffTelemetry = {
   nodesExpanded: number;
   frontierMaxSize: number;
   deepestSeenGap: number;
+  firstProgressFrame: number | null;
+  hasCompletion: boolean;
   partialEvaluations: number;
   fullEvaluations: number;
   evaluationsByPhase: Record<HandoffNodeEventPhase, number>;
@@ -939,6 +949,8 @@ function compileHandoffInternal(
       nodesExpanded: 0,
       frontierMaxSize: frontierSize(passStack, fallbackStack),
       deepestSeenGap: -1,
+      firstProgressFrame: null,
+      hasCompletion: false,
       partialEvaluations: 0,
       fullEvaluations: 0,
       evaluationsByPhase: emptyPhaseCounter(),
@@ -1036,7 +1048,12 @@ function compileHandoffInternal(
       node: HandoffNode,
       phase: HandoffNodeEventPhase,
     ): ConsiderResult | null => {
-      telemetry.deepestSeenGap = Math.max(telemetry.deepestSeenGap, node.search.gapIndex);
+      if (node.search.gapIndex > telemetry.deepestSeenGap) {
+        telemetry.deepestSeenGap = node.search.gapIndex;
+        if (telemetry.firstProgressFrame === null && node.search.gapIndex > 0) {
+          telemetry.firstProgressFrame = getSimFrames();
+        }
+      }
       telemetry.startRanksSeen.add(node.startRank);
       if (node.search.prefixFits.some((fit) => fit !== null)) {
         telemetry.startRanksWithFits.add(node.startRank);
@@ -1070,6 +1087,7 @@ function compileHandoffInternal(
       if (improved && terminal) {
         bestCompleteNode = node;
         if (firstCompletionFrame < 0) firstCompletionFrame = getSimFrames();
+        telemetry.hasCompletion = true;
       }
       const event: HandoffNodeEvent = {
         phase,
@@ -1094,6 +1112,8 @@ function compileHandoffInternal(
       }
       const arcStats = snapshotArcPlacementStats();
       const aimStats = snapshotAimStats();
+      const detectorRunwayStats = snapshotDetectorRunwayStats();
+      const kinematicSupportStats = snapshotKinematicSupportStats();
       const releaseExitStats = snapshotReleaseExitStats();
       const gapfitShortStats = snapshotGapfitShortStats();
       const fwdEvalStats = snapshotFwdEvalStats();
@@ -1173,6 +1193,8 @@ function compileHandoffInternal(
           // (optimizer/aim.ts). Absent when the lane never ran
           // (LR_AIM_ENUM=0) — ablation archives stay byte-identical.
           ...(aimStats !== null ? { aim: aimStats } : {}),
+          ...(detectorRunwayStats !== null ? { contact_phase: detectorRunwayStats } : {}),
+          ...(kinematicSupportStats !== null ? { kinematic_support: kinematicSupportStats } : {}),
           // Geometric-exit release-read funnel (core/candidate.ts): the
           // fallback-rate monitor. Absent under LR_RANK_QUALITY=off (no read
           // taken) → escape-hatch archives stay byte-identical.
@@ -3310,13 +3332,27 @@ function rankedOptions(
   const supportCount = supportTimeCoverageLaneEnabled()
     ? supportTimeCandidateCount(supportTimeCoverageDeficit(node, gap, gaps, ctx, pool))
     : 0;
+  const kinematicEligible = kinematicRescueReady(node, telemetry) &&
+    poolForwardContinuationAbsent(scored);
   const supportOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "axisq",
     sourceAxis: "air",
     rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1),
     generate: () => supportCount > 0
       ? retainAirCoverageImprovements(
-        supportTimeCandidates(node, gap, ctx, seed, supportCount, telemetry),
+        [
+          ...supportTimeCandidates(node, gap, ctx, seed, supportCount, telemetry),
+          ...(kinematicEligible
+            ? makeKinematicSupportCandidates(
+              node,
+              gap,
+              gaps,
+              ctx,
+              node.prefixNextLineId,
+              pool.map(({ candidate }) => candidate),
+            )
+            : []),
+        ],
         gap,
         gaps,
         ctx,
@@ -3324,7 +3360,7 @@ function rankedOptions(
       )
       : [],
     cache: {
-      key: `${seed}:${supportCount}`,
+      key: `${seed}:${supportCount}:${kinematicEligible ? 1 : 0}`,
       read: (cache) => ({ value: cache.support, key: cache.supportKey }),
       write: (cache, value, key) => {
         cache.support = value;
@@ -3332,11 +3368,18 @@ function rankedOptions(
       },
     },
   });
-  for (const option of supportOptions) scored.push(option);
+  const admittedSupportOptions = supportOptions.filter((option) => {
+    if (!isKinematicSupportCandidate(option.candidate)) return true;
+    const reachable = option.forwardContinuation === true;
+    recordKinematicSupportContinuation(option.candidate, reachable);
+    return reachable;
+  });
+  for (const option of admittedSupportOptions) scored.push(option);
   const reuseLimit = config.reuseLimit ?? reuseCandidateLimit(node, targetBudget, telemetry);
   const reuseOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "reuse",
-    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1) + supportOptions.length,
+    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1) +
+      admittedSupportOptions.length,
     generate: () => reuseCatchCandidates(node, gaps, ctx, telemetry, reuseLimit),
     cache: {
       key: reuseLimit,
@@ -3351,7 +3394,7 @@ function rankedOptions(
   const brakeOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "brake",
     rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1) +
-      supportOptions.length + reuseOptions.length,
+      admittedSupportOptions.length + reuseOptions.length,
     generate: () => brakeCatchCandidates(node, gaps, ctx, seed, telemetry),
     cache: {
       key: seed,
@@ -3363,12 +3406,99 @@ function rankedOptions(
     },
   });
   for (const option of brakeOptions) scored.push(option);
-  scored.sort((a, b) =>
+  // Once live first-completion pace has fallen materially behind budget, stop
+  // spending the active frontier on candidates whose charged rollout already
+  // proved they cannot place the next contact. This is dominance, not extra
+  // search work; ordinary/unknown pools and all post-completion quality work
+  // retain their existing order.
+  const applyOnlineContinuation = onlineContinuationEnabled() &&
+      onlineContinuationFrontierReady(node, telemetry) &&
+      onlineTraversalBehindSchedule(node, gaps, telemetry, targetBudget) &&
+      scored.some((option) => option.forwardContinuation === true);
+  const eligible = applyOnlineContinuation
+    ? scored.filter((option) => option.forwardContinuation !== false)
+    : scored;
+  eligible.sort((a, b) =>
     a.score - b.score ||
     (a.candidate?.cost ?? Infinity) - (b.candidate?.cost ?? Infinity) ||
     a.rank - b.rank
   );
-  return scored.slice(0, HANDOFF_BRANCHING);
+  const kinematic = eligible.filter((option) => isKinematicSupportCandidate(option.candidate));
+  if (kinematic.length === 0) return eligible.slice(0, HANDOFF_BRANCHING);
+  const ordinary = eligible.filter((option) => !isKinematicSupportCandidate(option.candidate));
+  return [
+    ...ordinary.slice(0, HANDOFF_BRANCHING - 1),
+    kinematic[0],
+  ];
+}
+
+function kinematicRescueReady(node: SearchNode, telemetry: HandoffTelemetry): boolean {
+  return !telemetry.hasCompletion &&
+    node.gapIndex >= telemetry.deepestSeenGap;
+}
+
+function poolForwardContinuationAbsent(options: readonly RankedOption[]): boolean {
+  const pool = options.filter((option) => option.source === "pool");
+  return pool.length > 0 && pool.every((option) => option.forwardContinuation === false);
+}
+
+function onlineTraversalBehindSchedule(
+  node: SearchNode,
+  gaps: Gap[],
+  telemetry: HandoffTelemetry,
+  targetBudget: number,
+): boolean {
+  const firstProgressFrame = telemetry.firstProgressFrame;
+  const totalContacts = remainingContactCountFromGapIndex(0, gaps);
+  const remainingContacts = remainingContactCount(node, gaps);
+  const completedContacts = totalContacts - remainingContacts;
+  return firstProgressFrame !== null && isOnlineTraversalBehindSchedule({
+    firstProgressFrame,
+    simFrames: getSimFrames(),
+    targetBudget,
+    completedContacts,
+    totalContacts,
+  });
+}
+
+/** Compare live traversal spend with contact progress after removing the
+ * measured startup cost. This is seed- and budget-specific; it does not depend
+ * on the legacy static difficulty model. */
+export function isOnlineTraversalBehindSchedule(input: {
+  firstProgressFrame: number;
+  simFrames: number;
+  targetBudget: number;
+  completedContacts: number;
+  totalContacts: number;
+}): boolean {
+  if (
+    input.targetBudget <= input.firstProgressFrame ||
+    input.completedContacts <= 1 ||
+    input.totalContacts <= 1 ||
+    input.completedContacts > input.totalContacts
+  ) {
+    return false;
+  }
+  const spendFraction = Math.max(0, input.simFrames - input.firstProgressFrame) /
+    (input.targetBudget - input.firstProgressFrame);
+  // One ordinary tail-completion horizon is the hysteresis: backtracking within
+  // the suffix window remains quality search rather than flipping scheduling.
+  const progressFraction = (input.completedContacts - 1 + TAIL_COMPLETION_CONTACT_WINDOW) /
+    (input.totalContacts - 1);
+  return spendFraction > progressFraction;
+}
+
+function onlineContinuationFrontierReady(
+  node: SearchNode,
+  telemetry: HandoffTelemetry,
+): boolean {
+  return !telemetry.hasCompletion &&
+    node.gapIndex + FAR_BACK_FRONTIER_LAG > telemetry.deepestSeenGap;
+}
+
+function onlineContinuationEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_ONLINE_CONTINUATION !== "0";
 }
 
 function openingBestForwardEvalOpportunity(
@@ -4455,12 +4585,14 @@ function scoreCandidateForHandoff(
         openingBestOpportunity,
       ),
     );
+    const forwardContinuation = cachedForwardContinuation(child, gaps, seed);
     recordCandidateReleaseCoverage(telemetry, candidate);
     attachHandoffScoreToProbe(candidate.lines, -value); // study probe; no-op when off
     return {
       candidate, child, rank, source, sourceAxis,
       previewContacts: 0, previewSurvivors: 0,
       score: -value,
+      ...(forwardContinuation === null ? {} : { forwardContinuation }),
     };
   }
   const usePreviewScore = previewScorePressure > 0;
@@ -4502,6 +4634,18 @@ function scoreCandidateForHandoff(
     previewSurvivors: preview.survivors,
     score: localScore,
   };
+}
+
+function cachedForwardContinuation(
+  child: SearchNode,
+  gaps: Gap[],
+  seed: number,
+): boolean | null {
+  const next = advanceToNextContact(child, gaps);
+  if (next === null) return true;
+  const cache = next._candidatesCache;
+  if (cache === null || cache.seed !== seed || cache.nCand < 1) return null;
+  return cache.candidates.length > 0;
 }
 
 function candidateReleaseSetupPenalty(

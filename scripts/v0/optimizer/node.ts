@@ -36,6 +36,10 @@ import {
   type Candidate,
   type SpecContext,
 } from "./sample.ts";
+import {
+  makeDetectorRunwayCandidates,
+  recordDetectorRunwayPoolRanks,
+} from "./contact_phase.ts";
 import type { Gap } from "./types.ts";
 
 /** Default per-node candidate count. See file header. */
@@ -193,7 +197,7 @@ function sortWithLaneExtras(
   // them. nCand > 1 keeps the lane's PROBES out of forward-eval rollout
   // pools (branch=1): multiplying CHARGED rollout work is the documented
   // branch-widening failure.
-  const laneExtras: Candidate[] = [];
+  const aimedExtras: Candidate[] = [];
   if (nCand > 1 && sorted.length > 0 && aimEnumEnabled() && !(inRolloutContext && !rolloutAimEnabled)) {
     // Refine the first K candidates of the quality-sorted pool, not just
     // `sorted[0]`. Each base is passed exactly as `sorted[0]` is today (same
@@ -210,12 +214,26 @@ function sortWithLaneExtras(
     const bases = Math.min(kEff, sorted.length);
     for (let b = 0; b < kEff; b++) {
       if (b >= bases) { recordLaneBaseSkip(); continue; }
-      laneExtras.push(...makeEnumAimedCandidates(
+      aimedExtras.push(...makeEnumAimedCandidates(
         node.prefixEngine, gap, gaps, ctx, sorted[b], node.prefixNextLineId,
         b === 0, // air-matched variant: first (quality-best) base only
       ));
     }
   }
+  // Tight authored intervals have only one or two frames of detector runway
+  // slack. Two state-relative swept catches cover that contact phase without
+  // replacing any sampled candidate or multiplying rollout work.
+  const runwayExtras = nCand > 1 && !inRolloutContext
+    ? makeDetectorRunwayCandidates(
+      node.prefixEngine,
+      gap,
+      gaps,
+      ctx,
+      node.prefixNextLineId,
+      [...sampleOrder, ...aimedExtras],
+    )
+    : [];
+  const laneExtras = [...aimedExtras, ...runwayExtras];
   if (laneExtras.length > 0) {
     // Re-sort the full pool (sampled + lane extras). With the quality sort on
     // the judge is the quality objective; with it off, cost, bit-identically.
@@ -227,7 +245,7 @@ function sortWithLaneExtras(
     // Selection-rank telemetry: where each lane extra landed in the sorted
     // pool (reference-identity lookup; pure read after the sort completes,
     // so it cannot perturb candidate order). Recorded once per pool build.
-    for (const extra of laneExtras) {
+    for (const extra of aimedExtras) {
       recordLanePoolRank("aimed", sorted.indexOf(extra), sorted.length);
     }
   } else if (rankQuality && costOrder.length > 0) {
@@ -235,6 +253,7 @@ function sortWithLaneExtras(
     recordRankQualityPool(costOrder, sorted);
     recordPoolAirSpread(gap, gaps, sorted, ctx);
   }
+  recordDetectorRunwayPoolRanks(runwayExtras, sorted);
   return sorted;
 }
 

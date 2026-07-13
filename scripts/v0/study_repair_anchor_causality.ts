@@ -4,8 +4,10 @@
  * from its parent rather than directly.
  *
  *   npx tsx scripts/v0/study_repair_anchor_causality.ts \
- *     --golden=generated/golden-runs/study-repair-anchor-causality/golden.json \
+ *     --golden=generated/benchmark-v2/studies/stage0-repair-anatomy.json \
  *     --out=generated/studies/repair-anchor-causality.json
+ *
+ * Accepts both legacy V1 golden archives and Benchmark V2 run archives.
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -34,7 +36,7 @@ type RepairRecord = {
   weakArrivalElevationFit?: number | null;
 };
 
-type Archive = {
+type V1Archive = {
   rows: Array<{
     name: string;
     seed: number;
@@ -45,10 +47,20 @@ type Archive = {
   }>;
 };
 
+type V2Archive = {
+  runs: Array<{
+    task: { sourceId: string; budget: number; actualSeed: number };
+    source: { role?: string; originFamily?: string };
+    stats?: { repair?: { records?: RepairRecord[] } } | null;
+  }>;
+};
+
 type Chain = {
   spec: string;
   seed: number;
   budget: number;
+  role: string;
+  originFamily: string;
   records: RepairRecord[];
 };
 
@@ -81,6 +93,10 @@ function round(value: number, digits = 3): number {
 }
 
 function summarize(chains: readonly Chain[]): Record<string, number | null> {
+  const records = chains.flatMap((chain) => chain.records);
+  const positiveWork = records.filter((record) => record.framesSpent > 0);
+  const zeroWork = records.filter((record) => record.framesSpent === 0);
+  const accepted = records.filter((record) => record.accepted);
   const direct = chains.map((chain) => chain.records.find((record) => record.up === 0)).filter(Boolean) as RepairRecord[];
   const directAccepted = direct.filter((record) => record.accepted);
   const directFailedChains = chains.filter((chain) => {
@@ -98,6 +114,18 @@ function summarize(chains: readonly Chain[]): Record<string, number | null> {
   }, 0);
   return {
     chains: chains.length,
+    records: records.length,
+    positive_work_records: positiveWork.length,
+    zero_work_records: zeroWork.length,
+    zero_work_rate: rate(zeroWork.length, records.length),
+    completed_records: records.filter((record) => record.completed).length,
+    accepted_records: accepted.length,
+    accepted_rate_given_positive_work: rate(accepted.length, positiveWork.length),
+    frames_spent: records.reduce((sum, record) => sum + record.framesSpent, 0),
+    accepted_score_gain: round(accepted.reduce(
+      (sum, record) => sum + record.afterScore - record.beforeScore,
+      0,
+    )),
     direct_attempted: direct.length,
     direct_accepted: directAccepted.length,
     direct_accept_rate: rate(directAccepted.length, direct.length),
@@ -113,6 +141,35 @@ function summarize(chains: readonly Chain[]): Record<string, number | null> {
     direct_frames_before_upstream_accept: wastedDirectFrames,
     mean_direct_frames_before_upstream_accept: rate(wastedDirectFrames, upstreamAccepted.length),
   };
+}
+
+function groupSummary(chains: readonly Chain[], key: (chain: Chain) => string): Record<string, unknown> {
+  const values = [...new Set(chains.map(key))].sort();
+  return Object.fromEntries(values.map((value) => [
+    value,
+    summarize(chains.filter((chain) => key(chain) === value)),
+  ]));
+}
+
+function appendChains(
+  chains: Chain[],
+  details: Omit<Chain, "records">,
+  records: RepairRecord[],
+): void {
+  const grouped = new Map<number, RepairRecord[]>();
+  let legacyRound = -1;
+  for (let index = 0; index < records.length; index++) {
+    const record = records[index];
+    if (record.round === undefined && (index === 0 || record.up === 0)) legacyRound++;
+    const roundId = record.round ?? legacyRound;
+    const group = grouped.get(roundId) ?? [];
+    group.push(record);
+    grouped.set(roundId, group);
+  }
+  for (const group of grouped.values()) {
+    group.sort((a, b) => a.up - b.up);
+    chains.push({ ...details, records: group });
+  }
 }
 
 function factorBins(chains: readonly Chain[], factor: Factor): unknown[] {
@@ -131,27 +188,35 @@ const goldenArg = arg("golden");
 if (goldenArg === undefined) throw new Error("missing --golden=path");
 const goldenPath = resolve(goldenArg);
 const outPath = resolve(arg("out") ?? "generated/studies/repair-anchor-causality.json");
-const archive = JSON.parse(readFileSync(goldenPath, "utf8")) as Archive;
+const archive = JSON.parse(readFileSync(goldenPath, "utf8")) as Partial<V1Archive & V2Archive>;
 const chains: Chain[] = [];
+let checkpoints = 0;
 
-for (const row of archive.rows) {
+for (const row of archive.rows ?? []) {
   for (const checkpoint of row.checkpoints) {
+    checkpoints++;
     const records = checkpoint.compile_stats?.repair?.records ?? [];
-    const grouped = new Map<number, RepairRecord[]>();
-    let legacyRound = -1;
-    for (let index = 0; index < records.length; index++) {
-      const record = records[index];
-      if (record.round === undefined && (index === 0 || record.up === 0)) legacyRound++;
-      const roundId = record.round ?? legacyRound;
-      const group = grouped.get(roundId) ?? [];
-      group.push(record);
-      grouped.set(roundId, group);
-    }
-    for (const group of grouped.values()) {
-      group.sort((a, b) => a.up - b.up);
-      chains.push({ spec: row.name, seed: row.seed, budget: checkpoint.budget, records: group });
-    }
+    appendChains(chains, {
+      spec: row.name,
+      seed: row.seed,
+      budget: checkpoint.budget,
+      role: "legacy",
+      originFamily: "legacy",
+    }, records);
   }
+}
+for (const run of archive.runs ?? []) {
+  checkpoints++;
+  appendChains(chains, {
+    spec: run.task.sourceId,
+    seed: run.task.actualSeed,
+    budget: run.task.budget,
+    role: run.source.role ?? "unknown",
+    originFamily: run.source.originFamily ?? "unknown",
+  }, run.stats?.repair?.records ?? []);
+}
+if (archive.rows === undefined && archive.runs === undefined) {
+  throw new Error(`unsupported archive schema: ${goldenPath}`);
 }
 
 const axes = [...new Set(chains.map((chain) => chain.records[0]?.weakAxis ?? "unknown"))].sort();
@@ -175,9 +240,12 @@ const elevationMostlyIrreducible = elevationCeilingLimited.filter((chain) => {
 });
 const result = {
   source: goldenPath,
-  checkpoints: archive.rows.reduce((sum, row) => sum + row.checkpoints.length, 0),
+  checkpoints,
   records: chains.reduce((sum, chain) => sum + chain.records.length, 0),
   overall: summarize(chains),
+  by_budget: groupSummary(chains, (chain) => String(chain.budget)),
+  by_role: groupSummary(chains, (chain) => chain.role),
+  by_origin_family: groupSummary(chains, (chain) => chain.originFamily),
   by_weak_axis: Object.fromEntries(axes.map((axis) => [
     axis,
     summarize(chains.filter((chain) => (chain.records[0]?.weakAxis ?? "unknown") === axis)),

@@ -5,6 +5,7 @@ import {
   handoffAxisOvershootPenalty,
   handoffSampleCount,
   hasStartFeasibilityLookahead,
+  isOnlineTraversalBehindSchedule,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
   shortDeadlineRescueCandidateCount,
@@ -103,6 +104,37 @@ describe("handoff policy boundaries", () => {
 
   test("sample schedule uses one unified quality breadth", () => {
     expect(handoffSampleCount()).toBe(32);
+  });
+
+  test("online traversal pace removes measured startup cost and scales with budget", () => {
+    expect(isOnlineTraversalBehindSchedule({
+      firstProgressFrame: 15_000,
+      simFrames: 240_000,
+      targetBudget: 500_000,
+      completedContacts: 68,
+      totalContacts: 123,
+    })).toBe(false);
+    expect(isOnlineTraversalBehindSchedule({
+      firstProgressFrame: 15_000,
+      simFrames: 334_000,
+      targetBudget: 500_000,
+      completedContacts: 68,
+      totalContacts: 123,
+    })).toBe(true);
+    expect(isOnlineTraversalBehindSchedule({
+      firstProgressFrame: 15_000,
+      simFrames: 334_000,
+      targetBudget: 750_000,
+      completedContacts: 68,
+      totalContacts: 123,
+    })).toBe(false);
+    expect(isOnlineTraversalBehindSchedule({
+      firstProgressFrame: 15_000,
+      simFrames: 20_000,
+      targetBudget: 500_000,
+      completedContacts: 1,
+      totalContacts: 123,
+    })).toBe(false);
   });
 
   test("final contact off-beat gate covers the scorer-visible rideout tail", () => {

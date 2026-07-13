@@ -30,21 +30,35 @@ import { compileHandoff } from "./optimizer/handoff.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { IMPACT, impactToRedirArcPx } from "./types.ts";
 import { extractTrackArcs } from "./analysis/geometry.ts";
+import { developmentCases } from "../../benchmark/v2/catalog.ts";
+import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
+import { applyJolt } from "../produce/seed.ts";
 
 const argv = process.argv.slice(2);
 const argValue = (name: string): string | undefined =>
   argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
 
 const DEFAULT_SPECS = "dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout";
-const specNames = (argValue("specs") ?? DEFAULT_SPECS).split(",") as GoldenSpecName[];
+const specNames = (argValue("specs") ?? DEFAULT_SPECS).split(",");
 const seeds = (argValue("seeds") ?? "0,1,2").split(",").map(Number);
 const budget = Number(argValue("budget") ?? "300000");
 const outPath = argValue("out");
+const benchmarkSpecs = new Map(
+  developmentCases.map((entry) => [entry.case.metadata.id, entry.case.spec] as const),
+);
 for (const s of specNames) {
-  if (!(GOLDEN_SPECS as readonly string[]).includes(s)) {
+  if (!(GOLDEN_SPECS as readonly string[]).includes(s) && !benchmarkSpecs.has(s)) {
     console.error(`unknown spec "${s}"`);
     process.exit(1);
   }
+}
+
+async function loadStudySpec(name: string) {
+  const benchmarkSpec = benchmarkSpecs.get(name);
+  if (benchmarkSpec !== undefined) {
+    return applyJolt(benchmarkSpec, benchmarkPolicy.transform.joltMs);
+  }
+  return loadGoldenSpec(name as GoldenSpecName, "base");
 }
 
 const clamp = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
@@ -90,7 +104,7 @@ const rows: GapRow[] = [];
 enableLandingWindowProbe();
 
 for (const specName of specNames) {
-  const spec = await loadGoldenSpec(specName, "base");
+  const spec = await loadStudySpec(specName);
   for (const seed of seeds) {
     const t0 = Date.now();
     const checkpoint = compileHandoff(spec, seed, { budget });

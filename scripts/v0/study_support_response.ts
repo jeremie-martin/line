@@ -1,4 +1,5 @@
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { runInNewContext } from "node:vm";
 import { setFlagsFromString } from "node:v8";
@@ -9,10 +10,13 @@ import denseRecovery240 from "../../benchmark/v2/cases/variants/capability/front
 import pickup from "../../benchmark/v2/cases/normative/capability/frontier_pickup_progression.ts";
 import pickupShifted from "../../benchmark/v2/cases/variants/capability/frontier_pickup_progression_shifted.ts";
 import sparseLowline from "../../benchmark/v2/cases/normative/representative/sparse_lowline.ts";
+import denseDialogue from "../../benchmark/v2/cases/normative/representative/dense_dialogue.ts";
 import highAirDrive from "../../benchmark/v2/cases/normative/representative/high_air_drive.ts";
 import meterExchange from "../../benchmark/v2/cases/normative/representative/meter_exchange.ts";
 import risingSwitch from "../../benchmark/v2/cases/normative/representative/rising_switch.ts";
+import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { disposeAllWasmEnginesForStudy } from "../lib/_lr_engine_wasm.ts";
+import { applyJolt } from "../produce/seed.ts";
 import {
   setSupportGeometryProbeHook,
   type SupportGeometryProbeRecord,
@@ -22,33 +26,63 @@ import {
   type LandingProbeCostSink,
 } from "./core/candidate.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
+import type { DetectorRunwayStats } from "./optimizer/contact_phase.ts";
 import {
   setHandoffPoolProbeHook,
   type HandoffPoolProbeCandidate,
   type HandoffPoolProbeRecord,
+  type HandoffRankTraceEntry,
 } from "./optimizer/handoff.ts";
 import { effectiveAirAsk, OBJECTIVE_AIR_DEADBAND } from "./optimizer/objective.ts";
+import {
+  contactLineIdsAt,
+  frameOffset,
+  isAuthoredContactEvent,
+  measurementLastFrame,
+} from "./core/substrate.ts";
 import { AXIS_QUALITY_TOLERANCE, axisDetails, scoreDriftReport } from "./score.ts";
 import { FPS, type Spec, type TrackLine } from "./types.ts";
+import type { Detection, DetEvent } from "../lib/detector.ts";
 
-type StudyMode = "shape" | "time" | "log" | "deficit" | "refined" | "adaptive";
+type StudyMode =
+  | "production"
+  | "shape"
+  | "time"
+  | "log"
+  | "deficit"
+  | "refined"
+  | "adaptive";
 
 const argv = process.argv.slice(2);
 const argument = (name: string): string | undefined =>
   argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const budget = Number(argument("budget") ?? "250000");
+const joltMs = Number(argument("jolt-ms") ?? benchmarkPolicy.transform.joltMs);
 const seeds = (argument("seeds") ?? "27").split(",").map(Number);
-const modes = (argument("modes") ?? "shape,time,adaptive").split(",") as StudyMode[];
-const requestedCases = new Set((argument("cases") ?? "frontier5,frontier7,dense,dense240,pickup,pickup-shifted,sparse,high-air,meter,rising").split(","));
+const modes = (argument("modes") ?? "production").split(",") as StudyMode[];
+const requestedCases = new Set((argument("cases") ?? "frontier5,frontier7,dense,dense240,pickup,pickup-shifted,sparse,dense-dialogue,high-air,meter,rising").split(","));
 const outPath = argument("out");
 const generatedAt = new Date().toISOString();
 
 if (!Number.isSafeInteger(budget) || budget <= 0) throw new Error(`invalid budget ${budget}`);
+if (!Number.isFinite(joltMs)) throw new Error(`invalid jolt-ms ${joltMs}`);
 if (seeds.some((seed) => !Number.isSafeInteger(seed))) throw new Error(`invalid seeds`);
 if (
-  modes.some((mode) => !["shape", "time", "log", "deficit", "refined", "adaptive"].includes(mode))
+  modes.some((mode) =>
+    ![
+      "production",
+      "shape",
+      "time",
+      "log",
+      "deficit",
+      "refined",
+      "adaptive",
+    ].includes(mode)
+  )
 ) {
-  throw new Error(`modes must be shape,time,log,deficit,refined,adaptive`);
+  throw new Error(
+    `modes must be production,shape,time,log,deficit,refined,adaptive`,
+  );
 }
 
 const catalog: Array<{ id: string; spec: Spec }> = [
@@ -59,17 +93,21 @@ const catalog: Array<{ id: string; spec: Spec }> = [
   { id: "pickup", spec: pickup },
   { id: "pickup-shifted", spec: pickupShifted },
   { id: "sparse", spec: sparseLowline },
+  { id: "dense-dialogue", spec: denseDialogue },
   { id: "high-air", spec: highAirDrive },
   { id: "meter", spec: meterExchange },
   { id: "rising", spec: risingSwitch },
 ];
-const cases = catalog.filter((entry) => requestedCases.has(entry.id));
+const cases = catalog
+  .filter((entry) => requestedCases.has(entry.id))
+  .map((entry) => ({ ...entry, spec: applyJolt(entry.spec, joltMs) }));
 if (cases.length !== requestedCases.size) {
   throw new Error(`unknown case in --cases=${[...requestedCases].join(",")}`);
 }
 
 setFlagsFromString("--expose_gc");
 const collectGarbage = runInNewContext("gc") as () => void;
+process.env.LR_AIM_STUDY_STATS = "1";
 
 const rows = [];
 for (const mode of modes) {
@@ -80,6 +118,7 @@ for (const mode of modes) {
       const pools = new Map<number, HandoffPoolProbeRecord[]>();
       const gates = new Map<number, GateAccumulator>();
       const candidateGateRecords = new WeakMap<object, GateRecord>();
+      let selectedTrace: HandoffRankTraceEntry[] = [];
       setSupportGeometryProbeHook((record) => appendMap(geometry, record.gapIndex, record));
       setHandoffPoolProbeHook((record) => appendMap(pools, record.gapIndex, record));
       setLandingProbeHook({
@@ -89,7 +128,11 @@ for (const mode of modes) {
         onLandingWindow(_det, gap, lines) {
           const gate = gateFor(gates, gap.index);
           gate.survivalPassed++;
-          const record: GateRecord = { cost: null, lines, ranked: false };
+          const record: GateRecord = {
+            cost: null,
+            ranked: false,
+            contact: diagnoseContact(_det, gap.startFrame, gap.endFrame, lines),
+          };
           gate.records.push(record);
           candidateGateRecords.set(lines, record);
           return record;
@@ -101,7 +144,12 @@ for (const mode of modes) {
       });
 
       const started = performance.now();
-      const checkpoint = compileHandoff(testCase.spec, seed, { budget });
+      const checkpoint = compileHandoff(testCase.spec, seed, {
+        budget,
+        onNode(node, _key, event) {
+          if (event.improved) selectedTrace = node.rankTrace.map((entry) => ({ ...entry }));
+        },
+      });
       const elapsedMs = performance.now() - started;
       setSupportGeometryProbeHook(null);
       setHandoffPoolProbeHook(null);
@@ -118,12 +166,35 @@ for (const mode of modes) {
         elapsedMs: round(elapsedMs),
         valid: score.contract_passed,
         score: round(score.score),
+        trackHash: createHash("sha256")
+          .update(JSON.stringify(checkpoint.track))
+          .digest("hex"),
         axisResponse: summarizeAxes(checkpoint.report),
         deepestGap: checkpoint.stats.handoff_deepest_seen_gap ?? null,
+        firstCompletionFrame: checkpoint.stats.first_completion_frame ?? null,
+        searchNodesExpanded: checkpoint.stats.search_nodes_expanded ?? null,
+        policyCandidateCount: {
+          min: checkpoint.stats.handoff_policy_candidate_count_min ?? null,
+          mean: checkpoint.stats.handoff_policy_candidate_count_mean ?? null,
+          max: checkpoint.stats.handoff_policy_candidate_count_max ?? null,
+        },
+        contactPhase: (checkpoint.stats as typeof checkpoint.stats & {
+          contact_phase?: DetectorRunwayStats;
+        }).contact_phase ?? null,
         terminus: checkpoint.report.terminus,
         simFrames: checkpoint.stats.sim_frames,
         candidatesSampled: checkpoint.stats.candidates_sampled,
         candidatesViable: checkpoint.stats.candidates_viable,
+        selectedTrace,
+        airMatchedProposal: checkpoint.stats.aim?.study === undefined
+          ? null
+          : {
+            considered: checkpoint.stats.aim.study.enum_air_considered,
+            gateFailed: checkpoint.stats.aim.study.enum_air_gate_fail,
+            emitted: checkpoint.stats.aim.study.enum_air_emitted,
+            rankedPools: checkpoint.stats.aim.study.rank_air_pools,
+            deliverablePools: checkpoint.stats.aim.study.rank_air_deliverable_pools,
+          },
         gapResponses,
       };
       rows.push(row);
@@ -142,6 +213,7 @@ for (const mode of modes) {
 }
 delete process.env.LR_SUPPORT_GEOMETRY;
 delete process.env.LR_SUPPORT_COVERAGE_LANE;
+delete process.env.LR_AIM_STUDY_STATS;
 
 if (outPath === undefined) process.stdout.write(studyJson(true));
 else {
@@ -150,6 +222,11 @@ else {
 }
 
 function configureMode(mode: StudyMode): void {
+  if (mode === "production") {
+    delete process.env.LR_SUPPORT_GEOMETRY;
+    delete process.env.LR_SUPPORT_COVERAGE_LANE;
+    return;
+  }
   process.env.LR_SUPPORT_GEOMETRY = mode === "time"
     ? "time"
     : mode === "log"
@@ -173,10 +250,9 @@ function summarizeGaps(
     const poolRows = pools.get(gapIndex) ?? [];
     const candidates = poolRows.flatMap((record) => record.candidates);
     const nextTargets = poolRows.find((record) => record.nextTargets !== null)?.nextTargets ?? null;
-    const gapFrames = firstFinite([
-      ...geometryRows.map((record) => record.gapFrames),
-      ...candidates.map((candidate) => candidate.arrivalGapFrames),
-    ]);
+    const supportGapFrames = firstFinite(geometryRows.map((record) => record.gapFrames));
+    const arrivalGapFrames = firstFinite(candidates.map((candidate) => candidate.arrivalGapFrames));
+    const gapFrames = arrivalGapFrames ?? supportGapFrames;
     const airAsk = nextTargets?.air;
     if (airAsk === undefined || gapFrames === null) return [];
     const effectiveAsk = effectiveAirAsk(airAsk, gapFrames);
@@ -221,6 +297,8 @@ function summarizeGaps(
       pools: poolRows.length,
       entrySpeed: summary(poolRows.map((record) => record.entrySpeed)),
       gapFrames,
+      supportGapFrames,
+      arrivalGapFrames,
       airAsk: round(airAsk),
       effectiveAirAsk: round(effectiveAsk),
       desiredGroundFrames: round(desiredGroundFrames),
@@ -235,6 +313,9 @@ function summarizeGaps(
         modes: [...new Set(geometryRows.map((record) => record.mode))],
         postLength: summary(geometryRows.map((record) => record.postLength)),
         postSegments: summary(geometryRows.map((record) => record.postSegments)),
+        targetAir: summary(geometryRows.flatMap((record) =>
+          record.targetAir === null ? [] : [record.targetAir]
+        )),
         targetLength: nullableRound(firstFinite(geometryRows.map((record) => record.targetLength))),
         extensionPressure: summary(geometryRows.flatMap((record) =>
           record.extensionPressure === null ? [] : [record.extensionPressure]
@@ -245,6 +326,7 @@ function summarizeGaps(
         survivalPassed: gate.survivalPassed,
         viable: gate.records.filter((record) => record.cost !== null).length,
         ranked: gate.records.filter((record) => record.ranked).length,
+        contact: summarizeContactDiagnostics(gate.records),
       },
       pool: {
         candidates: candidates.length,
@@ -316,10 +398,31 @@ function summarizeCandidate(
     airFit: nullableRound(candidate.airFit),
     speedFit: nullableRound(candidate.speedFit),
     handoffScore: candidate.handoffScore === undefined ? null : round(candidate.handoffScore),
+    releaseFrame: candidate.releaseFrame,
+    releaseElapsedFrames: candidate.releaseElapsedFrames,
+    catchWindowGroundedFrames: candidate.catchWindowGroundedFrames,
+    releaseAirborne: candidate.releaseAirborne,
+    arrivalGapFrames: candidate.arrivalGapFrames,
+    arrivalAir: candidate.arrivalAir === null ? null : round(candidate.arrivalAir),
   };
 }
 
-type GateRecord = LandingProbeCostSink & { lines: TrackLine[]; ranked: boolean };
+type ContactDiagnostic = {
+  authoredAtTargetAnyLine: boolean;
+  authoredAtTargetOwnedLine: boolean;
+  rawContactAtTargetOwnedLine: boolean;
+  nearestAuthoredAnyLineOffset: number | null;
+  nearestAuthoredOwnedLineOffset: number | null;
+  nearestLandingOwnedLineOffset: number | null;
+  nearestBounceOwnedLineOffset: number | null;
+  nearestFlyThroughOwnedLineOffset: number | null;
+  nearestRawContactOwnedLineOffset: number | null;
+};
+
+type GateRecord = LandingProbeCostSink & {
+  ranked: boolean;
+  contact: ContactDiagnostic;
+};
 type GateAccumulator = {
   survivalFailed: number;
   survivalPassed: number;
@@ -336,6 +439,95 @@ function gateFor(map: Map<number, GateAccumulator>, gapIndex: number): GateAccum
   const created = emptyGate();
   map.set(gapIndex, created);
   return created;
+}
+
+function diagnoseContact(
+  det: Detection,
+  gapStartFrame: number,
+  targetFrame: number,
+  lines: TrackLine[],
+): ContactDiagnostic {
+  const gapFrames = targetFrame - gapStartFrame;
+  const owned = new Set(lines.map((line) => line.id));
+  const authoredEvents = det.events.filter((event) => isAuthoredContactEvent(event, gapFrames));
+  const ownedEvents = det.events.filter((event) =>
+    contactLineIdsAt(det, event.frame).some((lineId) => owned.has(lineId))
+  );
+  const ownedAuthoredEvents = ownedEvents.filter((event) =>
+    isAuthoredContactEvent(event, gapFrames)
+  );
+  const rawContactOffsets: number[] = [];
+  for (let frame = frameOffset(det); frame <= measurementLastFrame(det); frame++) {
+    if (contactLineIdsAt(det, frame).some((lineId) => owned.has(lineId))) {
+      rawContactOffsets.push(frame - targetFrame);
+    }
+  }
+  return {
+    authoredAtTargetAnyLine: authoredEvents.some((event) =>
+      Math.abs(event.frame - targetFrame) <= 1
+    ),
+    authoredAtTargetOwnedLine: ownedAuthoredEvents.some((event) =>
+      Math.abs(event.frame - targetFrame) <= 1
+    ),
+    rawContactAtTargetOwnedLine: rawContactOffsets.some((offset) => Math.abs(offset) <= 1),
+    nearestAuthoredAnyLineOffset: nearestEventOffset(authoredEvents, targetFrame),
+    nearestAuthoredOwnedLineOffset: nearestEventOffset(ownedAuthoredEvents, targetFrame),
+    nearestLandingOwnedLineOffset: nearestEventOffset(
+      ownedEvents.filter((event) => event.type === "landing"),
+      targetFrame,
+    ),
+    nearestBounceOwnedLineOffset: nearestEventOffset(
+      ownedEvents.filter((event) => event.type === "bounce"),
+      targetFrame,
+    ),
+    nearestFlyThroughOwnedLineOffset: nearestEventOffset(
+      ownedEvents.filter((event) => event.type === "flyThrough"),
+      targetFrame,
+    ),
+    nearestRawContactOwnedLineOffset: nearestOffset(rawContactOffsets),
+  };
+}
+
+function nearestEventOffset(events: DetEvent[], targetFrame: number): number | null {
+  return nearestOffset(events.map((event) => event.frame - targetFrame));
+}
+
+function nearestOffset(offsets: number[]): number | null {
+  if (offsets.length === 0) return null;
+  return offsets.reduce((nearest, offset) =>
+    Math.abs(offset) < Math.abs(nearest) ? offset : nearest
+  );
+}
+
+function summarizeContactDiagnostics(records: GateRecord[]) {
+  const diagnostics = records.map((record) => record.contact);
+  return {
+    authoredAtTargetAnyLine: diagnostics.filter((item) => item.authoredAtTargetAnyLine).length,
+    authoredAtTargetOwnedLine: diagnostics.filter((item) => item.authoredAtTargetOwnedLine).length,
+    rawContactAtTargetOwnedLine: diagnostics.filter((item) => item.rawContactAtTargetOwnedLine).length,
+    nearestAuthoredAnyLineOffset: nullableSummary(
+      diagnostics.map((item) => item.nearestAuthoredAnyLineOffset),
+    ),
+    nearestAuthoredOwnedLineOffset: nullableSummary(
+      diagnostics.map((item) => item.nearestAuthoredOwnedLineOffset),
+    ),
+    nearestLandingOwnedLineOffset: nullableSummary(
+      diagnostics.map((item) => item.nearestLandingOwnedLineOffset),
+    ),
+    nearestBounceOwnedLineOffset: nullableSummary(
+      diagnostics.map((item) => item.nearestBounceOwnedLineOffset),
+    ),
+    nearestFlyThroughOwnedLineOffset: nullableSummary(
+      diagnostics.map((item) => item.nearestFlyThroughOwnedLineOffset),
+    ),
+    nearestRawContactOwnedLineOffset: nullableSummary(
+      diagnostics.map((item) => item.nearestRawContactOwnedLineOffset),
+    ),
+  };
+}
+
+function nullableSummary(values: Array<number | null>) {
+  return summary(values.filter((value): value is number => value !== null));
 }
 
 function appendMap<T>(map: Map<number, T[]>, key: number, value: T): void {
@@ -393,6 +585,7 @@ function studyJson(complete: boolean): string {
     complete,
     hypothesis: "A continuous support family can be centered and scaled from measured grounded-time response across short, ordinary, and long gaps.",
     budget,
+    joltMs,
     seeds,
     modes,
     cases: cases.map((entry) => entry.id),

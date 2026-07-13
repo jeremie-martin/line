@@ -11,7 +11,8 @@ The product and evidence contract is `docs/benchmark-v2-context.md`.
 - `benchmark/v2/compat/`: generated JSON adapter for the proven runner.
 - `benchmark/v2/evidence/`: generated characterization, audit, and selection review.
 - `benchmark/v2/studies/`: retained allocation-study summaries.
-- `benchmark/v2/runs/`: retained compressed canonical archives and bundles.
+- `benchmark/v2/runs/`: local, ignored canonical archives and bundles. Compact
+  contracts, hashes, ledgers, and review evidence remain under version control.
 
 The compatibility manifests are outputs, not editable configuration. Production
 references are qualification-only. Benchmark V1 remains available explicitly through

@@ -68,4 +68,17 @@ describe("post-impact assay artifacts", () => {
       fingerprint: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
   });
+
+  test("does not couple the runtime identity to unrelated repository files", () => {
+    const root = mkdtempSync(join(tmpdir(), "line-postimpact-runtime-"));
+    try {
+      const before = postimpactAssayRuntimeIdentity(root);
+      writeFileSync(join(root, "unrelated-note.txt"), "changed outside replay inputs\n");
+      const after = postimpactAssayRuntimeIdentity(root);
+      expect(after).toEqual(before);
+      expect(after.runtimeIdentityProtocol).toBe("line.postimpact-assay-runtime.v2");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

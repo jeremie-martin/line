@@ -153,11 +153,18 @@ mismatches, selected-roster violations, duration-endpoint mismatches, protected
 boundary violations, and arm runtime errors. The six runs took about 185
 seconds in total on the local WASM runtime.
 
-This supports the narrow, falsifiable statement that this fixed straight
-carrier has a complete monotone duration-response surface on this frozen panel.
-It does not establish a production planner, target fit, next-contact
-feasibility, or a compiler improvement. The next research step remains a new
-preregistered formulation or fresh-cohort replication, not direct integration.
+This supports the narrower, falsifiable statement that every **eligible**
+five-arm row on this frozen, correlated panel was monotone. The rows are
+conditional on a selected construction-safe phase and a complete replay: for
+example, the five-second fixture contributed 7 complete rows out of 24 capture
+screen rows. This is not broad capture coverage, a production planner, target
+fit, next-contact feasibility, or a compiler improvement. The recorded
+terminal states also show that a straight carrier can exchange air time for
+terminal speed, so it is not a continuation law by itself.
+
+The next step is a preregistered fresh-cohort transfer study for this fixed
+physical leaf, followed separately by a capture/support/release formulation
+with an explicit release control. Neither step is direct compiler integration.
 
 ## Guardrails
 

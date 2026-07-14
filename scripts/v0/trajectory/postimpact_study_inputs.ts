@@ -63,6 +63,7 @@ export type PostimpactFrozenTrajectoryFixtureV3 = {
     outgoingFrame: number;
     outgoingIntervalFrames: number;
     expectedOutgoingFrames: number | null;
+    studyScope?: string | null;
   };
   transform: { value: unknown; fingerprint: string };
   materialized: {

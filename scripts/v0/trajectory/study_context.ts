@@ -20,6 +20,7 @@ import { sha256, stableJson, type FrozenTrajectoryFixture } from "./frozen_fixtu
 import { outgoingIntervalFromGap } from "./outgoing_interval.ts";
 import {
   buildTrajectoryPanelSetup,
+  assertActiveTrajectoryPanel,
   assertTrajectoryCalibrationProtocol,
   getTrajectoryPanelCase,
   materializeTrajectoryPanelInput,
@@ -86,6 +87,7 @@ function prepareFrozenTrajectoryFixtureCore(input: FrozenTrajectoryFixture): Pre
     throw new Error("forensic V3 fixture has source or compiler identity drift and cannot be replayed as study input");
   }
   const panel = getTrajectoryPanelCase(input.panel.id);
+  assertActiveTrajectoryPanel(panel, "trajectory fixture replay");
   const setup = buildTrajectoryPanelSetup(panel);
   const materialized = materializeTrajectoryPanelInput(setup);
   const sourceFingerprint = fingerprintFiles([panel.sourcePath]);
@@ -246,6 +248,7 @@ export function assertFixturePanelDeclaration(
     input.selectedTargetGap !== panel.targetGap ||
     input.outgoingGap !== panel.targetGap + 1 ||
     input.expectedOutgoingFrames !== (panel.expectedOutgoingFrames ?? null)
+    || (input.studyScope ?? null) !== (panel.studyScope ?? null)
   ) {
     throw new Error("fixture panel selection declaration no longer matches its declared panel");
   }

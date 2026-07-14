@@ -1,0 +1,116 @@
+# Long-Carrier Transfer Protocol
+
+## Scope
+
+This is a prospective, validation-only transfer study of the fixed straight
+post-impact long-carrier assay. It is not a Benchmark V2 case, production
+qualification, compiler candidate, or support planner. Its scope string is
+`long_carrier_duration_replication.v1` and is bound into every declared panel
+row and frozen fixture.
+
+The fixed implementation is the committed five-fraction stencil
+`[0, 0.25, 0.5, 0.75, 1]`, its target-blind capture closure, its scalar
+outgoing-endpoint handoff, and its first-safe shared phase ladder. No source,
+seed, phase, fraction, geometry, threshold, runtime setting, capture source,
+or assay source may change after the immutable declaration is written and
+before the cohort completes.
+
+## Cohort
+
+The six study-only source files live under
+`scripts/v0/trajectory/validation_specs/`; none imports a benchmark,
+production, or legacy authoring source. Every source is literal/manual,
+positive-impact at its selected event, and has `jitter: 0`. Each source is run
+under both public seeds `730201` and `730203` at WASM/500k.
+
+| Source | Outgoing interval | Role |
+| --- | ---: | --- |
+| `syncopated_low_air_425` | 4.25s / 170 frames | primary low-air |
+| `accelerating_low_air_475` | 4.75s / 190 frames | primary low-air |
+| `decelerating_low_air_625` | 6.25s / 250 frames | primary low-air |
+| `sparse_low_air_725` | 7.25s / 290 frames | primary low-air |
+| `ordinary_partial_axes_115` | 1.15s / 46 frames | scope control; amplitude undefined |
+| `open_high_air_195` | 1.95s / 78 frames | scope control; high air |
+
+The exact source path, materialized target-gap index, expected outgoing frame
+count, and source-only rationale are declared in
+`long_carrier_replication_protocol.ts` before capture. The old V2 reserve rows
+remain quarantined and cannot enter this cohort.
+
+## Execution
+
+Run only through the replication controller after this declaration is
+committed. It creates an immutable declaration before any execution, captures
+each fixture once, runs the fixed assay once, and writes planned/result events
+plus one immutable ledger. The controller requires its non-compiler static
+source closure to be committed, while binding the intentionally mutable
+compiler closure by exact identity. An occupied output root is rejected. A
+failed capture is invalid unless a future protocol adds a sealed structured
+unavailability record; it is never replaced, retried in place, or allowed to
+move its target contact. A capture that detects source/compiler identity drift
+publishes its deterministic sibling fixture as invalid forensic evidence, and
+the ledger inventories that sibling rather than silently losing it.
+
+```sh
+LR_ENGINE=wasm npx tsx scripts/v0/run_long_carrier_replication.ts \
+  --out-dir=/tmp/long-carrier-replication-YYYYMMDD
+```
+
+The controller requires exactly `LR_ENGINE=wasm`, a clean committed
+definition source closure, and the shared 500k capture protocol. It records the actual
+compiler/worktree identity and verifies it before every child invocation, so
+uncommitted candidate work may be studied but cannot be silently mixed across
+source/seed pairs. The declaration also freezes the Node executable, exact
+capture/assay argument templates, source revision/tree, and every planned
+artifact path. It records both the original absolute publication root and
+root-relative artifact identities, so a completed evidence directory can be
+moved without changing what the child processes originally received. The
+verifier checks those templates against every plan, result, fixture `argv`,
+assay `argv`, and assay fixture path. Generated evidence belongs outside Git, for example under
+`/tmp`; verify a completed cohort without re-running a compiler using:
+
+```sh
+LR_ENGINE=wasm npx tsx scripts/v0/verify_long_carrier_replication.ts \
+  --out-dir=/tmp/long-carrier-replication-YYYYMMDD
+```
+
+That default verifies the sealed historical V1 declaration and artifacts
+without consulting the current compiler candidate, so later compiler work does
+not make an archive unreadable. V1's protocol/assessor module is retained as
+the semantic reader for this scope; a materially different protocol requires a
+new scope/schema rather than editing V1. Add `--require-current-identity` when
+the question is specifically whether the current controller, verifier, capture
+entrypoint, compiler candidate, assay source, and replay runtime still match
+the cohort's scoped execution identity. Unrelated repository files are
+diagnostic-only and do not make a completed cohort incompatible.
+
+## Decision Rule
+
+For every primary low-air source and both of its seed fixtures:
+
+1. Fixture and assay provenance must be stable and all protocol counters must
+   be zero. Any identity, roster, boundary, or runtime failure invalidates the
+   fixture rather than becoming a negative observation.
+2. Each seed must contain at least one complete five-arm row. Every complete
+   row must meet the source-declared one-sample non-increasing-air predicate.
+3. Each seed must have at least one complete row with no confirmed or
+   unresolved off-beat landing on any of its five arms and with
+   `air(f=0) - air(f=1)` greater than two measurement samples.
+
+A completed non-monotone primary row falsifies the fixed duration ordering.
+Missing eligible rows make the source unavailable/inconclusive. The ordinary
+and high-air controls must each produce a structurally valid complete reported
+row before the cohort can support the relation; otherwise it is inconclusive.
+Controls gate support, not a completed primary falsification: their absence
+cannot erase a direct failed monotonicity observation. Their outcome cannot
+substitute for a primary result or be counted as benefit.
+
+The controller and verifier use exit status `0` for the narrow supported
+result, `2` for invalid evidence, `3` for falsification, and `4` for a valid
+inconclusive cohort. Malformed records are verifier errors rather than verdicts.
+
+Terminal named-reference speed is recorded as a secondary diagnostic. It is
+not an acceptance threshold because this scalar assay has no release or
+next-contact model. Therefore even a supported transfer result authorizes only
+reuse of the straight rail as a bounded physical leaf in a later study. It does
+not establish target fit, continuation feasibility, or a compiler change.

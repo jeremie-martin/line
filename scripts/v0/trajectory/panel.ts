@@ -20,6 +20,17 @@ import { makeRng } from "../../lib/rng.ts";
 import { applyJolt } from "../../produce/seed.ts";
 import { effectiveAxes, sampleGapTargets, sliceTimeline } from "../core/substrate.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "../types.ts";
+import acceleratingLowAir475 from "./validation_specs/accelerating_low_air_475.ts";
+import deceleratingLowAir625 from "./validation_specs/decelerating_low_air_625.ts";
+import openHighAir195 from "./validation_specs/open_high_air_195.ts";
+import ordinaryPartialAxes115 from "./validation_specs/ordinary_partial_axes_115.ts";
+import sparseLowAir725 from "./validation_specs/sparse_low_air_725.ts";
+import syncopatedLowAir425 from "./validation_specs/syncopated_low_air_425.ts";
+import {
+  LONG_CARRIER_REPLICATION_PROTOCOL,
+  LONG_CARRIER_REPLICATION_SCOPE,
+  type LongCarrierReplicationPanelId,
+} from "./long_carrier_replication_protocol.ts";
 
 export type TrajectoryPanelCategory = "dense" | "ordinary" | "low_air";
 /** `quarantined` rows are retained for audit but cannot be captured or studied again. */
@@ -91,7 +102,8 @@ export type TrajectoryPanelId =
   | "validation_frontier4_seed_4153"
   | "validation_frontier5_seed_4153"
   | "validation_frontier6_seed_4153"
-  | "validation_frontier7_seed_4153";
+  | "validation_frontier7_seed_4153"
+  | LongCarrierReplicationPanelId;
 
 export type TrajectoryPanelCase = {
   id: TrajectoryPanelId;
@@ -106,6 +118,8 @@ export type TrajectoryPanelCase = {
   selectionRationale: string;
   /** Exact outgoing duration after the target contact, when this is a duration panel. */
   expectedOutgoingFrames?: number;
+  /** Narrow preregistered study scope, when a validation row has one. */
+  studyScope?: string;
 };
 
 /**
@@ -113,10 +127,37 @@ export type TrajectoryPanelCase = {
  * representative transition, and the 3--7s low-air family. It is not a
  * selection menu and contains no per-case control values.
  *
- * No active validation rows are declared yet. A validation cohort must be
- * captured from a separately approved, independent roster before it can be
- * added here; stale reserve rows remain quarantined below for audit only.
+ * The active validation rows below are a narrow, preregistered transfer cohort
+ * for the fixed long-carrier assay. They cannot validate another formulation.
+ * Stale reserve rows remain quarantined below for audit only.
  */
+const LONG_CARRIER_REPLICATION_SPECS: Record<string, Spec> = {
+  syncopated_low_air_425: syncopatedLowAir425,
+  accelerating_low_air_475: acceleratingLowAir475,
+  decelerating_low_air_625: deceleratingLowAir625,
+  sparse_low_air_725: sparseLowAir725,
+  ordinary_partial_axes_115: ordinaryPartialAxes115,
+  open_high_air_195: openHighAir195,
+};
+
+const LONG_CARRIER_REPLICATION_PANELS: Record<LongCarrierReplicationPanelId, TrajectoryPanelCase> =
+  Object.fromEntries(LONG_CARRIER_REPLICATION_PROTOCOL.cases.map((entry) => {
+    const spec = LONG_CARRIER_REPLICATION_SPECS[entry.sourceId];
+    if (spec === undefined) throw new Error(`missing long-carrier replication source ${entry.sourceId}`);
+    return [entry.id, {
+      id: entry.id,
+      cohort: "validation",
+      category: entry.category,
+      spec,
+      sourcePath: entry.sourcePath,
+      seed: entry.publicSeed,
+      targetGap: entry.targetGap,
+      selectionRationale: entry.selectionRationale,
+      expectedOutgoingFrames: entry.expectedOutgoingFrames,
+      studyScope: LONG_CARRIER_REPLICATION_SCOPE,
+    }];
+  })) as Record<LongCarrierReplicationPanelId, TrajectoryPanelCase>;
+
 export const TRAJECTORY_PANEL_CASES: Record<TrajectoryPanelCase["id"], TrajectoryPanelCase> = {
   dense: {
     id: "dense",
@@ -203,6 +244,7 @@ export const TRAJECTORY_PANEL_CASES: Record<TrajectoryPanelCase["id"], Trajector
     selectionRationale: "Seven-second low-air duration variant in the initial ladder.",
     expectedOutgoingFrames: 280,
   },
+  ...LONG_CARRIER_REPLICATION_PANELS,
   // Older V2 reserve rows are audit-only. They cannot be reused as active
   // validation because their original comparison protocol was superseded.
   validation_dense_dialogue: {

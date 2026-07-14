@@ -268,6 +268,7 @@ function capturePanel(
       outgoingFrame: outgoing.endFrame,
       outgoingIntervalFrames,
       expectedOutgoingFrames: panel.expectedOutgoingFrames ?? null,
+      studyScope: panel.studyScope ?? null,
     },
     transform: {
       value: benchmarkPolicy.transform,
@@ -315,6 +316,7 @@ function captureIdentityFor(
       requestedTargetGap: panel.targetGap,
       selectionRationale: panel.selectionRationale,
       expectedOutgoingFrames: panel.expectedOutgoingFrames ?? null,
+      studyScope: panel.studyScope ?? null,
     },
     capture: {
       engine: captureEngine,

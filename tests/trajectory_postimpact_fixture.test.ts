@@ -110,6 +110,7 @@ describe("post-impact frozen-prefix boundary", () => {
       sourceFingerprint: "panel-source",
       publicSeed: 7,
       selectionRationale: "fixed test contact",
+      studyScope: null,
       currentGap: 0,
       currentFrame: 8,
     });

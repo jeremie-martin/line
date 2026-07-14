@@ -4,7 +4,6 @@
  * new runner can fingerprint its own source closure without importing panel or
  * compiler policy through a type-only dependency.
  */
-import { execFileSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import {
   closeSync,
@@ -27,8 +26,7 @@ export type PostimpactAssaySourceIdentity = {
 };
 
 export type PostimpactAssayRuntimeIdentity = {
-  head: string;
-  worktreeDiffSha256: string;
+  runtimeIdentityProtocol: "line.postimpact-assay-runtime.v2";
   engine: string;
   engineArtifactFingerprint: string | null;
   node: string;
@@ -73,11 +71,13 @@ export function postimpactAssaySourceIdentity(
   return { sourceFiles, fingerprint: hash.digest("hex") };
 }
 
-/** Record the exact ambient engine/repository state that a replay observed. */
+/**
+ * Record the runtime that can change replay behavior. Source bytes and the
+ * compiler candidate are bound separately, so a repository-wide Git diff is
+ * intentionally excluded: unrelated files must not invalidate a study epoch.
+ */
 export function postimpactAssayRuntimeIdentity(cwd = process.cwd()): PostimpactAssayRuntimeIdentity {
   const engine = process.env.LR_ENGINE ?? "wasm";
-  const head = execFileSync("git", ["rev-parse", "HEAD"], { cwd, encoding: "utf8" }).trim();
-  const worktreeDiff = execFileSync("git", ["diff", "--binary", "HEAD"], { cwd, encoding: "utf8" });
   const engineArtifactPath = engine === "wasm"
     ? resolve(cwd, "engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm")
     : null;
@@ -91,8 +91,7 @@ export function postimpactAssayRuntimeIdentity(cwd = process.cwd()): PostimpactA
       .sort(([left], [right]) => left.localeCompare(right)),
   );
   const payload = {
-    head,
-    worktreeDiffSha256: createHash("sha256").update(worktreeDiff).digest("hex"),
+    runtimeIdentityProtocol: "line.postimpact-assay-runtime.v2" as const,
     engine,
     engineArtifactFingerprint,
     node: process.version,

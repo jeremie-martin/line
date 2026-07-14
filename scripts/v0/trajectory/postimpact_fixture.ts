@@ -58,6 +58,7 @@ export type PostimpactFixtureAudit = {
     sourceFingerprint: string;
     publicSeed: number;
     selectionRationale: string;
+    studyScope: string | null;
     currentGap: number;
     currentFrame: number;
   };
@@ -282,6 +283,7 @@ function auditForFixture(
       sourceFingerprint: fixture.panel.sourceFingerprint,
       publicSeed: fixture.panel.publicSeed,
       selectionRationale: fixture.panel.selectionRationale,
+      studyScope: fixture.panel.studyScope ?? null,
       currentGap: fixture.panel.selectedTargetGap,
       currentFrame: fixture.panel.currentFrame,
     }),

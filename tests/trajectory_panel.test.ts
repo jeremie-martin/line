@@ -11,6 +11,11 @@ import {
   getTrajectoryPanelCase,
   materializeTrajectoryPanelInput,
 } from "../scripts/v0/trajectory/panel.ts";
+import {
+  LONG_CARRIER_REPLICATION_PROTOCOL,
+  LONG_CARRIER_REPLICATION_SCOPE,
+  assertLongCarrierReplicationCase,
+} from "../scripts/v0/trajectory/long_carrier_replication_protocol.ts";
 import { assertFixturePanelDeclaration } from "../scripts/v0/trajectory/study_context.ts";
 
 describe("trajectory study panel", () => {
@@ -39,10 +44,16 @@ describe("trajectory study panel", () => {
     }, "test")).not.toThrow();
   });
 
-  test("keeps validation empty until an independently captured roster is declared", () => {
-    expect(activeTrajectoryPanelCases("validation")).toEqual([]);
-    expect(Object.values(TRAJECTORY_PANEL_CASES).some((panel) => panel.cohort === "validation")).toBe(false);
-    expect(() => getTrajectoryPanelCase("validation_v3_dense_dialogue")).toThrow(/unknown trajectory panel/);
+  test("declares one narrow, independent long-carrier validation roster", () => {
+    const active = activeTrajectoryPanelCases("validation");
+    expect(active.map((panel) => panel.id)).toEqual(LONG_CARRIER_REPLICATION_PROTOCOL.cases.map((entry) => entry.id));
+    expect(new Set(active.map((panel) => panel.sourcePath)).size).toBe(6);
+    for (const panel of active) {
+      expect(panel.studyScope).toBe(LONG_CARRIER_REPLICATION_SCOPE);
+      expect(panel.spec.jitter).toBe(0);
+      const expected = assertLongCarrierReplicationCase(panel);
+      expect(expected.id).toBe(panel.id);
+    }
   });
 
   test("makes quarantined rows audit-only and keeps the envelope study calibration-only", () => {
@@ -57,7 +68,7 @@ describe("trajectory study panel", () => {
       .toThrow(/requires a calibration trajectory fixture/);
   });
 
-  test("capture CLI fails before runtime setup for an empty or quarantined cohort request", () => {
+  test("capture CLI continues to reject quarantined rows before runtime setup", () => {
     const run = (args: string[]) => spawnSync(process.execPath, [
       "--import", "tsx", "scripts/v0/capture_trajectory_fixture.ts", ...args,
     ], {
@@ -65,12 +76,8 @@ describe("trajectory study panel", () => {
       encoding: "utf8",
       env: { ...process.env, LR_ENGINE: "js" },
     });
-    const emptyValidation = run(["--case=all", "--cohort=validation"]);
     const quarantined = run(["--case=validation_dense_dialogue", "--cohort=validation"]);
 
-    expect(emptyValidation.error).toBeUndefined();
-    expect(emptyValidation.status).toBe(1);
-    expect(`${emptyValidation.stdout}\n${emptyValidation.stderr}`).toContain("no active validation trajectory panels");
     expect(quarantined.error).toBeUndefined();
     expect(quarantined.status).toBe(1);
     expect(`${quarantined.stdout}\n${quarantined.stderr}`).toContain("cannot use quarantined trajectory panel");
@@ -90,6 +97,10 @@ describe("trajectory study panel", () => {
         expect(outgoing!.endFrame - outgoing!.startFrame, `${panel.id} duration`).toBe(
           panel.expectedOutgoingFrames,
         );
+      }
+      if (panel.cohort === "validation") {
+        expect(current!.targets.impact, `${panel.id} positive current impact`).toBeGreaterThan(0);
+        expect(panel.studyScope, `${panel.id} bounded study scope`).toBe(LONG_CARRIER_REPLICATION_SCOPE);
       }
     }
   });
@@ -119,6 +130,7 @@ describe("trajectory study panel", () => {
       outgoingFrame: 2,
       outgoingIntervalFrames: 1,
       expectedOutgoingFrames: panel.expectedOutgoingFrames ?? null,
+      studyScope: panel.studyScope ?? null,
     } as Parameters<typeof assertFixturePanelDeclaration>[0];
     expect(() => assertFixturePanelDeclaration(declaration, panel)).not.toThrow();
     expect(() => assertFixturePanelDeclaration({ ...declaration, publicSeed: panel.seed + 1 }, panel))
@@ -128,6 +140,8 @@ describe("trajectory study panel", () => {
     expect(() => assertFixturePanelDeclaration({ ...declaration, selectedTargetGap: panel.targetGap + 1 }, panel))
       .toThrow(/selection declaration/);
     expect(() => assertFixturePanelDeclaration({ ...declaration, outgoingGap: panel.targetGap + 2 }, panel))
+      .toThrow(/selection declaration/);
+    expect(() => assertFixturePanelDeclaration({ ...declaration, studyScope: "other" }, panel))
       .toThrow(/selection declaration/);
   });
 });

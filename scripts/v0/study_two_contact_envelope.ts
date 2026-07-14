@@ -795,11 +795,21 @@ function collisionHitsInRange(
   endFrame: number,
   lineIds: ReadonlySet<number>,
 ): Array<{ frame: number; lineId: number; pointIds: string[] }> {
-  const hits: Array<{ frame: number; lineId: number; pointIds: string[] }> = [];
+  // The WASM update stream can emit repeated collision updates while resolving
+  // one frame. The assay needs a forensic witness, not the solver's iteration
+  // count, so retain one frame/line record with the union of touched points.
+  const grouped = new Map<string, { frame: number; lineId: number; pointIds: Set<string> }>();
   for (let frame = startFrame; frame <= endFrame; frame++) {
-    hits.push(...engineCollisionHitsForLineIds(engine, frame, lineIds));
+    for (const hit of engineCollisionHitsForLineIds(engine, frame, lineIds)) {
+      const key = `${hit.frame}:${hit.lineId}`;
+      const entry = grouped.get(key) ?? { frame: hit.frame, lineId: hit.lineId, pointIds: new Set<string>() };
+      for (const pointId of hit.pointIds) entry.pointIds.add(pointId);
+      grouped.set(key, entry);
+    }
   }
-  return hits;
+  return [...grouped.values()]
+    .sort((left, right) => left.frame - right.frame || left.lineId - right.lineId)
+    .map((entry) => ({ ...entry, pointIds: [...entry.pointIds].sort() }));
 }
 
 function sameExactTrace(

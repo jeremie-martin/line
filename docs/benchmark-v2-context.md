@@ -138,8 +138,8 @@ canonical epoch that does not reuse stage-0 development seeds or a prior attempt
 
 | Profile | Budgets | Seeds per budget | Development compiles |
 |---|---|---:|---:|
-| probe | 250k / 500k | 3 | 252 |
-| canonical (per compiler side) | 250k / 500k / 750k | 8 | 1,008 |
+| probe | 250k / 500k | 3 | 264 |
+| canonical (per compiler side) | 250k / 500k / 750k | 8 | 1,056 |
 
 A certified promotion attempt runs both the checksummed baseline compiler
 snapshot and the declared candidate on one fresh canonical schedule at its

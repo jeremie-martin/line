@@ -79,6 +79,21 @@ describe("ungated owned-contact observation", () => {
     expect(observed.ownedEvents[1]?.gateEligible).toBe(true);
   });
 
+  test("accepts an explicit sealed timing tolerance instead of a hidden +/-1 rule", () => {
+    const observed = observeOwnedContactTransition(detection(), {
+      targetFrame: 12,
+      gapFrames: 20,
+      observationEndFrame: 16,
+      ownedLineIds: new Set([7]),
+      lineRoles: new Map([[7, "contact_closure"]]),
+      requiredLineRoles: ["contact_closure"],
+      timingToleranceFrames: 0,
+    });
+    expect(observed.ownedEvents[0]?.frame).toBe(11);
+    expect(observed.ownedEvents[0]?.gateEligible).toBe(false);
+    expect(observed.selectedOwnedEvent).toBeNull();
+  });
+
   test("does not select an on-time event that belongs only to downstream support", () => {
     const observed = observeOwnedContactTransition(detection(), {
       targetFrame: 12,
@@ -90,6 +105,18 @@ describe("ungated owned-contact observation", () => {
     });
     expect(observed.closestOwnedEvent?.frame).toBe(11);
     expect(observed.selectedOwnedEvent).toBeNull();
+  });
+
+  test("bounds nearby-event diagnostics to the declared local window", () => {
+    const observed = observeOwnedContactTransition(detection(), {
+      targetFrame: 12,
+      observationStartFrame: 12,
+      gapFrames: 20,
+      observationEndFrame: 16,
+      ownedLineIds: new Set([7]),
+    });
+    expect(observed.nearbyEvents.map((event) => event.frame)).toEqual([13, 14]);
+    expect(observed.ownedEvents.map((event) => event.frame)).toEqual([13]);
   });
 
   test("treats either adjacent line of a declared C1 contact phase as local ownership", () => {

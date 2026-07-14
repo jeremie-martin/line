@@ -17,7 +17,11 @@ import dense240 from "../../benchmark/v2/cases/variants/capability/frontier_dens
 import pickupShifted from "../../benchmark/v2/cases/variants/capability/frontier_pickup_progression_shifted.ts";
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { MIN_LANDING_AIRBORNE_FRAMES, PERSISTENCE_FRAMES } from "../lib/detector.ts";
-import { hasPreTargetSledProximityFromTrace, type PreTargetSledTrace } from "./arc_placement.ts";
+import {
+  hasPreTargetSledProximityFromTrace,
+  readPreTargetSledTrace,
+  type PreTargetSledTrace,
+} from "./arc_placement.ts";
 import {
   assertCompilerSourcesCommitted,
   compilerCandidateIdentity,
@@ -27,6 +31,7 @@ import {
   airborneAt,
   contactLineIdsAt,
   engineLineFromTrackLine,
+  makeBaseEngine,
   measurementLastFrame,
   offBeatLandingEvents,
   positionAt,
@@ -84,6 +89,18 @@ const CAPTURE_BUDGET = 500_000;
 const CURRENT_CLOSURE_FRAMES_AFTER_TARGET = TWO_CONTACT_PHASE_PROTOCOL.fixedResponseHorizonFrames +
   TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames;
 const ORACLE_CONTROL_COUNT = TWO_CONTACT_PHASE_PROTOCOL.oracleCount;
+const POSITIVE_CONTROL_TARGET_FRAME = 13;
+const POSITIVE_CONTROL_LINE: TrackLine = {
+  id: 1,
+  type: 0,
+  x1: -100,
+  y1: 20,
+  x2: 100,
+  y2: 20,
+  flipped: false,
+  leftExtended: false,
+  rightExtended: false,
+};
 
 type ScenarioKind = "dense" | "pickup" | "ordinary" | "impact_led";
 type Scenario = {
@@ -168,12 +185,23 @@ const scenarios: readonly Scenario[] = [
 type LocalOutcome = {
   structurallyValid: boolean;
   closureEndFrame: number;
+  detectionEndFrame: number;
   complete: boolean;
   selectedOwnedEvent: unknown;
+  closestOwnedEvent: unknown;
+  contactObservation: {
+    observationStartFrame: number;
+    observationEndFrame: number;
+    terminus: unknown;
+    ownedEvents: unknown[];
+    nearbyEvents: unknown[];
+  };
   persistenceWindowComplete: boolean;
   responseWindowComplete: boolean;
+  permittedEventWindowPhaseCollisions: Array<{ frame: number; lineId: number; pointIds: string[] }>;
   confirmedOffBeatLandingFrames: number[];
   unresolvedTailOffBeatLandingFrames: number[];
+  rejectionReasons: string[];
 };
 
 type OutgoingObservation = {
@@ -200,9 +228,10 @@ type FamilyRow = {
   index: number;
   status: "observed" | "error";
   error: string | null;
-  control: ReturnType<typeof roundControl>;
+  control: ReturnType<typeof serializeControl>;
   realized: ReturnType<typeof summarizeRealized> | null;
   preTarget: {
+    guardEndFrame: number;
     sledProximity: boolean;
     traceMatchesPrefix: boolean;
     trace: ReturnType<typeof exactEngineStateTraceFingerprint> | null;
@@ -222,7 +251,37 @@ type FamilyResult = {
     completeOutgoingObservation: number;
     detectorRunwayReadyAtBoundary: number;
     errors: number;
+    byCollisionSide: Record<"toward_motion" | "away_from_motion", {
+      attempted: number;
+      observed: number;
+      localStructuralValid: number;
+      errors: number;
+      localRejectionReasons: Record<string, number>;
+    }>;
+    localRejectionReasons: Record<string, number>;
   };
+};
+
+type PositiveControlResult = {
+  status: "passed" | "failed";
+  targetFrame: number;
+  preEventGuardEndFrame: number;
+  observationEndFrame: number;
+  line: TrackLine;
+  preTargetSledProximity: boolean;
+  preTargetTraceMatchesPrefix: boolean;
+  preTargetCollisions: Array<{ frame: number; lineId: number; pointIds: string[] }>;
+  permittedEventWindowCollisions: Array<{ frame: number; lineId: number; pointIds: string[] }>;
+  selectedOwnedEvent: unknown;
+  closestOwnedEvent: unknown;
+  ownedEvents: unknown[];
+  nearbyEvents: unknown[];
+  persistenceWindowComplete: boolean;
+  responseWindowComplete: boolean;
+  complete: boolean;
+  confirmedOffBeatLandingFrames: number[];
+  unresolvedTailOffBeatLandingFrames: number[];
+  failureReasons: string[];
 };
 
 type ScenarioResult =
@@ -280,18 +339,18 @@ const selectedPanelFingerprint = sha256(stableJson({
   })),
 }));
 const protocolFingerprint = sha256(stableJson({
-  protocol: "causal-fixed-horizon-phase-response.v2",
+  protocol: "causal-fixed-horizon-phase-response.v3",
   captureBudget: CAPTURE_BUDGET,
   phase: TWO_CONTACT_PHASE_PROTOCOL,
   oracleControlCount: ORACLE_CONTROL_COUNT,
   currentClosureFramesAfterTarget: CURRENT_CLOSURE_FRAMES_AFTER_TARGET,
   endpoint: "known next time boundary only; no continuation generation, scoring, or selection",
-  preTargetGuards: ["full_engine_trace", "all_body_collision", "sled_proximity"],
+  preTargetGuards: ["full_engine_trace_through_earliest_permitted_event_minus_one", "all_body_collision", "sled_proximity"],
   localGuards: ["owned_capture_roles", "persistence", "impact_window", "survival", "no_confirmed_or_unresolved_offbeat"],
   outgoingReporting: ["exact occupancy", "trailing airborne run", "phase collisions", "terminal state"],
 }));
 const artifactIdentity = studyArtifactIdentity({
-  schema: "line.study-causal-contact-phase-response.v2",
+  schema: "line.study-causal-contact-phase-response.v3",
   fixtureFingerprint: selectedPanelFingerprint,
   studySourceFingerprint: sourceIdentityAtStart.studySourceFingerprint,
   observationCandidateFingerprint: compilerAtStart.candidateFingerprint,
@@ -299,6 +358,7 @@ const artifactIdentity = studyArtifactIdentity({
 });
 
 const started = performance.now();
+const positiveControl = runPositiveControl();
 const results = selected.map((scenario) => runScenario(scenario));
 const sourceIdentityAtEnd = studySourceIdentity("scripts/v0/study_two_contact_envelope.ts");
 const compilerAtEnd = compilerCandidateIdentity("wasm");
@@ -307,13 +367,24 @@ const identityStable = sourceIdentityAtStart.studySourceFingerprint === sourceId
 const rowErrors = results.reduce((sum, result) => result.status === "available"
   ? sum + result.compact.summary.errors + result.oracle.summary.errors
   : sum, 0);
+const availableScenarioCount = results.filter((result) => result.status === "available").length;
+const observedRowCount = results.reduce((sum, result) => result.status === "available"
+  ? sum + result.compact.summary.observed + result.oracle.summary.observed
+  : sum, 0);
+const runtimeComplete = identityStable && rowErrors === 0;
+const eligibleEvidence = runtimeComplete && positiveControl.status === "passed" &&
+  availableScenarioCount > 0 && observedRowCount > 0;
 const protocolStatus = !identityStable
   ? "invalid_identity_drift"
   : rowErrors > 0
   ? "invalid_runtime_error"
+  : positiveControl.status !== "passed"
+  ? "invalid_positive_control"
+  : availableScenarioCount === 0 || observedRowCount === 0
+  ? "inconclusive_no_available_observation"
   : "complete";
 const document = {
-  schema: "line.study-causal-contact-phase-response.v2",
+  schema: "line.study-causal-contact-phase-response.v3",
   artifactIdentity,
   purpose: [
     "Falsify whether a fixed current-event phase stencil can close a local owned contact without using later-contact information.",
@@ -322,20 +393,33 @@ const document = {
   ],
   status: {
     protocolStatus,
-    executionComplete: identityStable && rowErrors === 0,
+    runtimeComplete,
+    executionComplete: runtimeComplete,
+    eligibleEvidence,
+    availableScenarioCount,
+    observedRowCount,
     claimEligibility: !identityStable
       ? "invalid: source or observed compiler identity changed during replay"
       : rowErrors > 0
       ? "invalid: one or more rows raised an unexpected runtime error"
+      : positiveControl.status !== "passed"
+      ? "invalid: the independent detector/ownership positive control did not pass"
+      : availableScenarioCount === 0 || observedRowCount === 0
+      ? "inconclusive: no selected scenario yielded an available observed row"
       : "descriptive bounded-contact evidence only; not continuation or long-carrier evidence",
-    retiredV1: "line.study-two-contact-envelope.v1 is superseded and its prior smoke result is non-evidence due to noncausal endpoint and false-node defects.",
+    retiredSchemas: {
+      v1: "line.study-two-contact-envelope.v1 is non-evidence due to noncausal endpoint and false-node defects.",
+      v2: "line.study-causal-contact-phase-response.v2 is non-evidence because chirality selected collision side and no positive control established the observation path.",
+    },
   },
   protocol: {
     captureBudget: CAPTURE_BUDGET,
     phase: TWO_CONTACT_PHASE_PROTOCOL,
     oracleControlCount: ORACLE_CONTROL_COUNT,
-    currentConstructionInputs: ["physical prefix", "pre-contact planning state", "current impact ask", "predeclared control"],
+    currentConstructionInputs: ["frozen physical prefix", "pre-contact planning state", "current impact ask", "predeclared control"],
     excludedConstructionInputs: ["outgoing duration", "outgoing axes", "next impact", "later contacts", "case id", "seed", "candidate score", "oracle outcomes"],
+    prefixCondition: "The frozen physical prefix is selected by a full-spec compiler traversal. The construction is target-blind conditional on that prefix; this assay is not end-to-end future-blind compiler evidence.",
+    positiveControl: "A fixed one-way horizontal rail proves the exact detector, role ownership, pre-event trace/collision guard, persistence, response, and off-beat path before phase rows can be interpreted.",
     endpoint: "The next contact time is used only after geometry is fixed as a detector observation boundary.",
     nonClaims: [
       "No row is a compiler candidate or a two-contact bridge witness.",
@@ -362,6 +446,7 @@ const document = {
     observationCandidateFingerprintAtStart: compilerAtStart.candidateFingerprint,
     observationCandidateFingerprintAtEnd: compilerAtEnd.candidateFingerprint,
   },
+  positiveControl,
   results,
 };
 const destination = identityStable
@@ -373,7 +458,7 @@ const destination = identityStable
   ));
 writeStudyArtifact(destination, document);
 process.stdout.write(formatSummary(document) + "\n");
-if (!identityStable || rowErrors > 0) process.exitCode = 2;
+if (!eligibleEvidence) process.exitCode = 2;
 
 function runScenario(scenario: Scenario): ScenarioResult {
   const setup = buildTrajectoryCaptureSetup(scenario.capture, benchmarkPolicy.transform);
@@ -381,7 +466,8 @@ function runScenario(scenario: Scenario): ScenarioResult {
     const prepared = prepareTrajectoryPrefix(scenario.capture, setup, CAPTURE_BUDGET);
     const prefixEngine = rebuildPhysicalPrefixEngine(prepared.physicalPrefix);
     const currentState = requireState(prefixEngine, prepared.current.endFrame, `${scenario.id} current target`);
-    const prefixTrace = exactEngineStateTraceFingerprint(prefixEngine, 0, prepared.current.startFrame - 1);
+    const preTargetGuardEndFrame = currentPreEventGuardEndFrame(prepared.current);
+    const prefixTrace = exactEngineStateTraceFingerprint(prefixEngine, 0, preTargetGuardEndFrame);
     const compact = evaluateFamily(
       makeCompactTwoContactControls({
         currentImpact: prepared.current.targets.impact,
@@ -389,6 +475,7 @@ function runScenario(scenario: Scenario): ScenarioResult {
       }),
       prefixEngine,
       prefixTrace,
+      preTargetGuardEndFrame,
       prepared.current,
       prepared.outgoing,
       prepared.physicalPrefix.prefixNextLineId,
@@ -399,6 +486,7 @@ function runScenario(scenario: Scenario): ScenarioResult {
       makeOracleTwoContactControls(ORACLE_CONTROL_COUNT),
       prefixEngine,
       prefixTrace,
+      preTargetGuardEndFrame,
       prepared.current,
       prepared.outgoing,
       prepared.physicalPrefix.prefixNextLineId,
@@ -426,6 +514,7 @@ function evaluateFamily(
   controls: readonly TwoContactPhaseControl[],
   prefixEngine: any,
   prefixTrace: ReturnType<typeof exactEngineStateTraceFingerprint>,
+  preTargetGuardEndFrame: number,
   current: Gap,
   outgoing: Gap,
   lineIdStart: number,
@@ -437,6 +526,7 @@ function evaluateFamily(
     control,
     prefixEngine,
     prefixTrace,
+    preTargetGuardEndFrame,
     current,
     outgoing,
     lineIdStart,
@@ -451,6 +541,7 @@ function evaluateControl(input: {
   control: TwoContactPhaseControl;
   prefixEngine: any;
   prefixTrace: ReturnType<typeof exactEngineStateTraceFingerprint>;
+  preTargetGuardEndFrame: number;
   current: Gap;
   outgoing: Gap;
   lineIdStart: number;
@@ -468,24 +559,25 @@ function evaluateControl(input: {
     const allPhaseLineIds = new Set(realized.lines.map((line) => line.id));
     const sledProximity = hasPreTargetSledProximityFromTrace(input.preTargetSledTrace, realized.lines);
     const candidateEngine = input.prefixEngine.addLine(realized.lines.map((line) => engineLineFromTrackLine(line)));
-    const preTargetTrace = exactEngineStateTraceFingerprint(candidateEngine, 0, input.current.startFrame - 1);
+    const preTargetTrace = exactEngineStateTraceFingerprint(candidateEngine, 0, input.preTargetGuardEndFrame);
     const preTargetCollisions = collisionHitsInRange(
       candidateEngine,
       0,
-      input.current.startFrame - 1,
+      input.preTargetGuardEndFrame,
       allPhaseLineIds,
     );
     const closureEndFrame = input.current.endFrame + CURRENT_CLOSURE_FRAMES_AFTER_TARGET;
-    const observationEndFrame = input.outgoing.endFrame + PERSISTENCE_FRAMES - 1;
-    const detection = detectWindow(candidateEngine, 0, observationEndFrame);
+    const outgoingObservationEndFrame = input.outgoing.endFrame + PERSISTENCE_FRAMES - 1;
+    const detectionEndFrame = Math.max(closureEndFrame, outgoingObservationEndFrame);
+    const detection = detectWindow(candidateEngine, 0, detectionEndFrame);
     const captureRoles = new Map<number, string>([
       [realized.lineRoles.captureApproach, "capture_approach"],
       [realized.lineRoles.captureSurface, "capture_surface"],
       ...realized.lineRoles.phaseTail.map((lineId) => [lineId, "phase_tail"] as const),
     ]);
-    const localContactFrames = input.allContactFrames.filter((frame) => frame <= closureEndFrame);
     const observation = observeOwnedContactTransition(detection, {
       targetFrame: input.current.endFrame,
+      observationStartFrame: input.current.endFrame - TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames,
       gapFrames: input.current.endFrame - input.current.startFrame,
       observationEndFrame: closureEndFrame,
       ownedLineIds: allPhaseLineIds,
@@ -493,40 +585,54 @@ function evaluateControl(input: {
       requiredLineRoles: ["capture_approach", "capture_surface"],
       persistenceOffsetFrames: PERSISTENCE_FRAMES,
       responseOffsetFrames: IMPACT_WINDOW,
+      timingToleranceFrames: TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames,
     });
-    const localOffBeat = splitOffBeatLandings(
-      detection,
-      localContactFrames,
-      input.current.startFrame,
-      closureEndFrame,
-    );
+    const localOffBeat = splitOffBeatLandings(detection, [input.current.endFrame], input.current.startFrame, closureEndFrame);
     const localComplete = survivesThroughFrame(detection, closureEndFrame) &&
       measurementLastFrame(detection) >= closureEndFrame;
-    const local: LocalOutcome = {
-      structurallyValid: !sledProximity &&
-        sameExactTrace(input.prefixTrace, preTargetTrace) &&
-        preTargetCollisions.length === 0 &&
-        observation.selectedOwnedEvent !== null &&
-        observation.persistenceWindowComplete &&
-        observation.responseWindowComplete &&
-        localComplete &&
-        localOffBeat.confirmedFrames.length === 0 &&
-        localOffBeat.unresolvedTailFrames.length === 0,
+    const permittedEventWindowPhaseCollisions = collisionHitsInRange(
+      candidateEngine,
+      input.current.endFrame - TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames,
       closureEndFrame,
+      allPhaseLineIds,
+    );
+    const rejectionReasons = localRejectionReasons({
+      sledProximity,
+      traceMatchesPrefix: sameExactTrace(input.prefixTrace, preTargetTrace),
+      preTargetCollisions,
+      observation,
+      complete: localComplete,
+      offBeat: localOffBeat,
+    });
+    const local: LocalOutcome = {
+      structurallyValid: rejectionReasons.length === 0,
+      closureEndFrame,
+      detectionEndFrame,
       complete: localComplete,
       selectedOwnedEvent: observation.selectedOwnedEvent,
+      closestOwnedEvent: observation.closestOwnedEvent,
+      contactObservation: {
+        observationStartFrame: input.current.endFrame - TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames,
+        observationEndFrame: closureEndFrame,
+        terminus: observation.terminus,
+        ownedEvents: observation.ownedEvents,
+        nearbyEvents: observation.nearbyEvents,
+      },
       persistenceWindowComplete: observation.persistenceWindowComplete,
       responseWindowComplete: observation.responseWindowComplete,
+      permittedEventWindowPhaseCollisions,
       confirmedOffBeatLandingFrames: localOffBeat.confirmedFrames,
       unresolvedTailOffBeatLandingFrames: localOffBeat.unresolvedTailFrames,
+      rejectionReasons,
     };
     return {
       index: input.index,
       status: "observed",
       error: null,
-      control: roundControl(input.control),
+      control: serializeControl(input.control),
       realized: summarizeRealized(realized),
       preTarget: {
+        guardEndFrame: input.preTargetGuardEndFrame,
         sledProximity,
         traceMatchesPrefix: sameExactTrace(input.prefixTrace, preTargetTrace),
         trace: preTargetTrace,
@@ -547,7 +653,7 @@ function evaluateControl(input: {
       index: input.index,
       status: "error",
       error: errorMessage(error),
-      control: roundControl(input.control),
+      control: serializeControl(input.control),
       realized: null,
       preTarget: null,
       local: null,
@@ -620,6 +726,29 @@ function observeOutgoingBoundary(
 }
 
 function summarizeRows(rows: readonly FamilyRow[]): FamilyResult["summary"] {
+  const emptySide = () => ({
+    attempted: 0,
+    observed: 0,
+    localStructuralValid: 0,
+    errors: 0,
+    localRejectionReasons: {} as Record<string, number>,
+  });
+  const byCollisionSide: FamilyResult["summary"]["byCollisionSide"] = {
+    toward_motion: emptySide(),
+    away_from_motion: emptySide(),
+  };
+  const localRejectionReasons: Record<string, number> = {};
+  for (const row of rows) {
+    const side = byCollisionSide[row.control.collisionSide];
+    side.attempted++;
+    if (row.status === "observed") side.observed++;
+    if (row.local?.structurallyValid === true) side.localStructuralValid++;
+    if (row.status === "error") side.errors++;
+    for (const reason of row.local?.rejectionReasons ?? []) {
+      localRejectionReasons[reason] = (localRejectionReasons[reason] ?? 0) + 1;
+      side.localRejectionReasons[reason] = (side.localRejectionReasons[reason] ?? 0) + 1;
+    }
+  }
   return {
     attempted: rows.length,
     observed: rows.filter((row) => row.status === "observed").length,
@@ -627,6 +756,8 @@ function summarizeRows(rows: readonly FamilyRow[]): FamilyResult["summary"] {
     completeOutgoingObservation: rows.filter((row) => row.outgoing?.complete === true).length,
     detectorRunwayReadyAtBoundary: rows.filter((row) => row.outgoing?.detectorRunwayResidualFrames === 0).length,
     errors: rows.filter((row) => row.status === "error").length,
+    byCollisionSide,
+    localRejectionReasons,
   };
 }
 
@@ -645,6 +776,7 @@ function summarizeCapture(
     nextTimeBoundaryFrame: prepared.outgoing.endFrame,
     intervalFrames: prepared.outgoingIntervalFrames,
     physicalPrefixFingerprint: prepared.physicalPrefixFingerprint,
+    physicalPrefix: prepared.physicalPrefix,
     materializedFingerprint: sha256(stableJson(materialized)),
     projection: prepared.projection,
     currentImpact: prepared.current.targets.impact ?? null,
@@ -679,6 +811,115 @@ function sameExactTrace(
     left.frameCount === right.frameCount &&
     left.unavailableAtFrame === right.unavailableAtFrame &&
     left.semantics === right.semantics;
+}
+
+function currentPreEventGuardEndFrame(current: Pick<Gap, "endFrame">): number {
+  const endFrame = current.endFrame - TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames - 1;
+  if (!Number.isSafeInteger(endFrame) || endFrame < 0) {
+    throw new Error(`current contact frame ${current.endFrame} cannot support the declared pre-event guard`);
+  }
+  return endFrame;
+}
+
+function localRejectionReasons(input: {
+  sledProximity: boolean;
+  traceMatchesPrefix: boolean;
+  preTargetCollisions: readonly unknown[];
+  observation: ReturnType<typeof observeOwnedContactTransition>;
+  complete: boolean;
+  offBeat: { confirmedFrames: readonly number[]; unresolvedTailFrames: readonly number[] };
+}): string[] {
+  const reasons: string[] = [];
+  if (input.sledProximity) reasons.push("pretarget_sled_proximity");
+  if (!input.traceMatchesPrefix) reasons.push("pretarget_engine_trace_changed");
+  if (input.preTargetCollisions.length > 0) reasons.push("pretarget_phase_collision");
+  if (input.observation.selectedOwnedEvent === null) reasons.push("no_eligible_owned_capture_event");
+  if (!input.observation.persistenceWindowComplete) reasons.push("persistence_window_incomplete");
+  if (!input.observation.responseWindowComplete) reasons.push("response_window_incomplete");
+  if (!input.complete) reasons.push("closure_horizon_incomplete");
+  if (input.offBeat.confirmedFrames.length > 0) reasons.push("confirmed_offbeat_landing");
+  if (input.offBeat.unresolvedTailFrames.length > 0) reasons.push("unresolved_tail_offbeat_landing");
+  return reasons;
+}
+
+/**
+ * Fixed end-to-end control for the observation path itself. It is not a
+ * compiler candidate and cannot influence a phase row: a falling rider meets
+ * one explicitly oriented rail at frame 13. The control exercises the same
+ * exact pre-event replay, line ownership, detector, persistence/response,
+ * and off-beat checks used by the assay rows.
+ */
+function runPositiveControl(): PositiveControlResult {
+  const prefixEngine = makeBaseEngine({ position: { x: 0, y: 0 }, velocity: { x: 1, y: 0 } });
+  const preEventGuardEndFrame = currentPreEventGuardEndFrame({ endFrame: POSITIVE_CONTROL_TARGET_FRAME });
+  const prefixTrace = exactEngineStateTraceFingerprint(prefixEngine, 0, preEventGuardEndFrame);
+  const candidateEngine = prefixEngine.addLine([engineLineFromTrackLine(POSITIVE_CONTROL_LINE)]);
+  const candidateTrace = exactEngineStateTraceFingerprint(candidateEngine, 0, preEventGuardEndFrame);
+  const lineIds = new Set([POSITIVE_CONTROL_LINE.id]);
+  const preTargetCollisions = collisionHitsInRange(candidateEngine, 0, preEventGuardEndFrame, lineIds);
+  const preTargetSledProximity = hasPreTargetSledProximityFromTrace(
+    readPreTargetSledTrace(prefixEngine, {
+      index: 0,
+      startFrame: 0,
+      endFrame: POSITIVE_CONTROL_TARGET_FRAME,
+      endsWithContact: true,
+      targets: {},
+    }),
+    [POSITIVE_CONTROL_LINE],
+  );
+  const observationEndFrame = POSITIVE_CONTROL_TARGET_FRAME + CURRENT_CLOSURE_FRAMES_AFTER_TARGET;
+  const detection = detectWindow(candidateEngine, 0, observationEndFrame);
+  const observation = observeOwnedContactTransition(detection, {
+    targetFrame: POSITIVE_CONTROL_TARGET_FRAME,
+    observationStartFrame: POSITIVE_CONTROL_TARGET_FRAME - TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames,
+    gapFrames: POSITIVE_CONTROL_TARGET_FRAME,
+    observationEndFrame,
+    ownedLineIds: lineIds,
+    lineRoles: new Map([[POSITIVE_CONTROL_LINE.id, "positive_control_capture"]]),
+    requiredLineRoles: ["positive_control_capture"],
+    persistenceOffsetFrames: PERSISTENCE_FRAMES,
+    responseOffsetFrames: IMPACT_WINDOW,
+    timingToleranceFrames: TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames,
+  });
+  const offBeat = splitOffBeatLandings(detection, [POSITIVE_CONTROL_TARGET_FRAME], 0, observationEndFrame);
+  const complete = survivesThroughFrame(detection, observationEndFrame) &&
+    measurementLastFrame(detection) >= observationEndFrame;
+  const permittedEventWindowCollisions = collisionHitsInRange(
+    candidateEngine,
+    POSITIVE_CONTROL_TARGET_FRAME - TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames,
+    observationEndFrame,
+    lineIds,
+  );
+  const failureReasons = localRejectionReasons({
+    sledProximity: preTargetSledProximity,
+    traceMatchesPrefix: sameExactTrace(prefixTrace, candidateTrace),
+    preTargetCollisions,
+    observation,
+    complete,
+    offBeat,
+  });
+  if (permittedEventWindowCollisions.length === 0) failureReasons.push("no_permitted_control_collision_witness");
+  return {
+    status: failureReasons.length === 0 ? "passed" : "failed",
+    targetFrame: POSITIVE_CONTROL_TARGET_FRAME,
+    preEventGuardEndFrame,
+    observationEndFrame,
+    line: { ...POSITIVE_CONTROL_LINE },
+    preTargetSledProximity,
+    preTargetTraceMatchesPrefix: sameExactTrace(prefixTrace, candidateTrace),
+    preTargetCollisions,
+    permittedEventWindowCollisions,
+    selectedOwnedEvent: observation.selectedOwnedEvent,
+    closestOwnedEvent: observation.closestOwnedEvent,
+    ownedEvents: observation.ownedEvents,
+    nearbyEvents: observation.nearbyEvents,
+    persistenceWindowComplete: observation.persistenceWindowComplete,
+    responseWindowComplete: observation.responseWindowComplete,
+    complete,
+    confirmedOffBeatLandingFrames: offBeat.confirmedFrames,
+    unresolvedTailOffBeatLandingFrames: offBeat.unresolvedTailFrames,
+    failureReasons,
+  };
 }
 
 function splitOffBeatLandings(
@@ -732,35 +973,37 @@ function summarizeRealized(realized: ReturnType<typeof realizeTwoContactPhase>) 
     lineHash: lineHash(realized.lines),
     lineCount: realized.lines.length,
     lineLength: round(lineLength(realized.lines)),
-    // This bounded assay emits only a few lines per row. Preserve their exact
-    // coordinates so a zero-closure result is inspectable rather than merely
-    // a hash mismatch that demands an ad-hoc rerun.
+    // This bounded assay emits only a few lines per row. Preserve IEEE-754
+    // values rather than inspection rounding so a row is replayable from its
+    // immutable evidence without an ad-hoc rerun.
     lines: realized.lines.map((line) => ({
       id: line.id,
       type: line.type,
-      x1: round(line.x1),
-      y1: round(line.y1),
-      x2: round(line.x2),
-      y2: round(line.y2),
+      x1: line.x1,
+      y1: line.y1,
+      x2: line.x2,
+      y2: line.y2,
       flipped: Boolean(line.flipped),
       leftExtended: Boolean(line.leftExtended),
       rightExtended: Boolean(line.rightExtended),
     })),
     segmentCount: realized.segmentCount,
-    contactPoint: roundPoint(realized.contactPoint),
-    entryAngleDeg: round(realized.entryAngleDeg),
-    exitAngleDeg: round(realized.exitAngleDeg),
+    contactPoint: { ...realized.contactPoint },
+    entryAngleDeg: realized.entryAngleDeg,
+    exitAngleDeg: realized.exitAngleDeg,
     lineRoles: { ...realized.lineRoles, phaseTail: [...realized.lineRoles.phaseTail] },
     anchor: {
       point: realized.anchor.point,
-      headingDeg: round(realized.anchor.headingDeg),
-      speedPxPerFrame: round(realized.anchor.speedPxPerFrame),
-      sledSpanPx: round(realized.anchor.sledSpanPx),
+      headingSource: realized.anchor.headingSource,
+      headingDeg: realized.anchor.headingDeg,
+      speedPxPerFrame: realized.anchor.speedPxPerFrame,
+      sledSpanPx: realized.anchor.sledSpanPx,
     },
     com: {
-      headingDeg: round(realized.com.headingDeg),
-      speedPxPerFrame: round(realized.com.speedPxPerFrame),
+      headingDeg: realized.com.headingDeg,
+      speedPxPerFrame: realized.com.speedPxPerFrame,
     },
+    orientation: structuredClone(realized.orientation),
   };
 }
 
@@ -776,24 +1019,25 @@ function summarizeState(state: PlanningState) {
   };
 }
 
-function roundControl(control: TwoContactPhaseControl) {
+function serializeControl(control: TwoContactPhaseControl) {
   return {
     phaseLookbackFrames: control.phaseLookbackFrames,
     chirality: control.chirality,
     tailAction: control.tailAction,
-    approachDeltaDeg: round(control.approachDeltaDeg),
-    turnDeg: round(control.turnDeg),
-    normalOffsetSledSpans: round(control.normalOffsetSledSpans),
-    tangentFrames: round(control.tangentFrames),
-    approachFrames: round(control.approachFrames),
+    collisionSide: control.collisionSide,
+    approachDeltaDeg: control.approachDeltaDeg,
+    turnDeg: control.turnDeg,
+    preloadSledSpans: control.preloadSledSpans,
+    tangentFrames: control.tangentFrames,
+    approachFrames: control.approachFrames,
     captureSurfaceFrames: control.captureSurfaceFrames,
     phaseHorizonFrames: control.phaseHorizonFrames,
-    flipped: control.flipped,
   };
 }
 
 function lineHash(lines: readonly TrackLine[]): string {
   return sha256(stableJson(lines.map((line) => ({
+    id: line.id,
     type: line.type,
     x1: line.x1,
     y1: line.y1,
@@ -859,9 +1103,15 @@ function canonicalProspectivePath(path: string): string {
   return resolve(realpathSync(existing), ...suffix);
 }
 
-function formatSummary(document: { results: readonly ScenarioResult[]; elapsedMs: number }): string {
+function formatSummary(document: {
+  results: readonly ScenarioResult[];
+  elapsedMs: number;
+  positiveControl: PositiveControlResult;
+  status: { protocolStatus: string; eligibleEvidence: boolean };
+}): string {
   const lines = [
-    `causal contact-phase response: ${document.results.length} scenario(s), ${round(document.elapsedMs)}ms`,
+    `causal contact-phase response: ${document.results.length} scenario(s), ${round(document.elapsedMs)}ms; ` +
+      `positive-control=${document.positiveControl.status}; status=${document.status.protocolStatus}`,
   ];
   for (const result of document.results) {
     if (result.status === "unavailable") {
@@ -869,13 +1119,19 @@ function formatSummary(document: { results: readonly ScenarioResult[]; elapsedMs
       continue;
     }
     lines.push(
-      `${result.id}: compact ${result.compact.summary.localStructuralValid}/${result.compact.summary.attempted} local, ` +
-      `${result.compact.summary.detectorRunwayReadyAtBoundary} runway; oracle ` +
-      `${result.oracle.summary.localStructuralValid}/${result.oracle.summary.attempted} local, ` +
-      `${result.oracle.summary.detectorRunwayReadyAtBoundary} runway`,
+      `${result.id}: compact ${formatFamilySummary(result.compact.summary)}; ` +
+      `oracle ${formatFamilySummary(result.oracle.summary)}`,
     );
   }
   return lines.join("\n");
+}
+
+function formatFamilySummary(summary: FamilyResult["summary"]): string {
+  const toward = summary.byCollisionSide.toward_motion;
+  const away = summary.byCollisionSide.away_from_motion;
+  return `toward=${toward.localStructuralValid}/${toward.attempted}, ` +
+    `away-diagnostic=${away.localStructuralValid}/${away.attempted}, ` +
+    `runway-ready=${summary.detectorRunwayReadyAtBoundary}`;
 }
 
 function round(value: number): number {

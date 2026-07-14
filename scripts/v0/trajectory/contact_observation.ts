@@ -68,6 +68,8 @@ export function observeOwnedContactTransition(
   det: Detection,
   input: {
     targetFrame: number;
+    /** Inclusive start of the local event window; defaults to frame zero. */
+    observationStartFrame?: number;
     gapFrames: number;
     observationEndFrame: number;
     ownedLineIds: ReadonlySet<number>;
@@ -84,12 +86,29 @@ export function observeOwnedContactTransition(
     persistenceOffsetFrames?: number;
     /** Independent scorer/response offset; defaults to persistence for generic callers. */
     responseOffsetFrames?: number;
+    /**
+     * Maximum authored-frame displacement accepted for the selected local
+     * event. Defaults to the historical +/-1 detector convention; callers
+     * with a sealed protocol should pass their declared value explicitly.
+     */
+    timingToleranceFrames?: number;
   },
 ): OwnedContactObservation {
+  const timingToleranceFrames = input.timingToleranceFrames ?? 1;
+  if (!Number.isSafeInteger(timingToleranceFrames) || timingToleranceFrames < 0) {
+    throw new Error(`timingToleranceFrames must be a non-negative safe integer, got ${timingToleranceFrames}`);
+  }
+  const observationStartFrame = input.observationStartFrame ?? 0;
+  if (!Number.isSafeInteger(observationStartFrame) || observationStartFrame < 0) {
+    throw new Error(`observationStartFrame must be a non-negative safe integer, got ${observationStartFrame}`);
+  }
+  if (observationStartFrame > input.observationEndFrame) {
+    throw new Error(`observationStartFrame ${observationStartFrame} exceeds observationEndFrame ${input.observationEndFrame}`);
+  }
   const ownedLineIds = new Set(input.ownedLineIds);
   const nearbyEvents = det.events
-    .filter((event) => event.frame <= input.observationEndFrame)
-    .map((event) => summarizeEvent(event, det, { ...input, ownedLineIds }));
+    .filter((event) => event.frame >= observationStartFrame && event.frame <= input.observationEndFrame)
+    .map((event) => summarizeEvent(event, det, { ...input, ownedLineIds, timingToleranceFrames }));
   const ownedEvents = nearbyEvents.filter((event) => event.ownedLineIds.length > 0);
   const closestOwnedEvent = selectClosest(ownedEvents);
   const selectedOwnedEvent = selectPreferred(ownedEvents);
@@ -169,6 +188,7 @@ function summarizeEvent(
     ownedLineIds: ReadonlySet<number>;
     lineRoles?: ReadonlyMap<number, string>;
     requiredLineRoles?: readonly string[];
+    timingToleranceFrames: number;
   },
 ): OwnedContactEvent {
   const contactLineIds = postimpactContactLineIdsAt(det, event.frame)
@@ -186,7 +206,8 @@ function summarizeEvent(
     contactLineIds,
     ownedLineIds,
     lineRoles,
-    gateEligible: postimpactIsAuthoredContactEvent(event, input.gapFrames) && Math.abs(timingErrorFrames) <= 1,
+    gateEligible: postimpactIsAuthoredContactEvent(event, input.gapFrames) &&
+      Math.abs(timingErrorFrames) <= input.timingToleranceFrames,
     roleEligible: input.requiredLineRoles === undefined ||
       lineRoles.some((role) => input.requiredLineRoles!.includes(role)),
   };

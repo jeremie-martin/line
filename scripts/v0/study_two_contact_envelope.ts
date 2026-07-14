@@ -81,7 +81,8 @@ if (argv.includes("--help") || argv.includes("-h")) {
 }
 
 const CAPTURE_BUDGET = 500_000;
-const CURRENT_RESPONSE_HORIZON = Math.max(PERSISTENCE_FRAMES, IMPACT_WINDOW);
+const CURRENT_CLOSURE_FRAMES_AFTER_TARGET = TWO_CONTACT_PHASE_PROTOCOL.fixedResponseHorizonFrames +
+  TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames;
 const ORACLE_CONTROL_COUNT = TWO_CONTACT_PHASE_PROTOCOL.oracleCount;
 
 type ScenarioKind = "dense" | "pickup" | "ordinary" | "impact_led";
@@ -283,7 +284,7 @@ const protocolFingerprint = sha256(stableJson({
   captureBudget: CAPTURE_BUDGET,
   phase: TWO_CONTACT_PHASE_PROTOCOL,
   oracleControlCount: ORACLE_CONTROL_COUNT,
-  currentResponseHorizon: CURRENT_RESPONSE_HORIZON,
+  currentClosureFramesAfterTarget: CURRENT_CLOSURE_FRAMES_AFTER_TARGET,
   endpoint: "known next time boundary only; no continuation generation, scoring, or selection",
   preTargetGuards: ["full_engine_trace", "all_body_collision", "sled_proximity"],
   localGuards: ["owned_capture_roles", "persistence", "impact_window", "survival", "no_confirmed_or_unresolved_offbeat"],
@@ -474,7 +475,7 @@ function evaluateControl(input: {
       input.current.startFrame - 1,
       allPhaseLineIds,
     );
-    const closureEndFrame = input.current.endFrame + CURRENT_RESPONSE_HORIZON;
+    const closureEndFrame = input.current.endFrame + CURRENT_CLOSURE_FRAMES_AFTER_TARGET;
     const observationEndFrame = input.outgoing.endFrame + PERSISTENCE_FRAMES - 1;
     const detection = detectWindow(candidateEngine, 0, observationEndFrame);
     const captureRoles = new Map<number, string>([

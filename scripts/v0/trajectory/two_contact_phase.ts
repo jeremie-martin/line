@@ -15,6 +15,8 @@ import { targetFrameFromPlanningState } from "./target_frame.ts";
 
 export const TWO_CONTACT_PHASE_PROTOCOL = Object.freeze({
   fixedResponseHorizonFrames: Math.max(PERSISTENCE_FRAMES, IMPACT_WINDOW),
+  /** The owned-event reader accepts an event within +/-1 authored frame. */
+  maxOwnedEventOffsetFrames: 1,
   captureSurfaceFrames: 1,
   compactPhaseLookbackFrames: [0, 2, 4] as const,
   compactApproachFrames: 2,

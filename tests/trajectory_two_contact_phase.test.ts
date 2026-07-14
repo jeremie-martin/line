@@ -44,6 +44,8 @@ describe("two-contact phase controls", () => {
     expect(new Set(controls.map((control) => control.phaseHorizonFrames))).toEqual(
       new Set([TWO_CONTACT_PHASE_PROTOCOL.fixedResponseHorizonFrames]),
     );
+    expect(TWO_CONTACT_PHASE_PROTOCOL.fixedResponseHorizonFrames +
+      TWO_CONTACT_PHASE_PROTOCOL.maxOwnedEventOffsetFrames).toBe(7);
     expect(controls.filter((control) => control.tailAction === "neutral")).toHaveLength(6);
     expect(controls.filter((control) => control.tailAction === "directed")).toHaveLength(6);
     expect(controls.map((control) => control.phaseLookbackFrames).sort()).toEqual([

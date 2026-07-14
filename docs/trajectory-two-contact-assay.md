@@ -16,6 +16,9 @@ primitive close the current owned contact without reading future targets?
 - Exact replay verifies full physical-prefix identity and zero proposed-line
   collision before the current gap. An owned current event must touch the
   approach or capture-surface role; a phase-tail collision alone cannot pass.
+- The construction itself is six frames. Verification extends one additional
+  frame because an on-time detector event may be one frame late and still
+  requires the full six-frame response window.
 - The next contact's *time* is a reporting boundary only. The artifact reports
   full interval occupancy, trailing airborne frames, phase-line collisions,
   terminal state, and off-beat telemetry. It does not generate or rank an

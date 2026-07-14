@@ -21,7 +21,15 @@ import {
 import { sameLongCarrierReplicationExecutionBinding } from "./trajectory/long_carrier_replication_identity.ts";
 import { longCarrierReplicationCandidateIdentity } from "./trajectory/long_carrier_replication_candidate.ts";
 import { longCarrierReplicationSourceIdentity } from "./trajectory/long_carrier_replication_source.ts";
-import { assertLongCarrierReplicationRuntimeEnvironment } from "./trajectory/long_carrier_replication_runtime.ts";
+import {
+  assertFixtureMatchesLongCarrierReplicationFeasibility,
+  assertQualifiedLongCarrierReplicationFeasibility,
+  type LongCarrierReplicationFeasibilityRecord,
+} from "./trajectory/long_carrier_replication_feasibility.ts";
+import {
+  assertLongCarrierReplicationRuntimeEnvironment,
+  longCarrierReplicationCaptureRuntimeIdentity,
+} from "./trajectory/long_carrier_replication_runtime.ts";
 import {
   LONG_CARRIER_REPLICATION_DECLARATION_SCHEMA,
   LONG_CARRIER_REPLICATION_EVENT_SCHEMA,
@@ -41,6 +49,7 @@ import {
 
 const CONTROLLER_PATH = "scripts/v0/run_long_carrier_replication.ts";
 const VERIFIER_PATH = "scripts/v0/verify_long_carrier_replication.ts";
+const FEASIBILITY_PATH = "scripts/v0/run_long_carrier_replication_feasibility.ts";
 const CAPTURE_PATH = "scripts/v0/capture_long_carrier_replication_fixture.ts";
 const ASSAY_PATH = "scripts/v0/study_long_carrier_duration_response.ts";
 
@@ -48,6 +57,7 @@ type DeclarationContract = {
   executable: string;
   publicationRoot: string;
   cases: readonly LongCarrierReplicationCase[];
+  feasibility: LongCarrierReplicationFeasibilityRecord;
 };
 
 type ExpectedInvocation = {
@@ -114,11 +124,7 @@ function parseArguments(values: readonly string[]): { outDir: string; requireCur
   return { outDir: resolve(outputs[0]!), requireCurrentIdentity: requireCurrentIdentity.length === 1 };
 }
 
-/**
- * V1 is the retained compatibility contract for this reader. The declaration
- * is self-describing, but it must also match the supported V1 contract; a
- * structurally valid alternate decision rule cannot borrow this assessor.
- */
+/** The declaration must match the one supported V3 protocol exactly. */
 function assertDeclaration(declaration: Record<string, unknown>): DeclarationContract {
   const protocol = record(declaration.protocol, "declaration protocol");
   if (
@@ -148,11 +154,34 @@ function assertDeclaration(declaration: Record<string, unknown>): DeclarationCon
     throw new Error("declaration definition source fingerprints do not exactly cover its source closure");
   }
   assertExpectedIdentityShape(declaration);
+  const execution = record(declaration.execution, "declaration execution");
+  const feasibilitySource = record(execution.feasibilitySourceIdentity, "declaration feasibility source identity");
+  const captureSource = record(execution.captureSourceIdentity, "declaration capture source identity");
+  const captureRuntime = record(execution.captureRuntime, "declaration capture runtime identity");
+  const candidate = record(execution.captureCandidate, "declaration capture candidate");
+  const panelSourceFingerprints = Object.fromEntries([...new Set(
+    LONG_CARRIER_REPLICATION_PROTOCOL.cases.map((entry) => entry.sourcePath),
+  )].sort().map((path) => [path, string(fingerprints[path], `source fingerprint for ${path}`)]));
+  assertQualifiedLongCarrierReplicationFeasibility(
+    declaration.captureFeasibility,
+    {
+      feasibilitySourceFingerprint: string(feasibilitySource.fingerprint, "feasibility source fingerprint"),
+      captureSourceFingerprint: string(captureSource.fingerprint, "capture source fingerprint"),
+      captureRuntimeFingerprint: string(captureRuntime.fingerprint, "capture runtime fingerprint"),
+      captureCandidateFingerprint: string(candidate.candidateFingerprint, "capture candidate fingerprint"),
+      panelSourceFingerprints,
+    },
+  );
   const publicationRoot = string(declaration.publicationRoot, "declaration publication root");
   if (resolve(publicationRoot) !== publicationRoot) {
     throw new Error("declaration publication root must be an absolute normalized path");
   }
-  return { executable, publicationRoot, cases: LONG_CARRIER_REPLICATION_PROTOCOL.cases };
+  return {
+    executable,
+    publicationRoot,
+    cases: LONG_CARRIER_REPLICATION_PROTOCOL.cases,
+    feasibility: declaration.captureFeasibility as LongCarrierReplicationFeasibilityRecord,
+  };
 }
 
 /** Only strict compatibility verification touches the current worktree. */
@@ -161,13 +190,15 @@ function assertCurrentIdentity(declaration: Record<string, unknown>): void {
   const expected = {
     controllerSourceIdentity: longCarrierReplicationSourceIdentity(CONTROLLER_PATH),
     verifierSourceIdentity: longCarrierReplicationSourceIdentity(VERIFIER_PATH),
+    feasibilitySourceIdentity: longCarrierReplicationSourceIdentity(FEASIBILITY_PATH),
     captureSourceIdentity: longCarrierReplicationSourceIdentity(CAPTURE_PATH),
+    captureRuntime: longCarrierReplicationCaptureRuntimeIdentity(),
     assaySourceIdentity: postimpactAssaySourceIdentity(ASSAY_PATH),
     captureCandidate: longCarrierReplicationCandidateIdentity("wasm"),
     assayRuntime: postimpactAssayRuntimeIdentity(),
   };
   if (!sameLongCarrierReplicationExecutionBinding(execution, expected)) {
-    throw new Error("current controller, runner, compiler candidate, assay source, or runtime identity differs from the declaration");
+    throw new Error("current controller, verifier, feasibility, capture, compiler candidate, assay source, or runtime identity differs from the declaration");
   }
 }
 
@@ -232,7 +263,16 @@ function evidenceFromEvents(
     };
     assayExpected.argv = [contract.executable, ...assayExpected.nodeArgv];
     const captureEvent = oneResult(resultEvents, "capture", entry.id, ordinal);
-    const capture = inspectCaptureResult(root, captureEvent, planEvents, usedPlans, declarationFingerprint, captureExpected);
+    const capture = inspectCaptureResult(
+      root,
+      captureEvent,
+      planEvents,
+      usedPlans,
+      declarationFingerprint,
+      captureExpected,
+      entry,
+      contract.feasibility,
+    );
     const assayEvent = oneResult(resultEvents, "assay", entry.id, ordinal);
     const assay = inspectAssayResult(
       root,
@@ -280,6 +320,8 @@ function inspectCaptureResult(
   usedPlans: Set<string>,
   declarationFingerprint: string,
   expected: ExpectedInvocation,
+  entry: LongCarrierReplicationCase,
+  feasibility: LongCarrierReplicationFeasibilityRecord,
 ): InspectedCapture {
   assertExecutedResult(event, plans, usedPlans, declarationFingerprint, expected);
   const classification = string(event.classification, "capture classification");
@@ -289,15 +331,23 @@ function inspectCaptureResult(
   const publication = assertPublicationInventory(root, event, expected.requestedArtifactPath, true);
   const exitCode = childExitCode(event);
   const fixture = loadFixtureFromEvent(root, event, expected, publication);
+  const feasibilityError = fixtureFeasibilityError(fixture, entry, feasibility);
   if (classification === "captured") {
     if (!childCompletedSuccessfully(event) || publication.artifactPath !== expected.requestedArtifactPath ||
-        stableJson(publication.paths) !== stableJson([expected.requestedArtifactPath]) || fixture === null) {
+        stableJson(publication.paths) !== stableJson([expected.requestedArtifactPath]) || fixture === null || feasibilityError !== null) {
       throw new Error("captured result lacks one successful normal fixture publication");
     }
   }
   if (classification === "invalid" && exitCode === 0 && publication.artifactPath === expected.requestedArtifactPath &&
       stableJson(publication.paths) === stableJson([expected.requestedArtifactPath]) && fixture !== null) {
-    throw new Error("invalid capture result is indistinguishable from a successful normal capture");
+    const artifactError = nullableString(event.artifactError, "invalid capture feasibility error");
+    if (
+      feasibilityError === null ||
+      artifactError === null ||
+      artifactError !== feasibilityError
+    ) {
+      throw new Error("invalid capture result is indistinguishable from a successful normal capture");
+    }
   }
   if (classification === "invalid" && fixture !== null && publication.artifactPath !== null &&
       publication.artifactPath !== expected.requestedArtifactPath) {
@@ -305,6 +355,20 @@ function inspectCaptureResult(
     if (identityCheck?.stable !== false) throw new Error("forensic fixture publication does not attest identity drift");
   }
   return { classification, exitCode, fixture };
+}
+
+function fixtureFeasibilityError(
+  fixture: Record<string, unknown> | null,
+  entry: LongCarrierReplicationCase,
+  feasibility: LongCarrierReplicationFeasibilityRecord,
+): string | null {
+  if (fixture === null) return null;
+  try {
+    assertFixtureMatchesLongCarrierReplicationFeasibility(fixture, entry, feasibility);
+    return null;
+  } catch (error) {
+    return `fixture does not reproduce sealed feasibility witness: ${errorMessage(error)}`;
+  }
 }
 
 function inspectAssayResult(
@@ -462,12 +526,14 @@ function oneResult(
 function expectedIdentities(declaration: Record<string, unknown>): LongCarrierReplicationExpectedIdentities {
   const execution = record(declaration.execution, "declaration execution");
   const captureSource = record(execution.captureSourceIdentity, "declaration capture source identity");
+  const captureRuntime = record(execution.captureRuntime, "declaration capture runtime identity");
   const candidate = record(execution.captureCandidate, "declaration capture candidate");
   const assaySource = record(execution.assaySourceIdentity, "declaration assay source identity");
   const runtime = record(execution.assayRuntime, "declaration assay runtime");
   return {
     captureStudySourceFingerprint: string(captureSource.fingerprint, "capture source fingerprint"),
     captureCandidateFingerprint: string(candidate.candidateFingerprint, "capture candidate fingerprint"),
+    captureRuntimeFingerprint: string(captureRuntime.fingerprint, "capture runtime fingerprint"),
     assaySourceFingerprint: string(assaySource.fingerprint, "assay source fingerprint"),
     assayRuntimeFingerprint: string(runtime.fingerprint, "assay runtime fingerprint"),
   };
@@ -475,7 +541,14 @@ function expectedIdentities(declaration: Record<string, unknown>): LongCarrierRe
 
 function assertExpectedIdentityShape(declaration: Record<string, unknown>): void {
   const expected = expectedIdentities(declaration);
-  if (Object.values(expected).some((value) => !isSha256(value))) {
+  const execution = record(declaration.execution, "declaration execution");
+  const feasibility = record(execution.feasibilitySourceIdentity, "declaration feasibility source identity");
+  const captureRuntime = record(execution.captureRuntime, "declaration capture runtime identity");
+  if (
+    Object.values(expected).some((value) => !isSha256(value)) ||
+    !isSha256(string(feasibility.fingerprint, "feasibility source fingerprint")) ||
+    !isSha256(string(captureRuntime.fingerprint, "capture runtime fingerprint"))
+  ) {
     throw new Error("declaration execution identities must be SHA-256 fingerprints");
   }
 }
@@ -531,4 +604,8 @@ function isSha256(value: string): boolean {
 
 function isGitObjectId(value: string): boolean {
   return /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

@@ -7,8 +7,8 @@
  */
 import acceleratingLowAir475 from "./validation_specs/accelerating_low_air_475.ts";
 import deceleratingLowAir625 from "./validation_specs/decelerating_low_air_625.ts";
-import openHighAir195 from "./validation_specs/open_high_air_195.ts";
 import ordinaryPartialAxes115 from "./validation_specs/ordinary_partial_axes_115.ts";
+import rampedHighAirReentry195 from "./validation_specs/ramped_high_air_reentry_195.ts";
 import sparseLowAir725 from "./validation_specs/sparse_low_air_725.ts";
 import syncopatedLowAir425 from "./validation_specs/syncopated_low_air_425.ts";
 import {
@@ -29,7 +29,7 @@ const SPECS: Readonly<Record<string, Spec>> = Object.freeze({
   decelerating_low_air_625: deceleratingLowAir625,
   sparse_low_air_725: sparseLowAir725,
   ordinary_partial_axes_115: ordinaryPartialAxes115,
-  open_high_air_195: openHighAir195,
+  ramped_high_air_reentry_195: rampedHighAirReentry195,
 });
 
 export const LONG_CARRIER_REPLICATION_CAPTURE_CASES: readonly TrajectoryCaptureCase[] = Object.freeze(

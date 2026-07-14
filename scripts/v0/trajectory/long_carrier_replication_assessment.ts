@@ -40,6 +40,7 @@ export type LongCarrierReplicationVerdict =
 export type LongCarrierReplicationExpectedIdentities = {
   captureStudySourceFingerprint: string;
   captureCandidateFingerprint: string;
+  captureRuntimeFingerprint: string;
   assaySourceFingerprint: string;
   assayRuntimeFingerprint: string;
 };
@@ -63,6 +64,7 @@ type CaseAssessment = {
   identities: {
     captureStudySourceFingerprint: string;
     captureCandidateFingerprint: string;
+    captureRuntimeFingerprint: string;
     assaySourceFingerprint: string;
     assayRuntimeFingerprint: string;
     assayProtocolFingerprint: string;
@@ -70,7 +72,7 @@ type CaseAssessment = {
 };
 
 export type LongCarrierReplicationAssessment = {
-  schema: "line.long-carrier-replication-assessment.v2";
+  schema: "line.long-carrier-replication-assessment.v3";
   scope: typeof LONG_CARRIER_REPLICATION_SCOPE;
   verdict: LongCarrierReplicationVerdict;
   reason: string;
@@ -83,6 +85,7 @@ export type LongCarrierReplicationAssessment = {
   identities: {
     captureStudySourceFingerprints: string[];
     captureCandidateFingerprints: string[];
+    captureRuntimeFingerprints: string[];
     assaySourceFingerprints: string[];
     assayRuntimeFingerprints: string[];
     assayProtocolFingerprints: string[];
@@ -218,16 +221,22 @@ function validateFixture(entry: LongCarrierReplicationCase, fixture: Record<stri
   if (panel === null || capture === null) return "fixture lacks declared panel or capture provenance";
   const identityCheck = record(capture.identityCheck);
   const captureIdentity = record(capture.captureIdentity);
+  const runtimeIdentity = record(capture.runtimeIdentity);
   const runtime = record(capture.runtime);
   const transform = record(fixture.transform);
   const prefix = record(fixture.physicalPrefix);
   const baseline = record(fixture.baseline);
   const materialized = record(fixture.materialized);
   const materializedGaps = materialized === null ? null : array(materialized.gaps);
-  if (identityCheck === null || captureIdentity === null || runtime === null || transform === null || prefix === null || baseline === null || materializedGaps === null) {
+  if (identityCheck === null || captureIdentity === null || runtimeIdentity === null || runtime === null || transform === null || prefix === null || baseline === null || materializedGaps === null) {
     return "fixture lacks capture identity or materialized-prefix fields";
   }
   if (identityCheck.stable !== true) return "fixture capture identity drifted";
+  if (
+    !isSha256(runtimeIdentity.fingerprint) ||
+    identityCheck.captureRuntimeFingerprintAtStart !== runtimeIdentity.fingerprint ||
+    identityCheck.captureRuntimeFingerprintAtEnd !== runtimeIdentity.fingerprint
+  ) return "fixture capture runtime identity differs from its stable endpoint provenance";
   if (
     panel.id !== entry.id ||
     panel.cohort !== "validation" ||
@@ -255,19 +264,27 @@ function validateFixture(entry: LongCarrierReplicationCase, fixture: Record<stri
     projection.rule !== PHYSICAL_PREFIX_DONOR_SELECTION_RULE ||
     !Number.isSafeInteger(projection.donorGap) ||
     projection.donorGap < entry.targetGap ||
-    typeof projection.donorPhase !== "string" ||
+    projection.donorGap >= materializedGaps.length ||
+    projection.donorSkippedContacts !== 0 ||
+    (projection.donorPhase !== "main" && projection.donorPhase !== "tail" && projection.donorPhase !== "polish") ||
     !Number.isSafeInteger(projection.donorCallbackOrdinal) ||
     projection.donorCallbackOrdinal < 1 ||
     !Number.isSafeInteger(projection.donorSimFrames) ||
     projection.donorSimFrames < 0 ||
     projection.projectedTargetGap !== entry.targetGap ||
+    !Number.isSafeInteger(baseline.deepestGap) ||
+    baseline.deepestGap < projection.donorGap ||
     (projection.directTargetCallbackOrdinal !== null &&
       (!Number.isSafeInteger(projection.directTargetCallbackOrdinal) ||
-        projection.directTargetCallbackOrdinal !== projection.donorCallbackOrdinal ||
-        projection.donorGap !== entry.targetGap)) ||
-    (projection.directTargetCallbackOrdinal === null && baseline.targetPrefixSimFrames !== null) ||
+        projection.directTargetCallbackOrdinal < 1 ||
+        projection.directTargetCallbackOrdinal > projection.donorCallbackOrdinal ||
+        !Number.isSafeInteger(projection.directTargetSimFrames) ||
+        projection.directTargetSimFrames < 0 ||
+        projection.directTargetSimFrames > projection.donorSimFrames)) ||
+    (projection.directTargetCallbackOrdinal === null &&
+      (projection.directTargetSimFrames !== null || baseline.targetPrefixSimFrames !== null)) ||
     (projection.directTargetCallbackOrdinal !== null &&
-      (!Number.isSafeInteger(baseline.targetPrefixSimFrames) || baseline.targetPrefixSimFrames !== projection.donorSimFrames))
+      baseline.targetPrefixSimFrames !== projection.directTargetSimFrames)
   ) return "fixture does not attest the preregistered physical-prefix projection";
   if (
     stableJson(transform.value) !== stableJson(LONG_CARRIER_REPLICATION_PROTOCOL.capture.transform) ||
@@ -340,6 +357,7 @@ function inspectAssay(
   }
   const capture = record(fixture.capture)!;
   const runtime = record(capture.runtime)!;
+  const captureRuntime = record(capture.runtimeIdentity)!;
   if (
     auditRuntime.engine !== runtime.engine ||
     auditRuntime.captureBudget !== capture.captureBudget ||
@@ -364,6 +382,7 @@ function inspectAssay(
   const identities = {
     captureStudySourceFingerprint: string(capture.studySourceFingerprint),
     captureCandidateFingerprint: string(captureIdentity.captureCandidateFingerprint),
+    captureRuntimeFingerprint: string(captureRuntime.fingerprint),
     assaySourceFingerprint: string(identity.sourceFingerprint),
     assayRuntimeFingerprint: string(identity.runtimeFingerprint),
     assayProtocolFingerprint: string(identity.protocolFingerprint),
@@ -482,7 +501,7 @@ function result(
   reason: string,
 ): LongCarrierReplicationAssessment {
   return {
-    schema: "line.long-carrier-replication-assessment.v2",
+    schema: "line.long-carrier-replication-assessment.v3",
     scope: LONG_CARRIER_REPLICATION_SCOPE,
     verdict,
     reason,
@@ -498,6 +517,7 @@ function identitySummary(cases: readonly CaseAssessment[]): LongCarrierReplicati
   return {
     captureStudySourceFingerprints: unique(values.map((entry) => entry.captureStudySourceFingerprint)),
     captureCandidateFingerprints: unique(values.map((entry) => entry.captureCandidateFingerprint)),
+    captureRuntimeFingerprints: unique(values.map((entry) => entry.captureRuntimeFingerprint)),
     assaySourceFingerprints: unique(values.map((entry) => entry.assaySourceFingerprint)),
     assayRuntimeFingerprints: unique(values.map((entry) => entry.assayRuntimeFingerprint)),
     assayProtocolFingerprints: unique(values.map((entry) => entry.assayProtocolFingerprint)),
@@ -516,6 +536,8 @@ function matchesExpectedIdentities(
     identities.captureStudySourceFingerprints[0] === expected.captureStudySourceFingerprint &&
     identities.captureCandidateFingerprints.length === 1 &&
     identities.captureCandidateFingerprints[0] === expected.captureCandidateFingerprint &&
+    identities.captureRuntimeFingerprints.length === 1 &&
+    identities.captureRuntimeFingerprints[0] === expected.captureRuntimeFingerprint &&
     identities.assaySourceFingerprints.length === 1 &&
     identities.assaySourceFingerprints[0] === expected.assaySourceFingerprint &&
     identities.assayRuntimeFingerprints.length === 1 &&

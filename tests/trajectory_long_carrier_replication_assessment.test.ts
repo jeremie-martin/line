@@ -85,6 +85,18 @@ describe("long-carrier replication assessment", () => {
     expect(assessLongCarrierReplication(cohort, LONG_CARRIER_TEST_IDENTITIES).verdict).toBe("invalid");
   });
 
+  test("rejects impossible donor provenance even when the fixture and assay are resealed", () => {
+    const cohort = validLongCarrierReplicationCohort();
+    resealFixtureAndRebindAssay(cohort[0]!, (fixture) => {
+      fixture.capture.prefixProjection.donorGap = fixture.materialized.gaps.length;
+      fixture.capture.prefixProjection.directTargetCallbackOrdinal = null;
+      fixture.capture.prefixProjection.directTargetSimFrames = null;
+      fixture.baseline.targetPrefixSimFrames = null;
+    });
+
+    expect(assessLongCarrierReplication(cohort, LONG_CARRIER_TEST_IDENTITIES).verdict).toBe("invalid");
+  });
+
   test("rejects a structurally sealed fixture with a non-preregistered capture transform", () => {
     const cohort = validLongCarrierReplicationCohort();
     resealFixtureAndRebindAssay(cohort[0]!, (fixture) => {

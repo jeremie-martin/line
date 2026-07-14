@@ -42,14 +42,17 @@ export type PostimpactFrozenTrajectoryFixtureV3 = {
     runtime: { node: string; engine: string; relevantEnvironment: Record<string, string> };
     elapsedMs: number;
     captureBudget: number;
+    runtimeIdentity?: { fingerprint: string };
     prefixProjection?: {
       rule: string;
       donorGap: number;
+      donorSkippedContacts: number;
       donorPhase: string;
       donorCallbackOrdinal: number;
       donorSimFrames: number;
       projectedTargetGap: number;
       directTargetCallbackOrdinal: number | null;
+      directTargetSimFrames: number | null;
     };
     studySourceFingerprint: string;
     studySourceFiles: string[];
@@ -134,6 +137,8 @@ export type PostimpactCaptureIdentityCheck = {
   studySourceFingerprintAtEnd: string;
   captureCandidateFingerprintAtStart: string;
   captureCandidateFingerprintAtEnd: string;
+  captureRuntimeFingerprintAtStart?: string;
+  captureRuntimeFingerprintAtEnd?: string;
 };
 
 export type PostimpactMaterializedGap = {
@@ -388,6 +393,20 @@ function assertV3CaptureIdentity(fixture: PostimpactFrozenTrajectoryFixtureV3, l
       fixture.capture.captureCompilerAtEnd === undefined) {
     throw new Error(`${label}: V3 capture is missing its end-provenance check`);
   }
+  const recordsRuntimeProvenance = fixture.capture.runtimeIdentity !== undefined ||
+    check.captureRuntimeFingerprintAtStart !== undefined ||
+    check.captureRuntimeFingerprintAtEnd !== undefined;
+  if (recordsRuntimeProvenance) {
+    if (
+      !isRecord(fixture.capture.runtimeIdentity) ||
+      typeof fixture.capture.runtimeIdentity.fingerprint !== "string" ||
+      typeof check.captureRuntimeFingerprintAtStart !== "string" ||
+      typeof check.captureRuntimeFingerprintAtEnd !== "string" ||
+      fixture.capture.runtimeIdentity.fingerprint !== check.captureRuntimeFingerprintAtStart
+    ) {
+      throw new Error(`${label}: V3 capture runtime identity does not bind its start provenance`);
+    }
+  }
   if (identity.studySourceFingerprint !== fixture.capture.studySourceFingerprint ||
       identity.captureCandidateFingerprint !== check.captureCandidateFingerprintAtStart ||
       identity.studySourceFingerprint !== check.studySourceFingerprintAtStart ||
@@ -407,7 +426,8 @@ function assertV3CaptureIdentity(fixture: PostimpactFrozenTrajectoryFixtureV3, l
   const endpointPairsEqual =
     check.panelSourceFingerprintAtStart === check.panelSourceFingerprintAtEnd &&
     check.studySourceFingerprintAtStart === check.studySourceFingerprintAtEnd &&
-    check.captureCandidateFingerprintAtStart === check.captureCandidateFingerprintAtEnd;
+    check.captureCandidateFingerprintAtStart === check.captureCandidateFingerprintAtEnd &&
+    (!recordsRuntimeProvenance || check.captureRuntimeFingerprintAtStart === check.captureRuntimeFingerprintAtEnd);
   if (check.stable !== endpointPairsEqual) {
     throw new Error(`${label}: V3 capture stability does not match its endpoint identities`);
   }

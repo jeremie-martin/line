@@ -15,7 +15,7 @@ import {
 import type { LeafKey } from "../optimizer/register.ts";
 import { nextContactGap } from "../optimizer/objective.ts";
 import { scoreDriftReport } from "../score.ts";
-import { FPS, type Gap } from "../types.ts";
+import { FPS, type CompileCheckpoint, type Gap } from "../types.ts";
 import {
   makePhysicalPrefixFixtureAtGap,
   replayHandoffPrefix,
@@ -58,11 +58,47 @@ export type CapturedTrajectoryPrefix = {
   };
 };
 
-export function captureTrajectoryPrefix(
+/** A declared prefix reconstructed without exposing a compiler score or report. */
+export type PreparedTrajectoryPrefix = {
+  current: Gap;
+  outgoing: Gap;
+  outgoingIntervalFrames: number;
+  physicalPrefix: PhysicalPrefixFixture;
+  physicalPrefixFingerprint: string;
+  targetPlanningState: PlanningState;
+  targetProbeState: unknown;
+  preTargetSledTrace: number[];
+  projection: PhysicalPrefixProjection;
+};
+
+/** Mechanical unavailability is distinct from an invalid replay/provenance failure. */
+export class TrajectoryPrefixUnavailableError extends Error {
+  constructor(
+    readonly code: "no_clean_donor" | "target_unreached",
+    message: string,
+  ) {
+    super(message);
+    this.name = "TrajectoryPrefixUnavailableError";
+  }
+}
+
+type PreparedTrajectoryPrefixRun = {
+  prepared: PreparedTrajectoryPrefix;
+  baseline: Pick<CompileCheckpoint, "report" | "stats">;
+};
+
+/**
+ * Compile and validate the structural prefix witness only.
+ *
+ * This API intentionally exposes no score, report, or materialized assay
+ * input. Qualification callers can establish reachability and exact replay
+ * without turning the gate into a second efficacy measurement.
+ */
+function prepareTrajectoryPrefixRun(
   panel: TrajectoryCaptureCase,
   setup: TrajectoryCaptureSetup,
   captureBudget: number,
-): CapturedTrajectoryPrefix {
+): PreparedTrajectoryPrefixRun {
   setForwardEvalContext(setup.spec, setup.gapAxisTargets);
   const visits: Visit[] = [];
   const baseline = compileHandoff(setup.spec, panel.seed, {
@@ -72,9 +108,12 @@ export function captureTrajectoryPrefix(
     },
   });
   const deepest = deepestUnskippedVisit(visits);
-  if (deepest === null) throw new Error(`${panel.id}: no unskipped prefix was captured`);
+  if (deepest === null) {
+    throw new TrajectoryPrefixUnavailableError("no_clean_donor", `${panel.id}: no unskipped prefix was captured`);
+  }
   if (panel.targetGap > deepest.node.search.gapIndex) {
-    throw new Error(
+    throw new TrajectoryPrefixUnavailableError(
+      "target_unreached",
       `${panel.id}: declared g${panel.targetGap} exceeds selected deepest clean path g${deepest.node.search.gapIndex}`,
     );
   }
@@ -121,38 +160,61 @@ export function captureTrajectoryPrefix(
   assertStableEqual(`${panel.id} target planning state`, targetPlanningState, replayState);
   assertStableEqual(`${panel.id} target probe state`, projectedPathProbe.targetState, replayProbe.targetState);
   assertStableEqual(`${panel.id} pre-target sled trace`, preTargetSledTrace, replayTrace);
+  const directTarget = directTargetVisitOnDonorPath(visits, deepest, panel.targetGap);
 
+  return {
+    prepared: {
+      current,
+      outgoing,
+      outgoingIntervalFrames,
+      physicalPrefix,
+      physicalPrefixFingerprint,
+      targetPlanningState,
+      targetProbeState: projectedPathProbe.targetState,
+      preTargetSledTrace: [...preTargetSledTrace],
+      projection: {
+        rule: PHYSICAL_PREFIX_DONOR_SELECTION_RULE,
+        donorGap: deepest.node.search.gapIndex,
+        donorSkippedContacts: deepest.node.skippedContacts,
+        donorPhase: deepest.event.phase,
+        donorCallbackOrdinal: deepest.ordinal,
+        donorSimFrames: deepest.event.simFrames,
+      projectedTargetGap: panel.targetGap,
+      directTargetCallbackOrdinal: directTarget?.ordinal ?? null,
+      directTargetSimFrames: directTarget?.event.simFrames ?? null,
+      },
+    },
+    baseline,
+  };
+}
+
+export function prepareTrajectoryPrefix(
+  panel: TrajectoryCaptureCase,
+  setup: TrajectoryCaptureSetup,
+  captureBudget: number,
+): PreparedTrajectoryPrefix {
+  return prepareTrajectoryPrefixRun(panel, setup, captureBudget).prepared;
+}
+
+export function captureTrajectoryPrefix(
+  panel: TrajectoryCaptureCase,
+  setup: TrajectoryCaptureSetup,
+  captureBudget: number,
+): CapturedTrajectoryPrefix {
+  const { prepared, baseline } = prepareTrajectoryPrefixRun(panel, setup, captureBudget);
   const materialized = materializeTrajectoryCaptureInput(setup);
   const report = scoreDriftReport(baseline.report, { totalFrames: Math.round(setup.spec.duration * FPS) });
   return {
-    current,
-    outgoing,
-    outgoingIntervalFrames,
+    ...prepared,
     materialized,
     materializedFingerprint: sha256(stableJson(materialized)),
-    physicalPrefix,
-    physicalPrefixFingerprint,
-    targetPlanningState,
-    targetProbeState: projectedPathProbe.targetState,
-    preTargetSledTrace: [...preTargetSledTrace],
-    projection: {
-      rule: PHYSICAL_PREFIX_DONOR_SELECTION_RULE,
-      donorGap: deepest.node.search.gapIndex,
-      donorPhase: deepest.event.phase,
-      donorCallbackOrdinal: deepest.ordinal,
-      donorSimFrames: deepest.event.simFrames,
-      projectedTargetGap: panel.targetGap,
-      directTargetCallbackOrdinal: deepest.node.search.gapIndex === panel.targetGap
-        ? deepest.ordinal
-        : null,
-    },
     baseline: {
       contractPassed: report.contract_passed,
       score: round(report.score),
       deepestGap: baseline.stats.handoff_deepest_seen_gap ?? null,
-      targetPrefixSimFrames: deepest.node.search.gapIndex === panel.targetGap
-        ? deepest.event.simFrames
-        : null,
+      targetPrefixSimFrames: prepared.projection.directTargetCallbackOrdinal === null
+        ? null
+        : prepared.projection.directTargetSimFrames,
     },
   };
 }
@@ -165,6 +227,31 @@ function deepestUnskippedVisit(visits: readonly Visit[]): Visit | null {
       : best,
   );
 }
+
+/**
+ * Record a standalone target observation only when it is the selected donor's
+ * exact ancestral prefix. This metadata is descriptive and cannot influence
+ * the target-independent donor selection above.
+ */
+function directTargetVisitOnDonorPath(
+  visits: readonly Visit[],
+  donor: Visit,
+  targetGap: number,
+): Visit | null {
+  return visits.find((visit) =>
+    visit.node.skippedContacts === 0 &&
+    visit.node.search.gapIndex === targetGap &&
+    samePrefixFits(visit.node.search.prefixFits, donor.node.search.prefixFits),
+  ) ?? null;
+}
+
+function samePrefixFits(
+  prefix: readonly unknown[],
+  whole: readonly unknown[],
+): boolean {
+  return prefix.length <= whole.length && prefix.every((fit, index) => fit === whole[index]);
+}
+
 
 function requirePlanningState(engine: unknown, frame: number, label: string): PlanningState {
   const state = extractPlanningState(engine, frame);

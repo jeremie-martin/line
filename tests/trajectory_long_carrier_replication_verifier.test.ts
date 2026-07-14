@@ -23,7 +23,11 @@ import {
 import { sha256, stableJson } from "../scripts/v0/trajectory/frozen_fixture.ts";
 import { writeImmutableJsonArtifact } from "../scripts/v0/trajectory/study_artifact.ts";
 import {
+  LONG_CARRIER_TEST_CAPTURE_RUNTIME,
+  LONG_CARRIER_TEST_FEASIBILITY_BINDING,
   LONG_CARRIER_TEST_IDENTITIES,
+  LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS,
+  qualifiedLongCarrierReplicationFeasibility,
   resealFixtureAndRebindAssay,
   validLongCarrierReplicationCohort,
 } from "./support/long_carrier_replication_evidence.ts";
@@ -31,6 +35,8 @@ import {
 type RootOptions = {
   declarationTemplateBudget?: number;
   fixtureArgvBudget?: number;
+  feasibilityMismatch?: boolean;
+  outgoingGeometryMismatch?: boolean;
 };
 
 function createSealedRoot(options: RootOptions = {}): string {
@@ -59,16 +65,22 @@ function createSealedRoot(options: RootOptions = {}): string {
     // Git currently uses SHA-1 object IDs here; the verifier also accepts
     // SHA-256 repositories without conflating either with content hashes.
     sourceRevision: { head: "1".repeat(40), tree: "2".repeat(40) },
-    definitionPaths: [],
-    definitionFileFingerprints: {},
+    definitionPaths: Object.keys(LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS).sort(),
+    definitionFileFingerprints: LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS,
     execution: {
       controllerSourceIdentity: { sourceFiles: [], fingerprint: "3".repeat(64) },
       verifierSourceIdentity: { sourceFiles: [], fingerprint: "4".repeat(64) },
+      feasibilitySourceIdentity: {
+        sourceFiles: ["scripts/v0/run_long_carrier_replication_feasibility.ts"],
+        fingerprint: LONG_CARRIER_TEST_FEASIBILITY_BINDING.feasibilitySourceFingerprint,
+      },
       captureSourceIdentity: { sourceFiles: [], fingerprint: LONG_CARRIER_TEST_IDENTITIES.captureStudySourceFingerprint },
+      captureRuntime: LONG_CARRIER_TEST_CAPTURE_RUNTIME,
       assaySourceIdentity: { sourceFiles: [], fingerprint: LONG_CARRIER_TEST_IDENTITIES.assaySourceFingerprint },
       captureCandidate: { candidateFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureCandidateFingerprint },
       assayRuntime: { fingerprint: LONG_CARRIER_TEST_IDENTITIES.assayRuntimeFingerprint },
     },
+    captureFeasibility: qualifiedLongCarrierReplicationFeasibility(),
   }, "synthetic replication declaration");
   const events: string[] = [];
   for (const [index, entry] of LONG_CARRIER_REPLICATION_PROTOCOL.cases.entries()) {
@@ -91,6 +103,14 @@ function createSealedRoot(options: RootOptions = {}): string {
       fixture.capture.argv = options.fixtureArgvBudget === undefined
         ? captureScriptArgv
         : captureScriptArgv.map((token) => token === "--budget=500000" ? `--budget=${options.fixtureArgvBudget}` : token);
+      if (options.feasibilityMismatch === true && index === 0) {
+        fixture.physicalPrefix.prefixNextLineId = 2;
+      }
+      if (options.outgoingGeometryMismatch === true && index === 0) {
+        fixture.panel.outgoingGap = entry.targetGap + 2;
+        fixture.panel.outgoingFrame += 10;
+        fixture.panel.outgoingIntervalFrames += 10;
+      }
     }, (artifact) => {
       artifact.argv = assayScriptArgv;
       artifact.provenance.fixturePath = fixturePath;
@@ -225,7 +245,7 @@ describe("long-carrier replication verifier", () => {
 
     const strict = verify(createSealedRoot(), true);
     expect(strict.status).not.toBe(0);
-    expect(`${strict.stdout}\n${strict.stderr}`).toContain("current controller, runner, compiler candidate, assay source, or runtime identity differs");
+    expect(`${strict.stdout}\n${strict.stderr}`).toContain("current controller, verifier, feasibility, capture, compiler candidate, assay source, or runtime identity differs");
   });
 
   test("verifies a moved output root against its declared historical publication paths", () => {
@@ -248,6 +268,35 @@ describe("long-carrier replication verifier", () => {
     const result = verify(createSealedRoot({ fixtureArgvBudget: 499_999 }));
     expect(result.status).not.toBe(0);
     expect(`${result.stdout}\n${result.stderr}`).toContain("fixture capture argv does not match");
+  });
+
+  test("rejects a captured fixture that does not reproduce its sealed feasibility witness", () => {
+    const result = verify(createSealedRoot({ feasibilityMismatch: true }));
+    expect(result.status).not.toBe(0);
+    expect(`${result.stdout}\n${result.stderr}`).toContain("captured result lacks one successful normal fixture publication");
+  });
+
+  test("rejects a captured fixture whose rehashed outgoing geometry differs from its declared case", () => {
+    const result = verify(createSealedRoot({ outgoingGeometryMismatch: true }));
+    expect(result.status).not.toBe(0);
+    expect(`${result.stdout}\n${result.stderr}`).toContain("captured result lacks one successful normal fixture publication");
+  });
+
+  test("requires an invalid capture event to preserve its exact recomputed witness error", () => {
+    const root = createSealedRoot({ feasibilityMismatch: true });
+    const first = LONG_CARRIER_REPLICATION_PROTOCOL.cases[0]!;
+    rewriteSealedRecord(
+      join(root, "events", `01-capture-${first.id}.result.json`),
+      "synthetic mismatched witness error",
+      (result) => {
+        result.classification = "invalid";
+        result.artifactError = "fixture does not reproduce sealed feasibility witness: stale synthetic reason";
+      },
+    );
+
+    const result = verify(root);
+    expect(result.status).not.toBe(0);
+    expect(`${result.stdout}\n${result.stderr}`).toContain("indistinguishable from a successful normal capture");
   });
 
   test("rejects an unledgered identity-drift sibling beside a normal fixture", () => {

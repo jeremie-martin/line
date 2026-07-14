@@ -6,8 +6,8 @@
  */
 import { PHYSICAL_PREFIX_DONOR_SELECTION_RULE } from "./prefix_projection_contract.ts";
 
-export const LONG_CARRIER_REPLICATION_SCOPE = "long_carrier_duration_replication.v2";
-export const LONG_CARRIER_REPLICATION_PROTOCOL_SCHEMA = "line.long-carrier-replication-protocol.v2";
+export const LONG_CARRIER_REPLICATION_SCOPE = "long_carrier_duration_replication.v3";
+export const LONG_CARRIER_REPLICATION_PROTOCOL_SCHEMA = "line.long-carrier-replication-protocol.v3";
 /** The fixed complete-row stencil. It is evidence, not a search menu. */
 export const LONG_CARRIER_REPLICATION_FRACTIONS = [0, 0.25, 0.5, 0.75, 1] as const;
 
@@ -87,13 +87,13 @@ const SOURCE_CONTEXTS = [
     selectionRationale: "Ordinary irregular cadence with amplitude intentionally unspecified at the 1.15-second outgoing interval.",
   },
   {
-    sourceId: "open_high_air_195",
-    sourcePath: "scripts/v0/trajectory/validation_specs/open_high_air_195.ts",
+    sourceId: "ramped_high_air_reentry_195",
+    sourcePath: "scripts/v0/trajectory/validation_specs/ramped_high_air_reentry_195.ts",
     category: "ordinary",
     role: "scope_control",
     targetGap: 11,
     expectedOutgoingFrames: 78,
-    selectionRationale: "Open high-air launch before the manually authored 1.95-second high-air reentry; a scope control, not a low-air benefit case.",
+    selectionRationale: "Ordinary opening cadence before the manually authored 1.95-second high-air reentry; a scope control, not a low-air benefit case.",
   },
 ] as const satisfies readonly SourceContext[];
 
@@ -108,8 +108,8 @@ export type LongCarrierReplicationPanelId =
   | "validation_long_carrier_sparse_low_air_725_seed_730203"
   | "validation_long_carrier_ordinary_partial_axes_115_seed_730201"
   | "validation_long_carrier_ordinary_partial_axes_115_seed_730203"
-  | "validation_long_carrier_open_high_air_195_seed_730201"
-  | "validation_long_carrier_open_high_air_195_seed_730203";
+  | "validation_long_carrier_ramped_high_air_reentry_195_seed_730201"
+  | "validation_long_carrier_ramped_high_air_reentry_195_seed_730203";
 
 export type LongCarrierReplicationCase = SourceContext & {
   id: LongCarrierReplicationPanelId;
@@ -271,10 +271,12 @@ export const LONG_CARRIER_REPLICATION_DEFINITION_PATHS = Object.freeze([
 export const LONG_CARRIER_REPLICATION_EXECUTION_DEFINITION_PATHS = Object.freeze([
   ...LONG_CARRIER_REPLICATION_DEFINITION_PATHS,
   "scripts/v0/run_long_carrier_replication.ts",
+  "scripts/v0/run_long_carrier_replication_feasibility.ts",
   "scripts/v0/verify_long_carrier_replication.ts",
   "scripts/v0/capture_long_carrier_replication_fixture.ts",
   "scripts/v0/study_long_carrier_duration_response.ts",
   "scripts/v0/trajectory/long_carrier_replication_assessment.ts",
+  "scripts/v0/trajectory/long_carrier_replication_feasibility.ts",
   "scripts/v0/trajectory/long_carrier_replication_records.ts",
 ] as const);
 

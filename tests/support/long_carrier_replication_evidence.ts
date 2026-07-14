@@ -8,14 +8,70 @@ import {
   LONG_CARRIER_REPLICATION_SCOPE,
   type LongCarrierReplicationCase,
 } from "../../scripts/v0/trajectory/long_carrier_replication_protocol.ts";
+import {
+  LONG_CARRIER_REPLICATION_FEASIBILITY_SCHEMA,
+  type LongCarrierReplicationFeasibilityBinding,
+  type LongCarrierReplicationFeasibilityRecord,
+} from "../../scripts/v0/trajectory/long_carrier_replication_feasibility.ts";
+import { LONG_CARRIER_COMPILER_IDENTITY_PROTOCOL } from "../../scripts/v0/trajectory/long_carrier_replication_candidate.ts";
+import { sealReplicationRecord } from "../../scripts/v0/trajectory/long_carrier_replication_records.ts";
 import { sealPostimpactAssayArtifact } from "../../scripts/v0/trajectory/postimpact_assay_artifact.ts";
 import { sha256, stableJson } from "../../scripts/v0/trajectory/postimpact_study_inputs.ts";
 
+export const LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS: Record<string, string> = Object.fromEntries(
+  [...new Set(LONG_CARRIER_REPLICATION_PROTOCOL.cases.map((entry) => entry.sourcePath))]
+    .sort()
+    .map((path) => [path, sha256(`panel:${path}`)]),
+);
+
+const TEST_CAPTURE_RUNTIME_PAYLOAD = {
+  runtimeIdentityProtocol: "line.long-carrier-replication-capture-runtime.v2" as const,
+  engine: "wasm" as const,
+  engineArtifactFingerprint: null,
+  node: "vtest",
+  platform: "test-platform",
+  arch: "test-arch",
+  typescriptVersion: "test-typescript",
+  tsxVersion: "test-tsx",
+  runtimePackages: ["@esbuild/test", "esbuild", "tsx", "typescript"],
+  runtimePackageClosureFingerprint: "7".repeat(64),
+  relevantEnvironment: { LR_ENGINE: "wasm" as const },
+};
+
+export const LONG_CARRIER_TEST_CAPTURE_RUNTIME = {
+  ...TEST_CAPTURE_RUNTIME_PAYLOAD,
+  fingerprint: sha256(stableJson(TEST_CAPTURE_RUNTIME_PAYLOAD)),
+};
+
+const TEST_CANDIDATE_PAYLOAD = {
+  compilerIdentityProtocol: LONG_CARRIER_COMPILER_IDENTITY_PROTOCOL,
+  compilerSourceBoundaryFingerprint: "8".repeat(64),
+  compilerSourceFingerprint: "9".repeat(64),
+  compilerEnvironment: {},
+  engine: "wasm",
+  engineArtifactFingerprint: null,
+};
+
+export const LONG_CARRIER_TEST_CANDIDATE = {
+  ...TEST_CANDIDATE_PAYLOAD,
+  compilerSourceFiles: ["scripts/v0/optimizer/handoff.ts"],
+  candidateFingerprint: sha256(stableJson(TEST_CANDIDATE_PAYLOAD)),
+};
+
 export const LONG_CARRIER_TEST_IDENTITIES: LongCarrierReplicationExpectedIdentities = {
   captureStudySourceFingerprint: "a".repeat(64),
-  captureCandidateFingerprint: "b".repeat(64),
+  captureCandidateFingerprint: LONG_CARRIER_TEST_CANDIDATE.candidateFingerprint,
+  captureRuntimeFingerprint: LONG_CARRIER_TEST_CAPTURE_RUNTIME.fingerprint,
   assaySourceFingerprint: "c".repeat(64),
   assayRuntimeFingerprint: "d".repeat(64),
+};
+
+export const LONG_CARRIER_TEST_FEASIBILITY_BINDING: LongCarrierReplicationFeasibilityBinding = {
+  feasibilitySourceFingerprint: "e".repeat(64),
+  captureSourceFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureStudySourceFingerprint,
+  captureRuntimeFingerprint: LONG_CARRIER_TEST_CAPTURE_RUNTIME.fingerprint,
+  captureCandidateFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureCandidateFingerprint,
+  panelSourceFingerprints: LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS,
 };
 
 const ZERO_SUMMARY = {
@@ -89,16 +145,40 @@ export function fixtureFor(entry: LongCarrierReplicationCase): Record<string, un
     startLines: [],
     prefixFitLines: [],
   };
+  const panelSourceFingerprint = LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS[entry.sourcePath]!;
+  const captureProtocolFingerprint = sha256(stableJson({
+    schema: "line.frozen-trajectory-prefix-capture-protocol.v1",
+    scope: LONG_CARRIER_REPLICATION_SCOPE,
+    panel: {
+      id: entry.id,
+      cohort: "validation",
+      category: entry.category,
+      sourcePath: entry.sourcePath,
+      sourceFingerprint: panelSourceFingerprint,
+      publicSeed: entry.publicSeed,
+      requestedTargetGap: entry.targetGap,
+      selectionRationale: entry.selectionRationale,
+      expectedOutgoingFrames: entry.expectedOutgoingFrames,
+      studyScope: LONG_CARRIER_REPLICATION_SCOPE,
+    },
+    capture: {
+      engine: "wasm",
+      budget: LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget,
+      relevantEnvironment: { LR_ENGINE: "wasm" },
+      transformFingerprint: sha256(stableJson(LONG_CARRIER_REPLICATION_PROTOCOL.capture.transform)),
+      prefixProjectionRule: LONG_CARRIER_REPLICATION_PROTOCOL.capture.prefixProjectionRule,
+    },
+  }));
   const captureIdentityPayload = {
     schema: "line.frozen-trajectory-prefix-capture.v1",
     panelId: entry.id,
-    panelSourceFingerprint: `source-${entry.sourceId}`,
+    panelSourceFingerprint,
     captureBudget: LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget,
     engine: "wasm",
     relevantEnvironment: { LR_ENGINE: "wasm" },
     studySourceFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureStudySourceFingerprint,
     captureCandidateFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureCandidateFingerprint,
-    protocolFingerprint: "e".repeat(64),
+    protocolFingerprint: captureProtocolFingerprint,
   };
   const targetPlanningState = { frame: currentEnd };
   const targetProbeState = {};
@@ -109,16 +189,19 @@ export function fixtureFor(entry: LongCarrierReplicationCase): Record<string, un
     capture: {
       argv: [],
       runtime: { node: "test", engine: "wasm", relevantEnvironment: { LR_ENGINE: "wasm" } },
+      runtimeIdentity: LONG_CARRIER_TEST_CAPTURE_RUNTIME,
       elapsedMs: 0,
       captureBudget: LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget,
       prefixProjection: {
         rule: LONG_CARRIER_REPLICATION_PROTOCOL.capture.prefixProjectionRule,
         donorGap: entry.targetGap,
+        donorSkippedContacts: 0,
         donorPhase: "main",
         donorCallbackOrdinal: 1,
         donorSimFrames: currentEnd,
         projectedTargetGap: entry.targetGap,
         directTargetCallbackOrdinal: 1,
+        directTargetSimFrames: currentEnd,
       },
       studySourceFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureStudySourceFingerprint,
       studySourceFiles: ["scripts/v0/capture_long_carrier_replication_fixture.ts"],
@@ -128,12 +211,14 @@ export function fixtureFor(entry: LongCarrierReplicationCase): Record<string, un
       },
       identityCheck: {
         stable: true,
-        panelSourceFingerprintAtStart: `source-${entry.sourceId}`,
-        panelSourceFingerprintAtEnd: `source-${entry.sourceId}`,
+        panelSourceFingerprintAtStart: panelSourceFingerprint,
+        panelSourceFingerprintAtEnd: panelSourceFingerprint,
         studySourceFingerprintAtStart: LONG_CARRIER_TEST_IDENTITIES.captureStudySourceFingerprint,
         studySourceFingerprintAtEnd: LONG_CARRIER_TEST_IDENTITIES.captureStudySourceFingerprint,
         captureCandidateFingerprintAtStart: LONG_CARRIER_TEST_IDENTITIES.captureCandidateFingerprint,
         captureCandidateFingerprintAtEnd: LONG_CARRIER_TEST_IDENTITIES.captureCandidateFingerprint,
+        captureRuntimeFingerprintAtStart: LONG_CARRIER_TEST_CAPTURE_RUNTIME.fingerprint,
+        captureRuntimeFingerprintAtEnd: LONG_CARRIER_TEST_CAPTURE_RUNTIME.fingerprint,
       },
       captureCompilerAtEnd: { candidateFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureCandidateFingerprint },
     },
@@ -142,7 +227,7 @@ export function fixtureFor(entry: LongCarrierReplicationCase): Record<string, un
       cohort: "validation",
       category: entry.category,
       sourcePath: entry.sourcePath,
-      sourceFingerprint: `source-${entry.sourceId}`,
+      sourceFingerprint: panelSourceFingerprint,
       publicSeed: entry.publicSeed,
       requestedTargetGap: entry.targetGap,
       selectionRationale: entry.selectionRationale,
@@ -222,7 +307,7 @@ export function artifactFor(
           cohort: "validation",
           category: entry.category,
           sourcePath: entry.sourcePath,
-          sourceFingerprint: `source-${entry.sourceId}`,
+          sourceFingerprint: (fixture.panel as Record<string, unknown>).sourceFingerprint,
           publicSeed: entry.publicSeed,
           selectionRationale: entry.selectionRationale,
           studyScope: LONG_CARRIER_REPLICATION_SCOPE,
@@ -260,6 +345,78 @@ export function artifactFor(
     }],
   };
   return sealPostimpactAssayArtifact(payload);
+}
+
+/** A complete mechanical-only qualification record matching the synthetic fixtures. */
+export function qualifiedLongCarrierReplicationFeasibility(): LongCarrierReplicationFeasibilityRecord {
+  const payload = {
+    schema: LONG_CARRIER_REPLICATION_FEASIBILITY_SCHEMA,
+    scope: LONG_CARRIER_REPLICATION_SCOPE,
+    protocolFingerprint: sha256(stableJson(LONG_CARRIER_REPLICATION_PROTOCOL)),
+    environment: { LR_ENGINE: "wasm" as const },
+    captureBudget: LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget,
+    projectionRule: LONG_CARRIER_REPLICATION_PROTOCOL.capture.prefixProjectionRule,
+    identities: {
+      stable: true,
+      feasibilitySourceAtStart: {
+        fingerprint: LONG_CARRIER_TEST_FEASIBILITY_BINDING.feasibilitySourceFingerprint,
+        sourceFiles: ["scripts/v0/run_long_carrier_replication_feasibility.ts"],
+      },
+      feasibilitySourceAtEnd: {
+        fingerprint: LONG_CARRIER_TEST_FEASIBILITY_BINDING.feasibilitySourceFingerprint,
+        sourceFiles: ["scripts/v0/run_long_carrier_replication_feasibility.ts"],
+      },
+      captureSourceAtStart: {
+        fingerprint: LONG_CARRIER_TEST_FEASIBILITY_BINDING.captureSourceFingerprint,
+        sourceFiles: ["scripts/v0/capture_long_carrier_replication_fixture.ts"],
+      },
+      captureSourceAtEnd: {
+        fingerprint: LONG_CARRIER_TEST_FEASIBILITY_BINDING.captureSourceFingerprint,
+        sourceFiles: ["scripts/v0/capture_long_carrier_replication_fixture.ts"],
+      },
+      captureRuntimeAtStart: LONG_CARRIER_TEST_CAPTURE_RUNTIME,
+      captureRuntimeAtEnd: LONG_CARRIER_TEST_CAPTURE_RUNTIME,
+      captureCandidateAtStart: LONG_CARRIER_TEST_CANDIDATE,
+      captureCandidateAtEnd: LONG_CARRIER_TEST_CANDIDATE,
+      panelSourceFingerprintsAtStart: LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS,
+      panelSourceFingerprintsAtEnd: LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS,
+    },
+    rows: LONG_CARRIER_REPLICATION_PROTOCOL.cases.map((entry) => {
+      const fixture = fixtureFor(entry);
+      const capture = fixture.capture as Record<string, unknown>;
+      const projection = capture.prefixProjection as Record<string, unknown>;
+      const prefix = fixture.physicalPrefix as Record<string, unknown>;
+      const checkpoints = fixture.checkpoints as Record<string, unknown>;
+      const materialized = fixture.materialized as { gaps: unknown[] };
+      return {
+        id: entry.id,
+        sourcePath: entry.sourcePath,
+        sourceFingerprintAtStart: LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS[entry.sourcePath]!,
+        sourceFingerprintAtEnd: LONG_CARRIER_TEST_PANEL_SOURCE_FINGERPRINTS[entry.sourcePath]!,
+        targetGap: entry.targetGap,
+        outgoingGap: entry.targetGap + 1,
+        outgoingIntervalFrames: entry.expectedOutgoingFrames,
+        materializedGapCount: materialized.gaps.length,
+        status: "available" as const,
+        failureCode: null,
+        witness: {
+          projectionRule: projection.rule,
+          donorGap: projection.donorGap,
+          donorSkippedContacts: projection.donorSkippedContacts,
+          physicalPrefixFingerprint: fixture.physicalPrefixFingerprint,
+          materializedFingerprint: fixture.materializedFingerprint,
+          prefixNextLineId: prefix.prefixNextLineId,
+          cumulativeCost: prefix.cumulativeCost,
+          targetPlanningStateFingerprint: checkpoints.targetPlanningStateFingerprint,
+          targetProbeStateFingerprint: checkpoints.targetProbeStateFingerprint,
+          preTargetSledTraceFingerprint: checkpoints.preTargetSledTraceFingerprint,
+        },
+        elapsedMs: 0,
+      };
+    }),
+    qualified: true,
+  };
+  return sealReplicationRecord(payload) as LongCarrierReplicationFeasibilityRecord;
 }
 
 export function resealArtifact(

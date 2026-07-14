@@ -31,9 +31,18 @@ import {
   isLongCarrierCompilerSourcePath,
   longCarrierReplicationCandidateIdentity,
 } from "./trajectory/long_carrier_replication_candidate.ts";
-import { longCarrierReplicationSourceIdentity } from "./trajectory/long_carrier_replication_source.ts";
+import {
+  longCarrierReplicationPanelSourceFingerprint,
+  longCarrierReplicationSourceIdentity,
+} from "./trajectory/long_carrier_replication_source.ts";
+import {
+  assertFixtureMatchesLongCarrierReplicationFeasibility,
+  assertQualifiedLongCarrierReplicationFeasibility,
+  type LongCarrierReplicationFeasibilityRecord,
+} from "./trajectory/long_carrier_replication_feasibility.ts";
 import {
   assertLongCarrierReplicationRuntimeEnvironment,
+  longCarrierReplicationCaptureRuntimeIdentity,
   longCarrierReplicationChildEnvironment,
 } from "./trajectory/long_carrier_replication_runtime.ts";
 import {
@@ -41,6 +50,7 @@ import {
   LONG_CARRIER_REPLICATION_EVENT_SCHEMA,
   LONG_CARRIER_REPLICATION_LEDGER_SCHEMA,
   longCarrierReplicationVerdictExitCode,
+  assertReplicationEvidenceOutsideWorkspace,
   replicationArtifactPublicationPaths,
   replicationRelativePath,
   resolveReplicationPath,
@@ -54,6 +64,7 @@ import {
 
 const CONTROLLER_PATH = "scripts/v0/run_long_carrier_replication.ts";
 const VERIFIER_PATH = "scripts/v0/verify_long_carrier_replication.ts";
+const FEASIBILITY_PATH = "scripts/v0/run_long_carrier_replication_feasibility.ts";
 const CAPTURE_PATH = "scripts/v0/capture_long_carrier_replication_fixture.ts";
 const ASSAY_PATH = "scripts/v0/study_long_carrier_duration_response.ts";
 const STDERR_TAIL_LIMIT = 4_000;
@@ -61,19 +72,21 @@ const STDERR_TAIL_LIMIT = 4_000;
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: run_long_carrier_replication.ts --out-dir=DIR [--check]",
+    "Usage: run_long_carrier_replication.ts --out-dir=DIR --feasibility=FILE [--check]",
     "",
     "Runs the preregistered fixed long-carrier transfer cohort once.",
     "DIR must not exist. The controller writes declaration, immutable stage",
     "events, fixtures/assays, and a read-only-verifiable ledger under DIR.",
-    "--check performs the same environment, source-closure, and output-path",
-    "preflight without writing evidence or launching the compiler.",
+    "A qualified sealed mechanical feasibility record is required before a",
+    "declaration. --check validates that record and static preflight",
+    "without writing evidence or launching the compiler.",
   ].join("\n") + "\n");
   process.exit(0);
 }
 
 const options = parseOptions(argv);
 const outDir = options.outDir;
+assertReplicationEvidenceOutsideWorkspace(outDir);
 if (existsSync(outDir)) throw new Error(`replication output root already exists: ${outDir}`);
 assertExactEnvironment();
 const definitionPaths = replicationDefinitionPaths();
@@ -81,12 +94,14 @@ assertDefinitionPathsCommitted(definitionPaths);
 
 const initial = executionIdentity();
 if (options.check) {
+  readQualifiedFeasibility(options.feasibilityPath, initial);
   process.stdout.write(
     `long-carrier replication preflight ok; ${LONG_CARRIER_REPLICATION_PROTOCOL.cases.length} cases at ` +
     `${LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget} WASM budget; output root is unused\n`,
   );
   process.exit(0);
 }
+const feasibility = readQualifiedFeasibility(options.feasibilityPath, initial);
 const declarationPayload = {
   schema: LONG_CARRIER_REPLICATION_DECLARATION_SCHEMA,
   scope: LONG_CARRIER_REPLICATION_SCOPE,
@@ -104,6 +119,7 @@ const declarationPayload = {
   sourceRevision: sourceRevision(),
   definitionPaths,
   definitionFileFingerprints: fingerprintDefinitionPaths(definitionPaths),
+  captureFeasibility: feasibility,
   execution: initial,
 };
 const declarationPath = join(outDir, "declaration.json");
@@ -131,10 +147,12 @@ for (const [index, entry] of LONG_CARRIER_REPLICATION_PROTOCOL.cases.entries()) 
   eventPaths.push(capturePlan);
   const captureRun = runChild(captureArgv);
   const captureArtifact = readFixturePublication(outDir, fixtureRelativePath);
+  const feasibilityError = fixtureFeasibilityError(captureArtifact.value, entry, feasibility);
   const captureClassification = captureArtifact.value !== null &&
     captureArtifact.artifactPath === fixtureRelativePath &&
     captureArtifact.observedArtifactPaths.length === 1 &&
-    childCompletedSuccessfully(captureRun)
+    childCompletedSuccessfully(captureRun) &&
+    feasibilityError === null
     ? "captured"
     : "invalid";
   const captureResult = writeStageResult(
@@ -150,7 +168,7 @@ for (const [index, entry] of LONG_CARRIER_REPLICATION_PROTOCOL.cases.entries()) 
     captureArtifact.observedArtifactPaths,
     captureRun,
     captureArtifact.value === null ? null : { fingerprint: String(captureArtifact.value.fixtureFingerprint) },
-    captureArtifact.error,
+    captureArtifact.error ?? feasibilityError,
     captureClassification,
   );
   eventPaths.push(captureResult);
@@ -162,7 +180,7 @@ for (const [index, entry] of LONG_CARRIER_REPLICATION_PROTOCOL.cases.entries()) 
       entry.id,
       declarationFingerprint,
       assayRelativePath,
-      "capture did not produce one successful normal immutable V3 fixture",
+      feasibilityError ?? "capture did not produce one successful normal immutable V3 fixture",
     );
     eventPaths.push(skipped);
     evidence.push({
@@ -251,14 +269,20 @@ process.stdout.write(
 );
 process.exitCode = exitCode;
 
-function parseOptions(values: readonly string[]): { outDir: string; check: boolean } {
+function parseOptions(values: readonly string[]): { outDir: string; check: boolean; feasibilityPath: string } {
   const outputs = values.filter((value) => value.startsWith("--out-dir=")).map((value) => value.slice("--out-dir=".length));
+  const feasibility = values.filter((value) => value.startsWith("--feasibility=")).map((value) => value.slice("--feasibility=".length));
   const checks = values.filter((value) => value === "--check");
-  const unsupported = values.filter((value) => !value.startsWith("--out-dir=") && value !== "--check");
+  const unsupported = values.filter((value) => !value.startsWith("--out-dir=") && !value.startsWith("--feasibility=") && value !== "--check");
   if (unsupported.length > 0) throw new Error(`unsupported replication option(s): ${unsupported.join(", ")}`);
   if (outputs.length !== 1 || outputs[0] === "") throw new Error("--out-dir=DIR is required exactly once and must be non-empty");
+  if (feasibility.length !== 1 || feasibility[0] === "") throw new Error("--feasibility=FILE is required exactly once and must be non-empty");
   if (checks.length > 1) throw new Error("--check may be supplied once");
-  return { outDir: resolve(outputs[0]!), check: checks.length === 1 };
+  return {
+    outDir: resolve(outputs[0]!),
+    check: checks.length === 1,
+    feasibilityPath: resolve(feasibility[0]!),
+  };
 }
 
 function assertExactEnvironment(): void {
@@ -276,12 +300,14 @@ function replicationDefinitionPaths(): string[] {
   const assay = postimpactAssaySourceIdentity(ASSAY_PATH).sourceFiles;
   const controller = longCarrierReplicationSourceIdentity(CONTROLLER_PATH).sourceFiles;
   const verifier = longCarrierReplicationSourceIdentity(VERIFIER_PATH).sourceFiles;
+  const feasibility = longCarrierReplicationSourceIdentity(FEASIBILITY_PATH).sourceFiles;
   return [...new Set([
     ...LONG_CARRIER_REPLICATION_EXECUTION_DEFINITION_PATHS,
     ...capture,
     ...assay,
     ...controller,
     ...verifier,
+    ...feasibility,
   ])].filter((path) => !isCompilerBoundPath(path)).sort();
 }
 
@@ -323,12 +349,15 @@ function sourceRevision(): { head: string; tree: string } {
 function executionIdentity() {
   const controller = longCarrierReplicationSourceIdentity(CONTROLLER_PATH);
   const verifier = longCarrierReplicationSourceIdentity(VERIFIER_PATH);
+  const feasibility = longCarrierReplicationSourceIdentity(FEASIBILITY_PATH);
   const capture = longCarrierReplicationSourceIdentity(CAPTURE_PATH);
   const assay = postimpactAssaySourceIdentity(ASSAY_PATH);
   return {
     controllerSourceIdentity: controller,
     verifierSourceIdentity: verifier,
+    feasibilitySourceIdentity: feasibility,
     captureSourceIdentity: capture,
+    captureRuntime: longCarrierReplicationCaptureRuntimeIdentity(),
     assaySourceIdentity: assay,
     captureCandidate: longCarrierReplicationCandidateIdentity("wasm"),
     assayRuntime: postimpactAssayRuntimeIdentity(),
@@ -338,7 +367,47 @@ function executionIdentity() {
 function assertExecutionIdentity(initialIdentity: ReturnType<typeof executionIdentity>): void {
   const current = executionIdentity();
   if (!sameLongCarrierReplicationExecutionBinding(initialIdentity, current)) {
-    throw new Error("controller, runner, compiler candidate, assay source, or runtime identity no longer matches the declaration");
+    throw new Error("controller, verifier, feasibility, capture, compiler candidate, assay source, or runtime identity no longer matches the declaration");
+  }
+}
+
+function readQualifiedFeasibility(
+  path: string,
+  identity: ReturnType<typeof executionIdentity>,
+): LongCarrierReplicationFeasibilityRecord {
+  let value: unknown;
+  try {
+    value = JSON.parse(readFileSync(path, "utf8"));
+  } catch (error) {
+    throw new Error(`unable to read long-carrier feasibility record ${path}: ${errorMessage(error)}`);
+  }
+  assertQualifiedLongCarrierReplicationFeasibility(value, {
+    feasibilitySourceFingerprint: identity.feasibilitySourceIdentity.fingerprint,
+    captureSourceFingerprint: identity.captureSourceIdentity.fingerprint,
+    captureRuntimeFingerprint: identity.captureRuntime.fingerprint,
+    captureCandidateFingerprint: identity.captureCandidate.candidateFingerprint,
+    panelSourceFingerprints: panelSourceFingerprints(),
+  });
+  return value;
+}
+
+function panelSourceFingerprints(): Record<string, string> {
+  return Object.fromEntries([...new Set(LONG_CARRIER_REPLICATION_PROTOCOL.cases.map((entry) => entry.sourcePath))]
+    .sort()
+    .map((path) => [path, longCarrierReplicationPanelSourceFingerprint(path)])) as Record<string, string>;
+}
+
+function fixtureFeasibilityError(
+  fixture: Record<string, unknown> | null,
+  entry: (typeof LONG_CARRIER_REPLICATION_PROTOCOL.cases)[number],
+  feasibility: LongCarrierReplicationFeasibilityRecord,
+): string | null {
+  if (fixture === null) return null;
+  try {
+    assertFixtureMatchesLongCarrierReplicationFeasibility(fixture, entry, feasibility);
+    return null;
+  } catch (error) {
+    return `fixture does not reproduce sealed feasibility witness: ${errorMessage(error)}`;
   }
 }
 
@@ -346,6 +415,7 @@ function expectedIdentities(identity: ReturnType<typeof executionIdentity>): Lon
   return {
     captureStudySourceFingerprint: identity.captureSourceIdentity.fingerprint,
     captureCandidateFingerprint: identity.captureCandidate.candidateFingerprint,
+    captureRuntimeFingerprint: identity.captureRuntime.fingerprint,
     assaySourceFingerprint: identity.assaySourceIdentity.fingerprint,
     assayRuntimeFingerprint: identity.assayRuntime.fingerprint,
   };

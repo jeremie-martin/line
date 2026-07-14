@@ -78,3 +78,7 @@ scripts/__pycache__/
 /detection.json
 /track.json
 /shelter_65s.json
+
+# Long-carrier replication evidence is intentionally external to the checkout.
+# The CLIs reject these paths too; this is a last-resort guard for old/manual files.
+/long-carrier-replication*/

@@ -5,7 +5,7 @@
 This is a prospective, validation-only transfer study of the fixed straight
 post-impact long-carrier assay. It is not a Benchmark V2 case, production
 qualification, compiler candidate, or support planner. Its scope string is
-`long_carrier_duration_replication.v2` and is bound into every declared panel
+`long_carrier_duration_replication.v3` and is bound into every declared panel
 row and frozen fixture.
 
 The fixed implementation is the committed five-fraction stencil
@@ -30,7 +30,7 @@ under both public seeds `730201` and `730203` at WASM/500k.
 | `decelerating_low_air_625` | 6.25s / 250 frames | primary low-air |
 | `sparse_low_air_725` | 7.25s / 290 frames | primary low-air |
 | `ordinary_partial_axes_115` | 1.15s / 46 frames | scope control; amplitude undefined |
-| `open_high_air_195` | 1.95s / 78 frames | scope control; high air |
+| `ramped_high_air_reentry_195` | 1.95s / 78 frames | scope control; high air |
 
 The exact source path, materialized target-gap index, expected outgoing frame
 count, and source-only rationale are declared in
@@ -57,58 +57,86 @@ quarantined and cannot enter this cohort.
 
 V1 was retired before it generated a declaration, fixture, assay, or ledger:
 its exact-callback capture rule could not observe target boundaries inside
-normal tail completion. The active V2 declaration uses the projection rule
-above. A full capture-feasibility sweep must pass for every fixed row at
-WASM/500k before any V2 efficacy cohort is declared; an unreachable row is a
+normal tail completion. V2 was likewise retired before execution when its
+initially high-air control failed the required mechanical review. The active
+V3 declaration uses the projection rule above. A full capture-feasibility
+sweep must pass for every fixed row at WASM/500k before any V3 efficacy cohort
+is declared; an unreachable row is a
 roster-design failure, not a negative assay observation. The current
-`open_high_air_195` source is known to fail that gate and is being replaced or
-redesigned before V2 execution.
+`open_high_air_195` source was retired because its initially high-air,
+five-second opening had no viable first contact at 500k. V3 instead uses the
+manual `ramped_high_air_reentry_195` source: it retains the rhythm, impacts,
+speed, amplitude, and later 1.95-second high-air segment while using an
+ordinary opening that ramps into that segment.
 
-Run only through the replication controller after the V2 roster and its
-feasibility record are committed. It creates an immutable declaration before any execution, captures
+Run only through the replication controller after the V3 roster code and the
+compiler candidate are committed in a clean worktree, and a fresh sealed
+feasibility record has qualified that exact compiler/runtime epoch. The
+generated record is evidence and belongs outside the workspace (not merely
+outside Git); the CLIs reject repository-contained output paths. The controller
+embeds it in its immutable declaration before any execution. It captures
 each fixture once, runs the fixed assay once, and writes planned/result events
-plus one immutable ledger. The controller requires its isolated non-compiler
-static source closure to be committed, while binding the intentionally mutable
-compiler closure by exact study-local identity. An occupied output root is
-rejected. A failed capture is invalid unless a future protocol adds a sealed
+plus one immutable ledger. Qualification verifies both the feasibility/capture
+source closures and the entire compiler boundary before loading compiler code;
+the controller then binds that same candidate identity before every child
+invocation. An occupied output root is rejected. A failed capture is invalid
+unless a future protocol adds a sealed
 structured unavailability record; it is never replaced, retried in place, or
 allowed to move its target contact. A capture that detects source/compiler
 identity drift publishes its deterministic sibling fixture as invalid forensic
 evidence, and the ledger inventories that sibling rather than silently losing
 it.
 
-Run the non-executing preflight first. It checks the exact LR environment,
-committed isolated closure, current candidate identity construction, and empty
-output root without launching a compiler or writing evidence:
+First generate the score-free all-row mechanical qualification from that clean
+committed worktree. It runs every declared case at WASM/500k, checks the
+root-plus-extend physical-prefix replay,
+and writes only structural witnesses or typed availability failures:
 
 ```sh
-LR_ENGINE=wasm npx tsx scripts/v0/run_long_carrier_replication.ts \
-  --out-dir=/tmp/long-carrier-replication-YYYYMMDD --check
+LR_ENGINE=wasm npx tsx scripts/v0/run_long_carrier_replication_feasibility.ts \
+  --out=/tmp/long-carrier-replication-YYYYMMDD.feasibility.json
 ```
 
+Then run the non-executing preflight. It validates that sealed record against
+the current roster, implementation source closures, candidate, panel files,
+and host/loader runtime without launching another compiler or writing cohort
+evidence:
+
 ```sh
 LR_ENGINE=wasm npx tsx scripts/v0/run_long_carrier_replication.ts \
-  --out-dir=/tmp/long-carrier-replication-YYYYMMDD
+  --out-dir=/tmp/long-carrier-replication-YYYYMMDD \
+  --feasibility=/tmp/long-carrier-replication-YYYYMMDD.feasibility.json \
+  --check
+```
+
+Only after that preflight succeeds may the one-shot cohort be declared:
+
+```sh
+LR_ENGINE=wasm npx tsx scripts/v0/run_long_carrier_replication.ts \
+  --out-dir=/tmp/long-carrier-replication-YYYYMMDD \
+  --feasibility=/tmp/long-carrier-replication-YYYYMMDD.feasibility.json
 ```
 
 The controller requires exactly `LR_ENGINE=wasm`, a clean committed
-definition source closure, and the shared 500k capture protocol. It records the actual
-compiler/worktree identity and verifies it before every child invocation, so
-uncommitted candidate work may be studied but cannot be silently mixed across
-source/seed pairs. It rejects Node/tsx loader overrides and passes children
+qualification/capture/compiler closure, and the shared 500k capture protocol.
+It records the actual compiler/worktree identity and verifies it before every
+child invocation. It rejects Node/tsx loader overrides and passes children
 only a small operational environment allowlist plus `LR_ENGINE=wasm`, so an
-unrecorded loader setting cannot alter capture or assay semantics. The
-declaration also freezes the Node executable, exact
+unrecorded loader setting cannot alter capture or assay semantics. Its runtime
+identity content-hashes the installed `tsx`, TypeScript, esbuild, and
+platform-esbuild package closure, not just manifest versions. The declaration
+also freezes the Node executable, exact
 capture/assay argument templates, source revision/tree, and every planned
 artifact path. It records both the original absolute publication root and
 root-relative artifact identities, so a completed evidence directory can be
 moved without changing what the child processes originally received. The
 verifier checks those templates against every plan, result, fixture `argv`,
-assay `argv`, and assay fixture path. A completed controller also invokes that
+assay `argv`, assay fixture path, and the exact structural witness from the
+embedded qualification. A completed controller also invokes that
 read-only verifier itself: the ledger must have no abort reason, account for
 every event file and every fixture/assay publication, and attest a clean child
 completion before the controller reports its verdict. Generated evidence
-belongs outside Git, for example under `/tmp`; verify a completed cohort
+belongs outside the workspace, for example under `/tmp`; verify a completed cohort
 without re-running a compiler using:
 
 ```sh

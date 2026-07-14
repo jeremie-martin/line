@@ -28,15 +28,19 @@ import {
   type LongCarrierReplicationCandidateIdentity,
 } from "./trajectory/long_carrier_replication_candidate.ts";
 import {
-  fingerprintLongCarrierReplicationFiles,
+  longCarrierReplicationPanelSourceFingerprint,
   longCarrierReplicationSourceIdentity,
   type LongCarrierReplicationSourceIdentity,
 } from "./trajectory/long_carrier_replication_source.ts";
 import {
+  assertReplicationEvidenceOutsideWorkspace,
   replicationIdentityDriftArtifactPath,
   writeImmutableReplicationJson,
 } from "./trajectory/long_carrier_replication_records.ts";
-import { assertLongCarrierReplicationRuntimeEnvironment } from "./trajectory/long_carrier_replication_runtime.ts";
+import {
+  assertLongCarrierReplicationRuntimeEnvironment,
+  longCarrierReplicationCaptureRuntimeIdentity,
+} from "./trajectory/long_carrier_replication_runtime.ts";
 import { captureTrajectoryPrefix } from "./trajectory/prefix_capture_core.ts";
 
 const CAPTURE_PATH = "scripts/v0/capture_long_carrier_replication_fixture.ts";
@@ -60,12 +64,14 @@ if (options.budget !== LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget) 
   throw new Error(`long-carrier replication capture requires --budget=${LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget}`);
 }
 const outputPath = resolve(options.out);
+assertReplicationEvidenceOutsideWorkspace(outputPath);
 if (existsSync(outputPath)) throw new Error(`replication fixture output already exists and is immutable: ${outputPath}`);
 
 const captureEnvironment = { LR_ENGINE: "wasm" };
 const sourceAtStart = longCarrierReplicationSourceIdentity(CAPTURE_PATH);
+const runtimeAtStart = longCarrierReplicationCaptureRuntimeIdentity();
 const candidateAtStart = longCarrierReplicationCandidateIdentity("wasm");
-const panelSourceFingerprintAtStart = fingerprintLongCarrierReplicationFiles([panel.sourcePath]);
+const panelSourceFingerprintAtStart = longCarrierReplicationPanelSourceFingerprint(panel.sourcePath);
 const captureIdentity = captureIdentityFor(panelSourceFingerprintAtStart, sourceAtStart, candidateAtStart);
 const started = performance.now();
 const captured = captureTrajectoryPrefix(
@@ -74,9 +80,11 @@ const captured = captureTrajectoryPrefix(
   options.budget,
 );
 const sourceAtEnd = longCarrierReplicationSourceIdentity(CAPTURE_PATH);
+const runtimeAtEnd = longCarrierReplicationCaptureRuntimeIdentity();
 const candidateAtEnd = longCarrierReplicationCandidateIdentity("wasm");
-const panelSourceFingerprintAtEnd = fingerprintLongCarrierReplicationFiles([panel.sourcePath]);
+const panelSourceFingerprintAtEnd = longCarrierReplicationPanelSourceFingerprint(panel.sourcePath);
 const stable = sourceAtStart.fingerprint === sourceAtEnd.fingerprint &&
+  runtimeAtStart.fingerprint === runtimeAtEnd.fingerprint &&
   candidateAtStart.candidateFingerprint === candidateAtEnd.candidateFingerprint &&
   panelSourceFingerprintAtStart === panelSourceFingerprintAtEnd;
 
@@ -90,6 +98,7 @@ const payload: Omit<FrozenTrajectoryFixtureV3, "fixtureFingerprint"> = {
       engine: "wasm",
       relevantEnvironment: captureEnvironment,
     },
+    runtimeIdentity: runtimeAtStart,
     elapsedMs: round(performance.now() - started),
     captureBudget: options.budget,
     prefixProjection: captured.projection,
@@ -104,6 +113,8 @@ const payload: Omit<FrozenTrajectoryFixtureV3, "fixtureFingerprint"> = {
       studySourceFingerprintAtEnd: sourceAtEnd.fingerprint,
       captureCandidateFingerprintAtStart: candidateAtStart.candidateFingerprint,
       captureCandidateFingerprintAtEnd: candidateAtEnd.candidateFingerprint,
+      captureRuntimeFingerprintAtStart: runtimeAtStart.fingerprint,
+      captureRuntimeFingerprintAtEnd: runtimeAtEnd.fingerprint,
     },
     captureCompilerAtEnd: candidateAtEnd,
   },

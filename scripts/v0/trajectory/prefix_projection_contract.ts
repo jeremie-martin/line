@@ -12,10 +12,12 @@ export const PHYSICAL_PREFIX_DONOR_SELECTION_RULE =
 export type PhysicalPrefixProjection = {
   rule: typeof PHYSICAL_PREFIX_DONOR_SELECTION_RULE;
   donorGap: number;
+  donorSkippedContacts: number;
   donorPhase: string;
   donorCallbackOrdinal: number;
   donorSimFrames: number;
   projectedTargetGap: number;
-  /** Non-null only when the selected donor itself was observed at the target. */
+  /** Non-null only when the selected donor's ancestry had a target callback. */
   directTargetCallbackOrdinal: number | null;
+  directTargetSimFrames: number | null;
 };

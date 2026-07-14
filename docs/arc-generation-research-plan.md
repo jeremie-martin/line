@@ -162,11 +162,12 @@ fit, next-contact feasibility, or a compiler improvement. The recorded
 terminal states also show that a straight carrier can exchange air time for
 terminal speed, so it is not a continuation law by itself.
 
-The next step is a preregistered fresh-cohort transfer study for this fixed
-physical leaf, using the isolated long-carrier capture path documented in
-`docs/long-carrier-replication-protocol.md`, followed separately by a
-capture/support/release formulation with an explicit release control. Neither
-step is direct compiler integration.
+The preregistered fresh-cohort transfer protocol is now active as of
+2026-07-14 and is documented in
+`docs/long-carrier-replication-protocol.md`. Its V3 mechanical qualification
+must succeed before any one-shot efficacy cohort is declared. A separate
+capture/support/release formulation with an explicit release control remains
+future work; neither study is direct compiler integration.
 
 ## Guardrails
 

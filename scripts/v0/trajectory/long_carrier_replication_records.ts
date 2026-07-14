@@ -3,6 +3,7 @@
  * and its read-only verifier. Records reference immutable artifacts by path
  * and checksum; they deliberately never embed compiler output or assay JSON.
  */
+import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import {
   closeSync,
@@ -13,15 +14,16 @@ import {
   openSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { basename, dirname, extname, relative, resolve } from "node:path";
+import { basename, dirname, extname, isAbsolute, relative, resolve } from "node:path";
 import { sha256, stableJson } from "./postimpact_study_inputs.ts";
 
-export const LONG_CARRIER_REPLICATION_DECLARATION_SCHEMA = "line.long-carrier-replication-declaration.v1";
-export const LONG_CARRIER_REPLICATION_EVENT_SCHEMA = "line.long-carrier-replication-event.v1";
-export const LONG_CARRIER_REPLICATION_LEDGER_SCHEMA = "line.long-carrier-replication-ledger.v1";
+export const LONG_CARRIER_REPLICATION_DECLARATION_SCHEMA = "line.long-carrier-replication-declaration.v2";
+export const LONG_CARRIER_REPLICATION_EVENT_SCHEMA = "line.long-carrier-replication-event.v2";
+export const LONG_CARRIER_REPLICATION_LEDGER_SCHEMA = "line.long-carrier-replication-ledger.v2";
 
 export type SealedReplicationRecord = Record<string, unknown> & { recordFingerprint: string };
 
@@ -119,6 +121,51 @@ export function replicationRelativePath(root: string, path: string, label: strin
   const relativePath = relative(absoluteRoot, resolve(path)).replaceAll("\\", "/");
   resolveReplicationPath(absoluteRoot, relativePath, label);
   return relativePath;
+}
+
+/**
+ * Replication records can be small, but a declared root accumulates fixtures,
+ * assays, and event logs. Keep that append-only evidence outside the checkout
+ * so a normal operator command cannot quietly dirty or bloat the repository.
+ */
+export function assertReplicationEvidenceOutsideWorkspace(
+  path: string,
+  workspaceRoot = replicationWorkspaceRoot(),
+): void {
+  const root = realpathSync.native(resolve(workspaceRoot));
+  const target = canonicalProspectivePath(resolve(path));
+  const fromRoot = relative(root, target);
+  const inside = fromRoot === "" ||
+    (!isAbsolute(fromRoot) && fromRoot !== ".." && !fromRoot.startsWith(`..${process.platform === "win32" ? "\\" : "/"}`));
+  if (inside) {
+    throw new Error(`long-carrier replication evidence must be outside the workspace: ${target}`);
+  }
+}
+
+/** Resolve existing parent symlinks even when the final evidence path is new. */
+function canonicalProspectivePath(path: string): string {
+  const suffix: string[] = [];
+  let existing = path;
+  while (!existsSync(existing)) {
+    const parent = dirname(existing);
+    if (parent === existing) {
+      throw new Error(`cannot resolve a parent for long-carrier replication evidence path ${path}`);
+    }
+    suffix.unshift(basename(existing));
+    existing = parent;
+  }
+  return resolve(realpathSync.native(existing), ...suffix);
+}
+
+function replicationWorkspaceRoot(): string {
+  try {
+    return execFileSync("git", ["rev-parse", "--show-toplevel"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+  } catch {
+    throw new Error("long-carrier replication evidence requires a Git workspace root");
+  }
 }
 
 /** Keep a mid-run identity-drift fixture beside, but distinct from, its slot. */

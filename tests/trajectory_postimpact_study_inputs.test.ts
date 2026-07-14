@@ -30,6 +30,12 @@ describe("post-impact study input adapters", () => {
     staleProbe.checkpoints.targetProbeState = { altered: true };
     refreshFixtureFingerprint(staleProbe);
     expect(() => assertPostimpactV3FixtureIntegrity(staleProbe)).toThrow(/target probe-state fingerprint does not match/);
+
+    const staleRuntime = structuredClone(fixture);
+    staleRuntime.capture.identityCheck.captureRuntimeFingerprintAtStart = "other-runtime";
+    staleRuntime.capture.identityCheck.captureRuntimeFingerprintAtEnd = "other-runtime";
+    refreshFixtureFingerprint(staleRuntime);
+    expect(() => assertPostimpactV3FixtureIntegrity(staleRuntime)).toThrow(/runtime identity does not bind/);
   });
 
   test("returns only current impact during construction, then releases outgoing observation", () => {
@@ -154,6 +160,7 @@ function makeFixture(): PostimpactFrozenTrajectoryFixtureV3 {
     capture: {
       argv: [],
       runtime: { node: "test", engine: "wasm", relevantEnvironment: { LR_ENGINE: "wasm" } },
+      runtimeIdentity: { fingerprint: "runtime" },
       elapsedMs: 0,
       captureBudget: 1,
       studySourceFingerprint: "study",
@@ -170,6 +177,8 @@ function makeFixture(): PostimpactFrozenTrajectoryFixtureV3 {
         studySourceFingerprintAtEnd: "study",
         captureCandidateFingerprintAtStart: "candidate",
         captureCandidateFingerprintAtEnd: "candidate",
+        captureRuntimeFingerprintAtStart: "runtime",
+        captureRuntimeFingerprintAtEnd: "runtime",
       },
       captureCompilerAtEnd: { candidateFingerprint: "candidate" },
     },

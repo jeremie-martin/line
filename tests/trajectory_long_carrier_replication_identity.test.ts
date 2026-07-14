@@ -8,10 +8,12 @@ function identity() {
   return {
     controllerSourceIdentity: { fingerprint: "a".repeat(64), sourceFiles: ["controller.ts"] },
     verifierSourceIdentity: { fingerprint: "b".repeat(64), sourceFiles: ["verifier.ts"] },
-    captureSourceIdentity: { fingerprint: "c".repeat(64), sourceFiles: ["capture.ts"] },
-    assaySourceIdentity: { fingerprint: "d".repeat(64), sourceFiles: ["assay.ts"] },
-    captureCandidate: { candidateFingerprint: "e".repeat(64), trackedChanges: [] },
-    assayRuntime: { fingerprint: "f".repeat(64), platform: "linux" },
+    feasibilitySourceIdentity: { fingerprint: "c".repeat(64), sourceFiles: ["feasibility.ts"] },
+    captureSourceIdentity: { fingerprint: "d".repeat(64), sourceFiles: ["capture.ts"] },
+    captureRuntime: { fingerprint: "e".repeat(64), platform: "linux" },
+    assaySourceIdentity: { fingerprint: "f".repeat(64), sourceFiles: ["assay.ts"] },
+    captureCandidate: { candidateFingerprint: "1".repeat(64), trackedChanges: [] },
+    assayRuntime: { fingerprint: "2".repeat(64), platform: "linux" },
   };
 }
 
@@ -20,16 +22,19 @@ describe("long-carrier live execution identity", () => {
     const initial = identity();
     const diagnosticOnly = structuredClone(initial);
     diagnosticOnly.captureCandidate.trackedChanges = ["?? unrelated-note.txt"];
+    diagnosticOnly.captureRuntime.platform = "other capture diagnostic value";
     diagnosticOnly.assayRuntime.platform = "other diagnostic value";
 
     expect(sameLongCarrierReplicationExecutionBinding(initial, diagnosticOnly)).toBe(true);
     expect(longCarrierReplicationExecutionBinding(initial)).toEqual({
       controllerSourceFingerprint: "a".repeat(64),
       verifierSourceFingerprint: "b".repeat(64),
-      captureSourceFingerprint: "c".repeat(64),
-      assaySourceFingerprint: "d".repeat(64),
-      captureCandidateFingerprint: "e".repeat(64),
-      assayRuntimeFingerprint: "f".repeat(64),
+      feasibilitySourceFingerprint: "c".repeat(64),
+      captureSourceFingerprint: "d".repeat(64),
+      captureRuntimeFingerprint: "e".repeat(64),
+      assaySourceFingerprint: "f".repeat(64),
+      captureCandidateFingerprint: "1".repeat(64),
+      assayRuntimeFingerprint: "2".repeat(64),
     });
   });
 

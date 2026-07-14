@@ -46,6 +46,21 @@ export function fingerprintLongCarrierReplicationFiles(paths: readonly string[],
   return hash.digest("hex");
 }
 
+/**
+ * Content-only source fingerprint for an authored panel file.
+ *
+ * Declarations inventory individual authored inputs by this representation, so
+ * the capture, feasibility gate, and historical verifier must use it too.
+ * Recursive implementation identities intentionally use the path-bound helper
+ * above instead: their ordered source closure is part of that contract.
+ */
+export function longCarrierReplicationPanelSourceFingerprint(
+  path: string,
+  cwd = process.cwd(),
+): string {
+  return createHash("sha256").update(readFileSync(resolve(cwd, normalize(path, cwd)))).digest("hex");
+}
+
 function resolveLocalTypeScriptModule(fromPath: string, specifier: string, cwd: string): string | null {
   if (!specifier.startsWith(".") && !specifier.startsWith("/")) return null;
   const base = specifier.startsWith("/")

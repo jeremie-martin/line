@@ -1,9 +1,10 @@
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, test } from "vitest";
 import {
   LONG_CARRIER_REPLICATION_EVENT_SCHEMA,
+  assertReplicationEvidenceOutsideWorkspace,
   readSealedReplicationRecord,
   replicationRelativePath,
   resolveReplicationPath,
@@ -48,5 +49,16 @@ describe("long-carrier replication records", () => {
     expect(() => resolveReplicationPath(root, "../outside.json", "artifact")).toThrow(/escapes/);
     expect(replicationRelativePath(root, join(root, "fixtures", "a.json"), "artifact"))
       .toBe("fixtures/a.json");
+  });
+
+  test("rejects evidence paths inside the workspace, including through a parent symlink", () => {
+    const root = mkdtempSync(join(tmpdir(), "line-replication-workspace-"));
+    const outside = mkdtempSync(join(tmpdir(), "line-replication-outside-"));
+    const linkedWorkspace = join(outside, "workspace-link");
+    symlinkSync(root, linkedWorkspace, "dir");
+
+    expect(() => assertReplicationEvidenceOutsideWorkspace(join(root, "evidence.json"), root)).toThrow(/outside the workspace/);
+    expect(() => assertReplicationEvidenceOutsideWorkspace(join(linkedWorkspace, "evidence.json"), root)).toThrow(/outside the workspace/);
+    expect(() => assertReplicationEvidenceOutsideWorkspace(join(outside, "evidence.json"), root)).not.toThrow();
   });
 });

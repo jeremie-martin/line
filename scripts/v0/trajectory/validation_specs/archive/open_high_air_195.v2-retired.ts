@@ -1,10 +1,11 @@
 /**
- * Fresh scope control: open high-air phrase. A duration-only support action is
- * not expected to be beneficial here; its response is reported, never pooled
- * as evidence for the low-air relation.
+ * Retired V2 scope control. Its initially high-air five-second opening had no
+ * viable first contact at the fixed WASM/500k capture budget, so it must not
+ * re-enter an active replication roster. See the V2 archive note and the V3
+ * `ramped_high_air_reentry_195` replacement.
  */
-import { keyframes } from "../../core/curves.ts";
-import type { Spec } from "../../types.ts";
+import { keyframes } from "../../../core/curves.ts";
+import type { Spec } from "../../../types.ts";
 
 const spec: Spec = {
   duration: 23,

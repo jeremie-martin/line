@@ -1,12 +1,17 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { LONG_CARRIER_REPLICATION_CAPTURE_CASES } from "../scripts/v0/trajectory/long_carrier_replication_input.ts";
-import { longCarrierReplicationSourceIdentity } from "../scripts/v0/trajectory/long_carrier_replication_source.ts";
+import {
+  longCarrierReplicationPanelSourceFingerprint,
+  longCarrierReplicationSourceIdentity,
+} from "../scripts/v0/trajectory/long_carrier_replication_source.ts";
 import { longCarrierReplicationCandidateIdentity } from "../scripts/v0/trajectory/long_carrier_replication_candidate.ts";
 import { longCarrierReplicationChildEnvironment } from "../scripts/v0/trajectory/long_carrier_replication_runtime.ts";
+import { sha256 } from "../scripts/v0/trajectory/postimpact_study_inputs.ts";
+import retiredOpenHighAir195 from "../scripts/v0/trajectory/validation_specs/archive/open_high_air_195.v2-retired.ts";
 
 const FORBIDDEN_PATHS = [
   "scripts/v0/trajectory/panel.ts",
@@ -17,8 +22,10 @@ describe("long-carrier replication isolation", () => {
   test("keeps every live replication entrypoint out of benchmark-v2 and the broad panel closure", () => {
     for (const entrypoint of [
       "scripts/v0/capture_long_carrier_replication_fixture.ts",
+      "scripts/v0/run_long_carrier_replication_feasibility.ts",
       "scripts/v0/run_long_carrier_replication.ts",
       "scripts/v0/verify_long_carrier_replication.ts",
+      "scripts/v0/trajectory/long_carrier_replication_feasibility.ts",
       "scripts/v0/trajectory/long_carrier_replication_records.ts",
     ]) {
       const identity = longCarrierReplicationSourceIdentity(entrypoint);
@@ -34,6 +41,16 @@ describe("long-carrier replication isolation", () => {
     expect(identity.compilerSourceFiles.some((path) => path.startsWith("benchmark/v2/") || path.startsWith("scripts/v0/benchmark_v2/")))
       .toBe(false);
     expect(identity.candidateFingerprint).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  test("uses the declaration's raw content hash for every authored panel binding", () => {
+    const sourcePath = LONG_CARRIER_REPLICATION_CAPTURE_CASES[0]!.sourcePath;
+    expect(longCarrierReplicationPanelSourceFingerprint(sourcePath)).toBe(sha256(readFileSync(sourcePath, "utf8")));
+  });
+
+  test("keeps the retired V2 source readable as an archival artifact", () => {
+    expect(retiredOpenHighAir195.duration).toBe(23);
+    expect(retiredOpenHighAir195.contacts[0]?.t).toBe(5.25);
   });
 
   test("rejects alternate cohort, budget, engine, and roster before compilation", () => {
@@ -69,6 +86,7 @@ describe("long-carrier replication isolation", () => {
     const runPreflight = (environment: NodeJS.ProcessEnv) => spawnSync(process.execPath, [
       "--import", "tsx", "scripts/v0/run_long_carrier_replication.ts",
       `--out-dir=${join(tmpdir(), "line-long-carrier-runtime-guard")}`,
+      `--feasibility=${join(tmpdir(), "line-long-carrier-runtime-guard.feasibility.json")}`,
       "--check",
     ], {
       cwd: process.cwd(),
@@ -90,5 +108,44 @@ describe("long-carrier replication isolation", () => {
       UNRELATED_SENTINEL: "must-not-reach-child",
       LR_ENGINE: "other",
     })).toEqual({ PATH: "/bin", HOME: "/tmp/home", LR_ENGINE: "wasm" });
+  }, 15_000);
+
+  test("requires a sealed feasibility input and rejects workspace evidence roots before execution", () => {
+    const runController = (args: string[]) => spawnSync(process.execPath, [
+      "--import", "tsx", "scripts/v0/run_long_carrier_replication.ts", ...args,
+    ], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: { ...process.env, LR_ENGINE: "wasm" },
+    });
+    const runFeasibility = (args: string[]) => spawnSync(process.execPath, [
+      "--import", "tsx", "scripts/v0/run_long_carrier_replication_feasibility.ts", ...args,
+    ], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: { ...process.env, LR_ENGINE: "wasm" },
+    });
+
+    const missingFeasibility = runController([
+      `--out-dir=${join(tmpdir(), "line-long-carrier-missing-feasibility")}`,
+      "--check",
+    ]);
+    expect(missingFeasibility.status).toBe(1);
+    expect(`${missingFeasibility.stdout}\n${missingFeasibility.stderr}`)
+      .toContain("--feasibility=FILE is required exactly once");
+
+    const workspaceOutput = runController([
+      "--out-dir=generated/long-carrier-replication-test",
+      `--feasibility=${join(tmpdir(), "line-long-carrier-unused-feasibility.json")}`,
+      "--check",
+    ]);
+    expect(workspaceOutput.status).toBe(1);
+    expect(`${workspaceOutput.stdout}\n${workspaceOutput.stderr}`)
+      .toContain("evidence must be outside the workspace");
+
+    const feasibilityWorkspaceOutput = runFeasibility(["--out=generated/long-carrier-replication-test.feasibility.json"]);
+    expect(feasibilityWorkspaceOutput.status).toBe(1);
+    expect(`${feasibilityWorkspaceOutput.stdout}\n${feasibilityWorkspaceOutput.stderr}`)
+      .toContain("evidence must be outside the workspace");
   }, 15_000);
 });

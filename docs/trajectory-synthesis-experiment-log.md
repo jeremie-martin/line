@@ -202,6 +202,29 @@ bound before `compileHandoff` and sampled again before publication. V2 fixtures
 remain readable audit inputs; they are not relabelled as V3. A drifted V3 record
 is forensic only and preparation rejects it before any replay.
 
+## 2026-07-14: Exact Support-Slice V1 Rejected by Its Own Safety Guard
+
+**Question.** Can a tangent-aligned static rail placed at the exact post-impact
+reference point produce a prefix-safe local response?
+
+**Protocol.** A fixed capture-only plus five-rail stencil used the same named
+reference displacement from `H` to `H + 1` to choose the active side, with a
+normal preload of `0.1 * responseSpeed`. Every arm had to preserve the full
+physical prefix and capture-only state through `H`, with zero support collision
+through that inclusive boundary.
+
+**Result.** The fresh WASM/500k `frontier5` smoke fixture closed 7 of 24
+capture rows. Of its 35 rail replays, 15 violated the construction guard across
+three capture rows: static rail geometry collided at `H - 1` or `H`, often via
+non-anchor body points. The runner wrote the complete artifact and exited 2;
+its local response numbers are not interpreted.
+
+**Decision.** Reject the point-anchored V1 placement. Do not weaken the
+inclusive guard or treat the four clean rows as evidence. The next formulation
+must establish a shared, target-blind collision-safe phase for all five rail
+arms using only exact pre-`H` replay, then retain every rejected phase before
+measuring any post-`H` response.
+
 **Decision.** Re-ran the state-shot, both response menus, and continuation
 matrix under the repaired contract. Generated artifacts remain ignored evidence,
 not repository payloads. The source identity is sampled before and after replay;

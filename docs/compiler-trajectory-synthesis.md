@@ -328,6 +328,85 @@ side, preload margin, curvature, chord error, and grain footprint, use a fixed
 target-blind stencil, and retain all rows. Exact replay remains the authority;
 no study result is an analytic collision solver or a compiler candidate.
 
+### Preregistered Exact Support-Slice Assay
+
+The next assay is a new physical construction, not an amendment of the older
+grade polyline. Its narrow question is whether a short, tangent-aligned offset
+rail has a safe, ordered, exact-engine response after a captured contact. It will
+use only the frozen calibration fixtures and every conditionally closed capture
+row. It will not read an authored outgoing axis, next-contact event or target,
+case name, duration class, seed, or optimizer score while constructing geometry.
+It may read only the outgoing interval endpoint to cap the declared local
+observation horizon; that timing dependency is explicit below, rather than a
+hidden duration bucket.
+
+For a selected owned capture event, define the response boundary as
+`H = eventFrame + IMPACT_WINDOW + 1`. Let `Q = min(12, outgoing.endFrame -
+H)`; retain a closed capture with `Q < 4` as `insufficient_support_horizon`,
+rather than silently omitting it. The capture-only replay is the paired
+comparator through `H + Q`. A zero-impact capture is recorded as out-of-scope
+for this positive-impact capture formulation, not assigned a fictional neutral
+incidence law.
+
+The rail starts at a declared normal offset from the exact response reference
+point. Its first geometric tangent is the exact response tangent, but it is not
+joined to the earlier capture geometry, so it is deliberately not called a C1
+join. The active penetration/force normal is made explicit by the `(endpoint
+direction, flipped)` pair: for a line directed from `p1` to `p2`, an unflipped
+solid line exposes the left normal, while `flipped` exposes its negative.
+Because a tangent-aligned boundary has zero normal velocity at that instant,
+velocity alone cannot choose its active side. The construction instead observes
+the same named reference point in the capture-only replay at `H` and `H + 1`.
+It projects that one-step displacement onto the initial left normal, rejects a
+near-zero normal projection as orientation-unavailable, and also requires a
+positive projection along the canonical forward tangent. It chooses that side
+before any rail arm is run. Later segment flags transport the selected active
+normal continuously along the bounded-turn path. The rail uses a fixed preload
+of `0.1 * responseSpeed` ahead of that normal. This is a declared exact
+observation rule, not an analytic contact claim. Exact collision telemetry
+decides whether it actually catches.
+
+The fixed six-arm stencil is:
+
+| Arm | Extent | Total turn | Meaning |
+| --- | ---: | ---: | --- |
+| capture-only | -- | -- | Paired comparator; no proposed support rail. |
+| rail-neutral | 1.00 x `L0` | 0 deg | Tangent-aligned, state-relative baseline rail. |
+| rail-turn-positive | 1.00 x `L0` | +8 deg | Symmetric constant-curvature perturbation. |
+| rail-turn-negative | 1.00 x `L0` | -8 deg | Symmetric constant-curvature perturbation. |
+| rail-extent-long | 1.15 x `L0` | 0 deg | One-factor extent perturbation. |
+| rail-extent-short | 0.85 x `L0` | 0 deg | One-factor extent perturbation. |
+
+`L0 = responseSpeed * Q`. Curvature is constant in arclength and realized
+adaptively with at most 2px chord error and 5 degrees of turn per segment.
+The rail records its normal, preload, endpoint direction, `flipped` value,
+line IDs, segment lengths, and grid-footprint proxy. These fixed values are
+an assay stencil, not a tuning grid or production menu.
+
+Every non-comparator arm must prove full non-scarf engine-state identity over
+the physical prefix, capture-only identity over `[outgoing.startFrame, H]`,
+zero all-body rail collision through `H`, the same owned capture event and
+impact response, strict survival through `H + Q`, and no off-beat landing in
+that window. It then reports, descriptively, its delta in airborne samples,
+mean CoM speed, separate terminal CoM and named-reference states, and first
+rail collision. It may report the direction of remaining authored air/speed
+budget, but it cannot claim that a `Q`-frame response satisfies the rest of a
+gap.
+
+The predeclared interpretation is deliberately limited:
+
+1. Any prefix or capture mismatch invalidates the assay rather than producing
+   a physical result.
+2. If safe actions are inert or discontinuous with no ordered symmetric-turn
+   or extent response across at least one ordinary/dense and one low-air
+   physical state, this rail is not a feedback basis. Do not implement a
+   rollout from it.
+3. If those two independent state classes show prefix-safe directional
+   response, that authorizes only a separately specified fixed-horizon
+   receding-rollout feasibility study.
+4. A long-rideout-only response is capability evidence only and earns no
+   generalization claim.
+
 ## Study Protocol
 
 The declared calibration protocol is `LR_ENGINE=wasm` with a 500,000 search

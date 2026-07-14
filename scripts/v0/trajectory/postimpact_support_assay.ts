@@ -143,6 +143,12 @@ const CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER: readonly ContinuousSupportCurveActi
   CONTINUOUS_SUPPORT_CURVE_ACTIONS.map((action): ContinuousSupportCurveActionId => action.id),
 );
 
+// Selection happens only inside one assay process. Keep the two derived
+// certificates opaque at runtime so structural lookalikes cannot bypass the
+// classifier/certifier after their raw replay evidence has been discarded.
+const ISSUED_PHASE_CERTIFICATES = new WeakSet<object>();
+const ISSUED_CAUSAL_EXPOSURES = new WeakSet<object>();
+
 export const CONTINUOUS_SUPPORT_CURVE_PHASE_CERTIFICATE_PROTOCOL = Object.freeze({
   actionOrder: CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER,
   phaseLeadSteps: CONTINUOUS_SUPPORT_CURVE_PHASE_LEAD_STEPS,
@@ -455,6 +461,9 @@ export function summarizeContinuousSupportCurveMatchedNeutralContrast(
   if (ordered.some((arm) => !arm.structurallyValid)) {
     return unavailableMatchedNeutralContrast("arm_not_structurally_valid", false, context);
   }
+  if (ordered.some((arm) => !ISSUED_CAUSAL_EXPOSURES.has(arm.causalExposure))) {
+    return unavailableMatchedNeutralContrast("causal_exposure_protocol_invalid", true, context);
+  }
   if (ordered.some((arm) => arm.causalExposure.protocolInvalid)) {
     return unavailableMatchedNeutralContrast("causal_exposure_protocol_invalid", true, context);
   }
@@ -637,14 +646,14 @@ export function classifyContinuousSupportCurveCausalExposure(
       : [];
   });
   return causalHits.length > 0
-    ? {
+    ? issueCausalExposure({
       actionSpecific: true,
       protocolInvalid: false,
       eligibleCollisionWindow,
       firstEligibleCollisionFrame: firstCollisionFrame,
       reason: "action_specific_curve_collision",
       causalHits,
-    }
+    })
     : noCausalExposure(
       "first_curve_collision_only_neutral_equivalent_segments",
       eligibleCollisionWindow,
@@ -664,7 +673,7 @@ function phaseCertificate(
   const frozenActions = Object.freeze(actions.map((action) => Object.freeze({ ...action })));
   const frozenRejectedActionIds = Object.freeze([...rejectedActionIds]);
   const frozenInvalidActionIds = Object.freeze([...invalidActionIds]);
-  return Object.freeze({
+  const certificate = Object.freeze({
     phaseLeadSteps,
     status,
     sharedConstructionSafe: status === "certified",
@@ -676,13 +685,28 @@ function phaseCertificate(
     invalidProbeActions: frozenInvalidActionIds.length,
     reason,
   });
+  ISSUED_PHASE_CERTIFICATES.add(certificate);
+  return certificate;
 }
 
 function validContinuousSupportCurvePhaseCertificate(
   phase: ContinuousSupportCurvePhaseCertificate,
 ): boolean {
-  if (phase.status === "rejected" || phase.status === "invalid") return phase.sharedConstructionSafe === false;
-  if (phase.status !== "certified") return false;
+  if (phase === null || typeof phase !== "object" || !ISSUED_PHASE_CERTIFICATES.has(phase)) return false;
+  if (!sameCurveActionOrder(phase.actionOrder) ||
+      !validPhaseActionSubset(phase.actions) ||
+      !validOrderedActionIds(phase.rejectedActionIds) ||
+      !validOrderedActionIds(phase.invalidActionIds) ||
+      !Number.isSafeInteger(phase.invalidProbeActions) ||
+      phase.invalidProbeActions !== phase.invalidActionIds.length) {
+    return false;
+  }
+  if (phase.status === "certified") return validCertifiedPhase(phase);
+  if (phase.status === "rejected") return validRejectedPhase(phase);
+  return phase.status === "invalid" && validInvalidPhase(phase);
+}
+
+function validCertifiedPhase(phase: ContinuousSupportCurvePhaseCertificate): boolean {
   return phase.sharedConstructionSafe &&
     phase.sharedCaptureCertificate !== null &&
     validContinuousSupportCurveSharedCaptureCertificate(phase.sharedCaptureCertificate) &&
@@ -690,10 +714,8 @@ function validContinuousSupportCurvePhaseCertificate(
     phase.invalidProbeActions === 0 &&
     phase.rejectedActionIds.length === 0 &&
     phase.invalidActionIds.length === 0 &&
-    sameCurveActionOrder(phase.actionOrder) &&
-    phase.actions.length === CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER.length &&
-    phase.actions.every((action, index) =>
-      action.actionId === CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER[index] &&
+    hasFullDeclaredActionRoster(phase.actions) &&
+    phase.actions.every((action) =>
       action.status === "observed" &&
       action.constructionSafe &&
       !action.expectedCollisionRejection &&
@@ -701,8 +723,109 @@ function validContinuousSupportCurvePhaseCertificate(
     );
 }
 
+function validRejectedPhase(phase: ContinuousSupportCurvePhaseCertificate): boolean {
+  if (phase.sharedConstructionSafe || phase.sharedCaptureCertificate === null ||
+      !validContinuousSupportCurveSharedCaptureCertificate(phase.sharedCaptureCertificate) ||
+      phase.reason !== "expected_construction_collision" ||
+      phase.invalidProbeActions !== 0 || phase.invalidActionIds.length !== 0 ||
+      !hasFullDeclaredActionRoster(phase.actions)) {
+    return false;
+  }
+  const rejectedActionIds = phase.actions.flatMap((action) => action.constructionSafe ? [] : [action.actionId]);
+  return rejectedActionIds.length > 0 &&
+    sameOrderedActionIds(phase.rejectedActionIds, rejectedActionIds) &&
+    phase.actions.every((action) =>
+      action.status === "observed" &&
+      !action.protocolInvalid &&
+      (action.constructionSafe ? !action.expectedCollisionRejection : action.expectedCollisionRejection)
+    );
+}
+
+function validInvalidPhase(phase: ContinuousSupportCurvePhaseCertificate): boolean {
+  if (phase.sharedConstructionSafe || phase.rejectedActionIds.length !== 0) return false;
+  switch (phase.reason) {
+    case "invalid_shared_capture_certificate":
+      return phase.sharedCaptureCertificate === null &&
+        phase.invalidProbeActions === 0 && phase.invalidActionIds.length === 0;
+    case "unknown_action_id":
+      return phase.sharedCaptureCertificate !== null &&
+        validContinuousSupportCurveSharedCaptureCertificate(phase.sharedCaptureCertificate) &&
+        sameOrderedActionIds(phase.invalidActionIds, CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER);
+    case "duplicate_action_id":
+      return phase.sharedCaptureCertificate !== null &&
+        validContinuousSupportCurveSharedCaptureCertificate(phase.sharedCaptureCertificate) &&
+        phase.invalidActionIds.length > 0 &&
+        phase.invalidActionIds.every((id) => phase.actions.some((action) => action.actionId === id));
+    case "missing_declared_action":
+      return phase.sharedCaptureCertificate !== null &&
+        validContinuousSupportCurveSharedCaptureCertificate(phase.sharedCaptureCertificate) &&
+        sameOrderedActionIds(
+          phase.invalidActionIds,
+          CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER.filter((id) => !phase.actions.some((action) => action.actionId === id)),
+        ) && phase.invalidActionIds.length > 0;
+    case "invalid_construction_probe":
+      return phase.sharedCaptureCertificate !== null &&
+        validContinuousSupportCurveSharedCaptureCertificate(phase.sharedCaptureCertificate) &&
+        hasFullDeclaredActionRoster(phase.actions) &&
+        phase.invalidActionIds.length > 0 &&
+        sameOrderedActionIds(phase.invalidActionIds, invalidPhaseActionIds(phase.actions));
+    default:
+      return false;
+  }
+}
+
+function validPhaseActionSubset(actions: readonly ContinuousSupportCurvePhaseActionCertificate[]): boolean {
+  if (!Array.isArray(actions)) return false;
+  let previousIndex = -1;
+  for (const action of actions) {
+    if (action === null || typeof action !== "object" || !isDeclaredCurveActionId(action.actionId) ||
+        (action.status !== "observed" && action.status !== "error") ||
+        typeof action.constructionSafe !== "boolean" ||
+        typeof action.expectedCollisionRejection !== "boolean" ||
+        typeof action.protocolInvalid !== "boolean") {
+      return false;
+    }
+    const index = CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER.indexOf(action.actionId);
+    if (index <= previousIndex) return false;
+    previousIndex = index;
+  }
+  return true;
+}
+
+function validOrderedActionIds(ids: readonly ContinuousSupportCurveActionId[]): boolean {
+  return Array.isArray(ids) && ids.every((id, index) =>
+    isDeclaredCurveActionId(id) &&
+    (index === 0 || CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER.indexOf(ids[index - 1]!) < CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER.indexOf(id))
+  );
+}
+
+function hasFullDeclaredActionRoster(actions: readonly ContinuousSupportCurvePhaseActionCertificate[]): boolean {
+  return actions.length === CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER.length &&
+    actions.every((action, index) => action.actionId === CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER[index]);
+}
+
+function sameOrderedActionIds(
+  left: readonly ContinuousSupportCurveActionId[],
+  right: readonly ContinuousSupportCurveActionId[],
+): boolean {
+  return left.length === right.length && left.every((id, index) => id === right[index]);
+}
+
+function invalidPhaseActionIds(
+  actions: readonly ContinuousSupportCurvePhaseActionCertificate[],
+): ContinuousSupportCurveActionId[] {
+  return actions.flatMap((action) => {
+    const internallyConsistent = action.constructionSafe
+      ? !action.expectedCollisionRejection && !action.protocolInvalid
+      : action.expectedCollisionRejection || action.protocolInvalid || action.status === "error";
+    return action.status === "error" || action.protocolInvalid || !internallyConsistent
+      ? [action.actionId]
+      : [];
+  });
+}
+
 function sameCurveActionOrder(order: readonly ContinuousSupportCurveActionId[]): boolean {
-  return order.length === CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER.length &&
+  return Array.isArray(order) && order.length === CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER.length &&
     order.every((actionId, index) => actionId === CONTINUOUS_SUPPORT_CURVE_ACTION_ORDER[index]);
 }
 
@@ -871,14 +994,14 @@ function noCausalExposure(
   eligibleCollisionWindow: ContinuousSupportCurveCausalExposure["eligibleCollisionWindow"] = null,
   firstEligibleCollisionFrame: number | null = null,
 ): ContinuousSupportCurveCausalExposure {
-  return {
+  return issueCausalExposure({
     actionSpecific: false,
     protocolInvalid: false,
     eligibleCollisionWindow,
     firstEligibleCollisionFrame,
     reason,
     causalHits: [],
-  };
+  });
 }
 
 function invalidCausalExposure(
@@ -896,14 +1019,24 @@ function invalidCausalExposure(
     "invalid_curve_collision_witness"
   >,
 ): ContinuousSupportCurveCausalExposure {
-  return {
+  return issueCausalExposure({
     actionSpecific: false,
     protocolInvalid: true,
     eligibleCollisionWindow: null,
     firstEligibleCollisionFrame: null,
     reason,
     causalHits: [],
-  };
+  });
+}
+
+function issueCausalExposure(value: ContinuousSupportCurveCausalExposure): ContinuousSupportCurveCausalExposure {
+  const issued = Object.freeze({
+    ...value,
+    eligibleCollisionWindow: value.eligibleCollisionWindow === null ? null : Object.freeze({ ...value.eligibleCollisionWindow }),
+    causalHits: Object.freeze(value.causalHits.map((hit) => Object.freeze({ ...hit, pointIds: Object.freeze([...hit.pointIds]) }))),
+  });
+  ISSUED_CAUSAL_EXPOSURES.add(issued);
+  return issued;
 }
 
 function validCausalExposureGuards(input: ContinuousSupportCurveCausalExposureInput): boolean {

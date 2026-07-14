@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { studySourceIdentity } from "../scripts/v0/trajectory/study_artifact.ts";
+import { classifyPostimpactConstructionProbe } from "../scripts/v0/trajectory/postimpact_support_assay.ts";
 
 const RUNNER_PATH = "scripts/v0/study_continuous_support_curve.ts";
 
@@ -51,5 +52,53 @@ describe("continuous support curve runner isolation", () => {
       directViolations: [],
       transitiveViolations: [],
     });
+  });
+
+  test("delegates protected-boundary classification to the tested shared rule", () => {
+    const source = readFileSync(RUNNER_PATH, "utf8");
+    expect(source).toContain("classifyPostimpactConstructionProbe");
+    expect(source).toContain(
+      "captureOnlyPreHComplete: input.sharedCaptureCertificate.captureOnlyCompleteThroughHPlusOne",
+    );
+    expect(source).toContain("survivesThroughH: survivesThroughFrame(detection, input.supportStartFrame)");
+    expect(source).not.toMatch(/function classify(?:Continuous|Postimpact)Construction/);
+  });
+
+  test("keeps a fatal attributable at-H support collision as a phase rejection", () => {
+    expect(classifyPostimpactConstructionProbe({
+      physicalPrefixMatchesBaseline: true,
+      captureOnlyPreHComplete: true,
+      captureOnlyPreHTraceAvailable: true,
+      captureTraceMatchesComparator: false,
+      traceMatchesBeforeFirstSupportCollision: true,
+      selectedCaptureEventMatchesComparator: false,
+      impactMatchesComparator: false,
+      // This is deliberately false: it describes the candidate after its
+      // attributable collision, not the already-proved capture-only baseline.
+      survivesThroughH: false,
+      preOrAtHSupportCollisionCount: 1,
+    })).toMatchObject({
+      constructionSafe: false,
+      expectedCollisionRejection: true,
+      protocolInvalid: false,
+      reason: "support_collision_at_or_before_H",
+    });
+  });
+
+  test("keeps execution completion, five-arm evidence eligibility, and orientation coverage explicit", () => {
+    const source = readFileSync(RUNNER_PATH, "utf8");
+    for (const field of [
+      "executionComplete",
+      "descriptiveLocalClaimEligible",
+      "selectedCertifiedPhaseRows",
+      "completeMeasurementRows",
+      "completePairedRows",
+      "orientationEvidence",
+      "entryActiveNormalProjectionToReferenceStepRatio",
+      "resolutionDiagnosticActionErrors",
+    ]) {
+      expect(source).toContain(field);
+    }
+    expect(source).not.toContain("certifiedRows:");
   });
 });

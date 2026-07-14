@@ -28,6 +28,31 @@ describe("post-impact support assay rules", () => {
     preOrAtHSupportCollisionCount: 0,
   };
 
+  function classifiedExposure(
+    action: (typeof CONTINUOUS_SUPPORT_CURVE_ACTIONS)[number],
+    kind: "endpoint" | "none" | "invalid",
+  ) {
+    const actionSpecific = kind === "endpoint";
+    const neutralSegments = [{ lineId: 40, segmentIndex: 0, tangentDeg: 0 }];
+    const actionSegments = [{ lineId: 40, segmentIndex: 0, tangentDeg: actionSpecific ? 1 : 0 }];
+    return classifyContinuousSupportCurveCausalExposure({
+      action,
+      supportStartFrame: 108,
+      constructionSafe: true,
+      structurallyValid: true,
+      physicalPrefixMatchesBaseline: true,
+      captureTraceMatchesComparator: kind !== "invalid",
+      selectedCaptureEventMatchesComparator: true,
+      impactMatchesComparator: true,
+      traceMatchesBeforeFirstSupportCollision: true,
+      curveLineIdsDisjointFromCapture: true,
+      measurementEndFrame: 120,
+      actionSegments,
+      neutralSegments,
+      curveCollisions: actionSpecific ? [{ frame: 109, lineId: 40, pointIds: ["TAIL"] }] : [],
+    });
+  }
+
   test("treats a protected-boundary collision as ordinary rejection only after all comparator guards hold", () => {
     expect(classifyPostimpactConstructionProbe(stable)).toMatchObject({
       constructionSafe: true,
@@ -178,6 +203,28 @@ describe("post-impact support assay rules", () => {
     expect(() => firstCertifiedContinuousSupportCurvePhase(phaseCertificates.map((phase) =>
       phase.phaseLeadSteps === 1 ? { ...phase, sharedConstructionSafe: false } : phase,
     ))).toThrow(/internally inconsistent/);
+
+    const invalidThenRejectedThenCertified = [
+      certifyContinuousSupportCurvePhase(0, safe.map((probe) =>
+        probe.action.id === "curve-neutral" ? { ...probe, protocolInvalid: true } : probe,
+      ), sharedCaptureCertificate),
+      rejected,
+      certifyContinuousSupportCurvePhase(2, safe, sharedCaptureCertificate),
+      certifyContinuousSupportCurvePhase(3, safe.map((probe) => ({
+        ...probe,
+        constructionSafe: false,
+        expectedCollisionRejection: true,
+      })), sharedCaptureCertificate),
+      certifyContinuousSupportCurvePhase(4, safe.map((probe) => ({
+        ...probe,
+        constructionSafe: false,
+        expectedCollisionRejection: true,
+      })), sharedCaptureCertificate),
+    ];
+    expect(firstCertifiedContinuousSupportCurvePhase(invalidThenRejectedThenCertified)?.phaseLeadSteps).toBe(2);
+    expect(() => firstCertifiedContinuousSupportCurvePhase(invalidThenRejectedThenCertified.map((phase) =>
+      phase.phaseLeadSteps === 1 ? { ...phase, actions: [] } : phase,
+    ))).toThrow(/internally inconsistent/);
   });
 
   test("uses a fixed, context-matched neutral contrast rather than anonymous capture-only deltas", () => {
@@ -200,18 +247,10 @@ describe("post-impact support assay rules", () => {
       structurallyValid: true,
       terminalHeadingDeg: terminalHeadingById[action.id],
       matchedNeutralContext: context,
-      causalExposure: {
-        actionSpecific: action.id === "curve-turn-negative-8" || action.id === "curve-turn-positive-8",
-        protocolInvalid: false,
-        eligibleCollisionWindow: { startFrame: 109, endFrame: 118 },
-        firstEligibleCollisionFrame: action.id === "curve-turn-negative-8" || action.id === "curve-turn-positive-8"
-          ? 110
-          : null,
-        reason: action.id === "curve-turn-negative-8" || action.id === "curve-turn-positive-8"
-          ? "action_specific_curve_collision" as const
-          : "neutral_action" as const,
-        causalHits: [],
-      },
+      causalExposure: classifiedExposure(
+        action,
+        action.id === "curve-turn-negative-8" || action.id === "curve-turn-positive-8" ? "endpoint" : "none",
+      ),
     }));
     const contrast = summarizeContinuousSupportCurveMatchedNeutralContrast(arms);
     expect(contrast).toMatchObject({
@@ -242,12 +281,7 @@ describe("post-impact support assay rules", () => {
       arm.action.id === "curve-turn-positive-8"
         ? {
           ...arm,
-          causalExposure: {
-            ...arm.causalExposure,
-            actionSpecific: false,
-            firstEligibleCollisionFrame: null,
-            reason: "no_curve_collision_after_H" as const,
-          },
+          causalExposure: classifiedExposure(arm.action, "none"),
         }
         : arm,
     ));
@@ -261,15 +295,38 @@ describe("post-impact support assay rules", () => {
       arm.action.id === "curve-turn-positive-8"
         ? {
           ...arm,
-          causalExposure: {
-            ...arm.causalExposure,
-            protocolInvalid: true,
-            reason: "capture_trace_changed_before_response" as const,
-          },
+          causalExposure: classifiedExposure(arm.action, "invalid"),
         }
         : arm,
     ));
     expect(invalidExposure).toMatchObject({
+      available: false,
+      protocolInvalid: true,
+      reason: "causal_exposure_protocol_invalid",
+    });
+
+    const forgedExposure = summarizeContinuousSupportCurveMatchedNeutralContrast(arms.map((arm) =>
+      arm.action.id === "curve-turn-positive-8"
+        ? {
+          ...arm,
+          causalExposure: {
+            actionSpecific: true,
+            protocolInvalid: false,
+            eligibleCollisionWindow: { startFrame: 109, endFrame: 118 },
+            firstEligibleCollisionFrame: 109,
+            reason: "action_specific_curve_collision" as const,
+            causalHits: [{
+              frame: 109,
+              lineId: 40,
+              pointIds: ["TAIL"],
+              segmentIndex: 0,
+              tangentDeltaFromNeutralDeg: 1,
+            }],
+          },
+        }
+        : arm,
+    ));
+    expect(forgedExposure).toMatchObject({
       available: false,
       protocolInvalid: true,
       reason: "causal_exposure_protocol_invalid",

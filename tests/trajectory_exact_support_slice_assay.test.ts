@@ -1,26 +1,121 @@
 import { describe, expect, test } from "vitest";
 import {
   angleDeltaDeg,
+  classifyExactSupportSliceConstructionProbe,
   displacement,
-  EXACT_SUPPORT_SLICE_MAX_HORIZON_FRAMES,
-  EXACT_SUPPORT_SLICE_MIN_HORIZON_FRAMES,
-  exactSupportSliceHorizon,
+  exactSupportSliceCaptureClosureEndFrame,
+  exactSupportSliceCaptureSelectionValidationEndFrame,
+  EXACT_SUPPORT_SLICE_MAX_MEASUREMENT_HORIZON_FRAMES,
+  EXACT_SUPPORT_SLICE_MIN_MEASUREMENT_HORIZON_FRAMES,
+  exactSupportSliceMeasurementHorizon,
+  firstSharedSafeExactSupportSlicePhase,
   measureCoMWindow,
   namedReferenceState,
   offBeatLandingsInWindow,
   remainingAirSpeedBudget,
   sameOwnedCaptureEvent,
   sameScoredContactImpact,
+  unresolvedOffBeatLandingFramesAtWindowEnd,
 } from "../scripts/v0/trajectory/exact_support_slice_assay.ts";
 import { EXACT_SUPPORT_SLICE_PROTOCOL } from "../scripts/v0/trajectory/exact_support_slice.ts";
 
 describe("exact support slice assay rules", () => {
-  test("defines Q as elapsed intervals and retains short horizons as unavailable", () => {
-    expect(EXACT_SUPPORT_SLICE_MAX_HORIZON_FRAMES).toBe(EXACT_SUPPORT_SLICE_PROTOCOL.maxHorizonFrames);
-    expect(EXACT_SUPPORT_SLICE_MIN_HORIZON_FRAMES).toBe(EXACT_SUPPORT_SLICE_PROTOCOL.minHorizonFrames);
-    expect(exactSupportSliceHorizon(120, 108)).toEqual({ status: "ready", horizonFrames: 12, measurementSamples: 13 });
-    expect(exactSupportSliceHorizon(110, 106)).toEqual({ status: "ready", horizonFrames: 4, measurementSamples: 5 });
-    expect(exactSupportSliceHorizon(110, 107)).toEqual({ status: "insufficient_support_horizon", availableIntervals: 3 });
+  test("closes capture eligibility at H minus one rather than H or H plus one", () => {
+    expect(exactSupportSliceCaptureClosureEndFrame(null)).toBeNull();
+    expect(exactSupportSliceCaptureClosureEndFrame(100)).toBe(106);
+    expect(exactSupportSliceCaptureSelectionValidationEndFrame(100, 1)).toBe(105);
+    expect(() => exactSupportSliceCaptureClosureEndFrame(1.5)).toThrow(/safe integer/);
+    expect(() => exactSupportSliceCaptureSelectionValidationEndFrame(100, -1)).toThrow(/non-negative/);
+  });
+
+  test("treats collision as expected only after immutable comparator invariants hold", () => {
+    const stable = {
+      physicalPrefixMatchesBaseline: true,
+      captureOnlyPreHComplete: true,
+      captureOnlyPreHTraceAvailable: true,
+      captureTraceMatchesComparator: true,
+      traceMatchesBeforeFirstSupportCollision: true,
+      selectedCaptureEventMatchesComparator: true,
+      impactMatchesComparator: true,
+      survivesThroughH: true,
+      preOrAtHSupportCollisionCount: 0,
+    };
+    expect(classifyExactSupportSliceConstructionProbe(stable)).toMatchObject({
+      constructionSafe: true,
+      expectedCollisionRejection: false,
+      protocolInvalid: false,
+    });
+    expect(classifyExactSupportSliceConstructionProbe({
+      ...stable,
+      captureTraceMatchesComparator: false,
+      preOrAtHSupportCollisionCount: 1,
+    })).toMatchObject({
+      constructionSafe: false,
+      expectedCollisionRejection: true,
+      protocolInvalid: false,
+    });
+    expect(classifyExactSupportSliceConstructionProbe({
+      ...stable,
+      physicalPrefixMatchesBaseline: false,
+      preOrAtHSupportCollisionCount: 1,
+    })).toMatchObject({
+      expectedCollisionRejection: false,
+      protocolInvalid: true,
+    });
+    expect(classifyExactSupportSliceConstructionProbe({
+      ...stable,
+      captureOnlyPreHTraceAvailable: false,
+      preOrAtHSupportCollisionCount: 1,
+    })).toMatchObject({
+      expectedCollisionRejection: false,
+      protocolInvalid: true,
+    });
+    expect(classifyExactSupportSliceConstructionProbe({
+      ...stable,
+      traceMatchesBeforeFirstSupportCollision: false,
+      preOrAtHSupportCollisionCount: 1,
+    })).toMatchObject({
+      expectedCollisionRejection: false,
+      protocolInvalid: true,
+    });
+    expect(classifyExactSupportSliceConstructionProbe({
+      ...stable,
+      impactMatchesComparator: false,
+    })).toMatchObject({
+      expectedCollisionRejection: false,
+      protocolInvalid: true,
+    });
+  });
+
+  test("selects only the first declared shared-safe phase and preserves no-safe availability", () => {
+    const phases = [
+      { lead: 0, sharedConstructionSafe: false },
+      { lead: 1, sharedConstructionSafe: false },
+      { lead: 2, sharedConstructionSafe: true },
+      { lead: 3, sharedConstructionSafe: true },
+    ];
+    expect(firstSharedSafeExactSupportSlicePhase(phases)).toEqual(phases[2]);
+    expect(firstSharedSafeExactSupportSlicePhase(phases.map((phase) => ({ ...phase, sharedConstructionSafe: false })))).toBeNull();
+  });
+
+  test("defines Q as elapsed observation intervals without changing the fixed construction extent", () => {
+    expect(EXACT_SUPPORT_SLICE_MAX_MEASUREMENT_HORIZON_FRAMES).toBe(EXACT_SUPPORT_SLICE_PROTOCOL.maxMeasurementHorizonFrames);
+    expect(EXACT_SUPPORT_SLICE_MIN_MEASUREMENT_HORIZON_FRAMES).toBe(EXACT_SUPPORT_SLICE_PROTOCOL.minMeasurementHorizonFrames);
+    expect(EXACT_SUPPORT_SLICE_PROTOCOL.constructionExtentFrames).toBe(12);
+    expect(exactSupportSliceMeasurementHorizon(120, 108)).toEqual({
+      status: "ready",
+      measurementHorizonFrames: 12,
+      measurementSamples: 13,
+    });
+    expect(exactSupportSliceMeasurementHorizon(110, 106)).toEqual({
+      status: "ready",
+      measurementHorizonFrames: 4,
+      measurementSamples: 5,
+    });
+    expect(exactSupportSliceMeasurementHorizon(110, 107)).toEqual({
+      status: "insufficient_measurement_horizon",
+      availableIntervals: 3,
+    });
   });
 
   test("keeps the named response anchor fixed rather than reselection by height", () => {
@@ -85,6 +180,12 @@ describe("exact support slice assay rules", () => {
       ],
     } as any;
     expect(offBeatLandingsInWindow(detection, [4], 4, 6)).toEqual([6]);
+    expect(unresolvedOffBeatLandingFramesAtWindowEnd(detection, [4], 0, 6)).toEqual([6]);
+    const extendedDetection = {
+      ...detection,
+      measurements: { ...detection.measurements, airborne: Array(11).fill(false) },
+    } as any;
+    expect(unresolvedOffBeatLandingFramesAtWindowEnd(extendedDetection, [4], 0, 10)).toEqual([]);
   });
 });
 

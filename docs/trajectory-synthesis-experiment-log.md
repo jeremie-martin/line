@@ -229,3 +229,41 @@ measuring any post-`H` response.
 matrix under the repaired contract. Generated artifacts remain ignored evidence,
 not repository payloads. The source identity is sampled before and after replay;
 literal byte-snapshot evidence still requires an external immutable workspace.
+
+## 2026-07-14: Exact Support-Slice V2 Is a Valid Construction Assay, Not a Rollout Result
+
+**Question.** Can a small tangent-aligned support rail be constructed from an
+exact post-impact state without silently perturbing the capture prefix, and can
+that construction be studied without leaking an outgoing target or endpoint
+into phase choice?
+
+**Protocol.** V2 retains the V1 inclusive safety boundary but replaces the
+point anchor with a fixed construction-feasibility ladder `n = 0..4`. For each
+phase, all five declared rails replay through `H`; only the first phase safe
+for every arm may be measured after `H`. The lead and active side use only the
+capture-only named-reference displacement from `H` to `H + 1`. Every rail has
+the fixed state-normalized extent `responseSpeed * 12`; `Q` only limits the
+post-construction measurement window. A collision is an ordinary rejection
+only if the immutable prefix is exact and candidate and capture-only traces
+match through the frame before that collision. Detector-tail landings are
+unresolved, not silently accepted. The runner has no tuning flags and records
+all rejected phases.
+
+**Result.** Fresh V3 frozen WASM/500k calibration replays across dense,
+dense-240ms, ordinary, and the correlated 3--7s low-air ladder completed in
+144 seconds (peak per-study RSS 462 MB). All 8 artifacts had one source,
+compiler, and protocol identity. Of 192 capture rows, 84 closed; their 355
+phase attempts generated 1,775 all-arm construction probes. There were 295
+shared-safe phase candidates and 60 collision-only rejected phases (300
+causally attributed collision actions), with zero invalid probes, errors, or
+construction-unavailable rows. Post-construction output had 199 structurally
+valid rail replays and 39 complete paired rows. The dense fixture had no
+eligible post-`H` measurement window, which is retained as measurement
+unavailability rather than a failed construction. No per-fixture output claims
+rollout feasibility.
+
+**Decision.** Keep V2 calibration-only. The result validates the assay's
+construction and evidence boundaries; it does not validate a support law,
+authorize a receding rollout, or justify a compiler change. A later
+panel-level analysis must separately freeze its cohort treatment and
+directional-response criterion before it can make a feasibility conclusion.

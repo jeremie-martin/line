@@ -1,13 +1,14 @@
 /** Shared observation rules for the preregistered exact-support-slice assay. */
-import type { Detection } from "../../lib/detector.ts";
+import { PERSISTENCE_FRAMES, type Detection } from "../../lib/detector.ts";
 import {
   airborneAt,
+  measurementLastFrame,
   offBeatLandingEvents,
   positionAt,
   speedAt,
   velocityAt,
 } from "../core/substrate.ts";
-import { speedPxToAuthored } from "../types.ts";
+import { IMPACT_WINDOW, speedPxToAuthored } from "../types.ts";
 import type { ScoredContactImpactOutcome } from "./scored_contact_impact.ts";
 import type { OwnedContactEvent } from "./contact_observation.ts";
 import { stableJson } from "./frozen_fixture.ts";
@@ -16,21 +17,125 @@ import type { ExactTraceFingerprint } from "./study_trace.ts";
 import type { TargetFrame } from "./target_frame.ts";
 import { EXACT_SUPPORT_SLICE_PROTOCOL } from "./exact_support_slice.ts";
 
-export const EXACT_SUPPORT_SLICE_MAX_HORIZON_FRAMES = EXACT_SUPPORT_SLICE_PROTOCOL.maxHorizonFrames;
-export const EXACT_SUPPORT_SLICE_MIN_HORIZON_FRAMES = EXACT_SUPPORT_SLICE_PROTOCOL.minHorizonFrames;
+export const EXACT_SUPPORT_SLICE_MAX_MEASUREMENT_HORIZON_FRAMES =
+  EXACT_SUPPORT_SLICE_PROTOCOL.maxMeasurementHorizonFrames;
+export const EXACT_SUPPORT_SLICE_MIN_MEASUREMENT_HORIZON_FRAMES =
+  EXACT_SUPPORT_SLICE_PROTOCOL.minMeasurementHorizonFrames;
 
-export type ExactSupportSliceHorizon =
-  | { status: "ready"; horizonFrames: number; measurementSamples: number }
-  | { status: "insufficient_support_horizon"; availableIntervals: number };
+/**
+ * Capture eligibility closes at the scorer's impact endpoint. H is deliberately
+ * one frame later, so H/H+1 availability cannot decide whether a capture is
+ * admitted to the construction assay.
+ */
+export function exactSupportSliceCaptureClosureEndFrame(selectedEventFrame: number | null): number | null {
+  if (selectedEventFrame === null) return null;
+  if (!Number.isSafeInteger(selectedEventFrame)) throw new Error("selected capture event frame must be a safe integer");
+  return selectedEventFrame + IMPACT_WINDOW;
+}
 
-/** Q is elapsed intervals; [H, H+Q] contains Q+1 scorer samples. */
-export function exactSupportSliceHorizon(outgoingEndFrame: number, supportStartFrame: number): ExactSupportSliceHorizon {
-  const availableIntervals = outgoingEndFrame - supportStartFrame;
-  if (!Number.isSafeInteger(availableIntervals) || availableIntervals < EXACT_SUPPORT_SLICE_MIN_HORIZON_FRAMES) {
-    return { status: "insufficient_support_horizon", availableIntervals };
+/**
+ * Event eligibility is filtered at target +/- `maxSelectionOffsetFrames`, but
+ * detector persistence needs its complete fixed tail before an event can seed
+ * the H-1 capture closure read.
+ */
+export function exactSupportSliceCaptureSelectionValidationEndFrame(
+  targetFrame: number,
+  maxSelectionOffsetFrames: number,
+): number {
+  if (!Number.isSafeInteger(targetFrame)) throw new Error("capture target frame must be a safe integer");
+  if (!Number.isSafeInteger(maxSelectionOffsetFrames) || maxSelectionOffsetFrames < 0) {
+    throw new Error("capture selection offset must be a non-negative safe integer");
   }
-  const horizonFrames = Math.min(EXACT_SUPPORT_SLICE_MAX_HORIZON_FRAMES, availableIntervals);
-  return { status: "ready", horizonFrames, measurementSamples: horizonFrames + 1 };
+  return targetFrame + maxSelectionOffsetFrames + PERSISTENCE_FRAMES - 1;
+}
+
+export type ExactSupportSliceConstructionProbeGuards = {
+  /** Immutable [0,current.startFrame-1] replay identity. */
+  physicalPrefixMatchesBaseline: boolean;
+  /** Capture-only comparator itself was measurable through H. */
+  captureOnlyPreHComplete: boolean;
+  /** Full-engine capture-only trace was available with the declared semantics. */
+  captureOnlyPreHTraceAvailable: boolean;
+  /** Exact capture-only state over [outgoing.startFrame,H]. */
+  captureTraceMatchesComparator: boolean;
+  /** Candidate and capture-only traces agree through the first collision minus one. */
+  traceMatchesBeforeFirstSupportCollision: boolean;
+  selectedCaptureEventMatchesComparator: boolean;
+  impactMatchesComparator: boolean;
+  survivesThroughH: boolean;
+  preOrAtHSupportCollisionCount: number;
+};
+
+/**
+ * A support collision is an expected construction rejection only after the
+ * immutable physical prefix and baseline comparator are intact. That prevents
+ * an incidental collision from masking a broken pre-existing invariant.
+ */
+export function classifyExactSupportSliceConstructionProbe(
+  guards: ExactSupportSliceConstructionProbeGuards,
+): {
+  protectedTraceAndCaptureStable: boolean;
+  collisionCausallyAttributed: boolean;
+  expectedCollisionRejection: boolean;
+  protocolInvalid: boolean;
+  constructionSafe: boolean;
+} {
+  if (!Number.isSafeInteger(guards.preOrAtHSupportCollisionCount) || guards.preOrAtHSupportCollisionCount < 0) {
+    throw new Error("support collision count must be a non-negative safe integer");
+  }
+  const hasCollision = guards.preOrAtHSupportCollisionCount > 0;
+  const protectedTraceAndCaptureStable = guards.captureOnlyPreHComplete &&
+    guards.captureOnlyPreHTraceAvailable &&
+    guards.physicalPrefixMatchesBaseline &&
+    guards.captureTraceMatchesComparator &&
+    guards.selectedCaptureEventMatchesComparator &&
+    guards.impactMatchesComparator &&
+    guards.survivesThroughH;
+  const immutableComparatorStable = guards.captureOnlyPreHComplete &&
+    guards.captureOnlyPreHTraceAvailable &&
+    guards.physicalPrefixMatchesBaseline;
+  const collisionCausallyAttributed = hasCollision && guards.traceMatchesBeforeFirstSupportCollision;
+  const expectedCollisionRejection = immutableComparatorStable && collisionCausallyAttributed;
+  const protocolInvalid = !immutableComparatorStable ||
+    (hasCollision ? !collisionCausallyAttributed : !protectedTraceAndCaptureStable);
+  return {
+    protectedTraceAndCaptureStable,
+    collisionCausallyAttributed,
+    expectedCollisionRejection,
+    protocolInvalid,
+    constructionSafe: protectedTraceAndCaptureStable && !hasCollision,
+  };
+}
+
+/** First declared shared-safe phase wins; no outcome data participates. */
+export function firstSharedSafeExactSupportSlicePhase<T extends { sharedConstructionSafe: boolean }>(
+  phases: readonly T[],
+): T | null {
+  return phases.find((phase) => phase.sharedConstructionSafe) ?? null;
+}
+
+export type ExactSupportSliceMeasurementHorizon =
+  | { status: "ready"; measurementHorizonFrames: number; measurementSamples: number }
+  | { status: "insufficient_measurement_horizon"; availableIntervals: number };
+
+/**
+ * Q is elapsed intervals; [H, H+Q] contains Q+1 scorer samples. This is an
+ * observation boundary only: it cannot reach rail geometry or phase choice.
+ */
+export function exactSupportSliceMeasurementHorizon(
+  outgoingEndFrame: number,
+  supportStartFrame: number,
+): ExactSupportSliceMeasurementHorizon {
+  const availableIntervals = outgoingEndFrame - supportStartFrame;
+  if (!Number.isSafeInteger(availableIntervals) || availableIntervals < EXACT_SUPPORT_SLICE_MIN_MEASUREMENT_HORIZON_FRAMES) {
+    return { status: "insufficient_measurement_horizon", availableIntervals };
+  }
+  const measurementHorizonFrames = Math.min(EXACT_SUPPORT_SLICE_MAX_MEASUREMENT_HORIZON_FRAMES, availableIntervals);
+  return {
+    status: "ready",
+    measurementHorizonFrames,
+    measurementSamples: measurementHorizonFrames + 1,
+  };
 }
 
 /** Full engine-state fingerprints are a fail-closed identity predicate. */
@@ -141,6 +246,23 @@ export function offBeatLandingsInWindow(
   return offBeatLandingEvents(detection, [...authoredContactFrames])
     .filter((event) => event.frame >= startFrame && event.frame <= endFrame)
     .map((event) => event.frame);
+}
+
+/**
+ * `detectWindow(..., endFrame)` classifies an endpoint landing using a clipped
+ * persistence window. An off-beat landing in that tail is therefore retained
+ * as unresolved rather than treated as a verified semantic landing.
+ */
+export function unresolvedOffBeatLandingFramesAtWindowEnd(
+  detection: Detection,
+  authoredContactFrames: readonly number[],
+  startFrame: number,
+  endFrame: number,
+): number[] {
+  const observedEndFrame = Math.min(endFrame, measurementLastFrame(detection));
+  const firstUnresolvedFrame = observedEndFrame - (PERSISTENCE_FRAMES - 2);
+  return offBeatLandingsInWindow(detection, authoredContactFrames, startFrame, observedEndFrame)
+    .filter((frame) => frame >= firstUnresolvedFrame);
 }
 
 /**

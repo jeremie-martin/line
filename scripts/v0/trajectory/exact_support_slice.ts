@@ -10,9 +10,23 @@ import type { TrackLine } from "../types.ts";
 import { adaptiveCurveSegmentCount } from "./curve_resolution.ts";
 import type { TargetFrame } from "./target_frame.ts";
 
+/**
+ * Static terrain exists for the whole replay.  This bounded, shared phase
+ * ladder is therefore a construction-feasibility rule, not an action menu:
+ * the runner selects the first lead for which every declared rail preserves
+ * the protected capture prefix through H.
+ */
+export const EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS = Object.freeze([0, 1, 2, 3, 4] as const);
+
 export const EXACT_SUPPORT_SLICE_PROTOCOL = Object.freeze({
-  minHorizonFrames: 4,
-  maxHorizonFrames: 12,
+  minMeasurementHorizonFrames: 4,
+  maxMeasurementHorizonFrames: 12,
+  /**
+   * The rail's physical extent is deliberately fixed. The runner may use an
+   * outgoing endpoint to bound evidence availability, but it never reaches
+   * construction feasibility or the selected phase of the declared ladder.
+   */
+  constructionExtentFrames: 12,
   preloadSpeedFrames: 0.1,
   minNormalDisplacementPx: 1e-3,
   minForwardDisplacementPx: 1e-3,
@@ -20,6 +34,7 @@ export const EXACT_SUPPORT_SLICE_PROTOCOL = Object.freeze({
   maxTurnDegPerSegment: 5,
   minAdjacentActiveNormalDot: 0.99,
   engineGridCellSizePx: 14,
+  phaseLeadSteps: EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS,
 } as const);
 
 export type ExactSupportSliceAction = {
@@ -53,8 +68,12 @@ export type ExactSupportSliceInput = {
    * H+1. This declares the active one-sided normal before rail actions run.
    */
   captureOnlyReferenceDisplacement: Vec2;
-  /** Q elapsed intervals; the study observes [H, H+Q] inclusively. */
-  horizonFrames: number;
+  /**
+   * Predeclared forward phase from the H -> H+1 capture-only displacement.
+   * This is shared across every rail arm in a row and selected only by the
+   * runner's retained pre-H construction guard.
+   */
+  phaseLeadSteps: (typeof EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS)[number];
 };
 
 export type ExactSupportSliceSegment = {
@@ -67,10 +86,12 @@ export type ExactSupportSliceSegment = {
 
 export type ExactSupportSlice = {
   action: ExactSupportSliceAction;
-  horizonFrames: number;
-  baseExtentPx: number;
+  constructionExtentFrames: number;
+  baseConstructionExtentPx: number;
   extentPx: number;
   preloadPx: number;
+  phaseLeadSteps: number;
+  phaseLeadPx: number;
   railStart: Vec2;
   entryTangentDeg: number;
   entryFlipped: boolean;
@@ -156,9 +177,13 @@ export function realizeExactSupportSlice(
   assertInput(input, action, lineIdStart);
   const orientation = resolveExactSupportSliceOrientation(input);
 
-  const baseExtentPx = input.anchor.speedPxPerFrame * input.horizonFrames;
-  const extentPx = baseExtentPx * action.extentScale;
-  const railStart = add(input.anchor.reference, scale(orientation.entryActiveNormal, orientation.preloadPx));
+  const baseConstructionExtentPx = input.anchor.speedPxPerFrame * EXACT_SUPPORT_SLICE_PROTOCOL.constructionExtentFrames;
+  const extentPx = baseConstructionExtentPx * action.extentScale;
+  const phaseLeadPx = orientation.entryTangentProjectionPx * input.phaseLeadSteps;
+  const railStart = add(
+    add(input.anchor.reference, scale(orientation.entryTangent, phaseLeadPx)),
+    scale(orientation.entryActiveNormal, orientation.preloadPx),
+  );
   const resolvedSegments = adaptiveCurveSegmentCount(
     extentPx,
     action.totalTurnDeg,
@@ -221,10 +246,12 @@ export function realizeExactSupportSlice(
 
   return {
     action: { ...action },
-    horizonFrames: input.horizonFrames,
-    baseExtentPx,
+    constructionExtentFrames: EXACT_SUPPORT_SLICE_PROTOCOL.constructionExtentFrames,
+    baseConstructionExtentPx,
     extentPx,
     preloadPx: orientation.preloadPx,
+    phaseLeadSteps: input.phaseLeadSteps,
+    phaseLeadPx,
     railStart,
     entryTangentDeg: orientation.entryTangentDeg,
     entryFlipped: orientation.entryFlipped,
@@ -280,12 +307,10 @@ function conservativeGridFootprint(points: readonly Vec2[]): ExactSupportSlice["
 }
 
 function assertInput(input: ExactSupportSliceInput, action: ExactSupportSliceAction, lineIdStart: number): void {
-  if (!Number.isSafeInteger(input.horizonFrames) ||
-    input.horizonFrames < EXACT_SUPPORT_SLICE_PROTOCOL.minHorizonFrames ||
-    input.horizonFrames > EXACT_SUPPORT_SLICE_PROTOCOL.maxHorizonFrames) {
-    throw new Error(`support rail horizon must be an integer in [${EXACT_SUPPORT_SLICE_PROTOCOL.minHorizonFrames}, ${EXACT_SUPPORT_SLICE_PROTOCOL.maxHorizonFrames}]`);
-  }
   if (!Number.isSafeInteger(lineIdStart)) throw new Error("support rail lineIdStart must be a safe integer");
+  if (!(EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS as readonly number[]).includes(input.phaseLeadSteps)) {
+    throw new Error("support rail phaseLeadSteps must match the declared construction ladder");
+  }
   assertAnchorAndDisplacement(input);
   const declared = EXACT_SUPPORT_SLICE_RAIL_ACTIONS.find((candidate) => candidate.id === action.id);
   if (declared === undefined || !Object.is(action.extentScale, declared.extentScale) || !Object.is(action.totalTurnDeg, declared.totalTurnDeg)) {

@@ -244,14 +244,14 @@ the remaining speed error was often `0.46--0.84`. It proves that exact
 state-shot support can materially change occupancy without corrupting the
 capture prefix; it does not prove a viable full continuation law.
 
-### Local Support-Response Assay: Repaired Evidence Boundary
+### Historical State Support-Response Assay: Repaired Evidence Boundary
 
 Before considering a receding rollout, a separate exact 12-frame response
 assay tested fixed state-relative support actions. The coarse menu has neutral,
 `+/-16` degree mean-grade residuals, and early/late curvature variants; a
 declared follow-up refines only grade at `-8/-4/0/+4/+8` with zero curvature.
 Neither menu accepts raw controls, selects a member, or reads an outgoing
-target or next event. The repaired schema v2 records raw-state prefix identity,
+target or next event. Its repaired schema v4 records raw-state prefix identity,
 scorer-faithful capture impact telemetry, temporal support-contact/airborne
 runs, per-action intention-to-treat availability, and a complete-paired
 summary. A row contributes to the latter only if every declared action is
@@ -328,43 +328,71 @@ side, preload margin, curvature, chord error, and grain footprint, use a fixed
 target-blind stencil, and retain all rows. Exact replay remains the authority;
 no study result is an analytic collision solver or a compiler candidate.
 
-### Preregistered Exact Support-Slice Assay
+### Exact Support-Slice Assay (V2, Calibration Only)
 
-The next assay is a new physical construction, not an amendment of the older
-grade polyline. Its narrow question is whether a short, tangent-aligned offset
-rail has a safe, ordered, exact-engine response after a captured contact. It will
-use only the frozen calibration fixtures and every conditionally closed capture
-row. It will not read an authored outgoing axis, next-contact event or target,
-case name, duration class, seed, or optimizer score while constructing geometry.
-It may read only the outgoing interval endpoint to cap the declared local
-observation horizon; that timing dependency is explicit below, rather than a
-hidden duration bucket.
+This is a new physical assay, not an amendment of the older grade polyline and
+not a compiler generator. Its narrow question is whether a short,
+tangent-aligned offset rail has a safe, ordered exact-engine response after a
+captured contact. It uses frozen calibration fixtures only and retains every
+conditionally closed capture row. Geometry never reads an authored outgoing
+axis, next-contact event or target, case name, duration class, seed, or
+optimizer score. The outgoing endpoint only determines whether enough
+capture and post-construction evidence is observable; it does not reach rail
+geometry or phase selection.
 
-For a selected owned capture event, define the response boundary as
-`H = eventFrame + IMPACT_WINDOW + 1`. Let `Q = min(12, outgoing.endFrame -
-H)`; retain a closed capture with `Q < 4` as `insufficient_support_horizon`,
-rather than silently omitting it. The capture-only replay is the paired
-comparator through `H + Q`. A zero-impact capture is recorded as out-of-scope
-for this positive-impact capture formulation, not assigned a fictional neutral
-incidence law.
+For a selected owned capture event, `H = eventFrame + IMPACT_WINDOW + 1` and
+the capture admission boundary is `H - 1`. Eligible event frames are restricted
+to `target +/- 1`, then capture admission is adjudicated through the impact
+endpoint. Their detector classification receives the fixed pre-`H` persistence
+tail `target + 1 + PERSISTENCE_FRAMES - 1`; `H` and `H + 1` are not
+capture-eligibility inputs. Thus a missing
+`H` or `H + 1` state is a retained comparator/geometry unavailability, never a
+retroactive capture failure. A detector landing inside its clipped persistence
+tail at an inclusive endpoint is retained as `*_persistence_unavailable`, not
+called a verified off-beat landing. Let `Q = min(12, outgoing.endFrame - H)`;
+retain `Q < 4` as
+`insufficient_measurement_horizon`. The capture-only replay is the paired
+comparator through `H + Q`. Zero-impact captures remain out of scope until a
+separate neutral-incidence law is established.
 
-The rail starts at a declared normal offset from the exact response reference
-point. Its first geometric tangent is the exact response tangent, but it is not
-joined to the earlier capture geometry, so it is deliberately not called a C1
-join. The active penetration/force normal is made explicit by the `(endpoint
-direction, flipped)` pair: for a line directed from `p1` to `p2`, an unflipped
-solid line exposes the left normal, while `flipped` exposes its negative.
-Because a tangent-aligned boundary has zero normal velocity at that instant,
-velocity alone cannot choose its active side. The construction instead observes
-the same named reference point in the capture-only replay at `H` and `H + 1`.
-It projects that one-step displacement onto the initial left normal, rejects a
-near-zero normal projection as orientation-unavailable, and also requires a
-positive projection along the canonical forward tangent. It chooses that side
-before any rail arm is run. Later segment flags transport the selected active
-normal continuously along the bounded-turn path. The rail uses a fixed preload
-of `0.1 * responseSpeed` ahead of that normal. This is a declared exact
-observation rule, not an analytic contact claim. Exact collision telemetry
-decides whether it actually catches.
+V1 placed every rail at the exact response point. It was rejected after fresh
+WASM evidence found all-body support collisions at `H - 1` or `H`. V2 does not
+weaken that guard. It declares a bounded construction-feasibility ladder
+`n in [0, 1, 2, 3, 4]`, not a response-action menu. Let `T_H` be the named
+response tangent and `d = ref(H + 1) - ref(H)` from the capture-only replay.
+For a phase `n`, the forward lead is:
+
+```text
+leadPx(n) = n * dot(T_H, d)
+railStart = ref(H) + leadPx(n) * T_H + preload * activeNormal
+```
+
+The `H -> H + 1` displacement is a declared capture-only geometry observation:
+it fixes the forward lead and collidable side, but is not an action outcome or
+a future target. Every rail has a fixed state-normalized base extent
+`L0 = responseSpeed * 12`, independent of `Q` and the outgoing endpoint. Each
+phase replays **all five** rail arms through `H`; the
+first declared phase for which every arm preserves the immutable physical
+prefix, capture-only identity, survival, and zero all-body support collision is
+selected. Every rejected phase and action is retained. A collision is an
+ordinary rejected phase only when the baseline capture-only full-engine trace
+is available, the immutable prefix matches, and the candidate matches that
+baseline through the frame immediately before its first support collision. A
+no-collision mismatch, unavailable trace, prefix change, or pre-collision
+divergence invalidates the assay. If no phase is safe, the row is
+`construction_unavailable`. No `H + Q` measurement, authored outgoing axis,
+outgoing endpoint, or next-event fact may choose the phase.
+
+The selected rail starts from a declared normal offset plus the shared tangent
+lead. Its first geometric tangent is the exact response tangent, but it is not
+joined to earlier capture geometry, so it is deliberately not called a C1
+join. The active penetration/force normal is explicit in `(endpoint direction,
+flipped)`: for `p1 -> p2`, an unflipped solid line exposes the left normal and
+`flipped` exposes its negative. A near-zero normal projection or non-forward
+one-step displacement is `orientation_unavailable`. Later segment flags
+transport the selected active normal continuously along the bounded-turn path.
+The preload is `0.1 * responseSpeed`. These are declared exact observations,
+not an analytic collision solver or a general body-envelope formulation.
 
 The fixed six-arm stencil is:
 
@@ -377,26 +405,29 @@ The fixed six-arm stencil is:
 | rail-extent-long | 1.15 x `L0` | 0 deg | One-factor extent perturbation. |
 | rail-extent-short | 0.85 x `L0` | 0 deg | One-factor extent perturbation. |
 
-`L0 = responseSpeed * Q`. Curvature is constant in arclength and realized
+`L0 = responseSpeed * 12`. `Q` is a post-construction measurement horizon
+only. Curvature is constant in arclength and realized
 adaptively with at most 2px chord error and 5 degrees of turn per segment.
 The rail records its normal, preload, endpoint direction, `flipped` value,
 line IDs, segment lengths, and grid-footprint proxy. These fixed values are
 an assay stencil, not a tuning grid or production menu.
 
-Every non-comparator arm must prove full non-scarf engine-state identity over
-the physical prefix, capture-only identity over `[outgoing.startFrame, H]`,
-zero all-body rail collision through `H`, the same owned capture event and
-impact response, strict survival through `H + Q`, and no off-beat landing in
-that window. It then reports, descriptively, its delta in airborne samples,
-mean CoM speed, separate terminal CoM and named-reference states, and first
-rail collision. It may report the direction of remaining authored air/speed
-budget, but it cannot claim that a `Q`-frame response satisfies the rest of a
-gap.
+For the selected phase, every non-comparator arm must prove full non-scarf
+engine-state identity over the physical prefix, capture-only identity over
+`[outgoing.startFrame, H]`, zero all-body rail collision through `H`, the same
+owned capture event and impact response, strict survival through `H + Q`, and
+no confirmed or persistence-unresolved off-beat landing in that window. It
+then reports, descriptively, its delta
+in airborne samples, mean CoM speed, separate terminal CoM and named-reference
+states, and first rail collision. It may report the direction of remaining
+authored air/speed budget, but cannot claim that a `Q`-frame response satisfies
+the rest of a gap.
 
 The predeclared interpretation is deliberately limited:
 
-1. Any prefix or capture mismatch invalidates the assay rather than producing
-   a physical result.
+1. Any prefix, capture, or full-engine trace mismatch without an attributable
+   construction collision invalidates the assay rather than producing a
+   physical result.
 2. If safe actions are inert or discontinuous with no ordered symmetric-turn
    or extent response across at least one ordinary/dense and one low-air
    physical state, this rail is not a feedback basis. Do not implement a
@@ -406,6 +437,12 @@ The predeclared interpretation is deliberately limited:
    receding-rollout feasibility study.
 4. A long-rideout-only response is capability evidence only and earns no
    generalization claim.
+
+The per-fixture artifact may mark only `descriptiveLocalClaimEligible`: its
+structural contract completed and it has at least one complete paired rail row.
+It never marks rollout feasibility. That requires a separate panel-level
+analysis with the preregistered ordinary/dense and low-air directional-response
+criterion; this runner deliberately does not implement that conclusion.
 
 ## Study Protocol
 

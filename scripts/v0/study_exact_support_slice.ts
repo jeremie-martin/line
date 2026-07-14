@@ -19,14 +19,19 @@ import { contactKinematicFrameFromPlanningState } from "./trajectory/contact_kin
 import { observeOwnedContactTransition, type OwnedContactObservation } from "./trajectory/contact_observation.ts";
 import {
   EXACT_SUPPORT_SLICE_PROTOCOL,
+  EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS,
   EXACT_SUPPORT_SLICE_RAIL_ACTIONS,
   realizeExactSupportSlice,
   resolveExactSupportSliceOrientation,
 } from "./trajectory/exact_support_slice.ts";
 import {
   angleDeltaDeg,
+  classifyExactSupportSliceConstructionProbe,
   displacement,
-  exactSupportSliceHorizon,
+  exactSupportSliceCaptureClosureEndFrame,
+  exactSupportSliceCaptureSelectionValidationEndFrame,
+  exactSupportSliceMeasurementHorizon,
+  firstSharedSafeExactSupportSlicePhase,
   measureCoMWindow,
   namedReferenceState,
   offBeatLandingsInWindow,
@@ -34,9 +39,11 @@ import {
   sameExactEngineTrace,
   sameOwnedCaptureEvent,
   sameScoredContactImpact,
+  unresolvedOffBeatLandingFramesAtWindowEnd,
 } from "./trajectory/exact_support_slice_assay.ts";
 import { readFrozenTrajectoryFixture, sha256, stableJson } from "./trajectory/frozen_fixture.ts";
 import { scoredContactImpact } from "./trajectory/scored_contact_impact.ts";
+import { parseExactSupportSliceCliArguments } from "./trajectory/exact_support_slice_cli.ts";
 import { extractPlanningState } from "./trajectory/state.ts";
 import { prepareStateCoupledTrajectoryFixture, type PreparedTrajectoryFixtureCore } from "./trajectory/study_context.ts";
 import {
@@ -58,11 +65,12 @@ import { targetFrameFromPlanningState } from "./trajectory/target_frame.ts";
 import { transitionContractForGap } from "./trajectory/transition_contract.ts";
 
 const argv = process.argv.slice(2);
-const LOCAL_CAPTURE_OBSERVATION_FRAMES = 16;
-const STUDY_SCHEMA = "line.study-exact-postimpact-support-slice.v1";
-
-const argument = (name: string): string | undefined =>
-  argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+// Eligible owned-event frames stop at target + 1. Their detector classification
+// receives a complete fixed persistence tail before the H - 1 closure read;
+// the separate local state read reaches H + 1 only for geometry/comparator use.
+const CAPTURE_EVENT_SELECTION_MAX_OFFSET_FRAMES = 1;
+const CAPTURE_LOCAL_STATE_OBSERVATION_FRAMES = IMPACT_WINDOW + 3;
+const STUDY_SCHEMA = "line.study-exact-postimpact-support-slice.v2";
 
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
@@ -74,11 +82,7 @@ if (argv.includes("--help") || argv.includes("-h")) {
   process.exit(0);
 }
 
-const fixturePath = argument("fixture");
-if (fixturePath === undefined) throw new Error("--fixture=FILE is required");
-const explicitOut = argument("out");
-const unsupported = argv.filter((value) => value.startsWith("--") && !value.startsWith("--fixture=") && !value.startsWith("--out="));
-if (unsupported.length > 0) throw new Error(`unsupported exact-support-slice control(s): ${unsupported.join(", ")}`);
+const { fixturePath, explicitOut } = parseExactSupportSliceCliArguments(argv);
 if (explicitOut !== undefined) assertStudyArtifactPathUnused(explicitOut);
 
 const fixture = readFrozenTrajectoryFixture(fixturePath);
@@ -91,9 +95,12 @@ const observationCompilerAtStart = compilerCandidateIdentity(engineName);
 const protocolFingerprint = sha256(stableJson({
   captureScreen: "fixed_mirrored_contact_capture_arc.v1",
   railProtocol: EXACT_SUPPORT_SLICE_PROTOCOL,
+  captureEligibility: "eligible_event_frames_through_target_plus_1_with_fixed_persistence_validation_then_impact_closure_at_H_minus_1",
+  phaseConstruction: "first_shared_safe_phase_from_declared_ladder_using_capture_only_H_to_H_plus_1_orientation_and_through_H_guard_and_fixed_12_frame_state_normalized_extent",
   railActions: EXACT_SUPPORT_SLICE_RAIL_ACTIONS,
   responseBoundary: "H = selected_owned_event.frame + IMPACT_WINDOW + 1",
-  horizon: "Q = min(12, outgoing.endFrame - H); Q >= 4; observe [H,H+Q] inclusive",
+  measurementHorizon: "Q = min(12, outgoing.endFrame - H); Q >= 4; observe [H,H+Q] inclusive",
+  constructionExtent: "fixed 12-frame state-normalized rail extent; outgoing endpoint is excluded from geometry and phase construction",
   orientation: "same_named_capture_only_reference_H_to_H_plus_1",
   guards: [
     "full_engine_prefix_identity_[0,current.startFrame-1]",
@@ -137,8 +144,12 @@ const protocolStatus = !identityStable
   ? "invalid_identity_drift"
   : summary.rowErrors > 0
   ? "invalid_runtime_error"
+  : summary.invalidConstructionProbeActions > 0 || summary.constructionInvalidRows > 0
+  ? "invalid_construction_phase_probe"
   : summary.invalidConstructionActions > 0
   ? "complete_with_invalid_construction_actions"
+  : summary.constructionUnavailableRows > 0 && summary.completePairedRows === 0
+  ? "complete_without_shared_safe_construction_phase"
   : "complete";
 const output = {
   schema: STUDY_SCHEMA,
@@ -146,36 +157,55 @@ const output = {
   purpose: [
     "Measure the exact local response of one fixed tangent-aligned offset rail stencil after a captured contact.",
     "Retain every capture, comparator, and rail action; never select or promote an action from calibration output.",
-    "Authorize at most a separately declared receding-rollout feasibility study when the preregistered physical endpoint is met.",
+    "Produce per-fixture descriptive evidence only; a separately declared panel-level evaluator owns any rollout-feasibility conclusion.",
   ],
   status: {
     protocolStatus,
-    executionComplete: identityStable && summary.rowErrors === 0,
-    claimEligible: identityStable && summary.rowErrors === 0 && summary.invalidConstructionActions === 0 && summary.completePairedRows > 0,
-    claimEligibility: !identityStable
+    executionComplete: identityStable && summary.rowErrors === 0 &&
+      summary.invalidConstructionProbeActions === 0 && summary.constructionInvalidRows === 0,
+    descriptiveLocalClaimEligible: identityStable && summary.rowErrors === 0 &&
+      summary.invalidConstructionProbeActions === 0 && summary.constructionInvalidRows === 0 &&
+      summary.invalidConstructionActions === 0 && summary.completePairedRows > 0,
+    descriptiveLocalClaimEligibility: !identityStable
       ? "invalid: source or observed compiler identity changed during replay"
       : summary.rowErrors > 0
       ? "invalid: unexpected row or action runtime error"
-      : summary.invalidConstructionActions > 0
-      ? "invalid for physical inference: one or more rails changed the protected prefix/capture or collided through H"
+    : summary.invalidConstructionProbeActions > 0 || summary.constructionInvalidRows > 0
+    ? "invalid: a phase probe changed the protected trace/capture without an expected pre/equal-H support collision"
+    : summary.invalidConstructionActions > 0
+    ? "invalid for physical inference: one or more rails changed the protected prefix/capture or collided through H"
+    : summary.constructionUnavailableRows > 0 && summary.completePairedRows === 0
+    ? "unavailable: no conditionally closed row had one shared phase whose full five-arm stencil remained collision-free through H"
       : summary.completePairedRows === 0
       ? "unavailable: no row completed every declared rail under the structural contract"
       : "eligible only for descriptive local rail response on this calibration fixture; it is not a rollout or compiler decision",
+    rolloutFeasibility: {
+      status: "not_evaluated_per_fixture",
+      reason: "requires a separately declared panel-level analysis of preregistered directional response across ordinary/dense and low-air physical states",
+    },
     productionIntegration: "forbidden: fixed calibration assay, not a compiler generator, source default, or selector",
     cohortPolicy: "stable V3 calibration fixtures only; production and qualification specifications remain held out",
     fixedArms: ["capture-only", ...EXACT_SUPPORT_SLICE_RAIL_ACTIONS.map((action) => action.id)],
   },
   protocol: {
     protocolFingerprint,
-    localCaptureObservationFrames: LOCAL_CAPTURE_OBSERVATION_FRAMES,
+    captureEventSelectionMaxOffsetFrames: CAPTURE_EVENT_SELECTION_MAX_OFFSET_FRAMES,
+    captureSelectionValidation: "targetFrame + captureEventSelectionMaxOffsetFrames + PERSISTENCE_FRAMES - 1; eligible event frames remain restricted to target +/- 1",
+    captureClosure: "selected_owned_event.frame + IMPACT_WINDOW = H - 1; H/H+1 do not decide capture eligibility",
+    localStateObservationFrames: CAPTURE_LOCAL_STATE_OBSERVATION_FRAMES,
     responseBoundary: "H = selected_owned_event.frame + IMPACT_WINDOW + 1",
-    horizon: "Q = min(12, outgoing.endFrame - H); Q >= 4; [H,H+Q] is inclusive and contains Q+1 samples",
+    measurementHorizon: "Q = min(12, outgoing.endFrame - H); Q >= 4; [H,H+Q] is inclusive and contains Q+1 samples",
+    constructionExtent: "fixed 12-frame state-normalized rail extent; outgoing endpoint cannot alter rail geometry or phase selection",
     railProtocol: EXACT_SUPPORT_SLICE_PROTOCOL,
     railActions: EXACT_SUPPORT_SLICE_RAIL_ACTIONS,
+    phaseConstruction: {
+      candidates: EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS,
+      rule: "for each closed capture, retain every candidate and select only the first phase where all five arms preserve exact physical-prefix/capture identity, survival, and zero all-body support collision through H inclusive",
+      selectionInputs: "the locked capture-only H-to-H+1 named-reference displacement plus fixed-extent through-H all-arm construction replay; H+Q effects, outgoing endpoint, authored outgoing axes, and next-event data are excluded",
+    },
     geometryInputs: [
       "exact_named_response_anchor_at_H",
       "capture_only_same_named_reference_displacement_H_to_H_plus_1",
-      "outgoing_interval_end_only_for_local_horizon_cap",
     ],
     withheldFromGeometry: [
       "outgoing_authored_axes",
@@ -185,7 +215,7 @@ const output = {
       "seed",
       "optimizer_score",
     ],
-    structuralEndpoint: "full non-scarf identity over the physical prefix and capture-only comparator through H inclusive; zero all-body support collision through H inclusive; same selected capture event and scorer impact; strict survival, readable [H,H+Q] measurements, and no off-beat landing",
+    structuralEndpoint: "for the shared selected phase only: full non-scarf identity over the physical prefix and capture-only comparator through H inclusive; zero all-body support collision through H inclusive; same selected capture event and scorer impact; strict survival, readable [H,H+Q] measurements, and no off-beat landing",
   },
   argv: [...argv],
   elapsedMs: round(performance.now() - started),
@@ -222,15 +252,15 @@ const output = {
       frames: contract.outgoing.intervalFrames,
       axes: contract.outgoing.axes,
       nextEvent: contract.outgoing.arrival,
-      geometryInput: "only outgoing.endFrame caps Q; no authored outgoing axis or next-event field reaches rail geometry",
+      geometryInput: "no outgoing interval field reaches rail geometry; outgoing.endFrame only bounds capture/read availability and post-construction measurement",
     },
   },
   rows,
   summary,
   caveats: [
-    "Static rail terrain is constructed from a later exact capture-only observation. Full prefix and capture-only-through-H identity, plus zero pre/equal-H rail collision, are mandatory guards against retroactive intrusion.",
+    "Static rail terrain is constructed from the locked capture-only H-to-H+1 geometry observation. The shared phase ladder then uses all-arm replay through H to eliminate retroactive intrusion before any H+Q outcome is inspected.",
     "The H to H+1 reference displacement is not a target or predicted force law. It chooses only the one-sided normal of the declared rail before action outcomes are observed.",
-    "The outgoing endpoint is read solely to cap an otherwise fixed local horizon. This does not use a duration class, next-event target, or authored axis, but it is an explicit future-boundary dependency.",
+    "The outgoing endpoint only bounds capture/read availability and the Q-frame report. It does not reach rail geometry or phase choice.",
     "CoM detector air/speed and named-reference terminal state are reported separately. A Q-frame response cannot establish whole-gap satisfaction, score improvement, or a compiler action choice.",
     "Rows are deterministic conditional observations, not independent statistical replicates. The 3-7 second rideout ladder remains one correlated capability family.",
     "Identity is sampled before and after replay over the static import closure plus observed compiler/engine fingerprint. Literal byte-snapshot evidence still requires an external immutable workspace.",
@@ -238,20 +268,24 @@ const output = {
 };
 
 const canonicalOutPath = explicitOut ??
-  `generated/studies/exact-support-slice/v1/${prepared.panel.id}-${fixture.fixtureFingerprint.slice(0, 12)}-${artifactIdentity.fingerprint.slice(0, 12)}.json`;
+  `generated/studies/exact-support-slice/v2/${prepared.panel.id}-${fixture.fixtureFingerprint.slice(0, 12)}-${artifactIdentity.fingerprint.slice(0, 12)}.json`;
 const outPath = !identityStable
   ? allocateStudyArtifactPath(forensicDriftArtifactPath(canonicalOutPath, sourceIdentityAtEnd.studySourceFingerprint, observationCompilerAtEnd.candidateFingerprint))
   : explicitOut ?? allocateStudyArtifactPath(canonicalOutPath);
 writeStudyArtifact(outPath, output);
 process.stderr.write(
-  `exact support slice ${prepared.panel.id}: ${summary.structurallyValidActions}/${summary.actionAttempts} structurally valid rails, ` +
+  `exact support slice ${prepared.panel.id}: ${summary.structurallyValidActions}/${summary.actionAttempts} structurally valid outcome rails; ` +
+  `${summary.constructionProbeActions} through-H construction probes across ${summary.constructionPhaseAttempts} phases, ` +
   `${summary.captureClosed}/${summary.captureRows} closed captures -> ${outPath}\n`,
 );
-if (!identityStable || summary.rowErrors > 0 || summary.invalidConstructionActions > 0) {
+if (!identityStable || summary.rowErrors > 0 || summary.invalidConstructionProbeActions > 0 ||
+    summary.constructionInvalidRows > 0 || summary.invalidConstructionActions > 0) {
   const reason = !identityStable
     ? "identity drift"
     : summary.rowErrors > 0
     ? `${summary.rowErrors} unexpected row/action error(s)`
+    : summary.invalidConstructionProbeActions > 0 || summary.constructionInvalidRows > 0
+    ? `${summary.invalidConstructionProbeActions} invalid phase probe(s) across ${summary.constructionInvalidRows} row(s)`
     : `${summary.invalidConstructionActions} rail(s) violated the protected construction contract`;
   process.stderr.write(`exact support slice invalid: ${reason}\n`);
   process.exitCode = 2;
@@ -265,6 +299,9 @@ type CaptureStatus =
   | "response_unavailable"
   | "persistence_unavailable"
   | "offbeat"
+  | "offbeat_persistence_unavailable"
+  | "selection_persistence_unavailable"
+  | "selection_unavailable"
   | "physical_prefix_changed"
   | "zero_impact_out_of_scope"
   | "error";
@@ -297,23 +334,101 @@ function evaluateRow(
 
   try {
     const captureEngine = input.engine.addLine(captureLines.map((line) => engineLineFromTrackLine(line)));
-    const localEnd = Math.min(input.outgoing.endFrame, input.current.endFrame + LOCAL_CAPTURE_OBSERVATION_FRAMES);
+    const captureEventSelectionEnd = Math.min(
+      input.outgoing.endFrame,
+      input.current.endFrame + CAPTURE_EVENT_SELECTION_MAX_OFFSET_FRAMES,
+    );
+    const captureEventSelectionValidationRequiredEnd = exactSupportSliceCaptureSelectionValidationEndFrame(
+      input.current.endFrame,
+      CAPTURE_EVENT_SELECTION_MAX_OFFSET_FRAMES,
+    );
+    const captureEventSelectionValidationEnd = Math.min(
+      input.outgoing.endFrame,
+      captureEventSelectionValidationRequiredEnd,
+    );
+    const localEnd = Math.min(input.outgoing.endFrame, input.current.endFrame + CAPTURE_LOCAL_STATE_OBSERVATION_FRAMES);
+    // Selection and capture admission intentionally use separate bounded
+    // detectors. H/H+1 belongs only to the later geometry/comparator read.
+    const selectionDetection = detectWindow(captureEngine, 0, captureEventSelectionValidationEnd);
+    const selectionComplete = survivesThroughFrame(selectionDetection, captureEventSelectionEnd) &&
+      measurementLastFrame(selectionDetection) >= captureEventSelectionEnd;
+    const selectionValidationReached = survivesThroughFrame(selectionDetection, captureEventSelectionValidationEnd) &&
+      measurementLastFrame(selectionDetection) >= captureEventSelectionValidationEnd;
+    const selectionValidationComplete = captureEventSelectionValidationEnd === captureEventSelectionValidationRequiredEnd &&
+      selectionValidationReached;
+    const selectionObservation = observeCapture(
+      selectionDetection,
+      input,
+      captureLines,
+      captureRoles,
+      captureEventSelectionEnd,
+    );
+    const captureClosureEnd = exactSupportSliceCaptureClosureEndFrame(selectionObservation.selectedOwnedEvent?.frame ?? null);
+    const captureClosureObserved = captureClosureEnd !== null && captureClosureEnd <= input.outgoing.endFrame;
+    const closureDetection = captureClosureObserved
+      ? detectWindow(captureEngine, 0, captureClosureEnd)
+      : selectionDetection;
+    const captureClosureComplete = captureClosureObserved && survivesThroughFrame(closureDetection, captureClosureEnd!) &&
+      measurementLastFrame(closureDetection) >= captureClosureEnd!;
+    const localObservation = captureClosureObserved
+      ? observeCapture(closureDetection, input, captureLines, captureRoles, captureClosureEnd!)
+      : selectionObservation;
+    const selectionMatchesClosure = captureClosureEnd === null || !captureClosureObserved
+      ? null
+      : sameOwnedCaptureEvent(selectionObservation.selectedOwnedEvent, localObservation.selectedOwnedEvent);
+    const captureClosureUnresolvedOffBeatLandingFrames = captureClosureObserved
+      ? unresolvedOffBeatLandingFramesAtWindowEnd(
+        closureDetection,
+        authoredContactFramesThrough(input, captureClosureEnd!),
+        input.current.startFrame,
+        captureClosureEnd!,
+      )
+      : [];
     const localDetection = detectWindow(captureEngine, 0, localEnd);
-    const localObservation = observeCapture(localDetection, input, captureLines, captureRoles, localEnd);
     const physicalPrefixTrace = prefixTrace(captureEngine, input.current.startFrame - 1);
-    const localImpact = captureImpact(localDetection, localObservation, input);
+    const localImpact = captureImpact(closureDetection, localObservation, input);
     const captureStatus = sameExactEngineTrace(physicalPrefixTrace, baselinePhysicalPrefixTrace)
-      ? classifyCapture(localDetection, localObservation, input, localEnd)
+      ? !selectionComplete
+        ? "survival" as const
+        : !selectionValidationReached
+          ? "survival" as const
+          : !selectionValidationComplete
+          ? "selection_persistence_unavailable" as const
+          : selectionObservation.selectedOwnedEvent === null
+            ? "landing" as const
+        : !captureClosureObserved
+          ? "response_unavailable" as const
+          : !captureClosureComplete
+            ? "survival" as const
+            : !selectionMatchesClosure
+            ? "selection_unavailable" as const
+            : captureClosureUnresolvedOffBeatLandingFrames.length > 0
+              ? "offbeat_persistence_unavailable" as const
+              : classifyCapture(closureDetection, localObservation, input, captureClosureEnd!)
       : "physical_prefix_changed" as const;
     const local = summarizeCaptureLocal(
+      selectionDetection,
+      closureDetection,
       localDetection,
+      selectionObservation,
       localObservation,
       localImpact,
       captureStatus,
       physicalPrefixTrace,
       baselinePhysicalPrefixTrace,
       input,
+      captureEventSelectionEnd,
+      captureEventSelectionValidationRequiredEnd,
+      captureEventSelectionValidationEnd,
+      selectionComplete,
+      selectionValidationReached,
+      selectionValidationComplete,
+      captureClosureEnd,
+      captureClosureObserved,
+      captureClosureComplete,
+      captureClosureUnresolvedOffBeatLandingFrames,
       localEnd,
+      selectionMatchesClosure,
     );
     if (captureStatus !== "closed") {
       return captureUnavailable(entry, index, capture, captureStatus, `capture_${captureStatus}`, started, simBefore, local);
@@ -321,26 +436,46 @@ function evaluateRow(
     const selected = localObservation.selectedOwnedEvent;
     if (selected === null) throw new Error("closed capture lacks a selected owned event");
     const supportStartFrame = selected.frame + IMPACT_WINDOW + 1;
-    const horizon = exactSupportSliceHorizon(input.outgoing.endFrame, supportStartFrame);
-    if (horizon.status !== "ready") {
+    const measurementHorizon = exactSupportSliceMeasurementHorizon(input.outgoing.endFrame, supportStartFrame);
+    if (measurementHorizon.status !== "ready") {
       return {
         ...baseRow(entry, index, capture, local, started, simBefore),
         captureStatus: "closed" as const,
-        response: { eventFrame: selected.frame, supportStartFrame, horizon },
-        assay: { status: "insufficient_support_horizon" as const, reason: horizon.status, actions: [] },
+        response: { eventFrame: selected.frame, supportStartFrame, measurementHorizon },
+        assay: { status: "insufficient_measurement_horizon" as const, reason: measurementHorizon.status, actions: [] },
       };
     }
-    const actionEndFrame = supportStartFrame + horizon.horizonFrames;
-    const captureOnlyDetection = detectWindow(captureEngine, 0, actionEndFrame);
-    const captureOnlyObservation = observeCapture(captureOnlyDetection, input, captureLines, captureRoles, actionEndFrame);
-    const captureOnlyImpact = captureImpact(captureOnlyDetection, captureOnlyObservation, input);
-    const captureOnlyTrace = exactEngineStateTraceFingerprint(captureEngine, input.outgoing.startFrame, supportStartFrame);
-    const captureOnlyWindow = measureCoMWindow(captureOnlyDetection, supportStartFrame, actionEndFrame);
-    const captureOnlyOffBeatLandingFrames = offBeatLandingsInWindow(
-      captureOnlyDetection,
-      input.ctx.allContactFrames,
+    const actionEndFrame = supportStartFrame + measurementHorizon.measurementHorizonFrames;
+    // This first comparator is intentionally bounded at H. The construction
+    // ladder below may inspect only this evidence, never a response outcome.
+    const captureOnlyPreHDetection = detectWindow(captureEngine, 0, supportStartFrame);
+    const captureOnlyPreHObservation = observeCapture(
+      captureOnlyPreHDetection,
+      input,
+      captureLines,
+      captureRoles,
       supportStartFrame,
-      actionEndFrame,
+    );
+    const captureOnlyPreHImpact = captureImpact(captureOnlyPreHDetection, captureOnlyPreHObservation, input);
+    const captureOnlyPreHTrace = exactEngineStateTraceFingerprint(captureEngine, input.outgoing.startFrame, supportStartFrame);
+    const captureOnlyPreHTraceAvailable = sameExactEngineTrace(captureOnlyPreHTrace, captureOnlyPreHTrace);
+    const captureOnlyPreHComplete = survivesThroughFrame(captureOnlyPreHDetection, supportStartFrame) &&
+      measurementLastFrame(captureOnlyPreHDetection) >= supportStartFrame;
+    const preHAuthoredContactFrames = authoredContactFramesThrough(input, supportStartFrame);
+    const captureOnlyPreHAllOffBeatLandingFrames = offBeatLandingsInWindow(
+      captureOnlyPreHDetection,
+      preHAuthoredContactFrames,
+      input.current.startFrame,
+      supportStartFrame,
+    );
+    const captureOnlyPreHUnresolvedOffBeatLandingFrames = unresolvedOffBeatLandingFramesAtWindowEnd(
+      captureOnlyPreHDetection,
+      preHAuthoredContactFrames,
+      input.current.startFrame,
+      supportStartFrame,
+    );
+    const captureOnlyPreHOffBeatLandingFrames = captureOnlyPreHAllOffBeatLandingFrames.filter(
+      (frame) => !captureOnlyPreHUnresolvedOffBeatLandingFrames.includes(frame),
     );
     const responseState = extractPlanningState(captureEngine, supportStartFrame);
     const responseAnchor = responseState === null ? null : targetFrameFromPlanningState(responseState);
@@ -351,22 +486,20 @@ function evaluateRow(
     const namedAtHPlusOne = responseAnchor === null || nextResponseState === null
       ? null
       : namedReferenceState(nextResponseState, responseAnchor.anchorPoint);
-    const namedTerminal = responseAnchor === null
-      ? null
-      : namedReferenceState(extractPlanningState(captureEngine, actionEndFrame), responseAnchor.anchorPoint);
-    const captureOnlyComplete = survivesThroughFrame(captureOnlyDetection, actionEndFrame) &&
-      measurementLastFrame(captureOnlyDetection) >= actionEndFrame;
-    const captureObservationStable = sameOwnedCaptureEvent(localObservation.selectedOwnedEvent, captureOnlyObservation.selectedOwnedEvent) &&
-      sameScoredContactImpact(localImpact, captureOnlyImpact);
+    const captureObservationStableAtH = sameOwnedCaptureEvent(
+      localObservation.selectedOwnedEvent,
+      captureOnlyPreHObservation.selectedOwnedEvent,
+    ) && sameScoredContactImpact(localImpact, captureOnlyPreHImpact);
     const namedAnchorStable = responseAnchor !== null && namedAtH !== null &&
       samePoint(responseAnchor.reference, namedAtH.position);
-    const comparatorReady = captureOnlyComplete && captureOnlyWindow !== null && namedTerminal !== null &&
-      namedAtH !== null && namedAtHPlusOne !== null && captureObservationStable && namedAnchorStable &&
-      captureOnlyOffBeatLandingFrames.length === 0;
+    const preHComparatorReady = captureOnlyPreHComplete && captureOnlyPreHTraceAvailable &&
+      namedAtH !== null && namedAtHPlusOne !== null &&
+      captureObservationStableAtH && namedAnchorStable && captureOnlyPreHOffBeatLandingFrames.length === 0 &&
+      captureOnlyPreHUnresolvedOffBeatLandingFrames.length === 0;
     const response = {
       eventFrame: selected.frame,
       supportStartFrame,
-      horizon,
+      measurementHorizon,
       actionEndFrame,
       anchor: responseAnchor === null ? null : summarizeAnchor(responseAnchor),
       namedReferenceAtH: namedAtH === null ? null : summarizeReference(namedAtH),
@@ -376,39 +509,40 @@ function evaluateRow(
         : point(displacement(namedAtH.position, namedAtHPlusOne.position)),
       namedAnchorMatchesTargetFrame: namedAnchorStable,
     };
-    const comparator = {
-      complete: captureOnlyComplete,
-      observationMatchesLocalCapture: captureObservationStable,
-      captureTrace: captureOnlyTrace,
-      offBeatLandingFrames: captureOnlyOffBeatLandingFrames,
-      window: captureOnlyWindow === null ? null : summarizeCoMWindow(captureOnlyWindow),
-      terminalNamedReference: namedTerminal === null ? null : summarizeReference(namedTerminal),
-      remainingBudget: remainingAirSpeedBudget({
-        detection: captureOnlyDetection,
-        outgoingStartFrame: input.outgoing.startFrame,
-        outgoingEndFrame: input.outgoing.endFrame,
-        supportStartFrame,
-        axes: contractAxes(input),
-      }),
-      impact: captureOnlyImpact,
+    const preHComparator = {
+      complete: captureOnlyPreHComplete,
+      traceAvailable: captureOnlyPreHTraceAvailable,
+      observationMatchesLocalCapture: captureObservationStableAtH,
+      captureTrace: captureOnlyPreHTrace,
+      offBeatLandingFrames: captureOnlyPreHOffBeatLandingFrames,
+      unresolvedOffBeatLandingFrames: captureOnlyPreHUnresolvedOffBeatLandingFrames,
+      impact: captureOnlyPreHImpact,
     };
-    if (!comparatorReady || responseState === null || responseAnchor === null || namedAtH === null || namedAtHPlusOne === null) {
+    if (!preHComparatorReady || responseState === null || responseAnchor === null || namedAtH === null || namedAtHPlusOne === null) {
       return {
         ...baseRow(entry, index, capture, local, started, simBefore),
         captureStatus: "closed" as const,
         response,
-        comparator,
+        comparator: { preH: preHComparator, response: null },
         assay: {
           status: "comparator_unavailable" as const,
-          reason: comparatorFailureReason({ captureOnlyComplete, captureObservationStable, namedAnchorStable, captureOnlyWindow, namedTerminal, namedAtH, namedAtHPlusOne, captureOnlyOffBeatLandingFrames }),
+          reason: preHComparatorFailureReason({
+            captureOnlyPreHComplete,
+            captureOnlyPreHTraceAvailable,
+            captureObservationStableAtH,
+            namedAnchorStable,
+            namedAtH,
+            namedAtHPlusOne,
+            captureOnlyPreHOffBeatLandingFrames,
+            captureOnlyPreHUnresolvedOffBeatLandingFrames,
+          }),
           actions: [],
         },
       };
     }
     const displacementHToHPlusOne = displacement(namedAtH.position, namedAtHPlusOne.position);
-    let orientation: ReturnType<typeof resolveExactSupportSliceOrientation>;
     try {
-      orientation = resolveExactSupportSliceOrientation({
+      resolveExactSupportSliceOrientation({
         anchor: responseAnchor,
         captureOnlyReferenceDisplacement: displacementHToHPlusOne,
       });
@@ -417,12 +551,142 @@ function evaluateRow(
         ...baseRow(entry, index, capture, local, started, simBefore),
         captureStatus: "closed" as const,
         response,
-        comparator,
+        comparator: { preH: preHComparator, response: null },
         assay: { status: "orientation_unavailable" as const, reason: errorMessage(error), actions: [] },
+      };
+    }
+    const constructionPhases = EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS.map((phaseLeadSteps) =>
+      evaluateConstructionPhase({
+        phaseLeadSteps,
+        input,
+        captureLines,
+        captureRoles,
+        captureOnlyPreHObservation,
+        captureOnlyPreHImpact,
+        captureOnlyPreHTrace,
+        captureOnlyEngine: captureEngine,
+        captureOnlyPreHTraceAvailable,
+        captureOnlyPreHComplete,
+        responseAnchor,
+        supportStartFrame,
+        captureOnlyReferenceDisplacement: displacementHToHPlusOne,
+        baselinePhysicalPrefixTrace,
+      }),
+    );
+    const selectedConstructionPhase = firstSharedSafeExactSupportSlicePhase(constructionPhases);
+    const invalidConstructionProbeActions = constructionPhases.reduce((sum, phase) => sum + phase.invalidProbeActions, 0);
+    if (invalidConstructionProbeActions > 0) {
+      return {
+        ...baseRow(entry, index, capture, local, started, simBefore),
+        captureStatus: "closed" as const,
+        response,
+        comparator: { preH: preHComparator, response: null },
+        assay: {
+          status: "construction_invalid" as const,
+          reason: "one_or_more_phase_probes_changed_the_protected_trace_or_capture_without_a_support_collision",
+          constructionPhases,
+          selectedPhaseLeadSteps: null,
+          actions: [],
+        },
+      };
+    }
+    if (selectedConstructionPhase === null) {
+      return {
+        ...baseRow(entry, index, capture, local, started, simBefore),
+        captureStatus: "closed" as const,
+        response,
+        comparator: { preH: preHComparator, response: null },
+        assay: {
+          status: "construction_unavailable" as const,
+          reason: "no_declared_shared_phase_preserved_all_five_rails_through_H",
+          constructionPhases,
+          selectedPhaseLeadSteps: null,
+          actions: [],
+        },
+      };
+    }
+    // The phase is fixed before this H+Q comparator is read. Only now may the
+    // assay observe a response-window endpoint and paired action effects.
+    const captureOnlyDetection = detectWindow(captureEngine, 0, actionEndFrame);
+    const captureOnlyObservation = observeCapture(captureOnlyDetection, input, captureLines, captureRoles, actionEndFrame);
+    const captureOnlyImpact = captureImpact(captureOnlyDetection, captureOnlyObservation, input);
+    const captureOnlyTrace = exactEngineStateTraceFingerprint(captureEngine, input.outgoing.startFrame, supportStartFrame);
+    const captureOnlyWindow = measureCoMWindow(captureOnlyDetection, supportStartFrame, actionEndFrame);
+    const captureOnlyAllOffBeatLandingFrames = offBeatLandingsInWindow(
+      captureOnlyDetection,
+      input.ctx.allContactFrames,
+      supportStartFrame,
+      actionEndFrame,
+    );
+    const captureOnlyUnresolvedOffBeatLandingFrames = unresolvedOffBeatLandingFramesAtWindowEnd(
+      captureOnlyDetection,
+      input.ctx.allContactFrames,
+      supportStartFrame,
+      actionEndFrame,
+    );
+    const captureOnlyOffBeatLandingFrames = captureOnlyAllOffBeatLandingFrames.filter(
+      (frame) => !captureOnlyUnresolvedOffBeatLandingFrames.includes(frame),
+    );
+    const namedTerminal = responseAnchor === null
+      ? null
+      : namedReferenceState(extractPlanningState(captureEngine, actionEndFrame), responseAnchor.anchorPoint);
+    const captureOnlyComplete = survivesThroughFrame(captureOnlyDetection, actionEndFrame) &&
+      measurementLastFrame(captureOnlyDetection) >= actionEndFrame;
+    const captureObservationStable = sameOwnedCaptureEvent(
+      captureOnlyPreHObservation.selectedOwnedEvent,
+      captureOnlyObservation.selectedOwnedEvent,
+    ) && sameScoredContactImpact(captureOnlyPreHImpact, captureOnlyImpact);
+    const comparatorReady = captureOnlyComplete && captureOnlyWindow !== null && namedTerminal !== null &&
+      captureObservationStable && captureOnlyOffBeatLandingFrames.length === 0 &&
+      captureOnlyUnresolvedOffBeatLandingFrames.length === 0;
+    const comparator = {
+      preH: preHComparator,
+      response: {
+        complete: captureOnlyComplete,
+        observationMatchesPreHCapture: captureObservationStable,
+        captureTrace: captureOnlyTrace,
+        offBeatLandingFrames: captureOnlyOffBeatLandingFrames,
+        unresolvedOffBeatLandingFrames: captureOnlyUnresolvedOffBeatLandingFrames,
+        window: captureOnlyWindow === null ? null : summarizeCoMWindow(captureOnlyWindow),
+        terminalNamedReference: namedTerminal === null ? null : summarizeReference(namedTerminal),
+        remainingBudget: remainingAirSpeedBudget({
+          detection: captureOnlyDetection,
+          outgoingStartFrame: input.outgoing.startFrame,
+          outgoingEndFrame: input.outgoing.endFrame,
+          supportStartFrame,
+          axes: contractAxes(input),
+        }),
+        impact: captureOnlyImpact,
+      },
+    };
+    if (!comparatorReady) {
+      return {
+        ...baseRow(entry, index, capture, local, started, simBefore),
+        captureStatus: "closed" as const,
+        response,
+        comparator,
+        assay: {
+          status: "comparator_unavailable" as const,
+          reason: comparatorFailureReason({
+            captureOnlyComplete,
+            captureObservationStable,
+            namedAnchorStable,
+            captureOnlyWindow,
+            namedTerminal,
+            namedAtH,
+            namedAtHPlusOne,
+            captureOnlyOffBeatLandingFrames,
+            captureOnlyUnresolvedOffBeatLandingFrames,
+          }),
+          constructionPhases,
+          selectedPhaseLeadSteps: selectedConstructionPhase.phaseLeadSteps,
+          actions: [],
+        },
       };
     }
     const actions = EXACT_SUPPORT_SLICE_RAIL_ACTIONS.map((action) => evaluateAction({
       action,
+      phaseLeadSteps: selectedConstructionPhase.phaseLeadSteps,
       input,
       captureLines,
       captureRoles,
@@ -432,28 +696,158 @@ function evaluateRow(
       captureOnlyWindow,
       captureOnlyTerminalReference: namedTerminal,
       responseAnchor,
-      responseCoMState: responseState,
       supportStartFrame,
       actionEndFrame,
-      horizonFrames: horizon.horizonFrames,
       captureOnlyReferenceDisplacement: displacementHToHPlusOne,
       baselinePhysicalPrefixTrace,
-      orientation,
     }));
     return {
       ...baseRow(entry, index, capture, local, started, simBefore),
       captureStatus: "closed" as const,
       response,
       comparator,
-      assay: { status: "ready" as const, actions },
+      assay: {
+        status: "ready" as const,
+        constructionPhases,
+        selectedPhaseLeadSteps: selectedConstructionPhase.phaseLeadSteps,
+        actions,
+      },
     };
   } catch (error) {
     return captureFailure(entry, index, "error", error, started, simBefore, capture);
   }
 }
 
+function evaluateConstructionPhase(input: {
+  phaseLeadSteps: (typeof EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS)[number];
+  input: PreparedTrajectoryFixtureCore;
+  captureLines: TrackLine[];
+  captureRoles: ReadonlyMap<number, string>;
+  captureOnlyPreHObservation: OwnedContactObservation;
+  captureOnlyPreHImpact: ReturnType<typeof captureImpact>;
+  captureOnlyPreHTrace: ReturnType<typeof exactEngineStateTraceFingerprint>;
+  captureOnlyEngine: any;
+  captureOnlyPreHComplete: boolean;
+  captureOnlyPreHTraceAvailable: boolean;
+  responseAnchor: ReturnType<typeof targetFrameFromPlanningState>;
+  supportStartFrame: number;
+  captureOnlyReferenceDisplacement: { x: number; y: number };
+  baselinePhysicalPrefixTrace: ReturnType<typeof exactEngineStateTraceFingerprint>;
+}) {
+  const actions = EXACT_SUPPORT_SLICE_RAIL_ACTIONS.map((action) => evaluateConstructionAction({ ...input, action }));
+  const invalidProbeActions = actions.filter((action) => action.status === "error" || action.protocolInvalid);
+  return {
+    phaseLeadSteps: input.phaseLeadSteps,
+    actions,
+    sharedConstructionSafe: actions.length === EXACT_SUPPORT_SLICE_RAIL_ACTIONS.length &&
+      actions.every((action) => action.status === "observed" && action.constructionSafe),
+    invalidProbeActions: invalidProbeActions.length,
+    collisionOnlyRejection: invalidProbeActions.length === 0 && actions.some((action) =>
+      action.status === "observed" && action.expectedCollisionRejection,
+    ),
+  };
+}
+
+function evaluateConstructionAction(input: {
+  action: (typeof EXACT_SUPPORT_SLICE_RAIL_ACTIONS)[number];
+  phaseLeadSteps: (typeof EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS)[number];
+  input: PreparedTrajectoryFixtureCore;
+  captureLines: TrackLine[];
+  captureRoles: ReadonlyMap<number, string>;
+  captureOnlyPreHObservation: OwnedContactObservation;
+  captureOnlyPreHImpact: ReturnType<typeof captureImpact>;
+  captureOnlyPreHTrace: ReturnType<typeof exactEngineStateTraceFingerprint>;
+  captureOnlyEngine: any;
+  captureOnlyPreHComplete: boolean;
+  captureOnlyPreHTraceAvailable: boolean;
+  responseAnchor: ReturnType<typeof targetFrameFromPlanningState>;
+  supportStartFrame: number;
+  captureOnlyReferenceDisplacement: { x: number; y: number };
+  baselinePhysicalPrefixTrace: ReturnType<typeof exactEngineStateTraceFingerprint>;
+}) {
+  const started = performance.now();
+  const simBefore = getSimFrames();
+  try {
+    const slice = realizeExactSupportSlice({
+      anchor: input.responseAnchor,
+      captureOnlyReferenceDisplacement: input.captureOnlyReferenceDisplacement,
+      phaseLeadSteps: input.phaseLeadSteps,
+    }, input.action, input.input.lineIdStart + input.captureLines.length);
+    const supportLineIds = new Set(slice.lines.map((line) => line.id));
+    const engine = input.input.engine.addLine([...input.captureLines, ...slice.lines].map((line) => engineLineFromTrackLine(line)));
+    const detection = detectWindow(engine, 0, input.supportStartFrame);
+    const observation = observeCapture(detection, input.input, input.captureLines, input.captureRoles, input.supportStartFrame);
+    const impact = captureImpact(detection, observation, input.input);
+    const physicalPrefixTrace = prefixTrace(engine, input.input.current.startFrame - 1);
+    const captureTrace = exactEngineStateTraceFingerprint(engine, input.input.outgoing.startFrame, input.supportStartFrame);
+    const preOrAtHSupportCollisions = collisionHits(engine, 0, input.supportStartFrame, supportLineIds);
+    const firstSupportCollisionFrame = preOrAtHSupportCollisions.reduce<number | null>(
+      (first, hit) => first === null ? hit.frame : Math.min(first, hit.frame),
+      null,
+    );
+    const traceMatchesBeforeFirstSupportCollision = firstSupportCollisionFrame === null
+      ? true
+      : sameExactEngineTrace(
+        prefixTrace(engine, firstSupportCollisionFrame - 1),
+        prefixTrace(input.captureOnlyEngine, firstSupportCollisionFrame - 1),
+      );
+    const survivesThroughH = survivesThroughFrame(detection, input.supportStartFrame) &&
+      measurementLastFrame(detection) >= input.supportStartFrame;
+    const physicalPrefixMatchesBaseline = sameExactEngineTrace(physicalPrefixTrace, input.baselinePhysicalPrefixTrace);
+    const captureTraceMatchesComparator = sameExactEngineTrace(captureTrace, input.captureOnlyPreHTrace);
+    const captureEventMatchesComparator = sameOwnedCaptureEvent(
+      observation.selectedOwnedEvent,
+      input.captureOnlyPreHObservation.selectedOwnedEvent,
+    );
+    const impactMatchesComparator = sameScoredContactImpact(impact, input.captureOnlyPreHImpact);
+    const constructionVerdict = classifyExactSupportSliceConstructionProbe({
+      physicalPrefixMatchesBaseline,
+      captureOnlyPreHComplete: input.captureOnlyPreHComplete,
+      captureOnlyPreHTraceAvailable: input.captureOnlyPreHTraceAvailable,
+      captureTraceMatchesComparator,
+      traceMatchesBeforeFirstSupportCollision,
+      selectedCaptureEventMatchesComparator: captureEventMatchesComparator,
+      impactMatchesComparator,
+      survivesThroughH,
+      preOrAtHSupportCollisionCount: preOrAtHSupportCollisions.length,
+    });
+    return {
+      action: input.action,
+      status: "observed" as const,
+      rail: summarizeSlice(slice),
+      guards: {
+        physicalPrefixTrace,
+        physicalPrefixMatchesBaseline,
+        captureOnlyTrace: captureTrace,
+        captureOnlyTraceMatchesComparator: captureTraceMatchesComparator,
+        firstSupportCollisionFrame,
+        traceMatchesBeforeFirstSupportCollision,
+        selectedCaptureEventMatchesComparator: captureEventMatchesComparator,
+        impactMatchesComparator,
+        survivesThroughH,
+        preOrAtHSupportCollisions,
+      },
+      ...constructionVerdict,
+      elapsedMs: round(performance.now() - started),
+      simFrames: getSimFrames() - simBefore,
+    };
+  } catch (error) {
+    return {
+      action: input.action,
+      status: "error" as const,
+      reason: errorMessage(error),
+      constructionSafe: false,
+      expectedCollisionRejection: false,
+      protocolInvalid: true,
+      elapsedMs: round(performance.now() - started),
+      simFrames: getSimFrames() - simBefore,
+    };
+  }
+}
+
 function evaluateAction(input: {
   action: (typeof EXACT_SUPPORT_SLICE_RAIL_ACTIONS)[number];
+  phaseLeadSteps: (typeof EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS)[number];
   input: PreparedTrajectoryFixtureCore;
   captureLines: TrackLine[];
   captureRoles: ReadonlyMap<number, string>;
@@ -463,13 +857,10 @@ function evaluateAction(input: {
   captureOnlyWindow: NonNullable<ReturnType<typeof measureCoMWindow>>;
   captureOnlyTerminalReference: NonNullable<ReturnType<typeof namedReferenceState>>;
   responseAnchor: ReturnType<typeof targetFrameFromPlanningState>;
-  responseCoMState: NonNullable<ReturnType<typeof extractPlanningState>>;
   supportStartFrame: number;
   actionEndFrame: number;
-  horizonFrames: number;
   captureOnlyReferenceDisplacement: { x: number; y: number };
   baselinePhysicalPrefixTrace: ReturnType<typeof exactEngineStateTraceFingerprint>;
-  orientation: ReturnType<typeof resolveExactSupportSliceOrientation>;
 }) {
   const started = performance.now();
   const simBefore = getSimFrames();
@@ -477,7 +868,7 @@ function evaluateAction(input: {
     const slice = realizeExactSupportSlice({
       anchor: input.responseAnchor,
       captureOnlyReferenceDisplacement: input.captureOnlyReferenceDisplacement,
-      horizonFrames: input.horizonFrames,
+      phaseLeadSteps: input.phaseLeadSteps,
     }, input.action, input.input.lineIdStart + input.captureLines.length);
     const supportLineIds = new Set(slice.lines.map((line) => line.id));
     const engine = input.input.engine.addLine([...input.captureLines, ...slice.lines].map((line) => engineLineFromTrackLine(line)));
@@ -490,11 +881,20 @@ function evaluateAction(input: {
     const localCollisions = collisionHits(engine, input.supportStartFrame, input.actionEndFrame, supportLineIds);
     const complete = survivesThroughFrame(detection, input.actionEndFrame) &&
       measurementLastFrame(detection) >= input.actionEndFrame;
-    const offBeatLandingFrames = offBeatLandingsInWindow(
+    const allOffBeatLandingFrames = offBeatLandingsInWindow(
       detection,
       input.input.ctx.allContactFrames,
       input.supportStartFrame,
       input.actionEndFrame,
+    );
+    const unresolvedOffBeatLandingFrames = unresolvedOffBeatLandingFramesAtWindowEnd(
+      detection,
+      input.input.ctx.allContactFrames,
+      input.supportStartFrame,
+      input.actionEndFrame,
+    );
+    const offBeatLandingFrames = allOffBeatLandingFrames.filter(
+      (frame) => !unresolvedOffBeatLandingFrames.includes(frame),
     );
     const window = complete ? measureCoMWindow(detection, input.supportStartFrame, input.actionEndFrame) : null;
     const terminalPlanningState = complete ? extractPlanningState(engine, input.actionEndFrame) : null;
@@ -511,7 +911,7 @@ function evaluateAction(input: {
     const constructionValid = physicalPrefixMatchesBaseline && captureTraceMatchesComparator &&
       preOrAtHCollisions.length === 0 && captureEventMatchesComparator && impactMatchesComparator;
     const structurallyValid = constructionValid && complete && window !== null && terminalNamedReference !== null &&
-      offBeatLandingFrames.length === 0;
+      offBeatLandingFrames.length === 0 && unresolvedOffBeatLandingFrames.length === 0;
     return {
       action: input.action,
       status: "observed" as const,
@@ -529,6 +929,7 @@ function evaluateAction(input: {
       terminus: detection.terminus,
       complete,
       offBeatLandingFrames,
+      unresolvedOffBeatLandingFrames,
       supportCollisions: localCollisions,
       supportContact: summarizeSupportContact(localCollisions),
       impact,
@@ -588,36 +989,87 @@ function classifyCapture(
   detection: ReturnType<typeof detectWindow>,
   observation: OwnedContactObservation,
   input: PreparedTrajectoryFixtureCore,
-  localEnd: number,
+  captureClosureEnd: number,
 ): CaptureStatus {
-  if (!survivesThroughFrame(detection, localEnd)) return "survival";
   if (observation.selectedOwnedEvent === null) return "landing";
+  if (!survivesThroughFrame(detection, captureClosureEnd)) return "survival";
   if (!observation.responseWindowComplete) return "response_unavailable";
   if (!observation.persistenceWindowComplete) return "persistence_unavailable";
-  const offBeat = offBeatLandingsInWindow(detection, input.ctx.allContactFrames, input.current.startFrame, localEnd);
+  const offBeat = offBeatLandingsInWindow(
+    detection,
+    authoredContactFramesThrough(input, captureClosureEnd),
+    input.current.startFrame,
+    captureClosureEnd,
+  );
   if (offBeat.length > 0) return "offbeat";
   return "closed";
 }
 
 function summarizeCaptureLocal(
-  detection: ReturnType<typeof detectWindow>,
+  selectionDetection: ReturnType<typeof detectWindow>,
+  closureDetection: ReturnType<typeof detectWindow>,
+  localStateDetection: ReturnType<typeof detectWindow>,
+  selectionObservation: OwnedContactObservation,
   observation: OwnedContactObservation,
   impact: ReturnType<typeof captureImpact>,
   status: CaptureStatus,
   physicalPrefixTrace: ReturnType<typeof exactEngineStateTraceFingerprint>,
   baselinePhysicalPrefixTrace: ReturnType<typeof exactEngineStateTraceFingerprint>,
   input: PreparedTrajectoryFixtureCore,
+  captureEventSelectionEnd: number,
+  captureEventSelectionValidationRequiredEnd: number,
+  captureEventSelectionValidationEnd: number,
+  selectionComplete: boolean,
+  selectionValidationReached: boolean,
+  selectionValidationComplete: boolean,
+  captureClosureEnd: number | null,
+  captureClosureObserved: boolean,
+  captureClosureComplete: boolean,
+  captureClosureUnresolvedOffBeatLandingFrames: readonly number[],
   localEnd: number,
+  selectionMatchesClosure: boolean | null,
 ) {
+  const captureClosureAllOffBeatLandingFrames = captureClosureEnd === null
+    ? []
+    : offBeatLandingsInWindow(
+      closureDetection,
+      authoredContactFramesThrough(input, captureClosureEnd),
+      input.current.startFrame,
+      captureClosureEnd,
+    );
+  const captureClosureOffBeatLandingFrames = captureClosureAllOffBeatLandingFrames.filter(
+    (frame) => !captureClosureUnresolvedOffBeatLandingFrames.includes(frame),
+  );
   return {
     status,
-    observationEndFrame: localEnd,
-    terminus: detection.terminus,
+    captureEventSelectionEndFrame: captureEventSelectionEnd,
+    captureEventSelectionValidationRequiredEndFrame: captureEventSelectionValidationRequiredEnd,
+    captureEventSelectionValidationEndFrame: captureEventSelectionValidationEnd,
+    captureEventSelectionComplete: selectionComplete,
+    captureEventSelectionValidationReached: selectionValidationReached,
+    captureEventSelectionValidationComplete: selectionValidationComplete,
+    captureClosureEndFrame: captureClosureEnd,
+    captureClosureObserved,
+    captureClosureComplete,
+    localStateObservationEndFrame: localEnd,
+    selectionTerminus: selectionDetection.terminus,
+    captureClosureTerminus: closureDetection.terminus,
+    localStateObservationTerminus: localStateDetection.terminus,
+    selectionOwnedEvent: selectionObservation.selectedOwnedEvent,
     selectedOwnedEvent: observation.selectedOwnedEvent,
+    selectionMatchesClosure,
     persistenceWindowComplete: observation.persistenceWindowComplete,
     responseWindowComplete: observation.responseWindowComplete,
     impact,
-    offBeatLandingFrames: offBeatLandingsInWindow(detection, input.ctx.allContactFrames, input.current.startFrame, localEnd),
+    captureClosureAllOffBeatLandingFrames,
+    captureClosureOffBeatLandingFrames,
+    captureClosureUnresolvedOffBeatLandingFrames,
+    localStateObservationOffBeatLandingFrames: offBeatLandingsInWindow(
+      localStateDetection,
+      input.ctx.allContactFrames,
+      input.current.startFrame,
+      localEnd,
+    ),
     physicalPrefixTrace,
     physicalPrefixTraceMatchesBaseline: sameExactEngineTrace(physicalPrefixTrace, baselinePhysicalPrefixTrace),
   };
@@ -729,6 +1181,11 @@ function contractAxes(input: PreparedTrajectoryFixtureCore): { air?: number; spe
   };
 }
 
+/** Pre-response gates must not use a later authored contact to forgive an event. */
+function authoredContactFramesThrough(input: PreparedTrajectoryFixtureCore, endFrame: number): number[] {
+  return input.ctx.allContactFrames.filter((frame) => frame <= endFrame);
+}
+
 function comparatorFailureReason(input: {
   captureOnlyComplete: boolean;
   captureObservationStable: boolean;
@@ -738,6 +1195,7 @@ function comparatorFailureReason(input: {
   namedAtH: ReturnType<typeof namedReferenceState>;
   namedAtHPlusOne: ReturnType<typeof namedReferenceState>;
   captureOnlyOffBeatLandingFrames: readonly number[];
+  captureOnlyUnresolvedOffBeatLandingFrames: readonly number[];
 }): string {
   if (!input.captureOnlyComplete) return "capture_only_did_not_survive_or_measure_through_H_plus_Q";
   if (!input.captureObservationStable) return "capture_observation_or_impact_changed_when_extended_to_H_plus_Q";
@@ -746,7 +1204,32 @@ function comparatorFailureReason(input: {
   if (input.namedTerminal === null) return "same_named_reference_unavailable_at_terminal";
   if (input.captureOnlyWindow === null) return "capture_only_com_window_unavailable";
   if (input.captureOnlyOffBeatLandingFrames.length > 0) return "capture_only_has_offbeat_landing_in_observation_window";
+  if (input.captureOnlyUnresolvedOffBeatLandingFrames.length > 0) {
+    return "capture_only_offbeat_landing_persistence_unresolved_at_observation_boundary";
+  }
   return "unknown_comparator_failure";
+}
+
+function preHComparatorFailureReason(input: {
+  captureOnlyPreHComplete: boolean;
+  captureOnlyPreHTraceAvailable: boolean;
+  captureObservationStableAtH: boolean;
+  namedAnchorStable: boolean;
+  namedAtH: ReturnType<typeof namedReferenceState>;
+  namedAtHPlusOne: ReturnType<typeof namedReferenceState>;
+  captureOnlyPreHOffBeatLandingFrames: readonly number[];
+  captureOnlyPreHUnresolvedOffBeatLandingFrames: readonly number[];
+}): string {
+  if (!input.captureOnlyPreHComplete) return "capture_only_did_not_survive_or_measure_through_H";
+  if (!input.captureOnlyPreHTraceAvailable) return "capture_only_full_engine_trace_unavailable_through_H";
+  if (!input.captureObservationStableAtH) return "capture_observation_or_impact_changed_before_H";
+  if (!input.namedAnchorStable) return "target_frame_reference_does_not_match_same_named_reference_at_H";
+  if (input.namedAtH === null || input.namedAtHPlusOne === null) return "same_named_reference_unavailable_at_H_or_H_plus_1";
+  if (input.captureOnlyPreHOffBeatLandingFrames.length > 0) return "capture_only_has_offbeat_landing_through_H";
+  if (input.captureOnlyPreHUnresolvedOffBeatLandingFrames.length > 0) {
+    return "capture_only_offbeat_landing_persistence_unresolved_at_H_boundary";
+  }
+  return "unknown_pre_H_comparator_failure";
 }
 
 function summarizeCapture(capture: ReturnType<typeof realizeContactCaptureArc>) {
@@ -763,10 +1246,12 @@ function summarizeCapture(capture: ReturnType<typeof realizeContactCaptureArc>) 
 function summarizeSlice(slice: ReturnType<typeof realizeExactSupportSlice>) {
   return {
     action: slice.action,
-    horizonFrames: slice.horizonFrames,
-    baseExtentPx: round(slice.baseExtentPx),
+    constructionExtentFrames: slice.constructionExtentFrames,
+    baseConstructionExtentPx: round(slice.baseConstructionExtentPx),
     extentPx: round(slice.extentPx),
     preloadPx: round(slice.preloadPx),
+    phaseLeadSteps: slice.phaseLeadSteps,
+    phaseLeadPx: round(slice.phaseLeadPx),
     railStart: point(slice.railStart),
     entryTangentDeg: round(slice.entryTangentDeg),
     entryFlipped: slice.entryFlipped,
@@ -889,11 +1374,45 @@ function summarizeEffects(
 }
 
 type ExactSupportSliceStudyRow = ReturnType<typeof evaluateRow> | ReturnType<typeof outOfScopeRow>;
+type ConstructionPhaseEvidence = {
+  constructionPhases: readonly ReturnType<typeof evaluateConstructionPhase>[];
+  selectedPhaseLeadSteps: (typeof EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS)[number] | null;
+};
+
+function constructionPhaseEvidence(row: ExactSupportSliceStudyRow): ConstructionPhaseEvidence | null {
+  const assay = row.assay;
+  if (!("constructionPhases" in assay) || !("selectedPhaseLeadSteps" in assay) ||
+      !Array.isArray(assay.constructionPhases)) return null;
+  const selected = assay.selectedPhaseLeadSteps;
+  if (selected !== null && !(EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS as readonly number[]).includes(selected as number)) {
+    throw new Error("construction phase record has an undeclared selected lead");
+  }
+  return {
+    constructionPhases: assay.constructionPhases,
+    selectedPhaseLeadSteps: selected as ConstructionPhaseEvidence["selectedPhaseLeadSteps"],
+  };
+}
 
 function summarizeRows(rows: readonly ExactSupportSliceStudyRow[]) {
   const captureRows = rows.length;
   const captureClosed = rows.filter((row) => row.captureStatus === "closed").length;
   const readyRows = rows.filter((row) => row.assay.status === "ready");
+  const phaseRows = rows.flatMap((row) => {
+    const evidence = constructionPhaseEvidence(row);
+    return evidence === null ? [] : [{ row, evidence }];
+  });
+  const constructionPhases = phaseRows.flatMap(({ evidence }) => evidence.constructionPhases);
+  const constructionProbeActions = constructionPhases.flatMap((phase) => phase.actions);
+  const constructionProbeErrors = constructionProbeActions.filter((action) => action.status === "error");
+  const invalidConstructionProbeActions = constructionProbeActions.filter((action) =>
+    action.status === "observed" && action.protocolInvalid,
+  );
+  const constructionUnavailableRows = rows.filter((row) => row.assay.status === "construction_unavailable");
+  const constructionInvalidRows = rows.filter((row) => row.assay.status === "construction_invalid");
+  const selectedPhaseLeadCounts = countBy(
+    phaseRows.flatMap(({ evidence }) => evidence.selectedPhaseLeadSteps === null ? [] : [evidence.selectedPhaseLeadSteps]),
+    (lead) => String(lead),
+  );
   const actions = readyRows.flatMap((row) => row.assay.actions);
   const observedActions = actions.filter((action) => action.status === "observed");
   const structurallyValid = observedActions.filter((action) => action.structurallyValid);
@@ -906,6 +1425,8 @@ function summarizeRows(rows: readonly ExactSupportSliceStudyRow[]) {
     const records = actions.filter((action) => action.action.id === declared.id);
     const observed = records.filter((record) => record.status === "observed");
     const valid = observed.filter((record) => record.structurallyValid && record.effectsFromCaptureOnly !== null);
+    const paired = completePairedRows.flatMap((row) => row.assay.actions)
+      .filter((record) => record.action.id === declared.id && record.status === "observed" && record.effectsFromCaptureOnly !== null);
     return [declared.id, {
       declared,
       attempted: records.length,
@@ -913,7 +1434,8 @@ function summarizeRows(rows: readonly ExactSupportSliceStudyRow[]) {
       structurallyValid: valid.length,
       invalidConstruction: observed.filter((record) => !record.guards.constructionValid).length,
       noSupportContact: observed.filter((record) => record.supportContact.status === "no_contact").length,
-      descriptiveValidEffects: summarizeEffectRecords(valid),
+      availabilityConditionedEffects: summarizeEffectRecords(valid),
+      completePairedEffects: summarizeEffectRecords(paired),
     }];
   }));
   return {
@@ -921,15 +1443,25 @@ function summarizeRows(rows: readonly ExactSupportSliceStudyRow[]) {
     captureClosed,
     captureByStatus: countBy(rows, (row) => row.captureStatus),
     assayByStatus: countBy(rows, (row) => row.assay.status),
+    constructionPhaseAttempts: constructionPhases.length,
+    constructionProbeActions: constructionProbeActions.length,
+    constructionSafePhaseCandidates: constructionPhases.filter((phase) => phase.sharedConstructionSafe).length,
+    constructionCollisionOnlyRejectedPhaseCandidates: constructionPhases.filter((phase) => phase.collisionOnlyRejection).length,
+    invalidConstructionProbeActions: invalidConstructionProbeActions.length,
+    constructionProbeErrors: constructionProbeErrors.length,
+    constructionUnavailableRows: constructionUnavailableRows.length,
+    constructionInvalidRows: constructionInvalidRows.length,
+    selectedPhaseLeadCounts,
     actionAttempts: actions.length,
     observedActions: observedActions.length,
     structurallyValidActions: structurallyValid.length,
     invalidConstructionActions: invalidConstructionActions.length,
-    rowErrors: rows.filter((row) => row.captureStatus === "error").length + actions.filter((action) => action.status === "error").length,
+    rowErrors: rows.filter((row) => row.captureStatus === "error").length +
+      actions.filter((action) => action.status === "error").length + constructionProbeErrors.length,
     completePairedRows: completePairedRows.length,
     completePairedRowIndices: completePairedRows.map((row) => row.index),
     byAction,
-    interpretation: "Counts are deterministic conditional observations on one calibration fixture. No action ranking, action selection, whole-gap conclusion, or statistical replicate claim is encoded.",
+    interpretation: "Construction phases are deterministic through-H feasibility probes using a locked capture-only H-to-H+1 geometry observation, not action outcomes; only the first shared-safe phase can produce a post-H action replay. Per-action availability-conditioned effects are diagnostic only; comparisons belong to completePairedEffects, which uses rows structurally valid for every declared arm. No action ranking, action selection, whole-gap conclusion, or statistical replicate claim is encoded.",
   };
 }
 

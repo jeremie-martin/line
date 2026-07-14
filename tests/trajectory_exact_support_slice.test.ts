@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   activeNormalForDirectedTangent,
+  EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS,
   EXACT_SUPPORT_SLICE_RAIL_ACTIONS,
   EXACT_SUPPORT_SLICE_PROTOCOL,
   realizeExactSupportSlice,
@@ -35,17 +36,30 @@ describe("exact post-impact support slice", () => {
     expect(Object.isFrozen(EXACT_SUPPORT_SLICE_RAIL_ACTIONS)).toBe(true);
     expect(Object.isFrozen(EXACT_SUPPORT_SLICE_RAIL_ACTIONS[0]!)).toBe(true);
     expect(Object.isFrozen(EXACT_SUPPORT_SLICE_PROTOCOL)).toBe(true);
+    expect(EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS).toEqual([0, 1, 2, 3, 4]);
+    expect(Object.isFrozen(EXACT_SUPPORT_SLICE_PHASE_LEAD_STEPS)).toBe(true);
     expect(() => { (EXACT_SUPPORT_SLICE_RAIL_ACTIONS[0] as any).extentScale = 7; }).toThrow();
     expect(() => { (EXACT_SUPPORT_SLICE_PROTOCOL as any).preloadSpeedFrames = 9; }).toThrow();
     expect(EXACT_SUPPORT_SLICE_RAIL_ACTIONS[0]!.extentScale).toBe(1);
     expect(EXACT_SUPPORT_SLICE_PROTOCOL.preloadSpeedFrames).toBe(0.1);
   });
 
+  test("uses the declared phase lead only along the canonical forward tangent", () => {
+    const slice = realizeExactSupportSlice({
+      anchor,
+      captureOnlyReferenceDisplacement: { x: 10, y: 0.5 },
+      phaseLeadSteps: 2,
+    }, action("rail-neutral"), 70);
+    expect(slice.phaseLeadSteps).toBe(2);
+    expect(slice.phaseLeadPx).toBeCloseTo(20, 12);
+    expect(slice.railStart).toEqual({ x: 120, y: 201 });
+  });
+
   test("chooses the active side from capture-only named-reference motion", () => {
     const slice = realizeExactSupportSlice({
       anchor,
       captureOnlyReferenceDisplacement: { x: 10, y: 0.5 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, action("rail-neutral"), 70);
     expect(slice.lines).toHaveLength(1);
     expect(slice.lines[0]!.flipped).toBe(false);
@@ -64,7 +78,7 @@ describe("exact post-impact support slice", () => {
     const slice = realizeExactSupportSlice({
       anchor,
       captureOnlyReferenceDisplacement: { x: 10, y: -0.5 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, action("rail-neutral"), 70);
     expect(slice.lines[0]!.flipped).toBe(true);
     expect(slice.entryActiveNormal).toEqual({ x: 0, y: -1 });
@@ -76,12 +90,12 @@ describe("exact post-impact support slice", () => {
     const positive = realizeExactSupportSlice({
       anchor,
       captureOnlyReferenceDisplacement: { x: 10, y: 0.5 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, action("rail-turn-positive"), 10);
     const negative = realizeExactSupportSlice({
       anchor,
       captureOnlyReferenceDisplacement: { x: 10, y: 0.5 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, action("rail-turn-negative"), 10);
     for (const slice of [positive, negative]) {
       expect(slice.lines[0]!.x2).toBeGreaterThan(slice.lines[0]!.x1);
@@ -95,18 +109,26 @@ describe("exact post-impact support slice", () => {
     expect(negative.segments.at(-1)!.tangentDeg).toBeCloseTo(-8, 12);
   });
 
-  test("scales length continuously with speed, horizon, and the one-factor extent arm", () => {
+  test("scales length continuously with response speed and the fixed construction extent", () => {
     const neutral = realizeExactSupportSlice({
       anchor,
       captureOnlyReferenceDisplacement: { x: 10, y: 0.5 },
-      horizonFrames: 4,
+      phaseLeadSteps: 0,
+    }, action("rail-neutral"), 1);
+    const faster = realizeExactSupportSlice({
+      anchor: { ...anchor, speedPxPerFrame: 20 },
+      captureOnlyReferenceDisplacement: { x: 10, y: 0.5 },
+      phaseLeadSteps: 0,
     }, action("rail-neutral"), 1);
     const longer = realizeExactSupportSlice({
       anchor,
       captureOnlyReferenceDisplacement: { x: 10, y: 0.5 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, action("rail-extent-long"), 1);
-    expect(neutral.extentPx).toBe(40);
+    expect(neutral.constructionExtentFrames).toBe(EXACT_SUPPORT_SLICE_PROTOCOL.constructionExtentFrames);
+    expect(neutral.baseConstructionExtentPx).toBe(120);
+    expect(neutral.extentPx).toBe(120);
+    expect(faster.extentPx).toBe(240);
     expect(longer.extentPx).toBeCloseTo(138, 12);
     expect(longer.footprint.conservativeCellCount).toBeGreaterThan(0);
   });
@@ -115,33 +137,33 @@ describe("exact post-impact support slice", () => {
     expect(() => realizeExactSupportSlice({
       anchor,
       captureOnlyReferenceDisplacement: { x: 10, y: 0 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, action("rail-neutral"), 1)).toThrow(/stable active normal/);
-    expect(() => realizeExactSupportSlice({
-      anchor,
-      captureOnlyReferenceDisplacement: { x: 10, y: 1 },
-      horizonFrames: 3,
-    }, action("rail-neutral"), 1)).toThrow(/horizon/);
     expect(() => realizeExactSupportSlice({
       anchor: { ...anchor, speedPxPerFrame: 0 },
       captureOnlyReferenceDisplacement: { x: 10, y: 1 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, action("rail-neutral"), 1)).toThrow(/speed/);
     expect(() => realizeExactSupportSlice({
       anchor,
       captureOnlyReferenceDisplacement: { x: -10, y: 1 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, action("rail-neutral"), 1)).toThrow(/canonical rail direction/);
     expect(() => realizeExactSupportSlice({
       anchor: { ...anchor, headingSource: "rider_com_velocity" },
       captureOnlyReferenceDisplacement: { x: 10, y: 1 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, action("rail-neutral"), 1)).toThrow(/named non-rider/);
     expect(() => realizeExactSupportSlice({
       anchor,
       captureOnlyReferenceDisplacement: { x: 10, y: 1 },
-      horizonFrames: 12,
+      phaseLeadSteps: 0,
     }, { id: "rail-neutral", extentScale: 7, totalTurnDeg: 123 } as any, 1)).toThrow(/declared assay stencil/);
+    expect(() => realizeExactSupportSlice({
+      anchor,
+      captureOnlyReferenceDisplacement: { x: 10, y: 1 },
+      phaseLeadSteps: 5 as any,
+    }, action("rail-neutral"), 1)).toThrow(/phaseLeadSteps/);
   });
 
   test("WASM honors the explicit active-normal orientation", () => {

@@ -731,6 +731,20 @@ function summarizeRealized(realized: ReturnType<typeof realizeTwoContactPhase>) 
     lineHash: lineHash(realized.lines),
     lineCount: realized.lines.length,
     lineLength: round(lineLength(realized.lines)),
+    // This bounded assay emits only a few lines per row. Preserve their exact
+    // coordinates so a zero-closure result is inspectable rather than merely
+    // a hash mismatch that demands an ad-hoc rerun.
+    lines: realized.lines.map((line) => ({
+      id: line.id,
+      type: line.type,
+      x1: round(line.x1),
+      y1: round(line.y1),
+      x2: round(line.x2),
+      y2: round(line.y2),
+      flipped: Boolean(line.flipped),
+      leftExtended: Boolean(line.leftExtended),
+      rightExtended: Boolean(line.rightExtended),
+    })),
     segmentCount: realized.segmentCount,
     contactPoint: roundPoint(realized.contactPoint),
     entryAngleDeg: round(realized.entryAngleDeg),

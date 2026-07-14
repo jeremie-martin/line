@@ -8,9 +8,9 @@ import { readFileSync } from "node:fs";
 import type { PhysicalPrefixFixture } from "./study_fixture.ts";
 import type { PlanningState } from "./state.ts";
 import type {
-  MaterializedTrajectoryPanelInput,
-  TrajectoryPanelCase,
-} from "./panel.ts";
+  MaterializedTrajectoryCaptureInput,
+  TrajectoryCaptureCase,
+} from "./capture_input.ts";
 
 type FrozenTrajectoryFixtureBase = {
   fixtureFingerprint: string;
@@ -23,9 +23,9 @@ type FrozenTrajectoryFixtureBase = {
     studySourceFingerprint: string;
   };
   panel: {
-    id: TrajectoryPanelCase["id"];
-    cohort: TrajectoryPanelCase["cohort"];
-    category: TrajectoryPanelCase["category"];
+    id: TrajectoryCaptureCase["id"];
+    cohort: TrajectoryCaptureCase["cohort"];
+    category: TrajectoryCaptureCase["category"];
     sourcePath: string;
     sourceFingerprint: string;
     publicSeed: number;
@@ -40,7 +40,7 @@ type FrozenTrajectoryFixtureBase = {
     studyScope?: string | null;
   };
   transform: { value: unknown; fingerprint: string };
-  materialized: MaterializedTrajectoryPanelInput;
+  materialized: MaterializedTrajectoryCaptureInput;
   materializedFingerprint: string;
   physicalPrefix: PhysicalPrefixFixture;
   physicalPrefixFingerprint: string;

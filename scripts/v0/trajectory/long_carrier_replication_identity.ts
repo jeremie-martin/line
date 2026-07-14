@@ -4,7 +4,7 @@
  * have their own content fingerprints; unrelated editor files must not abort
  * a multi-case cohort merely because they appear in a broad Git status.
  */
-import { stableJson } from "./frozen_fixture.ts";
+import { stableJson } from "./postimpact_study_inputs.ts";
 
 export function longCarrierReplicationExecutionBinding(identity: Record<string, unknown>): Record<string, string> {
   return {

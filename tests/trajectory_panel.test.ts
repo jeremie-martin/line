@@ -16,6 +16,11 @@ import {
   LONG_CARRIER_REPLICATION_SCOPE,
   assertLongCarrierReplicationCase,
 } from "../scripts/v0/trajectory/long_carrier_replication_protocol.ts";
+import {
+  LONG_CARRIER_REPLICATION_CAPTURE_CASES,
+  buildLongCarrierReplicationCaptureSetup,
+  getLongCarrierReplicationCaptureCase,
+} from "../scripts/v0/trajectory/long_carrier_replication_input.ts";
 import { assertFixturePanelDeclaration } from "../scripts/v0/trajectory/study_context.ts";
 
 describe("trajectory study panel", () => {
@@ -44,15 +49,17 @@ describe("trajectory study panel", () => {
     }, "test")).not.toThrow();
   });
 
-  test("declares one narrow, independent long-carrier validation roster", () => {
-    const active = activeTrajectoryPanelCases("validation");
-    expect(active.map((panel) => panel.id)).toEqual(LONG_CARRIER_REPLICATION_PROTOCOL.cases.map((entry) => entry.id));
-    expect(new Set(active.map((panel) => panel.sourcePath)).size).toBe(6);
-    for (const panel of active) {
+  test("keeps the prospective long-carrier roster outside the generic legacy panel", () => {
+    expect(activeTrajectoryPanelCases("validation")).toEqual([]);
+    expect(LONG_CARRIER_REPLICATION_CAPTURE_CASES.map((panel) => panel.id))
+      .toEqual(LONG_CARRIER_REPLICATION_PROTOCOL.cases.map((entry) => entry.id));
+    expect(new Set(LONG_CARRIER_REPLICATION_CAPTURE_CASES.map((panel) => panel.sourcePath)).size).toBe(6);
+    for (const panel of LONG_CARRIER_REPLICATION_CAPTURE_CASES) {
       expect(panel.studyScope).toBe(LONG_CARRIER_REPLICATION_SCOPE);
       expect(panel.spec.jitter).toBe(0);
       const expected = assertLongCarrierReplicationCase(panel);
       expect(expected.id).toBe(panel.id);
+      expect(getLongCarrierReplicationCaptureCase(panel.id)).toBe(panel);
     }
   });
 
@@ -81,6 +88,13 @@ describe("trajectory study panel", () => {
     expect(quarantined.error).toBeUndefined();
     expect(quarantined.status).toBe(1);
     expect(`${quarantined.stdout}\n${quarantined.stderr}`).toContain("cannot use quarantined trajectory panel");
+
+    const replication = run([
+      `--case=${LONG_CARRIER_REPLICATION_CAPTURE_CASES[0]!.id}`,
+      "--cohort=validation",
+    ]);
+    expect(replication.status).toBe(1);
+    expect(`${replication.stdout}\n${replication.stderr}`).toContain("unknown trajectory panel");
   }, 15_000);
 
   test("declares exact contact-bounded transitions without fallback selection", () => {
@@ -98,10 +112,17 @@ describe("trajectory study panel", () => {
           panel.expectedOutgoingFrames,
         );
       }
-      if (panel.cohort === "validation") {
-        expect(current!.targets.impact, `${panel.id} positive current impact`).toBeGreaterThan(0);
-        expect(panel.studyScope, `${panel.id} bounded study scope`).toBe(LONG_CARRIER_REPLICATION_SCOPE);
-      }
+    }
+    for (const panel of LONG_CARRIER_REPLICATION_CAPTURE_CASES) {
+      const setup = buildLongCarrierReplicationCaptureSetup(panel);
+      const current = setup.gaps[panel.targetGap];
+      const outgoing = setup.gaps[panel.targetGap + 1];
+      expect(current!.endsWithContact, `${panel.id} current contact`).toBe(true);
+      expect(outgoing!.endsWithContact, `${panel.id} outgoing contact`).toBe(true);
+      expect(outgoing!.startFrame, `${panel.id} interval ownership`).toBe(current!.endFrame);
+      expect(outgoing!.endFrame - outgoing!.startFrame, `${panel.id} duration`).toBe(panel.expectedOutgoingFrames);
+      expect(current!.targets.impact, `${panel.id} positive current impact`).toBeGreaterThan(0);
+      expect(panel.studyScope, `${panel.id} bounded study scope`).toBe(LONG_CARRIER_REPLICATION_SCOPE);
     }
   });
 
@@ -109,6 +130,11 @@ describe("trajectory study panel", () => {
     for (const panel of Object.values(TRAJECTORY_PANEL_CASES)) {
       const first = materializeTrajectoryPanelInput(buildTrajectoryPanelSetup(panel));
       const second = materializeTrajectoryPanelInput(buildTrajectoryPanelSetup(panel));
+      expect(second).toEqual(first);
+    }
+    for (const panel of LONG_CARRIER_REPLICATION_CAPTURE_CASES) {
+      const first = buildLongCarrierReplicationCaptureSetup(panel);
+      const second = buildLongCarrierReplicationCaptureSetup(panel);
       expect(second).toEqual(first);
     }
   });

@@ -1,8 +1,7 @@
 /** Read-only verifier for a sealed long-carrier replication output root. */
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { compilerCandidateIdentity } from "./benchmark_v2/compiler_identity.ts";
-import { readFrozenTrajectoryFixture, sha256, stableJson } from "./trajectory/frozen_fixture.ts";
+import { assertPostimpactV3FixtureIntegrity, sha256, stableJson } from "./trajectory/postimpact_study_inputs.ts";
 import {
   assessLongCarrierReplication,
   type LongCarrierReplicationEvidence,
@@ -20,6 +19,9 @@ import {
   type LongCarrierReplicationCase,
 } from "./trajectory/long_carrier_replication_protocol.ts";
 import { sameLongCarrierReplicationExecutionBinding } from "./trajectory/long_carrier_replication_identity.ts";
+import { longCarrierReplicationCandidateIdentity } from "./trajectory/long_carrier_replication_candidate.ts";
+import { longCarrierReplicationSourceIdentity } from "./trajectory/long_carrier_replication_source.ts";
+import { assertLongCarrierReplicationRuntimeEnvironment } from "./trajectory/long_carrier_replication_runtime.ts";
 import {
   LONG_CARRIER_REPLICATION_DECLARATION_SCHEMA,
   LONG_CARRIER_REPLICATION_EVENT_SCHEMA,
@@ -36,11 +38,10 @@ import {
   postimpactAssaySourceIdentity,
   readPostimpactAssayArtifact,
 } from "./trajectory/postimpact_assay_artifact.ts";
-import { studySourceIdentity } from "./trajectory/study_artifact.ts";
 
 const CONTROLLER_PATH = "scripts/v0/run_long_carrier_replication.ts";
 const VERIFIER_PATH = "scripts/v0/verify_long_carrier_replication.ts";
-const CAPTURE_PATH = "scripts/v0/capture_trajectory_fixture.ts";
+const CAPTURE_PATH = "scripts/v0/capture_long_carrier_replication_fixture.ts";
 const ASSAY_PATH = "scripts/v0/study_long_carrier_duration_response.ts";
 
 type DeclarationContract = {
@@ -71,6 +72,7 @@ if (argv.includes("--help") || argv.includes("-h")) {
 }
 
 const options = parseArguments(argv);
+assertLongCarrierReplicationRuntimeEnvironment();
 const outDir = options.outDir;
 const declaration = readSealedReplicationRecord(
   join(outDir, "declaration.json"),
@@ -113,9 +115,9 @@ function parseArguments(values: readonly string[]): { outDir: string; requireCur
 }
 
 /**
- * V1 is retained as an immutable schema/semantics module. The declaration is
- * self-describing, but it must also match this supported frozen contract; a
- * structurally valid alternate decision rule cannot borrow the V1 assessor.
+ * V1 is the retained compatibility contract for this reader. The declaration
+ * is self-describing, but it must also match the supported V1 contract; a
+ * structurally valid alternate decision rule cannot borrow this assessor.
  */
 function assertDeclaration(declaration: Record<string, unknown>): DeclarationContract {
   const protocol = record(declaration.protocol, "declaration protocol");
@@ -157,20 +159,16 @@ function assertDeclaration(declaration: Record<string, unknown>): DeclarationCon
 function assertCurrentIdentity(declaration: Record<string, unknown>): void {
   const execution = record(declaration.execution, "declaration execution");
   const expected = {
-    controllerSourceIdentity: sourceIdentity(studySourceIdentity(CONTROLLER_PATH)),
-    verifierSourceIdentity: sourceIdentity(studySourceIdentity(VERIFIER_PATH)),
-    captureSourceIdentity: sourceIdentity(studySourceIdentity(CAPTURE_PATH)),
+    controllerSourceIdentity: longCarrierReplicationSourceIdentity(CONTROLLER_PATH),
+    verifierSourceIdentity: longCarrierReplicationSourceIdentity(VERIFIER_PATH),
+    captureSourceIdentity: longCarrierReplicationSourceIdentity(CAPTURE_PATH),
     assaySourceIdentity: postimpactAssaySourceIdentity(ASSAY_PATH),
-    captureCandidate: compilerCandidateIdentity("wasm"),
+    captureCandidate: longCarrierReplicationCandidateIdentity("wasm"),
     assayRuntime: postimpactAssayRuntimeIdentity(),
   };
   if (!sameLongCarrierReplicationExecutionBinding(execution, expected)) {
     throw new Error("current controller, runner, compiler candidate, assay source, or runtime identity differs from the declaration");
   }
-}
-
-function sourceIdentity(identity: ReturnType<typeof studySourceIdentity>) {
-  return { sourceFiles: identity.sourceFiles, fingerprint: identity.studySourceFingerprint };
 }
 
 function readEvents(root: string, ledger: Record<string, unknown>, declarationFingerprint: string): Record<string, unknown>[] {
@@ -411,7 +409,8 @@ function loadFixtureFromEvent(
     return null;
   }
   if (metadata === null) return null;
-  const fixture = readFrozenTrajectoryFixture(resolveReplicationPath(root, publication.artifactPath, "capture artifact path"));
+  const fixture: unknown = JSON.parse(readFileSync(resolveReplicationPath(root, publication.artifactPath, "capture artifact path"), "utf8"));
+  assertPostimpactV3FixtureIntegrity(fixture, "replication fixture");
   if (fixture.schema !== "line.frozen-trajectory-prefix.v3" || metadata.fingerprint !== fixture.fixtureFingerprint) {
     throw new Error("capture result artifact fingerprint does not match the sealed fixture");
   }
@@ -419,7 +418,7 @@ function loadFixtureFromEvent(
   if (stableJson(capture.argv) !== stableJson(expected.scriptArgv)) {
     throw new Error("fixture capture argv does not match the declared capture invocation");
   }
-  return fixture;
+  return fixture as Record<string, unknown>;
 }
 
 function loadAssayFromEvent(

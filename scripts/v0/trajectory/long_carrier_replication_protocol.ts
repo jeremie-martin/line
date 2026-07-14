@@ -9,6 +9,20 @@ export const LONG_CARRIER_REPLICATION_PROTOCOL_SCHEMA = "line.long-carrier-repli
 /** The fixed complete-row stencil. It is evidence, not a search menu. */
 export const LONG_CARRIER_REPLICATION_FRACTIONS = [0, 0.25, 0.5, 0.75, 1] as const;
 
+/**
+ * Shared authoring code whose bytes define the manual spec inputs, rather
+ * than a compiler behavior being evaluated. `core/curves.ts` is also within
+ * the broad compiler boundary, so the controller treats this explicit input
+ * subset as immutable protocol source before it captures a cohort.
+ */
+export const LONG_CARRIER_REPLICATION_AUTHORING_INPUT_PATHS = Object.freeze([
+  "scripts/v0/core/curves.ts",
+] as const);
+
+export function isLongCarrierReplicationAuthoringInputPath(path: string): boolean {
+  return LONG_CARRIER_REPLICATION_AUTHORING_INPUT_PATHS.some((candidate) => candidate === path);
+}
+
 export type LongCarrierReplicationRole = "primary_low_air" | "scope_control";
 export type LongCarrierReplicationCategory = "low_air" | "ordinary";
 
@@ -117,7 +131,7 @@ export const LONG_CARRIER_REPLICATION_COMMAND_TEMPLATES = Object.freeze({
   capture: Object.freeze([
     "--import",
     "tsx",
-    "scripts/v0/capture_trajectory_fixture.ts",
+    "scripts/v0/capture_long_carrier_replication_fixture.ts",
     "--case={id}",
     "--cohort=validation",
     "--budget=500000",
@@ -159,7 +173,7 @@ export function longCarrierReplicationCaptureScriptArgv(
 ): string[] {
   return scriptArgvAfterEntry(
     longCarrierReplicationCaptureArgv(entry, fixturePath),
-    "scripts/v0/capture_trajectory_fixture.ts",
+    "scripts/v0/capture_long_carrier_replication_fixture.ts",
   );
 }
 
@@ -177,6 +191,21 @@ export function longCarrierReplicationAssayScriptArgv(fixturePath: string, assay
     longCarrierReplicationAssayArgv(fixturePath, assayPath),
     "scripts/v0/study_long_carrier_duration_response.ts",
   );
+}
+
+/**
+ * The controller's terminal verification is deliberately stricter than a
+ * historical archive review: it must bind the just-created ledger to the
+ * execution identity that captured it.
+ */
+export function longCarrierReplicationSelfVerifierArgv(outDir: string): string[] {
+  return [
+    "--import",
+    "tsx",
+    "scripts/v0/verify_long_carrier_replication.ts",
+    `--out-dir=${outDir}`,
+    "--require-current-identity",
+  ];
 }
 
 function scriptArgvAfterEntry(nodeArgv: readonly string[], entryPath: string): string[] {
@@ -205,7 +234,9 @@ export const LONG_CARRIER_REPLICATION_PROTOCOL = Object.freeze({
     engine: "wasm",
     captureBudget: 500_000,
     relevantEnvironment: Object.freeze({ LR_ENGINE: "wasm" }),
+    transform: Object.freeze({ kind: "production_felt_jolt", joltMs: -15 }),
   }),
+  authoringInputPaths: LONG_CARRIER_REPLICATION_AUTHORING_INPUT_PATHS,
   commandTemplates: LONG_CARRIER_REPLICATION_COMMAND_TEMPLATES,
   sources: Object.freeze(SOURCE_CONTEXTS.map((source) => Object.freeze({ ...source }))),
   cases: Object.freeze(cases.map((entry) => Object.freeze({ ...entry }))),
@@ -224,7 +255,8 @@ export const LONG_CARRIER_REPLICATION_PROTOCOL = Object.freeze({
 /** Files that define the prospective cohort and must be committed before it runs. */
 export const LONG_CARRIER_REPLICATION_DEFINITION_PATHS = Object.freeze([
   "scripts/v0/trajectory/long_carrier_replication_protocol.ts",
-  "scripts/v0/trajectory/panel.ts",
+  "scripts/v0/trajectory/long_carrier_replication_input.ts",
+  ...LONG_CARRIER_REPLICATION_AUTHORING_INPUT_PATHS,
   ...LONG_CARRIER_REPLICATION_PROTOCOL.sources.map((source) => source.sourcePath),
 ] as const);
 
@@ -237,7 +269,7 @@ export const LONG_CARRIER_REPLICATION_EXECUTION_DEFINITION_PATHS = Object.freeze
   ...LONG_CARRIER_REPLICATION_DEFINITION_PATHS,
   "scripts/v0/run_long_carrier_replication.ts",
   "scripts/v0/verify_long_carrier_replication.ts",
-  "scripts/v0/capture_trajectory_fixture.ts",
+  "scripts/v0/capture_long_carrier_replication_fixture.ts",
   "scripts/v0/study_long_carrier_duration_response.ts",
   "scripts/v0/trajectory/long_carrier_replication_assessment.ts",
   "scripts/v0/trajectory/long_carrier_replication_records.ts",

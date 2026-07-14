@@ -112,7 +112,7 @@ export function fixtureFor(entry: LongCarrierReplicationCase): Record<string, un
       elapsedMs: 0,
       captureBudget: LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget,
       studySourceFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureStudySourceFingerprint,
-      studySourceFiles: ["scripts/v0/capture_trajectory_fixture.ts"],
+      studySourceFiles: ["scripts/v0/capture_long_carrier_replication_fixture.ts"],
       captureIdentity: {
         ...captureIdentityPayload,
         fingerprint: sha256(stableJson(captureIdentityPayload)),
@@ -145,7 +145,10 @@ export function fixtureFor(entry: LongCarrierReplicationCase): Record<string, un
       expectedOutgoingFrames: entry.expectedOutgoingFrames,
       studyScope: LONG_CARRIER_REPLICATION_SCOPE,
     },
-    transform: { value: {}, fingerprint: sha256(stableJson({})) },
+    transform: {
+      value: LONG_CARRIER_REPLICATION_PROTOCOL.capture.transform,
+      fingerprint: sha256(stableJson(LONG_CARRIER_REPLICATION_PROTOCOL.capture.transform)),
+    },
     materialized,
     materializedFingerprint: sha256(stableJson(materialized)),
     physicalPrefix,

@@ -10,28 +10,17 @@ import { join } from "node:path";
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { compilerCandidateIdentity, type CompilerCandidateIdentity } from "./benchmark_v2/compiler_identity.ts";
 import { fingerprintFiles } from "./benchmark_v2/suite_model.ts";
-import { getCandidateProbe } from "./optimizer/sample.ts";
-import {
-  compileHandoff,
-  setForwardEvalContext,
-  type HandoffNode,
-  type HandoffNodeEvent,
-} from "./optimizer/handoff.ts";
-import type { LeafKey } from "./optimizer/register.ts";
-import { nextContactGap } from "./optimizer/objective.ts";
-import { scoreDriftReport } from "./score.ts";
-import { FPS } from "./types.ts";
 import {
   buildTrajectoryPanelSetup,
   activeTrajectoryPanelCases,
   assertActiveTrajectoryPanel,
   assertTrajectoryCalibrationProtocol,
   getTrajectoryPanelCase,
-  materializeTrajectoryPanelInput,
   TRAJECTORY_CALIBRATION_PROTOCOL,
   type ActiveTrajectoryPanelCohort,
   type TrajectoryPanelCase,
 } from "./trajectory/panel.ts";
+import { captureTrajectoryPrefix } from "./trajectory/prefix_capture_core.ts";
 import {
   frozenFixtureCaptureArtifactIdentity,
   fixtureFingerprintForPayload,
@@ -40,11 +29,6 @@ import {
   type FrozenTrajectoryFixtureV3,
   type FrozenFixtureCaptureArtifactIdentity,
 } from "./trajectory/frozen_fixture.ts";
-import { extractPlanningState, type PlanningState } from "./trajectory/state.ts";
-import {
-  makePhysicalPrefixFixture,
-  rebuildPhysicalPrefixEngine,
-} from "./trajectory/study_fixture.ts";
 import { activeStudyEngine } from "./trajectory/study_runtime.ts";
 import {
   allocateStudyArtifactPath,
@@ -72,8 +56,6 @@ if (argv.includes("--help") || argv.includes("-h")) {
   ].join("\n") + "\n");
   process.exit(0);
 }
-
-type Visit = { node: HandoffNode; key: LeafKey; event: HandoffNodeEvent };
 
 const caseArgument = argument("case");
 if (caseArgument === undefined) throw new Error("--case=NAME|all is required");
@@ -167,60 +149,7 @@ function capturePanel(
 ): FrozenTrajectoryFixtureV3 {
   const started = performance.now();
   const setup = buildTrajectoryPanelSetup(panel);
-  setForwardEvalContext(setup.spec, setup.gapAxisTargets);
-  const visits: Visit[] = [];
-  const baseline = compileHandoff(setup.spec, panel.seed, {
-    budget: captureBudget,
-    onNode(node, key, event) {
-      visits.push({ node, key, event });
-    },
-  });
-  const deepest = deepestUnskippedVisit(visits);
-  if (deepest === null) throw new Error(`${panel.id}: no unskipped prefix was captured`);
-  const visit = exactVisitOnDeepestPath(visits, deepest, panel.targetGap);
-  if (visit === null) {
-    throw new Error(`${panel.id}: requested g${panel.targetGap} is not on the captured deepest path`);
-  }
-  const current = setup.gaps[visit.node.search.gapIndex];
-  if (current === undefined || !current.endsWithContact) {
-    throw new Error(`${panel.id}: selected g${panel.targetGap} is not a contact gap`);
-  }
-  const outgoing = nextContactGap(current, setup.gaps);
-  if (outgoing === null || outgoing.startFrame !== current.endFrame || !outgoing.endsWithContact) {
-    throw new Error(`${panel.id}: g${current.index} has no contiguous outgoing contact interval`);
-  }
-  const outgoingIntervalFrames = outgoing.endFrame - outgoing.startFrame;
-  if (panel.expectedOutgoingFrames !== undefined && outgoingIntervalFrames !== panel.expectedOutgoingFrames) {
-    throw new Error(
-      `${panel.id}: outgoing interval ${outgoingIntervalFrames} != declared ${panel.expectedOutgoingFrames}`,
-    );
-  }
-
-  const physicalPrefix = makePhysicalPrefixFixture(visit.node);
-  const physicalPrefixFingerprint = sha256(stableJson(physicalPrefix));
-  const originalEngine = visit.node.search.prefixEngine;
-  const replayEngine = rebuildPhysicalPrefixEngine(physicalPrefix);
-  const originalProbe = getCandidateProbe(originalEngine, current, {
-    allContactFrames: setup.allContactFrames,
-    durationFrames: setup.durationFrames,
-    gapAxisTargets: setup.gapAxisTargets,
-  });
-  const replayProbe = getCandidateProbe(replayEngine, current, {
-    allContactFrames: setup.allContactFrames,
-    durationFrames: setup.durationFrames,
-    gapAxisTargets: setup.gapAxisTargets,
-  });
-  const originalState = requirePlanningState(originalEngine, current.endFrame, `${panel.id} original`);
-  const replayState = requirePlanningState(replayEngine, current.endFrame, `${panel.id} replay`);
-  const originalTrace = originalProbe.preTargetSledTrace();
-  const replayTrace = replayProbe.preTargetSledTrace();
-  assertStableEqual(`${panel.id} target planning state`, originalState, replayState);
-  assertStableEqual(`${panel.id} target probe state`, originalProbe.targetState, replayProbe.targetState);
-  assertStableEqual(`${panel.id} pre-target sled trace`, originalTrace, replayTrace);
-
-  const materialized = materializeTrajectoryPanelInput(setup);
-  const materializedFingerprint = sha256(stableJson(materialized));
-  const report = scoreDriftReport(baseline.report, { totalFrames: Math.round(setup.spec.duration * FPS) });
+  const captured = captureTrajectoryPrefix(panel, setup, captureBudget);
   const panelSourceFingerprintAtEnd = fingerprintFiles([panel.sourcePath]);
   const sourceIdentityAtEnd = studySourceIdentity("scripts/v0/capture_trajectory_fixture.ts");
   const captureCompilerAtEnd = compilerCandidateIdentity(captureEngine);
@@ -262,11 +191,11 @@ function capturePanel(
       publicSeed: panel.seed,
       requestedTargetGap: panel.targetGap,
       selectionRationale: panel.selectionRationale,
-      selectedTargetGap: current.index,
-      outgoingGap: outgoing.index,
-      currentFrame: current.endFrame,
-      outgoingFrame: outgoing.endFrame,
-      outgoingIntervalFrames,
+      selectedTargetGap: captured.current.index,
+      outgoingGap: captured.outgoing.index,
+      currentFrame: captured.current.endFrame,
+      outgoingFrame: captured.outgoing.endFrame,
+      outgoingIntervalFrames: captured.outgoingIntervalFrames,
       expectedOutgoingFrames: panel.expectedOutgoingFrames ?? null,
       studyScope: panel.studyScope ?? null,
     },
@@ -274,24 +203,21 @@ function capturePanel(
       value: benchmarkPolicy.transform,
       fingerprint: sha256(stableJson(benchmarkPolicy.transform)),
     },
-    materialized,
-    materializedFingerprint,
-    physicalPrefix,
-    physicalPrefixFingerprint,
+    materialized: captured.materialized,
+    materializedFingerprint: captured.materializedFingerprint,
+    physicalPrefix: captured.physicalPrefix,
+    physicalPrefixFingerprint: captured.physicalPrefixFingerprint,
     checkpoints: {
-      targetPlanningState: originalState,
-      targetProbeState: originalProbe.targetState,
-      preTargetSledTrace: [...originalTrace],
-      targetPlanningStateFingerprint: sha256(stableJson(originalState)),
-      targetProbeStateFingerprint: sha256(stableJson(originalProbe.targetState)),
-      preTargetSledTraceFingerprint: sha256(stableJson(originalTrace)),
+      targetPlanningState: captured.targetPlanningState,
+      targetProbeState: captured.targetProbeState,
+      preTargetSledTrace: captured.preTargetSledTrace,
+      targetPlanningStateFingerprint: sha256(stableJson(captured.targetPlanningState)),
+      targetProbeStateFingerprint: sha256(stableJson(captured.targetProbeState)),
+      preTargetSledTraceFingerprint: sha256(stableJson(captured.preTargetSledTrace)),
     },
     captureCompiler: captureCompilerAtStart,
     baseline: {
-      contractPassed: report.contract_passed,
-      score: round(report.score),
-      deepestGap: baseline.stats.handoff_deepest_seen_gap ?? null,
-      targetPrefixSimFrames: visit.event.simFrames,
+      ...captured.baseline,
     },
   };
   return {
@@ -352,41 +278,6 @@ function assertCaptureSessionStable(
       `capture session identity changed before ${panel.id}; refusing to create a mixed-era fixture batch. Restart capture.`,
     );
   }
-}
-
-function deepestUnskippedVisit(visits: readonly Visit[]): Visit | null {
-  return visits.reduce<Visit | null>((best, record) =>
-    record.node.skippedContacts === 0 &&
-      (best === null || record.node.search.gapIndex > best.node.search.gapIndex)
-      ? record
-      : best,
-  );
-}
-
-function exactVisitOnDeepestPath(
-  visits: readonly Visit[],
-  deepest: Visit,
-  targetGap: number,
-): Visit | null {
-  return visits.filter((record) =>
-    record.node.skippedContacts === 0 &&
-      record.node.search.gapIndex === targetGap &&
-      isPrefix(record.node.search.prefixFits, deepest.node.search.prefixFits),
-  ).at(-1) ?? null;
-}
-
-function isPrefix<T>(prefix: readonly T[], whole: readonly T[]): boolean {
-  return prefix.length <= whole.length && prefix.every((item, index) => item === whole[index]);
-}
-
-function requirePlanningState(engine: unknown, frame: number, label: string): PlanningState {
-  const state = extractPlanningState(engine, frame);
-  if (state === null) throw new Error(`${label}: unable to read planning state at frame ${frame}`);
-  return state;
-}
-
-function assertStableEqual(label: string, left: unknown, right: unknown): void {
-  if (stableJson(left) !== stableJson(right)) throw new Error(`${label}: physical replay mismatch`);
 }
 
 function relevantEnvironment(): Record<string, string> {

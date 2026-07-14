@@ -163,8 +163,10 @@ terminal states also show that a straight carrier can exchange air time for
 terminal speed, so it is not a continuation law by itself.
 
 The next step is a preregistered fresh-cohort transfer study for this fixed
-physical leaf, followed separately by a capture/support/release formulation
-with an explicit release control. Neither step is direct compiler integration.
+physical leaf, using the isolated long-carrier capture path documented in
+`docs/long-carrier-replication-protocol.md`, followed separately by a
+capture/support/release formulation with an explicit release control. Neither
+step is direct compiler integration.
 
 ## Guardrails
 

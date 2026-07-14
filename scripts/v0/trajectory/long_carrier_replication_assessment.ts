@@ -218,10 +218,11 @@ function validateFixture(entry: LongCarrierReplicationCase, fixture: Record<stri
   const identityCheck = record(capture.identityCheck);
   const captureIdentity = record(capture.captureIdentity);
   const runtime = record(capture.runtime);
+  const transform = record(fixture.transform);
   const prefix = record(fixture.physicalPrefix);
   const materialized = record(fixture.materialized);
   const materializedGaps = materialized === null ? null : array(materialized.gaps);
-  if (identityCheck === null || captureIdentity === null || runtime === null || prefix === null || materializedGaps === null) {
+  if (identityCheck === null || captureIdentity === null || runtime === null || transform === null || prefix === null || materializedGaps === null) {
     return "fixture lacks capture identity or materialized-prefix fields";
   }
   if (identityCheck.stable !== true) return "fixture capture identity drifted";
@@ -245,6 +246,10 @@ function validateFixture(entry: LongCarrierReplicationCase, fixture: Record<stri
     !sameRecord(runtime.relevantEnvironment, LONG_CARRIER_REPLICATION_PROTOCOL.capture.relevantEnvironment) ||
     captureIdentity.panelId !== entry.id
   ) return "fixture runtime or capture protocol differs from the preregistration";
+  if (
+    stableJson(transform.value) !== stableJson(LONG_CARRIER_REPLICATION_PROTOCOL.capture.transform) ||
+    transform.fingerprint !== sha256(stableJson(transform.value))
+  ) return "fixture transform differs from the preregistered capture protocol";
   const current = record(materializedGaps[entry.targetGap]);
   const outgoing = record(materializedGaps[entry.targetGap + 1]);
   if (

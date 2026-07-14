@@ -34,22 +34,39 @@ under both public seeds `730201` and `730203` at WASM/500k.
 
 The exact source path, materialized target-gap index, expected outgoing frame
 count, and source-only rationale are declared in
-`long_carrier_replication_protocol.ts` before capture. The old V2 reserve rows
-remain quarantined and cannot enter this cohort.
+`long_carrier_replication_protocol.ts` before capture. The dedicated registry,
+materializer, capture entrypoint, controller, verifier, and record writer have
+no static import of Benchmark V2 or the broad legacy trajectory panel. The
+fixed `{ kind: "production_felt_jolt", joltMs: -15 }` transform is part of the
+declaration and fixture validation, rather than borrowed at runtime from the
+benchmark policy. `scripts/v0/core/curves.ts` is pinned as an authored-input
+definition file: its keyframe interpolation semantics define these six manual
+specs and cannot be changed as mutable compiler behavior within a cohort. The
+old V2 reserve rows remain quarantined and cannot enter this cohort.
 
 ## Execution
 
 Run only through the replication controller after this declaration is
 committed. It creates an immutable declaration before any execution, captures
 each fixture once, runs the fixed assay once, and writes planned/result events
-plus one immutable ledger. The controller requires its non-compiler static
-source closure to be committed, while binding the intentionally mutable
-compiler closure by exact identity. An occupied output root is rejected. A
-failed capture is invalid unless a future protocol adds a sealed structured
-unavailability record; it is never replaced, retried in place, or allowed to
-move its target contact. A capture that detects source/compiler identity drift
-publishes its deterministic sibling fixture as invalid forensic evidence, and
-the ledger inventories that sibling rather than silently losing it.
+plus one immutable ledger. The controller requires its isolated non-compiler
+static source closure to be committed, while binding the intentionally mutable
+compiler closure by exact study-local identity. An occupied output root is
+rejected. A failed capture is invalid unless a future protocol adds a sealed
+structured unavailability record; it is never replaced, retried in place, or
+allowed to move its target contact. A capture that detects source/compiler
+identity drift publishes its deterministic sibling fixture as invalid forensic
+evidence, and the ledger inventories that sibling rather than silently losing
+it.
+
+Run the non-executing preflight first. It checks the exact LR environment,
+committed isolated closure, current candidate identity construction, and empty
+output root without launching a compiler or writing evidence:
+
+```sh
+LR_ENGINE=wasm npx tsx scripts/v0/run_long_carrier_replication.ts \
+  --out-dir=/tmp/long-carrier-replication-YYYYMMDD --check
+```
 
 ```sh
 LR_ENGINE=wasm npx tsx scripts/v0/run_long_carrier_replication.ts \
@@ -60,14 +77,21 @@ The controller requires exactly `LR_ENGINE=wasm`, a clean committed
 definition source closure, and the shared 500k capture protocol. It records the actual
 compiler/worktree identity and verifies it before every child invocation, so
 uncommitted candidate work may be studied but cannot be silently mixed across
-source/seed pairs. The declaration also freezes the Node executable, exact
+source/seed pairs. It rejects Node/tsx loader overrides and passes children
+only a small operational environment allowlist plus `LR_ENGINE=wasm`, so an
+unrecorded loader setting cannot alter capture or assay semantics. The
+declaration also freezes the Node executable, exact
 capture/assay argument templates, source revision/tree, and every planned
 artifact path. It records both the original absolute publication root and
 root-relative artifact identities, so a completed evidence directory can be
 moved without changing what the child processes originally received. The
 verifier checks those templates against every plan, result, fixture `argv`,
-assay `argv`, and assay fixture path. Generated evidence belongs outside Git, for example under
-`/tmp`; verify a completed cohort without re-running a compiler using:
+assay `argv`, and assay fixture path. A completed controller also invokes that
+read-only verifier itself: the ledger must have no abort reason, account for
+every event file and every fixture/assay publication, and attest a clean child
+completion before the controller reports its verdict. Generated evidence
+belongs outside Git, for example under `/tmp`; verify a completed cohort
+without re-running a compiler using:
 
 ```sh
 LR_ENGINE=wasm npx tsx scripts/v0/verify_long_carrier_replication.ts \
@@ -75,14 +99,15 @@ LR_ENGINE=wasm npx tsx scripts/v0/verify_long_carrier_replication.ts \
 ```
 
 That default verifies the sealed historical V1 declaration and artifacts
-without consulting the current compiler candidate, so later compiler work does
-not make an archive unreadable. V1's protocol/assessor module is retained as
-the semantic reader for this scope; a materially different protocol requires a
-new scope/schema rather than editing V1. Add `--require-current-identity` when
-the question is specifically whether the current controller, verifier, capture
-entrypoint, compiler candidate, assay source, and replay runtime still match
-the cohort's scoped execution identity. Unrelated repository files are
-diagnostic-only and do not make a completed cohort incompatible.
+without consulting the current compiler candidate. It uses the retained V1
+reader, so V1 reader compatibility is an explicit archive-maintenance
+obligation: the current archive does not yet embed a runnable reader snapshot.
+A materially different protocol requires a new scope/schema rather than an
+edit to V1. Add `--require-current-identity` when the question is specifically
+whether the current controller, verifier, capture entrypoint, compiler
+candidate, assay source, and replay runtime still match the cohort's scoped
+execution identity. Unrelated repository files are diagnostic-only and do not
+make a completed cohort incompatible.
 
 ## Decision Rule
 

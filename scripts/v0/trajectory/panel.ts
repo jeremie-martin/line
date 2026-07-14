@@ -16,25 +16,19 @@ import denseDialogue from "../../../benchmark/v2/cases/normative/representative/
 import riverReentry from "../../../benchmark/v2/cases/normative/representative/river_reentry.ts";
 import sparseLowline from "../../../benchmark/v2/cases/normative/representative/sparse_lowline.ts";
 import { benchmarkPolicy } from "../../../benchmark/v2/policy.ts";
-import { makeRng } from "../../lib/rng.ts";
-import { applyJolt } from "../../produce/seed.ts";
-import { effectiveAxes, sampleGapTargets, sliceTimeline } from "../core/substrate.ts";
-import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "../types.ts";
-import acceleratingLowAir475 from "./validation_specs/accelerating_low_air_475.ts";
-import deceleratingLowAir625 from "./validation_specs/decelerating_low_air_625.ts";
-import openHighAir195 from "./validation_specs/open_high_air_195.ts";
-import ordinaryPartialAxes115 from "./validation_specs/ordinary_partial_axes_115.ts";
-import sparseLowAir725 from "./validation_specs/sparse_low_air_725.ts";
-import syncopatedLowAir425 from "./validation_specs/syncopated_low_air_425.ts";
 import {
-  LONG_CARRIER_REPLICATION_PROTOCOL,
-  LONG_CARRIER_REPLICATION_SCOPE,
-  type LongCarrierReplicationPanelId,
-} from "./long_carrier_replication_protocol.ts";
+  buildTrajectoryCaptureSetup,
+  materializeTrajectoryCaptureInput,
+  type MaterializedTrajectoryCaptureInput,
+  type TrajectoryCaptureCase,
+  type TrajectoryCaptureCategory,
+  type TrajectoryCaptureCohort,
+  type TrajectoryCaptureSetup,
+} from "./capture_input.ts";
 
-export type TrajectoryPanelCategory = "dense" | "ordinary" | "low_air";
+export type TrajectoryPanelCategory = TrajectoryCaptureCategory;
 /** `quarantined` rows are retained for audit but cannot be captured or studied again. */
-export type TrajectoryPanelCohort = "calibration" | "validation" | "quarantined";
+export type TrajectoryPanelCohort = TrajectoryCaptureCohort;
 export type ActiveTrajectoryPanelCohort = Exclude<TrajectoryPanelCohort, "quarantined">;
 
 /**
@@ -84,80 +78,17 @@ function sameEnvironment(left: Record<string, string>, right: Record<string, str
 function sortedEnvironment(environment: Record<string, string>): Record<string, string> {
   return Object.fromEntries(Object.entries(environment).sort(([left], [right]) => left.localeCompare(right)));
 }
-export type TrajectoryPanelId =
-  | "dense"
-  | "dense240"
-  | "ordinary"
-  | "frontier3"
-  | "frontier4"
-  | "frontier5"
-  | "frontier6"
-  | "frontier7"
-  | "validation_dense_dialogue"
-  | "validation_river_reentry"
-  | "validation_sparse_lowline"
-  | "validation_frontier_dense_seed_4127"
-  | "validation_frontier_dense_seed_4133"
-  | "validation_frontier3_seed_4153"
-  | "validation_frontier4_seed_4153"
-  | "validation_frontier5_seed_4153"
-  | "validation_frontier6_seed_4153"
-  | "validation_frontier7_seed_4153"
-  | LongCarrierReplicationPanelId;
-
-export type TrajectoryPanelCase = {
-  id: TrajectoryPanelId;
-  /** Calibration rows generate hypotheses; validation rows test fixed hypotheses. */
-  cohort: TrajectoryPanelCohort;
-  category: TrajectoryPanelCategory;
-  spec: Spec;
-  sourcePath: string;
-  seed: number;
-  targetGap: number;
-  /** Source-only reason for the fixed target contact; never based on compiler output. */
-  selectionRationale: string;
-  /** Exact outgoing duration after the target contact, when this is a duration panel. */
-  expectedOutgoingFrames?: number;
-  /** Narrow preregistered study scope, when a validation row has one. */
-  studyScope?: string;
-};
+export type TrajectoryPanelCase = TrajectoryCaptureCase;
 
 /**
  * The initial panel deliberately spans dense continuity, an ordinary
  * representative transition, and the 3--7s low-air family. It is not a
  * selection menu and contains no per-case control values.
  *
- * The active validation rows below are a narrow, preregistered transfer cohort
- * for the fixed long-carrier assay. They cannot validate another formulation.
- * Stale reserve rows remain quarantined below for audit only.
+ * This generic panel remains calibration plus quarantined historical rows.
+ * Prospective validation owns a dedicated registry and capture entrypoint so
+ * it cannot inherit this module's broad legacy source closure.
  */
-const LONG_CARRIER_REPLICATION_SPECS: Record<string, Spec> = {
-  syncopated_low_air_425: syncopatedLowAir425,
-  accelerating_low_air_475: acceleratingLowAir475,
-  decelerating_low_air_625: deceleratingLowAir625,
-  sparse_low_air_725: sparseLowAir725,
-  ordinary_partial_axes_115: ordinaryPartialAxes115,
-  open_high_air_195: openHighAir195,
-};
-
-const LONG_CARRIER_REPLICATION_PANELS: Record<LongCarrierReplicationPanelId, TrajectoryPanelCase> =
-  Object.fromEntries(LONG_CARRIER_REPLICATION_PROTOCOL.cases.map((entry) => {
-    const spec = LONG_CARRIER_REPLICATION_SPECS[entry.sourceId];
-    if (spec === undefined) throw new Error(`missing long-carrier replication source ${entry.sourceId}`);
-    return [entry.id, {
-      id: entry.id,
-      cohort: "validation",
-      category: entry.category,
-      spec,
-      sourcePath: entry.sourcePath,
-      seed: entry.publicSeed,
-      targetGap: entry.targetGap,
-      selectionRationale: entry.selectionRationale,
-      expectedOutgoingFrames: entry.expectedOutgoingFrames,
-      studyScope: LONG_CARRIER_REPLICATION_SCOPE,
-    }];
-  })) as Record<LongCarrierReplicationPanelId, TrajectoryPanelCase>;
-
 export const TRAJECTORY_PANEL_CASES: Record<TrajectoryPanelCase["id"], TrajectoryPanelCase> = {
   dense: {
     id: "dense",
@@ -244,7 +175,6 @@ export const TRAJECTORY_PANEL_CASES: Record<TrajectoryPanelCase["id"], Trajector
     selectionRationale: "Seven-second low-air duration variant in the initial ladder.",
     expectedOutgoingFrames: 280,
   },
-  ...LONG_CARRIER_REPLICATION_PANELS,
   // Older V2 reserve rows are audit-only. They cannot be reused as active
   // validation because their original comparison protocol was superseded.
   validation_dense_dialogue: {
@@ -360,28 +290,8 @@ export const TRAJECTORY_PANEL_CASES: Record<TrajectoryPanelCase["id"], Trajector
   },
 };
 
-export type TrajectoryPanelSetup = {
-  panel: TrajectoryPanelCase;
-  spec: Spec;
-  gaps: Gap[];
-  gapAxisTargets: AxisValues[];
-  allContactFrames: number[];
-  durationFrames: number;
-};
-
-export type MaterializedTrajectoryPanelInput = {
-  contactFrames: number[];
-  durationFrames: number;
-  gaps: Array<{
-    index: number;
-    startFrame: number;
-    endFrame: number;
-    endsWithContact: boolean;
-    targets: AxisValues;
-    nextImpact: number | null;
-  }>;
-  gapAxisTargets: AxisValues[];
-};
+export type TrajectoryPanelSetup = TrajectoryCaptureSetup;
+export type MaterializedTrajectoryPanelInput = MaterializedTrajectoryCaptureInput;
 
 /** Return the rows that may be captured under an active cohort label. */
 export function activeTrajectoryPanelCases(cohort: ActiveTrajectoryPanelCohort): TrajectoryPanelCase[] {
@@ -414,58 +324,18 @@ export function assertCalibrationTrajectoryPanel(
 }
 
 export function getTrajectoryPanelCase(id: string): TrajectoryPanelCase {
-  const panel = TRAJECTORY_PANEL_CASES[id as TrajectoryPanelCase["id"]];
+  const panel = TRAJECTORY_PANEL_CASES[id];
   if (panel === undefined) throw new Error(`unknown trajectory panel ${id}`);
   return panel;
 }
 
 /** Materialize exactly the compiler-facing input for a declared panel. */
 export function buildTrajectoryPanelSetup(panel: TrajectoryPanelCase): TrajectoryPanelSetup {
-  const jolted = applyJolt(panel.spec, benchmarkPolicy.transform.joltMs);
-  const feasibleContacts = jolted.contacts.filter((contact) => secToFrame(contact.t) >= 5);
-  const spec: Spec = { ...jolted, preroll: undefined, contacts: feasibleContacts };
-  const durationFrames = secToFrame(spec.duration);
-  const allContactFrames = spec.contacts.map((contact) => secToFrame(contact.t)).sort((a, b) => a - b);
-  const gaps = sliceTimeline(allContactFrames, durationFrames);
-  const gapAxisTargets = gaps.map((gap) => effectiveAxes(gap, spec));
-  const rng = makeRng(panel.seed);
-  for (const gap of gaps) {
-    gap.targets = sampleGapTargets(gapAxisTargets[gap.index], spec.jitter ?? CALIB.SIGMA, rng);
-  }
-  const impactByFrame = new Map(
-    spec.contacts.flatMap((contact) => contact.impact === undefined
-      ? []
-      : [[secToFrame(contact.t), contact.impact] as const]),
-  );
-  for (const gap of gaps) {
-    const impact = impactByFrame.get(gap.endFrame);
-    if (!gap.endsWithContact || impact === undefined) continue;
-    gap.targets.impact = impact;
-    gapAxisTargets[gap.index].impact = impact;
-  }
-  for (let index = 0; index + 1 < gaps.length; index++) {
-    const next = gaps[index + 1];
-    if (gaps[index].endsWithContact && next.endsWithContact && next.targets.impact !== undefined) {
-      gaps[index].nextImpact = next.targets.impact;
-    }
-  }
-  return { panel, spec, gaps, gapAxisTargets, allContactFrames, durationFrames };
+  return buildTrajectoryCaptureSetup(panel, benchmarkPolicy.transform);
 }
 
 export function materializeTrajectoryPanelInput(
   setup: TrajectoryPanelSetup,
 ): MaterializedTrajectoryPanelInput {
-  return {
-    contactFrames: [...setup.allContactFrames],
-    durationFrames: setup.durationFrames,
-    gaps: setup.gaps.map((gap) => ({
-      index: gap.index,
-      startFrame: gap.startFrame,
-      endFrame: gap.endFrame,
-      endsWithContact: gap.endsWithContact,
-      targets: { ...gap.targets },
-      nextImpact: gap.nextImpact ?? null,
-    })),
-    gapAxisTargets: setup.gapAxisTargets.map((targets) => ({ ...targets })),
-  };
+  return materializeTrajectoryCaptureInput(setup);
 }

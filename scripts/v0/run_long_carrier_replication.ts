@@ -9,8 +9,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { COMPILER_SOURCE_PATHS, compilerCandidateIdentity } from "./benchmark_v2/compiler_identity.ts";
-import { readFrozenTrajectoryFixture, sha256, stableJson } from "./trajectory/frozen_fixture.ts";
+import { sha256, stableJson, assertPostimpactV3FixtureIntegrity } from "./trajectory/postimpact_study_inputs.ts";
 import {
   assessLongCarrierReplication,
   type LongCarrierReplicationEvidence,
@@ -21,11 +20,22 @@ import {
   LONG_CARRIER_REPLICATION_EXECUTION_DEFINITION_PATHS,
   LONG_CARRIER_REPLICATION_PROTOCOL,
   LONG_CARRIER_REPLICATION_SCOPE,
+  isLongCarrierReplicationAuthoringInputPath,
   longCarrierReplicationArtifactPaths,
   longCarrierReplicationAssayArgv,
   longCarrierReplicationCaptureArgv,
+  longCarrierReplicationSelfVerifierArgv,
 } from "./trajectory/long_carrier_replication_protocol.ts";
 import { sameLongCarrierReplicationExecutionBinding } from "./trajectory/long_carrier_replication_identity.ts";
+import {
+  isLongCarrierCompilerSourcePath,
+  longCarrierReplicationCandidateIdentity,
+} from "./trajectory/long_carrier_replication_candidate.ts";
+import { longCarrierReplicationSourceIdentity } from "./trajectory/long_carrier_replication_source.ts";
+import {
+  assertLongCarrierReplicationRuntimeEnvironment,
+  longCarrierReplicationChildEnvironment,
+} from "./trajectory/long_carrier_replication_runtime.ts";
 import {
   LONG_CARRIER_REPLICATION_DECLARATION_SCHEMA,
   LONG_CARRIER_REPLICATION_EVENT_SCHEMA,
@@ -41,11 +51,10 @@ import {
   postimpactAssaySourceIdentity,
   readPostimpactAssayArtifact,
 } from "./trajectory/postimpact_assay_artifact.ts";
-import { studySourceIdentity } from "./trajectory/study_artifact.ts";
 
 const CONTROLLER_PATH = "scripts/v0/run_long_carrier_replication.ts";
 const VERIFIER_PATH = "scripts/v0/verify_long_carrier_replication.ts";
-const CAPTURE_PATH = "scripts/v0/capture_trajectory_fixture.ts";
+const CAPTURE_PATH = "scripts/v0/capture_long_carrier_replication_fixture.ts";
 const ASSAY_PATH = "scripts/v0/study_long_carrier_duration_response.ts";
 const STDERR_TAIL_LIMIT = 4_000;
 
@@ -227,8 +236,8 @@ const ledger = writeSealedReplicationRecord(join(outDir, "ledger.json"), {
 const expectedExitCode = abortReason === null ? longCarrierReplicationVerdictExitCode(assessment.verdict) : 2;
 let exitCode = expectedExitCode;
 if (abortReason === null) {
-  const verification = runChild(["--import", "tsx", VERIFIER_PATH, `--out-dir=${outDir}`]);
-  if (!childCompletedSuccessfully(verification) || verification.exitCode !== expectedExitCode) {
+  const verification = runChild(longCarrierReplicationSelfVerifierArgv(outDir));
+  if (!childTerminatedNormally(verification) || verification.exitCode !== expectedExitCode) {
     process.stderr.write(
       `long-carrier replication self-verification failed; expected exit ${expectedExitCode}, ` +
       `received ${verification.exitCode ?? "null"}: ${tail(verification.stderr || verification.stdout)}\n`,
@@ -253,6 +262,7 @@ function parseOptions(values: readonly string[]): { outDir: string; check: boole
 }
 
 function assertExactEnvironment(): void {
+  assertLongCarrierReplicationRuntimeEnvironment();
   const relevant = Object.fromEntries(Object.entries(process.env)
     .filter(([name, value]) => name.startsWith("LR_") && value !== undefined)
     .sort(([left], [right]) => left.localeCompare(right)));
@@ -262,10 +272,10 @@ function assertExactEnvironment(): void {
 }
 
 function replicationDefinitionPaths(): string[] {
-  const capture = studySourceIdentity(CAPTURE_PATH).sourceFiles;
+  const capture = longCarrierReplicationSourceIdentity(CAPTURE_PATH).sourceFiles;
   const assay = postimpactAssaySourceIdentity(ASSAY_PATH).sourceFiles;
-  const controller = studySourceIdentity(CONTROLLER_PATH).sourceFiles;
-  const verifier = studySourceIdentity(VERIFIER_PATH).sourceFiles;
+  const controller = longCarrierReplicationSourceIdentity(CONTROLLER_PATH).sourceFiles;
+  const verifier = longCarrierReplicationSourceIdentity(VERIFIER_PATH).sourceFiles;
   return [...new Set([
     ...LONG_CARRIER_REPLICATION_EXECUTION_DEFINITION_PATHS,
     ...capture,
@@ -276,7 +286,7 @@ function replicationDefinitionPaths(): string[] {
 }
 
 function isCompilerBoundPath(path: string): boolean {
-  return COMPILER_SOURCE_PATHS.some((root) => path === root || path.startsWith(`${root}/`));
+  return isLongCarrierCompilerSourcePath(path) && !isLongCarrierReplicationAuthoringInputPath(path);
 }
 
 function assertDefinitionPathsCommitted(paths: readonly string[]): void {
@@ -311,16 +321,16 @@ function sourceRevision(): { head: string; tree: string } {
 }
 
 function executionIdentity() {
-  const controller = studySourceIdentity(CONTROLLER_PATH);
-  const verifier = studySourceIdentity(VERIFIER_PATH);
-  const capture = studySourceIdentity(CAPTURE_PATH);
+  const controller = longCarrierReplicationSourceIdentity(CONTROLLER_PATH);
+  const verifier = longCarrierReplicationSourceIdentity(VERIFIER_PATH);
+  const capture = longCarrierReplicationSourceIdentity(CAPTURE_PATH);
   const assay = postimpactAssaySourceIdentity(ASSAY_PATH);
   return {
-    controllerSourceIdentity: { sourceFiles: controller.sourceFiles, fingerprint: controller.studySourceFingerprint },
-    verifierSourceIdentity: { sourceFiles: verifier.sourceFiles, fingerprint: verifier.studySourceFingerprint },
-    captureSourceIdentity: { sourceFiles: capture.sourceFiles, fingerprint: capture.studySourceFingerprint },
+    controllerSourceIdentity: controller,
+    verifierSourceIdentity: verifier,
+    captureSourceIdentity: capture,
     assaySourceIdentity: assay,
-    captureCandidate: compilerCandidateIdentity("wasm"),
+    captureCandidate: longCarrierReplicationCandidateIdentity("wasm"),
     assayRuntime: postimpactAssayRuntimeIdentity(),
   };
 }
@@ -342,10 +352,7 @@ function expectedIdentities(identity: ReturnType<typeof executionIdentity>): Lon
 }
 
 function childEnvironment(): NodeJS.ProcessEnv {
-  return {
-    ...Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith("LR_"))),
-    LR_ENGINE: "wasm",
-  };
+  return longCarrierReplicationChildEnvironment();
 }
 
 type ChildRun = {
@@ -359,6 +366,10 @@ type ChildRun = {
 
 function childCompletedSuccessfully(run: Pick<ChildRun, "exitCode" | "signal" | "error">): boolean {
   return run.exitCode === 0 && run.signal === null && run.error === null;
+}
+
+function childTerminatedNormally(run: Pick<ChildRun, "signal" | "error">): boolean {
+  return run.signal === null && run.error === null;
 }
 
 function runChild(arguments_: readonly string[]): ChildRun {
@@ -402,9 +413,9 @@ function readFixturePublication(root: string, requestedArtifactPath: string): Ar
   }
   const artifactPath = observedArtifactPaths[0]!;
   try {
-    const fixture = readFrozenTrajectoryFixture(resolveReplicationPath(root, artifactPath, "capture artifact path"));
-    if (fixture.schema !== "line.frozen-trajectory-prefix.v3") throw new Error("fixture is not V3");
-    return { artifactPath, observedArtifactPaths, value: fixture, error: null };
+    const fixture: unknown = JSON.parse(readFileSync(resolveReplicationPath(root, artifactPath, "capture artifact path"), "utf8"));
+    assertPostimpactV3FixtureIntegrity(fixture, "long-carrier capture artifact");
+    return { artifactPath, observedArtifactPaths, value: fixture as Record<string, unknown>, error: null };
   } catch (error) {
     return { artifactPath, observedArtifactPaths, value: null, error: `fixture integrity failure: ${errorMessage(error)}` };
   }

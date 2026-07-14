@@ -3,10 +3,21 @@
  * and its read-only verifier. Records reference immutable artifacts by path
  * and checksum; they deliberately never embed compiler output or assay JSON.
  */
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import {
+  closeSync,
+  existsSync,
+  fsyncSync,
+  linkSync,
+  mkdirSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { basename, dirname, extname, relative, resolve } from "node:path";
-import { sha256, stableJson } from "./frozen_fixture.ts";
-import { writeImmutableJsonArtifact } from "./study_artifact.ts";
+import { sha256, stableJson } from "./postimpact_study_inputs.ts";
 
 export const LONG_CARRIER_REPLICATION_DECLARATION_SCHEMA = "line.long-carrier-replication-declaration.v1";
 export const LONG_CARRIER_REPLICATION_EVENT_SCHEMA = "line.long-carrier-replication-event.v1";
@@ -43,8 +54,43 @@ export function assertSealedReplicationRecord(
 
 export function writeSealedReplicationRecord(path: string, payload: Record<string, unknown>, label: string): SealedReplicationRecord {
   const record = sealReplicationRecord(payload);
-  writeImmutableJsonArtifact(path, record, label);
+  writeImmutableReplicationJson(path, record, label);
   return record;
+}
+
+/** Publish a complete replication artifact without replacing any prior file. */
+export function writeImmutableReplicationJson(path: string, output: unknown, label = "replication artifact"): void {
+  if (existsSync(path)) throw new Error(`refusing to overwrite existing immutable ${label} ${path}`);
+  const directory = dirname(path);
+  mkdirSync(directory, { recursive: true });
+  const temporary = resolve(directory, `.${basename(path)}.${process.pid}.${randomBytes(12).toString("hex")}.tmp`);
+  let published = false;
+  try {
+    writeFileSync(temporary, `${JSON.stringify(output, null, 2)}\n`, { flag: "wx" });
+    fsyncPath(temporary);
+    linkSync(temporary, path);
+    published = true;
+    fsyncPath(directory);
+  } catch (error: unknown) {
+    if (published) {
+      try {
+        unlinkSync(path);
+        fsyncPath(directory);
+      } catch (cleanupError: unknown) {
+        throw new Error(
+          `${label} published but durability confirmation and cleanup failed: ${errorMessage(error)}; ` +
+          `cleanup: ${errorMessage(cleanupError)}`,
+        );
+      }
+      throw new Error(`${label} durability confirmation failed; published path was removed: ${errorMessage(error)}`);
+    }
+    if (errorCode(error) === "EEXIST") {
+      throw new Error(`refusing to overwrite existing immutable ${label} ${path}`);
+    }
+    throw error;
+  } finally {
+    if (existsSync(temporary)) unlinkSync(temporary);
+  }
 }
 
 export function readSealedReplicationRecord(path: string, schema: string, label: string): SealedReplicationRecord {
@@ -73,6 +119,19 @@ export function replicationRelativePath(root: string, path: string, label: strin
   const relativePath = relative(absoluteRoot, resolve(path)).replaceAll("\\", "/");
   resolveReplicationPath(absoluteRoot, relativePath, label);
   return relativePath;
+}
+
+/** Keep a mid-run identity-drift fixture beside, but distinct from, its slot. */
+export function replicationIdentityDriftArtifactPath(
+  path: string,
+  sourceFingerprintAtEnd: string,
+  candidateFingerprintAtEnd: string,
+  panelFingerprintAtEnd: string,
+): string {
+  const extension = extname(path);
+  const stem = extension === "" ? path : path.slice(0, -extension.length);
+  return `${stem}.identity-drift-${sourceFingerprintAtEnd.slice(0, 12)}-` +
+    `${candidateFingerprintAtEnd.slice(0, 12)}-${panelFingerprintAtEnd.slice(0, 12)}${extension}`;
 }
 
 /**
@@ -141,4 +200,23 @@ export function longCarrierReplicationVerdictExitCode(verdict: string): number {
   if (verdict === "invalid") return 2;
   if (verdict === "falsified") return 3;
   return 4;
+}
+
+function fsyncPath(path: string): void {
+  const descriptor = openSync(path, "r");
+  try {
+    fsyncSync(descriptor);
+  } finally {
+    closeSync(descriptor);
+  }
+}
+
+function errorCode(error: unknown): string | null {
+  return error !== null && typeof error === "object" && "code" in error && typeof (error as { code?: unknown }).code === "string"
+    ? (error as { code: string }).code
+    : null;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

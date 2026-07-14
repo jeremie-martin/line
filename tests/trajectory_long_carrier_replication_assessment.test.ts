@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { assessLongCarrierReplication } from "../scripts/v0/trajectory/long_carrier_replication_assessment.ts";
+import { sha256, stableJson } from "../scripts/v0/trajectory/postimpact_study_inputs.ts";
 import {
   LONG_CARRIER_TEST_IDENTITIES,
   resealArtifact,
@@ -79,6 +80,16 @@ describe("long-carrier replication assessment", () => {
     const cohort = validLongCarrierReplicationCohort();
     resealFixtureAndRebindAssay(cohort[0]!, (fixture) => {
       fixture.physicalPrefix.gapIndex = 999;
+    });
+
+    expect(assessLongCarrierReplication(cohort, LONG_CARRIER_TEST_IDENTITIES).verdict).toBe("invalid");
+  });
+
+  test("rejects a structurally sealed fixture with a non-preregistered capture transform", () => {
+    const cohort = validLongCarrierReplicationCohort();
+    resealFixtureAndRebindAssay(cohort[0]!, (fixture) => {
+      fixture.transform.value = { kind: "production_felt_jolt", joltMs: 0 };
+      fixture.transform.fingerprint = sha256(stableJson(fixture.transform.value));
     });
 
     expect(assessLongCarrierReplication(cohort, LONG_CARRIER_TEST_IDENTITIES).verdict).toBe("invalid");

@@ -11,7 +11,6 @@ import {
   type DetEvent,
 } from "../../lib/detector.ts";
 import { COLLISION_UPDATE_TYPE } from "../../lib/update_types.ts";
-import { intersectsLineIds } from "../core/candidate.ts";
 import {
   airborneAt,
   contactLineIdsAt,

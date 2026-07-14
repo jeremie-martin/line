@@ -4,6 +4,7 @@ import {
   assertPostimpactV3FixtureIntegrity,
   sha256,
   stableJson,
+  withValidatedPostimpactCaptureThenDurationInputs,
   withValidatedPostimpactStudyInputs,
   type PostimpactFrozenTrajectoryFixtureV3,
 } from "../scripts/v0/trajectory/postimpact_study_inputs.ts";
@@ -13,6 +14,7 @@ describe("post-impact study input adapters", () => {
     expect("currentContactForPostimpactStudy" in inputs).toBe(false);
     expect("postimpactObservationForStudy" in inputs).toBe(false);
     expect("withValidatedPostimpactStudyInputs" in inputs).toBe(true);
+    expect("withValidatedPostimpactCaptureThenDurationInputs" in inputs).toBe(true);
   });
 
   test("validates the complete V3 snapshot before adapters consume authored targets", () => {
@@ -59,6 +61,55 @@ describe("post-impact study input adapters", () => {
     });
     expect(Object.keys(result.observation.outgoing)).not.toContain("nextImpact");
     expect(Object.keys(result.observation.outgoing.axes)).not.toContain("impact");
+  });
+
+  test("releases only the outgoing endpoint between capture and full observation", () => {
+    const fixture = makeFixture();
+    const order: string[] = [];
+    const result = withValidatedPostimpactCaptureThenDurationInputs(
+      fixture,
+      (current) => {
+        order.push("capture");
+        expect(Object.keys(current).sort()).toEqual(["endFrame", "gapIndex", "impact", "intervalFrames", "startFrame"]);
+        return { captureEnd: current.endFrame };
+      },
+      (capture, availability) => {
+        order.push("duration");
+        expect(capture).toEqual({ captureEnd: 20 });
+        expect(Object.keys(availability)).toEqual(["outgoingEndFrame"]);
+        expect(Object.isFrozen(availability)).toBe(true);
+        expect(availability).toEqual({ outgoingEndFrame: 32 });
+        expect("axes" in availability).toBe(false);
+        expect("gapIndex" in availability).toBe(false);
+        return { phase: 0, endpoint: availability.outgoingEndFrame };
+      },
+    );
+    order.push("observation");
+
+    expect(order).toEqual(["capture", "duration", "observation"]);
+    expect(result.captureResult).toEqual({ captureEnd: 20 });
+    expect(result.durationResult).toEqual({ phase: 0, endpoint: 32 });
+    expect(result.observation.outgoing.axes).toEqual({ air: 0.3, speed: 0.6 });
+  });
+
+  test("fails before observation when either staged callback is asynchronous", () => {
+    const fixture = makeFixture();
+    let durationCalls = 0;
+    expect(() => withValidatedPostimpactCaptureThenDurationInputs(
+      fixture,
+      () => Promise.resolve("later"),
+      () => {
+        durationCalls++;
+        return null;
+      },
+    )).toThrow(/capture selection callback must complete synchronously/);
+    expect(durationCalls).toBe(0);
+
+    expect(() => withValidatedPostimpactCaptureThenDurationInputs(
+      fixture,
+      () => "capture",
+      () => Promise.resolve("later"),
+    )).toThrow(/duration construction callback must complete synchronously/);
   });
 });
 

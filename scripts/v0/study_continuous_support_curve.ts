@@ -23,15 +23,6 @@ import {
 import { basename, dirname, extname, relative, resolve } from "node:path";
 import ts from "typescript";
 import { PERSISTENCE_FRAMES } from "../lib/detector.ts";
-import { engineLineFromTrackLine, measurementLastFrame } from "./core/substrate.ts";
-import { IMPACT_WINDOW, type TrackLine } from "./types.ts";
-import {
-  realizeContactCaptureArc,
-  resolveContactCaptureArc,
-  type RealizedContactCaptureArc,
-} from "./trajectory/contact_capture_arc.ts";
-import { makeMirroredContactCaptureArcScreen, type ContactCaptureArcDesignEntry } from "./trajectory/contact_capture_arc_design.ts";
-import { contactKinematicFrameFromPlanningState } from "./trajectory/contact_kinematic_frame.ts";
 import { observeOwnedContactTransition, type OwnedContactObservation } from "./trajectory/contact_observation.ts";
 import {
   CONTINUOUS_SUPPORT_CURVE_ACTIONS,
@@ -42,24 +33,30 @@ import {
   type ContinuousSupportCurve,
   type ContinuousSupportCurveAction,
 } from "./trajectory/continuous_support_curve.ts";
+import {
+  CONTINUOUS_SUPPORT_CURVE_CONSTRUCTION_PROTOCOL,
+  constructContinuousSupportCurveRows,
+  type ContinuousSupportCurveConstructionRow as ConstructionRow,
+  type ContinuousSupportCurvePendingCapture as PendingCapture,
+} from "./trajectory/continuous_support_curve_construction.ts";
 import { parseContinuousSupportCurveCliArguments } from "./trajectory/continuous_support_curve_cli.ts";
+import { postimpactMeasurementLastFrame } from "./trajectory/postimpact_detection_measurement.ts";
 import {
-  postimpactLineIdRange,
   withPostimpactStudyInputBoundaryFromPath,
-  type PostimpactStudyConstructionContext,
 } from "./trajectory/postimpact_fixture.ts";
+import { postimpactLineIdRange } from "./trajectory/postimpact_construction_context.ts";
 import {
-  certifyContinuousSupportCurvePhase,
-  classifyPostimpactConstructionProbe,
+  CONTINUOUS_SUPPORT_CURVE_CAUSAL_EXPOSURE_PROTOCOL,
+  CONTINUOUS_SUPPORT_CURVE_DIRECTIONAL_CONTRAST_PROTOCOL,
+  CONTINUOUS_SUPPORT_CURVE_PHASE_CERTIFICATE_PROTOCOL,
   classifyContinuousSupportCurveCausalExposure,
-  firstCertifiedContinuousSupportCurvePhase,
+  POSTIMPACT_SUPPORT_MAX_MEASUREMENT_HORIZON_FRAMES,
+  POSTIMPACT_SUPPORT_MIN_MEASUREMENT_HORIZON_FRAMES,
   postimpactMeasurementHorizon,
   summarizeContinuousSupportCurveMatchedNeutralContrast,
   type ContinuousSupportCurveCausalExposure,
-  type ContinuousSupportCurvePhaseCertificate,
-  type ContinuousSupportCurveSharedCaptureCertificate,
 } from "./trajectory/postimpact_support_assay.ts";
-import { makePostimpactNamedReferenceStep } from "./trajectory/postimpact_support_orientation.ts";
+import { POSTIMPACT_SUPPORT_ORIENTATION_PROTOCOL } from "./trajectory/postimpact_support_orientation.ts";
 import { detectPostimpactWindow as detectWindow } from "./trajectory/postimpact_detector.ts";
 import {
   measurePostimpactCoMWindow as measureCoMWindow,
@@ -70,7 +67,7 @@ import {
   samePostimpactScoredContactImpact as sameScoredContactImpact,
   unresolvedPostimpactOffBeatLandingFramesAtWindowEnd as unresolvedOffBeatLandingFramesAtWindowEnd,
 } from "./trajectory/postimpact_observation.ts";
-import { scoredContactImpact } from "./trajectory/scored_contact_impact.ts";
+import type { PostimpactRealizedCaptureArc } from "./trajectory/postimpact_capture_arc.ts";
 import { extractPlanningState } from "./trajectory/state.ts";
 import {
   emptyPostimpactEngineStateTraceFingerprint as emptyEngineStateTraceFingerprint,
@@ -80,10 +77,8 @@ import {
   type PostimpactEngineCollisionWitness as EngineCollisionHit,
   type PostimpactEngineTraceFingerprint as ExactTraceFingerprint,
 } from "./trajectory/postimpact_trace.ts";
-import { targetFrameFromPlanningState } from "./trajectory/target_frame.ts";
 
 const STUDY_SCHEMA = "line.study-continuous-postimpact-support-curve.v2";
-const CAPTURE_EVENT_MAX_OFFSET_FRAMES = 1;
 const RUNNER_PATH = "scripts/v0/study_continuous_support_curve.ts";
 
 const argv = process.argv.slice(2);
@@ -102,28 +97,43 @@ if (explicitOut !== undefined) assertUnusedArtifactPath(explicitOut);
 const started = performance.now();
 const sourceIdentityAtStart = sourceIdentity(RUNNER_PATH);
 const compilerIdentityAtStart = observedCompilerIdentity();
+
+const boundary = withPostimpactStudyInputBoundaryFromPath(
+  fixturePath,
+  constructContinuousSupportCurveRows,
+);
 const protocol = Object.freeze({
-  captureScreen: "fixed_mirrored_contact_capture_arc.v2",
   constructionInput: "sealed_current_impact_and_physical_prefix_only.v1",
+  construction: CONTINUOUS_SUPPORT_CURVE_CONSTRUCTION_PROTOCOL,
+  activeImpactConvention: boundary.audit.impactConvention,
   phaseSelection: "first_certified_declared_phase_all_five_arms.v1",
+  phaseCertificate: CONTINUOUS_SUPPORT_CURVE_PHASE_CERTIFICATE_PROTOCOL,
   phaseLeadSteps: CONTINUOUS_SUPPORT_CURVE_PHASE_LEAD_STEPS,
   actions: CONTINUOUS_SUPPORT_CURVE_ACTIONS,
   curve: CONTINUOUS_SUPPORT_CURVE_PROTOCOL,
+  orientation: POSTIMPACT_SUPPORT_ORIENTATION_PROTOCOL,
   captureProtection: {
     expectedContactsBeforeMeasurement: "current_contact_only",
     exactTrace: "full_non_scarf_engine_state_v1",
     referenceStep: "capture_only_named_H_to_H_plus_1.v1",
+    persistenceFrames: PERSISTENCE_FRAMES,
   },
-  measurement: "outgoing_end_opens_only_after_phase_selection; Q=min(12,outgoing.end-H), Q>=4",
-  directionalEvidence: "matched_neutral_five_arm_causal_exposure.v1",
-  resolutionDiagnostic: "selected_phase_only_nominal_and_2x_nonselecting.v1",
+  measurement: {
+    availability: "outgoing_end_opens_only_after_phase_selection",
+    minimumHorizonFrames: POSTIMPACT_SUPPORT_MIN_MEASUREMENT_HORIZON_FRAMES,
+    maximumHorizonFrames: POSTIMPACT_SUPPORT_MAX_MEASUREMENT_HORIZON_FRAMES,
+  },
+  directionalEvidence: {
+    method: "matched_neutral_five_arm_causal_exposure.v1",
+    contrast: CONTINUOUS_SUPPORT_CURVE_DIRECTIONAL_CONTRAST_PROTOCOL,
+    causalExposure: CONTINUOUS_SUPPORT_CURVE_CAUSAL_EXPOSURE_PROTOCOL,
+  },
+  resolutionDiagnostic: {
+    method: "selected_phase_only_nominal_and_2x_nonselecting.v1",
+    claim: "diagnostic only; no convergence, stability, or robustness threshold is certified by this assay",
+  },
 });
 const protocolFingerprint = sha256(stableJson(protocol));
-
-const boundary = withPostimpactStudyInputBoundaryFromPath(
-  fixturePath,
-  (context) => constructRows(context),
-);
 const measuredRows = boundary.constructionResult.rows.map((row) => measureRow(row, boundary.observation));
 const summary = summarizeFixture(measuredRows);
 const sourceIdentityAtEnd = sourceIdentity(RUNNER_PATH);
@@ -149,7 +159,7 @@ const output = {
     protocolStatus: assayStatus.protocolStatus,
     executionComplete: assayStatus.executionComplete,
     descriptiveLocalClaimEligible: assayStatus.descriptiveLocalClaimEligible,
-    matchedNeutralDirectionalContrastRows: summary.matchedNeutralDirectionalContrastRows,
+    matchedNeutralContrastAvailableRows: summary.matchedNeutralContrastAvailableRows,
     productionIntegration: "forbidden: calibration assay, not a compiler candidate source or promotion controller",
     claimEligibility: assayStatus.claimEligibility,
   },
@@ -170,7 +180,7 @@ const output = {
   caveats: [
     "Phase selection uses only construction certificates; outgoing observation and full authored contact frames become available afterward.",
     "The fixed five-arm ladder is a representation assay, not a search menu. No arm or capture row is promoted.",
-    "Resolution 2x is a post-selection sensitivity diagnostic. It cannot select a phase, action, or compiler behavior.",
+    "Resolution 2x is a post-selection sensitivity diagnostic. It cannot select a phase, action, or compiler behavior, and it does not certify convergence, stability, or robustness.",
     "Rows within this one frozen fixture share a prefix and capture screen; no row-count is interpreted as independent statistical evidence.",
   ],
 };
@@ -187,57 +197,10 @@ process.stderr.write(
 );
 if (!assayStatus.executionComplete) process.exitCode = 2;
 
-type ConstructionRows = { rows: ConstructionRow[] };
-
-type ConstructionRow = {
-  report: Record<string, unknown>;
-  pending: PendingCapture | null;
-};
-
-type PendingCapture = {
-  rowIndex: number;
-  entry: ContactCaptureArcDesignEntry;
-  capture: RealizedContactCaptureArc;
-  captureEngine: any;
-  current: PostimpactStudyConstructionContext["current"];
-  baselinePhysicalPrefixTrace: ExactTraceFingerprint;
-  captureOnlyObservation: OwnedContactObservation;
-  captureOnlyImpact: ReturnType<typeof scoredContactImpact>;
-  captureTraceThroughH: ExactTraceFingerprint;
-  captureFullTraceThroughH: ExactTraceFingerprint;
-  captureTraceThroughHPlusOne: ExactTraceFingerprint;
-  supportStartFrame: number;
-  responseAnchor: ReturnType<typeof targetFrameFromPlanningState>;
-  namedReferenceStep: ReturnType<typeof makePostimpactNamedReferenceStep>;
-  sharedCaptureCertificate: ContinuousSupportCurveSharedCaptureCertificate;
-  constructionPhases: ConstructionPhaseRecord[];
-  selectedPhase: ConstructionPhaseRecord;
-};
-
-type ConstructionPhaseRecord = {
-  phaseLeadSteps: (typeof CONTINUOUS_SUPPORT_CURVE_PHASE_LEAD_STEPS)[number];
-  certificate: ContinuousSupportCurvePhaseCertificate;
-  actions: ConstructionActionRecord[];
-};
-
-type ConstructionActionRecord = {
-  action: ContinuousSupportCurveAction;
-  status: "observed" | "error";
-  constructionSafe: boolean;
-  expectedCollisionRejection: boolean;
-  protocolInvalid: boolean;
-  reason: string | null;
-  curve: ContinuousSupportCurve | null;
-  preOrAtHCurveCollisions: EngineCollisionHit[];
-  firstCurveCollisionFrame: number | null;
-  traceMatchesBeforeFirstSupportCollision: boolean;
-  elapsedMs: number;
-};
-
 type CaptureMeasurement = {
   detection: ReturnType<typeof detectWindow>;
   observation: OwnedContactObservation;
-  impact: ReturnType<typeof scoredContactImpact>;
+  impact: unknown;
   traceThroughH: ExactTraceFingerprint;
   complete: boolean;
   window: NonNullable<ReturnType<typeof measureCoMWindow>> | null;
@@ -269,331 +232,6 @@ type MeasuredArm = {
   elapsedMs: number;
 };
 
-function constructRows(context: PostimpactStudyConstructionContext): ConstructionRows {
-  const { prepared, current } = context;
-  const physicalPrefixEndFrame = current.startFrame - 1;
-  const baselinePhysicalPrefixTrace = trace(prepared.engine, 0, physicalPrefixEndFrame);
-  const target = targetFrameFromPlanningState(prepared.targetPlanningState);
-  const kinematic = contactKinematicFrameFromPlanningState(prepared.targetPlanningState, target, { impact: current.impact });
-  const screen = makeMirroredContactCaptureArcScreen(kinematic);
-  return {
-    rows: screen.map((entry, rowIndex) => constructCaptureRow({
-      rowIndex,
-      entry,
-      context,
-      baselinePhysicalPrefixTrace,
-      target,
-    })),
-  };
-}
-
-function constructCaptureRow(input: {
-  rowIndex: number;
-  entry: ContactCaptureArcDesignEntry;
-  context: PostimpactStudyConstructionContext;
-  baselinePhysicalPrefixTrace: ExactTraceFingerprint;
-  target: ReturnType<typeof targetFrameFromPlanningState>;
-}): ConstructionRow {
-  const started = performance.now();
-  const { context, entry } = input;
-  const { prepared, current } = context;
-  let capture: RealizedContactCaptureArc;
-  try {
-    const kinematic = contactKinematicFrameFromPlanningState(prepared.targetPlanningState, input.target, { impact: current.impact });
-    const resolved = resolveContactCaptureArc(kinematic, entry.control);
-    const captureRange = postimpactLineIdRange(prepared.nextLineId, resolved.arcSegmentCount + 2);
-    capture = realizeContactCaptureArc(resolved, captureRange.start);
-    if (capture.lines.at(-1)?.id !== captureRange.end) throw new Error("capture line-id allocation drifted from its reserved range");
-  } catch (error) {
-    return unavailableConstructionRow(input.rowIndex, entry, "capture_realization_error", errorMessage(error), started);
-  }
-
-  try {
-    const captureLineIds = new Set(capture.lines.map((line) => line.id));
-    const captureEngine = prepared.engine.addLine(capture.lines.map(engineLineFromTrackLine));
-    const preTargetCaptureCollisions = allBodyCollisions(captureEngine, 0, current.startFrame - 1, captureLineIds);
-    if (preTargetCaptureCollisions.length > 0) {
-      return unavailableConstructionRow(
-        input.rowIndex,
-        entry,
-        "capture_pre_target_collision",
-        "capture primitive collided before the current contact",
-        started,
-        capture,
-        { preTargetCaptureCollisions },
-      );
-    }
-
-    // This endpoint is derived only from the current event and fixed detector
-    // persistence. It deliberately cannot see the outgoing interval endpoint.
-    const selectionEndFrame = current.endFrame + CAPTURE_EVENT_MAX_OFFSET_FRAMES + PERSISTENCE_FRAMES - 1;
-    const selectionDetection = detectWindow(captureEngine, 0, selectionEndFrame);
-    const selectionObservation = observeCapture(selectionDetection, current, capture, selectionEndFrame);
-    const selected = selectionObservation.selectedOwnedEvent;
-    if (selected === null) {
-      return unavailableConstructionRow(
-        input.rowIndex,
-        entry,
-        "capture_not_owned_on_time",
-        "no owned current-contact event in the fixed selection window",
-        started,
-        capture,
-        { selection: summarizeCapture(selectionDetection, selectionObservation, current.impact) },
-      );
-    }
-    const supportStartFrame = selected.frame + IMPACT_WINDOW + 1;
-    const captureOnlyEndFrame = supportStartFrame + 1;
-    const captureOnlyDetection = detectWindow(captureEngine, 0, captureOnlyEndFrame);
-    const captureOnlyObservation = observeCapture(captureOnlyDetection, current, capture, captureOnlyEndFrame);
-    const captureOnlyImpact = captureImpact(captureOnlyDetection, captureOnlyObservation, current.impact);
-    const captureOnlyComplete = survivesThroughFrame(captureOnlyDetection, captureOnlyEndFrame) &&
-      measurementLastFrame(captureOnlyDetection) >= captureOnlyEndFrame;
-    const physicalPrefixTrace = trace(captureEngine, 0, current.startFrame - 1);
-    const captureTraceThroughH = trace(captureEngine, current.endFrame, supportStartFrame);
-    const captureFullTraceThroughH = trace(captureEngine, 0, supportStartFrame);
-    const captureTraceThroughHPlusOne = trace(captureEngine, current.endFrame, captureOnlyEndFrame);
-    const currentOnlyFrames = [current.endFrame];
-    // The current materialized gap begins at the *previous* authored contact.
-    // Protect only the local current-contact selection window; treating that
-    // earlier committed event as an unexpected landing would reject every
-    // ordinary interval without adding future schedule information.
-    const captureSelectionStartFrame = Math.max(0, current.endFrame - CAPTURE_EVENT_MAX_OFFSET_FRAMES);
-    const captureOffBeatFrames = offBeatLandingsInWindow(
-      captureOnlyDetection,
-      currentOnlyFrames,
-      captureSelectionStartFrame,
-      captureOnlyEndFrame,
-    );
-    const captureUnresolvedOffBeatFrames = unresolvedOffBeatLandingFramesAtWindowEnd(
-      captureOnlyDetection,
-      currentOnlyFrames,
-      captureSelectionStartFrame,
-      captureOnlyEndFrame,
-    );
-    const responseState = captureOnlyComplete ? extractPlanningState(captureEngine, supportStartFrame) : null;
-    const responseStatePlusOne = captureOnlyComplete ? extractPlanningState(captureEngine, captureOnlyEndFrame) : null;
-    const responseAnchor = responseState === null ? null : targetFrameFromPlanningState(responseState);
-    const namedAtH = responseAnchor === null ? null : namedReferenceState(responseState, responseAnchor.anchorPoint);
-    const namedAtHPlusOne = responseAnchor === null
-      ? null
-      : namedReferenceState(responseStatePlusOne, responseAnchor.anchorPoint);
-    const captureStable = sameExactEngineTrace(physicalPrefixTrace, input.baselinePhysicalPrefixTrace) &&
-      sameOwnedCaptureEvent(selectionObservation.selectedOwnedEvent, captureOnlyObservation.selectedOwnedEvent) &&
-      captureOnlyObservation.persistenceWindowComplete &&
-      captureOnlyObservation.responseWindowComplete &&
-      captureOffBeatFrames.length === 0 &&
-      captureUnresolvedOffBeatFrames.length === 0;
-    if (!captureOnlyComplete || !captureStable || responseAnchor === null || namedAtH === null || namedAtHPlusOne === null ||
-        captureTraceThroughHPlusOne.fingerprint === null || captureTraceThroughHPlusOne.unavailableAtFrame !== null) {
-      return unavailableConstructionRow(
-        input.rowIndex,
-        entry,
-        "capture_comparator_unavailable",
-        "capture-only H-to-H+1 comparator is incomplete, drifting, or unreadable",
-        started,
-        capture,
-        {
-          selection: summarizeCapture(selectionDetection, selectionObservation, current.impact),
-          captureOnly: summarizeCapture(captureOnlyDetection, captureOnlyObservation, current.impact),
-          physicalPrefixMatchesBaseline: sameExactEngineTrace(physicalPrefixTrace, input.baselinePhysicalPrefixTrace),
-          captureOffBeatFrames,
-          captureUnresolvedOffBeatFrames,
-          captureTraceThroughHPlusOne,
-        },
-      );
-    }
-    const namedReferenceStep = makePostimpactNamedReferenceStep({
-      anchorPoint: responseAnchor.anchorPoint,
-      fromFrame: supportStartFrame,
-      toFrame: captureOnlyEndFrame,
-      fromReference: namedAtH.position,
-      toReference: namedAtHPlusOne.position,
-      exactCaptureOnlyTraceFingerprint: captureTraceThroughHPlusOne.fingerprint,
-    });
-    const sharedCaptureCertificate: ContinuousSupportCurveSharedCaptureCertificate = {
-      supportStartFrame,
-      captureOnlyCompleteThroughHPlusOne: true,
-      captureOnlyTraceStartFrame: current.endFrame,
-      captureOnlyTraceEndFrame: captureOnlyEndFrame,
-      exactCaptureOnlyTrace: captureTraceThroughHPlusOne,
-      namedReferenceStep,
-    };
-    const phases = CONTINUOUS_SUPPORT_CURVE_PHASE_LEAD_STEPS.map((phaseLeadSteps) =>
-      evaluateConstructionPhase({
-        phaseLeadSteps,
-        capture,
-        captureEngine,
-        current,
-        baselinePhysicalPrefixTrace: input.baselinePhysicalPrefixTrace,
-        captureOnlyObservation,
-        captureOnlyImpact,
-        captureTraceThroughH,
-        captureFullTraceThroughH,
-        supportStartFrame,
-        responseAnchor,
-        namedReferenceStep,
-        sharedCaptureCertificate,
-      }),
-    );
-    const selectedCertificate = firstCertifiedContinuousSupportCurvePhase(phases.map((phase) => phase.certificate));
-    const selectedPhase = selectedCertificate === null
-      ? null
-      : phases.find((phase) => phase.phaseLeadSteps === selectedCertificate.phaseLeadSteps) ?? null;
-    const report: Record<string, unknown> = {
-      rowIndex: input.rowIndex,
-      label: entry.label,
-      control: entry.control,
-      captureStatus: selectedPhase === null ? "no_certified_phase" : "closed",
-      capture: summarizeCapture(captureOnlyDetection, captureOnlyObservation, current.impact, {
-        supportStartFrame,
-        physicalPrefixMatchesBaseline: sameExactEngineTrace(physicalPrefixTrace, input.baselinePhysicalPrefixTrace),
-        captureTraceThroughHPlusOne,
-        namedReferenceStep: summarizeNamedStep(namedReferenceStep),
-      }),
-      construction: {
-        phaseLeadSteps: CONTINUOUS_SUPPORT_CURVE_PHASE_LEAD_STEPS,
-        phases: phases.map(summarizeConstructionPhase),
-        selectedPhaseLeadSteps: selectedPhase?.phaseLeadSteps ?? null,
-      },
-      elapsedMs: round(performance.now() - started),
-    };
-    if (selectedPhase === null) return { report, pending: null };
-    return {
-      report,
-      pending: {
-        rowIndex: input.rowIndex,
-        entry,
-        capture,
-        captureEngine,
-        current,
-        baselinePhysicalPrefixTrace: input.baselinePhysicalPrefixTrace,
-        captureOnlyObservation,
-        captureOnlyImpact,
-        captureTraceThroughH,
-        captureFullTraceThroughH,
-        captureTraceThroughHPlusOne,
-        supportStartFrame,
-        responseAnchor,
-        namedReferenceStep,
-        sharedCaptureCertificate,
-        constructionPhases: phases,
-        selectedPhase,
-      },
-    };
-  } catch (error) {
-    return unavailableConstructionRow(input.rowIndex, entry, "construction_error", errorMessage(error), started, capture);
-  }
-}
-
-function evaluateConstructionPhase(input: {
-  phaseLeadSteps: (typeof CONTINUOUS_SUPPORT_CURVE_PHASE_LEAD_STEPS)[number];
-  capture: RealizedContactCaptureArc;
-  captureEngine: any;
-  current: PostimpactStudyConstructionContext["current"];
-  baselinePhysicalPrefixTrace: ExactTraceFingerprint;
-  captureOnlyObservation: OwnedContactObservation;
-  captureOnlyImpact: ReturnType<typeof scoredContactImpact>;
-  captureTraceThroughH: ExactTraceFingerprint;
-  captureFullTraceThroughH: ExactTraceFingerprint;
-  supportStartFrame: number;
-  responseAnchor: ReturnType<typeof targetFrameFromPlanningState>;
-  namedReferenceStep: ReturnType<typeof makePostimpactNamedReferenceStep>;
-  sharedCaptureCertificate: ContinuousSupportCurveSharedCaptureCertificate;
-}): ConstructionPhaseRecord {
-  const actions = CONTINUOUS_SUPPORT_CURVE_ACTIONS.map((action) => evaluateConstructionAction({ ...input, action }));
-  const certificate = certifyContinuousSupportCurvePhase(
-    input.phaseLeadSteps,
-    actions.map((action) => ({
-      action: { id: action.action.id },
-      status: action.status,
-      constructionSafe: action.constructionSafe,
-      expectedCollisionRejection: action.expectedCollisionRejection,
-      protocolInvalid: action.protocolInvalid,
-    })),
-    input.sharedCaptureCertificate,
-  );
-  return { phaseLeadSteps: input.phaseLeadSteps, certificate, actions };
-}
-
-function evaluateConstructionAction(input: {
-  phaseLeadSteps: (typeof CONTINUOUS_SUPPORT_CURVE_PHASE_LEAD_STEPS)[number];
-  action: ContinuousSupportCurveAction;
-  capture: RealizedContactCaptureArc;
-  captureEngine: any;
-  current: PostimpactStudyConstructionContext["current"];
-  baselinePhysicalPrefixTrace: ExactTraceFingerprint;
-  captureOnlyObservation: OwnedContactObservation;
-  captureOnlyImpact: ReturnType<typeof scoredContactImpact>;
-  captureTraceThroughH: ExactTraceFingerprint;
-  captureFullTraceThroughH: ExactTraceFingerprint;
-  supportStartFrame: number;
-  responseAnchor: ReturnType<typeof targetFrameFromPlanningState>;
-  namedReferenceStep: ReturnType<typeof makePostimpactNamedReferenceStep>;
-  sharedCaptureCertificate: ContinuousSupportCurveSharedCaptureCertificate;
-}): ConstructionActionRecord {
-  const started = performance.now();
-  try {
-    const curveStart = input.capture.lines.at(-1)!.id + 1;
-    const curve = realizeContinuousSupportCurve({
-      anchor: input.responseAnchor,
-      captureOnlyNamedReferenceStep: input.namedReferenceStep,
-      phaseLeadSteps: input.phaseLeadSteps,
-    }, input.action, curveStart);
-    postimpactLineIdRange(curveStart, curve.lines.length);
-    const curveIds = new Set(curve.lines.map((line) => line.id));
-    const engine = input.captureEngine.addLine(curve.lines.map(engineLineFromTrackLine));
-    const detection = detectWindow(engine, 0, input.supportStartFrame);
-    const observation = observeCapture(detection, input.current, input.capture, input.supportStartFrame);
-    const impact = captureImpact(detection, observation, input.current.impact);
-    const preOrAtHCurveCollisions = allBodyCollisions(engine, 0, input.supportStartFrame, curveIds);
-    const firstCurveCollisionFrame = firstCollisionFrame(preOrAtHCurveCollisions);
-    const traceMatchesBeforeFirstSupportCollision = firstCurveCollisionFrame === null
-      ? sameExactEngineTrace(trace(engine, 0, input.supportStartFrame), input.captureFullTraceThroughH)
-      : sameExactEngineTrace(
-        trace(engine, 0, firstCurveCollisionFrame - 1),
-        trace(input.captureEngine, 0, firstCurveCollisionFrame - 1),
-      );
-    const verdict = classifyPostimpactConstructionProbe({
-      physicalPrefixMatchesBaseline: sameExactEngineTrace(trace(engine, 0, input.current.startFrame - 1), input.baselinePhysicalPrefixTrace),
-      // These are immutable capture-only facts. Candidate survival remains a
-      // separate guard below, so a causally attributable at-H collision is an
-      // expected phase rejection rather than a false comparator failure.
-      captureOnlyPreHComplete: input.sharedCaptureCertificate.captureOnlyCompleteThroughHPlusOne,
-      captureOnlyPreHTraceAvailable: input.sharedCaptureCertificate.exactCaptureOnlyTrace.fingerprint !== null &&
-        input.sharedCaptureCertificate.exactCaptureOnlyTrace.unavailableAtFrame === null,
-      captureTraceMatchesComparator: sameExactEngineTrace(trace(engine, input.current.endFrame, input.supportStartFrame), input.captureTraceThroughH),
-      traceMatchesBeforeFirstSupportCollision,
-      selectedCaptureEventMatchesComparator: sameOwnedCaptureEvent(observation.selectedOwnedEvent, input.captureOnlyObservation.selectedOwnedEvent),
-      impactMatchesComparator: sameScoredContactImpact(impact, input.captureOnlyImpact),
-      survivesThroughH: survivesThroughFrame(detection, input.supportStartFrame) && measurementLastFrame(detection) >= input.supportStartFrame,
-      preOrAtHSupportCollisionCount: preOrAtHCurveCollisions.length,
-    });
-    return {
-      action: input.action,
-      status: "observed",
-      curve,
-      preOrAtHCurveCollisions,
-      firstCurveCollisionFrame,
-      traceMatchesBeforeFirstSupportCollision,
-      elapsedMs: round(performance.now() - started),
-      ...verdict,
-    };
-  } catch (error) {
-    return {
-      action: input.action,
-      status: "error",
-      constructionSafe: false,
-      expectedCollisionRejection: false,
-      protocolInvalid: true,
-      reason: errorMessage(error),
-      curve: null,
-      preOrAtHCurveCollisions: [],
-      firstCurveCollisionFrame: null,
-      traceMatchesBeforeFirstSupportCollision: false,
-      elapsedMs: round(performance.now() - started),
-    };
-  }
-}
 
 function measureRow(row: ConstructionRow, observation: { outgoing: { endFrame: number }; authoredContactFrames: readonly number[] }): ConstructionRow {
   if (row.pending === null) return row;
@@ -665,9 +303,16 @@ function measureCaptureOnly(
   authoredContactFrames: readonly number[],
 ): CaptureMeasurement | null {
   const detection = detectWindow(pending.captureEngine, 0, actionEndFrame);
-  const observation = observeCapture(detection, pending.current, pending.capture, actionEndFrame);
-  const impact = captureImpact(detection, observation, pending.current.impact);
-  const complete = survivesThroughFrame(detection, actionEndFrame) && measurementLastFrame(detection) >= actionEndFrame;
+  const observation = observeCapture(
+    detection,
+    pending.current,
+    pending.capture,
+    actionEndFrame,
+    pending.impactWindowFrames,
+  );
+  const impact = captureImpact(pending.scoreContactImpact, detection, observation, pending.current.impact);
+  const complete = survivesThroughFrame(detection, actionEndFrame) &&
+    postimpactMeasurementLastFrame(detection) >= actionEndFrame;
   const offBeatFrames = offBeatLandingsInWindow(detection, [...authoredContactFrames], pending.supportStartFrame, actionEndFrame);
   const unresolvedOffBeatFrames = unresolvedOffBeatLandingFramesAtWindowEnd(
     detection,
@@ -675,7 +320,9 @@ function measureCaptureOnly(
     pending.supportStartFrame,
     actionEndFrame,
   );
-  const window = complete ? measureCoMWindow(detection, pending.supportStartFrame, actionEndFrame) : null;
+  const window = complete
+    ? measureCoMWindow(detection, pending.supportStartFrame, actionEndFrame, pending.impactConvention)
+    : null;
   const terminalState = window === null ? null : extractPlanningState(pending.captureEngine, actionEndFrame);
   const terminalReference = terminalState === null ? null : namedReferenceState(terminalState, pending.responseAnchor.anchorPoint);
   const traceThroughH = trace(pending.captureEngine, pending.current.endFrame, pending.supportStartFrame);
@@ -711,10 +358,16 @@ function measureArm(
     const curveIds = new Set(curve.lines.map((line) => line.id));
     const captureIds = new Set(pending.capture.lines.map((line) => line.id));
     const curveLineIdsDisjointFromCapture = [...curveIds].every((id) => !captureIds.has(id));
-    const engine = pending.captureEngine.addLine(curve.lines.map(engineLineFromTrackLine));
+    const engine = pending.addTrackLines(pending.captureEngine, curve.lines);
     const detection = detectWindow(engine, 0, actionEndFrame);
-    const captureObservation = observeCapture(detection, pending.current, pending.capture, actionEndFrame);
-    const impact = captureImpact(detection, captureObservation, pending.current.impact);
+    const captureObservation = observeCapture(
+      detection,
+      pending.current,
+      pending.capture,
+      actionEndFrame,
+      pending.impactWindowFrames,
+    );
+    const impact = captureImpact(pending.scoreContactImpact, detection, captureObservation, pending.current.impact);
     const preOrAtHCurveCollisions = allBodyCollisions(engine, 0, pending.supportStartFrame, curveIds);
     const curveCollisions = allBodyCollisions(engine, 0, actionEndFrame, curveIds);
     const firstCurveCollision = firstCollisionFrame(curveCollisions);
@@ -737,7 +390,8 @@ function measureArm(
       pending.captureOnlyObservation.selectedOwnedEvent,
     );
     const impactMatchesComparator = sameScoredContactImpact(impact, pending.captureOnlyImpact);
-    const complete = survivesThroughFrame(detection, actionEndFrame) && measurementLastFrame(detection) >= actionEndFrame;
+    const complete = survivesThroughFrame(detection, actionEndFrame) &&
+      postimpactMeasurementLastFrame(detection) >= actionEndFrame;
     const offBeatFrames = offBeatLandingsInWindow(detection, [...authoredContactFrames], pending.supportStartFrame, actionEndFrame);
     const unresolvedOffBeatFrames = unresolvedOffBeatLandingFramesAtWindowEnd(
       detection,
@@ -745,7 +399,9 @@ function measureArm(
       pending.supportStartFrame,
       actionEndFrame,
     );
-    const window = complete ? measureCoMWindow(detection, pending.supportStartFrame, actionEndFrame) : null;
+    const window = complete
+      ? measureCoMWindow(detection, pending.supportStartFrame, actionEndFrame, pending.impactConvention)
+      : null;
     const terminalState = window === null ? null : extractPlanningState(engine, actionEndFrame);
     const terminalReference = terminalState === null ? null : namedReferenceState(terminalState, pending.responseAnchor.anchorPoint);
     const constructionSafe = pending.selectedPhase.certificate.status === "certified" &&
@@ -840,36 +496,12 @@ function failedMeasuredArm(action: ContinuousSupportCurveAction, reason: string,
   };
 }
 
-function unavailableConstructionRow(
-  rowIndex: number,
-  entry: ContactCaptureArcDesignEntry,
-  captureStatus: string,
-  reason: string,
-  started: number,
-  capture: RealizedContactCaptureArc | null = null,
-  extra: Record<string, unknown> = {},
-): ConstructionRow {
-  return {
-    report: {
-      rowIndex,
-      label: entry.label,
-      control: entry.control,
-      captureStatus,
-      reason,
-      capture: capture === null ? null : summarizeCaptureGeometry(capture),
-      construction: { phases: [], selectedPhaseLeadSteps: null },
-      elapsedMs: round(performance.now() - started),
-      ...extra,
-    },
-    pending: null,
-  };
-}
-
 function observeCapture(
   detection: ReturnType<typeof detectWindow>,
-  current: PostimpactStudyConstructionContext["current"],
-  capture: RealizedContactCaptureArc,
+  current: PendingCapture["current"],
+  capture: PostimpactRealizedCaptureArc,
   endFrame: number,
+  impactWindowFrames: number,
 ): OwnedContactObservation {
   const roles = new Map<number, string>([
     [capture.lineRoles.approach, "capture_approach"],
@@ -884,16 +516,17 @@ function observeCapture(
     lineRoles: roles,
     requiredLineRoles: ["capture_approach", "capture_runway", "capture_arc"],
     persistenceOffsetFrames: PERSISTENCE_FRAMES,
-    responseOffsetFrames: IMPACT_WINDOW,
+    responseOffsetFrames: impactWindowFrames,
   });
 }
 
 function captureImpact(
+  scoreContactImpact: PendingCapture["scoreContactImpact"],
   detection: ReturnType<typeof detectWindow>,
   observation: OwnedContactObservation,
   impactTarget: number,
-): ReturnType<typeof scoredContactImpact> {
-  return scoredContactImpact(detection, {
+): unknown {
+  return scoreContactImpact(detection, {
     target: impactTarget,
     landingFrame: observation.selectedOwnedEvent?.frame ?? null,
     responseWindowComplete: observation.responseWindowComplete,
@@ -919,26 +552,6 @@ function firstCollisionFrame(collisions: readonly EngineCollisionHit[]): number 
 
 function trace(engine: any, startFrame: number, endFrame: number): ExactTraceFingerprint {
   return endFrame < startFrame ? emptyEngineStateTraceFingerprint() : exactEngineStateTraceFingerprint(engine, startFrame, endFrame);
-}
-
-function summarizeConstructionPhase(phase: ConstructionPhaseRecord) {
-  return {
-    phaseLeadSteps: phase.phaseLeadSteps,
-    certificate: phase.certificate,
-    actions: phase.actions.map((action) => ({
-      action: action.action,
-      status: action.status,
-      constructionSafe: action.constructionSafe,
-      expectedCollisionRejection: action.expectedCollisionRejection,
-      protocolInvalid: action.protocolInvalid,
-      reason: action.reason,
-      curve: action.curve === null ? null : summarizeCurve(action.curve),
-      preOrAtHCurveCollisions: action.preOrAtHCurveCollisions,
-      firstCurveCollisionFrame: action.firstCurveCollisionFrame,
-      traceMatchesBeforeFirstSupportCollision: action.traceMatchesBeforeFirstSupportCollision,
-      elapsedMs: action.elapsedMs,
-    })),
-  };
 }
 
 function summarizeMeasuredArm(arm: MeasuredArm, captureOnly: CaptureMeasurement) {
@@ -1021,33 +634,6 @@ function summarizeCaptureMeasurement(value: CaptureMeasurement) {
   };
 }
 
-function summarizeCapture(
-  detection: ReturnType<typeof detectWindow>,
-  observation: OwnedContactObservation,
-  impactTarget: number,
-  extra: Record<string, unknown> = {},
-) {
-  return {
-    geometry: null,
-    selectedOwnedEvent: observation.selectedOwnedEvent,
-    persistenceWindowComplete: observation.persistenceWindowComplete,
-    responseWindowComplete: observation.responseWindowComplete,
-    impact: captureImpact(detection, observation, impactTarget),
-    terminus: detection.terminus,
-    ...extra,
-  };
-}
-
-function summarizeCaptureGeometry(capture: RealizedContactCaptureArc) {
-  return {
-    lineCount: capture.lines.length,
-    lineIds: capture.lines.map((line) => line.id),
-    responseHorizonFrames: capture.responseHorizonFrames,
-    entryAngleDeg: round(capture.entryAngleDeg),
-    exitAngleDeg: round(capture.exitAngleDeg),
-  };
-}
-
 function summarizeCurve(curve: ContinuousSupportCurve) {
   return {
     action: curve.action,
@@ -1064,6 +650,7 @@ function summarizeCurve(curve: ContinuousSupportCurve) {
     referenceStep: curve.referenceStep,
     resolution: curve.resolution,
     lineCount: curve.lines.length,
+    lines: curve.lines.map((line) => ({ ...line })),
     segments: curve.segments.map((segment, index) => ({
       lineId: segment.lineId,
       segmentIndex: index,
@@ -1071,15 +658,6 @@ function summarizeCurve(curve: ContinuousSupportCurve) {
       startArcFraction: segment.startArcFraction,
       endArcFraction: segment.endArcFraction,
     })),
-  };
-}
-
-function summarizeNamedStep(step: ReturnType<typeof makePostimpactNamedReferenceStep>) {
-  return {
-    anchorPoint: step.anchorPoint,
-    fromFrame: step.fromFrame,
-    toFrame: step.toFrame,
-    exactCaptureOnlyTraceFingerprint: step.exactCaptureOnlyTraceFingerprint,
   };
 }
 
@@ -1118,9 +696,9 @@ type AssaySummary = {
   measuredNominalArmAttempts: number;
   structurallyValidNominalArms: number;
   nominalArmErrors: number;
-  matchedNeutralDirectionalContrastRows: number;
-  monotoneMatchedNeutralDirectionalContrastRows: number;
-  minimumContrastMatchedNeutralDirectionalContrastRows: number;
+  matchedNeutralContrastAvailableRows: number;
+  matchedNeutralContrastMonotoneRows: number;
+  matchedNeutralContrastMinimumRows: number;
   resolutionDiagnosticActionErrors: number;
   orientationEvidence: {
     selectedRowsWithNeutralGeometry: number;
@@ -1182,11 +760,11 @@ function summarizeFixture(rows: readonly ConstructionRow[]): AssaySummary {
     measuredNominalArmAttempts: nominalArms.length,
     structurallyValidNominalArms: nominalArms.filter((arm) => arm.structurallyValid === true).length,
     nominalArmErrors: nominalArms.filter((arm) => arm.status === "error").length,
-    matchedNeutralDirectionalContrastRows: directionalContrasts.filter((contrast) => contrast?.available === true).length,
-    monotoneMatchedNeutralDirectionalContrastRows: directionalContrasts.filter((contrast) =>
+    matchedNeutralContrastAvailableRows: directionalContrasts.filter((contrast) => contrast?.available === true).length,
+    matchedNeutralContrastMonotoneRows: directionalContrasts.filter((contrast) =>
       contrast?.available === true && contrast.monotone === true
     ).length,
-    minimumContrastMatchedNeutralDirectionalContrastRows: directionalContrasts.filter((contrast) =>
+    matchedNeutralContrastMinimumRows: directionalContrasts.filter((contrast) =>
       contrast?.available === true && contrast.meetsMinimumContrast === true
     ).length,
     resolutionDiagnosticActionErrors: completeMeasurements.flatMap((measurement) => recordArray(measurement, "resolutionDiagnostic"))

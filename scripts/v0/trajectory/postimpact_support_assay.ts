@@ -12,87 +12,14 @@ import {
 } from "./continuous_support_curve.ts";
 import type { PostimpactNamedReferenceStep } from "./postimpact_support_orientation.ts";
 import type { PostimpactEngineTraceFingerprint } from "./postimpact_trace.ts";
+export {
+  classifyPostimpactConstructionProbe,
+  type PostimpactConstructionProbeGuards,
+  type PostimpactConstructionProbeVerdict,
+} from "./postimpact_construction_probe.ts";
 
 export const POSTIMPACT_SUPPORT_MIN_MEASUREMENT_HORIZON_FRAMES = 4;
 export const POSTIMPACT_SUPPORT_MAX_MEASUREMENT_HORIZON_FRAMES = 12;
-
-export type PostimpactConstructionProbeGuards = {
-  physicalPrefixMatchesBaseline: boolean;
-  captureOnlyPreHComplete: boolean;
-  captureOnlyPreHTraceAvailable: boolean;
-  captureTraceMatchesComparator: boolean;
-  traceMatchesBeforeFirstSupportCollision: boolean;
-  selectedCaptureEventMatchesComparator: boolean;
-  impactMatchesComparator: boolean;
-  survivesThroughH: boolean;
-  preOrAtHSupportCollisionCount: number;
-};
-
-export type PostimpactConstructionProbeVerdict = {
-  constructionSafe: boolean;
-  expectedCollisionRejection: boolean;
-  protocolInvalid: boolean;
-  reason: string | null;
-};
-
-export function classifyPostimpactConstructionProbe(
-  guards: PostimpactConstructionProbeGuards,
-): PostimpactConstructionProbeVerdict {
-  if (!Number.isSafeInteger(guards.preOrAtHSupportCollisionCount) || guards.preOrAtHSupportCollisionCount < 0) {
-    throw new Error("preOrAtHSupportCollisionCount must be a non-negative safe integer");
-  }
-  const immutableComparatorFailures = [
-    ["physical_prefix_changed", guards.physicalPrefixMatchesBaseline],
-    ["capture_only_pre_H_incomplete", guards.captureOnlyPreHComplete],
-    ["capture_only_pre_H_trace_unavailable", guards.captureOnlyPreHTraceAvailable],
-  ] as const;
-  const immutableComparatorFailure = immutableComparatorFailures.find(([, held]) => !held)?.[0] ?? null;
-  if (immutableComparatorFailure !== null) {
-    return {
-      constructionSafe: false,
-      expectedCollisionRejection: false,
-      protocolInvalid: true,
-      reason: immutableComparatorFailure,
-    };
-  }
-  if (guards.preOrAtHSupportCollisionCount > 0) {
-    if (!guards.traceMatchesBeforeFirstSupportCollision) {
-      return {
-        constructionSafe: false,
-        expectedCollisionRejection: false,
-        protocolInvalid: true,
-        reason: "trace_changed_before_first_support_collision",
-      };
-    }
-    return {
-      constructionSafe: false,
-      expectedCollisionRejection: true,
-      protocolInvalid: false,
-      reason: "support_collision_at_or_before_H",
-    };
-  }
-  const protectedTraceFailures = [
-    ["capture_trace_changed_before_response", guards.captureTraceMatchesComparator],
-    ["capture_event_changed", guards.selectedCaptureEventMatchesComparator],
-    ["capture_impact_changed", guards.impactMatchesComparator],
-    ["candidate_did_not_survive_through_H", guards.survivesThroughH],
-  ] as const;
-  const protectedTraceFailure = protectedTraceFailures.find(([, held]) => !held)?.[0] ?? null;
-  if (protectedTraceFailure !== null) {
-    return {
-      constructionSafe: false,
-      expectedCollisionRejection: false,
-      protocolInvalid: true,
-      reason: protectedTraceFailure,
-    };
-  }
-  return {
-    constructionSafe: true,
-    expectedCollisionRejection: false,
-    protocolInvalid: false,
-    reason: null,
-  };
-}
 
 export type PostimpactMeasurementHorizon =
   | { status: "ready"; measurementHorizonFrames: number; measurementSamples: number }

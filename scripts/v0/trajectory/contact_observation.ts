@@ -12,13 +12,13 @@ import {
 } from "../../lib/detector.ts";
 import { COLLISION_UPDATE_TYPE } from "../../lib/update_types.ts";
 import {
-  airborneAt,
-  contactLineIdsAt,
-  isAuthoredContactEvent,
-  positionAt,
-  speedAt,
-  velocityAt,
-} from "../core/substrate.ts";
+  postimpactAirborneAt,
+  postimpactContactLineIdsAt,
+  postimpactIsAuthoredContactEvent,
+  postimpactPositionAt,
+  postimpactSpeedAt,
+  postimpactVelocityAt,
+} from "./postimpact_detection_measurement.ts";
 
 export type LocalContactState = {
   frame: number;
@@ -171,7 +171,7 @@ function summarizeEvent(
     requiredLineRoles?: readonly string[];
   },
 ): OwnedContactEvent {
-  const contactLineIds = contactLineIdsAt(det, event.frame)
+  const contactLineIds = postimpactContactLineIdsAt(det, event.frame)
     .filter((lineId) => Number.isSafeInteger(lineId));
   const ownedLineIds = contactLineIds.filter((lineId) => input.ownedLineIds.has(lineId));
   const lineRoles = [...new Set(ownedLineIds.flatMap((lineId) => {
@@ -186,7 +186,7 @@ function summarizeEvent(
     contactLineIds,
     ownedLineIds,
     lineRoles,
-    gateEligible: isAuthoredContactEvent(event, input.gapFrames) && Math.abs(timingErrorFrames) <= 1,
+    gateEligible: postimpactIsAuthoredContactEvent(event, input.gapFrames) && Math.abs(timingErrorFrames) <= 1,
     roleEligible: input.requiredLineRoles === undefined ||
       lineRoles.some((role) => input.requiredLineRoles!.includes(role)),
   };
@@ -210,10 +210,10 @@ function compareByTargetProximity(left: OwnedContactEvent, right: OwnedContactEv
 }
 
 function stateAt(det: Detection, frame: number): LocalContactState | null {
-  const position = positionAt(det, frame);
-  const velocity = velocityAt(det, frame);
-  const speed = speedAt(det, frame);
-  const airborne = airborneAt(det, frame);
+  const position = postimpactPositionAt(det, frame);
+  const velocity = postimpactVelocityAt(det, frame);
+  const speed = postimpactSpeedAt(det, frame);
+  const airborne = postimpactAirborneAt(det, frame);
   if (position === undefined || velocity === undefined || speed === undefined || airborne === undefined) return null;
   return {
     frame,

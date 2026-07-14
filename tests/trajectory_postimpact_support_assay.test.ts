@@ -10,6 +10,7 @@ import {
   signedAngleDeltaDeg,
   summarizeContinuousSupportCurveMatchedNeutralContrast,
 } from "../scripts/v0/trajectory/postimpact_support_assay.ts";
+import { classifyPostimpactMeasurementBoundary } from "../scripts/v0/trajectory/postimpact_construction_probe.ts";
 import {
   CONTINUOUS_SUPPORT_CURVE_ACTIONS,
   CONTINUOUS_SUPPORT_CURVE_PHASE_LEAD_STEPS,
@@ -81,6 +82,46 @@ describe("post-impact support assay rules", () => {
       expectedCollisionRejection: false,
       protocolInvalid: true,
       reason: "trace_changed_before_first_support_collision",
+    });
+    expect(classifyPostimpactConstructionProbe({
+      ...stable,
+      traceMatchesBeforeFirstSupportCollision: false,
+    })).toMatchObject({
+      expectedCollisionRejection: false,
+      protocolInvalid: true,
+      reason: "trace_changed_before_first_support_collision",
+    });
+  });
+
+  test("fails closed when a post-selection replay changes any protected capture segment", () => {
+    const stableMeasurement = {
+      selectedConstructionArmSafe: true,
+      carrierLineIdsUnique: true,
+      carrierLineIdsDisjointFromCapture: true,
+      preOrAtHCarrierCollisionCount: 0,
+      physicalPrefixMatchesBaseline: true,
+      captureFullTraceMatchesComparator: true,
+      captureTraceMatchesComparator: true,
+      selectedCaptureEventMatchesComparator: true,
+      impactMatchesComparator: true,
+    };
+    expect(classifyPostimpactMeasurementBoundary(stableMeasurement)).toEqual({
+      protectedBoundaryValid: true,
+      reason: null,
+    });
+    expect(classifyPostimpactMeasurementBoundary({
+      ...stableMeasurement,
+      captureFullTraceMatchesComparator: false,
+    })).toEqual({
+      protectedBoundaryValid: false,
+      reason: "capture_full_trace_changed_on_measurement_replay",
+    });
+    expect(classifyPostimpactMeasurementBoundary({
+      ...stableMeasurement,
+      impactMatchesComparator: false,
+    })).toEqual({
+      protectedBoundaryValid: false,
+      reason: "capture_impact_changed_on_measurement_replay",
     });
   });
 

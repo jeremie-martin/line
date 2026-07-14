@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { makeBaseEngine } from "../scripts/v0/core/substrate.ts";
+import { IMPACT, IMPACT_WINDOW, REDIRARC, SPEED_RULER } from "../scripts/v0/types.ts";
 import {
   sha256,
   stableJson,
@@ -13,6 +14,8 @@ import {
   postimpactLineIdRange,
   preparePostimpactFixture,
   readPostimpactFixture,
+  withPostimpactCaptureThenDurationBoundary,
+  withPostimpactCaptureThenDurationBoundaryFromPath,
   withPostimpactStudyInputBoundary,
   withPostimpactStudyInputBoundaryFromPath,
 } from "../scripts/v0/trajectory/postimpact_fixture.ts";
@@ -26,8 +29,16 @@ describe("post-impact frozen-prefix boundary", () => {
     const fixture = makeFixture();
     const prepared = preparePostimpactFixture(fixture, { environment: WASM_ENV });
 
-    expect(Object.keys(prepared).sort()).toEqual(["engine", "nextLineId", "targetPlanningState"]);
+    expect(Object.keys(prepared).sort()).toEqual([
+      "addTrackLines",
+      "engine",
+      "impactConvention",
+      "nextLineId",
+      "scoreContactImpact",
+      "targetPlanningState",
+    ]);
     expect(prepared.nextLineId).toBe(1);
+    expect(Object.isFrozen(prepared.impactConvention)).toBe(true);
     expect(stableJson(extractPlanningState(prepared.engine, 8))).toBe(
       stableJson(fixture.checkpoints.targetPlanningState),
     );
@@ -53,13 +64,16 @@ describe("post-impact frozen-prefix boundary", () => {
     const fixture = makeFixture();
     let callbackObservedKeys: string[] = [];
     let callbackPreparedKeys: string[] = [];
+    let callbackCurrentKeys: string[] = [];
     const result = withPostimpactStudyInputBoundary(fixture, (context) => {
       callbackObservedKeys = Object.keys(context).sort();
       callbackPreparedKeys = Object.keys(context.prepared).sort();
+      callbackCurrentKeys = Object.keys(context.current).sort();
       expect(Object.isFrozen(context)).toBe(true);
       expect(Object.isFrozen(context.current)).toBe(true);
       expect(Object.isFrozen(context.prepared)).toBe(true);
       expect(Object.isFrozen(context.prepared.targetPlanningState)).toBe(true);
+      expect(Object.isFrozen(context.prepared.impactConvention)).toBe(true);
       expect("observation" in context).toBe(false);
       expect("audit" in context).toBe(false);
       expect("panel" in context.prepared).toBe(false);
@@ -68,7 +82,15 @@ describe("post-impact frozen-prefix boundary", () => {
     }, { environment: WASM_ENV });
 
     expect(callbackObservedKeys).toEqual(["current", "prepared"]);
-    expect(callbackPreparedKeys).toEqual(["engine", "nextLineId", "targetPlanningState"]);
+    expect(callbackPreparedKeys).toEqual([
+      "addTrackLines",
+      "engine",
+      "impactConvention",
+      "nextLineId",
+      "scoreContactImpact",
+      "targetPlanningState",
+    ]);
+    expect(callbackCurrentKeys).toEqual(["endFrame", "impact", "intervalFrames", "startFrame"]);
     expect(result.constructionResult).toEqual({ selectedPhase: "phase-0", impact: 0.4 });
     expect(result.observation).toEqual({
       outgoing: {
@@ -91,6 +113,15 @@ describe("post-impact frozen-prefix boundary", () => {
       currentGap: 0,
       currentFrame: 8,
     });
+    expect(result.audit.impactConvention).toEqual({
+      impactWindowFrames: IMPACT_WINDOW,
+      catchableRedirFraction: IMPACT.CATCHABLE_REDIR_FRACTION,
+      redirArcSoftPxPerFrame: REDIRARC.SOFT,
+      redirArcVeryStrongPxPerFrame: REDIRARC.VERY_STRONG,
+      speedRulerMinPxPerFrame: SPEED_RULER.MIN_PX_PER_FRAME,
+      speedRulerMaxPxPerFrame: SPEED_RULER.MAX_PX_PER_FRAME,
+    });
+    expect(Object.isFrozen(result.audit.impactConvention)).toBe(true);
   });
 
   test("rejects an asynchronous construction callback before observation is created", () => {
@@ -99,6 +130,39 @@ describe("post-impact frozen-prefix boundary", () => {
       () => Promise.resolve("later"),
       { environment: WASM_ENV },
     )).toThrow(/must complete synchronously/);
+  });
+
+  test("keeps capture target-blind and releases only a sealed endpoint to duration construction", () => {
+    const fixture = makeFixture();
+    const order: string[] = [];
+    const result = withPostimpactCaptureThenDurationBoundary(
+      fixture,
+      (context) => {
+        order.push("capture");
+        expect(Object.keys(context.current).sort()).toEqual(["endFrame", "impact", "intervalFrames", "startFrame"]);
+        expect("gapIndex" in context.current).toBe(false);
+        fixture.materialized.gaps[1]!.targets.air = 0.1;
+        fixture.panel.outgoingFrame = 999;
+        return { captureImpact: context.current.impact };
+      },
+      (capture, availability) => {
+        order.push("duration");
+        expect(capture).toEqual({ captureImpact: 0.4 });
+        expect(Object.keys(availability)).toEqual(["outgoingEndFrame"]);
+        expect(Object.isFrozen(availability)).toBe(true);
+        expect(availability.outgoingEndFrame).toBe(16);
+        expect("axes" in availability).toBe(false);
+        expect("gapIndex" in availability).toBe(false);
+        return { endpoint: availability.outgoingEndFrame };
+      },
+      { environment: WASM_ENV },
+    );
+    order.push("observation");
+
+    expect(order).toEqual(["capture", "duration", "observation"]);
+    expect(result.durationResult).toEqual({ endpoint: 16 });
+    expect(result.observation.outgoing.axes).toEqual({ air: 0.5, speed: 0.6 });
+    expect(result.audit.panel.currentFrame).toBe(8);
   });
 
   test("uses an immutable internal snapshot when the raw caller object changes in the callback", () => {
@@ -153,6 +217,52 @@ describe("post-impact frozen-prefix boundary", () => {
     expect(seen[0]).toEqual(seen[1]);
     expect(left.observation.outgoing.axes).toEqual({ air: 0.5, speed: 0.6 });
     expect(right.observation.outgoing.axes).toEqual({ air: 0.2, speed: 0.9, amplitude: 0.4 });
+  });
+
+  test("keeps capture selection invariant while deliberately releasing changed valid duration", () => {
+    const original = makeFixture();
+    const changed = structuredClone(original);
+    // Change only the post-current schedule, keeping the physical prefix and
+    // current event intact. This is the exact staged-boundary guarantee that
+    // permits a duration-aware second construction phase without target leak.
+    changed.materialized.contactFrames = [8, 20, 28];
+    changed.materialized.durationFrames = 34;
+    changed.materialized.gaps[1]!.endFrame = 20;
+    changed.materialized.gaps[2]!.startFrame = 20;
+    changed.materialized.gaps[2]!.endFrame = 28;
+    changed.panel.outgoingFrame = 20;
+    changed.panel.outgoingIntervalFrames = 12;
+    refreshMaterializedAndFixtureFingerprints(changed);
+
+    const captureSnapshots: string[] = [];
+    const left = withPostimpactCaptureThenDurationBoundary(
+      original,
+      (context) => {
+        const snapshot = stableJson({ current: context.current, state: context.prepared.targetPlanningState });
+        captureSnapshots.push(snapshot);
+        return snapshot;
+      },
+      (_capture, availability) => availability.outgoingEndFrame,
+      { environment: WASM_ENV },
+    );
+    const right = withPostimpactCaptureThenDurationBoundary(
+      changed,
+      (context) => {
+        const snapshot = stableJson({ current: context.current, state: context.prepared.targetPlanningState });
+        captureSnapshots.push(snapshot);
+        return snapshot;
+      },
+      (_capture, availability) => availability.outgoingEndFrame,
+      { environment: WASM_ENV },
+    );
+
+    expect(captureSnapshots).toHaveLength(2);
+    expect(captureSnapshots[0]).toBe(captureSnapshots[1]);
+    expect(left.captureResult).toBe(right.captureResult);
+    expect(left.durationResult).toBe(16);
+    expect(right.durationResult).toBe(20);
+    expect(left.observation.outgoing.endFrame).toBe(16);
+    expect(right.observation.outgoing.endFrame).toBe(20);
   });
 
   test("rejects a historical schema, recorded drift, replay mismatch, malformed prefix, and runtime mismatch", () => {
@@ -232,6 +342,25 @@ describe("post-impact frozen-prefix boundary", () => {
       );
       expect(result.constructionResult).toBe(0.4);
       expect(result.observation.outgoing.endFrame).toBe(16);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("path-owning staged boundary preserves the endpoint-only duration API", () => {
+    const root = mkdtempSync(join(tmpdir(), "line-postimpact-staged-boundary-"));
+    try {
+      const path = join(root, "fixture.json");
+      writeFileSync(path, `${JSON.stringify(makeFixture())}\n`);
+      const result = withPostimpactCaptureThenDurationBoundaryFromPath(
+        path,
+        (context) => context.current.impact,
+        (_capture, availability) => availability.outgoingEndFrame,
+        { environment: WASM_ENV },
+      );
+      expect(result.captureResult).toBe(0.4);
+      expect(result.durationResult).toBe(16);
+      expect(result.observation.outgoing.axes).toEqual({ air: 0.5, speed: 0.6 });
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

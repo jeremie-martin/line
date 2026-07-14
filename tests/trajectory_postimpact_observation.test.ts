@@ -14,21 +14,67 @@ import {
   postimpactNamedReferenceState,
   postimpactOffBeatLandingsInWindow,
   postimpactStableJson,
+  POSTIMPACT_UNRESOLVED_TAIL_RULE,
   samePostimpactExactEngineTrace,
   samePostimpactOwnedCaptureEvent,
   samePostimpactScoredContactImpact,
+  splitPostimpactOffBeatLandingsInWindow,
   unresolvedPostimpactOffBeatLandingFramesAtWindowEnd,
 } from "../scripts/v0/trajectory/postimpact_observation.ts";
 import { studySourceIdentity } from "../scripts/v0/trajectory/study_artifact.ts";
+import { IMPACT, IMPACT_WINDOW, REDIRARC, SPEED_RULER, speedPxToAuthored } from "../scripts/v0/types.ts";
+import { postimpactSpeedPxToAuthored } from "../scripts/v0/trajectory/postimpact_physics.ts";
+
+const ACTIVE_CONVENTION = Object.freeze({
+  impactWindowFrames: IMPACT_WINDOW,
+  catchableRedirFraction: IMPACT.CATCHABLE_REDIR_FRACTION,
+  redirArcSoftPxPerFrame: REDIRARC.SOFT,
+  redirArcVeryStrongPxPerFrame: REDIRARC.VERY_STRONG,
+  speedRulerMinPxPerFrame: SPEED_RULER.MIN_PX_PER_FRAME,
+  speedRulerMaxPxPerFrame: SPEED_RULER.MAX_PX_PER_FRAME,
+});
 
 describe("post-impact observation leaves", () => {
   test("matches the established CoM and off-beat observations on a detector fixture", () => {
     const detection = detect(rawTrajectory());
-    expect(measurePostimpactCoMWindow(detection, 0, 7)).toEqual(measureCoMWindow(detection, 0, 7));
+    expect(measurePostimpactCoMWindow(detection, 0, 7, ACTIVE_CONVENTION)).toEqual(measureCoMWindow(detection, 0, 7));
     expect(postimpactOffBeatLandingsInWindow(detection, [], 0, 7))
       .toEqual(offBeatLandingsInWindow(detection, [], 0, 7));
     expect(unresolvedPostimpactOffBeatLandingFramesAtWindowEnd(detection, [], 0, 7))
       .toEqual(unresolvedOffBeatLandingFramesAtWindowEnd(detection, [], 0, 7));
+  });
+
+  test("uses the sealed speed ruler rather than a duplicated authored-speed scale", () => {
+    const speed = 9.6;
+    expect(postimpactSpeedPxToAuthored(speed, ACTIVE_CONVENTION)).toBe(speedPxToAuthored(speed));
+    expect(postimpactSpeedPxToAuthored(speed, {
+      ...ACTIVE_CONVENTION,
+      speedRulerMinPxPerFrame: 6,
+      speedRulerMaxPxPerFrame: 14,
+    })).toBeCloseTo(0.45, 12);
+  });
+
+  test("keeps confirmed off-beats disjoint from the unresolved observation tail", () => {
+    expect(POSTIMPACT_UNRESOLVED_TAIL_RULE)
+      .toBe("landing_at_or_after_observed_end_minus_(persistence_minus_two).v1");
+    const tailLanding = detect({
+      duration: 20,
+      frames: Array.from({ length: 21 }, (_, frame) => ({
+        frame,
+        position: { x: frame, y: frame * 2 },
+        velocity: { x: 2, y: 1 },
+        sledContacts: frame < 2 || frame >= 17 ? ["TAIL"] : [],
+        contactLineIds: frame < 2 || frame >= 17 ? [7] : [],
+        riderEjected: false,
+        sledBroken: false,
+      })),
+    });
+    expect(postimpactOffBeatLandingsInWindow(tailLanding, [], 0, 20)).toEqual([17]);
+    expect(unresolvedPostimpactOffBeatLandingFramesAtWindowEnd(tailLanding, [], 0, 20)).toEqual([17]);
+    expect(splitPostimpactOffBeatLandingsInWindow(tailLanding, [], 0, 20)).toEqual({
+      confirmedFrames: [],
+      unresolvedTailFrames: [17],
+    });
   });
 
   test("keeps exact capture equality and named-reference reads target-blind", () => {

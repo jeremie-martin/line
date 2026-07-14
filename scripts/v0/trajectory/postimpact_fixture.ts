@@ -7,28 +7,38 @@
  */
 import { readFileSync } from "node:fs";
 import { engineLineFromTrackLine, makeBaseEngine } from "../core/substrate.ts";
-import type { TrackLine } from "../types.ts";
+import { IMPACT, IMPACT_WINDOW, REDIRARC, SPEED_RULER, type TrackLine } from "../types.ts";
 import {
   assertPostimpactV3FixtureIntegrity,
   sha256,
   stableJson,
+  withValidatedPostimpactCaptureThenDurationInputs,
   withValidatedPostimpactStudyInputs,
-  type PostimpactCurrentContactInput,
   type PostimpactFrozenTrajectoryFixtureV3,
+  type PostimpactOutgoingEndFrameInput,
   type PostimpactObservationInput,
   type PostimpactTrackLine,
 } from "./postimpact_study_inputs.ts";
-import { extractPlanningState, type PlanningState } from "./state.ts";
+import {
+  POSTIMPACT_MAX_LINE_ID,
+  postimpactLineIdRange,
+  type PostimpactConstructionContext,
+  type PostimpactConstructionPreparedPrefix,
+} from "./postimpact_construction_context.ts";
+import type {
+  PostimpactImpactConvention,
+  PostimpactTrackLine as PostimpactConstructionTrackLine,
+} from "./postimpact_physics.ts";
+import { scoredContactImpactWithConvention } from "./scored_contact_impact.ts";
+import { extractPlanningState } from "./state.ts";
 
-export const POSTIMPACT_MAX_LINE_ID = 0x7fffffff;
+export { POSTIMPACT_MAX_LINE_ID, postimpactLineIdRange } from "./postimpact_construction_context.ts";
 
-/** The only physical state available to pre-observation construction. */
-export type PreparedPostimpactFixture = {
-  // deno-lint-ignore no-explicit-any
-  engine: any;
-  targetPlanningState: PlanningState;
-  nextLineId: number;
-};
+/** Compatibility alias for callers that prepare a prefix outside the boundary. */
+export type PreparedPostimpactFixture = PostimpactConstructionPreparedPrefix;
+
+/** Compatibility alias; construction itself imports the pure context leaf. */
+export type PostimpactStudyConstructionContext = PostimpactConstructionContext;
 
 /** Provenance is returned only after construction, never passed to it. */
 export type PostimpactFixtureAudit = {
@@ -55,11 +65,8 @@ export type PostimpactFixtureAudit = {
     fingerprint: string;
     nextLineId: number;
   };
-};
-
-export type PostimpactStudyConstructionContext = {
-  readonly prepared: Readonly<PreparedPostimpactFixture>;
-  readonly current: Readonly<PostimpactCurrentContactInput>;
+  /** Active impact constants bound at the replay boundary. */
+  impactConvention: Readonly<PostimpactImpactConvention>;
 };
 
 export type PostimpactStudyInputBoundaryResult<T> = {
@@ -69,29 +76,21 @@ export type PostimpactStudyInputBoundaryResult<T> = {
   audit: PostimpactFixtureAudit;
 };
 
+/** Result of a two-stage capture then duration-construction boundary. */
+export type PostimpactCaptureThenDurationBoundaryResult<C, D> = {
+  captureResult: C;
+  durationResult: D;
+  observation: PostimpactObservationInput;
+  /** Audit/provenance is intentionally released only after both stages finish. */
+  audit: PostimpactFixtureAudit;
+};
+
+export type { PostimpactOutgoingEndFrameInput } from "./postimpact_study_inputs.ts";
+
 export type PreparePostimpactFixtureOptions = {
   /** Injectable only for deterministic runtime-identity tests. */
   environment?: NodeJS.ProcessEnv;
 };
-
-/**
- * Validate a future static-line allocation without mutating the frozen prefix.
- * Callers must reserve every line in one primitive atomically before replay.
- */
-export function postimpactLineIdRange(
-  nextLineId: number,
-  lineCount: number,
-): { start: number; end: number } {
-  assertNonNegativeSigned32Integer("nextLineId", nextLineId);
-  if (!Number.isSafeInteger(lineCount) || lineCount < 1) {
-    throw new Error("post-impact lineCount must be a positive safe integer");
-  }
-  const end = nextLineId + lineCount - 1;
-  if (!Number.isSafeInteger(end) || end > POSTIMPACT_MAX_LINE_ID) {
-    throw new Error("post-impact line-id allocation overflows signed 32-bit engine ids");
-  }
-  return { start: nextLineId, end };
-}
 
 /**
  * Validate and reconstruct the frozen physical prefix. The returned object is
@@ -130,13 +129,61 @@ export function withPostimpactStudyInputBoundary<T>(
   const sealedFixture = deepFreeze(structuredClone(fixture));
   const prepared = prepareValidatedPostimpactFixture(sealedFixture, options);
   const context = sealedConstructionContext(prepared);
-  const result = withValidatedPostimpactStudyInputs(sealedFixture, (current) => construct(Object.freeze({
-    prepared: context.prepared,
-    current,
-  })));
+  const result = withValidatedPostimpactStudyInputs(sealedFixture, (current) => {
+    // The inner validated helper needs gapIndex to derive observation later,
+    // but construction needs only the physical current-contact event. Do not
+    // leak schedule/provenance metadata across the target-blind boundary.
+    const constructionCurrent = Object.freeze({
+      startFrame: current.startFrame,
+      endFrame: current.endFrame,
+      intervalFrames: current.intervalFrames,
+      impact: current.impact,
+    });
+    return construct(Object.freeze({
+      prepared: context.prepared,
+      current: constructionCurrent,
+    }));
+  });
   return {
     ...result,
-    audit: auditForFixture(sealedFixture),
+    // Audit the exact convention sealed into the construction context, rather
+    // than re-reading ambient constants after arbitrary construction code ran.
+    audit: auditForFixture(sealedFixture, prepared.impactConvention),
+  };
+}
+
+/**
+ * Two-stage variant for duration-aware assays. The first callback is fully
+ * target-blind. The second receives only a frozen outgoing end frame after
+ * capture selection returns; it remains axis-blind and arrival-blind. Full
+ * observation/provenance stays sealed until both callbacks complete.
+ */
+export function withPostimpactCaptureThenDurationBoundary<C, D>(
+  fixture: unknown,
+  selectCapture: (context: PostimpactStudyConstructionContext) => C,
+  constructDuration: (captureResult: C, availability: PostimpactOutgoingEndFrameInput) => D,
+  options: PreparePostimpactFixtureOptions = {},
+): PostimpactCaptureThenDurationBoundaryResult<C, D> {
+  assertPostimpactV3FixtureIntegrity(fixture, "post-impact fixture");
+  const sealedFixture = deepFreeze(structuredClone(fixture));
+  const prepared = prepareValidatedPostimpactFixture(sealedFixture, options);
+  const context = sealedConstructionContext(prepared);
+  const result = withValidatedPostimpactCaptureThenDurationInputs(
+    sealedFixture,
+    (current) => selectCapture(Object.freeze({
+      prepared: context.prepared,
+      current: Object.freeze({
+        startFrame: current.startFrame,
+        endFrame: current.endFrame,
+        intervalFrames: current.intervalFrames,
+        impact: current.impact,
+      }),
+    })),
+    constructDuration,
+  );
+  return {
+    ...result,
+    audit: auditForFixture(sealedFixture, prepared.impactConvention),
   };
 }
 
@@ -149,6 +196,21 @@ export function withPostimpactStudyInputBoundaryFromPath<T>(
   return withPostimpactStudyInputBoundary(
     JSON.parse(readFileSync(path, "utf8")) as unknown,
     construct,
+    options,
+  );
+}
+
+/** Path-owning two-stage variant for duration-aware post-impact assays. */
+export function withPostimpactCaptureThenDurationBoundaryFromPath<C, D>(
+  path: string,
+  selectCapture: (context: PostimpactStudyConstructionContext) => C,
+  constructDuration: (captureResult: C, availability: PostimpactOutgoingEndFrameInput) => D,
+  options: PreparePostimpactFixtureOptions = {},
+): PostimpactCaptureThenDurationBoundaryResult<C, D> {
+  return withPostimpactCaptureThenDurationBoundary(
+    JSON.parse(readFileSync(path, "utf8")) as unknown,
+    selectCapture,
+    constructDuration,
     options,
   );
 }
@@ -168,10 +230,18 @@ function prepareValidatedPostimpactFixture(
   if (sha256(stableJson(targetPlanningState)) !== fixture.checkpoints.targetPlanningStateFingerprint) {
     throw new Error("post-impact fixture physical prefix does not replay the declared target planning state");
   }
+  const impactConvention = activeImpactConvention();
   return {
     engine,
     targetPlanningState,
     nextLineId: fixture.physicalPrefix.prefixNextLineId,
+    addTrackLines: addLines,
+    scoreContactImpact: (detection, input) => scoredContactImpactWithConvention(
+      detection as Parameters<typeof scoredContactImpactWithConvention>[0],
+      input,
+      impactConvention,
+    ),
+    impactConvention,
   };
 }
 
@@ -184,11 +254,17 @@ function sealedConstructionContext(prepared: PreparedPostimpactFixture): {
       engine: prepared.engine,
       targetPlanningState,
       nextLineId: prepared.nextLineId,
+      addTrackLines: prepared.addTrackLines,
+      scoreContactImpact: prepared.scoreContactImpact,
+      impactConvention: Object.freeze({ ...prepared.impactConvention }),
     }),
   };
 }
 
-function auditForFixture(fixture: PostimpactFrozenTrajectoryFixtureV3): PostimpactFixtureAudit {
+function auditForFixture(
+  fixture: PostimpactFrozenTrajectoryFixtureV3,
+  impactConvention: Readonly<PostimpactImpactConvention>,
+): PostimpactFixtureAudit {
   return Object.freeze({
     fixtureFingerprint: fixture.fixtureFingerprint,
     purpose: fixture.purpose,
@@ -213,6 +289,7 @@ function auditForFixture(fixture: PostimpactFrozenTrajectoryFixtureV3): Postimpa
       fingerprint: fixture.physicalPrefixFingerprint,
       nextLineId: fixture.physicalPrefix.prefixNextLineId,
     }),
+    impactConvention: Object.freeze({ ...impactConvention }),
   });
 }
 
@@ -273,19 +350,30 @@ function rebuildPhysicalPrefix(fixture: PostimpactFrozenTrajectoryFixtureV3): an
     position: { ...prefix.startState.position },
     velocity: { ...prefix.startState.velocity },
   });
-  engine = addLines(engine, prefix.startLines);
+  engine = addLines(engine, prefix.startLines as PostimpactConstructionTrackLine[]);
   for (const group of prefix.prefixFitLines) {
-    if (group !== null) engine = addLines(engine, group);
+    if (group !== null) engine = addLines(engine, group as PostimpactConstructionTrackLine[]);
   }
   return engine;
 }
 
 // deno-lint-ignore no-explicit-any
-function addLines(engine: any, lines: readonly PostimpactTrackLine[]): any {
+function addLines(engine: any, lines: readonly PostimpactConstructionTrackLine[]): any {
   if (lines.length === 0) return engine;
   // Conversion caches mutate TrackLine with a symbol; do not attach that cache to
   // the parsed frozen artifact itself.
   return engine.addLine(lines.map((line) => engineLineFromTrackLine({ ...line } as TrackLine)));
+}
+
+function activeImpactConvention(): Readonly<PostimpactImpactConvention> {
+  return Object.freeze({
+    impactWindowFrames: IMPACT_WINDOW,
+    catchableRedirFraction: IMPACT.CATCHABLE_REDIR_FRACTION,
+    redirArcSoftPxPerFrame: REDIRARC.SOFT,
+    redirArcVeryStrongPxPerFrame: REDIRARC.VERY_STRONG,
+    speedRulerMinPxPerFrame: SPEED_RULER.MIN_PX_PER_FRAME,
+    speedRulerMaxPxPerFrame: SPEED_RULER.MAX_PX_PER_FRAME,
+  });
 }
 
 function assertPhysicalLine(line: PostimpactTrackLine, lineIds: Set<number>): void {

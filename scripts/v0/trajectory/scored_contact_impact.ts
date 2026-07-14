@@ -6,6 +6,10 @@
  */
 import { redirArcPxAtLanding } from "../core/substrate.ts";
 import { IMPACT_WINDOW, normImpact } from "../types.ts";
+import {
+  postimpactRedirArcToImpact,
+  type PostimpactImpactConvention,
+} from "./postimpact_physics.ts";
 
 export type ScoredContactImpactOutcome = {
   metric: "redirArcPxAtLanding -> normImpact";
@@ -28,10 +32,10 @@ export function scoredContactImpactFromRedir(input: {
   landingFrame: number | null;
   responseWindowComplete: boolean;
   redirArcPx: number | undefined;
-}): ScoredContactImpactOutcome {
+}, convention?: Readonly<PostimpactImpactConvention>): ScoredContactImpactOutcome {
   const base = {
     metric: "redirArcPxAtLanding -> normImpact" as const,
-    windowFrames: IMPACT_WINDOW,
+    windowFrames: convention?.impactWindowFrames ?? IMPACT_WINDOW,
     target: input.target,
     landingFrame: input.landingFrame,
   };
@@ -44,7 +48,9 @@ export function scoredContactImpactFromRedir(input: {
   if (input.redirArcPx === undefined) {
     return { ...base, availability: "measurement_unavailable", redirArcPx: null, achieved: null, residual: null };
   }
-  const achieved = normImpact(input.redirArcPx);
+  const achieved = convention === undefined
+    ? normImpact(input.redirArcPx)
+    : postimpactRedirArcToImpact(input.redirArcPx, convention);
   return {
     ...base,
     availability: "measured",
@@ -63,4 +69,20 @@ export function scoredContactImpact(
     ? undefined
     : redirArcPxAtLanding(detection, input.landingFrame, IMPACT_WINDOW);
   return scoredContactImpactFromRedir({ ...input, redirArcPx });
+}
+
+/**
+ * Fixture-bound variant. It performs both the redirection read and
+ * normalization through the exact convention that was sealed into the replay
+ * boundary, rather than re-reading ambient production constants.
+ */
+export function scoredContactImpactWithConvention(
+  detection: Parameters<typeof redirArcPxAtLanding>[0],
+  input: { target: number | null; landingFrame: number | null; responseWindowComplete: boolean },
+  convention: Readonly<PostimpactImpactConvention>,
+): ScoredContactImpactOutcome {
+  const redirArcPx = input.landingFrame === null || !input.responseWindowComplete
+    ? undefined
+    : redirArcPxAtLanding(detection, input.landingFrame, convention.impactWindowFrames);
+  return scoredContactImpactFromRedir({ ...input, redirArcPx }, convention);
 }

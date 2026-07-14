@@ -160,6 +160,17 @@ export type PostimpactObservationInput = {
 export type PostimpactNonEventAxes = Pick<PostimpactAxisValues, "air" | "speed" | "amplitude" | "elevation">;
 
 /**
+ * The sole duration signal intentionally released after target-blind capture
+ * construction has completed. It is not a target-free value: together with
+ * the known current end frame it reveals the outgoing interval duration.
+ * Outgoing axes, next impact, contact identity, and panel provenance remain
+ * sealed until the final observation stage.
+ */
+export type PostimpactOutgoingEndFrameInput = Readonly<{
+  outgoingEndFrame: number;
+}>;
+
+/**
  * Validate the serialized V3 snapshot without importing panel declarations,
  * source materialization, or optimizer/study policy. This is intentionally
  * stricter than a root-only checksum: each independently declared immutable
@@ -244,6 +255,39 @@ export function withValidatedPostimpactStudyInputs<T>(
   };
 }
 
+/**
+ * Staged composition for a duration-aware post-impact assay. Capture selection
+ * receives the same target-blind current-contact input as the one-stage API.
+ * Only after that synchronous callback returns does the boundary reveal the
+ * scalar outgoing endpoint to a second construction stage. Full observation
+ * remains unavailable until both stages have completed synchronously.
+ */
+export function withValidatedPostimpactCaptureThenDurationInputs<C, D>(
+  fixture: unknown,
+  selectCapture: (current: Readonly<PostimpactCurrentContactInput>) => C,
+  constructDuration: (captureResult: C, availability: PostimpactOutgoingEndFrameInput) => D,
+): { captureResult: C; durationResult: D; observation: PostimpactObservationInput } {
+  assertPostimpactV3FixtureIntegrity(fixture, "post-impact study inputs");
+  const current = Object.freeze(currentContactForValidatedFixture(fixture));
+  const captureResult = selectCapture(current);
+  assertSynchronousPostimpactCallback(captureResult, "capture selection");
+
+  // Deliberately read only this scalar before duration construction. Do not
+  // call postimpactObservationForValidatedFixture here: that would materialize
+  // authored axes and contact metadata before the phase certificate is closed.
+  const availability = Object.freeze({
+    outgoingEndFrame: outgoingEndFrameForValidatedFixture(fixture),
+  });
+  const durationResult = constructDuration(captureResult, availability);
+  assertSynchronousPostimpactCallback(durationResult, "duration construction");
+
+  return {
+    captureResult,
+    durationResult,
+    observation: postimpactObservationForValidatedFixture(fixture),
+  };
+}
+
 function currentContactForValidatedFixture(
   fixture: PostimpactFrozenTrajectoryFixtureV3,
 ): PostimpactCurrentContactInput {
@@ -253,15 +297,16 @@ function currentContactForValidatedFixture(
   }
   const intervalFrames = interval(current.startFrame, current.endFrame, "current contact");
   const impact = current.targets.impact;
-  if (!Number.isFinite(impact) || !(impact > 0) || impact > 1) {
+  if (typeof impact !== "number" || !Number.isFinite(impact) || !(impact > 0) || impact > 1) {
     throw new Error("post-impact capture requires a finite positive current impact target in [0, 1]");
   }
+  const positiveImpact = impact;
   return {
     gapIndex: current.index,
     startFrame: current.startFrame,
     endFrame: current.endFrame,
     intervalFrames,
-    impact,
+    impact: positiveImpact,
   };
 }
 
@@ -270,16 +315,7 @@ function postimpactObservationForValidatedFixture(
 ): PostimpactObservationInput {
   const current = materializedGap(fixture, fixture.panel.selectedTargetGap, "current");
   const outgoing = materializedGap(fixture, fixture.panel.outgoingGap, "outgoing");
-  if (!current.endsWithContact || !outgoing.endsWithContact || outgoing.startFrame !== current.endFrame) {
-    throw new Error("post-impact outgoing observation gap must be contiguous after the current contact");
-  }
-  if (outgoing.endFrame !== fixture.panel.outgoingFrame) {
-    throw new Error("post-impact outgoing observation frame does not match the frozen panel");
-  }
-  const intervalFrames = interval(outgoing.startFrame, outgoing.endFrame, "outgoing observation");
-  if (intervalFrames !== fixture.panel.outgoingIntervalFrames) {
-    throw new Error("post-impact outgoing observation interval does not match the frozen panel");
-  }
+  const intervalFrames = assertValidatedOutgoingObservation(current, outgoing, fixture);
   return {
     outgoing: {
       gapIndex: outgoing.index,
@@ -290,6 +326,31 @@ function postimpactObservationForValidatedFixture(
     },
     authoredContactFrames: checkedContactFrames(fixture.materialized.contactFrames),
   };
+}
+
+function outgoingEndFrameForValidatedFixture(fixture: PostimpactFrozenTrajectoryFixtureV3): number {
+  const current = materializedGap(fixture, fixture.panel.selectedTargetGap, "current");
+  const outgoing = materializedGap(fixture, fixture.panel.outgoingGap, "outgoing");
+  assertValidatedOutgoingObservation(current, outgoing, fixture);
+  return outgoing.endFrame;
+}
+
+function assertValidatedOutgoingObservation(
+  current: PostimpactMaterializedGap,
+  outgoing: PostimpactMaterializedGap,
+  fixture: PostimpactFrozenTrajectoryFixtureV3,
+): number {
+  if (!current.endsWithContact || !outgoing.endsWithContact || outgoing.startFrame !== current.endFrame) {
+    throw new Error("post-impact outgoing observation gap must be contiguous after the current contact");
+  }
+  if (outgoing.endFrame !== fixture.panel.outgoingFrame) {
+    throw new Error("post-impact outgoing observation frame does not match the frozen panel");
+  }
+  const intervalFrames = interval(outgoing.startFrame, outgoing.endFrame, "outgoing observation");
+  if (intervalFrames !== fixture.panel.outgoingIntervalFrames) {
+    throw new Error("post-impact outgoing observation interval does not match the frozen panel");
+  }
+  return intervalFrames;
 }
 
 function assertV3CaptureIdentity(fixture: PostimpactFrozenTrajectoryFixtureV3, label: string): void {
@@ -432,6 +493,12 @@ function assertDeclaredPayloadFingerprint(
 function candidateFingerprintOf(value: unknown): string | null {
   if (!isRecord(value)) return null;
   return typeof value.candidateFingerprint === "string" ? value.candidateFingerprint : null;
+}
+
+function assertSynchronousPostimpactCallback(value: unknown, name: string): void {
+  if (isThenable(value)) {
+    throw new Error(`post-impact ${name} callback must complete synchronously before observation`);
+  }
 }
 
 function isThenable(value: unknown): value is PromiseLike<unknown> {

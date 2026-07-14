@@ -1,127 +1,176 @@
 /**
- * Continuous, state-relative controls for an observation-only two-contact
- * feasibility assay. This is deliberately not imported by the compiler.
+ * Fixed-horizon, state-relative contact-phase geometry for a causal
+ * construction assay. This module is deliberately not imported by the
+ * compiler: it describes a bounded local hypothesis, not a production menu.
  *
- * A control constructs the terrain that owns a current contact and the start
- * of its outgoing interval. The next contact is only an exact replay endpoint:
- * no later impact, case identity, seed, or outcome is available to control
- * construction.
+ * The construction accepts only a pre-contact planning state, the current
+ * contact's impact ask, and a predeclared control. In particular, it has no
+ * outgoing interval, later contact, axis, seed, case, or score input.
  */
-import { MIN_LANDING_AIRBORNE_FRAMES } from "../../lib/detector.ts";
-import { IMPACT, impactToRedirArcPx, type TrackLine } from "../types.ts";
+import { PERSISTENCE_FRAMES } from "../../lib/detector.ts";
+import { IMPACT, IMPACT_WINDOW, impactToRedirArcPx, type TrackLine } from "../types.ts";
+import { contactKinematicFrameFromPlanningState } from "./contact_kinematic_frame.ts";
 import type { PlanningState } from "./state.ts";
+import { targetFrameFromPlanningState } from "./target_frame.ts";
 
-export type TwoContactOutgoingIntent = {
-  intervalFrames: number;
-  /** Undefined remains undefined: it is not replaced with a neutral target. */
-  air?: number;
-  speed?: number;
-  amplitude?: number;
-};
+export const TWO_CONTACT_PHASE_PROTOCOL = Object.freeze({
+  fixedResponseHorizonFrames: Math.max(PERSISTENCE_FRAMES, IMPACT_WINDOW),
+  captureSurfaceFrames: 1,
+  compactPhaseLookbackFrames: [0, 2, 4] as const,
+  compactApproachFrames: 2,
+  compactTangentFrames: 1,
+  oracleCount: 120,
+  oraclePreReachFrames: [0.25, 8] as const,
+  oracleTangentFrames: [-2, 2] as const,
+  oracleNormalOffsetSledSpans: [-1.5, 1.5] as const,
+  oracleApproachDeltaDeg: [0, 55] as const,
+  oracleTurnDeg: [4, 65] as const,
+} as const);
+
+export type PhaseTailAction = "neutral" | "directed";
 
 export type TwoContactPhaseControl = {
   /** State sampled before the current target frame, in whole frames. */
   phaseLookbackFrames: number;
-  /** Entry tangent residual relative to the observed reference velocity. */
+  /** Explicitly retained chiral arm; impact itself has no signed direction. */
+  chirality: -1 | 1;
+  /** A neutral tail or a signed local response tail. */
+  tailAction: PhaseTailAction;
+  /** Entry tangent residual relative to the observed CoM velocity. */
   approachDeltaDeg: number;
-  /** Signed tangent rotation distributed along the post-contact support. */
+  /** Signed tangent rotation over the bounded phase tail. */
   turnDeg: number;
-  /** Offset along the explicitly selected contact-side normal. */
-  normalOffsetPx: number;
-  /** Contact placement ahead of the sampled reference state. */
+  /** Offset from the named sled anchor, in that sled's own span units. */
+  normalOffsetSledSpans: number;
+  /** Anchor-forward placement in named-reference speed frames. */
   tangentFrames: number;
-  /** Incoming catch extent in observed-speed frame units. */
-  preFrames: number;
-  /** Outgoing support extent in observed-speed frame units. */
-  postFrames: number;
-  /** Which physical side of the directed support surface is collidable. */
+  /** Incoming catch extent in named-reference speed frames. */
+  approachFrames: number;
+  /** Collinear capture surface immediately after the target boundary. */
+  captureSurfaceFrames: number;
+  /** Fixed local construction extent, never an inferred support duration. */
+  phaseHorizonFrames: number;
+  /** Collidable side of every directed phase segment. */
   flipped: boolean;
 };
 
 export type RealizedTwoContactPhase = {
   lines: TrackLine[];
+  lineRoles: {
+    captureApproach: number;
+    captureSurface: number;
+    phaseTail: number[];
+  };
   contactPoint: { x: number; y: number };
   entryAngleDeg: number;
   exitAngleDeg: number;
   segmentCount: number;
+  anchor: {
+    point: string;
+    headingDeg: number;
+    speedPxPerFrame: number;
+    sledSpanPx: number;
+  };
+  com: {
+    headingDeg: number;
+    speedPxPerFrame: number;
+  };
 };
 
-const MAX_PHASE_LOOKBACK = 4;
-const MAX_POST_FRAMES = 24;
-
 /**
- * Fixed nine-control falsification stencil. It derives only a current-event
- * turn magnitude and an outgoing non-event interval intent. Both chiralities
- * are always represented; this avoids treating an unsigned impact magnitude
- * as a hidden global bend direction.
+ * Fixed twelve-row compact stencil: three causal observation phases crossed
+ * with both physical chiralities and neutral/directed phase tails.
  */
 export function makeCompactTwoContactControls(input: {
   currentImpact: number | undefined;
-  observedSpeed: number;
-  outgoing: TwoContactOutgoingIntent;
+  observedComSpeed: number;
 }): TwoContactPhaseControl[] {
-  const supportFrames = supportFramesForOutgoing(input.outgoing);
-  const turnMagnitude = characteristicTurnDeg(input.currentImpact, input.observedSpeed);
-  const phaseLookbacks = [0, 2, 4] as const;
+  const turnMagnitude = characteristicTurnDeg(input.currentImpact, input.observedComSpeed);
   const controls: TwoContactPhaseControl[] = [];
-
-  for (const sign of [-1, 1] as const) {
-    for (const phaseLookbackFrames of phaseLookbacks) {
-      controls.push({
-        phaseLookbackFrames,
-        approachDeltaDeg: sign * clamp(turnMagnitude * 0.35, 4, 18),
-        turnDeg: sign * turnMagnitude,
-        normalOffsetPx: sign * clamp(input.observedSpeed * 0.15, 1, 4),
-        tangentFrames: 1.5,
-        preFrames: 4,
-        postFrames: supportFrames,
-        flipped: sign < 0,
-      });
+  for (const phaseLookbackFrames of TWO_CONTACT_PHASE_PROTOCOL.compactPhaseLookbackFrames) {
+    for (const chirality of [-1, 1] as const) {
+      for (const tailAction of ["neutral", "directed"] as const) {
+        controls.push({
+          phaseLookbackFrames,
+          chirality,
+          tailAction,
+          approachDeltaDeg: chirality * clamp(turnMagnitude * 0.35, 4, 18),
+          turnDeg: tailAction === "neutral" ? 0 : chirality * turnMagnitude,
+          normalOffsetSledSpans: chirality * 0.35,
+          tangentFrames: TWO_CONTACT_PHASE_PROTOCOL.compactTangentFrames,
+          approachFrames: TWO_CONTACT_PHASE_PROTOCOL.compactApproachFrames,
+          captureSurfaceFrames: TWO_CONTACT_PHASE_PROTOCOL.captureSurfaceFrames,
+          phaseHorizonFrames: TWO_CONTACT_PHASE_PROTOCOL.fixedResponseHorizonFrames,
+          flipped: chirality < 0,
+        });
+      }
     }
-  }
-  for (const phaseLookbackFrames of phaseLookbacks) {
-    controls.push({
-      phaseLookbackFrames,
-      approachDeltaDeg: 0,
-      turnDeg: 0,
-      normalOffsetPx: 0,
-      tangentFrames: 1.5,
-      preFrames: 4,
-      postFrames: supportFrames,
-      flipped: false,
-    });
   }
   return controls;
 }
 
 /**
- * Broad diagnostic oracle. Its only role is to establish whether a compact
- * state-derived stencil is missing a reachable region. It is never a source
- * candidate family and no individual oracle row is selected by this module.
+ * Broad deterministic diagnostic screen. It is stratified by phase,
+ * chirality, and tail topology so a finite global quasi-random prefix cannot
+ * accidentally omit one physical arm. It is evidence of only the declared
+ * bounded region; it never selects a source control.
  */
-export function makeOracleTwoContactControls(
-  count: number,
-  outgoing: TwoContactOutgoingIntent,
-): TwoContactPhaseControl[] {
+export function makeOracleTwoContactControls(count = TWO_CONTACT_PHASE_PROTOCOL.oracleCount): TwoContactPhaseControl[] {
   if (!Number.isSafeInteger(count) || count < 1 || count > 16_384) {
     throw new Error(`oracle control count must be an integer in [1, 16384], got ${count}`);
   }
-  const maxPostFrames = maximumSupportFramesForOutgoing(outgoing);
-  return Array.from({ length: count }, (_, index) => ({
-    phaseLookbackFrames: Math.min(MAX_PHASE_LOOKBACK, Math.floor(halton(index + 1, 2) * (MAX_PHASE_LOOKBACK + 1))),
-    approachDeltaDeg: lerp(-55, 35, halton(index + 1, 3)),
-    turnDeg: lerp(-65, 35, halton(index + 1, 5)),
-    normalOffsetPx: lerp(-10, 22, halton(index + 1, 7)),
-    tangentFrames: lerp(-2, 2, halton(index + 1, 11)),
-    preFrames: lerp(1.5, 8, halton(index + 1, 13)),
-    postFrames: lerp(1.5, maxPostFrames, halton(index + 1, 17)),
-    flipped: halton(index + 1, 19) >= 0.5,
-  }));
+  const phaseSteps = TWO_CONTACT_PHASE_PROTOCOL.compactPhaseLookbackFrames;
+  const stratumCount = phaseSteps.length * 2 * 2;
+  return Array.from({ length: count }, (_, index) => {
+    const stratum = index % stratumCount;
+    const sequence = Math.floor(index / stratumCount) + 1;
+    const phaseLookbackFrames = phaseSteps[stratum % phaseSteps.length]!;
+    const chirality: -1 | 1 = Math.floor(stratum / phaseSteps.length) % 2 === 0 ? -1 : 1;
+    const tailAction: PhaseTailAction = Math.floor(stratum / (phaseSteps.length * 2)) === 0
+      ? "neutral"
+      : "directed";
+    return {
+      phaseLookbackFrames,
+      chirality,
+      tailAction,
+      approachDeltaDeg: chirality * lerp(
+        TWO_CONTACT_PHASE_PROTOCOL.oracleApproachDeltaDeg[0],
+        TWO_CONTACT_PHASE_PROTOCOL.oracleApproachDeltaDeg[1],
+        halton(sequence, 2),
+      ),
+      turnDeg: tailAction === "neutral"
+        ? 0
+        : chirality * lerp(
+          TWO_CONTACT_PHASE_PROTOCOL.oracleTurnDeg[0],
+          TWO_CONTACT_PHASE_PROTOCOL.oracleTurnDeg[1],
+          halton(sequence, 3),
+        ),
+      normalOffsetSledSpans: lerp(
+        TWO_CONTACT_PHASE_PROTOCOL.oracleNormalOffsetSledSpans[0],
+        TWO_CONTACT_PHASE_PROTOCOL.oracleNormalOffsetSledSpans[1],
+        halton(sequence, 5),
+      ),
+      tangentFrames: lerp(
+        TWO_CONTACT_PHASE_PROTOCOL.oracleTangentFrames[0],
+        TWO_CONTACT_PHASE_PROTOCOL.oracleTangentFrames[1],
+        halton(sequence, 7),
+      ),
+      approachFrames: lerp(
+        TWO_CONTACT_PHASE_PROTOCOL.oraclePreReachFrames[0],
+        TWO_CONTACT_PHASE_PROTOCOL.oraclePreReachFrames[1],
+        halton(sequence, 11),
+      ),
+      captureSurfaceFrames: TWO_CONTACT_PHASE_PROTOCOL.captureSurfaceFrames,
+      phaseHorizonFrames: TWO_CONTACT_PHASE_PROTOCOL.fixedResponseHorizonFrames,
+      flipped: chirality < 0,
+    };
+  });
 }
 
 /**
- * Realize a control in the observed reference frame. Segment count follows
- * angular and chord-length error bounds; it is never an elapsed-time bucket.
+ * Realize a control with a named sled point for placement and the rider CoM
+ * for collision-response heading. The phase tail has a fixed six-frame extent;
+ * it is intentionally not a surrogate for a full outgoing support duration.
  */
 export function realizeTwoContactPhase(
   state: PlanningState,
@@ -132,94 +181,113 @@ export function realizeTwoContactPhase(
   if (!Number.isSafeInteger(lineIdStart) || lineIdStart < 1) {
     throw new Error(`lineIdStart must be a positive integer, got ${lineIdStart}`);
   }
-  const speed = Math.max(1, state.speed);
-  const entryAngleDeg = state.velocityAngleDeg + control.approachDeltaDeg;
-  const entryAngle = toRadians(entryAngleDeg);
-  const tangent = { x: Math.cos(entryAngle), y: Math.sin(entryAngle) };
-  const normal = { x: -tangent.y, y: tangent.x };
+  const anchor = targetFrameFromPlanningState(state);
+  const kinematic = contactKinematicFrameFromPlanningState(state, anchor, {});
+  const entryAngleDeg = kinematic.com.headingDeg + control.approachDeltaDeg;
+  const anchorTangent = unit(anchor.headingDeg);
+  const entryTangent = unit(entryAngleDeg);
+  const entryNormal = leftNormal(entryTangent);
   const contactPoint = {
-    x: state.reference.x + tangent.x * speed * control.tangentFrames + normal.x * control.normalOffsetPx,
-    y: state.reference.y + tangent.y * speed * control.tangentFrames + normal.y * control.normalOffsetPx,
+    x: anchor.reference.x + anchorTangent.x * anchor.speedPxPerFrame * control.tangentFrames +
+      entryNormal.x * anchor.sledSpanPx * control.normalOffsetSledSpans,
+    y: anchor.reference.y + anchorTangent.y * anchor.speedPxPerFrame * control.tangentFrames +
+      entryNormal.y * anchor.sledSpanPx * control.normalOffsetSledSpans,
   };
-  const entryPoint = {
-    x: contactPoint.x - tangent.x * speed * control.preFrames,
-    y: contactPoint.y - tangent.y * speed * control.preFrames,
+  const approachPoint = {
+    x: contactPoint.x - entryTangent.x * anchor.speedPxPerFrame * control.approachFrames,
+    y: contactPoint.y - entryTangent.y * anchor.speedPxPerFrame * control.approachFrames,
   };
-  const lines: TrackLine[] = [solidLine(lineIdStart, entryPoint, contactPoint, control.flipped)];
-  const postLength = speed * control.postFrames;
-  const segmentCount = Math.max(
-    1,
+  const captureSurfaceEnd = {
+    x: contactPoint.x + entryTangent.x * anchor.speedPxPerFrame * control.captureSurfaceFrames,
+    y: contactPoint.y + entryTangent.y * anchor.speedPxPerFrame * control.captureSurfaceFrames,
+  };
+  const lines: TrackLine[] = [
+    solidLine(lineIdStart, approachPoint, contactPoint, control.flipped),
+    solidLine(lineIdStart + 1, contactPoint, captureSurfaceEnd, control.flipped),
+  ];
+
+  const tailFrames = control.phaseHorizonFrames - control.captureSurfaceFrames;
+  const tailLength = anchor.speedPxPerFrame * tailFrames;
+  const tailSegments = Math.max(
+    Math.abs(control.turnDeg) > 1e-12 ? 2 : 1,
     Math.ceil(Math.abs(control.turnDeg) / 5),
-    Math.ceil(postLength / Math.max(16, speed * 2)),
+    Math.ceil(tailLength / Math.max(16, anchor.speedPxPerFrame * 2)),
   );
-  const segmentLength = postLength / segmentCount;
-  let point = contactPoint;
-  for (let index = 0; index < segmentCount; index++) {
-    const progress = segmentCount === 1 ? 1 : index / (segmentCount - 1);
-    const angle = toRadians(entryAngleDeg + control.turnDeg * progress);
+  const tailSegmentLength = tailLength / tailSegments;
+  let point = captureSurfaceEnd;
+  for (let index = 0; index < tailSegments; index++) {
+    const progress = tailSegments === 1 ? 0 : index / (tailSegments - 1);
+    const tangent = unit(entryAngleDeg + control.turnDeg * progress);
     const next = {
-      x: point.x + Math.cos(angle) * segmentLength,
-      y: point.y + Math.sin(angle) * segmentLength,
+      x: point.x + tangent.x * tailSegmentLength,
+      y: point.y + tangent.y * tailSegmentLength,
     };
     lines.push(solidLine(lineIdStart + lines.length, point, next, control.flipped));
     point = next;
   }
   return {
     lines,
+    lineRoles: {
+      captureApproach: lines[0]!.id,
+      captureSurface: lines[1]!.id,
+      phaseTail: lines.slice(2).map((line) => line.id),
+    },
     contactPoint,
     entryAngleDeg,
     exitAngleDeg: entryAngleDeg + control.turnDeg,
-    segmentCount,
+    segmentCount: tailSegments,
+    anchor: {
+      point: anchor.anchorPoint,
+      headingDeg: anchor.headingDeg,
+      speedPxPerFrame: anchor.speedPxPerFrame,
+      sledSpanPx: anchor.sledSpanPx,
+    },
+    com: { ...kinematic.com },
   };
 }
 
-export function supportFramesForOutgoing(outgoing: TwoContactOutgoingIntent): number {
-  const maximum = maximumSupportFramesForOutgoing(outgoing);
-  // An undefined air axis leaves no target residual. The compact local stencil
-  // uses a bounded duration-only physical prior instead of silently treating
-  // undefined as an authored 0.5 air request.
-  const intendedSupport = outgoing.air === undefined
-    ? Math.min(6, Math.max(0.25, outgoing.intervalFrames * 0.25))
-    : outgoing.intervalFrames - clamp(outgoing.air, 0, 1) * outgoing.intervalFrames;
-  return clamp(intendedSupport, 0.25, maximum);
-}
-
-export function maximumSupportFramesForOutgoing(outgoing: TwoContactOutgoingIntent): number {
-  if (!Number.isSafeInteger(outgoing.intervalFrames) || outgoing.intervalFrames < 1) {
-    throw new Error(`outgoing intervalFrames must be a positive integer, got ${outgoing.intervalFrames}`);
-  }
-  const minimumFlight = Math.min(outgoing.intervalFrames, MIN_LANDING_AIRBORNE_FRAMES);
-  return Math.max(0.25, Math.min(MAX_POST_FRAMES, outgoing.intervalFrames - minimumFlight));
-}
-
 function characteristicTurnDeg(currentImpact: number | undefined, speed: number): number {
+  if (!Number.isFinite(speed) || speed <= 0) throw new Error(`observedComSpeed must be positive and finite, got ${speed}`);
   if (currentImpact === undefined) return 12;
   const redirection = impactToRedirArcPx(clamp(currentImpact, 0, 1));
   const radians = Math.min(
-    redirection / Math.max(1, speed),
+    redirection / speed,
     Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
   );
   return clamp(toDegrees(radians), 8, 52);
 }
 
 function assertControl(control: TwoContactPhaseControl): void {
-  if (!Number.isSafeInteger(control.phaseLookbackFrames) ||
-      control.phaseLookbackFrames < 0 || control.phaseLookbackFrames > MAX_PHASE_LOOKBACK) {
-    throw new Error(`phaseLookbackFrames must be an integer in [0, ${MAX_PHASE_LOOKBACK}]`);
+  if (!TWO_CONTACT_PHASE_PROTOCOL.compactPhaseLookbackFrames.includes(
+    control.phaseLookbackFrames as (typeof TWO_CONTACT_PHASE_PROTOCOL.compactPhaseLookbackFrames)[number],
+  )) {
+    throw new Error(`phaseLookbackFrames must be one of ${TWO_CONTACT_PHASE_PROTOCOL.compactPhaseLookbackFrames.join(", ")}`);
   }
-  const ranges: Array<[keyof TwoContactPhaseControl, number, number]> = [
+  if (control.chirality !== -1 && control.chirality !== 1) throw new Error("chirality must be -1 or 1");
+  if (control.tailAction !== "neutral" && control.tailAction !== "directed") {
+    throw new Error("tailAction must be neutral or directed");
+  }
+  const ranges: Array<[string, number, number]> = [
     ["approachDeltaDeg", -90, 90],
     ["turnDeg", -90, 90],
-    ["normalOffsetPx", -40, 40],
+    ["normalOffsetSledSpans", -4, 4],
     ["tangentFrames", -4, 4],
-    ["preFrames", 0.25, 12],
-    ["postFrames", 0.25, MAX_POST_FRAMES],
+    ["approachFrames", 0.25, 12],
   ];
   for (const [name, lo, hi] of ranges) {
-    const value = control[name];
+    const value = control[name as keyof TwoContactPhaseControl];
     if (typeof value !== "number" || !Number.isFinite(value) || value < lo || value > hi) {
       throw new Error(`${name} must be finite and in [${lo}, ${hi}]`);
     }
+  }
+  if (control.captureSurfaceFrames !== TWO_CONTACT_PHASE_PROTOCOL.captureSurfaceFrames) {
+    throw new Error(`captureSurfaceFrames must equal ${TWO_CONTACT_PHASE_PROTOCOL.captureSurfaceFrames}`);
+  }
+  if (control.phaseHorizonFrames !== TWO_CONTACT_PHASE_PROTOCOL.fixedResponseHorizonFrames) {
+    throw new Error(`phaseHorizonFrames must equal ${TWO_CONTACT_PHASE_PROTOCOL.fixedResponseHorizonFrames}`);
+  }
+  if (control.tailAction === "neutral" && Math.abs(control.turnDeg) > 1e-12) {
+    throw new Error("neutral tailAction requires turnDeg = 0");
   }
 }
 
@@ -242,6 +310,15 @@ function solidLine(
   };
 }
 
+function unit(angleDeg: number): { x: number; y: number } {
+  const radians = angleDeg * Math.PI / 180;
+  return { x: Math.cos(radians), y: Math.sin(radians) };
+}
+
+function leftNormal(value: { x: number; y: number }): { x: number; y: number } {
+  return { x: -value.y, y: value.x };
+}
+
 function halton(index: number, base: number): number {
   let value = 0;
   let fraction = 1 / base;
@@ -254,18 +331,14 @@ function halton(index: number, base: number): number {
   return value;
 }
 
+function lerp(left: number, right: number, t: number): number {
+  return left + (right - left) * t;
+}
+
 function clamp(value: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, value));
 }
 
-function lerp(lo: number, hi: number, t: number): number {
-  return lo + (hi - lo) * t;
-}
-
-function toRadians(value: number): number {
-  return value * Math.PI / 180;
-}
-
-function toDegrees(value: number): number {
-  return value * 180 / Math.PI;
+function toDegrees(radians: number): number {
+  return radians * 180 / Math.PI;
 }

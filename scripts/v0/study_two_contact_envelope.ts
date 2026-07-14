@@ -1,48 +1,67 @@
 /**
- * Sealed observation-only two-contact feasibility assay.
+ * Sealed fixed-horizon contact-phase assay.
  *
- * It compares a fixed compact state-derived stencil against a broad diagnostic
- * oracle. Both construct only from the current event and the outgoing
- * non-event interval. The next contact is an exact replay endpoint, never an
- * input to construction or an outcome-derived selection rule.
+ * This is intentionally narrower than the retired v1 "bridge" read. It
+ * constructs a bounded phase only from the physical prefix and current event,
+ * then replays it through the known next *time boundary*. It does not generate,
+ * rank, or claim a next-contact candidate. Long low-air carrier behavior is a
+ * separate duration-aware question and is deliberately out of scope here.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { basename, dirname, relative, resolve } from "node:path";
 import believer from "../../benchmark/v2/cases/normative/development_music/believer_56_6s.ts";
 import dense from "../../benchmark/v2/cases/normative/capability/frontier_dense_recovery.ts";
-import frontier5 from "../../benchmark/v2/cases/normative/capability/frontier_low_air_endurance.ts";
 import countercurrent from "../../benchmark/v2/cases/normative/representative/countercurrent.ts";
 import dense240 from "../../benchmark/v2/cases/variants/capability/frontier_dense_recovery_240ms_figures.ts";
-import frontier7 from "../../benchmark/v2/cases/variants/capability/frontier_low_air_endurance_7s.ts";
 import pickupShifted from "../../benchmark/v2/cases/variants/capability/frontier_pickup_progression_shifted.ts";
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
-import { MIN_LANDING_AIRBORNE_FRAMES } from "../lib/detector.ts";
-import { snapshotArcPlacementStats } from "./arc_placement.ts";
+import { MIN_LANDING_AIRBORNE_FRAMES, PERSISTENCE_FRAMES } from "../lib/detector.ts";
+import { hasPreTargetSledProximityFromTrace, type PreTargetSledTrace } from "./arc_placement.ts";
 import {
   assertCompilerSourcesCommitted,
   compilerCandidateIdentity,
 } from "./benchmark_v2/compiler_identity.ts";
-import { fingerprintFiles } from "./benchmark_v2/suite_model.ts";
-import { axisLookaheadEndFrame, detectWindow, tryCandidateLines } from "./core/candidate.ts";
-import { airborneAt } from "./core/substrate.ts";
-import { extendNodeCached, getCandidatesSorted, type SearchNode } from "./optimizer/node.ts";
-import type { Candidate, SpecContext } from "./optimizer/sample.ts";
-import type { AxisValues, Gap, TrackLine } from "./types.ts";
+import { detectWindow } from "./core/candidate.ts";
+import {
+  airborneAt,
+  contactLineIdsAt,
+  engineLineFromTrackLine,
+  measurementLastFrame,
+  offBeatLandingEvents,
+  positionAt,
+  speedAt,
+  velocityAt,
+} from "./core/substrate.ts";
+import { IMPACT_WINDOW, type Gap, type TrackLine } from "./types.ts";
 import {
   buildTrajectoryCaptureSetup,
   materializeTrajectoryCaptureInput,
   type TrajectoryCaptureCase,
 } from "./trajectory/capture_input.ts";
+import { observeOwnedContactTransition } from "./trajectory/contact_observation.ts";
 import { prepareTrajectoryPrefix, TrajectoryPrefixUnavailableError } from "./trajectory/prefix_capture_core.ts";
 import { sha256, stableJson } from "./trajectory/postimpact_study_inputs.ts";
+import {
+  allocateStudyArtifactPath,
+  assertStudyArtifactPathUnused,
+  forensicDriftArtifactPath,
+  studyArtifactIdentity,
+  studySourceIdentity,
+  writeStudyArtifact,
+} from "./trajectory/study_artifact.ts";
 import { rebuildPhysicalPrefixEngine } from "./trajectory/study_fixture.ts";
+import {
+  engineCollisionHitsForLineIds,
+  exactEngineStateTraceFingerprint,
+  survivesThroughFrame,
+} from "./trajectory/study_trace.ts";
 import { extractPlanningState, type PlanningState } from "./trajectory/state.ts";
 import {
+  TWO_CONTACT_PHASE_PROTOCOL,
   makeCompactTwoContactControls,
   makeOracleTwoContactControls,
   realizeTwoContactPhase,
-  type TwoContactOutgoingIntent,
   type TwoContactPhaseControl,
 } from "./trajectory/two_contact_phase.ts";
 
@@ -52,17 +71,20 @@ const argument = (name: string): string | undefined =>
 
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: study_two_contact_envelope.ts --out=FILE [--case=all|ID] [--budget=500000]",
-    "       [--oracle-controls=1024] [--next-pool=32]",
+    "Usage: study_two_contact_envelope.ts --out=FILE [--case=all|ID]",
     "",
-    "Runs a sealed observation-only exact-replay assay. It requires a clean committed",
-    "compiler tree, LR_ENGINE=wasm only, and an evidence path outside the repository.",
-    "It does not score, rank, select, resume a suffix, or alter compiler behavior.",
+    "Runs the sealed fixed-horizon phase-response assay at its preregistered",
+    "500k prefix budget. It constructs no continuation and writes immutable",
+    "evidence outside the repository.",
   ].join("\n") + "\n");
   process.exit(0);
 }
 
-type ScenarioKind = "dense" | "pickup" | "ordinary" | "low_air" | "impact_led";
+const CAPTURE_BUDGET = 500_000;
+const CURRENT_RESPONSE_HORIZON = Math.max(PERSISTENCE_FRAMES, IMPACT_WINDOW);
+const ORACLE_CONTROL_COUNT = TWO_CONTACT_PHASE_PROTOCOL.oracleCount;
+
+type ScenarioKind = "dense" | "pickup" | "ordinary" | "impact_led";
 type Scenario = {
   id: string;
   kind: ScenarioKind;
@@ -127,51 +149,6 @@ const scenarios: readonly Scenario[] = [
     },
   },
   {
-    id: "frontier3",
-    kind: "low_air",
-    capture: {
-      id: "two_contact_frontier3",
-      cohort: "calibration",
-      category: "low_air",
-      spec: frontier5,
-      sourcePath: "benchmark/v2/cases/normative/capability/frontier_low_air_endurance.ts",
-      seed: 24,
-      targetGap: 32,
-      expectedOutgoingFrames: 120,
-      selectionRationale: "Three-second member of the low-air duration family; diagnostic only, never separately weighted.",
-    },
-  },
-  {
-    id: "frontier5",
-    kind: "low_air",
-    capture: {
-      id: "two_contact_frontier5",
-      cohort: "calibration",
-      category: "low_air",
-      spec: frontier5,
-      sourcePath: "benchmark/v2/cases/normative/capability/frontier_low_air_endurance.ts",
-      seed: 24,
-      targetGap: 54,
-      expectedOutgoingFrames: 200,
-      selectionRationale: "Five-second low-air parent; a duration diagnostic, not a five-second policy target.",
-    },
-  },
-  {
-    id: "frontier7",
-    kind: "low_air",
-    capture: {
-      id: "two_contact_frontier7",
-      cohort: "calibration",
-      category: "low_air",
-      spec: frontier7,
-      sourcePath: "benchmark/v2/cases/variants/capability/frontier_low_air_endurance_7s.ts",
-      seed: 24,
-      targetGap: 54,
-      expectedOutgoingFrames: 280,
-      selectionRationale: "Seven-second low-air variant; retained as a correlated duration diagnostic only.",
-    },
-  },
-  {
     id: "impact_led",
     kind: "impact_led",
     capture: {
@@ -182,44 +159,95 @@ const scenarios: readonly Scenario[] = [
       sourcePath: "benchmark/v2/cases/normative/development_music/believer_56_6s.ts",
       seed: 24,
       targetGap: 72,
-      selectionRationale: "Predeclared high-impact music boundary; no local impact score is used for selection.",
+      selectionRationale: "Predeclared high-impact music boundary; no local score is used for selection.",
     },
   },
 ];
 
-const STUDY_SOURCE_FILES = [
-  "scripts/v0/study_two_contact_envelope.ts",
-  "scripts/v0/trajectory/two_contact_phase.ts",
-  "scripts/v0/trajectory/capture_input.ts",
-  "scripts/v0/trajectory/prefix_capture_core.ts",
-  "scripts/v0/trajectory/study_fixture.ts",
-  "scripts/v0/trajectory/state.ts",
-  "scripts/v0/trajectory/postimpact_study_inputs.ts",
-  "scripts/v0/core/candidate.ts",
-  "scripts/v0/core/substrate.ts",
-  "scripts/v0/optimizer/node.ts",
-  "scripts/v0/optimizer/sample.ts",
-  "scripts/v0/optimizer/handoff.ts",
-  "scripts/v0/optimizer/objective.ts",
-  "scripts/v0/arc_placement.ts",
-  "scripts/v0/types.ts",
-  "scripts/v0/benchmark_v2/compiler_identity.ts",
-  "scripts/v0/benchmark_v2/suite_model.ts",
-  "benchmark/v2/policy.ts",
-  ...scenarios.map((scenario) => scenario.capture.sourcePath),
-] as const;
+type LocalOutcome = {
+  structurallyValid: boolean;
+  closureEndFrame: number;
+  complete: boolean;
+  selectedOwnedEvent: unknown;
+  persistenceWindowComplete: boolean;
+  responseWindowComplete: boolean;
+  confirmedOffBeatLandingFrames: number[];
+  unresolvedTailOffBeatLandingFrames: number[];
+};
+
+type OutgoingObservation = {
+  knownTimeBoundaryFrame: number;
+  observationEndFrame: number;
+  complete: boolean;
+  measurementLastFrame: number;
+  intervalFrames: number;
+  airborneFrames: number | null;
+  groundedFrames: number | null;
+  airFraction: number | null;
+  lastGroundedFrame: number | null;
+  trailingAirborneFramesAtBoundary: number | null;
+  requiredDetectorRunwayFrames: number;
+  detectorRunwayResidualFrames: number | null;
+  boundaryPhaseLineIds: number[];
+  phaseCollisionFrames: number[];
+  terminalStateAtBoundary: ReturnType<typeof summarizeDetectionState>;
+  confirmedOffBeatLandingFrames: number[];
+  unresolvedTailOffBeatLandingFrames: number[];
+};
+
+type FamilyRow = {
+  index: number;
+  status: "observed" | "error";
+  error: string | null;
+  control: ReturnType<typeof roundControl>;
+  realized: ReturnType<typeof summarizeRealized> | null;
+  preTarget: {
+    sledProximity: boolean;
+    traceMatchesPrefix: boolean;
+    trace: ReturnType<typeof exactEngineStateTraceFingerprint> | null;
+    collisions: Array<{ frame: number; lineId: number; pointIds: string[] }>;
+  } | null;
+  local: LocalOutcome | null;
+  outgoing: OutgoingObservation | null;
+  elapsedMs: number;
+};
+
+type FamilyResult = {
+  rows: FamilyRow[];
+  summary: {
+    attempted: number;
+    observed: number;
+    localStructuralValid: number;
+    completeOutgoingObservation: number;
+    detectorRunwayReadyAtBoundary: number;
+    errors: number;
+  };
+};
+
+type ScenarioResult =
+  | {
+    id: string;
+    kind: ScenarioKind;
+    status: "available";
+    capture: ReturnType<typeof summarizeCapture>;
+    currentState: ReturnType<typeof summarizeState>;
+    compact: FamilyResult;
+    oracle: FamilyResult;
+  }
+  | {
+    id: string;
+    kind: ScenarioKind;
+    status: "unavailable";
+    code: string;
+    message: string;
+  };
 
 const outputPath = requiredPath("out");
 const requestedCase = argument("case") ?? "all";
-const budget = positiveInteger("budget", 500_000);
-const oracleControls = positiveInteger("oracle-controls", 1_024);
-const nextPool = positiveInteger("next-pool", 32);
 assertNoUnknownOptions();
 assertExactEnvironment();
 assertExternalEvidencePath(outputPath);
-assertStudySourcesCommitted(STUDY_SOURCE_FILES);
-assertCompilerSourcesCommitted();
-if (existsSync(outputPath)) throw new Error(`evidence path already exists and is immutable: ${outputPath}`);
+assertStudyArtifactPathUnused(outputPath);
 
 const selected = requestedCase === "all"
   ? scenarios
@@ -228,249 +256,377 @@ if (selected.length !== 1 && requestedCase !== "all") {
   throw new Error(`unknown --case=${requestedCase}; expected all or ${scenarios.map((scenario) => scenario.id).join("|")}`);
 }
 
-const compiler = compilerCandidateIdentity("wasm");
-const studySourceFingerprint = fingerprintFiles(STUDY_SOURCE_FILES);
+const sourceIdentityAtStart = studySourceIdentity("scripts/v0/study_two_contact_envelope.ts");
+assertStudySourcesCommitted(sourceIdentityAtStart.sourceFiles);
+assertCompilerSourcesCommitted();
+const compilerAtStart = compilerCandidateIdentity("wasm");
+const panelFingerprint = sha256(stableJson({
+  transform: benchmarkPolicy.transform,
+  scenarios: scenarios.map((scenario) => ({
+    id: scenario.id,
+    sourcePath: scenario.capture.sourcePath,
+    seed: scenario.capture.seed,
+    targetGap: scenario.capture.targetGap,
+  })),
+}));
+const selectedPanelFingerprint = sha256(stableJson({
+  requestedCase,
+  scenarios: selected.map((scenario) => ({
+    id: scenario.id,
+    sourcePath: scenario.capture.sourcePath,
+    seed: scenario.capture.seed,
+    targetGap: scenario.capture.targetGap,
+  })),
+}));
+const protocolFingerprint = sha256(stableJson({
+  protocol: "causal-fixed-horizon-phase-response.v2",
+  captureBudget: CAPTURE_BUDGET,
+  phase: TWO_CONTACT_PHASE_PROTOCOL,
+  oracleControlCount: ORACLE_CONTROL_COUNT,
+  currentResponseHorizon: CURRENT_RESPONSE_HORIZON,
+  endpoint: "known next time boundary only; no continuation generation, scoring, or selection",
+  preTargetGuards: ["full_engine_trace", "all_body_collision", "sled_proximity"],
+  localGuards: ["owned_capture_roles", "persistence", "impact_window", "survival", "no_confirmed_or_unresolved_offbeat"],
+  outgoingReporting: ["exact occupancy", "trailing airborne run", "phase collisions", "terminal state"],
+}));
+const artifactIdentity = studyArtifactIdentity({
+  schema: "line.study-causal-contact-phase-response.v2",
+  fixtureFingerprint: selectedPanelFingerprint,
+  studySourceFingerprint: sourceIdentityAtStart.studySourceFingerprint,
+  observationCandidateFingerprint: compilerAtStart.candidateFingerprint,
+  protocolFingerprint,
+});
+
 const started = performance.now();
 const results = selected.map((scenario) => runScenario(scenario));
+const sourceIdentityAtEnd = studySourceIdentity("scripts/v0/study_two_contact_envelope.ts");
+const compilerAtEnd = compilerCandidateIdentity("wasm");
+const identityStable = sourceIdentityAtStart.studySourceFingerprint === sourceIdentityAtEnd.studySourceFingerprint &&
+  compilerAtStart.candidateFingerprint === compilerAtEnd.candidateFingerprint;
+const rowErrors = results.reduce((sum, result) => result.status === "available"
+  ? sum + result.compact.summary.errors + result.oracle.summary.errors
+  : sum, 0);
+const protocolStatus = !identityStable
+  ? "invalid_identity_drift"
+  : rowErrors > 0
+  ? "invalid_runtime_error"
+  : "complete";
 const document = {
-  schema: "line.study-two-contact-envelope.v1",
+  schema: "line.study-causal-contact-phase-response.v2",
+  artifactIdentity,
   purpose: [
-    "Falsify whether a fixed compact state-derived capture/release stencil reaches two-contact feasibility across a mixed physical panel.",
-    "Compare it with a broad diagnostic oracle without selecting oracle controls or turning any local proxy into a compiler objective.",
-    "Retain unavailable prefixes and every exact rejection; no headline, score, suffix, or promotion result is produced.",
+    "Falsify whether a fixed current-event phase stencil can close a local owned contact without using later-contact information.",
+    "Replay the realized local geometry through the known next time boundary and report descriptive occupancy/release telemetry only.",
+    "Retain every compact and oracle row; no control, candidate, continuation, score, headline, or promotion result is selected here.",
   ],
-  protocol: {
-    engine: "wasm",
-    relevantEnvironment: { LR_ENGINE: "wasm" },
-    captureBudget: budget,
-    nextPool,
-    compactControls: 9,
-    oracleControls,
-    currentConstructionInputs: ["current impact", "observed pre-contact state", "outgoing interval length", "outgoing air/speed/amplitude when authored"],
-    excludedConstructionInputs: ["next impact", "later contacts", "case id", "seed", "candidate score", "oracle outcomes"],
-    endpoint: "current exact admission plus detector runway and at least one exact ordinary next-contact candidate",
+  status: {
+    protocolStatus,
+    executionComplete: identityStable && rowErrors === 0,
+    claimEligibility: !identityStable
+      ? "invalid: source or observed compiler identity changed during replay"
+      : rowErrors > 0
+      ? "invalid: one or more rows raised an unexpected runtime error"
+      : "descriptive bounded-contact evidence only; not continuation or long-carrier evidence",
+    retiredV1: "line.study-two-contact-envelope.v1 is superseded and its prior smoke result is non-evidence due to noncausal endpoint and false-node defects.",
   },
-  identity: {
-    head: compiler.head,
-    candidateFingerprint: compiler.candidateFingerprint,
-    compilerSourceFingerprint: compiler.compilerSourceFingerprint,
-    engineArtifactFingerprint: compiler.engineArtifactFingerprint,
-    studySourceFingerprint,
+  protocol: {
+    captureBudget: CAPTURE_BUDGET,
+    phase: TWO_CONTACT_PHASE_PROTOCOL,
+    oracleControlCount: ORACLE_CONTROL_COUNT,
+    currentConstructionInputs: ["physical prefix", "pre-contact planning state", "current impact ask", "predeclared control"],
+    excludedConstructionInputs: ["outgoing duration", "outgoing axes", "next impact", "later contacts", "case id", "seed", "candidate score", "oracle outcomes"],
+    endpoint: "The next contact time is used only after geometry is fixed as a detector observation boundary.",
+    nonClaims: [
+      "No row is a compiler candidate or a two-contact bridge witness.",
+      "No outgoing air, speed, amplitude, elevation, impact, or long-carrier target is used or scored.",
+      "The 3/4/5/6/7-second low-air ladder is excluded because a six-frame local phase cannot represent a duration-aware carrier.",
+    ],
+  },
+  argv: [...argv],
+  elapsedMs: round(performance.now() - started),
+  provenance: {
+    panelFingerprint,
+    selectedPanelFingerprint,
+    selectedScenarioIds: selected.map((scenario) => scenario.id),
     transform: benchmarkPolicy.transform,
     transformFingerprint: sha256(stableJson(benchmarkPolicy.transform)),
+    runtime: { node: process.version, engine: "wasm" },
+    studySourceFiles: sourceIdentityAtStart.sourceFiles,
+    observationCompiler: compilerAtStart,
   },
-  elapsedMs: round(performance.now() - started),
+  identityCheck: {
+    stable: identityStable,
+    studySourceFingerprintAtStart: sourceIdentityAtStart.studySourceFingerprint,
+    studySourceFingerprintAtEnd: sourceIdentityAtEnd.studySourceFingerprint,
+    observationCandidateFingerprintAtStart: compilerAtStart.candidateFingerprint,
+    observationCandidateFingerprintAtEnd: compilerAtEnd.candidateFingerprint,
+  },
   results,
 };
-mkdirSync(dirname(outputPath), { recursive: true });
-writeFileSync(outputPath, `${JSON.stringify(document, null, 2)}\n`, { flag: "wx" });
+const destination = identityStable
+  ? outputPath
+  : allocateStudyArtifactPath(forensicDriftArtifactPath(
+    outputPath,
+    sourceIdentityAtEnd.studySourceFingerprint,
+    compilerAtEnd.candidateFingerprint,
+  ));
+writeStudyArtifact(destination, document);
 process.stdout.write(formatSummary(document) + "\n");
+if (!identityStable || rowErrors > 0) process.exitCode = 2;
 
-function runScenario(scenario: Scenario) {
+function runScenario(scenario: Scenario): ScenarioResult {
   const setup = buildTrajectoryCaptureSetup(scenario.capture, benchmarkPolicy.transform);
   try {
-    const prepared = prepareTrajectoryPrefix(scenario.capture, setup, budget);
-    const baseEngine = rebuildPhysicalPrefixEngine(prepared.physicalPrefix);
-    const initialState = requireState(baseEngine, prepared.current.endFrame, `${scenario.id} current target`);
-    const outgoing = outgoingIntent(prepared.outgoing);
-    const compactControls = makeCompactTwoContactControls({
-      currentImpact: prepared.current.targets.impact,
-      observedSpeed: initialState.speed,
-      outgoing,
-    });
-    const oracle = makeOracleTwoContactControls(oracleControls, outgoing);
-    const context: SpecContext = {
-      allContactFrames: setup.allContactFrames,
-      durationFrames: setup.durationFrames,
-      gapAxisTargets: setup.gapAxisTargets,
-    };
-    const root = exactPrefixSearchNode(baseEngine, prepared.current, prepared.physicalPrefix);
-    const compact = evaluateFamily("compact", compactControls, root, prepared.current, prepared.outgoing, context, setup.gaps, scenario.capture.seed, prepared.preTargetSledTrace);
-    const broad = evaluateFamily("oracle", oracle, root, prepared.current, prepared.outgoing, context, setup.gaps, scenario.capture.seed, prepared.preTargetSledTrace);
+    const prepared = prepareTrajectoryPrefix(scenario.capture, setup, CAPTURE_BUDGET);
+    const prefixEngine = rebuildPhysicalPrefixEngine(prepared.physicalPrefix);
+    const currentState = requireState(prefixEngine, prepared.current.endFrame, `${scenario.id} current target`);
+    const prefixTrace = exactEngineStateTraceFingerprint(prefixEngine, 0, prepared.current.startFrame - 1);
+    const compact = evaluateFamily(
+      makeCompactTwoContactControls({
+        currentImpact: prepared.current.targets.impact,
+        observedComSpeed: currentState.speed,
+      }),
+      prefixEngine,
+      prefixTrace,
+      prepared.current,
+      prepared.outgoing,
+      prepared.physicalPrefix.prefixNextLineId,
+      prepared.preTargetSledTrace,
+      setup.allContactFrames,
+    );
+    const oracle = evaluateFamily(
+      makeOracleTwoContactControls(ORACLE_CONTROL_COUNT),
+      prefixEngine,
+      prefixTrace,
+      prepared.current,
+      prepared.outgoing,
+      prepared.physicalPrefix.prefixNextLineId,
+      prepared.preTargetSledTrace,
+      setup.allContactFrames,
+    );
     return {
       id: scenario.id,
       kind: scenario.kind,
-      status: "available" as const,
+      status: "available",
       capture: summarizeCapture(scenario.capture, prepared, setup),
-      currentState: summarizeState(initialState),
-      outgoingIntent: outgoing,
+      currentState: summarizeState(currentState),
       compact,
-      oracle: broad,
-      interpretation: {
-        compactMatchesOracleBridge: compact.summary.bridging > 0 && broad.summary.bridging > 0,
-        oracleOnlyReachability: compact.summary.bridging === 0 && broad.summary.bridging > 0,
-        noObservedOracleBridge: broad.summary.bridging === 0,
-      },
+      oracle,
     };
   } catch (error) {
     if (error instanceof TrajectoryPrefixUnavailableError) {
-      return {
-        id: scenario.id,
-        kind: scenario.kind,
-        status: "unavailable" as const,
-        code: error.code,
-        message: error.message,
-      };
+      return { id: scenario.id, kind: scenario.kind, status: "unavailable", code: error.code, message: error.message };
     }
     throw error;
   }
 }
 
 function evaluateFamily(
-  family: "compact" | "oracle",
   controls: readonly TwoContactPhaseControl[],
-  root: SearchNode,
+  prefixEngine: any,
+  prefixTrace: ReturnType<typeof exactEngineStateTraceFingerprint>,
   current: Gap,
   outgoing: Gap,
-  context: SpecContext,
-  gaps: readonly Gap[],
-  seed: number,
-  preTargetSledTrace: readonly number[],
-) {
+  lineIdStart: number,
+  preTargetSledTrace: PreTargetSledTrace,
+  allContactFrames: readonly number[],
+): FamilyResult {
   const rows = controls.map((control, index) => evaluateControl({
-    family,
     index,
     control,
-    root,
+    prefixEngine,
+    prefixTrace,
     current,
     outgoing,
-    context,
-    gaps,
-    seed,
+    lineIdStart,
     preTargetSledTrace,
+    allContactFrames,
   }));
-  return {
-    controls: rows,
-    summary: summarizeRows(rows),
-  };
+  return { rows, summary: summarizeRows(rows) };
 }
 
 function evaluateControl(input: {
-  family: "compact" | "oracle";
   index: number;
   control: TwoContactPhaseControl;
-  root: SearchNode;
+  prefixEngine: any;
+  prefixTrace: ReturnType<typeof exactEngineStateTraceFingerprint>;
   current: Gap;
   outgoing: Gap;
-  context: SpecContext;
-  gaps: readonly Gap[];
-  seed: number;
-  preTargetSledTrace: readonly number[];
-}) {
-  const state = requireState(
-    input.root.prefixEngine,
-    input.current.endFrame - input.control.phaseLookbackFrames,
-    `${input.family}[${input.index}] placement state`,
-  );
-  const realized = realizeTwoContactPhase(state, input.control, input.root.prefixNextLineId);
-  const before = snapshotArcPlacementStats().by_sample_mode.normal;
-  const fit = tryCandidateLines(
-    input.root.prefixEngine,
-    input.current,
-    realized.lines,
-    input.root.prefixNextLineId,
-    input.context.allContactFrames,
-    axisLookaheadEndFrame(input.current, input.context.allContactFrames),
-    input.current.targets,
-    true,
-    "normal",
-    () => [...input.preTargetSledTrace],
-  ) as Candidate | null;
-  const after = snapshotArcPlacementStats().by_sample_mode.normal;
-  if (fit === null) {
+  lineIdStart: number;
+  preTargetSledTrace: PreTargetSledTrace;
+  allContactFrames: readonly number[];
+}): FamilyRow {
+  const started = performance.now();
+  try {
+    const state = requireState(
+      input.prefixEngine,
+      input.current.endFrame - input.control.phaseLookbackFrames,
+      `phase[${input.index}] placement state`,
+    );
+    const realized = realizeTwoContactPhase(state, input.control, input.lineIdStart);
+    const allPhaseLineIds = new Set(realized.lines.map((line) => line.id));
+    const sledProximity = hasPreTargetSledProximityFromTrace(input.preTargetSledTrace, realized.lines);
+    const candidateEngine = input.prefixEngine.addLine(realized.lines.map((line) => engineLineFromTrackLine(line)));
+    const preTargetTrace = exactEngineStateTraceFingerprint(candidateEngine, 0, input.current.startFrame - 1);
+    const preTargetCollisions = collisionHitsInRange(
+      candidateEngine,
+      0,
+      input.current.startFrame - 1,
+      allPhaseLineIds,
+    );
+    const closureEndFrame = input.current.endFrame + CURRENT_RESPONSE_HORIZON;
+    const observationEndFrame = input.outgoing.endFrame + PERSISTENCE_FRAMES - 1;
+    const detection = detectWindow(candidateEngine, 0, observationEndFrame);
+    const captureRoles = new Map<number, string>([
+      [realized.lineRoles.captureApproach, "capture_approach"],
+      [realized.lineRoles.captureSurface, "capture_surface"],
+      ...realized.lineRoles.phaseTail.map((lineId) => [lineId, "phase_tail"] as const),
+    ]);
+    const localContactFrames = input.allContactFrames.filter((frame) => frame <= closureEndFrame);
+    const observation = observeOwnedContactTransition(detection, {
+      targetFrame: input.current.endFrame,
+      gapFrames: input.current.endFrame - input.current.startFrame,
+      observationEndFrame: closureEndFrame,
+      ownedLineIds: allPhaseLineIds,
+      lineRoles: captureRoles,
+      requiredLineRoles: ["capture_approach", "capture_surface"],
+      persistenceOffsetFrames: PERSISTENCE_FRAMES,
+      responseOffsetFrames: IMPACT_WINDOW,
+    });
+    const localOffBeat = splitOffBeatLandings(
+      detection,
+      localContactFrames,
+      input.current.startFrame,
+      closureEndFrame,
+    );
+    const localComplete = survivesThroughFrame(detection, closureEndFrame) &&
+      measurementLastFrame(detection) >= closureEndFrame;
+    const local: LocalOutcome = {
+      structurallyValid: !sledProximity &&
+        sameExactTrace(input.prefixTrace, preTargetTrace) &&
+        preTargetCollisions.length === 0 &&
+        observation.selectedOwnedEvent !== null &&
+        observation.persistenceWindowComplete &&
+        observation.responseWindowComplete &&
+        localComplete &&
+        localOffBeat.confirmedFrames.length === 0 &&
+        localOffBeat.unresolvedTailFrames.length === 0,
+      closureEndFrame,
+      complete: localComplete,
+      selectedOwnedEvent: observation.selectedOwnedEvent,
+      persistenceWindowComplete: observation.persistenceWindowComplete,
+      responseWindowComplete: observation.responseWindowComplete,
+      confirmedOffBeatLandingFrames: localOffBeat.confirmedFrames,
+      unresolvedTailOffBeatLandingFrames: localOffBeat.unresolvedTailFrames,
+    };
     return {
       index: input.index,
+      status: "observed",
+      error: null,
       control: roundControl(input.control),
       realized: summarizeRealized(realized),
-      currentFit: false,
-      failure: failureStage(before, after),
-      next: null,
+      preTarget: {
+        sledProximity,
+        traceMatchesPrefix: sameExactTrace(input.prefixTrace, preTargetTrace),
+        trace: preTargetTrace,
+        collisions: preTargetCollisions,
+      },
+      local,
+      outgoing: observeOutgoingBoundary(
+        detection,
+        input.current,
+        input.outgoing,
+        allPhaseLineIds,
+        input.allContactFrames.filter((frame) => frame <= input.outgoing.endFrame),
+      ),
+      elapsedMs: round(performance.now() - started),
+    };
+  } catch (error) {
+    return {
+      index: input.index,
+      status: "error",
+      error: errorMessage(error),
+      control: roundControl(input.control),
+      realized: null,
+      preTarget: null,
+      local: null,
+      outgoing: null,
+      elapsedMs: round(performance.now() - started),
     };
   }
-
-  const child = advanceToGap(extendNodeCached(input.root, fit), input.outgoing.index);
-  const transition = transitionSummary(child.prefixEngine, input.current, input.outgoing);
-  const nextCandidates = getCandidatesSorted(child, [...input.gaps], input.context, input.seed, nextPool);
-  const nextState = requireState(child.prefixEngine, input.outgoing.endFrame - 1, `${input.family}[${input.index}] next state`);
-  return {
-    index: input.index,
-    control: roundControl(input.control),
-    realized: summarizeRealized(realized),
-    currentFit: true,
-    failure: null,
-    current: {
-      cost: round(fit.cost),
-      achieved: roundAxes(fit.achieved),
-      achievedAtEnd: fit.achievedAtEnd === undefined ? null : roundAxes(fit.achievedAtEnd),
-      lineHash: lineHash(fit.lines),
-    },
-    next: {
-      detectorRunwayFrames: transition.airborneRunAtNext,
-      detectorRunwaySatisfied: transition.detectorRunwaySatisfied,
-      lastGroundedFrame: transition.lastGroundedFrame,
-      exactPoolCandidates: nextCandidates.length,
-      bestCandidateCost: nextCandidates[0] === undefined ? null : round(nextCandidates[0].cost),
-      stateBeforeArrival: summarizeState(nextState),
-    },
-  };
 }
 
-function exactPrefixSearchNode(
-  engine: unknown,
+function observeOutgoingBoundary(
+  detection: ReturnType<typeof detectWindow>,
   current: Gap,
-  fixture: { prefixNextLineId: number; cumulativeCost: number },
-): SearchNode {
-  // `getCandidatesSorted` requires a SearchNode for cache ownership, but its
-  // next-gap construction reads the exact engine, index, and line-ID state.
-  // Historical fit measurements are intentionally unavailable in a physical
-  // fixture, so null placeholders preserve the node invariant without
-  // manufacturing prior achieved-axis values.
-  return {
-    gapIndex: current.index,
-    prefixFits: Array.from({ length: current.index }, () => null),
-    prefixEngine: engine,
-    prefixNextLineId: fixture.prefixNextLineId,
-    cumulativeCost: fixture.cumulativeCost,
-    _candidatesCache: null,
-    _childrenCache: undefined,
-  };
-}
-
-function advanceToGap(node: SearchNode, targetGap: number): SearchNode {
-  let current = node;
-  while (current.gapIndex < targetGap) current = extendNodeCached(current, null);
-  if (current.gapIndex !== targetGap) {
-    throw new Error(`cannot advance study node from g${node.gapIndex} to g${targetGap}`);
-  }
-  return current;
-}
-
-function transitionSummary(engine: unknown, current: Gap, outgoing: Gap) {
-  const detection = detectWindow(engine, current.endFrame, outgoing.endFrame);
+  outgoing: Gap,
+  phaseLineIds: ReadonlySet<number>,
+  contactFramesThroughBoundary: readonly number[],
+): OutgoingObservation {
+  const startFrame = current.endFrame;
+  const boundaryFrame = outgoing.endFrame;
+  const observationEndFrame = boundaryFrame + PERSISTENCE_FRAMES - 1;
+  const measurementEnd = measurementLastFrame(detection);
+  const complete = survivesThroughFrame(detection, observationEndFrame) && measurementEnd >= observationEndFrame;
+  let airborneFrames = 0;
+  let groundedFrames = 0;
   let lastGroundedFrame: number | null = null;
-  for (let frame = current.endFrame; frame < outgoing.endFrame; frame++) {
-    if (airborneAt(detection, frame) === false) lastGroundedFrame = frame;
+  let allSamplesAvailable = true;
+  const phaseCollisionFrames: number[] = [];
+  for (let frame = startFrame; frame < boundaryFrame; frame++) {
+    const airborne = airborneAt(detection, frame);
+    if (airborne === undefined) {
+      allSamplesAvailable = false;
+      break;
+    }
+    if (airborne) airborneFrames++;
+    else {
+      groundedFrames++;
+      lastGroundedFrame = frame;
+    }
+    if (contactLineIdsAt(detection, frame).some((lineId) => phaseLineIds.has(lineId))) {
+      phaseCollisionFrames.push(frame);
+    }
   }
-  let airborneRunAtNext = 0;
-  for (let frame = outgoing.endFrame - 1; frame >= current.endFrame; frame--) {
-    if (airborneAt(detection, frame) !== true) break;
-    airborneRunAtNext++;
-  }
+  const trailingAirborneFramesAtBoundary = allSamplesAvailable
+    ? trailingAirborneFrames(detection, startFrame, boundaryFrame)
+    : null;
+  const boundaryPhaseLineIds = contactLineIdsAt(detection, boundaryFrame)
+    .filter((lineId) => phaseLineIds.has(lineId));
+  const offBeat = splitOffBeatLandings(detection, contactFramesThroughBoundary, startFrame, observationEndFrame);
+  const intervalFrames = boundaryFrame - startFrame;
   return {
+    knownTimeBoundaryFrame: boundaryFrame,
+    observationEndFrame,
+    complete,
+    measurementLastFrame: measurementEnd,
+    intervalFrames,
+    airborneFrames: allSamplesAvailable ? airborneFrames : null,
+    groundedFrames: allSamplesAvailable ? groundedFrames : null,
+    airFraction: allSamplesAvailable && intervalFrames > 0 ? airborneFrames / intervalFrames : null,
     lastGroundedFrame,
-    airborneRunAtNext,
-    detectorRunwaySatisfied: airborneRunAtNext >= MIN_LANDING_AIRBORNE_FRAMES,
+    trailingAirborneFramesAtBoundary,
+    requiredDetectorRunwayFrames: MIN_LANDING_AIRBORNE_FRAMES,
+    detectorRunwayResidualFrames: trailingAirborneFramesAtBoundary === null
+      ? null
+      : Math.max(0, MIN_LANDING_AIRBORNE_FRAMES - trailingAirborneFramesAtBoundary),
+    boundaryPhaseLineIds,
+    phaseCollisionFrames,
+    terminalStateAtBoundary: summarizeDetectionState(detection, boundaryFrame),
+    confirmedOffBeatLandingFrames: offBeat.confirmedFrames,
+    unresolvedTailOffBeatLandingFrames: offBeat.unresolvedTailFrames,
   };
 }
 
-function summarizeRows(rows: readonly ReturnType<typeof evaluateControl>[]) {
-  const currentAccepted = rows.filter((row) => row.currentFit).length;
-  const runwayReady = rows.filter((row) => row.next?.detectorRunwaySatisfied === true).length;
-  const nextPoolAvailable = rows.filter((row) => (row.next?.exactPoolCandidates ?? 0) > 0).length;
-  const bridging = rows.filter((row) =>
-    row.next?.detectorRunwaySatisfied === true && (row.next?.exactPoolCandidates ?? 0) > 0,
-  ).length;
-  return { attempted: rows.length, currentAccepted, runwayReady, nextPoolAvailable, bridging };
+function summarizeRows(rows: readonly FamilyRow[]): FamilyResult["summary"] {
+  return {
+    attempted: rows.length,
+    observed: rows.filter((row) => row.status === "observed").length,
+    localStructuralValid: rows.filter((row) => row.local?.structurallyValid === true).length,
+    completeOutgoingObservation: rows.filter((row) => row.outgoing?.complete === true).length,
+    detectorRunwayReadyAtBoundary: rows.filter((row) => row.outgoing?.detectorRunwayResidualFrames === 0).length,
+    errors: rows.filter((row) => row.status === "error").length,
+  };
 }
 
 function summarizeCapture(
@@ -481,45 +637,93 @@ function summarizeCapture(
   const materialized = materializeTrajectoryCaptureInput(setup);
   return {
     sourcePath: capture.sourcePath,
-    sourceFingerprint: fingerprintFiles([capture.sourcePath]),
     seed: capture.seed,
     targetGap: prepared.current.index,
     targetFrame: prepared.current.endFrame,
-    outgoingGap: prepared.outgoing.index,
-    outgoingFrame: prepared.outgoing.endFrame,
-    outgoingFrames: prepared.outgoingIntervalFrames,
+    nextTimeBoundaryGap: prepared.outgoing.index,
+    nextTimeBoundaryFrame: prepared.outgoing.endFrame,
+    intervalFrames: prepared.outgoingIntervalFrames,
     physicalPrefixFingerprint: prepared.physicalPrefixFingerprint,
     materializedFingerprint: sha256(stableJson(materialized)),
     projection: prepared.projection,
-    currentAxes: { ...prepared.current.targets },
-    outgoingAxes: outgoingIntent(prepared.outgoing),
+    currentImpact: prepared.current.targets.impact ?? null,
   };
 }
 
-function outgoingIntent(gap: Gap): TwoContactOutgoingIntent {
-  return {
-    intervalFrames: gap.endFrame - gap.startFrame,
-    ...(gap.targets.air === undefined ? {} : { air: gap.targets.air }),
-    ...(gap.targets.speed === undefined ? {} : { speed: gap.targets.speed }),
-    ...(gap.targets.amplitude === undefined ? {} : { amplitude: gap.targets.amplitude }),
-  };
-}
-
-function requireState(engine: unknown, frame: number, label: string): PlanningState {
+function requireState(engine: any, frame: number, label: string): PlanningState {
   const state = extractPlanningState(engine, frame);
   if (state === null) throw new Error(`${label}: unable to read planning state at frame ${frame}`);
   return state;
 }
 
-function failureStage(
-  before: ReturnType<typeof snapshotArcPlacementStats>["by_sample_mode"]["normal"],
-  after: ReturnType<typeof snapshotArcPlacementStats>["by_sample_mode"]["normal"],
-): "preclear" | "survival" | "landing" | "offbeat" | "unknown" {
-  if (after.preclear_rejected > before.preclear_rejected) return "preclear";
-  if (after.direct_survival_failed > before.direct_survival_failed) return "survival";
-  if (after.direct_landing_failed > before.direct_landing_failed) return "landing";
-  if (after.direct_offbeat_failed > before.direct_offbeat_failed) return "offbeat";
-  return "unknown";
+function collisionHitsInRange(
+  engine: any,
+  startFrame: number,
+  endFrame: number,
+  lineIds: ReadonlySet<number>,
+): Array<{ frame: number; lineId: number; pointIds: string[] }> {
+  const hits: Array<{ frame: number; lineId: number; pointIds: string[] }> = [];
+  for (let frame = startFrame; frame <= endFrame; frame++) {
+    hits.push(...engineCollisionHitsForLineIds(engine, frame, lineIds));
+  }
+  return hits;
+}
+
+function sameExactTrace(
+  left: ReturnType<typeof exactEngineStateTraceFingerprint>,
+  right: ReturnType<typeof exactEngineStateTraceFingerprint>,
+): boolean {
+  return left.fingerprint !== null &&
+    left.fingerprint === right.fingerprint &&
+    left.frameCount === right.frameCount &&
+    left.unavailableAtFrame === right.unavailableAtFrame &&
+    left.semantics === right.semantics;
+}
+
+function splitOffBeatLandings(
+  detection: ReturnType<typeof detectWindow>,
+  contactFrames: readonly number[],
+  startFrame: number,
+  endFrame: number,
+): { confirmedFrames: number[]; unresolvedTailFrames: number[] } {
+  const observedEnd = Math.min(endFrame, measurementLastFrame(detection));
+  const all = offBeatLandingEvents(detection, [...contactFrames])
+    .filter((event) => event.frame >= startFrame && event.frame <= observedEnd)
+    .map((event) => event.frame);
+  const firstUnresolvedFrame = observedEnd - (PERSISTENCE_FRAMES - 2);
+  const unresolvedTailFrames = all.filter((frame) => frame >= firstUnresolvedFrame);
+  const unresolved = new Set(unresolvedTailFrames);
+  return { confirmedFrames: all.filter((frame) => !unresolved.has(frame)), unresolvedTailFrames };
+}
+
+function trailingAirborneFrames(
+  detection: ReturnType<typeof detectWindow>,
+  startFrame: number,
+  boundaryFrame: number,
+): number | null {
+  let count = 0;
+  for (let frame = boundaryFrame - 1; frame >= startFrame; frame--) {
+    const airborne = airborneAt(detection, frame);
+    if (airborne === undefined) return null;
+    if (!airborne) break;
+    count++;
+  }
+  return count;
+}
+
+function summarizeDetectionState(detection: ReturnType<typeof detectWindow>, frame: number) {
+  const position = positionAt(detection, frame);
+  const velocity = velocityAt(detection, frame);
+  const speed = speedAt(detection, frame);
+  const airborne = airborneAt(detection, frame);
+  if (position === undefined || velocity === undefined || speed === undefined || airborne === undefined) return null;
+  return {
+    frame,
+    position: roundPoint(position),
+    velocity: roundPoint(velocity),
+    speed: round(speed),
+    airborne,
+  };
 }
 
 function summarizeRealized(realized: ReturnType<typeof realizeTwoContactPhase>) {
@@ -528,8 +732,20 @@ function summarizeRealized(realized: ReturnType<typeof realizeTwoContactPhase>) 
     lineCount: realized.lines.length,
     lineLength: round(lineLength(realized.lines)),
     segmentCount: realized.segmentCount,
+    contactPoint: roundPoint(realized.contactPoint),
     entryAngleDeg: round(realized.entryAngleDeg),
     exitAngleDeg: round(realized.exitAngleDeg),
+    lineRoles: { ...realized.lineRoles, phaseTail: [...realized.lineRoles.phaseTail] },
+    anchor: {
+      point: realized.anchor.point,
+      headingDeg: round(realized.anchor.headingDeg),
+      speedPxPerFrame: round(realized.anchor.speedPxPerFrame),
+      sledSpanPx: round(realized.anchor.sledSpanPx),
+    },
+    com: {
+      headingDeg: round(realized.com.headingDeg),
+      speedPxPerFrame: round(realized.com.speedPxPerFrame),
+    },
   };
 }
 
@@ -548,18 +764,17 @@ function summarizeState(state: PlanningState) {
 function roundControl(control: TwoContactPhaseControl) {
   return {
     phaseLookbackFrames: control.phaseLookbackFrames,
+    chirality: control.chirality,
+    tailAction: control.tailAction,
     approachDeltaDeg: round(control.approachDeltaDeg),
     turnDeg: round(control.turnDeg),
-    normalOffsetPx: round(control.normalOffsetPx),
+    normalOffsetSledSpans: round(control.normalOffsetSledSpans),
     tangentFrames: round(control.tangentFrames),
-    preFrames: round(control.preFrames),
-    postFrames: round(control.postFrames),
+    approachFrames: round(control.approachFrames),
+    captureSurfaceFrames: control.captureSurfaceFrames,
+    phaseHorizonFrames: control.phaseHorizonFrames,
     flipped: control.flipped,
   };
-}
-
-function roundAxes(axes: AxisValues): AxisValues {
-  return Object.fromEntries(Object.entries(axes).map(([name, value]) => [name, round(value)]));
 }
 
 function lineHash(lines: readonly TrackLine[]): string {
@@ -585,15 +800,8 @@ function requiredPath(name: string): string {
   return resolve(value);
 }
 
-function positiveInteger(name: string, fallback: number): number {
-  const raw = argument(name);
-  const value = raw === undefined ? fallback : Number(raw);
-  if (!Number.isSafeInteger(value) || value < 1) throw new Error(`--${name} must be a positive integer`);
-  return value;
-}
-
 function assertNoUnknownOptions(): void {
-  const supported = ["--out=", "--case=", "--budget=", "--oracle-controls=", "--next-pool="];
+  const supported = ["--out=", "--case="];
   const unknown = argv.filter((value) => !supported.some((prefix) => value.startsWith(prefix)));
   if (unknown.length > 0) throw new Error(`unsupported option(s): ${unknown.join(", ")}`);
 }
@@ -612,7 +820,7 @@ function assertStudySourcesCommitted(paths: readonly string[]): void {
     execFileSync("git", ["ls-files", "--error-unmatch", "--", ...paths], { stdio: "ignore" });
     execFileSync("git", ["diff", "--quiet", "HEAD", "--", ...paths], { stdio: "ignore" });
   } catch {
-    throw new Error("two-contact study sources and panel definitions must be tracked, committed, and clean");
+    throw new Error("study sources and panel definitions must be tracked, committed, and clean");
   }
 }
 
@@ -636,20 +844,20 @@ function canonicalProspectivePath(path: string): string {
   return resolve(realpathSync(existing), ...suffix);
 }
 
-function formatSummary(document: { results: readonly ReturnType<typeof runScenario>[]; elapsedMs: number }) {
+function formatSummary(document: { results: readonly ScenarioResult[]; elapsedMs: number }): string {
   const lines = [
-    `two-contact envelope: ${document.results.length} scenario(s), ${round(document.elapsedMs)}ms`,
+    `causal contact-phase response: ${document.results.length} scenario(s), ${round(document.elapsedMs)}ms`,
   ];
   for (const result of document.results) {
     if (result.status === "unavailable") {
       lines.push(`${result.id}: unavailable (${result.code})`);
       continue;
     }
-    const compact = result.compact.summary;
-    const oracle = result.oracle.summary;
     lines.push(
-      `${result.id}: compact ${compact.currentAccepted}/${compact.attempted} current, ` +
-      `${compact.bridging} bridge; oracle ${oracle.currentAccepted}/${oracle.attempted} current, ${oracle.bridging} bridge`,
+      `${result.id}: compact ${result.compact.summary.localStructuralValid}/${result.compact.summary.attempted} local, ` +
+      `${result.compact.summary.detectorRunwayReadyAtBoundary} runway; oracle ` +
+      `${result.oracle.summary.localStructuralValid}/${result.oracle.summary.attempted} local, ` +
+      `${result.oracle.summary.detectorRunwayReadyAtBoundary} runway`,
     );
   }
   return lines.join("\n");
@@ -661,4 +869,8 @@ function round(value: number): number {
 
 function roundPoint(value: { x: number; y: number }) {
   return { x: round(value.x), y: round(value.y) };
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

@@ -1,46 +1,49 @@
 /**
- * Minimal frozen-prefix replayer for post-impact trajectory studies.
+ * Sealed frozen-prefix boundary for post-impact trajectory studies.
  *
- * This boundary deliberately reconstructs only the committed physical prefix
- * and its declared target planning state. It neither materializes a spec nor
- * exposes authored axes, outgoing-contact data, candidate probes, rankers, or
- * optimizer policy. A later assay must pass any post-target observation input
- * through a separate, explicitly timed boundary.
+ * The construction callback receives only physical prefix state, a fresh line
+ * id, and the current impact event. Authored outgoing information and panel
+ * provenance stay inside this module until the callback has completed.
  */
+import { readFileSync } from "node:fs";
 import { engineLineFromTrackLine, makeBaseEngine } from "../core/substrate.ts";
 import type { TrackLine } from "../types.ts";
 import {
-  assertFrozenTrajectoryFixtureIntegrity,
-  readFrozenTrajectoryFixture,
+  assertPostimpactV3FixtureIntegrity,
   sha256,
   stableJson,
-  type FrozenTrajectoryFixture,
-  type FrozenTrajectoryFixtureV3,
-} from "./frozen_fixture.ts";
+  withValidatedPostimpactStudyInputs,
+  type PostimpactCurrentContactInput,
+  type PostimpactFrozenTrajectoryFixtureV3,
+  type PostimpactObservationInput,
+  type PostimpactTrackLine,
+} from "./postimpact_study_inputs.ts";
 import { extractPlanningState, type PlanningState } from "./state.ts";
 
 export const POSTIMPACT_MAX_LINE_ID = 0x7fffffff;
 
-export type PostimpactFixtureRuntime = {
-  engine: string;
-  relevantEnvironment: Record<string, string>;
-  captureBudget: number;
-  studySourceFingerprint: string;
+/** The only physical state available to pre-observation construction. */
+export type PreparedPostimpactFixture = {
+  // deno-lint-ignore no-explicit-any
+  engine: any;
+  targetPlanningState: PlanningState;
+  nextLineId: number;
 };
 
-/**
- * The deliberately small data surface available before post-impact construction.
- * In particular, it excludes outgoing frames, authored axes, materialized specs,
- * and capture candidate/ranking data.
- */
-export type PreparedPostimpactFixture = {
+/** Provenance is returned only after construction, never passed to it. */
+export type PostimpactFixtureAudit = {
   fixtureFingerprint: string;
   purpose: string;
-  runtime: PostimpactFixtureRuntime;
+  runtime: {
+    engine: string;
+    relevantEnvironment: Record<string, string>;
+    captureBudget: number;
+    studySourceFingerprint: string;
+  };
   panel: {
-    id: FrozenTrajectoryFixtureV3["panel"]["id"];
-    cohort: FrozenTrajectoryFixtureV3["panel"]["cohort"];
-    category: FrozenTrajectoryFixtureV3["panel"]["category"];
+    id: string;
+    cohort: string;
+    category: string;
     sourcePath: string;
     sourceFingerprint: string;
     publicSeed: number;
@@ -52,9 +55,18 @@ export type PreparedPostimpactFixture = {
     fingerprint: string;
     nextLineId: number;
   };
-  // deno-lint-ignore no-explicit-any
-  engine: any;
-  targetPlanningState: PlanningState;
+};
+
+export type PostimpactStudyConstructionContext = {
+  readonly prepared: Readonly<PreparedPostimpactFixture>;
+  readonly current: Readonly<PostimpactCurrentContactInput>;
+};
+
+export type PostimpactStudyInputBoundaryResult<T> = {
+  constructionResult: T;
+  observation: PostimpactObservationInput;
+  /** Audit/provenance is intentionally released only with post-run observation. */
+  audit: PostimpactFixtureAudit;
 };
 
 export type PreparePostimpactFixtureOptions = {
@@ -82,18 +94,69 @@ export function postimpactLineIdRange(
 }
 
 /**
- * Validate a stable V3 artifact, reconstruct its physical prefix, and prove the
- * resulting target planning state still matches the frozen checkpoint.
+ * Validate and reconstruct the frozen physical prefix. The returned object is
+ * deliberately target-blind: it contains no panel identity, source, seed,
+ * category, outgoing frame, authored axes, or materialized schedule.
  */
 export function preparePostimpactFixture(
-  fixture: FrozenTrajectoryFixture,
+  fixture: unknown,
   options: PreparePostimpactFixtureOptions = {},
 ): PreparedPostimpactFixture {
-  assertFrozenTrajectoryFixtureIntegrity(fixture, "post-impact fixture");
-  if (fixture.schema !== "line.frozen-trajectory-prefix.v3") {
-    throw new Error("post-impact fixture requires a frozen V3 provenance artifact");
-  }
-  assertStableV3Capture(fixture);
+  assertPostimpactV3FixtureIntegrity(fixture, "post-impact fixture");
+  return prepareValidatedPostimpactFixture(fixture, options);
+}
+
+/** Read, validate, and prepare a V3 post-impact fixture from disk. */
+export function readPostimpactFixture(
+  path: string,
+  options: PreparePostimpactFixtureOptions = {},
+): PreparedPostimpactFixture {
+  return preparePostimpactFixture(JSON.parse(readFileSync(path, "utf8")) as unknown, options);
+}
+
+/**
+ * The canonical post-impact study API. It owns the raw frozen snapshot, gives
+ * `construct` only a narrow target-blind context, and does not disclose the
+ * outgoing observation or provenance until that synchronous callback returns.
+ */
+export function withPostimpactStudyInputBoundary<T>(
+  fixture: unknown,
+  construct: (context: PostimpactStudyConstructionContext) => T,
+  options: PreparePostimpactFixtureOptions = {},
+): PostimpactStudyInputBoundaryResult<T> {
+  assertPostimpactV3FixtureIntegrity(fixture, "post-impact fixture");
+  // Do not let a caller holding the source object mutate post-construction
+  // observation data from inside its callback. The boundary owns this clone.
+  const sealedFixture = deepFreeze(structuredClone(fixture));
+  const prepared = prepareValidatedPostimpactFixture(sealedFixture, options);
+  const context = sealedConstructionContext(prepared);
+  const result = withValidatedPostimpactStudyInputs(sealedFixture, (current) => construct(Object.freeze({
+    prepared: context.prepared,
+    current,
+  })));
+  return {
+    ...result,
+    audit: auditForFixture(sealedFixture),
+  };
+}
+
+/** Path-owning variant so a runner need not import the broad frozen-fixture API. */
+export function withPostimpactStudyInputBoundaryFromPath<T>(
+  path: string,
+  construct: (context: PostimpactStudyConstructionContext) => T,
+  options: PreparePostimpactFixtureOptions = {},
+): PostimpactStudyInputBoundaryResult<T> {
+  return withPostimpactStudyInputBoundary(
+    JSON.parse(readFileSync(path, "utf8")) as unknown,
+    construct,
+    options,
+  );
+}
+
+function prepareValidatedPostimpactFixture(
+  fixture: PostimpactFrozenTrajectoryFixtureV3,
+  options: PreparePostimpactFixtureOptions,
+): PreparedPostimpactFixture {
   assertFixtureShape(fixture);
   assertRuntimeMatchesFixture(fixture, options.environment ?? process.env);
 
@@ -105,17 +168,37 @@ export function preparePostimpactFixture(
   if (sha256(stableJson(targetPlanningState)) !== fixture.checkpoints.targetPlanningStateFingerprint) {
     throw new Error("post-impact fixture physical prefix does not replay the declared target planning state");
   }
-
   return {
+    engine,
+    targetPlanningState,
+    nextLineId: fixture.physicalPrefix.prefixNextLineId,
+  };
+}
+
+function sealedConstructionContext(prepared: PreparedPostimpactFixture): {
+  prepared: Readonly<PreparedPostimpactFixture>;
+} {
+  const targetPlanningState = deepFreeze(structuredClone(prepared.targetPlanningState));
+  return {
+    prepared: Object.freeze({
+      engine: prepared.engine,
+      targetPlanningState,
+      nextLineId: prepared.nextLineId,
+    }),
+  };
+}
+
+function auditForFixture(fixture: PostimpactFrozenTrajectoryFixtureV3): PostimpactFixtureAudit {
+  return Object.freeze({
     fixtureFingerprint: fixture.fixtureFingerprint,
     purpose: fixture.purpose,
-    runtime: {
+    runtime: Object.freeze({
       engine: fixture.capture.runtime.engine,
-      relevantEnvironment: { ...fixture.capture.runtime.relevantEnvironment },
+      relevantEnvironment: Object.freeze({ ...fixture.capture.runtime.relevantEnvironment }),
       captureBudget: fixture.capture.captureBudget,
       studySourceFingerprint: fixture.capture.studySourceFingerprint,
-    },
-    panel: {
+    }),
+    panel: Object.freeze({
       id: fixture.panel.id,
       cohort: fixture.panel.cohort,
       category: fixture.panel.category,
@@ -125,37 +208,18 @@ export function preparePostimpactFixture(
       selectionRationale: fixture.panel.selectionRationale,
       currentGap: fixture.panel.selectedTargetGap,
       currentFrame: fixture.panel.currentFrame,
-    },
-    physicalPrefix: {
+    }),
+    physicalPrefix: Object.freeze({
       fingerprint: fixture.physicalPrefixFingerprint,
       nextLineId: fixture.physicalPrefix.prefixNextLineId,
-    },
-    engine,
-    targetPlanningState,
-  };
+    }),
+  });
 }
 
-/** Read, validate, and prepare a V3 post-impact fixture from disk. */
-export function readPostimpactFixture(
-  path: string,
-  options: PreparePostimpactFixtureOptions = {},
-): PreparedPostimpactFixture {
-  return preparePostimpactFixture(readFrozenTrajectoryFixture(path), options);
-}
-
-function assertStableV3Capture(fixture: FrozenTrajectoryFixtureV3): void {
-  if (!fixture.capture.identityCheck.stable) {
-    throw new Error("post-impact fixture requires a stable V3 capture identity");
-  }
-}
-
-function assertFixtureShape(fixture: FrozenTrajectoryFixtureV3): void {
+function assertFixtureShape(fixture: PostimpactFrozenTrajectoryFixtureV3): void {
   const prefix = fixture.physicalPrefix;
   if (prefix.schema !== "line.trajectory-physical-prefix.v1") {
     throw new Error("post-impact fixture has an unsupported physical-prefix schema");
-  }
-  if (sha256(stableJson(prefix)) !== fixture.physicalPrefixFingerprint) {
-    throw new Error("post-impact fixture physical-prefix fingerprint does not match its payload");
   }
   if (prefix.gapIndex !== fixture.panel.selectedTargetGap ||
       fixture.panel.requestedTargetGap !== fixture.panel.selectedTargetGap ||
@@ -169,9 +233,6 @@ function assertFixtureShape(fixture: FrozenTrajectoryFixtureV3): void {
   if (fixture.checkpoints.targetPlanningState.frame !== fixture.panel.currentFrame) {
     throw new Error("post-impact fixture declared target planning-state frame does not match the panel");
   }
-  if (sha256(stableJson(fixture.checkpoints.targetPlanningState)) !== fixture.checkpoints.targetPlanningStateFingerprint) {
-    throw new Error("post-impact fixture declared target planning-state fingerprint does not match its payload");
-  }
   assertFiniteStartState(prefix.startState);
   if (!Array.isArray(prefix.startLines) || !Array.isArray(prefix.prefixFitLines)) {
     throw new Error("post-impact fixture physical-prefix line collections must be arrays");
@@ -183,14 +244,15 @@ function assertFixtureShape(fixture: FrozenTrajectoryFixtureV3): void {
     if (!Array.isArray(group)) throw new Error("post-impact fixture physical-prefix line group must be an array or null");
     for (const line of group) assertPhysicalLine(line, lineIds);
   }
-  const maximumLineId = lineIds.size === 0 ? -1 : Math.max(...lineIds);
+  let maximumLineId = -1;
+  for (const id of lineIds) maximumLineId = Math.max(maximumLineId, id);
   if (prefix.prefixNextLineId <= maximumLineId) {
     throw new Error("post-impact fixture nextLineId must be greater than every committed prefix line id");
   }
   postimpactLineIdRange(prefix.prefixNextLineId, 1);
 }
 
-function assertRuntimeMatchesFixture(fixture: FrozenTrajectoryFixtureV3, environment: NodeJS.ProcessEnv): void {
+function assertRuntimeMatchesFixture(fixture: PostimpactFrozenTrajectoryFixtureV3, environment: NodeJS.ProcessEnv): void {
   const activeEngine = environment.LR_ENGINE ?? "wasm";
   if (fixture.capture.runtime.engine !== activeEngine) {
     throw new Error(
@@ -203,9 +265,9 @@ function assertRuntimeMatchesFixture(fixture: FrozenTrajectoryFixtureV3, environ
   }
 }
 
-// Keep the reconstruction local so this module has no optimizer/study-context dependency.
+// Keep reconstruction local so this module has no optimizer/study-context dependency.
 // deno-lint-ignore no-explicit-any
-function rebuildPhysicalPrefix(fixture: FrozenTrajectoryFixtureV3): any {
+function rebuildPhysicalPrefix(fixture: PostimpactFrozenTrajectoryFixtureV3): any {
   const prefix = fixture.physicalPrefix;
   let engine = makeBaseEngine({
     position: { ...prefix.startState.position },
@@ -219,45 +281,44 @@ function rebuildPhysicalPrefix(fixture: FrozenTrajectoryFixtureV3): any {
 }
 
 // deno-lint-ignore no-explicit-any
-function addLines(engine: any, lines: readonly TrackLine[]): any {
+function addLines(engine: any, lines: readonly PostimpactTrackLine[]): any {
   if (lines.length === 0) return engine;
   // Conversion caches mutate TrackLine with a symbol; do not attach that cache to
   // the parsed frozen artifact itself.
-  return engine.addLine(lines.map((line) => engineLineFromTrackLine({ ...line })));
+  return engine.addLine(lines.map((line) => engineLineFromTrackLine({ ...line } as TrackLine)));
 }
 
-function assertPhysicalLine(line: unknown, lineIds: Set<number>): void {
+function assertPhysicalLine(line: PostimpactTrackLine, lineIds: Set<number>): void {
   if (line === null || typeof line !== "object") {
     throw new Error("post-impact fixture physical-prefix line must be an object");
   }
-  const candidate = line as TrackLine;
-  if (!Number.isSafeInteger(candidate.id) || candidate.id < 0 || candidate.id > POSTIMPACT_MAX_LINE_ID) {
+  if (!Number.isSafeInteger(line.id) || line.id < 0 || line.id > POSTIMPACT_MAX_LINE_ID) {
     throw new Error("post-impact fixture physical-prefix line id must be a non-negative signed 32-bit integer");
   }
-  if (lineIds.has(candidate.id)) throw new Error("post-impact fixture physical-prefix line ids must be unique");
-  lineIds.add(candidate.id);
-  if (candidate.type !== 0 && candidate.type !== 1 && candidate.type !== 2) {
+  if (lineIds.has(line.id)) throw new Error("post-impact fixture physical-prefix line ids must be unique");
+  lineIds.add(line.id);
+  if (line.type !== 0 && line.type !== 1 && line.type !== 2) {
     throw new Error("post-impact fixture physical-prefix line type is invalid");
   }
   for (const [name, value] of Object.entries({
-    x1: candidate.x1,
-    y1: candidate.y1,
-    x2: candidate.x2,
-    y2: candidate.y2,
+    x1: line.x1,
+    y1: line.y1,
+    x2: line.x2,
+    y2: line.y2,
   })) {
     if (!Number.isFinite(value)) throw new Error(`post-impact fixture physical-prefix line ${name} must be finite`);
   }
-  if (Math.hypot(candidate.x2 - candidate.x1, candidate.y2 - candidate.y1) <= 1e-12) {
+  if (Math.hypot(line.x2 - line.x1, line.y2 - line.y1) <= 1e-12) {
     throw new Error("post-impact fixture physical-prefix lines must have non-zero length");
   }
-  if (typeof candidate.flipped !== "boolean" ||
-      typeof candidate.leftExtended !== "boolean" ||
-      typeof candidate.rightExtended !== "boolean") {
+  if (typeof line.flipped !== "boolean" ||
+      typeof line.leftExtended !== "boolean" ||
+      typeof line.rightExtended !== "boolean") {
     throw new Error("post-impact fixture physical-prefix line flags must be boolean");
   }
 }
 
-function assertFiniteStartState(start: FrozenTrajectoryFixtureV3["physicalPrefix"]["startState"]): void {
+function assertFiniteStartState(start: PostimpactFrozenTrajectoryFixtureV3["physicalPrefix"]["startState"]): void {
   if (start === null || typeof start !== "object" ||
       start.position === null || typeof start.position !== "object" ||
       start.velocity === null || typeof start.velocity !== "object") {
@@ -273,7 +334,7 @@ function assertFiniteStartState(start: FrozenTrajectoryFixtureV3["physicalPrefix
   }
 }
 
-function assertDeclaredPlanningState(state: PlanningState): void {
+function assertDeclaredPlanningState(state: PostimpactFrozenTrajectoryFixtureV3["checkpoints"]["targetPlanningState"]): void {
   if (state === null || typeof state !== "object" || !Number.isSafeInteger(state.frame) || state.frame < 0) {
     throw new Error("post-impact fixture declared target planning state is malformed");
   }
@@ -298,4 +359,13 @@ function relevantEnvironment(environment: NodeJS.ProcessEnv): Record<string, str
       .map(([name, value]) => [name, value!])
       .sort(([left], [right]) => left.localeCompare(right)),
   );
+}
+
+function deepFreeze<T>(value: T, seen = new WeakSet<object>()): T {
+  if (value === null || typeof value !== "object" || Object.isFrozen(value)) return value;
+  if (seen.has(value)) return value;
+  seen.add(value);
+  Object.freeze(value);
+  for (const child of Object.values(value as Record<string, unknown>)) deepFreeze(child, seen);
+  return value;
 }

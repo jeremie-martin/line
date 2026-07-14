@@ -4,58 +4,40 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { makeBaseEngine } from "../scripts/v0/core/substrate.ts";
 import {
-  fixtureFingerprintForPayload,
-  frozenFixtureCaptureArtifactIdentity,
   sha256,
   stableJson,
-  type FrozenTrajectoryFixture,
-  type FrozenTrajectoryFixtureV3,
-} from "../scripts/v0/trajectory/frozen_fixture.ts";
+  type PostimpactFrozenTrajectoryFixtureV3,
+} from "../scripts/v0/trajectory/postimpact_study_inputs.ts";
 import {
   POSTIMPACT_MAX_LINE_ID,
   postimpactLineIdRange,
   preparePostimpactFixture,
   readPostimpactFixture,
+  withPostimpactStudyInputBoundary,
+  withPostimpactStudyInputBoundaryFromPath,
 } from "../scripts/v0/trajectory/postimpact_fixture.ts";
 import { extractPlanningState } from "../scripts/v0/trajectory/state.ts";
+import { studySourceIdentity } from "../scripts/v0/trajectory/study_artifact.ts";
 
 const WASM_ENV = { LR_ENGINE: "wasm" } as NodeJS.ProcessEnv;
 
-describe("post-impact frozen-prefix fixture", () => {
-  test("replays a stable V3 prefix and exposes only state-only construction inputs", () => {
+describe("post-impact frozen-prefix boundary", () => {
+  test("replays a stable V3 prefix and exposes only target-blind construction state", () => {
     const fixture = makeFixture();
     const prepared = preparePostimpactFixture(fixture, { environment: WASM_ENV });
 
-    expect(prepared.fixtureFingerprint).toBe(fixture.fixtureFingerprint);
-    expect(prepared.runtime).toEqual({
-      engine: "wasm",
-      relevantEnvironment: { LR_ENGINE: "wasm" },
-      captureBudget: 500_000,
-      studySourceFingerprint: "study-source",
-    });
-    expect(prepared.panel).toEqual({
-      id: "dense",
-      cohort: "calibration",
-      category: "dense",
-      sourcePath: "fixture-source.ts",
-      sourceFingerprint: "panel-source",
-      publicSeed: 7,
-      selectionRationale: "fixed test contact",
-      currentGap: 0,
-      currentFrame: 8,
-    });
-    expect("outgoingFrame" in prepared.panel).toBe(false);
-    expect("materialized" in prepared).toBe(false);
-    expect(prepared.physicalPrefix).toEqual({
-      fingerprint: fixture.physicalPrefixFingerprint,
-      nextLineId: 1,
-    });
+    expect(Object.keys(prepared).sort()).toEqual(["engine", "nextLineId", "targetPlanningState"]);
+    expect(prepared.nextLineId).toBe(1);
     expect(stableJson(extractPlanningState(prepared.engine, 8))).toBe(
       stableJson(fixture.checkpoints.targetPlanningState),
     );
+    expect("panel" in prepared).toBe(false);
+    expect("fixtureFingerprint" in prepared).toBe(false);
+    expect("runtime" in prepared).toBe(false);
+    expect("physicalPrefix" in prepared).toBe(false);
   });
 
-  test("reads the same V3 contract from disk", () => {
+  test("reads the same V3 contract from disk without exposing raw fixture data", () => {
     const root = mkdtempSync(join(tmpdir(), "line-postimpact-fixture-"));
     try {
       const fixture = makeFixture();
@@ -67,12 +49,117 @@ describe("post-impact frozen-prefix fixture", () => {
     }
   });
 
-  test("rejects a historical V2 artifact and a V3 capture with recorded drift", () => {
-    const v3 = makeFixture();
-    const v2 = makeV2(v3);
-    expect(() => preparePostimpactFixture(v2, { environment: WASM_ENV })).toThrow(/requires a frozen V3/);
+  test("seals outgoing observation and audit until construction returns", () => {
+    const fixture = makeFixture();
+    let callbackObservedKeys: string[] = [];
+    let callbackPreparedKeys: string[] = [];
+    const result = withPostimpactStudyInputBoundary(fixture, (context) => {
+      callbackObservedKeys = Object.keys(context).sort();
+      callbackPreparedKeys = Object.keys(context.prepared).sort();
+      expect(Object.isFrozen(context)).toBe(true);
+      expect(Object.isFrozen(context.current)).toBe(true);
+      expect(Object.isFrozen(context.prepared)).toBe(true);
+      expect(Object.isFrozen(context.prepared.targetPlanningState)).toBe(true);
+      expect("observation" in context).toBe(false);
+      expect("audit" in context).toBe(false);
+      expect("panel" in context.prepared).toBe(false);
+      expect("fixtureFingerprint" in context.prepared).toBe(false);
+      return { selectedPhase: "phase-0", impact: context.current.impact };
+    }, { environment: WASM_ENV });
 
-    const drifted = structuredClone(v3);
+    expect(callbackObservedKeys).toEqual(["current", "prepared"]);
+    expect(callbackPreparedKeys).toEqual(["engine", "nextLineId", "targetPlanningState"]);
+    expect(result.constructionResult).toEqual({ selectedPhase: "phase-0", impact: 0.4 });
+    expect(result.observation).toEqual({
+      outgoing: {
+        gapIndex: 1,
+        startFrame: 8,
+        endFrame: 16,
+        intervalFrames: 8,
+        axes: { air: 0.5, speed: 0.6 },
+      },
+      authoredContactFrames: [8, 16, 24],
+    });
+    expect(result.audit.panel).toEqual({
+      id: "fixture-dense",
+      cohort: "calibration",
+      category: "dense",
+      sourcePath: "fixture-source.ts",
+      sourceFingerprint: "panel-source",
+      publicSeed: 7,
+      selectionRationale: "fixed test contact",
+      currentGap: 0,
+      currentFrame: 8,
+    });
+  });
+
+  test("rejects an asynchronous construction callback before observation is created", () => {
+    expect(() => withPostimpactStudyInputBoundary(
+      makeFixture(),
+      () => Promise.resolve("later"),
+      { environment: WASM_ENV },
+    )).toThrow(/must complete synchronously/);
+  });
+
+  test("uses an immutable internal snapshot when the raw caller object changes in the callback", () => {
+    const fixture = makeFixture();
+    const result = withPostimpactStudyInputBoundary(fixture, () => {
+      fixture.materialized.gaps[1]!.targets.air = 0.2;
+      fixture.panel.category = "low_air";
+      return "constructed";
+    }, { environment: WASM_ENV });
+
+    expect(result.constructionResult).toBe("constructed");
+    expect(result.observation.outgoing.axes).toEqual({ air: 0.5, speed: 0.6 });
+    expect(result.audit.panel.category).toBe("dense");
+  });
+
+  test("validates root, nested materialized, and capture provenance before construction", () => {
+    const rootTampered = structuredClone(makeFixture());
+    rootTampered.materialized.gaps[0]!.targets.impact = 0.9;
+    expect(() => withPostimpactStudyInputBoundary(rootTampered, () => null, { environment: WASM_ENV }))
+      .toThrow(/fixture fingerprint does not match/);
+
+    const staleMaterialized = structuredClone(makeFixture());
+    staleMaterialized.materialized.gaps[0]!.targets.impact = 0.9;
+    refreshFixtureFingerprint(staleMaterialized);
+    expect(() => withPostimpactStudyInputBoundary(staleMaterialized, () => null, { environment: WASM_ENV }))
+      .toThrow(/materialized fingerprint does not match/);
+
+    const forgedIdentity = structuredClone(makeFixture());
+    forgedIdentity.capture.captureIdentity.fingerprint = "0".repeat(64);
+    refreshFixtureFingerprint(forgedIdentity);
+    expect(() => withPostimpactStudyInputBoundary(forgedIdentity, () => null, { environment: WASM_ENV }))
+      .toThrow(/invalid V3 capture artifact identity/);
+  });
+
+  test("keeps construction input unchanged when valid outgoing data changes", () => {
+    const original = makeFixture();
+    const changed = structuredClone(original);
+    changed.materialized.gaps[1]!.targets = { air: 0.2, speed: 0.9, amplitude: 0.4, impact: 0.8 };
+    changed.materialized.gaps[1]!.nextImpact = 0.1;
+    refreshMaterializedAndFixtureFingerprints(changed);
+
+    const seen: Array<unknown> = [];
+    const left = withPostimpactStudyInputBoundary(original, (context) => {
+      seen.push({ current: context.current, state: context.prepared.targetPlanningState, nextLineId: context.prepared.nextLineId });
+      return null;
+    }, { environment: WASM_ENV });
+    const right = withPostimpactStudyInputBoundary(changed, (context) => {
+      seen.push({ current: context.current, state: context.prepared.targetPlanningState, nextLineId: context.prepared.nextLineId });
+      return null;
+    }, { environment: WASM_ENV });
+
+    expect(seen[0]).toEqual(seen[1]);
+    expect(left.observation.outgoing.axes).toEqual({ air: 0.5, speed: 0.6 });
+    expect(right.observation.outgoing.axes).toEqual({ air: 0.2, speed: 0.9, amplitude: 0.4 });
+  });
+
+  test("rejects a historical schema, recorded drift, replay mismatch, malformed prefix, and runtime mismatch", () => {
+    const historical = { ...makeFixture(), schema: "line.frozen-trajectory-prefix.v2" };
+    expect(() => preparePostimpactFixture(historical, { environment: WASM_ENV })).toThrow(/requires a frozen V3/);
+
+    const drifted = structuredClone(makeFixture());
     drifted.capture.identityCheck = {
       ...drifted.capture.identityCheck,
       stable: false,
@@ -81,60 +168,25 @@ describe("post-impact frozen-prefix fixture", () => {
     };
     drifted.capture.captureCompilerAtEnd = { candidateFingerprint: "different-candidate" };
     refreshFixtureFingerprint(drifted);
-    expect(() => preparePostimpactFixture(drifted, { environment: WASM_ENV })).toThrow(/stable V3 capture identity/);
-  });
+    expect(() => preparePostimpactFixture(drifted, { environment: WASM_ENV })).toThrow(/requires a stable V3/);
 
-  test("rejects a checkpoint that is internally hashed but cannot be replayed", () => {
-    const fixture = structuredClone(makeFixture());
-    fixture.checkpoints.targetPlanningState.position.x += 1;
-    fixture.checkpoints.targetPlanningStateFingerprint = sha256(stableJson(fixture.checkpoints.targetPlanningState));
-    refreshFixtureFingerprint(fixture);
-
-    expect(() => preparePostimpactFixture(fixture, { environment: WASM_ENV })).toThrow(
+    const replayMismatch = structuredClone(makeFixture());
+    replayMismatch.checkpoints.targetPlanningState.position.x += 1;
+    replayMismatch.checkpoints.targetPlanningStateFingerprint = sha256(stableJson(replayMismatch.checkpoints.targetPlanningState));
+    refreshFixtureFingerprint(replayMismatch);
+    expect(() => preparePostimpactFixture(replayMismatch, { environment: WASM_ENV })).toThrow(
       /does not replay the declared target planning state/,
     );
-  });
 
-  test("rejects malformed physical-prefix and runtime declarations before replay", () => {
     const malformedPrefix = structuredClone(makeFixture());
     malformedPrefix.physicalPrefix.gapIndex = 1;
-    malformedPrefix.physicalPrefixFingerprint = sha256(stableJson(malformedPrefix.physicalPrefix));
-    refreshFixtureFingerprint(malformedPrefix);
+    refreshPhysicalPrefixAndFixtureFingerprints(malformedPrefix);
     expect(() => preparePostimpactFixture(malformedPrefix, { environment: WASM_ENV })).toThrow(
       /target\/prefix declaration is internally inconsistent/,
     );
-
     expect(() => preparePostimpactFixture(makeFixture(), { environment: { LR_ENGINE: "js" } })).toThrow(
       /requires LR_ENGINE=wasm/,
     );
-  });
-
-  test("keeps construction state blind to re-fingerprinted post-target materialized data", () => {
-    const original = makeFixture();
-    const changed = structuredClone(original);
-    const materialized = changed.materialized as unknown as {
-      gaps: Array<{ endFrame: number; targets: Record<string, unknown>; nextImpact: unknown }>;
-    };
-    materialized.gaps[1]!.endFrame = 999;
-    materialized.gaps[1]!.targets = { air: 0.17, speed: 0.93, impact: 0.81 };
-    materialized.gaps[1]!.nextImpact = { target: 0.94, source: "changed-after-target" };
-    changed.materializedFingerprint = sha256(stableJson(changed.materialized));
-    refreshFixtureFingerprint(changed);
-
-    const left = preparePostimpactFixture(original, { environment: WASM_ENV });
-    const right = preparePostimpactFixture(changed, { environment: WASM_ENV });
-    expect(right.fixtureFingerprint).not.toBe(left.fixtureFingerprint);
-    expect({
-      runtime: right.runtime,
-      panel: right.panel,
-      physicalPrefix: right.physicalPrefix,
-      targetPlanningState: right.targetPlanningState,
-    }).toEqual({
-      runtime: left.runtime,
-      panel: left.panel,
-      physicalPrefix: left.physicalPrefix,
-      targetPlanningState: left.targetPlanningState,
-    });
   });
 
   test("guards next-line collisions and signed-32-bit allocation overflow", () => {
@@ -150,16 +202,14 @@ describe("post-impact frozen-prefix fixture", () => {
       leftExtended: false,
       rightExtended: false,
     }];
-    collision.physicalPrefixFingerprint = sha256(stableJson(collision.physicalPrefix));
-    refreshFixtureFingerprint(collision);
+    refreshPhysicalPrefixAndFixtureFingerprints(collision);
     expect(() => preparePostimpactFixture(collision, { environment: WASM_ENV })).toThrow(
       /nextLineId must be greater/,
     );
 
     const overflow = structuredClone(makeFixture());
     overflow.physicalPrefix.prefixNextLineId = POSTIMPACT_MAX_LINE_ID + 1;
-    overflow.physicalPrefixFingerprint = sha256(stableJson(overflow.physicalPrefix));
-    refreshFixtureFingerprint(overflow);
+    refreshPhysicalPrefixAndFixtureFingerprints(overflow);
     expect(() => preparePostimpactFixture(overflow, { environment: WASM_ENV })).toThrow(
       /nextLineId must be a non-negative signed 32-bit integer/,
     );
@@ -170,19 +220,49 @@ describe("post-impact frozen-prefix fixture", () => {
     expect(() => postimpactLineIdRange(POSTIMPACT_MAX_LINE_ID, 2)).toThrow(/allocation overflows/);
   });
 
-  test("does not directly import legacy optimizer, policy, or study-context modules", () => {
+  test("path-owning boundary preserves the sealed API", () => {
+    const root = mkdtempSync(join(tmpdir(), "line-postimpact-boundary-"));
+    try {
+      const path = join(root, "fixture.json");
+      writeFileSync(path, `${JSON.stringify(makeFixture())}\n`);
+      const result = withPostimpactStudyInputBoundaryFromPath(
+        path,
+        (context) => context.current.impact,
+        { environment: WASM_ENV },
+      );
+      expect(result.constructionResult).toBe(0.4);
+      expect(result.observation.outgoing.endFrame).toBe(16);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("static source closure excludes frozen fixtures, panels, study context, and optimizer policy", () => {
     const source = readFileSync(new URL("../scripts/v0/trajectory/postimpact_fixture.ts", import.meta.url), "utf8");
-    const imports = source.match(/^import[\s\S]*?;$/gm) ?? [];
-    expect(imports.join("\n")).not.toMatch(
-      /optimizer\/|arc_placement|benchmark\/v2\/policy|study_context|handoff|sample/,
-    );
+    const imports = source.match(/^import[\s\S]*?;$/gm)?.join("\n") ?? "";
+    expect(imports).not.toMatch(/frozen_fixture|trajectory\/panel|study_context|optimizer\//);
+    const closure = studySourceIdentity("scripts/v0/trajectory/postimpact_fixture.ts").sourceFiles;
+    expect(closure).not.toContain("scripts/v0/trajectory/frozen_fixture.ts");
+    expect(closure).not.toContain("scripts/v0/trajectory/panel.ts");
+    expect(closure).not.toContain("scripts/v0/trajectory/study_context.ts");
+    expect(closure.some((path) => path.includes("/optimizer/"))).toBe(false);
   });
 });
 
-function makeFixture(): FrozenTrajectoryFixtureV3 {
+function makeFixture(): PostimpactFrozenTrajectoryFixtureV3 {
   const startState = { position: { x: 0, y: 0 }, velocity: { x: 5, y: 0 } };
   const targetPlanningState = extractPlanningState(makeBaseEngine(startState), 8);
   if (targetPlanningState === null) throw new Error("test fixture cannot read target planning state");
+  const materialized = {
+    contactFrames: [8, 16, 24],
+    durationFrames: 30,
+    gaps: [
+      { index: 0, startFrame: 0, endFrame: 8, endsWithContact: true, targets: { impact: 0.4 }, nextImpact: 0.6 },
+      { index: 1, startFrame: 8, endFrame: 16, endsWithContact: true, targets: { air: 0.5, speed: 0.6, impact: 0.6 }, nextImpact: 0.7 },
+      { index: 2, startFrame: 16, endFrame: 24, endsWithContact: true, targets: { air: 0.3, speed: 0.4, impact: 0.7 }, nextImpact: null },
+    ],
+    gapAxisTargets: [{ impact: 0.4 }, { air: 0.5, speed: 0.6, impact: 0.6 }, { air: 0.3, speed: 0.4, impact: 0.7 }],
+  };
   const physicalPrefix = {
     schema: "line.trajectory-physical-prefix.v1" as const,
     gapIndex: 0,
@@ -193,9 +273,9 @@ function makeFixture(): FrozenTrajectoryFixtureV3 {
     startLines: [],
     prefixFitLines: [],
   };
-  const captureIdentity = frozenFixtureCaptureArtifactIdentity({
-    schema: "line.frozen-trajectory-prefix-capture.v1",
-    panelId: "dense",
+  const captureIdentityPayload = {
+    schema: "line.frozen-trajectory-prefix-capture.v1" as const,
+    panelId: "fixture-dense",
     panelSourceFingerprint: "panel-source",
     captureBudget: 500_000,
     engine: "wasm",
@@ -203,8 +283,8 @@ function makeFixture(): FrozenTrajectoryFixtureV3 {
     studySourceFingerprint: "study-source",
     captureCandidateFingerprint: "candidate-source",
     protocolFingerprint: "protocol-source",
-  });
-  const payload: Omit<FrozenTrajectoryFixtureV3, "fixtureFingerprint"> = {
+  };
+  const payload: Omit<PostimpactFrozenTrajectoryFixtureV3, "fixtureFingerprint"> = {
     schema: "line.frozen-trajectory-prefix.v3",
     purpose: "post-impact-fixture-test",
     capture: {
@@ -214,7 +294,10 @@ function makeFixture(): FrozenTrajectoryFixtureV3 {
       captureBudget: 500_000,
       studySourceFingerprint: "study-source",
       studySourceFiles: ["scripts/v0/capture_trajectory_fixture.ts"],
-      captureIdentity,
+      captureIdentity: {
+        ...captureIdentityPayload,
+        fingerprint: sha256(stableJson(captureIdentityPayload)),
+      },
       identityCheck: {
         stable: true,
         panelSourceFingerprintAtStart: "panel-source",
@@ -227,7 +310,7 @@ function makeFixture(): FrozenTrajectoryFixtureV3 {
       captureCompilerAtEnd: { candidateFingerprint: "candidate-source" },
     },
     panel: {
-      id: "dense",
+      id: "fixture-dense",
       cohort: "calibration",
       category: "dense",
       sourcePath: "fixture-source.ts",
@@ -242,14 +325,9 @@ function makeFixture(): FrozenTrajectoryFixtureV3 {
       outgoingIntervalFrames: 8,
       expectedOutgoingFrames: null,
     },
-    transform: { value: {}, fingerprint: "transform" },
-    materialized: {
-      gaps: [
-        { endFrame: 8, targets: { impact: 0.4 }, nextImpact: null },
-        { endFrame: 16, targets: { air: 0.5, speed: 0.5 }, nextImpact: { target: 0.4 } },
-      ],
-    } as never,
-    materializedFingerprint: "",
+    transform: { value: {}, fingerprint: sha256(stableJson({})) },
+    materialized,
+    materializedFingerprint: sha256(stableJson(materialized)),
     physicalPrefix,
     physicalPrefixFingerprint: sha256(stableJson(physicalPrefix)),
     checkpoints: {
@@ -257,31 +335,26 @@ function makeFixture(): FrozenTrajectoryFixtureV3 {
       targetProbeState: {},
       preTargetSledTrace: [],
       targetPlanningStateFingerprint: sha256(stableJson(targetPlanningState)),
-      targetProbeStateFingerprint: "target-probe",
-      preTargetSledTraceFingerprint: "pre-target-trace",
+      targetProbeStateFingerprint: sha256(stableJson({})),
+      preTargetSledTraceFingerprint: sha256(stableJson([])),
     },
     captureCompiler: { candidateFingerprint: "candidate-source" },
     baseline: { contractPassed: true, score: 1, deepestGap: 0, targetPrefixSimFrames: 8 },
   };
-  payload.materializedFingerprint = sha256(stableJson(payload.materialized));
-  return { ...payload, fixtureFingerprint: fixtureFingerprintForPayload(payload) };
+  return { ...payload, fixtureFingerprint: sha256(stableJson(payload)) };
 }
 
-function makeV2(v3: FrozenTrajectoryFixtureV3): FrozenTrajectoryFixture {
-  const { studySourceFiles, captureIdentity, identityCheck, captureCompilerAtEnd, ...capture } = v3.capture;
-  const payload = {
-    ...v3,
-    schema: "line.frozen-trajectory-prefix.v2" as const,
-    capture,
-  };
-  delete (payload as { fixtureFingerprint?: string }).fixtureFingerprint;
-  return {
-    ...payload,
-    fixtureFingerprint: fixtureFingerprintForPayload(payload),
-  } as FrozenTrajectoryFixture;
-}
-
-function refreshFixtureFingerprint(fixture: FrozenTrajectoryFixtureV3): void {
+function refreshFixtureFingerprint(fixture: PostimpactFrozenTrajectoryFixtureV3): void {
   const { fixtureFingerprint: _previous, ...payload } = fixture;
-  fixture.fixtureFingerprint = fixtureFingerprintForPayload(payload);
+  fixture.fixtureFingerprint = sha256(stableJson(payload));
+}
+
+function refreshMaterializedAndFixtureFingerprints(fixture: PostimpactFrozenTrajectoryFixtureV3): void {
+  fixture.materializedFingerprint = sha256(stableJson(fixture.materialized));
+  refreshFixtureFingerprint(fixture);
+}
+
+function refreshPhysicalPrefixAndFixtureFingerprints(fixture: PostimpactFrozenTrajectoryFixtureV3): void {
+  fixture.physicalPrefixFingerprint = sha256(stableJson(fixture.physicalPrefix));
+  refreshFixtureFingerprint(fixture);
 }

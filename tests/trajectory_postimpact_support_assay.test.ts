@@ -6,11 +6,9 @@ import {
   CONTINUOUS_SUPPORT_CURVE_CAUSAL_EXPOSURE_PROTOCOL,
   CONTINUOUS_SUPPORT_CURVE_DIRECTIONAL_CONTRAST_PROTOCOL,
   firstCertifiedContinuousSupportCurvePhase,
-  firstSharedSafePostimpactPhase,
   postimpactMeasurementHorizon,
   signedAngleDeltaDeg,
   summarizeContinuousSupportCurveMatchedNeutralContrast,
-  summarizeCurveDirectionalEvidence,
 } from "../scripts/v0/trajectory/postimpact_support_assay.ts";
 import {
   CONTINUOUS_SUPPORT_CURVE_ACTIONS,
@@ -61,16 +59,6 @@ describe("post-impact support assay rules", () => {
     });
   });
 
-  test("selects only the first shared-safe construction phase", () => {
-    const phases = [
-      { phase: 0, sharedConstructionSafe: false },
-      { phase: 1, sharedConstructionSafe: true },
-      { phase: 2, sharedConstructionSafe: true },
-    ];
-    expect(firstSharedSafePostimpactPhase(phases)).toEqual(phases[1]);
-    expect(firstSharedSafePostimpactPhase(phases.map((phase) => ({ ...phase, sharedConstructionSafe: false })))).toBeNull();
-  });
-
   test("keeps observation availability distinct from fixed construction extent", () => {
     expect(postimpactMeasurementHorizon(120, 108)).toEqual({
       status: "ready",
@@ -86,23 +74,6 @@ describe("post-impact support assay rules", () => {
       status: "insufficient_measurement_horizon",
       availableIntervals: 3,
     });
-  });
-
-  test("requires a predeclared monotone directional contrast instead of an endpoint-only win", () => {
-    expect(signedAngleDeltaDeg(-175, 175)).toBe(-10);
-    expect(summarizeCurveDirectionalEvidence([-4, -2, 0, 2, 4], 2, 0.01)).toEqual({
-      available: true,
-      monotone: true,
-      endpointContrastDeg: 8,
-      meetsMinimumContrast: true,
-    });
-    expect(summarizeCurveDirectionalEvidence([-4, 1, -1, 2, 4], 2, 0.01)).toMatchObject({
-      available: true,
-      monotone: false,
-      endpointContrastDeg: 8,
-      meetsMinimumContrast: true,
-    });
-    expect(summarizeCurveDirectionalEvidence(null, 2, 0.01)).toMatchObject({ available: false });
   });
 
   test("certifies only a complete declared curve phase and preserves the source-declared phase order", () => {
@@ -210,6 +181,7 @@ describe("post-impact support assay rules", () => {
   });
 
   test("uses a fixed, context-matched neutral contrast rather than anonymous capture-only deltas", () => {
+    expect(signedAngleDeltaDeg(-175, 175)).toBe(-10);
     const context = {
       phaseLeadSteps: 2 as const,
       measurementStartFrame: 108,

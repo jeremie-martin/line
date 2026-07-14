@@ -1,10 +1,9 @@
 /**
- * Shared protocol rules for post-impact support construction assays.
+ * Protocol rules for the continuous post-impact support-curve assay.
  *
- * These functions deliberately know nothing about a particular rail or curve.
- * A static primitive is allowed to collide after its response boundary, but a
- * collision at or before that boundary is only an ordinary negative outcome
- * after the immutable-prefix and capture-only comparator contracts hold.
+ * Construction may reject a static primitive at its protected boundary, but a
+ * curve response is admitted only through the typed shared-capture, phase, and
+ * causal-exposure certificates below.
  */
 import {
   CONTINUOUS_SUPPORT_CURVE_ACTIONS,
@@ -95,12 +94,6 @@ export function classifyPostimpactConstructionProbe(
   };
 }
 
-export function firstSharedSafePostimpactPhase<T extends { sharedConstructionSafe: boolean }>(
-  phases: readonly T[],
-): T | null {
-  return phases.find((phase) => phase.sharedConstructionSafe) ?? null;
-}
-
 export type PostimpactMeasurementHorizon =
   | { status: "ready"; measurementHorizonFrames: number; measurementSamples: number }
   | { status: "insufficient_measurement_horizon"; availableIntervals: number };
@@ -137,43 +130,6 @@ export function signedAngleDeltaDeg(fromDeg: number, toDeg: number): number {
   if (delta > 180) delta -= 360;
   if (delta <= -180) delta += 360;
   return delta;
-}
-
-export type CurveDirectionalEvidence = {
-  available: boolean;
-  monotone: boolean | null;
-  endpointContrastDeg: number | null;
-  meetsMinimumContrast: boolean | null;
-};
-
-/**
- * Evaluate a fixed ordered action ladder. The caller must separately enforce
- * structural validity and action-specific exposure before calling this helper.
- */
-export function summarizeCurveDirectionalEvidence(
-  effectsDeg: readonly number[] | null,
-  minimumContrastDeg: number,
-  monotonicityToleranceDeg: number,
-): CurveDirectionalEvidence {
-  if (!Number.isFinite(minimumContrastDeg) || minimumContrastDeg < 0) {
-    throw new Error("minimumContrastDeg must be finite and non-negative");
-  }
-  if (!Number.isFinite(monotonicityToleranceDeg) || monotonicityToleranceDeg < 0) {
-    throw new Error("monotonicityToleranceDeg must be finite and non-negative");
-  }
-  if (effectsDeg === null || effectsDeg.length < 2 || effectsDeg.some((value) => !Number.isFinite(value))) {
-    return { available: false, monotone: null, endpointContrastDeg: null, meetsMinimumContrast: null };
-  }
-  const monotone = effectsDeg.every((value, index) =>
-    index === 0 || effectsDeg[index - 1]! <= value + monotonicityToleranceDeg
-  );
-  const endpointContrastDeg = effectsDeg.at(-1)! - effectsDeg[0]!;
-  return {
-    available: true,
-    monotone,
-    endpointContrastDeg,
-    meetsMinimumContrast: endpointContrastDeg >= minimumContrastDeg,
-  };
 }
 
 /**

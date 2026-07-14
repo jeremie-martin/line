@@ -16,7 +16,16 @@ import type { LeafKey } from "../optimizer/register.ts";
 import { nextContactGap } from "../optimizer/objective.ts";
 import { scoreDriftReport } from "../score.ts";
 import { FPS, type Gap } from "../types.ts";
-import { makePhysicalPrefixFixture, rebuildPhysicalPrefixEngine, type PhysicalPrefixFixture } from "./study_fixture.ts";
+import {
+  makePhysicalPrefixFixtureAtGap,
+  replayHandoffPrefix,
+  rebuildPhysicalPrefixEngine,
+  type PhysicalPrefixFixture,
+} from "./study_fixture.ts";
+import {
+  PHYSICAL_PREFIX_DONOR_SELECTION_RULE,
+  type PhysicalPrefixProjection,
+} from "./prefix_projection_contract.ts";
 import { extractPlanningState, type PlanningState } from "./state.ts";
 import {
   materializeTrajectoryCaptureInput,
@@ -26,7 +35,7 @@ import {
 } from "./capture_input.ts";
 import { sha256, stableJson } from "./postimpact_study_inputs.ts";
 
-type Visit = { node: HandoffNode; key: LeafKey; event: HandoffNodeEvent };
+type Visit = { ordinal: number; node: HandoffNode; key: LeafKey; event: HandoffNodeEvent };
 
 export type CapturedTrajectoryPrefix = {
   current: Gap;
@@ -39,11 +48,13 @@ export type CapturedTrajectoryPrefix = {
   targetPlanningState: PlanningState;
   targetProbeState: unknown;
   preTargetSledTrace: number[];
+  projection: PhysicalPrefixProjection;
   baseline: {
     contractPassed: boolean;
     score: number;
     deepestGap: number | null;
-    targetPrefixSimFrames: number;
+    /** Null when tail completion did not emit a standalone target callback. */
+    targetPrefixSimFrames: number | null;
   };
 };
 
@@ -57,16 +68,17 @@ export function captureTrajectoryPrefix(
   const baseline = compileHandoff(setup.spec, panel.seed, {
     budget: captureBudget,
     onNode(node, key, event) {
-      visits.push({ node, key, event });
+      visits.push({ ordinal: visits.length + 1, node, key, event });
     },
   });
   const deepest = deepestUnskippedVisit(visits);
   if (deepest === null) throw new Error(`${panel.id}: no unskipped prefix was captured`);
-  const visit = exactVisitOnDeepestPath(visits, deepest, panel.targetGap);
-  if (visit === null) {
-    throw new Error(`${panel.id}: requested g${panel.targetGap} is not on the captured deepest path`);
+  if (panel.targetGap > deepest.node.search.gapIndex) {
+    throw new Error(
+      `${panel.id}: declared g${panel.targetGap} exceeds selected deepest clean path g${deepest.node.search.gapIndex}`,
+    );
   }
-  const current = setup.gaps[visit.node.search.gapIndex];
+  const current = setup.gaps[panel.targetGap];
   if (current === undefined || !current.endsWithContact) {
     throw new Error(`${panel.id}: selected g${panel.targetGap} is not a contact gap`);
   }
@@ -81,11 +93,18 @@ export function captureTrajectoryPrefix(
     );
   }
 
-  const physicalPrefix = makePhysicalPrefixFixture(visit.node);
+  const physicalPrefix = makePhysicalPrefixFixtureAtGap(deepest.node, panel.targetGap);
   const physicalPrefixFingerprint = sha256(stableJson(physicalPrefix));
-  const originalEngine = visit.node.search.prefixEngine;
+  const projectedSearch = replayHandoffPrefix(deepest.node, panel.targetGap);
+  if (
+    projectedSearch.prefixNextLineId !== physicalPrefix.prefixNextLineId ||
+    projectedSearch.cumulativeCost !== physicalPrefix.cumulativeCost
+  ) {
+    throw new Error(`${panel.id}: projected prefix bookkeeping disagrees with its serialized fixture`);
+  }
+  const projectedPathEngine = projectedSearch.prefixEngine;
   const replayEngine = rebuildPhysicalPrefixEngine(physicalPrefix);
-  const originalProbe = getCandidateProbe(originalEngine, current, {
+  const projectedPathProbe = getCandidateProbe(projectedPathEngine, current, {
     allContactFrames: setup.allContactFrames,
     durationFrames: setup.durationFrames,
     gapAxisTargets: setup.gapAxisTargets,
@@ -95,12 +114,12 @@ export function captureTrajectoryPrefix(
     durationFrames: setup.durationFrames,
     gapAxisTargets: setup.gapAxisTargets,
   });
-  const targetPlanningState = requirePlanningState(originalEngine, current.endFrame, `${panel.id} original`);
+  const targetPlanningState = requirePlanningState(projectedPathEngine, current.endFrame, `${panel.id} projected path`);
   const replayState = requirePlanningState(replayEngine, current.endFrame, `${panel.id} replay`);
-  const preTargetSledTrace = originalProbe.preTargetSledTrace();
+  const preTargetSledTrace = projectedPathProbe.preTargetSledTrace();
   const replayTrace = replayProbe.preTargetSledTrace();
   assertStableEqual(`${panel.id} target planning state`, targetPlanningState, replayState);
-  assertStableEqual(`${panel.id} target probe state`, originalProbe.targetState, replayProbe.targetState);
+  assertStableEqual(`${panel.id} target probe state`, projectedPathProbe.targetState, replayProbe.targetState);
   assertStableEqual(`${panel.id} pre-target sled trace`, preTargetSledTrace, replayTrace);
 
   const materialized = materializeTrajectoryCaptureInput(setup);
@@ -114,13 +133,26 @@ export function captureTrajectoryPrefix(
     physicalPrefix,
     physicalPrefixFingerprint,
     targetPlanningState,
-    targetProbeState: originalProbe.targetState,
+    targetProbeState: projectedPathProbe.targetState,
     preTargetSledTrace: [...preTargetSledTrace],
+    projection: {
+      rule: PHYSICAL_PREFIX_DONOR_SELECTION_RULE,
+      donorGap: deepest.node.search.gapIndex,
+      donorPhase: deepest.event.phase,
+      donorCallbackOrdinal: deepest.ordinal,
+      donorSimFrames: deepest.event.simFrames,
+      projectedTargetGap: panel.targetGap,
+      directTargetCallbackOrdinal: deepest.node.search.gapIndex === panel.targetGap
+        ? deepest.ordinal
+        : null,
+    },
     baseline: {
       contractPassed: report.contract_passed,
       score: round(report.score),
       deepestGap: baseline.stats.handoff_deepest_seen_gap ?? null,
-      targetPrefixSimFrames: visit.event.simFrames,
+      targetPrefixSimFrames: deepest.node.search.gapIndex === panel.targetGap
+        ? deepest.event.simFrames
+        : null,
     },
   };
 }
@@ -132,22 +164,6 @@ function deepestUnskippedVisit(visits: readonly Visit[]): Visit | null {
       ? record
       : best,
   );
-}
-
-function exactVisitOnDeepestPath(
-  visits: readonly Visit[],
-  deepest: Visit,
-  targetGap: number,
-): Visit | null {
-  return visits.filter((record) =>
-    record.node.skippedContacts === 0 &&
-      record.node.search.gapIndex === targetGap &&
-      isPrefix(record.node.search.prefixFits, deepest.node.search.prefixFits),
-  ).at(-1) ?? null;
-}
-
-function isPrefix<T>(prefix: readonly T[], whole: readonly T[]): boolean {
-  return prefix.length <= whole.length && prefix.every((item, index) => item === whole[index]);
 }
 
 function requirePlanningState(engine: unknown, frame: number, label: string): PlanningState {

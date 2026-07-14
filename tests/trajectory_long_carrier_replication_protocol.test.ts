@@ -50,6 +50,8 @@ describe("long-carrier replication command contract", () => {
       kind: "production_felt_jolt",
       joltMs: -15,
     });
+    expect(LONG_CARRIER_REPLICATION_PROTOCOL.capture.prefixProjectionRule)
+      .toBe("max_unskipped_gap_then_earliest_callback.v1");
   });
 
   test("uses one stable relative publication slot per declared ordinal", () => {

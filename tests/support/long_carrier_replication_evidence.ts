@@ -111,6 +111,15 @@ export function fixtureFor(entry: LongCarrierReplicationCase): Record<string, un
       runtime: { node: "test", engine: "wasm", relevantEnvironment: { LR_ENGINE: "wasm" } },
       elapsedMs: 0,
       captureBudget: LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget,
+      prefixProjection: {
+        rule: LONG_CARRIER_REPLICATION_PROTOCOL.capture.prefixProjectionRule,
+        donorGap: entry.targetGap,
+        donorPhase: "main",
+        donorCallbackOrdinal: 1,
+        donorSimFrames: currentEnd,
+        projectedTargetGap: entry.targetGap,
+        directTargetCallbackOrdinal: 1,
+      },
       studySourceFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureStudySourceFingerprint,
       studySourceFiles: ["scripts/v0/capture_long_carrier_replication_fixture.ts"],
       captureIdentity: {
@@ -162,7 +171,12 @@ export function fixtureFor(entry: LongCarrierReplicationCase): Record<string, un
       preTargetSledTraceFingerprint: sha256(stableJson(preTargetSledTrace)),
     },
     captureCompiler: { candidateFingerprint: LONG_CARRIER_TEST_IDENTITIES.captureCandidateFingerprint },
-    baseline: { contractPassed: true, score: 1, deepestGap: entry.targetGap, targetPrefixSimFrames: currentEnd },
+    baseline: {
+      contractPassed: true,
+      score: 1,
+      deepestGap: entry.targetGap,
+      targetPrefixSimFrames: currentEnd,
+    },
   };
   return { ...payload, fixtureFingerprint: sha256(stableJson(payload)) };
 }

@@ -4,8 +4,10 @@
  * It defines evidence scope and the immutable roster only. It never imports a
  * compiler proposal or selects an arm from an observed replay.
  */
-export const LONG_CARRIER_REPLICATION_SCOPE = "long_carrier_duration_replication.v1";
-export const LONG_CARRIER_REPLICATION_PROTOCOL_SCHEMA = "line.long-carrier-replication-protocol.v1";
+import { PHYSICAL_PREFIX_DONOR_SELECTION_RULE } from "./prefix_projection_contract.ts";
+
+export const LONG_CARRIER_REPLICATION_SCOPE = "long_carrier_duration_replication.v2";
+export const LONG_CARRIER_REPLICATION_PROTOCOL_SCHEMA = "line.long-carrier-replication-protocol.v2";
 /** The fixed complete-row stencil. It is evidence, not a search menu. */
 export const LONG_CARRIER_REPLICATION_FRACTIONS = [0, 0.25, 0.5, 0.75, 1] as const;
 
@@ -235,6 +237,7 @@ export const LONG_CARRIER_REPLICATION_PROTOCOL = Object.freeze({
     captureBudget: 500_000,
     relevantEnvironment: Object.freeze({ LR_ENGINE: "wasm" }),
     transform: Object.freeze({ kind: "production_felt_jolt", joltMs: -15 }),
+    prefixProjectionRule: PHYSICAL_PREFIX_DONOR_SELECTION_RULE,
   }),
   authoringInputPaths: LONG_CARRIER_REPLICATION_AUTHORING_INPUT_PATHS,
   commandTemplates: LONG_CARRIER_REPLICATION_COMMAND_TEMPLATES,

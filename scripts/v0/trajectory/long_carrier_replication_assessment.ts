@@ -9,6 +9,7 @@ import {
   LONG_CARRIER_REPLICATION_SCOPE,
   type LongCarrierReplicationCase,
 } from "./long_carrier_replication_protocol.ts";
+import { PHYSICAL_PREFIX_DONOR_SELECTION_RULE } from "./prefix_projection_contract.ts";
 import { assertPostimpactV3FixtureIntegrity, sha256, stableJson } from "./postimpact_study_inputs.ts";
 import { assertPostimpactAssayArtifactIntegrity } from "./postimpact_assay_artifact.ts";
 
@@ -69,7 +70,7 @@ type CaseAssessment = {
 };
 
 export type LongCarrierReplicationAssessment = {
-  schema: "line.long-carrier-replication-assessment.v1";
+  schema: "line.long-carrier-replication-assessment.v2";
   scope: typeof LONG_CARRIER_REPLICATION_SCOPE;
   verdict: LongCarrierReplicationVerdict;
   reason: string;
@@ -220,9 +221,10 @@ function validateFixture(entry: LongCarrierReplicationCase, fixture: Record<stri
   const runtime = record(capture.runtime);
   const transform = record(fixture.transform);
   const prefix = record(fixture.physicalPrefix);
+  const baseline = record(fixture.baseline);
   const materialized = record(fixture.materialized);
   const materializedGaps = materialized === null ? null : array(materialized.gaps);
-  if (identityCheck === null || captureIdentity === null || runtime === null || transform === null || prefix === null || materializedGaps === null) {
+  if (identityCheck === null || captureIdentity === null || runtime === null || transform === null || prefix === null || baseline === null || materializedGaps === null) {
     return "fixture lacks capture identity or materialized-prefix fields";
   }
   if (identityCheck.stable !== true) return "fixture capture identity drifted";
@@ -240,12 +242,33 @@ function validateFixture(entry: LongCarrierReplicationCase, fixture: Record<stri
     panel.expectedOutgoingFrames !== entry.expectedOutgoingFrames ||
     panel.selectionRationale !== entry.selectionRationale
   ) return "fixture panel declaration differs from the preregistered case";
+  const projection = record(capture.prefixProjection);
   if (
     capture.captureBudget !== LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget ||
     runtime.engine !== LONG_CARRIER_REPLICATION_PROTOCOL.capture.engine ||
     !sameRecord(runtime.relevantEnvironment, LONG_CARRIER_REPLICATION_PROTOCOL.capture.relevantEnvironment) ||
     captureIdentity.panelId !== entry.id
   ) return "fixture runtime or capture protocol differs from the preregistration";
+  if (
+    projection === null ||
+    projection.rule !== LONG_CARRIER_REPLICATION_PROTOCOL.capture.prefixProjectionRule ||
+    projection.rule !== PHYSICAL_PREFIX_DONOR_SELECTION_RULE ||
+    !Number.isSafeInteger(projection.donorGap) ||
+    projection.donorGap < entry.targetGap ||
+    typeof projection.donorPhase !== "string" ||
+    !Number.isSafeInteger(projection.donorCallbackOrdinal) ||
+    projection.donorCallbackOrdinal < 1 ||
+    !Number.isSafeInteger(projection.donorSimFrames) ||
+    projection.donorSimFrames < 0 ||
+    projection.projectedTargetGap !== entry.targetGap ||
+    (projection.directTargetCallbackOrdinal !== null &&
+      (!Number.isSafeInteger(projection.directTargetCallbackOrdinal) ||
+        projection.directTargetCallbackOrdinal !== projection.donorCallbackOrdinal ||
+        projection.donorGap !== entry.targetGap)) ||
+    (projection.directTargetCallbackOrdinal === null && baseline.targetPrefixSimFrames !== null) ||
+    (projection.directTargetCallbackOrdinal !== null &&
+      (!Number.isSafeInteger(baseline.targetPrefixSimFrames) || baseline.targetPrefixSimFrames !== projection.donorSimFrames))
+  ) return "fixture does not attest the preregistered physical-prefix projection";
   if (
     stableJson(transform.value) !== stableJson(LONG_CARRIER_REPLICATION_PROTOCOL.capture.transform) ||
     transform.fingerprint !== sha256(stableJson(transform.value))
@@ -459,7 +482,7 @@ function result(
   reason: string,
 ): LongCarrierReplicationAssessment {
   return {
-    schema: "line.long-carrier-replication-assessment.v1",
+    schema: "line.long-carrier-replication-assessment.v2",
     scope: LONG_CARRIER_REPLICATION_SCOPE,
     verdict,
     reason,

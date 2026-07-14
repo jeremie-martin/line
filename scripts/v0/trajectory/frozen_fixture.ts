@@ -20,6 +20,16 @@ type FrozenTrajectoryFixtureBase = {
     runtime: { node: string; engine: string; relevantEnvironment: Record<string, string> };
     elapsedMs: number;
     captureBudget: number;
+    /** Present for capture protocols that project a declared physical prefix. */
+    prefixProjection?: {
+      rule: string;
+      donorGap: number;
+      donorPhase: string;
+      donorCallbackOrdinal: number;
+      donorSimFrames: number;
+      projectedTargetGap: number;
+      directTargetCallbackOrdinal: number | null;
+    };
     studySourceFingerprint: string;
   };
   panel: {
@@ -58,7 +68,8 @@ type FrozenTrajectoryFixtureBase = {
     contractPassed: boolean;
     score: number;
     deepestGap: number | null;
-    targetPrefixSimFrames: number;
+    /** Null when no standalone compiler callback occurred at the selected gap. */
+    targetPrefixSimFrames: number | null;
   };
 };
 

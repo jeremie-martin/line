@@ -5,7 +5,7 @@
 This is a prospective, validation-only transfer study of the fixed straight
 post-impact long-carrier assay. It is not a Benchmark V2 case, production
 qualification, compiler candidate, or support planner. Its scope string is
-`long_carrier_duration_replication.v1` and is bound into every declared panel
+`long_carrier_duration_replication.v2` and is bound into every declared panel
 row and frozen fixture.
 
 The fixed implementation is the committed five-fraction stencil
@@ -42,12 +42,30 @@ declaration and fixture validation, rather than borrowed at runtime from the
 benchmark policy. `scripts/v0/core/curves.ts` is pinned as an authored-input
 definition file: its keyframe interpolation semantics define these six manual
 specs and cannot be changed as mutable compiler behavior within a cohort. The
-old V2 reserve rows remain quarantined and cannot enter this cohort.
+capture selects the greatest unskipped observed compiler path, retaining the
+earliest callback on ties, and projects its exact physical prefix to the
+preregistered current contact. The rule does not inspect the target, score, or
+candidate quality. This handles ordinary traversal and batched tail completion
+under one rule: the donor ancestry is rebuilt with the compiler's root-plus-
+extend transition, then its planning state, probe state, and pre-target trace
+must equal the serialized prefix replay at the declared contact before it can
+be sealed. A tail donor's final engine is never used as target evidence because
+future terrain is installed from frame zero. The old V2 reserve rows remain
+quarantined and cannot enter this cohort.
 
 ## Execution
 
-Run only through the replication controller after this declaration is
-committed. It creates an immutable declaration before any execution, captures
+V1 was retired before it generated a declaration, fixture, assay, or ledger:
+its exact-callback capture rule could not observe target boundaries inside
+normal tail completion. The active V2 declaration uses the projection rule
+above. A full capture-feasibility sweep must pass for every fixed row at
+WASM/500k before any V2 efficacy cohort is declared; an unreachable row is a
+roster-design failure, not a negative assay observation. The current
+`open_high_air_195` source is known to fail that gate and is being replaced or
+redesigned before V2 execution.
+
+Run only through the replication controller after the V2 roster and its
+feasibility record are committed. It creates an immutable declaration before any execution, captures
 each fixture once, runs the fixed assay once, and writes planned/result events
 plus one immutable ledger. The controller requires its isolated non-compiler
 static source closure to be committed, while binding the intentionally mutable
@@ -98,12 +116,10 @@ LR_ENGINE=wasm npx tsx scripts/v0/verify_long_carrier_replication.ts \
   --out-dir=/tmp/long-carrier-replication-YYYYMMDD
 ```
 
-That default verifies the sealed historical V1 declaration and artifacts
-without consulting the current compiler candidate. It uses the retained V1
-reader, so V1 reader compatibility is an explicit archive-maintenance
-obligation: the current archive does not yet embed a runnable reader snapshot.
-A materially different protocol requires a new scope/schema rather than an
-edit to V1. Add `--require-current-identity` when the question is specifically
+That default verifies a sealed historical declaration and artifacts without
+consulting the current compiler candidate. A materially different protocol
+requires a new scope/schema rather than an edit to the declared cohort. Add
+`--require-current-identity` when the question is specifically
 whether the current controller, verifier, capture entrypoint, compiler
 candidate, assay source, and replay runtime still match the cohort's scoped
 execution identity. Unrelated repository files are diagnostic-only and do not

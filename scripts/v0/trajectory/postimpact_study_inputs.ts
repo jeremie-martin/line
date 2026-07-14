@@ -42,6 +42,15 @@ export type PostimpactFrozenTrajectoryFixtureV3 = {
     runtime: { node: string; engine: string; relevantEnvironment: Record<string, string> };
     elapsedMs: number;
     captureBudget: number;
+    prefixProjection?: {
+      rule: string;
+      donorGap: number;
+      donorPhase: string;
+      donorCallbackOrdinal: number;
+      donorSimFrames: number;
+      projectedTargetGap: number;
+      directTargetCallbackOrdinal: number | null;
+    };
     studySourceFingerprint: string;
     studySourceFiles: string[];
     captureIdentity: PostimpactCaptureArtifactIdentity;
@@ -100,7 +109,7 @@ export type PostimpactFrozenTrajectoryFixtureV3 = {
     contractPassed: boolean;
     score: number;
     deepestGap: number | null;
-    targetPrefixSimFrames: number;
+    targetPrefixSimFrames: number | null;
   };
 };
 

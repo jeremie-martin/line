@@ -92,6 +92,7 @@ const payload: Omit<FrozenTrajectoryFixtureV3, "fixtureFingerprint"> = {
     },
     elapsedMs: round(performance.now() - started),
     captureBudget: options.budget,
+    prefixProjection: captured.projection,
     studySourceFingerprint: sourceAtStart.fingerprint,
     studySourceFiles: [...sourceAtStart.sourceFiles],
     captureIdentity,
@@ -226,6 +227,7 @@ function captureIdentityFor(
       budget: options.budget,
       relevantEnvironment: captureEnvironment,
       transformFingerprint: sha256(stableJson(LONG_CARRIER_REPLICATION_PROTOCOL.capture.transform)),
+      prefixProjectionRule: LONG_CARRIER_REPLICATION_PROTOCOL.capture.prefixProjectionRule,
     },
   }));
   return frozenFixtureCaptureArtifactIdentity({

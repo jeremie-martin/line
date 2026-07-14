@@ -129,7 +129,7 @@ function assertDeclaration(declaration: Record<string, unknown>): DeclarationCon
     stableJson(declaration.environment) !== stableJson({ LR_ENGINE: "wasm" }) ||
     declaration.captureBudget !== LONG_CARRIER_REPLICATION_PROTOCOL.capture.captureBudget
   ) {
-    throw new Error("replication declaration does not match the supported frozen v1 protocol");
+    throw new Error("replication declaration does not match the supported current protocol");
   }
   const command = record(declaration.command, "declaration command contract");
   const executable = string(command.executable, "declaration command executable");

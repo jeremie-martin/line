@@ -4,7 +4,7 @@ Target: improve the Benchmark V2 headline through changes that make the normal
 compiler more capable and accurate across a broad range of authored scores.
 `npm run benchmark -- eval` is the reusable screen; only a fresh certified
 `eval --to-verdict` can promote a source-default change. The active baseline
-contract is `v2.6-detector-limited-contact-2026-07-13`.
+contract is `accept-2026-07-15T15-24-50Z-e4890b0e`.
 
 This is a decision log, not a research notebook. Detailed earlier material is
 preserved in [the 2026-07-12--14 campaign archive](archive/compiler-improvement-campaign-2026-07-12-to-14.md)
@@ -28,6 +28,25 @@ one representative score, and one development-music score at the V2 jolt and
 high similarity is acceptable, but a gain concentrated solely in formerly
 invalid capability rows is recorded as a repair, not as a general architecture
 improvement.
+
+## Operating Lessons
+
+- Large, durable gains come from changing the normal candidate space or
+  traversal basis, not from a rescue path keyed to a failing case. Formulate a
+  hypothesis in continuous physical and authored inputs, then keep normal
+  candidates in the pool so the exact evaluator and ranker decide.
+- Separate proposal from judgment. Predictors and local models may spend the
+  budget to select candidates, but only engine-measured survival, contact, and
+  axis quality may select a committed track.
+- Use the funnel deliberately: a small cross-regime scope panel for coherent
+  direction, Stage 0 for triage, and one fresh certified epoch for promotion.
+  Probe ablations explain attribution; shared seeds cannot choose a winner.
+- A promoted change must be read by stratum, not only by headline. Capability
+  recovery is valuable, but representative/legacy quality and independent
+  monitoring must remain visible. Unresolved monitoring movement is not an
+  improvement claim.
+- Keep research disposable. Every study must answer a concrete next design
+  question and end in a concise retain, revise, or retire decision.
 
 ## Current Evidence
 

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -129,7 +130,10 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
     // The detached worktree already has every committed file. Overlay only
     // tracked working-tree paths so dirty source edits are visible without ever
     // copying untracked/generated media into the temporary workspace.
-    const trackedFiles = execFileSync("git", ["ls-files", "-z"], { cwd: process.cwd() });
+    const trackedFiles = materializedTrackedFiles(
+      execFileSync("git", ["ls-files", "-z"], { cwd: process.cwd() }),
+      process.cwd(),
+    );
     execFileSync("rsync", [
       "-a",
       "--from0",
@@ -166,6 +170,28 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
     throw error;
   }
   return { snapshot, directory: workspace, disposed: false };
+}
+
+/**
+ * `git ls-files` is an index listing, not a promise that every path still
+ * exists in a dirty worktree. Snapshot overlays must tolerate a user-deleted
+ * tracked file: the detached worktree already supplies its committed version.
+ */
+export function materializedTrackedFiles(paths: Buffer, root: string): Buffer {
+  const materialized: Buffer[] = [];
+  let start = 0;
+  for (let end = paths.indexOf(0, start); end !== -1; end = paths.indexOf(0, start)) {
+    const path = paths.subarray(start, end);
+    start = end + 1;
+    if (path.length === 0) continue;
+    try {
+      lstatSync(resolve(root, path.toString()));
+      materialized.push(path);
+    } catch (error) {
+      if (!(error instanceof Error) || !("code" in error) || error.code !== "ENOENT") throw error;
+    }
+  }
+  return Buffer.concat(materialized.flatMap((path) => [path, Buffer.from([0])]));
 }
 
 /** Reserve a collision-free name without leaving a directory that blocks git worktree add. */

@@ -137,6 +137,13 @@ const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
 /** Accepted production probe design. Alternate probe designs remain available
  *  to study harnesses through arc_model.ts, not as ambient compiler env state. */
 const AIM_JOINT_PROBE_DESIGN: ArcProbeDesignName = "cross5";
+// Study-only scarce-budget model-selection policy. Pitch is the lower-cost
+// primary actuator; rotate observations are recruited only if that local
+// response is range-bound or has no improving proposal. Mature compiles retain
+// the accepted full joint model. Reverted unless the full screen validates the
+// budget-specific allocation.
+const AIM_ADAPTIVE_ROTATION_SCARCE_MAX_BUDGET = 250_000;
+const AIM_ADAPTIVE_ROTATION_RECRUIT_MARGIN_DEG = 0.25;
 
 function aimStudyStatsEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
@@ -694,28 +701,28 @@ function makeJointAimedCandidates(
   lineIdStart: number,
   airKnobBase: boolean,
 ): Candidate[] {
-  const probeDesignName = AIM_JOINT_PROBE_DESIGN;
-  const probeKnobs = arcProbeDesign(probeDesignName);
-  const span = arcKnobSpan(probeKnobs);
+  const adaptiveRotation = aimCompileBudgetFrames <= AIM_ADAPTIVE_ROTATION_SCARCE_MAX_BUDGET;
+  let probeDesignName: ArcProbeDesignName = adaptiveRotation
+    ? "pitch3"
+    : AIM_JOINT_PROBE_DESIGN;
+  let span = arcKnobSpan(arcProbeDesign(probeDesignName));
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
   const framesBeforeProbes = getPhysicsFrameCount();
-  const probeRows = probeKnobs.map((knobs) =>
+  let probeRows = arcProbeDesign(probeDesignName).map((knobs) =>
     evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
   );
-  aimTotals.joint_probe_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBeforeProbes);
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
-  const model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
+  let model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
     context: { gap, axisMeasureEnd, nextFrame },
   });
 
   const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };
-  const baseOutputs = predictJointArcOutputs(model, baseKnobs);
-  recordJointModelCoverage(model, baseOutputs, gap);
   const currentTargets = objectiveTargetsForGap(gap, ctx);
   const currentScoreAxes = jointArcCurrentScoreAxes(currentTargets);
   const nextTargets = objectiveTargetsForGap(nextGap, ctx);
-  const baseScore = scoreJointKnobs(
+  let baseOutputs = predictJointArcOutputs(model, baseKnobs);
+  let baseScore = scoreJointKnobs(
     model,
     baseKnobs,
     currentTargets,
@@ -732,33 +739,43 @@ function makeJointAimedCandidates(
     return [];
   }
 
-  if (span.rotateDeg > 0) aimTotals.enum_rot_recruited++;
-  const pitchSpan = Math.min(AIM_DELTA_MAX_DEG, span.pitchDeg);
-  const rotateSpan = span.rotateDeg;
-  const scored: JointScoredKnobs[] = [];
-  for (let pitchDeg = -pitchSpan; pitchDeg <= pitchSpan + 1e-9; pitchDeg += ENUM_STEP_DEG) {
-    for (let rotateDeg = -rotateSpan; rotateDeg <= rotateSpan + 1e-9; rotateDeg += ENUM_ROT_STEP_DEG) {
-      // Near-base duplicate skip: an axis-aligned BOX around the base (0,0)
-      // — drop grid points that reproduce the base candidate. Distinct from
-      // the inter-proposal ellipse in distinctJointKnobs (see notes there).
-      if (Math.abs(pitchDeg) < AIM_MIN_DELTA_DEG && Math.abs(rotateDeg) < ENUM_ROT_STEP_DEG / 2) continue;
-      const score = scoreJointKnobs(
-        model,
-        { pitchDeg, rotateDeg },
-        currentTargets,
-        currentScoreAxes,
-        nextTargets,
-        nextGap,
-      );
-      if (typeof score !== "string" && score.val > baseScore.val + 1e-4) scored.push(score);
-    }
-  }
-  scored.sort((a, b) =>
-    b.val - a.val ||
-    b.currentQuality - a.currentQuality ||
-    Math.abs(a.knobs.rotateDeg) - Math.abs(b.knobs.rotateDeg) ||
-    Math.abs(a.knobs.pitchDeg) - Math.abs(b.knobs.pitchDeg)
+  let scored = scoreJointKnobGrid(
+    model, span, baseScore, currentTargets, currentScoreAxes, nextTargets, nextGap,
   );
+  const pitchBest = scored[0];
+  const pitchBound = pitchBest === undefined ||
+    Math.abs(pitchBest.knobs.pitchDeg) >=
+      Math.min(AIM_DELTA_MAX_DEG, span.pitchDeg) - AIM_ADAPTIVE_ROTATION_RECRUIT_MARGIN_DEG;
+  if (adaptiveRotation && pitchBound) {
+    const rotationRows = arcProbeDesign("cross5")
+      .filter((knobs) => knobs.rotateDeg !== 0)
+      .map((knobs) =>
+        evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
+      );
+    probeRows = [...probeRows, ...rotationRows];
+    recordJointProbeRows(rotationRows, gap, axisMeasureEnd, nextFrame);
+    probeDesignName = "cross5";
+    span = arcKnobSpan(arcProbeDesign(probeDesignName));
+    model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
+      context: { gap, axisMeasureEnd, nextFrame },
+    });
+    baseOutputs = predictJointArcOutputs(model, baseKnobs);
+    baseScore = scoreJointKnobs(model, baseKnobs, currentTargets, currentScoreAxes, nextTargets, nextGap);
+    if (baseScore === "next_before_exit") {
+      aimTotals.enum_next_before_exit++;
+      return [];
+    }
+    if (baseScore === "model_unscoreable") {
+      aimTotals.enum_model_unscoreable++;
+      return [];
+    }
+    aimTotals.enum_rot_recruited++;
+    scored = scoreJointKnobGrid(
+      model, span, baseScore, currentTargets, currentScoreAxes, nextTargets, nextGap,
+    );
+  }
+  aimTotals.joint_probe_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBeforeProbes);
+  recordJointModelCoverage(model, baseOutputs, gap);
 
   const chosen: JointScoredKnobs[] = [];
   for (const cand of scored) {
@@ -814,6 +831,34 @@ function makeJointAimedCandidates(
     out.push(fit);
   }
   return out;
+}
+
+function scoreJointKnobGrid(
+  model: JointArcResponseModel,
+  span: { pitchDeg: number; rotateDeg: number },
+  baseScore: JointScoredKnobs,
+  currentTargets: AxisValues,
+  currentScoreAxes: JointArcCurrentScoreAxes,
+  nextTargets: AxisValues,
+  nextGap: Gap,
+): JointScoredKnobs[] {
+  const pitchSpan = Math.min(AIM_DELTA_MAX_DEG, span.pitchDeg);
+  const scored: JointScoredKnobs[] = [];
+  for (let pitchDeg = -pitchSpan; pitchDeg <= pitchSpan + 1e-9; pitchDeg += ENUM_STEP_DEG) {
+    for (let rotateDeg = -span.rotateDeg; rotateDeg <= span.rotateDeg + 1e-9; rotateDeg += ENUM_ROT_STEP_DEG) {
+      if (Math.abs(pitchDeg) < AIM_MIN_DELTA_DEG && Math.abs(rotateDeg) < ENUM_ROT_STEP_DEG / 2) continue;
+      const score = scoreJointKnobs(
+        model, { pitchDeg, rotateDeg }, currentTargets, currentScoreAxes, nextTargets, nextGap,
+      );
+      if (typeof score !== "string" && score.val > baseScore.val + 1e-4) scored.push(score);
+    }
+  }
+  return scored.sort((a, b) =>
+    b.val - a.val ||
+    b.currentQuality - a.currentQuality ||
+    Math.abs(a.knobs.rotateDeg) - Math.abs(b.knobs.rotateDeg) ||
+    Math.abs(a.knobs.pitchDeg) - Math.abs(b.knobs.pitchDeg)
+  );
 }
 
 /** M4 Part B — the air knob: ONE deterministic air-matched ride-out variant

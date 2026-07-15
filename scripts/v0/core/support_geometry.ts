@@ -96,6 +96,7 @@ export function planSupportGeometry(input: {
   const deficitPostLength = extensionPressure === 0 || shapeTimeBlend === 0
     ? input.legacyPostLength
     : Math.max(28, speed * deficitGroundFrames);
+  const timeShapeSpanPostLength = lerp(input.legacyPostLength, timePostLength, shapeTimeBlend);
   const postLength = input.mode === "off"
     ? input.legacyPostLength
     : input.mode === "time-extend"
@@ -106,7 +107,7 @@ export function planSupportGeometry(input: {
     ? logPostLength
     : input.mode === "shape-time-deficit"
     ? deficitPostLength
-    : lerp(input.legacyPostLength, timePostLength, clamp(input.shapeTimeBlend, 0, 1));
+    : timeShapeSpanPostLength;
   return {
     effectiveAir,
     targetGroundFrames,

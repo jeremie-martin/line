@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   allocateExplorationSeedEpoch,
+  assertExplorationDecisionSemantics,
   buildFamilyReport,
   readBenchmarkFamily,
   runFamilyCommand,
@@ -16,6 +17,7 @@ import {
   loadSuiteManifest,
   suiteIdentity,
 } from "../scripts/v0/benchmark_v2/suite_model.ts";
+import type { BaselineContract } from "../scripts/v0/benchmark_v2/confirmation.ts";
 
 const temporaryRoots: string[] = [];
 const originalFamilyEnv = process.env.LR_FAMILY_TEST;
@@ -52,6 +54,23 @@ describe("Benchmark V2 family exploration", () => {
       .rejects.toThrow(/unknown family capture option/);
     await expect(runFamilyCommand(["run", "demo", "--seeds", "2"]))
       .rejects.toThrow(/exactly NAME|--name=value/);
+  });
+
+  test("allows protocol-only repairs but refuses changed inference or calibration", () => {
+    const baseline = {
+      inferenceFingerprint: "a".repeat(64),
+      calibrationFingerprint: "b".repeat(64),
+    } as BaselineContract;
+    expect(() => assertExplorationDecisionSemantics(baseline, {
+      inferenceFingerprint: "a".repeat(64),
+      protocolFingerprint: "c".repeat(64),
+      calibrationFingerprint: "b".repeat(64),
+    })).not.toThrow();
+    expect(() => assertExplorationDecisionSemantics(baseline, {
+      inferenceFingerprint: "d".repeat(64),
+      protocolFingerprint: "c".repeat(64),
+      calibrationFingerprint: "b".repeat(64),
+    })).toThrow(/inference or calibration changed/);
   });
 
   test("captures arbitrary source states and permits only a source-baked exact selection", async () => {

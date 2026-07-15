@@ -154,6 +154,20 @@
         "sha256": "a3d808bbb87c3ca00e1f4c254938c2a42bc1d201596e8ec7d792234228b8c29a",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "872bef8ba426f8c6a970b687a2c9f2d0288a4efbeeb7fbcc9abf639fba093348",
+      "toImplementationFingerprint": "02a34d507cbd618c8fc9c1f7eefe8cbad85f49f6d3dfb0db397bf089e12bbc0e",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
+      "reviewedBy": "codex",
+      "reviewedAt": "2026-07-13T11:08:33.971Z",
+      "rationale": "Snapshot overlay tolerates a tracked file deleted in a dirty worktree; replay construction changes only, with frozen baseline compiler execution required to remain bit-identical.",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-872bef8b-02a34d50-3ff96093.json",
+        "sha256": "3ff96093b7fe8ddc46e5d6bd79728ef49a254df535cd3a84f2a5a5da83b14e10",
+        "result": "bit-identical"
+      }
     }
   ]
 }

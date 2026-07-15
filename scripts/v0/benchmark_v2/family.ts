@@ -18,7 +18,7 @@ import {
   type CompilerSnapshot,
 } from "./compiler_snapshot.ts";
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
-import { assertCurrentDecisionContract, readBaselineContract } from "./confirmation.ts";
+import { readBaselineContract, type BaselineContract } from "./confirmation.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import { loadVerifiedArchive, suiteAtDepth } from "./decide.ts";
 import { pairedV2DecisionForCalibration, type DecisionRun, type V2Decision } from "./decision_model.ts";
@@ -208,7 +208,10 @@ async function captureVariant(
     throw new Error(`capture requires --variant=<id> matching [a-z0-9][a-z0-9_-]{0,63}`);
   }
   const baseline = readBaselineContract();
-  assertCurrentDecisionContract(baseline, requireCurrentDecisionCalibration(baseline.suiteFingerprint));
+  assertExplorationDecisionSemantics(
+    baseline,
+    requireCurrentDecisionCalibration(baseline.suiteFingerprint),
+  );
   const family = existsSync(familyPath)
     ? readBenchmarkFamily(familyPath)
     : newFamily(familyName, baseline);
@@ -289,7 +292,10 @@ async function runFamily(
   if (!existsSync(familyPath)) throw new Error(`family ${familyName} does not exist; capture variants first`);
   const family = readBenchmarkFamily(familyPath);
   const baseline = readBaselineContract();
-  assertCurrentDecisionContract(baseline, requireCurrentDecisionCalibration(baseline.suiteFingerprint));
+  assertExplorationDecisionSemantics(
+    baseline,
+    requireCurrentDecisionCalibration(baseline.suiteFingerprint),
+  );
   assertFamilyCurrent(family, baseline);
   const round = family.rounds.at(-1)!;
   if (round.status === "completed" || round.status === "selected") {
@@ -369,7 +375,10 @@ async function selectVariant(
   if (!existsSync(familyPath)) throw new Error(`family ${familyName} does not exist`);
   const family = readBenchmarkFamily(familyPath);
   const baseline = readBaselineContract();
-  assertCurrentDecisionContract(baseline, requireCurrentDecisionCalibration(baseline.suiteFingerprint));
+  assertExplorationDecisionSemantics(
+    baseline,
+    requireCurrentDecisionCalibration(baseline.suiteFingerprint),
+  );
   assertFamilyCurrent(family, baseline);
   const round = family.rounds.at(-1)!;
   if (round.status !== "completed" && round.status !== "selected") {
@@ -787,6 +796,25 @@ function assertFamilyCurrent(family: BenchmarkFamily, baseline: ReturnType<typeo
     throw new Error(`family ${family.name} belongs to an older production baseline or suite; start a new family`);
   }
   validateCompilerSnapshot(family.baseline.snapshot);
+}
+
+/**
+ * A family is explicitly exploratory: it compares immutable compiler
+ * snapshots on one fresh shared epoch and cannot promote a candidate. A
+ * protocol-only workflow repair must not strand such a round. Inference and
+ * calibration changes do alter the reported estimates, so they remain a hard
+ * boundary; promotion still goes through the stricter eval contract.
+ */
+export function assertExplorationDecisionSemantics(
+  baseline: BaselineContract,
+  current: ReturnType<typeof requireCurrentDecisionCalibration>,
+): void {
+  if (
+    baseline.inferenceFingerprint !== current.inferenceFingerprint ||
+    baseline.calibrationFingerprint !== current.calibrationFingerprint
+  ) {
+    throw new Error(`family exploration inference or calibration changed; start a new family`);
+  }
 }
 
 export function readBenchmarkFamily(path: string): BenchmarkFamily {

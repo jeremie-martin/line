@@ -1,4 +1,7 @@
 /** Exact predecessor-pool coverage study for a failing handoff prefix. */
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
+import { createHash } from "node:crypto";
 import dense from "../../benchmark/v2/cases/normative/capability/frontier_dense_recovery.ts";
 import dense240 from "../../benchmark/v2/cases/variants/capability/frontier_dense_recovery_240ms_figures.ts";
 import pickup from "../../benchmark/v2/cases/normative/capability/frontier_pickup_progression.ts";
@@ -7,6 +10,8 @@ import frontier from "../../benchmark/v2/cases/normative/capability/frontier_low
 import frontier4 from "../../benchmark/v2/cases/variants/capability/frontier_low_air_endurance_4s.ts";
 import frontier6 from "../../benchmark/v2/cases/variants/capability/frontier_low_air_endurance_6s.ts";
 import frontier7 from "../../benchmark/v2/cases/variants/capability/frontier_low_air_endurance_7s.ts";
+import countercurrent from "../../benchmark/v2/cases/normative/representative/countercurrent.ts";
+import believer from "../../benchmark/v2/cases/normative/development_music/believer_56_6s.ts";
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { makeRng } from "../lib/rng.ts";
 import {
@@ -16,6 +21,7 @@ import {
 import { applyJolt } from "../produce/seed.ts";
 import { makeSolidLine } from "./arc.ts";
 import {
+  clearImpactTemplateMarker,
   readTargetStateFromRider,
   sampleArcPlacementGeometry,
   snapshotArcPlacementStats,
@@ -43,12 +49,23 @@ import {
 import {
   compileHandoff,
   compileHandoffFromSnapshot,
+  isOnlineTraversalBehindSchedule,
+  objectiveLeafValue,
   setForwardEvalContext,
+  setHandoffCapacityProbeHook,
+  setHandoffDeadEndProbeHook,
+  setHandoffFrontierProbeHook,
+  setHandoffFrontierNodeProbeHook,
   setHandoffPoolProbeHook,
+  setHandoffRankedOptionsProbeHook,
   snapshotHandoffNode,
   type HandoffNode,
   type HandoffNodeEvent,
+  type HandoffCapacityProbeRecord,
+  type HandoffDeadEndProbeRecord,
+  type HandoffFrontierProbeRecord,
   type HandoffPoolProbeRecord,
+  type HandoffRankedOptionsProbeRecord,
 } from "./optimizer/handoff.ts";
 import {
   extendNodeCached,
@@ -67,9 +84,11 @@ import {
   type SpecContext,
 } from "./optimizer/sample.ts";
 import type { LeafKey } from "./optimizer/register.ts";
-import { adjustArcTailLength, applyArcKnobs } from "./optimizer/arc_model.ts";
+import { adjustArcTailLength, applyArcKnobs, scaleArcLines } from "./optimizer/arc_model.ts";
+import { planKinematicSupport } from "./optimizer/kinematic_support.ts";
 import { scoreDriftReport } from "./score.ts";
 import {
+  authoredSpeedToPx,
   CALIB,
   FPS,
   secToFrame,
@@ -80,6 +99,24 @@ import {
 import type { Spec } from "./optimizer/types.ts";
 
 const argv = process.argv.slice(2);
+if (argv.includes("--help") || argv.includes("-h")) {
+  process.stdout.write([
+    "Exact predecessor-pool coverage study.",
+    "",
+    "Usage:",
+    "  LR_ENGINE=wasm npx tsx scripts/v0/study_predecessor_coverage.ts \\",
+    "    --case=dense --seed=24 --budget=250000 --out=generated/studies/coverage.json",
+    "",
+    "Key options: --case, --seed, --search-seed, --budget, --target-gap,",
+    "--catch-controls='[{...}]' (normalized state-relative diagnostic controls),",
+    "--ranked-options-probe-gap=N, --runway-adjust=1, --runway-rotate=1,",
+    "--whole-scale=0.94,1.06 [--whole-scale-bases=N --whole-scale-suffix-budget=N],",
+    "--suffix-search-seeds=N,... (fixed-prefix alternate search read),",
+    "--two-step-knob-suffix-coordinates=pitch:rotate,... (limits exact suffix replays),",
+    "--runway-translate=1, --out.",
+  ].join("\n") + "\n");
+  process.exit(0);
+}
 const argument = (name: string): string | undefined =>
   argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const caseId = argument("case") ?? "dense";
@@ -90,6 +127,14 @@ const candidateCount = Number(argument("candidates") ?? "32");
 const nextCandidateCount = Number(argument("next-candidates") ?? String(candidateCount));
 const suffixBudget = Number(argument("suffix-budget") ?? "0");
 const suffixTop = Number(argument("suffix-top") ?? "8");
+const suffixRanks = (argument("suffix-ranks") ?? "")
+  .split(",")
+  .filter((value) => value.length > 0)
+  .map((value) => Number(value));
+const suffixSearchSeeds = (argument("suffix-search-seeds") ?? "")
+  .split(",")
+  .filter((value) => value.length > 0)
+  .map((value) => Number(value));
 const geometryMode = argument("geometry") ?? "normal";
 const geometryPhaseFrames = Number(argument("geometry-phase") ?? "1");
 const geometryNormalOffset = Number(argument("geometry-normal") ?? "0");
@@ -98,6 +143,9 @@ const catchAttempts = Number(argument("catch-attempts") ?? "0");
 const catchRank = Number(argument("catch-rank") ?? "-1");
 const catchPhase = Number(argument("catch-phase") ?? "-1");
 const catchTemplateGrid = argument("catch-template-grid") === "1";
+const catchControls = parseCatchControls(argument("catch-controls"));
+const catchSuffixBudget = Number(argument("catch-suffix-budget") ?? "0");
+const catchSuffixAll = argument("catch-suffix-all") === "1";
 const requestedTargetGap = Number(argument("target-gap") ?? "-1");
 const targetVisit = argument("target-visit") ?? "winner";
 const runwayAdjust = argument("runway-adjust") === "1";
@@ -106,10 +154,45 @@ const runwayTranslate = argument("runway-translate") === "1";
 const twoStep = argument("two-step") === "1";
 const twoStepKnobBases = Number(argument("two-step-knob-bases") ?? "0");
 const twoStepKnobWide = argument("two-step-knob-wide") === "1";
+const twoStepKnobSuffixBudget = Number(argument("two-step-knob-suffix-budget") ?? "0");
+const twoStepKnobOutcomeDepth = Number(argument("two-step-knob-outcome-depth") ?? "0");
+const twoStepKnobOutcomeBranch = Number(argument("two-step-knob-outcome-branch") ?? "1");
+const twoStepKnobSuffixCoordinates = parseKnobCoordinates(
+  argument("two-step-knob-suffix-coordinates"),
+  "two-step-knob-suffix-coordinates",
+);
+const twoStepKnobOutcomeCoordinates = parseKnobCoordinates(
+  argument("two-step-knob-outcome-coordinates"),
+  "two-step-knob-outcome-coordinates",
+);
 const contactSupportBases = Number(argument("contact-support-bases") ?? "0");
 const contactSupportWide = argument("contact-support-wide") === "1";
+const contactSupportSuffixBudget = Number(argument("contact-support-suffix-budget") ?? "0");
+const contactSupportSelect = argument("contact-support-select") ?? "coverage";
+const contactSupportNormalized = argument("contact-support-normalized") === "1";
 const reuseGap = Number(argument("reuse-gap") ?? "-1");
 const compileLandingProbe = argument("compile-landing-probe") === "1";
+const capacityProbe = argument("capacity-probe") === "1";
+const rankedOptionsProbeGap = Number(argument("ranked-options-probe-gap") ?? "-1");
+const frontierProbeGap = Number(argument("frontier-probe-gap") ?? "-1");
+const frontierSnapshotRankArg = argument("frontier-snapshot-rank");
+const frontierSnapshotRank = frontierSnapshotRankArg === undefined
+  ? null
+  : Number(frontierSnapshotRankArg);
+const frontierSnapshotBudget = Number(argument("frontier-snapshot-budget") ?? "0");
+const deadEndProbe = argument("dead-end-probe") === "1";
+const deadEndAlternateRank = Number(argument("dead-end-alternate-rank") ?? "-1");
+const deadEndSearchSeeds = (argument("dead-end-search-seeds") ?? "")
+  .split(",")
+  .filter((value) => value.length > 0)
+  .map((value) => Number(value));
+const wholeScaleValues = (argument("whole-scale") ?? "")
+  .split(",")
+  .filter((value) => value.length > 0)
+  .map((value) => Number(value));
+const wholeScaleBases = Number(argument("whole-scale-bases") ?? "1");
+const wholeScaleSuffixBudget = Number(argument("whole-scale-suffix-budget") ?? "0");
+const outPath = argument("out");
 
 const catalog: Record<string, Spec> = {
   dense,
@@ -120,6 +203,8 @@ const catalog: Record<string, Spec> = {
   frontier4,
   frontier6,
   frontier7,
+  countercurrent,
+  believer,
 };
 const sourceSpec = catalog[caseId];
 if (sourceSpec === undefined) throw new Error(`unknown --case=${caseId}`);
@@ -137,6 +222,12 @@ if (!Number.isSafeInteger(suffixBudget) || suffixBudget < 0) {
 }
 if (!Number.isSafeInteger(suffixTop) || suffixTop <= 0) {
   throw new Error(`invalid --suffix-top=${suffixTop}`);
+}
+if (suffixRanks.some((rank) => !Number.isSafeInteger(rank) || rank < -1)) {
+  throw new Error(`invalid --suffix-ranks (expected comma-separated pool ranks or -1)`);
+}
+if (suffixSearchSeeds.some((value) => !Number.isSafeInteger(value))) {
+  throw new Error(`invalid --suffix-search-seeds (expected comma-separated integer seeds)`);
 }
 if (
   geometryMode !== "normal" && geometryMode !== "time" &&
@@ -162,6 +253,9 @@ if (!Number.isSafeInteger(catchRank) || catchRank < -1) {
 if (!Number.isSafeInteger(catchPhase) || catchPhase < -1 || catchPhase > 7) {
   throw new Error(`invalid --catch-phase=${catchPhase}`);
 }
+if (!Number.isSafeInteger(catchSuffixBudget) || catchSuffixBudget < 0) {
+  throw new Error(`invalid --catch-suffix-budget=${catchSuffixBudget}`);
+}
 if (!Number.isSafeInteger(requestedTargetGap) || requestedTargetGap < -1) {
   throw new Error(`invalid --target-gap=${requestedTargetGap}`);
 }
@@ -171,18 +265,97 @@ if (targetVisit !== "winner" && targetVisit !== "first") {
 if (!Number.isSafeInteger(twoStepKnobBases) || twoStepKnobBases < 0) {
   throw new Error(`invalid --two-step-knob-bases=${twoStepKnobBases}`);
 }
+if (!Number.isSafeInteger(twoStepKnobSuffixBudget) || twoStepKnobSuffixBudget < 0) {
+  throw new Error(`invalid --two-step-knob-suffix-budget=${twoStepKnobSuffixBudget}`);
+}
+if (!Number.isSafeInteger(twoStepKnobOutcomeDepth) || twoStepKnobOutcomeDepth < 0 || twoStepKnobOutcomeDepth > 6) {
+  throw new Error(`invalid --two-step-knob-outcome-depth=${twoStepKnobOutcomeDepth}`);
+}
+if (!Number.isSafeInteger(twoStepKnobOutcomeBranch) || twoStepKnobOutcomeBranch < 1 || twoStepKnobOutcomeBranch > 4) {
+  throw new Error(`invalid --two-step-knob-outcome-branch=${twoStepKnobOutcomeBranch}`);
+}
 if (!Number.isSafeInteger(contactSupportBases) || contactSupportBases < 0) {
   throw new Error(`invalid --contact-support-bases=${contactSupportBases}`);
 }
+if (!Number.isSafeInteger(contactSupportSuffixBudget) || contactSupportSuffixBudget < 0) {
+  throw new Error(`invalid --contact-support-suffix-budget=${contactSupportSuffixBudget}`);
+}
+if (contactSupportSelect !== "coverage" && contactSupportSelect !== "cheapest-improving") {
+  throw new Error(`contact-support-select must be coverage|cheapest-improving`);
+}
 if (!Number.isSafeInteger(reuseGap) || reuseGap < -1) {
   throw new Error(`invalid --reuse-gap=${reuseGap}`);
+}
+if (!Number.isSafeInteger(frontierProbeGap) || frontierProbeGap < -1) {
+  throw new Error(`invalid --frontier-probe-gap=${frontierProbeGap}`);
+}
+if (!Number.isSafeInteger(rankedOptionsProbeGap) || rankedOptionsProbeGap < -1) {
+  throw new Error(`invalid --ranked-options-probe-gap=${rankedOptionsProbeGap}`);
+}
+if (frontierSnapshotRank !== null && !Number.isSafeInteger(frontierSnapshotRank)) {
+  throw new Error(`invalid --frontier-snapshot-rank=${frontierSnapshotRankArg}`);
+}
+if (!Number.isSafeInteger(frontierSnapshotBudget) || frontierSnapshotBudget < 0) {
+  throw new Error(`invalid --frontier-snapshot-budget=${frontierSnapshotBudget}`);
+}
+if (!Number.isSafeInteger(deadEndAlternateRank) || deadEndAlternateRank < -1) {
+  throw new Error(`invalid --dead-end-alternate-rank=${deadEndAlternateRank}`);
+}
+if (deadEndSearchSeeds.some((value) => !Number.isSafeInteger(value))) {
+  throw new Error(`invalid --dead-end-search-seeds (expected comma-separated integer seeds)`);
+}
+if (wholeScaleValues.some((value) => !Number.isFinite(value) || value < 0.5 || value > 1.5 || value === 1)) {
+  throw new Error(`invalid --whole-scale (expected comma-separated scales in [0.5, 1.5], excluding 1)`);
+}
+if (!Number.isSafeInteger(wholeScaleBases) || wholeScaleBases < 0) {
+  throw new Error(`invalid --whole-scale-bases=${wholeScaleBases}`);
+}
+if (!Number.isSafeInteger(wholeScaleSuffixBudget) || wholeScaleSuffixBudget < 0) {
+  throw new Error(`invalid --whole-scale-suffix-budget=${wholeScaleSuffixBudget}`);
 }
 
 const spec = applyJolt(sourceSpec, benchmarkPolicy.transform.joltMs);
 const visited: Array<{ node: HandoffNode; key: LeafKey; event: HandoffNodeEvent }> = [];
 const poolProbeRecords: HandoffPoolProbeRecord[] = [];
+const capacityProbeRecords: HandoffCapacityProbeRecord[] = [];
+const rankedOptionsProbeRecords: HandoffRankedOptionsProbeRecord[] = [];
+const deadEndProbeRecords: HandoffDeadEndProbeRecord[] = [];
+const frontierProbe = frontierProbeGap < 0 ? null : createFrontierProbeSummary(frontierProbeGap);
+let frontierSnapshot: {
+  node: HandoffNode;
+  simFrames: number;
+  deepestSeenGap: number;
+  selectedGapIndex: number;
+} | null = null;
 let winner: HandoffNode | null = null;
 setHandoffPoolProbeHook((record) => poolProbeRecords.push(record));
+if (capacityProbe) setHandoffCapacityProbeHook((record) => capacityProbeRecords.push(record));
+if (rankedOptionsProbeGap >= 0) {
+  setHandoffRankedOptionsProbeHook((record) => {
+    if (record.gapIndex === rankedOptionsProbeGap) rankedOptionsProbeRecords.push(record);
+  });
+}
+if (frontierProbe !== null) setHandoffFrontierProbeHook((record) => frontierProbe.observe(record));
+if (frontierProbeGap >= 0 && frontierSnapshotRank !== null) {
+  setHandoffFrontierNodeProbeHook((record) => {
+    if (frontierSnapshot !== null || record.selected.search.gapIndex !== frontierProbeGap) return;
+    const selectedParentTrace = record.selected.rankTrace.slice(0, -1);
+    const waiting = [...record.passFrontier, ...record.fallbackFrontier].find((node) => {
+      const entering = node.rankTrace.at(-1);
+      return node.search.gapIndex === record.selected.search.gapIndex &&
+        sameRankTrace(node.rankTrace.slice(0, -1), selectedParentTrace) &&
+        entering?.source === "pool" && entering.rank === frontierSnapshotRank;
+    });
+    if (waiting === undefined) return;
+    frontierSnapshot = {
+      node: waiting,
+      simFrames: record.simFrames,
+      deepestSeenGap: record.deepestSeenGap,
+      selectedGapIndex: record.selected.search.gapIndex,
+    };
+  });
+}
+if (deadEndProbe) setHandoffDeadEndProbeHook((record) => deadEndProbeRecords.push(record));
 if (compileLandingProbe) enableLandingWindowProbe();
 const checkpoint = compileHandoff(spec, seed, {
   budget,
@@ -193,6 +366,11 @@ const checkpoint = compileHandoff(spec, seed, {
   },
 });
 setHandoffPoolProbeHook(null);
+setHandoffCapacityProbeHook(null);
+setHandoffRankedOptionsProbeHook(null);
+setHandoffFrontierProbeHook(null);
+setHandoffFrontierNodeProbeHook(null);
+setHandoffDeadEndProbeHook(null);
 const compileLandingProbeSummary = compileLandingProbe
   ? summarizeLandingProbe(drainLandingWindowProbe().records)
   : null;
@@ -249,6 +427,10 @@ const targetNode = requestedTargetGap < 0
 if (targetNode === null) {
   throw new Error(`winning path did not expose requested target gap ${requestedTargetGap}`);
 }
+const targetRecord = visited.find((record) => record.node === targetNode);
+if (targetRecord === undefined) {
+  throw new Error(`could not locate target-node snapshot for gap ${targetNode.search.gapIndex}`);
+}
 const targetGapIndex = targetNode.search.gapIndex;
 const parentRecord = deepestWinningAncestor(visited, targetNode);
 if (parentRecord === null) {
@@ -263,7 +445,6 @@ const parentTargetState = getCandidateProbe(
   predecessorGap,
   setup.ctx,
 ).targetState;
-
 const pool = geometryMode === "normal" && sampleMode === "normal"
   ? getCandidatesSorted(
     parent.search,
@@ -301,21 +482,48 @@ const analysisPool: Array<{ candidate: Candidate; poolRank: number }> = [
     : []),
   ...pool.map((candidate, poolRank) => ({ candidate, poolRank })),
 ];
-const matchingPoolProbe = [...poolProbeRecords].reverse().find((record) =>
-  record.gapIndex === parent.search.gapIndex &&
-  pool.slice(0, Math.min(7, pool.length)).every((candidate, rank) => {
-    const probe = record.candidates[rank];
-    if (probe === undefined) return false;
-    const lineLength = candidate.lines.reduce(
+const selectedReference = selectedCandidate ?? pool[0] ?? null;
+const kinematicPlan = nextGap.targets.air === undefined || selectedReference === null
+  ? null
+  : planKinematicSupport({
+    air: nextGap.targets.air,
+    gapFrames: nextGap.endFrame - nextGap.startFrame,
+    entrySpeed: parentTargetState.speed,
+    exitSpeed: nextGap.targets.speed === undefined
+      ? parentTargetState.speed
+      : authoredSpeedToPx(nextGap.targets.speed),
+    referenceLength: selectedReference.lines.reduce(
       (sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1),
       0,
-    );
-    return probe.qualityRank === rank &&
-      probe.lineCount === candidate.lines.length &&
-      Math.abs(probe.lineLength - lineLength) < 1e-6 &&
-      Math.abs(probe.cost - candidate.cost) < 1e-9;
-  })
+    ),
+  });
+// The search may enter a boundary through a reuse or extra lane, so a freshly
+// regenerated pool is not a reliable identity witness. Match the selected
+// candidate directly against the pool captured while that prefix was scored.
+const targetPoolProbe = [...poolProbeRecords].reverse().find((record) =>
+  record.gapIndex === parent.search.gapIndex && selectedCandidate !== null &&
+  record.candidates.some((candidate) => matchesProbeCandidate(selectedCandidate, candidate))
+) ?? [...poolProbeRecords].reverse().find((record) =>
+  record.gapIndex === parent.search.gapIndex
 ) ?? null;
+const selectedProbeRank = selectedCandidate === null || targetPoolProbe === null
+  ? null
+  : targetPoolProbe.candidates.findIndex((candidate) => matchesProbeCandidate(selectedCandidate, candidate));
+const rankedPool = targetPoolProbe?.candidates
+  .filter((candidate) => candidate.handoffScore !== undefined)
+  .map((candidate) => ({
+    qualityRank: candidate.qualityRank,
+    handoffScore: candidate.handoffScore!,
+    admitted: candidate.admitted,
+    cost: round(candidate.cost),
+    readiness: candidate.readiness === null ? null : round(candidate.readiness),
+    arrivalSpeed: candidate.arrivalSpeed === null ? null : round(candidate.arrivalSpeed),
+    arrivalAngleDeg: candidate.arrivalAngleDeg === null ? null : round(candidate.arrivalAngleDeg),
+    arrivalAir: candidate.arrivalAir === null ? null : round(candidate.arrivalAir),
+    arrivalElevation: candidate.arrivalElevation === null ? null : round(candidate.arrivalElevation),
+  }))
+  .sort((a, b) => a.handoffScore - b.handoffScore || a.qualityRank - b.qualityRank) ?? null;
+const scoreAmbiguity = summarizeScoreAmbiguity(rankedPool);
 const exploredChildren = visited.flatMap((record) => {
   const node = record.node;
   if (node.search.gapIndex !== parent.search.gapIndex + 1) return [];
@@ -446,8 +654,43 @@ const twoStepKnobStudy = twoStepKnobBases === 0
     winningNode.searchSeed,
     candidateCount,
     twoStepKnobWide,
+    twoStepKnobOutcomeDepth,
+    twoStepKnobOutcomeBranch,
+    twoStepKnobOutcomeCoordinates,
   );
-const contactSupportStudy = contactSupportBases === 0
+const twoStepKnobUniqueCandidates = twoStepKnobStudy === null
+  ? []
+  : twoStepKnobStudy.candidates.filter((row, index, rows) =>
+    rows.findIndex((other) => sameLines(other.candidate.lines, row.candidate.lines)) === index,
+  );
+const twoStepKnobSuffixCandidates = twoStepKnobSuffixCoordinates.length === 0
+  ? twoStepKnobUniqueCandidates
+  : twoStepKnobUniqueCandidates.filter((row) =>
+    twoStepKnobSuffixCoordinates.some((coordinate) =>
+      coordinate.pitchDeg === row.pitchDeg && coordinate.rotateDeg === row.rotateDeg,
+    ),
+  );
+const twoStepKnobSuffixes = twoStepKnobSuffixBudget === 0
+  ? []
+  : twoStepKnobSuffixCandidates.map((row) => ({
+    baseRank: row.baseRank,
+    pitchDeg: row.pitchDeg,
+    rotateDeg: row.rotateDeg,
+    suffix: resumeContactSupportSuffix(
+      row.candidate,
+      parentRecord,
+      spec,
+      seed,
+      twoStepKnobSuffixBudget,
+    ),
+  }));
+const twoStepKnobReport = twoStepKnobStudy === null
+  ? null
+  : (() => {
+    const { candidates: _candidates, ...study } = twoStepKnobStudy;
+    return study;
+  })();
+const contactSupportEvaluation = contactSupportBases === 0
   ? null
   : evaluateContactSupport(
     parent.search,
@@ -458,7 +701,57 @@ const contactSupportStudy = contactSupportBases === 0
     winningNode.searchSeed,
     nextCandidateCount,
     contactSupportWide,
+    contactSupportSelect,
+    rows.find((row) => row.selected)?.nextCandidates ?? 0,
+    contactSupportNormalized,
   );
+const contactSupportStudy = contactSupportEvaluation === null
+  ? null
+  : (() => {
+    const { bestCandidate: _bestCandidate, ...study } = contactSupportEvaluation;
+    return study;
+  })();
+const contactSupportSuffix = contactSupportEvaluation === null || contactSupportSuffixBudget === 0
+  ? null
+  : resumeContactSupportSuffix(
+    contactSupportEvaluation.bestCandidate,
+    parentRecord,
+    spec,
+    seed,
+    contactSupportSuffixBudget,
+  );
+const wholeScaleEvaluation = wholeScaleValues.length === 0 || wholeScaleBases === 0
+  ? null
+  : evaluateWholeArcScale(
+    parent.search,
+    analysisPool.slice(0, wholeScaleBases),
+    wholeScaleValues,
+    predecessorGap,
+    nextGap,
+    setup,
+    winningNode.searchSeed,
+    nextCandidateCount,
+  );
+const wholeScaleStudy = wholeScaleEvaluation === null
+  ? null
+  : (() => {
+    const { candidates: _candidates, ...study } = wholeScaleEvaluation;
+    return study;
+  })();
+const wholeScaleSuffixes = wholeScaleEvaluation === null || wholeScaleSuffixBudget === 0
+  ? []
+  : wholeScaleEvaluation.candidates.map((row) => ({
+    baseRank: row.baseRank,
+    scale: row.scale,
+    nextCandidates: row.nextCandidates,
+    suffix: resumeContactSupportSuffix(
+      row.candidate,
+      parentRecord,
+      spec,
+      seed,
+      wholeScaleSuffixBudget,
+    ),
+  }));
 const priorReuse = reuseGap < 0
   ? null
   : evaluatePriorReuse(
@@ -472,7 +765,7 @@ const priorReuse = reuseGap < 0
     candidateCount,
   );
 const catchBase = catchRank < 0 ? selectedCandidate : pool[catchRank] ?? null;
-const catchGrid = catchAttempts === 0 || catchBase === null
+const catchGrid = (catchAttempts === 0 && catchControls.length === 0) || catchBase === null
   ? null
   : sampleCatchManifold(
     advanceToGap(
@@ -487,28 +780,116 @@ const catchGrid = catchAttempts === 0 || catchBase === null
     winningNode.searchSeed,
     nextCandidateCount,
     catchTemplateGrid,
+    catchControls,
   );
+const catchSuffix = catchGrid === null || catchGrid.bestCandidate === null || catchSuffixBudget === 0
+  ? null
+  : resumeCatchSuffix(
+    catchGrid.bestCandidate,
+    targetNode,
+    targetRecord,
+    spec,
+    seed,
+    catchSuffixBudget,
+  );
+const catchSuffixes = catchGrid === null || catchSuffixBudget === 0 || !catchSuffixAll
+  ? []
+  : catchGrid.bridgeCandidates.map((candidate, bridgeIndex) => ({
+    bridgeIndex,
+    suffix: resumeCatchSuffix(
+      candidate,
+      targetNode,
+      targetRecord,
+      spec,
+      seed,
+      catchSuffixBudget,
+    ),
+  }));
+// The selected predecessor can come from an extra/reuse lane and therefore be
+// absent from a freshly reconstructed normal pool. Include it explicitly: an
+// equal-suffix oracle that only tests regenerated pool entries is not a fair
+// comparison with the branch the compiler actually traversed.
+const suffixCandidates = selectedCandidate !== null && !pool.includes(selectedCandidate)
+  ? [selectedCandidate, ...pool]
+  : pool;
+const selectedSuffixCandidates = suffixRanks.length === 0
+  ? suffixCandidates.slice(0, suffixTop)
+  : suffixRanks.flatMap((rank) => {
+    if (rank === -1) return selectedCandidate === null ? [] : [selectedCandidate];
+    const candidate = pool[rank];
+    return candidate === undefined ? [] : [candidate];
+  }).filter((candidate, index, candidates) => candidates.indexOf(candidate) === index);
 const suffixRows = suffixBudget === 0
   ? []
-  : pool.slice(0, suffixTop).map((candidate, rank) => {
-    const childNode: HandoffNode = {
-      ...parent,
-      search: extendNodeCached(parent.search, candidate),
-      deferExpansion: false,
-      rankTrace: [...parent.rankTrace, { rank, source: "pool" }],
-    };
+  : selectedSuffixCandidates.map((candidate, position) => runSuffix(candidate, position, searchSeed));
+// Optional portfolio read: every row starts from the same retained parent and
+// candidate, changing only the suffix search stream. It is evidence about
+// outcome variability, never a production seed-selection policy.
+const suffixSearchSeedRows = suffixBudget === 0 || suffixSearchSeeds.length === 0
+  ? []
+  : selectedSuffixCandidates.flatMap((candidate, position) =>
+    suffixSearchSeeds.map((suffixSearchSeed) => runSuffix(candidate, position, suffixSearchSeed)),
+  );
+// A resumed suffix only supports a candidate-level conclusion if its control
+// reproduces the actual selected prefix. Search policy can depend on traversal
+// history, so a failed incumbent replay is missing evidence, not evidence that
+// every alternative is worse. Fail before writing a plausible-looking oracle.
+const sourceCompleted = checkpoint.report.terminus.reason === "endOfSpec" &&
+  checkpoint.stats.gap_commits === setup.gaps.filter((gap) => gap.endsWithContact).length;
+const selectedSuffix = suffixRows.find((row) => row.selected) ?? null;
+if (suffixBudget > 0 && sourceCompleted && selectedSuffix !== null && !selectedSuffix.valid) {
+  throw new Error(
+    `suffix control did not replay selected prefix at gap ${parent.search.gapIndex} ` +
+    `(deepest=${selectedSuffix.deepestGap}); refusing non-causal suffix comparison`,
+  );
+}
+const selectedParentDeadEnds = deadEndProbeRecords
+  .filter((record) =>
+    selectedCandidate !== null &&
+    record.node.search.prefixFits[parent.search.gapIndex] === selectedCandidate
+  )
+  .sort((a, b) => a.simFrames - b.simFrames || a.node.search.gapIndex - b.node.search.gapIndex);
+const firstSelectedParentDeadEnd = selectedParentDeadEnds[0] ?? null;
+const deadEndAlternate = deadEndAlternateRank < 0 || firstSelectedParentDeadEnd === null
+  ? null
+  : replayDeadEndAlternate(
+    pool[deadEndAlternateRank] ?? null,
+    parentRecord,
+    spec,
+    seed,
+    Math.max(1, budget - firstSelectedParentDeadEnd.simFrames),
+  );
+const deadEndAlternateSearchSeeds = deadEndAlternateRank < 0 || firstSelectedParentDeadEnd === null
+  ? []
+  : deadEndSearchSeeds.map((restartSearchSeed) => ({
+    restartSearchSeed,
+    ...replayDeadEndAlternate(
+      pool[deadEndAlternateRank] ?? null,
+      parentRecord,
+      spec,
+      seed,
+      Math.max(1, budget - firstSelectedParentDeadEnd.simFrames),
+      restartSearchSeed,
+    ),
+  }));
+const frontierSnapshotResume = frontierSnapshot === null || frontierSnapshotBudget === 0
+  ? null
+  : (() => {
     const resumed = compileHandoffFromSnapshot(
       spec,
       seed,
-      snapshotHandoffNode(childNode, parentRecord.key, parentRecord.event),
-      { budget: suffixBudget },
+      snapshotHandoffNode(frontierSnapshot.node, parentRecord.key, parentRecord.event),
+      { budget: frontierSnapshotBudget },
     );
     const score = scoreDriftReport(resumed.report, {
       totalFrames: Math.round(spec.duration * FPS),
     });
     return {
-      rank,
-      sampleAttempt: candidate.sampleAttempt ?? null,
+      capturedAtSimFrames: frontierSnapshot.simFrames,
+      deepestSeenGap: frontierSnapshot.deepestSeenGap,
+      selectedGapIndex: frontierSnapshot.selectedGapIndex,
+      remainingBudgetAtCapture: Math.max(0, budget - frontierSnapshot.simFrames),
+      resumeBudget: frontierSnapshotBudget,
       valid: score.contract_passed,
       score: round(score.score),
       hardFailures: score.hard_failures,
@@ -518,7 +899,7 @@ const suffixRows = suffixBudget === 0
       deepestGap: resumed.stats.handoff_deepest_seen_gap ?? null,
       firstCompletionFrame: resumed.stats.first_completion_frame ?? null,
     };
-  });
+  })();
 
 const output = {
   schema: "line.study-predecessor-coverage.v1",
@@ -537,7 +918,12 @@ const output = {
   catchBaseSource: catchRank < 0 ? "selected" : "pool",
   catchPhase,
   catchTemplateGrid,
+  catchControls,
+  catchSuffixBudget,
+  catchSuffixAll,
   suffixBudget,
+  suffixRanks,
+  suffixSearchSeeds,
   valid: checkpoint.report.terminus.reason === "endOfSpec" &&
     checkpoint.stats.gap_commits === setup.gaps.filter((gap) => gap.endsWithContact).length,
   score: scoreDriftReport(checkpoint.report, {
@@ -555,7 +941,40 @@ const output = {
   candidatesSampled: checkpoint.stats.candidates_sampled,
   searchNodesExpanded: checkpoint.stats.search_nodes_expanded ?? null,
   forwardEval: checkpoint.stats.fwd_eval ?? null,
+  contactPhase: checkpoint.stats.contact_phase ?? null,
+  kinematicSupport: checkpoint.stats.kinematic_support ?? null,
   compileLandingProbe: compileLandingProbeSummary,
+  capacityProbe: capacityProbe
+    ? summarizeCapacityProbe(capacityProbeRecords, {
+      firstVisitedProgressFrame,
+      totalContactGaps,
+      budget,
+      gaps: setup.gaps,
+    })
+    : null,
+  rankedOptionsProbe: rankedOptionsProbeGap < 0
+    ? null
+    : {
+      gap: rankedOptionsProbeGap,
+      records: rankedOptionsProbeRecords,
+    },
+  frontierProbe: frontierProbe?.result() ?? null,
+  frontierSnapshotResume,
+  deadEndProbe: deadEndProbe
+    ? {
+      observations: deadEndProbeRecords.length,
+      selectedParentObservations: selectedParentDeadEnds.length,
+      firstSelectedParentDeadEnd: firstSelectedParentDeadEnd === null
+        ? null
+        : summarizeDeadEnd(firstSelectedParentDeadEnd, budget),
+      firstSelectedParentDeadEnds: selectedParentDeadEnds
+        .slice(0, 12)
+        .map((record) => summarizeDeadEnd(record, budget)),
+      alternateRank: deadEndAlternateRank < 0 ? null : deadEndAlternateRank,
+      alternate: deadEndAlternate,
+      alternateSearchSeeds: deadEndAlternateSearchSeeds,
+    }
+    : null,
   deepestGap: checkpoint.stats.handoff_deepest_seen_gap ?? null,
   deepestProgress,
   winningGap: targetGapIndex,
@@ -567,10 +986,20 @@ const output = {
   twoStep,
   twoStepKnobBases,
   twoStepKnobWide,
+  twoStepKnobOutcomeDepth,
+  twoStepKnobOutcomeBranch,
+  twoStepKnobOutcomeCoordinates,
+  twoStepKnobSuffixBudget,
+  twoStepKnobSuffixCoordinates,
   contactSupportBases,
   contactSupportWide,
+  contactSupportSuffixBudget,
+  contactSupportSelect,
+  contactSupportNormalized,
   reuseGap,
   parentGap: parent.search.gapIndex,
+  predecessorGapFrames: predecessorGap.endFrame - predecessorGap.startFrame,
+  nextGapFrames: nextGap.endFrame - nextGap.startFrame,
   predecessorTargets: predecessorGap.targets,
   nextTargets: nextGap.targets,
   parentTargetState: {
@@ -579,32 +1008,345 @@ const output = {
     vx: round(parentTargetState.velocity.x),
     vy: round(parentTargetState.velocity.y),
   },
+  kinematicPlan,
   parentSimFrames: parentRecord.event.simFrames,
   selectedRank,
   selectedSource: selectedTrace?.source ?? null,
   selectedSourceAxis: selectedTrace?.sourceAxis ?? null,
   selectedPoolRank,
+  selectedProbeRank,
+  probeMatchesSelected: selectedProbeRank !== null && selectedProbeRank >= 0,
   winningRankTrace: winningNode.rankTrace,
-  rankedPool: matchingPoolProbe?.candidates
-    .filter((candidate) => candidate.handoffScore !== undefined)
-    .map((candidate) => ({
-      qualityRank: candidate.qualityRank,
-      handoffScore: candidate.handoffScore!,
-      admitted: candidate.admitted,
-      cost: round(candidate.cost),
-      readiness: candidate.readiness === null ? null : round(candidate.readiness),
-    }))
-    .sort((a, b) => a.handoffScore - b.handoffScore || a.qualityRank - b.qualityRank) ?? null,
+  rankedPool,
+  scoreAmbiguity,
   exploredChildren,
   bridgingCandidates: rows.filter((row) => row.nextCandidates > 0).length,
   rows,
-  twoStepKnobStudy,
+  twoStepKnobStudy: twoStepKnobReport,
+  twoStepKnobSuffixes,
   contactSupportStudy,
+  contactSupportSuffix,
+  wholeScaleValues,
+  wholeScaleBases,
+  wholeScaleSuffixBudget,
+  wholeScaleStudy,
+  wholeScaleSuffixes,
   priorReuse,
   catchGrid,
+  catchSuffix,
+  catchSuffixes,
   suffixRows,
+  suffixSearchSeedRows,
 };
-process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);
+const outputJson = `${JSON.stringify(output, null, 2)}\n`;
+if (outPath === undefined) {
+  process.stdout.write(outputJson);
+} else {
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeFileSync(outPath, outputJson);
+  console.error(`rows -> ${outPath}`);
+}
+
+function runSuffix(candidate: Candidate, position: number, suffixSearchSeed: number) {
+  const rank = pool.indexOf(candidate);
+  const childNode: HandoffNode = {
+    ...parent,
+    search: extendNodeCached(parent.search, candidate),
+    deferExpansion: false,
+    rankTrace: [...parent.rankTrace, { rank, source: "pool" }],
+  };
+  const resumed = compileHandoffFromSnapshot(
+    spec,
+    seed,
+    snapshotHandoffNode(childNode, parentRecord.key, parentRecord.event),
+    { budget: suffixBudget, searchSeed: suffixSearchSeed },
+  );
+  const score = scoreDriftReport(resumed.report, {
+    totalFrames: Math.round(spec.duration * FPS),
+  });
+  return {
+    position,
+    rank,
+    selected: candidate === selectedCandidate,
+    sampleAttempt: candidate.sampleAttempt ?? null,
+    searchSeed: suffixSearchSeed,
+    valid: score.contract_passed,
+    score: round(score.score),
+    hardFailures: score.hard_failures,
+    contactsHit: resumed.report.contacts.filter((contact) => contact.status === "hit").length,
+    contactsMissing: resumed.report.contacts.filter((contact) => contact.status === "missing").length,
+    missingContactIndices: resumed.report.contacts
+      .flatMap((contact, index) => contact.status === "missing" ? [index] : []),
+    terminus: resumed.report.terminus,
+    deepestGap: resumed.stats.handoff_deepest_seen_gap ?? null,
+    firstCompletionFrame: resumed.stats.first_completion_frame ?? null,
+  };
+}
+
+/**
+ * Streaming observation summary for one frontier depth. Keeping it streaming is
+ * deliberate: a diagnostic must not turn a 500k compile into an archive-sized
+ * allocation simply by retaining every frontier snapshot.
+ */
+function createFrontierProbeSummary(gapIndex: number): {
+  observe(record: HandoffFrontierProbeRecord): void;
+  result(): unknown;
+} {
+  let observations = 0;
+  let precompletionObservations = 0;
+  const waitingByRank = new Map<number | null, {
+    observations: number;
+    precompletionObservations: number;
+    firstSimFrames: number;
+    maxDeepestLead: number;
+  }>();
+  const selectionsByRank = new Map<number | null, {
+    observations: number;
+    precompletionObservations: number;
+    firstSimFrames: number;
+  }>();
+  const observe = (record: HandoffFrontierProbeRecord): void => {
+    observations++;
+    if (!record.hasCompletion) precompletionObservations++;
+    const waiting = new Set(
+      [...record.passFrontier, ...record.fallbackFrontier]
+        .filter((node) => node.gapIndex === gapIndex)
+        .map((node) => node.enteringRank),
+    );
+    for (const rank of waiting) {
+      const row = waitingByRank.get(rank) ?? {
+        observations: 0,
+        precompletionObservations: 0,
+        firstSimFrames: record.simFrames,
+        maxDeepestLead: 0,
+      };
+      row.observations++;
+      if (!record.hasCompletion) row.precompletionObservations++;
+      row.maxDeepestLead = Math.max(row.maxDeepestLead, record.deepestSeenGap - gapIndex);
+      waitingByRank.set(rank, row);
+    }
+    if (record.selected.gapIndex === gapIndex) {
+      const rank = record.selected.enteringRank;
+      const row = selectionsByRank.get(rank) ?? {
+        observations: 0,
+        precompletionObservations: 0,
+        firstSimFrames: record.simFrames,
+      };
+      row.observations++;
+      if (!record.hasCompletion) row.precompletionObservations++;
+      selectionsByRank.set(rank, row);
+    }
+  };
+  const result = () => {
+    const ordered = <T extends { observations: number }>(rows: Map<number | null, T>) =>
+      [...rows.entries()]
+        .map(([rank, row]) => ({ rank, ...row }))
+        .sort((a, b) => b.observations - a.observations || (a.rank ?? Infinity) - (b.rank ?? Infinity));
+    return {
+      gapIndex,
+      selectionObservations: observations,
+      precompletionSelectionObservations: precompletionObservations,
+      waitingByEnteringRank: ordered(waitingByRank),
+      selectedByEnteringRank: ordered(selectionsByRank),
+    };
+  };
+  return { observe, result };
+}
+
+function summarizeDeadEnd(record: HandoffDeadEndProbeRecord, budget: number) {
+  return {
+    gapIndex: record.node.search.gapIndex,
+    simFrames: record.simFrames,
+    remainingBudget: Math.max(0, budget - record.simFrames),
+    hasCompletion: record.hasCompletion,
+    deepestSeenGap: record.deepestSeenGap,
+    skippedContacts: record.node.skippedContacts,
+  };
+}
+
+function sameRankTrace(
+  left: readonly { rank: number; source: string; sourceAxis?: string }[],
+  right: readonly { rank: number; source: string; sourceAxis?: string }[],
+): boolean {
+  return left.length === right.length && left.every((entry, index) => {
+    const other = right[index];
+    return entry.rank === other.rank && entry.source === other.source && entry.sourceAxis === other.sourceAxis;
+  });
+}
+
+/**
+ * Counterfactual only: restart one sibling with exactly the budget that was
+ * still available when the selected path had no viable expansion. This does
+ * not claim a production policy; it tests whether a dead-end repair could be
+ * physically affordable before designing one.
+ */
+function replayDeadEndAlternate(
+  candidate: Candidate | null,
+  parentRecord: { node: HandoffNode; key: LeafKey; event: HandoffNodeEvent },
+  spec: Spec,
+  seed: number,
+  suffixBudget: number,
+  searchSeed?: number,
+) {
+  if (candidate === null) return null;
+  const childNode: HandoffNode = {
+    ...parentRecord.node,
+    search: extendNodeCached(parentRecord.node.search, candidate),
+    deferExpansion: false,
+    rankTrace: [...parentRecord.node.rankTrace, { rank: -3, source: "pool" }],
+  };
+  const resumed = compileHandoffFromSnapshot(
+    spec,
+    seed,
+    snapshotHandoffNode(childNode, parentRecord.key, parentRecord.event),
+    { budget: suffixBudget, ...(searchSeed === undefined ? {} : { searchSeed }) },
+  );
+  const score = scoreDriftReport(resumed.report, {
+    totalFrames: Math.round(spec.duration * FPS),
+  });
+  return {
+    suffixBudget,
+    searchSeed: searchSeed ?? seed,
+    valid: score.contract_passed,
+    score: round(score.score),
+    hardFailures: score.hard_failures,
+    contactsHit: resumed.report.contacts.filter((contact) => contact.status === "hit").length,
+    contactsMissing: resumed.report.contacts.filter((contact) => contact.status === "missing").length,
+    missingContactIndices: resumed.report.contacts
+      .flatMap((contact, index) => contact.status === "missing" ? [index] : []),
+    terminus: resumed.report.terminus,
+    deepestGap: resumed.stats.handoff_deepest_seen_gap ?? null,
+    firstCompletionFrame: resumed.stats.first_completion_frame ?? null,
+  };
+}
+
+function resumeCatchSuffix(
+  candidate: Candidate,
+  targetNode: HandoffNode,
+  targetRecord: { node: HandoffNode; key: LeafKey; event: HandoffNodeEvent },
+  spec: Spec,
+  seed: number,
+  suffixBudget: number,
+) {
+  const childNode: HandoffNode = {
+    ...targetNode,
+    search: extendNodeCached(targetNode.search, candidate),
+    deferExpansion: false,
+    rankTrace: [...targetNode.rankTrace, { rank: -4, source: "pool" }],
+  };
+  const resumed = compileHandoffFromSnapshot(
+    spec,
+    seed,
+    snapshotHandoffNode(childNode, targetRecord.key, targetRecord.event),
+    { budget: suffixBudget },
+  );
+  const score = scoreDriftReport(resumed.report, {
+    totalFrames: Math.round(spec.duration * FPS),
+  });
+  return {
+    suffixBudget,
+    valid: score.contract_passed,
+    score: round(score.score),
+    hardFailures: score.hard_failures,
+    contactsHit: resumed.report.contacts.filter((contact) => contact.status === "hit").length,
+    contactsMissing: resumed.report.contacts.filter((contact) => contact.status === "missing").length,
+    missingContactIndices: resumed.report.contacts
+      .flatMap((contact, index) => contact.status === "missing" ? [index] : []),
+    terminus: resumed.report.terminus,
+    deepestGap: resumed.stats.handoff_deepest_seen_gap ?? null,
+    firstCompletionFrame: resumed.stats.first_completion_frame ?? null,
+  };
+}
+
+function summarizeScoreAmbiguity(
+  ranked: Array<{ handoffScore: number }> | null,
+): {
+  measured: boolean;
+  candidates: number;
+  withinHalfPercentOfBest: number;
+  topThreeRelativeSpread: number | null;
+} {
+  if (ranked === null || ranked.length === 0) {
+    return {
+      measured: false,
+      candidates: 0,
+      withinHalfPercentOfBest: 0,
+      topThreeRelativeSpread: null,
+    };
+  }
+  const best = ranked[0].handoffScore;
+  const scale = Math.max(Math.abs(best), 1e-12);
+  const relativeDistance = (score: number) => (score - best) / scale;
+  return {
+    measured: true,
+    candidates: ranked.length,
+    withinHalfPercentOfBest: ranked.filter((candidate) =>
+      relativeDistance(candidate.handoffScore) <= 0.005
+    ).length,
+    topThreeRelativeSpread: ranked.length < 3
+      ? null
+      : round(relativeDistance(ranked[Math.min(2, ranked.length - 1)].handoffScore)),
+  };
+}
+
+function summarizeCapacityProbe(
+  records: HandoffCapacityProbeRecord[],
+  context: {
+    firstVisitedProgressFrame: number | null;
+    totalContactGaps: number;
+    budget: number;
+    gaps: readonly Gap[];
+  },
+) {
+  const ordered = [...records].sort((a, b) => a.simFrames - b.simFrames || a.gapIndex - b.gapIndex);
+  const deficient = ordered.filter((record) => record.capacity < 16);
+  const behindSchedule = ordered.filter((record) => isBehindSchedule(record, context));
+  const behindScheduleDeficient = behindSchedule.filter((record) => record.capacity < 16);
+  return {
+    observations: ordered.length,
+    deficientObservations: deficient.length,
+    behindScheduleObservations: behindSchedule.length,
+    behindScheduleDeficientObservations: behindScheduleDeficient.length,
+    firstDeficit: deficient[0] ?? null,
+    firstBehindScheduleDeficit: behindScheduleDeficient[0] ?? null,
+    lowestCapacity: ordered.length === 0 ? null : Math.min(...ordered.map((record) => record.capacity)),
+    firstDeficits: deficient.slice(0, 12),
+  };
+}
+
+/** Delegates to the production online controller's measured-pace predicate. */
+function isBehindSchedule(
+  record: HandoffCapacityProbeRecord,
+  context: {
+    firstVisitedProgressFrame: number | null;
+    totalContactGaps: number;
+    budget: number;
+    gaps: readonly Gap[];
+  },
+): boolean {
+  const first = context.firstVisitedProgressFrame;
+  const remaining = context.gaps
+    .slice(record.gapIndex)
+    .filter((gap) => gap.endsWithContact).length;
+  const completed = context.totalContactGaps - remaining;
+  return first !== null && isOnlineTraversalBehindSchedule({
+    firstProgressFrame: first,
+    simFrames: record.simFrames,
+    targetBudget: context.budget,
+    completedContacts: completed,
+    totalContacts: context.totalContactGaps,
+  });
+}
+
+function matchesProbeCandidate(candidate: Candidate, probe: HandoffPoolProbeRecord["candidates"][number]): boolean {
+  const lineLength = candidate.lines.reduce(
+    (sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1),
+    0,
+  );
+  return probe.lineCount === candidate.lines.length &&
+    Math.abs(probe.lineLength - lineLength) < 1e-6 &&
+    Math.abs(probe.cost - candidate.cost) < 1e-9;
+}
 
 function buildSetup(userSpec: Spec, publicSeed: number): {
   spec: Spec;
@@ -656,7 +1398,19 @@ function deepestWinningAncestor(
     const node = record.node;
     if (node.search.gapIndex >= best.search.gapIndex) continue;
     if (!isPrefix(node.search.prefixFits, best.search.prefixFits)) continue;
-    if (ancestor === null || node.search.gapIndex > ancestor.node.search.gapIndex) ancestor = record;
+    // The root is evaluated once before its start alternatives are expanded and
+    // again for each concrete start state. A suffix snapshot must retain the
+    // latter: the synthetic root has no resolved start and cannot be resumed.
+    if (
+      ancestor === null ||
+      node.search.gapIndex > ancestor.node.search.gapIndex ||
+      (
+        node.search.gapIndex === ancestor.node.search.gapIndex &&
+        node.startExpanded && !ancestor.node.startExpanded
+      )
+    ) {
+      ancestor = record;
+    }
   }
   return ancestor;
 }
@@ -768,6 +1522,32 @@ function samplePhasePool(
   return candidates;
 }
 
+type CatchDescriptor = {
+  attempt: number;
+  cost: number;
+  phaseFrames: number;
+  placementSpeed: number;
+  placementAngleDeg: number;
+  approachDeltaDeg: number;
+  approachAngleDeg: number;
+  turnDeg: number;
+  normalOffset: number;
+  tangentOffset: number;
+  preLength: number;
+  postLength: number;
+};
+
+type CatchBridge = CatchDescriptor & {
+  nextCandidates: number;
+  transition: ReturnType<typeof transitionState>;
+  candidate: Candidate;
+};
+
+type CatchNearMiss = CatchDescriptor & {
+  detectorSlackFrames: number | null;
+  transition: ReturnType<typeof transitionState>;
+};
+
 function sampleCatchManifold(
   node: SearchNode,
   gap: Gap,
@@ -777,42 +1557,20 @@ function sampleCatchManifold(
   searchSeed: number,
   candidateCount: number,
   templateGrid: boolean,
+  normalizedControls: readonly CatchControl[],
 ): {
   viable: number;
   detectorReady: number;
   bridging: number;
+  /** Internal only: the best bridge retained for an optional equal-budget suffix read. */
+  bestCandidate: Candidate | null;
+  /** Internal only: ranked bridges for an all-bridge equal-budget suffix read. */
+  bridgeCandidates: readonly Candidate[];
   gates: Record<string, number>;
   landingProbe: ReturnType<typeof summarizeLandingProbe>;
-  best: Array<{
-    attempt: number;
-    cost: number;
-    phaseFrames: number;
-    placementSpeed: number;
-    placementAngleDeg: number;
-    approachDeltaDeg: number;
-    approachAngleDeg: number;
-    turnDeg: number;
-    normalOffset: number;
-    tangentOffset: number;
-    preLength: number;
-    postLength: number;
-  }>;
-  bridges: Array<{
-    attempt: number;
-    cost: number;
-    phaseFrames: number;
-    placementSpeed: number;
-    placementAngleDeg: number;
-    approachDeltaDeg: number;
-    approachAngleDeg: number;
-    turnDeg: number;
-    normalOffset: number;
-    tangentOffset: number;
-    preLength: number;
-    postLength: number;
-    nextCandidates: number;
-    transition: ReturnType<typeof transitionState>;
-  }>;
+  best: CatchDescriptor[];
+  nearMisses: Array<Omit<CatchNearMiss, "candidate">>;
+  bridges: Array<Omit<CatchBridge, "candidate">>;
 } {
   const targetState = getCandidateProbe(node.prefixEngine, gap, setup.ctx).targetState;
   const phaseStates = Array.from({ length: 8 }, (_, phaseFrames) => {
@@ -821,12 +1579,28 @@ function sampleCatchManifold(
   });
   const axisMeasureEnd = axisLookaheadEndFrame(gap, setup.ctx.allContactFrames);
   const viable = [];
-  const bridges = [];
+  const bridges: CatchBridge[] = [];
+  const nearMisses: CatchNearMiss[] = [];
   let detectorReady = 0;
   enableLandingWindowProbe();
   drainLandingWindowProbe();
   const gateBefore = snapshotArcPlacementStats().by_sample_mode.normal;
-  const controls = templateGrid
+  const controls = normalizedControls.length > 0
+    ? normalizedControls.map((control, attempt) => {
+      const placementState = phaseStates[control.phaseFrames];
+      return {
+        attempt,
+        phaseFrames: control.phaseFrames,
+        placementState,
+        approachAngleDeg: placementState.angleDeg + control.approachDeltaDeg,
+        turnDeg: control.turnDeg,
+        normalOffset: control.normalOffsetPx,
+        tangentOffset: placementState.speed * control.tangentFrames,
+        preLength: placementState.speed * control.preFrames,
+        postLength: placementState.speed * control.postFrames,
+      };
+    })
+    : templateGrid
     ? normalizedCatchTemplateGrid(phaseStates)
     : Array.from({ length: attempts }, (_, attempt) => {
       const phaseFrames = fixedPhase < 0 ? attempt % phaseStates.length : fixedPhase;
@@ -866,6 +1640,7 @@ function sampleCatchManifold(
       preLength,
       postLength,
     });
+    clearImpactTemplateMarker();
     const fit = tryCandidateLines(
       node.prefixEngine,
       gap,
@@ -899,6 +1674,13 @@ function sampleCatchManifold(
     const child = advanceToGap(extendNodeCached(node, fit as Candidate), setup.gaps, followingGap.index);
     const transition = transitionState(child.prefixEngine, gap, followingGap);
     const latestGrounded = followingGap.endFrame - MIN_LANDING_AIRBORNE_FRAMES;
+    nearMisses.push({
+      ...descriptor,
+      detectorSlackFrames: transition.lastGroundedBeforeTarget === null
+        ? null
+        : latestGrounded - transition.lastGroundedBeforeTarget,
+      transition,
+    });
     if (
       transition.lastGroundedBeforeTarget === null ||
       transition.lastGroundedBeforeTarget > latestGrounded
@@ -916,6 +1698,7 @@ function sampleCatchManifold(
       ...descriptor,
       nextCandidates: continuations.length,
       transition,
+      candidate: fit,
     });
   }
   const gates = counterDelta(
@@ -925,16 +1708,30 @@ function sampleCatchManifold(
   const landingProbe = summarizeLandingProbe(drainLandingWindowProbe().records);
   disableLandingWindowProbe();
   viable.sort((a, b) => a.cost - b.cost || a.attempt - b.attempt);
+  nearMisses.sort((a, b) =>
+    (b.detectorSlackFrames ?? Number.NEGATIVE_INFINITY) -
+      (a.detectorSlackFrames ?? Number.NEGATIVE_INFINITY) ||
+    a.cost - b.cost || a.attempt - b.attempt
+  );
   bridges.sort((a, b) => b.nextCandidates - a.nextCandidates || a.cost - b.cost || a.attempt - b.attempt);
-  return {
+  const result = {
     viable: viable.length,
     detectorReady,
     bridging: bridges.length,
     gates,
     landingProbe,
+    bestCandidate: bridges[0]?.candidate ?? null,
     best: viable.slice(0, 20),
-    bridges: bridges.slice(0, 40),
+    nearMisses: nearMisses.slice(0, 40),
+    bridges: bridges.slice(0, 40).map(({ candidate: _candidate, ...bridge }) => bridge),
   };
+  // Candidate lines are needed by the optional suffix read but must not bloat
+  // the self-contained report: their public descriptors above are sufficient.
+  Object.defineProperty(result, "bridgeCandidates", {
+    value: bridges.slice(0, 40).map(({ candidate }) => candidate),
+    enumerable: false,
+  });
+  return result as typeof result & { bridgeCandidates: readonly Candidate[] };
 }
 
 function normalizedCatchTemplateGrid(
@@ -987,6 +1784,7 @@ function transitionState(
   nextGap: Gap,
 ): {
   lastGroundedBeforeTarget: number | null;
+  /** Consecutive airborne frames strictly before the target frame. */
   airborneRunAtTarget: number;
   currentEvents: Array<{ frame: number; type: string; offset: number }>;
   events: Array<{ frame: number; type: string; offset: number }>;
@@ -1030,6 +1828,7 @@ function summarizeLines(lines: Candidate["lines"]): {
   length: number;
   segmentLengths: number[];
   anglesDeg: number[];
+  geometryHash: string;
 } {
   const segmentLengths = lines.map((line) => Math.hypot(line.x2 - line.x1, line.y2 - line.y1));
   const anglesDeg = lines.map((line) =>
@@ -1040,6 +1839,13 @@ function summarizeLines(lines: Candidate["lines"]): {
     length: round(segmentLengths.reduce((sum, value) => sum + value, 0)),
     segmentLengths: segmentLengths.map(round),
     anglesDeg: anglesDeg.map(round),
+    // IDs are intentionally excluded: alternatives are self-contained and
+    // receive the same line-ID range only when selected. This hash answers the
+    // actual branch-diversity question, namely whether two proposals have the
+    // same physical support geometry.
+    geometryHash: createHash("sha256")
+      .update(JSON.stringify(lines.map(({ x1, y1, x2, y2 }) => [x1, y1, x2, y2])))
+      .digest("hex"),
   };
 }
 
@@ -1112,6 +1918,9 @@ function evaluateContactSupport(
   searchSeed: number,
   candidateCount: number,
   wide: boolean,
+  select: "coverage" | "cheapest-improving",
+  incumbentNextCandidates: number,
+  normalized: boolean,
 ): {
   trials: number;
   currentValid: number;
@@ -1123,6 +1932,8 @@ function evaluateContactSupport(
     exitDeltaDeg: number;
     jointIndex: number;
     jointDistancePx: number;
+    supportLengthPx: number;
+    exitAngleDeg: number;
     currentCost: number;
     nextCandidates: number;
     transition: ReturnType<typeof transitionState>;
@@ -1133,11 +1944,16 @@ function evaluateContactSupport(
     exitDeltaDeg: number;
     jointIndex: number;
     jointDistancePx: number;
+    supportLengthPx: number;
+    exitAngleDeg: number;
     currentCost: number;
     transition: ReturnType<typeof transitionState>;
     contactTrace: Array<{ frame: number; lineIds: number[] }>;
   }>;
+  bestCandidate: Candidate | null;
 } {
+  const probe = getCandidateProbe(parent.prefixEngine, gap, setup.ctx);
+  const speed = Math.max(1, probe.targetState.speed);
   const supportFrames = wide
     ? [
       0.35, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3,
@@ -1145,27 +1961,55 @@ function evaluateContactSupport(
       232, 240, 248, 256, 260, 262, 264, 266, 268, 272, 280,
     ]
     : [0.5, 0.75, 1, 1.25, 1.5, 2];
-  const exitDeltas = wide
+  const supportLengths = normalized && nextGap.targets.air !== undefined && bases[0] !== undefined
+    ? (() => {
+      const plan = planKinematicSupport({
+        air: nextGap.targets.air,
+        gapFrames: nextGap.endFrame - nextGap.startFrame,
+        entrySpeed: speed,
+        exitSpeed: nextGap.targets.speed === undefined
+          ? speed
+          : authoredSpeedToPx(nextGap.targets.speed),
+        referenceLength: bases[0].candidate.lines.reduce(
+          (sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1),
+          0,
+        ),
+      });
+      return [0.65, 0.85, 1.05].map((scale) => plan.targetLength * scale);
+    })()
+    : supportFrames.map((frames) => speed * frames);
+  const exitDeltas = normalized
+    ? [-4, 0, 8]
+    : wide
     ? [-30, -24, -20, -16, -12, -8, -4, 0, 4, 8, 10, 12, 12.5, 13, 13.5, 14, 16, 18, 20, 24, 30]
     : [0];
-  const probe = getCandidateProbe(parent.prefixEngine, gap, setup.ctx);
-  const speed = Math.max(1, probe.targetState.speed);
   let trials = 0;
   let currentValid = 0;
   let earliestLastGrounded: number | null = null;
   let maximumAirborneRun = 0;
-  const successes = [];
+  const successes: Array<{
+    baseRank: number;
+    supportFrames: number;
+    exitDeltaDeg: number;
+    jointIndex: number;
+    jointDistancePx: number;
+    currentCost: number;
+    nextCandidates: number;
+    transition: ReturnType<typeof transitionState>;
+    candidate: Candidate;
+  }> = [];
   const validExamples = [];
   for (const { candidate, poolRank } of bases) {
     const joint = closestContactJoint(candidate.lines, probe.targetState.sledX, probe.targetState.sledY);
     if (joint === null) continue;
-    for (const frames of supportFrames) {
+    for (const supportLengthPx of supportLengths) {
       for (const exitDeltaDeg of exitDeltas) {
+        const frames = supportLengthPx / speed;
         trials++;
-        const lines = oneSegmentContactSupport(
+        const lines = contactSupportLines(
           candidate.lines,
           joint.index,
-          speed * frames,
+          supportLengthPx,
           exitDeltaDeg,
           parent.prefixNextLineId,
         );
@@ -1182,6 +2026,10 @@ function evaluateContactSupport(
           probe.preTargetSledTrace,
         ) as Candidate | null;
         if (fit === null) continue;
+        const exitAngleDeg = Math.atan2(
+          lines.at(-1)!.y2 - lines.at(-1)!.y1,
+          lines.at(-1)!.x2 - lines.at(-1)!.x1,
+        ) * 180 / Math.PI;
         currentValid++;
         const child = advanceToGap(extendNodeCached(parent, fit), setup.gaps, nextGap.index);
         const transition = transitionState(child.prefixEngine, gap, nextGap);
@@ -1197,6 +2045,8 @@ function evaluateContactSupport(
           exitDeltaDeg,
           jointIndex: joint.index,
           jointDistancePx: round(joint.distancePx),
+          supportLengthPx: round(supportLengthPx),
+          exitAngleDeg: round(exitAngleDeg),
           currentCost: round(fit.cost),
           transition,
           contactTrace: physicalContactTrace(child.prefixEngine, gap.endFrame - 2, nextGap.endFrame - 1),
@@ -1215,19 +2065,34 @@ function evaluateContactSupport(
           exitDeltaDeg,
           jointIndex: joint.index,
           jointDistancePx: round(joint.distancePx),
+          supportLengthPx: round(supportLengthPx),
+          exitAngleDeg: round(exitAngleDeg),
           currentCost: round(fit.cost),
           nextCandidates: continuations.length,
           transition,
+          candidate: fit,
         });
       }
     }
   }
+  const selectionPool = select === "cheapest-improving"
+    ? successes.filter((row) => row.nextCandidates > incumbentNextCandidates)
+    : successes;
+  const bestCandidate = [...selectionPool].sort((a, b) =>
+    select === "cheapest-improving"
+      ? a.currentCost - b.currentCost ||
+        b.nextCandidates - a.nextCandidates ||
+        b.transition.airborneRunAtTarget - a.transition.airborneRunAtTarget
+      : b.nextCandidates - a.nextCandidates ||
+        b.transition.airborneRunAtTarget - a.transition.airborneRunAtTarget ||
+        a.currentCost - b.currentCost
+  )[0]?.candidate ?? null;
   return {
     trials,
     currentValid,
     earliestLastGrounded,
     maximumAirborneRun,
-    successes,
+    successes: successes.map(({ candidate: _candidate, ...row }) => row),
     validExamples: validExamples
       .sort((a, b) =>
         (a.transition.lastGroundedBeforeTarget ?? Infinity) -
@@ -1235,7 +2100,131 @@ function evaluateContactSupport(
         a.currentCost - b.currentCost
       )
       .slice(0, 24),
+    bestCandidate,
   };
+}
+
+function resumeContactSupportSuffix(
+  candidate: Candidate | null,
+  parentRecord: { node: HandoffNode; key: LeafKey; event: HandoffNodeEvent },
+  spec: Spec,
+  seed: number,
+  suffixBudget: number,
+) {
+  if (candidate === null) return null;
+  const childNode: HandoffNode = {
+    ...parentRecord.node,
+    search: extendNodeCached(parentRecord.node.search, candidate),
+    deferExpansion: false,
+    rankTrace: [...parentRecord.node.rankTrace, { rank: -2, source: "pool" }],
+  };
+  const resumed = compileHandoffFromSnapshot(
+    spec,
+    seed,
+    snapshotHandoffNode(childNode, parentRecord.key, parentRecord.event),
+    { budget: suffixBudget },
+  );
+  const score = scoreDriftReport(resumed.report, {
+    totalFrames: Math.round(spec.duration * FPS),
+  });
+  return {
+    valid: score.contract_passed,
+    score: round(score.score),
+    hardFailures: score.hard_failures,
+    contactsHit: resumed.report.contacts.filter((contact) => contact.status === "hit").length,
+    contactsMissing: resumed.report.contacts.filter((contact) => contact.status === "missing").length,
+    terminus: resumed.report.terminus,
+    deepestGap: resumed.stats.handoff_deepest_seen_gap ?? null,
+    firstCompletionFrame: resumed.stats.first_completion_frame ?? null,
+  };
+}
+
+/**
+ * Observation-only whole-arc length coordinate. Each scale preserves the
+ * candidate's entry pose and internal turn profile, then passes through the
+ * ordinary exact gate and ordinary next-pool generator. Suffixes are replayed
+ * separately by the caller; immediate continuation count is reported only as
+ * a descriptive coordinate, never as a selector claim.
+ */
+function evaluateWholeArcScale(
+  parent: SearchNode,
+  bases: Array<{ candidate: Candidate; poolRank: number }>,
+  scales: readonly number[],
+  gap: Gap,
+  nextGap: Gap,
+  setup: ReturnType<typeof buildSetup>,
+  searchSeed: number,
+  candidateCount: number,
+): {
+  trials: number;
+  currentValid: number;
+  rows: Array<{
+    baseRank: number;
+    scale: number;
+    currentCost: number;
+    nextCandidates: number;
+    achieved: AxisValues;
+    arrival: ReturnType<typeof predictArrivalAtNextContact>;
+    readiness: ReturnType<typeof scoreNextTargetReadiness>;
+    transition: ReturnType<typeof transitionState>;
+  }>;
+  candidates: Array<{ baseRank: number; scale: number; nextCandidates: number; candidate: Candidate }>;
+} {
+  const probe = getCandidateProbe(parent.prefixEngine, gap, setup.ctx);
+  const rows: Array<{
+    baseRank: number;
+    scale: number;
+    currentCost: number;
+    nextCandidates: number;
+    transition: ReturnType<typeof transitionState>;
+  }> = [];
+  const candidates: Array<{ baseRank: number; scale: number; nextCandidates: number; candidate: Candidate }> = [];
+  let trials = 0;
+  let currentValid = 0;
+  for (const { candidate, poolRank } of bases) {
+    for (const scale of scales) {
+      trials++;
+      const lines = scaleArcLines(candidate.lines, scale)
+        .map((line, index) => ({ ...line, id: parent.prefixNextLineId + index }));
+      const fit = tryCandidateLines(
+        parent.prefixEngine,
+        gap,
+        lines,
+        parent.prefixNextLineId,
+        setup.ctx.allContactFrames,
+        axisLookaheadEndFrame(gap, setup.ctx.allContactFrames),
+        gap.targets,
+        true,
+        "normal",
+        probe.preTargetSledTrace,
+      ) as Candidate | null;
+      if (fit === null) continue;
+      currentValid++;
+      const child = advanceToGap(extendNodeCached(parent, fit), setup.gaps, nextGap.index);
+      const continuations = getCandidatesSorted(
+        child,
+        setup.gaps,
+        setup.ctx,
+        searchSeed,
+        candidateCount,
+      );
+      const transition = transitionState(child.prefixEngine, gap, nextGap);
+      const nextTargets = setup.ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
+      const arrival = predictArrivalAtNextContact(fit, nextGap);
+      rows.push({
+        baseRank: poolRank,
+        scale: round(scale),
+        currentCost: round(fit.cost),
+        nextCandidates: continuations.length,
+        achieved: { ...fit.achieved },
+        arrival,
+        readiness: arrival === null ? null : scoreNextTargetReadiness(arrival, nextTargets),
+        transition,
+      });
+      candidates.push({ baseRank: poolRank, scale, nextCandidates: continuations.length, candidate: fit });
+    }
+  }
+  return { trials, currentValid, rows, candidates };
 }
 
 function physicalContactTrace(
@@ -1268,7 +2257,7 @@ function closestContactJoint(
   return best;
 }
 
-function oneSegmentContactSupport(
+function contactSupportLines(
   lines: Candidate["lines"],
   jointIndex: number,
   supportLength: number,
@@ -1280,8 +2269,9 @@ function oneSegmentContactSupport(
     id: lineIdStart + index,
   }));
   const source = lines[jointIndex];
-  const angle = Math.atan2(source.y2 - source.y1, source.x2 - source.x1) +
-    (exitDeltaDeg * Math.PI) / 180;
+  const startAngle = Math.atan2(source.y2 - source.y1, source.x2 - source.x1);
+  const turn = exitDeltaDeg * Math.PI / 180;
+  const angle = startAngle + turn;
   prefix.push({
     ...source,
     id: lineIdStart + prefix.length,
@@ -1491,6 +2481,9 @@ function evaluateTwoStepKnobs(
   searchSeed: number,
   candidateCount: number,
   wide: boolean,
+  outcomeDepth: number,
+  outcomeBranch: number,
+  outcomeCoordinates: Array<{ pitchDeg: number; rotateDeg: number }>,
 ): {
   trials: number;
   validCurrent: number;
@@ -1508,14 +2501,27 @@ function evaluateTwoStepKnobs(
       grounded: number | null;
     };
     coverage: NonNullable<ReturnType<typeof evaluateTwoStepCoverage>>;
+    boundedOutcome: BoundedGreedyOutcome | null;
+  }>;
+  candidates: Array<{
+    baseRank: number;
+    pitchDeg: number;
+    rotateDeg: number;
+    candidate: Candidate;
   }>;
 } {
   let trials = 0;
   let validCurrent = 0;
   const successes = [];
+  const candidates: Array<{
+    baseRank: number;
+    pitchDeg: number;
+    rotateDeg: number;
+    candidate: Candidate;
+  }> = [];
   const probe = getCandidateProbe(parent.prefixEngine, gap, setup.ctx);
   const pitches = wide ? [-16, -12, -8, -4, 0, 4, 8, 12, 16] : [-8, -4, 0, 4, 8];
-  const rotations = wide ? [-6, -3, 0, 3, 6] : [-3, 0, 3];
+  const rotations = wide ? [-6, -3, -2.5, 0, 3, 6] : [-3, 0, 3];
   for (const { candidate, poolRank } of bases) {
     for (const pitchDeg of pitches) {
       for (const rotateDeg of rotations) {
@@ -1554,6 +2560,7 @@ function evaluateTwoStepKnobs(
           candidateCount,
         );
         if (coverage === null || coverage.candidatesWithContinuation === 0) continue;
+        candidates.push({ baseRank: poolRank, pitchDeg, rotateDeg, candidate: fit });
         const arrivalState = getCandidateProbe(child.prefixEngine, nextGap, setup.ctx).targetState;
         successes.push({
           baseRank: poolRank,
@@ -1574,11 +2581,99 @@ function evaluateTwoStepKnobs(
             grounded: fit.releaseArrivalState?.grounded ?? null,
           },
           coverage,
+          boundedOutcome: outcomeDepth === 0 ||
+              (outcomeCoordinates.length > 0 && !hasKnobCoordinate(
+                outcomeCoordinates,
+                pitchDeg,
+                rotateDeg,
+              ))
+            ? null
+            : boundedGreedyOutcome(
+              advanceToGap(extendNodeCached(parent, fit), setup.gaps, nextGap.index),
+              setup.gaps,
+              setup.ctx,
+              searchSeed,
+              candidateCount,
+              outcomeDepth,
+              outcomeBranch,
+            ),
         });
       }
     }
   }
-  return { trials, validCurrent, successes };
+  return { trials, validCurrent, successes, candidates };
+}
+
+type BoundedGreedyOutcome = {
+  /** Number of subsequently committed contact gaps before the horizon or a dead end. */
+  contacts: number;
+  /** Number of exact generator paths that survived through the bounded horizon. */
+  survivors: number;
+  /** True when every retained generator path had no admissible next fit. */
+  deadEnd: boolean;
+  /** The shared objective-leaf value after the bounded exact prefix. */
+  value: number;
+};
+
+/**
+ * Observation-only, bounded exact continuation. This is deliberately the
+ * existing forward evaluator's bounded generator tree, not a new selector: it
+ * lets a phase-coordinate study ask whether a coordinate remains viable
+ * beyond the immediate two-contact coverage readout without retaining a full
+ * suffix compiler for every grid point.
+ */
+function boundedGreedyOutcome(
+  start: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  sampleWidth: number,
+  depth: number,
+  branch: number,
+): BoundedGreedyOutcome {
+  let frontier = [start];
+  let contacts = 0;
+  while (contacts < depth) {
+    const next: SearchNode[] = [];
+    for (let search of frontier) {
+      while (search.gapIndex < gaps.length && !gaps[search.gapIndex].endsWithContact) {
+        search = extendNodeCached(search, null);
+      }
+      if (search.gapIndex >= gaps.length) {
+        next.push(search);
+        continue;
+      }
+      // Preserve the ordinary sampled pool, then apply the certificate's
+      // retained-width bound to its already-ranked entries. Passing `branch`
+      // to the generator would change the low-discrepancy samples themselves.
+      for (const candidate of getCandidatesSorted(search, gaps, ctx, seed, sampleWidth).slice(0, branch)) {
+        next.push(extendNodeCached(search, candidate));
+      }
+    }
+    if (next.length === 0) {
+      const best = frontier.reduce((value, search) => Math.max(
+        value,
+        objectiveLeafValue(search, gaps, ctx.durationFrames),
+      ), -Infinity);
+      return {
+        contacts,
+        survivors: 0,
+        deadEnd: true,
+        value: round(best),
+      };
+    }
+    frontier = next;
+    contacts++;
+  }
+  return {
+    contacts,
+    survivors: frontier.length,
+    deadEnd: false,
+    value: round(frontier.reduce((value, search) => Math.max(
+      value,
+      objectiveLeafValue(search, gaps, ctx.durationFrames),
+    ), -Infinity)),
+  };
 }
 
 function evaluatePriorReuse(
@@ -1713,11 +2808,13 @@ function counterDelta(
 
 function summarizeLandingProbe(records: LandingWindowProbeRecord[]): {
   total: number;
+  templates: number;
   survivalFailed: number;
   acceptedAtW: Record<string, number>;
   offsets: Record<string, number>;
   byGap: Record<string, {
     total: number;
+    templates: number;
     survivalFailed: number;
     acceptedAtW: Record<string, number>;
     offsets: Record<string, number>;
@@ -1737,6 +2834,7 @@ function summarizeLandingProbe(records: LandingWindowProbeRecord[]): {
     }
     return {
       total: subset.length,
+      templates: subset.filter((record) => record.isTemplate).length,
       survivalFailed: subset.filter((record) => record.failure === "survival").length,
       acceptedAtW,
       offsets,
@@ -1757,6 +2855,7 @@ function summarizeLandingProbe(records: LandingWindowProbeRecord[]): {
   );
   return {
     total: overall.total,
+    templates: overall.templates,
     survivalFailed: overall.survivalFailed,
     acceptedAtW: overall.acceptedAtW,
     offsets: overall.offsets,
@@ -1764,6 +2863,103 @@ function summarizeLandingProbe(records: LandingWindowProbeRecord[]): {
   };
 }
 
+/**
+ * A diagnostic-only control in rider-relative units. Keeping the timing and
+ * lengths in frames makes a witness portable across entry speeds; it does not
+ * make it a production proposal.
+ */
+type CatchControl = {
+  phaseFrames: number;
+  approachDeltaDeg: number;
+  turnDeg: number;
+  normalOffsetPx: number;
+  tangentFrames: number;
+  preFrames: number;
+  postFrames: number;
+};
+
+function parseCatchControls(raw: string | undefined): CatchControl[] {
+  if (raw === undefined) return [];
+  let values: unknown;
+  try {
+    values = JSON.parse(raw);
+  } catch {
+    throw new Error("invalid --catch-controls (expected a JSON array)");
+  }
+  if (!Array.isArray(values) || values.length === 0 || values.length > 64) {
+    throw new Error("invalid --catch-controls (expected 1..64 controls)");
+  }
+  return values.map((value, index) => {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      throw new Error(`invalid --catch-controls[${index}] (expected object)`);
+    }
+    const record = value as Record<string, unknown>;
+    const phaseFrames = Number(record.phaseFrames);
+    const approachDeltaDeg = Number(record.approachDeltaDeg);
+    const turnDeg = Number(record.turnDeg);
+    const normalOffsetPx = Number(record.normalOffsetPx);
+    const tangentFrames = Number(record.tangentFrames);
+    const preFrames = Number(record.preFrames);
+    const postFrames = Number(record.postFrames);
+    if (
+      !Number.isSafeInteger(phaseFrames) || phaseFrames < 0 || phaseFrames > 7 ||
+      !Number.isFinite(approachDeltaDeg) || Math.abs(approachDeltaDeg) > 90 ||
+      !Number.isFinite(turnDeg) || Math.abs(turnDeg) > 90 ||
+      !Number.isFinite(normalOffsetPx) || Math.abs(normalOffsetPx) > 40 ||
+      !Number.isFinite(tangentFrames) || Math.abs(tangentFrames) > 4 ||
+      !Number.isFinite(preFrames) || preFrames <= 0 || preFrames > 8 ||
+      !Number.isFinite(postFrames) || postFrames <= 0 || postFrames > 24
+    ) {
+      throw new Error(`invalid --catch-controls[${index}] values`);
+    }
+    return {
+      phaseFrames,
+      approachDeltaDeg,
+      turnDeg,
+      normalOffsetPx,
+      tangentFrames,
+      preFrames,
+      postFrames,
+    };
+  });
+}
+
+function parseKnobCoordinates(
+  raw: string | undefined,
+  name: string,
+): Array<{ pitchDeg: number; rotateDeg: number }> {
+  return (raw ?? "")
+    .split(",")
+    .filter((value) => value.length > 0)
+    .map((value) => {
+      const [pitchRaw, rotateRaw, extra] = value.split(":");
+      const pitchDeg = Number(pitchRaw);
+      const rotateDeg = Number(rotateRaw);
+      if (extra !== undefined || !Number.isFinite(pitchDeg) || !Number.isFinite(rotateDeg)) {
+        throw new Error(`invalid --${name} entry "${value}" (expected pitch:rotate)`);
+      }
+      return { pitchDeg, rotateDeg };
+    });
+}
+
+function hasKnobCoordinate(
+  coordinates: Array<{ pitchDeg: number; rotateDeg: number }>,
+  pitchDeg: number,
+  rotateDeg: number,
+): boolean {
+  return coordinates.some((coordinate) =>
+    coordinate.pitchDeg === pitchDeg && coordinate.rotateDeg === rotateDeg,
+  );
+}
+
 function round(value: number): number {
   return Number(value.toFixed(4));
+}
+
+function sameLines(left: Candidate["lines"], right: Candidate["lines"]): boolean {
+  return left.length === right.length && left.every((line, index) => {
+    const other = right[index];
+    return line.id === other.id && line.x1 === other.x1 && line.y1 === other.y1 &&
+      line.x2 === other.x2 && line.y2 === other.y2;
+  });
 }

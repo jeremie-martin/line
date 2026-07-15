@@ -443,6 +443,9 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     }), 8_000);
     expect(result.stats.handoff_start_options).toBeGreaterThan(1);
     expect(result.stats.leaves_considered).toBeGreaterThan(0);
+    // Current starts include launch geometry. A polish replay must retain it,
+    // otherwise this opt-in path is silently unreachable.
+    expect(result.stats.polish_variants_tried).toBeGreaterThan(0);
   }, 60_000);
 
   test("handoff snapshots clear search caches while preserving prefix state", async () => {

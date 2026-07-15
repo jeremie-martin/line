@@ -121,10 +121,7 @@ import { getEngineRebuildCount } from "../core/polish.ts";
 import { registerCompileReset, resetPerCompileState } from "../core/compile_lifecycle.ts";
 import { supportExtensionPressure } from "../core/support_geometry.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
-import {
-  getSimFrames,
-  refundSimFramesTo,
-} from "./sim_frames.ts";
+import { getSimFrames, refundSimFramesTo } from "./sim_frames.ts";
 import {
   setCompileBudgetFrames,
   setImpactProfilePressures,
@@ -283,6 +280,106 @@ let handoffPoolProbeHook: HandoffPoolProbeHook | null = null;
 /** Observation-only pool hook. Production never installs one. */
 export function setHandoffPoolProbeHook(hook: HandoffPoolProbeHook | null): void {
   handoffPoolProbeHook = hook;
+}
+
+export type HandoffCapacityProbeRecord = {
+  gapIndex: number;
+  simFrames: number;
+  source: HandoffCandidateSource;
+  rank: number;
+  cost: number;
+  capacity: number;
+};
+
+type HandoffCapacityProbeHook = (record: HandoffCapacityProbeRecord) => void;
+let handoffCapacityProbeHook: HandoffCapacityProbeHook | null = null;
+
+/** Diagnostic-only exact continuation-capacity hook. Production never installs one. */
+export function setHandoffCapacityProbeHook(hook: HandoffCapacityProbeHook | null): void {
+  handoffCapacityProbeHook = hook;
+}
+
+export type HandoffRankedOptionProbeEntry = {
+  source: HandoffCandidateSource;
+  rank: number;
+  score: number;
+  cost: number | null;
+  lineCount: number | null;
+  lineLength: number | null;
+  forwardContinuation: boolean | null;
+  achieved: AxisValues | null;
+};
+
+export type HandoffRankedOptionsProbeRecord = {
+  gapIndex: number;
+  simFrames: number;
+  /** Options after the production eligibility filter, in production rank order. */
+  eligible: HandoffRankedOptionProbeEntry[];
+  /** Entries returned to traversal after the production branch-selection rule. */
+  selected: HandoffRankedOptionProbeEntry[];
+};
+
+type HandoffRankedOptionsProbeHook = (record: HandoffRankedOptionsProbeRecord) => void;
+let handoffRankedOptionsProbeHook: HandoffRankedOptionsProbeHook | null = null;
+
+/** Observation-only ranked-option hook. Production never installs one. */
+export function setHandoffRankedOptionsProbeHook(hook: HandoffRankedOptionsProbeHook | null): void {
+  handoffRankedOptionsProbeHook = hook;
+}
+
+export type HandoffFrontierProbeNode = {
+  gapIndex: number;
+  /** The choice that entered this node, if it came from an ordinary ranked pool. */
+  enteringRank: number | null;
+};
+
+export type HandoffFrontierProbeRecord = {
+  simFrames: number;
+  hasCompletion: boolean;
+  deepestSeenGap: number;
+  selected: HandoffFrontierProbeNode;
+  passFrontier: HandoffFrontierProbeNode[];
+  fallbackFrontier: HandoffFrontierProbeNode[];
+};
+
+type HandoffFrontierProbeHook = (record: HandoffFrontierProbeRecord) => void;
+let handoffFrontierProbeHook: HandoffFrontierProbeHook | null = null;
+
+/** Observation-only frontier-order hook. Production never installs one. */
+export function setHandoffFrontierProbeHook(hook: HandoffFrontierProbeHook | null): void {
+  handoffFrontierProbeHook = hook;
+}
+
+export type HandoffFrontierNodeProbeRecord = {
+  simFrames: number;
+  hasCompletion: boolean;
+  deepestSeenGap: number;
+  selected: HandoffNode;
+  passFrontier: readonly HandoffNode[];
+  fallbackFrontier: readonly HandoffNode[];
+};
+
+type HandoffFrontierNodeProbeHook = (record: HandoffFrontierNodeProbeRecord) => void;
+let handoffFrontierNodeProbeHook: HandoffFrontierNodeProbeHook | null = null;
+
+/** Diagnostic-only access to actual deferred nodes. Production never installs one. */
+export function setHandoffFrontierNodeProbeHook(hook: HandoffFrontierNodeProbeHook | null): void {
+  handoffFrontierNodeProbeHook = hook;
+}
+
+export type HandoffDeadEndProbeRecord = {
+  node: HandoffNode;
+  simFrames: number;
+  hasCompletion: boolean;
+  deepestSeenGap: number;
+};
+
+type HandoffDeadEndProbeHook = (record: HandoffDeadEndProbeRecord) => void;
+let handoffDeadEndProbeHook: HandoffDeadEndProbeHook | null = null;
+
+/** Observation-only failed-expansion hook. Production never installs one. */
+export function setHandoffDeadEndProbeHook(hook: HandoffDeadEndProbeHook | null): void {
+  handoffDeadEndProbeHook = hook;
 }
 
 type HandoffSearchPolicy = {
@@ -684,6 +781,11 @@ const OUTPUT_TAIL_PAD_FRAMES = 20;
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
  *  the completion suffix branches two-wide and is charged like normal search. */
 const TAIL_COMPLETION_CONTACT_WINDOW = 8;
+// The online controller starts only after ordinary backtracking is this many
+// contacts behind its measured first-completion pace. Keep this separate from
+// the tail-quality window: they currently agree by evidence, but govern
+// different decisions and can be compared as a bounded source family.
+const ONLINE_CONTINUATION_DELAY_CONTACTS = 8;
 const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 4;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 const QUALITY_SHALLOW_TAIL_THROTTLE_MAX_PRESSURE = 1.0;
@@ -1240,7 +1342,6 @@ function compileHandoffInternal(
       captured = snapshot(targetBudget, false);
       return true;
     };
-
     // Per-node work shared by every traversal mode (DFS today, best-first next):
     // consider the node + its speculative tail, check the budget, polish terminals, and
     // expand into ranked children. It mutates the register/telemetry/budget exactly as the
@@ -1301,14 +1402,13 @@ function compileHandoffInternal(
 
       if (
         polishEnabled &&
-        node.startLines.length === 0 &&
         isTerminalNode(node.search, gaps) &&
         node.search.prefixFits.some((fit) => fit !== null)
       ) {
         const padded = paddedFits(node, gaps.length);
         polishTried++;
         const variant = polishLeafVariant(
-          padded, spec, gaps, allContactFrames, durationFrames, node.startState,
+          padded, spec, gaps, allContactFrames, durationFrames, node.startState, node.startLines,
         );
         if (variant !== null) {
           polishChanged++;
@@ -1390,6 +1490,26 @@ function compileHandoffInternal(
       while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
         if (!keepGoing()) break;
         const node = popNextFrontierNode(pass, fb);
+        if (handoffFrontierProbeHook !== null) {
+          handoffFrontierProbeHook({
+            simFrames: getSimFrames(),
+            hasCompletion: telemetry.hasCompletion,
+            deepestSeenGap: telemetry.deepestSeenGap,
+            selected: frontierProbeNode(node),
+            passFrontier: pass.map(frontierProbeNode),
+            fallbackFrontier: fb.map(frontierProbeNode),
+          });
+        }
+        if (handoffFrontierNodeProbeHook !== null) {
+          handoffFrontierNodeProbeHook({
+            simFrames: getSimFrames(),
+            hasCompletion: telemetry.hasCompletion,
+            deepestSeenGap: telemetry.deepestSeenGap,
+            selected: node,
+            passFrontier: pass,
+            fallbackFrontier: fb,
+          });
+        }
         telemetry.frontierSelections++;
         const result = processNode(node);
         onProcessed?.();
@@ -1545,12 +1665,20 @@ function compileHandoffInternal(
         // fixed mix of searchSeed and a restart counter. R3 upstream walk (LR_REPAIR_MAX_UPSTREAM)
         // composes on top: if a restart re-converges anyway, escalate the anchor to the parent.
         let improvedAny = false;
-        for (let up = 0; up <= repair.maxUpstream; up++) {
+        const upstreamOffsets = repair.upstreamOrder === "nearest-first"
+          ? Array.from({ length: repair.maxUpstream + 1 }, (_, up) => up)
+          : Array.from({ length: repair.maxUpstream + 1 }, (_, index) => repair.maxUpstream - index);
+        for (const up of upstreamOffsets) {
           const k = kWorst - up;
-          if (k < 0 || attempts >= repair.maxAttempts || getSimFrames() >= repairBudget) break;
+          if (attempts >= repair.maxAttempts || getSimFrames() >= repairBudget) break;
+          if (k < 0) continue;
           const estCost = estCostOf(k);
-          // Walking upstream only gets more expensive; stop if we can't afford to finish.
-          if (estCost > 0 && estCost * repair.feasMargin > repairBudget - getSimFrames()) break;
+          if (estCost > 0 && estCost * repair.feasMargin > repairBudget - getSimFrames()) {
+            // Older anchors cost more, so nearest-first can stop here. Oldest-first
+            // must keep checking nearer anchors that may still fit the same budget.
+            if (repair.upstreamOrder === "nearest-first") break;
+            continue;
+          }
           attempts++;
           restartCounter++;
           const restartSeed = ((incumbent.searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
@@ -2211,6 +2339,17 @@ function popNextFrontierNode(
   return activeFrontier(passStack, fallbackStack).pop()!;
 }
 
+function frontierProbeNode(node: HandoffNode): HandoffFrontierProbeNode {
+  // rankTrace advances with every expansion (including non-contact skips), so
+  // its final entry, rather than the raw gap index, identifies this node's
+  // immediate predecessor choice.
+  const entering = node.rankTrace.at(-1);
+  return {
+    gapIndex: node.search.gapIndex,
+    enteringRank: entering?.source === "pool" ? entering.rank : null,
+  };
+}
+
 function enqueueChild(
   node: HandoffNode,
   passStack: HandoffNode[],
@@ -2620,6 +2759,14 @@ function expandNode(
     }
   }
   if (options.length === 0) {
+    if (handoffDeadEndProbeHook !== null) {
+      handoffDeadEndProbeHook({
+        node,
+        simFrames: getSimFrames(),
+        hasCompletion: telemetry.hasCompletion,
+        deepestSeenGap: telemetry.deepestSeenGap,
+      });
+    }
     telemetry.skips++;
     telemetry.deferredSkips++;
     return [{
@@ -3212,6 +3359,21 @@ function rankedOptions(
       openingBestOpportunity,
     ));
   }
+  if (handoffCapacityProbeHook !== null && targetBudget >= 500000) {
+    const incumbent = [...scored]
+      .filter((option): option is RankedOption & { candidate: Candidate } => option.candidate !== null)
+      .sort((a, b) => a.score - b.score || a.candidate.cost - b.candidate.cost || a.rank - b.rank)[0];
+    if (incumbent !== undefined) {
+      handoffCapacityProbeHook({
+        gapIndex: node.gapIndex,
+        simFrames: getSimFrames(),
+        source: incumbent.source,
+        rank: incumbent.rank,
+        cost: incumbent.candidate.cost,
+        capacity: continuationCapacity(node, incumbent.candidate, gaps, ctx, seed, 16),
+      });
+    }
+  }
   if (handoffPoolProbeHook !== null) {
     const handoffScores = new Map(
       scored.flatMap((option) => option.candidate === null
@@ -3424,12 +3586,38 @@ function rankedOptions(
     a.rank - b.rank
   );
   const kinematic = eligible.filter((option) => isKinematicSupportCandidate(option.candidate));
-  if (kinematic.length === 0) return eligible.slice(0, HANDOFF_BRANCHING);
-  const ordinary = eligible.filter((option) => !isKinematicSupportCandidate(option.candidate));
-  return [
-    ...ordinary.slice(0, HANDOFF_BRANCHING - 1),
-    kinematic[0],
-  ];
+  const selected = kinematic.length === 0
+    ? eligible.slice(0, HANDOFF_BRANCHING)
+    : [
+      ...eligible.filter((option) => !isKinematicSupportCandidate(option.candidate))
+        .slice(0, HANDOFF_BRANCHING - 1),
+      kinematic[0],
+    ];
+  if (handoffRankedOptionsProbeHook !== null) {
+    handoffRankedOptionsProbeHook({
+      gapIndex: node.gapIndex,
+      simFrames: getSimFrames(),
+      eligible: eligible.map(summarizeRankedOptionForProbe),
+      selected: selected.map(summarizeRankedOptionForProbe),
+    });
+  }
+  return selected;
+}
+
+function summarizeRankedOptionForProbe(option: RankedOption): HandoffRankedOptionProbeEntry {
+  const candidate = option.candidate;
+  return {
+    source: option.source,
+    rank: option.rank,
+    score: option.score,
+    cost: candidate?.cost ?? null,
+    lineCount: candidate?.lines.length ?? null,
+    lineLength: candidate === null
+      ? null
+      : candidate.lines.reduce((sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1), 0),
+    forwardContinuation: option.forwardContinuation ?? null,
+    achieved: candidate === null ? null : { ...candidate.achieved },
+  };
 }
 
 function kinematicRescueReady(node: SearchNode, telemetry: HandoffTelemetry): boolean {
@@ -3440,6 +3628,21 @@ function kinematicRescueReady(node: SearchNode, telemetry: HandoffTelemetry): bo
 function poolForwardContinuationAbsent(options: readonly RankedOption[]): boolean {
   const pool = options.filter((option) => option.source === "pool");
   return pool.length > 0 && pool.every((option) => option.forwardContinuation === false);
+}
+
+function continuationCapacity(
+  node: SearchNode,
+  candidate: Candidate,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  limit: number,
+): number {
+  const nextGap = nextContactGap(gaps[node.gapIndex], gaps);
+  if (nextGap === null) return 0;
+  let child = extendNodeCached(node, candidate);
+  while (child.gapIndex < nextGap.index) child = extendNodeCached(child, null);
+  return getCandidatesSorted(child, gaps, ctx, seed, limit).length;
 }
 
 function onlineTraversalBehindSchedule(
@@ -3481,9 +3684,10 @@ export function isOnlineTraversalBehindSchedule(input: {
   }
   const spendFraction = Math.max(0, input.simFrames - input.firstProgressFrame) /
     (input.targetBudget - input.firstProgressFrame);
-  // One ordinary tail-completion horizon is the hysteresis: backtracking within
-  // the suffix window remains quality search rather than flipping scheduling.
-  const progressFraction = (input.completedContacts - 1 + TAIL_COMPLETION_CONTACT_WINDOW) /
+  // Backtracking within the delay horizon remains quality search rather than
+  // flipping scheduling. The horizon is a measured controller parameter, not
+  // a cadence or specification-specific threshold.
+  const progressFraction = (input.completedContacts - 1 + ONLINE_CONTINUATION_DELAY_CONTACTS) /
     (input.totalContacts - 1);
   return spendFraction > progressFraction;
 }
@@ -4957,6 +5161,7 @@ type RepairConfig = {
   feasMargin: number;
   maxAttempts: number;
   maxUpstream: number;
+  upstreamOrder: "nearest-first" | "oldest-first";
   log: boolean;
 };
 const REPAIR_MAIN_MARGIN_MATURE = 1.1;
@@ -5179,6 +5384,12 @@ function repairConfig(targetBudget: number, profile: HandoffSpecProfile): Repair
     const n = Number.parseFloat(readEnv(name) ?? "");
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
   };
+  const upstreamOrder = readEnv("LR_REPAIR_UPSTREAM_ORDER") ?? "oldest-first";
+  if (upstreamOrder !== "nearest-first" && upstreamOrder !== "oldest-first") {
+    throw new Error(
+      `LR_REPAIR_UPSTREAM_ORDER must be nearest-first|oldest-first, got ${upstreamOrder}`,
+    );
+  }
   return {
     // Gate: below this, completion is the hard part (DFS's job) and the carve starves it.
     // Lowered 150k→100k (2026-06-07): on the 30-spec board all specs already complete at
@@ -5202,6 +5413,10 @@ function repairConfig(targetBudget: number, profile: HandoffSpecProfile): Repair
     // seed, so it's genuinely different — not the same-seed re-run that R3 rejected). LR_REPAIR_MAX_UPSTREAM
     // overrides.
     maxUpstream: num("LR_REPAIR_MAX_UPSTREAM", 4, 0, 64),
+    // The older anchor receives first claim on the same charged repair budget:
+    // it can alter the weak gap's inherited arrival, while an expensive local
+    // restart cannot. The environment override remains diagnostic-only.
+    upstreamOrder,
     log: readEnv("LR_REPAIR_LOG") === "1",
   };
 }

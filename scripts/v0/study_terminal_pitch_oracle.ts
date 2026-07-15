@@ -1,8 +1,11 @@
 /** Exact post-compile oracle for a bounded edit at the weakest gap. */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import { developmentCases } from "../../benchmark/v2/catalog.ts";
+import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { detect, extractRawTrajectory, K_BOUNCE_LANDING } from "../lib/detector.ts";
+import { applyJolt } from "../produce/seed.ts";
 import { buildDriftReport, sliceTimeline, type GapFit } from "./core/substrate.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
@@ -18,7 +21,7 @@ const defaultSpecs = [
   "drums_crescendo", "ridge_pulse", "canyon_steps", "float_bounds",
 ].join(",");
 const specArg = argValue("specs") ?? defaultSpecs;
-const specs = (specArg === "all" ? [...GOLDEN_SPECS] : specArg.split(",")) as GoldenSpecName[];
+const specs = specArg === "all" ? [...GOLDEN_SPECS] : specArg.split(",");
 const seeds = (argValue("seeds") ?? "0").split(",").map(Number);
 const budget = Number(argValue("budget") ?? "200000");
 const outPath = argValue("out");
@@ -38,8 +41,20 @@ if (
   throw new Error(`unknown mode "${mode}"`);
 }
 
+const benchmarkSpecs = new Map(
+  developmentCases.map((entry) => [entry.case.metadata.id, entry.case.spec] as const),
+);
 for (const spec of specs) {
-  if (!(GOLDEN_SPECS as readonly string[]).includes(spec)) throw new Error(`unknown spec "${spec}"`);
+  if (!(GOLDEN_SPECS as readonly string[]).includes(spec) && !benchmarkSpecs.has(spec)) {
+    throw new Error(`unknown spec "${spec}"`);
+  }
+}
+
+async function loadStudySpec(name: string) {
+  const benchmarkSpec = benchmarkSpecs.get(name);
+  return benchmarkSpec === undefined
+    ? loadGoldenSpec(name as GoldenSpecName, "base")
+    : applyJolt(benchmarkSpec, benchmarkPolicy.transform.joltMs);
 }
 
 type Track = {
@@ -56,7 +71,7 @@ type Variant = {
   targetGap?: number;
 };
 type Row = {
-  spec: GoldenSpecName;
+  spec: string;
   seed: number;
   baselineScore: number;
   weakGap: number;
@@ -171,7 +186,7 @@ function accelerateLine(line: TrackLine): TrackLine {
 
 const rows: Row[] = [];
 for (const specName of specs) {
-  const userSpec = await loadGoldenSpec(specName, "base");
+  const userSpec = await loadStudySpec(specName);
   const spec = {
     ...userSpec,
     preroll: undefined,

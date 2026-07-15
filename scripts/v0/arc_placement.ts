@@ -237,6 +237,12 @@ let lastGeometryWasImpactTemplate = false;
 export function wasLastGeometryImpactTemplate(): boolean {
   return lastGeometryWasImpactTemplate;
 }
+
+/** Direct-geometry studies bypass the sampler, so they must not inherit the
+ * provenance of the previous sampled arc in landing-probe metadata. */
+export function clearImpactTemplateMarker(): void {
+  lastGeometryWasImpactTemplate = false;
+}
 let currentSteepArrivalSpecMaxImpact = 0;
 export function setSteepArrivalSpecMaxImpact(maxImpact: number): void {
   currentSteepArrivalSpecMaxImpact = Number.isFinite(maxImpact)
@@ -263,7 +269,6 @@ const LAUNCH_GRAVITY_PX_PER_FRAME2 = 0.175;
 const CONTACT_CENTERED_POST_CURVE_BIAS_SPAN = 0.6;
 const CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES = 50_000;
 const CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES = 50_000;
-
 /** Elevation steering. The post-contact ride-out angle decides where the rider
  *  goes next; up is −angle (screen y points down). When `elevation` is targeted
  *  we set that launch from the speed-relative elevation band (see types.ts
@@ -2003,9 +2008,7 @@ function ccSpanBlends(attempt: number): { launch: number; length: number } {
   return { launch: b, length: clamp(1 - b, 0, 1) };
 }
 
-/** Four support scales crossed with the established 16-step launch path. Each
- * scale, including both physical endpoints, is therefore evaluated at several
- * launch coordinates instead of being accidentally bound to one shape. */
+/** Four support scales sampled alongside the established 16-step launch path. */
 function supportScaleCoordinate(attempt: number): number {
   const k = ((attempt % 4) + 4) % 4;
   return k / 3;

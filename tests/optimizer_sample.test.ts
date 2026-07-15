@@ -9,10 +9,15 @@
  * data, so we catch any subtle dependence on engine internals.
  */
 import { describe, test, expect } from "vitest";
-import { sampleOneCandidate, type SpecContext } from "../scripts/v0/optimizer/sample.ts";
+import {
+  observeOneCandidate,
+  sampleOneCandidate,
+  type SpecContext,
+} from "../scripts/v0/optimizer/sample.ts";
+import { chooseRideOutPolishedFit } from "../scripts/v0/core/candidate.ts";
 import { sampleArcPlacementGeometry } from "../scripts/v0/arc_placement.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
-import { AXIS_VALUE_MAX, FPS, secToFrame, type Gap } from "../scripts/v0/types.ts";
+import { AXIS_VALUE_MAX, FPS, secToFrame, type Gap, type TrackLine } from "../scripts/v0/types.ts";
 import { makeRng } from "../scripts/lib/rng.ts";
 import {
   effectiveAxes,
@@ -134,5 +139,64 @@ describe("optimizer/sample.ts — Step 1 atomic sample", () => {
       // Different lineIdStart → different line IDs.
       expect(a.lines[0].id).not.toBe(b.lines[0].id);
     }
+  });
+
+  test("observation API preserves the atomic sampler result while exposing raw geometry", async () => {
+    const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
+    const observed = observeOneCandidate(engine, gap, makeRng(91), ctx, 1, 3);
+    const ordinary = sampleOneCandidate(engine, gap, makeRng(91), ctx, 1, 3);
+    expect(observed.geometry.kind).toBe("lines");
+    expect(observed.geometry.lines.length).toBeGreaterThan(0);
+    expect(observed.fit === null).toBe(ordinary === null);
+    if (observed.fit !== null && ordinary !== null) {
+      expect(observed.fit.cost).toBe(ordinary.cost);
+      expect(observed.fit.lines).toEqual(ordinary.lines);
+      expect(observed.fit.achieved).toEqual(ordinary.achieved);
+    }
+  });
+
+  test("ride-out polish defaults to enabled and disabled study rows retain base geometry", () => {
+    const lines: TrackLine[] = [{
+      id: 1,
+      type: 0,
+      x1: 0,
+      y1: 0,
+      x2: 20,
+      y2: 0,
+      flipped: false,
+      leftExtended: false,
+      rightExtended: false,
+    }];
+    const gap: Gap = {
+      index: 0,
+      startFrame: 0,
+      endFrame: 80,
+      endsWithContact: true,
+      targets: { air: 0.7 },
+    };
+    const base = { arc: null, geometry: "lines" as const, lines, achieved: { air: 0.6 }, cost: 1 };
+    let disabledCalls = 0;
+    const disabled = chooseRideOutPolishedFit(
+      base, gap, 160, lines, 2,
+      () => {
+        disabledCalls++;
+        return { ...base, cost: 0.5 };
+      },
+      false,
+    );
+    expect(disabled).toBe(base);
+    expect(disabledCalls).toBe(0);
+
+    let enabledCalls = 0;
+    const enabled = chooseRideOutPolishedFit(
+      base, gap, 160, lines, 2,
+      (extendedLines) => {
+        enabledCalls++;
+        return { ...base, lines: extendedLines, cost: 0.5 };
+      },
+    );
+    expect(enabledCalls).toBeGreaterThan(0);
+    expect(enabled.cost).toBe(0.5);
+    expect(enabled.lines).toHaveLength(2);
   });
 });

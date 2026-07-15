@@ -35,6 +35,13 @@ import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { applyJolt } from "../produce/seed.ts";
 
 const argv = process.argv.slice(2);
+if (argv.includes("--help") || argv.includes("-h")) {
+  process.stdout.write(
+    "Usage: npx tsx scripts/v0/study_impact_funnel.ts " +
+      "[--specs=id,...] [--seeds=n,...] [--budget=n] [--out=path]\n",
+  );
+  process.exit(0);
+}
 const argValue = (name: string): string | undefined =>
   argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
 
@@ -82,10 +89,15 @@ type GapRow = {
   nSurvived: number;
   nAdmitted: number;
   nRanked: number;
+  nTemplateGenerated: number;
+  nTemplateSurvived: number;
+  nTemplateAdmitted: number;
   /** Max |turn| at each stage. */
   maxTurnGenerated: number;
   maxTurnSurvived: number;
   maxTurnAdmitted: number;
+  maxTemplateTurnGenerated: number;
+  maxTemplateTurnSurvived: number;
   /** Deepest admitted candidate's percentile by cost and by handoff score
    *  among admitted candidates of this gap (0 = best ranked, 1 = worst). */
   deepCostPctl: number | null;
@@ -147,6 +159,9 @@ for (const specName of specNames) {
       const survived = recs.filter((r) => r.failure !== "survival");
       const admitted = survived.filter((r) => r.cost !== null && r.acceptedAtW === 1);
       const ranked = admitted.filter((r) => r.handoffScore !== undefined);
+      const templateGenerated = recs.filter((r) => r.isTemplate);
+      const templateSurvived = survived.filter((r) => r.isTemplate);
+      const templateAdmitted = admitted.filter((r) => r.isTemplate);
       const maxTurn = (rs: LandingWindowProbeRecord[]): number =>
         rs.length > 0 ? Math.max(...rs.map(turnOf)) : 0;
 
@@ -185,9 +200,14 @@ for (const specName of specNames) {
         spec: specName, seed, gapIndex, target, speedRef, neededTurnDeg,
         nGenerated: recs.length, nSurvived: survived.length,
         nAdmitted: admitted.length, nRanked: ranked.length,
+        nTemplateGenerated: templateGenerated.length,
+        nTemplateSurvived: templateSurvived.length,
+        nTemplateAdmitted: templateAdmitted.length,
         maxTurnGenerated: maxTurn(recs),
         maxTurnSurvived: maxTurn(survived),
         maxTurnAdmitted: maxTurn(admitted),
+        maxTemplateTurnGenerated: maxTurn(templateGenerated),
+        maxTemplateTurnSurvived: maxTurn(templateSurvived),
         deepCostPctl: deepest !== null ? pctlOf(admitted, deepest, (r) => r.cost) : null,
         deepHandoffPctl: deepest !== null ? pctlOf(ranked, deepest, (r) => r.handoffScore ?? null) : null,
         deepImpactAchieved: deepest?.impactAchieved ?? null,
@@ -295,6 +315,12 @@ if (rowsWithClosest.length > 0) {
 }
 
 if (outPath !== undefined) {
-  writeFileSync(outPath, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
-  console.log(`\nper-gap rows → ${outPath}`);
+  writeFileSync(outPath, `${JSON.stringify({
+    schema: "line.study-impact-funnel.v1",
+    specs: specNames,
+    seeds,
+    budget,
+    rows,
+  }, null, 2)}\n`);
+  console.log(`\nstudy report → ${outPath}`);
 }

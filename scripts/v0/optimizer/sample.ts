@@ -23,11 +23,13 @@ import { type GapFit } from "../core/substrate.ts";
 import {
   axisLookaheadEndFrame,
   tryCandidateGeometry,
+  type CandidateLineEvaluationOptions,
 } from "../core/candidate.ts";
 import {
   readPreTargetSledTrace,
   readTargetStateFromRider,
   sampleArcPlacementGeometry,
+  type ArcPlacementGeometry,
   type ImpactFrameTargetState,
   type PreTargetSledTrace,
 } from "../arc_placement.ts";
@@ -43,6 +45,16 @@ export type Candidate = GapFit & {
   /** Attempt index inside the deterministic per-gap sample prefix. This lets a
    *  larger cached prefix answer a later smaller-K request exactly. */
   sampleAttempt?: number;
+};
+
+/**
+ * Trace of one exact normal sampling operation. This is an observation API for
+ * studies: `fit` is exactly what `sampleOneCandidate` returns, while `geometry`
+ * exposes the pre-gate proposal so failed attempts are not invisible.
+ */
+export type SampledCandidateObservation = {
+  geometry: ArcPlacementGeometry;
+  fit: Candidate | null;
 };
 
 /** Context that is constant across all gaps of a single compile call.
@@ -148,6 +160,41 @@ export function sampleOneCandidate(
    *  lane. It changes geometry only; hard gates and scoring remain literal. */
   supportGeometryMode?: SupportGeometryMode,
 ): Candidate | null {
+  return observeOneCandidate(
+    engine,
+    gap,
+    rng,
+    ctx,
+    lineIdStart,
+    attempt,
+    mode,
+    geometryTargets,
+    supportGeometryMode,
+  ).fit;
+}
+
+/**
+ * Execute the same atomic operation as `sampleOneCandidate`, retaining the
+ * raw generated geometry for audit studies. It does not retry, rank, or alter
+ * the candidate path; callers that only need production behavior should use
+ * `sampleOneCandidate`.
+ */
+export function observeOneCandidate(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  rng: () => number,
+  ctx: SpecContext,
+  lineIdStart: number,
+  attempt = 0,
+  mode: CandidateSampleMode = "normal",
+  geometryTargets: AxisValues = gap.targets,
+  supportGeometryMode?: SupportGeometryMode,
+  /** Study-only evaluator override. Omitted in production, preserving the
+   * normal candidate path exactly; useful when an attribution study must
+   * disable optional post-fit continuation on both compared families. */
+  evaluationOptions?: CandidateLineEvaluationOptions,
+): SampledCandidateObservation {
   candidateSampleCount++;
   const probe = getCandidateProbe(engine, gap, ctx);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
@@ -161,7 +208,7 @@ export function sampleOneCandidate(
 
   const fit = tryCandidateGeometry(
     engine, gap, geometry, lineIdStart, ctx.allContactFrames,
-    axisMeasureEnd, gap.targets, true, mode, probe.preTargetSledTrace,
+    axisMeasureEnd, gap.targets, true, mode, probe.preTargetSledTrace, evaluationOptions,
   ) as Candidate | null;
 
   // Record the sled reference used to place this catch, so a later gap with a
@@ -173,5 +220,5 @@ export function sampleOneCandidate(
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     fit.sampleAttempt = attempt;
   }
-  return fit;
+  return { geometry, fit };
 }

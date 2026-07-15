@@ -8,6 +8,9 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import { developmentCases } from "../../benchmark/v2/catalog.ts";
+import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
+import { applyJolt } from "../produce/seed.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import {
   compileHandoff,
@@ -28,12 +31,24 @@ const defaultSpecs = [
   "drums_tide",
   "drums_signature",
 ].join(",");
-const specs = (argValue("specs") ?? defaultSpecs).split(",") as GoldenSpecName[];
+const specs = (argValue("specs") ?? defaultSpecs).split(",");
 const seeds = (argValue("seeds") ?? "0,1,2").split(",").map(Number);
 const budget = Number(argValue("budget") ?? "200000");
 const outPath = argValue("out");
+const benchmarkSpecs = new Map(
+  developmentCases.map((entry) => [entry.case.metadata.id, entry.case.spec] as const),
+);
 for (const spec of specs) {
-  if (!(GOLDEN_SPECS as readonly string[]).includes(spec)) throw new Error(`unknown spec "${spec}"`);
+  if (!(GOLDEN_SPECS as readonly string[]).includes(spec) && !benchmarkSpecs.has(spec)) {
+    throw new Error(`unknown spec "${spec}"`);
+  }
+}
+
+async function loadStudySpec(name: string) {
+  const benchmarkSpec = benchmarkSpecs.get(name);
+  return benchmarkSpec === undefined
+    ? loadGoldenSpec(name as GoldenSpecName, "base")
+    : applyJolt(benchmarkSpec, benchmarkPolicy.transform.joltMs);
 }
 
 const readinessAllowances = [0, 0.025, 0.05, 0.10, 0.20, 0.30] as const;
@@ -154,7 +169,7 @@ setHandoffPoolProbeHook((record: HandoffPoolProbeRecord) => {
 });
 
 for (const spec of specs) {
-  const loaded = await loadGoldenSpec(spec, "base");
+  const loaded = await loadStudySpec(spec);
   for (const seed of seeds) {
     activeSpec = spec;
     activeSeed = seed;

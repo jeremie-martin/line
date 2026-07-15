@@ -19,6 +19,7 @@ import {
   propagateBallisticArrivalState,
   reduceLatentJointArcOutputs,
   rotateArcLines,
+  scaleArcLines,
   stateOutputs,
   type RiderArrivalState,
 } from "../scripts/v0/optimizer/arc_model.ts";
@@ -75,6 +76,15 @@ describe("arc_model knob transforms", () => {
     expect(out[0].y2).toBeCloseTo(10);
     expect(out[2].x2).toBeCloseTo(0);
     expect(out[2].y2).toBeCloseTo(30);
+  });
+
+  test("scaleArcLines changes total arc length without changing its shape", () => {
+    const out = scaleArcLines(lines, 1.5);
+    expect(out[0].x1).toBeCloseTo(0);
+    expect(out[0].x2).toBeCloseTo(15);
+    expect(out[1].x1).toBeCloseTo(15);
+    expect(out[2].x2).toBeCloseTo(45);
+    expect(scaleArcLines(lines, 0)).toEqual([]);
   });
 
   test("applyArcKnobs uses rotate-then-pitch order", () => {

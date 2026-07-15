@@ -42,8 +42,11 @@ export type DetectorRunwayControl = {
 };
 
 export type DetectorRunwayStats = {
+  spacing_eligible_pools: number;
   eligible_pools: number;
+  suppressed_by_existing_runway: number;
   exact_attempts: number;
+  current_fit_rejected: number;
   emitted: number;
   pool_entries: number;
   rank0: number;
@@ -53,8 +56,11 @@ export type DetectorRunwayStats = {
 };
 
 const runwayTotals: DetectorRunwayStats = {
+  spacing_eligible_pools: 0,
   eligible_pools: 0,
+  suppressed_by_existing_runway: 0,
   exact_attempts: 0,
+  current_fit_rejected: 0,
   emitted: 0,
   pool_entries: 0,
   rank0: 0,
@@ -113,7 +119,11 @@ export function makeDetectorRunwayCandidates(
   const spacingFrames = nextGap.endFrame - gap.endFrame;
   if (!detectorRunwaySpacingEligible(spacingFrames)) return [];
   if (gap.endFrame < PHASE_FRAMES) return [];
-  if (incumbents.some((candidate) => leavesDetectorRunway(candidate, nextGap.endFrame))) return [];
+  runwayTotals.spacing_eligible_pools++;
+  if (incumbents.some((candidate) => leavesDetectorRunway(candidate, nextGap.endFrame))) {
+    runwayTotals.suppressed_by_existing_runway++;
+    return [];
+  }
   runwayTotals.eligible_pools++;
 
   const probe = getCandidateProbe(engine, gap, ctx);
@@ -134,7 +144,10 @@ export function makeDetectorRunwayCandidates(
     "normal",
     probe.preTargetSledTrace,
   ) as Candidate | null;
-  if (fit === null) return [];
+  if (fit === null) {
+    runwayTotals.current_fit_rejected++;
+    return [];
+  }
   runwayTotals.emitted++;
   return [fit];
 }

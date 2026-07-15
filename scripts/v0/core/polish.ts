@@ -1663,13 +1663,16 @@ registerCompileReset(resetEngineRebuildCount);
 // deno-lint-ignore no-explicit-any
 function rebuildEngineWithStart(
   startState: ResolvedStart,
+  startLines: readonly TrackLine[],
   fits: (GapFit | null)[],
   upTo: number,
 ): any {
   engineRebuildCount++;
   // deno-lint-ignore no-explicit-any
-  const eng: any = makeBaseEngine(startState);
-  let chained = eng;
+  let chained: any = makeBaseEngine(startState);
+  if (startLines.length > 0) {
+    chained = chained.addLine(startLines.map((line) => engineLineFromTrackLine(line)));
+  }
   for (let j = 0; j < upTo; j++) {
     const fit = fits[j];
     if (fit === null) continue;
@@ -1680,8 +1683,17 @@ function rebuildEngineWithStart(
   return chained;
 }
 
-export function makePolishRebuildEngine(startState: ResolvedStart): PolishRebuildEngine {
-  return (fits, upTo) => rebuildEngineWithStart(startState, fits, upTo);
+/**
+ * Rebuild a candidate leaf from the complete immutable start geometry plus its
+ * mutable gap fits. Start lines are not part of `prefixFits`, but they are part
+ * of every live handoff engine; omitting them makes a polished replay describe
+ * a different track. The default preserves callers that truly start line-free.
+ */
+export function makePolishRebuildEngine(
+  startState: ResolvedStart,
+  startLines: readonly TrackLine[] = [],
+): PolishRebuildEngine {
+  return (fits, upTo) => rebuildEngineWithStart(startState, startLines, fits, upTo);
 }
 
 /**

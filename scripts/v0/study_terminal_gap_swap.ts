@@ -47,6 +47,14 @@ import {
 import type { Spec } from "./optimizer/types.ts";
 
 const argv = process.argv.slice(2);
+if (argv.includes("--help") || argv.includes("-h")) {
+  process.stdout.write(
+    "Usage: npx tsx scripts/v0/study_terminal_gap_swap.ts " +
+      "[--specs=id,...|all] [--seeds=n,...] [--budget=n] [--candidates=n] " +
+      "[--candidate-seed-count=n] [--suffix=fixed|release-translate|guided-rebuild] [--out=path]\n",
+  );
+  process.exit(0);
+}
 const argValue = (name: string): string | undefined =>
   argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const defaultSpecs = [

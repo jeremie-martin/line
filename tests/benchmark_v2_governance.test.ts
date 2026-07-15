@@ -12,6 +12,7 @@ import {
 import {
   cleanupStaleSnapshotWorkspaces,
   allocateSnapshotWorkspacePath,
+  materializedTrackedFiles,
   removeAmbientCompilerSources,
   SNAPSHOT_WORKSPACE_OWNER,
   SNAPSHOT_WORKSPACE_PREFIX,
@@ -98,6 +99,14 @@ describe("Benchmark V2 governance", () => {
 
     expect(existsSync(candidateOnly)).toBe(false);
     expect(existsSync(supportFile)).toBe(true);
+  });
+
+  test("snapshot overlays omit tracked paths deleted from the dirty worktree", () => {
+    const root = mkdtempSync(join(tmpdir(), "v2-snapshot-overlay-"));
+    writeFileSync(join(root, "present.ts"), "export {};\n");
+    const listed = Buffer.from("present.ts\0deleted.ts\0");
+    expect(materializedTrackedFiles(listed, root).toString()).toBe("present.ts\0");
+    rmSync(root, { recursive: true, force: true });
   });
 
   test("validates the approved listening review and rejects pending or stale evidence", async () => {

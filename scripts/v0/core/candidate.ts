@@ -277,6 +277,15 @@ type CandidateLinesEvaluation =
   | { fit: null; failure: ArcPlacementDirectFailureReason };
 type PreTargetSledTraceProvider = () => PreTargetSledTrace;
 
+/**
+ * Evaluation-only controls. Production callers keep the default behavior;
+ * studies may disable optional post-fit polish when they need to attribute an
+ * exact result to the proposed lines alone.
+ */
+export type CandidateLineEvaluationOptions = {
+  allowRideOutPolish?: boolean;
+};
+
 const EMPTY_CANDIDATE_SUMMARY: Detection["summary"] = {
   liveFrames: 0,
   specFrames: 0,
@@ -640,10 +649,11 @@ export function tryCandidateGeometry(
   useWindowDetection: boolean,
   sampleMode?: CandidateSampleMode,
   preTargetSledTrace?: PreTargetSledTraceProvider,
+  options?: CandidateLineEvaluationOptions,
 ): GapFit | null {
   return tryCandidateLines(
     baseEngine, gap, geometry.lines, lineIdStart, allContactFrames, axisMeasureEnd,
-    searchTargets, useWindowDetection, sampleMode, preTargetSledTrace,
+    searchTargets, useWindowDetection, sampleMode, preTargetSledTrace, options,
   );
 }
 
@@ -659,6 +669,7 @@ export function tryCandidateLines(
   useWindowDetection: boolean,
   sampleMode?: CandidateSampleMode,
   preTargetSledTrace?: PreTargetSledTraceProvider,
+  options?: CandidateLineEvaluationOptions,
 ): GapFit | null {
   recordArcPlacementDirectAttempt(sampleMode);
   if (preTargetSledProximity(baseEngine, gap, lines, preTargetSledTrace)) {
@@ -667,7 +678,7 @@ export function tryCandidateLines(
   }
   const direct = evaluateCandidateLines(
     baseEngine, gap, null, "lines", lines, lineIdStart, axisMeasureEnd,
-    allContactFrames, searchTargets, useWindowDetection,
+    allContactFrames, searchTargets, useWindowDetection, options?.allowRideOutPolish !== false,
   );
   if (direct.fit !== null) {
     recordArcPlacementDirectLanding(sampleMode);
@@ -717,41 +728,64 @@ function evaluateCandidateLines(
   allContactFrames: number[],
   searchTargets: AxisValues,
   useWindowDetection: boolean,
+  allowRideOutPolish = true,
 ): CandidateLinesEvaluation {
-  let best = evaluateGapFit(
+  const base = evaluateGapFit(
     baseEngine, gap, lines, axisMeasureEnd, allContactFrames,
     searchTargets, useWindowDetection,
     /* landingProbeEligible */ true,
   );
-  if (best.fit === null) return best;
-
-  if (shouldTryCandidateRideOut(gap, axisMeasureEnd)) {
-    const rideOutId = lineIdStart + lines.length;
-    for (const source of rideOutSources(lines)) {
-      for (const rideOut of makeAirPolishCandidates(rideOutId, source)) {
-        const extendedLines = [...lines, rideOut];
-        const extended = evaluateGapFit(
-          baseEngine, gap, extendedLines, axisMeasureEnd, allContactFrames,
-          searchTargets, useWindowDetection,
-        );
-        if (extended.fit !== null && extended.fit.cost + 1e-6 < best.fit.cost) {
-          best = extended;
-        }
-      }
-    }
-  }
+  if (base.fit === null) return base;
+  const best = chooseRideOutPolishedFit(
+    base.fit,
+    gap,
+    axisMeasureEnd,
+    lines,
+    lineIdStart,
+    (extendedLines) => evaluateGapFit(
+      baseEngine, gap, extendedLines, axisMeasureEnd, allContactFrames,
+      searchTargets, useWindowDetection,
+    ).fit,
+    allowRideOutPolish,
+  );
 
   return {
     fit: {
       arc,
       geometry,
-      lines: best.fit.lines,
-      achieved: best.fit.achieved,
-      cost: best.fit.cost,
-      ...copyOptionalGapFitFields(best.fit),
+      lines: best.lines,
+      achieved: best.achieved,
+      cost: best.cost,
+      ...copyOptionalGapFitFields(best),
     },
     failure: null,
   };
+}
+
+/**
+ * Evaluate optional post-fit ride-out continuations. Kept separate from the
+ * base evaluator so attribution studies can prove that disabling polish leaves
+ * the proposed geometry untouched without changing production's default.
+ */
+export function chooseRideOutPolishedFit(
+  base: GapFit,
+  gap: Gap,
+  axisMeasureEnd: number,
+  lines: readonly TrackLine[],
+  lineIdStart: number,
+  evaluate: (extendedLines: TrackLine[]) => GapFit | null,
+  allowRideOutPolish = true,
+): GapFit {
+  if (!allowRideOutPolish || !shouldTryCandidateRideOut(gap, axisMeasureEnd)) return base;
+  let best = base;
+  const rideOutId = lineIdStart + lines.length;
+  for (const source of rideOutSources(lines)) {
+    for (const rideOut of makeAirPolishCandidates(rideOutId, source)) {
+      const extended = evaluate([...lines, rideOut]);
+      if (extended !== null && extended.cost + 1e-6 < best.cost) best = extended;
+    }
+  }
+  return best;
 }
 
 /**

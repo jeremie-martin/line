@@ -269,6 +269,24 @@ export function rotateArcLines(lines: TrackLine[], deg: number): TrackLine[] {
   return rotateLinesAbout(lines, { x: lines[0].x1, y: lines[0].y1 }, deg);
 }
 
+/**
+ * Scale the complete arc about its entry point while preserving every segment
+ * direction and the arc's internal shape. This is intentionally distinct from
+ * `adjustArcTailLength`: it changes the duration of the complete supported
+ * trajectory rather than appending or truncating only its exit tangent.
+ */
+export function scaleArcLines(lines: TrackLine[], scale: number): TrackLine[] {
+  if (lines.length === 0 || !Number.isFinite(scale) || scale <= 0) return [];
+  const pivot = { x: lines[0].x1, y: lines[0].y1 };
+  return lines.map((line) => ({
+    ...line,
+    x1: pivot.x + (line.x1 - pivot.x) * scale,
+    y1: pivot.y + (line.y1 - pivot.y) * scale,
+    x2: pivot.x + (line.x2 - pivot.x) * scale,
+    y2: pivot.y + (line.y2 - pivot.y) * scale,
+  }));
+}
+
 /** Apply whole-arc rotation first, then exit pitch. This is the knob order used
  * by the production proposer and the joint-model studies. */
 export function applyArcKnobs(lines: TrackLine[], knobs: ArcKnobs): TrackLine[] {

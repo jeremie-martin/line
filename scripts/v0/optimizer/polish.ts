@@ -30,7 +30,7 @@ import {
   polishAirBriefContacts,
   polishExcessContact,
 } from "../core/polish.ts";
-import type { Gap } from "../types.ts";
+import type { Gap, TrackLine } from "../types.ts";
 import type { Spec } from "./types.ts";
 
 /** Optional fit fields whose values become stale when polish mutates geometry:
@@ -86,12 +86,13 @@ export function polishLeafVariant(
   contactFrames: number[],
   durationFrames: number,
   startState: ResolvedStart,
+  startLines: readonly TrackLine[] = [],
 ): PolishedVariant | null {
   const clone = cloneFits(fits);
   const before = fingerprintFits(clone);
   // deno-lint-ignore no-explicit-any
   const s = spec as any;
-  const rebuildEngine = makePolishRebuildEngine(startState);
+  const rebuildEngine = makePolishRebuildEngine(startState, startLines);
   polishAirRideOut(clone, gaps, s, contactFrames, durationFrames, rebuildEngine);
   polishAirContactEntry(clone, gaps, s, contactFrames, durationFrames, rebuildEngine);
   polishAirBriefContacts(clone, gaps, s, contactFrames, durationFrames, rebuildEngine);

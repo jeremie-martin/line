@@ -168,6 +168,20 @@
         "sha256": "3ff96093b7fe8ddc46e5d6bd79728ef49a254df535cd3a84f2a5a5da83b14e10",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "872bef8ba426f8c6a970b687a2c9f2d0288a4efbeeb7fbcc9abf639fba093348",
+      "toImplementationFingerprint": "3bed82340e4da9ebb828de5d24a42de39e1803a78ca79138baba4d9b55e9f7be",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
+      "reviewedBy": "codex",
+      "reviewedAt": "2026-07-15T15:14:47.316Z",
+      "rationale": "Snapshot workspaces now materialize only the hash-bound calibration archives required by the canonical runner; frozen baseline replay proves this operational repair is bit-identical.",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-872bef8b-3bed8234-d64a2be7.json",
+        "sha256": "d64a2be71824839a6b8ede984e1dd8e860d69994cb25523ed30cce41cd84795c",
+        "result": "bit-identical"
+      }
     }
   ]
 }

@@ -285,6 +285,60 @@ capture geometry. A future source may use an explicit, engine-measured
 transition state, but it must establish prefix/final trajectory agreement and
 cross-regime stability before it changes the normal generator.
 
+## Retired: Standalone Contact-Phase Primitive (2026-07-15)
+
+**Hypothesis.** A state-relative, six-frame contact phase could replace the
+normal capture for short intervals. It was constructed from only the immutable
+prefix, current pre-contact state, current impact ask, and one fixed physical
+control; later cadence, axes, targets, score, and outcomes were withheld. The
+compact 24-control stencil and diagnostic 288-control oracle both crossed
+chirality and one-way collision side. An independent detector/ownership
+positive control exercised the same guard path.
+
+**Fresh assay.** Under WASM and a fixed 500k prefix budget, the sealed five
+state panel completed with the positive control passing and `1,560` observed
+rows. It found zero structurally valid local captures in every state: dense,
+dense-240, shifted pickup, ordinary representative, and impact-led music.
+The result was not caused by a broken observation path: the artifact was
+protocol-complete and every row was retained. The failures were principally no
+owned capture event, incomplete persistence/impact windows, off-beat landings,
+and, for many motion-facing arms, pre-event intrusion.
+
+**Decision.** Retired as a compiler source. A bounded primitive generated
+solely from pre-contact state cannot replace a valid collision capture. Do not
+turn the oracle into a menu or loosen its guards. Dense work must retain an
+already engine-admitted capture rather than invent a new standalone catch.
+
+## Retained Constraint: Exact Support Is a Low-Air Actuator, Not a General Source (2026-07-15)
+
+The fixed post-impact rail assay was recaptured under the current compiler
+before interpretation. It is structurally valid as a local construction:
+ordinary had four complete paired rows, dense-240 five, and the correlated
+3--7 second low-air family had five to nine per rung. Across the low-air
+ladder, a tangent-aligned rail consistently reduced local airborne samples by
+about ten while moving mean CoM speed by only about `0.01`; the positive-turn
+arm made a smaller air adjustment. That is a real support/occupancy lever.
+
+It is not a general continuation source. The dense 9-frame state has no
+post-response measurement horizon, and dense-240 changes only about one local
+air sample. Therefore it cannot explain or solve the dense failures, and the
+fixed rail stencil supplies neither a whole-gap speed law nor a candidate
+selection rule. Keep it as a measured component constraint, not an additive
+default.
+
+## Next Production Hypothesis
+
+Build a bounded **capture-preserving observed-transition source**. It starts
+only from a normal candidate that has already passed exact current-contact
+admission. The source then measures that capture's response state, proposes a
+small continuation family from literal outgoing axes, and must prove that the
+composite replay preserves the original physical trace, owned capture, and
+impact response through the measured boundary. The ordinary evaluator and
+ranker remain the only admission/selection authorities. A source unavailable
+at short horizons is an ordinary absence, not a duration-specific fallback;
+dense will require a later joint-capture formulation rather than forcing a
+post-response rail into a nine-frame interval.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

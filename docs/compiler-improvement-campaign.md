@@ -112,6 +112,32 @@ field is not enough to decouple capture alignment from outgoing quality at the
 current two-knob/probe budget. Keep the result as a constraint on a future
 transition source, not as a default or a capability-only repair.
 
+## Retired: Global Impact-Curvature Recalibration (2026-07-15)
+
+**Hypothesis.** The normal sampler's global impact-curvature constants had
+been calibrated before the current constrained-traversal baseline. A small,
+ordered family could test whether its current centre `(flatten, frontload) =
+(18 degrees, 1.6)` should move, without adding a case, duration, or
+post-failure branch. The two frozen endpoints were a softer `(12 degrees,
+1.2)` law and a stronger `(24 degrees, 2.0)` law; both used the same normal
+candidate pipeline and exact evaluator.
+
+**Family result.** A six-seed-per-budget, fresh shared exploration epoch at
+250k and 500k compared both endpoints with the unchanged centre. The soft
+endpoint was the observed champion but was decisively harmful: headline
+`-23.15` (SE `3.98`), validity `-7` (`+3/-10`), representative `+2.24`,
+capability `-170.01`, legacy `+6.69`, and development music `+2.26`. The
+strong endpoint was worse still: headline `-55.77` (SE `5.72`), validity
+`-17`, representative `-35.39`, capability `-164.04`, legacy `-25.15`, and
+development music `-77.64`. The soft endpoint led at all 2-, 4-, and 6-seed
+prefixes, so this is not an adaptive-selection ambiguity.
+
+**Decision.** Retired without selection or certification. The evidence does
+not prove a mathematical optimum, but it rules out these broad global moves
+on the current geometry. Retain the centre as the default. Revisit impact
+curvature only if a structural transition source changes the measured
+collision-state basis, and calibrate that source as a new bounded family.
+
 ## Accepted: Constrained Handoff Traversal (2026-07-15)
 
 The committed compiler tree differs from the frozen V2 baseline through the

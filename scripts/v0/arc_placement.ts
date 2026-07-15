@@ -186,6 +186,25 @@ const IMPACT_TEMPLATE_MIN_PRESSURE = 0.35;
 const IMPACT_TEMPLATE_LANE_RATE = 1 / 3;
 const IMPACT_TEMPLATE_ATTEMPT_RAMP_START = 6;
 const IMPACT_TEMPLATE_ATTEMPT_RAMP_SPAN = 4;
+// Arrival-conditioned firing path (2026-07-15). The carrier-pressure gate
+// above makes the template a hard-ask lane (impactCurveP > 0.25 ⇒ ask ≥
+// ~0.45), and the late attempt ramp keeps it invisible to branch-1 rollouts.
+// The V1 funnel evidence (docs/IMPACT_PAIR_PLANNING.md) and five fresh V2
+// scope falsifications agree: commanded turn converts to windowed redirection
+// only when the arrival is actually steep (vy at contact), and steep launches
+// keep losing forward-eval because no converting catch exists downstream at
+// moderate asks. This second eligibility path therefore fires the SAME
+// template on the measured arrival state — a real dive into an authored
+// impact — at early attempts, independent of the carrier's ask ramp. Normal
+// candidates remain; the exact evaluator and ranker still choose.
+const IMPACT_TEMPLATE_ARRIVAL_ANGLE_START_DEG = 8;
+const IMPACT_TEMPLATE_ARRIVAL_ANGLE_SPAN_DEG = 8;
+const IMPACT_TEMPLATE_ARRIVAL_ASK_START = 0.12;
+const IMPACT_TEMPLATE_ARRIVAL_ASK_SPAN = 0.12;
+const IMPACT_TEMPLATE_ARRIVAL_ATTEMPT_RAMP_START = 1;
+const IMPACT_TEMPLATE_ARRIVAL_ATTEMPT_RAMP_SPAN = 2;
+const IMPACT_TEMPLATE_ARRIVAL_SPEED_START_PX = 6;
+const IMPACT_TEMPLATE_ARRIVAL_SPEED_SPAN_PX = 4;
 const IMPACT_TEMPLATE_PRESSURE_RAMP_SPAN = 0.10;
 const IMPACT_TEMPLATE_ROOM_SPAN_FRAMES = 12;
 const IMPACT_TEMPLATE_TARGET_TURN_MARGIN_DEG = 4;
@@ -223,11 +242,13 @@ const STEEP_ARRIVAL_DELIVERY_EFFICIENCY = 0.68;
 const STEEP_ARRIVAL_DELTA_MAX_DEG = 15;
 const STEEP_ARRIVAL_ABS_CAP_DEG = 40;
 const STEEP_ARRIVAL_SPAN_SALT = 11;
-const STEEP_ARRIVAL_ZERO_BAND = 0.8;
+// Paired with the arrival-conditioned template path: more steep launches so
+// the converting catch has dives to harvest.
+const STEEP_ARRIVAL_ZERO_BAND = 0.6;
 const STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES = 200_000;
 const STEEP_ARRIVAL_SCARCE_ZERO_BAND = 0.25;
 const STEEP_ARRIVAL_HARD_IMPACT_PROFILE_MIN = 0.68;
-const STEEP_ARRIVAL_HARD_IMPACT_ZERO_BAND = 0.7;
+const STEEP_ARRIVAL_HARD_IMPACT_ZERO_BAND = 0.5;
 
 // Study-only marker: was the LAST geometry produced by sampleContactCenteredLines an
 // impact template lane? Read by the landing-window probe (core/candidate.ts) to
@@ -1401,6 +1422,7 @@ function impactTemplateDescriptor(params: {
   const impactTemplateBudgetP = impactTemplateBudgetPressure();
   const impactTemplateEligibility = impactTemplateLaneEligibility(
     params.targets,
+    params.targetState,
     params.gapFrames,
     params.nextGapFrames,
     params.impactCurveP,
@@ -1674,6 +1696,7 @@ function steepArrivalMatureZeroBand(): number {
 
 function impactTemplateLaneEligibility(
   targets: AxisValues,
+  targetState: ImpactFrameTargetState,
   gapFrames: number,
   nextGapFrames: number | null,
   impactCurveP: number,
@@ -1689,11 +1712,30 @@ function impactTemplateLaneEligibility(
   const attemptP = smoothstep(
     (attempt - IMPACT_TEMPLATE_ATTEMPT_RAMP_START) / IMPACT_TEMPLATE_ATTEMPT_RAMP_SPAN,
   );
+  // Arrival-conditioned path: the rider is measurably DIVING into an authored
+  // impact (steep incoming velocity), so the converting catch is offered
+  // regardless of the carrier's ask ramp, and early enough for branch-1
+  // rollouts to see it (see the constants block).
+  const arrivalP = smoothstep(
+    (targetState.angleDeg - IMPACT_TEMPLATE_ARRIVAL_ANGLE_START_DEG) /
+      IMPACT_TEMPLATE_ARRIVAL_ANGLE_SPAN_DEG,
+  ) * smoothstep(
+    (Math.min(targets.impact, impactCeiling(targetState.speed)) -
+      IMPACT_TEMPLATE_ARRIVAL_ASK_START) / IMPACT_TEMPLATE_ARRIVAL_ASK_SPAN,
+  ) * smoothstep(
+    (targetState.speed - IMPACT_TEMPLATE_ARRIVAL_SPEED_START_PX) /
+      IMPACT_TEMPLATE_ARRIVAL_SPEED_SPAN_PX,
+  );
+  const arrivalAttemptP = smoothstep(
+    (attempt - IMPACT_TEMPLATE_ARRIVAL_ATTEMPT_RAMP_START) /
+      IMPACT_TEMPLATE_ARRIVAL_ATTEMPT_RAMP_SPAN,
+  );
+  const firing = Math.max(pressureP * attemptP, arrivalP * arrivalAttemptP);
   const roomP = nextGapFrames === null
     ? 0
     : smoothstep((nextGapFrames - 4) / IMPACT_TEMPLATE_ROOM_SPAN_FRAMES);
   return clamp(
-    IMPACT_TEMPLATE_LANE_RATE * budgetPressure * pressureP * attemptP * roomP,
+    IMPACT_TEMPLATE_LANE_RATE * budgetPressure * firing * roomP,
     0,
     1,
   );

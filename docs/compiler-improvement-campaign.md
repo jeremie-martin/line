@@ -61,6 +61,30 @@ improvement.
   next source must improve its transition basis rather than add another
   failure-only rescue lane.
 
+## Retired: Fixed Global Normal-Pool Breadth (2026-07-15)
+
+**Hypothesis.** At 500k, the normal solver samples 29 candidates per gap.
+Increasing that fixed breadth to 36 might let the unchanged exact evaluator
+and ranker discover better ordinary trajectory basins across dense, pickup,
+low-air, representative, and development-music work, without adding a new
+candidate lane or case-specific rule.
+
+**Scope and Stage 0.** The V2-jolt/seed-24 500k scope had four gains: dense
+`+22.78`, pickup `+23.50`, low-air `+4.41`, and development music `+38.73`;
+dense-240 `-10.07` and Countercurrent `-4.11` lost. At 250k, pickup became
+valid (`0 -> 404.16`) and low-air gained `+15.12`, but Countercurrent lost
+`-18.45`; dense-240 remained invalid. The full 264-compile Stage 0 resolved
+the hidden trade-off: headline `483.49 -> 478.38` (`-5.10`), 250k `-39.39`,
+representative `-10.86`, legacy `-15.39`, and validity `+3/-10`. The 500k
+cell alone was `+8.61`, but that is not a justification for starving the
+scarcer profile or accepting dense/low-air capability losses.
+
+**Decision.** Retire fixed global breadth; do not search nearby constants.
+The same charged expansion that improves selected mature rows harms the
+broader traversal allocation at 250k. Any future breadth work must use a
+measured, budget-aware reason to allocate search effort, not a global count
+override.
+
 ## Retired: Direct Ballistic State-Transition Slots (2026-07-15)
 
 **Hypothesis.** Four fixed normal sample slots could be replaced, at unchanged

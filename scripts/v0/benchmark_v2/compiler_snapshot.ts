@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import {
+  copyFileSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -12,7 +13,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, resolve } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { COMPILER_SOURCE_PATHS, compilerCandidateIdentity } from "./compiler_identity.ts";
 
 const ENGINE_ARTIFACT = "engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm";
@@ -155,6 +156,7 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
         resolve(workspace, "generated/benchmark-v2/"),
       ], { stdio: diagnosticStdio() });
     }
+    materializeDecisionCalibrationArtifacts(workspace);
     removeAmbientCompilerSources(workspace);
     execFileSync("tar", ["-xzf", resolve(snapshot.archive), "-C", workspace], { stdio: diagnosticStdio() });
     execFileSync("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund"], {
@@ -344,6 +346,104 @@ export function runSnapshotBenchmark(
 export function removeAmbientCompilerSources(workspace: string): void {
   for (const path of COMPILER_SOURCE_PATHS) {
     rmSync(resolve(workspace, path), { recursive: true, force: true });
+  }
+}
+
+/**
+ * The canonical runner verifies the active calibration controls from its own
+ * cwd. Those immutable archives are intentionally ignored because they are
+ * large, so a snapshot workspace must carry the exact declared set explicitly.
+ * Do not copy a generated directory: the calibration and coverage records are
+ * the allow-list and each source byte is checked before and after copying.
+ */
+export function materializeDecisionCalibrationArtifacts(
+  workspace: string,
+  root = process.cwd(),
+): string[] {
+  const calibration = readJsonObject(
+    resolve(root, "benchmark/v2/studies/decision-calibration.json"),
+    "decision calibration",
+  );
+  const coverageStudy = calibration.coverageStudy;
+  if (coverageStudy === null || typeof coverageStudy !== "object" || Array.isArray(coverageStudy)) {
+    throw new Error(`decision calibration coverage study is malformed`);
+  }
+  const coveragePath = requiredArtifactPath(root, coverageStudy.path, "decision coverage study");
+  const coverage = readJsonObject(coveragePath.absolute, "decision coverage study");
+  const artifacts = new Map<string, { absolute: string; sha256: string; label: string }>();
+  addCalibrationArtifact(
+    artifacts,
+    root,
+    coverage.reference,
+    coverage.referenceArtifactSha256,
+    "zero-inflated coverage reference",
+  );
+
+  const controls = calibration.controls;
+  if (controls === null || typeof controls !== "object" || Array.isArray(controls)) {
+    throw new Error(`decision calibration controls are malformed`);
+  }
+  for (const name of ["identical", "knownBroadDegradation", "impactContractFailure"]) {
+    const control = controls[name];
+    if (control === null || typeof control !== "object" || Array.isArray(control)) {
+      throw new Error(`${name} calibration control is malformed`);
+    }
+    addCalibrationArtifact(artifacts, root, control.baseArchive, control.baseArchiveSha256, `${name} base control`);
+    addCalibrationArtifact(artifacts, root, control.candidateArchive, control.candidateArchiveSha256, `${name} candidate control`);
+  }
+
+  for (const [path, artifact] of artifacts) {
+    const destination = resolve(workspace, path);
+    mkdirSync(dirname(destination), { recursive: true });
+    copyFileSync(artifact.absolute, destination);
+    if (sha256(readFileSync(destination)) !== artifact.sha256) {
+      throw new Error(`${artifact.label} changed while materializing snapshot workspace`);
+    }
+  }
+  return [...artifacts.keys()].sort();
+}
+
+function addCalibrationArtifact(
+  artifacts: Map<string, { absolute: string; sha256: string; label: string }>,
+  root: string,
+  path: unknown,
+  expectedSha256: unknown,
+  label: string,
+): void {
+  if (typeof expectedSha256 !== "string" || !/^[a-f0-9]{64}$/.test(expectedSha256)) {
+    throw new Error(`${label} checksum is malformed`);
+  }
+  const source = requiredArtifactPath(root, path, label);
+  if (!existsSync(source.absolute) || sha256(readFileSync(source.absolute)) !== expectedSha256) {
+    throw new Error(`${label} is missing or does not match decision calibration`);
+  }
+  const prior = artifacts.get(source.relative);
+  if (prior !== undefined && prior.sha256 !== expectedSha256) {
+    throw new Error(`${label} conflicts with another declared calibration artifact`);
+  }
+  artifacts.set(source.relative, { absolute: source.absolute, sha256: expectedSha256, label });
+}
+
+function requiredArtifactPath(root: string, path: unknown, label: string): { absolute: string; relative: string } {
+  if (typeof path !== "string" || path === "" || isAbsolute(path)) {
+    throw new Error(`${label} path is malformed`);
+  }
+  const absolute = resolve(root, path);
+  const projectRelative = relative(root, absolute);
+  if (projectRelative === "" || projectRelative === ".." || projectRelative.startsWith(`..${sep}`) || isAbsolute(projectRelative)) {
+    throw new Error(`${label} path escapes the project root`);
+  }
+  return { absolute, relative: projectRelative };
+}
+
+function readJsonObject(path: string, label: string): Record<string, any> {
+  try {
+    const value = JSON.parse(readFileSync(path, "utf8"));
+    if (value === null || typeof value !== "object" || Array.isArray(value)) throw new Error(`not an object`);
+    return value;
+  } catch (error) {
+    const detail = error instanceof Error ? `: ${error.message}` : "";
+    throw new Error(`${label} is unreadable${detail}`);
   }
 }
 

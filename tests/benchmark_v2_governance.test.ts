@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { describe, expect, test } from "vitest";
 import {
   allocateCanonicalSeedBase,
@@ -13,6 +13,7 @@ import {
   cleanupStaleSnapshotWorkspaces,
   allocateSnapshotWorkspacePath,
   materializedTrackedFiles,
+  materializeDecisionCalibrationArtifacts,
   removeAmbientCompilerSources,
   SNAPSHOT_WORKSPACE_OWNER,
   SNAPSHOT_WORKSPACE_PREFIX,
@@ -107,6 +108,64 @@ describe("Benchmark V2 governance", () => {
     const listed = Buffer.from("present.ts\0deleted.ts\0");
     expect(materializedTrackedFiles(listed, root).toString()).toBe("present.ts\0");
     rmSync(root, { recursive: true, force: true });
+  });
+
+  test("snapshot workspaces materialize only declared calibration archives", () => {
+    const root = mkdtempSync(join(tmpdir(), "v2-calibration-root-"));
+    const workspace = mkdtempSync(join(tmpdir(), "v2-calibration-workspace-"));
+    const writeArtifact = (path: string, contents: string): { path: string; sha256: string } => {
+      const absolute = join(root, path);
+      mkdirSync(dirname(absolute), { recursive: true });
+      writeFileSync(absolute, contents);
+      return { path, sha256: sha256(readFileSync(absolute)) };
+    };
+    const coverageReference = writeArtifact("benchmark/v2/runs/coverage.json.gz", "coverage\n");
+    const probe = writeArtifact("benchmark/v2/runs/probe.json.gz", "probe\n");
+    const quality = writeArtifact("benchmark/v2/runs/quality.json.gz", "quality\n");
+    const impact = writeArtifact("benchmark/v2/runs/impact.json.gz", "impact\n");
+    const coveragePath = "benchmark/v2/studies/decision-coverage.json";
+    const calibrationPath = "benchmark/v2/studies/decision-calibration.json";
+    writeArtifact(coveragePath, JSON.stringify({
+      reference: coverageReference.path,
+      referenceArtifactSha256: coverageReference.sha256,
+    }));
+    writeArtifact(calibrationPath, JSON.stringify({
+      coverageStudy: { path: coveragePath },
+      controls: {
+        identical: {
+          baseArchive: probe.path,
+          baseArchiveSha256: probe.sha256,
+          candidateArchive: probe.path,
+          candidateArchiveSha256: probe.sha256,
+        },
+        knownBroadDegradation: {
+          baseArchive: probe.path,
+          baseArchiveSha256: probe.sha256,
+          candidateArchive: quality.path,
+          candidateArchiveSha256: quality.sha256,
+        },
+        impactContractFailure: {
+          baseArchive: probe.path,
+          baseArchiveSha256: probe.sha256,
+          candidateArchive: impact.path,
+          candidateArchiveSha256: impact.sha256,
+        },
+      },
+    }));
+
+    const copied = materializeDecisionCalibrationArtifacts(workspace, root);
+    expect(copied).toEqual([
+      coverageReference.path,
+      impact.path,
+      probe.path,
+      quality.path,
+    ]);
+    for (const artifact of [coverageReference, probe, quality, impact]) {
+      expect(sha256(readFileSync(join(workspace, artifact.path)))).toBe(artifact.sha256);
+    }
+    expect(existsSync(join(workspace, coveragePath))).toBe(false);
+    rmSync(root, { recursive: true, force: true });
+    rmSync(workspace, { recursive: true, force: true });
   });
 
   test("validates the approved listening review and rejects pending or stale evidence", async () => {

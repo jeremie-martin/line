@@ -174,6 +174,48 @@ family `impact-dive-harvest` declared with members `composed-v1`,
 `template-only`, `composed-mild` (bands 0.6/0.7) to rank on a fresh shared
 six-seed epoch before any certification.
 
+**Family round 1** (fresh shared 6-seed epoch, ~8 min): composed-mild +6.79
+(SE 8.13) observed champion, composed-v1 +6.13 (SE 8.91), template-only
+−3.15 — the pair needs both halves on fresh seeds too. Selected
+`composed-v1` over the observed champion (recorded reason): pairwise delta
+0.66 (SE 10.2) is noise while the composition differs materially —
+representative −0.52 vs −4.91, validity +9/−2 vs +8/−5, and composed-mild
+carries dense-240 −225 and dense_dialogue_impact_contrast −79.
+
+**Certified attempt 1** (`2026-07-15T22-27-56Z-477daa82`, depth 48, 56 min):
+**INCONCLUSIVE at +5.62** — realized SE 2.47 vs envelope 1.30; the 99%
+one-sided bound just missed. Positive at every budget (250k +1.87, 500k
++6.21, 750k +7.15); capability interval excludes zero (+41.90 [+2.73,
++81.08]); validity +34/+14/+6 per budget (pickup_shifted 93→110,
+dense_recovery 65→82 valid of 144); representative −1.52 [−5.22, +2.19].
+Mechanism identity check on the 12,672-compile paired epoch: the ask-bucket
+impact undershoot is UNCHANGED (−0.149→−0.146 at ask 0.3) — the candidate's
+value is capability completion/validity recovery plus air/speed quality on
+recovered rows, not broad impact accuracy. Impact RMS is rigid, now
+confirmed at certified scale. The variance came from capability validity
+flips (drag rows: rising_switch pays speed at all budgets, loose_pocket
+pays air).
+
+**Retired refinement: completion-first forward-eval gating.** All 187
+canonical 250k invalid runs are rideStalled first-completion failures (mean
+FCF 240–280k frames) and forward-eval charges ~30% of frames, so
+pre-completion branch selection was switched to the local proxy: FCF fell
+~30% but valid-row quality fell ~20/row (the proxy trunk is permanently
+worse — forward-eval is load-bearing pre-completion). A depth-1
+pre-completion rollout (exact judge, half charge) was quality-safe on the
+250k panel (+3.2/row, FCF −15%) but the full stage-0 composite scored
++3.38 vs composed-v1's +8.32 with countercurrent −34/believer −26 — retired
+and reverted; the freed frames do not pay for the trunk-quality loss at any
+budget on this suite.
+
+**Certified attempt 2** (`2026-07-15T23-39-46Z-5947d05e`, acknowledged
+retry, fresh epoch, era spend 0.0418/0.05): declared for the unchanged
+composed-v1 source. Rationale: θ̂ ≈ +5.8 across three independent
+estimates vs accept threshold ≈ +6.0 (P(accept) ≈ 45–55%); no refinement
+lever above instrument resolution exists (stage-0 SE ~8 cannot resolve ±2
+tweaks and every nearby constant flips frontier rows); declining stalls the
+campaign with nothing better to spend the slot on.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

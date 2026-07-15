@@ -254,6 +254,37 @@ regimes. Preserve the evidence and move the effort back upstream to a normal
 trajectory source that changes the available collision/transition geometry;
 future admission work should be evaluated only alongside such a source.
 
+## Retired: Smooth Post-Impact Continuation Carrier (2026-07-15)
+
+**Hypothesis.** The ordinary post-contact carrier currently encodes the
+initial collision response and the remaining travel with the same short
+polyline. Preserve the response prefix for the continuous distance travelled
+in one fixed impact window, then realize the remaining equal-length,
+equal-segment tail as a midpoint-chord arc. This changes normal geometry only:
+there is no case identity, duration bucket, rescue path, or ranker override.
+
+**Scope result.** At the V2 jolt, 500k, and one fixed seed, the six-source
+panel was positive and valid: the two Believer rows gained `+2.13` and `+2.17`,
+impact Believer `+11.27`, dense contrast `+23.47`, dense recovery `+35.40`,
+and pickup `+4.47`. That was sufficient only to justify an ordinary stage-0
+screen, not a promotion claim.
+
+**Stage 0.** The comparable 264-compile probe moved the headline
+`483.49 -> 488.92` (`+5.43`), but the composition contradicted the scope
+panel: representative was `-6.39`, legacy regression `-10.58`, and validity
+was `+5/-4`. The apparent capability gain was volatile (`+72.50`): at 250k
+both dense recovery and shifted pickup became wholly invalid. Material normal
+losses included dense impact contrast `-97.70`, fast rising switch `-57.30`,
+split impact relief `-21.67`, wide breaths `-16.91`, and regression amplitude
+mosaic `-16.70`.
+
+**Decision.** Retired without fresh certification and reverted from the
+working compiler. A speed-scaled protected length is a reasonable physical
+quantity, but it does not make the surviving carrier independent of the
+capture geometry. A future source may use an explicit, engine-measured
+transition state, but it must establish prefix/final trajectory agreement and
+cross-regime stability before it changes the normal generator.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

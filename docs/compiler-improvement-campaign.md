@@ -54,12 +54,125 @@ improvement.
   the failure atlas projected roughly `509--511` even if all current invalid
   cells were replaced by valid outcomes. Reaching the campaign target also
   requires better quality on already-valid rows.
+- **Impact is the dominant valid-row quality pool.** Counterfactually rescoring
+  the accepted-baseline canonical archive with the exact headline chain:
+  impact RMS ×0.8 → `+41.2`, ×0.7 → `+61.6` (crosses 550); amplitude ×0.7 is
+  only `+4.4`. The undershoot is universal (92% of contacts, mean −0.15 at ask
+  0.3 rising to −0.38 at 1.0), worst on short (0.3–0.6 s) and low-authored-air
+  gaps, and **flat across budgets** (pooled impact RMS 0.242/0.245/0.243 at
+  250k/500k/750k) — more compute buys validity and air/speed, never impact.
+- **The candidate pools already contain accurate-impact geometry at asks
+  ≥0.4 — and the exact evaluator is right to reject it.** A 500k pool probe
+  (1,998 impact-targeted pool visits, five sources) found a candidate within
+  0.05 of the ask at ~70% of visits (asks 0.4–0.9) sitting at quality rank ~25
+  of 32: measured current-gap quality ×1.475 better than the admitted head,
+  release speed only ~8% lower, but readiness ×0.041 (speedFit ×0.26,
+  impactFeasibility ×0.39). Forcing these candidates in (see the three retired
+  probes below) collapses speed RMS serially and kills dense validity — the
+  scoop-based impact geometry the sampler produces buys current impact by
+  bleeding carried speed, and the search equilibrium correctly refuses it.
+  At ask ≈0.3 (the largest single mass) the pool does not even contain the
+  geometry: every carrier lever is ask-ramp-gated to ≈zero pressure there.
 - Extra support time, local selector changes, wider sampling, and terminal
   continuation repairs are not a general dense solution. They may alter local
   availability, but they do not create a durable earlier trajectory basin.
 - The normal contact-centred sampler remains the shared primary source. The
   next source must improve its transition basis rather than add another
   failure-only rescue lane.
+
+## Retired: Three Impact-Selection/Sizing Probes (2026-07-15)
+
+One diagnosis (above), three falsified interventions, each on the fixed
+V2-jolt/500k two-seed scope panel (10 sources: dense, dense-240, pickup,
+5s low-air, five representative, Believer; `scripts/v0/study_impact_scope_panel.ts`,
+~2 min per arm at 48 cores):
+
+1. **Local-cost impact weight** (`LR_IMPACT_LOCAL_W` 2.0 / 0): 2.0 is
+   byte-identical on 18/20 rows (the quality re-sort and forward-eval fully
+   determine selection at 500k); 0 perturbs bytes but moves impact RMS <0.01.
+   The weight is dead as a lever — matches the earlier certified-inert result.
+2. **Global readiness softening** (`LR_M75_OBJECTIVE_READINESS_POWER=0.5`):
+   impact RMS flat (0.289→0.288), two dense validity kills, mean −39.0/row.
+   The readiness sharpness is load-bearing for survival chains; softening the
+   prior globally frees nothing the forward evaluator then accepts.
+3. **Measured-quality admission reserve** (2 of 8 pool slots by scorer-window
+   current quality; source edit, reverted): impact RMS flat (0.289→0.289), two
+   dense validity kills, mean −43.6/row; adopted reserves exploded speed RMS
+   (e.g. split_signal 0.130→0.258). The exact 2-contact forward evaluation
+   confirms the readiness veto: with the current geometry basis these
+   candidates are genuine poison pills, not selection victims.
+
+Also retired at the same scope: **error-driven carrier sizing v1** (replacing
+the impact-curve ask-ramp with a missing-turn share, unconditionally): mean
+−41.6/row, dense validity kills, ask-0.3 undershoot unmoved. Unconditional
+sizing removed the unscooped shapes from every pool — the ask-ramp had been
+(accidentally) the pool-diversity guard. Any sized-scoop successor must be
+attempt-spanned so attempt 0 stays default.
+
+**Decision.** The impact deficit is a candidate-geometry problem, not a
+selection problem. The open lever is geometry that buys redirection without
+bleeding carried speed — steep ballistic arrivals into the beat (fall energy →
+redirection AND exit speed) rather than deeper supported scoops. The
+arrival-shaping levers are exactly the ones currently suppressed at mature
+budgets (pop-arrival budget-faded off ≥100k; steep-arrival span at 20% of
+attempts, 15° cap).
+
+Two follow-up probes on the same panel also fell:
+
+5. **Widened steep-arrival span** (cap 15→28°, zero-band 0.8→0.5, hard-impact
+   0.7→0.5): mean −24.5/row, impact RMS flat (0.289→0.290), broad air
+   collateral — steep launches were selected (air moved) but landed on
+   ask-ramp-gated near-tangent catches, so the turn fell outside the 6-frame
+   window. Reproduces the V1 "arrival unfade" negative.
+6. **Sized carrier × widened steep-arrival composed**: mean −11.8/row, impact
+   RMS 0.289→0.295. Even jointly, blunt sampler pressure does not create
+   selected dive-scoop pairs.
+
+Across all five probes the one consistent gainer is Believer (impact-led,
+asks 0.6–1.0, +19…+50 per arm): where the carrier already runs at full
+pressure, extra arrival steepness composes and pays; representative rows pay
+collateral instead. `docs/IMPACT_PAIR_PLANNING.md` (2026-06-10) reached the
+identical diagnosis at V1 (funnel: 56% not-generated, 32% ranking-loses-and-
+the-ranker-is-right; "turn without steep arrival does not convert"; the
+closed greedy:2 loop) and its resolution was the AIMING-LAYER dive-scoop pair
+(model-driven joint knob selection, +5.4, default-on) — not sampler
+constants. The V2 baseline selects aim-lane candidates on 68/88 gaps yet
+undershoots universally, so the open question is the aim lane's impact
+coverage and model accuracy, not more pressure.
+
+## Active: Arrival-Harvest Impact Pair (2026-07-15/16)
+
+**Hypothesis.** The dive-scoop pair is representable but invisible end to end
+(V1 funnel; five fresh V2 falsifications above): steep launches lose
+forward-eval because no converting catch exists downstream, and commanded
+catch turn does not convert without arrival steepness. Completing the pair in
+the normal candidate space — (a) a second, arrival-conditioned eligibility
+path for the existing SLAM-HOP template (fires when the measured incoming
+velocity is ≥8° steep into an authored ask ≥0.12, at early attempts so
+branch-1 rollouts see it) and (b) more steep-launch attempts on
+hard-impact specs (zero-band 0.7→0.5) — should let the unchanged evaluator
+and ranker adopt dive-harvest pairs. Boundary: sampler geometry only;
+continuous inputs (arrival angle, ask, speed, budget); no case identity.
+
+**Scope panel** (V2-jolt/500k, two seeds, 10 sources): composed form mean
+`+2.6`/row with no validity losses; dense `+13.8/+19.0` with impact AND air
+AND speed all improved; believer `+33.0/+48.7`; pickup `+31.6`. Probe bug
+caught and fixed: every panel source has max ask ≥0.68, so the operative
+zero band is the HARD_IMPACT one; the first "composition" arm was
+bit-identical to template-only.
+
+**Stage 0 rounds** (reusable screen, ~1 min each):
+
+| Variant | Headline delta | Validity | Notes |
+|---|---:|---:|---|
+| composed-v1 (bands 0.5/0.6, gates 8°/0.12) | +8.32 | +4/−3 | dense_recovery +318 (invalid cell recovered); low-air ladder +28..+43 at 250k; 500k rep +3.1; costs: 250k rep −9.0, 250k dev-music −12 |
+| tightened gates (10°/0.22) | −4.15 | +2/−5 | dense-240 −233: the low-ask arrival firings ARE the dense recovery |
+| template-only (default bands) | +4.65 | +3/−5 | pickup_shifted +228 but dense-240 −263, dense_dialogue −106: the pair needs both halves |
+
+Capability rows flip ±230 between variants at 3 probe seeds — governed
+family `impact-dive-harvest` declared with members `composed-v1`,
+`template-only`, `composed-mild` (bands 0.6/0.7) to rank on a fresh shared
+six-seed epoch before any certification.
 
 ## Active Transition Evidence
 

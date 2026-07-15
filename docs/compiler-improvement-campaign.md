@@ -124,9 +124,43 @@ than an acceptance claim. The independent 120-row qualification sidecar also
 completed before the verdict. Rebaseline label:
 `accept-2026-07-15T15-24-50Z-e4890b0e`.
 
-## Next Production Hypothesis
+## Active: Capture-to-Continuation Orientation Field (2026-07-15)
 
-Build a bounded **collision-conditioned transition source** for fixed normal
+**Hypothesis.** The current aim lane's whole-arc orientation control is useful
+for capture alignment but over-couples the outgoing carrier. Normal sampled
+geometry now carries its existing capture/continuation boundary into the aimed
+candidate. At that boundary, the control rotates the incoming capture field
+and smoothly relaxes it through the existing post-contact segments. No new
+lines, replay, case identity, or duration bucket is introduced; the ordinary
+exact evaluator and ranker still decide every proposal. A carrier without two
+free continuation segments retains its globally continuous orientation field:
+the existing line representation cannot express a smooth transition there
+without a one-segment kink.
+
+**Scope result.** V2 jolt (`-15ms`), 500k, seed `3000000000`, versus the
+accepted baseline:
+
+| Source | Delta | Outcome |
+|---|---:|---|
+| dense | -3.67 | valid, small quality loss |
+| dense-240 | +13.78 | valid, broad axis improvement |
+| pickup | +14.67 | valid, broad axis improvement |
+| 5s low-air | +6.82 | valid, air improvement |
+| Countercurrent | -1.35 | valid, small quality loss |
+| Believer | +25.37 | valid, broad axis improvement |
+
+**Design checks.** A pure post-contact bend lost capture authority and
+regressed dense-240. Re-tessellating the carrier to make that bend smoother
+introduced collision boundaries and invalidated five of six scope rows. Both
+forms were discarded. The retained field changes only existing segment
+directions and has no coherent scope loss or validity regression, so it
+proceeds to Stage 0; the screen, not this six-row panel, determines whether it
+is worth fresh certification.
+
+## Following Direction
+
+If the active field does not survive Stage 0, the next normal-source direction
+is a bounded **collision-conditioned transition source** for fixed normal
 slots. It must retain a normally generated capture as the collision proposal,
 read only the exact response state from that capture, then derive the outgoing
 support from that measured state and the immediately outgoing authored axes.

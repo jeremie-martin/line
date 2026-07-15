@@ -89,8 +89,9 @@ export function evaluateJointArcKnobs(
   axisMeasureEnd: number,
   nextFrame: number,
   options: JointArcProbeOptions = {},
+  postContactStartLine?: number,
 ): JointArcProbeResult {
-  const lines = applyArcKnobs(baseLines, knobs);
+  const lines = applyArcKnobs(baseLines, knobs, postContactStartLine);
   return evaluateJointArcLines(engine, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, options);
 }
 

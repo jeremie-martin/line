@@ -5,6 +5,7 @@ import {
   applyArcKnobs,
   arcProbeDesign,
   arcProbeDesignMinRows,
+  rotateCaptureAndRelaxLines,
   parseArcProbeDesignName,
   pitchQuadraticFeatures,
   arcResponseOutputs,
@@ -87,11 +88,45 @@ describe("arc_model knob transforms", () => {
     expect(scaleArcLines(lines, 0)).toEqual([]);
   });
 
-  test("applyArcKnobs uses rotate-then-pitch order", () => {
+  test("applyArcKnobs retains rotate-then-pitch for callers without a contact boundary", () => {
     const knobs = { pitchDeg: 12, rotateDeg: -2 };
     expect(applyArcKnobs(lines, knobs)).toEqual(
       pitchExitLines(rotateArcLines(lines, knobs.rotateDeg), knobs.pitchDeg),
     );
+  });
+
+  test("capture rotation relaxes through the post-contact continuation", () => {
+    const source = [
+      line(1, 0, 0, 10, 0),
+      line(2, 10, 0, 20, 0),
+      line(3, 20, 0, 30, 0),
+      line(4, 30, 0, 40, 0),
+      line(5, 40, 0, 50, 0),
+      line(6, 50, 0, 60, 0),
+    ];
+    const out = rotateCaptureAndRelaxLines(source, 2, 90);
+    expect(out).toHaveLength(source.length);
+    for (let index = 1; index < out.length; index++) {
+      expect(out[index]!.x1).toBeCloseTo(out[index - 1]!.x2);
+      expect(out[index]!.y1).toBeCloseTo(out[index - 1]!.y2);
+    }
+    expect(out[0]!.x2 - out[0]!.x1).toBeCloseTo(0, 8);
+    expect(out[0]!.y2 - out[0]!.y1).toBeCloseTo(10, 8);
+    expect(out[2]!.x2 - out[2]!.x1).toBeCloseTo(0, 8);
+    expect(out[2]!.y2 - out[2]!.y1).toBeCloseTo(10, 8);
+    const last = out.at(-1)!;
+    expect(last.x2 - last.x1).toBeCloseTo(10, 8);
+    expect(last.y2 - last.y1).toBeCloseTo(0, 8);
+  });
+
+  test("capture rotation retains global continuity without a transition interval", () => {
+    const source = [
+      line(1, 0, 0, 10, 0),
+      line(2, 10, 0, 20, 0),
+      line(3, 20, 0, 30, 0),
+      line(4, 30, 0, 40, 0),
+    ];
+    expect(rotateCaptureAndRelaxLines(source, 2, 90)).toEqual(rotateArcLines(source, 90));
   });
 });
 

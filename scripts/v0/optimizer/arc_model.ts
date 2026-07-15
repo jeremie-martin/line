@@ -19,7 +19,7 @@ import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
 export type ArcKnobs = {
   /** Rotate the last third of the arc about the suffix joint, in degrees. */
   pitchDeg: number;
-  /** Rotate the whole arc about its entry point, in degrees. */
+  /** Rotate the capture field, then relax it through the post-contact carrier, in degrees. */
   rotateDeg: number;
 };
 
@@ -270,6 +270,48 @@ export function rotateArcLines(lines: TrackLine[], deg: number): TrackLine[] {
 }
 
 /**
+ * Rotate the incoming capture field, then relax that orientation through the
+ * post-contact carrier. This retains useful contact-alignment authority while
+ * avoiding an unnecessary permanent launch rotation. The field is defined over
+ * existing segments only, so it cannot add collision surfaces or depend on a
+ * gap-duration category.
+ */
+export function rotateCaptureAndRelaxLines(
+  lines: TrackLine[],
+  postContactStartLine: number,
+  deg: number,
+): TrackLine[] {
+  if (deg === 0) return lines.map((line) => ({ ...line }));
+  if (!Number.isInteger(postContactStartLine) || postContactStartLine < 0 || postContactStartLine >= lines.length) {
+    return rotateArcLines(lines, deg);
+  }
+  const tail = lines.slice(postContactStartLine);
+  if (tail.length < 3) return rotateArcLines(lines, deg);
+
+  const out: TrackLine[] = [];
+  let point = { x: lines[0]!.x1, y: lines[0]!.y1 };
+  for (let index = 0; index < lines.length; index++) {
+    const source = lines[index]!;
+    const dx = source.x2 - source.x1;
+    const dy = source.y2 - source.y1;
+    const length = Math.hypot(dx, dy);
+    if (!(length > 1e-9)) return rotateArcLines(lines, deg);
+    const tailIndex = index - postContactStartLine;
+    const fraction = tailIndex <= 0 ? 0 : tailIndex / (tail.length - 1);
+    const smoothFraction = fraction * fraction * (3 - 2 * fraction);
+    const captureWeight = index < postContactStartLine ? 1 : 1 - smoothFraction;
+    const angle = Math.atan2(dy, dx) + deg * captureWeight * Math.PI / 180;
+    const next = {
+      x: point.x + length * Math.cos(angle),
+      y: point.y + length * Math.sin(angle),
+    };
+    out.push({ ...source, x1: point.x, y1: point.y, x2: next.x, y2: next.y });
+    point = next;
+  }
+  return out;
+}
+
+/**
  * Scale the complete arc about its entry point while preserving every segment
  * direction and the arc's internal shape. This is intentionally distinct from
  * `adjustArcTailLength`: it changes the duration of the complete supported
@@ -287,10 +329,18 @@ export function scaleArcLines(lines: TrackLine[], scale: number): TrackLine[] {
   }));
 }
 
-/** Apply whole-arc rotation first, then exit pitch. This is the knob order used
- * by the production proposer and the joint-model studies. */
-export function applyArcKnobs(lines: TrackLine[], knobs: ArcKnobs): TrackLine[] {
-  const rotated = knobs.rotateDeg === 0 ? lines.map((line) => ({ ...line })) : rotateArcLines(lines, knobs.rotateDeg);
+/** Apply the capture-to-continuation field first, then exit pitch. Historical
+ * callers without a contact boundary retain whole-arc rotation. */
+export function applyArcKnobs(
+  lines: TrackLine[],
+  knobs: ArcKnobs,
+  postContactStartLine?: number,
+): TrackLine[] {
+  const rotated = knobs.rotateDeg === 0
+    ? lines.map((line) => ({ ...line }))
+    : postContactStartLine === undefined
+    ? rotateArcLines(lines, knobs.rotateDeg)
+    : rotateCaptureAndRelaxLines(lines, postContactStartLine, knobs.rotateDeg);
   return knobs.pitchDeg === 0 ? rotated : pitchExitLines(rotated, knobs.pitchDeg);
 }
 

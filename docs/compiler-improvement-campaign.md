@@ -193,6 +193,38 @@ of the final geometry through the response boundary. If the invariant cannot
 hold without materially increasing fixed-budget work, retire this direction
 rather than adding a hidden two-pass search.
 
+## Retired: Scorer-Window Local Ranking (2026-07-15)
+
+**Hypothesis.** A candidate has two measured axis readouts when its local
+lookahead crosses the next contact: `achievedAtEnd`, measured in the completed
+gap's scorer window, and `achieved`, measured in the longer lookahead window.
+The final handoff scorer already reads `achievedAtEnd ?? achieved`; the pool
+ranker and local candidate cost did not. This family tested whether making
+those local decisions use the scorer-window readout would make normal search
+selection agree with the final contract, while leaving the ballistic
+next-contact readiness term intact.
+
+**Family result.** A fresh shared six-seed-per-budget exploration epoch at
+250k and 500k compared two frozen forms: `current-window` changed only the
+quality ranker's current-axis term, while `all-local` also changed the local
+candidate cost. `current-window` was negative (`-2.83`, validity `+4/-8`).
+`all-local` was the stable observed family leader at 2-, 4-, and 6-seed
+prefixes and beat `current-window` by `+12.53` (95% paired interval
+`[-17.57, -7.48]` for current-window minus all-local). Its headline movement
+against the accepted source was `+9.70` (SE `7.37`), but its composition was
+not acceptable for promotion: representative `-3.97`, legacy `-5.91`,
+capability `+83.26`, and validity `+6/-5`. Its largest gains were the two
+frontier capability sources; normal sources such as `dense_dialogue` lost
+`-36.57`.
+
+**Decision.** Retired without selection or certification. This was a useful
+semantic experiment, not evidence that either measurement window alone is a
+general local objective. The lookahead readout contains continuation signal
+that normal search currently relies on, while the scorer-window readout is the
+right measure of completed-contact quality. The next design must represent
+those two roles explicitly rather than globally substituting one window for
+the other.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

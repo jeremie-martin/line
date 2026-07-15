@@ -710,10 +710,7 @@ function makeJointAimedCandidates(
   const nextFrame = nextGap.endFrame;
   const framesBeforeProbes = getPhysicsFrameCount();
   let probeRows = arcProbeDesign(probeDesignName).map((knobs) =>
-    evaluateJointArcKnobs(
-      engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
-      undefined, base.postContactStartLine,
-    )
+    evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
   );
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
   let model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
@@ -753,10 +750,7 @@ function makeJointAimedCandidates(
     const rotationRows = arcProbeDesign("cross5")
       .filter((knobs) => knobs.rotateDeg !== 0)
       .map((knobs) =>
-        evaluateJointArcKnobs(
-          engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
-          undefined, base.postContactStartLine,
-        )
+        evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
       );
     probeRows = [...probeRows, ...rotationRows];
     recordJointProbeRows(rotationRows, gap, axisMeasureEnd, nextFrame);
@@ -809,7 +803,7 @@ function makeJointAimedCandidates(
     return out;
   }
   for (const cand of chosen) {
-    const aimedLines = applyArcKnobs(base.lines, cand.knobs, base.postContactStartLine)
+    const aimedLines = applyArcKnobs(base.lines, cand.knobs)
       .map((l, i) => ({ ...l, id: lineIdStart + i }));
     const fit = tryCandidateLines(
       engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,
@@ -833,7 +827,6 @@ function makeJointAimedCandidates(
       aimTotals.enumReadinessErrSum += Math.abs(predictedReadiness.readiness - achievedReadiness.readiness);
     }
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
-    fit.postContactStartLine = base.postContactStartLine;
     fit.aimed = true;
     out.push(fit);
   }
@@ -926,7 +919,6 @@ function makeAirMatchedCandidate(
   }
   aimTotals.enum_air_emitted++;
   fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
-  fit.postContactStartLine = base.postContactStartLine;
   fit.aimed = true;
   return fit;
 }

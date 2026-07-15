@@ -402,12 +402,7 @@ export type PreTargetSledTrace = number[];
 
 export type ArcPlacementRuntimeMode = ArcPlacementMode;
 
-export type ArcPlacementGeometry = {
-  kind: "lines";
-  lines: TrackLine[];
-  /** First segment whose geometry is owned by the post-contact continuation. */
-  postContactStartLine?: number;
-};
+export type ArcPlacementGeometry = { kind: "lines"; lines: TrackLine[] };
 
 type PlacementRolls = {
   segmentLength: number;
@@ -548,11 +543,13 @@ export function sampleArcPlacementGeometry(
   recordArcPlacementSample(mode);
   lastGeometryWasImpactTemplate = false;
   if (mode === "normal") {
-    const sampled = sampleContactCenteredLines(
-      rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
-      geometryModeOverride ?? supportGeometryMode(),
-    );
-    return { kind: "lines", ...sampled };
+    return {
+      kind: "lines",
+      lines: sampleContactCenteredLines(
+        rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
+        geometryModeOverride ?? supportGeometryMode(),
+      ),
+    };
   }
   return {
     kind: "lines",
@@ -1028,7 +1025,7 @@ function sampleContactCenteredLines(
   allContactFrames: readonly number[],
   attempt: number,
   geometryMode: ReturnType<typeof supportGeometryMode>,
-): { lines: TrackLine[]; postContactStartLine: number } {
+): TrackLine[] {
   const rawRolls: ContactCenteredRolls = {
     segmentLengthRoll: rng(),
     contactAngleRoll: rng(),
@@ -1370,20 +1367,14 @@ function sampleContactCenteredLines(
       impactTemplate.speed,
       impactTemplate.hold.pressure,
     );
-    return {
-      lines: [...preLines, ...scoopLines, ...holdLines],
-      postContactStartLine: preLines.length,
-    };
+    return [...preLines, ...scoopLines, ...holdLines];
   }
 
   const postLines = buildPostContactLines(
     lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
     postLength, postSegments, postCurveBias, contactAngleDeg,
   );
-  return {
-    lines: [...preLines, ...postLines],
-    postContactStartLine: preLines.length,
-  };
+  return [...preLines, ...postLines];
 }
 
 type ImpactTemplateDescriptor = {

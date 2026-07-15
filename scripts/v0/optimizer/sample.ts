@@ -45,9 +45,6 @@ export type Candidate = GapFit & {
   /** Attempt index inside the deterministic per-gap sample prefix. This lets a
    *  larger cached prefix answer a later smaller-K request exactly. */
   sampleAttempt?: number;
-  /** First line owned by the post-contact continuation when normal sampling
-   *  exposed that geometry boundary. Optimizer-only proposal metadata. */
-  postContactStartLine?: number;
 };
 
 /**
@@ -213,10 +210,6 @@ export function observeOneCandidate(
     engine, gap, geometry, lineIdStart, ctx.allContactFrames,
     axisMeasureEnd, gap.targets, true, mode, probe.preTargetSledTrace, evaluationOptions,
   ) as Candidate | null;
-
-  if (fit !== null && geometry.postContactStartLine !== undefined) {
-    fit.postContactStartLine = geometry.postContactStartLine;
-  }
 
   // Record the sled reference used to place this catch, so a later gap with a
   // similar entry state can translate this geometry and reuse it (catch-reuse

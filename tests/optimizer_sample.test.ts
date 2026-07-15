@@ -147,15 +147,11 @@ describe("optimizer/sample.ts — Step 1 atomic sample", () => {
     const ordinary = sampleOneCandidate(engine, gap, makeRng(91), ctx, 1, 3);
     expect(observed.geometry.kind).toBe("lines");
     expect(observed.geometry.lines.length).toBeGreaterThan(0);
-    expect(observed.geometry.postContactStartLine).toBeTypeOf("number");
-    expect(observed.geometry.postContactStartLine).toBeGreaterThan(0);
-    expect(observed.geometry.postContactStartLine).toBeLessThan(observed.geometry.lines.length);
     expect(observed.fit === null).toBe(ordinary === null);
     if (observed.fit !== null && ordinary !== null) {
       expect(observed.fit.cost).toBe(ordinary.cost);
       expect(observed.fit.lines).toEqual(ordinary.lines);
       expect(observed.fit.achieved).toEqual(ordinary.achieved);
-      expect(observed.fit.postContactStartLine).toBe(observed.geometry.postContactStartLine);
     }
   });
 

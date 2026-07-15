@@ -68,9 +68,6 @@ export type SpecContext = {
   durationFrames: number;
   /** Unjittered per-gap targets, when callers need stable authored target patterns. */
   gapAxisTargets?: AxisValues[];
-  /** Literal authored controls for terrain after each contact. Current-contact
-   * capture and scoring remain tied to `gap.targets`. */
-  postTargetsByGap?: Array<AxisValues | undefined>;
   /** Per-compile, per-engine/gap probe cache. The engine objects are immutable
    *  prefix states, so a WeakMap keeps the cache scoped to live search nodes. */
   probeCache?: WeakMap<object, Map<number, CandidateProbe>>;
@@ -162,9 +159,6 @@ export function sampleOneCandidate(
   /** Optional normal-stream support envelope for a compiler-owned specialist
    *  lane. It changes geometry only; hard gates and scoring remain literal. */
   supportGeometryMode?: SupportGeometryMode,
-  /** Optional controls for terrain after the current contact. Capture geometry
-   * and evaluator targets remain `geometryTargets` / `gap.targets`. */
-  postTargets?: AxisValues,
 ): Candidate | null {
   return observeOneCandidate(
     engine,
@@ -176,7 +170,6 @@ export function sampleOneCandidate(
     mode,
     geometryTargets,
     supportGeometryMode,
-    postTargets,
   ).fit;
 }
 
@@ -197,7 +190,6 @@ export function observeOneCandidate(
   mode: CandidateSampleMode = "normal",
   geometryTargets: AxisValues = gap.targets,
   supportGeometryMode?: SupportGeometryMode,
-  postTargets?: AxisValues,
   /** Study-only evaluator override. Omitted in production, preserving the
    * normal candidate path exactly; useful when an attribution study must
    * disable optional post-fit continuation on both compared families. */
@@ -211,7 +203,7 @@ export function observeOneCandidate(
   // the attempt arg is unused and the RNG drives diversity.
   const geometry = sampleArcPlacementGeometry(
     rng, probe.refX, probe.refY, geometryTargets, probe.targetState, attempt, gap, lineIdStart, mode,
-    ctx.allContactFrames, supportGeometryMode, postTargets,
+    ctx.allContactFrames, supportGeometryMode,
   );
 
   const fit = tryCandidateGeometry(

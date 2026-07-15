@@ -64,18 +64,7 @@ export function solveOneGapAttemptRange(
   }
   const out: Candidate[] = [];
   for (let attempt = attemptStart; attempt < attemptEnd; attempt++) {
-    const c = sampleOneCandidate(
-      engine,
-      gap,
-      rng,
-      ctx,
-      lineIdStart,
-      attempt,
-      "normal",
-      gap.targets,
-      undefined,
-      ctx.postTargetsByGap?.[gap.index],
-    );
+    const c = sampleOneCandidate(engine, gap, rng, ctx, lineIdStart, attempt);
     if (c !== null) out.push(c);
   }
   return out;

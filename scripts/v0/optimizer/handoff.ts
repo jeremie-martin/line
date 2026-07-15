@@ -916,62 +916,6 @@ function resolveImpactTargets(
   });
 }
 
-/**
- * Experimental ownership hand-off for terrain after a contact. A missing
- * outgoing axis stays missing; interpolation is meaningful only where both
- * adjacent intervals authored that axis. The default uses the literal outgoing
- * axes and feeds only post-contact geometry, never the current contact's
- * scorer targets.
- */
-function blendOutgoingTargets(
-  current: AxisValues,
-  outgoing: AxisValues | undefined,
-  blend: number,
-  outgoingAxes: ReadonlySet<AxisName>,
-): AxisValues | undefined {
-  if (outgoing === undefined) return undefined;
-  const result: AxisValues = {};
-  for (const axis of AXES) {
-    const previous = current[axis];
-    if (!outgoingAxes.has(axis)) {
-      if (previous !== undefined) result[axis] = previous;
-      continue;
-    }
-    const next = outgoing[axis];
-    if (next === undefined) continue;
-    result[axis] = previous === undefined ? next : previous + (next - previous) * blend;
-  }
-  return result;
-}
-
-function postTargetBlendFromEnv(): number {
-  const raw = readEnv("LR_POST_TARGET_BLEND");
-  // Exact outgoing ownership is the production policy. `0` is retained solely
-  // as a reproducible local ablation while this source is screened.
-  if (raw === undefined || raw === "") return 1;
-  const value = Number(raw);
-  if (!Number.isFinite(value) || value < 0 || value > 1) {
-    throw new Error(`invalid LR_POST_TARGET_BLEND=${raw}; expected a finite value in [0, 1]`);
-  }
-  return value;
-}
-
-function postTargetAxesFromEnv(): ReadonlySet<AxisName> {
-  const raw = readEnv("LR_POST_TARGET_AXES");
-  if (raw === undefined || raw === "") return new Set(AXES);
-  const selected = new Set<AxisName>();
-  for (const name of raw.split(",").map((value) => value.trim()).filter(Boolean)) {
-    if (!(AXES as readonly string[]).includes(name)) {
-      throw new Error(`invalid LR_POST_TARGET_AXES=${raw}; unknown axis ${name}`);
-    }
-    selected.add(name as AxisName);
-  }
-  if (selected.size === 0) {
-    throw new Error("invalid LR_POST_TARGET_AXES: expected one or more comma-separated axes");
-  }
-  return selected;
-}
-
 function compileHandoffInternal(
   userSpec: Spec,
   seed: number,
@@ -1060,22 +1004,7 @@ function compileHandoffInternal(
     // cannot desync.
     resolveImpactTargets(spec, gaps, gapAxisTargets);
 
-    const postTargetBlend = postTargetBlendFromEnv();
-    const postTargetAxes = postTargetAxesFromEnv();
-    const postTargetsByGap = postTargetBlend > 0
-      ? gaps.map((gap, index) => blendOutgoingTargets(
-        gap.targets,
-        gaps[index + 1]?.targets,
-        postTargetBlend,
-        postTargetAxes,
-      ))
-      : undefined;
-    const ctx: SpecContext = {
-      allContactFrames,
-      durationFrames,
-      gapAxisTargets,
-      ...(postTargetsByGap === undefined ? {} : { postTargetsByGap }),
-    };
+    const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     const targetProfile = buildHandoffTargetProfile(gaps, ctx);
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
     const budgetSlack = traversalBudgetSlack(policyBudget, spec);

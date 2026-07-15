@@ -539,7 +539,6 @@ export function sampleArcPlacementGeometry(
   mode: CandidateSampleMode = "normal",
   allContactFrames: readonly number[] = [],
   geometryModeOverride?: SupportGeometryMode,
-  postTargets?: AxisValues,
 ): ArcPlacementGeometry {
   recordArcPlacementSample(mode);
   lastGeometryWasImpactTemplate = false;
@@ -548,7 +547,7 @@ export function sampleArcPlacementGeometry(
       kind: "lines",
       lines: sampleContactCenteredLines(
         rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
-        geometryModeOverride ?? supportGeometryMode(), postTargets,
+        geometryModeOverride ?? supportGeometryMode(),
       ),
     };
   }
@@ -1026,7 +1025,6 @@ function sampleContactCenteredLines(
   allContactFrames: readonly number[],
   attempt: number,
   geometryMode: ReturnType<typeof supportGeometryMode>,
-  postTargets: AxisValues | undefined,
 ): TrackLine[] {
   const rawRolls: ContactCenteredRolls = {
     segmentLengthRoll: rng(),
@@ -1054,32 +1052,9 @@ function sampleContactCenteredLines(
     accelPressure,
     speedCarryPressure,
   } = contactCenteredPressures(targetState, targets, gap, allContactFrames);
-  // The current target owns capture and the scored collision at `gap.endFrame`.
-  // Terrain after that contact owns the outgoing interval, so an explicit
-  // source may provide its literal target bag here. Undefined axes stay
-  // undefined: the normal defaults inside contactCenteredPressures apply rather
-  // than borrowing a prior interval's command.
-  const post = postTargets ?? targets;
-  const postPressures = postTargets === undefined
-    ? {
-      targetSpeedPx,
-      air,
-      nextGapFrames,
-      gapFrames,
-      denseContactPressure,
-      deadlinePressure,
-      absoluteSpeedPressure,
-      brakePressure,
-      accelPressure,
-      speedCarryPressure,
-    }
-    : contactCenteredPressures(targetState, post, gap, allContactFrames);
   const sustainedContactCarryPressure = speedCarryPressure
     * (nextGapFrames === null ? 0 : clamp((15 - nextGapFrames) / 2, 0, 1))
     * (1 - clamp((air - 0.62) / 0.12, 0, 1));
-  const postSustainedContactCarryPressure = postPressures.speedCarryPressure
-    * (postPressures.nextGapFrames === null ? 0 : clamp((15 - postPressures.nextGapFrames) / 2, 0, 1))
-    * (1 - clamp((postPressures.air - 0.62) / 0.12, 0, 1));
   const clearancePressure = Math.max(deadlinePressure, absoluteSpeedPressure * 0.6);
 
   const segmentLength = targets.grain !== undefined
@@ -1127,14 +1102,14 @@ function sampleContactCenteredLines(
     4, 44,
   );
   const rawPostLength = (45 + sampledRolls.postLengthRoll * 135)
-    * (0.95 + 0.25 * (1 - postPressures.air) + 0.20 * postPressures.absoluteSpeedPressure
-      + 0.18 * postSustainedContactCarryPressure + 0.12 * postPressures.brakePressure);
-  const denseScaledPostLength = rawPostLength * (1 - 0.55 * postPressures.denseContactPressure);
-  const arcLenRoom = postPressures.nextGapFrames === null
+    * (0.95 + 0.25 * (1 - air) + 0.20 * absoluteSpeedPressure
+      + 0.18 * sustainedContactCarryPressure + 0.12 * brakePressure);
+  const denseScaledPostLength = rawPostLength * (1 - 0.55 * denseContactPressure);
+  const arcLenRoom = nextGapFrames === null
     ? 1
     : (() => {
       const linearRoom = clamp(
-        (postPressures.nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
+        (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
           (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
         0, 1,
       );
@@ -1147,9 +1122,9 @@ function sampleContactCenteredLines(
     })();
   const spacingPostLengthCap = denseSpacingPostLengthCap(
     targetState.speed,
-    postPressures.nextGapFrames,
-    postPressures.air,
-    postPressures.denseContactPressure,
+    nextGapFrames,
+    air,
+    denseContactPressure,
     arcLenRoom,
   );
   // Both ends fade to the neutral 1.0 as room→0, so dense gaps (the original
@@ -1169,16 +1144,16 @@ function sampleContactCenteredLines(
     -20, 70,
   );
   const nonBrakePostAngleDeg = contactAngleDeg
-    - (3 + 6 * postPressures.air)
-    + 10 * postPressures.accelPressure
-    + 6 * postPressures.speedCarryPressure
-    + 6 * postSustainedContactCarryPressure
+    - (3 + 6 * air)
+    + 10 * accelPressure
+    + 6 * speedCarryPressure
+    + 6 * sustainedContactCarryPressure
     + (sampledRolls.postAngleRoll - 0.5) * 10;
   const brakeRideOutAngleDeg = clamp(
     contactAngleDeg + 8 + (sampledRolls.postAngleRoll - 0.5) * 10, -8, 18,
   );
   const angledPostAngleDeg = clamp(
-    lerp(nonBrakePostAngleDeg, brakeRideOutAngleDeg, postPressures.brakePressure), -8, 65,
+    lerp(nonBrakePostAngleDeg, brakeRideOutAngleDeg, brakePressure), -8, 65,
   );
 
   // Energy-targeted launch: height shapes speed. dh = (vT²−vIn²)/2g is the drop
@@ -1186,12 +1161,12 @@ function sampleContactCenteredLines(
   // far below current height after N frames (clamped so it is still descending at
   // the next contact). Spanned from the local ride-out to the fully energy-shaped.
   let postAngleDeg = angledPostAngleDeg;
-  if (postPressures.nextGapFrames !== null) {
+  if (nextGapFrames !== null) {
     const blend = clamp(ccSpanBlends(attempt).launch, 0, 1);
     const g = LAUNCH_GRAVITY_PX_PER_FRAME2;
-    const N = postPressures.nextGapFrames;
+    const N = nextGapFrames;
     const vIn = Math.max(1, targetState.velocity.x);
-    const vT = Math.max(1, postPressures.targetSpeedPx);
+    const vT = Math.max(1, targetSpeedPx);
     const dhDown = (vT * vT - vIn * vIn) / (2 * g);
     const vyLevel = -0.5 * g * N;
     const vyTarget = dhDown / N + vyLevel;
@@ -1204,9 +1179,9 @@ function sampleContactCenteredLines(
   // so specs that never set elevation stay byte-identical. The authored elevation
   // resolves against the vertical-velocity band the current speed supports, so
   // climb is "as steep as this speed allows" rather than a fixed angle. Up is −y.
-  if (post.elevation !== undefined && postPressures.nextGapFrames !== null) {
-    const elevationLaunchSpeed = Math.max(targetState.speed, postPressures.targetSpeedPx);
-    const vy = elevationToLaunchVy(post.elevation, elevationLaunchSpeed, postPressures.nextGapFrames);
+  if (targets.elevation !== undefined && nextGapFrames !== null) {
+    const elevationLaunchSpeed = Math.max(targetState.speed, targetSpeedPx);
+    const vy = elevationToLaunchVy(targets.elevation, elevationLaunchSpeed, nextGapFrames);
     const vx = Math.sqrt(Math.max(1, elevationLaunchSpeed * elevationLaunchSpeed - vy * vy));
     const elevationLaunchDeg = (Math.atan2(vy, vx) * 180) / Math.PI;
     // Span the climb aggressiveness across the attempt batch rather than forcing
@@ -1225,19 +1200,19 @@ function sampleContactCenteredLines(
   // next beat. Spanned across the attempt batch.
   let postLength = clamp(sampledPostLength, 28, 220);
   let supportPlan: SupportGeometryPlan | null = null;
-  if (postPressures.nextGapFrames !== null && post.air !== undefined) {
+  if (nextGapFrames !== null && targets.air !== undefined) {
     const speed = Math.max(1, targetState.speed);
-    const targetLen = supportReferenceLength({ air: postPressures.air, gapFrames: postPressures.nextGapFrames, speed });
+    const targetLen = supportReferenceLength({ air, gapFrames: nextGapFrames, speed });
     const blend = clamp(ccSpanBlends(attempt).length, 0, 1);
     const highAirPressure = clamp(
-      (postPressures.air - HIGH_AIR_LENGTH_BLEND_PRESSURE_START) / HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN, 0, 1,
+      (air - HIGH_AIR_LENGTH_BLEND_PRESSURE_START) / HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN, 0, 1,
     );
     const blendStrength = 0.6 + HIGH_AIR_LENGTH_BLEND_EXTRA * highAirPressure;
     postLength = clamp(lerp(sampledPostLength, targetLen, blend * blendStrength), 28, 360);
     supportPlan = planSupportGeometry({
       mode: geometryMode,
-      air: postPressures.air,
-      gapFrames: postPressures.nextGapFrames,
+      air,
+      gapFrames: nextGapFrames,
       speed,
       legacyPostLength: postLength,
       shapeReferenceLength: targetLen,
@@ -1256,9 +1231,9 @@ function sampleContactCenteredLines(
   // Deferred when a meaningful amplitude pop is ALSO asked (≥ the amplitude block's
   // own 0.30 pressure threshold): that ask needs the airborne time the shortening
   // would steal (board: shortening regressed skyline_push −11 there, +10 terrace).
-  if (post.elevation !== undefined && post.elevation > 0.5 && postPressures.nextGapFrames !== null
-      && (post.amplitude === undefined || post.amplitude < 0.30)) {
-    const climbP = clamp((post.elevation - 0.5) / 0.5, 0, 1);
+  if (targets.elevation !== undefined && targets.elevation > 0.5 && nextGapFrames !== null
+      && (targets.amplitude === undefined || targets.amplitude < 0.30)) {
+    const climbP = clamp((targets.elevation - 0.5) / 0.5, 0, 1);
     const blend = clamp(ccSpanBlends(attempt).launch, 0, 1);
     postLength = lerp(postLength, 28, blend * climbP * ELEVATION_RIDEOUT_SHORTEN);
   }
@@ -1271,13 +1246,13 @@ function sampleContactCenteredLines(
   // the rider is aloft longer. This is bounded by gap length — big airs need long
   // gaps — but it consolidates the per-gap arc into one clean pop instead of a
   // flutter, and scales up naturally where contacts are sparse.
-  if (post.amplitude !== undefined && postPressures.nextGapFrames !== null) {
-    const amp = clamp(post.amplitude, 0, 1);
+  if (targets.amplitude !== undefined && nextGapFrames !== null) {
+    const amp = clamp(targets.amplitude, 0, 1);
     const amplitudePressure = smoothstep((amp - 0.30) / 0.45);
     const blend = clamp(ccSpanBlends(attempt).launch, 0, 1) * amplitudePressure;
     // Shorten the grounded ride-out so the airborne arc fills more of the gap.
     ({ postAngleDeg, postLength } = blendPostTowardPopArc(
-      postAngleDeg, postLength, postPressures.nextGapFrames, targetState.velocity.x, blend, 1,
+      postAngleDeg, postLength, nextGapFrames, targetState.velocity.x, blend, 1,
     ));
   }
 
@@ -1300,7 +1275,7 @@ function sampleContactCenteredLines(
     attempt,
     mode: geometryMode,
     gapFrames: nextGapFrames,
-    targetAir: post.air ?? null,
+    targetAir: targets.air ?? null,
     targetLength: supportPlan?.targetLength ?? null,
     extensionPressure: supportPlan?.extensionPressure ?? null,
     postLength,

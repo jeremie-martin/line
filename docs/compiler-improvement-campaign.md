@@ -66,7 +66,7 @@ license to tune the source toward that score. A ballistic desired launch angle
 does not specify the exact collision response, so direct state-to-geometry
 mapping is not an adequate normal generator.
 
-## Candidate Under Confirmation: Constrained Handoff Traversal (2026-07-15)
+## Accepted: Constrained Handoff Traversal (2026-07-15)
 
 The committed compiler tree differs from the frozen V2 baseline through the
 continuous support work, constrained-contact traversal, and two current
@@ -95,12 +95,15 @@ Both policies depend on budget and normal search state, rather than case
 identity or a duration bucket. Their full geometry continues through the
 ordinary evaluator and ranker.
 
-**Next action.** Confirm the current source-default tree once, using a fresh
-certified depth-48 epoch. The current era has only `0.0082` of its `0.05`
-false-accept allowance remaining while a confirmation costs `0.0209`; use an
-explicit, ledgered budget override with this evidence as its rationale. Do
-not run a separate confirmation for the ablation rows. If the default does not
-accept, retain the complete evidence and return to a new production hypothesis.
+**Certified outcome.** A fresh depth-48 epoch accepted the default: headline
+`469.11 -> 492.54`, delta `+23.43`, with a 99% one-sided lower bound of
+`+18.52`. It gained 158 valid rows and lost 26. The effect is not limited to
+the capability rows: representative `+7.28` (99% lower `+2.85`) and legacy
+`+4.83` (99% lower `+2.57`); capability was `+119.36`. Development music was
+unresolved (`-1.19`, wide interval) and remains a monitoring signal rather
+than an acceptance claim. The independent 120-row qualification sidecar also
+completed before the verdict. Rebaseline label:
+`accept-2026-07-15T15-24-50Z-e4890b0e`.
 
 ## Next Production Hypothesis
 

@@ -1,12 +1,12 @@
 {
   "schema": "line.benchmark-v2.era-state.v1",
-  "eraId": "era-2026-07-13T00-34-17Z",
-  "eraStartedAt": "2026-07-13T00:34:18.707Z",
-  "eraCause": "suite-rollover",
-  "baselineLabel": "v2.6-detector-limited-contact-2026-07-13",
-  "budgetCap": 0.063,
-  "budgetSpent": 0.0418,
-  "cumulativeExpectedFalseAccepts": 0.1398,
+  "eraId": "era-2026-07-15T16-24-31Z",
+  "eraStartedAt": "2026-07-15T16:24:38.122Z",
+  "eraCause": "rebaseline-accept",
+  "baselineLabel": "accept-2026-07-15T15-24-50Z-e4890b0e",
+  "budgetCap": 0.05,
+  "budgetSpent": 0,
+  "cumulativeExpectedFalseAccepts": 0.1607,
   "attempts": [
     {
       "attemptId": "2026-07-11T21-25-55Z-f99e71f1",
@@ -97,6 +97,16 @@
       "declaredAt": "2026-07-15T15:02:48.216Z",
       "outcome": "aborted",
       "lookCount": 0
+    },
+    {
+      "attemptId": "2026-07-15T15-24-50Z-e4890b0e",
+      "eraId": "era-2026-07-13T00-34-17Z",
+      "candidateFingerprint": "ad8a7b3e0a2ac2fdffa24ec37eef183cb206de4c47bc90f4b3fc8eb13743f37e",
+      "operatingPointId": "improve-t0-d48",
+      "spend": 0.0209,
+      "declaredAt": "2026-07-15T15:24:50.751Z",
+      "outcome": "accept",
+      "lookCount": 5
     }
   ],
   "inFlightAttemptId": null,
@@ -155,6 +165,12 @@
       "canonicalSeedBase": 1987184254,
       "seedCount": 144,
       "seedScheduleFingerprint": "c703f90fd4940170f9754ad3e816c834d20e91013103b5da7e83f604e70f6320"
+    },
+    {
+      "attemptId": "2026-07-15T15-24-50Z-e4890b0e",
+      "canonicalSeedBase": 86207290,
+      "seedCount": 144,
+      "seedScheduleFingerprint": "e62cb825c06d7eb84ea7a796d44ecdbc38091cb49fe07c70c27db6a5701bf34d"
     }
   ]
 }

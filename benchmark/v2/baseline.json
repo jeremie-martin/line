@@ -85,7 +85,7 @@
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
   "candidate_fingerprint": "fec9529eaa1904f1924f1e1d1bc986b9f53cedb44b1d74e43d763efaf52eacd7",
   "decision_inference_fingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
-  "decision_protocol_fingerprint": "50de3acdb16905fa1df00cfc05cc7501af55505ca0f480a7f1e2dae7776402bd",
+  "decision_protocol_fingerprint": "4c054de968e5644c42c1a073365222791837e2f8a968ae064e6dd3ecbab7b491",
   "decision_calibration_fingerprint": "49f0a249ed152b0e51cfc94607284dbac48baf67c15296a2aa1818aa1242ca32",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",

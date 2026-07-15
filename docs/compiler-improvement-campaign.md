@@ -85,6 +85,33 @@ license to tune the source toward that score. A ballistic desired launch angle
 does not specify the exact collision response, so direct state-to-geometry
 mapping is not an adequate normal generator.
 
+## Retired: Capture-to-Continuation Orientation Field (2026-07-15)
+
+**Hypothesis.** Replace the aim lane's permanent whole-arc orientation change
+with a capture-oriented field that relaxes through the normal sampled
+post-contact carrier. It used the sampler's existing geometry boundary, added
+no lines, replay, case identity, or duration category, and left exact
+evaluation and ranking unchanged.
+
+**Scope result.** At V2 jolt (`-15ms`), 500k, seed `3000000000`, it improved
+dense-240 `+13.78`, pickup `+14.67`, 5s low-air `+6.82`, and Believer `+25.37`;
+dense `-3.67` and Countercurrent `-1.35` remained valid but lost quality. Two
+alternate formulations were also rejected locally: a pure post-contact bend
+lost capture authority, and resampling the carrier introduced collision
+boundaries and invalidated five of six scope rows.
+
+**Stage 0.** The comparable 264-compile probe completed against the accepted
+baseline: headline `483.49 -> 486.81` (`+3.32`), validity `253 -> 252`.
+Representative was `+3.42`, capability `+68.99`, legacy `-7.16`, and
+development music `-174.24`. The adverse case movement was concentrated and
+material: `believer_56_6s -266.14` (valid `6 -> 4/6`) and
+`frontier_dense_recovery_240ms_figures -232.45` (valid `3 -> 2/6`).
+
+**Decision.** Retired without fresh certification. A continuous orientation
+field is not enough to decouple capture alignment from outgoing quality at the
+current two-knob/probe budget. Keep the result as a constraint on a future
+transition source, not as a default or a capability-only repair.
+
 ## Accepted: Constrained Handoff Traversal (2026-07-15)
 
 The committed compiler tree differs from the frozen V2 baseline through the

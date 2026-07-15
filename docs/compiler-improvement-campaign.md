@@ -339,6 +339,43 @@ at short horizons is an ordinary absence, not a duration-specific fallback;
 dense will require a later joint-capture formulation rather than forcing a
 post-response rail into a nine-frame interval.
 
+## Retired: Observed Tail-Surgery Transition Source (2026-07-15)
+
+**Hypothesis.** A normal candidate can supply an exact current-contact capture,
+after which its unobserved carrier tail can be replaced by a support segment
+derived from the measured response state and the literal outgoing air/speed
+axes. This is a continuous physical construction: no case identity, duration
+class, or ranker override. Every composite was required to replay the original
+position, velocity, airborne state, and owned capture through the response
+boundary before ordinary candidate admission and charged forward ranking.
+
+**Initial falsifier.** The append-only version produced 96 current-contact
+fits on the 5-second low-air source at 500k/seed 0, but the current-gap
+air-coverage gate discarded every one. That was an ownership error, not a
+negative physics result: the proposal affects the outgoing interval, so it
+must be judged by the existing forward evaluator rather than a current-gap
+filter.
+
+**Tail-surgery result.** The corrected form replaced the normal carrier tail
+strictly ahead of the measured state and used two fixed response leads with a
+small symmetric gravity-grade stencil. On the 5-second ladder, it generated
+32 exact-admitted candidates (47 charged rankings) but none beat the normal
+pool; the closest score delta was positive `9.6e-9`. A fixed 500k/seed-0
+scope panel was unchanged on low-air endurance, dense recovery, pickup
+progression, and Believer, while `dense_dialogue` improved `408.34 -> 413.12`
+(+4.79, valid) and `open_hook` was unchanged. The dense result shows that the
+state-boundary surgery is mechanically possible, but five unchanged sources
+and no low-air or capability movement do not establish a broad compiler
+source.
+
+**Decision.** Retired before Stage 0 and removed from the compiler tree. Keep
+the two constraints: (1) outgoing geometry cannot be screened by a
+current-gap-only gate, and (2) an exact response-state continuation can alter
+a normal dense trajectory without a target-specific rescue. A future source
+must formulate capture and continuation jointly enough to create competitive
+geometry on dense and low-air rows, rather than merely swapping the unused
+tail of one normal candidate.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -225,6 +225,35 @@ right measure of completed-contact quality. The next design must represent
 those two roles explicitly rather than globally substituting one window for
 the other.
 
+## Retired: Dual-Window Pareto Admission (2026-07-15)
+
+**Hypothesis.** The scorer-window study showed existing candidate pools often
+contain lower-impact alternatives that are not admitted to the eight-candidate
+handoff pool. A priority assay over 3,641 exact-prefix pools found 1,329 such
+alternatives at a no-more-than-`2.5%` readiness trade-off; only `80.5%` were
+admitted. Rather than weight the two measurement windows or add candidates,
+this family kept the pool size fixed and ordered valid candidates by Pareto
+layers over two scale-free objectives: scorer-window current quality times
+ballistic readiness, and lookahead continuation quality times the same
+readiness. The unchanged exact forward evaluator then chose branches.
+
+**Family result.** A fresh shared six-seed-per-budget epoch at 250k and 500k
+compared two deterministic within-layer orders. `pareto-extremes` put the best
+rank in either objective first; `pareto-balanced` preferred the best worst
+rank. The observed final leader was `pareto-balanced` at `+1.60` (SE `4.52`,
+90% lower `-6.63`), with representative `+0.63`, capability `+7.15`, legacy
+`+3.55`, and development music `-5.45`; validity was `+7/-5`. The leader was
+not stable: `pareto-extremes` led at two seeds, while `pareto-balanced` led at
+four and six. Their pairwise difference was unresolved (`-1.97` for extremes
+minus balanced, 95% interval `[-9.05, +5.11]`).
+
+**Decision.** Retired without selection or certification. The assay was real:
+the normal pool has missed local alternatives, but fixed-width rank
+permutations alone neither create a stable broad gain nor protect all normal
+regimes. Preserve the evidence and move the effort back upstream to a normal
+trajectory source that changes the available collision/transition geometry;
+future admission work should be evaluated only alongside such a source.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

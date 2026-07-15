@@ -61,6 +61,24 @@ improvement.
   next source must improve its transition basis rather than add another
   failure-only rescue lane.
 
+## Active Transition Evidence
+
+The read-only [observed transition packet assay](observed-transition-packet-assay.md)
+now binds its observations to the final selected normal path rather than a deep
+search visit. At WASM/500k it found exact finite capture boundaries in ordinary,
+normal/shifted pickup, and every 3--7 second low-air ladder member: two to four
+of the selected current fit's lines reproduce the final engine state through
+the measured response boundary. Independent ordinary and 5-second
+output-neutrality controls were bit-identical with and without observation.
+
+Dense and dense-240 are explicitly unavailable: their final selected paths end
+before the declared contact. This is a useful separation. A later
+capture-preserving release experiment may use only the observed non-dense
+boundary; it must not borrow a different dense visit or grow a dense-specific
+fallback. The next mechanism has to compose capture and release jointly for
+dense, while testing whether a sealed observed response can improve outgoing
+geometry on the covered continuous spectrum.
+
 ## Retired: Fixed Global Normal-Pool Breadth (2026-07-15)
 
 **Hypothesis.** At 500k, the normal solver samples 29 candidates per gap.
@@ -201,7 +219,7 @@ than an acceptance claim. The independent 120-row qualification sidecar also
 completed before the verdict. Rebaseline label:
 `accept-2026-07-15T15-24-50Z-e4890b0e`.
 
-## Next Production Hypothesis
+## Historical: Prior Transition Hypothesis
 
 Build a bounded **collision-conditioned transition source** for fixed normal
 slots. It must retain a normally generated capture as the collision proposal,
@@ -350,7 +368,7 @@ fixed rail stencil supplies neither a whole-gap speed law nor a candidate
 selection rule. Keep it as a measured component constraint, not an additive
 default.
 
-## Next Production Hypothesis
+## Historical: Prior Capture-Preserving Transition Hypothesis
 
 Build a bounded **capture-preserving observed-transition source**. It starts
 only from a normal candidate that has already passed exact current-contact

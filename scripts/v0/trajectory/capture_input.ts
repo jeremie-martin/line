@@ -11,7 +11,7 @@ import { applyJolt } from "../../produce/seed.ts";
 import { effectiveAxes, sampleGapTargets, sliceTimeline } from "../core/substrate.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "../types.ts";
 
-export type TrajectoryCaptureCategory = "dense" | "ordinary" | "low_air";
+export type TrajectoryCaptureCategory = "dense" | "ordinary" | "pickup" | "low_air";
 export type TrajectoryCaptureCohort = "calibration" | "validation" | "quarantined";
 
 export type TrajectoryCaptureCase = {

@@ -101,7 +101,10 @@ describe("eval argument contract", () => {
   test("requires values for value-bearing flags and keeps abort separate", () => {
     expect(() => assertEvalArguments(["--out"])).toThrow(/requires --out=VALUE/);
     expect(() => assertEvalArguments(["--abort-in-flight", "--to-verdict", "--reason=test"]))
-      .toThrow(/cannot be combined/);
+      .toThrow(/mutually exclusive/);
+    expect(() => assertEvalArguments([
+      "--correct-aborted-spend", "--attempt=attempt-1", "--reason=test", "--operator=test",
+    ])).not.toThrow();
   });
 });
 
@@ -335,6 +338,19 @@ describe("futility bound", () => {
     expect(state.inFlightAttemptId).toBeNull();
     expect(state.budgetSpent).toBe(0.0196);
     expect(state.attempts.at(-1)?.outcome).toBe("aborted");
+
+    await expect(runEvalCommand([
+      "--correct-aborted-spend",
+      "--attempt=attempt-abort",
+      "--reason=no formal look occurred before the infrastructure abort",
+      "--operator=test-auditor",
+      `--attempts-ledger=${paths.ledger}`,
+      `--era-state=${paths.projection}`,
+    ])).resolves.toBe(0);
+    const corrected = readEraState(paths);
+    expect(corrected.budgetSpent).toBe(0);
+    expect(corrected.attempts.at(-1)).toMatchObject({ outcome: "aborted", spend: 0, lookCount: 0 });
+    expect(corrected.seedLedger).toHaveLength(1);
   });
 
   test("worker-failure JSON is actionable for automation", () => {

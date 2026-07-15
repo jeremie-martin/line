@@ -148,10 +148,11 @@ export async function runEvalCommand(argv = process.argv.slice(2)): Promise<numb
   assertEvalArguments(argv);
   const hasFlag = (name: string): boolean => argv.includes(`--${name}`);
   if (hasFlag("abort-in-flight")) return abortInFlightAttempt(argv);
+  if (hasFlag("correct-aborted-spend")) return correctAbortedSpend(argv);
   return hasFlag("to-verdict") ? runToVerdict(argv) : runStage0(argv);
 }
 
-type EvalInvocation = "stage 0" | "confirmation" | "abort";
+type EvalInvocation = "stage 0" | "confirmation" | "abort" | "accounting correction";
 
 /**
  * Eval arguments are deliberately mode-scoped. A misspelled or misplaced
@@ -161,13 +162,23 @@ type EvalInvocation = "stage 0" | "confirmation" | "abort";
 export function assertEvalArguments(argv: string[]): void {
   const abort = argv.includes("--abort-in-flight");
   const verdict = argv.includes("--to-verdict");
-  if (abort && verdict) throw new Error(`--abort-in-flight cannot be combined with --to-verdict`);
+  const correction = argv.includes("--correct-aborted-spend");
+  if ([abort, verdict, correction].filter(Boolean).length > 1) {
+    throw new Error(`--abort-in-flight, --to-verdict, and --correct-aborted-spend are mutually exclusive`);
+  }
 
-  const invocation: EvalInvocation = abort ? "abort" : verdict ? "confirmation" : "stage 0";
+  const invocation: EvalInvocation = abort
+    ? "abort"
+    : correction
+    ? "accounting correction"
+    : verdict
+    ? "confirmation"
+    : "stage 0";
   const booleans = new Set<string>(
     invocation === "stage 0" ? ["resume", "json"]
       : invocation === "confirmation" ? ["to-verdict", "resume", "json", "acknowledge-retry"]
-        : ["abort-in-flight", "json"],
+        : invocation === "abort" ? ["abort-in-flight", "json"]
+          : ["correct-aborted-spend", "json"],
   );
   const values = new Set<string>(
     invocation === "stage 0"
@@ -177,7 +188,9 @@ export function assertEvalArguments(argv: string[]): void {
           "baseline", "declaration-dir", "out-dir", "archive-dir", "attempts-ledger", "era-state", "jobs",
           "mode", "margin", "depth", "override-era-budget", "reason", "operator",
         ]
-        : ["reason", "attempts-ledger", "era-state"],
+        : invocation === "abort"
+        ? ["reason", "attempts-ledger", "era-state"]
+        : ["attempt", "reason", "operator", "attempts-ledger", "era-state"],
   );
   const accepted = [...booleans, ...[...values].map((name) => `${name}=VALUE`)].join(", ");
 
@@ -222,6 +235,62 @@ function abortInFlightAttempt(argv: string[]): number {
   if (argv.includes("--json")) console.log(JSON.stringify(payload, null, 2));
   else console.log(`aborted eval attempt ${attemptId}: ${reason}; declared spend stays charged`);
   return EXIT.verdict.invalid;
+}
+
+/**
+ * The ledger permits one exceptional refund: an aborted attempt with no formal
+ * look can be corrected to zero spend, while its declared seed epoch remains
+ * permanently reserved. This command is deliberately unable to alter any
+ * other spend or settled verdict.
+ */
+export function correctAbortedSpend(argv: string[]): number {
+  const argument = argumentIn(argv);
+  const attemptId = argument("attempt")?.trim();
+  const reason = argument("reason")?.trim();
+  const operator = argument("operator")?.trim();
+  if (attemptId === undefined || attemptId === "") {
+    throw new Error(`--correct-aborted-spend requires --attempt=...`);
+  }
+  if (reason === undefined || reason === "" || operator === undefined || operator === "") {
+    throw new Error(`--correct-aborted-spend requires --reason=... and --operator=...`);
+  }
+  const ledgerPaths = attemptPaths(argument);
+  const era = readEraState(ledgerPaths);
+  const attempt = era.attempts.find((entry) => entry.attemptId === attemptId);
+  if (attempt === undefined) throw new Error(`unknown eval attempt ${attemptId}`);
+  if (attempt.outcome !== "aborted" || attempt.lookCount !== 0 || attempt.spend <= 0) {
+    throw new Error(
+      `only an aborted attempt with positive spend and zero formal looks can be corrected to zero`,
+    );
+  }
+  const corrected = appendAttemptEvent({
+    type: "accounting-correction",
+    reason,
+    operator,
+    adjustments: [{ attemptId, previousSpend: attempt.spend, correctedSpend: 0 }],
+  }, ledgerPaths);
+  const payload = {
+    schema: "line.benchmark-v2.eval-accounting-correction.v1",
+    status: "corrected",
+    attemptId,
+    previousSpend: attempt.spend,
+    correctedSpend: 0,
+    seedEpochRemainsReserved: true,
+    era: {
+      budgetSpent: corrected.budgetSpent,
+      budgetCap: corrected.budgetCap,
+      cumulativeExpectedFalseAccepts: corrected.cumulativeExpectedFalseAccepts,
+    },
+    nextCommand: "npm run benchmark -- status",
+  };
+  if (argv.includes("--json")) console.log(JSON.stringify(payload, null, 2));
+  else {
+    console.log(
+      `corrected aborted attempt ${attemptId}: spend ${attempt.spend} -> 0; ` +
+      `its seed epoch remains reserved`,
+    );
+  }
+  return EXIT.stage0.completed;
 }
 
 export function evalWorkerFailurePayload(input: {

@@ -70,6 +70,13 @@ async function main(rawArgs: string[]): Promise<void> {
     // Validate eval mode-specific flags before deterministic preparation. This
     // keeps a misspelled output destination from doing any paid work.
     if (command === "probe" || command === "eval") assertEvalArguments(commandArgs);
+    const ledgerOnlyEval = command === "eval" && (
+      commandArgs.includes("--abort-in-flight") || commandArgs.includes("--correct-aborted-spend")
+    );
+    if (ledgerOnlyEval) {
+      process.exitCode = await monitored("eval", args, () => runEvalCommand(commandArgs));
+      return;
+    }
     const prepared = await prepareBenchmarkV2();
     console.log(
       `Prepared ${prepared.developmentCases} development + ${prepared.qualificationCases} qualification cases; ` +
@@ -237,6 +244,8 @@ function printHelp(): void {
     `                                   Declared, certified confirmation: fresh paired epoch, futility looks, verdict\n` +
     `  npm run benchmark -- eval --abort-in-flight --reason=...\n` +
     `                                   Settle an infrastructure-broken attempt; its declared spend remains charged\n` +
+    `  npm run benchmark -- eval --correct-aborted-spend --attempt=ID --reason=... --operator=...\n` +
+    `                                   Return spend only for an aborted zero-look attempt; its seed epoch remains reserved\n` +
     `  npm run benchmark -- rebaseline --label=LABEL   After an accepted eval attempt: light rebaseline (era record + fresh probe reference)\n` +
     `  npm run benchmark -- transition --reason=...    Ledger an operator transition (no budget reset)\n` +
     `  npm run benchmark -- baseline    Bootstrap or suite-rollover full freeze (within a suite, use rebaseline)\n` +

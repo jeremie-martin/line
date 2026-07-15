@@ -29,6 +29,7 @@ npm run benchmark -- family run MECHANISM
 npm run benchmark -- family select MECHANISM --variant=MEMBER
 npm run benchmark -- eval --to-verdict
 npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
+npm run benchmark -- eval --correct-aborted-spend --attempt=ID --reason=TEXT --operator=NAME
 npm run benchmark -- rebaseline --label=NAME       # after accept only
 npm run benchmark -- baseline --label=NAME         # bootstrap/suite rollover only
 npm run benchmark -- explain ARCHIVE.json

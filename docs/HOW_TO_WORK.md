@@ -45,6 +45,10 @@ npm run benchmark -- family select MECHANISM --variant=MEMBER
 npm run benchmark -- eval --to-verdict                          # improve, θ=0
 npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
 
+# Exception only: correct a strictly infrastructure-only abort before any
+# formal look. This returns its spend but never releases the seed epoch.
+npm run benchmark -- eval --correct-aborted-spend --attempt=ID --reason=... --operator=...
+
 # After an accept: light rebaseline (the attempt's archives become the era
 # record; one fresh probe becomes the screening reference; minutes).
 npm run benchmark -- rebaseline --label=NAME
@@ -120,7 +124,8 @@ simplify m=5 at depth 48. Anything else is refused.
 Each attempt with at least one formal look charges the largest certified false-accept upper bound across
 the menu and independent holdout null/stress cells to the **era α-budget**
 (cap 0.05). Run `status` for current capacity before declaration. A strictly
-infrastructure-only abort before any formal look may be corrected to zero spend;
+infrastructure-only abort before any formal look may be corrected to zero spend
+with `eval --correct-aborted-spend --attempt=... --reason=... --operator=...`;
 the seed epoch remains permanently reserved. Once a look exists, refunds are
 refused. The budget
 resets only on an accepted rebaseline or a suite rollover. Exhaustion blocks

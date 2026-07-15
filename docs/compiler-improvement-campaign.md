@@ -216,6 +216,27 @@ lever above instrument resolution exists (stage-0 SE ~8 cannot resolve ±2
 tweaks and every nearby constant flips frontier rows); declining stalls the
 campaign with nothing better to spend the slot on.
 
+**Outcome: FUTILITY STOP at k=2** (delta −16.61, SE 1.21, UB95 −13.47).
+Identity audit: both attempts carry byte-identical candidate/baseline
+fingerprints — only the epoch differs. The k=2 wave shows the mechanism's
+knife edge landing badly: frontier validity flips 4-vs-1 against
+(pickup_shifted 500k, dense-240 500k, dense_recovery 500k+750k lost;
+pickup 250k gained) at ±380 points per run, plus a negative ordinary-row
+scatter. Together the two attempts measure a candidate whose per-block
+delta variance (σ_b ≈ 17 vs the menu's ~9 envelope) structurally exceeds
+the certified operating point: **a mechanism priced by 25–40% Bernoulli
+recovery rates cannot pass depth-48 certification regardless of its mean.**
+
+**Decision.** Retain composed-v1 in the development tree (its capability
+recovery is real but unreliable; the frozen baseline of record is
+unchanged). The era is exhausted for declarations (0.0418 + 0.0209 >
+0.05); the next certification will require a ledgered
+`--override-era-budget` and must wait for a materially stronger, LOWER
+VARIANCE tree. The next mechanism question is therefore reliability, not
+breadth: why do recovered capability rows still fail 25–40% of seeds, and
+what continuous mechanism makes the dive-harvest recovery deterministic
+rather than a per-seed lottery?
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

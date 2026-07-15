@@ -125,11 +125,11 @@
       "operatingPointId": "improve-t0-d48",
       "spend": 0.0209,
       "declaredAt": "2026-07-15T23:39:46.570Z",
-      "outcome": null,
-      "lookCount": 0
+      "outcome": "futility-stop",
+      "lookCount": 1
     }
   ],
-  "inFlightAttemptId": "2026-07-15T23-39-46Z-5947d05e",
+  "inFlightAttemptId": null,
   "transitionPending": false,
   "seedLedger": [
     {

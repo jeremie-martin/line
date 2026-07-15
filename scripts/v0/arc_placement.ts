@@ -10,7 +10,7 @@
 
 import { appendSledPointPositionsRangeMetered, getRiderMetered } from "../lib/detector.ts";
 import { registerCompileReset } from "./core/compile_lifecycle.ts";
-import { arcToLines, makeSolidLine } from "./arc.ts";
+import { makeSolidLine } from "./arc.ts";
 import {
   planSupportGeometry,
   supportReferenceLength,
@@ -23,7 +23,6 @@ import {
   CANDIDATE_SAMPLE_MODES,
   FPS,
   IMPACT,
-  IMPACT_WINDOW,
   type ArcPlacementCounter,
   type ArcPlacementMode,
   type AxisValues,
@@ -1371,12 +1370,9 @@ function sampleContactCenteredLines(
     return [...preLines, ...scoopLines, ...holdLines];
   }
 
-  const postLines = smoothContinuationCarrier(
-    buildPostContactLines(
-      lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
-      postLength, postSegments, postCurveBias, contactAngleDeg,
-    ),
-    targetState.speed,
+  const postLines = buildPostContactLines(
+    lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
+    postLength, postSegments, postCurveBias, contactAngleDeg,
   );
   return [...preLines, ...postLines];
 }
@@ -2107,44 +2103,6 @@ function buildPostContactLines(
     y = y2;
   }
   return lines;
-}
-
-/**
- * Preserve the exact collision-response prefix, then realize the remaining
- * support as one smooth arc-length carrier. The protected prefix length is the
- * distance a rider at the measured entry speed covers during the scorer's
- * fixed impact window, so it varies continuously with state and does not know
- * the authored gap duration. The tail keeps its source line count and length;
- * only its tangent realization changes.
- */
-export function smoothContinuationCarrier(lines: TrackLine[], entrySpeed: number): TrackLine[] {
-  if (lines.length < 4) return lines;
-  const protectedLength = Math.max(
-    Math.hypot(lines[0]!.x2 - lines[0]!.x1, lines[0]!.y2 - lines[0]!.y1),
-    Math.max(1, entrySpeed) * IMPACT_WINDOW,
-  );
-  let captureCount = 0;
-  let traversed = 0;
-  while (captureCount < lines.length - 2 && traversed < protectedLength) {
-    const line = lines[captureCount]!;
-    traversed += Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
-    captureCount++;
-  }
-  if (captureCount <= 0 || captureCount >= lines.length - 1) return lines;
-  const capture = lines.slice(0, captureCount);
-  const tail = lines.slice(captureCount);
-  const tailLength = tail.reduce((sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1), 0);
-  if (!(tailLength > 1e-9)) return lines;
-  const heading = (line: TrackLine): number => Math.atan2(line.y2 - line.y1, line.x2 - line.x1) * 180 / Math.PI;
-  const rebuilt = arcToLines({
-    anchor: { x: capture.at(-1)!.x2, y: capture.at(-1)!.y2 },
-    startAngleDeg: heading(capture.at(-1)!),
-    endAngleDeg: heading(tail.at(-1)!),
-    length: tailLength,
-    segments: tail.length,
-    curveBias: 0,
-  }, tail[0]!.id);
-  return [...capture, ...rebuilt];
 }
 
 export function hasPreTargetSledProximity(

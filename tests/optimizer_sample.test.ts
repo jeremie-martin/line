@@ -108,6 +108,39 @@ describe("optimizer/sample.ts — Step 1 atomic sample", () => {
     expect(outcomes.size).toBeGreaterThan(1);
   });
 
+  test("outgoing controls alter only post-contact geometry", () => {
+    const gap: Gap = {
+      index: 0,
+      startFrame: 0,
+      endFrame: 32,
+      endsWithContact: true,
+      targets: { air: 0.15, speed: 0.25 },
+    };
+    const targetState = {
+      sledX: 100,
+      sledY: 50,
+      velocity: { x: 8, y: 1 },
+      speed: Math.hypot(8, 1),
+      angleDeg: 7,
+    };
+    const current = sampleArcPlacementGeometry(
+      makeRng(13), 100, 50, gap.targets, targetState, 8, gap, 1, "normal", [32, 112],
+    );
+    const outgoing = sampleArcPlacementGeometry(
+      makeRng(13), 100, 50, gap.targets, targetState, 8, gap, 1, "normal", [32, 112],
+      undefined,
+      { air: 0.85, speed: 0.9 },
+    );
+    expect(outgoing).not.toEqual(current);
+    expect(current.kind).toBe("lines");
+    expect(outgoing.kind).toBe("lines");
+    if (current.kind !== "lines" || outgoing.kind !== "lines") return;
+    // The first segment is the current-contact catch. It must not inherit the
+    // next interval's target bag; only terrain after that catch may change.
+    expect(outgoing.lines[0]).toEqual(current.lines[0]);
+    expect(outgoing.lines.slice(1)).not.toEqual(current.lines.slice(1));
+  });
+
   test("does not depend on the order of preceding RNG draws on a separate RNG", async () => {
     const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
     // Build a fresh RNG, draw some samples from a SECOND independent

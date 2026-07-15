@@ -376,6 +376,31 @@ must formulate capture and continuation jointly enough to create competitive
 geometry on dense and low-air rows, rather than merely swapping the unused
 tail of one normal candidate.
 
+## Candidate: Outgoing-Target Ownership For Post-Contact Terrain (2026-07-15)
+
+**Hypothesis.** A gap ends at the contact that it captures, but the terrain
+created *after* that contact governs the next interval. The normal sampler had
+used the current (already-ended) interval's sampled target bag for both jobs.
+Use the literal target bag of the outgoing gap only for post-contact support
+length, launch angle, speed carry, air, elevation, and amplitude. Keep the
+pre-contact catch, collision curvature, impact controls, exact evaluator, and
+ranker on the current target bag. This is an ownership correction across every
+adjacent pair, not a duration gate, a new candidate lane, or a fallback.
+
+**Local scope.** At the exact V2 transform (`-15 ms`), seed 24, and 500k,
+the full literal hand-off remained valid on all six fixed cells. It improved
+pickup `+19.35`, Believer `+36.26`, dense dialogue `+2.51`, and open hook
+`+12.59`; low-air endurance `-11.31` and dense recovery `-13.89` declined.
+Intermediate blends and single-axis hand-offs were non-monotone, including
+sign reversals on the same cells. That rejects a hand-tuned blend as a sound
+default; it does not refute the discrete ownership formulation.
+
+**Next evidence.** The candidate is source-default and has a focused boundary
+test proving its outgoing targets leave the current-contact catch unchanged.
+Run the ordinary 44-case Stage 0 before any confirmation. Interpret the full
+stratum/case composition and validity deltas, not the six-cell scope, as the
+decision to retain, revise, or retire it.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

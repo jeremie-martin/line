@@ -478,6 +478,19 @@ transition source that changes the collision-state basis — staged
 capture/continuation with replay-proven boundaries — not sampler pressure
 in any form. That program's next declared falsifiable steps stand.
 
+## Retired: Pre-Completion Low-Slack Sample Lean (2026-07-16)
+
+The residual 250k knee (dense240 ~58% invalid, dense ~46%, median valid
+first completion ≈253-255k of the soft 250k budget) suggested a second
+slack-conditioned economy: nCand ×0.75 while no completion exists under low
+slack. 24-seed A/B: dense 13→4 valid (3/12), dense240 10→8 (5/7), pickup
+and ordinaries byte-identical. Decisively harmful — with rollouts already
+depth-1 there, dense completion is bounded by pool BREADTH through the
+figure traversal (the samples must contain the touch-and-go catches), not
+by per-visit charge. Reverted. The remaining 250k knee, like the impact
+pool, now points at the trajectory basis itself: cheaper traversal of dense
+figures needs better transition geometry, not thinner search.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

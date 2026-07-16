@@ -381,6 +381,23 @@ zero on the negative side — small but real; the leading regressions
 the first candidates for recovery, likely tied to the lane firing inside
 ordinary short-figure passages where the touch-and-go trade is not free.
 
+**Post-accept band ablation (2026-07-16, 24 seeds × 6 sources at 250k, both
+arms with the rung lane):** default steep-launch bands vs the accepted
+widened ones. Default bands recover dense_dialogue (21→24 valid, +59 mean)
+and slightly help believer/pickup, but LOSE half the dense recovery
+(dense240 8→4, dense 5→3) — the widened launches compose with the
+touch-and-go lane on dense figures. meter_exchange is band-independent
+(identical validity, +1) — its certified regression has another source.
+The two regimes share the same continuous signature (short figures,
+similar asks); they differ only in incumbent validity, which no legitimate
+input may condition on. Decision: keep the accepted config; the
+representative −4.68 is the recorded price of dense recovery. Next pools:
+the 250k budget cell (−6.46 unresolved) and frontier-shifting geometry.
+Workflow friction: the in-process panel harness exhausts WASM memory after
+~100 compiles (RuntimeError: unreachable in addLine) — keep panel runs
+chunked ≤96 compiles per invocation; the benchmark runner's worker
+recycling is immune.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

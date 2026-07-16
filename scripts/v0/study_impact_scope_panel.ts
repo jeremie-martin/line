@@ -16,6 +16,7 @@ import denseDialogueIC from "../../benchmark/v2/cases/variants/representative/de
 import splitSignal from "../../benchmark/v2/cases/normative/representative/split_signal.ts";
 import riverReentry from "../../benchmark/v2/cases/normative/representative/river_reentry.ts";
 import openHook from "../../benchmark/v2/cases/normative/representative/open_hook.ts";
+import meterExchange from "../../benchmark/v2/cases/normative/representative/meter_exchange.ts";
 import loosePocket from "../../benchmark/v2/cases/normative/representative/loose_pocket.ts";
 import pickup from "../../benchmark/v2/cases/normative/capability/frontier_pickup_progression.ts";
 import dense from "../../benchmark/v2/cases/normative/capability/frontier_dense_recovery.ts";
@@ -33,6 +34,7 @@ const catalog: Record<string, Spec> = {
   split_signal: splitSignal,
   river_reentry: riverReentry,
   open_hook: openHook,
+  meter_exchange: meterExchange,
   loose_pocket: loosePocket,
   pickup,
   dense,

@@ -634,6 +634,35 @@ outgoing interval's realized quality at selection time without violating
 the falsified readiness-reshape and forward-eval-widening lessons) — a
 genuinely open research problem, not an iteration.
 
+## Closed: The Joint-Transition Source Program, With Its Successor Requirement (2026-07-17)
+
+The forward-eval diagnostic and the v5 release iteration complete the
+elimination chain, each factor measured on frontier5@500k probe data
+(841-847 constructed-visit records per arm):
+
+- admission: 37% admit — not binding;
+- current-gap measured axes: staged-vs-winner medians identical (air 0.3913
+  vs 0.3913, speed 0.7038 vs 0.7038) — the assay-vs-scorer measure mismatch
+  is real (+0.102 whole-gap overshoot) but shared with the winner via the
+  common pre-contact flight — not binding;
+- support extent: dead 95px vs live 90px — not binding;
+- release law (v5: the compiler's own SLAM-HOP hop exit, two sizings, the
+  remaining-flight form landing a sane −1.2° median launch): continuation
+  death 95.3% → 93.8% — not binding;
+- **what remains: the grounded support corridor itself. 94-95% of admitted
+  staged composites leave an arrival state at the next beat from which the
+  normal sampler constructs NOTHING admissible (winners: 2-3%). The normal
+  candidate space cannot chain from states it did not itself produce.**
+
+Direction closed. The successor requirement, stated once for the whole
+program: before ANY upstream construction (capture, support, rail, ramp,
+composite) can pay, the downstream sampler must become competent at
+rail-exit/off-corridor arrival states — a generator/aim-model question, not
+a delivery/selection/sizing question. The staged assay (RETAIN) and the
+two-contact study remain the program's physics evidence; the probe data
+(generated/staged-probe.jsonl) characterizes the exact arrival states the
+sampler fails on, and is the starting instrument for that successor study.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

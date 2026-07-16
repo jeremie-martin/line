@@ -8,7 +8,11 @@
  * quality in the engine.
  */
 
-import { appendSledPointPositionsRangeMetered, getRiderMetered } from "../lib/detector.ts";
+import {
+  appendSledPointPositionsRangeMetered,
+  getRiderMetered,
+  MIN_LANDING_AIRBORNE_FRAMES,
+} from "../lib/detector.ts";
 import { registerCompileReset } from "./core/compile_lifecycle.ts";
 import { makeSolidLine } from "./arc.ts";
 import {
@@ -233,6 +237,14 @@ const IMPACT_TEMPLATE_HOLD_ROOM_SPAN_FRAMES = 18;
 const IMPACT_TEMPLATE_HOLD_MIN_FRAMES = 1.2;
 const IMPACT_TEMPLATE_HOLD_MAX_FRAMES = 3.6;
 const IMPACT_TEMPLATE_HOLD_SEG_PX = 12;
+
+// Rung release lane constants (see the lane comment at the postLength
+// assembly point). Full pressure while the next interval cannot contain a
+// distinct landing plus more than ~2 grounded frames; fades out by ~15 frames.
+const RUNG_RELEASE_FULL_FRAMES = 9;
+const RUNG_RELEASE_SPAN_FRAMES = 6;
+const RUNG_RELEASE_MIN_GROUNDED_FRAMES = 1;
+const RUNG_RELEASE_SPAN_SALT = 13;
 
 // M3 k-1 steep-arrival span. Later attempts on gaps whose NEXT beat wants impact
 // pitch the final launch downward by a measured delivery-efficiency inverse,
@@ -1288,6 +1300,33 @@ function sampleContactCenteredLines(
     impactCurveP,
     attempt,
   }));
+
+  // Rung release lane (2026-07-16). Two landings N frames apart leave the
+  // rider at most N − MIN_LANDING_AIRBORNE_FRAMES − 1 grounded frames at the
+  // first (each landing needs the detector's airborne run before it) — on the
+  // 8-12-frame rungs where pickup rows die that is 1-5 frames, while the
+  // sampled ride-out distribution never drops below ~28-36px (~4+ grounded
+  // frames at ordinary speeds), so the closing touch-and-go geometry is
+  // structurally absent from every pool. For gaps whose NEXT interval is that
+  // short, a spanned share of attempts sizes the grounded ride-out to the
+  // interval's airborne requirement; attempt 0 and the unspanned share keep
+  // the default shape, and the exact evaluator and ranker choose as always.
+  if (nextGapFrames !== null && attempt > 0) {
+    const rungShortness = 1 - smoothstep(
+      (nextGapFrames - RUNG_RELEASE_FULL_FRAMES) / RUNG_RELEASE_SPAN_FRAMES,
+    );
+    if (rungShortness > 0) {
+      const groundedBudgetFrames = Math.max(
+        RUNG_RELEASE_MIN_GROUNDED_FRAMES,
+        nextGapFrames - MIN_LANDING_AIRBORNE_FRAMES - 1,
+      );
+      const rungLength = Math.max(8, targetState.speed * groundedBudgetFrames);
+      if (rungLength < postLength) {
+        const roll = lowDiscrepancyRoll(attempt, RUNG_RELEASE_SPAN_SALT);
+        postLength = lerp(postLength, rungLength, rungShortness * roll);
+      }
+    }
+  }
 
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
   const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);

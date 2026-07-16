@@ -1164,6 +1164,24 @@ entry-incidence family delivers exactly that at the CURRENT gap but pays
 at k+1 for most parameterizations (frontier-continuation study: 7/24
 net-positive with a measurable arrival signature). Reverted.
 
+## Aim: The Mispriced Both-Bad Tail (2026-07-16)
+
+Joint impact↔speed decomposition on the 8257f266 archive: the
+speed↔impact equilibrium is CONFIRMED for 87.2% of impact-undershoot
+gaps (speed held on/over while impact is sacrificed — correctly priced,
+matching every retired scoop probe). Speed itself tracks near-perfectly
+(|mean err| ≤0.011 through asks 0.5–0.8; only [0.9,1.0) undershoots
+−0.18 on 15k obs — the +6.6 speed pool is diffuse). **The mispriced mass
+is the both-bad tail: 51,959 gaps (12.8%) with impact deficit ≥0.15 AND
+speed under by >0.1 — mean 21.1 frames (527ms), air ask 0.51, impact ask
+0.61, living on believer (10.8k), dense_dialogue family (7.5k),
+dense-recovery family (5.8k), pickups (3.8k).** Both-bad = the rider
+ARRIVES slow: an upstream carried-energy problem (once slow, impact=v·Δθ
+and speed fail together), not an axis trade. Next falsifier: pool
+coverage at both-bad states — if pool candidates dominate the winner on
+BOTH axes, selection residual; if not, energy routing (descent) is
+generation-absent.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

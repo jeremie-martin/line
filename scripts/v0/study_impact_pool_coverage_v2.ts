@@ -73,6 +73,10 @@ type VisitRow = {
   maxAll: number | null;
   winnerFactors: CandidateFactors | null;
   bestAllFactors: CandidateFactors | null;
+  // recovery reach: the pool's maximum candidate releaseSpeed (can the pool
+  // accelerate out of a slow state?) and that candidate's factors
+  maxReleaseSpeed: number | null;
+  maxReleaseFactors: CandidateFactors | null;
 };
 
 const visits: VisitRow[] = [];
@@ -128,6 +132,20 @@ setHandoffPoolProbeHook((record: HandoffPoolProbeRecord) => {
     maxAll: Math.max(...defined),
     winnerFactors: factors(0),
     bestAllFactors: bestAllIndex < 0 ? null : factors(bestAllIndex),
+    ...(() => {
+      let maxIdx = -1;
+      for (let i = 0; i < record.candidates.length; i++) {
+        const v = record.candidates[i].releaseSpeed;
+        if (v === null || v === undefined) continue;
+        if (maxIdx < 0 || v > (record.candidates[maxIdx].releaseSpeed ?? -Infinity)) maxIdx = i;
+      }
+      return {
+        maxReleaseSpeed: maxIdx < 0
+          ? null
+          : Number((record.candidates[maxIdx].releaseSpeed as number).toFixed(3)),
+        maxReleaseFactors: maxIdx < 0 ? null : factors(maxIdx),
+      };
+    })(),
   });
 });
 

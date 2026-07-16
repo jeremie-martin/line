@@ -1195,6 +1195,31 @@ picks between an aim-lane recovery target (predicted arrival speed
 floor from the NEXT gap's impact ask via the exact ceiling formula
 v_needed = ask·6.51px/f) and a sampler descent family.
 
+**Resolution (same day): PREVENTION, and the missing family is the
+DESCENDING CARRIER.** (1) Recovery is physics-bounded and already
+selected: at slow states the winner takes ~the pool's maximum
+acceleration (quality rank 0–1; pool max ΔV +0.7–0.9 px/f per ~21f gap ≈
+the free-fall envelope) — selection exonerated, recovery closed. (2)
+Chain anatomy (believer, 287 runs): slow 46.6% of gaps in sticky
+episodes (P(stay)=0.854, mean 6.8 gaps); onset preceded by AIR OVERSHOOT
+(+0.123 vs +0.099); episodes anchor at fixed authored passages in
+96–99% of seeds (gi 36–37, 68–71: speed asks 0.87–1.0 + air ~0.64 +
+impact 0.65–0.96 simultaneously); recovery coincides with the air load
+relaxing. (3) The generation gap is precise: at entry ≥11 px/f the
+pool's MAXIMUM candidate release-speed delta is **−0.305** — the pool
+contains NO speed-holding candidates at fast entries. Holding near-max
+speed through 64%-airborne high-impact gaps requires ~80px/gap of
+descent (mostly in the ridden portion — downhill support), a family the
+flat/rising carrier basis does not produce. **Declared next mechanism
+(next session): attempt-spanned DESCENDING-CARRIER variants —
+post-contact support pitched downhill, pressure continuous in (next
+speed ask − predicted arrival speed) and air ask; normal candidates
+preserved; unchanged evaluator/ranker/width-judge; knee guards per the
+standing panel discipline.** Sizing: the both-bad tail ≈ 52k gaps
+(believer 10.8k, dense_dialogue 7.5k, dense-recovery 5.8k, pickups
+3.8k) plus its share of the knee validity pool; estimate +8–15 if the
+family converts.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

@@ -1177,10 +1177,23 @@ speed under by >0.1 — mean 21.1 frames (527ms), air ask 0.51, impact ask
 0.61, living on believer (10.8k), dense_dialogue family (7.5k),
 dense-recovery family (5.8k), pickups (3.8k).** Both-bad = the rider
 ARRIVES slow: an upstream carried-energy problem (once slow, impact=v·Δθ
-and speed fail together), not an axis trade. Next falsifier: pool
-coverage at both-bad states — if pool candidates dominate the winner on
-BOTH axes, selection residual; if not, energy routing (descent) is
-generation-absent.
+and speed fail together), not an axis trade.
+
+**Pool-probe confirmation** (believer + dense_dialogue @500k×2 seeds,
+1,018 high-ask visits, entry-speed gradient): at entry <7.5 px/f the
+pool's MAXIMUM achievable impact undershoots the ask by +0.65..0.74 —
+physically unreachable at the state; at entry ≥9 the pool contains
+ask-exact candidates (bestAll within +0.02) and even exceeds the ask
+(maxAll −0.16..−0.18) while winners still undershoot +0.28..0.46 (the
+priced equilibrium + judged k+1 cost). The both-bad tail is therefore an
+ENERGY-RECOVERY problem: chains that fall below the speed ask stay slow
+(mass is budget-invariant 250k↔750k → structural). Declared next study:
+trace slow-entry chains on believer — where does the energy leak start,
+and do the pools at slow states contain descent/recovery geometry (net
+downhill routing) that selection refuses, or none at all? The answer
+picks between an aim-lane recovery target (predicted arrival speed
+floor from the NEXT gap's impact ask via the exact ceiling formula
+v_needed = ask·6.51px/f) and a sampler descent family.
 
 ## Active Transition Evidence
 

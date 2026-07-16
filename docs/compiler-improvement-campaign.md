@@ -817,6 +817,36 @@ collateral (holds speed, chains, fits the ±1 contact lattice). That is a
 creative physics/geometry problem, not an iteration; the atlas is its
 complete constraint set.
 
+## PIVOTAL: The Catch-Frontier Oracle — Collateral Was Prefix-Inherited (2026-07-17)
+
+`study_catch_frontier.ts` (8,400 exact admissions over a 12-parameter raw
+catch space, chainability ≥6 airborne frames enforced at design time,
+349k frames): **current-gap speed/air collateral is constant to 4 decimals
+across every possible catch at dense240 and frontier5 — it is inherited
+from the incoming flight the prefix already fixed. There is no
+impact↔collateral trade at the catch; the campaign's equilibrium framing
+was an attribution error.** Impact is a complete chainable dial 0.001→1.0
+at all three states (floor-precise margins at the 12-frame state). The
+winning family, consistent across states and UNLIKE every falsified form
+(all of which invested in post-contact curvature): **entry incidence** —
+signed entry angle ~20-30° rotated into the incoming CoM velocity on one
+strongly dominant mirror side (232:3 at ordinary), near-zero net post-turn,
+L_pre 18-47px, short low-curvature run-out, contact +1..+2.5px low.
+dense240's production sampler is genuinely geometry-limited (max 0.144 vs
+ask 0.28; the family reaches |err| 0.0012); ordinary/frontier5 samplers
+already emit ask-exact chainable catches (their residual is pool scarcity
+and beyond-feasibility asks). Historical note: the existing entry-shift
+lever caps at 10° (frontier needs 20-30°), lacks the orientation dimension
+and the contact drop, and its V1-era widening test changed the ramp, not
+the cap. Caveats: calibration cohort; chainable ≠ chained (composition =
+the retained two-contact protocol); frame-precise margins at 12f.
+
+Next: attempt-spanned ENTRY-INCIDENCE lane in the sampler (rotate the
+pre-contact entry by a swept signed 12-35° on the dominant side with the
+contact drop; post-contact machinery untouched), predicted by the oracle to
+win pools on measured merit (better impact at identical inherited
+collateral ⇒ strictly better currentQuality).
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

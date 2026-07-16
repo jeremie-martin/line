@@ -1320,6 +1320,50 @@ harvested; not a sharper window — falsified), or compiler geometry
 beyond the entry/carrier parameterization the oracle explored. The
 campaign's certified gains stand at 492.54 → 510.37.
 
+## Declared Mechanism: Buyable-Error Repair Targeting (2026-07-16)
+
+**Evidence.** Repair-phase characterization (canonical archive aggregates +
+one LR_REPAIR_LOG probe): repair consumes 46.0%/58.8% of the 500k/750k
+budgets; of frames actually spent, 57–64% go to failed re-searches; on
+believer seed 24 @500k, round 0 attacked a buyable impact gap (err 0.90,
+below bound) and banked +21.4, then three rounds burned 132k frames (26%
+of the whole budget) failing on gap 67 — inside the authored joint-demand
+cluster the energy anatomy proved physically over-constrained.
+`pickFeasibleWeakGap` ranks by raw axis-error², which is largest exactly
+where the physical bounds bite (high-ask impact, sub-floor air), so
+repair systematically buys unbuyable error.
+
+**Hypothesis.** Ranking repair targets by BUYABLE error² — per axis, the
+error share below the gap's stored physical bound (impact:
+`feasibility_bound`/`ceiling` already in the report; air: the detector
+floor `MIN_LANDING_AIRBORNE_FRAMES/gapFrames`; elevation: stored ceiling;
+speed/amplitude unbounded) — reallocates the failed-restart frames to
+gaps where improvement is physically purchasable, raising repair ROI on
+every source with bound-limited weak gaps. Continuous physical inputs
+only; traversal policy only (`pickFeasibleWeakGap`); monotone by
+construction (repair accepts only strictly-better complete tracks — the
+mechanism cannot invalidate a run, only reallocate effort).
+
+**Falsifiers:** (1) believer seed-24 probe must retarget away from the
+unbuyable cluster with net repair dScore not lower; (2) 24-seed 500k
+believer/dense_dialogue/river_reentry: mean score not worse, impact RMS
+improved on believer; (3) 24-seed 250k dense/dense240/pickup validity
+no-worse (repair runs at 250k); (4) stage-0 positive. LR_REPAIR_BUYABLE=0
+escape restores byte-identity.
+
+**Outcome: DISCARD at falsifier (2).** Falsifier (1) passed vividly
+(seed-24: retargeted to a buyable impact gap, net accepted +33.2 vs
++24.1; escape reproduces the old rounds exactly), but the 24-seed panels
+are a wash: believer −0.14 (se 1.14) with impact RMS +0.0003 (unmoved),
+dense_dialogue −0.31, river_reentry −0.33, knee byte-identical.
+Mechanistic residue worth keeping: repair's failed rounds are NOT caused
+by unbuyable axis targeting — the weak-gap ranking is dominated by
+UNBOUNDED speed errors at the same structurally-hard passages under
+either metric, so restarts fail there regardless of which axis flagged
+them. The repair-allocation lever, like selection before it, is
+equilibrium-tight; its failed-restart frames are the price of searching
+hard passages, not a targeting bug. Reverted (total cost ~40 min).
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

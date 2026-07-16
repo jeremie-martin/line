@@ -12,6 +12,7 @@
 import { writeFileSync } from "node:fs";
 import believer from "../../benchmark/v2/cases/normative/development_music/believer_56_6s.ts";
 import denseDialogue from "../../benchmark/v2/cases/normative/representative/dense_dialogue.ts";
+import denseDialogueIC from "../../benchmark/v2/cases/variants/representative/dense_dialogue_impact_contrast_10.ts";
 import splitSignal from "../../benchmark/v2/cases/normative/representative/split_signal.ts";
 import riverReentry from "../../benchmark/v2/cases/normative/representative/river_reentry.ts";
 import openHook from "../../benchmark/v2/cases/normative/representative/open_hook.ts";
@@ -28,6 +29,7 @@ import { FPS, type Spec } from "./types.ts";
 
 const catalog: Record<string, Spec> = {
   dense_dialogue: denseDialogue,
+  dense_dialogue_ic: denseDialogueIC,
   split_signal: splitSignal,
   river_reentry: riverReentry,
   open_hook: openHook,

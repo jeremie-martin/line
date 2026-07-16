@@ -1076,6 +1076,42 @@ aim lane on every prefix re-sort — any future rollout widening must
 suppress it (setRolloutAimSuppressed) to preserve branch=1 rollout
 semantics.
 
+## Roadmap After 510.37 (2026-07-16)
+
+Exact re-pricing on the accepted 8257f266 canonical archive (reconstruction
+reproduces 510.3661 to 4 decimals; per-run recon max diff 0.000000):
+impact ×0.8 → **+42.26** (×0.7 → +63.1); air ×0.8 → +11.94; speed ×0.8 →
++6.62; amplitude ×0.8 → +3.08; all-invalid recovery → **+9.49** (102
+invalid runs, ALL at the 250k knee except one: dense_recovery 34/48,
+dense-240 30/48, pickup_shifted 21/48, pickup 11/48).
+
+Impact ask-band decomposition (signed err, band-only ×0.8 delta): the
+buyable mass has SHIFTED UP-ASK — bands ≥0.6 hold ~+27 of the +38.7 band
+sum ([0.6,0.7) −0.191/+6.0; [0.7,0.8) −0.223/+8.1; **[0.8,0.9)
+−0.296/+8.7**; [0.9,1.0) −0.334/+4.4), while the previously-headlined
+low-mid bands hold ~+9 ([0.2,0.3) −0.129/+2.1; [0.3,0.4) −0.149/+4.6;
+[0.4,0.5) −0.161/+2.4). Non-monotonic dip at [0.5,0.6) (−0.124, shallower
+than both neighbors) — a possibly-exploitable "easy" regime. Air mirror
+image: overshoot +0.31→+0.05 decaying over asks 0.0→0.7 (largely the
+detector 6/N floor = unbuyable), ~0 at [0.7,0.8), −0.075 at [0.8,0.9).
+**Ceiling decomposition (two lenses, per-gap, same archive):** the
+catchability ceiling `impactCeiling(v)=clamp01(v·asin(0.9)/7.29)` at
+achieved contact speed is NON-BINDING (ceiling < ask on 206 of 572,078
+gaps; naive physics-permitted headline 665). The honest limit is the
+density-aware `feasibility_bound` (stored per gap): it caps the
+physics-permitted headline at **592.6 (+82.2)** and shows the high-ask
+tail is mostly UNBUYABLE at authored densities ([0.8,0.9): 0.292 of the
+0.296 deficit; [0.9,1.0): 0.301 of 0.334), while the mid bands are
+FULLY buyable under both lenses: buyable-only deltas [0.2,0.3) +5.7,
+[0.3,0.4) **+13.0**, [0.4,0.5) +6.7, [0.5,0.6) +5.4 ≈ **+31 in-bounds
+mid-ask pool** — precisely the band where the carrier's ask-ramp
+(`smoothstep((ask−0.25)/0.40)`) gates generation pressure to ≈zero.
+Strategic consequence: **550 is arithmetically reachable from the
+mid-ask impact pool + knee recovery (+9.5) + partial air/speed without
+breaking the high-ask density frontier.** The next mechanism targets
+mid-ask supply; high-ask (≥0.7) work is deprioritized as
+physics-bounded.
+
 **Post-accept family harvest (2026-07-16, all stage-0-screened and
 reverted): the accepted form is the local optimum.** 250k extension
 (budget ramp 300k→150k) is BYTE-IDENTICAL — at 250k budgetSlack never
@@ -1087,6 +1123,32 @@ which continuations get chained is harmful, consistent with the 25–29%
 top-1 agreement between the static quality opinion and chained value.
 Family closed at the accepted constants; next mechanism must come from a
 different pool.
+
+## Declared Mechanism: Attempt-Spanned Mid-Ask Carrier Ramp (2026-07-16)
+
+**Hypothesis.** The mid-ask impact deficit ([0.2,0.6), ≈+31 in-bounds
+per the ceiling decomposition) is generation-limited: the carrier
+ask-ramp gives ≈zero pressure below ask 0.45, so the pool rarely
+contains mid-ask redirection geometry ("at ask ≈0.3 the pool does not
+even contain the geometry" — retired probes), and the pool-diversity
+lesson from the retired unconditional sizing says the ramp must not be
+replaced globally. On a spanned share of attempts
+(lowDiscrepancyRoll, the accepted idiom), evaluate the ramp with the
+target-start lerped below 0.25 so mid asks get real turn pressure on a
+minority of samples; attempt majority (incl. attempt 0's roll region)
+stays default. The certified width judge prices each candidate's k+1
+consequence at reduced noise, so supplied mid-ask geometry that holds
+its continuation can now WIN selection (the missing half of the old
+supply falsifications).
+
+**Boundary:** `impactCurvePressure`/its callsite in arc_placement.ts
+only; continuous inputs (ask, attempt roll, speed); evaluator, ranker,
+width judge unchanged. **Falsifiers:** (1) 500k two-seed panel coherent;
+(2) 24-seed knee guard: dense/dense240/pickup validity at 250k no-worse
+(sampler changes reach 250k — no byte-identity shield here); (3) 24-seed
+mid-ask sources impact RMS −0.008 minimum (dense_dialogue/split_signal/
+river_reentry carry the [0.2,0.5) mass); (4) stage-0 positive with
+representative not negative; else discard.
 
 ## Active Transition Evidence
 

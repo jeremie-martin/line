@@ -398,6 +398,22 @@ Workflow friction: the in-process panel harness exhausts WASM memory after
 chunked ≤96 compiles per invocation; the benchmark runner's worker
 recycling is immune.
 
+## Roadmap After 504.03 (2026-07-16)
+
+Fresh counterfactuals on the new canonical archive: impact RMS ×0.8 →
+`+41.9`; all-invalid recovery → `+12.6` (now concentrated at 250k on the
+four dense/pickup capability rows — 500k/750k validity is essentially
+complete); air ×0.8 → `+11.9`; speed ×0.8 → `+6.7`; amplitude ×0.8 →
+`+3.0`. Arithmetic: everything except impact, taken IN FULL, reaches only
+~538. **The 550 target requires breaking the impact frontier** (geometry
+that converts steep arrival into windowed redirection while holding carried
+speed — the dive-harvest pair moved validity, not the ask-band undershoot).
+Order of attack: (1) 250k capability completion (+5-12; the remaining
+invalids are first-completion-bounded), (2) partial air/speed via
+support-geometry frontier work, (3) the impact-frontier program — the
+trajectory-basis build (docs/compiler-trajectory-synthesis.md) is on the
+critical path to the goal.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

@@ -856,6 +856,32 @@ post-hoc impossible (brittleness); supply-alone insufficient (this);
 valuation-alone insufficient (recency leaf). The composition —
 supply+valuation together, the one untested cell — is in test.
 
+## Terminal: The Supply×Valuation 2×2 Is Complete (2026-07-17)
+
+| | default judge | sharpened judge (recency leaf) |
+|---|---|---|
+| **default supply** | baseline | −9.65, impact flat: dilution is load-bearing drift control |
+| **frontier supply (entry lane)** | −7.52, impact +0.0005: supply unvalued, knee −7 | **−13.31, impact +0.0032 WORSE, knee −5/−4: damages compound** |
+
+All four cells at 24 seeds against shared frozen baselines (diffs and
+panels preserved in the session scratchpad; reproducible). With the
+catch-frontier oracle (geometry exists, compact, zero marginal collateral)
+and the polish brittleness law (post-hoc impossible), the impact pool's
+status is now fully characterized: **the compiler cannot cash the existing
+frontier geometry through any tested combination of supply, valuation, or
+repair. The coupling must be structural — a judge that reads the realized
+downstream quality of the specific candidate without surrendering the
+drift control the diluted aggregate provides.** That judge design is the
+campaign's single open problem for the impact pool (~+42 at ×0.8).
+
+**Honest near-term ceiling without it** (counterfactuals on the current
+baseline): air ×0.8 +11.9 (partly floor/equilibrium-priced), speed ×0.8
++6.7, amplitude ×0.8 +3.0, remaining invalid recovery +12.6 (dense knee =
+breadth-vs-charge bounded) — sum ≈ +34 IF fully captured, most of it
+frontier-limited by the same measured constraints. Realistic without the
+structural judge: ~510-520. **The 550 goal requires solving the judge
+problem.** The campaign's certified gains stand at 492.54 → 503.86.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

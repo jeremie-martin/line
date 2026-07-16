@@ -303,6 +303,42 @@ diagnostic if reopened is a trace-level decomposition of each gap's
 airborne run (prev ride-out | flight | lead-in) against the committed
 candidates' predicted release frames.
 
+## Declared Next Mechanism: Joint Rung Continuation (2026-07-16)
+
+Both broad quality axes (impact, air) are frontier-limited at the exact-
+evaluator equilibrium, and certification arithmetic requires either true
+θ ≈ +9-10 or collapsed frontier-flip variance. The one target that moves
+mean AND variance together is rung/dense-figure reliability: pickup rows
+fail only at 180-200ms rungs, dense rows at 12-frame figures, and the
+dive-harvest recovery is a 25-40% per-seed lottery exactly there.
+
+**Hypothesis.** At a long→short transition, the two contacts must be closed
+JOINTLY: a capture at contact k whose continuation is a constructed
+supported rail through contact k+1 (7-12 frames later), where k+1's hit may
+be realized as the detector's interval-derived persistent-bounce exception
+(a distinct landing is not representable inside so short an interval). The
+existing SLAM-HOP template already delivers the joint FLIGHT form (hop
+sized to land the next beat); the rung form replaces the hop with a
+supported carry-through sized by the rung interval and k+1's ask.
+
+**Constraints inherited from retired studies:** retain an engine-admitted
+capture at k (standalone construction: zero valid captures); never screen
+the outgoing geometry with current-gap-only gates; composite candidates
+enter the ordinary pool and are judged by the unchanged exact evaluator and
+ranker at ordinary charge (no multiplied rollouts); unavailability at long
+intervals is an ordinary absence. Continuous inputs only: interval frames,
+asks, speed, arrival state.
+
+**Falsifiers, in order:** (1) the detector/validity rule must actually
+admit a bounce-realized k+1 on 8-10-frame intervals (read the
+interval-derived exception's exact bounds first — if 180ms intervals exceed
+them, the rail must instead produce a distinct landing, which the six-frame
+phase assay says is hard); (2) on fixed rung states, joint candidates must
+close both contacts where the normal pool closes neither; (3) 24-seed
+250k completion rate on pickup rows +20pp minimum without ordinary-row
+damage (n≤8 panels are noise); (4) stage-0 composition, then the
+override-certified attempt for the accumulated tree.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

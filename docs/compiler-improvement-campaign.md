@@ -760,6 +760,29 @@ campaign's mapped mechanism space is exhausted end-to-end; the standing
 position (550 needs ~28% of physically-avoidable error; frontier =
 geometry/search co-design) is the complete statement of what remains.
 
+## Declared Mechanism: Impact Polish Passes (2026-07-17)
+
+Two code-verified facts converge: (1) the forward-eval leaf pools the whole
+prefix into one RMS, so a 0.2 impact fix at gap k moves the leaf by ~147/k
+points while a rollout survival/missing difference moves it ~295 — the
+judge's axis discrimination decays 1/k and is 44-123× dominated by
+downstream survival noise at depth; (2) the clone-and-test polish framework
+(terminal leaves only, monotone adoption via the full-track exact score) is
+inert solely because its helpers target air-only edits — 2026-07-14 verdict:
+"the existing polishers do not mutate the mixed speed/impact objectives."
+
+Mechanism: new impact polisher family (deepen frontload / entry rotation /
+scoop extension on undershooting committed impact gaps) inside the existing
+framework, with polish flipped default-ON. Atlas compliance: post-terminal
+only (no 250k knee charge, no pool displacement), monotone (adopts only
+strictly-better exact full-track leaves — where axis marginals are correctly
+priced, evading the 1/k dilution), readiness/forward-eval unconsulted,
+detector floor and ballistic bound respected by the exact gates.
+
+Declared discard: zero adoptions after one variant-menu iteration; or mean
+impact-RMS improvement < 0.005 across believer/dense_dialogue/split_signal/
+river_reentry at 500k (24 seeds); or any 250k capability validity loss > 2.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

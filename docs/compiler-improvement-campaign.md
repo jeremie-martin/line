@@ -538,6 +538,28 @@ continuously on short current-interval + authored impact, attempt-spanned,
 judged by unchanged tryCandidateLines/ranker, through scope panel → stage 0
 → certified attempt.
 
+## Retired: Capture-Arc Sampler Lane, v1 (replacement) and v2 (composed) (2026-07-16)
+
+The two-contact basin is real, but two integration forms failed the same
+declared 24-seed 250k discard condition. v1 (early-return replacement of the
+whole geometry on ~1/3 of firing attempts at short-current-interval impact
+gaps): dense240 10→3, dense 13→5, pickup 16→13 — the lane's own grounded
+extent displaced the touch-and-go continuations both accepted mechanisms
+depend on. v2 (composition: capture-arc entry incidence + boundary phase
+only, normal post machinery fully preserved, residual turn through the
+existing frontload channel): dense240 10→4, dense 13→7, pickup 16→15 —
+better, and mildly positive on ordinary short-figure rows (dense_dialogue
++4.3, believer byte-identical 24/24 = surgical gating), but still a net
+validity destroyer exactly where it was aimed. Mechanistic residue: the
+geometry is exonerated; POOL-SHARE SUBSTITUTION is convicted — at the 250k
+knee, dense completion chains need the default entries, and spending any
+share of the 32 sampler attempts on capture-incidence entries starves them.
+A successor must ADD capacity (extra-candidate lane beyond the sampled 32,
+the reuse/brake/startup pattern) or deliver the full joint pair as one
+composite candidate. One final delivery form is declared below; if it also
+fails the same condition, the compiler integration of this basin is closed
+for the campaign and the basin remains calibration evidence.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

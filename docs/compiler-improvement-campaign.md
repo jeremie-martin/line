@@ -237,6 +237,32 @@ breadth: why do recovered capability rows still fail 25–40% of seeds, and
 what continuous mechanism makes the dive-harvest recovery deterministic
 rather than a per-seed lottery?
 
+## Retired: Pickup-Transition Breadth (2026-07-16)
+
+**Hypothesis.** Pickup rows die almost exclusively at their 180–200ms rungs
+(8–10-frame intervals; ~94% complete at 500k, budget-starved at 250k), so a
+per-gap breadth law — extra samples where a LONG interval hands into a SHORT
+one (long×short smoothstep product on interval frames; dense streams'
+short×short scores ~zero by construction) — might make rung completion
+reliable at scarce budgets.
+
+**Falsifier.** n≤8 panels flip-flopped (+2/−1, then −1/+1 on recalibration)
+— frontier validity at that depth is coin noise. The decisive 24-seed
+paired A/B (pickup, dense240, dense, frontier5 at 250k): pickup 14→13
+valid (4 gained / 5 lost), dense240 4→3, dense 1→0, frontier5 24→24
+byte-identical. Pure churn: more draws from the same candidate distribution
+reshuffle which seeds complete without raising the completion rate — the
+distribution itself lacks mass on catchable rung entries, matching the
+retired-global-breadth precedent.
+
+**Decision.** Retired and reverted. Rung/dense reliability requires a
+different generator (a joint two-contact capture-and-continuation
+formulation per the trajectory-synthesis program), not more samples.
+Certification arithmetic note for the next candidate: with the current
+tree's per-block σ≈17, accept at depth 48 needs true θ ≈ +8.5–10, OR a
+LOW-VARIANCE quality mechanism (smooth per-gap error reductions rather
+than validity Bernoullis) that both adds mean and does not inflate σ.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

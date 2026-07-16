@@ -1389,6 +1389,23 @@ an iteration. Retained instruments for it: the frozen fixtures
 and J-valley oracles, the frontier-continuation protocol, and this
 regret study.
 
+**Declared entry point for the program (next session): GRADE CONTINUITY.**
+The slow-chain anatomy requires +0.1–0.3 px/f per gap COMPOUNDING across
+~7-gap passages; each gap's share is individually legal (well within the
+catch-toll and adhesion envelopes — no single-gap physics is violated),
+but per-gap INDEPENDENT sampling regresses grades to the mean, so
+persistent shallow grades are structurally absent from every chain the
+search can build. Mechanism: correlate each gap's sampled post-angle
+distribution with the PREVIOUS gap's committed grade (continuous
+measured input; attempt-spanned so uncorrelated samples remain; no case
+identity; evaluator/ranker/judge untouched — and the regret study now
+guarantees the faithful rollout will select realized-better chains if
+they exist). Falsifier chain: (1) fixture oracle on believer36/69 —
+does a grade-correlated candidate sequence hold speed through the
+cluster where independent sampling loses it (replay the two-contact
+protocol across 3+ gaps); (2) attempt-spanned sampler form; (3) the
+standard panels/knee guards; (4) stage 0; (5) certification.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

@@ -1297,6 +1297,29 @@ propagation), modest share, composed with the certified width judge that
 can now see the k+1 difference. It targets the equilibrium price AND the
 energy chains with the same geometry.
 
+**Outcome: DISCARD — the fourth independent falsification of
+frontier-catch supply.** Built as declared (attempt-spanned 18% share ×
+ask ramp × 300k budget ramp, arrival-signature gate ≥0.5 from the
+closed-form ballistic propagation, entry rotation 12–30° into incoming
+velocity + 1–2.5px contact drop, carrier untouched, SHARE=0
+byte-identity and 250k identity both proven, 26/26 tests). 24-seed
+target check: believer −1.39 with impact WORSE (+0.0022), speed flat;
+dense_dialogue +3.88 (speed-driven). Full 12×2 panel: **−9.05 with all
+three axis RMS worse**, validity flat, worst rows river_reentry −81 /
+dense −67. Reverted. The supply ledger is now: blind 45% share (−7.52),
+composed with recency leaf (−13.31), additive standalone catch (v3), and
+signature-gated 18% under the certified width judge (−9.05) — four
+deliveries, one conclusion: **the frontier catch geometry loses the
+exact forward evaluation even when its predicted arrival passes the
+measured net-positive signature; the k+1 price the judge sees is real
+for the candidates the sampler can actually build.** The merged-lever
+route through sampler supply is closed. What remains open for the
+impact pool is unchanged in kind but narrower in statement: a judge that
+values the realized two-gap outcome exactly (not an m-sample estimate —
+harvested; not a sharper window — falsified), or compiler geometry
+beyond the entry/carrier parameterization the oracle explored. The
+campaign's certified gains stand at 492.54 → 510.37.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

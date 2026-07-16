@@ -783,6 +783,18 @@ Declared discard: zero adoptions after one variant-menu iteration; or mean
 impact-RMS improvement < 0.005 across believer/dense_dialogue/split_signal/
 river_reentry at 500k (24 seeds); or any 250k capability validity loss > 2.
 
+**Outcome (same day): DISCARD, with a new measured law.** The full build
+(byte-identity-proven escape, cost-capped probes ≈2.3k frames each) found
+the undershoot pool as expected (71/72 believer gaps) but: mid-track catch
+edits of ANY size gate-fail — a moved catch vertex changes the exit
+trajectory and cascades into downstream ±1-frame contact misses — so only
+the final 1-2 gaps are editable, where local accepts do occur (impact error
+0.581→0.553 at believer g80) but are worth ~ΔRMS 0.0005 ≈ 1/10 of the
+discard floor, while probe charges perturb search lumpily. **Post-hoc
+geometry repair is structurally impossible on committed tracks: the impact
+deficit is a compile-time geometry commitment.** The polish framework
+verdict (inert) now extends to any polish-scale impact residual.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

@@ -1364,6 +1364,31 @@ them. The repair-allocation lever, like selection before it, is
 equilibrium-tight; its failed-restart frames are the price of searching
 hard passages, not a targeting bug. Reverted (total cost ~40 min).
 
+## Terminal: Expansion-Order Regret Is Nil — the Judge Program Closes (2026-07-17)
+
+`scripts/v0/study_expansion_regret.ts` (observation-only hooks, byte-identity
+of observation proven exactly; 4 sources × 2 seeds @500k, 366 matched
+committed contacts): **the search commits the forward-eval rollout's
+rank-0 branch 94.7–100% of the time**; the 8 exceptions are six exact
+forward-value ties and two near-ties (0.04/0.29 on a ~500 scale).
+Backtracking never overturns the rollout's ordering. With the recency
+leaf (sharper valuation) falsified, the width family harvested at its
+local optimum, and supply falsified in four deliveries, this closes the
+selection axis at every level: pool → rank → expand → commit agree, and
+where they differ it is a tie. **The campaign's former single open
+problem — "a judge that reads realized downstream quality" — is resolved
+negative by measurement: there is no selection prize left at any layer.**
+The impact/air residue is therefore entirely a GEOMETRY-CONTENTS question,
+and every explored geometry family is individually falsified with a
+measured physical cause (catch-toll, adhesion limit, arrival foreignness,
+pool-share displacement). The sole remaining route to 550 is the
+trajectory-synthesis program: multi-gap-coherent geometry outside the
+entry/carrier parameterization — a physics/geometry research build, not
+an iteration. Retained instruments for it: the frozen fixtures
+(dense240/ordinary/frontier5/believer36/believer69), the catch-frontier
+and J-valley oracles, the frontier-continuation protocol, and this
+regret study.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

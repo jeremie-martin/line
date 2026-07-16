@@ -4,7 +4,7 @@ Target: improve the Benchmark V2 headline through changes that make the normal
 compiler more capable and accurate across a broad range of authored scores.
 `npm run benchmark -- eval` is the reusable screen; only a fresh certified
 `eval --to-verdict` can promote a source-default change. The active baseline
-contract is `accept-2026-07-15T15-24-50Z-e4890b0e`.
+contract is `accept-2026-07-16T00-55-56Z-45f7c00c` (headline 504.03).
 
 This is a decision log, not a research notebook. Detailed earlier material is
 preserved in [the 2026-07-12--14 campaign archive](archive/compiler-improvement-campaign-2026-07-12-to-14.md)
@@ -361,8 +361,25 @@ shortness ramp, grounded budget = interval − airborne requirement):
   validity.
 
 The first mechanism of the campaign that moved dense at all, and it moves
-mean AND reliability together. Next: the override-declared certified
-attempt for the accumulated tree (composed-v1 + rung release lane).
+mean AND reliability together.
+
+**Certified outcome (`2026-07-16T00-55-56Z-45f7c00c`, era-override 0.07
+ledgered): ACCEPT.** Headline `492.10 -> 504.03`, delta `+11.93`, 99%
+one-sided lower bound `+6.60` (SE 2.25); every futility look passed
+(+20.9/+16.9/+13.7/+11.8/+13.4). Validity `+126/-27`: dense_recovery
+71→114/144, dense-240 92→112, pickup_shifted 97→119, pickup 109→129, and
+750k reaches 2112/2112. Budgets: 250k `-6.46` (unresolved interval), 500k
+`+18.54`, 750k `+13.16`. Strata: capability `+106.85 [+75.62, +138.08]`,
+representative `-4.68 [-9.25, -0.11]` (meter_exchange −39.7, dense_dialogue
+−26.7), legacy and development music unresolved. Qualification sidecar
+388.38. Rebaseline label: `accept-2026-07-16T00-55-56Z-45f7c00c`; era
+budget reset.
+
+**Open costs for the next iteration:** the representative interval excludes
+zero on the negative side — small but real; the leading regressions
+(meter_exchange, dense_dialogue at 250k/500k) and the 250k budget cell are
+the first candidates for recovery, likely tied to the lane firing inside
+ordinary short-figure passages where the touch-and-go trade is not free.
 
 ## Active Transition Evidence
 

@@ -4,7 +4,9 @@ Target: improve the Benchmark V2 headline through changes that make the normal
 compiler more capable and accurate across a broad range of authored scores.
 `npm run benchmark -- eval` is the reusable screen; only a fresh certified
 `eval --to-verdict` can promote a source-default change. The active baseline
-contract is `accept-2026-07-16T00-55-56Z-45f7c00c` (headline 504.03).
+contract is `accept-2026-07-16T02-42-52Z-5fcbfc73` (development headline 503.86;
+headline levels are epoch-relative — the certified estimand is the paired
+delta of each accept).
 
 This is a decision log, not a research notebook. Detailed earlier material is
 preserved in [the 2026-07-12--14 campaign archive](archive/compiler-improvement-campaign-2026-07-12-to-14.md)
@@ -397,6 +399,25 @@ Workflow friction: the in-process panel harness exhausts WASM memory after
 ~100 compiles (RuntimeError: unreachable in addLine) — keep panel runs
 chunked ≤96 compiles per invocation; the benchmark runner's worker
 recycling is immune.
+
+## Accepted: Slack-Conditioned Depth-1 Pre-Completion Rollouts (2026-07-16)
+
+**Hypothesis.** The remaining 250k capability invalids sit at the completion
+knee (valid first completions 242–260k frames of the 250k budget) and
+forward-eval charges ~30% of frames; when the search holds no completion AND
+the traversal budget model predicts a tight budget (budgetSlack below the
+existing low-slack branch threshold), greedy rollouts shallowed to depth 1
+buy the knee without touching mature-phase trunk quality. The unconditional
+form had been retired for exactly that mature drag; the slack condition uses
+only the measured search state.
+
+**Evidence.** 24-seed 250k A/B: dense 5→13 valid (9/1), dense240 8→10;
+pickup/frontier5/500k byte-identical. Stage-0 +7.69 at 95.5% identical
+pairing. **Certified accept `2026-07-16T02-42-52Z-5fcbfc73`:** delta +2.34
+[LB99 +0.65], realized SE 0.70; 500k/750k exactly +0.00; 250k +11.71
+[+2.30, +21.12]; representative +3.30 [+0.59, +6.02] (dense_dialogue_ic
++44.4, validity 136→143) — recovering most of the prior accept's
+representative cost; capability +0.21; validity +34/−21. Era reset.
 
 ## Roadmap After 504.03 (2026-07-16)
 

@@ -57,6 +57,15 @@ const rolloutAimEnabled =
 export function setRolloutContext(active: boolean): void {
   inRolloutContext = active;
 }
+// Scoped aim suppression for WIDENED rollout pool builds (nCand > 1 inside a
+// rollout would otherwise qualify for the charged aim lane on EVERY prefix
+// re-sort — a budget sink that stalls completion; baseline branch=1 rollout
+// pools never contained aim candidates, so suppression preserves rollout
+// semantics). Set around the pool build by forwardFirstWidenedScore.
+let rolloutAimSuppressed = false;
+export function setRolloutAimSuppressed(active: boolean): void {
+  rolloutAimSuppressed = active;
+}
 
 /** A node in the prefix-search tree. `prefixFits.length === gapIndex`.
  *  A terminal node has `gapIndex === gaps.length`. */
@@ -198,7 +207,10 @@ function sortWithLaneExtras(
   // pools (branch=1): multiplying CHARGED rollout work is the documented
   // branch-widening failure.
   const aimedExtras: Candidate[] = [];
-  if (nCand > 1 && sorted.length > 0 && aimEnumEnabled() && !(inRolloutContext && !rolloutAimEnabled)) {
+  if (
+    nCand > 1 && sorted.length > 0 && aimEnumEnabled() &&
+    !(inRolloutContext && (!rolloutAimEnabled || rolloutAimSuppressed))
+  ) {
     // Refine the first K candidates of the quality-sorted pool, not just
     // `sorted[0]`. Each base is passed exactly as `sorted[0]` is today (same
     // engine/gap/lineId), and its extras accumulate into the one pool. K=1 →

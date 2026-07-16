@@ -77,6 +77,7 @@ import {
   extendNodeCached,
   isLeafNode,
   makeRootNode,
+  setRolloutAimSuppressed,
   setRolloutContext,
   type SearchNode,
 } from "./node.ts";
@@ -765,6 +766,16 @@ const MATURE_AVG_FWD_EVAL_ELEVATION_CENTER = 0.50;
 const MATURE_AVG_FWD_EVAL_ELEVATION_SPAN = 0.24;
 const MATURE_AVG_FWD_EVAL_DENSE_FRAMES = 20;
 const MATURE_AVG_FWD_EVAL_SPARSE_FRAMES = 40;
+// Impact-pressured downstream width (see impactBestForwardEvalConfig). The
+// budget ramp deliberately starts ABOVE 250k so the charge-bounded completion
+// knee never pays the extra k+1 admissions (byte-identical there).
+const IMPACT_BEST_FWD_ASK_START = 0.25;
+const IMPACT_BEST_FWD_ASK_SPAN = 0.2;
+const IMPACT_BEST_FWD_START_FRAMES = 300_000;
+const IMPACT_BEST_FWD_SPAN_FRAMES = 200_000;
+const IMPACT_BEST_FWD_SLACK_START = 2.5;
+const IMPACT_BEST_FWD_SLACK_SPAN = 2.0;
+const IMPACT_BEST_FWD_BRANCH = 3;
 const OPENING_BEST_FWD_SLACK_BRANCH2_START = 2.75;
 const OPENING_BEST_FWD_SLACK_BRANCH2_SPAN = 2.25;
 const OPENING_BEST_FWD_SLACK_BRANCH3_START = 10;
@@ -3337,7 +3348,9 @@ function rankedOptions(
     effectiveForwardConfig.branch === 1;
   let scored: RankedOption[];
   if (stagedForwardEval && effectiveForwardConfig !== null) {
-    const shallowConfig: CandidateForwardPolicy = { ...effectiveForwardConfig, depth: 1 };
+    // The cheap pre-stage stays single-attempt (firstBranch stripped): only the
+    // stageTop finalists pay the impact-pressured first-level width.
+    const shallowConfig: CandidateForwardPolicy = { ...effectiveForwardConfig, depth: 1, firstBranch: 1 };
     const shallow = pool.map(({ candidate, rank }) =>
       scorePoolCandidate(candidate, rank, shallowConfig)
     );
@@ -4988,6 +5001,12 @@ type CandidateForwardPolicy = ForwardRolloutShape & {
    *  (rolled-gap axis quality × next-gap readiness × missed-step penalty —
    *  objectiveLeafValue). Set by LR_FWD_EVAL_LEAF; "full" is byte-identical. */
   leaf: ForwardEvalLeaf;
+  /** First-level-only rollout width: sample this many candidates at the FIRST
+   *  rolled contact, continue each with the ordinary shape below (branch
+   *  applies unchanged there), take the best. Widens the noisiest layer of the
+   *  downstream estimate without surrendering the deeper hops' drift control
+   *  (impactBestForwardEvalConfig). Absent/1 = unchanged single-attempt entry. */
+  firstBranch?: number;
 };
 type StartForwardPolicy = ForwardRolloutShape & {
   /** Start selection is always charged; this only selects the rollout terminus scorer. */
@@ -5724,6 +5743,50 @@ function forwardRolloutScore(
   return best;
 }
 
+/** First-level-only widened greedy: sample `firstBranch` candidates at the FIRST rolled
+ *  contact, continue each with an ordinary greedy chain below, return the best leaf. Widens
+ *  the noisiest layer of the downstream estimate (the single k+1 sample attempt) without
+ *  surrendering the deeper hops' drift control (see impactBestForwardEvalConfig). */
+function forwardFirstWidenedScore(
+  search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, depthLeft: number,
+  firstBranch: number, leafObjective: boolean,
+): number {
+  const leafValue = (node: SearchNode): number =>
+    leafObjective
+      ? objectiveLeafValue(node, gaps, ctx.durationFrames)
+      : forwardNodeScore(node, gaps, ctx);
+  if (depthLeft <= 0 || isTerminalNode(search, gaps)) {
+    return leafValue(search);
+  }
+  const at = advanceToNextContact(search, gaps);
+  if (at === null) {
+    return leafValue(search);
+  }
+  // Baseline branch=1 rollout pools never contain aim-lane candidates (the
+  // nCand > 1 lane gate); keep that invariant for the widened build — without
+  // suppression every prefix re-sort re-runs the CHARGED aim lane and the
+  // budget stalls before completion (measured: 17/24 rideStalled).
+  setRolloutAimSuppressed(true);
+  let cands: Candidate[];
+  try {
+    cands = getCandidatesSorted(at, gaps, ctx, seed, firstBranch);
+  } finally {
+    setRolloutAimSuppressed(false);
+  }
+  if (cands.length === 0) {
+    fwdEvalTotals.fwd_rollout_no_candidate++;
+    return leafValue(search);
+  }
+  let best = -Infinity;
+  for (const c of cands) {
+    const s = forwardRolloutScore(
+      extendNodeCached(at, c), gaps, ctx, seed, depthLeft - 1, 1, leafObjective,
+    );
+    if (s > best) best = s;
+  }
+  return best;
+}
+
 /** avg: mean true partial-track score over the top-`m` next-contact alternatives, 1 deep. */
 function forwardAvgNextScore(
   search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, m: number,
@@ -5767,6 +5830,10 @@ function forwardArcValue(
   try {
     return cfg.variant === "avg"
       ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch, leafObjective)
+      : cfg.variant === "greedy" && (cfg.firstBranch ?? 1) > 1
+      ? forwardFirstWidenedScore(
+        child, gaps, ctx, seed, cfg.depth, cfg.firstBranch as number, leafObjective,
+      )
       : forwardRolloutScore(
         child, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
         leafObjective,
@@ -5789,7 +5856,7 @@ function adaptiveForwardEvalConfig(
   budgetSlack: number,
   openingBestOpportunity: number,
 ): CandidateForwardPolicy {
-  const mature = matureForwardEvalConfig(base, node, gaps, targetBudget);
+  const mature = matureForwardEvalConfig(base, node, gaps, targetBudget, budgetSlack);
   if (mature !== base) return mature;
   return openingBestForwardEvalConfig(base, node, budgetSlack, openingBestOpportunity);
 }
@@ -5858,6 +5925,7 @@ function matureForwardEvalConfig(
   node: SearchNode,
   gaps: Gap[],
   targetBudget: number,
+  budgetSlack: number,
 ): CandidateForwardPolicy {
   if (
     !fwdEvalRuntime.defaultConfig ||
@@ -5868,20 +5936,76 @@ function matureForwardEvalConfig(
     return base;
   }
   const verticalPressure = verticalDramaForwardEvalPressure(node, gaps);
-  if (verticalPressure <= 0) return base;
-  const budgetPressure = smoothstep(
-    (targetBudget - MATURE_AVG_FWD_EVAL_START_FRAMES) /
-      MATURE_AVG_FWD_EVAL_SPAN_FRAMES,
+  if (verticalPressure > 0) {
+    const budgetPressure = smoothstep(
+      (targetBudget - MATURE_AVG_FWD_EVAL_START_FRAMES) /
+        MATURE_AVG_FWD_EVAL_SPAN_FRAMES,
+    );
+    const pressure = budgetPressure * verticalPressure;
+    if (pressure > 0 && unitHash(matureForwardEvalSeed(node)) < pressure) {
+      return {
+        variant: "avg",
+        depth: 2,
+        branch: MATURE_AVG_FWD_EVAL_BRANCH,
+        charge: base.charge,
+        leaf: base.leaf,
+      };
+    }
+  }
+  return impactBestForwardEvalConfig(base, node, gaps, targetBudget, budgetSlack);
+}
+
+/** Impact-pressured downstream width: the greedy rollout prices a candidate's
+ *  continuation by ONE sampled attempt at the child's next-contact state
+ *  (branch=1 ⇒ solveOneGap(K=1)), whose within-state spread exceeds the
+ *  between-candidate differences selection must resolve on impact-authored
+ *  gaps (frontier-continuation study, 2026-07-17: 1-sample picks the two-gap
+ *  optimum 8/24 vs best-of-8 24/24). Under continuous impact-ask × budget
+ *  pressure, widen the greedy rollout's FIRST level to the best of
+ *  IMPACT_BEST_FWD_BRANCH sampled attempts (deeper hops unchanged). Scope, all
+ *  from measured failures: the budget ramp is zero at 250k (the charge-bounded
+ *  completion knee stays byte-identical by construction); the SLACK ramp turns
+ *  the width off when the traversal budget model reports a tight compile —
+ *  unguarded width charged knife-edge completion hunts (certified f41e5494:
+ *  pickup_shifted/dense_recovery −5 valid; 8-wide stage-0 −21.9 with
+ *  pickup_shifted −276) — while a post-completion-only gate was equally
+ *  falsified (panel −7.9, impact flat): the value lives in pre-completion
+ *  trunk building at COMFORTABLE slack, and slack is the continuous signal
+ *  that separates the two (the accepted slack-depth precedent). */
+function impactBestForwardEvalConfig(
+  base: CandidateForwardPolicy,
+  node: SearchNode,
+  gaps: Gap[],
+  targetBudget: number,
+  budgetSlack: number,
+): CandidateForwardPolicy {
+  if (!impactBestFwdEnabled()) return base;
+  const ask = gaps[node.gapIndex]?.targets?.impact;
+  if (ask === undefined) return base;
+  const askPressure = smoothstep(
+    (ask - IMPACT_BEST_FWD_ASK_START) / IMPACT_BEST_FWD_ASK_SPAN,
   );
-  const pressure = budgetPressure * verticalPressure;
-  if (pressure <= 0 || unitHash(matureForwardEvalSeed(node)) >= pressure) return base;
-  return {
-    variant: "avg",
-    depth: 2,
-    branch: MATURE_AVG_FWD_EVAL_BRANCH,
-    charge: base.charge,
-    leaf: base.leaf,
-  };
+  if (askPressure <= 0) return base;
+  const budgetPressure = smoothstep(
+    (targetBudget - IMPACT_BEST_FWD_START_FRAMES) / IMPACT_BEST_FWD_SPAN_FRAMES,
+  );
+  const slackPressure = Number.isFinite(budgetSlack)
+    ? smoothstep((budgetSlack - IMPACT_BEST_FWD_SLACK_START) / IMPACT_BEST_FWD_SLACK_SPAN)
+    : 0;
+  const pressure = askPressure * budgetPressure * slackPressure;
+  if (pressure <= 0 || unitHash(impactBestForwardEvalSeed(node)) >= pressure) return base;
+  // Keep the base greedy shape (its deeper hop is load-bearing speed/drift
+  // control — the depth-1 best:1:3 form paid +0.016 speed RMS on flow sources);
+  // widen only the first rolled contact's sample.
+  return { ...base, firstBranch: IMPACT_BEST_FWD_BRANCH };
+}
+
+function impactBestFwdEnabled(): boolean {
+  return readEnv("LR_IMPACT_BEST_FWD") !== "0";
+}
+
+function impactBestForwardEvalSeed(node: SearchNode): number {
+  return nodeHashSeed(node, 0x2545f491, 0x8cb92ba7);
 }
 
 function targetsVerticalDramaAxis(targets: AxisValues | undefined): boolean {

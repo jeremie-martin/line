@@ -393,6 +393,18 @@ type HandoffSearchPolicy = {
   reuseLimit: number;
   tailBranching: number;
   forwardStageTop: number;
+  /** Slack-conditioned pre-completion rollout depth (2026-07-16). The 250k
+   *  capability invalids sit at the completion knee (valid first completions
+   *  at 242-260k frames of a 250k budget), and forward-eval charges ~30% of
+   *  all frames. When the search holds NO completion AND the traversal budget
+   *  model predicts the budget is tight (budgetSlack below the same low-slack
+   *  threshold the branch limiter already uses), the greedy rollout is
+   *  shallowed to depth 1 — still the exact engine judge at roughly half the
+   *  rollout charge. Ordinary compiles (slack ≥ 1.7 at 250k) and mature
+   *  budgets (slack ~2 at 500k) never engage it, which removes exactly the
+   *  mature-trunk drag that retired the unconditional depth-1 form.
+   *  LR_PRECOMPLETION_FWD_EVAL=1 forces full depth everywhere. */
+  forwardEval: boolean;
 };
 
 type NumericAccumulator = {
@@ -2701,6 +2713,7 @@ function expandNode(
     axisQualitySearch: policy.axisQualitySearch,
     releaseSetup: policy.releaseSetup,
     forwardStageTop: policy.forwardStageTop,
+    forwardEval: policy.forwardEval,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
     previewScorePressure: policy.previewScorePressure,
@@ -2816,6 +2829,7 @@ function rescueOptions(
     axisQualitySearch: policy.axisQualitySearch,
     releaseSetup: policy.releaseSetup,
     forwardStageTop: policy.forwardStageTop,
+    forwardEval: policy.forwardEval,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
     previewScorePressure: policy.previewScorePressure,
@@ -2901,6 +2915,7 @@ type ExtraCandidateScoring = {
   targetBudget: number;
   budgetSlack: number;
   openingBestOpportunity: number;
+  allowForwardEval: boolean;
 };
 
 // Per-node memo slot descriptor. Reuse keys on its reuse limit, seeded lanes key
@@ -2955,6 +2970,8 @@ function extraCandidateLane(
       scoring.preview, scoring.previewCostWeight, scoring.previewScorePressure,
       scoring.releaseSetup, scoring.targetBudget, spec.sourceAxis,
       scoring.budgetSlack, scoring.openingBestOpportunity,
+      undefined,
+      scoring.allowForwardEval,
     )
   );
 }
@@ -3253,6 +3270,9 @@ function rankedOptions(
     targetBudget?: number;
     budgetSlack?: number;
     forwardStageTop?: number;
+    /** Slack-conditioned pre-completion depth (see HandoffSearchPolicy.forwardEval).
+     *  Default true so non-policy callers keep the historical behavior. */
+    forwardEval?: boolean;
   } = {},
 ): RankedOption[] {
   const requestedCandidates = config.nCand ?? HANDOFF_QUALITY_N_CAND;
@@ -3280,6 +3300,7 @@ function rankedOptions(
     targetBudget,
     config.budgetSlack ?? 0,
   );
+  const allowForwardEval = config.forwardEval ?? true;
   const scorePoolCandidate = (
     candidate: Candidate,
     rank: number,
@@ -3293,6 +3314,7 @@ function rankedOptions(
       config.budgetSlack ?? 0,
       openingBestOpportunity,
       forwardConfigOverride,
+      allowForwardEval,
     );
   const stageTop = Math.min(Math.max(0, config.forwardStageTop ?? 0), pool.length);
   const baseForwardConfig = fwdEvalRuntime.config;
@@ -3308,6 +3330,7 @@ function rankedOptions(
     );
   const stagedForwardEval = stageTop >= HANDOFF_BRANCHING &&
     stageTop < pool.length &&
+    allowForwardEval &&
     usesForwardEvalAtBudget(targetBudget) &&
     effectiveForwardConfig?.variant === "greedy" &&
     effectiveForwardConfig.depth === 2 &&
@@ -3357,6 +3380,8 @@ function rankedOptions(
       transitionCandidate.sourceAxis,
       config.budgetSlack ?? 0,
       openingBestOpportunity,
+      undefined,
+      allowForwardEval,
     ));
   }
   if (handoffCapacityProbeHook !== null && targetBudget >= 500000) {
@@ -3490,6 +3515,7 @@ function rankedOptions(
     targetBudget,
     budgetSlack: config.budgetSlack ?? 0,
     openingBestOpportunity,
+    allowForwardEval,
   };
   const supportCount = supportTimeCoverageLaneEnabled()
     ? supportTimeCandidateCount(supportTimeCoverageDeficit(node, gap, gaps, ctx, pool))
@@ -4049,6 +4075,7 @@ function completeNearTailSuffix(
       axisQualitySearch: policy.axisQualitySearch,
       releaseSetup: policy.releaseSetup,
       forwardStageTop: policy.forwardStageTop,
+      forwardEval: policy.forwardEval,
       reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
       targetBudget,
@@ -4132,6 +4159,9 @@ function resolveHandoffSearchPolicy({
     forwardStageTop: hasCompletion
       ? Math.max(0, Number.parseInt(readEnv("LR_POST_COMPLETION_FWD_STAGE_TOP") ?? "0", 10) || 0)
       : 0,
+    forwardEval: hasCompletion ||
+      !(budgetSlack < HANDOFF_LOW_SLACK_BRANCH_THRESHOLD) ||
+      readEnv("LR_PRECOMPLETION_FWD_EVAL") === "1",
   };
 }
 
@@ -4769,25 +4799,33 @@ function scoreCandidateForHandoff(
   budgetSlack = 0,
   openingBestOpportunity = 0,
   forwardConfigOverride?: CandidateForwardPolicy,
+  allowForwardEval = true,
 ): RankedOption {
   const child = extendNodeCached(node, candidate);
   // Forward-eval ranking (DEFAULT ≥75k): rank purely by the true metric score of where this arc
-  // leads (charged forward rollout), replacing the local axis-L2 proxy below the gate.
+  // leads (charged forward rollout), replacing the local axis-L2 proxy below the gate. When the
+  // policy marks the pre-completion low-slack phase (allowForwardEval=false), a greedy rollout
+  // is shallowed to depth 1 — the exact judge at about half the charge (see
+  // HandoffSearchPolicy.forwardEval).
   const fwdCfg = fwdEvalRuntime.config; // resolved once per compile in setForwardEvalContext
   if (fwdCfg !== null && usesForwardEvalAtBudget(targetBudget)) {
+    const resolved = forwardConfigOverride ?? adaptiveForwardEvalConfig(
+      fwdCfg,
+      node,
+      gaps,
+      targetBudget,
+      budgetSlack,
+      openingBestOpportunity,
+    );
+    const effective = allowForwardEval || resolved.variant !== "greedy"
+      ? resolved
+      : { ...resolved, depth: 1 };
     const value = forwardArcValue(
       child,
       gaps,
       ctx,
       seed,
-      forwardConfigOverride ?? adaptiveForwardEvalConfig(
-        fwdCfg,
-        node,
-        gaps,
-        targetBudget,
-        budgetSlack,
-        openingBestOpportunity,
-      ),
+      effective,
     );
     const forwardContinuation = cachedForwardContinuation(child, gaps, seed);
     recordCandidateReleaseCoverage(telemetry, candidate);

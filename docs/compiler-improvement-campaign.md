@@ -435,6 +435,31 @@ support-geometry frontier work, (3) the impact-frontier program — the
 trajectory-basis build (docs/compiler-trajectory-synthesis.md) is on the
 critical path to the goal.
 
+## Declared Next Mechanism: Late Dive-Ramp Impact Family (2026-07-16)
+
+The post-504 roadmap arithmetic stands: impact ×0.8 is +41.9 and everything
+else combined caps near ~538, so the impact frontier is on the critical path
+to 550. Every selection-side lever is falsified; the achievable envelope at
+authored speeds is ballistically bounded; and both accepted mechanisms won
+by supplying structurally-absent geometry rather than pressure. The next
+structurally-absent family: impact = v·Δθ gains linearly in contact-instant
+speed, the speed axis scores the gap MEAN, and the sampler's post-angle
+distribution rarely exceeds ~30° — so a LATE steep supported dive ramp
+(descending 35-55° over the final quarter of the gap, guided acceleration
+beyond the gap-mean speed) feeding the existing arrival-conditioned
+converting catch is out of distribution and physically buys redirArc without
+paying the mean-speed price the scoop family pays.
+
+**Falsifier chain (declared before implementation):** (1) single-gap oracle
+on fixed committed prefixes — does dive-ramp + existing template deliver
+measured redirArc ≥ ask where the normal pool undershoots, at equal
+survival? If the ramp cannot beat the pool's achieved impact on ≥ half the
+probed states, retire before any lane. (2) Attempt-spanned lane with
+continuous inputs (ask, speed, gap frames, arrival state); normal candidates
+preserved. (3) 24-seed panels (chunked ≤96 compiles per process — WASM
+memory), ordinary guards byte-diff checked. (4) Stage-0 composition. (5)
+One certified attempt. Era fresh (0/0.05).
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

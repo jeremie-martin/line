@@ -663,6 +663,32 @@ two-contact study remain the program's physics evidence; the probe data
 (generated/staged-probe.jsonl) characterizes the exact arrival states the
 sampler fails on, and is the starting instrument for that successor study.
 
+## Terminal: The Staged-Source Program Ends in the Detector-Floor Identity (2026-07-17)
+
+The arrival-state post-mortem produced perfect separation: 97/103 dead
+continuations had fewer than MIN_LANDING_AIRBORNE_FRAMES (6) airborne
+frames between the composite's last own-line touch and the next beat —
+below which NO landing event can exist for any generator; every chainable
+row had ≥6; winners median 7 with zero below. The evidenced one-line fix
+(reserve the landing window in the air accounting — the accepted
+rung-release law) worked exactly as diagnosed: continuation death 93.8% →
+23.4%, chainability 5% → 86%. And the resulting panels closed the program:
+frontier5 score −12.2/−2.5 (discard clause 1), dense/dense240 −3 each at
+the 250k knee. **The cap removes exactly what made the composite unique:
+air-faithful support below the floor is detector-illegal; above the floor
+the normal sampler was never starved.**
+
+Durable artifacts: (1) **the floor identity — measured air per gap ≥
+MIN_LANDING_AIRBORNE_FRAMES/gapFrames while landings remain admissible.**
+The canonical low-ask air overshoot (+0.32 at ask 0.1) is partly this
+unbuyable constant, not compiler error; air asks below 6/N are physically
+unsatisfiable (an authoring/suite insight — the benchmark contract is
+frozen, so this prices the air pool DOWN for compiler purposes rather than
+opening a lever). (2) pickup@250k +2 valid/+28.6 from the shortness branch
+— one cell for a future rung-focused mechanism. (3) The complete six-form
+falsification chain with per-form measured causes, ending every
+constructed-geometry route.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

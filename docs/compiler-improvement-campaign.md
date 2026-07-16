@@ -560,6 +560,20 @@ composite candidate. One final delivery form is declared below; if it also
 fails the same condition, the compiler integration of this basin is closed
 for the campaign and the basin remains calibration evidence.
 
+**v3 (additive extra-candidate lane in handoff, brake-lane pattern, K=2-4,
+new RNG stream, believer 24/24 byte-identical = clean gating): the discard
+fires hardest — dense −8, dense240 −6, pickup −7, dense_dialogue −7.** The
+lane's candidates either win locally into a poor continuation basin or lose
+while burning charged admission + rollout sims per short-gap visit, exactly
+at the charge-bounded 250k knee (consistent with the retired sample-lean
+result). Monotone across three deliveries (replace/compose/add), one
+construction. **Direction closed: a standalone capture catch cannot exploit
+the two-contact basin in any lane. The basin remains calibration evidence;
+the only admissible successor is a JOINT composite candidate — capture +
+continuation constructed and admitted as ONE unit — i.e. the staged
+transition source of docs/staged-transition-solver-assay.md. That is the
+next (and largest) build of the trajectory program.**
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

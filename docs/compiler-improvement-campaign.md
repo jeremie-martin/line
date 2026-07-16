@@ -460,6 +460,24 @@ preserved. (3) 24-seed panels (chunked ≤96 compiles per process — WASM
 memory), ordinary guards byte-diff checked. (4) Stage-0 composition. (5)
 One certified attempt. Era fresh (0/0.05).
 
+## Retired: Late Dive-Ramp / Deep Steep-Launch Frontier Probe (2026-07-16)
+
+Design correction closed the ramp form before implementation: any mid-gap
+supported dive ramp registers an off-beat landing (validity kill), so
+contact-instant speed can only come from the previous gap's descent and
+flight — i.e. the steep-launch family. The composition thesis (steep
+launches failed pre-template; the accepted arrival-conditioned template
+might now convert them) was probed on the new baseline: cap 15→28°,
+hard-impact zero band 0.5→0.35, six sources × two seeds at 500k. Result:
+impact RMS 0.300→0.302, mean −3.1/row, high-ask buckets mixed (believer 0.6
+improved on one seed, 1.0 worsened), familiar air collateral. **The
+ballistic impact frontier holds even with the converting catch present.**
+Retired; the +41.9 impact pool now formally requires the trajectory-basis
+program (docs/compiler-trajectory-synthesis.md): an engine-measured
+transition source that changes the collision-state basis — staged
+capture/continuation with replay-proven boundaries — not sampler pressure
+in any form. That program's next declared falsifiable steps stand.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

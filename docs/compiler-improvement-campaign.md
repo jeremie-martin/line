@@ -795,6 +795,28 @@ geometry repair is structurally impossible on committed tracks: the impact
 deficit is a compile-time geometry commitment.** The polish framework
 verdict (inert) now extends to any polish-scale impact residual.
 
+## Retired: Recency-Weighted Forward-Eval Leaf — Dilution Is Load-Bearing (2026-07-17)
+
+The blended leaf (q_all^0.6·q_win^0.4, W=3; β=0 byte-identical; only
+objectiveLeafValue touched after a path audit) tripped both discard
+criteria: mean 500k −9.65 with uniform speed-RMS worsening
+(+0.018..+0.025 on all four sources) and dense 13→9 at the 250k knee. Two
+closing lessons: (1) **the 1/k axis dilution is functioning as drift
+regularization** — the whole-prefix RMS's weak marginal is what keeps the
+charged leaf conservative about accumulated prefix drift; sharpening
+current-window discrimination 8× promptly trades prefix speed control for
+current-gap fit. (2) **An 8× sharper impact signal at choice time improved
+impact on zero sources** — with post-hoc repair separately impossible
+(brittleness law), the loop is closed: the pool does not contain better
+impact candidates for ANY judge to find. The impact deficit is
+generation-side, period — and every generation form tried (scoops, steep
+launches, standalone captures, staged composites) is also individually
+falsified, each for a measured reason. What no experiment has yet produced:
+a catch geometry family that delivers windowed redirection at equilibrium
+collateral (holds speed, chains, fits the ±1 contact lattice). That is a
+creative physics/geometry problem, not an iteration; the atlas is its
+complete constraint set.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

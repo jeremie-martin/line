@@ -685,7 +685,9 @@ unbuyable constant, not compiler error; air asks below 6/N are physically
 unsatisfiable (an authoring/suite insight — the benchmark contract is
 frozen, so this prices the air pool DOWN for compiler purposes rather than
 opening a lever). (2) pickup@250k +2 valid/+28.6 from the shortness branch
-— one cell for a future rung-focused mechanism. (3) The complete six-form
+— RETRACTED: a 48-seed verification fully reversed it (new 24 seeds −4
+valid/−68.3; combined −2/−19.9, gained 7/lost 9 churn signature). The
+staged ledger is uniformly non-positive on every source and budget. (3) The complete six-form
 falsification chain with per-form measured causes, ending every
 constructed-geometry route.
 

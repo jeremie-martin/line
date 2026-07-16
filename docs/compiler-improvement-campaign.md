@@ -948,6 +948,134 @@ two-gap analysis needed best-of-24 at k+1 to see the real price. The judge
 problem is now: estimate the k+1 price with less variance at bounded
 charge.
 
+## Declared Mechanism: Impact-Pressured Downstream Width (best:1:m) (2026-07-17)
+
+**Hypothesis.** The forward-eval judge prices every candidate's downstream
+by ONE sampled attempt at the child's k+1 state (`greedy:2` ⇒
+`getCandidatesSorted(branch=1)` ⇒ `solveOneGap(K=1)` = literally attempt
+0), and the measured within-state spread of that estimate (two-gap totals
+0.0015–0.05 across 24 members at the ordinary fixture) exceeds the
+between-candidate differences selection must resolve. Replaying the
+continuation study's attempt-ordered data as estimator policies: the
+1-sample policy picks the two-gap optimum 8/24 (picked |impact err|
+0.094); best-of-3 12/24 (0.082); best-of-24 24/24 (0.052). Widening the
+mature-phase estimator to best-of-3 at depth 1 under continuous impact-ask
+pressure should let the ordinary ranker select the two-gap-optimal pool
+members that already exist, cutting realized impact error on
+impact-authored rows without new geometry.
+
+**Boundary:** `matureForwardEvalConfig` in handoff.ts only — the exact
+accepted vertical-drama upgrade pattern (unitHash pressure firing;
+`{variant:"best", depth:1, branch:3}`); sampler, pool, evaluator, ranker
+contract unchanged. Continuous inputs: authored impact ask (smoothstep
+from 0.25 over 0.2), target budget (smoothstep 300k over 200k — zero at
+250k, so the charge-bounded knee is byte-identical by construction).
+Escape hatch `LR_IMPACT_BEST_FWD=0` for byte-identity proof. In-tree
+precedent gradient: start-eval best:1:5 (+7.5), opening-best branch-2/3
+(accepted), V1 avg-replacement negative (avoid avg).
+
+**Expected cross-regime effect:** impact RMS improvement on
+impact-authored representative/dev-music/capability rows at 500k+;
+air/speed neutral-or-better (the two-gap optimum holds them by
+construction); 250k rows byte-identical; charge +1 admission per rolled
+candidate on fired gaps only.
+
+**Scope panel and discard:** byte-identity with the flag off; 250k
+byte-identity; V2-jolt/500k two-seed 10-source panel
+(`study_impact_scope_panel.ts`). Discard if: mean panel delta negative,
+or impact RMS improvement < 0.005 mean across
+believer/dense_dialogue/split_signal/river_reentry at 500k (24 seeds),
+or any 250k capability validity change (must be zero), or air/speed RMS
+collateral exceeding the impact gain in weighted terms. Family
+(`impact-best-width`) only if the primary form survives: members best:1:2
+(charge parity) and an ask-start variant.
+
+**v1 (depth-1 best:1:3): DISCARD; v2 (first-level width, depth kept):
+panel PASS.** The depth-1 form paid the declared speed collateral (mean
+dSpeed +0.016, one validity loss, mean −23.2; winners were exactly the
+short-figure/impact-contrast rows) — the k+2 hop is load-bearing speed
+control, confirming the recency-leaf lesson from the estimator side. The
+revision keeps the greedy shape and widens only the first rolled contact
+(`firstBranch:3`): sample 3 candidates at k+1 (aim lane suppressed in the
+widened build — baseline branch=1 rollout pools never contained aim
+candidates, and without suppression every prefix re-sort re-runs the
+CHARGED aim lane: 17/24 rideStalled), greedy hop below each, best leaf.
+Fixed-form 500k panel (12 sources × 2 seeds): mean **+14.24**, validity
+24/24, impact RMS **−0.0118**, air −0.0041, speed −0.0106 (ALL axes
+improve; the depth preservation removed the speed price), frames +0.4%;
+250k and flag-off byte-identical.
+
+**24-seed gate:** pooled dImpactRMS −0.0049 (se 0.0013) across the four
+declared sources — exactly ON the 0.005 bar (dense_dialogue −0.0112
+carries; believer/river ≈ −0.0023), pooled dScore +1.74 (se 1.91),
+validity 96/96 both arms. Recorded as a borderline miss the instrument
+cannot resolve; the four gate sources exclude the rows where the panel
+put the mechanism's mass (impact-contrast, capability), so the declared
+composite (stage 0) decides, with stage-0-negative as discard.
+
+**Stage 0: +3.11** (507.34 → 510.45), seed-block SE 0.65, validity
+262→262 (0/0), pairing 51.1% identical (≈ all of 250k byte-identical as
+constructed; the whole effect is the 500k cell ≈ +4.4). Zero validity
+movement = the low-variance quality profile the certification arithmetic
+requires (contrast composed-v1's validity-Bernoulli futility). Largest
+loss (rising_switch_tempo_fast −27.9) is mirrored by its parent's +25.1 —
+knife-edge family seed noise, not a coherent regression. Full test suite
+813/813. Proceeding to the certified attempt (era 0→0.0209 of 0.05).
+
+**Certified attempt 1 (`2026-07-16T15-08-26Z-f41e5494`): INCONCLUSIVE at
++1.86** [−1.76, +5.49], realized SE 1.36 vs envelope 1.30; all five
+futility looks passed. The quality claim is REAL and certified:
+representative **+3.94 [+2.64, +5.23]** and development music **+3.03
+[+0.98, +5.08]** both exclude zero; 250k exactly +0.00 (2026/2112 valid
+identical); 750k +4.38 [−0.26, +9.02]. The headline was sunk by
+capability −6.54 [−29.55, +16.47] carrying 5 validity losses
+(pickup_shifted −43.1, 3 flips; dense_recovery −30.6, 2 flips at
+500k/750k) — pre-completion width charge on knife-edge completion hunts.
+
+**Width/scope iteration (same day, all stage-0/panel-triaged):**
+firstBranch 8 ungated → stage-0 −21.94, validity −3, pickup_shifted −276
+(more width = more completion-hunt charge; the estimator-sim's monotone
+width→quality prediction fails full-compile economics). fb8 gated
+post-completion → panel −7.9, impact flat (the value lives in
+PRE-completion trunk building, not refinement — gate falsified). fb8
+slack-guarded → stage-0 −0.96 (protection works, fb8 still too wide).
+**fb3 + slack guard (width pressure × smoothstep(budgetSlack from
+2.5/2.0); the accepted slack-depth signal): stage-0 +2.37, validity 0/0;
+flip-site proxies at 24 seeds/500k all clean AND positive (dense 24/24
++4.3, pickup 24/24 +4.8, dense240 24/24 +1.1, impact better on all
+three).** Constant screens: ask-start 0.15 retired (−0.85); slack 2.0 vs
+2.5 within shared-seed noise (+2.84 vs +2.37) — 2.5 chosen for
+protection, the revision's purpose. Flag-off and 250k byte-identity
+re-proven; suite 813/813. Declaring the second certified attempt (era →
+0.0418 of 0.05) for the slack-guarded fb3 source default.
+
+**Certified outcome (`2026-07-16T16-45-07Z-8257f266`): ACCEPT.** Headline
+`505.51 -> 510.37`, delta **+4.85**, 99% one-sided lower bound **+1.39**
+(SE 1.44); every futility look passed (+14.05/+11.49/+10.29/+6.81/+8.58).
+Validity +4/−1. Budgets: 250k exactly +0.00 (2011/2112 identical), 500k
++4.81, 750k **+8.16 [+6.03, +10.28]**. Strata: representative +2.40
+[+0.57, +4.23]; capability +19.42 with the slack guard converting attempt
+1's worst losses into the largest wins (pickup_shifted **+45.18**, valid
+120→122; dense_recovery +28.19, 109→110); legacy +1.99 and dev-music
++1.15 unresolved-positive. Worst case regression −4.16 (trivial, no
+validity movement). Qualification monitor 380.83 → **392.62** (+11.8,
+held-out post-decision signal). Rebaseline
+`accept-2026-07-16T16-45-07Z-8257f266`; era reset; committed c62cb3a;
+suite fixture test refreshed. Campaign certified chain: 492.54 → 503.86 →
+**510.37**; ~40 to the 550 target.
+
+**Retained iteration lessons:** (1) the estimator-sim's monotone
+width→quality prediction fails full-compile economics — fb8 lost at every
+scoping (ungated stage-0 −21.9 with pickup_shifted −276; post-completion
+gate panel −7.9 impact-flat; slack-guarded −0.96): modest width at the
+right scope beats more width. (2) The width's value lives in
+pre-completion trunk building at COMFORTABLE slack; budgetSlack is the
+continuous signal separating that from the knife-edge completion hunts
+its charge damages. (3) `nCand>1` rollout pool builds trigger the charged
+aim lane on every prefix re-sort — any future rollout widening must
+suppress it (setRolloutAimSuppressed) to preserve branch=1 rollout
+semantics.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

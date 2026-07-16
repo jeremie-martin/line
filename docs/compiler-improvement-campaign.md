@@ -1259,6 +1259,44 @@ carrier-shape family build (cf. the smooth-continuation-carrier
 retirement's constraints: capture-geometry independence must be proven),
 declared as the next session's candidate. Reverted.
 
+## Terminal: J-Valley Falsified by the Adhesion Limit; the Levers Merge (2026-07-16)
+
+The J-valley oracle (`scripts/v0/study_jvalley_carrier.ts`, believer36/69
+fixtures, 200 raw-normal + 600 J-profiles per state, unchanged
+`tryCandidateLines`, artifacts `generated/studies/jvalley-carrier/v1/`)
+falsified the support-side energy bank with a measured physical cause:
+
+- The family DOES bank speed (+0.45–0.65 px/f median arrival) — but at
+  believer69 every variant arrives ~9° steeper with worse current-gap
+  impact/air, and **zero of 581 chained J-candidates dominate the
+  raw-normal frontier** (arrival speed ≥ p90 AND angle ≤ median).
+- Per-row release data shows why: even "flat-exit" profiles release at
+  the pitch-down knee after 3–5 grounded frames with vy +2–4 — the rider
+  never reaches the flatten. **The convex-curvature adhesion limit
+  (rails push, never pull; κ ≤ g/v² ⇒ turn radius ≥ ~570px at 10 px/f)
+  makes local downhill steering impossible inside a 19-frame gap** —
+  every J-profile degenerates into a dive, i.e. the catch toll again.
+- Energy audit at the hot gaps: air 0.64 mandates ≥12 airborne frames ⇒
+  arrival vy ≥ ~2.1 ⇒ arrival angle ≥ ~12° regardless of geometry; the
+  measured ~10 px/f equilibrium is where flight-drop + ride-grade gains
+  exactly balance the catch toll. Support-side geometry cannot shift it.
+
+**Synthesis: the both-bad-tail lever and the equilibrium-price lever are
+the SAME mechanism.** The only remaining route to holding near-max speed
+through authored air+impact chains is converting the MANDATED vertical
+arrival energy into horizontal exit speed AT THE CATCH — an accelerating
+catch — which is exactly the catch-frontier oracle's entry-incidence
+family (entry rotated into incoming velocity, contact +1–2.5px low,
+near-zero post-turn), whose net-positive-at-k+1 subset carries the
+measured arrival signature (arrival speed ≥ ~9.6 px/f, angle +9–14°,
+long run-out; frontier-continuation study, 7/24). **Next mechanism, one
+build: the signature-gated entry-incidence catch lane** — proposes only
+candidates whose ballistically-predicted next-arrival passes the
+signature (continuous inputs; zero extra sim via the existing arrival
+propagation), modest share, composed with the certified width judge that
+can now see the k+1 difference. It targets the equilibrium price AND the
+energy chains with the same geometry.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

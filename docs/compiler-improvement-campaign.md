@@ -708,6 +708,32 @@ banked in the v6 panels); (ii) aim-model accuracy at the modal regimes
 V2); (iii) fresh design territory for within-bounds error capture, tested
 against the standing falsification chain before any build.
 
+## Retired Hypothesis: Aim-Model Per-Axis Bias (2026-07-17) — Model Exonerated, Two Leads Opened
+
+An observation-only probe (18,406 realized aimed candidates, 4 sources × 2
+seeds @500k; decision-surface fidelity proven to 1e-9) measured the aim
+lane's fitted model against exact measurements: air bias +0.004 / speed
+−0.002 / impact +0.003 — 1-3% of the axis error scales,
+sign-inconsistent across sources. The model is accurate and unbiased at
+modal regimes (impact RMSE 0.025 vs axis RMS 0.29); the mis-aim hypothesis
+is NOT supported and no bias correction is warranted. Two evidence-backed
+leads from the same data:
+
+1. **The 0.55 safeCap (generation, existing machinery inert).** Gaps with
+   air asks 0.3-0.5 achieve ~0.76 (+0.36 overshoot, far above the detector
+   floor at those 24-31-frame gaps). The support-extension lanes built for
+   exactly this deficit are structurally disabled: `supportReferenceLength`
+   = min((1−air)·v·gap, **0.55**·v·gap) forces extensionPressure ≡ 0 for
+   every ask < ~0.45 (log-ratio never reaches its threshold). Raising the
+   safeCap is a one-constant continuous enablement of EXISTING deficit
+   machinery — the scaffolding survey pre-identified it as the one clean
+   lever pending deficit confirmation, now confirmed.
+2. **Amplitude leak in aim selection (correctness-shaped).** The aim
+   currentQuality term scores a (poor) amplitude prediction on sources
+   where amplitude is not a scored component (split_signal: scored axes on
+   target yet currentQuality 0.21) — the aim judge diverges from the
+   scorer's axis contract. Alignment fix candidate.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

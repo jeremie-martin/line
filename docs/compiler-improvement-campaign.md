@@ -1076,6 +1076,18 @@ aim lane on every prefix re-sort — any future rollout widening must
 suppress it (setRolloutAimSuppressed) to preserve branch=1 rollout
 semantics.
 
+**Post-accept family harvest (2026-07-16, all stage-0-screened and
+reverted): the accepted form is the local optimum.** 250k extension
+(budget ramp 300k→150k) is BYTE-IDENTICAL — at 250k budgetSlack never
+reaches the 2.5 guard, so the slack guard alone already excludes the
+scarce budget; the knee is closed to this family by its own protection.
+Sample-8/chain-quality-top-3 (best-of-8 selection reach at best-of-3
+chain cost): **−1.54** — widening the quality pre-sort's authority over
+which continuations get chained is harmful, consistent with the 25–29%
+top-1 agreement between the static quality opinion and chained value.
+Family closed at the accepted constants; next mechanism must come from a
+different pool.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

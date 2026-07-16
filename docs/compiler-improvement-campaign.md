@@ -882,6 +882,72 @@ frontier-limited by the same measured constraints. Realistic without the
 structural judge: ~510-520. **The 550 goal requires solving the judge
 problem.** The campaign's certified gains stand at 492.54 → 503.86.
 
+## Declared Study: Frontier-Catch Continuation Competence (2026-07-17)
+
+Calibration-only, WASM/500k fixtures, declared before any row is observed.
+Before any judge build, the 2×2's "supply unvalued" cell needs attribution:
+the catch-frontier oracle proved chainability only BALLISTICALLY (≥6
+airborne frames, survived to the beat). It never asked whether the NORMAL
+sampler can construct an admissible catch from the frontier catch's arrival
+state — and the staged program died on exactly that (94-95% foreign
+arrivals). If entry-incidence arrivals are similarly foreign, the greedy:2
+rollout was RIGHT to reject them and the judge is innocent; building a
+judge would cash nothing.
+
+Protocol: the three catch-frontier fixtures (dense240/ordinary/frontier5).
+Segment 1 replays retained artifact rows by exact `params` (frontier set =
+top chainable rows by |impact err|, N≤24; incumbent control = admitted
+raw-normal rows), admits via unchanged `tryCandidateLines`, extends the
+engine (two-contact segment-2 protocol). Segment 2 runs the production
+raw-normal member stream at the next authored contact from each arrival
+and records admissions + achieved axes. All engine touches bracketed by
+`getSimFrames()`.
+
+Falsifiers, declared: (F1, generation convicted) frontier seg-2 admission
+rate < half the incumbent rate on ≥2 of 3 states → arrival foreignness
+explains non-selection; judge exonerated; pivot to arrival-competent
+generation. (F2, judge convicted) frontier seg-2 admission and best
+achieved quality comparable to incumbents → healthy continuations existed;
+non-selection is valuation noise (the 147/k dilution measured directly);
+proceed to the judge mechanism. (F3, mixed) → scope any successor by the
+continuous arrival features (angle, speed, airborne margin) that predict
+chaining.
+
+**Resolution: F3, and the 2×2's terminal framing is corrected**
+(`scripts/v0/study_frontier_continuation.ts`, artifacts
+`generated/studies/frontier-continuation/v1/`, ~87k frames total; replay
+integrity bit-exact on all 96 replayed members). Per state:
+
+- ordinary (25f outgoing): frontier arrivals chain 22/24 vs incumbent
+  24/24. But pricing BOTH gaps (impact err at k + best joint wRMS at k+1
+  over an equal 24-member raw-normal screen) collapses the frontier's
+  advantage: best incumbent two-gap total 0.0049 (impact err −0.052) vs
+  best frontier 0.0046 (impact-exact) — TIED. Only 7/24 impact-exact
+  frontier rows beat the incumbent-median trade; the rest pay a downstream
+  price up to 6× their impact gain. **The catch-frontier oracle's "zero
+  marginal collateral" was an accounting-horizon error: collateral was
+  priced at the current gap only; the real price appears in the k+1 pool.**
+- dense240 (12f): frontier arrivals chain 0/24 vs incumbent 5/7 — fully
+  foreign exactly where the sampler is geometry-limited. No impact
+  progress is available at the knee without arrival-competent
+  continuation; protect it, don't fight it.
+- frontier5 (200f): both families 0/24 through this 24-member instrument —
+  uninformative (long-rideout catches need the full production machinery).
+
+Two conclusions. (1) New catch geometry is NOT the impact lever at
+ordinary states: the raw-normal family already spans the two-gap optimum.
+(2) The two-gap optimum sits at impact err ≈ −0.05 while compiles realize
+−0.2..−0.38 — and its winners (e.g. `normal_17`: imp −0.052, k+1 wRMS²
+0.0045 vs pool median 0.0115) are ORDINARY pool members. The impact prize
+at ordinary states is therefore a SELECTION prize, and today's data
+locates the judge's failure precisely: not the 147/k dilution of the
+current-gap impact term (the recency-leaf falsification stands, correctly),
+but the NOISE of the downstream price estimate — one greedy chain per
+candidate, knife-edge-variant, 44–123× the impact signal, where the
+two-gap analysis needed best-of-24 at k+1 to see the real price. The judge
+problem is now: estimate the k+1 price with less variance at bounded
+charge.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

@@ -719,7 +719,7 @@ modal regimes (impact RMSE 0.025 vs axis RMS 0.29); the mis-aim hypothesis
 is NOT supported and no bias correction is warranted. Two evidence-backed
 leads from the same data:
 
-1. **The 0.55 safeCap (generation, existing machinery inert).** Gaps with
+1. **[FALSIFIED same day]** The 0.55 safeCap (generation, existing machinery inert). Gaps with
    air asks 0.3-0.5 achieve ~0.76 (+0.36 overshoot, far above the detector
    floor at those 24-31-frame gaps). The support-extension lanes built for
    exactly this deficit are structurally disabled: `supportReferenceLength`
@@ -728,11 +728,37 @@ leads from the same data:
    safeCap is a one-constant continuous enablement of EXISTING deficit
    machinery — the scaffolding survey pre-identified it as the one clean
    lever pending deficit confirmation, now confirmed.
-2. **Amplitude leak in aim selection (correctness-shaped).** The aim
+2. **[NOT CONFIRMED same day]** Amplitude leak in aim selection (correctness-shaped). The aim
    currentQuality term scores a (poor) amplitude prediction on sources
    where amplitude is not a scored component (split_signal: scored axes on
    target yet currentQuality 0.21) — the aim judge diverges from the
    scorer's axis contract. Alignment fix candidate.
+
+## Retired: SafeCap Enablement; Amplitude Leak Not Confirmed (2026-07-17)
+
+**SafeCap 0.55→0.9: falsified on 9 panels (24 seeds each).** river_reentry
+byte-identical at both budgets; frontier5 air RMS WORSE (+0.005/+0.010)
+with speed also worse; dense/dense240 lose 5 valid each at 250k. The
+causal premise was backwards: raising the cap drives the support-deficit
+ratio TOWARD 1 (further below the extension smoothstep start), so the
+extension lanes stay inert at any cap ≥ ~0.35; the only real effect is the
+direct targetLen lerp lengthening ride-outs, which is neutral-to-harmful.
+Engaging the extension machinery would require LOWERING the cap (≤~0.35),
+which simultaneously shortens the direct ride-out target — incoherent.
+
+**Amplitude leak: not a leak.** Both the aim quality readout and the V2
+scorer contract derive from the same effectiveAxes(); every source that
+authors amplitude scores it (10/10); elevation/grain are never authored so
+the only structural divergence is dormant. split_signal's low aim
+currentQuality is the correct joint quality of genuinely-hard scored axes.
+Residual (small): the model-path amplitude PREDICTION is noisy inside the
+joint quality — a prediction-quality question on a +3.0-point axis;
+deprioritized.
+
+With these, every lead from the aim-accuracy measurement is resolved. The
+campaign's mapped mechanism space is exhausted end-to-end; the standing
+position (550 needs ~28% of physically-avoidable error; frontier =
+geometry/search co-design) is the complete statement of what remains.
 
 ## Active Transition Evidence
 

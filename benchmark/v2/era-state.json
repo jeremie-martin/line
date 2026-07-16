@@ -1,12 +1,12 @@
 {
   "schema": "line.benchmark-v2.era-state.v1",
-  "eraId": "era-2026-07-15T16-24-31Z",
-  "eraStartedAt": "2026-07-15T16:24:38.122Z",
+  "eraId": "era-2026-07-16T01-54-09Z",
+  "eraStartedAt": "2026-07-16T01:54:15.586Z",
   "eraCause": "rebaseline-accept",
-  "baselineLabel": "accept-2026-07-15T15-24-50Z-e4890b0e",
+  "baselineLabel": "accept-2026-07-16T00-55-56Z-45f7c00c",
   "budgetCap": 0.05,
-  "budgetSpent": 0.0418,
-  "cumulativeExpectedFalseAccepts": 0.2025,
+  "budgetSpent": 0,
+  "cumulativeExpectedFalseAccepts": 0.2234,
   "attempts": [
     {
       "attemptId": "2026-07-11T21-25-55Z-f99e71f1",
@@ -127,6 +127,16 @@
       "declaredAt": "2026-07-15T23:39:46.570Z",
       "outcome": "futility-stop",
       "lookCount": 1
+    },
+    {
+      "attemptId": "2026-07-16T00-55-56Z-45f7c00c",
+      "eraId": "era-2026-07-15T16-24-31Z",
+      "candidateFingerprint": "99cb11baf672b8bb17561417be95366223b28c3e8d13323048af1419b5f435db",
+      "operatingPointId": "improve-t0-d48",
+      "spend": 0.0209,
+      "declaredAt": "2026-07-16T00:55:56.991Z",
+      "outcome": "accept",
+      "lookCount": 5
     }
   ],
   "inFlightAttemptId": null,
@@ -203,6 +213,12 @@
       "canonicalSeedBase": 764532922,
       "seedCount": 144,
       "seedScheduleFingerprint": "939d691e8b4435a6211703dc01c5335dbd094e1ffa57a79a1a259636db37a3af"
+    },
+    {
+      "attemptId": "2026-07-16T00-55-56Z-45f7c00c",
+      "canonicalSeedBase": 260125564,
+      "seedCount": 144,
+      "seedScheduleFingerprint": "499a25eb160f8d6bb83b4675f5cae6b01addf778b1419145a0dfe63ae1b182ae"
     }
   ]
 }

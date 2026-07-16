@@ -5,6 +5,7 @@
  * panel declaration in one place lets fixture capture and observation studies
  * agree on source, seed, target gap, and frame conventions.
  */
+import believer from "../../../benchmark/v2/cases/normative/development_music/believer_56_6s.ts";
 import dense from "../../../benchmark/v2/cases/normative/capability/frontier_dense_recovery.ts";
 import frontier5 from "../../../benchmark/v2/cases/normative/capability/frontier_low_air_endurance.ts";
 import countercurrent from "../../../benchmark/v2/cases/normative/representative/countercurrent.ts";
@@ -99,6 +100,28 @@ export const TRAJECTORY_PANEL_CASES: Record<TrajectoryPanelCase["id"], Trajector
     seed: 3057130498,
     targetGap: 69,
     selectionRationale: "Fixed dense-recovery stream contact used by the initial containment study.",
+  },
+  believer36: {
+    id: "believer36",
+    cohort: "calibration",
+    category: "ordinary",
+    spec: believer,
+    sourcePath: "benchmark/v2/cases/normative/development_music/believer_56_6s.ts",
+    seed: 24,
+    targetGap: 36,
+    selectionRationale:
+      "Slow-episode onset passage (authored speed 0.87 + impact 0.82 + air 0.63 jointly; slow in 99% of seeds) — the both-bad tail's prevention point for the energy-carrier (J-valley) program.",
+  },
+  believer69: {
+    id: "believer69",
+    cohort: "calibration",
+    category: "ordinary",
+    spec: believer,
+    sourcePath: "benchmark/v2/cases/normative/development_music/believer_56_6s.ts",
+    seed: 24,
+    targetGap: 69,
+    selectionRationale:
+      "Deep slow-cluster passage (authored speed 1.0 + impact 0.76 + air 0.64) — mid-episode state for energy-recovery geometry assays.",
   },
   dense240: {
     id: "dense240",

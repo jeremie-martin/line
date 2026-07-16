@@ -1,0 +1,693 @@
+/**
+ * Charged Two-Contact Shooting (calibration-only, WASM/500k).
+ *
+ * Declared in docs/compiler-improvement-campaign.md ("Declared Study: Charged
+ * Two-Contact Shooting (2026-07-16)"). Question: from an exact committed prefix
+ * at a dense/rung state, can a JOINTLY constructed pair -- an engine-admitted
+ * catch at contact k and a chained catch at contact k+1 on the extended engine
+ * -- close both contacts where the normal pool fails, at physics-frame cost
+ * comparable to what the normal sampler spends failing?
+ *
+ * This is study-only code OUTSIDE the compiler identity boundary. It reads the
+ * frozen fixtures and the shared primitives, but no compiler source imports it,
+ * and it selects/promotes nothing. Admission at both contacts is the unchanged
+ * `tryCandidateLines` (survival, +/-1-frame landings, no off-beat). Every row
+ * retains both fits' outcomes and `getSimFrames()` charges per segment.
+ */
+import { PERSISTENCE_FRAMES } from "../lib/detector.ts";
+import { makeRng } from "../lib/rng.ts";
+import {
+  clearImpactTemplateMarker,
+  sampleArcPlacementGeometry,
+} from "./arc_placement.ts";
+import { compilerCandidateIdentity } from "./benchmark_v2/compiler_identity.ts";
+import { axisLookaheadEndFrame, detectWindow, tryCandidateLines } from "./core/candidate.ts";
+import {
+  airborneAt,
+  contactLineIdsAt,
+  engineLineFromTrackLine,
+  type GapFit,
+} from "./core/substrate.ts";
+import { getCandidateProbe, type CandidateProbe, type SpecContext } from "./optimizer/sample.ts";
+import { getSimFrames } from "./optimizer/sim_frames.ts";
+import type { AxisValues, Gap, TrackLine } from "./types.ts";
+import {
+  realizeContactCaptureArc,
+  resolveContactCaptureArc,
+} from "./trajectory/contact_capture_arc.ts";
+import { makeMirroredContactCaptureArcScreen } from "./trajectory/contact_capture_arc_design.ts";
+import { contactKinematicFrameFromPlanningState } from "./trajectory/contact_kinematic_frame.ts";
+import { readFrozenTrajectoryFixture, sha256, stableJson } from "./trajectory/frozen_fixture.ts";
+import { extractPlanningState, type PlanningState } from "./trajectory/state.ts";
+import {
+  prepareStateCoupledTrajectoryFixture,
+  type PreparedTrajectoryFixtureCore,
+} from "./trajectory/study_context.ts";
+import {
+  studyArtifactIdentity,
+  studySourceIdentity,
+  writeImmutableJsonArtifact,
+} from "./trajectory/study_artifact.ts";
+import { targetFrameFromPlanningState } from "./trajectory/target_frame.ts";
+
+const SCHEMA = "line.study-two-contact-shooting.v1";
+const FIXTURE_DIR = "generated/studies/trajectory-fixtures/current-2026-07-15/v3";
+const FIXTURES = {
+  dense: "dense-b500000-0552802c01e1.json",
+  dense240: "dense240-b500000-e8f074b651d9.json",
+  ordinary: "ordinary-b500000-e71c85b5c2c2.json",
+} as const;
+type StateId = keyof typeof FIXTURES;
+type Family = "capture-arc" | "raw-normal";
+
+const argv = process.argv.slice(2);
+const argument = (name: string): string | undefined =>
+  argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+
+if (argv.includes("--help") || argv.includes("-h")) {
+  process.stdout.write([
+    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--out-dir=DIR]",
+    "",
+    "Calibration-only charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
+    "Writes one immutable JSON artifact per state under the out-dir default",
+    "generated/studies/two-contact-shooting/v1/ plus a compact stdout table.",
+  ].join("\n") + "\n");
+  process.exit(0);
+}
+
+assertExactEnvironment();
+const supportedOptions = ["--case=", "--out-dir=", "--help", "-h"];
+const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
+if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
+
+const requestedCase = argument("case") ?? "all";
+const stateIds: readonly StateId[] = ["dense", "dense240", "ordinary"];
+if (requestedCase !== "all" && !stateIds.includes(requestedCase as StateId)) {
+  throw new Error(`unknown --case=${requestedCase}; expected all|${stateIds.join("|")}`);
+}
+const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
+const outDir = argument("out-dir") ?? "generated/studies/two-contact-shooting/v1";
+
+const sourceIdentity = studySourceIdentity("scripts/v0/study_two_contact_shooting.ts");
+const observationCompiler = compilerCandidateIdentity("wasm");
+const protocolFingerprint = sha256(stableJson({
+  protocol: "charged-two-contact-shooting.v1",
+  captureBudget: 500_000,
+  segment1Families: ["mirrored-24-control-capture-arc", "equal-count-raw-normal"],
+  segment2Families: ["mirrored-24-control-capture-arc", "equal-count-raw-normal"],
+  admission: "tryCandidateLines (survival, +/-1 landing, no off-beat; unchanged)",
+  chaining: "engine.addLine(fit.lines) -> getCandidateProbe(outgoing) -> same screen at k+1",
+}));
+
+const started = performance.now();
+const runResults = selected.map((id) => runState(id));
+
+const summaryLines: string[] = [
+  `charged two-contact shooting: ${runResults.length} state(s), ${round(performance.now() - started)}ms; engine=wasm`,
+];
+for (const result of runResults) summaryLines.push(...formatStateSummary(result));
+process.stdout.write(summaryLines.join("\n") + "\n");
+
+// Positive control: on the ordinary fixture the raw-normal family must produce
+// at least one segment-1 admission (calibration history). Zero is a broken
+// observation path, not a physics result.
+const ordinary = runResults.find((result) => result.id === "ordinary");
+if (ordinary !== undefined) {
+  const rawSeg1Admitted = ordinary.summary.segment1AdmissionByFamily["raw-normal"].admitted;
+  if (rawSeg1Admitted === 0) {
+    process.stdout.write(
+      "\nCONTROL FAILURE: ordinary raw-normal produced zero segment-1 admissions; the observation path is broken.\n",
+    );
+    process.exitCode = 2;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+type CandidateMember = { index: number; label: string; lines: TrackLine[] | null; error: string | null };
+type FailureClass =
+  | "geometry-error"
+  | "not-admitted-k"
+  | "no-airborne-arrival"
+  | "segment2-family-unavailable"
+  | "not-admitted-k1"
+  | "joint-admitted";
+
+type Segment2Row = {
+  family: Family;
+  label: string;
+  admitted: boolean;
+  admissionFrames: number;
+  landingFrameOffset: number | null;
+  landingProbeFrames: number;
+  achieved: ReturnType<typeof roundAxes>;
+  achievedAtEnd: ReturnType<typeof roundAxes>;
+  finalLineCount: number | null;
+  error: string | null;
+};
+
+type Row = {
+  index: number;
+  family: Family;
+  controlId: string;
+  failureClass: FailureClass;
+  jointAdmitted: boolean;
+  totalChargedFrames: number;
+  segment1: {
+    admitted: boolean;
+    admissionFrames: number;
+    landingFrameOffset: number | null;
+    landingProbeFrames: number;
+    achieved: ReturnType<typeof roundAxes>;
+    achievedAtEnd: ReturnType<typeof roundAxes>;
+    finalLineCount: number | null;
+    error: string | null;
+  };
+  segment2:
+    | null
+    | {
+      available: boolean;
+      probeFrames: number;
+      attempted: number;
+      admitted: number;
+      admittedByFamily: Record<Family, number>;
+      admissionFrames: number;
+      landingProbeFrames: number;
+      error: string | null;
+      rows: Segment2Row[];
+    };
+};
+
+type StateResult = {
+  id: StateId;
+  artifactPath: string;
+  panel: PreparedTrajectoryFixtureCore["panel"];
+  rows: Row[];
+  summary: StateSummary;
+};
+
+type FamilyClosure = {
+  segment1Attempted: number;
+  segment1Admitted: number;
+  jointPairs: number;
+  segment1WithJoint: number;
+  totalChargedFrames: number;
+  jointPairsPerMillionFrames: number | null;
+};
+type StateSummary = {
+  segment1AdmissionByFamily: Record<Family, { attempted: number; admitted: number }>;
+  jointByFamilyPair: Record<string, number>;
+  jointPairsTotal: number;
+  totalChargedFramesByFamily: Record<Family, number>;
+  failureClassCounts: Record<string, number>;
+  byFamily: Record<Family, FamilyClosure>;
+};
+
+function runState(id: StateId): StateResult {
+  const fixturePath = `${FIXTURE_DIR}/${FIXTURES[id]}`;
+  const fixture = readFrozenTrajectoryFixture(fixturePath);
+  // prepareStateCoupledTrajectoryFixture fails closed on any replay mismatch;
+  // that error is surfaced, never suppressed.
+  const prepared = prepareStateCoupledTrajectoryFixture(fixture);
+  if (prepared.panel.cohort !== "calibration") {
+    throw new Error(`two-contact shooting accepts only calibration fixtures; ${prepared.panel.id} is ${prepared.panel.cohort}`);
+  }
+  const allContactFrames = prepared.ctx.allContactFrames;
+  const axisEnd1 = axisLookaheadEndFrame(prepared.current, allContactFrames);
+
+  const kinematic1 = contactKinematicFrameFromPlanningState(prepared.state, prepared.frame, prepared.current.targets);
+  const captureMembers1 = buildCaptureMembers(kinematic1, prepared.lineIdStart);
+  const rawMembers1 = buildRawMembers(
+    makeRng(rawStreamSeed(prepared, prepared.current.index)),
+    prepared.probe,
+    prepared.current,
+    prepared.lineIdStart,
+    allContactFrames,
+    captureMembers1.length,
+  );
+
+  const families1: Array<{ family: Family; members: CandidateMember[] }> = [
+    { family: "capture-arc", members: captureMembers1 },
+    { family: "raw-normal", members: rawMembers1 },
+  ];
+
+  const rows: Row[] = [];
+  let rowIndex = 0;
+  for (const { family, members } of families1) {
+    for (const member of members) {
+      rows.push(evaluateRow(prepared, family, member, rowIndex, axisEnd1, allContactFrames));
+      rowIndex++;
+    }
+  }
+
+  const summary = summarizeState(rows);
+  const artifactIdentity = studyArtifactIdentity({
+    schema: SCHEMA,
+    fixtureFingerprint: fixture.fixtureFingerprint,
+    studySourceFingerprint: sourceIdentity.studySourceFingerprint,
+    observationCandidateFingerprint: observationCompiler.candidateFingerprint,
+    protocolFingerprint,
+  });
+  const document = {
+    schema: SCHEMA,
+    artifactIdentity,
+    purpose: [
+      "Test whether a jointly constructed capture at contact k and a chained catch at contact k+1 close both contacts where the normal pool fails.",
+      "Charge every admission and probe with getSimFrames() and compare joint closure cost against the equal-count raw-normal stream.",
+      "Retain every row; no control, candidate, source default, or promotion is selected here.",
+    ],
+    status: {
+      productionIntegration: "forbidden: calibration study outside the compiler identity boundary; not a candidate source, selector, or promotion command",
+      cohortPolicy: "calibration only; a separately frozen validation cohort is required before any predictive claim",
+    },
+    argv: [...argv],
+    elapsedMs: round(performance.now() - started),
+    provenance: {
+      fixturePath,
+      fixtureFingerprint: fixture.fixtureFingerprint,
+      captureCompiler: fixture.captureCompiler,
+      observationCompiler,
+      runtime: { node: process.version, engine: "wasm" },
+      studySourceFingerprint: sourceIdentity.studySourceFingerprint,
+      studySourceFiles: sourceIdentity.sourceFiles,
+    },
+    panel: prepared.panel,
+    fixtureReplay: prepared.replay,
+    protocol: {
+      captureBudget: prepared.fixture.captureBudget,
+      captureEngine: prepared.fixture.captureEngine,
+      captureEnvironment: prepared.fixture.captureEnvironment,
+      segment1CaptureArcControls: captureMembers1.length,
+      segment1RawNormalControls: rawMembers1.length,
+      admission: "tryCandidateLines(engine, gap, lines, lineIdStart, allContactFrames, axisLookaheadEndFrame, gap.targets, true, undefined, probe.preTargetSledTrace)",
+    },
+    summary,
+    rows,
+  };
+
+  const artifactPath = `${outDir}/${prepared.panel.id}-${fixture.fixtureFingerprint.slice(0, 12)}.json`;
+  writeImmutableJsonArtifact(artifactPath, document, "two-contact-shooting artifact");
+  return { id, artifactPath, panel: prepared.panel, rows, summary };
+}
+
+function evaluateRow(
+  prepared: PreparedTrajectoryFixtureCore,
+  family: Family,
+  member: CandidateMember,
+  rowIndex: number,
+  axisEnd1: number,
+  allContactFrames: number[],
+): Row {
+  const base = {
+    index: rowIndex,
+    family,
+    controlId: member.label,
+  };
+  if (member.lines === null) {
+    return {
+      ...base,
+      failureClass: "geometry-error",
+      jointAdmitted: false,
+      totalChargedFrames: 0,
+      segment1: emptySegment1(member.error),
+      segment2: null,
+    };
+  }
+
+  const s1Before = getSimFrames();
+  const fit1 = tryCandidateLines(
+    prepared.engine,
+    prepared.current,
+    member.lines,
+    prepared.lineIdStart,
+    allContactFrames,
+    axisEnd1,
+    prepared.current.targets,
+    true,
+    undefined,
+    prepared.probe.preTargetSledTrace,
+  ) as GapFit | null;
+  const s1Frames = getSimFrames() - s1Before;
+
+  if (fit1 === null) {
+    return {
+      ...base,
+      failureClass: "not-admitted-k",
+      jointAdmitted: false,
+      totalChargedFrames: s1Frames,
+      segment1: { ...emptySegment1(null), admissionFrames: s1Frames },
+      segment2: null,
+    };
+  }
+
+  const engine2 = prepared.engine.addLine(fit1.lines.map((line: TrackLine) => engineLineFromTrackLine(line)));
+  const lineId2 = prepared.lineIdStart + fit1.lines.length;
+
+  // Segment-1 landing offset (bracketed probe on the extended engine).
+  const l1Before = getSimFrames();
+  const det1 = detectWindow(engine2, prepared.current.startFrame, prepared.current.endFrame + PERSISTENCE_FRAMES);
+  const s1LandingOffset = ownedLandingFrameOffset(det1, prepared.current.endFrame, new Set(fit1.lines.map((line: TrackLine) => line.id)));
+  const l1Frames = getSimFrames() - l1Before;
+
+  const segment1 = {
+    admitted: true,
+    admissionFrames: s1Frames,
+    landingFrameOffset: s1LandingOffset,
+    landingProbeFrames: l1Frames,
+    achieved: roundAxes(fit1.achieved),
+    achievedAtEnd: roundAxes(fit1.achievedAtEnd),
+    finalLineCount: fit1.lines.length,
+    error: null,
+  };
+
+  // Segment-2 probe: extend the immutable engine, read the new exact probe state.
+  const p2Before = getSimFrames();
+  const probe2 = getCandidateProbe(engine2, prepared.outgoing, prepared.ctx);
+  const state2 = extractPlanningState(engine2, prepared.outgoing.endFrame);
+  const p2Frames = getSimFrames() - p2Before;
+
+  const unavailable = (failureClass: FailureClass, error: string | null): Row => ({
+    ...base,
+    failureClass,
+    jointAdmitted: false,
+    totalChargedFrames: s1Frames + l1Frames + p2Frames,
+    segment1,
+    segment2: { available: false, probeFrames: p2Frames, attempted: 0, admitted: 0, admittedByFamily: { "capture-arc": 0, "raw-normal": 0 }, admissionFrames: 0, landingProbeFrames: 0, error, rows: [] },
+  });
+
+  if (state2 === null) return unavailable("no-airborne-arrival", null);
+
+  // Segment-2 candidate families from engine2's exact state at contact k+1.
+  let captureMembers2: CandidateMember[];
+  try {
+    const frame2 = targetFrameFromPlanningState(state2);
+    const kinematic2 = contactKinematicFrameFromPlanningState(state2, frame2, prepared.outgoing.targets);
+    captureMembers2 = buildCaptureMembers(kinematic2, lineId2);
+  } catch (error) {
+    return unavailable("segment2-family-unavailable", errorMessage(error));
+  }
+  const rawMembers2 = buildRawMembers(
+    makeRng(rawStreamSeed2(prepared, prepared.outgoing.index, rowIndex)),
+    probe2,
+    prepared.outgoing,
+    lineId2,
+    allContactFrames,
+    captureMembers2.length,
+  );
+
+  const axisEnd2 = axisLookaheadEndFrame(prepared.outgoing, allContactFrames);
+  const families2: Array<{ family: Family; members: CandidateMember[] }> = [
+    { family: "capture-arc", members: captureMembers2 },
+    { family: "raw-normal", members: rawMembers2 },
+  ];
+
+  const seg2Rows: Segment2Row[] = [];
+  let admissionFrames2 = 0;
+  let landingProbes2 = 0;
+  for (const { family: family2, members } of families2) {
+    for (const member2 of members) {
+      seg2Rows.push(evaluateSegment2(engine2, prepared.outgoing, member2, family2, lineId2, axisEnd2, allContactFrames, probe2, (frames) => {
+        admissionFrames2 += frames.admission;
+        landingProbes2 += frames.landing;
+      }));
+    }
+  }
+
+  const admittedByFamily: Record<Family, number> = { "capture-arc": 0, "raw-normal": 0 };
+  for (const s2 of seg2Rows) if (s2.admitted) admittedByFamily[s2.family]++;
+  const admitted = admittedByFamily["capture-arc"] + admittedByFamily["raw-normal"];
+  const jointAdmitted = admitted > 0;
+
+  return {
+    ...base,
+    failureClass: jointAdmitted ? "joint-admitted" : "not-admitted-k1",
+    jointAdmitted,
+    totalChargedFrames: s1Frames + l1Frames + p2Frames + admissionFrames2 + landingProbes2,
+    segment1,
+    segment2: {
+      available: true,
+      probeFrames: p2Frames,
+      attempted: seg2Rows.length,
+      admitted,
+      admittedByFamily,
+      admissionFrames: admissionFrames2,
+      landingProbeFrames: landingProbes2,
+      error: null,
+      rows: seg2Rows,
+    },
+  };
+}
+
+function evaluateSegment2(
+  engine2: unknown,
+  outgoing: Gap,
+  member: CandidateMember,
+  family: Family,
+  lineId2: number,
+  axisEnd2: number,
+  allContactFrames: number[],
+  probe2: CandidateProbe,
+  charge: (frames: { admission: number; landing: number }) => void,
+): Segment2Row {
+  if (member.lines === null) {
+    charge({ admission: 0, landing: 0 });
+    return { family, label: member.label, admitted: false, admissionFrames: 0, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: member.error };
+  }
+  const before = getSimFrames();
+  const fit2 = tryCandidateLines(
+    engine2 as any,
+    outgoing,
+    member.lines,
+    lineId2,
+    allContactFrames,
+    axisEnd2,
+    outgoing.targets,
+    true,
+    undefined,
+    probe2.preTargetSledTrace,
+  ) as GapFit | null;
+  const admissionFrames = getSimFrames() - before;
+  if (fit2 === null) {
+    charge({ admission: admissionFrames, landing: 0 });
+    return { family, label: member.label, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: null };
+  }
+  const engine3 = (engine2 as any).addLine(fit2.lines.map((line: TrackLine) => engineLineFromTrackLine(line)));
+  const lBefore = getSimFrames();
+  const det2 = detectWindow(engine3, outgoing.startFrame, outgoing.endFrame + PERSISTENCE_FRAMES);
+  const landingFrameOffset = ownedLandingFrameOffset(det2, outgoing.endFrame, new Set(fit2.lines.map((line: TrackLine) => line.id)));
+  const landingProbeFrames = getSimFrames() - lBefore;
+  charge({ admission: admissionFrames, landing: landingProbeFrames });
+  return {
+    family,
+    label: member.label,
+    admitted: true,
+    admissionFrames,
+    landingFrameOffset,
+    landingProbeFrames,
+    achieved: roundAxes(fit2.achieved),
+    achievedAtEnd: roundAxes(fit2.achievedAtEnd),
+    finalLineCount: fit2.lines.length,
+    error: null,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildCaptureMembers(
+  kinematic: ReturnType<typeof contactKinematicFrameFromPlanningState>,
+  lineIdStart: number,
+): CandidateMember[] {
+  const entries = makeMirroredContactCaptureArcScreen(kinematic);
+  return entries.map((entry, index) => {
+    try {
+      const realized = realizeContactCaptureArc(resolveContactCaptureArc(kinematic, entry.control), lineIdStart);
+      return { index, label: entry.label, lines: realized.lines, error: null };
+    } catch (error) {
+      return { index, label: entry.label, lines: null, error: errorMessage(error) };
+    }
+  });
+}
+
+function buildRawMembers(
+  rng: () => number,
+  probe: CandidateProbe,
+  gap: Gap,
+  lineIdStart: number,
+  allContactFrames: number[],
+  count: number,
+): CandidateMember[] {
+  const members: CandidateMember[] = [];
+  for (let attempt = 0; attempt < count; attempt++) {
+    // Mirror the normal sampler's per-attempt state exactly (matches
+    // study_local_contact_closure's raw-normal stream).
+    clearImpactTemplateMarker();
+    try {
+      const geometry = sampleArcPlacementGeometry(
+        rng,
+        probe.refX,
+        probe.refY,
+        gap.targets,
+        probe.targetState,
+        attempt,
+        gap,
+        lineIdStart,
+        "normal",
+        allContactFrames,
+      );
+      members.push({ index: attempt, label: `normal_${attempt}`, lines: geometry.lines, error: null });
+    } catch (error) {
+      members.push({ index: attempt, label: `normal_${attempt}`, lines: null, error: errorMessage(error) });
+    }
+  }
+  return members;
+}
+
+/** Owned landing near a contact = airborne at f-1, grounded at f with an owned
+ *  line contacted. Best-effort telemetry; admission (not this) is the authority. */
+function ownedLandingFrameOffset(
+  detection: ReturnType<typeof detectWindow>,
+  contactFrame: number,
+  ownedLineIds: ReadonlySet<number>,
+): number | null {
+  let nearestOwned: number | null = null;
+  for (let frame = contactFrame - 3; frame <= contactFrame + 3; frame++) {
+    if (!contactLineIdsAt(detection, frame).some((id) => ownedLineIds.has(id))) continue;
+    if (nearestOwned === null || Math.abs(frame - contactFrame) < Math.abs(nearestOwned - contactFrame)) {
+      nearestOwned = frame;
+    }
+    if (airborneAt(detection, frame - 1) === true && airborneAt(detection, frame) === false) {
+      return frame - contactFrame;
+    }
+  }
+  return nearestOwned === null ? null : nearestOwned - contactFrame;
+}
+
+function summarizeState(rows: readonly Row[]): StateSummary {
+  const segment1AdmissionByFamily: Record<Family, { attempted: number; admitted: number }> = {
+    "capture-arc": { attempted: 0, admitted: 0 },
+    "raw-normal": { attempted: 0, admitted: 0 },
+  };
+  const jointByFamilyPair: Record<string, number> = {};
+  const totalChargedFramesByFamily: Record<Family, number> = { "capture-arc": 0, "raw-normal": 0 };
+  const failureClassCounts: Record<string, number> = {};
+  const byFamily: Record<Family, FamilyClosure> = {
+    "capture-arc": emptyClosure(),
+    "raw-normal": emptyClosure(),
+  };
+
+  let jointPairsTotal = 0;
+  for (const row of rows) {
+    segment1AdmissionByFamily[row.family].attempted++;
+    if (row.segment1.admitted) segment1AdmissionByFamily[row.family].admitted++;
+    totalChargedFramesByFamily[row.family] += row.totalChargedFrames;
+    failureClassCounts[row.failureClass] = (failureClassCounts[row.failureClass] ?? 0) + 1;
+
+    const closure = byFamily[row.family];
+    closure.segment1Attempted++;
+    if (row.segment1.admitted) closure.segment1Admitted++;
+    closure.totalChargedFrames += row.totalChargedFrames;
+    if (row.jointAdmitted) closure.segment1WithJoint++;
+
+    if (row.segment2 !== null) {
+      for (const key of ["capture-arc", "raw-normal"] as Family[]) {
+        const n = row.segment2.admittedByFamily[key];
+        if (n > 0) {
+          const pair = `${row.family}->${key}`;
+          jointByFamilyPair[pair] = (jointByFamilyPair[pair] ?? 0) + n;
+          jointPairsTotal += n;
+          closure.jointPairs += n;
+        }
+      }
+    }
+  }
+  for (const key of ["capture-arc", "raw-normal"] as Family[]) {
+    const closure = byFamily[key];
+    closure.jointPairsPerMillionFrames = closure.totalChargedFrames > 0
+      ? round((closure.jointPairs * 1_000_000) / closure.totalChargedFrames)
+      : null;
+  }
+
+  return { segment1AdmissionByFamily, jointByFamilyPair, jointPairsTotal, totalChargedFramesByFamily, failureClassCounts, byFamily };
+}
+
+function formatStateSummary(result: StateResult): string[] {
+  const s = result.summary;
+  const ca = s.segment1AdmissionByFamily["capture-arc"];
+  const rn = s.segment1AdmissionByFamily["raw-normal"];
+  const caC = s.byFamily["capture-arc"];
+  const rnC = s.byFamily["raw-normal"];
+  const pairs = Object.entries(s.jointByFamilyPair).sort(([a], [b]) => a.localeCompare(b))
+    .map(([pair, n]) => `${pair} ${n}`).join(", ") || "none";
+  const fails = Object.entries(s.failureClassCounts).sort(([a], [b]) => a.localeCompare(b))
+    .map(([cls, n]) => `${cls} ${n}`).join(", ");
+  return [
+    `STATE ${result.id} (gap ${result.panel.currentGap}->${result.panel.outgoingGap}, interval ${result.panel.outgoingIntervalFrames}f):`,
+    `  segment-1 admitted:  capture-arc ${ca.admitted}/${ca.attempted},  raw-normal ${rn.admitted}/${rn.attempted}`,
+    `  joint pairs:         total ${s.jointPairsTotal}  (${pairs})`,
+    `  seg-1 fits w/ joint: capture-arc ${caC.segment1WithJoint}/${caC.segment1Admitted},  raw-normal ${rnC.segment1WithJoint}/${rnC.segment1Admitted}`,
+    `  charged frames:      capture-arc ${caC.totalChargedFrames},  raw-normal ${rnC.totalChargedFrames}`,
+    `  joint/1e6 frames:    capture-arc ${caC.jointPairsPerMillionFrames ?? "n/a"},  raw-normal ${rnC.jointPairsPerMillionFrames ?? "n/a"}`,
+    `  raw-normal joint closure @ equal frames: ${rnC.jointPairs} pairs over ${rnC.totalChargedFrames} charged frames`,
+    `  failure classes:     ${fails}`,
+    `  artifact: ${result.artifactPath}`,
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function emptySegment1(error: string | null) {
+  return {
+    admitted: false,
+    admissionFrames: 0,
+    landingFrameOffset: null,
+    landingProbeFrames: 0,
+    achieved: null,
+    achievedAtEnd: null,
+    finalLineCount: null,
+    error,
+  };
+}
+
+function emptyClosure(): FamilyClosure {
+  return {
+    segment1Attempted: 0,
+    segment1Admitted: 0,
+    jointPairs: 0,
+    segment1WithJoint: 0,
+    totalChargedFrames: 0,
+    jointPairsPerMillionFrames: null,
+  };
+}
+
+/** Deterministic raw-stream seed keyed on the fixture's search seed and gap. */
+function rawStreamSeed(prepared: PreparedTrajectoryFixtureCore, gapIndex: number): number {
+  return (Math.imul(prepared.panel.seed | 0, 1_000_003) + gapIndex + 1) | 0;
+}
+
+/** Distinct deterministic seed per admitted segment-1 prefix at contact k+1. */
+function rawStreamSeed2(prepared: PreparedTrajectoryFixtureCore, gapIndex: number, rowIndex: number): number {
+  return (Math.imul(rawStreamSeed(prepared, gapIndex), 1_000_003) + rowIndex + 1) | 0;
+}
+
+function roundAxes(axes: AxisValues | undefined): { air: number | null; speed: number | null; impact: number | null } | null {
+  if (axes === undefined) return null;
+  return {
+    air: axes.air === undefined ? null : round(axes.air),
+    speed: axes.speed === undefined ? null : round(axes.speed),
+    impact: axes.impact === undefined ? null : round(axes.impact),
+  };
+}
+
+function assertExactEnvironment(): void {
+  if (process.env.LR_ENGINE !== "wasm") {
+    throw new Error(`study requires LR_ENGINE=wasm; received LR_ENGINE=${process.env.LR_ENGINE ?? "(unset)"}`);
+  }
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function round(value: number): number {
+  return Math.round(value * 1_000_000) / 1_000_000;
+}

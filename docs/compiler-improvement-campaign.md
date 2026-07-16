@@ -601,6 +601,39 @@ family/certification. The three capture-arc lane falsifications stand as
 the constraint set: the composite must carry its own continuation and add
 capacity without displacing normal entries.
 
+## Retired: Staged-Composite Shadow Source (v4) — Direction Closed (2026-07-17)
+
+The assay-validated staged composite (capture + sealed-handoff support as
+ONE `tryCandidateLines`-admitted candidate, additive K=1 extra-candidate
+lane, charged 8-control closure scan, LR_STAGED_SOURCE=0 escape proven
+byte-identical) fails both declared discard conditions on 24-seed panels at
+250k AND 500k:
+
+1. **frontier5 air RMS unchanged to four decimals at both budgets** while
+   every row is perturbed — the lane fires and charges everywhere, and the
+   exact ranker + forward evaluator never select the composite over healthy
+   incumbents. Construction-level air accuracy (assay +0.94→0.00) is
+   worthless if the option loses the rank.
+2. **Capability validity losses at the 250k knee**: dense −7, dense240 −3,
+   pickup −3 — where incumbents are scarce the composite IS selected and its
+   continuation under-completes; score collapses (dense −108) with sim
+   frames flat. Bitter detail: dense air RMS improves (−0.019) while
+   completion dies — the geometry does exactly what it was designed to do.
+
+**Four delivery forms, one construction, one conclusion** (v1 sampler
+replacement / v2 sampler entry composition / v3 additive standalone catch /
+v4 additive assay-validated joint composite): statically-constructed
+capture geometry fails full-compile economics in every delivery — where the
+pool is healthy the search equilibrium out-ranks it; where the pool is thin
+it poisons completion. The staged assay's RETAIN stands as construction
+physics; the promotion gate killed the source at its first funnel stage,
+as designed. The direction — supplying constructed candidates to the
+existing search — is CLOSED for this campaign. Any successor must make the
+search VALUE the joint pair's downstream payoff (a judge that sees the
+outgoing interval's realized quality at selection time without violating
+the falsified readiness-reshape and forward-eval-widening lessons) — a
+genuinely open research problem, not an iteration.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

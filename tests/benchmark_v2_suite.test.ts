@@ -93,9 +93,9 @@ describe("Benchmark V2 suite identity", () => {
     expect(baseline.compiler_identity_protocol).toBe(COMPILER_IDENTITY_PROTOCOL);
     expect(baseline.compiler_source_files).toContain("scripts/v0/score.ts");
     expect(baseline.compiler_source_files).toContain("scripts/lib/detector.ts");
-    expect(baseline.probe.canonical_headline).toBe(507.3354);
-    expect(baseline.development.canonical_headline).toBe(503.8593);
-    expect(baseline.qualification.monitor_score).toBe(380.8272);
+    expect(baseline.probe.canonical_headline).toBe(509.7008);
+    expect(baseline.development.canonical_headline).toBe(510.3661);
+    expect(baseline.qualification.monitor_score).toBe(392.6184);
     expect(createHash("sha256").update(JSON.stringify({
       compilerIdentityProtocol: baseline.compiler_identity_protocol,
       compilerSourceFingerprint: baseline.compiler_source_fingerprint,

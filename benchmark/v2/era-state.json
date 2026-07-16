@@ -1,12 +1,12 @@
 {
   "schema": "line.benchmark-v2.era-state.v1",
-  "eraId": "era-2026-07-16T03-41-35Z",
-  "eraStartedAt": "2026-07-16T03:41:42.175Z",
+  "eraId": "era-2026-07-16T17-46-58Z",
+  "eraStartedAt": "2026-07-16T17:47:04.125Z",
   "eraCause": "rebaseline-accept",
-  "baselineLabel": "accept-2026-07-16T02-42-52Z-5fcbfc73",
+  "baselineLabel": "accept-2026-07-16T16-45-07Z-8257f266",
   "budgetCap": 0.05,
   "budgetSpent": 0,
-  "cumulativeExpectedFalseAccepts": 0.2443,
+  "cumulativeExpectedFalseAccepts": 0.2861,
   "attempts": [
     {
       "attemptId": "2026-07-11T21-25-55Z-f99e71f1",
@@ -147,6 +147,26 @@
       "declaredAt": "2026-07-16T02:42:53.306Z",
       "outcome": "accept",
       "lookCount": 5
+    },
+    {
+      "attemptId": "2026-07-16T15-08-26Z-f41e5494",
+      "eraId": "era-2026-07-16T03-41-35Z",
+      "candidateFingerprint": "4556235923a459f0f94484182df2235708a750edc6fac987ec38abffeef1fb51",
+      "operatingPointId": "improve-t0-d48",
+      "spend": 0.0209,
+      "declaredAt": "2026-07-16T15:08:26.813Z",
+      "outcome": "inconclusive",
+      "lookCount": 5
+    },
+    {
+      "attemptId": "2026-07-16T16-45-07Z-8257f266",
+      "eraId": "era-2026-07-16T03-41-35Z",
+      "candidateFingerprint": "bf871eec988fdb35a59c57465f778fb400baa37858193882519655de689c91b2",
+      "operatingPointId": "improve-t0-d48",
+      "spend": 0.0209,
+      "declaredAt": "2026-07-16T16:45:08.088Z",
+      "outcome": "accept",
+      "lookCount": 5
     }
   ],
   "inFlightAttemptId": null,
@@ -235,6 +255,18 @@
       "canonicalSeedBase": 1632666000,
       "seedCount": 144,
       "seedScheduleFingerprint": "629be7c111c70f3501f04ced15184a0b15dbf9ab9cdd2cfd49c8f5eb30884536"
+    },
+    {
+      "attemptId": "2026-07-16T15-08-26Z-f41e5494",
+      "canonicalSeedBase": 938707558,
+      "seedCount": 144,
+      "seedScheduleFingerprint": "0edc75ebeafdb52a3cb17a30e5a986a2b1171d31787ae099d752e0a23c20853c"
+    },
+    {
+      "attemptId": "2026-07-16T16-45-07Z-8257f266",
+      "canonicalSeedBase": 735656107,
+      "seedCount": 144,
+      "seedScheduleFingerprint": "bbe77082cd470b601aa886dc1ab79d0d219342ac67b11fe4e07749f4134dd465"
     }
   ]
 }

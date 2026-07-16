@@ -574,6 +574,33 @@ continuation constructed and admitted as ONE unit — i.e. the staged
 transition source of docs/staged-transition-solver-assay.md. That is the
 next (and largest) build of the trajectory program.**
 
+## RETAIN: Staged Transition Solver Assay Passes (2026-07-16)
+
+`scripts/v0/study_staged_capture.ts` + `trajectory/staged_capture.ts`
+implement docs/staged-transition-solver-assay.md faithfully (declared
+deviations: 2-frame engagement lead + 0.6px preload forced by the rider's
+body footprint at H; support strictly after H; perpendicular positive
+rail). On the 8 frozen v3 fixtures: **no rejection criterion fires.**
+Positive rail 8/8; captures close on every state from the head of one
+fixed 48-control ordering (indices {0,2,6,0,0,2,2,2}); 40/40 support arms
+preserve prefix trace, capture identity, and scored impact; the exact
+air-accounting law takes outgoing air residual from +0.94..+0.98 to ≈0.00
+across the entire 3-7s ladder; dense240 gains a support-owned next-beat
+bounce. Total panel cost ≈17.6k sim frames. Open items the artifacts
+expose: (a) capture impact undershoots the ask (first-closed selection
+takes the ordering head, never an impact-accurate control); (b)
+dense-proper's 9-frame window is consumed by the capture band through H
+under the engagement lead; (c) frontier3/4 combined arms each register one
+mid-window off-beat landing (admission-relevant, not assay-relevant).
+
+Per the assay's promotion gate, the next declared step is the compact
+default-off shadow source: the staged composite (capture + sealed-handoff
+support as ONE candidate line-set) admitted by unchanged
+`tryCandidateLines`, inert when unavailable, then scope panel → stage 0 →
+family/certification. The three capture-arc lane falsifications stand as
+the constraint set: the composite must carry its own continuation and add
+capacity without displacing normal entries.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

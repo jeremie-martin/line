@@ -1150,6 +1150,20 @@ mid-ask sources impact RMS −0.008 minimum (dense_dialogue/split_signal/
 river_reentry carry the [0.2,0.5) mass); (4) stage-0 positive with
 representative not negative; else discard.
 
+**Outcome: DISCARD at falsifier (1)** (share=0 byte-identity to HEAD
+proven; attempt-spanned share 0.25, start floor 0.05). Panel 12×2 @500k:
+mean −2.71, impact RMS −0.0014 (unmoved), speed +0.0082 (pays), air
++0.0026. Even with the certified width judge pricing the k+1
+consequence, deepened-ramp scoop pressure at mid asks does not convert —
+the mid-ask deficit is the speed↔impact EQUILIBRIUM price, not a
+generation gap the ramp can fill. This closes ramp/scoop pressure at all
+ask bands under both judges (the third independent falsification of the
+family). The in-bounds mid-ask pool (+31) remains real but requires
+geometry that buys redirection without the scoop's speed bleed — the
+entry-incidence family delivers exactly that at the CURRENT gap but pays
+at k+1 for most parameterizations (frontier-continuation study: 7/24
+net-positive with a measurable arrival signature). Reverted.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

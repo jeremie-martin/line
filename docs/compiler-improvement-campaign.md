@@ -1220,6 +1220,45 @@ standing panel discipline.** Sizing: the both-bad tail ≈ 52k gaps
 3.8k) plus its share of the knee validity pool; estimate +8–15 if the
 family converts.
 
+## Declared Mechanism: Deficit-Pressured Energy-Launch Descent (2026-07-16)
+
+**Hypothesis.** The sampler's energy-targeted launch already computes the
+descent that converts carried speed into the gap's speed target
+(`dh=(vT²−vIn²)/2g`, attempt-spanned via ccSpanBlends.launch), but its
+descending clamp (`vy ≤ 0.45·g·N`) caps the drop at ~0.95·g·N² (~73px at
+21f ⇒ +~1.1 px/f at entry 11) — LESS than the ~1.2 px/f an impact-0.8
+catch costs. That single constant is why the pool contains no
+speed-holding candidates at fast entries (max ΔV −0.305) and why the
+both-bad passages leak for ~7 gaps. Extending the clamp under continuous
+speed-deficit pressure (smoothstep in vT−vIn; extension 0.45→1.0 at full
+pressure ⇒ up to ~1.5·g·N² ≈ 115px) enables the EXISTING energy law
+exactly where the demand is authored; the unchanged
+gates/evaluator/ranker/width-judge decide survival and price the k+1
+consequence.
+
+**Boundary:** the one clamp expression in arc_placement.ts's
+energy-targeted launch; continuous inputs (vT, vIn, g, N); extension=0
+restores byte-identity. **Falsifiers:** (1) believer/dense_dialogue
+24-seed 500k: speed RMS must improve ≥0.01 with impact not worse (the
+both-bad tail is the target); (2) 24-seed knee guard
+(dense/dense240/pickup 250k validity no-worse); (3) 12×2 500k panel
+coherent; (4) stage-0 positive. Else discard.
+
+**Outcome: DISCARD at falsifier (1)** (extension=0 byte-identity proven;
+24 seeds × 500k): believer speed RMS WORSE +0.0105, score −2.65;
+dense_dialogue +3.98 but speed −0.0038 under the bar. **The measured
+lesson — the catch-toll identity:** a steeper energy dive arrives faster
+but STEEPER, and the catch's redirect cost scales as v·Δθ — the extra
+arrival angle consumes what the dive gained. The 0.45 down-clamp was
+load-bearing physics, not an accident. Energy can only be banked through
+a redirecting chain if it arrives HORIZONTALLY: descend-then-flatten
+support (a J-valley carrier — downhill rail curving level before
+release, converting drop into vx with no arrival-angle toll) is the
+remaining untested geometry for the both-bad tail. That is a
+carrier-shape family build (cf. the smooth-continuation-carrier
+retirement's constraints: capture-geometry independence must be proven),
+declared as the next session's candidate. Reverted.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

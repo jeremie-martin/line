@@ -339,6 +339,31 @@ close both contacts where the normal pool closes neither; (3) 24-seed
 damage (n≤8 panels are noise); (4) stage-0 composition, then the
 override-certified attempt for the accumulated tree.
 
+**Resolution (same day): the RUNG RELEASE LANE, committed 51defe4.**
+Falsifier (1) closed the bounce shortcut immediately: `isAuthoredContactEvent`
+admits a bounce only for intervals ≤ MIN_LANDING_AIRBORNE_FRAMES = 6, so
+8-10-frame rungs need a distinct landing — which needs ≥6 airborne frames
+before it — which leaves ≤ N−7 grounded frames at the previous contact. The
+sampled ride-out distribution never drops below ~28-36px (~4+ grounded
+frames; an ARC_LEN_FLOOR 28→10 probe was byte-identical — the floor never
+binds because the distribution never approaches it), so touch-and-go
+geometry was structurally absent from every pool: no joint solver needed,
+just the missing family. The lane (attempt-spanned, continuous next-interval
+shortness ramp, grounded budget = interval − airborne requirement):
+
+- 24-seed 250k A/B: dense 1→5 valid (5/1), dense240 4→8 (5/1), pickup
+  14→16 (5/3), dense_dialogue_impact_contrast 20→24 (4/0); frontier5 and
+  non-short ordinaries byte-identical (surgical targeting).
+- Stage-0: 483.49 → 499.65 (+16.16), validity +6/−2, twice composed-v1's
+  screen. 500k strata: representative +2.6, capability +181.3. The one
+  material stage-0 regression (dense_dialogue_ic 250k −350) was 3-seed flip
+  noise — the 24-seed instrument shows that exact cell at +66 mean, 4/0
+  validity.
+
+The first mechanism of the campaign that moved dense at all, and it moves
+mean AND reliability together. Next: the override-declared certified
+attempt for the accumulated tree (composed-v1 + rung release lane).
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

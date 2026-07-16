@@ -278,6 +278,31 @@ capability validity, this error is a smooth per-gap quantity: fixing part
 of it adds certified mean without inflating block variance. Support-pathway
 mechanism map in progress.
 
+**Update (same day): reframed and parked.** The support-pathway map exposed
+an ownership subtlety: a gap's air is committed mostly by the PREVIOUS
+gap's ride-out (a candidate owns only a ≤44px pre-contact lead-in of its own
+gap's air), and by that accounting the pools DO contain ask-matching and
+much-longer ride-outs (pool-min next-gap air undershoots by 0.3+). Three
+cheap falsifiers then closed the selection-side explanations: the airFit
+overshoot deadband removed → air RMS unchanged (0.161→0.162); the ask
+shifted −0.07 (prediction-bias theory) → air RMS worse (0.161→0.165,
+low-air rows crash); the overshoot is UNIFORM across preceding-impact
+context (+0.05..+0.09 everywhere), ruling out hop-exit collateral. All
+support-extension lanes are structurally inert on ordinary gaps
+(extensionPressure ≡ 0 via the 0.55 safeCap in supportReferenceLength), yet
+the exact forward-eval sees the real +0.07 and keeps choosing it — and the
+marginal scorer costs are nearly balanced (d wrms²: air 0.084 vs speed
+0.060), so the overshoot is plausibly the equilibrium price of speed at the
+current geometry, like impact. ARC_LEN_SPAN widening was already certified
+-13 historically. **Conclusion: air, like impact, is frontier-limited, not
+selection-limited.** The naive +14.5 counterfactual overstates the free
+pool; capturing it requires support geometry that holds speed (normal-force
+/ hybrid support-release direction in compiler-trajectory-synthesis.md),
+not objective nudges. Parked pending a trajectory-basis mechanism; the next
+diagnostic if reopened is a trace-level decomposition of each gap's
+airborne run (prev ride-out | flight | lead-in) against the committed
+candidates' predicted release frames.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

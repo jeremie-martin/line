@@ -522,6 +522,22 @@ pairs exist only on one state → capability evidence, no generalization
 claim. Success authorizes only a default-off shadow-source design through
 normal admission and the V2 funnel.
 
+**Result (2026-07-16, `scripts/v0/study_two_contact_shooting.ts`, artifacts
+`generated/studies/two-contact-shooting/v1/`): RETAIN — no falsifier
+fires.** Segment-1 admission: dense capture-arc 13/24 vs raw-normal 2/24;
+dense240 9/24 vs 1/24; ordinary 9/24 vs 22/24 (raw saturates — the
+primitive is unneeded there). Joint two-contact pairs: dense 16 with the
+capture-arc as the SOLE source (raw-normal 0 at equal charge); dense240 77
+with 9/9 admitted captures chaining; charge comparable (17.2k vs 16.0k
+joint-per-M-frames on dense240). The dense-proper knife-edge is the
+continuation (1/13 captures chain; 14 rows die not-admitted-k1). This is
+the first exact-engine evidence of an affordable two-contact basin at the
+dense states. Next: a compact compiler-side capture-arc lane (reimplemented
+inside the identity boundary; the study module stays study-only), gated
+continuously on short current-interval + authored impact, attempt-spanned,
+judged by unchanged tryCandidateLines/ranker, through scope panel → stage 0
+→ certified attempt.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

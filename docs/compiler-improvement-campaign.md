@@ -263,6 +263,21 @@ tree's per-block σ≈17, accept at depth 48 needs true θ ≈ +8.5–10, OR a
 LOW-VARIANCE quality mechanism (smooth per-gap error reductions rather
 than validity Bernoullis) that both adds mean and does not inflate σ.
 
+## Active: Air Mid-Ask Overshoot Is Generation-Limited (2026-07-16)
+
+The air axis is the remaining broad LOW-VARIANCE quality pool (canonical
+500k: systematic overshoot +0.32 at ask 0.1 fading through +0.11 at 0.3-0.4
+and +0.06 at 0.6 to −0.03..−0.10 at 0.8-0.9; low-ask short-gap mass is
+partly detector-floor-forced, the 0.3-0.7 band ≈165k obs is not). The pool
+probe (`study_air_pool_coverage.ts`, 1,566 air-targeted pool visits, four
+representative sources at 500k) locates it: at asks 0.5/0.6 even the pool
+MINIMUM achieved air overshoots (+0.071/+0.026) and the quality winner sits
+only ~+0.02 above the pool's closest candidate — no sampled candidate rides
+supported long enough; admission and selection are exonerated. Unlike
+capability validity, this error is a smooth per-gap quantity: fixing part
+of it adds certified mean without inflating block variance. Support-pathway
+mechanism map in progress.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

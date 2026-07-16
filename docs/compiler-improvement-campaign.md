@@ -491,6 +491,37 @@ by per-visit charge. Reverted. The remaining 250k knee, like the impact
 pool, now points at the trajectory basis itself: cheaper traversal of dense
 figures needs better transition geometry, not thinner search.
 
+## Declared Study: Charged Two-Contact Shooting (2026-07-16)
+
+Calibration-only, WASM/500k, declared before any row is observed. Question:
+from an exact committed prefix at a dense/rung state, can a JOINTLY
+constructed pair — an engine-admitted catch at contact k and a chained catch
+at contact k+1 on the extended engine — close both contacts where the normal
+pool fails, at physics-frame cost comparable to what the normal sampler
+spends failing?
+
+Protocol: frozen `line.frozen-trajectory-prefix.v3` fixtures (dense g69→70,
+9-frame outgoing; dense240 g86→87, 12 frames; ordinary control), which
+replay clean on the current tree. Segment 1 = the mirrored 24-control C1
+capture-arc screen (the only primitive that closes dense captures: 11/12 and
+8/12 in calibration) plus an equal-count raw-normal comparator stream.
+Segment 2 = for each admitted segment-1 fit, extend the immutable engine
+with its lines and run the same capture-arc screen at contact k+1 from the
+new exact probe state; admission at both contacts is the unchanged
+`tryCandidateLines` (survival, ±1-frame landings, no off-beat). Every row
+retains both fits' outcomes and `getSimFrames()` charges per segment.
+Constraints honored: starts from engine-admitted captures (the standalone
+primitive is retired); no outgoing-target reads in segment-1 construction;
+no case identity/duration buckets; exact replay is the only authority.
+
+Falsifiers: (1) zero jointly-admitted pairs on both dense states within the
+fixed screen → retire the joint formulation at this control budget; (2)
+joint pairs exist but charge ≫ the raw-normal stream's frames for its own
+(failed or successful) attempts → the basin is unaffordable; (3) joint
+pairs exist only on one state → capability evidence, no generalization
+claim. Success authorizes only a default-off shadow-source design through
+normal admission and the V2 funnel.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

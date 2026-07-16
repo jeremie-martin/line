@@ -689,6 +689,23 @@ opening a lever). (2) pickup@250k +2 valid/+28.6 from the shortness branch
 falsification chain with per-form measured causes, ending every
 constructed-geometry route.
 
+## Standing Position After the Program Closure (2026-07-17)
+
+Re-pricing the pools NET of both measured physical bounds (the detector
+air floor 6/N and the ballistic impact feasibility bound), on the current
+canonical archive: perfect within-bounds delivery of air+impact = **668
+(+165)**; capturing HALF the avoidable error = **599 (+95)**; half plus
+full invalid recovery = 615. **The 550 target requires only ~28% of the
+avoidable, physically-legal error mass.** The campaign's exhaustive
+closures therefore establish that the frontier is compiler geometry/search
+co-design — every mapped mechanism family is falsified with measured
+causes, but the prize is not physics-bounded. Next-session starting
+points, in order: (i) the pickup@250k shortness×knee cell (+2 valid/+28.6
+banked in the v6 panels); (ii) aim-model accuracy at the modal regimes
+(the one lever family with prior positive history not yet exhausted under
+V2); (iii) fresh design territory for within-bounds error capture, tested
+against the standing falsification chain before any build.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

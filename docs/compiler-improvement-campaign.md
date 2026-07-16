@@ -847,6 +847,15 @@ contact drop; post-contact machinery untouched), predicted by the oracle to
 win pools on measured merit (better impact at identical inherited
 collateral ⇒ strictly better currentQuality).
 
+**Lane-alone outcome: DISCARD (all three criteria).** Impact RMS ±0.001 on
+every 500k source (frontier-exact candidates entered pools, were not
+selected — the 147/k dilution in action), while the 45% attempt share paid
+the standard displacement bill (score −6..−10, dense −7/dense240 −3 at the
+knee). The 2×2 is now three-quarters measured: geometry exists (oracle);
+post-hoc impossible (brittleness); supply-alone insufficient (this);
+valuation-alone insufficient (recency leaf). The composition —
+supply+valuation together, the one untested cell — is in test.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

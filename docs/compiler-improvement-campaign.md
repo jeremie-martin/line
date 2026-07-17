@@ -5196,6 +5196,80 @@ normal curve's physical response density can be moved, but concentrating its
 existing turn in the scored window does not preserve broad zero-friction
 continuation.
 
+## Declared Diagnosis: Exact Multi-Contact Contact-Geometry Decomposition (2026-07-17)
+
+The fixed frontier probe has established a coherent physical symptom: a
+same-speed impact repair loses target-frame `TAIL`/`NOSE`/`STRING` contact and
+then tangential carry.  The three rejected continuous fields show that neither
+rotating, time-warping, nor concentrating the normal post-curve supplies that
+contact.  What remains unknown is whether the selected catch possesses a
+single *continuous multi-contact geometry invariant* which the impact repair
+breaks, or whether the collision counts are merely a consequence of unrelated
+per-case curve changes.
+
+Run the immutable six-source, two-seed V2-jolt/500k impact-frontier cohort.
+At each same-pool material (at least `.025`) no-extra-speed repair, retain the
+already-scored selected candidate and repair.  Only after each complete
+`compileHandoff` returns, re-read their candidate-owned target-frame engine
+state and native line set.  For each of the three zero-friction sled points
+(`TAIL`, `NOSE`, `STRING`) measure the distance to its nearest candidate line,
+the unoriented tangent of that nearest segment, and the exact target-frame
+contact-line membership.  Report paired repair-minus-selected values for:
+
+- mean and maximum nearest-line clearance across the three points;
+- the circular span of their three nearest-line tangents;
+- the mean unoriented mismatch from those tangents to the three-point mean
+  sled velocity; and
+- the mean unoriented mismatch from those tangents to the `TAIL`--`NOSE`
+  body-chord direction.
+
+The complete state read is a lazy observation callback: it must never be made
+during live traversal, and may not affect generation, admission, score,
+ranking, selection, budget, or the existing probe artifact.  Candidate lines
+and point states are recorded only for the fixed pairs above; no event, point,
+source, target, or threshold is selected after reading them.
+
+**Decision boundary.** Retire a contact-manifold geometry component if the
+four predeclared measures do not show a coherent repair-minus-selected loss in
+each of the impact, dense, pickup, low-air, and development source families,
+or if contact-line state is unavailable.  If they do agree, authorize exactly
+one separately declared continuous state-to-geometry construction: a native
+post-contact field derived from the full `TAIL`/`NOSE`/`STRING` state and the
+raw curve's local manifold, with no named-point choice, source/seed/outcome
+rule, score term, ranker, or static support companion.  It must then pass the
+dense guard before any broader scope or V2 evaluation.  This diagnostic does
+not authorize changing contact counts directly, adding a force plate,
+reopening a rejected support/anchor family, or tuning an observed clearance or
+angle.
+
+**Result (2026-07-17, 56s; `npm run study:impact-multicontact`; artifact
+`generated/studies/impact-multicontact-geometry/v1/result.json`): RETIRE a
+single local contact-manifold field.** The complete fixed panel reproduced all
+**1,705** material no-extra-speed repair pairs and made every deferred
+candidate-owned state/geometry read available. It corroborates the topology
+observation: target-frame zero-friction coverage falls `.242815` of the three
+points and target updates fall `−2.310264` per repair. Mean nearest-line
+clearance is `+.223967` px and mean body-chord/tangent mismatch `+1.279790°`;
+both move in the adverse direction in every source family (clearance ranges
+`+.036776`--`+.418014`, chord mismatch `+.541677°`--`+2.210656°`).
+
+Those two correlates do **not** license a field. The other predeclared
+multi-contact measures fail the cross-source condition: nearest-tangent span
+changes sign (from `−.353341°` to `+.103793°`), and velocity mismatch improves
+in Countercurrent (`−.232828°`) while worsening elsewhere. More importantly,
+the nominal contact geometry remains nearly locally straight in both arms
+(about one degree of nearest-tangent span) while the target collision topology
+changes by multiple updates. Thus a snapshot clearance or full-sled chord
+alignment is not a coherent continuous transition law; choosing either would
+be a post-hoc restatement of the observed contact outcome.
+
+Do not create, tune, translate, rotate, or rank a local manifold/clearance
+field; do not turn its two favorable aggregate correlates into a point, pose,
+or support selector. The retained boundary is sharper: a successor must be a
+continuous *time-resolved collision transition* that changes the native
+multi-contact event itself, not a stationary full-sled snapshot or another
+post-curve tangent retiming.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

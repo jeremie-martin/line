@@ -40,7 +40,7 @@ import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate
 import { CALIB, secToFrame, type AxisName, type AxisValues, type Gap, type Spec, type TrackLine } from "./types.ts";
 
 const BUDGET = 250_000;
-const SEED = 28;
+const RESPONSE_SEEDS = [28, 29] as const;
 const RAW_ATTEMPTS = 32;
 const RAW_VIABLE_PREFIX = 8;
 const OFFSET_PX = 2;
@@ -58,15 +58,20 @@ const CASES = [
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: study_impact_response_envelope.ts [--out=PATH]\n" +
-    "Runs the fixed six-regime local-response envelope. Observation only.\n",
+    "Usage: study_impact_response_envelope.ts [--seed=28|29] [--out=PATH]\n" +
+    "Runs one fixed six-regime local-response envelope seed. Observation only.\n",
   );
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
   argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+const selectedSeed = Number(argument("seed") ?? "28");
+if (!(RESPONSE_SEEDS as readonly number[]).includes(selectedSeed)) {
+  throw new Error(`--seed must be one of ${RESPONSE_SEEDS.join(", ")}`);
+}
+const SEED = selectedSeed;
 const outPath = argument("out") ?? "generated/studies/impact-response-envelope/v1/result.json";
-const unknown = argv.filter((value) => !value.startsWith("--out="));
+const unknown = argv.filter((value) => !value.startsWith("--out=") && !value.startsWith("--seed="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
 
 type Regime = typeof CASES[number]["regime"];

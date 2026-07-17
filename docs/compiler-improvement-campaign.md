@@ -3368,8 +3368,9 @@ funnel.
 ## Impact Response Envelope v1 (2026-07-17)
 
 `npm run study:impact-response` directly tests the physical interpretation
-without changing the compiler. At the same six V2-jolt source families, seed
-28, and the one-third winner-prefix boundary, it takes the first eight viable
+without changing the compiler. It permits only the two fixed `impact-probe`
+seeds (28 discovery, 29 held-out); at the same six V2-jolt source families
+and one-third winner-prefix boundary, it takes the first eight viable
 ordinary raw proposals from attempts 0--31. Every baseline and deformation is
 run through the current exact candidate gate with optional ride-out polish
 disabled equally. The fixed basis applies `±2px` whole-catch displacement
@@ -3379,18 +3380,20 @@ air residuals and the existing predicted-next-readiness objective; it is not
 a candidate source or a selector.
 
 **Result: retain a response-state basis; reject the universal speed-loss
-claim.** All six states supplied all eight raw candidates: 48 exact baseline
-replays and 247 viable deformations. **44** deformations reduced impact
-absolute residual by at least `.025` with no added immediate speed residual;
-**22** also had non-worse predicted-next readiness. The strongest single
-direction was a small negative post-contact pitch (25 material no-speed
-repairs among 44 viable variations), but its mean readiness movement was
-negative (`−.0300`); the opposite pitch and normal offsets supplied other
+claim.** Discovery seed 28 supplied 48 exact baseline replays and 247 viable
+deformations: **44** reduced impact absolute residual by at least `.025` with
+no added immediate speed residual; **22** also had non-worse
+predicted-next readiness. The fixed held-out seed 29 reproduced the physical
+opportunity (48 baselines, 235 viable deformations, **49** material no-speed
+repairs, **19** with non-worse readiness). Across both seeds, the strongest
+single direction was a small negative post-contact pitch (56 material
+no-speed repairs among 89 viable variations), but its mean readiness movement
+was negative; the opposite pitch and normal offsets supplied other
 non-worse-readiness repairs. Entry pitch was almost inert. The useful sign
 varies by raw proposal and source, and simply taking the existing
 quality-objective winner across the two post-pitch siblings reduces mean
-impact on this panel. Therefore neither a global pitch constant nor an
-impact-first local chooser is authorized.
+impact on the discovery panel. Therefore neither a global pitch constant nor
+an impact-first local chooser is authorized.
 
 This is nevertheless a material revision to the physical diagnosis: the
 normal geometry lies near engine-admitted impact directions that do **not**

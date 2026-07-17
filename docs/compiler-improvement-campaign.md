@@ -2472,6 +2472,54 @@ materialized normal-return triples. A pass authorizes only a separately
 declared fresh V4 fixture cohort using the unchanged four controls; it does
 not authorize compiler source or V2 evaluation.
 
+**Result (2026-07-17, 0.5s
+`scripts/v0/audit_central_six_transient.ts --projection=distributed-forward-four
+--artifact=...dense240...`): calibration closure RETAIN.** The exact same
+four-label filter at all three contacts yields 8 materialized pairs, 28/32
+admitted and byte-stable triples, 28/28 normal-return triples, and 272 normal
+admissions; all normal control geometry is available. Its retained recursive
+row charge is 10,234/37,586 (27.2%). This clears the declared calibration
+falsifier but is not fresh evidence or a source candidate.
+
+**Decision.** Freeze a new V4 fixture cohort before changing any compiler
+source. The next runner must apply exactly four controls at every C1/transient
+stage—distributed allocation, both orientations, half/one-frame forward
+phase—and use an equal four-member normal stream at k+3. It may not use the
+24-control V3 menu, select a control, or alter the ballistic law.
+
+## Declared Study: Fresh Distributed-Forward Four-Control Recurrence (2026-07-17)
+
+**Cohort declaration before capture.** The isolated V4 registry is
+`scripts/v0/trajectory/recursive_transient_four_control_panel.ts`; it imports
+neither the legacy trajectory panel nor the previously observed V3 registry.
+The source-only roster is fixed as follows:
+
+- `four_control_split_signal_dense`: `split_signal`, seed 730401, g13, a
+  compact 16/17-frame impact-authored block.
+- `four_control_wide_breaths_ordinary`: `wide_breaths`, seed 730403, g34, a
+  regular middle-groove impact-authored block.
+- `four_control_pickup_shifted_low_air`:
+  `frontier_pickup_progression_shifted`, seed 730407, g59, a stable 24-frame
+  shifted low-air (<0.20) impact-authored block. It is a fresh V2 timing
+  variant, explicitly not an independence claim from the prior base pickup
+  source.
+
+Capture with `LR_ENGINE=wasm npx tsx
+scripts/v0/capture_recursive_transient_four_control_fixture.ts --case=all
+--cohort=validation --budget=500000`. The runner protocol is the fixed four
+controls at first C1, k+1 transient, and k+2 transient; literal next-contact
+ballistic law; byte-stable triple materialization; and an equal four-member
+normal stream at k+3. No source/case/impact/outcome branch or larger control
+menu is permitted.
+
+**Falsifiers.** Retire the distributed-forward class if fresh dense or
+ordinary has zero materialized triple with k+3 normal return; if the low-air
+variant has unavailable normal control/validity failure; if any required
+fixture does not seal under WASM/500k/current compiler; or if four-control
+cost is not materially bounded below the 24-control study screen. A pass
+authorizes only a separately declared tiny source-default candidate and normal
+scope panel, never direct V2 evaluation.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

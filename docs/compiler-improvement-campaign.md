@@ -3951,6 +3951,67 @@ third-contact blind spot. A future two-contact component must change the
 continuous arrival state while proving the broad normal return; copied normal
 pairs are now closed alongside coordinate interpolation and endpoint bridging.
 
+## Declared Observation: Finite Contact-Patch Release on Ordinary Normals (2026-07-17)
+
+The ordinary normal candidate is a zero-thickness one-way surface, despite the
+sled having a finite collision span. The terminal type-2 release aperture is
+closed, but it leaves the immediate contact dynamics unchanged. This is a
+different engine component: preserve the existing approach and target contact,
+then make a finite physical contact patch immediately downstream of that exact
+contact vertex; the geometrically identical remainder is type-2 scenery. The
+patch length is the maximum pairwise span of the four measured sled points plus
+one incoming-speed frame. It therefore covers a whole sled body and one exact
+response step, with no axis ask, case, duration, source, sign, rank, or
+outcome input. It changes collision duration rather than an endpoint,
+tangent, force, or response-pitch law.
+
+**Protocol, declared before rows.** On the established six-regime, two-seed
+WASM/V2-jolt/500k frontier panel, first replay every production raw-normal
+pool and geometry hash exactly. Regenerate the same raw coordinates, candidate
+count, flags, ordinary gates, scorer, objective, and line visibility. Locate
+the ordered post-contact segment whose start is closest to the exact ordinary
+sled anchor; retain solid collision through the stated physical patch length,
+splitting one segment only when the physical boundary lies inside it, and emit
+every later unchanged segment as non-collidable type 2. Record patch
+availability, physical length, split/release counts, viable admission,
+objective, axis RMS, cost, and charged frames. This observation does not add a
+candidate, selector, or compiler path.
+
+**Discard before source work.** Retire if the production replay is not exact;
+if the patch cannot be materialized or never changes a post-contact collision
+surface on a material share of rows; if it lacks a regime-balanced improvement
+in both viable-pool strength and continuation-aware objective; if dense,
+pickup, or low-air has material viability/objective loss; or if its charged
+admission work rises without a stronger pool. A pass authorizes only one
+separately declared ordinary source/default scope test—never a patch-length
+family, target threshold, line subset, direct Stage 0, or V2 evaluation.
+
+**Result (2026-07-17, first decisive dense slice only;
+`npm run study:contact-patch-release -- --case=frontier_dense_recovery
+--case=dense_dialogue_impact_contrast_10`; artifact
+`generated/studies/contact-patch-release-normal-pool/v1/batch-0.json`):
+RETIRE at the predeclared dense guard.** All eight V2-jolt/500k dense rows
+replayed their production raw pools exactly. The component was fully physical,
+not inert: all **232/232** regenerated geometries found and split the patch
+boundary, replacing 802 downstream solid segments; the mean patch length was
+**29.58 px** (one sled span plus one speed frame).
+
+That contact-duration change destroys the required dense pool. Viability fell
+**4.5 candidates/state**, best continuation-aware objective fell **.019118**,
+and best local cost worsened **.028972**. The apparent 408.5-frame average
+saving is rejection work, not an economics gain: the dense-recovery
+one-third row gained three locally viable candidates but lost `.025941`
+objective, while dense-dialogue lost 7--11 candidates in every affected row.
+The declared dense material-loss clause fires before a broader panel could add
+decision value.
+
+**Decision.** Do not vary patch length, sled span law, release location,
+segment split, type-2 subset, or combine this aperture with force, response,
+or a source lane. A finite contact band is a real change in collision duration,
+but the ordinary continuation relies on the post-contact support it removes.
+The next component must add a useful contact-order constraint rather than
+truncate the existing one.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

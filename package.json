@@ -48,6 +48,7 @@
     "study:sled-pose-frame": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_velocity_leading_anchor_normal_pool.ts --mode=sled-pose",
     "study:all-body-support-anchor": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_collision_side_normal_pool.ts --all-body-support-anchor",
     "study:surface-normal-body-support-anchor": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_collision_side_normal_pool.ts --surface-normal-body-support-anchor",
+    "study:contact-patch-release": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_collision_side_normal_pool.ts --contact-patch-release",
     "audit:pose-chain-state": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/audit_pose_chain_state.ts",
     "lab": "node --no-warnings=ExperimentalWarning --expose-gc --import tsx scripts/v0/analysis/lab.ts",
     "study:joint-arc": "LR_ENGINE=wasm node --expose-gc --no-warnings=ExperimentalWarning --import tsx scripts/v0/study_joint_arc_model.ts",

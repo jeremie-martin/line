@@ -4258,6 +4258,59 @@ pair with a side, force, response, or rank source.  Exact target-frame
 multi-sled support is physically achievable but over-constrains the ordinary
 catch; it is not the missing collision-order component.
 
+## Declared Diagnosis: Exact Impact-Repair Transition-State Decomposition (2026-07-17)
+
+The fixed impact probe already shows that no-extra-speed impact repairs are
+common yet lose handoff value.  It currently reports the loss but not which
+physical state changed between the selected normal catch and the exact repair.
+Use the same immutable six-source, two-seed WASM/V2-jolt/500k panel and the
+same `0` speed-allowance material repairs.  At every eligible pool, retain the
+actual selected candidate and its best no-speed repair, then report
+`repair − selected` for exact geometric-exit state (`vx`, `vy`, speed,
+grounded/airborne phase) and unchanged ballistic next-contact readout (speed,
+angle, air).  This reads only the pool candidates already scored by the
+compiler; it cannot change candidate generation, admission, selection,
+simulation charge, or the headline.
+
+**Decision boundary.** Retire a simple release-state source direction if no
+single measured state component has a coherent signed repair-minus-selected
+contrast across the impact sources and the dense, pickup, and low-air guards;
+do not pick a metric, threshold, or target subset after seeing the rows.  A
+coherent result authorizes only one separately declared physical component
+that changes that state boundary and re-proves the broad normal return.  It
+does not authorize a release-state rank term, a response selector, an offset
+sweep, a speed trade, or a V2 run.
+
+**Result (2026-07-17, three immutable 19--20s batches plus 0.7s aggregate;
+`npm run impact-probe:batch -- --batch=0|1|2`, then
+`npm run impact-probe:aggregate -- --reference=benchmark/v2/studies/impact-frontier-probe-v1-baseline.json`):
+RETAIN a tangential-carry transition boundary.** The regenerated aggregate is
+exactly equal to the stored baseline on all pre-existing outcome and frontier
+metrics.  Across **1,705** material no-extra-speed repairs, the repair-minus-
+selected state is consistently slower at geometric exit: `vx −.111577`,
+`vy −.345921`, and speed `−.136709` px/frame; the unchanged ballistic read at
+the next contact is speed `−.179158` px/frame and angle `−1.463398°`.
+
+This is not a dense-only mean.  Every one of the six fixed source families has
+negative repair-minus-selected release `vx` (−.06797 to −.15258), release
+speed (−.09783 to −.18887), and arrival speed (−.12536 to −.23297); the
+impact sources, dense guard, pickup guard, and low-air guard all agree.  The
+other plausible state explanations do not: grounded-frame movement changes
+sign between batches and arrival-air movement changes sign between source
+families.  Thus the prior readiness loss is specifically a tangential-carry
+loss hidden behind unchanged *current-window* scored speed, not evidence that
+the repair merely has the wrong airborne phase or an unavoidable authored
+speed trade.
+
+**Decision.** A new source may be pursued only if it is a distinct physical
+component that preserves or restores tangential carry while producing the
+current redirection; it must retain exact capture, normal return, and equal
+charged work.  Do not add this state to the ranker, trigger a response lane,
+retune an offset, sacrifice scored speed, or reopen the retired full-curve
+type-1 force, terminal-release, passive-carrier, J-valley, or local-response
+families.  The retained signal is a physical design constraint, not a
+production policy.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

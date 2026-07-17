@@ -74,6 +74,27 @@ type CandidatePoint = {
   handoffScore: number;
   readiness: number | null;
   currentQuality: number;
+  transition: TransitionState;
+};
+type TransitionState = {
+  releaseVx: number | null;
+  releaseVy: number | null;
+  releaseSpeed: number | null;
+  releaseGrounded: number | null;
+  releaseAirborne: boolean | null;
+  arrivalSpeed: number | null;
+  arrivalAngleDeg: number | null;
+  arrivalAir: number | null;
+};
+type TransitionDelta = {
+  releaseVx: number | null;
+  releaseVy: number | null;
+  releaseSpeed: number | null;
+  releaseGrounded: number | null;
+  releaseAirborne: number | null;
+  arrivalSpeed: number | null;
+  arrivalAngleDeg: number | null;
+  arrivalAir: number | null;
 };
 type TradeChoice = {
   impactGain: number;
@@ -82,6 +103,8 @@ type TradeChoice = {
   elevationCost: number | null;
   handoffCost: number;
   readinessDelta: number | null;
+  /** Exact repair-minus-selected kinematic states; observational only. */
+  transition: TransitionDelta;
 };
 type PoolRow = {
   id: string;
@@ -127,6 +150,17 @@ type FrontierAggregate = {
     elevationCostMean: number | null;
     handoffCostMean: number;
     readinessDeltaMean: number | null;
+    transition: {
+      samples: number;
+      releaseVxDeltaMean: number | null;
+      releaseVyDeltaMean: number | null;
+      releaseSpeedDeltaMean: number | null;
+      releaseGroundedDeltaMean: number | null;
+      releaseAirborneDeltaMean: number | null;
+      arrivalSpeedDeltaMean: number | null;
+      arrivalAngleDegDeltaMean: number | null;
+      arrivalAirDeltaMean: number | null;
+    };
   }>;
 };
 type ProbeOutput = {
@@ -383,6 +417,16 @@ function candidatePoint(
     handoffScore: candidate.handoffScore,
     readiness: finite(candidate.readiness) ? candidate.readiness : null,
     currentQuality: candidate.currentQuality,
+    transition: {
+      releaseVx: finite(candidate.releaseVx) ? candidate.releaseVx : null,
+      releaseVy: finite(candidate.releaseVy) ? candidate.releaseVy : null,
+      releaseSpeed: finite(candidate.releaseSpeed) ? candidate.releaseSpeed : null,
+      releaseGrounded: finite(candidate.releaseGrounded) ? candidate.releaseGrounded : null,
+      releaseAirborne: typeof candidate.releaseAirborne === "boolean" ? candidate.releaseAirborne : null,
+      arrivalSpeed: finite(candidate.arrivalSpeed) ? candidate.arrivalSpeed : null,
+      arrivalAngleDeg: finite(candidate.arrivalAngleDeg) ? candidate.arrivalAngleDeg : null,
+      arrivalAir: finite(candidate.arrivalAir) ? candidate.arrivalAir : null,
+    },
   }];
 }
 
@@ -412,6 +456,24 @@ function tradeChoice(selected: CandidatePoint, pick: CandidatePoint): TradeChoic
     readinessDelta: selected.readiness === null || pick.readiness === null
       ? null
       : round(pick.readiness - selected.readiness),
+    transition: transitionDelta(selected.transition, pick.transition),
+  };
+}
+
+function transitionDelta(selected: TransitionState, repair: TransitionState): TransitionDelta {
+  const difference = (before: number | null, after: number | null): number | null =>
+    before === null || after === null ? null : round(after - before);
+  return {
+    releaseVx: difference(selected.releaseVx, repair.releaseVx),
+    releaseVy: difference(selected.releaseVy, repair.releaseVy),
+    releaseSpeed: difference(selected.releaseSpeed, repair.releaseSpeed),
+    releaseGrounded: difference(selected.releaseGrounded, repair.releaseGrounded),
+    releaseAirborne: selected.releaseAirborne === null || repair.releaseAirborne === null
+      ? null
+      : Number(repair.releaseAirborne) - Number(selected.releaseAirborne),
+    arrivalSpeed: difference(selected.arrivalSpeed, repair.arrivalSpeed),
+    arrivalAngleDeg: difference(selected.arrivalAngleDeg, repair.arrivalAngleDeg),
+    arrivalAir: difference(selected.arrivalAir, repair.arrivalAir),
   };
 }
 
@@ -480,6 +542,7 @@ function summarizeFrontier(rows: PoolRow[]): FrontierAggregate {
       elevationCostMean: nullableMean(choices.map((choice) => choice.elevationCost)),
       handoffCostMean: round(mean(choices.map((choice) => choice.handoffCost))),
       readinessDeltaMean: nullableMean(choices.map((choice) => choice.readinessDelta)),
+      transition: summarizeTransition(material),
     };
   }
   return {
@@ -488,6 +551,20 @@ function summarizeFrontier(rows: PoolRow[]): FrontierAggregate {
     axisParetoCandidatesMean: round(mean(rows.map((row) => row.axisParetoCandidates))),
     selectedOnAxisParetoRate: ratio(rows.filter((row) => row.selectedOnAxisPareto).length, rows.length),
     speedAllowance,
+  };
+}
+
+function summarizeTransition(choices: readonly TradeChoice[]): FrontierAggregate["speedAllowance"][string]["transition"] {
+  return {
+    samples: choices.length,
+    releaseVxDeltaMean: nullableMean(choices.map((choice) => choice.transition.releaseVx)),
+    releaseVyDeltaMean: nullableMean(choices.map((choice) => choice.transition.releaseVy)),
+    releaseSpeedDeltaMean: nullableMean(choices.map((choice) => choice.transition.releaseSpeed)),
+    releaseGroundedDeltaMean: nullableMean(choices.map((choice) => choice.transition.releaseGrounded)),
+    releaseAirborneDeltaMean: nullableMean(choices.map((choice) => choice.transition.releaseAirborne)),
+    arrivalSpeedDeltaMean: nullableMean(choices.map((choice) => choice.transition.arrivalSpeed)),
+    arrivalAngleDegDeltaMean: nullableMean(choices.map((choice) => choice.transition.arrivalAngleDeg)),
+    arrivalAirDeltaMean: nullableMean(choices.map((choice) => choice.transition.arrivalAir)),
   };
 }
 

@@ -1564,6 +1564,19 @@ lane, scope panel, Stage 0, or certification. A pass authorizes only a
 separately declared attempt-spanned sampler form through the standard V2
 funnel.
 
+**Outcome: RETIRE at the fixture falsifier.** The expanded executable oracle
+(`study_grade_continuity.ts`, schema v4) replayed all five streams for 96
+trials on each frozen fixture (845k simulated frames, 5.8s). The airborne
+controller completed **0/96** believer36 chains, unchanged from independent,
+and **37/96** believer69 chains, again exactly independent; terminal speed was
+unchanged to the reported precision on both. This was an active arm, not an
+absence artifact: 66 phase-shortfall tail proposals were generated (pressure
+0.074--1.0), but **0/66** survived ordinary exact admission. The attempt to
+shorten a sampled tail after the preserved first post-contact segment therefore
+cannot form a legal competing normal candidate at these exact multi-gap
+states. Do not sweep the tail factor/share or make a source lane. **Incoming
+airborne-phase continuity is retired.**
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

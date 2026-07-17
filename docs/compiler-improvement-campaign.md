@@ -1464,6 +1464,30 @@ contact-prefix collateral: both full-post-angle and capture-preserving-tail
 delivery fail broad composition. Reverted without Stage 0; **grade continuity
 is closed in all tested delivery forms.**
 
+## Declared Study: Cumulative Kinetic-Energy Phase (2026-07-17)
+
+Grade continuity copied one predecessor terrain tangent and is closed. The
+slow-chain evidence instead suggests a stateful **energy** control: each
+committed contact exposes exact entry speed, and the current authored speed
+ask defines a continuous signed deficit. A bounded exponentially decayed sum
+of those deficits can request a small *distributed post-tail work* adjustment
+on a deterministic minority of otherwise normal candidates. This is not a
+prior-grade lane: the state is a multi-contact kinematic integral, starts at
+zero, decays after every committed contact, and is updated from exact measured
+state plus the current authored speed only. The tail realization holds the
+contact anchor, segment lengths, and first post tangent fixed while solving a
+smooth curvature field for the requested mean gravitational-work grade.
+
+**Cheap decisive test first.** A frozen WASM/500k believer36/69 chain oracle
+will compare the fixed controller against independent normal sampling at equal
+24 candidates/contact and ordinary exact admission/local-cost selection. It
+must improve complete five-contact chains **and** terminal speed on both
+fixtures without higher simulated-frame cost. Any split result, or no
+improvement over independent sampling on either state, retires this controller
+before a source-default implementation. Only a pass would authorize one
+attempt-spanned normal-sampler delivery, the fixed V2-jolt/500k scope panel,
+then the ordinary funnel; no constants will be selected from oracle output.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

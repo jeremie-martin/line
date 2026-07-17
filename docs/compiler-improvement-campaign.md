@@ -4614,6 +4614,52 @@ single/PEG-dominated.  A successor must alter the predecessor physical
 candidate basis or the reachable state transition itself, not reformulate a
 stationary current-contact guide path.
 
+## Declared Observation: Predecessor Full-State Ballistic Launch Chord (2026-07-17)
+
+The predecessor reachability failure requires a new physical basis upstream,
+but a release-only aperture, C1 scoop, support rail, force line, and passive
+carrier are already closed.  This assay therefore tests one different,
+target-blind passive object: a finite one-shot whole-body impulse at the
+predecessor event.  From all PEG/TAIL/NOSE/STRING positions and velocities,
+take the cloud centroid and collective velocity.  Use the authored interval
+`N` from predecessor event to current event, preserve collective speed, and
+derive the gravity-symmetric ballistic launch component `vy = -g*N/2`.  The
+angle bisector of incoming and launch directions is the collision plane; its
+two finite segments each span the complete cloud's RMS gravity-normal diameter.
+The geometry ends there, so any remaining state is free flight.  It reads no
+current/following axis, score, candidate, point identity, rank, case, or seed.
+
+**Protocol, declared before rows.** On the immutable dense-240 and ordinary
+WASM/V2-jolt/500k fixtures, remove only the immediate predecessor fit and
+submit the one continuous chord to the unchanged predecessor gate.  If it
+admits, read its exact pre-touchdown state and run fixed unchanged 16-member
+current and eight-member following ordinary streams.  A coherent result needs
+current impact error at most `.05`, at least three target-frame native
+zero-friction sled updates, a six-frame airborne return, and a following normal
+admission.  All gate and replay frames are charged.  The normal streams are
+return tests, never a chooser or feedback path.  Retire if either construction
+fails predecessor admission, if dense has no coherent current state, or if the
+ordinary control does not remain coherent.
+
+**Result (2026-07-17, 0.12s, 34 charged frames;
+`LR_ENGINE=wasm node --expose-gc --import tsx
+scripts/v0/study_predecessor_ballistic_launch_chord.ts --case=all
+--out-dir=generated/studies/predecessor-ballistic-launch-chord/v1`): RETIRE
+the passive ballistic launch chord.** Both full-state constructions are
+available and clear pre-target safety, so the result is neither an unavailable
+input nor an approach intrusion.  The unchanged predecessor gate rejects both
+the dense-240 and ordinary chord immediately; no altered pre-touchdown state
+exists from which to run the fixed current stream.  The form therefore fails
+the first necessary exact-engine boundary, before any ranker, release tuning,
+or target-specific intervention could enter the result.
+
+**Decision.** Do not alter the ballistic midpoint law, chord span, collision
+side, plane position, segment count, or point weighting; these are the
+construction itself, and varying them would be a menu around a basis rejected
+on both controls.  A successor must retain an engine-admitted capture while
+changing its articulated collision-response transition; it cannot be a
+standalone passive full-body impulse followed by flight.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

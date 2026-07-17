@@ -534,6 +534,18 @@ nonintruding collective state locus neither establishes a dense current basin
 nor retains the required native multi-contact topology. Do not tune its level,
 horizon, turn law, side, weighting, or discretization.
 
+The predecessor full-state ballistic launch chord is also closed.  It derives
+a two-segment passive predecessor impulse continuously from the full sled
+cloud and the already-authored predecessor-to-current interval: preserve
+collective speed, use `vy=-g*N/2`, form the incoming/launch angle-bisector
+collision plane, and span each segment by the cloud's RMS normal diameter.
+Both dense-240 and ordinary instances clear pre-target safety but fail the
+unchanged predecessor gate (34 charged frames total), so no new pre-touchdown
+state can be observed.  Do not vary its launch law, span, side, placement,
+segments, or weighting.  A viable successor must preserve an engine-admitted
+capture while changing the articulated collision-response transition; a
+standalone passive impulse-and-flight basis is insufficient.
+
 A future trajectory study is admissible only if it declares a **new** component
 form that, from continuous physical state rather than a case/duration/menu
 choice, establishes the required six-frame return window at dense-240 while

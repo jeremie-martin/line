@@ -3365,6 +3365,45 @@ impact-only hotfix. A full candidate requires a separately declared,
 regime-balanced transition-source assay followed by the normal scope/V2
 funnel.
 
+## Impact Response Envelope v1 (2026-07-17)
+
+`npm run study:impact-response` directly tests the physical interpretation
+without changing the compiler. At the same six V2-jolt source families, seed
+28, and the one-third winner-prefix boundary, it takes the first eight viable
+ordinary raw proposals from attempts 0--31. Every baseline and deformation is
+run through the current exact candidate gate with optional ride-out polish
+disabled equally. The fixed basis applies `±2px` whole-catch displacement
+along the measured incoming normal, plus `±3°` rotation of either branch
+about the nearest physical contact vertex. It records current impact/speed/
+air residuals and the existing predicted-next-readiness objective; it is not
+a candidate source or a selector.
+
+**Result: retain a response-state basis; reject the universal speed-loss
+claim.** All six states supplied all eight raw candidates: 48 exact baseline
+replays and 247 viable deformations. **44** deformations reduced impact
+absolute residual by at least `.025` with no added immediate speed residual;
+**22** also had non-worse predicted-next readiness. The strongest single
+direction was a small negative post-contact pitch (25 material no-speed
+repairs among 44 viable variations), but its mean readiness movement was
+negative (`−.0300`); the opposite pitch and normal offsets supplied other
+non-worse-readiness repairs. Entry pitch was almost inert. The useful sign
+varies by raw proposal and source, and simply taking the existing
+quality-objective winner across the two post-pitch siblings reduces mean
+impact on this panel. Therefore neither a global pitch constant nor an
+impact-first local chooser is authorized.
+
+This is nevertheless a material revision to the physical diagnosis: the
+normal geometry lies near engine-admitted impact directions that do **not**
+intrinsically spend speed. The unresolved constraint is response-direction
+identification and continuation robustness, not a scalar speed/impact law.
+The next admissible mechanism is a separately declared, two-seed
+cross-regime **response-rich normal candidate** assay: expose a fixed,
+engine-measured local response family to the unchanged evaluator without
+preselecting its sign, prove equal-budget traversal economics, then proceed
+only if it improves a broad scope panel. Do not add a pitch gate, a target
+threshold, a selector weight, or a case-conditioned branch from this
+discovery panel.
+
 ## Declared Audit: Body-Point Collision Contribution in Ordinary Normal Pools (2026-07-17)
 
 The current probe has reopened the physical question: many impact-improving

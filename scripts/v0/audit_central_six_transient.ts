@@ -1,17 +1,23 @@
 /**
- * Descriptive, post-decision economics audit for the declared central-six
- * projection of the recursive transient study. It never creates candidates,
+ * Descriptive, post-decision economics audit for declared compact projections
+ * of the recursive transient study. It never creates candidates,
  * rewrites artifacts, or selects controls from observed admissions.
  */
 import { readFileSync } from "node:fs";
 
-const CENTRAL_LABELS = new Set([
+const CENTRAL_SIX_LABELS = new Set([
   "negative_balanced_at_target",
   "negative_balanced_half_frame_forward",
   "negative_balanced_one_frame_forward",
   "positive_balanced_at_target",
   "positive_balanced_half_frame_forward",
   "positive_balanced_one_frame_forward",
+]);
+const DISTRIBUTED_FORWARD_FOUR_LABELS = new Set([
+  "negative_distributed_half_frame_forward",
+  "negative_distributed_one_frame_forward",
+  "positive_distributed_half_frame_forward",
+  "positive_distributed_one_frame_forward",
 ]);
 
 const defaultArtifacts = [
@@ -23,37 +29,35 @@ const defaultArtifacts = [
 
 const argv = process.argv.slice(2);
 const requested = argv.filter((value) => value.startsWith("--artifact=")).map((value) => value.slice("--artifact=".length));
+const projectionArgument = argv.find((value) => value.startsWith("--projection="))?.slice("--projection=".length) ?? "central-six";
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: audit_central_six_transient.ts [--artifact=PATH ...]",
+    "Usage: audit_central_six_transient.ts [--projection=central-six|distributed-forward-four] [--artifact=PATH ...]",
     "",
-    "Filters retained recursive-study rows to the fixed six balanced mirrored controls.",
+    "Filters retained recursive-study rows to one declared geometry-derived control class.",
   ].join("\n") + "\n");
   process.exit(0);
 }
-if (argv.some((value) => !value.startsWith("--artifact="))) {
-  throw new Error("unsupported argument; expected only --artifact=PATH");
+if (argv.some((value) => !value.startsWith("--artifact=") && !value.startsWith("--projection="))) {
+  throw new Error("unsupported argument; expected --projection=NAME or --artifact=PATH");
 }
+const projection = projectionFor(projectionArgument);
 
-const results = (requested.length === 0 ? defaultArtifacts : requested).map(auditArtifact);
 process.stdout.write(`${JSON.stringify({
-  schema: "line.study-central-six-transient-economics-audit.v1",
-  projection: {
-    controls: [...CENTRAL_LABELS],
-    explanation: "both orientations x balanced 0.5 entry-turn-share x fixed phase offsets 0, 0.5, 1",
-  },
-  results,
+  schema: "line.study-transient-projection-economics-audit.v1",
+  projection,
+  results: (requested.length === 0 ? defaultArtifacts : requested).map((path) => auditArtifact(path, projection.labels)),
 }, null, 2)}\n`);
 
-function auditArtifact(path: string): Record<string, unknown> {
+function auditArtifact(path: string, labels: ReadonlySet<string>): Record<string, unknown> {
   const document = JSON.parse(readFileSync(path, "utf8")) as StudyDocument;
-  const outer = document.rows.filter((row) => row.family === "capture-arc" && isCentral(row.controlId));
+  const outer = document.rows.filter((row) => row.family === "capture-arc" && isSelected(row.controlId, labels));
   const pairs = outer.flatMap((row) => (row.segment2?.rows ?? [])
-    .filter((segment) => segment.family === "capture-arc" && isCentral(segment.label) && segment.returnBoundary?.materialized === true)
+    .filter((segment) => segment.family === "capture-arc" && isSelected(segment.label, labels) && segment.returnBoundary?.materialized === true)
     .map((segment) => segment.returnBoundary!));
   const recurrences = pairs.map((pair) => pair.recursiveTransient).filter((value): value is RecursiveTransient => value !== null);
   const allThirdRows = recurrences.flatMap((recurrence) => recurrence.rows);
-  const thirdRows = allThirdRows.filter((row) => isCentral(row.label));
+  const thirdRows = allThirdRows.filter((row) => isSelected(row.label, labels));
   const materialized = thirdRows.filter((row) => row.materialized);
   const normal = materialized.map((row) => row.normalReturn).filter((value): value is NormalReturn => value !== null);
   const centralRecursiveFrames = thirdRows.reduce((sum, row) => sum + rowCharge(row), 0);
@@ -81,8 +85,26 @@ function auditArtifact(path: string): Record<string, unknown> {
   };
 }
 
-function isCentral(label: string): boolean {
-  return CENTRAL_LABELS.has(label.replace(/_transient$/, ""));
+function projectionFor(name: string): { name: string; labels: ReadonlySet<string>; explanation: string } {
+  if (name === "central-six") {
+    return {
+      name,
+      labels: CENTRAL_SIX_LABELS,
+      explanation: "both orientations x balanced 0.5 entry-turn-share x fixed phase offsets 0, 0.5, 1",
+    };
+  }
+  if (name === "distributed-forward-four") {
+    return {
+      name,
+      labels: DISTRIBUTED_FORWARD_FOUR_LABELS,
+      explanation: "both orientations x distributed zero entry-turn-share x half- or one-frame forward phase",
+    };
+  }
+  throw new Error(`unknown --projection=${name}`);
+}
+
+function isSelected(label: string, labels: ReadonlySet<string>): boolean {
+  return labels.has(label.replace(/_transient$/, ""));
 }
 
 function rowCharge(row: RecursiveRow): number {

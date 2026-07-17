@@ -2432,6 +2432,46 @@ nonzero normal-return triple, retire compact source-default pursuit for this
 topology. If concentration is present only in an irreducible multi-control
 combination, retain it as a calibration fact but do not write a source form.
 
+**Result (2026-07-17, 0.6s
+`scripts/v0/audit_dense240_transient_concentration.ts`): concentration
+RETAIN; no source form yet.** The immutable dense-240 rows contain 201
+materialized triples, 146 normal-return triples, and 969 normal admissions.
+All 146 normal returns begin with one of three `distributed` forward-phase C1
+labels: positive/one-frame (98 returns, 773 admissions), negative/one-frame
+(26, 130), or negative/half-frame (22, 66). The remaining 44 materialized
+triples begin with balanced labels and restore zero normal returns. At the
+third component, the four mirrored distributed half/one-frame labels retain
+46 normal-return triples (347 admissions). This is a geometry-level
+concentration, not a case branch or a source decision.
+
+**Decision.** The calibration result supports one compact class worth a
+closed-screen check: `distributed` allocation (zero entry turn) × both bend
+orientations × half- or one-frame forward phase. It has four controls, is
+defined entirely by the existing local physical basis, and omits the
+at-target and entry-loaded/balanced alternatives uniformly. It still needs an
+all-stages closure check on the same calibration artifact before new fixtures
+are even declared.
+
+## Declared Analysis: Distributed-Forward Four-Control Closure (2026-07-17)
+
+**Question.** If the same four-label distributed-forward class is imposed at
+first C1, k+1 transient, and k+2 transient, does dense-240 retain any
+byte-stable triple with a k+3 normal return at one-sixth of the original
+control-product width?
+
+**Protocol.** Read only the immutable dense-240 calibration rows. Filter all
+three component labels to exactly: negative/positive `distributed` with
+`half_frame_forward` or `one_frame_forward`. Retain the original admissions,
+materializations, normal streams, and row charges; report pair/triple counts,
+normal controls/returns, and recursive-row charge share. This is a mechanical
+projection of existing calibration evidence. It cannot adapt by contact,
+source, outcome, impact magnitude, or held-out result.
+
+**Falsifiers.** Retire the compact class if the all-stages projection has zero
+materialized normal-return triples. A pass authorizes only a separately
+declared fresh V4 fixture cohort using the unchanged four controls; it does
+not authorize compiler source or V2 evaluation.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

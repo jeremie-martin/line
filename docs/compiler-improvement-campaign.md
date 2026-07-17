@@ -2226,6 +2226,47 @@ above normal without admitting a triple. A nonzero triple result authorizes
 only a separately declared k+3 normal-return and held-out continuation study;
 it does not authorize a compiler source or a control selection.
 
+**Result (2026-07-17, `scripts/v0/study_two_contact_shooting.ts
+--case=dense240 --return-normal --transient-bridge --recursive-transient`,
+artifact `generated/studies/two-contact-shooting/recursive-transient-v1-smoke/`):
+component RETAIN; source promotion NOT authorized.** The 19 prior pairs were
+all available and materialized. Their exact k+2 arrivals retained the legal
+7-frame (7 rows) or 9-frame (12 rows) phase. The repeated fixed law admitted
+**201/456** third components (44.1%; 6--14 of the fixed 24 controls on every
+pair state), and every one of those 201 complete triples re-admitted
+byte-stably on the immutable k prefix. There were zero recurrence geometry
+unavailabilities and zero triple materialization failures. The additional
+recursive admission/materialization cost was 14,530 frames; that cost is not a
+source economics claim, but it is fully charged in the artifact.
+
+**Decision.** This is the first evidence that the state-relative transient law
+is *arrival-competent under its own recurrence* where the normal sampler is
+not. It clears exactly the declared component threshold and nothing more. Do
+not choose a successful triple control, integrate a lane, or run V2. The only
+authorized successor is the predeclared equal-stream normal-return test at k+3.
+
+## Declared Study: Recursive Transient k+3 Normal Return (2026-07-17)
+
+**Question.** Do the 201 byte-stable transient triples return to the ordinary
+normal generator after their third ballistic launch, or do they merely move the
+foreign-arrival boundary forward one contact?
+
+**Protocol, declared before rows.** Recreate the same dense-240 fixed screen
+and retain every complete triple from the preceding assay. For each triple,
+read the exact k+3 state, record airborne age, and run an unchanged 24-member
+production-normal stream at k+3 from that triple engine. Every probe and
+normal admission is charged; the raw-normal stream uses a deterministic seed
+of fixture seed, k+3 gap index, first-control row, and third-control index.
+No triple is selected or collapsed before the stream, and no current or future
+target axis, case, or outcome controls the repeated geometry.
+
+**Falsifiers.** Retire the recurrence form if no materialized triple restores a
+normal k+3 admission; if normal control geometry is unavailable; if k+3
+airborne phase falls below six on every triple; or if the returned component is
+only a charged calibration witness without a held-out ordinary/dense result.
+A pass authorizes only a separately declared held-out multi-contact study, not
+a compiler source or V2 evaluation.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

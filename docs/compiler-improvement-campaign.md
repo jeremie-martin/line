@@ -2738,6 +2738,57 @@ arbitrary missing candidate dimension under the exact normal-contact gate.
 Retain the coordinate-plus-side snapshot check as generic observer
 infrastructure only.
 
+## Declared Diagnosis: Two-Second Authored Joint-Demand Memory (2026-07-17)
+
+The closed grade, energy-debt, contact-phase, and airborne-phase controls all
+read committed past state. A genuinely different multi-contact basis would be
+*prospective*: a normal candidate at the start of a passage may need to bank a
+legal arrival before the authored speed/impact/air combination creates the
+slow, both-bad episode. Before adding such future-target memory to any
+generator, test whether the demand exists as an out-of-sample descriptive
+signal rather than naming the known Believer or dense passages.
+
+**Frozen read-only protocol.** Read only the accepted
+`2026-07-16T16-45-07Z-8257f266` canonical development archive's valid 500k
+runs. At every contact, define a two-second forward joint-demand integral over
+subsequent authored contacts,
+`sum(exp(-Δt/1s) * speedTarget * impactTarget * airTarget)`, using the
+archive's literal resolved targets and no score, source, seed, phase, or
+outcome input. Define a both-bad onset before reading the forward integral as
+impact undershoot at least 0.15 and raw speed undershoot above 0.1 px/frame,
+following a non-both-bad preceding contact. Report the onset rate in fixed
+quartiles of the forward integral, overall and separately for
+`dense_dialogue` and `believer_56_6s`; within fixed current-contact-demand
+quartiles, retain the high-versus-low forward-demand contrast so a current
+hard-contact confound cannot masquerade as preparation signal.
+
+**Decision boundary.** Retire prospective joint-demand memory if the highest
+forward-demand quartile does not have at least twice the lowest quartile's
+both-bad-onset rate overall *and* on both named independent source families,
+or if the within-current-demand contrast disappears. A pass authorizes only a
+separately declared immutable-state candidate-pool probe before any source
+implementation; it does not authorize a future-target lane, scope panel, or
+V2 evaluation.
+
+**Result (2026-07-17, 5.8s read-only archive analysis; artifact
+`generated/studies/joint-demand-memory/v1/result.json`): RETIRE prospective
+joint-demand memory.** The fixed analysis covered 2,111 valid 500k runs and
+194,578 contact rows. Its overall high-versus-low forward-demand onset rate
+was only **1.76×** (13.93% versus 7.93%), below the declared 2× gate. More
+importantly, the intended independent families reversed the association:
+Dense Dialogue was **0.89×** (13.35% versus 14.97%) and Believer **0.46×**
+(5.11% versus 11.21%). Forward demand retains a positive contrast within
+each global current-demand quartile (1.56--2.37×), but it does not identify
+the known slow-episode onsets across sources; a global or family-agnostic
+prospective trigger would therefore misfire exactly where it was meant to
+prevent energy loss.
+
+**Decision.** Do not add future-target memory, integrate the demand score
+into normal generation, tune its horizon/decay/threshold, or run a candidate
+pool or V2 panel. The two-second joint demand is a descriptive covariate, not
+a cross-source causal state basis. Multi-contact diagnosis must use a
+different physical state boundary.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

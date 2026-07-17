@@ -29,6 +29,10 @@ import {
   buildRecursiveTransientHeldoutSetup,
   getRecursiveTransientHeldoutCase,
 } from "./recursive_transient_heldout_panel.ts";
+import {
+  buildRecursiveTransientFourControlSetup,
+  getRecursiveTransientFourControlCase,
+} from "./recursive_transient_four_control_panel.ts";
 import type { TrajectoryCaptureCase, TrajectoryCaptureSetup } from "./capture_input.ts";
 import { extractPlanningState, type PlanningState } from "./state.ts";
 import { rebuildPhysicalPrefixEngine } from "./study_fixture.ts";
@@ -280,6 +284,10 @@ function resolveFixturePanel(
   if (input.panel.cohort === "validation" && input.panel.studyScope === "recursive-transient-heldout-v1") {
     const panel = getRecursiveTransientHeldoutCase(input.panel.id);
     return { panel, setup: buildRecursiveTransientHeldoutSetup(panel) };
+  }
+  if (input.panel.cohort === "validation" && input.panel.studyScope === "recursive-transient-distributed-four-v4") {
+    const panel = getRecursiveTransientFourControlCase(input.panel.id);
+    return { panel, setup: buildRecursiveTransientFourControlSetup(panel) };
   }
   const panel = getTrajectoryPanelCase(input.panel.id);
   assertActiveTrajectoryPanel(panel, "trajectory fixture replay");

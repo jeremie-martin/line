@@ -74,6 +74,17 @@ const HELD_OUT_PANEL_IDS = [
   "heldout_meter_exchange_ordinary",
   "heldout_pickup_low_air",
 ] as const;
+const FOUR_CONTROL_HELD_OUT_PANEL_IDS = [
+  "four_control_split_signal_dense",
+  "four_control_wide_breaths_ordinary",
+  "four_control_pickup_shifted_low_air",
+] as const;
+const DISTRIBUTED_FORWARD_FOUR_LABELS = new Set([
+  "negative_distributed_half_frame_forward",
+  "negative_distributed_one_frame_forward",
+  "positive_distributed_half_frame_forward",
+  "positive_distributed_one_frame_forward",
+]);
 
 const argv = process.argv.slice(2);
 const argument = (name: string): string | undefined =>
@@ -86,8 +97,12 @@ const transientBridge = argv.includes("--transient-bridge");
 const arrivalGateDiagnosis = argv.includes("--arrival-gates");
 const recursiveTransient = argv.includes("--recursive-transient");
 const recursiveReturn = argv.includes("--recursive-return");
-const heldOut = argv.includes("--held-out");
-const SCHEMA = heldOut
+const distributedForwardFour = argv.includes("--distributed-forward-four");
+const heldOut = argv.includes("--held-out") || distributedForwardFour;
+const CONTROL_MEMBER_COUNT = distributedForwardFour ? 4 : 24;
+const SCHEMA = distributedForwardFour
+  ? "line.study-recursive-transient-distributed-four-heldout.v1"
+  : heldOut
   ? "line.study-recursive-transient-heldout.v1"
   : recursiveReturn
   ? "line.study-recursive-transient-k3-normal-return.v1"
@@ -123,12 +138,14 @@ if (argv.includes("--help") || argv.includes("-h")) {
     "k+3 normal stream from every byte-stable transient triple.",
     "--held-out requires exactly the three declared --fixture=PATH inputs and the",
     "recursive-return transient protocol; it accepts only the sealed validation roster.",
+    "--distributed-forward-four is the fresh V4 held-out mode: it applies only",
+    "the fixed mirrored distributed half/one-frame controls at every stage.",
   ].join("\n") + "\n");
   process.exit(0);
 }
 
 assertExactEnvironment();
-const supportedOptions = ["--case=", "--fixture=", "--held-out", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--recursive-transient", "--recursive-return", "--help", "-h"];
+const supportedOptions = ["--case=", "--fixture=", "--held-out", "--distributed-forward-four", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--recursive-transient", "--recursive-return", "--help", "-h"];
 const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
 if ((ballisticRelease || transientBridge) && !returnNormal) {
@@ -149,6 +166,12 @@ if (arrivalGateDiagnosis && recursiveTransient) {
 if (recursiveReturn && !recursiveTransient) {
   throw new Error("--recursive-return requires --recursive-transient");
 }
+if (distributedForwardFour && argv.includes("--held-out")) {
+  throw new Error("--distributed-forward-four is its own sealed held-out mode; do not combine it with --held-out");
+}
+if (distributedForwardFour && (!returnNormal || !transientBridge || !recursiveTransient || !recursiveReturn || ballisticRelease || arrivalGateDiagnosis)) {
+  throw new Error("--distributed-forward-four requires --return-normal --transient-bridge --recursive-transient --recursive-return only");
+}
 
 const stateIds: readonly StateId[] = ["dense", "dense240", "ordinary"];
 const heldOutFixturePaths = argumentsFor("fixture");
@@ -159,7 +182,9 @@ const selected: readonly StateSelection[] = heldOut
   ? selectHeldOutFixtures(heldOutFixturePaths)
   : selectCalibrationFixtures(argument("case") ?? "all", heldOutFixturePaths);
 const outDir = argument("out-dir") ?? (heldOut
-  ? "generated/studies/two-contact-shooting/recursive-heldout-v1"
+  ? distributedForwardFour
+    ? "generated/studies/two-contact-shooting/recursive-distributed-four-heldout-v1"
+    : "generated/studies/two-contact-shooting/recursive-heldout-v1"
   : recursiveReturn
   ? "generated/studies/two-contact-shooting/recursive-return-v1"
   : recursiveTransient
@@ -202,8 +227,13 @@ const protocolFingerprint = sha256(stableJson({
     ? "for every byte-stable transient triple, observe the unchanged equal-count raw-normal stream from exact k+3 state"
     : "disabled",
   heldOut: heldOut
-    ? "require exactly the sealed dense, ordinary, and low-air recursive-transient-heldout-v1 V3 fixtures; do not select or branch by fixture outcome"
+    ? distributedForwardFour
+      ? "require exactly the sealed V4 distributed-four dense, ordinary, and low-air fixtures; no selection or outcome branch"
+      : "require exactly the sealed dense, ordinary, and low-air recursive-transient-heldout-v1 V3 fixtures; do not select or branch by fixture outcome"
     : "disabled",
+  controlScreen: distributedForwardFour
+    ? "distributed allocation, both orientations, half/one-frame forward phase only (4 controls) at each C1/transient stage; equal 4-member k+3 normal stream"
+    : "mirrored 24-control study screen; equal 24-member k+3 normal stream",
 }));
 
 const started = performance.now();
@@ -447,8 +477,9 @@ function selectCalibrationFixtures(requestedCase: string, fixturePaths: readonly
 
 function selectHeldOutFixtures(fixturePaths: readonly string[]): readonly StateSelection[] {
   if (argument("case") !== undefined) throw new Error("--held-out uses the sealed --fixture roster, not --case");
-  if (fixturePaths.length !== HELD_OUT_PANEL_IDS.length) {
-    throw new Error(`--held-out requires exactly ${HELD_OUT_PANEL_IDS.length} --fixture paths`);
+  const requiredIds = requiredHeldOutPanelIds();
+  if (fixturePaths.length !== requiredIds.length) {
+    throw new Error(`held-out mode requires exactly ${requiredIds.length} --fixture paths`);
   }
   const selected = fixturePaths.map((fixturePath) => {
     const fixture = readFrozenTrajectoryFixture(fixturePath);
@@ -456,7 +487,7 @@ function selectHeldOutFixtures(fixturePaths: readonly string[]): readonly StateS
     return { fixturePath, fixture, heldOut: true };
   });
   const actualIds = selected.map((selection) => selection.fixture.panel.id).sort();
-  const expectedIds = [...HELD_OUT_PANEL_IDS].sort();
+  const expectedIds = [...requiredIds].sort();
   if (stableJson(actualIds) !== stableJson(expectedIds)) {
     throw new Error(`--held-out fixture roster must be exactly ${expectedIds.join(", ")}`);
   }
@@ -467,7 +498,7 @@ function assertHeldOutFixtureDeclaration(fixture: FrozenTrajectoryFixture): void
   if (fixture.schema !== "line.frozen-trajectory-prefix.v3") {
     throw new Error("held-out recursive transient study requires a stable V3 fixture");
   }
-  if (fixture.panel.cohort !== "validation" || fixture.panel.studyScope !== "recursive-transient-heldout-v1") {
+  if (fixture.panel.cohort !== "validation" || fixture.panel.studyScope !== requiredHeldOutScope()) {
     throw new Error(`fixture ${fixture.panel.id} is not a declared recursive-transient held-out input`);
   }
   if (!fixture.capture.identityCheck.stable || fixture.capture.captureBudget !== 500_000 || fixture.capture.runtime.engine !== "wasm") {
@@ -483,9 +514,19 @@ function assertHeldOutFixture(
   prepared: PreparedTrajectoryFixtureCore,
 ): void {
   assertHeldOutFixtureDeclaration(fixture);
-  if (!HELD_OUT_PANEL_IDS.includes(prepared.panel.id as (typeof HELD_OUT_PANEL_IDS)[number])) {
+  if (!requiredHeldOutPanelIds().includes(prepared.panel.id)) {
     throw new Error(`unexpected held-out recursive-transient panel ${prepared.panel.id}`);
   }
+}
+
+function requiredHeldOutPanelIds(): readonly string[] {
+  return distributedForwardFour ? FOUR_CONTROL_HELD_OUT_PANEL_IDS : HELD_OUT_PANEL_IDS;
+}
+
+function requiredHeldOutScope(): string {
+  return distributedForwardFour
+    ? "recursive-transient-distributed-four-v4"
+    : "recursive-transient-heldout-v1";
 }
 
 type FamilyClosure = {
@@ -1160,7 +1201,7 @@ function evaluateReturnNormalStream(
     context.next,
     nextLineIdStart,
     allContactFrames,
-    24,
+    CONTROL_MEMBER_COUNT,
   );
   const attempts: ReturnAttempt[] = [];
   let rawNormalAdmissionFrames = 0;
@@ -1424,7 +1465,7 @@ function evaluateRecursiveNormalReturn(
     afterNext,
     nextLineIdStart,
     allContactFrames,
-    24,
+    CONTROL_MEMBER_COUNT,
   );
   const attempts: ReturnAttempt[] = [];
   let rawNormalAdmissionFrames = 0;
@@ -1494,7 +1535,7 @@ function buildCaptureMembers(
   kinematic: ReturnType<typeof contactKinematicFrameFromPlanningState>,
   lineIdStart: number,
 ): CandidateMember[] {
-  const entries = makeMirroredContactCaptureArcScreen(kinematic);
+  const entries = selectedCaptureArcEntries(kinematic);
   return entries.map((entry, index) => {
     try {
       const realized = realizeContactCaptureArc(resolveContactCaptureArc(kinematic, entry.control), lineIdStart);
@@ -1516,7 +1557,7 @@ function buildTransientBridgeMembers(
   lineIdStart: number,
   nextIntervalFrames: number,
 ): CandidateMember[] {
-  const entries = makeMirroredContactCaptureArcScreen(kinematic);
+  const entries = selectedCaptureArcEntries(kinematic);
   return entries.map((entry, index) => {
     try {
       const resolved = resolveContactCaptureArc(kinematic, entry.control);
@@ -1538,6 +1579,19 @@ function buildTransientBridgeMembers(
       };
     }
   });
+}
+
+function selectedCaptureArcEntries(
+  kinematic: ReturnType<typeof contactKinematicFrameFromPlanningState>,
+) {
+  const entries = makeMirroredContactCaptureArcScreen(kinematic);
+  const selected = distributedForwardFour
+    ? entries.filter((entry) => DISTRIBUTED_FORWARD_FOUR_LABELS.has(entry.label))
+    : entries;
+  if (selected.length !== CONTROL_MEMBER_COUNT) {
+    throw new Error(`configured capture screen has ${selected.length}, expected ${CONTROL_MEMBER_COUNT} controls`);
+  }
+  return selected;
 }
 
 function realizeTransientBridge(

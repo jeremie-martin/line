@@ -2520,6 +2520,25 @@ cost is not materially bounded below the 24-control study screen. A pass
 authorizes only a separately declared tiny source-default candidate and normal
 scope panel, never direct V2 evaluation.
 
+**Result (2026-07-17, 13.5s fixture capture; 0.2s
+`scripts/v0/study_two_contact_shooting.ts --distributed-forward-four
+--return-normal --transient-bridge --recursive-transient --recursive-return`,
+artifacts `generated/studies/two-contact-shooting/recursive-distributed-four-heldout-v1/`):
+RETIRE distributed-forward four-control form.** The three V4 fixtures sealed
+and replayed exactly, with the four source-neutral controls and equal
+four-member normal streams applied at every stage. The compact class then hits
+all three falsifiers: fresh dense admitted 3/4 first C1s and 4 materialized
+pairs but **0/16** third components; fresh ordinary admitted **0/4** first
+C1s; shifted low-air materialized 4/16 third components but restored **0/4**
+k+3 normal returns (normal control geometry was available). Its very low frame
+cost therefore does not establish a useful source trade-off.
+
+**Decision.** Do not implement, broaden, retune, or scope the transient
+bridge topology. The 24-control form is a validated physical component but
+not source-economical, and both geometry-derived compact projections are
+closed. Resume broad normal-candidate-space diagnosis outside this topology;
+no V2 evaluation is authorized from any trajectory result above.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

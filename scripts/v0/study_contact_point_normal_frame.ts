@@ -35,6 +35,9 @@
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
  *     --full-sled-specular-curvature-packet --batch=0 \
  *     --out=generated/studies/full-sled-specular-curvature-packet-normal-pool/v1/batch-0.json
+ *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
+ *     --precontact-multicontact-history --batch=0 \
+ *     --out=generated/studies/precontact-multicontact-history/v1/batch-0.json
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -71,13 +74,14 @@ import { realizeAffineContactFlowField, type AffineContactFlowPoint } from "./tr
 import { realizeCollisionIntervalMidpointField, type CollisionIntervalSledPoint } from "./trajectory/collision_interval_midpoint_field.ts";
 import { realizeContactFootprintFlowField, type ContactFootprintFlowPoint } from "./trajectory/contact_footprint_flow_field.ts";
 import { realizeFullSledSpecularCurvaturePacket } from "./trajectory/full_sled_specular_curvature_packet.ts";
+import { characterizePrecontactMulticontactHistory } from "./trajectory/precontact_multicontact_history.ts";
 import { extractPlanningState, type PlanningState } from "./trajectory/state.ts";
-import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
+import { CALIB, ELEVATION, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: study_contact_point_normal_frame.ts [--zero-friction-average|--co-rotating-contact-field|--full-sled-gravity-time-field|--full-sled-windowed-redirection-field|--full-sled-affine-contact-flow-field|--native-collision-interval-midpoint-field|--full-sled-contact-footprint-flow-field|--full-sled-specular-curvature-packet --batch=0|1|2] [--out=PATH]\n",
+    "Usage: study_contact_point_normal_frame.ts [--zero-friction-average|--co-rotating-contact-field|--full-sled-gravity-time-field|--full-sled-windowed-redirection-field|--full-sled-affine-contact-flow-field|--native-collision-interval-midpoint-field|--full-sled-contact-footprint-flow-field|--full-sled-specular-curvature-packet|--precontact-multicontact-history --batch=0|1|2] [--out=PATH]\n",
   );
   process.exit(0);
 }
@@ -92,15 +96,16 @@ const fullSledAffineContactFlowField = argv.includes("--full-sled-affine-contact
 const nativeCollisionIntervalMidpointField = argv.includes("--native-collision-interval-midpoint-field");
 const fullSledContactFootprintFlowField = argv.includes("--full-sled-contact-footprint-flow-field");
 const fullSledSpecularCurvaturePacket = argv.includes("--full-sled-specular-curvature-packet");
+const precontactMulticontactHistory = argv.includes("--precontact-multicontact-history");
 const batchArgument = arg("batch");
 const batch = batchArgument === undefined ? undefined : Number(batchArgument);
 const unknownArgs = argv.filter((value) =>
-  value !== "--zero-friction-average" && value !== "--co-rotating-contact-field" && value !== "--full-sled-gravity-time-field" && value !== "--full-sled-windowed-redirection-field" && value !== "--full-sled-affine-contact-flow-field" && value !== "--native-collision-interval-midpoint-field" && value !== "--full-sled-contact-footprint-flow-field" && value !== "--full-sled-specular-curvature-packet" && !value.startsWith("--out=") && !value.startsWith("--batch=")
+  value !== "--zero-friction-average" && value !== "--co-rotating-contact-field" && value !== "--full-sled-gravity-time-field" && value !== "--full-sled-windowed-redirection-field" && value !== "--full-sled-affine-contact-flow-field" && value !== "--native-collision-interval-midpoint-field" && value !== "--full-sled-contact-footprint-flow-field" && value !== "--full-sled-specular-curvature-packet" && value !== "--precontact-multicontact-history" && !value.startsWith("--out=") && !value.startsWith("--batch=")
 );
 if (unknownArgs.length > 0) throw new Error(`unknown argument(s): ${unknownArgs.join(", ")}`);
-if ([zeroFrictionAverage, coRotatingContactField, fullSledGravityTimeField, fullSledWindowedRedirectionField, fullSledAffineContactFlowField, nativeCollisionIntervalMidpointField, fullSledContactFootprintFlowField, fullSledSpecularCurvaturePacket].filter(Boolean).length > 1) throw new Error("normal-pool comparator modes are mutually exclusive");
-if (!zeroFrictionAverage && !coRotatingContactField && !fullSledGravityTimeField && !fullSledWindowedRedirectionField && !fullSledAffineContactFlowField && !nativeCollisionIntervalMidpointField && !fullSledContactFootprintFlowField && !fullSledSpecularCurvaturePacket && batch !== undefined) throw new Error("--batch is reserved for an experimental comparator");
-if ((zeroFrictionAverage || coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField || nativeCollisionIntervalMidpointField || fullSledContactFootprintFlowField || fullSledSpecularCurvaturePacket) && (batch === undefined || !Number.isSafeInteger(batch) || batch < 0 || batch > 2)) {
+if ([zeroFrictionAverage, coRotatingContactField, fullSledGravityTimeField, fullSledWindowedRedirectionField, fullSledAffineContactFlowField, nativeCollisionIntervalMidpointField, fullSledContactFootprintFlowField, fullSledSpecularCurvaturePacket, precontactMulticontactHistory].filter(Boolean).length > 1) throw new Error("normal-pool comparator modes are mutually exclusive");
+if (!zeroFrictionAverage && !coRotatingContactField && !fullSledGravityTimeField && !fullSledWindowedRedirectionField && !fullSledAffineContactFlowField && !nativeCollisionIntervalMidpointField && !fullSledContactFootprintFlowField && !fullSledSpecularCurvaturePacket && !precontactMulticontactHistory && batch !== undefined) throw new Error("--batch is reserved for an experimental comparator");
+if ((zeroFrictionAverage || coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField || nativeCollisionIntervalMidpointField || fullSledContactFootprintFlowField || fullSledSpecularCurvaturePacket || precontactMulticontactHistory) && (batch === undefined || !Number.isSafeInteger(batch) || batch < 0 || batch > 2)) {
   throw new Error("experimental comparators require --batch=0|1|2");
 }
 
@@ -114,7 +119,10 @@ const FULL_SLED_AFFINE_CONTACT_FLOW_FIELD_SEEDS = [58, 59] as const;
 const NATIVE_COLLISION_INTERVAL_MIDPOINT_FIELD_SEEDS = [60, 61] as const;
 const FULL_SLED_CONTACT_FOOTPRINT_FLOW_FIELD_SEEDS = [62, 63] as const;
 const FULL_SLED_SPECULAR_CURVATURE_PACKET_SEEDS = [64, 65] as const;
-const SEEDS = fullSledSpecularCurvaturePacket
+const PRECONTACT_MULTICONTACT_HISTORY_SEEDS = [66, 67] as const;
+const SEEDS = precontactMulticontactHistory
+  ? PRECONTACT_MULTICONTACT_HISTORY_SEEDS
+  : fullSledSpecularCurvaturePacket
   ? FULL_SLED_SPECULAR_CURVATURE_PACKET_SEEDS
   : fullSledContactFootprintFlowField
   ? FULL_SLED_CONTACT_FOOTPRINT_FLOW_FIELD_SEEDS
@@ -201,7 +209,17 @@ const FULL_SLED_SPECULAR_CURVATURE_PACKET_CASES = [
   { id: "frontier_low_air_endurance_7s", regime: "low_air" },
   { id: "believer_56_6s_impact_relief", regime: "development_music" },
 ] as const;
-const CASES = fullSledSpecularCurvaturePacket
+const PRECONTACT_MULTICONTACT_HISTORY_CASES = [
+  { id: "frontier_dense_recovery_240ms_figures", regime: "dense" },
+  { id: "dense_dialogue_impact_contrast_10", regime: "dense" },
+  { id: "rising_switch", regime: "representative" },
+  { id: "pickup_lattice_speed_minus_4", regime: "pickup" },
+  { id: "frontier_low_air_endurance_7s", regime: "low_air" },
+  { id: "believer_56_6s_impact_relief", regime: "development_music" },
+] as const;
+const CASES = precontactMulticontactHistory
+  ? PRECONTACT_MULTICONTACT_HISTORY_CASES
+  : fullSledSpecularCurvaturePacket
   ? FULL_SLED_SPECULAR_CURVATURE_PACKET_CASES
   : fullSledContactFootprintFlowField
   ? FULL_SLED_CONTACT_FOOTPRINT_FLOW_FIELD_CASES
@@ -313,6 +331,18 @@ type FullSledSpecularCurvaturePacketTelemetry = {
   meanKineticRadiusPx: number | null;
   meanMaxVertexDisplacementPx: number | null;
 };
+type PrecontactMulticontactHistoryTelemetry = {
+  stateAvailable: boolean;
+  unavailable: Record<string, number>;
+  frameCount: number | null;
+  collectiveTurnDeg: number | null;
+  collectiveSpeedDeltaPxPerFrame: number | null;
+  accelerationResidualFromGravityPxPerFrame2: number | null;
+  poseTurnDeg: number | null;
+  angularVelocityDeltaDegPerFrame: number | null;
+  rmsPairDistanceChangePx: number | null;
+  rmsRelativeVelocityChangePxPerFrame: number | null;
+};
 type Row = {
   caseId: string;
   regime: Regime;
@@ -335,6 +365,7 @@ type Row = {
   nativeCollisionIntervalMidpointField: NativeCollisionIntervalMidpointFieldTelemetry | null;
   fullSledContactFootprintFlowField: FullSledContactFootprintFlowFieldTelemetry | null;
   fullSledSpecularCurvaturePacket: FullSledSpecularCurvaturePacketTelemetry | null;
+  precontactMulticontactHistory: PrecontactMulticontactHistoryTelemetry | null;
   productionCom: ArmSummary | null;
   contactPoint: ArmSummary | null;
   deltas: {
@@ -404,7 +435,9 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: fullSledSpecularCurvaturePacket
+  schema: precontactMulticontactHistory
+    ? "line.study-precontact-multicontact-history.v1"
+    : fullSledSpecularCurvaturePacket
     ? "line.study-full-sled-specular-curvature-packet-normal-pool.v1"
     : fullSledContactFootprintFlowField
     ? "line.study-full-sled-contact-footprint-flow-field-normal-pool.v1"
@@ -423,7 +456,9 @@ const result = {
     : "line.study-contact-point-normal-frame.v1",
   purpose: [
     "observation-only replay of ordinary normal candidate pools from immutable frontier states",
-    fullSledSpecularCurvaturePacket
+    precontactMulticontactHistory
+      ? "immutable target-prefix history only: full-sled state at H-6 through H is characterized after compilation; no candidate coordinates, evaluator, score, rank, or source behavior changes"
+      : fullSledSpecularCurvaturePacket
       ? "same PRNG coordinates, attempts, raw curve, segment count, lengths, flags, exact gates, and scorer; only a full-sled constant-energy reflection tangent is formed continuously across the gravity-defined kinetic radius around the raw contact"
       : fullSledContactFootprintFlowField
       ? "same PRNG coordinates, attempts, raw curve, segment count, line flags, exact gates, and scorer; only the full-sled pre-contact differential flow over one RMS-footprint traversal deforms vertices inside that physical footprint"
@@ -448,7 +483,9 @@ const result = {
     seeds: SEEDS,
     cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    frame: fullSledSpecularCurvaturePacket
+    frame: precontactMulticontactHistory
+      ? "candidate-independent exact PEG/TAIL/NOSE/STRING states at H-6..H; collective acceleration is compared against literal engine gravity, while full cloud pose, angular velocity, pair distance, and relative velocity evolution remain observational"
+      : fullSledSpecularCurvaturePacket
       ? "the complete PEG/TAIL/NOSE/STRING velocity cloud supplies collective incoming heading and mean squared kinetic speed; each raw curve retains its signed surface turn while its contact tangent becomes the unique equal-speed reflection bisector over mean(|v_i|^2)/g"
       : fullSledContactFootprintFlowField
       ? "the complete PEG/TAIL/NOSE/STRING target-prefix cloud defines its centroid, RMS footprint radius, collective speed, and one least-squares velocity gradient; exp(A*radius/collectiveSpeed) is compactly supported within that footprint"
@@ -524,7 +561,7 @@ function replayCapturedState(
   const rngSeed = (Math.imul(rawPool.seed | 0, 1_000_003) + gap.index + 1) | 0;
   const productionCom = sampleProductionArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed);
   const replay = compareGeneratedRawReplay(rawPool.candidates, productionCom.candidates);
-  const frame = coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField || nativeCollisionIntervalMidpointField || fullSledContactFootprintFlowField || fullSledSpecularCurvaturePacket ? null : readContactFrame(captured.node.search.prefixEngine, gap, setup.ctx);
+  const frame = coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField || nativeCollisionIntervalMidpointField || fullSledContactFootprintFlowField || fullSledSpecularCurvaturePacket || precontactMulticontactHistory ? null : readContactFrame(captured.node.search.prefixEngine, gap, setup.ctx);
   const coRotating = coRotatingContactField
     ? sampleCoRotatingContactFieldArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
     : null;
@@ -546,9 +583,12 @@ function replayCapturedState(
   const specularCurvaturePacket = fullSledSpecularCurvaturePacket
     ? sampleFullSledSpecularCurvaturePacketArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
     : null;
-  const contactPoint = coRotating === null && gravityTime === null && windowedRedirection === null && affineContactFlow === null && collisionIntervalMidpoint === null && contactFootprintFlow === null && specularCurvaturePacket === null
+  const history = precontactMulticontactHistory
+    ? characterizePrecontactHistory(captured.node, gap)
+    : null;
+  const contactPoint = coRotating === null && gravityTime === null && windowedRedirection === null && affineContactFlow === null && collisionIntervalMidpoint === null && contactFootprintFlow === null && specularCurvaturePacket === null && history === null
     ? sampleContactPointArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed, frame!.targetState)
-    : coRotating?.arm ?? gravityTime?.arm ?? windowedRedirection?.arm ?? affineContactFlow?.arm ?? collisionIntervalMidpoint?.arm ?? contactFootprintFlow?.arm ?? specularCurvaturePacket!.arm;
+    : coRotating?.arm ?? gravityTime?.arm ?? windowedRedirection?.arm ?? affineContactFlow?.arm ?? collisionIntervalMidpoint?.arm ?? contactFootprintFlow?.arm ?? specularCurvaturePacket?.arm ?? productionCom;
   return {
     caseId,
     regime,
@@ -567,6 +607,7 @@ function replayCapturedState(
     nativeCollisionIntervalMidpointField: collisionIntervalMidpoint?.telemetry ?? null,
     fullSledContactFootprintFlowField: contactFootprintFlow?.telemetry ?? null,
     fullSledSpecularCurvaturePacket: specularCurvaturePacket?.telemetry ?? null,
+    precontactMulticontactHistory: history,
     productionCom,
     contactPoint,
     deltas: {
@@ -600,6 +641,7 @@ function unavailableRow(
     nativeCollisionIntervalMidpointField: null,
     fullSledContactFootprintFlowField: null,
     fullSledSpecularCurvaturePacket: null,
+    precontactMulticontactHistory: null,
     productionCom: null,
     contactPoint: null,
     deltas: null,
@@ -1218,6 +1260,55 @@ function sampleFullSledSpecularCurvaturePacketArm(
   };
 }
 
+function characterizePrecontactHistory(node: HandoffNode, gap: Gap): PrecontactMulticontactHistoryTelemetry {
+  const states: PlanningState[] = [];
+  for (let frame = gap.endFrame - 6; frame <= gap.endFrame; frame++) {
+    const state = extractPlanningState(node.search.prefixEngine, frame);
+    if (state === null) {
+      return {
+        stateAvailable: false,
+        unavailable: { missing_planning_state: 1 },
+        frameCount: null,
+        collectiveTurnDeg: null,
+        collectiveSpeedDeltaPxPerFrame: null,
+        accelerationResidualFromGravityPxPerFrame2: null,
+        poseTurnDeg: null,
+        angularVelocityDeltaDegPerFrame: null,
+        rmsPairDistanceChangePx: null,
+        rmsRelativeVelocityChangePxPerFrame: null,
+      };
+    }
+    states.push(state);
+  }
+  const history = characterizePrecontactMulticontactHistory(states, ELEVATION.GRAVITY_PX_PER_FRAME2);
+  if (history.status !== "ready") {
+    return {
+      stateAvailable: false,
+      unavailable: { [history.reason]: 1 },
+      frameCount: null,
+      collectiveTurnDeg: null,
+      collectiveSpeedDeltaPxPerFrame: null,
+      accelerationResidualFromGravityPxPerFrame2: null,
+      poseTurnDeg: null,
+      angularVelocityDeltaDegPerFrame: null,
+      rmsPairDistanceChangePx: null,
+      rmsRelativeVelocityChangePxPerFrame: null,
+    };
+  }
+  return {
+    stateAvailable: true,
+    unavailable: {},
+    frameCount: history.frameCount,
+    collectiveTurnDeg: round(history.collectiveTurnDeg),
+    collectiveSpeedDeltaPxPerFrame: round(history.collectiveSpeedDeltaPxPerFrame),
+    accelerationResidualFromGravityPxPerFrame2: round(history.accelerationResidualFromGravityPxPerFrame2),
+    poseTurnDeg: round(history.poseTurnDeg),
+    angularVelocityDeltaDegPerFrame: round(history.angularVelocityDeltaDegPerFrame),
+    rmsPairDistanceChangePx: round(history.rmsPairDistanceChangePx),
+    rmsRelativeVelocityChangePxPerFrame: round(history.rmsRelativeVelocityChangePxPerFrame),
+  };
+}
+
 function summarizeArm(attempts: number, candidates: CandidateDigest[]): ArmSummary {
   const finiteAxis = candidates.filter((candidate) => Number.isFinite(candidate.axisRms));
   const finiteObjective = candidates.filter((candidate) => candidate.qualityObjective !== null);
@@ -1384,7 +1475,9 @@ function geometryHash(candidate: Candidate): string {
 function summarize(rows: readonly Row[]) {
   const usable = rows.filter((row) =>
     row.replayEquivalent === true && row.deltas !== null && (
-      fullSledSpecularCurvaturePacket
+      precontactMulticontactHistory
+        ? row.precontactMulticontactHistory?.stateAvailable === true
+        : fullSledSpecularCurvaturePacket
         ? (row.fullSledSpecularCurvaturePacket?.transformed ?? 0) > 0
         : fullSledContactFootprintFlowField
         ? (row.fullSledContactFootprintFlowField?.transformed ?? 0) > 0
@@ -1436,6 +1529,7 @@ function summarize(rows: readonly Row[]) {
     fullSledSpecularCurvaturePacketStateRows: rows.filter((row) => row.fullSledSpecularCurvaturePacket?.stateAvailable === true).length,
     fullSledSpecularCurvaturePacketTransformedGeometries: rows.reduce((sum, row) => sum + (row.fullSledSpecularCurvaturePacket?.transformed ?? 0), 0),
     fullSledSpecularCurvaturePacketTemplateSkips: rows.reduce((sum, row) => sum + (row.fullSledSpecularCurvaturePacket?.templatesSkipped ?? 0), 0),
+    precontactMulticontactHistoryStateRows: rows.filter((row) => row.precontactMulticontactHistory?.stateAvailable === true).length,
     usableRows: usable.length,
     byRegime,
     regimeBalanced: {

@@ -5270,6 +5270,74 @@ continuous *time-resolved collision transition* that changes the native
 multi-contact event itself, not a stationary full-sled snapshot or another
 post-curve tangent retiming.
 
+## Declared Study: Native-Capture Impulse-Latched Suffix Transport (2026-07-17)
+
+The rejected local fields guessed a state before the collision and then moved
+the whole post curve. The contact-manifold diagnosis instead says that the
+needed state is created *by* the raw native multi-contact event. This component
+therefore preserves a raw normal candidate through every candidate-owned
+`TAIL`/`NOSE`/`STRING` target-contact line exactly. Only after that fixed
+prefix, it reads the native raw engine at `H-1` and `H+1`, takes the arithmetic
+mean of the three zero-friction point velocities at each frame, and forms the
+literal capture impulse `Δv = v(H+1) − v(H-1)`. For every remaining existing
+suffix endpoint at raw downstream arclength `s`, it adds `Δv · s / |v(H+1)|`.
+The result is a continuous, position-space transport of the existing suffix:
+its initial endpoint, line IDs, line count, types, flags, and target-contact
+prefix are retained; no new support, tangent target, turn magnitude, response
+duration, endpoint extension, force, score, rank, source, case, seed, or
+outcome enters it. This is not a tangent reparameterization—the exact
+collision impulse translates the downstream geometry in physical travel time.
+
+**Dense-first protocol.** At the frozen first one-third/two-thirds ordinary
+frontier states of `frontier_dense_recovery_240ms_figures` and
+`dense_dialogue_impact_contrast_10`, on fresh V2-jolt/500k seeds 56 and 57,
+replay every production raw normal attempt/hash. For each admitted raw
+candidate, read the target collision only after raw generation is complete;
+apply the one field when all three velocity reads and at least one downstream
+suffix line are finite. Re-admit raw and transported geometry through the
+unchanged exact gate. Record availability, raw-versus-transported target
+topology equality, viable pool support, exact axes, continuation-aware
+objective, cost, and charged state/evaluation frames. The raw target-contact
+prefix must be byte-identical and its `H` collision count must be exactly
+unchanged; otherwise the transformed candidate is a failed realization, not a
+different capture arm.
+
+**Falsifiers.** Retire before broader regimes if production replay fails, if
+the full three-point impulse or downstream suffix is materially unavailable,
+if any transformed dense candidate changes its raw target topology, or if
+either dense source loses viable support or best continuation-aware objective.
+A joint dense pass authorizes only the fixed representative/pickup/low-air/
+development batches and a fresh replay—not an impulse scale, frame choice,
+point subset, suffix boundary alternative, tangent law, force encoding,
+selector, or compiler default.
+
+**Dense-first result (2026-07-17, 21s; `npm run
+study:native-capture-impulse`; artifact
+`generated/studies/native-capture-impulse-suffix/v1/dense.json`): RETIRE the
+native-capture impulse-latched suffix field.** All **8/8** frozen production
+normal pools replayed their generation-time attempt and coordinate-plus-side
+hashes exactly. The actual field is physically active and capture-safe wherever
+defined: **52/119** raw viable candidates supplied a target zero-friction line,
+a downstream suffix, and a finite full three-point impulse; **50** transformed
+candidates remained viable with their raw `H` zero-friction update count
+exactly unchanged, and none changed that topology.
+
+It still fails both dense boundaries. Frontier Dense Recovery is unavailable
+on three of its four frozen states; on the only available state it reduces
+viable support from 14 to **13** and worsens best axis RMS `.065155 → .065232`
+(although its continuation-aware objective rises `.240562 → .287278`). Dense
+Dialogue is available on all four states but also loses a viable candidate on
+one, worsens axis RMS on three, and loses best objective on its seed-57 late
+state (`.079034 → .062849`). The field therefore cannot supply a broadly safe
+component merely by preserving the target capture; downstream impulse transport
+does not repair the dense continuation basin.
+
+Do not run remaining regimes or add an impulse scale, alternate frame,
+point subset, suffix split, angular transport, tangent adjustment, force
+encoding, selector, or source lane. The useful negative is precise: a new
+component must alter the *formation* of native distributed capture before or
+during `H`, not react to its already-resolved impulse afterward.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

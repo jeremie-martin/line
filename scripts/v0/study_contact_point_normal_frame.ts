@@ -26,6 +26,9 @@
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
  *     --full-sled-affine-contact-flow-field --batch=0 \
  *     --out=generated/studies/full-sled-affine-contact-flow-field-normal-pool/v1/batch-0.json
+ *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
+ *     --native-collision-interval-midpoint-field --batch=0 \
+ *     --out=generated/studies/native-collision-interval-midpoint-field-normal-pool/v1/batch-0.json
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -54,18 +57,19 @@ import {
   type SpecContext,
 } from "./optimizer/sample.ts";
 import { axisLookaheadEndFrame, tryCandidateGeometry } from "./core/candidate.ts";
-import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
+import { effectiveAxes, engineLineFromTrackLine, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
 import { realizeCoRotatingContactField } from "./trajectory/co_rotating_contact_field.ts";
 import { realizeFullSledGravityTimeField } from "./trajectory/full_sled_gravity_time_field.ts";
 import { realizeFullSledWindowedRedirectionField } from "./trajectory/full_sled_windowed_redirection_field.ts";
 import { realizeAffineContactFlowField, type AffineContactFlowPoint } from "./trajectory/affine_contact_flow_field.ts";
+import { realizeCollisionIntervalMidpointField, type CollisionIntervalSledPoint } from "./trajectory/collision_interval_midpoint_field.ts";
 import { extractPlanningState, type PlanningState } from "./trajectory/state.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: study_contact_point_normal_frame.ts [--zero-friction-average|--co-rotating-contact-field|--full-sled-gravity-time-field|--full-sled-windowed-redirection-field|--full-sled-affine-contact-flow-field --batch=0|1|2] [--out=PATH]\n",
+    "Usage: study_contact_point_normal_frame.ts [--zero-friction-average|--co-rotating-contact-field|--full-sled-gravity-time-field|--full-sled-windowed-redirection-field|--full-sled-affine-contact-flow-field|--native-collision-interval-midpoint-field --batch=0|1|2] [--out=PATH]\n",
   );
   process.exit(0);
 }
@@ -77,15 +81,16 @@ const coRotatingContactField = argv.includes("--co-rotating-contact-field");
 const fullSledGravityTimeField = argv.includes("--full-sled-gravity-time-field");
 const fullSledWindowedRedirectionField = argv.includes("--full-sled-windowed-redirection-field");
 const fullSledAffineContactFlowField = argv.includes("--full-sled-affine-contact-flow-field");
+const nativeCollisionIntervalMidpointField = argv.includes("--native-collision-interval-midpoint-field");
 const batchArgument = arg("batch");
 const batch = batchArgument === undefined ? undefined : Number(batchArgument);
 const unknownArgs = argv.filter((value) =>
-  value !== "--zero-friction-average" && value !== "--co-rotating-contact-field" && value !== "--full-sled-gravity-time-field" && value !== "--full-sled-windowed-redirection-field" && value !== "--full-sled-affine-contact-flow-field" && !value.startsWith("--out=") && !value.startsWith("--batch=")
+  value !== "--zero-friction-average" && value !== "--co-rotating-contact-field" && value !== "--full-sled-gravity-time-field" && value !== "--full-sled-windowed-redirection-field" && value !== "--full-sled-affine-contact-flow-field" && value !== "--native-collision-interval-midpoint-field" && !value.startsWith("--out=") && !value.startsWith("--batch=")
 );
 if (unknownArgs.length > 0) throw new Error(`unknown argument(s): ${unknownArgs.join(", ")}`);
-if ([zeroFrictionAverage, coRotatingContactField, fullSledGravityTimeField, fullSledWindowedRedirectionField, fullSledAffineContactFlowField].filter(Boolean).length > 1) throw new Error("normal-pool comparator modes are mutually exclusive");
-if (!zeroFrictionAverage && !coRotatingContactField && !fullSledGravityTimeField && !fullSledWindowedRedirectionField && !fullSledAffineContactFlowField && batch !== undefined) throw new Error("--batch is reserved for an experimental comparator");
-if ((zeroFrictionAverage || coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField) && (batch === undefined || !Number.isSafeInteger(batch) || batch < 0 || batch > 2)) {
+if ([zeroFrictionAverage, coRotatingContactField, fullSledGravityTimeField, fullSledWindowedRedirectionField, fullSledAffineContactFlowField, nativeCollisionIntervalMidpointField].filter(Boolean).length > 1) throw new Error("normal-pool comparator modes are mutually exclusive");
+if (!zeroFrictionAverage && !coRotatingContactField && !fullSledGravityTimeField && !fullSledWindowedRedirectionField && !fullSledAffineContactFlowField && !nativeCollisionIntervalMidpointField && batch !== undefined) throw new Error("--batch is reserved for an experimental comparator");
+if ((zeroFrictionAverage || coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField || nativeCollisionIntervalMidpointField) && (batch === undefined || !Number.isSafeInteger(batch) || batch < 0 || batch > 2)) {
   throw new Error("experimental comparators require --batch=0|1|2");
 }
 
@@ -96,7 +101,10 @@ const CO_ROTATING_CONTACT_FIELD_SEEDS = [50, 51] as const;
 const FULL_SLED_GRAVITY_TIME_FIELD_SEEDS = [52, 53] as const;
 const FULL_SLED_WINDOWED_REDIRECTION_FIELD_SEEDS = [54, 55] as const;
 const FULL_SLED_AFFINE_CONTACT_FLOW_FIELD_SEEDS = [58, 59] as const;
-const SEEDS = fullSledAffineContactFlowField
+const NATIVE_COLLISION_INTERVAL_MIDPOINT_FIELD_SEEDS = [60, 61] as const;
+const SEEDS = nativeCollisionIntervalMidpointField
+  ? NATIVE_COLLISION_INTERVAL_MIDPOINT_FIELD_SEEDS
+  : fullSledAffineContactFlowField
   ? FULL_SLED_AFFINE_CONTACT_FLOW_FIELD_SEEDS
   : fullSledWindowedRedirectionField
   ? FULL_SLED_WINDOWED_REDIRECTION_FIELD_SEEDS
@@ -153,7 +161,17 @@ const FULL_SLED_AFFINE_CONTACT_FLOW_FIELD_CASES = [
   { id: "frontier_low_air_endurance_7s", regime: "low_air" },
   { id: "believer_56_6s_impact_relief", regime: "development_music" },
 ] as const;
-const CASES = fullSledAffineContactFlowField
+const NATIVE_COLLISION_INTERVAL_MIDPOINT_FIELD_CASES = [
+  { id: "frontier_dense_recovery_240ms_figures", regime: "dense" },
+  { id: "dense_dialogue_impact_contrast_10", regime: "dense" },
+  { id: "rising_switch", regime: "representative" },
+  { id: "pickup_lattice_speed_minus_4", regime: "pickup" },
+  { id: "frontier_low_air_endurance_7s", regime: "low_air" },
+  { id: "believer_56_6s_impact_relief", regime: "development_music" },
+] as const;
+const CASES = nativeCollisionIntervalMidpointField
+  ? NATIVE_COLLISION_INTERVAL_MIDPOINT_FIELD_CASES
+  : fullSledAffineContactFlowField
   ? FULL_SLED_AFFINE_CONTACT_FLOW_FIELD_CASES
   : fullSledWindowedRedirectionField
   ? FULL_SLED_WINDOWED_REDIRECTION_FIELD_CASES
@@ -229,6 +247,17 @@ type FullSledAffineContactFlowFieldTelemetry = {
   meanTerminalDisplacementPx: number | null;
   maxTerminalDisplacementPx: number | null;
 };
+type NativeCollisionIntervalMidpointFieldTelemetry = {
+  stateAvailable: boolean;
+  rawViable: number;
+  intervalsDetected: number;
+  templatesSkipped: number;
+  transformed: number;
+  unavailable: Record<string, number>;
+  meanIntervalFrames: number | null;
+  meanSupportRadiusPx: number | null;
+  meanMaxVertexDisplacementPx: number | null;
+};
 type Row = {
   caseId: string;
   regime: Regime;
@@ -248,6 +277,7 @@ type Row = {
   fullSledGravityTimeField: FullSledGravityTimeFieldTelemetry | null;
   fullSledWindowedRedirectionField: FullSledWindowedRedirectionFieldTelemetry | null;
   fullSledAffineContactFlowField: FullSledAffineContactFlowFieldTelemetry | null;
+  nativeCollisionIntervalMidpointField: NativeCollisionIntervalMidpointFieldTelemetry | null;
   productionCom: ArmSummary | null;
   contactPoint: ArmSummary | null;
   deltas: {
@@ -317,7 +347,9 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: fullSledAffineContactFlowField
+  schema: nativeCollisionIntervalMidpointField
+    ? "line.study-native-collision-interval-midpoint-field-normal-pool.v1"
+    : fullSledAffineContactFlowField
     ? "line.study-full-sled-affine-contact-flow-field-normal-pool.v1"
     : fullSledWindowedRedirectionField
     ? "line.study-full-sled-windowed-redirection-field-normal-pool.v1"
@@ -330,7 +362,9 @@ const result = {
     : "line.study-contact-point-normal-frame.v1",
   purpose: [
     "observation-only replay of ordinary normal candidate pools from immutable frontier states",
-    fullSledAffineContactFlowField
+    nativeCollisionIntervalMidpointField
+      ? "same PRNG coordinates, attempts, raw curve, segment count, line flags, exact gates, and scorer; a raw candidate's own contiguous sled-collision interval alone defines a compact midpoint configuration deformation before its second exact gate"
+      : fullSledAffineContactFlowField
       ? "same PRNG coordinates, attempts, raw curve prefix, segment count, line flags, exact gates, and scorer; only each raw curve's locus is transported under the four-point affine velocity flow in its existing arclength-time"
       : fullSledWindowedRedirectionField
       ? "same PRNG coordinates, attempts, raw curve prefix, segment count, lengths, terminal tangent, line flags, exact gates, and scorer; only the raw post-contact turn timing is densified into the physical six-frame full-sled response distance"
@@ -349,7 +383,9 @@ const result = {
     seeds: SEEDS,
     cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    frame: fullSledAffineContactFlowField
+    frame: nativeCollisionIntervalMidpointField
+      ? "the complete PEG/TAIL/NOSE/STRING configuration immediately before and after the raw target-containing candidate collision interval defines its unique affine midpoint; support is exactly the entering collective travel across that interval"
+      : fullSledAffineContactFlowField
       ? "the exact mean PEG/TAIL/NOSE/STRING velocity gives arclength-time, and their centered positions/velocities give one least-squares affine velocity gradient; the raw first endpoint stays fixed while later vertices follow exp(A*s/|meanVelocity|)"
       : fullSledWindowedRedirectionField
       ? "the exact mean PEG/TAIL/NOSE/STRING velocity defines the six-frame physical response distance; each non-template raw post curve retains its existing signed total turn but completes it by that distance"
@@ -419,7 +455,7 @@ function replayCapturedState(
   const rngSeed = (Math.imul(rawPool.seed | 0, 1_000_003) + gap.index + 1) | 0;
   const productionCom = sampleProductionArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed);
   const replay = compareGeneratedRawReplay(rawPool.candidates, productionCom.candidates);
-  const frame = coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField ? null : readContactFrame(captured.node.search.prefixEngine, gap, setup.ctx);
+  const frame = coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField || nativeCollisionIntervalMidpointField ? null : readContactFrame(captured.node.search.prefixEngine, gap, setup.ctx);
   const coRotating = coRotatingContactField
     ? sampleCoRotatingContactFieldArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
     : null;
@@ -432,9 +468,12 @@ function replayCapturedState(
   const affineContactFlow = fullSledAffineContactFlowField
     ? sampleFullSledAffineContactFlowFieldArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
     : null;
-  const contactPoint = coRotating === null && gravityTime === null && windowedRedirection === null && affineContactFlow === null
+  const collisionIntervalMidpoint = nativeCollisionIntervalMidpointField
+    ? sampleNativeCollisionIntervalMidpointFieldArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
+    : null;
+  const contactPoint = coRotating === null && gravityTime === null && windowedRedirection === null && affineContactFlow === null && collisionIntervalMidpoint === null
     ? sampleContactPointArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed, frame!.targetState)
-    : coRotating?.arm ?? gravityTime?.arm ?? windowedRedirection?.arm ?? affineContactFlow!.arm;
+    : coRotating?.arm ?? gravityTime?.arm ?? windowedRedirection?.arm ?? affineContactFlow?.arm ?? collisionIntervalMidpoint!.arm;
   return {
     caseId,
     regime,
@@ -450,6 +489,7 @@ function replayCapturedState(
     fullSledGravityTimeField: gravityTime?.telemetry ?? null,
     fullSledWindowedRedirectionField: windowedRedirection?.telemetry ?? null,
     fullSledAffineContactFlowField: affineContactFlow?.telemetry ?? null,
+    nativeCollisionIntervalMidpointField: collisionIntervalMidpoint?.telemetry ?? null,
     productionCom,
     contactPoint,
     deltas: {
@@ -480,6 +520,7 @@ function unavailableRow(
     fullSledGravityTimeField: null,
     fullSledWindowedRedirectionField: null,
     fullSledAffineContactFlowField: null,
+    nativeCollisionIntervalMidpointField: null,
     productionCom: null,
     contactPoint: null,
     deltas: null,
@@ -805,6 +846,151 @@ function affineContactFlowPoints(state: PlanningState): AffineContactFlowPoint[]
   }));
 }
 
+function sampleNativeCollisionIntervalMidpointFieldArm(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): { arm: ArmSummary; telemetry: NativeCollisionIntervalMidpointFieldTelemetry } {
+  const unavailable: Record<string, number> = {};
+  let rawViable = 0;
+  let intervalsDetected = 0;
+  let templatesSkipped = 0;
+  let transformed = 0;
+  const intervalFrames: number[] = [];
+  const supportRadii: number[] = [];
+  const vertexDisplacements: number[] = [];
+  const rng = makeRng(seed);
+  const candidates: CandidateDigest[] = [];
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  for (let attempt = 0; attempt < count; attempt++) {
+    const raw = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    const template = wasLastGeometryImpactTemplate();
+    const rawFit = tryCandidateGeometry(
+      node.search.prefixEngine, gap, raw, node.search.prefixNextLineId,
+      ctx.allContactFrames, axisMeasureEnd, gap.targets, true, "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    if (rawFit === null) continue;
+    rawViable++;
+    let fit = rawFit;
+    if (template) {
+      templatesSkipped++;
+    } else {
+      const rawEngine = node.search.prefixEngine.addLine(raw.lines.map(engineLineFromTrackLine));
+      const interval = candidateSledCollisionInterval(rawEngine, gap.endFrame, new Set(raw.lines.map((line) => line.id)));
+      if (interval === null) {
+        unavailable.no_target_sled_collision = (unavailable.no_target_sled_collision ?? 0) + 1;
+      } else {
+        intervalsDetected++;
+        const entering = readFullSledPointState(rawEngine, interval.startFrame - 1);
+        const leaving = readFullSledPointState(rawEngine, interval.endFrame + 1);
+        if (entering === null || leaving === null) {
+          unavailable.missing_full_sled_state = (unavailable.missing_full_sled_state ?? 0) + 1;
+        } else {
+          const midpoint = realizeCollisionIntervalMidpointField(raw.lines, {
+            entering,
+            leaving,
+            intervalFrames: interval.endFrame - interval.startFrame + 1,
+            contactLineIds: interval.lineIds,
+          });
+          if (midpoint.status !== "ready") {
+            unavailable[midpoint.reason] = (unavailable[midpoint.reason] ?? 0) + 1;
+          } else {
+            transformed++;
+            intervalFrames.push(midpoint.intervalFrames);
+            supportRadii.push(midpoint.supportRadiusPx);
+            vertexDisplacements.push(midpoint.maxVertexDisplacementPx);
+            fit = tryCandidateGeometry(
+              node.search.prefixEngine, gap, { ...raw, lines: midpoint.lines }, node.search.prefixNextLineId,
+              ctx.allContactFrames, axisMeasureEnd, gap.targets, true, "normal",
+              probe.preTargetSledTrace,
+            ) as Candidate | null;
+          }
+        }
+      }
+    }
+    if (fit !== null) {
+      fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      fit.sampleAttempt = attempt;
+      candidates.push(digestCandidate(fit, node, gap, gaps, ctx));
+    }
+  }
+  return {
+    arm: summarizeArm(count, candidates),
+    telemetry: {
+      stateAvailable: transformed > 0,
+      rawViable,
+      intervalsDetected,
+      templatesSkipped,
+      transformed,
+      unavailable,
+      meanIntervalFrames: mean(intervalFrames),
+      meanSupportRadiusPx: mean(supportRadii),
+      meanMaxVertexDisplacementPx: mean(vertexDisplacements),
+    },
+  };
+}
+
+type CandidateSledCollisionInterval = {
+  startFrame: number;
+  endFrame: number;
+  lineIds: Set<number>;
+};
+
+function candidateSledCollisionInterval(
+  engine: any,
+  targetFrame: number,
+  candidateLineIds: ReadonlySet<number>,
+): CandidateSledCollisionInterval | null {
+  const atTarget = candidateSledCollisionLineIds(engine, targetFrame, candidateLineIds);
+  if (atTarget.size === 0) return null;
+  let startFrame = targetFrame;
+  while (startFrame > 0 && candidateSledCollisionLineIds(engine, startFrame - 1, candidateLineIds).size > 0) startFrame--;
+  let endFrame = targetFrame;
+  while (candidateSledCollisionLineIds(engine, endFrame + 1, candidateLineIds).size > 0) endFrame++;
+  const lineIds = new Set<number>();
+  for (let frame = startFrame; frame <= endFrame; frame++) {
+    for (const lineId of candidateSledCollisionLineIds(engine, frame, candidateLineIds)) lineIds.add(lineId);
+  }
+  return { startFrame, endFrame, lineIds };
+}
+
+function candidateSledCollisionLineIds(engine: any, frame: number, candidateLineIds: ReadonlySet<number>): Set<number> {
+  const lineIds = new Set<number>();
+  const updates = engine?.getUpdatesAtFrame?.(Math.max(0, frame));
+  if (!Array.isArray(updates)) return lineIds;
+  for (const update of updates) {
+    const lineId = (update as { id?: unknown }).id;
+    const points = (update as { updated?: unknown }).updated;
+    if (typeof lineId !== "number" || !candidateLineIds.has(lineId) || !Array.isArray(points)) continue;
+    if (points.some((point) => {
+      const id = (point as { id?: unknown } | null)?.id;
+      return typeof id === "string" && (SLED_POINT_ORDER as readonly string[]).includes(id);
+    })) lineIds.add(lineId);
+  }
+  return lineIds;
+}
+
+function readFullSledPointState(engine: any, frame: number): CollisionIntervalSledPoint[] | null {
+  const rider = getRiderMetered(engine, Math.max(0, frame));
+  const points: CollisionIntervalSledPoint[] = [];
+  for (const name of SLED_POINT_ORDER) {
+    const point = rider?.get?.(name);
+    const position = point?.pos;
+    const velocity = point?.vel ?? point?.velocity;
+    if (!finiteVec(position) || !finiteVec(velocity)) return null;
+    points.push({ position: { ...position }, velocity: { ...velocity } });
+  }
+  return points;
+}
+
 function summarizeArm(attempts: number, candidates: CandidateDigest[]): ArmSummary {
   const finiteAxis = candidates.filter((candidate) => Number.isFinite(candidate.axisRms));
   const finiteObjective = candidates.filter((candidate) => candidate.qualityObjective !== null);
@@ -971,7 +1157,9 @@ function geometryHash(candidate: Candidate): string {
 function summarize(rows: readonly Row[]) {
   const usable = rows.filter((row) =>
     row.replayEquivalent === true && row.deltas !== null && (
-      fullSledAffineContactFlowField
+      nativeCollisionIntervalMidpointField
+        ? (row.nativeCollisionIntervalMidpointField?.transformed ?? 0) > 0
+        : fullSledAffineContactFlowField
         ? (row.fullSledAffineContactFlowField?.transformed ?? 0) > 0
         : fullSledWindowedRedirectionField
         ? (row.fullSledWindowedRedirectionField?.transformed ?? 0) > 0
@@ -1007,6 +1195,10 @@ function summarize(rows: readonly Row[]) {
     fullSledAffineContactFlowStateRows: rows.filter((row) => row.fullSledAffineContactFlowField?.stateAvailable === true).length,
     fullSledAffineContactFlowTransformedGeometries: rows.reduce((sum, row) => sum + (row.fullSledAffineContactFlowField?.transformed ?? 0), 0),
     fullSledAffineContactFlowTemplateSkips: rows.reduce((sum, row) => sum + (row.fullSledAffineContactFlowField?.templatesSkipped ?? 0), 0),
+    nativeCollisionIntervalMidpointStateRows: rows.filter((row) => row.nativeCollisionIntervalMidpointField?.stateAvailable === true).length,
+    nativeCollisionIntervalMidpointIntervals: rows.reduce((sum, row) => sum + (row.nativeCollisionIntervalMidpointField?.intervalsDetected ?? 0), 0),
+    nativeCollisionIntervalMidpointTransformedGeometries: rows.reduce((sum, row) => sum + (row.nativeCollisionIntervalMidpointField?.transformed ?? 0), 0),
+    nativeCollisionIntervalMidpointTemplateSkips: rows.reduce((sum, row) => sum + (row.nativeCollisionIntervalMidpointField?.templatesSkipped ?? 0), 0),
     usableRows: usable.length,
     byRegime,
     regimeBalanced: {

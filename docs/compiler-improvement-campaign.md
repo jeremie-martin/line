@@ -3735,6 +3735,50 @@ not offset/mix the pose frame, condition it on contact state, or combine it
 with a rejected anchor: direct sled-axis orientation is not a viable ordinary
 normal basis under the exact gate.
 
+## Declared Audit: Pose-State Relation to Ordinary Multi-Contact Survival (2026-07-17)
+
+Directly substituting the sled-axis tangent for COM travel is closed, but it
+does not establish whether the physical pose state matters across a chain. At
+each exact ordinary contact state the engine exposes two independent values:
+the sled-axis mismatch to COM travel (modulo 180°) and its one-frame angular
+rate. This read-only audit replays the frozen WASM/500k believer36 and
+believer69 five-contact fixtures using only the ordinary 24-attempt stream
+and the ordinary exact local-cost choice. It changes no coordinates, target,
+candidate, rank, or traversal. For every reachable state it records pose
+mismatch, absolute angular rate, ordinary viable count, and whether the
+remaining chain completes; comparisons are made only within fixture and
+contact-depth strata so later-chain difficulty cannot masquerade as pose.
+
+`npm run audit:pose-chain-state -- --trials=96` is the entire frozen
+calibration. The physical prediction is that the highest quartile of either
+pose instability measure has materially lower remaining-chain completion than
+the lowest quartile in both fixtures. This is a diagnostic, not a selection
+screen: it can authorize only one later, separately declared pose-carried
+trajectory construction if a coherent association is present.
+
+**Discard before construction:** retire pose-state trajectory work if either
+state cannot be read on a material share of ordinary chain states, if neither
+mismatch nor rate has at least a 1.5× high-versus-low remaining-chain loss in
+both fixtures after depth stratification, or if either frozen physical-prefix
+replay is not exact. Do not turn a descriptive association into a pose gate, tangent
+frame, offset, pitch, or selector without a new physical construction and
+its own falsifier.
+
+**Outcome: RETIRE pose-state trajectory work at the declared cross-fixture
+gate.** Both frozen physical-prefix replays matched exactly and pose was
+readable at every observed state (104 believer36 and 416 believer69). The
+control itself made believer36 non-identifying: ordinary local-cost sampling
+completed **0/96** five-contact chains, so it supplied no high-versus-low
+remaining-survival contrast. Believer69 alone did show an association after
+depth stratification—low versus high axis-mismatch completion
+`.530864/.341176` (**1.556×**) and low versus high absolute angular-rate
+completion `.555556/.223529` (**2.485×**). That one-fixture signal cannot
+establish a broad causal state, while the independent believer36 fixture
+cannot meet the predeclared comparison. No pose-carried construction, gate,
+frame blend, pitch/offset law, source lane, or replication is authorized.
+Pose remains a descriptive continuation marker, not an evidenced compiler
+input.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

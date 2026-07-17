@@ -4012,6 +4012,55 @@ but the ordinary continuation relies on the post-contact support it removes.
 The next component must add a useful contact-order constraint rather than
 truncate the existing one.
 
+## Declared Observation: Two-Sided Physical Rail on Ordinary Normals (2026-07-17)
+
+The one-way collision-side inversion is retired, but inversion removes the
+ordinary active face; it does not test the distinct physical object of a rail
+with two faces. This observation preserves every original raw normal line and
+adds one exactly coincident companion with only its `flipped` collision-side
+bit inverted. Geometry, tangent, endpoint flags, type, PRNG coordinates,
+candidate count, target state, and ordinary evaluator are all unchanged. The
+component has no constants, case/source/axis branch, or selector: it simply
+makes an existing geometric rail collidable from either physical side, which
+can alter a later body-point or return collision without sacrificing the
+original approach face.
+
+**Protocol, declared before rows.** Reuse the six-regime, two-seed
+WASM/V2-jolt/500k frozen-frontier panel. Production raw normal pools must
+replay exactly first. For every same-coordinate candidate, retain the original
+lines with fresh deterministic ids and append an equal number of coincident
+opposite-facing companions. Run unchanged exact gates, scorer, and
+continuation-aware objective at equal proposal count, retaining viable count,
+axis RMS, objective, cost, and physics-frame charge. This is observation only;
+it does not permit a source lane or collision-side selection.
+
+**Discard before source work.** Retire if the normal replay fails; if the
+two-sided surface is exact-output inert on the dense guard; if it lacks both
+broad viable-pool and objective improvement; if dense, pickup, or low-air
+materially loses support; or if added collision work lacks a stronger pool. A
+pass authorizes only a separately declared source-default scope test, not a
+line subset, a side condition, a force/endpoint composition, Stage 0, or V2.
+
+**Result (2026-07-17, first decisive dense slice only;
+`npm run study:two-sided-rail -- --case=frontier_dense_recovery
+--case=dense_dialogue_impact_contrast_10`; artifact
+`generated/studies/two-sided-rail-normal-pool/v1/batch-0.json`): RETIRE at
+the dense material-loss guard.** All eight production pools replayed exactly
+before the comparator. The two-sided rail is emphatically not an inert
+coincident-line representation: every raw line received its opposite face and
+the exact gate changed outputs, but it reduced viable support by **13.375
+candidates/state**, best axis RMS by `.051956`, and the continuation-aware
+objective by **.140528**. One of eight rows had no viable alternative at all.
+The apparent 227.5-frame saving again reflects early rejection, while best
+local cost worsened `.032764`; it is not usable traversal economy.
+
+**Decision.** Do not add a two-sided rail, select a collision side by state,
+deduplicate/offset its faces, restrict it to body points or line subsets, or
+combine it with force or patch release. The ordinary one-way active face is a
+load-bearing collision-order constraint, not an arbitrary omission. Further
+work must introduce a new geometry/state relation, not relax the normal
+surface's one-way topology.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

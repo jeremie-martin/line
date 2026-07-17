@@ -4773,6 +4773,46 @@ A successor must change the collision state before or during the native catch
 through a new non-static transition representation—not search between these
 two failed forms.
 
+## Declared Observation: Phase-Locked Vector-Intercept Transient (2026-07-17)
+
+This is the first examined continuous multi-contact state-to-geometry
+transition rather than a static guide or post-catch surface. Preserve an exact
+ordinary `k` catch. At `k+1`, resolve one frame-centred distributed capture
+from its exact incoming state; use the signed turn from incoming travel to the
+unique two-dimensional discrete-ballistic launch vector that intercepts the
+unforced exact `k+2` reference. The finite three-segment turn is then fixed by
+those states. It has no offset, phase, side, duration, score, target outcome,
+case, seed, candidate, or source menu; the intercept read is solely a physical
+future-state reference.
+
+**Feasibility and replication.** On the 500k frozen six-case panel, discovery
+seeds 42/43 materialized **32/40** available pairs without changing the
+already-admitted current axes, with 154 fixed ordinary `k+2` returns. Fresh
+seeds 44/45 gave **32/48** phase materializations and 174 returns, versus
+**43/48** and 198 for the equal direct ordinary `k+1` control. Across the 32
+comparable pairs the phase form had two-gap RMS worse by `.089613` and 24 fewer
+returns. It does retain returns in dense, low-air, and pickup rows, so this is
+a genuine engine-admitted transition, not an unavailable or static-form null;
+however development-music had zero return support.
+
+**Additive-source scope (2026-07-17): RETIRE source promotion.** The form was
+offered once alongside, never instead of, the normal/aimed/runway pool and
+re-ranked through the unchanged exact gate on seeds 28/29 of the fixed
+six-case impact panel (`500k` each). The 12 paired end-to-end results average
+**-6.297275** headline points (4 wins, 7 losses, 1 unchanged), with mean
+impact RMS **+.003796**, speed RMS `+.000353`, and air RMS `+.007285`.
+Frontier-dense recovery loses `-14.706/-23.942`; dense dialogue and low-air
+also reverse sharply between seeds. The few gains therefore cannot establish a
+broad ranker-safe improvement, and the source hook was removed before any V2
+evaluation.
+
+**Decision.** Keep the pure geometry realization, its deterministic unit test,
+and the charged feasibility harness as a closed physical result; do not
+reintroduce it with a score-derived filter, regime branch, retry count, or
+parameter variants. A successor may use an equally single-form transition only
+if it changes the state representation so that normal continuation support is
+not traded between the dense/low-air and development basins.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

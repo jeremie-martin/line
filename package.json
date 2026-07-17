@@ -44,6 +44,7 @@
     "study:impact-response": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_response_envelope.ts",
     "study:joint-normal-bridge": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_joint_normal_bridge.ts",
     "study:joint-normal-compound": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_joint_normal_bridge.ts --early-compound",
+    "study:phase-locked-transient": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_phase_locked_transient.ts",
     "study:joint-normal-coordinates": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_joint_normal_coordinate_interpolation.ts",
     "study:collision-incidence": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_collision_incidence_transport.ts",
     "study:velocity-leading-anchor": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_velocity_leading_anchor_normal_pool.ts",

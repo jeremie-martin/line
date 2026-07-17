@@ -2133,7 +2133,7 @@ one-shot complete pair with no first-C1 line drift, and all k+2 normal controls
 were structurally available. On dense-240, the transient geometry achieved the
 timing objective on every pair: airborne age was **7 or 9 frames**, strictly
 above the legal six-frame floor. Yet the unchanged normal stream admitted
-**0/19** pairs and 0 attempts at k+2. The full dense-240 capture-bridge screen
+**0/19** pairs and 0 normal admissions at k+2. The full dense-240 capture-bridge screen
 charged 8,162 frames versus 833 for equal-count raw normal, with no return.
 
 This gives a distinct negative from the retired static/preserve-and-release

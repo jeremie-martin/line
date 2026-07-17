@@ -3,9 +3,10 @@
  * geometry frame. The production arm uses the existing lowest-sled-point
  * anchor plus rider COM tangent; comparators keep that anchor and exact
  * evaluator but supply either the velocity of the same lowest point or the
- * aggregate velocity of the three zero-friction sled points, or transport the
+ * aggregate velocity of the three zero-friction sled points, transport the
  * existing post-contact tangent field with the full four-point rigid sled
- * velocity field.
+ * velocity field, or reparameterize that tangent field by full-sled
+ * gravity-time.
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
  *     --out=generated/studies/contact-point-normal-frame/v1/result.json
@@ -15,6 +16,9 @@
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
  *     --co-rotating-contact-field --batch=0 \
  *     --out=generated/studies/co-rotating-contact-field-normal-pool/v1/batch-0.json
+ *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
+ *     --full-sled-gravity-time-field --batch=0 \
+ *     --out=generated/studies/full-sled-gravity-time-field-normal-pool/v1/batch-0.json
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -45,13 +49,14 @@ import {
 import { axisLookaheadEndFrame, tryCandidateGeometry } from "./core/candidate.ts";
 import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
 import { realizeCoRotatingContactField } from "./trajectory/co_rotating_contact_field.ts";
+import { realizeFullSledGravityTimeField } from "./trajectory/full_sled_gravity_time_field.ts";
 import { extractPlanningState } from "./trajectory/state.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: study_contact_point_normal_frame.ts [--zero-friction-average|--co-rotating-contact-field --batch=0|1|2] [--out=PATH]\n",
+    "Usage: study_contact_point_normal_frame.ts [--zero-friction-average|--co-rotating-contact-field|--full-sled-gravity-time-field --batch=0|1|2] [--out=PATH]\n",
   );
   process.exit(0);
 }
@@ -60,15 +65,16 @@ const arg = (name: string): string | undefined =>
 const outPath = arg("out");
 const zeroFrictionAverage = argv.includes("--zero-friction-average");
 const coRotatingContactField = argv.includes("--co-rotating-contact-field");
+const fullSledGravityTimeField = argv.includes("--full-sled-gravity-time-field");
 const batchArgument = arg("batch");
 const batch = batchArgument === undefined ? undefined : Number(batchArgument);
 const unknownArgs = argv.filter((value) =>
-  value !== "--zero-friction-average" && value !== "--co-rotating-contact-field" && !value.startsWith("--out=") && !value.startsWith("--batch=")
+  value !== "--zero-friction-average" && value !== "--co-rotating-contact-field" && value !== "--full-sled-gravity-time-field" && !value.startsWith("--out=") && !value.startsWith("--batch=")
 );
 if (unknownArgs.length > 0) throw new Error(`unknown argument(s): ${unknownArgs.join(", ")}`);
-if (zeroFrictionAverage && coRotatingContactField) throw new Error("normal-frame comparator modes are mutually exclusive");
-if (!zeroFrictionAverage && !coRotatingContactField && batch !== undefined) throw new Error("--batch is reserved for an experimental comparator");
-if ((zeroFrictionAverage || coRotatingContactField) && (batch === undefined || !Number.isSafeInteger(batch) || batch < 0 || batch > 2)) {
+if ([zeroFrictionAverage, coRotatingContactField, fullSledGravityTimeField].filter(Boolean).length > 1) throw new Error("normal-pool comparator modes are mutually exclusive");
+if (!zeroFrictionAverage && !coRotatingContactField && !fullSledGravityTimeField && batch !== undefined) throw new Error("--batch is reserved for an experimental comparator");
+if ((zeroFrictionAverage || coRotatingContactField || fullSledGravityTimeField) && (batch === undefined || !Number.isSafeInteger(batch) || batch < 0 || batch > 2)) {
   throw new Error("experimental comparators require --batch=0|1|2");
 }
 
@@ -76,7 +82,10 @@ const BUDGET = 500_000;
 const CONTACT_POINT_SEEDS = [26, 27] as const;
 const ZERO_FRICTION_AVERAGE_SEEDS = [48, 49] as const;
 const CO_ROTATING_CONTACT_FIELD_SEEDS = [50, 51] as const;
-const SEEDS = coRotatingContactField
+const FULL_SLED_GRAVITY_TIME_FIELD_SEEDS = [52, 53] as const;
+const SEEDS = fullSledGravityTimeField
+  ? FULL_SLED_GRAVITY_TIME_FIELD_SEEDS
+  : coRotatingContactField
   ? CO_ROTATING_CONTACT_FIELD_SEEDS
   : zeroFrictionAverage ? ZERO_FRICTION_AVERAGE_SEEDS : CONTACT_POINT_SEEDS;
 const CONTACT_POINT_CASES = [
@@ -103,7 +112,17 @@ const CO_ROTATING_CONTACT_FIELD_CASES = [
   { id: "frontier_low_air_endurance_7s", regime: "low_air" },
   { id: "believer_56_6s_impact_relief", regime: "development_music" },
 ] as const;
-const CASES = coRotatingContactField
+const FULL_SLED_GRAVITY_TIME_FIELD_CASES = [
+  { id: "frontier_dense_recovery_240ms_figures", regime: "dense" },
+  { id: "dense_dialogue_impact_contrast_10", regime: "dense" },
+  { id: "rising_switch", regime: "representative" },
+  { id: "pickup_lattice_speed_minus_4", regime: "pickup" },
+  { id: "frontier_low_air_endurance_7s", regime: "low_air" },
+  { id: "believer_56_6s_impact_relief", regime: "development_music" },
+] as const;
+const CASES = fullSledGravityTimeField
+  ? FULL_SLED_GRAVITY_TIME_FIELD_CASES
+  : coRotatingContactField
   ? CO_ROTATING_CONTACT_FIELD_CASES
   : zeroFrictionAverage ? ZERO_FRICTION_AVERAGE_CASES : CONTACT_POINT_CASES;
 const ACTIVE_CASES = batch === undefined ? CASES : CASES.slice(batch * 2, batch * 2 + 2);
@@ -148,6 +167,14 @@ type CoRotatingFieldTelemetry = {
   meanAbsTerminalRotationDeg: number | null;
   maxAbsTerminalRotationDeg: number | null;
 };
+type FullSledGravityTimeFieldTelemetry = {
+  stateAvailable: boolean;
+  templatesSkipped: number;
+  transformed: number;
+  unavailable: Record<string, number>;
+  meanAbsTangentShiftDeg: number | null;
+  maxAbsTangentShiftDeg: number | null;
+};
 type Row = {
   caseId: string;
   regime: Regime;
@@ -164,6 +191,7 @@ type Row = {
     frameShiftDeg: number;
   } | null;
   coRotatingContactField: CoRotatingFieldTelemetry | null;
+  fullSledGravityTimeField: FullSledGravityTimeFieldTelemetry | null;
   productionCom: ArmSummary | null;
   contactPoint: ArmSummary | null;
   deltas: {
@@ -233,14 +261,18 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: coRotatingContactField
+  schema: fullSledGravityTimeField
+    ? "line.study-full-sled-gravity-time-field-normal-pool.v1"
+    : coRotatingContactField
     ? "line.study-co-rotating-contact-field-normal-pool.v1"
     : zeroFrictionAverage
     ? "line.study-zero-friction-average-normal-frame.v1"
     : "line.study-contact-point-normal-frame.v1",
   purpose: [
     "observation-only replay of ordinary normal candidate pools from immutable frontier states",
-    coRotatingContactField
+    fullSledGravityTimeField
+      ? "same PRNG coordinates, attempts, raw curve prefix, segment count, lengths, tangent range, line flags, exact gates, and scorer; only the existing post-contact tangent field is reparameterized by full-sled collective gravity-time"
+      : coRotatingContactField
       ? "same PRNG coordinates, attempts, raw curve prefix, segment count, lengths, line flags, exact gates, and scorer; only the post-contact tangent field is transported by the four-point rigid sled angular velocity over gravity-time traversal"
       : zeroFrictionAverage
       ? "same PRNG, anchor, candidate count, attempt indices, exact gates, and scorer; COM tangent versus the mean velocity frame of TAIL/NOSE/STRING"
@@ -253,7 +285,9 @@ const result = {
     seeds: SEEDS,
     cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    frame: coRotatingContactField
+    frame: fullSledGravityTimeField
+      ? "the exact mean velocity of PEG/TAIL/NOSE/STRING and gravity define a continuous clock for each raw post-contact curve; its existing tangent field is sampled at physical time fraction rather than arclength fraction"
+      : coRotatingContactField
       ? "four native PEG/TAIL/NOSE/STRING positions and velocities define one least-squares rigid translation-plus-rotation field; every non-template raw post-contact segment retains its length and receives its unique angular transport at its gravity-time start"
       : zeroFrictionAverage
       ? "mean finite non-zero velocity of TAIL/NOSE/STRING at the immutable target state; no point identity is selected"
@@ -317,13 +351,16 @@ function replayCapturedState(
   const rngSeed = (Math.imul(rawPool.seed | 0, 1_000_003) + gap.index + 1) | 0;
   const productionCom = sampleProductionArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed);
   const replay = compareGeneratedRawReplay(rawPool.candidates, productionCom.candidates);
-  const frame = coRotatingContactField ? null : readContactFrame(captured.node.search.prefixEngine, gap, setup.ctx);
+  const frame = coRotatingContactField || fullSledGravityTimeField ? null : readContactFrame(captured.node.search.prefixEngine, gap, setup.ctx);
   const coRotating = coRotatingContactField
     ? sampleCoRotatingContactFieldArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
     : null;
-  const contactPoint = coRotating === null
+  const gravityTime = fullSledGravityTimeField
+    ? sampleFullSledGravityTimeFieldArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
+    : null;
+  const contactPoint = coRotating === null && gravityTime === null
     ? sampleContactPointArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed, frame!.targetState)
-    : coRotating.arm;
+    : coRotating?.arm ?? gravityTime!.arm;
   return {
     caseId,
     regime,
@@ -336,6 +373,7 @@ function replayCapturedState(
     replayMessage: replay.message,
     contactFrame: frame === null ? null : { anchor: frame.anchor, velocitySource: frame.velocitySource, frameShiftDeg: frame.frameShiftDeg },
     coRotatingContactField: coRotating?.telemetry ?? null,
+    fullSledGravityTimeField: gravityTime?.telemetry ?? null,
     productionCom,
     contactPoint,
     deltas: {
@@ -363,6 +401,7 @@ function unavailableRow(
     replayMessage: message,
     contactFrame: null,
     coRotatingContactField: null,
+    fullSledGravityTimeField: null,
     productionCom: null,
     contactPoint: null,
     deltas: null,
@@ -478,6 +517,72 @@ function sampleCoRotatingContactFieldArm(
       unavailable,
       meanAbsTerminalRotationDeg: mean(rotations),
       maxAbsTerminalRotationDeg: rotations.length === 0 ? null : round(Math.max(...rotations)),
+    },
+  };
+}
+
+function sampleFullSledGravityTimeFieldArm(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): { arm: ArmSummary; telemetry: FullSledGravityTimeFieldTelemetry } {
+  const state = extractPlanningState(node.search.prefixEngine, gap.endFrame);
+  const unavailable: Record<string, number> = {};
+  let templatesSkipped = 0;
+  let transformed = 0;
+  const shifts: number[] = [];
+  const maxShifts: number[] = [];
+  const rng = makeRng(seed);
+  const candidates: CandidateDigest[] = [];
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  for (let attempt = 0; attempt < count; attempt++) {
+    const raw = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    let geometry = raw;
+    if (wasLastGeometryImpactTemplate()) {
+      templatesSkipped++;
+    } else if (state === null) {
+      unavailable.missing_planning_state = (unavailable.missing_planning_state ?? 0) + 1;
+    } else {
+      const reparameterized = realizeFullSledGravityTimeField(raw.lines, state, {
+        x: probe.targetState.sledX,
+        y: probe.targetState.sledY,
+      });
+      if (reparameterized.status !== "ready") {
+        unavailable[reparameterized.reason] = (unavailable[reparameterized.reason] ?? 0) + 1;
+      } else {
+        geometry = { ...raw, lines: reparameterized.lines };
+        transformed++;
+        shifts.push(reparameterized.travel.meanAbsTangentShiftDeg);
+        maxShifts.push(reparameterized.travel.maxAbsTangentShiftDeg);
+      }
+    }
+    const fit = tryCandidateGeometry(
+      node.search.prefixEngine, gap, geometry, node.search.prefixNextLineId,
+      ctx.allContactFrames, axisMeasureEnd, gap.targets, true, "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    if (fit !== null) {
+      fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      fit.sampleAttempt = attempt;
+      candidates.push(digestCandidate(fit, node, gap, gaps, ctx));
+    }
+  }
+  return {
+    arm: summarizeArm(count, candidates),
+    telemetry: {
+      stateAvailable: state !== null,
+      templatesSkipped,
+      transformed,
+      unavailable,
+      meanAbsTangentShiftDeg: mean(shifts),
+      maxAbsTangentShiftDeg: maxShifts.length === 0 ? null : round(Math.max(...maxShifts)),
     },
   };
 }
@@ -648,7 +753,9 @@ function geometryHash(candidate: Candidate): string {
 function summarize(rows: readonly Row[]) {
   const usable = rows.filter((row) =>
     row.replayEquivalent === true && row.deltas !== null && (
-      coRotatingContactField
+      fullSledGravityTimeField
+        ? (row.fullSledGravityTimeField?.transformed ?? 0) > 0
+        : coRotatingContactField
         ? (row.coRotatingContactField?.transformed ?? 0) > 0
         : row.contactFrame?.velocitySource === (zeroFrictionAverage ? "zero_friction_average" : "contact_point_velocity")
     )
@@ -669,6 +776,9 @@ function summarize(rows: readonly Row[]) {
     coRotatingStateRows: rows.filter((row) => row.coRotatingContactField?.stateAvailable === true).length,
     coRotatingTransformedGeometries: rows.reduce((sum, row) => sum + (row.coRotatingContactField?.transformed ?? 0), 0),
     coRotatingTemplateSkips: rows.reduce((sum, row) => sum + (row.coRotatingContactField?.templatesSkipped ?? 0), 0),
+    fullSledGravityTimeStateRows: rows.filter((row) => row.fullSledGravityTimeField?.stateAvailable === true).length,
+    fullSledGravityTimeTransformedGeometries: rows.reduce((sum, row) => sum + (row.fullSledGravityTimeField?.transformed ?? 0), 0),
+    fullSledGravityTimeTemplateSkips: rows.reduce((sum, row) => sum + (row.fullSledGravityTimeField?.templatesSkipped ?? 0), 0),
     usableRows: usable.length,
     byRegime,
     regimeBalanced: {

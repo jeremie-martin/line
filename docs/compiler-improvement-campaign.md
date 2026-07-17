@@ -4660,6 +4660,67 @@ on both controls.  A successor must retain an engine-admitted capture while
 changing its articulated collision-response transition; it cannot be a
 standalone passive full-body impulse followed by flight.
 
+## Declared Observation: Post-Catch Full-Sled Reaction Envelope (2026-07-17)
+
+The predecessor launch chord confirms that a standalone upstream object cannot
+enter the required state basin, while the body follower shows that an
+arbitrary post-catch body contact is destructive. This assay isolates the
+remaining physically distinct passive response form: start only after an
+already-admitted native ordinary catch, read its exact complete sled state at
+`H+1`, and construct one finite contact envelope from the whole configuration.
+
+For every `PEG`/`TAIL`/`NOSE`/`STRING` point, use its exact position and
+velocity, the collective mean velocity, the measured sled angular rate, and
+the engine gravity law. For each of the six scored response frames, rotate the
+complete relative cloud at that rate, advance its center by the observed
+ballistic law, and take the gravity-facing **support function** of the entire
+cloud. Joining those six support nodes produces one `H+1..H+6` finite
+polyline. It uses no named point, raw-coordinate adjustment, impact target,
+score, rank, source, case, seed, duration class, contact feedback, or
+parameter menu. Unlike the earlier guide ribbon, its state is the exact
+post-collision candidate state and it has no inbound geometry. Unlike the body
+follower, it is a full sled configuration envelope rather than a hull point or
+raw-surface-relative fender.
+
+**Protocol, declared before rows.** On frozen dense-240 and ordinary
+WASM/V2-jolt/500k prefixes, run a fixed unchanged 16-member ordinary current
+stream. A response is realized only for a raw candidate already admitted by
+unchanged `tryCandidateLines`; its state read, raw gate, and complete
+raw-plus-envelope re-admission are all charged. Reject a realization that
+causes its own line to collide at `H-1` or `H`: the native raw catch must
+remain the capture. A coherent row requires at least three native
+`TAIL`/`NOSE`/`STRING` updates on the raw lines at `H`, at least two such
+envelope-owned updates at `H+1`, impact error at most `.05`, a six-frame
+airborne return, and at least one member of a fixed unchanged eight-member
+ordinary next stream to admit. The streams are observations only and cannot
+select, alter, or feed back into the contour.
+
+**Result (2026-07-17, 0.17s, 2,864 charged frames;
+`LR_ENGINE=wasm node --expose-gc --import tsx
+scripts/v0/study_postcatch_sled_reaction_envelope.ts --case=all
+--out-dir=generated/studies/postcatch-sled-reaction-envelope/v1`): RETIRE the
+post-catch full-sled reaction envelope.** It has the desired temporal
+boundary: the augmented geometry is admitted for every raw-admitted row and
+its own inbound topology is zero on both controls. The dense-240 fixture has
+only **1/16** raw admissions; that augmented row retains zero raw
+zero-friction sled updates, has impact error `-.174759`, only three airborne
+frames, and has no normal successor. The ordinary control is the decisive
+representation result: all **16/16** raw and augmented candidates admit,
+10/16 retain at least three raw zero-friction sled updates, all 16 have a
+legal airborne return and a normal successor, but **0/16** envelope instances
+produce even one `TAIL`/`NOSE`/`STRING` update at `H+1` (or a total response
+line collision there). Six ordinary rows are impact-accurate, but none can be
+a physical response because the component never engages.
+
+**Decision.** Do not shift the response start, extend the horizon, exchange
+the support extremum, alter the gravity/rotation integration, add a second
+envelope, or combine it with a body follower, force, support, rail, selector,
+or response pitch. Those are a tuning family around a passive configuration
+contour that is exactly nonintruding yet does not contact. The boundary is now
+sharper: a viable successor needs a contact-compatible continuous
+multi-contact *transition mechanism* after an engine-admitted native catch,
+not another static or passively predicted configuration envelope.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -546,6 +546,23 @@ segments, or weighting.  A viable successor must preserve an engine-admitted
 capture while changing the articulated collision-response transition; a
 standalone passive impulse-and-flight basis is insufficient.
 
+The post-catch full-sled reaction envelope closes the most direct passive
+response form under that requirement. It first preserves an exact
+engine-admitted raw catch, reads the full four-point sled state at `H+1`, then
+emits one `H+1..H+6` continuous gravity-support contour using the observed
+collective velocity, gravity, angular rate, and the full cloud support
+function. It does not intrude on `H-1/H`: all raw-admitted augmented rows
+retain zero envelope-owned inbound collisions. Yet it fails precisely because
+it is passive. On ordinary, all 16 raw and augmented rows admit and all have
+legal return plus a normal next admission, but the envelope owns zero
+`TAIL`/`NOSE`/`STRING` updates at `H+1` in all 16 rows; it never becomes a
+contact response. Dense-240 supplies no counterexample (only 1/16 raw
+admissions, zero raw distributed sled contact, 3 airborne frames, and zero
+next admissions). Thus no start shift, support-extremum variant, horizon
+extension, or follower/support composition is authorized. A future component
+must alter the reachable continuous multi-contact transition, not passively
+draw a state-predicted contour after it.
+
 A future trajectory study is admissible only if it declares a **new** component
 form that, from continuous physical state rather than a case/duration/menu
 choice, establishes the required six-frame return window at dense-240 while

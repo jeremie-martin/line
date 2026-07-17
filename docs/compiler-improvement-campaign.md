@@ -3326,6 +3326,56 @@ be independent of this current candidate pool: rebuild the entry-state and
 collision-response envelope from frozen engine states, so that “unreachable”
 is tested rather than inherited from the existing sampler.
 
+## Declared Audit: Body-Point Collision Contribution in Ordinary Normal Pools (2026-07-17)
+
+The current probe has reopened the physical question: many impact-improving
+pool candidates are priced out without a speed-error price, so neither the
+existing sampler's speed/impact relationship nor its collision abstraction
+should be treated as the engine envelope. The engine resolves contact for four
+sled points plus six body points. This audit asks whether ordinary current
+normal geometry already obtains a useful first response through a body point,
+which would justify a genuinely distinct collision-topology primitive rather
+than another slope, scoop, force, or rank variation.
+
+**Read-only protocol.** Freeze the same six-source/two-seed V2-jolt/500k
+panel used by `impact-probe`; at the first one-third and two-thirds ordinary
+frontier states per run, retain the generation-time raw-normal pool snapshot.
+Replay every raw proposal at identical PRNG coordinates through unchanged
+`sampleOneCandidate`. For viable candidates only, query the engine's native
+collision updates from one frame before the current authored contact through
+the current axis horizon, retaining only collisions on candidate-owned line
+ids. Report first-collision as well as later sled/body point identities, impact absolute residual, exact
+current-quality × predicted-next-readiness objective, and local cost. The
+audit changes neither geometry nor selection.
+
+**Predeclared falsifier.** Retire body-point topology before a geometry build
+if body-side candidate-line collisions are absent on a material majority of
+usable states, or no body-contact candidate weakly dominates a sled-only
+candidate on both impact residual (lower) and the exact objective (higher),
+with one strict improvement, in any broad regime. A pass authorizes only a
+separately declared physical primitive assay; it chooses no body point, source
+form, or compiler parameter.
+
+**Outcome: RETIRE point-specific topology; retain the collision fact.**
+`scripts/v0/study_body_point_collision_audit.ts` replayed all 24 declared
+states exactly (498 viable raw-normal candidates; 24/24 geometry hashes and
+attempt prefixes reproduced). Body contact is real rather than absent: 374
+candidates have it somewhere in the read window and 189 have it in the first
+candidate-owned collision frame. But every first body point is a foot, and
+**187/189** first-body events coincide in the same frame with sled contact.
+The two body-only first events (both at dense-dialogue seed 29, gap 43) are
+poor: impact absolute residual `.536`/`.526`, objective `.0192`/`.0180`.
+
+Coupled foot-and-sled normal candidates do weakly dominate sled-only controls
+in two representative-dense states (34 pairwise comparisons), so treating
+the rider as a sled-only body would be factually wrong. It does **not** supply
+a distinct physical component: the useful events are simultaneous ordinary
+normal collisions already present in the pool, while isolated body-first
+contact is uncompetitive. Do not build or tune a point-specific line source,
+pose gate, or body-contact selector from this signal. A future successor would
+need a different multi-point constraint or contact-order mechanism, first
+shown to create a useful non-simultaneous response in an exact broad assay.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

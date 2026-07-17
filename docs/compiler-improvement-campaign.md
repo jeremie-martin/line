@@ -5023,6 +5023,67 @@ The distributed velocity mean is observable and sometimes widens a pool, but
 as a whole-curve construction frame it still trades a dense continuation basin
 away.
 
+## Declared Study: Co-Rotating Full-Sled Contact Field (2026-07-17)
+
+The closed anchor, pose-frame, static envelope, and post-catch experiments do
+not test a candidate that retains the ordinary collision geometry while making
+its *continuous tangent field* follow the articulated sled's observed motion.
+This single-form component keeps every raw normal draw, inbound prefix,
+post-contact segment count and length, line flag, and first outgoing tangent.
+At the immutable target state it uses all native `PEG`/`TAIL`/`NOSE`/`STRING`
+positions and velocities to take the unique least-squares rigid-body
+translation-plus-angular-velocity projection.  Each later raw post-contact
+tangent is transported by that angular velocity over the segment's gravity-time
+traversal.  It has no point selection, pose/rate threshold, offset, scale,
+duration menu, target, outcome, source, seed, or rank rule; templates remain
+ordinary because they are a different existing geometry representation.
+
+**Dense-first protocol.** On unused seeds 50 and 51 at V2-jolt/500k, freeze
+`frontier_dense_recovery_240ms_figures` and
+`dense_dialogue_impact_contrast_10`, at their first ordinary frontier states
+one-third and two-thirds through contact depth.  Replay every generation-time
+raw normal attempt/hash, then regenerate the same stream, applying the field
+where all four point velocities and a non-template post curve are available.
+The unchanged exact gate, scorer, continuation-aware objective, and normal
+candidate count remain the only evaluators.  Record full-state availability,
+template skips, physical terminal rotation, viable admission, best axis RMS,
+best objective, and cost.  This is observation-only: it authorizes no source
+lane, selector, ranking change, or V2 evaluation.
+
+**Falsifiers.** Retire before the remaining four predeclared regimes if the
+four-point field or its geometry coverage is materially unavailable, if it is
+materially identical to ordinary on dense rows, or if either dense source loses
+viable support or best continuation-aware objective.  A joint dense pass would
+authorize only representative/pickup/low-air/development batches and a fresh
+replay; it would not authorize damping, a rate cap, a blend, a point subset, or
+any other variant.
+
+**Dense-first result (2026-07-17, 19.1s; `LR_ENGINE=wasm npx tsx
+scripts/v0/study_contact_point_normal_frame.ts --co-rotating-contact-field
+--batch=0`; artifact
+`generated/studies/co-rotating-contact-field-normal-pool/v1/batch-0.json`):
+RETIRE the co-rotating full-sled contact field.** All eight frozen dense
+frontier states captured and all ordinary raw pools replayed exactly.  The
+physical input was available in every row; **207** raw non-template curves
+were transformed while **25** existing impact-template curves correctly stayed
+ordinary.  This is an active field, not a relabel: mean absolute terminal
+transport ranged from `2.026030°` to `27.202398°` across states, with a maximum
+`39.369436°` curve rotation.
+
+It nevertheless fires both dense loss conditions.  Across the eight paired
+rows it removes **0.5** viable candidates per state and reduces the
+dense-balanced continuation-aware objective by **.004386** (axis RMS improves
+only `.000225`).  Most decisively,
+`frontier_dense_recovery_240ms_figures` seed 50 at one-third loses two of 20
+ordinary viable members and **.105805** best continuation-aware objective.
+Dense dialogue also loses a viable member on its seed-50 early state.  Two
+frontier seed-51 pools are empty in both arms and do not offset the observed
+source losses.  Do not run the remaining regimes or add damping, a rate cap,
+blend, point subset, template treatment, selector, or source lane.  A
+least-squares full-sled angular field can move the ordinary curve substantially,
+but the native dense admission/continuation basin does not tolerate that
+transport.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

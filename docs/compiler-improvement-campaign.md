@@ -5936,6 +5936,29 @@ beat rotation's impact authority while retaining bend-like exact admission on
 the same panel, then prove that preserving its extra local candidates does not
 reduce the normal two-slot search diversity at 250k.
 
+**Symmetric interior-bow envelope (same 48 states, now 624 exact replays;
+`study_arc_knob_replacement_v2.ts`): RETIRE chord-normal endpoint-preserving
+bow as a replacement form.** The bow was active, not a replay no-op, but no
+fixed scale joined the required authority and gate envelope.  At the fixed
+quarter rotation-equivalent scale (`±.625°`), it admitted **73/96** signed
+edits (**76.0%**) but changed best-of-sign impact error by only `-.00386`.
+At half scale (`±1.25°`), it admitted **71/96** (**74.0%**) and improved error
+by `-.02409`; at the full matched scale (`±2.5°`), it had the strongest
+improvement, `-.04746`, but admitted only **57/96** (**59.4%**).  The
+incumbent rotation admitted **72/96** with `-.02832` best-of-sign impact
+error; the fully safe bend remained inert.  Thus reducing a spatially broad
+bow does not recover bend-like validity before it gives up contact authority.
+Do not choose a scale, add an amplitude model, source a bow lane, or run a
+compiler evaluation from these selection-biased paired summaries.
+
+**Next physical boundary.** A successor must be more local than an interior
+field: change only the candidate vertex nearest the predicted native contact,
+along the normal of its incoming contact segment, by the ordinary sampler's
+existing `±2px` normal-jitter span.  It must keep every other vertex and both
+arc endpoints byte-identical.  This is a new fixed contact-vertex actuator,
+not a bow-scale follow-up or a parameter sweep; screen both signs through the
+same exact 48-state panel before considering any model or source integration.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

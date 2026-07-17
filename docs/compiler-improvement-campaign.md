@@ -4964,6 +4964,65 @@ The exact prefix state is a usable study instrument, but transporting the
 observed zero-friction frame through the requested turn still does not retain
 the broad k+1 collision-admission basin.
 
+## Declared Observation: Aggregate Zero-Friction Sled Velocity Normal Frame (2026-07-17)
+
+The impulse-closed transient confirms that the aggregate `TAIL`/`NOSE`/`STRING`
+velocity field is a finite, continuous physical state, but it does not make a
+separate capture bridge admissible.  The ordinary normal sampler still builds
+its entire continuous contact-to-release curve in the rider CoM velocity frame.
+The retired lowest-contact-point frame substituted one named point and lost
+low-air support; the retired pose frame substituted a positional sled axis and
+collapsed the pool.  This is a distinct multi-contact frame: retain the
+ordinary lowest-sled anchor, all eight raw coordinates, PRNG stream, line
+types, and curve law, while replacing only the velocity/speed/heading input
+with the arithmetic mean of all three zero-friction sled velocities.  No point
+identity, pose axis, source, case, target outcome, duration class, score, or
+selection rule enters the construction.
+
+**Dense-first protocol.** On unused seeds 48 and 49, at V2 jolt/500k, freeze
+the two dense sources `frontier_dense_recovery_240ms_figures` and
+`dense_dialogue_impact_contrast_10`.  At their first ordinary frontier states
+at one-third and two-thirds contact depth, replay every generation-time raw
+normal attempt and geometry hash exactly.  Then regenerate the same count and
+coordinates with only that aggregate velocity frame substituted, through the
+unchanged exact gate, scorer, and continuation-aware pool objective.  Record
+the frame shift, availability, viable admission, best axis RMS, best objective,
+and cost.  This first batch is a cheap physical guard, not a compiler change,
+source lane, scope panel, or V2 run.
+
+**Falsifiers.** Retire before the other four regimes if the complete aggregate
+frame is unavailable, is materially identical to CoM in the dense cohort, or
+if either dense source materially loses viable pool support or best
+continuation-aware objective.  A joint dense pass would authorize only the
+predeclared representative/pickup/low-air/development batches, followed by a
+fresh held-out replay; it would not authorize a frame blend, weights, point
+subset, target gate, rank change, source default, or Benchmark V2 evaluation.
+
+**Dense-first result (2026-07-17, 20.0s `LR_ENGINE=wasm npx tsx
+scripts/v0/study_contact_point_normal_frame.ts --zero-friction-average
+--batch=0`; artifact
+`generated/studies/zero-friction-average-normal-frame/v1/batch-0.json`):
+RETIRE aggregate zero-friction normal frame.** All eight frozen dense frontier
+states captured; every production raw pool replayed its generation-time
+attempts and geometry hashes exactly; and all eight supplied the complete
+three-point velocity mean.  The comparator is physically active, with mean
+absolute CoM-frame shift **1.821474°** (maximum **7.260586°**), rather than a
+relabelled CoM frame.  It even adds **+0.875** viable candidates/state across
+the eight dense rows.
+
+That availability does not become a coherent quality basin.  Across the six
+rows with a comparable pool, dense-balanced best objective moves **−.002665**
+and best axis RMS **−.003854**.  Most importantly, Frontier Dense Recovery
+seed 49 at its one-third checkpoint loses **−.036521** best
+continuation-aware objective (with −.002991 axis-RMS movement); the two
+Frontier late pools are empty in both arms and cannot offset that source loss.
+Dense Dialogue's four comparable rows have positive objective changes, but
+they cannot waive the source-level dense falsifier.  Do not run the remaining
+regimes, blend/weight the frame, select a point subset, or make a source lane.
+The distributed velocity mean is observable and sometimes widens a pool, but
+as a whole-curve construction frame it still trades a dense continuation basin
+away.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

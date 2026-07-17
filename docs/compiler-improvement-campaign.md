@@ -3560,6 +3560,49 @@ criterion. Do not tune Hermite extent, segment count, endpoint selection, or
 collision side, and do not add a bridge source: appending a collidable surface
 between two otherwise valid normal contacts is not a viable physical basis.
 
+## Declared Study: Two-Contact Normal Coordinate Interpolation (2026-07-17)
+
+The bridge failure leaves the ordinary contact geometry itself intact. The
+normal sampler has eight continuous raw coordinates per attempt, but it redraws
+them independently at each contact. This assay asks whether a locally valid
+two-contact normal basin exists **between** ordinary samples, without adding
+terrain, a response deformation, a target threshold, or a new judge. At each
+frozen prefix it records the raw eight-coordinate vectors for the first eight
+viable ordinary current fits. Consecutive pairs `(0,1), (2,3), …` yield one
+coordinate midpoint; that midpoint regenerates the current normal contact and
+then, from its exact engine state, the next normal contact using the same
+midpoint vector. The left ordinary coordinate vector, regenerated at both
+contacts, is the equal-width control. Candidate gates and all measured axes
+are unchanged; no midpoint is selected by a score in this assay.
+
+`npm run study:joint-normal-coordinates` freezes the V2-jolt/500k six-regime
+panel at fresh seeds 32 and 33. It retains every control/midpoint outcome and
+the two-contact RMS, impact residual, validity, and charged frames. The
+mechanism is a fixed continuous trajectory basis over existing sampler inputs,
+not a Halton coverage sequence, a pool-width change, or a predecessor-grade
+controller.
+
+**Discard before source work:** retire if midpoint pairs are not valid on a
+material share of either seed's panel, have no mean two-contact RMS improvement
+of `.005` among comparable pairs, or produce no comparable dense, pickup, or
+low-air row. A pass only authorizes a fresh economics comparison that charges
+the midpoint as one additional normal proposal; it does not authorize a source
+or V2 evaluation.
+
+**Outcome: RETIRE at the aggregate quality gate.** The sealed 12-state
+WASM/500k cohort completed as three memory-isolated four-state batches because
+the host reclaims a long parent process before it can publish an artifact;
+`--aggregate` verifies all twelve frozen state artifacts before reading them.
+The result has 35 coordinate pairs: direct normal pairs valid 25 times and
+midpoints 28, with 24 comparable two-contact results. That extra local
+availability did not convert: mean two-contact RMS movement is **−.001255**
+(required `+.005`), with representative **−.012821**; dense `+.001459` and
+development music `+.001495` are too small and do not offset it. Mean charged
+work also rose 41.60 → 57.63 frames. Do not alter the pairing, midpoint law,
+attempt-coordinate inheritance, raw-coordinate span, pool width, or invoke a
+source/economics stage. Local interpolation of viable normal coordinates is
+not a coherent multi-contact trajectory basis.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

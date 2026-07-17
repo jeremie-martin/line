@@ -3603,6 +3603,48 @@ attempt-coordinate inheritance, raw-coordinate span, pool width, or invoke a
 source/economics stage. Local interpolation of viable normal coordinates is
 not a coherent multi-contact trajectory basis.
 
+## Declared Study: Collision-Incidence Transport in the Normal Basis (2026-07-17)
+
+The two preceding negatives leave one separate state variable untested: the
+**measured collision incidence**, i.e. the signed angle from incoming sled
+velocity to the candidate segment at an owned contact. This is neither the
+previous terrain grade, contact anchor phase, airborne age, energy integral,
+nor a post-contact response pitch. At the next contact, a normal proposal is
+regenerated from its exact child engine state with all eight ordinary raw
+coordinates unchanged except the contact-angle coordinate. That coordinate is
+shifted by the continuous first-order correction needed to reproduce the
+previous measured incidence in the new incoming velocity frame. The unshifted
+same-coordinate normal proposal is the control. No output, target threshold,
+case, duration, selector, or exact result chooses the correction; exact gates
+and the ordinary ranker would remain the sole authorities for any future lane.
+
+The initial discovery command uses V2 jolt/500k, fresh seed 34, and the fixed
+six-regime panel in two memory-isolated batches:
+`npm run study:collision-incidence -- --batch=0`, then `--batch=1`, then
+`--aggregate`. It uses the first four viable current ordinary proposals from
+raw attempts 0--31 and tests every one. The fallback validation seed is 35 and
+is frozen now but may run only if the discovery result clears its whole-panel
+boundary without changing any coordinate law.
+
+**Discard before source work:** retire if the shifted candidate has no mean
+two-contact RMS gain of `.005` across comparable discovery pairs, lacks a
+comparable dense, pickup, or low-air row, or carries material validity loss.
+Only a discovery pass authorizes the untouched seed-35 replication, then a
+separate charge/economics assay; it never authorizes a pitch tweak or source
+lane directly.
+
+**Outcome: RETIRE at the declared broad quality gate.** The sealed discovery
+screen completed as two memory-isolated V2-jolt/500k batches and retained all
+six states, all 24 current-normal rows, and 19 comparable exact next-contact
+pairs. Transport neither created nor lost accepted next fits (19/24 in each
+arm), but its mean two-gap RMS improvement was only **+.002703**, short of
+the required `+.005`. More importantly, it regressed in both required broad
+regimes: dense **−.000893** and low-air **−.001108** (pickup was `+.008167`).
+No seed-35 replication, charge study, source lane, or coordinate-law tuning
+is authorized. Exact preservation of one contact's measured velocity/segment
+incidence is not a reliable cross-contact physical invariant in the ordinary
+normal basis.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

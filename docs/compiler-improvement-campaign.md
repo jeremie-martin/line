@@ -4900,6 +4900,70 @@ or tune the gravity inversion. A full terminal state can define a local phase,
 but the static current capture window cannot accommodate the resulting
 ballistic origin broadly enough to be a multi-contact compiler component.
 
+## Declared Study: Impulse-Closed Zero-Friction Contact-Frame Transport (2026-07-17)
+
+The position-intercept, endpoint-state, terminal-tangent, and projected-phase
+transients all prescribe the full k+1 geometry from an *unforced* future state.
+Their shared failure can therefore be a collision-compatibility error: the
+tail is planned before the engine resolves the distributed capture that must
+carry it.  This successor is a single causal state-to-geometry transition,
+not a new static surface or a future-reference reformulation.  It first emits
+only a finite two-line C1 capture prefix, resolves that prefix through the
+exact engine, then reads the aggregate velocity of `TAIL`/`NOSE`/`STRING` one
+frame after the target.  The remaining five-frame C1 tail preserves the
+observed aggregate-sled/CoM angular relation while transporting it through the
+current catchable impact turn.  Its inbound chirality is the signed incoming
+CoM-to-aggregate velocity differential.  The construction uses no unforced
+future state, case, source, seed, duration class, score, selector, line flag,
+or control menu.
+
+**Decisive feasibility protocol.** Reuse the charged six-regime V2-jolt/500k
+transient harness, but freeze unused discovery seeds 46 and 47.  At the last
+ordinary-winner ancestor near one-third of contacts, retain the first four
+viable raw current fits (attempts 0--31).  For each, build and replay the
+two-line prefix from the exact k+1 state; only if its `H+1` exact state exposes
+finite zero-friction aggregate velocity, build the one deterministic three-line
+tail.  The complete k+1 geometry must pass the unchanged gate, then be
+materialized together with k, preserving k's axes exactly; an equal unchanged
+eight-member raw-normal stream at k+2 measures return.  The post-prefix state
+read and every prefix, gate, materialization, and return replay are charged.
+The k+2 gap is a return boundary only: the component does not read its state
+or use its targets.  No compiler source, ranker, candidate lane, or Benchmark
+V2 evaluation is authorized by this study.
+
+**Falsifiers.** Retire before replication if the physical zero-friction frame
+is unavailable on a material share of usable states; if dense, pickup, or
+low-air lacks a width-1 k+2 normal return on either seed; if any fully
+materialized pair changes its already-admitted k axes; or if the complete
+component is not materialized in every broad regime where its finite prefix is
+available.  A pass authorizes only an independently frozen replication against
+the equal direct-normal k+1 control, followed by a separately declared
+economics assay.  It does not authorize a parameter, angle, capture-phase,
+tail-length, point-selection, force, or source variant.
+
+**First decisive dense result (2026-07-17, 17.4s `LR_ENGINE=wasm npx tsx
+scripts/v0/study_phase_locked_transient.ts --form=contact-frame-transport
+--batch=0`; artifact
+`generated/studies/phase-locked-vector-intercept/v1/contact-frame-transport-v1/batch-0.json`):
+RETIRE contact-frame transport.** The aggregate zero-friction velocity was
+finite on every one of the 12 usable raw-current states, so this is not an
+unavailable-state or static-surface null.  The complete exact k+1 transition
+nevertheless admitted and materialized on only **1/12** rows.  Frontier Dense
+Recovery seed 46 supplied that one row (raw attempt 3), which preserved k
+axes exactly and had 8/8 normal k+2 returns.  The identical frozen dense
+source at seed 47 materialized **0/4**, hence had no width-1 return; Dense
+Dialogue seed 47 also materialized 0/4.  Dense Dialogue seed 46 had no
+four-member raw-current population at the fixed checkpoint and is retained as
+an explicit empty cohort, not converted into a form failure.
+
+The seed-47 dense-return falsifier and the complete-transition availability
+collapse both fire before the pickup/low-air batches could add promotion
+information.  The one surviving row does not justify a replication, a
+tail/angle/phase correction, source lane, or an attempt-selected rescue.
+The exact prefix state is a usable study instrument, but transporting the
+observed zero-friction frame through the requested turn still does not retain
+the broad k+1 collision-admission basin.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -1488,6 +1488,19 @@ before a source-default implementation. Only a pass would authorize one
 attempt-spanned normal-sampler delivery, the fixed V2-jolt/500k scope panel,
 then the ordinary funnel; no constants will be selected from oracle output.
 
+**Outcome: RETIRE at the fixture falsifier.** The expanded executable oracle
+(`study_grade_continuity.ts`, schema v2) replayed independent, predecessor-
+grade, and cumulative-energy streams for 96 trials on each current-tree
+fixture (523k simulated frames, 3.3s). The energy stream failed believer36:
+**0/96** complete chains versus the grade control's 17/96 and independent
+0/96, with terminal speed **−0.041 px/frame**; only three transformed fits
+were selected. Believer69 had a narrow local movement (41/96 chains versus
+37/96 independent; terminal speed +0.049) but cannot counter the first
+fixture. This is the declared split-result discard, not a reason to tune
+decay, work magnitude, share, or an initial state. No compiler source,
+scope panel, Stage 0, or certification is authorized. **The cumulative
+kinetic-energy phase controller is retired.**
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

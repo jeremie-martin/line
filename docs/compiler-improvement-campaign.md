@@ -5338,6 +5338,80 @@ encoding, selector, or source lane. The useful negative is precise: a new
 component must alter the *formation* of native distributed capture before or
 during `H`, not react to its already-resolved impulse afterward.
 
+## Declared Study: Full-Sled Affine Contact-Flow Geometry Field (2026-07-17)
+
+The native-capture field is too late, while the rejected co-rotating field
+used only a rigid angular rate to retime tangents. The engine exposes a richer,
+continuous state before capture: the positions and velocities of all four
+native sled points. At the immutable target state, subtract their means and
+take the unique least-squares affine velocity gradient `A` satisfying
+`vᵢ − v̄ ≈ A(pᵢ − p̄)`. Transport the raw normal curve's **positions** about
+its unchanged first endpoint under the physical flow `exp(A·s/|v̄|)`, where
+`s` is that raw curve's cumulative arclength. This retains the raw anchor,
+vertex order, segment count, line IDs/types/flags, and raw arclength-time
+coordinate, but continuously changes the geometric locus according to all
+available multi-contact differential motion. It does not select a point,
+project a support, add terrain, choose a response turn, read a target/outcome,
+or use a score, rank, source, seed, duration, scale, damping, or blend.
+
+This is distinct from the retired co-rotating tangent field: it uses the full
+least-squares affine state rather than only rigid angular motion, and applies
+its exact matrix flow to the raw curve's positions rather than transporting
+post-contact tangent angles. It is also distinct from a swept hull or guide
+ribbon: no predicted body contour is materialized; the only surface remains
+the one existing raw candidate after a state-derived continuous deformation.
+
+**Dense-first protocol.** On unused V2-jolt/500k seeds 58 and 59, replay the
+first one-third/two-thirds ordinary frontier states of
+`frontier_dense_recovery_240ms_figures` and
+`dense_dialogue_impact_contrast_10`, preserving every production raw
+attempt/hash. Regenerate the same pool and apply the one flow only where all
+four point positions/velocities, a finite nonsingular affine fit, and a
+connected non-template raw curve are present. Record state coverage, template
+skips, positional movement, viable support, exact axes, continuation-aware
+objective, and cost. The normal exact gate and ordinary pool objective remain
+the sole judges; this is neither a source lane nor a V2 run.
+
+**Falsifiers.** Retire before the remaining representative/pickup/low-air/
+development states if the full field is materially unavailable or identical,
+if either dense source loses viable support or best continuation-aware
+objective, or if the jointly dense effect is not positive on pool, axis, and
+objective. A dense pass authorizes only those predeclared broad batches and a
+fresh replay—not a pseudo-inverse threshold, matrix scale, symmetric-only
+field, rigid-only fallback, point subset, template treatment, selector, or
+compiler default.
+
+**Dense-first result (2026-07-17, 20s; `npm run
+study:affine-contact-flow`; artifact
+`generated/studies/full-sled-affine-contact-flow-field-normal-pool/v1/batch-0.json`):
+RETIRE the full-sled affine contact-flow field.** All **8/8** frozen raw
+normal pools replay their generation-time attempts and geometry hashes exactly.
+All eight states expose a complete non-singular four-point field; it transforms
+**191** non-template raw geometries (with 41 fixed template skips), so this is
+neither an availability nor an inert-field result. The induced mean terminal
+movement ranges from `10.928533` to `207.082229` px (maximum
+`484.994360` px): a direct indication that carrying an instantaneous gradient
+over the whole outgoing curve is far beyond a bounded capture formation.
+
+Both dense sources fail the preregistered gate. Frontier Dense Recovery loses
+viability in every state: `29 → 28`, `8 → 0`, `28 → 26`, and `7 → 1`.
+Its seed-59 early state also worsens best axis RMS `.186750 → .241923` and
+objective `.246119 → .113385`. Dense Dialogue loses `5 → 1` and `4 → 0` in
+its early states; its seed-58 late state preserves 24 viable candidates but
+loses best objective `.059368 → .022386`, and its seed-59 late state loses
+`16 → 10` despite an isolated objective increase. Pool-balanced dense deltas
+are viability `−3.875`, axis-RMS improvement `−.037074`, and objective
+improvement `−.053683`.
+
+Do not add a matrix scale, duration cap, eigenvalue/spectral clipping,
+symmetric-or-rigid projection, inverse, blend, point subset, template branch,
+or outcome gate. The physical conclusion is narrower and useful: the
+multi-contact state is present and influential, but a whole-curve extrapolated
+pre-contact velocity gradient does not model the *time-local formation* of the
+collision. A successor must couple a continuous distributed state to the
+native contact interval itself, then let the unmodified exact dynamics carry
+the release; it cannot merely deform an entire candidate from a snapshot.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

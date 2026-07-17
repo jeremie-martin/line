@@ -30,7 +30,7 @@ import {
 } from "./core/substrate.ts";
 import { getCandidateProbe, type CandidateProbe, type SpecContext } from "./optimizer/sample.ts";
 import { getSimFrames } from "./optimizer/sim_frames.ts";
-import type { AxisValues, Gap, TrackLine } from "./types.ts";
+import { ELEVATION, type AxisValues, type Gap, type TrackLine } from "./types.ts";
 import {
   realizeContactCaptureArc,
   resolveContactCaptureArc,
@@ -63,26 +63,34 @@ const argv = process.argv.slice(2);
 const argument = (name: string): string | undefined =>
   argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const returnNormal = argv.includes("--return-normal");
-const SCHEMA = returnNormal
+const ballisticRelease = argv.includes("--ballistic-release");
+const SCHEMA = ballisticRelease
+  ? "line.study-capture-preserving-ballistic-release.v1"
+  : returnNormal
   ? "line.study-two-contact-shooting-return-boundary.v1"
   : "line.study-two-contact-shooting.v1";
 
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--out-dir=DIR]",
+    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release] [--out-dir=DIR]",
     "",
     "Calibration-only charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
     "Without --return-normal, writes the archived two-contact protocol under",
     "generated/studies/two-contact-shooting/v1/. The return-boundary mode",
     "materializes capture->capture pairs and measures the normal stream at k+2.",
+    "--ballistic-release requires --return-normal and appends a finite launch scoop",
+    "after the second exact capture before testing the k+2 normal stream.",
   ].join("\n") + "\n");
   process.exit(0);
 }
 
 assertExactEnvironment();
-const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--help", "-h"];
+const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--ballistic-release", "--help", "-h"];
 const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
+if (ballisticRelease && !returnNormal) {
+  throw new Error("--ballistic-release requires --return-normal");
+}
 
 const requestedCase = argument("case") ?? "all";
 const stateIds: readonly StateId[] = ["dense", "dense240", "ordinary"];
@@ -90,7 +98,9 @@ if (requestedCase !== "all" && !stateIds.includes(requestedCase as StateId)) {
   throw new Error(`unknown --case=${requestedCase}; expected all|${stateIds.join("|")}`);
 }
 const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? (returnNormal
+const outDir = argument("out-dir") ?? (ballisticRelease
+  ? "generated/studies/two-contact-shooting/ballistic-release-v1"
+  : returnNormal
   ? "generated/studies/two-contact-shooting/return-boundary-v1"
   : "generated/studies/two-contact-shooting/v1");
 
@@ -105,6 +115,9 @@ const protocolFingerprint = sha256(stableJson({
   chaining: "engine.addLine(fit.lines) -> getCandidateProbe(outgoing) -> same screen at k+1",
   returnBoundary: returnNormal
     ? "capture->capture only; materialize both admitted line sets on the immutable k prefix; equal-count production-normal screen at k+2"
+    : "disabled",
+  ballisticRelease: ballisticRelease
+    ? "after a sequentially admitted second C1 capture, append a finite concave hop scoop from its exact release speed to vy=-g*N/2, re-admit the complete second line set, then materialize and observe k+2"
     : "disabled",
 }));
 
@@ -154,6 +167,20 @@ type Segment2Row = {
   finalLineCount: number | null;
   error: string | null;
   returnBoundary: ReturnBoundary | null;
+  ballisticRelease: BallisticRelease | null;
+};
+
+type BallisticRelease = {
+  launchAngleDeg: number | null;
+  scoopLengthPx: number | null;
+  scoopSegments: number | null;
+  reAdmissionFrames: number;
+  retainedSecondCapture: boolean;
+  error: string | null;
+};
+
+type BallisticReleaseGeometry = Omit<BallisticRelease, "reAdmissionFrames" | "retainedSecondCapture"> & {
+  lines: TrackLine[];
 };
 
 type ReturnAttempt = {
@@ -365,6 +392,16 @@ function runState(id: StateId): StateResult {
           normalSeed: "deterministic fixture seed + k+2 gap + pair row",
         }
         : null,
+      ballisticRelease: ballisticRelease
+        ? {
+          scope: "capture-arc->capture-arc only after the sequential second C1 admission",
+          captureInvariant: "the original second C1 lines must remain byte-stable after complete-line-set re-admission and still own its contact",
+          scoop: "three equal-length solid segments; first tangent equals the second C1 exit tangent; tangent turns uniformly to the ballistic launch angle",
+          scoopLength: "three measured second-C1 release-speed frames",
+          launchAngle: "atan2(-0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * literal k+2 interval frames, max(1, measured second-C1 release speed))",
+          reAdmission: "unchanged tryCandidateLines at k+1 on the complete second line set; its simulation frames are charged",
+        }
+        : null,
     },
     summary,
     rows,
@@ -558,7 +595,7 @@ function evaluateSegment2(
 ): Segment2Row {
   if (member.lines === null) {
     charge({ admission: 0, landing: 0 });
-    return { family, label: member.label, admitted: false, admissionFrames: 0, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: member.error, returnBoundary: null };
+    return { family, label: member.label, admitted: false, admissionFrames: 0, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: member.error, returnBoundary: null, ballisticRelease: null };
   }
   const before = getSimFrames();
   const fit2 = tryCandidateLines(
@@ -576,30 +613,182 @@ function evaluateSegment2(
   const admissionFrames = getSimFrames() - before;
   if (fit2 === null) {
     charge({ admission: admissionFrames, landing: 0 });
-    return { family, label: member.label, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: null, returnBoundary: null };
+    return { family, label: member.label, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: null, returnBoundary: null, ballisticRelease: null };
   }
-  const engine3 = (engine2 as any).addLine(fit2.lines.map((line: TrackLine) => engineLineFromTrackLine(line)));
+  let finalFit2 = fit2;
+  let ballistic: BallisticRelease | null = null;
+  if (ballisticRelease && returnContext !== null) {
+    const release = appendBallisticRelease(fit2.lines, lineId2, fit2.releaseSpeed, returnContext.next.endFrame - outgoing.endFrame);
+    if (release.error !== null) {
+      charge({ admission: admissionFrames, landing: 0 });
+      return {
+        family, label: member.label, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0,
+        achieved: null, achievedAtEnd: null, finalLineCount: null, error: release.error, returnBoundary: null,
+        ballisticRelease: { ...release, reAdmissionFrames: 0, retainedSecondCapture: false },
+      };
+    }
+    const releaseBefore = getSimFrames();
+    const releaseFit = tryCandidateLines(
+      engine2 as any,
+      outgoing,
+      [...fit2.lines, ...release.lines],
+      lineId2,
+      allContactFrames,
+      axisEnd2,
+      outgoing.targets,
+      true,
+      undefined,
+      probe2.preTargetSledTrace,
+    ) as GapFit | null;
+    const reAdmissionFrames = getSimFrames() - releaseBefore;
+    if (releaseFit === null) {
+      charge({ admission: admissionFrames + reAdmissionFrames, landing: 0 });
+      return {
+        family, label: member.label, admitted: false, admissionFrames: admissionFrames + reAdmissionFrames,
+        landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null,
+        error: "ballistic release line set is not admitted at k+1", returnBoundary: null,
+        ballisticRelease: { ...release, reAdmissionFrames, retainedSecondCapture: false, error: "ballistic release line set is not admitted at k+1" },
+      };
+    }
+    const retainedSecondCapture = stableJson(releaseFit.lines.slice(0, fit2.lines.length)) === stableJson(fit2.lines);
+    if (!retainedSecondCapture) {
+      charge({ admission: admissionFrames + reAdmissionFrames, landing: 0 });
+      return {
+        family, label: member.label, admitted: false, admissionFrames: admissionFrames + reAdmissionFrames,
+        landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null,
+        error: "ballistic release changed the second C1 capture geometry", returnBoundary: null,
+        ballisticRelease: { ...release, reAdmissionFrames, retainedSecondCapture, error: "ballistic release changed the second C1 capture geometry" },
+      };
+    }
+    finalFit2 = releaseFit;
+    ballistic = { ...release, reAdmissionFrames, retainedSecondCapture, error: null };
+  }
+  const engine3 = (engine2 as any).addLine(finalFit2.lines.map((line: TrackLine) => engineLineFromTrackLine(line)));
   const lBefore = getSimFrames();
   const det2 = detectWindow(engine3, outgoing.startFrame, outgoing.endFrame + PERSISTENCE_FRAMES);
   const landingFrameOffset = ownedLandingFrameOffset(det2, outgoing.endFrame, new Set(fit2.lines.map((line: TrackLine) => line.id)));
   const landingProbeFrames = getSimFrames() - lBefore;
-  charge({ admission: admissionFrames, landing: landingProbeFrames });
+  charge({
+    admission: admissionFrames + (ballistic?.reAdmissionFrames ?? 0),
+    landing: landingProbeFrames,
+  });
+  if (ballistic !== null && landingFrameOffset === null) {
+    return {
+      family,
+      label: member.label,
+      admitted: false,
+      admissionFrames: admissionFrames + ballistic.reAdmissionFrames,
+      landingFrameOffset: null,
+      landingProbeFrames,
+      achieved: null,
+      achievedAtEnd: null,
+      finalLineCount: null,
+      error: "ballistic release displaced the owned second C1 capture",
+      returnBoundary: null,
+      ballisticRelease: {
+        ...ballistic,
+        retainedSecondCapture: false,
+        error: "ballistic release displaced the owned second C1 capture",
+      },
+    };
+  }
   const returnBoundary = returnContext === null
     ? null
-    : evaluateReturnBoundary(returnContext, fit2, allContactFrames);
+    : evaluateReturnBoundary(returnContext, finalFit2, allContactFrames);
+  const finalAdmissionFrames = admissionFrames + (ballistic?.reAdmissionFrames ?? 0);
   return {
     family,
     label: member.label,
     admitted: true,
-    admissionFrames,
+    admissionFrames: finalAdmissionFrames,
     landingFrameOffset,
     landingProbeFrames,
     achieved: roundAxes(fit2.achieved),
     achievedAtEnd: roundAxes(fit2.achievedAtEnd),
-    finalLineCount: fit2.lines.length,
+    finalLineCount: finalFit2.lines.length,
     error: null,
     returnBoundary,
+    ballisticRelease: ballistic,
   };
+}
+
+/**
+ * Append a fixed three-segment, constant-turn scoop whose first tangent is the
+ * exact second-C1 exit tangent and whose last tangent is the symmetric launch
+ * angle that would make the next contact after N literal physics frames.  It
+ * introduces no target, case, or source-default parameters: the only inputs
+ * are the admitted capture geometry, its measured release speed, and k+2's
+ * authored interval.
+ */
+function appendBallisticRelease(
+  captureLines: readonly TrackLine[],
+  lineIdStart: number,
+  releaseSpeed: number | undefined,
+  nextIntervalFrames: number,
+): BallisticReleaseGeometry {
+  const unavailable = (error: string): BallisticReleaseGeometry => ({
+    lines: [],
+    launchAngleDeg: null,
+    scoopLengthPx: null,
+    scoopSegments: null,
+    error,
+  });
+  if (captureLines.length === 0) return unavailable("ballistic release requires a non-empty second C1 capture");
+  if (!Number.isSafeInteger(lineIdStart)) return unavailable("ballistic release line id must be a safe integer");
+  if (!Number.isFinite(releaseSpeed) || !(releaseSpeed > 0)) {
+    return unavailable("ballistic release requires a finite positive exact release speed");
+  }
+  if (!Number.isSafeInteger(nextIntervalFrames) || !(nextIntervalFrames > 0)) {
+    return unavailable("ballistic release requires a positive integral k+2 interval");
+  }
+
+  const exit = captureLines[captureLines.length - 1]!;
+  const dx = exit.x2 - exit.x1;
+  const dy = exit.y2 - exit.y1;
+  if (!Number.isFinite(dx) || !Number.isFinite(dy) || Math.hypot(dx, dy) <= 1e-9) {
+    return unavailable("ballistic release requires a finite non-zero second C1 exit tangent");
+  }
+
+  const launchVy = -0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * nextIntervalFrames;
+  const launchAngleDeg = (Math.atan2(launchVy, Math.max(1, releaseSpeed)) * 180) / Math.PI;
+  const exitAngleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+  const turnDeg = signedAngleDelta(exitAngleDeg, launchAngleDeg);
+  const scoopSegments = 3;
+  const scoopLengthPx = releaseSpeed * scoopSegments;
+  const segmentLengthPx = scoopLengthPx / scoopSegments;
+  const lines: TrackLine[] = [];
+  let point = { x: exit.x2, y: exit.y2 };
+  for (let index = 0; index < scoopSegments; index++) {
+    // The initial tangent is exactly the C1 exit tangent; subsequent equal
+    // turns form one finite concave response, ending at the ballistic launch.
+    const fraction = scoopSegments === 1 ? 0 : index / (scoopSegments - 1);
+    const angleDeg = exitAngleDeg + turnDeg * fraction;
+    const radians = (angleDeg * Math.PI) / 180;
+    const next = {
+      x: point.x + Math.cos(radians) * segmentLengthPx,
+      y: point.y + Math.sin(radians) * segmentLengthPx,
+    };
+    lines.push({
+      id: lineIdStart + captureLines.length + index,
+      type: 0,
+      x1: point.x,
+      y1: point.y,
+      x2: next.x,
+      y2: next.y,
+      flipped: false,
+      leftExtended: false,
+      rightExtended: false,
+    });
+    point = next;
+  }
+  return { lines, launchAngleDeg, scoopLengthPx, scoopSegments, error: null };
+}
+
+function signedAngleDelta(fromDeg: number, toDeg: number): number {
+  let delta = (toDeg - fromDeg) % 360;
+  if (delta <= -180) delta += 360;
+  if (delta > 180) delta -= 360;
+  return delta;
 }
 
 function evaluateReturnBoundary(

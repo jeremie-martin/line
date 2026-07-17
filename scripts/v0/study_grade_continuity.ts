@@ -25,6 +25,10 @@
  *     contact and terminal tangents while carrying the preceding terminal
  *     normal acceleration v²κ into the raw post-curve's interior curvature.
  *
+ * The independent arm also records, only after each completed chain, the
+ * exact candidate-owned TAIL/NOSE/STRING contact-time pattern.  It is a
+ * read-only precondition for a possible distributed timing component.
+ *
  * The previous grade is a continuous measured property of the committed line
  * set.  No source, case, duration class, target identity, or outcome feeds the
  * construction.  Candidate choice is the ordinary local exact cost minimum;
@@ -53,7 +57,7 @@ import {
   writeImmutableJsonArtifact,
 } from "./trajectory/study_artifact.ts";
 
-const SCHEMA = "line.study-trajectory-continuity-controls.v5";
+const SCHEMA = "line.study-trajectory-continuity-controls.v6";
 const FIXTURE_DIR = "generated/studies/trajectory-fixtures/grade-continuity-2026-07-17/v3";
 const FIXTURES = {
   believer36: "believer36-b500000-d7aec722a976.json",
@@ -134,7 +138,7 @@ const outDir = argument("out-dir") ?? "generated/studies/grade-continuity/v7-fre
 const sourceIdentity = studySourceIdentity("scripts/v0/study_grade_continuity.ts");
 const observationCompiler = compilerCandidateIdentity("wasm");
 const protocolFingerprint = sha256(stableJson({
-  protocol: "grade-energy-contact-airborne-and-frenet-curvature-continuity.v5",
+  protocol: "grade-energy-contact-airborne-frenet-and-timing-observation.v6",
   captureBudget: 500_000,
   stream: {
     baseline: "sampleArcPlacementGeometry(normal)",
@@ -159,6 +163,7 @@ const protocolFingerprint = sha256(stableJson({
     legalAirborneFrames: LEGAL_AIRBORNE_FRAMES,
     airbornePhaseTailMinScale: AIRBORNE_PHASE_TAIL_MIN_SCALE,
     frenetRule: "target terminal curvature = preceding committed v²κ divided by current measured entry speed squared; a sine interior tangent packet preserves contact and terminal tangents",
+    timingObservation: "after independent chains finish, reconstruct candidate-owned TAIL/NOSE/STRING collision offsets over H-1..H+6; timing is never an input to construction or choice",
     trials,
     stateFrameBudget: STATE_FRAME_BUDGET,
   },
@@ -196,6 +201,7 @@ type ContactStep = {
   contactPhaseFrames: number | null;
   incomingAirborneAgeFrames: number | null;
   carriedNormalAcceleration: number | null;
+  sledContactTiming: SledContactTiming | null;
   candidates: CandidateRow[];
   chosen: {
     attempt: number;
@@ -205,6 +211,13 @@ type ContactStep = {
     achieved: { speed: number | null; air: number | null; impact: number | null };
   } | null;
   result: "committed" | "no-admitted-candidate" | "missing-contact";
+};
+
+type SledContactTiming = {
+  window: { startOffset: number; endOffset: number };
+  firstOffset: Partial<Record<"TAIL" | "NOSE" | "STRING", number>>;
+  lastOffset: Partial<Record<"TAIL" | "NOSE" | "STRING", number>>;
+  updates: Partial<Record<"TAIL" | "NOSE" | "STRING", number>>;
 };
 
 type Trial = {
@@ -230,6 +243,19 @@ type FamilySummary = {
   meanTerminalGradeDeg: Summary;
   transformedChosen: number;
   transformedAdmitted: number;
+};
+
+type TimingSummary = {
+  trials: number;
+  committedSteps: number;
+  readableSteps: number;
+  distinctFirstPatterns: number;
+  firstPatternCounts: Record<string, number>;
+  successivePairs: number;
+  exactPatternPairs: number;
+  sameActiveSetPairs: number;
+  sharedPointComparisons: number;
+  meanSharedPointFirstOffsetDelta: number | null;
 };
 
 type Summary = { count: number; mean: number | null; median: number | null; min: number | null; max: number | null };
@@ -261,7 +287,7 @@ for (const result of results) {
 }
 process.stdout.write(`grade continuity: ${results.length} state(s), ${Math.round(performance.now() - started)}ms; charged frames ${totalFrames}\n`);
 
-function runState(id: StateId): { id: StateId; artifactPath: string; summary: { families: Record<Family, FamilySummary>; comparison: Record<string, number | null> }; chargedFrames: number } {
+function runState(id: StateId): { id: StateId; artifactPath: string; summary: { families: Record<Family, FamilySummary>; comparison: Record<string, number | null>; timing: TimingSummary }; chargedFrames: number } {
   const fixturePath = `${FIXTURE_DIR}/${FIXTURES[id]}`;
   const fixture = readFrozenTrajectoryFixture(fixturePath);
   const prepared = prepareStateCoupledTrajectoryFixture(fixture);
@@ -313,6 +339,7 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
     frenetCurvatureMeanAchievedSpeedDelta: difference(families["frenet-curvature-continuous"].meanAchievedSpeed.mean, families.independent.meanAchievedSpeed.mean),
     frenetCurvatureCompleteChainDelta: families["frenet-curvature-continuous"].completeChains - families.independent.completeChains,
   };
+  const timing = summarizeTiming(rows.filter((row) => row.family === "independent"));
   const artifactIdentity = studyArtifactIdentity({
     schema: SCHEMA,
     fixtureFingerprint: fixture.fixtureFingerprint,
@@ -323,7 +350,7 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
   const artifact = {
     schema: SCHEMA,
     artifactIdentity,
-    purpose: "Fixture-only falsifier for predecessor-grade, cumulative kinetic-energy, contact-phase, incoming-airborne-phase, and Frenet-curvature trajectory controls. Every candidate remains subject to the ordinary exact admission gate; the Frenet stream changes only a deterministic post-contact interior tangent packet while preserving the sampled contact and terminal tangents.",
+    purpose: "Fixture-only falsifier for predecessor-grade, cumulative kinetic-energy, contact-phase, incoming-airborne-phase, and Frenet-curvature trajectory controls, plus a read-only independent-chain distributed contact-timing observation. Every candidate remains subject to the ordinary exact admission gate; the Frenet stream changes only a deterministic post-contact interior tangent packet while preserving the sampled contact and terminal tangents.",
     status: {
       productionIntegration: "forbidden: calibration study only; it does not modify compiler candidates, selection, or promotion",
       resultEligibility: "physical/executable evidence only; a source-default lane requires its own scope panel and normal V2 funnel",
@@ -351,17 +378,18 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
       contactPhaseRule: "the preceding committed contact anchor's signed displacement from its predicted sled point, in current-reference-speed frames, blends with the raw contact anchor; the complete normal line set translates only along the current incoming tangent and no missing phase becomes a synthetic anchor",
       airbornePhaseRule: "when exact PlanningState.phase.airborneAgeFrames is below six, the deterministic attempt span preserves every line through the first post-contact segment and shortens only later sampled tail segments by a smooth 1.0-to-0.65 scale; it reads no later contact, axis, source, duration, or outcome",
       frenetCurvatureRule: "the preceding chosen post-curve's terminal normal acceleration v²κ is divided by the current measured entry speed squared to target current terminal curvature. A sine tangent packet changes post-contact interior headings only, preserving each segment length, the capture-side/contact tangent, and the terminal tangent; it reads no source, target identity, duration, axis, or outcome",
+      timingObservation: "after an independent chain's terminal state and charge are final, a separate immutable reconstruction reads candidate-owned TAIL/NOSE/STRING collision offsets over H-1..H+6; it is not available to any candidate family, gate, or selection",
       admission: "unchanged tryCandidateLines with exact survival, landing, off-beat, and target-axis gates",
       sourceInputs: "grade stream: previous committed terminal grade plus authored speed deficit; energy stream: exact measured speed-deficit integral; contact-phase stream: previous committed contact-anchor phase plus current incoming tangent/reference speed; airborne-phase stream: current exact airborne age only; Frenet stream: preceding chosen terminal v²κ plus current measured entry speed; all streams use existing sampled geometry and attempt coordinate only, and none reads source, case, duration class, or outcomes",
     },
     chargedFrames,
     budgetExhausted: chargedFrames >= STATE_FRAME_BUDGET,
-    summary: { families, comparison },
+    summary: { families, comparison, timing },
     rows,
   };
   const artifactPath = allocateStudyArtifactPath(`${outDir}/${prepared.panel.id}-${fixture.fixtureFingerprint.slice(0, 12)}.json`);
   writeImmutableJsonArtifact(artifactPath, artifact, "grade-continuity artifact");
-  return { id, artifactPath, summary: { families, comparison }, chargedFrames };
+  return { id, artifactPath, summary: { families, comparison, timing }, chargedFrames };
 }
 
 function runTrial(
@@ -383,6 +411,7 @@ function runTrial(
   let previousContactPhaseFrames: number | null = null;
   let previousNormalAcceleration: number | null = null;
   const steps: ContactStep[] = [];
+  const committedForTiming: Array<{ step: ContactStep; gap: Gap; lines: readonly TrackLine[] }> = [];
 
   for (let offset = 0; offset < CHAIN_CONTACTS; offset++) {
     const gap = prepared.setup.gaps[prepared.current.index + offset];
@@ -390,7 +419,7 @@ function runTrial(
       steps.push({
         gapIndex: prepared.current.index + offset,
         authored: { speed: null, air: null, impact: null },
-        entry: { speed: 0, angleDeg: 0 }, carriedEnergyDebt: null, contactPhaseFrames: null, incomingAirborneAgeFrames: null, carriedNormalAcceleration: null, candidates: [], chosen: null, result: "missing-contact",
+        entry: { speed: 0, angleDeg: 0 }, carriedEnergyDebt: null, contactPhaseFrames: null, incomingAirborneAgeFrames: null, carriedNormalAcceleration: null, sledContactTiming: null, candidates: [], chosen: null, result: "missing-contact",
       });
       break;
     }
@@ -499,7 +528,7 @@ function runTrial(
       impact: gap.targets.impact ?? null,
     };
     if (chosen === null) {
-      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, contactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null, incomingAirborneAgeFrames, carriedNormalAcceleration: family === "frenet-curvature-continuous" && previousNormalAcceleration !== null ? round(previousNormalAcceleration) : null, candidates, chosen: null, result: "no-admitted-candidate" });
+      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, contactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null, incomingAirborneAgeFrames, carriedNormalAcceleration: family === "frenet-curvature-continuous" && previousNormalAcceleration !== null ? round(previousNormalAcceleration) : null, sledContactTiming: null, candidates, chosen: null, result: "no-admitted-candidate" });
       break;
     }
     const achieved = chosen.fit.achievedAtEnd ?? chosen.fit.achieved;
@@ -511,6 +540,7 @@ function runTrial(
       contactPhaseFrames: family === "contact-phase-continuous" ? chosen.contactPhaseFrames : null,
       incomingAirborneAgeFrames,
       carriedNormalAcceleration: family === "frenet-curvature-continuous" && previousNormalAcceleration !== null ? round(previousNormalAcceleration) : null,
+      sledContactTiming: null,
       candidates,
       chosen: {
         attempt: chosen.attempt,
@@ -521,6 +551,7 @@ function runTrial(
       },
       result: "committed",
     });
+    committedForTiming.push({ step: steps.at(-1)!, gap, lines: chosen.fit.lines });
     engine = engine.addLine(chosen.fit.lines.map((line) => engineLineFromTrackLine(line)));
     lineIdStart += chosen.fit.lines.length;
     previousGrade = chosen.terminalGradeDeg;
@@ -530,6 +561,17 @@ function runTrial(
     previousNormalAcceleration = committedCurvature === null || achieved.speed === undefined || achieved.speed === null
       ? null
       : committedCurvature * achieved.speed * achieved.speed;
+  }
+
+  // Collision traces are read on an independent reconstruction only after the
+  // chain's gates, choice, terminal state, and frame charge are final. They
+  // cannot affect live traversal, admission, or selection.
+  if (family === "independent") {
+    let timingEngine = prepared.engine;
+    for (const committedStep of committedForTiming) {
+      timingEngine = timingEngine.addLine(committedStep.lines.map((line) => engineLineFromTrackLine(line)));
+      committedStep.step.sledContactTiming = observeSledContactTiming(timingEngine, committedStep.lines, committedStep.gap);
+    }
   }
 
   const committed = steps.filter((step) => step.result === "committed");
@@ -928,6 +970,47 @@ function terminalCurvatureFromVertices(
   return angleDifferenceRadians(headingRadians(before, pivot), headingRadians(pivot, end)) / meanLength;
 }
 
+/**
+ * The exact timing pattern of the three zero-friction sled points on the
+ * committed candidate lines.  This is intentionally an after-the-fact study
+ * read: no timing observation is available to generation or exact choice.
+ */
+function observeSledContactTiming(
+  engine: any,
+  lines: readonly TrackLine[],
+  gap: Gap,
+): SledContactTiming | null {
+  try {
+    if (typeof engine?.getUpdatesAtFrame !== "function") return null;
+    const ids = new Set(lines.map((line) => line.id));
+    const names = new Set(["TAIL", "NOSE", "STRING"]);
+    const firstOffset: SledContactTiming["firstOffset"] = {};
+    const lastOffset: SledContactTiming["lastOffset"] = {};
+    const updates: SledContactTiming["updates"] = {};
+    const startOffset = -1;
+    const endOffset = 6;
+    for (let offset = startOffset; offset <= endOffset; offset++) {
+      const frameUpdates = engine.getUpdatesAtFrame(Math.max(0, gap.endFrame + offset));
+      if (!Array.isArray(frameUpdates)) continue;
+      for (const update of frameUpdates) {
+        const record = update as { id?: unknown; updated?: unknown };
+        if (typeof record.id !== "number" || !ids.has(record.id) || !Array.isArray(record.updated)) continue;
+        for (const updatePoint of record.updated) {
+          const name = (updatePoint as { id?: unknown } | null)?.id;
+          if (typeof name !== "string" || !names.has(name)) continue;
+          const point = name as "TAIL" | "NOSE" | "STRING";
+          if (firstOffset[point] === undefined) firstOffset[point] = offset;
+          lastOffset[point] = offset;
+          updates[point] = (updates[point] ?? 0) + 1;
+        }
+      }
+    }
+    return { window: { startOffset, endOffset }, firstOffset, lastOffset, updates };
+  } catch {
+    return null;
+  }
+}
+
 function headingRadians(from: { x: number; y: number }, to: { x: number; y: number }): number {
   return Math.atan2(to.y - from.y, to.x - from.x);
 }
@@ -973,6 +1056,45 @@ function summarize(rows: readonly Trial[]): FamilySummary {
     meanTerminalGradeDeg: distribution(rows.map((row) => row.terminal.meanTerminalGradeDeg)),
     transformedChosen: committed.filter((step) => step.chosen?.transformed).length,
     transformedAdmitted: committed.flatMap((step) => step.candidates).filter((candidate) => candidate.transformed && candidate.admitted).length,
+  };
+}
+
+function summarizeTiming(rows: readonly Trial[]): TimingSummary {
+  const committed = rows.flatMap((row) => row.steps.filter((step) => step.result === "committed"));
+  const readable = committed.filter((step): step is ContactStep & { sledContactTiming: SledContactTiming } => step.sledContactTiming !== null);
+  const pattern = (timing: SledContactTiming): string =>
+    (["TAIL", "NOSE", "STRING"] as const).map((point) => timing.firstOffset[point] ?? "-").join("/");
+  const active = (timing: SledContactTiming): string =>
+    (["TAIL", "NOSE", "STRING"] as const).filter((point) => timing.firstOffset[point] !== undefined).join(",");
+  const counts: Record<string, number> = {};
+  for (const step of readable) {
+    const key = pattern(step.sledContactTiming);
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+  const pairs = rows.flatMap((row) => {
+    const timed = row.steps.filter((step): step is ContactStep & { sledContactTiming: SledContactTiming } =>
+      step.result === "committed" && step.sledContactTiming !== null,
+    );
+    return timed.slice(1).map((step, index) => [timed[index]!.sledContactTiming, step.sledContactTiming] as const);
+  });
+  const sharedDeltas = pairs.flatMap(([previous, current]) =>
+    (["TAIL", "NOSE", "STRING"] as const).flatMap((point) => {
+      const left = previous.firstOffset[point];
+      const right = current.firstOffset[point];
+      return left === undefined || right === undefined ? [] : [Math.abs(left - right)];
+    }),
+  );
+  return {
+    trials: rows.length,
+    committedSteps: committed.length,
+    readableSteps: readable.length,
+    distinctFirstPatterns: Object.keys(counts).length,
+    firstPatternCounts: Object.fromEntries(Object.entries(counts).sort(([, left], [, right]) => right - left)),
+    successivePairs: pairs.length,
+    exactPatternPairs: pairs.filter(([previous, current]) => pattern(previous) === pattern(current)).length,
+    sameActiveSetPairs: pairs.filter(([previous, current]) => active(previous) === active(current)).length,
+    sharedPointComparisons: sharedDeltas.length,
+    meanSharedPointFirstOffsetDelta: mean(sharedDeltas),
   };
 }
 

@@ -1949,6 +1949,34 @@ positive calibration result authorizes only a separately declared shadow
 source and the ordinary Benchmark V2 funnel; it does not authorize a control
 selection or production default.
 
+**Result (2026-07-17, `scripts/v0/study_two_contact_shooting.ts
+--return-normal`, artifacts
+`generated/studies/two-contact-shooting/return-boundary-v1/`): narrow
+component RETAIN; source promotion NOT authorized.** The one-shot
+materialization check passed for every pair (no line-set drift) and all
+return-stream controls were structurally available. On dense, 5 capture→capture
+pairs materialized; 4/5 regained at least one ordinary-normal admission at
+k+2 (9 total admissions). This establishes that the two-capture component can
+return to the normal generator rather than necessarily creating the foreign
+rail-exit state that killed staged support.
+
+It does not generalize to the adjacent dense-240 state: all 55
+capture→capture pairs materialized, yet **0/55** produced a normal admission
+at k+2. The control was present on every row, so this is an arrival-competence
+failure rather than a missing sampler path. Ordinary was saturated (117/117
+pairs with normal return; 2,418 admissions) and contributes no new capability
+evidence. Moreover, the complete dense capture screen cost 11.8k frames
+against the equal-count raw-normal family's 2.1k before any source-level
+candidate/ranking charge. The static screen is therefore not a compact,
+continuous source control.
+
+**Decision.** Do not integrate or tune a short-gap capture-pair lane. The
+result preserves a physical component fact for dense, but the required
+dense-240 return boundary is absent and a fixed control-menu source would
+repeat the closed static-capture delivery pattern. A successor must solve the
+return state from shared continuous residuals at bounded cost; it may not pick
+the fixture's successful menu entry or branch by case/duration.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

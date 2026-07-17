@@ -5697,6 +5697,63 @@ is physically coherent but insufficient for the articulated native capture.
 A successor must represent how distributed contact is formed without imposing
 one collective reflection plane across the ordinary capture curve.
 
+## Declared Observation: Candidate-Independent Pre-Contact Full-Sled History (2026-07-17)
+
+The specular packet fails because it forces one collective state across the
+capture, while the prior fields either used only one instantaneous state or
+waited for a candidate-resolved collision.  The remaining untested input is
+the exact, candidate-independent evolution of the entire sled immediately
+before contact.  This observation asks whether that temporal state contains a
+material and coherent transition law, rather than assuming that a velocity
+derivative or pose trace deserves another geometry field.
+
+For the immutable prefix, read complete `PEG`/`TAIL`/`NOSE`/`STRING` state at
+each frame from `H-6` through `H`.  Report collective heading turn and speed
+change; compare collective acceleration with literal engine gravity; and,
+separately, report `TAIL`--`NOSE` pose turn, least-squares rigid angular-rate
+change, RMS pair-distance change, and RMS relative-velocity change.  The
+candidate pool is replayed only to verify the unchanged production frontier;
+the history read occurs after compilation and changes no coordinates, exact
+gate, score, rank, source, or seed behavior.
+
+**Decision boundary.** Retire a pre-contact temporal state basis if the
+candidate-independent six-frame evolution is unavailable, reducible to gravity
+plus near-rigid motion, or lacks a directionally coherent full-sled residual
+across both dense sources.  Only a coherent non-gravity, articulated residual
+could authorize one separately declared pre-contact transition construction;
+the observation cannot authorize an acceleration scale, history length, pose
+gate, velocity subset, selector, or source lane.
+
+**Dense result (2026-07-17, 20s; `npm run
+study:precontact-multicontact-history`; artifact
+`generated/studies/precontact-multicontact-history/v1/batch-0.json`): RETIRE
+the candidate-independent pre-contact history as a component basis.** All
+**8/8** frozen production pools replayed exactly and every state supplied all
+seven `H-6..H` full-sled snapshots.  The shared collective observation is
+ordinary approach motion: heading turns positively by `3.559812°`--`7.463866°`
+over six frames, with mean `5.688684°`, while the acceleration residual after
+subtracting literal `.175` px/frame² engine gravity averages only `.031662`
+px/frame² (maximum `.056284`).
+
+The quantities that would distinguish an articulated transition law are not
+coherent.  The full cloud remains nearly rigid in every row (pair-distance RMS
+change `.015904`--`.520146` px), and pose turn reverses sign across Dense
+Dialogue (`−40.825682°`, `−6.495434°`, `4.117279°`, and `15.056286°`) while
+Frontier is always positive (`6.738702°`--`19.831611°`).  Relative-velocity
+change is likewise dominated by an isolated Dense Dialogue outlier `.688465`
+px/frame rather than a cross-source transition.  This cannot define a broad
+history-derived geometry law; extracting a curvature, acceleration, or pose
+packet from it would merely reintroduce closed gravity/rigid fields or select
+a source-specific residual.
+
+Do not build or tune a velocity-derivative, acceleration-gradient, angular
+acceleration, history-window, or pose-history field from these rows.  The
+negative is decisive for the current approach: before candidate generation,
+the full-sled state has no robust time-resolved non-gravity articulation to
+encode.  Any further component must get its distributed transition from a
+different representation of the geometry/collision relation, not another
+pre-contact state derivative.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

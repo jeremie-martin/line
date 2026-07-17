@@ -3407,6 +3407,20 @@ only if it improves a broad scope panel. Do not add a pitch gate, a target
 threshold, a selector weight, or a case-conditioned branch from this
 discovery panel.
 
+**Immediate source-boundary smoke: RETIRE replacement projection.** A
+default-off experimental branch was tried only on the shared Countercurrent
+250k/seed-28 smoke. For every normal proposal it evaluated both post-pitch
+siblings and *replaced* the original only when a sibling had strictly lower
+impact residual, no worse speed/air/elevation residual, and no worse existing
+readiness objective. Despite that local dominance rule, the valid control
+(`654.987`, 79 committed gaps) became an early 65-gap `rideStalled` failure
+(`0.0004`). The branch was removed without a scope run or commit. This is not
+a contradiction of the physical envelope: a locally dominating response can
+still erase a branch whose precise downstream geometry the prediction does
+not capture. It rules out replacement projection. A future response-rich
+candidate must be **additive**, retaining the raw normal fallback and paying
+its equal-budget economics before any broad compiler claim.
+
 ## Declared Audit: Body-Point Collision Contribution in Ordinary Normal Pools (2026-07-17)
 
 The current probe has reopened the physical question: many impact-improving

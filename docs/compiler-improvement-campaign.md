@@ -3779,6 +3779,56 @@ frame blend, pitch/offset law, source lane, or replication is authorized.
 Pose remains a descriptive continuation marker, not an evidenced compiler
 input.
 
+## Declared Observation: Complete-Body Gravity Support Anchor (2026-07-17)
+
+The ordinary normal source anchors its placement at the lowest sled point even
+though the exact engine resolves collisions for four sled and six articulated
+body points. The body-collision audit showed useful ordinary events are usually
+simultaneous sled-and-foot contact, so this is the narrow remaining
+multi-point coordinate question: does the full collision body's physical
+gravity support point differ from the sled-only placement anchor often enough
+to expose a new source-neutral normal pool?
+
+**Protocol.** Freeze the same six-regime, two-seed V2-jolt/500k frontier
+panel used by the normal-pool physical observations. At each one-third and
+two-thirds ordinary frontier state, first reproduce the production raw-normal
+attempts and geometry hashes. Re-run the identical attempt count and all eight
+raw coordinates, COM velocity, target values, normal gates, scorer, and
+rank-independent pool measurement; replace only the geometry anchor with the
+maximum-y point of all ten engine collision points (`PEG`, `TAIL`, `NOSE`,
+`STRING`, `BUTT`, `SHOULDER`, both hands, and both feet) at that exact target
+frame. This is the point that first meets a gravity-aligned floor. It names no
+body point, adds no pose gate, and cannot branch by source, target, outcome,
+or contact order. The existing pre-target and exact candidate gates remain
+unchanged.
+
+**Falsifier.** Retire this coordinate form if the full body has the same
+gravity support point as the sled at every declared state, or if a nontrivial
+anchor movement fails to improve both broad viable-pool strength and the
+regime-balanced continuation-aware objective without a dense, pickup, or
+low-air collapse. A pass would authorize only a separately declared
+source-default implementation and scope panel.
+
+**Result (2026-07-17, three memory-isolated two-source invocations of
+`npm run study:all-body-support-anchor -- --case=...`; artifacts
+`generated/studies/all-body-support-anchor-normal-pool/v1/batch-{0,1,2}.json`):
+RETIRE complete-body gravity support anchoring.** All 24 frozen rows reproduced
+their production raw pools exactly. On every row, the existing lowest sled
+point was also the complete collision body's maximum-y gravity support point:
+all recorded anchor deltas were exactly `(0, 0)`. The alternate construction
+therefore regenerated the same geometry and had zero movement in viable count,
+best scorer-axis RMS, continuation-aware best objective, and local cost on
+every row with viable candidates. One already-empty production pool has no
+quality comparison; its different charged termination work is not a physical
+effect because both arms have zero viable candidates and identical anchors.
+
+**Decision.** Do not implement an all-body gravity anchor, smooth/weight the
+body points, select a foot, or combine this inert coordinate with a pose,
+force, or response mechanism. The body audit's simultaneous foot-and-sled
+fact does not reveal a different gravity-contact surface. A future multi-point
+candidate must change collision order or another exact physical constraint,
+not relabel the same support envelope.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

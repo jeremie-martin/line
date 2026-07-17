@@ -14,8 +14,9 @@ import { dirname } from "node:path";
 import { developmentCases } from "../../benchmark/v2/catalog.ts";
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { makeRng } from "../lib/rng.ts";
+import { getRiderMetered } from "../lib/detector.ts";
 import { applyJolt } from "../produce/seed.ts";
-import { sampleArcPlacementGeometry } from "./arc_placement.ts";
+import { sampleArcPlacementGeometry, type ImpactFrameTargetState } from "./arc_placement.ts";
 import { candidateQualityObjective } from "./optimizer/aim.ts";
 import { compileHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } from "./optimizer/handoff.ts";
 import { setNormalPoolSnapshotHook } from "./optimizer/node.ts";
@@ -27,7 +28,7 @@ import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release] [--case=ID ...] [--out=PATH]\n");
+  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--all-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
@@ -36,10 +37,11 @@ const outPath = argument("out");
 const terminalEndExtension = argv.includes("--terminal-end-extension");
 const forwardAcceleration = argv.includes("--forward-acceleration");
 const terminalSceneryRelease = argv.includes("--terminal-scenery-release");
+const allBodySupportAnchor = argv.includes("--all-body-support-anchor");
 const requestedCaseIds = argv.filter((value) => value.startsWith("--case=")).map((value) => value.slice("--case=".length));
-const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && !value.startsWith("--out=") && !value.startsWith("--case="));
+const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--all-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
-if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease].filter(Boolean).length > 1) {
+if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, allBodySupportAnchor].filter(Boolean).length > 1) {
   throw new Error("normal-pool comparator modes are mutually exclusive");
 }
 
@@ -52,6 +54,10 @@ const CASES = [
   { id: "offgrid_conversation", regime: "pickup" },
   { id: "frontier_low_air_endurance_4s", regime: "low_air" },
   { id: "believer_56_6s", regime: "development_music" },
+] as const;
+const COMPLETE_COLLISION_POINTS = [
+  "PEG", "TAIL", "NOSE", "STRING",
+  "BUTT", "SHOULDER", "RHAND", "LHAND", "LFOOT", "RFOOT",
 ] as const;
 const ACTIVE_CASES = requestedCaseIds.length === 0
   ? CASES
@@ -82,6 +88,7 @@ type Row = {
   gapIndex: number;
   candidateCount: number | null;
   captureAvailable: boolean;
+  allBodySupportAnchor: { point: string; deltaX: number; deltaY: number } | null;
   replayEquivalent: boolean | null;
   replayMessage: string | null;
   production: Arm | null;
@@ -130,7 +137,9 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: terminalSceneryRelease
+  schema: allBodySupportAnchor
+    ? "line.study-all-body-support-anchor-normal-pool.v1"
+    : terminalSceneryRelease
     ? "line.study-terminal-noncollidable-release-normal-pool.v1"
     : forwardAcceleration
     ? "line.study-forward-tangential-acceleration-normal-pool.v1"
@@ -139,7 +148,9 @@ const result = {
     : "line.study-collision-side-normal-pool.v1",
   purpose: [
     "observation-only exact normal-pool replay from immutable frontier states",
-    terminalSceneryRelease
+    allBodySupportAnchor
+      ? "same PRNG coordinates, attempts, candidate count, exact gates, and scoring; only the gravity support anchor changes from the lowest sled collision point to the lowest point on the complete collision body"
+      : terminalSceneryRelease
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; only the final post-contact normal segment becomes a type-2 non-collidable release while every other line and flag remains identical"
       : forwardAcceleration
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; each solid normal segment becomes a reversed/flipped type-1 line that preserves its active collision normal and receives the engine's fixed forward tangential impulse"
@@ -154,7 +165,9 @@ const result = {
     seeds: SEEDS,
     cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    comparator: terminalSceneryRelease
+    comparator: allBodySupportAnchor
+      ? "read all ten engine collision points at the target frame and replace only the sampled geometry's anchor with their maximum-y gravity support point; retain the ordinary COM velocity, raw draws, candidate gates, and scorer"
+      : terminalSceneryRelease
       ? "set type=2 only on the final proposed normal line after identical raw geometry generation"
       : forwardAcceleration
       ? "replace every raw normal line with its reverse-endpoint, inverted-flip type-1 equivalent; swap endpoint extension flags with the reversed endpoints so the physical surface, active normal, and bounded extent remain identical"
@@ -204,17 +217,27 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
   }
   const rngSeed = (Math.imul(rawPool.seed | 0, 1_000_003) + gap.index + 1) | 0;
   const production = sampleProduction(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
+  const supportAnchor = allBodySupportAnchor
+    ? allBodyGravitySupportState(captured.node, gap, setup.ctx)
+    : null;
   const alternative = terminalSceneryRelease
     ? sampleTerminalSceneryRelease(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : forwardAcceleration
     ? sampleForwardAccelerated(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : terminalEndExtension
       ? sampleTerminalEndpointExtended(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
-      : sampleFlipped(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
+      : allBodySupportAnchor
+        ? sampleAllBodySupportAnchored(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed, supportAnchor!.targetState)
+        : sampleFlipped(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
   const check = compareRawReplay(rawPool.candidates, production.candidates);
   return {
     caseId, regime, seed, checkpoint: captured.checkpoint, gapIndex: captured.gapIndex,
     candidateCount: rawPool.count, captureAvailable: true,
+    allBodySupportAnchor: supportAnchor === null ? null : {
+      point: supportAnchor.point,
+      deltaX: round(supportAnchor.targetState.sledX - supportAnchor.ordinary.sledX),
+      deltaY: round(supportAnchor.targetState.sledY - supportAnchor.ordinary.sledY),
+    },
     replayEquivalent: check.ok, replayMessage: check.message, production, alternative,
     deltas: {
       viable: alternative.viable - production.viable,
@@ -229,7 +252,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
 function unavailable(caseId: string, regime: Regime, seed: number, checkpoint: Checkpoint, gapIndex: number, message: string): Row {
   return {
     caseId, regime, seed, checkpoint, gapIndex, candidateCount: null,
-    captureAvailable: false, replayEquivalent: null, replayMessage: message,
+    captureAvailable: false, allBodySupportAnchor: null, replayEquivalent: null, replayMessage: message,
     production: null, alternative: null, deltas: null,
   };
 }
@@ -269,6 +292,80 @@ function sampleFlipped(node: HandoffNode, gap: Gap, ctx: SpecContext, gaps: Gap[
     admissionFrames += simFrames;
     if (fit !== null) {
       fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      fit.sampleAttempt = attempt;
+      candidates.push(digest(fit, node, gap, gaps, ctx, simFrames));
+    }
+  }
+  return summarizeArm(count, candidates, admissionFrames);
+}
+
+/**
+ * The current normal source defines its collision placement anchor from four
+ * sled points only.  The engine, however, resolves the complete articulated
+ * collision body.  This observation uses the gravity support point of that
+ * complete body: the point that would first meet a flat floor at the exact
+ * target frame.  It intentionally retains the current COM velocity and every
+ * raw normal coordinate, so this changes a physical collision coordinate
+ * rather than creating a pose score, a named-body-point lane, or a control
+ * menu.
+ */
+function allBodyGravitySupportState(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+): { ordinary: ImpactFrameTargetState; targetState: ImpactFrameTargetState; point: string } {
+  const ordinary = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const rider = getRiderMetered(node.search.prefixEngine, gap.endFrame);
+  let supportX = ordinary.targetState.sledX;
+  let supportY = ordinary.targetState.sledY;
+  let point = "sled";
+  for (const name of COMPLETE_COLLISION_POINTS) {
+    const position = rider.get(name)?.pos;
+    if (position !== undefined && Number.isFinite(position.x) && Number.isFinite(position.y) && position.y > supportY) {
+      supportX = position.x;
+      supportY = position.y;
+      point = name;
+    }
+  }
+  return { ordinary: ordinary.targetState, targetState: { ...ordinary.targetState, sledX: supportX, sledY: supportY }, point };
+}
+
+function sampleAllBodySupportAnchored(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+  targetState: ImpactFrameTargetState,
+): Arm {
+  const rng = makeRng(seed);
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const candidates: Digest[] = [];
+  let admissionFrames = 0;
+  for (let attempt = 0; attempt < count; attempt++) {
+    const geometry = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    const before = getSimFrames();
+    const fit = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      geometry,
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    const simFrames = getSimFrames() - before;
+    admissionFrames += simFrames;
+    if (fit !== null) {
+      fit.ref = { x: targetState.sledX, y: targetState.sledY };
       fit.sampleAttempt = attempt;
       candidates.push(digest(fit, node, gap, gaps, ctx, simFrames));
     }

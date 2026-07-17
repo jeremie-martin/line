@@ -29,7 +29,7 @@ import { postimpactEngineCollisionWitnessesForLineIds } from "./trajectory/posti
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--contact-patch-release|--two-sided-rail|--body-fender|--postcatch-body-follower|--all-body-support-anchor|--surface-normal-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
+  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--contact-patch-release|--two-sided-rail|--body-fender|--postcatch-body-follower|--matched-sled-support-pair|--all-body-support-anchor|--surface-normal-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
@@ -42,12 +42,13 @@ const contactPatchRelease = argv.includes("--contact-patch-release");
 const twoSidedRail = argv.includes("--two-sided-rail");
 const bodyFender = argv.includes("--body-fender");
 const postcatchBodyFollower = argv.includes("--postcatch-body-follower");
+const matchedSledSupportPair = argv.includes("--matched-sled-support-pair");
 const allBodySupportAnchor = argv.includes("--all-body-support-anchor");
 const surfaceNormalBodySupportAnchor = argv.includes("--surface-normal-body-support-anchor");
 const requestedCaseIds = argv.filter((value) => value.startsWith("--case=")).map((value) => value.slice("--case=".length));
-const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--contact-patch-release" && value !== "--two-sided-rail" && value !== "--body-fender" && value !== "--postcatch-body-follower" && value !== "--all-body-support-anchor" && value !== "--surface-normal-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
+const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--contact-patch-release" && value !== "--two-sided-rail" && value !== "--body-fender" && value !== "--postcatch-body-follower" && value !== "--matched-sled-support-pair" && value !== "--all-body-support-anchor" && value !== "--surface-normal-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
-if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, contactPatchRelease, twoSidedRail, bodyFender, postcatchBodyFollower, allBodySupportAnchor, surfaceNormalBodySupportAnchor].filter(Boolean).length > 1) {
+if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, contactPatchRelease, twoSidedRail, bodyFender, postcatchBodyFollower, matchedSledSupportPair, allBodySupportAnchor, surfaceNormalBodySupportAnchor].filter(Boolean).length > 1) {
   throw new Error("normal-pool comparator modes are mutually exclusive");
 }
 
@@ -67,7 +68,8 @@ const COMPLETE_COLLISION_POINTS = [
 ] as const;
 const ARTICULATED_BODY_POINTS = ["BUTT", "SHOULDER", "RHAND", "LHAND", "LFOOT", "RFOOT"] as const;
 const BODY_POINT_SET = new Set<string>(ARTICULATED_BODY_POINTS);
-const SLED_POINT_SET = new Set(["PEG", "TAIL", "NOSE", "STRING"]);
+const SLED_COLLISION_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
+const SLED_POINT_SET = new Set<string>(SLED_COLLISION_POINTS);
 type BodyCollisionPoint = { name: string; x: number; y: number };
 type SurfaceNormalAnchorTelemetry = {
   geometries: number;
@@ -104,6 +106,15 @@ type PostcatchBodyFollowerTelemetry = {
   bodyOnlyAtNextFrame: number;
   meanFollowerLengthPx: number | null;
 };
+type MatchedSledSupportPairTelemetry = {
+  geometries: number;
+  available: number;
+  viable: number;
+  companionCollision: number;
+  multiSledCollision: number;
+  meanSeparationPx: number | null;
+  maxSeparationPx: number | null;
+};
 const ACTIVE_CASES = requestedCaseIds.length === 0
   ? CASES
   : CASES.filter((entry) => requestedCaseIds.includes(entry.id));
@@ -139,6 +150,7 @@ type Row = {
   twoSidedRail: TwoSidedRailTelemetry | null;
   bodyFender: BodyFenderTelemetry | null;
   postcatchBodyFollower: PostcatchBodyFollowerTelemetry | null;
+  matchedSledSupportPair: MatchedSledSupportPairTelemetry | null;
   replayEquivalent: boolean | null;
   replayMessage: string | null;
   production: Arm | null;
@@ -191,6 +203,8 @@ const result = {
     ? "line.study-surface-normal-body-support-anchor-normal-pool.v1"
     : allBodySupportAnchor
     ? "line.study-all-body-support-anchor-normal-pool.v1"
+    : matchedSledSupportPair
+    ? "line.study-matched-sled-support-pair-normal-pool.v1"
     : terminalSceneryRelease
     ? "line.study-terminal-noncollidable-release-normal-pool.v1"
     : contactPatchRelease
@@ -210,6 +224,8 @@ const result = {
     "observation-only exact normal-pool replay from immutable frontier states",
     surfaceNormalBodySupportAnchor
       ? "same PRNG coordinates, attempts, candidate count, exact gates, and scoring; each raw candidate is translated only along its own gravity-facing contact normal until its plane is supported by the complete collision body"
+      : matchedSledSupportPair
+      ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; every raw normal catch retains its lines and receives one finite same-facing target-adjacent parallel support at the exact normal separation of the sled's extremal collision points"
       : contactPatchRelease
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; a finite post-contact collision patch spans one whole sled width plus one incoming-speed frame, while the identical visible remainder becomes type-2 scenery"
       : twoSidedRail
@@ -237,6 +253,8 @@ const result = {
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
     comparator: surfaceNormalBodySupportAnchor
       ? "for each unchanged raw normal geometry, find its contact vertex and gravity-facing surface normal, then translate every line by the complete body's maximum support projection minus the ordinary sled anchor projection; retain all tangents, raw draws, COM velocity, gates, and scorer"
+      : matchedSledSupportPair
+      ? "for each unchanged raw normal geometry, locate its target-adjacent segment, project PEG/TAIL/NOSE/STRING at the immutable target state onto its gravity-facing normal, and append one equal-length same-facing parallel line at their exact extremal separation; retain all raw lines, draws, targets, gates, and scorer"
       : contactPatchRelease
       ? "find the ordered post-contact line whose start is nearest the exact ordinary sled anchor; retain solid collision for one maximum sled span plus one target-state speed frame of downstream arclength, split at that physical length when needed, and encode every later unchanged segment as type-2 scenery"
       : twoSidedRail
@@ -315,6 +333,9 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
   const follower = postcatchBodyFollower
     ? samplePostcatchBodyFollower(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : null;
+  const supportPair = matchedSledSupportPair
+    ? sampleMatchedSledSupportPair(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
+    : null;
   const alternative = terminalSceneryRelease
     ? sampleTerminalSceneryRelease(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : forwardAcceleration
@@ -329,6 +350,8 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
         ? fender.arm
       : follower !== null
         ? follower.arm
+      : supportPair !== null
+        ? supportPair.arm
       : allBodySupportAnchor
         ? sampleAllBodySupportAnchored(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed, supportAnchor!.targetState)
         : surfaceNormalSupport !== null
@@ -348,6 +371,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
     twoSidedRail: twoSided?.telemetry ?? null,
     bodyFender: fender?.telemetry ?? null,
     postcatchBodyFollower: follower?.telemetry ?? null,
+    matchedSledSupportPair: supportPair?.telemetry ?? null,
     replayEquivalent: check.ok, replayMessage: check.message, production, alternative,
     deltas: {
       viable: alternative.viable - production.viable,
@@ -362,7 +386,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
 function unavailable(caseId: string, regime: Regime, seed: number, checkpoint: Checkpoint, gapIndex: number, message: string): Row {
   return {
     caseId, regime, seed, checkpoint, gapIndex, candidateCount: null,
-    captureAvailable: false, allBodySupportAnchor: null, surfaceNormalBodySupportAnchor: null, contactPatchRelease: null, twoSidedRail: null, bodyFender: null, postcatchBodyFollower: null, replayEquivalent: null, replayMessage: message,
+    captureAvailable: false, allBodySupportAnchor: null, surfaceNormalBodySupportAnchor: null, contactPatchRelease: null, twoSidedRail: null, bodyFender: null, postcatchBodyFollower: null, matchedSledSupportPair: null, replayEquivalent: null, replayMessage: message,
     production: null, alternative: null, deltas: null,
   };
 }
@@ -465,6 +489,163 @@ function sampleTwoSidedRail(
   return {
     arm: summarizeArm(count, candidates, admissionFrames),
     telemetry: { geometries: count, originalLines, companionLines: originalLines },
+  };
+}
+
+/**
+ * A two-point sled support is distinct from a coincident two-sided rail or a
+ * body fender.  The companion is not a sampled offset: its signed separation
+ * is the exact target-frame separation between the extremal sled points on
+ * the raw target segment's gravity-facing normal.  The raw one-way catch
+ * remains intact, so the only changed state is a possible paired sled contact.
+ */
+function sampleMatchedSledSupportPair(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): { arm: Arm; telemetry: MatchedSledSupportPairTelemetry } {
+  const rng = makeRng(seed);
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const sled = sledCollisionPointsAt(node.search.prefixEngine, gap.endFrame);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const candidates: Digest[] = [];
+  let admissionFrames = 0;
+  let available = 0;
+  let companionCollision = 0;
+  let multiSledCollision = 0;
+  const separations: number[] = [];
+  for (let attempt = 0; attempt < count; attempt++) {
+    const rawGeometry = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    const pair = matchedSledSupportPairGeometry(rawGeometry, probe.targetState, sled, node.search.prefixNextLineId);
+    if (pair !== null) {
+      available++;
+      separations.push(pair.separationPx);
+    }
+    const geometry = pair === null ? rawGeometry : { ...rawGeometry, lines: pair.lines };
+    const before = getSimFrames();
+    const fit = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      geometry,
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    const simFrames = getSimFrames() - before;
+    admissionFrames += simFrames;
+    if (fit === null) continue;
+    fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+    fit.sampleAttempt = attempt;
+    candidates.push(digest(fit, node, gap, gaps, ctx, simFrames));
+    if (pair === null) continue;
+    const full = node.search.prefixEngine.addLine(fit.lines.map(engineLineFromTrackLine));
+    const companionIds = new Set([pair.companionId]);
+    const allIds = new Set([...pair.primaryIds, pair.companionId]);
+    const companionHits = [
+      ...postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame, companionIds),
+      ...postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame + 1, companionIds),
+    ];
+    if (companionHits.length === 0) continue;
+    companionCollision++;
+    const pairHits = [
+      ...postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame, allIds),
+      ...postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame + 1, allIds),
+    ];
+    const points = new Set(pairHits.flatMap((hit) => hit.pointIds).filter((point) => SLED_POINT_SET.has(point)));
+    if (points.size >= 2) multiSledCollision++;
+  }
+  return {
+    arm: summarizeArm(count, candidates, admissionFrames),
+    telemetry: {
+      geometries: count,
+      available,
+      viable: candidates.length,
+      companionCollision,
+      multiSledCollision,
+      meanSeparationPx: mean(separations),
+      maxSeparationPx: separations.length === 0 ? null : round(Math.max(...separations)),
+    },
+  };
+}
+
+type SledCollisionPoint = { name: typeof SLED_COLLISION_POINTS[number]; x: number; y: number };
+
+function sledCollisionPointsAt(engine: unknown, frame: number): SledCollisionPoint[] {
+  const rider = getRiderMetered(engine, frame);
+  const points = SLED_COLLISION_POINTS.flatMap((name): SledCollisionPoint[] => {
+    const position = rider.get(name)?.pos;
+    return position !== undefined && Number.isFinite(position.x) && Number.isFinite(position.y)
+      ? [{ name, x: position.x, y: position.y }]
+      : [];
+  });
+  if (points.length !== SLED_COLLISION_POINTS.length) {
+    throw new Error(`matched sled support pair requires ${SLED_COLLISION_POINTS.length} readable sled points, got ${points.length}`);
+  }
+  return points;
+}
+
+function matchedSledSupportPairGeometry(
+  geometry: ReturnType<typeof sampleArcPlacementGeometry>,
+  targetState: ImpactFrameTargetState,
+  sled: readonly SledCollisionPoint[],
+  lineIdStart: number,
+): { lines: ReturnType<typeof sampleArcPlacementGeometry>["lines"]; primaryIds: number[]; companionId: number; separationPx: number } | null {
+  let contactIndex = -1;
+  let closest = Infinity;
+  for (let index = 0; index < geometry.lines.length; index++) {
+    const line = geometry.lines[index]!;
+    const length = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+    if (!(length > 1e-9)) continue;
+    const distance = (line.x1 - targetState.sledX) ** 2 + (line.y1 - targetState.sledY) ** 2;
+    if (distance < closest) {
+      closest = distance;
+      contactIndex = index;
+    }
+  }
+  if (contactIndex < 0) return null;
+  const originals = geometry.lines.map((line, index) => ({ ...line, id: lineIdStart + index }));
+  const contact = originals[contactIndex]!;
+  const dx = contact.x2 - contact.x1;
+  const dy = contact.y2 - contact.y1;
+  const length = Math.hypot(dx, dy);
+  if (!(length > 1e-9)) return null;
+  let normalX = -dy / length;
+  let normalY = dx / length;
+  if (normalY < 0) {
+    normalX *= -1;
+    normalY *= -1;
+  }
+  const projections = sled.map((point) => point.x * normalX + point.y * normalY);
+  const upper = Math.min(...projections);
+  const lower = Math.max(...projections);
+  const separationPx = lower - upper;
+  if (!(separationPx > 1e-9) || !Number.isFinite(separationPx)) return null;
+  const companionId = lineIdStart + originals.length;
+  const companion = {
+    ...contact,
+    id: companionId,
+    x1: contact.x1 - normalX * separationPx,
+    y1: contact.y1 - normalY * separationPx,
+    x2: contact.x2 - normalX * separationPx,
+    y2: contact.y2 - normalY * separationPx,
+    leftExtended: false,
+    rightExtended: false,
+  };
+  return {
+    lines: [...originals, companion],
+    primaryIds: originals.map((line) => line.id),
+    companionId,
+    separationPx,
   };
 }
 

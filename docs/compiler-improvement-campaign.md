@@ -4191,6 +4191,73 @@ select a hull point, add a later follower chain, or combine this with force,
 side, patch, or response work. Exact post-catch body-only contact is possible
 but remains incompatible with the ordinary catch's viable continuation basin.
 
+## Declared Observation: Target-Frame Matched Sled Support Pair (2026-07-17)
+
+The rejected fender and follower establish that arbitrary articulated-body
+contacts are destructive, but neither tests a paired support component for the
+four collision points that actually define the sled.  The ordinary candidate
+offers one one-way contact plane.  At its target-adjacent segment, read the
+four sled points at the immutable target state, project them onto that
+segment's gravity-facing normal, and retain the extremal pair.  Preserve every
+raw normal line and add one finite, same-facing parallel companion at the
+exact normal separation between those two physical points.  Its tangent and
+bounded extent are copied from the raw target-adjacent segment.  Thus, if the
+body arrives in its measured pose, the pair supplies two simultaneous sled
+supports rather than a named-point fender, a response perturbation, or an
+offset family.  It changes contact order through a new multi-point physical
+component with no target, source, case, phase, score, rank, or fitted constant.
+
+**Protocol, declared before rows.** On the established WASM/V2-jolt/500k
+frontier cohort, first reproduce the production raw normal pool and its
+generation-time hashes exactly.  Recreate every raw coordinate and attempt,
+find the raw segment whose start is closest to the ordinary sled anchor, read
+the four target-frame sled points, derive the gravity-facing normal, and append
+only the matched companion.  Re-admit the full geometry from the immutable
+prefix through the unchanged exact gates, scorer, and continuation-aware
+objective.  For every viable comparator candidate, read native companion-line
+collisions at `H` and `H+1`, including the number of distinct sled points.
+Record companion availability, physical separation, viable count, axis RMS,
+objective, local cost, and complete charged admission work.  This is a
+read-only normal-pool observation, not a compiler lane or a V2 evaluation.
+
+**Discard before source work.** Retire if production replay fails; if the
+four-point state or companion is unavailable; if it fails to make native
+multi-sled contact on a material share of the dense guard; if regime-balanced
+viability, closest-axis RMS, and continuation-aware objective are not jointly
+positive; if dense, pickup, or low-air materially loses support; or if its
+extra collision work lacks a stronger pool.  A pass authorizes only a fresh
+two-seed replication followed by a separately declared source-default scope
+assay.  It does not authorize point selection, rail-spacing tuning, a phase
+shift, an extra companion, force/side composition, a rank change, Stage 0, or
+V2 evaluation.
+
+**Result (2026-07-17, first decisive dense slice only;
+`npm run study:matched-sled-support-pair -- --case=frontier_dense_recovery
+--case=dense_dialogue_impact_contrast_10`; artifact
+`generated/studies/matched-sled-support-pair-normal-pool/v1/batch-0.json`):
+RETIRE at the dense material-loss guard.** All eight production pools replayed
+exactly.  The physical construction was fully available for **232/232** raw
+normal proposals, with a finite normal separation of **5.49–17.28 px**
+(row means 5.49–16.62 px); it is not a zero-offset re-labeling of the normal
+rail.  Yet only two rows left any gate-valid comparator candidate (3 and 6),
+and just one contained the promised native multi-sled companion contact
+(**6/6** surviving candidates at Dense Dialogue seed 29, two-thirds).
+
+That real paired collision is not a usable basin.  Dense viable support falls
+**16.375 candidates/state**, closest-axis RMS falls **.104608**, best
+continuation-aware objective falls **.115562**, and best local cost worsens
+`.045327`.  The positive frame-count movement is early rejection rather than
+economy.  Even the one activated multi-sled row loses objective `.032525`
+despite a small `.011320` axis-RMS improvement.  The component fails both its
+activation and pool-strength conditions before a broader panel would add
+decision value.
+
+**Decision.** Do not select a sled point, flip or phase-shift the companion,
+tune its separation, add a second companion, alter extent, or compose this
+pair with a side, force, response, or rank source.  Exact target-frame
+multi-sled support is physically achievable but over-constrains the ordinary
+catch; it is not the missing collision-order component.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -3417,9 +3417,25 @@ readiness objective. Despite that local dominance rule, the valid control
 (`0.0004`). The branch was removed without a scope run or commit. This is not
 a contradiction of the physical envelope: a locally dominating response can
 still erase a branch whose precise downstream geometry the prediction does
-not capture. It rules out replacement projection. A future response-rich
-candidate must be **additive**, retaining the raw normal fallback and paying
-its equal-budget economics before any broad compiler claim.
+not capture. It rules out replacement projection. Retaining an additive raw
+fallback is a necessary safety condition, but it is not sufficient evidence
+for a response-rich compiler candidate.
+
+**Additive smoke correction: RETIRE the local-prediction additive form too.**
+The required raw fallback was then retained and a single response sibling was
+added only when the same strict local dominance rule held; the normal handoff
+and forward evaluator ranked the enlarged pool unchanged. The identical
+Countercurrent 250k/seed-28 smoke still stalled early (60 committed gaps,
+`0.000003`) instead of reaching the valid control's 79-gap `654.987` result.
+The raw candidate remaining available is insufficient when the current
+predicted-readiness/forward chain admits the wrong response transition. This
+additive experimental branch was also removed without a scope run or commit.
+Do not resurrect it by changing a threshold, pool width, pitch, source rank,
+or target subset. The response observation remains physical evidence, but a
+future production treatment would first need a genuinely **actual-suffix**
+continuation certificate whose cost and search effect are independently
+screened; that is a different judge architecture, not a response-pitch
+candidate tweak.
 
 ## Declared Audit: Body-Point Collision Contribution in Ordinary Normal Pools (2026-07-17)
 

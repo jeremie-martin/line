@@ -167,10 +167,12 @@ export function getCandidatesSorted(
       ...cached.sampleOrder,
       ...solveAdditionalCandidates(
         node.prefixEngine, gap, perGapRng, cached.nCand, nCand, ctx, node.prefixNextLineId,
+        previousCommittedTerminalGrade(node),
       ),
     ]
     : solveOneGap(
       node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
+      previousCommittedTerminalGrade(node),
     );
   const sorted = sortWithLaneExtras(node, gaps, ctx, gap, nCand, sampleOrder);
   node._candidatesCache = { seed, nCand, sampleOrder, candidates: sorted };
@@ -290,9 +292,28 @@ function solveAdditionalCandidates(
   attemptEnd: number,
   ctx: SpecContext,
   lineIdStart: number,
+  previousCommittedTerminalGradeDeg: number | null,
 ): Candidate[] {
   advanceCandidateRng(engine, gap, rng, attemptStart);
-  return solveOneGapAttemptRange(engine, gap, rng, attemptStart, attemptEnd, ctx, lineIdStart);
+  return solveOneGapAttemptRange(
+    engine, gap, rng, attemptStart, attemptEnd, ctx, lineIdStart, previousCommittedTerminalGradeDeg,
+  );
+}
+
+/** The predecessor is the actual committed terrain, not an inferred target or
+ * a case label.  This is deliberately read from the final retained line because
+ * that is the grade the next physical prefix inherits. */
+function previousCommittedTerminalGrade(node: SearchNode): number | null {
+  for (let index = node.prefixFits.length - 1; index >= 0; index--) {
+    const fit = node.prefixFits[index];
+    const line = fit?.lines.at(-1);
+    if (line === undefined) continue;
+    const dx = line.x2 - line.x1;
+    const dy = line.y2 - line.y1;
+    if (!Number.isFinite(dx) || !Number.isFinite(dy) || Math.hypot(dx, dy) <= 1e-9) continue;
+    return Math.atan2(dy, dx) * 180 / Math.PI;
+  }
+  return null;
 }
 
 function advanceCandidateRng(

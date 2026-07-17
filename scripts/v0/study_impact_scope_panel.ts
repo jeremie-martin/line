@@ -121,6 +121,7 @@ const output = {
   seeds,
   env: {
     LR_IMPACT_LOCAL_W: process.env.LR_IMPACT_LOCAL_W ?? null,
+    LR_GRADE_CONTINUITY: process.env.LR_GRADE_CONTINUITY ?? null,
   },
   rows,
 };

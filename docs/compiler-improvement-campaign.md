@@ -3645,6 +3645,51 @@ is authorized. Exact preservation of one contact's measured velocity/segment
 incidence is not a reliable cross-contact physical invariant in the ordinary
 normal basis.
 
+## Declared Study: Velocity-Leading Sled Anchor for the Normal Basis (2026-07-17)
+
+The ordinary sampler positions every catch at the lowest projected sled point
+at the target frame. Lowest-in-world-y is a gravity convention, not the
+actual leading contact point during an oblique arrival. This study tests one
+different physical anchor: among the engine's four sled points at the exact
+target state, place the same ordinary contact curve at the point with the
+largest projection along the incoming COM velocity. The sampler retains the
+COM velocity, all eight raw coordinates, attempt index, candidate count,
+collision side, geometry law, exact gate, and pool judge. Thus it changes the
+contact location only—not the already-retired point-velocity frame, pose
+gate, local response pitch, selection, or a target-specific source. Point
+identity follows a continuous physical extremum; no case or outcome is read.
+
+The discovery screen is a fixed V2-jolt/500k seed-36 six-regime panel, with
+the first ordinary frontier state at one-third of authored contacts for each
+of dense, second dense, representative, development music, low-air, and
+pickup. `npm run study:velocity-leading-anchor -- --batch=0`, then
+`--batch=1`, then `--aggregate` runs three states per memory-isolated batch.
+Before the anchor comparator is read, the ordinary arm must reproduce each
+generation-time raw-normal attempt and geometry hash exactly. Seed 37 is
+frozen for an unchanged replication only if discovery clears every boundary.
+
+**Discard before source work:** retire if production replay fails; if the
+velocity-leading anchor differs from the ordinary lowest anchor in too little
+of the panel to be a real alternate physical state; if it does not jointly
+improve regime-balanced viable admission, best exact quality-times-readiness
+objective, and best-axis RMS; or if dense, pickup, or low-air loses material
+pool support. A pass would permit only a seed-37 replication, then one
+separate source-default/economics assay. It never authorizes an anchor blend,
+point-specific branch, coordinate sweep, or V2 evaluation directly.
+
+**Outcome: RETIRE at the pool-strength boundary.** The two sealed
+memory-isolated discovery batches captured all six states and reproduced all
+six ordinary generation-time pools exactly. The alternate anchor was active
+in every state (ordinary `NOSE`, velocity-leading `STRING`), so the result is
+not a same-anchor null. It nevertheless destroyed the cross-regime pool:
+regime-balanced viable admission changed **−3.3/state**, dense **−12.5**,
+pickup **−3**, and low-air **−5** (the latter's 5 accepted ordinary fits became
+zero). Best exact quality-times-readiness also fell **−.035625** overall,
+despite small axis-RMS movement in a few surviving rows. Do not reverse the
+projection, blend anchors, choose a point identity, alter the sampling frame,
+or run seed 37/source work. The ordinary lowest-world-y anchor is not merely
+an arbitrary gravity convention under the current exact contact gate.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -4501,6 +4501,68 @@ form is not an admitted catch.  Any successor must therefore encode a
 continuous multi-contact *state transition* without laying the past body sweep
 into the incoming static geometry.
 
+## Declared Observation: Pre-Touchdown Full-State Reachability (2026-07-17)
+
+The static envelope failure leaves one admissible physical route: alter the
+reachable rigid-body state **before** the raw current catch, then retain that
+unchanged ordinary catch and let the exact gate decide it.  This is not a
+pose-frame substitution (closed), a pose-conditioned selector (forbidden), or
+a second support surface.  Before constructing a predecessor state controller,
+test whether the ordinary geometry basis contains any such reachable states at
+all.
+
+On each frozen dense-240 and ordinary prefix, remove only the final committed
+predecessor fit.  From that immutable earlier engine state, run a fixed
+16-member raw-normal stream at the predecessor contact.  For every admitted
+predecessor, read the complete free pre-touchdown state at the next current
+beat (COM position/velocity, full sled pose/rate, four sled points, and phase)
+and run an independent fixed 16-member raw-normal stream for the unchanged
+current contact.  Every current member passes the unchanged current gate;
+every member with impact error at most `.05`, at least three target-frame
+`TAIL`/`NOSE`/`STRING` updates, and a six-frame airborne return receives a
+fixed eight-member unchanged raw-normal stream at the following contact.
+All exact admission and replay frames are charged.  No row is selected,
+ranked, promoted, used as a source, or fed back into another geometry.
+
+**Decision boundary.** Retire predecessor-state control if no fixed
+predecessor produces a coherent dense-240 state (impact-accurate distributed
+sled contact, six-frame return, and at least one normal following admission),
+or if the ordinary control has no coherent state.  If both exist, retain only
+the feasibility fact and compare the complete pre-touchdown state distributions
+of coherent versus noncoherent predecessor rows.  A later component would have
+to derive a single continuous predecessor geometry law from that physical state
+boundary, preserve normal candidates, and pass its own exact dense/ordinary
+return assay; this observation cannot authorize a state classifier, a chosen
+row, a point/pose gate, a future-target trigger, or a compiler lane.
+
+**Result (2026-07-17, 0.24s, 13,933 charged frames; `LR_ENGINE=wasm node
+--expose-gc --import tsx scripts/v0/study_precontact_state_reachability.ts
+--case=all --out-dir=generated/studies/precontact-state-reachability/v1`):
+RETIRE ordinary-predecessor state control as the dense-240 successor.** This
+is a state reachability result, not a static-contact failure. Dense-240
+admitted **15/16** predecessor raw-normal proposals. Those states supplied
+all **240/240** fixed ordinary current geometries, but only **5** passed the
+unchanged current gate; none made even one target-frame zero-friction sled
+update, none met the impact-plus-distributed condition, and only one produced
+a six-frame airborne margin. Thus no row could reach the following-normal
+test, let alone a coherent multi-contact continuation.
+
+The ordinary control proves that the instrument and criterion are not
+impossible: all **16/16** predecessor fits admitted; **237/256** current raw
+proposals admitted; one current fit was impact-accurate with distributed sled
+contact and had a normal following admission (five of eight following members
+admitted). Its ordinary-only state distribution cannot define a broad dense
+controller, because the required dense comparison set is empty.
+
+**Decision.** Do not fit, classify, target, select, or widen this predecessor
+stream; do not turn its ordinary row into a pose, velocity, phase, or
+future-target heuristic. Together with the static swept-envelope result, it
+rules out both stationary whole-body geometry at touchdown and the existing
+ordinary predecessor basis as ways to create the dense distributed-contact
+arrival. A further successor must change the *predecessor physical candidate
+basis* itself while retaining exact current and following normal admission; it
+cannot be an ordinary-state controller layered on the current sampler.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -512,6 +512,16 @@ rail, or companion.  A successor has to change the reachable contact state
 *before* touchdown while retaining the ordinary raw surface; extra static
 support at touchdown repeats a falsified component class.
 
+The first reachability check on that alternative is now negative: replacing
+only the immediately preceding fit with a fixed ordinary 16-member stream
+produces no dense-240 pre-touchdown state from which the unchanged current
+normal stream has distributed zero-friction sled contact and a normal
+following admission, despite 15/16 predecessor admissions. It does occur on
+the ordinary control. Therefore a state controller over the existing
+predecessor normal basis is closed; a successor must change the predecessor
+physical candidate basis itself, not select or classify ordinary predecessor
+states.
+
 A future trajectory study is admissible only if it declares a **new** component
 form that, from continuous physical state rather than a case/duration/menu
 choice, establishes the required six-frame return window at dense-240 while

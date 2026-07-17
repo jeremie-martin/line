@@ -73,7 +73,10 @@ const ballisticRelease = argv.includes("--ballistic-release");
 const transientBridge = argv.includes("--transient-bridge");
 const arrivalGateDiagnosis = argv.includes("--arrival-gates");
 const recursiveTransient = argv.includes("--recursive-transient");
-const SCHEMA = recursiveTransient
+const recursiveReturn = argv.includes("--recursive-return");
+const SCHEMA = recursiveReturn
+  ? "line.study-recursive-transient-k3-normal-return.v1"
+  : recursiveTransient
   ? "line.study-recursive-transient-bridge.v1"
   : arrivalGateDiagnosis
   ? "line.study-transient-arrival-normal-gates.v1"
@@ -87,7 +90,7 @@ const SCHEMA = recursiveTransient
 
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--arrival-gates|--recursive-transient] [--out-dir=DIR]",
+    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--arrival-gates|--recursive-transient|--recursive-return] [--out-dir=DIR]",
     "",
     "Calibration-only charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
     "Without --return-normal, writes the archived two-contact protocol under",
@@ -101,12 +104,14 @@ if (argv.includes("--help") || argv.includes("-h")) {
     "normal stream's clearance/survival/landing-window gate outcome per attempt.",
     "--recursive-transient requires --transient-bridge and tests a third fixed",
     "transient component from the exact k+2 bridge arrival state.",
+    "--recursive-return requires --recursive-transient and observes the unchanged",
+    "k+3 normal stream from every byte-stable transient triple.",
   ].join("\n") + "\n");
   process.exit(0);
 }
 
 assertExactEnvironment();
-const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--recursive-transient", "--help", "-h"];
+const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--recursive-transient", "--recursive-return", "--help", "-h"];
 const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
 if ((ballisticRelease || transientBridge) && !returnNormal) {
@@ -124,6 +129,9 @@ if (recursiveTransient && !transientBridge) {
 if (arrivalGateDiagnosis && recursiveTransient) {
   throw new Error("--arrival-gates and --recursive-transient are mutually exclusive");
 }
+if (recursiveReturn && !recursiveTransient) {
+  throw new Error("--recursive-return requires --recursive-transient");
+}
 
 const requestedCase = argument("case") ?? "all";
 const stateIds: readonly StateId[] = ["dense", "dense240", "ordinary"];
@@ -131,7 +139,9 @@ if (requestedCase !== "all" && !stateIds.includes(requestedCase as StateId)) {
   throw new Error(`unknown --case=${requestedCase}; expected all|${stateIds.join("|")}`);
 }
 const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? (recursiveTransient
+const outDir = argument("out-dir") ?? (recursiveReturn
+  ? "generated/studies/two-contact-shooting/recursive-return-v1"
+  : recursiveTransient
   ? "generated/studies/two-contact-shooting/recursive-transient-v1"
   : arrivalGateDiagnosis
   ? "generated/studies/two-contact-shooting/transient-arrival-gates-v1"
@@ -166,6 +176,9 @@ const protocolFingerprint = sha256(stableJson({
     : "disabled",
   recursiveTransient: recursiveTransient
     ? "after materialized first-C1 plus k+1 transient pairs, derive the same fixed transient law from exact k+2 state and require one-shot triple materialization at k"
+    : "disabled",
+  recursiveReturn: recursiveReturn
+    ? "for every byte-stable transient triple, observe the unchanged equal-count raw-normal stream from exact k+3 state"
     : "disabled",
 }));
 
@@ -297,6 +310,19 @@ type RecursiveTransientRow = {
   materialized: boolean;
   materializationFrames: number;
   error: string | null;
+  normalReturn: RecursiveNormalReturn | null;
+};
+
+type RecursiveNormalReturn = {
+  k3ProbeFrames: number;
+  k3ArrivalState: ReturnArrivalState | null;
+  rawNormalAttempted: number;
+  rawNormalGeometryAvailable: number;
+  rawNormalAdmitted: number;
+  rawNormalAdmissionFrames: number;
+  rawNormalControlAvailable: boolean;
+  attempts: ReturnAttempt[];
+  chargedFrames: number;
 };
 
 type RecursiveTransient = {
@@ -327,6 +353,11 @@ type ReturnBoundarySummary = {
     materialized: number;
     materializationFailures: number;
     chargedFrames: number;
+    normalReturnTriples: number;
+    normalReturnControlUnavailable: number;
+    triplesWithNormalReturn: number;
+    totalNormalReturns: number;
+    normalReturnFrames: number;
   } | null;
 };
 
@@ -533,6 +564,14 @@ function runState(id: StateId): StateResult {
           thirdContact: "same mirrored approach controls and one-approach/three-scoop law from exact k+2 state",
           launchAngle: "atan2(-0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * literal k+3 interval frames, max(1, exact k+2 incoming speed))",
           materialization: "each admitted third component is re-admitted with the complete three-contact line set on the immutable k prefix",
+        }
+        : null,
+      recursiveReturn: recursiveReturn
+        ? {
+          scope: "every byte-stable dense-240 first-C1 plus two-transient triple",
+          returnGap: afterNext!.index,
+          normalAttemptsPerTriple: captureMembers1.length,
+          normalSeed: "deterministic fixture seed + k+3 gap + first-control row + third-control index",
         }
         : null,
     },
@@ -1159,6 +1198,7 @@ function evaluateRecursiveTransient(
         materialized: false,
         materializationFrames: 0,
         error: member.error,
+        normalReturn: null,
       });
       continue;
     }
@@ -1186,6 +1226,7 @@ function evaluateRecursiveTransient(
         materialized: false,
         materializationFrames: 0,
         error: null,
+        normalReturn: null,
       });
       continue;
     }
@@ -1207,6 +1248,15 @@ function evaluateRecursiveTransient(
     const thisMaterializationFrames = getSimFrames() - materializeBefore;
     materializationFrames += thisMaterializationFrames;
     const materialized = fullFit !== null && stableJson(fullFit.lines) === stableJson(fullLines);
+    const normalReturn = recursiveReturn && materialized
+      ? evaluateRecursiveNormalReturn(
+        context,
+        context.baseEngine.addLine(fullLines.map((line: TrackLine) => engineLineFromTrackLine(line))),
+        fullLines,
+        member.index,
+        allContactFrames,
+      )
+      : null;
     rows.push({
       index: member.index,
       label: member.label,
@@ -1215,6 +1265,7 @@ function evaluateRecursiveTransient(
       materialized,
       materializationFrames: thisMaterializationFrames,
       error: materialized ? null : "complete transient triple is not a byte-stable k admission",
+      normalReturn,
     });
   }
 
@@ -1228,7 +1279,10 @@ function evaluateRecursiveTransient(
     materializationFailures: admitted - materialized,
     admissionFrames,
     materializationFrames,
-    chargedFrames: admissionFrames + materializationFrames,
+    chargedFrames: admissionFrames + materializationFrames + rows.reduce(
+      (sum, row) => sum + (row.normalReturn?.chargedFrames ?? 0),
+      0,
+    ),
     error: null,
     rows,
   };
@@ -1246,6 +1300,80 @@ function unavailableRecursiveTransient(error: string): RecursiveTransient {
     chargedFrames: 0,
     error,
     rows: [],
+  };
+}
+
+function evaluateRecursiveNormalReturn(
+  context: ReturnContext,
+  tripleEngine: any,
+  fullLines: readonly TrackLine[],
+  thirdControlIndex: number,
+  allContactFrames: number[],
+): RecursiveNormalReturn {
+  const afterNext = context.afterNext;
+  if (afterNext === null) throw new Error("recursive normal return requires an authored k+3 contact");
+  const probeBefore = getSimFrames();
+  const probe = getCandidateProbe(tripleEngine, afterNext, context.ctx);
+  const state = extractPlanningState(tripleEngine, afterNext.endFrame);
+  const k3ProbeFrames = getSimFrames() - probeBefore;
+  const k3ArrivalState = state === null ? null : {
+    speed: round(state.speed),
+    velocityAngleDeg: round(state.velocityAngleDeg),
+    sledPoseDeg: state.sledPoseDeg === null ? null : round(state.sledPoseDeg),
+    contactNow: state.phase.contactNow,
+    groundedAgeFrames: state.phase.groundedAgeFrames,
+    airborneAgeFrames: state.phase.airborneAgeFrames,
+  };
+  const nextLineIdStart = context.firstLineId + fullLines.length;
+  const members = buildRawMembers(
+    makeRng(rawStreamSeed4(context.seed, afterNext.index, context.rowIndex, thirdControlIndex)),
+    probe,
+    afterNext,
+    nextLineIdStart,
+    allContactFrames,
+    24,
+  );
+  const attempts: ReturnAttempt[] = [];
+  let rawNormalAdmissionFrames = 0;
+  for (const member of members) {
+    if (member.lines === null) {
+      attempts.push({
+        index: member.index,
+        admitted: false,
+        admissionFrames: 0,
+        error: member.error,
+        gateDiagnosis: null,
+      });
+      continue;
+    }
+    const before = getSimFrames();
+    const fit = tryCandidateLines(
+      tripleEngine,
+      afterNext,
+      member.lines,
+      nextLineIdStart,
+      allContactFrames,
+      axisLookaheadEndFrame(afterNext, allContactFrames),
+      afterNext.targets,
+      true,
+      undefined,
+      probe.preTargetSledTrace,
+    ) as GapFit | null;
+    const admissionFrames = getSimFrames() - before;
+    rawNormalAdmissionFrames += admissionFrames;
+    attempts.push({ index: member.index, admitted: fit !== null, admissionFrames, error: null, gateDiagnosis: null });
+  }
+  const rawNormalGeometryAvailable = members.filter((member) => member.lines !== null).length;
+  return {
+    k3ProbeFrames,
+    k3ArrivalState,
+    rawNormalAttempted: members.length,
+    rawNormalGeometryAvailable,
+    rawNormalAdmitted: attempts.filter((attempt) => attempt.admitted).length,
+    rawNormalAdmissionFrames,
+    rawNormalControlAvailable: rawNormalGeometryAvailable > 0,
+    attempts,
+    chargedFrames: k3ProbeFrames + rawNormalAdmissionFrames,
   };
 }
 
@@ -1499,6 +1627,26 @@ function summarizeState(rows: readonly Row[]): StateSummary {
         materialized: recurrences.reduce((sum, recurrence) => sum + recurrence.materialized, 0),
         materializationFailures: recurrences.reduce((sum, recurrence) => sum + recurrence.materializationFailures, 0),
         chargedFrames: recurrences.reduce((sum, recurrence) => sum + recurrence.chargedFrames, 0),
+        normalReturnTriples: recurrences.reduce(
+          (sum, recurrence) => sum + recurrence.rows.filter((row) => row.normalReturn !== null).length,
+          0,
+        ),
+        normalReturnControlUnavailable: recurrences.reduce(
+          (sum, recurrence) => sum + recurrence.rows.filter((row) => row.normalReturn !== null && !row.normalReturn.rawNormalControlAvailable).length,
+          0,
+        ),
+        triplesWithNormalReturn: recurrences.reduce(
+          (sum, recurrence) => sum + recurrence.rows.filter((row) => (row.normalReturn?.rawNormalAdmitted ?? 0) > 0).length,
+          0,
+        ),
+        totalNormalReturns: recurrences.reduce(
+          (sum, recurrence) => sum + recurrence.rows.reduce((rowSum, row) => rowSum + (row.normalReturn?.rawNormalAdmitted ?? 0), 0),
+          0,
+        ),
+        normalReturnFrames: recurrences.reduce(
+          (sum, recurrence) => sum + recurrence.rows.reduce((rowSum, row) => rowSum + (row.normalReturn?.chargedFrames ?? 0), 0),
+          0,
+        ),
       };
     })(),
   };
@@ -1530,6 +1678,9 @@ function formatStateSummary(result: StateResult): string[] {
       `  return control:      unavailable ${returned.rawNormalControlUnavailable}, materialization failures ${returned.materializationFailures}, frames ${returned.chargedFrames}`,
       ...(returned.recursiveTransient === null ? [] : [
         `  recursive bridge:    admitted ${returned.recursiveTransient.admitted}/${returned.recursiveTransient.attempted}, materialized ${returned.recursiveTransient.materialized}, failures ${returned.recursiveTransient.materializationFailures}, frames ${returned.recursiveTransient.chargedFrames}`,
+        ...(returned.recursiveTransient.normalReturnTriples === 0 ? [] : [
+          `  recursive return:    normal-return triples ${returned.recursiveTransient.triplesWithNormalReturn}/${returned.recursiveTransient.normalReturnTriples}, admissions ${returned.recursiveTransient.totalNormalReturns}, unavailable ${returned.recursiveTransient.normalReturnControlUnavailable}, frames ${returned.recursiveTransient.normalReturnFrames}`,
+        ]),
       ]),
     ]),
     `  failure classes:     ${fails}`,
@@ -1576,6 +1727,11 @@ function rawStreamSeed2(prepared: PreparedTrajectoryFixtureCore, gapIndex: numbe
 /** Independent deterministic raw stream for the k+2 return observation. */
 function rawStreamSeed3(seed: number, gapIndex: number, rowIndex: number): number {
   return (Math.imul((Math.imul(seed | 0, 1_000_003) + gapIndex + 1) | 0, 1_000_003) + rowIndex + 1) | 0;
+}
+
+/** Independent deterministic stream for each materialized k+3 triple return. */
+function rawStreamSeed4(seed: number, gapIndex: number, rowIndex: number, thirdControlIndex: number): number {
+  return (Math.imul(rawStreamSeed3(seed, gapIndex, rowIndex), 1_000_003) + thirdControlIndex + 1) | 0;
 }
 
 function roundAxes(axes: AxisValues | undefined): { air: number | null; speed: number | null; impact: number | null } | null {

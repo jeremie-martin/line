@@ -122,7 +122,6 @@ const output = {
   env: {
     LR_IMPACT_LOCAL_W: process.env.LR_IMPACT_LOCAL_W ?? null,
     LR_GRADE_CONTINUITY: process.env.LR_GRADE_CONTINUITY ?? null,
-    LR_GRADE_TAIL_CONTINUITY: process.env.LR_GRADE_TAIL_CONTINUITY ?? null,
   },
   rows,
 };

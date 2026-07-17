@@ -345,23 +345,6 @@ const ARC_LEN_ROOM_SPARSE_FRAMES = 46;
 const ARC_LEN_ROOM_SMOOTH_BUDGET_START_FRAMES = 50_000;
 const ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES = 50_000;
 
-/**
- * Exploratory multi-gap source: preserve the sampled catch exactly through its
- * contact anchor, then on a deterministic minority of speed-deficit attempts
- * correlate only the uncommitted tail grade with the preceding committed tail.
- * The switch is study-only plumbing; a source-default decision requires the
- * fixed V2 scope panel and ordinary promotion funnel.
- */
-const tailGradeContinuityEnabled =
-  (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_GRADE_TAIL_CONTINUITY === "1";
-const TAIL_GRADE_CONTINUITY_SHARE = 0.25;
-const TAIL_GRADE_CONTINUITY_BLEND = 0.70;
-const TAIL_GRADE_CONTINUITY_SHALLOW_FULL_DEG = 8;
-const TAIL_GRADE_CONTINUITY_SHALLOW_ZERO_DEG = 22;
-const TAIL_GRADE_CONTINUITY_SPEED_DEFICIT_START_PX_PER_FRAME = 0.35;
-const TAIL_GRADE_CONTINUITY_SPEED_DEFICIT_SPAN_PX_PER_FRAME = 2.0;
-
 /** Per-compile frame budget, set once at compileHandoff entry (each compile is a
  *  single independent budget, run in its own worker / sequentially), read by the
  *  budget-aware geometry. A per-compile constant, so determinism stays per
@@ -589,19 +572,15 @@ export function sampleArcPlacementGeometry(
   mode: CandidateSampleMode = "normal",
   allContactFrames: readonly number[] = [],
   geometryModeOverride?: SupportGeometryMode,
-  previousCommittedTerminalGradeDeg?: number | null,
 ): ArcPlacementGeometry {
   recordArcPlacementSample(mode);
   lastGeometryWasImpactTemplate = false;
   if (mode === "normal") {
-    const lines = sampleContactCenteredLines(
-      rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
-      geometryModeOverride ?? supportGeometryMode(),
-    );
     return {
       kind: "lines",
-      lines: tailGradeContinuousLines(
-        lines, targets, targetState, attempt, previousCommittedTerminalGradeDeg,
+      lines: sampleContactCenteredLines(
+        rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
+        geometryModeOverride ?? supportGeometryMode(),
       ),
     };
   }
@@ -612,84 +591,6 @@ export function sampleArcPlacementGeometry(
       mode,
     ),
   };
-}
-
-/**
- * The tail-only construction deliberately preserves the entire sampled prefix
- * through the nearest physical contact anchor.  Its only new geometry is the
- * tail already owned by the present candidate; normal exact candidate gates
- * decide whether that released terrain remains admissible.
- */
-function tailGradeContinuousLines(
-  lines: readonly TrackLine[],
-  targets: AxisValues,
-  targetState: ImpactFrameTargetState,
-  attempt: number,
-  previousCommittedTerminalGradeDeg: number | null | undefined,
-): TrackLine[] {
-  if (!tailGradeContinuityEnabled || previousCommittedTerminalGradeDeg === null ||
-      previousCommittedTerminalGradeDeg === undefined || targets.speed === undefined ||
-      lowDiscrepancyRoll(attempt, 41) < 1 - TAIL_GRADE_CONTINUITY_SHARE) {
-    return [...lines];
-  }
-  const speedDeficit = smoothstep(
-    (authoredSpeedToPx(targets.speed) - targetState.speed - TAIL_GRADE_CONTINUITY_SPEED_DEFICIT_START_PX_PER_FRAME) /
-      TAIL_GRADE_CONTINUITY_SPEED_DEFICIT_SPAN_PX_PER_FRAME,
-  );
-  const prior = previousCommittedTerminalGradeDeg;
-  const shallow = 1 - smoothstep(
-    (Math.abs(prior) - TAIL_GRADE_CONTINUITY_SHALLOW_FULL_DEG) /
-      (TAIL_GRADE_CONTINUITY_SHALLOW_ZERO_DEG - TAIL_GRADE_CONTINUITY_SHALLOW_FULL_DEG),
-  );
-  const pressure = TAIL_GRADE_CONTINUITY_BLEND * speedDeficit * shallow;
-  if (pressure <= 0) return [...lines];
-
-  const vertices = tailPolylineVertices(lines);
-  if (vertices.length < 3) return [...lines];
-  let contactIndex = 0;
-  let nearest = Infinity;
-  for (let index = 0; index < vertices.length; index++) {
-    const distance = Math.hypot(vertices[index].x - targetState.sledX, vertices[index].y - targetState.sledY);
-    if (distance < nearest) {
-      nearest = distance;
-      contactIndex = index;
-    }
-  }
-  const postSegments = vertices.length - 1 - contactIndex;
-  if (postSegments < 2) return [...lines];
-
-  const rawTerminal = tailLineHeading(vertices.at(-2)!, vertices.at(-1)!);
-  const terminal = tailLerpAngle(rawTerminal, prior, pressure);
-  const rebuilt = vertices.slice(0, contactIndex + 1).map((point) => ({ ...point }));
-  let point = { ...vertices[contactIndex] };
-  for (let offset = 1; offset <= postSegments; offset++) {
-    const from = vertices[contactIndex + offset - 1];
-    const to = vertices[contactIndex + offset];
-    const length = Math.hypot(to.x - from.x, to.y - from.y);
-    const rawHeading = tailLineHeading(from, to);
-    const heading = tailLerpAngle(rawHeading, terminal, (offset / postSegments) ** 2);
-    const radians = heading * Math.PI / 180;
-    point = { x: point.x + Math.cos(radians) * length, y: point.y + Math.sin(radians) * length };
-    rebuilt.push(point);
-  }
-  return rebuilt.slice(1).map((end, index) => ({
-    ...lines[index], x1: rebuilt[index].x, y1: rebuilt[index].y, x2: end.x, y2: end.y,
-  }));
-}
-
-function tailPolylineVertices(lines: readonly TrackLine[]): Array<{ x: number; y: number }> {
-  return lines.length === 0
-    ? []
-    : [{ x: lines[0].x1, y: lines[0].y1 }, ...lines.map((line) => ({ x: line.x2, y: line.y2 }))];
-}
-
-function tailLineHeading(from: { x: number; y: number }, to: { x: number; y: number }): number {
-  return Math.atan2(to.y - from.y, to.x - from.x) * 180 / Math.PI;
-}
-
-function tailLerpAngle(from: number, to: number, amount: number): number {
-  const delta = ((to - from + 180) % 360 + 360) % 360 - 180;
-  return from + delta * clamp(amount, 0, 1);
 }
 
 export function sampleArcParamsRngDraws(

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { benchmarkPolicy } from "../../../benchmark/v2/policy.ts";
 import { compilerCandidateIdentity, type CompilerCandidateIdentity } from "../benchmark_v2/compiler_identity.ts";
 import { fingerprintFiles } from "../benchmark_v2/suite_model.ts";
+import { nextContactGap } from "../optimizer/objective.ts";
 import { captureTrajectoryPrefix } from "./prefix_capture_core.ts";
 import {
   frozenFixtureCaptureArtifactIdentity,
@@ -64,6 +65,7 @@ export function runTrajectoryFixtureCapture(argv: readonly string[], catalog: Fi
   if (selectedPanels.some((panel) => panel.cohort === "quarantined")) {
     throw new Error("quarantined trajectory panels are audit-only and cannot be captured");
   }
+  for (const panel of selectedPanels) validateStructuralSelection(panel, catalog.buildSetup(panel));
   const captureEnvironment = relevantEnvironment();
   const captureEngine = activeStudyEngine();
   assertCaptureProtocol(captureEngine, budget, captureEnvironment);
@@ -279,6 +281,22 @@ function assertCaptureProtocol(engine: string, budget: number, environment: Reco
   if (budget !== CAPTURE_PROTOCOL.captureBudget) throw new Error(`trajectory fixture capture requires budget ${CAPTURE_PROTOCOL.captureBudget}; received ${budget}`);
   if (stableJson(sortedEnvironment(environment)) !== stableJson(CAPTURE_PROTOCOL.relevantEnvironment)) {
     throw new Error(`trajectory fixture capture requires canonical LR environment ${stableJson(CAPTURE_PROTOCOL.relevantEnvironment)}`);
+  }
+}
+
+/** Reject a bad source declaration before compilation can select a prefix. */
+function validateStructuralSelection(panel: TrajectoryCaptureCase, setup: TrajectoryCaptureSetup): void {
+  const current = setup.gaps[panel.targetGap];
+  if (current === undefined || !current.endsWithContact) {
+    throw new Error(`${panel.id}: declared g${panel.targetGap} is not a contact gap`);
+  }
+  const outgoing = nextContactGap(current, setup.gaps);
+  if (outgoing === null || outgoing.startFrame !== current.endFrame || !outgoing.endsWithContact) {
+    throw new Error(`${panel.id}: declared g${panel.targetGap} has no contiguous outgoing contact interval`);
+  }
+  const interval = outgoing.endFrame - outgoing.startFrame;
+  if (panel.expectedOutgoingFrames !== undefined && interval !== panel.expectedOutgoingFrames) {
+    throw new Error(`${panel.id}: declared outgoing interval ${interval} != ${panel.expectedOutgoingFrames}`);
   }
 }
 

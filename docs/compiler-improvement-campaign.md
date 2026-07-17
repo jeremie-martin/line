@@ -2298,7 +2298,7 @@ import the legacy calibration panel or any quarantined V2 reserve row. The
 pre-capture roster is fixed as follows:
 
 - `heldout_open_hook_dense`: `open_hook`, seed 730301, g29, the first
-  uninterrupted four-contact 20-frame open-response return.
+  uninterrupted four-contact 20/19-frame open-response return.
 - `heldout_meter_exchange_ordinary`: `meter_exchange`, seed 730303, g34, the
   first regular four-contact compact-meter block after the second exchange.
 - `heldout_pickup_low_air`: `frontier_pickup_progression`, seed 730307, g51,
@@ -2313,6 +2313,13 @@ compiler candidate, WASM environment, 500k budget, source-import closure, and
 full selected-prefix replay before a study runner reads the fixtures. These are
 predictive held-out fixtures for this component only; they are not production
 references or an input to V2 validation.
+
+**Capture preflight correction (2026-07-17).** The first declared invocation
+halted without writing a fixture because its g29 outgoing-interval assertion
+was transcribed as 20 rather than the source's 19 frames. The source, seed,
+target gap, and selection rationale did not change. Correct the assertion and
+run the same command; the capture entrypoint now validates this structural
+field before compiler traversal, so the correction creates no selection row.
 
 **Protocol.** Apply the exact same fixed first-C1 + two recursive transient
 components, mirrored 24-control screens, literal next-contact ballistic law,

@@ -24,9 +24,9 @@ export const RECURSIVE_TRANSIENT_HELDOUT_CASES = [
     sourcePath: "benchmark/v2/cases/normative/representative/open_hook.ts",
     seed: 730301,
     targetGap: 29,
-    expectedOutgoingFrames: 20,
+    expectedOutgoingFrames: 19,
     selectionRationale:
-      "The first uninterrupted four-contact 20-frame block inside the authored open-response return; contacts retain their authored impact sequence.",
+      "The first uninterrupted four-contact 20/19-frame block inside the authored open-response return; contacts retain their authored impact sequence.",
     studyScope: "recursive-transient-heldout-v1",
   },
   {

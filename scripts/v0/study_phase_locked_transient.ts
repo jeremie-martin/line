@@ -26,6 +26,7 @@ import { scoreCurrentTargetQuality } from "./optimizer/objective.ts";
 import { contactKinematicFrameFromPlanningState } from "./trajectory/contact_kinematic_frame.ts";
 import { realizePhaseLockedTransient } from "./trajectory/phase_locked_transient.ts";
 import { realizeStateHermiteTransient } from "./trajectory/state_hermite_transient.ts";
+import { realizeTerminalTangentTransient } from "./trajectory/terminal_tangent_transient.ts";
 import { extractPlanningState } from "./trajectory/state.ts";
 import { targetFrameFromPlanningState } from "./trajectory/target_frame.ts";
 import { CALIB, secToFrame, type AxisName, type AxisValues, type Gap, type Spec, type TrackLine } from "./types.ts";
@@ -51,16 +52,20 @@ const OUT_DIR = "generated/studies/phase-locked-vector-intercept/v1";
 const argv = process.argv.slice(2);
 const arg = (name: string): string | undefined => argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_phase_locked_transient.ts --batch=0|1|2 | --aggregate [--form=vector-intercept|state-hermite] [--replication] [--out-dir=DIR]\n");
+  process.stdout.write("Usage: study_phase_locked_transient.ts --batch=0|1|2 | --aggregate [--form=vector-intercept|state-hermite|terminal-tangent] [--replication] [--out-dir=DIR]\n");
   process.exit(0);
 }
 const aggregate = argv.includes("--aggregate");
 const replication = argv.includes("--replication");
 const form = arg("form") ?? "vector-intercept";
-if (form !== "vector-intercept" && form !== "state-hermite") throw new Error(`unknown --form=${form}`);
+if (form !== "vector-intercept" && form !== "state-hermite" && form !== "terminal-tangent") throw new Error(`unknown --form=${form}`);
 const unexpected = argv.filter((value) => value !== "--aggregate" && value !== "--replication" && !value.startsWith("--batch=") && !value.startsWith("--out-dir=") && !value.startsWith("--form="));
 if (unexpected.length > 0) throw new Error(`unknown argument(s): ${unexpected.join(", ")}`);
-const formDir = form === "state-hermite" ? `${OUT_DIR}/state-hermite-v1` : OUT_DIR;
+const formDir = form === "state-hermite"
+  ? `${OUT_DIR}/state-hermite-v1`
+  : form === "terminal-tangent"
+  ? `${OUT_DIR}/terminal-tangent-v1`
+  : OUT_DIR;
 const outDir = arg("out-dir") ?? (replication ? `${formDir}/v2` : formDir);
 const seeds = replication ? REPLICATION_SEEDS : DISCOVERY_SEEDS;
 const batchRaw = arg("batch");
@@ -106,7 +111,9 @@ const document: BatchDocument = {
     currentPopulation: `first ${CURRENT_VIABLE_PREFIX} viable raw-normal fits from attempts 0..${RAW_ATTEMPTS - 1}`,
     component: form === "vector-intercept"
       ? "one frame-centred distributed k+1 capture-to-launch curve; launch velocity is the discrete ballistic intercept to the unforced k+2 reference"
-      : "one frame-centred distributed k+1 capture plus gravity-debiased cubic transfer whose endpoint is the exact unforced k+2 reference position and velocity",
+      : form === "state-hermite"
+      ? "one frame-centred distributed k+1 capture plus gravity-debiased cubic transfer whose endpoint is the exact unforced k+2 reference position and velocity"
+      : "one frame-centred distributed k+1 capture whose launch tangent is the gravity-debiased exact unforced k+2 reference velocity",
     return: `first ${RETURN_ATTEMPTS} unchanged ordinary-normal attempts at k+2 from each byte-stable pair`,
     ...(replication ? {
       directControl: `first viable member of an equal ${RETURN_ATTEMPTS}-attempt ordinary-normal k+1 stream from the same raw-k engine state, followed by the same k+2 normal-return stream`,
@@ -202,6 +209,13 @@ function evaluatePair(node: HandoffNode, current: Candidate, currentGap: Gap, ne
         afterNext.endFrame - nextGap.endFrame,
         node.search.prefixNextLineId + current.lines.length,
       )
+      : form === "terminal-tangent"
+      ? realizeTerminalTangentTransient(
+        contactKinematicFrameFromPlanningState(nextState, targetFrameFromPlanningState(nextState), nextGap.targets),
+        futureState,
+        afterNext.endFrame - nextGap.endFrame,
+        node.search.prefixNextLineId + current.lines.length,
+      )
       : realizePhaseLockedTransient(
         contactKinematicFrameFromPlanningState(nextState, targetFrameFromPlanningState(nextState), nextGap.targets),
         futureState.reference,
@@ -220,7 +234,11 @@ function evaluatePair(node: HandoffNode, current: Candidate, currentGap: Gap, ne
     getCandidateProbe(currentEngine, nextGap, setup.ctx).preTargetSledTrace, { allowRideOutPolish: false },
   ) as Candidate | null;
   const nextFrames = getSimFrames() - nextBefore;
-  const terminalVelocity = form === "state-hermite" ? component.terminal.velocity : component.intercept.launchVelocity;
+  const terminalVelocity = form === "state-hermite"
+    ? component.terminal.velocity
+    : form === "terminal-tangent"
+    ? component.terminal.gravityDebiasedLaunchVelocity
+    : component.intercept.launchVelocity;
   const metadata = {
     available: true,
     reason: null,

@@ -4844,6 +4844,34 @@ The next component must use a non-colliding state representation or an exact
 collision-compatible transition law rather than a continuous terrain path
 whose entire inter-contact spatial trajectory is exposed to the rider.
 
+## Declared Observation: Terminal-Tangent Capture Transient (2026-07-17)
+
+The endpoint-state curve fails because it exposes an entire future trajectory.
+This stricter local alternative exposes only the native `k+1` capture band.
+It derives the exact unforced `k+2` named-reference velocity, subtracts the
+literal accumulated gravity over that interval, and makes that unique launch
+vector the terminal tangent of a frame-centred distributed capture-to-launch
+turn. It therefore carries a future **velocity** boundary without an
+inter-contact rail, an endpoint position, an offset, a phase/duration branch,
+or a control family. The exact gate remains the only collision and selection
+authority.
+
+**Feasibility result: RETIRE.** On the same frozen six-regime 500k discovery
+panel and seeds 42/43, all **40/40** candidate states realize the form, but
+only **31/40** materialize with exact current axes and it has 153 fixed normal
+returns. The previous vector-position transient, evaluated under the same
+unchanged harness and states, has **32/40** materializations and 154 returns;
+the terminal-tangent form loses one dense materialization/return and produces
+no compensating coverage or normal-return gain in any other regime. Its lower
+mean two-gap RMS (`.250849` vs `.253191`) is not a source-quality claim: it is
+conditional on the strictly smaller surviving set.
+
+**Decision.** Do not replicate, source, blend, or tune the terminal tangent
+law, gravity debit, curve resolution, or capture allocation. Future state
+velocity is an admissible continuous input, but using it only as a local
+surface tangent does not restore the missing broad continuation basin; it is
+strictly weaker here than the already-retired position-intercept form.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

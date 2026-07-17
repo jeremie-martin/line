@@ -5493,6 +5493,72 @@ A future successor must obtain a transition input *before* a candidate's
 target collision while remaining continuous across raw contact formation; it
 cannot use a candidate's resolved collision as a spatial edit oracle.
 
+## Declared Study: Full-Sled Contact-Footprint Differential Flow (2026-07-17)
+
+The failed affine field extrapolated one pre-contact velocity gradient through
+raw *curve arclength*, which turns a local body differential into a long-range
+geometry distortion. The failed interval field waited for a raw collision
+outcome. This component uses neither. At the immutable target prefix, fit the
+same unique least-squares full-sled velocity gradient `A` from all four
+centered PEG/TAIL/NOSE/STRING positions and velocities. Let `R` be the RMS
+radius of the full position cloud and `τ = R / |v̄|` its exact collective
+footprint traversal time. The one local transition is the physical flow
+`exp(Aτ)` about the cloud centroid.
+
+Apply this relative-position map only with the unique C1 radial support
+`cos²(πr/(2R))` for vertices within the full-cloud footprint; it is exactly
+zero beyond `R`. There is no curve-arclength clock, target collision read,
+line or point selection, static support, state scale, blend, response window,
+or score input. The raw curve’s order, IDs, types, flags, PRNG coordinates,
+and exact evaluator remain unchanged. This is a pre-contact continuous
+state-to-geometry component that alters only the physical region occupied by
+the moving multi-contact configuration—not a shortened version of the
+whole-curve affine field.
+
+**Dense-first protocol.** On fresh V2-jolt/500k seeds 62 and 63, replay all
+raw generation-time normal attempts/hashes at the frozen one-third/two-thirds
+frontier states of Frontier Dense Recovery and Dense Dialogue. Apply the one
+footprint flow to each non-template raw normal geometry when complete finite
+full-sled state and a non-singular nonzero-radius flow exist. Record complete
+state coverage, vertices within support, local displacement, viable support,
+exact axes, continuation-aware objective, and cost under the unchanged exact
+gate and ordinary pool objective.
+
+**Falsifiers.** Retire before broad scope if the local flow is materially
+unavailable or inert, if either dense source loses viable support or best
+continuation-aware objective, or if dense pool/axis/objective are not jointly
+positive. A pass authorizes only the frozen broad normal-pool panel and new
+replay—not a cloud-radius multiplier, alternate support shape, centroid shift,
+matrix scale/projection, point subset, template branch, selector, or compiler
+default.
+
+**Dense-first result (2026-07-17, 20s; `npm run
+study:contact-footprint-flow`; artifact
+`generated/studies/full-sled-contact-footprint-flow-field-normal-pool/v1/batch-0.json`):
+RETIRE the full-sled contact-footprint differential flow as physically inert.**
+All **8/8** raw normal pools replay exactly; each exposes the complete
+four-point state, and **148** non-template geometries are transformed (39
+fixed template skips). The field's full-cloud radius is consistently about
+`8.54` px and its one-footprint traversal lasts `.706756`--`1.060188` frames,
+so the construction has the intended bounded local domain rather than the
+whole-curve overreach of the prior affine field.
+
+That correct localization also exposes why it cannot be the missing lever.
+Only `1.0`--`1.517241` raw vertices lie within the cloud footprint, and mean
+maximum local movement is merely `.000070`--`.131947` px (usually about
+`.02` px). Viability remains exactly unchanged in all eight states, but the
+pooled best-axis and objective deltas are slightly adverse (`−.000002` and
+`−.000020`). It is a nonzero numerical flow, not an unavailable state, yet it
+has no material collision effect under the unchanged exact gate.
+
+Do not enlarge the footprint, lengthen its transit, shift its center, alter
+the compact support, magnify/project the matrix, or use movement magnitude as
+a gate. The full sled is effectively rigid across one physical footprint
+traversal; instantaneous differential motion is not the missing contact
+formation signal. A successor must use a distinct state representation with
+material pre-contact evolution, not another local re-expression of this
+velocity gradient.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

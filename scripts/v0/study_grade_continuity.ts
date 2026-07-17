@@ -18,6 +18,9 @@
  *   - contact-phase-continuous: on that same span, carry the preceding
  *     committed contact anchor's tangent-frame phase into an otherwise
  *     unchanged normal contact-centered line set.
+ *   - airborne-phase-continuous: on that same span, shorten only the sampled
+ *     post-contact tail when the exact incoming detector phase has accrued
+ *     fewer than six airborne frames.
  *
  * The previous grade is a continuous measured property of the committed line
  * set.  No source, case, duration class, target identity, or outcome feeds the
@@ -35,6 +38,7 @@ import { getCandidateProbe, type SpecContext } from "./optimizer/sample.ts";
 import { getSimFrames } from "./optimizer/sim_frames.ts";
 import { authoredSpeedToPx, type Gap, type TrackLine } from "./types.ts";
 import { readFrozenTrajectoryFixture, sha256, stableJson } from "./trajectory/frozen_fixture.ts";
+import { extractPlanningState } from "./trajectory/state.ts";
 import {
   prepareStateCoupledTrajectoryFixture,
   type PreparedTrajectoryFixtureCore,
@@ -46,14 +50,14 @@ import {
   writeImmutableJsonArtifact,
 } from "./trajectory/study_artifact.ts";
 
-const SCHEMA = "line.study-trajectory-continuity-controls.v3";
+const SCHEMA = "line.study-trajectory-continuity-controls.v4";
 const FIXTURE_DIR = "generated/studies/trajectory-fixtures/grade-continuity-2026-07-17/v3";
 const FIXTURES = {
   believer36: "believer36-b500000-d7aec722a976.json",
   believer69: "believer69-b500000-24448183619b.json",
 } as const;
 type StateId = keyof typeof FIXTURES;
-type Family = "independent" | "grade-continuous" | "energy-continuous" | "contact-phase-continuous";
+type Family = "independent" | "grade-continuous" | "energy-continuous" | "contact-phase-continuous" | "airborne-phase-continuous";
 
 // The physical hypothesis is persistent shallow grades, not a one-off rail.
 // Every fourth low-discrepancy attempt receives the correlated terminal grade;
@@ -79,6 +83,13 @@ const ENERGY_WORK_SOLVE_DELTA_DEG = 18;
  * normalized by reference speed. The fixed blend is not a source constant: it
  * is one bounded physical falsifier for whether phase persistence exists. */
 const CONTACT_PHASE_BLEND = 0.70;
+/** The detector cannot form a distinct landing without this many preceding
+ * airborne frames. The controller reads only the current exact phase, never a
+ * later contact or its targets. */
+const LEGAL_AIRBORNE_FRAMES = 6;
+/** At maximum phase shortfall, leave the contact and first outgoing segment
+ * untouched, shortening the remaining sampled tail by 35%. */
+const AIRBORNE_PHASE_TAIL_MIN_SCALE = 0.65;
 const DEFAULT_TRIALS = 24;
 const STATE_FRAME_BUDGET = 3_000_000;
 
@@ -115,12 +126,12 @@ if (!Number.isInteger(trials) || trials <= 0 || trials > 256) {
   throw new Error(`--trials must be an integer in [1, 256]; received ${requestedTrials}`);
 }
 const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? "generated/studies/grade-continuity/v5-contact-phase";
+const outDir = argument("out-dir") ?? "generated/studies/grade-continuity/v6-airborne-phase";
 
 const sourceIdentity = studySourceIdentity("scripts/v0/study_grade_continuity.ts");
 const observationCompiler = compilerCandidateIdentity("wasm");
 const protocolFingerprint = sha256(stableJson({
-  protocol: "grade-energy-and-contact-phase-continuity.v3",
+  protocol: "grade-energy-contact-and-airborne-phase-continuity.v4",
   captureBudget: 500_000,
   stream: {
     baseline: "sampleArcPlacementGeometry(normal)",
@@ -142,6 +153,8 @@ const protocolFingerprint = sha256(stableJson({
     energyWorkFullDeg: ENERGY_WORK_FULL_DEG,
     energyWorkSolveDeltaDeg: ENERGY_WORK_SOLVE_DELTA_DEG,
     contactPhaseBlend: CONTACT_PHASE_BLEND,
+    legalAirborneFrames: LEGAL_AIRBORNE_FRAMES,
+    airbornePhaseTailMinScale: AIRBORNE_PHASE_TAIL_MIN_SCALE,
     trials,
     stateFrameBudget: STATE_FRAME_BUDGET,
   },
@@ -159,6 +172,10 @@ type CandidateRow = {
   previousContactPhaseFrames: number | null;
   rawContactPhaseFrames: number | null;
   proposedContactPhaseFrames: number | null;
+  incomingAirborneAgeFrames: number | null;
+  airbornePhasePressure: number | null;
+  rawPostTailLengthPx: number | null;
+  proposedPostTailLengthPx: number | null;
   admitted: boolean;
   cost: number | null;
   simFrames: number;
@@ -170,6 +187,7 @@ type ContactStep = {
   entry: { speed: number; angleDeg: number };
   carriedEnergyDebt: number | null;
   contactPhaseFrames: number | null;
+  incomingAirborneAgeFrames: number | null;
   candidates: CandidateRow[];
   chosen: {
     attempt: number;
@@ -216,14 +234,17 @@ for (const result of results) {
   const grade = result.summary.families["grade-continuous"];
   const energy = result.summary.families["energy-continuous"];
   const phase = result.summary.families["contact-phase-continuous"];
+  const airborne = result.summary.families["airborne-phase-continuous"];
   const gradeDelta = difference(grade.terminalSpeed.mean, independent.terminalSpeed.mean);
   const energyDelta = difference(energy.terminalSpeed.mean, independent.terminalSpeed.mean);
   const phaseDelta = difference(phase.terminalSpeed.mean, independent.terminalSpeed.mean);
+  const airborneDelta = difference(airborne.terminalSpeed.mean, independent.terminalSpeed.mean);
   process.stdout.write(
     `${result.id}: grade complete ${grade.completeChains}/${grade.trials} speed Δ${signed(gradeDelta)}; ` +
     `energy complete ${energy.completeChains}/${energy.trials} speed Δ${signed(energyDelta)} ` +
     `phase complete ${phase.completeChains}/${phase.trials} speed Δ${signed(phaseDelta)} ` +
-    `vs independent ${independent.completeChains}/${independent.trials}; phase chosen ${phase.transformedChosen}; ` +
+    `airborne complete ${airborne.completeChains}/${airborne.trials} speed Δ${signed(airborneDelta)} ` +
+    `vs independent ${independent.completeChains}/${independent.trials}; phase chosen ${phase.transformedChosen}; airborne chosen ${airborne.transformedChosen}; ` +
     `frames ${result.chargedFrames}\n`,
   );
 }
@@ -251,12 +272,15 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
     rows.push(runTrial(prepared, "energy-continuous", trial, charge, prefixTerminalGradeDeg));
     if (chargedFrames >= STATE_FRAME_BUDGET) break;
     rows.push(runTrial(prepared, "contact-phase-continuous", trial, charge, prefixTerminalGradeDeg));
+    if (chargedFrames >= STATE_FRAME_BUDGET) break;
+    rows.push(runTrial(prepared, "airborne-phase-continuous", trial, charge, prefixTerminalGradeDeg));
   }
   const families: Record<Family, FamilySummary> = {
     independent: summarize(rows.filter((row) => row.family === "independent")),
     "grade-continuous": summarize(rows.filter((row) => row.family === "grade-continuous")),
     "energy-continuous": summarize(rows.filter((row) => row.family === "energy-continuous")),
     "contact-phase-continuous": summarize(rows.filter((row) => row.family === "contact-phase-continuous")),
+    "airborne-phase-continuous": summarize(rows.filter((row) => row.family === "airborne-phase-continuous")),
   };
   const comparison = {
     terminalSpeedMeanDelta: difference(families["grade-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
@@ -268,6 +292,9 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
     phaseTerminalSpeedMeanDelta: difference(families["contact-phase-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
     phaseMeanAchievedSpeedDelta: difference(families["contact-phase-continuous"].meanAchievedSpeed.mean, families.independent.meanAchievedSpeed.mean),
     phaseCompleteChainDelta: families["contact-phase-continuous"].completeChains - families.independent.completeChains,
+    airbornePhaseTerminalSpeedMeanDelta: difference(families["airborne-phase-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
+    airbornePhaseMeanAchievedSpeedDelta: difference(families["airborne-phase-continuous"].meanAchievedSpeed.mean, families.independent.meanAchievedSpeed.mean),
+    airbornePhaseCompleteChainDelta: families["airborne-phase-continuous"].completeChains - families.independent.completeChains,
   };
   const artifactIdentity = studyArtifactIdentity({
     schema: SCHEMA,
@@ -279,7 +306,7 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
   const artifact = {
     schema: SCHEMA,
     artifactIdentity,
-    purpose: "Fixture-only falsifier for predecessor-grade, cumulative kinetic-energy, and contact-phase trajectory controls. Every candidate remains subject to the ordinary exact admission gate; the phase stream differs only by a deterministic, attempt-spanned tangent-frame translation toward the preceding committed anchor phase.",
+    purpose: "Fixture-only falsifier for predecessor-grade, cumulative kinetic-energy, contact-phase, and incoming-airborne-phase trajectory controls. Every candidate remains subject to the ordinary exact admission gate; the airborne stream changes only a deterministic, phase-shortfall-scaled sampled tail after the preserved contact and first outgoing segment.",
     status: {
       productionIntegration: "forbidden: calibration study only; it does not modify compiler candidates, selection, or promotion",
       resultEligibility: "physical/executable evidence only; a source-default lane requires its own scope panel and normal V2 funnel",
@@ -305,8 +332,9 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
       gradeRule: "terminal post grade blends toward the prior committed terminal line grade only while that prior grade is shallow and the authored speed exceeds measured entry speed; capture-side geometry through the contact vertex is byte-preserved",
       energyRule: "a decayed per-contact exact speed-deficit integral requests a bounded distributed mean-tail-work adjustment; it preserves the contact anchor, every segment length, and the first post-contact tangent, and reads no preceding terrain heading",
       contactPhaseRule: "the preceding committed contact anchor's signed displacement from its predicted sled point, in current-reference-speed frames, blends with the raw contact anchor; the complete normal line set translates only along the current incoming tangent and no missing phase becomes a synthetic anchor",
+      airbornePhaseRule: "when exact PlanningState.phase.airborneAgeFrames is below six, the deterministic attempt span preserves every line through the first post-contact segment and shortens only later sampled tail segments by a smooth 1.0-to-0.65 scale; it reads no later contact, axis, source, duration, or outcome",
       admission: "unchanged tryCandidateLines with exact survival, landing, off-beat, and target-axis gates",
-      sourceInputs: "grade stream: previous committed terminal grade plus authored speed deficit; energy stream: exact measured speed-deficit integral; phase stream: previous committed contact-anchor phase plus current incoming tangent/reference speed; all streams use existing sampled geometry and attempt coordinate only, and none reads source, case, duration class, or outcomes",
+      sourceInputs: "grade stream: previous committed terminal grade plus authored speed deficit; energy stream: exact measured speed-deficit integral; contact-phase stream: previous committed contact-anchor phase plus current incoming tangent/reference speed; airborne-phase stream: current exact airborne age only; all streams use existing sampled geometry and attempt coordinate only, and none reads source, case, duration class, or outcomes",
     },
     chargedFrames,
     budgetExhausted: chargedFrames >= STATE_FRAME_BUDGET,
@@ -343,11 +371,13 @@ function runTrial(
       steps.push({
         gapIndex: prepared.current.index + offset,
         authored: { speed: null, air: null, impact: null },
-        entry: { speed: 0, angleDeg: 0 }, carriedEnergyDebt: null, contactPhaseFrames: null, candidates: [], chosen: null, result: "missing-contact",
+        entry: { speed: 0, angleDeg: 0 }, carriedEnergyDebt: null, contactPhaseFrames: null, incomingAirborneAgeFrames: null, candidates: [], chosen: null, result: "missing-contact",
       });
       break;
     }
     const probe = getCandidateProbe(engine, gap, prepared.ctx);
+    const incomingState = extractPlanningState(engine, gap.endFrame);
+    const incomingAirborneAgeFrames = incomingState?.phase.airborneAgeFrames ?? null;
     const rng = makeRng((Math.imul((trial + 1) | 0, 1000003) + gap.index + 1) | 0);
     const axisEnd = axisLookaheadEndFrame(gap, prepared.ctx.allContactFrames);
     const candidates: CandidateRow[] = [];
@@ -384,7 +414,9 @@ function runTrial(
       const gradeTransformed = family === "grade-continuous" && previousGrade !== null && speedDeficit > 0 && span;
       const energyTransformed = family === "energy-continuous" && controllerDebt > 0 && span;
       const phaseTransformed = family === "contact-phase-continuous" && previousContactPhaseFrames !== null && span;
-      const transformed = gradeTransformed || energyTransformed || phaseTransformed;
+      const airbornePhasePressure = incomingAirbornePhasePressure(incomingAirborneAgeFrames);
+      const airbornePhaseTransformed = family === "airborne-phase-continuous" && airbornePhasePressure > 0 && span;
+      const transformed = gradeTransformed || energyTransformed || phaseTransformed || airbornePhaseTransformed;
       const lines = gradeTransformed
         ? correlateTerminalGrade(geometry.lines, contactAnchor, previousGrade!, speedDeficit)
         : energyTransformed
@@ -394,12 +426,16 @@ function runTrial(
           geometry.lines, contactAnchor, probe.targetState.speed, probe.targetState.angleDeg,
           previousContactPhaseFrames!,
         )
+        : airbornePhaseTransformed
+        ? correlateAirbornePhaseTail(geometry.lines, contactAnchor, airbornePhasePressure)
         : geometry.lines;
       const proposedTerminalGradeDeg = terminalGrade(lines);
       const proposedMeanWorkGradeDeg = tailMeanWorkGrade(lines, contactAnchor);
       const proposedContactPhaseFrames = contactPhaseFrames(
         lines, contactAnchor, probe.targetState.speed, probe.targetState.angleDeg,
       );
+      const rawPostTailLengthPx = postTailLength(geometry.lines, contactAnchor);
+      const proposedPostTailLengthPx = postTailLength(lines, contactAnchor);
       const before = getSimFrames();
       const fit = tryCandidateLines(
         engine, gap, lines, lineIdStart, prepared.ctx.allContactFrames, axisEnd,
@@ -416,6 +452,10 @@ function runTrial(
         previousContactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null,
         rawContactPhaseFrames,
         proposedContactPhaseFrames,
+        incomingAirborneAgeFrames,
+        airbornePhasePressure: family === "airborne-phase-continuous" ? round(airbornePhasePressure) : null,
+        rawPostTailLengthPx,
+        proposedPostTailLengthPx,
         admitted: fit !== null, cost: fit === null ? null : round(fit.cost), simFrames: frames,
       });
       if (fit !== null && (chosen === null || fit.cost < chosen.fit.cost)) {
@@ -432,7 +472,7 @@ function runTrial(
       impact: gap.targets.impact ?? null,
     };
     if (chosen === null) {
-      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, contactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null, candidates, chosen: null, result: "no-admitted-candidate" });
+      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, contactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null, incomingAirborneAgeFrames, candidates, chosen: null, result: "no-admitted-candidate" });
       break;
     }
     const achieved = chosen.fit.achievedAtEnd ?? chosen.fit.achieved;
@@ -442,6 +482,7 @@ function runTrial(
       entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) },
       carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null,
       contactPhaseFrames: family === "contact-phase-continuous" ? chosen.contactPhaseFrames : null,
+      incomingAirborneAgeFrames,
       candidates,
       chosen: {
         attempt: chosen.attempt,
@@ -699,6 +740,66 @@ function correlateContactPhase(
     x2: line.x2 + dx,
     y2: line.y2 + dy,
   }));
+}
+
+function incomingAirbornePhasePressure(airborneAgeFrames: number | null): number {
+  if (airborneAgeFrames === null || !Number.isFinite(airborneAgeFrames)) return 0;
+  return smoothstep((LEGAL_AIRBORNE_FRAMES - airborneAgeFrames) / LEGAL_AIRBORNE_FRAMES);
+}
+
+/**
+ * Preserve all lines through the first outgoing segment after the sampled
+ * contact. The remaining tail keeps its original segment directions and
+ * collision flags while its lengths scale continuously with the measured
+ * incoming phase shortfall. This is a release-timing test, not a new capture
+ * primitive or a future-target-sized support rail.
+ */
+function correlateAirbornePhaseTail(
+  lines: readonly TrackLine[],
+  contactAnchor: { x: number; y: number },
+  pressure: number,
+): TrackLine[] {
+  const vertices = polylineVertices(lines);
+  if (vertices.length < 4) return [...lines];
+  const contact = closestVertex(vertices, contactAnchor);
+  const firstMutableLine = contact + 1;
+  if (firstMutableLine >= lines.length) return [...lines];
+  const scale = lerp(1, AIRBORNE_PHASE_TAIL_MIN_SCALE, clamp(pressure, 0, 1));
+  const result = lines.map((line) => ({ ...line }));
+  let point = { ...vertices[firstMutableLine]! };
+  for (let index = firstMutableLine; index < lines.length; index++) {
+    const from = vertices[index]!;
+    const to = vertices[index + 1]!;
+    const dx = (to.x - from.x) * scale;
+    const dy = (to.y - from.y) * scale;
+    const next = { x: point.x + dx, y: point.y + dy };
+    result[index] = {
+      ...result[index]!,
+      x1: point.x,
+      y1: point.y,
+      x2: next.x,
+      y2: next.y,
+    };
+    point = next;
+  }
+  return result;
+}
+
+function postTailLength(
+  lines: readonly TrackLine[],
+  contactAnchor: { x: number; y: number },
+): number | null {
+  const vertices = polylineVertices(lines);
+  if (vertices.length < 2) return null;
+  const contact = closestVertex(vertices, contactAnchor);
+  const firstMutableLine = contact + 1;
+  if (firstMutableLine >= lines.length) return 0;
+  let length = 0;
+  for (let index = firstMutableLine; index < lines.length; index++) {
+    const line = lines[index]!;
+    length += Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+  }
+  return round(length);
 }
 
 function polylineVertices(lines: readonly TrackLine[]): Array<{ x: number; y: number }> {

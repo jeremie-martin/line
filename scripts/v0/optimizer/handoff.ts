@@ -42,6 +42,7 @@ import {
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
   HANDOFF_EVALUATION_PHASES,
+  IMPACT_WINDOW,
   ELEVATION,
   SPEED_AXIS,
   START_DEFAULTS,
@@ -302,6 +303,22 @@ export type HandoffPoolProbeContactGeometry = {
   targetContacts: Array<{ lineId: number; pointIds: string[] }>;
 };
 
+/** Exact full-sled state and candidate-owned sled collisions over the canonical
+ * response window. Like target geometry, this is a lazy post-completion study
+ * surface and is never read by live compiler traversal. */
+export type HandoffPoolProbeContactResponse = {
+  samples: Array<{
+    frame: number;
+    points: Partial<Record<"PEG" | "TAIL" | "NOSE" | "STRING", {
+      x: number;
+      y: number;
+      vx: number | null;
+      vy: number | null;
+    }>>;
+    sledContacts: Array<{ lineId: number; pointIds: string[] }>;
+  }>;
+};
+
 export type HandoffPoolProbeRecord = {
   gapIndex: number;
   entrySpeed: number;
@@ -319,6 +336,8 @@ export type HandoffPoolProbeRecord = {
    * collision callback, callers must resolve it only after compile completion.
    */
   contactGeometryAtQualityRank: (qualityRank: number) => HandoffPoolProbeContactGeometry | null;
+  /** Lazy exact response-window replay for candidate-evolution diagnostics. */
+  contactResponseAtQualityRank: (qualityRank: number) => HandoffPoolProbeContactResponse | null;
 };
 
 type HandoffPoolProbeHook = (record: HandoffPoolProbeRecord) => void;
@@ -439,6 +458,55 @@ function candidateOwnedContactGeometry(
       points,
       targetContacts,
     };
+  } catch {
+    return null;
+  }
+}
+
+function candidateOwnedContactResponse(
+  prefixEngine: any,
+  candidate: Candidate,
+  gap: Gap,
+): HandoffPoolProbeContactResponse | null {
+  try {
+    const engine = prefixEngine.addLine(candidate.lines.map(engineLineFromTrackLine));
+    if (typeof engine?.getUpdatesAtFrame !== "function" || typeof engine?.getRider !== "function") return null;
+    const candidateLineIds = new Set(candidate.lines.map((line) => line.id));
+    const samples: HandoffPoolProbeContactResponse["samples"] = [];
+    for (let frame = gap.endFrame; frame <= gap.endFrame + IMPACT_WINDOW; frame++) {
+      const rider = engine.getRider(Math.max(0, frame));
+      const points: HandoffPoolProbeContactResponse["samples"][number]["points"] = {};
+      for (const name of ["PEG", "TAIL", "NOSE", "STRING"] as const) {
+        const point = rider?.get?.(name);
+        const position = point?.pos as { x?: unknown; y?: unknown } | undefined;
+        const velocity = (point?.vel ?? point?.velocity) as { x?: unknown; y?: unknown } | undefined;
+        if (
+          typeof position?.x !== "number" || !Number.isFinite(position.x) ||
+          typeof position?.y !== "number" || !Number.isFinite(position.y)
+        ) continue;
+        points[name] = {
+          x: position.x,
+          y: position.y,
+          vx: typeof velocity?.x === "number" && Number.isFinite(velocity.x) ? velocity.x : null,
+          vy: typeof velocity?.y === "number" && Number.isFinite(velocity.y) ? velocity.y : null,
+        };
+      }
+      const updates = engine.getUpdatesAtFrame(Math.max(0, frame));
+      const sledContacts: Array<{ lineId: number; pointIds: string[] }> = [];
+      if (Array.isArray(updates)) {
+        for (const update of updates) {
+          const record = update as { id?: unknown; updated?: unknown };
+          if (typeof record.id !== "number" || !candidateLineIds.has(record.id) || !Array.isArray(record.updated)) continue;
+          const pointIds = record.updated
+            .map((entry) => (entry as { id?: unknown } | null)?.id)
+            .filter((point): point is string => typeof point === "string" &&
+              (point === "PEG" || point === "TAIL" || point === "NOSE" || point === "STRING"));
+          if (pointIds.length > 0) sledContacts.push({ lineId: record.id, pointIds });
+        }
+      }
+      samples.push({ frame, points, sledContacts });
+    }
+    return { samples };
   } catch {
     return null;
   }
@@ -3589,6 +3657,7 @@ function rankedOptions(
     const entrySpeed = getCandidateProbe(node.prefixEngine, gap, ctx).targetState.speed;
     const collisionWindows = new Map<number, HandoffPoolProbeCollisionWindow | null>();
     const contactGeometry = new Map<number, HandoffPoolProbeContactGeometry | null>();
+    const contactResponse = new Map<number, HandoffPoolProbeContactResponse | null>();
     const collisionWindowAtQualityRank = (qualityRank: number): HandoffPoolProbeCollisionWindow | null => {
       if (!Number.isSafeInteger(qualityRank) || qualityRank < 0 || qualityRank >= sorted.length) return null;
       const cached = collisionWindows.get(qualityRank);
@@ -3603,6 +3672,14 @@ function rankedOptions(
       if (cached !== undefined) return cached;
       const observation = candidateOwnedContactGeometry(node.prefixEngine, sorted[qualityRank]!, gap);
       contactGeometry.set(qualityRank, observation);
+      return observation;
+    };
+    const contactResponseAtQualityRank = (qualityRank: number): HandoffPoolProbeContactResponse | null => {
+      if (!Number.isSafeInteger(qualityRank) || qualityRank < 0 || qualityRank >= sorted.length) return null;
+      const cached = contactResponse.get(qualityRank);
+      if (cached !== undefined) return cached;
+      const observation = candidateOwnedContactResponse(node.prefixEngine, sorted[qualityRank]!, gap);
+      contactResponse.set(qualityRank, observation);
       return observation;
     };
     handoffPoolProbeHook({
@@ -3682,6 +3759,7 @@ function rankedOptions(
       }),
       collisionWindowAtQualityRank,
       contactGeometryAtQualityRank,
+      contactResponseAtQualityRank,
     });
   }
   // Agreement instrument (measure-only): record ONLY when the pool was scored via the

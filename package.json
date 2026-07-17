@@ -43,6 +43,7 @@
     "study:impact-suffix": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_suffix_counterfactual.ts",
     "study:impact-response": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_response_envelope.ts",
     "study:impact-multicontact": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_multicontact_geometry.ts",
+    "study:impact-response-evolution": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_multicontact_response_evolution.ts",
     "study:native-capture-impulse": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_native_capture_impulse_suffix.ts",
     "study:affine-contact-flow": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_contact_point_normal_frame.ts --full-sled-affine-contact-flow-field --batch=0 --out=generated/studies/full-sled-affine-contact-flow-field-normal-pool/v1/batch-0.json",
     "study:collision-interval-midpoint": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_contact_point_normal_frame.ts --native-collision-interval-midpoint-field --batch=0 --out=generated/studies/native-collision-interval-midpoint-field-normal-pool/v1/batch-0.json",

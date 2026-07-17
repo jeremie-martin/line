@@ -5889,6 +5889,53 @@ release-geometry transport and distributed contact-time transport.  A future
 component would need a new causal representation of the current collision
 formation, not another property recovered from the previous contact.
 
+## Declared Study: Arc-Knob Response and Sequential-Composition Audit (2026-07-17)
+
+The incumbent proposer uses an exit-tail pitch and a whole-arc rotation.  The
+open question was whether rotation is the wrong physical knob, whether the
+five-probe cross needs a richer joint model, or whether the same probe budget
+should be spent sequentially: three pitch rides, then two rotations around the
+selected pitch.  All candidates remain ordinary `tryCandidateLines` proposals;
+the studies neither retarget asks nor alter selection.
+
+**Physical screen (48 ordinary V2 committed states; dense, dense-240, pickup,
+low-air, representative, and development-music; two seeds; 300k; first four
+aim-eligible arcs; `study_arc_knob_replacement_v2.ts`): RETIRE the first
+contact-preserving exit-bend replacement.** Rotation was active but fragile:
+**72/96** signed rotation edits passed the exact normal gate.  The progressive
+suffix bend passed **96/96**, but its best-of-two impact-error improvement was
+only `-0.00031` (median `0`), versus rotation `-0.0283` (median `-0.0380`).
+Keeping the catch fixed made this bend mostly unable to affect the measured
+contact response; it is not a replacement for a catch-effective actuator.
+
+**Model audit (same 48 states; `study_arc_cross_additivity_v2.ts`): do not add
+a third response-model dimension.** On **145** gate-clean held-out
+pitch×rotation corners, current-impact prediction MAE was **0.0040** (p90
+**0.0157**); direct additive composition was slightly lower at **0.0034**.
+The binding failure is physical validity: axis probes passed **90.4%**, while
+unseen combined corners passed **76.6%**.  The large next-sled-pose error is
+real diagnostic debt, but it is not evidence that a richer impact surface is
+the missing lever.
+
+**Sequential five-probe policy (same fixed panel; production short-probe mode;
+`study_arc_sequential_probe_v2.ts`): locally promising but globally RETIRED.**
+Pitch-first conditional rotation produced **69/69** exact admissions and a
+viable proposal on **45/48** states, compared with the incumbent's **75/96**
+admissions and **39/48** viable states (six recovered, none lost).  However,
+the source-default implementation narrowed/redirected the two proposal slots
+enough to lose global search value.  Governed Stage 0
+(`npm run benchmark -- eval --no-resource-stats`, 264 V2 compiles) scored
+**503.52**, down **6.85** from accepted **510.37**; 250k fell to **460.09**
+with **127/132** valid, while 500k was **520.89**.  The implementation was
+reverted and no certified attempt is authorized.
+
+**Next boundary.** Keep the two-knob/constant-probe budget, but seek a
+contact-effective *local* actuator with a broad validity envelope rather than
+another global rotation or a response-model expansion.  A successor must first
+beat rotation's impact authority while retaining bend-like exact admission on
+the same panel, then prove that preserving its extra local candidates does not
+reduce the normal two-slot search diversity at 250k.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

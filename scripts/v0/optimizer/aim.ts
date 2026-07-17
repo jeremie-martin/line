@@ -66,7 +66,6 @@ import { AXES, type AxisName, type TrackLine } from "../types.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
   adjustArcTailLength,
-  applyArcBowKnobs,
   applyArcKnobs,
   arcKnobSpan,
   arcProbeDesign,
@@ -82,7 +81,6 @@ import {
   type RiderArrivalState,
 } from "./arc_model.ts";
 import {
-  evaluateJointArcLines,
   evaluateJointArcKnobs,
   type JointArcProbeObservation,
 } from "./arc_probe.ts";
@@ -126,18 +124,6 @@ const AIM_DELTA_MAX_DEG = 10;
 export function aimEnumEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_ENUM !== "0";
-}
-
-/**
- * Study-only physical actuator substitution.  The response model retains its
- * two coordinates and five-probe cross, but its former whole-arc-rotation
- * coordinate realizes as an endpoint-preserving interior bow.  Default-off:
- * it exists only for equal-budget scope evidence, never as an ambient normal
- * compiler behavior.
- */
-function aimBowExperimentEnabled(): boolean {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_BOW === "1";
 }
 
 /** Below this |predicted base air − effective ask| the air-matched variant is
@@ -716,7 +702,6 @@ function makeJointAimedCandidates(
   airKnobBase: boolean,
 ): Candidate[] {
   const adaptiveRotation = aimCompileBudgetFrames <= AIM_ADAPTIVE_ROTATION_SCARCE_MAX_BUDGET;
-  const useBow = aimBowExperimentEnabled();
   let probeDesignName: ArcProbeDesignName = adaptiveRotation
     ? "pitch3"
     : AIM_JOINT_PROBE_DESIGN;
@@ -724,17 +709,9 @@ function makeJointAimedCandidates(
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
   const framesBeforeProbes = getPhysicsFrameCount();
-  const transform = (knobs: ArcKnobs): TrackLine[] => useBow
-    ? applyArcBowKnobs(base.lines, knobs)
-    : applyArcKnobs(base.lines, knobs);
-  const observe = (knobs: ArcKnobs) => useBow
-    ? evaluateJointArcLines(
-      engine, transform(knobs), knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
-    )
-    : evaluateJointArcKnobs(
-      engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
-    );
-  let probeRows = arcProbeDesign(probeDesignName).map(observe);
+  let probeRows = arcProbeDesign(probeDesignName).map((knobs) =>
+    evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
+  );
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
   let model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
     context: { gap, axisMeasureEnd, nextFrame },
@@ -772,7 +749,9 @@ function makeJointAimedCandidates(
   if (adaptiveRotation && pitchBound) {
     const rotationRows = arcProbeDesign("cross5")
       .filter((knobs) => knobs.rotateDeg !== 0)
-      .map(observe);
+      .map((knobs) =>
+        evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
+      );
     probeRows = [...probeRows, ...rotationRows];
     recordJointProbeRows(rotationRows, gap, axisMeasureEnd, nextFrame);
     probeDesignName = "cross5";
@@ -824,7 +803,7 @@ function makeJointAimedCandidates(
     return out;
   }
   for (const cand of chosen) {
-    const aimedLines = transform(cand.knobs)
+    const aimedLines = applyArcKnobs(base.lines, cand.knobs)
       .map((l, i) => ({ ...l, id: lineIdStart + i }));
     const fit = tryCandidateLines(
       engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,

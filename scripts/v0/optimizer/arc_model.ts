@@ -270,53 +270,6 @@ export function rotateArcLines(lines: TrackLine[], deg: number): TrackLine[] {
 }
 
 /**
- * Displace the interior of a contiguous arc in its entry-to-exit chord normal,
- * while retaining both endpoints exactly.  `equivalentDeg` is a response-model
- * coordinate rather than a physical rotation: its peak displacement is the
- * arc length times tan(equivalentDeg), the first-order transverse scale of a
- * whole-arc rotation at the same coordinate.  A non-contiguous or degenerate
- * polyline is returned unchanged, so the exact evaluator remains the owner of
- * availability rather than a geometry repair path.
- */
-export function bowArcInteriorLines(lines: TrackLine[], equivalentDeg: number): TrackLine[] {
-  if (lines.length < 2 || equivalentDeg === 0) return lines.map((line) => ({ ...line }));
-  const vertices = [{ x: lines[0].x1, y: lines[0].y1 }];
-  let arcLength = 0;
-  for (const line of lines) {
-    const previous = vertices[vertices.length - 1];
-    if (Math.hypot(line.x1 - previous.x, line.y1 - previous.y) > 1e-6) {
-      return lines.map((item) => ({ ...item }));
-    }
-    const length = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
-    if (!(length > 1e-9)) return lines.map((item) => ({ ...item }));
-    arcLength += length;
-    vertices.push({ x: line.x2, y: line.y2 });
-  }
-  const start = vertices[0];
-  const end = vertices[vertices.length - 1];
-  const chordX = end.x - start.x;
-  const chordY = end.y - start.y;
-  const chordLength = Math.hypot(chordX, chordY);
-  if (!(chordLength > 1e-9) || !(arcLength > 1e-9)) return lines.map((line) => ({ ...line }));
-  const amplitude = arcLength * Math.tan(equivalentDeg * Math.PI / 180);
-  const normalX = -chordY / chordLength;
-  const normalY = chordX / chordLength;
-  const adjusted = vertices.map((vertex, index) => {
-    const s = index / (vertices.length - 1);
-    // The continuous displacement has zero value and derivative at both ends.
-    const weight = Math.sin(Math.PI * s) ** 2;
-    return { x: vertex.x + normalX * amplitude * weight, y: vertex.y + normalY * amplitude * weight };
-  });
-  return lines.map((line, index) => ({
-    ...line,
-    x1: adjusted[index].x,
-    y1: adjusted[index].y,
-    x2: adjusted[index + 1].x,
-    y2: adjusted[index + 1].y,
-  }));
-}
-
-/**
  * Scale the complete arc about its entry point while preserving every segment
  * direction and the arc's internal shape. This is intentionally distinct from
  * `adjustArcTailLength`: it changes the duration of the complete supported
@@ -339,18 +292,6 @@ export function scaleArcLines(lines: TrackLine[], scale: number): TrackLine[] {
 export function applyArcKnobs(lines: TrackLine[], knobs: ArcKnobs): TrackLine[] {
   const rotated = knobs.rotateDeg === 0 ? lines.map((line) => ({ ...line })) : rotateArcLines(lines, knobs.rotateDeg);
   return knobs.pitchDeg === 0 ? rotated : pitchExitLines(rotated, knobs.pitchDeg);
-}
-
-/**
- * Experimental physical replacement for the whole-arc rotation coordinate.
- * The response-model coordinate and probe budget are deliberately unchanged:
- * bow happens first, then the existing tail pitch, matching the production
- * transform order.  This is inert unless the aim bow experiment explicitly
- * selects it; ordinary compiler geometry still calls applyArcKnobs above.
- */
-export function applyArcBowKnobs(lines: TrackLine[], knobs: ArcKnobs): TrackLine[] {
-  const bowed = knobs.rotateDeg === 0 ? lines.map((line) => ({ ...line })) : bowArcInteriorLines(lines, knobs.rotateDeg);
-  return knobs.pitchDeg === 0 ? bowed : pitchExitLines(bowed, knobs.pitchDeg);
 }
 
 /** Longest tail extension, as a multiple of the arc's own total length, and

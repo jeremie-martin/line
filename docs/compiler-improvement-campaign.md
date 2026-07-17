@@ -1962,20 +1962,26 @@ rail-exit state that killed staged support.
 
 It does not generalize to the adjacent dense-240 state: all 55
 capture→capture pairs materialized, yet **0/55** produced a normal admission
-at k+2. The control was present on every row, so this is an arrival-competence
-failure rather than a missing sampler path. Ordinary was saturated (117/117
-pairs with normal return; 2,418 admissions) and contributes no new capability
-evidence. Moreover, the complete dense capture screen cost 11.8k frames
-against the equal-count raw-normal family's 2.1k before any source-level
-candidate/ranking charge. The static screen is therefore not a compact,
-continuous source control.
+at k+2. The control was present on every row, so this is not a missing sampler
+path. Exact k+2 state telemetry explains it: every dense-240 pair was airborne
+for only 1--5 frames (all below `MIN_LANDING_AIRBORNE_FRAMES=6`), whereas the
+four returning dense pairs and all 117 ordinary pairs had 13. This is the same
+detector-floor identity that closed the supported-composite program: a normal
+landing cannot be recovered from this return state by adjusting its aim.
+Ordinary was saturated (117/117 pairs with normal return; 2,418 admissions)
+and contributes no new capability evidence. Moreover, the complete dense
+capture screen cost 11.8k frames against the equal-count raw-normal family's
+2.1k before any source-level candidate/ranking charge. The static screen is
+therefore not a compact, continuous source control.
 
 **Decision.** Do not integrate or tune a short-gap capture-pair lane. The
 result preserves a physical component fact for dense, but the required
-dense-240 return boundary is absent and a fixed control-menu source would
-repeat the closed static-capture delivery pattern. A successor must solve the
-return state from shared continuous residuals at bounded cost; it may not pick
-the fixture's successful menu entry or branch by case/duration.
+dense-240 return boundary is detector-illegal. Restoring it needs a sixth
+airborne frame, i.e. a release/reservation architecture rather than a normal
+aim residual; that is precisely the capped release form already shown to erase
+the composite's unique value. A fixed control-menu source would also repeat
+the closed static-capture delivery pattern. Do not pick the fixture's
+successful menu entry or branch by case/duration.
 
 ## Workflow Notes
 

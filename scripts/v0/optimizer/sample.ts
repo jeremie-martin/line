@@ -159,9 +159,6 @@ export function sampleOneCandidate(
   /** Optional normal-stream support envelope for a compiler-owned specialist
    *  lane. It changes geometry only; hard gates and scoring remain literal. */
   supportGeometryMode?: SupportGeometryMode,
-  /** Terminal terrain grade from the immediately preceding committed fit.  It
-   * is optional so non-prefix study callers retain the historical stream. */
-  previousCommittedTerminalGradeDeg?: number | null,
 ): Candidate | null {
   return observeOneCandidate(
     engine,
@@ -173,8 +170,6 @@ export function sampleOneCandidate(
     mode,
     geometryTargets,
     supportGeometryMode,
-    undefined,
-    previousCommittedTerminalGradeDeg,
   ).fit;
 }
 
@@ -199,9 +194,6 @@ export function observeOneCandidate(
    * normal candidate path exactly; useful when an attribution study must
    * disable optional post-fit continuation on both compared families. */
   evaluationOptions?: CandidateLineEvaluationOptions,
-  /** Optional committed predecessor grade for an attempt-spanned normal
-   * sampler source.  Omitted paths remain byte-identical. */
-  previousCommittedTerminalGradeDeg?: number | null,
 ): SampledCandidateObservation {
   candidateSampleCount++;
   const probe = getCandidateProbe(engine, gap, ctx);
@@ -211,7 +203,7 @@ export function observeOneCandidate(
   // the attempt arg is unused and the RNG drives diversity.
   const geometry = sampleArcPlacementGeometry(
     rng, probe.refX, probe.refY, geometryTargets, probe.targetState, attempt, gap, lineIdStart, mode,
-    ctx.allContactFrames, supportGeometryMode, previousCommittedTerminalGradeDeg,
+    ctx.allContactFrames, supportGeometryMode,
   );
 
   const fit = tryCandidateGeometry(

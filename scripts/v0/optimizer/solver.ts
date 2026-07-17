@@ -39,14 +39,11 @@ export function solveOneGap(
   K: number,
   ctx: SpecContext,
   lineIdStart: number,
-  previousCommittedTerminalGradeDeg?: number | null,
 ): Candidate[] {
   if (!Number.isInteger(K) || K < 0) {
     throw new Error(`solveOneGap: K must be a non-negative integer, got ${K}`);
   }
-  return solveOneGapAttemptRange(
-    engine, gap, rng, 0, K, ctx, lineIdStart, previousCommittedTerminalGradeDeg,
-  );
+  return solveOneGapAttemptRange(engine, gap, rng, 0, K, ctx, lineIdStart);
 }
 
 export function solveOneGapAttemptRange(
@@ -58,7 +55,6 @@ export function solveOneGapAttemptRange(
   attemptEnd: number,
   ctx: SpecContext,
   lineIdStart: number,
-  previousCommittedTerminalGradeDeg?: number | null,
 ): Candidate[] {
   if (!Number.isInteger(attemptStart) || attemptStart < 0) {
     throw new Error(`solveOneGapAttemptRange: attemptStart must be a non-negative integer, got ${attemptStart}`);
@@ -68,10 +64,7 @@ export function solveOneGapAttemptRange(
   }
   const out: Candidate[] = [];
   for (let attempt = attemptStart; attempt < attemptEnd; attempt++) {
-    const c = sampleOneCandidate(
-      engine, gap, rng, ctx, lineIdStart, attempt, "normal", gap.targets, undefined,
-      previousCommittedTerminalGradeDeg,
-    );
+    const c = sampleOneCandidate(engine, gap, rng, ctx, lineIdStart, attempt);
     if (c !== null) out.push(c);
   }
   return out;

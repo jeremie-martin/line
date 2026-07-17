@@ -345,25 +345,6 @@ const ARC_LEN_ROOM_SPARSE_FRAMES = 46;
 const ARC_LEN_ROOM_SMOOTH_BUDGET_START_FRAMES = 50_000;
 const ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES = 50_000;
 
-/**
- * Grade continuity is an attempt-spanned normal-sampler source, not a rescue
- * lane: when a rider is materially below an authored speed ask, a shallow
- * terminal grade from the committed predecessor can seed a minority of the
- * next gap's release-angle distribution.  The exact gates/ranker still decide
- * whether any such candidate survives or is chosen.  The environment switch is
- * temporary study plumbing; the source-default decision follows the governed
- * scope panel rather than this flag.
- */
-const gradeContinuityEnabled =
-  (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_GRADE_CONTINUITY === "1";
-const GRADE_CONTINUITY_SHARE = 0.25;
-const GRADE_CONTINUITY_TERMINAL_BLEND = 0.70;
-const GRADE_CONTINUITY_SHALLOW_FULL_DEG = 8;
-const GRADE_CONTINUITY_SHALLOW_ZERO_DEG = 22;
-const GRADE_CONTINUITY_SPEED_DEFICIT_START_PX_PER_FRAME = 0.35;
-const GRADE_CONTINUITY_SPEED_DEFICIT_SPAN_PX_PER_FRAME = 2.0;
-
 /** Per-compile frame budget, set once at compileHandoff entry (each compile is a
  *  single independent budget, run in its own worker / sequentially), read by the
  *  budget-aware geometry. A per-compile constant, so determinism stays per
@@ -591,10 +572,6 @@ export function sampleArcPlacementGeometry(
   mode: CandidateSampleMode = "normal",
   allContactFrames: readonly number[] = [],
   geometryModeOverride?: SupportGeometryMode,
-  /** Terminal grade of the immediately preceding committed fit, if one exists.
-   * Passing it through the normal sampler keeps the source bound to actual
-   * prefix geometry rather than an analytic or case-specific state. */
-  previousCommittedTerminalGradeDeg?: number | null,
 ): ArcPlacementGeometry {
   recordArcPlacementSample(mode);
   lastGeometryWasImpactTemplate = false;
@@ -604,7 +581,6 @@ export function sampleArcPlacementGeometry(
       lines: sampleContactCenteredLines(
         rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
         geometryModeOverride ?? supportGeometryMode(),
-        previousCommittedTerminalGradeDeg,
       ),
     };
   }
@@ -1082,7 +1058,6 @@ function sampleContactCenteredLines(
   allContactFrames: readonly number[],
   attempt: number,
   geometryMode: ReturnType<typeof supportGeometryMode>,
-  previousCommittedTerminalGradeDeg: number | null | undefined,
 ): TrackLine[] {
   const rawRolls: ContactCenteredRolls = {
     segmentLengthRoll: rng(),
@@ -1353,14 +1328,6 @@ function sampleContactCenteredLines(
     }
   }
 
-  postAngleDeg = gradeContinuousPostAngle({
-    postAngleDeg,
-    targetSpeedPx,
-    targetState,
-    attempt,
-    previousCommittedTerminalGradeDeg,
-  });
-
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
   const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
   supportGeometryProbeHook?.({
@@ -1468,35 +1435,6 @@ function sampleContactCenteredLines(
     postLength, postSegments, postCurveBias, contactAngleDeg,
   );
   return [...preLines, ...postLines];
-}
-
-function gradeContinuousPostAngle(params: {
-  postAngleDeg: number;
-  targetSpeedPx: number;
-  targetState: ImpactFrameTargetState;
-  attempt: number;
-  previousCommittedTerminalGradeDeg: number | null | undefined;
-}): number {
-  if (!gradeContinuityEnabled || params.previousCommittedTerminalGradeDeg === null ||
-      params.previousCommittedTerminalGradeDeg === undefined) {
-    return params.postAngleDeg;
-  }
-  if (lowDiscrepancyRoll(params.attempt, 41) < 1 - GRADE_CONTINUITY_SHARE) {
-    return params.postAngleDeg;
-  }
-  const previous = params.previousCommittedTerminalGradeDeg;
-  const shallowPressure = 1 - smoothstep(
-    (Math.abs(previous) - GRADE_CONTINUITY_SHALLOW_FULL_DEG) /
-      (GRADE_CONTINUITY_SHALLOW_ZERO_DEG - GRADE_CONTINUITY_SHALLOW_FULL_DEG),
-  );
-  const speedDeficitPressure = smoothstep(
-    (params.targetSpeedPx - params.targetState.speed - GRADE_CONTINUITY_SPEED_DEFICIT_START_PX_PER_FRAME) /
-      GRADE_CONTINUITY_SPEED_DEFICIT_SPAN_PX_PER_FRAME,
-  );
-  const pressure = GRADE_CONTINUITY_TERMINAL_BLEND * shallowPressure * speedDeficitPressure;
-  return pressure <= 0
-    ? params.postAngleDeg
-    : clamp(lerp(params.postAngleDeg, previous, pressure), -8, 65);
 }
 
 type ImpactTemplateDescriptor = {

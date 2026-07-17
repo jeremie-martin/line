@@ -5559,6 +5559,62 @@ formation signal. A successor must use a distinct state representation with
 material pre-contact evolution, not another local re-expression of this
 velocity gradient.
 
+## Declared Observation: Candidate-Resolved Full-Sled Response Evolution (2026-07-17)
+
+The three newly rejected fields leave a specific evidentiary gap. The raw
+same-speed impact repair is a real candidate with a different native response,
+but neither its stationary target geometry nor its instantaneous pre-contact
+gradient supplied a broad state-to-geometry law. Before constructing another
+component, measure the exact finite response it creates.
+
+On the immutable six-source/two-seed V2-jolt/500k impact-frontier cohort,
+retain the pre-existing material no-extra-speed repair pairs. Only after each
+`compileHandoff` completes, replay each selected and repair candidate through
+the canonical `H..H+6` window. At every frame record all PEG/TAIL/NOSE/STRING
+positions and velocities plus only candidate-owned sled CollisionUpdates. From
+the first and last full clouds report: least-squares rigid rotation, RMS
+pair-distance change, collective-speed change, collective-velocity turn, and
+candidate-owned sled-contact frames, update count, and point coverage. No
+metric is a selector, threshold, source input, or field parameter.
+
+**Decision boundary.** Retire a response-evolution state basis if no
+predeclared measure shows a coherent repair-minus-selected change across every
+impact, dense, pickup, low-air, and development source family, or if response
+state is unavailable. A coherent result would authorize exactly one new
+pre-contact, continuous geometry construction whose state is fixed before
+candidate generation; it cannot reuse a candidate's response as an edit oracle
+or reopen any gradient, response-density, contact-manifold, suffix, support,
+or selector variant.
+
+**Result (2026-07-17, 56s; `npm run study:impact-response-evolution`; artifact
+`generated/studies/impact-multicontact-response-evolution/v1/result.json`):
+RETIRE a candidate-resolved response-evolution state basis.** Every one of the
+**1,705** fixed same-speed material repair pairs supplied complete four-point
+state and candidate-owned collision reads over `H..H+6`; this is a complete
+physical measurement rather than an availability null. It identifies one
+strong, source-invariant trade: the better-impact repair turns the collective
+sled velocity farther in every family (`−1.905344°` to `−2.957826°` relative
+to selected) while losing collective speed in every family (`−.073170` to
+`−.134927` px/frame). Candidate-owned sled-contact persistence also falls in
+all six sources (`−.109453` to `−.540404` response frames).
+
+The remaining apparent state differences are not a universal transition law.
+Rigid configuration rotation is nearly unchanged in Believer (`−.107423°`) but
+falls elsewhere; pair-distance deformation reverses in Believer; and update
+count and contact coverage change sign between Dense Dialogue, Low Air, and
+the other sources. Thus the repair's post-response is not a coherent full-sled
+configuration signal from which to construct terrain. It is the expected
+physical cost of achieving more redirection through a shorter/lower-persistence
+native contact.
+
+Do not derive a field from repair response rotation, pair strain, collision
+counts, or response duration; do not compensate speed afterward, select a
+favorable response, or turn this observational trade into a ranker rule. The
+retained basis is more demanding: a successor must be pre-contact and create a
+distributed **constant-speed redirection** transition, rather than taking the
+currently available high-turn/low-speed repair trade or reacting to it after
+the collision.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

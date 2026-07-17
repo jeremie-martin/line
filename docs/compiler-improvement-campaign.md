@@ -5843,6 +5843,52 @@ coherent component.  A successor must change the native collision/transition
 representation itself, not transport any state recovered from an independently
 chosen prior post-curve.
 
+## Declared Observation: Distributed Native Contact-Timing Memory (2026-07-17)
+
+The contact-phase stream carries one anchor displacement, while the timing of
+the three zero-friction sled points could in principle be a genuinely new
+multi-contact state.  Before constructing a timing-to-geometry field, read
+that state only from the independent arm: after each five-contact chain has
+completed and all gates, choices, terminal metrics, and charged frames are
+final, reconstruct it on an isolated immutable engine branch.  For each
+chosen candidate line set, retain `TAIL`/`NOSE`/`STRING` first and last
+candidate-owned collision-frame offsets and update counts over `H-1..H+6`.
+No timing record is available to geometry generation, admission, ranking, or
+any of the continuity streams.
+
+**Decision boundary.** Retire a contact-timing transport component if the
+previous native timing pattern is not coherently persistent across successive
+ordinary contacts.  In particular, it must retain both a material same-pattern
+and same-active-point share in the complete-chain control before a field could
+lawfully transport it.  A failed observation cannot authorize selecting a
+point subset, smoothing or normalizing offsets, widening the window, or
+constructing a timing-conditioned source.
+
+**Fixture result (2026-07-17, 7s; `LR_ENGINE=wasm node --expose-gc --import
+tsx scripts/v0/study_grade_continuity.ts --case=all --trials=96
+--out-dir=generated/studies/multicontact-timing-continuity/v2`; artifacts
+`generated/studies/multicontact-timing-continuity/v2/*.json`): RETIRE native
+contact-timing memory as a component basis.** The read is complete whenever a
+chain contact commits: all **8/8** believer36 and **357/357** believer69
+independent committed contacts supply a timing record.  This is not a scalar
+phase: believer69 exposes **71** distinct first-contact patterns across
+`TAIL`/`NOSE`/`STRING`, including multi-point and single-point forms.
+
+It is nevertheless not a coherent inherited state.  Of **261** successive
+believer69 contact pairs, only **6** repeat their exact first-offset pattern
+and only **47** retain the same active-point set; on the **284** pointwise
+comparisons where a named point is active in both contacts, the mean absolute
+first-offset movement is **1.25** frames.  Believer36 contributes its only
+successive pair with neither matching pattern nor matching active set.  The
+native contact topology is therefore an event outcome, not a stable
+cross-contact state that a source-default geometry law can carry forward.
+
+Do not build, tune, normalize, smooth, phase-shift, or rank a timing field
+from these offsets.  Together with the curvature result, this closes both
+release-geometry transport and distributed contact-time transport.  A future
+component would need a new causal representation of the current collision
+formation, not another property recovered from the previous contact.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

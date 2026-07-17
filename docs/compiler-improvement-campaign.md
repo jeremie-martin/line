@@ -5084,6 +5084,60 @@ least-squares full-sled angular field can move the ordinary curve substantially,
 but the native dense admission/continuation basin does not tolerate that
 transport.
 
+## Declared Study: Full-Sled Gravity-Time Tangent Field (2026-07-17)
+
+The rejected co-rotating field couples the raw curve to full-sled angular
+motion.  Its dense loss does not test the separate time-coordinate question:
+the normal source allocates its post-contact tangent schedule in arclength,
+while exact collision response and scored impact occur in frames.  This form
+retains every raw contact point and prefix, post-contact segment count and
+length, tangent range, line flag, PRNG coordinate, and ordinary exact gate.
+It reads all four native sled velocities, takes their exact arithmetic mean,
+and uses that collective speed with engine gravity to map each raw post curve
+from arclength fraction to physical traversal-time fraction.  It then samples
+the already-authored raw tangent field at that time fraction.  No angular-rate
+transport, damping, rate cap, endpoint correction, point selection, target
+threshold, outcome, score, rank, source, seed, or duration menu enters the
+construction; existing impact-template geometry remains ordinary.
+
+**Dense-first protocol.** On unused V2-jolt/500k seeds 52 and 53, replay the
+same two dense sources, `frontier_dense_recovery_240ms_figures` and
+`dense_dialogue_impact_contrast_10`, at their first one-third/two-thirds
+ordinary frontier states.  Reproduce the production raw pool/hash, regenerate
+the same attempts, and apply the single gravity-time map where the full sled
+field and non-template post curve are finite.  Record state coverage, template
+skips, tangent movement, viable pool support, exact axes,
+continuation-aware objective, and cost.  The exact evaluator and ordinary pool
+objective remain sole decision makers; this is not a source lane or V2 run.
+
+**Falsifiers.** Retire before the remaining representative, pickup, low-air,
+and development batches if the four-point field or curve coverage is materially
+unavailable, if the map is materially identical to ordinary, or if either
+dense source loses viable support or best continuation-aware objective.  A
+dense pass would authorize only those predeclared broad batches and a fresh
+replay—not a time-law blend, speed scale, gravity adjustment, template
+treatment, selector, or compiler default.
+
+**Dense-first result (2026-07-17, 19.2s; `LR_ENGINE=wasm npx tsx
+scripts/v0/study_contact_point_normal_frame.ts --full-sled-gravity-time-field
+--batch=0`; artifact
+`generated/studies/full-sled-gravity-time-field-normal-pool/v1/batch-0.json`):
+RETIRE the full-sled gravity-time tangent field as materially inert.** All
+eight frozen dense states captured, every ordinary raw pool/hash replayed, and
+all eight supplied a finite four-point velocity field.  The construction
+applied to **192** non-template curves (40 existing templates stayed ordinary),
+but its actual geometry movement is minute: per-state mean absolute tangent
+shift spans only `.002653°`--`.064779°`, with a global maximum `.375534°`.
+
+Accordingly, viable admission is exactly unchanged in all eight paired rows;
+the dense-balanced best objective moves **−.000010** and axis RMS
+`+.000078`.  The largest objective movement is only `−.000117` (Dense Dialogue
+seed 52 early) and cannot support a source claim.  Do not run the remaining
+regimes or turn this null into a time scale, gravity multiplier, nonlinear
+remap, template rule, selector, or candidate lane.  At the ordinary post-curve
+length and collective speeds, gravity cannot materially separate time from
+arclength; a successor must use a different collision-state mechanism.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

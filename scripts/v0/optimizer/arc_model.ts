@@ -846,15 +846,59 @@ function jointArcOutputKeys(rows: readonly JointArcProbeRow[], source: JointArcV
 }
 
 export function predictJointArcOutputs(model: JointArcResponseModel, knobs: ArcKnobs): Record<string, number> {
-  const outputs: Record<string, number> = {};
-  predictFittedValuesInto(model.outputModels, knobs, outputs);
-  if (model.latentModels.size > 0) clearReducerOwnedOutputs(outputs);
   const latent: Record<string, number> = {};
   predictFittedValuesInto(model.latentModels, knobs, latent);
-  reduceLatentJointArcOutputsInto(latent, model.context, outputs);
-  const computedCost = currentCostFromPredictedAxes(outputs, model.context.gap);
+  const direct: Record<string, number> = {};
+  predictFittedValuesInto(model.outputModels, knobs, direct);
+  return completeArcPrediction(direct, latent, model.context);
+}
+
+/**
+ * Combine fitted direct outputs and fitted latent suffix outputs into the
+ * canonical prediction vector consumed by an aiming controller.  The vector
+ * model used by multi-knob experiments calls this boundary too, so the
+ * ballistic reducer and current-cost definition remain exactly shared with
+ * the historical two-coordinate response model.
+ */
+export function completeArcPrediction(
+  directOutputs: Readonly<Record<string, number>>,
+  latentOutputs: Readonly<Record<string, number>>,
+  context: JointArcResponseContext,
+): Record<string, number> {
+  const outputs = { ...directOutputs };
+  if (Object.keys(latentOutputs).length > 0) {
+    clearReducerOwnedOutputs(outputs);
+    reduceLatentJointArcOutputsInto(latentOutputs as Record<string, number>, context, outputs);
+  }
+  const computedCost = currentCostFromPredictedAxes(outputs, context.gap);
   if (computedCost !== null) outputs["current.cost"] = computedCost;
   return outputs;
+}
+
+/** Read the objective-facing values from an already-completed response vector.
+ * This is deliberately separate from the legacy model's fitted-entry readout:
+ * it allows a response model with any number of physical coordinates to share
+ * the same quality, arrival, and exit semantics without pretending that a
+ * third knob is a hidden `pitchDeg` or `rotateDeg` value. */
+export function scoreCompletedArcPrediction(
+  outputs: Readonly<Record<string, number>>,
+  currentTargets: AxisValues,
+  scoreAxes: JointArcCurrentScoreAxes = jointArcCurrentScoreAxes(currentTargets),
+): JointArcScoreReadout {
+  const air = scoreAxes.air ? outputs["current.axis.air"] : NaN;
+  const speed = scoreAxes.speed ? outputs["current.axis.speed"] : NaN;
+  const grain = scoreAxes.grain ? outputs["current.axis.grain"] : NaN;
+  const elevation = scoreAxes.elevation ? outputs["current.axis.elevation"] : NaN;
+  const amplitude = scoreAxes.amplitude ? outputs["current.axis.amplitude"] : NaN;
+  const impact = scoreAxes.impact ? outputs["current.axis.impact"] : NaN;
+  return {
+    currentQuality: currentQualityFromAxisValues(
+      currentTargets, air, speed, grain, elevation, amplitude, impact,
+    ),
+    state: predictedArrivalState(outputs as Record<string, number>),
+    exitFrame: outputs["exit.frame"] ?? NaN,
+    exitSpeed: outputs["exit.speed"] ?? NaN,
+  };
 }
 
 export function predictJointArcScoreReadout(

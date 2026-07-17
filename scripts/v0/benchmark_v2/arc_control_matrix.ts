@@ -206,8 +206,8 @@ function validateArguments(): void {
   if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(name)) {
     throw new Error(`--name must match [a-z0-9][a-z0-9_-]{0,63}`);
   }
-  if (!Number.isInteger(maxKnobs) || maxKnobs < 1 || maxKnobs > 2) {
-    throw new Error(`--max-knobs must be 1 or 2`);
+  if (!Number.isInteger(maxKnobs) || maxKnobs < 1) {
+    throw new Error(`--max-knobs must be a positive integer`);
   }
   if (!Number.isInteger(seeds) || seeds < 2 || seeds > 16) {
     throw new Error(`--seeds must be an integer from 2 through 16`);

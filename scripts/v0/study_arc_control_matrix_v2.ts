@@ -27,14 +27,16 @@ import { axisLookaheadEndFrame, tryCandidateLines } from "./core/candidate.ts";
 import { effectiveAxes, engineLineFromTrackLine, makeBaseEngine, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
 import { applyJolt } from "../produce/seed.ts";
 import {
-  fitJointArcResponseModel,
   jointArcCurrentScoreAxes,
-  predictJointArcOutputs,
-  predictJointArcScoreReadout,
-  type ArcKnobs,
-  type JointArcProbeRow,
-  type JointArcResponseModel,
 } from "./optimizer/arc_model.ts";
+import {
+  arcVectorModelFormCounts,
+  fitArcVectorResponseModel,
+  predictArcVectorOutputs,
+  type ArcVectorProbeRow,
+  type ArcVectorResponseModel,
+} from "./optimizer/arc_vector_model.ts";
+import { scoreCompletedArcPrediction } from "./optimizer/arc_model.ts";
 import {
   enumerateArcControlConfigurations,
   plannedArcControlProbeCount,
@@ -77,8 +79,8 @@ const outPath = arg("out");
 
 if (!Number.isInteger(budget) || budget <= 0) throw new Error(`invalid --budget=${budget}`);
 if (!Number.isInteger(maxGaps) || maxGaps <= 0) throw new Error(`invalid --max-gaps=${maxGaps}`);
-if (!Number.isInteger(maxKnobs) || maxKnobs < 1 || maxKnobs > 2) {
-  throw new Error(`this first generic matrix executor supports --max-knobs=1|2 (got ${maxKnobs})`);
+if (!Number.isInteger(maxKnobs) || maxKnobs < 1) {
+  throw new Error(`--max-knobs must be a positive integer (got ${maxKnobs})`);
 }
 if (probeMode !== "short" && probeMode !== "full") throw new Error(`invalid --probe-mode=${probeMode}`);
 for (const id of knobIds) getArcKnob(id);
@@ -153,33 +155,27 @@ function geometryHash(lines: readonly TrackLine[]): string {
   return createHash("sha256").update(JSON.stringify(lines.map((line) => [line.x1, line.y1, line.x2, line.y2]))).digest("hex");
 }
 
-function toTwoCoordinate(values: readonly number[]): ArcKnobs {
-  return { rotateDeg: values[0] ?? 0, pitchDeg: values[1] ?? 0 };
+function vectorRow(values: readonly number[], observation: JointArcProbeObservation): ArcVectorProbeRow {
+  return {
+    values: [...values],
+    outputs: observation.outputs,
+    ...(observation.latentOutputs === undefined ? {} : { latentOutputs: observation.latentOutputs }),
+  };
 }
 
-function toScalarCoordinate(value: number): ArcKnobs {
-  return { pitchDeg: value, rotateDeg: 0 };
+function modelFormCounts(model: ArcVectorResponseModel): Record<string, number> {
+  return arcVectorModelFormCounts(model);
 }
 
-function modelRows(rows: readonly JointArcProbeObservation[], coordinate: (row: JointArcProbeObservation) => ArcKnobs): JointArcProbeRow[] {
-  return rows.map((row) => ({
-    knobs: coordinate(row),
-    outputs: row.outputs,
-    ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
-  }));
-}
-
-function modelFormCounts(model: JointArcResponseModel): Record<string, number> {
-  const counts: Record<string, number> = {};
-  for (const fitted of [...model.outputModels.values(), ...model.latentModels.values()]) {
-    const form = fitted.model.form;
-    counts[form] = (counts[form] ?? 0) + 1;
-  }
-  return counts;
-}
-
-function score(model: JointArcResponseModel, knobs: ArcKnobs, current: AxisValues, next: AxisValues, nextGap: Gap): number | null {
-  const readout = predictJointArcScoreReadout(model, knobs, current, jointArcCurrentScoreAxes(current));
+function score(
+  model: ArcVectorResponseModel,
+  values: readonly number[],
+  current: AxisValues,
+  next: AxisValues,
+  nextGap: Gap,
+): number | null {
+  const outputs = predictArcVectorOutputs(model, values);
+  const readout = scoreCompletedArcPrediction(outputs, current, jointArcCurrentScoreAxes(current));
   if (Number.isFinite(readout.exitFrame) && readout.exitFrame > nextGap.endFrame) return null;
   if (readout.state === null) return null;
   const arrival = { ...readout.state };
@@ -193,47 +189,62 @@ function score(model: JointArcResponseModel, knobs: ArcKnobs, current: AxisValue
   return scoreGapObjectiveWithCurrentQuality(readout.currentQuality, arrival, next)?.value ?? null;
 }
 
-function scanScalar(
-  model: JointArcResponseModel,
-  span: number,
-  step: number,
+function scan(
+  model: ArcVectorResponseModel,
+  configuration: ArcControlConfiguration,
+  base: number,
   current: AxisValues,
   next: AxisValues,
   nextGap: Gap,
 ): VectorCandidate[] {
-  const base = score(model, toScalarCoordinate(0), current, next, nextGap);
-  if (base === null) return [];
+  const spans = configuration.sequence.map(arcKnobProbeSpan);
+  const steps = configuration.sequence.map(arcKnobScanStep);
   const out: VectorCandidate[] = [];
-  for (let value = -span; value <= span + 1e-9; value += step) {
-    if (Math.abs(value) < step / 2) continue;
-    const predicted = score(model, toScalarCoordinate(value), current, next, nextGap);
-    if (predicted !== null && predicted > base + 1e-4) out.push({ values: [value], value: predicted });
-  }
+  const visit = (values: number[], index: number): void => {
+    if (index === spans.length) {
+      if (values.every((value, valueIndex) => Math.abs(value) < steps[valueIndex] / 2)) return;
+      const predicted = score(model, values, current, next, nextGap);
+      if (predicted !== null && predicted > base + 1e-4) out.push({ values: [...values], value: predicted });
+      return;
+    }
+    for (let value = -spans[index]; value <= spans[index] + 1e-9; value += steps[index]) {
+      values.push(value);
+      visit(values, index + 1);
+      values.pop();
+    }
+  };
+  visit([], 0);
   return out;
 }
 
-function scanTwo(
-  model: JointArcResponseModel,
-  configuration: ArcControlConfiguration,
-  current: AxisValues,
-  next: AxisValues,
-  nextGap: Gap,
-): VectorCandidate[] {
-  const [first, second] = configuration.sequence;
-  const firstSpan = arcKnobProbeSpan(first);
-  const secondSpan = arcKnobProbeSpan(second);
-  const firstStep = arcKnobScanStep(first);
-  const secondStep = arcKnobScanStep(second);
-  const base = score(model, toTwoCoordinate([0, 0]), current, next, nextGap);
-  if (base === null) return [];
-  const out: VectorCandidate[] = [];
-  for (let firstValue = -firstSpan; firstValue <= firstSpan + 1e-9; firstValue += firstStep) {
-    for (let secondValue = -secondSpan; secondValue <= secondSpan + 1e-9; secondValue += secondStep) {
-      if (Math.abs(firstValue) < firstStep / 2 && Math.abs(secondValue) < secondStep / 2) continue;
-      const predicted = score(model, toTwoCoordinate([firstValue, secondValue]), current, next, nextGap);
-      if (predicted !== null && predicted > base + 1e-4) out.push({ values: [firstValue, secondValue], value: predicted });
-    }
+function zeroValues(dimensions: number): number[] {
+  return Array.from({ length: dimensions }, () => 0);
+}
+
+function baseProbeVectors(configuration: ArcControlConfiguration): number[][] {
+  const spans = configuration.sequence.map(arcKnobProbeSpan);
+  if (configuration.trainingMethod !== "base_joint") {
+    return [
+      zeroValues(spans.length),
+      ...spans.flatMap((span, index) => {
+        const negative = zeroValues(spans.length);
+        const positive = zeroValues(spans.length);
+        negative[index] = -span;
+        positive[index] = span;
+        return [negative, positive];
+      }),
+    ];
   }
+  if (spans.length === 1) return [[0], [-spans[0]], [spans[0]]];
+  const out: number[][] = [];
+  const visit = (prefix: number[], index: number): void => {
+    if (index === spans.length) {
+      out.push(prefix);
+      return;
+    }
+    for (const value of [-spans[index], 0, spans[index]]) visit([...prefix, value], index + 1);
+  };
+  visit([], 0);
   return out;
 }
 
@@ -299,10 +310,10 @@ function runConfiguration(
     : undefined;
   const stages: StageTrace[] = [];
   let actualProbeCount = 0;
-  const observe = (stage: number, sequence: readonly ArcKnobId[], values: readonly number[], modelKnobs: ArcKnobs): JointArcProbeObservation => {
+  const observe = (stage: number, sequence: readonly ArcKnobId[], values: readonly number[]): JointArcProbeObservation => {
     const lines = applyArcKnobSequence(source.lines, sequence, values, context);
     const observation = evaluateJointArcLines(
-      engine, lines, modelKnobs, gap, ctx.allContactFrames, axisMeasureEnd, nextGap.endFrame, { mode: probeMode },
+      engine, lines, { pitchDeg: 0, rotateDeg: 0 }, gap, ctx.allContactFrames, axisMeasureEnd, nextGap.endFrame, { mode: probeMode },
     );
     actualProbeCount++;
     const trace = traceProbe(stage, sequence, values, lines, observation);
@@ -314,7 +325,6 @@ function runConfiguration(
 
   let offered: VectorCandidate[] = [];
   if (configuration.trainingMethod === "base_additive" || configuration.trainingMethod === "base_joint") {
-    const dimension = configuration.sequence.length;
     const stage: StageTrace = {
       stage: 0,
       knob: configuration.sequence[0],
@@ -324,77 +334,57 @@ function runConfiguration(
       selectedValue: 0,
     };
     stages.push(stage);
-    const firstSpan = arcKnobProbeSpan(configuration.sequence[0]);
-    const secondSpan = dimension === 2 ? arcKnobProbeSpan(configuration.sequence[1]) : 0;
-    const vectors: number[][] = configuration.trainingMethod === "base_joint" && dimension === 2
-      ? [-firstSpan, 0, firstSpan].flatMap((first) => [-secondSpan, 0, secondSpan].map((second) => [first, second]))
-      : [
-        Array(dimension).fill(0),
-        [-firstSpan, ...Array(Math.max(0, dimension - 1)).fill(0)],
-        [firstSpan, ...Array(Math.max(0, dimension - 1)).fill(0)],
-        ...(dimension === 2 ? [[0, -secondSpan], [0, secondSpan]] : []),
-      ];
-    const rows = vectors.map((values) => observe(0, configuration.sequence, values, toTwoCoordinate(values)));
-    const design = dimension === 1 ? "pitch3" : configuration.trainingMethod === "base_joint" ? "grid9" : "cross5";
-    const modelRowsForFit = modelRows(rows, (row) => dimension === 1
-      ? toScalarCoordinate(row.knobs.rotateDeg)
-      : row.knobs,
+    const vectors = baseProbeVectors(configuration);
+    const rows = vectors.map((values) => ({ values, observation: observe(0, configuration.sequence, values) }));
+    const model = fitArcVectorResponseModel(
+      rows.map((row) => vectorRow(row.values, row.observation)),
+      configuration.sequence.map(arcKnobProbeSpan),
+      configuration.trainingMethod === "base_joint" ? "joint" : "additive",
+      { gap, axisMeasureEnd, nextFrame: nextGap.endFrame },
     );
-    const model = fitJointArcResponseModel(modelRowsForFit, design, "hybrid", {
-      context: { gap, axisMeasureEnd, nextFrame: nextGap.endFrame },
-    });
     stage.modelFormCounts = modelFormCounts(model);
-    offered = dimension === 1
-      ? scanScalar(model, firstSpan, arcKnobScanStep(configuration.sequence[0]), current, next, nextGap)
-      : scanTwo(model, configuration, current, next, nextGap);
+    const base = score(model, zeroValues(configuration.sequence.length), current, next, nextGap);
+    offered = base === null ? [] : scan(model, configuration, base, current, next, nextGap);
   } else {
-    const first = configuration.sequence[0];
-    const firstSpan = arcKnobProbeSpan(first);
-    const firstStage: StageTrace = {
-      stage: 0,
-      knob: first,
-      prefixValues: [],
-      modelFormCounts: {},
-      probes: [],
-      selectedValue: 0,
-    };
-    stages.push(firstStage);
-    const firstRows = [0, -firstSpan, firstSpan].map((value) =>
-      observe(0, [first], [value], toScalarCoordinate(value)));
-    const firstModel = fitJointArcResponseModel(modelRows(firstRows, (row) => toScalarCoordinate(row.knobs.pitchDeg)), "pitch3", "hybrid", {
-      context: { gap, axisMeasureEnd, nextFrame: nextGap.endFrame },
-    });
-    firstStage.modelFormCounts = modelFormCounts(firstModel);
-    const firstCandidates = scanScalar(firstModel, firstSpan, arcKnobScanStep(first), current, next, nextGap);
-    const firstValue = firstCandidates[0]?.values[0] ?? 0;
-    firstStage.selectedValue = firstValue;
-    if (configuration.sequence.length === 1) {
-      offered = firstCandidates;
-    } else {
-      const second = configuration.sequence[1];
-      const secondSpan = arcKnobProbeSpan(second);
-      const secondStage: StageTrace = {
-        stage: 1,
-        knob: second,
-        prefixValues: [firstValue],
+    let prefix: number[] = [];
+    for (let stageIndex = 0; stageIndex < configuration.sequence.length; stageIndex++) {
+      const knob = configuration.sequence[stageIndex];
+      const span = arcKnobProbeSpan(knob);
+      const stage: StageTrace = {
+        stage: stageIndex,
+        knob,
+        prefixValues: [...prefix],
         modelFormCounts: {},
         probes: [],
         selectedValue: 0,
       };
-      stages.push(secondStage);
-      const conditionalRows = [-secondSpan, 0, secondSpan].map((value) =>
-        observe(1, [first, second], [firstValue, value], toScalarCoordinate(value)));
-      const secondModel = fitJointArcResponseModel(
-        modelRows(conditionalRows, (row) => toScalarCoordinate(row.knobs.pitchDeg)),
-        "pitch3", "hybrid", {
-        context: { gap, axisMeasureEnd, nextFrame: nextGap.endFrame },
-        },
+      stages.push(stage);
+      const appliedSequence = configuration.sequence.slice(0, stageIndex + 1);
+      const rows = [0, -span, span].map((value) => {
+        const values = [...prefix, value];
+        return { values, observation: observe(stageIndex, appliedSequence, values) };
+      });
+      const model = fitArcVectorResponseModel(
+        rows.map((row) => vectorRow([row.values[row.values.length - 1]], row.observation)),
+        [span],
+        "additive",
+        { gap, axisMeasureEnd, nextFrame: nextGap.endFrame },
       );
-      secondStage.modelFormCounts = modelFormCounts(secondModel);
-      const secondCandidates = scanScalar(secondModel, secondSpan, arcKnobScanStep(second), current, next, nextGap)
-        .map((candidate) => ({ values: [firstValue, candidate.values[0]], value: candidate.value }));
-      const stageOneOffer = firstCandidates.slice(0, 1).map((candidate) => ({ values: [candidate.values[0], 0], value: candidate.value }));
-      offered = [...stageOneOffer, ...secondCandidates];
+      stage.modelFormCounts = modelFormCounts(model);
+      const localConfiguration: ArcControlConfiguration = {
+        ...configuration,
+        sequence: [knob],
+      };
+      const base = score(model, [0], current, next, nextGap);
+      const candidates = base === null ? [] : scan(model, localConfiguration, base, current, next, nextGap);
+      const remaining = zeroValues(configuration.sequence.length - stageIndex - 1);
+      offered.push(...candidates.map((candidate) => ({
+        values: [...prefix, candidate.values[0], ...remaining],
+        value: candidate.value,
+      })));
+      const selectedValue = candidates[0]?.values[0] ?? 0;
+      stage.selectedValue = selectedValue;
+      prefix = [...prefix, selectedValue];
     }
   }
 

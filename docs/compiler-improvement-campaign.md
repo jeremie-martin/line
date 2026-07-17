@@ -4563,6 +4563,57 @@ arrival. A further successor must change the *predecessor physical candidate
 basis* itself while retaining exact current and following normal admission; it
 cannot be an ordinary-state controller layered on the current sampler.
 
+## Declared Observation: Full-State Guide Ribbon (2026-07-17)
+
+The swept envelope failed because it materialized an exterior *spatial
+history* as stationary terrain.  This is a distinct representation: a finite,
+time-ordered guide path rather than a hull, support companion, selected sled
+point, or raw catch curve.  At every node from `H-1` through the six-frame
+impact horizon, take all native sled positions and velocities; use their
+centroid as the path center, their mean velocity as its tangent, and the RMS
+projection of the complete point cloud on the instantaneous gravity-facing
+normal as its support level.  Rotate the cloud by the measured angular rate.
+Spread the authored catchable turn over the scored horizon, with its side fixed
+by that measured rate.  Every point therefore influences every node
+continuously; no point identity, hull vertex, candidate coordinate, score,
+rank, contact class, case, seed, duration bucket, or future target is read.
+
+**Protocol, declared before rows.** On the same immutable dense-240 and
+ordinary WASM/V2-jolt/500k calibration prefixes, realize exactly one ribbon
+and submit it to the unchanged current `tryCandidateLines` gate.  Record the
+pre-target guard result, current impact residual and native contact topology.
+For an admitted ribbon, charge replay to the next beat and require a six-frame
+airborne margin, then run a fixed 24-member unchanged ordinary-normal stream
+from its exact state.  The stream is a return test only: it cannot select or
+modify the ribbon.  Retire if dense-240 does not admit with at least three
+native zero-friction sled updates, the legal return, and a normal next
+admission; ordinary must retain the same topology and normal return.  This is
+calibration-only and cannot create a source lane or benchmark attempt.
+
+**Result (2026-07-17, 0.13s, 398 charged frames;
+`LR_ENGINE=wasm node --expose-gc --import tsx
+scripts/v0/study_full_state_guide_ribbon.ts --case=all
+--out-dir=generated/studies/full-state-guide-ribbon/v1`): RETIRE the
+full-state guide-ribbon representation.** It is available and clears the
+pre-target guard on both states, so this is not a repeat of the swept hull's
+spatial-history collision.  Dense-240 nevertheless fails the unchanged
+current gate after its charged replay: no current contact state exists to
+carry onward.  Ordinary admits and has a 17-frame airborne return plus 19/24
+ordinary-normal next admissions, but it produces **zero** target-frame
+`TAIL`/`NOSE`/`STRING` updates and undershoots impact by `-0.112180` (0.597820
+vs 0.71).  It is consequently not the required distributed multi-contact
+realization even on the control.
+
+**Decision.** Do not tune the RMS level, horizon, turn distribution, side,
+offset, segment count, point weighting, or delivery; those would convert a
+one-form state representation into a control menu.  The result is useful
+because it separates the prior hull limit from the real dense limit: replacing
+the spatial sweep with a nonintruding, continuous full-state contact locus
+still cannot enter the dense current basin, while its ordinary continuation is
+single/PEG-dominated.  A successor must alter the predecessor physical
+candidate basis or the reachable state transition itself, not reformulate a
+stationary current-contact guide path.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

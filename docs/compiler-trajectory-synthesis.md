@@ -522,6 +522,18 @@ predecessor normal basis is closed; a successor must change the predecessor
 physical candidate basis itself, not select or classify ordinary predecessor
 states.
 
+The full-state guide ribbon is separately closed as a current-contact
+representation. It replaces the swept hull with one `H-1..H+6` time-ordered
+path derived continuously from all four sled positions and velocities, their
+angular rate, and the current impact ask: centroid center, mean-velocity
+tangent, and RMS gravity-normal support level. It clears pre-target safety on
+both calibration states, but dense-240 fails exact current admission; ordinary
+admits and returns (17 airborne frames; 19/24 ordinary next admissions) while
+having zero distributed sled updates and impact `-0.112180` below ask. Thus a
+nonintruding collective state locus neither establishes a dense current basin
+nor retains the required native multi-contact topology. Do not tune its level,
+horizon, turn law, side, weighting, or discretization.
+
 A future trajectory study is admissible only if it declares a **new** component
 form that, from continuous physical state rather than a case/duration/menu
 choice, establishes the required six-frame return window at dense-240 while

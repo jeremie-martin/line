@@ -16,7 +16,7 @@
  *   npm run impact-probe
  *   npm run impact-probe -- --out=generated/impact-probe/experiment.json
  *   LR_ENGINE=wasm node --import tsx scripts/v0/impact_frontier_probe.ts \
- *     [--out=FILE] [--reference=FILE] [--detail]
+ *     [--out=FILE] [--reference=FILE] [--detail] [--batch=0|1|2|--aggregate]
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -139,13 +139,14 @@ type ProbeOutput = {
   pools?: PoolRow[];
   summary: { overall: Aggregate; impact: Aggregate; guard: Aggregate; frontier: FrontierAggregate };
   comparison?: unknown;
+  batch?: { index: number; cases: string[] };
 };
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: npm run impact-probe [-- --out=FILE] [-- --reference=FILE] [-- --detail]\n" +
-    "Runs the fixed 6-case × 2-seed impact-frontier discovery panel. It is descriptive only; V2 is the promotion gate.\n",
+    "Usage: npm run impact-probe [-- --out=FILE] [-- --reference=FILE] [-- --detail] [-- --batch=0|1|2|--aggregate]\n" +
+    "Runs the fixed 6-case × 2-seed impact-frontier discovery panel. --batch splits it into three immutable two-case batches; --aggregate verifies and combines those artifacts. It is descriptive only; V2 is the promotion gate.\n",
   );
   process.exit(0);
 }
@@ -154,17 +155,41 @@ const value = (name: string): string | undefined =>
 const outPath = value("out");
 const referencePath = value("reference");
 const detail = argv.includes("--detail");
-const unknown = argv.filter((arg) => arg !== "--detail" && !arg.startsWith("--out=") && !arg.startsWith("--reference="));
+const aggregateOnly = argv.includes("--aggregate");
+const batchArgument = value("batch");
+const unknown = argv.filter((arg) =>
+  arg !== "--detail" && arg !== "--aggregate" && !arg.startsWith("--out=") && !arg.startsWith("--reference=") && !arg.startsWith("--batch=")
+);
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
+if (aggregateOnly && batchArgument !== undefined) throw new Error("--aggregate cannot combine with --batch");
+const BATCH_COUNT = 3;
+const BATCH_CASE_COUNT = CASES.length / BATCH_COUNT;
+const DEFAULT_BATCH_DIRECTORY = "generated/studies/impact-frontier-probe/v1";
+if (!Number.isInteger(BATCH_CASE_COUNT)) throw new Error("fixed impact probe case count is not divisible into batches");
+const batch = batchArgument === undefined ? undefined : Number(batchArgument);
+if (batch !== undefined && (!Number.isSafeInteger(batch) || batch < 0 || batch >= BATCH_COUNT)) {
+  throw new Error(`--batch must be an integer in 0..${BATCH_COUNT - 1}`);
+}
+if (aggregateOnly && detail) throw new Error("--aggregate reads the detail mode from its sealed batch artifacts; do not pass --detail");
+if (aggregateOnly) {
+  aggregateBatchArtifacts(outPath, referencePath);
+  process.exit(0);
+}
+const ACTIVE_CASES = batch === undefined
+  ? CASES
+  : CASES.slice(batch * BATCH_CASE_COUNT, (batch + 1) * BATCH_CASE_COUNT);
+if (referencePath !== undefined && batch !== undefined) {
+  throw new Error("--reference is accepted only for the full fixed panel or --aggregate, never a partial batch");
+}
 
-let active = CASES[0];
-let activeSeed = SEEDS[0];
+let active: typeof CASES[number] = CASES[0];
+let activeSeed: typeof SEEDS[number] = SEEDS[0];
 const poolRows: PoolRow[] = [];
 setHandoffPoolProbeHook((record) => observePool(record));
 
 const runs: RunRow[] = [];
 try {
-  for (const definition of CASES) {
+  for (const definition of ACTIVE_CASES) {
     for (const seed of SEEDS) {
       active = definition;
       activeSeed = seed;
@@ -214,19 +239,100 @@ const output: ProbeOutput = {
     guard: summarizeRuns(runs.filter((row) => row.role === "guard")),
     frontier: summarizeFrontier(poolRows),
   },
+  ...(batch === undefined ? {} : { batch: { index: batch, cases: ACTIVE_CASES.map((definition) => definition.id) } }),
 };
 if (referencePath !== undefined) output.comparison = compareToReference(output, referencePath);
 
 const json = `${JSON.stringify(output, null, 2)}\n`;
-if (outPath === undefined) process.stdout.write(json);
+const resolvedOutPath = batch === undefined
+  ? outPath
+  : outPath ?? defaultBatchPath(batch);
+if (resolvedOutPath === undefined) process.stdout.write(json);
 else {
-  mkdirSync(dirname(outPath), { recursive: true });
-  writeFileSync(outPath, json);
+  mkdirSync(dirname(resolvedOutPath), { recursive: true });
+  writeFileSync(resolvedOutPath, json);
   process.stdout.write(`${JSON.stringify({
     schema: output.schema,
-    output: outPath,
+    output: resolvedOutPath,
+    batch: output.batch,
     summary: output.summary,
     comparison: output.comparison,
+  }, null, 2)}\n`);
+}
+
+function defaultBatchPath(index: number): string {
+  return `${DEFAULT_BATCH_DIRECTORY}/batch-${index}.json`;
+}
+
+/**
+ * The probe's cohort is immutable. Batching is operational only: combine
+ * exactly the three fixed two-case artifacts or fail before reporting a result.
+ * An interrupted process can therefore never masquerade as a shorter panel.
+ */
+function aggregateBatchArtifacts(requestedOutPath: string | undefined, aggregateReferencePath: string | undefined): void {
+  const aggregatePath = requestedOutPath ?? `${DEFAULT_BATCH_DIRECTORY}/result.json`;
+  const batchDirectory = dirname(aggregatePath);
+  const documents: ProbeOutput[] = [];
+  for (let index = 0; index < BATCH_COUNT; index++) {
+    const path = `${batchDirectory}/batch-${index}.json`;
+    const document = JSON.parse(readFileSync(path, "utf8")) as ProbeOutput;
+    const expectedCases = CASES.slice(index * BATCH_CASE_COUNT, (index + 1) * BATCH_CASE_COUNT).map((definition) => definition.id);
+    if (
+      document.schema !== "line.impact-frontier-probe.v1" ||
+      JSON.stringify(document.fixedConfig) !== JSON.stringify(FIXED_CONFIG) ||
+      document.batch?.index !== index ||
+      JSON.stringify(document.batch.cases) !== JSON.stringify(expectedCases)
+    ) {
+      throw new Error(`batch artifact ${path} does not match fixed impact-probe batch ${index}`);
+    }
+    const expectedRuns = expectedCases.flatMap((id) => SEEDS.map((seed) => `${id}/s${seed}`)).sort();
+    const actualRuns = document.runs.map((run) => `${run.id}/s${run.seed}`).sort();
+    if (JSON.stringify(actualRuns) !== JSON.stringify(expectedRuns)) {
+      throw new Error(`batch artifact ${path} has an incomplete or mismatched fixed run set`);
+    }
+    documents.push(document);
+  }
+  const first = documents[0]!;
+  if (!documents.every((document) =>
+    document.execution.compilerCandidateFingerprint === first.execution.compilerCandidateFingerprint &&
+    document.execution.compilerSourceFingerprint === first.execution.compilerSourceFingerprint &&
+    document.execution.engine === first.execution.engine
+  )) {
+    throw new Error("impact-probe batch artifacts were produced by different compiler identities or engines");
+  }
+  const detailModes = documents.map((document) => document.pools !== undefined);
+  if (!detailModes.every((value) => value === detailModes[0])) {
+    throw new Error("impact-probe batches mix --detail and non-detail artifacts");
+  }
+  const runs = documents.flatMap((document) => document.runs).sort((left, right) =>
+    CASES.findIndex((definition) => definition.id === left.id) - CASES.findIndex((definition) => definition.id === right.id) ||
+    left.seed - right.seed,
+  );
+  const pools = detailModes[0] ? documents.flatMap((document) => document.pools ?? []) : undefined;
+  const aggregate: ProbeOutput = {
+    schema: "line.impact-frontier-probe.v1",
+    purpose: "fixed impact-frontier discovery panel aggregated from three complete immutable operational batches; neither selection nor V2 promotion evidence",
+    fixedConfig: FIXED_CONFIG,
+    execution: first.execution,
+    runs,
+    ...(pools === undefined ? {} : { pools }),
+    summary: {
+      overall: summarizeRuns(runs),
+      impact: summarizeRuns(runs.filter((run) => run.role === "impact")),
+      guard: summarizeRuns(runs.filter((run) => run.role === "guard")),
+      frontier: summarizeFrontier(pools ?? []),
+    },
+  };
+  if (aggregateReferencePath !== undefined) aggregate.comparison = compareToReference(aggregate, aggregateReferencePath);
+  mkdirSync(dirname(aggregatePath), { recursive: true });
+  writeFileSync(aggregatePath, `${JSON.stringify(aggregate, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({
+    schema: aggregate.schema,
+    output: aggregatePath,
+    batches: BATCH_COUNT,
+    detail: detailModes[0],
+    summary: aggregate.summary,
+    comparison: aggregate.comparison,
   }, null, 2)}\n`);
 }
 

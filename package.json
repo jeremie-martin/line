@@ -38,6 +38,8 @@
     "benchmark:v2:study-decision-coverage": "node --import tsx scripts/benchmark/study_decision_coverage.ts",
     "benchmark:v2:study-coverage-reference": "LR_ENGINE=wasm node --import tsx scripts/v0/benchmark_v2/scale_study.ts --manifest=benchmark/v2/compat/source-manifest.json --suite=benchmark/v2/compat/suite-manifest.json --budgets=250000,500000,750000 --seeds=0,1,2,3,4,5,6,7,8,9,10,11 --jobs=32 --out=generated/benchmark-v2/studies/coverage-reference.json",
     "impact-probe": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/impact_frontier_probe.ts --reference=benchmark/v2/studies/impact-frontier-probe-v1-baseline.json",
+    "impact-probe:batch": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/impact_frontier_probe.ts --detail",
+    "impact-probe:aggregate": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/impact_frontier_probe.ts --aggregate",
     "study:impact-suffix": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_suffix_counterfactual.ts",
     "study:impact-response": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_response_envelope.ts",
     "study:joint-normal-bridge": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_joint_normal_bridge.ts",

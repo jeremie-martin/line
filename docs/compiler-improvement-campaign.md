@@ -3304,6 +3304,14 @@ candidate frontier. For each permitted *additional absolute speed error*
 air/elevation movement, and the exact continuation-score/readiness price.
 It neither changes selection nor authorizes V2 promotion.
 
+Some hosts reclaim a long-lived parent before all twelve compiles finish. The
+operationally identical path is `npm run impact-probe:batch -- --batch=0`,
+then batches 1 and 2, followed by `npm run impact-probe:aggregate --
+--reference=benchmark/v2/studies/impact-frontier-probe-v1-baseline.json`.
+Each batch is exactly two fixed cases and both fixed seeds; aggregation rejects
+missing/mixed batches and compiler-identity drift. This changes process shape,
+not the cohort, budget, probe result, or decision rule.
+
 The fresh accepted reference makes the distinction concrete. Across 4,054
 exact scored pools (31,331 candidates), **42.06%** contain a material
 (at least .025) impact repair with *no* added speed error; allowing .025 adds

@@ -2621,6 +2621,70 @@ equal-cost comparison. Retain the generation-time snapshot hook and study
 harness as observation infrastructure only; resume diagnosis on a physically
 distinct state or transition basis.
 
+## Declared Observation: Lowest-Contact-Point Kinematic Normal Frame (2026-07-17)
+
+The ordinary normal sampler already anchors placement at the lowest exposed
+sled point, but it gives the placement law the rider COM velocity, speed, and
+heading. This study asks a narrower physical-basis question: with the same
+lowest-point anchor, raw PRNG coordinates, attempt count, exact evaluator, and
+rank-independent candidate pool, does giving placement the velocity of that
+*same* lowest sled point expose a stronger normal pool? It is neither a pose
+or catchability predictor nor a trajectory primitive. The point velocity is a
+local contact-frame tangent used only to construct proposed geometry; impact
+measurement and all candidate scoring remain the present COM law.
+
+**Frozen observation cohort.** Use current compiler/WASM/V2 jolt/500k and
+seeds 26 and 27 on exactly six fresh development sources:
+`dense_dialogue` (dense), `river_reentry` (representative), `pickup_lattice`
+(pickup), `frontier_pickup_progression` (pickup),
+`frontier_low_air_endurance_6s` (low-air), and `believer_impact_56s`
+(development music). Before reading any rows, capture the first ordinary
+frontier state at the one-third and two-thirds authored-contact indices of each
+source. At each reachable immutable state, replay the generated production
+raw-normal pool at its actual cached count and attempt indices. The comparator
+uses the identical PRNG stream and geometry function, replacing only the
+placement `velocity`, `speed`, and `angleDeg` with the lowest anchor point's
+finite non-zero velocity; if that velocity is unavailable it records the
+explicit COM fallback rather than inventing a tangent. Both arms must call the
+same normal candidate gate, pre-target trace, lookahead, literal targets, and
+post-fit continuation. No rank, traversal, source default, or alternate
+compiler run is allowed.
+
+**Recorded quantities.** For every paired state retain candidate count,
+production geometry-hash replay outcome, usable point-velocity coverage and
+anchor identity, viable admissions, best exact current-quality-times-readiness
+objective, best scorer-axis RMS, and best local cost. Aggregate only paired
+state deltas, balanced by regime. A COM fallback state is retained as a
+coverage row but contributes no arm difference.
+
+**Decision boundary.** Retire the contact-point frame if production raw replay
+is not exact, point velocity is unavailable on a material fraction of the
+cohort, the regime-balanced primary objective and best-axis RMS do not both
+improve while viable admission rises, or dense, pickup, or low-air has a
+material admission collapse. A positive observation authorizes only a
+separately declared fixed source-default implementation and ordinary
+cross-regime scope panel; it does not authorize V2 Stage 0 or evaluation.
+
+**Result (2026-07-17, 12 current-tree WASM/500k compiles plus exact paired
+pool replay; artifact
+`generated/studies/contact-point-normal-frame/v1/result.json`): RETIRE
+lowest-contact-point kinematic frame.** All 24 declared states were captured;
+every production PRNG replay matched its generation-time attempts and geometry
+hashes; and the selected lowest point exposed a finite non-zero velocity on all
+24 rows. The contact tangent modestly improved regime-balanced best objective
+(+0.00620) and closest-axis RMS (+0.00227), but violated both pool-strength
+conditions: viable admissions fell −0.15/state overall and the low-air late
+seed-26 pool fell **4/12** (33%). The development-music late seed-27 pool also
+collapsed from 7 viable candidates to zero. Dense's apparent +2.25
+admissions/state was not a broad substitute for those losses; pickup's primary
+objective was −0.00280 and axis movement was flat (−0.00003).
+
+**Decision.** Do not change the normal sampler's target frame, blend the two
+velocities, add an anchor/point-specific lane, or run a V2 scope panel. The
+physical contact tangent is a valid observation frame but not an equal-cost
+ordinary candidate basis under exact gates. Retain the observer only as
+diagnostic infrastructure and resume normal-candidate diagnosis elsewhere.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

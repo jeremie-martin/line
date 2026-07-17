@@ -3517,6 +3517,49 @@ pose gate, or body-contact selector from this signal. A future successor would
 need a different multi-point constraint or contact-order mechanism, first
 shown to create a useful non-simultaneous response in an exact broad assay.
 
+## Declared Study: Engine-Realized Normal-Pair Endpoint Bridge (2026-07-17)
+
+The fixed response family is closed: a local offset or pitch cannot be revived
+as a source. The next assay instead starts from two **sequentially
+engine-admitted ordinary normal fits**. It retains their capture geometry and
+derives one three-segment cubic-Hermite bridge from the first fit's terminal
+endpoint/tangent and the second fit's entry endpoint/tangent. Tangent extent
+is a continuous function of those exact engine-realized endpoints, release
+speed, and literal inter-contact frames; it has no case, duration, axis,
+source, rank, or response-sign branch. The exact next-contact gate evaluates
+the bridge plus the second ordinary geometry together. This is a new joint
+normal-pair basis, not a response pitch, static C1 capture, transient scoop,
+or selector change.
+
+`npm run study:joint-normal-bridge` freezes the six-regime V2-jolt panel
+(dense, dense impact, representative, development music, low-air, pickup),
+seeds 30 and 31, 250k prefix compilation, and the first four viable ordinary
+current fits from raw attempts 0--31. Each current fit receives the first
+viable next ordinary fit from a fixed eight-attempt stream. The direct normal
+pair is the control; the bridge is one deterministic candidate construction,
+not a menu. It records all generated pairs, exact gate results, two-contact
+axis RMS, impact residual, and additional simulation frames.
+
+**Discard before source work:** retire if the bridge is unavailable or
+joint-invalid on a material share of either seed's broad panel, if it has no
+mean two-contact RMS improvement of at least .005 among comparable valid
+pairs, or if any dense, pickup, or low-air regime has no comparable valid
+bridge pair. A pass is feasibility evidence only: it would authorize a fresh
+held-out economics assay, then (only if that is broad and charge-bounded) a
+source-default implementation and the ordinary V2 funnel.
+
+**Outcome: RETIRE at the declared feasibility gate.** The sealed 12-state
+screen completed in 25.8 seconds (`generated/studies/joint-normal-bridge/v1/`):
+all 45 current normal candidates and 40 direct normal pairs were observed, and
+the endpoint bridge had finite geometry on all 40. Only **3/40** bridge pairs
+passed the unchanged next-contact gate (2 development-music, 1 representative;
+0 dense, 0 pickup, 0 low-air). The three surviving bridges had exactly zero
+mean two-gap RMS movement and cost 17.67 additional simulated frames on
+average. This fails availability, cross-regime coverage, and the `.005` RMS
+criterion. Do not tune Hermite extent, segment count, endpoint selection, or
+collision side, and do not add a bridge source: appending a collidable surface
+between two otherwise valid normal contacts is not a viable physical basis.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

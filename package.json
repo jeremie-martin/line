@@ -40,6 +40,7 @@
     "impact-probe": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/impact_frontier_probe.ts --reference=benchmark/v2/studies/impact-frontier-probe-v1-baseline.json",
     "study:impact-suffix": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_suffix_counterfactual.ts",
     "study:impact-response": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_response_envelope.ts",
+    "study:joint-normal-bridge": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_joint_normal_bridge.ts",
     "lab": "node --no-warnings=ExperimentalWarning --expose-gc --import tsx scripts/v0/analysis/lab.ts",
     "study:joint-arc": "LR_ENGINE=wasm node --expose-gc --no-warnings=ExperimentalWarning --import tsx scripts/v0/study_joint_arc_model.ts",
     "study:exit-readout": "LR_ENGINE=wasm node --no-warnings=ExperimentalWarning --import tsx scripts/v0/study_exit_readout.ts",

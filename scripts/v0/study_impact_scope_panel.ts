@@ -9,7 +9,8 @@
  *   LR_ENGINE=wasm node --import tsx scripts/v0/study_impact_scope_panel.ts \
  *     [--cases=NAME,...] [--seeds=N,...] [--budget=N] [--out=FILE]
  */
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import believer from "../../benchmark/v2/cases/normative/development_music/believer_56_6s.ts";
 import denseDialogue from "../../benchmark/v2/cases/normative/representative/dense_dialogue.ts";
 import denseDialogueIC from "../../benchmark/v2/cases/variants/representative/dense_dialogue_impact_contrast_10.ts";
@@ -126,5 +127,8 @@ const output = {
   },
   rows,
 };
-if (out !== undefined) writeFileSync(out, `${JSON.stringify(output, null, 2)}\n`);
+if (out !== undefined) {
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, `${JSON.stringify(output, null, 2)}\n`);
+}
 process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);

@@ -47,6 +47,7 @@ import {
   prepareStateCoupledTrajectoryFixture,
   type PreparedTrajectoryFixtureCore,
 } from "./trajectory/study_context.ts";
+import { postimpactEngineCollisionWitnessesForLineIds } from "./trajectory/postimpact_trace.ts";
 import {
   allocateStudyArtifactPath,
   studyArtifactIdentity,
@@ -178,6 +179,15 @@ type ChainMeasure = {
   arrivalAngleDeg: number | null;
 };
 
+/** Native target-frame contact classes for an admitted catch.  This is a
+ * measurement of the unchanged engine replay, not a candidate condition. */
+type TargetContactTopology = {
+  peg: number;
+  sledZeroFriction: number;
+  feetZeroFriction: number;
+  total: number;
+};
+
 type Row = {
   index: number;
   family: Family;
@@ -193,6 +203,7 @@ type Row = {
   collateral: number | null;
   achievedAtEnd: { air: number | null; speed: number | null; impact: number | null } | null;
   release: { speed: number | null; velocityY: number | null; airborne: boolean | null; groundedFrames: number | null } | null;
+  targetContact: TargetContactTopology | null;
   chain: ChainMeasure | null;
   chainable: boolean;
   /** chainable AND zero off-beat landings inside the interval (score-real chaining). */
@@ -472,7 +483,7 @@ function evaluateRow(
     impactTarget: trueTargets.impact ?? null,
     impactAchieved: null, impactErrSigned: null,
     speedErrAbs: null, airErrAbs: null, collateral: null,
-    achievedAtEnd: null, release: null, chain: null, chainable: false, chainableStrict: false,
+    achievedAtEnd: null, release: null, targetContact: null, chain: null, chainable: false, chainableStrict: false,
     totalFrames: 0, error: geometryError,
   };
   if (lines === null) return empty;
@@ -509,6 +520,7 @@ function evaluateRow(
   const collateral = Math.max(speedErrAbs ?? 0, airErrAbs ?? 0);
 
   const chain = measureChain(prepared, fit, charge);
+  const targetContact = measureTargetContactTopology(prepared, fit);
   const chainable = chain.survivedToBeat && chain.airborneMarginBeforeBeat >= CHAIN_MIN_AIRBORNE;
   const chainableStrict = chainable && chain.offBeatLandingsBetween === 0;
 
@@ -533,12 +545,33 @@ function evaluateRow(
       airborne: fit.releaseAirborne ?? null,
       groundedFrames: fit.releaseGroundedFrames ?? null,
     },
+    targetContact,
     chain,
     chainable,
     chainableStrict,
     totalFrames: admissionFrames + chain.rideFrames,
     error: null,
   };
+}
+
+function measureTargetContactTopology(
+  prepared: PreparedTrajectoryFixtureCore,
+  fit: GapFit,
+): TargetContactTopology | null {
+  try {
+    const engine = prepared.engine.addLine(fit.lines.map((line: TrackLine) => engineLineFromTrackLine(line)));
+    const lineIds = new Set(fit.lines.map((line: TrackLine) => line.id));
+    const hits = postimpactEngineCollisionWitnessesForLineIds(engine, prepared.current.endFrame, lineIds);
+    const points = hits.flatMap((hit) => hit.pointIds);
+    return {
+      peg: points.filter((point) => point === "PEG").length,
+      sledZeroFriction: points.filter((point) => point === "TAIL" || point === "NOSE" || point === "STRING").length,
+      feetZeroFriction: points.filter((point) => point === "LFOOT" || point === "RFOOT").length,
+      total: points.length,
+    };
+  } catch {
+    return null;
+  }
 }
 
 /** Extend the immutable prefix engine with the admitted fit and ride to the

@@ -4364,6 +4364,56 @@ static-support combination: each would either select the measured symptom or
 repeat a component already disproved on the dense guard.  This is a physical
 construction constraint, not a new ranking feature.
 
+## Declared Observation: Catch-Frontier Distributed-Contact Feasibility (2026-07-17)
+
+The six-source probe establishes what ordinary repairs lose, but it does not
+say whether the broader continuous catch space can co-realize impact and the
+same natural sled support.  Re-run the existing immutable calibration-only
+catch-frontier oracle on its fixed dense-240, ordinary, and frontier-5 states.
+It retains the predeclared 2,500-parameter and 300 raw-normal streams,
+unchanged `tryCandidateLines` gate, chainability and collateral measurements,
+and all charged admission/ride replays.  For every admitted row only, append
+the engine's candidate-owned target-frame counts for `PEG`,
+`TAIL`/`NOSE`/`STRING`, feet, and total collisions.  The values are labels,
+not candidate filters; no source, selector, rank, coordinate, sample, or
+benchmark path changes.
+
+**Decision boundary.** If impact-accurate, strict-chainable, low-collateral
+parameter rows have no distributed zero-friction sled contact on both the
+ordinary and dense-240 fixtures, retire the continuous catch family as a way
+to meet the retained boundary.  Otherwise retain only a physical-feasibility
+fact: a future source still requires a separately declared state-to-geometry
+component, exact dense-240 normal return, broad scope, and equal-cost proof.
+This observation cannot revive entry incidence, local response, static support,
+or a contact-class selector.
+
+**Result (2026-07-17, 1.65s, 348,945 charged frames;
+`LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_catch_frontier.ts --case=all --out-dir=generated/studies/catch-frontier/contact-topology-v2`):
+RETAIN ordinary feasibility; RETIRE the continuous catch frontier as a
+dense-240 solution.** The unchanged ordinary result remains physically real:
+30 parameter rows are impact-accurate (`|error| <= .05`), strict-chainable,
+and low-collateral.  Every one has distributed zero-friction sled contact at
+the target (minimum 3, median **10**, maximum 19 updates), comparable to the
+corresponding raw-normal control's median 9.  Thus no universal engine law
+says redirection must consume that contact topology.
+
+Dense-240 supplies the necessary opposite result.  It has no strict-chainable
+low-collateral row in either arm.  The 12 parameter rows that are
+impact-accurate and strict-chainable all carry **zero** target-frame
+`TAIL`/`NOSE`/`STRING` updates and the same high collateral (`.498461`);
+raw-normal has no impact-accurate strict-chainable control.  The long
+frontier-5 state also has no low-collateral row and is therefore inconclusive,
+not a negative generalization claim.  This leaves the stated dense physical
+boundary intact: broad static catch curves can co-realize impact and
+distributed contact in ordinary timing, but do not create the dense-240
+multi-contact arrival basin.
+
+**Decision.** Do not source the 12-parameter catch space, relax its collateral
+or chainability screen, mine its ordinary coordinates, or add a contact-aware
+selector.  A viable successor must supply a new continuous multi-contact
+state-to-geometry component that establishes the dense return, rather than
+another local curve, support, or raw-space expansion.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

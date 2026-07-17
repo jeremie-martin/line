@@ -64,7 +64,10 @@ const argument = (name: string): string | undefined =>
   argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const returnNormal = argv.includes("--return-normal");
 const ballisticRelease = argv.includes("--ballistic-release");
-const SCHEMA = ballisticRelease
+const transientBridge = argv.includes("--transient-bridge");
+const SCHEMA = transientBridge
+  ? "line.study-transient-c1-to-ballistic-bridge.v1"
+  : ballisticRelease
   ? "line.study-capture-preserving-ballistic-release.v1"
   : returnNormal
   ? "line.study-two-contact-shooting-return-boundary.v1"
@@ -72,7 +75,7 @@ const SCHEMA = ballisticRelease
 
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release] [--out-dir=DIR]",
+    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--out-dir=DIR]",
     "",
     "Calibration-only charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
     "Without --return-normal, writes the archived two-contact protocol under",
@@ -80,16 +83,21 @@ if (argv.includes("--help") || argv.includes("-h")) {
     "materializes capture->capture pairs and measures the normal stream at k+2.",
     "--ballistic-release requires --return-normal and appends a finite launch scoop",
     "after the second exact capture before testing the k+2 normal stream.",
+    "--transient-bridge requires --return-normal and replaces the second static",
+    "C1 response with an immediate C1-to-ballistic contact bridge at k+1.",
   ].join("\n") + "\n");
   process.exit(0);
 }
 
 assertExactEnvironment();
-const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--ballistic-release", "--help", "-h"];
+const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--help", "-h"];
 const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
-if (ballisticRelease && !returnNormal) {
-  throw new Error("--ballistic-release requires --return-normal");
+if ((ballisticRelease || transientBridge) && !returnNormal) {
+  throw new Error("--ballistic-release and --transient-bridge require --return-normal");
+}
+if (ballisticRelease && transientBridge) {
+  throw new Error("--ballistic-release and --transient-bridge are mutually exclusive");
 }
 
 const requestedCase = argument("case") ?? "all";
@@ -98,7 +106,9 @@ if (requestedCase !== "all" && !stateIds.includes(requestedCase as StateId)) {
   throw new Error(`unknown --case=${requestedCase}; expected all|${stateIds.join("|")}`);
 }
 const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? (ballisticRelease
+const outDir = argument("out-dir") ?? (transientBridge
+  ? "generated/studies/two-contact-shooting/transient-bridge-v1"
+  : ballisticRelease
   ? "generated/studies/two-contact-shooting/ballistic-release-v1"
   : returnNormal
   ? "generated/studies/two-contact-shooting/return-boundary-v1"
@@ -118,6 +128,9 @@ const protocolFingerprint = sha256(stableJson({
     : "disabled",
   ballisticRelease: ballisticRelease
     ? "after a sequentially admitted second C1 capture, append a finite concave hop scoop from its exact release speed to vy=-g*N/2, re-admit the complete second line set, then materialize and observe k+2"
+    : "disabled",
+  transientBridge: transientBridge
+    ? "retain the first C1 capture, then derive a k+1 one-segment C1 approach and immediate three-segment concave ballistic launch from exact state; materialize and observe k+2"
     : "disabled",
 }));
 
@@ -146,7 +159,14 @@ if (ordinary !== undefined) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-type CandidateMember = { index: number; label: string; lines: TrackLine[] | null; error: string | null };
+type ContactForm = "static-c1" | "transient-c1-to-ballistic" | "raw-normal";
+type CandidateMember = {
+  index: number;
+  label: string;
+  form: ContactForm;
+  lines: TrackLine[] | null;
+  error: string | null;
+};
 type FailureClass =
   | "geometry-error"
   | "not-admitted-k"
@@ -158,6 +178,7 @@ type FailureClass =
 type Segment2Row = {
   family: Family;
   label: string;
+  contactForm: ContactForm;
   admitted: boolean;
   admissionFrames: number;
   landingFrameOffset: number | null;
@@ -385,7 +406,9 @@ function runState(id: StateId): StateResult {
       admission: "tryCandidateLines(engine, gap, lines, lineIdStart, allContactFrames, axisLookaheadEndFrame, gap.targets, true, undefined, probe.preTargetSledTrace)",
       returnBoundary: returnNormal
         ? {
-          pairFamily: "capture-arc->capture-arc only",
+          pairFamily: transientBridge
+            ? "capture-arc->transient-c1-to-ballistic only"
+            : "capture-arc->capture-arc only",
           materialization: "combined sequentially admitted lines must equal a one-shot current-gap admission",
           nextGap: next!.index,
           normalAttemptsPerMaterializedPair: captureMembers1.length,
@@ -400,6 +423,15 @@ function runState(id: StateId): StateResult {
           scoopLength: "three measured second-C1 release-speed frames",
           launchAngle: "atan2(-0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * literal k+2 interval frames, max(1, measured second-C1 release speed))",
           reAdmission: "unchanged tryCandidateLines at k+1 on the complete second line set; its simulation frames are charged",
+        }
+        : null,
+      transientBridge: transientBridge
+        ? {
+          scope: "first C1 capture followed by a transient k+1 C1-to-ballistic bridge only",
+          secondContact: "one approach segment ends at the exact predicted k+1 point; its first scoop tangent equals the approach tangent and the surface stops after the third uniformly turning scoop segment",
+          controls: "the fixed mirrored 24-control C1 screen supplies only k+1 approach point and entry tangent from the exact extended-engine state",
+          launchAngle: "atan2(-0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * literal k+2 interval frames, max(1, exact k+1 incoming speed))",
+          materialization: "the first C1 plus complete transient bridge must equal a one-shot current-gap admission; the second contact is deliberately not compared with the static C1 response",
         }
         : null,
     },
@@ -505,7 +537,9 @@ function evaluateRow(
   try {
     const frame2 = targetFrameFromPlanningState(state2);
     const kinematic2 = contactKinematicFrameFromPlanningState(state2, frame2, prepared.outgoing.targets);
-    captureMembers2 = buildCaptureMembers(kinematic2, lineId2);
+    captureMembers2 = transientBridge
+      ? buildTransientBridgeMembers(kinematic2, lineId2, next!.endFrame - prepared.outgoing.endFrame)
+      : buildCaptureMembers(kinematic2, lineId2);
   } catch (error) {
     return unavailable("segment2-family-unavailable", errorMessage(error));
   }
@@ -595,7 +629,7 @@ function evaluateSegment2(
 ): Segment2Row {
   if (member.lines === null) {
     charge({ admission: 0, landing: 0 });
-    return { family, label: member.label, admitted: false, admissionFrames: 0, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: member.error, returnBoundary: null, ballisticRelease: null };
+    return { family, label: member.label, contactForm: member.form, admitted: false, admissionFrames: 0, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: member.error, returnBoundary: null, ballisticRelease: null };
   }
   const before = getSimFrames();
   const fit2 = tryCandidateLines(
@@ -613,7 +647,7 @@ function evaluateSegment2(
   const admissionFrames = getSimFrames() - before;
   if (fit2 === null) {
     charge({ admission: admissionFrames, landing: 0 });
-    return { family, label: member.label, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: null, returnBoundary: null, ballisticRelease: null };
+    return { family, label: member.label, contactForm: member.form, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: null, returnBoundary: null, ballisticRelease: null };
   }
   let finalFit2 = fit2;
   let ballistic: BallisticRelease | null = null;
@@ -622,7 +656,7 @@ function evaluateSegment2(
     if (release.error !== null) {
       charge({ admission: admissionFrames, landing: 0 });
       return {
-        family, label: member.label, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0,
+        family, label: member.label, contactForm: member.form, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0,
         achieved: null, achievedAtEnd: null, finalLineCount: null, error: release.error, returnBoundary: null,
         ballisticRelease: { ...release, reAdmissionFrames: 0, retainedSecondCapture: false },
       };
@@ -644,7 +678,7 @@ function evaluateSegment2(
     if (releaseFit === null) {
       charge({ admission: admissionFrames + reAdmissionFrames, landing: 0 });
       return {
-        family, label: member.label, admitted: false, admissionFrames: admissionFrames + reAdmissionFrames,
+        family, label: member.label, contactForm: member.form, admitted: false, admissionFrames: admissionFrames + reAdmissionFrames,
         landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null,
         error: "ballistic release line set is not admitted at k+1", returnBoundary: null,
         ballisticRelease: { ...release, reAdmissionFrames, retainedSecondCapture: false, error: "ballistic release line set is not admitted at k+1" },
@@ -654,7 +688,7 @@ function evaluateSegment2(
     if (!retainedSecondCapture) {
       charge({ admission: admissionFrames + reAdmissionFrames, landing: 0 });
       return {
-        family, label: member.label, admitted: false, admissionFrames: admissionFrames + reAdmissionFrames,
+        family, label: member.label, contactForm: member.form, admitted: false, admissionFrames: admissionFrames + reAdmissionFrames,
         landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null,
         error: "ballistic release changed the second C1 capture geometry", returnBoundary: null,
         ballisticRelease: { ...release, reAdmissionFrames, retainedSecondCapture, error: "ballistic release changed the second C1 capture geometry" },
@@ -676,6 +710,7 @@ function evaluateSegment2(
     return {
       family,
       label: member.label,
+      contactForm: member.form,
       admitted: false,
       admissionFrames: admissionFrames + ballistic.reAdmissionFrames,
       landingFrameOffset: null,
@@ -699,6 +734,7 @@ function evaluateSegment2(
   return {
     family,
     label: member.label,
+    contactForm: member.form,
     admitted: true,
     admissionFrames: finalAdmissionFrames,
     landingFrameOffset,
@@ -940,11 +976,104 @@ function buildCaptureMembers(
   return entries.map((entry, index) => {
     try {
       const realized = realizeContactCaptureArc(resolveContactCaptureArc(kinematic, entry.control), lineIdStart);
-      return { index, label: entry.label, lines: realized.lines, error: null };
+      return { index, label: entry.label, form: "static-c1", lines: realized.lines, error: null };
     } catch (error) {
-      return { index, label: entry.label, lines: null, error: errorMessage(error) };
+      return { index, label: entry.label, form: "static-c1", lines: null, error: errorMessage(error) };
     }
   });
+}
+
+/**
+ * A different k+1 component from the static C1 response: the fixed capture
+ * screen supplies only the exact approach point and tangent, then the surface
+ * immediately turns into a finite ballistic launch. The first C1 capture is
+ * still admitted and later materialized unchanged by the pair boundary.
+ */
+function buildTransientBridgeMembers(
+  kinematic: ReturnType<typeof contactKinematicFrameFromPlanningState>,
+  lineIdStart: number,
+  nextIntervalFrames: number,
+): CandidateMember[] {
+  const entries = makeMirroredContactCaptureArcScreen(kinematic);
+  return entries.map((entry, index) => {
+    try {
+      const resolved = resolveContactCaptureArc(kinematic, entry.control);
+      const lines = realizeTransientBridge(resolved, kinematic.com.speedPxPerFrame, nextIntervalFrames, lineIdStart);
+      return {
+        index,
+        label: `${entry.label}_transient`,
+        form: "transient-c1-to-ballistic",
+        lines,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        index,
+        label: `${entry.label}_transient`,
+        form: "transient-c1-to-ballistic",
+        lines: null,
+        error: errorMessage(error),
+      };
+    }
+  });
+}
+
+function realizeTransientBridge(
+  capture: ReturnType<typeof resolveContactCaptureArc>,
+  incomingSpeed: number,
+  nextIntervalFrames: number,
+  lineIdStart: number,
+): TrackLine[] {
+  if (!Number.isFinite(incomingSpeed) || !(incomingSpeed > 0)) {
+    throw new Error("transient bridge requires a finite positive exact k+1 incoming speed");
+  }
+  if (!Number.isSafeInteger(nextIntervalFrames) || !(nextIntervalFrames > 0)) {
+    throw new Error("transient bridge requires a positive integral k+2 interval");
+  }
+  if (!Number.isSafeInteger(lineIdStart)) throw new Error("transient bridge line id must be a safe integer");
+
+  const launchAngleDeg = (Math.atan2(
+    -0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * nextIntervalFrames,
+    Math.max(1, incomingSpeed),
+  ) * 180) / Math.PI;
+  const turnDeg = signedAngleDelta(capture.entryAngleDeg, launchAngleDeg);
+  const scoopSegments = 3;
+  const scoopLengthPx = incomingSpeed * scoopSegments;
+  const segmentLengthPx = scoopLengthPx / scoopSegments;
+  const lines: TrackLine[] = [solidLine(lineIdStart, capture.approachPoint, capture.capturePoint)];
+  let point = { ...capture.capturePoint };
+  for (let index = 0; index < scoopSegments; index++) {
+    // The first scoop segment shares the approach tangent exactly. Uniform
+    // turn then reaches the derived ballistic launch without a runway/hold.
+    const fraction = scoopSegments === 1 ? 0 : index / (scoopSegments - 1);
+    const angleDeg = capture.entryAngleDeg + turnDeg * fraction;
+    const radians = (angleDeg * Math.PI) / 180;
+    const next = {
+      x: point.x + Math.cos(radians) * segmentLengthPx,
+      y: point.y + Math.sin(radians) * segmentLengthPx,
+    };
+    lines.push(solidLine(lineIdStart + lines.length, point, next));
+    point = next;
+  }
+  return lines;
+}
+
+function solidLine(
+  id: number,
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+): TrackLine {
+  return {
+    id,
+    type: 0,
+    x1: start.x,
+    y1: start.y,
+    x2: end.x,
+    y2: end.y,
+    flipped: false,
+    leftExtended: false,
+    rightExtended: false,
+  };
 }
 
 function buildRawMembers(
@@ -973,9 +1102,9 @@ function buildRawMembers(
         "normal",
         allContactFrames,
       );
-      members.push({ index: attempt, label: `normal_${attempt}`, lines: geometry.lines, error: null });
+      members.push({ index: attempt, label: `normal_${attempt}`, form: "raw-normal", lines: geometry.lines, error: null });
     } catch (error) {
-      members.push({ index: attempt, label: `normal_${attempt}`, lines: null, error: errorMessage(error) });
+      members.push({ index: attempt, label: `normal_${attempt}`, form: "raw-normal", lines: null, error: errorMessage(error) });
     }
   }
   return members;

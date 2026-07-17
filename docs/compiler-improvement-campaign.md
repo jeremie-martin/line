@@ -5754,6 +5754,54 @@ encode.  Any further component must get its distributed transition from a
 different representation of the geometry/collision relation, not another
 pre-contact state derivative.
 
+## Declared Observation: Candidate-Prefix Pre-Contact State Diversity (2026-07-17)
+
+The immutable history is mostly gravity and near-rigid motion, but a staged
+generator could in principle obtain a different state from the candidate's own
+approach geometry.  Before paying for a staged capture realizer, test whether
+raw normal proposals create any material full-sled diversity *before* their
+target collision.  This is the last candidate-resolved input that remains
+causal at `H-1`; it is not a post-collision state probe.
+
+At every frozen dense target state, regenerate each raw normal PRNG attempt
+without evaluating or admitting it.  Add only its raw lines to the immutable
+prefix and read the complete `PEG`/`TAIL`/`NOSE`/`STRING` state at `H-1`.
+Compare that state with the exact no-candidate prefix at the same frame: full
+cloud centroid, collective velocity, and all six pair distances.  No
+target-frame update, candidate score, viability, rank, source, seed, or
+geometry mutation is read.  The production pool replay is retained solely to
+verify the captured frontier state.
+
+**Decision boundary.** Retire a prefix-staged state-to-geometry component if
+raw approaches do not produce a material, broadly present H-1 full-sled state
+difference from the immutable prefix.  A non-null result would authorize one
+separately declared causal capture construction only; this observation cannot
+turn a pre-H movement magnitude into a selector, threshold, scale, retry, or
+source branch.
+
+**Dense result (2026-07-17, 20s; `npm run
+study:candidate-precontact-state-diversity`; artifact
+`generated/studies/candidate-precontact-state-diversity/v1/batch-0.json`):
+RETIRE candidate-prefix staging before target contact.** All **8/8** frozen
+production pools replayed exactly and all **232/232** raw attempts supplied a
+readable full-sled H-1 state.  Five of the eight target states have bitwise
+zero centroid, collective-velocity, and pair-distance movement across every
+raw candidate: the raw approach has not engaged the body before the target
+frame.  Across all eight rows, mean centroid movement is only `.018496` px,
+mean collective-velocity movement `.006170` px/frame, and mean pair-distance
+movement `.003905` px.  Even the largest individual values remain small and
+sparse (`.690950` px centroid, `.400797` px/frame velocity, `.275902` px pair
+distance) and occur only in separate nonzero rows.
+
+Thus a candidate's approach prefix does not create a reusable pre-collision
+transition state; a staged generator would see the same state for almost every
+raw attempt, then either emit the same geometry or condition on an isolated
+collision precursor.  Do not construct a prefix replay/capture-tail component,
+stage it by H-1 movement, move the read frame, widen the raw approach, or add a
+candidate-specific source policy.  The only material full-sled transition is
+created at the native target collision itself, while every tested static or
+post-collision representation has failed the dense continuation guard.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

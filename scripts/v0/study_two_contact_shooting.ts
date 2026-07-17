@@ -79,10 +79,27 @@ const FOUR_CONTROL_HELD_OUT_PANEL_IDS = [
   "four_control_wide_breaths_ordinary",
   "four_control_pickup_shifted_low_air",
 ] as const;
+const ACCELERATED_TRANSIENT_HELD_OUT_PANEL_IDS = [
+  "accelerated_transient_dense_dialogue",
+  "accelerated_transient_countercurrent_ordinary",
+  "accelerated_transient_low_air_endurance",
+] as const;
+const COMPACT_FORCE_COMPARISON_PANEL_IDS = [
+  "compact_force_dense_recovery",
+  "compact_force_amplitude_tides",
+  "compact_force_sparse_lowline",
+] as const;
 const DISTRIBUTED_FORWARD_FOUR_LABELS = new Set([
   "negative_distributed_half_frame_forward",
   "negative_distributed_one_frame_forward",
   "positive_distributed_half_frame_forward",
+  "positive_distributed_one_frame_forward",
+]);
+const COMPACT_FORCE_FIRST_LABELS = new Set([
+  "negative_distributed_one_frame_forward",
+]);
+const COMPACT_FORCE_BRIDGE_LABELS = new Set([
+  "negative_distributed_one_frame_forward",
   "positive_distributed_one_frame_forward",
 ]);
 
@@ -94,14 +111,25 @@ const argumentsFor = (name: string): string[] =>
 const returnNormal = argv.includes("--return-normal");
 const ballisticRelease = argv.includes("--ballistic-release");
 const transientBridge = argv.includes("--transient-bridge");
+const transientAcceleratedRelease = argv.includes("--transient-accelerated-release");
+const transientAcceleratedHeldOut = argv.includes("--transient-accelerated-held-out");
+const compactForceComparison = argv.includes("--compact-force-comparison");
 const arrivalGateDiagnosis = argv.includes("--arrival-gates");
 const transferDiagnosis = argv.includes("--transfer-diagnosis");
 const recursiveTransient = argv.includes("--recursive-transient");
 const recursiveReturn = argv.includes("--recursive-return");
 const distributedForwardFour = argv.includes("--distributed-forward-four");
 const heldOut = argv.includes("--held-out") || distributedForwardFour;
-const CONTROL_MEMBER_COUNT = distributedForwardFour ? 4 : 24;
-const SCHEMA = distributedForwardFour
+const CONTROL_MEMBER_COUNT = compactForceComparison ? 2 : distributedForwardFour ? 4 : 24;
+const SCHEMA = compactForceComparison
+  ? transientAcceleratedRelease
+    ? "line.study-transient-compact-force-comparison-accelerated.v1"
+    : "line.study-transient-compact-force-comparison-solid.v1"
+  : transientAcceleratedHeldOut
+  ? "line.study-transient-accelerated-release-heldout.v1"
+  : transientAcceleratedRelease
+  ? "line.study-transient-accelerated-release.v1"
+  : distributedForwardFour
   ? "line.study-recursive-transient-distributed-four-heldout.v1"
   : heldOut
   ? "line.study-recursive-transient-heldout.v1"
@@ -123,7 +151,7 @@ const SCHEMA = distributedForwardFour
 
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--arrival-gates|--transfer-diagnosis|--recursive-transient|--recursive-return] [--out-dir=DIR]",
+    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--transient-accelerated-release|--transient-accelerated-held-out|--compact-force-comparison|--arrival-gates|--transfer-diagnosis|--recursive-transient|--recursive-return] [--out-dir=DIR]",
     "",
     "Charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
     "Without --return-normal, writes the archived two-contact protocol under",
@@ -133,6 +161,16 @@ if (argv.includes("--help") || argv.includes("-h")) {
     "after the second exact capture before testing the k+2 normal stream.",
     "--transient-bridge requires --return-normal and replaces the second static",
     "C1 response with an immediate C1-to-ballistic contact bridge at k+1.",
+    "--transient-accelerated-release requires --return-normal --transient-bridge",
+    "and uses the same k+1 bridge geometry with its three post-contact scoop",
+    "segments as forward acceleration lines; it is calibration-only at dense240",
+    "except in a separately declared sealed held-out force study.",
+    "--transient-accelerated-held-out requires the declared three --fixture=PATH",
+    "inputs together with --transient-accelerated-release; it replays the full",
+    "24-control force treatment and unchanged k+2 normal stream, without recursion.",
+    "--compact-force-comparison requires the declared three --fixture=PATH inputs",
+    "and runs the fixed 1x2 compact screen with an equal two-member k+2 normal",
+    "stream; add --transient-accelerated-release for the force arm, omit it for solid.",
     "--arrival-gates requires --transient-bridge and records the unchanged k+2",
     "normal stream's clearance/survival/landing-window gate outcome per attempt.",
     "--transfer-diagnosis requires --transient-bridge and records the unforced",
@@ -151,7 +189,7 @@ if (argv.includes("--help") || argv.includes("-h")) {
 }
 
 assertExactEnvironment();
-const supportedOptions = ["--case=", "--fixture=", "--held-out", "--distributed-forward-four", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--transfer-diagnosis", "--recursive-transient", "--recursive-return", "--help", "-h"];
+const supportedOptions = ["--case=", "--fixture=", "--held-out", "--distributed-forward-four", "--transient-accelerated-held-out", "--compact-force-comparison", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--transient-accelerated-release", "--arrival-gates", "--transfer-diagnosis", "--recursive-transient", "--recursive-return", "--help", "-h"];
 const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
 if ((ballisticRelease || transientBridge) && !returnNormal) {
@@ -159,6 +197,18 @@ if ((ballisticRelease || transientBridge) && !returnNormal) {
 }
 if (ballisticRelease && transientBridge) {
   throw new Error("--ballistic-release and --transient-bridge are mutually exclusive");
+}
+if (transientAcceleratedRelease && (!returnNormal || !transientBridge || ballisticRelease || arrivalGateDiagnosis || transferDiagnosis || recursiveTransient || recursiveReturn || heldOut || distributedForwardFour)) {
+  throw new Error("--transient-accelerated-release requires --case=dense240 --return-normal --transient-bridge, or a declared sealed force-study protocol");
+}
+if (transientAcceleratedRelease && !transientAcceleratedHeldOut && !compactForceComparison && (argument("case") ?? "all") !== "dense240") {
+  throw new Error("--transient-accelerated-release is frozen to the dense240 calibration fixture");
+}
+if (transientAcceleratedHeldOut && (!transientAcceleratedRelease || !returnNormal || !transientBridge || ballisticRelease || arrivalGateDiagnosis || transferDiagnosis || recursiveTransient || recursiveReturn || heldOut || distributedForwardFour)) {
+  throw new Error("--transient-accelerated-held-out requires only --transient-accelerated-release --return-normal --transient-bridge and its sealed --fixture roster");
+}
+if (compactForceComparison && (!returnNormal || !transientBridge || ballisticRelease || arrivalGateDiagnosis || transferDiagnosis || recursiveTransient || recursiveReturn || heldOut || distributedForwardFour || transientAcceleratedHeldOut)) {
+  throw new Error("--compact-force-comparison requires only --return-normal --transient-bridge, its sealed --fixture roster, and optional --transient-accelerated-release");
 }
 if (arrivalGateDiagnosis && !transientBridge) {
   throw new Error("--arrival-gates requires --transient-bridge");
@@ -190,10 +240,20 @@ const heldOutFixturePaths = argumentsFor("fixture");
 if (heldOut && (!returnNormal || !transientBridge || !recursiveTransient || !recursiveReturn || ballisticRelease || arrivalGateDiagnosis)) {
   throw new Error("--held-out requires --return-normal --transient-bridge --recursive-transient --recursive-return only");
 }
-const selected: readonly StateSelection[] = heldOut
+const selected: readonly StateSelection[] = transientAcceleratedHeldOut
+  ? selectAcceleratedTransientHeldOutFixtures(heldOutFixturePaths)
+  : compactForceComparison
+  ? selectCompactForceComparisonFixtures(heldOutFixturePaths)
+  : heldOut
   ? selectHeldOutFixtures(heldOutFixturePaths)
   : selectCalibrationFixtures(argument("case") ?? "all", heldOutFixturePaths);
-const outDir = argument("out-dir") ?? (heldOut
+const outDir = argument("out-dir") ?? (compactForceComparison
+  ? transientAcceleratedRelease
+    ? "generated/studies/two-contact-shooting/transient-compact-force-comparison-accelerated-v1"
+    : "generated/studies/two-contact-shooting/transient-compact-force-comparison-solid-v1"
+  : transientAcceleratedHeldOut
+  ? "generated/studies/two-contact-shooting/transient-accelerated-release-heldout-v1"
+  : heldOut
   ? distributedForwardFour
     ? "generated/studies/two-contact-shooting/recursive-distributed-four-heldout-v1"
     : "generated/studies/two-contact-shooting/recursive-heldout-v1"
@@ -201,6 +261,8 @@ const outDir = argument("out-dir") ?? (heldOut
   ? "generated/studies/two-contact-shooting/recursive-return-v1"
   : recursiveTransient
   ? "generated/studies/two-contact-shooting/recursive-transient-v1"
+  : transientAcceleratedRelease
+  ? "generated/studies/two-contact-shooting/transient-accelerated-release-v1"
   : transferDiagnosis
   ? "generated/studies/two-contact-shooting/transient-ballistic-transfer-residual-v1"
   : arrivalGateDiagnosis
@@ -218,8 +280,12 @@ const observationCompiler = compilerCandidateIdentity("wasm");
 const protocolFingerprint = sha256(stableJson({
   protocol: "charged-two-contact-shooting.v1",
   captureBudget: 500_000,
-  segment1Families: ["mirrored-24-control-capture-arc", "equal-count-raw-normal"],
-  segment2Families: ["mirrored-24-control-capture-arc", "equal-count-raw-normal"],
+  segment1Families: compactForceComparison
+    ? ["fixed-one-control-capture-arc", "equal-count-raw-normal"]
+    : ["mirrored-24-control-capture-arc", "equal-count-raw-normal"],
+  segment2Families: compactForceComparison
+    ? ["fixed-two-control-transient-bridge", "equal-count-raw-normal"]
+    : ["mirrored-24-control-capture-arc", "equal-count-raw-normal"],
   admission: "tryCandidateLines (survival, +/-1 landing, no off-beat; unchanged)",
   chaining: "engine.addLine(fit.lines) -> getCandidateProbe(outgoing) -> same screen at k+1",
   returnBoundary: returnNormal
@@ -230,6 +296,15 @@ const protocolFingerprint = sha256(stableJson({
     : "disabled",
   transientBridge: transientBridge
     ? "retain the first C1 capture, then derive a k+1 one-segment C1 approach and immediate three-segment concave ballistic launch from exact state; materialize and observe k+2"
+    : "disabled",
+  transientAcceleratedRelease: transientAcceleratedRelease
+    ? "replace only the three post-contact transient scoop segments with reversed, flipped type-1 lines: the active collision normal is identical to the solid bridge while the engine applies its fixed forward tangential impulse"
+    : "disabled",
+  transientAcceleratedHeldOut: transientAcceleratedHeldOut
+    ? "require exactly the sealed dense-dialogue, countercurrent, and low-air transient-accelerated-release-heldout-v1 V3 fixtures; replay the full 24-control accelerated bridge without source or outcome branch"
+    : "disabled",
+  compactForceComparison: compactForceComparison
+    ? "require exactly the sealed dense-recovery, amplitude-tides, and sparse-lowline transient-compact-force-comparison-v1 V3 fixtures; fixed negative distributed one-frame first C1, both distributed one-frame bridge orientations, and equal two-member k+2 normal stream; only the optional type-1 force law differs between arms"
     : "disabled",
   arrivalGateDiagnosis: arrivalGateDiagnosis
     ? "for every transient-bridge k+2 raw-normal member, use the existing study-only landing-window hook to classify preclear, survival, first lockstep acceptance width 1-5, or no acceptance through width 5"
@@ -248,7 +323,9 @@ const protocolFingerprint = sha256(stableJson({
       ? "require exactly the sealed V4 distributed-four dense, ordinary, and low-air fixtures; no selection or outcome branch"
       : "require exactly the sealed dense, ordinary, and low-air recursive-transient-heldout-v1 V3 fixtures; do not select or branch by fixture outcome"
     : "disabled",
-  controlScreen: distributedForwardFour
+  controlScreen: compactForceComparison
+    ? "one fixed negative distributed one-frame first-C1 control; two fixed negative/positive distributed one-frame transient controls; equal two-member k+2 normal stream"
+    : distributedForwardFour
     ? "distributed allocation, both orientations, half/one-frame forward phase only (4 controls) at each C1/transient stage; equal 4-member k+3 normal stream"
     : "mirrored 24-control study screen; equal 24-member k+3 normal stream",
 }));
@@ -265,7 +342,9 @@ process.stdout.write(summaryLines.join("\n") + "\n");
 // Positive control: on the ordinary fixture the raw-normal family must produce
 // at least one segment-1 admission (calibration history). Zero is a broken
 // observation path, not a physics result.
-const ordinary = heldOut ? undefined : runResults.find((result) => result.id === "ordinary");
+const ordinary = (heldOut || transientAcceleratedHeldOut || compactForceComparison)
+  ? undefined
+  : runResults.find((result) => result.id === "ordinary");
 if (ordinary !== undefined) {
   const rawSeg1Admitted = ordinary.summary.segment1AdmissionByFamily["raw-normal"].admitted;
   if (rawSeg1Admitted === 0) {
@@ -278,7 +357,11 @@ if (ordinary !== undefined) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-type ContactForm = "static-c1" | "transient-c1-to-ballistic" | "raw-normal";
+type ContactForm =
+  | "static-c1"
+  | "transient-c1-to-ballistic"
+  | "transient-c1-to-ballistic-accelerated-release"
+  | "raw-normal";
 type CandidateMember = {
   index: number;
   label: string;
@@ -533,12 +616,54 @@ function selectHeldOutFixtures(fixturePaths: readonly string[]): readonly StateS
   return selected;
 }
 
+function selectAcceleratedTransientHeldOutFixtures(fixturePaths: readonly string[]): readonly StateSelection[] {
+  if (argument("case") !== undefined) {
+    throw new Error("--transient-accelerated-held-out uses the sealed --fixture roster, not --case");
+  }
+  const requiredIds = requiredHeldOutPanelIds();
+  if (fixturePaths.length !== requiredIds.length) {
+    throw new Error(`transient accelerated held-out mode requires exactly ${requiredIds.length} --fixture paths`);
+  }
+  const selected = fixturePaths.map((fixturePath) => {
+    const fixture = readFrozenTrajectoryFixture(fixturePath);
+    assertHeldOutFixtureDeclaration(fixture);
+    return { fixturePath, fixture, heldOut: true };
+  });
+  const actualIds = selected.map((selection) => selection.fixture.panel.id).sort();
+  const expectedIds = [...requiredIds].sort();
+  if (stableJson(actualIds) !== stableJson(expectedIds)) {
+    throw new Error(`--transient-accelerated-held-out fixture roster must be exactly ${expectedIds.join(", ")}`);
+  }
+  return selected;
+}
+
+function selectCompactForceComparisonFixtures(fixturePaths: readonly string[]): readonly StateSelection[] {
+  if (argument("case") !== undefined) {
+    throw new Error("--compact-force-comparison uses the sealed --fixture roster, not --case");
+  }
+  const requiredIds = requiredHeldOutPanelIds();
+  if (fixturePaths.length !== requiredIds.length) {
+    throw new Error(`compact force comparison requires exactly ${requiredIds.length} --fixture paths`);
+  }
+  const selected = fixturePaths.map((fixturePath) => {
+    const fixture = readFrozenTrajectoryFixture(fixturePath);
+    assertHeldOutFixtureDeclaration(fixture);
+    return { fixturePath, fixture, heldOut: true };
+  });
+  const actualIds = selected.map((selection) => selection.fixture.panel.id).sort();
+  const expectedIds = [...requiredIds].sort();
+  if (stableJson(actualIds) !== stableJson(expectedIds)) {
+    throw new Error(`--compact-force-comparison fixture roster must be exactly ${expectedIds.join(", ")}`);
+  }
+  return selected;
+}
+
 function assertHeldOutFixtureDeclaration(fixture: FrozenTrajectoryFixture): void {
   if (fixture.schema !== "line.frozen-trajectory-prefix.v3") {
-    throw new Error("held-out recursive transient study requires a stable V3 fixture");
+    throw new Error("held-out transient study requires a stable V3 fixture");
   }
   if (fixture.panel.cohort !== "validation" || fixture.panel.studyScope !== requiredHeldOutScope()) {
-    throw new Error(`fixture ${fixture.panel.id} is not a declared recursive-transient held-out input`);
+    throw new Error(`fixture ${fixture.panel.id} is not a declared held-out transient input`);
   }
   if (!fixture.capture.identityCheck.stable || fixture.capture.captureBudget !== 500_000 || fixture.capture.runtime.engine !== "wasm") {
     throw new Error(`fixture ${fixture.panel.id} lacks the required stable WASM/500k capture provenance`);
@@ -554,15 +679,19 @@ function assertHeldOutFixture(
 ): void {
   assertHeldOutFixtureDeclaration(fixture);
   if (!requiredHeldOutPanelIds().includes(prepared.panel.id)) {
-    throw new Error(`unexpected held-out recursive-transient panel ${prepared.panel.id}`);
+    throw new Error(`unexpected held-out transient panel ${prepared.panel.id}`);
   }
 }
 
 function requiredHeldOutPanelIds(): readonly string[] {
+  if (compactForceComparison) return COMPACT_FORCE_COMPARISON_PANEL_IDS;
+  if (transientAcceleratedHeldOut) return ACCELERATED_TRANSIENT_HELD_OUT_PANEL_IDS;
   return distributedForwardFour ? FOUR_CONTROL_HELD_OUT_PANEL_IDS : HELD_OUT_PANEL_IDS;
 }
 
 function requiredHeldOutScope(): string {
+  if (compactForceComparison) return "transient-compact-force-comparison-v1";
+  if (transientAcceleratedHeldOut) return "transient-accelerated-release-heldout-v1";
   return distributedForwardFour
     ? "recursive-transient-distributed-four-v4"
     : "recursive-transient-heldout-v1";
@@ -623,7 +752,7 @@ function runState(selection: StateSelection): StateResult {
   const axisEnd1 = axisLookaheadEndFrame(prepared.current, allContactFrames);
 
   const kinematic1 = contactKinematicFrameFromPlanningState(prepared.state, prepared.frame, prepared.current.targets);
-  const captureMembers1 = buildCaptureMembers(kinematic1, prepared.lineIdStart);
+  const captureMembers1 = buildCaptureMembers(kinematic1, prepared.lineIdStart, "first");
   const rawMembers1 = buildRawMembers(
     makeRng(rawStreamSeed(prepared, prepared.current.index)),
     prepared.probe,
@@ -666,7 +795,11 @@ function runState(selection: StateSelection): StateResult {
     status: {
       productionIntegration: "forbidden: trajectory observation outside the compiler identity boundary; not a candidate source, selector, or promotion command",
       cohortPolicy: selection.heldOut
-        ? "sealed recursive-transient held-out validation only; no compiler source, selector, promotion, or V2 evaluation is authorized"
+        ? compactForceComparison
+          ? "sealed compact tangential-impulse force/solid validation only; no compiler source, selector, promotion, or V2 evaluation is authorized"
+          : transientAcceleratedHeldOut
+          ? "sealed tangential-impulse transient held-out validation only; no compiler source, selector, promotion, or V2 evaluation is authorized"
+          : "sealed recursive-transient held-out validation only; no compiler source, selector, promotion, or V2 evaluation is authorized"
         : "calibration only; a separately frozen validation cohort is required before any predictive claim",
     },
     argv: [...argv],
@@ -692,11 +825,13 @@ function runState(selection: StateSelection): StateResult {
       returnBoundary: returnNormal
         ? {
           pairFamily: transientBridge
-            ? "capture-arc->transient-c1-to-ballistic only"
+            ? transientAcceleratedRelease
+              ? "capture-arc->transient-c1-to-ballistic-accelerated-release only"
+              : "capture-arc->transient-c1-to-ballistic only"
             : "capture-arc->capture-arc only",
           materialization: "combined sequentially admitted lines must equal a one-shot current-gap admission",
           nextGap: next!.index,
-          normalAttemptsPerMaterializedPair: captureMembers1.length,
+          normalAttemptsPerMaterializedPair: CONTROL_MEMBER_COUNT,
           normalSeed: "deterministic fixture seed + k+2 gap + pair row",
         }
         : null,
@@ -714,9 +849,34 @@ function runState(selection: StateSelection): StateResult {
         ? {
           scope: "first C1 capture followed by a transient k+1 C1-to-ballistic bridge only",
           secondContact: "one approach segment ends at the exact predicted k+1 point; its first scoop tangent equals the approach tangent and the surface stops after the third uniformly turning scoop segment",
-          controls: "the fixed mirrored 24-control C1 screen supplies only k+1 approach point and entry tangent from the exact extended-engine state",
+          controls: compactForceComparison
+            ? "the fixed one-control first C1 and fixed two-control k+1 bridge screen supply only the exact approach point and entry tangent from the extended-engine state"
+            : "the fixed mirrored 24-control C1 screen supplies only k+1 approach point and entry tangent from the exact extended-engine state",
           launchAngle: "atan2(-0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * literal k+2 interval frames, max(1, exact k+1 incoming speed))",
           materialization: "the first C1 plus complete transient bridge must equal a one-shot current-gap admission; the second contact is deliberately not compared with the static C1 response",
+        }
+        : null,
+      transientAcceleratedRelease: transientAcceleratedRelease
+        ? {
+          scope: compactForceComparison
+            ? "every sealed transient-compact-force-comparison-v1 fixture; this is the type-1 force arm of the fixed paired comparison"
+            : transientAcceleratedHeldOut
+            ? "every sealed transient-accelerated-release-heldout-v1 fixture; first C1 capture followed by the exact same k+1 transient approach/scoop geometry"
+            : "dense-240 calibration only; first C1 capture followed by the exact same k+1 transient approach/scoop geometry",
+          forceLaw: "each of the three post-contact scoop segments is emitted as a reversed, flipped type-1 acceleration line; this preserves the original active normal and applies lr-core's fixed forward tangent impulse on collision",
+          controls: compactForceComparison
+            ? "one fixed first-C1 control plus two fixed bridge controls; no impulse magnitude, segment subset, target axis, outcome, or source branch"
+            : "the unchanged mirrored 24-control C1 screen; no impulse magnitude, segment subset, target axis, outcome, or source branch",
+          return: `unchanged equal ${CONTROL_MEMBER_COUNT}-member raw-normal k+2 stream from every byte-stable materialized pair at equal control width`,
+        }
+        : null,
+      compactForceComparison: compactForceComparison
+        ? {
+          arm: transientAcceleratedRelease ? "type-1 forward tangential impulse" : "solid release control",
+          firstControl: "negative_distributed_one_frame_forward",
+          bridgeControls: ["negative_distributed_one_frame_forward", "positive_distributed_one_frame_forward"],
+          normalAttemptsPerMaterializedPair: CONTROL_MEMBER_COUNT,
+          invariant: "both arms share immutable fixture, screen, geometry, seeds, admissions, one-shot materialization, and normal stream; only the three scoop line types differ",
         }
         : null,
       arrivalGateDiagnosis: arrivalGateDiagnosis
@@ -861,8 +1021,14 @@ function evaluateRow(
     const frame2 = targetFrameFromPlanningState(state2);
     const kinematic2 = contactKinematicFrameFromPlanningState(state2, frame2, prepared.outgoing.targets);
     captureMembers2 = transientBridge
-      ? buildTransientBridgeMembers(kinematic2, lineId2, next!.endFrame - prepared.outgoing.endFrame)
-      : buildCaptureMembers(kinematic2, lineId2);
+      ? buildTransientBridgeMembers(
+        kinematic2,
+        lineId2,
+        next!.endFrame - prepared.outgoing.endFrame,
+        transientAcceleratedRelease,
+        "bridge",
+      )
+      : buildCaptureMembers(kinematic2, lineId2, "bridge");
   } catch (error) {
     return unavailable("segment2-family-unavailable", errorMessage(error));
   }
@@ -1678,8 +1844,9 @@ function emptyReturnBoundary(jointAdmissionFrames: number, materializationError:
 function buildCaptureMembers(
   kinematic: ReturnType<typeof contactKinematicFrameFromPlanningState>,
   lineIdStart: number,
+  stage: "first" | "bridge" = "first",
 ): CandidateMember[] {
-  const entries = selectedCaptureArcEntries(kinematic);
+  const entries = selectedCaptureArcEntries(kinematic, stage);
   return entries.map((entry, index) => {
     try {
       const realized = realizeContactCaptureArc(resolveContactCaptureArc(kinematic, entry.control), lineIdStart);
@@ -1700,24 +1867,36 @@ function buildTransientBridgeMembers(
   kinematic: ReturnType<typeof contactKinematicFrameFromPlanningState>,
   lineIdStart: number,
   nextIntervalFrames: number,
+  acceleratedRelease = false,
+  stage: "first" | "bridge" = "bridge",
 ): CandidateMember[] {
-  const entries = selectedCaptureArcEntries(kinematic);
+  const entries = selectedCaptureArcEntries(kinematic, stage);
   return entries.map((entry, index) => {
     try {
       const resolved = resolveContactCaptureArc(kinematic, entry.control);
-      const lines = realizeTransientBridge(resolved, kinematic.com.speedPxPerFrame, nextIntervalFrames, lineIdStart);
+      const lines = realizeTransientBridge(
+        resolved,
+        kinematic.com.speedPxPerFrame,
+        nextIntervalFrames,
+        lineIdStart,
+        acceleratedRelease,
+      );
       return {
         index,
-        label: `${entry.label}_transient`,
-        form: "transient-c1-to-ballistic",
+        label: `${entry.label}_${acceleratedRelease ? "accelerated_transient" : "transient"}`,
+        form: acceleratedRelease
+          ? "transient-c1-to-ballistic-accelerated-release"
+          : "transient-c1-to-ballistic",
         lines,
         error: null,
       };
     } catch (error) {
       return {
         index,
-        label: `${entry.label}_transient`,
-        form: "transient-c1-to-ballistic",
+        label: `${entry.label}_${acceleratedRelease ? "accelerated_transient" : "transient"}`,
+        form: acceleratedRelease
+          ? "transient-c1-to-ballistic-accelerated-release"
+          : "transient-c1-to-ballistic",
         lines: null,
         error: errorMessage(error),
       };
@@ -1727,13 +1906,17 @@ function buildTransientBridgeMembers(
 
 function selectedCaptureArcEntries(
   kinematic: ReturnType<typeof contactKinematicFrameFromPlanningState>,
+  stage: "first" | "bridge",
 ) {
   const entries = makeMirroredContactCaptureArcScreen(kinematic);
-  const selected = distributedForwardFour
+  const selected = compactForceComparison
+    ? entries.filter((entry) => (stage === "first" ? COMPACT_FORCE_FIRST_LABELS : COMPACT_FORCE_BRIDGE_LABELS).has(entry.label))
+    : distributedForwardFour
     ? entries.filter((entry) => DISTRIBUTED_FORWARD_FOUR_LABELS.has(entry.label))
     : entries;
-  if (selected.length !== CONTROL_MEMBER_COUNT) {
-    throw new Error(`configured capture screen has ${selected.length}, expected ${CONTROL_MEMBER_COUNT} controls`);
+  const expected = compactForceComparison && stage === "first" ? 1 : CONTROL_MEMBER_COUNT;
+  if (selected.length !== expected) {
+    throw new Error(`configured ${stage} capture screen has ${selected.length}, expected ${expected} controls`);
   }
   return selected;
 }
@@ -1743,6 +1926,7 @@ function realizeTransientBridge(
   incomingSpeed: number,
   nextIntervalFrames: number,
   lineIdStart: number,
+  acceleratedRelease: boolean,
 ): TrackLine[] {
   if (!Number.isFinite(incomingSpeed) || !(incomingSpeed > 0)) {
     throw new Error("transient bridge requires a finite positive exact k+1 incoming speed");
@@ -1772,7 +1956,9 @@ function realizeTransientBridge(
       x: point.x + Math.cos(radians) * segmentLengthPx,
       y: point.y + Math.sin(radians) * segmentLengthPx,
     };
-    lines.push(solidLine(lineIdStart + lines.length, point, next));
+    lines.push(acceleratedRelease
+      ? forwardAccelerationLine(lineIdStart + lines.length, point, next)
+      : solidLine(lineIdStart + lines.length, point, next));
     point = next;
   }
   return lines;
@@ -1791,6 +1977,29 @@ function solidLine(
     x2: end.x,
     y2: end.y,
     flipped: false,
+    leftExtended: false,
+    rightExtended: false,
+  };
+}
+
+/**
+ * A type-1 line accelerates opposite its stored tangent. Reverse endpoints and
+ * flip its collision side so this realizes the same active normal as a solid
+ * start->end segment while applying the engine's fixed forward tangent impulse.
+ */
+function forwardAccelerationLine(
+  id: number,
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+): TrackLine {
+  return {
+    id,
+    type: 1,
+    x1: end.x,
+    y1: end.y,
+    x2: start.x,
+    y2: start.y,
+    flipped: true,
     leftExtended: false,
     rightExtended: false,
   };

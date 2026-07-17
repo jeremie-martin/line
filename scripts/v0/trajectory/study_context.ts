@@ -33,6 +33,14 @@ import {
   buildRecursiveTransientFourControlSetup,
   getRecursiveTransientFourControlCase,
 } from "./recursive_transient_four_control_panel.ts";
+import {
+  buildAcceleratedTransientHeldoutSetup,
+  getAcceleratedTransientHeldoutCase,
+} from "./accelerated_transient_heldout_panel.ts";
+import {
+  buildCompactForceComparisonSetup,
+  getCompactForceComparisonCase,
+} from "./compact_force_comparison_panel.ts";
 import type { TrajectoryCaptureCase, TrajectoryCaptureSetup } from "./capture_input.ts";
 import { extractPlanningState, type PlanningState } from "./state.ts";
 import { rebuildPhysicalPrefixEngine } from "./study_fixture.ts";
@@ -288,6 +296,14 @@ function resolveFixturePanel(
   if (input.panel.cohort === "validation" && input.panel.studyScope === "recursive-transient-distributed-four-v4") {
     const panel = getRecursiveTransientFourControlCase(input.panel.id);
     return { panel, setup: buildRecursiveTransientFourControlSetup(panel) };
+  }
+  if (input.panel.cohort === "validation" && input.panel.studyScope === "transient-accelerated-release-heldout-v1") {
+    const panel = getAcceleratedTransientHeldoutCase(input.panel.id);
+    return { panel, setup: buildAcceleratedTransientHeldoutSetup(panel) };
+  }
+  if (input.panel.cohort === "validation" && input.panel.studyScope === "transient-compact-force-comparison-v1") {
+    const panel = getCompactForceComparisonCase(input.panel.id);
+    return { panel, setup: buildCompactForceComparisonSetup(panel) };
   }
   const panel = getTrajectoryPanelCase(input.panel.id);
   assertActiveTrajectoryPanel(panel, "trajectory fixture replay");

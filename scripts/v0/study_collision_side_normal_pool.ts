@@ -1,9 +1,10 @@
 /**
  * Frozen observation-only comparison of production normal geometry against
- * the same raw proposals with every one-way collision side inverted.
+ * the same raw proposals with either every one-way collision side inverted or
+ * the final post-contact collision endpoint extended.
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_collision_side_normal_pool.ts \
- *     --out=generated/studies/collision-side-normal-pool/v1/result.json
+ *     --terminal-end-extension --out=generated/studies/terminal-endpoint-normal-pool/v1/result.json
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -23,13 +24,15 @@ import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--out=generated/studies/collision-side-normal-pool/v1/result.json]\n");
+  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension] [--case=ID ...] [--out=PATH]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
   argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const outPath = argument("out");
-const unknown = argv.filter((value) => !value.startsWith("--out="));
+const terminalEndExtension = argv.includes("--terminal-end-extension");
+const requestedCaseIds = argv.filter((value) => value.startsWith("--case=")).map((value) => value.slice("--case=".length));
+const unknown = argv.filter((value) => value !== "--terminal-end-extension" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
 
 const BUDGET = 500_000;
@@ -42,6 +45,12 @@ const CASES = [
   { id: "frontier_low_air_endurance_4s", regime: "low_air" },
   { id: "believer_56_6s", regime: "development_music" },
 ] as const;
+const ACTIVE_CASES = requestedCaseIds.length === 0
+  ? CASES
+  : CASES.filter((entry) => requestedCaseIds.includes(entry.id));
+if (new Set(requestedCaseIds).size !== requestedCaseIds.length || ACTIVE_CASES.length !== requestedCaseIds.length) {
+  throw new Error(`unknown or duplicate --case selection: ${requestedCaseIds.join(", ")}`);
+}
 
 type Regime = typeof CASES[number]["regime"];
 type Checkpoint = "one_third" | "two_thirds";
@@ -67,12 +76,12 @@ type Row = {
   replayEquivalent: boolean | null;
   replayMessage: string | null;
   production: Arm | null;
-  flipped: Arm | null;
+  alternative: Arm | null;
   deltas: { viable: number | null; bestAxisRms: number | null; bestObjective: number | null; bestCost: number | null } | null;
 };
 
 const catalog = new Map(developmentCases.map((entry) => [entry.case.metadata.id, entry.case]));
-const definitions = CASES.map((entry) => {
+const definitions = ACTIVE_CASES.map((entry) => {
   const found = catalog.get(entry.id);
   if (found === undefined) throw new Error(`frozen case ${entry.id} is absent from development catalog`);
   return { ...entry, spec: found.spec };
@@ -112,19 +121,25 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: "line.study-collision-side-normal-pool.v1",
+  schema: terminalEndExtension
+    ? "line.study-terminal-endpoint-continuation-normal-pool.v1"
+    : "line.study-collision-side-normal-pool.v1",
   purpose: [
     "observation-only exact normal-pool replay from immutable frontier states",
-    "same PRNG coordinates, attempts, candidate count, gates, and scoring; production collision side versus every-line inverted side",
+    terminalEndExtension
+      ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; production bounded endpoints versus only the final post-contact line with its right endpoint extended"
+      : "same PRNG coordinates, attempts, candidate count, gates, and scoring; production collision side versus every-line inverted side",
     "no alternate compiler run, normal-source change, or V2 evaluation",
   ],
   frozenConfig: {
     budget: BUDGET,
     joltMs: benchmarkPolicy.transform.joltMs,
     seeds: SEEDS,
-    cases: CASES,
+    cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    comparator: "invert the flipped bit on every proposed normal line after identical raw geometry generation",
+    comparator: terminalEndExtension
+      ? "set rightExtended=true only on the final proposed normal line after identical raw geometry generation"
+      : "invert the flipped bit on every proposed normal line after identical raw geometry generation",
   },
   rows,
   summary: summarize(rows),
@@ -168,17 +183,19 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
   }
   const rngSeed = (Math.imul(rawPool.seed | 0, 1_000_003) + gap.index + 1) | 0;
   const production = sampleProduction(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
-  const flipped = sampleFlipped(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
+  const alternative = terminalEndExtension
+    ? sampleTerminalEndpointExtended(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
+    : sampleFlipped(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
   const check = compareRawReplay(rawPool.candidates, production.candidates);
   return {
     caseId, regime, seed, checkpoint: captured.checkpoint, gapIndex: captured.gapIndex,
     candidateCount: rawPool.count, captureAvailable: true,
-    replayEquivalent: check.ok, replayMessage: check.message, production, flipped,
+    replayEquivalent: check.ok, replayMessage: check.message, production, alternative,
     deltas: {
-      viable: flipped.viable - production.viable,
-      bestAxisRms: improvement(production.bestAxisRms, flipped.bestAxisRms, false),
-      bestObjective: improvement(production.bestObjective, flipped.bestObjective, true),
-      bestCost: improvement(production.bestCost, flipped.bestCost, false),
+      viable: alternative.viable - production.viable,
+      bestAxisRms: improvement(production.bestAxisRms, alternative.bestAxisRms, false),
+      bestObjective: improvement(production.bestObjective, alternative.bestObjective, true),
+      bestCost: improvement(production.bestCost, alternative.bestCost, false),
     },
   };
 }
@@ -187,7 +204,7 @@ function unavailable(caseId: string, regime: Regime, seed: number, checkpoint: C
   return {
     caseId, regime, seed, checkpoint, gapIndex, candidateCount: null,
     captureAvailable: false, replayEquivalent: null, replayMessage: message,
-    production: null, flipped: null, deltas: null,
+    production: null, alternative: null, deltas: null,
   };
 }
 
@@ -215,6 +232,49 @@ function sampleFlipped(node: HandoffNode, gap: Gap, ctx: SpecContext, gaps: Gap[
     const fit = tryCandidateGeometry(
       node.search.prefixEngine, gap, geometry, node.search.prefixNextLineId,
       ctx.allContactFrames, axisMeasureEnd, gap.targets, true, "normal", probe.preTargetSledTrace,
+    ) as Candidate | null;
+    if (fit !== null) {
+      fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      fit.sampleAttempt = attempt;
+      candidates.push(digest(fit, node, gap, gaps, ctx));
+    }
+  }
+  return summarizeArm(count, candidates);
+}
+
+function sampleTerminalEndpointExtended(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): Arm {
+  const rng = makeRng(seed);
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const candidates: Digest[] = [];
+  for (let attempt = 0; attempt < count; attempt++) {
+    const rawGeometry = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    const lines = rawGeometry.lines.map((line, index) => ({
+      ...line,
+      rightExtended: index === rawGeometry.lines.length - 1 ? true : line.rightExtended,
+    }));
+    if (lines.length === 0) throw new Error("normal proposal has no terminal line to extend");
+    const fit = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      { ...rawGeometry, lines },
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
     ) as Candidate | null;
     if (fit !== null) {
       fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
@@ -310,7 +370,7 @@ function geometryHash(candidate: Candidate): string {
 
 function summarize(rows: readonly Row[]) {
   const usable = rows.filter((row) => row.replayEquivalent === true && row.deltas !== null);
-  const byRegime = Object.fromEntries([...new Set(CASES.map((entry) => entry.regime))].map((regime) =>
+  const byRegime = Object.fromEntries([...new Set(ACTIVE_CASES.map((entry) => entry.regime))].map((regime) =>
     [regime, summarizeRows(usable.filter((row) => row.regime === regime))]
   ));
   const summaries = Object.values(byRegime) as ReturnType<typeof summarizeRows>[];
@@ -320,7 +380,7 @@ function summarize(rows: readonly Row[]) {
     replayEquivalent: rows.filter((row) => row.replayEquivalent === true).length,
     replayFailures: rows.filter((row) => row.replayEquivalent === false).length,
     usableRows: usable.length,
-    flippedViableRows: usable.filter((row) => (row.flipped?.viable ?? 0) > 0).length,
+    alternativeViableRows: usable.filter((row) => (row.alternative?.viable ?? 0) > 0).length,
     byRegime,
     regimeBalanced: {
       viableDelta: mean(summaries.map((row) => row.viableDelta).filter(isFiniteNumber)),

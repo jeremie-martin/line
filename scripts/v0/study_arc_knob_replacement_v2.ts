@@ -6,11 +6,13 @@
  * compiler's candidate space nor its selector.
  *
  * The comparison is deliberately narrow and symmetric:
- *   base; tail-pitch +/-8.5deg; whole-arc rotate +/-2.5deg; and progressive
- *   exit-bend +/-8.5deg.  Bend preserves the completed catch and the first
- *   suffix tangent, which rotation cannot.  The two-sign "best" summaries are
- * descriptive (and selection-biased); gate rate and all-sign averages are the
- * primary evidence.
+ *   base; tail-pitch +/-8.5deg; whole-arc rotate +/-2.5deg; progressive
+ *   exit-bend +/-8.5deg; and endpoint-preserving interior normal bows at
+ *   fixed quarter, half, and rotation-equivalent +/-2.5deg scales.  The bow
+ *   changes the contact-forming support interior without translating the
+ *   entry or exit endpoint.  The two-sign "best" summaries are descriptive
+ *   (and selection-biased); gate rate and all-sign averages are the primary
+ *   evidence.
  *
  * Example cheap scope panel:
  *   LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_arc_knob_replacement_v2.ts \
@@ -59,7 +61,7 @@ const cases = new Map(developmentCases.map((entry) => [entry.case.metadata.id, e
 for (const id of ids) if (!cases.has(id)) throw new Error(`unknown V2 development case "${id}"`);
 
 type Setup = { gaps: Gap[]; ctx: SpecContext };
-type Family = "base" | "pitch" | "rotate" | "bend";
+type Family = "base" | "pitch" | "rotate" | "bend" | "bow_quarter" | "bow_half" | "bow";
 type Trial = {
   spec: string;
   seed: number;
@@ -136,12 +138,61 @@ function bendExitLines(lines: TrackLine[], deg: number): TrackLine[] {
   return out;
 }
 
+/**
+ * Study-only local contact actuator.  It displaces only interior vertices in
+ * the normal of the entry-to-exit chord, with a smooth zero-endpoint field.
+ * The requested angle is merely a scale convention: the peak displacement is
+ * total arc length times tan(angle), matching the first-order transverse
+ * motion made by the incumbent whole-arc rotation.  It is not a rotation.
+ */
+function bowInteriorLines(lines: TrackLine[], equivalentDeg: number): TrackLine[] {
+  if (lines.length < 2 || equivalentDeg === 0) return lines.map((line) => ({ ...line }));
+  const vertices = [{ x: lines[0].x1, y: lines[0].y1 }];
+  let arcLength = 0;
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    const previous = vertices[vertices.length - 1];
+    if (Math.hypot(line.x1 - previous.x, line.y1 - previous.y) > 1e-6) {
+      return lines.map((item) => ({ ...item }));
+    }
+    const length = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+    if (!(length > 1e-9)) return lines.map((item) => ({ ...item }));
+    arcLength += length;
+    vertices.push({ x: line.x2, y: line.y2 });
+  }
+  const start = vertices[0];
+  const end = vertices[vertices.length - 1];
+  const chordX = end.x - start.x;
+  const chordY = end.y - start.y;
+  const chordLength = Math.hypot(chordX, chordY);
+  if (!(chordLength > 1e-9) || !(arcLength > 1e-9)) return lines.map((line) => ({ ...line }));
+  const amplitude = arcLength * Math.tan(equivalentDeg * Math.PI / 180);
+  const normalX = -chordY / chordLength;
+  const normalY = chordX / chordLength;
+  const adjusted = vertices.map((vertex, index) => {
+    const s = index / (vertices.length - 1);
+    // Zero value and zero continuous derivative at both endpoints.
+    const weight = Math.sin(Math.PI * s) ** 2;
+    return { x: vertex.x + normalX * amplitude * weight, y: vertex.y + normalY * amplitude * weight };
+  });
+  return lines.map((line, index) => ({
+    ...line,
+    x1: adjusted[index].x,
+    y1: adjusted[index].y,
+    x2: adjusted[index + 1].x,
+    y2: adjusted[index + 1].y,
+  }));
+}
+
 function editedLines(lines: TrackLine[], family: Family, deltaDeg: number): TrackLine[] {
   switch (family) {
     case "base": return lines.map((line) => ({ ...line }));
     case "pitch": return applyArcKnobs(lines, { pitchDeg: deltaDeg, rotateDeg: 0 });
     case "rotate": return applyArcKnobs(lines, { pitchDeg: 0, rotateDeg: deltaDeg });
     case "bend": return bendExitLines(lines, deltaDeg);
+    case "bow_quarter": return bowInteriorLines(lines, deltaDeg);
+    case "bow_half": return bowInteriorLines(lines, deltaDeg);
+    case "bow": return bowInteriorLines(lines, deltaDeg);
   }
 }
 
@@ -150,6 +201,9 @@ const variants: Array<{ family: Family; deltaDeg: number }> = [
   { family: "pitch", deltaDeg: -8.5 }, { family: "pitch", deltaDeg: 8.5 },
   { family: "rotate", deltaDeg: -2.5 }, { family: "rotate", deltaDeg: 2.5 },
   { family: "bend", deltaDeg: -8.5 }, { family: "bend", deltaDeg: 8.5 },
+  { family: "bow_quarter", deltaDeg: -0.625 }, { family: "bow_quarter", deltaDeg: 0.625 },
+  { family: "bow_half", deltaDeg: -1.25 }, { family: "bow_half", deltaDeg: 1.25 },
+  { family: "bow", deltaDeg: -2.5 }, { family: "bow", deltaDeg: 2.5 },
 ];
 const trials: Trial[] = [];
 let skippedIncomplete = 0;
@@ -226,7 +280,7 @@ function median(values: number[]): number | null {
 }
 function keyOf(trial: Trial): string { return `${trial.spec}\0${trial.seed}\0${trial.gapIndex}`; }
 
-const summaries = (["base", "pitch", "rotate", "bend"] as const).map((family) => {
+const summaries = (["base", "pitch", "rotate", "bend", "bow_quarter", "bow_half", "bow"] as const).map((family) => {
   const rows = trials.filter((trial) => trial.family === family);
   const valid = rows.filter((trial) => trial.admitted);
   const quality = valid.flatMap((trial) => trial.quality === null ? [] : [trial.quality]);
@@ -244,7 +298,7 @@ const summaries = (["base", "pitch", "rotate", "bend"] as const).map((family) =>
   };
 });
 
-const paired = (["pitch", "rotate", "bend"] as const).map((family) => {
+const paired = (["pitch", "rotate", "bend", "bow_quarter", "bow_half", "bow"] as const).map((family) => {
   const byState = new Map<string, Trial[]>();
   for (const trial of trials) {
     const list = byState.get(keyOf(trial)) ?? [];
@@ -278,8 +332,8 @@ const paired = (["pitch", "rotate", "bend"] as const).map((family) => {
 });
 
 const result = {
-  study: "arc-knob-replacement-v2-v1",
-  mechanism: "contact-preserving progressive exit bend vs incumbent whole-arc rotation",
+  study: "arc-knob-replacement-v2-v3",
+  mechanism: "contact-preserving exit bend and endpoint-preserving interior normal bow amplitude envelope vs incumbent whole-arc rotation",
   budget, ids, seeds, maxGaps,
   counts: { trials: trials.length, states: new Set(trials.map(keyOf)).size, skippedIncomplete, skippedNoAimTarget },
   summaries, paired, trials,

@@ -3326,6 +3326,45 @@ be independent of this current candidate pool: rebuild the entry-state and
 collision-response envelope from frozen engine states, so that “unreachable”
 is tested rather than inherited from the existing sampler.
 
+## Impact Suffix Counterfactual v1 (2026-07-17)
+
+`npm run study:impact-suffix` is the corresponding fast causal screen
+(roughly 25 seconds on the campaign host), not another score proxy. It makes
+one fixed 250k discovery compile for each of the six cross-regime V2-jolt
+sources at seed 28, takes the last ordinary winner-prefix parent at one-third
+of the authored contacts, and regenerates a fixed 32-proposal normal pool at
+that immutable state. It then resumes the *same prefix* for a fresh equal
+50k suffix budget. The predeclared arms are the winner-prefix incumbent; the
+least-impact-residual candidate with no additional speed residual; a material
+impact repair with a deliberately small `.025`–`.100` speed-residual loss, if
+one exists; and the unconstrained impact specialist. Identical arms share one
+deterministic replay and are marked as aliases. It changes no selector and is
+not comparable to a full V2 result.
+
+**First result: reject a speed-sacrifice explanation, but do not promote a
+selector change.** All six winner-prefix incumbents were present in their
+replayed normal pools. The no-extra-speed arm lowered immediate impact
+residual in 5/6 states (4 material repairs); it was also the unconstrained
+impact specialist in every state. No state contained the predeclared
+small-speed-for-impact trade. So the proposed “accept a little worse speed”
+lever was not merely unnecessary here—it was absent from this fixed ordinary
+pool population.
+
+The isolated-prefix continuation read is deliberately mixed. Three incumbent
+controls and their alternatives completed under the equal 50k suffix: the
+impact repair improved `believer_56_6s` by **+2.574** and
+`offgrid_conversation` by **+10.251**, while it reduced `countercurrent` by
+**−19.875**. Two otherwise valid 250k source runs could not be reproduced by
+the prefix-only 50k incumbent control, so they are inconclusive rather than
+losses; the fast dense source itself was invalid. This falsifies a universal
+claim that an immediate impact repair necessarily harms the whole
+continuation, while also falsifying an impact-first ranking rule: the same
+fixed intervention can win or lose. The next mechanism must model or enlarge
+the **transition state** broadly, not trade speed away or introduce an
+impact-only hotfix. A full candidate requires a separately declared,
+regime-balanced transition-source assay followed by the normal scope/V2
+funnel.
+
 ## Declared Audit: Body-Point Collision Contribution in Ordinary Normal Pools (2026-07-17)
 
 The current probe has reopened the physical question: many impact-improving

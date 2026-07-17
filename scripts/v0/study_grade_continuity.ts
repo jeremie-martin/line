@@ -21,6 +21,9 @@
  *   - airborne-phase-continuous: on that same span, shorten only the sampled
  *     post-contact tail when the exact incoming detector phase has accrued
  *     fewer than six airborne frames.
+ *   - frenet-curvature-continuous: on that same span, preserve the raw
+ *     contact and terminal tangents while carrying the preceding terminal
+ *     normal acceleration v²κ into the raw post-curve's interior curvature.
  *
  * The previous grade is a continuous measured property of the committed line
  * set.  No source, case, duration class, target identity, or outcome feeds the
@@ -50,14 +53,14 @@ import {
   writeImmutableJsonArtifact,
 } from "./trajectory/study_artifact.ts";
 
-const SCHEMA = "line.study-trajectory-continuity-controls.v4";
+const SCHEMA = "line.study-trajectory-continuity-controls.v5";
 const FIXTURE_DIR = "generated/studies/trajectory-fixtures/grade-continuity-2026-07-17/v3";
 const FIXTURES = {
   believer36: "believer36-b500000-d7aec722a976.json",
   believer69: "believer69-b500000-24448183619b.json",
 } as const;
 type StateId = keyof typeof FIXTURES;
-type Family = "independent" | "grade-continuous" | "energy-continuous" | "contact-phase-continuous" | "airborne-phase-continuous";
+type Family = "independent" | "grade-continuous" | "energy-continuous" | "contact-phase-continuous" | "airborne-phase-continuous" | "frenet-curvature-continuous";
 
 // The physical hypothesis is persistent shallow grades, not a one-off rail.
 // Every fourth low-discrepancy attempt receives the correlated terminal grade;
@@ -103,7 +106,7 @@ if (argv.includes("--help") || argv.includes("-h")) {
     "",
     "Calibration-only trajectory-continuity assay. Requires LR_ENGINE=wasm and",
     "the frozen believer-energy V3 fixtures. It compares ordinary local-cost",
-    "chains against predecessor-grade and cumulative-energy normal streams.",
+    "chains against predecessor-grade, energy, phase, and Frenet-curvature streams.",
   ].join("\n") + "\n");
   process.exit(0);
 }
@@ -126,12 +129,12 @@ if (!Number.isInteger(trials) || trials <= 0 || trials > 256) {
   throw new Error(`--trials must be an integer in [1, 256]; received ${requestedTrials}`);
 }
 const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? "generated/studies/grade-continuity/v6-airborne-phase";
+const outDir = argument("out-dir") ?? "generated/studies/grade-continuity/v7-frenet-curvature";
 
 const sourceIdentity = studySourceIdentity("scripts/v0/study_grade_continuity.ts");
 const observationCompiler = compilerCandidateIdentity("wasm");
 const protocolFingerprint = sha256(stableJson({
-  protocol: "grade-energy-contact-and-airborne-phase-continuity.v4",
+  protocol: "grade-energy-contact-airborne-and-frenet-curvature-continuity.v5",
   captureBudget: 500_000,
   stream: {
     baseline: "sampleArcPlacementGeometry(normal)",
@@ -155,6 +158,7 @@ const protocolFingerprint = sha256(stableJson({
     contactPhaseBlend: CONTACT_PHASE_BLEND,
     legalAirborneFrames: LEGAL_AIRBORNE_FRAMES,
     airbornePhaseTailMinScale: AIRBORNE_PHASE_TAIL_MIN_SCALE,
+    frenetRule: "target terminal curvature = preceding committed v²κ divided by current measured entry speed squared; a sine interior tangent packet preserves contact and terminal tangents",
     trials,
     stateFrameBudget: STATE_FRAME_BUDGET,
   },
@@ -176,6 +180,9 @@ type CandidateRow = {
   airbornePhasePressure: number | null;
   rawPostTailLengthPx: number | null;
   proposedPostTailLengthPx: number | null;
+  previousNormalAcceleration: number | null;
+  rawTerminalCurvatureRadPerPx: number | null;
+  proposedTerminalCurvatureRadPerPx: number | null;
   admitted: boolean;
   cost: number | null;
   simFrames: number;
@@ -188,6 +195,7 @@ type ContactStep = {
   carriedEnergyDebt: number | null;
   contactPhaseFrames: number | null;
   incomingAirborneAgeFrames: number | null;
+  carriedNormalAcceleration: number | null;
   candidates: CandidateRow[];
   chosen: {
     attempt: number;
@@ -235,16 +243,19 @@ for (const result of results) {
   const energy = result.summary.families["energy-continuous"];
   const phase = result.summary.families["contact-phase-continuous"];
   const airborne = result.summary.families["airborne-phase-continuous"];
+  const frenet = result.summary.families["frenet-curvature-continuous"];
   const gradeDelta = difference(grade.terminalSpeed.mean, independent.terminalSpeed.mean);
   const energyDelta = difference(energy.terminalSpeed.mean, independent.terminalSpeed.mean);
   const phaseDelta = difference(phase.terminalSpeed.mean, independent.terminalSpeed.mean);
   const airborneDelta = difference(airborne.terminalSpeed.mean, independent.terminalSpeed.mean);
+  const frenetDelta = difference(frenet.terminalSpeed.mean, independent.terminalSpeed.mean);
   process.stdout.write(
     `${result.id}: grade complete ${grade.completeChains}/${grade.trials} speed Δ${signed(gradeDelta)}; ` +
     `energy complete ${energy.completeChains}/${energy.trials} speed Δ${signed(energyDelta)} ` +
     `phase complete ${phase.completeChains}/${phase.trials} speed Δ${signed(phaseDelta)} ` +
     `airborne complete ${airborne.completeChains}/${airborne.trials} speed Δ${signed(airborneDelta)} ` +
-    `vs independent ${independent.completeChains}/${independent.trials}; phase chosen ${phase.transformedChosen}; airborne chosen ${airborne.transformedChosen}; ` +
+    `frenet complete ${frenet.completeChains}/${frenet.trials} speed Δ${signed(frenetDelta)} ` +
+    `vs independent ${independent.completeChains}/${independent.trials}; phase chosen ${phase.transformedChosen}; airborne chosen ${airborne.transformedChosen}; frenet chosen ${frenet.transformedChosen}; ` +
     `frames ${result.chargedFrames}\n`,
   );
 }
@@ -274,6 +285,8 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
     rows.push(runTrial(prepared, "contact-phase-continuous", trial, charge, prefixTerminalGradeDeg));
     if (chargedFrames >= STATE_FRAME_BUDGET) break;
     rows.push(runTrial(prepared, "airborne-phase-continuous", trial, charge, prefixTerminalGradeDeg));
+    if (chargedFrames >= STATE_FRAME_BUDGET) break;
+    rows.push(runTrial(prepared, "frenet-curvature-continuous", trial, charge, prefixTerminalGradeDeg));
   }
   const families: Record<Family, FamilySummary> = {
     independent: summarize(rows.filter((row) => row.family === "independent")),
@@ -281,6 +294,7 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
     "energy-continuous": summarize(rows.filter((row) => row.family === "energy-continuous")),
     "contact-phase-continuous": summarize(rows.filter((row) => row.family === "contact-phase-continuous")),
     "airborne-phase-continuous": summarize(rows.filter((row) => row.family === "airborne-phase-continuous")),
+    "frenet-curvature-continuous": summarize(rows.filter((row) => row.family === "frenet-curvature-continuous")),
   };
   const comparison = {
     terminalSpeedMeanDelta: difference(families["grade-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
@@ -295,6 +309,9 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
     airbornePhaseTerminalSpeedMeanDelta: difference(families["airborne-phase-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
     airbornePhaseMeanAchievedSpeedDelta: difference(families["airborne-phase-continuous"].meanAchievedSpeed.mean, families.independent.meanAchievedSpeed.mean),
     airbornePhaseCompleteChainDelta: families["airborne-phase-continuous"].completeChains - families.independent.completeChains,
+    frenetCurvatureTerminalSpeedMeanDelta: difference(families["frenet-curvature-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
+    frenetCurvatureMeanAchievedSpeedDelta: difference(families["frenet-curvature-continuous"].meanAchievedSpeed.mean, families.independent.meanAchievedSpeed.mean),
+    frenetCurvatureCompleteChainDelta: families["frenet-curvature-continuous"].completeChains - families.independent.completeChains,
   };
   const artifactIdentity = studyArtifactIdentity({
     schema: SCHEMA,
@@ -306,7 +323,7 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
   const artifact = {
     schema: SCHEMA,
     artifactIdentity,
-    purpose: "Fixture-only falsifier for predecessor-grade, cumulative kinetic-energy, contact-phase, and incoming-airborne-phase trajectory controls. Every candidate remains subject to the ordinary exact admission gate; the airborne stream changes only a deterministic, phase-shortfall-scaled sampled tail after the preserved contact and first outgoing segment.",
+    purpose: "Fixture-only falsifier for predecessor-grade, cumulative kinetic-energy, contact-phase, incoming-airborne-phase, and Frenet-curvature trajectory controls. Every candidate remains subject to the ordinary exact admission gate; the Frenet stream changes only a deterministic post-contact interior tangent packet while preserving the sampled contact and terminal tangents.",
     status: {
       productionIntegration: "forbidden: calibration study only; it does not modify compiler candidates, selection, or promotion",
       resultEligibility: "physical/executable evidence only; a source-default lane requires its own scope panel and normal V2 funnel",
@@ -333,8 +350,9 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
       energyRule: "a decayed per-contact exact speed-deficit integral requests a bounded distributed mean-tail-work adjustment; it preserves the contact anchor, every segment length, and the first post-contact tangent, and reads no preceding terrain heading",
       contactPhaseRule: "the preceding committed contact anchor's signed displacement from its predicted sled point, in current-reference-speed frames, blends with the raw contact anchor; the complete normal line set translates only along the current incoming tangent and no missing phase becomes a synthetic anchor",
       airbornePhaseRule: "when exact PlanningState.phase.airborneAgeFrames is below six, the deterministic attempt span preserves every line through the first post-contact segment and shortens only later sampled tail segments by a smooth 1.0-to-0.65 scale; it reads no later contact, axis, source, duration, or outcome",
+      frenetCurvatureRule: "the preceding chosen post-curve's terminal normal acceleration v²κ is divided by the current measured entry speed squared to target current terminal curvature. A sine tangent packet changes post-contact interior headings only, preserving each segment length, the capture-side/contact tangent, and the terminal tangent; it reads no source, target identity, duration, axis, or outcome",
       admission: "unchanged tryCandidateLines with exact survival, landing, off-beat, and target-axis gates",
-      sourceInputs: "grade stream: previous committed terminal grade plus authored speed deficit; energy stream: exact measured speed-deficit integral; contact-phase stream: previous committed contact-anchor phase plus current incoming tangent/reference speed; airborne-phase stream: current exact airborne age only; all streams use existing sampled geometry and attempt coordinate only, and none reads source, case, duration class, or outcomes",
+      sourceInputs: "grade stream: previous committed terminal grade plus authored speed deficit; energy stream: exact measured speed-deficit integral; contact-phase stream: previous committed contact-anchor phase plus current incoming tangent/reference speed; airborne-phase stream: current exact airborne age only; Frenet stream: preceding chosen terminal v²κ plus current measured entry speed; all streams use existing sampled geometry and attempt coordinate only, and none reads source, case, duration class, or outcomes",
     },
     chargedFrames,
     budgetExhausted: chargedFrames >= STATE_FRAME_BUDGET,
@@ -363,6 +381,7 @@ function runTrial(
   // property. It is only a bounded integral of exact entry-speed deficit.
   let carriedEnergyDebt = 0;
   let previousContactPhaseFrames: number | null = null;
+  let previousNormalAcceleration: number | null = null;
   const steps: ContactStep[] = [];
 
   for (let offset = 0; offset < CHAIN_CONTACTS; offset++) {
@@ -371,13 +390,14 @@ function runTrial(
       steps.push({
         gapIndex: prepared.current.index + offset,
         authored: { speed: null, air: null, impact: null },
-        entry: { speed: 0, angleDeg: 0 }, carriedEnergyDebt: null, contactPhaseFrames: null, incomingAirborneAgeFrames: null, candidates: [], chosen: null, result: "missing-contact",
+        entry: { speed: 0, angleDeg: 0 }, carriedEnergyDebt: null, contactPhaseFrames: null, incomingAirborneAgeFrames: null, carriedNormalAcceleration: null, candidates: [], chosen: null, result: "missing-contact",
       });
       break;
     }
     const probe = getCandidateProbe(engine, gap, prepared.ctx);
     const incomingState = extractPlanningState(engine, gap.endFrame);
     const incomingAirborneAgeFrames = incomingState?.phase.airborneAgeFrames ?? null;
+    const contactAnchor = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     const rng = makeRng((Math.imul((trial + 1) | 0, 1000003) + gap.index + 1) | 0);
     const axisEnd = axisLookaheadEndFrame(gap, prepared.ctx.allContactFrames);
     const candidates: CandidateRow[] = [];
@@ -401,11 +421,11 @@ function runTrial(
         prepared.ctx.allContactFrames,
       );
       const rawTerminalGradeDeg = terminalGrade(geometry.lines);
-      const contactAnchor = { x: probe.targetState.sledX, y: probe.targetState.sledY };
       const rawMeanWorkGradeDeg = tailMeanWorkGrade(geometry.lines, contactAnchor);
       const rawContactPhaseFrames = contactPhaseFrames(
         geometry.lines, contactAnchor, probe.targetState.speed, probe.targetState.angleDeg,
       );
+      const rawTerminalCurvatureRadPerPx = terminalCurvature(geometry.lines, contactAnchor);
       const speedDeficit = gap.targets.speed === undefined
         ? 0
         : smoothstep((authoredSpeedToPx(gap.targets.speed) - probe.targetState.speed - SPEED_DEFICIT_START_PX_PER_FRAME) /
@@ -416,7 +436,8 @@ function runTrial(
       const phaseTransformed = family === "contact-phase-continuous" && previousContactPhaseFrames !== null && span;
       const airbornePhasePressure = incomingAirbornePhasePressure(incomingAirborneAgeFrames);
       const airbornePhaseTransformed = family === "airborne-phase-continuous" && airbornePhasePressure > 0 && span;
-      const transformed = gradeTransformed || energyTransformed || phaseTransformed || airbornePhaseTransformed;
+      const frenetTransformed = family === "frenet-curvature-continuous" && previousNormalAcceleration !== null && probe.targetState.speed > 1e-9 && span;
+      const transformed = gradeTransformed || energyTransformed || phaseTransformed || airbornePhaseTransformed || frenetTransformed;
       const lines = gradeTransformed
         ? correlateTerminalGrade(geometry.lines, contactAnchor, previousGrade!, speedDeficit)
         : energyTransformed
@@ -428,6 +449,8 @@ function runTrial(
         )
         : airbornePhaseTransformed
         ? correlateAirbornePhaseTail(geometry.lines, contactAnchor, airbornePhasePressure)
+        : frenetTransformed
+        ? correlateFrenetCurvature(geometry.lines, contactAnchor, previousNormalAcceleration!, probe.targetState.speed)
         : geometry.lines;
       const proposedTerminalGradeDeg = terminalGrade(lines);
       const proposedMeanWorkGradeDeg = tailMeanWorkGrade(lines, contactAnchor);
@@ -436,6 +459,7 @@ function runTrial(
       );
       const rawPostTailLengthPx = postTailLength(geometry.lines, contactAnchor);
       const proposedPostTailLengthPx = postTailLength(lines, contactAnchor);
+      const proposedTerminalCurvatureRadPerPx = terminalCurvature(lines, contactAnchor);
       const before = getSimFrames();
       const fit = tryCandidateLines(
         engine, gap, lines, lineIdStart, prepared.ctx.allContactFrames, axisEnd,
@@ -456,6 +480,9 @@ function runTrial(
         airbornePhasePressure: family === "airborne-phase-continuous" ? round(airbornePhasePressure) : null,
         rawPostTailLengthPx,
         proposedPostTailLengthPx,
+        previousNormalAcceleration: family === "frenet-curvature-continuous" && previousNormalAcceleration !== null ? round(previousNormalAcceleration) : null,
+        rawTerminalCurvatureRadPerPx: rawTerminalCurvatureRadPerPx === null ? null : round(rawTerminalCurvatureRadPerPx),
+        proposedTerminalCurvatureRadPerPx: proposedTerminalCurvatureRadPerPx === null ? null : round(proposedTerminalCurvatureRadPerPx),
         admitted: fit !== null, cost: fit === null ? null : round(fit.cost), simFrames: frames,
       });
       if (fit !== null && (chosen === null || fit.cost < chosen.fit.cost)) {
@@ -472,7 +499,7 @@ function runTrial(
       impact: gap.targets.impact ?? null,
     };
     if (chosen === null) {
-      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, contactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null, incomingAirborneAgeFrames, candidates, chosen: null, result: "no-admitted-candidate" });
+      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, contactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null, incomingAirborneAgeFrames, carriedNormalAcceleration: family === "frenet-curvature-continuous" && previousNormalAcceleration !== null ? round(previousNormalAcceleration) : null, candidates, chosen: null, result: "no-admitted-candidate" });
       break;
     }
     const achieved = chosen.fit.achievedAtEnd ?? chosen.fit.achieved;
@@ -483,6 +510,7 @@ function runTrial(
       carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null,
       contactPhaseFrames: family === "contact-phase-continuous" ? chosen.contactPhaseFrames : null,
       incomingAirborneAgeFrames,
+      carriedNormalAcceleration: family === "frenet-curvature-continuous" && previousNormalAcceleration !== null ? round(previousNormalAcceleration) : null,
       candidates,
       chosen: {
         attempt: chosen.attempt,
@@ -498,6 +526,10 @@ function runTrial(
     previousGrade = chosen.terminalGradeDeg;
     carriedEnergyDebt = controllerDebt;
     previousContactPhaseFrames = chosen.contactPhaseFrames;
+    const committedCurvature = terminalCurvature(chosen.fit.lines, contactAnchor);
+    previousNormalAcceleration = committedCurvature === null || achieved.speed === undefined || achieved.speed === null
+      ? null
+      : committedCurvature * achieved.speed * achieved.speed;
   }
 
   const committed = steps.filter((step) => step.result === "committed");
@@ -785,6 +817,63 @@ function correlateAirbornePhaseTail(
   return result;
 }
 
+/**
+ * Carry a physically measured normal acceleration across one contact without
+ * copying a grade or changing either boundary tangent.  The sine field is zero
+ * on the first (capture) and final (release) segment, so it redistributes only
+ * interior curvature.  Its amplitude is solved analytically from the desired
+ * final discrete curvature; exact candidate admission remains the sole judge.
+ */
+function correlateFrenetCurvature(
+  lines: readonly TrackLine[],
+  contactAnchor: { x: number; y: number },
+  previousNormalAcceleration: number,
+  entrySpeed: number,
+): TrackLine[] {
+  if (!Number.isFinite(previousNormalAcceleration) || !(entrySpeed > 1e-9)) return [...lines];
+  const vertices = polylineVertices(lines);
+  const contact = closestVertex(vertices, contactAnchor);
+  const postSegments = vertices.length - 1 - contact;
+  if (postSegments < 3) return [...lines];
+  const rawCurvature = terminalCurvatureFromVertices(vertices, contact);
+  if (rawCurvature === null) return [...lines];
+  const headings = Array.from({ length: postSegments }, (_, index) =>
+    headingRadians(vertices[contact + index]!, vertices[contact + index + 1]!),
+  );
+  const lengths = Array.from({ length: postSegments }, (_, index) => {
+    const from = vertices[contact + index]!;
+    const to = vertices[contact + index + 1]!;
+    return Math.hypot(to.x - from.x, to.y - from.y);
+  });
+  if (lengths.some((length) => !(length > 1e-9))) return [...lines];
+  const meanTerminalLength = (lengths.at(-1)! + lengths.at(-2)!) / 2;
+  const sineStep = Math.sin(Math.PI / (postSegments - 1));
+  if (!(sineStep > 1e-9)) return [...lines];
+  const targetCurvature = previousNormalAcceleration / (entrySpeed * entrySpeed);
+  // The final heading is unchanged while the penultimate heading receives
+  // amplitude*sin(pi/(n-1)), hence this sign realizes target curvature.
+  const amplitude = (rawCurvature - targetCurvature) * meanTerminalLength / sineStep;
+  if (!Number.isFinite(amplitude)) return [...lines];
+  const rebuilt = vertices.slice(0, contact + 1).map((point) => ({ ...point }));
+  let point = { ...vertices[contact]! };
+  for (let index = 0; index < postSegments; index++) {
+    const packet = Math.sin(Math.PI * index / (postSegments - 1));
+    const angle = headings[index]! + amplitude * packet;
+    point = {
+      x: point.x + Math.cos(angle) * lengths[index]!,
+      y: point.y + Math.sin(angle) * lengths[index]!,
+    };
+    rebuilt.push(point);
+  }
+  return rebuilt.slice(1).map((end, index) => ({
+    ...lines[index]!,
+    x1: rebuilt[index]!.x,
+    y1: rebuilt[index]!.y,
+    x2: end.x,
+    y2: end.y,
+  }));
+}
+
 function postTailLength(
   lines: readonly TrackLine[],
   contactAnchor: { x: number; y: number },
@@ -810,6 +899,41 @@ function polylineVertices(lines: readonly TrackLine[]): Array<{ x: number; y: nu
 function terminalGrade(lines: readonly TrackLine[]): number | null {
   const last = lines.at(-1);
   return last === undefined ? null : round(heading(last, last));
+}
+
+/** Final discrete Frenet curvature in radians/pixel over the post-contact
+ * curve.  Unwrapped heading difference keeps left/right turns continuous. */
+function terminalCurvature(
+  lines: readonly TrackLine[],
+  contactAnchor: { x: number; y: number },
+): number | null {
+  const vertices = polylineVertices(lines);
+  return terminalCurvatureFromVertices(vertices, closestVertex(vertices, contactAnchor));
+}
+
+function terminalCurvatureFromVertices(
+  vertices: readonly { x: number; y: number }[],
+  contact: number,
+): number | null {
+  const postSegments = vertices.length - 1 - contact;
+  if (postSegments < 2) return null;
+  const before = vertices.at(-3);
+  const pivot = vertices.at(-2);
+  const end = vertices.at(-1);
+  if (before === undefined || pivot === undefined || end === undefined) return null;
+  const beforeLength = Math.hypot(pivot.x - before.x, pivot.y - before.y);
+  const finalLength = Math.hypot(end.x - pivot.x, end.y - pivot.y);
+  const meanLength = (beforeLength + finalLength) / 2;
+  if (!(meanLength > 1e-9)) return null;
+  return angleDifferenceRadians(headingRadians(before, pivot), headingRadians(pivot, end)) / meanLength;
+}
+
+function headingRadians(from: { x: number; y: number }, to: { x: number; y: number }): number {
+  return Math.atan2(to.y - from.y, to.x - from.x);
+}
+
+function angleDifferenceRadians(from: number, to: number): number {
+  return ((to - from + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
 }
 
 function prefixTerminalGrade(fixture: ReturnType<typeof readFrozenTrajectoryFixture>): number | null {

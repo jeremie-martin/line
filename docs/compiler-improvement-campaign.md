@@ -2685,6 +2685,59 @@ physical contact tangent is a valid observation frame but not an equal-cost
 ordinary candidate basis under exact gates. Retain the observer only as
 diagnostic infrastructure and resume normal-candidate diagnosis elsewhere.
 
+## Declared Observation: One-Way Collision-Side Normal-Pool Basis (2026-07-17)
+
+Every ordinary normal proposal currently carries the same one-way collision
+side (`flipped: false`). The engine, detector, and trajectory primitives make
+that side physical rather than cosmetic: otherwise identical line coordinates
+may expose a different collision normal. This study asks whether the excluded
+side is an equal-cost broad candidate basis. It is not an orientation-field,
+pose, anchor, or target-specific lane: each comparator proposal uses the
+production PRNG, the same normal geometry coordinates, candidate count,
+attempt index, and exact gate, with only every proposed line's collision-side
+bit inverted.
+
+**Frozen observation cohort.** Use current compiler/WASM/V2 jolt/500k and
+seeds 28 and 29 on exactly six development sources:
+`frontier_dense_recovery`, `dense_dialogue_impact_contrast_10`,
+`countercurrent`, `offgrid_conversation`, `frontier_low_air_endurance_4s`,
+and `believer_56_6s`. Label the two dense sources dense; Countercurrent
+representative; Offgrid Conversation pickup; the frontier variant low-air; and
+Believer development music. Capture the first ordinary frontier state at the
+one-third and two-thirds authored-contact indices. The production raw-normal
+replay must reproduce its generation-time attempts and coordinate-plus-side
+hashes before a paired row is usable. The comparator then flips every line in
+the same raw proposal before the same pre-target trace, lookahead, literal
+targets, post-fit continuation, evaluator, and pool metrics. No source
+default, candidate mix, rank, traversal, or alternate compiler run is allowed.
+
+**Decision boundary.** Retire the alternate side if raw production replay is
+not exact, its equal-count normal pool has no viable broad support, the
+regime-balanced objective and closest-axis RMS do not both improve with higher
+viable admission, or dense, pickup, or low-air has a material admission
+collapse. A positive observation authorizes only a separately declared fixed
+source-default implementation and ordinary cross-regime scope panel; never V2
+Stage 0 or evaluation directly.
+
+**Result (2026-07-17, 12 current-tree WASM/500k compiles plus exact paired
+pool replay; artifact
+`generated/studies/collision-side-normal-pool/v1/result.json`): RETIRE
+one-way collision-side basis.** All 24 declared states captured and every
+production PRNG replay matched the generation-time coordinate-plus-side hashes
+exactly. Inverting the whole normal pool's collision side admitted candidates
+in only **2/24** rows. Those two rows were not a latent alternative basin:
+dense dialogue contrast seed-29 admitted 3 versus 17 production candidates
+and low-air seed-29 admitted 1 versus 12, with each comparator's objective,
+axis RMS, and cost materially worse. Regime-balanced viable admissions fell
+**21.275/state**; representative, pickup, and development music had zero
+flipped admissions, while dense and low-air fell 17.125 and 9.25/state.
+
+**Decision.** Do not flip normal lines, add a collision-side mixture, tune an
+orientation gate, or run a V2 scope panel. Production's one-way side is not an
+arbitrary missing candidate dimension under the exact normal-contact gate.
+Retain the coordinate-plus-side snapshot check as generic observer
+infrastructure only.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

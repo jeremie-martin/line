@@ -29,6 +29,11 @@ import {
   type JointArcProbeRow,
   type RiderArrivalState,
 } from "./arc_model.ts";
+import {
+  applyArcActuatorPair,
+  type ArcActuatorContext,
+  type ArcActuatorPairId,
+} from "./arc_actuator.ts";
 
 const FULL_PROBE_SURVIVAL_MARGIN_FRAMES = 16;
 const PROBE_SETTLE_MARGIN_FRAMES = 20;
@@ -91,6 +96,29 @@ export function evaluateJointArcKnobs(
   options: JointArcProbeOptions = {},
 ): JointArcProbeResult {
   const lines = applyArcKnobs(baseLines, knobs);
+  return evaluateJointArcLines(engine, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, options);
+}
+
+/**
+ * Evaluate a declared physical two-control policy on the same response-model
+ * coordinates as the incumbent joint probe.  This is deliberately a thin
+ * adapter: pair choice changes proposed lines only; probe horizon, gate,
+ * output measurements, and exact evaluation remain shared.
+ */
+export function evaluateArcActuatorPair(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  baseLines: TrackLine[],
+  pair: ArcActuatorPairId,
+  knobs: ArcKnobs,
+  gap: Gap,
+  contactFrames: readonly number[],
+  axisMeasureEnd: number,
+  nextFrame: number,
+  options: JointArcProbeOptions = {},
+  context?: ArcActuatorContext,
+): JointArcProbeResult {
+  const lines = applyArcActuatorPair(baseLines, pair, knobs, context);
   return evaluateJointArcLines(engine, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, options);
 }
 

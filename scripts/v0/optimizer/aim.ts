@@ -66,7 +66,6 @@ import { AXES, type AxisName, type TrackLine } from "../types.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
   adjustArcTailLength,
-  applyArcKnobs,
   arcKnobSpan,
   arcProbeDesign,
   fitJointArcResponseModel,
@@ -81,9 +80,13 @@ import {
   type RiderArrivalState,
 } from "./arc_model.ts";
 import {
-  evaluateJointArcKnobs,
+  evaluateArcActuatorPair,
   type JointArcProbeObservation,
 } from "./arc_probe.ts";
+import {
+  applyArcActuatorPair,
+  type ArcActuatorPairId,
+} from "./arc_actuator.ts";
 import {
   effectiveAirAsk,
   nextContactGap,
@@ -137,6 +140,13 @@ const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
 /** Accepted production probe design. Alternate probe designs remain available
  *  to study harnesses through arc_model.ts, not as ambient compiler env state. */
 const AIM_JOINT_PROBE_DESIGN: ArcProbeDesignName = "cross5";
+/**
+ * The one physical policy the normal compiler actually uses.  It is the
+ * historic whole-arc rotation followed by tail pitch, represented through the
+ * actuator registry so alternate two-control policies can be screened without
+ * reimplementing probe or emission machinery.
+ */
+const AIM_ACTUATOR_PAIR: ArcActuatorPairId = "tail_pitch__whole_rotation";
 // Study-only scarce-budget model-selection policy. Pitch is the lower-cost
 // primary actuator; rotate observations are recruited only if that local
 // response is range-bound or has no improving proposal. Mature compiles retain
@@ -710,7 +720,9 @@ function makeJointAimedCandidates(
   const nextFrame = nextGap.endFrame;
   const framesBeforeProbes = getPhysicsFrameCount();
   let probeRows = arcProbeDesign(probeDesignName).map((knobs) =>
-    evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
+    evaluateArcActuatorPair(
+      engine, base.lines, AIM_ACTUATOR_PAIR, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
+    )
   );
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
   let model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
@@ -750,7 +762,9 @@ function makeJointAimedCandidates(
     const rotationRows = arcProbeDesign("cross5")
       .filter((knobs) => knobs.rotateDeg !== 0)
       .map((knobs) =>
-        evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
+        evaluateArcActuatorPair(
+          engine, base.lines, AIM_ACTUATOR_PAIR, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
+        )
       );
     probeRows = [...probeRows, ...rotationRows];
     recordJointProbeRows(rotationRows, gap, axisMeasureEnd, nextFrame);
@@ -803,7 +817,7 @@ function makeJointAimedCandidates(
     return out;
   }
   for (const cand of chosen) {
-    const aimedLines = applyArcKnobs(base.lines, cand.knobs)
+    const aimedLines = applyArcActuatorPair(base.lines, AIM_ACTUATOR_PAIR, cand.knobs)
       .map((l, i) => ({ ...l, id: lineIdStart + i }));
     const fit = tryCandidateLines(
       engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,

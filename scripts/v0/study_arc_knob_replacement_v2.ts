@@ -37,7 +37,7 @@ import { applyJolt } from "../produce/seed.ts";
 import { compileHandoff, type HandoffNode } from "./optimizer/handoff.ts";
 import { extendNodeCached, makeRootNode, type SearchNode } from "./optimizer/node.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./optimizer/sample.ts";
-import { applyArcKnobs } from "./optimizer/arc_model.ts";
+import { applyArcActuatorPair } from "./optimizer/arc_actuator.ts";
 import { isStrictlyBetter, type LeafKey } from "./optimizer/register.ts";
 import { scoreCurrentTargetQuality } from "./optimizer/objective.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type TrackLine } from "./types.ts";
@@ -138,61 +138,15 @@ function bendExitLines(lines: TrackLine[], deg: number): TrackLine[] {
   return out;
 }
 
-/**
- * Study-only local contact actuator.  It displaces only interior vertices in
- * the normal of the entry-to-exit chord, with a smooth zero-endpoint field.
- * The requested angle is merely a scale convention: the peak displacement is
- * total arc length times tan(angle), matching the first-order transverse
- * motion made by the incumbent whole-arc rotation.  It is not a rotation.
- */
-function bowInteriorLines(lines: TrackLine[], equivalentDeg: number): TrackLine[] {
-  if (lines.length < 2 || equivalentDeg === 0) return lines.map((line) => ({ ...line }));
-  const vertices = [{ x: lines[0].x1, y: lines[0].y1 }];
-  let arcLength = 0;
-  for (let index = 0; index < lines.length; index++) {
-    const line = lines[index];
-    const previous = vertices[vertices.length - 1];
-    if (Math.hypot(line.x1 - previous.x, line.y1 - previous.y) > 1e-6) {
-      return lines.map((item) => ({ ...item }));
-    }
-    const length = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
-    if (!(length > 1e-9)) return lines.map((item) => ({ ...item }));
-    arcLength += length;
-    vertices.push({ x: line.x2, y: line.y2 });
-  }
-  const start = vertices[0];
-  const end = vertices[vertices.length - 1];
-  const chordX = end.x - start.x;
-  const chordY = end.y - start.y;
-  const chordLength = Math.hypot(chordX, chordY);
-  if (!(chordLength > 1e-9) || !(arcLength > 1e-9)) return lines.map((line) => ({ ...line }));
-  const amplitude = arcLength * Math.tan(equivalentDeg * Math.PI / 180);
-  const normalX = -chordY / chordLength;
-  const normalY = chordX / chordLength;
-  const adjusted = vertices.map((vertex, index) => {
-    const s = index / (vertices.length - 1);
-    // Zero value and zero continuous derivative at both endpoints.
-    const weight = Math.sin(Math.PI * s) ** 2;
-    return { x: vertex.x + normalX * amplitude * weight, y: vertex.y + normalY * amplitude * weight };
-  });
-  return lines.map((line, index) => ({
-    ...line,
-    x1: adjusted[index].x,
-    y1: adjusted[index].y,
-    x2: adjusted[index + 1].x,
-    y2: adjusted[index + 1].y,
-  }));
-}
-
 function editedLines(lines: TrackLine[], family: Family, deltaDeg: number): TrackLine[] {
   switch (family) {
     case "base": return lines.map((line) => ({ ...line }));
-    case "pitch": return applyArcKnobs(lines, { pitchDeg: deltaDeg, rotateDeg: 0 });
-    case "rotate": return applyArcKnobs(lines, { pitchDeg: 0, rotateDeg: deltaDeg });
+    case "pitch": return applyArcActuatorPair(lines, "tail_pitch__whole_rotation", { pitchDeg: deltaDeg, rotateDeg: 0 });
+    case "rotate": return applyArcActuatorPair(lines, "tail_pitch__whole_rotation", { pitchDeg: 0, rotateDeg: deltaDeg });
     case "bend": return bendExitLines(lines, deltaDeg);
-    case "bow_quarter": return bowInteriorLines(lines, deltaDeg);
-    case "bow_half": return bowInteriorLines(lines, deltaDeg);
-    case "bow": return bowInteriorLines(lines, deltaDeg);
+    case "bow_quarter": return applyArcActuatorPair(lines, "tail_pitch__interior_normal_bow", { pitchDeg: 0, rotateDeg: deltaDeg });
+    case "bow_half": return applyArcActuatorPair(lines, "tail_pitch__interior_normal_bow", { pitchDeg: 0, rotateDeg: deltaDeg });
+    case "bow": return applyArcActuatorPair(lines, "tail_pitch__interior_normal_bow", { pitchDeg: 0, rotateDeg: deltaDeg });
   }
 }
 

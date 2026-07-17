@@ -4813,6 +4813,37 @@ parameter variants. A successor may use an equally single-form transition only
 if it changes the state representation so that normal continuation support is
 not traded between the dense/low-air and development basins.
 
+## Declared Observation: Endpoint-State Hermite Transfer (2026-07-17)
+
+The vector-intercept transient reaches a future reference position but not its
+velocity state, leaving an explicit continuation mismatch. This distinct
+single-form successor takes the exact `k+1` incoming state and exact unforced
+`k+2` reference **position and velocity**. It resolves the same frame-centred
+distributed capture, removes discrete gravity from the two endpoint states,
+and emits the unique four-segment cubic-Hermite transfer in that debiased
+space before restoring gravity at each point. Its only chirality is the signed
+incoming-to-terminal turn; it has no endpoint variant, duration class, score,
+axis outcome, case, seed, source, or control menu.
+
+**Decisive feasibility scope: RETIRE.** The existing charged six-regime
+500k harness was extended only to host this separately named form; no compiler
+source was added. On the first two fixed batches (dense and
+representative/development; seeds 42/43), all **28/28** raw-current pairs
+could realize the geometry, but only **7/28** passed the unchanged `k+1` gate
+and materialized. All seven are dense-dialogue rows (44 normal `k+2` returns).
+Frontier-dense recovery is **0/8** on both seeds, while representative is
+**0/4** and development music **0/8**. Those zero-availability broad controls
+meet the predeclared discard condition before low-air/pickup or a direct
+economics replication can add decision value.
+
+**Decision.** Do not vary the gravity compensation, endpoint tangent,
+subdivision, capture allocation, or source placement. Endpoint position plus
+velocity matching is more informative than a ballistic position intercept,
+but a collidable transfer curve cannot preserve the ordinary admission basin.
+The next component must use a non-colliding state representation or an exact
+collision-compatible transition law rather than a continuous terrain path
+whose entire inter-contact spatial trajectory is exposed to the rider.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

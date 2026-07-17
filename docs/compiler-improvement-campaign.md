@@ -2394,6 +2394,44 @@ with a bounded ordinary candidate budget. A nonzero result authorizes only a
 fresh declaration for a tiny source-default candidate and standard scope
 panel; it does not authorize V2 evaluation.
 
+**Result (2026-07-17, 0.6s
+`scripts/v0/audit_central_six_transient.ts`): RETIRE central-six.** The fixed
+six-label projection had six first controls but **zero materialized pairs on
+dense-240 calibration**, so no third component or k+3 normal stream existed;
+this is the declared decisive falsifier. Its already-observed descriptive rows
+on the sealed cohort do not change that decision: dense 16/36 materialized
+central triples with 16 normal returns (29.6% recursive-row charge share),
+ordinary 12/48 with 9 returns (23.1%), and low-air 13/36 with 7 returns
+(34.2%), all without unavailable normal controls. Those numbers are not new
+validation evidence because the cohort had been observed before this audit.
+
+**Decision.** Do not implement or scope the balanced central-six form. The
+economics constraint remains open. The only permitted successor is a
+calibration-only concentration audit of the already retained dense-240 rows;
+it may identify whether any compact *shape class* is worth a new, separately
+declared fresh-cohort test, but may not select a case, replay the consumed
+cohort, or alter the transient law.
+
+## Declared Analysis: Dense-240 Transient Control Concentration (2026-07-17)
+
+**Question.** Within the calibration-only dense-240 recurrence artifact, do
+admitted/materialized/normal-return triples concentrate in a source-describable
+control class, or is the 24-control screen intrinsically necessary?
+
+**Protocol.** Mechanically tabulate every retained dense-240 triple by its
+first C1 label, second transient label, and third transient label, plus the
+three marginal label distributions. Count materialized triples, normal-control
+availability, normal-return triples, and normal admissions. The artifact is
+read-only calibration evidence; no held-out row, V2 case, or compiler result
+is read. The audit may report concentration but cannot choose a final control
+or source default: any form proposed from it requires a new predeclared V4
+fixture cohort before a source implementation is written.
+
+**Falsifiers.** If no individual label or source-describable class carries a
+nonzero normal-return triple, retire compact source-default pursuit for this
+topology. If concentration is present only in an irreducible multi-control
+combination, retain it as a calibration fact but do not write a source form.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -2267,6 +2267,54 @@ only a charged calibration witness without a held-out ordinary/dense result.
 A pass authorizes only a separately declared held-out multi-contact study, not
 a compiler source or V2 evaluation.
 
+**Result (2026-07-17, `scripts/v0/study_two_contact_shooting.ts
+--case=dense240 --return-normal --transient-bridge --recursive-transient
+--recursive-return`, artifact
+`generated/studies/two-contact-shooting/recursive-return-v1/`): calibration
+component RETAIN; source promotion NOT authorized.** All 201 byte-stable
+triples exposed normal control geometry at k+3. **146/201 (72.6%)** restored
+at least one unchanged normal admission, for 969 total admissions. Every k+3
+arrival was detector-legal: airborne age 6 (18 triples), 7 (35), 8 (88), 9
+(59), or 10 (1). The k+3 normal-return probe/stream charged 54,128 frames;
+the complete calibration chain is deliberately expensive and is not a
+compiler-economics claim.
+
+**Decision.** The dense-240 calibration evidence is now stronger than a local
+capture: the same continuous transient law crosses two exact contacts,
+re-materializes as one immutable-prefix triple, and returns the resulting
+state to ordinary normal generation. It does **not** establish generality,
+control selection, a cheap candidate source, or a V2 improvement. The
+predeclared next test is a fresh-fixture held-out recurrence study.
+
+## Declared Study: Held-Out Recursive Transient Continuation (2026-07-17)
+
+**Cohort declaration before capture.** Freeze a new calibration-held-out V3
+fixture cohort from source situations not used by the current dense,
+dense240, or ordinary two-contact fixtures: one independent dense
+impact-authored passage, one independent ordinary impact-authored passage,
+and one independent low-air impact-authored passage. Fixture capture must bind
+the current compiler candidate, WASM environment, 500k budget, source-import
+closure, and full selected-prefix replay before this study runner reads it.
+These are predictive held-out fixtures for this component only; no production
+reference or V2 validation source may be used.
+
+**Protocol.** Apply the exact same fixed first-C1 + two recursive transient
+components, mirrored 24-control screens, literal next-contact ballistic law,
+unchanged admissions, complete triple materialization, and k+3 equal
+24-member normal stream. Retain every row and charge every probe/admission.
+Report per-fixture pair availability, triple admission/materialization,
+k+3 legal-airborne count, normal-control availability, normal-return triples,
+and frame cost. No source/case/seed/target-outcome branch, selected control, or
+constant from dense-240 calibration may enter the law.
+
+**Falsifiers.** Retire the recurrent component if either independent dense or
+ordinary fixture has zero byte-stable triples with normal k+3 return; if the
+low-air fixture has a material normal-control/validity failure; if a fixture
+requires a new control/menu or contact-form exception; or if the fresh cohort
+does not reproduce the combined legal-phase plus normal-arrival boundary. A
+pass authorizes only a separately declared compact source-economics design and
+standard scope panel, never direct V2 evaluation.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

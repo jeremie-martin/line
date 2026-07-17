@@ -3159,6 +3159,67 @@ or condition endpoint extension, combine it with a side/force lane, or run a
 scope/V2 evaluation; a successor must use a distinct normal physical
 component, not a different endpoint subset.
 
+## Declared Observation: Forward Tangential Acceleration on Ordinary Normal Curves (2026-07-17)
+
+The compact transient force treatment is retired: its constructed C1 bridge
+could not hand a legal state back to the ordinary sampler. That result does
+not test the engine's type-1 contact law on an *ordinary* candidate that the
+normal pool already knows how to construct and evaluate. A type-1 line applies
+the engine's fixed 0.1 px/frame tangential impulse on each collision. Encoding
+every raw normal segment in reverse order with its `flipped` bit inverted
+preserves its exact geometric segment and active collision normal, while
+orienting that impulse forward along the physical travel direction.
+
+**Hypothesis.** Applied uniformly to an ordinary candidate, the impulse can
+trade a little local carrier/air fidelity for a faster, less expensive
+post-contact state. That is relevant even if one current axis worsens: the
+unchanged exact objective includes the next-contact readiness which determines
+whether the impact--speed catch toll compounds. This is a source-neutral
+engine component, not a subset chosen from a transient control, an impact
+threshold, a duration class, a source, or an observed result.
+
+**Cheap decisive protocol.** Reuse the exact six-regime, two-seed WASM/500k
+frozen-frontier panel and raw-normal replay used by the endpoint observation.
+First require the production replay's attempt and coordinate-plus-side hashes
+to match the generation-time snapshot exactly. Then regenerate the same
+attempt count, RNG coordinates, line ids, gates, scorer, objective, and
+candidate count, replacing every proposed solid normal line with its
+reversed/flipped type-1 forward-acceleration equivalent. Record viable
+admission, best exact objective (including readiness), axis RMS, best exact
+cost, and charge. No compiler source change, source panel, or V2 run is
+authorized by this observation.
+
+**Falsifiers.** Retire the full-curve force basis if the raw replay is not
+exact; if the accelerated form has no viable broad support; if the
+regime-balanced exact objective and viable admission do not both improve; if
+dense, pickup, or low-air has a material viable/objective collapse; or if the
+additional exact-gate charge has no stronger pool behind it. A pass authorizes
+only one separately declared source-default implementation and broad scope
+panel. It does not authorize a conditioned subset, a transient combination,
+or direct Benchmark V2.
+
+**Result (2026-07-17, three memory-isolated batches of
+`study_collision_side_normal_pool.ts --forward-acceleration`; artifacts
+`generated/studies/forward-acceleration-normal-pool/v1/`): RETIRE full-curve
+forward acceleration.** All 24 frozen-frontier production pools replayed
+their generation-time coordinates, sides, and attempts exactly. The type-1
+form remained viable in 23/24 rows, so this is a physical negative rather than
+an unavailable-component artifact. Its regime-balanced viable-pool movement
+was **−1.10 candidates/state** and its continuation-aware exact objective was
+**−0.158746**; dense was −0.085623, representative −0.198724, pickup
+−0.257894, low-air −0.074997, and development music −0.176493. Only two of
+24 rows improved that objective, both at the same dense-dialogue checkpoint;
+they cannot justify a source-neutral default or a post-hoc subset.
+
+The acceleration form saved 337.075 exact admission frames/state, but the
+cheaper work corresponds to weaker pool survival rather than a usable
+impact--speed trade: best exact candidate cost also worsened −0.011579/state.
+Axis RMS was essentially flat (+0.000895), confirming that local-axis
+compromise did not buy downstream value. Do not install, condition, segment-
+subset, or V2-evaluate this full-curve force form. A successor must be a
+distinct physical component, not another selection of this rejected force
+encoding.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

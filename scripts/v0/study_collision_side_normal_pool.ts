@@ -1,7 +1,8 @@
 /**
  * Frozen observation-only comparison of production normal geometry against
- * the same raw proposals with either every one-way collision side inverted or
- * the final post-contact collision endpoint extended.
+ * the same raw proposals with either every one-way collision side inverted,
+ * the final post-contact collision endpoint extended, or forward type-1
+ * acceleration encoding over the same active collision surfaces.
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_collision_side_normal_pool.ts \
  *     --terminal-end-extension --out=generated/studies/terminal-endpoint-normal-pool/v1/result.json
@@ -20,20 +21,25 @@ import { setNormalPoolSnapshotHook } from "./optimizer/node.ts";
 import { getCandidateProbe, sampleOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { axisLookaheadEndFrame, tryCandidateGeometry } from "./core/candidate.ts";
 import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
+import { getSimFrames } from "./optimizer/sim_frames.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension] [--case=ID ...] [--out=PATH]\n");
+  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration] [--case=ID ...] [--out=PATH]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
   argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const outPath = argument("out");
 const terminalEndExtension = argv.includes("--terminal-end-extension");
+const forwardAcceleration = argv.includes("--forward-acceleration");
 const requestedCaseIds = argv.filter((value) => value.startsWith("--case=")).map((value) => value.slice("--case=".length));
-const unknown = argv.filter((value) => value !== "--terminal-end-extension" && !value.startsWith("--out=") && !value.startsWith("--case="));
+const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
+if (terminalEndExtension && forwardAcceleration) {
+  throw new Error("--terminal-end-extension and --forward-acceleration are mutually exclusive");
+}
 
 const BUDGET = 500_000;
 const SEEDS = [28, 29] as const;
@@ -56,10 +62,11 @@ type Regime = typeof CASES[number]["regime"];
 type Checkpoint = "one_third" | "two_thirds";
 type Captured = { checkpoint: Checkpoint; gapIndex: number; node: HandoffNode };
 type RawPool = { seed: number; count: number; candidates: Array<{ attempt: number; hash: string }> };
-type Digest = { attempt: number; hash: string; cost: number; axisRms: number; objective: number | null };
+type Digest = { attempt: number; hash: string; cost: number; axisRms: number; objective: number | null; simFrames: number };
 type Arm = {
   attempts: number;
   viable: number;
+  admissionFrames: number;
   bestCost: number | null;
   bestAxisRms: number | null;
   bestObjective: number | null;
@@ -77,7 +84,7 @@ type Row = {
   replayMessage: string | null;
   production: Arm | null;
   alternative: Arm | null;
-  deltas: { viable: number | null; bestAxisRms: number | null; bestObjective: number | null; bestCost: number | null } | null;
+  deltas: { viable: number | null; admissionFrames: number | null; bestAxisRms: number | null; bestObjective: number | null; bestCost: number | null } | null;
 };
 
 const catalog = new Map(developmentCases.map((entry) => [entry.case.metadata.id, entry.case]));
@@ -121,12 +128,16 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: terminalEndExtension
+  schema: forwardAcceleration
+    ? "line.study-forward-tangential-acceleration-normal-pool.v1"
+    : terminalEndExtension
     ? "line.study-terminal-endpoint-continuation-normal-pool.v1"
     : "line.study-collision-side-normal-pool.v1",
   purpose: [
     "observation-only exact normal-pool replay from immutable frontier states",
-    terminalEndExtension
+    forwardAcceleration
+      ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; each solid normal segment becomes a reversed/flipped type-1 line that preserves its active collision normal and receives the engine's fixed forward tangential impulse"
+      : terminalEndExtension
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; production bounded endpoints versus only the final post-contact line with its right endpoint extended"
       : "same PRNG coordinates, attempts, candidate count, gates, and scoring; production collision side versus every-line inverted side",
     "no alternate compiler run, normal-source change, or V2 evaluation",
@@ -137,7 +148,9 @@ const result = {
     seeds: SEEDS,
     cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    comparator: terminalEndExtension
+    comparator: forwardAcceleration
+      ? "replace every raw normal line with its reverse-endpoint, inverted-flip type-1 equivalent; swap endpoint extension flags with the reversed endpoints so the physical surface, active normal, and bounded extent remain identical"
+      : terminalEndExtension
       ? "set rightExtended=true only on the final proposed normal line after identical raw geometry generation"
       : "invert the flipped bit on every proposed normal line after identical raw geometry generation",
   },
@@ -183,9 +196,11 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
   }
   const rngSeed = (Math.imul(rawPool.seed | 0, 1_000_003) + gap.index + 1) | 0;
   const production = sampleProduction(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
-  const alternative = terminalEndExtension
-    ? sampleTerminalEndpointExtended(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
-    : sampleFlipped(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
+  const alternative = forwardAcceleration
+    ? sampleForwardAccelerated(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
+    : terminalEndExtension
+      ? sampleTerminalEndpointExtended(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
+      : sampleFlipped(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
   const check = compareRawReplay(rawPool.candidates, production.candidates);
   return {
     caseId, regime, seed, checkpoint: captured.checkpoint, gapIndex: captured.gapIndex,
@@ -193,6 +208,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
     replayEquivalent: check.ok, replayMessage: check.message, production, alternative,
     deltas: {
       viable: alternative.viable - production.viable,
+      admissionFrames: improvement(production.admissionFrames, alternative.admissionFrames, false),
       bestAxisRms: improvement(production.bestAxisRms, alternative.bestAxisRms, false),
       bestObjective: improvement(production.bestObjective, alternative.bestObjective, true),
       bestCost: improvement(production.bestCost, alternative.bestCost, false),
@@ -211,11 +227,15 @@ function unavailable(caseId: string, regime: Regime, seed: number, checkpoint: C
 function sampleProduction(node: HandoffNode, gap: Gap, ctx: SpecContext, gaps: Gap[], count: number, seed: number): Arm {
   const rng = makeRng(seed);
   const candidates: Digest[] = [];
+  let admissionFrames = 0;
   for (let attempt = 0; attempt < count; attempt++) {
+    const before = getSimFrames();
     const candidate = sampleOneCandidate(node.search.prefixEngine, gap, rng, ctx, node.search.prefixNextLineId, attempt);
-    if (candidate !== null) candidates.push(digest(candidate, node, gap, gaps, ctx));
+    const simFrames = getSimFrames() - before;
+    admissionFrames += simFrames;
+    if (candidate !== null) candidates.push(digest(candidate, node, gap, gaps, ctx, simFrames));
   }
-  return summarizeArm(count, candidates);
+  return summarizeArm(count, candidates, admissionFrames);
 }
 
 function sampleFlipped(node: HandoffNode, gap: Gap, ctx: SpecContext, gaps: Gap[], count: number, seed: number): Arm {
@@ -223,23 +243,27 @@ function sampleFlipped(node: HandoffNode, gap: Gap, ctx: SpecContext, gaps: Gap[
   const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const candidates: Digest[] = [];
+  let admissionFrames = 0;
   for (let attempt = 0; attempt < count; attempt++) {
     const rawGeometry = sampleArcPlacementGeometry(
       rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
       node.search.prefixNextLineId, "normal", ctx.allContactFrames,
     );
     const geometry = { ...rawGeometry, lines: rawGeometry.lines.map((line) => ({ ...line, flipped: !line.flipped })) };
+    const before = getSimFrames();
     const fit = tryCandidateGeometry(
       node.search.prefixEngine, gap, geometry, node.search.prefixNextLineId,
       ctx.allContactFrames, axisMeasureEnd, gap.targets, true, "normal", probe.preTargetSledTrace,
     ) as Candidate | null;
+    const simFrames = getSimFrames() - before;
+    admissionFrames += simFrames;
     if (fit !== null) {
       fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
       fit.sampleAttempt = attempt;
-      candidates.push(digest(fit, node, gap, gaps, ctx));
+      candidates.push(digest(fit, node, gap, gaps, ctx, simFrames));
     }
   }
-  return summarizeArm(count, candidates);
+  return summarizeArm(count, candidates, admissionFrames);
 }
 
 function sampleTerminalEndpointExtended(
@@ -254,6 +278,7 @@ function sampleTerminalEndpointExtended(
   const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const candidates: Digest[] = [];
+  let admissionFrames = 0;
   for (let attempt = 0; attempt < count; attempt++) {
     const rawGeometry = sampleArcPlacementGeometry(
       rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
@@ -264,6 +289,7 @@ function sampleTerminalEndpointExtended(
       rightExtended: index === rawGeometry.lines.length - 1 ? true : line.rightExtended,
     }));
     if (lines.length === 0) throw new Error("normal proposal has no terminal line to extend");
+    const before = getSimFrames();
     const fit = tryCandidateGeometry(
       node.search.prefixEngine,
       gap,
@@ -276,21 +302,87 @@ function sampleTerminalEndpointExtended(
       "normal",
       probe.preTargetSledTrace,
     ) as Candidate | null;
+    const simFrames = getSimFrames() - before;
+    admissionFrames += simFrames;
     if (fit !== null) {
       fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
       fit.sampleAttempt = attempt;
-      candidates.push(digest(fit, node, gap, gaps, ctx));
+      candidates.push(digest(fit, node, gap, gaps, ctx, simFrames));
     }
   }
-  return summarizeArm(count, candidates);
+  return summarizeArm(count, candidates, admissionFrames);
 }
 
-function summarizeArm(attempts: number, candidates: Digest[]): Arm {
+/**
+ * lr-core's type-1 acceleration points opposite the stored tangent. Reversing
+ * the segment and toggling `flipped` keeps the original active normal while
+ * changing the force to the physical forward tangent. Swapping extension bits
+ * preserves each bounded physical endpoint after the representation reversal.
+ */
+function forwardAccelerationLine(line: ReturnType<typeof sampleArcPlacementGeometry>["lines"][number]) {
+  return {
+    ...line,
+    type: 1,
+    x1: line.x2,
+    y1: line.y2,
+    x2: line.x1,
+    y2: line.y1,
+    flipped: !line.flipped,
+    leftExtended: line.rightExtended,
+    rightExtended: line.leftExtended,
+  };
+}
+
+function sampleForwardAccelerated(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): Arm {
+  const rng = makeRng(seed);
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const candidates: Digest[] = [];
+  let admissionFrames = 0;
+  for (let attempt = 0; attempt < count; attempt++) {
+    const rawGeometry = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    const geometry = { ...rawGeometry, lines: rawGeometry.lines.map(forwardAccelerationLine) };
+    const before = getSimFrames();
+    const fit = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      geometry,
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    const simFrames = getSimFrames() - before;
+    admissionFrames += simFrames;
+    if (fit !== null) {
+      fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      fit.sampleAttempt = attempt;
+      candidates.push(digest(fit, node, gap, gaps, ctx, simFrames));
+    }
+  }
+  return summarizeArm(count, candidates, admissionFrames);
+}
+
+function summarizeArm(attempts: number, candidates: Digest[], admissionFrames: number): Arm {
   const finiteAxis = candidates.filter((candidate) => Number.isFinite(candidate.axisRms));
   const finiteObjective = candidates.filter((candidate) => candidate.objective !== null);
   return {
     attempts,
     viable: candidates.length,
+    admissionFrames,
     bestCost: minOrNull(candidates.map((candidate) => candidate.cost)),
     bestAxisRms: minOrNull(finiteAxis.map((candidate) => candidate.axisRms)),
     bestObjective: maxOrNull(finiteObjective.map((candidate) => candidate.objective!)),
@@ -298,13 +390,14 @@ function summarizeArm(attempts: number, candidates: Digest[]): Arm {
   };
 }
 
-function digest(candidate: Candidate, node: HandoffNode, gap: Gap, gaps: Gap[], ctx: SpecContext): Digest {
+function digest(candidate: Candidate, node: HandoffNode, gap: Gap, gaps: Gap[], ctx: SpecContext, simFrames: number): Digest {
   return {
     attempt: candidate.sampleAttempt ?? -1,
     hash: geometryHash(candidate),
     cost: round(candidate.cost),
     axisRms: round(axisRms(candidate, ctx.gapAxisTargets?.[gap.index] ?? gap.targets)),
     objective: nullableRound(candidateQualityObjective(node.search.prefixEngine, candidate, gap, gaps, ctx)),
+    simFrames,
   };
 }
 
@@ -384,6 +477,7 @@ function summarize(rows: readonly Row[]) {
     byRegime,
     regimeBalanced: {
       viableDelta: mean(summaries.map((row) => row.viableDelta).filter(isFiniteNumber)),
+      admissionFramesImprovement: mean(summaries.map((row) => row.admissionFramesImprovement).filter(isFiniteNumber)),
       bestAxisRmsImprovement: mean(summaries.map((row) => row.bestAxisRmsImprovement).filter(isFiniteNumber)),
       bestObjectiveImprovement: mean(summaries.map((row) => row.bestObjectiveImprovement).filter(isFiniteNumber)),
       bestCostImprovement: mean(summaries.map((row) => row.bestCostImprovement).filter(isFiniteNumber)),
@@ -395,6 +489,7 @@ function summarizeRows(rows: readonly Row[]) {
   return {
     rows: rows.length,
     viableDelta: mean(rows.map((row) => row.deltas!.viable)),
+    admissionFramesImprovement: mean(rows.map((row) => row.deltas!.admissionFrames).filter(isFiniteNumber)),
     bestAxisRmsImprovement: mean(rows.map((row) => row.deltas!.bestAxisRms).filter(isFiniteNumber)),
     bestObjectiveImprovement: mean(rows.map((row) => row.deltas!.bestObjective).filter(isFiniteNumber)),
     bestCostImprovement: mean(rows.map((row) => row.deltas!.bestCost).filter(isFiniteNumber)),

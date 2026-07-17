@@ -1917,6 +1917,38 @@ Any successor must locate or construct a genuinely post-capture boundary from
 the engine trace, then prove capture ownership and replay agreement through
 that boundary before it can reason about the outgoing interval.
 
+## Declared Study: Joint Two-Capture Return Boundary (2026-07-17)
+
+**Hypothesis.** The retained two-contact shooting result exposed an exact
+capture→capture basin, while the later staged-support construction failed
+because its rail exit was foreign to the downstream normal generator.  Those
+are different components.  If both locally admitted capture arcs are
+materialized as one candidate line-set from their exact checkpoint, the
+component may close the dense transition and hand control back to the ordinary
+normal sampler at the following authored contact.  This is neither a
+standalone capture lane nor capture-plus-support: its second contact surface
+is constructed from the exact first-capture engine state.
+
+**Protocol, declared before new rows.** Calibration-only, WASM/500k, on the
+existing frozen `dense`, `dense240`, and `ordinary` fixtures used by charged
+two-contact shooting.  The screen is capture→capture only: fixed mirrored
+24-control C1 capture arcs at k; for every k-admitted row, a fixed mirrored
+24-control C1 screen from its exact k+1 state.  Each admitted pair is then
+materialized as one line-set on the immutable k prefix.  At k+2, an equal
+24-attempt production-normal stream runs unchanged from the exact pair engine.
+All candidate admissions, recovery probes, and return-stream attempts are
+charged with `getSimFrames()` and every pair row is retained.
+
+**Falsifiers.** Retire this component boundary if (1) materializing the pair
+changes either already-admitted contact; (2) no capture→capture pair restores
+at least one normal admission at k+2 on either dense state; (3) its
+joint-plus-return charge materially exceeds the equal-count normal stream
+without a dense recovery; or (4) the normal control is not structurally
+available, in which case the assay is invalid rather than negative.  A
+positive calibration result authorizes only a separately declared shadow
+source and the ordinary Benchmark V2 funnel; it does not authorize a control
+selection or production default.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

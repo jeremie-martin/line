@@ -5937,9 +5937,9 @@ the same panel, then prove that preserving its extra local candidates does not
 reduce the normal two-slot search diversity at 250k.
 
 **Symmetric interior-bow envelope (same 48 states, now 624 exact replays;
-`study_arc_knob_replacement_v2.ts`): RETIRE chord-normal endpoint-preserving
-bow as a replacement form.** The bow was active, not a replay no-op, but no
-fixed scale joined the required authority and gate envelope.  At the fixed
+`study_arc_knob_replacement_v2.ts`): no scale establishes a simple replacement
+claim.** The bow was active, not a replay no-op, but no fixed scale joined the
+initial authority and gate envelope.  At the fixed
 quarter rotation-equivalent scale (`±.625°`), it admitted **73/96** signed
 edits (**76.0%**) but changed best-of-sign impact error by only `-.00386`.
 At half scale (`±1.25°`), it admitted **71/96** (**74.0%**) and improved error
@@ -5951,13 +5951,30 @@ bow does not recover bend-like validity before it gives up contact authority.
 Do not choose a scale, add an amplitude model, source a bow lane, or run a
 compiler evaluation from these selection-biased paired summaries.
 
-**Next physical boundary.** A successor must be more local than an interior
-field: change only the candidate vertex nearest the predicted native contact,
-along the normal of its incoming contact segment, by the ordinary sampler's
-existing `±2px` normal-jitter span.  It must keep every other vertex and both
-arc endpoints byte-identical.  This is a new fixed contact-vertex actuator,
-not a bow-scale follow-up or a parameter sweep; screen both signs through the
-same exact 48-state panel before considering any model or source integration.
+**Conditional-value correction (same frozen artifact): do not retire full bow
+as a filtered portfolio without a search test.** The previous paragraph's
+per-sign gate rate is not the quantity that decides whether two signed
+candidates can help a compiler.  Full bow supplies at least one exact
+candidate in **41/48** states (not 57/96 state failures).  In those available
+states it beats the committed base on current local quality in **31** and on
+impact error in **27**.  On the **41** states where both a bow and rotation
+candidate survive, bow has higher best-of-sign quality in **22**, lower impact
+error in **20**, and both properties in **19**; its mean differences to
+rotation are `+.03005` quality and `-.01816` impact error.  These descriptive
+numbers still cannot authorize a source: they are selected after exact
+admission and replay only one committed arc, rather than the normal search
+pool.  They do establish that lower signed coverage is not evidence of net
+harm, and that the local authority--coverage tradeoff remains open.
+
+**Next decision boundary.** Before changing the physical actuator, run a
+fixed equal-budget pool replay in which full bow replaces whole-arc rotation:
+the unchanged five-probe cross becomes base, tail-pitch `±8.5°`, and
+endpoint-preserving bow `±2.5°`; candidate count, exact evaluator, ranker,
+and two-slot output remain fixed.  It must show that its surviving candidates
+improve a regime-balanced local-pool objective and do not reduce 250k
+two-slot diversity.  Only then is a scoped source-default run warranted.  A
+narrower contact-vertex actuator is deferred rather than inferred from signed
+admission alone.
 
 ## Workflow Notes
 

@@ -764,7 +764,7 @@ function correlateAirbornePhaseTail(
   const contact = closestVertex(vertices, contactAnchor);
   const firstMutableLine = contact + 1;
   if (firstMutableLine >= lines.length) return [...lines];
-  const scale = lerp(1, AIRBORNE_PHASE_TAIL_MIN_SCALE, clamp(pressure, 0, 1));
+  const scale = 1 + (AIRBORNE_PHASE_TAIL_MIN_SCALE - 1) * clamp(pressure, 0, 1);
   const result = lines.map((line) => ({ ...line }));
   let point = { ...vertices[firstMutableLine]! };
   for (let index = firstMutableLine; index < lines.length; index++) {

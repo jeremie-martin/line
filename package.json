@@ -46,6 +46,7 @@
     "study:native-capture-impulse": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_native_capture_impulse_suffix.ts",
     "study:affine-contact-flow": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_contact_point_normal_frame.ts --full-sled-affine-contact-flow-field --batch=0 --out=generated/studies/full-sled-affine-contact-flow-field-normal-pool/v1/batch-0.json",
     "study:collision-interval-midpoint": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_contact_point_normal_frame.ts --native-collision-interval-midpoint-field --batch=0 --out=generated/studies/native-collision-interval-midpoint-field-normal-pool/v1/batch-0.json",
+    "study:contact-footprint-flow": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_contact_point_normal_frame.ts --full-sled-contact-footprint-flow-field --batch=0 --out=generated/studies/full-sled-contact-footprint-flow-field-normal-pool/v1/batch-0.json",
     "study:joint-normal-bridge": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_joint_normal_bridge.ts",
     "study:joint-normal-compound": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_joint_normal_bridge.ts --early-compound",
     "study:phase-locked-transient": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_phase_locked_transient.ts",

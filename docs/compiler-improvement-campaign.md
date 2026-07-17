@@ -2178,6 +2178,54 @@ compatibility; width-only acceptance would identify timing/off-beat geometry;
 no acceptance through width 5 would identify an absent collision/arrival basin.
 No outcome authorizes a geometry change by itself.
 
+**Result (2026-07-17, `scripts/v0/study_two_contact_shooting.ts
+--case=dense240 --return-normal --transient-bridge --arrival-gates`, artifact
+`generated/studies/two-contact-shooting/transient-arrival-gates-v1-smoke/`):
+arrival-timing/basin diagnosis only.** The hook accounted for all **456**
+generated normal members (19 materialized bridges × 24), and its width-1
+admission count exactly matched the prior 0. There were no geometry-unavailable
+members and **no survival failures**. Of the attempts, 68 (14.9%) rejected at
+pre-target clearance; 81 (17.8%) had a lockstep acceptance only at width 3,
+4, or 5 — exactly landing offsets +3 (19), +4 (42), and +5 (20) — while 307
+(67.3%) had no lockstep acceptance through width 5. No member was acceptable
+at the real width-1 gate.
+
+**Decision.** Do not widen a landing window or infer an outcome-conditioned
+anchor shift. The live dense-240 state does not die from body survival; its
+ordinary normal placements are mostly late or collision-incompetent even after
+the bridge supplies legal airborne phase. A future candidate basis, if any,
+must derive an on-time contact geometry from the *pre-candidate exact arrival
+state* and prove ordinary width-1 admission. The observed +3--+5 offsets are a
+diagnostic, not a tunable target or a source-control menu.
+
+## Declared Study: Recursive Transient-Bridge Continuation (2026-07-17)
+
+The gate diagnosis does not license a normal-anchor adjustment, but it exposes
+a sharper basis question: the fixed transient law has created a legal airborne
+arrival state which the *normal* sampler cannot close. Test whether the same
+state-relative transient C1-to-ballistic law can close one more contact from
+that exact state. This is a recurring physical component, not a static pair,
+post-C1 release, phase shift, or a normal-control rescue.
+
+**Protocol, declared before rows.** On the frozen dense-240 fixture only,
+replay the exact 19 materialized first-C1 + k+1 transient pairs. At k+2, derive
+the same fixed mirrored 24-control approach screen from the pair engine's
+exact planning state and realize the same one-approach/three-scoop transient
+law, with its launch angle derived from literal k+3 interval frames. Admit
+each member through unchanged `tryCandidateLines` at k+2. Every admitted third
+component must then be re-admitted as the complete first-C1 + transient +
+transient line-set on the immutable k prefix with byte-stable geometry. The
+existing k+2 raw-normal stream remains an equal-state negative control. Charge
+all k+2 and triple-materialization calls. No case, seed, outgoing target axis,
+or selected control feeds the repeated law.
+
+**Falsifiers.** Retire recurrence if no k+2 transient member admits on any of
+the 19 exact pair states; if any admitted member fails triple materialization
+or changes the earlier lines; or if the repeated component costs materially
+above normal without admitting a triple. A nonzero triple result authorizes
+only a separately declared k+3 normal-return and held-out continuation study;
+it does not authorize a compiler source or a control selection.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

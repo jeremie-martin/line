@@ -4872,6 +4872,34 @@ velocity is an admissible continuous input, but using it only as a local
 surface tangent does not restore the missing broad continuation basin; it is
 strictly weaker here than the already-retired position-intercept form.
 
+## Declared Observation: State-Projected Capture-Phase Transient (2026-07-17)
+
+The terminal-tangent form leaves the capture at a fixed half-frame phase. This
+last compact boundary construction uses both future state components without
+an inter-contact surface: reverse the discrete ballistic law from the exact
+unforced `k+2` position and velocity to its unique launch origin, project that
+origin onto the current named target-point sweep to obtain the one legal
+`[0,1]` capture phase, and use the same gravity-debiased terminal velocity as
+the outgoing tangent. The orthogonal residual is observed but never optimized;
+there is no phase sample, clamp arm, target outcome, duration branch, source,
+or rank decision.
+
+**Dense feasibility result: RETIRE.** On the first fixed 500k dense batch
+(frontier-dense recovery and dense dialogue, seeds 42/43), the construction is
+finite for **16/16** raw-current pairs but only **5/16** pass the unchanged
+`k+1` gate/materialize, with 39 fixed normal returns. The simpler
+terminal-tangent law has 13/16 materializations and 89 returns on those exact
+states; the position-intercept law has 14/16 and 90. The projected form's
+conditional RMS `.149653` has no evidentiary value after this availability
+collapse. This fails the dense materialization gate, so the remaining regimes,
+replication, and source economics would add no promotion information.
+
+**Decision.** Do not alter the projection axis, permit an out-of-window
+phase, use residual magnitude as a selector, blend it with half-frame capture,
+or tune the gravity inversion. A full terminal state can define a local phase,
+but the static current capture window cannot accommodate the resulting
+ballistic origin broadly enough to be a multi-contact compiler component.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

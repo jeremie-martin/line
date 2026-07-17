@@ -3690,6 +3690,51 @@ projection, blend anchors, choose a point identity, alter the sampling frame,
 or run seed 37/source work. The ordinary lowest-world-y anchor is not merely
 an arbitrary gravity convention under the current exact contact gate.
 
+## Declared Study: Sled-Pose Tangent Frame for the Normal Basis (2026-07-17)
+
+The ordinary sampler derives the contact curve's tangent frame exclusively
+from COM travel direction, even though collision is resolved on a sled with a
+separate measured TAIL-to-NOSE axis. The rejected lowest-point-velocity and
+velocity-leading-anchor studies did not test that axis: one retained COM
+heading and changed point velocity, the other retained it and changed
+position. This study changes only the normal generator's **tangent reference**
+to the exact sled-axis angle, selecting its equivalent direction modulo 180°
+that is closest to the incoming COM heading. It retains the ordinary lowest
+point anchor, COM velocity/speed, eight raw coordinates, attempt index,
+candidate count, collision side, geometry law, exact gates, and pool judge.
+It is a state-normalized geometry frame, not a pose gate, pose-conditioned
+branch, local response pitch, anchor blend, selector, or source lane.
+
+The fixed discovery screen is V2-jolt/500k, fresh seed 38, and the same six
+one-third ordinary frontier states across dense, second dense,
+representative, development music, low-air, and pickup. It is run in two
+memory-isolated batches with `npm run study:sled-pose-frame -- --batch=0`,
+then `--batch=1`, then `--aggregate`. The normal control must first reproduce
+each generation-time raw attempt and geometry hash exactly. Seed 39 is
+reserved for an unchanged replication only after an all-boundary discovery
+pass.
+
+**Discard before source work:** retire if the sled axis is unavailable or
+materially aligned with COM in too much of the panel; if the same-coordinate
+pose-frame pool does not jointly improve regime-balanced viable admission,
+best exact quality-times-readiness, and best-axis RMS; or if dense, pickup,
+or low-air materially loses support. A pass authorizes only seed-39
+replication followed by a separate source/economics assay. Do not tune a pose
+offset, mix frames, choose point identities, or run a V2 evaluation from this
+screen.
+
+**Outcome: RETIRE at the broad pool gate.** The two sealed seed-38 batches
+captured and exactly replayed all six ordinary pools. The physical axis was
+not inert: every row differed from COM, with a mean absolute tangent-frame
+shift of **17.852052°**. It still reduced regime-balanced viable admission by
+**4.7/state**, best-axis RMS by **−.030436**, and best exact
+quality-times-readiness by **−.138211**. Dense lost 6.5 fits/state and the
+representative row collapsed 20 accepted ordinary fits to zero; pickup held
+count but lost objective. No seed-39 replication or source is authorized. Do
+not offset/mix the pose frame, condition it on contact state, or combine it
+with a rejected anchor: direct sled-axis orientation is not a viable ordinary
+normal basis under the exact gate.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

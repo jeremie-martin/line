@@ -28,6 +28,10 @@ import { realizePhaseLockedTransient } from "./trajectory/phase_locked_transient
 import { realizeStateHermiteTransient } from "./trajectory/state_hermite_transient.ts";
 import { realizeStateProjectedPhaseTransient } from "./trajectory/state_projected_phase_transient.ts";
 import { realizeTerminalTangentTransient } from "./trajectory/terminal_tangent_transient.ts";
+import {
+  completeContactFrameTransport,
+  realizeContactFrameTransportPrefix,
+} from "./trajectory/contact_frame_transport_transient.ts";
 import { extractPlanningState } from "./trajectory/state.ts";
 import { targetFrameFromPlanningState } from "./trajectory/target_frame.ts";
 import { CALIB, secToFrame, type AxisName, type AxisValues, type Gap, type Spec, type TrackLine } from "./types.ts";
@@ -43,6 +47,7 @@ const CASES = [
 
 const DISCOVERY_SEEDS = [42, 43] as const;
 const REPLICATION_SEEDS = [44, 45] as const;
+const CONTACT_FRAME_TRANSPORT_DISCOVERY_SEEDS = [46, 47] as const;
 const BUDGET = 500_000;
 const RAW_ATTEMPTS = 32;
 const CURRENT_VIABLE_PREFIX = 4;
@@ -53,13 +58,13 @@ const OUT_DIR = "generated/studies/phase-locked-vector-intercept/v1";
 const argv = process.argv.slice(2);
 const arg = (name: string): string | undefined => argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_phase_locked_transient.ts --batch=0|1|2 | --aggregate [--form=vector-intercept|state-hermite|terminal-tangent|state-projected-phase] [--replication] [--out-dir=DIR]\n");
+  process.stdout.write("Usage: study_phase_locked_transient.ts --batch=0|1|2 | --aggregate [--form=vector-intercept|state-hermite|terminal-tangent|state-projected-phase|contact-frame-transport] [--replication] [--out-dir=DIR]\n");
   process.exit(0);
 }
 const aggregate = argv.includes("--aggregate");
 const replication = argv.includes("--replication");
 const form = arg("form") ?? "vector-intercept";
-if (form !== "vector-intercept" && form !== "state-hermite" && form !== "terminal-tangent" && form !== "state-projected-phase") throw new Error(`unknown --form=${form}`);
+if (form !== "vector-intercept" && form !== "state-hermite" && form !== "terminal-tangent" && form !== "state-projected-phase" && form !== "contact-frame-transport") throw new Error(`unknown --form=${form}`);
 const unexpected = argv.filter((value) => value !== "--aggregate" && value !== "--replication" && !value.startsWith("--batch=") && !value.startsWith("--out-dir=") && !value.startsWith("--form="));
 if (unexpected.length > 0) throw new Error(`unknown argument(s): ${unexpected.join(", ")}`);
 const formDir = form === "state-hermite"
@@ -68,9 +73,15 @@ const formDir = form === "state-hermite"
   ? `${OUT_DIR}/terminal-tangent-v1`
   : form === "state-projected-phase"
   ? `${OUT_DIR}/state-projected-phase-v1`
+  : form === "contact-frame-transport"
+  ? `${OUT_DIR}/contact-frame-transport-v1`
   : OUT_DIR;
 const outDir = arg("out-dir") ?? (replication ? `${formDir}/v2` : formDir);
-const seeds = replication ? REPLICATION_SEEDS : DISCOVERY_SEEDS;
+const seeds = replication
+  ? REPLICATION_SEEDS
+  : form === "contact-frame-transport"
+  ? CONTACT_FRAME_TRANSPORT_DISCOVERY_SEEDS
+  : DISCOVERY_SEEDS;
 const batchRaw = arg("batch");
 if (aggregate === (batchRaw !== undefined)) throw new Error("provide exactly one of --aggregate or --batch=0|1|2");
 
@@ -118,6 +129,8 @@ const document: BatchDocument = {
       ? "one frame-centred distributed k+1 capture plus gravity-debiased cubic transfer whose endpoint is the exact unforced k+2 reference position and velocity"
       : form === "state-projected-phase"
       ? "one k+1 capture whose phase is the projection of the exact k+2 ballistic origin onto the current target-frame sweep and whose launch tangent is the same gravity-debiased terminal velocity"
+      : form === "contact-frame-transport"
+      ? "one k+1 finite capture prefix is first resolved by the exact engine; a C1 tail then transports the measured zero-friction sled/CoM relative tangent through the current catchable impact turn"
       : "one frame-centred distributed k+1 capture whose launch tangent is the gravity-debiased exact unforced k+2 reference velocity",
     return: `first ${RETURN_ATTEMPTS} unchanged ordinary-normal attempts at k+2 from each byte-stable pair`,
     ...(replication ? {
@@ -197,17 +210,36 @@ function runCase(definition: typeof CASES[number], seed: number): StateRow {
 function evaluatePair(node: HandoffNode, current: Candidate, currentGap: Gap, nextGap: Gap, afterNext: Gap, setup: Setup): PairRow {
   const currentEngine = node.search.prefixEngine.addLine(current.lines.map(engineLineFromTrackLine));
   const nextState = extractPlanningState(currentEngine, nextGap.endFrame);
-  const futureState = extractPlanningState(currentEngine, afterNext.endFrame);
+  // The impulse-closed form must not peek at a future state.  It still uses
+  // the following authored gap only as the unchanged normal-return boundary.
+  const futureState = form === "contact-frame-transport"
+    ? null
+    : extractPlanningState(currentEngine, afterNext.endFrame);
   const empty = (reason: string): PairRow => ({
     currentAttempt: current.sampleAttempt ?? -1, nextGapIndex: nextGap.index, afterNextGapIndex: afterNext.index,
     unforcedReferenceAvailable: futureState !== null,
     component: { available: false, reason, interceptAngleDeg: null, interceptSpeed: null, frames: 0 },
     nextAdmitted: false, nextFrames: 0, materialized: false, materializationFrames: 0, currentAxesExact: false, twoGapRms: null, normalReturn: null, direct: null,
   });
-  if (nextState === null || futureState === null) return empty("next or unforced future planning state unavailable");
+  if (nextState === null || (form !== "contact-frame-transport" && futureState === null)) {
+    return empty("next or unforced future planning state unavailable");
+  }
   let component;
   try {
-    component = form === "state-hermite"
+    if (form === "contact-frame-transport") {
+      const frame = contactKinematicFrameFromPlanningState(nextState, targetFrameFromPlanningState(nextState), nextGap.targets);
+      const prefix = realizeContactFrameTransportPrefix(
+        frame,
+        nextState,
+        node.search.prefixNextLineId + current.lines.length,
+      );
+      if (prefix.status !== "prefix_ready") return empty(prefix.reason);
+      const previewEngine = currentEngine.addLine(prefix.prefixLines.map(engineLineFromTrackLine));
+      const postImpactState = extractPlanningState(previewEngine, nextGap.endFrame + 1);
+      if (postImpactState === null) return empty("exact capture-prefix post-impact state unavailable");
+      component = completeContactFrameTransport(prefix, postImpactState);
+    } else {
+      component = form === "state-hermite"
       ? realizeStateHermiteTransient(
         contactKinematicFrameFromPlanningState(nextState, targetFrameFromPlanningState(nextState), nextGap.targets),
         futureState,
@@ -234,6 +266,7 @@ function evaluatePair(node: HandoffNode, current: Candidate, currentGap: Gap, ne
         afterNext.endFrame - nextGap.endFrame,
         node.search.prefixNextLineId + current.lines.length,
       );
+    }
   } catch (error) {
     return empty(error instanceof Error ? error.message : String(error));
   }
@@ -252,6 +285,8 @@ function evaluatePair(node: HandoffNode, current: Candidate, currentGap: Gap, ne
     ? component.terminal.gravityDebiasedLaunchVelocity
     : form === "state-projected-phase"
     ? component.terminal.gravityDebiasedLaunchVelocity
+    : form === "contact-frame-transport"
+    ? component.postImpact.collectiveVelocity
     : component.intercept.launchVelocity;
   const metadata = {
     available: true,

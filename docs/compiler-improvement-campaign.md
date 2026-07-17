@@ -2919,6 +2919,246 @@ but not a universal arrival-control state. Any future multi-contact component
 must name a different physical state boundary, not reformulate this rejected
 transfer vector.
 
+## Declared Study: Tangential-Impulse Transient Release (2026-07-17)
+
+The transient bridge reaches dense-240's legal airborne phase but lands in no
+ordinary-normal arrival basin. Its solid scoop has only gravity and surface
+friction to set the release state. The engine exposes a distinct physical
+contact component: a type-1 line applies its fixed tangential acceleration on
+each collision update. This study uses that engine law only at the release
+surface—not as a normal-pool mutation, ranker rule, target frame, or
+continuation-control menu.
+
+**Protocol, declared before rows.** On the frozen dense-240 calibration
+fixture only, retain the exact first C1 capture and all 24 fixed mirrored
+transient approach controls. Realize the same one-segment approach and same
+three-segment scoop, but emit each scoop segment as a reversed, flipped type-1
+line. Reversal plus the flipped bit preserves the active collision normal of
+the original solid start-to-end segment while orienting the type-1 impulse
+forward along that segment's physical travel direction. The approach remains a
+solid line. No axis, outcome, source, seed, duration class, magnitude, segment
+subset, or control is selected; the engine's literal fixed type-1 impulse is
+the entire treatment. Admit the k+1 bridge and the complete pair through the
+unchanged gates, require one-shot byte-stable materialization on the immutable
+k prefix, read exact k+2 airborne age, then run the unchanged equal 24-member
+raw-normal stream. Charge every replay and retain every row.
+
+**Falsifiers.** Retire this impulse component if no byte-stable pair both
+preserves the required six-frame dense-240 airborne phase and restores a
+width-1 ordinary-normal k+2 admission; if the active-normal preservation fails
+under exact pair admission; or if its equal-width charged replay cost exceeds
+the solid bridge without that return. A pass establishes only an engine-force
+component boundary and authorizes a fresh held-out replication, never a source
+implementation, scope panel, or V2 evaluation.
+
+**Calibration result (2026-07-17, 0.19s `LR_ENGINE=wasm npx tsx
+scripts/v0/study_two_contact_shooting.ts --case=dense240 --return-normal
+--transient-bridge --transient-accelerated-release`; artifact
+`generated/studies/two-contact-shooting/transient-accelerated-release-v1/`):
+component RETAIN; source promotion NOT authorized.** All 22 admitted
+first-C1/accelerated-transient pairs re-materialized byte-stably, with no
+unavailable normal controls or materialization failures. Their k+2 airborne
+ages were all legal: 5 pairs at 7 frames, 5 at 8, and 12 at 9. The unchanged
+24-member normal stream restored width-1 returns on **2/22 pairs** (two total
+admissions), both from the fixed distributed one-frame-forward bridge labels;
+the solid bridge had 0/19. The k+2 normal-return work charged 5,681 frames;
+the treatment did not add state reads or control width. This clears the stated
+component boundary but is sparse calibration evidence, not a compact source
+law or a benchmark candidate.
+
+## Declared Study: Fresh Tangential-Impulse Transient Replication (2026-07-17)
+
+The calibration-only force component has one nonzero normal-return result.
+Before any source economics or compiler code, freeze a prospective V3 cohort
+that tests the unchanged full 24-control treatment outside every previous
+transient fixture roster. The registry is
+`scripts/v0/trajectory/accelerated_transient_heldout_panel.ts`; it imports no
+legacy, recursive, or four-control registry. Its authored-only selections are:
+
+- `accelerated_transient_dense_dialogue`: `dense_dialogue`, seed 730501, g50,
+  the first 13/17/14/17-frame figure after the long-phrase reset.
+- `accelerated_transient_countercurrent_ordinary`: `countercurrent`, seed
+  730503, g25, the first regular 25-frame figure after the 49-frame break.
+- `accelerated_transient_low_air_endurance`: `frontier_low_air_endurance`, seed
+  730507, g43, the first 22-frame return after the 200-frame low-air rideout.
+
+Capture before observation with `LR_ENGINE=wasm npx tsx
+scripts/v0/capture_accelerated_transient_heldout_fixture.ts --case=all
+--cohort=validation --budget=500000`. The replication applies the exact same
+first C1 screen and exact same 24 fixed transient controls; at k+1, only the
+three post-contact scoop segments become reversed/flipped forward type-1 lines.
+It retains every exact admission and one-shot materialization, then runs an
+unchanged equal 24-member raw-normal stream at k+2. No source, case, seed,
+axis, outcome, impulse magnitude, segment subset, or control selection enters
+the construction.
+
+**Observation invocation.** After capture, run only the three emitted fixture
+paths through `study_two_contact_shooting.ts` with
+`--transient-accelerated-held-out --transient-accelerated-release
+--return-normal --transient-bridge` and exactly one `--fixture=PATH` for each
+declared roster member. This mode rejects `--case`, all recursion, the
+four-control screen, and every diagnostic branch; it fingerprints the sealed
+roster and uses the full 24-control screen at both the k+1 bridge and k+2
+normal boundary.
+
+**Falsifiers.** Retire the force component if any sealed fixture has no
+byte-stable pair with a legal six-frame k+2 state and a width-1 normal return;
+if any normal-control path is unavailable; or if its equal-width charged replay
+does not remain bounded without that return. A pass authorizes only a separate
+source-neutral economics audit; it cannot choose controls, write a compiler
+source, scope a candidate, or run Benchmark V2.
+
+**Result (2026-07-17, 1.3s `LR_ENGINE=wasm npx tsx
+scripts/v0/study_two_contact_shooting.ts --transient-accelerated-held-out
+--transient-accelerated-release --return-normal --transient-bridge` with the
+three sealed paths; artifacts
+`generated/studies/two-contact-shooting/transient-accelerated-release-heldout-v1/`):
+component RETAIN; source promotion NOT authorized.** Every admitted pair
+one-shot materialized and every normal-control path was available. All arrival
+states exceeded the legal six-frame boundary: dense dialogue's 76 pairs had
+airborne ages 10/11/12, countercurrent's 84 pairs had age 13, and low-air's
+127 pairs had age 13. The unchanged width-1 normal stream then restored
+returns on 75/76 dense pairs (1,370 admissions), 75/84 ordinary pairs (880),
+and 95/127 low-air pairs (400), respectively. The fully retained 24-control
+normal-boundary charges were 30,040, 61,843, and 53,496 frames, with no extra
+state reads, control-width change, unavailable path, or materialization
+failure. This replicates legal phase plus normal arrival in all three
+prospective source regimes; it is force-component evidence, not a source-law
+or economics result.
+
+## Declared Analysis: Tangential-Impulse Control Economics (2026-07-17)
+
+**Question.** Does the retained accelerated-transient evidence contain any
+source-neutral control geometry whose normal-return density and charged replay
+cost are coherent enough to justify a *fresh* compact-form test, without
+writing compiler source or using a V2 score?
+
+**Protocol, declared before extraction.** Read only the immutable dense-240
+calibration artifact and the three just-observed accelerated-transient
+replication artifacts. Mechanically tabulate every materialized
+`capture-arc -> accelerated transient` pair by the fixed first-C1 label and
+the fixed accelerated-bridge label. For every label and label pair, retain:
+fixture identity; legal-airborne count; normal-control availability;
+normal-return pairs and admissions; the complete materialized-pair charge; and
+the charged frames per returned pair/admission where defined. The report is a
+complete table—no top-N filtering, re-run, resampling, source branch, target
+axis, or candidate selection. It is descriptive post-decision evidence only.
+
+**Decision boundary.** Retire compact-form pursuit if no fixed geometric label
+or fixed label pair has legal normal returns in calibration and in each of the
+fresh dense, ordinary, and low-air artifacts. If such classes exist, name them
+all in the result but do not select one, change compiler code, or reuse this
+cohort. A pass authorizes only a separately declared fresh compact-form
+fixture cohort and paired force/solid observation; it never authorizes source
+implementation, scope, or V2 evaluation.
+
+**Result (2026-07-17, 0.6s `scripts/v0/audit_accelerated_transient_economics.ts`):
+compact-form pursuit RETAIN; source promotion NOT authorized.** The complete
+table retained 22 legal calibration pairs and 76/84/127 legal fresh
+dense/ordinary/low-air pairs, respectively, with zero unavailable normal
+controls. The four artifacts had 2, 1,370, 880, and 400 normal admissions at
+the return boundary. Exactly one first-C1 label had a legal normal-return pair
+in every artifact: `negative_distributed_one_frame_forward`. Exactly two
+fixed label pairs did so: that same first label followed by either
+`negative_distributed_one_frame_forward` or
+`positive_distributed_one_frame_forward` at the accelerated bridge. This is a
+complete label accounting, not an implementation decision: it identifies a
+one-by-two fixed geometric form for a fresh paired test, while the retained
+24-control screen remains far too broad to infer source economics.
+
+## Declared Study: Fresh Compact Tangential-Impulse Force Comparison (2026-07-17)
+
+**Cohort declaration before capture.** Freeze a new V3 validation roster that
+shares no source with the prior tangential-impulse replication:
+
+- `compact_force_dense_recovery`: `frontier_dense_recovery`, seed 730601, g50,
+  the first 9/9/9-frame dense-stream cluster after its preceding ordinary
+  recovery pulse.
+- `compact_force_amplitude_tides`: `amplitude_tides`, seed 730603, g20, the
+  first regular 21/21-frame compact pulse after the authored 42-frame opening.
+- `compact_force_sparse_lowline`: `sparse_lowline`, seed 730607, g16, the
+  first 25/25-frame return after the authored 50-frame low-air omission.
+
+These selections use source timing, authored impacts, and source air fields
+only. Capture at WASM/500k before either arm is observed. The runner will use
+one first-C1 control, `negative_distributed_one_frame_forward`; at k+1 it will
+use exactly two bridge controls, negative and positive
+`distributed_one_frame_forward`; and it will read an equal two-member raw
+normal stream at k+2. It runs two arms against each immutable prefix: solid
+three-scoop release and reversed/flipped type-1 three-scoop release. The
+complete geometry, first control, bridge controls, normal width, seeds,
+admissions, one-shot materialization rule, and measurement are identical;
+only the fixed engine force law differs. No arm may branch on source, case,
+gap, target, impact, outcome, or previous result.
+
+**Falsifiers.** Retire this compact form if either arm loses exact
+materialization or normal-control availability; if the accelerated arm has no
+legal width-1 normal return on dense or ordinary; if the solid arm matches or
+exceeds the accelerated arm's legal normal-return pairs in all three fixtures;
+or if the two-control force arm fails to reduce charged normal-boundary work
+relative to the retained 24-control treatment. A pass authorizes only a tiny,
+separately declared source-default candidate and normal broad scope panel—not
+Benchmark V2.
+
+**Result (2026-07-17, paired 0.13s solid and 0.14s type-1 runs of
+`study_two_contact_shooting.ts --compact-force-comparison`; artifacts
+`generated/studies/two-contact-shooting/transient-compact-force-comparison-*/`):
+RETIRE the 1x2 compact force form.** The fixed first C1 admitted on dense
+recovery but had zero joint bridge pairs in both arms; it did not admit at all
+on amplitude tides, again identically in both arms. On sparse lowline, the
+solid arm had no capture-arc materialized pair; the type-1 arm had 2/2
+byte-stable pairs, normal controls available, but **0/2** legal normal-return
+pairs and zero admissions. Thus the compact treatment fails materialization
+on two independent sources and fails the declared dense/ordinary return
+boundary; its lower 372-frame low-air normal-boundary charge is not valuable
+without a return. The earlier full 24-control result remains physics evidence
+only. Do not implement, widen, retune, source-branch, or V2-evaluate this
+one-by-two form; a successor must be a distinct source-neutral production
+component rather than another subset of the accelerated transient screen.
+
+## Declared Observation: Terminal Endpoint-Continuation Normal Basis (2026-07-17)
+
+The normal generator currently emits every line with both collision endpoints
+bounded. The engine has a separate physical line flag: a `rightExtended` line
+remains collidable for a bounded fraction beyond its terminal endpoint, with
+the cap determined solely by the emitted line length. Unlike a new anchor,
+normal frame, side, curve, support topology, or force law, this preserves all
+sampled coordinates, segment tangents, active normals, candidate count, and
+PRNG draws; it changes only whether the rider can remain on the final
+post-contact surface at its physically adjacent endpoint.
+
+**Cheap decisive protocol.** On the exact six-regime, two-seed WASM/500k
+frozen-frontier panel used for the collision-side normal-pool observation,
+replay each production raw-normal pool bit-for-bit. Then regenerate the same
+attempt count and same coordinates, setting `rightExtended` only on the final
+post-contact line of every valid proposal. Keep all other line flags,
+geometry, normal side, evaluator, ordinary ranker, candidate count, and
+charged exact gate unchanged. Retain every proposal's viability, objective,
+axis RMS, and gate charge. This is an observation of one engine endpoint
+primitive, not a source change or V2 run.
+
+**Falsifiers.** Retire endpoint continuation if production replay is not
+exact; if the extension is inert or does not improve both viable-pool strength
+and regime-balanced best objective; if dense, pickup, or low-air has a
+material viability or objective loss; or if equal-count admission charge rises
+without a stronger viable pool. A pass authorizes only a separately declared
+source-default implementation and broad scope panel, never direct V2.
+
+**Result (2026-07-17, 56s total in three memory-isolated batches of
+`study_collision_side_normal_pool.ts --terminal-end-extension`; artifacts
+`generated/studies/terminal-endpoint-normal-pool/v1/`): RETIRE terminal
+endpoint continuation.** All 24 declared frozen-frontier rows replayed the
+production raw pool exactly. Extending only the final right endpoint produced
+no viable-pool gain in dense, pickup, or low-air; representative and
+development music each lost 0.25 viable candidates per row. The
+regime-balanced best objective fell **−0.007809**, driven especially by
+pickup (−0.028946) and low-air (−0.005389), while equal-count best admission
+cost increased +0.001009. The endpoint flag changes exact candidate outcomes,
+but it supplies no cross-regime basin and spends more to do so. Do not install
+or condition endpoint extension, combine it with a side/force lane, or run a
+scope/V2 evaluation; a successor must use a distinct normal physical
+component, not a different endpoint subset.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

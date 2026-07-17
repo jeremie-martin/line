@@ -30,6 +30,12 @@ import {
 } from "./core/substrate.ts";
 import { getCandidateProbe, type CandidateProbe, type SpecContext } from "./optimizer/sample.ts";
 import { getSimFrames } from "./optimizer/sim_frames.ts";
+import {
+  disableLandingWindowProbe,
+  drainLandingWindowProbe,
+  enableLandingWindowProbe,
+  type LandingWindowProbeRecord,
+} from "./landing_probe.ts";
 import { ELEVATION, type AxisValues, type Gap, type TrackLine } from "./types.ts";
 import {
   realizeContactCaptureArc,
@@ -65,7 +71,10 @@ const argument = (name: string): string | undefined =>
 const returnNormal = argv.includes("--return-normal");
 const ballisticRelease = argv.includes("--ballistic-release");
 const transientBridge = argv.includes("--transient-bridge");
-const SCHEMA = transientBridge
+const arrivalGateDiagnosis = argv.includes("--arrival-gates");
+const SCHEMA = arrivalGateDiagnosis
+  ? "line.study-transient-arrival-normal-gates.v1"
+  : transientBridge
   ? "line.study-transient-c1-to-ballistic-bridge.v1"
   : ballisticRelease
   ? "line.study-capture-preserving-ballistic-release.v1"
@@ -75,7 +84,7 @@ const SCHEMA = transientBridge
 
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--out-dir=DIR]",
+    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--arrival-gates] [--out-dir=DIR]",
     "",
     "Calibration-only charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
     "Without --return-normal, writes the archived two-contact protocol under",
@@ -85,12 +94,14 @@ if (argv.includes("--help") || argv.includes("-h")) {
     "after the second exact capture before testing the k+2 normal stream.",
     "--transient-bridge requires --return-normal and replaces the second static",
     "C1 response with an immediate C1-to-ballistic contact bridge at k+1.",
+    "--arrival-gates requires --transient-bridge and records the unchanged k+2",
+    "normal stream's clearance/survival/landing-window gate outcome per attempt.",
   ].join("\n") + "\n");
   process.exit(0);
 }
 
 assertExactEnvironment();
-const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--help", "-h"];
+const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--help", "-h"];
 const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
 if ((ballisticRelease || transientBridge) && !returnNormal) {
@@ -99,6 +110,9 @@ if ((ballisticRelease || transientBridge) && !returnNormal) {
 if (ballisticRelease && transientBridge) {
   throw new Error("--ballistic-release and --transient-bridge are mutually exclusive");
 }
+if (arrivalGateDiagnosis && !transientBridge) {
+  throw new Error("--arrival-gates requires --transient-bridge");
+}
 
 const requestedCase = argument("case") ?? "all";
 const stateIds: readonly StateId[] = ["dense", "dense240", "ordinary"];
@@ -106,7 +120,9 @@ if (requestedCase !== "all" && !stateIds.includes(requestedCase as StateId)) {
   throw new Error(`unknown --case=${requestedCase}; expected all|${stateIds.join("|")}`);
 }
 const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? (transientBridge
+const outDir = argument("out-dir") ?? (arrivalGateDiagnosis
+  ? "generated/studies/two-contact-shooting/transient-arrival-gates-v1"
+  : transientBridge
   ? "generated/studies/two-contact-shooting/transient-bridge-v1"
   : ballisticRelease
   ? "generated/studies/two-contact-shooting/ballistic-release-v1"
@@ -131,6 +147,9 @@ const protocolFingerprint = sha256(stableJson({
     : "disabled",
   transientBridge: transientBridge
     ? "retain the first C1 capture, then derive a k+1 one-segment C1 approach and immediate three-segment concave ballistic launch from exact state; materialize and observe k+2"
+    : "disabled",
+  arrivalGateDiagnosis: arrivalGateDiagnosis
+    ? "for every transient-bridge k+2 raw-normal member, use the existing study-only landing-window hook to classify preclear, survival, first lockstep acceptance width 1-5, or no acceptance through width 5"
     : "disabled",
 }));
 
@@ -209,6 +228,19 @@ type ReturnAttempt = {
   admitted: boolean;
   admissionFrames: number;
   error: string | null;
+  gateDiagnosis: ReturnGateDiagnosis | null;
+};
+
+type ReturnGateDiagnosis = {
+  classification:
+    | "geometry-unavailable"
+    | "pre-target-clearance"
+    | "survival"
+    | "accepted-w1"
+    | "accepted-w2-to-w5"
+    | "no-lockstep-acceptance-through-w5";
+  acceptedAtW: number | null;
+  offset: number | null;
 };
 
 type ReturnArrivalState = {
@@ -432,6 +464,14 @@ function runState(id: StateId): StateResult {
           controls: "the fixed mirrored 24-control C1 screen supplies only k+1 approach point and entry tangent from the exact extended-engine state",
           launchAngle: "atan2(-0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * literal k+2 interval frames, max(1, exact k+1 incoming speed))",
           materialization: "the first C1 plus complete transient bridge must equal a one-shot current-gap admission; the second contact is deliberately not compared with the static C1 response",
+        }
+        : null,
+      arrivalGateDiagnosis: arrivalGateDiagnosis
+        ? {
+          scope: "transient-bridge k+2 raw-normal attempts only",
+          hook: "existing landing-window probe around each unchanged tryCandidateLines call",
+          classes: ["pre-target-clearance", "survival", "accepted-w1", "accepted-w2-to-w5", "no-lockstep-acceptance-through-w5"],
+          accounting: "exactly one hook record or an explicit pre-target-clearance classification per generated member; no gate is changed",
         }
         : null,
     },
@@ -909,27 +949,43 @@ function evaluateReturnNormalStream(
   );
   const attempts: ReturnAttempt[] = [];
   let rawNormalAdmissionFrames = 0;
-  for (const member of members) {
-    if (member.lines === null) {
-      attempts.push({ index: member.index, admitted: false, admissionFrames: 0, error: member.error });
-      continue;
+  if (arrivalGateDiagnosis) enableLandingWindowProbe();
+  try {
+    for (const member of members) {
+      if (member.lines === null) {
+        attempts.push({
+          index: member.index,
+          admitted: false,
+          admissionFrames: 0,
+          error: member.error,
+          gateDiagnosis: arrivalGateDiagnosis
+            ? { classification: "geometry-unavailable", acceptedAtW: null, offset: null }
+            : null,
+        });
+        continue;
+      }
+      const before = getSimFrames();
+      const fit = tryCandidateLines(
+        pairEngine,
+        context.next,
+        member.lines,
+        nextLineIdStart,
+        allContactFrames,
+        axisLookaheadEndFrame(context.next, allContactFrames),
+        context.next.targets,
+        true,
+        undefined,
+        nextProbe.preTargetSledTrace,
+      ) as GapFit | null;
+      const admissionFrames = getSimFrames() - before;
+      rawNormalAdmissionFrames += admissionFrames;
+      const gateDiagnosis = arrivalGateDiagnosis
+        ? diagnoseReturnGateAttempt(drainLandingWindowProbe().records, fit !== null)
+        : null;
+      attempts.push({ index: member.index, admitted: fit !== null, admissionFrames, error: null, gateDiagnosis });
     }
-    const before = getSimFrames();
-    const fit = tryCandidateLines(
-      pairEngine,
-      context.next,
-      member.lines,
-      nextLineIdStart,
-      allContactFrames,
-      axisLookaheadEndFrame(context.next, allContactFrames),
-      context.next.targets,
-      true,
-      undefined,
-      nextProbe.preTargetSledTrace,
-    ) as GapFit | null;
-    const admissionFrames = getSimFrames() - before;
-    rawNormalAdmissionFrames += admissionFrames;
-    attempts.push({ index: member.index, admitted: fit !== null, admissionFrames, error: null });
+  } finally {
+    if (arrivalGateDiagnosis) disableLandingWindowProbe();
   }
   const rawNormalGeometryAvailable = members.filter((member) => member.lines !== null).length;
   const rawNormalAdmitted = attempts.filter((attempt) => attempt.admitted).length;
@@ -946,6 +1002,34 @@ function evaluateReturnNormalStream(
     rawNormalControlAvailable: rawNormalGeometryAvailable > 0,
     attempts,
     chargedFrames: jointAdmissionFrames + k2ProbeFrames + rawNormalAdmissionFrames,
+  };
+}
+
+function diagnoseReturnGateAttempt(
+  records: readonly LandingWindowProbeRecord[],
+  admitted: boolean,
+): ReturnGateDiagnosis {
+  if (records.length === 0) {
+    return { classification: "pre-target-clearance", acceptedAtW: null, offset: null };
+  }
+  if (records.length !== 1) {
+    throw new Error(`arrival-gate diagnosis expected one hook record per attempt, got ${records.length}`);
+  }
+  const record = records[0]!;
+  if (record.failure === "survival") {
+    return { classification: "survival", acceptedAtW: null, offset: null };
+  }
+  if (record.acceptedAtW === null) {
+    if (admitted) throw new Error("arrival-gate diagnosis saw an admitted candidate without lockstep acceptance");
+    return { classification: "no-lockstep-acceptance-through-w5", acceptedAtW: null, offset: null };
+  }
+  if (admitted !== (record.acceptedAtW === 1)) {
+    throw new Error(`arrival-gate diagnosis disagrees with admission at width ${record.acceptedAtW}`);
+  }
+  return {
+    classification: record.acceptedAtW === 1 ? "accepted-w1" : "accepted-w2-to-w5",
+    acceptedAtW: record.acceptedAtW,
+    offset: record.offset,
   };
 }
 

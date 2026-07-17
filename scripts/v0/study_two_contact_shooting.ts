@@ -163,6 +163,15 @@ type ReturnAttempt = {
   error: string | null;
 };
 
+type ReturnArrivalState = {
+  speed: number;
+  velocityAngleDeg: number;
+  sledPoseDeg: number | null;
+  contactNow: boolean;
+  groundedAgeFrames: number;
+  airborneAgeFrames: number;
+};
+
 /**
  * The component-level boundary: both sequential captures must survive as the
  * exact same one-shot line set before the unchanged normal generator is read
@@ -173,6 +182,7 @@ type ReturnBoundary = {
   materialized: boolean;
   materializationError: string | null;
   k2ProbeFrames: number;
+  k2ArrivalState: ReturnArrivalState | null;
   rawNormalAttempted: number;
   rawNormalGeometryAvailable: number;
   rawNormalAdmitted: number;
@@ -625,7 +635,26 @@ function evaluateReturnBoundary(
   try {
     const probeBefore = getSimFrames();
     nextProbe = getCandidateProbe(pairEngine, context.next, context.ctx);
+    const nextState = extractPlanningState(pairEngine, context.next.endFrame);
+    const k2ArrivalState = nextState === null ? null : {
+      speed: round(nextState.speed),
+      velocityAngleDeg: round(nextState.velocityAngleDeg),
+      sledPoseDeg: nextState.sledPoseDeg === null ? null : round(nextState.sledPoseDeg),
+      contactNow: nextState.phase.contactNow,
+      groundedAgeFrames: nextState.phase.groundedAgeFrames,
+      airborneAgeFrames: nextState.phase.airborneAgeFrames,
+    };
     k2ProbeFrames = getSimFrames() - probeBefore;
+    return evaluateReturnNormalStream(
+      context,
+      pairEngine,
+      nextProbe,
+      k2ArrivalState,
+      jointAdmissionFrames,
+      k2ProbeFrames,
+      context.firstLineId + combined.length,
+      allContactFrames,
+    );
   } catch (error) {
     return {
       ...emptyReturnBoundary(jointAdmissionFrames, `k+2 probe unavailable: ${errorMessage(error)}`),
@@ -633,12 +662,23 @@ function evaluateReturnBoundary(
       chargedFrames: jointAdmissionFrames + k2ProbeFrames,
     };
   }
+}
 
+function evaluateReturnNormalStream(
+  context: ReturnContext,
+  pairEngine: any,
+  nextProbe: CandidateProbe,
+  k2ArrivalState: ReturnArrivalState | null,
+  jointAdmissionFrames: number,
+  k2ProbeFrames: number,
+  nextLineIdStart: number,
+  allContactFrames: number[],
+): ReturnBoundary {
   const members = buildRawMembers(
     makeRng(rawStreamSeed3(context.seed, context.next.index, context.rowIndex)),
     nextProbe,
     context.next,
-    context.firstLineId + combined.length,
+    nextLineIdStart,
     allContactFrames,
     24,
   );
@@ -654,7 +694,7 @@ function evaluateReturnBoundary(
       pairEngine,
       context.next,
       member.lines,
-      context.firstLineId + combined.length,
+      nextLineIdStart,
       allContactFrames,
       axisLookaheadEndFrame(context.next, allContactFrames),
       context.next.targets,
@@ -673,6 +713,7 @@ function evaluateReturnBoundary(
     materialized: true,
     materializationError: null,
     k2ProbeFrames,
+    k2ArrivalState,
     rawNormalAttempted: members.length,
     rawNormalGeometryAvailable,
     rawNormalAdmitted,
@@ -689,6 +730,7 @@ function emptyReturnBoundary(jointAdmissionFrames: number, materializationError:
     materialized: false,
     materializationError,
     k2ProbeFrames: 0,
+    k2ArrivalState: null,
     rawNormalAttempted: 0,
     rawNormalGeometryAvailable: 0,
     rawNormalAdmitted: 0,

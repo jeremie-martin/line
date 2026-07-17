@@ -4124,6 +4124,65 @@ fender with a side, force, or response source. Intentional body-first contact
 is now shown possible but economically poisonous under exact admission; the
 needed contact-order component must not pre-empt the ordinary sled catch.
 
+## Declared Observation: Exact Post-Catch Articulated-Body Follower (2026-07-17)
+
+The failed body fender pre-empts the raw sled catch. This successor preserves
+the complete ordinary catch first and changes only the subsequent contact
+order: for every raw candidate that has passed the ordinary current gate,
+replay its exact candidate engine to `H+1`, read the articulated-body hull at
+that state, and append one finite same-side follower under its leading hull
+point. The follower keeps the raw target-adjacent tangent and the raw sled
+normal clearance; its length is the body hull's tangent span. Then replay the
+immutable prefix with the original catch plus follower through the unchanged
+ordinary gate. The state probe, raw admission, and augmented admission are all
+physics-frame charged. There is no body identity, outcome, target, source,
+duration, fender phase, or geometry constant: this is a fixed exact
+state-to-geometry component one engine frame after an already-admitted catch.
+
+**Protocol, declared before rows.** Use the same six-regime, two-seed
+WASM/V2-jolt/500k normal-pool cohort. Require exact production raw replay.
+For each ordinary raw proposal, record raw current admission; only then read
+its candidate-specific H+1 body state, append the follower, and re-admit the
+complete line set. For every viable augmented candidate, query its native
+follower collisions exactly at H+1 and retain whether they are body-only.
+Report raw/augmented availability, follower activation, viable pool strength,
+axis RMS, continuation-aware objective, cost, and all admission charge. This
+is an observation; no source lane, ranker, or traversal behavior changes.
+
+**Discard before source work.** Retire if raw replay fails; if exact raw H+1
+state is unreadable; if the follower is unavailable or does not create
+body-only H+1 contact on a material share in dense, pickup, and low-air; if it
+lacks broad viable/objective improvement; if any required regime loses
+material support; or if its extra exact probe work lacks a stronger pool. A
+pass alone authorizes a separately declared source/default scope test—not an
+offset/length/phase family, body selector, force or side composition, Stage 0,
+or V2 evaluation.
+
+**Result (2026-07-17, first decisive dense slice only;
+`npm run study:postcatch-body-follower -- --case=frontier_dense_recovery
+--case=dense_dialogue_impact_contrast_10`; artifact
+`generated/studies/postcatch-body-follower-normal-pool/v1/batch-0.json`):
+RETIRE at the dense material-loss guard.** All eight production pools replayed
+exactly. The raw current gate admitted 140/232 proposals, each yielded a
+readable candidate-specific H+1 articulated hull and finite follower (mean
+span **8.07 px**), and 71 augmented candidates remained gate-valid. Of those,
+48 fired the follower at exactly H+1 and **35** did so through body-only
+contact. The post-catch non-simultaneous response is therefore real; it is not
+a failed state read or a pre-catch fender under another name.
+
+Its economics still reject it: dense viable support falls **8.625
+candidates/state**, best continuation-aware objective falls **.093459**, best
+axis RMS falls `.049519`, and best cost worsens `.025312`. The 64.25-frame
+apparent saving is mostly early augmented rejection, while the construction
+also pays a required raw-catch state probe before every follower attempt. The
+first required broad regime is materially harmed, so there is no value in a
+wider panel or a tuning family.
+
+**Decision.** Do not shift the follower phase, vary the body span/clearance,
+select a hull point, add a later follower chain, or combine this with force,
+side, patch, or response work. Exact post-catch body-only contact is possible
+but remains incompatible with the ordinary catch's viable continuation basin.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

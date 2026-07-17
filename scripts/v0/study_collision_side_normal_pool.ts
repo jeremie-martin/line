@@ -29,7 +29,7 @@ import { postimpactEngineCollisionWitnessesForLineIds } from "./trajectory/posti
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--contact-patch-release|--two-sided-rail|--body-fender|--all-body-support-anchor|--surface-normal-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
+  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--contact-patch-release|--two-sided-rail|--body-fender|--postcatch-body-follower|--all-body-support-anchor|--surface-normal-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
@@ -41,12 +41,13 @@ const terminalSceneryRelease = argv.includes("--terminal-scenery-release");
 const contactPatchRelease = argv.includes("--contact-patch-release");
 const twoSidedRail = argv.includes("--two-sided-rail");
 const bodyFender = argv.includes("--body-fender");
+const postcatchBodyFollower = argv.includes("--postcatch-body-follower");
 const allBodySupportAnchor = argv.includes("--all-body-support-anchor");
 const surfaceNormalBodySupportAnchor = argv.includes("--surface-normal-body-support-anchor");
 const requestedCaseIds = argv.filter((value) => value.startsWith("--case=")).map((value) => value.slice("--case=".length));
-const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--contact-patch-release" && value !== "--two-sided-rail" && value !== "--body-fender" && value !== "--all-body-support-anchor" && value !== "--surface-normal-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
+const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--contact-patch-release" && value !== "--two-sided-rail" && value !== "--body-fender" && value !== "--postcatch-body-follower" && value !== "--all-body-support-anchor" && value !== "--surface-normal-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
-if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, contactPatchRelease, twoSidedRail, bodyFender, allBodySupportAnchor, surfaceNormalBodySupportAnchor].filter(Boolean).length > 1) {
+if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, contactPatchRelease, twoSidedRail, bodyFender, postcatchBodyFollower, allBodySupportAnchor, surfaceNormalBodySupportAnchor].filter(Boolean).length > 1) {
   throw new Error("normal-pool comparator modes are mutually exclusive");
 }
 
@@ -94,6 +95,15 @@ type BodyFenderTelemetry = {
   bodyOnlyAtPreviousFrame: number;
   meanFenderLengthPx: number | null;
 };
+type PostcatchBodyFollowerTelemetry = {
+  geometries: number;
+  rawCurrentValid: number;
+  followerAvailable: number;
+  augmentedValid: number;
+  followerCollisionAtNextFrame: number;
+  bodyOnlyAtNextFrame: number;
+  meanFollowerLengthPx: number | null;
+};
 const ACTIVE_CASES = requestedCaseIds.length === 0
   ? CASES
   : CASES.filter((entry) => requestedCaseIds.includes(entry.id));
@@ -128,6 +138,7 @@ type Row = {
   contactPatchRelease: ContactPatchTelemetry | null;
   twoSidedRail: TwoSidedRailTelemetry | null;
   bodyFender: BodyFenderTelemetry | null;
+  postcatchBodyFollower: PostcatchBodyFollowerTelemetry | null;
   replayEquivalent: boolean | null;
   replayMessage: string | null;
   production: Arm | null;
@@ -188,6 +199,8 @@ const result = {
     ? "line.study-two-sided-rail-normal-pool.v1"
     : bodyFender
     ? "line.study-body-fender-normal-pool.v1"
+    : postcatchBodyFollower
+    ? "line.study-postcatch-body-follower-normal-pool.v1"
     : forwardAcceleration
     ? "line.study-forward-tangential-acceleration-normal-pool.v1"
     : terminalEndExtension
@@ -203,6 +216,8 @@ const result = {
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; every ordinary one-way surface retains its current face and gains one coincident opposite-facing collision companion"
       : bodyFender
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; a body-hull fender from the preceding exact frame is added before the unchanged ordinary sled catch"
+      : postcatchBodyFollower
+      ? "same PRNG coordinates and ordinary current gate; every admitted raw catch receives one follower constructed from its own exact next-frame articulated-body state, then the complete line set is re-admitted"
       : allBodySupportAnchor
       ? "same PRNG coordinates, attempts, candidate count, exact gates, and scoring; only the gravity support anchor changes from the lowest sled collision point to the lowest point on the complete collision body"
       : terminalSceneryRelease
@@ -228,6 +243,8 @@ const result = {
       ? "for every unchanged raw solid line, emit one additional coincident line with a fresh id and only its flipped collision-side bit inverted; no geometry, endpoint, type, target, or line subset changes"
       : bodyFender
       ? "use the leading articulated-body hull point at the exact preceding frame, the raw candidate's target-adjacent tangent, and its ordinary sled-normal clearance to add one finite same-side fender spanning the body hull's tangent extent; the ordinary line set remains intact"
+      : postcatchBodyFollower
+      ? "admit the unchanged raw normal catch, read its exact articulated-body hull one frame after the target, then append one same-side finite follower using the raw contact tangent and normal clearance; re-admit the full geometry at ordinary gates"
       : allBodySupportAnchor
       ? "read all ten engine collision points at the target frame and replace only the sampled geometry's anchor with their maximum-y gravity support point; retain the ordinary COM velocity, raw draws, candidate gates, and scorer"
       : terminalSceneryRelease
@@ -295,6 +312,9 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
   const fender = bodyFender
     ? sampleBodyFender(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : null;
+  const follower = postcatchBodyFollower
+    ? samplePostcatchBodyFollower(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
+    : null;
   const alternative = terminalSceneryRelease
     ? sampleTerminalSceneryRelease(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : forwardAcceleration
@@ -307,6 +327,8 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
         ? twoSided.arm
       : fender !== null
         ? fender.arm
+      : follower !== null
+        ? follower.arm
       : allBodySupportAnchor
         ? sampleAllBodySupportAnchored(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed, supportAnchor!.targetState)
         : surfaceNormalSupport !== null
@@ -325,6 +347,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
     contactPatchRelease: contactPatch?.telemetry ?? null,
     twoSidedRail: twoSided?.telemetry ?? null,
     bodyFender: fender?.telemetry ?? null,
+    postcatchBodyFollower: follower?.telemetry ?? null,
     replayEquivalent: check.ok, replayMessage: check.message, production, alternative,
     deltas: {
       viable: alternative.viable - production.viable,
@@ -339,7 +362,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
 function unavailable(caseId: string, regime: Regime, seed: number, checkpoint: Checkpoint, gapIndex: number, message: string): Row {
   return {
     caseId, regime, seed, checkpoint, gapIndex, candidateCount: null,
-    captureAvailable: false, allBodySupportAnchor: null, surfaceNormalBodySupportAnchor: null, contactPatchRelease: null, twoSidedRail: null, bodyFender: null, replayEquivalent: null, replayMessage: message,
+    captureAvailable: false, allBodySupportAnchor: null, surfaceNormalBodySupportAnchor: null, contactPatchRelease: null, twoSidedRail: null, bodyFender: null, postcatchBodyFollower: null, replayEquivalent: null, replayMessage: message,
     production: null, alternative: null, deltas: null,
   };
 }
@@ -528,6 +551,110 @@ function sampleBodyFender(
   };
 }
 
+/**
+ * Exact state-shot successor to the rejected pre-catch fender.  A follower is
+ * considered only after the unmodified ordinary catch has passed its own gate.
+ * Its hull state comes from that raw candidate's engine at H+1, then the
+ * complete augmented geometry is replayed from the immutable prefix.  This
+ * makes the intermediate read a charged proposal operation, not a hidden
+ * post-selection mutation.
+ */
+function samplePostcatchBodyFollower(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): { arm: Arm; telemetry: PostcatchBodyFollowerTelemetry } {
+  const rng = makeRng(seed);
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const candidates: Digest[] = [];
+  let admissionFrames = 0;
+  let rawCurrentValid = 0;
+  let followerAvailable = 0;
+  let followerCollisionAtNextFrame = 0;
+  let bodyOnlyAtNextFrame = 0;
+  const followerLengths: number[] = [];
+  for (let attempt = 0; attempt < count; attempt++) {
+    const rawGeometry = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    const beforeRaw = getSimFrames();
+    const raw = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      rawGeometry,
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    admissionFrames += getSimFrames() - beforeRaw;
+    if (raw === null) continue;
+    rawCurrentValid++;
+    const rawEngine = node.search.prefixEngine.addLine(raw.lines.map(engineLineFromTrackLine));
+    const rawRider = getRiderMetered(rawEngine, gap.endFrame + 1);
+    const velocity = rawRider.velocity ?? probe.targetState.velocity;
+    const hull = articulatedBodyHullFromRider(rawRider, velocity);
+    const follower = hull === null
+      ? null
+      : bodyFenderGeometry(
+        { ...rawGeometry, lines: raw.lines },
+        probe.targetState,
+        hull,
+        node.search.prefixNextLineId,
+      );
+    if (follower === null) continue;
+    followerAvailable++;
+    followerLengths.push(follower.lengthPx);
+    const beforeAugmented = getSimFrames();
+    const augmented = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      { ...rawGeometry, lines: [...raw.lines, follower.line] },
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    const simFrames = getSimFrames() - beforeAugmented;
+    admissionFrames += simFrames;
+    if (augmented === null) continue;
+    augmented.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+    augmented.sampleAttempt = attempt;
+    candidates.push(digest(augmented, node, gap, gaps, ctx, simFrames));
+    const full = node.search.prefixEngine.addLine(augmented.lines.map(engineLineFromTrackLine));
+    const hits = postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame + 1, new Set([follower.line.id]));
+    if (hits.length > 0) followerCollisionAtNextFrame++;
+    const pointIds = new Set(hits.flatMap((hit) => hit.pointIds));
+    if (
+      [...pointIds].some((point) => BODY_POINT_SET.has(point)) &&
+      ![...pointIds].some((point) => SLED_POINT_SET.has(point))
+    ) bodyOnlyAtNextFrame++;
+  }
+  return {
+    arm: summarizeArm(count, candidates, admissionFrames),
+    telemetry: {
+      geometries: count,
+      rawCurrentValid,
+      followerAvailable,
+      augmentedValid: candidates.length,
+      followerCollisionAtNextFrame,
+      bodyOnlyAtNextFrame,
+      meanFollowerLengthPx: mean(followerLengths),
+    },
+  };
+}
+
 type ArticulatedBodyHull = {
   leading: { x: number; y: number };
   points: Array<{ x: number; y: number }>;
@@ -538,10 +665,17 @@ function articulatedBodyHullAt(
   frame: number,
   velocity: { x: number; y: number },
 ): ArticulatedBodyHull | null {
+  const rider = getRiderMetered(engine, frame);
+  return articulatedBodyHullFromRider(rider, velocity);
+}
+
+function articulatedBodyHullFromRider(
+  rider: { get(name: string): { pos?: { x: number; y: number } } | undefined },
+  velocity: { x: number; y: number },
+): ArticulatedBodyHull | null {
   const speed = Math.hypot(velocity.x, velocity.y);
   if (!(speed > 1e-9) || !Number.isFinite(speed)) return null;
   const direction = { x: velocity.x / speed, y: velocity.y / speed };
-  const rider = getRiderMetered(engine, frame);
   const points = ARTICULATED_BODY_POINTS.flatMap((name): Array<{ x: number; y: number }> => {
     const position = rider.get(name)?.pos;
     return position !== undefined && Number.isFinite(position.x) && Number.isFinite(position.y)

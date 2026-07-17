@@ -1,11 +1,15 @@
 /**
  * Frozen observation-only comparison of the ordinary normal sampler's
  * geometry frame. The production arm uses the existing lowest-sled-point
- * anchor plus rider COM tangent; the comparator keeps that anchor and exact
- * evaluator but supplies the velocity of the same lowest point.
+ * anchor plus rider COM tangent; comparators keep that anchor and exact
+ * evaluator but supply either the velocity of the same lowest point or the
+ * aggregate velocity of the three zero-friction sled points.
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
  *     --out=generated/studies/contact-point-normal-frame/v1/result.json
+ *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
+ *     --zero-friction-average --batch=0 \
+ *     --out=generated/studies/zero-friction-average-normal-frame/v1/batch-0.json
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -39,19 +43,30 @@ import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: study_contact_point_normal_frame.ts [--out=generated/studies/contact-point-normal-frame/v1/result.json]\n",
+    "Usage: study_contact_point_normal_frame.ts [--zero-friction-average --batch=0|1|2] [--out=PATH]\n",
   );
   process.exit(0);
 }
 const arg = (name: string): string | undefined =>
   argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const outPath = arg("out");
-const unknownArgs = argv.filter((value) => !value.startsWith("--out="));
+const zeroFrictionAverage = argv.includes("--zero-friction-average");
+const batchArgument = arg("batch");
+const batch = batchArgument === undefined ? undefined : Number(batchArgument);
+const unknownArgs = argv.filter((value) =>
+  value !== "--zero-friction-average" && !value.startsWith("--out=") && !value.startsWith("--batch=")
+);
 if (unknownArgs.length > 0) throw new Error(`unknown argument(s): ${unknownArgs.join(", ")}`);
+if (!zeroFrictionAverage && batch !== undefined) throw new Error("--batch is reserved for --zero-friction-average");
+if (zeroFrictionAverage && (batch === undefined || !Number.isSafeInteger(batch) || batch < 0 || batch > 2)) {
+  throw new Error("--zero-friction-average requires --batch=0|1|2");
+}
 
 const BUDGET = 500_000;
-const SEEDS = [26, 27] as const;
-const CASES = [
+const CONTACT_POINT_SEEDS = [26, 27] as const;
+const ZERO_FRICTION_AVERAGE_SEEDS = [48, 49] as const;
+const SEEDS = zeroFrictionAverage ? ZERO_FRICTION_AVERAGE_SEEDS : CONTACT_POINT_SEEDS;
+const CONTACT_POINT_CASES = [
   { id: "dense_dialogue", regime: "dense" },
   { id: "river_reentry", regime: "representative" },
   { id: "pickup_lattice", regime: "pickup" },
@@ -59,6 +74,16 @@ const CASES = [
   { id: "frontier_low_air_endurance_6s", regime: "low_air" },
   { id: "believer_impact_56s", regime: "development_music" },
 ] as const;
+const ZERO_FRICTION_AVERAGE_CASES = [
+  { id: "frontier_dense_recovery_240ms_figures", regime: "dense" },
+  { id: "dense_dialogue_impact_contrast_10", regime: "dense" },
+  { id: "rising_switch", regime: "representative" },
+  { id: "pickup_lattice_speed_minus_4", regime: "pickup" },
+  { id: "frontier_low_air_endurance_7s", regime: "low_air" },
+  { id: "believer_56_6s_impact_relief", regime: "development_music" },
+] as const;
+const CASES = zeroFrictionAverage ? ZERO_FRICTION_AVERAGE_CASES : CONTACT_POINT_CASES;
+const ACTIVE_CASES = batch === undefined ? CASES : CASES.slice(batch * 2, batch * 2 + 2);
 
 type Regime = typeof CASES[number]["regime"];
 type Captured = {
@@ -89,7 +114,8 @@ type ArmSummary = {
 type ContactFrame = {
   targetState: ImpactFrameTargetState;
   anchor: (typeof SLED_POINT_ORDER)[number] | "rider";
-  velocitySource: "contact_point_velocity" | "rider_com_fallback";
+  velocitySource: "contact_point_velocity" | "zero_friction_average" | "rider_com_fallback";
+  frameShiftDeg: number;
 };
 type Row = {
   caseId: string;
@@ -104,6 +130,7 @@ type Row = {
   contactFrame: {
     anchor: ContactFrame["anchor"];
     velocitySource: ContactFrame["velocitySource"];
+    frameShiftDeg: number;
   } | null;
   productionCom: ArmSummary | null;
   contactPoint: ArmSummary | null;
@@ -116,7 +143,7 @@ type Row = {
 };
 
 const catalog = new Map(developmentCases.map((entry) => [entry.case.metadata.id, entry.case]));
-const definitions = CASES.map((entry) => {
+const definitions = ACTIVE_CASES.map((entry) => {
   const value = catalog.get(entry.id);
   if (value === undefined) throw new Error(`frozen case ${entry.id} is absent from development catalog`);
   return { ...entry, spec: value.spec };
@@ -174,19 +201,26 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: "line.study-contact-point-normal-frame.v1",
+  schema: zeroFrictionAverage
+    ? "line.study-zero-friction-average-normal-frame.v1"
+    : "line.study-contact-point-normal-frame.v1",
   purpose: [
     "observation-only replay of ordinary normal candidate pools from immutable frontier states",
-    "same PRNG, anchor, candidate count, attempt indices, exact gates, and scorer; COM tangent versus lowest-contact-point tangent",
+    zeroFrictionAverage
+      ? "same PRNG, anchor, candidate count, attempt indices, exact gates, and scorer; COM tangent versus the mean velocity frame of TAIL/NOSE/STRING"
+      : "same PRNG, anchor, candidate count, attempt indices, exact gates, and scorer; COM tangent versus lowest-contact-point tangent",
     "no alternate compiler run, no source change, and no V2 evaluation",
   ],
   frozenConfig: {
     budget: BUDGET,
     joltMs: benchmarkPolicy.transform.joltMs,
     seeds: SEEDS,
-    cases: CASES,
+    cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    contactPointFallback: "rider COM velocity only when the selected lowest point has no finite non-zero velocity",
+    frame: zeroFrictionAverage
+      ? "mean finite non-zero velocity of TAIL/NOSE/STRING at the immutable target state; no point identity is selected"
+      : "velocity of the selected lowest sled point, with rider COM fallback only when that point has no finite non-zero velocity",
+    ...(batch === undefined ? {} : { batch }),
   },
   rows,
   summary: summarize(rows),
@@ -257,7 +291,7 @@ function replayCapturedState(
     captureAvailable: true,
     replayEquivalent: replay.ok,
     replayMessage: replay.message,
-    contactFrame: { anchor: frame.anchor, velocitySource: frame.velocitySource },
+    contactFrame: { anchor: frame.anchor, velocitySource: frame.velocitySource, frameShiftDeg: frame.frameShiftDeg },
     productionCom,
     contactPoint,
     deltas: {
@@ -366,8 +400,11 @@ function readContactFrame(engine: any, gap: Gap, ctx: SpecContext): ContactFrame
     selectedVelocity = finiteNonZeroVec(point?.vel ?? point?.velocity);
   }
   const comVelocity = finiteNonZeroVec(rider?.velocity);
-  const velocity = selectedVelocity ?? comVelocity ?? { x: 0, y: 0 };
+  const zeroFrictionVelocity = zeroFrictionAverage ? averageZeroFrictionVelocity(rider) : null;
+  const velocity = zeroFrictionVelocity ?? selectedVelocity ?? comVelocity ?? { x: 0, y: 0 };
   const speed = Math.hypot(velocity.x, velocity.y);
+  const comAngleDeg = comVelocity === null ? 0 : Math.atan2(comVelocity.y, comVelocity.x) * 180 / Math.PI;
+  const frameAngleDeg = speed > 0 ? Math.atan2(velocity.y, velocity.x) * 180 / Math.PI : 0;
   return {
     targetState: {
       sledX: probe.targetState.sledX,
@@ -377,8 +414,25 @@ function readContactFrame(engine: any, gap: Gap, ctx: SpecContext): ContactFrame
       angleDeg: speed > 0 ? Math.atan2(velocity.y, velocity.x) * 180 / Math.PI : 0,
     },
     anchor: selected,
-    velocitySource: selectedVelocity === null ? "rider_com_fallback" : "contact_point_velocity",
+    velocitySource: zeroFrictionVelocity !== null
+      ? "zero_friction_average"
+      : selectedVelocity === null ? "rider_com_fallback" : "contact_point_velocity",
+    frameShiftDeg: signedAngleDelta(comAngleDeg, frameAngleDeg),
   };
+}
+
+function averageZeroFrictionVelocity(
+  rider: { get?: (name: string) => { vel?: unknown; velocity?: unknown } | undefined } | null | undefined,
+): { x: number; y: number } | null {
+  const velocities = ["TAIL", "NOSE", "STRING"]
+    .map((name) => finiteNonZeroVec(rider?.get?.(name)?.vel ?? rider?.get?.(name)?.velocity))
+    .filter((velocity): velocity is { x: number; y: number } => velocity !== null);
+  if (velocities.length !== 3) return null;
+  const average = velocities.reduce(
+    (sum, velocity) => ({ x: sum.x + velocity.x / velocities.length, y: sum.y + velocity.y / velocities.length }),
+    { x: 0, y: 0 },
+  );
+  return Math.hypot(average.x, average.y) > 1e-9 ? average : null;
 }
 
 function finiteVec(value: unknown): value is { x: number; y: number } {
@@ -484,9 +538,10 @@ function geometryHash(candidate: Candidate): string {
 
 function summarize(rows: readonly Row[]) {
   const usable = rows.filter((row) =>
-    row.replayEquivalent === true && row.deltas !== null && row.contactFrame?.velocitySource === "contact_point_velocity"
+    row.replayEquivalent === true && row.deltas !== null && row.contactFrame?.velocitySource ===
+      (zeroFrictionAverage ? "zero_friction_average" : "contact_point_velocity")
   );
-  const byRegime = Object.fromEntries([...new Set(CASES.map((entry) => entry.regime))].map((regime) => {
+  const byRegime = Object.fromEntries([...new Set(ACTIVE_CASES.map((entry) => entry.regime))].map((regime) => {
     const regimeRows = usable.filter((row) => row.regime === regime);
     return [regime, summarizeRows(regimeRows)];
   }));
@@ -497,6 +552,7 @@ function summarize(rows: readonly Row[]) {
     replayEquivalent: rows.filter((row) => row.replayEquivalent === true).length,
     replayFailures: rows.filter((row) => row.replayEquivalent === false).length,
     pointVelocityRows: rows.filter((row) => row.contactFrame?.velocitySource === "contact_point_velocity").length,
+    zeroFrictionAverageRows: rows.filter((row) => row.contactFrame?.velocitySource === "zero_friction_average").length,
     comFallbackRows: rows.filter((row) => row.contactFrame?.velocitySource === "rider_com_fallback").length,
     usableRows: usable.length,
     byRegime,
@@ -507,6 +563,13 @@ function summarize(rows: readonly Row[]) {
       bestCostImprovement: mean(regimeSummaries.map((row) => row.bestCostImprovement).filter(isFiniteNumber)),
     },
   };
+}
+
+function signedAngleDelta(from: number, to: number): number {
+  let delta = (to - from) % 360;
+  if (delta <= -180) delta += 360;
+  if (delta > 180) delta -= 360;
+  return delta;
 }
 
 function summarizeRows(rows: readonly Row[]) {

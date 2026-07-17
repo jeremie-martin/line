@@ -85,6 +85,8 @@ import {
 } from "./arc_probe.ts";
 import {
   applyArcActuatorPair,
+  ARC_ACTUATOR_PAIRS,
+  arcActuatorPairNeedsContactPoint,
   type ArcActuatorPairId,
 } from "./arc_actuator.ts";
 import {
@@ -146,7 +148,22 @@ const AIM_JOINT_PROBE_DESIGN: ArcProbeDesignName = "cross5";
  * actuator registry so alternate two-control policies can be screened without
  * reimplementing probe or emission machinery.
  */
-const AIM_ACTUATOR_PAIR: ArcActuatorPairId = "tail_pitch__whole_rotation";
+const AIM_ACTUATOR_PAIR_DEFAULT: ArcActuatorPairId = "tail_pitch__whole_rotation";
+
+/**
+ * Stage-0/family-only actuator selection.  The default compiler stays on the
+ * declared source pair; an unknown setting fails closed.  Any candidate that
+ * advances past screening must bake its selected pair into
+ * AIM_ACTUATOR_PAIR_DEFAULT before confirmation, per the V2 source-default
+ * contract.
+ */
+function aimActuatorPair(): ArcActuatorPairId {
+  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_ACTUATOR_PAIR;
+  if (requested === undefined || requested === "") return AIM_ACTUATOR_PAIR_DEFAULT;
+  if (!(requested in ARC_ACTUATOR_PAIRS)) throw new Error(`unknown LR_AIM_ACTUATOR_PAIR=${requested}`);
+  return requested as ArcActuatorPairId;
+}
 // Study-only scarce-budget model-selection policy. Pitch is the lower-cost
 // primary actuator; rotate observations are recruited only if that local
 // response is range-bound or has no improving proposal. Mature compiles retain
@@ -712,6 +729,7 @@ function makeJointAimedCandidates(
   airKnobBase: boolean,
 ): Candidate[] {
   const adaptiveRotation = aimCompileBudgetFrames <= AIM_ADAPTIVE_ROTATION_SCARCE_MAX_BUDGET;
+  const actuatorPair = aimActuatorPair();
   let probeDesignName: ArcProbeDesignName = adaptiveRotation
     ? "pitch3"
     : AIM_JOINT_PROBE_DESIGN;
@@ -719,9 +737,15 @@ function makeJointAimedCandidates(
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
   const framesBeforeProbes = getPhysicsFrameCount();
+  const actuatorContext = arcActuatorPairNeedsContactPoint(actuatorPair)
+    ? (() => {
+      const target = getCandidateProbe(engine, gap, ctx).targetState;
+      return { contactPoint: { x: target.sledX, y: target.sledY } };
+    })()
+    : undefined;
   let probeRows = arcProbeDesign(probeDesignName).map((knobs) =>
     evaluateArcActuatorPair(
-      engine, base.lines, AIM_ACTUATOR_PAIR, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
+      engine, base.lines, actuatorPair, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame, {}, actuatorContext,
     )
   );
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
@@ -763,7 +787,7 @@ function makeJointAimedCandidates(
       .filter((knobs) => knobs.rotateDeg !== 0)
       .map((knobs) =>
         evaluateArcActuatorPair(
-          engine, base.lines, AIM_ACTUATOR_PAIR, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
+          engine, base.lines, actuatorPair, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame, {}, actuatorContext,
         )
       );
     probeRows = [...probeRows, ...rotationRows];
@@ -817,7 +841,7 @@ function makeJointAimedCandidates(
     return out;
   }
   for (const cand of chosen) {
-    const aimedLines = applyArcActuatorPair(base.lines, AIM_ACTUATOR_PAIR, cand.knobs)
+    const aimedLines = applyArcActuatorPair(base.lines, actuatorPair, cand.knobs, actuatorContext)
       .map((l, i) => ({ ...l, id: lineIdStart + i }));
     const fit = tryCandidateLines(
       engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,

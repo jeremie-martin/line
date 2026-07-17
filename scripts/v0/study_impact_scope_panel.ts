@@ -120,6 +120,7 @@ const output = {
   budget,
   seeds,
   env: {
+    LR_AIM_BOW: process.env.LR_AIM_BOW ?? null,
     LR_IMPACT_LOCAL_W: process.env.LR_IMPACT_LOCAL_W ?? null,
     LR_GRADE_CONTINUITY: process.env.LR_GRADE_CONTINUITY ?? null,
   },

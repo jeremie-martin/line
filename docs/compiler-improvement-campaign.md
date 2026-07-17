@@ -3220,6 +3220,64 @@ subset, or V2-evaluate this full-curve force form. A successor must be a
 distinct physical component, not another selection of this rejected force
 encoding.
 
+## Declared Observation: Terminal Non-Collidable Release on Ordinary Normal Curves (2026-07-17)
+
+The prior ballistic-release study constructed a new post-C1 scoop and is
+closed for that geometry. A different engine component already exists in every
+ordinary raw candidate: its terminal post-contact segment. The engine's type-2
+line retains the exact visible geometry but has no collision response. Changing
+only that final segment from solid to type 2 preserves the normal candidate's
+capture surface, preceding support, coordinates, tangents, endpoints, PRNG
+stream, and line count, while making the final carrier region a deterministic
+release aperture.
+
+**Hypothesis.** Some impact failures are not missing redirection but overlong
+support: a candidate can be locally less stable after the target yet leave an
+earlier ballistic state that is faster or better phased for the next impact
+contact. The exact objective is intentionally allowed to trade current
+air/carrier fit against next-contact readiness; no target threshold, source,
+duration, impact result, candidate rank, or selected outcome controls this
+single terminal-component treatment.
+
+**Cheap decisive protocol.** On the same six-regime, two-seed WASM/500k
+frozen-frontier panel, first replay every production normal pool exactly. Then
+regenerate the identical raw proposals and change only the final post-contact
+line's `type` from 0 to 2. Keep all geometry, flags, line ids, candidate
+count, exact gates, scorer, objective, and per-attempt frame metering
+unchanged. Record viable admission, continuation-aware best objective, axis
+RMS, best cost, and total exact admission frames. This is an observation only:
+no compiler source change, scope panel, or V2 evaluation is authorized.
+
+**Falsifiers.** Retire the terminal release aperture if the normal control
+does not replay exactly; if the type-2 form is broadly unavailable; if
+regime-balanced viable admission and exact objective do not both improve; if
+dense, pickup, or low-air materially loses viable/objective support; or if a
+frame saving merely reflects earlier rejection without a stronger pool. A pass
+authorizes only one separately declared source-default implementation and
+broad scope panel—not a duration/source condition, a force combination, or
+direct Benchmark V2.
+
+**Result (2026-07-17, three memory-isolated batches of
+`study_collision_side_normal_pool.ts --terminal-scenery-release`; artifacts
+`generated/studies/terminal-noncollidable-release-normal-pool/v1/`): RETIRE
+terminal non-collidable release.** Every one of the 24 production controls
+replayed exactly. The aperture was available in 23/24 rows, and notably held
+the viable-pool count *exactly unchanged in every row*—it is not rejected for
+an availability collapse. It did produce the hypothesized mixed local/global
+movement: the regime-balanced downstream objective rose **+0.011450**, driven
+by representative (+0.018641) and pickup (+0.038016), while dense was
+essentially flat-negative (−0.001308) and every low-air row regressed
+(−0.006937 regime mean). Twelve rows improved objective and eight regressed.
+
+That is insufficient under the declared promotion boundary: viable admission
+never improved, the local axis RMS regressed −0.000907, and best exact cost
+worsened −0.004973/state. It also saved 391.2 admission frames/state, but the
+unchanged pool cardinality means this is a cheaper different trajectory, not
+additional search capability. Do not relax the fixed pool-strength condition,
+condition release by regime/target, combine it with endpoint/force, or run a
+scope/V2 evaluation. Any successor must change a distinct physical component,
+not choose a subset of this terminal-release aperture.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

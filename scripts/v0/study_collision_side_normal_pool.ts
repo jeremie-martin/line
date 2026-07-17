@@ -2,7 +2,8 @@
  * Frozen observation-only comparison of production normal geometry against
  * the same raw proposals with either every one-way collision side inverted,
  * the final post-contact collision endpoint extended, or forward type-1
- * acceleration encoding over the same active collision surfaces.
+ * acceleration encoding over the same active collision surfaces, or a final
+ * type-2 non-collidable release segment.
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_collision_side_normal_pool.ts \
  *     --terminal-end-extension --out=generated/studies/terminal-endpoint-normal-pool/v1/result.json
@@ -26,7 +27,7 @@ import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration] [--case=ID ...] [--out=PATH]\n");
+  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release] [--case=ID ...] [--out=PATH]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
@@ -34,11 +35,12 @@ const argument = (name: string): string | undefined =>
 const outPath = argument("out");
 const terminalEndExtension = argv.includes("--terminal-end-extension");
 const forwardAcceleration = argv.includes("--forward-acceleration");
+const terminalSceneryRelease = argv.includes("--terminal-scenery-release");
 const requestedCaseIds = argv.filter((value) => value.startsWith("--case=")).map((value) => value.slice("--case=".length));
-const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && !value.startsWith("--out=") && !value.startsWith("--case="));
+const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
-if (terminalEndExtension && forwardAcceleration) {
-  throw new Error("--terminal-end-extension and --forward-acceleration are mutually exclusive");
+if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease].filter(Boolean).length > 1) {
+  throw new Error("normal-pool comparator modes are mutually exclusive");
 }
 
 const BUDGET = 500_000;
@@ -128,14 +130,18 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: forwardAcceleration
+  schema: terminalSceneryRelease
+    ? "line.study-terminal-noncollidable-release-normal-pool.v1"
+    : forwardAcceleration
     ? "line.study-forward-tangential-acceleration-normal-pool.v1"
     : terminalEndExtension
     ? "line.study-terminal-endpoint-continuation-normal-pool.v1"
     : "line.study-collision-side-normal-pool.v1",
   purpose: [
     "observation-only exact normal-pool replay from immutable frontier states",
-    forwardAcceleration
+    terminalSceneryRelease
+      ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; only the final post-contact normal segment becomes a type-2 non-collidable release while every other line and flag remains identical"
+      : forwardAcceleration
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; each solid normal segment becomes a reversed/flipped type-1 line that preserves its active collision normal and receives the engine's fixed forward tangential impulse"
       : terminalEndExtension
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; production bounded endpoints versus only the final post-contact line with its right endpoint extended"
@@ -148,7 +154,9 @@ const result = {
     seeds: SEEDS,
     cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    comparator: forwardAcceleration
+    comparator: terminalSceneryRelease
+      ? "set type=2 only on the final proposed normal line after identical raw geometry generation"
+      : forwardAcceleration
       ? "replace every raw normal line with its reverse-endpoint, inverted-flip type-1 equivalent; swap endpoint extension flags with the reversed endpoints so the physical surface, active normal, and bounded extent remain identical"
       : terminalEndExtension
       ? "set rightExtended=true only on the final proposed normal line after identical raw geometry generation"
@@ -196,7 +204,9 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
   }
   const rngSeed = (Math.imul(rawPool.seed | 0, 1_000_003) + gap.index + 1) | 0;
   const production = sampleProduction(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
-  const alternative = forwardAcceleration
+  const alternative = terminalSceneryRelease
+    ? sampleTerminalSceneryRelease(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
+    : forwardAcceleration
     ? sampleForwardAccelerated(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : terminalEndExtension
       ? sampleTerminalEndpointExtended(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
@@ -289,6 +299,59 @@ function sampleTerminalEndpointExtended(
       rightExtended: index === rawGeometry.lines.length - 1 ? true : line.rightExtended,
     }));
     if (lines.length === 0) throw new Error("normal proposal has no terminal line to extend");
+    const before = getSimFrames();
+    const fit = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      { ...rawGeometry, lines },
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    const simFrames = getSimFrames() - before;
+    admissionFrames += simFrames;
+    if (fit !== null) {
+      fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      fit.sampleAttempt = attempt;
+      candidates.push(digest(fit, node, gap, gaps, ctx, simFrames));
+    }
+  }
+  return summarizeArm(count, candidates, admissionFrames);
+}
+
+/**
+ * Type 2 is scenery in lr-core: it leaves the proposed terminal geometry and
+ * its bookkeeping intact, but the engine does not collide with that segment.
+ * The preceding normal lines remain solid, so this isolates a terminal release
+ * boundary rather than changing the capture surface or normal-pool sampling.
+ */
+function sampleTerminalSceneryRelease(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): Arm {
+  const rng = makeRng(seed);
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const candidates: Digest[] = [];
+  let admissionFrames = 0;
+  for (let attempt = 0; attempt < count; attempt++) {
+    const rawGeometry = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    const lines = rawGeometry.lines.map((line, index) => ({
+      ...line,
+      type: index === rawGeometry.lines.length - 1 ? 2 : line.type,
+    }));
+    if (lines.length === 0) throw new Error("normal proposal has no terminal line to release");
     const before = getSimFrames();
     const fit = tryCandidateGeometry(
       node.search.prefixEngine,

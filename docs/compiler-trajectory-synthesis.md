@@ -504,6 +504,14 @@ The boundary is therefore the conjunction of legal detector phase and an
 arrival state the normal generator can use, not an untried ranker or
 normal-sampler option.
 
+The body-conformal `H-1..H+6` swept full-sled envelope is also closed as a
+static representation: dense-240 pre-clear rejects its spatial history before
+physics replay, while the nonintruding ordinary realization fails exact current
+admission.  Its points must not be turned into a trimmed hull, fork, wedge,
+rail, or companion.  A successor has to change the reachable contact state
+*before* touchdown while retaining the ordinary raw surface; extra static
+support at touchdown repeats a falsified component class.
+
 A future trajectory study is admissible only if it declares a **new** component
 form that, from continuous physical state rather than a case/duration/menu
 choice, establishes the required six-frame return window at dense-240 while

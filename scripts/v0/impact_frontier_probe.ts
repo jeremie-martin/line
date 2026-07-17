@@ -33,6 +33,8 @@ import { compilerCandidateIdentity } from "./benchmark_v2/compiler_identity.ts";
 import {
   compileHandoff,
   setHandoffPoolProbeHook,
+  type HandoffPoolProbeCollisionCounts,
+  type HandoffPoolProbeCollisionWindow,
   type HandoffPoolProbeCandidate,
   type HandoffPoolProbeRecord,
 } from "./optimizer/handoff.ts";
@@ -70,11 +72,17 @@ const FIXED_CONFIG = {
 type Role = typeof CASES[number]["role"];
 type AxisErrors = Partial<Record<AxisName, number>>;
 type CandidatePoint = {
+  qualityRank: number;
   errors: AxisErrors;
   handoffScore: number;
   readiness: number | null;
   currentQuality: number;
   transition: TransitionState;
+};
+type CollisionDelta = {
+  before: HandoffPoolProbeCollisionCounts;
+  target: HandoffPoolProbeCollisionCounts;
+  after: HandoffPoolProbeCollisionCounts;
 };
 type TransitionState = {
   releaseVx: number | null;
@@ -105,6 +113,12 @@ type TradeChoice = {
   readinessDelta: number | null;
   /** Exact repair-minus-selected kinematic states; observational only. */
   transition: TransitionDelta;
+  /**
+   * Exact repair-minus-selected candidate-owned contact exposure. Present only
+   * for material no-speed repairs, so the fixed probe does not replay every
+   * candidate merely to collect an uninformative zero.
+   */
+  collision: CollisionDelta | null;
 };
 type PoolRow = {
   id: string;
@@ -160,6 +174,12 @@ type FrontierAggregate = {
       arrivalSpeedDeltaMean: number | null;
       arrivalAngleDegDeltaMean: number | null;
       arrivalAirDeltaMean: number | null;
+    };
+    collision: {
+      samples: number;
+      before: HandoffPoolProbeCollisionCounts | null;
+      target: HandoffPoolProbeCollisionCounts | null;
+      after: HandoffPoolProbeCollisionCounts | null;
     };
   }>;
 };
@@ -219,6 +239,13 @@ if (referencePath !== undefined && batch !== undefined) {
 let active: typeof CASES[number] = CASES[0];
 let activeSeed: typeof SEEDS[number] = SEEDS[0];
 const poolRows: PoolRow[] = [];
+type DeferredCollisionTrace = {
+  choice: TradeChoice;
+  collisionWindowAtQualityRank: HandoffPoolProbeRecord["collisionWindowAtQualityRank"];
+  selectedQualityRank: number;
+  repairQualityRank: number;
+};
+const deferredCollisionTraces: DeferredCollisionTrace[] = [];
 setHandoffPoolProbeHook((record) => observePool(record));
 
 const runs: RunRow[] = [];
@@ -232,6 +259,7 @@ try {
       const checkpoint = compileHandoff(spec, seed, { budget: BUDGET });
       const elapsedMs = Math.round(performance.now() - started);
       const score = scoreDriftReport(checkpoint.report, { totalFrames: Math.round(spec.duration * FPS) });
+      resolveDeferredCollisionTraces();
       const axis = summarizeAxes(checkpoint.report.gaps.map((gap) => gap.axes));
       runs.push({
         id: definition.id,
@@ -382,7 +410,20 @@ function observePool(record: HandoffPoolProbeRecord): void {
     const pick = points
       .filter((point) => (point.errors.speed ?? Infinity) <= (selected.errors.speed ?? Infinity) + allowance + 1e-12)
       .sort((a, b) => (a.errors.impact ?? Infinity) - (b.errors.impact ?? Infinity) || a.handoffScore - b.handoffScore)[0];
-    choices[String(allowance)] = pick === undefined ? null : tradeChoice(selected, pick);
+    if (pick === undefined) {
+      choices[String(allowance)] = null;
+      continue;
+    }
+    const choice = tradeChoice(selected, pick);
+    if (allowance === 0 && choice.impactGain >= 0.025) {
+      deferredCollisionTraces.push({
+        choice,
+        collisionWindowAtQualityRank: record.collisionWindowAtQualityRank,
+        selectedQualityRank: selected.qualityRank,
+        repairQualityRank: pick.qualityRank,
+      });
+    }
+    choices[String(allowance)] = choice;
   }
   poolRows.push({
     id: active.id,
@@ -396,6 +437,21 @@ function observePool(record: HandoffPoolProbeRecord): void {
     selectedOnAxisPareto: axisPareto.includes(selected),
     choices,
   });
+}
+
+/**
+ * Resolve the exact engine reads only after `compileHandoff` has returned.
+ * `addLine()` has implementation-local caches, so reading it during a live
+ * traversal is not observationally safe even when it leaves the final report
+ * unchanged.  The deferred reads cannot affect a completed search.
+ */
+function resolveDeferredCollisionTraces(): void {
+  for (const trace of deferredCollisionTraces.splice(0)) {
+    trace.choice.collision = collisionDelta(
+      trace.collisionWindowAtQualityRank(trace.selectedQualityRank),
+      trace.collisionWindowAtQualityRank(trace.repairQualityRank),
+    );
+  }
 }
 
 function candidatePoint(
@@ -413,6 +469,7 @@ function candidatePoint(
     errors[axis] = Math.abs(value - target);
   }
   return [{
+    qualityRank: candidate.qualityRank,
     errors,
     handoffScore: candidate.handoffScore,
     readiness: finite(candidate.readiness) ? candidate.readiness : null,
@@ -457,6 +514,30 @@ function tradeChoice(selected: CandidatePoint, pick: CandidatePoint): TradeChoic
       ? null
       : round(pick.readiness - selected.readiness),
     transition: transitionDelta(selected.transition, pick.transition),
+    collision: null,
+  };
+}
+
+function collisionDelta(
+  selected: HandoffPoolProbeCollisionWindow | null,
+  repair: HandoffPoolProbeCollisionWindow | null,
+): CollisionDelta | null {
+  if (selected === null || repair === null) return null;
+  const subtract = (
+    before: HandoffPoolProbeCollisionCounts,
+    after: HandoffPoolProbeCollisionCounts,
+  ): HandoffPoolProbeCollisionCounts => ({
+    peg: after.peg - before.peg,
+    sledZeroFriction: after.sledZeroFriction - before.sledZeroFriction,
+    bodyHighFriction: after.bodyHighFriction - before.bodyHighFriction,
+    handsLowFriction: after.handsLowFriction - before.handsLowFriction,
+    feetZeroFriction: after.feetZeroFriction - before.feetZeroFriction,
+    total: after.total - before.total,
+  });
+  return {
+    before: subtract(selected.before, repair.before),
+    target: subtract(selected.target, repair.target),
+    after: subtract(selected.after, repair.after),
   };
 }
 
@@ -543,6 +624,7 @@ function summarizeFrontier(rows: PoolRow[]): FrontierAggregate {
       handoffCostMean: round(mean(choices.map((choice) => choice.handoffCost))),
       readinessDeltaMean: nullableMean(choices.map((choice) => choice.readinessDelta)),
       transition: summarizeTransition(material),
+      collision: summarizeCollision(material),
     };
   }
   return {
@@ -565,6 +647,32 @@ function summarizeTransition(choices: readonly TradeChoice[]): FrontierAggregate
     arrivalSpeedDeltaMean: nullableMean(choices.map((choice) => choice.transition.arrivalSpeed)),
     arrivalAngleDegDeltaMean: nullableMean(choices.map((choice) => choice.transition.arrivalAngleDeg)),
     arrivalAirDeltaMean: nullableMean(choices.map((choice) => choice.transition.arrivalAir)),
+  };
+}
+
+function summarizeCollision(choices: readonly TradeChoice[]): FrontierAggregate["speedAllowance"][string]["collision"] {
+  const pairs = choices.flatMap((choice) => choice.collision === null ? [] : [choice.collision]);
+  return {
+    samples: pairs.length,
+    before: meanCollisionCounts(pairs.map((pair) => pair.before)),
+    target: meanCollisionCounts(pairs.map((pair) => pair.target)),
+    after: meanCollisionCounts(pairs.map((pair) => pair.after)),
+  };
+}
+
+function meanCollisionCounts(
+  values: readonly HandoffPoolProbeCollisionCounts[],
+): HandoffPoolProbeCollisionCounts | null {
+  if (values.length === 0) return null;
+  const average = (key: keyof HandoffPoolProbeCollisionCounts): number =>
+    round(mean(values.map((value) => value[key])));
+  return {
+    peg: average("peg"),
+    sledZeroFriction: average("sledZeroFriction"),
+    bodyHighFriction: average("bodyHighFriction"),
+    handsLowFriction: average("handsLowFriction"),
+    feetZeroFriction: average("feetZeroFriction"),
+    total: average("total"),
   };
 }
 

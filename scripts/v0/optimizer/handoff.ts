@@ -267,20 +267,108 @@ export type HandoffPoolProbeCandidate = {
   handoffScore?: number;
 };
 
+/**
+ * Exact, candidate-owned contact exposure over the three-frame impact
+ * neighborhood.  This is observation-only telemetry for the impact frontier
+ * probe: it records the engine's native point classes rather than inferring
+ * them from the sampled geometry.
+ */
+export type HandoffPoolProbeCollisionCounts = {
+  peg: number;
+  sledZeroFriction: number;
+  bodyHighFriction: number;
+  handsLowFriction: number;
+  feetZeroFriction: number;
+  total: number;
+};
+
+export type HandoffPoolProbeCollisionWindow = {
+  before: HandoffPoolProbeCollisionCounts;
+  target: HandoffPoolProbeCollisionCounts;
+  after: HandoffPoolProbeCollisionCounts;
+};
+
 export type HandoffPoolProbeRecord = {
   gapIndex: number;
   entrySpeed: number;
   targets: AxisValues;
   nextTargets: AxisValues | null;
   candidates: HandoffPoolProbeCandidate[];
+  /**
+   * Lazily reconstructs one exact candidate-owned collision window.  Keeping
+   * this as a callback means the normal compiler pays no cost unless a probe
+   * asks about a material pair, and the callback cannot affect selection.
+   */
+  collisionWindowAtQualityRank: (qualityRank: number) => HandoffPoolProbeCollisionWindow | null;
 };
 
 type HandoffPoolProbeHook = (record: HandoffPoolProbeRecord) => void;
 let handoffPoolProbeHook: HandoffPoolProbeHook | null = null;
 
+const ZERO_FRICTION_SLED_PROBE_POINTS = new Set(["TAIL", "NOSE", "STRING"]);
+const HIGH_FRICTION_BODY_PROBE_POINTS = new Set(["BUTT", "SHOULDER"]);
+const LOW_FRICTION_HAND_PROBE_POINTS = new Set(["RHAND", "LHAND"]);
+const ZERO_FRICTION_FOOT_PROBE_POINTS = new Set(["LFOOT", "RFOOT"]);
+
 /** Observation-only pool hook. Production never installs one. */
 export function setHandoffPoolProbeHook(hook: HandoffPoolProbeHook | null): void {
   handoffPoolProbeHook = hook;
+}
+
+function emptyHandoffPoolProbeCollisionCounts(): HandoffPoolProbeCollisionCounts {
+  return {
+    peg: 0,
+    sledZeroFriction: 0,
+    bodyHighFriction: 0,
+    handsLowFriction: 0,
+    feetZeroFriction: 0,
+    total: 0,
+  };
+}
+
+/**
+ * Replays no alternate geometry: this is the exact candidate line set on its
+ * already-existing prefix, queried only after handoff scoring is complete.
+ * The engine update API is observational, so this cannot influence the
+ * candidate, pool, rank, or frame charge.
+ */
+function candidateOwnedCollisionWindow(
+  prefixEngine: any,
+  candidate: Candidate,
+  gap: Gap,
+): HandoffPoolProbeCollisionWindow | null {
+  try {
+    const engine = prefixEngine.addLine(candidate.lines.map(engineLineFromTrackLine));
+    if (typeof engine?.getUpdatesAtFrame !== "function") return null;
+    const candidateLineIds = new Set(candidate.lines.map((line) => line.id));
+    const countAt = (frame: number): HandoffPoolProbeCollisionCounts => {
+      const counts = emptyHandoffPoolProbeCollisionCounts();
+      const updates = engine.getUpdatesAtFrame(Math.max(0, frame));
+      if (!Array.isArray(updates)) return counts;
+      for (const update of updates) {
+        const record = update as { id?: unknown; updated?: unknown };
+        if (typeof record.id !== "number" || !candidateLineIds.has(record.id) || !Array.isArray(record.updated)) continue;
+        for (const entry of record.updated) {
+          const point = (entry as { id?: unknown } | null)?.id;
+          if (typeof point !== "string") continue;
+          counts.total++;
+          if (point === "PEG") counts.peg++;
+          else if (ZERO_FRICTION_SLED_PROBE_POINTS.has(point)) counts.sledZeroFriction++;
+          else if (HIGH_FRICTION_BODY_PROBE_POINTS.has(point)) counts.bodyHighFriction++;
+          else if (LOW_FRICTION_HAND_PROBE_POINTS.has(point)) counts.handsLowFriction++;
+          else if (ZERO_FRICTION_FOOT_PROBE_POINTS.has(point)) counts.feetZeroFriction++;
+        }
+      }
+      return counts;
+    };
+    return {
+      before: countAt(gap.endFrame - 1),
+      target: countAt(gap.endFrame),
+      after: countAt(gap.endFrame + 1),
+    };
+  } catch {
+    return null;
+  }
 }
 
 export type HandoffCapacityProbeRecord = {
@@ -3426,6 +3514,15 @@ function rankedOptions(
       ? null
       : ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
     const entrySpeed = getCandidateProbe(node.prefixEngine, gap, ctx).targetState.speed;
+    const collisionWindows = new Map<number, HandoffPoolProbeCollisionWindow | null>();
+    const collisionWindowAtQualityRank = (qualityRank: number): HandoffPoolProbeCollisionWindow | null => {
+      if (!Number.isSafeInteger(qualityRank) || qualityRank < 0 || qualityRank >= sorted.length) return null;
+      const cached = collisionWindows.get(qualityRank);
+      if (cached !== undefined) return cached;
+      const window = candidateOwnedCollisionWindow(node.prefixEngine, sorted[qualityRank]!, gap);
+      collisionWindows.set(qualityRank, window);
+      return window;
+    };
     handoffPoolProbeHook({
       gapIndex: gap.index,
       entrySpeed,
@@ -3501,6 +3598,7 @@ function rankedOptions(
             : {}),
         };
       }),
+      collisionWindowAtQualityRank,
     });
   }
   // Agreement instrument (measure-only): record ONLY when the pool was scored via the

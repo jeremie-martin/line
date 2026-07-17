@@ -4311,6 +4311,59 @@ type-1 force, terminal-release, passive-carrier, J-valley, or local-response
 families.  The retained signal is a physical design constraint, not a
 production policy.
 
+## Declared Diagnosis: Exact Impact-Repair Contact-Topology Decomposition (2026-07-17)
+
+The retained tangential-carry boundary leaves an important engine-level
+alternative: perhaps a repair loses carry because it invokes more frictional
+`PEG` contact.  That claim is testable without changing any geometry.  Extend
+the fixed impact probe with a lazy read of candidate-owned engine collision
+updates over `H-1`, `H`, and `H+1`.  For every material (`>= .025`) no-speed
+repair only, compare repair minus selected counts for `PEG`, the three
+zero-friction sled points (`TAIL`/`NOSE`/`STRING`), high-friction body,
+low-friction hands, zero-friction feet, and total updates.  The trace must be
+resolved only after its `compileHandoff` returns: an early implementation
+found that `addLine()` cache reads during a live traversal can alter later
+probe-pool observations even while the final report remains unchanged.  The
+immutable six-source, two-seed, V2-jolt/500k runs, all prior summary fields,
+and batch aggregation are otherwise unchanged.
+
+**Decision boundary.** Retire the friction-excess explanation if `PEG` does
+not have one coherent signed repair-minus-selected movement across all six
+sources.  Retain a distributed-contact boundary only if the same contact
+class moves with one sign in dense, representative, development-music,
+low-air, and pickup sources, and the movement is concentrated at `H` rather
+than being a generic extra-contact count.  This diagnosis does not authorize
+a point selector, a friction-weighted rank term, an active force plate, or a
+new parallel support companion.
+
+**Result (2026-07-17, three immutable 19--20s batches plus 0.8s aggregate;
+`npm run impact-probe:batch -- --batch=0|1|2`, then
+`npm run impact-probe:aggregate -- --reference=benchmark/v2/studies/impact-frontier-probe-v1-baseline.json`):
+RETAIN a distributed zero-friction sled-contact transition boundary; RETIRE
+the PEG-friction explanation.** The regenerated panel is exactly equal to the
+stored reference on every non-timing run outcome and every pre-existing summary
+field: 12/12 valid, score `492.454778`, 4,054 pools, 31,331 candidates, and
+1,705 material no-speed repairs.  The additional post-completion reads show that a
+repair has **2.310264 fewer** `TAIL`/`NOSE`/`STRING` updates at `H`, plus
+`0.727273` fewer zero-friction foot updates and `3.073314` fewer total target
+updates.  The zero-friction sled loss occurs in every independent source
+(`-2.712121`, `-2.141439`, `-2.555970`, `-1.169154`, `-2.865526`, and
+`-1.977876` respectively); it is nearly absent at `H+1` (`-.009971`).  `PEG`
+is not the cause: its target movement is only `+.031085` overall and changes
+sign or is zero by source.  Together with the independently coherent
+`releaseVx -.111577` and next-arrival-speed `-.179158`, this identifies the
+lost carry as a target-frame *distributed sled-contact topology* loss, not an
+avoidable global friction penalty or an air-phase trade.
+
+**Decision.** A credible successor must produce redirection while retaining
+the raw catch's distributed zero-friction sled contact at the target frame,
+then re-prove exact capture, broad normal return, and equal charged work.  Do
+not reopen named-point/friction selection, a force plate, the rejected
+matched-support companion, body fender/follower, two-sided rail, or a
+static-support combination: each would either select the measured symptom or
+repeat a component already disproved on the dense guard.  This is a physical
+construction constraint, not a new ranking feature.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

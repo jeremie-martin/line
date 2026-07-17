@@ -5412,6 +5412,87 @@ collision. A successor must couple a continuous distributed state to the
 native contact interval itself, then let the unmodified exact dynamics carry
 the release; it cannot merely deform an entire candidate from a snapshot.
 
+## Declared Study: Native Collision-Interval Midpoint Configuration Field (2026-07-17)
+
+The raw candidate itself provides the only valid time-local contact interval.
+For each admitted ordinary normal candidate, replay its unchanged geometry and
+find the maximal consecutive interval containing the target frame in which a
+candidate-owned line receives a native sled collision. Read all four native
+sled positions immediately before and immediately after that interval. After
+centering both clouds, fit the unique least-squares configuration map `F` from
+the entering cloud to the leaving cloud. The one legal static representation
+of the discrete interval midpoint is `M = (I + F) / 2`.
+
+Apply `M` only as a continuous relative-position deformation about the
+interval's full-cloud midpoint. Its spatial support is the unique compact C1
+window centered at the arclength mean of the actual collision lines and with
+radius `|v̄_enter| × intervalFrames`; it is exactly zero outside that physical
+collision-travel distance. Thus the raw geometry stays unchanged outside the
+native collision neighborhood, while the lines that form the collision are
+altered before their second exact evaluation. The field retains vertex order,
+line IDs/types/flags, raw PRNG coordinates, and the ordinary exact evaluator;
+it uses all four sled points, no named point, target value, score, rank,
+source, seed, duration class, scale, blend, or alternate response geometry.
+The first raw replay is a state observation needed to define the physical
+transition, never a score or admission selector.
+
+This differs from both retired successors. The impulse-latched suffix preserved
+the already-resolved capture and only moved release geometry; this field changes
+the collision lines themselves. The affine contact-flow field extrapolated an
+instantaneous velocity gradient over the whole candidate; this field uses the
+observed finite configuration change across the candidate's own contact
+interval and has compact, contact-length support.
+
+**Dense-first protocol.** On fresh V2-jolt/500k seeds 60 and 61, replay every
+generation-time raw normal attempt/hash at the first one-third/two-thirds
+ordinary frontier states of Frontier Dense Recovery and Dense Dialogue. For
+every raw-admitted non-template candidate, derive the interval and field only
+when its target sled collision, full entering/leaving state, non-singular map,
+and nonzero physical radius exist. Re-submit the raw and midpoint geometries to
+the unchanged exact gate. Record raw replay equality, state/field coverage,
+interval length, support radius, local movement, viable support, exact axes,
+continuation-aware objective, and cost.
+
+**Falsifiers.** Retire before broader regimes if native interval state is
+materially unavailable or inert, if either dense source loses viable support or
+best continuation-aware objective, or if the jointly dense pool/axis/objective
+effect is not positive. A pass authorizes only the frozen broad normal-pool
+panel and a new replay—not a midpoint weighting, interval extension, contact
+subset, radial scale, blend, threshold, template branch, score gate, or
+compiler default.
+
+**Dense-first result (2026-07-17, 20s; `npm run
+study:collision-interval-midpoint`; artifact
+`generated/studies/native-collision-interval-midpoint-field-normal-pool/v1/batch-0.json`):
+RETIRE the native collision-interval midpoint configuration field.** All
+**8/8** frozen normal pools replayed their generation-time attempts and hashes
+exactly. Of 84 raw viable candidates, 21 are the fixed template form and 35
+non-template candidates have no candidate-owned sled collision at the target;
+only **28** candidates across **4/8** states expose the complete interval and
+a non-singular full four-point field. This is materially unavailable on the
+Frontier seed-60 early state despite 15 viable raw candidates, not a generic
+full-state component.
+
+Where defined, the field is physical and non-inert, but harmful. Native sled
+collision intervals run `7.153846`--`13.333333` frames, giving their prescribed
+unscaled supports `81.177386`--`138.736799` px and mean local maximum vertex
+movements `2.829675`--`32.956797` px. Frontier seed-61 early loses viable
+support `29 → 22` and axis RMS `.072538 → .094278`. Dense Dialogue loses
+`5 → 2`, `29 → 28`, and `6 → 3` across its three active states; its seed-61
+early objective falls `.192449 → .138485`. The usable pooled deltas are
+viability `−3.5`, axis-RMS improvement `−.012783`, and objective improvement
+`−.013491`.
+
+Do not clip the interval, shrink its physical radius, replace its midpoint,
+select collision lines or points, preserve only favorable raw candidates, or
+add a target/topology/score branch. The important boundary is that raw
+candidate-owned collision activity is neither a universal target event nor a
+short isolated formation interval: on the candidates that have it, its exact
+static midpoint representation still damages the ordinary continuation pool.
+A future successor must obtain a transition input *before* a candidate's
+target collision while remaining continuous across raw contact formation; it
+cannot use a candidate's resolved collision as a spatial edit oracle.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -2024,6 +2024,36 @@ the composite's unique value. A fixed control-menu source would also repeat
 the closed static-capture delivery pattern. Do not pick the fixture's
 successful menu entry or branch by case/duration.
 
+## Declared Study: Capture-Preserving Ballistic Release (2026-07-17)
+
+The two-capture return study closes the static-C1 form because its second
+capture remains grounded until only 1--5 frames before dense-240's following
+contact. The staged-support release cap proved that reserving the landing
+window changes that state, but its grounded support corridor was the failed
+component. This is a distinct bounded form: preserve the first and second C1
+captures, then append a finite concave ballistic-release scoop from the exact
+second capture exit; the scoop stops at its launch point. It is the normal
+SLAM-HOP physical release law applied after a C1 capture, not a support rail,
+tail sizing, or a static capture control.
+
+**Protocol, declared before new rows.** Calibration-only WASM/500k on the
+same frozen dense/dense240/ordinary fixtures and fixed mirrored 24-control
+capture screens as the two-capture study. For every capture→capture pair,
+derive the release angle continuously from exact post-capture speed and the
+literal frames to k+2 (`vy = -g*N/2`), realize a fixed finite concave scoop,
+and re-admit the complete second line-set through the unchanged exact gate.
+Materialize the full pair plus scoop as one line-set, record exact k+2
+airborne age, and run the unchanged equal 24-attempt normal stream at k+2.
+All admissions and probes are frame-charged; the controller sees no case,
+seed, target axes, or target-derived control selection.
+
+**Falsifiers.** Retire if the scoop changes either owned C1 capture; if no
+dense-240 pair reaches at least six airborne frames and restores a normal
+admission at k+2; if the release arm is structurally unavailable; or if its
+charged cost is materially above the normal stream without a dense-240 return.
+A calibration pass authorizes only a separately declared source design and
+the normal V2 funnel.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

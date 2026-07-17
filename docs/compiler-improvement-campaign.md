@@ -4414,6 +4414,93 @@ selector.  A viable successor must supply a new continuous multi-contact
 state-to-geometry component that establishes the dense return, rather than
 another local curve, support, or raw-space expansion.
 
+## Declared Observation: Body-Conformal Swept Sled Envelope (2026-07-17)
+
+The dense-240 failure is specifically an arrival-state failure: broad static
+catches can make redirection and distributed sled contact in ordinary timing,
+but cannot create the dense six-frame return basin.  The retired support pair
+adds a second copy of a *single* raw contact plane.  This assay instead tests a
+different physical object: one unbranched, body-conformal terrain contour
+derived from the full instantaneous sled and its continuous motion.
+
+For an immutable pre-contact state, take every native sled point (PEG, TAIL,
+NOSE, and STRING), its position relative to the rider, its velocity-derived
+travel frame, and the measured sled angular rate.  Integrate the rider through
+the authored catchable redirection over the six scored response frames, with
+the redirection side fixed by the measured angular-rate sign; rotate the whole
+sled at its measured rate at each frame.  Project every resulting point into
+the incoming travel / gravity-facing normal frame and emit the **single upper
+monotone hull** of that state-predicted swept cloud as one finite one-way
+polyline.  The hull, rather than a named point, a spacing, a static companion,
+or an independently tuned arc, is the geometry.  A missing full pose, a
+non-finite angular rate, or a zero-rate state makes the component unavailable.
+It reads no candidate, outcome, source, seed, duration, score, rank, or
+future target.
+
+**Protocol, declared before rows.** On frozen WASM/V2-jolt/500k dense-240 and
+ordinary calibration prefixes, realize exactly one envelope per state and
+submit it to the unchanged current `tryCandidateLines` gate.  For an admitted
+contour, charge a replay to the next beat, record the consecutive airborne
+margin, and make a fixed 24-member ordinary-normal stream from that exact
+post-contour engine state; every next proposal goes through the unchanged
+next-contact gate.  Record current residual, target-frame native contact
+classes, hull provenance/line count, current and next admission charge, and
+all return outcomes.  The normal stream is a bounded return test only: it
+cannot select, alter, or feed back into the contour.  This remains a
+calibration-only feasibility observation outside compiler identity.
+
+**Decision boundary.** Retire this form if the exact state-to-geometry
+construction is unavailable, fails current admission, produces fewer than
+three native zero-friction sled updates at the target, fails the six-frame
+airborne return, or yields no normal next-contact admission on dense-240; the
+ordinary fixture must also retain current and normal next admission.  A pass
+would establish only a distinct physical component hypothesis.  It would not
+authorize a source lane, selector, rank change, hull-point mining, flipped
+side, horizon/offset sweep, support companion, or V2 run.
+
+**Declared temporal-completeness correction.** The first realization defines
+the swept cloud on `[H, H+6]`, while the unchanged gate necessarily tests the
+physical onset across `H-1 -> H`.  A forward-only finite contour therefore has
+no inbound exterior face and is not a complete representation of a contact
+transition.  Before reviewing any topology or score outcome, extend the same
+rigid state equation by exactly one reverse-integrated node: construct the
+single hull on `[H-1, H+6]`, using the same velocity, angular rate, response
+law, point set, one-way side, and no additional value.  This is not a duration
+choice or a geometry control; it is the unique inbound boundary of the
+already-declared six-frame physical component.  Re-run the identical dense-240
+and ordinary fixtures and apply the same discard boundary.  A second failure
+retires the swept-envelope family as a current-capture construction.
+
+**Result (2026-07-17, 0.10s; `LR_ENGINE=wasm node --expose-gc --import tsx
+scripts/v0/study_swept_sled_envelope.ts --case=all
+--out-dir=generated/studies/swept-sled-envelope/v1`): RETIRE the
+body-conformal swept-sled-envelope family as a static current-capture
+construction.** The construction was fully defined on both immutable states:
+all four sled points supplied 32 `H-1..H+6` samples, forming a finite one-way
+hull (4 vertices / 3 lines on dense-240; 10 / 9 on ordinary).  It did not
+make a candidate, choose a hull point, vary a side, or enter a source pool.
+
+Dense-240 fails before any physics replay: the unchanged pre-target guard sees
+the finite swept exterior on the already-traversed approach (`preclear=true`,
+zero charged simulation frames).  This is inherent to materializing a spatial
+history as stationary terrain, not evidence for a different offset or a
+pre-clear relaxation.  Ordinary clears that safety guard but its contour still
+fails the unchanged current gate after 45 charged frames.  Consequently there
+is no current contact from which to measure native sled topology, a six-frame
+return, or a next normal admission; treating either missing result as a pass
+would be exactly the unsupported static-capture inference the protocol rules
+out.
+
+**Decision.** Do not move, trim, offset, flip, simplify, extend, or selectively
+materialize this hull; do not relax pre-clear; and do not convert its point
+cloud into rails, companions, a contact-class selector, or a case-specific
+primitive.  The assay establishes a sharper representational limit: a static
+track cannot directly materialize the spatial sweep of the full incoming body
+without intruding on the discrete approach, while its nonintruding ordinary
+form is not an admitted catch.  Any successor must therefore encode a
+continuous multi-contact *state transition* without laying the past body sweep
+into the incoming static geometry.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

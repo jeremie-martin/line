@@ -1525,6 +1525,17 @@ improve complete chains and terminal speed on **both** fixtures; an absent,
 split, or higher-cost result retires the phase mechanism with no share/phase
 range tuning, compiler source, scope panel, or V2 funnel.
 
+**Outcome: RETIRE at the fixture falsifier.** The same executable control
+oracle (schema v3) replayed all four streams for 96 trials per fixture (685k
+simulated frames, 4.5s). Contact phase produced **0/96** complete believer36
+chains, unchanged from independent and far below the retained grade control's
+17/96. Its partial-terminal speed was +0.370 px/frame, but that readout has no
+chain and is therefore not physical evidence of a viable route. Believer69 was
+also neutral on completion (37/96 versus 37/96 independent), despite +0.164
+terminal speed. This is the declared absent/split discard: do not turn the
+partial speed movement into a phase range, a source lane, or a selection
+experiment. **Contact-phase continuity is retired.**
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

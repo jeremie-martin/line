@@ -1501,6 +1501,30 @@ decay, work magnitude, share, or an initial state. No compiler source,
 scope panel, Stage 0, or certification is authorized. **The cumulative
 kinetic-energy phase controller is retired.**
 
+## Declared Study: Contact-Phase Continuity (2026-07-17)
+
+The closed grade and energy controllers changed a release surface. A separate
+state-history variable remains: the exact terrain contact occurs at a
+continuous tangent-frame offset from the predicted sled point. The C1 capture
+assay established that bounded phase changes collision closure; normal sampling
+still redraws its contact anchor independently at every contact. This study
+tests whether retaining that **contact phase** across a committed chain exposes
+a stable physical basin without reusing a terrain grade, speed integral, pose,
+or future target.
+
+On the same 25% deterministic attempt span, a candidate's whole normal
+contact-centered line set is translated only along the current incoming tangent
+so its contact vertex blends toward the preceding committed contact's measured
+phase in reference-speed frames. Shape, line lengths, collision side, authored
+axes, and the ordinary exact gate/ranker are otherwise unchanged. A missing
+preceding phase is ordinary absence, never a synthetic zero-phase anchor.
+
+The fixed WASM/500k believer36/69 five-contact oracle compares this stream to
+the retained independent control at equal candidate and frame budgets. It must
+improve complete chains and terminal speed on **both** fixtures; an absent,
+split, or higher-cost result retires the phase mechanism with no share/phase
+range tuning, compiler source, scope panel, or V2 funnel.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

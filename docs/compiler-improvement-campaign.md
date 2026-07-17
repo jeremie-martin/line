@@ -4,7 +4,7 @@ Target: improve the Benchmark V2 headline through changes that make the normal
 compiler more capable and accurate across a broad range of authored scores.
 `npm run benchmark -- eval` is the reusable screen; only a fresh certified
 `eval --to-verdict` can promote a source-default change. The active baseline
-contract is `accept-2026-07-16T02-42-52Z-5fcbfc73` (development headline 503.86;
+contract is `accept-2026-07-16T16-45-07Z-8257f266` (development headline 510.37;
 headline levels are epoch-relative — the certified estimand is the paired
 delta of each accept).
 

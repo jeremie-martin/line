@@ -4,11 +4,12 @@
  * Incumbent: cross5 observes pitch and rotation about the raw arc, fits an
  * additive response, then proposes combined shapes.
  *
- * Sequential: pitch3 fits a continuous pitch p*. Two rotation observations are
- * then made on the physically pitched arc at (p*, +/-2.5). A virtual center
- * comes only from the pitch model; the two signed observations certify their
- * actual combined gate. It has the same five probe calls, no third actuator,
- * and still sends only top-2 proposals to `tryCandidateLines`.
+ * Pitch-first sequential: pitch3 fits a continuous pitch p*. Two rotation
+ * observations are then made on the physically pitched arc at (p*, +/-2.5).
+ * Rotation-first sequential is its strict order mirror: it fits r* from three
+ * raw rotation rides, then makes two tail-pitch observations on the physically
+ * rotated arc at (-/+8.5, r*). Each uses five probe calls, no third actuator,
+ * and sends only top-2 proposals to `tryCandidateLines`.
  *
  * Full probe mode is intentional for this first decision-quality study: it
  * eliminates short-probe/ballistic approximation as a confound. It is not an
@@ -108,12 +109,20 @@ function choose(candidates: Scored[]): Scored[] {
   }
   return out;
 }
-function scan(model: JointArcResponseModel, current: AxisValues, next: AxisValues, nextGap: Gap, pitchCenter = 0, rotateOnly = false): Scored[] {
+function scan(
+  model: JointArcResponseModel,
+  current: AxisValues,
+  next: AxisValues,
+  nextGap: Gap,
+  pitchCenter = 0,
+  rotateOnly = false,
+  pitchSpan = 8.5,
+): Scored[] {
   const base = score(model, { pitchDeg: 0, rotateDeg: 0 }, current, next, nextGap);
   if (base === null) return [];
   const out: Scored[] = [];
-  const pitchStart = rotateOnly ? 0 : -8.5;
-  const pitchEnd = rotateOnly ? 0 : 8.5;
+  const pitchStart = rotateOnly ? 0 : -pitchSpan;
+  const pitchEnd = rotateOnly ? 0 : pitchSpan;
   for (let localPitch = pitchStart; localPitch <= pitchEnd + 1e-9; localPitch += 0.25) {
     for (let rotateDeg = -2.5; rotateDeg <= 2.5 + 1e-9; rotateDeg += 0.5) {
       if (Math.abs(localPitch) < 0.25 && Math.abs(rotateDeg) < 0.25) continue;
@@ -134,10 +143,15 @@ function exact(selected: Scored[], engine: any, gap: Gap, ctx: SpecContext, sour
 }
 
 const totals = {
-  states: 0, skippedIncomplete: 0, sequentialNoPitchModel: 0, conditionalProbeGateRows: 0, conditionalProbeGatePasses: 0,
+  states: 0, skippedIncomplete: 0,
+  pitchFirstConditionalProbeGateRows: 0, pitchFirstConditionalProbeGatePasses: 0,
+  rotationFirstConditionalProbeGateRows: 0, rotationFirstConditionalProbeGatePasses: 0,
   crossSelected: 0, crossEmitted: 0, crossAny: 0,
   sequentialSelected: 0, sequentialEmitted: 0, sequentialAny: 0,
-  recoveredStates: 0, lostStates: 0, pStarMeanAbs: 0, pStarNonzero: 0,
+  rotationFirstSelected: 0, rotationFirstEmitted: 0, rotationFirstAny: 0,
+  pitchFirstRecoveredStates: 0, pitchFirstLostStates: 0,
+  rotationFirstRecoveredStates: 0, rotationFirstLostStates: 0,
+  pStarMeanAbs: 0, pStarNonzero: 0, rStarMeanAbs: 0, rStarNonzero: 0,
 };
 
 for (const id of ids) for (const seed of seeds) {
@@ -189,7 +203,10 @@ for (const id of ids) for (const seed of seeds) {
       {
         const virtualCenter = predictJointArcOutputs(pitchModel, { pitchDeg: pStar, rotateDeg: 0 });
         const conditionals = [-2.5, 2.5].map((rotateDeg) => observe({ pitchDeg: pStar, rotateDeg }));
-        for (const row of conditionals) { totals.conditionalProbeGateRows++; if (row.gate.currentOk) totals.conditionalProbeGatePasses++; }
+        for (const row of conditionals) {
+          totals.pitchFirstConditionalProbeGateRows++;
+          if (row.gate.currentOk) totals.pitchFirstConditionalProbeGatePasses++;
+        }
         // Re-center the pitch curve at p*.  The center is a model prediction;
         // the signed rotation rows are actual combined observations.
         const rows: JointArcProbeRow[] = [
@@ -218,11 +235,71 @@ for (const id of ids) for (const seed of seeds) {
         totals.pStarMeanAbs += Math.abs(pStar);
         if (Math.abs(pStar) >= 0.25) totals.pStarNonzero++;
       }
+
+      // The decision-order mirror is deliberately not a re-label of the
+      // physical transform: all combined shapes still apply whole-arc
+      // rotation first and tail pitch second.  Only the information sequence
+      // changes.  The first three raw rides identify an r*; the two remaining
+      // rides measure pitch on that new, rotated physical arc.
+      const rotationRows = [0, -2.5, 2.5].map((rotateDeg) => observe({ pitchDeg: 0, rotateDeg }));
+      const rotationModel = fitJointArcResponseModel(rotationRows.map((row): JointArcProbeRow => ({
+        knobs: { pitchDeg: row.knobs.rotateDeg, rotateDeg: 0 }, outputs: row.outputs,
+        ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
+      })), "pitch3", "hybrid", {
+        context: { gap, axisMeasureEnd: measureEnd, nextFrame: nextGap.endFrame },
+      });
+      const rotationCandidates = scan(rotationModel, current, next, nextGap, 0, false, 2.5)
+        .filter((candidate) => candidate.knobs.rotateDeg === 0)
+        .sort((a, b) => b.value - a.value || Math.abs(a.knobs.pitchDeg) - Math.abs(b.knobs.pitchDeg));
+      const rStar = rotationCandidates[0]?.knobs.pitchDeg ?? 0;
+      let rotationFirstPolicy: Policy = { selected: [], emitted: 0 };
+      {
+        const actualCenter = rotationRows.find((row) => row.knobs.rotateDeg === 0);
+        const virtualCenter = rStar === 0 && actualCenter !== undefined
+          ? actualCenter.outputs
+          : predictJointArcOutputs(rotationModel, { pitchDeg: rStar, rotateDeg: 0 });
+        const conditionals = [-8.5, 8.5].map((pitchDeg) => observe({ pitchDeg, rotateDeg: rStar }));
+        for (const row of conditionals) {
+          totals.rotationFirstConditionalProbeGateRows++;
+          if (row.gate.currentOk) totals.rotationFirstConditionalProbeGatePasses++;
+        }
+        // In this local model `pitchDeg` is the physical tail-pitch offset
+        // around r*. Rotation has already been selected; it is reattached
+        // only when an exact candidate is emitted below.
+        const pitchAtRotationModel = fitJointArcResponseModel([
+          { knobs: { pitchDeg: 0, rotateDeg: 0 }, outputs: virtualCenter },
+          ...conditionals.map((row): JointArcProbeRow => ({
+            knobs: { pitchDeg: row.knobs.pitchDeg, rotateDeg: 0 }, outputs: row.outputs,
+            ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
+          })),
+        ], "pitch3", "hybrid", {
+          context: { gap, axisMeasureEnd: measureEnd, nextFrame: nextGap.endFrame },
+        });
+        const pitchCandidates = scan(pitchAtRotationModel, current, next, nextGap)
+          .filter((candidate) => candidate.knobs.rotateDeg === 0)
+          .map((candidate) => ({
+            knobs: { pitchDeg: candidate.knobs.pitchDeg, rotateDeg: rStar },
+            value: candidate.value,
+          }));
+        const selectedRotation = rotationCandidates.slice(0, 1).map((candidate) => ({
+          knobs: { pitchDeg: 0, rotateDeg: candidate.knobs.pitchDeg },
+          value: candidate.value,
+        }));
+        rotationFirstPolicy = exact(
+          choose([...selectedRotation, ...pitchCandidates]),
+          entry.prefixEngine, gap, setup.ctx, source, entry.prefixNextLineId, measureEnd,
+        );
+        totals.rStarMeanAbs += Math.abs(rStar);
+        if (Math.abs(rStar) >= 0.25) totals.rStarNonzero++;
+      }
       totals.states++;
       totals.crossSelected += crossPolicy.selected.length; totals.crossEmitted += crossPolicy.emitted; if (crossPolicy.emitted > 0) totals.crossAny++;
       totals.sequentialSelected += sequentialPolicy.selected.length; totals.sequentialEmitted += sequentialPolicy.emitted; if (sequentialPolicy.emitted > 0) totals.sequentialAny++;
-      if (crossPolicy.emitted === 0 && sequentialPolicy.emitted > 0) totals.recoveredStates++;
-      if (crossPolicy.emitted > 0 && sequentialPolicy.emitted === 0) totals.lostStates++;
+      totals.rotationFirstSelected += rotationFirstPolicy.selected.length; totals.rotationFirstEmitted += rotationFirstPolicy.emitted; if (rotationFirstPolicy.emitted > 0) totals.rotationFirstAny++;
+      if (crossPolicy.emitted === 0 && sequentialPolicy.emitted > 0) totals.pitchFirstRecoveredStates++;
+      if (crossPolicy.emitted > 0 && sequentialPolicy.emitted === 0) totals.pitchFirstLostStates++;
+      if (crossPolicy.emitted === 0 && rotationFirstPolicy.emitted > 0) totals.rotationFirstRecoveredStates++;
+      if (crossPolicy.emitted > 0 && rotationFirstPolicy.emitted === 0) totals.rotationFirstLostStates++;
       done++;
     }
     entry = extendNodeCached(entry, source ?? null);
@@ -230,9 +307,13 @@ for (const id of ids) for (const seed of seeds) {
   console.error(`  ${id}/s${seed}: ${done} paired states, ${Date.now() - started} ms`);
 }
 const result = {
-  study: "arc-sequential-probe-v2-v1", budget, ids, seeds, maxGaps, probeMode,
+  study: "arc-sequential-probe-v2-v2", budget, ids, seeds, maxGaps, probeMode,
   totals: { ...totals, pStarMeanAbs: totals.states === 0 ? null : totals.pStarMeanAbs / totals.states,
-    conditionalProbeGateRate: totals.conditionalProbeGateRows === 0 ? null : totals.conditionalProbeGatePasses / totals.conditionalProbeGateRows },
+    rStarMeanAbs: totals.states === 0 ? null : totals.rStarMeanAbs / totals.states,
+    pitchFirstConditionalProbeGateRate: totals.pitchFirstConditionalProbeGateRows === 0 ? null :
+      totals.pitchFirstConditionalProbeGatePasses / totals.pitchFirstConditionalProbeGateRows,
+    rotationFirstConditionalProbeGateRate: totals.rotationFirstConditionalProbeGateRows === 0 ? null :
+      totals.rotationFirstConditionalProbeGatePasses / totals.rotationFirstConditionalProbeGateRows },
 };
 console.log(JSON.stringify(result, null, 2));
 if (outPath !== undefined) { mkdirSync(dirname(outPath), { recursive: true }); writeFileSync(outPath, `${JSON.stringify(result, null, 2)}\n`); }

@@ -5929,6 +5929,27 @@ enough to lose global search value.  Governed Stage 0
 with **127/132** valid, while 500k was **520.89**.  The implementation was
 reverted and no certified attempt is authorized.
 
+**Rotation-first decision-order mirror (same 48 frozen states; production
+short-probe mode; `study_arc_sequential_probe_v2.ts` v2; artifacts
+`generated/studies/arc-sequential-probe-v2/rotation-first-short-v2-{a,b}.json`):
+mixed mechanism screen; proceed to a direct V2 policy screen rather than infer
+the headline.** This is distinct from physical application order, which
+remains whole-arc rotation followed by tail pitch throughout.  The mirror first
+rode raw `(0,0),(0,-2.5),(0,+2.5)`, chose `r*` only within that measured range,
+then rode tail pitch `(-8.5,r*)` and `(+8.5,r*)` on the actually rotated arc.
+Its conditional tail-pitch rows passed the normal gate **75/96** times, above
+pitch-first's **72/96** conditional rotations.  That local admission advantage
+did not translate into more viable two-slot policy outcomes: rotation-first
+selected 89 candidate slots and exactly admitted **73**, yielding a viable
+proposal on **37/48** states; the raw-arc cross admitted **75/96** and was
+viable on **39/48**, while pitch-first admitted **69/69** and was viable on
+**45/48**.  Rotation-first recovered three cross failures but lost five.
+These conditional observations neither establish nor reject a compiler
+headline effect—the changed choice/output distribution can still change search
+diversity—so the next evidence is a source-faithful Stage-0 V2 screen.  This
+also does **not** reject an adaptive joint design whose later probes measure a
+selected interaction corner, which is a different probe budget/model family.
+
 **Next boundary.** Keep the two-knob/constant-probe budget, but seek a
 contact-effective *local* actuator with a broad validity envelope rather than
 another global rotation or a response-model expansion.  A successor must first

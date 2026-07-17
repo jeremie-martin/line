@@ -5138,6 +5138,64 @@ remap, template rule, selector, or candidate lane.  At the ordinary post-curve
 length and collective speeds, gravity cannot materially separate time from
 arclength; a successor must use a different collision-state mechanism.
 
+## Declared Study: Full-Sled Six-Frame Redirection-Density Field (2026-07-17)
+
+The gravity-time map is inert because it preserves the raw curvature density.
+The separate physical mismatch remains: impact is measured over the canonical
+six-frame response window, whereas a normal curve spreads its already-sampled
+post-contact turn over an arbitrary ride-out length. This component retains
+the raw contact tangent, terminal tangent, signed total turn, prefix, segment
+count and lengths, flags, raw coordinates, and exact gate. It reads the exact
+mean velocity of `PEG`/`TAIL`/`NOSE`/`STRING`; for each non-template raw curve,
+it completes that curve's *existing* signed turn over the resulting six-frame
+travel distance, then holds its existing terminal tangent. It therefore does
+not ask for a stronger turn, choose a sign, point, or endpoint, use an impact
+threshold, or add a force/surface/selector; it only aligns the raw turn's
+density to the fixed physical measurement window.
+
+**Dense-first protocol.** On unused V2-jolt/500k seeds 54 and 55, replay the
+first one-third/two-thirds frontier states from
+`frontier_dense_recovery_240ms_figures` and
+`dense_dialogue_impact_contrast_10`. Production raw attempts/hashes must
+replay exactly. Regenerate the same count and apply the one field where all
+four velocities and a non-template finite-turn curve are available. Record
+coverage, template skips, raw turn, tangent shift, viable pool support, exact
+axis RMS, continuation-aware objective, and cost. Exact gates and the ordinary
+pool objective remain the sole judges; this is neither source work nor a V2
+run.
+
+**Falsifiers.** Retire before the remaining four regimes if the field is
+materially unavailable or identical, if either dense source loses viable
+support or best continuation-aware objective, or if the dense effect is not a
+jointly positive pool/axis/objective result. A dense pass authorizes only the
+predeclared broad batches and fresh replay—not an impact magnitude change,
+phase/distance scale, tangent cap, template treatment, selector, or compiler
+default.
+
+**Dense-first result (2026-07-17, 19.8s; `LR_ENGINE=wasm npx tsx
+scripts/v0/study_contact_point_normal_frame.ts
+--full-sled-windowed-redirection-field --batch=0`; artifact
+`generated/studies/full-sled-windowed-redirection-field-normal-pool/v1/batch-0.json`):
+RETIRE the six-frame redirection-density field.** All eight dense frontier
+states captured and replayed their production raw pools exactly. The complete
+four-point field was readable in every state; **207** finite-turn non-template
+curves were transformed and 25 existing templates remained ordinary. This is
+not an inert timing relabel: mean per-curve tangent shifts reach `.859818°`,
+with a **6.411852°** maximum, while the retained raw turns range in mean from
+`2.124270°` to `5.137115°` across states.
+
+The denser response still loses the actual dense basin. Paired viable support
+falls **.25** candidates/state and the dense-balanced best continuation-aware
+objective falls **.003954**, despite `+.000720` axis-RMS movement. Frontier
+Dense Recovery seed 55 loses one of 29 viable members and `.023692` objective
+at its early checkpoint; Dense Dialogue seed 55 independently loses one of
+17 members at its late checkpoint. Empty-in-both-arm rows do not offset these
+source losses. Do not run remaining regimes or alter the six-frame distance,
+turn magnitude, terminal hold, template treatment, selector, or source. The
+normal curve's physical response density can be moved, but concentrating its
+existing turn in the scored window does not preserve broad zero-friction
+continuation.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

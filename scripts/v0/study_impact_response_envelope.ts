@@ -30,6 +30,8 @@ import { applyJolt } from "../produce/seed.ts";
 import { candidateQualityObjective } from "./optimizer/aim.ts";
 import {
   compileHandoff,
+  compileHandoffFromSnapshot,
+  snapshotHandoffNode,
   type HandoffNode,
   type HandoffNodeEvent,
 } from "./optimizer/handoff.ts";
@@ -38,12 +40,14 @@ import { extendNodeCached, getCandidatesSorted } from "./optimizer/node.ts";
 import { getCandidateProbe, sampleOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { axisLookaheadEndFrame, tryCandidateLines } from "./core/candidate.ts";
 import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
-import { CALIB, secToFrame, type AxisName, type AxisValues, type Gap, type Spec, type TrackLine } from "./types.ts";
+import { scoreDriftReport } from "./score.ts";
+import { CALIB, FPS, secToFrame, type AxisName, type AxisValues, type Gap, type Spec, type TrackLine } from "./types.ts";
 
 const BUDGET = 250_000;
 const RESPONSE_SEEDS = [28, 29] as const;
 const RAW_ATTEMPTS = 32;
 const RAW_VIABLE_PREFIX = 8;
+const SUFFIX_BUDGET = 50_000;
 const OFFSET_PX = 2;
 const PITCH_DEG = 3;
 const MATERIAL_IMPACT_REPAIR = 0.025;
@@ -59,7 +63,7 @@ const CASES = [
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: study_impact_response_envelope.ts [--seed=28|29] [--continuation] [--out=PATH]\n" +
+    "Usage: study_impact_response_envelope.ts [--seed=28|29] [--continuation] [--suffix] [--out=PATH]\n" +
     "Runs one fixed six-regime local-response envelope seed. Observation only.\n",
   );
   process.exit(0);
@@ -71,10 +75,11 @@ if (!(RESPONSE_SEEDS as readonly number[]).includes(selectedSeed)) {
   throw new Error(`--seed must be one of ${RESPONSE_SEEDS.join(", ")}`);
 }
 const SEED = selectedSeed;
-const continuation = argv.includes("--continuation");
+const suffix = argv.includes("--suffix");
+const continuation = argv.includes("--continuation") || suffix;
 const outPath = argument("out") ?? "generated/studies/impact-response-envelope/v1/result.json";
 const unknown = argv.filter((value) =>
-  value !== "--continuation" && !value.startsWith("--out=") && !value.startsWith("--seed=")
+  value !== "--continuation" && value !== "--suffix" && !value.startsWith("--out=") && !value.startsWith("--seed=")
 );
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
 
@@ -137,6 +142,15 @@ type ContinuationPair = {
   direction: Exclude<Direction, "baseline">;
   base: ContinuationSummary;
   response: ContinuationSummary;
+  suffix: { base: SuffixOutcome; response: SuffixOutcome } | null;
+};
+type SuffixOutcome = {
+  valid: boolean;
+  score: number;
+  hardFailures: string[];
+  contactsHit: number;
+  contactsMissing: number;
+  deepestGap: number | null;
 };
 
 const rows: StateRow[] = [];
@@ -184,7 +198,7 @@ for (const definition of CASES) {
   const evaluations = raw.map((candidate) => evaluateEnvelope(candidate, parent.node, gap, setup));
   const responseRows = evaluations.flatMap((evaluation) => evaluation.rows);
   const continuationPairs = continuation
-    ? evaluations.flatMap((evaluation) => continuationPair(evaluation, parent.node, setup))
+    ? evaluations.flatMap((evaluation) => continuationPair(evaluation, parent, setup, spec))
     : [];
   rows.push({
     caseId: definition.id,
@@ -220,6 +234,9 @@ const output = {
     evaluator: "current exact candidate gate with post-fit ride-out polish disabled for every baseline and perturbation",
     continuationCertificate: continuation
       ? "for each strict local response dominator, exact width-8 ordinary pool at the actual next contact from both base and response prefix"
+      : null,
+    suffixCertificate: suffix
+      ? `for each pair passing the one-step certificate, independent equal ${SUFFIX_BUDGET}-frame suffixes from the same child prefix`
       : null,
     basis: {
       normalOffsetPx: [-OFFSET_PX, OFFSET_PX],
@@ -339,16 +356,56 @@ function evaluateEnvelope(
 
 function continuationPair(
   evaluation: ReturnType<typeof evaluateEnvelope>,
-  node: HandoffNode,
+  parent: Visit,
   setup: Setup,
+  spec: Spec,
 ): ContinuationPair[] {
   if (evaluation.baseline === null || evaluation.bestDominator === null) return [];
-  return [{
+  const pair: ContinuationPair = {
     attempt: evaluation.baseline.sampleAttempt ?? -1,
     direction: evaluation.bestDominator.direction,
-    base: nextPool(node, evaluation.baseline, setup),
-    response: nextPool(node, evaluation.bestDominator.candidate, setup),
-  }];
+    base: nextPool(parent.node, evaluation.baseline, setup),
+    response: nextPool(parent.node, evaluation.bestDominator.candidate, setup),
+    suffix: null,
+  };
+  if (suffix && continuationCertifies(pair)) {
+    pair.suffix = {
+      base: suffixOutcome(parent, evaluation.baseline, spec, setup),
+      response: suffixOutcome(parent, evaluation.bestDominator.candidate, spec, setup),
+    };
+  }
+  return [pair];
+}
+
+function suffixOutcome(parent: Visit, candidate: Candidate, spec: Spec, setup: Setup): SuffixOutcome {
+  const child: HandoffNode = {
+    ...parent.node,
+    search: extendNodeCached(parent.node.search, candidate),
+    deferExpansion: false,
+    rankTrace: [...parent.node.rankTrace, { rank: -1, source: "pool" }],
+  };
+  const checkpoint = compileHandoffFromSnapshot(
+    spec,
+    SEED,
+    snapshotHandoffNode(child, parent.key, parent.event),
+    { budget: SUFFIX_BUDGET, searchSeed: parent.node.searchSeed },
+  );
+  const score = scoreDriftReport(checkpoint.report, { totalFrames: Math.round(spec.duration * FPS) });
+  return {
+    valid: score.contract_passed,
+    score: round(score.score),
+    hardFailures: score.hard_failures,
+    contactsHit: checkpoint.report.contacts.filter((contact) => contact.status === "hit").length,
+    contactsMissing: checkpoint.report.contacts.filter((contact) => contact.status === "missing").length,
+    deepestGap: checkpoint.stats.handoff_deepest_seen_gap ?? null,
+  };
+}
+
+function continuationCertifies(pair: ContinuationPair): boolean {
+  return pair.base.nextGapIndex !== null && pair.base.nextGapIndex === pair.response.nextGapIndex &&
+    pair.response.viable >= pair.base.viable &&
+    pair.base.bestQualityObjective !== null && pair.response.bestQualityObjective !== null &&
+    pair.response.bestQualityObjective >= pair.base.bestQualityObjective - 1e-12;
 }
 
 function nextPool(node: HandoffNode, candidate: Candidate, setup: Setup): ContinuationSummary {
@@ -597,6 +654,9 @@ function summarize(rows: readonly StateRow[]) {
   const continuationComparable = continuationPairs.filter((pair) =>
     pair.base.nextGapIndex !== null && pair.base.nextGapIndex === pair.response.nextGapIndex
   );
+  const continuationCertified = continuationPairs.filter(continuationCertifies);
+  const suffixPairs = continuationCertified.flatMap((pair) => pair.suffix === null ? [] : [pair.suffix]);
+  const suffixComparable = suffixPairs.filter((pair) => pair.base.valid && pair.response.valid);
   const byDirection = Object.fromEntries(([
     "normal_offset_negative",
     "normal_offset_positive",
@@ -636,6 +696,16 @@ function summarize(rows: readonly StateRow[]) {
           pair.base.bestQualityObjective !== null && pair.response.bestQualityObjective !== null &&
           pair.response.bestQualityObjective >= pair.base.bestQualityObjective - 1e-12
         ).length,
+        responseNoWorseViableAndBestObjective: continuationCertified.length,
+      }
+      : null,
+    actualSuffixCertificate: suffix
+      ? {
+        certifiedPairs: suffixPairs.length,
+        comparableValidPairs: suffixComparable.length,
+        responseScoreGainMean: mean(suffixComparable.map((pair) => pair.response.score - pair.base.score)),
+        strictResponseScoreWins: suffixComparable.filter((pair) => pair.response.score > pair.base.score + 1e-12).length,
+        validityRegressions: suffixPairs.filter((pair) => pair.base.valid && !pair.response.valid).length,
       }
       : null,
     byDirection,

@@ -3453,6 +3453,20 @@ build a response source unless an actual-suffix certificate—not a ballistic
 or one-step proxy—can retain the original continuation under a declared
 equal-budget economics test.
 
+**Actual-suffix result: RETIRE the fixed local response family.** The same
+two-seed screen then resumed an independent equal 50k suffix from every pair
+that passed the one-step certificate (15 pairs). Only seven base controls and
+responses were both valid enough to compare: the response won three and lost
+four, with mean score movement **−1.802**; one further response lost validity
+against a valid base. The two Countercurrent responses won `+20.545` and
+`+19.044`, but Offgrid lost all three comparable pairs (`−44.633`, `−16.464`,
+`−6.045`) and Believer was mixed. This is the requested physical trade-off
+test in its strict form: even no-speed local repair plus an actual next-pool
+certificate does not yield a stable completed continuation. Do not deepen the
+certificate, alter its budget, search pitch/offset constants, add a response
+lane, or retest a subset. A successor must change the **multi-contact physical
+candidate basis** itself rather than locally perturb an already normal catch.
+
 ## Declared Audit: Body-Point Collision Contribution in Ordinary Normal Pools (2026-07-17)
 
 The current probe has reopened the physical question: many impact-improving

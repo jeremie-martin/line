@@ -3829,6 +3829,65 @@ fact does not reveal a different gravity-contact surface. A future multi-point
 candidate must change collision order or another exact physical constraint,
 not relabel the same support envelope.
 
+## Declared Observation: Candidate-Normal Complete-Body Support Plane (2026-07-17)
+
+The complete-body gravity anchor is inert because the sled is the vertical
+support point at every frozen state. That does not settle the physically
+different tilted-surface question: an ordinary candidate collides against its
+own contact plane, and a foot or another sled point can lead along that
+candidate's gravity-facing normal even while it is not vertically lower. This
+form therefore constructs a support plane from the full collision body without
+selecting a named point or changing a normal control.
+
+**Protocol, declared before rows.** On the same frozen six-regime,
+two-seed V2-jolt/500k frontier panel, reproduce the production raw pool first.
+For each same-coordinate normal proposal, identify its geometry's closest
+contact vertex to the ordinary target anchor and its outgoing surface tangent.
+Orient the perpendicular toward gravity; project all ten exact engine
+collision points onto it; then translate *every* candidate line by the
+continuous difference between the maximum complete-body projection and the
+ordinary sled-anchor projection. All tangents, line types, endpoint flags,
+raw coordinates, candidate count, COM velocity, targets, gates, scorer, and
+rank-independent pool measurement remain unchanged. Record the support-point
+identity and translation for every proposal. No body-point selection, pose
+gate, source/case branch, target/outcome branch, or collision result informs
+the construction.
+
+**Falsifiers.** Retire if any target-state body point is unreadable; if the
+candidate contact vertex cannot be read on a material share of proposals; if
+the translation is identically zero; or if the exact alternative lacks a
+regime-balanced viable-pool and continuation-aware objective improvement with
+no material dense, pickup, or low-air loss. A pass authorizes only a new,
+separately declared source-default implementation and ordinary scope panel;
+it does not authorize V2 evaluation.
+
+**Result (2026-07-17, three memory-isolated two-source invocations of
+`npm run study:surface-normal-body-support-anchor -- --case=...`; artifacts
+`generated/studies/surface-normal-body-support-anchor-normal-pool/v1/batch-{0,1,2}.json`):
+RETIRE candidate-normal complete-body support.** Production raw pools replayed
+exactly on all 24 rows; every one of the 720 regenerated geometries exposed a
+readable contact vertex and all ten body points. The component is physically
+nonzero but far too sparse and small: only **47/720 (6.5%)** proposals moved,
+with a maximum normal translation of **0.993 px** and a mean per-row absolute
+translation of **0.0161 px**. The leading plane point was `NOSE` on 545
+geometries, then `TAIL` (81), `STRING` (80), `RHAND` (8), and `RFOOT` (6);
+there is no selected point or hidden policy in that accounting.
+
+That microscopic coordinate change produced **zero viable-pool movement** in
+every regime and no objective improvement. The only quality movement was on
+pickup: one Offgrid row lost axis RMS `.002790`, and another lost objective
+`.000352` (with axis RMS `+.000198`); dense, representative, low-air, and
+development music were otherwise exact-quality neutral. A pre-existing empty
+Believer pool has no quality comparison, so its different rejection charge is
+not a gain. This fails the declared broad-pool/objective boundary.
+
+**Decision.** Do not install, amplify, smooth, point-select, or combine this
+candidate-normal support translation with force, pose, or response work. The
+full collision body's support plane is almost always already represented by
+the ordinary sled placement; rare sub-pixel deviations do not alter the
+multi-contact basin. A successor must change collision order through a new
+physical component, not rescale this envelope residual.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

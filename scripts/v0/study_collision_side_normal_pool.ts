@@ -28,7 +28,7 @@ import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--all-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
+  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--all-body-support-anchor|--surface-normal-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
@@ -38,10 +38,11 @@ const terminalEndExtension = argv.includes("--terminal-end-extension");
 const forwardAcceleration = argv.includes("--forward-acceleration");
 const terminalSceneryRelease = argv.includes("--terminal-scenery-release");
 const allBodySupportAnchor = argv.includes("--all-body-support-anchor");
+const surfaceNormalBodySupportAnchor = argv.includes("--surface-normal-body-support-anchor");
 const requestedCaseIds = argv.filter((value) => value.startsWith("--case=")).map((value) => value.slice("--case=".length));
-const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--all-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
+const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--all-body-support-anchor" && value !== "--surface-normal-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
-if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, allBodySupportAnchor].filter(Boolean).length > 1) {
+if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, allBodySupportAnchor, surfaceNormalBodySupportAnchor].filter(Boolean).length > 1) {
   throw new Error("normal-pool comparator modes are mutually exclusive");
 }
 
@@ -59,6 +60,15 @@ const COMPLETE_COLLISION_POINTS = [
   "PEG", "TAIL", "NOSE", "STRING",
   "BUTT", "SHOULDER", "RHAND", "LHAND", "LFOOT", "RFOOT",
 ] as const;
+type BodyCollisionPoint = { name: string; x: number; y: number };
+type SurfaceNormalAnchorTelemetry = {
+  geometries: number;
+  readableContactVertices: number;
+  shiftedGeometries: number;
+  meanAbsNormalShiftPx: number | null;
+  maxAbsNormalShiftPx: number | null;
+  supportPointCounts: Record<string, number>;
+};
 const ACTIVE_CASES = requestedCaseIds.length === 0
   ? CASES
   : CASES.filter((entry) => requestedCaseIds.includes(entry.id));
@@ -89,6 +99,7 @@ type Row = {
   candidateCount: number | null;
   captureAvailable: boolean;
   allBodySupportAnchor: { point: string; deltaX: number; deltaY: number } | null;
+  surfaceNormalBodySupportAnchor: SurfaceNormalAnchorTelemetry | null;
   replayEquivalent: boolean | null;
   replayMessage: string | null;
   production: Arm | null;
@@ -137,7 +148,9 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: allBodySupportAnchor
+  schema: surfaceNormalBodySupportAnchor
+    ? "line.study-surface-normal-body-support-anchor-normal-pool.v1"
+    : allBodySupportAnchor
     ? "line.study-all-body-support-anchor-normal-pool.v1"
     : terminalSceneryRelease
     ? "line.study-terminal-noncollidable-release-normal-pool.v1"
@@ -148,7 +161,9 @@ const result = {
     : "line.study-collision-side-normal-pool.v1",
   purpose: [
     "observation-only exact normal-pool replay from immutable frontier states",
-    allBodySupportAnchor
+    surfaceNormalBodySupportAnchor
+      ? "same PRNG coordinates, attempts, candidate count, exact gates, and scoring; each raw candidate is translated only along its own gravity-facing contact normal until its plane is supported by the complete collision body"
+      : allBodySupportAnchor
       ? "same PRNG coordinates, attempts, candidate count, exact gates, and scoring; only the gravity support anchor changes from the lowest sled collision point to the lowest point on the complete collision body"
       : terminalSceneryRelease
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; only the final post-contact normal segment becomes a type-2 non-collidable release while every other line and flag remains identical"
@@ -165,7 +180,9 @@ const result = {
     seeds: SEEDS,
     cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    comparator: allBodySupportAnchor
+    comparator: surfaceNormalBodySupportAnchor
+      ? "for each unchanged raw normal geometry, find its contact vertex and gravity-facing surface normal, then translate every line by the complete body's maximum support projection minus the ordinary sled anchor projection; retain all tangents, raw draws, COM velocity, gates, and scorer"
+      : allBodySupportAnchor
       ? "read all ten engine collision points at the target frame and replace only the sampled geometry's anchor with their maximum-y gravity support point; retain the ordinary COM velocity, raw draws, candidate gates, and scorer"
       : terminalSceneryRelease
       ? "set type=2 only on the final proposed normal line after identical raw geometry generation"
@@ -220,6 +237,9 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
   const supportAnchor = allBodySupportAnchor
     ? allBodyGravitySupportState(captured.node, gap, setup.ctx)
     : null;
+  const surfaceNormalSupport = surfaceNormalBodySupportAnchor
+    ? sampleSurfaceNormalBodySupportAnchored(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
+    : null;
   const alternative = terminalSceneryRelease
     ? sampleTerminalSceneryRelease(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : forwardAcceleration
@@ -228,7 +248,9 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
       ? sampleTerminalEndpointExtended(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
       : allBodySupportAnchor
         ? sampleAllBodySupportAnchored(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed, supportAnchor!.targetState)
-        : sampleFlipped(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
+        : surfaceNormalSupport !== null
+          ? surfaceNormalSupport.arm
+          : sampleFlipped(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed);
   const check = compareRawReplay(rawPool.candidates, production.candidates);
   return {
     caseId, regime, seed, checkpoint: captured.checkpoint, gapIndex: captured.gapIndex,
@@ -238,6 +260,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
       deltaX: round(supportAnchor.targetState.sledX - supportAnchor.ordinary.sledX),
       deltaY: round(supportAnchor.targetState.sledY - supportAnchor.ordinary.sledY),
     },
+    surfaceNormalBodySupportAnchor: surfaceNormalSupport?.telemetry ?? null,
     replayEquivalent: check.ok, replayMessage: check.message, production, alternative,
     deltas: {
       viable: alternative.viable - production.viable,
@@ -252,7 +275,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
 function unavailable(caseId: string, regime: Regime, seed: number, checkpoint: Checkpoint, gapIndex: number, message: string): Row {
   return {
     caseId, regime, seed, checkpoint, gapIndex, candidateCount: null,
-    captureAvailable: false, allBodySupportAnchor: null, replayEquivalent: null, replayMessage: message,
+    captureAvailable: false, allBodySupportAnchor: null, surfaceNormalBodySupportAnchor: null, replayEquivalent: null, replayMessage: message,
     production: null, alternative: null, deltas: null,
   };
 }
@@ -371,6 +394,145 @@ function sampleAllBodySupportAnchored(
     }
   }
   return summarizeArm(count, candidates, admissionFrames);
+}
+
+/**
+ * Unlike the gravity-envelope control above, this basis uses each generated
+ * candidate's own contact-plane normal.  A tilted plane can expose a different
+ * leading point even when the body's vertical support point is the sled.
+ */
+function sampleSurfaceNormalBodySupportAnchored(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): { arm: Arm; telemetry: SurfaceNormalAnchorTelemetry } {
+  const rng = makeRng(seed);
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const rider = getRiderMetered(node.search.prefixEngine, gap.endFrame);
+  const body = COMPLETE_COLLISION_POINTS.flatMap((name): BodyCollisionPoint[] => {
+    const position = rider.get(name)?.pos;
+    return position !== undefined && Number.isFinite(position.x) && Number.isFinite(position.y)
+      ? [{ name, x: position.x, y: position.y }]
+      : [];
+  });
+  if (body.length !== COMPLETE_COLLISION_POINTS.length) {
+    throw new Error(`surface-normal support anchor requires ${COMPLETE_COLLISION_POINTS.length} readable collision points, got ${body.length}`);
+  }
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const candidates: Digest[] = [];
+  let admissionFrames = 0;
+  let readableContactVertices = 0;
+  let shiftedGeometries = 0;
+  const shifts: number[] = [];
+  const supportPointCounts: Record<string, number> = {};
+  for (let attempt = 0; attempt < count; attempt++) {
+    const rawGeometry = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    const support = surfaceNormalSupportOffset(rawGeometry, probe.targetState, body);
+    const geometry = support === null
+      ? rawGeometry
+      : {
+        ...rawGeometry,
+        lines: rawGeometry.lines.map((line) => ({
+          ...line,
+          x1: line.x1 + support.deltaX,
+          y1: line.y1 + support.deltaY,
+          x2: line.x2 + support.deltaX,
+          y2: line.y2 + support.deltaY,
+        })),
+      };
+    if (support !== null) {
+      readableContactVertices++;
+      shifts.push(Math.abs(support.normalShiftPx));
+      supportPointCounts[support.point] = (supportPointCounts[support.point] ?? 0) + 1;
+      if (Math.abs(support.normalShiftPx) > 1e-9) shiftedGeometries++;
+    }
+    const before = getSimFrames();
+    const fit = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      geometry,
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    const simFrames = getSimFrames() - before;
+    admissionFrames += simFrames;
+    if (fit !== null) {
+      fit.ref = support === null
+        ? { x: probe.targetState.sledX, y: probe.targetState.sledY }
+        : { x: probe.targetState.sledX + support.deltaX, y: probe.targetState.sledY + support.deltaY };
+      fit.sampleAttempt = attempt;
+      candidates.push(digest(fit, node, gap, gaps, ctx, simFrames));
+    }
+  }
+  return {
+    arm: summarizeArm(count, candidates, admissionFrames),
+    telemetry: {
+      geometries: count,
+      readableContactVertices,
+      shiftedGeometries,
+      meanAbsNormalShiftPx: mean(shifts),
+      maxAbsNormalShiftPx: shifts.length === 0 ? null : round(Math.max(...shifts)),
+      supportPointCounts,
+    },
+  };
+}
+
+function surfaceNormalSupportOffset(
+  geometry: ReturnType<typeof sampleArcPlacementGeometry>,
+  ordinary: ImpactFrameTargetState,
+  body: readonly BodyCollisionPoint[],
+): { point: string; deltaX: number; deltaY: number; normalShiftPx: number } | null {
+  let contactLine: typeof geometry.lines[number] | null = null;
+  let closest = Infinity;
+  for (const line of geometry.lines) {
+    const length = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+    if (!(length > 1e-9)) continue;
+    const distance = (line.x1 - ordinary.sledX) ** 2 + (line.y1 - ordinary.sledY) ** 2;
+    if (distance < closest) {
+      closest = distance;
+      contactLine = line;
+    }
+  }
+  if (contactLine === null) return null;
+  const dx = contactLine.x2 - contactLine.x1;
+  const dy = contactLine.y2 - contactLine.y1;
+  const length = Math.hypot(dx, dy);
+  if (!(length > 1e-9)) return null;
+  let normalX = -dy / length;
+  let normalY = dx / length;
+  if (normalY < 0) {
+    normalX *= -1;
+    normalY *= -1;
+  }
+  const ordinaryProjection = ordinary.sledX * normalX + ordinary.sledY * normalY;
+  let point = "";
+  let supportProjection = -Infinity;
+  for (const candidate of body) {
+    const projection = candidate.x * normalX + candidate.y * normalY;
+    if (projection > supportProjection) {
+      supportProjection = projection;
+      point = candidate.name;
+    }
+  }
+  if (!Number.isFinite(supportProjection) || point === "") return null;
+  const normalShiftPx = supportProjection - ordinaryProjection;
+  return {
+    point,
+    deltaX: normalX * normalShiftPx,
+    deltaY: normalY * normalShiftPx,
+    normalShiftPx,
+  };
 }
 
 function sampleTerminalEndpointExtended(

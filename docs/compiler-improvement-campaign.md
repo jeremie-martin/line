@@ -1406,6 +1406,41 @@ cluster where independent sampling loses it (replay the two-contact
 protocol across 3+ gaps); (2) attempt-spanned sampler form; (3) the
 standard panels/knee guards; (4) stage 0; (5) certification.
 
+## Retired: Attempt-Spanned Grade Continuity (2026-07-17)
+
+**Hypothesis and boundary.** On a deterministic 25% normal-sampler attempt
+span, blend the post-contact terminal grade toward the actual preceding
+committed terminal grade when that grade is shallow and measured entry speed
+is below the authored speed ask. This changes only the ordinary post-angle
+candidate distribution; inputs are continuous (prior grade, speed deficit,
+attempt coordinate), normal samples remain, and the unchanged exact gates and
+ranker choose every fit. Discard if the fixed V2-jolt/500k panel (dense,
+dense-240, pickup, frontier5, representatives, Believer; two seeds) is not
+coherently positive or has any knee validity loss.
+
+**Cheapest evidence first.** Fresh current-tree `believer36/69` fixtures were
+captured, then `study_grade_continuity.ts --trials=96` ran the exact admission
+and local-cost chain oracle (364k simulated frames, 2.4s). It demonstrated a
+real but narrow construction: believer36 completed 17/96 five-contact chains
+versus 0/96 independent; believer69 was nearly neutral in terminal speed
+(−0.076 px/f) despite 45 versus 37 completed chains. The source form then
+ran the 12-source × 2-seed V2-jolt/500k panel twice with
+`study_impact_scope_panel.ts` (~12.1M frames/arm, about four minutes total).
+
+**Decisive evidence and decision.** The enabled panel averaged **−2.14
+points/row** with validity unchanged. It had genuine local gains (e.g.
+dense-240 +21.09/+12.70) but material cross-regime losses: Believer seed 25
+−44.81, loose_pocket −28.62/−9.98, pickup −25.69, frontier5 −16.16, and
+ordinary quality regressions. This fails the declared broad-composition
+condition; do not tune shares or gates, run Stage 0, or certify it. The
+source experiment was committed then reverted (`5ca8093`, `a007a16`);
+`study_grade_continuity.ts` retains the executable oracle. Workflow note:
+the panel utility writes its artifact only after every sequential compile, so
+partial streamed rows are not evidence. **Next:** grade persistence alone is
+closed; a successor must supply multi-gap-coherent geometry beyond copying a
+single predecessor grade, with a new fixed-fixture physical oracle before
+another compiler lane.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

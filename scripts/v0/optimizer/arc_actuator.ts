@@ -15,11 +15,25 @@ import {
   type ArcKnobs,
 } from "./arc_model.ts";
 
-export type ArcActuatorId =
+/**
+ * Stable name of one atomic geometry transformation.  The compiler's historic
+ * terminology called these "actuators"; the control/matrix layer calls them
+ * knobs.  They are the same things, and retain one canonical registry.
+ */
+export type ArcKnobId =
   | "tail_pitch"
   | "whole_rotation"
   | "interior_normal_bow"
   | "post_contact_pitch";
+export type ArcActuatorId = ArcKnobId;
+
+/** Ordered, possibly repeated, transform names.  Order is data—not a hidden
+ * property of a pair type—so every sequence has the ordinary left-to-right
+ * composition meaning. */
+export type ArcKnobSequence = readonly ArcKnobId[];
+/** Values are positional and align with `ArcKnobSequence`; positional storage
+ * deliberately permits sequences such as `[a, a]` without aliasing values. */
+export type ArcKnobValues = readonly number[];
 
 export type ArcActuatorContext = Readonly<{
   /** Optional immutable target-frame contact reference for future local
@@ -27,14 +41,19 @@ export type ArcActuatorContext = Readonly<{
   contactPoint?: Readonly<{ x: number; y: number }>;
 }>;
 
-export type ArcActuator = Readonly<{
-  id: ArcActuatorId;
+export type ArcKnobDefinition = Readonly<{
+  id: ArcKnobId;
   label: string;
   unit: "deg";
   span: number;
+  /** Deterministic inverse-model enumeration resolution in this knob's unit. */
+  scanStep: number;
+  /** Minimum meaningful difference between two emitted proposals. */
+  proposalSeparation: number;
   needsContactPoint: boolean;
   apply(lines: TrackLine[], value: number, context?: ArcActuatorContext): TrackLine[];
 }>;
+export type ArcActuator = ArcKnobDefinition;
 
 export type ArcActuatorPairId =
   | "tail_pitch__whole_rotation"
@@ -59,6 +78,8 @@ const tailPitch: ArcActuator = {
   label: "tail pitch",
   unit: "deg",
   span: 8.5,
+  scanStep: 0.25,
+  proposalSeparation: 1.5,
   needsContactPoint: false,
   apply: (lines, deg) => pitchExitLines(lines, deg),
 };
@@ -68,6 +89,8 @@ const wholeRotation: ArcActuator = {
   label: "whole-arc rotation",
   unit: "deg",
   span: 2.5,
+  scanStep: 0.5,
+  proposalSeparation: 0.5,
   needsContactPoint: false,
   apply: (lines, deg) => rotateArcLines(lines, deg),
 };
@@ -83,6 +106,8 @@ const interiorNormalBow: ArcActuator = {
   label: "endpoint-preserving interior normal bow",
   unit: "deg",
   span: 2.5,
+  scanStep: 0.5,
+  proposalSeparation: 0.5,
   needsContactPoint: false,
   apply(lines, equivalentDeg) {
     if (lines.length < 2 || equivalentDeg === 0) return clone(lines);
@@ -132,6 +157,8 @@ const postContactPitch: ArcActuator = {
   label: "post-contact branch pitch",
   unit: "deg",
   span: 2.5,
+  scanStep: 0.5,
+  proposalSeparation: 0.5,
   needsContactPoint: true,
   apply(lines, deg, context) {
     const contact = context?.contactPoint;
@@ -173,6 +200,86 @@ const postContactPitch: ArcActuator = {
   },
 };
 
+/** The single source of truth for atomic knob definitions. */
+export const ARC_KNOBS: Readonly<Record<ArcKnobId, ArcKnobDefinition>> = {
+  tail_pitch: tailPitch,
+  whole_rotation: wholeRotation,
+  interior_normal_bow: interiorNormalBow,
+  post_contact_pitch: postContactPitch,
+};
+
+export function getArcKnob(id: ArcKnobId): ArcKnobDefinition {
+  return ARC_KNOBS[id];
+}
+
+export function arcKnobProbeSpan(id: ArcKnobId): number {
+  return getArcKnob(id).span;
+}
+
+export function arcKnobScanStep(id: ArcKnobId): number {
+  return getArcKnob(id).scanStep;
+}
+
+export function arcKnobProposalSeparation(id: ArcKnobId): number {
+  return getArcKnob(id).proposalSeparation;
+}
+
+export function arcKnobSequenceNeedsContactPoint(sequence: ArcKnobSequence): boolean {
+  return sequence.some((id) => getArcKnob(id).needsContactPoint);
+}
+
+/**
+ * Apply an ordered knob sequence.  This is the generic geometry boundary used
+ * by both the normal compiler's legacy-pair adapter and matrix studies.  A
+ * value-vector length mismatch is a programmer error, not a physics verdict;
+ * every well-formed sequence itself has a deterministic meaning.
+ */
+export function applyArcKnobSequence(
+  lines: TrackLine[],
+  sequence: ArcKnobSequence,
+  values: ArcKnobValues,
+  context?: ArcActuatorContext,
+): TrackLine[] {
+  if (sequence.length !== values.length) {
+    throw new Error(`arc knob sequence has ${sequence.length} steps but ${values.length} values`);
+  }
+  let out = clone(lines);
+  for (let index = 0; index < sequence.length; index++) {
+    const value = values[index];
+    if (!Number.isFinite(value)) throw new Error(`arc knob ${sequence[index]} has non-finite value`);
+    out = getArcKnob(sequence[index]).apply(out, value, context);
+  }
+  return out;
+}
+
+/** Enumerate ordered sequences directly from the registry.  `allowRepeated`
+ * is explicit because repeated knobs are a legitimate experimental choice,
+ * not an accidental consequence of the enumerator. */
+export function enumerateArcKnobSequences(options: Readonly<{
+  knobs?: readonly ArcKnobId[];
+  maxLength: number;
+  allowRepeated?: boolean;
+}>): ArcKnobId[][] {
+  if (!Number.isInteger(options.maxLength) || options.maxLength < 1) {
+    throw new Error(`arc knob maxLength must be a positive integer`);
+  }
+  const knobs = options.knobs === undefined ? Object.keys(ARC_KNOBS) as ArcKnobId[] : [...options.knobs];
+  for (const id of knobs) getArcKnob(id);
+  const out: ArcKnobId[][] = [];
+  const visit = (prefix: ArcKnobId[]) => {
+    if (prefix.length > 0) out.push([...prefix]);
+    if (prefix.length === options.maxLength) return;
+    for (const id of knobs) {
+      if (options.allowRepeated !== true && prefix.includes(id)) continue;
+      prefix.push(id);
+      visit(prefix);
+      prefix.pop();
+    }
+  };
+  visit([]);
+  return out;
+}
+
 export const ARC_ACTUATOR_PAIRS: Readonly<Record<ArcActuatorPairId, ArcActuatorPair>> = {
   tail_pitch__whole_rotation: {
     id: "tail_pitch__whole_rotation",
@@ -197,7 +304,7 @@ export function getArcActuatorPair(id: ArcActuatorPairId): ArcActuatorPair {
 
 export function arcActuatorPairNeedsContactPoint(pair: ArcActuatorPair | ArcActuatorPairId): boolean {
   const resolved = typeof pair === "string" ? getArcActuatorPair(pair) : pair;
-  return resolved.first.needsContactPoint || resolved.second.needsContactPoint;
+  return arcKnobSequenceNeedsContactPoint([resolved.first.id, resolved.second.id]);
 }
 
 /**
@@ -212,5 +319,10 @@ export function applyArcActuatorPair(
   context?: ArcActuatorContext,
 ): TrackLine[] {
   const resolved = typeof pair === "string" ? getArcActuatorPair(pair) : pair;
-  return resolved.second.apply(resolved.first.apply(lines, knobs.rotateDeg, context), knobs.pitchDeg, context);
+  return applyArcKnobSequence(
+    lines,
+    [resolved.first.id, resolved.second.id],
+    [knobs.rotateDeg, knobs.pitchDeg],
+    context,
+  );
 }

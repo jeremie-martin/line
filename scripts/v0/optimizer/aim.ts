@@ -80,14 +80,28 @@ import {
   type RiderArrivalState,
 } from "./arc_model.ts";
 import {
-  evaluateArcActuatorPair,
+  evaluateArcKnobSequence,
   type JointArcProbeObservation,
 } from "./arc_probe.ts";
 import {
-  applyArcActuatorPair,
+  ARC_CONTROL_DEFAULT,
+  ARC_PROBE_LAYOUTS,
+  ARC_TRAINING_METHODS,
+  type ArcProbeLayoutId,
+  type ArcTrainingMethod,
+} from "./arc_control.ts";
+import {
+  applyArcKnobSequence,
   ARC_ACTUATOR_PAIRS,
-  arcActuatorPairNeedsContactPoint,
+  arcKnobProbeSpan,
+  arcKnobProposalSeparation,
+  arcKnobScanStep,
+  arcKnobSequenceNeedsContactPoint,
+  getArcActuatorPair,
+  getArcKnob,
   type ArcActuatorPairId,
+  type ArcKnobId,
+  type ArcKnobSequence,
 } from "./arc_actuator.ts";
 import {
   effectiveAirAsk,
@@ -163,6 +177,63 @@ function aimActuatorPair(): ArcActuatorPairId {
   if (requested === undefined || requested === "") return AIM_ACTUATOR_PAIR_DEFAULT;
   if (!(requested in ARC_ACTUATOR_PAIRS)) throw new Error(`unknown LR_AIM_ACTUATOR_PAIR=${requested}`);
   return requested as ArcActuatorPairId;
+}
+
+/**
+ * The normal compiler's two response coordinates are positional: first knob
+ * value = `rotateDeg`, second = `pitchDeg`.  The legacy named-pair selector
+ * remains the default/back-compat path; `LR_AIM_KNOB_SEQUENCE=a,b` is the
+ * generic two-knob study override.  It is deliberately not a promotion
+ * mechanism—source defaults must bake a selected sequence before confirmation.
+ */
+function aimKnobSequence(): ArcKnobSequence {
+  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_KNOB_SEQUENCE;
+  if (requested !== undefined && requested !== "") {
+    const sequence = requested.split(",").map((id) => id.trim()).filter(Boolean) as ArcKnobId[];
+    if (sequence.length < 1 || sequence.length > 2) {
+      throw new Error(`LR_AIM_KNOB_SEQUENCE must name one or two knobs`);
+    }
+    for (const id of sequence) getArcKnob(id);
+    return sequence;
+  }
+  const pair = getArcActuatorPair(aimActuatorPair());
+  return [pair.first.id, pair.second.id];
+}
+
+/** The observation/model-construction axis is independent from the physical
+ * knob sequence.  It is intentionally an exploration override only: any
+ * selected behavior has to become the source default before confirmation. */
+function aimTrainingMethod(): ArcTrainingMethod {
+  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_TRAINING_METHOD;
+  if (requested === undefined || requested === "") return ARC_CONTROL_DEFAULT.trainingMethod;
+  if (!(ARC_TRAINING_METHODS as readonly string[]).includes(requested)) {
+    throw new Error(`unknown LR_AIM_TRAINING_METHOD=${requested}`);
+  }
+  return requested as ArcTrainingMethod;
+}
+
+function aimProbeLayout(): ArcProbeLayoutId {
+  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_PROBE_LAYOUT;
+  if (requested === undefined || requested === "") return ARC_CONTROL_DEFAULT.probeLayout;
+  if (!(requested in ARC_PROBE_LAYOUTS)) throw new Error(`unknown LR_AIM_PROBE_LAYOUT=${requested}`);
+  return requested as ArcProbeLayoutId;
+}
+
+type AimControl = Readonly<{
+  sequence: ArcKnobSequence;
+  trainingMethod: ArcTrainingMethod;
+  probeLayout: ArcProbeLayoutId;
+}>;
+
+function aimControl(): AimControl {
+  return {
+    sequence: aimKnobSequence(),
+    trainingMethod: aimTrainingMethod(),
+    probeLayout: aimProbeLayout(),
+  };
 }
 // Study-only scarce-budget model-selection policy. Pitch is the lower-cost
 // primary actuator; rotate observations are recruited only if that local
@@ -715,7 +786,14 @@ export function makeEnumAimedCandidates(
     aimTotals.enum_no_target++;
     return [];
   }
-  return makeJointAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase);
+  const control = aimControl();
+  // Preserve the accepted two-control additive path as its own exact adapter.
+  // All alternate configurations execute through the generic controller below;
+  // the branch is on a model-training method, never on a named physical knob.
+  if (control.trainingMethod === "base_additive" && control.sequence.length === 2) {
+    return makeJointAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase, control.sequence);
+  }
+  return makeConfiguredAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase, control);
 }
 
 function makeJointAimedCandidates(
@@ -727,9 +805,9 @@ function makeJointAimedCandidates(
   base: Candidate,
   lineIdStart: number,
   airKnobBase: boolean,
+  knobSequence: ArcKnobSequence,
 ): Candidate[] {
   const adaptiveRotation = aimCompileBudgetFrames <= AIM_ADAPTIVE_ROTATION_SCARCE_MAX_BUDGET;
-  const actuatorPair = aimActuatorPair();
   let probeDesignName: ArcProbeDesignName = adaptiveRotation
     ? "pitch3"
     : AIM_JOINT_PROBE_DESIGN;
@@ -737,15 +815,16 @@ function makeJointAimedCandidates(
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
   const framesBeforeProbes = getPhysicsFrameCount();
-  const actuatorContext = arcActuatorPairNeedsContactPoint(actuatorPair)
+  const actuatorContext = arcKnobSequenceNeedsContactPoint(knobSequence)
     ? (() => {
       const target = getCandidateProbe(engine, gap, ctx).targetState;
       return { contactPoint: { x: target.sledX, y: target.sledY } };
     })()
     : undefined;
   let probeRows = arcProbeDesign(probeDesignName).map((knobs) =>
-    evaluateArcActuatorPair(
-      engine, base.lines, actuatorPair, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame, {}, actuatorContext,
+    evaluateArcKnobSequence(
+      engine, base.lines, knobSequence, [knobs.rotateDeg, knobs.pitchDeg], knobs,
+      gap, ctx.allContactFrames, axisMeasureEnd, nextFrame, {}, actuatorContext,
     )
   );
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
@@ -786,8 +865,9 @@ function makeJointAimedCandidates(
     const rotationRows = arcProbeDesign("cross5")
       .filter((knobs) => knobs.rotateDeg !== 0)
       .map((knobs) =>
-        evaluateArcActuatorPair(
-          engine, base.lines, actuatorPair, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame, {}, actuatorContext,
+        evaluateArcKnobSequence(
+          engine, base.lines, knobSequence, [knobs.rotateDeg, knobs.pitchDeg], knobs,
+          gap, ctx.allContactFrames, axisMeasureEnd, nextFrame, {}, actuatorContext,
         )
       );
     probeRows = [...probeRows, ...rotationRows];
@@ -841,7 +921,9 @@ function makeJointAimedCandidates(
     return out;
   }
   for (const cand of chosen) {
-    const aimedLines = applyArcActuatorPair(base.lines, actuatorPair, cand.knobs, actuatorContext)
+    const aimedLines = applyArcKnobSequence(
+      base.lines, knobSequence, [cand.knobs.rotateDeg, cand.knobs.pitchDeg], actuatorContext,
+    )
       .map((l, i) => ({ ...l, id: lineIdStart + i }));
     const fit = tryCandidateLines(
       engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,
@@ -860,6 +942,320 @@ function makeJointAimedCandidates(
     const nextAimTargets = nextGap.targets;
     const predictedReadiness = scoreNextTargetReadiness(cand.state, nextAimTargets);
     const achievedReadiness = achieved === null ? null : scoreNextTargetReadiness(achieved, nextAimTargets);
+    if (predictedReadiness !== null && achievedReadiness !== null) {
+      aimTotals.enumAchieved++;
+      aimTotals.enumReadinessErrSum += Math.abs(predictedReadiness.readiness - achievedReadiness.readiness);
+    }
+    fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+    fit.aimed = true;
+    out.push(fit);
+  }
+  return out;
+}
+
+/** A proposal expressed both in the response model's legacy two-coordinate
+ * basis and in the ordered physical knob vector that will actually be
+ * applied.  The former keeps the mature per-output response machinery shared;
+ * the latter prevents the model coordinate names from becoming hidden physics
+ * policy. */
+type ConfiguredScoredKnobs = JointScoredKnobs & {
+  values: number[];
+};
+
+function modelKnobsForSequence(sequence: ArcKnobSequence, values: readonly number[]): ArcKnobs {
+  if (sequence.length !== values.length || sequence.length < 1 || sequence.length > 2) {
+    throw new Error(`aim control requires one or two aligned knob values`);
+  }
+  // A scalar model always occupies the pitch coordinate.  With two knobs the
+  // first physical operation maps to the established rotate coordinate and
+  // the second to the established pitch coordinate; this preserves default
+  // response-model parity while making the mapping explicit at this boundary.
+  return sequence.length === 1
+    ? { pitchDeg: values[0], rotateDeg: 0 }
+    : { rotateDeg: values[0], pitchDeg: values[1] };
+}
+
+function valuesForModelKnobs(sequence: ArcKnobSequence, knobs: ArcKnobs): number[] {
+  return sequence.length === 1 ? [knobs.pitchDeg] : [knobs.rotateDeg, knobs.pitchDeg];
+}
+
+function controlProbeDesign(control: AimControl): {
+  name: ArcProbeDesignName;
+  rows: ArcKnobs[];
+} {
+  const firstSpan = arcKnobProbeSpan(control.sequence[0]);
+  if (control.sequence.length === 1) {
+    return {
+      name: "pitch3",
+      rows: arcProbeDesign("pitch3", { pitchSpan: firstSpan }),
+    };
+  }
+  const secondSpan = arcKnobProbeSpan(control.sequence[1]);
+  const name: ArcProbeDesignName = control.trainingMethod === "base_joint" ? "grid9" : "cross5";
+  return {
+    name,
+    rows: arcProbeDesign(name, { rotateSpan: firstSpan, pitchSpan: secondSpan }),
+  };
+}
+
+function scoreConfiguredKnobGrid(
+  model: JointArcResponseModel,
+  sequence: ArcKnobSequence,
+  baseScore: JointScoredKnobs,
+  currentTargets: AxisValues,
+  currentScoreAxes: JointArcCurrentScoreAxes,
+  nextTargets: AxisValues,
+  nextGap: Gap,
+): ConfiguredScoredKnobs[] {
+  const spans = sequence.map(arcKnobProbeSpan);
+  const steps = sequence.map(arcKnobScanStep);
+  const out: ConfiguredScoredKnobs[] = [];
+  const visit = (values: number[], index: number): void => {
+    if (index === sequence.length) {
+      if (values.every((value, valueIndex) => Math.abs(value) < steps[valueIndex] / 2)) return;
+      const scored = scoreJointKnobs(
+        model,
+        modelKnobsForSequence(sequence, values),
+        currentTargets,
+        currentScoreAxes,
+        nextTargets,
+        nextGap,
+      );
+      if (typeof scored !== "string" && scored.val > baseScore.val + 1e-4) {
+        out.push({ ...scored, values: [...values] });
+      }
+      return;
+    }
+    for (let value = -spans[index]; value <= spans[index] + 1e-9; value += steps[index]) {
+      values.push(value);
+      visit(values, index + 1);
+      values.pop();
+    }
+  };
+  visit([], 0);
+  return out.sort((a, b) =>
+    b.val - a.val ||
+    b.currentQuality - a.currentQuality ||
+    a.values.reduce((sum, value) => sum + Math.abs(value), 0) -
+      b.values.reduce((sum, value) => sum + Math.abs(value), 0)
+  );
+}
+
+function chooseConfiguredKnobs(
+  sequence: ArcKnobSequence,
+  candidates: readonly ConfiguredScoredKnobs[],
+): ConfiguredScoredKnobs[] {
+  const chosen: ConfiguredScoredKnobs[] = [];
+  for (const candidate of candidates) {
+    if (chosen.length >= ENUM_TOP_K) break;
+    const distinct = chosen.every((prior) => candidate.values.reduce((distance, value, index) => {
+      const scale = arcKnobProposalSeparation(sequence[index]);
+      return distance + ((value - prior.values[index]) / scale) ** 2;
+    }, 0) >= 1);
+    if (distinct) chosen.push(candidate);
+  }
+  return chosen;
+}
+
+function recordUnscoreableControlBase(result: JointScoreResult): JointScoredKnobs | null {
+  if (result === "next_before_exit") {
+    aimTotals.enum_next_before_exit++;
+    return null;
+  }
+  if (result === "model_unscoreable") {
+    aimTotals.enum_model_unscoreable++;
+    return null;
+  }
+  return result;
+}
+
+/** Generic experimental controller.  Its method names describe how probes are
+ * obtained and fitted; they never encode a physical knob order.  Every chosen
+ * vector still traverses the ordinary exact candidate evaluator below. */
+function makeConfiguredAimedCandidates(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  nextGap: Gap,
+  ctx: SpecContext,
+  base: Candidate,
+  lineIdStart: number,
+  airKnobBase: boolean,
+  control: AimControl,
+): Candidate[] {
+  const sequence = control.sequence;
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const nextFrame = nextGap.endFrame;
+  const framesBeforeProbes = getPhysicsFrameCount();
+  const actuatorContext = arcKnobSequenceNeedsContactPoint(sequence)
+    ? (() => {
+      const target = getCandidateProbe(engine, gap, ctx).targetState;
+      return { contactPoint: { x: target.sledX, y: target.sledY } };
+    })()
+    : undefined;
+  const currentTargets = objectiveTargetsForGap(gap, ctx);
+  const currentScoreAxes = jointArcCurrentScoreAxes(currentTargets);
+  const nextTargets = objectiveTargetsForGap(nextGap, ctx);
+  const observe = (
+    appliedSequence: ArcKnobSequence,
+    values: readonly number[],
+    knobs: ArcKnobs,
+  ): JointArcProbeObservation => evaluateArcKnobSequence(
+    engine,
+    base.lines,
+    appliedSequence,
+    values,
+    knobs,
+    gap,
+    ctx.allContactFrames,
+    axisMeasureEnd,
+    nextFrame,
+    {},
+    actuatorContext,
+  );
+
+  let baseOutputs: Record<string, number>;
+  let baseScore: JointScoredKnobs | null;
+  let offered: ConfiguredScoredKnobs[];
+  let coverageModel: JointArcResponseModel;
+
+  if (control.trainingMethod === "sequential_conditional") {
+    const first = sequence[0];
+    const firstSpan = arcKnobProbeSpan(first);
+    const firstRows = arcProbeDesign("pitch3", { pitchSpan: firstSpan })
+      .map((knobs) => observe([first], [knobs.pitchDeg], knobs));
+    recordJointProbeRows(firstRows, gap, axisMeasureEnd, nextFrame);
+    const firstModel = fitJointArcResponseModel(firstRows, "pitch3", "hybrid", {
+      context: { gap, axisMeasureEnd, nextFrame },
+    });
+    baseOutputs = predictJointArcOutputs(firstModel, { pitchDeg: 0, rotateDeg: 0 });
+    baseScore = recordUnscoreableControlBase(scoreJointKnobs(
+      firstModel,
+      { pitchDeg: 0, rotateDeg: 0 },
+      currentTargets,
+      currentScoreAxes,
+      nextTargets,
+      nextGap,
+    ));
+    if (baseScore === null) return [];
+    const firstCandidates = scoreConfiguredKnobGrid(
+      firstModel,
+      [first],
+      baseScore,
+      currentTargets,
+      currentScoreAxes,
+      nextTargets,
+      nextGap,
+    );
+    if (sequence.length === 1) {
+      offered = firstCandidates;
+      coverageModel = firstModel;
+    } else {
+      const firstValue = firstCandidates[0]?.values[0] ?? 0;
+      const second = sequence[1];
+      const secondSpan = arcKnobProbeSpan(second);
+      // Three real rides on the physically transformed prefix: the later
+      // center is deliberately measured rather than borrowed from stage one.
+      const secondRows = arcProbeDesign("pitch3", { pitchSpan: secondSpan })
+        .map((knobs) => observe(sequence, [firstValue, knobs.pitchDeg], knobs));
+      recordJointProbeRows(secondRows, gap, axisMeasureEnd, nextFrame);
+      const secondModel = fitJointArcResponseModel(secondRows, "pitch3", "hybrid", {
+        context: { gap, axisMeasureEnd, nextFrame },
+      });
+      const secondBase = recordUnscoreableControlBase(scoreJointKnobs(
+        secondModel,
+        { pitchDeg: 0, rotateDeg: 0 },
+        currentTargets,
+        currentScoreAxes,
+        nextTargets,
+        nextGap,
+      ));
+      const secondCandidates = secondBase === null ? [] : scoreConfiguredKnobGrid(
+        secondModel,
+        [second],
+        secondBase,
+        currentTargets,
+        currentScoreAxes,
+        nextTargets,
+        nextGap,
+      ).map((candidate) => ({
+        ...candidate,
+        values: [firstValue, candidate.values[0]],
+      }));
+      offered = [
+        ...firstCandidates.slice(0, 1).map((candidate) => ({
+          ...candidate,
+          values: [candidate.values[0], 0],
+        })),
+        ...secondCandidates,
+      ];
+      coverageModel = secondModel;
+    }
+  } else {
+    const design = controlProbeDesign(control);
+    const probeRows = design.rows.map((knobs) => observe(
+      sequence,
+      valuesForModelKnobs(sequence, knobs),
+      knobs,
+    ));
+    recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
+    const model = fitJointArcResponseModel(probeRows, design.name, "hybrid", {
+      context: { gap, axisMeasureEnd, nextFrame },
+    });
+    baseOutputs = predictJointArcOutputs(model, { pitchDeg: 0, rotateDeg: 0 });
+    baseScore = recordUnscoreableControlBase(scoreJointKnobs(
+      model,
+      { pitchDeg: 0, rotateDeg: 0 },
+      currentTargets,
+      currentScoreAxes,
+      nextTargets,
+      nextGap,
+    ));
+    if (baseScore === null) return [];
+    offered = scoreConfiguredKnobGrid(
+      model,
+      sequence,
+      baseScore,
+      currentTargets,
+      currentScoreAxes,
+      nextTargets,
+      nextGap,
+    );
+    coverageModel = model;
+  }
+
+  aimTotals.joint_probe_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBeforeProbes);
+  recordJointModelCoverage(coverageModel, baseOutputs, gap);
+  const chosen = chooseConfiguredKnobs(sequence, offered);
+  if (chosen.length === 0 && !airKnobBase) {
+    aimTotals.enum_on_target++;
+    return [];
+  }
+  const probe = getCandidateProbe(engine, gap, ctx);
+  const out: Candidate[] = [];
+  if (airKnobBase) {
+    const airCand = makeAirMatchedCandidate(
+      engine, gap, nextGap, ctx, base, baseOutputs, lineIdStart, axisMeasureEnd, probe,
+    );
+    if (airCand !== null) out.push(airCand);
+  }
+  for (const candidate of chosen) {
+    const aimedLines = applyArcKnobSequence(base.lines, sequence, candidate.values, actuatorContext)
+      .map((line, index) => ({ ...line, id: lineIdStart + index }));
+    const fit = tryCandidateLines(
+      engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,
+      axisMeasureEnd, gap.targets, true,
+      "normal", probe.preTargetSledTrace,
+    ) as Candidate | null;
+    if (fit === null) {
+      aimTotals.enum_gate_fail++;
+      continue;
+    }
+    aimTotals.enum_emitted++;
+    aimTotals.enumReadinessGainSum += candidate.val - baseScore.val;
+    const achieved = probeRide(engine, aimedLines, nextFrame);
+    const predictedReadiness = scoreNextTargetReadiness(candidate.state, nextGap.targets);
+    const achievedReadiness = achieved === null ? null : scoreNextTargetReadiness(achieved, nextGap.targets);
     if (predictedReadiness !== null && achievedReadiness !== null) {
       aimTotals.enumAchieved++;
       aimTotals.enumReadinessErrSum += Math.abs(predictedReadiness.readiness - achievedReadiness.readiness);

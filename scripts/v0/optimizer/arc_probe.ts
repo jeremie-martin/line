@@ -31,8 +31,11 @@ import {
 } from "./arc_model.ts";
 import {
   applyArcActuatorPair,
+  applyArcKnobSequence,
   type ArcActuatorContext,
   type ArcActuatorPairId,
+  type ArcKnobSequence,
+  type ArcKnobValues,
 } from "./arc_actuator.ts";
 
 const FULL_PROBE_SURVIVAL_MARGIN_FRAMES = 16;
@@ -119,6 +122,28 @@ export function evaluateArcActuatorPair(
   context?: ArcActuatorContext,
 ): JointArcProbeResult {
   const lines = applyArcActuatorPair(baseLines, pair, knobs, context);
+  return evaluateJointArcLines(engine, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, options);
+}
+
+/** Generic ordered-knob counterpart to the legacy pair adapter.  Model
+ * coordinates remain caller-owned: a two-control production adapter encodes
+ * its first and second positional values in `rotateDeg` and `pitchDeg`, while
+ * matrix studies may use scalar re-encodings for one-dimensional stages. */
+export function evaluateArcKnobSequence(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  baseLines: TrackLine[],
+  sequence: ArcKnobSequence,
+  values: ArcKnobValues,
+  knobs: ArcKnobs,
+  gap: Gap,
+  contactFrames: readonly number[],
+  axisMeasureEnd: number,
+  nextFrame: number,
+  options: JointArcProbeOptions = {},
+  context?: ArcActuatorContext,
+): JointArcProbeResult {
+  const lines = applyArcKnobSequence(baseLines, sequence, values, context);
   return evaluateJointArcLines(engine, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, options);
 }
 

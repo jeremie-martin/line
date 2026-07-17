@@ -122,6 +122,7 @@ const output = {
   seeds,
   env: {
     LR_AIM_ACTUATOR_PAIR: process.env.LR_AIM_ACTUATOR_PAIR ?? null,
+    LR_AIM_KNOB_SEQUENCE: process.env.LR_AIM_KNOB_SEQUENCE ?? null,
     LR_AIM_BOW: process.env.LR_AIM_BOW ?? null,
     LR_IMPACT_LOCAL_W: process.env.LR_IMPACT_LOCAL_W ?? null,
     LR_GRADE_CONTINUITY: process.env.LR_GRADE_CONTINUITY ?? null,

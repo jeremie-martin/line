@@ -959,6 +959,29 @@ type ContactCenteredRolls = {
   normalJitterRoll: number;
 };
 
+/**
+ * Study-only resolution override for the ordinary post-contact curve.  The
+ * default compiler path leaves this unset and therefore retains its exact
+ * historical line count.  An override may refine, but never coarsen, the
+ * sampled curve; it is intentionally not a source-selection or target hook.
+ */
+export type NormalPostCurveResolutionInput = Readonly<{
+  attempt: number;
+  gapIndex: number;
+  postLengthPx: number;
+  startAngleDeg: number;
+  endAngleDeg: number;
+  curveBias: number;
+  nominalSegments: number;
+}>;
+
+type NormalPostCurveResolutionHook = (input: NormalPostCurveResolutionInput) => number;
+let normalPostCurveResolutionHook: NormalPostCurveResolutionHook | null = null;
+
+export function setNormalPostCurveResolutionHook(hook: NormalPostCurveResolutionHook | null): void {
+  normalPostCurveResolutionHook = hook;
+}
+
 /** Shared speed/dense/deadline pressure derivation for the contact-centered
  *  sampler. `sampleContactCenteredLines` and `guideContactCenteredRolls` both
  *  need the same block of derived pressures from the identical inputs, so it
@@ -1329,7 +1352,7 @@ function sampleContactCenteredLines(
   }
 
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
-  const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
+  const nominalPostSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
   supportGeometryProbeHook?.({
     gapIndex: gap.index,
     attempt,
@@ -1339,7 +1362,7 @@ function sampleContactCenteredLines(
     targetLength: supportPlan?.targetLength ?? null,
     extensionPressure: supportPlan?.extensionPressure ?? null,
     postLength,
-    postSegments,
+    postSegments: nominalPostSegments,
   });
 
   const contactAngleRad = (contactAngleDeg * Math.PI) / 180;
@@ -1429,6 +1452,16 @@ function sampleContactCenteredLines(
     );
     return [...preLines, ...scoopLines, ...holdLines];
   }
+
+  const postSegments = resolveNormalPostCurveSegments({
+    attempt,
+    gapIndex: gap.index,
+    postLengthPx: postLength,
+    startAngleDeg: contactAngleDeg,
+    endAngleDeg: postAngleDeg,
+    curveBias: postCurveBias,
+    nominalSegments: nominalPostSegments,
+  });
 
   const postLines = buildPostContactLines(
     lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
@@ -2184,6 +2217,18 @@ function buildPostContactLines(
     y = y2;
   }
   return lines;
+}
+
+function resolveNormalPostCurveSegments(input: NormalPostCurveResolutionInput): number {
+  const hook = normalPostCurveResolutionHook;
+  if (hook === null) return input.nominalSegments;
+  const resolved = hook(Object.freeze({ ...input }));
+  if (!Number.isSafeInteger(resolved) || resolved < input.nominalSegments) {
+    throw new Error(
+      "normal post-curve resolution hook must return a safe integer no smaller than the nominal segment count",
+    );
+  }
+  return resolved;
 }
 
 export function hasPreTargetSledProximity(

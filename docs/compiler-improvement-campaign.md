@@ -2789,6 +2789,79 @@ pool or V2 panel. The two-second joint demand is a descriptive covariate, not
 a cross-source causal state basis. Multi-contact diagnosis must use a
 different physical state boundary.
 
+## Declared Observation: Tolerance-Resolved Normal Post Curve (2026-07-17)
+
+The ordinary normal generator samples a continuous post-contact tangent field
+but realizes it with a sampled line length alone. Consequently, a high-turn
+carrier can be represented by fewer chords than the geometry contract already
+uses elsewhere: the trajectory-synthesis resolution rule is a maximum 2px
+chord error and 5 degrees of tangent turn per chord. Collinear representation
+has already been shown not to be a physical lever; this is a different,
+curved-contact claim. Preserve the raw coordinates, targets, PRNG draw count,
+attempt index, contact vertex, curve bias, evaluator, and rank. Refine only a
+non-template ordinary post curve when its sampled count is below the fixed
+geometry tolerance:
+
+`max(nominalCount, adaptiveCurveSegmentCount(postLength, postTurn,
+1 + abs(curveBias), {maxChordErrorPx: 2, maxTurnDegPerSegment: 5}))`.
+
+The two constants are an existing trajectory construction contract, not a
+new sweep. A template has its own explicitly declared physical form and is
+left byte-identical. This is neither a duration branch nor a source/case lane:
+the rule applies to every eligible ordinary curve from its sampled physical
+shape alone.
+
+**Frozen observation cohort.** Use current compiler/WASM/V2 jolt/500k with
+seeds 30 and 31 on exactly six unused-for-this-study development sources:
+`frontier_dense_recovery_240ms_figures` (dense),
+`open_hook_amplitude_plus_8` (high-air), `rising_switch` (representative),
+`pickup_lattice_speed_minus_4` (pickup),
+`frontier_low_air_endurance_7s` (low-air), and
+`believer_56_6s_impact_relief` (development music). Capture the first
+ordinary frontier node at the one-third and two-thirds authored-contact
+indices. First replay the production raw-normal pool from each node and
+require its generation-time attempt and geometry hashes to match exactly.
+Then resample the same candidate count and PRNG stream with only the
+tolerance refinement enabled, and retain every exact-gate result, objective,
+axis RMS, candidate line count, refinement count, and metered admission
+frames. No compiler traversal, source default, ranker, candidate mix, or V2
+evaluation is permitted.
+
+**Decision boundary.** Retire if raw production replay is not exact; if the
+fixed rule is inert on almost every eligible candidate; if equal-count viable
+admissions, regime-balanced objective, and closest-axis RMS are not jointly
+positive; if metered admission frames rise materially without a stronger pool;
+or if dense, pickup, or low-air has a material admission collapse. A pass
+authorizes only a separately declared source-default implementation and
+ordinary broad scope panel, never direct V2 evaluation.
+
+**Result (2026-07-17, 12 current-tree WASM/500k compiles plus exact paired
+pool replay; artifact
+`generated/studies/normal-post-curve-resolution/v1/result.json`): RETIRE
+tolerance-resolved normal post curve.** All 24 declared frontier states were
+captured and every production replay matched its generation-time normal-pool
+attempt and geometry hashes. The fixed construction was active rather than
+inert: 591 ordinary non-template curves were eligible, 117 (19.8%) refined,
+and the comparator added 579 chords. Exact admission became cheaper on
+average by 387 metered physics frames/state because several changed candidates
+failed sooner, not because the comparator established more viable alternatives.
+
+The regime-balanced closest-axis RMS and objective movements were superficially
+positive (+0.000268 and +0.005437), but the pool-strength condition failed:
+viable admission moved only +0.125/state, entirely from high-air (+1.0), while
+dense fell −0.25/state (including one 10-to-9 pool). Pickup and low-air were
+flat. High-air's objective was itself negative (−0.004461), and the balanced
+best-cost movement was also negative (−0.000060). The discrete realization
+changes individual trajectories, but it does not expose a coherent broad
+normal-candidate basin.
+
+**Decision.** Do not make tolerance refinement a compiler default, mix it
+into a candidate lane, alter the 2px/5-degree contract, or run a source scope
+panel or V2 evaluation. Retain the default-off resolution observer as generic
+diagnostic infrastructure only. Curved normal realization is now closed in
+this fixed refine-only form; a successor must name a distinct physical
+component rather than sweep chord tolerance or segment caps.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

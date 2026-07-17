@@ -1536,6 +1536,34 @@ terminal speed. This is the declared absent/split discard: do not turn the
 partial speed movement into a phase range, a source lane, or a selection
 experiment. **Contact-phase continuity is retired.**
 
+## Declared Study: Incoming Airborne-Phase Continuity (2026-07-17)
+
+The three retired continuity controls carried geometry (terminal grade or
+contact anchor) or a speed-debt integral. They did not carry the exact
+**detector phase** created by the preceding committed geometry: at an incoming
+target, `PlanningState.phase.airborneAgeFrames` is the physical number of
+consecutive airborne frames already accrued. That state is what separates a
+legal return window from the 1--5-frame dense-240 detector-floor failure; it
+is not the prior geometric contact phase.
+
+**Hypothesis.** On the same deterministic 25% normal-attempt span, when the
+exact incoming airborne age is below six, shorten only the sampled
+post-contact tail by a bounded continuous factor. The collision-side geometry
+through the contact vertex and its first outgoing segment remain byte-for-byte
+unchanged. This uses the actual incoming phase alone—no next target, source,
+case, seed, duration branch, outcome, or selection rule—to make the following
+release phase less likely to drift into another short/illegal window.
+
+**Cheap decisive test first.** The frozen WASM/500k believer36/69
+five-contact oracle will compare this stream with the retained independent
+normal stream at equal 24 candidates/contact and ordinary exact
+admission/local-cost selection. It must improve complete chains and terminal
+speed on both fixtures without higher simulated-frame cost. An absent, split,
+or worse result retires the controller with no tail-factor/share sweep, source
+lane, scope panel, Stage 0, or certification. A pass authorizes only a
+separately declared attempt-spanned sampler form through the standard V2
+funnel.
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

@@ -24,8 +24,12 @@ import {
   assertTrajectoryCalibrationProtocol,
   getTrajectoryPanelCase,
   materializeTrajectoryPanelInput,
-  type TrajectoryPanelSetup,
 } from "./panel.ts";
+import {
+  buildRecursiveTransientHeldoutSetup,
+  getRecursiveTransientHeldoutCase,
+} from "./recursive_transient_heldout_panel.ts";
+import type { TrajectoryCaptureCase, TrajectoryCaptureSetup } from "./capture_input.ts";
 import { extractPlanningState, type PlanningState } from "./state.ts";
 import { rebuildPhysicalPrefixEngine } from "./study_fixture.ts";
 import { activeStudyEngine } from "./study_runtime.ts";
@@ -58,7 +62,7 @@ export type PreparedTrajectoryFixtureCore = {
     outgoingIntervalFrames: number;
     expectedOutgoingFrames: number | null;
   };
-  setup: TrajectoryPanelSetup;
+  setup: TrajectoryCaptureSetup;
   ctx: SpecContext;
   // deno-lint-ignore no-explicit-any
   engine: any;
@@ -86,9 +90,7 @@ function prepareFrozenTrajectoryFixtureCore(input: FrozenTrajectoryFixture): Pre
   if (input.schema === "line.frozen-trajectory-prefix.v3" && !input.capture.identityCheck.stable) {
     throw new Error("forensic V3 fixture has source or compiler identity drift and cannot be replayed as study input");
   }
-  const panel = getTrajectoryPanelCase(input.panel.id);
-  assertActiveTrajectoryPanel(panel, "trajectory fixture replay");
-  const setup = buildTrajectoryPanelSetup(panel);
+  const { panel, setup } = resolveFixturePanel(input);
   const materialized = materializeTrajectoryPanelInput(setup);
   const sourceFingerprint = fingerprintFiles([panel.sourcePath]);
   const transformFingerprint = sha256(stableJson(benchmarkPolicy.transform));
@@ -232,13 +234,13 @@ export function prepareStateCoupledTrajectoryFixture(
     engine: prepared.fixture.captureEngine,
     captureBudget: prepared.fixture.captureBudget,
     relevantEnvironment: prepared.fixture.captureEnvironment,
-  }, "state-coupled trajectory calibration fixture");
+  }, "state-coupled trajectory fixture");
   return prepared;
 }
 
 export function assertFixturePanelDeclaration(
   input: FrozenTrajectoryFixture["panel"],
-  panel: TrajectoryPanelSetup["panel"],
+  panel: TrajectoryCaptureCase,
 ): void {
   if (
     input.cohort !== panel.cohort ||
@@ -256,7 +258,7 @@ export function assertFixturePanelDeclaration(
 
 function assertFixtureTargetFrames(
   input: FrozenTrajectoryFixture["panel"],
-  panel: TrajectoryPanelSetup["panel"],
+  panel: TrajectoryCaptureCase,
   current: Gap,
   outgoing: Gap,
   outgoingIntervalFrames: number,
@@ -269,6 +271,19 @@ function assertFixtureTargetFrames(
   ) {
     throw new Error("fixture target/outgoing frame declaration no longer matches its declared panel");
   }
+}
+
+/** Resolve only the declared roster that owns an immutable fixture. */
+function resolveFixturePanel(
+  input: FrozenTrajectoryFixture,
+): { panel: TrajectoryCaptureCase; setup: TrajectoryCaptureSetup } {
+  if (input.panel.cohort === "validation" && input.panel.studyScope === "recursive-transient-heldout-v1") {
+    const panel = getRecursiveTransientHeldoutCase(input.panel.id);
+    return { panel, setup: buildRecursiveTransientHeldoutSetup(panel) };
+  }
+  const panel = getTrajectoryPanelCase(input.panel.id);
+  assertActiveTrajectoryPanel(panel, "trajectory fixture replay");
+  return { panel, setup: buildTrajectoryPanelSetup(panel) };
 }
 
 function relevantEnvironment(): Record<string, string> {

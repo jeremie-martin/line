@@ -43,7 +43,12 @@ import {
 } from "./trajectory/contact_capture_arc.ts";
 import { makeMirroredContactCaptureArcScreen } from "./trajectory/contact_capture_arc_design.ts";
 import { contactKinematicFrameFromPlanningState } from "./trajectory/contact_kinematic_frame.ts";
-import { readFrozenTrajectoryFixture, sha256, stableJson } from "./trajectory/frozen_fixture.ts";
+import {
+  readFrozenTrajectoryFixture,
+  sha256,
+  stableJson,
+  type FrozenTrajectoryFixture,
+} from "./trajectory/frozen_fixture.ts";
 import { extractPlanningState, type PlanningState } from "./trajectory/state.ts";
 import {
   prepareStateCoupledTrajectoryFixture,
@@ -64,17 +69,27 @@ const FIXTURES = {
 } as const;
 type StateId = keyof typeof FIXTURES;
 type Family = "capture-arc" | "raw-normal";
+const HELD_OUT_PANEL_IDS = [
+  "heldout_open_hook_dense",
+  "heldout_meter_exchange_ordinary",
+  "heldout_pickup_low_air",
+] as const;
 
 const argv = process.argv.slice(2);
 const argument = (name: string): string | undefined =>
   argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+const argumentsFor = (name: string): string[] =>
+  argv.filter((value) => value.startsWith(`--${name}=`)).map((value) => value.slice(name.length + 3));
 const returnNormal = argv.includes("--return-normal");
 const ballisticRelease = argv.includes("--ballistic-release");
 const transientBridge = argv.includes("--transient-bridge");
 const arrivalGateDiagnosis = argv.includes("--arrival-gates");
 const recursiveTransient = argv.includes("--recursive-transient");
 const recursiveReturn = argv.includes("--recursive-return");
-const SCHEMA = recursiveReturn
+const heldOut = argv.includes("--held-out");
+const SCHEMA = heldOut
+  ? "line.study-recursive-transient-heldout.v1"
+  : recursiveReturn
   ? "line.study-recursive-transient-k3-normal-return.v1"
   : recursiveTransient
   ? "line.study-recursive-transient-bridge.v1"
@@ -92,7 +107,7 @@ if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
     "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--arrival-gates|--recursive-transient|--recursive-return] [--out-dir=DIR]",
     "",
-    "Calibration-only charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
+    "Charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
     "Without --return-normal, writes the archived two-contact protocol under",
     "generated/studies/two-contact-shooting/v1/. The return-boundary mode",
     "materializes capture->capture pairs and measures the normal stream at k+2.",
@@ -106,12 +121,14 @@ if (argv.includes("--help") || argv.includes("-h")) {
     "transient component from the exact k+2 bridge arrival state.",
     "--recursive-return requires --recursive-transient and observes the unchanged",
     "k+3 normal stream from every byte-stable transient triple.",
+    "--held-out requires exactly the three declared --fixture=PATH inputs and the",
+    "recursive-return transient protocol; it accepts only the sealed validation roster.",
   ].join("\n") + "\n");
   process.exit(0);
 }
 
 assertExactEnvironment();
-const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--recursive-transient", "--recursive-return", "--help", "-h"];
+const supportedOptions = ["--case=", "--fixture=", "--held-out", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--recursive-transient", "--recursive-return", "--help", "-h"];
 const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
 if ((ballisticRelease || transientBridge) && !returnNormal) {
@@ -133,13 +150,17 @@ if (recursiveReturn && !recursiveTransient) {
   throw new Error("--recursive-return requires --recursive-transient");
 }
 
-const requestedCase = argument("case") ?? "all";
 const stateIds: readonly StateId[] = ["dense", "dense240", "ordinary"];
-if (requestedCase !== "all" && !stateIds.includes(requestedCase as StateId)) {
-  throw new Error(`unknown --case=${requestedCase}; expected all|${stateIds.join("|")}`);
+const heldOutFixturePaths = argumentsFor("fixture");
+if (heldOut && (!returnNormal || !transientBridge || !recursiveTransient || !recursiveReturn || ballisticRelease || arrivalGateDiagnosis)) {
+  throw new Error("--held-out requires --return-normal --transient-bridge --recursive-transient --recursive-return only");
 }
-const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? (recursiveReturn
+const selected: readonly StateSelection[] = heldOut
+  ? selectHeldOutFixtures(heldOutFixturePaths)
+  : selectCalibrationFixtures(argument("case") ?? "all", heldOutFixturePaths);
+const outDir = argument("out-dir") ?? (heldOut
+  ? "generated/studies/two-contact-shooting/recursive-heldout-v1"
+  : recursiveReturn
   ? "generated/studies/two-contact-shooting/recursive-return-v1"
   : recursiveTransient
   ? "generated/studies/two-contact-shooting/recursive-transient-v1"
@@ -180,10 +201,13 @@ const protocolFingerprint = sha256(stableJson({
   recursiveReturn: recursiveReturn
     ? "for every byte-stable transient triple, observe the unchanged equal-count raw-normal stream from exact k+3 state"
     : "disabled",
+  heldOut: heldOut
+    ? "require exactly the sealed dense, ordinary, and low-air recursive-transient-heldout-v1 V3 fixtures; do not select or branch by fixture outcome"
+    : "disabled",
 }));
 
 const started = performance.now();
-const runResults = selected.map((id) => runState(id));
+const runResults = selected.map((selection) => runState(selection));
 
 const summaryLines: string[] = [
   `charged two-contact shooting: ${runResults.length} state(s), ${round(performance.now() - started)}ms; engine=wasm`,
@@ -194,7 +218,7 @@ process.stdout.write(summaryLines.join("\n") + "\n");
 // Positive control: on the ordinary fixture the raw-normal family must produce
 // at least one segment-1 admission (calibration history). Zero is a broken
 // observation path, not a physics result.
-const ordinary = runResults.find((result) => result.id === "ordinary");
+const ordinary = heldOut ? undefined : runResults.find((result) => result.id === "ordinary");
 if (ordinary !== undefined) {
   const rawSeg1Admitted = ordinary.summary.segment1AdmissionByFamily["raw-normal"].admitted;
   if (rawSeg1Admitted === 0) {
@@ -395,12 +419,74 @@ type Row = {
 };
 
 type StateResult = {
-  id: StateId;
+  id: string;
   artifactPath: string;
   panel: PreparedTrajectoryFixtureCore["panel"];
   rows: Row[];
   summary: StateSummary;
 };
+
+type StateSelection = {
+  fixturePath: string;
+  fixture: FrozenTrajectoryFixture | null;
+  heldOut: boolean;
+};
+
+function selectCalibrationFixtures(requestedCase: string, fixturePaths: readonly string[]): readonly StateSelection[] {
+  if (fixturePaths.length > 0) throw new Error("--fixture is only valid with --held-out");
+  if (requestedCase !== "all" && !stateIds.includes(requestedCase as StateId)) {
+    throw new Error(`unknown --case=${requestedCase}; expected all|${stateIds.join("|")}`);
+  }
+  const selectedIds: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
+  return selectedIds.map((id) => ({
+    fixturePath: `${FIXTURE_DIR}/${FIXTURES[id]}`,
+    fixture: null,
+    heldOut: false,
+  }));
+}
+
+function selectHeldOutFixtures(fixturePaths: readonly string[]): readonly StateSelection[] {
+  if (argument("case") !== undefined) throw new Error("--held-out uses the sealed --fixture roster, not --case");
+  if (fixturePaths.length !== HELD_OUT_PANEL_IDS.length) {
+    throw new Error(`--held-out requires exactly ${HELD_OUT_PANEL_IDS.length} --fixture paths`);
+  }
+  const selected = fixturePaths.map((fixturePath) => {
+    const fixture = readFrozenTrajectoryFixture(fixturePath);
+    assertHeldOutFixtureDeclaration(fixture);
+    return { fixturePath, fixture, heldOut: true };
+  });
+  const actualIds = selected.map((selection) => selection.fixture.panel.id).sort();
+  const expectedIds = [...HELD_OUT_PANEL_IDS].sort();
+  if (stableJson(actualIds) !== stableJson(expectedIds)) {
+    throw new Error(`--held-out fixture roster must be exactly ${expectedIds.join(", ")}`);
+  }
+  return selected;
+}
+
+function assertHeldOutFixtureDeclaration(fixture: FrozenTrajectoryFixture): void {
+  if (fixture.schema !== "line.frozen-trajectory-prefix.v3") {
+    throw new Error("held-out recursive transient study requires a stable V3 fixture");
+  }
+  if (fixture.panel.cohort !== "validation" || fixture.panel.studyScope !== "recursive-transient-heldout-v1") {
+    throw new Error(`fixture ${fixture.panel.id} is not a declared recursive-transient held-out input`);
+  }
+  if (!fixture.capture.identityCheck.stable || fixture.capture.captureBudget !== 500_000 || fixture.capture.runtime.engine !== "wasm") {
+    throw new Error(`fixture ${fixture.panel.id} lacks the required stable WASM/500k capture provenance`);
+  }
+  if (fixture.capture.studySourceFiles.includes("scripts/v0/trajectory/panel.ts")) {
+    throw new Error(`fixture ${fixture.panel.id} capture imports the legacy trajectory panel`);
+  }
+}
+
+function assertHeldOutFixture(
+  fixture: FrozenTrajectoryFixture,
+  prepared: PreparedTrajectoryFixtureCore,
+): void {
+  assertHeldOutFixtureDeclaration(fixture);
+  if (!HELD_OUT_PANEL_IDS.includes(prepared.panel.id as (typeof HELD_OUT_PANEL_IDS)[number])) {
+    throw new Error(`unexpected held-out recursive-transient panel ${prepared.panel.id}`);
+  }
+}
 
 type FamilyClosure = {
   segment1Attempted: number;
@@ -435,15 +521,16 @@ type ReturnContext = {
   rowIndex: number;
 };
 
-function runState(id: StateId): StateResult {
-  const fixturePath = `${FIXTURE_DIR}/${FIXTURES[id]}`;
-  const fixture = readFrozenTrajectoryFixture(fixturePath);
+function runState(selection: StateSelection): StateResult {
+  const fixturePath = selection.fixturePath;
+  const fixture = selection.fixture ?? readFrozenTrajectoryFixture(fixturePath);
   // prepareStateCoupledTrajectoryFixture fails closed on any replay mismatch;
   // that error is surfaced, never suppressed.
   const prepared = prepareStateCoupledTrajectoryFixture(fixture);
-  if (prepared.panel.cohort !== "calibration") {
+  if (!selection.heldOut && prepared.panel.cohort !== "calibration") {
     throw new Error(`two-contact shooting accepts only calibration fixtures; ${prepared.panel.id} is ${prepared.panel.cohort}`);
   }
+  if (selection.heldOut) assertHeldOutFixture(fixture, prepared);
   const next = prepared.setup.gaps[prepared.outgoing.index + 1];
   const afterNext = next === undefined ? undefined : prepared.setup.gaps[next.index + 1];
   if (returnNormal && (next === undefined || !next.endsWithContact || next.startFrame !== prepared.outgoing.endFrame)) {
@@ -497,8 +584,10 @@ function runState(id: StateId): StateResult {
       "Retain every row; no control, candidate, source default, or promotion is selected here.",
     ],
     status: {
-      productionIntegration: "forbidden: calibration study outside the compiler identity boundary; not a candidate source, selector, or promotion command",
-      cohortPolicy: "calibration only; a separately frozen validation cohort is required before any predictive claim",
+      productionIntegration: "forbidden: trajectory observation outside the compiler identity boundary; not a candidate source, selector, or promotion command",
+      cohortPolicy: selection.heldOut
+        ? "sealed recursive-transient held-out validation only; no compiler source, selector, promotion, or V2 evaluation is authorized"
+        : "calibration only; a separately frozen validation cohort is required before any predictive claim",
     },
     argv: [...argv],
     elapsedMs: round(performance.now() - started),
@@ -560,7 +649,9 @@ function runState(id: StateId): StateResult {
         : null,
       recursiveTransient: recursiveTransient
         ? {
-          scope: "dense-240 calibration: materialized first-C1 plus k+1 transient pairs only",
+          scope: selection.heldOut
+            ? "every sealed held-out fixture: materialized first-C1 plus k+1 transient pairs only"
+            : "dense-240 calibration: materialized first-C1 plus k+1 transient pairs only",
           thirdContact: "same mirrored approach controls and one-approach/three-scoop law from exact k+2 state",
           launchAngle: "atan2(-0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * literal k+3 interval frames, max(1, exact k+2 incoming speed))",
           materialization: "each admitted third component is re-admitted with the complete three-contact line set on the immutable k prefix",
@@ -568,7 +659,9 @@ function runState(id: StateId): StateResult {
         : null,
       recursiveReturn: recursiveReturn
         ? {
-          scope: "every byte-stable dense-240 first-C1 plus two-transient triple",
+          scope: selection.heldOut
+            ? "every byte-stable held-out first-C1 plus two-transient triple"
+            : "every byte-stable dense-240 first-C1 plus two-transient triple",
           returnGap: afterNext!.index,
           normalAttemptsPerTriple: captureMembers1.length,
           normalSeed: "deterministic fixture seed + k+3 gap + first-control row + third-control index",
@@ -581,7 +674,7 @@ function runState(id: StateId): StateResult {
 
   const artifactPath = `${outDir}/${prepared.panel.id}-${fixture.fixtureFingerprint.slice(0, 12)}.json`;
   writeImmutableJsonArtifact(artifactPath, document, "two-contact-shooting artifact");
-  return { id, artifactPath, panel: prepared.panel, rows, summary };
+  return { id: prepared.panel.id, artifactPath, panel: prepared.panel, rows, summary };
 }
 
 function evaluateRow(

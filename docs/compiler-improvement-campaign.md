@@ -4721,6 +4721,58 @@ sharper: a viable successor needs a contact-compatible continuous
 multi-contact *transition mechanism* after an engine-admitted native catch,
 not another static or passively predicted configuration envelope.
 
+## Declared Observation: Post-Catch Full-Sled Flux Membrane (2026-07-17)
+
+The reaction envelope's null could mean either that every post-catch state
+geometry is futile or only that a gravity-facing contour never intercepts the
+outgoing sled. This one-form assay tests the opposite physical extreme without
+changing raw catch geometry: an exact-state **collision membrane** rather than
+a support contour. From the complete `H+1` sled configuration, take the
+collective point velocity as the membrane normal. The membrane lies on the
+full-cloud forward support function and spans the full-cloud tangent support
+function. Its directed tangent is defined so the engine's unflipped active
+normal equals collective flow; there is no side arm, `flipped` selection,
+raw-surface tangent, offset, point identity, target, score, source, case,
+seed, duration, or parameter. It is one finite, full-state cross-section,
+not the retired two-sided rail, raw contact patch, or pre-catch positive rail.
+
+**Protocol, declared before rows.** Use the same raw-catch, temporal-boundary,
+topology, impact, return, and fixed ordinary-next checks as the reaction
+envelope: 16 unchanged current normals on frozen dense-240 and ordinary
+WASM/V2-jolt/500k prefixes, response geometry only after raw exact admission,
+and all state/gate/replay work charged. A result must preserve the raw native
+catch at `H`, have no membrane collision at `H-1/H`, activate with at least
+two membrane-owned zero-friction sled updates at `H+1`, retain impact within
+`.05`, achieve six airborne frames, and admit a member of the fixed
+eight-normal next stream. This is a calibration-only reachability test, never
+a compiler option.
+
+**Result (2026-07-17, 0.14s, 1,424 charged frames;
+`LR_ENGINE=wasm node --expose-gc --import tsx
+scripts/v0/study_postcatch_sled_reaction_envelope.ts --form=flux-membrane
+--case=all --out-dir=generated/studies/postcatch-sled-flux-membrane/v1`):
+RETIRE the full-sled flux membrane.** This time the component is not inert.
+Dense-240's single raw admission is rejected by the complete augmented current
+gate. On ordinary, **4/16** complete raw-plus-membrane candidates admit; all
+four have zero membrane collision at `H-1/H`, so the raw catch is preserved.
+One row produces the required two native zero-friction sled updates at `H+1`
+and retains its raw 12-update topology at `H`; it reaches the six-frame air
+floor, but has impact error `-.089110` and **zero** next-normal admissions.
+Two of the four rows are impact-accurate, but neither retains distributed raw
+topology or two-point membrane contact; all **4/4** have zero normal next
+admissions. The direct contact-compatible post-catch response therefore
+destroys the continuation basin even where it preserves the capture boundary.
+
+**Decision.** Do not rotate/interpolate the membrane toward the contour, move
+its frame, vary its span, flip or duplicate its face, chain membranes, or
+combine it with a rail, patch, force, body follower, selector, or response
+pitch. The passive contour and direct flow-facing membrane bracket the two
+static post-catch modes: one is exactly nonintruding but inert; the other
+engages but loses all ordinary successor support and cannot enter dense-240.
+A successor must change the collision state before or during the native catch
+through a new non-static transition representation—not search between these
+two failed forms.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -563,6 +563,23 @@ extension, or follower/support composition is authorized. A future component
 must alter the reachable continuous multi-contact transition, not passively
 draw a state-predicted contour after it.
 
+The complementary flow-facing full-sled membrane is also closed. It begins at
+the same exact `H+1` raw-catch state, but realizes one finite forward support
+cross-section whose unflipped active normal is the complete sled's collective
+velocity and whose span is the full tangential configuration support. Thus it
+is a direct post-catch collision event, not a gravity contour, raw rail, side
+arm, or point selector. It is physically active: ordinary has 4/16 augmented
+admissions, all with zero membrane intrusion at `H-1/H`; one retains 12 raw
+zero-friction target updates and receives two membrane-owned zero-friction
+sled updates at `H+1`. That row still misses current impact by `-.089110` and
+has zero normal next admissions; all 4/4 augmented ordinary rows have zero
+normal next admissions, while dense-240 rejects its only raw admission. The
+two post-catch state-derived extremes therefore bracket a static limit:
+gravity-facing support never engages, flow-facing collision engages but leaves
+no continuation basin. Do not interpolate, move, reface, widen, duplicate, or
+chain either form. Any successor must change the native-catch transition
+itself, rather than add a static post-catch object.
+
 A future trajectory study is admissible only if it declares a **new** component
 form that, from continuous physical state rather than a case/duration/menu
 choice, establishes the required six-frame return window at dense-240 while

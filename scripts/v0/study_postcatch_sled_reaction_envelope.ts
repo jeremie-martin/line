@@ -17,6 +17,7 @@ import { extractPlanningState } from "./trajectory/state.ts";
 import { prepareStateCoupledTrajectoryFixture, type PreparedTrajectoryFixtureCore } from "./trajectory/study_context.ts";
 import { allocateStudyArtifactPath, studyArtifactIdentity, studySourceIdentity, writeImmutableJsonArtifact } from "./trajectory/study_artifact.ts";
 import { realizePostcatchSledReactionEnvelope, type PostcatchSledReactionEnvelope } from "./trajectory/postcatch_sled_reaction_envelope.ts";
+import { realizePostcatchSledFluxMembrane, type PostcatchSledFluxMembrane } from "./trajectory/postcatch_sled_flux_membrane.ts";
 
 const SCHEMA = "line.study-postcatch-sled-reaction-envelope.v1";
 const FIXTURE_DIR = "generated/studies/trajectory-fixtures/current-2026-07-15/v3";
@@ -31,13 +32,15 @@ const MIN_ENVELOPE_SLED_ZERO_FRICTION_UPDATES = 2;
 const MIN_RETURN_AIRBORNE_FRAMES = 6;
 
 type StateId = keyof typeof FIXTURES;
+type Form = "reaction-envelope" | "flux-membrane";
+type Realization = PostcatchSledReactionEnvelope | PostcatchSledFluxMembrane;
 type Topology = { peg: number; sledZeroFriction: number; feetZeroFriction: number; total: number };
 type ReturnMeasure = { replayFrames: number; survivedToBeat: boolean; terminusFrame: number; terminusReason: string; airborneMarginBeforeBeat: number };
 type NextNormal = { attempted: number; available: number; admitted: number; frames: number; errors: string[] };
 type AttemptResult = {
   attempt: number;
   raw: { admitted: boolean; admissionFrames: number; targetTopology: Topology | null; error: string | null };
-  envelope: PostcatchSledReactionEnvelope | null;
+  envelope: Realization | null;
   stateReadFrames: number;
   augmented: {
     admitted: boolean;
@@ -68,26 +71,34 @@ type StateResult = {
 const argv = process.argv.slice(2);
 const argument = (name: string): string | undefined => argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_postcatch_sled_reaction_envelope.ts [--case=dense240|ordinary|all] [--out-dir=DIR]\\n");
+  process.stdout.write("Usage: study_postcatch_sled_reaction_envelope.ts [--form=reaction-envelope|flux-membrane] [--case=dense240|ordinary|all] [--out-dir=DIR]\\n");
   process.exit(0);
 }
 if (process.env.LR_ENGINE !== "wasm") throw new Error(`study requires LR_ENGINE=wasm; received ${process.env.LR_ENGINE ?? "(unset)"}`);
-const allowed = ["--case=", "--out-dir=", "--help", "-h"];
+const allowed = ["--form=", "--case=", "--out-dir=", "--help", "-h"];
 const unknown = argv.filter((value) => !allowed.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknown.length > 0) throw new Error(`unsupported option(s): ${unknown.join(", ")}`);
 const requested = argument("case") ?? "all";
+const requestedForm = argument("form") ?? "reaction-envelope";
+const forms: readonly Form[] = ["reaction-envelope", "flux-membrane"];
+if (!forms.includes(requestedForm as Form)) throw new Error(`unknown --form=${requestedForm}`);
+const form = requestedForm as Form;
 const ids: readonly StateId[] = ["dense240", "ordinary"];
 if (requested !== "all" && !ids.includes(requested as StateId)) throw new Error(`unknown --case=${requested}`);
 const selected: readonly StateId[] = requested === "all" ? ids : [requested as StateId];
-const outDir = argument("out-dir") ?? "generated/studies/postcatch-sled-reaction-envelope/v1";
+const outDir = argument("out-dir") ?? (form === "reaction-envelope"
+  ? "generated/studies/postcatch-sled-reaction-envelope/v1"
+  : "generated/studies/postcatch-sled-flux-membrane/v1");
 const sourceIdentity = studySourceIdentity("scripts/v0/study_postcatch_sled_reaction_envelope.ts");
 const observationCompiler = compilerCandidateIdentity("wasm");
 const protocolFingerprint = sha256(stableJson({
-  protocol: "postcatch-sled-reaction-envelope.v1",
+  protocol: `postcatch-sled-state-geometry.${form}.v1`,
   fixtures: FIXTURES,
   rawStream: { kind: "normal", attempts: RAW_ATTEMPTS, purpose: "fixed input stream, never a chooser" },
   stateInput: "exact H+1 full PEG/TAIL/NOSE/STRING positions and velocities plus angular rate after an admitted raw catch",
-  geometry: "H+1..H+6 full-sled gravity-support configuration envelope under measured collective velocity, gravity, and angular rate",
+  geometry: form === "reaction-envelope"
+    ? "H+1..H+6 full-sled gravity-support configuration envelope under measured collective velocity, gravity, and angular rate"
+    : "one H+1 full-sled collective-flow-facing forward-support cross-section",
   boundary: "response lines must not collide at H-1 or H; native raw catch must retain distributed zero-friction sled contact at H",
   response: { minimumEnvelopeSledZeroFrictionUpdates: MIN_ENVELOPE_SLED_ZERO_FRICTION_UPDATES, frame: "H+1" },
   currentAdmission: "unchanged tryCandidateLines",
@@ -98,7 +109,7 @@ const started = performance.now();
 let totalFrames = 0;
 const results = selected.map(runState);
 process.stdout.write([
-  `post-catch sled reaction envelope: ${results.length} state(s), ${round(performance.now() - started)}ms; engine=wasm; charged frames ${totalFrames}`,
+  `post-catch ${form}: ${results.length} state(s), ${round(performance.now() - started)}ms; engine=wasm; charged frames ${totalFrames}`,
   ...results.map((result) => {
     const raw = result.attempts.filter((attempt) => attempt.raw.admitted).length;
     const augmented = result.attempts.filter((attempt) => attempt.augmented?.admitted).length;
@@ -114,7 +125,7 @@ function runState(id: StateId): StateResult {
   if (prepared.panel.cohort !== "calibration") throw new Error(`fixture ${id} is not calibration`);
   let chargedFrames = 0;
   const charge = (frames: number): void => { chargedFrames += frames; totalFrames += frames; };
-  const attempts = runAttempts(prepared, charge);
+  const attempts = runAttempts(prepared, charge, form);
   const coherent = attempts.filter((attempt) => attempt.coherent).length;
   const reasons: string[] = [];
   if (coherent === 0) reasons.push("no exact raw-catch-preserving multi-contact reaction return");
@@ -128,8 +139,8 @@ function runState(id: StateId): StateResult {
   writeImmutableJsonArtifact(artifactPath, {
     schema: SCHEMA, artifactIdentity,
     purpose: [
-      "Falsify one finite post-catch state-to-geometry component derived from the exact full sled configuration after an already-admitted native catch.",
-      "Every raw and ordinary-return stream member is evaluated independently; no result selects, alters, or feeds back into the envelope construction.",
+      `Falsify one finite post-catch ${form} state-to-geometry component derived from the exact full sled configuration after an already-admitted native catch.`,
+      "Every raw and ordinary-return stream member is evaluated independently; no result selects, alters, or feeds back into the state-to-geometry construction.",
       "Calibration-only observation; it cannot create a compiler source, selector, rank term, or benchmark attempt.",
     ],
     status: { productionIntegration: "forbidden", cohortPolicy: "calibration only" }, argv: [...argv],
@@ -140,8 +151,13 @@ function runState(id: StateId): StateResult {
     },
     panel: prepared.panel, fixtureReplay: prepared.replay,
     protocol: {
-      component: "H+1..H+6 full-sled gravity-support configuration envelope from the exact raw-catch response state",
-      continuousInputs: "all PEG/TAIL/NOSE/STRING positions and velocities, angular rate, collective ballistic state",
+      form,
+      component: form === "reaction-envelope"
+        ? "H+1..H+6 full-sled gravity-support configuration envelope from the exact raw-catch response state"
+        : "one H+1 full-sled collective-flow-facing forward-support membrane from the exact raw-catch response state",
+      continuousInputs: form === "reaction-envelope"
+        ? "all PEG/TAIL/NOSE/STRING positions and velocities, angular rate, collective ballistic state"
+        : "all PEG/TAIL/NOSE/STRING positions and velocities, collective flow, and full-cloud normal/tangent support functions",
       exclusions: "no named-point anchor, raw coordinate edit, score, rank, source, case, seed, duration branch, contact-class feedback, parameter menu, or source delivery",
       rawCatch: { attempts: RAW_ATTEMPTS, generator: "unchanged normal", admission: "unchanged tryCandidateLines" },
       temporalBoundary: "response line collision prohibited at H-1 and H; response must activate at H+1 through native zero-friction sled contact",
@@ -154,7 +170,7 @@ function runState(id: StateId): StateResult {
   return { id, artifactPath, attempts, chargedFrames, verdict, reasons };
 }
 
-function runAttempts(prepared: PreparedTrajectoryFixtureCore, charge: (frames: number) => void): AttemptResult[] {
+function runAttempts(prepared: PreparedTrajectoryFixtureCore, charge: (frames: number) => void, form: Form): AttemptResult[] {
   const beforeProbe = getSimFrames();
   const probe = getCandidateProbe(prepared.engine, prepared.current, prepared.ctx);
   charge(getSimFrames() - beforeProbe);
@@ -211,13 +227,13 @@ function runAttempts(prepared: PreparedTrajectoryFixtureCore, charge: (frames: n
       });
       continue;
     }
-    const envelope = realizePostcatchSledReactionEnvelope(responseState, prepared.lineIdStart + raw.lines.length);
+    const envelope = realize(form, responseState, prepared.lineIdStart + raw.lines.length);
     if (envelope.status !== "ready") {
       results.push({
         attempt,
         raw: { admitted: true, admissionFrames: rawAdmissionFrames, targetTopology: rawTopology, error: null },
         envelope, stateReadFrames, augmented: null, return: null, nextNormal: null,
-        coherent: false, reasons: [`reaction envelope unavailable: ${envelope.reason}`], chargedFrames: rawAdmissionFrames + stateReadFrames,
+        coherent: false, reasons: [`post-catch state geometry unavailable: ${envelope.reason}`], chargedFrames: rawAdmissionFrames + stateReadFrames,
       });
       continue;
     }
@@ -272,7 +288,7 @@ function runAttempts(prepared: PreparedTrajectoryFixtureCore, charge: (frames: n
     const impactAchieved = achieved.impact ?? null;
     const impactErrSigned = impactAchieved === null || target.impact === undefined ? null : round(impactAchieved - target.impact);
     if ((rawTargetTopology?.sledZeroFriction ?? 0) < MIN_SLED_ZERO_FRICTION_UPDATES) reasons.push(`raw target topology below ${MIN_SLED_ZERO_FRICTION_UPDATES}`);
-    if ((envelopeInboundTopology?.total ?? 0) !== 0) reasons.push("reaction envelope intrudes before H+1");
+    if ((envelopeInboundTopology?.total ?? 0) !== 0) reasons.push("post-catch state geometry intrudes before H+1");
     if ((envelopeResponseTopology?.sledZeroFriction ?? 0) < MIN_ENVELOPE_SLED_ZERO_FRICTION_UPDATES) reasons.push(`reaction topology below ${MIN_ENVELOPE_SLED_ZERO_FRICTION_UPDATES} at H+1`);
     if (impactErrSigned === null || Math.abs(impactErrSigned) > .05) reasons.push("current impact is not accurate");
     const returnMeasure = measureReturn(prepared, full, charge);
@@ -294,6 +310,16 @@ function runAttempts(prepared: PreparedTrajectoryFixtureCore, charge: (frames: n
     });
   }
   return results;
+}
+
+function realize(
+  form: Form,
+  state: NonNullable<ReturnType<typeof extractPlanningState>>,
+  lineIdStart: number,
+): Realization {
+  return form === "reaction-envelope"
+    ? realizePostcatchSledReactionEnvelope(state, lineIdStart)
+    : realizePostcatchSledFluxMembrane(state, lineIdStart);
 }
 
 function failedAttempt(attempt: number, admissionFrames: number, error: string, chargedFrames: number): AttemptResult {

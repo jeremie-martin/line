@@ -5802,6 +5802,47 @@ candidate-specific source policy.  The only material full-sled transition is
 created at the native target collision itself, while every tested static or
 post-collision representation has failed the dense continuation guard.
 
+## Declared Observation: Multi-Contact Frenet Curvature Continuity (2026-07-17)
+
+The rejected grade, energy, phase, and full-sled fields leave one distinct
+continuous state-to-geometry law: preserve the *normal acceleration* of the
+committed release, rather than its heading or pose.  For each normal proposal
+on a deterministic 25% attempt span after the first contact, carry the prior
+chosen terminal `v²κ`, divide it by current measured entry speed squared, and
+use that as the current terminal-curvature target.  A sine packet changes only
+the post-contact interior segment headings; it preserves the sampled contact
+tangent, final tangent, every segment length, raw candidate identity, and the
+ordinary exact admission and local-cost selection.  This is a five-contact
+WASM fixture falsifier, not a compiler default.
+
+**Decision boundary.** Retire before any source implementation unless the law
+improves both complete five-contact chains and terminal speed over independent
+normal generation in both frozen believer fixtures.  Do not respond to a
+failure by clipping or scaling curvature, changing the packet support, using a
+source/duration gate, or borrowing any additional predecessor geometry: those
+would be a different, tuned component.
+
+**Fixture result (2026-07-17, 7s; `LR_ENGINE=wasm node --expose-gc --import
+tsx scripts/v0/study_grade_continuity.ts --case=all --trials=96
+--out-dir=generated/studies/frenet-curvature-continuity/v1`; artifacts
+`generated/studies/frenet-curvature-continuity/v1/*.json`): RETIRE the
+Frenet-curvature law.** The law was active rather than unavailable: on
+believer36 it produced **48** transformed attempts, one admitted/chosen, while
+on believer69 it produced **1,932** transformed attempts, **809** admitted,
+and **40** chosen.  Yet believer36 remains **0/96** complete chains (the
+independent stream is also 0/96), with only `+.000218` terminal-speed change.
+Believer69 remains **37/96** complete chains, exactly equal to independent;
+its small `+.020245` terminal-speed change accompanies `-.000924` mean
+achieved-speed change and no completion gain.
+
+Carrying `v²κ` therefore does produce valid geometric alternatives, but not a
+broad multi-contact advantage under the unchanged continuation judge.  Do not
+promote, retune, or source-gate this state.  The useful result is narrower: a
+release-boundary-invariant curvature transport cannot supply the missing
+coherent component.  A successor must change the native collision/transition
+representation itself, not transport any state recovered from an independently
+chosen prior post-curve.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -4061,6 +4061,69 @@ load-bearing collision-order constraint, not an arbitrary omission. Further
 work must introduce a new geometry/state relation, not relax the normal
 surface's one-way topology.
 
+## Declared Observation: Swept Articulated-Body Fender Before an Ordinary Catch (2026-07-17)
+
+The body audit found useful ordinary collisions are almost always simultaneous
+foot-and-sled events, while the two accidental isolated body-first events were
+poor. That does not test an intentionally constructed, state-neutral
+*non-simultaneous* multi-point contact. This component leaves each raw normal
+sled catch intact at its target and adds one finite same-side fender computed
+from the articulated body's convex hull at the exact preceding engine frame.
+Its centre is the body point leading along the incoming COM velocity; no body
+point is named or selected. Its tangent is the raw catch's target-adjacent
+tangent, its normal clearance is copied from the ordinary sled catch, and its
+length is the full articulated-body hull span along that tangent. Thus the
+fender is a one-frame-earlier body constraint with continuous physical inputs;
+it has no ask, case, source, duration, rank, collision result, or tunable
+offset. A useful result must visibly create body-first fender contact before
+the ordinary sled catch—not merely add another surface.
+
+**Protocol, declared before rows.** Reuse the six-regime, two-seed
+WASM/V2-jolt/500k normal-pool panel. First prove the production raw replay.
+For every unchanged raw proposal, read all six articulated collision points at
+`H-1`, build the hull fender above, append it with one fresh line id, and use
+the existing exact candidate gate/objective. For each viable fender candidate,
+read native candidate-owned collision updates at `H-1` and `H`, recording
+whether the fender actually fired and whether its preceding-frame collision
+was body-only. Retain viability, axis RMS, objective, local cost, and charged
+admission work. This is a physical observation only, not a source lane.
+
+**Discard before source work.** Retire if production replay fails; if the
+fender is unavailable; if it fails to create body-only `H-1` collision on a
+material share of viable candidates in dense, pickup, and low-air; if it lacks
+broad viable-pool and objective gains; if any required broad regime loses
+material support; or if its charge rises without a stronger pool. A pass
+authorizes only a separately declared source-default scope test. It does not
+authorize body-point selection, fender-length/phase tuning, a side mixture,
+force composition, Stage 0, or V2 evaluation.
+
+**Result (2026-07-17, first decisive dense slice only;
+`npm run study:body-fender -- --case=frontier_dense_recovery
+--case=dense_dialogue_impact_contrast_10`; artifact
+`generated/studies/body-fender-normal-pool/v1/batch-0.json`): RETIRE at the
+dense material-loss guard.** The production pools replayed exactly on all
+eight rows and the fender was physically materialized for every **232/232**
+raw geometry (mean finite body-hull span **7.06 px**). This is stronger than a
+mere alignment null: of 48 viable fender candidates, 37 had a native fender
+collision at `H-1` or `H`, and **20** had the promised body-only fender
+collision at `H-1` before any sled point. The exact engine therefore confirms
+a non-simultaneous articulated-body response.
+
+It is nevertheless the wrong component. Dense viable support falls **11.5
+candidates/state**, best objective falls **.115216**, and best axis RMS falls
+`.059750`; four of eight rows are near-empty or empty. The 267-frame apparent
+saving is dominated by the early-rejected candidates; best local cost worsens
+`.030774`. The two rows with a substantial body-first event still lose
+objective (`-.144667` on dense recovery and `-.201536` on dense dialogue).
+The first required broad regime is already materially harmed, so the
+predeclared guard ends the assay without a wider panel.
+
+**Decision.** Do not select the observed hull point, alter the preceding-frame
+phase, vary the fender span/clearance, add a body-contact lane, or compose a
+fender with a side, force, or response source. Intentional body-first contact
+is now shown possible but economically poisonous under exact admission; the
+needed contact-order component must not pre-empt the ordinary sled catch.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

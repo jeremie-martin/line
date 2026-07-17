@@ -22,13 +22,14 @@ import { compileHandoff, setHandoffFrontierNodeProbeHook, type HandoffNode } fro
 import { setNormalPoolSnapshotHook } from "./optimizer/node.ts";
 import { getCandidateProbe, sampleOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { axisLookaheadEndFrame, tryCandidateGeometry } from "./core/candidate.ts";
-import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
+import { effectiveAxes, engineLineFromTrackLine, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
 import { getSimFrames } from "./optimizer/sim_frames.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
+import { postimpactEngineCollisionWitnessesForLineIds } from "./trajectory/postimpact_trace.ts";
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--contact-patch-release|--two-sided-rail|--all-body-support-anchor|--surface-normal-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
+  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--contact-patch-release|--two-sided-rail|--body-fender|--all-body-support-anchor|--surface-normal-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
@@ -39,12 +40,13 @@ const forwardAcceleration = argv.includes("--forward-acceleration");
 const terminalSceneryRelease = argv.includes("--terminal-scenery-release");
 const contactPatchRelease = argv.includes("--contact-patch-release");
 const twoSidedRail = argv.includes("--two-sided-rail");
+const bodyFender = argv.includes("--body-fender");
 const allBodySupportAnchor = argv.includes("--all-body-support-anchor");
 const surfaceNormalBodySupportAnchor = argv.includes("--surface-normal-body-support-anchor");
 const requestedCaseIds = argv.filter((value) => value.startsWith("--case=")).map((value) => value.slice("--case=".length));
-const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--contact-patch-release" && value !== "--two-sided-rail" && value !== "--all-body-support-anchor" && value !== "--surface-normal-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
+const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--contact-patch-release" && value !== "--two-sided-rail" && value !== "--body-fender" && value !== "--all-body-support-anchor" && value !== "--surface-normal-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
-if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, contactPatchRelease, twoSidedRail, allBodySupportAnchor, surfaceNormalBodySupportAnchor].filter(Boolean).length > 1) {
+if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, contactPatchRelease, twoSidedRail, bodyFender, allBodySupportAnchor, surfaceNormalBodySupportAnchor].filter(Boolean).length > 1) {
   throw new Error("normal-pool comparator modes are mutually exclusive");
 }
 
@@ -62,6 +64,9 @@ const COMPLETE_COLLISION_POINTS = [
   "PEG", "TAIL", "NOSE", "STRING",
   "BUTT", "SHOULDER", "RHAND", "LHAND", "LFOOT", "RFOOT",
 ] as const;
+const ARTICULATED_BODY_POINTS = ["BUTT", "SHOULDER", "RHAND", "LHAND", "LFOOT", "RFOOT"] as const;
+const BODY_POINT_SET = new Set<string>(ARTICULATED_BODY_POINTS);
+const SLED_POINT_SET = new Set(["PEG", "TAIL", "NOSE", "STRING"]);
 type BodyCollisionPoint = { name: string; x: number; y: number };
 type SurfaceNormalAnchorTelemetry = {
   geometries: number;
@@ -81,6 +86,14 @@ type ContactPatchTelemetry = {
   meanCollidablePostLengthPx: number | null;
 };
 type TwoSidedRailTelemetry = { geometries: number; originalLines: number; companionLines: number };
+type BodyFenderTelemetry = {
+  geometries: number;
+  available: number;
+  viable: number;
+  fenderCollision: number;
+  bodyOnlyAtPreviousFrame: number;
+  meanFenderLengthPx: number | null;
+};
 const ACTIVE_CASES = requestedCaseIds.length === 0
   ? CASES
   : CASES.filter((entry) => requestedCaseIds.includes(entry.id));
@@ -114,6 +127,7 @@ type Row = {
   surfaceNormalBodySupportAnchor: SurfaceNormalAnchorTelemetry | null;
   contactPatchRelease: ContactPatchTelemetry | null;
   twoSidedRail: TwoSidedRailTelemetry | null;
+  bodyFender: BodyFenderTelemetry | null;
   replayEquivalent: boolean | null;
   replayMessage: string | null;
   production: Arm | null;
@@ -172,6 +186,8 @@ const result = {
     ? "line.study-contact-patch-release-normal-pool.v1"
     : twoSidedRail
     ? "line.study-two-sided-rail-normal-pool.v1"
+    : bodyFender
+    ? "line.study-body-fender-normal-pool.v1"
     : forwardAcceleration
     ? "line.study-forward-tangential-acceleration-normal-pool.v1"
     : terminalEndExtension
@@ -185,6 +201,8 @@ const result = {
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; a finite post-contact collision patch spans one whole sled width plus one incoming-speed frame, while the identical visible remainder becomes type-2 scenery"
       : twoSidedRail
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; every ordinary one-way surface retains its current face and gains one coincident opposite-facing collision companion"
+      : bodyFender
+      ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; a body-hull fender from the preceding exact frame is added before the unchanged ordinary sled catch"
       : allBodySupportAnchor
       ? "same PRNG coordinates, attempts, candidate count, exact gates, and scoring; only the gravity support anchor changes from the lowest sled collision point to the lowest point on the complete collision body"
       : terminalSceneryRelease
@@ -208,6 +226,8 @@ const result = {
       ? "find the ordered post-contact line whose start is nearest the exact ordinary sled anchor; retain solid collision for one maximum sled span plus one target-state speed frame of downstream arclength, split at that physical length when needed, and encode every later unchanged segment as type-2 scenery"
       : twoSidedRail
       ? "for every unchanged raw solid line, emit one additional coincident line with a fresh id and only its flipped collision-side bit inverted; no geometry, endpoint, type, target, or line subset changes"
+      : bodyFender
+      ? "use the leading articulated-body hull point at the exact preceding frame, the raw candidate's target-adjacent tangent, and its ordinary sled-normal clearance to add one finite same-side fender spanning the body hull's tangent extent; the ordinary line set remains intact"
       : allBodySupportAnchor
       ? "read all ten engine collision points at the target frame and replace only the sampled geometry's anchor with their maximum-y gravity support point; retain the ordinary COM velocity, raw draws, candidate gates, and scorer"
       : terminalSceneryRelease
@@ -272,6 +292,9 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
   const twoSided = twoSidedRail
     ? sampleTwoSidedRail(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : null;
+  const fender = bodyFender
+    ? sampleBodyFender(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
+    : null;
   const alternative = terminalSceneryRelease
     ? sampleTerminalSceneryRelease(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : forwardAcceleration
@@ -282,6 +305,8 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
         ? contactPatch.arm
       : twoSided !== null
         ? twoSided.arm
+      : fender !== null
+        ? fender.arm
       : allBodySupportAnchor
         ? sampleAllBodySupportAnchored(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed, supportAnchor!.targetState)
         : surfaceNormalSupport !== null
@@ -299,6 +324,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
     surfaceNormalBodySupportAnchor: surfaceNormalSupport?.telemetry ?? null,
     contactPatchRelease: contactPatch?.telemetry ?? null,
     twoSidedRail: twoSided?.telemetry ?? null,
+    bodyFender: fender?.telemetry ?? null,
     replayEquivalent: check.ok, replayMessage: check.message, production, alternative,
     deltas: {
       viable: alternative.viable - production.viable,
@@ -313,7 +339,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
 function unavailable(caseId: string, regime: Regime, seed: number, checkpoint: Checkpoint, gapIndex: number, message: string): Row {
   return {
     caseId, regime, seed, checkpoint, gapIndex, candidateCount: null,
-    captureAvailable: false, allBodySupportAnchor: null, surfaceNormalBodySupportAnchor: null, contactPatchRelease: null, twoSidedRail: null, replayEquivalent: null, replayMessage: message,
+    captureAvailable: false, allBodySupportAnchor: null, surfaceNormalBodySupportAnchor: null, contactPatchRelease: null, twoSidedRail: null, bodyFender: null, replayEquivalent: null, replayMessage: message,
     production: null, alternative: null, deltas: null,
   };
 }
@@ -416,6 +442,175 @@ function sampleTwoSidedRail(
   return {
     arm: summarizeArm(count, candidates, admissionFrames),
     telemetry: { geometries: count, originalLines, companionLines: originalLines },
+  };
+}
+
+/**
+ * A deliberately separate multi-point contact-order component.  The fender is
+ * not aimed at a named foot or hand: its centre is the articulated body's
+ * leading hull extremum at H-1, and its finite extent is that body's tangent
+ * hull.  It keeps the raw normal sled catch untouched at H, so any observed
+ * body-first hit is a genuine non-simultaneous constraint rather than a new
+ * anchor or a replacement contact surface.
+ */
+function sampleBodyFender(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): { arm: Arm; telemetry: BodyFenderTelemetry } {
+  const rng = makeRng(seed);
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const body = articulatedBodyHullAt(node.search.prefixEngine, Math.max(0, gap.endFrame - 1), probe.targetState.velocity);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const candidates: Digest[] = [];
+  let admissionFrames = 0;
+  let available = 0;
+  let fenderCollision = 0;
+  let bodyOnlyAtPreviousFrame = 0;
+  const fenderLengths: number[] = [];
+  for (let attempt = 0; attempt < count; attempt++) {
+    const rawGeometry = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    const fender = body === null
+      ? null
+      : bodyFenderGeometry(rawGeometry, probe.targetState, body, node.search.prefixNextLineId);
+    if (fender !== null) {
+      available++;
+      fenderLengths.push(fender.lengthPx);
+    }
+    const geometry = fender === null ? rawGeometry : { ...rawGeometry, lines: [...rawGeometry.lines, fender.line] };
+    const before = getSimFrames();
+    const fit = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      geometry,
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    const simFrames = getSimFrames() - before;
+    admissionFrames += simFrames;
+    if (fit === null) continue;
+    fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+    fit.sampleAttempt = attempt;
+    candidates.push(digest(fit, node, gap, gaps, ctx, simFrames));
+    if (fender === null) continue;
+    const full = node.search.prefixEngine.addLine(fit.lines.map(engineLineFromTrackLine));
+    const priorHits = postimpactEngineCollisionWitnessesForLineIds(full, Math.max(0, gap.endFrame - 1), new Set([fender.line.id]));
+    const targetHits = postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame, new Set([fender.line.id]));
+    const hits = [...priorHits, ...targetHits];
+    if (hits.length > 0) fenderCollision++;
+    const priorPoints = new Set(priorHits.flatMap((hit) => hit.pointIds));
+    if (
+      [...priorPoints].some((point) => BODY_POINT_SET.has(point)) &&
+      ![...priorPoints].some((point) => SLED_POINT_SET.has(point))
+    ) bodyOnlyAtPreviousFrame++;
+  }
+  return {
+    arm: summarizeArm(count, candidates, admissionFrames),
+    telemetry: {
+      geometries: count,
+      available,
+      viable: candidates.length,
+      fenderCollision,
+      bodyOnlyAtPreviousFrame,
+      meanFenderLengthPx: mean(fenderLengths),
+    },
+  };
+}
+
+type ArticulatedBodyHull = {
+  leading: { x: number; y: number };
+  points: Array<{ x: number; y: number }>;
+};
+
+function articulatedBodyHullAt(
+  engine: unknown,
+  frame: number,
+  velocity: { x: number; y: number },
+): ArticulatedBodyHull | null {
+  const speed = Math.hypot(velocity.x, velocity.y);
+  if (!(speed > 1e-9) || !Number.isFinite(speed)) return null;
+  const direction = { x: velocity.x / speed, y: velocity.y / speed };
+  const rider = getRiderMetered(engine, frame);
+  const points = ARTICULATED_BODY_POINTS.flatMap((name): Array<{ x: number; y: number }> => {
+    const position = rider.get(name)?.pos;
+    return position !== undefined && Number.isFinite(position.x) && Number.isFinite(position.y)
+      ? [{ x: position.x, y: position.y }]
+      : [];
+  });
+  if (points.length !== ARTICULATED_BODY_POINTS.length) return null;
+  let leading = points[0];
+  let leadingProjection = leading.x * direction.x + leading.y * direction.y;
+  for (const point of points) {
+    const forward = point.x * direction.x + point.y * direction.y;
+    if (forward > leadingProjection) {
+      leading = point;
+      leadingProjection = forward;
+    }
+  }
+  return { leading, points };
+}
+
+function bodyFenderGeometry(
+  geometry: ReturnType<typeof sampleArcPlacementGeometry>,
+  targetState: ImpactFrameTargetState,
+  body: ArticulatedBodyHull,
+  lineIdStart: number,
+): { line: ReturnType<typeof sampleArcPlacementGeometry>["lines"][number]; lengthPx: number } | null {
+  let contact: ReturnType<typeof sampleArcPlacementGeometry>["lines"][number] | null = null;
+  let closest = Infinity;
+  for (const line of geometry.lines) {
+    const distance = (line.x1 - targetState.sledX) ** 2 + (line.y1 - targetState.sledY) ** 2;
+    if (distance < closest) {
+      closest = distance;
+      contact = line;
+    }
+  }
+  if (contact === null) return null;
+  const dx = contact.x2 - contact.x1;
+  const dy = contact.y2 - contact.y1;
+  const length = Math.hypot(dx, dy);
+  if (!(length > 1e-9)) return null;
+  const tangent = { x: dx / length, y: dy / length };
+  let normal = { x: -tangent.y, y: tangent.x };
+  if (normal.y < 0) normal = { x: -normal.x, y: -normal.y };
+  const contactNormal = contact.x1 * normal.x + contact.y1 * normal.y;
+  const sledNormal = targetState.sledX * normal.x + targetState.sledY * normal.y;
+  const normalClearance = contactNormal - sledNormal;
+  const bodyNormal = body.leading.x * normal.x + body.leading.y * normal.y;
+  const centreNormal = bodyNormal + normalClearance;
+  const bodyTangent = body.leading.x * tangent.x + body.leading.y * tangent.y;
+  const tangentProjections = body.points.map((point) => point.x * tangent.x + point.y * tangent.y);
+  const tangentSpan = Math.max(...tangentProjections) - Math.min(...tangentProjections);
+  if (!(tangentSpan > 1e-9) || !Number.isFinite(centreNormal)) return null;
+  const centre = {
+    x: tangent.x * bodyTangent + normal.x * centreNormal,
+    y: tangent.y * bodyTangent + normal.y * centreNormal,
+  };
+  const half = tangentSpan / 2;
+  return {
+    line: {
+      id: lineIdStart + geometry.lines.length,
+      type: contact.type,
+      x1: centre.x - tangent.x * half,
+      y1: centre.y - tangent.y * half,
+      x2: centre.x + tangent.x * half,
+      y2: centre.y + tangent.y * half,
+      flipped: contact.flipped,
+      leftExtended: false,
+      rightExtended: false,
+    },
+    lengthPx: tangentSpan,
   };
 }
 

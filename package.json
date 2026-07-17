@@ -42,6 +42,7 @@
     "impact-probe:aggregate": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/impact_frontier_probe.ts --aggregate",
     "study:impact-suffix": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_suffix_counterfactual.ts",
     "study:impact-response": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_response_envelope.ts",
+    "study:impact-multicontact": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_impact_multicontact_geometry.ts",
     "study:joint-normal-bridge": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_joint_normal_bridge.ts",
     "study:joint-normal-compound": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_joint_normal_bridge.ts --early-compound",
     "study:phase-locked-transient": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/study_phase_locked_transient.ts",

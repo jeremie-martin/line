@@ -288,6 +288,20 @@ export type HandoffPoolProbeCollisionWindow = {
   after: HandoffPoolProbeCollisionCounts;
 };
 
+/** Exact candidate geometry and full-sled state at the target collision frame.
+ * This is deliberately a lazy, post-completion observer surface: it exists
+ * for fixed diagnostic studies, never for candidate generation or selection. */
+export type HandoffPoolProbeContactGeometry = {
+  lines: Array<{ id: number; x1: number; y1: number; x2: number; y2: number }>;
+  points: Partial<Record<"PEG" | "TAIL" | "NOSE" | "STRING", {
+    x: number;
+    y: number;
+    vx: number | null;
+    vy: number | null;
+  }>>;
+  targetContacts: Array<{ lineId: number; pointIds: string[] }>;
+};
+
 export type HandoffPoolProbeRecord = {
   gapIndex: number;
   entrySpeed: number;
@@ -300,6 +314,11 @@ export type HandoffPoolProbeRecord = {
    * asks about a material pair, and the callback cannot affect selection.
    */
   collisionWindowAtQualityRank: (qualityRank: number) => HandoffPoolProbeCollisionWindow | null;
+  /**
+   * Lazy exact target-frame geometry for contact-manifold diagnostics. Like the
+   * collision callback, callers must resolve it only after compile completion.
+   */
+  contactGeometryAtQualityRank: (qualityRank: number) => HandoffPoolProbeContactGeometry | null;
 };
 
 type HandoffPoolProbeHook = (record: HandoffPoolProbeRecord) => void;
@@ -365,6 +384,60 @@ function candidateOwnedCollisionWindow(
       before: countAt(gap.endFrame - 1),
       target: countAt(gap.endFrame),
       after: countAt(gap.endFrame + 1),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Replays the already-scored candidate once after traversal so a study can
+ * relate exact multi-point state to its native line geometry. The normal
+ * compiler never calls this function; keeping it lazy avoids cache reads from
+ * changing a live search.
+ */
+function candidateOwnedContactGeometry(
+  prefixEngine: any,
+  candidate: Candidate,
+  gap: Gap,
+): HandoffPoolProbeContactGeometry | null {
+  try {
+    const engine = prefixEngine.addLine(candidate.lines.map(engineLineFromTrackLine));
+    if (typeof engine?.getUpdatesAtFrame !== "function" || typeof engine?.getRider !== "function") return null;
+    const candidateLineIds = new Set(candidate.lines.map((line) => line.id));
+    const updates = engine.getUpdatesAtFrame(Math.max(0, gap.endFrame));
+    const targetContacts: Array<{ lineId: number; pointIds: string[] }> = [];
+    if (Array.isArray(updates)) {
+      for (const update of updates) {
+        const record = update as { id?: unknown; updated?: unknown };
+        if (typeof record.id !== "number" || !candidateLineIds.has(record.id) || !Array.isArray(record.updated)) continue;
+        const pointIds = record.updated
+          .map((entry) => (entry as { id?: unknown } | null)?.id)
+          .filter((point): point is string => typeof point === "string");
+        if (pointIds.length > 0) targetContacts.push({ lineId: record.id, pointIds });
+      }
+    }
+    const rider = engine.getRider(Math.max(0, gap.endFrame));
+    const points: HandoffPoolProbeContactGeometry["points"] = {};
+    for (const name of ["PEG", "TAIL", "NOSE", "STRING"] as const) {
+      const point = rider?.get?.(name);
+      const position = point?.pos as { x?: unknown; y?: unknown } | undefined;
+      const velocity = (point?.vel ?? point?.velocity) as { x?: unknown; y?: unknown } | undefined;
+      if (
+        typeof position?.x !== "number" || !Number.isFinite(position.x) ||
+        typeof position?.y !== "number" || !Number.isFinite(position.y)
+      ) continue;
+      points[name] = {
+        x: position.x,
+        y: position.y,
+        vx: typeof velocity?.x === "number" && Number.isFinite(velocity.x) ? velocity.x : null,
+        vy: typeof velocity?.y === "number" && Number.isFinite(velocity.y) ? velocity.y : null,
+      };
+    }
+    return {
+      lines: candidate.lines.map((line) => ({ id: line.id, x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 })),
+      points,
+      targetContacts,
     };
   } catch {
     return null;
@@ -3515,6 +3588,7 @@ function rankedOptions(
       : ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
     const entrySpeed = getCandidateProbe(node.prefixEngine, gap, ctx).targetState.speed;
     const collisionWindows = new Map<number, HandoffPoolProbeCollisionWindow | null>();
+    const contactGeometry = new Map<number, HandoffPoolProbeContactGeometry | null>();
     const collisionWindowAtQualityRank = (qualityRank: number): HandoffPoolProbeCollisionWindow | null => {
       if (!Number.isSafeInteger(qualityRank) || qualityRank < 0 || qualityRank >= sorted.length) return null;
       const cached = collisionWindows.get(qualityRank);
@@ -3522,6 +3596,14 @@ function rankedOptions(
       const window = candidateOwnedCollisionWindow(node.prefixEngine, sorted[qualityRank]!, gap);
       collisionWindows.set(qualityRank, window);
       return window;
+    };
+    const contactGeometryAtQualityRank = (qualityRank: number): HandoffPoolProbeContactGeometry | null => {
+      if (!Number.isSafeInteger(qualityRank) || qualityRank < 0 || qualityRank >= sorted.length) return null;
+      const cached = contactGeometry.get(qualityRank);
+      if (cached !== undefined) return cached;
+      const observation = candidateOwnedContactGeometry(node.prefixEngine, sorted[qualityRank]!, gap);
+      contactGeometry.set(qualityRank, observation);
+      return observation;
     };
     handoffPoolProbeHook({
       gapIndex: gap.index,
@@ -3599,6 +3681,7 @@ function rankedOptions(
         };
       }),
       collisionWindowAtQualityRank,
+      contactGeometryAtQualityRank,
     });
   }
   // Agreement instrument (measure-only): record ONLY when the pool was scored via the

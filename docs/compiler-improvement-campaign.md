@@ -2862,6 +2862,63 @@ diagnostic infrastructure only. Curved normal realization is now closed in
 this fixed refine-only form; a successor must name a distinct physical
 component rather than sweep chord tolerance or segment caps.
 
+## Declared Diagnosis: Transient Ballistic-Transfer Residual (2026-07-17)
+
+The retired transient C1-to-ballistic bridge selected its launch from exact
+incoming speed and the literal k+2 interval only: `vy = -g*N/2`. It therefore
+enforces a symmetric vertical flight but never tests whether the bridge's
+release is compatible with the next *physical reference position*. A distinct
+state-to-state ballistic-transfer component would instead derive its launch
+vector from the exact engine state after the first admitted C1, the unforced
+k+2 reference at the same immutable prefix, gravity, and `N`; it would still
+require exact current and next admission. This diagnosis does not construct
+that component or alter a control.
+
+**Cheap decisive audit.** Recreate only the existing frozen dense-240
+transient-bridge protocol under WASM/500k, retaining all original materialized
+pairs. For each pair, read (a) the k+2 CoM and named lowest-reference state
+from the engine containing only the byte-stable first C1, and (b) the exact
+k+2 state after the complete bridge. Record both spatial residuals and the
+nominal gravity-only transfer velocity from the bridge endpoint to the
+pre-bridge reference over literal `N`; no result is supplied to the bridge,
+gate, normal stream, or ranker. Charge every new state read. The original
+bridge remains the geometry; this is an observation of its state boundary.
+
+**Decision boundary.** Retire the transfer basis if any materialized pair
+lacks a finite pre-bridge k+2 target state, if fewer than 75% expose the same
+signed reference residual on either physical axis, or if fewer than 75% need a
+finite nominal transfer launch angle differing by more than 5 degrees from the
+symmetric bridge launch. A pass authorizes only a separately declared fixed
+state-to-state component assay on a fresh dense-240 fixture; it authorizes no
+control retune, source lane, scope panel, or V2 evaluation.
+
+**Result (2026-07-17, 0.19s `LR_ENGINE=wasm npx tsx
+scripts/v0/study_two_contact_shooting.ts --case=dense240 --return-normal
+--transient-bridge --transfer-diagnosis`; artifact
+`generated/studies/two-contact-shooting/transient-ballistic-transfer-residual-v1/`):
+RETIRE ballistic-transfer basis.** The run reproduced the existing 19/19
+byte-stable materialized bridge pairs, zero k+2 ordinary-normal returns, and
+the prior segment admissions. Every pair exposed a finite unforced k+2 state.
+The spatial observation is real: all 19 bridged arrivals were above the
+unforced reference (mean `y` residual −11.05px, median −7.80px); 17/19 were
+also behind it in `x` (mean −5.60px). This establishes that the symmetric
+bridge moves the body away from the unforced continuation, not that a
+position-conditioned launch law is coherent.
+
+The declared vector condition fails decisively. Only **9/19 (47.4%)**
+materialized pairs had a finite nominal endpoint-to-reference transfer angle
+more than 5 degrees from the bridge's actual symmetric launch; the median
+absolute difference was only 4.96 degrees. Thus the common vertical residual
+does not identify one cross-pair ballistic-vector correction—most pairs retain
+the existing launch direction to within the predeclared physical tolerance.
+
+**Decision.** Do not build a target-position ballistic bridge, retune the
+launch horizon or endpoint, derive an offset mixture, or run fresh fixtures,
+scope, or V2 evaluation. The unforced k+2 reference is a useful diagnostic
+but not a universal arrival-control state. Any future multi-contact component
+must name a different physical state boundary, not reformulate this rejected
+transfer vector.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

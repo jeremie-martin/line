@@ -95,6 +95,7 @@ const returnNormal = argv.includes("--return-normal");
 const ballisticRelease = argv.includes("--ballistic-release");
 const transientBridge = argv.includes("--transient-bridge");
 const arrivalGateDiagnosis = argv.includes("--arrival-gates");
+const transferDiagnosis = argv.includes("--transfer-diagnosis");
 const recursiveTransient = argv.includes("--recursive-transient");
 const recursiveReturn = argv.includes("--recursive-return");
 const distributedForwardFour = argv.includes("--distributed-forward-four");
@@ -108,6 +109,8 @@ const SCHEMA = distributedForwardFour
   ? "line.study-recursive-transient-k3-normal-return.v1"
   : recursiveTransient
   ? "line.study-recursive-transient-bridge.v1"
+  : transferDiagnosis
+  ? "line.study-transient-ballistic-transfer-residual.v1"
   : arrivalGateDiagnosis
   ? "line.study-transient-arrival-normal-gates.v1"
   : transientBridge
@@ -120,7 +123,7 @@ const SCHEMA = distributedForwardFour
 
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--arrival-gates|--recursive-transient|--recursive-return] [--out-dir=DIR]",
+    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--ballistic-release|--transient-bridge] [--arrival-gates|--transfer-diagnosis|--recursive-transient|--recursive-return] [--out-dir=DIR]",
     "",
     "Charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
     "Without --return-normal, writes the archived two-contact protocol under",
@@ -132,6 +135,9 @@ if (argv.includes("--help") || argv.includes("-h")) {
     "C1 response with an immediate C1-to-ballistic contact bridge at k+1.",
     "--arrival-gates requires --transient-bridge and records the unchanged k+2",
     "normal stream's clearance/survival/landing-window gate outcome per attempt.",
+    "--transfer-diagnosis requires --transient-bridge and records the unforced",
+    "k+2 reference state, exact bridged arrival residual, and a nominal gravity-only",
+    "transfer vector. It changes no geometry or gate.",
     "--recursive-transient requires --transient-bridge and tests a third fixed",
     "transient component from the exact k+2 bridge arrival state.",
     "--recursive-return requires --recursive-transient and observes the unchanged",
@@ -145,7 +151,7 @@ if (argv.includes("--help") || argv.includes("-h")) {
 }
 
 assertExactEnvironment();
-const supportedOptions = ["--case=", "--fixture=", "--held-out", "--distributed-forward-four", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--recursive-transient", "--recursive-return", "--help", "-h"];
+const supportedOptions = ["--case=", "--fixture=", "--held-out", "--distributed-forward-four", "--out-dir=", "--return-normal", "--ballistic-release", "--transient-bridge", "--arrival-gates", "--transfer-diagnosis", "--recursive-transient", "--recursive-return", "--help", "-h"];
 const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
 if ((ballisticRelease || transientBridge) && !returnNormal) {
@@ -157,11 +163,17 @@ if (ballisticRelease && transientBridge) {
 if (arrivalGateDiagnosis && !transientBridge) {
   throw new Error("--arrival-gates requires --transient-bridge");
 }
+if (transferDiagnosis && !transientBridge) {
+  throw new Error("--transfer-diagnosis requires --transient-bridge");
+}
 if (recursiveTransient && !transientBridge) {
   throw new Error("--recursive-transient requires --transient-bridge");
 }
 if (arrivalGateDiagnosis && recursiveTransient) {
   throw new Error("--arrival-gates and --recursive-transient are mutually exclusive");
+}
+if (transferDiagnosis && (arrivalGateDiagnosis || recursiveTransient || recursiveReturn)) {
+  throw new Error("--transfer-diagnosis is a pre-recursion residual audit and cannot combine with arrival gates or recursive modes");
 }
 if (recursiveReturn && !recursiveTransient) {
   throw new Error("--recursive-return requires --recursive-transient");
@@ -189,6 +201,8 @@ const outDir = argument("out-dir") ?? (heldOut
   ? "generated/studies/two-contact-shooting/recursive-return-v1"
   : recursiveTransient
   ? "generated/studies/two-contact-shooting/recursive-transient-v1"
+  : transferDiagnosis
+  ? "generated/studies/two-contact-shooting/transient-ballistic-transfer-residual-v1"
   : arrivalGateDiagnosis
   ? "generated/studies/two-contact-shooting/transient-arrival-gates-v1"
   : transientBridge
@@ -219,6 +233,9 @@ const protocolFingerprint = sha256(stableJson({
     : "disabled",
   arrivalGateDiagnosis: arrivalGateDiagnosis
     ? "for every transient-bridge k+2 raw-normal member, use the existing study-only landing-window hook to classify preclear, survival, first lockstep acceptance width 1-5, or no acceptance through width 5"
+    : "disabled",
+  transferDiagnosis: transferDiagnosis
+    ? "for every materialized transient pair, compare the exact bridged k+2 state with the unforced k+2 state after only the byte-stable first C1; report spatial residual plus nominal gravity-only endpoint-to-reference transfer vector without changing the bridge"
     : "disabled",
   recursiveTransient: recursiveTransient
     ? "after materialized first-C1 plus k+1 transient pairs, derive the same fixed transient law from exact k+2 state and require one-shot triple materialization at k"
@@ -335,6 +352,27 @@ type ReturnArrivalState = {
   airborneAgeFrames: number;
 };
 
+type TransferState = {
+  position: { x: number; y: number };
+  reference: { x: number; y: number };
+  referencePointName: PlanningState["referencePointName"];
+  velocity: { x: number; y: number };
+};
+
+type BallisticTransferResidual = {
+  preBridgeProbeFrames: number;
+  preBridgeTarget: TransferState | null;
+  bridgeArrival: TransferState | null;
+  positionResidual: { x: number; y: number } | null;
+  referenceResidual: { x: number; y: number } | null;
+  bridgeEndpoint: { x: number; y: number } | null;
+  intervalFrames: number | null;
+  nominalLaunchVelocity: { x: number; y: number } | null;
+  nominalLaunchAngleDeg: number | null;
+  bridgeLaunchAngleDeg: number | null;
+  nominalAngleDeltaDeg: number | null;
+};
+
 /**
  * The component-level boundary: both sequential captures must survive as the
  * exact same one-shot line set before the unchanged normal generator is read
@@ -352,6 +390,7 @@ type ReturnBoundary = {
   rawNormalAdmissionFrames: number;
   rawNormalControlAvailable: boolean;
   attempts: ReturnAttempt[];
+  ballisticTransferResidual: BallisticTransferResidual | null;
   recursiveTransient: RecursiveTransient | null;
   chargedFrames: number;
 };
@@ -686,6 +725,15 @@ function runState(selection: StateSelection): StateResult {
           hook: "existing landing-window probe around each unchanged tryCandidateLines call",
           classes: ["pre-target-clearance", "survival", "accepted-w1", "accepted-w2-to-w5", "no-lockstep-acceptance-through-w5"],
           accounting: "exactly one hook record or an explicit pre-target-clearance classification per generated member; no gate is changed",
+        }
+        : null,
+      transferDiagnosis: transferDiagnosis
+        ? {
+          scope: "materialized transient pairs only",
+          target: "k+2 exact state from base prefix plus byte-stable first C1, before any k+1 bridge geometry",
+          arrival: "exact k+2 state from the fully materialized first-C1 plus transient bridge pair",
+          vector: "(preBridgeReference - bridgeEndpoint - 0.5*g*N^2) / N, with literal k+2 interval N",
+          accounting: "the extra pre-bridge state read is charged; no diagnostic value feeds geometry, gates, normal sampling, or ranking",
         }
         : null,
       recursiveTransient: recursiveTransient
@@ -1103,6 +1151,76 @@ function signedAngleDelta(fromDeg: number, toDeg: number): number {
   return delta;
 }
 
+function transferStateFromPlanningState(state: PlanningState | null): TransferState | null {
+  if (state === null) return null;
+  return {
+    position: { x: round(state.position.x), y: round(state.position.y) },
+    reference: { x: round(state.reference.x), y: round(state.reference.y) },
+    referencePointName: state.referencePointName,
+    velocity: { x: round(state.velocity.x), y: round(state.velocity.y) },
+  };
+}
+
+function describeBallisticTransferResidual(
+  preBridgeProbeFrames: number,
+  preBridgeTarget: TransferState | null,
+  bridgeArrival: TransferState | null,
+  bridgeLines: readonly TrackLine[],
+  intervalFrames: number | null,
+): BallisticTransferResidual {
+  const exit = bridgeLines.at(-1);
+  const bridgeEndpoint = exit === undefined
+    ? null
+    : { x: round(exit.x2), y: round(exit.y2) };
+  const dx = exit === undefined ? Number.NaN : exit.x2 - exit.x1;
+  const dy = exit === undefined ? Number.NaN : exit.y2 - exit.y1;
+  const bridgeLaunchAngleDeg = Number.isFinite(dx) && Number.isFinite(dy) && Math.hypot(dx, dy) > 1e-9
+    ? round(Math.atan2(dy, dx) * 180 / Math.PI)
+    : null;
+  const legalInterval = intervalFrames !== null && Number.isSafeInteger(intervalFrames) && intervalFrames > 0
+    ? intervalFrames
+    : null;
+  const positionResidual = preBridgeTarget === null || bridgeArrival === null
+    ? null
+    : {
+      x: round(bridgeArrival.position.x - preBridgeTarget.position.x),
+      y: round(bridgeArrival.position.y - preBridgeTarget.position.y),
+    };
+  const referenceResidual = preBridgeTarget === null || bridgeArrival === null
+    ? null
+    : {
+      x: round(bridgeArrival.reference.x - preBridgeTarget.reference.x),
+      y: round(bridgeArrival.reference.y - preBridgeTarget.reference.y),
+    };
+  const nominalLaunchVelocity = preBridgeTarget === null || bridgeEndpoint === null || legalInterval === null
+    ? null
+    : {
+      x: round((preBridgeTarget.reference.x - bridgeEndpoint.x) / legalInterval),
+      y: round(
+        (preBridgeTarget.reference.y - bridgeEndpoint.y -
+          0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * legalInterval * legalInterval) / legalInterval,
+      ),
+    };
+  const nominalLaunchAngleDeg = nominalLaunchVelocity === null || Math.hypot(nominalLaunchVelocity.x, nominalLaunchVelocity.y) <= 1e-9
+    ? null
+    : round(Math.atan2(nominalLaunchVelocity.y, nominalLaunchVelocity.x) * 180 / Math.PI);
+  return {
+    preBridgeProbeFrames,
+    preBridgeTarget,
+    bridgeArrival,
+    positionResidual,
+    referenceResidual,
+    bridgeEndpoint,
+    intervalFrames: legalInterval,
+    nominalLaunchVelocity,
+    nominalLaunchAngleDeg,
+    bridgeLaunchAngleDeg,
+    nominalAngleDeltaDeg: nominalLaunchAngleDeg === null || bridgeLaunchAngleDeg === null
+      ? null
+      : round(signedAngleDelta(bridgeLaunchAngleDeg, nominalLaunchAngleDeg)),
+  };
+}
+
 function evaluateReturnBoundary(
   context: ReturnContext,
   fit2: GapFit,
@@ -1128,6 +1246,17 @@ function evaluateReturnBoundary(
   }
   if (stableJson(jointFit.lines) !== stableJson(combined)) {
     return emptyReturnBoundary(jointAdmissionFrames, "one-shot admission changed the sequentially admitted line set");
+  }
+
+  let transferTarget: TransferState | null = null;
+  let transferProbeFrames = 0;
+  if (transferDiagnosis) {
+    const transferBefore = getSimFrames();
+    const preBridgeEngine = context.baseEngine.addLine(
+      context.firstLines.map((line: TrackLine) => engineLineFromTrackLine(line)),
+    );
+    transferTarget = transferStateFromPlanningState(extractPlanningState(preBridgeEngine, context.next.endFrame));
+    transferProbeFrames = getSimFrames() - transferBefore;
   }
 
   const pairEngine = context.baseEngine.addLine(combined.map((line: TrackLine) => engineLineFromTrackLine(line)));
@@ -1156,6 +1285,16 @@ function evaluateReturnBoundary(
       context.firstLineId + combined.length,
       allContactFrames,
     );
+    if (transferDiagnosis) {
+      normalBoundary.ballisticTransferResidual = describeBallisticTransferResidual(
+        transferProbeFrames,
+        transferTarget,
+        transferStateFromPlanningState(nextState),
+        fit2.lines,
+        context.next.endFrame - context.next.startFrame,
+      );
+      normalBoundary.chargedFrames += transferProbeFrames;
+    }
     if (!recursiveTransient) return normalBoundary;
     if (nextState === null || context.afterNext === null) {
       return {
@@ -1180,7 +1319,10 @@ function evaluateReturnBoundary(
     return {
       ...emptyReturnBoundary(jointAdmissionFrames, `k+2 probe unavailable: ${errorMessage(error)}`),
       k2ProbeFrames,
-      chargedFrames: jointAdmissionFrames + k2ProbeFrames,
+      ballisticTransferResidual: transferDiagnosis
+        ? describeBallisticTransferResidual(transferProbeFrames, transferTarget, null, [], null)
+        : null,
+      chargedFrames: jointAdmissionFrames + transferProbeFrames + k2ProbeFrames,
     };
   }
 }
@@ -1257,6 +1399,7 @@ function evaluateReturnNormalStream(
     rawNormalAdmissionFrames,
     rawNormalControlAvailable: rawNormalGeometryAvailable > 0,
     attempts,
+    ballisticTransferResidual: null,
     recursiveTransient: null,
     chargedFrames: jointAdmissionFrames + k2ProbeFrames + rawNormalAdmissionFrames,
   };
@@ -1524,6 +1667,7 @@ function emptyReturnBoundary(jointAdmissionFrames: number, materializationError:
     rawNormalAdmissionFrames: 0,
     rawNormalControlAvailable: false,
     attempts: [],
+    ballisticTransferResidual: null,
     recursiveTransient: null,
     chargedFrames: jointAdmissionFrames,
   };

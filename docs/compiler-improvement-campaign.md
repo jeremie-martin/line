@@ -2124,6 +2124,33 @@ dense-240 return. A pass is only component evidence: it authorizes neither a
 control menu nor a compiler source without a separately declared held-out
 study and the ordinary V2 funnel.
 
+**Result (2026-07-17, `scripts/v0/study_two_contact_shooting.ts
+--return-normal --transient-bridge`, artifacts
+`generated/studies/two-contact-shooting/transient-bridge-v1/`): RETIRED;
+no source promotion.** This is not an unavailable construction. All 155
+returned pair rows (7 dense, 19 dense-240, 129 ordinary) materialized as their
+one-shot complete pair with no first-C1 line drift, and all k+2 normal controls
+were structurally available. On dense-240, the transient geometry achieved the
+timing objective on every pair: airborne age was **7 or 9 frames**, strictly
+above the legal six-frame floor. Yet the unchanged normal stream admitted
+**0/19** pairs and 0 attempts at k+2. The full dense-240 capture-bridge screen
+charged 8,162 frames versus 833 for equal-count raw normal, with no return.
+
+This gives a distinct negative from the retired static/preserve-and-release
+forms: reaching a legal airborne age alone is insufficient; the transient
+contact's exact speed/angle/state remains outside the normal generator's
+arrival basin. Dense locally returned 7/7 pairs (73 normal admissions), while
+ordinary returned 125/129 (1,874 admissions), but neither compensates for the
+required dense-240 zero. Do not tune the three-segment length, turn direction,
+or approach-control entry: those are a fixed-menu search around a component
+that has already crossed the timing floor without restoring normal admission.
+
+**Decision.** The fixed transient C1-to-ballistic bridge is closed. Future
+work cannot claim detector-floor repair merely from airborne age; it must show
+both legal phase and normal-arrival competence at dense-240 under exact pair
+materialization. No compiler source, V2 scope panel, or certification is
+authorized from this component.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

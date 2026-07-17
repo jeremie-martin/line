@@ -133,7 +133,7 @@ falsify, rather than by how easily they can be added to the legacy sampler.
 | Receding exact rollout | Repeated bounded state observations can reduce remaining error without duration branches. | A local action cannot change the required state while staying in its physical mode and under a resolution invariant. | Do not implement from the current grade/polyline form. |
 | Ballistic-offset contact rail | A declared collidable-side preload can retain contact while a state-relative curvature field changes rail dynamics. | Preload ordering does not retain contact, intrudes on capture, or offers no measurable interior response. | Retired: the sealed five-state, 1,560-row assay found no structurally valid local capture. |
 | Hybrid support/release graph | Supported rail and release are distinct physical modes, with continuous phase timing. | No fixed mode family covers fresh dense/ordinary/low-air states. | Retired: the staged support/release program ends at the six-frame detector floor. |
-| Contact-to-contact multiple shooting | Capture, release, and arrival can be solved jointly from exact checkpoints. | No stable local basin at equal physics-frame cost. | Static two-capture and fixed capture-preserving ballistic-release forms are closed: all 55 dense-240 releases retained both C1 captures, yet arrived at k+2 after only 0--4 airborne frames and produced 0 normal returns. No source form is authorized. |
+| Contact-to-contact multiple shooting | Capture, release, and arrival can be solved jointly from exact checkpoints. | No stable local basin at equal physics-frame cost. | Static two-capture and fixed capture-preserving releases are closed at the dense-240 six-frame floor. A distinct fixed transient C1-to-ballistic bridge crossed it (all 19 materialized pairs reached k+2 after 7 or 9 airborne frames) but still produced 0 normal returns: legal phase alone is not an arrival-competent basin. No source form is authorized. |
 
 The current realizer's global `abs(tangent) <= 85` guard is a temporary study
 envelope, not a physical constraint. A general form must express support
@@ -495,11 +495,13 @@ zero-impact conditions. Production references remain held out.
 
 ## Current Falsification Boundary
 
-The historical rail, support/release, and static two-contact screens have all
-now run. They cannot be reopened by tuning a control menu or changing its
-delivery. In particular, materialized dense-240 capture pairs arrive at the
-following contact after 1--5 airborne frames; normal landing admission needs
-at least six. This is a physical/detector boundary, not an untried ranker or
+The historical rail, support/release, static two-contact, post-C1 release, and
+transient C1-to-ballistic screens have all now run. They cannot be reopened by
+tuning a control menu or changing its delivery. Static dense-240 capture pairs
+arrive at the following contact after 0--5 airborne frames, below the required
+six; the transient bridge reaches 7 or 9 but still yields no normal admission.
+The boundary is therefore the conjunction of legal detector phase and an
+arrival state the normal generator can use, not an untried ranker or
 normal-sampler option.
 
 A future trajectory study is admissible only if it declares a **new** component

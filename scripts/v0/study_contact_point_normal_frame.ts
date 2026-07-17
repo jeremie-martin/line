@@ -23,6 +23,9 @@
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
  *     --full-sled-windowed-redirection-field --batch=0 \
  *     --out=generated/studies/full-sled-windowed-redirection-field-normal-pool/v1/batch-0.json
+ *   LR_ENGINE=wasm npx tsx scripts/v0/study_contact_point_normal_frame.ts \
+ *     --full-sled-affine-contact-flow-field --batch=0 \
+ *     --out=generated/studies/full-sled-affine-contact-flow-field-normal-pool/v1/batch-0.json
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -55,13 +58,14 @@ import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate
 import { realizeCoRotatingContactField } from "./trajectory/co_rotating_contact_field.ts";
 import { realizeFullSledGravityTimeField } from "./trajectory/full_sled_gravity_time_field.ts";
 import { realizeFullSledWindowedRedirectionField } from "./trajectory/full_sled_windowed_redirection_field.ts";
-import { extractPlanningState } from "./trajectory/state.ts";
+import { realizeAffineContactFlowField, type AffineContactFlowPoint } from "./trajectory/affine_contact_flow_field.ts";
+import { extractPlanningState, type PlanningState } from "./trajectory/state.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: study_contact_point_normal_frame.ts [--zero-friction-average|--co-rotating-contact-field|--full-sled-gravity-time-field|--full-sled-windowed-redirection-field --batch=0|1|2] [--out=PATH]\n",
+    "Usage: study_contact_point_normal_frame.ts [--zero-friction-average|--co-rotating-contact-field|--full-sled-gravity-time-field|--full-sled-windowed-redirection-field|--full-sled-affine-contact-flow-field --batch=0|1|2] [--out=PATH]\n",
   );
   process.exit(0);
 }
@@ -72,15 +76,16 @@ const zeroFrictionAverage = argv.includes("--zero-friction-average");
 const coRotatingContactField = argv.includes("--co-rotating-contact-field");
 const fullSledGravityTimeField = argv.includes("--full-sled-gravity-time-field");
 const fullSledWindowedRedirectionField = argv.includes("--full-sled-windowed-redirection-field");
+const fullSledAffineContactFlowField = argv.includes("--full-sled-affine-contact-flow-field");
 const batchArgument = arg("batch");
 const batch = batchArgument === undefined ? undefined : Number(batchArgument);
 const unknownArgs = argv.filter((value) =>
-  value !== "--zero-friction-average" && value !== "--co-rotating-contact-field" && value !== "--full-sled-gravity-time-field" && value !== "--full-sled-windowed-redirection-field" && !value.startsWith("--out=") && !value.startsWith("--batch=")
+  value !== "--zero-friction-average" && value !== "--co-rotating-contact-field" && value !== "--full-sled-gravity-time-field" && value !== "--full-sled-windowed-redirection-field" && value !== "--full-sled-affine-contact-flow-field" && !value.startsWith("--out=") && !value.startsWith("--batch=")
 );
 if (unknownArgs.length > 0) throw new Error(`unknown argument(s): ${unknownArgs.join(", ")}`);
-if ([zeroFrictionAverage, coRotatingContactField, fullSledGravityTimeField, fullSledWindowedRedirectionField].filter(Boolean).length > 1) throw new Error("normal-pool comparator modes are mutually exclusive");
-if (!zeroFrictionAverage && !coRotatingContactField && !fullSledGravityTimeField && !fullSledWindowedRedirectionField && batch !== undefined) throw new Error("--batch is reserved for an experimental comparator");
-if ((zeroFrictionAverage || coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField) && (batch === undefined || !Number.isSafeInteger(batch) || batch < 0 || batch > 2)) {
+if ([zeroFrictionAverage, coRotatingContactField, fullSledGravityTimeField, fullSledWindowedRedirectionField, fullSledAffineContactFlowField].filter(Boolean).length > 1) throw new Error("normal-pool comparator modes are mutually exclusive");
+if (!zeroFrictionAverage && !coRotatingContactField && !fullSledGravityTimeField && !fullSledWindowedRedirectionField && !fullSledAffineContactFlowField && batch !== undefined) throw new Error("--batch is reserved for an experimental comparator");
+if ((zeroFrictionAverage || coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField) && (batch === undefined || !Number.isSafeInteger(batch) || batch < 0 || batch > 2)) {
   throw new Error("experimental comparators require --batch=0|1|2");
 }
 
@@ -90,7 +95,10 @@ const ZERO_FRICTION_AVERAGE_SEEDS = [48, 49] as const;
 const CO_ROTATING_CONTACT_FIELD_SEEDS = [50, 51] as const;
 const FULL_SLED_GRAVITY_TIME_FIELD_SEEDS = [52, 53] as const;
 const FULL_SLED_WINDOWED_REDIRECTION_FIELD_SEEDS = [54, 55] as const;
-const SEEDS = fullSledWindowedRedirectionField
+const FULL_SLED_AFFINE_CONTACT_FLOW_FIELD_SEEDS = [58, 59] as const;
+const SEEDS = fullSledAffineContactFlowField
+  ? FULL_SLED_AFFINE_CONTACT_FLOW_FIELD_SEEDS
+  : fullSledWindowedRedirectionField
   ? FULL_SLED_WINDOWED_REDIRECTION_FIELD_SEEDS
   : fullSledGravityTimeField
   ? FULL_SLED_GRAVITY_TIME_FIELD_SEEDS
@@ -137,7 +145,17 @@ const FULL_SLED_WINDOWED_REDIRECTION_FIELD_CASES = [
   { id: "frontier_low_air_endurance_7s", regime: "low_air" },
   { id: "believer_56_6s_impact_relief", regime: "development_music" },
 ] as const;
-const CASES = fullSledWindowedRedirectionField
+const FULL_SLED_AFFINE_CONTACT_FLOW_FIELD_CASES = [
+  { id: "frontier_dense_recovery_240ms_figures", regime: "dense" },
+  { id: "dense_dialogue_impact_contrast_10", regime: "dense" },
+  { id: "rising_switch", regime: "representative" },
+  { id: "pickup_lattice_speed_minus_4", regime: "pickup" },
+  { id: "frontier_low_air_endurance_7s", regime: "low_air" },
+  { id: "believer_56_6s_impact_relief", regime: "development_music" },
+] as const;
+const CASES = fullSledAffineContactFlowField
+  ? FULL_SLED_AFFINE_CONTACT_FLOW_FIELD_CASES
+  : fullSledWindowedRedirectionField
   ? FULL_SLED_WINDOWED_REDIRECTION_FIELD_CASES
   : fullSledGravityTimeField
   ? FULL_SLED_GRAVITY_TIME_FIELD_CASES
@@ -203,6 +221,14 @@ type FullSledWindowedRedirectionFieldTelemetry = {
   maxAbsTangentShiftDeg: number | null;
   meanAbsRawTurnDeg: number | null;
 };
+type FullSledAffineContactFlowFieldTelemetry = {
+  stateAvailable: boolean;
+  templatesSkipped: number;
+  transformed: number;
+  unavailable: Record<string, number>;
+  meanTerminalDisplacementPx: number | null;
+  maxTerminalDisplacementPx: number | null;
+};
 type Row = {
   caseId: string;
   regime: Regime;
@@ -221,6 +247,7 @@ type Row = {
   coRotatingContactField: CoRotatingFieldTelemetry | null;
   fullSledGravityTimeField: FullSledGravityTimeFieldTelemetry | null;
   fullSledWindowedRedirectionField: FullSledWindowedRedirectionFieldTelemetry | null;
+  fullSledAffineContactFlowField: FullSledAffineContactFlowFieldTelemetry | null;
   productionCom: ArmSummary | null;
   contactPoint: ArmSummary | null;
   deltas: {
@@ -290,7 +317,9 @@ for (const definition of definitions) {
 }
 
 const result = {
-  schema: fullSledWindowedRedirectionField
+  schema: fullSledAffineContactFlowField
+    ? "line.study-full-sled-affine-contact-flow-field-normal-pool.v1"
+    : fullSledWindowedRedirectionField
     ? "line.study-full-sled-windowed-redirection-field-normal-pool.v1"
     : fullSledGravityTimeField
     ? "line.study-full-sled-gravity-time-field-normal-pool.v1"
@@ -301,7 +330,9 @@ const result = {
     : "line.study-contact-point-normal-frame.v1",
   purpose: [
     "observation-only replay of ordinary normal candidate pools from immutable frontier states",
-    fullSledWindowedRedirectionField
+    fullSledAffineContactFlowField
+      ? "same PRNG coordinates, attempts, raw curve prefix, segment count, line flags, exact gates, and scorer; only each raw curve's locus is transported under the four-point affine velocity flow in its existing arclength-time"
+      : fullSledWindowedRedirectionField
       ? "same PRNG coordinates, attempts, raw curve prefix, segment count, lengths, terminal tangent, line flags, exact gates, and scorer; only the raw post-contact turn timing is densified into the physical six-frame full-sled response distance"
       : fullSledGravityTimeField
       ? "same PRNG coordinates, attempts, raw curve prefix, segment count, lengths, tangent range, line flags, exact gates, and scorer; only the existing post-contact tangent field is reparameterized by full-sled collective gravity-time"
@@ -318,7 +349,9 @@ const result = {
     seeds: SEEDS,
     cases: ACTIVE_CASES,
     checkpoints: "first ordinary frontier state at one-third and two-thirds authored-contact gap indices",
-    frame: fullSledWindowedRedirectionField
+    frame: fullSledAffineContactFlowField
+      ? "the exact mean PEG/TAIL/NOSE/STRING velocity gives arclength-time, and their centered positions/velocities give one least-squares affine velocity gradient; the raw first endpoint stays fixed while later vertices follow exp(A*s/|meanVelocity|)"
+      : fullSledWindowedRedirectionField
       ? "the exact mean PEG/TAIL/NOSE/STRING velocity defines the six-frame physical response distance; each non-template raw post curve retains its existing signed total turn but completes it by that distance"
       : fullSledGravityTimeField
       ? "the exact mean velocity of PEG/TAIL/NOSE/STRING and gravity define a continuous clock for each raw post-contact curve; its existing tangent field is sampled at physical time fraction rather than arclength fraction"
@@ -386,7 +419,7 @@ function replayCapturedState(
   const rngSeed = (Math.imul(rawPool.seed | 0, 1_000_003) + gap.index + 1) | 0;
   const productionCom = sampleProductionArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed);
   const replay = compareGeneratedRawReplay(rawPool.candidates, productionCom.candidates);
-  const frame = coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField ? null : readContactFrame(captured.node.search.prefixEngine, gap, setup.ctx);
+  const frame = coRotatingContactField || fullSledGravityTimeField || fullSledWindowedRedirectionField || fullSledAffineContactFlowField ? null : readContactFrame(captured.node.search.prefixEngine, gap, setup.ctx);
   const coRotating = coRotatingContactField
     ? sampleCoRotatingContactFieldArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
     : null;
@@ -396,9 +429,12 @@ function replayCapturedState(
   const windowedRedirection = fullSledWindowedRedirectionField
     ? sampleFullSledWindowedRedirectionFieldArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
     : null;
-  const contactPoint = coRotating === null && gravityTime === null && windowedRedirection === null
+  const affineContactFlow = fullSledAffineContactFlowField
+    ? sampleFullSledAffineContactFlowFieldArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed)
+    : null;
+  const contactPoint = coRotating === null && gravityTime === null && windowedRedirection === null && affineContactFlow === null
     ? sampleContactPointArm(captured.node, gap, setup.ctx, setup.gaps, count, rngSeed, frame!.targetState)
-    : coRotating?.arm ?? gravityTime?.arm ?? windowedRedirection!.arm;
+    : coRotating?.arm ?? gravityTime?.arm ?? windowedRedirection?.arm ?? affineContactFlow!.arm;
   return {
     caseId,
     regime,
@@ -413,6 +449,7 @@ function replayCapturedState(
     coRotatingContactField: coRotating?.telemetry ?? null,
     fullSledGravityTimeField: gravityTime?.telemetry ?? null,
     fullSledWindowedRedirectionField: windowedRedirection?.telemetry ?? null,
+    fullSledAffineContactFlowField: affineContactFlow?.telemetry ?? null,
     productionCom,
     contactPoint,
     deltas: {
@@ -442,6 +479,7 @@ function unavailableRow(
     coRotatingContactField: null,
     fullSledGravityTimeField: null,
     fullSledWindowedRedirectionField: null,
+    fullSledAffineContactFlowField: null,
     productionCom: null,
     contactPoint: null,
     deltas: null,
@@ -696,6 +734,77 @@ function sampleFullSledWindowedRedirectionFieldArm(
   };
 }
 
+function sampleFullSledAffineContactFlowFieldArm(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+): { arm: ArmSummary; telemetry: FullSledAffineContactFlowFieldTelemetry } {
+  const state = extractPlanningState(node.search.prefixEngine, gap.endFrame);
+  const points = state === null ? null : affineContactFlowPoints(state);
+  const unavailable: Record<string, number> = {};
+  let templatesSkipped = 0;
+  let transformed = 0;
+  const terminalDisplacements: number[] = [];
+  const rng = makeRng(seed);
+  const candidates: CandidateDigest[] = [];
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  for (let attempt = 0; attempt < count; attempt++) {
+    const raw = sampleArcPlacementGeometry(
+      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
+      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
+    );
+    let geometry = raw;
+    if (wasLastGeometryImpactTemplate()) {
+      templatesSkipped++;
+    } else if (points === null) {
+      unavailable.missing_full_sled_state = (unavailable.missing_full_sled_state ?? 0) + 1;
+    } else {
+      const flowed = realizeAffineContactFlowField(raw.lines, points);
+      if (flowed.status !== "ready") {
+        unavailable[flowed.reason] = (unavailable[flowed.reason] ?? 0) + 1;
+      } else {
+        geometry = { ...raw, lines: flowed.lines };
+        transformed++;
+        terminalDisplacements.push(flowed.terminalDisplacementPx);
+      }
+    }
+    const fit = tryCandidateGeometry(
+      node.search.prefixEngine, gap, geometry, node.search.prefixNextLineId,
+      ctx.allContactFrames, axisMeasureEnd, gap.targets, true, "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    if (fit !== null) {
+      fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      fit.sampleAttempt = attempt;
+      candidates.push(digestCandidate(fit, node, gap, gaps, ctx));
+    }
+  }
+  return {
+    arm: summarizeArm(count, candidates),
+    telemetry: {
+      stateAvailable: points !== null,
+      templatesSkipped,
+      transformed,
+      unavailable,
+      meanTerminalDisplacementPx: mean(terminalDisplacements),
+      maxTerminalDisplacementPx: terminalDisplacements.length === 0 ? null : round(Math.max(...terminalDisplacements)),
+    },
+  };
+}
+
+function affineContactFlowPoints(state: PlanningState): AffineContactFlowPoint[] | null {
+  const points = SLED_POINT_ORDER.map((name) => state.points[name]);
+  if (points.some((point) => point === undefined || point.velocity === null)) return null;
+  return points.map((point) => ({
+    position: { ...point!.position },
+    velocity: { ...point!.velocity! },
+  }));
+}
+
 function summarizeArm(attempts: number, candidates: CandidateDigest[]): ArmSummary {
   const finiteAxis = candidates.filter((candidate) => Number.isFinite(candidate.axisRms));
   const finiteObjective = candidates.filter((candidate) => candidate.qualityObjective !== null);
@@ -862,7 +971,9 @@ function geometryHash(candidate: Candidate): string {
 function summarize(rows: readonly Row[]) {
   const usable = rows.filter((row) =>
     row.replayEquivalent === true && row.deltas !== null && (
-      fullSledWindowedRedirectionField
+      fullSledAffineContactFlowField
+        ? (row.fullSledAffineContactFlowField?.transformed ?? 0) > 0
+        : fullSledWindowedRedirectionField
         ? (row.fullSledWindowedRedirectionField?.transformed ?? 0) > 0
         : fullSledGravityTimeField
         ? (row.fullSledGravityTimeField?.transformed ?? 0) > 0
@@ -893,6 +1004,9 @@ function summarize(rows: readonly Row[]) {
     fullSledWindowedRedirectionStateRows: rows.filter((row) => row.fullSledWindowedRedirectionField?.stateAvailable === true).length,
     fullSledWindowedRedirectionTransformedGeometries: rows.reduce((sum, row) => sum + (row.fullSledWindowedRedirectionField?.transformed ?? 0), 0),
     fullSledWindowedRedirectionTemplateSkips: rows.reduce((sum, row) => sum + (row.fullSledWindowedRedirectionField?.templatesSkipped ?? 0), 0),
+    fullSledAffineContactFlowStateRows: rows.filter((row) => row.fullSledAffineContactFlowField?.stateAvailable === true).length,
+    fullSledAffineContactFlowTransformedGeometries: rows.reduce((sum, row) => sum + (row.fullSledAffineContactFlowField?.transformed ?? 0), 0),
+    fullSledAffineContactFlowTemplateSkips: rows.reduce((sum, row) => sum + (row.fullSledAffineContactFlowField?.templatesSkipped ?? 0), 0),
     usableRows: usable.length,
     byRegime,
     regimeBalanced: {

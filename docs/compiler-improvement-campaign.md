@@ -2054,6 +2054,37 @@ charged cost is materially above the normal stream without a dense-240 return.
 A calibration pass authorizes only a separately declared source design and
 the normal V2 funnel.
 
+**Result (2026-07-17, `scripts/v0/study_two_contact_shooting.ts
+--return-normal --ballistic-release`, artifacts
+`generated/studies/two-contact-shooting/ballistic-release-v1/`): RETIRED;
+no source promotion.** The fixed three-segment scoop re-admitted with
+byte-stable second-C1 geometry and retained owned second capture on all 177
+materialized capture→capture pairs (5 dense, 55 dense-240, 117 ordinary). The
+construction was therefore available and its preservation boundary was tested,
+not bypassed.
+
+It does not pass the required dense-240 state boundary: **0/55** pairs restored
+an ordinary-normal k+2 admission, and their airborne age remained only **0--4
+frames** (zero pairs at the legal six-frame floor). The full dense-240
+capture-release screen charged 8,861 frames, versus 814 for its equal-count
+raw-normal family, without any return. This is the original detector floor in
+the exact post-scoop state, not a missing normal-control path or a failed C1
+re-admission.
+
+The form also supplies no compensating component improvement. Dense remained
+at 4/5 returning pairs but fell from 9 static-pair normal admissions to 5;
+ordinary fell from 117/117 and 2,418 to 116/117 and 2,001. Do not tune scoop
+length, segment count, or a fixture-specific turn direction: those would be a
+case/control menu around a form that fails its declared dense-240 floor.
+
+**Decision.** The capture-preserving fixed ballistic release is closed. It
+proves that preserving both C1 captures is compatible with a post-capture
+release geometry, but that geometry still releases too late to create the
+legal dense-240 arrival state. No static C1 pair or fixed post-C1 scoop is an
+authorized compiler source. A future multi-gap geometry proposal must name a
+different state boundary and prove a six-frame dense-240 return before it can
+enter the V2 funnel.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -2085,6 +2085,45 @@ authorized compiler source. A future multi-gap geometry proposal must name a
 different state boundary and prove a six-frame dense-240 return before it can
 enter the V2 funnel.
 
+## Declared Study: Transient C1-to-Ballistic Bridge (2026-07-17)
+
+The static pair and post-C1 release both commit the second contact to a
+six-frame C1 response before terrain can end. Their dense-240 failure may
+therefore be a *release-location* boundary, not evidence that the first C1
+capture or a ballistic launch is intrinsically incompatible. This study uses a
+different second component: retain the exact first C1 capture, but realize the
+second event as a one-segment C1 approach into its predicted contact point
+followed immediately by a finite concave scoop. The scoop's first tangent is
+the approach tangent and its final tangent is the symmetric ballistic launch
+for k+2; it stops there. Thus the k+1 collision and release are one transient
+geometry, with neither a static C1 runway/response nor a grounded support
+corridor after the event.
+
+**Protocol, declared before new rows.** Calibration-only WASM/500k on the
+same frozen dense/dense240/ordinary fixtures. Segment k remains the unchanged
+fixed mirrored 24-control C1 screen. For each exact k capture, segment k+1
+reuses that same fixed control screen only to derive its continuous approach
+point and entry tangent from the exact extended-engine state. It emits one
+approach segment and a fixed three-segment concave scoop; the launch tangent is
+`atan2(-g*N/2, max(1, exact incoming speed))`, where `N` is literal k+2
+interval frames. It reads no case, seed, target-gap axis, target outcome, or
+control selection. The complete pair is admitted through unchanged
+`tryCandidateLines`, materialized as one immutable-k line-set, and the
+unchanged equal 24-attempt normal stream is observed at k+2. Every admission,
+materialization, probe, and return attempt is frame-charged. The artifact must
+retain the contact form and prove the first C1 lines are byte-stable under
+one-shot pair admission; the second contact is deliberately transient, so it
+is not compared to the retired static second-C1 geometry.
+
+**Falsifiers.** Retire if the exact first C1 capture changes on
+materialization; if transient k+1 geometry cannot pass unchanged admission;
+if no dense-240 pair both reaches six airborne frames and restores a normal
+k+2 admission; if the normal control is unavailable; or if the charged
+capture bridge is materially above the equal-count normal stream without that
+dense-240 return. A pass is only component evidence: it authorizes neither a
+control menu nor a compiler source without a separately declared held-out
+study and the ordinary V2 funnel.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

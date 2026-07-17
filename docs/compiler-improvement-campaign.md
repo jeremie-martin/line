@@ -2338,6 +2338,62 @@ does not reproduce the combined legal-phase plus normal-arrival boundary. A
 pass authorizes only a separately declared compact source-economics design and
 standard scope panel, never direct V2 evaluation.
 
+**Result (2026-07-17, 12.2s fixture capture; 8.3s
+`scripts/v0/study_two_contact_shooting.ts --held-out --return-normal
+--transient-bridge --recursive-transient --recursive-return`, artifacts
+`generated/studies/two-contact-shooting/recursive-heldout-v1/`): component
+RETAIN; source promotion NOT authorized.** All three V3 fixtures had stable
+source/compiler identities and byte-stable prefix replay; their capture source
+closure excluded the legacy trajectory panel. Every admitted third component
+materialized once on its immutable prefix, and every materialized k+3 state had
+an airborne age of 13 frames with normal control geometry available.
+
+- Dense (`open_hook`): 603/1,608 third components admitted and materialized;
+  568/603 triples restored normal at k+3 (7,045 admissions).
+- Ordinary (`meter_exchange`): 891/3,792 admitted/materialized; 677/891
+  restored normal (7,007 admissions).
+- Low-air (`frontier_pickup_progression`): 716/2,952 admitted/materialized;
+  449/716 restored normal (5,552 admissions), with zero unavailable normal
+  controls or validity failures.
+
+Across the fixed cohort that is 2,210/8,352 admitted third components (26.5%),
+2,210 byte-stable triples, and 1,694/2,210 normal-return triples (76.7%;
+19,604 normal admissions). This passes the predeclared recurrence boundary,
+not a compiler-economics boundary: the 24-control study screen remains too
+expensive and raw-normal paths were also strong on these source passages.
+
+**Decision.** The continuous transient form now has one calibration result and
+a sealed dense/ordinary/low-air replication; it must not be installed as a
+24-control rescue menu. The only authorized next work is a source-neutral
+compact-control economics audit, followed—only if that form remains
+nondegenerate—by a separately declared source-default implementation and scope
+panel. No V2 evaluation is authorized.
+
+## Declared Analysis: Central-Six Transient Economics Audit (2026-07-17)
+
+**Question.** Is there any mechanically compact, source-neutral projection of
+the repeated transient law worth turning into a compiler implementation
+hypothesis, before writing compiler source?
+
+**Protocol, declared before extraction.** Use only immutable rows already
+retained by the dense-240 calibration artifact and the just-closed held-out
+artifacts. Define the six-control form from geometry, not outcomes: both turn
+orientations × the `balanced` (0.5 entry-turn-share) allocation × all three
+fixed phase offsets (0, 0.5, 1 reference-speed frames). Filter every stage of
+the retained recurrence to this same six-label set: first C1, k+1 transient,
+and k+2 transient. Report per artifact the resulting pair count, triple
+admission/materialization, k+3 normal-control availability, normal-return
+triples, and charged-frame share. This is a post-decision descriptive economy
+audit, not new held-out evidence: the fixed projection cannot be revised from
+its result and cannot itself promote a candidate.
+
+**Falsifiers.** Do not write a source-default form if central-six produces zero
+materialized normal-return triples on dense-240, or if it fails on either
+fresh dense/ordinary row, or if its retained frame share remains incompatible
+with a bounded ordinary candidate budget. A nonzero result authorizes only a
+fresh declaration for a tiny source-default candidate and standard scope
+panel; it does not authorize V2 evaluation.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

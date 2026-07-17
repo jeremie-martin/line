@@ -50,7 +50,6 @@ import {
 } from "./trajectory/study_artifact.ts";
 import { targetFrameFromPlanningState } from "./trajectory/target_frame.ts";
 
-const SCHEMA = "line.study-two-contact-shooting.v1";
 const FIXTURE_DIR = "generated/studies/trajectory-fixtures/current-2026-07-15/v3";
 const FIXTURES = {
   dense: "dense-b500000-0552802c01e1.json",
@@ -63,20 +62,25 @@ type Family = "capture-arc" | "raw-normal";
 const argv = process.argv.slice(2);
 const argument = (name: string): string | undefined =>
   argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+const returnNormal = argv.includes("--return-normal");
+const SCHEMA = returnNormal
+  ? "line.study-two-contact-shooting-return-boundary.v1"
+  : "line.study-two-contact-shooting.v1";
 
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
-    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--out-dir=DIR]",
+    "Usage: study_two_contact_shooting.ts [--case=dense|dense240|ordinary|all] [--return-normal] [--out-dir=DIR]",
     "",
     "Calibration-only charged two-contact shooting assay. Requires LR_ENGINE=wasm.",
-    "Writes one immutable JSON artifact per state under the out-dir default",
-    "generated/studies/two-contact-shooting/v1/ plus a compact stdout table.",
+    "Without --return-normal, writes the archived two-contact protocol under",
+    "generated/studies/two-contact-shooting/v1/. The return-boundary mode",
+    "materializes capture->capture pairs and measures the normal stream at k+2.",
   ].join("\n") + "\n");
   process.exit(0);
 }
 
 assertExactEnvironment();
-const supportedOptions = ["--case=", "--out-dir=", "--help", "-h"];
+const supportedOptions = ["--case=", "--out-dir=", "--return-normal", "--help", "-h"];
 const unknownOptions = argv.filter((value) => !supportedOptions.some((prefix) => value === prefix || value.startsWith(prefix)));
 if (unknownOptions.length > 0) throw new Error(`unsupported option(s): ${unknownOptions.join(", ")}`);
 
@@ -86,7 +90,9 @@ if (requestedCase !== "all" && !stateIds.includes(requestedCase as StateId)) {
   throw new Error(`unknown --case=${requestedCase}; expected all|${stateIds.join("|")}`);
 }
 const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? "generated/studies/two-contact-shooting/v1";
+const outDir = argument("out-dir") ?? (returnNormal
+  ? "generated/studies/two-contact-shooting/return-boundary-v1"
+  : "generated/studies/two-contact-shooting/v1");
 
 const sourceIdentity = studySourceIdentity("scripts/v0/study_two_contact_shooting.ts");
 const observationCompiler = compilerCandidateIdentity("wasm");
@@ -97,6 +103,9 @@ const protocolFingerprint = sha256(stableJson({
   segment2Families: ["mirrored-24-control-capture-arc", "equal-count-raw-normal"],
   admission: "tryCandidateLines (survival, +/-1 landing, no off-beat; unchanged)",
   chaining: "engine.addLine(fit.lines) -> getCandidateProbe(outgoing) -> same screen at k+1",
+  returnBoundary: returnNormal
+    ? "capture->capture only; materialize both admitted line sets on the immutable k prefix; equal-count production-normal screen at k+2"
+    : "disabled",
 }));
 
 const started = performance.now();
@@ -144,6 +153,43 @@ type Segment2Row = {
   achievedAtEnd: ReturnType<typeof roundAxes>;
   finalLineCount: number | null;
   error: string | null;
+  returnBoundary: ReturnBoundary | null;
+};
+
+type ReturnAttempt = {
+  index: number;
+  admitted: boolean;
+  admissionFrames: number;
+  error: string | null;
+};
+
+/**
+ * The component-level boundary: both sequential captures must survive as the
+ * exact same one-shot line set before the unchanged normal generator is read
+ * from the next authored contact. This is observation only, never selection.
+ */
+type ReturnBoundary = {
+  jointAdmissionFrames: number;
+  materialized: boolean;
+  materializationError: string | null;
+  k2ProbeFrames: number;
+  rawNormalAttempted: number;
+  rawNormalGeometryAvailable: number;
+  rawNormalAdmitted: number;
+  rawNormalAdmissionFrames: number;
+  rawNormalControlAvailable: boolean;
+  attempts: ReturnAttempt[];
+  chargedFrames: number;
+};
+
+type ReturnBoundarySummary = {
+  capturePairsAttempted: number;
+  pairsMaterialized: number;
+  materializationFailures: number;
+  rawNormalControlUnavailable: number;
+  pairsWithNormalReturn: number;
+  totalNormalReturns: number;
+  chargedFrames: number;
 };
 
 type Row = {
@@ -173,6 +219,7 @@ type Row = {
       admittedByFamily: Record<Family, number>;
       admissionFrames: number;
       landingProbeFrames: number;
+      returnFrames: number;
       error: string | null;
       rows: Segment2Row[];
     };
@@ -201,6 +248,21 @@ type StateSummary = {
   totalChargedFramesByFamily: Record<Family, number>;
   failureClassCounts: Record<string, number>;
   byFamily: Record<Family, FamilyClosure>;
+  returnBoundary: ReturnBoundarySummary | null;
+};
+
+type ReturnContext = {
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any;
+  current: Gap;
+  currentAxisEnd: number;
+  firstLines: TrackLine[];
+  firstLineId: number;
+  preTargetSledTrace: () => number[];
+  next: Gap;
+  ctx: SpecContext;
+  seed: number;
+  rowIndex: number;
 };
 
 function runState(id: StateId): StateResult {
@@ -211,6 +273,10 @@ function runState(id: StateId): StateResult {
   const prepared = prepareStateCoupledTrajectoryFixture(fixture);
   if (prepared.panel.cohort !== "calibration") {
     throw new Error(`two-contact shooting accepts only calibration fixtures; ${prepared.panel.id} is ${prepared.panel.cohort}`);
+  }
+  const next = prepared.setup.gaps[prepared.outgoing.index + 1];
+  if (returnNormal && (next === undefined || !next.endsWithContact || next.startFrame !== prepared.outgoing.endFrame)) {
+    throw new Error(`return-boundary protocol requires an authored contact immediately after gap ${prepared.outgoing.index}`);
   }
   const allContactFrames = prepared.ctx.allContactFrames;
   const axisEnd1 = axisLookaheadEndFrame(prepared.current, allContactFrames);
@@ -235,7 +301,7 @@ function runState(id: StateId): StateResult {
   let rowIndex = 0;
   for (const { family, members } of families1) {
     for (const member of members) {
-      rows.push(evaluateRow(prepared, family, member, rowIndex, axisEnd1, allContactFrames));
+      rows.push(evaluateRow(prepared, family, member, rowIndex, axisEnd1, allContactFrames, next ?? null));
       rowIndex++;
     }
   }
@@ -280,6 +346,15 @@ function runState(id: StateId): StateResult {
       segment1CaptureArcControls: captureMembers1.length,
       segment1RawNormalControls: rawMembers1.length,
       admission: "tryCandidateLines(engine, gap, lines, lineIdStart, allContactFrames, axisLookaheadEndFrame, gap.targets, true, undefined, probe.preTargetSledTrace)",
+      returnBoundary: returnNormal
+        ? {
+          pairFamily: "capture-arc->capture-arc only",
+          materialization: "combined sequentially admitted lines must equal a one-shot current-gap admission",
+          nextGap: next!.index,
+          normalAttemptsPerMaterializedPair: captureMembers1.length,
+          normalSeed: "deterministic fixture seed + k+2 gap + pair row",
+        }
+        : null,
     },
     summary,
     rows,
@@ -297,6 +372,7 @@ function evaluateRow(
   rowIndex: number,
   axisEnd1: number,
   allContactFrames: number[],
+  next: Gap | null,
 ): Row {
   const base = {
     index: rowIndex,
@@ -372,7 +448,7 @@ function evaluateRow(
     jointAdmitted: false,
     totalChargedFrames: s1Frames + l1Frames + p2Frames,
     segment1,
-    segment2: { available: false, probeFrames: p2Frames, attempted: 0, admitted: 0, admittedByFamily: { "capture-arc": 0, "raw-normal": 0 }, admissionFrames: 0, landingProbeFrames: 0, error, rows: [] },
+    segment2: { available: false, probeFrames: p2Frames, attempted: 0, admitted: 0, admittedByFamily: { "capture-arc": 0, "raw-normal": 0 }, admissionFrames: 0, landingProbeFrames: 0, returnFrames: 0, error, rows: [] },
   });
 
   if (state2 === null) return unavailable("no-airborne-arrival", null);
@@ -404,12 +480,31 @@ function evaluateRow(
   const seg2Rows: Segment2Row[] = [];
   let admissionFrames2 = 0;
   let landingProbes2 = 0;
+  let returnFrames2 = 0;
   for (const { family: family2, members } of families2) {
     for (const member2 of members) {
-      seg2Rows.push(evaluateSegment2(engine2, prepared.outgoing, member2, family2, lineId2, axisEnd2, allContactFrames, probe2, (frames) => {
+      const row = evaluateSegment2(engine2, prepared.outgoing, member2, family2, lineId2, axisEnd2, allContactFrames, probe2,
+        returnNormal && family === "capture-arc" && family2 === "capture-arc" && next !== null
+          ? {
+            baseEngine: prepared.engine,
+            current: prepared.current,
+            currentAxisEnd: axisEnd1,
+            firstLines: fit1.lines,
+            firstLineId: prepared.lineIdStart,
+            preTargetSledTrace: prepared.probe.preTargetSledTrace,
+            next,
+            ctx: prepared.ctx,
+            seed: prepared.panel.seed,
+            rowIndex,
+          }
+          : null,
+        (frames) => {
         admissionFrames2 += frames.admission;
         landingProbes2 += frames.landing;
-      }));
+        },
+      );
+      returnFrames2 += row.returnBoundary?.chargedFrames ?? 0;
+      seg2Rows.push(row);
     }
   }
 
@@ -422,7 +517,7 @@ function evaluateRow(
     ...base,
     failureClass: jointAdmitted ? "joint-admitted" : "not-admitted-k1",
     jointAdmitted,
-    totalChargedFrames: s1Frames + l1Frames + p2Frames + admissionFrames2 + landingProbes2,
+    totalChargedFrames: s1Frames + l1Frames + p2Frames + admissionFrames2 + landingProbes2 + returnFrames2,
     segment1,
     segment2: {
       available: true,
@@ -432,6 +527,7 @@ function evaluateRow(
       admittedByFamily,
       admissionFrames: admissionFrames2,
       landingProbeFrames: landingProbes2,
+      returnFrames: returnFrames2,
       error: null,
       rows: seg2Rows,
     },
@@ -447,11 +543,12 @@ function evaluateSegment2(
   axisEnd2: number,
   allContactFrames: number[],
   probe2: CandidateProbe,
+  returnContext: ReturnContext | null,
   charge: (frames: { admission: number; landing: number }) => void,
 ): Segment2Row {
   if (member.lines === null) {
     charge({ admission: 0, landing: 0 });
-    return { family, label: member.label, admitted: false, admissionFrames: 0, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: member.error };
+    return { family, label: member.label, admitted: false, admissionFrames: 0, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: member.error, returnBoundary: null };
   }
   const before = getSimFrames();
   const fit2 = tryCandidateLines(
@@ -469,7 +566,7 @@ function evaluateSegment2(
   const admissionFrames = getSimFrames() - before;
   if (fit2 === null) {
     charge({ admission: admissionFrames, landing: 0 });
-    return { family, label: member.label, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: null };
+    return { family, label: member.label, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: null, returnBoundary: null };
   }
   const engine3 = (engine2 as any).addLine(fit2.lines.map((line: TrackLine) => engineLineFromTrackLine(line)));
   const lBefore = getSimFrames();
@@ -477,6 +574,9 @@ function evaluateSegment2(
   const landingFrameOffset = ownedLandingFrameOffset(det2, outgoing.endFrame, new Set(fit2.lines.map((line: TrackLine) => line.id)));
   const landingProbeFrames = getSimFrames() - lBefore;
   charge({ admission: admissionFrames, landing: landingProbeFrames });
+  const returnBoundary = returnContext === null
+    ? null
+    : evaluateReturnBoundary(returnContext, fit2, allContactFrames);
   return {
     family,
     label: member.label,
@@ -488,6 +588,114 @@ function evaluateSegment2(
     achievedAtEnd: roundAxes(fit2.achievedAtEnd),
     finalLineCount: fit2.lines.length,
     error: null,
+    returnBoundary,
+  };
+}
+
+function evaluateReturnBoundary(
+  context: ReturnContext,
+  fit2: GapFit,
+  allContactFrames: number[],
+): ReturnBoundary {
+  const combined = [...context.firstLines, ...fit2.lines];
+  const jointBefore = getSimFrames();
+  const jointFit = tryCandidateLines(
+    context.baseEngine,
+    context.current,
+    combined,
+    context.firstLineId,
+    allContactFrames,
+    context.currentAxisEnd,
+    context.current.targets,
+    true,
+    undefined,
+    context.preTargetSledTrace,
+  ) as GapFit | null;
+  const jointAdmissionFrames = getSimFrames() - jointBefore;
+  if (jointFit === null) {
+    return emptyReturnBoundary(jointAdmissionFrames, "combined line set is not admitted at k");
+  }
+  if (stableJson(jointFit.lines) !== stableJson(combined)) {
+    return emptyReturnBoundary(jointAdmissionFrames, "one-shot admission changed the sequentially admitted line set");
+  }
+
+  const pairEngine = context.baseEngine.addLine(combined.map((line: TrackLine) => engineLineFromTrackLine(line)));
+  let nextProbe: CandidateProbe;
+  let k2ProbeFrames = 0;
+  try {
+    const probeBefore = getSimFrames();
+    nextProbe = getCandidateProbe(pairEngine, context.next, context.ctx);
+    k2ProbeFrames = getSimFrames() - probeBefore;
+  } catch (error) {
+    return {
+      ...emptyReturnBoundary(jointAdmissionFrames, `k+2 probe unavailable: ${errorMessage(error)}`),
+      k2ProbeFrames,
+      chargedFrames: jointAdmissionFrames + k2ProbeFrames,
+    };
+  }
+
+  const members = buildRawMembers(
+    makeRng(rawStreamSeed3(context.seed, context.next.index, context.rowIndex)),
+    nextProbe,
+    context.next,
+    context.firstLineId + combined.length,
+    allContactFrames,
+    24,
+  );
+  const attempts: ReturnAttempt[] = [];
+  let rawNormalAdmissionFrames = 0;
+  for (const member of members) {
+    if (member.lines === null) {
+      attempts.push({ index: member.index, admitted: false, admissionFrames: 0, error: member.error });
+      continue;
+    }
+    const before = getSimFrames();
+    const fit = tryCandidateLines(
+      pairEngine,
+      context.next,
+      member.lines,
+      context.firstLineId + combined.length,
+      allContactFrames,
+      axisLookaheadEndFrame(context.next, allContactFrames),
+      context.next.targets,
+      true,
+      undefined,
+      nextProbe.preTargetSledTrace,
+    ) as GapFit | null;
+    const admissionFrames = getSimFrames() - before;
+    rawNormalAdmissionFrames += admissionFrames;
+    attempts.push({ index: member.index, admitted: fit !== null, admissionFrames, error: null });
+  }
+  const rawNormalGeometryAvailable = members.filter((member) => member.lines !== null).length;
+  const rawNormalAdmitted = attempts.filter((attempt) => attempt.admitted).length;
+  return {
+    jointAdmissionFrames,
+    materialized: true,
+    materializationError: null,
+    k2ProbeFrames,
+    rawNormalAttempted: members.length,
+    rawNormalGeometryAvailable,
+    rawNormalAdmitted,
+    rawNormalAdmissionFrames,
+    rawNormalControlAvailable: rawNormalGeometryAvailable > 0,
+    attempts,
+    chargedFrames: jointAdmissionFrames + k2ProbeFrames + rawNormalAdmissionFrames,
+  };
+}
+
+function emptyReturnBoundary(jointAdmissionFrames: number, materializationError: string): ReturnBoundary {
+  return {
+    jointAdmissionFrames,
+    materialized: false,
+    materializationError,
+    k2ProbeFrames: 0,
+    rawNormalAttempted: 0,
+    rawNormalGeometryAvailable: 0,
+    rawNormalAdmitted: 0,
+    rawNormalAdmissionFrames: 0,
+    rawNormalControlAvailable: false,
+    attempts: [],
+    chargedFrames: jointAdmissionFrames,
   };
 }
 
@@ -607,7 +815,20 @@ function summarizeState(rows: readonly Row[]): StateSummary {
       : null;
   }
 
-  return { segment1AdmissionByFamily, jointByFamilyPair, jointPairsTotal, totalChargedFramesByFamily, failureClassCounts, byFamily };
+  const returnRows = rows.flatMap((row) => row.segment2?.rows
+    .map((segment) => segment.returnBoundary)
+    .filter((boundary): boundary is ReturnBoundary => boundary !== null) ?? []);
+  const returnBoundary: ReturnBoundarySummary | null = returnRows.length === 0 ? null : {
+    capturePairsAttempted: returnRows.length,
+    pairsMaterialized: returnRows.filter((boundary) => boundary.materialized).length,
+    materializationFailures: returnRows.filter((boundary) => !boundary.materialized).length,
+    rawNormalControlUnavailable: returnRows.filter((boundary) => boundary.materialized && !boundary.rawNormalControlAvailable).length,
+    pairsWithNormalReturn: returnRows.filter((boundary) => boundary.rawNormalAdmitted > 0).length,
+    totalNormalReturns: returnRows.reduce((sum, boundary) => sum + boundary.rawNormalAdmitted, 0),
+    chargedFrames: returnRows.reduce((sum, boundary) => sum + boundary.chargedFrames, 0),
+  };
+
+  return { segment1AdmissionByFamily, jointByFamilyPair, jointPairsTotal, totalChargedFramesByFamily, failureClassCounts, byFamily, returnBoundary };
 }
 
 function formatStateSummary(result: StateResult): string[] {
@@ -620,6 +841,7 @@ function formatStateSummary(result: StateResult): string[] {
     .map(([pair, n]) => `${pair} ${n}`).join(", ") || "none";
   const fails = Object.entries(s.failureClassCounts).sort(([a], [b]) => a.localeCompare(b))
     .map(([cls, n]) => `${cls} ${n}`).join(", ");
+  const returned = s.returnBoundary;
   return [
     `STATE ${result.id} (gap ${result.panel.currentGap}->${result.panel.outgoingGap}, interval ${result.panel.outgoingIntervalFrames}f):`,
     `  segment-1 admitted:  capture-arc ${ca.admitted}/${ca.attempted},  raw-normal ${rn.admitted}/${rn.attempted}`,
@@ -628,6 +850,10 @@ function formatStateSummary(result: StateResult): string[] {
     `  charged frames:      capture-arc ${caC.totalChargedFrames},  raw-normal ${rnC.totalChargedFrames}`,
     `  joint/1e6 frames:    capture-arc ${caC.jointPairsPerMillionFrames ?? "n/a"},  raw-normal ${rnC.jointPairsPerMillionFrames ?? "n/a"}`,
     `  raw-normal joint closure @ equal frames: ${rnC.jointPairs} pairs over ${rnC.totalChargedFrames} charged frames`,
+    ...(returned === null ? [] : [
+      `  return boundary:     pairs ${returned.pairsMaterialized}/${returned.capturePairsAttempted}, normal-return pairs ${returned.pairsWithNormalReturn}, admissions ${returned.totalNormalReturns}`,
+      `  return control:      unavailable ${returned.rawNormalControlUnavailable}, materialization failures ${returned.materializationFailures}, frames ${returned.chargedFrames}`,
+    ]),
     `  failure classes:     ${fails}`,
     `  artifact: ${result.artifactPath}`,
   ];
@@ -667,6 +893,11 @@ function rawStreamSeed(prepared: PreparedTrajectoryFixtureCore, gapIndex: number
 /** Distinct deterministic seed per admitted segment-1 prefix at contact k+1. */
 function rawStreamSeed2(prepared: PreparedTrajectoryFixtureCore, gapIndex: number, rowIndex: number): number {
   return (Math.imul(rawStreamSeed(prepared, gapIndex), 1_000_003) + rowIndex + 1) | 0;
+}
+
+/** Independent deterministic raw stream for the k+2 return observation. */
+function rawStreamSeed3(seed: number, gapIndex: number, rowIndex: number): number {
+  return (Math.imul((Math.imul(seed | 0, 1_000_003) + gapIndex + 1) | 0, 1_000_003) + rowIndex + 1) | 0;
 }
 
 function roundAxes(axes: AxisValues | undefined): { air: number | null; speed: number | null; impact: number | null } | null {

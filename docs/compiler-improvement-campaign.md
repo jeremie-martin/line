@@ -5615,6 +5615,88 @@ distributed **constant-speed redirection** transition, rather than taking the
 currently available high-turn/low-speed repair trade or reacting to it after
 the collision.
 
+## Declared Study: Full-Sled Constant-Energy Specular Curvature Packet (2026-07-17)
+
+The response study leaves a specific physical hypothesis: a distributed
+capture may need to redirect the full sled without first paying the ordinary
+collective-speed loss.  A frictionless surface maps an incoming velocity to an
+equal-speed outgoing velocity precisely when its tangent bisects their
+directions.  This study makes that relationship a single, pre-contact
+state-to-geometry component rather than a speed compensation, an impact
+targeting rule, or a post-collision response field.
+
+At the immutable target prefix, take all four
+`PEG`/`TAIL`/`NOSE`/`STRING` velocities.  Their arithmetic mean defines the
+incoming collective heading; their mean squared speed defines the full-cloud
+kinetic radius `mean(|v_i|²) / g`.  For each connected non-template raw normal
+curve, retain its existing signed contact-to-terminal surface turn.  Rotate
+the incoming collective heading through that same raw turn at unchanged speed,
+then take the unique unoriented reflection-bisector tangent.  The difference
+from the raw contact tangent becomes a C1 `cos²` curvature packet centered at
+the raw contact and fading to zero over that gravity-defined kinetic radius on
+both incoming and outgoing sides.  Segment lengths, count, ordering, IDs,
+types, flags, raw contact point, PRNG coordinates, exact gate, and ordinary
+pool judge remain unchanged.  No named point, response duration, collision
+read, target, score, rank, source, seed, parameter scale, or fallback enters
+the construction.
+
+This is distinct from the retired co-rotating tangent field: it does not
+transport by angular rate and it changes the collision tangent itself.  It is
+also distinct from the retired redirection-density field: it does not move the
+raw turn in time.  Its sole assertion is that the raw turn should form around
+the complete sled's equal-speed reflection plane, continuously across the
+physical centripetal radius.
+
+**Dense-first protocol.** On fresh V2-jolt/500k seeds 64 and 65, replay all
+generation-time normal attempts and hashes at the frozen one-third/two-thirds
+ordinary frontier states of `frontier_dense_recovery_240ms_figures` and
+`dense_dialogue_impact_contrast_10`.  Apply the packet only where the complete
+finite four-point state and a connected nonzero-turn raw curve exist.  Record
+state coverage, template skips, contact-tangent shift, kinetic radius, vertex
+movement, viable support, exact axes, continuation-aware objective, and cost;
+the raw and packet arms use the unchanged exact gate and ordinary objective.
+This is a dense physical guard only, not a source lane or V2 evaluation.
+
+**Falsifiers.** Retire before other regimes if the four-point state is
+unavailable or the packet is inert, if either dense source loses viable support
+or best continuation-aware objective, or if dense pooled viability, axis, and
+objective are not jointly positive.  A dense pass would authorize only the
+predeclared broad panel and fresh replay—not a kinetic-radius multiplier,
+partial velocity field, turn substitution, contact-side branch, damping,
+template treatment, selector, ranker, or compiler default.
+
+**Dense-first result (2026-07-17, 20s; `npm run
+study:specular-curvature-packet`; artifact
+`generated/studies/full-sled-specular-curvature-packet-normal-pool/v1/batch-0.json`):
+RETIRE the full-sled specular curvature packet.** All **8/8** frozen raw normal
+pools replayed their generation-time attempts and hashes exactly.  Every state
+supplied the complete full-sled velocity state; **197** non-template raw
+geometries received the packet, with 35 fixed template skips, so this is not an
+availability or numerical-null result.  The mean physical kinetic radius spans
+`626.049668`--`812.101149` px.  Contact-tangent correction is material where
+the form is active: the difficult rows shift it by about `20.7°`--`21.9°` and
+move raw vertices by `31.293669`--`55.395418` px.
+
+That equal-speed compatibility condition does not preserve the exact dense
+basin.  Pooled viable support falls **4.5** candidates per state, best-axis
+RMS worsens `.052691`, and best continuation-aware objective worsens `.049499`.
+Frontier Dense Recovery at its early checkpoint loses 9 and 10 viable members
+on seeds 64/65 and loses objective `.240961`/`.318384`; Dense Dialogue loses
+12 and 13 members at its late checkpoint and worsens axis RMS `.101754` and
+`.093787`.  The isolated Frontier seed-65 late increase (5 to 16 viable
+members) cannot waive the source-level failures.  An equal-speed surface
+bisector for the collective pre-contact state is therefore not the native
+multi-contact capture law: it changes the contact formation too broadly and
+still fails the unchanged continuation judge.
+
+Do not shrink, enlarge, clip, scale, damp, re-center, one-side, or otherwise
+tune the packet; do not replace its full-cloud velocity with a subset, change
+the raw-turn rule, preserve favorable rows, or create a selector/source lane.
+The useful boundary is that an aggregate constant-speed reflection constraint
+is physically coherent but insufficient for the articulated native capture.
+A successor must represent how distributed contact is formed without imposing
+one collective reflection plane across the ordinary capture curve.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

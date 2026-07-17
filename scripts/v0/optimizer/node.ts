@@ -67,6 +67,24 @@ export function setRolloutAimSuppressed(active: boolean): void {
   rolloutAimSuppressed = active;
 }
 
+/** Generation-time raw-normal snapshot for observation studies. The callback
+ * runs after an ordinary attempt prefix is created or extended, before the
+ * current pool's lane extras and ranking. Observers that retain historical
+ * hashes own them before later traversal can mutate a selected candidate
+ * object. Production never installs one. */
+export type NormalPoolSnapshotRecord = {
+  node: SearchNode;
+  seed: number;
+  gapIndex: number;
+  nCand: number;
+  sampleOrder: readonly Candidate[];
+};
+type NormalPoolSnapshotHook = (record: NormalPoolSnapshotRecord) => void;
+let normalPoolSnapshotHook: NormalPoolSnapshotHook | null = null;
+export function setNormalPoolSnapshotHook(hook: NormalPoolSnapshotHook | null): void {
+  normalPoolSnapshotHook = hook;
+}
+
 /** A node in the prefix-search tree. `prefixFits.length === gapIndex`.
  *  A terminal node has `gapIndex === gaps.length`. */
 export type SearchNode = {
@@ -172,6 +190,7 @@ export function getCandidatesSorted(
     : solveOneGap(
       node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
     );
+  normalPoolSnapshotHook?.({ node, seed, gapIndex: gap.index, nCand, sampleOrder });
   const sorted = sortWithLaneExtras(node, gaps, ctx, gap, nCand, sampleOrder);
   node._candidatesCache = { seed, nCand, sampleOrder, candidates: sorted };
   return sorted;

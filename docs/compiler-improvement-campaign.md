@@ -2539,6 +2539,88 @@ not source-economical, and both geometry-derived compact projections are
 closed. Resume broad normal-candidate-space diagnosis outside this topology;
 no V2 evaluation is authorized from any trajectory result above.
 
+## Declared Observation: Seeded Low-Discrepancy Normal-Pool Basis (2026-07-17)
+
+The contact-centred normal generator consumes exactly eight raw coordinates per
+attempt. Its early guided coordinates are deterministic, but its residual
+eight-dimensional coverage is an ordinary per-gap PRNG stream. This is a
+candidate-basis question rather than another geometry, controller, capacity,
+or selector form: at identical candidate count, immutable prefix, attempt
+index, authored targets, exact evaluator, and ranker, does a seed-rotated
+low-discrepancy coordinate sequence expose a stronger ordinary normal pool?
+
+**Frozen observation cohort.** Use the current compiler, WASM, V2 jolt, 500k
+frames, and seeds 24 and 25 on exactly these six development sources:
+`frontier_dense_recovery`,
+`frontier_dense_recovery_240ms_figures`,
+`frontier_pickup_progression_shifted`,
+`frontier_low_air_endurance_7s`, `countercurrent`, and
+`believer_56_6s`. Before any row is read, take the first ordinary frontier
+state at the one-third and two-thirds authored-contact indices of each source.
+For each reachable immutable state, replay the production raw-normal stream
+with its actual cached candidate count, then replay a seeded
+Cranley--Patterson-rotated eight-dimensional Halton stream at the *same*
+attempt indices and count. The PRNG replay must reproduce every cached raw
+normal candidate by sample attempt and geometry hash before its paired row is
+usable. Aim, runway, rescue, reuse, forward evaluation, traversal, and every
+source default remain untouched; these are local exact-pool observations, not
+a V2 evaluation or an alternate compiler run.
+
+**Recorded quantities.** Per paired state retain the production candidate
+count, viable admissions, best exact current-quality-times-readiness objective,
+best scorer-axis RMS, best local cost, source/gap identity, and geometry-hash
+replay result. Aggregate only paired state deltas; never select a Halton
+rotation, a source, a checkpoint, or a candidate from the rows.
+
+**Decision boundary.** Retire this basis if the fixed sequence is not
+replay-equivalent on the PRNG arm, if either regime-balanced mean best-objective
+or mean best-axis-RMS is no better than PRNG while viable admissions also do
+not increase, or if any broad regime suffers a material admission collapse.
+A positive observation authorizes only one separately declared, fixed
+source-default sampler-basis implementation and ordinary cross-regime scope
+panel. It does not authorize V2 Stage 0 or evaluation.
+
+**Instrumentation correction before valid rows (2026-07-17).** The first
+execution captured frontier nodes correctly but compared replay hashes to the
+candidate objects retained in their later caches. Those objects can be modified
+by post-terminal work after their original pool was generated, so 22/24 hash
+comparisons failed for an observer-lifecycle reason rather than a PRNG replay
+fact. Discard those generated rows. The runner now snapshots each raw-normal
+candidate's attempt and geometry hash synchronously at *every* generation or
+cache-extension event, before lane sorting, traversal, or later retention;
+the stored sequence is then looked up when its state reaches a declared
+checkpoint. The frozen cohort, arms, count, coordinates, and decision boundary
+above are unchanged. Rerun only with this generation-time sentinel; until it
+passes, neither arm is evidence.
+
+**Setup correction before valid rerun (2026-07-17).** The first
+generation-time rerun still failed because the observer reconstructed direct
+impact targets but omitted the compiler's generation-only `nextImpact`
+lookahead field. That field shapes the ordinary post-contact delivery law, so
+the replay geometry was not the same normal source. Discard that rerun too.
+The observer now reproduces the compiler's literal next-contact impact
+propagation before sampling; no frozen cohort member, coordinate, count, arm,
+or result-derived choice changed.
+
+**Result (2026-07-17, 12 current-tree WASM/500k compiles plus exact paired
+pool replay; artifact `generated/studies/normal-pool-basis/v1/result.json`):
+RETIRE seeded Halton basis.** All 24 declared states were captured and every
+PRNG replay matched its generation-time raw-normal attempts and geometry hashes
+exactly. The fixed Halton stream modestly improved regime-balanced closest-axis
+RMS by 0.0041 and added 0.45 viable candidates/state, but its primary exact
+quality-times-readiness pool objective fell **0.0092**. The negative was broad:
+dense −0.0135, pickup −0.0146, and low-air −0.0282. The low-air regime also
+hits the declared admission-collapse boundary at its late checkpoint (−5/29
+and −3/29 viable candidates for the two seeds, a 17% and 10% loss). The small
+representative/development-objective gains do not offset that broad failure.
+
+**Decision.** Do not implement a Halton source default, rotate/scramble the
+sequence, change pool count, or run a V2 scope panel. The current PRNG's raw
+coordinate coverage is not the missing normal-candidate basis under this fixed
+equal-cost comparison. Retain the generation-time snapshot hook and study
+harness as observation infrastructure only; resume diagnosis on a physically
+distinct state or transition basis.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

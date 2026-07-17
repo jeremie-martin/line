@@ -59,11 +59,13 @@ export function runTrajectoryFixtureCapture(argv: readonly string[], catalog: Fi
     ? catalog.activeCases(cohort)
     : [catalog.getCase(caseArgument)];
   if (selectedPanels.length === 0) throw new Error(`no active ${cohort} trajectory panels are declared`);
+  // Quarantine is a stronger boundary than a cohort mismatch: reject these
+  // rows before any capture setup and expose the audit-only reason directly.
+  if (selectedPanels.some((panel) => panel.cohort === "quarantined")) {
+    throw new Error("cannot use quarantined trajectory panel");
+  }
   if (selectedPanels.some((panel) => panel.cohort !== cohort)) {
     throw new Error(`requested panels do not all belong to --cohort=${cohort}`);
-  }
-  if (selectedPanels.some((panel) => panel.cohort === "quarantined")) {
-    throw new Error("quarantined trajectory panels are audit-only and cannot be captured");
   }
   for (const panel of selectedPanels) validateStructuralSelection(panel, catalog.buildSetup(panel));
   const captureEnvironment = relevantEnvironment();

@@ -18,16 +18,8 @@ import { extendNodeCached } from "./optimizer/node.ts";
 import { getSimFrames } from "./optimizer/sim_frames.ts";
 import { getCandidateProbe, observeOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { axisLookaheadEndFrame, tryCandidateLines } from "./core/candidate.ts";
-import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
+import { effectiveAxes, engineLineFromTrackLine, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
 import { CALIB, secToFrame, type AxisName, type Gap, type Spec, type TrackLine } from "./types.ts";
-
-const BUDGET = 250_000;
-const SEEDS = [30, 31] as const;
-const RAW_ATTEMPTS = 32;
-const CURRENT_VIABLE_PREFIX = 4;
-const NEXT_ATTEMPTS = 8;
-const BRIDGE_SEGMENTS = 3;
-const MIN_RMS_IMPROVEMENT = 0.005;
 
 const CASES = [
   { id: "frontier_dense_recovery", regime: "dense", spec: dense },
@@ -40,14 +32,31 @@ const CASES = [
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_joint_normal_bridge.ts [--out=PATH]\n");
+  process.stdout.write("Usage: study_joint_normal_bridge.ts [--out=PATH] [--case=ID ...] [--early-compound]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
   argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-const unknown = argv.filter((value) => !value.startsWith("--out="));
+const argumentsOf = (name: string): string[] =>
+  argv.filter((value) => value.startsWith(`--${name}=`)).map((value) => value.slice(name.length + 3));
+const EARLY_COMPOUND = argv.includes("--early-compound");
+const selectedCases = argumentsOf("case");
+const unknown = argv.filter((value) => value !== "--early-compound" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
-const outPath = argument("out") ?? "generated/studies/joint-normal-bridge/v1/result.json";
+const BUDGET = EARLY_COMPOUND ? 500_000 : 250_000;
+const SEEDS = EARLY_COMPOUND ? [40, 41] as const : [30, 31] as const;
+const RAW_ATTEMPTS = 32;
+const CURRENT_VIABLE_PREFIX = 4;
+const NEXT_ATTEMPTS = 8;
+const BRIDGE_SEGMENTS = 3;
+const MIN_RMS_IMPROVEMENT = 0.005;
+const outPath = argument("out") ?? (EARLY_COMPOUND
+  ? "generated/studies/joint-normal-compound/v1/result.json"
+  : "generated/studies/joint-normal-bridge/v1/result.json");
+if (selectedCases.some((id) => !CASES.some((definition) => definition.id === id))) {
+  throw new Error(`unknown --case: ${selectedCases.filter((id) => !CASES.some((definition) => definition.id === id)).join(", ")}`);
+}
+const ACTIVE_CASES = selectedCases.length === 0 ? CASES : CASES.filter((definition) => selectedCases.includes(definition.id));
 
 type Regime = typeof CASES[number]["regime"];
 type Visit = { node: HandoffNode; event: HandoffNodeEvent };
@@ -65,6 +74,16 @@ type PairRow = {
   nextAttempt: number | null;
   direct: { available: boolean; metrics: PairMetrics | null; reason: string | null };
   bridge: { geometry: BridgeGeometry; valid: boolean; metrics: PairMetrics | null; frames: number; reason: string | null };
+  compound?: {
+    currentValid: boolean;
+    currentAxesExact: boolean;
+    metrics: PairMetrics | null;
+    returnAttempt: number | null;
+    returnValid: boolean;
+    earlyFrames: number;
+    returnFrames: number;
+    reason: string | null;
+  };
 };
 type StateRow = {
   caseId: string;
@@ -79,26 +98,36 @@ type StateRow = {
 const started = performance.now();
 const rows: StateRow[] = [];
 for (const seed of SEEDS) {
-  for (const definition of CASES) {
+  for (const definition of ACTIVE_CASES) {
     rows.push(runCase(definition, seed));
     (globalThis as { gc?: () => void }).gc?.();
   }
 }
 const output = {
-  schema: "line.study-joint-normal-bridge.v1",
-  purpose: [
-    "Test one endpoint/tangent-derived bridge between two sequentially engine-admitted ordinary normal contacts.",
-    "No source-default behavior, selector, ranker, response-pitch family, or V2 decision is changed.",
-  ],
+  schema: EARLY_COMPOUND ? "line.study-joint-normal-compound.v1" : "line.study-joint-normal-bridge.v1",
+  purpose: EARLY_COMPOUND
+    ? [
+      "Test whether two sequentially engine-admitted ordinary normal fits remain exact when the next fit is materialized with the current fit.",
+      "This is an observation-only admission and normal-return assay; it changes no candidate source, traversal, selector, ranker, or V2 decision.",
+    ]
+    : [
+      "Test one endpoint/tangent-derived bridge between two sequentially engine-admitted ordinary normal contacts.",
+      "No source-default behavior, selector, ranker, response-pitch family, or V2 decision is changed.",
+    ],
   frozenConfig: {
     budget: BUDGET,
     seeds: SEEDS,
     joltMs: benchmarkPolicy.transform.joltMs,
-    cases: CASES.map(({ id, regime }) => ({ id, regime })),
+    cases: ACTIVE_CASES.map(({ id, regime }) => ({ id, regime })),
     checkpoint: "last ordinary winner ancestor at one-third of authored contact boundaries",
     currentPopulation: `first ${CURRENT_VIABLE_PREFIX} viable ordinary fits in raw attempts 0..${RAW_ATTEMPTS - 1}`,
     nextPopulation: `first viable ordinary fit in a fixed ${NEXT_ATTEMPTS}-attempt stream`,
-    bridge: "three-segment cubic Hermite polyline from exact normal endpoints and tangents; tangent extent is continuous in release speed, literal inter-contact frames, and endpoint chord",
+    ...(EARLY_COMPOUND
+      ? {
+        compound: "current ordinary fit plus the first viable next ordinary fit from its exact child state, materialized as one immutable line-set at the current contact",
+        return: "fixed eight-attempt ordinary-normal stream at the third contact from the full compound engine; diagnostic only and never a source selection",
+      }
+      : { bridge: "three-segment cubic Hermite polyline from exact normal endpoints and tangents; tangent extent is continuous in release speed, literal inter-contact frames, and endpoint chord" }),
     evaluator: "existing exact next-contact gate, uniformly with ride-out polish disabled",
     discard: {
       minimumMeanComparableRmsImprovement: MIN_RMS_IMPROVEMENT,
@@ -172,6 +201,7 @@ function evaluatePair(node: HandoffNode, current: Candidate, currentGap: Gap, ne
       bridge: { geometry: unavailableBridge(reason), valid: false, metrics: null, frames: 0, reason },
     };
   }
+  if (EARLY_COMPOUND) return evaluateEarlyCompound(node, current, next, currentGap, nextGap, setup);
   const bridge = buildBridge(current, next, currentGap, nextGap, child.prefixNextLineId);
   if (bridge.lines === null) {
     return {
@@ -196,6 +226,113 @@ function evaluatePair(node: HandoffNode, current: Candidate, currentGap: Gap, ne
       reason: bridgeFit === null ? "exact next-contact gate rejected bridge plus normal entry" : null,
     },
   };
+}
+
+/**
+ * The direct-pair control already admits `next` against an engine containing
+ * `current`. The only untested physical fact is whether exposing that exact
+ * next surface from the current proposal changes the earlier collision. This
+ * check keeps the complete line set identical in both gate observations.
+ */
+function evaluateEarlyCompound(
+  node: HandoffNode,
+  current: Candidate,
+  next: Candidate,
+  currentGap: Gap,
+  nextGap: Gap,
+  setup: Setup,
+): PairRow {
+  const lines = [...current.lines, ...next.lines];
+  const ids = new Set(lines.map((line) => line.id));
+  if (ids.size !== lines.length) throw new Error("compound normal pair has duplicate line ids");
+  const beforeEarly = getSimFrames();
+  const early = tryCandidateLines(
+    node.search.prefixEngine,
+    currentGap,
+    lines,
+    node.search.prefixNextLineId,
+    setup.ctx.allContactFrames,
+    axisLookaheadEndFrame(currentGap, setup.ctx.allContactFrames),
+    setup.ctx.gapAxisTargets?.[currentGap.index] ?? currentGap.targets,
+    true,
+    "normal",
+    getCandidateProbe(node.search.prefixEngine, currentGap, setup.ctx).preTargetSledTrace,
+    { allowRideOutPolish: false },
+  ) as Candidate | null;
+  const earlyFrames = getSimFrames() - beforeEarly;
+  const axesExact = early !== null && sameGapAxes(current, early, currentGap);
+  const thirdGap = setup.gaps[nextGap.index + 1];
+  let returnAttempt: number | null = null;
+  let returnValid = false;
+  let returnFrames = 0;
+  if (early !== null && thirdGap?.endsWithContact) {
+    const fullEngine = node.search.prefixEngine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
+    const beforeReturn = getSimFrames();
+    const returned = firstViableReturn(
+      fullEngine,
+      node.search.prefixNextLineId + lines.length,
+      thirdGap,
+      setup,
+      node.searchSeed,
+      current.sampleAttempt ?? -1,
+      next.sampleAttempt ?? -1,
+    );
+    returnFrames = getSimFrames() - beforeReturn;
+    returnAttempt = returned?.sampleAttempt ?? null;
+    returnValid = returned !== null;
+  }
+  const reason = early === null
+    ? "early materialization changed the current exact contact gate"
+    : thirdGap === undefined || !thirdGap.endsWithContact
+    ? "no third authored contact for normal-return diagnostic"
+    : returnValid ? null : "no viable third-contact normal fit in fixed return stream";
+  return {
+    currentAttempt: current.sampleAttempt ?? -1,
+    nextAttempt: next.sampleAttempt ?? null,
+    direct: { available: true, metrics: pairMetrics(current, next, currentGap, nextGap), reason: null },
+    bridge: { geometry: unavailableBridge("not evaluated in early-compound mode"), valid: false, metrics: null, frames: 0, reason: "not evaluated in early-compound mode" },
+    compound: {
+      currentValid: early !== null,
+      currentAxesExact: axesExact,
+      metrics: early === null ? null : pairMetrics(early, next, currentGap, nextGap),
+      returnAttempt,
+      returnValid,
+      earlyFrames,
+      returnFrames,
+      reason,
+    },
+  };
+}
+
+function firstViableReturn(
+  engine: unknown,
+  lineIdStart: number,
+  gap: Gap,
+  setup: Setup,
+  searchSeed: number,
+  currentAttempt: number,
+  nextAttempt: number,
+): Candidate | null {
+  const rng = makeRng(
+    (Math.imul(searchSeed | 0, 1_000_037) + Math.imul(gap.index + 1, 65_537) + Math.imul(currentAttempt + 1, 257) + nextAttempt) | 0,
+  );
+  for (let attempt = 0; attempt < NEXT_ATTEMPTS; attempt++) {
+    const observed = observeOneCandidate(
+      engine, gap, rng, setup.ctx, lineIdStart, attempt, "normal", gap.targets, undefined, { allowRideOutPolish: false },
+    );
+    if (observed.fit !== null) return observed.fit;
+  }
+  return null;
+}
+
+function sameGapAxes(left: Candidate, right: Candidate, gap: Gap): boolean {
+  const leftAchieved = left.achievedAtEnd ?? left.achieved;
+  const rightAchieved = right.achievedAtEnd ?? right.achieved;
+  return (Object.keys(gap.targets) as AxisName[]).every((axis) => {
+    const a = leftAchieved[axis];
+    const b = rightAchieved[axis];
+    return a === undefined || b === undefined ? a === b : Math.abs(a - b) <= 1e-9;
+  });
 }
 
 function firstRawViableCandidates(node: HandoffNode, gap: Gap, setup: Setup): Candidate[] {
@@ -354,6 +491,7 @@ function buildSetup(userSpec: Spec, seed: number): Setup {
 
 function summarize(states: readonly StateRow[]) {
   const pairs = states.flatMap((state) => state.rows);
+  if (EARLY_COMPOUND) return summarizeEarlyCompound(states, pairs);
   const comparable = pairs.filter((row) => row.direct.metrics?.rms != null && row.bridge.metrics?.rms != null);
   const rmsImprovements = comparable.map((row) => row.direct.metrics!.rms! - row.bridge.metrics!.rms!);
   const byRegime = Object.fromEntries([...new Set(states.map((state) => state.regime))].map((regime) => {
@@ -388,6 +526,40 @@ function summarize(states: readonly StateRow[]) {
     minimumRequiredMeanImprovement: MIN_RMS_IMPROVEMENT,
     meanAdditionalBridgeFrames: mean(pairs.filter((row) => row.bridge.valid).map((row) => row.bridge.frames)),
     bySeed,
+    byRegime,
+  };
+}
+
+function summarizeEarlyCompound(states: readonly StateRow[], pairs: readonly PairRow[]) {
+  const compounds = pairs.map((pair) => pair.compound).filter((compound): compound is NonNullable<PairRow["compound"]> => compound !== undefined);
+  const comparable = pairs.filter((pair) => pair.direct.metrics?.rms != null && pair.compound?.metrics?.rms != null);
+  const improvements = comparable.map((pair) => pair.direct.metrics!.rms! - pair.compound!.metrics!.rms!);
+  const byRegime = Object.fromEntries([...new Set(states.map((state) => state.regime))].map((regime) => {
+    const regimePairs = states.filter((state) => state.regime === regime).flatMap((state) => state.rows);
+    const regimeCompounds = regimePairs.map((pair) => pair.compound).filter((compound): compound is NonNullable<PairRow["compound"]> => compound !== undefined);
+    return [regime, {
+      direct: regimePairs.filter((pair) => pair.direct.available).length,
+      earlyCurrentValid: regimeCompounds.filter((compound) => compound.currentValid).length,
+      earlyCurrentAxesExact: regimeCompounds.filter((compound) => compound.currentAxesExact).length,
+      normalReturn: regimeCompounds.filter((compound) => compound.returnValid).length,
+      comparable: regimePairs.filter((pair) => pair.direct.metrics?.rms != null && pair.compound?.metrics?.rms != null).length,
+      meanTwoGapRmsImprovement: mean(regimePairs.flatMap((pair) =>
+        pair.direct.metrics?.rms != null && pair.compound?.metrics?.rms != null ? [pair.direct.metrics.rms - pair.compound.metrics.rms] : [],
+      )),
+    }];
+  }));
+  return {
+    declaredStates: states.length,
+    statesWithCurrentRaw: states.filter((state) => state.currentRawViable > 0).length,
+    pairs: pairs.length,
+    directPairs: pairs.filter((pair) => pair.direct.available).length,
+    earlyCurrentValid: compounds.filter((compound) => compound.currentValid).length,
+    earlyCurrentAxesExact: compounds.filter((compound) => compound.currentAxesExact).length,
+    normalReturn: compounds.filter((compound) => compound.returnValid).length,
+    comparablePairs: comparable.length,
+    meanTwoGapRmsImprovement: mean(improvements),
+    meanEarlyFrames: mean(compounds.map((compound) => compound.earlyFrames)),
+    meanReturnFrames: mean(compounds.map((compound) => compound.returnFrames)),
     byRegime,
   };
 }

@@ -3888,6 +3888,69 @@ the ordinary sled placement; rare sub-pixel deviations do not alter the
 multi-contact basin. A successor must change collision order through a new
 physical component, not rescale this envelope residual.
 
+## Declared Study: Early-Materialized Ordinary Compound Pair (2026-07-17)
+
+The direct-normal control in the rejected endpoint-bridge assay is a real
+two-contact physical state, but it was not itself tested as a source boundary:
+the second ordinary surface was generated only after the first candidate had
+already been admitted. This study tests the minimal joint component without
+inventing a curve, support rail, force, endpoint deformation, rank rule, or
+coordinate transform. For each first viable ordinary current fit, generate the
+first viable ordinary next fit from its exact child engine state, then
+materialize those unmodified line sets together at the current proposal. The
+only new physical possibility is an early collision with the next ordinary
+surface; all geometry is otherwise the production normal sampler's geometry.
+
+**Protocol, declared before rows.** `npm run study:joint-normal-compound`
+uses WASM/V2 jolt/500k, seeds 40 and 41, and the six-regime panel (dense,
+dense impact, representative, development music, low-air, pickup). At the
+last ordinary winner ancestor near one-third of contacts, take the first four
+viable current raw-normal fits from attempts 0--31. For each, obtain the first
+next ordinary fit from its exact child state in a fixed eight-attempt stream.
+Re-admit the complete unmodified pair through the current exact gate, compare
+the current scored axes to the sequential current control at numerical
+identity, and retain the already exact next admission. From the full pair
+engine, run one fixed eight-attempt ordinary stream at the third authored
+contact as a return diagnostic. Every proposal, replay, and return attempt is
+physics-frame charged. No case identity, interval bucket, target threshold,
+score, or rejection outcome controls the construction.
+
+**Discard before any source work.** Retire this compound boundary if early
+materialization does not retain a material share of direct pairs in each broad
+regime, if it changes a retained current fit's scored axes, if dense,
+pickup, or low-air has no normal return, or if the diagnostics reveal a
+one-off collision rather than a broadly reproducible state. A pass authorizes
+only a separately declared equal-cost traversal/economics assay in which a
+compound advances two ordinary contacts as one candidate. It does not
+authorize a selector change, source default, Stage 0, or V2 evaluation.
+
+**Result (2026-07-17, three memory-isolated two-source invocations of
+`npm run study:joint-normal-compound -- --case=...`; artifacts
+`generated/studies/joint-normal-compound/v1/batch-{0,1,2}.json`): RETIRE at
+the normal-return boundary.** All 12 frozen V2-jolt/500k states completed.
+There were 37 direct ordinary pairs among 44 current raw fits; early
+materialization retained **37/37** current admissions and every retained
+current scored axis was bit-identical to its sequential control. The compound
+therefore is not a hidden early-collision topology: it simply reproduces the
+same two-contact state while adding a mean **40.22** physics frames for the
+early full-line replay. Two-contact RMS movement was exactly zero.
+
+The required return guard fails decisively in low-air: the fixed third-contact
+ordinary stream found **0/6** normal returns, after charging a mean 90.54
+frames per pair. The other regimes returned dense **3/11**, representative
+**8/8**, development music **8/8**, and pickup **4/4** (23/37 overall), but
+the low-air zero means this is not a broadly composable two-contact unit. The
+failure occurs after two perfectly ordinary contacts; merely deciding those
+contacts jointly does not make their third arrival a normal-generator state.
+
+**Decision.** Do not add a pair-advance traversal, compound candidate lane,
+lookahead selector, return-stream widening, or low-air exception. This is
+neither a new physical collision component nor an economics win: it preserves
+the sequential geometry exactly and still inherits the normal generator's
+third-contact blind spot. A future two-contact component must change the
+continuous arrival state while proving the broad normal return; copied normal
+pairs are now closed alongside coordinate interpolation and endpoint bridging.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

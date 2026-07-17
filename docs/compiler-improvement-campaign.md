@@ -1441,6 +1441,29 @@ closed; a successor must supply multi-gap-coherent geometry beyond copying a
 single predecessor grade, with a new fixed-fixture physical oracle before
 another compiler lane.
 
+**One bounded implementation check (declared before rerun).** The retained
+oracle's construction preserves every line through the contact anchor and
+re-realizes only the post-contact tail. The retired source form instead set
+the sampler's terminal post-angle, which changes the full contact-to-release
+curve and therefore did not implement the oracle's physical intervention.
+This is a distinct delivery boundary, not a share/gate retune: test one
+tail-preserving implementation with the same 25% span, prior-grade and
+speed-deficit laws, normal pool, exact gates, and 12×2 V2-jolt/500k panel.
+Discard it if the panel is not coherently positive or any knee validity falls;
+then grade continuity closes in all delivery forms without Stage 0.
+
+**Tail-preserving outcome: DISCARD.** The exact oracle-faithful form preserved
+the sampled prefix through the contact anchor and altered only the tail; it
+ran the same 12-source × 2-seed V2-jolt/500k panel (~12.1M frames, two
+minutes). Mean movement was **−9.84 points/row**, validity unchanged. The
+construction generated local wins (dense_dialogue_impact_contrast +36.07,
+split_signal +12.04) but broad losses were larger: loose_pocket −76.64,
+split_signal −39.57, dense_dialogue −37.26, Believer −33.57, pickup −30.43,
+and frontier5 −19.38/−25.26. Thus the prior source rejection was not merely
+contact-prefix collateral: both full-post-angle and capture-preserving-tail
+delivery fail broad composition. Reverted without Stage 0; **grade continuity
+is closed in all tested delivery forms.**
+
 ## Active Transition Evidence
 
 The read-only [observed transition packet assay](observed-transition-packet-assay.md)

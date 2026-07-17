@@ -2151,6 +2151,33 @@ both legal phase and normal-arrival competence at dense-240 under exact pair
 materialization. No compiler source, V2 scope panel, or certification is
 authorized from this component.
 
+## Declared Observation: Transient-Arrival Normal Gate Diagnosis (2026-07-17)
+
+The transient bridge has isolated a useful state: dense-240 reaches the legal
+7--9 airborne-frame arrival window but the unchanged normal stream still has
+0/19 returns. Before proposing another geometry, determine which existing
+normal admission boundary rejects those attempts. This is observation only;
+it changes no candidate, control ordering, gate, ranker, or source default.
+
+**Protocol, declared before rows.** Recreate the fixed transient bridge on the
+same dense-240 fixture and retain its 19 materialized first-C1/bridge pairs.
+For every unchanged 24-member k+2 raw-normal stream, install the existing
+study-only landing-window hook around each individual admission call. Record
+exactly one of: pre-target clearance rejection (no engine candidate probe),
+survival failure, a first lockstep landing/off-beat acceptance width of 1--5,
+or no such acceptance through width 5; retain offset when one exists. The
+admitted count must equal the ordinary return study's count, and the hook's
+records plus explicit clearance rejections must account for every generated
+member. All engine calls remain charged by the existing runner; the hook is a
+read-only measurement on its already-created detection.
+
+**Interpretation bound.** This cannot relax the gate. A dominant clearance
+failure would identify the target-relative normal placement boundary as the
+next state-basis question; dominant survival would identify body-state
+compatibility; width-only acceptance would identify timing/off-beat geometry;
+no acceptance through width 5 would identify an absent collision/arrival basin.
+No outcome authorizes a geometry change by itself.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

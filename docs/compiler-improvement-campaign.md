@@ -3437,6 +3437,22 @@ continuation certificate whose cost and search effect are independently
 screened; that is a different judge architecture, not a response-pitch
 candidate tweak.
 
+**Read-only one-step certificate (both fixed seeds): necessary but still not
+sufficient.** The response probe's `--continuation` mode now takes every
+strictly locally dominating response sibling and requests the exact
+production next-candidate pool at ordinary width 8 from both the original and
+response prefix at the actual next contact. Of 44 paired response candidates
+across seeds 28 and 29, **35**
+preserved or increased next-pool viable width, but only **15** preserved both
+that width and the next pool's best exact quality objective. Only **7** of
+those 15 were material current-impact repairs; none came from dense recovery.
+Thus a physical response direction and even next-contact availability do not
+establish a durable two-contact improvement. The observation does explain the
+replacement/additive stalls and provides a falsifiable future boundary: do not
+build a response source unless an actual-suffix certificate—not a ballistic
+or one-step proxy—can retain the original continuation under a declared
+equal-budget economics test.
+
 ## Declared Audit: Body-Point Collision Contribution in Ordinary Normal Pools (2026-07-17)
 
 The current probe has reopened the physical question: many impact-improving

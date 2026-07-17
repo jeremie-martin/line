@@ -34,6 +34,7 @@ import {
   type HandoffNodeEvent,
 } from "./optimizer/handoff.ts";
 import type { LeafKey } from "./optimizer/register.ts";
+import { extendNodeCached, getCandidatesSorted } from "./optimizer/node.ts";
 import { getCandidateProbe, sampleOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { axisLookaheadEndFrame, tryCandidateLines } from "./core/candidate.ts";
 import { effectiveAxes, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
@@ -58,7 +59,7 @@ const CASES = [
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: study_impact_response_envelope.ts [--seed=28|29] [--out=PATH]\n" +
+    "Usage: study_impact_response_envelope.ts [--seed=28|29] [--continuation] [--out=PATH]\n" +
     "Runs one fixed six-regime local-response envelope seed. Observation only.\n",
   );
   process.exit(0);
@@ -70,8 +71,11 @@ if (!(RESPONSE_SEEDS as readonly number[]).includes(selectedSeed)) {
   throw new Error(`--seed must be one of ${RESPONSE_SEEDS.join(", ")}`);
 }
 const SEED = selectedSeed;
+const continuation = argv.includes("--continuation");
 const outPath = argument("out") ?? "generated/studies/impact-response-envelope/v1/result.json";
-const unknown = argv.filter((value) => !value.startsWith("--out=") && !value.startsWith("--seed="));
+const unknown = argv.filter((value) =>
+  value !== "--continuation" && !value.startsWith("--out=") && !value.startsWith("--seed=")
+);
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
 
 type Regime = typeof CASES[number]["regime"];
@@ -121,6 +125,18 @@ type StateRow = {
   checkpointGapIndex: number | null;
   rawViablePrefix: number;
   responseRows: DeformationRow[];
+  continuationPairs: ContinuationPair[];
+};
+type ContinuationSummary = {
+  nextGapIndex: number | null;
+  viable: number;
+  bestQualityObjective: number | null;
+};
+type ContinuationPair = {
+  attempt: number;
+  direction: Exclude<Direction, "baseline">;
+  base: ContinuationSummary;
+  response: ContinuationSummary;
 };
 
 const rows: StateRow[] = [];
@@ -147,6 +163,7 @@ for (const definition of CASES) {
       checkpointGapIndex: null,
       rawViablePrefix: 0,
       responseRows: [],
+      continuationPairs: [],
     });
     continue;
   }
@@ -159,11 +176,16 @@ for (const definition of CASES) {
       checkpointGapIndex: parent.node.search.gapIndex,
       rawViablePrefix: 0,
       responseRows: [],
+      continuationPairs: [],
     });
     continue;
   }
   const raw = firstRawViableCandidates(parent.node, gap, setup);
-  const responseRows = raw.flatMap((candidate) => evaluateEnvelope(candidate, parent.node, gap, setup));
+  const evaluations = raw.map((candidate) => evaluateEnvelope(candidate, parent.node, gap, setup));
+  const responseRows = evaluations.flatMap((evaluation) => evaluation.rows);
+  const continuationPairs = continuation
+    ? evaluations.flatMap((evaluation) => continuationPair(evaluation, parent.node, setup))
+    : [];
   rows.push({
     caseId: definition.id,
     regime: definition.regime,
@@ -171,10 +193,12 @@ for (const definition of CASES) {
     checkpointGapIndex: parent.node.search.gapIndex,
     rawViablePrefix: raw.length,
     responseRows,
+    continuationPairs,
   });
   process.stderr.write(
     `${definition.id}/s${SEED}: g${parent.node.search.gapIndex}, raw=${raw.length}/${RAW_VIABLE_PREFIX}, ` +
-    `rows=${responseRows.length} (${((performance.now() - started) / 1000).toFixed(1)}s)\n`,
+    `rows=${responseRows.length}, certificates=${continuationPairs.length} ` +
+    `(${((performance.now() - started) / 1000).toFixed(1)}s)\n`,
   );
   (globalThis as { gc?: () => void }).gc?.();
 }
@@ -194,6 +218,9 @@ const output = {
     checkpoint: "last ordinary ancestor on the full-budget winner prefix at one-third of authored contact boundaries",
     rawNormalPopulation: `first ${RAW_VIABLE_PREFIX} viable candidates in exact raw attempt order within attempts 0..${RAW_ATTEMPTS - 1}`,
     evaluator: "current exact candidate gate with post-fit ride-out polish disabled for every baseline and perturbation",
+    continuationCertificate: continuation
+      ? "for each strict local response dominator, exact width-8 ordinary pool at the actual next contact from both base and response prefix"
+      : null,
     basis: {
       normalOffsetPx: [-OFFSET_PX, OFFSET_PX],
       entryPitchDeg: [-PITCH_DEG, PITCH_DEG],
@@ -227,7 +254,12 @@ function firstRawViableCandidates(node: HandoffNode, gap: Gap, setup: Setup): Ca
   return candidates;
 }
 
-function evaluateEnvelope(candidate: Candidate, node: HandoffNode, gap: Gap, setup: Setup): DeformationRow[] {
+function evaluateEnvelope(
+  candidate: Candidate,
+  node: HandoffNode,
+  gap: Gap,
+  setup: Setup,
+): { rows: DeformationRow[]; baseline: Candidate | null; bestDominator: { direction: Exclude<Direction, "baseline">; candidate: Candidate } | null } {
   const probe = getCandidateProbe(node.search.prefixEngine, gap, setup.ctx);
   const baseline = evaluateLines(candidate.lines, candidate.sampleAttempt ?? -1, node, gap, setup, probe.preTargetSledTrace);
   const contactVertex = nearestInteriorVertex(candidate.lines, probe.targetState.sledX, probe.targetState.sledY);
@@ -242,7 +274,7 @@ function evaluateEnvelope(candidate: Candidate, node: HandoffNode, gap: Gap, set
     metrics: baseline === null ? null : metrics(baseline, node, gap, setup),
     delta: null,
   }];
-  if (baseline === null) return rows;
+  if (baseline === null) return { rows, baseline: null, bestDominator: null };
   const normal = contactNormal(probe.targetState.velocity.x, probe.targetState.velocity.y);
   const variants: Array<{ direction: Exclude<Direction, "baseline">; lines: TrackLine[] | null; reason: string | null }> = [
     {
@@ -277,11 +309,15 @@ function evaluateEnvelope(candidate: Candidate, node: HandoffNode, gap: Gap, set
     },
   ];
   const baseMetrics = metrics(baseline, node, gap, setup);
+  const dominators: Array<{ direction: Exclude<Direction, "baseline">; candidate: Candidate; metrics: Metrics }> = [];
   for (const variant of variants) {
     const fit = variant.lines === null
       ? null
       : evaluateLines(variant.lines, candidate.sampleAttempt ?? -1, node, gap, setup, probe.preTargetSledTrace);
     const candidateMetrics = fit === null ? null : metrics(fit, node, gap, setup);
+    if (fit !== null && candidateMetrics !== null && dominatesMetrics(baseMetrics, candidateMetrics)) {
+      dominators.push({ direction: variant.direction, candidate: fit, metrics: candidateMetrics });
+    }
     rows.push({
       attempt: candidate.sampleAttempt ?? -1,
       direction: variant.direction,
@@ -293,7 +329,44 @@ function evaluateEnvelope(candidate: Candidate, node: HandoffNode, gap: Gap, set
       delta: candidateMetrics === null ? null : deltas(baseMetrics, candidateMetrics),
     });
   }
-  return rows;
+  const bestDominator = dominators.sort((a, b) =>
+    (a.metrics.impactAbsError ?? Infinity) - (b.metrics.impactAbsError ?? Infinity) ||
+    (b.metrics.qualityObjective ?? -Infinity) - (a.metrics.qualityObjective ?? -Infinity) ||
+    a.metrics.cost - b.metrics.cost
+  )[0] ?? null;
+  return { rows, baseline, bestDominator };
+}
+
+function continuationPair(
+  evaluation: ReturnType<typeof evaluateEnvelope>,
+  node: HandoffNode,
+  setup: Setup,
+): ContinuationPair[] {
+  if (evaluation.baseline === null || evaluation.bestDominator === null) return [];
+  return [{
+    attempt: evaluation.baseline.sampleAttempt ?? -1,
+    direction: evaluation.bestDominator.direction,
+    base: nextPool(node, evaluation.baseline, setup),
+    response: nextPool(node, evaluation.bestDominator.candidate, setup),
+  }];
+}
+
+function nextPool(node: HandoffNode, candidate: Candidate, setup: Setup): ContinuationSummary {
+  const child = extendNodeCached(node.search, candidate);
+  const nextGap = setup.gaps[child.gapIndex];
+  if (nextGap === undefined || !nextGap.endsWithContact) {
+    return { nextGapIndex: null, viable: 0, bestQualityObjective: null };
+  }
+  const candidates = getCandidatesSorted(child, setup.gaps, setup.ctx, node.searchSeed, 8);
+  const objectives = candidates.flatMap((entry) => {
+    const objective = candidateQualityObjective(child.prefixEngine, entry, nextGap, setup.gaps, setup.ctx);
+    return objective === null ? [] : [objective];
+  });
+  return {
+    nextGapIndex: nextGap.index,
+    viable: candidates.length,
+    bestQualityObjective: nullableRound(objectives.length === 0 ? null : Math.max(...objectives)),
+  };
 }
 
 function evaluateLines(
@@ -349,6 +422,15 @@ function deltas(base: Metrics, next: Metrics): DeformationRow["delta"] {
       ? null
       : round(next.qualityObjective - base.qualityObjective),
   };
+}
+
+function dominatesMetrics(base: Metrics, next: Metrics): boolean {
+  if (base.impactAbsError === null || next.impactAbsError === null || next.impactAbsError >= base.impactAbsError - 1e-12) return false;
+  for (const axis of ["speedAbsError", "airAbsError", "elevationAbsError"] as const) {
+    if (base[axis] !== null && next[axis] !== null && next[axis]! > base[axis]! + 1e-12) return false;
+  }
+  return base.qualityObjective !== null && next.qualityObjective !== null &&
+    next.qualityObjective >= base.qualityObjective - 1e-12;
 }
 
 function nearestInteriorVertex(lines: readonly TrackLine[], x: number, y: number): number | null {
@@ -511,6 +593,10 @@ function summarize(rows: readonly StateRow[]) {
   const preservedReadinessRepair = noSpeedRepair.filter((entry) =>
     entry.delta!.readinessObjectiveDelta !== null && entry.delta!.readinessObjectiveDelta >= -1e-12
   );
+  const continuationPairs = rows.flatMap((row) => row.continuationPairs);
+  const continuationComparable = continuationPairs.filter((pair) =>
+    pair.base.nextGapIndex !== null && pair.base.nextGapIndex === pair.response.nextGapIndex
+  );
   const byDirection = Object.fromEntries(([
     "normal_offset_negative",
     "normal_offset_positive",
@@ -541,6 +627,17 @@ function summarize(rows: readonly StateRow[]) {
     viableDeformations: viable.length,
     materialNoSpeedImpactRepairs: noSpeedRepair.length,
     materialNoSpeedImpactRepairsWithNonworseReadiness: preservedReadinessRepair.length,
+    continuationCertificate: continuation
+      ? {
+        pairs: continuationPairs.length,
+        comparablePairs: continuationComparable.length,
+        responseNoWorseViable: continuationComparable.filter((pair) => pair.response.viable >= pair.base.viable).length,
+        responseNoWorseBestObjective: continuationComparable.filter((pair) =>
+          pair.base.bestQualityObjective !== null && pair.response.bestQualityObjective !== null &&
+          pair.response.bestQualityObjective >= pair.base.bestQualityObjective - 1e-12
+        ).length,
+      }
+      : null,
     byDirection,
   };
 }

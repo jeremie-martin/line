@@ -131,9 +131,9 @@ falsify, rather than by how easily they can be added to the legacy sampler.
 | Local support-response assay | A declared state-relative form has a usable, directional exact response. | No structurally valid action or no supported interior response. | The tested one-shot grade form is not a supported energy actuator. |
 | Two-chunk continuation control | A finite carrier can be separated from a representation-only topology contrast. | Carrier, topology, and line-label controls disagree on a material endpoint. | V1--V3 inference retracted; V4 finds a finite-carrier effect but no material topology effect in this matrix. |
 | Receding exact rollout | Repeated bounded state observations can reduce remaining error without duration branches. | A local action cannot change the required state while staying in its physical mode and under a resolution invariant. | Do not implement from the current grade/polyline form. |
-| Ballistic-offset contact rail | A declared collidable-side preload can retain contact while a state-relative curvature field changes rail dynamics. | Preload ordering does not retain contact, intrudes on capture, or offers no measurable interior response. | Next bounded physical study. |
-| Hybrid support/release graph | Supported rail and release are distinct physical modes, with continuous phase timing. | No fixed mode family covers fresh dense/ordinary/low-air states. | Plausible successor if support normal-force study confirms it. |
-| Contact-to-contact multiple shooting | Capture, release, and arrival can be solved jointly from exact checkpoints. | No stable local basin at equal physics-frame cost. | Reserve for a component form that works locally but fails the next event. |
+| Ballistic-offset contact rail | A declared collidable-side preload can retain contact while a state-relative curvature field changes rail dynamics. | Preload ordering does not retain contact, intrudes on capture, or offers no measurable interior response. | Retired: the sealed five-state, 1,560-row assay found no structurally valid local capture. |
+| Hybrid support/release graph | Supported rail and release are distinct physical modes, with continuous phase timing. | No fixed mode family covers fresh dense/ordinary/low-air states. | Retired: the staged support/release program ends at the six-frame detector floor. |
+| Contact-to-contact multiple shooting | Capture, release, and arrival can be solved jointly from exact checkpoints. | No stable local basin at equal physics-frame cost. | Static two-capture component retained only as calibration evidence: dense returns to normal, but all 55 dense-240 pairs reach k+2 below the six-frame landing floor; no source form is authorized. |
 
 The current realizer's global `abs(tangent) <= 85` guard is a temporary study
 envelope, not a physical constraint. A general form must express support
@@ -493,25 +493,21 @@ must be declared before its first capture and use fresh source situations,
 including independent dense, ordinary, low-air, undefined-axis, and
 zero-impact conditions. Production references remain held out.
 
-## Next Falsifiable Steps
+## Current Falsification Boundary
 
-1. Run a bounded ballistic-offset contact-retention study. It must use the
-   exact response boundary; name collidable side/orientation, preload margin,
-   curvature, chord-error bound, and grain footprint explicitly; and compare a
-   fixed physical stencil without duration branches or target-derived selection.
-2. If that rail has a coherent local response, test its fixed-resolution
-   continuation boundary before proposing any receding rollout. If merged and
-   split constructions remain materially different, treat their geometry grain
-   as a control/invariant rather than assuming a transparent chunk join.
-3. Freeze a clean V3 held-out cohort before testing any chosen fixed menu. It
-   must include fresh dense, ordinary, low-air, undefined-axis, and zero-impact
-   states; qualification/production references stay held out.
-4. If dense continuation remains weak, run a small charged two-contact
-   multiple-shooting study. It must charge exact evaluation and compare against
-   raw normal at equal physics-frame cost.
-5. Run a distinct zero-impact contact study before claiming a general event
-   primitive. It must establish a neutral collision-incidence rule from fresh
-   evidence rather than reuse the positive-impact turn scale.
-6. Only after a staged formulation survives held-out replay without a material
-   dense/ordinary regression should a small labelled shadow candidate source be
-   proposed for compiler integration and judged through Benchmark V2.
+The historical rail, support/release, and static two-contact screens have all
+now run. They cannot be reopened by tuning a control menu or changing its
+delivery. In particular, materialized dense-240 capture pairs arrive at the
+following contact after 1--5 airborne frames; normal landing admission needs
+at least six. This is a physical/detector boundary, not an untried ranker or
+normal-sampler option.
+
+A future trajectory study is admissible only if it declares a **new** component
+form that, from continuous physical state rather than a case/duration/menu
+choice, establishes the required six-frame return window at dense-240 while
+retaining exact current and next-contact admission. It must charge all
+checkpoint replays and compare at equal bounded physics-frame cost. A local
+closure, an uncharged control search, or a static capture/support variant is
+not enough. Only after that component survives a freshly declared held-out
+cohort without a material dense/ordinary regression may a labelled shadow
+candidate source enter the ordinary Benchmark V2 funnel.

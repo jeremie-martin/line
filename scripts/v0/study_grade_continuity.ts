@@ -11,13 +11,17 @@
  *
  *   - independent: production normal geometry at every attempt;
  *   - grade-continuous: on a deterministic 25% attempt span, blend only the
- *     post-contact terminal grade toward the previous committed terminal grade.
+ *     post-contact terminal grade toward the previous committed terminal grade;
+ *   - energy-continuous: on that same span, retain the contact-side tangent
+ *     and solve a distributed tail-work adjustment from a decayed exact
+ *     multi-contact speed-deficit state.
  *
  * The previous grade is a continuous measured property of the committed line
  * set.  No source, case, duration class, target identity, or outcome feeds the
  * construction.  Candidate choice is the ordinary local exact cost minimum;
  * this assay does not install a ranker, choose a source default, or claim a
- * full-compiler result.
+ * full-compiler result. The energy stream is deliberately a distinct physical
+ * controller, not a second delivery of the retired predecessor-grade law.
  */
 import { makeRng } from "../lib/rng.ts";
 import { sampleArcPlacementGeometry } from "./arc_placement.ts";
@@ -39,14 +43,14 @@ import {
   writeImmutableJsonArtifact,
 } from "./trajectory/study_artifact.ts";
 
-const SCHEMA = "line.study-grade-continuity.v1";
+const SCHEMA = "line.study-grade-and-energy-continuity.v2";
 const FIXTURE_DIR = "generated/studies/trajectory-fixtures/grade-continuity-2026-07-17/v3";
 const FIXTURES = {
   believer36: "believer36-b500000-d7aec722a976.json",
   believer69: "believer69-b500000-24448183619b.json",
 } as const;
 type StateId = keyof typeof FIXTURES;
-type Family = "independent" | "grade-continuous";
+type Family = "independent" | "grade-continuous" | "energy-continuous";
 
 // The physical hypothesis is persistent shallow grades, not a one-off rail.
 // Every fourth low-discrepancy attempt receives the correlated terminal grade;
@@ -59,6 +63,15 @@ const SHALLOW_GRADE_FULL_DEG = 8;
 const SHALLOW_GRADE_ZERO_DEG = 22;
 const SPEED_DEFICIT_START_PX_PER_FRAME = 0.35;
 const SPEED_DEFICIT_SPAN_PX_PER_FRAME = 2.0;
+/** The controller remembers a physical speed debt across contacts, rather
+ * than any preceding terrain heading. A 0.72 decay has a finite roughly
+ * three-contact memory and prevents a stale deficit becoming a hidden mode. */
+const ENERGY_DEBT_DECAY = 0.72;
+const ENERGY_DEBT_FULL_PX_PER_FRAME = 2.0;
+/** Maximum requested additional mean downhill work over a tail. This is a
+ * distributed energy bias, not a steep launch or a terminal-angle command. */
+const ENERGY_WORK_FULL_DEG = 5;
+const ENERGY_WORK_SOLVE_DELTA_DEG = 18;
 const DEFAULT_TRIALS = 24;
 const STATE_FRAME_BUDGET = 3_000_000;
 
@@ -70,9 +83,9 @@ if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write([
     "Usage: study_grade_continuity.ts [--case=believer36|believer69|all] [--trials=N] [--out-dir=DIR]",
     "",
-    "Calibration-only grade-continuity assay. Requires LR_ENGINE=wasm and the",
-    "frozen believer-energy V3 fixtures. It compares ordinary local-cost chains",
-    "against an attempt-spanned previous-grade-correlated normal stream.",
+    "Calibration-only trajectory-continuity assay. Requires LR_ENGINE=wasm and",
+    "the frozen believer-energy V3 fixtures. It compares ordinary local-cost",
+    "chains against predecessor-grade and cumulative-energy normal streams.",
   ].join("\n") + "\n");
   process.exit(0);
 }
@@ -95,12 +108,12 @@ if (!Number.isInteger(trials) || trials <= 0 || trials > 256) {
   throw new Error(`--trials must be an integer in [1, 256]; received ${requestedTrials}`);
 }
 const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? "generated/studies/grade-continuity/v1";
+const outDir = argument("out-dir") ?? "generated/studies/grade-continuity/v4-energy";
 
 const sourceIdentity = studySourceIdentity("scripts/v0/study_grade_continuity.ts");
 const observationCompiler = compilerCandidateIdentity("wasm");
 const protocolFingerprint = sha256(stableJson({
-  protocol: "grade-continuity.v1",
+  protocol: "grade-and-energy-continuity.v2",
   captureBudget: 500_000,
   stream: {
     baseline: "sampleArcPlacementGeometry(normal)",
@@ -117,6 +130,10 @@ const protocolFingerprint = sha256(stableJson({
     shallowGradeZeroDeg: SHALLOW_GRADE_ZERO_DEG,
     speedDeficitStartPxPerFrame: SPEED_DEFICIT_START_PX_PER_FRAME,
     speedDeficitSpanPxPerFrame: SPEED_DEFICIT_SPAN_PX_PER_FRAME,
+    energyDebtDecay: ENERGY_DEBT_DECAY,
+    energyDebtFullPxPerFrame: ENERGY_DEBT_FULL_PX_PER_FRAME,
+    energyWorkFullDeg: ENERGY_WORK_FULL_DEG,
+    energyWorkSolveDeltaDeg: ENERGY_WORK_SOLVE_DELTA_DEG,
     trials,
     stateFrameBudget: STATE_FRAME_BUDGET,
   },
@@ -128,6 +145,9 @@ type CandidateRow = {
   previousGradeDeg: number | null;
   rawTerminalGradeDeg: number | null;
   proposedTerminalGradeDeg: number | null;
+  controllerDebt: number | null;
+  rawMeanWorkGradeDeg: number | null;
+  proposedMeanWorkGradeDeg: number | null;
   admitted: boolean;
   cost: number | null;
   simFrames: number;
@@ -137,6 +157,7 @@ type ContactStep = {
   gapIndex: number;
   authored: { speed: number | null; air: number | null; impact: number | null };
   entry: { speed: number; angleDeg: number };
+  carriedEnergyDebt: number | null;
   candidates: CandidateRow[];
   chosen: {
     attempt: number;
@@ -180,12 +201,15 @@ const started = performance.now();
 const results = selected.map((id) => runState(id));
 for (const result of results) {
   const independent = result.summary.families.independent;
-  const correlated = result.summary.families["grade-continuous"];
-  const delta = difference(correlated.terminalSpeed.mean, independent.terminalSpeed.mean);
+  const grade = result.summary.families["grade-continuous"];
+  const energy = result.summary.families["energy-continuous"];
+  const gradeDelta = difference(grade.terminalSpeed.mean, independent.terminalSpeed.mean);
+  const energyDelta = difference(energy.terminalSpeed.mean, independent.terminalSpeed.mean);
   process.stdout.write(
-    `${result.id}: complete ${correlated.completeChains}/${correlated.trials} vs ${independent.completeChains}/${independent.trials}; ` +
-    `terminal speed ${fmt(correlated.terminalSpeed.mean)} vs ${fmt(independent.terminalSpeed.mean)} ` +
-    `(delta ${signed(delta)}); chosen transformed ${correlated.transformedChosen}; frames ${result.chargedFrames}\n`,
+    `${result.id}: grade complete ${grade.completeChains}/${grade.trials} speed Δ${signed(gradeDelta)}; ` +
+    `energy complete ${energy.completeChains}/${energy.trials} speed Δ${signed(energyDelta)} ` +
+    `vs independent ${independent.completeChains}/${independent.trials}; energy chosen ${energy.transformedChosen}; ` +
+    `frames ${result.chargedFrames}\n`,
   );
 }
 process.stdout.write(`grade continuity: ${results.length} state(s), ${Math.round(performance.now() - started)}ms; charged frames ${totalFrames}\n`);
@@ -208,15 +232,21 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
     rows.push(runTrial(prepared, "independent", trial, charge, prefixTerminalGradeDeg));
     if (chargedFrames >= STATE_FRAME_BUDGET) break;
     rows.push(runTrial(prepared, "grade-continuous", trial, charge, prefixTerminalGradeDeg));
+    if (chargedFrames >= STATE_FRAME_BUDGET) break;
+    rows.push(runTrial(prepared, "energy-continuous", trial, charge, prefixTerminalGradeDeg));
   }
   const families: Record<Family, FamilySummary> = {
     independent: summarize(rows.filter((row) => row.family === "independent")),
     "grade-continuous": summarize(rows.filter((row) => row.family === "grade-continuous")),
+    "energy-continuous": summarize(rows.filter((row) => row.family === "energy-continuous")),
   };
   const comparison = {
     terminalSpeedMeanDelta: difference(families["grade-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
     meanAchievedSpeedDelta: difference(families["grade-continuous"].meanAchievedSpeed.mean, families.independent.meanAchievedSpeed.mean),
     completeChainDelta: families["grade-continuous"].completeChains - families.independent.completeChains,
+    energyTerminalSpeedMeanDelta: difference(families["energy-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
+    energyMeanAchievedSpeedDelta: difference(families["energy-continuous"].meanAchievedSpeed.mean, families.independent.meanAchievedSpeed.mean),
+    energyCompleteChainDelta: families["energy-continuous"].completeChains - families.independent.completeChains,
   };
   const artifactIdentity = studyArtifactIdentity({
     schema: SCHEMA,
@@ -228,7 +258,7 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
   const artifact = {
     schema: SCHEMA,
     artifactIdentity,
-    purpose: "Fixture-only falsifier for the grade-continuity trajectory mechanism. Every candidate remains subject to the ordinary exact admission gate and the two streams differ only by a deterministic, attempt-spanned terminal-grade correlation toward the previous committed grade.",
+    purpose: "Fixture-only falsifier for predecessor-grade and cumulative kinetic-energy trajectory controls. Every candidate remains subject to the ordinary exact admission gate; the energy stream differs only by a deterministic, attempt-spanned distributed tail-work adjustment driven by a decayed exact speed-deficit state.",
     status: {
       productionIntegration: "forbidden: calibration study only; it does not modify compiler candidates, selection, or promotion",
       resultEligibility: "physical/executable evidence only; a source-default lane requires its own scope panel and normal V2 funnel",
@@ -252,8 +282,9 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
       selection: "ordinary GapFit.cost minimum; stable attempt order resolves ties",
       correlatedAttemptRule: "lowDiscrepancyRoll(attempt, 41) >= 0.75; independent stream never transforms",
       gradeRule: "terminal post grade blends toward the prior committed terminal line grade only while that prior grade is shallow and the authored speed exceeds measured entry speed; capture-side geometry through the contact vertex is byte-preserved",
+      energyRule: "a decayed per-contact exact speed-deficit integral requests a bounded distributed mean-tail-work adjustment; it preserves the contact anchor, every segment length, and the first post-contact tangent, and reads no preceding terrain heading",
       admission: "unchanged tryCandidateLines with exact survival, landing, off-beat, and target-axis gates",
-      sourceInputs: "continuous previous committed terminal grade, authored speed deficit, existing sampled geometry, and attempt coordinate only",
+      sourceInputs: "grade stream: previous committed terminal grade plus authored speed deficit; energy stream: exact measured speed-deficit integral plus existing sampled geometry and attempt coordinate; neither stream reads source, case, duration class, or outcomes",
     },
     chargedFrames,
     budgetExhausted: chargedFrames >= STATE_FRAME_BUDGET,
@@ -278,6 +309,9 @@ function runTrial(
   // retains its exact chosen line set.  Starting at null would silently turn
   // the mechanism off precisely at the slow-episode onset.
   let previousGrade: number | null = initialPreviousGrade;
+  // Unlike the retired grade stream, this state contains no prior terrain
+  // property. It is only a bounded integral of exact entry-speed deficit.
+  let carriedEnergyDebt = 0;
   const steps: ContactStep[] = [];
 
   for (let offset = 0; offset < CHAIN_CONTACTS; offset++) {
@@ -286,7 +320,7 @@ function runTrial(
       steps.push({
         gapIndex: prepared.current.index + offset,
         authored: { speed: null, air: null, impact: null },
-        entry: { speed: 0, angleDeg: 0 }, candidates: [], chosen: null, result: "missing-contact",
+        entry: { speed: 0, angleDeg: 0 }, carriedEnergyDebt: null, candidates: [], chosen: null, result: "missing-contact",
       });
       break;
     }
@@ -295,6 +329,18 @@ function runTrial(
     const axisEnd = axisLookaheadEndFrame(gap, prepared.ctx.allContactFrames);
     const candidates: CandidateRow[] = [];
     let chosen: { fit: GapFit; attempt: number; transformed: boolean; terminalGradeDeg: number } | null = null;
+    const instantaneousEnergyDebt = gap.targets.speed === undefined
+      ? 0
+      : clamp(
+        (authoredSpeedToPx(gap.targets.speed) - probe.targetState.speed) / ENERGY_DEBT_FULL_PX_PER_FRAME,
+        0,
+        1,
+      );
+    const controllerDebt = clamp(
+      ENERGY_DEBT_DECAY * carriedEnergyDebt + (1 - ENERGY_DEBT_DECAY) * instantaneousEnergyDebt,
+      0,
+      1,
+    );
 
     for (let attempt = 0; attempt < CANDIDATES_PER_CONTACT; attempt++) {
       const geometry = sampleArcPlacementGeometry(
@@ -302,17 +348,23 @@ function runTrial(
         prepared.ctx.allContactFrames,
       );
       const rawTerminalGradeDeg = terminalGrade(geometry.lines);
+      const rawMeanWorkGradeDeg = tailMeanWorkGrade(geometry.lines, { x: probe.targetState.sledX, y: probe.targetState.sledY });
       const speedDeficit = gap.targets.speed === undefined
         ? 0
         : smoothstep((authoredSpeedToPx(gap.targets.speed) - probe.targetState.speed - SPEED_DEFICIT_START_PX_PER_FRAME) /
           SPEED_DEFICIT_SPAN_PX_PER_FRAME);
-      const transformed = family === "grade-continuous" && previousGrade !== null && speedDeficit > 0 && isContinuityAttempt(attempt);
-      const lines = transformed
-        ? correlateTerminalGrade(
-          geometry.lines, { x: probe.targetState.sledX, y: probe.targetState.sledY }, previousGrade!, speedDeficit,
-        )
+      const span = isContinuityAttempt(attempt);
+      const gradeTransformed = family === "grade-continuous" && previousGrade !== null && speedDeficit > 0 && span;
+      const energyTransformed = family === "energy-continuous" && controllerDebt > 0 && span;
+      const transformed = gradeTransformed || energyTransformed;
+      const contactAnchor = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      const lines = gradeTransformed
+        ? correlateTerminalGrade(geometry.lines, contactAnchor, previousGrade!, speedDeficit)
+        : energyTransformed
+        ? correlateTailWork(geometry.lines, contactAnchor, controllerDebt)
         : geometry.lines;
       const proposedTerminalGradeDeg = terminalGrade(lines);
+      const proposedMeanWorkGradeDeg = tailMeanWorkGrade(lines, contactAnchor);
       const before = getSimFrames();
       const fit = tryCandidateLines(
         engine, gap, lines, lineIdStart, prepared.ctx.allContactFrames, axisEnd,
@@ -322,7 +374,11 @@ function runTrial(
       charge(frames);
       candidates.push({
         attempt, transformed, previousGradeDeg: previousGrade, rawTerminalGradeDeg,
-        proposedTerminalGradeDeg, admitted: fit !== null, cost: fit === null ? null : round(fit.cost), simFrames: frames,
+        proposedTerminalGradeDeg,
+        controllerDebt: family === "energy-continuous" ? round(controllerDebt) : null,
+        rawMeanWorkGradeDeg,
+        proposedMeanWorkGradeDeg,
+        admitted: fit !== null, cost: fit === null ? null : round(fit.cost), simFrames: frames,
       });
       if (fit !== null && (chosen === null || fit.cost < chosen.fit.cost)) {
         chosen = { fit, attempt, transformed, terminalGradeDeg: proposedTerminalGradeDeg ?? 0 };
@@ -335,7 +391,7 @@ function runTrial(
       impact: gap.targets.impact ?? null,
     };
     if (chosen === null) {
-      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, candidates, chosen: null, result: "no-admitted-candidate" });
+      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, candidates, chosen: null, result: "no-admitted-candidate" });
       break;
     }
     const achieved = chosen.fit.achievedAtEnd ?? chosen.fit.achieved;
@@ -343,6 +399,7 @@ function runTrial(
       gapIndex: gap.index,
       authored,
       entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) },
+      carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null,
       candidates,
       chosen: {
         attempt: chosen.attempt,
@@ -356,6 +413,7 @@ function runTrial(
     engine = engine.addLine(chosen.fit.lines.map((line) => engineLineFromTrackLine(line)));
     lineIdStart += chosen.fit.lines.length;
     previousGrade = chosen.terminalGradeDeg;
+    carriedEnergyDebt = controllerDebt;
   }
 
   const committed = steps.filter((step) => step.result === "committed");
@@ -448,6 +506,110 @@ function correlateTerminalGrade(
     x2: end.x,
     y2: end.y,
   }));
+}
+
+/**
+ * A separate multi-contact energy control. It does not observe or reuse a
+ * preceding line angle: a bounded accumulated speed debt requests only a
+ * small increase in the tail's *mean* downhill work. The first post-contact
+ * tangent is invariant, so contact-side geometry is retained. Segment lengths
+ * are invariant too; a single smooth curvature amplitude is solved by exact
+ * arithmetic before the ordinary engine admission is consulted.
+ */
+function correlateTailWork(
+  lines: readonly TrackLine[],
+  contactAnchor: { x: number; y: number },
+  debt: number,
+): TrackLine[] {
+  const vertices = polylineVertices(lines);
+  if (vertices.length < 3) return [...lines];
+  const contact = closestVertex(vertices, contactAnchor);
+  const postSegments = vertices.length - 1 - contact;
+  if (postSegments < 2) return [...lines];
+  const rawGrade = meanGradeFromVertices(vertices, contact);
+  if (rawGrade === null) return [...lines];
+  const targetGrade = clamp(rawGrade + ENERGY_WORK_FULL_DEG * clamp(debt, 0, 1), -35, 35);
+  const rawHeadings = Array.from({ length: postSegments }, (_, index) =>
+    heading(vertices[contact + index]!, vertices[contact + index + 1]!),
+  );
+  const lengths = Array.from({ length: postSegments }, (_, index) => {
+    const from = vertices[contact + index]!;
+    const to = vertices[contact + index + 1]!;
+    return Math.hypot(to.x - from.x, to.y - from.y);
+  });
+  // Mean grade is monotone over the deliberately small solve band for this
+  // fixed, non-negative curvature field. If a pathological tail violates that
+  // local condition, leave it normal rather than inventing a discontinuity.
+  const realize = (amplitude: number) => {
+    const rebuilt = vertices.slice(0, contact + 1).map((point) => ({ ...point }));
+    let point = { ...vertices[contact]! };
+    for (let index = 0; index < postSegments; index++) {
+      const progress = index / (postSegments - 1);
+      const angle = rawHeadings[index]! + amplitude * progress * progress;
+      const radians = angle * Math.PI / 180;
+      point = {
+        x: point.x + Math.cos(radians) * lengths[index]!,
+        y: point.y + Math.sin(radians) * lengths[index]!,
+      };
+      rebuilt.push(point);
+    }
+    return rebuilt;
+  };
+  const loGrade = meanGradeFromVertices(realize(-ENERGY_WORK_SOLVE_DELTA_DEG), contact);
+  const hiGrade = meanGradeFromVertices(realize(ENERGY_WORK_SOLVE_DELTA_DEG), contact);
+  if (loGrade === null || hiGrade === null || !(loGrade <= targetGrade && targetGrade <= hiGrade)) {
+    return [...lines];
+  }
+  let lo = -ENERGY_WORK_SOLVE_DELTA_DEG;
+  let hi = ENERGY_WORK_SOLVE_DELTA_DEG;
+  for (let iteration = 0; iteration < 20; iteration++) {
+    const mid = (lo + hi) / 2;
+    const grade = meanGradeFromVertices(realize(mid), contact);
+    if (grade === null) return [...lines];
+    if (grade < targetGrade) lo = mid;
+    else hi = mid;
+  }
+  const rebuilt = realize((lo + hi) / 2);
+  return rebuilt.slice(1).map((end, index) => ({
+    ...lines[index]!,
+    x1: rebuilt[index]!.x,
+    y1: rebuilt[index]!.y,
+    x2: end.x,
+    y2: end.y,
+  }));
+}
+
+function tailMeanWorkGrade(
+  lines: readonly TrackLine[],
+  contactAnchor: { x: number; y: number },
+): number | null {
+  const vertices = polylineVertices(lines);
+  if (vertices.length < 2) return null;
+  return meanGradeFromVertices(vertices, closestVertex(vertices, contactAnchor));
+}
+
+function closestVertex(vertices: readonly { x: number; y: number }[], anchor: { x: number; y: number }): number {
+  let result = 0;
+  let bestDistance = Infinity;
+  for (let index = 0; index < vertices.length; index++) {
+    const point = vertices[index]!;
+    const distance = Math.hypot(point.x - anchor.x, point.y - anchor.y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      result = index;
+    }
+  }
+  return result;
+}
+
+function meanGradeFromVertices(vertices: readonly { x: number; y: number }[], contact: number): number | null {
+  const start = vertices[contact];
+  const end = vertices.at(-1);
+  if (start === undefined || end === undefined || start === end) return null;
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  if (Math.hypot(dx, dy) <= 1e-9) return null;
+  return Math.atan2(dy, dx) * 180 / Math.PI;
 }
 
 function polylineVertices(lines: readonly TrackLine[]): Array<{ x: number; y: number }> {

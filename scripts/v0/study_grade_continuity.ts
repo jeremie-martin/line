@@ -15,6 +15,9 @@
  *   - energy-continuous: on that same span, retain the contact-side tangent
  *     and solve a distributed tail-work adjustment from a decayed exact
  *     multi-contact speed-deficit state.
+ *   - contact-phase-continuous: on that same span, carry the preceding
+ *     committed contact anchor's tangent-frame phase into an otherwise
+ *     unchanged normal contact-centered line set.
  *
  * The previous grade is a continuous measured property of the committed line
  * set.  No source, case, duration class, target identity, or outcome feeds the
@@ -43,14 +46,14 @@ import {
   writeImmutableJsonArtifact,
 } from "./trajectory/study_artifact.ts";
 
-const SCHEMA = "line.study-grade-and-energy-continuity.v2";
+const SCHEMA = "line.study-trajectory-continuity-controls.v3";
 const FIXTURE_DIR = "generated/studies/trajectory-fixtures/grade-continuity-2026-07-17/v3";
 const FIXTURES = {
   believer36: "believer36-b500000-d7aec722a976.json",
   believer69: "believer69-b500000-24448183619b.json",
 } as const;
 type StateId = keyof typeof FIXTURES;
-type Family = "independent" | "grade-continuous" | "energy-continuous";
+type Family = "independent" | "grade-continuous" | "energy-continuous" | "contact-phase-continuous";
 
 // The physical hypothesis is persistent shallow grades, not a one-off rail.
 // Every fourth low-discrepancy attempt receives the correlated terminal grade;
@@ -72,6 +75,10 @@ const ENERGY_DEBT_FULL_PX_PER_FRAME = 2.0;
  * distributed energy bias, not a steep launch or a terminal-angle command. */
 const ENERGY_WORK_FULL_DEG = 5;
 const ENERGY_WORK_SOLVE_DELTA_DEG = 18;
+/** A phase is a signed contact-anchor displacement along the incoming tangent,
+ * normalized by reference speed. The fixed blend is not a source constant: it
+ * is one bounded physical falsifier for whether phase persistence exists. */
+const CONTACT_PHASE_BLEND = 0.70;
 const DEFAULT_TRIALS = 24;
 const STATE_FRAME_BUDGET = 3_000_000;
 
@@ -108,12 +115,12 @@ if (!Number.isInteger(trials) || trials <= 0 || trials > 256) {
   throw new Error(`--trials must be an integer in [1, 256]; received ${requestedTrials}`);
 }
 const selected: readonly StateId[] = requestedCase === "all" ? stateIds : [requestedCase as StateId];
-const outDir = argument("out-dir") ?? "generated/studies/grade-continuity/v4-energy";
+const outDir = argument("out-dir") ?? "generated/studies/grade-continuity/v5-contact-phase";
 
 const sourceIdentity = studySourceIdentity("scripts/v0/study_grade_continuity.ts");
 const observationCompiler = compilerCandidateIdentity("wasm");
 const protocolFingerprint = sha256(stableJson({
-  protocol: "grade-and-energy-continuity.v2",
+  protocol: "grade-energy-and-contact-phase-continuity.v3",
   captureBudget: 500_000,
   stream: {
     baseline: "sampleArcPlacementGeometry(normal)",
@@ -134,6 +141,7 @@ const protocolFingerprint = sha256(stableJson({
     energyDebtFullPxPerFrame: ENERGY_DEBT_FULL_PX_PER_FRAME,
     energyWorkFullDeg: ENERGY_WORK_FULL_DEG,
     energyWorkSolveDeltaDeg: ENERGY_WORK_SOLVE_DELTA_DEG,
+    contactPhaseBlend: CONTACT_PHASE_BLEND,
     trials,
     stateFrameBudget: STATE_FRAME_BUDGET,
   },
@@ -148,6 +156,9 @@ type CandidateRow = {
   controllerDebt: number | null;
   rawMeanWorkGradeDeg: number | null;
   proposedMeanWorkGradeDeg: number | null;
+  previousContactPhaseFrames: number | null;
+  rawContactPhaseFrames: number | null;
+  proposedContactPhaseFrames: number | null;
   admitted: boolean;
   cost: number | null;
   simFrames: number;
@@ -158,6 +169,7 @@ type ContactStep = {
   authored: { speed: number | null; air: number | null; impact: number | null };
   entry: { speed: number; angleDeg: number };
   carriedEnergyDebt: number | null;
+  contactPhaseFrames: number | null;
   candidates: CandidateRow[];
   chosen: {
     attempt: number;
@@ -203,12 +215,15 @@ for (const result of results) {
   const independent = result.summary.families.independent;
   const grade = result.summary.families["grade-continuous"];
   const energy = result.summary.families["energy-continuous"];
+  const phase = result.summary.families["contact-phase-continuous"];
   const gradeDelta = difference(grade.terminalSpeed.mean, independent.terminalSpeed.mean);
   const energyDelta = difference(energy.terminalSpeed.mean, independent.terminalSpeed.mean);
+  const phaseDelta = difference(phase.terminalSpeed.mean, independent.terminalSpeed.mean);
   process.stdout.write(
     `${result.id}: grade complete ${grade.completeChains}/${grade.trials} speed Δ${signed(gradeDelta)}; ` +
     `energy complete ${energy.completeChains}/${energy.trials} speed Δ${signed(energyDelta)} ` +
-    `vs independent ${independent.completeChains}/${independent.trials}; energy chosen ${energy.transformedChosen}; ` +
+    `phase complete ${phase.completeChains}/${phase.trials} speed Δ${signed(phaseDelta)} ` +
+    `vs independent ${independent.completeChains}/${independent.trials}; phase chosen ${phase.transformedChosen}; ` +
     `frames ${result.chargedFrames}\n`,
   );
 }
@@ -234,11 +249,14 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
     rows.push(runTrial(prepared, "grade-continuous", trial, charge, prefixTerminalGradeDeg));
     if (chargedFrames >= STATE_FRAME_BUDGET) break;
     rows.push(runTrial(prepared, "energy-continuous", trial, charge, prefixTerminalGradeDeg));
+    if (chargedFrames >= STATE_FRAME_BUDGET) break;
+    rows.push(runTrial(prepared, "contact-phase-continuous", trial, charge, prefixTerminalGradeDeg));
   }
   const families: Record<Family, FamilySummary> = {
     independent: summarize(rows.filter((row) => row.family === "independent")),
     "grade-continuous": summarize(rows.filter((row) => row.family === "grade-continuous")),
     "energy-continuous": summarize(rows.filter((row) => row.family === "energy-continuous")),
+    "contact-phase-continuous": summarize(rows.filter((row) => row.family === "contact-phase-continuous")),
   };
   const comparison = {
     terminalSpeedMeanDelta: difference(families["grade-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
@@ -247,6 +265,9 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
     energyTerminalSpeedMeanDelta: difference(families["energy-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
     energyMeanAchievedSpeedDelta: difference(families["energy-continuous"].meanAchievedSpeed.mean, families.independent.meanAchievedSpeed.mean),
     energyCompleteChainDelta: families["energy-continuous"].completeChains - families.independent.completeChains,
+    phaseTerminalSpeedMeanDelta: difference(families["contact-phase-continuous"].terminalSpeed.mean, families.independent.terminalSpeed.mean),
+    phaseMeanAchievedSpeedDelta: difference(families["contact-phase-continuous"].meanAchievedSpeed.mean, families.independent.meanAchievedSpeed.mean),
+    phaseCompleteChainDelta: families["contact-phase-continuous"].completeChains - families.independent.completeChains,
   };
   const artifactIdentity = studyArtifactIdentity({
     schema: SCHEMA,
@@ -258,7 +279,7 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
   const artifact = {
     schema: SCHEMA,
     artifactIdentity,
-    purpose: "Fixture-only falsifier for predecessor-grade and cumulative kinetic-energy trajectory controls. Every candidate remains subject to the ordinary exact admission gate; the energy stream differs only by a deterministic, attempt-spanned distributed tail-work adjustment driven by a decayed exact speed-deficit state.",
+    purpose: "Fixture-only falsifier for predecessor-grade, cumulative kinetic-energy, and contact-phase trajectory controls. Every candidate remains subject to the ordinary exact admission gate; the phase stream differs only by a deterministic, attempt-spanned tangent-frame translation toward the preceding committed anchor phase.",
     status: {
       productionIntegration: "forbidden: calibration study only; it does not modify compiler candidates, selection, or promotion",
       resultEligibility: "physical/executable evidence only; a source-default lane requires its own scope panel and normal V2 funnel",
@@ -283,8 +304,9 @@ function runState(id: StateId): { id: StateId; artifactPath: string; summary: { 
       correlatedAttemptRule: "lowDiscrepancyRoll(attempt, 41) >= 0.75; independent stream never transforms",
       gradeRule: "terminal post grade blends toward the prior committed terminal line grade only while that prior grade is shallow and the authored speed exceeds measured entry speed; capture-side geometry through the contact vertex is byte-preserved",
       energyRule: "a decayed per-contact exact speed-deficit integral requests a bounded distributed mean-tail-work adjustment; it preserves the contact anchor, every segment length, and the first post-contact tangent, and reads no preceding terrain heading",
+      contactPhaseRule: "the preceding committed contact anchor's signed displacement from its predicted sled point, in current-reference-speed frames, blends with the raw contact anchor; the complete normal line set translates only along the current incoming tangent and no missing phase becomes a synthetic anchor",
       admission: "unchanged tryCandidateLines with exact survival, landing, off-beat, and target-axis gates",
-      sourceInputs: "grade stream: previous committed terminal grade plus authored speed deficit; energy stream: exact measured speed-deficit integral plus existing sampled geometry and attempt coordinate; neither stream reads source, case, duration class, or outcomes",
+      sourceInputs: "grade stream: previous committed terminal grade plus authored speed deficit; energy stream: exact measured speed-deficit integral; phase stream: previous committed contact-anchor phase plus current incoming tangent/reference speed; all streams use existing sampled geometry and attempt coordinate only, and none reads source, case, duration class, or outcomes",
     },
     chargedFrames,
     budgetExhausted: chargedFrames >= STATE_FRAME_BUDGET,
@@ -312,6 +334,7 @@ function runTrial(
   // Unlike the retired grade stream, this state contains no prior terrain
   // property. It is only a bounded integral of exact entry-speed deficit.
   let carriedEnergyDebt = 0;
+  let previousContactPhaseFrames: number | null = null;
   const steps: ContactStep[] = [];
 
   for (let offset = 0; offset < CHAIN_CONTACTS; offset++) {
@@ -320,7 +343,7 @@ function runTrial(
       steps.push({
         gapIndex: prepared.current.index + offset,
         authored: { speed: null, air: null, impact: null },
-        entry: { speed: 0, angleDeg: 0 }, carriedEnergyDebt: null, candidates: [], chosen: null, result: "missing-contact",
+        entry: { speed: 0, angleDeg: 0 }, carriedEnergyDebt: null, contactPhaseFrames: null, candidates: [], chosen: null, result: "missing-contact",
       });
       break;
     }
@@ -328,7 +351,7 @@ function runTrial(
     const rng = makeRng((Math.imul((trial + 1) | 0, 1000003) + gap.index + 1) | 0);
     const axisEnd = axisLookaheadEndFrame(gap, prepared.ctx.allContactFrames);
     const candidates: CandidateRow[] = [];
-    let chosen: { fit: GapFit; attempt: number; transformed: boolean; terminalGradeDeg: number } | null = null;
+    let chosen: { fit: GapFit; attempt: number; transformed: boolean; terminalGradeDeg: number; contactPhaseFrames: number | null } | null = null;
     const instantaneousEnergyDebt = gap.targets.speed === undefined
       ? 0
       : clamp(
@@ -348,7 +371,11 @@ function runTrial(
         prepared.ctx.allContactFrames,
       );
       const rawTerminalGradeDeg = terminalGrade(geometry.lines);
-      const rawMeanWorkGradeDeg = tailMeanWorkGrade(geometry.lines, { x: probe.targetState.sledX, y: probe.targetState.sledY });
+      const contactAnchor = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      const rawMeanWorkGradeDeg = tailMeanWorkGrade(geometry.lines, contactAnchor);
+      const rawContactPhaseFrames = contactPhaseFrames(
+        geometry.lines, contactAnchor, probe.targetState.speed, probe.targetState.angleDeg,
+      );
       const speedDeficit = gap.targets.speed === undefined
         ? 0
         : smoothstep((authoredSpeedToPx(gap.targets.speed) - probe.targetState.speed - SPEED_DEFICIT_START_PX_PER_FRAME) /
@@ -356,15 +383,23 @@ function runTrial(
       const span = isContinuityAttempt(attempt);
       const gradeTransformed = family === "grade-continuous" && previousGrade !== null && speedDeficit > 0 && span;
       const energyTransformed = family === "energy-continuous" && controllerDebt > 0 && span;
-      const transformed = gradeTransformed || energyTransformed;
-      const contactAnchor = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      const phaseTransformed = family === "contact-phase-continuous" && previousContactPhaseFrames !== null && span;
+      const transformed = gradeTransformed || energyTransformed || phaseTransformed;
       const lines = gradeTransformed
         ? correlateTerminalGrade(geometry.lines, contactAnchor, previousGrade!, speedDeficit)
         : energyTransformed
         ? correlateTailWork(geometry.lines, contactAnchor, controllerDebt)
+        : phaseTransformed
+        ? correlateContactPhase(
+          geometry.lines, contactAnchor, probe.targetState.speed, probe.targetState.angleDeg,
+          previousContactPhaseFrames!,
+        )
         : geometry.lines;
       const proposedTerminalGradeDeg = terminalGrade(lines);
       const proposedMeanWorkGradeDeg = tailMeanWorkGrade(lines, contactAnchor);
+      const proposedContactPhaseFrames = contactPhaseFrames(
+        lines, contactAnchor, probe.targetState.speed, probe.targetState.angleDeg,
+      );
       const before = getSimFrames();
       const fit = tryCandidateLines(
         engine, gap, lines, lineIdStart, prepared.ctx.allContactFrames, axisEnd,
@@ -378,10 +413,16 @@ function runTrial(
         controllerDebt: family === "energy-continuous" ? round(controllerDebt) : null,
         rawMeanWorkGradeDeg,
         proposedMeanWorkGradeDeg,
+        previousContactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null,
+        rawContactPhaseFrames,
+        proposedContactPhaseFrames,
         admitted: fit !== null, cost: fit === null ? null : round(fit.cost), simFrames: frames,
       });
       if (fit !== null && (chosen === null || fit.cost < chosen.fit.cost)) {
-        chosen = { fit, attempt, transformed, terminalGradeDeg: proposedTerminalGradeDeg ?? 0 };
+        chosen = {
+          fit, attempt, transformed, terminalGradeDeg: proposedTerminalGradeDeg ?? 0,
+          contactPhaseFrames: proposedContactPhaseFrames,
+        };
       }
     }
 
@@ -391,7 +432,7 @@ function runTrial(
       impact: gap.targets.impact ?? null,
     };
     if (chosen === null) {
-      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, candidates, chosen: null, result: "no-admitted-candidate" });
+      steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, contactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null, candidates, chosen: null, result: "no-admitted-candidate" });
       break;
     }
     const achieved = chosen.fit.achievedAtEnd ?? chosen.fit.achieved;
@@ -400,6 +441,7 @@ function runTrial(
       authored,
       entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) },
       carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null,
+      contactPhaseFrames: family === "contact-phase-continuous" ? chosen.contactPhaseFrames : null,
       candidates,
       chosen: {
         attempt: chosen.attempt,
@@ -414,6 +456,7 @@ function runTrial(
     lineIdStart += chosen.fit.lines.length;
     previousGrade = chosen.terminalGradeDeg;
     carriedEnergyDebt = controllerDebt;
+    previousContactPhaseFrames = chosen.contactPhaseFrames;
   }
 
   const committed = steps.filter((step) => step.result === "committed");
@@ -610,6 +653,52 @@ function meanGradeFromVertices(vertices: readonly { x: number; y: number }[], co
   const dy = end.y - start.y;
   if (Math.hypot(dx, dy) <= 1e-9) return null;
   return Math.atan2(dy, dx) * 180 / Math.PI;
+}
+
+/** Signed contact-anchor phase in reference-speed frames. The nearest vertex
+ * is the normal sampler's contact center; the tangent is the exact incoming
+ * target-state velocity direction, never a case/duration coordinate. */
+function contactPhaseFrames(
+  lines: readonly TrackLine[],
+  contactAnchor: { x: number; y: number },
+  speed: number,
+  angleDeg: number,
+): number | null {
+  if (!(speed > 1e-9) || !Number.isFinite(angleDeg)) return null;
+  const vertices = polylineVertices(lines);
+  if (vertices.length === 0) return null;
+  const contact = vertices[closestVertex(vertices, contactAnchor)];
+  if (contact === undefined) return null;
+  const radians = angleDeg * Math.PI / 180;
+  return ((contact.x - contactAnchor.x) * Math.cos(radians) +
+    (contact.y - contactAnchor.y) * Math.sin(radians)) / speed;
+}
+
+/** Preserve the entire sampled normal shape and collision-side encoding while
+ * moving its contact center along the current incoming tangent. This is the
+ * exact geometric analogue of constructing the contact point at a persistent
+ * phase; normal admission decides whether the translated fragment is usable. */
+function correlateContactPhase(
+  lines: readonly TrackLine[],
+  contactAnchor: { x: number; y: number },
+  speed: number,
+  angleDeg: number,
+  previousPhaseFrames: number,
+): TrackLine[] {
+  const rawPhase = contactPhaseFrames(lines, contactAnchor, speed, angleDeg);
+  if (rawPhase === null || !Number.isFinite(previousPhaseFrames)) return [...lines];
+  const phase = rawPhase + (previousPhaseFrames - rawPhase) * CONTACT_PHASE_BLEND;
+  const shift = (phase - rawPhase) * speed;
+  const radians = angleDeg * Math.PI / 180;
+  const dx = Math.cos(radians) * shift;
+  const dy = Math.sin(radians) * shift;
+  return lines.map((line) => ({
+    ...line,
+    x1: line.x1 + dx,
+    y1: line.y1 + dy,
+    x2: line.x2 + dx,
+    y2: line.y2 + dy,
+  }));
 }
 
 function polylineVertices(lines: readonly TrackLine[]): Array<{ x: number; y: number }> {

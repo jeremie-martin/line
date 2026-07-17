@@ -1,0 +1,515 @@
+{
+  "schema": "line.impact-frontier-probe.v1",
+  "purpose": "fixed, observation-only impact discovery screen; neither a compiler selection rule nor a V2 promotion result",
+  "fixedConfig": {
+    "budget": 500000,
+    "seeds": [
+      28,
+      29
+    ],
+    "joltMs": -15,
+    "cases": [
+      {
+        "id": "frontier_dense_recovery",
+        "role": "impact",
+        "regime": "capability_dense"
+      },
+      {
+        "id": "dense_dialogue_impact_contrast_10",
+        "role": "impact",
+        "regime": "representative_dense"
+      },
+      {
+        "id": "countercurrent",
+        "role": "impact",
+        "regime": "representative"
+      },
+      {
+        "id": "believer_56_6s",
+        "role": "impact",
+        "regime": "development_music"
+      },
+      {
+        "id": "frontier_low_air_endurance_4s",
+        "role": "guard",
+        "regime": "capability_low_air"
+      },
+      {
+        "id": "offgrid_conversation",
+        "role": "guard",
+        "regime": "representative_pickup"
+      }
+    ],
+    "speedErrorAllowances": [
+      0,
+      0.025,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "poolPopulation": "exact forward-scored candidates at every impact+speed-authored prefix",
+    "selection": "minimum exact handoff score; no probe result changes compiler selection"
+  },
+  "execution": {
+    "compilerCandidateFingerprint": "e312d71fa61ca99509fcf0b9726a9d40b013dfbbf052ce716e88c0f48faaab24",
+    "compilerSourceFingerprint": "6688df6e62a1c8a5cfe970304300fdfc9833f2dc29b31302c904d3df1eba5d62",
+    "engine": "wasm"
+  },
+  "runs": [
+    {
+      "id": "frontier_dense_recovery",
+      "role": "impact",
+      "regime": "capability_dense",
+      "seed": 28,
+      "valid": true,
+      "score": 377.298842,
+      "axis": {
+        "air": {
+          "n": 123,
+          "rms": 0.286075,
+          "meanSigned": 0.227297
+        },
+        "speed": {
+          "n": 123,
+          "rms": 0.144617,
+          "meanSigned": -0.052838
+        },
+        "impact": {
+          "n": 123,
+          "rms": 0.274565,
+          "meanSigned": -0.226992
+        }
+      },
+      "simFrames": 500035,
+      "elapsedMs": 4971
+    },
+    {
+      "id": "frontier_dense_recovery",
+      "role": "impact",
+      "regime": "capability_dense",
+      "seed": 29,
+      "valid": true,
+      "score": 378.702702,
+      "axis": {
+        "air": {
+          "n": 123,
+          "rms": 0.283058,
+          "meanSigned": 0.228278
+        },
+        "speed": {
+          "n": 123,
+          "rms": 0.124634,
+          "meanSigned": -0.045273
+        },
+        "impact": {
+          "n": 123,
+          "rms": 0.284831,
+          "meanSigned": -0.237824
+        }
+      },
+      "simFrames": 500355,
+      "elapsedMs": 4234
+    },
+    {
+      "id": "dense_dialogue_impact_contrast_10",
+      "role": "impact",
+      "regime": "representative_dense",
+      "seed": 28,
+      "valid": true,
+      "score": 383.275999,
+      "axis": {
+        "air": {
+          "n": 130,
+          "rms": 0.129981,
+          "meanSigned": 0.086871
+        },
+        "speed": {
+          "n": 130,
+          "rms": 0.217052,
+          "meanSigned": -0.103503
+        },
+        "impact": {
+          "n": 130,
+          "rms": 0.329293,
+          "meanSigned": -0.273307
+        }
+      },
+      "simFrames": 500548,
+      "elapsedMs": 4884
+    },
+    {
+      "id": "dense_dialogue_impact_contrast_10",
+      "role": "impact",
+      "regime": "representative_dense",
+      "seed": 29,
+      "valid": true,
+      "score": 419.383908,
+      "axis": {
+        "air": {
+          "n": 130,
+          "rms": 0.128113,
+          "meanSigned": 0.08261
+        },
+        "speed": {
+          "n": 130,
+          "rms": 0.134802,
+          "meanSigned": -0.068215
+        },
+        "impact": {
+          "n": 130,
+          "rms": 0.327105,
+          "meanSigned": -0.276941
+        }
+      },
+      "simFrames": 502504,
+      "elapsedMs": 5060
+    },
+    {
+      "id": "countercurrent",
+      "role": "impact",
+      "regime": "representative",
+      "seed": 28,
+      "valid": true,
+      "score": 674.633874,
+      "axis": {
+        "air": {
+          "n": 79,
+          "rms": 0.064897,
+          "meanSigned": 0.040885
+        },
+        "speed": {
+          "n": 79,
+          "rms": 0.027459,
+          "meanSigned": 0.003549
+        },
+        "impact": {
+          "n": 79,
+          "rms": 0.155177,
+          "meanSigned": -0.122914
+        }
+      },
+      "simFrames": 518016,
+      "elapsedMs": 4588
+    },
+    {
+      "id": "countercurrent",
+      "role": "impact",
+      "regime": "representative",
+      "seed": 29,
+      "valid": true,
+      "score": 681.06657,
+      "axis": {
+        "air": {
+          "n": 79,
+          "rms": 0.074468,
+          "meanSigned": 0.043388
+        },
+        "speed": {
+          "n": 79,
+          "rms": 0.024728,
+          "meanSigned": 0.003193
+        },
+        "impact": {
+          "n": 79,
+          "rms": 0.146645,
+          "meanSigned": -0.121721
+        }
+      },
+      "simFrames": 522580,
+      "elapsedMs": 4573
+    },
+    {
+      "id": "believer_56_6s",
+      "role": "impact",
+      "regime": "development_music",
+      "seed": 28,
+      "valid": true,
+      "score": 326.18822,
+      "axis": {
+        "air": {
+          "n": 84,
+          "rms": 0.122139,
+          "meanSigned": 0.09644
+        },
+        "speed": {
+          "n": 84,
+          "rms": 0.197685,
+          "meanSigned": -0.122277
+        },
+        "impact": {
+          "n": 84,
+          "rms": 0.425817,
+          "meanSigned": -0.366859
+        }
+      },
+      "simFrames": 510486,
+      "elapsedMs": 4299
+    },
+    {
+      "id": "believer_56_6s",
+      "role": "impact",
+      "regime": "development_music",
+      "seed": 29,
+      "valid": true,
+      "score": 308.990692,
+      "axis": {
+        "air": {
+          "n": 84,
+          "rms": 0.133858,
+          "meanSigned": 0.09576
+        },
+        "speed": {
+          "n": 84,
+          "rms": 0.233321,
+          "meanSigned": -0.148161
+        },
+        "impact": {
+          "n": 84,
+          "rms": 0.431585,
+          "meanSigned": -0.366599
+        }
+      },
+      "simFrames": 511281,
+      "elapsedMs": 4510
+    },
+    {
+      "id": "frontier_low_air_endurance_4s",
+      "role": "guard",
+      "regime": "capability_low_air",
+      "seed": 28,
+      "valid": true,
+      "score": 504.645504,
+      "axis": {
+        "air": {
+          "n": 90,
+          "rms": 0.190377,
+          "meanSigned": 0.14228
+        },
+        "speed": {
+          "n": 90,
+          "rms": 0.073634,
+          "meanSigned": 0.018163
+        },
+        "impact": {
+          "n": 90,
+          "rms": 0.21455,
+          "meanSigned": -0.171471
+        }
+      },
+      "simFrames": 502145,
+      "elapsedMs": 4607
+    },
+    {
+      "id": "frontier_low_air_endurance_4s",
+      "role": "guard",
+      "regime": "capability_low_air",
+      "seed": 29,
+      "valid": true,
+      "score": 499.11165,
+      "axis": {
+        "air": {
+          "n": 90,
+          "rms": 0.205988,
+          "meanSigned": 0.154205
+        },
+        "speed": {
+          "n": 90,
+          "rms": 0.060977,
+          "meanSigned": 0.019033
+        },
+        "impact": {
+          "n": 90,
+          "rms": 0.210709,
+          "meanSigned": -0.17836
+        }
+      },
+      "simFrames": 501288,
+      "elapsedMs": 4580
+    },
+    {
+      "id": "offgrid_conversation",
+      "role": "guard",
+      "regime": "representative_pickup",
+      "seed": 28,
+      "valid": true,
+      "score": 683.387017,
+      "axis": {
+        "air": {
+          "n": 87,
+          "rms": 0.075058,
+          "meanSigned": 0.042582
+        },
+        "speed": {
+          "n": 87,
+          "rms": 0.035449,
+          "meanSigned": 0.014321
+        },
+        "impact": {
+          "n": 87,
+          "rms": 0.142421,
+          "meanSigned": -0.111736
+        }
+      },
+      "simFrames": 513970,
+      "elapsedMs": 4700
+    },
+    {
+      "id": "offgrid_conversation",
+      "role": "guard",
+      "regime": "representative_pickup",
+      "seed": 29,
+      "valid": true,
+      "score": 672.772353,
+      "axis": {
+        "air": {
+          "n": 87,
+          "rms": 0.078359,
+          "meanSigned": 0.03988
+        },
+        "speed": {
+          "n": 87,
+          "rms": 0.039325,
+          "meanSigned": 0.006824
+        },
+        "impact": {
+          "n": 87,
+          "rms": 0.14754,
+          "meanSigned": -0.111168
+        }
+      },
+      "simFrames": 509295,
+      "elapsedMs": 4634
+    }
+  ],
+  "summary": {
+    "overall": {
+      "runs": 12,
+      "validRuns": 12,
+      "scoreMean": 492.454778,
+      "axes": {
+        "air": {
+          "n": 1186,
+          "rms": 0.173947,
+          "meanSigned": 0.113599
+        },
+        "speed": {
+          "n": 1186,
+          "rms": 0.136197,
+          "meanSigned": -0.043329
+        },
+        "impact": {
+          "n": 1186,
+          "rms": 0.280828,
+          "meanSigned": -0.219662
+        }
+      }
+    },
+    "impact": {
+      "runs": 8,
+      "validRuns": 8,
+      "scoreMean": 443.692601,
+      "axes": {
+        "air": {
+          "n": 832,
+          "rms": 0.182729,
+          "meanSigned": 0.121239
+        },
+        "speed": {
+          "n": 832,
+          "rms": 0.15862,
+          "meanSigned": -0.067999
+        },
+        "impact": {
+          "n": 832,
+          "rms": 0.313433,
+          "meanSigned": -0.251973
+        }
+      }
+    },
+    "guard": {
+      "runs": 4,
+      "validRuns": 4,
+      "scoreMean": 589.979131,
+      "axes": {
+        "air": {
+          "n": 354,
+          "rms": 0.151313,
+          "meanSigned": 0.095644
+        },
+        "speed": {
+          "n": 354,
+          "rms": 0.054888,
+          "meanSigned": 0.014653
+        },
+        "impact": {
+          "n": 354,
+          "rms": 0.182553,
+          "meanSigned": -0.143722
+        }
+      }
+    },
+    "frontier": {
+      "pools": 4054,
+      "scoredCandidates": 31331,
+      "axisParetoCandidatesMean": 1.961026,
+      "selectedOnAxisParetoRate": 0.451653,
+      "speedAllowance": {
+        "0": {
+          "available": 4054,
+          "materialImpactRepairs": 1705,
+          "materialImpactRepairRate": 0.420572,
+          "impactGainMean": 0.034454,
+          "speedCostMean": -0.000008,
+          "airCostMean": 0.006662,
+          "elevationCostMean": null,
+          "handoffCostMean": 9.607672,
+          "readinessDeltaMean": -0.026945
+        },
+        "0.025": {
+          "available": 4054,
+          "materialImpactRepairs": 1779,
+          "materialImpactRepairRate": 0.438826,
+          "impactGainMean": 0.03587,
+          "speedCostMean": -0.000001,
+          "airCostMean": 0.008008,
+          "elevationCostMean": null,
+          "handoffCostMean": 9.75689,
+          "readinessDeltaMean": -0.028121
+        },
+        "0.05": {
+          "available": 4054,
+          "materialImpactRepairs": 1779,
+          "materialImpactRepairRate": 0.438826,
+          "impactGainMean": 0.03587,
+          "speedCostMean": -0.000001,
+          "airCostMean": 0.008008,
+          "elevationCostMean": null,
+          "handoffCostMean": 9.75689,
+          "readinessDeltaMean": -0.028121
+        },
+        "0.1": {
+          "available": 4054,
+          "materialImpactRepairs": 1779,
+          "materialImpactRepairRate": 0.438826,
+          "impactGainMean": 0.03587,
+          "speedCostMean": -0.000001,
+          "airCostMean": 0.008008,
+          "elevationCostMean": null,
+          "handoffCostMean": 9.75689,
+          "readinessDeltaMean": -0.028121
+        },
+        "0.2": {
+          "available": 4054,
+          "materialImpactRepairs": 1779,
+          "materialImpactRepairRate": 0.438826,
+          "impactGainMean": 0.03587,
+          "speedCostMean": -0.000001,
+          "airCostMean": 0.008008,
+          "elevationCostMean": null,
+          "handoffCostMean": 9.75689,
+          "readinessDeltaMean": -0.028121
+        }
+      }
+    }
+  }
+}

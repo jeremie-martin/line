@@ -3278,6 +3278,54 @@ condition release by regime/target, combine it with endpoint/force, or run a
 scope/V2 evaluation. Any successor must change a distinct physical component,
 not choose a subset of this terminal-release aperture.
 
+## Impact Frontier Discovery Probe v1 (2026-07-17)
+
+The V2 archive makes impact the dominant headline lever, but it does **not**
+establish a law of the engine. Earlier statements about a speed/impact
+frontier were observations of particular geometry sources, prefixes, and
+selection rules. They must be challenged whenever the physical transition
+basis or its judge changes. The fast probe below is the repeatable starting
+point for that challenge; it deliberately asks what the current exact pools
+offer across axes rather than assuming that a worse speed score is or is not a
+reasonable price for impact.
+
+`npm run impact-probe` runs the immutable V2-jolt/500k panel in about 55
+seconds on the campaign host: seeds 28 and 29 for four impact-demanding cases
+(`frontier_dense_recovery`, `dense_dialogue_impact_contrast_10`,
+`countercurrent`, and `believer_56_6s`) plus two non-impact traversal guards
+(`frontier_low_air_endurance_4s` and `offgrid_conversation`). Its compact
+accepted reference is
+`benchmark/v2/studies/impact-frontier-probe-v1-baseline.json`; add `--detail`
+when a proposal needs the per-prefix evidence. The tool performs 12 ordinary
+full compiles, reports end-to-end impact/speed/air/validity deltas, and at
+every impact-and-speed-authored prefix reports the exact forward-scored
+candidate frontier. For each permitted *additional absolute speed error*
+(0, .025, .05, .10, .20), it measures the best attainable impact repair, the
+air/elevation movement, and the exact continuation-score/readiness price.
+It neither changes selection nor authorizes V2 promotion.
+
+The fresh accepted reference makes the distinction concrete. Across 4,054
+exact scored pools (31,331 candidates), **42.06%** contain a material
+(at least .025) impact repair with *no* added speed error; allowing .025 adds
+only 1.83 percentage points, and larger speed allowances add none in this
+population. The mean no-speed-sacrifice impact improvement is .03445, but its
+mean forward handoff-score price is +9.61 and readiness movement is −.0269.
+The four impact cases remain substantially under target (impact RMS .31343,
+mean signed −.25197; all 8 runs valid). Thus the current observation does not
+support a simple claim that sacrificing speed is the blocked lever. It also
+does not prove a physical bound: the available repairs are being priced out by
+the present continuation/judgment chain, and a new physical transition source
+can alter the set being priced.
+
+**Rule for exploration.** Use the probe to reject or retain broad mechanisms,
+not to select a case, a constant, or a single-axis winner. A credible
+mechanism may take a measured loss on speed, air, or another axis only when
+the paired aggregate gain and both guards justify it; then it proceeds through
+the ordinary broader scope panel and V2 funnel. The next physical study must
+be independent of this current candidate pool: rebuild the entry-state and
+collision-response envelope from frozen engine states, so that “unreachable”
+is tested rather than inherited from the existing sampler.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

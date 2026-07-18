@@ -5997,6 +5997,285 @@ two-slot diversity.  Only then is a scoped source-default run warranted.  A
 narrower contact-vertex actuator is deferred rather than inferred from signed
 admission alone.
 
+## Arc-Control Matrix Architecture (2026-07-18)
+
+**Decision.** Treat arc-control experimentation as an explicit Cartesian
+configuration matrix, not as a succession of hand-named rotation/pitch
+experiments.  This architecture is important for subsequent knob work.
+Physical transformations, model construction, and observation layouts are
+independent axes:
+
+1. **Atomic knob registry.** A knob owns its deterministic geometry transform,
+   declared signed probe span, inverse-model scan resolution, proposal
+   separation, and any immutable context requirement.  The registry currently
+   exposes `whole_rotation`, `tail_pitch`, `interior_normal_bow`, and
+   `post_contact_pitch`.
+2. **Ordered knob sequence.** A configuration carries an ordered positional
+   list such as `[A]`, `[A,B]`, or `[B,A]`; composition is always left to
+   right.  Repeated names such as `[A,A]` are supported when explicitly
+   requested.  The sequence, not a probe-plan label, is the physical order.
+3. **Training method.** `base_additive` observes signed axis changes on the
+   original arc; `base_joint` observes the complete signed cube on the original
+   arc; `sequential_conditional` selects one stage, materializes its prefix,
+   and observes the next knob on that transformed geometry.  These names never
+   encode a specific knob.
+4. **Probe layout.** The initial `signed3` layout declares `[-span,0,+span]`
+   per scalar coordinate.  Planned rides are mechanically reported: additive
+   `1+2d`, joint `3^d`, sequential `3d`.  Sequential's later-stage center is
+   a real ride of the materialized prefix, never a prediction borrowed from a
+   prior-stage model.
+
+The implementation must execute every well-formed ordered sequence rather
+than silently deciding that an order is uninteresting.  If observed rows do
+not identify a rich requested form, the existing deterministic fitting ladder
+records the achieved form; this is telemetry, not a discarded configuration.
+The exact evaluator remains the only judge of emitted candidates.
+
+**Shared implementation.** `optimizer/arc_actuator.ts` now has generic
+`applyArcKnobSequence(sequence, positionalValues, context)`, used by the
+normal compiler itself through its legacy pair adapter.  `aim.ts` additionally
+accepts the study-only `LR_AIM_KNOB_SEQUENCE=A[,B]`,
+`LR_AIM_TRAINING_METHOD`, and `LR_AIM_PROBE_LAYOUT` configuration boundary;
+the historic named-pair setting remains a back-compatible adapter.  The
+compiler executes base-additive, base-joint, and physically sequential
+conditional fitting as distinct behaviors, not as a matrix label.  Default
+`whole_rotation,tail_pitch` output is bit-identical on dense/seed-0/500k to
+the pre-refactor scope artifact, and the new generic post-contact sequence is
+bit-identical to the prior named-pair path.  A selected mechanism must still
+be source-baked before family selection or confirmation.
+
+**Matrix runner.** `npm run study:arc-control-matrix -- ...` is a read-only
+V2-native laboratory.  It writes every raw probe output, gate, applied ordered
+sequence and values, geometry hash, fitted-form counts, selected values,
+predicted objective, exact admission, and invariant result to one JSON
+artifact; its summary is a derived view.  It asserts that actual and declared
+probe counts agree and that selected values remain inside each knob's declared
+span.  One-dimensional method labels are retained in the raw Cartesian matrix
+but grouped under an explicit observation/proposal-equivalence key because all
+three signed-three-point methods observe and propose the same scalar experiment
+there.  The artifact audits that relationship while retaining method-specific
+stage bookkeeping.
+
+**Systems smoke (2026-07-18; artifact
+`generated/studies/arc-control-matrix-v1/smoke-all-knobs-s0.json`): PASS.**
+All four registered knobs, every one- and two-knob non-repeating order
+(`4 + 4×3 = 16` sequences), and all three training methods yielded **48
+configurations**.  On six V2 sources, one seed, 300k, first eligible gap, and
+short probes, the runner wrote **288** state rows and completed all planned
+rides/invariants without an exception.  A separate repeated-sequence smoke
+(`repeated-sequence-smoke.json`) exercised `[A,A]` in all three methods.  The
+legacy short-probe replay over the earlier 48-state panel reproduced the
+incumbent ordered pair exactly: **96** selected slots, **75** exact admissions,
+and **39/48** viable states
+(`generated/studies/arc-control-matrix-v1/legacy-cross-replay.json`).  These
+are implementation checks and hypothesis-generating local data only; they do
+not rank a source-default compiler or authorize promotion.
+
+**Actual V2 matrix runner.** `npm run benchmark:v2:arc-control-matrix -- ...`
+is the decision-relevant outer layer.  It first enumerates only the compiler
+Cartesian product (ordered sequence × training method × layout), snapshots each
+configuration with its explicit `LR_` identity, then runs every selected arm
+through the unmodified official V2 development/probe runner.  Cases, budgets,
+seed epoch, and scorer are a single fixed evaluation protocol outside that
+product:
+
+`for each compiler configuration C: run fixed V2 evaluation E; record score(C, E)`.
+
+It uses the existing exploration seed ledger and snapshot runner, retains each
+ordinary V2 archive/checkpoint/decision index, and derives the paired
+family-style uncertainty, validity, case/stratum, pairwise, and prefix reports
+from those same raw archives. `--configurations=` only filters the already
+generated compiler matrix for a short smoke; it never varies V2 cases, seeds,
+budgets, or scoring. A larger run omits that filter or declares a broader
+configuration subset while retaining the identical evaluation protocol.
+
+**Actual-V2 smoke (2026-07-18; exploration only): PASS infrastructure,
+negative alternatives.** `arc-control-v2-smoke01` used the official 44-source
+development probe suite, its two fixed probe budgets, and two fresh shared seed
+slots per budget (176 cells/arm), not a frozen-state proxy. The refactored
+source-default `base_additive/signed3/[whole_rotation,tail_pitch]` arm was
+exactly identical to the frozen baseline on all **176/176** scores, reports,
+and track hashes (headline **506.63**, delta 0). This establishes end-to-end
+default parity and correct shared-cell accounting. On the same seed epoch:
+reversed `[tail_pitch,whole_rotation]` was **−22.23** (SE 4.49; 5 validity
+losses), base-joint with the incumbent physical order was **−47.43** (SE 23.32;
+5 losses), and physical sequential conditional was **−11.43** (SE 8.48; 3 gains
+and 3 losses). These are useful eliminations/hypotheses, not accepted rankings:
+two seeds leave wide intervals for the latter two configurations. No source
+default was changed and no promotion action is authorized. The raw artifacts
+are under `generated/benchmark-v2/arc-control-matrices/arc-control-v2-smoke01/`.
+
+**Next use.** Expand only declared compiler axes and keep one fixed V2
+evaluation protocol. Use a sufficiently deep shared-seed screen before
+deciding whether any source-baked finalist warrants the ordinary fresh-eval
+funnel. Do not translate a local row or a shallow-seed winner directly into a
+compiler claim.
+
+## Arc-Control Geometry Screen Contract (2026-07-18)
+
+**Purpose.** The first 16-seed matrix was useful evidence about the existing
+four controls, not an endpoint.  The next phase deliberately widens the
+*geometry basis* while holding model construction and evaluation protocol
+constant.  It is a descriptive actual-compiler screen: hypotheses and local
+mechanical checks choose a small, physically coherent registry; only the
+official V2 development/probe results compare the resulting compilers.
+
+**What is and is not a configuration axis.** The compiler-side Cartesian
+product remains exactly
+
+`ordered knob sequence × training method × probe layout × declared future compiler axes`.
+
+V2 case list, budgets, seed epoch/depth, worker count, and scorer are one fixed
+evaluation protocol.  In particular, the experiment means:
+
+`for each compiler configuration C: run the same V2 evaluation E; record score(C, E)`.
+
+They must never be smuggled into a configuration identity or varied per arm.
+Any later 750k question is a separately declared fixed-protocol budget-response
+study, not a fourth model/knob choice.
+
+**Reusable controls, not policies.** The knob registry accepts every
+well-formed positional sequence and composes it left to right.  There is no
+hand-written “valid order” list or physical-name-specific probe policy.
+Repetition remains a real, supported meaning, but the completed matrix made it
+a poor *next-screen choice* (all observed repeats lost); it is therefore
+excluded by the invocation, not prohibited by the compiler.  Proposal count
+is explicitly held at the ordinary two slots; it is not part of this geometry
+screen.
+
+**Model and observation axes.** `base_additive`, `base_joint`, and
+`sequential_conditional` remain generic supported implementations.  The next
+geometry screen fixes `base_additive`: the 16-seed result made it the clear
+screening baseline, while the other implementations are retained for later
+focused questions.  Probe layout is now a real physical observation axis:
+`signed3_narrow`, `signed3`, and `signed3_wide` sample
+`[-.6,0,.6]`, `[-1,0,1]`, and `[-1.4,0,1.4]` times each knob's declared
+nominal inverse-model span.  This changes probes only; the inverse model still
+scans its declared proposal range.  The next geometry screen fixes nominal `signed3` so a
+future layout sweep is interpretable rather than hidden inside a wider
+experiment.  The matrix CLI likewise defaults explicitly to `signed3`, so
+registering a new layout cannot silently multiply paid work.
+
+**New, bounded post-contact basis.** Two additional controls are implemented
+as testable hypotheses, never as a new source default:
+
+1. `post_contact_normal_bow` displaces only the branch after the immutable
+   target-frame contact in that branch's chord-normal frame with a smooth
+   endpoint-preserving bell profile.
+2. `post_contact_normal_skew` uses the corresponding opposite-signed two-lobe
+   profile, redistributing local branch shape rather than merely increasing the
+   bell amplitude.
+
+Both require a real interior contact vertex and at least one movable
+post-contact interior vertex; otherwise they deterministically return the
+ordinary geometry.  They preserve the entire pre-contact prefix, selected
+contact vertex, terminal point, continuity, flags, and segment count.  They
+are intentionally distinct from `post_contact_pitch` (which rotates the
+downstream endpoint), `interior_normal_bow` (whole-arc support/frame), the
+retired uniform whole-arc scale, and the retired inactive pre-contact
+curvature coordinate.  This is a narrow post-contact shape-basis hypothesis,
+not a revival of any retired state-field/scale mechanism.
+
+**Mechanical preflight before paid V2.** Run the V2-native local matrix over a
+small fixed ordinary-state panel with the two new controls included.  Retain
+the raw geometry hashes, contact-context availability, exact gate outcomes,
+model forms, selected values, and the planned/actual probe-count invariant.
+The preflight must show that each new control is actually non-identical on
+eligible ordinary arcs, preserves its declared contact/terminal boundary, and
+does not cause a systemic gate collapse.  It generates hypotheses only.  A
+failure removes or repairs the control before the paid screen; a pass merely
+authorizes the fixed V2 comparison.
+
+**Mechanical preflight result (2026-07-18; PASS, hypothesis-generating only).**
+At the first ordinary frozen state of each of six fixed V2 sources, seed 0,
+300k, one gap, and nominal signed-three probes, both new shape modes changed
+geometry on all **12/12** non-zero observations; zero observations remained
+ordinary.  Every one of their **18/18** probe rides passed the exact gate.
+The bow emitted seven exact candidates across four of six states; the skew
+emitted seven across all six.  This is enough to rule out a representation
+no-op or immediate gate collapse, not enough to rank either shape.  Artifact:
+`generated/studies/arc-control-matrix-v1/post-contact-shapes-preflight-s0.json`.
+The focused layout preflight independently showed distinct narrow/nominal/wide
+geometry hashes, correct 3/5/9/6 planned counts for scalar/additive/joint/
+sequential cases, and restored true scalar observation/proposal equivalence
+after canonicalizing harmless probe collection order.  Artifact:
+`generated/studies/arc-control-matrix-v1/layout-semantics-preflight-s0.json`.
+
+**First widened actual-V2 screen after preflight.** With the four current plus
+two new controls (`N=6`), no repeated names, ordered sequences of length one
+and two, `base_additive`, and nominal `signed3`, the complete compiler product
+contains `N + N(N-1) = 6 + 30 = 36` configurations, plus one frozen baseline
+reference. All 36 receive the same fresh shared 16-seed official V2
+development/probe evaluation (its ordinary fixed 250k/500k budgets, cases,
+and scorer), at the configured worker count.  The command selects those axes
+explicitly; it does not filter on a local score or special-case a physical
+order.  Raw V2 archives, snapshots, identity/environment, seed ledger,
+per-cell results, paired family report, and matrix state remain the analysis
+record.  The report must examine headline, paired uncertainty, validity,
+budget/stratum/case behavior, score-identical fraction, compiler telemetry,
+and sequence-level effects—not only the headline winner.
+
+**Decision boundaries.** This screen may tell us which future question is
+worth a fresh, narrowly defined V2 study (for example a layout span sweep,
+one additional post-contact mode, or a fixed 750k budget-response comparison).
+It cannot promote an environment-selected arm.  A finalist must be source
+baked and traverse the normal fresh-evaluation decision funnel.  Retain
+negative controls and raw artifacts: the purpose is to learn which geometry
+basis and ordering change the whole compiler, including where a lower score on
+one fixed budget is exchanged for a higher overall or high-budget result.
+
+## Arc-Control Geometry Screen Result (2026-07-18)
+
+**Protocol and integrity.** `arc-control-v2-geometry-d6-16s01` completed all
+36 declared `base_additive × signed3 × no-repeat ordered sequence (length 1–2)`
+configurations plus the frozen reference, on the same fresh 16 seeds at each
+ordinary development/probe budget (44 sources × 2 budgets × 16 = 1,408 cells
+per arm; 48 workers). There were no worker failures. The source-refactored
+incumbent `[whole_rotation, tail_pitch]` is exactly identical to the frozen
+baseline on all 1,408 cells, establishing end-to-end parity for the new
+configuration boundary. Raw archives, snapshots, decision indexes and the
+paired report are retained in
+`generated/benchmark-v2/arc-control-matrices/arc-control-v2-geometry-d6-16s01/`.
+
+**Observed leaders, not promotions.** The reference headline is **503.6245**.
+Only two arms finish above it: `[tail_pitch, post_contact_pitch]` at
+**505.4983** (**+1.8738**, SE 2.1014; reported one-sided lower bound −1.7159)
+and its reverse `[post_contact_pitch, tail_pitch]` at **505.2482** (**+1.6237**,
+SE 2.2441; lower bound −2.2208). Their direct difference is −0.2501 in the
+reverse-minus-forward direction (SE 2.4963), so this screen does not resolve
+an order winner between them. Neither clears the screen's uncertainty bar;
+neither is source-baked or promotable from this result.
+
+**What changed.** Each one-knob constituent is bad alone (`tail_pitch`
+−10.7075; `post_contact_pitch` −19.2688), while their composition is the only
+positive family. This is strong descriptive evidence of a two-stage
+post-contact-geometry interaction, not evidence that either scalar control is
+universally good. Order remains a genuine axis: for example the incumbent
+`[whole_rotation, tail_pitch]` is parity but its reverse is −8.0276.
+`post_contact_normal_skew` is poor in every tested placement (best −9.9969);
+`post_contact_normal_bow` (best −1.8266) and `interior_normal_bow` (best
+−0.9025) are weaker secondary leads, not next-screen finalists.
+
+**Budget and component trade-off.** The forward leader is −0.9208 at 250k
+despite ten net validity gains (681/704 versus 671/704), then +2.9917 at 500k
+with identical full validity (704/704). The reverse is −3.7949 at 250k with
+nine net gains, then +3.7911 at 500k with full validity. On matched valid
+cells, both directions improve measured impact quality at both budgets; at
+500k the forward/reverse impact RMS changes are −0.00342/−0.00359, speed RMS
+also improves, and air RMS worsens by +0.00201/+0.00211. Thus the high-budget
+signal is compatible with the campaign's impact objective, but it is an
+impact/speed-for-air trade-off rather than a broad no-cost improvement.
+
+**Interpretation and next decision.** The leaders change almost every score
+cell (only 0.85% and 0.92% score-identical) and have both large capability
+gains and ordinary-case losses; they are not a narrow benchmark hotfix. The
+headline leader also changes with seed prefix: another arm led at two and four
+seeds before falling behind at 16. Retain the generic registry and both
+pitch-pair orders for a focused, predeclared confirmation/budget-response
+question; do not broaden the next paid Cartesian screen with rotation or skew
+until a new physical hypothesis justifies it. The full decision record and
+case-level analysis are in the generated matrix analysis report.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

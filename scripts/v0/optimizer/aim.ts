@@ -94,6 +94,8 @@ import {
   ARC_CONTROL_DEFAULT,
   ARC_PROBE_LAYOUTS,
   ARC_TRAINING_METHODS,
+  arcControlProbeVectors,
+  arcControlStageProbeValues,
   type ArcProbeLayoutId,
   type ArcTrainingMethod,
 } from "./arc_control.ts";
@@ -987,36 +989,6 @@ function zeroKnobValues(dimensions: number): number[] {
   return Array.from({ length: dimensions }, () => 0);
 }
 
-/** The original-arc probe vectors are derived only from the model method and
- * dimensionality.  They deliberately do not name, order, or special-case a
- * physical knob. */
-function controlProbeVectors(control: AimControl): number[][] {
-  const spans = control.sequence.map(arcKnobProbeSpan);
-  if (control.trainingMethod !== "base_joint") {
-    const center = zeroKnobValues(spans.length);
-    return [
-      center,
-      ...spans.flatMap((span, index) => {
-        const negative = zeroKnobValues(spans.length);
-        const positive = zeroKnobValues(spans.length);
-        negative[index] = -span;
-        positive[index] = span;
-        return [negative, positive];
-      }),
-    ];
-  }
-  const out: number[][] = [];
-  const visit = (prefix: number[], index: number): void => {
-    if (index === spans.length) {
-      out.push(prefix);
-      return;
-    }
-    for (const value of [-spans[index], 0, spans[index]]) visit([...prefix, value], index + 1);
-  };
-  visit([], 0);
-  return out;
-}
-
 function scoreConfiguredKnobs(
   model: ArcVectorResponseModel,
   values: readonly number[],
@@ -1168,11 +1140,10 @@ function makeConfiguredAimedCandidates(
     let prefix: number[] = [];
     for (let stage = 0; stage < sequence.length; stage++) {
       const knob = sequence[stage];
-      const span = arcKnobProbeSpan(knob);
       const appliedSequence = sequence.slice(0, stage + 1);
       // The center and signed observations are real probes on the materialized
       // prefix.  This stays true for every stage, not just the former second.
-      const rows = [0, -span, span].map((value) => {
+      const rows = arcControlStageProbeValues(knob, control.probeLayout).map((value) => {
         const values = [...prefix, value];
         return { values, observation: observe(appliedSequence, values) };
       });
@@ -1180,7 +1151,7 @@ function makeConfiguredAimedCandidates(
       recordJointProbeRows(observations, gap, axisMeasureEnd, nextFrame);
       const model = fitArcVectorResponseModel(
         rows.map((row) => vectorRow([row.values[row.values.length - 1]], row.observation)),
-        [span],
+        [arcKnobProbeSpan(knob)],
         "additive",
         modelContext,
       );
@@ -1214,7 +1185,7 @@ function makeConfiguredAimedCandidates(
       prefix = [...prefix, candidates[0]?.values[0] ?? 0];
     }
   } else {
-    const vectors = controlProbeVectors(control);
+    const vectors = arcControlProbeVectors(control);
     const probeRows = vectors.map((values) => ({ values, observation: observe(sequence, values) }));
     const observations = probeRows.map((row) => row.observation);
     recordJointProbeRows(observations, gap, axisMeasureEnd, nextFrame);

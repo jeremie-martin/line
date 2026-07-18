@@ -24,7 +24,9 @@ export type ArcKnobId =
   | "tail_pitch"
   | "whole_rotation"
   | "interior_normal_bow"
-  | "post_contact_pitch";
+  | "post_contact_pitch"
+  | "post_contact_normal_bow"
+  | "post_contact_normal_skew";
 export type ArcActuatorId = ArcKnobId;
 
 /** Ordered, possibly repeated, transform names.  Order is data—not a hidden
@@ -37,7 +39,7 @@ export type ArcKnobValues = readonly number[];
 
 export type ArcActuatorContext = Readonly<{
   /** Optional immutable target-frame contact reference for future local
-   * contact-point actuators.  Current registered transforms do not need it. */
+   * contact-point actuators. */
   contactPoint?: Readonly<{ x: number; y: number }>;
 }>;
 
@@ -200,12 +202,124 @@ const postContactPitch: ArcActuator = {
   },
 };
 
+type PostContactNormalProfile = (s: number) => number;
+
+/**
+ * Redistribute only the post-contact branch in its local chord-normal frame.
+ * Unlike `post_contact_pitch`, this leaves both the selected contact vertex
+ * and the terminal point fixed.  Unlike `interior_normal_bow`, its support
+ * starts at the target-frame contact and its frame is derived from that
+ * downstream branch alone.  The zero endpoint value/derivative of both
+ * profiles keeps this a bounded smooth shape deformation rather than a scale
+ * or endpoint relocation coordinate.
+ */
+function deformPostContactNormal(
+  lines: TrackLine[],
+  equivalentDeg: number,
+  context: ArcActuatorContext | undefined,
+  profile: PostContactNormalProfile,
+): TrackLine[] {
+  const contact = context?.contactPoint;
+  if (lines.length < 3 || equivalentDeg === 0 || contact === undefined) return clone(lines);
+  const vertices = [{ x: lines[0].x1, y: lines[0].y1 }];
+  for (const line of lines) {
+    const previous = vertices[vertices.length - 1];
+    if (Math.hypot(line.x1 - previous.x, line.y1 - previous.y) > 1e-6) return clone(lines);
+    const length = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+    if (!(length > 1e-9)) return clone(lines);
+    vertices.push({ x: line.x2, y: line.y2 });
+  }
+  let contactIndex = -1;
+  let nearest = Infinity;
+  for (let index = 1; index + 1 < vertices.length; index++) {
+    const point = vertices[index];
+    const distance = Math.hypot(point.x - contact.x, point.y - contact.y);
+    if (distance < nearest) {
+      nearest = distance;
+      contactIndex = index;
+    }
+  }
+  // A shape mode needs at least one movable post-contact interior vertex.
+  if (contactIndex < 1 || contactIndex + 2 >= vertices.length) return clone(lines);
+  const pivot = vertices[contactIndex];
+  const end = vertices[vertices.length - 1];
+  const chordX = end.x - pivot.x;
+  const chordY = end.y - pivot.y;
+  const chordLength = Math.hypot(chordX, chordY);
+  let branchLength = 0;
+  for (let index = contactIndex; index + 1 < vertices.length; index++) {
+    branchLength += Math.hypot(
+      vertices[index + 1].x - vertices[index].x,
+      vertices[index + 1].y - vertices[index].y,
+    );
+  }
+  if (!(chordLength > 1e-9) || !(branchLength > 1e-9)) return clone(lines);
+  const amplitude = branchLength * Math.tan(equivalentDeg * Math.PI / 180);
+  const normalX = -chordY / chordLength;
+  const normalY = chordX / chordLength;
+  const last = vertices.length - 1;
+  const adjusted = vertices.map((vertex, index) => {
+    // Preserve the two declared physical boundaries exactly rather than
+    // relying on a floating-point evaluation of a zero-valued profile.
+    if (index <= contactIndex || index === last) return vertex;
+    const s = (index - contactIndex) / (last - contactIndex);
+    const displacement = amplitude * profile(s);
+    return {
+      x: vertex.x + normalX * displacement,
+      y: vertex.y + normalY * displacement,
+    };
+  });
+  return lines.map((line, index) => ({
+    ...line,
+    x1: adjusted[index].x,
+    y1: adjusted[index].y,
+    x2: adjusted[index + 1].x,
+    y2: adjusted[index + 1].y,
+  }));
+}
+
+const postContactNormalBow: ArcActuator = {
+  id: "post_contact_normal_bow",
+  label: "post-contact endpoint-preserving normal bow",
+  unit: "deg",
+  span: 2.5,
+  scanStep: 0.5,
+  proposalSeparation: 0.5,
+  needsContactPoint: true,
+  apply: (lines, equivalentDeg, context) => deformPostContactNormal(
+    lines,
+    equivalentDeg,
+    context,
+    (s) => Math.sin(Math.PI * s) ** 2,
+  ),
+};
+
+const postContactNormalSkew: ArcActuator = {
+  id: "post_contact_normal_skew",
+  label: "post-contact endpoint-preserving normal skew",
+  unit: "deg",
+  span: 2.5,
+  scanStep: 0.5,
+  proposalSeparation: 0.5,
+  needsContactPoint: true,
+  apply: (lines, equivalentDeg, context) => deformPostContactNormal(
+    lines,
+    equivalentDeg,
+    context,
+    // Two opposite signed lobes redistribute the branch's local turn rather
+    // than merely making the symmetric bow stronger.
+    (s) => Math.sin(Math.PI * s) ** 2 * (2 * s - 1),
+  ),
+};
+
 /** The single source of truth for atomic knob definitions. */
 export const ARC_KNOBS: Readonly<Record<ArcKnobId, ArcKnobDefinition>> = {
   tail_pitch: tailPitch,
   whole_rotation: wholeRotation,
   interior_normal_bow: interiorNormalBow,
   post_contact_pitch: postContactPitch,
+  post_contact_normal_bow: postContactNormalBow,
+  post_contact_normal_skew: postContactNormalSkew,
 };
 
 export function getArcKnob(id: ArcKnobId): ArcKnobDefinition {

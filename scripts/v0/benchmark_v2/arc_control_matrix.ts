@@ -43,6 +43,7 @@ import {
   ARC_CONTROL_DEFAULT,
   enumerateArcControlConfigurations,
   type ArcControlConfiguration,
+  type ArcProbeLayoutId,
   type ArcTrainingMethod,
 } from "../optimizer/arc_control.ts";
 import { getArcKnob, type ArcKnobId } from "../optimizer/arc_actuator.ts";
@@ -62,6 +63,11 @@ const knobs = (argument("knobs") ?? "whole_rotation,tail_pitch")
 const maxKnobs = Number(argument("max-knobs") ?? "2");
 const allowRepeated = argv.includes("--allow-repeated");
 const methods = argument("methods")?.split(",").map((value) => value.trim()).filter(Boolean) as ArcTrainingMethod[] | undefined;
+/** Keep a nominal layout explicit by default: registering a future layout must
+ * never silently multiply an existing paid experiment.  Layout remains an
+ * ordinary selected compiler axis through --probe-layouts. */
+const probeLayouts = (argument("probe-layouts") ?? "signed3")
+  .split(",").map((value) => value.trim()).filter(Boolean) as ArcProbeLayoutId[];
 const configurationFilter = argument("configurations")?.split(",").map((value) => value.trim()).filter(Boolean);
 const seeds = Number(argument("seeds") ?? "6");
 const jobs = Number(argument("jobs") ?? String(Math.min(48, availableParallelism())));
@@ -73,6 +79,7 @@ validateArguments();
 const allConfigurations = enumerateArcControlConfigurations({
   knobs,
   maxKnobs,
+  probeLayouts,
   ...(allowRepeated ? { allowRepeated: true } : {}),
   ...(methods === undefined ? {} : { trainingMethods: methods }),
 });
@@ -215,7 +222,7 @@ function validateArguments(): void {
   if (!Number.isInteger(jobs) || jobs < 1) throw new Error(`--jobs must be a positive integer`);
   for (const knob of knobs) getArcKnob(knob);
   const known = new Set([
-    "name", "knobs", "max-knobs", "methods", "configurations", "seeds", "jobs", "out-dir",
+    "name", "knobs", "max-knobs", "methods", "probe-layouts", "configurations", "seeds", "jobs", "out-dir",
   ]);
   for (const value of argv.filter((entry) => entry.startsWith("--"))) {
     const key = value.slice(2).split("=", 1)[0];

@@ -14,6 +14,7 @@
  * particular physical knob order.
  */
 import {
+  arcKnobProbeSpan,
   enumerateArcKnobSequences,
   type ArcKnobId,
   type ArcKnobSequence,
@@ -26,15 +27,26 @@ export type ArcTrainingMethod =
   | "sequential_conditional";
 
 /** Where each scalar knob is observed relative to its own declared span. */
-export type ArcProbeLayoutId = "signed3";
+export type ArcProbeLayoutId =
+  | "signed3_narrow"
+  | "signed3"
+  | "signed3_wide";
 
 export type ArcProbeLayout = Readonly<{
   id: ArcProbeLayoutId;
-  normalizedPoints: readonly [-1, 0, 1];
+  /**
+   * Physical probe values are this coordinate multiplied by the owning
+   * knob's nominal inverse-model span.  This is intentionally independent of
+   * the later inverse-model scan, which continues to cover its declared
+   * proposal range.
+   */
+  normalizedPoints: readonly number[];
 }>;
 
 export const ARC_PROBE_LAYOUTS: Readonly<Record<ArcProbeLayoutId, ArcProbeLayout>> = {
+  signed3_narrow: { id: "signed3_narrow", normalizedPoints: [-0.6, 0, 0.6] },
   signed3: { id: "signed3", normalizedPoints: [-1, 0, 1] },
+  signed3_wide: { id: "signed3_wide", normalizedPoints: [-1.4, 0, 1.4] },
 };
 
 export const ARC_TRAINING_METHODS: readonly ArcTrainingMethod[] = [
@@ -127,23 +139,71 @@ export function enumerateArcControlConfigurations(options: ArcControlMatrixOptio
   }))));
 }
 
+/** Probe values for one scalar knob, ordered with the real center first for
+ * sequential stages.  Keeping this rule here ensures the ordinary compiler,
+ * local study runner, and planned-cost accounting cannot silently diverge. */
+export function arcControlStageProbeValues(
+  knob: ArcKnobId,
+  probeLayout: ArcProbeLayoutId,
+): number[] {
+  const span = arcKnobProbeSpan(knob);
+  const points = ARC_PROBE_LAYOUTS[probeLayout].normalizedPoints;
+  return [
+    0,
+    ...points.filter((point) => point !== 0).map((point) => point * span),
+  ];
+}
+
+/**
+ * Materialize the original-arc observation plan for a declared configuration.
+ * It owns only the observation layout—not model fitting, geometry, or the
+ * inverse-model search range.  `base_additive` observes one center plus each
+ * non-center axis point; `base_joint` observes the complete tensor product.
+ */
+export function arcControlProbeVectors(configuration: ArcControlConfiguration): number[][] {
+  const spans = configuration.sequence.map(arcKnobProbeSpan);
+  const points = ARC_PROBE_LAYOUTS[configuration.probeLayout].normalizedPoints;
+  if (configuration.trainingMethod !== "base_joint") {
+    const center = Array.from({ length: spans.length }, () => 0);
+    return [
+      center,
+      ...spans.flatMap((span, index) => points.filter((point) => point !== 0).map((point) => {
+        const values = Array.from({ length: spans.length }, () => 0);
+        values[index] = point * span;
+        return values;
+      })),
+    ];
+  }
+  const out: number[][] = [];
+  const visit = (prefix: number[], index: number): void => {
+    if (index === spans.length) {
+      out.push(prefix);
+      return;
+    }
+    for (const point of points) visit([...prefix, point * spans[index]], index + 1);
+  };
+  visit([], 0);
+  return out;
+}
+
 /** Planned scalar physics rides before gate outcomes.  This is a transparent
  * accounting rule, useful both to bound a smoke matrix and to compare methods
  * at equal or intentionally different budgets. */
 export function plannedArcControlProbeCount(configuration: ArcControlConfiguration): number {
   const dimensions = configuration.sequence.length;
+  const pointCount = ARC_PROBE_LAYOUTS[configuration.probeLayout].normalizedPoints.length;
   switch (configuration.trainingMethod) {
     case "base_additive":
-      // One shared center and two signed axis observations per knob.
-      return 1 + 2 * dimensions;
+      // One shared center and every non-center axis observation per knob.
+      return 1 + (pointCount - 1) * dimensions;
     case "base_joint":
-      // Complete signed cube around the original arc.
-      return 3 ** dimensions;
+      // Complete declared tensor around the original arc.
+      return pointCount ** dimensions;
     case "sequential_conditional":
       // Every stage is observed on the physically materialized prefix at the
-      // complete signed layout.  In particular, a later-stage center is an
+      // complete declared layout.  In particular, a later-stage center is an
       // actual ride of the transformed arc, never a value synthesized from
       // the preceding model.
-      return 3 * dimensions;
+      return pointCount * dimensions;
   }
 }

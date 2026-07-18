@@ -38,9 +38,12 @@ import {
 } from "./optimizer/arc_vector_model.ts";
 import { scoreCompletedArcPrediction } from "./optimizer/arc_model.ts";
 import {
+  arcControlProbeVectors,
+  arcControlStageProbeValues,
   enumerateArcControlConfigurations,
   plannedArcControlProbeCount,
   type ArcControlConfiguration,
+  type ArcProbeLayoutId,
   type ArcTrainingMethod,
 } from "./optimizer/arc_control.ts";
 import {
@@ -74,6 +77,7 @@ const knobIds = (arg("knobs") ?? "whole_rotation,tail_pitch")
   .split(",").filter(Boolean) as ArcKnobId[];
 const maxKnobs = Number(arg("max-knobs") ?? "2");
 const requestedMethods = arg("methods")?.split(",").filter(Boolean) as ArcTrainingMethod[] | undefined;
+const probeLayouts = (arg("probe-layouts") ?? "signed3").split(",").filter(Boolean) as ArcProbeLayoutId[];
 const allowRepeated = arg("allow-repeated") === "1";
 const outPath = arg("out");
 
@@ -91,6 +95,7 @@ const configurations = enumerateArcControlConfigurations({
   maxKnobs,
   ...(allowRepeated ? { allowRepeated: true } : {}),
   ...(requestedMethods === undefined ? {} : { trainingMethods: requestedMethods }),
+  probeLayouts,
 });
 
 type Setup = { gaps: Gap[]; ctx: SpecContext };
@@ -221,33 +226,6 @@ function zeroValues(dimensions: number): number[] {
   return Array.from({ length: dimensions }, () => 0);
 }
 
-function baseProbeVectors(configuration: ArcControlConfiguration): number[][] {
-  const spans = configuration.sequence.map(arcKnobProbeSpan);
-  if (configuration.trainingMethod !== "base_joint") {
-    return [
-      zeroValues(spans.length),
-      ...spans.flatMap((span, index) => {
-        const negative = zeroValues(spans.length);
-        const positive = zeroValues(spans.length);
-        negative[index] = -span;
-        positive[index] = span;
-        return [negative, positive];
-      }),
-    ];
-  }
-  if (spans.length === 1) return [[0], [-spans[0]], [spans[0]]];
-  const out: number[][] = [];
-  const visit = (prefix: number[], index: number): void => {
-    if (index === spans.length) {
-      out.push(prefix);
-      return;
-    }
-    for (const value of [-spans[index], 0, spans[index]]) visit([...prefix, value], index + 1);
-  };
-  visit([], 0);
-  return out;
-}
-
 function choose(configuration: ArcControlConfiguration, candidates: VectorCandidate[]): VectorCandidate[] {
   const out: VectorCandidate[] = [];
   const sequence = configuration.sequence;
@@ -334,7 +312,7 @@ function runConfiguration(
       selectedValue: 0,
     };
     stages.push(stage);
-    const vectors = baseProbeVectors(configuration);
+    const vectors = arcControlProbeVectors(configuration);
     const rows = vectors.map((values) => ({ values, observation: observe(0, configuration.sequence, values) }));
     const model = fitArcVectorResponseModel(
       rows.map((row) => vectorRow(row.values, row.observation)),
@@ -349,7 +327,6 @@ function runConfiguration(
     let prefix: number[] = [];
     for (let stageIndex = 0; stageIndex < configuration.sequence.length; stageIndex++) {
       const knob = configuration.sequence[stageIndex];
-      const span = arcKnobProbeSpan(knob);
       const stage: StageTrace = {
         stage: stageIndex,
         knob,
@@ -360,13 +337,13 @@ function runConfiguration(
       };
       stages.push(stage);
       const appliedSequence = configuration.sequence.slice(0, stageIndex + 1);
-      const rows = [0, -span, span].map((value) => {
+      const rows = arcControlStageProbeValues(knob, configuration.probeLayout).map((value) => {
         const values = [...prefix, value];
         return { values, observation: observe(stageIndex, appliedSequence, values) };
       });
       const model = fitArcVectorResponseModel(
         rows.map((row) => vectorRow([row.values[row.values.length - 1]], row.observation)),
-        [span],
+        [arcKnobProbeSpan(knob)],
         "additive",
         { gap, axisMeasureEnd, nextFrame: nextGap.endFrame },
       );
@@ -515,8 +492,16 @@ function observationProposalProjection(row: MatrixRow): object {
   return {
     plannedProbeCount: row.plannedProbeCount,
     actualProbeCount: row.actualProbeCount,
-    probes: row.stages.flatMap((stage) => stage.probes),
-    offered: row.offered,
+    // Methods can collect the same scalar observations in a different order
+    // (for example center-first sequential versus tensor order).  Equivalence
+    // is about the observed/proposed set, not that bookkeeping order.
+    probes: row.stages.flatMap((stage) => stage.probes).sort((left, right) =>
+      JSON.stringify([left.appliedSequence, left.appliedValues])
+        .localeCompare(JSON.stringify([right.appliedSequence, right.appliedValues]))
+    ),
+    offered: [...row.offered].sort((left, right) =>
+      JSON.stringify(left.values).localeCompare(JSON.stringify(right.values))
+    ),
     emitted: row.emitted,
   };
 }
@@ -545,6 +530,7 @@ const result = {
   seeds,
   maxGaps,
   probeMode,
+  probeLayouts,
   matrix: {
     knobIds,
     maxKnobs,

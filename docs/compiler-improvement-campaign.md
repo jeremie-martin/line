@@ -6276,6 +6276,18 @@ question; do not broaden the next paid Cartesian screen with rotation or skew
 until a new physical hypothesis justifies it. The full decision record and
 case-level analysis are in the generated matrix analysis report.
 
++## Finalist Model/Layout Matrix Result (2026-07-19)
+
+**Protocol and integrity.** `arc-control-v2-finalists-m3-l3-16s01` completed the declared 27-arm product: three fixed two-knob sequences × `base_additive`/`base_joint`/`sequential_conditional` × `signed3_narrow`/`signed3`/`signed3_wide`, plus its fresh baseline. Every arm ran the 44-source V2 development/probe suite at 250k and 500k with 16 shared fresh seed slots per budget (1,408 cells/arm; 48 workers), with no worker failures. The nominal additive incumbent was exact baseline parity: 0/1,408 score, status, or raw-report mismatches. The fresh baseline measured 498.6170; that is a new seed-epoch estimate, not a compiler change or an absolute-score comparison with the earlier 503.6245 epoch.
+
+**Observed leader, not selection.** `base_additive/signed3_narrow/[post_contact_pitch, tail_pitch]` is first at 505.7148 (**+7.0978**, SE 5.7426; reported lower bound −2.7296). Its reverse is +4.5534 (SE 6.1661), while narrow incumbent is +2.8823 (SE 2.8078). All lower bounds cross zero, and the leader changed at two, four, and 16 seed prefixes. No order or configuration is selected.
+
+**Decisive negative evidence.** `base_joint` is negative in all nine cells (best −6.7541), and `sequential_conditional` is negative in all nine (best −6.4872); retain their generic implementations but exclude both from the next geometry screen. The pitch-pair effect is sharply scale-sensitive: narrow is +4.5534/+7.0978 for forward/reverse, nominal is −2.6550/−4.2340, and wide is −3.5341/−0.0983. The earlier nominal signed-three result therefore does not replicate on this fresh epoch; narrow is a separate hypothesis, not a promotion substitute.
+
+**Mechanism readout.** On matched valid cells, the narrow reverse leader improves all three axes; 500k impact RMS is −0.00454 (air −0.00164; speed −0.00156). But it has large case trade-offs: pickup_lattice +132.99, meter_exchange +53.79, dense-dialogue impact contrast +50.76 versus pickup-progression-shifted −96.05 and Believer impact-amplitude −21.05. Capability is −15.40 and representative +13.05; validity churn is balanced (+19/−19). It is broad behavioral movement, but volatile and not a robust cross-stratum source-baking candidate.
+
+**Decision.** Do not promote, source-bake, or add controls. If compute is spent to resolve this family, use a predeclared deeper fresh additive-only replication over these same three sequences and all three existing layouts; 32 or 48 shared seed slots is an explicit compute/precision choice. The raw matrix report remains under `generated/benchmark-v2/arc-control-matrices/arc-control-v2-finalists-m3-l3-16s01/`.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

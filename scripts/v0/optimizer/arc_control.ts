@@ -5,7 +5,8 @@
  * choices.  A configuration is the product of independent axes:
  *   - an ordered sequence of atomic knobs;
  *   - a model-training method;
- *   - a probe layout.
+ *   - a signed probe layout and its physical range scale;
+ *   - an inverse-solver proposal-range scale.
  *
  * The normal compiler currently consumes the legacy two-coordinate adapter,
  * but both it and the matrix runner share `arc_actuator.ts` for actual ordered
@@ -15,7 +16,9 @@
  */
 import {
   arcKnobProbeSpan,
+  arcKnobScanStep,
   enumerateArcKnobSequences,
+  getArcKnob,
   type ArcKnobId,
   type ArcKnobSequence,
 } from "./arc_actuator.ts";
@@ -35,10 +38,8 @@ export type ArcProbeLayoutId =
 export type ArcProbeLayout = Readonly<{
   id: ArcProbeLayoutId;
   /**
-   * Physical probe values are this coordinate multiplied by the owning
-   * knob's nominal inverse-model span.  This is intentionally independent of
-   * the later inverse-model scan, which continues to cover its declared
-   * proposal range.
+   * Signed topology around zero. The physical distance is additionally set by
+   * `probeRangeScale`, independently of the later proposal-range scale.
    */
   normalizedPoints: readonly number[];
 }>;
@@ -58,17 +59,27 @@ export const ARC_TRAINING_METHODS: readonly ArcTrainingMethod[] = [
 /** Ordinary number of distinct inverse-model proposals emitted per refined base. */
 export const ARC_PROPOSAL_COUNT_DEFAULT = 2;
 
+/** Multiplies only the physical probe coordinates used to fit a model. */
+export const ARC_PROBE_RANGE_SCALE_DEFAULT = 1;
+
+/** Multiplies only the inverse solver's candidate grid around zero. */
+export const ARC_PROPOSAL_RANGE_SCALE_DEFAULT = 1;
+
 /** The accepted compiler's historical response coordinates, made explicit as
  * a normal configuration rather than hidden in an aiming implementation. */
 export const ARC_CONTROL_DEFAULT: Readonly<{
   sequence: ArcKnobSequence;
   trainingMethod: ArcTrainingMethod;
   probeLayout: ArcProbeLayoutId;
+  probeRangeScale: number;
+  proposalRangeScale: number;
   proposalCount: number;
 }> = {
   sequence: ["whole_rotation", "tail_pitch"],
   trainingMethod: "base_additive",
   probeLayout: "signed3",
+  probeRangeScale: ARC_PROBE_RANGE_SCALE_DEFAULT,
+  proposalRangeScale: ARC_PROPOSAL_RANGE_SCALE_DEFAULT,
   proposalCount: ARC_PROPOSAL_COUNT_DEFAULT,
 };
 
@@ -83,6 +94,10 @@ export type ArcControlConfiguration = Readonly<{
   sequence: ArcKnobSequence;
   trainingMethod: ArcTrainingMethod;
   probeLayout: ArcProbeLayoutId;
+  /** Multiplies physical observations, never the inverse solver's range. */
+  probeRangeScale: number;
+  /** Multiplies the inverse solver's candidate grid, never probe positions. */
+  proposalRangeScale: number;
   proposalCount: number;
 }>;
 
@@ -92,22 +107,39 @@ export type ArcControlMatrixOptions = Readonly<{
   allowRepeated?: boolean;
   trainingMethods?: readonly ArcTrainingMethod[];
   probeLayouts?: readonly ArcProbeLayoutId[];
+  probeRangeScales?: readonly number[];
+  proposalRangeScales?: readonly number[];
   proposalCounts?: readonly number[];
+  /** An explicit fixed sequence is a protocol constant, not a second
+   * representation of a model or observation policy. */
+  sequences?: readonly ArcKnobSequence[];
 }>;
+
+function scaleToken(scale: number): string {
+  return String(scale);
+}
 
 function configurationId(
   sequence: ArcKnobSequence,
   trainingMethod: ArcTrainingMethod,
   probeLayout: ArcProbeLayoutId,
+  probeRangeScale: number,
+  proposalRangeScale: number,
   proposalCount: number,
 ): string {
-  return `${trainingMethod}--${probeLayout}--p${proposalCount}--${sequence.join("__")}`;
+  const ranges = probeRangeScale === ARC_PROBE_RANGE_SCALE_DEFAULT &&
+    proposalRangeScale === ARC_PROPOSAL_RANGE_SCALE_DEFAULT
+    ? ""
+    : `--probe${scaleToken(probeRangeScale)}--span${scaleToken(proposalRangeScale)}`;
+  return `${trainingMethod}--${probeLayout}${ranges}--p${proposalCount}--${sequence.join("__")}`;
 }
 
 function observationEquivalenceKey(
   sequence: ArcKnobSequence,
   trainingMethod: ArcTrainingMethod,
   probeLayout: ArcProbeLayoutId,
+  probeRangeScale: number,
+  proposalRangeScale: number,
   proposalCount: number,
 ): string {
   // With one scalar knob and the signed three-point layout, the three training
@@ -115,7 +147,8 @@ function observationEquivalenceKey(
   // their requested rows, but declare that expected observation/proposal
   // equivalence instead of hiding the Cartesian product.
   const effectiveMethod = sequence.length === 1 ? "scalar_1d" : trainingMethod;
-  return `${effectiveMethod}--${probeLayout}--p${proposalCount}--${sequence.join("__")}`;
+  const ranges = `--probe${scaleToken(probeRangeScale)}--span${scaleToken(proposalRangeScale)}`;
+  return `${effectiveMethod}--${probeLayout}${ranges}--p${proposalCount}--${sequence.join("__")}`;
 }
 
 /**
@@ -128,6 +161,12 @@ function observationEquivalenceKey(
 export function enumerateArcControlConfigurations(options: ArcControlMatrixOptions): ArcControlConfiguration[] {
   const methods = options.trainingMethods === undefined ? ARC_TRAINING_METHODS : [...options.trainingMethods];
   const layouts = options.probeLayouts === undefined ? Object.keys(ARC_PROBE_LAYOUTS) as ArcProbeLayoutId[] : [...options.probeLayouts];
+  const probeRangeScales = options.probeRangeScales === undefined
+    ? [ARC_PROBE_RANGE_SCALE_DEFAULT]
+    : [...options.probeRangeScales];
+  const proposalRangeScales = options.proposalRangeScales === undefined
+    ? [ARC_PROPOSAL_RANGE_SCALE_DEFAULT]
+    : [...options.proposalRangeScales];
   const proposalCounts = options.proposalCounts === undefined ? [ARC_PROPOSAL_COUNT_DEFAULT] : [...options.proposalCounts];
   for (const method of methods) {
     if (!ARC_TRAINING_METHODS.includes(method)) throw new Error(`unknown arc training method ${method}`);
@@ -135,24 +174,47 @@ export function enumerateArcControlConfigurations(options: ArcControlMatrixOptio
   for (const layout of layouts) {
     if (!(layout in ARC_PROBE_LAYOUTS)) throw new Error(`unknown arc probe layout ${layout}`);
   }
+  for (const scale of [...probeRangeScales, ...proposalRangeScales]) {
+    if (!Number.isFinite(scale) || scale <= 0) throw new Error(`invalid positive arc range scale ${scale}`);
+  }
   for (const proposalCount of proposalCounts) {
     if (!Number.isSafeInteger(proposalCount) || proposalCount < 1) {
       throw new Error(`invalid arc proposal count ${proposalCount}`);
     }
   }
-  const sequences = enumerateArcKnobSequences({
-    ...(options.knobs === undefined ? {} : { knobs: options.knobs }),
-    maxLength: options.maxKnobs,
-    ...(options.allowRepeated === true ? { allowRepeated: true } : {}),
-  });
-  return sequences.flatMap((sequence) => methods.flatMap((trainingMethod) => layouts.flatMap((probeLayout) => proposalCounts.map((proposalCount) => ({
-    id: configurationId(sequence, trainingMethod, probeLayout, proposalCount),
-    observationEquivalenceKey: observationEquivalenceKey(sequence, trainingMethod, probeLayout, proposalCount),
-    sequence,
-    trainingMethod,
-    probeLayout,
-    proposalCount,
-  })))));
+  const sequences = options.sequences === undefined
+    ? enumerateArcKnobSequences({
+      ...(options.knobs === undefined ? {} : { knobs: options.knobs }),
+      maxLength: options.maxKnobs,
+      ...(options.allowRepeated === true ? { allowRepeated: true } : {}),
+    })
+    : options.sequences.map((declared) => {
+      const sequence = [...declared] as ArcKnobSequence;
+      if (sequence.length < 1 || sequence.length > options.maxKnobs) {
+        throw new Error(`explicit arc knob sequence has invalid length ${sequence.length}`);
+      }
+      for (const knob of sequence) getArcKnob(knob);
+      if (options.allowRepeated !== true && new Set(sequence).size !== sequence.length) {
+        throw new Error(`explicit arc knob sequence repeats a knob without allowRepeated`);
+      }
+      return sequence;
+    });
+  return sequences.flatMap((sequence) => methods.flatMap((trainingMethod) => layouts.flatMap((probeLayout) =>
+    probeRangeScales.flatMap((probeRangeScale) => proposalRangeScales.flatMap((proposalRangeScale) =>
+      proposalCounts.map((proposalCount) => ({
+        id: configurationId(sequence, trainingMethod, probeLayout, probeRangeScale, proposalRangeScale, proposalCount),
+        observationEquivalenceKey: observationEquivalenceKey(
+          sequence, trainingMethod, probeLayout, probeRangeScale, proposalRangeScale, proposalCount,
+        ),
+        sequence,
+        trainingMethod,
+        probeLayout,
+        probeRangeScale,
+        proposalRangeScale,
+        proposalCount,
+      })),
+    )),
+  )));
 }
 
 /** Probe values for one scalar knob, ordered with the real center first for
@@ -161,13 +223,37 @@ export function enumerateArcControlConfigurations(options: ArcControlMatrixOptio
 export function arcControlStageProbeValues(
   knob: ArcKnobId,
   probeLayout: ArcProbeLayoutId,
+  probeRangeScale = ARC_PROBE_RANGE_SCALE_DEFAULT,
 ): number[] {
+  if (!Number.isFinite(probeRangeScale) || probeRangeScale <= 0) {
+    throw new Error(`invalid positive probe range scale ${probeRangeScale}`);
+  }
   const span = arcKnobProbeSpan(knob);
   const points = ARC_PROBE_LAYOUTS[probeLayout].normalizedPoints;
   return [
     0,
-    ...points.filter((point) => point !== 0).map((point) => point * span),
+    ...points.filter((point) => point !== 0).map((point) => point * span * probeRangeScale),
   ];
+}
+
+/**
+ * Full inverse-model values for one knob.  Keep the exact requested boundary
+ * even when its scaled span is not an integer number of scan steps; otherwise
+ * a range-scale experiment would silently test a smaller asymmetric domain.
+ */
+export function arcControlProposalValues(
+  knob: ArcKnobId,
+  proposalRangeScale = ARC_PROPOSAL_RANGE_SCALE_DEFAULT,
+): number[] {
+  if (!Number.isFinite(proposalRangeScale) || proposalRangeScale <= 0) {
+    throw new Error(`invalid positive proposal range scale ${proposalRangeScale}`);
+  }
+  const extent = arcKnobProbeSpan(knob) * proposalRangeScale;
+  const step = arcKnobScanStep(knob);
+  const positive = [0];
+  for (let value = step; value < extent - 1e-9; value += step) positive.push(value);
+  if (Math.abs(positive.at(-1)! - extent) > 1e-9) positive.push(extent);
+  return [...positive.slice(1).reverse().map((value) => -value), ...positive];
 }
 
 /**
@@ -185,7 +271,7 @@ export function arcControlProbeVectors(configuration: ArcControlConfiguration): 
       center,
       ...spans.flatMap((span, index) => points.filter((point) => point !== 0).map((point) => {
         const values = Array.from({ length: spans.length }, () => 0);
-        values[index] = point * span;
+        values[index] = point * span * configuration.probeRangeScale;
         return values;
       })),
     ];
@@ -196,7 +282,7 @@ export function arcControlProbeVectors(configuration: ArcControlConfiguration): 
       out.push(prefix);
       return;
     }
-    for (const point of points) visit([...prefix, point * spans[index]], index + 1);
+    for (const point of points) visit([...prefix, point * spans[index] * configuration.probeRangeScale], index + 1);
   };
   visit([], 0);
   return out;

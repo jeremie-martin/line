@@ -39,6 +39,7 @@ import {
 import { scoreCompletedArcPrediction } from "./optimizer/arc_model.ts";
 import {
   arcControlProbeVectors,
+  arcControlProposalValues,
   arcControlStageProbeValues,
   enumerateArcControlConfigurations,
   plannedArcControlProbeCount,
@@ -50,7 +51,6 @@ import {
   applyArcKnobSequence,
   arcKnobProbeSpan,
   arcKnobProposalSeparation,
-  arcKnobScanStep,
   arcKnobSequenceNeedsContactPoint,
   getArcKnob,
   type ArcActuatorContext,
@@ -78,6 +78,8 @@ const knobIds = (arg("knobs") ?? "whole_rotation,tail_pitch")
 const maxKnobs = Number(arg("max-knobs") ?? "2");
 const requestedMethods = arg("methods")?.split(",").filter(Boolean) as ArcTrainingMethod[] | undefined;
 const probeLayouts = (arg("probe-layouts") ?? "signed3").split(",").filter(Boolean) as ArcProbeLayoutId[];
+const probeRangeScales = positiveNumberList("probe-range-scales", 1);
+const proposalRangeScales = positiveNumberList("proposal-range-scales", 1);
 const allowRepeated = arg("allow-repeated") === "1";
 const outPath = arg("out");
 
@@ -96,7 +98,18 @@ const configurations = enumerateArcControlConfigurations({
   ...(allowRepeated ? { allowRepeated: true } : {}),
   ...(requestedMethods === undefined ? {} : { trainingMethods: requestedMethods }),
   probeLayouts,
+  probeRangeScales,
+  proposalRangeScales,
 });
+
+function positiveNumberList(name: string, fallback: number): number[] {
+  const raw = arg(name) ?? String(fallback);
+  const values = raw.split(",").map(Number);
+  if (values.length === 0 || values.some((value) => !Number.isFinite(value) || value <= 0)) {
+    throw new Error(`invalid --${name}: expected comma-separated positive numbers`);
+  }
+  return values;
+}
 
 type Setup = { gaps: Gap[]; ctx: SpecContext };
 type VectorCandidate = { values: number[]; value: number };
@@ -202,17 +215,18 @@ function scan(
   next: AxisValues,
   nextGap: Gap,
 ): VectorCandidate[] {
-  const spans = configuration.sequence.map(arcKnobProbeSpan);
-  const steps = configuration.sequence.map(arcKnobScanStep);
+  const valuesByAxis = configuration.sequence.map((knob) =>
+    arcControlProposalValues(knob, configuration.proposalRangeScale),
+  );
   const out: VectorCandidate[] = [];
   const visit = (values: number[], index: number): void => {
     if (index === spans.length) {
-      if (values.every((value, valueIndex) => Math.abs(value) < steps[valueIndex] / 2)) return;
+      if (values.every((value) => Math.abs(value) < 1e-9)) return;
       const predicted = score(model, values, current, next, nextGap);
       if (predicted !== null && predicted > base + 1e-4) out.push({ values: [...values], value: predicted });
       return;
     }
-    for (let value = -spans[index]; value <= spans[index] + 1e-9; value += steps[index]) {
+    for (const value of valuesByAxis[index]) {
       values.push(value);
       visit(values, index + 1);
       values.pop();
@@ -235,7 +249,7 @@ function choose(configuration: ArcControlConfiguration, candidates: VectorCandid
       return sum + ((value - previous.values[index]) / separation) ** 2;
     }, 0) >= 1);
     if (distinct) out.push(candidate);
-    if (out.length === 2) break;
+    if (out.length === configuration.proposalCount) break;
   }
   return out;
 }
@@ -263,7 +277,9 @@ function traceProbe(
 }
 
 function assertValuesWithinSpans(configuration: ArcControlConfiguration, values: readonly number[]): boolean {
-  return values.every((value, index) => Math.abs(value) <= arcKnobProbeSpan(configuration.sequence[index]) + 1e-9);
+  return values.every((value, index) =>
+    Math.abs(value) <= arcKnobProbeSpan(configuration.sequence[index]) * configuration.proposalRangeScale + 1e-9,
+  );
 }
 
 function runConfiguration(
@@ -337,7 +353,7 @@ function runConfiguration(
       };
       stages.push(stage);
       const appliedSequence = configuration.sequence.slice(0, stageIndex + 1);
-      const rows = arcControlStageProbeValues(knob, configuration.probeLayout).map((value) => {
+      const rows = arcControlStageProbeValues(knob, configuration.probeLayout, configuration.probeRangeScale).map((value) => {
         const values = [...prefix, value];
         return { values, observation: observe(stageIndex, appliedSequence, values) };
       });

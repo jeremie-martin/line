@@ -3,7 +3,7 @@
  *
  * The configuration matrix is strictly compiler-side:
  *
- *   ordered knob sequence × training method × probe layout
+ *   ordered knob sequence × training method × probe layout × probe range × solver range × proposal count
  *
  * Cases, budgets, seeds, and scoring are deliberately not matrix dimensions.
  * Every selected configuration is snapshot, then evaluated by the ordinary V2
@@ -42,6 +42,8 @@ import {
 import {
   ARC_CONTROL_DEFAULT,
   ARC_PROPOSAL_COUNT_DEFAULT,
+  ARC_PROBE_RANGE_SCALE_DEFAULT,
+  ARC_PROPOSAL_RANGE_SCALE_DEFAULT,
   enumerateArcControlConfigurations,
   type ArcControlConfiguration,
   type ArcProbeLayoutId,
@@ -61,6 +63,9 @@ const argument = (name: string): string | undefined =>
 const name = argument("name") ?? "arc-control-matrix";
 const knobs = (argument("knobs") ?? "whole_rotation,tail_pitch")
   .split(",").map((value) => value.trim()).filter(Boolean) as ArcKnobId[];
+const sequences = argument("sequences")?.split(",").map((entry) =>
+  entry.split("__").map((value) => value.trim()).filter(Boolean) as ArcKnobId[],
+);
 const maxKnobs = Number(argument("max-knobs") ?? "2");
 const allowRepeated = argv.includes("--allow-repeated");
 const methods = argument("methods")?.split(",").map((value) => value.trim()).filter(Boolean) as ArcTrainingMethod[] | undefined;
@@ -69,6 +74,14 @@ const methods = argument("methods")?.split(",").map((value) => value.trim()).fil
  * ordinary selected compiler axis through --probe-layouts. */
 const probeLayouts = (argument("probe-layouts") ?? "signed3")
   .split(",").map((value) => value.trim()).filter(Boolean) as ArcProbeLayoutId[];
+const probeRangeScales = positiveNumberList(
+  "probe-range-scales",
+  ARC_PROBE_RANGE_SCALE_DEFAULT,
+);
+const proposalRangeScales = positiveNumberList(
+  "proposal-range-scales",
+  ARC_PROPOSAL_RANGE_SCALE_DEFAULT,
+);
 const proposalCounts = (argument("proposal-counts") ?? String(ARC_PROPOSAL_COUNT_DEFAULT))
   .split(",").map((value) => Number(value.trim())).filter((value) => Number.isFinite(value));
 const configurationFilter = argument("configurations")?.split(",").map((value) => value.trim()).filter(Boolean);
@@ -83,9 +96,12 @@ const allConfigurations = enumerateArcControlConfigurations({
   knobs,
   maxKnobs,
   probeLayouts,
+  probeRangeScales,
+  proposalRangeScales,
   proposalCounts,
   ...(allowRepeated ? { allowRepeated: true } : {}),
   ...(methods === undefined ? {} : { trainingMethods: methods }),
+  ...(sequences === undefined ? {} : { sequences }),
 });
 const configurations = selectConfigurations(allConfigurations, configurationFilter);
 
@@ -124,7 +140,10 @@ if (dryRun) {
   console.log(JSON.stringify({
     schema: SCHEMA,
     authority: "exploration-only",
-    configurationAxes: ["ordered_knob_sequence", "training_method", "probe_layout", "proposal_count"],
+    configurationAxes: [
+      "ordered_knob_sequence", "training_method", "probe_layout", "probe_range_scale",
+      "proposal_range_scale", "proposal_count",
+    ],
     evaluationProtocol: "fixed official Benchmark V2 development/probe runner; shared fresh seed epoch",
     configurations: allConfigurations,
     selectedConfigurations: configurations.map((configuration) => configuration.id),
@@ -175,7 +194,10 @@ const result = {
   authority: "exploration-only" as const,
   statement:
     "This is a shared-seed descriptive configuration screen. It runs the actual compiler and official V2 development/probe scorer, but it is not a promotion decision. Any candidate must be source-baked and pass a fresh certified eval.",
-  configurationAxes: ["ordered_knob_sequence", "training_method", "probe_layout", "proposal_count"],
+  configurationAxes: [
+    "ordered_knob_sequence", "training_method", "probe_layout", "probe_range_scale",
+    "proposal_range_scale", "proposal_count",
+  ],
   evaluationProtocol: {
     runner: state.evaluation.runner,
     sourceScope: state.evaluation.sourceScope,
@@ -225,8 +247,10 @@ function validateArguments(): void {
   }
   if (!Number.isInteger(jobs) || jobs < 1) throw new Error(`--jobs must be a positive integer`);
   for (const knob of knobs) getArcKnob(knob);
+  for (const sequence of sequences ?? []) for (const knob of sequence) getArcKnob(knob);
   const known = new Set([
-    "name", "knobs", "max-knobs", "methods", "probe-layouts", "proposal-counts", "configurations", "seeds", "jobs", "out-dir",
+    "name", "knobs", "sequences", "max-knobs", "methods", "probe-layouts", "probe-range-scales",
+    "proposal-range-scales", "proposal-counts", "configurations", "seeds", "jobs", "out-dir",
   ]);
   for (const value of argv.filter((entry) => entry.startsWith("--"))) {
     const key = value.slice(2).split("=", 1)[0];
@@ -234,6 +258,15 @@ function validateArguments(): void {
       throw new Error(`unknown arc-control matrix option ${value}`);
     }
   }
+}
+
+function positiveNumberList(name: string, fallback: number): number[] {
+  const raw = argument(name) ?? String(fallback);
+  const values = raw.split(",").map((value) => Number(value.trim()));
+  if (values.length === 0 || values.some((value) => !Number.isFinite(value) || value <= 0)) {
+    throw new Error(`--${name} must be a comma-separated list of positive numbers`);
+  }
+  return values;
 }
 
 function selectConfigurations(
@@ -314,6 +347,8 @@ function environmentFor(configuration: ArcControlConfiguration): Record<string, 
   const isSourceDefault =
     configuration.trainingMethod === ARC_CONTROL_DEFAULT.trainingMethod &&
     configuration.probeLayout === ARC_CONTROL_DEFAULT.probeLayout &&
+    configuration.probeRangeScale === ARC_CONTROL_DEFAULT.probeRangeScale &&
+    configuration.proposalRangeScale === ARC_CONTROL_DEFAULT.proposalRangeScale &&
     configuration.proposalCount === ARC_CONTROL_DEFAULT.proposalCount &&
     configuration.sequence.join("\0") === ARC_CONTROL_DEFAULT.sequence.join("\0");
   if (isSourceDefault) return {};
@@ -321,6 +356,8 @@ function environmentFor(configuration: ArcControlConfiguration): Record<string, 
     LR_AIM_KNOB_SEQUENCE: configuration.sequence.join(","),
     LR_AIM_TRAINING_METHOD: configuration.trainingMethod,
     LR_AIM_PROBE_LAYOUT: configuration.probeLayout,
+    LR_AIM_PROBE_RANGE_SCALE: String(configuration.probeRangeScale),
+    LR_AIM_PROPOSAL_RANGE_SCALE: String(configuration.proposalRangeScale),
     LR_AIM_PROPOSAL_COUNT: String(configuration.proposalCount),
   };
 }

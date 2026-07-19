@@ -6,6 +6,7 @@ import {
 } from "../scripts/v0/optimizer/arc_actuator.ts";
 import {
   arcControlProbeVectors,
+  arcControlProposalValues,
   arcControlStageProbeValues,
   enumerateArcControlConfigurations,
   plannedArcControlProbeCount,
@@ -78,6 +79,8 @@ describe("arc-control probe layouts", () => {
     sequence: ["whole_rotation", "tail_pitch"],
     trainingMethod: "base_additive",
     probeLayout: "signed3_narrow",
+    probeRangeScale: 1,
+    proposalRangeScale: 1,
     proposalCount: 2,
   };
 
@@ -87,7 +90,25 @@ describe("arc-control probe layouts", () => {
     ]);
     expect(arcControlStageProbeValues("tail_pitch", "signed3_wide"))
       .toEqual([0, -11.899999999999999, 11.899999999999999]);
+    expect(arcControlStageProbeValues("tail_pitch", "signed3", 0.6))
+      .toEqual([0, -5.1, 5.1]);
     expect(plannedArcControlProbeCount(narrow)).toBe(5);
+  });
+
+  test("proposal range is independent from probe range and retains exact scaled bounds", () => {
+    expect(arcControlProposalValues("tail_pitch", 0.6).at(0)).toBeCloseTo(-5.1);
+    expect(arcControlProposalValues("tail_pitch", 0.6).at(-1)).toBeCloseTo(5.1);
+    const configurations = enumerateArcControlConfigurations({
+      knobs: ["tail_pitch"],
+      maxKnobs: 1,
+      trainingMethods: ["base_additive"],
+      probeLayouts: ["signed3"],
+      probeRangeScales: [0.5, 0.6],
+      proposalRangeScales: [0.8, 1.2],
+    });
+    expect(configurations).toHaveLength(4);
+    expect(new Set(configurations.map((configuration) => configuration.probeRangeScale))).toEqual(new Set([0.5, 0.6]));
+    expect(new Set(configurations.map((configuration) => configuration.proposalRangeScale))).toEqual(new Set([0.8, 1.2]));
   });
 
   test("six registered knobs produce the complete no-repeat length-one/two additive screen", () => {

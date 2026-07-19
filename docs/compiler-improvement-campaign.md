@@ -6362,6 +6362,26 @@ independent probe-range and solver-proposal-range axes. Any final selection
 still requires source baking and a fresh certified evaluation epoch under the
 normal funnel.
 
+### Predeclared Tail→Post Range Grid
+
+This follow-up is configured but not started by the command
+`npm run benchmark:v2:arc-control-tail-post-2d`. It fixes `base_additive`,
+the signed-three topology, two emitted proposals, and the ordered sequence
+`[tail_pitch,post_contact_pitch]`. The only varying compiler dimensions are:
+
+| Axis | Multipliers of the declared knob span |
+| --- | --- |
+| physical probe range | 0.4, 0.5, 0.6, 0.7, 0.8 |
+| inverse-solver proposal range | 0.6, 0.8, 1.0, 1.2, 1.4 |
+
+This is the direct 5×5 Cartesian product: 25 compiler configurations,
+evaluated against one shared fresh 64-seed-per-budget V2 development/probe
+epoch at 250k and 500k. Probe range changes only the physical observations
+used to fit the response model. Proposal range changes only the later inverse
+candidate grid; it retains exact scaled boundaries even where a scan step does
+not divide the requested span. Cases, budgets, seeds, workers, and scoring are
+fixed evaluation protocol, not configuration axes.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

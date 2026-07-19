@@ -94,7 +94,10 @@ import {
   ARC_CONTROL_DEFAULT,
   ARC_PROPOSAL_COUNT_DEFAULT,
   ARC_PROBE_LAYOUTS,
+  ARC_PROBE_RANGE_SCALE_DEFAULT,
+  ARC_PROPOSAL_RANGE_SCALE_DEFAULT,
   ARC_TRAINING_METHODS,
+  arcControlProposalValues,
   arcControlProbeVectors,
   arcControlStageProbeValues,
   type ArcProbeLayoutId,
@@ -105,7 +108,6 @@ import {
   ARC_ACTUATOR_PAIRS,
   arcKnobProbeSpan,
   arcKnobProposalSeparation,
-  arcKnobScanStep,
   arcKnobSequenceNeedsContactPoint,
   getArcActuatorPair,
   getArcKnob,
@@ -243,10 +245,24 @@ function aimProposalCount(): number {
   return value;
 }
 
+function aimPositiveRangeScale(
+  variable: "LR_AIM_PROBE_RANGE_SCALE" | "LR_AIM_PROPOSAL_RANGE_SCALE",
+  fallback: number,
+): number {
+  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.[variable];
+  if (requested === undefined || requested === "") return fallback;
+  const value = Number(requested);
+  if (!Number.isFinite(value) || value <= 0) throw new Error(`invalid ${variable}=${requested}`);
+  return value;
+}
+
 type AimControl = Readonly<{
   sequence: ArcKnobSequence;
   trainingMethod: ArcTrainingMethod;
   probeLayout: ArcProbeLayoutId;
+  probeRangeScale: number;
+  proposalRangeScale: number;
   proposalCount: number;
 }>;
 
@@ -255,6 +271,8 @@ function aimControl(): AimControl {
     sequence: aimKnobSequence(),
     trainingMethod: aimTrainingMethod(),
     probeLayout: aimProbeLayout(),
+    probeRangeScale: aimPositiveRangeScale("LR_AIM_PROBE_RANGE_SCALE", ARC_PROBE_RANGE_SCALE_DEFAULT),
+    proposalRangeScale: aimPositiveRangeScale("LR_AIM_PROPOSAL_RANGE_SCALE", ARC_PROPOSAL_RANGE_SCALE_DEFAULT),
     proposalCount: aimProposalCount(),
   };
 }
@@ -266,6 +284,8 @@ function aimControl(): AimControl {
 function isSourceDefaultAimControl(control: AimControl): boolean {
   return control.trainingMethod === ARC_CONTROL_DEFAULT.trainingMethod &&
     control.probeLayout === ARC_CONTROL_DEFAULT.probeLayout &&
+    control.probeRangeScale === ARC_CONTROL_DEFAULT.probeRangeScale &&
+    control.proposalRangeScale === ARC_CONTROL_DEFAULT.proposalRangeScale &&
     control.proposalCount === ARC_CONTROL_DEFAULT.proposalCount &&
     control.sequence.length === ARC_CONTROL_DEFAULT.sequence.length &&
     control.sequence.every((id, index) => id === ARC_CONTROL_DEFAULT.sequence[index]);
@@ -1037,23 +1057,23 @@ function scoreConfiguredKnobs(
 function scoreConfiguredKnobGrid(
   model: ArcVectorResponseModel,
   sequence: ArcKnobSequence,
+  proposalRangeScale: number,
   baseScore: ConfiguredScoredKnobs,
   currentTargets: AxisValues,
   currentScoreAxes: JointArcCurrentScoreAxes,
   nextTargets: AxisValues,
   nextGap: Gap,
 ): ConfiguredScoredKnobs[] {
-  const spans = sequence.map(arcKnobProbeSpan);
-  const steps = sequence.map(arcKnobScanStep);
+  const valuesByAxis = sequence.map((knob) => arcControlProposalValues(knob, proposalRangeScale));
   const out: ConfiguredScoredKnobs[] = [];
   const visit = (values: number[], index: number): void => {
     if (index === sequence.length) {
-      if (values.every((value, valueIndex) => Math.abs(value) < steps[valueIndex] / 2)) return;
+      if (values.every((value) => Math.abs(value) < 1e-9)) return;
       const scored = scoreConfiguredKnobs(model, values, currentTargets, currentScoreAxes, nextTargets, nextGap);
       if (typeof scored !== "string" && scored.val > baseScore.val + 1e-4) out.push(scored);
       return;
     }
-    for (let value = -spans[index]; value <= spans[index] + 1e-9; value += steps[index]) {
+    for (const value of valuesByAxis[index]) {
       values.push(value);
       visit(values, index + 1);
       values.pop();
@@ -1159,7 +1179,7 @@ function makeConfiguredAimedCandidates(
       const appliedSequence = sequence.slice(0, stage + 1);
       // The center and signed observations are real probes on the materialized
       // prefix.  This stays true for every stage, not just the former second.
-      const rows = arcControlStageProbeValues(knob, control.probeLayout).map((value) => {
+      const rows = arcControlStageProbeValues(knob, control.probeLayout, control.probeRangeScale).map((value) => {
         const values = [...prefix, value];
         return { values, observation: observe(appliedSequence, values) };
       });
@@ -1187,6 +1207,7 @@ function makeConfiguredAimedCandidates(
       const candidates = stageBase === null ? [] : scoreConfiguredKnobGrid(
         model,
         [knob],
+        control.proposalRangeScale,
         stageBase,
         currentTargets,
         currentScoreAxes,
@@ -1225,6 +1246,7 @@ function makeConfiguredAimedCandidates(
       offered = scoreConfiguredKnobGrid(
         model,
         sequence,
+        control.proposalRangeScale,
         baseScore,
         currentTargets,
         currentScoreAxes,

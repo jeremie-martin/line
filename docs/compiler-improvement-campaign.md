@@ -6276,7 +6276,7 @@ question; do not broaden the next paid Cartesian screen with rotation or skew
 until a new physical hypothesis justifies it. The full decision record and
 case-level analysis are in the generated matrix analysis report.
 
-+## Finalist Model/Layout Matrix Result (2026-07-19)
+## Finalist Model/Layout Matrix Result (2026-07-19)
 
 **Protocol and integrity.** `arc-control-v2-finalists-m3-l3-16s01` completed the declared 27-arm product: three fixed two-knob sequences × `base_additive`/`base_joint`/`sequential_conditional` × `signed3_narrow`/`signed3`/`signed3_wide`, plus its fresh baseline. Every arm ran the 44-source V2 development/probe suite at 250k and 500k with 16 shared fresh seed slots per budget (1,408 cells/arm; 48 workers), with no worker failures. The nominal additive incumbent was exact baseline parity: 0/1,408 score, status, or raw-report mismatches. The fresh baseline measured 498.6170; that is a new seed-epoch estimate, not a compiler change or an absolute-score comparison with the earlier 503.6245 epoch.
 
@@ -6287,6 +6287,80 @@ case-level analysis are in the generated matrix analysis report.
 **Mechanism readout.** On matched valid cells, the narrow reverse leader improves all three axes; 500k impact RMS is −0.00454 (air −0.00164; speed −0.00156). But it has large case trade-offs: pickup_lattice +132.99, meter_exchange +53.79, dense-dialogue impact contrast +50.76 versus pickup-progression-shifted −96.05 and Believer impact-amplitude −21.05. Capability is −15.40 and representative +13.05; validity churn is balanced (+19/−19). It is broad behavioral movement, but volatile and not a robust cross-stratum source-baking candidate.
 
 **Decision.** Do not promote, source-bake, or add controls. If compute is spent to resolve this family, use a predeclared deeper fresh additive-only replication over these same three sequences and all three existing layouts; 32 or 48 shared seed slots is an explicit compute/precision choice. The raw matrix report remains under `generated/benchmark-v2/arc-control-matrices/arc-control-v2-finalists-m3-l3-16s01/`.
+
+## Fixed-Pair Proposal-Count Matrix Result (2026-07-19)
+
+**Protocol and integrity.** `arc-control-v2-additive-proposals-64s02` completed
+the predeclared 18-arm compiler product plus a shared baseline: fixed
+`base_additive`, three ordered sequences
+`[whole_rotation,tail_pitch]`, `[tail_pitch,post_contact_pitch]`, and
+`[post_contact_pitch,tail_pitch]`; two probe layouts (`signed3_narrow` and
+nominal `signed3`); and proposal counts 1, 2, and 3. Every arm ran the same
+official 44-source V2 development/probe suite at 250k and 500k with 64 fresh,
+shared seed slots per budget (5,632 cells per arm; 48 workers; seed base
+3216667779). All 19 runs completed with no worker failures. The raw archives,
+snapshots, frozen state, and paired report are retained under
+`generated/benchmark-v2/arc-control-matrices/arc-control-v2-additive-proposals-64s02/`.
+
+**Exact parity control.** Nominal two-proposal
+`[whole_rotation,tail_pitch]` is the source-default compiler configuration.
+It reproduced the fresh baseline at **498.1988** exactly: every score, report,
+and validity status was identical. This validates the matrix configuration
+identity, snapshot environment, proposal-count axis, and shared-cell
+accounting end to end.
+
+**Completed ranking.** Deltas are against the fresh baseline. “Lower bound” is
+the paired report's 90% one-sided lower confidence bound; it describes this
+development screen only and is not a promotion decision.
+
+| Layout | Proposals | Ordered knobs | Headline | Delta | Lower bound |
+| --- | ---: | --- | ---: | ---: | ---: |
+| narrow | 1 | rotation → tail | 496.6230 | -1.5758 | -4.8259 |
+| narrow | 1 | tail → post-contact | 497.9329 | -0.2659 | -3.8661 |
+| narrow | 1 | post-contact → tail | 497.6692 | -0.5296 | -4.0546 |
+| narrow | 2 | rotation → tail | 501.7964 | +3.5976 | +0.0725 |
+| narrow | 2 | tail → post-contact | **504.2335** | **+6.0347** | **+2.3668** |
+| narrow | 2 | post-contact → tail | **503.7725** | **+5.5737** | **+1.8628** |
+| narrow | 3 | rotation → tail | 496.7809 | -1.4179 | -5.0176 |
+| narrow | 3 | tail → post-contact | 497.7486 | -0.4502 | -4.6620 |
+| narrow | 3 | post-contact → tail | 497.1717 | -1.0271 | -5.0417 |
+| nominal | 1 | rotation → tail | 493.6906 | -4.5082 | -7.4688 |
+| nominal | 1 | tail → post-contact | 496.5586 | -1.6402 | -4.8585 |
+| nominal | 1 | post-contact → tail | 496.0680 | -2.1308 | -5.3885 |
+| nominal | 2 | rotation → tail | 498.1988 | +0.0000 | +0.0000 |
+| nominal | 2 | tail → post-contact | **502.7398** | **+4.5410** | **+1.0935** |
+| nominal | 2 | post-contact → tail | 500.2352 | +2.0364 | -1.7219 |
+| nominal | 3 | rotation → tail | 494.1124 | -4.0864 | -8.5445 |
+| nominal | 3 | tail → post-contact | 494.0017 | -4.1971 | -8.3756 |
+| nominal | 3 | post-contact → tail | 493.7207 | -4.4781 | -8.7513 |
+
+**What the factor grid established.** Proposal count two is the clear observed
+operating point. It is the only count with repeatable positive outcomes. With
+one proposal, every sequence incurs a very large capability-stratum loss
+(-54 to -62 points). With three proposals, no configuration improves the
+headline; nominal three-proposal variants are all decisively negative. The
+two leading narrow pitch orders are not distinguishable from one another:
+reverse-minus-forward is -0.4610 (SE 0.4693; interval crosses zero). Treat
+them as a two-member finalist set, rather than selecting a winner on this
+epoch.
+
+**Breadth and trade-offs.** Both narrow two-proposal pitch finalists improve
+all four development strata. For the observed leader, the deltas are
+representative +5.1825, capability +8.5546, legacy regression +4.8179, and
+development music +12.8403. It gains 73 valid cells and loses 60. That is
+evidence of broad movement, not a score-only patch. It nevertheless has real
+case-level trade-offs: `frontier_dense_recovery` gains +85.1740 while
+`frontier_pickup_progression_shifted` loses -62.6787. The result must not be
+read as a universal per-specification improvement.
+
+**Decision.** The report is selection-biased development evidence because the
+same 18-arm grid nominated its leaders; qualification was intentionally not
+run. Do not promote an environment-selected configuration. The immediate
+follow-up is a separate, predeclared two-dimensional study with the sequence
+fixed to `[tail_pitch,post_contact_pitch]`, proposal count fixed to two, and
+independent probe-range and solver-proposal-range axes. Any final selection
+still requires source baking and a fresh certified evaluation epoch under the
+normal funnel.
 
 ## Workflow Notes
 

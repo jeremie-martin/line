@@ -78,6 +78,7 @@ describe("arc-control probe layouts", () => {
     sequence: ["whole_rotation", "tail_pitch"],
     trainingMethod: "base_additive",
     probeLayout: "signed3_narrow",
+    proposalCount: 2,
   };
 
   test("a layout changes physical observations but not the declared inverse range", () => {
@@ -97,5 +98,18 @@ describe("arc-control probe layouts", () => {
     });
     expect(configurations).toHaveLength(36);
     expect(new Set(configurations.map((configuration) => configuration.id)).size).toBe(36);
+  });
+
+  test("proposal count is an independent Cartesian compiler axis", () => {
+    const configurations = enumerateArcControlConfigurations({
+      knobs: ["whole_rotation", "tail_pitch"],
+      maxKnobs: 2,
+      trainingMethods: ["base_additive"],
+      probeLayouts: ["signed3"],
+      proposalCounts: [1, 2, 3],
+    });
+    expect(configurations).toHaveLength(12);
+    expect(configurations.map((configuration) => configuration.proposalCount)).toContain(3);
+    expect(new Set(configurations.map((configuration) => configuration.id)).size).toBe(12);
   });
 });

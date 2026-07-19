@@ -92,6 +92,7 @@ import {
 } from "./arc_probe.ts";
 import {
   ARC_CONTROL_DEFAULT,
+  ARC_PROPOSAL_COUNT_DEFAULT,
   ARC_PROBE_LAYOUTS,
   ARC_TRAINING_METHODS,
   arcControlProbeVectors,
@@ -231,10 +232,22 @@ function aimProbeLayout(): ArcProbeLayoutId {
   return requested as ArcProbeLayoutId;
 }
 
+function aimProposalCount(): number {
+  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_PROPOSAL_COUNT;
+  if (requested === undefined || requested === "") return ARC_CONTROL_DEFAULT.proposalCount;
+  const value = Number(requested);
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new Error(`invalid LR_AIM_PROPOSAL_COUNT=${requested}`);
+  }
+  return value;
+}
+
 type AimControl = Readonly<{
   sequence: ArcKnobSequence;
   trainingMethod: ArcTrainingMethod;
   probeLayout: ArcProbeLayoutId;
+  proposalCount: number;
 }>;
 
 function aimControl(): AimControl {
@@ -242,6 +255,7 @@ function aimControl(): AimControl {
     sequence: aimKnobSequence(),
     trainingMethod: aimTrainingMethod(),
     probeLayout: aimProbeLayout(),
+    proposalCount: aimProposalCount(),
   };
 }
 
@@ -252,6 +266,7 @@ function aimControl(): AimControl {
 function isSourceDefaultAimControl(control: AimControl): boolean {
   return control.trainingMethod === ARC_CONTROL_DEFAULT.trainingMethod &&
     control.probeLayout === ARC_CONTROL_DEFAULT.probeLayout &&
+    control.proposalCount === ARC_CONTROL_DEFAULT.proposalCount &&
     control.sequence.length === ARC_CONTROL_DEFAULT.sequence.length &&
     control.sequence.every((id, index) => id === ARC_CONTROL_DEFAULT.sequence[index]);
 }
@@ -757,7 +772,7 @@ function probeRide(
  *  model; only the top 2 are simulated). k=2 is the measured knee under the
  *  current budget economics: k=3 spends the third proposal before low-budget
  *  compiles have enough room for it. */
-const ENUM_TOP_K = 2;
+const ENUM_TOP_K = ARC_PROPOSAL_COUNT_DEFAULT;
 /** Enumeration step (deg) — far below model error; effectively continuous. */
 const ENUM_STEP_DEG = 0.25;
 /** Minimum spacing between proposed deltas (keep the k proposals distinct
@@ -1056,10 +1071,11 @@ function scoreConfiguredKnobGrid(
 function chooseConfiguredKnobs(
   sequence: ArcKnobSequence,
   candidates: readonly ConfiguredScoredKnobs[],
+  proposalCount: number,
 ): ConfiguredScoredKnobs[] {
   const chosen: ConfiguredScoredKnobs[] = [];
   for (const candidate of candidates) {
-    if (chosen.length >= ENUM_TOP_K) break;
+    if (chosen.length >= proposalCount) break;
     const distinct = chosen.every((prior) => candidate.values.reduce((distance, value, index) => {
       const scale = arcKnobProposalSeparation(sequence[index]);
       return distance + ((value - prior.values[index]) / scale) ** 2;
@@ -1221,7 +1237,7 @@ function makeConfiguredAimedCandidates(
   aimTotals.joint_probe_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBeforeProbes);
   if (coverageModel !== null) recordJointModelCoverage(coverageModel, baseOutputs, gap);
   if (baseScore === null) return [];
-  const chosen = chooseConfiguredKnobs(sequence, offered);
+  const chosen = chooseConfiguredKnobs(sequence, offered, control.proposalCount);
   if (chosen.length === 0 && !airKnobBase) {
     aimTotals.enum_on_target++;
     return [];

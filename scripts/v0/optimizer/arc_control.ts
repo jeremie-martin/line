@@ -55,16 +55,21 @@ export const ARC_TRAINING_METHODS: readonly ArcTrainingMethod[] = [
   "sequential_conditional",
 ];
 
+/** Ordinary number of distinct inverse-model proposals emitted per refined base. */
+export const ARC_PROPOSAL_COUNT_DEFAULT = 2;
+
 /** The accepted compiler's historical response coordinates, made explicit as
  * a normal configuration rather than hidden in an aiming implementation. */
 export const ARC_CONTROL_DEFAULT: Readonly<{
   sequence: ArcKnobSequence;
   trainingMethod: ArcTrainingMethod;
   probeLayout: ArcProbeLayoutId;
+  proposalCount: number;
 }> = {
   sequence: ["whole_rotation", "tail_pitch"],
   trainingMethod: "base_additive",
   probeLayout: "signed3",
+  proposalCount: ARC_PROPOSAL_COUNT_DEFAULT,
 };
 
 export type ArcControlConfiguration = Readonly<{
@@ -78,6 +83,7 @@ export type ArcControlConfiguration = Readonly<{
   sequence: ArcKnobSequence;
   trainingMethod: ArcTrainingMethod;
   probeLayout: ArcProbeLayoutId;
+  proposalCount: number;
 }>;
 
 export type ArcControlMatrixOptions = Readonly<{
@@ -86,27 +92,30 @@ export type ArcControlMatrixOptions = Readonly<{
   allowRepeated?: boolean;
   trainingMethods?: readonly ArcTrainingMethod[];
   probeLayouts?: readonly ArcProbeLayoutId[];
+  proposalCounts?: readonly number[];
 }>;
 
 function configurationId(
   sequence: ArcKnobSequence,
   trainingMethod: ArcTrainingMethod,
   probeLayout: ArcProbeLayoutId,
+  proposalCount: number,
 ): string {
-  return `${trainingMethod}--${probeLayout}--${sequence.join("__")}`;
+  return `${trainingMethod}--${probeLayout}--p${proposalCount}--${sequence.join("__")}`;
 }
 
 function observationEquivalenceKey(
   sequence: ArcKnobSequence,
   trainingMethod: ArcTrainingMethod,
   probeLayout: ArcProbeLayoutId,
+  proposalCount: number,
 ): string {
   // With one scalar knob and the signed three-point layout, the three training
   // methods observe and invert the same one-dimensional quadratic.  Keep
   // their requested rows, but declare that expected observation/proposal
   // equivalence instead of hiding the Cartesian product.
   const effectiveMethod = sequence.length === 1 ? "scalar_1d" : trainingMethod;
-  return `${effectiveMethod}--${probeLayout}--${sequence.join("__")}`;
+  return `${effectiveMethod}--${probeLayout}--p${proposalCount}--${sequence.join("__")}`;
 }
 
 /**
@@ -119,24 +128,31 @@ function observationEquivalenceKey(
 export function enumerateArcControlConfigurations(options: ArcControlMatrixOptions): ArcControlConfiguration[] {
   const methods = options.trainingMethods === undefined ? ARC_TRAINING_METHODS : [...options.trainingMethods];
   const layouts = options.probeLayouts === undefined ? Object.keys(ARC_PROBE_LAYOUTS) as ArcProbeLayoutId[] : [...options.probeLayouts];
+  const proposalCounts = options.proposalCounts === undefined ? [ARC_PROPOSAL_COUNT_DEFAULT] : [...options.proposalCounts];
   for (const method of methods) {
     if (!ARC_TRAINING_METHODS.includes(method)) throw new Error(`unknown arc training method ${method}`);
   }
   for (const layout of layouts) {
     if (!(layout in ARC_PROBE_LAYOUTS)) throw new Error(`unknown arc probe layout ${layout}`);
   }
+  for (const proposalCount of proposalCounts) {
+    if (!Number.isSafeInteger(proposalCount) || proposalCount < 1) {
+      throw new Error(`invalid arc proposal count ${proposalCount}`);
+    }
+  }
   const sequences = enumerateArcKnobSequences({
     ...(options.knobs === undefined ? {} : { knobs: options.knobs }),
     maxLength: options.maxKnobs,
     ...(options.allowRepeated === true ? { allowRepeated: true } : {}),
   });
-  return sequences.flatMap((sequence) => methods.flatMap((trainingMethod) => layouts.map((probeLayout) => ({
-    id: configurationId(sequence, trainingMethod, probeLayout),
-    observationEquivalenceKey: observationEquivalenceKey(sequence, trainingMethod, probeLayout),
+  return sequences.flatMap((sequence) => methods.flatMap((trainingMethod) => layouts.flatMap((probeLayout) => proposalCounts.map((proposalCount) => ({
+    id: configurationId(sequence, trainingMethod, probeLayout, proposalCount),
+    observationEquivalenceKey: observationEquivalenceKey(sequence, trainingMethod, probeLayout, proposalCount),
     sequence,
     trainingMethod,
     probeLayout,
-  }))));
+    proposalCount,
+  })))));
 }
 
 /** Probe values for one scalar knob, ordered with the real center first for

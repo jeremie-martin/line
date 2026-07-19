@@ -41,6 +41,7 @@ import {
 } from "./family.ts";
 import {
   ARC_CONTROL_DEFAULT,
+  ARC_PROPOSAL_COUNT_DEFAULT,
   enumerateArcControlConfigurations,
   type ArcControlConfiguration,
   type ArcProbeLayoutId,
@@ -68,6 +69,8 @@ const methods = argument("methods")?.split(",").map((value) => value.trim()).fil
  * ordinary selected compiler axis through --probe-layouts. */
 const probeLayouts = (argument("probe-layouts") ?? "signed3")
   .split(",").map((value) => value.trim()).filter(Boolean) as ArcProbeLayoutId[];
+const proposalCounts = (argument("proposal-counts") ?? String(ARC_PROPOSAL_COUNT_DEFAULT))
+  .split(",").map((value) => Number(value.trim())).filter((value) => Number.isFinite(value));
 const configurationFilter = argument("configurations")?.split(",").map((value) => value.trim()).filter(Boolean);
 const seeds = Number(argument("seeds") ?? "6");
 const jobs = Number(argument("jobs") ?? String(Math.min(48, availableParallelism())));
@@ -80,6 +83,7 @@ const allConfigurations = enumerateArcControlConfigurations({
   knobs,
   maxKnobs,
   probeLayouts,
+  proposalCounts,
   ...(allowRepeated ? { allowRepeated: true } : {}),
   ...(methods === undefined ? {} : { trainingMethods: methods }),
 });
@@ -120,7 +124,7 @@ if (dryRun) {
   console.log(JSON.stringify({
     schema: SCHEMA,
     authority: "exploration-only",
-    configurationAxes: ["ordered_knob_sequence", "training_method", "probe_layout"],
+    configurationAxes: ["ordered_knob_sequence", "training_method", "probe_layout", "proposal_count"],
     evaluationProtocol: "fixed official Benchmark V2 development/probe runner; shared fresh seed epoch",
     configurations: allConfigurations,
     selectedConfigurations: configurations.map((configuration) => configuration.id),
@@ -171,7 +175,7 @@ const result = {
   authority: "exploration-only" as const,
   statement:
     "This is a shared-seed descriptive configuration screen. It runs the actual compiler and official V2 development/probe scorer, but it is not a promotion decision. Any candidate must be source-baked and pass a fresh certified eval.",
-  configurationAxes: ["ordered_knob_sequence", "training_method", "probe_layout"],
+  configurationAxes: ["ordered_knob_sequence", "training_method", "probe_layout", "proposal_count"],
   evaluationProtocol: {
     runner: state.evaluation.runner,
     sourceScope: state.evaluation.sourceScope,
@@ -216,13 +220,13 @@ function validateArguments(): void {
   if (!Number.isInteger(maxKnobs) || maxKnobs < 1) {
     throw new Error(`--max-knobs must be a positive integer`);
   }
-  if (!Number.isInteger(seeds) || seeds < 2 || seeds > 16) {
-    throw new Error(`--seeds must be an integer from 2 through 16`);
+  if (!Number.isInteger(seeds) || seeds < 2 || seeds > 64) {
+    throw new Error(`--seeds must be an integer from 2 through 64`);
   }
   if (!Number.isInteger(jobs) || jobs < 1) throw new Error(`--jobs must be a positive integer`);
   for (const knob of knobs) getArcKnob(knob);
   const known = new Set([
-    "name", "knobs", "max-knobs", "methods", "probe-layouts", "configurations", "seeds", "jobs", "out-dir",
+    "name", "knobs", "max-knobs", "methods", "probe-layouts", "proposal-counts", "configurations", "seeds", "jobs", "out-dir",
   ]);
   for (const value of argv.filter((entry) => entry.startsWith("--"))) {
     const key = value.slice(2).split("=", 1)[0];
@@ -310,12 +314,14 @@ function environmentFor(configuration: ArcControlConfiguration): Record<string, 
   const isSourceDefault =
     configuration.trainingMethod === ARC_CONTROL_DEFAULT.trainingMethod &&
     configuration.probeLayout === ARC_CONTROL_DEFAULT.probeLayout &&
+    configuration.proposalCount === ARC_CONTROL_DEFAULT.proposalCount &&
     configuration.sequence.join("\0") === ARC_CONTROL_DEFAULT.sequence.join("\0");
   if (isSourceDefault) return {};
   return {
     LR_AIM_KNOB_SEQUENCE: configuration.sequence.join(","),
     LR_AIM_TRAINING_METHOD: configuration.trainingMethod,
     LR_AIM_PROBE_LAYOUT: configuration.probeLayout,
+    LR_AIM_PROPOSAL_COUNT: String(configuration.proposalCount),
   };
 }
 

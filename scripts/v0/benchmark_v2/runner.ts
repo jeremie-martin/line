@@ -714,9 +714,9 @@ export function validateExplorationFlags(input: {
   if (
     input.explorationSeedBase === undefined || input.explorationSeedsPerBudget === undefined ||
     !Number.isSafeInteger(input.explorationSeedsPerBudget) || input.explorationSeedsPerBudget < 2 ||
-    input.explorationSeedsPerBudget > 16
+    input.explorationSeedsPerBudget > 64
   ) {
-    throw new Error(`exploration requires a seed base and 2..16 seeds per budget`);
+    throw new Error(`exploration requires a seed base and 2..64 seeds per budget`);
   }
   if (input.explorationSeedBase < 3_000_000_000 || input.explorationSeedBase >= 4_000_000_000) {
     throw new Error(`exploration seed bases must be in the reserved [3000000000, 4000000000) range`);

@@ -106,9 +106,10 @@ describe("validateExplorationFlags", () => {
     expect(() => validateExplorationFlags({ ...valid, explorationSeedBase: 2_999_999_999 }))
       .toThrow(/reserved/);
     expect(() => validateExplorationFlags({ ...valid, explorationSeedsPerBudget: 1 }))
-      .toThrow(/2\.\.16/);
-    expect(() => validateExplorationFlags({ ...valid, explorationSeedsPerBudget: 17 }))
-      .toThrow(/2\.\.16/);
+      .toThrow(/2\.\.64/);
+    expect(() => validateExplorationFlags({ ...valid, explorationSeedsPerBudget: 64 })).not.toThrow();
+    expect(() => validateExplorationFlags({ ...valid, explorationSeedsPerBudget: 65 }))
+      .toThrow(/2\.\.64/);
   });
 
   test("cannot borrow confirmation or wave controls", () => {

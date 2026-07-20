@@ -488,6 +488,7 @@ export function buildFamilyReport(
   family: BenchmarkFamily,
   round: FamilyRound,
   archiveLoader: (path: string) => any = (path) => loadVerifiedArchive(path).archive,
+  options: { budgets?: readonly number[] } = {},
 ): FamilyReport {
   if (round.baselineRun === null || round.seedBase === null || round.seedsPerBudget === null) {
     throw new Error(`family round is missing its frozen baseline or seed schedule`);
@@ -496,7 +497,10 @@ export function buildFamilyReport(
   const suite = loadSuiteManifest(SUITE_MANIFEST, sources);
   const identity = suiteIdentity(SUITE_MANIFEST, SOURCE_MANIFEST, sources);
   if (identity.suiteFingerprint !== family.baseline.suiteFingerprint) throw new Error(`family suite is stale`);
-  const exploratorySuite = suiteAtProbeDepth(suite, round.seedsPerBudget);
+  const budgets = options.budgets === undefined
+    ? [...suite.profiles.probe.budgets]
+    : [...options.budgets];
+  const exploratorySuite = suiteAtProbeProtocol(suite, round.seedsPerBudget, budgets);
   const baselineArchive = archiveLoader(round.baselineRun.archive);
   const baselineRuns = decisionRuns(baselineArchive);
   const variantArchives = new Map(round.variants.map((variant) => {
@@ -538,7 +542,7 @@ export function buildFamilyReport(
     .filter((depth) => depth <= seedsPerBudget)
     .sort((a, b) => a - b);
   const prefixRankings = prefixes.map((depth) => {
-    const prefixSuite = suiteAtProbeDepth(suite, depth);
+    const prefixSuite = suiteAtProbeProtocol(suite, depth, budgets);
     const base = baselineRuns.filter((run) => run.seedSlot < depth);
     return {
       seedsPerBudget: depth,
@@ -557,7 +561,7 @@ export function buildFamilyReport(
     .filter((prefix) => prefix.ranking[0].variantId !== observedChampionId)
     .map((prefix) => {
       const leader = prefix.ranking[0].variantId;
-      const prefixSuite = suiteAtProbeDepth(suite, prefix.seedsPerBudget);
+      const prefixSuite = suiteAtProbeProtocol(suite, prefix.seedsPerBudget, budgets);
       const decision = pairedV2DecisionForCalibration(
         allRuns.get(leader)!.filter((run) => run.seedSlot < prefix.seedsPerBudget),
         allRuns.get(observedChampionId)!.filter((run) => run.seedSlot < prefix.seedsPerBudget),
@@ -595,7 +599,7 @@ export function buildFamilyReport(
     seedSchedule: {
       seedBase: round.seedBase,
       seedsPerBudget,
-      budgets: [...suite.profiles.probe.budgets],
+      budgets,
     },
     observedChampionId,
     championStableAcrossPrefixes: prefixRankings.every((prefix) => prefix.ranking[0].variantId === observedChampionId),
@@ -683,9 +687,18 @@ function decisionRuns(archive: any): DecisionRun[] {
   }));
 }
 
-function suiteAtProbeDepth(suite: SuiteManifest, depth: number): SuiteManifest {
+function suiteAtProbeProtocol(
+  suite: SuiteManifest,
+  depth: number,
+  budgets: readonly number[],
+): SuiteManifest {
+  if (budgets.length === 0 || budgets.some((budget) => !Number.isSafeInteger(budget) || budget < 1)) {
+    throw new Error(`family report needs a non-empty positive-integer budget ladder`);
+  }
+  if (new Set(budgets).size !== budgets.length) throw new Error(`family report budget ladder contains duplicates`);
   const clone = structuredClone(suite);
   clone.profiles.probe.seeds_per_budget = depth;
+  clone.profiles.probe.budgets = [...budgets];
   return clone;
 }
 

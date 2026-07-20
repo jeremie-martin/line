@@ -6382,6 +6382,24 @@ candidate grid; it retains exact scaled boundaries even where a scan step does
 not divide the requested span. Cases, budgets, seeds, workers, and scoring are
 fixed evaluation protocol, not configuration axes.
 
+### Predeclared Canonical-Budget Top-12 Follow-up
+
+`npm run benchmark:v2:arc-control-tail-post-top12-canonical-budget` runs the
+12 range cells with the strongest paired lower bounds from the completed
+64-seed range screen. It fixes the same additive `tail_pitch → post_contact_pitch`
+compiler family and every other compiler control. The
+evaluation protocol changes only to the full **250k / 500k / 750k** budget
+ladder, with 64 fresh shared seed slots at every budget and the suite's normal
+20% / 50% / 30% budget weighting.
+
+This is a development-only, exploration-seed screen that uses the canonical
+budget ladder. It is **not** a canonical evaluation: qualification and the
+decision/alpha machinery are intentionally absent. Its purpose is to test
+whether the promising range region persists at 750k and to identify any
+budget-dependent trade-offs before a source-baked candidate is put through the
+normal confirmation funnel. The budget ladder is recorded as evaluation
+protocol metadata, never as a compiler configuration axis.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

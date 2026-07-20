@@ -165,6 +165,9 @@ export async function runBenchmarkV2(
   const explorationSeedsPerBudget = argument("exploration-seeds-per-budget") === undefined
     ? undefined
     : Number(argument("exploration-seeds-per-budget"));
+  const explorationBudgets = argument("exploration-budgets") === undefined
+    ? undefined
+    : budgetList(argument("exploration-budgets")!, "exploration-budgets");
   const throughSeedSlot = argument("through-seed-slot") === undefined
     ? undefined
     : Number(argument("through-seed-slot"));
@@ -178,6 +181,7 @@ export async function runBenchmarkV2(
     confirmationSeedsPerBudgetOverride,
     explorationSeedBase,
     explorationSeedsPerBudget,
+    explorationBudgets,
     throughSeedSlot,
   });
 
@@ -213,6 +217,21 @@ export async function runBenchmarkV2(
   );
   if (profileName === "canonical") requireApprovedListeningReview(listeningReview);
   const profile = suite.profiles[profileName];
+  // An exploration may intentionally use the full canonical budget ladder
+  // without becoming a canonical evaluation: it remains development-only,
+  // uses fresh exploration seeds, and cannot enter the decision machinery.
+  // Keep this deliberately narrow so arbitrary budget studies continue to use
+  // scale_study.ts rather than silently changing V2 semantics here.
+  if (
+    explorationBudgets !== undefined &&
+    !sameBudgetLadder(explorationBudgets, suite.profiles.canonical.budgets)
+  ) {
+    throw new Error(
+      `--exploration-budgets must equal the canonical ladder ` +
+      `${suite.profiles.canonical.budgets.join(",")}`,
+    );
+  }
+  const effectiveBudgets = explorationBudgets ?? profile.budgets;
   const effectiveSeedsPerBudget = explorationSeedsPerBudget ?? confirmationSeedsPerBudgetOverride ?? profile.seeds_per_budget;
   if (!exploration) {
     validateSubsetFlags({
@@ -233,7 +252,7 @@ export async function runBenchmarkV2(
   const schedule = resolvedSeedSchedule(
     suite,
     profileName,
-    profile.budgets,
+    effectiveBudgets,
     effectiveSeedsPerBudget,
     explorationSeedBase ?? canonicalSeedBaseOverride,
   );
@@ -253,7 +272,7 @@ export async function runBenchmarkV2(
     engine,
     compiler: "compileHandoff",
     profile: profileName,
-    budgets: [...profile.budgets],
+    budgets: [...effectiveBudgets],
     seedSchedule: schedule,
     sources: sources.map((source) => ({
       id: source.id,
@@ -334,7 +353,7 @@ export async function runBenchmarkV2(
 
   console.log(`Benchmark V2 ${mode} ${profileName}${exploration ? ` exploration ${explorationId}` : ""}`);
   console.log(
-    `  ${tasks.length} compiles (${sources.length} sources, ${profile.budgets.length} budgets, ` +
+    `  ${tasks.length} compiles (${sources.length} sources, ${effectiveBudgets.length} budgets, ` +
     `${effectiveSeedsPerBudget} seed slots); ${restored.length} restored`,
   );
   console.log(
@@ -352,7 +371,7 @@ export async function runBenchmarkV2(
     );
     scoredProgress.push(scored);
     if (scoredProgress.length === tasks.length || scoredProgress.length % sources.length === 0) {
-      printProgress(scoredProgress, tasks.length, profile.budgets, startedAt, restored.length);
+      printProgress(scoredProgress, tasks.length, effectiveBudgets, startedAt, restored.length);
     }
   });
   const allByKey = new Map([...restored, ...fresh].map((result) => [taskKey(result.task), result]));
@@ -409,13 +428,13 @@ export async function runBenchmarkV2(
     score: row.score,
   }));
   const developmentSummaries = mode === "development"
-    ? profile.budgets.map((budget) => summarizeDevelopmentBudget(aggregateRuns, budget, suite))
+    ? effectiveBudgets.map((budget) => summarizeDevelopmentBudget(aggregateRuns, budget, suite))
     : [];
   const headline = developmentSummaries.length === 0
     ? null
     : weightedBudgetHeadline(developmentSummaries, suite.budget_weights);
   const qualificationSummaries = mode === "qualification"
-    ? profile.budgets.map((budget) => summarizeQualificationBudget(
+    ? effectiveBudgets.map((budget) => summarizeQualificationBudget(
       aggregateRuns,
       budget,
       sources.map((source) => source.id),
@@ -508,7 +527,7 @@ export async function runBenchmarkV2(
     } : {}),
   }, null, 2)}\n`);
 
-  for (const budget of profile.budgets) {
+  for (const budget of effectiveBudgets) {
     const rows = scored.filter((row) => row.task.budget === budget);
     const valid = rows.filter((row) => row.score.valid).length;
     const development = developmentSummaries.find((entry) => entry.budget === budget);
@@ -692,11 +711,12 @@ export function validateExplorationFlags(input: {
   confirmationSeedsPerBudgetOverride: number | undefined;
   explorationSeedBase: number | undefined;
   explorationSeedsPerBudget: number | undefined;
+  explorationBudgets?: readonly number[];
   throughSeedSlot: number | undefined;
 }): void {
   const hasExplorationArgument =
     input.explorationId !== undefined || input.explorationSeedBase !== undefined ||
-    input.explorationSeedsPerBudget !== undefined;
+    input.explorationSeedsPerBudget !== undefined || input.explorationBudgets !== undefined;
   if (!input.exploration) {
     if (hasExplorationArgument) throw new Error(`exploration arguments require --exploration`);
     return;
@@ -1062,6 +1082,22 @@ function positiveInteger(value: string, label: string): number {
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < 1) throw new Error(`${label} must be a positive integer`);
   return parsed;
+}
+
+function budgetList(value: string, label: string): number[] {
+  const budgets = value.split(",").map((entry) => Number(entry.trim()));
+  if (
+    budgets.length === 0 ||
+    budgets.some((budget) => !Number.isSafeInteger(budget) || budget < 1) ||
+    new Set(budgets).size !== budgets.length
+  ) {
+    throw new Error(`${label} must be a comma-separated list of distinct positive integers`);
+  }
+  return budgets;
+}
+
+function sameBudgetLadder(left: readonly number[], right: readonly number[]): boolean {
+  return left.length === right.length && left.every((budget, index) => budget === right[index]);
 }
 
 function nonNegativeInteger(value: string, label: string): number {

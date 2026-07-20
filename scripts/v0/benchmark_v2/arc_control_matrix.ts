@@ -52,9 +52,11 @@ import {
 import { getArcKnob, type ArcKnobId } from "../optimizer/arc_actuator.ts";
 import { writeFileAtomicDurable } from "./durable_fs.ts";
 
-const SCHEMA = "line.benchmark-v2.arc-control-matrix.v1" as const;
+const SCHEMA = "line.benchmark-v2.arc-control-matrix.v2" as const;
 const DEFAULT_OUTPUT_ROOT = "generated/benchmark-v2/arc-control-matrices";
 const SHARED_SEED_LEDGER_ROOT = "generated/benchmark-v2/families";
+const DEFAULT_EVALUATION_BUDGETS = [250_000, 500_000] as const;
+const CANONICAL_EVALUATION_BUDGETS = [250_000, 500_000, 750_000] as const;
 const argv = process.argv.slice(2);
 
 const argument = (name: string): string | undefined =>
@@ -85,6 +87,8 @@ const proposalRangeScales = positiveNumberList(
 const proposalCounts = (argument("proposal-counts") ?? String(ARC_PROPOSAL_COUNT_DEFAULT))
   .split(",").map((value) => Number(value.trim())).filter((value) => Number.isFinite(value));
 const configurationFilter = argument("configurations")?.split(",").map((value) => value.trim()).filter(Boolean);
+/** Evaluation protocol, explicitly outside the compiler configuration product. */
+const evaluationBudgets = positiveIntegerList("evaluation-budgets", DEFAULT_EVALUATION_BUDGETS);
 const seeds = Number(argument("seeds") ?? "6");
 const jobs = Number(argument("jobs") ?? String(Math.min(48, availableParallelism())));
 const outputRoot = resolve(argument("out-dir") ?? DEFAULT_OUTPUT_ROOT, name);
@@ -123,6 +127,7 @@ type MatrixState = {
   evaluation: {
     runner: "benchmark-v2 development/probe";
     sourceScope: "official-development-suite";
+    budgets: number[];
     seedBase: number | null;
     seedsPerBudget: number;
     jobs: number;
@@ -144,7 +149,11 @@ if (dryRun) {
       "ordered_knob_sequence", "training_method", "probe_layout", "probe_range_scale",
       "proposal_range_scale", "proposal_count",
     ],
-    evaluationProtocol: "fixed official Benchmark V2 development/probe runner; shared fresh seed epoch",
+    evaluationProtocol: {
+      runner: "official Benchmark V2 development/probe runner",
+      budgets: evaluationBudgets,
+      sharedFreshSeedEpoch: true,
+    },
     configurations: allConfigurations,
     selectedConfigurations: configurations.map((configuration) => configuration.id),
     selectedCount: configurations.length,
@@ -159,7 +168,7 @@ const epoch = await allocateExplorationSeedEpoch(
   SHARED_SEED_LEDGER_ROOT,
   `arc-control-matrix-${name}`,
   1,
-  seeds * 2, // V2 probe has two fixed budgets; the runner owns their concrete schedule.
+  seeds * evaluationBudgets.length,
 );
 if (state.evaluation.seedBase !== null && state.evaluation.seedBase !== epoch.seedBase) {
   throw new Error(`matrix ${name} has a conflicting exploration seed epoch`);
@@ -188,7 +197,12 @@ for (const arm of state.arms) {
 }
 
 const reportPath = resolve(outputRoot, "report.json");
-const report = buildFamilyReport(matrixAsFamily(state, baselineReference), matrixAsRound(state, baselineReference));
+const report = buildFamilyReport(
+  matrixAsFamily(state, baselineReference),
+  matrixAsRound(state, baselineReference),
+  undefined,
+  { budgets: state.evaluation.budgets },
+);
 const result = {
   schema: SCHEMA,
   authority: "exploration-only" as const,
@@ -201,6 +215,7 @@ const result = {
   evaluationProtocol: {
     runner: state.evaluation.runner,
     sourceScope: state.evaluation.sourceScope,
+    budgets: state.evaluation.budgets,
     seedBase: state.evaluation.seedBase,
     seedsPerBudget: state.evaluation.seedsPerBudget,
     jobs: state.evaluation.jobs,
@@ -225,6 +240,7 @@ console.log(JSON.stringify({
   selectedConfigurations: state.arms.length,
   seedBase: state.evaluation.seedBase,
   seedsPerBudget: state.evaluation.seedsPerBudget,
+  budgets: state.evaluation.budgets,
   report: state.report,
   ranking: report.ranking.map((row) => ({
     variantId: row.variantId,
@@ -245,12 +261,18 @@ function validateArguments(): void {
   if (!Number.isInteger(seeds) || seeds < 2 || seeds > 64) {
     throw new Error(`--seeds must be an integer from 2 through 64`);
   }
+  if (!isSupportedEvaluationBudgetLadder(evaluationBudgets)) {
+    throw new Error(
+      `--evaluation-budgets must be either ${DEFAULT_EVALUATION_BUDGETS.join(",")} ` +
+      `or ${CANONICAL_EVALUATION_BUDGETS.join(",")}`,
+    );
+  }
   if (!Number.isInteger(jobs) || jobs < 1) throw new Error(`--jobs must be a positive integer`);
   for (const knob of knobs) getArcKnob(knob);
   for (const sequence of sequences ?? []) for (const knob of sequence) getArcKnob(knob);
   const known = new Set([
     "name", "knobs", "sequences", "max-knobs", "methods", "probe-layouts", "probe-range-scales",
-    "proposal-range-scales", "proposal-counts", "configurations", "seeds", "jobs", "out-dir",
+    "proposal-range-scales", "proposal-counts", "configurations", "evaluation-budgets", "seeds", "jobs", "out-dir",
   ]);
   for (const value of argv.filter((entry) => entry.startsWith("--"))) {
     const key = value.slice(2).split("=", 1)[0];
@@ -267,6 +289,28 @@ function positiveNumberList(name: string, fallback: number): number[] {
     throw new Error(`--${name} must be a comma-separated list of positive numbers`);
   }
   return values;
+}
+
+function positiveIntegerList(name: string, fallback: readonly number[]): number[] {
+  const raw = argument(name) ?? fallback.join(",");
+  const values = raw.split(",").map((value) => Number(value.trim()));
+  if (
+    values.length === 0 ||
+    values.some((value) => !Number.isSafeInteger(value) || value < 1) ||
+    new Set(values).size !== values.length
+  ) {
+    throw new Error(`--${name} must be a comma-separated list of distinct positive integers`);
+  }
+  return values;
+}
+
+function sameBudgetLadder(left: readonly number[], right: readonly number[]): boolean {
+  return left.length === right.length && left.every((budget, index) => budget === right[index]);
+}
+
+function isSupportedEvaluationBudgetLadder(budgets: readonly number[]): boolean {
+  return sameBudgetLadder(budgets, DEFAULT_EVALUATION_BUDGETS) ||
+    sameBudgetLadder(budgets, CANONICAL_EVALUATION_BUDGETS);
 }
 
 function selectConfigurations(
@@ -301,6 +345,7 @@ function loadOrInitializeState(): MatrixState {
       evaluation: {
         runner: "benchmark-v2 development/probe",
         sourceScope: "official-development-suite",
+        budgets: [...evaluationBudgets],
         seedBase: null,
         seedsPerBudget: seeds,
         jobs,
@@ -325,8 +370,11 @@ function loadOrInitializeState(): MatrixState {
   if (state.schema !== SCHEMA || state.name !== name || state.authority !== "exploration-only") {
     throw new Error(`unsupported matrix state at ${relativeToCwd(statePath)}`);
   }
-  if (state.evaluation.seedsPerBudget !== seeds || state.evaluation.jobs !== jobs) {
-    throw new Error(`matrix state has a different frozen seed depth or job count`);
+  if (
+    state.evaluation.seedsPerBudget !== seeds || state.evaluation.jobs !== jobs ||
+    !sameBudgetLadder(state.evaluation.budgets, evaluationBudgets)
+  ) {
+    throw new Error(`matrix state has a different frozen evaluation protocol`);
   }
   const expected = configurations.map((configuration) => configuration.id);
   const actual = state.arms.map((arm) => arm.configuration.id);
@@ -405,6 +453,9 @@ function runOrReuseArm(snapshot: CompilerSnapshot, expectedCandidateFingerprint:
       `--exploration-id=arc-control-matrix/${name}`,
       `--exploration-seed-base=${state.evaluation.seedBase!}`,
       `--exploration-seeds-per-budget=${state.evaluation.seedsPerBudget}`,
+      ...(sameBudgetLadder(state.evaluation.budgets, CANONICAL_EVALUATION_BUDGETS)
+        ? [`--exploration-budgets=${state.evaluation.budgets.join(",")}`]
+        : []),
       `--jobs=${state.evaluation.jobs}`,
       ...(existsSync(`${outputPath}.checkpoint.jsonl`) ? ["--resume"] : []),
     ], outputPath);
@@ -424,6 +475,7 @@ function runOrReuseArm(snapshot: CompilerSnapshot, expectedCandidateFingerprint:
     archive.exploration?.id !== `arc-control-matrix/${name}` ||
     archive.exploration?.seedBase !== state.evaluation.seedBase ||
     archive.exploration?.seedsPerBudget !== state.evaluation.seedsPerBudget ||
+    !sameBudgetLadder(archive.identity?.budgets ?? [], state.evaluation.budgets) ||
     archive.git?.candidateFingerprint !== expectedCandidateFingerprint ||
     !Number.isFinite(archive.canonicalHeadline) ||
     summary.archiveSha256 !== verified.archiveSha256

@@ -105,13 +105,10 @@ import {
 } from "./arc_control.ts";
 import {
   applyArcKnobSequence,
-  ARC_ACTUATOR_PAIRS,
   arcKnobProbeSpan,
   arcKnobProposalSeparation,
   arcKnobSequenceNeedsContactPoint,
-  getArcActuatorPair,
   getArcKnob,
-  type ArcActuatorPairId,
   type ArcKnobId,
   type ArcKnobSequence,
 } from "./arc_actuator.ts";
@@ -169,34 +166,11 @@ const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
  *  to study harnesses through arc_model.ts, not as ambient compiler env state. */
 const AIM_JOINT_PROBE_DESIGN: ArcProbeDesignName = "cross5";
 /**
- * The one physical policy the normal compiler actually uses.  It is the
- * historic whole-arc rotation followed by tail pitch, represented through the
- * actuator registry so alternate two-control policies can be screened without
- * reimplementing probe or emission machinery.
- */
-const AIM_ACTUATOR_PAIR_DEFAULT: ArcActuatorPairId = "tail_pitch__whole_rotation";
-
-/**
- * Stage-0/family-only actuator selection.  The default compiler stays on the
- * declared source pair; an unknown setting fails closed.  Any candidate that
- * advances past screening must bake its selected pair into
- * AIM_ACTUATOR_PAIR_DEFAULT before confirmation, per the V2 source-default
- * contract.
- */
-function aimActuatorPair(): ArcActuatorPairId {
-  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_ACTUATOR_PAIR;
-  if (requested === undefined || requested === "") return AIM_ACTUATOR_PAIR_DEFAULT;
-  if (!(requested in ARC_ACTUATOR_PAIRS)) throw new Error(`unknown LR_AIM_ACTUATOR_PAIR=${requested}`);
-  return requested as ArcActuatorPairId;
-}
-
-/**
  * The normal compiler's two response coordinates are positional: first knob
- * value = `rotateDeg`, second = `pitchDeg`.  The legacy named-pair selector
- * remains the default/back-compat path; `LR_AIM_KNOB_SEQUENCE=a,b` is the
- * generic ordered-knob study override.  It is deliberately not a promotion
- * mechanism—source defaults must bake a selected sequence before confirmation.
+ * value = `rotateDeg`, second = `pitchDeg`. `LR_AIM_KNOB_SEQUENCE=a,b` is the
+ * generic ordered-knob study override.  The no-environment path deliberately
+ * reads ARC_CONTROL_DEFAULT so a selected sequence is truly source-baked
+ * before confirmation.
  */
 function aimKnobSequence(): ArcKnobSequence {
   const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
@@ -209,8 +183,7 @@ function aimKnobSequence(): ArcKnobSequence {
     for (const id of sequence) getArcKnob(id);
     return sequence;
   }
-  const pair = getArcActuatorPair(aimActuatorPair());
-  return [pair.first.id, pair.second.id];
+  return [...ARC_CONTROL_DEFAULT.sequence];
 }
 
 /** The observation/model-construction axis is independent from the physical
@@ -271,24 +244,24 @@ function aimControl(): AimControl {
     sequence: aimKnobSequence(),
     trainingMethod: aimTrainingMethod(),
     probeLayout: aimProbeLayout(),
-    probeRangeScale: aimPositiveRangeScale("LR_AIM_PROBE_RANGE_SCALE", ARC_PROBE_RANGE_SCALE_DEFAULT),
-    proposalRangeScale: aimPositiveRangeScale("LR_AIM_PROPOSAL_RANGE_SCALE", ARC_PROPOSAL_RANGE_SCALE_DEFAULT),
+    probeRangeScale: aimPositiveRangeScale("LR_AIM_PROBE_RANGE_SCALE", ARC_CONTROL_DEFAULT.probeRangeScale),
+    proposalRangeScale: aimPositiveRangeScale("LR_AIM_PROPOSAL_RANGE_SCALE", ARC_CONTROL_DEFAULT.proposalRangeScale),
     proposalCount: aimProposalCount(),
   };
 }
 
-/** The historical two-coordinate implementation is retained only for the
- * actual source default.  Every explicit experimental sequence—including a
- * two-knob additive alternative—uses the dimension-generic model below, so a
- * matrix label cannot accidentally select an adaptive legacy probe policy. */
-function isSourceDefaultAimControl(control: AimControl): boolean {
-  return control.trainingMethod === ARC_CONTROL_DEFAULT.trainingMethod &&
-    control.probeLayout === ARC_CONTROL_DEFAULT.probeLayout &&
-    control.probeRangeScale === ARC_CONTROL_DEFAULT.probeRangeScale &&
-    control.proposalRangeScale === ARC_CONTROL_DEFAULT.proposalRangeScale &&
-    control.proposalCount === ARC_CONTROL_DEFAULT.proposalCount &&
-    control.sequence.length === ARC_CONTROL_DEFAULT.sequence.length &&
-    control.sequence.every((id, index) => id === ARC_CONTROL_DEFAULT.sequence[index]);
+/** The historic joint adapter is retained only for its exact historical
+ * coordinate system. The selected tail→post source default always uses the
+ * dimension-generic configured controller, matching its matrix evidence. */
+function isLegacyJointAimControl(control: AimControl): boolean {
+  const legacySequence: ArcKnobSequence = ["whole_rotation", "tail_pitch"];
+  return control.trainingMethod === "base_additive" &&
+    control.probeLayout === "signed3" &&
+    control.probeRangeScale === ARC_PROBE_RANGE_SCALE_DEFAULT &&
+    control.proposalRangeScale === ARC_PROPOSAL_RANGE_SCALE_DEFAULT &&
+    control.proposalCount === ARC_PROPOSAL_COUNT_DEFAULT &&
+    control.sequence.length === legacySequence.length &&
+    control.sequence.every((id, index) => id === legacySequence[index]);
 }
 // Study-only scarce-budget model-selection policy. Pitch is the lower-cost
 // primary actuator; rotate observations are recruited only if that local
@@ -845,9 +818,7 @@ export function makeEnumAimedCandidates(
     return [];
   }
   const control = aimControl();
-  // Preserve the accepted source default as its own exact adapter.  All
-  // explicit configuration alternatives use the vector controller below.
-  if (isSourceDefaultAimControl(control)) {
+  if (isLegacyJointAimControl(control)) {
     return makeJointAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase, control.sequence);
   }
   return makeConfiguredAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase, control);

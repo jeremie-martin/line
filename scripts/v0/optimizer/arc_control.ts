@@ -8,10 +8,9 @@
  *   - a signed probe layout and its physical range scale;
  *   - an inverse-solver proposal-range scale.
  *
- * The normal compiler currently consumes the legacy two-coordinate adapter,
- * but both it and the matrix runner share `arc_actuator.ts` for actual ordered
- * geometry composition.  Keeping this description data-only prevents a
- * probe method such as "sequential conditional" from accidentally naming a
+ * The normal compiler and the matrix runner share `arc_actuator.ts` for
+ * ordered geometry composition. Keeping this description data-only prevents
+ * a probe method such as "sequential conditional" from accidentally naming a
  * particular physical knob order.
  */
 import {
@@ -65,8 +64,9 @@ export const ARC_PROBE_RANGE_SCALE_DEFAULT = 1;
 /** Multiplies only the inverse solver's candidate grid around zero. */
 export const ARC_PROPOSAL_RANGE_SCALE_DEFAULT = 1;
 
-/** The accepted compiler's historical response coordinates, made explicit as
- * a normal configuration rather than hidden in an aiming implementation. */
+/** The selected normal response configuration.  It remains declarative so
+ * source-default behavior and explicit matrix configurations use the same
+ * control boundary. */
 export const ARC_CONTROL_DEFAULT: Readonly<{
   sequence: ArcKnobSequence;
   trainingMethod: ArcTrainingMethod;
@@ -75,11 +75,11 @@ export const ARC_CONTROL_DEFAULT: Readonly<{
   proposalRangeScale: number;
   proposalCount: number;
 }> = {
-  sequence: ["whole_rotation", "tail_pitch"],
+  sequence: ["tail_pitch", "post_contact_pitch"],
   trainingMethod: "base_additive",
   probeLayout: "signed3",
-  probeRangeScale: ARC_PROBE_RANGE_SCALE_DEFAULT,
-  proposalRangeScale: ARC_PROPOSAL_RANGE_SCALE_DEFAULT,
+  probeRangeScale: 0.6,
+  proposalRangeScale: 1.2,
   proposalCount: ARC_PROPOSAL_COUNT_DEFAULT,
 };
 

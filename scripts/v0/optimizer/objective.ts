@@ -13,6 +13,7 @@ import {
   propagateBallisticArrivalState,
   type RiderArrivalState,
 } from "./arc_model.ts";
+import { constraintStateFromReleaseArrival } from "../core/ballistic_micro_sim.ts";
 import {
   isValidArrivalState,
   readinessCatchState,
@@ -199,6 +200,7 @@ export function predictArrivalAtNextContact(
   if (rel === undefined || !rel.airborne) return null;
   const dt = nextGap.endFrame - rel.frame;
   if (dt <= 0) return null;
+  const constraintState = constraintStateFromReleaseArrival(rel);
   const launch: RiderArrivalState = {
     x: rel.x,
     y: rel.y,
@@ -208,7 +210,9 @@ export function predictArrivalAtNextContact(
     comAngleDeg: null,
     sledPoseDeg: rel.sledPoseDeg,
     sledPoseRateDegPerFrame: rel.sledPoseRateDegPerFrame,
-    ...(rel.articulation === undefined ? {} : { articulation: rel.articulation }),
+    ...(constraintState === undefined
+      ? {}
+      : { constraintState }),
   };
   const arrived = propagateBallisticArrivalState(launch, dt);
   const nextElevation = predictedNextGapElevation(launch, rel.frame, nextGap);

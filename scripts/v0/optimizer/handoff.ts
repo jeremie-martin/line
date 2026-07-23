@@ -72,6 +72,7 @@ import {
   translateTrackLines,
   tryCandidateLines,
 } from "../core/candidate.ts";
+import { cloneConstraintReleaseArrival } from "../core/ballistic_micro_sim.ts";
 import { pickLowestCost } from "./solver.ts";
 import {
   getCandidatesSorted,
@@ -2120,6 +2121,7 @@ function cloneResolvedStart(start: ResolvedStart): ResolvedStart {
 }
 
 function cloneGapFit(fit: GapFit): GapFit {
+  const releaseArrivalState = cloneConstraintReleaseArrival(fit.releaseArrivalState);
   return {
     arc: fit.arc === null ? null : { ...fit.arc, anchor: { ...fit.arc.anchor } },
     geometry: fit.geometry,
@@ -2127,6 +2129,7 @@ function cloneGapFit(fit: GapFit): GapFit {
     achieved: { ...fit.achieved },
     cost: fit.cost,
     ...copyOptionalGapFitFields(fit, { cloneObjects: true }),
+    ...(releaseArrivalState === undefined ? {} : { releaseArrivalState }),
   };
 }
 

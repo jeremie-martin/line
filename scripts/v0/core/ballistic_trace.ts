@@ -9,22 +9,14 @@
 
 import { COLLISION_UPDATE_TYPE } from "../../lib/update_types.ts";
 import {
+  BALLISTIC_POINT_IDS,
+  constraintBallisticStateFromRider,
+} from "./ballistic_micro_sim.ts";
+import {
   LAUNCH_READ_FRAMES,
-  tenPointAssemblyState,
 } from "./launch_read.ts";
 
-export const BALLISTIC_TRACE_POINT_IDS = [
-  "BUTT",
-  "SHOULDER",
-  "RHAND",
-  "LHAND",
-  "LFOOT",
-  "RFOOT",
-  "PEG",
-  "TAIL",
-  "NOSE",
-  "STRING",
-] as const;
+export const BALLISTIC_TRACE_POINT_IDS = BALLISTIC_POINT_IDS;
 
 export type BallisticTracePointId = typeof BALLISTIC_TRACE_POINT_IDS[number];
 export type BallisticTraceKinematicState = {
@@ -35,8 +27,10 @@ export type BallisticTraceKinematicState = {
 };
 export type BallisticTraceState = {
   body: BallisticTraceKinematicState;
-  assembly: BallisticTraceKinematicState;
-  points: Record<BallisticTracePointId, BallisticTraceKinematicState>;
+  points: Record<
+    BallisticTracePointId,
+    BallisticTraceKinematicState & { prevX: number; prevY: number }
+  >;
   riderMounted: boolean | null;
   sledIntact: boolean | null;
 };
@@ -158,31 +152,28 @@ function traceStateFromRider(rider: any): BallisticTraceState | null {
   const velocity = rider?.velocity;
   if (!finiteVector(position) || !finiteVector(velocity)) return null;
 
-  const points = {} as Record<BallisticTracePointId, BallisticTraceKinematicState>;
+  const constraintState = constraintBallisticStateFromRider(rider);
+  if (constraintState === null) return null;
+  const points = {} as BallisticTraceState["points"];
   for (const id of BALLISTIC_TRACE_POINT_IDS) {
-    const point = rider.get?.(id);
-    if (!finiteVector(point?.pos) || !finiteVector(point?.vel)) return null;
+    const point = constraintState.points[id];
     points[id] = {
-      x: point.pos.x,
-      y: point.pos.y,
-      vx: point.vel.x,
-      vy: point.vel.y,
+      x: point.x,
+      y: point.y,
+      prevX: point.prevX,
+      prevY: point.prevY,
+      vx: point.vx,
+      vy: point.vy,
     };
   }
 
   const body = { x: position.x, y: position.y, vx: velocity.x, vy: velocity.y };
   return {
     body,
-    assembly: tenPointAssemblyState(body, points),
     points,
-    riderMounted: bindingState(rider.get?.("RIDER_MOUNTED")),
-    sledIntact: bindingState(rider.get?.("SLED_INTACT")),
+    riderMounted: constraintState.riderMounted,
+    sledIntact: constraintState.sledIntact,
   };
-}
-
-function bindingState(value: unknown): boolean | null {
-  const binding = value as { isBinded?: () => boolean } | null | undefined;
-  return typeof binding?.isBinded === "function" ? binding.isBinded() : null;
 }
 
 function finiteVector(value: any): value is { x: number; y: number } {

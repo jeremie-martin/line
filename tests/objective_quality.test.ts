@@ -26,6 +26,10 @@ import { forwardTerminalReadiness, snapshotHandoffNode, type HandoffNode } from 
 import type { Candidate } from "../scripts/v0/optimizer/sample.ts";
 import type { SearchNode } from "../scripts/v0/optimizer/node.ts";
 import type { LeafKey } from "../scripts/v0/optimizer/register.ts";
+import {
+  BALLISTIC_POINT_IDS,
+  type ConstraintBallisticState,
+} from "../scripts/v0/core/ballistic_micro_sim.ts";
 
 function gap(index: number, startFrame: number, endFrame: number, targets: AxisValues = {}): Gap {
   return { index, startFrame, endFrame, endsWithContact: true, targets };
@@ -231,6 +235,17 @@ describe("diagnostic frontier readiness", () => {
       position: { x: 0, y: 0 },
       velocity: { x: 0.4, y: 0 },
     };
+    const points = Object.fromEntries(BALLISTIC_POINT_IDS.map((id, index) => [
+      id,
+      {
+        x: index,
+        y: index + 1,
+        prevX: index - 2,
+        prevY: index,
+        vx: 2,
+        vy: 1,
+      },
+    ])) as ConstraintBallisticState["points"];
     const fit: GapFit = {
       ...candidate(0, { air: 0.5 }),
       releaseArrivalState: {
@@ -243,17 +258,11 @@ describe("diagnostic frontier readiness", () => {
         sledPoseRateDegPerFrame: null,
         grounded: 1,
         airborne: true,
-        articulation: {
+        constraintState: {
           frameOffset: 2,
-          assemblyX: 10,
-          assemblyY: 20,
-          assemblyVx: 1,
-          assemblyVy: 2,
-          relativeX: 3,
-          relativeY: 4,
-          relativeVx: 5,
-          relativeVy: 6,
-          angularRateRadPerFrame: 0.1,
+          points,
+          riderMounted: true,
+          sledIntact: true,
         },
       },
     };
@@ -288,8 +297,11 @@ describe("diagnostic frontier readiness", () => {
 
     const cloned = snapshotHandoffNode(node, key, event).node.search.prefixFits[0]!;
     expect(cloned.releaseArrivalState).toEqual(fit.releaseArrivalState);
-    expect(cloned.releaseArrivalState?.articulation).not.toBe(
-      fit.releaseArrivalState?.articulation,
+    expect(cloned.releaseArrivalState?.constraintState).not.toBe(
+      fit.releaseArrivalState?.constraintState,
+    );
+    expect(cloned.releaseArrivalState?.constraintState?.points.PEG).not.toBe(
+      fit.releaseArrivalState?.constraintState?.points.PEG,
     );
   });
 });

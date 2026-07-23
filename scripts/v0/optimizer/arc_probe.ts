@@ -17,11 +17,10 @@ import {
   isAuthoredContactEvent,
 } from "../core/substrate.ts";
 import {
-  articulatedBallisticState,
-  bodyAssemblyLaunchSampleFromRider,
   gravityCorrectedLaunchAverage,
   LAUNCH_READ_FRAMES,
 } from "../core/launch_read.ts";
+import { constraintBallisticStateFromRider } from "../core/ballistic_micro_sim.ts";
 import {
   ballisticTraceEnabled,
   captureBallisticTraceObservation,
@@ -452,13 +451,10 @@ function readLaunchState(
     (offset) => offset < riders.length,
     (offset) => riders[offset]?.velocity,
   );
-  const samples = [];
-  for (let offset = 0; offset < riders.length; offset++) {
-    const sample = bodyAssemblyLaunchSampleFromRider(riders[offset], frame + offset);
-    if (sample === null) break;
-    samples.push(sample);
-  }
-  const articulation = articulatedBallisticState(samples, g);
+  const constraintState = constraintBallisticStateFromRider(
+    riders[riders.length - 1],
+    riders.length - 1,
+  );
   const speed = Math.hypot(vx, vy);
   return {
     state: {
@@ -467,7 +463,7 @@ function readLaunchState(
       vy,
       speed,
       comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
-      ...(articulation === null ? {} : { articulation }),
+      ...(constraintState === null ? {} : { constraintState }),
     },
     readFrames: n,
   };

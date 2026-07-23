@@ -16,9 +16,9 @@ import {
 import { LOCAL_IMPACT_COST_WEIGHT } from "../core/candidate.ts";
 import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
 import {
-  advanceArticulatedBallisticState,
-  type ArticulatedBallisticState,
-} from "../core/launch_read.ts";
+  advanceConstraintBallisticState,
+  type ConstraintBallisticState,
+} from "../core/ballistic_micro_sim.ts";
 
 export type ArcKnobs = {
   /** Rotate the last third of the arc about the suffix joint, in degrees. */
@@ -39,8 +39,8 @@ export type RiderArrivalState = {
   sledPoseDeg: number | null;
   /** Frame-to-frame sled-pose angular velocity in degrees/frame. */
   sledPoseRateDegPerFrame: number | null;
-  /** Optional ten-point assembly/body-relative state for the current predictor. */
-  articulation?: ArticulatedBallisticState;
+  /** Exact ten-point/previous-point launch state for the current predictor. */
+  constraintState?: ConstraintBallisticState;
 };
 
 export function propagateBallisticArrivalState(
@@ -48,10 +48,10 @@ export function propagateBallisticArrivalState(
   dtFrames: number,
 ): RiderArrivalState {
   const dt = Math.max(0, Math.round(dtFrames));
-  const advanced = state.articulation === undefined
+  const advanced = state.constraintState === undefined
     ? null
-    : advanceArticulatedBallisticState(
-      state.articulation,
+    : advanceConstraintBallisticState(
+      state.constraintState,
       dt,
       ELEVATION.GRAVITY_PX_PER_FRAME2,
     );
@@ -71,7 +71,7 @@ export function propagateBallisticArrivalState(
       comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
       sledPoseDeg,
       sledPoseRateDegPerFrame: state.sledPoseRateDegPerFrame,
-      articulation: advanced.articulation,
+      constraintState: advanced.constraintState,
     };
   }
   return propagateBallisticArrivalStateFromValues(
@@ -1108,7 +1108,7 @@ function reducerOwnsOutputKey(key: string): boolean {
  *  recomputes, before it overwrites: the reducer skips non-finite values
  *  (`addFinite`) and may emit nothing at all (null suffix), so a stale fitted
  *  prediction must not leak through. `next.*` is deliberately not cleared:
- *  short probes fit the articulated terminal prediction directly, avoiding an
+ *  short probes fit the constraint-solver terminal prediction directly, avoiding an
  *  incoherent independent fit of its correlated launch coordinates. The
  *  reducer's `current.*` keys are an explicit small set:
  *  `current.cost` (added by `predictJointArcOutputs`), the two release scalars,

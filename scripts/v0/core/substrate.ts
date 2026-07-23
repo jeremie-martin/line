@@ -20,7 +20,6 @@ import {
   secToFrame,
   authoredSpeedToPx, elevationCeiling, impactCeiling, normImpact, wrapPi,
 } from "../types.ts";
-import type { ArticulatedBallisticState } from "./launch_read.ts";
 import { measureGapAxes, AXIS_MEASURE, type GapMeasureCtx } from "./measure.ts";
 
 export type ResolvedStart = {
@@ -93,7 +92,6 @@ export type GapFit = {
     sledPoseRateDegPerFrame: number | null;
     grounded: number;
     airborne: boolean;
-    articulation?: ArticulatedBallisticState;
   };
 };
 
@@ -125,14 +123,7 @@ export function copyOptionalGapFitFields(
   if (fit.releaseAirborne !== undefined) out.releaseAirborne = fit.releaseAirborne;
   if (fit.ref !== undefined) out.ref = cloneObjects ? { ...fit.ref } : fit.ref;
   if (fit.releaseArrivalState !== undefined) {
-    out.releaseArrivalState = cloneObjects
-      ? {
-        ...fit.releaseArrivalState,
-        ...(fit.releaseArrivalState.articulation === undefined
-          ? {}
-          : { articulation: { ...fit.releaseArrivalState.articulation } }),
-      }
-      : fit.releaseArrivalState;
+    out.releaseArrivalState = cloneObjects ? { ...fit.releaseArrivalState } : fit.releaseArrivalState;
   }
   return out;
 }

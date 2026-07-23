@@ -25,6 +25,10 @@ import {
   type RiderArrivalState,
 } from "../scripts/v0/optimizer/arc_model.ts";
 import { readinessCatch, readinessCatchState } from "../scripts/v0/optimizer/readiness.ts";
+import {
+  BALLISTIC_POINT_IDS,
+  type ConstraintBallisticState,
+} from "../scripts/v0/core/ballistic_micro_sim.ts";
 
 function line(id: number, x1: number, y1: number, x2: number, y2: number): TrackLine {
   return {
@@ -694,7 +698,18 @@ describe("arc_model joint response helpers", () => {
     }
   });
 
-  test("articulated propagation re-anchors so chained and combined calls agree", () => {
+  test("constraint propagation re-anchors so chained and combined calls agree", () => {
+    const points = Object.fromEntries(BALLISTIC_POINT_IDS.map((id, index) => [
+      id,
+      {
+        x: index * 1.7,
+        y: index * 0.9,
+        prevX: index * 1.7 - 2,
+        prevY: index * 0.9 + 1,
+        vx: 2,
+        vy: -1,
+      },
+    ])) as ConstraintBallisticState["points"];
     const state: RiderArrivalState = {
       x: 1,
       y: 2,
@@ -704,17 +719,11 @@ describe("arc_model joint response helpers", () => {
       comAngleDeg: null,
       sledPoseDeg: 10,
       sledPoseRateDegPerFrame: 2,
-      articulation: {
+      constraintState: {
         frameOffset: 3,
-        assemblyX: 10,
-        assemblyY: 20,
-        assemblyVx: 2,
-        assemblyVy: -1,
-        relativeX: 1,
-        relativeY: 0,
-        relativeVx: 0,
-        relativeVy: 2,
-        angularRateRadPerFrame: 0.2,
+        points,
+        riderMounted: true,
+        sledIntact: true,
       },
     };
     const combined = propagateBallisticArrivalState(state, 15);
@@ -727,7 +736,7 @@ describe("arc_model joint response helpers", () => {
       expect(chained[key]).toBeCloseTo(combined[key], 10);
     }
     expect(chained.sledPoseDeg).toBeCloseTo(combined.sledPoseDeg!);
-    expect(chained.articulation?.frameOffset).toBe(0);
+    expect(chained.constraintState?.frameOffset).toBe(0);
   });
 
 });

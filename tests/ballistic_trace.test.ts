@@ -60,6 +60,7 @@ function riderAt(frame: number) {
     id,
     {
       pos: { x: frame + index, y: frame - index },
+      prevPos: { x: frame + index - 1, y: frame - index - 2 },
       vel: { x: 1 + index / 10, y: 2 - index / 10 },
     },
   ]));

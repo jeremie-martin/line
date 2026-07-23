@@ -55,11 +55,13 @@ import {
   type BallisticAxisSuffix,
 } from "./measure.ts";
 import {
-  articulatedBallisticState,
-  bodyAssemblyLaunchSampleFromRider,
   gravityCorrectedLaunchAverage,
   LAUNCH_READ_FRAMES,
 } from "./launch_read.ts";
+import {
+  constraintBallisticStateFromRider,
+  type ConstraintReleaseArrivalState,
+} from "./ballistic_micro_sim.ts";
 import {
   ballisticTraceEnabled,
   captureBallisticTraceObservation,
@@ -879,19 +881,19 @@ function readSmoothedLaunch(
   det: Detection,
   frame: number,
   sampleEndFrameExclusive = Infinity,
-): { pos: { x: number; y: number }; vx: number; vy: number } | null {
+): { pos: { x: number; y: number }; vx: number; vy: number; readFrames: number } | null {
   const pos = positionAt(det, frame);
   const v0 = velocityAt(det, frame);
   if (pos === undefined || v0 === undefined) return null;
   if (!Number.isFinite(v0.x) || !Number.isFinite(v0.y)) return null;
   const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  const { vx, vy } = gravityCorrectedLaunchAverage(
+  const { vx, vy, n } = gravityCorrectedLaunchAverage(
     v0,
     g,
     (k) => frame + k < sampleEndFrameExclusive && airborneAt(det, frame + k) === true,
     (k) => velocityAt(det, frame + k),
   );
-  return { pos, vx, vy };
+  return { pos, vx, vy, readFrames: n };
 }
 
 /** Smoothed ballistic launch state at the geometric exit frame, read off the
@@ -1140,9 +1142,9 @@ function evaluateGapFit(
  *  consecutive AIRBORNE frames starting at `releaseFrame` plus the constant
  *  LAUNCH_VY_OFFSET_PX — the same smoothed launch read the short probe uses
  *  (arc_probe.ts readLaunchState, commit f23ef60), computed here from the
- *  detection's per-frame velocity/airborne arrays. The already-simulated rider
- *  frames are read once to construct the articulated alternative selected by
- *  the frozen predictor benchmark. `pose` is not carried in detection
+ *  detection's per-frame velocity/airborne arrays. The final already-simulated
+ *  launch frame is read once to capture the exact point/previous-point state
+ *  selected by the frozen predictor benchmark. `pose` is not carried in detection
  *  measurements and the rank objective does not consume it, so it is left null. Returns
  *  undefined when the release-frame position/velocity is unreadable. `grounded`
  *  / `airborne` are passed through so the ranker can reject non-ballistic
@@ -1155,7 +1157,7 @@ function releaseArrivalStateAt(
   grounded: number,
   airborne: boolean | undefined,
   sampleEndFrameExclusive = Infinity,
-): GapFit["releaseArrivalState"] | undefined {
+): ConstraintReleaseArrivalState | undefined {
   // Gravity-corrected launch read (shared estimator — core/launch_read.ts).
   // This call site differs from optimizer/arc_probe.ts only in the velocity
   // source (detection arrays vs metered engine) and in having no fork-horizon
@@ -1165,20 +1167,10 @@ function releaseArrivalStateAt(
   if (launch === null) return undefined;
   const { pos } = launch;
   if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return undefined;
-  const samples = [];
-  for (let offset = 0; offset < LAUNCH_READ_FRAMES; offset++) {
-    const frame = releaseFrame + offset;
-    if (frame >= sampleEndFrameExclusive || airborneAt(det, frame) !== true) break;
-    const sample = bodyAssemblyLaunchSampleFromRider(
-      getRiderMetered(engine, frame),
-      frame,
-    );
-    if (sample === null) break;
-    samples.push(sample);
-  }
-  const articulation = articulatedBallisticState(
-    samples,
-    ELEVATION.GRAVITY_PX_PER_FRAME2,
+  const constraintFrameOffset = launch.readFrames - 1;
+  const constraintState = constraintBallisticStateFromRider(
+    getRiderMetered(engine, releaseFrame + constraintFrameOffset),
+    constraintFrameOffset,
   );
   return {
     frame: releaseFrame,
@@ -1190,7 +1182,7 @@ function releaseArrivalStateAt(
     sledPoseRateDegPerFrame: null,
     grounded,
     airborne: airborne === true,
-    ...(articulation === null ? {} : { articulation }),
+    ...(constraintState === null ? {} : { constraintState }),
   };
 }
 
@@ -1230,7 +1222,7 @@ function releaseExitArrivalState(
   horizon: number,
   bound: { nextContact: number; latestBallisticFrame: number } | null,
   knownExitFrame: number | null = null,
-): GapFit["releaseArrivalState"] | null {
+): ConstraintReleaseArrivalState | null {
   const exitFrame = knownExitFrame ?? firstAirborneExitFrame(
     lines,
     gap.endFrame,

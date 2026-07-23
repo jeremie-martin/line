@@ -24,7 +24,7 @@ npm run benchmark:ballistic
 To try an idea, add one pure predictor beside `predictCurrent` in
 `scripts/v0/study_ballistic_predictor_v2.ts` and return its name and function
 from `configuredAlternative`. The input already contains the raw launch
-samples, target frame, current fallback, and reconstructed articulation. No
+samples, target frame, current fallback, and exact point/previous-point state. No
 collector, scoring, or command-line code changes are needed.
 
 If it improves the score by at least 1%, record the result below and make it the
@@ -48,7 +48,8 @@ both candidate-pool ranking and aiming probes, with at most 1,536 calls per
 case/seed (up to 202,752 observations total). Collection runs the independent
 case/seed shards in 48 isolated workers and writes compressed shards directly.
 Every saved call contains the exact one-to-four pre-target reads, all ten rider
-points, collision witnesses, and simulated truth.
+points with their Verlet previous positions, binding state, collision witnesses,
+and simulated truth.
 
 The corpus always belongs to `current`. Recollect only when `current`, the V2
 case membership, or the fixed protocol changes. Collection refuses to overwrite
@@ -107,3 +108,4 @@ Only then use the normal compiler benchmark from `goal.md`.
 | Date | Alternative | Score vs current | Decision |
 |---|---|---:|---|
 | 2026-07-23 | articulated assembly/body model | 0.4116 (58.84% lower) | adopt; direct terminal outputs used for fitted compiler path |
+| 2026-07-24 | collision-free ten-point constraint micro-simulation | 0.0313 (96.87% lower) | adopt; causal launch-only state, exact shared production kernel |

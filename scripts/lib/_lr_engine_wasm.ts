@@ -32,7 +32,19 @@ const OUT_LEN = (2400 + 1) * 60;
 const OUT_PTR = ex.out_ptr();
 const EVENTS_LEN = 49152;
 const EVENTS_PTR = ex.events_ptr();
-const RIDER_SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
+const RIDER_POINT_IDS = [
+  "PEG",
+  "TAIL",
+  "NOSE",
+  "STRING",
+  "BUTT",
+  "SHOULDER",
+  "RHAND",
+  "LHAND",
+  "LFOOT",
+  "RFOOT",
+] as const;
+const RIDER_SLED_POINTS = RIDER_POINT_IDS.slice(0, 4);
 const RIDER_SLED_OFFSET = 6;
 const RIDER_POINT_STRIDE = 6;
 const CANDIDATE_WINDOW_STRIDE = 9;
@@ -285,8 +297,9 @@ export class LineRiderEngine {
     // Rust (get_rider writes 6 f64 to the head of SCRATCH), so the hot detector
     // loop never rebuilds the 12-entity stateMap. position/velocity are summed in
     // BODY order in Rust → bit-identical to Rider.getBody. get(id) serves the two
-    // bindings the detector reads from these fsu; any other id (a point) falls
-    // back to the full stateMap (cold path — not hit by the compiler loop).
+    // bindings and four ordinary sled probes. `ballisticState()` lazily copies
+    // all ten point/previous-point states from this same already-computed frame;
+    // other point reads retain the cold full-stateMap fallback.
     ex.get_rider(this.h, frame);
     const sc = scratch();
     const fsuRider = sc[4], fsuSled = sc[5];
@@ -307,6 +320,36 @@ export class LineRiderEngine {
     return {
       position: { x: sc[0], y: sc[1] },
       velocity: { x: sc[2], y: sc[3] },
+      ballisticState: () => {
+        // Refresh scratch because the rider object may outlive another ABI read.
+        // The frame is cached, so this advances zero physics frames.
+        ex.get_state_map(this.h, frame);
+        const state = scratch();
+        const points: Record<string, {
+          x: number;
+          y: number;
+          prevX: number;
+          prevY: number;
+          vx: number;
+          vy: number;
+        }> = {};
+        for (let index = 0; index < RIDER_POINT_IDS.length; index++) {
+          const offset = (index + 2) * RIDER_POINT_STRIDE;
+          points[RIDER_POINT_IDS[index]] = {
+            x: state[offset],
+            y: state[offset + 1],
+            prevX: state[offset + 2],
+            prevY: state[offset + 3],
+            vx: state[offset + 4],
+            vy: state[offset + 5],
+          };
+        }
+        return {
+          points,
+          riderMounted: state[NENT * RIDER_POINT_STRIDE] === -1,
+          sledIntact: state[NENT * RIDER_POINT_STRIDE + 1] === -1,
+        };
+      },
       // deno-lint-ignore no-explicit-any
       get: (id: string): any => {
         if (id === "RIDER_MOUNTED") return { framesSinceUnbind: fsuRider, isBinded: () => fsuRider === -1 };

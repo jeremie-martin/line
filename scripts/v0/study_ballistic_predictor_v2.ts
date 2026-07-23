@@ -11,10 +11,9 @@
  *   3. records all ten rider points and collision witnesses;
  *   4. freezes that corpus for all later model iterations.
  *
- * The ten-point assembly center is reconstructed without a full state-map read:
- * six times rider.position/velocity plus the four exposed sled points. During
- * unconstrained free flight this center is the physically conserved coordinate;
- * the public rider coordinate is the six-body-point center moving around it.
+ * The current predictor reads the ten physical rider points and their Verlet
+ * previous positions at the already-simulated launch frame, then runs only the
+ * collision-free rider constraints. It does not read future engine state.
  *
  * Offline benchmark:
  *   npm run benchmark:ballistic
@@ -48,10 +47,12 @@ import {
   setBallisticTraceSink,
 } from "./core/ballistic_trace.ts";
 import {
-  articulatedBallisticState,
   LAUNCH_VY_OFFSET_PX,
-  predictArticulatedBallisticArrival,
 } from "./core/launch_read.ts";
+import {
+  constraintBallisticStateFromSamples,
+  predictConstraintBallisticArrival,
+} from "./core/ballistic_micro_sim.ts";
 import {
   loadSourceManifest,
   loadSourceSpec,
@@ -71,7 +72,7 @@ type PredictorInput = {
   targetFrame: number;
   dt: number;
   fallback: KinematicState;
-  articulation: ReturnType<typeof articulatedBallisticState>;
+  constraintState: ReturnType<typeof constraintBallisticStateFromSamples>;
 };
 type Predictor = {
   name: string;
@@ -83,7 +84,7 @@ type CorpusObservation = BallisticTraceObservation & {
   budget: number;
 };
 type BallisticCorpus = {
-  schema: "line.ballistic-predictor-corpus.v5";
+  schema: "line.ballistic-predictor-corpus.v6";
   generatedAt: string;
   compiler: string;
   compilerFingerprint: string;
@@ -265,7 +266,7 @@ const perBudget = Object.fromEntries(
   budgets.map((budget) => [String(budget), overall]),
 );
 const report = {
-  schema: "line.study-ballistic-predictor-v2.v6",
+  schema: "line.study-ballistic-predictor-v2.v7",
   generatedAt: new Date().toISOString(),
   compiler: corpus.compiler,
   compilerFingerprint: corpus.compilerFingerprint,
@@ -343,7 +344,7 @@ async function collectCorpus(): Promise<BallisticCorpus> {
       throw new Error(`compiler sources changed during ballistic corpus collection`);
     }
     const corpus: BallisticCorpus = {
-      schema: "line.ballistic-predictor-corpus.v5",
+      schema: "line.ballistic-predictor-corpus.v6",
       generatedAt: new Date().toISOString(),
       compiler: "current checkout",
       compilerFingerprint,
@@ -544,7 +545,7 @@ function loadCorpus(): BallisticCorpus {
     );
   }
   const parsed = JSON.parse(readFileSync(manifestPath, "utf8")) as BallisticCorpus;
-  if (parsed.schema !== "line.ballistic-predictor-corpus.v5") {
+  if (parsed.schema !== "line.ballistic-predictor-corpus.v6") {
     throw new Error(`unsupported ballistic corpus schema`);
   }
   const compilerFingerprint = compilerCandidateIdentity("wasm").candidateFingerprint;
@@ -983,13 +984,13 @@ function countBy(values: readonly string[]): Record<string, number> {
 function predictAll(samples: readonly Sample[], targetFrame: number): Record<string, KinematicState> {
   const first = samples[0];
   const dt = targetFrame - first.frame;
-  const bodyMean = meanLaunchVelocity(samples, "body");
+  const bodyMean = meanLaunchVelocity(samples);
   const input: PredictorInput = {
     samples,
     targetFrame,
     dt,
     fallback: propagate(first.body, bodyMean, dt),
-    articulation: articulatedBallisticState(samples, g),
+    constraintState: constraintBallisticStateFromSamples(samples),
   };
   return Object.fromEntries(
     PREDICTORS.map((predictor) => [predictor.name, predictor.predict(input)]),
@@ -998,14 +999,14 @@ function predictAll(samples: readonly Sample[], targetFrame: number): Record<str
 
 /** Must mirror the predictor currently used by the compiler. */
 function predictCurrent(input: PredictorInput): KinematicState {
-  return input.articulation === null
+  return input.constraintState === null
     ? input.fallback
-    : predictArticulatedBallisticArrival(input.articulation, input.dt, g);
+    : predictConstraintBallisticArrival(input.constraintState, input.dt, g) ??
+      input.fallback;
 }
 
 function meanLaunchVelocity(
   samples: readonly Sample[],
-  key: "body" | "assembly",
   vyOffset = LAUNCH_VY_OFFSET_PX,
 ): Pick<KinematicState, "vx" | "vy"> {
   let vx = 0;
@@ -1013,8 +1014,8 @@ function meanLaunchVelocity(
   const firstFrame = samples[0].frame;
   for (const sample of samples) {
     const dt = sample.frame - firstFrame;
-    vx += sample[key].vx;
-    vy += sample[key].vy - g * dt;
+    vx += sample.body.vx;
+    vy += sample.body.vy - g * dt;
   }
   return { vx: vx / samples.length, vy: vy / samples.length + vyOffset };
 }
@@ -1075,10 +1076,10 @@ function predictorScores(
       expectedGroups,
     );
     const ratios = {
-      position: position.positionMae / currentPosition.positionMae,
-      velocity: contact.velocityMae / currentContact.velocityMae,
-      speed: contact.speedMae / currentContact.speedMae,
-      angle: contact.angleMaeDeg / currentContact.angleMaeDeg,
+      position: normalizedError(position.positionMae, currentPosition.positionMae),
+      velocity: normalizedError(contact.velocityMae, currentContact.velocityMae),
+      speed: normalizedError(contact.speedMae, currentContact.speedMae),
+      angle: normalizedError(contact.angleMaeDeg, currentContact.angleMaeDeg),
     };
     return {
       model,
@@ -1144,6 +1145,11 @@ function predictorScores(
   };
 }
 
+function normalizedError(candidate: number, current: number): number {
+  if (current === 0) return candidate === 0 ? 1 : Number.POSITIVE_INFINITY;
+  return candidate / current;
+}
+
 function requiredScoreSummary(
   summary: MacroErrorSummary | undefined,
   label: string,
@@ -1161,7 +1167,7 @@ function requiredScoreSummary(
     summary === undefined ||
     summary.rows <= 0 ||
     summary.groups !== expectedGroups ||
-    values.some((value) => !Number.isFinite(value) || value <= 0)
+    values.some((value) => !Number.isFinite(value) || value < 0)
   ) {
     throw new Error(
       `ballistic score coverage is invalid for ${label}: ` +

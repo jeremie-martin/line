@@ -1,12 +1,12 @@
 {
   "schema": "line.benchmark-v2.era-state.v1",
-  "eraId": "era-2026-07-16T17-46-58Z",
-  "eraStartedAt": "2026-07-16T17:47:04.125Z",
+  "eraId": "era-2026-07-23T07-43-58Z",
+  "eraStartedAt": "2026-07-23T07:44:10.355Z",
   "eraCause": "rebaseline-accept",
-  "baselineLabel": "accept-2026-07-16T16-45-07Z-8257f266",
+  "baselineLabel": "accept-2026-07-22T18-26-42Z-8565eddc",
   "budgetCap": 0.05,
   "budgetSpent": 0,
-  "cumulativeExpectedFalseAccepts": 0.2861,
+  "cumulativeExpectedFalseAccepts": 0.3253,
   "attempts": [
     {
       "attemptId": "2026-07-11T21-25-55Z-f99e71f1",
@@ -16,7 +16,8 @@
       "spend": 0.0196,
       "declaredAt": "2026-07-11T21:25:55.332Z",
       "outcome": "aborted",
-      "lookCount": 3
+      "lookCount": 3,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-11T21-36-21Z-f77fe7f3",
@@ -26,7 +27,8 @@
       "spend": 0.0196,
       "declaredAt": "2026-07-11T21:36:21.416Z",
       "outcome": "aborted",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-11T22-38-42Z-d7b3f327",
@@ -36,7 +38,8 @@
       "spend": 0.0196,
       "declaredAt": "2026-07-11T22:38:42.172Z",
       "outcome": "accept",
-      "lookCount": 0
+      "lookCount": 0,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-12T07-35-24Z-97196f0b",
@@ -46,7 +49,8 @@
       "spend": 0,
       "declaredAt": "2026-07-12T07:35:24.800Z",
       "outcome": "aborted",
-      "lookCount": 0
+      "lookCount": 0,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-12T07-49-30Z-36432e51",
@@ -56,7 +60,8 @@
       "spend": 0.0196,
       "declaredAt": "2026-07-12T07:49:30.963Z",
       "outcome": "inconclusive",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-12T20-14-09Z-c8f9c284",
@@ -66,7 +71,8 @@
       "spend": 0.0196,
       "declaredAt": "2026-07-12T20:14:09.881Z",
       "outcome": "accept",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-13T01-43-56Z-52c52c7a",
@@ -76,7 +82,8 @@
       "spend": 0.0209,
       "declaredAt": "2026-07-13T01:43:56.838Z",
       "outcome": "aborted",
-      "lookCount": 0
+      "lookCount": 0,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-13T01-51-38Z-da99767b",
@@ -86,7 +93,8 @@
       "spend": 0.0209,
       "declaredAt": "2026-07-13T01:51:39.297Z",
       "outcome": "inconclusive",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-15T15-02-47Z-c6ad3faa",
@@ -96,7 +104,8 @@
       "spend": 0,
       "declaredAt": "2026-07-15T15:02:48.216Z",
       "outcome": "aborted",
-      "lookCount": 0
+      "lookCount": 0,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-15T15-24-50Z-e4890b0e",
@@ -106,7 +115,8 @@
       "spend": 0.0209,
       "declaredAt": "2026-07-15T15:24:50.751Z",
       "outcome": "accept",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-15T22-27-56Z-477daa82",
@@ -116,7 +126,8 @@
       "spend": 0.0209,
       "declaredAt": "2026-07-15T22:27:56.823Z",
       "outcome": "inconclusive",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-15T23-39-46Z-5947d05e",
@@ -126,7 +137,8 @@
       "spend": 0.0209,
       "declaredAt": "2026-07-15T23:39:46.570Z",
       "outcome": "futility-stop",
-      "lookCount": 1
+      "lookCount": 1,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-16T00-55-56Z-45f7c00c",
@@ -136,7 +148,8 @@
       "spend": 0.0209,
       "declaredAt": "2026-07-16T00:55:56.991Z",
       "outcome": "accept",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-16T02-42-52Z-5fcbfc73",
@@ -146,7 +159,8 @@
       "spend": 0.0209,
       "declaredAt": "2026-07-16T02:42:53.306Z",
       "outcome": "accept",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-16T15-08-26Z-f41e5494",
@@ -156,7 +170,8 @@
       "spend": 0.0209,
       "declaredAt": "2026-07-16T15:08:26.813Z",
       "outcome": "inconclusive",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
     },
     {
       "attemptId": "2026-07-16T16-45-07Z-8257f266",
@@ -166,7 +181,30 @@
       "spend": 0.0209,
       "declaredAt": "2026-07-16T16:45:08.088Z",
       "outcome": "accept",
-      "lookCount": 5
+      "lookCount": 5,
+      "protocolRebindCount": 0
+    },
+    {
+      "attemptId": "2026-07-21T12-19-33Z-8b1c3271",
+      "eraId": "era-2026-07-16T17-46-58Z",
+      "candidateFingerprint": "7ad483ec55b187d4e7d8a9c39fc60e9fb19641b2ac07e04d4ae446db4d76e83d",
+      "operatingPointId": "improve-t0-d48",
+      "spend": 0.0209,
+      "declaredAt": "2026-07-21T12:19:33.516Z",
+      "outcome": "inconclusive",
+      "lookCount": 5,
+      "protocolRebindCount": 0
+    },
+    {
+      "attemptId": "2026-07-22T18-26-42Z-8565eddc",
+      "eraId": "era-2026-07-16T17-46-58Z",
+      "candidateFingerprint": "7ad483ec55b187d4e7d8a9c39fc60e9fb19641b2ac07e04d4ae446db4d76e83d",
+      "operatingPointId": "improve-t0-d300",
+      "spend": 0.0183,
+      "declaredAt": "2026-07-22T18:26:50.917Z",
+      "outcome": "accept",
+      "lookCount": 0,
+      "protocolRebindCount": 1
     }
   ],
   "inFlightAttemptId": null,
@@ -267,6 +305,12 @@
       "canonicalSeedBase": 735656107,
       "seedCount": 144,
       "seedScheduleFingerprint": "bbe77082cd470b601aa886dc1ab79d0d219342ac67b11fe4e07749f4134dd465"
+    },
+    {
+      "attemptId": "2026-07-21T12-19-33Z-8b1c3271",
+      "canonicalSeedBase": 1652584039,
+      "seedCount": 144,
+      "seedScheduleFingerprint": "102210a8283e5ba62c5f4d51c52c0d8eb87fa7ea23ead3a64b6e0137d5f2ed7f"
     }
   ]
 }

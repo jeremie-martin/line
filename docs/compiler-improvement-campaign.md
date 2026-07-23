@@ -6419,6 +6419,18 @@ projection; the high-depth run therefore keeps audit data without requiring a
 multi-gigabyte in-memory archive. The row is a deliberate governed amendment,
 not an adaptive extension of the prior formal result.
 
+## Tail→Post Fixed-N Promotion (2026-07-22)
+
+The final promotion used the registered cache-backed fixed-N=300 point, not the
+legacy `--depth=300` fresh-epoch row. The immutable baseline cache covered
+slots `[0,300)` at each canonical budget; only the source-baked candidate was
+compiled. The candidate scored **513.7675** against baseline **509.7037**:
+headline **+4.0638**, with one-sided 99% lower bound **+2.6332**. Budget
+deltas were +2.3998 (250k), +4.9173 (500k), and +3.7504 (750k). It accepted
+and rebaselined to `accept-2026-07-22T18-26-42Z-8565eddc`; the qualification
+monitor was 391.39. This was one complete fixed-N decision, with no candidate
+evidence pooled from the earlier depth-48 attempt and no adaptive stopping.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

@@ -41,7 +41,7 @@ Running log of friction points hit while working the arc-placement campaign
   per-axis diagnostics.
 
 - **A max-budget probe can under-exercise end-of-loop mechanisms.** While working
-  `GOAL_LDS_COMPILER_IMPROVEMENT.md`, a 5-seed probe capped at 125k reported zero
+  the archived `GOAL_LDS_COMPILER_IMPROVEMENT_V2.md`, a 5-seed probe capped at 125k reported zero
   prefix-branch work, but the 24-seed canonical baseline had branch forks already
   visible at its 125k checkpoint for the same seeds. The compiler stops as soon as
   the final requested checkpoint is captured, whereas a longer canonical run keeps

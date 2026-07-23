@@ -1,9 +1,20 @@
 # Benchmark V2 — What the Numbers Mean (plain language)
 
-For the operator deciding how much risk to accept. Every number below is
-measured, lives in `benchmark/v2/studies/menu-certification.json` /
-`holdout-validation.json`, and is re-verified by the guard each time an
-attempt is declared. Nothing here is theoretical.
+For the operator deciding how much risk to accept. The live authority is
+`npm run benchmark -- status`: it reports the registered point, its retained
+certification artifacts, and its current era charge. The depth-48 figures below
+are explanatory reference values from its retained certification pair, not a
+substitute for that status output. Fixed-N points have their own independently
+registered menu and holdout artifacts.
+
+## Fixed-N promotion
+
+The normal promotion path is `eval --to-verdict --seeds=N`. N must already be
+registered by `calibrate-point`, and its immutable baseline-cache prefix must
+be complete before the candidate runs. The attempt compiles only the candidate
+and makes one final paired decision; it never pools prior candidate evidence or
+stops early because an intermediate result looks favorable. Legacy `--depth`
+rows are distinct fresh-epoch procedures.
 
 ## The three verdicts
 
@@ -31,10 +42,11 @@ Measured at depth 48 (1000 simulated attempts per scenario on real compile
 data): a truly-zero candidate accepts 0.8% of the time through the full
 chain with futility looks. Era spend is not based only on that selected menu
 cell: the guard takes the largest Wilson upper bound across the menu and
-independent holdout null/stress cells. The current improvement charge is
-**1.96%** per attempt. Stress scenarios (validity flips, catalog-wide zero
-inflation) stay within the same 5% bar; this is why the 99% level is
-load-bearing — at 95% the stress scenarios breached it.
+independent holdout null/stress cells. The resulting charge is point-specific
+and is printed by `status`; it must not be inferred from this depth-48 example.
+Stress scenarios (validity flips, catalog-wide zero inflation) stay within the
+same 5% bar; this is why the 99% level is load-bearing — at 95% the stress
+scenarios breached it.
 
 ## Power and MDE: what "certified to detect +5" means
 
@@ -59,7 +71,7 @@ the *worst-case envelope* for candidates that perturb most compiles
 paired scores identical) has a far smaller paired SE, and much smaller
 effects become resolvable — the stage-0 advice line computes this per
 candidate. Conversely, stage 0's three fixed seeds can show a phantom
-+0.5 that two independent fresh epochs then flatten to zero; the
++0.5 that a separately declared formal confirmation then flattens to zero; the
 confirmation exists precisely to catch that.
 
 ## The interval in the report
@@ -83,8 +95,8 @@ power. A stop is durable and charges its spend.
 ## The era budget
 
 Each attempt charges its certified cross-artifact worst-case false-accept
-bound (currently 0.0196 for improve and ablation m=5) against an era cap of
-0.05. Plainly: **between rebaselines, the expected number of noise wins
+bound for its selected point against an era cap of 0.05. Plainly: **between
+rebaselines, the expected number of noise wins
 booked into the baseline is kept below 0.05** — the era is expected to stay
 clean. Two standard attempts fit an era without an override. The budget
 resets only when an accept genuinely ends
@@ -97,9 +109,9 @@ printed in every report and never resets.
 If verdicts feel too conservative, these are the honest options, in
 increasing order of risk:
 
-1. **Spend more compute, same risk**: certify deeper rows (64/128) — MDE
-   drops toward +3/+2 with α unchanged. Cost: ~1–2 h per attempt and a
-   one-time certification run.
+1. **Spend more compute, same risk**: independently calibrate and register a
+   deeper fixed-N point — MDE can drop toward +3/+2 with α unchanged. Cost:
+   a one-time certification run plus the explicit baseline-cache extension.
 2. **Act on inconclusive-positive at your own risk**: the report's interval
    tells you exactly what is plausible; nothing stops you shipping a change
    the benchmark scored `+1.2 [-0.3, +2.7]` — the discipline is only that

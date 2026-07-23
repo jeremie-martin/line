@@ -62,24 +62,25 @@ selection-biased diagnostics, not hypothesis tests. Exploration archives are
 explicitly rejected by the decision command. Only one source-baked selection may
 proceed to a separately declared confirmation on a fresh certified epoch.
 
-`eval --to-verdict` is the promotion authority. Its fixed-N spelling,
-`--seeds=N`, accepts only a registered, independently calibrated operating
-point. The mode, N, no-look final-decision plan, stable seed ladder, immutable
-baseline-cache manifest hash, candidate snapshot, certification fingerprint,
-and era spend are frozen in an immutable declaration before the candidate arm
-executes. Acceptance requires the stress-calibrated lower bound to
-exceed the declared threshold; rejection requires the upper bound to be below
-it; otherwise the result is inconclusive. Certified futility looks may stop a
+`eval --to-verdict` is the promotion authority. The normal promotion path is
+its fixed-N spelling, `--seeds=N`, which accepts only a registered,
+independently calibrated operating point. The mode, N, no-look
+final-decision plan, stable seed ladder, immutable baseline-cache manifest
+hash, candidate snapshot, certification fingerprint, and era spend are frozen
+in an immutable declaration before the candidate arm executes. Acceptance
+requires the stress-calibrated lower bound to exceed the declared threshold;
+rejection requires the upper bound to be below it; otherwise the result is
+inconclusive. Certified futility looks may stop a
 clearly unpromising legacy menu attempt without converting failure into a
 verdict. Fixed-N promotion has no interim looks or adaptive stopping.
 
-Each row owns an independent menu/holdout certification pair. The deep
-`improve-t0-d300` row is a full 300-seed-per-budget confirmation with no
-interim looks and a +2-point certified power target. It is intended for a
-modest, broad positive candidate that was inconclusive at a shallower row. It
-must be declared before execution. It is a legacy fresh-epoch row; newly
-calibrated fixed-N points instead reuse only the immutable baseline prefix and
-never pool a candidate's prior result.
+Each row owns an independent menu/holdout certification pair. The deep legacy
+`improve-t0-d300` row (selected with `--depth=300`) is a full
+300-seed-per-budget confirmation with no interim looks and a +2-point certified
+power target. It is intended for a modest, broad positive candidate that was
+inconclusive at a shallower row. It must be declared before execution. New
+fixed-N points, including a registered N=300 point, instead reuse only the
+immutable baseline prefix and never pool a candidate's prior result.
 
 The calibration and certification guards recompute outcome counts and
 quantitative bars from retained evidence and bind them to the current suite,
@@ -108,6 +109,8 @@ Run stage 0 and confirm an improvement:
 npm run benchmark -- eval
 npm run benchmark -- eval --to-verdict
 npm run benchmark -- eval --to-verdict --depth=300
+npm run benchmark -- baseline-cache status --seeds=300
+npm run benchmark -- eval --to-verdict --seeds=300
 npm run benchmark -- calibrate-point --mode=improve --seeds=83 --smoke
 npm run benchmark -- calibrate-point --mode=improve --seeds=83
 npm run benchmark -- baseline-cache status --seeds=83

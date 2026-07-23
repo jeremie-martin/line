@@ -1,6 +1,8 @@
+# Active Compiler Improvement Goal
+
 Improve the compiler until the accepted Benchmark V2 development headline reaches 550. Work autonomously, but follow the V2 contract exactly:
-first read `docs/HOW_TO_WORK.md`, `docs/benchmark-v2-context.md`, `docs/benchmark-v2-decisions.md`, and `docs/compiler-improvement-
-campaign.md`; run `npm run benchmark -- prepare` and `npm run benchmark -- status` before formal work.
+first read `docs/HOW_TO_WORK.md`, `docs/benchmark-v2-context.md`, `docs/benchmark-v2.md`, `docs/benchmark-v2-decisions.md`, and
+`docs/compiler-improvement-campaign.md`; run `npm run benchmark -- prepare` and `npm run benchmark -- status` before formal work.
 
 Pursue broad, source-default compiler improvements, especially changes to the normal candidate space, trajectory/transition basis, or
 traversal policy. Do not optimize case by case, tune held-out production references, or add failure-specific rescue paths. Each active change
@@ -27,5 +29,7 @@ hard gates. Reuse of the baseline prefix is intentional; never pool candidate
 evidence across attempts or adaptively stop once the result looks sufficient.
 
 Keep `docs/compiler-improvement-campaign.md` concise: hypothesis, commands and elapsed compute, decisive evidence, retain/revise/retire
-decision, workflow friction, and next step. Commit coherent source changes, reversions, and documentation separately; never commit generated
-archives. Continue until the accepted baseline reaches 550.
+decision, workflow friction, and next step. Commit coherent source changes, reversions, and documentation separately. Never commit raw,
+generated run archives or bulk generated study reports. Commit only the compact baseline, ledger, and compatibility declarations required as
+live state; a promotion certification must have a compact, reviewable declaration rather than a full generated report payload. Continue until
+the accepted baseline reaches 550.

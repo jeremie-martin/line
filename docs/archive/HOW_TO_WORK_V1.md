@@ -91,7 +91,7 @@ hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 Point work at one of these; each carries its own particularities (the *what to try* and
 the *scoreboard*), but all share the metric, decision rule, and principles here:
 
-- **Compiler improvement** — [`GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md).
+- **Compiler improvement** — [`GOAL_LDS_COMPILER_IMPROVEMENT_V2.md`](GOAL_LDS_COMPILER_IMPROVEMENT_V2.md).
   The primary (and current standard) campaign for raising HEADLINE across the compiler.
 
 Earlier campaigns (arc placement, fragile specs, plateau, low-budget) live under

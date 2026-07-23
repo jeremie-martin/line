@@ -11,13 +11,14 @@ always end with evidence you can trust.**
 - `benchmark-v2.md`: commands, artifacts, preparation, and diagnostics.
 - `benchmark-v2-closure-register.md`: the latest adversarial workflow audit and its evidence-backed dispositions.
 - `compiler_goals.md`: compiler behavior and budget contract.
-- `../GOAL_LDS_COMPILER_IMPROVEMENT.md`: active improvement loop.
+- `../goal.md`: active improvement goal and promotion discipline.
 
 Historical V1 instructions are in `archive/HOW_TO_WORK_V1.md` and do not apply to the default commands.
 
 ## The chain
 
-Everything is one command, `eval`, used at two intensities.
+The benchmark chain centers on `eval`; fixed-N promotion adds explicit
+calibration and immutable-baseline-cache preparation.
 
 ```bash
 # Validate and regenerate deterministic benchmark evidence.
@@ -39,11 +40,19 @@ npm run benchmark -- family capture MECHANISM --variant=MEMBER
 npm run benchmark -- family run MECHANISM
 npm run benchmark -- family select MECHANISM --variant=MEMBER
 
-# CONFIRMATION (57 min on the dated 48-worker reference run): declare a certified operating
-# point, run both frozen snapshots on a fresh paired epoch in waves, take the
-# declared futility looks, decide at the declared depth.
-npm run benchmark -- eval --to-verdict                          # improve, θ=0
-npm run benchmark -- eval --to-verdict --depth=300              # calibrated deep improve, θ=0
+# FIXED-N PROMOTION (the normal promotion path): N must be a registered,
+# independently calibrated operating point. Check the immutable baseline cache;
+# extend it explicitly only when coverage is missing, then compile the candidate
+# at N and make one final paired decision.
+npm run benchmark -- baseline-cache status --seeds=300
+npm run benchmark -- baseline-cache extend --seeds=300 --jobs=48 # only if status reports a missing tail
+npm run benchmark -- eval --to-verdict --seeds=300
+
+# LEGACY CERTIFIED ROWS: these run both frozen snapshots on a fresh paired
+# epoch. They remain available for their predeclared rows, but are not the
+# default path for a new promotion operating point.
+npm run benchmark -- eval --to-verdict                          # improve, θ=0, depth 48
+npm run benchmark -- eval --to-verdict --depth=300              # legacy deep improve, θ=0
 npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
 
 # Exception only: correct a strictly infrastructure-only abort before any
@@ -73,7 +82,7 @@ pairwise contrasts, and early-prefix ranking reversals are deliberately labeled
 selection-biased exploration. They cannot enter `decide`, consume era alpha, or
 run qualification. `select` requires the working compiler to exactly match the
 captured member; an `LR_*`-only member must first be baked into source defaults.
-The selected source then enters the ordinary fresh `eval --to-verdict` gate.
+The selected source then enters the ordinary certified `eval --to-verdict` gate.
 
 If results motivate another adaptive round, select the current champion first.
 The next capture carries that member forward automatically and allocates a new
@@ -100,8 +109,9 @@ A `--to-verdict` attempt ends one of four ways (exit code):
   (`--acknowledge-retry`) is permitted but is not automatic: it spends another
   certified era charge, compounds nominal alpha, and never pools prior evidence.
   When the observed effect is modest but broad, choose a deeper point only if
-  it is already on the certified menu: that new attempt still uses one fresh
-  epoch and is not an extension or pooled continuation of the prior attempt.
+  it is already certified. A fixed-N retry declares its complete N before
+  execution, reuses only the immutable baseline prefix, and never extends or
+  pools the earlier candidate evidence.
 - **reject** (3) — the upper bound fell below the threshold.
 - **futility stop** (4) — an interim look showed the attempt cannot
   realistically end in accept; most of the compute was saved. The spend
@@ -118,13 +128,14 @@ inconclusive non-inferiority result is not permission to accept.
 
 ## Operating points and the era budget
 
-`eval --to-verdict` only runs **certified operating points** from
-`benchmark/v2/eval-policy.ts` — rows whose error rates were measured against
-their own retained menu and independent-holdout references and re-verified by
-the guard at declare time. The current menu provides: improve θ=0 at depth 48
-(futility looks at 2/3/4/8/16 blocks); improve θ=0 at depth 300 (no interim
-looks, certified for a +2-point effect); and simplify m=5 at depth 48. A
-`--depth` flag selects one of these rows; an arbitrary depth is still refused.
+`eval --to-verdict` only runs **certified operating points**. Legacy rows live
+in `benchmark/v2/eval-policy.ts` and are selected with `--depth`; fixed-N rows
+live in `benchmark/v2/operating-points.json` and are selected with `--seeds=N`.
+Every row has its own retained menu and independent-holdout references, which
+the guard re-verifies at declaration. The current legacy menu provides: improve
+θ=0 at depth 48 (futility looks at 2/3/4/8/16 blocks); improve θ=0 at depth
+300 (no interim looks, certified for a +2-point effect); and simplify m=5 at
+depth 48. Arbitrary depth or N values are refused.
 
 Each attempt with at least one formal look charges the largest certified false-accept upper bound across
 the menu and independent holdout null/stress cells to the **era α-budget**
@@ -140,7 +151,14 @@ and the project-wide expected-false-accept sum.
 
 ## Baseline
 
-`benchmark/v2/probe-baseline.json` is the reusable screening reference. `benchmark/v2/baseline.json` records the compiler of record, its checksummed compiler/WASM snapshot, the era record, and the frozen decision contract (inference, protocol, calibration fingerprints). A confirmation never compares against an already-visible archive: the declaration freezes both snapshots before either arm runs, on a newly allocated seed epoch no prior attempt has seen.
+`benchmark/v2/probe-baseline.json` is the reusable screening reference.
+`benchmark/v2/baseline.json` records the compiler of record, its checksummed
+compiler/WASM snapshot, the era record, and the frozen decision contract
+(inference, protocol, calibration fingerprints). A legacy confirmation freezes
+both snapshots and a newly allocated epoch before either arm runs. A fixed-N
+confirmation instead binds the candidate snapshot to the immutable,
+checksummed baseline-cache prefix named in its declaration; it never recompiles
+or relabels that baseline evidence.
 
 A suite change is an era rollover (new listening review included). A
 decision-surface change requires `npm run benchmark -- migrate` (scopes:

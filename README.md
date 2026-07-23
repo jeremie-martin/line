@@ -43,10 +43,14 @@ npx tsx scripts/stress.ts
 npm run parity
 
 # Benchmark V2 is the default compiler benchmark.
+npm run benchmark -- status
 npm run benchmark -- eval
-npm run benchmark -- eval --to-verdict
+npm run benchmark -- baseline-cache status --seeds=300
+npm run benchmark -- eval --to-verdict --seeds=300
 
-# Confirmation executes both frozen snapshots on one fresh paired seed epoch.
+# Promotion uses a predeclared certified protocol. The normal fixed-N path
+# reuses an immutable baseline-cache prefix and compiles only the candidate;
+# legacy rows run both frozen snapshots on a fresh paired epoch.
 # After an accept, promote the retained attempt and refresh the screening reference.
 npm run benchmark -- rebaseline --label=NAME
 

@@ -29,6 +29,8 @@ npm run benchmark -- family run MECHANISM
 npm run benchmark -- family select MECHANISM --variant=MEMBER
 npm run benchmark -- eval --to-verdict
 npm run benchmark -- eval --to-verdict --depth=300
+npm run benchmark -- baseline-cache status --seeds=300
+npm run benchmark -- eval --to-verdict --seeds=300
 npm run benchmark -- calibrate-point --mode=improve --seeds=83 --smoke
 npm run benchmark -- calibrate-point --mode=improve --seeds=83
 npm run benchmark -- baseline-cache status --seeds=83
@@ -58,14 +60,14 @@ binding, and era spend before execution. Legacy menu rows run fresh paired
 waves; fixed-N rows reuse an immutable baseline prefix and run only the
 candidate. A favorable final verdict runs qualification as an indicative
 sidecar.
-The menu includes a separately calibrated depth-300 improvement row for
-modest broad effects; it is a fresh confirmation with no interim looks. For a
-new fixed N, first run the two independent-reference calibration artifacts and
-register the point, inspect `baseline-cache status --seeds=N`, explicitly
-extend only a missing baseline tail, then run `eval --to-verdict --seeds=N`.
-The candidate is compiled once at N; reuse of the content-addressed baseline
-prefix is intentional. Other N values remain refused until separately
-calibrated and registered.
+For normal promotion, use a registered fixed-N point. The current registry
+includes N=300; inspect `baseline-cache status --seeds=300`, explicitly extend
+only a missing frozen tail, then run `eval --to-verdict --seeds=300`. The
+candidate is compiled once at N; reuse of the content-addressed baseline prefix
+is intentional. For a new N, first run the two independent-reference
+calibration artifacts and register the point. Other N values remain refused
+until separately calibrated and registered. The separate `--depth=300` menu
+row is a legacy fresh confirmation with no interim looks.
 Stage 0 writes one probe archive via `--out=FILE`; `--archive-dir` and
 `--out-dir` are confirmation-only paths and are rejected in stage 0 so an
 evidence destination cannot be silently ignored.
@@ -132,8 +134,10 @@ records the reusable screening reference. `baseline.json` is the compiler and
 decision contract of record, including the checksummed compiler/WASM snapshot.
 `attempts.jsonl` is the authoritative append-only attempt and era ledger;
 `era-state.json` is its rebuildable projection. Immutable declarations and
-retained archives bind each confirmation's snapshots, seed epoch, operating
-point, and decision evidence.
+retained archives bind every confirmation's operating point and decision
+evidence. Legacy rows bind both snapshots and a fresh epoch; fixed-N rows bind
+the candidate snapshot, literal stable schedule, and immutable cache manifest
+plus shard ranges.
 
 ## Comparison
 

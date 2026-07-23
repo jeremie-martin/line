@@ -91,6 +91,11 @@ certification. Operational logging and ledger edits do not. Missing, stale,
 inconsistent, or inadequate evidence blocks declaration rather than weakening
 the rule.
 
+The checked-in certification artifact is a compact declaration: it pins the
+simulation report hash, frozen worker plan, reference identities, bar outcomes,
+and the aggregate cells that the guard reads. Generated per-trial reports are
+local evidence, not source or live benchmark state.
+
 Two modes are supported:
 
 - `improvement`: threshold `0` headline points.

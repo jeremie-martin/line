@@ -7,7 +7,6 @@ import { compilerCandidateIdentity, compilerDirtyPathsAgainstHead } from "./comp
 import { readBaselineContract } from "./confirmation.ts";
 import { baselineCachePlan, readBaselineCache, verifyBaselineCache } from "./baseline_cache.ts";
 import { operatingPointRegistryStatus } from "./operating_points.ts";
-import { evalOperatingPoint } from "../../../benchmark/v2/eval-policy.ts";
 import { retainedEvidenceInventory, type RetainedEvidenceInventory } from "./evidence_inventory.ts";
 import {
   loadHeldoutManifest,
@@ -90,10 +89,9 @@ export function benchmarkStatus(requestedSeeds = 48): BenchmarkStatus {
   const cache = readBaselineCache();
   const cachePlan = baselineCachePlan(cache, requestedSeeds);
   verifyBaselineCache(cache, cachePlan.coveredSeeds === 0 ? undefined : cachePlan.coveredSeeds);
-  const staticPoint = evalOperatingPoint("improvement", null, requestedSeeds);
-  const cacheOperatingPoint = staticPoint === undefined
-    ? operatingPointRegistryStatus(requestedSeeds)
-    : { registered: true, pointId: staticPoint.id, artifactIntegrity: true, reason: null, powerDiagnostic: null };
+  // The cache panel describes the explicit --seeds=N protocol only. A legacy
+  // row at the same depth is not a fixed-N registration.
+  const cacheOperatingPoint = operatingPointRegistryStatus(requestedSeeds);
   if (baseline.suiteFingerprint !== identity.suiteFingerprint) {
     throw new Error(`suite differs from the baseline contract; establish a new baseline`);
   }

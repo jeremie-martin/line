@@ -210,6 +210,20 @@
         "sha256": "b6c0e212c1327fc2f5baa9939a41058944bb596dce7e28b94981731d016623e5",
         "result": "bit-identical"
       }
+    },
+    {
+      "fromImplementationFingerprint": "6a84fd26c6be6cfe2d66d754bb24a50e4936f63746ea7d1ae86900a203a3d6d0",
+      "toImplementationFingerprint": "143cf2a1c97659021b7667e63229673345fb5e03b5ea1b9f4117a7079e9c655b",
+      "executionProtocol": "line.benchmark-v2.execution-protocol.v4",
+      "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
+      "reviewedBy": "Codex",
+      "reviewedAt": "2026-07-23T08:51:01.439Z",
+      "rationale": "Compact certification declarations replace generated report storage; the runner-facing guard still reads the same frozen plans, references, bars, and aggregate cells. Frozen snapshot replay verifies execution behavior is unchanged.",
+      "evidence": {
+        "path": "benchmark/v2/evidence/runner-compat-6a84fd26-143cf2a1-54aa9efd.json",
+        "sha256": "54aa9efdd4b2eb9fb0b10fdc2ae4049dd95964024c50e761f9d508b9b1682558",
+        "result": "bit-identical"
+      }
     }
   ]
 }

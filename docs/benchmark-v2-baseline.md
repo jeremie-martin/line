@@ -16,5 +16,5 @@ Canonical cache: stable ladder through **300** slots/budget; accepted developmen
 
 Candidate: `7ad483ec55b187d4e7d8a9c39fc60e9fb19641b2ac07e04d4ae446db4d76e83d`.
 Inference rule: `56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f`.
-Decision protocol: `a0dbf053a0495f07b7db9abd1f010650e53afb0dbcd989228036c1dcbcd68ce1`.
+Decision protocol: `ed2207b936a20d559b60dbb7c5d1fbbf970b346d9438597f3bd3f5bb00f6bd02`.
 Decision calibration: `380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9`.

@@ -476,7 +476,11 @@ export function assertAttemptDeclarationCurrent(attemptId: string, paths?: Attem
       candidate.type === "declare" && candidate.attemptId === attemptId
     );
     if (event === undefined) throw new Error(`attempt ${attemptId} has no declaration event`);
-    const operatingPoint = benchmarkEvalPolicy.operatingPoints.find((point) => point.id === event.operatingPointId);
+    const operatingPoint = benchmarkEvalPolicy.operatingPoints.find((point) => point.id === event.operatingPointId) ?? (
+      event.mode === "improvement" && event.margin === null && event.baselineCacheReuse
+        ? registeredFixedNAsEvalPoint(event.depth)
+        : undefined
+    );
     if (operatingPoint === undefined) {
       throw new Error(`declare refused: operating point ${event.operatingPointId} is not on the certified menu`);
     }

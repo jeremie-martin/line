@@ -145,11 +145,18 @@ describe("certified operating-point guard", () => {
     expect(certified.mde80).toBe(2);
     expect(certified.point.futilitySchedule).toEqual([]);
     expect(certified.artifacts.menuCertification.path)
-      .toBe("benchmark/v2/studies/menu-certification-d300.json");
+      .toBe("benchmark/v2/certification/legacy/improve-t0-d300-menu.json");
     expect(certified.artifacts.holdoutValidation.path)
-      .toBe("benchmark/v2/studies/holdout-validation-d300.json");
+      .toBe("benchmark/v2/certification/legacy/improve-t0-d300-holdout.json");
     expect(certified.spend).toBeGreaterThan(0);
     expect(certified.spend).toBeLessThanOrEqual(0.05);
+  });
+
+  test("explicit fixed-N selection prefers its registered point over a legacy row at the same depth", () => {
+    const certified = requireCertifiedOperatingPoint("improvement", null, 300, suiteFingerprint, undefined, true);
+    expect(certified.point.id).toBe("improve-fixed-n300");
+    expect(certified.artifacts.menuCertification.path)
+      .toBe("benchmark/v2/certification/operating-points/improve-n300-menu.json");
   });
 
   test("refuses non-menu points naming the certified rows", () => {

@@ -12,6 +12,10 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { writeFileAtomicDurable } from "../v0/benchmark_v2/durable_fs.ts";
+import {
+  certificationDeclarationSha256,
+  compactCertificationDeclaration,
+} from "../v0/benchmark_v2/certification_declaration.ts";
 import { assertFixedSeedCount } from "../v0/benchmark_v2/baseline_cache.ts";
 import {
   FIXED_N_OPERATING_POINTS_PATH,
@@ -47,6 +51,13 @@ export function runCalibrateOperatingPointCommand(argv: string[]): number {
     }
   }
   const paths = artifactPaths(seeds);
+  const reports = reportPaths(seeds);
+  const requiredCellIds = [
+    "improve_power_2",
+    "improve_null_empirical",
+    "improve_null_validity_flips",
+    "improve_null_hard_zero",
+  ];
   if (smoke) {
     emit(argv, {
       schema: "line.benchmark-v2.fixed-n-calibration-smoke.v1",
@@ -54,7 +65,8 @@ export function runCalibrateOperatingPointCommand(argv: string[]): number {
       seeds,
       plan: { mode: "improvement", futilitySchedule: [], criticalAlpha: 0.01, workers },
       artifacts: paths,
-      commands: commands(seeds, workers, paths),
+      generatedReports: reports,
+      commands: commands(seeds, workers, reports),
       note: "No simulation or compiler work was run. This validates the exact fixed-N registration plan.",
     });
     return 0;
@@ -62,10 +74,22 @@ export function runCalibrateOperatingPointCommand(argv: string[]): number {
   if (registeredFixedNPoint(seeds) !== undefined) {
     throw new Error(`a fixed-N operating point is already registered for N=${seeds}; registry entries are immutable`);
   }
-  for (const command of commands(seeds, workers, paths)) run(command);
+  for (const command of commands(seeds, workers, reports)) run(command);
   const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
   const suite = suiteIdentity("benchmark/v2/compat/suite-manifest.json", "benchmark/v2/compat/source-manifest.json", sources);
-  const reports = [paths.menuCertification, paths.holdoutValidation].map((path) => JSON.parse(readFileSync(path, "utf8")));
+  const reportValues = [reports.menuCertification, reports.holdoutValidation].map((path) => JSON.parse(readFileSync(path, "utf8")));
+  for (const [reportPath, declarationPath] of [
+    [reports.menuCertification, paths.menuCertification],
+    [reports.holdoutValidation, paths.holdoutValidation],
+  ] as const) {
+    const bytes = readFileSync(reportPath);
+    const declaration = compactCertificationDeclaration(
+      JSON.parse(bytes.toString("utf8")),
+      certificationDeclarationSha256(bytes),
+      requiredCellIds,
+    );
+    writeFileAtomicDurable(declarationPath, `${JSON.stringify(declaration, null, 2)}\n`);
+  }
   const point: RegisteredFixedNPoint = {
     id: `improve-fixed-n${seeds}`,
     mode: "improvement",
@@ -92,7 +116,7 @@ export function runCalibrateOperatingPointCommand(argv: string[]): number {
       holdoutValidationSha256: sha256(readFileSync(paths.holdoutValidation)),
     },
     calibrationFingerprint: sha256(JSON.stringify({
-      reports: reports.map((report) => ({
+      reports: reportValues.map((report) => ({
         suite: report.suiteFingerprint,
         inference: report.decisionInferenceFingerprint,
         evalChain: report.evalChainInferenceFingerprint,
@@ -123,7 +147,7 @@ export function runCalibrateOperatingPointCommand(argv: string[]): number {
     return 0;
   } catch (error) {
     // Do not leave a point that failed the live guard registered.  The two raw
-    // reports remain retained evidence of the failed calibration.
+    // reports remain local generated evidence of the failed calibration.
     registry.points.pop();
     writeFileAtomicDurable(FIXED_N_OPERATING_POINTS_PATH, `${JSON.stringify(registry, null, 2)}\n`);
     throw error;
@@ -132,12 +156,19 @@ export function runCalibrateOperatingPointCommand(argv: string[]): number {
 
 function artifactPaths(seeds: number): { menuCertification: string; holdoutValidation: string } {
   return {
-    menuCertification: `benchmark/v2/studies/operating-points/improve-n${seeds}-menu.json`,
-    holdoutValidation: `benchmark/v2/studies/operating-points/improve-n${seeds}-holdout.json`,
+    menuCertification: `benchmark/v2/certification/operating-points/improve-n${seeds}-menu.json`,
+    holdoutValidation: `benchmark/v2/certification/operating-points/improve-n${seeds}-holdout.json`,
   };
 }
 
-function commands(seeds: number, workers: number, paths: ReturnType<typeof artifactPaths>): string[][] {
+function reportPaths(seeds: number): { menuCertification: string; holdoutValidation: string } {
+  return {
+    menuCertification: `generated/benchmark-v2/certification/improve-n${seeds}-menu.report.json`,
+    holdoutValidation: `generated/benchmark-v2/certification/improve-n${seeds}-holdout.report.json`,
+  };
+}
+
+function commands(seeds: number, workers: number, paths: ReturnType<typeof reportPaths>): string[][] {
   const base = [
     "--import", "tsx", "scripts/benchmark/validate_independent_reference.ts",
     `--depth=${seeds}`, "--futility-schedule=none", `--workers=${workers}`,

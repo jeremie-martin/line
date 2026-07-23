@@ -30,13 +30,19 @@ describe("Benchmark V2 status", () => {
     });
     expect(payload.menu[1].spend).toBeGreaterThan(0);
     expect(payload.menu[1].spend).toBeLessThanOrEqual(0.05);
+    expect(payload.canonicalCache.operatingPoint).toMatchObject({
+      registered: false,
+      pointId: null,
+    });
     expect(payload.operationalReference).toMatchObject({ jobs: 48, stage0: { compiles: 264 } });
     expect(typeof payload.baseline.current).toBe("boolean");
     expect(typeof payload.stage0.comparable).toBe("boolean");
     expect(Array.isArray(payload.stage0.refusalReasons)).toBe(true);
     expect(payload.stage0.comparable || payload.stage0.refusalReasons.length > 0).toBe(true);
     expect(sha(readFileSync("benchmark/v2/attempts.jsonl"))).toBe(before);
-  }, 15_000);
+  // Status validates checksummed retained reference artifacts in a child
+  // process; allow ordinary cold filesystem latency without weakening it.
+  }, 30_000);
 
   test("human output distinguishes normative counts from measured host timing", () => {
     const status = {

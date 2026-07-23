@@ -1,0 +1,205 @@
+{
+  "schema": "line.benchmark-v2.certification-declaration.v1",
+  "sourceReport": {
+    "schema": "line.benchmark-v2.independent-validation.v4",
+    "sha256": "36e5aaaadaab2d853373a5a1eb94cb01df9302c147aac6cbd07ca19ff2dc9bec"
+  },
+  "mode": "certify",
+  "predeclared": {
+    "depth": 300,
+    "trialsPerStream": 500,
+    "futilitySchedule": [],
+    "futilityAlpha": 0.05,
+    "criticalAlpha": 0.01,
+    "centralCriticalLevel": 0.99,
+    "centralNominalLevel": 0.95,
+    "frozenShifts": {
+      "improve2": 2.3395,
+      "improve3": 3.5095,
+      "improve5": 5.8495,
+      "boundaryM5": -5.8481
+    },
+    "bars": {
+      "nullFalseAcceptWilsonUpperMax": 0.05,
+      "powerAtPlus5WilsonLowerMin": 0.8,
+      "noninferiorityPowerWilsonLowerMin": 0.8,
+      "boundaryFalseAcceptWilsonUpperMax": 0.05,
+      "futilityNetPowerAtPlus5WilsonLowerMin": 0.8,
+      "futilityNullFalseAcceptWilsonUpperMax": 0.05,
+      "determinismCells": 84
+    }
+  },
+  "workerExecutionPlan": {
+    "depth": 300,
+    "futilitySchedule": [],
+    "futilityAlpha": 0.05,
+    "criticalAlpha": 0.01,
+    "centralCriticalLevel": 0.99,
+    "centralNominalLevel": 0.95
+  },
+  "workerExecutionPlanFingerprint": "bc3445cafd6c98d9419dfc823cf6e0144ec47187060e95e1271e29933006e60d",
+  "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
+  "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
+  "decisionInferenceFingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
+  "evalChainInferenceFingerprint": "777215a1311aa0d229431f7006f68f73075e7e3e46d5b0b022a11c815b4a80a9",
+  "certificationGeneratorFingerprint": "ed896a760cb142cebd01858cd0bae8740b2dd74951789cfb09460c99f669634a",
+  "independentReference": {
+    "path": "benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz",
+    "artifactSha256": "1c7974d210d108da28db5ffaeb0f13a226025bc6fda99e9f4b136788992f3c1d",
+    "rawSha256": "e2f00892f68fe9127b8788cf22aadc2765502e7af5c1b2ca46d9221fe2fa4c17",
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "candidateFingerprint": "fec9529eaa1904f1924f1e1d1bc986b9f53cedb44b1d74e43d763efaf52eacd7"
+  },
+  "originalReference": {
+    "path": "benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz",
+    "artifactSha256": "1c7974d210d108da28db5ffaeb0f13a226025bc6fda99e9f4b136788992f3c1d",
+    "rawSha256": "e2f00892f68fe9127b8788cf22aadc2765502e7af5c1b2ca46d9221fe2fa4c17",
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ]
+  },
+  "upstream": {
+    "powerGrid": {
+      "path": "benchmark/v2/studies/power-grid.json",
+      "sha256": "9191b3862585e0a6dc928b0eff8f2f853aefdae33c2ea8a6b36e1f3ca2c9465e"
+    },
+    "probeFutility": {
+      "path": "benchmark/v2/studies/probe-futility.json",
+      "sha256": "7baa00b87f17e63cc7c815b2ee21e5db5992745d7ab49682dca753a68015e71e"
+    },
+    "determinismCheck": {
+      "path": "benchmark/v2/studies/determinism-check.json",
+      "sha256": "d6828b978683002ee25432d22de07cba8e698d05d0ea2efbcfdfea1066e72496"
+    }
+  },
+  "allBarsMet": true,
+  "barsMet": {
+    "improve_null_empirical": true,
+    "improve_null_validity_flips": true,
+    "improve_null_hard_zero": true,
+    "simplify_m5_boundary": true,
+    "futility_null": true,
+    "determinism": true,
+    "improve_power_5": true,
+    "simplify_m5_noninferiority": true,
+    "futility_power_5": true
+  },
+  "cells": [
+    {
+      "id": "improve_power_2",
+      "combined": {
+        "trials": 1000,
+        "meanSeedBlockSe": 0.5043,
+        "accept": {
+          "count": 956,
+          "total": 1000,
+          "rate": 0.956,
+          "wilson95": [
+            0.9414,
+            0.9671
+          ]
+        },
+        "netAccept": null
+      }
+    },
+    {
+      "id": "improve_null_empirical",
+      "combined": {
+        "trials": 1000,
+        "meanSeedBlockSe": 0.5019,
+        "accept": {
+          "count": 9,
+          "total": 1000,
+          "rate": 0.009,
+          "wilson95": [
+            0.0047,
+            0.017
+          ]
+        },
+        "netAccept": null
+      }
+    },
+    {
+      "id": "improve_null_validity_flips",
+      "combined": {
+        "trials": 1000,
+        "meanSeedBlockSe": 3.9302,
+        "accept": {
+          "count": 10,
+          "total": 1000,
+          "rate": 0.01,
+          "wilson95": [
+            0.0054,
+            0.0183
+          ]
+        },
+        "netAccept": null
+      }
+    },
+    {
+      "id": "improve_null_hard_zero",
+      "combined": {
+        "trials": 1000,
+        "meanSeedBlockSe": 18.3836,
+        "accept": {
+          "count": 9,
+          "total": 1000,
+          "rate": 0.009,
+          "wilson95": [
+            0.0047,
+            0.017
+          ]
+        },
+        "netAccept": null
+      }
+    }
+  ]
+}

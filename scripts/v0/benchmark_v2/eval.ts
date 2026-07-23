@@ -133,6 +133,7 @@ export function revalidateDeclarationUnderLock(input: {
   mode: ConfirmationMode;
   margin: number | null;
   depth: number;
+  fixedN: boolean;
 }): DeclarationFreshness {
   const freshSuite = suiteIdentity(SUITE_MANIFEST, SOURCE_MANIFEST, input.sources);
   if (freshSuite.suiteFingerprint !== input.expectedSuiteFingerprint) {
@@ -149,6 +150,8 @@ export function revalidateDeclarationUnderLock(input: {
     input.margin,
     input.depth,
     input.expectedSuiteFingerprint,
+    undefined,
+    input.fixedN,
   );
   return { baseline, decisionContract, certified };
 }
@@ -473,7 +476,14 @@ async function runToVerdict(argv: string[]): Promise<number> {
   if (fixedN !== undefined && mode !== "improvement") {
     throw new Error(`the fixed-N cache-backed protocol currently supports --mode=improve only`);
   }
-  let certified = requireCertifiedOperatingPoint(mode, margin, depth, context.suiteFingerprint);
+  let certified = requireCertifiedOperatingPoint(
+    mode,
+    margin,
+    depth,
+    context.suiteFingerprint,
+    undefined,
+    fixedN !== undefined,
+  );
   let cacheView: BaselineCacheView | undefined;
   if (fixedN !== undefined) {
     cacheView = readBaselineCache(baselinePath);
@@ -531,6 +541,7 @@ async function runToVerdict(argv: string[]): Promise<number> {
       mode,
       margin,
       depth,
+      fixedN: fixedN !== undefined,
     });
     baseline = fresh.baseline;
     decisionContract = fresh.decisionContract;
@@ -693,6 +704,8 @@ async function resumeAttempt(
     declaration.margin,
     declaration.depth,
     context.suiteFingerprint,
+    undefined,
+    declaration.baselineCache !== undefined,
   );
   if (certified.certificationFingerprint !== declaration.certificationFingerprint) {
     throw new Error(`certification evidence changed since this attempt was declared; the declared stopping behavior is no longer authorized`);

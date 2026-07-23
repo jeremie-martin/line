@@ -11,20 +11,20 @@ import { assertEvalArguments } from "../scripts/v0/benchmark_v2/eval.ts";
 describe("canonical baseline cache fixed-N plans", () => {
   it("makes N=37, N=83, and N=251 deterministic prefix plans without compiler work", () => {
     const cache = readBaselineCache();
-    // This checks the retained v9 anchor byte-for-byte once; the rest of the
-    // test is pure planning and therefore is safe to run before any costly
-    // extension or candidate compile.
+    // This checks the retained original anchor byte-for-byte once; the rest
+    // is pure planning over the now-complete 300-seed cache and therefore
+    // never performs an extension or candidate compile.
     verifyBaselineCache(cache, 48);
 
     const n37 = baselineCachePlan(cache, 37);
     const n83 = baselineCachePlan(cache, 83);
     const n251 = baselineCachePlan(cache, 251);
     expect(n37).toMatchObject({ requestedSeeds: 37, coveredSeeds: 37, missingBaselineSeeds: 0 });
-    expect(n83).toMatchObject({ requestedSeeds: 83, coveredSeeds: 48, missingBaselineSeeds: 35 });
-    expect(n251).toMatchObject({ requestedSeeds: 251, coveredSeeds: 48, missingBaselineSeeds: 203 });
+    expect(n83).toMatchObject({ requestedSeeds: 83, coveredSeeds: 83, missingBaselineSeeds: 0 });
+    expect(n251).toMatchObject({ requestedSeeds: 251, coveredSeeds: 251, missingBaselineSeeds: 0 });
     expect(n37.candidateCompiles).toBe(37 * n37.developmentSources * n37.budgets.length);
-    expect(n83.missingBaselineCompiles).toBe(35 * n83.developmentSources * n83.budgets.length);
-    expect(n251.missingBaselineCompiles).toBe(203 * n251.developmentSources * n251.budgets.length);
+    expect(n83.missingBaselineCompiles).toBe(0);
+    expect(n251.missingBaselineCompiles).toBe(0);
   });
 
   it("keeps every historical 48-slot seed and allocates disjoint stable tails", () => {

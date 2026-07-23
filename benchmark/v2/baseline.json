@@ -90,7 +90,7 @@
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
   "candidate_fingerprint": "7ad483ec55b187d4e7d8a9c39fc60e9fb19641b2ac07e04d4ae446db4d76e83d",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
-  "decision_protocol_fingerprint": "a0dbf053a0495f07b7db9abd1f010650e53afb0dbcd989228036c1dcbcd68ce1",
+  "decision_protocol_fingerprint": "ed2207b936a20d559b60dbb7c5d1fbbf970b346d9438597f3bd3f5bb00f6bd02",
   "decision_calibration_fingerprint": "380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",

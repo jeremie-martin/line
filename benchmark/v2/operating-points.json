@@ -31,10 +31,10 @@
       },
       "certifiedDetectableEffect": 2,
       "certification": {
-        "menuCertification": "benchmark/v2/studies/operating-points/improve-n300-menu.json",
-        "menuCertificationSha256": "36e5aaaadaab2d853373a5a1eb94cb01df9302c147aac6cbd07ca19ff2dc9bec",
-        "holdoutValidation": "benchmark/v2/studies/operating-points/improve-n300-holdout.json",
-        "holdoutValidationSha256": "efeae3f75a6d1777df44d35fcc91aac554aac4522117694e3deb845b1aefc5a5"
+        "menuCertification": "benchmark/v2/certification/operating-points/improve-n300-menu.json",
+        "menuCertificationSha256": "e6d7f77ef53f37f8807e10012881d7619f7333546079b660cf09cdce89eb9fcb",
+        "holdoutValidation": "benchmark/v2/certification/operating-points/improve-n300-holdout.json",
+        "holdoutValidationSha256": "d293ef0a3384fdd5d4f5284bf7e35db5ed0240aa0eafc1ced08549feec46eb41"
       },
       "calibrationFingerprint": "29d3f1a9cda56d06b7d75b38eab9556bb4d2e1fa8da39a60a5acd84cc02d2469",
       "registeredAt": "2026-07-22T13:26:32.894Z"

@@ -1,0 +1,27 @@
+{
+  "schema": "line.benchmark-v2.runner-compat-evidence.v1",
+  "fromImplementationFingerprint": "6a84fd26c6be6cfe2d66d754bb24a50e4936f63746ea7d1ae86900a203a3d6d0",
+  "toImplementationFingerprint": "143cf2a1c97659021b7667e63229673345fb5e03b5ea1b9f4117a7079e9c655b",
+  "executionPolicyFingerprint": "5e336cda28b31c14ba42bcafd6d695f492b62b2df370fcd95ccd4725e476b92a",
+  "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
+  "retained": {
+    "path": "benchmark/v2/runs/accept-2026-07-22T18-26-42Z-8565eddc-probe.json.gz",
+    "compressedSha256": "77e3ce2c61ed9dfc707f92ffe1ac8576a0a966c9952280515a3206fdbb52f55d"
+  },
+  "replay": {
+    "archiveSha256": "543b8ff4b9e74de015c7c01386f027758576aa3650ba25d643fab1da1f5edebf",
+    "compressedSha256": "ab9c09c4dd64a8439f32818330f0ba398864d2c515ce36fb17bf8162ae1043a2",
+    "headline": 506.2352
+  },
+  "comparedRows": 264,
+  "decisionIndexRows": 264,
+  "comparedFields": [
+    "task",
+    "report",
+    "score",
+    "trackHash",
+    "authoredContacts",
+    "decisionIndexProjection"
+  ],
+  "result": "bit-identical"
+}

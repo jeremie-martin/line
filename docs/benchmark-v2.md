@@ -179,6 +179,12 @@ are not required to run a fresh snapshot replay. `status --evidence` distinguish
 unavailable historical references from reviewable unreferenced local files; it never
 deletes evidence.
 
+Certification follows the same boundary: generated simulation reports stay local under
+`generated/`, while the repository retains a compact declaration with the frozen plan,
+identities, reference hashes, safety bars, and only the cell statistics used by the
+operating-point guard. The declaration is the reviewable live contract; it is not a
+substitute for a fresh certification when the inference behavior changes.
+
 ## Changing V2
 
 1. Modify typed cases or policy, not generated compatibility JSON.

@@ -14,6 +14,7 @@ import { fingerprintFiles } from "./suite_model.ts";
  */
 export const DECISION_PROTOCOL_SOURCE_FILES = [
   "benchmark/v2/eval-policy.ts",
+  "benchmark/v2/operating-points.json",
   "benchmark/v2/runner-compatibility.json",
   "scripts/benchmark/cli.ts",
   "scripts/benchmark/freeze_baseline.ts",
@@ -24,6 +25,7 @@ export const DECISION_PROTOCOL_SOURCE_FILES = [
   "scripts/v0/benchmark_v2/baseline.ts",
   "scripts/v0/benchmark_v2/baseline_publication.ts",
   "scripts/v0/benchmark_v2/calibration_guard.ts",
+  "scripts/v0/benchmark_v2/certification_declaration.ts",
   "scripts/v0/benchmark_v2/certification_identity.ts",
   "scripts/v0/benchmark_v2/compiler_identity.ts",
   "scripts/v0/benchmark_v2/compiler_snapshot.ts",

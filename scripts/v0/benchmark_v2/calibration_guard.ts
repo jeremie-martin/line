@@ -14,6 +14,7 @@ import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
 import { EVAL_CHAIN_INFERENCE_SOURCE_FILES } from "./eval_chain_inference.ts";
 import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "./certification_identity.ts";
+import { certificationReportFromArtifact } from "./certification_declaration.ts";
 import { fingerprintFiles } from "./suite_model.ts";
 import { registeredFixedNAsEvalPoint } from "./operating_points.ts";
 
@@ -98,11 +99,13 @@ export function requireCertifiedOperatingPoint(
   depth: number,
   suiteFingerprint: string,
   artifactPaths?: EvalCertificationArtifactPaths,
+  fixedN = false,
 ): CertifiedOperatingPoint {
-  const menuPoint = evalOperatingPoint(mode, margin, depth);
-  const point = menuPoint ?? (
-    mode === "improvement" && margin === null ? registeredFixedNAsEvalPoint(depth) : undefined
-  );
+  const menuPoint = fixedN ? undefined : evalOperatingPoint(mode, margin, depth);
+  const fixedPoint = mode === "improvement" && margin === null
+    ? registeredFixedNAsEvalPoint(depth)
+    : undefined;
+  const point = fixedN ? fixedPoint : menuPoint ?? fixedPoint;
   if (point === undefined) {
     const menu = benchmarkEvalPolicy.operatingPoints
       .map((row) => `${row.id} (${row.mode}${row.margin === null ? "" : ` m=${row.margin}`}, depth ${row.depth})`)
@@ -114,7 +117,7 @@ export function requireCertifiedOperatingPoint(
   // Fixed-N points retain every safety/error-rate check but report power as a
   // diagnostic.  This prevents a hard +5-power menu threshold from rejecting
   // a demonstrably large actual candidate at a perfectly calibrated N.
-  const powerIsDiagnostic = menuPoint === undefined;
+  const powerIsDiagnostic = fixedN || menuPoint === undefined;
   const paths = artifactPaths ?? point.certification;
   const inferenceFingerprint = fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES);
   const evalChainInferenceFingerprint = fingerprintFiles(EVAL_CHAIN_INFERENCE_SOURCE_FILES);
@@ -241,6 +244,20 @@ const CERTIFICATION_REGEN_HINT =
   "--out=benchmark/v2/studies/menu-certification.json` and the corresponding `--mode=holdout` command " +
   "using calibration-v2.6-holdout-reference-seeds-36-47.json.gz and holdout-validation.json";
 
+/** Historical menu paths remain part of the eval-policy fingerprint. Their
+ * generated reports have been replaced by compact declarations without
+ * changing decision behavior or silently restamping the policy. */
+const COMPACT_CERTIFICATION_DECLARATIONS: Readonly<Record<string, string>> = {
+  "benchmark/v2/studies/menu-certification-d300.json":
+    "benchmark/v2/certification/legacy/improve-t0-d300-menu.json",
+  "benchmark/v2/studies/holdout-validation-d300.json":
+    "benchmark/v2/certification/legacy/improve-t0-d300-holdout.json",
+  "benchmark/v2/studies/menu-certification-d48-no-futility.json":
+    "benchmark/v2/certification/legacy/simplify-m5-d48-menu.json",
+  "benchmark/v2/studies/holdout-validation-d48-no-futility.json":
+    "benchmark/v2/certification/legacy/simplify-m5-d48-holdout.json",
+};
+
 function readCertificationArtifact(
   path: string,
   expectedMode: "certify" | "holdout",
@@ -251,12 +268,13 @@ function readCertificationArtifact(
   verifiedReferences: Set<string>,
   requireAllBars: boolean,
 ): { path: string; sha256: string; report: any } {
-  const absolute = resolve(path);
+  const resolvedPath = COMPACT_CERTIFICATION_DECLARATIONS[path] ?? path;
+  const absolute = resolve(resolvedPath);
   if (!existsSync(absolute)) {
     throw new Error(`certification artifact ${path} is missing; ${CERTIFICATION_REGEN_HINT}`);
   }
   const bytes = readFileSync(absolute);
-  const report = JSON.parse(bytes.toString("utf8"));
+  const report = certificationReportFromArtifact(JSON.parse(bytes.toString("utf8")), resolvedPath);
   if (report.schema !== "line.benchmark-v2.independent-validation.v4" || report.mode !== expectedMode) {
     throw new Error(`certification artifact ${path} has an unsupported schema or mode`);
   }
@@ -281,7 +299,7 @@ function readCertificationArtifact(
   if (requireAllBars && report.allBarsMet !== true) {
     throw new Error(`certification artifact ${path} did not meet its predeclared bars; the menu is not certified`);
   }
-  return { path, sha256: sha256(bytes), report };
+  return { path: resolvedPath, sha256: sha256(bytes), report };
 }
 
 /** The certificate must show the exact plan that was sent to its worker

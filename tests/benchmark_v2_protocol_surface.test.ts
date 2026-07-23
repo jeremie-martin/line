@@ -20,12 +20,16 @@ import {
   acquireRunLock,
   archiveChunks,
   bindDecisionIndexArchive,
+  checkpointArchiveChunks,
   checkpointPlanFingerprint,
   invalidatePublishedRunArtifacts,
+  latestCheckpointResults,
+  loadCheckpointResultIndex,
   loadOrInitializeCheckpoint,
   writeArchiveArtifacts,
   writeDecisionIndexArtifacts,
   validateDecisionIndexAgainstArchive,
+  type WorkerResult,
 } from "../scripts/v0/benchmark_v2/runner.ts";
 import { canonicalArchiveRows, compareArchiveRows } from "../scripts/v0/benchmark_v2/runner_compatibility.ts";
 
@@ -217,6 +221,18 @@ describe("archive artifacts", () => {
     expect(readFileSync(`${out}.gz.sha256`, "utf8")).toContain(written.compressedArchiveSha256);
   });
 
+  test("archive assembly accepts an async chunk stream", async () => {
+    const out = join(tempDir(), "async-run.json");
+    async function* chunks(): AsyncGenerator<string> {
+      yield "{\n";
+      yield '  "runs": []\n';
+      yield "}\n";
+    }
+    const written = await writeArchiveArtifacts(out, chunks(), false);
+    expect(readFileSync(out, "utf8")).toBe('{\n  "runs": []\n}\n');
+    expect(written.archiveSha256).toMatch(/^[a-f0-9]{64}$/);
+  });
+
   test("a failed run lands at .failed with no checksum sidecars", async () => {
     const out = join(tempDir(), "run.json");
     const bytes = Buffer.from(`${JSON.stringify({ runs: [] }, null, 2)}\n`);
@@ -280,6 +296,57 @@ describe("archive artifacts", () => {
 
     const empty = [...archiveChunks({ schema: "x", runs: [] })].join("");
     expect(JSON.parse(empty)).toEqual({ schema: "x", runs: [] });
+  });
+
+  test("deep checkpoint assembly keeps only the final row for each task and rechecks its plan", async () => {
+    const checkpoint = join(tempDir(), "deep.checkpoint.jsonl");
+    const plan = "a".repeat(64);
+    const task = (seedSlot: number) => ({
+      mode: "development" as const,
+      sourceId: "source",
+      budget: 250_000,
+      seedSlot,
+      actualSeed: seedSlot,
+      joltMs: 0,
+      sourceManifestPath: "source.json",
+      heldoutManifestPath: "heldout.json",
+    });
+    const failure = (status: "error" | "timeout", seedSlot: number): WorkerResult => ({
+      status,
+      task: task(seedSlot),
+      elapsedMs: 1,
+      error: status,
+      authoredContacts: 0,
+    });
+    const rows = [failure("error", 0), failure("timeout", 0), failure("error", 1)];
+    writeFileSync(checkpoint, [
+      JSON.stringify({ schema: "line.benchmark-v2.checkpoint.v1", runPlanFingerprint: plan }),
+      ...rows.map((result) => JSON.stringify({ type: "result", result })),
+      "",
+    ].join("\n"));
+
+    const index = await loadCheckpointResultIndex(checkpoint, plan, true);
+    const retained: WorkerResult[] = [];
+    for await (const result of latestCheckpointResults(checkpoint, index, plan)) retained.push(result);
+    expect(retained.map((result) => result.status)).toEqual(["timeout", "error"]);
+
+    const archive = join(tempDir(), "deep.json");
+    await writeArchiveArtifacts(
+      archive,
+      checkpointArchiveChunks(
+        { schema: "test" },
+        checkpoint,
+        index,
+        plan,
+        (result) => ({ status: result.status, task: result.task }),
+      ),
+      false,
+    );
+    expect(JSON.parse(readFileSync(archive, "utf8")).runs.map((row: any) => row.status))
+      .toEqual(["timeout", "error"]);
+
+    const wrongPlanRows = latestCheckpointResults(checkpoint, index, "b".repeat(64));
+    await expect(wrongPlanRows.next()).rejects.toThrow(/does not match the current run plan/);
   });
 });
 
@@ -420,10 +487,11 @@ describe("JSON CLI surface", () => {
     ], { cwd: process.cwd(), encoding: "utf8" });
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("improve-t0-d48: improvement, depth 48, looks 2/3/4/8/16");
+    expect(result.stdout).toContain("improve-t0-d300: improvement, depth 300, no interim looks");
     expect(result.stdout).toContain("simplify-m5-d48: simplification, margin 5, depth 48, no interim looks");
     expect(result.stdout).toContain("--no-resource-stats");
     expect(result.stdout).toContain("--abort-in-flight --reason=...");
-    expect(result.stdout).not.toContain("--depth=N");
+    expect(result.stdout).toContain("--depth=N");
   });
 
   test("writes exactly one structured JSON object to stdout on success", () => {

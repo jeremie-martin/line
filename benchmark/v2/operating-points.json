@@ -1,0 +1,43 @@
+{
+  "schema": "line.benchmark-v2.fixed-n-operating-points.v1",
+  "points": [
+    {
+      "id": "improve-fixed-n300",
+      "mode": "improvement",
+      "margin": null,
+      "depth": 300,
+      "criticalAlpha": 0.01,
+      "futilitySchedule": [],
+      "futilityAlpha": 0.05,
+      "cells": {
+        "power": {
+          "id": "improve_power_2",
+          "statistic": "accept"
+        },
+        "spendNull": {
+          "id": "improve_null_empirical",
+          "statistic": "accept"
+        },
+        "additionalNulls": [
+          {
+            "id": "improve_null_validity_flips",
+            "statistic": "accept"
+          },
+          {
+            "id": "improve_null_hard_zero",
+            "statistic": "accept"
+          }
+        ]
+      },
+      "certifiedDetectableEffect": 2,
+      "certification": {
+        "menuCertification": "benchmark/v2/studies/operating-points/improve-n300-menu.json",
+        "menuCertificationSha256": "36e5aaaadaab2d853373a5a1eb94cb01df9302c147aac6cbd07ca19ff2dc9bec",
+        "holdoutValidation": "benchmark/v2/studies/operating-points/improve-n300-holdout.json",
+        "holdoutValidationSha256": "efeae3f75a6d1777df44d35fcc91aac554aac4522117694e3deb845b1aefc5a5"
+      },
+      "calibrationFingerprint": "29d3f1a9cda56d06b7d75b38eab9556bb4d2e1fa8da39a60a5acd84cc02d2469",
+      "registeredAt": "2026-07-22T13:26:32.894Z"
+    }
+  ]
+}

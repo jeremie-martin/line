@@ -3,7 +3,7 @@
   "status": "complete",
   "purpose": "Confirm that the frozen probe detects broad and axis-specific compiler degradations under an identical execution policy.",
   "executionPolicyFingerprint": "5e336cda28b31c14ba42bcafd6d695f492b62b2df370fcd95ccd4725e476b92a",
-  "decisionInferenceFingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
+  "decisionInferenceFingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "cases": [
     {
       "id": "baseline",

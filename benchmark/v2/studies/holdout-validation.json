@@ -32,6 +32,21 @@
       "determinismCells": 84
     }
   },
+  "workerExecutionPlan": {
+    "depth": 48,
+    "futilitySchedule": [
+      2,
+      3,
+      4,
+      8,
+      16
+    ],
+    "futilityAlpha": 0.05,
+    "criticalAlpha": 0.01,
+    "centralCriticalLevel": 0.99,
+    "centralNominalLevel": 0.95
+  },
+  "workerExecutionPlanFingerprint": "b3cee1049e4776d43ce94db910d44cba04b5424dc078cafa39304e6f079d2669",
   "independentReference": {
     "path": "benchmark/v2/runs/calibration-v2.6-holdout-reference-seeds-36-47.json.gz",
     "artifactSha256": "516191937d54973ddb86f4b6c67283a8009520ce7ba0d57ba1f7ed2599f00468",
@@ -99,9 +114,9 @@
   },
   "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
-  "decisionInferenceFingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
-  "evalChainInferenceFingerprint": "4694360852f907e3ba0d2bb239f8bec65d5dac66710e82d9eb76772dfd9286c7",
-  "certificationGeneratorFingerprint": "9661cba5d918925aaa09b664ed85ee5e1b5deff534dc59dafcd357ac6f28f4a5",
+  "decisionInferenceFingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
+  "evalChainInferenceFingerprint": "777215a1311aa0d229431f7006f68f73075e7e3e46d5b0b022a11c815b4a80a9",
+  "certificationGeneratorFingerprint": "ed896a760cb142cebd01858cd0bae8740b2dd74951789cfb09460c99f669634a",
   "methodology": {
     "independenceDiscipline": "Primary validation applies the power grid's frozen perturbation recipes and shift values (solved on seeds 0..11) unchanged to the independent seeds-12..23 blocks; achievedTrueDeltas reports the resulting true effects on the independent blocks. resolvedDiagnostic (shifts re-solved on the independent blocks) is a secondary diagnostic only and feeds no bar.",
     "dgp": "Identical to the power grid: unpaired empirical block resampling per (budget, slot) from the verified independent reference; validity flips and catalog-wide hard-zero stress mirror study_decision_coverage.ts.",

@@ -24,6 +24,7 @@ type PublicationOptions = {
   paths?: AttemptPaths;
   pendingPath?: string;
   conflictingPendingPath?: string;
+  baselinePath?: string;
   freeze?: (bundlePath: string) => void;
   afterFreeze?: () => void;
   afterLedgerAppend?: () => void;
@@ -102,6 +103,41 @@ export function recoverPendingBaselinePublication(options: PublicationOptions = 
     removeFileDurable(pendingPath);
     return state;
   });
+}
+
+/**
+ * Explicitly abandon a journal that never reached either baseline files or
+ * the ledger.  This is deliberately not automatic: once either side was
+ * published the durable journal must be recovered, never discarded.
+ */
+export function discardUntouchedPendingBaselinePublication(options: PublicationOptions = {}): void {
+  const pendingPath = resolve(options.pendingPath ?? BASELINE_PUBLICATION_PENDING_PATH);
+  if (!existsSync(pendingPath)) throw new Error(`no pending baseline publication to discard`);
+  const pending = readPendingBaselinePublication(pendingPath);
+  const baselinePath = resolve(options.baselinePath ?? "benchmark/v2/baseline.json");
+  return withAttemptLedgerTransaction(options.paths, (transaction) => {
+    assertNoAttemptInFlight(transaction.state, "discarding a pending baseline publication");
+    if (publicationEventApplied(transaction.state, pending.event)) {
+      throw new Error(`pending baseline publication already reached the ledger; recover it instead of discarding`);
+    }
+    const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
+    if (baseline?.label === pending.event.baselineLabel) {
+      throw new Error(`pending baseline publication may have changed baseline files; recover it instead of discarding`);
+    }
+    removeFileDurable(pendingPath);
+  });
+}
+
+function readPendingBaselinePublication(path: string): PendingBaselinePublication {
+  const pending = JSON.parse(readFileSync(path, "utf8")) as PendingBaselinePublication;
+  if (
+    pending.schema !== "line.benchmark-v2.baseline-publication.v1" ||
+    typeof pending.bundlePath !== "string" || !/^[a-f0-9]{64}$/.test(pending.bundleSha256) ||
+    pending.event === null || typeof pending.event !== "object"
+  ) {
+    throw new Error(`pending baseline publication is malformed; inspect ${path}`);
+  }
+  return pending;
 }
 
 function assertBundleCurrent(pending: PendingBaselinePublication): void {

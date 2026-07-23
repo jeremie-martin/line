@@ -1,9 +1,9 @@
 {
   "schema": "line.benchmark-v2.study-provenance.v1",
   "artifact": "benchmark/v2/studies/menu-certification.json",
-  "artifactSha256": "b306b4fc2ebb3984b6eefb8dfc97de138ca154a9cc1d4a0392c30db7d0e14056",
-  "generatedAt": "2026-07-13T00:17:31.090Z",
-  "runtimeSeconds": 577.87,
-  "workers": 32,
+  "artifactSha256": "ceee37a87aa3f23b15f323a698ea57338884cc3b7df56e29fc6c7b4d385e7d57",
+  "generatedAt": "2026-07-21T23:21:57.329Z",
+  "runtimeSeconds": 146.502,
+  "workers": 48,
   "command": "node --import tsx scripts/benchmark/validate_independent_reference.ts"
 }

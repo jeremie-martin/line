@@ -1,9 +1,9 @@
 {
   "schema": "line.benchmark-v2.decision-coverage-study.v3",
-  "generatedAt": "2026-07-12T23:56:18.517Z",
+  "generatedAt": "2026-07-22T05:57:42.280Z",
   "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "scorerFingerprint": "2fe0e34d1d325197cebdad39e58df619fcd434f811f624d4cb34043b79f9daca",
-  "decisionInferenceFingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
+  "decisionInferenceFingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "reference": "benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz",
   "referenceArtifactSha256": "1c7974d210d108da28db5ffaeb0f13a226025bc6fda99e9f4b136788992f3c1d",
   "referenceRawSha256": "e2f00892f68fe9127b8788cf22aadc2765502e7af5c1b2ca46d9221fe2fa4c17",

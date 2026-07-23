@@ -48,16 +48,28 @@ import { loadSourceManifest, resolveSources } from "./model.ts";
 import {
   BENCHMARK_DEFINITION_SOURCE_FILES,
   canonicalMembers,
+  fingerprintFiles,
   loadSuiteManifest,
+  RUNNER_IMPLEMENTATION_SOURCE_FILES,
   suiteIdentity,
   type SuiteManifest,
 } from "./suite_model.ts";
 import {
   assertNoAttemptInFlight,
+  readAttemptEvents,
   readEraState,
   withAttemptLedgerTransaction,
   type AttemptPaths,
+  type EraState,
+  type ProtocolRebindEvent,
 } from "./attempts.ts";
+import { readEvalDeclaration } from "./confirmation.ts";
+import {
+  baselineCacheManifestFingerprint,
+  cacheCoverage,
+  readBaselineCache,
+} from "./baseline_cache.ts";
+import { runnerCompatibilityApproval, type RunnerCompatibilityApproval } from "./runner_compatibility.ts";
 import {
   requireCertifiedOperatingPoint,
   requireCurrentDecisionCalibration,
@@ -82,6 +94,20 @@ const CONFORMANCE_TEST_FILES = [
 
 type Scope = "protocol" | "calibration" | "inference";
 const SCOPE_ORDER: Scope[] = ["calibration", "protocol", "inference"];
+
+type InFlightRebindPreparation = {
+  /** True when preserving the one existing immutable rebind event. */
+  continuation: boolean;
+  attemptId: string;
+  declarationSha256: string;
+  baselineLabel: string;
+  baselineCandidateFingerprint: string;
+  baselineSnapshotSha256: string;
+  baselineSuiteFingerprint: string;
+  baselineCacheManifestFingerprint: string;
+  from: { inference: string; protocol: string; calibration: string };
+  runnerCompatibility: RunnerCompatibilityApproval;
+};
 
 export type MigrationRecord = {
   schema: typeof MIGRATION_RECORD_SCHEMA;
@@ -116,6 +142,9 @@ export type PendingMigration = {
   fixtureBeforeSha256: string;
   fixtureBytes: string | null;
   record: MigrationRecord;
+  protocolRebind?: ProtocolRebindEvent;
+  /** An already-rebound attempt allowed this protocol-only publication. */
+  inFlightRebindContinuationAttemptId?: string;
 };
 
 export type MigrationPublicationOptions = {
@@ -162,6 +191,7 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   const behavior = argument("alters-decision-behavior");
   const reason = argument("reason");
   const operator = argument("operator") ?? process.env.USER ?? "";
+  const rebindAttemptId = argument("rebind-inflight");
   const approve = argv.includes("--approve");
   if (declaredScope === undefined || !SCOPE_ORDER.includes(declaredScope)) {
     throw new Error(`--scope must be protocol|calibration|inference`);
@@ -173,12 +203,27 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     throw new Error(`migration requires --approve, --reason=..., and an operator (--operator= or $USER)`);
   }
 
-  // No attempt may be in flight.
+  // Ordinary migrations may not run while an attempt is in flight.  The
+  // explicit rebind spelling is the sole exception, and is narrowed further
+  // once the current contract/cache/runner proof are available below.
+  let inFlightAttemptId: string | null = null;
   if (existsSync("benchmark/v2/attempts.jsonl")) {
     const era = readEraState();
-    if (era.inFlightAttemptId !== null) {
+    inFlightAttemptId = era.inFlightAttemptId;
+    if (era.inFlightAttemptId !== null && rebindAttemptId === undefined) {
       throw new Error(`an eval attempt is in flight (${era.inFlightAttemptId}); migrations require no attempt in flight`);
     }
+    if (rebindAttemptId !== undefined && era.inFlightAttemptId !== rebindAttemptId) {
+      throw new Error(
+        `--rebind-inflight=${rebindAttemptId} requires that exact attempt to be in flight ` +
+        `(in flight: ${era.inFlightAttemptId ?? "none"})`,
+      );
+    }
+  } else if (rebindAttemptId !== undefined) {
+    throw new Error(`--rebind-inflight requires an attempts ledger and an in-flight attempt`);
+  }
+  if (rebindAttemptId !== undefined && (declaredScope !== "protocol" || behavior !== "no")) {
+    throw new Error(`--rebind-inflight is limited to --scope=protocol --alters-decision-behavior=no`);
   }
 
   // File-hash diff against the last ledger record.
@@ -273,6 +318,17 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     throw new Error(`current suite fingerprint differs from the baseline; suite changes are a rollover, not a migration`);
   }
 
+  const rebind = rebindAttemptId === undefined
+    ? null
+    : prepareInFlightProtocolRebind({
+      attemptId: rebindAttemptId,
+      inFlightAttemptId,
+      baseline,
+      baselinePath,
+      contract,
+      suiteFingerprint: identity.suiteFingerprint,
+    });
+
   // Conformance: vitest subset + fixture replay.
   console.log(`conformance: vitest subset (${CONFORMANCE_TEST_FILES.length} files)...`);
   execFileSync("npx", ["vitest", "run", ...CONFORMANCE_TEST_FILES], {
@@ -311,7 +367,9 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     }
   }
 
-  // Re-stamp baseline (v8 -> v9 upgrade on bootstrap), state, and the doc.
+  // Re-stamp decision identities without discarding a v10 canonical-cache
+  // manifest.  A migration changes the decision contract; it is not licence
+  // to erase immutable baseline evidence or its content-addressed shards.
   const from = {
     inference: baseline.decision_inference_fingerprint ?? null,
     protocol: baseline.decision_protocol_fingerprint ?? null,
@@ -320,7 +378,9 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     suite: baseline.suite_fingerprint,
   };
   delete baseline.decision_fingerprint;
-  baseline.schema = "line.benchmark-v2.baseline-reference.v9";
+  baseline.schema = baseline.canonical_cache === undefined
+    ? "line.benchmark-v2.baseline-reference.v9"
+    : "line.benchmark-v2.baseline-reference.v10";
   baseline.decision_inference_fingerprint = contract.inferenceFingerprint;
   baseline.decision_protocol_fingerprint = contract.protocolFingerprint;
   baseline.decision_calibration_fingerprint = contract.calibrationFingerprint;
@@ -364,6 +424,17 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     },
     bootstrap,
   };
+  const protocolRebind = rebind === null || rebind.continuation ? undefined : protocolRebindEvent({
+    preparation: rebind,
+    record,
+    to: {
+      inference: contract.inferenceFingerprint,
+      protocol: contract.protocolFingerprint,
+      calibration: contract.calibrationFingerprint,
+    },
+    reason,
+    operator,
+  });
   publishMigration({
     record,
     previousMigrationId: lastRecord?.migrationId ?? null,
@@ -373,6 +444,10 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
     baseline,
     fixtureBeforeSha256,
     fixtureBytes: replacementFixtureBytes,
+    protocolRebind,
+    ...(rebind?.continuation === true
+      ? { inFlightRebindContinuationAttemptId: rebind.attemptId }
+      : {}),
   });
   const summary = {
     migrationId: record.migrationId,
@@ -386,6 +461,183 @@ export async function runMigrationCommand(argv = process.argv.slice(2)): Promise
   return 0;
 }
 
+function prepareInFlightProtocolRebind(input: {
+  attemptId: string;
+  inFlightAttemptId: string | null;
+  baseline: any;
+  baselinePath: string;
+  contract: DecisionContractIdentity;
+  suiteFingerprint: string;
+}): InFlightRebindPreparation {
+  if (input.inFlightAttemptId !== input.attemptId) {
+    throw new Error(`protocol rebind requires the named attempt to remain in flight`);
+  }
+  const events = readAttemptEvents();
+  const declare = events.find((event: any) =>
+    event.type === "declare" && event.attemptId === input.attemptId,
+  );
+  if (declare === undefined) throw new Error(`protocol rebind cannot find the active attempt declaration`);
+  const { declaration, declarationSha256 } = readEvalDeclaration(resolve(declare.declarationPath));
+  if (declarationSha256 !== declare.declarationSha256 || declaration.baselineCache === undefined) {
+    throw new Error(`protocol rebind requires an intact fixed-N cache-backed declaration`);
+  }
+  const from = {
+    inference: declaration.baselineInferenceFingerprint,
+    protocol: declaration.baselineProtocolFingerprint,
+    calibration: declaration.baselineCalibrationFingerprint,
+  };
+  if (
+    from.inference !== input.baseline.decision_inference_fingerprint ||
+    from.calibration !== input.baseline.decision_calibration_fingerprint ||
+    input.contract.inferenceFingerprint !== from.inference ||
+    input.contract.calibrationFingerprint !== from.calibration ||
+    declaration.baselineLabel !== input.baseline.label ||
+    declaration.baselineCandidateFingerprint !== input.baseline.candidate_fingerprint ||
+    declaration.baselineSnapshotSha256 !== input.baseline.compiler_snapshot?.archiveSha256 ||
+    declaration.baselineSuiteFingerprint !== input.suiteFingerprint
+  ) {
+    throw new Error(`protocol rebind requires unchanged baseline, suite, inference, and calibration identities`);
+  }
+  const cache = readBaselineCache(input.baselinePath);
+  if (
+    cache.cache.baselineLabel !== declaration.baselineLabel ||
+    cache.cache.candidateFingerprint !== declaration.baselineCandidateFingerprint ||
+    cache.cache.suiteFingerprint !== declaration.baselineSuiteFingerprint ||
+    baselineCacheManifestFingerprint(cache.cache) !== declaration.baselineCache.manifestFingerprint ||
+    cacheCoverage(cache.cache) < declaration.depth
+  ) {
+    throw new Error(`protocol rebind requires the immutable declared baseline-cache prefix`);
+  }
+  const currentRunner = fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES);
+  const rebinds = events.filter((event): event is ProtocolRebindEvent =>
+    event.type === "protocol-rebind" && event.attemptId === input.attemptId,
+  );
+  if (rebinds.length > 1) {
+    throw new Error(`protocol rebind continuation requires exactly one immutable rebind event`);
+  }
+  const existing = rebinds[0];
+  if (existing !== undefined) {
+    if (
+      existing.declarationSha256 !== declarationSha256 ||
+      existing.baselineLabel !== declaration.baselineLabel ||
+      existing.baselineCandidateFingerprint !== declaration.baselineCandidateFingerprint ||
+      existing.baselineSnapshotSha256 !== declaration.baselineSnapshotSha256 ||
+      existing.baselineSuiteFingerprint !== declaration.baselineSuiteFingerprint ||
+      existing.baselineCacheManifestFingerprint !== declaration.baselineCache.manifestFingerprint ||
+      existing.from.inference !== from.inference ||
+      existing.from.protocol !== from.protocol ||
+      existing.from.calibration !== from.calibration ||
+      existing.to.inference !== input.baseline.decision_inference_fingerprint ||
+      existing.to.calibration !== input.baseline.decision_calibration_fingerprint ||
+      existing.to.protocol === from.protocol ||
+      existing.to.inference !== input.contract.inferenceFingerprint ||
+      existing.to.calibration !== input.contract.calibrationFingerprint ||
+      existing.runnerCompatibility.fromImplementationFingerprint !== input.baseline.development?.implementation_fingerprint
+    ) {
+      throw new Error(`protocol rebind continuation does not preserve this attempt's immutable decision inputs`);
+    }
+    const recordedApproval = runnerCompatibilityApproval(
+      existing.runnerCompatibility.fromImplementationFingerprint,
+      existing.runnerCompatibility.toImplementationFingerprint,
+      input.suiteFingerprint,
+    );
+    const currentApproval = runnerCompatibilityApproval(
+      existing.runnerCompatibility.fromImplementationFingerprint,
+      currentRunner,
+      input.suiteFingerprint,
+    );
+    if (
+      recordedApproval === null ||
+      recordedApproval.evidence.path !== existing.runnerCompatibility.evidencePath ||
+      recordedApproval.evidence.sha256 !== existing.runnerCompatibility.evidenceSha256 ||
+      currentApproval === null
+    ) {
+      throw new Error(`protocol rebind continuation requires a direct current runner-compatibility approval`);
+    }
+    return {
+      continuation: true,
+      attemptId: input.attemptId,
+      declarationSha256,
+      baselineLabel: declaration.baselineLabel,
+      baselineCandidateFingerprint: declaration.baselineCandidateFingerprint,
+      baselineSnapshotSha256: declaration.baselineSnapshotSha256,
+      baselineSuiteFingerprint: declaration.baselineSuiteFingerprint,
+      baselineCacheManifestFingerprint: declaration.baselineCache.manifestFingerprint,
+      from,
+      runnerCompatibility: currentApproval,
+    };
+  }
+  if (
+    from.protocol !== input.baseline.decision_protocol_fingerprint ||
+    input.contract.protocolFingerprint !== from.protocol
+  ) {
+    throw new Error(`protocol rebind requires unchanged baseline, suite, inference, and calibration identities`);
+  }
+  const mismatchedShards = cache.cache.shards.filter(
+    (shard) => shard.implementationFingerprint !== currentRunner,
+  );
+  if (
+    mismatchedShards.length !== 1 ||
+    mismatchedShards[0].firstSeedSlot !== 0 ||
+    mismatchedShards[0].endSeedSlotExclusive !== 48 ||
+    mismatchedShards[0].implementationFingerprint !== input.baseline.development?.implementation_fingerprint
+  ) {
+    throw new Error(`protocol rebind is limited to one retained [0,48) runner-compatibility anchor`);
+  }
+  const approval = runnerCompatibilityApproval(
+    mismatchedShards[0].implementationFingerprint,
+    currentRunner,
+    input.suiteFingerprint,
+  );
+  if (approval === null) throw new Error(`protocol rebind requires a direct runner-compatibility approval`);
+  return {
+    continuation: false,
+    attemptId: input.attemptId,
+    declarationSha256,
+    baselineLabel: declaration.baselineLabel,
+    baselineCandidateFingerprint: declaration.baselineCandidateFingerprint,
+    baselineSnapshotSha256: declaration.baselineSnapshotSha256,
+    baselineSuiteFingerprint: declaration.baselineSuiteFingerprint,
+    baselineCacheManifestFingerprint: declaration.baselineCache.manifestFingerprint,
+    from,
+    runnerCompatibility: approval,
+  };
+}
+
+function protocolRebindEvent(input: {
+  preparation: InFlightRebindPreparation;
+  record: MigrationRecord;
+  to: { inference: string; protocol: string; calibration: string };
+  reason: string;
+  operator: string;
+}): ProtocolRebindEvent {
+  const { preparation, record } = input;
+  return {
+    schema: "line.benchmark-v2.attempt-event.v1",
+    at: record.performedAt,
+    type: "protocol-rebind",
+    attemptId: preparation.attemptId,
+    declarationSha256: preparation.declarationSha256,
+    baselineLabel: preparation.baselineLabel,
+    baselineCandidateFingerprint: preparation.baselineCandidateFingerprint,
+    baselineSnapshotSha256: preparation.baselineSnapshotSha256,
+    baselineSuiteFingerprint: preparation.baselineSuiteFingerprint,
+    from: preparation.from,
+    to: input.to,
+    baselineCacheManifestFingerprint: preparation.baselineCacheManifestFingerprint,
+    migrationId: record.migrationId,
+    runnerCompatibility: {
+      fromImplementationFingerprint: preparation.runnerCompatibility.fromImplementationFingerprint,
+      toImplementationFingerprint: preparation.runnerCompatibility.toImplementationFingerprint,
+      suiteFingerprint: preparation.runnerCompatibility.suiteFingerprint,
+      evidencePath: preparation.runnerCompatibility.evidence.path,
+      evidenceSha256: preparation.runnerCompatibility.evidence.sha256,
+    },
+    reason: input.reason,
+    operator: input.operator,
+  };
+}
+
 export function publishMigration(input: {
   record: MigrationRecord;
   previousMigrationId: string | null;
@@ -395,6 +647,8 @@ export function publishMigration(input: {
   baseline: any;
   fixtureBeforeSha256: string;
   fixtureBytes: string | null;
+  protocolRebind?: ProtocolRebindEvent;
+  inFlightRebindContinuationAttemptId?: string;
 }, options: MigrationPublicationOptions = {}): void {
   const pendingPath = options.pendingPath ?? MIGRATION_PENDING_PATH;
   const conflictingPendingPath = options.conflictingPendingPath ?? BASELINE_PUBLICATION_PENDING_PATH;
@@ -402,7 +656,13 @@ export function publishMigration(input: {
   const fixturePath = options.fixturePath ?? CONFORMANCE_FIXTURE_PATH;
   const restamp = options.restampBaselineDoc ?? restampBaselineDoc;
   withAttemptLedgerTransaction(options.attemptPaths, (transaction) => {
-    assertNoAttemptInFlight(transaction.state, "migration publication");
+    assertMigrationAttemptAllowance(
+      transaction.state,
+      input.protocolRebind,
+      input.inFlightRebindContinuationAttemptId,
+      "migration publication",
+      transaction.assertAllowed,
+    );
     if (existsSync(conflictingPendingPath)) {
       throw new Error(`baseline publication became pending while migration conformance was running; recover it first`);
     }
@@ -426,6 +686,10 @@ export function publishMigration(input: {
       fixtureBeforeSha256: input.fixtureBeforeSha256,
       fixtureBytes: input.fixtureBytes,
       record: input.record,
+      ...(input.protocolRebind === undefined ? {} : { protocolRebind: input.protocolRebind }),
+      ...(input.inFlightRebindContinuationAttemptId === undefined
+        ? {}
+        : { inFlightRebindContinuationAttemptId: input.inFlightRebindContinuationAttemptId }),
     };
     writeAtomic(pendingPath, `${JSON.stringify(pending, null, 2)}\n`);
     options.afterJournal?.();
@@ -436,8 +700,45 @@ export function publishMigration(input: {
     restamp(input.baseline);
     appendFileDurable(migrationsLedgerPath, `${JSON.stringify(input.record)}\n`);
     options.afterLedgerAppend?.();
+    if (input.protocolRebind !== undefined) transaction.append(input.protocolRebind);
     removeFileDurable(pendingPath);
   });
+}
+
+/**
+ * A protocol migration normally requires a quiet ledger.  The sole exception
+ * is an active fixed-N attempt that has already received its one immutable
+ * rebind event; a later archive-only repair may carry that same attempt
+ * forward, but may neither append nor replace the event.
+ */
+function assertMigrationAttemptAllowance(
+  state: EraState,
+  protocolRebind: ProtocolRebindEvent | undefined,
+  continuationAttemptId: string | undefined,
+  operation: string,
+  assertAllowed: (event: ProtocolRebindEvent) => void,
+): void {
+  if (protocolRebind !== undefined && continuationAttemptId !== undefined) {
+    throw new Error(`migration cannot append and continue a protocol rebind in the same publication`);
+  }
+  if (protocolRebind !== undefined) {
+    assertAllowed(protocolRebind);
+    return;
+  }
+  if (continuationAttemptId === undefined) {
+    assertNoAttemptInFlight(state, operation);
+    return;
+  }
+  if (state.inFlightAttemptId !== continuationAttemptId) {
+    throw new Error(
+      `${operation} continuation requires active attempt ${continuationAttemptId} ` +
+      `(in flight: ${state.inFlightAttemptId ?? "none"})`,
+    );
+  }
+  const attempt = state.attempts.find((candidate) => candidate.attemptId === continuationAttemptId);
+  if (attempt?.protocolRebindCount !== 1) {
+    throw new Error(`${operation} continuation requires exactly one immutable protocol rebind`);
+  }
 }
 
 /** Complete or clean up a publication interrupted after its durable journal. */
@@ -457,7 +758,18 @@ export function recoverPendingMigration(options: MigrationPublicationOptions = {
     throw new Error(`pending migration publication is malformed; inspect ${pendingPath}`);
   }
   return withAttemptLedgerTransaction(options.attemptPaths, (transaction) => {
-    assertNoAttemptInFlight(transaction.state, "migration recovery");
+    const recordedRebind = pending.protocolRebind === undefined
+      ? undefined
+      : transaction.events.find((event) =>
+        event.type === "protocol-rebind" && event.migrationId === pending.protocolRebind!.migrationId,
+      );
+    assertMigrationAttemptAllowance(
+      transaction.state,
+      recordedRebind === undefined ? pending.protocolRebind : undefined,
+      pending.inFlightRebindContinuationAttemptId,
+      "migration recovery",
+      transaction.assertAllowed,
+    );
     if (existsSync(conflictingPendingPath)) {
       throw new Error(`baseline publication is also pending; inspect both journals before recovery`);
     }
@@ -484,6 +796,11 @@ export function recoverPendingMigration(options: MigrationPublicationOptions = {
     restamp(JSON.parse(pending.baselineBytes));
     if (lastId !== pending.record.migrationId) {
       appendFileDurable(migrationsLedgerPath, `${JSON.stringify(pending.record)}\n`);
+    }
+    if (pending.protocolRebind !== undefined && !transaction.events.some((event) =>
+      event.type === "protocol-rebind" && event.migrationId === pending.protocolRebind!.migrationId,
+    )) {
+      transaction.append(pending.protocolRebind);
     }
     removeFileDurable(pendingPath);
     return pending.record;

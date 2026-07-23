@@ -87,6 +87,59 @@ export function runnerCompatibilityApproval(
   if (approval === undefined) {
     throw new Error(`runner implementation fingerprints differ without an approved compatibility record`);
   }
+  assertValidApproval(approval);
+  return approval;
+}
+
+/**
+ * Require runner equivalence for a baseline assembled from retained evidence.
+ * Besides an ordinary direct approval, accept exactly one simple transitive
+ * form: both implementations independently replayed bit-identically against
+ * the same frozen anchor under the same suite/protocol.  This is equality by
+ * shared evidence, not a general approval graph.
+ */
+export function assertRunnerImplementationsCompatible(
+  firstImplementationFingerprint: string,
+  secondImplementationFingerprint: string,
+  suiteFingerprint: string,
+  path = DEFAULT_RUNNER_COMPATIBILITY_PATH,
+): void {
+  if (firstImplementationFingerprint === secondImplementationFingerprint) return;
+  const manifest = JSON.parse(readFileSync(path, "utf8")) as {
+    schema: string;
+    approvals: RunnerCompatibilityApproval[];
+  };
+  if (manifest.schema !== RUNNER_COMPATIBILITY_SCHEMA || !Array.isArray(manifest.approvals)) {
+    throw new Error(`unsupported runner compatibility manifest`);
+  }
+  const matching = manifest.approvals.filter((entry) =>
+    entry.executionProtocol === BENCHMARK_EXECUTION_PROTOCOL &&
+    entry.suiteFingerprint === suiteFingerprint,
+  );
+  const direct = matching.find((entry) =>
+    entry.fromImplementationFingerprint === firstImplementationFingerprint &&
+    entry.toImplementationFingerprint === secondImplementationFingerprint,
+  );
+  if (direct !== undefined) {
+    assertValidApproval(direct);
+    return;
+  }
+  const firstProofs = matching.filter((entry) => entry.toImplementationFingerprint === firstImplementationFingerprint);
+  const secondProofs = matching.filter((entry) => entry.toImplementationFingerprint === secondImplementationFingerprint);
+  for (const firstProof of firstProofs) {
+    const secondProof = secondProofs.find((entry) =>
+      entry.fromImplementationFingerprint === firstProof.fromImplementationFingerprint,
+    );
+    if (secondProof !== undefined) {
+      assertValidApproval(firstProof);
+      assertValidApproval(secondProof);
+      return;
+    }
+  }
+  throw new Error(`runner implementation fingerprints differ without direct or common-anchor compatibility evidence`);
+}
+
+function assertValidApproval(approval: RunnerCompatibilityApproval): void {
   if (
     approval.reviewedBy.trim() === "" || !Number.isFinite(Date.parse(approval.reviewedAt)) ||
     approval.rationale.trim() === "" || approval.evidence.result !== "bit-identical" ||
@@ -98,5 +151,4 @@ export function runnerCompatibilityApproval(
   if (evidenceSha256 !== approval.evidence.sha256) {
     throw new Error(`runner compatibility evidence checksum mismatch`);
   }
-  return approval;
 }

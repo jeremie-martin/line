@@ -11,10 +11,12 @@ import { runRebaselineCommand, runTransitionCommand } from "../v0/benchmark_v2/r
 import { benchmarkEvalPolicy } from "../../benchmark/v2/eval-policy.ts";
 import { runStatusCommand } from "../v0/benchmark_v2/status.ts";
 import { runFamilyCommand } from "../v0/benchmark_v2/family.ts";
+import { runBaselineCacheCommand } from "../v0/benchmark_v2/baseline_cache_command.ts";
+import { runCalibrateOperatingPointCommand } from "./calibrate_operating_point.ts";
 
 const COMMAND_ALIASES = new Set([
   "probe", "eval", "canonical", "baseline", "rebaseline", "transition", "decide", "migrate", "prepare", "explain",
-  "status", "family", "help", "--probe", "--help", "-h",
+  "status", "family", "baseline-cache", "calibrate-point", "help", "--probe", "--help", "-h",
 ]);
 const raw = process.argv.slice(2);
 const jsonOutput = raw.includes("--json");
@@ -32,7 +34,12 @@ try {
 
 async function main(rawArgs: string[]): Promise<void> {
   const command = commandName(rawArgs);
-  const args = rawArgs.filter((arg) => !COMMAND_ALIASES.has(arg));
+  // `baseline-cache status` uses `status` as a subcommand, not the top-level
+  // status command.  Keep it after selecting the command so the cache parser
+  // can see its verb.
+  const args = rawArgs.filter((arg) =>
+    !COMMAND_ALIASES.has(arg) || (command === "baseline-cache" && arg === "status")
+  );
   const commandArgs = args.filter((arg) =>
     arg !== "--no-resource-stats" && !arg.startsWith("--resource-interval=")
   );
@@ -41,6 +48,20 @@ async function main(rawArgs: string[]): Promise<void> {
     printHelp();
   } else if (command === "status") {
     process.exitCode = runStatusCommand(commandArgs);
+  } else if (command === "baseline-cache") {
+    const action = commandArgs.find((arg) => !arg.startsWith("--"));
+    if (action === "status") {
+      process.exitCode = runBaselineCacheCommand(commandArgs);
+    } else {
+      const prepared = await prepareBenchmarkV2();
+      console.log(
+        `Prepared ${prepared.developmentCases} development + ${prepared.qualificationCases} qualification cases; ` +
+        `audit ${prepared.auditFingerprint.slice(0, 16)}; listening review ${prepared.listeningReviewStatus}`,
+      );
+      process.exitCode = await monitored("baseline-cache", args, async () => runBaselineCacheCommand(commandArgs));
+    }
+  } else if (command === "calibrate-point") {
+    process.exitCode = await monitored("calibrate-point", args, async () => runCalibrateOperatingPointCommand(commandArgs));
   } else if (command === "explain") {
     if (jsonOutput) {
       throw new Error(`explain does not support --json; use --out=<path> for its report artifacts`);
@@ -205,11 +226,13 @@ async function monitored<T>(label: string, args: string[], run: () => Promise<T>
 
 function commandName(
   args: string[],
-): "probe" | "eval" | "canonical" | "baseline" | "rebaseline" | "transition" | "decide" | "migrate" | "prepare" | "explain" | "status" | "family" | "help" {
+): "probe" | "eval" | "canonical" | "baseline" | "rebaseline" | "transition" | "decide" | "migrate" | "prepare" | "explain" | "status" | "family" | "baseline-cache" | "calibrate-point" | "help" {
   if (args.includes("full") || args.includes("--full")) {
     throw new Error(`the full profile was retired; use \`eval --to-verdict\` for certified confirmation`);
   }
   if (args.includes("help") || args.includes("--help") || args.includes("-h")) return "help";
+  if (args.includes("baseline-cache")) return "baseline-cache";
+  if (args.includes("calibrate-point")) return "calibrate-point";
   if (args.includes("status")) return "status";
   if (args.includes("family")) return "family";
   if (args.includes("eval")) return "eval";
@@ -235,13 +258,20 @@ function printHelp(): void {
   console.log(`Benchmark V2\n\n` +
     `  npm run benchmark -- eval        Stage 0: informational screen of the current tree vs the baseline (probe is a deprecated alias)\n` +
     `  npm run benchmark -- status      Read-only baseline, era budget, certified cost, timing, and rebaseline blockers\n` +
+    `  npm run benchmark -- baseline-cache status --seeds=N\n` +
+    `  npm run benchmark -- baseline-cache extend --seeds=N [--jobs=48] [--resume]\n` +
+    `                                   Immutable baseline prefix cache; extension compiles only a missing tail\n` +
+    `  npm run benchmark -- calibrate-point --mode=improve --seeds=N [--workers=32] [--smoke]\n` +
+    `                                   Register a fully calibrated fixed-N promotion point; power is reported, safety is gated\n` +
     `  npm run benchmark -- family capture NAME --variant=ID [--note=TEXT]\n` +
     `  npm run benchmark -- family run NAME [--seeds=6] [--jobs=N]\n` +
     `  npm run benchmark -- family select NAME --variant=ID [--reason=TEXT]\n` +
     `                                   Shared-seed descriptive variant exploration; selection then enters fresh certified eval\n` +
-    `  npm run benchmark -- eval --to-verdict [--mode=improve] [--acknowledge-retry] [--resume] [--json]\n` +
+    `  npm run benchmark -- eval --to-verdict [--mode=improve] [--depth=N] [--acknowledge-retry] [--resume] [--json]\n` +
+    `  npm run benchmark -- eval --to-verdict --seeds=N [--mode=improve] [--acknowledge-retry] [--resume] [--json]\n` +
+    `                                   Cache-backed fixed-N promotion: candidate-only compile, immutable baseline prefix, no interim looks\n` +
     `  npm run benchmark -- eval --to-verdict --mode=simplify --margin=5 [--acknowledge-retry] [--resume] [--json]\n` +
-    `                                   Declared, certified confirmation: fresh paired epoch, futility looks, verdict\n` +
+    `                                   Declared, certified confirmation: fresh paired epoch, row-specific stopping rule, verdict\n` +
     `  npm run benchmark -- eval --abort-in-flight --reason=...\n` +
     `                                   Settle an infrastructure-broken attempt; its declared spend remains charged\n` +
     `  npm run benchmark -- eval --correct-aborted-spend --attempt=ID --reason=... --operator=...\n` +

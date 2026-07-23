@@ -12,10 +12,10 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { createReadStream, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { resolve } from "node:path";
-import { gunzipSync } from "node:zlib";
+import { createGunzip } from "node:zlib";
 import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import {
   assertNoAttemptInFlight,
@@ -27,6 +27,7 @@ import {
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import { assertCompilerSourcesCommitted } from "./compiler_identity.ts";
 import {
+  discardUntouchedPendingBaselinePublication,
   publishBaselineWithLedger,
   recoverPendingBaselinePublication,
 } from "./baseline_publication.ts";
@@ -41,14 +42,19 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
     argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
   if (process.env.LR_ENGINE !== "wasm") throw new Error(`rebaseline requires LR_ENGINE=wasm`);
   const label = argument("label");
-  if (label === undefined || label.trim() === "") throw new Error(`rebaseline requires --label=<new baseline label>`);
-  const safeLabel = label.replace(/[^a-zA-Z0-9_.-]+/g, "-");
   const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
   const ledgerPaths = {
     ledger: resolve(argument("attempts-ledger") ?? "benchmark/v2/attempts.jsonl"),
     projection: resolve(argument("era-state") ?? "benchmark/v2/era-state.json"),
   };
   const jobs = Number(argument("jobs") ?? Math.min(48, availableParallelism()));
+  if (argv.includes("--discard-pending")) {
+    discardUntouchedPendingBaselinePublication({ paths: ledgerPaths });
+    console.log(`discarded an untouched pending baseline publication; re-run rebaseline after the required migration`);
+    return 0;
+  }
+  if (label === undefined || label.trim() === "") throw new Error(`rebaseline requires --label=<new baseline label>`);
+  const safeLabel = label.replace(/[^a-zA-Z0-9_.-]+/g, "-");
   recoverPendingBaselinePublication({ paths: ledgerPaths });
   assertCompilerSourcesCommitted();
 
@@ -134,9 +140,9 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
       },
       compilerSnapshot: JSON.parse(readFileSync(resolve(declare.declarationPath), "utf8")).candidateSnapshot,
       decisionContract: requireCurrentDecisionCalibration(suite.suiteFingerprint),
-      probe: retainedEntry(probeRetained),
-      development: retainedEntry(developmentArchive),
-      qualification: retainedEntry(qualificationArchive),
+      probe: await retainedEntry(probeRetained),
+      development: await retainedEntry(developmentArchive),
+      qualification: await retainedEntry(qualificationArchive),
     };
     bundlePath = resolve(archiveDir, `${safeLabel}-baseline.json`);
     writeFileAtomicDurable(bundlePath, `${JSON.stringify(bundle, null, 2)}\n`);
@@ -200,21 +206,22 @@ export function runTransitionCommand(argv = process.argv.slice(2)): number {
   return state.transitionPending ? 0 : 1;
 }
 
-function retainedEntry(compressedPath: string): {
+async function retainedEntry(compressedPath: string): Promise<{
   retainedCompressedArchive: string;
   compressedSha256: string;
   sha256: string;
-} {
-  const bytes = readFileSync(compressedPath);
+}> {
   return {
     retainedCompressedArchive: relativeToCwd(compressedPath),
-    compressedSha256: sha256(bytes),
-    sha256: sha256(gunzipSync(bytes)),
+    compressedSha256: await sha256Stream(createReadStream(compressedPath)),
+    sha256: await sha256Stream(createReadStream(compressedPath).pipe(createGunzip())),
   };
 }
 
-function sha256(value: Buffer): string {
-  return createHash("sha256").update(value).digest("hex");
+async function sha256Stream(stream: AsyncIterable<Buffer | string>): Promise<string> {
+  const hash = createHash("sha256");
+  for await (const chunk of stream) hash.update(chunk);
+  return hash.digest("hex");
 }
 
 function relativeToCwd(path: string): string {

@@ -25,6 +25,7 @@ import {
 } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
+import { registeredFixedNAsEvalPoint } from "./operating_points.ts";
 import {
   EVAL_DECLARATION_SCHEMA,
   readBaselineContract,
@@ -72,6 +73,9 @@ export type DeclareEvent = EventEnvelope & {
   seedCount: number;
   seedScheduleFingerprint: string;
   retryAcknowledged: boolean;
+  /** Cache-backed attempts intentionally reuse the immutable baseline ladder.
+   * They are not fresh seed epochs and therefore must not enter seedLedger. */
+  baselineCacheReuse?: boolean;
 };
 
 export type LookEvent = EventEnvelope & {
@@ -126,6 +130,36 @@ export type AbortEvent = EventEnvelope & {
   reason: string;
 };
 
+/**
+ * A one-off, protocol-only rebind lets an already-declared fixed-N attempt
+ * survive an operational runner repair.  It never changes the declaration,
+ * seeds, cached baseline, inference, calibration, or alpha charge.  The
+ * migration command creates it only after it has verified a direct
+ * bit-identical runner replay.
+ */
+export type ProtocolRebindEvent = EventEnvelope & {
+  type: "protocol-rebind";
+  attemptId: string;
+  declarationSha256: string;
+  baselineLabel: string;
+  baselineCandidateFingerprint: string;
+  baselineSnapshotSha256: string;
+  baselineSuiteFingerprint: string;
+  from: { inference: string; protocol: string; calibration: string };
+  to: { inference: string; protocol: string; calibration: string };
+  baselineCacheManifestFingerprint: string;
+  migrationId: string;
+  runnerCompatibility: {
+    fromImplementationFingerprint: string;
+    toImplementationFingerprint: string;
+    suiteFingerprint: string;
+    evidencePath: string;
+    evidenceSha256: string;
+  };
+  reason: string;
+  operator: string;
+};
+
 export type AccountingCorrectionEvent = EventEnvelope & {
   type: "accounting-correction";
   reason: string;
@@ -147,6 +181,7 @@ export type AttemptEvent =
   | TransitionEvent
   | BaselineTransitionCompleteEvent
   | AbortEvent
+  | ProtocolRebindEvent
   | AccountingCorrectionEvent;
 
 /** A caller-supplied event: the schema envelope and `at` are filled on append. */
@@ -164,6 +199,8 @@ export type EraAttempt = {
   outcome: string | null;
   /** Formal interim looks recorded for this attempt; progress output is not a look. */
   lookCount: number;
+  /** At most one audited protocol-only rebind is allowed while an attempt is active. */
+  protocolRebindCount: number;
 };
 
 export type EraState = {
@@ -212,6 +249,7 @@ const KNOWN_EVENT_TYPES = new Set<AttemptEvent["type"]>([
   "transition",
   "baseline-transition-complete",
   "abort",
+  "protocol-rebind",
   "accounting-correction",
 ]);
 
@@ -295,13 +333,16 @@ export function projectEraState(events: AttemptEvent[]): EraState {
           declaredAt: event.at,
           outcome: null,
           lookCount: 0,
+          protocolRebindCount: 0,
         });
-        declaredSeedLedger.push({
-          attemptId: event.attemptId,
-          canonicalSeedBase: event.canonicalSeedBase,
-          seedCount: event.seedCount,
-          seedScheduleFingerprint: event.seedScheduleFingerprint,
-        });
+        if (event.baselineCacheReuse !== true) {
+          declaredSeedLedger.push({
+            attemptId: event.attemptId,
+            canonicalSeedBase: event.canonicalSeedBase,
+            seedCount: event.seedCount,
+            seedScheduleFingerprint: event.seedScheduleFingerprint,
+          });
+        }
         inFlightAttemptId = event.attemptId;
         break;
       }
@@ -320,6 +361,12 @@ export function projectEraState(events: AttemptEvent[]): EraState {
       case "abort":
         settle(event.attemptId, "aborted");
         break;
+      case "protocol-rebind": {
+        const index = attempts.findIndex((attempt) => attempt.attemptId === event.attemptId);
+        if (index < 0) throw new Error(`malformed attempts ledger: protocol rebind references unknown attempt ${event.attemptId}`);
+        attempts[index] = { ...attempts[index], protocolRebindCount: attempts[index].protocolRebindCount + 1 };
+        break;
+      }
       case "override":
         budgetCap = event.newCap;
         break;
@@ -567,6 +614,9 @@ function assertEventAllowed(state: EraState, event: AttemptEvent): void {
         );
       }
       return;
+    case "protocol-rebind":
+      assertProtocolRebindAllowed(state, event);
+      return;
     case "override":
       if (event.eraId !== state.eraId) {
         throw new Error(`override refused: eraId ${event.eraId} does not match current era ${state.eraId ?? "none"}`);
@@ -597,6 +647,30 @@ function assertEventAllowed(state: EraState, event: AttemptEvent): void {
       assertNoAttemptInFlight(state, "accounting correction");
       assertAccountingCorrection(state, event);
       return;
+  }
+}
+
+function assertProtocolRebindAllowed(state: EraState, event: ProtocolRebindEvent): void {
+  if (state.inFlightAttemptId === null || event.attemptId !== state.inFlightAttemptId) {
+    throw new Error(
+      `no attempt ${event.attemptId} is in flight (in flight: ${state.inFlightAttemptId ?? "none"}); ` +
+      `a protocol rebind can only bind the active attempt`,
+    );
+  }
+  const attempt = state.attempts.find((candidate) => candidate.attemptId === event.attemptId);
+  if (attempt === undefined) throw new Error(`protocol rebind references unknown attempt ${event.attemptId}`);
+  if (attempt.protocolRebindCount !== 0) {
+    throw new Error(`attempt ${event.attemptId} already has a protocol rebind; restart rather than chain rebinds`);
+  }
+  if (
+    event.from.inference !== event.to.inference ||
+    event.from.calibration !== event.to.calibration ||
+    event.from.protocol === event.to.protocol
+  ) {
+    throw new Error(`protocol rebind must preserve inference/calibration and change only the protocol fingerprint`);
+  }
+  if (event.baselineSuiteFingerprint !== event.runnerCompatibility.suiteFingerprint) {
+    throw new Error(`protocol rebind runner evidence must bind the declared suite`);
   }
 }
 
@@ -685,18 +759,22 @@ function assertDeclareAllowed(state: EraState, event: DeclareEvent): void {
   if (state.attempts.some((attempt) => attempt.attemptId === event.attemptId)) {
     throw new Error(`declare refused: attemptId ${event.attemptId} already exists`);
   }
-  const end = event.canonicalSeedBase + event.seedCount;
-  if (!Number.isSafeInteger(end)) throw new Error(`declare seed interval exceeds the safe integer range`);
-  const overlap = state.seedLedger.find((entry) =>
-    event.canonicalSeedBase < entry.canonicalSeedBase + entry.seedCount &&
-    entry.canonicalSeedBase < end
-  );
-  if (overlap !== undefined) {
-    throw new Error(`declare seed interval overlaps prior attempt ${overlap.attemptId}`);
+  if (event.baselineCacheReuse !== true) {
+    const end = event.canonicalSeedBase + event.seedCount;
+    if (!Number.isSafeInteger(end)) throw new Error(`declare seed interval exceeds the safe integer range`);
+    const overlap = state.seedLedger.find((entry) =>
+      event.canonicalSeedBase < entry.canonicalSeedBase + entry.seedCount &&
+      entry.canonicalSeedBase < end
+    );
+    if (overlap !== undefined) {
+      throw new Error(`declare seed interval overlaps prior attempt ${overlap.attemptId}`);
+    }
   }
   const operatingPoint = benchmarkEvalPolicy.operatingPoints.find(
     (point) => point.id === event.operatingPointId,
-  );
+  ) ?? (event.mode === "improvement" && event.margin === null
+    ? registeredFixedNAsEvalPoint(event.depth)
+    : undefined);
   if (operatingPoint === undefined) {
     throw new Error(`declare refused: operating point ${event.operatingPointId} is not on the certified menu`);
   }
@@ -722,7 +800,11 @@ function assertDeclareAllowed(state: EraState, event: DeclareEvent): void {
 
 function assertDeclareArtifact(
   event: DeclareEvent,
-  operatingPoint: (typeof benchmarkEvalPolicy.operatingPoints)[number],
+  operatingPoint: {
+    criticalAlpha: number;
+    futilitySchedule: readonly number[];
+    futilityAlpha: number;
+  },
 ): void {
   const absolute = resolve(event.declarationPath);
   let bytes: Buffer;
@@ -745,7 +827,10 @@ function assertDeclareArtifact(
   const check = (field: string, actual: unknown, expected: unknown): void => {
     if (JSON.stringify(actual) !== JSON.stringify(expected)) mismatches.push(field);
   };
-  check("schema", declaration.schema, EVAL_DECLARATION_SCHEMA);
+  if (
+    declaration.schema !== EVAL_DECLARATION_SCHEMA &&
+    declaration.schema !== "line.benchmark-v2.eval-declaration.v6"
+  ) mismatches.push("schema");
   check("attemptId", declaration.attemptId, event.attemptId);
   check("candidateFingerprint", declaration.candidateFingerprint, event.candidateFingerprint);
   check("candidateSnapshot.candidateFingerprint", declaration.candidateSnapshot?.candidateFingerprint, event.candidateFingerprint);
@@ -761,6 +846,7 @@ function assertDeclareArtifact(
   check("canonicalSeedBase", declaration.canonicalSeedBase, event.canonicalSeedBase);
   check("seedScheduleFingerprint", declaration.seedScheduleFingerprint, event.seedScheduleFingerprint);
   check("retryAcknowledged", declaration.retryAcknowledged, event.retryAcknowledged);
+  check("baselineCacheReuse", declaration.baselineCache !== undefined, event.baselineCacheReuse === true);
   if (mismatches.length > 0) {
     throw new Error(`declare refused: declaration artifact disagrees with ledger fields: ${mismatches.join(", ")}`);
   }
@@ -836,6 +922,7 @@ function assertAttemptEvent(event: unknown): asserts event is AttemptEvent {
       assertPositiveSafeInteger(candidate.seedCount, "declare.seedCount");
       assertSha256(candidate.seedScheduleFingerprint, "declare.seedScheduleFingerprint");
       assertBoolean(candidate.retryAcknowledged, "declare.retryAcknowledged");
+      if (candidate.baselineCacheReuse !== undefined) assertBoolean(candidate.baselineCacheReuse, "declare.baselineCacheReuse");
       return;
     case "look":
       assertNonEmptyString(candidate.attemptId, "look.attemptId");
@@ -877,6 +964,30 @@ function assertAttemptEvent(event: unknown): asserts event is AttemptEvent {
       assertNonEmptyString(candidate.attemptId, "abort.attemptId");
       assertNonEmptyString(candidate.reason, "abort.reason");
       return;
+    case "protocol-rebind": {
+      assertNonEmptyString(candidate.attemptId, "protocol-rebind.attemptId");
+      assertSha256(candidate.declarationSha256, "protocol-rebind.declarationSha256");
+      assertNonEmptyString(candidate.baselineLabel, "protocol-rebind.baselineLabel");
+      assertSha256(candidate.baselineCandidateFingerprint, "protocol-rebind.baselineCandidateFingerprint");
+      assertSha256(candidate.baselineSnapshotSha256, "protocol-rebind.baselineSnapshotSha256");
+      assertSha256(candidate.baselineSuiteFingerprint, "protocol-rebind.baselineSuiteFingerprint");
+      assertDecisionContractFingerprints(candidate.from, "protocol-rebind.from");
+      assertDecisionContractFingerprints(candidate.to, "protocol-rebind.to");
+      assertSha256(candidate.baselineCacheManifestFingerprint, "protocol-rebind.baselineCacheManifestFingerprint");
+      assertNonEmptyString(candidate.migrationId, "protocol-rebind.migrationId");
+      if (candidate.runnerCompatibility === null || typeof candidate.runnerCompatibility !== "object" || Array.isArray(candidate.runnerCompatibility)) {
+        throw new Error(`protocol-rebind.runnerCompatibility must be an object`);
+      }
+      const compatibility = candidate.runnerCompatibility as Record<string, unknown>;
+      assertSha256(compatibility.fromImplementationFingerprint, "protocol-rebind.runnerCompatibility.fromImplementationFingerprint");
+      assertSha256(compatibility.toImplementationFingerprint, "protocol-rebind.runnerCompatibility.toImplementationFingerprint");
+      assertSha256(compatibility.suiteFingerprint, "protocol-rebind.runnerCompatibility.suiteFingerprint");
+      assertNonEmptyString(compatibility.evidencePath, "protocol-rebind.runnerCompatibility.evidencePath");
+      assertSha256(compatibility.evidenceSha256, "protocol-rebind.runnerCompatibility.evidenceSha256");
+      assertNonEmptyString(candidate.reason, "protocol-rebind.reason");
+      assertNonEmptyString(candidate.operator, "protocol-rebind.operator");
+      return;
+    }
     case "accounting-correction":
       assertNonEmptyString(candidate.reason, "accounting-correction.reason");
       assertNonEmptyString(candidate.operator, "accounting-correction.operator");
@@ -896,6 +1007,16 @@ function assertAttemptEvent(event: unknown): asserts event is AttemptEvent {
   }
 }
 
+function assertDecisionContractFingerprints(value: unknown, label: string): void {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+  const contract = value as Record<string, unknown>;
+  assertSha256(contract.inference, `${label}.inference`);
+  assertSha256(contract.protocol, `${label}.protocol`);
+  assertSha256(contract.calibration, `${label}.calibration`);
+}
+
 function assertSeedLedger(value: unknown, label: string): void {
   if (!Array.isArray(value)) throw new Error(`${label} must be an array`);
   const intervals: Array<{ attemptId: string; start: number; end: number }> = [];
@@ -908,14 +1029,16 @@ function assertSeedLedger(value: unknown, label: string): void {
     assertNonNegativeSafeInteger(record.canonicalSeedBase, `${label}[${index}].canonicalSeedBase`);
     assertPositiveSafeInteger(record.seedCount, `${label}[${index}].seedCount`);
     assertSha256(record.seedScheduleFingerprint, `${label}[${index}].seedScheduleFingerprint`);
-    const end = record.canonicalSeedBase + record.seedCount;
+    const seedBase = record.canonicalSeedBase as number;
+    const seedCount = record.seedCount as number;
+    const end = seedBase + seedCount;
     if (!Number.isSafeInteger(end)) throw new Error(`${label}[${index}] seed interval exceeds the safe integer range`);
     if (intervals.some((interval) => interval.attemptId === record.attemptId)) {
       throw new Error(`${label} repeats attemptId ${record.attemptId}`);
     }
-    const overlap = intervals.find((interval) => record.canonicalSeedBase < interval.end && interval.start < end);
+    const overlap = intervals.find((interval) => seedBase < interval.end && interval.start < end);
     if (overlap !== undefined) throw new Error(`${label}[${index}] seed interval overlaps ${overlap.attemptId}`);
-    intervals.push({ attemptId: record.attemptId, start: record.canonicalSeedBase, end });
+    intervals.push({ attemptId: record.attemptId, start: seedBase, end });
   }
 }
 

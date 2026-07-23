@@ -104,6 +104,31 @@ function abort(attemptId: string): AttemptEventInput {
   return { type: "abort", attemptId, reason: "operator abort" } as AttemptEventInput;
 }
 
+function protocolRebind(declarationEvent: any): AttemptEventInput {
+  return {
+    type: "protocol-rebind",
+    attemptId: declarationEvent.attemptId,
+    declarationSha256: declarationEvent.declarationSha256,
+    baselineLabel: "base-A",
+    baselineCandidateFingerprint: fp("base-candidate"),
+    baselineSnapshotSha256: fp("base-snapshot"),
+    baselineSuiteFingerprint: fp("suite"),
+    from: { inference: fp("inference"), protocol: fp("protocol-old"), calibration: fp("calibration") },
+    to: { inference: fp("inference"), protocol: fp("protocol-new"), calibration: fp("calibration") },
+    baselineCacheManifestFingerprint: fp("cache"),
+    migrationId: "migration-1",
+    runnerCompatibility: {
+      fromImplementationFingerprint: fp("runner-old"),
+      toImplementationFingerprint: fp("runner-new"),
+      suiteFingerprint: fp("suite"),
+      evidencePath: "benchmark/v2/evidence/direct-proof.json",
+      evidenceSha256: fp("direct-proof"),
+    },
+    reason: "direct bit-identical runner replay",
+    operator: "codex",
+  } as AttemptEventInput;
+}
+
 describe("era-state projection round-trip", () => {
   test("budgetSpent resets per era while cumulative accumulates", () => {
     const paths = tmpPaths();
@@ -162,6 +187,25 @@ describe("era-state projection round-trip", () => {
     expect(readEraState(paths)).toEqual(final);
     // And the projection is a pure fold of the parsed events.
     expect(projectEraState(readAttemptEvents(paths))).toEqual(final);
+  });
+});
+
+describe("protocol-only rebinds", () => {
+  test("binds the active attempt once without changing its alpha accounting", () => {
+    const paths = tmpPaths();
+    appendAttemptEvent(bootstrap(), paths, nextAt());
+    const declared = declare({ attemptId: "rebind-me" }) as any;
+    const before = appendAttemptEvent(declared, paths, nextAt());
+    const rebound = appendAttemptEvent(protocolRebind(declared), paths, nextAt());
+    expect(rebound.budgetSpent).toBe(before.budgetSpent);
+    expect(rebound.attempts[0]).toMatchObject({
+      attemptId: "rebind-me",
+      outcome: null,
+      lookCount: 0,
+      protocolRebindCount: 1,
+    });
+    expect(() => appendAttemptEvent(protocolRebind(declared), paths, nextAt()))
+      .toThrow(/already has a protocol rebind/);
   });
 });
 

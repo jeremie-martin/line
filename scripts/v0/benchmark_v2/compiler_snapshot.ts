@@ -146,6 +146,18 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
       input: trackedFiles,
       stdio: diagnosticStdioWithInput(),
     });
+    // Benchmark-runner modules belong to the governed execution framework,
+    // not the frozen compiler candidate.  Keep this boundary explicit: a
+    // historical compiler snapshot may predate a newly added runner module,
+    // while the current runner still has to execute that snapshot.  Rsync the
+    // complete framework directory so untracked-in-progress modules are also
+    // available in the isolated worktree; `removeAmbientCompilerSources`
+    // below still removes every compiler-bound source before extraction.
+    mkdirSync(resolve(workspace, "scripts/v0/benchmark_v2"), { recursive: true });
+    execFileSync("rsync", ["-a", "scripts/v0/benchmark_v2/", resolve(workspace, "scripts/v0/benchmark_v2/")], {
+      cwd: process.cwd(),
+      stdio: diagnosticStdio(),
+    });
     // The approved listening-review audio is validation evidence the runner
     // requires; it lives under the otherwise-excluded generated/ tree.
     if (existsSync("generated/benchmark-v2/listening-review")) {

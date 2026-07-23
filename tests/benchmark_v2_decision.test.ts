@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import {
+  pairedV2CalibrationVerdict,
   pairedV2Decision,
+  pairedV2DecisionForCalibration,
   studentTQuantile,
   v2HeadlineForDecisionRuns,
   type DecisionProfile,
@@ -120,6 +122,18 @@ describe("Benchmark V2 decision model", () => {
     expect(decision.confidence.centralLo).toBe(0);
     expect(decision.confidence.centralHi).toBe(0);
     expect(decision.outcome).toBe("inconclusive");
+  });
+
+  test("calibration fast path exactly matches the full calibration verdict", () => {
+    const s = suite();
+    const base = runs(s, "canonical", () => 0);
+    const candidate = runs(s, "canonical", (_source, budget, seedSlot) =>
+      budget === 100 ? [3, -1, 2][seedSlot] : [-2, 4, 1][seedSlot]
+    );
+    const options = { profile: "canonical" as const, mode: "improvement" as const, bootstrapSeed: 0 };
+    const full = pairedV2DecisionForCalibration(base, candidate, s, options);
+    const fast = pairedV2CalibrationVerdict(base, candidate, s, options);
+    expect(fast).toEqual({ delta: full.delta, confidence: full.confidence, outcome: full.outcome });
   });
 
   test("resamples the shared seed as one catalog-wide block", () => {

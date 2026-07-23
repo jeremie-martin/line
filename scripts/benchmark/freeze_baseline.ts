@@ -14,6 +14,11 @@ import {
 } from "../v0/benchmark_v2/compiler_snapshot.ts";
 import { requireCurrentDecisionCalibration } from "../v0/benchmark_v2/calibration_guard.ts";
 import { writeFileAtomicDurable } from "../v0/benchmark_v2/durable_fs.ts";
+import {
+  BASELINE_REFERENCE_CACHE_SCHEMA,
+  initialCanonicalBaselineCache,
+} from "../v0/benchmark_v2/baseline_cache.ts";
+import { assertRunnerImplementationsCompatible } from "../v0/benchmark_v2/runner_compatibility.ts";
 
 export function freezeBaseline(bundleArgument: string): void {
   const bundlePath = resolve(bundleArgument);
@@ -54,9 +59,6 @@ export function freezeBaseline(bundleArgument: string): void {
     ) ||
     archives.some((archive) => archive.identity.engine !== "wasm" || archive.identity.compiler !== "compileHandoff") ||
     archives.some((archive) => archive.identity.suiteFingerprint !== development.identity.suiteFingerprint) ||
-    archives.some((archive) =>
-      archive.identity.implementationFingerprint !== development.identity.implementationFingerprint
-    ) ||
     archives.some((archive) => archive.git.candidateFingerprint !== development.git.candidateFingerprint) ||
     archives.some((archive) => archive.git.compilerIdentityProtocol !== COMPILER_IDENTITY_PROTOCOL) ||
     archives.some((archive) => !validCompilerSourceFiles(archive.git.compilerSourceFiles)) ||
@@ -70,6 +72,13 @@ export function freezeBaseline(bundleArgument: string): void {
     qualification.linkedDevelopment?.sha256 !== bundle.development.sha256
   ) {
     throw new Error(`baseline archives do not share the suite, protocol, candidate, engine, and canonical linkage`);
+  }
+  for (const archive of [probe, qualification]) {
+    assertRunnerImplementationsCompatible(
+      development.identity.implementationFingerprint,
+      archive.identity.implementationFingerprint,
+      development.identity.suiteFingerprint,
+    );
   }
   if (
     bundle.compilerSnapshot.candidateFingerprint !== development.git.candidateFingerprint ||
@@ -85,8 +94,9 @@ export function freezeBaseline(bundleArgument: string): void {
     throw new Error(`decision or calibration contract changed while baseline evidence was running; if the change is intentional, migrate the contract (benchmark migrate) and re-freeze`);
   }
   const catalogLock = JSON.parse(readFileSync("benchmark/v2/catalog.lock.json", "utf8"));
+  const developmentSummary = archiveSummary(development, bundle.development);
   const baseline = {
-    schema: "line.benchmark-v2.baseline-reference.v9",
+    schema: BASELINE_REFERENCE_CACHE_SCHEMA,
     status: "canonical-baseline",
     label: bundle.label,
     generated_at: bundle.generatedAt,
@@ -108,12 +118,18 @@ export function freezeBaseline(bundleArgument: string): void {
     decision_calibration_fingerprint: decisionContract.calibrationFingerprint,
     compiler_snapshot: bundle.compilerSnapshot,
     probe: archiveSummary(probe, bundle.probe),
-    development: archiveSummary(development, bundle.development),
+    development: developmentSummary,
     qualification: {
       ...archiveSummary(qualification, bundle.qualification),
       linked_development_archive_sha256: qualification.linkedDevelopment.sha256,
     },
   };
+  (baseline as any).canonical_cache = initialCanonicalBaselineCache({
+    baselineLabel: baseline.label,
+    candidateFingerprint: baseline.candidate_fingerprint,
+    suiteFingerprint: baseline.suite_fingerprint,
+    development: developmentSummary as any,
+  });
   write("benchmark/v2/baseline.json", `${JSON.stringify(baseline, null, 2)}\n`);
   write("benchmark/v2/probe-baseline.json", `${JSON.stringify({
     schema: "line.benchmark-v2.probe-baseline-reference.v1",
@@ -132,14 +148,73 @@ export function freezeBaseline(bundleArgument: string): void {
   console.log(renderMarkdown(baseline));
 }
 
+const INDEXED_ARCHIVE_THRESHOLD_BYTES = 512 * 1024 * 1024;
+
 function loadRetained(path: string, expectedCompressedSha256: string, expectedArchiveSha256: string): any {
   const bytes = readFileSync(path);
-  const actual = createHash("sha256").update(bytes).digest("hex");
+  const actual = sha256Buffer(bytes);
   if (actual !== expectedCompressedSha256) throw new Error(`${path}: compressed archive checksum mismatch`);
   const archiveBytes = gunzipSync(bytes);
-  const archiveSha256 = createHash("sha256").update(archiveBytes).digest("hex");
+  const archiveSha256 = sha256Buffer(archiveBytes);
   if (archiveSha256 !== expectedArchiveSha256) throw new Error(`${path}: decompressed archive checksum mismatch`);
+  if (archiveBytes.byteLength >= INDEXED_ARCHIVE_THRESHOLD_BYTES) {
+    return loadIndexedRetained(path, archiveBytes, expectedCompressedSha256, expectedArchiveSha256);
+  }
   return JSON.parse(archiveBytes.toString("utf8"));
+}
+
+/**
+ * A deep canonical archive is too large to turn into one JavaScript string.
+ * Its compact decision index is bound both to the compressed evidence and to
+ * the raw archive's embedded payload commitment, so freeze can validate the
+ * exact same evidence without materialising every raw report.
+ */
+function loadIndexedRetained(
+  compressedPath: string,
+  rawArchive: Buffer,
+  expectedCompressedSha256: string,
+  expectedArchiveSha256: string,
+): any {
+  const indexPath = compressedPath.replace(/\.json\.gz$/, ".decision-index.json");
+  if (indexPath === compressedPath) throw new Error(`${compressedPath}: large archive has no decision-index path`);
+  const indexBytes = readFileSync(indexPath);
+  const indexSidecar = readFileSync(`${indexPath}.sha256`, "utf8").trim().split(/\s+/)[0];
+  if (indexSidecar !== sha256Buffer(indexBytes)) throw new Error(`${indexPath}: decision-index checksum mismatch`);
+  const index = JSON.parse(indexBytes.toString("utf8"));
+  if (
+    index.schema !== "line.benchmark-v2.decision-index.v1" ||
+    index.archiveSha256 !== expectedArchiveSha256 ||
+    index.compressedArchiveSha256 !== expectedCompressedSha256 ||
+    typeof index.payloadSha256 !== "string" ||
+    index.archive === null || typeof index.archive !== "object"
+  ) throw new Error(`${indexPath}: decision index does not describe the retained archive`);
+  if (sha256String(JSON.stringify(index.archive)) !== index.payloadSha256) {
+    throw new Error(`${indexPath}: decision-index payload checksum mismatch`);
+  }
+  if (rawDecisionIndexCommitment(rawArchive) !== index.payloadSha256) {
+    throw new Error(`${compressedPath}: raw archive is not bound to its decision index`);
+  }
+  return index.archive;
+}
+
+function rawDecisionIndexCommitment(rawArchive: Buffer): string {
+  const prefix = rawArchive.subarray(0, Math.min(rawArchive.byteLength, 16 * 1024 * 1024)).toString("utf8");
+  const match = prefix.match(/"decisionIndexPayloadSha256"\s*:\s*"([a-f0-9]{64})"/);
+  if (match === null) throw new Error(`large raw archive has no decision-index commitment before runs`);
+  return match[1];
+}
+
+function sha256Buffer(value: Buffer): string {
+  const hash = createHash("sha256");
+  const chunkSize = 1024 * 1024;
+  for (let offset = 0; offset < value.byteLength; offset += chunkSize) {
+    hash.update(value.subarray(offset, Math.min(offset + chunkSize, value.byteLength)));
+  }
+  return hash.digest("hex");
+}
+
+function sha256String(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
 }
 
 function runtimeIdentity(archive: any): string {
@@ -213,6 +288,9 @@ function renderMarkdown(baseline: any): string {
       `Qualification monitor: **${qualification.monitor_score.toFixed(2)}** (indicative only).`,
     "",
     "Probe and confirmation actual seeds are disjoint at every shared budget. Probe evidence screens candidates; only a declared `eval --to-verdict` confirmation can promote one.",
+    "",
+    `Canonical cache: stable ladder through **${(baseline as any).canonical_cache.ladder.maximumSeedsPerBudget}** slots/budget; ` +
+      `accepted development evidence covers slots [0, ${(baseline as any).canonical_cache.shards.at(-1).endSeedSlotExclusive}).`,
     "",
     "| Budget | Probe | Valid | Canonical | Valid | Qualification | Valid |",
     "|---:|---:|---:|---:|---:|---:|---:|",

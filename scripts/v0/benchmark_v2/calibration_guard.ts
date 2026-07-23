@@ -6,8 +6,8 @@ import { benchmarkDecisionCalibrationPolicy } from "../../../benchmark/v2/decisi
 import {
   benchmarkEvalPolicy,
   evalOperatingPoint,
-  EVAL_CERTIFICATION_ARTIFACT_PATHS,
   type CertifiedCellReference,
+  type EvalCertificationArtifactPaths,
   type EvalOperatingPoint,
 } from "../../../benchmark/v2/eval-policy.ts";
 import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
@@ -15,6 +15,7 @@ import { decisionProtocolFingerprint } from "./decision_protocol.ts";
 import { EVAL_CHAIN_INFERENCE_SOURCE_FILES } from "./eval_chain_inference.ts";
 import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "./certification_identity.ts";
 import { fingerprintFiles } from "./suite_model.ts";
+import { registeredFixedNAsEvalPoint } from "./operating_points.ts";
 
 export type DecisionContractIdentity = {
   inferenceFingerprint: string;
@@ -96,9 +97,12 @@ export function requireCertifiedOperatingPoint(
   margin: number | null,
   depth: number,
   suiteFingerprint: string,
-  artifactPaths: { menuCertification: string; holdoutValidation: string } = EVAL_CERTIFICATION_ARTIFACT_PATHS,
+  artifactPaths?: EvalCertificationArtifactPaths,
 ): CertifiedOperatingPoint {
-  const point = evalOperatingPoint(mode, margin, depth);
+  const menuPoint = evalOperatingPoint(mode, margin, depth);
+  const point = menuPoint ?? (
+    mode === "improvement" && margin === null ? registeredFixedNAsEvalPoint(depth) : undefined
+  );
   if (point === undefined) {
     const menu = benchmarkEvalPolicy.operatingPoints
       .map((row) => `${row.id} (${row.mode}${row.margin === null ? "" : ` m=${row.margin}`}, depth ${row.depth})`)
@@ -107,41 +111,46 @@ export function requireCertifiedOperatingPoint(
       `operating point (${mode}${margin === null ? "" : ` m=${margin}`}, depth ${depth}) is not on the certified menu; certified rows: ${menu}`,
     );
   }
+  // Fixed-N points retain every safety/error-rate check but report power as a
+  // diagnostic.  This prevents a hard +5-power menu threshold from rejecting
+  // a demonstrably large actual candidate at a perfectly calibrated N.
+  const powerIsDiagnostic = menuPoint === undefined;
+  const paths = artifactPaths ?? point.certification;
   const inferenceFingerprint = fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES);
   const evalChainInferenceFingerprint = fingerprintFiles(EVAL_CHAIN_INFERENCE_SOURCE_FILES);
   const certificationGeneratorFingerprint = fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES);
   const verifiedReferences = new Set<string>();
   const menu = readCertificationArtifact(
-    artifactPaths.menuCertification,
+    paths.menuCertification,
     "certify",
     suiteFingerprint,
     inferenceFingerprint,
     evalChainInferenceFingerprint,
     certificationGeneratorFingerprint,
     verifiedReferences,
+    !powerIsDiagnostic,
   );
   const holdout = readCertificationArtifact(
-    artifactPaths.holdoutValidation,
+    paths.holdoutValidation,
     "holdout",
     suiteFingerprint,
     inferenceFingerprint,
     evalChainInferenceFingerprint,
     certificationGeneratorFingerprint,
     verifiedReferences,
+    !powerIsDiagnostic,
   );
   if (JSON.stringify(menu.report.predeclared) !== JSON.stringify(holdout.report.predeclared)) {
     throw new Error(`menu and holdout certification predeclarations differ`);
   }
-  const expectedFutilitySchedule = benchmarkEvalPolicy.operatingPoints.find(
-    (entry) => entry.futilitySchedule.length > 0,
-  )?.futilitySchedule ?? [];
   for (const artifact of [menu, holdout]) {
     if (
       artifact.report.predeclared?.depth !== point.depth ||
       artifact.report.predeclared?.criticalAlpha !== point.criticalAlpha ||
       artifact.report.predeclared?.futilityAlpha !== point.futilityAlpha ||
-      JSON.stringify(artifact.report.predeclared?.futilitySchedule) !== JSON.stringify([...expectedFutilitySchedule])
+      JSON.stringify(artifact.report.predeclared?.futilitySchedule) !== JSON.stringify([...point.futilitySchedule])
     ) throw new Error(`${artifact.path} does not certify the declared depth, alpha levels, and futility schedule`);
+    assertWorkerExecutionPlan(artifact.report, artifact.path);
   }
   const bars = benchmarkEvalPolicy.bars;
   for (const artifact of [menu, holdout]) {
@@ -154,10 +163,27 @@ export function requireCertifiedOperatingPoint(
       declaredBars?.noninferiorityPowerWilsonLowerMin !== bars.powerWilsonLowerMin ||
       declaredBars?.futilityNetPowerAtPlus5WilsonLowerMin !== bars.powerWilsonLowerMin
     ) throw new Error(`certification bars in ${artifact.path} do not match the eval policy bars`);
+    if (powerIsDiagnostic) {
+      for (const safetyBar of [
+        "improve_null_empirical",
+        "improve_null_validity_flips",
+        "improve_null_hard_zero",
+        "simplify_m5_boundary",
+        "futility_null",
+        "determinism",
+      ]) {
+        if (artifact.report.barsMet?.[safetyBar] !== true) {
+          throw new Error(`${artifact.path} did not meet fixed-N safety bar ${safetyBar}`);
+        }
+      }
+      if (artifact.report.mode === "holdout" && artifact.report.barsMet?.truth_transfer !== true) {
+        throw new Error(`${artifact.path} did not meet fixed-N frozen-truth transfer`);
+      }
+    }
   }
 
   const power = certifiedRate(menu.report, point.cells.power, menu.path);
-  if (power.wilson95[0] < bars.powerWilsonLowerMin) {
+  if (!powerIsDiagnostic && power.wilson95[0] < bars.powerWilsonLowerMin) {
     throw new Error(`certified power lower bound ${power.wilson95[0]} for ${point.id} is below ${bars.powerWilsonLowerMin}`);
   }
   const nullRates: ValidatedRate[] = [];
@@ -223,6 +249,7 @@ function readCertificationArtifact(
   evalChainInferenceFingerprint: string,
   certificationGeneratorFingerprint: string,
   verifiedReferences: Set<string>,
+  requireAllBars: boolean,
 ): { path: string; sha256: string; report: any } {
   const absolute = resolve(path);
   if (!existsSync(absolute)) {
@@ -251,10 +278,30 @@ function readCertificationArtifact(
       `${expectedMode} certification upstream ${name}`,
     );
   }
-  if (report.allBarsMet !== true) {
+  if (requireAllBars && report.allBarsMet !== true) {
     throw new Error(`certification artifact ${path} did not meet its predeclared bars; the menu is not certified`);
   }
   return { path, sha256: sha256(bytes), report };
+}
+
+/** The certificate must show the exact plan that was sent to its worker
+ * simulations. This protects the configuration handoff independently of the
+ * report's outer command-line declaration. */
+function assertWorkerExecutionPlan(report: any, path: string): void {
+  const plan = report.workerExecutionPlan;
+  const declaration = report.predeclared;
+  if (
+    typeof plan?.depth !== "number" ||
+    JSON.stringify(plan.futilitySchedule) !== JSON.stringify(declaration?.futilitySchedule) ||
+    plan.depth !== declaration?.depth ||
+    plan.futilityAlpha !== declaration?.futilityAlpha ||
+    plan.criticalAlpha !== declaration?.criticalAlpha ||
+    plan.centralCriticalLevel !== declaration?.centralCriticalLevel ||
+    plan.centralNominalLevel !== declaration?.centralNominalLevel
+  ) throw new Error(`${path} worker execution plan does not match its predeclaration`);
+  if (report.workerExecutionPlanFingerprint !== sha256(JSON.stringify(plan))) {
+    throw new Error(`${path} worker execution plan fingerprint is invalid`);
+  }
 }
 
 function requireReferenceArtifact(reference: any, label: string, verified: Set<string>): void {
@@ -456,6 +503,6 @@ function requireArtifact(path: unknown, expectedSha256: unknown, label: string):
   }
 }
 
-function sha256(value: Buffer): string {
+function sha256(value: Buffer | string): string {
   return createHash("sha256").update(value).digest("hex");
 }

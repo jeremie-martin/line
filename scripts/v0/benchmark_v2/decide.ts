@@ -44,7 +44,14 @@ import {
   loadSuiteManifest,
   resolvedSeedSchedule,
   suiteIdentity,
+  type ResolvedSeedSchedule,
 } from "./suite_model.ts";
+import {
+  baselineCacheManifestFingerprint,
+  loadBaselineCacheEvidence,
+  seedScheduleAtDepth,
+  type BaselineCacheView,
+} from "./baseline_cache.ts";
 import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
@@ -52,6 +59,7 @@ import { cheapestOperatingPoint } from "../../../benchmark/v2/eval-policy.ts";
 
 const DECISION_SCHEMA = "line.benchmark-v2.decision.v4" as const;
 const BASELINE_SCHEMA = "line.benchmark-v2.baseline-reference.v9" as const;
+const BASELINE_CACHE_REFERENCE_SCHEMA = "line.benchmark-v2.baseline-reference.v10" as const;
 const DEFAULT_BASELINE_PATH = "benchmark/v2/baseline.json";
 const PROBE_BASELINE_SCHEMA = "line.benchmark-v2.probe-baseline-reference.v1" as const;
 const DEFAULT_PROBE_BASELINE_PATH = "benchmark/v2/probe-baseline.json";
@@ -85,7 +93,7 @@ type VerifiedArchive = {
 };
 
 type BaselineReference = {
-  schema: typeof BASELINE_SCHEMA | typeof PROBE_BASELINE_SCHEMA;
+  schema: typeof BASELINE_SCHEMA | typeof BASELINE_CACHE_REFERENCE_SCHEMA | typeof PROBE_BASELINE_SCHEMA;
   label: string;
   status: "canonical-baseline" | "provisional-listening-review-required" | "screening-baseline";
   suite_fingerprint: string;
@@ -116,6 +124,13 @@ export type DecisionArtifact = {
   candidate: ArchiveReference;
   implementationFingerprintsMatch: boolean;
   runnerCompatibilityApproval: RunnerCompatibilityApproval | null;
+  baselineCache?: {
+    manifestPath: string;
+    manifestFingerprint: string;
+    coverageDepth: number;
+    shardRanges: Array<{ firstSeedSlot: number; endSeedSlotExclusive: number }>;
+    compatibilityApprovals: RunnerCompatibilityApproval[];
+  };
   result: V2Decision;
   hint: string | null;
   nextCommand: string;
@@ -398,6 +413,153 @@ export async function evalDecision(
   return { artifact, base, candidate };
 }
 
+/**
+ * Final fixed-N verdict against immutable baseline-cache shards.  This is a
+ * separate entry point on purpose: ordinary `decide` remains a two-archive
+ * tool, while this path records the manifest/shard binding and never pretends
+ * that a cached baseline was freshly compiled beside the candidate.
+ */
+export async function evalDecisionAgainstBaselineCache(
+  cache: BaselineCacheView,
+  candidatePath: string,
+  options: {
+    mode: DecisionMode;
+    margin: number | null;
+    depth: number;
+    declaration: {
+      path: string;
+      sha256: string;
+      seedScheduleFingerprint: string;
+      candidateFingerprint: string;
+    };
+  },
+): Promise<{ artifact: DecisionArtifact; candidate: VerifiedArchive }> {
+  const candidate = loadVerifiedArchive(candidatePath);
+  assertNotExplorationArchive(candidate.archive);
+  if (archiveProfile(candidate.archive) !== "canonical") throw new Error(`cache-backed eval verdicts require a canonical candidate archive`);
+  assertEvalArchiveDeclaration(candidate.archive, {
+    label: "candidate arm",
+    candidateFingerprint: options.declaration.candidateFingerprint,
+    declarationPath: options.declaration.path,
+    declarationSha256: options.declaration.sha256,
+    seedScheduleFingerprint: options.declaration.seedScheduleFingerprint,
+    depth: options.depth,
+  });
+  const evidence = loadBaselineCacheEvidence(cache, options.depth);
+  const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
+  const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);
+  const identity = suiteIdentity("benchmark/v2/compat/suite-manifest.json", "benchmark/v2/compat/source-manifest.json", sources);
+  if (cache.cache.suiteFingerprint !== identity.suiteFingerprint || candidate.archive.identity?.suiteFingerprint !== identity.suiteFingerprint) {
+    throw new Error(`cache-backed comparison does not match the current suite`);
+  }
+  const listeningReview = await loadListeningReview(
+    "benchmark/v2/evidence/listening-review.json",
+    identity.suiteFingerprint,
+    identity.sourceManifestFingerprint,
+    sources,
+  );
+  requireApprovedListeningReview(listeningReview);
+  const contracts = new Map<string, AxisContract>();
+  for (const source of sources) {
+    const spec = applyJolt(await loadSourceSpec(source), suite.transform.jolt_ms);
+    contracts.set(source.id, buildAxisContract(spec, source.eligibleComponents, source.diagnosticComponents));
+  }
+  const schedule = seedScheduleAtDepth(cache.cache, options.depth);
+  validateArchiveScope(
+    candidate.archive,
+    suite,
+    sources,
+    contracts,
+    listeningReview.fingerprint,
+    options.depth,
+    candidate.indexed,
+    schedule,
+  );
+  validateCandidateIdentity(candidate.archive);
+
+  const approvals: RunnerCompatibilityApproval[] = [];
+  const baseRuns: DecisionRun[] = [];
+  for (const { shard, archive, indexed } of evidence) {
+    const shardSchedule = seedScheduleAtDepth(cache.cache, shard.endSeedSlotExclusive);
+    validateArchiveScope(
+      archive,
+      suite,
+      sources,
+      contracts,
+      listeningReview.fingerprint,
+      shard.endSeedSlotExclusive,
+      indexed,
+      shardSchedule,
+      {
+        firstSeedSlot: shard.firstSeedSlot,
+        endSeedSlotExclusive: Math.min(shard.endSeedSlotExclusive, options.depth),
+      },
+    );
+    validateCandidateIdentity(archive);
+    if (archive.identity?.executionProtocol !== candidate.archive.identity?.executionProtocol) {
+      throw new Error(`baseline cache shard uses a different execution protocol`);
+    }
+    if (archive.git?.engineArtifactFingerprint !== candidate.archive.git?.engineArtifactFingerprint) {
+      throw new Error(`baseline cache shard uses a different engine artifact`);
+    }
+    const runtime = (value: any): string => JSON.stringify({
+      node: value.environment?.node,
+      platform: value.environment?.platform,
+      architecture: value.environment?.architecture,
+    });
+    if (runtime(archive) !== runtime(candidate.archive)) throw new Error(`baseline cache shard uses a different runtime platform`);
+    const approval = runnerCompatibilityApproval(
+      archive.identity.implementationFingerprint,
+      candidate.archive.identity.implementationFingerprint,
+      identity.suiteFingerprint,
+    );
+    if (approval !== null && !approvals.some((entry) => JSON.stringify(entry) === JSON.stringify(approval))) approvals.push(approval);
+    baseRuns.push(...toDecisionRuns(archive).filter((row) => row.seedSlot < options.depth));
+  }
+  const candidateRuns = toDecisionRuns(candidate.archive);
+  requireCurrentDecisionCalibration(identity.suiteFingerprint);
+  const result = pairedV2Decision(baseRuns, candidateRuns, suiteAtDepth(suite, options.depth), {
+    profile: "canonical",
+    mode: options.mode,
+    margin: options.mode === "simplification" ? options.margin ?? undefined : undefined,
+  });
+  assertStoredHeadline(candidate.archive, result.candidateHeadline, "candidate");
+  const manifestFingerprint = baselineCacheManifestFingerprint(cache.cache);
+  const first = evidence[0].archive;
+  const artifact: DecisionArtifact = {
+    schema: DECISION_SCHEMA,
+    generatedAt: new Date().toISOString(),
+    decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
+    decisionProtocolFingerprint: decisionProtocolFingerprint(),
+    executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
+    base: {
+      path: relativeToCwd(cache.baselinePath),
+      archiveSha256: manifestFingerprint,
+      artifactSha256: manifestFingerprint,
+      candidateFingerprint: cache.cache.candidateFingerprint,
+      implementationFingerprint: first.identity.implementationFingerprint,
+      headline: result.baseHeadline,
+    },
+    candidate: archiveReference(candidate),
+    implementationFingerprintsMatch: approvals.length === 0,
+    runnerCompatibilityApproval: approvals[0] ?? null,
+    baselineCache: {
+      manifestPath: relativeToCwd(cache.baselinePath),
+      manifestFingerprint,
+      coverageDepth: options.depth,
+      shardRanges: evidence.map(({ shard }) => ({
+        firstSeedSlot: shard.firstSeedSlot,
+        endSeedSlotExclusive: shard.endSeedSlotExclusive,
+      })),
+      compatibilityApprovals: approvals,
+    },
+    result,
+    hint: underPoweredHint(result, options.depth),
+    nextCommand: nextCommandFor(result),
+  };
+  return { artifact, candidate };
+}
+
 export function assertEvalArchiveDeclaration(
   archive: any,
   expected: {
@@ -532,6 +694,8 @@ function validateArchiveScope(
   listeningReviewFingerprint: string | null,
   depthOverride?: number,
   indexed = false,
+  explicitSchedule?: ResolvedSeedSchedule,
+  seedSlotRange?: { firstSeedSlot: number; endSeedSlotExclusive: number },
 ): void {
   const profileName = archiveProfile(archive);
   const profile = suite.profiles[profileName];
@@ -589,7 +753,7 @@ function validateArchiveScope(
   if (depthOverride !== undefined && profileName !== "canonical") {
     throw new Error(`depth-parameterized scope validation applies to canonical archives only`);
   }
-  const schedule = resolvedSeedSchedule(
+  const schedule = explicitSchedule ?? resolvedSeedSchedule(
     suite,
     profileName,
     profile.budgets,
@@ -603,10 +767,18 @@ function validateArchiveScope(
   ) {
     throw new Error(`archive execution policy does not match the current suite profile`);
   }
+  const firstSeedSlot = seedSlotRange?.firstSeedSlot ?? 0;
+  const endSeedSlotExclusive = seedSlotRange?.endSeedSlotExclusive ?? schedule.seedsPerBudget;
+  if (
+    !Number.isSafeInteger(firstSeedSlot) || !Number.isSafeInteger(endSeedSlotExclusive) ||
+    firstSeedSlot < 0 || endSeedSlotExclusive <= firstSeedSlot || endSeedSlotExclusive > schedule.seedsPerBudget
+  ) throw new Error(`archive seed-slot range is invalid`);
   const expected = schedule.byBudget.flatMap(({ budget, actualSeeds }) =>
-    actualSeeds.flatMap((actualSeed, seedSlot) => canonicalMembers(suite).map((sourceId) =>
+    actualSeeds.flatMap((actualSeed, seedSlot) =>
+      seedSlot < firstSeedSlot || seedSlot >= endSeedSlotExclusive ? [] : canonicalMembers(suite).map((sourceId) =>
       `${sourceId}\0${budget}\0${seedSlot}\0${actualSeed}`
-    ))
+      )
+    )
   ).sort();
   if (!Array.isArray(archive.runs)) throw new Error(`archive runs are missing`);
   const actual = archive.runs.map((row: any) =>
@@ -839,9 +1011,11 @@ function baselineArchive(profile: DecisionProfile): {
   }
   const path = profile === "probe" ? DEFAULT_PROBE_BASELINE_PATH : DEFAULT_BASELINE_PATH;
   const baseline = JSON.parse(readFileSync(path, "utf8")) as BaselineReference;
-  const expectedSchema = profile === "probe" ? PROBE_BASELINE_SCHEMA : BASELINE_SCHEMA;
+  const schemaAllowed = profile === "probe"
+    ? baseline.schema === PROBE_BASELINE_SCHEMA
+    : baseline.schema === BASELINE_SCHEMA || baseline.schema === BASELINE_CACHE_REFERENCE_SCHEMA;
   if (
-    baseline.schema !== expectedSchema || baseline.execution_protocol !== BENCHMARK_EXECUTION_PROTOCOL ||
+    !schemaAllowed || baseline.execution_protocol !== BENCHMARK_EXECUTION_PROTOCOL ||
     baseline.compiler_identity_protocol !== COMPILER_IDENTITY_PROTOCOL
   ) {
     throw new Error(`the frozen baseline predates the V2 decision protocol; establish a new baseline`);

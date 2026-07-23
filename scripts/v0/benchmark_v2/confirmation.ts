@@ -20,7 +20,7 @@ import {
 import { copyFileDurable, writeFileAtomicDurable } from "./durable_fs.ts";
 import { type DecisionContractIdentity } from "./calibration_guard.ts";
 
-export const EVAL_DECLARATION_SCHEMA = "line.benchmark-v2.eval-declaration.v6" as const;
+export const EVAL_DECLARATION_SCHEMA = "line.benchmark-v2.eval-declaration.v7" as const;
 export const DEFAULT_BASELINE_PATH = "benchmark/v2/baseline.json";
 const MIGRATION_PENDING_PATH = "benchmark/v2/migration-pending.json";
 const BASELINE_PUBLICATION_PENDING_PATH = "benchmark/v2/baseline-publication-pending.json";
@@ -62,6 +62,16 @@ export type EvalDeclaration = {
   candidateSnapshot: CompilerSnapshot;
   canonicalSeedBase: number;
   seedScheduleFingerprint: string;
+  /** Present only for a fixed-N cache-backed attempt.  The complete literal
+   * schedule is immutable in the declaration and can be handed to the runner
+   * directly, avoiding any depth-relative seed remapping. */
+  canonicalSeedSchedule?: unknown;
+  baselineCache?: {
+    schema: "line.benchmark-v2.eval-baseline-cache-binding.v1";
+    manifestFingerprint: string;
+    coverageDepth: number;
+    shardRanges: Array<{ firstSeedSlot: number; endSeedSlotExclusive: number }>;
+  };
   mode: ConfirmationMode;
   margin: number | null;
   operatingPointId: string;
@@ -86,7 +96,10 @@ export function readBaselineContract(baselinePath = DEFAULT_BASELINE_PATH): Base
   }
   const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
   if (
-    baseline.schema !== "line.benchmark-v2.baseline-reference.v9" ||
+    ![
+      "line.benchmark-v2.baseline-reference.v9",
+      "line.benchmark-v2.baseline-reference.v10",
+    ].includes(baseline.schema) ||
     baseline.status !== "canonical-baseline"
   ) {
     throw new Error(`unsupported baseline reference; establish a new baseline`);
@@ -172,6 +185,8 @@ export function declareEvalAttempt(input: {
   candidateSnapshot: CompilerSnapshot;
   canonicalSeedBase: number;
   seedScheduleFingerprint: string;
+  canonicalSeedSchedule?: unknown;
+  baselineCache?: EvalDeclaration["baselineCache"];
   mode: ConfirmationMode;
   margin: number | null;
   operatingPointId: string;
@@ -202,6 +217,8 @@ export function declareEvalAttempt(input: {
     candidateSnapshot: input.candidateSnapshot,
     canonicalSeedBase: input.canonicalSeedBase,
     seedScheduleFingerprint: input.seedScheduleFingerprint,
+    ...(input.canonicalSeedSchedule === undefined ? {} : { canonicalSeedSchedule: input.canonicalSeedSchedule }),
+    ...(input.baselineCache === undefined ? {} : { baselineCache: input.baselineCache }),
     mode: input.mode,
     margin: input.mode === "simplification" ? input.margin : null,
     operatingPointId: input.operatingPointId,
@@ -212,7 +229,9 @@ export function declareEvalAttempt(input: {
     eraBudgetSpend: input.eraBudgetSpend,
     retryAcknowledged: input.retryAcknowledged,
     certificationFingerprint: input.certificationFingerprint,
-    statement: input.mode === "improvement"
+    statement: input.baselineCache !== undefined
+      ? `This candidate, operating point ${input.operatingPointId}, fixed seed ladder, and immutable baseline cache binding are frozen before the candidate arm runs.`
+      : input.mode === "improvement"
       ? `This candidate, operating point ${input.operatingPointId}, and fresh seed epoch are frozen before either paired arm runs.`
       : `This candidate, margin ${input.margin}, operating point ${input.operatingPointId}, and fresh seed epoch are frozen before either paired arm runs.`,
   };
@@ -233,7 +252,10 @@ export function freshAttemptId(): string {
 export function readEvalDeclaration(path: string): { declaration: EvalDeclaration; declarationSha256: string } {
   const bytes = readFileSync(resolve(path));
   const declaration = JSON.parse(bytes.toString("utf8")) as EvalDeclaration;
-  if (declaration.schema !== EVAL_DECLARATION_SCHEMA) throw new Error(`unsupported eval declaration`);
+  if (
+    declaration.schema !== EVAL_DECLARATION_SCHEMA &&
+    declaration.schema !== "line.benchmark-v2.eval-declaration.v6"
+  ) throw new Error(`unsupported eval declaration`);
   return { declaration, declarationSha256: sha256(bytes) };
 }
 

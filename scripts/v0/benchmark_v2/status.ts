@@ -5,6 +5,9 @@ import { readEraState, type EraState } from "./attempts.ts";
 import { requireCertifiedOperatingPoint, requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import { compilerCandidateIdentity, compilerDirtyPathsAgainstHead } from "./compiler_identity.ts";
 import { readBaselineContract } from "./confirmation.ts";
+import { baselineCachePlan, readBaselineCache, verifyBaselineCache } from "./baseline_cache.ts";
+import { operatingPointRegistryStatus } from "./operating_points.ts";
+import { evalOperatingPoint } from "../../../benchmark/v2/eval-policy.ts";
 import { retainedEvidenceInventory, type RetainedEvidenceInventory } from "./evidence_inventory.ts";
 import {
   loadHeldoutManifest,
@@ -50,6 +53,22 @@ export type BenchmarkStatus = {
     calibrationFingerprint: string;
     current: boolean;
   };
+  canonicalCache: {
+    requestedSeeds: number;
+    coverageSeeds: number;
+    maximumSeeds: number;
+    legacyAnchor: boolean;
+    missingBaselineCompiles: number;
+    candidateCompiles: number;
+    shardRanges: Array<{ firstSeedSlot: number; endSeedSlotExclusive: number }>;
+    operatingPoint: {
+      registered: boolean;
+      pointId: string | null;
+      artifactIntegrity: boolean;
+      reason: string | null;
+      powerDiagnostic: { cell: string; acceptRate: number; wilson95: [number, number] } | null;
+    };
+  };
   era: Pick<EraState,
     "eraId" | "budgetSpent" | "budgetCap" | "cumulativeExpectedFalseAccepts" |
     "inFlightAttemptId" | "transitionPending"
@@ -62,12 +81,19 @@ export type BenchmarkStatus = {
   operationalReference: any;
 };
 
-export function benchmarkStatus(): BenchmarkStatus {
+export function benchmarkStatus(requestedSeeds = 48): BenchmarkStatus {
   const sources = resolveSources(loadSourceManifest(SOURCE_MANIFEST));
   const heldout = resolveHeldoutSources(loadHeldoutManifest(HELDOUT_MANIFEST));
   const suite = loadSuiteManifest(SUITE_MANIFEST, sources);
   const identity = suiteIdentity(SUITE_MANIFEST, SOURCE_MANIFEST, sources);
   const baseline = readBaselineContract();
+  const cache = readBaselineCache();
+  const cachePlan = baselineCachePlan(cache, requestedSeeds);
+  verifyBaselineCache(cache, cachePlan.coveredSeeds === 0 ? undefined : cachePlan.coveredSeeds);
+  const staticPoint = evalOperatingPoint("improvement", null, requestedSeeds);
+  const cacheOperatingPoint = staticPoint === undefined
+    ? operatingPointRegistryStatus(requestedSeeds)
+    : { registered: true, pointId: staticPoint.id, artifactIntegrity: true, reason: null, powerDiagnostic: null };
   if (baseline.suiteFingerprint !== identity.suiteFingerprint) {
     throw new Error(`suite differs from the baseline contract; establish a new baseline`);
   }
@@ -133,6 +159,16 @@ export function benchmarkStatus(): BenchmarkStatus {
       calibrationFingerprint: baseline.calibrationFingerprint,
       current: contractCurrent,
     },
+    canonicalCache: {
+      requestedSeeds: cachePlan.requestedSeeds,
+      coverageSeeds: cachePlan.coveredSeeds,
+      maximumSeeds: cache.cache.ladder.maximumSeedsPerBudget,
+      legacyAnchor: cache.legacyAnchor,
+      missingBaselineCompiles: cachePlan.missingBaselineCompiles,
+      candidateCompiles: cachePlan.candidateCompiles,
+      shardRanges: cachePlan.shardRanges,
+      operatingPoint: cacheOperatingPoint,
+    },
     era: {
       eraId: era.eraId,
       budgetSpent: era.budgetSpent,
@@ -168,6 +204,25 @@ export function renderBenchmarkStatus(status: BenchmarkStatus): string {
       `${status.evidence.missingReferences.length} external historical reference(s) unavailable locally`,
     "  certified menu:",
   ];
+  if (status.canonicalCache !== undefined) {
+    lines.splice(3, 0,
+      `  canonical cache (N=${status.canonicalCache.requestedSeeds}): ${status.canonicalCache.coverageSeeds} covered ` +
+        `of ${status.canonicalCache.maximumSeeds}; ${status.canonicalCache.missingBaselineCompiles} baseline + ` +
+        `${status.canonicalCache.candidateCompiles} candidate compiles required`,
+      `  cache ranges: ${status.canonicalCache.shardRanges.map((range) =>
+        `[${range.firstSeedSlot},${range.endSeedSlotExclusive})`).join(", ")}; ` +
+        `${status.canonicalCache.legacyAnchor ? "legacy v9 anchor (will publish v10 on first extension)" : "v10 manifest"}`,
+      `  fixed-N operating point: ${status.canonicalCache.operatingPoint.registered && status.canonicalCache.operatingPoint.artifactIntegrity
+        ? `${status.canonicalCache.operatingPoint.pointId} ready`
+        : `BLOCKED: ${status.canonicalCache.operatingPoint.reason}`}`,
+      ...(status.canonicalCache.operatingPoint.powerDiagnostic === null ? [] : [
+        `  fixed-N diagnostic power (${status.canonicalCache.operatingPoint.powerDiagnostic.cell}): ` +
+          `${(status.canonicalCache.operatingPoint.powerDiagnostic.acceptRate * 100).toFixed(1)}% ` +
+          `[${(status.canonicalCache.operatingPoint.powerDiagnostic.wilson95[0] * 100).toFixed(1)}%, ` +
+          `${(status.canonicalCache.operatingPoint.powerDiagnostic.wilson95[1] * 100).toFixed(1)}%] (reported, not a promotion gate)`,
+      ]),
+    );
+  }
   for (const row of status.menu) {
     lines.push(
       `    ${row.id}: depth ${row.depth}, detects +${row.mde80} at >=80% power, spend ${row.spend}; ` +
@@ -187,7 +242,12 @@ export function renderBenchmarkStatus(status: BenchmarkStatus): string {
 }
 
 export function runStatusCommand(argv: string[]): number {
-  const status = benchmarkStatus();
+  const seedArgument = argv.find((arg) => arg.startsWith("--seeds="));
+  if (argv.some((arg) => arg.startsWith("--") && arg !== "--json" && arg !== "--evidence" && !arg.startsWith("--seeds="))) {
+    throw new Error(`status accepts only --seeds=N, --evidence, and --json`);
+  }
+  const requestedSeeds = seedArgument === undefined ? 48 : Number(seedArgument.slice("--seeds=".length));
+  const status = benchmarkStatus(requestedSeeds);
   if (argv.includes("--json")) {
     console.log(JSON.stringify(status, null, 2));
   } else {

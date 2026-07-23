@@ -1,7 +1,20 @@
 import { createHash } from "node:crypto";
-import { appendFileSync, createWriteStream, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  appendFileSync,
+  closeSync,
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { availableParallelism, arch, cpus, platform } from "node:os";
 import { dirname, resolve } from "node:path";
+import { createInterface } from "node:readline";
 import { pipeline } from "node:stream/promises";
 import { createGzip } from "node:zlib";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
@@ -67,6 +80,10 @@ const CHECKPOINT_SCHEMA = "line.benchmark-v2.checkpoint.v1" as const;
 const SUMMARY_SCHEMA = "line.benchmark-v2.run-summary.v3" as const;
 export const DECISION_INDEX_SCHEMA = "line.benchmark-v2.decision-index.v1" as const;
 const PARTIAL_RUN_SCHEMA = "line.benchmark-v2.partial-run.v1" as const;
+/** At this scale keeping every raw report in arrays at once is needlessly
+ * fragile. Larger confirmations assemble their archive directly from the
+ * resumable checkpoint, while retaining the small decision projection. */
+const STREAMING_ARCHIVE_TASK_THRESHOLD = 20_000;
 
 type RunnerMode = "development" | "qualification";
 
@@ -99,7 +116,7 @@ type WorkerFailure = {
   authoredContacts: number;
 };
 
-type WorkerResult = WorkerSuccess | WorkerFailure;
+export type WorkerResult = WorkerSuccess | WorkerFailure;
 
 export type CompletedBenchmarkRun = {
   mode: RunnerMode;
@@ -148,13 +165,21 @@ export async function runBenchmarkV2(
   const confirmationDeclarationPath = argument("confirmation-declaration") === undefined
     ? undefined
     : resolve(argument("confirmation-declaration")!);
+  /** A cache shard is a canonical run over a contiguous seed-slot tail of the
+   * frozen baseline.  It is deliberately distinct from a confirmation: it
+   * never carries a candidate verdict and is only admitted through the
+   * baseline-cache manifest validator. */
+  const baselineCacheShard = hasFlag("baseline-cache-shard");
   const exploration = hasFlag("exploration");
   const explorationId = argument("exploration-id");
   const canonicalSeedBaseOverride = argument("canonical-seed-base") === undefined
     ? undefined
     : nonNegativeInteger(argument("canonical-seed-base")!, "canonical-seed-base");
-  if (canonicalSeedBaseOverride !== undefined && (profileName !== "canonical" || confirmationDeclarationPath === undefined)) {
-    throw new Error(`--canonical-seed-base is reserved for a predeclared canonical confirmation`);
+  if (
+    canonicalSeedBaseOverride !== undefined &&
+    (profileName !== "canonical" || (confirmationDeclarationPath === undefined && !baselineCacheShard))
+  ) {
+    throw new Error(`--canonical-seed-base is reserved for a predeclared canonical confirmation or baseline-cache shard`);
   }
   const confirmationSeedsPerBudgetOverride = argument("seeds-per-budget") === undefined
     ? undefined
@@ -171,19 +196,34 @@ export async function runBenchmarkV2(
   const throughSeedSlot = argument("through-seed-slot") === undefined
     ? undefined
     : Number(argument("through-seed-slot"));
+  const fromSeedSlot = argument("from-seed-slot") === undefined
+    ? undefined
+    : Number(argument("from-seed-slot"));
+  const explicitSeedSchedulePath = argument("seed-schedule") === undefined
+    ? undefined
+    : resolve(argument("seed-schedule")!);
   validateExplorationFlags({
     exploration,
     explorationId,
     mode,
     profileName,
     hasDeclaration: confirmationDeclarationPath !== undefined,
+    baselineCacheShard,
     canonicalSeedBaseOverride,
     confirmationSeedsPerBudgetOverride,
     explorationSeedBase,
     explorationSeedsPerBudget,
     explorationBudgets,
     throughSeedSlot,
+    fromSeedSlot,
+    explicitSeedSchedulePath,
   });
+  if (
+    explicitSeedSchedulePath !== undefined &&
+    (profileName !== "canonical" || (confirmationDeclarationPath === undefined && !baselineCacheShard))
+  ) {
+    throw new Error(`--seed-schedule is reserved for a predeclared canonical confirmation or baseline-cache shard`);
+  }
 
   const sourceManifestContents = readFileSync(sourceManifestPath, "utf8");
   const heldoutManifestContents = readFileSync(heldoutManifestPath, "utf8");
@@ -237,8 +277,10 @@ export async function runBenchmarkV2(
     validateSubsetFlags({
       profileName,
       hasDeclaration: confirmationDeclarationPath !== undefined,
+      baselineCacheShard,
       seedsPerBudget: confirmationSeedsPerBudgetOverride,
       throughSeedSlot,
+      fromSeedSlot,
       effectiveDepth: effectiveSeedsPerBudget,
     });
   }
@@ -249,13 +291,21 @@ export async function runBenchmarkV2(
       throw new Error(`development source scope does not match the canonical suite`);
     }
   }
-  const schedule = resolvedSeedSchedule(
-    suite,
-    profileName,
-    effectiveBudgets,
-    effectiveSeedsPerBudget,
-    explorationSeedBase ?? canonicalSeedBaseOverride,
-  );
+  const schedule = explicitSeedSchedulePath === undefined
+    ? resolvedSeedSchedule(
+      suite,
+      profileName,
+      effectiveBudgets,
+      effectiveSeedsPerBudget,
+      explorationSeedBase ?? canonicalSeedBaseOverride,
+    )
+    : loadExplicitSeedSchedule(
+      explicitSeedSchedulePath,
+      profileName,
+      effectiveBudgets,
+      effectiveSeedsPerBudget,
+      canonicalSeedBaseOverride,
+    );
   if (exploration) {
     const actualSeeds = schedule.byBudget.flatMap((entry) => entry.actualSeeds);
     if (actualSeeds.some((seed) => seed < 3_000_000_000 || seed >= 4_000_000_000)) {
@@ -315,6 +365,7 @@ export async function runBenchmarkV2(
     suite.transform.jolt_ms,
     { sourceManifestPath, heldoutManifestPath },
     throughSeedSlot,
+    fromSeedSlot,
   );
   const runPlanFingerprint = checkpointPlanFingerprint({
     executionPolicyFingerprint: execution.executionPolicyFingerprint,
@@ -331,6 +382,13 @@ export async function runBenchmarkV2(
     runtime,
     linkedDevelopment,
     confirmationDeclaration,
+    ...(baselineCacheShard ? {
+      baselineCacheShard: {
+        schema: "line.benchmark-v2.baseline-cache-shard-run.v1",
+        firstSeedSlot: fromSeedSlot ?? 0,
+        endSeedSlotExclusive: throughSeedSlot ?? effectiveSeedsPerBudget,
+      },
+    } : {}),
   });
   mkdirSync(dirname(outputPath), { recursive: true });
   mkdirSync(dirname(checkpointPath), { recursive: true });
@@ -338,10 +396,19 @@ export async function runBenchmarkV2(
   if (throughSeedSlot !== undefined && existsSync(checkpointPath) && !hasFlag("resume")) {
     throw new Error(`wave execution must resume its attempt checkpoint; pass --resume`);
   }
-  const restored = loadOrInitializeCheckpoint(checkpointPath, runPlanFingerprint, hasFlag("resume"));
+  const streamingArchive = tasks.length > STREAMING_ARCHIVE_TASK_THRESHOLD;
+  const restored = streamingArchive
+    ? []
+    : loadOrInitializeCheckpoint(checkpointPath, runPlanFingerprint, hasFlag("resume"));
+  const restoredIndex = streamingArchive
+    ? await loadCheckpointResultIndex(checkpointPath, runPlanFingerprint, hasFlag("resume"))
+    : undefined;
   invalidatePublishedRunArtifacts(outputPath);
   const restoredByKey = new Map(restored.map((result) => [taskKey(result.task), result]));
-  const pending = tasks.filter((task) => !restoredByKey.has(taskKey(task)));
+  const restoredSuccessKeys = streamingArchive
+    ? new Set([...restoredIndex!.latest].flatMap(([key, entry]) => entry.status === "ok" ? [key] : []))
+    : new Set(restoredByKey.keys());
+  const pending = tasks.filter((task) => !restoredSuccessKeys.has(taskKey(task)));
   const sourceById = new Map(sources.map((source) => [source.id, source]));
   const scoredProgress = restored.map((result) => scoreWorkerResult(
     result,
@@ -349,12 +416,15 @@ export async function runBenchmarkV2(
     sourceById.get(result.task.sourceId)!,
     contracts.get(result.task.sourceId)!,
   ));
+  const streamingProgress = streamingArchive
+    ? newStreamingProgress(restoredSuccessKeys.size, effectiveBudgets)
+    : undefined;
   const startedAt = performance.now();
 
   console.log(`Benchmark V2 ${mode} ${profileName}${exploration ? ` exploration ${explorationId}` : ""}`);
   console.log(
     `  ${tasks.length} compiles (${sources.length} sources, ${effectiveBudgets.length} budgets, ` +
-    `${effectiveSeedsPerBudget} seed slots); ${restored.length} restored`,
+    `${effectiveSeedsPerBudget} seed slots); ${restoredSuccessKeys.size} restored`,
   );
   console.log(
     `  suite ${suiteId.suiteFingerprint.slice(0, 16)}, policy ` +
@@ -369,20 +439,39 @@ export async function runBenchmarkV2(
       sourceById.get(result.task.sourceId)!,
       contracts.get(result.task.sourceId)!,
     );
-    scoredProgress.push(scored);
-    if (scoredProgress.length === tasks.length || scoredProgress.length % sources.length === 0) {
-      printProgress(scoredProgress, tasks.length, effectiveBudgets, startedAt, restored.length);
+    if (streamingProgress !== undefined) {
+      recordStreamingProgress(streamingProgress, scored);
+      if (streamingProgress.completed === tasks.length || streamingProgress.completed % sources.length === 0) {
+        printStreamingProgress(streamingProgress, tasks.length, startedAt, restoredSuccessKeys.size);
+      }
+    } else {
+      scoredProgress.push(scored);
+      if (scoredProgress.length === tasks.length || scoredProgress.length % sources.length === 0) {
+        printProgress(scoredProgress, tasks.length, effectiveBudgets, startedAt, restored.length);
+      }
     }
-  });
-  const allByKey = new Map([...restored, ...fresh].map((result) => [taskKey(result.task), result]));
-  const results = tasks.map((task) => allByKey.get(taskKey(task))!);
-  const workerFailures = results.filter((result) => result.status !== "ok").length;
+  }, !streamingArchive);
+  const finalIndex = streamingArchive
+    ? await loadCheckpointResultIndex(checkpointPath, runPlanFingerprint, true)
+    : undefined;
+  if (finalIndex !== undefined && (
+    finalIndex.latest.size !== tasks.length || tasks.some((task) => !finalIndex.latest.has(taskKey(task)))
+  )) throw new Error(`checkpoint does not contain the complete declared task scope`);
+  const allByKey = streamingArchive
+    ? undefined
+    : new Map([...restored, ...fresh].map((result) => [taskKey(result.task), result]));
+  const results = streamingArchive ? undefined : tasks.map((task) => allByKey!.get(taskKey(task))!);
+  const workerFailures = finalIndex === undefined
+    ? results!.filter((result) => result.status !== "ok").length
+    : [...finalIndex.latest.values()].filter((entry) => entry.status !== "ok").length;
   if (throughSeedSlot !== undefined && throughSeedSlot < effectiveSeedsPerBudget) {
     // Sub-depth wave: leave a partial-run summary (no archive/summary/sidecars)
     // recording progress and the shared checkpoint so a later wave can resume.
     const totalDeclaredTasks =
       schedule.byBudget.reduce((sum, entry) => sum + entry.actualSeeds.length, 0) * sources.length;
-    const completedTasks = results.filter((result) => result.status === "ok").length;
+    const completedTasks = finalIndex === undefined
+      ? results!.filter((result) => result.status === "ok").length
+      : [...finalIndex.latest.values()].filter((entry) => entry.status === "ok").length;
     const partialPath = `${outputPath}.partial.json`;
     const partialBytes = Buffer.from(`${JSON.stringify(partialRunSummary({
       mode,
@@ -414,19 +503,37 @@ export async function runBenchmarkV2(
       partialThroughSeedSlot: throughSeedSlot,
     };
   }
-  const scored = results.map((result) => scoreWorkerResult(
+  const scored = results?.map((result) => scoreWorkerResult(
     result,
     suite,
     sourceById.get(result.task.sourceId)!,
     contracts.get(result.task.sourceId)!,
   ));
-  const aggregateRuns: ScoredDevelopmentRun[] = scored.map((row) => ({
-    sourceId: row.task.sourceId,
-    budget: row.task.budget,
-    seedSlot: row.task.seedSlot,
-    actualSeed: row.task.actualSeed,
-    score: row.score,
-  }));
+  const aggregateRuns: ScoredDevelopmentRun[] = [];
+  const decisionRuns: Array<Record<string, any>> = [];
+  const addScoredRun = (row: ReturnType<typeof scoreWorkerResult>): void => {
+    aggregateRuns.push({
+      sourceId: row.task.sourceId,
+      budget: row.task.budget,
+      seedSlot: row.task.seedSlot,
+      actualSeed: row.task.actualSeed,
+      score: row.score,
+    });
+  };
+  if (scored !== undefined) {
+    for (const row of scored) addScoredRun(row);
+  } else {
+    for await (const result of latestCheckpointResults(checkpointPath, finalIndex!, runPlanFingerprint)) {
+      const row = scoreWorkerResult(
+        result,
+        suite,
+        sourceById.get(result.task.sourceId)!,
+        contracts.get(result.task.sourceId)!,
+      );
+      addScoredRun(row);
+      decisionRuns.push(decisionRunProjection(row));
+    }
+  }
   const developmentSummaries = mode === "development"
     ? effectiveBudgets.map((budget) => summarizeDevelopmentBudget(aggregateRuns, budget, suite))
     : [];
@@ -443,11 +550,12 @@ export async function runBenchmarkV2(
   const qualificationMonitorScore = qualificationSummaries.length === 0
     ? null
     : weightedMonitorScore(qualificationSummaries, suite.budget_weights);
-  const archive = bindDecisionIndexArchive({
+  const generatedAt = new Date().toISOString();
+  const archiveCore = {
     schema: RUN_ARCHIVE_SCHEMA,
     mode,
     profile: profileName,
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     identity: {
       ...suiteId,
       ...execution,
@@ -466,6 +574,13 @@ export async function runBenchmarkV2(
     },
     linkedDevelopment,
     confirmationDeclaration,
+    ...(baselineCacheShard ? {
+      baselineCacheShard: {
+        schema: "line.benchmark-v2.baseline-cache-shard-run.v1",
+        firstSeedSlot: fromSeedSlot ?? 0,
+        endSeedSlotExclusive: throughSeedSlot ?? effectiveSeedsPerBudget,
+      },
+    } : {}),
     ...(exploration ? {
       exploration: {
         schema: "line.benchmark-v2.exploration-run.v1",
@@ -480,18 +595,41 @@ export async function runBenchmarkV2(
     developmentSummaries,
     qualificationSummaries,
     sources: sources.map((source) => sourceArchiveIdentity(source)),
-    runs: scored,
-  });
+  };
   const failed = workerFailures > 0;
+  const archive = scored === undefined
+    ? undefined
+    : bindDecisionIndexArchive({ ...archiveCore, runs: scored });
+  const decisionArchive = scored === undefined
+    ? { ...archiveCore, runs: decisionRuns }
+    : undefined;
+  const streamingBinding = decisionArchive === undefined ? undefined : sha256(JSON.stringify(decisionArchive));
+  const archiveChunksToWrite = archive === undefined
+    ? checkpointArchiveChunks(
+      { ...archiveCore, decisionIndexPayloadSha256: streamingBinding! },
+      checkpointPath,
+      finalIndex!,
+      runPlanFingerprint,
+      (result) => scoreWorkerResult(
+        result,
+        suite,
+        sourceById.get(result.task.sourceId)!,
+        contracts.get(result.task.sourceId)!,
+      ),
+    )
+    : archiveChunks(archive);
   const { archiveOut, summaryPath, archiveSha256, compressedArchiveSha256 } =
-    await writeArchiveArtifacts(outputPath, archiveChunks(archive), failed);
+    await writeArchiveArtifacts(outputPath, archiveChunksToWrite, failed);
   const decisionIndexPath = `${archiveOut}.decision-index.json`;
-  if (!failed) writeDecisionIndexArtifacts(archiveOut, archive, archiveSha256, compressedArchiveSha256);
+  if (!failed) {
+    if (archive !== undefined) writeDecisionIndexArtifacts(archiveOut, archive, archiveSha256, compressedArchiveSha256);
+    else writeDecisionIndexProjectionArtifacts(archiveOut, decisionArchive!, archiveSha256, compressedArchiveSha256);
+  }
   writeFileAtomicDurable(summaryPath, `${JSON.stringify({
     schema: SUMMARY_SCHEMA,
     mode,
     profile: profileName,
-    generatedAt: archive.generatedAt,
+    generatedAt,
     archive: relativeToCwd(archiveOut),
     compressedArchive: relativeToCwd(`${archiveOut}.gz`),
     archiveSha256,
@@ -528,7 +666,7 @@ export async function runBenchmarkV2(
   }, null, 2)}\n`);
 
   for (const budget of effectiveBudgets) {
-    const rows = scored.filter((row) => row.task.budget === budget);
+    const rows = aggregateRuns.filter((row) => row.budget === budget);
     const valid = rows.filter((row) => row.score.valid).length;
     const development = developmentSummaries.find((entry) => entry.budget === budget);
     const qualification = qualificationSummaries.find((entry) => entry.budget === budget);
@@ -588,6 +726,29 @@ export function writeDecisionIndexArtifacts(
   return decisionIndexPath;
 }
 
+function writeDecisionIndexProjectionArtifacts(
+  archivePath: string,
+  decisionArchive: Record<string, any> & { runs: Array<Record<string, any>> },
+  archiveSha256: string,
+  compressedArchiveSha256: string,
+): string {
+  const decisionIndexPath = `${archivePath}.decision-index.json`;
+  const payloadSha256 = sha256(JSON.stringify(decisionArchive));
+  const decisionIndexBytes = `${JSON.stringify({
+    schema: DECISION_INDEX_SCHEMA,
+    payloadSha256,
+    archiveSha256,
+    compressedArchiveSha256,
+    archive: decisionArchive,
+  })}\n`;
+  writeFileAtomicDurable(decisionIndexPath, decisionIndexBytes);
+  writeFileAtomicDurable(
+    `${decisionIndexPath}.sha256`,
+    `${sha256(decisionIndexBytes)}  ${relativeToCwd(decisionIndexPath)}\n`,
+  );
+  return decisionIndexPath;
+}
+
 export function bindDecisionIndexArchive<T extends Record<string, any> & { runs: Array<Record<string, any>> }>(
   archive: T,
 ): T & { decisionIndexPayloadSha256: string } {
@@ -626,14 +787,18 @@ function decisionArchiveProjection(
   const { decisionIndexPayloadSha256: _binding, ...withoutBinding } = archive;
   return {
     ...withoutBinding,
-    runs: archive.runs.map((row) => ({
-      status: row.status,
-      task: row.task,
-      source: row.source,
-      authoredContacts: row.authoredContacts,
-      score: row.score,
-      rawReportSha256: sha256(JSON.stringify(row.report ?? null)),
-    })),
+    runs: archive.runs.map(decisionRunProjection),
+  };
+}
+
+function decisionRunProjection(row: Record<string, any>): Record<string, any> {
+  return {
+    status: row.status,
+    task: row.task,
+    source: row.source,
+    authoredContacts: row.authoredContacts,
+    score: row.score,
+    rawReportSha256: sha256(JSON.stringify(row.report ?? null)),
   };
 }
 
@@ -651,6 +816,7 @@ export function buildWorkerTasks(
   joltMs: number,
   manifests: { sourceManifestPath: string; heldoutManifestPath: string },
   throughSeedSlot?: number,
+  fromSeedSlot = 0,
 ): WorkerTask[] {
   const tasks = schedule.byBudget.flatMap(({ budget, actualSeeds }) =>
     actualSeeds.flatMap((actualSeed, seedSlot) => sources.map((source) => ({
@@ -664,9 +830,9 @@ export function buildWorkerTasks(
       heldoutManifestPath: manifests.heldoutManifestPath,
     })))
   );
-  return throughSeedSlot === undefined
-    ? tasks
-    : tasks.filter((task) => task.seedSlot < throughSeedSlot);
+  return tasks.filter((task) =>
+    task.seedSlot >= fromSeedSlot && (throughSeedSlot === undefined || task.seedSlot < throughSeedSlot)
+  );
 }
 
 /**
@@ -679,14 +845,16 @@ export function buildWorkerTasks(
 export function validateSubsetFlags(input: {
   profileName: "probe" | "canonical";
   hasDeclaration: boolean;
+  baselineCacheShard: boolean;
   seedsPerBudget: number | undefined;
   throughSeedSlot: number | undefined;
+  fromSeedSlot: number | undefined;
   effectiveDepth: number;
 }): void {
-  const { profileName, hasDeclaration, seedsPerBudget, throughSeedSlot, effectiveDepth } = input;
-  if (seedsPerBudget === undefined && throughSeedSlot === undefined) return;
-  if (profileName !== "canonical" || !hasDeclaration) {
-    throw new Error(`--seeds-per-budget and --through-seed-slot are reserved for a predeclared canonical confirmation`);
+  const { profileName, hasDeclaration, baselineCacheShard, seedsPerBudget, throughSeedSlot, fromSeedSlot, effectiveDepth } = input;
+  if (seedsPerBudget === undefined && throughSeedSlot === undefined && fromSeedSlot === undefined) return;
+  if (profileName !== "canonical" || (!hasDeclaration && !baselineCacheShard)) {
+    throw new Error(`--seeds-per-budget, --through-seed-slot, and --from-seed-slot are reserved for a predeclared canonical confirmation or baseline-cache shard`);
   }
   if (seedsPerBudget !== undefined && (!Number.isSafeInteger(seedsPerBudget) || seedsPerBudget < 1)) {
     throw new Error(`seeds-per-budget must be a positive integer`);
@@ -699,6 +867,26 @@ export function validateSubsetFlags(input: {
       throw new Error(`--through-seed-slot=${throughSeedSlot} exceeds seeds-per-budget=${effectiveDepth}`);
     }
   }
+  if (fromSeedSlot !== undefined) {
+    if (!baselineCacheShard) {
+      throw new Error(`--from-seed-slot is reserved for a baseline-cache shard`);
+    }
+    if (!Number.isSafeInteger(fromSeedSlot) || fromSeedSlot < 0) {
+      throw new Error(`from-seed-slot must be a non-negative integer`);
+    }
+    if (fromSeedSlot >= effectiveDepth) {
+      throw new Error(`--from-seed-slot=${fromSeedSlot} must be below seeds-per-budget=${effectiveDepth}`);
+    }
+    if (throughSeedSlot === undefined) {
+      throw new Error(`--from-seed-slot requires --through-seed-slot`);
+    }
+    if (fromSeedSlot >= throughSeedSlot) {
+      throw new Error(`--from-seed-slot must be below --through-seed-slot`);
+    }
+  }
+  if (baselineCacheShard && (fromSeedSlot === undefined || throughSeedSlot === undefined)) {
+    throw new Error(`--baseline-cache-shard requires --from-seed-slot and --through-seed-slot`);
+  }
 }
 
 export function validateExplorationFlags(input: {
@@ -707,12 +895,15 @@ export function validateExplorationFlags(input: {
   mode: RunnerMode;
   profileName: "probe" | "canonical";
   hasDeclaration: boolean;
+  baselineCacheShard: boolean;
   canonicalSeedBaseOverride: number | undefined;
   confirmationSeedsPerBudgetOverride: number | undefined;
   explorationSeedBase: number | undefined;
   explorationSeedsPerBudget: number | undefined;
   explorationBudgets?: readonly number[];
   throughSeedSlot: number | undefined;
+  fromSeedSlot: number | undefined;
+  explicitSeedSchedulePath: string | undefined;
 }): void {
   const hasExplorationArgument =
     input.explorationId !== undefined || input.explorationSeedBase !== undefined ||
@@ -722,9 +913,9 @@ export function validateExplorationFlags(input: {
     return;
   }
   if (
-    input.mode !== "development" || input.profileName !== "probe" || input.hasDeclaration ||
+    input.mode !== "development" || input.profileName !== "probe" || input.hasDeclaration || input.baselineCacheShard ||
     input.canonicalSeedBaseOverride !== undefined || input.confirmationSeedsPerBudgetOverride !== undefined ||
-    input.throughSeedSlot !== undefined
+    input.throughSeedSlot !== undefined || input.fromSeedSlot !== undefined || input.explicitSeedSchedulePath !== undefined
   ) {
     throw new Error(`exploration is development-only and cannot use canonical confirmation or wave arguments`);
   }
@@ -741,6 +932,45 @@ export function validateExplorationFlags(input: {
   if (input.explorationSeedBase < 3_000_000_000 || input.explorationSeedBase >= 4_000_000_000) {
     throw new Error(`exploration seed bases must be in the reserved [3000000000, 4000000000) range`);
   }
+}
+
+/**
+ * A fixed-N cache-backed comparison must use a literal schedule, not the old
+ * depth-relative `seedBase + budgetIndex * N` formula.  Keeping the schedule
+ * in a small immutable JSON artifact makes every prefix explicit and lets a
+ * 37-seed candidate be compared to the first 37 rows of a 300-seed baseline
+ * without silently remapping the later budget blocks.
+ */
+function loadExplicitSeedSchedule(
+  path: string,
+  profile: "probe" | "canonical",
+  budgets: readonly number[],
+  seedsPerBudget: number,
+  canonicalSeedBaseOverride: number | undefined,
+): ResolvedSeedSchedule {
+  if (profile !== "canonical") throw new Error(`--seed-schedule is canonical-only`);
+  const raw = JSON.parse(readFileSync(path, "utf8"));
+  const value = (raw.canonicalSeedSchedule ?? raw) as ResolvedSeedSchedule;
+  if (
+    value?.kind !== "profile_budget_disjoint_contiguous" || value.profile !== "canonical" ||
+    !Number.isSafeInteger(value.seedBase) || value.seedBase < 0 ||
+    value.seedsPerBudget !== seedsPerBudget || !Array.isArray(value.byBudget) ||
+    value.byBudget.length !== budgets.length
+  ) throw new Error(`--seed-schedule=${path} is malformed or does not match the requested canonical depth`);
+  if (canonicalSeedBaseOverride !== undefined && value.seedBase !== canonicalSeedBaseOverride) {
+    throw new Error(`--canonical-seed-base does not match --seed-schedule`);
+  }
+  const seen = new Set<number>();
+  for (const [index, budget] of budgets.entries()) {
+    const entry = value.byBudget[index];
+    if (
+      entry?.budget !== budget || !Array.isArray(entry.actualSeeds) ||
+      entry.actualSeeds.length !== seedsPerBudget ||
+      entry.actualSeeds.some((seed) => !Number.isSafeInteger(seed) || seed < 0 || seen.has(seed))
+    ) throw new Error(`--seed-schedule=${path} is not a disjoint complete schedule for budget ${budget}`);
+    for (const seed of entry.actualSeeds) seen.add(seed);
+  }
+  return value;
 }
 
 /**
@@ -862,15 +1092,16 @@ async function runWorkerPool(
   tasks: WorkerTask[],
   jobs: number,
   onResult: (result: WorkerResult) => void,
+  collectResults = true,
 ): Promise<WorkerResult[]> {
-  const results = new Array<WorkerResult>(tasks.length);
+  const results = collectResults ? new Array<WorkerResult>(tasks.length) : [];
   let next = 0;
   const worker = async (): Promise<void> => {
     for (;;) {
       const index = next++;
       if (index >= tasks.length) return;
       const result = await runTask(tasks[index]);
-      results[index] = result;
+      if (collectResults) results[index] = result;
       onResult(result);
     }
   };
@@ -1036,6 +1267,51 @@ function printProgress(
   );
 }
 
+type StreamingProgress = {
+  completed: number;
+  valid: number;
+  byBudget: Map<number, { count: number; scoreTotal: number }>;
+};
+
+function newStreamingProgress(restored: number, budgets: readonly number[]): StreamingProgress {
+  return {
+    completed: restored,
+    valid: 0,
+    byBudget: new Map(budgets.map((budget) => [budget, { count: 0, scoreTotal: 0 }])),
+  };
+}
+
+function recordStreamingProgress(
+  progress: StreamingProgress,
+  row: WorkerResult & { score: V2RunScore },
+): void {
+  progress.completed++;
+  if (row.score.valid) progress.valid++;
+  const budget = progress.byBudget.get(row.task.budget)!;
+  budget.count++;
+  budget.scoreTotal += row.score.score;
+}
+
+function printStreamingProgress(
+  progress: StreamingProgress,
+  total: number,
+  startedAt: number,
+  restored: number,
+): void {
+  const freshDone = Math.max(0, progress.completed - restored);
+  const elapsedSeconds = Math.max(0.001, (performance.now() - startedAt) / 1000);
+  const rate = freshDone / elapsedSeconds;
+  const remaining = total - progress.completed;
+  const etaSeconds = rate > 0 ? remaining / rate : 0;
+  const budgetText = [...progress.byBudget.entries()].map(([budget, summary]) =>
+    `${budget / 1000}k ${summary.count}:${(summary.count === 0 ? 0 : summary.scoreTotal / summary.count).toFixed(1)}`
+  ).join(" | ");
+  console.log(
+    `  [${progress.completed}/${total}] valid ${progress.valid}, ${rate.toFixed(2)} runs/s, ETA ${formatDuration(etaSeconds)}; ` +
+    `${budgetText}`,
+  );
+}
+
 export function checkpointPlanFingerprint(plan: Record<string, unknown>): string {
   return sha256(JSON.stringify(plan));
 }
@@ -1060,10 +1336,93 @@ export function loadOrInitializeCheckpoint(
   return latestSuccessfulResults(results, (result) => taskKey(result.task));
 }
 
+export type CheckpointResultIndex = {
+  latest: Map<string, { ordinal: number; status: WorkerResult["status"] }>;
+};
+
+/** Index only task identity and final status, never every raw report.  This
+ * is the resume/assembly path for deep confirmations whose checkpoint is too
+ * large to split into one in-memory string. */
+export async function loadCheckpointResultIndex(
+  path: string,
+  runPlanFingerprint: string,
+  resume: boolean,
+): Promise<CheckpointResultIndex> {
+  if (!resume || !existsSync(path)) {
+    writeFileSync(path, `${JSON.stringify({ schema: CHECKPOINT_SCHEMA, runPlanFingerprint })}\n`);
+    return { latest: new Map() };
+  }
+  const latest = new Map<string, { ordinal: number; status: WorkerResult["status"] }>();
+  const lines = createInterface({ input: createReadStream(path, { encoding: "utf8" }), crlfDelay: Infinity });
+  let headerSeen = false;
+  let ordinal = 0;
+  for await (const line of lines) {
+    if (line === "") continue;
+    const entry = JSON.parse(line);
+    if (!headerSeen) {
+      headerSeen = true;
+      if (entry?.schema !== CHECKPOINT_SCHEMA || entry.runPlanFingerprint !== runPlanFingerprint) {
+        throw new Error(`checkpoint does not match the current run plan`);
+      }
+      continue;
+    }
+    if (entry?.type !== "result") continue;
+    const result = entry.result as WorkerResult;
+    latest.set(taskKey(result.task), { ordinal, status: result.status });
+    ordinal++;
+  }
+  if (!headerSeen) throw new Error(`checkpoint does not match the current run plan`);
+  return { latest };
+}
+
+export async function* latestCheckpointResults(
+  path: string,
+  index: CheckpointResultIndex,
+  runPlanFingerprint: string,
+): AsyncGenerator<WorkerResult> {
+  const lines = createInterface({ input: createReadStream(path, { encoding: "utf8" }), crlfDelay: Infinity });
+  let headerSeen = false;
+  let ordinal = 0;
+  for await (const line of lines) {
+    if (line === "") continue;
+    const entry = JSON.parse(line);
+    if (!headerSeen) {
+      headerSeen = true;
+      if (entry?.schema !== CHECKPOINT_SCHEMA || entry.runPlanFingerprint !== runPlanFingerprint) {
+        throw new Error(`checkpoint does not match the current run plan`);
+      }
+      continue;
+    }
+    if (entry?.type !== "result") continue;
+    const result = entry.result as WorkerResult;
+    const key = taskKey(result.task);
+    if (index.latest.get(key)?.ordinal === ordinal) yield result;
+    ordinal++;
+  }
+}
+
 export { compilerCandidateIdentity } from "./compiler_identity.ts";
 
 function archiveLink(path: string): { path: string; sha256: string } {
-  return { path: relativeToCwd(path), sha256: sha256(readFileSync(path)) };
+  return { path: relativeToCwd(path), sha256: sha256FileStreaming(path) };
+}
+
+/** Link metadata must remain valid for deep fixed-N archives, which can be
+ * larger than Node's 2 GiB Buffer limit. */
+function sha256FileStreaming(path: string): string {
+  const descriptor = openSync(path, "r");
+  const hash = createHash("sha256");
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  try {
+    for (;;) {
+      const length = readSync(descriptor, buffer, 0, buffer.length, null);
+      if (length === 0) break;
+      hash.update(buffer.subarray(0, length));
+    }
+    return hash.digest("hex");
+  } finally {
+    closeSync(descriptor);
+  }
 }
 
 function weightedMonitorScore(
@@ -1111,21 +1470,48 @@ function nonNegativeInteger(value: string, label: string): number {
  * but each run row is one compact line. A depth-48 archive is ~380 MB — a
  * single pretty-printed JSON.stringify (~640 MB) exceeds V8's string cap and
  * crashed the first depth-48 attempt (live-validation V3 finding). Chunked
- * serialization removes the WRITE-side cap at any depth; the read side stays
- * a single-string parse and is comfortable through depth 48 (a streaming
- * reader is v2 debt for deeper rows).
+ * serialization removes the write-side cap at any depth. Deep confirmations
+ * also publish a compact, checksummed decision index, so decision reads never
+ * need to materialize the raw archive.
  */
 export function* archiveChunks(archive: Record<string, unknown> & { runs: unknown[] }): Generator<string> {
-  const skeleton = `${JSON.stringify({ ...archive, runs: [] }, null, 2)}\n`;
-  const marker = `"runs": []`;
-  const markerIndex = skeleton.lastIndexOf(marker);
-  if (markerIndex < 0) throw new Error(`archive skeleton lost its runs marker`);
-  yield skeleton.slice(0, markerIndex + marker.length - 1);
+  const { prefix, suffix } = archiveRunBoundary(archive);
+  yield prefix;
   for (let index = 0; index < archive.runs.length; index++) {
     yield `${index === 0 ? "" : ","}\n    ${JSON.stringify(archive.runs[index])}`;
   }
   if (archive.runs.length > 0) yield "\n  ";
-  yield skeleton.slice(markerIndex + marker.length - 1);
+  yield suffix;
+}
+
+function archiveRunBoundary(archive: Record<string, unknown>): { prefix: string; suffix: string } {
+  const skeleton = `${JSON.stringify({ ...archive, runs: [] }, null, 2)}\n`;
+  const marker = `"runs": []`;
+  const markerIndex = skeleton.lastIndexOf(marker);
+  if (markerIndex < 0) throw new Error(`archive skeleton lost its runs marker`);
+  return {
+    prefix: skeleton.slice(0, markerIndex + marker.length - 1),
+    suffix: skeleton.slice(markerIndex + marker.length - 1),
+  };
+}
+
+export async function* checkpointArchiveChunks(
+  archive: Record<string, unknown>,
+  checkpointPath: string,
+  index: CheckpointResultIndex,
+  runPlanFingerprint: string,
+  score: (result: WorkerResult) => Record<string, unknown>,
+): AsyncGenerator<string> {
+  const { prefix, suffix } = archiveRunBoundary(archive);
+  yield prefix;
+  let rowCount = 0;
+  for await (const result of latestCheckpointResults(checkpointPath, index, runPlanFingerprint)) {
+    const row = score(result);
+    yield `${rowCount === 0 ? "" : ","}\n    ${JSON.stringify(row)}`;
+    rowCount++;
+  }
+  if (rowCount > 0) yield "\n  ";
+  yield suffix;
 }
 
 /**
@@ -1136,7 +1522,7 @@ export function* archiveChunks(archive: Record<string, unknown> & { runs: unknow
  */
 export async function writeArchiveArtifacts(
   outputPath: string,
-  chunks: Iterable<string | Buffer>,
+  chunks: Iterable<string | Buffer> | AsyncIterable<string | Buffer>,
   failed: boolean,
 ): Promise<{ archiveOut: string; summaryPath: string; archiveSha256: string; compressedArchiveSha256: string }> {
   const archiveOut = failed ? `${outputPath}.failed` : outputPath;
@@ -1151,7 +1537,7 @@ export async function writeArchiveArtifacts(
     new Promise((resolveWrite, rejectWrite) => {
       stream.write(block, (error) => error ? rejectWrite(error) : resolveWrite());
     });
-  for (const chunk of chunks) {
+  for await (const chunk of chunks) {
     const block = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     archiveHash.update(block);
     await write(fileStream, block);

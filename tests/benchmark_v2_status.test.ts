@@ -13,7 +13,7 @@ describe("Benchmark V2 status", () => {
     expect(result.status).toBe(0);
     const payload = JSON.parse(result.stdout);
     expect(payload.schema).toBe("line.benchmark-v2.status.v1");
-    expect(payload.menu).toHaveLength(2);
+    expect(payload.menu).toHaveLength(3);
     expect(payload.menu[0]).toMatchObject({
       id: "improve-t0-d48",
       depth: 48,
@@ -21,6 +21,15 @@ describe("Benchmark V2 status", () => {
       developmentCompiles: 12_672,
       qualificationCompilesOnAccept: 120,
     });
+    expect(payload.menu[1]).toMatchObject({
+      id: "improve-t0-d300",
+      depth: 300,
+      mde80: 2,
+      developmentCompiles: 79_200,
+      qualificationCompilesOnAccept: 120,
+    });
+    expect(payload.menu[1].spend).toBeGreaterThan(0);
+    expect(payload.menu[1].spend).toBeLessThanOrEqual(0.05);
     expect(payload.operationalReference).toMatchObject({ jobs: 48, stage0: { compiles: 264 } });
     expect(typeof payload.baseline.current).toBe("boolean");
     expect(typeof payload.stage0.comparable).toBe("boolean");

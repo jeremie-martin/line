@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.decision-calibration.v2",
-  "generatedAt": "2026-07-12T23:59:34.402Z",
+  "generatedAt": "2026-07-22T05:58:43.059Z",
   "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
-  "decisionInferenceFingerprint": "0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273",
+  "decisionInferenceFingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "policy": {
     "schema": "line.benchmark-v2.decision-policy.v2",
     "method": "stress_calibrated_paired_budget_seed_block_jackknife_t_with_parent_bootstrap_sensitivity",
@@ -98,7 +98,7 @@
   },
   "coverageStudy": {
     "path": "benchmark/v2/studies/decision-coverage.json",
-    "sha256": "4fb01490aa4141eb2c2914f5b7b6edb2cf4d5212a86406282ffcd18b3846d098",
+    "sha256": "2a1c9d6b360a80709c98fa09a41841683f6afac1ca859acb961be9d130bd3851",
     "trials": 1000,
     "results": [
       {

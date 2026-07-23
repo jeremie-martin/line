@@ -1,0 +1,16 @@
+{
+  "schema": "line.benchmark-v2.runner-compat-direct-anchor.v1",
+  "retainedImplementationFingerprint": "3bed82340e4da9ebb828de5d24a42de39e1803a78ca79138baba4d9b55e9f7be",
+  "replayImplementationFingerprint": "6a84fd26c6be6cfe2d66d754bb24a50e4936f63746ea7d1ae86900a203a3d6d0",
+  "executionPolicyFingerprint": "c92dd3ce76c200516d4e606958fce83819d1dde7c78b6f7a3a6e793ab79301fd",
+  "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
+  "retainedArchive": "benchmark/v2/runs/2026-07-16T16-45-07Z-8257f266-development.json.gz",
+  "retainedArchiveSha256": "22e3294da02aaa560d9daaf03ef8a611ddeef0e4bde9b103d5c33ef3c98df7c4",
+  "replayArchive": "generated/benchmark-v2/runner-compat/anchor48-streaming-harness/replay.json",
+  "replayArchiveSha256": "6f85926fe44533d8724d221d3d1ffee768103e1ba6a5743fbc61ffceca8e5cd0",
+  "replayCompressedArchiveSha256": "6491a69a1248ba0277a06f9fb65cda637ae235c96eca01adb80ef0b4ed288f5e",
+  "comparedRows": 6336,
+  "mismatchCount": 0,
+  "firstMismatch": null,
+  "result": "bit-identical"
+}

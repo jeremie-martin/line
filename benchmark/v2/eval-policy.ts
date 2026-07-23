@@ -21,6 +21,14 @@ export const EVAL_CERTIFICATION_ARTIFACT_PATHS = {
   probeFutility: "benchmark/v2/studies/probe-futility.json",
 } as const;
 
+/** Each confirmation depth is authorized by its own independently retained
+ * certification pair. Adding a deeper point therefore cannot silently
+ * repurpose the shallow point's calibration evidence. */
+export type EvalCertificationArtifactPaths = Readonly<{
+  menuCertification: string;
+  holdoutValidation: string;
+}>;
+
 /** Which statistic of a certification cell carries the certified rate. */
 export type CertifiedCellReference = {
   id: string;
@@ -53,10 +61,12 @@ export type EvalOperatingPoint = {
   };
   /** The true effect (headline points) at which power is certified. */
   certifiedDetectableEffect: number;
+  /** Frozen calibration evidence for this exact depth and stopping rule. */
+  certification: EvalCertificationArtifactPaths;
 };
 
 export const benchmarkEvalPolicy = {
-  version: 1,
+  version: 2,
   operatingPoints: [
     {
       id: "improve-t0-d48",
@@ -76,6 +86,37 @@ export const benchmarkEvalPolicy = {
         ],
       },
       certifiedDetectableEffect: 5,
+      certification: {
+        menuCertification: EVAL_CERTIFICATION_ARTIFACT_PATHS.menuCertification,
+        holdoutValidation: EVAL_CERTIFICATION_ARTIFACT_PATHS.holdoutValidation,
+      },
+    },
+    {
+      /** A deliberately declared deep confirmation for a modest, broad
+       * improvement. It has no interim looks: all 300 fresh seed blocks are
+       * collected before a verdict, avoiding a new stopping-policy variable.
+       * Its +2 power and error bars are independently regenerated and bound
+       * below; this is not a way to pool a preceding inconclusive attempt. */
+      id: "improve-t0-d300",
+      mode: "improvement",
+      margin: null,
+      depth: 300,
+      criticalAlpha: 0.01,
+      futilitySchedule: [],
+      futilityAlpha: 0.05,
+      cells: {
+        power: { id: "improve_power_2", statistic: "accept" },
+        spendNull: { id: "improve_null_empirical", statistic: "accept" },
+        additionalNulls: [
+          { id: "improve_null_validity_flips", statistic: "accept" },
+          { id: "improve_null_hard_zero", statistic: "accept" },
+        ],
+      },
+      certifiedDetectableEffect: 2,
+      certification: {
+        menuCertification: "benchmark/v2/studies/menu-certification-d300.json",
+        holdoutValidation: "benchmark/v2/studies/holdout-validation-d300.json",
+      },
     },
     {
       // Simplification runs WITHOUT interim futility looks in v1: only the
@@ -94,6 +135,12 @@ export const benchmarkEvalPolicy = {
         additionalNulls: [],
       },
       certifiedDetectableEffect: 5,
+      certification: {
+        // This row has no interim looks. It cannot reuse the improvement
+        // certificate, whose predeclared plan includes futility looks.
+        menuCertification: "benchmark/v2/studies/menu-certification-d48-no-futility.json",
+        holdoutValidation: "benchmark/v2/studies/holdout-validation-d48-no-futility.json",
+      },
     },
   ],
   bars: {

@@ -137,6 +137,48 @@ export function pairedV2DecisionForCalibration(
   return pairedV2DecisionCore(baseRuns, candidateRuns, suite, options, false);
 }
 
+/**
+ * Exact global verdict for Monte-Carlo calibration. The calibration generator
+ * only consumes these three fields; computing every per-budget, stratum, and
+ * case diagnostic would repeat the costly seed-block jackknife several times
+ * per simulated trial without affecting its verdict or any certified rate.
+ */
+export function pairedV2CalibrationVerdict(
+  baseRuns: DecisionRun[],
+  candidateRuns: DecisionRun[],
+  suite: SuiteManifest,
+  options: DecisionOptions,
+): Pick<V2Decision, "delta" | "confidence" | "outcome"> {
+  const policy = resolvePolicy(options);
+  assertPairedScope(baseRuns, candidateRuns);
+  const budgets = [...suite.profiles[options.profile].budgets];
+  const base = indexRuns(baseRuns, suite, options.profile);
+  const candidate = indexRuns(candidateRuns, suite, options.profile);
+  const fullParents = fullParentPlan(suite);
+  const fullSeeds = new Map([...base.slotsByBudget].map(([budget, slots]) => [budget, [...slots]]));
+  const basePoint = scorePlan(base, suite, budgets, fullParents, fullSeeds);
+  const candidatePoint = scorePlan(candidate, suite, budgets, fullParents, fullSeeds);
+  const pointDelta = candidatePoint.headline - basePoint.headline;
+  const confidence = seedBlockConfidence(
+    base,
+    candidate,
+    suite,
+    budgets,
+    fullParents,
+    fullSeeds,
+    pointDelta,
+    (breakdown, budget) => breakdown.budgets.get(budget)!,
+    policy.alpha,
+    policy.criticalAlpha,
+  );
+  const outcome = confidence.lowerBound > policy.threshold
+    ? policy.positiveOutcome
+    : confidence.upperBound < policy.threshold
+      ? policy.negativeOutcome
+      : policy.unresolvedOutcome;
+  return { delta: round(pointDelta), confidence, outcome };
+}
+
 function pairedV2DecisionCore(
   baseRuns: DecisionRun[],
   candidateRuns: DecisionRun[],

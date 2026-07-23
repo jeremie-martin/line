@@ -28,9 +28,11 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { applyJolt } from "../produce/seed.ts";
 import {
+  pairedV2CalibrationVerdict,
   pairedV2DecisionForCalibration,
   studentTQuantile,
   type DecisionRun,
@@ -54,12 +56,40 @@ import {
 import { readVerifiedArtifact, verifyScaleStudyArchive, cellKey } from "./study_lib.ts";
 
 const REPO = resolve(dirname(new URL(import.meta.url).pathname), "..", "..");
+const DIRECT_ENTRYPOINT = isMainThread && process.argv[1] !== undefined &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+function argumentValue(name: string): string | undefined {
+  const prefix = `--${name}=`;
+  return process.argv.find((value) => value.startsWith(prefix))?.slice(prefix.length);
+}
+
+function parseDepth(raw: string | undefined): number {
+  const depth = Number(raw ?? 48);
+  if (!Number.isSafeInteger(depth) || depth < 1) {
+    throw new Error(`--depth must be a positive integer`);
+  }
+  return depth;
+}
+
+function parseFutilitySchedule(raw: string | undefined, depth: number): number[] {
+  if (raw === undefined) return [2, 3, 4, 8, 16];
+  if (raw === "none") return [];
+  const schedule = raw.split(",").map((value) => Number(value.trim()));
+  if (
+    schedule.length === 0 || schedule.some((value) => !Number.isSafeInteger(value) || value < 1 || value >= depth) ||
+    schedule.some((value, index) => index > 0 && value <= schedule[index - 1])
+  ) throw new Error(`--futility-schedule must be 'none' or increasing positive looks below --depth`);
+  return schedule;
+}
+
+const declaredDepth = parseDepth(argumentValue("depth"));
 
 // ── Predeclared validation contract (committed before the reference compile) ─
 export const PREDECLARED = {
-  depth: Number(process.argv.find((value) => value.startsWith("--depth="))?.slice(8) ?? 48),
+  depth: declaredDepth,
   trialsPerStream: 500, // x2 streams = 1000 trials per cell
-  futilitySchedule: [2, 3, 4, 8, 16],
+  futilitySchedule: parseFutilitySchedule(argumentValue("futility-schedule"), declaredDepth),
   futilityAlpha: 0.05,
   criticalAlpha: 0.01,
   centralCriticalLevel: 0.99,
@@ -109,6 +139,48 @@ const CELLS: CellConfig[] = [
   { id: "futility_regression_m5", scenario: "empirical_shift", shift: PREDECLARED.frozenShifts.boundaryM5, threshold: 0, futility: true, role: "informational" },
 ];
 
+/** The complete execution contract carried from the command parser to every
+ * simulation worker. Node worker threads do not inherit the parent argv, so
+ * no worker may consult PREDECLARED directly. */
+export type ValidationExecutionPlan = Readonly<{
+  depth: number;
+  futilitySchedule: readonly number[];
+  futilityAlpha: number;
+  criticalAlpha: number;
+  centralCriticalLevel: number;
+  centralNominalLevel: number;
+}>;
+
+export function validationExecutionPlan(input: ValidationExecutionPlan): ValidationExecutionPlan {
+  if (!Number.isSafeInteger(input.depth) || input.depth < 1) {
+    throw new Error(`validation depth must be a positive integer`);
+  }
+  if (
+    input.futilitySchedule.some((look) => !Number.isSafeInteger(look) || look < 1 || look >= input.depth) ||
+    input.futilitySchedule.some((look, index) => index > 0 && look <= input.futilitySchedule[index - 1])
+  ) throw new Error(`validation futility schedule must be strictly increasing below depth`);
+  for (const [label, value] of Object.entries({
+    futilityAlpha: input.futilityAlpha,
+    criticalAlpha: input.criticalAlpha,
+    centralCriticalLevel: input.centralCriticalLevel,
+    centralNominalLevel: input.centralNominalLevel,
+  })) {
+    if (!(value > 0 && value < 1)) throw new Error(`validation ${label} must be in (0, 1)`);
+  }
+  return {
+    depth: input.depth,
+    futilitySchedule: [...input.futilitySchedule],
+    futilityAlpha: input.futilityAlpha,
+    criticalAlpha: input.criticalAlpha,
+    centralCriticalLevel: input.centralCriticalLevel,
+    centralNominalLevel: input.centralNominalLevel,
+  };
+}
+
+export function validationExecutionPlanFingerprint(plan: ValidationExecutionPlan): string {
+  return createHash("sha256").update(JSON.stringify(plan)).digest("hex");
+}
+
 type Tally = {
   count: number;
   accept: number;
@@ -131,8 +203,9 @@ type ChunkJob = {
   trueDelta: number;
 };
 
-if (isMainThread) await main();
-else workerLoop();
+if (isMainThread) {
+  if (DIRECT_ENTRYPOINT) await main();
+} else workerLoop();
 
 // ── DGP mirrors (study_power_grid.ts / study_decision_coverage.ts) ──────────
 
@@ -221,11 +294,17 @@ function workerLoop(): void {
     seeds: number[];
     entries: Array<[string, { score: number; valid: boolean }]>;
     cells: CellConfig[];
+    executionPlan: ValidationExecutionPlan;
+    executionPlanFingerprint: string;
   };
   const referenceByCell = new Map(data.entries);
   const cellsById = new Map(data.cells.map((cell) => [cell.id, cell]));
-  const fullSuite = suiteForSeeds(data.suite, PREDECLARED.depth);
-  const lookSuites = new Map(PREDECLARED.futilitySchedule.map((k) => [k, suiteForSeeds(data.suite, k)]));
+  const executionPlan = validationExecutionPlan(data.executionPlan);
+  if (validationExecutionPlanFingerprint(executionPlan) !== data.executionPlanFingerprint) {
+    throw new Error(`validation worker execution plan does not match its declared fingerprint`);
+  }
+  const fullSuite = suiteForSeeds(data.suite, executionPlan.depth);
+  const lookSuites = new Map(executionPlan.futilitySchedule.map((k) => [k, suiteForSeeds(data.suite, k)]));
 
   parentPort!.on("message", (job: ChunkJob | { done: true }) => {
     if ("done" in job) {
@@ -234,21 +313,21 @@ function workerLoop(): void {
     const cell = cellsById.get(job.cellId)!;
     const tally: Tally = {
       count: 0, accept: 0, reject: 0, inconclusive: 0, netAccept: 0,
-      firedCumulativeByLook: Object.fromEntries(PREDECLARED.futilitySchedule.map((k) => [k, 0])),
+      firedCumulativeByLook: Object.fromEntries(executionPlan.futilitySchedule.map((k) => [k, 0])),
       sumDelta: 0, sumSe: 0, central99: 0, central95: 0, policyDisagreement: 0,
     };
     for (let trial = job.trialStart; trial < job.trialEnd; trial++) {
       const random = mulberry32(hashSeed(`${job.cellId}:${job.stream}:${trial}`));
       const { base, candidate } = trialRuns(
-        cell.scenario, data.suite, PREDECLARED.depth, cell.shift, data.members, data.seeds, referenceByCell, random,
+        cell.scenario, data.suite, executionPlan.depth, cell.shift, data.members, data.seeds, referenceByCell, random,
       );
-      const decision = pairedV2DecisionForCalibration(base, candidate, fullSuite, {
+      const decision = pairedV2CalibrationVerdict(base, candidate, fullSuite, {
         profile: "canonical", mode: "improvement", bootstrapSeed: 0,
       });
       const estimate = decision.confidence.estimate;
       const se = decision.confidence.standardError;
       const df = decision.confidence.degreesOfFreedom ?? Infinity;
-      const critical = se === 0 ? 0 : studentTQuantile(1 - PREDECLARED.criticalAlpha, df);
+      const critical = se === 0 ? 0 : studentTQuantile(1 - executionPlan.criticalAlpha, df);
       const lower = estimate - critical * se;
       const upper = estimate + critical * se;
       const outcome = lower > cell.threshold ? "accept" : upper < cell.threshold ? "reject" : "inconclusive";
@@ -257,8 +336,8 @@ function workerLoop(): void {
       let fired = false;
       if (cell.futility) {
         let firedAt: number | null = null;
-        for (const k of PREDECLARED.futilitySchedule) {
-          const look = pairedV2DecisionForCalibration(
+        for (const k of executionPlan.futilitySchedule) {
+          const look = pairedV2CalibrationVerdict(
             evalRunsAtLook(base, k), evalRunsAtLook(candidate, k), lookSuites.get(k)!,
             { profile: "canonical", mode: "improvement", bootstrapSeed: 0 },
           );
@@ -266,7 +345,7 @@ function workerLoop(): void {
             estimate: look.confidence.estimate,
             standardError: look.confidence.standardError,
             degreesOfFreedom: look.confidence.degreesOfFreedom,
-            futilityAlpha: PREDECLARED.futilityAlpha,
+            futilityAlpha: executionPlan.futilityAlpha,
             threshold: cell.threshold,
           })) {
             firedAt = k;
@@ -274,7 +353,7 @@ function workerLoop(): void {
           }
         }
         fired = firedAt !== null;
-        for (const k of PREDECLARED.futilitySchedule) {
+        for (const k of executionPlan.futilitySchedule) {
           if (firedAt !== null && firedAt <= k) tally.firedCumulativeByLook[k]++;
         }
       }
@@ -284,12 +363,17 @@ function workerLoop(): void {
       if (cell.futility && outcome === "accept" && !fired) tally.netAccept++;
       tally.sumDelta += estimate;
       tally.sumSe += se;
-      const central99 = se === 0 ? 0 : studentTQuantile(1 - (1 - PREDECLARED.centralCriticalLevel) / 2, df);
-      const central95 = se === 0 ? 0 : studentTQuantile(1 - (1 - PREDECLARED.centralNominalLevel) / 2, df);
+      const central99 = se === 0 ? 0 : studentTQuantile(1 - (1 - executionPlan.centralCriticalLevel) / 2, df);
+      const central95 = se === 0 ? 0 : studentTQuantile(1 - (1 - executionPlan.centralNominalLevel) / 2, df);
       if (estimate - central99 * se <= job.trueDelta && job.trueDelta <= estimate + central99 * se) tally.central99++;
       if (estimate - central95 * se <= job.trueDelta && job.trueDelta <= estimate + central95 * se) tally.central95++;
     }
-    parentPort!.postMessage({ cellId: job.cellId, stream: job.stream, tally });
+    parentPort!.postMessage({
+      cellId: job.cellId,
+      stream: job.stream,
+      tally,
+      executionPlanFingerprint: data.executionPlanFingerprint,
+    });
   });
 }
 
@@ -298,21 +382,25 @@ function workerLoop(): void {
 async function main(): Promise<void> {
   const startedAt = Date.now();
   const certificationGeneratorFingerprint = fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES);
-  const argument = (name: string): string | undefined => {
-    const prefix = `--${name}=`;
-    return process.argv.find((value) => value.startsWith(prefix))?.slice(prefix.length);
-  };
-  const independentPath = resolve(REPO, argument("independent-reference") ??
+  const executionPlan = validationExecutionPlan(PREDECLARED);
+  const executionPlanFingerprint = validationExecutionPlanFingerprint(executionPlan);
+  const independentPath = resolve(REPO, argumentValue("independent-reference") ??
     "benchmark/v2/runs/calibration-v2.6-holdout-reference-seeds-36-47.json.gz");
-  const originalPath = resolve(REPO, argument("original-reference") ??
+  const originalPath = resolve(REPO, argumentValue("original-reference") ??
     "benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz");
   const powerGridPath = resolve(REPO, "benchmark/v2/studies/power-grid.json");
   const probeFutilityPath = resolve(REPO, "benchmark/v2/studies/probe-futility.json");
   const determinismPath = resolve(REPO, "benchmark/v2/studies/determinism-check.json");
-  const outPath = resolve(REPO, argument("out") ?? "benchmark/v2/studies/independent-validation.json");
-  const workerCount = Number(argument("workers") ?? 32);
-  const trialsPerStream = Number(argument("trials-per-stream") ?? PREDECLARED.trialsPerStream);
-  const mode = (argument("mode") ?? "holdout") as "certify" | "holdout";
+  const outPath = resolve(REPO, argumentValue("out") ?? "benchmark/v2/studies/independent-validation.json");
+  const workerCount = Number(argumentValue("workers") ?? 32);
+  // Certification precision is part of the frozen contract.  A smaller
+  // diagnostic run belongs in a dedicated smoke harness, not in a file that
+  // looks like a 1,000-trial certification artifact.
+  if (argumentValue("trials-per-stream") !== undefined) {
+    throw new Error(`--trials-per-stream is not supported for certification; use the dedicated smoke harness`);
+  }
+  const trialsPerStream = PREDECLARED.trialsPerStream;
+  const mode = (argumentValue("mode") ?? "holdout") as "certify" | "holdout";
   const allowInSample = process.argv.includes("--allow-in-sample");
   if (mode !== "certify" && mode !== "holdout") throw new Error(`--mode must be certify|holdout`);
   if (mode === "certify" && !allowInSample) {
@@ -463,10 +551,23 @@ async function main(): Promise<void> {
         execArgv: process.execArgv,
         workerData: {
           suite, members, seeds: independent.seeds,
-          entries: [...independentCells.entries()], cells: CELLS,
+          entries: [...independentCells.entries()],
+          cells: CELLS,
+          executionPlan,
+          executionPlanFingerprint,
         },
       });
-      worker.on("message", (result: { cellId: string; stream: string; tally: Tally }) => {
+      worker.on("message", (result: {
+        cellId: string;
+        stream: string;
+        tally: Tally;
+        executionPlanFingerprint: string;
+      }) => {
+        if (result.executionPlanFingerprint !== executionPlanFingerprint) {
+          for (const w of workers) void w.terminate();
+          rejectPromise(new Error(`validation worker returned a result for a different execution plan`));
+          return;
+        }
         done++;
         const key = tallyKey(result.cellId, result.stream);
         const existing = tallies.get(key);
@@ -542,6 +643,8 @@ async function main(): Promise<void> {
     mode,
     inSample: allowInSample,
     predeclared: PREDECLARED,
+    workerExecutionPlan: executionPlan,
+    workerExecutionPlanFingerprint: executionPlanFingerprint,
     independentReference: {
       path: relative(independentPath),
       artifactSha256: independentArtifact.artifactSha256,

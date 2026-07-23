@@ -53,10 +53,11 @@ function currentSuiteFingerprint(): string {
 }
 
 describe("eval policy menu", () => {
-  test("offers exactly the two v1 rows and resolves lookups", () => {
+  test("offers the independently certified shallow and deep rows and resolves lookups", () => {
     expect(benchmarkEvalPolicy.operatingPoints.map((point) => point.id))
-      .toEqual(["improve-t0-d48", "simplify-m5-d48"]);
+      .toEqual(["improve-t0-d48", "improve-t0-d300", "simplify-m5-d48"]);
     expect(evalOperatingPoint("improvement", null, 48)?.id).toBe("improve-t0-d48");
+    expect(evalOperatingPoint("improvement", null, 300)?.id).toBe("improve-t0-d300");
     expect(evalOperatingPoint("simplification", 5, 48)?.id).toBe("simplify-m5-d48");
     expect(evalOperatingPoint("improvement", null, 32)).toBeUndefined();
     expect(evalOperatingPoint("simplification", 3, 48)).toBeUndefined();
@@ -66,6 +67,8 @@ describe("eval policy menu", () => {
   test("simplification runs without interim looks in v1", () => {
     expect(evalOperatingPoint("simplification", 5, 48)?.futilitySchedule).toEqual([]);
     expect(evalOperatingPoint("improvement", null, 48)?.futilitySchedule).toEqual([2, 3, 4, 8, 16]);
+    expect(evalOperatingPoint("improvement", null, 300)?.futilitySchedule).toEqual([]);
+    expect(evalOperatingPoint("improvement", null, 300)?.certifiedDetectableEffect).toBe(2);
   });
 
   test("per-mode exit-code contracts", () => {
@@ -136,6 +139,19 @@ describe("certified operating-point guard", () => {
       .not.toBe(requireCertifiedOperatingPoint("improvement", null, 48, suiteFingerprint).certificationFingerprint);
   });
 
+  test("authorizes the deep improve row from its own calibration pair", () => {
+    const certified = requireCertifiedOperatingPoint("improvement", null, 300, suiteFingerprint);
+    expect(certified.point.id).toBe("improve-t0-d300");
+    expect(certified.mde80).toBe(2);
+    expect(certified.point.futilitySchedule).toEqual([]);
+    expect(certified.artifacts.menuCertification.path)
+      .toBe("benchmark/v2/studies/menu-certification-d300.json");
+    expect(certified.artifacts.holdoutValidation.path)
+      .toBe("benchmark/v2/studies/holdout-validation-d300.json");
+    expect(certified.spend).toBeGreaterThan(0);
+    expect(certified.spend).toBeLessThanOrEqual(0.05);
+  });
+
   test("refuses non-menu points naming the certified rows", () => {
     expect(() => requireCertifiedOperatingPoint("improvement", null, 32, suiteFingerprint))
       .toThrow(/not on the certified menu.*improve-t0-d48/);
@@ -174,6 +190,15 @@ describe("certified operating-point guard", () => {
       menuCertification: wrongGeneratorPath,
       holdoutValidation: holdoutPath,
     })).toThrow(/stale for the current certification generator or methodology/);
+
+    const wrongWorkerPlan = structuredClone(menu);
+    wrongWorkerPlan.workerExecutionPlan.depth = 47;
+    const wrongWorkerPlanPath = join(dir, "menu-wrong-worker-plan.json");
+    writeFileSync(wrongWorkerPlanPath, JSON.stringify(wrongWorkerPlan));
+    expect(() => requireCertifiedOperatingPoint("improvement", null, 48, suiteFingerprint, {
+      menuCertification: wrongWorkerPlanPath,
+      holdoutValidation: holdoutPath,
+    })).toThrow(/worker execution plan/);
 
     const wrongReference = structuredClone(menu);
     wrongReference.independentReference.rawSha256 = "5".repeat(64);

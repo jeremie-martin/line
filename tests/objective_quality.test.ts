@@ -243,6 +243,18 @@ describe("diagnostic frontier readiness", () => {
         sledPoseRateDegPerFrame: null,
         grounded: 1,
         airborne: true,
+        articulation: {
+          frameOffset: 2,
+          assemblyX: 10,
+          assemblyY: 20,
+          assemblyVx: 1,
+          assemblyVy: 2,
+          relativeX: 3,
+          relativeY: 4,
+          relativeVx: 5,
+          relativeVy: 6,
+          angularRateRadPerFrame: 0.1,
+        },
       },
     };
     const node: HandoffNode = {
@@ -276,5 +288,8 @@ describe("diagnostic frontier readiness", () => {
 
     const cloned = snapshotHandoffNode(node, key, event).node.search.prefixFits[0]!;
     expect(cloned.releaseArrivalState).toEqual(fit.releaseArrivalState);
+    expect(cloned.releaseArrivalState?.articulation).not.toBe(
+      fit.releaseArrivalState?.articulation,
+    );
   });
 });

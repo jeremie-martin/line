@@ -16,7 +16,17 @@ import {
   engineLineFromTrackLine,
   isAuthoredContactEvent,
 } from "../core/substrate.ts";
-import { gravityCorrectedLaunchAverage } from "../core/launch_read.ts";
+import {
+  articulatedBallisticState,
+  bodyAssemblyLaunchSampleFromRider,
+  gravityCorrectedLaunchAverage,
+  LAUNCH_READ_FRAMES,
+} from "../core/launch_read.ts";
+import {
+  ballisticTraceEnabled,
+  captureBallisticTraceObservation,
+  recordBallisticTraceCandidate,
+} from "../core/ballistic_trace.ts";
 import { firstAirborneExitFrame, growShortHorizon } from "../core/exit_read.ts";
 import { ELEVATION, IMPACT_WINDOW, type Gap, type TrackLine } from "../types.ts";
 import {
@@ -24,6 +34,7 @@ import {
   applyArcKnobs,
   arcResponseOutputs,
   normalizeAngleDeg,
+  propagateBallisticArrivalState,
   stateOutputs,
   type ArcKnobs,
   type JointArcProbeRow,
@@ -189,15 +200,44 @@ function observeShortJointArcLines(
   const offBeatLandings = countOffBeatLandings(det.events, gap.startFrame, offBeatEnd, [...contactFrames]);
   const currentOk = survivedCurrent && landingOk && offBeatLandings === 0;
   const suffixFrame = firstAirborneExitFrameAtOrAfter(fork, det, lines, gap.endFrame, horizon);
-  const suffixRead = suffixFrame === null ? null : readLaunchState(fork, det, suffixFrame, horizon);
+  const suffixRead = suffixFrame === null
+    ? null
+    : readLaunchState(fork, det, suffixFrame, horizon, nextFrame);
   const suffixState = suffixRead?.state ?? null;
   const cleanAirborneSuffix = suffixFrame === null ? null : cleanAirborneRange(det, suffixFrame, horizon);
-  const nextStateOk = suffixState !== null && suffixFrame !== null && suffixFrame <= nextFrame;
+  const nextStateOk = suffixState !== null && suffixFrame !== null && suffixFrame < nextFrame;
+  if (ballisticTraceEnabled() && suffixFrame !== null && suffixState !== null && suffixFrame < nextFrame) {
+    recordBallisticTraceCandidate({
+      population: "aim_probe",
+      gapIndex: gap.index,
+      launchFrame: suffixFrame,
+      targetFrame: nextFrame,
+      capture: () => captureBallisticTraceObservation({
+        population: "aim_probe",
+        gapIndex: gap.index,
+        launchFrame: suffixFrame,
+        targetFrame: nextFrame,
+        sampleAllowed: (frame) => frame <= horizon && airborneAt(det, frame) === true,
+        // Benchmark-only truth reads are intentionally raw/unmetered: this fork
+        // is discarded after the probe, so neither search state nor budget moves.
+        readRider: (frame) => fork.getRider(frame),
+        readUpdates: (frame) => fork.getUpdatesAtFrame?.(frame),
+      }),
+    });
+  }
 
   const outputs: Record<string, number> = {};
   const latentOutputs: Record<string, number> = {};
   if (suffixFrame !== null && suffixState !== null) {
     addLatentSuffixOutputs(latentOutputs, suffixFrame, suffixState);
+    if (nextStateOk) {
+      Object.assign(
+        outputs,
+        stateOutputs(
+          propagateBallisticArrivalState(suffixState, nextFrame - suffixFrame),
+        ),
+      );
+    }
     const summary = summarizeBallisticAxisPrefix(det, gap, Math.min(suffixFrame, axisMeasureEnd));
     if (summary !== null) {
       const prefixFrames = Math.max(0, summary.prefixEndFrame - summary.startFrame + 1);
@@ -383,19 +423,42 @@ function readLaunchState(
   det: ReturnType<typeof detectWindow>,
   frame: number,
   horizon: number,
+  targetFrame: number,
 ): { state: RiderArrivalState; readFrames: number } | null {
-  const base = readArrivalState(engine, frame);
-  if (base === null) return base;
+  const riders = [];
+  for (let offset = 0; offset < LAUNCH_READ_FRAMES; offset++) {
+    const sampleFrame = frame + offset;
+    if (
+      sampleFrame > horizon ||
+      sampleFrame >= targetFrame ||
+      airborneAt(det, sampleFrame) !== true
+    ) break;
+    const rider = getRiderMetered(engine, sampleFrame);
+    const velocity = rider?.velocity;
+    if (
+      velocity === undefined ||
+      !Number.isFinite(velocity.x) ||
+      !Number.isFinite(velocity.y)
+    ) break;
+    riders.push(rider);
+  }
+  if (riders.length === 0) return null;
+  const base = arrivalStateFromRider(engine, riders[0], frame);
+  if (base === null) return null;
   const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
   const { vx, vy, n } = gravityCorrectedLaunchAverage(
     { x: base.vx, y: base.vy },
     g,
-    (k) => {
-      const f = frame + k;
-      return f <= horizon && airborneAt(det, f) === true;
-    },
-    (k) => getRiderMetered(engine, frame + k)?.velocity,
+    (offset) => offset < riders.length,
+    (offset) => riders[offset]?.velocity,
   );
+  const samples = [];
+  for (let offset = 0; offset < riders.length; offset++) {
+    const sample = bodyAssemblyLaunchSampleFromRider(riders[offset], frame + offset);
+    if (sample === null) break;
+    samples.push(sample);
+  }
+  const articulation = articulatedBallisticState(samples, g);
   const speed = Math.hypot(vx, vy);
   return {
     state: {
@@ -404,6 +467,7 @@ function readLaunchState(
       vy,
       speed,
       comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
+      ...(articulation === null ? {} : { articulation }),
     },
     readFrames: n,
   };
@@ -412,6 +476,11 @@ function readLaunchState(
 // deno-lint-ignore no-explicit-any
 export function readArrivalState(engine: any, frame: number): RiderArrivalState | null {
   const rider = getRiderMetered(engine, frame);
+  return arrivalStateFromRider(engine, rider, frame);
+}
+
+// deno-lint-ignore no-explicit-any
+function arrivalStateFromRider(engine: any, rider: any, frame: number): RiderArrivalState | null {
   if (!riderUsable(rider)) return null;
   const pos = rider.position ?? { x: NaN, y: NaN };
   const v = rider.velocity ?? { x: NaN, y: NaN };

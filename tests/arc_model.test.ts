@@ -15,6 +15,7 @@ import {
   predictedArrivalState,
   predictedCurrentAxes,
   predictJointArcOutputs,
+  predictJointArcScoreReadout,
   predictLinearModel,
   propagateBallisticArrivalState,
   reduceLatentJointArcOutputs,
@@ -571,6 +572,25 @@ describe("arc_model joint response helpers", () => {
     }
   });
 
+  test("a suffix read at the target frame is not treated as a prediction", () => {
+    const targetFrame = 13;
+    const reduced = reduceLatentJointArcOutputs({
+      "latent.suffix.frame": targetFrame,
+      "latent.suffix.x": 100,
+      "latent.suffix.y": 50,
+      "latent.suffix.vx": 8,
+      "latent.suffix.vy": 1,
+    }, {
+      gap: { index: 0, startFrame: 0, endFrame: 8, endsWithContact: true, targets: {} },
+      axisMeasureEnd: 12,
+      nextFrame: targetFrame,
+    });
+
+    expect(reduced["exit.frame"]).toBe(targetFrame);
+    expect(reduced["next.x"]).toBeUndefined();
+    expect(reduced["next.vx"]).toBeUndefined();
+  });
+
   test("latent joint response predicts suffix state and reduces it to final outputs", () => {
     const rows = arcProbeDesign("cross5").map((knobs) => {
       const p = knobs.pitchDeg;
@@ -628,6 +648,88 @@ describe("arc_model joint response helpers", () => {
     expect(state!.vy).toBeCloseTo(1 + ELEVATION.GRAVITY_PX_PER_FRAME2 * 3);
     expect(state!.sledPoseDeg).toBeCloseTo(26);
   });
+
+  test("short-mode terminal outputs take precedence over independently fitted suffix latents", () => {
+    const rows = arcProbeDesign("cross5").map((knobs) => ({
+      knobs,
+      outputs: {
+        "next.x": 500,
+        "next.y": 600,
+        "next.vx": 7,
+        "next.vy": 8,
+        "next.speed": Math.hypot(7, 8),
+        "next.comAngleDeg": Math.atan2(8, 7) * 180 / Math.PI,
+      },
+      latentOutputs: {
+        "latent.suffix.frame": 10,
+        "latent.suffix.x": 100,
+        "latent.suffix.y": 50,
+        "latent.suffix.vx": 3,
+        "latent.suffix.vy": 1,
+      },
+    }));
+    const model = fitJointArcResponseModel(rows, "cross5", "additive_quadratic", {
+      context: {
+        gap: {
+          index: 0,
+          startFrame: 0,
+          endFrame: 8,
+          endsWithContact: true,
+          targets: {},
+        },
+        axisMeasureEnd: 12,
+        nextFrame: 15,
+      },
+    });
+    const knobs = { pitchDeg: 0, rotateDeg: 0 };
+    const completed = predictedArrivalState(predictJointArcOutputs(model, knobs));
+    const optimized = predictJointArcScoreReadout(model, knobs, {}).state;
+
+    for (const state of [completed, optimized]) {
+      expect(state).not.toBeNull();
+      expect(state!.x).toBeCloseTo(500);
+      expect(state!.y).toBeCloseTo(600);
+      expect(state!.vx).toBeCloseTo(7);
+      expect(state!.vy).toBeCloseTo(8);
+    }
+  });
+
+  test("articulated propagation re-anchors so chained and combined calls agree", () => {
+    const state: RiderArrivalState = {
+      x: 1,
+      y: 2,
+      vx: 3,
+      vy: 4,
+      speed: 5,
+      comAngleDeg: null,
+      sledPoseDeg: 10,
+      sledPoseRateDegPerFrame: 2,
+      articulation: {
+        frameOffset: 3,
+        assemblyX: 10,
+        assemblyY: 20,
+        assemblyVx: 2,
+        assemblyVy: -1,
+        relativeX: 1,
+        relativeY: 0,
+        relativeVx: 0,
+        relativeVy: 2,
+        angularRateRadPerFrame: 0.2,
+      },
+    };
+    const combined = propagateBallisticArrivalState(state, 15);
+    const chained = propagateBallisticArrivalState(
+      propagateBallisticArrivalState(state, 10),
+      5,
+    );
+
+    for (const key of ["x", "y", "vx", "vy", "speed"] as const) {
+      expect(chained[key]).toBeCloseTo(combined[key], 10);
+    }
+    expect(chained.sledPoseDeg).toBeCloseTo(combined.sledPoseDeg!);
+    expect(chained.articulation?.frameOffset).toBe(0);
+  });
+
 });
 
 describe("readiness state wrapper", () => {

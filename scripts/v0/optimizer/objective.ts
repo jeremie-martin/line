@@ -208,6 +208,7 @@ export function predictArrivalAtNextContact(
     comAngleDeg: null,
     sledPoseDeg: rel.sledPoseDeg,
     sledPoseRateDegPerFrame: rel.sledPoseRateDegPerFrame,
+    ...(rel.articulation === undefined ? {} : { articulation: rel.articulation }),
   };
   const arrived = propagateBallisticArrivalState(launch, dt);
   const nextElevation = predictedNextGapElevation(launch, rel.frame, nextGap);

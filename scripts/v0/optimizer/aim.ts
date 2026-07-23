@@ -560,7 +560,7 @@ function recordJointProbeRows(
       aimTotals.jointProbeSuffixRows++;
       aimTotals.jointProbeSuffixSum += row.suffixFrame;
       aimTotals.jointProbeSuffixAfterCurrentSum += row.suffixFrame - gap.endFrame;
-      if (row.suffixFrame > nextFrame) aimTotals.jointProbeSuffixAfterNext++;
+      if (row.suffixFrame >= nextFrame) aimTotals.jointProbeSuffixAfterNext++;
     }
     if (row.launchReadFrames !== null) {
       aimTotals.jointProbeLaunchReadFrameRows++;

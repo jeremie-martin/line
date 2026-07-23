@@ -61,3 +61,7 @@ Workflow changes:
   was directionally misleading here;
 - live progress now reports row counts only; canonical scores appear only
   after hierarchical aggregation.
+
+Ballistic-predictor research now has its own objective and frozen-corpus
+workflow in `ballistic-goal.md`. Keep direct prediction evidence there; return
+to this campaign only when evaluating an integrated compiler candidate.

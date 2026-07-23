@@ -25,6 +25,8 @@
     "benchmark:v1": "tsx scripts/v0/golden.ts",
     "golden:v1": "tsx scripts/v0/golden.ts",
     "benchmark:v2:prepare": "node --import tsx scripts/benchmark/cli.ts prepare",
+    "benchmark:ballistic": "LR_ENGINE=wasm node --import tsx scripts/v0/study_ballistic_predictor_v2.ts",
+    "benchmark:ballistic:collect": "LR_ENGINE=wasm node --import tsx scripts/v0/study_ballistic_predictor_v2.ts --collect",
     "benchmark:v2:clicks": "node --import tsx scripts/v0/benchmark_v2/render_clicks.ts",
     "benchmark:v2:listening-template": "node --import tsx scripts/v0/benchmark_v2/render_clicks.ts --review=benchmark/v2/evidence/listening-review.json",
     "benchmark:v2:probe": "npm run benchmark -- probe",

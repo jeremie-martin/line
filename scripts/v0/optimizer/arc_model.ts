@@ -15,6 +15,10 @@ import {
 } from "../core/measure.ts";
 import { LOCAL_IMPACT_COST_WEIGHT } from "../core/candidate.ts";
 import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
+import {
+  advanceArticulatedBallisticState,
+  type ArticulatedBallisticState,
+} from "../core/launch_read.ts";
 
 export type ArcKnobs = {
   /** Rotate the last third of the arc about the suffix joint, in degrees. */
@@ -35,12 +39,41 @@ export type RiderArrivalState = {
   sledPoseDeg: number | null;
   /** Frame-to-frame sled-pose angular velocity in degrees/frame. */
   sledPoseRateDegPerFrame: number | null;
+  /** Optional ten-point assembly/body-relative state for the current predictor. */
+  articulation?: ArticulatedBallisticState;
 };
 
 export function propagateBallisticArrivalState(
   state: RiderArrivalState,
   dtFrames: number,
 ): RiderArrivalState {
+  const dt = Math.max(0, Math.round(dtFrames));
+  const advanced = state.articulation === undefined
+    ? null
+    : advanceArticulatedBallisticState(
+      state.articulation,
+      dt,
+      ELEVATION.GRAVITY_PX_PER_FRAME2,
+    );
+  if (advanced !== null) {
+    const { x, y, vx, vy } = advanced.arrival;
+    const speed = Math.hypot(vx, vy);
+    const sledPoseDeg = state.sledPoseDeg !== null &&
+        state.sledPoseRateDegPerFrame !== null
+      ? normalizeAngleDeg(state.sledPoseDeg + state.sledPoseRateDegPerFrame * dt)
+      : state.sledPoseDeg;
+    return {
+      x,
+      y,
+      vx,
+      vy,
+      speed,
+      comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
+      sledPoseDeg,
+      sledPoseRateDegPerFrame: state.sledPoseRateDegPerFrame,
+      articulation: advanced.articulation,
+    };
+  }
   return propagateBallisticArrivalStateFromValues(
     state.x,
     state.y,
@@ -922,7 +955,7 @@ export function predictJointArcScoreReadout(
   const amplitude = scoreAmplitude ? predictEntryValue(readout.outputAmplitude, knobs) : NaN;
   const impact = scoreImpact ? predictEntryValue(readout.outputImpact, knobs) : NaN;
 
-  let state: RiderArrivalState | null = null;
+  let state = predictedArrivalStateFromDirectOutputs(readout, knobs);
   let exitFrame = predictEntryValue(readout.outputExitFrame, knobs);
   let exitSpeed = predictEntryValue(readout.outputExitSpeed, knobs);
 
@@ -1003,23 +1036,24 @@ export function predictJointArcScoreReadout(
             }
           }
         }
-        if (suffixFrame <= model.context.nextFrame) {
+        if (state === null && suffixFrame < model.context.nextFrame) {
           const suffixSledPoseDeg = predictEntryValue(readout.latentSuffixSledPoseDeg, knobs);
           const suffixSledPoseRateDegPerFrame = predictEntryValue(readout.latentSuffixSledPoseRateDegPerFrame, knobs);
-          state = propagateBallisticArrivalStateFromValues(
-            suffixX,
-            suffixY,
-            suffixVx,
-            suffixVy,
-            Number.isFinite(suffixSledPoseDeg) ? suffixSledPoseDeg : null,
-            Number.isFinite(suffixSledPoseRateDegPerFrame) ? suffixSledPoseRateDegPerFrame : null,
-            model.context.nextFrame - suffixFrame,
-          );
+          state = propagateBallisticArrivalState({
+            x: suffixX,
+            y: suffixY,
+            vx: suffixVx,
+            vy: suffixVy,
+            speed: suffixSpeed,
+            comAngleDeg: suffixSpeed > 0 ? Math.atan2(suffixVy, suffixVx) * 180 / Math.PI : null,
+            sledPoseDeg: Number.isFinite(suffixSledPoseDeg) ? suffixSledPoseDeg : null,
+            sledPoseRateDegPerFrame: Number.isFinite(suffixSledPoseRateDegPerFrame)
+              ? suffixSledPoseRateDegPerFrame
+              : null,
+          }, model.context.nextFrame - suffixFrame);
         }
       }
     }
-  } else {
-    state = predictedArrivalStateFromDirectOutputs(readout, knobs);
   }
 
   return {
@@ -1062,7 +1096,6 @@ const REDUCER_BALLISTIC_AXES = ["air", "speed", "elevation"] as const;
 
 function reducerOwnsOutputKey(key: string): boolean {
   return key.startsWith("exit.") ||
-    key.startsWith("next.") ||
     key === "current.cost" ||
     key === "current.releaseSpeedPx" ||
     key === "current.releaseVy" ||
@@ -1074,11 +1107,10 @@ function reducerOwnsOutputKey(key: string): boolean {
 /** Clear every output key the latent reducer (`reduceLatentJointArcOutputs`)
  *  recomputes, before it overwrites: the reducer skips non-finite values
  *  (`addFinite`) and may emit nothing at all (null suffix), so a stale fitted
- *  prediction must not leak through. Instead of hand-mirroring the producers'
- *  key lists (which silently drifts when a producer gains a field), the `exit.*`
- *  / `next.*` blocks are cleared by prefix — the ONLY producers of those
- *  namespaces are `exitStateOutputs` / `stateOutputs`, so any key they add is
- *  swept automatically. The reducer's `current.*` keys are an explicit small set:
+ *  prediction must not leak through. `next.*` is deliberately not cleared:
+ *  short probes fit the articulated terminal prediction directly, avoiding an
+ *  incoherent independent fit of its correlated launch coordinates. The
+ *  reducer's `current.*` keys are an explicit small set:
  *  `current.cost` (added by `predictJointArcOutputs`), the two release scalars,
  *  and axis/error for the ballistic axes only (NOT grain/amplitude/impact). */
 function clearReducerOwnedOutputs(outputs: Record<string, number>): void {
@@ -1146,7 +1178,10 @@ function reduceLatentJointArcOutputsInto(
     addAxisResponseOutputs(outputs, context.gap.targets, axes);
   }
 
-  if (suffixFrame <= context.nextFrame) {
+  if (
+    predictedArrivalState(outputs) === null &&
+    suffixFrame < context.nextFrame
+  ) {
     const nextState = propagateBallisticArrivalState(suffixState, context.nextFrame - suffixFrame);
     addValidatedStateOutputs(outputs, nextState);
   }

@@ -43,6 +43,7 @@ npm run benchmark -- family select MECHANISM --variant=MEMBER
 # point, run both frozen snapshots on a fresh paired epoch in waves, take the
 # declared futility looks, decide at the declared depth.
 npm run benchmark -- eval --to-verdict                          # improve, θ=0
+npm run benchmark -- eval --to-verdict --depth=300              # calibrated deep improve, θ=0
 npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
 
 # Exception only: correct a strictly infrastructure-only abort before any
@@ -98,6 +99,9 @@ A `--to-verdict` attempt ends one of four ways (exit code):
   interval states what remains plausible. A fresh acknowledged retry
   (`--acknowledge-retry`) is permitted but is not automatic: it spends another
   certified era charge, compounds nominal alpha, and never pools prior evidence.
+  When the observed effect is modest but broad, choose a deeper point only if
+  it is already on the certified menu: that new attempt still uses one fresh
+  epoch and is not an extension or pooled continuation of the prior attempt.
 - **reject** (3) — the upper bound fell below the threshold.
 - **futility stop** (4) — an interim look showed the attempt cannot
   realistically end in accept; most of the compute was saved. The spend
@@ -116,10 +120,11 @@ inconclusive non-inferiority result is not permission to accept.
 
 `eval --to-verdict` only runs **certified operating points** from
 `benchmark/v2/eval-policy.ts` — rows whose error rates were measured against
-the retained compile references (`menu-certification.json`,
-`holdout-validation.json`) and re-verified by the guard at declare time. v1
-menu: improve θ=0 at depth 48 (futility looks at 2/3/4/8/16 blocks) and
-simplify m=5 at depth 48. Anything else is refused.
+their own retained menu and independent-holdout references and re-verified by
+the guard at declare time. The current menu provides: improve θ=0 at depth 48
+(futility looks at 2/3/4/8/16 blocks); improve θ=0 at depth 300 (no interim
+looks, certified for a +2-point effect); and simplify m=5 at depth 48. A
+`--depth` flag selects one of these rows; an arbitrary depth is still refused.
 
 Each attempt with at least one formal look charges the largest certified false-accept upper bound across
 the menu and independent holdout null/stress cells to the **era α-budget**

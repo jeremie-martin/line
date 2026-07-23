@@ -18,7 +18,13 @@ The point estimate always uses the exact V2 scorer:
 4. frozen arithmetic weights over groups and strata;
 5. frozen arithmetic weights over budgets, renormalized for the profile.
 
-Every cell is paired by source, budget, seed slot, and actual seed. Candidate and baseline must have complete identical scope. The canonical baseline side is freshly executed from the checksummed compiler snapshot after the candidate, mode, margin, and seed epoch have been declared; previously visible milestone scores are never canonical comparison evidence.
+Every cell is paired by source, budget, seed slot, and actual seed. Candidate
+and baseline must have complete identical scope. Fixed-N promotion uses an
+immutable, checksummed baseline cache over one stable seed ladder: the
+candidate is compiled at the declared N and compared with the same baseline
+prefix. Extending a cache compiles only its missing frozen-baseline tail and is
+an explicit command, never hidden inside evaluation. Candidate evidence is
+never pooled across attempts.
 
 ## Confidence Method
 
@@ -56,14 +62,24 @@ selection-biased diagnostics, not hypothesis tests. Exploration archives are
 explicitly rejected by the decision command. Only one source-baked selection may
 proceed to a separately declared confirmation on a fresh certified epoch.
 
-`eval --to-verdict` is the promotion authority. It accepts only certified rows
-from `benchmark/v2/eval-policy.ts`. The mode, margin, depth, stopping schedule,
-fresh paired seed epoch, candidate and baseline snapshots, certification
-fingerprint, and era spend are frozen in an immutable declaration before
-either arm executes. Acceptance requires the stress-calibrated lower bound to
+`eval --to-verdict` is the promotion authority. Its fixed-N spelling,
+`--seeds=N`, accepts only a registered, independently calibrated operating
+point. The mode, N, no-look final-decision plan, stable seed ladder, immutable
+baseline-cache manifest hash, candidate snapshot, certification fingerprint,
+and era spend are frozen in an immutable declaration before the candidate arm
+executes. Acceptance requires the stress-calibrated lower bound to
 exceed the declared threshold; rejection requires the upper bound to be below
 it; otherwise the result is inconclusive. Certified futility looks may stop a
-clearly unpromising attempt without converting failure into a verdict.
+clearly unpromising legacy menu attempt without converting failure into a
+verdict. Fixed-N promotion has no interim looks or adaptive stopping.
+
+Each row owns an independent menu/holdout certification pair. The deep
+`improve-t0-d300` row is a full 300-seed-per-budget confirmation with no
+interim looks and a +2-point certified power target. It is intended for a
+modest, broad positive candidate that was inconclusive at a shallower row. It
+must be declared before execution. It is a legacy fresh-epoch row; newly
+calibrated fixed-N points instead reuse only the immutable baseline prefix and
+never pool a candidate's prior result.
 
 The calibration and certification guards recompute outcome counts and
 quantitative bars from retained evidence and bind them to the current suite,
@@ -91,6 +107,12 @@ Run stage 0 and confirm an improvement:
 ```bash
 npm run benchmark -- eval
 npm run benchmark -- eval --to-verdict
+npm run benchmark -- eval --to-verdict --depth=300
+npm run benchmark -- calibrate-point --mode=improve --seeds=83 --smoke
+npm run benchmark -- calibrate-point --mode=improve --seeds=83
+npm run benchmark -- baseline-cache status --seeds=83
+npm run benchmark -- baseline-cache extend --seeds=83 --jobs=48
+npm run benchmark -- eval --to-verdict --seeds=83
 ```
 
 Confirm a simplification with the currently certified margin:
@@ -114,12 +136,13 @@ npm run benchmark -- baseline --label=NAME
 ```
 
 `benchmark/v2/attempts.jsonl` records declarations, looks, stops, verdicts,
-transitions, and era budget. Fresh epochs are never reused. `--resume` may only
-continue the in-flight declaration, and `--acknowledge-retry` creates a fresh
-declared epoch after an inconclusive result; prior evidence is not pooled and
-the new certified spend is charged. An infrastructure abort before any formal
-look can receive a ledgered zero-spend accounting correction, but its seed epoch
-remains reserved. Any post-look refund is refused.
+transitions, and era budget. Fresh legacy epochs are never reused. Cache-backed
+attempts explicitly mark baseline-cache reuse and do not enter the fresh-epoch
+ledger; their baseline shards remain immutable and content-addressed. `--resume`
+may only continue the in-flight declaration, and a retry never pools candidate
+evidence. An infrastructure abort before any formal look can receive a ledgered
+zero-spend accounting correction, but a fresh epoch remains reserved. Any
+post-look refund is refused.
 Standalone `decide` remains available only for optional probe archive analysis
 and cannot judge canonical evidence.
 
@@ -163,16 +186,20 @@ The index is generated by the fingerprinted runner and its projection is covered
 by runner-compatibility replay against raw reports. Historical archives without
 an index fall back to full raw-report rescoring. Raw archives remain the audit
 source. A neighboring SHA-256 sidecar is an integrity check, not independent provenance.
-Confirmation provenance additionally requires the baseline compiler snapshot,
-both fresh archive hashes, and their shared pre-run declaration and seed schedule.
+Legacy confirmation provenance additionally requires the baseline compiler
+snapshot, both fresh archive hashes, and their shared pre-run declaration and
+seed schedule. Fixed-N cache provenance instead requires the candidate snapshot
+and archive, the cache-manifest hash, every referenced shard hash/range, and the
+literal schedule in the immutable declaration.
 
 ## Interpretation Limits
 
 Confirmation inference remains conditional on the frozen catalog. Stage-0
-evidence may be reused for development, but confirmation evidence cannot become
-an adaptive loop. Fresh, non-reused seed epochs prevent retrying a known draw;
-executing both compilers after declaration prevents adapting the candidate to
-visible per-seed baseline outcomes. The five production references are
+evidence may be reused for development, but candidate confirmation evidence
+cannot become an adaptive loop. Legacy rows use fresh, non-reused epochs;
+fixed-N rows intentionally reuse a frozen baseline prefix while never reusing
+candidate evidence, adapting N after a result, or stopping early once a result
+looks sufficient. The five production references are
 qualification monitors: they never enter the headline or decision and must not
 be tuned case by case.
 

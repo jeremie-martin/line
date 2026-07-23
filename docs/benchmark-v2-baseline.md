@@ -1,18 +1,20 @@
 # Benchmark V2 Baseline
 
-Label: `accept-2026-07-16T16-45-07Z-8257f266`. Suite: `d01c8a064a201b08`.
+Label: `accept-2026-07-22T18-26-42Z-8565eddc`. Suite: `d01c8a064a201b08`.
 
-Probe headline: **509.70**. Canonical headline: **510.37**. Qualification monitor: **392.62** (indicative only).
+Probe headline: **506.24**. Canonical headline: **513.77**. Qualification monitor: **391.39** (indicative only).
 
 Probe and confirmation actual seeds are disjoint at every shared budget. Probe evidence screens candidates; only a declared `eval --to-verdict` confirmation can promote one.
 
+Canonical cache: stable ladder through **300** slots/budget; accepted development evidence covers slots [0, 300).
+
 | Budget | Probe | Valid | Canonical | Valid | Qualification | Valid |
 |---:|---:|---:|---:|---:|---:|---:|
-| 250k | 480.10 | 130/132 | 461.38 | 2011/2112 | 378.56 | 40/40 |
-| 500k | 521.54 | 132/132 | 517.88 | 2111/2112 | 395.93 | 40/40 |
-| 750k | - | - | 530.49 | 2112/2112 | 396.47 | 40/40 |
+| 250k | 467.32 | 127/132 | 462.89 | 12587/13200 | 380.57 | 40/40 |
+| 500k | 521.80 | 132/132 | 522.45 | 13191/13200 | 391.51 | 40/40 |
+| 750k | - | - | 533.21 | 13196/13200 | 398.40 | 40/40 |
 
-Candidate: `bf871eec988fdb35a59c57465f778fb400baa37858193882519655de689c91b2`.
-Inference rule: `0933b77d36314cddf428d7c7236c4902f92679a621d1c42b832875c9aeddd273`.
-Decision protocol: `4c054de968e5644c42c1a073365222791837e2f8a968ae064e6dd3ecbab7b491`.
-Decision calibration: `49f0a249ed152b0e51cfc94607284dbac48baf67c15296a2aa1818aa1242ca32`.
+Candidate: `7ad483ec55b187d4e7d8a9c39fc60e9fb19641b2ac07e04d4ae446db4d76e83d`.
+Inference rule: `56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f`.
+Decision protocol: `a0dbf053a0495f07b7db9abd1f010650e53afb0dbcd989228036c1dcbcd68ce1`.
+Decision calibration: `380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9`.

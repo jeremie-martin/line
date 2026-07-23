@@ -28,6 +28,12 @@ npm run benchmark -- family capture MECHANISM --variant=MEMBER
 npm run benchmark -- family run MECHANISM
 npm run benchmark -- family select MECHANISM --variant=MEMBER
 npm run benchmark -- eval --to-verdict
+npm run benchmark -- eval --to-verdict --depth=300
+npm run benchmark -- calibrate-point --mode=improve --seeds=83 --smoke
+npm run benchmark -- calibrate-point --mode=improve --seeds=83
+npm run benchmark -- baseline-cache status --seeds=83
+npm run benchmark -- baseline-cache extend --seeds=83 --jobs=48
+npm run benchmark -- eval --to-verdict --seeds=83
 npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
 npm run benchmark -- eval --correct-aborted-spend --attempt=ID --reason=TEXT --operator=NAME
 npm run benchmark -- rebaseline --label=NAME       # after accept only
@@ -47,9 +53,19 @@ HOST=0.0.0.0 PORT=8080 npm run dash
 `npm run benchmark`, `npm run golden`, and `npm run goal` default to eval
 stage 0. Stage 0 runs the probe allocation against the stored screening
 reference and is informational. `eval --to-verdict` selects a certified
-operating point, declares its mode, margin, depth, fresh seed epoch, snapshots,
-and era spend before execution, then runs candidate and baseline in paired
-waves. A favorable final verdict runs qualification as an indicative sidecar.
+operating point and freezes its mode, margin, N/schedule, snapshots, baseline
+binding, and era spend before execution. Legacy menu rows run fresh paired
+waves; fixed-N rows reuse an immutable baseline prefix and run only the
+candidate. A favorable final verdict runs qualification as an indicative
+sidecar.
+The menu includes a separately calibrated depth-300 improvement row for
+modest broad effects; it is a fresh confirmation with no interim looks. For a
+new fixed N, first run the two independent-reference calibration artifacts and
+register the point, inspect `baseline-cache status --seeds=N`, explicitly
+extend only a missing baseline tail, then run `eval --to-verdict --seeds=N`.
+The candidate is compiled once at N; reuse of the content-addressed baseline
+prefix is intentional. Other N values remain refused until separately
+calibrated and registered.
 Stage 0 writes one probe archive via `--out=FILE`; `--archive-dir` and
 `--out-dir` are confirmation-only paths and are rejected in stage 0 so an
 evidence destination cannot be silently ignored.
@@ -127,6 +143,10 @@ stored score from the raw report and current transformed axis contract. Stage
 0 cannot promote; only a predeclared certified confirmation can. Improvement
 and explicit-margin simplification policies use stress-calibrated paired budget
 seed-block jackknife Student-t bounds.
+`--depth=300` selects the legacy deep row. `--seeds=N` selects the new
+cache-backed fixed-N promotion protocol: it requires a registered point and
+complete immutable baseline-cache coverage, has no interim looks, and pins the
+literal stable schedule and cache-manifest hash in its declaration.
 Parent-preserving bootstraps are reported as catalog sensitivity, not as posterior
 probabilities. The complete contract and exit codes are in `docs/benchmark-v2-decisions.md`.
 Confirmation and baseline commands refuse to operate when certification,

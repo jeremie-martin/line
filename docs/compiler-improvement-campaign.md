@@ -6400,6 +6400,25 @@ budget-dependent trade-offs before a source-baked candidate is put through the
 normal confirmation funnel. The budget ladder is recorded as evaluation
 protocol metadata, never as a compiler configuration axis.
 
+## Tail→Post Deep Confirmation Amendment (2026-07-21)
+
+The source-baked `tail_pitch → post_contact_pitch` range policy (`0.6×` probe
+range and `1.2×` inverse-proposal range, two proposals) had a favorable but
+inconclusive independent depth-48 confirmation: headline **+2.7638**
+(one-sided 99% lower bound **−1.4104**). Its budget deltas rose from +1.0793
+at 250k through +2.5364 at 500k to +4.2658 at 750k. This is a hypothesis for a
+modest broad gain, not evidence that may be pooled with another attempt.
+
+To resolve that exact question, the evaluation menu gains one explicit
+`improve-t0-d300` row: 300 fresh paired seed blocks per budget, no interim
+looks, a separately regenerated menu/holdout calibration pair, +2-point
+power target, and its own era-alpha charge. The former depth-48 outcome remains
+in the ledger and is never reused. The runner now streams deep raw archives
+from its resumable checkpoint while retaining a compact, checksummed decision
+projection; the high-depth run therefore keeps audit data without requiring a
+multi-gigabyte in-memory archive. The row is a deliberate governed amendment,
+not an adaptive extension of the prior formal result.
+
 ## Workflow Notes
 
 - Generated scope outputs are ignored under `generated/`; this document retains

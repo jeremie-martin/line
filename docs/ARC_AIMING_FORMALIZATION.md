@@ -345,7 +345,16 @@ corrections, both validated out-of-sample on disjoint specs (together −10%
   frames, the averaged frames are already simulated);
 - a constant launch-vy offset (`LAUNCH_VY_OFFSET_PX = +0.0345`, fitted on
   22.7k probe rows / 6 specs, +0.043 on the disjoint validation set, flat
-  across dt buckets).
+  across dt buckets). A later two-seed prediction-truth recalibration rejected
+  timing-, pose-, and kinematics-dependent corrections because their gains did
+  not replicate across seeds. It also retested the disjoint-set `+0.043`
+  constant as a source default. The old probe screen moved `-5.72` points
+  (`506.24 -> 500.51`), while the canonical cached N=100 comparison moved
+  `+0.97` (`512.82 -> 513.79`, SE `1.03`, interval `[-1.71, +3.65]`).
+  Capability moved `-2.74`, including `-29.54` on the 7s low-air case. This
+  was not convincing evidence of an improvement, so the compiler retained
+  `+0.0345`. Lower isolated next-`vy` MAE did not reliably improve branch
+  selection.
 
 A cautionary negative result, kept on purpose: an "effective gravity"
 correction (+0.0084 px/f² per frame, measured on committed-track airborne
@@ -358,13 +367,17 @@ propagation therefore uses PURE readout gravity; the span-axis completion in
 measure.ts is untouched (fingerprinted evaluator surface; bias contribution
 ≤0.001 axis units).
 
-Open question for later (deliberately not pursued yet): the readout we treat
-as "the rider state" is one particular aggregate of a multi-point body. The
-most USEFUL launch quantity is whichever best predicts next-catch readiness —
-not necessarily the truest center of mass. Candidates when this is revisited:
-a mass-weighted CoM over all body points, rotation-state-corrected velocity
-(the residual free-fall deviation is rotation-dependent, and pose rate is
-already a latent), or directly learning the readiness-relevant projection.
+The multi-point readout question was subsequently tested. The equal aggregate
+of the ten constrained body-and-sled points follows the discrete ballistic law
+to floating-point precision during collision-free flight, whereas the public
+six-body-point `rider.position` oscillates around it with the articulated
+rotation. That aggregate is a useful physics oracle, but it is not a drop-in
+production readout: ordinary "airborne" intervals can still contain body
+collisions, and the response model and readiness targets are defined in the
+six-point rider frame. Assembly-center and rotation-corrected production
+variants reduced clean-flight error but worsened fitted next-state prediction
+on the cross-regime panel. They were therefore retired rather than changing
+the model's state definition.
 
 ## Gates, Identifiability, and Degraded Sweeps
 

@@ -1,200 +1,95 @@
 # How To Work On The Compiler
 
-Benchmark V2 is the default compiler-development workflow. One principle
-drives it: **never spend compute a cheaper stage could have saved, but
-always end with evidence you can trust.**
+Benchmark V2 has one development loop: compare the current compiler with the
+accepted baseline at whatever depth is useful, then explicitly promote a
+convincing result.
 
-## Read First
-
-- `benchmark-v2-context.md`: what the benchmark represents and how qualification is interpreted.
-- `benchmark-v2-decisions.md`: estimand, confidence method, outcomes, and limits.
-- `benchmark-v2.md`: commands, artifacts, preparation, and diagnostics.
-- `benchmark-v2-closure-register.md`: the latest adversarial workflow audit and its evidence-backed dispositions.
-- `compiler_goals.md`: compiler behavior and budget contract.
-- `../goal.md`: active improvement goal and promotion discipline.
-
-Historical V1 instructions are in `archive/HOW_TO_WORK_V1.md` and do not apply to the default commands.
-
-## The chain
-
-The benchmark chain centers on `eval`; fixed-N promotion adds explicit
-calibration and immutable-baseline-cache preparation.
+## Normal loop
 
 ```bash
-# Validate and regenerate deterministic benchmark evidence.
+# Regenerate and validate deterministic benchmark metadata when needed.
 npm run benchmark -- prepare
 
-# READ-ONLY PREFLIGHT: current contract, era capacity, certified cost,
-# retained-evidence health, and rebaseline blockers.
-npm run benchmark -- status
+# Read-only: does the cache already cover the comparison you want?
+npm run benchmark -- status --seeds=100
 
-# STAGE 0 (74 s on the dated 48-worker reference run): informational screen
-# baseline probe reference. Repeatable all day; consumes nothing. Explore
-# LR_ knobs freely here — e.g. LR_IMPACT_LOCAL_W=0.65 npm run benchmark -- eval
+# Smallest canonical cached comparison: 264 candidate compiles.
 npm run benchmark -- eval
 
-# VARIANT FAMILY (descriptive development evidence): capture each deliberate
-# implementation, then compare every arm and the baseline on one fresh shared
-# probe epoch. No qualification, promotion verdict, or era spend occurs here.
-npm run benchmark -- family capture MECHANISM --variant=MEMBER
-npm run benchmark -- family run MECHANISM
-npm run benchmark -- family select MECHANISM --variant=MEMBER
+# Heavy comparison. Only the candidate is compiled; baseline slots are reused.
+npm run benchmark -- eval --seeds=100 --jobs=48
 
-# FIXED-N PROMOTION (the normal promotion path): N must be a registered,
-# independently calibrated operating point. Check the immutable baseline cache;
-# extend it explicitly only when coverage is missing, then compile the candidate
-# at N and make one final paired decision.
-npm run benchmark -- baseline-cache status --seeds=300
-npm run benchmark -- baseline-cache extend --seeds=300 --jobs=48 # only if status reports a missing tail
-npm run benchmark -- eval --to-verdict --seeds=300
+# Only if status says some baseline slots are missing:
+npm run benchmark -- baseline-cache extend --seeds=100 --jobs=48
 
-# LEGACY CERTIFIED ROWS: these run both frozen snapshots on a fresh paired
-# epoch. They remain available for their predeclared rows, but are not the
-# default path for a new promotion operating point.
-npm run benchmark -- eval --to-verdict                          # improve, θ=0, depth 48
-npm run benchmark -- eval --to-verdict --depth=300              # legacy deep improve, θ=0
-npm run benchmark -- eval --to-verdict --mode=simplify --margin=5
-
-# Exception only: correct a strictly infrastructure-only abort before any
-# formal look. This returns its spend but never releases the seed epoch.
-npm run benchmark -- eval --correct-aborted-spend --attempt=ID --reason=... --operator=...
-
-# After an accept: light rebaseline (the attempt's archives become the era
-# record; one fresh probe becomes the screening reference; minutes).
-npm run benchmark -- rebaseline --label=NAME
-
-# Diagnose failures and weak cases.
-npm run benchmark -- explain ARCHIVE.json
+# Promote a favorable comparison artifact.
+npm run benchmark -- rebaseline \
+  --from=generated/benchmark-v2/eval/RUN.json.comparison.json \
+  --label=descriptive-label
 ```
 
-A candidate for confirmation must be an **actual source-default change**
-(a real `candidateFingerprint`), never an `LR_` environment override. The
-candidate may be uncommitted while it is evaluated, but after an accept the
-exact compiler-bound bytes must be committed before `rebaseline`; promotion
-refuses staged, unstaged, deleted, or untracked compiler-bound paths.
+`eval` is exactly `eval --seeds=2`; there is no separate quick/probe
+comparison. `N` is an ordinary compute choice in `2..300`. Choose it from the importance
+and uncertainty of the question. Running N=100 simply because spare compute is
+available is valid. The cache uses one stable seed ladder, so N=100 is the
+prefix of N=300 and does not recompute baseline evidence.
 
-Use a family before confirmation when one mechanism has several plausible
-constants or implementations. `capture` snapshots the exact current compiler;
-the default `run` executes up to eight members at six fresh seeds per probe
-budget, with one freshly replayed baseline and identical seeds for every arm.
-Its paired ranking, uncertainty, validity changes, case/stratum breakdowns,
-pairwise contrasts, and early-prefix ranking reversals are deliberately labeled
-selection-biased exploration. They cannot enter `decide`, consume era alpha, or
-run qualification. `select` requires the working compiler to exactly match the
-captured member; an `LR_*`-only member must first be baked into source defaults.
-The selected source then enters the ordinary certified `eval --to-verdict` gate.
+`eval --seeds=N` always exits 0 after a completed comparison. The artifact
+contains the statistical result; an inconclusive or negative scientific result
+is not a process failure. `--resume --out=SAME_PATH` resumes the exact frozen
+candidate snapshot and checkpoint.
 
-If results motivate another adaptive round, select the current champion first.
-The next capture carries that member forward automatically and allocates a new
-seed epoch. Evidence from viewed rounds is never pooled. Selecting a member
-other than the observed leader requires a recorded reason. This is the lean
-default for the "+3 first implementation, +4 better implementation" problem:
-explore the declared family first, then confirm one frozen winner once.
+The older `eval --to-verdict --seeds=N` spelling remains a compatibility alias
+for the same stateless comparison. It has no additional authority or cost.
 
-Public physics runs use WASM, default to 48 workers, cap budgets at 750k, report host/process resources, and retain resumable checkpoints. Use `--jobs=N` when the host is shared. `--resume` continues a crashed attempt from its checkpoint; a fired futility stop is durable. The status command distinguishes normative compile counts from dated, host-specific timing and memory measurements.
+## What to inspect
 
-## Meaning of results
+- headline delta, seed-block SE, and interval;
+- movement at 250k, 500k, and 750k;
+- representative, capability, regression, and development-music strata;
+- validity gains and losses;
+- largest case regressions and improvements;
+- whether the result matches the proposed physical mechanism.
 
-Stage 0 prints the observed delta, its seed-block SE, the realized pairing,
-and an advice line projecting whether an effect of that size would resolve
-at the certified depth (the projection is a labeled heuristic; the certified
-quantities are the grid cells). Exit codes: 0 completed, 1 invalid.
+The confidence calculation is a useful common ruler, not a permission system.
+Multiple inspected candidates or repeated depths create selection effects;
+record them honestly and use a sufficiently clear final comparison for
+promotion.
 
-A `--to-verdict` attempt ends one of four ways (exit code):
+## Variant families
 
-- **accept** (0) — the one-sided 99% lower bound cleared the threshold.
-  Only this promotes. `rebaseline` is the next command.
-- **inconclusive** (2) — the evidence did not resolve the question. The
-  interval states what remains plausible. A fresh acknowledged retry
-  (`--acknowledge-retry`) is permitted but is not automatic: it spends another
-  certified era charge, compounds nominal alpha, and never pools prior evidence.
-  When the observed effect is modest but broad, choose a deeper point only if
-  it is already certified. A fixed-N retry declares its complete N before
-  execution, reuses only the immutable baseline prefix, and never extends or
-  pools the earlier candidate evidence.
-- **reject** (3) — the upper bound fell below the threshold.
-- **futility stop** (4) — an interim look showed the attempt cannot
-  realistically end in accept; most of the compute was saved. The spend
-  stays charged.
+When one mechanism has several credible implementations:
 
-For automation, `--json` reserves benchmark stdout for one structured value;
-diagnostics go to stderr. Invoke the npm wrapper as
-`npm run --silent benchmark -- eval ... --json` so npm's own banner does not
-prefix stdout.
+```bash
+npm run benchmark -- family capture NAME --variant=MEMBER
+npm run benchmark -- family run NAME
+npm run benchmark -- family select NAME --variant=MEMBER
+```
 
-For a simplification, the margin is declared before any confirmation
-compile; accept means "not worse than −m at 99% confidence". An
-inconclusive non-inferiority result is not permission to accept.
+Family evidence is shared-seed exploration. Bake the selected behavior into
+source defaults before a normal cached comparison.
 
-## Operating points and the era budget
+## Baselines
 
-`eval --to-verdict` only runs **certified operating points**. Legacy rows live
-in `benchmark/v2/eval-policy.ts` and are selected with `--depth`; fixed-N rows
-live in `benchmark/v2/operating-points.json` and are selected with `--seeds=N`.
-Every row has its own retained menu and independent-holdout references, which
-the guard re-verifies at declaration. The current legacy menu provides: improve
-θ=0 at depth 48 (futility looks at 2/3/4/8/16 blocks); improve θ=0 at depth
-300 (no interim looks, certified for a +2-point effect); and simplify m=5 at
-depth 48. Arbitrary depth or N values are refused.
+`benchmark/v2/baseline.json` names the accepted compiler snapshot and canonical
+cache. Cache shards are immutable, checksummed, contiguous seed-slot ranges.
+`baseline-cache extend` is the only normal operation that compiles baseline
+work, and it compiles only a missing tail.
 
-Each attempt with at least one formal look charges the largest certified false-accept upper bound across
-the menu and independent holdout null/stress cells to the **era α-budget**
-(cap 0.05). Run `status` for current capacity before declaration. A strictly
-infrastructure-only abort before any formal look may be corrected to zero spend
-with `eval --correct-aborted-spend --attempt=... --reason=... --operator=...`;
-the seed epoch remains permanently reserved. Once a look exists, refunds are
-refused. The budget
-resets only on an accepted rebaseline or a suite rollover. Exhaustion blocks
-declarations until a ledgered `--override-era-budget=<cap> --reason=…`. The
-permanent ledger (`benchmark/v2/attempts.jsonl`) accumulates every attempt
-and the project-wide expected-false-accept sum.
+`rebaseline --from=...` verifies the measured snapshot and current committed
+compiler identity, retains the candidate development evidence, refreshes
+compatibility reference material, runs qualification, and starts the new
+baseline cache from the promoted canonical archive.
 
-## Baseline
-
-`benchmark/v2/probe-baseline.json` is the reusable screening reference.
-`benchmark/v2/baseline.json` records the compiler of record, its checksummed
-compiler/WASM snapshot, the era record, and the frozen decision contract
-(inference, protocol, calibration fingerprints). A legacy confirmation freezes
-both snapshots and a newly allocated epoch before either arm runs. A fixed-N
-confirmation instead binds the candidate snapshot to the immutable,
-checksummed baseline-cache prefix named in its declaration; it never recompiles
-or relabels that baseline evidence.
-
-A suite change is an era rollover (new listening review included). A
-decision-surface change requires `npm run benchmark -- migrate` (scopes:
-protocol / calibration / inference). Behavior-changing edits to the shared
-eval-chain inference or stopping logic require fresh menu and independent
-holdout certification; operational logging and ledger edits do not.
-Operational runner changes require a reviewed,
-checksummed bit-identity approval for the exact implementation pair.
-
-## Retired interfaces
-
-The pre-eval one-shot `canonical` promotion command is retired and fails
-closed. Standalone `decide` remains available only for optional probe archive
-analysis; it cannot judge canonical evidence or promote a compiler. Historical
-one-shot V2 instructions are preserved under
-`archive/benchmark-v2-one-shot/` and are not runnable guidance.
-
-`baseline` is not the normal post-accept command. Use `rebaseline` after an
-accepted eval attempt. Use `baseline` only to bootstrap Benchmark V2 or after
-an intentional suite-fingerprint rollover with a refreshed listening review
-and statistical evidence.
+Use `benchmark baseline` only for an intentional full freeze such as bootstrap
+or suite replacement.
 
 ## Discipline
 
-- Keep one mechanism per candidate when feasible.
-- For a parameterized mechanism, compare a small deliberate family before promoting any member; do not turn the compiler or benchmark into a parameter-search language.
-- Run focused tests before a screen and the full test suite before confirmation.
-- Declare before looking: mode, margin, and depth are frozen in the attempt declaration; heed the printed budget and retry warnings.
-- Diagnose invalid runs, validity flips, termini, phases, and case-level deltas before changing policy.
-- Never tune case by case against qualification monitor outputs; the monitor runs only after an accept.
-- Never edit generated compatibility manifests directly; edit typed cases or `benchmark/v2/policy.ts` and run `prepare`.
-- Any suite, scorer, target interpretation, weight, profile, seed-policy, execution-protocol, decision-rule, or calibration change requires a migration or a new baseline — the guards name the command.
-
-V1 remains explicitly available for historical reproduction:
-
-```bash
-npm run golden:v1 -- --full
-npm run decide:v1 -- CANDIDATE/golden.json BASELINE/golden.json
-```
+- Keep one mechanism per candidate where practical.
+- Prefer focused tests and bounded panels before expensive runs.
+- Do not tune case by case or against qualification monitors.
+- Preserve resumable outputs for long runs.
+- Keep raw/generated archives out of commits.
+- Treat old declarations, certification studies, and accounting files as
+  historical material, not runnable workflow.

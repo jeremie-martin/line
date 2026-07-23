@@ -22,7 +22,7 @@
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { dirname, resolve } from "node:path";
-import { readBaselineContract } from "./confirmation.ts";
+import { readBaselineContract } from "./baseline_contract.ts";
 import {
   createCompilerSnapshot,
   runSnapshotBenchmark,

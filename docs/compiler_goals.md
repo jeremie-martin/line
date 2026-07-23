@@ -40,16 +40,13 @@ contract is `benchmark-v2-decisions.md`.)
   handoff-specific diagnostics.
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
-- `npm run benchmark -- eval` produces reusable stage-0 screening evidence on
-  44 development cases.
-- `npm run benchmark -- eval --to-verdict --seeds=N` predeclares a registered,
-  certified fixed-N operating point, binds its immutable baseline-cache prefix,
-  and compiles only the candidate at N. Legacy `--depth` rows instead execute
-  both snapshots on a fresh paired epoch. Only an `accept` can promote an
-  improvement.
-- Simplification margins are bound to the eval declaration before confirmation
-  compilation. After an accept, `rebaseline` promotes the retained attempt and
-  refreshes the stage-0 reference.
+- `npm run benchmark -- eval --seeds=N` compares the current compiler on the
+  44 development cases with the identical immutable baseline-cache prefix and
+  compiles only the candidate. `eval` defaults to N=2; any N in `2..300` is an
+  ordinary operator-selected compute choice.
+- Improvement and simplification outcomes live in the standalone comparison
+  artifact. After convincing evidence, `rebaseline --from=COMPARISON
+  --label=LABEL` explicitly promotes that measured compiler snapshot.
 
 Any compiler change should preserve these tests and report its impact through the
 V2 breakdown: headline, budgets, strata, groups, parents, cases, validity flips,

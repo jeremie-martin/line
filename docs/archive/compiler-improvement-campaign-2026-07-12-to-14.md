@@ -1,7 +1,7 @@
 # Compiler Improvement Campaign
 
 Target: certified Benchmark V2 canonical headline 550. Historical detail is in
-`compiler-improvement-campaign-2026-07-12.md`; this file stays concise and
+`compiler-improvement-campaign-2026-07-12-full.md`; this file stays concise and
 records the active loop.
 
 ## 2026-07-12: short-contact boundary state

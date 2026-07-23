@@ -56,7 +56,7 @@ Five production references form a linked qualification monitor:
 - `scripts/v0/specs/shelter_impact_sync.ts`;
 - `scripts/v0/specs/amour_de_ma_vie_short.ts`.
 
-A favorable eval confirmation first seals the complete development archive,
+A favorable comparison first seals the complete development archive,
 then runs qualification and links it to that archive by SHA-256. Qualification
 is displayed and trended but never enters the headline or accepts a compiler
 candidate. Because these five results are shown at accepted milestones, they
@@ -132,28 +132,25 @@ weight. The V2 score scale is independent of V1 and its historical headline.
 
 ## Compute profiles
 
-Stage 0 and confirmation use the same 44 development cases. Actual seeds are
-disjoint across budgets, and every confirmation declaration allocates a fresh
-canonical epoch that does not reuse stage-0 development seeds or a prior attempt.
+Active comparisons use the 44 development cases and canonical budgets. Actual
+seeds are disjoint across budgets.
 
 | Profile | Budgets | Seeds per budget | Development compiles |
 |---|---|---:|---:|
-| probe | 250k / 500k | 3 | 264 |
-| canonical (per compiler side) | 250k / 500k / 750k | 8 | 1,056 |
+| canonical | 250k / 500k / 750k | operator-selected N | 132 × N |
 
-A certified promotion attempt runs both the checksummed baseline compiler
-snapshot and the declared candidate on one fresh canonical schedule at its
-declared depth. Qualification is candidate-only and runs after an accept.
-Canonical seed epochs are allocated after declaration and never reused.
+The accepted baseline has one immutable, prefix-addressable canonical seed
+ladder. Baseline cache shards retain its completed rows. A comparison at N
+compiles only the candidate on the identical first N slots; the baseline is
+extended explicitly only when that prefix is missing. Qualification is
+candidate-only and runs during an explicit rebaseline.
 
-The allocation was frozen from a 1,512-run study using 12 reference seeds at every
-budget. One-seed probes had 20.87 points of p95 headline error; three-seed probes reduced
-that to 7.38. Eight canonical seeds per budget provide a more stable promotion surface;
-the separate zero-inflated coverage study drove the conservative critical values used by
-the gate. The 750k ceiling bounds per-compile compute. Public execution defaults to
-48 workers on the 64-logical-CPU reference host and reports resource use while running.
-The seed-count study estimates allocation behavior; actual seed labels are deterministic
-IID inputs and the profile ranges are separated for confirmation.
+Historical allocation studies included a separate probe profile, which remains
+retained evidence but is no longer a live comparison path. Operators choose
+canonical N directly from 2 through 300. The retained zero-inflated coverage study informs the conservative
+intervals. The 750k ceiling bounds per-compile compute. Public execution
+defaults to 48 workers on the 64-logical-CPU reference host and reports
+resource use while running. Actual seed labels are deterministic IID inputs.
 
 ## Identity and evidence
 
@@ -166,38 +163,35 @@ The scoring boundary explicitly includes the shared shifted-geometric-mean helpe
 Each archive also records an execution-policy fingerprint covering suite identity,
 explicit execution protocol, engine, compiler entry point, profile, exact sources,
 budgets, resolved seeds, and transform. Exact runner bytes are recorded separately as an
-implementation fingerprint. Mismatched runner bytes require an explicit reviewed
-bit-identity approval. Comparisons require matching semantic policies and exact
-`source/budget/seed-slot/actual-seed` scope. Compiler source and non-engine `LR_*`
-environment form the candidate identity and may differ by design.
-
-A canonical V9 baseline separately freezes the inference, protocol, and
-validated-calibration fingerprints. Suite identity alone is not authority to reuse
-a promotion slot after thresholds, critical levels, inference, or calibration change.
+implementation fingerprint. A runner mismatch is visible provenance rather
+than a comparison lock; cache-backed comparisons still require matching suite,
+execution protocol, engine artifact, runtime, literal schedule, complete
+`source/budget/seed-slot/actual-seed` scope, and archive checksums. Compiler
+source and non-engine `LR_*` environment form the candidate identity and may
+differ by design.
 
 Before compilation, deterministic preparation regenerates compatibility manifests,
 characterization, static audit, and candidate review from the typed catalog, and validates
 the tracked listening review against the current musical source manifest and click hashes.
-Canonical baseline and promotion
-remain blocked until every judgment and the reviewer attestation are complete. The runner
+Canonical execution requires the approved listening review. The runner
 then validates their hashes, current source identities, audit-rule identity, raw-report
 rescoring, and a recomputed audit. Behavior-defining interpolation code is included in
 suite identity.
 
-## Governance
+## Maintenance loop
 
 1. Author or revise cases without compiler or qualification outcomes.
 2. Materialize variants and regenerate static evidence.
 3. Complete and sign the tracked structural and listening review without compiler outcomes.
 4. Freeze catalog, weights, evaluator, profiles, and fingerprints.
-5. Establish a checksummed initial or suite-rollover baseline.
+5. Establish a checksummed baseline.
 6. Improve the compiler using development results only.
-7. Screen with reusable stage-0 evidence, then declare a certified eval
-   confirmation using `docs/benchmark-v2-decisions.md`.
-8. Run qualification only as the linked sidecar of an accepted confirmation.
+7. Screen cheaply, then run a cache-backed comparison at a useful N.
+8. Promote an explicit favorable comparison and run qualification as its
+   linked monitoring sidecar.
 
 Any change to cases, membership, parent structure, weights, scoring, target
 interpretation, budgets, or seed policy creates a new suite fingerprint and requires a
-new suite-rollover baseline. Decision-policy, inference, or calibration changes require
-the approved migration command and fresh evidence at the scope named by its guard; the
-baseline contract is re-stamped only by that recoverable publication path.
+new intentional baseline. Statistical-model changes should be tested against
+the retained calibration fixtures, but they do not require a separate workflow
+state machine before ordinary comparisons can run.

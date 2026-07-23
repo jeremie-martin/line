@@ -70,7 +70,6 @@ import {
   type ResolvedSeedSchedule,
 } from "./suite_model.ts";
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
-import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import { latestSuccessfulResults } from "./checkpoint_model.ts";
 import { syncFile, writeFileAtomicDurable } from "./durable_fs.ts";
 
@@ -165,6 +164,14 @@ export async function runBenchmarkV2(
   const confirmationDeclarationPath = argument("confirmation-declaration") === undefined
     ? undefined
     : resolve(argument("confirmation-declaration")!);
+  const comparisonRequestPath = argument("comparison-request") === undefined
+    ? undefined
+    : resolve(argument("comparison-request")!);
+  if (confirmationDeclarationPath !== undefined && comparisonRequestPath !== undefined) {
+    throw new Error(`use either --comparison-request or the legacy --confirmation-declaration, not both`);
+  }
+  const hasCanonicalRequest =
+    confirmationDeclarationPath !== undefined || comparisonRequestPath !== undefined;
   /** A cache shard is a canonical run over a contiguous seed-slot tail of the
    * frozen baseline.  It is deliberately distinct from a confirmation: it
    * never carries a candidate verdict and is only admitted through the
@@ -177,9 +184,9 @@ export async function runBenchmarkV2(
     : nonNegativeInteger(argument("canonical-seed-base")!, "canonical-seed-base");
   if (
     canonicalSeedBaseOverride !== undefined &&
-    (profileName !== "canonical" || (confirmationDeclarationPath === undefined && !baselineCacheShard))
+    (profileName !== "canonical" || (!hasCanonicalRequest && !baselineCacheShard))
   ) {
-    throw new Error(`--canonical-seed-base is reserved for a predeclared canonical confirmation or baseline-cache shard`);
+    throw new Error(`--canonical-seed-base requires a canonical comparison request or baseline-cache shard`);
   }
   const confirmationSeedsPerBudgetOverride = argument("seeds-per-budget") === undefined
     ? undefined
@@ -207,7 +214,7 @@ export async function runBenchmarkV2(
     explorationId,
     mode,
     profileName,
-    hasDeclaration: confirmationDeclarationPath !== undefined,
+    hasDeclaration: hasCanonicalRequest,
     baselineCacheShard,
     canonicalSeedBaseOverride,
     confirmationSeedsPerBudgetOverride,
@@ -220,9 +227,9 @@ export async function runBenchmarkV2(
   });
   if (
     explicitSeedSchedulePath !== undefined &&
-    (profileName !== "canonical" || (confirmationDeclarationPath === undefined && !baselineCacheShard))
+    (profileName !== "canonical" || (!hasCanonicalRequest && !baselineCacheShard))
   ) {
-    throw new Error(`--seed-schedule is reserved for a predeclared canonical confirmation or baseline-cache shard`);
+    throw new Error(`--seed-schedule requires a canonical comparison request or baseline-cache shard`);
   }
 
   const sourceManifestContents = readFileSync(sourceManifestPath, "utf8");
@@ -248,7 +255,6 @@ export async function runBenchmarkV2(
   validateSelectionReview(review, characterization, audit, suite);
 
   const suiteId = suiteIdentity(suiteManifestPath, sourceManifestPath, developmentSources);
-  if (profileName === "canonical") requireCurrentDecisionCalibration(suiteId.suiteFingerprint);
   const listeningReview = await loadListeningReview(
     listeningReviewPath,
     suiteId.suiteFingerprint,
@@ -276,7 +282,7 @@ export async function runBenchmarkV2(
   if (!exploration) {
     validateSubsetFlags({
       profileName,
-      hasDeclaration: confirmationDeclarationPath !== undefined,
+      hasDeclaration: hasCanonicalRequest,
       baselineCacheShard,
       seedsPerBudget: confirmationSeedsPerBudgetOverride,
       throughSeedSlot,
@@ -343,6 +349,9 @@ export async function runBenchmarkV2(
   const confirmationDeclaration = confirmationDeclarationPath === undefined
     ? undefined
     : archiveLink(confirmationDeclarationPath);
+  const comparisonRequest = comparisonRequestPath === undefined
+    ? undefined
+    : archiveLink(comparisonRequestPath);
   if (mode === "qualification" && linkedDevelopment === undefined) {
     throw new Error(`qualification execution requires --development-archive=<frozen canonical archive>`);
   }
@@ -382,6 +391,7 @@ export async function runBenchmarkV2(
     runtime,
     linkedDevelopment,
     confirmationDeclaration,
+    comparisonRequest,
     ...(baselineCacheShard ? {
       baselineCacheShard: {
         schema: "line.benchmark-v2.baseline-cache-shard-run.v1",
@@ -574,6 +584,7 @@ export async function runBenchmarkV2(
     },
     linkedDevelopment,
     confirmationDeclaration,
+    comparisonRequest,
     ...(baselineCacheShard ? {
       baselineCacheShard: {
         schema: "line.benchmark-v2.baseline-cache-shard-run.v1",
@@ -654,6 +665,7 @@ export async function runBenchmarkV2(
     qualificationSummaries,
     linkedDevelopment,
     confirmationDeclaration,
+    comparisonRequest,
     ...(exploration ? {
       exploration: {
         schema: "line.benchmark-v2.exploration-run.v1",
@@ -836,11 +848,8 @@ export function buildWorkerTasks(
 }
 
 /**
- * Guards the wave-execution flags. `--seeds-per-budget` and `--through-seed-slot`
- * are reserved for a predeclared canonical confirmation, exactly like
- * `--canonical-seed-base`: both require the canonical profile and a confirmation
- * declaration. The through-slot must be a positive integer no deeper than the
- * effective seed depth.
+ * Guards canonical subset flags. They require either an explicit comparison
+ * request or a baseline-cache shard.
  */
 export function validateSubsetFlags(input: {
   profileName: "probe" | "canonical";
@@ -854,7 +863,7 @@ export function validateSubsetFlags(input: {
   const { profileName, hasDeclaration, baselineCacheShard, seedsPerBudget, throughSeedSlot, fromSeedSlot, effectiveDepth } = input;
   if (seedsPerBudget === undefined && throughSeedSlot === undefined && fromSeedSlot === undefined) return;
   if (profileName !== "canonical" || (!hasDeclaration && !baselineCacheShard)) {
-    throw new Error(`--seeds-per-budget, --through-seed-slot, and --from-seed-slot are reserved for a predeclared canonical confirmation or baseline-cache shard`);
+    throw new Error(`--seeds-per-budget, --through-seed-slot, and --from-seed-slot require a canonical comparison request or baseline-cache shard`);
   }
   if (seedsPerBudget !== undefined && (!Number.isSafeInteger(seedsPerBudget) || seedsPerBudget < 1)) {
     throw new Error(`seeds-per-budget must be a positive integer`);
@@ -1257,10 +1266,7 @@ function printProgress(
   const valid = rows.filter((row) => row.score.valid).length;
   const budgetText = budgets.map((budget) => {
     const current = rows.filter((row) => row.task.budget === budget);
-    const meanScore = current.length === 0
-      ? 0
-      : current.reduce((sum, row) => sum + row.score.score, 0) / current.length;
-    return `${budget / 1000}k ${current.length}:${meanScore.toFixed(1)}`;
+    return `${budget / 1000}k ${current.length} rows`;
   }).join(" | ");
   console.log(
     `  [${rows.length}/${total}] valid ${valid}, ${rate.toFixed(2)} runs/s, ETA ${formatDuration(etaSeconds)}; ${budgetText}`,
@@ -1270,14 +1276,14 @@ function printProgress(
 type StreamingProgress = {
   completed: number;
   valid: number;
-  byBudget: Map<number, { count: number; scoreTotal: number }>;
+  byBudget: Map<number, { count: number }>;
 };
 
 function newStreamingProgress(restored: number, budgets: readonly number[]): StreamingProgress {
   return {
     completed: restored,
     valid: 0,
-    byBudget: new Map(budgets.map((budget) => [budget, { count: 0, scoreTotal: 0 }])),
+    byBudget: new Map(budgets.map((budget) => [budget, { count: 0 }])),
   };
 }
 
@@ -1289,7 +1295,6 @@ function recordStreamingProgress(
   if (row.score.valid) progress.valid++;
   const budget = progress.byBudget.get(row.task.budget)!;
   budget.count++;
-  budget.scoreTotal += row.score.score;
 }
 
 function printStreamingProgress(
@@ -1304,7 +1309,7 @@ function printStreamingProgress(
   const remaining = total - progress.completed;
   const etaSeconds = rate > 0 ? remaining / rate : 0;
   const budgetText = [...progress.byBudget.entries()].map(([budget, summary]) =>
-    `${budget / 1000}k ${summary.count}:${(summary.count === 0 ? 0 : summary.scoreTotal / summary.count).toFixed(1)}`
+    `${budget / 1000}k ${summary.count} rows`
   ).join(" | ");
   console.log(
     `  [${progress.completed}/${total}] valid ${progress.valid}, ${rate.toFixed(2)} runs/s, ETA ${formatDuration(etaSeconds)}; ` +

@@ -1,178 +1,124 @@
+/**
+ * Recoverable baseline publication without an attempt ledger.
+ *
+ * A tiny journal pins the exact bundle bytes while freezeBaseline updates the
+ * compact baseline references. Re-running after interruption is idempotent.
+ */
+
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { freezeBaseline } from "../../benchmark/freeze_baseline.ts";
 import {
-  assertNoAttemptInFlight,
-  withAttemptLedgerTransaction,
-  type AttemptEventInput,
-  type AttemptPaths,
-  type EraState,
-} from "./attempts.ts";
-import { removeFileDurable, writeFileExclusiveDurable } from "./durable_fs.ts";
+  removeFileDurable,
+  writeFileExclusiveDurable,
+} from "./durable_fs.ts";
 
 export const BASELINE_PUBLICATION_PENDING_PATH = "benchmark/v2/baseline-publication-pending.json";
 
 type PendingBaselinePublication = {
-  schema: "line.benchmark-v2.baseline-publication.v1";
+  schema: "line.benchmark-v2.baseline-publication.v2";
   bundlePath: string;
   bundleSha256: string;
-  event: AttemptEventInput;
+  baselineLabel: string;
 };
 
 type PublicationOptions = {
-  paths?: AttemptPaths;
   pendingPath?: string;
   conflictingPendingPath?: string;
   baselinePath?: string;
   freeze?: (bundlePath: string) => void;
   afterFreeze?: () => void;
-  afterLedgerAppend?: () => void;
 };
 
-/** Publish baseline files and their ledger transition as one recoverable unit. */
-export function publishBaselineWithLedger(
-  bundlePath: string,
-  event: AttemptEventInput,
-  options: PublicationOptions = {},
-): EraState {
+export function publishBaseline(bundlePath: string, options: PublicationOptions = {}): void {
   const pendingPath = resolve(options.pendingPath ?? BASELINE_PUBLICATION_PENDING_PATH);
-  const conflictingPendingPath = resolve(options.conflictingPendingPath ?? "benchmark/v2/migration-pending.json");
-  const freeze = options.freeze ?? freezeBaseline;
-  return withAttemptLedgerTransaction(options.paths, (transaction) => {
-    assertNoAttemptInFlight(transaction.state, "baseline publication");
-    if (existsSync(conflictingPendingPath)) {
-      throw new Error(`migration publication is pending; recover it before publishing a baseline`);
-    }
-    transaction.assertAllowed(event);
-    if (existsSync(pendingPath)) {
-      throw new Error(`another baseline publication is pending; recover it before publishing`);
-    }
-    const pendingEvent = event;
-    const pending: PendingBaselinePublication = {
-      schema: "line.benchmark-v2.baseline-publication.v1",
-      bundlePath: resolve(bundlePath),
-      bundleSha256: sha256(readFileSync(resolve(bundlePath))),
-      event: pendingEvent,
-    };
-    assertPinnedBundleMatchesEvent(pending);
-    writeFileExclusiveDurable(pendingPath, `${JSON.stringify(pending, null, 2)}\n`);
-    try {
-      assertBundleCurrent(pending);
-      freeze(pending.bundlePath);
-      options.afterFreeze?.();
-      const state = transaction.append(event);
-      options.afterLedgerAppend?.();
-      removeFileDurable(pendingPath);
-      return state;
-    } catch (error) {
-      // The journal is intentionally retained. A rerun completes the same
-      // freeze/event pair before any formal baseline reader can proceed.
-      throw error;
-    }
-  });
-}
-
-export function recoverPendingBaselinePublication(options: PublicationOptions = {}): EraState | null {
-  const pendingPath = resolve(options.pendingPath ?? BASELINE_PUBLICATION_PENDING_PATH);
-  const conflictingPendingPath = resolve(options.conflictingPendingPath ?? "benchmark/v2/migration-pending.json");
-  if (!existsSync(pendingPath)) return null;
-  const pending = JSON.parse(readFileSync(pendingPath, "utf8")) as PendingBaselinePublication;
-  if (
-    pending.schema !== "line.benchmark-v2.baseline-publication.v1" ||
-    typeof pending.bundlePath !== "string" || !/^[a-f0-9]{64}$/.test(pending.bundleSha256) ||
-    pending.event === null || typeof pending.event !== "object"
-  ) {
-    throw new Error(`pending baseline publication is malformed; inspect ${pendingPath}`);
-  }
-  const freeze = options.freeze ?? freezeBaseline;
-  return withAttemptLedgerTransaction(options.paths, (transaction) => {
-    assertNoAttemptInFlight(transaction.state, "baseline publication recovery");
-    if (existsSync(conflictingPendingPath)) {
-      throw new Error(`migration publication is pending; recover it before recovering a baseline publication`);
-    }
-    if (publicationEventApplied(transaction.state, pending.event)) {
-      removeFileDurable(pendingPath);
-      return transaction.state;
-    }
-    transaction.assertAllowed(pending.event);
-    assertPinnedBundleMatchesEvent(pending);
-    freeze(pending.bundlePath);
+  const conflicting = resolve(options.conflictingPendingPath ?? "benchmark/v2/migration-pending.json");
+  if (existsSync(conflicting)) throw new Error(`another baseline-related publication is pending; recover it first`);
+  if (existsSync(pendingPath)) throw new Error(`a baseline publication is pending; rerun the command to recover it`);
+  const absoluteBundle = resolve(bundlePath);
+  const bundleBytes = readFileSync(absoluteBundle);
+  const bundle = JSON.parse(bundleBytes.toString("utf8"));
+  assertBundle(bundle);
+  const pending: PendingBaselinePublication = {
+    schema: "line.benchmark-v2.baseline-publication.v2",
+    bundlePath: absoluteBundle,
+    bundleSha256: sha256(bundleBytes),
+    baselineLabel: bundle.label,
+  };
+  writeFileExclusiveDurable(pendingPath, `${JSON.stringify(pending, null, 2)}\n`);
+  try {
+    (options.freeze ?? freezeBaseline)(absoluteBundle);
     options.afterFreeze?.();
-    const state = transaction.append(pending.event);
     removeFileDurable(pendingPath);
-    return state;
-  });
+  } catch (error) {
+    // The journal deliberately survives so the exact same bundle can finish.
+    throw error;
+  }
 }
 
-/**
- * Explicitly abandon a journal that never reached either baseline files or
- * the ledger.  This is deliberately not automatic: once either side was
- * published the durable journal must be recovered, never discarded.
- */
+export function recoverPendingBaselinePublication(options: PublicationOptions = {}): boolean {
+  const pendingPath = resolve(options.pendingPath ?? BASELINE_PUBLICATION_PENDING_PATH);
+  if (!existsSync(pendingPath)) return false;
+  const conflicting = resolve(options.conflictingPendingPath ?? "benchmark/v2/migration-pending.json");
+  if (existsSync(conflicting)) throw new Error(`migration publication is pending; recover it first`);
+  const pending = readPending(pendingPath);
+  assertPinnedBundle(pending);
+  (options.freeze ?? freezeBaseline)(pending.bundlePath);
+  options.afterFreeze?.();
+  removeFileDurable(pendingPath);
+  return true;
+}
+
 export function discardUntouchedPendingBaselinePublication(options: PublicationOptions = {}): void {
   const pendingPath = resolve(options.pendingPath ?? BASELINE_PUBLICATION_PENDING_PATH);
   if (!existsSync(pendingPath)) throw new Error(`no pending baseline publication to discard`);
-  const pending = readPendingBaselinePublication(pendingPath);
+  const pending = readPending(pendingPath);
+  assertPinnedBundle(pending);
   const baselinePath = resolve(options.baselinePath ?? "benchmark/v2/baseline.json");
-  return withAttemptLedgerTransaction(options.paths, (transaction) => {
-    assertNoAttemptInFlight(transaction.state, "discarding a pending baseline publication");
-    if (publicationEventApplied(transaction.state, pending.event)) {
-      throw new Error(`pending baseline publication already reached the ledger; recover it instead of discarding`);
-    }
+  if (existsSync(baselinePath)) {
     const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
-    if (baseline?.label === pending.event.baselineLabel) {
-      throw new Error(`pending baseline publication may have changed baseline files; recover it instead of discarding`);
+    if (baseline.label === pending.baselineLabel) {
+      throw new Error(`the pending publication may already have changed baseline files; recover it instead`);
     }
-    removeFileDurable(pendingPath);
-  });
+  }
+  removeFileDurable(pendingPath);
 }
 
-function readPendingBaselinePublication(path: string): PendingBaselinePublication {
+function readPending(path: string): PendingBaselinePublication {
   const pending = JSON.parse(readFileSync(path, "utf8")) as PendingBaselinePublication;
   if (
-    pending.schema !== "line.benchmark-v2.baseline-publication.v1" ||
-    typeof pending.bundlePath !== "string" || !/^[a-f0-9]{64}$/.test(pending.bundleSha256) ||
-    pending.event === null || typeof pending.event !== "object"
+    pending.schema !== "line.benchmark-v2.baseline-publication.v2" ||
+    typeof pending.bundlePath !== "string" ||
+    !/^[a-f0-9]{64}$/.test(pending.bundleSha256) ||
+    typeof pending.baselineLabel !== "string" ||
+    pending.baselineLabel.trim() === ""
   ) {
     throw new Error(`pending baseline publication is malformed; inspect ${path}`);
   }
   return pending;
 }
 
-function assertBundleCurrent(pending: PendingBaselinePublication): void {
-  if (!existsSync(pending.bundlePath) || sha256(readFileSync(pending.bundlePath)) !== pending.bundleSha256) {
-    throw new Error(`baseline bundle changed after publication was journaled; restore the exact bundle before recovery`);
+function assertPinnedBundle(pending: PendingBaselinePublication): void {
+  const bytes = readFileSync(pending.bundlePath);
+  if (sha256(bytes) !== pending.bundleSha256) {
+    throw new Error(`baseline bundle changed after publication was journaled; restore the exact bytes`);
   }
+  const bundle = JSON.parse(bytes.toString("utf8"));
+  assertBundle(bundle);
+  if (bundle.label !== pending.baselineLabel) throw new Error(`pinned baseline label changed`);
 }
 
-function assertPinnedBundleMatchesEvent(pending: PendingBaselinePublication): void {
-  assertBundleCurrent(pending);
-  if (pending.event.type !== "era-start" && pending.event.type !== "baseline-transition-complete") {
-    throw new Error(`baseline publication requires an era-start or baseline-transition-complete event`);
-  }
-  const bundle = JSON.parse(readFileSync(pending.bundlePath, "utf8"));
-  if (bundle.schema !== "line.benchmark-v2.baseline-bundle.v3") {
+function assertBundle(bundle: any): void {
+  if (
+    bundle?.schema !== "line.benchmark-v2.baseline-bundle.v3" ||
+    typeof bundle.label !== "string" ||
+    bundle.label.trim() === ""
+  ) {
     throw new Error(`unsupported baseline bundle`);
-  }
-  if (bundle.label !== pending.event.baselineLabel) {
-    throw new Error(
-      `baseline publication event label ${JSON.stringify(pending.event.baselineLabel)} ` +
-      `does not match pinned bundle label ${JSON.stringify(bundle.label)}`,
-    );
   }
 }
 
 function sha256(value: Buffer): string {
   return createHash("sha256").update(value).digest("hex");
-}
-
-function publicationEventApplied(state: EraState, event: AttemptEventInput): boolean {
-  if (event.type === "era-start") {
-    return state.eraId === event.eraId && state.baselineLabel === event.baselineLabel;
-  }
-  if (event.type === "baseline-transition-complete") {
-    return state.baselineLabel === event.baselineLabel && !state.transitionPending;
-  }
-  return false;
 }

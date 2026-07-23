@@ -1,14 +1,10 @@
 /**
- * Light rebaseline after an accepted eval attempt (RFC C.5): under
- * fresh-paired attempts the baseline archive is never comparison evidence —
- * only the snapshot is. The accepting attempt's retained canonical archives
- * become the era's record, one fresh probe run becomes the
- * dev-screen reference, and the heavyweight freeze validations are reused
- * verbatim via freezeBaseline. Minutes, not hours.
+ * Promote one explicit cached-comparison artifact.
  *
- * `transition` records an explicit ledgered operator transition; the next
- * rebaseline may then be driven from legacy-produced bundle evidence via
- * --bundle (no budget reset — only an accept genuinely ends an era).
+ * There is no implicit "latest attempt" and no governance state. The artifact
+ * names the candidate archive and exact compiler snapshot. Rebaseline verifies
+ * those bytes, runs the small probe and qualification sidecar, then publishes
+ * the ordinary compact baseline references through a recoverable journal.
  */
 
 import { createHash } from "node:crypto";
@@ -16,162 +12,244 @@ import { createReadStream, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { resolve } from "node:path";
 import { createGunzip } from "node:zlib";
-import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
-import {
-  assertNoAttemptInFlight,
-  readAttemptEvents,
-  readEraState,
-  type AttemptEventInput,
-  type DeclareEvent,
-} from "./attempts.ts";
-import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import { assertCompilerSourcesCommitted } from "./compiler_identity.ts";
 import {
+  createSnapshotWorkspace,
+  disposeSnapshotWorkspace,
+  runInWorkspace,
+  validateCompilerSnapshot,
+  type CompilerSnapshot,
+  type SnapshotBenchmarkRun,
+} from "./compiler_snapshot.ts";
+import {
   discardUntouchedPendingBaselinePublication,
-  publishBaselineWithLedger,
+  publishBaseline,
   recoverPendingBaselinePublication,
 } from "./baseline_publication.ts";
-
-import { runBenchmarkV2, compilerCandidateIdentity } from "./runner.ts";
 import { copyFileDurable, writeFileAtomicDurable } from "./durable_fs.ts";
+import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
+import { compilerCandidateIdentity } from "./runner.ts";
 import { suiteIdentity } from "./suite_model.ts";
+import type { CachedComparisonArtifact } from "./eval.ts";
 
 export async function runRebaselineCommand(argv = process.argv.slice(2)): Promise<number> {
   const argument = (name: string): string | undefined =>
     argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
   if (process.env.LR_ENGINE !== "wasm") throw new Error(`rebaseline requires LR_ENGINE=wasm`);
-  const label = argument("label");
-  const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
-  const ledgerPaths = {
-    ledger: resolve(argument("attempts-ledger") ?? "benchmark/v2/attempts.jsonl"),
-    projection: resolve(argument("era-state") ?? "benchmark/v2/era-state.json"),
-  };
-  const jobs = Number(argument("jobs") ?? Math.min(48, availableParallelism()));
+  const allowedValues = new Set(["from", "label", "archive-dir", "out-dir", "jobs"]);
+  for (const value of argv) {
+    if (value === "--resume" || value === "--discard-pending") continue;
+    if (!value.startsWith("--")) throw new Error(`rebaseline does not accept positional argument ${value}`);
+    const equals = value.indexOf("=");
+    const name = value.slice(2, equals === -1 ? undefined : equals);
+    if (equals === -1 || !allowedValues.has(name)) throw new Error(`unsupported rebaseline flag ${value}`);
+  }
   if (argv.includes("--discard-pending")) {
-    discardUntouchedPendingBaselinePublication({ paths: ledgerPaths });
-    console.log(`discarded an untouched pending baseline publication; re-run rebaseline after the required migration`);
+    discardUntouchedPendingBaselinePublication();
+    console.log(`discarded an untouched pending baseline publication`);
     return 0;
+  }
+  if (recoverPendingBaselinePublication()) {
+    console.log(`recovered the pending baseline publication`);
+    return 0;
+  }
+
+  const from = argument("from");
+  const label = argument("label");
+  if (from === undefined || from.trim() === "") {
+    throw new Error(`rebaseline requires --from=<cached comparison artifact>`);
   }
   if (label === undefined || label.trim() === "") throw new Error(`rebaseline requires --label=<new baseline label>`);
   const safeLabel = label.replace(/[^a-zA-Z0-9_.-]+/g, "-");
-  recoverPendingBaselinePublication({ paths: ledgerPaths });
-  assertCompilerSourcesCommitted();
+  const jobs = Number(argument("jobs") ?? Math.min(48, availableParallelism()));
+  if (!Number.isSafeInteger(jobs) || jobs < 1 || jobs > 48) throw new Error(`--jobs must be an integer in 1..48`);
+  const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
+  const outDir = resolve(argument("out-dir") ?? "generated/benchmark-v2/rebaseline");
+  mkdirSync(archiveDir, { recursive: true });
+  mkdirSync(outDir, { recursive: true });
 
-  const era = readEraState(ledgerPaths);
-  assertNoAttemptInFlight(era, "rebaseline");
-  const explicitBundle = argument("bundle");
-  let cause: "rebaseline-accept" | "transition-rebaseline";
-  let bundlePath: string;
-
-  if (explicitBundle !== undefined) {
-    if (!era.transitionPending) {
-      throw new Error(`--bundle rebaselines a ledgered transition; record one first with \`npm run benchmark -- transition --reason=...\``);
-    }
-    cause = "transition-rebaseline";
-    bundlePath = resolve(explicitBundle);
-  } else {
-    cause = "rebaseline-accept";
-    const lastAttempt = era.attempts.at(-1);
-    if (lastAttempt === undefined || lastAttempt.outcome !== "accept") {
-      throw new Error(
-        `rebaseline requires the era's latest eval attempt to be an accept ` +
-        `(latest: ${lastAttempt === undefined ? "none" : `${lastAttempt.attemptId} -> ${lastAttempt.outcome ?? "in flight"}`})`,
-      );
-    }
-    const identity = compilerCandidateIdentity("wasm");
-    if (identity.candidateFingerprint !== lastAttempt.candidateFingerprint) {
-      throw new Error(`the checked-out compiler is not the candidate accepted by ${lastAttempt.attemptId}`);
-    }
-    const declare = readAttemptEvents(ledgerPaths).find((event): event is DeclareEvent =>
-      event.type === "declare" && event.attemptId === lastAttempt.attemptId
+  const artifactPath = resolve(from);
+  const artifact = readComparisonArtifact(artifactPath);
+  if (artifact.decision.result.outcome !== "accept") {
+    throw new Error(
+      `comparison result is ${artifact.decision.result.outcome}, not a supported improvement; ` +
+      `collect clearer evidence or keep iterating`,
     );
-    if (declare === undefined) throw new Error(`accepted attempt has no declare event; the ledger is corrupt`);
+  }
+  const candidatePath = resolve(artifact.candidate.archivePath);
+  if (!existsSync(candidatePath) || !existsSync(`${candidatePath}.gz`)) {
+    throw new Error(`comparison candidate archive is missing; restore ${artifact.candidate.archivePath}`);
+  }
+  if (await sha256Stream(createReadStream(candidatePath)) !== artifact.candidate.archiveSha256) {
+    throw new Error(`comparison candidate archive checksum mismatch`);
+  }
+  if (await sha256Stream(createReadStream(`${candidatePath}.gz`)) !== artifact.candidate.compressedArchiveSha256) {
+    throw new Error(`comparison compressed candidate archive checksum mismatch`);
+  }
 
-    const developmentArchive = resolve(archiveDir, `${lastAttempt.attemptId}-development.json.gz`);
-    const qualificationArchive = resolve(archiveDir, `${lastAttempt.attemptId}-qualification.json.gz`);
-    for (const [path, what] of [
-      [developmentArchive, "development"],
-      [qualificationArchive, "qualification"],
-    ] as const) {
-      if (!existsSync(path)) {
-        throw new Error(`retained ${what} archive ${path} is missing; the accepted attempt cannot become the era record`);
-      }
-    }
+  validateCompilerSnapshot(artifact.candidate.snapshot);
+  assertCompilerSourcesCommitted();
+  const current = compilerCandidateIdentity("wasm");
+  if (current.candidateFingerprint !== artifact.candidate.snapshot.candidateFingerprint) {
+    throw new Error(`the checked-out compiler is not the candidate measured by the comparison artifact`);
+  }
 
-    // The one fresh execution a light rebaseline pays for: the dev-screen
-    // probe reference of the new baseline compiler.
+  const retainedSnapshotPath = resolve(archiveDir, `${safeLabel}-compiler-snapshot.tar.gz`);
+  copyFileDurable(resolve(artifact.candidate.snapshot.archive), retainedSnapshotPath);
+  const retainedSnapshot: CompilerSnapshot = {
+    ...artifact.candidate.snapshot,
+    archive: relativeToCwd(retainedSnapshotPath),
+  };
+  validateCompilerSnapshot(retainedSnapshot);
+
+  let workspace: ReturnType<typeof createSnapshotWorkspace> | undefined;
+  try {
+    workspace = createSnapshotWorkspace(retainedSnapshot);
+    const probePath = resolve(outDir, `${safeLabel}-probe.json`);
+    const qualificationPath = resolve(outDir, `${safeLabel}-qualification.json`);
+    const common = runnerBaseArgs(jobs);
+    console.log(`rebaseline ${safeLabel}: refreshing the quick baseline reference`);
+    const probe = runInWorkspace(workspace, "development", [
+      "--profile=probe",
+      ...common,
+      ...(argv.includes("--resume") ? ["--resume"] : []),
+    ], probePath);
+    assertSuccessful(probe, "probe");
+
+    console.log(`rebaseline ${safeLabel}: running the qualification sidecar`);
+    const qualification = runInWorkspace(workspace, "qualification", [
+      "--profile=canonical",
+      ...common,
+      `--development-archive=${candidatePath}`,
+      ...(argv.includes("--resume") ? ["--resume"] : []),
+    ], qualificationPath);
+    assertSuccessful(qualification, "qualification");
+
+    const retainedProbe = retainRun(probe, archiveDir, `${safeLabel}-probe`);
+    const retainedDevelopment = retainExistingRun(
+      candidatePath,
+      artifact.candidate.archiveSha256,
+      artifact.candidate.compressedArchiveSha256,
+      archiveDir,
+      `${safeLabel}-development`,
+    );
+    const retainedQualification = retainRun(qualification, archiveDir, `${safeLabel}-qualification`);
+
     const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
-    const suite = suiteIdentity(
+    const identity = suiteIdentity(
       "benchmark/v2/compat/suite-manifest.json",
       "benchmark/v2/compat/source-manifest.json",
       sources,
     );
-    const probeOut = resolve(`generated/benchmark-v2/eval/${safeLabel}-probe.json`);
-    mkdirSync(resolve("generated/benchmark-v2/eval"), { recursive: true });
-    console.log(`rebaseline ${safeLabel}: running the fresh probe dev-screen reference`);
-    const probeRun = await runBenchmarkV2("development", [
-      "--profile=probe",
-      `--manifest=${resolve("benchmark/v2/compat/source-manifest.json")}`,
-      `--heldout-manifest=${resolve("benchmark/v2/compat/heldout-manifest.json")}`,
-      `--suite=${resolve("benchmark/v2/compat/suite-manifest.json")}`,
-      `--characterization=${resolve("benchmark/v2/evidence/characterization.json")}`,
-      `--audit=${resolve("benchmark/v2/evidence/audit.json")}`,
-      `--review=${resolve("benchmark/v2/evidence/candidate-review.json")}`,
-      `--listening-review=${resolve("benchmark/v2/evidence/listening-review.json")}`,
-      `--jobs=${jobs}`,
-      `--out=${probeOut}`,
-      ...(argv.includes("--resume") ? ["--resume"] : []),
-    ]);
-    if (probeRun.workerFailures > 0) throw new Error(`fresh probe reference has worker failures; re-run with --resume`);
-    const probeRetained = resolve(archiveDir, `${safeLabel}-probe.json.gz`);
-    copyFileDurable(`${probeOut}.gz`, probeRetained);
-    writeFileAtomicDurable(`${probeRetained}.sha256`, `${probeRun.compressedArchiveSha256}  ${relativeToCwd(probeRetained)}\n`);
-
+    const bundlePath = resolve(archiveDir, `${safeLabel}-baseline.json`);
     const bundle = {
       schema: "line.benchmark-v2.baseline-bundle.v3",
       label: safeLabel,
       generatedAt: new Date().toISOString(),
-      eraRecord: {
-        attemptId: lastAttempt.attemptId,
-        operatingPointId: lastAttempt.operatingPointId,
-        declarationPath: declare.declarationPath,
-        declarationSha256: declare.declarationSha256,
+      promotedComparison: {
+        artifact: relativeToCwd(artifactPath),
+        artifactSha256: await sha256Stream(createReadStream(artifactPath)),
+        seeds: artifact.base.seeds,
       },
-      compilerSnapshot: JSON.parse(readFileSync(resolve(declare.declarationPath), "utf8")).candidateSnapshot,
-      decisionContract: requireCurrentDecisionCalibration(suite.suiteFingerprint),
-      probe: await retainedEntry(probeRetained),
-      development: await retainedEntry(developmentArchive),
-      qualification: await retainedEntry(qualificationArchive),
+      compilerSnapshot: retainedSnapshot,
+      decisionContract: requireCurrentDecisionCalibration(identity.suiteFingerprint),
+      probe: await retainedEntry(retainedProbe),
+      development: await retainedEntry(retainedDevelopment),
+      qualification: await retainedEntry(retainedQualification),
     };
-    bundlePath = resolve(archiveDir, `${safeLabel}-baseline.json`);
     writeFileAtomicDurable(bundlePath, `${JSON.stringify(bundle, null, 2)}\n`);
+    assertBaselineBundleLabel(bundlePath, safeLabel);
+    publishBaseline(bundlePath);
+    console.log(`rebaselined to ${safeLabel}`);
+    console.log(`  nextCommand: npm run benchmark -- eval`);
+    return 0;
+  } finally {
+    if (workspace !== undefined) disposeSnapshotWorkspace(workspace);
   }
-
-  assertBaselineBundleLabel(bundlePath, safeLabel);
-  const ledgerEvent = cause === "rebaseline-accept"
-    ? {
-      type: "era-start",
-      eraId: `era-${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}`,
-      cause,
-      baselineLabel: safeLabel,
-      budgetCap: benchmarkEvalPolicy.eraBudget.cap,
-    } as AttemptEventInput
-    : {
-      type: "baseline-transition-complete",
-      baselineLabel: safeLabel,
-    } as AttemptEventInput;
-  const newEra = publishBaselineWithLedger(bundlePath, ledgerEvent, { paths: ledgerPaths });
-  console.log(
-    `rebaselined to ${safeLabel} (${cause}); era budget ` +
-    `${cause === "rebaseline-accept" ? "reset" : "carried"} (cap ${newEra.budgetCap}); ` +
-    `cumulative expected false accepts ${newEra.cumulativeExpectedFalseAccepts}`,
-  );
-  console.log(`  nextCommand: npm run benchmark -- eval`);
-  return 0;
 }
 
-/** The ledger label and the frozen baseline label must describe one object. */
+function readComparisonArtifact(path: string): CachedComparisonArtifact {
+  const bytes = readFileSync(path);
+  const sidecarPath = `${path}.sha256`;
+  if (existsSync(sidecarPath)) {
+    const expected = readFileSync(sidecarPath, "utf8").trim().split(/\s+/)[0];
+    if (expected !== createHash("sha256").update(bytes).digest("hex")) {
+      throw new Error(`comparison artifact checksum mismatch`);
+    }
+  }
+  const artifact = JSON.parse(bytes.toString("utf8")) as CachedComparisonArtifact;
+  if (
+    artifact.schema !== "line.benchmark-v2.cached-comparison.v1" ||
+    artifact.status !== "complete" ||
+    typeof artifact.candidate?.archivePath !== "string" ||
+    artifact.candidate?.snapshot === undefined ||
+    artifact.decision?.result === undefined
+  ) {
+    throw new Error(`unsupported cached comparison artifact`);
+  }
+  return artifact;
+}
+
+function runnerBaseArgs(jobs: number): string[] {
+  return [
+    `--manifest=${resolve("benchmark/v2/compat/source-manifest.json")}`,
+    `--heldout-manifest=${resolve("benchmark/v2/compat/heldout-manifest.json")}`,
+    `--suite=${resolve("benchmark/v2/compat/suite-manifest.json")}`,
+    `--characterization=${resolve("benchmark/v2/evidence/characterization.json")}`,
+    `--audit=${resolve("benchmark/v2/evidence/audit.json")}`,
+    `--review=${resolve("benchmark/v2/evidence/candidate-review.json")}`,
+    `--listening-review=${resolve("benchmark/v2/evidence/listening-review.json")}`,
+    `--jobs=${jobs}`,
+  ];
+}
+
+function assertSuccessful(run: SnapshotBenchmarkRun, label: string): void {
+  if (run.workerFailures > 0) throw new Error(`${label} has worker failures; rerun rebaseline with --resume`);
+}
+
+function retainRun(run: SnapshotBenchmarkRun, archiveDir: string, stem: string): string {
+  return retainExistingRun(
+    run.outputPath,
+    run.archiveSha256,
+    run.compressedArchiveSha256,
+    archiveDir,
+    stem,
+  );
+}
+
+function retainExistingRun(
+  rawPath: string,
+  archiveSha256: string,
+  compressedSha256: string,
+  archiveDir: string,
+  stem: string,
+): string {
+  const retained = resolve(archiveDir, `${stem}.json.gz`);
+  copyFileDurable(`${rawPath}.gz`, retained);
+  writeFileAtomicDurable(`${retained}.sha256`, `${compressedSha256}  ${relativeToCwd(retained)}\n`);
+  const index = `${rawPath}.decision-index.json`;
+  if (existsSync(index)) {
+    copyFileDurable(index, resolve(archiveDir, `${stem}.decision-index.json`));
+    copyFileDurable(`${index}.sha256`, resolve(archiveDir, `${stem}.decision-index.json.sha256`));
+  }
+  // The raw checksum is recorded in the bundle entry below.
+  writeFileAtomicDurable(`${retained}.archive.sha256`, `${archiveSha256}  ${relativeToCwd(rawPath)}\n`);
+  return retained;
+}
+
+async function retainedEntry(compressedPath: string): Promise<{
+  retainedCompressedArchive: string;
+  compressedSha256: string;
+  sha256: string;
+}> {
+  return {
+    retainedCompressedArchive: relativeToCwd(compressedPath),
+    compressedSha256: await sha256Stream(createReadStream(compressedPath)),
+    sha256: await sha256Stream(createReadStream(compressedPath).pipe(createGunzip())),
+  };
+}
+
 export function assertBaselineBundleLabel(bundlePath: string, expectedLabel: string): void {
   const bundle = JSON.parse(readFileSync(resolve(bundlePath), "utf8"));
   if (bundle.schema !== "line.benchmark-v2.baseline-bundle.v3") {
@@ -185,37 +263,6 @@ export function assertBaselineBundleLabel(bundlePath: string, expectedLabel: str
       `rebaseline label ${JSON.stringify(expectedLabel)} does not match bundle label ${JSON.stringify(bundle.label)}`,
     );
   }
-}
-
-export function runTransitionCommand(argv = process.argv.slice(2)): number {
-  const argument = (name: string): string | undefined =>
-    argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-  const reason = argument("reason");
-  if (reason === undefined || reason.trim() === "") throw new Error(`transition requires --reason=...`);
-  const ledgerPaths = {
-    ledger: resolve(argument("attempts-ledger") ?? "benchmark/v2/attempts.jsonl"),
-    projection: resolve(argument("era-state") ?? "benchmark/v2/era-state.json"),
-  };
-  recoverPendingBaselinePublication({ paths: ledgerPaths });
-  const state = appendAttemptEvent({
-    type: "transition",
-    reason,
-    operator: argument("operator") ?? "unspecified",
-  }, ledgerPaths);
-  console.log(`transition recorded (no budget reset); rebaseline with --bundle=<legacy baseline bundle> when the new evidence exists`);
-  return state.transitionPending ? 0 : 1;
-}
-
-async function retainedEntry(compressedPath: string): Promise<{
-  retainedCompressedArchive: string;
-  compressedSha256: string;
-  sha256: string;
-}> {
-  return {
-    retainedCompressedArchive: relativeToCwd(compressedPath),
-    compressedSha256: await sha256Stream(createReadStream(compressedPath)),
-    sha256: await sha256Stream(createReadStream(compressedPath).pipe(createGunzip())),
-  };
 }
 
 async function sha256Stream(stream: AsyncIterable<Buffer | string>): Promise<string> {

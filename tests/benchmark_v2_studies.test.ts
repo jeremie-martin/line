@@ -4,7 +4,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { gunzipSync, gzipSync } from "node:zlib";
 import { describe, expect, test } from "vitest";
-import { EVAL_CHAIN_INFERENCE_SOURCE_FILES } from "../scripts/v0/benchmark_v2/eval_chain_inference.ts";
 import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "../scripts/v0/benchmark_v2/certification_identity.ts";
 import { fingerprintFiles } from "../scripts/v0/benchmark_v2/suite_model.ts";
 import {
@@ -70,7 +69,10 @@ describe("retained study artifacts", () => {
       if (!existsSync(path)) continue;
       const v = loadJson(path);
       expect(v.schema).toBe("line.benchmark-v2.independent-validation.v4");
-      expect(v.evalChainInferenceFingerprint).toBe(fingerprintFiles(EVAL_CHAIN_INFERENCE_SOURCE_FILES));
+      // These are retained studies for the retired stopping/menu workflow.
+      // Their stamped inference identity must remain reviewable, but an edit
+      // to the current stateless comparison policy must not rewrite history.
+      expect(v.evalChainInferenceFingerprint).toMatch(/^[a-f0-9]{64}$/);
       expect(v.certificationGeneratorFingerprint).toBe(fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES));
       expect(v.methodology.futility).toContain(`depth-${v.predeclared.depth}`);
       expect(v.methodology.futility).not.toContain("depth-32");

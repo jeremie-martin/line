@@ -131,5 +131,6 @@ A study result is not a headline claim. Only a compact, causal, mixed-panel
 form that survives the guards above may be added as a default-off labelled
 shadow source. That source must use normal `tryCandidateLines` admission,
 remain inert when unavailable, pass fixed-cost ordinary controls, and then
-enter the existing V2 Stage-0, family, and D-side workflow. Qualification
-tracks remain held out throughout formulation and family selection.
+enter the existing V2 family and canonical cached-comparison workflow.
+Qualification tracks remain held out throughout formulation and family
+selection.

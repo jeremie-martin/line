@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCanonicalBenchmark, retainBenchmarkArchive } from "./canonical.ts";
@@ -6,22 +6,13 @@ import { runBenchmarkV2 } from "./runner.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
 import { suiteIdentity } from "./suite_model.ts";
 import { loadListeningReview, requireApprovedListeningReview } from "./listening_review.ts";
-import {
-  assertNoAttemptInFlight,
-  readAttemptEvents,
-  readEraState,
-  DEFAULT_ATTEMPTS_LEDGER_PATH,
-  type AttemptEventInput,
-} from "./attempts.ts";
-import { readBaselineContract } from "./confirmation.ts";
-import { benchmarkEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import { createCompilerSnapshot } from "./compiler_snapshot.ts";
 import { assertCompilerSourcesCommitted } from "./compiler_identity.ts";
 import { compilerCandidateIdentity } from "./runner.ts";
 import { writeFileAtomicDurable } from "./durable_fs.ts";
 import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import {
-  publishBaselineWithLedger,
+  publishBaseline,
   recoverPendingBaselinePublication,
 } from "./baseline_publication.ts";
 
@@ -45,7 +36,6 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
     identity.sourceManifestFingerprint,
     sources,
   ));
-  assertFullFreezeAllowed(identity.suiteFingerprint);
   const outDir = resolve(argument("out-dir") ?? "generated/benchmark-v2/baseline-runs");
   const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
   const forwarded = args.filter((arg) =>
@@ -93,31 +83,9 @@ export async function runBaselineBenchmark(args = process.argv.slice(2)): Promis
     development: canonicalBundle.development,
     qualification: canonicalBundle.qualification,
   }, null, 2)}\n`);
-  const cause = readAttemptEvents().length === 0 ? "bootstrap" : "suite-rollover";
-  const eraStart = {
-    type: "era-start",
-    eraId: `era-${new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z")}`,
-    cause,
-    baselineLabel: label,
-    budgetCap: benchmarkEvalPolicy.eraBudget.cap,
-  } as AttemptEventInput;
-  publishBaselineWithLedger(bundlePath, eraStart);
+  publishBaseline(bundlePath);
   console.log(`Baseline bundle: ${relativeToCwd(bundlePath)}`);
   return bundlePath;
-}
-
-/** The full freeze is the bootstrap and suite-rollover path only; within a
- *  suite the light `rebaseline` after an accepted eval attempt is the way
- *  baselines move. */
-function assertFullFreezeAllowed(suiteFingerprint: string): void {
-  if (!existsSync(DEFAULT_ATTEMPTS_LEDGER_PATH)) return; // bootstrap
-  const era = readEraState();
-  assertNoAttemptInFlight(era, "suite rollover");
-  const previous = readBaselineContract();
-  if (previous.suiteFingerprint !== suiteFingerprint) return; // suite rollover
-  throw new Error(
-    `a full baseline freeze within the current suite was retired; accept an eval attempt and run \`benchmark rebaseline\``,
-  );
 }
 
 function relativeToCwd(path: string): string {

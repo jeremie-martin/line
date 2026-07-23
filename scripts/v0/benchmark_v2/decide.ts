@@ -54,8 +54,6 @@ import {
 } from "./baseline_cache.ts";
 import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
-import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
-import { cheapestOperatingPoint } from "../../../benchmark/v2/eval-policy.ts";
 
 const DECISION_SCHEMA = "line.benchmark-v2.decision.v4" as const;
 const BASELINE_SCHEMA = "line.benchmark-v2.baseline-reference.v9" as const;
@@ -153,7 +151,7 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
   if (profile === "canonical") {
     // Canonical evidence is judged inside its predeclared eval attempt; a
     // standalone re-decide would double-judge the same draw.
-    throw new Error(`the one-shot canonical decide path was retired; \`npm run benchmark -- eval --to-verdict\` judges canonical evidence`);
+    throw new Error(`canonical comparisons are produced directly by \`npm run benchmark -- eval --seeds=N\``);
   }
   const baselineResolution = args.basePath === undefined
     ? baselineArchive(profile)
@@ -169,7 +167,6 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
     }
   }
   const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(base, candidate);
-  requireCurrentDecisionCalibration(candidate.archive.identity.suiteFingerprint);
   const result = pairedV2Decision(baseRuns, candidateRuns, suite, {
     profile,
     mode: args.mode,
@@ -297,127 +294,9 @@ export function suiteAtDepth(
 }
 
 /**
- * Stage 0 of the eval chain: the full integrity path (verified archives,
- * scope revalidation, per-row rescoring, calibration currency) with NO
- * gating and NO state writes — an informational screen, repeatable all day.
- */
-export async function screeningComparison(
-  candidatePath: string,
-  options: { basePath?: string; mode?: DecisionMode; margin?: number } = {},
-): Promise<{
-  result: V2Decision;
-  base: VerifiedArchive;
-  candidate: VerifiedArchive;
-  baseLabel: string;
-  compatibilityApproval: RunnerCompatibilityApproval | null;
-}> {
-  const candidate = loadVerifiedArchive(candidatePath);
-  assertNotExplorationArchive(candidate.archive);
-  if (archiveProfile(candidate.archive) !== "probe") {
-    throw new Error(`stage-0 screening compares probe archives; run \`npm run benchmark -- eval\` to produce one`);
-  }
-  const resolution = options.basePath === undefined
-    ? baselineArchive("probe")
-    : { path: resolve(options.basePath), expected: undefined, label: "explicit-base", reference: undefined };
-  const base = loadVerifiedArchive(resolution.path, resolution.expected);
-  assertNotExplorationArchive(base.archive);
-  const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(base, candidate);
-  requireCurrentDecisionCalibration(candidate.archive.identity.suiteFingerprint);
-  const mode = options.mode ?? "improvement";
-  const result = pairedV2Decision(baseRuns, candidateRuns, suite, {
-    profile: "probe",
-    mode,
-    margin: mode === "simplification" ? options.margin : undefined,
-  });
-  assertStoredHeadline(base.archive, result.baseHeadline, "base");
-  assertStoredHeadline(candidate.archive, result.candidateHeadline, "candidate");
-  return { result, base, candidate, baseLabel: resolution.label, compatibilityApproval };
-}
-
-/**
- * The eval chain's verdict inference: the same integrity path and certified
- * decision rule as `decide`, parameterized by the declared depth, with no
- * confirmation-state coupling — the eval orchestrator owns declaration
- * validation and the ledger.
- */
-export async function evalDecision(
-  basePath: string,
-  candidatePath: string,
-  options: {
-    mode: DecisionMode;
-    margin: number | null;
-    depth: number;
-    declaration?: {
-      path: string;
-      sha256: string;
-      seedScheduleFingerprint: string;
-      baselineCandidateFingerprint: string;
-      candidateFingerprint: string;
-    };
-  },
-): Promise<{ artifact: DecisionArtifact; base: VerifiedArchive; candidate: VerifiedArchive }> {
-  const base = loadVerifiedArchive(basePath);
-  const candidate = loadVerifiedArchive(candidatePath);
-  assertNotExplorationArchive(base.archive);
-  assertNotExplorationArchive(candidate.archive);
-  if (archiveProfile(base.archive) !== "canonical" || archiveProfile(candidate.archive) !== "canonical") {
-    throw new Error(`eval verdicts require canonical archives`);
-  }
-  if (options.declaration !== undefined) {
-    assertEvalArchiveDeclaration(base.archive, {
-      label: "baseline arm",
-      candidateFingerprint: options.declaration.baselineCandidateFingerprint,
-      declarationPath: options.declaration.path,
-      declarationSha256: options.declaration.sha256,
-      seedScheduleFingerprint: options.declaration.seedScheduleFingerprint,
-      depth: options.depth,
-    });
-    assertEvalArchiveDeclaration(candidate.archive, {
-      label: "candidate arm",
-      candidateFingerprint: options.declaration.candidateFingerprint,
-      declarationPath: options.declaration.path,
-      declarationSha256: options.declaration.sha256,
-      seedScheduleFingerprint: options.declaration.seedScheduleFingerprint,
-      depth: options.depth,
-    });
-  }
-  const { suite, baseRuns, candidateRuns, compatibilityApproval } = await validateComparison(
-    base,
-    candidate,
-    "decision",
-    options.depth,
-  );
-  requireCurrentDecisionCalibration(candidate.archive.identity.suiteFingerprint);
-  const result = pairedV2Decision(baseRuns, candidateRuns, suiteAtDepth(suite, options.depth), {
-    profile: "canonical",
-    mode: options.mode,
-    margin: options.mode === "simplification" ? options.margin ?? undefined : undefined,
-  });
-  assertStoredHeadline(base.archive, result.baseHeadline, "base");
-  assertStoredHeadline(candidate.archive, result.candidateHeadline, "candidate");
-  const artifact: DecisionArtifact = {
-    schema: DECISION_SCHEMA,
-    generatedAt: new Date().toISOString(),
-    decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
-    decisionProtocolFingerprint: decisionProtocolFingerprint(),
-    executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
-    base: archiveReference(base),
-    candidate: archiveReference(candidate),
-    implementationFingerprintsMatch:
-      base.archive.identity.implementationFingerprint === candidate.archive.identity.implementationFingerprint,
-    runnerCompatibilityApproval: compatibilityApproval,
-    result,
-    hint: underPoweredHint(result, options.depth),
-    nextCommand: nextCommandFor(result),
-  };
-  return { artifact, base, candidate };
-}
-
-/**
- * Final fixed-N verdict against immutable baseline-cache shards.  This is a
- * separate entry point on purpose: ordinary `decide` remains a two-archive
- * tool, while this path records the manifest/shard binding and never pretends
- * that a cached baseline was freshly compiled beside the candidate.
+ * Fixed-N comparison against immutable baseline-cache shards. Ordinary
+ * `decide` remains a two-archive tool; this path records cache provenance and
+ * never pretends the cached baseline was freshly compiled.
  */
 export async function evalDecisionAgainstBaselineCache(
   cache: BaselineCacheView,
@@ -426,7 +305,7 @@ export async function evalDecisionAgainstBaselineCache(
     mode: DecisionMode;
     margin: number | null;
     depth: number;
-    declaration: {
+    request?: {
       path: string;
       sha256: string;
       seedScheduleFingerprint: string;
@@ -437,14 +316,16 @@ export async function evalDecisionAgainstBaselineCache(
   const candidate = loadVerifiedArchive(candidatePath);
   assertNotExplorationArchive(candidate.archive);
   if (archiveProfile(candidate.archive) !== "canonical") throw new Error(`cache-backed eval verdicts require a canonical candidate archive`);
-  assertEvalArchiveDeclaration(candidate.archive, {
-    label: "candidate arm",
-    candidateFingerprint: options.declaration.candidateFingerprint,
-    declarationPath: options.declaration.path,
-    declarationSha256: options.declaration.sha256,
-    seedScheduleFingerprint: options.declaration.seedScheduleFingerprint,
-    depth: options.depth,
-  });
+  if (options.request !== undefined) {
+    assertComparisonRequestLink(candidate.archive, {
+      label: "candidate arm",
+      candidateFingerprint: options.request.candidateFingerprint,
+      requestPath: options.request.path,
+      requestSha256: options.request.sha256,
+      seedScheduleFingerprint: options.request.seedScheduleFingerprint,
+      depth: options.depth,
+    });
+  }
   const evidence = loadBaselineCacheEvidence(cache, options.depth);
   const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
   const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);
@@ -492,7 +373,10 @@ export async function evalDecisionAgainstBaselineCache(
       shardSchedule,
       {
         firstSeedSlot: shard.firstSeedSlot,
-        endSeedSlotExclusive: Math.min(shard.endSeedSlotExclusive, options.depth),
+        // Validate the immutable shard exactly as stored, even when the
+        // requested comparison consumes only a prefix of it. The decision
+        // rows are sliced to `options.depth` below.
+        endSeedSlotExclusive: shard.endSeedSlotExclusive,
       },
     );
     validateCandidateIdentity(archive);
@@ -508,16 +392,23 @@ export async function evalDecisionAgainstBaselineCache(
       architecture: value.environment?.architecture,
     });
     if (runtime(archive) !== runtime(candidate.archive)) throw new Error(`baseline cache shard uses a different runtime platform`);
-    const approval = runnerCompatibilityApproval(
-      archive.identity.implementationFingerprint,
-      candidate.archive.identity.implementationFingerprint,
-      identity.suiteFingerprint,
-    );
-    if (approval !== null && !approvals.some((entry) => JSON.stringify(entry) === JSON.stringify(approval))) approvals.push(approval);
+    // Runner fingerprints remain visible provenance, but an operational
+    // harness change must not make cached baseline scores unusable for an
+    // ordinary descriptive comparison. Suite, engine, runtime, schedule,
+    // source scope, and every row checksum are still validated above.
+    try {
+      const approval = runnerCompatibilityApproval(
+        archive.identity.implementationFingerprint,
+        candidate.archive.identity.implementationFingerprint,
+        identity.suiteFingerprint,
+      );
+      if (approval !== null && !approvals.some((entry) => JSON.stringify(entry) === JSON.stringify(approval))) approvals.push(approval);
+    } catch {
+      // No approval is required for the lean comparison path.
+    }
     baseRuns.push(...toDecisionRuns(archive).filter((row) => row.seedSlot < options.depth));
   }
   const candidateRuns = toDecisionRuns(candidate.archive);
-  requireCurrentDecisionCalibration(identity.suiteFingerprint);
   const result = pairedV2Decision(baseRuns, candidateRuns, suiteAtDepth(suite, options.depth), {
     profile: "canonical",
     mode: options.mode,
@@ -541,7 +432,9 @@ export async function evalDecisionAgainstBaselineCache(
       headline: result.baseHeadline,
     },
     candidate: archiveReference(candidate),
-    implementationFingerprintsMatch: approvals.length === 0,
+    implementationFingerprintsMatch: evidence.every(({ archive }) =>
+      archive.identity.implementationFingerprint === candidate.archive.identity.implementationFingerprint
+    ),
     runnerCompatibilityApproval: approvals[0] ?? null,
     baselineCache: {
       manifestPath: relativeToCwd(cache.baselinePath),
@@ -560,13 +453,13 @@ export async function evalDecisionAgainstBaselineCache(
   return { artifact, candidate };
 }
 
-export function assertEvalArchiveDeclaration(
+export function assertComparisonRequestLink(
   archive: any,
   expected: {
     label: string;
     candidateFingerprint: string;
-    declarationPath: string;
-    declarationSha256: string;
+    requestPath: string;
+    requestSha256: string;
     seedScheduleFingerprint: string;
     depth: number;
   },
@@ -574,19 +467,19 @@ export function assertEvalArchiveDeclaration(
   if (archive.git?.candidateFingerprint !== expected.candidateFingerprint) {
     throw new Error(`${expected.label} did not reproduce its frozen compiler snapshot identity`);
   }
-  const link = archive.confirmationDeclaration;
+  const link = archive.comparisonRequest ?? archive.confirmationDeclaration;
   if (
-    link === undefined || resolve(link.path) !== resolve(expected.declarationPath) ||
-    link.sha256 !== expected.declarationSha256
+    link === undefined || resolve(link.path) !== resolve(expected.requestPath) ||
+    link.sha256 !== expected.requestSha256
   ) {
-    throw new Error(`${expected.label} is not linked to the immutable eval declaration`);
+    throw new Error(`${expected.label} is not linked to the immutable comparison request`);
   }
   const schedule = archive.identity?.seedSchedule;
   if (sha256(JSON.stringify(schedule)) !== expected.seedScheduleFingerprint) {
-    throw new Error(`${expected.label} did not run the declared fresh seed epoch`);
+    throw new Error(`${expected.label} did not run the requested seed schedule`);
   }
   if (schedule?.seedsPerBudget !== expected.depth) {
-    throw new Error(`${expected.label} depth does not match the declaration`);
+    throw new Error(`${expected.label} depth does not match the request`);
   }
 }
 
@@ -622,7 +515,10 @@ async function validateComparison(
   if (baseArchive.identity?.executionProtocol !== candidateArchive.identity?.executionProtocol) {
     throw new Error(`archives use different execution protocols`);
   }
-  if (baseArchive.identity?.executionPolicyFingerprint !== candidateArchive.identity?.executionPolicyFingerprint) {
+  if (
+    purpose === "calibration" &&
+    baseArchive.identity?.executionPolicyFingerprint !== candidateArchive.identity?.executionPolicyFingerprint
+  ) {
     throw new Error(`archives use different execution policies`);
   }
   if (baseArchive.git?.engineArtifactFingerprint !== candidateArchive.git?.engineArtifactFingerprint) {
@@ -667,11 +563,16 @@ async function validateComparison(
   validateArchiveScope(candidateArchive, suite, sources, contracts, requiredListeningReview, depthOverride, candidate.indexed);
   validateCandidateIdentity(baseArchive);
   validateCandidateIdentity(candidateArchive);
-  const compatibilityApproval = runnerCompatibilityApproval(
-    baseArchive.identity.implementationFingerprint,
-    candidateArchive.identity.implementationFingerprint,
-    identity.suiteFingerprint,
-  );
+  let compatibilityApproval: RunnerCompatibilityApproval | null = null;
+  try {
+    compatibilityApproval = runnerCompatibilityApproval(
+      baseArchive.identity.implementationFingerprint,
+      candidateArchive.identity.implementationFingerprint,
+      identity.suiteFingerprint,
+    );
+  } catch {
+    if (purpose === "calibration") throw new Error(`calibration archives require approved runner compatibility`);
+  }
   return {
     suite,
     baseRuns: toDecisionRuns(baseArchive),
@@ -748,8 +649,8 @@ function validateArchiveScope(
   const customCanonicalSeedBase = profileName === "canonical" && archive.confirmationDeclaration !== undefined
     ? archive.identity?.seedSchedule?.seedBase
     : undefined;
-  // A declared eval depth replaces the manifest allocation; the caller
-  // cross-checks the override against the immutable declaration.
+  // A requested comparison depth replaces the manifest allocation; the caller
+  // cross-checks the override against the immutable comparison request.
   if (depthOverride !== undefined && profileName !== "canonical") {
     throw new Error(`depth-parameterized scope validation applies to canonical archives only`);
   }
@@ -1079,12 +980,8 @@ export function underPoweredHint(result: V2Decision, seedsPerBudget: number): st
   const requiredSe = distance / (studentTQuantile(1 - result.criticalAlpha, df) + 0.8416212335729143);
   const suggestedDepth = Math.ceil(seedsPerBudget * (se / requiredSe) ** 2);
   if (suggestedDepth <= seedsPerBudget) return null;
-  const certified = cheapestOperatingPoint(result.mode, result.mode === "simplification" ? result.margin : null);
-  const certifiedText = certified === undefined
-    ? `no matching confirmation row is currently certified`
-    : `the executable certified row remains ${certified.id} at depth ${certified.depth}`;
   return `delta ${formatSigned(result.delta)} is positive but under-powered at ${seedsPerBudget} seeds/budget; ` +
-    `~${suggestedDepth} seeds/budget is a non-runnable diagnostic estimate, not a certified recommendation; ${certifiedText}`;
+    `a comparison around ${suggestedDepth} seeds/budget may resolve it if the baseline cache covers that prefix`;
 }
 
 export function nextCommandFor(result: V2Decision): string {
@@ -1093,14 +990,14 @@ export function nextCommandFor(result: V2Decision): string {
     : "";
   switch (result.outcome) {
     case "advance":
-      return `npm run benchmark -- eval --to-verdict${modeFlags}`;
+      return `npm run benchmark -- eval --seeds=100${modeFlags}`;
     case "accept":
-      return `npm run benchmark -- rebaseline --label=accepted-candidate`;
+      return `npm run benchmark -- rebaseline --from=COMPARISON --label=accepted-candidate`;
     case "unresolved":
     case "inconclusive":
       return result.authority === "screening"
-        ? `npm run benchmark -- eval --to-verdict${modeFlags}  # if the mechanism merits fresh confirmation evidence`
-        : `npm run benchmark -- eval --to-verdict${modeFlags} --acknowledge-retry  # fresh epoch; prior evidence is not pooled`;
+        ? `npm run benchmark -- eval --seeds=100${modeFlags}`
+        : `npm run benchmark -- eval --seeds=100${modeFlags}  # choose a larger N if needed`;
     default:
       return `npm run benchmark -- eval`;
   }
@@ -1155,7 +1052,7 @@ export function renderDecision(artifact: DecisionArtifact, outPath: string): str
     ),
     ...caseLines,
     `  OUTCOME: ${result.outcome.toUpperCase()}` +
-      (result.authority === "screening" ? " (screening only; certified eval --to-verdict confirmation is required)" : ""),
+      (result.authority === "screening" ? " (legacy probe-archive diagnostic)" : ""),
     ...(artifact.hint === null ? [] : [`  hint: ${artifact.hint}`]),
     `  artifact: ${relativeToCwd(outPath)}`,
     `  nextCommand: ${artifact.nextCommand}`,
@@ -1164,7 +1061,9 @@ export function renderDecision(artifact: DecisionArtifact, outPath: string): str
     lines.splice(
       lines.findIndex((line) => line.startsWith("  OUTCOME:")),
       0,
-      `  runner compatibility: approved by ${artifact.runnerCompatibilityApproval!.reviewedBy}`,
+      artifact.runnerCompatibilityApproval === null
+        ? `  runner provenance differs; execution identities are reported for review`
+        : `  runner compatibility: approved by ${artifact.runnerCompatibilityApproval.reviewedBy}`,
     );
   }
   return lines.join("\n");

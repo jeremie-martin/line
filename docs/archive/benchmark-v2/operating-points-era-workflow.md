@@ -1,4 +1,8 @@
-# Benchmark V2 — What the Numbers Mean (plain language)
+# Archived Benchmark V2 Era Operating Points
+
+> Historical reference only. This document describes the retired declaration,
+> certification, attempt-ledger, and era-budget workflow. See
+> `docs/HOW_TO_WORK.md` for the current cached-comparison workflow.
 
 For the operator deciding how much risk to accept. The live authority is
 `npm run benchmark -- status`: it reports the registered point, its retained

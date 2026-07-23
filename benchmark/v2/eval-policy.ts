@@ -1,17 +1,8 @@
 /**
- * Benchmark V2 eval-chain policy: the certified operating-point menu, the
- * era alpha-budget rule, and the per-mode exit-code contracts.
+ * Historical Benchmark V2 calibrated operating-point rows and exit codes.
  *
- * This file is part of the decision-protocol identity: editing it requires
- * `benchmark migrate`, and any edit that alters which evidence is collected
- * or how verdicts fall (menu rows, schedules, budget rule) alters decision
- * behavior and escalates to inference scope with re-certification.
- *
- * A menu row here is an OFFER, not an authorization: `eval --to-verdict`
- * declares a row only after `requireCertifiedOperatingPoint` verifies the
- * row's cells against the CURRENT certification artifacts (suite and
- * inference fingerprints included). Numbers such as the era spend are always
- * read from those artifacts at declare time, never hardcoded here.
+ * The active CLI no longer restricts comparison sizes to this menu. These
+ * rows remain available to reproduce older calibration studies.
  */
 
 export const EVAL_CERTIFICATION_ARTIFACT_PATHS = {
@@ -51,9 +42,8 @@ export type EvalOperatingPoint = {
     /** Certified power: Wilson lower must clear the power bar. */
     power: CertifiedCellReference;
     /**
-     * The operating null whose certified Wilson-upper accept bound is the
-     * attempt's era-budget spend (the chain's actual behavior, futility
-     * included where active).
+     * The operating null whose Wilson-upper accept bound was reported by the
+     * historical calibrated workflow.
      */
     spendNull: CertifiedCellReference;
     /** Additional null/stress cells that must clear the false-accept bar. */
@@ -148,16 +138,6 @@ export const benchmarkEvalPolicy = {
     nullFalseAcceptWilsonUpperMax: 0.05,
     /** The power cell: Wilson-95 lower bound at least this. */
     powerWilsonLowerMin: 0.8,
-  },
-  eraBudget: {
-    /**
-     * Expected-false-accept cap per era. Each attempt spends its row's
-     * certified spend at declare time (no refunds); the budget resets only
-     * on an accepted rebaseline or a suite rollover, never on a protocol
-     * migration or an operator transition. Exhaustion blocks declarations
-     * until a ledgered `--override-era-budget --reason=...` raises the cap.
-     */
-    cap: 0.05,
   },
   /**
    * Exit codes are per mode: automation always knows which contract applies

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { afterAll, describe, expect, test } from "vitest";
 import {
-  assertEvalArchiveDeclaration,
+  assertComparisonRequestLink,
   DECISION_EXIT_CODES,
   nextCommandFor,
   outcomeExitCode,
@@ -401,7 +401,7 @@ describe("decision exit codes", () => {
 });
 
 describe("under-powered hint", () => {
-  test("fires on a positive unresolved delta with the documented depth estimate", () => {
+  test("fires on a positive unresolved delta with an ordinary larger-N estimate", () => {
     const result = decision({ outcome: "unresolved", delta: 2, threshold: 0 });
     result.uncertainty.seed.standardError = 2;
     const hint = underPoweredHint(result, 12);
@@ -409,9 +409,8 @@ describe("under-powered hint", () => {
     const requiredSe = 2 / (studentTQuantile(0.99, Infinity) + 0.8416212335729143);
     const expectedDepth = Math.ceil(12 * (2 / requiredSe) ** 2);
     expect(hint).toContain(`under-powered at 12 seeds/budget`);
-    expect(hint).toContain(`~${expectedDepth} seeds/budget`);
-    expect(hint).toContain("non-runnable diagnostic estimate");
-    expect(hint).toContain("improve-t0-d48 at depth 48");
+    expect(hint).toContain(`around ${expectedDepth} seeds/budget`);
+    expect(hint).toContain("baseline cache covers that prefix");
   });
 
   test("stays silent on resolved outcomes, non-positive distance, and already-sufficient depth", () => {
@@ -435,63 +434,64 @@ describe("under-powered hint", () => {
   });
 });
 
-describe("eval archive declaration linkage", () => {
+describe("comparison request linkage", () => {
   test("validates linkage on the already-parsed archive", () => {
     const schedule = { seedsPerBudget: 48, seedBase: 123 };
     const expected = {
       label: "candidate arm",
       candidateFingerprint: "a".repeat(64),
-      declarationPath: "/tmp/declaration.json",
-      declarationSha256: "b".repeat(64),
+      requestPath: "/tmp/comparison-request.json",
+      requestSha256: "b".repeat(64),
       seedScheduleFingerprint: createHash("sha256").update(JSON.stringify(schedule)).digest("hex"),
       depth: 48,
     };
     const archive = {
       git: { candidateFingerprint: expected.candidateFingerprint },
-      confirmationDeclaration: { path: expected.declarationPath, sha256: expected.declarationSha256 },
+      comparisonRequest: { path: expected.requestPath, sha256: expected.requestSha256 },
       identity: { seedSchedule: schedule },
     };
-    expect(() => assertEvalArchiveDeclaration(archive, expected)).not.toThrow();
-    expect(() => assertEvalArchiveDeclaration({
+    expect(() => assertComparisonRequestLink(archive, expected)).not.toThrow();
+    expect(() => assertComparisonRequestLink({
       ...archive,
-      confirmationDeclaration: { ...archive.confirmationDeclaration, sha256: "c".repeat(64) },
-    }, expected)).toThrow(/immutable eval declaration/);
+      comparisonRequest: { ...archive.comparisonRequest, sha256: "c".repeat(64) },
+    }, expected)).toThrow(/immutable comparison request/);
   });
 });
 
 describe("next command", () => {
   test("maps every outcome to a runnable follow-up", () => {
     expect(nextCommandFor(decision({ outcome: "advance", authority: "screening" })))
-      .toBe("npm run benchmark -- eval --to-verdict");
+      .toBe("npm run benchmark -- eval --seeds=100");
     expect(nextCommandFor(decision({
       outcome: "advance",
       authority: "screening",
       mode: "simplification",
       margin: 5,
       threshold: -5,
-    }))).toBe("npm run benchmark -- eval --to-verdict --mode=simplify --margin=5");
-    expect(nextCommandFor(decision({ outcome: "accept" }))).toContain("rebaseline --label=");
+    }))).toBe("npm run benchmark -- eval --seeds=100 --mode=simplify --margin=5");
+    expect(nextCommandFor(decision({ outcome: "accept" })))
+      .toBe("npm run benchmark -- rebaseline --from=COMPARISON --label=accepted-candidate");
     expect(nextCommandFor(decision({ outcome: "unresolved", authority: "screening" })))
-      .toContain("eval --to-verdict");
+      .toContain("eval --seeds=100");
     expect(nextCommandFor(decision({ outcome: "unresolved", authority: "promotion" })))
-      .toContain("--acknowledge-retry");
+      .toContain("choose a larger N if needed");
     expect(nextCommandFor(decision({ outcome: "stop", authority: "screening" }))).toBe("npm run benchmark -- eval");
     expect(nextCommandFor(decision({ outcome: "reject" }))).toBe("npm run benchmark -- eval");
   });
 });
 
 describe("JSON CLI surface", () => {
-  test("help lists the exact certified menu and operational flags", () => {
+  test("help lists the lean cached-comparison workflow", () => {
     const result = spawnSync(process.execPath, [
       "--import", "tsx", "scripts/benchmark/cli.ts", "help",
     ], { cwd: process.cwd(), encoding: "utf8" });
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("improve-t0-d48: improvement, depth 48, looks 2/3/4/8/16");
-    expect(result.stdout).toContain("improve-t0-d300: improvement, depth 300, no interim looks");
-    expect(result.stdout).toContain("simplify-m5-d48: simplification, margin 5, depth 48, no interim looks");
+    expect(result.stdout).toContain("eval --seeds=N");
+    expect(result.stdout).toContain("baseline-cache extend --seeds=N");
+    expect(result.stdout).toContain("rebaseline --from=COMPARISON");
     expect(result.stdout).toContain("--no-resource-stats");
-    expect(result.stdout).toContain("--abort-in-flight --reason=...");
-    expect(result.stdout).toContain("--depth=N");
+    expect(result.stdout).not.toContain("--abort-in-flight");
+    expect(result.stdout).not.toContain("--override-era-budget");
   });
 
   test("writes exactly one structured JSON object to stdout on success", () => {
@@ -529,7 +529,7 @@ describe("JSON CLI surface", () => {
       exitCode: 1,
       status: "invalid",
     });
-    expect(parsed.error.message).toMatch(/one-shot canonical path was retired/);
+    expect(parsed.error.message).toMatch(/canonical is no longer a separate workflow/);
     expect(result.stderr).toContain("Prepared ");
   }, 15_000);
 
@@ -566,7 +566,7 @@ describe("decision rendering", () => {
       runnerCompatibilityApproval: null,
       result: decision({}),
       hint: null,
-      nextCommand: "npm run benchmark -- probe",
+      nextCommand: "npm run benchmark -- eval",
       ...overrides,
     } as DecisionArtifact;
   }
@@ -577,19 +577,19 @@ describe("decision rendering", () => {
       "out/decision.json",
     );
     expect(withHint).toContain("  hint: delta +1.20 is positive but under-powered");
-    expect(withHint.split("\n").at(-1)).toBe("  nextCommand: npm run benchmark -- probe");
+    expect(withHint.split("\n").at(-1)).toBe("  nextCommand: npm run benchmark -- eval");
 
     const withoutHint = renderDecision(artifact({}), "out/decision.json");
     expect(withoutHint).not.toContain("  hint:");
   });
 
-  test("screening output names the executable confirmation path, not a retired canonical command", () => {
+  test("legacy probe output is explicitly diagnostic", () => {
     const rendered = renderDecision(
       artifact({ result: decision({ profile: "probe", authority: "screening" }) }),
       "out/decision.json",
     );
-    expect(rendered).toContain("certified eval --to-verdict confirmation is required");
-    expect(rendered).not.toContain("canonical evidence is required");
+    expect(rendered).toContain("legacy probe-archive diagnostic");
+    expect(rendered).not.toContain("confirmation is required");
   });
 
   test("places the runner-compatibility note above the outcome line", () => {

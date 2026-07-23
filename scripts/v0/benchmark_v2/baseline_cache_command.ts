@@ -1,6 +1,4 @@
 import { availableParallelism } from "node:os";
-import { readBaselineContract, assertCurrentDecisionContract } from "./confirmation.ts";
-import { requireCurrentDecisionCalibration } from "./calibration_guard.ts";
 import {
   baselineCachePlan,
   extendBaselineCache,
@@ -8,11 +6,6 @@ import {
   renderBaselineCachePlan,
   verifyBaselineCache,
 } from "./baseline_cache.ts";
-import { loadSourceManifest, resolveSources } from "./model.ts";
-import { suiteIdentity } from "./suite_model.ts";
-
-const SOURCE_MANIFEST = "benchmark/v2/compat/source-manifest.json";
-const SUITE_MANIFEST = "benchmark/v2/compat/suite-manifest.json";
 
 /** The explicit cache command has two deliberately small verbs.  `status`
  * reads and verifies evidence; `extend` is the only operation allowed to
@@ -51,19 +44,12 @@ export function runBaselineCacheCommand(argv: string[]): number {
       maximumSeeds: view.cache.ladder.maximumSeedsPerBudget,
       ...plan,
       nextCommand: plan.missingBaselineSeeds === 0
-        ? `npm run benchmark -- eval --to-verdict --seeds=${seeds}`
+        ? `npm run benchmark -- eval --seeds=${seeds}`
         : `npm run benchmark -- baseline-cache extend --seeds=${seeds} --jobs=${jobs}`,
     });
     return 0;
   }
 
-  // Extension is a decision-protocol action: never create evidence against a
-  // stale baseline contract.  The runner independently verifies the current
-  // calibration before it pays for any worker.
-  const sources = resolveSources(loadSourceManifest(SOURCE_MANIFEST));
-  const identity = suiteIdentity(SUITE_MANIFEST, SOURCE_MANIFEST, sources);
-  const baseline = readBaselineContract(baselinePath);
-  assertCurrentDecisionContract(baseline, requireCurrentDecisionCalibration(identity.suiteFingerprint));
   const completed = extendBaselineCache({
     seeds,
     jobs,
@@ -74,7 +60,7 @@ export function runBaselineCacheCommand(argv: string[]): number {
     schema: "line.benchmark-v2.baseline-cache-extension.v1",
     status: "complete",
     ...completed,
-    nextCommand: `npm run benchmark -- eval --to-verdict --seeds=${seeds}`,
+    nextCommand: `npm run benchmark -- eval --seeds=${seeds}`,
   });
   return 0;
 }

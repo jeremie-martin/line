@@ -167,11 +167,11 @@ export function buildAlphaCounterfactual(menu: any, powerGrid: any, powerGridSha
     limitations: [
       "No trial was re-judged at criticalAlpha 0.02; the projection assumes a local Gaussian location shift after anchoring each effect to its observed 99% power.",
       "The retained 99% and 95% null/stress cells show empirical sensitivity to the critical, but they do not interpolate or bound the unmeasured 98% false-accept rate.",
-      "Futility behavior and era spend at 98% are unknown until the full chain is rerun on calibration and independent holdout streams.",
+      "Futility behavior and historical false-accept estimates at 98% are unknown until the full chain is rerun on calibration and independent holdout streams.",
       "Changing the promotion critical requires an inference migration and fresh certification; this artifact intentionally changes no policy.",
     ],
     conclusion:
-      "98% appears to buy moderate, not transformative, power. Retain 99% unless a full 98% certification demonstrates an acceptable risk/era-cost frontier.",
+      "98% appears to buy moderate, not transformative, power. Retain 99% unless a full 98% study demonstrates an acceptable risk/power frontier.",
   };
 }
 

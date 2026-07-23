@@ -56,8 +56,10 @@ describe("canonical baseline cache fixed-N plans", () => {
     expect(Math.max(...tasks.map((task) => task.seedSlot))).toBe(82);
   });
 
-  it("accepts fixed-N eval syntax and rejects an ambiguous legacy depth", () => {
+  it("accepts fixed-N eval syntax without a registered operating point", () => {
+    expect(() => assertEvalArguments(["--seeds=2"])).not.toThrow();
+    expect(() => assertEvalArguments(["--seeds=83"])).not.toThrow();
     expect(() => assertEvalArguments(["--to-verdict", "--seeds=83"])).not.toThrow();
-    expect(() => assertEvalArguments(["--to-verdict", "--seeds=83", "--depth=83"])).toThrow(/mutually exclusive/);
+    expect(() => assertEvalArguments(["--to-verdict", "--seeds=83", "--depth=83"])).toThrow(/does not accept/);
   });
 });

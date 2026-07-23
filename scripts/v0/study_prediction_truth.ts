@@ -40,6 +40,11 @@
  * |next.speed − truth.next.speed|)? This asks whether the two architectures even
  * disagree where it would change the search decision.
  *
+ * The report additionally stratifies measured-latent next-vy residuals by
+ * launch-read window and cross-validates constant/timing/pose/kinematic
+ * corrections across seeds. These are counterfactual diagnostics only; they
+ * do not alter the production estimator.
+ *
  * Run (LR_ENGINE=wasm npx tsx scripts/v0/study_prediction_truth.ts):
  *   [--specs=a,b,...] [--seeds=0,1] [--budget=120000]
  *   [--designs=cross5,pitch3] [--max-gaps=0]
@@ -52,10 +57,12 @@ import {
   arcKnobKey,
   arcProbeDesign,
   fitJointArcResponseModel,
+  fitLinearLeastSquares,
   isArcAngleOutput,
   normalizeAngleDeg,
   parseArcProbeDesignName,
   predictJointArcOutputs,
+  predictLinearModel,
   reduceLatentJointArcOutputs,
   type ArcKnobs,
   type ArcProbeDesignName,
@@ -64,6 +71,7 @@ import {
 } from "./optimizer/arc_model.ts";
 import { evaluateJointArcKnobs } from "./optimizer/arc_probe.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
+import { LAUNCH_VY_OFFSET_PX } from "./core/launch_read.ts";
 
 const argv = process.argv.slice(2);
 const argValue = (name: string): string | undefined =>
@@ -164,6 +172,19 @@ function targetsFromGapReport(gapReport: { axes?: Record<string, { target?: numb
 // ---- accumulators -----------------------------------------------------------
 // keyed by `${design}\0${outputKey}`
 const stats = new Map<string, Stat>();
+const nextVySignedErrors: number[] = [];
+type VyCalibrationRow = {
+  spec: string;
+  seed: number;
+  error: number;
+  dt: number;
+  launchReadFrames: number;
+  vx: number;
+  vy: number;
+  sledPoseDeg: number;
+  sledPoseRateDegPerFrame: number;
+};
+const vyCalibrationRows: VyCalibrationRow[] = [];
 function statFor(design: string, key: string): Stat {
   const k = `${design}\0${key}`;
   let s = stats.get(k);
@@ -320,6 +341,35 @@ for (const specName of specNames) {
             ? {}
             : reduceLatentJointArcOutputs(probe.latentOutputs, context);
           const directShortRead = directShortOutputs(probe, context);
+          const truthVy = truth["next.vy"];
+          const predictedVy = latentShortRead["next.vy"];
+          const suffixFrame = probe.latentOutputs?.["latent.suffix.frame"];
+          const suffixVx = probe.latentOutputs?.["latent.suffix.vx"];
+          const suffixVy = probe.latentOutputs?.["latent.suffix.vy"];
+          const suffixPose = probe.latentOutputs?.["latent.suffix.sledPoseDeg"];
+          const suffixPoseRate = probe.latentOutputs?.["latent.suffix.sledPoseRateDegPerFrame"];
+          if (
+            Number.isFinite(truthVy) &&
+            Number.isFinite(predictedVy) &&
+            Number.isFinite(suffixFrame) &&
+            Number.isFinite(suffixVx) &&
+            Number.isFinite(suffixVy) &&
+            Number.isFinite(suffixPose) &&
+            Number.isFinite(suffixPoseRate) &&
+            Number.isFinite(probe.launchReadFrames)
+          ) {
+            vyCalibrationRows.push({
+              spec: specName,
+              seed,
+              error: predictedVy - truthVy,
+              dt: nextFrame - suffixFrame,
+              launchReadFrames: probe.launchReadFrames,
+              vx: suffixVx,
+              vy: suffixVy,
+              sledPoseDeg: suffixPose,
+              sledPoseRateDegPerFrame: suffixPoseRate,
+            });
+          }
 
           const allKeys = new Set<string>([
             ...NEXT_KEYS, ...EXIT_KEYS, ...currentKeys(),
@@ -353,6 +403,9 @@ for (const specName of specNames) {
             if (dt !== null) s.directVsTruth.push(dt);
             if (ld !== null) s.latentVsDirect.push(ld);
             if (st !== null) s.shortReadVsTruth.push(st);
+            if (key === "next.vy" && Number.isFinite(latentShortRead[key])) {
+              nextVySignedErrors.push(latentShortRead[key] - t);
+            }
 
             if ((PRIORITY_KEYS as readonly string[]).includes(key)) {
               const ss = specStatFor(designName, specName, key);
@@ -449,6 +502,32 @@ console.log(`skipped: pairing=${skippedPairing} no_targets=${skippedNoTargets} n
 
 for (const design of designNames) printTable(design);
 
+if (nextVySignedErrors.length > 0) {
+  const sorted = [...nextVySignedErrors].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  console.log(
+    `\nmeasured-latent next.vy signed error: mean=${fmt(mean(nextVySignedErrors))}` +
+      ` median=${fmt(median)} n=${nextVySignedErrors.length}`,
+  );
+  console.log("launch vy offset counterfactual       bias      MAE");
+  for (const offset of [
+    LAUNCH_VY_OFFSET_PX - 0.01,
+    LAUNCH_VY_OFFSET_PX - 0.005,
+    LAUNCH_VY_OFFSET_PX,
+    LAUNCH_VY_OFFSET_PX + 0.005,
+    0.043,
+    LAUNCH_VY_OFFSET_PX + 0.015,
+  ]) {
+    const delta = offset - LAUNCH_VY_OFFSET_PX;
+    const shifted = nextVySignedErrors.map((error) => error + delta);
+    console.log(
+      `${offset.toFixed(4).padStart(10)} px/f ${fmt(mean(shifted)).padStart(9)}` +
+        ` ${fmt(mean(shifted.map(Math.abs))).padStart(8)}`,
+    );
+  }
+}
+printVyFeatureCalibration(vyCalibrationRows);
+
 // per-spec breakdown for priority keys
 console.log(`\n================ per-spec breakdown (priority keys) ================`);
 console.log("design  spec                 output                    n  |lat-truth| |dir-truth| |lat-dir| |short-truth|");
@@ -482,3 +561,88 @@ for (const design of designNames) {
   );
 }
 console.log();
+
+function printVyFeatureCalibration(rows: readonly VyCalibrationRow[]): void {
+  if (rows.length === 0 || new Set(rows.map((row) => row.seed)).size < 2) return;
+  console.log("\nnext.vy measured-latent error by launch-read window");
+  console.log("read-frames seed      n     bias      MAE");
+  for (const readFrames of [...new Set(rows.map((row) => row.launchReadFrames))].sort((a, b) => a - b)) {
+    for (const seed of ["all", ...new Set(rows.map((row) => row.seed))] as const) {
+      const errors = rows
+        .filter((row) => row.launchReadFrames === readFrames && (seed === "all" || row.seed === seed))
+        .map((row) => row.error);
+      console.log(
+        `${String(readFrames).padStart(11)} ${String(seed).padStart(4)} ${String(errors.length).padStart(6)}` +
+          ` ${fmt(mean(errors)).padStart(8)} ${fmt(mean(errors.map(Math.abs))).padStart(8)}`,
+      );
+    }
+  }
+  console.log("\nnext.vy one-frame offset counterfactual");
+  console.log("one-frame-offset seed      n     bias      MAE");
+  for (const oneFrameOffset of [LAUNCH_VY_OFFSET_PX, 0.0265, 0]) {
+    for (const seed of ["all", ...new Set(rows.map((row) => row.seed))] as const) {
+      const selected = rows.filter((row) => seed === "all" || row.seed === seed);
+      const errors = selected.map((row) =>
+        row.error + (row.launchReadFrames === 1 ? oneFrameOffset - LAUNCH_VY_OFFSET_PX : 0)
+      );
+      console.log(
+        `${oneFrameOffset.toFixed(4).padStart(16)} ${String(seed).padStart(4)}` +
+          ` ${String(errors.length).padStart(6)} ${fmt(mean(errors)).padStart(8)}` +
+          ` ${fmt(mean(errors.map(Math.abs))).padStart(8)}`,
+      );
+    }
+  }
+  const featureSets = {
+    constant: (_row: VyCalibrationRow) => [1],
+    read_window: (row: VyCalibrationRow) => [
+      1,
+      row.launchReadFrames === 2 ? 1 : 0,
+      row.launchReadFrames === 3 ? 1 : 0,
+      row.launchReadFrames === 4 ? 1 : 0,
+    ],
+    timing: (row: VyCalibrationRow) => [1, row.dt / 20],
+    pose: (row: VyCalibrationRow) => {
+      const pose = row.sledPoseDeg * Math.PI / 180;
+      return [
+        1,
+        row.sledPoseRateDegPerFrame / 5,
+        Math.sin(pose),
+        Math.cos(pose),
+      ];
+    },
+    kinematics: (row: VyCalibrationRow) => {
+      const pose = row.sledPoseDeg * Math.PI / 180;
+      return [
+        1,
+        row.dt / 20,
+        row.vx / 10,
+        row.vy / 5,
+        row.sledPoseRateDegPerFrame / 5,
+        Math.sin(pose),
+        Math.cos(pose),
+      ];
+    },
+  };
+  console.log("\nnext.vy feature-correction cross-validation (fit correction on other seeds)");
+  console.log("model          test-seed      n  base-MAE corrected-MAE  delta");
+  for (const testSeed of [...new Set(rows.map((row) => row.seed))].sort((a, b) => a - b)) {
+    const train = rows.filter((row) => row.seed !== testSeed);
+    const test = rows.filter((row) => row.seed === testSeed);
+    for (const [name, features] of Object.entries(featureSets)) {
+      const model = fitLinearLeastSquares(
+        train.map((row) => ({ features: features(row), value: -row.error })),
+        1e-6,
+      );
+      if (model === null) continue;
+      const baseMae = mean(test.map((row) => Math.abs(row.error)));
+      const correctedMae = mean(test.map((row) =>
+        Math.abs(row.error + predictLinearModel(model, features(row)))
+      ));
+      console.log(
+        `${name.padEnd(14)} ${String(testSeed).padStart(9)} ${String(test.length).padStart(6)}` +
+          ` ${fmt(baseMae).padStart(9)} ${fmt(correctedMae).padStart(13)}` +
+          ` ${fmt(correctedMae - baseMae).padStart(7)}`,
+      );
+    }
+  }
+}

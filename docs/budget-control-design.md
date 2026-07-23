@@ -182,8 +182,8 @@ at each gate:
    and where it only burns budget.
 5. **Smooth policy.** The proposed controller is continuous or probabilistically
    smooth, not a narrow budget-grid threshold.
-6. **Paired evaluation.** Any production policy change goes through stage 0
-   followed by the certified eval confirmation path against the current baseline.
+6. **Paired evaluation.** Any production policy change goes through a canonical
+   `eval --seeds=N` comparison against the matching cached baseline prefix.
 
 Failure at any gate means the policy should stay a study result, not become
 default compiler behavior.

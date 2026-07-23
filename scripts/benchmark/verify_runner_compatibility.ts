@@ -22,7 +22,6 @@ import { benchmarkV2Paths, prepareBenchmarkV2 } from "./prepare.ts";
 import { runSnapshotBenchmark } from "../v0/benchmark_v2/compiler_snapshot.ts";
 import { compareArchiveRows } from "../v0/benchmark_v2/runner_compatibility.ts";
 import { validateDecisionIndexAgainstArchive } from "../v0/benchmark_v2/runner.ts";
-import { withAttemptLedgerTransaction } from "../v0/benchmark_v2/attempts.ts";
 
 const REPO = resolve(dirname(new URL(import.meta.url).pathname), "..", "..");
 
@@ -42,20 +41,14 @@ if (approve && (reviewedBy === undefined || rationale === undefined)) {
 
 await prepareBenchmarkV2();
 
-const { probeBaseline, baseline } = withAttemptLedgerTransaction(undefined, () => {
-  for (const pending of [
-    "benchmark/v2/migration-pending.json",
-    "benchmark/v2/baseline-publication-pending.json",
-  ]) {
-    if (existsSync(resolve(REPO, pending))) {
-      throw new Error(`baseline publication state is incomplete (${pending}); recover it before compatibility replay`);
-    }
+for (const pending of ["benchmark/v2/baseline-publication-pending.json"]) {
+  if (existsSync(resolve(REPO, pending))) {
+    throw new Error(`baseline publication state is incomplete (${pending}); recover it before compatibility replay`);
   }
-  const probe = JSON.parse(readFileSync(resolve(REPO, "benchmark/v2/probe-baseline.json"), "utf8"));
-  const canonical = JSON.parse(readFileSync(resolve(REPO, "benchmark/v2/baseline.json"), "utf8"));
-  if (probe.label !== canonical.label) throw new Error(`probe and canonical baseline labels differ`);
-  return { probeBaseline: probe, baseline: canonical };
-});
+}
+const probeBaseline = JSON.parse(readFileSync(resolve(REPO, "benchmark/v2/probe-baseline.json"), "utf8"));
+const baseline = JSON.parse(readFileSync(resolve(REPO, "benchmark/v2/baseline.json"), "utf8"));
+if (probeBaseline.label !== baseline.label) throw new Error(`probe and canonical baseline labels differ`);
 const retainedPath = resolve(REPO, probeBaseline.probe.compressed_archive);
 const retainedBytes = readFileSync(retainedPath);
 if (createHash("sha256").update(retainedBytes).digest("hex") !== probeBaseline.probe.compressed_archive_sha256) {

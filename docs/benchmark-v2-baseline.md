@@ -2,9 +2,13 @@
 
 Label: `accept-2026-07-22T18-26-42Z-8565eddc`. Suite: `d01c8a064a201b08`.
 
-Probe headline: **506.24**. Canonical headline: **513.77**. Qualification monitor: **391.39** (indicative only).
+Historical probe headline: **506.24**. Canonical headline: **513.77**.
+Qualification monitor: **391.39** (indicative only).
 
-Probe and confirmation actual seeds are disjoint at every shared budget. Probe evidence screens candidates; only a declared `eval --to-verdict` confirmation can promote one.
+The historical probe reference is retained for artifact compatibility only.
+Current comparisons use the canonical seed ladder directly at any requested N,
+compile only the candidate, and compare it with the identical cached baseline
+prefix. Promotion consumes an explicit favorable comparison artifact.
 
 Canonical cache: stable ladder through **300** slots/budget; accepted development evidence covers slots [0, 300).
 

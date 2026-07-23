@@ -71,7 +71,7 @@ export function requireCurrentDecisionCalibration(
 
 export type CertifiedOperatingPoint = {
   point: EvalOperatingPoint;
-  /** Era-budget spend: the row's certified Wilson-upper null-accept bound. */
+  /** Historical Wilson-upper null-accept estimate for the calibrated row. */
   spend: number;
   /** The true effect (headline points) at which the row's power is certified. */
   mde80: number;

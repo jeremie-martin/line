@@ -161,24 +161,24 @@ describe("validateSubsetFlags", () => {
     })).not.toThrow();
   });
 
-  test("the probe profile may not use the wave flags", () => {
+  test("the probe profile may not use canonical subset flags", () => {
     expect(() => validateSubsetFlags({
       profileName: "probe",
       hasDeclaration: true,
       seedsPerBudget: 6,
       throughSeedSlot: 2,
       effectiveDepth: 6,
-    })).toThrow(/reserved for a predeclared canonical confirmation/);
+    })).toThrow(/require a canonical comparison request or baseline-cache shard/);
   });
 
-  test("a missing confirmation declaration is refused", () => {
+  test("a missing comparison request is refused", () => {
     expect(() => validateSubsetFlags({
       profileName: "canonical",
       hasDeclaration: false,
       seedsPerBudget: undefined,
       throughSeedSlot: 2,
       effectiveDepth: 6,
-    })).toThrow(/reserved for a predeclared canonical confirmation/);
+    })).toThrow(/require a canonical comparison request or baseline-cache shard/);
   });
 
   test("a through-slot deeper than the effective depth is refused", () => {

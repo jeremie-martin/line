@@ -41,7 +41,7 @@ describe("Benchmark V2 decision command", () => {
     expect(readFileSync(`${out}.sha256`, "utf8")).toContain(sha256(bytes));
   });
 
-  test("refuses failures, identity gaps, runner drift, and evidence tampering", async () => {
+  test("refuses failures, identity gaps, and evidence tampering while reporting runner drift", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const dir = mkdtempSync(join(tmpdir(), "v2-decide-"));
     const base = materialize(dir, "base");
@@ -104,8 +104,12 @@ describe("Benchmark V2 decision command", () => {
         transform: archive.identity.transform,
       }).executionPolicyFingerprint;
     });
-    await expect(runDecisionCommand([runnerChanged, `--base=${base}`, "--no-gate-exit"]))
-      .rejects.toThrow(/without an approved compatibility record/);
+    await expect(runDecisionCommand([
+      runnerChanged,
+      `--base=${base}`,
+      `--out=${join(dir, "runner-changed-decision.json")}`,
+      "--no-gate-exit",
+    ])).resolves.toBe(0);
 
     writeFileSync(base, `${readFileSync(base, "utf8")} `);
     await expect(runDecisionCommand([engineChanged, `--base=${base}`, "--no-gate-exit"]))
@@ -137,11 +141,15 @@ describe("Benchmark V2 decision command", () => {
       .rejects.toThrow(/descriptive only/);
   });
 
-  test("retains historical runner evidence only for probe calibration controls", async () => {
+  test("allows historical runner provenance in ordinary comparisons and calibration replay", async () => {
     const calibrationProbe = "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz";
 
-    await expect(runDecisionCommand([calibrationProbe, "--no-gate-exit"]))
-      .rejects.toThrow(/runner implementation fingerprints differ|execution policies/);
+    const dir = mkdtempSync(join(tmpdir(), "v2-decide-history-"));
+    await expect(runDecisionCommand([
+      calibrationProbe,
+      `--out=${join(dir, "historical-decision.json")}`,
+      "--no-gate-exit",
+    ])).resolves.toBe(0);
     const validated = await loadValidatedDecisionPairForCalibration(calibrationProbe, calibrationProbe);
     expect(validated.baseRuns).toHaveLength(264);
     expect(validated.candidateRuns).toEqual(validated.baseRuns);

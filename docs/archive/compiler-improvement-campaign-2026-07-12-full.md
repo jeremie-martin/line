@@ -1,4 +1,7 @@
-# Compiler Improvement Campaign, 2026-07-12
+# Archived Compiler Improvement Campaign, 2026-07-12
+
+> Historical record. Its governed era workflow is retired; current work is
+> recorded in `docs/compiler-improvement-campaign.md`.
 
 ## Purpose
 

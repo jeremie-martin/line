@@ -14,7 +14,6 @@ historical record, not live guidance.
 | [`benchmark-v2-context.md`](benchmark-v2-context.md) | LIVE | Product distribution, scoring, holdout, compute, and governance contract. |
 | [`benchmark-v2-decisions.md`](benchmark-v2-decisions.md) | LIVE | Statistical estimand, confidence method, policies, artifacts, and exit codes. |
 | [`benchmark-v2.md`](benchmark-v2.md) | LIVE | Benchmark V2 commands and operations. |
-| [`benchmark-v2-closure-register.md`](benchmark-v2-closure-register.md) | VALIDATION | Current adversarial audit, dispositions, and retained proof. |
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
 | [`REBASELINE.md`](REBASELINE.md) | LIVE | Accepted-attempt rebaseline and initial/suite-rollover bootstrap semantics. |
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
@@ -46,7 +45,6 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`benchmark-v2-seed-allocation.md`](benchmark-v2-seed-allocation.md) | REFERENCE | Empirical V2 seed-count allocation study. |
 | [`benchmark-v2-decision-calibration.md`](benchmark-v2-decision-calibration.md) | REFERENCE | Empirical and simulated V2 decision-rule calibration. |
 | [`benchmark-v2-decision-coverage.md`](benchmark-v2-decision-coverage.md) | REFERENCE | Real-block, validity-flip, and hard-zero coverage stress for the formal gate. |
-| [`benchmark-v2-operating-points.md`](benchmark-v2-operating-points.md) | REFERENCE | Plain-language interpretation of legacy and fixed-N promotion points. |
 | [`benchmark-v2-responsiveness.md`](benchmark-v2-responsiveness.md) | REFERENCE | Graded and contract-level negative controls for the V2 score and gate. |
 | [`benchmark-v2-resources.md`](benchmark-v2-resources.md) | REFERENCE | Measured 48-worker CPU, memory, and wall-time envelope. |
 | [`metric_problem_statement.md`](metric_problem_statement.md) | ARCHIVE | Statistical rationale for the retired V1 metric and decision rule. |
@@ -85,3 +83,6 @@ budget-aware / weighted-average metric (HEADLINE) and baseline.
 procedure. Its commands are historical records, not live operational guidance.
 `archive/benchmark-v2/` preserves the completed eval-chain RFC and validation
 campaigns; they are evidence history, not current operating instructions.
+This includes the retired
+[`closure register`](archive/benchmark-v2/closure-register-era-workflow.md) and
+[`era operating points`](archive/benchmark-v2/operating-points-era-workflow.md).

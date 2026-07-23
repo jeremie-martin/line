@@ -1,35 +1,43 @@
 # Active Compiler Improvement Goal
 
-Improve the compiler until the accepted Benchmark V2 development headline reaches 550. Work autonomously, but follow the V2 contract exactly:
-first read `docs/HOW_TO_WORK.md`, `docs/benchmark-v2-context.md`, `docs/benchmark-v2.md`, `docs/benchmark-v2-decisions.md`, and
-`docs/compiler-improvement-campaign.md`; run `npm run benchmark -- prepare` and `npm run benchmark -- status` before formal work.
+Improve the accepted Benchmark V2 development headline toward 550 through
+broad, source-default compiler changes.
 
-Pursue broad, source-default compiler improvements, especially changes to the normal candidate space, trajectory/transition basis, or
-traversal policy. Do not optimize case by case, tune held-out production references, or add failure-specific rescue paths. Each active change
-must be a falsifiable mechanism-level hypothesis using continuous physical/authored inputs, with a stated normal compiler boundary, expected
-cross-regime effect, bounded V2-jolt/500k scope panel (dense, dense-240, pickup, low-air, representative, development music), and explicit
-discard condition. Predictors may propose candidates, but only the existing exact engine evaluator, contact/validity gates, and ordinary
-ranker may choose them.
+Read `docs/HOW_TO_WORK.md`, `docs/benchmark-v2-context.md`,
+`docs/benchmark-v2.md`, `docs/benchmark-v2-decisions.md`, and
+`docs/compiler-improvement-campaign.md` before substantial work. Use
+`npm run benchmark -- prepare` after benchmark-definition changes and
+`npm run benchmark -- status --seeds=N` to inspect exact cache/compute needs.
 
-Use the cheapest decisive evidence first. Run a small governed family only when several credible source implementations or constants genuinely
-need comparison; family evidence is descriptive and selection-biased. A coherent scope result may proceed to `npm run benchmark -- eval`;
-inspect headline, per-budget behavior, strata, validity gains/losses, and material case regressions. Stage 0 never promotes. Run `npm run
-benchmark -- eval --to-verdict` only for a mature source-default candidate with broad composition; do not spend a certified attempt on a
-capability-only rescue or an unresolved trade-off. After an accept, execute the artifact’s exact `nextCommand` to rebaseline. Qualification is
-held-out post-decision monitoring, never a tuning input.
+Each candidate should express a falsifiable mechanism-level hypothesis using
+continuous physical or authored inputs. Do not key behavior to case identity,
+production monitor results, or one known failure. Keep normal candidates in
+the pool and let the exact engine evaluator and ordinary ranker choose them.
 
-For promotion, use the fixed-N cache protocol. A separately calibrated
-`--seeds=N` operating point binds a stable canonical seed ladder and immutable
-baseline-cache shards before the candidate runs; it compiles only the candidate
-at N and judges one ordinary paired final decision. Build or extend the frozen
-baseline tail explicitly with `baseline-cache extend --seeds=N`; never hide
-that work inside eval. Power curves are diagnostic, while null/stress safety,
-determinism, exact fixed-N calibration, and the final headline decision remain
-hard gates. Reuse of the baseline prefix is intentional; never pool candidate
-evidence across attempts or adaptively stop once the result looks sufficient.
+Use compute in proportion to uncertainty:
 
-Keep `docs/compiler-improvement-campaign.md` concise: hypothesis, commands and elapsed compute, decisive evidence, retain/revise/retire
-decision, workflow friction, and next step. Commit coherent source changes, reversions, and documentation separately. Never commit raw,
-generated run archives or bulk generated study reports. Commit only the compact baseline, ledger, and compatibility declarations required as
-live state; a promotion certification must have a compact, reviewable declaration rather than a full generated report payload. Continue until
-the accepted baseline reaches 550.
+1. focused tests and a small cross-regime scope panel;
+2. `npm run benchmark -- eval` for the smallest canonical cached comparison;
+3. `npm run benchmark -- eval --seeds=N` for any useful heavier comparison.
+
+All comparisons reuse the immutable baseline-cache prefix and compile only
+the candidate. The operator or agent chooses `N`; no registry, declaration
+slot, or attempt budget is required. If cache coverage is missing, extend only
+the missing baseline tail explicitly with
+`baseline-cache extend --seeds=N`. Never recompute an already cached baseline.
+
+Judge evidence by headline delta and uncertainty, budget and stratum movement,
+validity gains/losses, material case regressions, and mechanism plausibility.
+Repeated runs are allowed when useful, but do not pretend adaptively selected
+results are one pooled independent experiment.
+
+Promote a favorable, source-default candidate explicitly with
+`npm run benchmark -- rebaseline --from=COMPARISON --label=LABEL`. Rebaseline
+verifies the exact candidate snapshot, refreshes the quick reference, runs the
+qualification monitor, and publishes the new baseline. Qualification remains
+monitoring evidence, never a tuning target.
+
+Keep `docs/compiler-improvement-campaign.md` concise: hypothesis, commands and
+elapsed compute, decisive evidence, retain/revise/retire decision, workflow
+friction, and next step. Do not commit raw generated run archives or bulk study
+reports.

@@ -28,7 +28,9 @@ export const BASELINE_CACHE_SHARD_SCHEMA = "line.benchmark-v2.canonical-baseline
 export const BASELINE_CACHE_LADDER_SCHEMA = "line.benchmark-v2.canonical-seed-ladder.v1" as const;
 export const BASELINE_REFERENCE_CACHE_SCHEMA = "line.benchmark-v2.baseline-reference.v10" as const;
 export const MAX_FIXED_N = 300;
-export const MIN_FIXED_N = 8;
+/** Two blocks are the smallest useful paired comparison: the uncertainty
+ * estimator needs at least one leave-one-out degree of freedom. */
+export const MIN_FIXED_N = 2;
 
 const SOURCE_MANIFEST = "benchmark/v2/compat/source-manifest.json";
 const HELDOUT_MANIFEST = "benchmark/v2/compat/heldout-manifest.json";
@@ -516,7 +518,7 @@ function loadShardArchive(shard: BaselineCacheShard): LoadedCacheShard {
 
 /**
  * Historical anchors were originally retained only as gzip archives.  Small
- * ones still rescore directly; deep current-era anchors use their checksum-
+ * ones still rescore directly; deep anchors use their checksum-
  * bound retained decision index so status and decisions never create a V8-
  * sized JSON string.
  */

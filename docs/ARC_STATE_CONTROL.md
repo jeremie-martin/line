@@ -642,7 +642,7 @@ Studies (read-only): `scripts/v0/study_arc_sensitivity.ts`,
 `study_knob_additivity.ts`, `study_impact_funnel.ts`,
 `study_catchability.ts`, `study_joint_enum.ts`,
 `study_joint_arc_model.ts`; artifacts under `generated/analysis/`.
-Decision workflow: use `npm run benchmark -- eval` for stage-0 screening and
-`npm run benchmark -- eval --to-verdict` for certified confirmation. After
+Decision workflow: use `npm run benchmark -- eval --seeds=N` for a canonical,
+candidate-only comparison against the matching cached baseline prefix. After
 any behavior or stats-key change: `LR_ENGINE=wasm npm run verify:optimizer
 -- --update` + full test suite.

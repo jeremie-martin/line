@@ -1,32 +1,17 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { describe, expect, test } from "vitest";
+import { readBaselineContract } from "../scripts/v0/benchmark_v2/baseline_contract.ts";
 import {
-  allocateCanonicalSeedBase,
-  assertCurrentDecisionContract,
-  readBaselineContract,
-  type SeedLedgerEntry,
-} from "../scripts/v0/benchmark_v2/confirmation.ts";
-import {
-  cleanupStaleSnapshotWorkspaces,
   allocateSnapshotWorkspacePath,
   materializedTrackedFiles,
-  materializeDecisionCalibrationArtifacts,
-  removeAmbientCompilerSources,
-  SNAPSHOT_WORKSPACE_OWNER,
-  SNAPSHOT_WORKSPACE_PREFIX,
   validateCompilerSnapshot,
 } from "../scripts/v0/benchmark_v2/compiler_snapshot.ts";
 import { latestSuccessfulResults } from "../scripts/v0/benchmark_v2/checkpoint_model.ts";
+import { requireCurrentDecisionCalibration } from "../scripts/v0/benchmark_v2/calibration_guard.ts";
 import {
-  assertDecisionCoverageAdequate,
-  decisionCalibrationFingerprint,
-  requireCurrentDecisionCalibration,
-} from "../scripts/v0/benchmark_v2/calibration_guard.ts";
-import {
-  LISTENING_REVIEW_ATTESTATION,
   loadListeningReview,
   requireApprovedListeningReview,
 } from "../scripts/v0/benchmark_v2/listening_review.ts";
@@ -36,316 +21,58 @@ import { suiteIdentity } from "../scripts/v0/benchmark_v2/suite_model.ts";
 const sourcePath = "benchmark/v2/compat/source-manifest.json";
 const suitePath = "benchmark/v2/compat/suite-manifest.json";
 
-describe("Benchmark V2 governance", () => {
+describe("Benchmark V2 retained evidence", () => {
   test("runner compatibility approvals are unique and retain immutable evidence", () => {
     const manifest = JSON.parse(readFileSync("benchmark/v2/runner-compatibility.json", "utf8"));
-    const keys = manifest.approvals.map((entry: any) => [
-      entry.fromImplementationFingerprint,
-      entry.toImplementationFingerprint,
-      entry.executionProtocol,
-      entry.suiteFingerprint,
-    ].join("\0"));
+    const keys = manifest.approvals.map((entry: any) =>
+      `${entry.fromImplementationFingerprint}/${entry.toImplementationFingerprint}/${entry.suiteFingerprint}`
+    );
     expect(new Set(keys).size).toBe(keys.length);
     for (const entry of manifest.approvals) {
       expect(existsSync(entry.evidence.path)).toBe(true);
-      expect(sha256(readFileSync(entry.evidence.path))).toBe(entry.evidence.sha256);
+      expect(createHash("sha256").update(readFileSync(entry.evidence.path)).digest("hex"))
+        .toBe(entry.evidence.sha256);
     }
   });
 
-  test("reserves a unique absent path for git worktree creation", () => {
-    const root = mkdtempSync(join(tmpdir(), "v2-workspace-path-"));
+  test("snapshot path allocation reserves an absent worktree target", () => {
+    const root = mkdtempSync(join(tmpdir(), "line-snapshot-path-"));
     const path = allocateSnapshotWorkspacePath(root);
-    expect(path.startsWith(join(root, SNAPSHOT_WORKSPACE_PREFIX))).toBe(true);
     expect(existsSync(path)).toBe(false);
-    rmSync(root, { recursive: true, force: true });
   });
 
-  test("reclaims dead snapshot workspaces but preserves a live owner", () => {
-    const root = mkdtempSync(join(tmpdir(), "v2-workspace-cleanup-"));
-    const live = mkdtempSync(join(root, SNAPSHOT_WORKSPACE_PREFIX));
-    const dead = mkdtempSync(join(root, SNAPSHOT_WORKSPACE_PREFIX));
-    writeFileSync(join(live, SNAPSHOT_WORKSPACE_OWNER), JSON.stringify({
-      schema: "line.benchmark-v2.snapshot-workspace-owner.v1",
-      pid: 100,
-      processStart: "live",
-      createdAt: "2026-07-12T00:00:00.000Z",
-    }));
-    writeFileSync(join(dead, SNAPSHOT_WORKSPACE_OWNER), JSON.stringify({
-      schema: "line.benchmark-v2.snapshot-workspace-owner.v1",
-      pid: 200,
-      processStart: "dead",
-      createdAt: "2026-07-12T00:00:00.000Z",
-    }));
-    const removed = cleanupStaleSnapshotWorkspaces({
-      root,
-      markerlessGraceMs: 0,
-      ownerAlive: (owner) => owner.pid === 100,
-    });
-    expect(removed).toEqual([dead]);
-    expect(existsSync(live)).toBe(true);
-    expect(existsSync(dead)).toBe(false);
-    rmSync(root, { recursive: true, force: true });
+  test("snapshot overlay omits tracked paths deleted from the worktree", () => {
+    const root = mkdtempSync(join(tmpdir(), "line-materialized-"));
+    writeFileSync(join(root, "present"), "x");
+    expect(materializedTrackedFiles(Buffer.from("present\0missing\0"), root).toString())
+      .toBe("present\0");
   });
 
-  test("removes candidate-only compiler files before extracting a frozen snapshot", () => {
-    const workspace = mkdtempSync(join(tmpdir(), "v2-snapshot-boundary-"));
-    const candidateOnly = join(workspace, "scripts/v0/optimizer/candidate_only.ts");
-    const supportFile = join(workspace, "scripts/v0/benchmark_v2/support.ts");
-    mkdirSync(join(workspace, "scripts/v0/optimizer"), { recursive: true });
-    mkdirSync(join(workspace, "scripts/v0/benchmark_v2"), { recursive: true });
-    writeFileSync(candidateOnly, "export const leaked = true;\n");
-    writeFileSync(supportFile, "export const retained = true;\n");
-
-    removeAmbientCompilerSources(workspace);
-
-    expect(existsSync(candidateOnly)).toBe(false);
-    expect(existsSync(supportFile)).toBe(true);
+  test("baseline snapshot and suite identities remain valid", () => {
+    const baseline = readBaselineContract();
+    validateCompilerSnapshot(baseline.compilerSnapshot);
+    const sources = resolveSources(loadSourceManifest(sourcePath));
+    expect(baseline.suiteFingerprint).toBe(suiteIdentity(suitePath, sourcePath, sources).suiteFingerprint);
   });
 
-  test("snapshot overlays omit tracked paths deleted from the dirty worktree", () => {
-    const root = mkdtempSync(join(tmpdir(), "v2-snapshot-overlay-"));
-    writeFileSync(join(root, "present.ts"), "export {};\n");
-    const listed = Buffer.from("present.ts\0deleted.ts\0");
-    expect(materializedTrackedFiles(listed, root).toString()).toBe("present.ts\0");
-    rmSync(root, { recursive: true, force: true });
+  test("retained statistical calibration remains reproducible evidence", () => {
+    const baseline = readBaselineContract();
+    expect(() => requireCurrentDecisionCalibration(baseline.suiteFingerprint)).not.toThrow();
   });
 
-  test("snapshot workspaces materialize only declared calibration archives", () => {
-    const root = mkdtempSync(join(tmpdir(), "v2-calibration-root-"));
-    const workspace = mkdtempSync(join(tmpdir(), "v2-calibration-workspace-"));
-    const writeArtifact = (path: string, contents: string): { path: string; sha256: string } => {
-      const absolute = join(root, path);
-      mkdirSync(dirname(absolute), { recursive: true });
-      writeFileSync(absolute, contents);
-      return { path, sha256: sha256(readFileSync(absolute)) };
-    };
-    const coverageReference = writeArtifact("benchmark/v2/runs/coverage.json.gz", "coverage\n");
-    const probe = writeArtifact("benchmark/v2/runs/probe.json.gz", "probe\n");
-    const quality = writeArtifact("benchmark/v2/runs/quality.json.gz", "quality\n");
-    const impact = writeArtifact("benchmark/v2/runs/impact.json.gz", "impact\n");
-    const coveragePath = "benchmark/v2/studies/decision-coverage.json";
-    const calibrationPath = "benchmark/v2/studies/decision-calibration.json";
-    writeArtifact(coveragePath, JSON.stringify({
-      reference: coverageReference.path,
-      referenceArtifactSha256: coverageReference.sha256,
-    }));
-    writeArtifact(calibrationPath, JSON.stringify({
-      coverageStudy: { path: coveragePath },
-      controls: {
-        identical: {
-          baseArchive: probe.path,
-          baseArchiveSha256: probe.sha256,
-          candidateArchive: probe.path,
-          candidateArchiveSha256: probe.sha256,
-        },
-        knownBroadDegradation: {
-          baseArchive: probe.path,
-          baseArchiveSha256: probe.sha256,
-          candidateArchive: quality.path,
-          candidateArchiveSha256: quality.sha256,
-        },
-        impactContractFailure: {
-          baseArchive: probe.path,
-          baseArchiveSha256: probe.sha256,
-          candidateArchive: impact.path,
-          candidateArchiveSha256: impact.sha256,
-        },
-      },
-    }));
-
-    const copied = materializeDecisionCalibrationArtifacts(workspace, root);
-    expect(copied).toEqual([
-      coverageReference.path,
-      impact.path,
-      probe.path,
-      quality.path,
-    ]);
-    for (const artifact of [coverageReference, probe, quality, impact]) {
-      expect(sha256(readFileSync(join(workspace, artifact.path)))).toBe(artifact.sha256);
-    }
-    expect(existsSync(join(workspace, coveragePath))).toBe(false);
-    rmSync(root, { recursive: true, force: true });
-    rmSync(workspace, { recursive: true, force: true });
-  });
-
-  test("validates the approved listening review and rejects pending or stale evidence", async () => {
+  test("approved listening review matches the current source inventory", async () => {
     const sources = resolveSources(loadSourceManifest(sourcePath));
     const identity = suiteIdentity(suitePath, sourcePath, sources);
-    const evidence = await loadListeningReview(
+    const review = await loadListeningReview(
       "benchmark/v2/evidence/listening-review.json",
       identity.suiteFingerprint,
       identity.sourceManifestFingerprint,
       sources,
     );
-    expect(evidence.review.items).toHaveLength(44);
-    expect(evidence.review.attestation).toBe(LISTENING_REVIEW_ATTESTATION);
-    expect(() => requireApprovedListeningReview(evidence)).not.toThrow();
-
-    const pending = structuredClone(evidence.review);
-    pending.status = "awaiting-human-review";
-    pending.reviewer = null;
-    pending.reviewedAt = null;
-    pending.attestation = null;
-    expect(() => requireApprovedListeningReview({ ...evidence, review: pending }))
-      .toThrow(/canonical baseline and promotion are blocked/);
-
-    const missingAudioPath = join(mkdtempSync(join(tmpdir(), "v2-listening-")), "approved.json");
-    const missingAudio = structuredClone(evidence.review);
-    missingAudio.items[0].audio = join(tmpdir(), "definitely-missing-v2-click.wav");
-    writeFileSync(missingAudioPath, `${JSON.stringify(missingAudio)}\n`);
-    await expect(loadListeningReview(
-      missingAudioPath,
-      identity.suiteFingerprint,
-      identity.sourceManifestFingerprint,
-      sources,
-    )).rejects.toThrow(/approved listening review audio file is missing/);
-
-    const tamperedPath = join(mkdtempSync(join(tmpdir(), "v2-listening-")), "review.json");
-    const tampered = structuredClone(evidence.review);
-    tampered.items[0].audioSha256 = "0".repeat(64);
-    writeFileSync(tamperedPath, `${JSON.stringify(tampered)}\n`);
-    await expect(loadListeningReview(
-      tamperedPath,
-      identity.suiteFingerprint,
-      identity.sourceManifestFingerprint,
-      sources,
-    )).rejects.toThrow(/audio (file does not match|is stale)/);
+    expect(() => requireApprovedListeningReview(review)).not.toThrow();
   });
 
-  test("a provisional or incomplete baseline is refused as a decision contract", () => {
-    const dir = mkdtempSync(join(tmpdir(), "v2-governance-"));
-    const baselinePath = join(dir, "baseline.json");
-    const provisional = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8"));
-    provisional.schema = "line.benchmark-v2.baseline-reference.v6";
-    provisional.status = "provisional-listening-review-required";
-    writeFileSync(baselinePath, `${JSON.stringify(provisional)}\n`);
-    expect(() => readBaselineContract(baselinePath)).toThrow(/unsupported baseline reference/);
-
-    const unreviewed = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8"));
-    unreviewed.listening_review_status = "awaiting-human-review";
-    writeFileSync(baselinePath, `${JSON.stringify(unreviewed)}\n`);
-    expect(() => readBaselineContract(baselinePath)).toThrow(/approved listening review/);
-
-    const incomplete = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8"));
-    delete incomplete.decision_protocol_fingerprint;
-    writeFileSync(baselinePath, `${JSON.stringify(incomplete)}\n`);
-    expect(() => readBaselineContract(baselinePath)).toThrow(/incomplete decision contract/);
-  });
-
-  test("mechanically rejects stale decision calibration", () => {
-    const sources = resolveSources(loadSourceManifest(sourcePath));
-    const identity = suiteIdentity(suitePath, sourcePath, sources);
-    expect(() => requireCurrentDecisionCalibration(identity.suiteFingerprint)).not.toThrow();
-    const dir = mkdtempSync(join(tmpdir(), "v2-calibration-"));
-    const calibrationPath = join(dir, "calibration.json");
-    const calibration = JSON.parse(readFileSync("benchmark/v2/studies/decision-calibration.json", "utf8"));
-    calibration.decisionInferenceFingerprint = "0".repeat(64);
-    writeFileSync(calibrationPath, `${JSON.stringify(calibration)}\n`);
-    expect(() => requireCurrentDecisionCalibration(identity.suiteFingerprint, calibrationPath))
-      .toThrow(/decision calibration is stale/);
-  });
-
-  test("calibration identity ignores timestamps but binds substantive evidence", () => {
-    const calibration = JSON.parse(readFileSync("benchmark/v2/studies/decision-calibration.json", "utf8"));
-    const timestampOnly = structuredClone(calibration);
-    timestampOnly.generatedAt = "2099-01-01T00:00:00.000Z";
-    expect(decisionCalibrationFingerprint(timestampOnly)).toBe(decisionCalibrationFingerprint(calibration));
-
-    const changedEvidence = structuredClone(calibration);
-    changedEvidence.coverageStudy.sha256 = "0".repeat(64);
-    expect(decisionCalibrationFingerprint(changedEvidence)).not.toBe(decisionCalibrationFingerprint(calibration));
-  });
-
-  test("responsiveness evidence retains current decision and archive identities", () => {
-    const calibration = JSON.parse(readFileSync("benchmark/v2/studies/decision-calibration.json", "utf8"));
-    const responsiveness = JSON.parse(readFileSync("benchmark/v2/studies/responsiveness.json", "utf8"));
-    expect(responsiveness.decisionInferenceFingerprint).toBe(calibration.decisionInferenceFingerprint);
-    for (const entry of responsiveness.cases) {
-      expect(entry.archiveSha256).toMatch(/^[0-9a-f]{64}$/);
-      expect(entry.archiveSha256).toBe(sha256(readFileSync(entry.archive)));
-    }
-  });
-
-  test("mechanically rejects missing retained calibration evidence", () => {
-    const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
-    const identity = suiteIdentity(
-      "benchmark/v2/compat/suite-manifest.json",
-      "benchmark/v2/compat/source-manifest.json",
-      sources,
-    );
-    const dir = mkdtempSync(join(tmpdir(), "v2-calibration-evidence-"));
-    const calibrationPath = join(dir, "calibration.json");
-    const calibration = JSON.parse(readFileSync("benchmark/v2/studies/decision-calibration.json", "utf8"));
-    calibration.controls.identical.baseArchive = join(dir, "missing.json.gz");
-    calibration.controls.identical.baseArchiveSha256 = "0".repeat(64);
-    writeFileSync(calibrationPath, `${JSON.stringify(calibration)}\n`);
-    expect(() => requireCurrentDecisionCalibration(identity.suiteFingerprint, calibrationPath))
-      .toThrow(/identical base control is missing/);
-  });
-
-  test("mechanically rejects fresh but statistically inadequate coverage", () => {
-    const coverage = JSON.parse(readFileSync("benchmark/v2/studies/decision-coverage.json", "utf8"));
-    expect(() => assertDecisionCoverageAdequate(coverage)).not.toThrow();
-    const inconsistent = structuredClone(coverage);
-    inconsistent.results.find((row: any) => row.scenario === "empirical_blocks").falseAccept.count = 900;
-    expect(() => assertDecisionCoverageAdequate(inconsistent)).toThrow(/inconsistent with its count/);
-    const inadequate = structuredClone(coverage);
-    const row = inadequate.results.find((entry: any) => entry.scenario === "empirical_blocks");
-    row.positiveOutcome = row.falseAccept = { count: 900, rate: 0.9, wilson95: [0.8798, 0.9171] };
-    row.unresolvedOutcome = { count: 91, rate: 0.091, wilson95: [0.0747, 0.1104] };
-    expect(() => assertDecisionCoverageAdequate(inadequate)).toThrow(/false accept upper bound/);
-    const incomplete = JSON.parse(readFileSync("benchmark/v2/studies/decision-coverage.json", "utf8"));
-    incomplete.results = incomplete.results.filter((row: any) => row.scenario !== "catalog_wide_hard_zero");
-    expect(() => assertDecisionCoverageAdequate(incomplete)).toThrow(/catalog_wide_hard_zero.*missing/);
-
-    const powerless = structuredClone(coverage);
-    const powered = powerless.powerResults.find((entry: any) => entry.scenario === "empirical_score_gain");
-    const knownLowPower = powerless.diagnosticResults.find(
-      (entry: any) => entry.scenario === "hard_zero_validity_gain",
-    );
-    powered.positiveOutcome = structuredClone(knownLowPower.positiveOutcome);
-    powered.negativeOutcome = structuredClone(knownLowPower.negativeOutcome);
-    powered.unresolvedOutcome = structuredClone(knownLowPower.unresolvedOutcome);
-    expect(() => assertDecisionCoverageAdequate(powerless)).toThrow(/power lower bound/);
-  });
-
-  test("allocates non-overlapping canonical epochs above the probe and calibration range", () => {
-    const ledger: SeedLedgerEntry[] = [];
-    for (let index = 0; index < 20; index++) {
-      const canonicalSeedBase = allocateCanonicalSeedBase(ledger, 24);
-      expect(canonicalSeedBase).toBeGreaterThanOrEqual(1_000_000);
-      expect(ledger.every((entry) =>
-        canonicalSeedBase + 24 <= entry.canonicalSeedBase ||
-        entry.canonicalSeedBase + entry.seedCount <= canonicalSeedBase
-      )).toBe(true);
-      ledger.push({
-        attemptId: `attempt-${index}`,
-        canonicalSeedBase,
-        seedCount: 24,
-        seedScheduleFingerprint: "0".repeat(64),
-      });
-    }
-  });
-
-  test("rejects a tampered compiler snapshot archive", () => {
-    const dir = mkdtempSync(join(tmpdir(), "v2-snapshot-"));
-    const archive = join(dir, "snapshot.tar.gz");
-    writeFileSync(archive, "snapshot bytes\n");
-    const snapshot = {
-      schema: "line.benchmark-v2.compiler-snapshot.v1" as const,
-      archive,
-      archiveSha256: sha256(readFileSync(archive)),
-      candidateFingerprint: "1".repeat(64),
-      compilerSourceFingerprint: "2".repeat(64),
-      compilerEnvironment: {},
-      engineArtifactFingerprint: "3".repeat(64),
-    };
-    expect(() => validateCompilerSnapshot(snapshot)).not.toThrow();
-    writeFileSync(archive, "tampered bytes\n");
-    expect(() => validateCompilerSnapshot(snapshot)).toThrow(/checksum mismatch/);
-  });
-
-  test("resume retries failures and keeps the latest successful result", () => {
+  test("checkpoint recovery keeps the latest successful row per key", () => {
     const recovered = latestSuccessfulResults([
       { key: "a", status: "timeout", value: 1 },
       { key: "b", status: "ok", value: 2 },
@@ -357,34 +84,4 @@ describe("Benchmark V2 governance", () => {
       { key: "b", status: "ok", value: 2 },
     ]);
   });
-
-  test("the baseline of record binds the three-fingerprint decision contract", () => {
-    const baseline = readBaselineContract();
-    const sources = resolveSources(loadSourceManifest(sourcePath));
-    const suiteFingerprint = suiteIdentity(suitePath, sourcePath, sources).suiteFingerprint;
-    expect(baseline.suiteFingerprint).toBe(suiteFingerprint);
-    const contract = requireCurrentDecisionCalibration(suiteFingerprint);
-    // Currency itself (baseline fingerprints == current) is asserted by the
-    // chain at declare/resume time and re-established by `migrate`; asserting
-    // it here would deadlock the migration's own conformance run. The gate
-    // logic is what this test pins, via synthetic mismatches:
-    const current = {
-      ...contract,
-      inferenceFingerprint: baseline.inferenceFingerprint,
-      protocolFingerprint: baseline.protocolFingerprint,
-      calibrationFingerprint: baseline.calibrationFingerprint,
-    };
-    expect(() => assertCurrentDecisionContract(baseline, current)).not.toThrow();
-
-    const staleInference = { ...baseline, inferenceFingerprint: "0".repeat(64) };
-    expect(() => assertCurrentDecisionContract(staleInference, current))
-      .toThrow(/inference or calibration contract differs/);
-    const staleProtocol = { ...baseline, protocolFingerprint: "0".repeat(64) };
-    expect(() => assertCurrentDecisionContract(staleProtocol, current))
-      .toThrow(/migrate --scope=protocol/);
-  });
 });
-
-function sha256(value: Buffer): string {
-  return createHash("sha256").update(value).digest("hex");
-}

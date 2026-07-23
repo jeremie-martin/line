@@ -6,17 +6,14 @@ import { runBaselineBenchmark } from "../v0/benchmark_v2/baseline.ts";
 import { startResourceMonitor } from "./resource_monitor.ts";
 import { runDecisionCommand } from "../v0/benchmark_v2/decide.ts";
 import { assertEvalArguments, runEvalCommand } from "../v0/benchmark_v2/eval.ts";
-import { runMigrationCommand } from "../v0/benchmark_v2/migrate.ts";
-import { runRebaselineCommand, runTransitionCommand } from "../v0/benchmark_v2/rebaseline.ts";
-import { benchmarkEvalPolicy } from "../../benchmark/v2/eval-policy.ts";
+import { runRebaselineCommand } from "../v0/benchmark_v2/rebaseline.ts";
 import { runStatusCommand } from "../v0/benchmark_v2/status.ts";
 import { runFamilyCommand } from "../v0/benchmark_v2/family.ts";
 import { runBaselineCacheCommand } from "../v0/benchmark_v2/baseline_cache_command.ts";
-import { runCalibrateOperatingPointCommand } from "./calibrate_operating_point.ts";
 
 const COMMAND_ALIASES = new Set([
-  "probe", "eval", "canonical", "baseline", "rebaseline", "transition", "decide", "migrate", "prepare", "explain",
-  "status", "family", "baseline-cache", "calibrate-point", "help", "--probe", "--help", "-h",
+  "probe", "eval", "canonical", "baseline", "rebaseline", "decide", "prepare", "explain",
+  "status", "family", "baseline-cache", "help", "--probe", "--help", "-h",
 ]);
 const raw = process.argv.slice(2);
 const jsonOutput = raw.includes("--json");
@@ -60,8 +57,6 @@ async function main(rawArgs: string[]): Promise<void> {
       );
       process.exitCode = await monitored("baseline-cache", args, async () => runBaselineCacheCommand(commandArgs));
     }
-  } else if (command === "calibrate-point") {
-    process.exitCode = await monitored("calibrate-point", args, async () => runCalibrateOperatingPointCommand(commandArgs));
   } else if (command === "explain") {
     if (jsonOutput) {
       throw new Error(`explain does not support --json; use --out=<path> for its report artifacts`);
@@ -71,10 +66,6 @@ async function main(rawArgs: string[]): Promise<void> {
     });
   } else if (command === "decide") {
     process.exitCode = await runDecisionCommand(commandArgs);
-  } else if (command === "migrate") {
-    process.exitCode = await runMigrationCommand(commandArgs);
-  } else if (command === "transition") {
-    process.exitCode = runTransitionCommand(commandArgs);
   } else if (command === "family") {
     const action = commandArgs.find((arg) => !arg.startsWith("--"));
     if (action === "run") {
@@ -90,14 +81,7 @@ async function main(rawArgs: string[]): Promise<void> {
   } else {
     // Validate eval mode-specific flags before deterministic preparation. This
     // keeps a misspelled output destination from doing any paid work.
-    if (command === "probe" || command === "eval") assertEvalArguments(commandArgs);
-    const ledgerOnlyEval = command === "eval" && (
-      commandArgs.includes("--abort-in-flight") || commandArgs.includes("--correct-aborted-spend")
-    );
-    if (ledgerOnlyEval) {
-      process.exitCode = await monitored("eval", args, () => runEvalCommand(commandArgs));
-      return;
-    }
+    if (command === "eval") assertEvalArguments(commandArgs);
     const prepared = await prepareBenchmarkV2();
     console.log(
       `Prepared ${prepared.developmentCases} development + ${prepared.qualificationCases} qualification cases; ` +
@@ -105,15 +89,12 @@ async function main(rawArgs: string[]): Promise<void> {
     );
     if (command === "prepare") {
       // Preparation above is the complete command.
-    } else if (command === "probe" || command === "eval") {
-      if (command === "probe") {
-        console.log(`note: probe is the eval chain's stage 0; \`npm run benchmark -- eval\` is the primary spelling`);
-      }
+    } else if (command === "eval") {
       process.exitCode = await monitored("eval", args, () => runEvalCommand(commandArgs));
     } else if (command === "rebaseline") {
       process.exitCode = await monitored("rebaseline", args, () => runRebaselineCommand(commandArgs));
     } else if (command === "canonical") {
-      throw new Error(`the one-shot canonical path was retired after the eval chain's live validation; use \`npm run benchmark -- eval --to-verdict\``);
+      throw new Error(`canonical is no longer a separate workflow; use \`npm run benchmark -- eval --seeds=N\``);
     } else if (command === "baseline") {
       await monitored("baseline", args, () => runBaselineBenchmark(benchmarkArgs("canonical", args)));
     } else {
@@ -226,68 +207,53 @@ async function monitored<T>(label: string, args: string[], run: () => Promise<T>
 
 function commandName(
   args: string[],
-): "probe" | "eval" | "canonical" | "baseline" | "rebaseline" | "transition" | "decide" | "migrate" | "prepare" | "explain" | "status" | "family" | "baseline-cache" | "calibrate-point" | "help" {
+): "eval" | "canonical" | "baseline" | "rebaseline" | "decide" | "prepare" | "explain" | "status" | "family" | "baseline-cache" | "help" {
   if (args.includes("full") || args.includes("--full")) {
-    throw new Error(`the full profile was retired; use \`eval --to-verdict\` for certified confirmation`);
+    throw new Error(`the full alias was retired; choose the comparison size explicitly with \`eval --seeds=N\``);
   }
   if (args.includes("help") || args.includes("--help") || args.includes("-h")) return "help";
   if (args.includes("baseline-cache")) return "baseline-cache";
-  if (args.includes("calibrate-point")) return "calibrate-point";
   if (args.includes("status")) return "status";
   if (args.includes("family")) return "family";
+  if (args.includes("probe") || args.includes("--probe")) return "eval";
   if (args.includes("eval")) return "eval";
   if (args.includes("canonical")) return "canonical";
   if (args.includes("rebaseline")) return "rebaseline";
   if (args.includes("baseline")) return "baseline";
-  if (args.includes("transition")) return "transition";
   if (args.includes("decide")) return "decide";
-  if (args.includes("migrate")) return "migrate";
   if (args.includes("prepare")) return "prepare";
   if (args.includes("explain")) return "explain";
   const unknown = args.find((arg) => !arg.startsWith("--"));
-  if (unknown !== undefined && unknown !== "probe") throw new Error(`unknown benchmark command ${unknown}`);
-  return "probe";
+  if (unknown !== undefined) throw new Error(`unknown benchmark command ${unknown}`);
+  return "eval";
 }
 
 function printHelp(): void {
-  const menu = benchmarkEvalPolicy.operatingPoints.map((point) =>
-    `    ${point.id}: ${point.mode}` +
-    `${point.margin === null ? "" : `, margin ${point.margin}`}, depth ${point.depth}` +
-    `${point.futilitySchedule.length === 0 ? ", no interim looks" : `, looks ${point.futilitySchedule.join("/")}`}`
-  ).join("\n");
   console.log(`Benchmark V2\n\n` +
-    `  npm run benchmark -- eval        Stage 0: informational screen of the current tree vs the baseline (probe is a deprecated alias)\n` +
-    `  npm run benchmark -- status      Read-only baseline, era budget, certified cost, timing, and rebaseline blockers\n` +
+    `  npm run benchmark -- eval        Smallest canonical cached comparison (N=2)\n` +
+    `  npm run benchmark -- eval --seeds=N [--jobs=48] [--resume]\n` +
+    `                                   Canonical candidate-only comparison against cached baseline slots [0,N)\n` +
+    `  npm run benchmark -- status [--seeds=N]\n` +
+    `                                   Read-only baseline/cache readiness and exact compute required\n` +
     `  npm run benchmark -- baseline-cache status --seeds=N\n` +
     `  npm run benchmark -- baseline-cache extend --seeds=N [--jobs=48] [--resume]\n` +
     `                                   Immutable baseline prefix cache; extension compiles only a missing tail\n` +
-    `  npm run benchmark -- calibrate-point --mode=improve --seeds=N [--workers=32] [--smoke]\n` +
-    `                                   Register a fully calibrated fixed-N promotion point; power is reported, safety is gated\n` +
     `  npm run benchmark -- family capture NAME --variant=ID [--note=TEXT]\n` +
     `  npm run benchmark -- family run NAME [--seeds=6] [--jobs=N]\n` +
     `  npm run benchmark -- family select NAME --variant=ID [--reason=TEXT]\n` +
-    `                                   Shared-seed descriptive variant exploration; selection then enters fresh certified eval\n` +
-    `  npm run benchmark -- eval --to-verdict [--mode=improve] [--depth=N] [--acknowledge-retry] [--resume] [--json]\n` +
-    `  npm run benchmark -- eval --to-verdict --seeds=N [--mode=improve] [--acknowledge-retry] [--resume] [--json]\n` +
-    `                                   Cache-backed fixed-N promotion: candidate-only compile, immutable baseline prefix, no interim looks\n` +
-    `  npm run benchmark -- eval --to-verdict --mode=simplify --margin=5 [--acknowledge-retry] [--resume] [--json]\n` +
-    `                                   Declared, certified confirmation: fresh paired epoch, row-specific stopping rule, verdict\n` +
-    `  npm run benchmark -- eval --abort-in-flight --reason=...\n` +
-    `                                   Settle an infrastructure-broken attempt; its declared spend remains charged\n` +
-    `  npm run benchmark -- eval --correct-aborted-spend --attempt=ID --reason=... --operator=...\n` +
-    `                                   Return spend only for an aborted zero-look attempt; its seed epoch remains reserved\n` +
-    `  npm run benchmark -- rebaseline --label=LABEL   After an accepted eval attempt: light rebaseline (era record + fresh probe reference)\n` +
-    `  npm run benchmark -- transition --reason=...    Ledger an operator transition (no budget reset)\n` +
-    `  npm run benchmark -- baseline    Bootstrap or suite-rollover full freeze (within a suite, use rebaseline)\n` +
-    `  npm run benchmark -- decide PROBE_ARCHIVE [--base=BASE] [--mode=simplification --margin=POINTS]\n` +
-    `  npm run benchmark -- migrate --scope=protocol|calibration|inference --alters-decision-behavior=yes|no --reason=... --approve\n` +
+    `                                   Shared-seed descriptive variant exploration\n` +
+    `  npm run benchmark -- rebaseline --from=COMPARISON --label=LABEL\n` +
+    `                                   Promote a favorable cached comparison and refresh retained references\n` +
+    `  npm run benchmark -- baseline    Explicit full baseline freeze for bootstrap or suite replacement\n` +
+    `  npm run benchmark -- decide ARCHIVE [--base=BASE] [--mode=simplification --margin=POINTS]\n` +
+    `                                   Standalone archive diagnostic; normal work uses eval\n` +
     `  npm run benchmark -- prepare     Regenerate and validate catalog evidence\n` +
     `  npm run benchmark -- explain <archive.json>\n\n` +
-    `  Certified operating points:\n${menu}\n\n` +
     `  Common execution flags: --jobs=N, --no-resource-stats, --resource-interval=SECONDS\n` +
-    `  Eval paths: stage 0 --out=FILE; confirmation --out-dir=DIR --archive-dir=DIR\n\n` +
-    `Stage 0 is reusable screening only; --to-verdict is a predeclared certified promotion gate. Standalone decide is probe analysis only. Qualification is an indicative sidecar.\n` +
+    `  Eval paths: --out=RUN.json and --artifact=COMPARISON.json\n\n` +
+    `Comparisons are stateless and repeatable. The baseline is never recomputed unless baseline-cache extend reports a missing tail.\n` +
+    `The old --to-verdict --seeds=N spelling is accepted as a compatibility alias with identical behavior.\n` +
     `With --json, invoke through \`npm run --silent benchmark -- ...\` or call this CLI directly so npm's script banner does not prefix stdout.\n` +
-    `Eval verdict exit codes: 0 accept, 2 inconclusive, 3 reject, 4 futility stop, 1 invalid; stage 0 emits 0/1. Decide: 0 favorable, 2 unresolved, 3 unfavorable, 1 invalid.\n` +
+    `Eval exit codes: 0 completed, 1 invalid. The comparison result lives in the artifact, not the process exit code.\n` +
     `Compiler execution defaults to 48 workers and prints resource samples every five seconds.`);
 }

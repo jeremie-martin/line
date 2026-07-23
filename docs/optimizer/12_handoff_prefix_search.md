@@ -147,12 +147,13 @@ LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts
 npm run benchmark -- eval
 ```
 
-The probe reports the V2 headline, per-budget scores, checkpoint identity,
-seed-policy metadata, and compact compiler statistics. Take a worthwhile
-source-default candidate to the certified confirmation chain:
+The command defaults to the smallest canonical cached comparison (N=2) and
+reports the V2 headline, per-budget scores, checkpoint identity, seed-policy
+metadata, and compact compiler statistics. Choose a larger N directly when
+the question warrants it:
 
 ```bash
-npm run benchmark -- eval --to-verdict
+npm run benchmark -- eval --seeds=100
 ```
 
 Historical `--full`, `--compiler`, custom V1 budget grids, and `golden.json`

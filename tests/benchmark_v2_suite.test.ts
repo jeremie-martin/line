@@ -48,7 +48,7 @@ describe("Benchmark V2 suite identity", () => {
       .toThrow(/reserved heldout source fingerprint/);
   });
 
-  test("freezes resolved seeds and the approved V9 baseline", () => {
+  test("freezes resolved seeds and the approved V10 baseline", () => {
     const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
     const identity = suiteIdentity("benchmark/v2/compat/suite-manifest.json", "benchmark/v2/compat/source-manifest.json", sources);
     const baseline = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8")) as {
@@ -82,7 +82,7 @@ describe("Benchmark V2 suite identity", () => {
     });
     expect(createHash("sha256").update(readFileSync(probeBaseline.probe.compressed_archive)).digest("hex"))
       .toBe(probeBaseline.probe.compressed_archive_sha256);
-    expect(baseline.schema).toBe("line.benchmark-v2.baseline-reference.v9");
+    expect(baseline.schema).toBe("line.benchmark-v2.baseline-reference.v10");
     expect(baseline.status).toBe("canonical-baseline");
     expect(baseline.listening_review_status).toBe("approved");
     expect(baseline.suite_fingerprint).toBe(identity.suiteFingerprint);
@@ -93,9 +93,9 @@ describe("Benchmark V2 suite identity", () => {
     expect(baseline.compiler_identity_protocol).toBe(COMPILER_IDENTITY_PROTOCOL);
     expect(baseline.compiler_source_files).toContain("scripts/v0/score.ts");
     expect(baseline.compiler_source_files).toContain("scripts/lib/detector.ts");
-    expect(baseline.probe.canonical_headline).toBe(509.7008);
-    expect(baseline.development.canonical_headline).toBe(510.3661);
-    expect(baseline.qualification.monitor_score).toBe(392.6184);
+    expect(baseline.probe.canonical_headline).toBe(506.2352);
+    expect(baseline.development.canonical_headline).toBe(513.7675);
+    expect(baseline.qualification.monitor_score).toBe(391.389);
     expect(createHash("sha256").update(JSON.stringify({
       compilerIdentityProtocol: baseline.compiler_identity_protocol,
       compilerSourceFingerprint: baseline.compiler_source_fingerprint,

@@ -1,4 +1,7 @@
-# Benchmark V2 Closure Register
+# Archived Benchmark V2 Era-Workflow Closure Register
+
+> Historical validation record only. The workflow validated here has been
+> retired. See `docs/HOW_TO_WORK.md` for current operating instructions.
 
 This is the exhaustive closure list from the two live validation campaigns,
 their adversarial reviews, and the current workflow audit. An item is closed

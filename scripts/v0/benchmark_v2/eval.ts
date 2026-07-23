@@ -1,335 +1,119 @@
 /**
- * The eval chain (RFC C.2): one command from informational screen to
- * promotion verdict.
+ * Lean Benchmark V2 evaluation.
  *
- * Stage 0 (default): a probe run of the current tree vs the stored baseline
- * probe reference — full integrity path, no gating, no state consumed.
+ *   eval [--seeds=N]
+ *     Candidate-only canonical run against the first N slots of the immutable
+ *     baseline cache. N defaults to 2 and is chosen by the operator, not by a
+ *     registry. The command writes reproducible evidence and no project state.
  *
- * --to-verdict: declare a certified operating point (immutable, ledgered,
- * before any confirmation compile), run both frozen snapshots on a fresh
- * paired epoch in ~wave increments, take the declared futility looks, and
- * decide at the declared depth with the certified inference machinery.
- * Exit codes per mode: stage 0 emits 0/1; --to-verdict emits 0 accept,
- * 2 inconclusive, 3 reject, 4 futility stop, 1 invalid.
+ * `--to-verdict --seeds=N` remains as a compatibility alias for the second
+ * form, but it has no extra authority and consumes no ledger or budget.
  */
 
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
-import { resolve } from "node:path";
-import { execFileSync } from "node:child_process";
-import { benchmarkEvalPolicy, cheapestOperatingPoint } from "../../../benchmark/v2/eval-policy.ts";
-import { applyJolt } from "../../produce/seed.ts";
-import {
-  appendAttemptEvent,
-  assertAttemptDeclarationCurrent,
-  initializeLedgerFromBaseline,
-  readEraState,
-  retryStatus,
-  assertBudgetAllows,
-  withAttemptLedgerTransaction,
-  type AttemptPaths,
-  type EraState,
-} from "./attempts.ts";
-import {
-  requireCertifiedOperatingPoint,
-  requireCurrentDecisionCalibration,
-  type CertifiedOperatingPoint,
-} from "./calibration_guard.ts";
-import { latestSuccessfulResults } from "./checkpoint_model.ts";
-import {
-  createCompilerSnapshot,
-  createSnapshotWorkspace,
-  disposeSnapshotWorkspace,
-  runInWorkspace,
-  type SnapshotBenchmarkRun,
-  type SnapshotWorkspace,
-} from "./compiler_snapshot.ts";
-import {
-  assertCurrentDecisionContract,
-  allocateCanonicalSeedBase,
-  declareEvalAttempt,
-  freshAttemptId,
-  readBaselineContract,
-  readEvalDeclaration,
-  retainSnapshotRun,
-  DEFAULT_BASELINE_PATH,
-  type BaselineContract,
-  type ConfirmationMode,
-  type EvalDeclaration,
-} from "./confirmation.ts";
-import {
-  evalDecision,
-  evalDecisionAgainstBaselineCache,
-  screeningComparison,
-  suiteAtDepth,
-  writeDecisionArtifact,
-} from "./decide.ts";
+import { basename, dirname, resolve } from "node:path";
 import {
   baselineCacheManifestFingerprint,
   baselineCachePlan,
+  cacheCoverage,
   readBaselineCache,
   seedScheduleAtDepth,
   verifyBaselineCache,
   type BaselineCacheView,
 } from "./baseline_cache.ts";
 import {
-  pairedV2DecisionForCalibration,
-  type DecisionRun,
-} from "./decision_model.ts";
+  createCompilerSnapshot,
+  createSnapshotWorkspace,
+  disposeSnapshotWorkspace,
+  runInWorkspace,
+  type CompilerSnapshot,
+  type SnapshotBenchmarkRun,
+} from "./compiler_snapshot.ts";
 import {
-  evalFutilityStops,
-  evalFutilityUpperBound,
-  evalRunsAtLook,
-} from "./eval_chain_inference.ts";
-import {
-  evalNextCommand,
-  renderEvalVerdict,
-  renderLookLine,
-  renderStage0,
-} from "./eval_report.ts";
-import { buildAxisContract, scoreV2Report, type AxisContract } from "./evaluator.ts";
-import { loadSourceManifest, loadSourceSpec, resolveSources } from "./model.ts";
-import { runBenchmarkV2, compilerCandidateIdentity } from "./runner.ts";
-import { runnerCompatibilityApproval } from "./runner_compatibility.ts";
-import {
-  RUNNER_IMPLEMENTATION_SOURCE_FILES,
-  canonicalMembers,
-  fingerprintFiles,
-  loadSuiteManifest,
-  resolvedSeedSchedule,
-  suiteIdentity,
-  type SuiteManifest,
-} from "./suite_model.ts";
+  evalDecisionAgainstBaselineCache,
+} from "./decide.ts";
+import { writeFileAtomicDurable } from "./durable_fs.ts";
+import { renderCachedComparison } from "./eval_report.ts";
+import { compilerCandidateIdentity } from "./compiler_identity.ts";
 
 const SOURCE_MANIFEST = "benchmark/v2/compat/source-manifest.json";
 const HELDOUT_MANIFEST = "benchmark/v2/compat/heldout-manifest.json";
 const SUITE_MANIFEST = "benchmark/v2/compat/suite-manifest.json";
-const EXIT = benchmarkEvalPolicy.exitCodes;
+const COMPARISON_REQUEST_SCHEMA = "line.benchmark-v2.comparison-request.v1" as const;
+const CACHED_COMPARISON_SCHEMA = "line.benchmark-v2.cached-comparison.v1" as const;
 
-type EvalContext = {
-  suite: SuiteManifest;
-  sources: ReturnType<typeof resolveSources>;
-  contracts: Map<string, AxisContract>;
-  suiteFingerprint: string;
-};
+type ComparisonMode = "improvement" | "simplification";
 
-export type DeclarationFreshness = {
-  baseline: BaselineContract;
-  decisionContract: ReturnType<typeof requireCurrentDecisionCalibration>;
-  certified: CertifiedOperatingPoint;
-};
-
-/**
- * Re-read every mutable declaration dependency while the attempt-ledger lock
- * is held. This closes the scheduler window between snapshot preparation and
- * the append that spends alpha and reserves a seed epoch.
- */
-export function revalidateDeclarationUnderLock(input: {
-  state: EraState;
-  expectedSuiteFingerprint: string;
-  sources: EvalContext["sources"];
+export type ComparisonRequest = {
+  schema: typeof COMPARISON_REQUEST_SCHEMA;
+  generatedAt: string;
   baselinePath: string;
-  mode: ConfirmationMode;
+  baselineLabel: string;
+  baselineCacheFingerprint: string;
+  candidateFingerprint: string;
+  candidateSnapshot: CompilerSnapshot;
+  seeds: number;
+  mode: ComparisonMode;
   margin: number | null;
-  depth: number;
-  fixedN: boolean;
-}): DeclarationFreshness {
-  const freshSuite = suiteIdentity(SUITE_MANIFEST, SOURCE_MANIFEST, input.sources);
-  if (freshSuite.suiteFingerprint !== input.expectedSuiteFingerprint) {
-    throw new Error(`suite changed while the eval attempt was being prepared; restart the declaration`);
-  }
-  const baseline = readBaselineContract(input.baselinePath);
-  if (input.state.baselineLabel !== baseline.label) {
-    throw new Error(`baseline or era changed while the eval attempt was being prepared; restart the declaration`);
-  }
-  const decisionContract = requireCurrentDecisionCalibration(input.expectedSuiteFingerprint);
-  assertCurrentDecisionContract(baseline, decisionContract);
-  const certified = requireCertifiedOperatingPoint(
-    input.mode,
-    input.margin,
-    input.depth,
-    input.expectedSuiteFingerprint,
-    undefined,
-    input.fixedN,
-  );
-  return { baseline, decisionContract, certified };
-}
+  canonicalSeedBase: number;
+  seedScheduleFingerprint: string;
+  canonicalSeedSchedule: ReturnType<typeof seedScheduleAtDepth>;
+};
+
+export type CachedComparisonArtifact = {
+  schema: typeof CACHED_COMPARISON_SCHEMA;
+  generatedAt: string;
+  status: "complete";
+  base: {
+    label: string;
+    baselinePath: string;
+    cacheFingerprint: string;
+    seeds: number;
+  };
+  candidate: {
+    archivePath: string;
+    archiveSha256: string;
+    compressedArchiveSha256: string;
+    snapshot: CompilerSnapshot;
+  };
+  request: {
+    path: string;
+    sha256: string;
+  };
+  decision: Awaited<ReturnType<typeof evalDecisionAgainstBaselineCache>>["artifact"];
+  nextCommand: string;
+};
 
 export async function runEvalCommand(argv = process.argv.slice(2)): Promise<number> {
   assertEvalArguments(argv);
-  const hasFlag = (name: string): boolean => argv.includes(`--${name}`);
-  if (hasFlag("abort-in-flight")) return abortInFlightAttempt(argv);
-  if (hasFlag("correct-aborted-spend")) return correctAbortedSpend(argv);
-  return hasFlag("to-verdict") ? runToVerdict(argv) : runStage0(argv);
+  return runCachedComparison(argv);
 }
 
-type EvalInvocation = "stage 0" | "confirmation" | "abort" | "accounting correction";
-
 /**
- * Eval arguments are deliberately mode-scoped. A misspelled or misplaced
- * output flag must fail before preparation or a paid compiler run, rather
- * than being silently ignored by the branch that does not consume it.
+ * Keep parsing deliberately small. Expensive evidence commands should reject
+ * misspelled flags before preparation or compiler work starts.
  */
 export function assertEvalArguments(argv: string[]): void {
-  const abort = argv.includes("--abort-in-flight");
-  const verdict = argv.includes("--to-verdict");
-  const correction = argv.includes("--correct-aborted-spend");
-  if ([abort, verdict, correction].filter(Boolean).length > 1) {
-    throw new Error(`--abort-in-flight, --to-verdict, and --correct-aborted-spend are mutually exclusive`);
-  }
-
-  const invocation: EvalInvocation = abort
-    ? "abort"
-    : correction
-    ? "accounting correction"
-    : verdict
-    ? "confirmation"
-    : "stage 0";
-  const booleans = new Set<string>(
-    invocation === "stage 0" ? ["resume", "json"]
-      : invocation === "confirmation" ? ["to-verdict", "resume", "json", "acknowledge-retry"]
-        : invocation === "abort" ? ["abort-in-flight", "json"]
-          : ["correct-aborted-spend", "json"],
-  );
-  const values = new Set<string>(
-    invocation === "stage 0"
-      ? ["out", "base", "jobs", "attempts-ledger", "era-state"]
-      : invocation === "confirmation"
-        ? [
-          "baseline", "declaration-dir", "out-dir", "archive-dir", "attempts-ledger", "era-state", "jobs",
-          "mode", "margin", "depth", "seeds", "override-era-budget", "reason", "operator",
-        ]
-        : invocation === "abort"
-        ? ["reason", "attempts-ledger", "era-state"]
-        : ["attempt", "reason", "operator", "attempts-ledger", "era-state"],
-  );
+  const hasExplicitSeeds = argv.some((arg) => arg.startsWith("--seeds="));
+  const booleans = new Set(["resume", "json", "to-verdict"]);
+  const values = new Set(["seeds", "out", "artifact", "baseline", "jobs", "mode", "margin"]);
   const accepted = [...booleans, ...[...values].map((name) => `${name}=VALUE`)].join(", ");
 
   for (const arg of argv) {
-    if (!arg.startsWith("--")) {
-      throw new Error(`${invocation} eval does not accept positional argument ${arg}`);
-    }
+    if (!arg.startsWith("--")) throw new Error(`eval does not accept positional argument ${arg}`);
     const equals = arg.indexOf("=");
     const name = arg.slice(2, equals === -1 ? undefined : equals);
     if (equals === -1 && booleans.has(name)) continue;
     if (equals !== -1 && values.has(name) && arg.slice(equals + 1) !== "") continue;
-    if (equals === -1 && values.has(name)) {
-      throw new Error(`${invocation} eval requires --${name}=VALUE`);
-    }
-    if (equals !== -1 && booleans.has(name)) {
-      throw new Error(`${invocation} eval flag --${name} does not take a value`);
-    }
-    throw new Error(`${invocation} eval does not accept ${arg}; accepted flags: ${accepted}`);
+    if (equals === -1 && values.has(name)) throw new Error(`eval requires --${name}=VALUE`);
+    if (equals !== -1 && booleans.has(name)) throw new Error(`eval flag --${name} does not take a value`);
+    throw new Error(`eval does not accept ${arg}; accepted flags: ${accepted}`);
   }
-  if (
-    invocation === "confirmation" &&
-    argv.some((arg) => arg.startsWith("--depth=")) &&
-    argv.some((arg) => arg.startsWith("--seeds="))
-  ) throw new Error(`--depth and --seeds are mutually exclusive; --seeds selects the fixed-N cache-backed protocol`);
-}
-
-function abortInFlightAttempt(argv: string[]): number {
-  const argument = argumentIn(argv);
-  const reason = argument("reason")?.trim();
-  if (reason === undefined || reason === "") {
-    throw new Error(`--abort-in-flight requires --reason=...`);
+  if (!hasExplicitSeeds && argv.includes("--to-verdict")) {
+    throw new Error(`--to-verdict is no longer a separate workflow; choose the comparison size with --seeds=N`);
   }
-  const ledgerPaths = attemptPaths(argument);
-  const era = readEraState(ledgerPaths);
-  if (era.inFlightAttemptId === null) throw new Error(`there is no in-flight eval attempt to abort`);
-  const attemptId = era.inFlightAttemptId;
-  appendAttemptEvent({ type: "abort", attemptId, reason }, ledgerPaths);
-  const payload = evalWorkerFailurePayload({
-    stage: "confirmation",
-    reason,
-    attemptId,
-    workerFailures: 0,
-    spendCharged: era.attempts.find((attempt) => attempt.attemptId === attemptId)?.spend ?? null,
-    evidencePaths: [],
-    nextCommand: `npm run benchmark -- eval --to-verdict --acknowledge-retry`,
-  });
-  if (argv.includes("--json")) console.log(JSON.stringify(payload, null, 2));
-  else console.log(`aborted eval attempt ${attemptId}: ${reason}; declared spend stays charged`);
-  return EXIT.verdict.invalid;
-}
-
-/**
- * The ledger permits one exceptional refund: an aborted attempt with no formal
- * look can be corrected to zero spend, while its declared seed epoch remains
- * permanently reserved. This command is deliberately unable to alter any
- * other spend or settled verdict.
- */
-export function correctAbortedSpend(argv: string[]): number {
-  const argument = argumentIn(argv);
-  const attemptId = argument("attempt")?.trim();
-  const reason = argument("reason")?.trim();
-  const operator = argument("operator")?.trim();
-  if (attemptId === undefined || attemptId === "") {
-    throw new Error(`--correct-aborted-spend requires --attempt=...`);
-  }
-  if (reason === undefined || reason === "" || operator === undefined || operator === "") {
-    throw new Error(`--correct-aborted-spend requires --reason=... and --operator=...`);
-  }
-  const ledgerPaths = attemptPaths(argument);
-  const era = readEraState(ledgerPaths);
-  const attempt = era.attempts.find((entry) => entry.attemptId === attemptId);
-  if (attempt === undefined) throw new Error(`unknown eval attempt ${attemptId}`);
-  if (attempt.outcome !== "aborted" || attempt.lookCount !== 0 || attempt.spend <= 0) {
-    throw new Error(
-      `only an aborted attempt with positive spend and zero formal looks can be corrected to zero`,
-    );
-  }
-  const corrected = appendAttemptEvent({
-    type: "accounting-correction",
-    reason,
-    operator,
-    adjustments: [{ attemptId, previousSpend: attempt.spend, correctedSpend: 0 }],
-  }, ledgerPaths);
-  const payload = {
-    schema: "line.benchmark-v2.eval-accounting-correction.v1",
-    status: "corrected",
-    attemptId,
-    previousSpend: attempt.spend,
-    correctedSpend: 0,
-    seedEpochRemainsReserved: true,
-    era: {
-      budgetSpent: corrected.budgetSpent,
-      budgetCap: corrected.budgetCap,
-      cumulativeExpectedFalseAccepts: corrected.cumulativeExpectedFalseAccepts,
-    },
-    nextCommand: "npm run benchmark -- status",
-  };
-  if (argv.includes("--json")) console.log(JSON.stringify(payload, null, 2));
-  else {
-    console.log(
-      `corrected aborted attempt ${attemptId}: spend ${attempt.spend} -> 0; ` +
-      `its seed epoch remains reserved`,
-    );
-  }
-  return EXIT.stage0.completed;
-}
-
-export function evalWorkerFailurePayload(input: {
-  stage: "stage0" | "confirmation";
-  reason: string;
-  attemptId?: string;
-  workerFailures: number;
-  spendCharged: number | null;
-  evidencePaths: string[];
-  nextCommand: string;
-}): Record<string, unknown> {
-  return {
-    schema: "line.benchmark-v2.eval-failure.v1",
-    status: input.stage === "confirmation" ? "aborted" : "invalid",
-    stage: input.stage,
-    reason: input.reason,
-    ...(input.attemptId === undefined ? {} : { attemptId: input.attemptId }),
-    workerFailures: input.workerFailures,
-    spendCharged: input.spendCharged,
-    evidencePaths: input.evidencePaths,
-    nextCommand: input.nextCommand,
-  };
 }
 
 function argumentIn(argv: string[]) {
@@ -350,1259 +134,265 @@ function runnerBaseArgs(jobs: number): string[] {
   ];
 }
 
-async function loadEvalContext(): Promise<EvalContext> {
-  const sources = resolveSources(loadSourceManifest(SOURCE_MANIFEST));
-  const suite = loadSuiteManifest(SUITE_MANIFEST, sources);
-  const identity = suiteIdentity(SUITE_MANIFEST, SOURCE_MANIFEST, sources);
-  const contracts = new Map<string, AxisContract>();
-  for (const source of sources) {
-    const spec = applyJolt(await loadSourceSpec(source), suite.transform.jolt_ms);
-    contracts.set(source.id, buildAxisContract(spec, source.eligibleComponents, source.diagnosticComponents));
-  }
-  return { suite, sources, contracts, suiteFingerprint: identity.suiteFingerprint };
-}
-
-// ── Stage 0 ──────────────────────────────────────────────────────────────────
-
-async function runStage0(argv: string[]): Promise<number> {
+async function runCachedComparison(argv: string[]): Promise<number> {
   const argument = argumentIn(argv);
-  if (process.env.LR_ENGINE !== "wasm") throw new Error(`eval requires LR_ENGINE=wasm`);
-  assertStage0ReferenceComparable();
-  const jobs = Number(argument("jobs") ?? Math.min(48, availableParallelism()));
-  const stamp = new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z");
-  const outPath = resolve(argument("out") ?? `generated/benchmark-v2/eval/stage0-${stamp}.json`);
-  mkdirSync(resolve("generated/benchmark-v2/eval"), { recursive: true });
-  const run = await runBenchmarkV2("development", [
-    "--profile=probe",
-    ...runnerBaseArgs(jobs),
-    `--out=${outPath}`,
-    ...(argv.includes("--resume") ? ["--resume"] : []),
-  ]);
-  if (run.workerFailures > 0) {
-    console.error(`stage 0 has ${run.workerFailures} worker failure(s); re-run with --resume`);
-    if (argv.includes("--json")) {
-      console.log(JSON.stringify(evalWorkerFailurePayload({
-        stage: "stage0",
-        reason: "one or more compiler workers failed; no screening decision was made",
-        workerFailures: run.workerFailures,
-        spendCharged: null,
-        evidencePaths: [relativeToCwd(run.outputPath)],
-        nextCommand: `npm run benchmark -- eval --resume --out=${relativeToCwd(outPath)}`,
-      }), null, 2));
-    }
-    return EXIT.stage0.invalid;
-  }
-  const screen = await screeningComparison(outPath, { basePath: argument("base") });
-  const identical = scoreIdenticalFraction(screen.base.archive, screen.candidate.archive);
-  const era = readEraStateIfPresent(argument);
-  const probeDepth = screen.candidate.archive.identity.seedSchedule.seedsPerBudget;
-  const confirmDepth = cheapestOperatingPoint("improvement", null)?.depth ?? 48;
-  const report = {
-    result: screen.result,
-    baseLabel: screen.baseLabel,
-    archivePath: relativeToCwd(outPath),
-    scoreIdenticalFraction: identical,
-    era,
-    menu: benchmarkEvalPolicy.operatingPoints.map((point) => ({
-      id: point.id,
-      mode: point.mode,
-      margin: point.margin,
-      depth: point.depth,
-    })),
-  };
-  if (argv.includes("--json")) {
-    console.log(JSON.stringify({ stage: 0, ...report }, null, 2));
-  } else {
-    console.log(renderStage0(report, probeDepth, confirmDepth));
-  }
-  return EXIT.stage0.completed;
-}
-
-/** Refuse known identity mismatches before paying for the probe compile. */
-export function assertStage0ReferenceComparable(): void {
-  const baseline = readBaselineContract();
-  const probe = JSON.parse(readFileSync(resolve("benchmark/v2/probe-baseline.json"), "utf8"));
-  const currentCompiler = compilerCandidateIdentity("wasm");
-  if (currentCompiler.engineArtifactFingerprint !== baseline.compilerSnapshot.engineArtifactFingerprint) {
+  requireWasm("eval");
+  const seedsRaw = argument("seeds") ?? "2";
+  if (!/^\d+$/.test(seedsRaw)) throw new Error(`eval --seeds requires an integer N`);
+  const seeds = Number(seedsRaw);
+  const jobs = parseJobs(argument("jobs"));
+  const mode = parseMode(argument("mode"));
+  const margin = parseMargin(mode, argument("margin"));
+  const cache = readBaselineCache(argument("baseline"));
+  assertBaselineEngineComparable(cache.baselinePath);
+  const plan = baselineCachePlan(cache, seeds);
+  if (plan.missingBaselineSeeds > 0) {
     throw new Error(
-      `stage 0 engine artifact differs from the retained probe reference; restore the accepted artifact or establish a new baseline`,
+      `baseline cache covers ${plan.coveredSeeds}/${seeds} seeds; run ` +
+      `\`npm run benchmark -- baseline-cache extend --seeds=${seeds} --jobs=${jobs}\` first`,
     );
   }
-  runnerCompatibilityApproval(
-    probe.probe.implementation_fingerprint,
-    fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES),
-    baseline.suiteFingerprint,
-  );
+  verifyBaselineCache(cache, seeds);
+
+  const stamp = timestamp();
+  const outPath = resolve(argument("out") ?? `generated/benchmark-v2/eval/cached-N${seeds}-${stamp}.json`);
+  const artifactPath = resolve(argument("artifact") ?? `${outPath}.comparison.json`);
+  const requestPath = resolve(`${outPath}.request.json`);
+  mkdirSync(dirname(outPath), { recursive: true });
+
+  const request = argv.includes("--resume")
+    ? readComparisonRequest(requestPath, cache, seeds, mode, margin)
+    : createComparisonRequest(requestPath, outPath, cache, seeds, mode, margin);
+  const requestSha256 = sha256(readFileSync(requestPath));
+
+  let workspace: ReturnType<typeof createSnapshotWorkspace> | undefined;
+  try {
+    workspace = createSnapshotWorkspace(request.candidateSnapshot);
+    const run = runInWorkspace(workspace, "development", [
+      "--profile=canonical",
+      ...runnerBaseArgs(jobs),
+      `--comparison-request=${requestPath}`,
+      `--canonical-seed-base=${request.canonicalSeedBase}`,
+      `--seeds-per-budget=${seeds}`,
+      `--seed-schedule=${requestPath}`,
+      ...(argv.includes("--resume") ? ["--resume"] : []),
+    ], outPath);
+    if (run.workerFailures > 0) {
+      const payload = evalWorkerFailurePayload({
+        stage: "cached",
+        reason: "one or more compiler workers failed; resume the same candidate output",
+        workerFailures: run.workerFailures,
+        evidencePaths: [relativeToCwd(`${outPath}.checkpoint.jsonl`)],
+        nextCommand:
+          `npm run benchmark -- eval --seeds=${seeds} --resume --out=${relativeToCwd(outPath)}`,
+      });
+      if (argv.includes("--json")) console.log(JSON.stringify(payload, null, 2));
+      else console.error(payload.reason);
+      return 1;
+    }
+    const cacheAfter = readBaselineCache(argument("baseline"));
+    if (baselineCacheManifestFingerprint(cacheAfter.cache) !== request.baselineCacheFingerprint) {
+      throw new Error(`baseline cache changed while the candidate was running; start a new comparison`);
+    }
+    const decided = await evalDecisionAgainstBaselineCache(cacheAfter, outPath, {
+      mode,
+      margin,
+      depth: seeds,
+      request: {
+        path: requestPath,
+        sha256: requestSha256,
+        seedScheduleFingerprint: request.seedScheduleFingerprint,
+        candidateFingerprint: request.candidateFingerprint,
+      },
+    });
+    const nextCommand = comparisonNextCommand(
+      decided.artifact.result.outcome,
+      artifactPath,
+      seeds,
+      cacheCoverage(cacheAfter.cache),
+    );
+    decided.artifact.nextCommand = nextCommand;
+    const artifact: CachedComparisonArtifact = {
+      schema: CACHED_COMPARISON_SCHEMA,
+      generatedAt: new Date().toISOString(),
+      status: "complete",
+      base: {
+        label: cacheAfter.cache.baselineLabel,
+        baselinePath: relativeToCwd(cacheAfter.baselinePath),
+        cacheFingerprint: request.baselineCacheFingerprint,
+        seeds,
+      },
+      candidate: {
+        archivePath: relativeToCwd(run.outputPath),
+        archiveSha256: run.archiveSha256,
+        compressedArchiveSha256: run.compressedArchiveSha256,
+        snapshot: request.candidateSnapshot,
+      },
+      request: {
+        path: relativeToCwd(requestPath),
+        sha256: requestSha256,
+      },
+      decision: decided.artifact,
+      nextCommand,
+    };
+    writeArtifact(artifactPath, artifact);
+    if (argv.includes("--json")) {
+      console.log(JSON.stringify(artifact, null, 2));
+    } else {
+      console.log(renderCachedComparison({
+        result: decided.artifact.result,
+        baseLabel: cacheAfter.cache.baselineLabel,
+        seeds,
+        archivePath: relativeToCwd(run.outputPath),
+        artifactPath: relativeToCwd(artifactPath),
+        snapshotPath: request.candidateSnapshot.archive,
+        hint: decided.artifact.hint,
+        nextCommand,
+        runnerFingerprintsMatch: decided.artifact.implementationFingerprintsMatch,
+      }));
+      if (argv.includes("--to-verdict")) {
+        console.log(`  note: --to-verdict is now a compatibility alias; this was the same stateless cached comparison`);
+      }
+    }
+    return 0;
+  } finally {
+    if (workspace !== undefined) disposeSnapshotWorkspace(workspace);
+  }
 }
 
-// ── Verdict chain ────────────────────────────────────────────────────────────
-
-async function runToVerdict(argv: string[]): Promise<number> {
-  const argument = argumentIn(argv);
-  if (process.env.LR_ENGINE !== "wasm") throw new Error(`eval requires LR_ENGINE=wasm`);
-  const baselinePath = resolve(argument("baseline") ?? DEFAULT_BASELINE_PATH);
-  const declarationDir = resolve(argument("declaration-dir") ?? "benchmark/v2/confirmations");
-  const outDir = resolve(argument("out-dir") ?? "generated/benchmark-v2/eval");
-  const archiveDir = resolve(argument("archive-dir") ?? "benchmark/v2/runs");
-  const ledgerPaths = attemptPaths(argument);
-  const jobs = Number(argument("jobs") ?? Math.min(48, availableParallelism()));
-  const json = argv.includes("--json");
-
-  const context = await loadEvalContext();
-  let baseline = readBaselineContract(baselinePath);
-  if (context.suiteFingerprint !== baseline.suiteFingerprint) {
-    throw new Error(`suite differs from the baseline contract; establish a new baseline`);
+function createComparisonRequest(
+  requestPath: string,
+  outPath: string,
+  cache: BaselineCacheView,
+  seeds: number,
+  mode: ComparisonMode,
+  margin: number | null,
+): ComparisonRequest {
+  if (existsSync(requestPath)) {
+    throw new Error(`${relativeToCwd(requestPath)} already exists; pass --resume or choose a new --out path`);
   }
-  let decisionContract = requireCurrentDecisionCalibration(context.suiteFingerprint);
-  assertCurrentDecisionContract(baseline, decisionContract);
-
-  if (argv.includes("--resume")) {
-    return resumeAttempt(argv, context, baseline, outDir, archiveDir, ledgerPaths, jobs, json);
-  }
-
-  const mode = parseEvalMode(argument("mode"));
-  const margin = parseEvalMargin(mode, argument("margin"));
-  if (argument("depth") !== undefined && argument("seeds") !== undefined) {
-    throw new Error(`--depth and --seeds are mutually exclusive; --seeds selects the fixed-N cache-backed protocol`);
-  }
-  const fixedN = argument("seeds") === undefined ? undefined : Number(argument("seeds"));
-  const depth = fixedN ?? (argument("depth") === undefined
-    ? (cheapestOperatingPoint(mode, margin)?.depth ??
-      (() => { throw new Error(`no certified operating point offers mode ${mode}${margin === null ? "" : ` m=${margin}`}`); })())
-    : Number(argument("depth")));
-  if (fixedN !== undefined && (!Number.isSafeInteger(fixedN) || fixedN < 8 || fixedN > 300)) {
-    throw new Error(`--seeds must be an integer in 8..300`);
-  }
-  if (fixedN !== undefined && mode !== "improvement") {
-    throw new Error(`the fixed-N cache-backed protocol currently supports --mode=improve only`);
-  }
-  let certified = requireCertifiedOperatingPoint(
+  const schedule = seedScheduleAtDepth(cache.cache, seeds);
+  const label = basename(outPath).replace(/\.json$/, "");
+  const snapshot = createCompilerSnapshot(label, dirname(outPath));
+  const request: ComparisonRequest = {
+    schema: COMPARISON_REQUEST_SCHEMA,
+    generatedAt: new Date().toISOString(),
+    baselinePath: relativeToCwd(cache.baselinePath),
+    baselineLabel: cache.cache.baselineLabel,
+    baselineCacheFingerprint: baselineCacheManifestFingerprint(cache.cache),
+    candidateFingerprint: snapshot.candidateFingerprint,
+    candidateSnapshot: snapshot,
+    seeds,
     mode,
     margin,
-    depth,
-    context.suiteFingerprint,
-    undefined,
-    fixedN !== undefined,
-  );
-  let cacheView: BaselineCacheView | undefined;
-  if (fixedN !== undefined) {
-    cacheView = readBaselineCache(baselinePath);
-    const plan = baselineCachePlan(cacheView, fixedN);
-    verifyBaselineCache(cacheView, plan.coveredSeeds === 0 ? undefined : plan.coveredSeeds);
-    if (plan.missingBaselineSeeds > 0) {
-      throw new Error(
-        `baseline cache covers ${plan.coveredSeeds}/${fixedN} seed slots; compile only the missing baseline tail first: ` +
-        `npm run benchmark -- baseline-cache extend --seeds=${fixedN} --jobs=${jobs}`,
-      );
-    }
-  }
-
-  if (!existsSync(ledgerPaths.ledger)) {
-    initializeLedgerFromBaseline(baselinePath, ledgerPaths);
-    console.log(`eval ledger bootstrapped from the baseline of record`);
-  }
-  const overrideCap = argument("override-era-budget");
-  if (overrideCap !== undefined) {
-    const reason = argument("reason");
-    if (reason === undefined || reason.trim() === "") {
-      throw new Error(`--override-era-budget requires --reason=...`);
-    }
-    withAttemptLedgerTransaction(ledgerPaths, (transaction) =>
-      transaction.append({
-        type: "override",
-        eraId: transaction.state.eraId!,
-        previousCap: transaction.state.budgetCap,
-        newCap: Number(overrideCap),
-        reason,
-        operator: argument("operator") ?? "unspecified",
-      })
-    );
-  }
-  const identity = compilerCandidateIdentity("wasm");
-  const budgets = context.suite.profiles.canonical.budgets;
-  const seedCount = budgets.length * depth;
-  const attemptId = freshAttemptId();
-  const candidateSnapshot = createCompilerSnapshot(`${attemptId}-candidate`, archiveDir);
-  if (candidateSnapshot.candidateFingerprint !== identity.candidateFingerprint) {
-    throw new Error(`candidate changed while its eval snapshot was being created`);
-  }
-
-  const acknowledgedRetry = argv.includes("--acknowledge-retry");
-  const declaration = withAttemptLedgerTransaction(ledgerPaths, (transaction) => {
-    // Baseline, suite, calibration, and certification may have changed while
-    // the candidate snapshot was being created. Re-read them under the same
-    // lock that commits the declaration so migration/rebaseline cannot land
-    // in the check-to-append window.
-    const fresh = revalidateDeclarationUnderLock({
-      state: transaction.state,
-      expectedSuiteFingerprint: context.suiteFingerprint,
-      sources: context.sources,
-      baselinePath,
-      mode,
-      margin,
-      depth,
-      fixedN: fixedN !== undefined,
-    });
-    baseline = fresh.baseline;
-    decisionContract = fresh.decisionContract;
-    certified = fresh.certified;
-
-    const retry = retryStatus(
-      transaction.state,
-      identity.candidateFingerprint,
-      certified.point.criticalAlpha,
-    );
-    if (retry.priorAttempts > 0 && !acknowledgedRetry) {
-      throw new Error(
-        `this candidate was already attempted ${retry.priorAttempts} time(s); ` +
-        `a retry compounds nominal alpha to ${retry.compoundAlpha} ` +
-        `(certified spend is accounted separately) — pass --acknowledge-retry to proceed`,
-      );
-    }
-    assertBudgetAllows(transaction.state, certified.spend);
-
-    // The epoch is derived and committed under the same lock, so two eval
-    // processes cannot observe the same seed ledger or both declare.
-    // Fixed-N cache attempts bind the already-verified baseline ladder.  The
-    // historical fresh-epoch path stays available only for legacy menu rows.
-    const lockedCache = fixedN === undefined ? undefined : readBaselineCache(baselinePath);
-    if (lockedCache !== undefined) {
-      const plan = baselineCachePlan(lockedCache, depth);
-      verifyBaselineCache(lockedCache, depth);
-      if (plan.missingBaselineSeeds > 0) throw new Error(`baseline cache changed or is incomplete while declaring; extend it and retry`);
-      cacheView = lockedCache;
-    }
-    const canonicalSeedBase = cacheView === undefined
-      ? allocateCanonicalSeedBase(transaction.state.seedLedger, seedCount)
-      : cacheView.cache.ladder.seedBase;
-    const schedule = cacheView === undefined
-      ? resolvedSeedSchedule(
-        context.suite,
-        "canonical",
-        [...budgets],
-        depth,
-        canonicalSeedBase,
-      )
-      : seedScheduleAtDepth(cacheView.cache, depth);
-    if (cacheView === undefined) assertEpochDisjointFromManifest(context.suite, schedule);
-    const seedScheduleFingerprint = sha256(JSON.stringify(schedule));
-    const declared = declareEvalAttempt({
-      attemptId,
-      baseline,
-      decisionContract,
-      candidateFingerprint: identity.candidateFingerprint,
-      candidateSnapshot,
-      canonicalSeedBase,
-      seedScheduleFingerprint,
-      ...(cacheView === undefined ? {} : {
-        canonicalSeedSchedule: schedule,
-        baselineCache: {
-          schema: "line.benchmark-v2.eval-baseline-cache-binding.v1" as const,
-          manifestFingerprint: baselineCacheManifestFingerprint(cacheView.cache),
-          coverageDepth: depth,
-          shardRanges: cacheView.cache.shards
-            .filter((shard) => shard.firstSeedSlot < depth)
-            .map((shard) => ({
-              firstSeedSlot: shard.firstSeedSlot,
-              endSeedSlotExclusive: shard.endSeedSlotExclusive,
-            })),
-        },
-      }),
-      mode,
-      margin,
-      operatingPointId: certified.point.id,
-      depth,
-      criticalAlpha: certified.point.criticalAlpha,
-      futilitySchedule: [...certified.point.futilitySchedule],
-      futilityAlpha: certified.point.futilityAlpha,
-      eraBudgetSpend: certified.spend,
-      retryAcknowledged: acknowledgedRetry,
-      certificationFingerprint: certified.certificationFingerprint,
-      declarationDir,
-    });
-    const era = transaction.append({
-      type: "declare",
-      eraId: transaction.state.eraId!,
-      attemptId,
-      declarationPath: relativeToCwd(declared.declarationPath),
-      declarationSha256: declared.declarationSha256,
-      candidateFingerprint: identity.candidateFingerprint,
-      operatingPointId: certified.point.id,
-      mode,
-      margin,
-      depth,
-      spend: certified.spend,
-      certificationFingerprint: certified.certificationFingerprint,
-      canonicalSeedBase,
-      seedCount,
-      seedScheduleFingerprint,
-      retryAcknowledged: acknowledgedRetry,
-      ...(cacheView === undefined ? {} : { baselineCacheReuse: true }),
-    });
-    return { declared, era, retry, canonicalSeedBase };
-  });
-  const { declared, era, retry, canonicalSeedBase } = declaration;
-  console.log(`declared eval attempt ${attemptId}: ${certified.point.id}, epoch base ${canonicalSeedBase}, spend ${certified.spend}`);
-
-  return executeAttempt(
-    declared.declaration,
-    declared.declarationPath,
-    context,
-    baseline,
-    certified,
-    era,
-    retry,
-    { outDir, archiveDir, ledgerPaths, jobs, json },
-  );
-}
-
-async function resumeAttempt(
-  argv: string[],
-  context: EvalContext,
-  baseline: BaselineContract,
-  outDir: string,
-  archiveDir: string,
-  ledgerPaths: ReturnType<typeof attemptPaths>,
-  jobs: number,
-  json: boolean,
-): Promise<number> {
-  const era = readEraState(ledgerPaths);
-  if (era.inFlightAttemptId === null) {
-    // A settled attempt is durable: resuming it re-reports its outcome
-    // without recompiling anything.
-    const latest = era.attempts.at(-1);
-    if (latest?.outcome === "futility-stop") {
-      const stop = readAttemptEventsFor(ledgerPaths, latest.attemptId).find((event) => event.type === "futility");
-      console.log(`attempt ${latest.attemptId} already stopped for futility at look k=${stop?.k}; the stop is durable`);
-      return EXIT.verdict.futilityStop;
-    }
-    if (latest !== undefined && latest.outcome !== null) {
-      console.log(`attempt ${latest.attemptId} already concluded: ${latest.outcome}`);
-      return latest.outcome === "accept"
-        ? EXIT.verdict.accept
-        : latest.outcome === "inconclusive" || latest.outcome === "unresolved"
-        ? EXIT.verdict.inconclusive
-        : latest.outcome === "aborted"
-        ? EXIT.verdict.invalid
-        : EXIT.verdict.reject;
-    }
-    throw new Error(`--resume requires an in-flight eval attempt`);
-  }
-  const declareEvent = findDeclareEvent(era, ledgerPaths);
-  const { declaration, declarationSha256 } = readEvalDeclaration(resolve(declareEvent.declarationPath));
-  if (declarationSha256 !== declareEvent.declarationSha256) {
-    throw new Error(`eval declaration changed since it was ledgered; the attempt is void`);
-  }
-  assertResumeDecisionContract(
-    declaration,
-    declarationSha256,
-    baseline,
-    readAttemptEventsFor(ledgerPaths, declaration.attemptId),
-  );
-  const certified = requireCertifiedOperatingPoint(
-    declaration.mode,
-    declaration.margin,
-    declaration.depth,
-    context.suiteFingerprint,
-    undefined,
-    declaration.baselineCache !== undefined,
-  );
-  if (certified.certificationFingerprint !== declaration.certificationFingerprint) {
-    throw new Error(`certification evidence changed since this attempt was declared; the declared stopping behavior is no longer authorized`);
-  }
-  execFileSync("git", ["worktree", "prune"], { stdio: "ignore" });
-  const retry = retryStatus(era, declaration.candidateFingerprint, certified.point.criticalAlpha);
-  return executeAttempt(
-    declaration,
-    resolve(declareEvent.declarationPath),
-    context,
-    baseline,
-    certified,
-    era,
-    { priorAttempts: Math.max(0, retry.priorAttempts - 1), compoundAlpha: retry.compoundAlpha },
-    { outDir, archiveDir, ledgerPaths, jobs, json },
-  );
-}
-
-/**
- * Declarations normally require an exact decision-contract match.  The sole
- * exception is a ledgered protocol-only rebind created by `benchmark
- * migrate --rebind-inflight=…`: it is valid only for the same immutable
- * declaration, unchanged baseline identity/cache binding, unchanged
- * inference/calibration, and an approval backed by a direct bit-identical
- * runner replay.  This is deliberately not a general declaration migration.
- */
-function assertResumeDecisionContract(
-  declaration: EvalDeclaration,
-  declarationSha256: string,
-  baseline: BaselineContract,
-  events: any[],
-): void {
-  const direct =
-    declaration.baselineInferenceFingerprint === baseline.inferenceFingerprint &&
-    declaration.baselineProtocolFingerprint === baseline.protocolFingerprint &&
-    declaration.baselineCalibrationFingerprint === baseline.calibrationFingerprint;
-  if (direct) return;
-
-  const rebinds = events.filter((event) => event.type === "protocol-rebind");
-  if (rebinds.length !== 1) {
-    throw new Error(`running eval declaration does not match the baseline decision contract`);
-  }
-  const rebind = rebinds[0];
-  if (
-    declaration.baselineCache === undefined ||
-    rebind.attemptId !== declaration.attemptId ||
-    rebind.declarationSha256 !== declarationSha256 ||
-    rebind.baselineLabel !== declaration.baselineLabel ||
-    rebind.baselineCandidateFingerprint !== declaration.baselineCandidateFingerprint ||
-    rebind.baselineSnapshotSha256 !== declaration.baselineSnapshotSha256 ||
-    rebind.baselineSuiteFingerprint !== declaration.baselineSuiteFingerprint ||
-    rebind.baselineCacheManifestFingerprint !== declaration.baselineCache.manifestFingerprint ||
-    rebind.from?.inference !== declaration.baselineInferenceFingerprint ||
-    rebind.from?.protocol !== declaration.baselineProtocolFingerprint ||
-    rebind.from?.calibration !== declaration.baselineCalibrationFingerprint ||
-    rebind.to?.inference !== baseline.inferenceFingerprint ||
-    rebind.to?.calibration !== baseline.calibrationFingerprint ||
-    rebind.to?.protocol === declaration.baselineProtocolFingerprint ||
-    baseline.label !== declaration.baselineLabel ||
-    baseline.candidateFingerprint !== declaration.baselineCandidateFingerprint ||
-    baseline.suiteFingerprint !== declaration.baselineSuiteFingerprint ||
-    baseline.compilerSnapshot.archiveSha256 !== declaration.baselineSnapshotSha256
-  ) {
-    throw new Error(`protocol rebind does not preserve this attempt's immutable decision inputs`);
-  }
-  // The recorded rebind remains immutable: it proves the runner that was
-  // current when the protocol was first rebound.  A later operational repair
-  // may resume this same fixed-N attempt only when the *same frozen anchor*
-  // has also been replayed directly under the currently executing runner.
-  // This deliberately avoids chaining or rewriting rebind events.
-  const recordedApproval = runnerCompatibilityApproval(
-    rebind.runnerCompatibility?.fromImplementationFingerprint,
-    rebind.runnerCompatibility?.toImplementationFingerprint,
-    baseline.suiteFingerprint,
-  );
-  const currentRunner = fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES);
-  const currentApproval = runnerCompatibilityApproval(
-    rebind.runnerCompatibility?.fromImplementationFingerprint,
-    currentRunner,
-    baseline.suiteFingerprint,
-  );
-  if (
-    recordedApproval === null ||
-    recordedApproval.evidence.path !== rebind.runnerCompatibility.evidencePath ||
-    recordedApproval.evidence.sha256 !== rebind.runnerCompatibility.evidenceSha256 ||
-    currentApproval === null
-  ) {
-    throw new Error(`protocol rebind runner-compatibility proof is no longer current`);
-  }
-}
-
-async function executeAttempt(
-  declaration: EvalDeclaration,
-  declarationPath: string,
-  context: EvalContext,
-  baseline: BaselineContract,
-  certified: CertifiedOperatingPoint,
-  era: EraState,
-  retry: { priorAttempts: number; compoundAlpha: number },
-  options: {
-    outDir: string;
-    archiveDir: string;
-    ledgerPaths: ReturnType<typeof attemptPaths>;
-    jobs: number;
-    json: boolean;
-  },
-): Promise<number> {
-  if (declaration.baselineCache !== undefined) {
-    return executeCacheBackedAttempt(
-      declaration,
-      declarationPath,
-      context,
-      certified,
-      era,
-      retry,
-      options,
-    );
-  }
-  const { outDir, archiveDir, ledgerPaths, jobs, json } = options;
-  mkdirSync(outDir, { recursive: true });
-  mkdirSync(archiveDir, { recursive: true });
-  const basePath = resolve(outDir, `${declaration.attemptId}-baseline-development.json`);
-  const candidatePath = resolve(outDir, `${declaration.attemptId}-development.json`);
-  const segments = [...declaration.futilitySchedule, declaration.depth];
-  const attemptEvents = readAttemptEventsFor(ledgerPaths, declaration.attemptId);
-  const lookEvents = attemptEvents.filter((event) => event.type === "look");
-  const takenLooks = new Set(lookEvents.map((event) => event.k));
-  const looksSummary: Array<{ k: number; fired: boolean }> = lookEvents
-    .map((event) => ({ k: event.k, fired: event.fired }))
-    .sort((a, b) => a.k - b.k);
-
-  const durableStop = recoverDurableFutilityStop(declaration, ledgerPaths);
-  if (durableStop !== null) {
-    if (json) {
-      console.log(JSON.stringify(evalFutilityJsonPayload({
-        attemptId: declaration.attemptId,
-        k: durableStop.k,
-        upperBound: durableStop.upperBound,
-        threshold: durableStop.threshold,
-        spendCharged: declaration.eraBudgetSpend,
-      }), null, 2));
-    } else {
-      console.log(
-        `recovered durable futility stop at k=${durableStop.k}: fired look upper bound ` +
-        `${durableStop.upperBound.toFixed(2)} is below ${durableStop.threshold.toFixed(2)}; spend stays charged`,
-      );
-      console.log(`  nextCommand: ${evalNextCommand("futility-stop", declaration.attemptId)}`);
-    }
-    return EXIT.verdict.futilityStop;
-  }
-
-  let declareEvent = assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-  console.log(`eval attempt ${declaration.attemptId}: ${segments.length} segments to depth ${declaration.depth}`);
-  const baseWorkspace = createSnapshotWorkspace(baseline.compilerSnapshot);
-  let candidateWorkspace: SnapshotWorkspace | undefined;
-  try {
-    candidateWorkspace = createSnapshotWorkspace(declaration.candidateSnapshot);
-    for (const k of segments) {
-      declareEvent = assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-      const waveArgs = [
-        "--profile=canonical",
-        ...runnerBaseArgs(jobs),
-        `--confirmation-declaration=${declarationPath}`,
-        `--canonical-seed-base=${declaration.canonicalSeedBase}`,
-        `--seeds-per-budget=${declaration.depth}`,
-        `--through-seed-slot=${k}`,
-      ];
-      const baseRun = runWave(baseWorkspace, waveArgs, basePath, "baseline arm");
-      assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-      const candidateRun = runWave(candidateWorkspace, waveArgs, candidatePath, "candidate arm");
-      declareEvent = assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-      if (baseRun.workerFailures > 0 || candidateRun.workerFailures > 0) {
-        const reason = `persistent worker failures at segment k=${k} after one retry`;
-        appendAttemptEvent({
-          type: "abort",
-          attemptId: declaration.attemptId,
-          reason,
-        }, ledgerPaths);
-        const payload = evalWorkerFailurePayload({
-          stage: "confirmation",
-          reason,
-          attemptId: declaration.attemptId,
-          workerFailures: baseRun.workerFailures + candidateRun.workerFailures,
-          spendCharged: declaration.eraBudgetSpend,
-          evidencePaths: [
-            relativeToCwd(`${basePath}.checkpoint.jsonl`),
-            relativeToCwd(`${candidatePath}.checkpoint.jsonl`),
-          ],
-          nextCommand: `npm run benchmark -- eval --to-verdict --acknowledge-retry`,
-        });
-        if (json) console.log(JSON.stringify(payload, null, 2));
-        else {
-          console.error(
-            `persistent worker failures at k=${k}; attempt aborted, spend ${declaration.eraBudgetSpend} stays charged; ` +
-            `retry with --acknowledge-retry (failures never become verdicts)`,
-          );
-        }
-        return EXIT.verdict.invalid;
-      }
-      if (k < declaration.depth) {
-        if (takenLooks.has(k)) continue;
-        const look = interimLook(basePath, candidatePath, k, declaration, context);
-        appendAttemptEvent({
-          type: "look",
-          attemptId: declaration.attemptId,
-          k,
-          delta: look.delta,
-          standardError: look.standardError,
-          upperBound: look.upperBound,
-          fired: look.fired,
-        }, ledgerPaths);
-        looksSummary.push({ k, fired: look.fired });
-        console.log(renderLookLine({ ...look, k, depth: declaration.depth, threshold: look.threshold }));
-        if (look.fired) {
-          appendAttemptEvent({
-            type: "futility",
-            attemptId: declaration.attemptId,
-            k,
-            upperBound: look.upperBound,
-            threshold: look.threshold,
-          }, ledgerPaths);
-          if (json) {
-            console.log(JSON.stringify(evalFutilityJsonPayload({
-              attemptId: declaration.attemptId,
-              k,
-              upperBound: look.upperBound,
-              threshold: look.threshold,
-              spendCharged: declaration.eraBudgetSpend,
-            }), null, 2));
-          } else {
-            console.log(`futility stop at k=${k}: the 95% upper bound ${look.upperBound.toFixed(2)} is below ${look.threshold.toFixed(2)}; spend stays charged`);
-            console.log(`  nextCommand: ${evalNextCommand("futility-stop", declaration.attemptId)}`);
-          }
-          return EXIT.verdict.futilityStop;
-        }
-        continue;
-      }
-
-      // Final segment: full-scope archives assembled by the runner.
-      const retainedBase = retainSnapshotRun(baseRun, archiveDir, `${declaration.attemptId}-baseline-development`);
-      const retainedCandidate = retainSnapshotRun(candidateRun, archiveDir, `${declaration.attemptId}-development`);
-      const decided = await evalDecision(basePath, candidatePath, {
-        mode: declaration.mode,
-        margin: declaration.margin,
-        depth: declaration.depth,
-        declaration: {
-          path: declarationPath,
-          sha256: declareEvent.declarationSha256,
-          seedScheduleFingerprint: declaration.seedScheduleFingerprint,
-          baselineCandidateFingerprint: declaration.baselineCandidateFingerprint,
-          candidateFingerprint: declaration.candidateFingerprint,
-        },
-      });
-      decided.artifact.nextCommand = evalNextCommand(decided.artifact.result.outcome, declaration.attemptId);
-      const artifactPath = evalVerdictArtifactPath(
-        archiveDir,
-        declaration.attemptId,
-        decided.artifact.result.outcome,
-      );
-      writeDecisionArtifact(artifactPath, decided.artifact);
-      if (decided.artifact.result.outcome === "accept") {
-        assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-        const qualificationPath = resolve(outDir, `${declaration.attemptId}-qualification.json`);
-        const qualificationRun = runInWorkspace(candidateWorkspace, "qualification", [
-          "--profile=canonical",
-          ...runnerBaseArgs(jobs),
-          `--development-archive=${candidatePath}`,
-          `--confirmation-declaration=${declarationPath}`,
-          `--canonical-seed-base=${declaration.canonicalSeedBase}`,
-          ...(existsSync(`${qualificationPath}.checkpoint.jsonl`) ? ["--resume"] : []),
-        ], qualificationPath);
-        assertQualificationSucceeded(qualificationRun);
-        assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-        retainSnapshotRun(qualificationRun, archiveDir, `${declaration.attemptId}-qualification`);
-        console.log(`qualification monitor: ${qualificationRun.qualificationMonitorScore?.toFixed(2)} (indicative sidecar)`);
-      }
-      assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-      const finalEra = appendAttemptEvent({
-        type: "verdict",
-        attemptId: declaration.attemptId,
-        outcome: decided.artifact.result.outcome,
-        decisionArtifactPath: relativeToCwd(artifactPath),
-        decisionArtifactSha256: sha256(readFileSync(artifactPath).toString("utf8")),
-      }, ledgerPaths);
-      if (json) {
-        console.log(JSON.stringify(evalVerdictJsonPayload({
-          attemptId: declaration.attemptId,
-          artifactPath: relativeToCwd(artifactPath),
-          artifact: decided.artifact,
-          era: finalEra,
-          baseArchive: retainedBase.archive,
-          candidateArchive: retainedCandidate.archive,
-          certified,
-          spendCharged: declaration.eraBudgetSpend,
-        }), null, 2));
-      } else {
-        console.log(renderEvalVerdict({
-          artifact: decided.artifact,
-          artifactPath: relativeToCwd(artifactPath),
-          certified,
-          era: finalEra,
-          attemptSpend: declaration.eraBudgetSpend,
-          priorAttempts: retry.priorAttempts,
-          compoundAlpha: retry.compoundAlpha,
-          looks: looksSummary,
-        }));
-      }
-      const outcome = decided.artifact.result.outcome;
-      return outcome === "accept"
-        ? EXIT.verdict.accept
-        : outcome === "inconclusive" || outcome === "unresolved"
-        ? EXIT.verdict.inconclusive
-        : EXIT.verdict.reject;
-    }
-    throw new Error(`eval segments were exhausted without a verdict`);
-  } finally {
-    if (candidateWorkspace !== undefined) disposeSnapshotWorkspace(candidateWorkspace);
-    disposeSnapshotWorkspace(baseWorkspace);
-  }
-}
-
-/** Candidate-only execution for an immutable fixed-N baseline cache.  There
- * are deliberately no interim looks: the operating point's calibration and
- * declaration bind a single ordinary paired final decision at exactly N. */
-async function executeCacheBackedAttempt(
-  declaration: EvalDeclaration,
-  declarationPath: string,
-  context: EvalContext,
-  certified: CertifiedOperatingPoint,
-  era: EraState,
-  retry: { priorAttempts: number; compoundAlpha: number },
-  options: {
-    outDir: string;
-    archiveDir: string;
-    ledgerPaths: ReturnType<typeof attemptPaths>;
-    jobs: number;
-    json: boolean;
-  },
-): Promise<number> {
-  const { outDir, archiveDir, ledgerPaths, jobs, json } = options;
-  if (declaration.futilitySchedule.length !== 0 || declaration.canonicalSeedSchedule === undefined) {
-    throw new Error(`cache-backed fixed-N declaration must contain a literal no-look seed schedule`);
-  }
-  const cache = readBaselineCache();
-  if (baselineCacheManifestFingerprint(cache.cache) !== declaration.baselineCache!.manifestFingerprint) {
-    throw new Error(`baseline cache manifest changed since declaration; this attempt is void and must be aborted`);
-  }
-  const plan = baselineCachePlan(cache, declaration.depth);
-  if (plan.missingBaselineSeeds > 0) throw new Error(`declared baseline cache coverage is no longer complete`);
-  verifyBaselineCache(cache, declaration.depth);
-  mkdirSync(outDir, { recursive: true });
-  mkdirSync(archiveDir, { recursive: true });
-  const candidatePath = resolve(outDir, `${declaration.attemptId}-development.json`);
-  let candidateWorkspace: SnapshotWorkspace | undefined;
-  try {
-    assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-    let run = completedDevelopmentRun(candidatePath);
-    if (run === null) {
-      candidateWorkspace = createSnapshotWorkspace(declaration.candidateSnapshot);
-      run = runInWorkspace(candidateWorkspace, "development", [
-        "--profile=canonical",
-        ...runnerBaseArgs(jobs),
-        `--confirmation-declaration=${declarationPath}`,
-        `--canonical-seed-base=${declaration.canonicalSeedBase}`,
-        `--seeds-per-budget=${declaration.depth}`,
-        `--seed-schedule=${declarationPath}`,
-        ...(existsSync(`${candidatePath}.checkpoint.jsonl`) ? ["--resume"] : []),
-      ], candidatePath);
-      if (run.workerFailures > 0) {
-        const reason = `cache-backed candidate run has ${run.workerFailures} persistent worker failure(s)`;
-        appendAttemptEvent({ type: "abort", attemptId: declaration.attemptId, reason }, ledgerPaths);
-        if (json) console.log(JSON.stringify(evalWorkerFailurePayload({
-          stage: "confirmation", reason, attemptId: declaration.attemptId,
-          workerFailures: run.workerFailures, spendCharged: declaration.eraBudgetSpend,
-          evidencePaths: [relativeToCwd(`${candidatePath}.checkpoint.jsonl`)],
-          nextCommand: `npm run benchmark -- eval --to-verdict --resume`,
-        }), null, 2));
-        else console.error(`${reason}; attempt aborted and spend remains charged`);
-        return EXIT.verdict.invalid;
-      }
-    }
-    assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-    const cacheAfter = readBaselineCache();
-    if (baselineCacheManifestFingerprint(cacheAfter.cache) !== declaration.baselineCache!.manifestFingerprint) {
-      throw new Error(`baseline cache manifest changed while candidate evidence was running; this attempt is void`);
-    }
-    const decided = await evalDecisionAgainstBaselineCache(cacheAfter, candidatePath, {
-      mode: declaration.mode,
-      margin: declaration.margin,
-      depth: declaration.depth,
-      declaration: {
-        path: declarationPath,
-        sha256: assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths).declarationSha256,
-        seedScheduleFingerprint: declaration.seedScheduleFingerprint,
-        candidateFingerprint: declaration.candidateFingerprint,
-      },
-    });
-    // `evalDecisionAgainstBaselineCache` has just checksum-verified the raw
-    // archive, gzip, indexed projection, declaration, schedule, and cache
-    // pairing.  Retain only after that verification, so an interrupted final
-    // verdict can reuse completed candidate evidence without reopening a
-    // checkpoint whose runner bookkeeping has since been repaired.
-    const retainedCandidate = retainSnapshotRun(run, archiveDir, `${declaration.attemptId}-development`);
-    decided.artifact.nextCommand = evalNextCommand(decided.artifact.result.outcome, declaration.attemptId);
-    const artifactPath = evalVerdictArtifactPath(archiveDir, declaration.attemptId, decided.artifact.result.outcome);
-    writeDecisionArtifact(artifactPath, decided.artifact);
-    if (decided.artifact.result.outcome === "accept") {
-      assertAttemptDeclarationCurrent(declaration.attemptId, ledgerPaths);
-      const qualificationPath = resolve(outDir, `${declaration.attemptId}-qualification.json`);
-      if (candidateWorkspace === undefined) {
-        candidateWorkspace = createSnapshotWorkspace(declaration.candidateSnapshot);
-      }
-      const qualification = runInWorkspace(candidateWorkspace, "qualification", [
-        "--profile=canonical",
-        ...runnerBaseArgs(jobs),
-        `--development-archive=${candidatePath}`,
-        `--confirmation-declaration=${declarationPath}`,
-        `--canonical-seed-base=${declaration.canonicalSeedBase}`,
-        ...(existsSync(`${qualificationPath}.checkpoint.jsonl`) ? ["--resume"] : []),
-      ], qualificationPath);
-      assertQualificationSucceeded(qualification);
-      retainSnapshotRun(qualification, archiveDir, `${declaration.attemptId}-qualification`);
-    }
-    const finalEra = appendAttemptEvent({
-      type: "verdict",
-      attemptId: declaration.attemptId,
-      outcome: decided.artifact.result.outcome,
-      decisionArtifactPath: relativeToCwd(artifactPath),
-      decisionArtifactSha256: sha256(readFileSync(artifactPath).toString("utf8")),
-    }, ledgerPaths);
-    if (json) {
-      console.log(JSON.stringify(evalVerdictJsonPayload({
-        attemptId: declaration.attemptId,
-        artifactPath: relativeToCwd(artifactPath),
-        artifact: decided.artifact,
-        era: finalEra,
-        baseArchive: `canonical-cache:${relativeToCwd(cacheAfter.baselinePath)}`,
-        candidateArchive: retainedCandidate.archive,
-        certified,
-        spendCharged: declaration.eraBudgetSpend,
-      }), null, 2));
-    } else {
-      console.log(renderEvalVerdict({
-        artifact: decided.artifact,
-        artifactPath: relativeToCwd(artifactPath),
-        certified,
-        era: finalEra,
-        attemptSpend: declaration.eraBudgetSpend,
-        priorAttempts: retry.priorAttempts,
-        compoundAlpha: retry.compoundAlpha,
-        looks: [],
-      }));
-    }
-    const outcome = decided.artifact.result.outcome;
-    return outcome === "accept"
-      ? EXIT.verdict.accept
-      : outcome === "inconclusive" || outcome === "unresolved"
-      ? EXIT.verdict.inconclusive
-      : EXIT.verdict.reject;
-  } finally {
-    if (candidateWorkspace !== undefined) disposeSnapshotWorkspace(candidateWorkspace);
-  }
-}
-
-/**
- * Return a fully published development run when a prior resume completed the
- * immutable candidate evidence but was interrupted before its verdict.  The
- * caller immediately sends it through the decision loader, which verifies
- * every archive and index checksum before the result can be used.
- */
-function completedDevelopmentRun(outputPath: string): SnapshotBenchmarkRun | null {
-  const summaryPath = `${outputPath}.summary.json`;
-  const decisionIndexPath = `${outputPath}.decision-index.json`;
-  const artifacts = [
-    outputPath,
-    `${outputPath}.gz`,
-    `${outputPath}.sha256`,
-    `${outputPath}.gz.sha256`,
-    summaryPath,
-    decisionIndexPath,
-    `${decisionIndexPath}.sha256`,
-  ];
-  if (artifacts.every((path) => !existsSync(path))) return null;
-  if (artifacts.some((path) => !existsSync(path))) {
-    throw new Error(`completed candidate evidence is partial; inspect or remove it before resuming`);
-  }
-  const summary = JSON.parse(readFileSync(summaryPath, "utf8"));
-  if (
-    summary?.schema !== "line.benchmark-v2.run-summary.v3" ||
-    summary.mode !== "development" ||
-    summary.archive !== outputPath ||
-    !isSha256(summary.archiveSha256) ||
-    !isSha256(summary.compressedArchiveSha256) ||
-    !Number.isFinite(summary.canonicalHeadline) ||
-    summary.qualificationMonitorScore !== null ||
-    summary.workerFailures !== 0
-  ) {
-    throw new Error(`completed candidate evidence has an invalid development summary`);
-  }
-  return {
-    mode: "development",
-    outputPath,
-    summaryPath,
-    decisionIndexPath,
-    archiveSha256: summary.archiveSha256,
-    compressedArchiveSha256: summary.compressedArchiveSha256,
-    headline: summary.canonicalHeadline,
-    qualificationMonitorScore: null,
-    workerFailures: 0,
+    canonicalSeedBase: schedule.seedBase,
+    seedScheduleFingerprint: sha256String(JSON.stringify(schedule)),
+    canonicalSeedSchedule: schedule,
   };
+  writeFileAtomicDurable(requestPath, `${JSON.stringify(request, null, 2)}\n`);
+  return request;
 }
 
-function isSha256(value: unknown): value is string {
-  return typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+function readComparisonRequest(
+  requestPath: string,
+  cache: BaselineCacheView,
+  seeds: number,
+  mode: ComparisonMode,
+  margin: number | null,
+): ComparisonRequest {
+  if (!existsSync(requestPath)) {
+    throw new Error(`--resume requires the original request at ${relativeToCwd(requestPath)}`);
+  }
+  const request = JSON.parse(readFileSync(requestPath, "utf8")) as ComparisonRequest;
+  if (
+    request.schema !== COMPARISON_REQUEST_SCHEMA ||
+    request.seeds !== seeds ||
+    request.mode !== mode ||
+    request.margin !== margin ||
+    request.baselineLabel !== cache.cache.baselineLabel ||
+    request.baselineCacheFingerprint !== baselineCacheManifestFingerprint(cache.cache) ||
+    request.candidateSnapshot?.candidateFingerprint !== request.candidateFingerprint ||
+    request.seedScheduleFingerprint !== sha256String(JSON.stringify(request.canonicalSeedSchedule))
+  ) {
+    throw new Error(`the saved comparison request does not match this resume command or current baseline cache`);
+  }
+  return request;
 }
 
-export function evalVerdictJsonPayload(input: {
-  attemptId: string;
-  artifactPath: string;
-  artifact: { schema: string; result: any; hint: string | null; nextCommand: string };
-  era: EraState;
-  baseArchive: string;
-  candidateArchive: string;
-  certified: CertifiedOperatingPoint;
-  spendCharged: number;
-}): Record<string, unknown> {
-  const result = input.artifact.result;
-  return {
-    schema: "line.benchmark-v2.eval-result.v1",
-    status: result.outcome,
-    attemptId: input.attemptId,
-    artifactPath: input.artifactPath,
-    artifact: {
-      schema: input.artifact.schema,
-      result: {
-        outcome: result.outcome,
-        promotable: result.promotable,
-        baseHeadline: result.baseHeadline,
-        candidateHeadline: result.candidateHeadline,
-        delta: result.delta,
-        standardError: result.uncertainty.seed.standardError,
-        lowerBound: result.confidence.lowerBound,
-        upperBound: result.confidence.upperBound,
-        validity: result.validity,
-        perBudget: result.perBudget.map((entry: any) => ({
-          budget: entry.budget,
-          delta: entry.delta,
-          lowerBound: entry.confidence.lowerBound,
-          upperBound: entry.confidence.upperBound,
-          baseValid: entry.baseValid,
-          candidateValid: entry.candidateValid,
-          total: entry.total,
-        })),
-        perStratum: result.perStratum.map((entry: any) => ({
-          stratum: entry.stratum,
-          delta: entry.delta,
-          lowerBound: entry.confidence.lowerBound,
-          upperBound: entry.confidence.upperBound,
-          baseValid: entry.baseValid,
-          candidateValid: entry.candidateValid,
-          total: entry.total,
-        })),
-      },
-      hint: input.artifact.hint,
-      nextCommand: input.artifact.nextCommand,
-    },
-    operatingPoint: {
-      id: input.certified.point.id,
-      depth: input.certified.point.depth,
-      criticalAlpha: input.certified.point.criticalAlpha,
-      certifiedDetectableEffect: input.certified.mde80,
-    },
-    era: {
-      eraId: input.era.eraId,
-      budgetSpent: input.era.budgetSpent,
-      budgetCap: input.era.budgetCap,
-      cumulativeExpectedFalseAccepts: input.era.cumulativeExpectedFalseAccepts,
-      spendCharged: input.spendCharged,
-    },
-    evidence: {
-      baseArchive: input.baseArchive,
-      candidateArchive: input.candidateArchive,
-    },
-  };
+function comparisonNextCommand(
+  outcome: string,
+  artifactPath: string,
+  seeds: number,
+  availableSeeds: number,
+): string {
+  if (outcome === "accept") {
+    return `npm run benchmark -- rebaseline --from=${relativeToCwd(artifactPath)} --label=accepted-candidate`;
+  }
+  if ((outcome === "inconclusive" || outcome === "unresolved") && seeds < availableSeeds) {
+    const next = Math.min(availableSeeds, Math.max(seeds + 1, seeds * 2));
+    return `npm run benchmark -- eval --seeds=${next}`;
+  }
+  return `npm run benchmark -- eval`;
 }
 
-export function evalVerdictArtifactPath(archiveDir: string, attemptId: string, outcome: string): string {
-  return resolve(archiveDir, `${attemptId}-verdict-${outcome}.json`);
+function writeArtifact(path: string, artifact: CachedComparisonArtifact): void {
+  const bytes = Buffer.from(`${JSON.stringify(artifact, null, 2)}\n`);
+  writeFileAtomicDurable(path, bytes.toString("utf8"));
+  writeFileAtomicDurable(`${path}.sha256`, `${sha256(bytes)}  ${relativeToCwd(path)}\n`);
 }
 
-export function evalFutilityJsonPayload(input: {
-  attemptId: string;
-  k: number;
-  upperBound: number;
-  threshold: number;
-  spendCharged: number;
+export function evalWorkerFailurePayload(input: {
+  stage: "cached";
+  reason: string;
+  workerFailures: number;
+  evidencePaths: string[];
+  nextCommand: string;
 }): Record<string, unknown> {
   return {
-    schema: "line.benchmark-v2.eval-result.v1",
-    status: "futility-stop",
-    attemptId: input.attemptId,
-    look: { k: input.k, upperBound: input.upperBound, threshold: input.threshold },
-    era: { spendCharged: input.spendCharged },
-    nextCommand: evalNextCommand("futility-stop", input.attemptId),
+    schema: "line.benchmark-v2.eval-failure.v2",
+    status: "invalid",
+    stage: input.stage,
+    reason: input.reason,
+    workerFailures: input.workerFailures,
+    evidencePaths: input.evidencePaths,
+    nextCommand: input.nextCommand,
   };
 }
 
-/**
- * A fired look is already binding evidence. If the process died between the
- * look append and its settlement event, resume must settle that stop before
- * opening workspaces or executing another row.
- */
-export function recoverDurableFutilityStop(
-  declaration: Pick<EvalDeclaration, "attemptId" | "mode" | "margin">,
-  ledgerPaths: AttemptPaths,
-): { k: number; upperBound: number; threshold: number } | null {
-  return withAttemptLedgerTransaction(ledgerPaths, (transaction) => {
-    const events = transaction.events.filter((event) =>
-      "attemptId" in event && event.attemptId === declaration.attemptId
-    );
-    const existing = events.find((event) => event.type === "futility");
-    if (existing?.type === "futility") {
-      return { k: existing.k, upperBound: existing.upperBound, threshold: existing.threshold };
-    }
-    const fired = events.find((event) => event.type === "look" && event.fired);
-    if (fired?.type !== "look") return null;
-    const threshold = declaration.mode === "simplification" ? -(declaration.margin ?? 0) : 0;
-    transaction.append({
-      type: "futility",
-      attemptId: declaration.attemptId,
-      k: fired.k,
-      upperBound: fired.upperBound,
-      threshold,
-    });
-    return { k: fired.k, upperBound: fired.upperBound, threshold };
-  });
-}
-
-/** One wave on one arm; a failed wave is retried once before the caller aborts. */
-function runWave(
-  workspace: SnapshotWorkspace,
-  waveArgs: string[],
-  outputPath: string,
-  label: string,
-): ReturnType<typeof runInWorkspace> {
-  const invoke = (): ReturnType<typeof runInWorkspace> => {
-    waitForRunLock(outputPath, label);
-    return runInWorkspace(workspace, "development", [
-      ...waveArgs,
-      ...(existsSync(`${outputPath}.checkpoint.jsonl`) ? ["--resume"] : []),
-    ], outputPath);
-  };
-  try {
-    const run = invoke();
-    if (run.workerFailures === 0) return run;
-    console.error(`${label}: ${run.workerFailures} worker failure(s); retrying the wave once`);
-  } catch (error) {
-    console.error(`${label}: wave failed (${(error as Error).message}); retrying once`);
+/** Refuse an engine mismatch before paying for candidate compilation. Runner
+ * provenance is reported after comparison, not used as a workflow lock. */
+export function assertBaselineEngineComparable(baselinePath: string): void {
+  const baseline = JSON.parse(readFileSync(resolve(baselinePath), "utf8"));
+  const current = compilerCandidateIdentity("wasm");
+  if (current.engineArtifactFingerprint !== baseline.engine_artifact_fingerprint) {
+    throw new Error(`engine artifact differs from the retained baseline; establish a new baseline intentionally`);
   }
-  try {
-    return invoke();
-  } catch (error) {
-    // The caller records the abort; failures never become verdicts.
-    console.error(`${label}: wave failed again (${(error as Error).message})`);
-    return {
-      mode: "development",
-      outputPath,
-      summaryPath: outputPath,
-      archiveSha256: "",
-      compressedArchiveSha256: "",
-      headline: null,
-      qualificationMonitorScore: null,
-      workerFailures: 1,
-    };
-  }
-}
-
-function interimLook(
-  basePath: string,
-  candidatePath: string,
-  k: number,
-  declaration: EvalDeclaration,
-  context: EvalContext,
-): {
-  delta: number;
-  standardError: number;
-  upperBound: number;
-  threshold: number;
-  fired: boolean;
-  scoreIdenticalFraction: number;
-} {
-  const baseRuns = checkpointDecisionRuns(basePath, k, declaration, context);
-  const candidateRuns = checkpointDecisionRuns(candidatePath, k, declaration, context);
-  const decision = pairedV2DecisionForCalibration(
-    baseRuns,
-    candidateRuns,
-    suiteAtDepth(context.suite, k),
-    {
-      profile: "canonical",
-      mode: declaration.mode,
-      margin: declaration.mode === "simplification" ? declaration.margin ?? undefined : undefined,
-    },
-  );
-  const seed = decision.uncertainty.seed;
-  const upperBound = evalFutilityUpperBound(
-    seed.estimate,
-    seed.standardError,
-    seed.degreesOfFreedom,
-    declaration.futilityAlpha,
-  );
-  const threshold = decision.threshold;
-  const paired = new Map(baseRuns.map((run) => [decisionRunKey(run), run.score.score]));
-  const identical = candidateRuns.filter((run) => paired.get(decisionRunKey(run)) === run.score.score).length;
-  return {
-    delta: decision.delta,
-    standardError: seed.standardError,
-    upperBound: round4(upperBound),
-    threshold,
-    fired: evalFutilityStops({
-      estimate: seed.estimate,
-      standardError: seed.standardError,
-      degreesOfFreedom: seed.degreesOfFreedom,
-      futilityAlpha: declaration.futilityAlpha,
-      threshold,
-    }),
-    scoreIdenticalFraction: candidateRuns.length === 0 ? 0 : identical / candidateRuns.length,
-  };
-}
-
-function checkpointDecisionRuns(
-  archivePath: string,
-  k: number,
-  declaration: EvalDeclaration,
-  context: EvalContext,
-): DecisionRun[] {
-  const checkpointPath = `${archivePath}.checkpoint.jsonl`;
-  const lines = readFileSync(checkpointPath, "utf8").split("\n").filter((line) => line.trim() !== "");
-  const results = lines.slice(1)
-    .map((line) => JSON.parse(line))
-    .filter((entry) => entry.type === "result")
-    .map((entry) => entry.result);
-  const latest = latestSuccessfulResults(
-    results,
-    (result: any) => `${result.task.sourceId}\0${result.task.budget}\0${result.task.seedSlot}\0${result.task.actualSeed}`,
-  );
-  const decisionRuns = latest.map((result: any) => {
-    const rescored = rescoreCheckpointRow(result, context);
-    return checkpointResultToDecisionRun(result, rescored);
-  });
-  const lookResults = evalRunsAtLook(decisionRuns, k);
-  const expected = context.suite.profiles.canonical.budgets.length * k * canonicalMembers(context.suite).length;
-  if (lookResults.length !== expected) {
-    throw new Error(`${checkpointPath}: incomplete scope for look k=${k} (${lookResults.length}/${expected} rows)`);
-  }
-  return lookResults;
-}
-
-/** Flatten the runner's nested checkpoint shape before applying look-depth inference. */
-export function checkpointResultToDecisionRun(
-  result: {
-    task: { sourceId: string; budget: number; seedSlot: number; actualSeed: number };
-  },
-  score: { score: number; valid: boolean },
-): DecisionRun {
-  return {
-    sourceId: result.task.sourceId,
-    budget: result.task.budget,
-    seedSlot: result.task.seedSlot,
-    actualSeed: result.task.actualSeed,
-    score: { score: score.score, valid: score.valid },
-  };
-}
-
-// ── Helpers ─────────────────────────────────────────────────────────────────
-
-/**
- * A crash can orphan a wave's runner child; its exclusive run lock outlives
- * the parent until the child drains. Waiting for the holder (instead of
- * treating the refusal as a wave failure) keeps a resumed attempt from
- * aborting itself against its own orphan.
- */
-function waitForRunLock(outputPath: string, label: string, timeoutMs = 15 * 60_000): void {
-  const lockPath = `${outputPath}.lock`;
-  const startedAt = Date.now();
-  for (;;) {
-    if (!existsSync(lockPath)) return;
-    let holder: { pid?: number };
-    try {
-      holder = JSON.parse(readFileSync(lockPath, "utf8"));
-    } catch {
-      return; // partially written or removed mid-read; the runner re-checks
-    }
-    try {
-      process.kill(holder.pid!, 0);
-    } catch {
-      return; // holder is dead; the runner steals stale locks itself
-    }
-    if (Date.now() - startedAt > timeoutMs) {
-      throw new Error(`${label}: run lock ${lockPath} is still held by live pid ${holder.pid} after ${timeoutMs / 60_000} minutes`);
-    }
-    console.log(`${label}: waiting for the previous wave's runner (pid ${holder.pid}) to drain...`);
-    execFileSync("sleep", ["5"]);
-  }
-}
-
-function rescoreCheckpointRow(result: any, context: EvalContext): { score: number; valid: boolean } {
-  const contract = context.contracts.get(result.task.sourceId);
-  if (contract === undefined) throw new Error(`${result.task.sourceId}: unknown source in checkpoint`);
-  const scored = scoreV2Report(result.report, result.authoredContacts, contract, context.suite);
-  return { score: scored.score, valid: scored.valid };
-}
-
-function decisionRunKey(run: DecisionRun): string {
-  return `${run.sourceId}\0${run.budget}\0${run.seedSlot}\0${run.actualSeed}`;
 }
 
 export function assertQualificationSucceeded(
   run: Pick<SnapshotBenchmarkRun, "workerFailures">,
 ): void {
   if (run.workerFailures > 0) {
-    throw new Error(
-      `qualification sidecar has ${run.workerFailures} worker failure(s); ` +
-      `the attempt remains in flight and must be resumed before an accept can be recorded`,
-    );
+    throw new Error(`qualification has ${run.workerFailures} worker failure(s); resume it before rebaselining`);
   }
 }
 
-function scoreIdenticalFraction(baseArchive: any, candidateArchive: any): number {
-  const key = (row: any): string =>
-    `${row.task.sourceId}\0${row.task.budget}\0${row.task.seedSlot}\0${row.task.actualSeed}`;
-  const base = new Map(baseArchive.runs.map((row: any) => [key(row), row.score.score]));
-  const identical = candidateArchive.runs
-    .filter((row: any) => base.get(key(row)) === row.score.score).length;
-  return candidateArchive.runs.length === 0 ? 0 : identical / candidateArchive.runs.length;
-}
-
-function assertEpochDisjointFromManifest(
-  suite: SuiteManifest,
-  schedule: ReturnType<typeof resolvedSeedSchedule>,
-): void {
-  const fixed = new Map<number, Set<number>>();
-  for (const profileName of ["probe", "canonical"] as const) {
-    const profile = suite.profiles[profileName];
-    const manifestSchedule = resolvedSeedSchedule(suite, profileName, profile.budgets, profile.seeds_per_budget);
-    for (const entry of manifestSchedule.byBudget) {
-      const seeds = fixed.get(entry.budget) ?? new Set<number>();
-      for (const seed of entry.actualSeeds) seeds.add(seed);
-      fixed.set(entry.budget, seeds);
-    }
+function parseJobs(raw: string | undefined): number {
+  const jobs = raw === undefined ? Math.min(48, availableParallelism()) : Number(raw);
+  if (!Number.isSafeInteger(jobs) || jobs < 1 || jobs > 48) {
+    throw new Error(`--jobs must be an integer in 1..48`);
   }
-  for (const entry of schedule.byBudget) {
-    const seeds = fixed.get(entry.budget);
-    if (seeds !== undefined && entry.actualSeeds.some((seed) => seeds.has(seed))) {
-      throw new Error(`${entry.budget}: the fresh eval epoch overlaps a fixed manifest schedule`);
-    }
-  }
+  return jobs;
 }
 
-function readEraStateIfPresent(argument: (name: string) => string | undefined): EraState | null {
-  const paths = attemptPaths(argument);
-  return existsSync(paths.ledger) ? readEraState(paths) : null;
-}
-
-function attemptPaths(argument: (name: string) => string | undefined): { ledger: string; projection: string } {
-  return {
-    ledger: resolve(argument("attempts-ledger") ?? "benchmark/v2/attempts.jsonl"),
-    projection: resolve(argument("era-state") ?? "benchmark/v2/era-state.json"),
-  };
-}
-
-function findDeclareEvent(era: EraState, ledgerPaths: { ledger: string; projection: string }): any {
-  const events = readAttemptEventsFor(ledgerPaths, era.inFlightAttemptId!);
-  const declare = events.find((event) => event.type === "declare");
-  if (declare === undefined) throw new Error(`in-flight attempt has no declare event; the ledger is corrupt`);
-  return declare;
-}
-
-function readAttemptEventsFor(
-  ledgerPaths: { ledger: string; projection: string },
-  attemptId: string,
-): any[] {
-  if (!existsSync(ledgerPaths.ledger)) return [];
-  return readFileSync(ledgerPaths.ledger, "utf8")
-    .split("\n")
-    .filter((line) => line.trim() !== "")
-    .map((line) => JSON.parse(line))
-    .filter((event) => event.attemptId === attemptId);
-}
-
-function parseEvalMode(raw: string | undefined): ConfirmationMode {
-  const mode = raw ?? "improve";
-  if (mode === "improve" || mode === "improvement") return "improvement";
-  if (mode === "simplify" || mode === "simplification") return "simplification";
+function parseMode(raw: string | undefined): ComparisonMode {
+  const value = raw ?? "improve";
+  if (value === "improve" || value === "improvement") return "improvement";
+  if (value === "simplify" || value === "simplification") return "simplification";
   throw new Error(`--mode must be improve or simplify`);
 }
 
-function parseEvalMargin(mode: ConfirmationMode, raw: string | undefined): number | null {
+function parseMargin(mode: ComparisonMode, raw: string | undefined): number | null {
   if (mode === "improvement") {
     if (raw !== undefined) throw new Error(`--margin is only valid with --mode=simplify`);
     return null;
@@ -1614,11 +404,19 @@ function parseEvalMargin(mode: ConfirmationMode, raw: string | undefined): numbe
   return margin;
 }
 
-function round4(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
+function requireWasm(command: string): void {
+  if (process.env.LR_ENGINE !== "wasm") throw new Error(`${command} requires LR_ENGINE=wasm`);
 }
 
-function sha256(value: string): string {
+function timestamp(): string {
+  return new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z");
+}
+
+function sha256(value: Buffer): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function sha256String(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 

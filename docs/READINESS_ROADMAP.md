@@ -1,5 +1,14 @@
 # Readiness — roadmap
 
+> **Historical evidence and design record.** The authoritative
+> pre-implementation semantics now live in
+> [`BALLISTIC_READINESS_CONTRACT.md`](BALLISTIC_READINESS_CONTRACT.md).
+> It reserves **catchability** for the empirical catch-success component and
+> **readiness** for the full catchability × speed-fit × air-fit ×
+> impact-feasibility × elevation-fit composite, separate from proposal utility.
+> Historical benchmark verdicts below predate the current V2 predictor corpus
+> and are not current promotion evidence.
+
 2026-06-12 · branch arc-rewrite · current implementation. The production
 objective is centralized in `scripts/v0/optimizer/objective.ts`:
 `current_gap_quality * next_gap_readiness`. `next_gap_readiness` is one

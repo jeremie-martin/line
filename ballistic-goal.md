@@ -93,6 +93,8 @@ process.
 This score answers whether the direct prediction model is better on the state
 distribution the compiler actually sends it. It does not answer whether the
 compiler's fitted approximation or downstream use preserves that improvement.
+The intended semantic boundaries and frame contract are defined in
+[`docs/BALLISTIC_READINESS_CONTRACT.md`](docs/BALLISTIC_READINESS_CONTRACT.md).
 
 After selecting a direct predictor, audit the compiler path separately:
 

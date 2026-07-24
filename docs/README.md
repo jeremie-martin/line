@@ -19,8 +19,9 @@ historical record, not live guidance.
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | LIVE | The active compiler's search algorithm. |
+| [`BALLISTIC_READINESS_CONTRACT.md`](BALLISTIC_READINESS_CONTRACT.md) | LIVE | Pre-implementation source of truth for ballistic projection, gap composition, readiness, and proposal-utility boundaries. |
 | [`ARC_AIMING_FORMALIZATION.md`](ARC_AIMING_FORMALIZATION.md) | LIVE | The aiming model and the shared current-quality × readiness objective. |
-| [`READINESS_ROADMAP.md`](READINESS_ROADMAP.md) | LIVE | Readiness design history and current composite readiness semantics. |
+| [`READINESS_ROADMAP.md`](READINESS_ROADMAP.md) | REFERENCE | Historical readiness experiments and former composite semantics; not the current contract. |
 | [`ARC_STATE_CONTROL.md`](ARC_STATE_CONTROL.md) | LIVE | Arc-state control, joint model shape, and proposer/search boundary. |
 
 ## Live campaigns

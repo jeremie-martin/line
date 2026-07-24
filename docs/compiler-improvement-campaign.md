@@ -318,3 +318,22 @@ product on ~0.09 is a scale mismatch, not a search-policy choice anyone made.
 Sweeping `LR_OBJECTIVE_FUTURE_POWER` to 0.5 and 2.0 both improved dense landing
 slightly (35.4 and 36.5 against 34.3), which is knob noise at 2 seeds rather
 than a mechanism, and is recorded here only so it is not mistaken for a lead.
+
+**Falsification 5 — the composed aim is not responsible for the second drop
+either.** The `6d064b0` step (dense landing 39.5% → 33.9%) introduced
+`arc_proposal.ts` and the contact-owned target composition. Probed by aiming the
+sampler at the literal `gap.targets` exactly as every commit up to `cdba2d7`
+did:
+
+  legacy literal aim   dense 34.5 / 27.8, 0/10   healthy 76.8 / 72.8
+  composed (current)   dense 34.3 / 27.8, 1/10   healthy 76.4 / 72.0
+
+Identical on dense. So the composition costs nothing, which is consistent with
+it being the correct ownership: an arc owns the impact at its own contact and
+the motion of the gap it OPENS. The probe flag was removed rather than left in
+the tree as a parallel path.
+
+What remains unexplained in `6d064b0` is therefore the exit-detector change and
+the replacement of the hand-built readiness estimators with the trained
+artifact — the latter being a model fitted on a corpus collected under a
+DIFFERENT compiler, replacing estimators that had co-evolved with the search.

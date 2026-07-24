@@ -692,6 +692,20 @@ export type CompileStats = {
    *  `sim_frames`: a ratio near 1 means the compile ran a full shadow flight
    *  simulation alongside its real one. */
   ballistic_micro_sim_frames?: number;
+  /** Mean per-pool spread and level of each objective layer (optimizer/aim.ts).
+   *  A layer can only rank if it VARIES across the pool, and the layer that
+   *  varies most is the one deciding. Non-scoring diagnostics. */
+  objective_layer_spread?: {
+    pools: number;
+    settled_spread_mean: number;
+    projected_spread_mean: number;
+    readiness_spread_mean: number;
+    value_spread_mean: number;
+    settled_level_mean: number;
+    projected_level_mean: number;
+    readiness_level_mean: number;
+    value_level_mean: number;
+  };
   /** Geometric-exit release-read funnel (core/candidate.ts). Non-scoring
    *  diagnostics; absent under LR_RANK_QUALITY=off (no read taken). */
   release_exit?: {

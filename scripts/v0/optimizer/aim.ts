@@ -109,6 +109,7 @@ import {
   nextContactGap,
   projectOutgoingScorerGap,
   proposalUtility,
+  type GapObjectiveScore,
   scoreCandidateProposal,
   scoreProjectedOutgoingSurrogate,
   scorerGapFrameCount,
@@ -562,6 +563,49 @@ export function resetAimStats(): void {
   for (const key of Object.keys(aimTotals) as (keyof typeof aimTotals)[]) {
     aimTotals[key] = 0;
   }
+  layerSpread = {
+    pools: 0,
+    settledSpread: 0,
+    projectedSpread: 0,
+    readinessSpread: 0,
+    valueSpread: 0,
+    settledMean: 0,
+    projectedMean: 0,
+    readinessMean: 0,
+    valueMean: 0,
+  };
+}
+
+/**
+ * Mean per-pool spread and level of each objective layer. Non-scoring; the
+ * question it answers is "which layer is actually deciding the ranking", which
+ * no other counter can answer. Null when no pool was scored.
+ */
+export function snapshotObjectiveLayerSpread(): {
+  pools: number;
+  settled_spread_mean: number;
+  projected_spread_mean: number;
+  readiness_spread_mean: number;
+  value_spread_mean: number;
+  settled_level_mean: number;
+  projected_level_mean: number;
+  readiness_level_mean: number;
+  value_level_mean: number;
+} | null {
+  const n = layerSpread.pools;
+  if (n === 0) return null;
+  const r3 = (v: number) => Math.round(v * 1000) / 1000;
+  return {
+    pools: n,
+    settled_spread_mean: r3(layerSpread.settledSpread / n),
+    projected_spread_mean: r3(layerSpread.projectedSpread / n),
+    readiness_spread_mean: r3(layerSpread.readinessSpread / n),
+    value_spread_mean: r3(layerSpread.valueSpread / n),
+    settled_level_mean: r3(layerSpread.settledMean / n),
+    projected_level_mean: r3(layerSpread.projectedMean / n),
+    readiness_level_mean: r3(layerSpread.readinessMean / n),
+    value_level_mean: r3(layerSpread.valueMean / n),
+  };
 }
 registerCompileReset(resetAimStats);
 
@@ -1115,7 +1159,57 @@ function projectedReadoutQuality(
 /** Per-candidate objective memo (object identity, scoped to live candidates).
  *  null = computed-and-undefined (no next contact / unreadable arrival / prediction
  *  impossible); a number = the objective. Absent key = not yet computed. */
-const objectiveCache = new WeakMap<Candidate, number | null>();
+const objectiveCache = new WeakMap<Candidate, GapObjectiveScore | null>();
+
+/**
+ * Per-pool spread of each objective layer.
+ *
+ * A layer can only rank if it VARIES across the candidates the search has to
+ * choose between, and the layer that varies most is the one actually deciding.
+ * Neither fact is visible from the committed track or from any existing
+ * counter, and both turned out to matter: on dense specs readiness sits at a
+ * mean level around 0.09 with the largest relative spread of any layer, so the
+ * ranking of a real arc is dominated by a prediction about an arc that does not
+ * exist yet — while on healthy specs the layers are balanced. Accumulated from
+ * values `sortCandidatesByQuality` has already computed, so it costs nothing.
+ */
+let layerSpread = {
+  pools: 0,
+  settledSpread: 0,
+  projectedSpread: 0,
+  readinessSpread: 0,
+  valueSpread: 0,
+  settledMean: 0,
+  projectedMean: 0,
+  readinessMean: 0,
+  valueMean: 0,
+};
+
+function recordObjectiveLayerSpread(scores: readonly GapObjectiveScore[]): void {
+  if (scores.length < 2) return;
+  layerSpread.pools++;
+  const track = (
+    pick: (s: GapObjectiveScore) => number,
+    spreadKey: "settledSpread" | "projectedSpread" | "readinessSpread" | "valueSpread",
+    meanKey: "settledMean" | "projectedMean" | "readinessMean" | "valueMean",
+  ) => {
+    let lo = Infinity;
+    let hi = -Infinity;
+    let sum = 0;
+    for (const s of scores) {
+      const v = pick(s);
+      if (v < lo) lo = v;
+      if (v > hi) hi = v;
+      sum += v;
+    }
+    layerSpread[spreadKey] += hi - lo;
+    layerSpread[meanKey] += sum / scores.length;
+  };
+  track((s) => s.settledIncomingQuality, "settledSpread", "settledMean");
+  track((s) => s.projectedOutgoingQuality, "projectedSpread", "projectedMean");
+  track((s) => s.readiness, "readinessSpread", "readinessMean");
+  track((s) => s.value, "valueSpread", "valueMean");
+}
 
 /** Canonical three-layer candidate objective, memoized by candidate identity. */
 export function candidateQualityObjective(
@@ -1127,7 +1221,7 @@ export function candidateQualityObjective(
   ctx?: SpecContext,
 ): number | null {
   const cached = objectiveCache.get(candidate);
-  if (cached !== undefined) return cached;
+  if (cached !== undefined) return cached?.value ?? null;
   const objective = scoreCandidateProposal(
     candidate,
     gap,
@@ -1136,20 +1230,23 @@ export function candidateQualityObjective(
   );
   if (objective === null) {
     aimTotals.rank_quality_pred_bail++;
-    return memoObjective(candidate, null);
+    objectiveCache.set(candidate, null);
+    return null;
   }
   aimTotals.rank_quality_pred_used++;
-  return memoObjective(candidate, objective.value);
+  objectiveCache.set(candidate, objective);
+  return objective.value;
+}
+
+/** Full three-layer score for a candidate already scored by the pool sort. */
+function candidateObjectiveLayers(candidate: Candidate): GapObjectiveScore | null {
+  return objectiveCache.get(candidate) ?? null;
 }
 
 function objectiveTargetsForGap(gap: Gap, ctx?: SpecContext): AxisValues {
   return ctx?.gapAxisTargets?.[gap.index] ?? gap.targets;
 }
 
-function memoObjective(candidate: Candidate, value: number | null): number | null {
-  objectiveCache.set(candidate, value);
-  return value;
-}
 
 /** Sort a candidate pool by the quality objective DESCENDING; ties (and
  *  undefined-objective candidates relative to each other) break by cost
@@ -1173,14 +1270,18 @@ export function sortCandidatesByQuality(
 ): Candidate[] {
   if (costSorted.length === 0) return costSorted;
   const objectives = new Map<Candidate, number>();
+  const layers: GapObjectiveScore[] = [];
   let anyDefined = false;
   for (const cand of costSorted) {
     const obj = candidateQualityObjective(engine, cand, gap, gaps, ctx);
     if (obj !== null) {
       objectives.set(cand, obj);
       anyDefined = true;
+      const full = candidateObjectiveLayers(cand);
+      if (full !== null) layers.push(full);
     }
   }
+  if (record) recordObjectiveLayerSpread(layers);
   if (!anyDefined) {
     if (record && aimStudyStatsEnabled()) {
       recordRankQualityPool(costSorted, costSorted);

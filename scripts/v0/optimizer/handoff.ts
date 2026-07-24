@@ -91,6 +91,7 @@ import {
   candidateQualityObjective,
   setAimCompileBudgetFrames,
   snapshotAimStats,
+  snapshotObjectiveLayerSpread,
 } from "./aim.ts";
 import { snapshotDetectorRunwayStats } from "./contact_phase.ts";
 import {
@@ -1505,6 +1506,8 @@ function compileHandoffInternal(
           budget_exhausted: budgetExhausted,
           sim_frames: getSimFrames(),
           ballistic_micro_sim_frames: getMicroSimFrames(),
+          ...objectiveLayerSpreadStat(),
+      ...objectiveLayerSpreadStat(),
           traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
           predicted_first_completion_frames: predictedFirstCompletionFrames,
           budget_slack: budgetSlackTelemetry,
@@ -5761,6 +5764,12 @@ function forwardEvalLeaf(): ForwardEvalLeaf {
   return "objective";
 }
 
+/** Spread stat as a spreadable object so an absent snapshot adds no key. */
+function objectiveLayerSpreadStat(): { objective_layer_spread?: NonNullable<ReturnType<typeof snapshotObjectiveLayerSpread>> } {
+  const spread = snapshotObjectiveLayerSpread();
+  return spread === null ? {} : { objective_layer_spread: spread };
+}
+
 function resolveForwardEvalConfig(): { config: CandidateForwardPolicy | null; defaultConfig: boolean } {
   const env = readEnv("LR_FWD_EVAL");
   const defaultConfig = env === undefined || env === "";
@@ -7206,6 +7215,7 @@ function buildNodeOutput(
       committed_costs_per_gap: fits.map((fit) => fit === null ? null : fit.cost),
       sim_frames: getSimFrames(),
       ballistic_micro_sim_frames: getMicroSimFrames(),
+      ...objectiveLayerSpreadStat(),
       budget_exhausted: budgetExhausted,
       handoff_skips: node.skippedContacts,
       handoff_start_rank: node.startRank,

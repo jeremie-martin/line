@@ -22,6 +22,7 @@ import {
   readinessScorerGapContext,
   type ReadinessScorerGapContext,
 } from "./readiness_features.ts";
+import { airDeliverabilityAsk } from "./air_policy.ts";
 import {
   scoreReadiness,
   type ReadinessScore,
@@ -233,13 +234,50 @@ export function projectOutgoingScorerGap(
       ? {}
       : { amplitude: projection.amplitude }),
   };
-  const quality = scoreProjectedOutgoingAxes(targets, achieved);
+  const quality = scoreProjectedOutgoingAxes(
+    projectedOutgoingTargets(targets, projection.frameCount),
+    achieved,
+  );
   return {
     projection,
     achieved,
     quality: quality.quality,
     scoredAxisCount: quality.scoredAxisCount,
   };
+}
+
+/**
+ * Targets the projected outgoing gap is scored against.
+ *
+ * The scorer will grade the realized air fraction against the raw authored ask,
+ * so scoring the projection against that ask is the faithful thing to do. But a
+ * landing needs `K_BOUNCE_LANDING` airborne frames, so on a short gap every
+ * air fraction below `K / frameCount` is PHYSICALLY UNDELIVERABLE, and asking
+ * for one makes the air term saturate for every candidate at once. Because
+ * `axisQualityForTargets` pools axes through one RMS, a saturated air error
+ * swamps the speed and impact differences — the ranking goes blind to the axes
+ * it could still act on, exactly on the dense specs where gaps are shortest.
+ *
+ * This is the constraint the pre-refactor readiness air-fit encoded as
+ * `effectiveAirAsk`, whose comment was explicit: "this clamp is what keeps the
+ * air-fit from fighting catchability on short gaps". The same formula survives
+ * as `airDeliverabilityAsk` and is already applied by the generation lanes; it
+ * was simply never applied where ranking scores air.
+ *
+ * `LR_PROJECTED_AIR_DELIVERABLE=0` restores the raw ask for A/B.
+ */
+function projectedOutgoingTargets(
+  targets: AxisValues,
+  frameCount: number,
+): AxisValues {
+  if (targets.air === undefined || !projectedAirDeliverableEnabled()) return targets;
+  return { ...targets, air: airDeliverabilityAsk(targets.air, frameCount) };
+}
+
+function projectedAirDeliverableEnabled(): boolean {
+  return (globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  }).process?.env?.LR_PROJECTED_AIR_DELIVERABLE !== "0";
 }
 
 /**

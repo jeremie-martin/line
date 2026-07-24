@@ -358,3 +358,55 @@ benchmark's budgets the three-layer objective orders **98.5%** of the pool, and
 by forward-eval above 75k. So `cost` survives mainly as a tiebreak. The design
 inconsistency is real and worth fixing eventually for coherence; it is not worth
 attributing the deficit to.
+
+### 2026-07-25 — the failure is an oscillation the search stops damping
+
+Per-gap landing rate at the deepest gaps of `frontier_dense_recovery` — the
+wall, where `deepest_seen_gap == gap_commits` and the compile stops advancing:
+
+```
+HEAD      gap 59..70:  29.5  3.5  41.0  12.4  42.2  18.4  42.7  15.0  40.1  2.7  0.9  0.0
+          attempts:     234  173   178   161   256   267   525   594   973 2370 1160  168
+8f73527   gap 58..64:    2.8 45.6   1.5  44.3   8.9  50.0  17.0   ... then 27-50% through gap 75
+          attempts:      71   68    67    61    45    78    53   ... 59-138
+```
+
+The landing rate ALTERNATES with period two: a catch that is good locally
+leaves the rider unable to make the next one, the search barely recovers, and
+it repeats.
+
+**Both compilers meet the oscillation, so it is a property of the spec.** The
+one that completes the track DAMPS it — amplitude falls and the rate settles at
+27–50% through the end. The one that does not AMPLIFIES it — 2.7, 0.9, 0.0 —
+and dies, while throwing ten to forty times more candidates at the wall gaps
+(2370 attempts against 65) as the rescue machinery burns the remaining budget.
+
+Efficiency confirms the same shape, and cleanly exonerates everything global:
+
+| case | frames per committed contact | | | candidates sampled |
+|---|---|---|---|---|
+| | `8f73527` | `cdba2d7` | HEAD | |
+| frontier_dense_recovery | 2075 | 4918 | 3687 | 8707 → 11328 → 10853 |
+| amplitude_tides | 2581 | 2593 | 2580 | 5328 → 6140 → 5655 |
+| countercurrent | 3165 | 3165 | 3169 | 5295 → 6080 → 5751 |
+
+The healthy specs are **identical** across all three commits. Nothing global
+regressed. Only the dense specs' search dynamics changed, and they now spend
+30% more candidates to commit half as many contacts.
+
+This reframes the whole deficit: it is not a wrong quantity anywhere, it is a
+loss of DAMPING. That is what motivated weighting projected error by which side
+is recoverable (`9da13c0`) — preferring the recoverable side of a target is
+what damping looks like. It materially improved the healthy strata (land 76.4 →
+78.2) and did not move the dense ones.
+
+**Rollout depth is not the answer either.** The oscillation has period two and
+the forward rollout defaults to `greedy:2`, which is exactly the depth that
+sees one good catch and one bad one and averages them. Sweeping deeper:
+
+  greedy:2 (default)  dense 34.2 / 27.8   healthy 78.2 / 74.2
+  greedy:3            dense 34.5 / 28.3   healthy 77.2 / 73.4
+  greedy:4            dense 34.5 / 28.1   healthy 78.8 / 75.5
+
+Dense is flat at 34.5 with zero completions at every depth. Deeper lookahead
+does not damp it.

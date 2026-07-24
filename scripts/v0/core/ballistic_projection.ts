@@ -57,6 +57,91 @@ export type IncomingKinematics = Pick<
 };
 
 /**
+ * Normalized articulation quantities consumed by readiness. Keeping their
+ * derivation beside the propagated primitive state gives production,
+ * telemetry, and the predictor benchmark one physical source of truth.
+ */
+export type BallisticArticulationFeatures = readonly [
+  relativeX: number,
+  relativeY: number,
+  relativeVx: number,
+  relativeVy: number,
+  bodyPoseRelative: number,
+  sledLength: number,
+  bodyLength: number,
+];
+
+export function ballisticArticulationFeatures(
+  state: Pick<BallisticState, "constraintState" | "comAngleDeg">,
+): BallisticArticulationFeatures | null {
+  const constraint = state.constraintState;
+  if (constraint === undefined) return null;
+  const bodyIds = [
+    "BUTT",
+    "SHOULDER",
+    "RHAND",
+    "LHAND",
+    "LFOOT",
+    "RFOOT",
+  ] as const;
+  const assemblyIds = [
+    "PEG",
+    "TAIL",
+    "NOSE",
+    "STRING",
+    ...bodyIds,
+  ] as const;
+  const centroid = (
+    ids: readonly (keyof typeof constraint.points)[],
+  ) => {
+    let x = 0;
+    let y = 0;
+    let vx = 0;
+    let vy = 0;
+    for (const id of ids) {
+      const point = constraint.points[id];
+      x += point.x;
+      y += point.y;
+      vx += point.vx;
+      vy += point.vy;
+    }
+    return {
+      x: x / ids.length,
+      y: y / ids.length,
+      vx: vx / ids.length,
+      vy: vy / ids.length,
+    };
+  };
+  const body = centroid(bodyIds);
+  const assembly = centroid(assemblyIds);
+  const tail = constraint.points.TAIL;
+  const nose = constraint.points.NOSE;
+  const butt = constraint.points.BUTT;
+  const shoulder = constraint.points.SHOULDER;
+  const bodyPose = Math.atan2(
+    shoulder.y - butt.y,
+    shoulder.x - butt.x,
+  ) * 180 / Math.PI;
+  const referenceAngle = state.comAngleDeg ?? 0;
+  return [
+    clamp((assembly.x - body.x) / 20, -3, 3),
+    clamp((assembly.y - body.y) / 20, -3, 3),
+    clamp((assembly.vx - body.vx) / 5, -3, 3),
+    clamp((assembly.vy - body.vy) / 5, -3, 3),
+    clamp(wrappedDegrees(bodyPose - referenceAngle) / 90, -2, 2),
+    clamp(Math.hypot(nose.x - tail.x, nose.y - tail.y) / 20, 0, 2),
+    clamp(
+      Math.hypot(
+        shoulder.x - butt.x,
+        shoulder.y - butt.y,
+      ) / 10,
+      0,
+      2,
+    ),
+  ];
+}
+
+/**
  * One causal hand-off from exact simulation to collision-free projection.
  * `prefix` is measured over `[gapStartFrame, anchorFrame]`, inclusive.
  */
@@ -65,8 +150,8 @@ export type BallisticLaunchObservation = {
   anchorFrame: number;
   state: BallisticState;
   prefix: BallisticObservedPrefix;
-  /** Consecutive usable launch samples ending at `anchorFrame`. */
-  sampleCount: number;
+  /** Consecutive causal detector frames inspected through `anchorFrame`. */
+  anchorScanFrames: number;
   /** Diagnostic contact occupancy between the preceding catch and anchor. */
   groundedFrames: number;
   /** Must be true before collision-free projection is legal. */
@@ -117,13 +202,17 @@ export type IncomingContactBoundary = {
   projectedContact: BallisticState;
 };
 
-/** Scorer-compatible projection of one contact-to-contact gap. */
+/**
+ * Physical projection of one contact-to-contact interval. Air occupancy uses
+ * the exact prefix plus a collision-free suffix; a caller that owns a future
+ * contact must apply its terminal-occupancy convention explicitly.
+ */
 export type BallisticGapProjection = {
   gapStartFrame: number;
   targetFrame: number;
   frameCount: number;
   meanSpeedPx: number;
-  airFraction: number;
+  airFramesWithCollisionFreeSuffix: number;
   elevation: number | null;
   amplitude: number | null;
   boundary: IncomingContactBoundary;
@@ -163,22 +252,25 @@ export function propagateBallisticState(
   dtFrames: number,
 ): BallisticState {
   const dt = Math.max(0, Math.round(dtFrames));
-  const advanced = state.constraintState === undefined
-    ? null
-    : advanceConstraintBallisticState(
-      state.constraintState,
-      dt,
-      ELEVATION.GRAVITY_PX_PER_FRAME2,
-    );
-  if (advanced !== null) {
-    return stateFromPrimitive(
-      advanced.arrival,
-      propagatedPose(state, dt),
-      state.sledPoseRateDegPerFrame,
-      advanced.constraintState,
+  if (state.constraintState === undefined) {
+    throw new Error(
+      `constraint state is required for canonical ballistic propagation`,
     );
   }
-  return fallbackBallisticState(state, dt);
+  const advanced = advanceConstraintBallisticState(
+    state.constraintState,
+    dt,
+    ELEVATION.GRAVITY_PX_PER_FRAME2,
+  );
+  if (advanced === null) {
+    throw new Error(`constraint ballistic propagation failed`);
+  }
+  return stateFromPrimitive(
+    advanced.arrival,
+    advanced.orientation.sledPoseDeg,
+    advanced.orientation.sledPoseRateDegPerFrame,
+    advanced.constraintState,
+  );
 }
 
 /**
@@ -189,13 +281,13 @@ export function projectBallisticGap(
   launch: BallisticLaunchObservation,
   targetFrame: number,
   options: {
-    terminalContact: "grounded" | "none";
     includeElevation?: boolean;
     includeAmplitude?: boolean;
   },
 ): BallisticGapProjection | null {
   if (
     !launch.airborne ||
+    launch.state.constraintState === undefined ||
     !Number.isSafeInteger(targetFrame) ||
     targetFrame <= launch.anchorFrame ||
     launch.prefix.startFrame !== launch.gapStartFrame ||
@@ -216,48 +308,36 @@ export function projectBallisticGap(
     ? [...launch.prefix.displacementYByFrame]
     : null;
 
-  if (launch.state.constraintState !== undefined) {
-    const advanced = advanceConstraintBallisticTrajectory(
-      launch.state.constraintState,
-      dt,
-      ELEVATION.GRAVITY_PX_PER_FRAME2,
-      (relativeFrame, primitive, orientation) => {
-        const projected = stateFromPrimitive(
-          primitive,
-          orientation.sledPoseDeg,
-          orientation.sledPoseRateDegPerFrame,
-        );
-        speedSumPx += projected.speed;
-        speedFrames++;
-        dy += projected.vy;
-        displacementYByFrame?.push(dy);
-        if (relativeFrame === preContactDt) preContact = projected;
-        if (relativeFrame === dt) incoming = projected;
-      },
-    );
-    if (advanced === null) return null;
-    /*
-     * The terminal public state must carry the exact constraint state that
-     * produced its velocity and pose. The per-frame callback intentionally
-     * avoids allocating point snapshots for intermediate aggregate samples.
-     */
-    const terminalIncoming = incoming as BallisticState | null;
-    if (terminalIncoming !== null) {
-      incoming = {
-        ...terminalIncoming,
-        constraintState: advanced.constraintState,
-      };
-    }
-  } else {
-    for (let relativeFrame = 1; relativeFrame <= dt; relativeFrame++) {
-      const projected = fallbackBallisticState(launch.state, relativeFrame);
+  const advanced = advanceConstraintBallisticTrajectory(
+    launch.state.constraintState,
+    dt,
+    ELEVATION.GRAVITY_PX_PER_FRAME2,
+    (relativeFrame, primitive, orientation) => {
+      const projected = stateFromPrimitive(
+        primitive,
+        orientation.sledPoseDeg,
+        orientation.sledPoseRateDegPerFrame,
+      );
       speedSumPx += projected.speed;
       speedFrames++;
       dy += projected.vy;
       displacementYByFrame?.push(dy);
       if (relativeFrame === preContactDt) preContact = projected;
       if (relativeFrame === dt) incoming = projected;
-    }
+    },
+  );
+  if (advanced === null) return null;
+  /*
+   * The terminal public state must carry the exact constraint state that
+   * produced its velocity and pose. The per-frame callback intentionally
+   * avoids allocating point snapshots for intermediate aggregate samples.
+   */
+  const terminalIncoming = incoming as BallisticState | null;
+  if (terminalIncoming !== null) {
+    incoming = {
+      ...terminalIncoming,
+      constraintState: advanced.constraintState,
+    };
   }
 
   if (preContact === null || incoming === null || speedFrames <= 0) return null;
@@ -269,15 +349,7 @@ export function projectBallisticGap(
     0,
     Math.min(prefixFrames, launch.prefix.airFrames),
   );
-  /*
-   * For an authored catch, the detector observes the target frame as grounded
-   * while retaining its incoming velocity. Tail/end-of-spec projections have
-   * no such correction. Callers must state which boundary they own.
-   */
-  const suffixAirFrames = Math.max(
-    0,
-    suffixFrames - (options.terminalContact === "grounded" ? 1 : 0),
-  );
+  const suffixAirFrames = suffixFrames;
   const elevation = options.includeElevation === true &&
       targetFrame > launch.gapStartFrame
     ? netDyToElevation(
@@ -296,10 +368,8 @@ export function projectBallisticGap(
     targetFrame,
     frameCount,
     meanSpeedPx: speedSumPx / speedFrames,
-    airFraction: Math.max(
-      0,
-      Math.min(1, (prefixAirFrames + suffixAirFrames) / frameCount),
-    ),
+    airFramesWithCollisionFreeSuffix:
+      prefixAirFrames + suffixAirFrames,
     elevation,
     amplitude,
     boundary: {
@@ -312,6 +382,23 @@ export function projectBallisticGap(
       projectedContact: incoming,
     },
   };
+}
+
+/**
+ * Compose scorer air occupancy after the physics projection. The collision-
+ * free suffix reaches the terminal frame airborne; callers explicitly decide
+ * whether their policy replaces that one frame with a grounded observation.
+ */
+export function airFractionWithTerminalOccupancy(
+  projection: Pick<
+    BallisticGapProjection,
+    "airFramesWithCollisionFreeSuffix" | "frameCount"
+  >,
+  terminalAirborne: boolean,
+): number {
+  const airFrames = projection.airFramesWithCollisionFreeSuffix -
+    (terminalAirborne ? 0 : 1);
+  return Math.max(0, Math.min(1, airFrames / projection.frameCount));
 }
 
 function amplitudeFromDisplacements(
@@ -346,24 +433,6 @@ export function incomingKinematics(
   };
 }
 
-function fallbackBallisticState(
-  state: BallisticState,
-  dt: number,
-): BallisticState {
-  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  const primitive = {
-    x: state.x + state.vx * dt,
-    y: state.y + state.vy * dt + 0.5 * g * dt * (dt + 1),
-    vx: state.vx,
-    vy: state.vy + g * dt,
-  };
-  return stateFromPrimitive(
-    primitive,
-    propagatedPose(state, dt),
-    state.sledPoseRateDegPerFrame,
-  );
-}
-
 function stateFromPrimitive(
   primitive: Readonly<{ x: number; y: number; vx: number; vy: number }>,
   sledPoseDeg: number | null,
@@ -383,15 +452,6 @@ function stateFromPrimitive(
   };
 }
 
-function propagatedPose(state: BallisticState, dt: number): number | null {
-  return state.sledPoseDeg !== null &&
-      state.sledPoseRateDegPerFrame !== null
-    ? normalizeAngleDeg(
-      state.sledPoseDeg + state.sledPoseRateDegPerFrame * dt,
-    )
-    : state.sledPoseDeg;
-}
-
 function cloneBallisticState(state: BallisticState): BallisticState {
   return {
     ...state,
@@ -403,8 +463,10 @@ function cloneBallisticState(state: BallisticState): BallisticState {
   };
 }
 
-function normalizeAngleDeg(value: number): number {
-  let normalized = ((value + 180) % 360 + 360) % 360 - 180;
-  if (normalized === -180) normalized = 180;
-  return normalized;
+function wrappedDegrees(value: number): number {
+  return ((value + 180) % 360 + 360) % 360 - 180;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
 }

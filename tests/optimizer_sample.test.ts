@@ -12,6 +12,8 @@ import { describe, test, expect } from "vitest";
 import {
   observeOneCandidate,
   sampleOneCandidate,
+  setCandidateSampleTraceSink,
+  type CandidateSampleTrace,
   type SpecContext,
 } from "../scripts/v0/optimizer/sample.ts";
 import { chooseRideOutPolishedFit } from "../scripts/v0/core/candidate.ts";
@@ -28,6 +30,10 @@ import {
   validateSpec,
 } from "../scripts/v0/core/substrate.ts";
 import { CALIB } from "../scripts/v0/types.ts";
+import {
+  arcProposalTargetsForGap,
+  composeArcProposalTargets,
+} from "../scripts/v0/optimizer/arc_proposal.ts";
 
 /** Build an `(engine_at_gap_0_start, gap_0, ctx)` triple from a
  *  golden spec for the determinism test. We deliberately use gap 0
@@ -49,11 +55,59 @@ async function setupAt(name: string, seed: number) {
     const sec = effectiveAxes(gap, spec);
     gap.targets = sampleGapTargets(sec, CALIB.SIGMA, rngTargets);
   }
-  const ctx: SpecContext = { allContactFrames, durationFrames };
+  const ctx: SpecContext = { allContactFrames, durationFrames, gaps };
   return { engine, gap: gaps[0], ctx };
 }
 
 describe("optimizer/sample.ts — Step 1 atomic sample", () => {
+  test("arc proposals own entry-contact axes and outgoing motion axes", () => {
+    expect(
+      composeArcProposalTargets(
+        {
+          air: 0.1,
+          speed: 0.2,
+          elevation: 0.3,
+          amplitude: 0.4,
+          impact: 0.5,
+          grain: 0.6,
+        },
+        {
+          air: 0.7,
+          speed: 0.8,
+          elevation: 0.9,
+          amplitude: 1,
+          impact: 0.15,
+          grain: 0.25,
+        },
+      ),
+    ).toEqual({
+      impact: 0.5,
+      grain: 0.6,
+      air: 0.7,
+      speed: 0.8,
+      elevation: 0.9,
+      amplitude: 1,
+    });
+
+    const incoming: Gap = {
+      index: 7,
+      startFrame: 10,
+      endFrame: 20,
+      endsWithContact: true,
+      targets: { impact: 0.4 },
+    };
+    const outgoing: Gap = {
+      index: 12,
+      startFrame: 20,
+      endFrame: 40,
+      endsWithContact: false,
+      targets: { speed: 0.75 },
+    };
+    expect(
+      arcProposalTargetsForGap(incoming, [incoming, outgoing]),
+    ).toEqual({ impact: 0.4, speed: 0.75 });
+  });
+
   test("gap target sampling uses canonical per-axis bounds and ignores grain", () => {
     const sampled = sampleGapTargets(
       { air: 2, speed: 2, grain: 2 },
@@ -152,6 +206,66 @@ describe("optimizer/sample.ts — Step 1 atomic sample", () => {
       expect(observed.fit.cost).toBe(ordinary.cost);
       expect(observed.fit.lines).toEqual(ordinary.lines);
       expect(observed.fit.achieved).toEqual(ordinary.achieved);
+    }
+  });
+
+  test("readiness trace observes one attempt without changing its result", async () => {
+    const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
+    const traces: CandidateSampleTrace[] = [];
+    let instrumented: ReturnType<typeof sampleOneCandidate>;
+    setCandidateSampleTraceSink((trace) => traces.push(trace));
+    try {
+      instrumented = sampleOneCandidate(
+        engine,
+        gap,
+        makeRng(91),
+        ctx,
+        1,
+        3,
+      );
+    } finally {
+      setCandidateSampleTraceSink(null);
+    }
+    const ordinary = sampleOneCandidate(
+      engine,
+      gap,
+      makeRng(91),
+      ctx,
+      1,
+      3,
+    );
+    expect(traces).toHaveLength(1);
+    expect(traces[0].contextKey).toBe(engine);
+    expect(traces[0].gap).toBe(gap);
+    expect(traces[0].attempt).toBe(3);
+    expect(traces[0].mode).toBe("normal");
+    expect(traces[0].geometryTargets).not.toBe(gap.targets);
+    expect(traces[0].geometryTargets).toEqual({
+      ...(gap.targets.impact === undefined
+        ? {}
+        : { impact: gap.targets.impact }),
+      ...(gap.targets.grain === undefined
+        ? {}
+        : { grain: gap.targets.grain }),
+      ...(ctx.gaps?.[1]?.targets.air === undefined
+        ? {}
+        : { air: ctx.gaps[1].targets.air }),
+      ...(ctx.gaps?.[1]?.targets.speed === undefined
+        ? {}
+        : { speed: ctx.gaps[1].targets.speed }),
+      ...(ctx.gaps?.[1]?.targets.elevation === undefined
+        ? {}
+        : { elevation: ctx.gaps[1].targets.elevation }),
+      ...(ctx.gaps?.[1]?.targets.amplitude === undefined
+        ? {}
+        : { amplitude: ctx.gaps[1].targets.amplitude }),
+    });
+    expect(traces[0].fit).toBe(instrumented);
+    expect(instrumented === null).toBe(ordinary === null);
+    if (instrumented !== null && ordinary !== null) {
+      expect(instrumented.cost).toBe(ordinary.cost);
+      expect(instrumented.lines).toEqual(ordinary.lines);
+      expect(instrumented.achieved).toEqual(ordinary.achieved);
     }
   });
 

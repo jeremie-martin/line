@@ -5,10 +5,10 @@ import {
   detectWindow,
 } from "../core/candidate.ts";
 import {
-  ballisticLaunchFirstSampleFrame,
   captureBallisticLaunchObservation,
 } from "../core/ballistic_launch.ts";
 import {
+  airFractionWithTerminalOccupancy,
   projectBallisticGap,
   type BallisticGapProjection,
 } from "../core/ballistic_projection.ts";
@@ -28,7 +28,10 @@ import {
   captureBallisticTraceObservation,
   recordBallisticTraceCandidate,
 } from "../core/ballistic_trace.ts";
-import { firstAirborneExitFrame, growShortHorizon } from "../core/exit_read.ts";
+import {
+  firstCleanAirborneExitFrame,
+  growShortHorizon,
+} from "../core/exit_read.ts";
 import {
   IMPACT_WINDOW,
   netDyToElevation,
@@ -80,17 +83,14 @@ export type JointArcProbeObservation = JointArcProbeRow & {
   /** Last simulated frame used by this observation. In short mode this is the
    *  stop frame chosen by the exit detector, not the former full next-gap horizon. */
   horizonFrame: number;
-  /** First airborne frame at/after the current catch exit margin where the rider
-   *  has also crossed the arc-end plane in the arc's travel direction.
+  /** First frame at/after the current catch where the rider has crossed the
+   *  arc-end plane and the observed suffix remains airborne.
    *  Short-mode ballistic completion starts from this frame. */
   suffixFrame: number | null;
-  /** True iff every observed frame from suffixFrame through horizonFrame is
-   *  airborne. False means the row found an airborne frame but observed later
-   *  contact inside the same short-probe chunk; the row is still emitted, and
-   *  harness diagnostics report clean-only vs all-row error separately. */
+  /** True for every emitted suffix; null when no clean exit was observed. */
   cleanAirborneSuffix: boolean | null;
-  /** Number of airborne velocity reads averaged into the launch/exit state. */
-  launchReadFrames: number | null;
+  /** Consecutive causal detector frames inspected before the exact anchor read. */
+  anchorScanFrames: number | null;
 };
 
 export type JointArcProbeOptions = {
@@ -98,6 +98,8 @@ export type JointArcProbeOptions = {
   includeTruth?: boolean;
   /** Request the conditional elevation readiness output from both probe modes. */
   includeElevation?: boolean;
+  /** Whether the projected scorer interval ends at an authored contact. */
+  targetEndsWithContact?: boolean;
 };
 
 export type JointArcProbeResult = JointArcProbeObservation & {
@@ -179,15 +181,18 @@ export function evaluateJointArcLines(
     ? observeFullJointArcLines(
       fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
       options.includeElevation === true,
+      options.targetEndsWithContact !== false,
     )
     : observeShortJointArcLines(
       fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
       options.includeElevation === true,
+      options.targetEndsWithContact !== false,
     );
   const truth = options.includeTruth && mode !== "full"
     ? observeFullJointArcLines(
       fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
       options.includeElevation === true,
+      options.targetEndsWithContact !== false,
     )
     : undefined;
   return { ...observed, lines, ...(truth === undefined ? {} : { truth }) };
@@ -203,6 +208,7 @@ function observeShortJointArcLines(
   axisMeasureEnd: number,
   nextFrame: number,
   includeElevation: boolean,
+  targetEndsWithContact: boolean,
 ): JointArcProbeObservation {
   const horizon = shortProbeHorizon(fork, lines, gap, nextFrame);
   const det = detectWindow(fork, gap.startFrame, horizon);
@@ -213,7 +219,7 @@ function observeShortJointArcLines(
   const offBeatEnd = Math.min(axisMeasureEnd, horizon);
   const offBeatLandings = countOffBeatLandings(det.events, gap.startFrame, offBeatEnd, [...contactFrames]);
   const currentOk = survivedCurrent && landingOk && offBeatLandings === 0;
-  const suffixFrame = firstAirborneExitFrameAtOrAfter(
+  const suffixFrame = firstCleanAirborneExitFrameAtOrAfter(
     det,
     lines,
     gap.endFrame,
@@ -230,27 +236,22 @@ function observeShortJointArcLines(
     });
   const suffixState = launch?.state ?? null;
   const projectionFrame = launch?.anchorFrame ?? null;
-  const cleanAirborneSuffix = suffixFrame === null ? null : cleanAirborneRange(det, suffixFrame, horizon);
+  const cleanAirborneSuffix = suffixFrame === null ? null : true;
   const nextProjection = launch === null
     ? null
-    : projectBallisticGap(launch, nextFrame, {
-      terminalContact: "grounded",
-      includeElevation,
-    });
+    : projectBallisticGap(launch, nextFrame, { includeElevation });
   const nextStateOk = nextProjection !== null;
   if (ballisticTraceEnabled() && launch !== null && launch.anchorFrame < nextFrame) {
-    const traceLaunchFrame = ballisticLaunchFirstSampleFrame(launch);
     recordBallisticTraceCandidate({
       population: "aim_probe",
       gapIndex: gap.index,
-      launchFrame: traceLaunchFrame,
+      anchorFrame: launch.anchorFrame,
       targetFrame: nextFrame,
       capture: () => captureBallisticTraceObservation({
         population: "aim_probe",
         gapIndex: gap.index,
-        launchFrame: traceLaunchFrame,
+        anchorFrame: launch.anchorFrame,
         targetFrame: nextFrame,
-        sampleAllowed: (frame) => frame <= horizon && airborneAt(det, frame) === true,
         // Benchmark-only truth reads are intentionally raw/unmetered: this fork
         // is discarded after the probe, so neither search state nor budget moves.
         readRider: (frame) => fork.getRider(frame),
@@ -261,7 +262,13 @@ function observeShortJointArcLines(
 
   const outputs: Record<string, number> = {};
   if (projectionFrame !== null && suffixState !== null) {
-    if (nextProjection !== null) addProjectionOutputs(outputs, nextProjection);
+    if (nextProjection !== null) {
+      addProjectionOutputs(
+        outputs,
+        nextProjection,
+        targetEndsWithContact,
+      );
+    }
   }
   if (currentOk) {
     // Current quality is always the exact scorer interval. The ballistic
@@ -289,7 +296,7 @@ function observeShortJointArcLines(
     horizonFrame: horizon,
     suffixFrame,
     cleanAirborneSuffix,
-    launchReadFrames: launch?.sampleCount ?? null,
+    anchorScanFrames: launch?.anchorScanFrames ?? null,
     gate: {
       currentOk,
       survivedCurrent,
@@ -312,6 +319,7 @@ function observeFullJointArcLines(
   axisMeasureEnd: number,
   nextFrame: number,
   includeElevation: boolean,
+  targetEndsWithContact: boolean,
 ): JointArcProbeObservation {
   const horizon = fullProbeHorizon(gap, axisMeasureEnd, nextFrame);
   const det = detectWindow(fork, gap.startFrame, horizon);
@@ -351,7 +359,11 @@ function observeFullJointArcLines(
         // conditional on that authored contact succeeding, so its terminal
         // frame is grounded while its detector velocity remains the incoming
         // velocity used above.
-        const terminalAir = airborneAt(det, nextFrame) === true ? 1 : 0;
+        const terminalAir =
+          targetEndsWithContact &&
+            airborneAt(det, nextFrame) === true
+            ? 1
+            : 0;
         addFinite(
           outputs,
           "next.airFraction",
@@ -380,7 +392,7 @@ function observeFullJointArcLines(
     horizonFrame: horizon,
     suffixFrame: null,
     cleanAirborneSuffix: null,
-    launchReadFrames: null,
+    anchorScanFrames: null,
     gate: {
       currentOk,
       survivedCurrent,
@@ -419,7 +431,7 @@ function shortProbeHorizon(engine: any, lines: TrackLine[], gap: Gap, nextFrame:
     const det = detectWindow(engine, gap.startFrame, horizon);
     return {
       terminatedEarly: det.terminus.frame < horizon && det.terminus.reason !== "endOfSpec",
-      exitFound: firstAirborneExitFrameAtOrAfter(
+      exitFound: firstCleanAirborneExitFrameAtOrAfter(
         det,
         lines,
         minExit,
@@ -432,37 +444,38 @@ function shortProbeHorizon(engine: any, lines: TrackLine[], gap: Gap, nextFrame:
 function addProjectionOutputs(
   outputs: Record<string, number>,
   projection: BallisticGapProjection,
+  targetEndsWithContact: boolean,
 ): void {
   Object.assign(outputs, stateOutputs(projection.boundary.projectedContact));
   addFinite(outputs, "next.meanSpeedPx", projection.meanSpeedPx);
-  addFinite(outputs, "next.airFraction", projection.airFraction);
+  addFinite(
+    outputs,
+    "next.airFraction",
+    airFractionWithTerminalOccupancy(
+      projection,
+      !targetEndsWithContact,
+    ),
+  );
   addFinite(outputs, "next.frameCount", projection.frameCount);
   addFinite(outputs, "next.elevation", projection.elevation);
 }
 
-function firstAirborneExitFrameAtOrAfter(
+function firstCleanAirborneExitFrameAtOrAfter(
   det: ReturnType<typeof detectWindow>,
   lines: readonly TrackLine[],
   startFrame: number,
   endFrame: number,
 ): number | null {
-  // Delegates to the shared geometric exit detector (core/exit_read.ts). The
-  // Position and airborne occupancy both come from the existing detection.
+  // Delegates to the shared clean geometric-exit detector. Position and
+  // airborne occupancy both come from the existing causal detection window.
   // The canonical launch capture performs the only rider reconstruction.
-  return firstAirborneExitFrame(
+  return firstCleanAirborneExitFrame(
     lines,
     startFrame,
     endFrame,
     (frame) => airborneAt(det, frame),
     (frame) => positionAt(det, frame),
   );
-}
-
-function cleanAirborneRange(det: ReturnType<typeof detectWindow>, startFrame: number, endFrame: number): boolean {
-  for (let frame = startFrame; frame <= endFrame; frame++) {
-    if (airborneAt(det, frame) !== true) return false;
-  }
-  return true;
 }
 
 // deno-lint-ignore no-explicit-any

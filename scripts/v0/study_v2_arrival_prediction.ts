@@ -20,7 +20,7 @@ import { makeRng } from "../lib/rng.ts";
 import { applyJolt } from "../produce/seed.ts";
 import { effectiveAxes, sampleGapTargets, sliceTimeline, type GapFit } from "./core/substrate.ts";
 import { compileHandoff, type HandoffNode } from "./optimizer/handoff.ts";
-import { predictArrivalAtNextContact } from "./optimizer/objective.ts";
+import { projectOutgoingScorerGap } from "./optimizer/objective.ts";
 import { scoreDriftReport } from "./score.ts";
 import { authoredSpeedToPx, CALIB, FPS, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
 
@@ -99,15 +99,20 @@ for (const definition of cases) {
         const fit = best.search.prefixFits[index];
         const nextFit = best.search.prefixFits[index + 1];
         if (fit === null || fit === undefined || nextFit === null || nextFit === undefined) continue;
-        const arrival = predictArrivalAtNextContact(fit, next);
-        if (arrival === null) continue;
+        const projectedOutgoing = projectOutgoingScorerGap(
+          fit,
+          next,
+          setup.gapAxisTargets,
+        );
+        if (projectedOutgoing === null) continue;
+        const projection = projectedOutgoing.projection;
         const achieved = nextFit.achieved;
         const target = setup.gapAxisTargets[next.index];
         const observations: Array<[Axis, number | undefined, number | undefined, number | undefined]> = [
-          ["speed", arrival.meanSpeedPx, achieved.speed === undefined ? undefined : authoredSpeedToPx(achieved.speed),
+          ["speed", projection.meanSpeedPx, achieved.speed === undefined ? undefined : authoredSpeedToPx(achieved.speed),
             target.speed === undefined ? undefined : authoredSpeedToPx(target.speed)],
-          ["air", arrival.airFraction, achieved.air, target.air],
-          ["elevation", arrival.elevation, achieved.elevation, target.elevation],
+          ["air", projectedOutgoing.achieved.air, achieved.air, target.air],
+          ["elevation", projection.elevation ?? undefined, achieved.elevation, target.elevation],
         ];
         for (const [axis, predicted, actual, authoredTarget] of observations) {
           // Keep the observation contract aligned with the scorer: an axis that

@@ -74,9 +74,10 @@ import {
 } from "./optimizer/node.ts";
 import {
   nextContactGap,
-  predictArrivalAtNextContact,
-  scoreNextTargetReadiness,
+  projectOutgoingScorerGap,
+  scoreNextArcReadiness,
 } from "./optimizer/objective.ts";
+import { successorScorerGapAfter } from "./optimizer/arc_proposal.ts";
 import {
   getCandidateProbe,
   sampleOneCandidate,
@@ -567,9 +568,19 @@ const rows = analysisPool.map(({ candidate, poolRank }) => {
       nextCandidateCount,
     )
     : null;
-  const arrival = predictArrivalAtNextContact(candidate, nextGap);
-  const nextTargets = setup.ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
-  const readiness = arrival === null ? null : scoreNextTargetReadiness(arrival, nextTargets);
+  const projectedOutgoing = projectOutgoingScorerGap(
+    candidate,
+    nextGap,
+    setup.ctx.gapAxisTargets,
+  );
+  const readiness = projectedOutgoing === null
+    ? null
+    : scoreNextArcReadiness(
+      projectedOutgoing.projection,
+      nextGap,
+      successorScorerGapAfter(nextGap, setup.gaps),
+      setup.ctx.gapAxisTargets,
+    );
   const runwayAdjustment = runwayAdjust
     ? evaluateRunwayAdjustment(
       parent.search,
@@ -617,10 +628,18 @@ const rows = analysisPool.map(({ candidate, poolRank }) => {
       if (attempt === undefined) return minimum;
       return minimum === null ? attempt : Math.min(minimum, attempt);
     }, null),
-    arrivalAir: nullableRound(arrival?.airFraction ?? null),
-    arrivalSpeed: nullableRound(arrival?.incoming.speed ?? null),
-    arrivalAngleDeg: nullableRound(arrival?.incoming.comAngleDeg ?? null),
-    arrivalElevation: nullableRound(arrival?.elevation ?? null),
+    arrivalAir: nullableRound(
+      projectedOutgoing?.achieved.air ?? null,
+    ),
+    arrivalSpeed: nullableRound(
+      projectedOutgoing?.projection.boundary.incoming.speed ?? null,
+    ),
+    arrivalAngleDeg: nullableRound(
+      projectedOutgoing?.projection.boundary.incoming.comAngleDeg ?? null,
+    ),
+    arrivalElevation: nullableRound(
+      projectedOutgoing?.projection.elevation ?? null,
+    ),
     releaseFrame: candidate.ballisticLaunch?.anchorFrame ?? null,
     releaseVx: nullableRound(candidate.ballisticLaunch?.state.vx ?? null),
     releaseVy: nullableRound(candidate.ballisticLaunch?.state.vy ?? null),
@@ -2164,8 +2183,8 @@ function evaluateWholeArcScale(
     currentCost: number;
     nextCandidates: number;
     achieved: AxisValues;
-    arrival: ReturnType<typeof predictArrivalAtNextContact>;
-    readiness: ReturnType<typeof scoreNextTargetReadiness>;
+    projectedOutgoing: ReturnType<typeof projectOutgoingScorerGap>;
+    readiness: ReturnType<typeof scoreNextArcReadiness> | null;
     transition: ReturnType<typeof transitionState>;
   }>;
   candidates: Array<{ baseRank: number; scale: number; nextCandidates: number; candidate: Candidate }>;
@@ -2209,16 +2228,26 @@ function evaluateWholeArcScale(
         candidateCount,
       );
       const transition = transitionState(child.prefixEngine, gap, nextGap);
-      const nextTargets = setup.ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
-      const arrival = predictArrivalAtNextContact(fit, nextGap);
+      const projectedOutgoing = projectOutgoingScorerGap(
+        fit,
+        nextGap,
+        setup.ctx.gapAxisTargets,
+      );
       rows.push({
         baseRank: poolRank,
         scale: round(scale),
         currentCost: round(fit.cost),
         nextCandidates: continuations.length,
         achieved: { ...fit.achieved },
-        arrival,
-        readiness: arrival === null ? null : scoreNextTargetReadiness(arrival, nextTargets),
+        projectedOutgoing,
+        readiness: projectedOutgoing === null
+          ? null
+          : scoreNextArcReadiness(
+            projectedOutgoing.projection,
+            nextGap,
+            successorScorerGapAfter(nextGap, setup.gaps),
+            setup.ctx.gapAxisTargets,
+          ),
         transition,
       });
       candidates.push({ baseRank: poolRank, scale, nextCandidates: continuations.length, candidate: fit });

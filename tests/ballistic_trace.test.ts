@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   BALLISTIC_TRACE_POINT_IDS,
+  ballisticTraceCollisionFreeThrough,
   captureBallisticTraceObservation,
   recordBallisticTraceCandidate,
   setBallisticTraceSink,
@@ -15,27 +16,27 @@ describe("ballistic benchmark tracing", () => {
     recordBallisticTraceCandidate({
       population: "aim_probe",
       gapIndex: 1,
-      launchFrame: 10,
+      anchorFrame: 10,
       targetFrame: 20,
       capture,
     });
     expect(capture).not.toHaveBeenCalled();
   });
 
-  it("never includes the target frame in launch samples", () => {
+  it("captures exactly the production anchor and frame-explicit truth", () => {
     const observation = captureBallisticTraceObservation({
       population: "candidate_pool",
       gapIndex: 2,
-      launchFrame: 10,
+      anchorFrame: 10,
       targetFrame: 13,
-      sampleAllowed: () => true,
       readRider: (frame) => riderAt(frame),
       readUpdates: (frame) => frame === 13
         ? [{ type: COLLISION_UPDATE_TYPE, updated: [{ id: "PEG" }] }]
         : [],
     });
 
-    expect(observation?.samples.map((sample) => sample.frame)).toEqual([10, 11, 12]);
+    expect(observation?.anchor.frame).toBe(10);
+    expect(observation?.anchor.body).toEqual({ x: 10, y: -10, vx: 1, vy: 2 });
     expect(observation?.truth.precontact.frame).toBe(12);
     expect(observation?.truth.contact.frame).toBe(13);
     expect(observation?.collisionWitnesses).toEqual([{ frame: 13, points: ["PEG"] }]);
@@ -47,11 +48,23 @@ describe("ballistic benchmark tracing", () => {
     recordBallisticTraceCandidate({
       population: "aim_probe",
       gapIndex: 1,
-      launchFrame: 10,
+      anchorFrame: 10,
       targetFrame: 20,
       capture,
     });
     expect(capture).toHaveBeenCalledOnce();
+  });
+
+  it("scores only the collision-free suffix after the exact anchor", () => {
+    const observation = {
+      anchorFrame: 10,
+      collisionWitnesses: [
+        { frame: 10, points: ["TAIL"] as const },
+        { frame: 13, points: ["NOSE"] as const },
+      ],
+    };
+    expect(ballisticTraceCollisionFreeThrough(observation, 12)).toBe(true);
+    expect(ballisticTraceCollisionFreeThrough(observation, 13)).toBe(false);
   });
 });
 

@@ -39,7 +39,7 @@ import { extendNodeCached, makeRootNode, type SearchNode } from "./optimizer/nod
 import { getCandidateProbe, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { applyArcActuatorPair } from "./optimizer/arc_actuator.ts";
 import { isStrictlyBetter, type LeafKey } from "./optimizer/register.ts";
-import { scoreCurrentTargetQuality } from "./optimizer/objective.ts";
+import { scoreSettledIncomingQuality } from "./optimizer/objective.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type TrackLine } from "./types.ts";
 import type { Spec } from "./optimizer/types.ts";
 
@@ -206,7 +206,9 @@ for (const id of ids) {
           trials.push({
             spec: id, seed, gapIndex: index, family: variant.family, deltaDeg: variant.deltaDeg,
             admitted: fit !== null,
-            quality: achieved === undefined ? null : scoreCurrentTargetQuality(gap.targets, achieved),
+            quality: achieved === undefined
+              ? null
+              : scoreSettledIncomingQuality(gap.targets, achieved),
             cost: fit?.cost ?? null,
             impactError: impactTarget === undefined || achieved?.impact === undefined
               ? null : Math.abs(achieved.impact - impactTarget),

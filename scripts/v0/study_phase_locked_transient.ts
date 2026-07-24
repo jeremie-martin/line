@@ -22,7 +22,6 @@ import { effectiveAxes, engineLineFromTrackLine, sampleGapTargets, sliceTimeline
 import { compileHandoff, type HandoffNode, type HandoffNodeEvent } from "./optimizer/handoff.ts";
 import { getCandidateProbe, observeOneCandidate, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { getSimFrames } from "./optimizer/sim_frames.ts";
-import { scoreCurrentTargetQuality } from "./optimizer/objective.ts";
 import { contactKinematicFrameFromPlanningState } from "./trajectory/contact_kinematic_frame.ts";
 import { realizePhaseLockedTransient } from "./trajectory/phase_locked_transient.ts";
 import { realizeStateHermiteTransient } from "./trajectory/state_hermite_transient.ts";

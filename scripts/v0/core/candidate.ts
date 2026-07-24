@@ -51,7 +51,6 @@ import {
   measureGapAxes,
 } from "./measure.ts";
 import {
-  ballisticLaunchFirstSampleFrame,
   captureBallisticLaunchObservation,
 } from "./ballistic_launch.ts";
 import {
@@ -64,7 +63,10 @@ import {
   captureBallisticTraceObservation,
   recordBallisticTraceCandidate,
 } from "./ballistic_trace.ts";
-import { firstAirborneExitFrame, growShortHorizon } from "./exit_read.ts";
+import {
+  firstCleanAirborneExitFrame,
+  growShortHorizon,
+} from "./exit_read.ts";
 import { registerCompileReset } from "./compile_lifecycle.ts";
 
 const AIR_POLISH_LOCAL_CONTINUATION_LENGTH_PX = 50;
@@ -289,6 +291,7 @@ type EvaluatedGapFit = Pick<
   | "lines"
   | "achieved"
   | "cost"
+  | "contactFrameOffset"
   | "releaseSpeed"
   | "releaseVelocityY"
   | "releaseGroundedFrames"
@@ -816,7 +819,8 @@ export function chooseRideOutPolishedFit(
  * Short-horizon detection for a candidate gap fit (the minimal-simulation
  * principle): grow the detection window in 4-frame chunks (shared schedule,
  * core/exit_read.ts `growShortHorizon`) until a CLEAN airborne geometric arc
- * exit (shared detector, core/exit_read.ts `firstAirborneExitFrame`) is found.
+ * exit (shared detector, core/exit_read.ts
+ * `firstCleanAirborneExitFrame`) is found.
  * Current axes end at `gap.endFrame`, already inside this exact prefix; the
  * exit state is captured separately for next-gap readiness.
  *
@@ -856,7 +860,7 @@ function computeShortGapFitDetection(
     const det = redetect(horizon);
     const terminatedEarly = det.terminus.frame < horizon && det.terminus.reason !== "endOfSpec";
     const exitFrame = (!terminatedEarly && horizon >= survivalFloor)
-      ? firstAirborneExitFrame(
+      ? firstCleanAirborneExitFrame(
         lines, minExit, horizon,
         (frame) => airborneAt(det, frame),
         (frame) => positionAt(det, frame),
@@ -989,12 +993,16 @@ function evaluateGapFit(
 
   // Hard gate 2: a landing event near gap.endFrame ±1.
   const owned = new Set(lines.map((l) => l.id));
-  const landingNearTarget = det.events.some(
+  const landingNearTarget = det.events.find(
     (e) => isAuthoredContactEvent(e, gap.endFrame - gap.startFrame)
       && Math.abs(e.frame - gap.endFrame) <= 1
       && intersectsLineIds(e, det, owned),
   );
-  if (!landingNearTarget) return { ok: false, failure: "landing" };
+  if (landingNearTarget === undefined) {
+    return { ok: false, failure: "landing" };
+  }
+  const contactFrameOffset =
+    (landingNearTarget.frame - gap.endFrame) as -1 | 0 | 1;
 
   // Hard gate 3: no off-beat landings before the next measurement boundary. For
   // the final authored contact, extend the gate through the already-simulated
@@ -1023,34 +1031,14 @@ function evaluateGapFit(
     probeRecord.cost = cost;
     probeRecord.achieved = achieved;
   }
-  // PREDICTED-ARRIVAL: full launch/exit state for the ranker to propagate
-  // ballistically to the next contact instead of charging a probe ride, read off
-  // the SAME detection (zero extra frames). The catch+8 read is the
-  // load-bearing FALLBACK; the geometric arc-exit read below is the default.
+  // PREDICTED-ARRIVAL: capture a full launch state only after the rider has
+  // geometrically exited the placed arc. An arbitrary airborne frame inside
+  // the arc is not a ballistic boundary: the rider may contact the same arc
+  // again, so collision-free propagation from that frame has the wrong
+  // semantics.
   const nextBound = POOL_MODE ? nextContactBound(gap, allContactFrames) : null;
-  let ballisticLaunch = POOL_MODE
-    ? ballisticLaunchAt(
-      eng,
-      det,
-      gap.endFrame,
-      releaseFrame,
-      releaseGroundedFrames,
-      releaseAirborne,
-      nextBound?.nextContact,
-    )
-    : undefined;
-  // GEOMETRIC EXIT READ (pool mode): re-read the BALLISTIC release state at the
-  // geometric arc-exit frame instead of catch+8, so the predict-arrival ranker
-  // sees an airborne launch. Cost-term fields above are untouched. The exit frame
-  // is read off the SAME detection (positions/airborne already computed) — zero
-  // extra physics frames. Falls back to the catch+8 read above when there is no
-  // exit, the exit rides into the next contact, or the exit state is unreadable.
-  // That fallback is load-bearing: short rides legitimately never exit (~25%
-  // no_exit on tiny_dance) and must keep the catch+8 capture, not be discarded.
-  if (POOL_MODE) {
-    // The truncated path already found the clean exit for its ballistic suffix;
-    // pass it through so the release read does not scan the same window again.
-    ballisticLaunch = releaseExitBallisticLaunch(
+  const ballisticLaunch = POOL_MODE
+    ? releaseExitBallisticLaunch(
       eng,
       det,
       gap,
@@ -1059,7 +1047,11 @@ function evaluateGapFit(
       nextBound,
       ballisticExitFrame,
       exitBallisticLaunch,
-    ) ?? ballisticLaunch;
+    ) ?? undefined
+    : undefined;
+  if (POOL_MODE) {
+    // The truncated path already found the clean exit for its ballistic suffix;
+    // pass it through so the release read does not scan the same window again.
     const targetFrame = nextBound?.nextContact;
     if (
       ballisticTraceEnabled() &&
@@ -1068,19 +1060,16 @@ function evaluateGapFit(
       targetFrame !== undefined &&
       ballisticLaunch.anchorFrame < targetFrame
     ) {
-      const launchFrame = ballisticLaunchFirstSampleFrame(ballisticLaunch);
       recordBallisticTraceCandidate({
         population: "candidate_pool",
         gapIndex: gap.index,
-        launchFrame,
+        anchorFrame: ballisticLaunch.anchorFrame,
         targetFrame,
         capture: () => captureBallisticTraceObservation({
           population: "candidate_pool",
           gapIndex: gap.index,
-          launchFrame,
+          anchorFrame: ballisticLaunch.anchorFrame,
           targetFrame,
-          sampleAllowed: (frame) =>
-            frame < targetFrame && airborneAt(det, frame) === true,
           // Benchmark-only truth reads are intentionally raw/unmetered. The
           // candidate engine is immutable from the compiler's point of view.
           readRider: (frame) => eng.getRider(frame),
@@ -1095,6 +1084,7 @@ function evaluateGapFit(
       lines,
       achieved,
       cost,
+      contactFrameOffset,
       releaseSpeed,
       releaseGroundedFrames,
       ...copyOptionalGapFitFields({
@@ -1145,16 +1135,16 @@ function nextContactBound(
   return { nextContact, latestBallisticFrame: nextContact - 2 };
 }
 
-/** Geometric-exit release-read helper (pool mode). Reads the ballistic
- *  launch/exit state at the GEOMETRIC arc-exit frame — the first frame in
- *  [gap.endFrame, horizon] where the rider is airborne AND past the arc-end
- *  plane (shared detector, core/exit_read.ts) — off the already-computed
- *  detection. Returns the exit-frame release state (with `airborne: true` and
- *  `grounded: 0` set consistently with that airborne-by-construction read) when
- *  a valid ballistic exit exists, or null to signal "fall back to the catch+8
- *  read" (no exit found, exit rides into the next contact, or unreadable). Every
- *  return path bumps a `release_exit_*` counter. Does NOT touch the cost-term
- *  release fields — only the predicted-arrival ranker state. `knownExitFrame`
+/** Geometric-exit launch helper (pool mode). Reads the ballistic state at the
+ *  GEOMETRIC arc-exit frame — the first frame in
+ *  [gap.endFrame, horizon] where the rider is past the arc-end plane and the
+ *  observed suffix remains airborne (shared detector, core/exit_read.ts) —
+ *  off the already-computed
+ *  detection. Returns the exit-frame state (with `airborne: true` and
+ *  `grounded: 0` set consistently with that exit) when a valid ballistic
+ *  boundary exists, or null when collision-free projection is not justified.
+ *  Every return path bumps a `release_exit_*` counter. Does NOT touch the
+ *  cost-term release fields — only the predicted-arrival ranker state. `knownExitFrame`
  *  skips the scan when short-horizon detection already located the same exit. */
 function releaseExitBallisticLaunch(
   // deno-lint-ignore no-explicit-any
@@ -1167,7 +1157,7 @@ function releaseExitBallisticLaunch(
   knownExitFrame: number | null = null,
   knownLaunch: BallisticLaunchObservation | null = null,
 ): BallisticLaunchObservation | null {
-  const exitFrame = knownExitFrame ?? firstAirborneExitFrame(
+  const exitFrame = knownExitFrame ?? firstCleanAirborneExitFrame(
     lines,
     gap.endFrame,
     horizon,
@@ -1186,8 +1176,7 @@ function releaseExitBallisticLaunch(
   }
   // Ballistic launch state ONLY at the exit frame. grounded=0 / airborne=true are
   // consistent with the airborne-by-construction exit read, so
-  // predictedArrivalApplies / the predict branch in optimizer/aim.ts and
-  // predictArrivalAtNextContact (objective.ts, propagating from rel.frame) behave
+  // the outgoing scorer-gap projection in optimizer/objective.ts behaves
   // correctly with the later, shorter-dt launch.
   const state = knownLaunch !== null
     ? knownLaunch

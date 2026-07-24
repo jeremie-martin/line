@@ -39,7 +39,7 @@ import {
 } from "./optimizer/arc_model.ts";
 import { evaluateJointArcKnobs } from "./optimizer/arc_probe.ts";
 import { isStrictlyBetter, type LeafKey } from "./optimizer/register.ts";
-import { scoreGapObjectiveWithCurrentQuality } from "./optimizer/objective.ts";
+import { scoreProjectedOutgoingSurrogate } from "./optimizer/objective.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap } from "./types.ts";
 import type { Spec } from "./optimizer/types.ts";
@@ -88,20 +88,17 @@ function score(model: JointArcResponseModel, knobs: ArcKnobs, current: AxisValue
   const readout = predictJointArcScoreReadout(model, knobs, current, jointArcCurrentScoreAxes(current));
   if (Number.isFinite(readout.exitFrame) && readout.exitFrame > nextGap.endFrame) return null;
   if (readout.state === null) return null;
-  const arrival = {
-    incoming: readout.state,
-    ...(Number.isFinite(readout.nextMeanSpeedPx)
-      ? { meanSpeedPx: readout.nextMeanSpeedPx }
-      : {}),
-    ...(Number.isFinite(readout.nextAirFraction) &&
-        Number.isFinite(readout.nextGapFrameCount)
-      ? {
-        airFraction: readout.nextAirFraction,
-        gapFrameCount: readout.nextGapFrameCount,
-      }
-      : {}),
-  };
-  return scoreGapObjectiveWithCurrentQuality(readout.currentQuality, arrival, next)?.value ?? null;
+  return scoreProjectedOutgoingSurrogate(
+    readout.currentQuality,
+    next,
+    {
+      meanSpeedPx: readout.nextMeanSpeedPx,
+      airFraction: readout.nextAirFraction,
+      ...(Number.isFinite(readout.nextElevation)
+        ? { elevation: readout.nextElevation }
+        : {}),
+    },
+  )?.value ?? null;
 }
 function distinct(a: ArcKnobs, b: ArcKnobs): boolean {
   const pitch = Math.abs(a.pitchDeg - b.pitchDeg) / 1.5;

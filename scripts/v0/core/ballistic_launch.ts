@@ -8,19 +8,22 @@
 
 import {
   getRiderMetered,
-  sledPoseDegFromRider,
   type Detection,
 } from "../../lib/detector.ts";
 import {
+  constraintBallisticOrientationFromState,
   constraintBallisticStateFromRider,
 } from "./ballistic_micro_sim.ts";
 import {
   type BallisticLaunchObservation,
   type BallisticState,
 } from "./ballistic_projection.ts";
-import { LAUNCH_READ_FRAMES } from "./launch_read.ts";
 import { summarizeBallisticAxisPrefix } from "./measure.ts";
 import { airborneAt, velocityAt } from "./substrate.ts";
+
+/** Maximum consecutive causal frames inspected before selecting the latest
+ * exact rider-state anchor. Only the selected anchor performs a rider read. */
+export const BALLISTIC_ANCHOR_SCAN_FRAMES = 4;
 
 export type BallisticLaunchCapture = {
   gapStartFrame: number;
@@ -41,10 +44,10 @@ export function captureBallisticLaunchObservation(
   const lastAllowed = Math.min(
     capture.lastSampleFrame,
     capture.targetFrameExclusive - 1,
-    capture.firstSampleFrame + LAUNCH_READ_FRAMES - 1,
+    capture.firstSampleFrame + BALLISTIC_ANCHOR_SCAN_FRAMES - 1,
   );
   let anchorFrame: number | null = null;
-  let sampleCount = 0;
+  let anchorScanFrames = 0;
   for (
     let frame = capture.firstSampleFrame;
     frame <= lastAllowed;
@@ -58,7 +61,7 @@ export function captureBallisticLaunchObservation(
       !Number.isFinite(velocity.y)
     ) break;
     anchorFrame = frame;
-    sampleCount++;
+    anchorScanFrames++;
   }
   if (anchorFrame === null) return null;
 
@@ -89,6 +92,10 @@ export function captureBallisticLaunchObservation(
   };
 
   const constraintState = constraintBallisticStateFromRider(rider, 0);
+  if (constraintState === null) return null;
+  const orientation = constraintBallisticOrientationFromState(
+    constraintState,
+  );
   const state: BallisticState = {
     x: position.x,
     y: position.y,
@@ -98,18 +105,16 @@ export function captureBallisticLaunchObservation(
     comAngleDeg: speed > 0
       ? Math.atan2(velocity.y, velocity.x) * 180 / Math.PI
       : null,
-    sledPoseDeg: sledPoseDegFromRider(rider),
-    // Pose rate is deliberately absent rather than acquired through a second
-    // engine read. No current readiness component consumes it.
-    sledPoseRateDegPerFrame: null,
-    ...(constraintState === null ? {} : { constraintState }),
+    sledPoseDeg: orientation.sledPoseDeg,
+    sledPoseRateDegPerFrame: orientation.sledPoseRateDegPerFrame,
+    constraintState,
   };
   return {
     gapStartFrame: capture.gapStartFrame,
     anchorFrame,
     state,
     prefix: prefixWithAmplitude,
-    sampleCount,
+    anchorScanFrames,
     groundedFrames: capture.groundedFrames,
     airborne: true,
   };
@@ -117,9 +122,12 @@ export function captureBallisticLaunchObservation(
 
 /** First causal sample represented by a consecutive launch read. */
 export function ballisticLaunchFirstSampleFrame(
-  launch: Pick<BallisticLaunchObservation, "anchorFrame" | "sampleCount">,
+  launch: Pick<
+    BallisticLaunchObservation,
+    "anchorFrame" | "anchorScanFrames"
+  >,
 ): number {
-  return launch.anchorFrame - launch.sampleCount + 1;
+  return launch.anchorFrame - launch.anchorScanFrames + 1;
 }
 
 /**

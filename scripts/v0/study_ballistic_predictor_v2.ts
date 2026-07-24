@@ -41,18 +41,21 @@ import { fileURLToPath } from "node:url";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { applyJolt } from "../produce/seed.ts";
 import {
+  ballisticTraceCollisionFreeThrough,
   type BallisticTraceCandidate,
   type BallisticTraceObservation,
   type BallisticTraceSample,
+  type BallisticTraceTruthSample,
   setBallisticTraceSink,
 } from "./core/ballistic_trace.ts";
 import {
-  LAUNCH_VY_OFFSET_PX,
-} from "./core/launch_read.ts";
-import {
   constraintBallisticStateFromSamples,
 } from "./core/ballistic_micro_sim.ts";
-import { propagateBallisticState } from "./core/ballistic_projection.ts";
+import {
+  ballisticArticulationFeatures,
+  propagateBallisticState,
+  type BallisticState,
+} from "./core/ballistic_projection.ts";
 import {
   loadSourceManifest,
   loadSourceSpec,
@@ -61,22 +64,18 @@ import {
 import { compilerCandidateIdentity } from "./benchmark_v2/compiler_identity.ts";
 import { canonicalMembers, loadSuiteManifest } from "./benchmark_v2/suite_model.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { ELEVATION } from "./types.ts";
 
-type Vec2 = { x: number; y: number };
-type KinematicState = Vec2 & { vx: number; vy: number };
 type Sample = BallisticTraceSample;
 type TruthTarget = "precontact" | "contact";
 type PredictorInput = {
-  samples: readonly Sample[];
+  /** The one exact causal anchor packet available to production. */
+  anchor: Sample;
   targetFrame: number;
-  dt: number;
-  fallback: KinematicState;
   constraintState: ReturnType<typeof constraintBallisticStateFromSamples>;
 };
 type Predictor = {
   name: string;
-  predict: (input: PredictorInput) => KinematicState;
+  predict: (input: PredictorInput) => BallisticState;
 };
 type CorpusObservation = BallisticTraceObservation & {
   sourceId: string;
@@ -84,7 +83,7 @@ type CorpusObservation = BallisticTraceObservation & {
   budget: number;
 };
 type BallisticCorpus = {
-  schema: "line.ballistic-predictor-corpus.v6";
+  schema: "line.ballistic-predictor-corpus.v8";
   generatedAt: string;
   compiler: string;
   compilerFingerprint: string;
@@ -107,6 +106,7 @@ type BallisticCorpus = {
     observations: number;
     seen: number;
     unreadable: number;
+    captureErrors: number;
     elapsedMs: number;
   }[];
 };
@@ -120,6 +120,10 @@ type ErrorSummary = {
   velocityMae: number;
   speedMae: number;
   angleMaeDeg: number;
+  sledPoseMaeDeg: number;
+  sledPoseRateMaeDegPerFrame: number;
+  articulationMae: number;
+  bindingMismatchRate: number;
 };
 type MacroErrorSummary = ErrorSummary & { groups: number };
 type ErrorTotals = {
@@ -132,6 +136,10 @@ type ErrorTotals = {
   velocity: number;
   speed: number;
   angle: number;
+  sledPose: number;
+  sledPoseRate: number;
+  articulation: number;
+  bindingMismatch: number;
 };
 type ReservoirEntry = {
   priority: number;
@@ -143,6 +151,7 @@ type CollectedCaseSeed = {
   seed: number;
   seen: number;
   unreadable: number;
+  captureErrors: number;
   elapsedMs: number;
   observations: CorpusObservation[];
 };
@@ -230,6 +239,7 @@ if (workerSourceId !== undefined) {
     seed: result.seed,
     seen: result.seen,
     unreadable: result.unreadable,
+    captureErrors: result.captureErrors,
     elapsedMs: result.elapsedMs,
     observations: result.observations.length,
     populations: countBy(
@@ -245,7 +255,6 @@ if (workerSourceId !== undefined) {
   });
   process.exit(0);
 }
-const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
 const corpus = collect ? await collectCorpus() : loadCorpus();
 const reportCaseIds = corpus.cases;
 const seeds = corpus.protocol.seeds;
@@ -259,14 +268,13 @@ const {
   macroByCase,
   perCase,
   byHorizon,
-  byReadFrames,
   byPopulation,
 } = evaluation;
 const perBudget = Object.fromEntries(
   budgets.map((budget) => [String(budget), overall]),
 );
 const report = {
-  schema: "line.study-ballistic-predictor-v2.v7",
+  schema: "line.study-ballistic-predictor-v2.v9",
   generatedAt: new Date().toISOString(),
   compiler: corpus.compiler,
   compilerFingerprint: corpus.compilerFingerprint,
@@ -287,7 +295,6 @@ const report = {
   perCase,
   perBudget,
   byHorizon,
-  byReadFrames,
   byPopulation,
 };
 mkdirSync(dirname(outputPath), { recursive: true });
@@ -331,6 +338,7 @@ async function collectCorpus(): Promise<BallisticCorpus> {
         observations: result.observations,
         seen: result.seen,
         unreadable: result.unreadable,
+        captureErrors: result.captureErrors,
         elapsedMs: result.elapsedMs,
       };
       console.error(
@@ -338,7 +346,8 @@ async function collectCorpus(): Promise<BallisticCorpus> {
           `retained ${result.observations} ` +
           `(pool ${result.populations.candidate_pool ?? 0}, ` +
           `aim ${result.populations.aim_probe ?? 0}), ` +
-          `unreadable ${result.unreadable}, ${result.elapsedMs.toFixed(0)} ms`,
+          `unreadable ${result.unreadable}, errors ${result.captureErrors}, ` +
+          `${result.elapsedMs.toFixed(0)} ms`,
       );
     });
     const compilerFingerprintAfter = compilerCandidateIdentity("wasm").candidateFingerprint;
@@ -346,7 +355,7 @@ async function collectCorpus(): Promise<BallisticCorpus> {
       throw new Error(`compiler sources changed during ballistic corpus collection`);
     }
     const corpus: BallisticCorpus = {
-      schema: "line.ballistic-predictor-corpus.v6",
+      schema: "line.ballistic-predictor-corpus.v8",
       generatedAt: new Date().toISOString(),
       compiler: "current checkout",
       compilerFingerprint,
@@ -407,6 +416,7 @@ async function collectCaseSeed(
   const reservoir: ReservoirEntry[] = [];
   let seen = 0;
   let unreadable = 0;
+  let captureErrors = 0;
   setBallisticTraceSink((candidate) => {
     const ordinal = seen++;
     const priority = tracePriority(source.id, seed, ordinal, candidate);
@@ -422,11 +432,16 @@ async function collectCaseSeed(
     try {
       captured = candidate.capture();
     } catch (error) {
-      throw new Error(
-        `ballistic capture failed for ${source.id}/s${seed} call ${ordinal} ` +
-          `(${candidate.population}, gap ${candidate.gapIndex}, ` +
-          `${candidate.launchFrame}->${candidate.targetFrame}): ${String(error)}`,
-      );
+      unreadable++;
+      captureErrors++;
+      if (captureErrors <= 3) {
+        console.error(
+          `ballistic capture skipped for ${source.id}/s${seed} call ${ordinal} ` +
+            `(${candidate.population}, gap ${candidate.gapIndex}, ` +
+            `${candidate.anchorFrame}->${candidate.targetFrame}): ${String(error)}`,
+        );
+      }
+      return;
     }
     if (captured === null) {
       unreadable++;
@@ -449,6 +464,7 @@ async function collectCaseSeed(
     seed,
     seen,
     unreadable,
+    captureErrors,
     elapsedMs: performance.now() - started,
     observations: reservoir
       .sort((a, b) => a.ordinal - b.ordinal)
@@ -547,7 +563,7 @@ function loadCorpus(): BallisticCorpus {
     );
   }
   const parsed = JSON.parse(readFileSync(manifestPath, "utf8")) as BallisticCorpus;
-  if (parsed.schema !== "line.ballistic-predictor-corpus.v6") {
+  if (parsed.schema !== "line.ballistic-predictor-corpus.v8") {
     throw new Error(`unsupported ballistic corpus schema`);
   }
   // The frozen rows are predictor inputs plus independent future truth. Their
@@ -632,48 +648,43 @@ function evaluateCorpus(corpus: BallisticCorpus) {
   const overallTotals = new Map<string, ErrorTotals>();
   const caseTotals = new Map<string, ErrorTotals>();
   const horizonTotals = new Map<string, ErrorTotals>();
-  const readTotals = new Map<string, ErrorTotals>();
   const populationTotals = new Map<string, ErrorTotals>();
   const scorePositionTotals = new Map<string, ErrorTotals>();
   const scoreContactTotals = new Map<string, ErrorTotals>();
 
   for (const observation of corpusObservations(corpus)) {
     if (modelNames === null) {
-      modelNames = Object.keys(predictAll(observation.samples, observation.targetFrame)).sort();
+      modelNames = Object.keys(
+        predictAll(observation.anchor, observation.targetFrame),
+      ).sort();
     }
-    // The predictor is physically ballistic only when no rider or sled point
-    // collides before the authored target. This is intentionally stricter than
-    // the detector's sled-only `airborne` label.
-    const cleanFlight = observation.collisionWitnesses.every(
-      (witness) => witness.frame >= observation.targetFrame,
-    );
-    const launchUsable = observation.samples.every(
-      (sample) => sample.riderMounted === true && sample.sledIntact === true,
-    );
-    const lastSampleFrame = observation.samples[observation.samples.length - 1].frame;
+    const launchUsable =
+      observation.anchor.riderMounted === true &&
+      observation.anchor.sledIntact === true;
     const caseSeed = `${observation.sourceId}/s${observation.seed}`;
 
     for (const target of truthTargets) {
       const truth = observation.truth[target];
-      const predictions = predictAll(observation.samples, truth.frame);
-      const dt = truth.frame - observation.launchFrame;
+      const predictions = predictAll(observation.anchor, truth.frame);
+      const dt = truth.frame - observation.anchorFrame;
       const horizon = horizonLabel(dt);
+      // All rider and sled points must be collision-free over the portion
+      // actually predicted: anchor + 1 through this truth frame, inclusive.
+      const cleanFlight = ballisticTraceCollisionFreeThrough(
+        observation,
+        truth.frame,
+      );
       const scorePosition = target === "precontact" &&
-        cleanFlight && launchUsable && lastSampleFrame < truth.frame;
+        cleanFlight && launchUsable && observation.anchorFrame < truth.frame;
       const scoreContact = target === "contact" && cleanFlight && launchUsable;
 
       for (const model of modelNames) {
-        const error = predictionError(predictions[model], truth.body);
+        const error = predictionError(predictions[model], truth);
         addError(overallTotals, metricKey(target, model), error);
         addError(caseTotals, metricKey(observation.sourceId, target, model), error);
         if (horizon !== null) {
           addError(horizonTotals, metricKey(horizon, target, model), error);
         }
-        addError(
-          readTotals,
-          metricKey(String(observation.samples.length), target, model),
-          error,
-        );
         addError(
           populationTotals,
           metricKey(observation.population, target, model),
@@ -730,17 +741,6 @@ function evaluateCorpus(corpus: BallisticCorpus) {
       ),
     ]),
   );
-  const byReadFrames = Object.fromEntries(
-    [1, 2, 3, 4].map((readFrames) => [
-      String(readFrames),
-      Object.fromEntries(
-        truthTargets.map((target) => [
-          target,
-          modelSummaries(readTotals, String(readFrames), target),
-        ]),
-      ),
-    ]),
-  );
   const byPopulation = Object.fromEntries(
     BALLISTIC_POPULATIONS.map((population) => [
       population,
@@ -784,7 +784,6 @@ function evaluateCorpus(corpus: BallisticCorpus) {
     macroByCase,
     perCase,
     byHorizon,
-    byReadFrames,
     byPopulation,
   };
 }
@@ -802,17 +801,19 @@ function horizonLabel(dt: number): string | null {
 }
 
 function predictionError(
-  prediction: KinematicState,
-  truth: KinematicState,
+  prediction: BallisticState,
+  truth: BallisticTraceTruthSample,
 ): Omit<ErrorTotals, "rows"> {
-  const dx = prediction.x - truth.x;
-  const dy = prediction.y - truth.y;
-  const dvx = prediction.vx - truth.vx;
-  const dvy = prediction.vy - truth.vy;
+  const dx = prediction.x - truth.body.x;
+  const dy = prediction.y - truth.body.y;
+  const dvx = prediction.vx - truth.body.vx;
+  const dvy = prediction.vy - truth.body.vy;
   const predictedSpeed = Math.hypot(prediction.vx, prediction.vy);
-  const truthSpeed = Math.hypot(truth.vx, truth.vy);
+  const truthSpeed = Math.hypot(truth.body.vx, truth.body.vy);
   const predictedAngle = Math.atan2(prediction.vy, prediction.vx);
-  const truthAngle = Math.atan2(truth.vy, truth.vx);
+  const truthAngle = Math.atan2(truth.body.vy, truth.body.vx);
+  const articulation = ballisticArticulationFeatures(prediction);
+  const predictedBinding = prediction.constraintState;
   return {
     x: Math.abs(dx),
     y: Math.abs(dy),
@@ -822,6 +823,28 @@ function predictionError(
     velocity: Math.hypot(dvx, dvy),
     speed: Math.abs(predictedSpeed - truthSpeed),
     angle: Math.abs(wrappedRadians(predictedAngle - truthAngle)) * 180 / Math.PI,
+    sledPose: prediction.sledPoseDeg === null
+      ? Number.POSITIVE_INFINITY
+      : Math.abs(wrappedDegrees(
+        prediction.sledPoseDeg - truth.sledPoseDeg,
+      )),
+    sledPoseRate: prediction.sledPoseRateDegPerFrame === null
+      ? Number.POSITIVE_INFINITY
+      : Math.abs(wrappedDegrees(
+        prediction.sledPoseRateDegPerFrame -
+          truth.sledPoseRateDegPerFrame,
+      )),
+    articulation: articulation === null
+      ? Number.POSITIVE_INFINITY
+      : mean(articulation.map(
+        (value, index) => Math.abs(value - truth.articulation[index]),
+      )),
+    bindingMismatch: predictedBinding === undefined
+      ? Number.POSITIVE_INFINITY
+      : (
+        Number(predictedBinding.riderMounted !== truth.riderMounted) +
+        Number(predictedBinding.sledIntact !== truth.sledIntact)
+      ) / 2,
   };
 }
 
@@ -842,6 +865,10 @@ function addError(
       velocity: 0,
       speed: 0,
       angle: 0,
+      sledPose: 0,
+      sledPoseRate: 0,
+      articulation: 0,
+      bindingMismatch: 0,
     };
     totalsByKey.set(key, totals);
   }
@@ -854,6 +881,10 @@ function addError(
   totals.velocity += error.velocity;
   totals.speed += error.speed;
   totals.angle += error.angle;
+  totals.sledPose += error.sledPose;
+  totals.sledPoseRate += error.sledPoseRate;
+  totals.articulation += error.articulation;
+  totals.bindingMismatch += error.bindingMismatch;
 }
 
 function summarizeTotals(totals: ErrorTotals | undefined): ErrorSummary {
@@ -869,6 +900,11 @@ function summarizeTotals(totals: ErrorTotals | undefined): ErrorSummary {
     velocityMae: (totals?.velocity ?? 0) / divisor,
     speedMae: (totals?.speed ?? 0) / divisor,
     angleMaeDeg: (totals?.angle ?? 0) / divisor,
+    sledPoseMaeDeg: (totals?.sledPose ?? 0) / divisor,
+    sledPoseRateMaeDegPerFrame:
+      (totals?.sledPoseRate ?? 0) / divisor,
+    articulationMae: (totals?.articulation ?? 0) / divisor,
+    bindingMismatchRate: (totals?.bindingMismatch ?? 0) / divisor,
   };
 }
 
@@ -891,6 +927,12 @@ function summarizeMacroTotals(
     velocityMae: metric("velocityMae"),
     speedMae: metric("speedMae"),
     angleMaeDeg: metric("angleMaeDeg"),
+    sledPoseMaeDeg: metric("sledPoseMaeDeg"),
+    sledPoseRateMaeDegPerFrame: metric(
+      "sledPoseRateMaeDegPerFrame",
+    ),
+    articulationMae: metric("articulationMae"),
+    bindingMismatchRate: metric("bindingMismatchRate"),
   };
 }
 
@@ -958,7 +1000,7 @@ function tracePriority(
     ordinal,
     candidate.population,
     candidate.gapIndex,
-    candidate.launchFrame,
+    candidate.anchorFrame,
     candidate.targetFrame,
   ].join("/");
   let hash = 0x811c9dc5;
@@ -981,16 +1023,15 @@ function countBy(values: readonly string[]): Record<string, number> {
   return counts;
 }
 
-function predictAll(samples: readonly Sample[], targetFrame: number): Record<string, KinematicState> {
-  const first = samples[0];
-  const dt = targetFrame - first.frame;
-  const bodyMean = meanLaunchVelocity(samples);
+function predictAll(
+  anchor: Sample,
+  targetFrame: number,
+): Record<string, BallisticState> {
   const input: PredictorInput = {
-    samples,
+    anchor,
     targetFrame,
-    dt,
-    fallback: propagate(first.body, bodyMean, dt),
-    constraintState: constraintBallisticStateFromSamples(samples),
+    // Exact previous-point positions make earlier trace samples unnecessary.
+    constraintState: constraintBallisticStateFromSamples([anchor]),
   };
   return Object.fromEntries(
     PREDICTORS.map((predictor) => [predictor.name, predictor.predict(input)]),
@@ -998,8 +1039,8 @@ function predictAll(samples: readonly Sample[], targetFrame: number): Record<str
 }
 
 /** Must mirror the predictor currently used by the compiler. */
-function predictCurrent(input: PredictorInput): KinematicState {
-  const last = input.samples[input.samples.length - 1];
+function predictCurrent(input: PredictorInput): BallisticState {
+  const last = input.anchor;
   const speed = Math.hypot(last.body.vx, last.body.vy);
   const state = propagateBallisticState({
     ...last.body,
@@ -1014,48 +1055,13 @@ function predictCurrent(input: PredictorInput): KinematicState {
       : {
         constraintState: {
           ...input.constraintState,
-          // Corpus rows may contain several samples, but production captures
-          // the exact point/previous-point state only at the last causal
-          // anchor. Re-anchor the equivalent frozen state explicitly.
+          // The frozen state is already the exact production anchor. Keep the
+          // public suffix origin explicit.
           frameOffset: 0,
         },
       }),
   }, input.targetFrame - last.frame);
-  return {
-    x: state.x,
-    y: state.y,
-    vx: state.vx,
-    vy: state.vy,
-  };
-}
-
-function meanLaunchVelocity(
-  samples: readonly Sample[],
-  vyOffset = LAUNCH_VY_OFFSET_PX,
-): Pick<KinematicState, "vx" | "vy"> {
-  let vx = 0;
-  let vy = 0;
-  const firstFrame = samples[0].frame;
-  for (const sample of samples) {
-    const dt = sample.frame - firstFrame;
-    vx += sample.body.vx;
-    vy += sample.body.vy - g * dt;
-  }
-  return { vx: vx / samples.length, vy: vy / samples.length + vyOffset };
-}
-
-function propagate(
-  anchor: Pick<KinematicState, "x" | "y">,
-  velocity: Pick<KinematicState, "vx" | "vy">,
-  dt: number,
-): KinematicState {
-  const frames = Math.max(0, Math.round(dt));
-  return {
-    x: anchor.x + velocity.vx * frames,
-    y: anchor.y + velocity.vy * frames + 0.5 * g * frames * (frames + 1),
-    vx: velocity.vx,
-    vy: velocity.vy + g * frames,
-  };
+  return state;
 }
 
 function wrappedRadians(value: number): number {
@@ -1063,6 +1069,10 @@ function wrappedRadians(value: number): number {
   if (out > Math.PI) out -= 2 * Math.PI;
   if (out <= -Math.PI) out += 2 * Math.PI;
   return out;
+}
+
+function wrappedDegrees(value: number): number {
+  return ((value + 180) % 360 + 360) % 360 - 180;
 }
 
 function predictorScores(
@@ -1086,6 +1096,10 @@ function predictorScores(
     ["velocity", "contact", "velocityMae"],
     ["speed", "contact", "speedMae"],
     ["angle", "contact", "angleMaeDeg"],
+    ["sledPose", "contact", "sledPoseMaeDeg"],
+    ["sledPoseRate", "contact", "sledPoseRateMaeDegPerFrame"],
+    ["articulation", "contact", "articulationMae"],
+    ["bindingIntegrity", "contact", "bindingMismatchRate"],
   ] as const;
   const minimumImprovementPct = 1;
   const modelScores = models.map((model) => {
@@ -1104,6 +1118,22 @@ function predictorScores(
       velocity: normalizedError(contact.velocityMae, currentContact.velocityMae),
       speed: normalizedError(contact.speedMae, currentContact.speedMae),
       angle: normalizedError(contact.angleMaeDeg, currentContact.angleMaeDeg),
+      sledPose: normalizedError(
+        contact.sledPoseMaeDeg,
+        currentContact.sledPoseMaeDeg,
+      ),
+      sledPoseRate: normalizedError(
+        contact.sledPoseRateMaeDegPerFrame,
+        currentContact.sledPoseRateMaeDegPerFrame,
+      ),
+      articulation: normalizedError(
+        contact.articulationMae,
+        currentContact.articulationMae,
+      ),
+      bindingIntegrity: normalizedError(
+        contact.bindingMismatchRate,
+        currentContact.bindingMismatchRate,
+      ),
     };
     return {
       model,
@@ -1148,6 +1178,11 @@ function predictorScores(
       velocity: "authored contact",
       speed: "authored contact",
       angle: "authored contact",
+      sledPose: "authored contact",
+      sledPoseRate: "authored contact",
+      articulation:
+        "authored contact, canonical readiness articulation features",
+      bindingIntegrity: "authored contact",
     },
     coverage: {
       positionRows: currentPosition.rows,
@@ -1186,6 +1221,10 @@ function requiredScoreSummary(
       summary.velocityMae,
       summary.speedMae,
       summary.angleMaeDeg,
+      summary.sledPoseMaeDeg,
+      summary.sledPoseRateMaeDegPerFrame,
+      summary.articulationMae,
+      summary.bindingMismatchRate,
     ];
   if (
     summary === undefined ||

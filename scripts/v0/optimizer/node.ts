@@ -185,10 +185,12 @@ export function getCandidatesSorted(
       ...cached.sampleOrder,
       ...solveAdditionalCandidates(
         node.prefixEngine, gap, perGapRng, cached.nCand, nCand, ctx, node.prefixNextLineId,
+        seed,
       ),
     ]
     : solveOneGap(
       node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
+      seed,
     );
   normalPoolSnapshotHook?.({ node, seed, gapIndex: gap.index, nCand, sampleOrder });
   const sorted = sortWithLaneExtras(node, gaps, ctx, gap, nCand, sampleOrder);
@@ -309,9 +311,19 @@ function solveAdditionalCandidates(
   attemptEnd: number,
   ctx: SpecContext,
   lineIdStart: number,
+  proposalBatchId: number,
 ): Candidate[] {
   advanceCandidateRng(engine, gap, rng, attemptStart);
-  return solveOneGapAttemptRange(engine, gap, rng, attemptStart, attemptEnd, ctx, lineIdStart);
+  return solveOneGapAttemptRange(
+    engine,
+    gap,
+    rng,
+    attemptStart,
+    attemptEnd,
+    ctx,
+    lineIdStart,
+    proposalBatchId,
+  );
 }
 
 function advanceCandidateRng(

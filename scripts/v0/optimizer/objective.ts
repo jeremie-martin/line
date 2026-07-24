@@ -1,120 +1,336 @@
 import { axisQualityForTargets } from "../score.ts";
 import {
+  speedPxToAuthored,
   type AxisValues,
   type Gap,
 } from "../types.ts";
 import type { GapFit } from "../core/substrate.ts";
 import {
+  airFractionWithTerminalOccupancy,
   ballisticLaunchOf,
   projectBallisticGap,
   type BallisticFitFields,
+  type BallisticGapProjection,
   type BallisticLaunchObservation,
 } from "../core/ballistic_projection.ts";
 import {
-  isElevationReadinessEnabled,
+  nextContactGapAfter,
+  PRODUCTION_ARC_PROPOSAL_POLICY_ID,
+  successorScorerGapAfter,
+} from "./arc_proposal.ts";
+import {
+  readinessScorerGapContext,
+  type ReadinessScorerGapContext,
+} from "./readiness_features.ts";
+import {
   scoreReadiness,
-  setElevationReadinessEnabled,
-  type ReadinessInput,
   type ReadinessScore,
 } from "./readiness.ts";
 
 function objectiveEnvNum(name: string, fallback: number): number {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.[name];
+  const raw = (globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  }).process?.env?.[name];
   const n = raw === undefined || raw === "" ? NaN : Number(raw);
-  return Number.isFinite(n) && n > 0 ? Math.min(4, Math.max(0.25, n)) : fallback;
+  return Number.isFinite(n) && n > 0
+    ? Math.min(4, Math.max(0.25, n))
+    : fallback;
 }
 
-const OBJECTIVE_CURRENT_QUALITY_POWER_ENV = objectiveEnvNum("LR_M64_OBJECTIVE_CURRENT_POWER", 1);
-const OBJECTIVE_READINESS_POWER_ENV = objectiveEnvNum("LR_M75_OBJECTIVE_READINESS_POWER", 1);
-let objectiveCurrentQualityPower = OBJECTIVE_CURRENT_QUALITY_POWER_ENV;
-let objectiveReadinessPower = OBJECTIVE_READINESS_POWER_ENV;
+const OBJECTIVE_SETTLED_POWER_ENV = objectiveEnvNum(
+  "LR_OBJECTIVE_SETTLED_POWER",
+  1,
+);
+const OBJECTIVE_FUTURE_POWER_ENV = objectiveEnvNum(
+  "LR_OBJECTIVE_FUTURE_POWER",
+  1,
+);
+let objectiveSettledPower = OBJECTIVE_SETTLED_POWER_ENV;
+let objectiveFuturePower = OBJECTIVE_FUTURE_POWER_ENV;
 
-type ObjectiveBlendPowerConfig = {
-  currentQualityPower?: number;
-  readinessPower?: number;
-  elevationReadiness?: boolean;
+type ProposalUtilityPowerConfig = {
+  settledIncomingQualityPower?: number;
+  futureQualityPower?: number;
 };
 
-export function setObjectiveBlendPowers(config: ObjectiveBlendPowerConfig = {}): void {
-  objectiveCurrentQualityPower = normalizeObjectivePower(
-    config.currentQualityPower ?? OBJECTIVE_CURRENT_QUALITY_POWER_ENV,
+export function setProposalUtilityPowers(
+  config: ProposalUtilityPowerConfig = {},
+): void {
+  objectiveSettledPower = normalizeObjectivePower(
+    config.settledIncomingQualityPower ?? OBJECTIVE_SETTLED_POWER_ENV,
   );
-  objectiveReadinessPower = normalizeObjectivePower(
-    config.readinessPower ?? OBJECTIVE_READINESS_POWER_ENV,
+  objectiveFuturePower = normalizeObjectivePower(
+    config.futureQualityPower ?? OBJECTIVE_FUTURE_POWER_ENV,
   );
-  setElevationReadinessEnabled(config.elevationReadiness === true);
 }
 
 function normalizeObjectivePower(power: number): number {
-  return Number.isFinite(power) && power > 0 ? Math.min(4, Math.max(0.25, power)) : 1;
+  return Number.isFinite(power) && power > 0
+    ? Math.min(4, Math.max(0.25, power))
+    : 1;
 }
 
-export type ObjectiveArrivalState = ReadinessInput;
-export type NextGapReadinessScore = ReadinessScore;
+export type ProjectedOutgoingGapScore = {
+  projection: BallisticGapProjection;
+  achieved: AxisValues;
+  quality: number;
+  scoredAxisCount: number;
+};
 
-/**
- * Projection is deterministic for one immutable launch packet, target frame,
- * and enabled output set. All compiler consumers share this memo so telemetry,
- * ranking, and support lanes cannot repeat the exact constraint walk.
- */
-const projectedArrivalCache = new WeakMap<
-  BallisticLaunchObservation,
-  Map<string, ObjectiveArrivalState | null>
->();
-
-export type GapObjectiveScore = NextGapReadinessScore & {
-  currentQuality: number;
+export type GapObjectiveScore = ReadinessScore & {
+  settledIncomingQuality: number;
+  projectedOutgoingQuality: number;
   value: number;
 };
 
-/** Exact current-gap axes on the scorer-owned interval. */
-export function currentGapAxes(fit: Pick<GapFit, "achieved">): AxisValues {
+/**
+ * Projection is deterministic for one immutable launch packet, target frame,
+ * and enabled output set. All compiler consumers share this memo.
+ */
+const outgoingProjectionCache = new WeakMap<
+  BallisticLaunchObservation,
+  Map<string, BallisticGapProjection | null>
+>();
+
+/** Exact incoming-gap axes on the scorer-owned interval. */
+export function settledIncomingAxes(
+  fit: Pick<GapFit, "achieved">,
+): AxisValues {
   return fit.achieved;
 }
 
-export function scoreCurrentTargetQuality(targets: AxisValues, achieved: AxisValues): number {
+export function scoreSettledIncomingQuality(
+  targets: AxisValues,
+  achieved: AxisValues,
+): number {
   return axisQualityForTargets(targets, achieved).axis_quality;
 }
 
-export function scoreNextTargetReadiness(
-  arrival: ObjectiveArrivalState,
-  nextTargets: AxisValues,
-): NextGapReadinessScore | null {
-  return scoreReadiness(arrival, nextTargets);
-}
-
-export function scoreGapObjectiveForTargets(
-  currentTargets: AxisValues,
-  currentAxes: AxisValues,
-  arrival: ObjectiveArrivalState,
-  nextTargets: AxisValues,
-): GapObjectiveScore | null {
-  const currentQuality = scoreCurrentTargetQuality(currentTargets, currentAxes);
-  return scoreGapObjectiveWithCurrentQuality(currentQuality, arrival, nextTargets);
-}
-
-export function scoreGapObjectiveWithCurrentQuality(
-  currentQuality: number,
-  arrival: ObjectiveArrivalState,
-  nextTargets: AxisValues,
-): GapObjectiveScore | null {
-  const readiness = scoreNextTargetReadiness(arrival, nextTargets);
-  if (readiness === null) return null;
+export function scoreProjectedOutgoingAxes(
+  targets: AxisValues,
+  achieved: AxisValues,
+): { quality: number; scoredAxisCount: number } {
+  const summary = axisQualityForTargets(targets, achieved);
   return {
-    ...readiness,
-    currentQuality,
-    value: proposalUtility(currentQuality, readiness),
+    quality: summary.axis_quality,
+    scoredAxisCount: summary.axis_count,
   };
 }
 
-/** Search-policy value; deliberately separate from readiness semantics. */
+export function scoreProjectedOutgoingSurrogate(
+  settledIncomingQuality: number,
+  outgoingTargets: AxisValues,
+  aggregate: {
+    meanSpeedPx: number;
+    airFraction: number;
+    elevation?: number;
+  },
+): { projectedOutgoingQuality: number; value: number } | null {
+  const achieved: AxisValues = {};
+  if (outgoingTargets.speed !== undefined) {
+    if (!Number.isFinite(aggregate.meanSpeedPx)) return null;
+    achieved.speed = speedPxToAuthored(aggregate.meanSpeedPx);
+  }
+  if (outgoingTargets.air !== undefined) {
+    if (!Number.isFinite(aggregate.airFraction)) return null;
+    achieved.air = aggregate.airFraction;
+  }
+  if (outgoingTargets.elevation !== undefined) {
+    if (
+      aggregate.elevation === undefined ||
+      !Number.isFinite(aggregate.elevation)
+    ) return null;
+    achieved.elevation = aggregate.elevation;
+  }
+  const projectedOutgoingQuality = scoreProjectedOutgoingAxes(
+    outgoingTargets,
+    achieved,
+  ).quality;
+  return {
+    projectedOutgoingQuality,
+    value: proposalUtility(
+      settledIncomingQuality,
+      projectedOutgoingQuality,
+      { readiness: 1 },
+    ),
+  };
+}
+
+export function scorerTargetsForGap(
+  gap: Gap,
+  gapAxisTargets?: readonly AxisValues[],
+): AxisValues {
+  return gapAxisTargets?.[gap.index] ?? gap.targets;
+}
+
+export function scorerGapContext(
+  gap: Gap,
+  gapAxisTargets?: readonly AxisValues[],
+): ReadinessScorerGapContext {
+  return readinessScorerGapContext(
+    gap,
+    scorerTargetsForGap(gap, gapAxisTargets),
+  );
+}
+
+/**
+ * Complete the scorer-compatible outgoing gap of one already proposed arc.
+ * This is not readiness: it scores the gap shaped by that arc.
+ */
+export function projectOutgoingScorerGap(
+  fit: GapFit | BallisticFitFields,
+  outgoingGap: Gap,
+  gapAxisTargets?: readonly AxisValues[],
+): ProjectedOutgoingGapScore | null {
+  const launch = ballisticLaunchOf(fit);
+  if (
+    launch === undefined ||
+    launch.gapStartFrame !== outgoingGap.startFrame
+  ) return null;
+  const targets = scorerTargetsForGap(outgoingGap, gapAxisTargets);
+  const includeElevation = targets.elevation !== undefined;
+  const includeAmplitude = targets.amplitude !== undefined;
+  const cacheKey = [
+    outgoingGap.endFrame,
+    outgoingGap.endsWithContact ? 1 : 0,
+    includeElevation ? 1 : 0,
+    includeAmplitude ? 1 : 0,
+  ].join(":");
+  let launchCache = outgoingProjectionCache.get(launch);
+  if (launchCache === undefined) {
+    launchCache = new Map();
+    outgoingProjectionCache.set(launch, launchCache);
+  }
+  let projection = launchCache.get(cacheKey);
+  if (projection === undefined) {
+    projection = projectBallisticGap(launch, outgoingGap.endFrame, {
+      includeElevation,
+      includeAmplitude,
+    });
+    launchCache.set(cacheKey, projection);
+  }
+  if (projection === null) return null;
+  if (
+    (targets.elevation !== undefined && projection.elevation === null) ||
+    (targets.amplitude !== undefined && projection.amplitude === null)
+  ) return null;
+  const achieved: AxisValues = {
+    speed: speedPxToAuthored(projection.meanSpeedPx),
+    /*
+     * The unbuilt terminal catch is not part of the physical projection.
+     * Search uses the explicit exact-authored-contact convention as its causal
+     * scorer proxy; actual accepted catches may occur at target -1/0/+1 and
+     * remain authoritative in exact evaluation.
+     */
+    air: airFractionWithTerminalOccupancy(
+      projection,
+      !outgoingGap.endsWithContact,
+    ),
+    ...(projection.elevation === null
+      ? {}
+      : { elevation: projection.elevation }),
+    ...(projection.amplitude === null
+      ? {}
+      : { amplitude: projection.amplitude }),
+  };
+  const quality = scoreProjectedOutgoingAxes(targets, achieved);
+  return {
+    projection,
+    achieved,
+    quality: quality.quality,
+    scoredAxisCount: quality.scoredAxisCount,
+  };
+}
+
+/**
+ * Readiness starts at the outgoing projection's terminal contact and predicts
+ * the unbuilt arc there. `readinessOutgoingGap` belongs to that future arc.
+ */
+export function scoreNextArcReadiness(
+  outgoingProjection: BallisticGapProjection,
+  incomingGap: Gap,
+  readinessOutgoingGap: Gap | null,
+  gapAxisTargets?: readonly AxisValues[],
+): ReadinessScore {
+  if (!incomingGap.endsWithContact) {
+    throw new Error(
+      `next-arc readiness requires an incoming gap ending at a contact`,
+    );
+  }
+  return scoreReadiness({
+    incomingBoundary: outgoingProjection.boundary,
+    incomingGap: scorerGapContext(incomingGap, gapAxisTargets),
+    outgoingGap: readinessOutgoingGap === null
+      ? null
+      : scorerGapContext(readinessOutgoingGap, gapAxisTargets),
+    generatorPolicyId: PRODUCTION_ARC_PROPOSAL_POLICY_ID,
+  });
+}
+
+/**
+ * Canonical candidate objective. Each temporal layer appears exactly once.
+ */
+export function scoreCandidateProposal(
+  fit: GapFit & BallisticFitFields,
+  incomingGap: Gap,
+  gaps: readonly Gap[],
+  gapAxisTargets?: readonly AxisValues[],
+): GapObjectiveScore | null {
+  if (!incomingGap.endsWithContact) return null;
+  const outgoingGap = successorScorerGapAfter(incomingGap, gaps);
+  if (outgoingGap === null) return null;
+  const settledIncomingQuality = scoreSettledIncomingQuality(
+    scorerTargetsForGap(incomingGap, gapAxisTargets),
+    settledIncomingAxes(fit),
+  );
+  const projectedOutgoing = projectOutgoingScorerGap(
+    fit,
+    outgoingGap,
+    gapAxisTargets,
+  );
+  if (projectedOutgoing === null) return null;
+  const readiness = outgoingGap.endsWithContact
+    ? scoreNextArcReadiness(
+      projectedOutgoing.projection,
+      outgoingGap,
+      successorScorerGapAfter(outgoingGap, gaps),
+      gapAxisTargets,
+    )
+    : neutralReadinessScore();
+  return {
+    ...readiness,
+    settledIncomingQuality,
+    projectedOutgoingQuality: projectedOutgoing.quality,
+    value: proposalUtility(
+      settledIncomingQuality,
+      projectedOutgoing.quality,
+      readiness,
+    ),
+  };
+}
+
+function neutralReadinessScore(): ReadinessScore {
+  return {
+    readiness: 1,
+    catchability: 1,
+    speedFit: 1,
+    impactFeasibility: 1,
+    airFit: 1,
+    elevationFit: 1,
+  };
+}
+
+/** Search-policy value; deliberately separate from physical/model semantics. */
 export function proposalUtility(
-  currentQuality: number,
+  settledIncomingQuality: number,
+  projectedOutgoingQuality: number,
   readiness: Pick<ReadinessScore, "readiness">,
 ): number {
-  return objectivePower(currentQuality, objectiveCurrentQualityPower) *
-    objectivePower(readiness.readiness, objectiveReadinessPower);
+  return (
+    objectivePower(settledIncomingQuality, objectiveSettledPower) *
+    objectivePower(projectedOutgoingQuality, objectiveFuturePower) *
+    objectivePower(readiness.readiness, objectiveFuturePower)
+  );
 }
 
 function objectivePower(value: number, power: number): number {
@@ -122,69 +338,34 @@ function objectivePower(value: number, power: number): number {
   return Math.max(0, Math.min(1, value)) ** power;
 }
 
-export function nextContactGap(gap: Gap, gaps: readonly Gap[]): Gap | null {
-  return nextContactGapFromIndex(gaps, gap.index + 1);
+export function nextContactGap(
+  gap: Gap,
+  gaps: readonly Gap[],
+): Gap | null {
+  return nextContactGapAfter(gap, gaps);
 }
 
-export function nextContactGapFromIndex(gaps: readonly Gap[], from: number): Gap | null {
+export function nextContactGapFromIndex(
+  gaps: readonly Gap[],
+  from: number,
+): Gap | null {
   const index = nextContactGapIndex(gaps, from);
   return index < 0 ? null : gaps[index];
 }
 
-export function nextContactGapIndex(gaps: readonly Gap[], from: number): number {
+export function nextContactGapIndex(
+  gaps: readonly Gap[],
+  from: number,
+): number {
   for (let i = Math.max(0, from | 0); i < gaps.length; i++) {
     if (gaps[i].endsWithContact) return i;
   }
   return -1;
 }
 
-export function frontierReadinessFromFit(
-  fit: GapFit & BallisticFitFields,
-  nextGap: Gap,
-): NextGapReadinessScore | null {
-  const arrival = predictArrivalAtNextContact(fit, nextGap);
-  return arrival === null ? null : scoreNextTargetReadiness(arrival, nextGap.targets);
-}
-
-export function predictArrivalAtNextContact(
-  fit: GapFit | BallisticFitFields,
-  nextGap: Pick<Gap, "startFrame" | "endFrame">,
-): ObjectiveArrivalState | null {
-  const launch = ballisticLaunchOf(fit);
-  if (
-    launch === undefined ||
-    launch.gapStartFrame !== nextGap.startFrame
-  ) return null;
-  const includeElevation = isElevationReadinessEnabled();
-  const cacheKey = `${nextGap.endFrame}:${includeElevation ? 1 : 0}`;
-  let launchCache = projectedArrivalCache.get(launch);
-  if (launchCache === undefined) {
-    launchCache = new Map();
-    projectedArrivalCache.set(launch, launchCache);
-  } else if (launchCache.has(cacheKey)) {
-    return launchCache.get(cacheKey)!;
-  }
-  const projection = projectBallisticGap(launch, nextGap.endFrame, {
-    terminalContact: "grounded",
-    includeElevation,
-  });
-  const arrival: ObjectiveArrivalState | null = projection === null
-    ? null
-    : {
-      incoming: projection.boundary.incoming,
-      meanSpeedPx: projection.meanSpeedPx,
-      airFraction: projection.airFraction,
-      gapFrameCount: projection.frameCount,
-      ...(projection.elevation === null
-        ? {}
-        : { elevation: projection.elevation }),
-    };
-  launchCache.set(cacheKey, arrival);
-  return arrival;
-}
-
-/** Frame count of a gap window — the denominator of measureAir's
- *  airborne-fraction statistic ([startFrame, endFrame] inclusive). */
-export function nextGapFrameCount(nextGap: Pick<Gap, "startFrame" | "endFrame">): number {
-  return Math.max(1, nextGap.endFrame - nextGap.startFrame + 1);
+/** Inclusive frame count of one scorer gap. */
+export function scorerGapFrameCount(
+  gap: Pick<Gap, "startFrame" | "endFrame">,
+): number {
+  return Math.max(1, gap.endFrame - gap.startFrame + 1);
 }

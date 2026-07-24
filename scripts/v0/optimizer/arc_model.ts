@@ -9,10 +9,9 @@ import {
   type TrackLine,
 } from "../types.ts";
 import { LOCAL_IMPACT_COST_WEIGHT } from "../core/candidate.ts";
-import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
+import { axisQualityForTargets } from "../score.ts";
 import {
   incomingKinematics,
-  propagateBallisticState,
   type BallisticState,
   type IncomingKinematics,
 } from "../core/ballistic_projection.ts";
@@ -25,13 +24,6 @@ export type ArcKnobs = {
 };
 
 export type RiderArrivalState = BallisticState;
-
-export function propagateBallisticArrivalState(
-  state: RiderArrivalState,
-  dtFrames: number,
-): RiderArrivalState {
-  return propagateBallisticState(state, dtFrames);
-}
 
 export type LinearModel = {
   coefficients: number[];
@@ -769,7 +761,14 @@ export function scoreCompletedArcPrediction(
   const impact = scoreAxes.impact ? outputs["current.axis.impact"] : NaN;
   return {
     currentQuality: currentQualityFromAxisValues(
-      currentTargets, air, speed, grain, elevation, amplitude, impact,
+      currentTargets,
+      air,
+      speed,
+      grain,
+      elevation,
+      amplitude,
+      impact,
+      scoreAxes,
     ),
     state: predictedIncomingKinematics(outputs as Record<string, number>),
     exitFrame: outputs["exit.frame"] ?? NaN,
@@ -828,6 +827,7 @@ export function predictJointArcScoreReadout(
       elevation,
       amplitude,
       impact,
+      scoreAxes,
     ),
     state,
     exitFrame,
@@ -1054,65 +1054,21 @@ function currentQualityFromAxisValues(
   elevation: number,
   amplitude: number,
   impact: number,
+  scoreAxes: JointArcCurrentScoreAxes = jointArcCurrentScoreAxes(targets),
 ): number {
-  let count = 0;
-  let sumSq = 0;
-  if (!REPORT_ONLY_AXIS_SET.has("air")) {
-    const target = targets.air;
-    const value = air;
-    if (Number.isFinite(target) && Number.isFinite(value)) {
-      const error = value - target;
-      sumSq += error * error;
-      count++;
-    }
+  const values = { air, speed, grain, elevation, amplitude, impact };
+  const scoredTargets: AxisValues = {};
+  const achieved: AxisValues = {};
+  for (const axis of AXES) {
+    if (!scoreAxes[axis]) continue;
+    const target = targets[axis];
+    if (target === undefined || !Number.isFinite(target)) continue;
+    const value = values[axis];
+    if (!Number.isFinite(value)) return NaN;
+    scoredTargets[axis] = target;
+    achieved[axis] = value;
   }
-  if (!REPORT_ONLY_AXIS_SET.has("speed")) {
-    const target = targets.speed;
-    const value = speed;
-    if (Number.isFinite(target) && Number.isFinite(value)) {
-      const error = value - target;
-      sumSq += error * error;
-      count++;
-    }
-  }
-  if (!REPORT_ONLY_AXIS_SET.has("grain")) {
-    const target = targets.grain;
-    const value = grain;
-    if (Number.isFinite(target) && Number.isFinite(value)) {
-      const error = value - target;
-      sumSq += error * error;
-      count++;
-    }
-  }
-  if (!REPORT_ONLY_AXIS_SET.has("elevation")) {
-    const target = targets.elevation;
-    const value = elevation;
-    if (Number.isFinite(target) && Number.isFinite(value)) {
-      const error = value - target;
-      sumSq += error * error;
-      count++;
-    }
-  }
-  if (!REPORT_ONLY_AXIS_SET.has("amplitude")) {
-    const target = targets.amplitude;
-    const value = amplitude;
-    if (Number.isFinite(target) && Number.isFinite(value)) {
-      const error = value - target;
-      sumSq += error * error;
-      count++;
-    }
-  }
-  if (!REPORT_ONLY_AXIS_SET.has("impact")) {
-    const target = targets.impact;
-    const value = impact;
-    if (Number.isFinite(target) && Number.isFinite(value)) {
-      const error = value - target;
-      sumSq += error * error;
-      count++;
-    }
-  }
-  if (count === 0) return 1;
-  return Math.exp(-(Math.sqrt(sumSq / count) / AXIS_QUALITY_TOLERANCE));
+  return axisQualityForTargets(scoredTargets, achieved).axis_quality;
 }
 
 export function predictedArrivalState(outputs: Record<string, number>): RiderArrivalState | null {

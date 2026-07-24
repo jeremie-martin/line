@@ -1,8 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { axisQualityForTargets } from "../scripts/v0/score.ts";
 import {
-  impactToRedirArcPx,
-  authoredSpeedToPx,
   type AxisValues,
   type Gap,
   type TrackLine,
@@ -10,21 +8,14 @@ import {
 import type { GapFit, ResolvedStart } from "../scripts/v0/core/substrate.ts";
 import type { BallisticFitFields } from "../scripts/v0/core/ballistic_projection.ts";
 import {
-  currentGapAxes,
-  frontierReadinessFromFit,
-  predictArrivalAtNextContact,
-  scoreCurrentTargetQuality,
-  scoreGapObjectiveForTargets,
-  scoreNextTargetReadiness,
-  setObjectiveBlendPowers,
+  projectOutgoingScorerGap,
+  scoreCandidateProposal,
+  scoreNextArcReadiness,
+  scoreSettledIncomingQuality,
+  setProposalUtilityPowers,
+  settledIncomingAxes,
 } from "../scripts/v0/optimizer/objective.ts";
-import {
-  impactAskPressure,
-  impactFeasibility,
-  READINESS_SPEED_OVERSHOOT_WEIGHT,
-  READINESS_SPEED_SCALE_PXF,
-} from "../scripts/v0/optimizer/readiness.ts";
-import { predictCatchability } from "../scripts/v0/optimizer/catchability.ts";
+import { applyReadinessStudyAblation } from "../scripts/v0/optimizer/readiness.ts";
 import { sortCandidatesByQuality } from "../scripts/v0/optimizer/aim.ts";
 import { forwardTerminalReadiness, snapshotHandoffNode, type HandoffNode } from "../scripts/v0/optimizer/handoff.ts";
 import type { Candidate } from "../scripts/v0/optimizer/sample.ts";
@@ -35,8 +26,14 @@ import {
   type ConstraintBallisticState,
 } from "../scripts/v0/core/ballistic_micro_sim.ts";
 
-function gap(index: number, startFrame: number, endFrame: number, targets: AxisValues = {}): Gap {
-  return { index, startFrame, endFrame, endsWithContact: true, targets };
+function gap(
+  index: number,
+  startFrame: number,
+  endFrame: number,
+  targets: AxisValues = {},
+  endsWithContact = true,
+): Gap {
+  return { index, startFrame, endFrame, endsWithContact, targets };
 }
 
 function line(id = 1): TrackLine {
@@ -50,6 +47,43 @@ function line(id = 1): TrackLine {
     flipped: false,
     leftExtended: false,
     rightExtended: false,
+  };
+}
+
+function constraintState(
+  vx: number,
+  vy: number,
+): ConstraintBallisticState {
+  const base = {
+    PEG: [0, 0],
+    TAIL: [0, 5],
+    NOSE: [15, 5],
+    STRING: [17.5, 0],
+    BUTT: [5, 0],
+    SHOULDER: [5, -5.5],
+    RHAND: [11.5, -5],
+    LHAND: [11.5, -5],
+    LFOOT: [10, 5],
+    RFOOT: [10, 5],
+  } as const;
+  const points = Object.fromEntries(BALLISTIC_POINT_IDS.map((id) => {
+    const [baseX, baseY] = base[id];
+    const x = baseX - 53 / 6;
+    const y = baseY + 11 / 12;
+    return [id, {
+      x,
+      y,
+      prevX: x - vx,
+      prevY: y - vy,
+      vx,
+      vy,
+    }];
+  })) as ConstraintBallisticState["points"];
+  return {
+    frameOffset: 0,
+    points,
+    riderMounted: true,
+    sledIntact: true,
   };
 }
 
@@ -75,6 +109,7 @@ function ballisticLaunch(
       comAngleDeg: Math.atan2(vy, vx) * 180 / Math.PI,
       sledPoseDeg: null,
       sledPoseRateDegPerFrame: null,
+      constraintState: constraintState(vx, vy),
     },
     prefix: {
       startFrame: gapStartFrame,
@@ -89,7 +124,7 @@ function ballisticLaunch(
         (_, index) => vy * index,
       ),
     },
-    sampleCount: 1,
+    anchorScanFrames: 1,
     groundedFrames: 1,
     airborne: true,
   };
@@ -110,208 +145,234 @@ function candidate(
   };
 }
 
-describe("unified objective quality score", () => {
-  test("current gap quality reuses the scorer axis-quality definition, including impact", () => {
+describe("contact-indexed proposal objective", () => {
+  test("study ablations neutralize only the named readiness factor", () => {
+    const factors = {
+      catchability: 0.2,
+      speedFit: 0.3,
+      airFit: 0.4,
+      impactFeasibility: 0.5,
+      elevationFit: 0.6,
+    };
+    expect(applyReadinessStudyAblation(factors, "normal"))
+      .toBeCloseTo(0.2 * 0.3 * 0.4 * 0.5 * 0.6, 12);
+    expect(applyReadinessStudyAblation(factors, "neutral")).toBe(1);
+    expect(
+      applyReadinessStudyAblation(factors, "without-catchability"),
+    ).toBeCloseTo(0.3 * 0.4 * 0.5 * 0.6, 12);
+    expect(applyReadinessStudyAblation(factors, "without-speed"))
+      .toBeCloseTo(0.2 * 0.4 * 0.5 * 0.6, 12);
+    expect(applyReadinessStudyAblation(factors, "without-air"))
+      .toBeCloseTo(0.2 * 0.3 * 0.5 * 0.6, 12);
+    expect(applyReadinessStudyAblation(factors, "without-impact"))
+      .toBeCloseTo(0.2 * 0.3 * 0.4 * 0.6, 12);
+    expect(applyReadinessStudyAblation(factors, "without-elevation"))
+      .toBeCloseTo(0.2 * 0.3 * 0.4 * 0.5, 12);
+  });
+
+  test("settled incoming quality reuses the scorer definition, including impact", () => {
     const g = gap(0, 0, 20, { air: 0.5, impact: 0.8 });
     const achieved = { air: 0.4, impact: 0.7 };
-    expect(scoreCurrentTargetQuality(g.targets, achieved)).toBeCloseTo(
+    expect(scoreSettledIncomingQuality(g.targets, achieved)).toBeCloseTo(
       axisQualityForTargets(g.targets, achieved).axis_quality,
       12,
     );
   });
 
-  test("current-gap axes are the canonical scorer-window measurement", () => {
-    expect(currentGapAxes(candidate(0, { air: 0.4 }))).toEqual({ air: 0.4 });
+  test("settled incoming axes are the canonical exact measurement", () => {
+    expect(settledIncomingAxes(candidate(0, { air: 0.4 }))).toEqual({
+      air: 0.4,
+    });
   });
 
-  test("next-gap readiness always exposes the canonical five-factor product", () => {
-    const next = gap(1, 20, 40, { speed: 0.5, impact: 0.8 });
-    const incoming = {
-      vx: 10 * Math.cos(Math.PI / 6),
-      vy: 5,
-      speed: 10,
-      comAngleDeg: 30,
-      sledPoseDeg: null,
-      sledPoseRateDegPerFrame: null,
-    };
-    const arrival = { incoming, meanSpeedPx: 10 };
-    const scored = scoreNextTargetReadiness(arrival, next.targets);
-    expect(scored).not.toBeNull();
-
-    const catchability = predictCatchability(
-      incoming.speed,
-      incoming.comAngleDeg,
+  test("outgoing projection and next-arc readiness own different gaps", () => {
+    const incoming = gap(0, 0, 20, { impact: 0.5 });
+    const outgoing = gap(1, 20, 40, { air: 0.4, impact: 0.7 });
+    const readinessOutgoing = gap(2, 40, 60, {
+      speed: 0.6,
+      air: 0.3,
+    });
+    const fit = candidate(
+      0,
+      { impact: 0.55 },
+      ballisticLaunch(20, 22, 8, -1),
     );
-    // speedFit is asymmetric: overshoot (too fast) is half-penalized, too-slow full.
-    const dSpeed = arrival.meanSpeedPx - authoredSpeedToPx(0.5);
-    const speedFit = Math.exp(
-      -(dSpeed > 0 ? dSpeed * READINESS_SPEED_OVERSHOOT_WEIGHT : -dSpeed) /
-        READINESS_SPEED_SCALE_PXF,
+    const projection = projectOutgoingScorerGap(fit, outgoing);
+    expect(projection).not.toBeNull();
+    expect(projection!.achieved.speed).toEqual(expect.any(Number));
+    expect(projection!.achieved.air).toEqual(expect.any(Number));
+
+    const scored = scoreNextArcReadiness(
+      projection!.projection,
+      outgoing,
+      readinessOutgoing,
     );
-    const impactFeasibility = Math.min(
-      1,
-      Math.max(0, (incoming.speed * ((incoming.comAngleDeg * Math.PI) / 180)) / impactToRedirArcPx(0.8)),
+    expect(scored.catchability).toBeGreaterThanOrEqual(0);
+    expect(scored.catchability).toBeLessThanOrEqual(1);
+    expect(scored.impactFeasibility).toBeGreaterThanOrEqual(0);
+    expect(scored.impactFeasibility).toBeLessThanOrEqual(1);
+    expect(scored.speedFit).toBeGreaterThanOrEqual(0);
+    expect(scored.speedFit).toBeLessThanOrEqual(1);
+    expect(scored.airFit).toBeGreaterThanOrEqual(0);
+    expect(scored.airFit).toBeLessThanOrEqual(1);
+    expect(scored.elevationFit).toBe(1);
+    expect(scored.readiness).toBeCloseTo(
+      scored.catchability *
+        scored.speedFit *
+        scored.airFit *
+        scored.impactFeasibility,
+      12,
     );
-    expect(scored!.catchability).toBeCloseTo(catchability, 12);
-    expect(scored!.speedFit).toBeCloseTo(speedFit, 12);
-    expect(scored!.airFit).toBe(1);
-    expect(scored!.impactFeasibility).toBeCloseTo(impactFeasibility, 12);
-    expect(scored!.elevationFit).toBe(1);
-    expect(scored!.readiness).toBeCloseTo(catchability * speedFit * impactFeasibility, 12);
   });
 
-  test("a projected broken binding has zero catchability and readiness", () => {
-    const scored = scoreNextTargetReadiness({
-      incoming: {
-        vx: 9,
-        vy: 1,
-        speed: Math.hypot(9, 1),
-        comAngleDeg: Math.atan2(1, 9) * 180 / Math.PI,
-        sledPoseDeg: 0,
-        sledPoseRateDegPerFrame: 0,
-        riderMounted: false,
-        sledIntact: true,
-      },
-    }, {});
-    expect(scored).not.toBeNull();
-    expect(scored!.catchability).toBe(0);
-    expect(scored!.readiness).toBe(0);
-  });
-
-  test("soft impact asks blend no-constraint readiness into feasibility", () => {
-    const incoming = {
-      vx: 6 * Math.cos(5 * Math.PI / 180),
-      vy: 6 * Math.sin(5 * Math.PI / 180),
-      speed: 6,
-      comAngleDeg: 5,
-      sledPoseDeg: null,
-      sledPoseRateDegPerFrame: null,
-    };
-    const arrival = { incoming };
-    const impactAsk = 0.3;
-    const scored = scoreNextTargetReadiness(arrival, { impact: impactAsk });
-    expect(scored).not.toBeNull();
-
-    const pressure = impactAskPressure(impactAsk);
-    const feasibility = impactFeasibility(
-      incoming.speed,
-      incoming.comAngleDeg,
-      impactAsk,
+  test("unauthored readiness factors are exactly neutral", () => {
+    const incoming = gap(1, 20, 40, {});
+    const fit = candidate(
+      0,
+      {},
+      ballisticLaunch(20, 22, 8, -1),
     );
-    expect(pressure).toBeCloseTo(0.5, 12);
-    expect(scored!.impactFeasibility).toBeCloseTo(1 + (feasibility - 1) * pressure, 12);
+    const projection = projectOutgoingScorerGap(fit, incoming)!;
+    const scored = scoreNextArcReadiness(
+      projection.projection,
+      incoming,
+      null,
+    );
+    expect(scored.impactFeasibility).toBe(1);
+    expect(scored.speedFit).toBe(1);
+    expect(scored.airFit).toBe(1);
+    expect(scored.elevationFit).toBe(1);
+    expect(scored.readiness).toBe(scored.catchability);
   });
 
-  test("readiness still scores catchability when the next gap has no speed or impact ask", () => {
-    const next = gap(1, 20, 40, {});
-    const scored = scoreNextTargetReadiness({
-      incoming: {
-        vx: 9 * Math.cos(15 * Math.PI / 180),
-        vy: 9 * Math.sin(15 * Math.PI / 180),
-        speed: 9,
-        comAngleDeg: 15,
-        sledPoseDeg: null,
-        sledPoseRateDegPerFrame: null,
-      },
-    }, next.targets);
-    expect(scored).not.toBeNull();
-    expect(scored!.speedFit).toBe(1);
-    expect(scored!.impactFeasibility).toBe(1);
-    expect(scored!.readiness).toBeCloseTo(predictCatchability(9, 15), 12);
+  test("an authored zero impact ask remains a finite scored target", () => {
+    const incoming = gap(1, 20, 40, { impact: 0 });
+    const fit = candidate(
+      0,
+      {},
+      ballisticLaunch(20, 22, 8, -1),
+    );
+    const projection = projectOutgoingScorerGap(fit, incoming)!;
+    const scored = scoreNextArcReadiness(
+      projection.projection,
+      incoming,
+      null,
+    );
+    expect(scored.impactFeasibility).toBeGreaterThanOrEqual(0);
+    expect(scored.impactFeasibility).toBeLessThan(1);
+    expect(scored.readiness).toBeCloseTo(
+      scored.catchability * scored.impactFeasibility,
+      12,
+    );
   });
 
-  test("targeted span factors fail closed without their complete-gap projection", () => {
-    const incoming = {
-      vx: 9,
-      vy: 0,
-      speed: 9,
-      comAngleDeg: 0,
-      sledPoseDeg: null,
-      sledPoseRateDegPerFrame: null,
-    };
-    expect(
-      scoreNextTargetReadiness({ incoming }, { speed: 0.5 }),
-    ).toBeNull();
-    expect(
-      scoreNextTargetReadiness({ incoming }, { air: 0.5 }),
-    ).toBeNull();
+  test("readiness rejects gaps from another contact boundary", () => {
+    const incoming = gap(1, 20, 40, {});
+    const fit = candidate(
+      0,
+      {},
+      ballisticLaunch(20, 22, 8, -1),
+    );
+    const projection = projectOutgoingScorerGap(fit, incoming)!;
+
+    expect(() =>
+      scoreNextArcReadiness(
+        projection.projection,
+        { ...incoming, endFrame: 39 },
+        null,
+      )
+    ).toThrow(/does not terminate at its incoming boundary/);
+    expect(() =>
+      scoreNextArcReadiness(
+        projection.projection,
+        incoming,
+        gap(2, 41, 60, {}),
+      )
+    ).toThrow(/not a forward interval from its incoming boundary/);
   });
 
-  test("the enabled elevation policy requests, caches, and scores elevation", () => {
+  test("an authored projected elevation is scored outside readiness", () => {
     const next = gap(1, 20, 40, { elevation: 0.8 });
     const fit = candidate(
       0,
       {},
       ballisticLaunch(20, 22, 8, -2),
     );
-    setObjectiveBlendPowers({ elevationReadiness: true });
-    try {
-      const first = predictArrivalAtNextContact(fit, next);
-      const second = predictArrivalAtNextContact(fit, next);
-      expect(first).not.toBeNull();
-      expect(first?.elevation).toEqual(expect.any(Number));
-      expect(second).toBe(first);
-      const readiness = scoreNextTargetReadiness(first!, next.targets);
-      expect(readiness).not.toBeNull();
-      expect(readiness!.elevationFit).toBeLessThanOrEqual(1);
-    } finally {
-      setObjectiveBlendPowers();
-    }
+    const first = projectOutgoingScorerGap(fit, next);
+    const second = projectOutgoingScorerGap(fit, next);
+    expect(first).not.toBeNull();
+    expect(first?.projection.elevation).toEqual(expect.any(Number));
+    expect(second?.projection).toBe(first?.projection);
+    expect(first!.scoredAxisCount).toBe(1);
   });
 
-  test("gap objective is current quality times composite readiness", () => {
-    const current = gap(0, 0, 20, { air: 0.5, impact: 0.8 });
-    const next = gap(1, 20, 40, { speed: 0.5 });
-    const achieved = { air: 0.45, impact: 0.75 };
-    const arrival = {
-      incoming: {
-        vx: 9.5 * Math.cos(12 * Math.PI / 180),
-        vy: 9.5 * Math.sin(12 * Math.PI / 180),
-        speed: 9.5,
-        comAngleDeg: 12,
-        sledPoseDeg: null,
-        sledPoseRateDegPerFrame: null,
-      },
-      meanSpeedPx: 9.5,
-    };
-    const scored = scoreGapObjectiveForTargets(current.targets, achieved, arrival, next.targets);
-    expect(scored).not.toBeNull();
-    expect(scored!.value).toBeCloseTo(scored!.currentQuality * scored!.readiness, 12);
+  test("a targeted projected aggregate fails closed when unavailable", () => {
+    const outgoing = gap(1, 20, 40, { amplitude: 0.7 });
+    const launch = ballisticLaunch(20, 22, 8, -2);
+    delete launch.prefix.displacementYByFrame;
+    const fit = candidate(0, {}, launch);
+    expect(projectOutgoingScorerGap(fit, outgoing)).toBeNull();
   });
 
-  test("gap objective applies configured current-quality and readiness powers", () => {
-    const current = gap(0, 0, 20, { air: 0.5, impact: 0.8 });
-    const next = gap(1, 20, 40, { speed: 0.5 });
-    const achieved = { air: 0.45, impact: 0.75 };
-    const arrival = {
-      incoming: {
-        vx: 9.5 * Math.cos(12 * Math.PI / 180),
-        vy: 9.5 * Math.sin(12 * Math.PI / 180),
-        speed: 9.5,
-        comAngleDeg: 12,
-        sledPoseDeg: null,
-        sledPoseRateDegPerFrame: null,
-      },
-      meanSpeedPx: 9.5,
-    };
-
-    setObjectiveBlendPowers({ currentQualityPower: 2, readinessPower: 0.5 });
-    try {
-      const scored = scoreGapObjectiveForTargets(current.targets, achieved, arrival, next.targets);
-      expect(scored).not.toBeNull();
-      expect(scored!.value).toBeCloseTo(scored!.currentQuality ** 2 * scored!.readiness ** 0.5, 12);
-    } finally {
-      setObjectiveBlendPowers();
-    }
-  });
-
-  test("candidate pool ranking uses the predicted-arrival objective over cost", () => {
-    // `next` is catchability-only (empty targets). Both candidates release at
-    // frame 20 and propagate ballistically 20 frames to the next contact; the
-    // launch velocity drives the predicted-arrival readiness. The "good" launch
-    // arrives more catchable and must rank first despite costing far more.
+  test("proposal utility contains all three temporal layers exactly once", () => {
     const current = gap(0, 0, 20, { air: 0.5 });
-    const next = gap(1, 20, 40, {});
+    const next = gap(1, 20, 40, { speed: 0.5 });
+    const after = gap(2, 40, 60, { air: 0.4 });
+    const fit = candidate(
+      0,
+      { air: 0.45 },
+      ballisticLaunch(20, 22, 9.5, -1),
+    );
+    const scored = scoreCandidateProposal(
+      fit,
+      current,
+      [current, next, after],
+    );
+    expect(scored).not.toBeNull();
+    expect(scored!.value).toBeCloseTo(
+      scored!.settledIncomingQuality *
+        scored!.projectedOutgoingQuality *
+        scored!.readiness,
+      12,
+    );
+  });
+
+  test("proposal utility applies configured settled and future powers", () => {
+    const current = gap(0, 0, 20, { air: 0.5 });
+    const next = gap(1, 20, 40, { speed: 0.5 });
+    const after = gap(2, 40, 60, { air: 0.4 });
+    const fit = candidate(
+      0,
+      { air: 0.45 },
+      ballisticLaunch(20, 22, 9.5, -1),
+    );
+
+    setProposalUtilityPowers({
+      settledIncomingQualityPower: 2,
+      futureQualityPower: 0.5,
+    });
+    try {
+      const scored = scoreCandidateProposal(
+        fit,
+        current,
+        [current, next, after],
+      );
+      expect(scored).not.toBeNull();
+      expect(scored!.value).toBeCloseTo(
+        scored!.settledIncomingQuality ** 2 *
+          scored!.projectedOutgoingQuality ** 0.5 *
+          scored!.readiness ** 0.5,
+        12,
+      );
+    } finally {
+      setProposalUtilityPowers();
+    }
+  });
+
+  test("candidate pool ranking uses the canonical proposal objective over cost", () => {
+    const current = gap(0, 0, 20, { air: 0.5 });
+    const next = gap(1, 20, 40, { speed: 0.4 });
+    const after = gap(2, 40, 60, { air: 0.4 });
     const cheapBad = candidate(
       0.01,
       { air: 0.5 },
@@ -323,23 +384,50 @@ describe("unified objective quality score", () => {
       ballisticLaunch(20, 21, 8, 0),
     );
 
-    const goodObj = scoreGapObjectiveForTargets(
-      current.targets,
-      { air: 0.5 },
-      predictArrivalAtNextContact(costlyGood, next)!,
-      next.targets,
+    const goodObj = scoreCandidateProposal(
+      costlyGood,
+      current,
+      [current, next, after],
     )!.value;
-    const badObj = scoreGapObjectiveForTargets(
-      current.targets,
-      { air: 0.5 },
-      predictArrivalAtNextContact(cheapBad, next)!,
-      next.targets,
+    const badObj = scoreCandidateProposal(
+      cheapBad,
+      current,
+      [current, next, after],
     )!.value;
-    expect(goodObj).toBeGreaterThan(badObj);
 
-    const ranked = sortCandidatesByQuality({}, current, [current, next], [cheapBad, costlyGood], false);
-    expect(ranked[0]).toBe(costlyGood);
-    expect(ranked[1]).toBe(cheapBad);
+    const ranked = sortCandidatesByQuality(
+      {},
+      current,
+      [current, next, after],
+      [cheapBad, costlyGood],
+      false,
+    );
+    expect(ranked[0]).toBe(
+      goodObj > badObj ? costlyGood : cheapBad,
+    );
+  });
+
+  test("the final arc owns and projects the non-contact scorer tail", () => {
+    const current = gap(0, 0, 20, { impact: 0 });
+    const tail = gap(1, 20, 40, { air: 1, speed: 0.5 }, false);
+    const fit = candidate(
+      0,
+      { impact: 0 },
+      ballisticLaunch(20, 22, 9.5, -1),
+    );
+    const scored = scoreCandidateProposal(
+      fit,
+      current,
+      [current, tail],
+    );
+    expect(scored).not.toBeNull();
+    expect(scored!.projectedOutgoingQuality).toBeGreaterThan(0);
+    expect(scored!.readiness).toBe(1);
+    expect(scored!.value).toBeCloseTo(
+      scored!.settledIncomingQuality *
+        scored!.projectedOutgoingQuality,
+      12,
+    );
   });
 });
 
@@ -361,8 +449,9 @@ describe("diagnostic frontier readiness", () => {
       _candidatesCache: null,
     };
 
+    const projection = projectOutgoingScorerGap(fit, next)!;
     expect(forwardTerminalReadiness(node, [current, next])).toBeCloseTo(
-      frontierReadinessFromFit(fit, next)!.readiness,
+      scoreNextArcReadiness(projection.projection, next, null).readiness,
       12,
     );
   });
@@ -401,6 +490,7 @@ describe("diagnostic frontier readiness", () => {
     ])) as ConstraintBallisticState["points"];
     const fit: GapFit & BallisticFitFields = {
       ...candidate(0, { air: 0.5 }),
+      contactFrameOffset: 1,
       ballisticLaunch: {
         ...ballisticLaunch(20, 28, 3, 4),
         state: {
@@ -452,5 +542,6 @@ describe("diagnostic frontier readiness", () => {
     expect(cloned.ballisticLaunch?.state.constraintState?.points.PEG).not.toBe(
       fit.ballisticLaunch?.state.constraintState?.points.PEG,
     );
+    expect(cloned.contactFrameOffset).toBe(1);
   });
 });

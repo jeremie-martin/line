@@ -39,6 +39,12 @@ export type GapFit = {
   achieved: AxisValues;
   /** Aggregate axis cost (lower = better fit). */
   cost: number;
+  /**
+   * Exact accepted landing offset from the authored terminal contact frame.
+   * Candidate viability permits -1, 0, or +1; retaining the value makes the
+   * scorer's terminal air occupancy observable rather than assumed.
+   */
+  contactFrameOffset?: -1 | 0 | 1;
   /** Rider speed at the post-catch release probe frame, in raw px/frame.
    *  Used by compiler rankers to set up the next contact's speed target. */
   releaseSpeed?: number;
@@ -64,6 +70,7 @@ export type GapFit = {
 type GapFitOptionalFields = Pick<
   GapFit,
   | "releaseSpeed"
+  | "contactFrameOffset"
   | "aimed"
   | "releaseVelocityY"
   | "releaseGroundedFrames"
@@ -78,6 +85,9 @@ export function copyOptionalGapFitFields(
   const cloneObjects = opts.cloneObjects === true;
   const out: Partial<GapFitOptionalFields> = {};
   if (fit.releaseSpeed !== undefined) out.releaseSpeed = fit.releaseSpeed;
+  if (fit.contactFrameOffset !== undefined) {
+    out.contactFrameOffset = fit.contactFrameOffset;
+  }
   if (fit.aimed !== undefined) out.aimed = fit.aimed;
   if (fit.releaseVelocityY !== undefined) out.releaseVelocityY = fit.releaseVelocityY;
   if (fit.releaseGroundedFrames !== undefined) out.releaseGroundedFrames = fit.releaseGroundedFrames;

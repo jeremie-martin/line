@@ -63,6 +63,29 @@ export type ConstraintBallisticOrientation = {
   sledPoseRateDegPerFrame: number;
 };
 
+/** Derive the exact current/previous sled orientation already present in one
+ * constraint packet. No second engine-frame read is required. */
+export function constraintBallisticOrientationFromState(
+  state: ConstraintBallisticState,
+): ConstraintBallisticOrientation {
+  const tail = state.points.TAIL;
+  const nose = state.points.NOSE;
+  const sledPoseDeg = Math.atan2(
+    nose.y - tail.y,
+    nose.x - tail.x,
+  ) * 180 / Math.PI;
+  const previousSledPoseDeg = Math.atan2(
+    nose.prevY - tail.prevY,
+    nose.prevX - tail.prevX,
+  ) * 180 / Math.PI;
+  return {
+    sledPoseDeg,
+    sledPoseRateDegPerFrame: wrappedDegrees(
+      sledPoseDeg - previousSledPoseDeg,
+    ),
+  };
+}
+
 type MutableState = {
   px: number[];
   py: number[];
@@ -260,6 +283,7 @@ export function advanceConstraintBallisticState(
   gravity: number,
 ): {
   arrival: { x: number; y: number; vx: number; vy: number };
+  orientation: ConstraintBallisticOrientation;
   constraintState: ConstraintBallisticState;
 } | null {
   return advanceConstraintBallisticTrajectory(
@@ -289,6 +313,7 @@ export function advanceConstraintBallisticTrajectory(
   ) => void,
 ): {
   arrival: { x: number; y: number; vx: number; vy: number };
+  orientation: ConstraintBallisticOrientation;
   constraintState: ConstraintBallisticState;
 } | null {
   const dt = Math.max(0, Math.round(dtFramesFromFirstSample));
@@ -297,11 +322,17 @@ export function advanceConstraintBallisticTrajectory(
   const mutable = mutableState(state);
   let arrival = bodyState(mutable);
   let previousSledPoseDeg = sledPoseDeg(mutable);
+  let orientation: ConstraintBallisticOrientation = {
+    sledPoseDeg: previousSledPoseDeg,
+    sledPoseRateDegPerFrame: wrappedDegrees(
+      previousSledPoseDeg - previousSledPoseDegFromPoints(mutable),
+    ),
+  };
   for (let frame = frameOffset; frame < dt; frame++) {
     step(mutable, gravity);
     arrival = bodyState(mutable);
     const currentSledPoseDeg = sledPoseDeg(mutable);
-    const orientation: ConstraintBallisticOrientation = {
+    orientation = {
       sledPoseDeg: currentSledPoseDeg,
       sledPoseRateDegPerFrame: wrappedDegrees(
         currentSledPoseDeg - previousSledPoseDeg,
@@ -312,7 +343,7 @@ export function advanceConstraintBallisticTrajectory(
   }
   const constraintState = frozenState(mutable);
   return [...Object.values(arrival), constraintState.frameOffset].every(Number.isFinite)
-    ? { arrival, constraintState }
+    ? { arrival, orientation, constraintState }
     : null;
 }
 
@@ -448,6 +479,15 @@ function sledPoseDeg(state: MutableState): number {
   return Math.atan2(
     state.py[nose] - state.py[tail],
     state.px[nose] - state.px[tail],
+  ) * 180 / Math.PI;
+}
+
+function previousSledPoseDegFromPoints(state: MutableState): number {
+  const tail = 1;
+  const nose = 2;
+  return Math.atan2(
+    state.prevy[nose] - state.prevy[tail],
+    state.prevx[nose] - state.prevx[tail],
   ) * 180 / Math.PI;
 }
 

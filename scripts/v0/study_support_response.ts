@@ -34,9 +34,9 @@ import {
   type HandoffRankTraceEntry,
 } from "./optimizer/handoff.ts";
 import {
-  effectiveAirAsk,
-  READINESS_AIR_DEADBAND,
-} from "./optimizer/readiness.ts";
+  AIR_DELIVERABILITY_DEADBAND,
+  airDeliverabilityAsk,
+} from "./optimizer/air_policy.ts";
 import {
   contactLineIdsAt,
   frameOffset,
@@ -258,7 +258,7 @@ function summarizeGaps(
     const gapFrames = arrivalGapFrames ?? supportGapFrames;
     const airAsk = nextTargets?.air;
     if (airAsk === undefined || gapFrames === null) return [];
-    const effectiveAsk = effectiveAirAsk(airAsk, gapFrames);
+    const effectiveAsk = airDeliverabilityAsk(airAsk, gapFrames);
     const desiredGroundFrames = gapFrames * (1 - effectiveAsk);
     const predictedAir = candidates.map((candidate) => candidate.arrivalAir)
       .filter((value): value is number => value !== null);
@@ -274,7 +274,7 @@ function summarizeGaps(
       : Math.min(...predictedAir.map((air) => Math.abs(air - effectiveAsk)));
     const coverageDeficit = predictedAir.length === 0
       ? 1
-      : Math.max(0, Math.min(...predictedAir) - effectiveAsk - READINESS_AIR_DEADBAND);
+      : Math.max(0, Math.min(...predictedAir) - effectiveAsk - AIR_DELIVERABILITY_DEADBAND);
     const gate = gates.get(gapIndex) ?? emptyGate();
     const scoredCandidates = candidates.filter(
       (candidate): candidate is HandoffPoolProbeCandidate & { handoffScore: number } =>
@@ -303,7 +303,7 @@ function summarizeGaps(
       supportGapFrames,
       arrivalGapFrames,
       airAsk: round(airAsk),
-      effectiveAirAsk: round(effectiveAsk),
+      airDeliverabilityAsk: round(effectiveAsk),
       desiredGroundFrames: round(desiredGroundFrames),
       kinematicLength: round(entrySpeed * desiredGroundFrames),
       coverageDeficit: round(coverageDeficit),
@@ -336,7 +336,7 @@ function summarizeGaps(
         admitted: candidates.filter((candidate) => candidate.admitted).length,
         scored: scoredCandidates.length,
         withinAirDeadband: predictedAir.filter(
-          (air) => Math.abs(air - effectiveAsk) <= READINESS_AIR_DEADBAND,
+          (air) => Math.abs(air - effectiveAsk) <= AIR_DELIVERABILITY_DEADBAND,
         ).length,
         lineLength: summary(candidates.map((candidate) => candidate.lineLength)),
         meanSegmentLength: summary(candidates.map((candidate) => candidate.meanSegmentLength)),

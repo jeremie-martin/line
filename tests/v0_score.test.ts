@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
+  axisTargetQuality,
   AXIS_QUALITY_TOLERANCE,
   MISSING_CONTACT_TOLERANCE,
   OFF_BEAT_TOLERANCE,
@@ -51,6 +52,13 @@ function report(options: {
 }
 
 describe("v0 scoreDriftReport — smooth quality factors", () => {
+  test("single-axis target quality preserves zero asks and missing outcomes", () => {
+    expect(axisTargetQuality(undefined, null)).toBe(1);
+    expect(axisTargetQuality(0, null)).toBe(0);
+    expect(axisTargetQuality(0, 0)).toBe(1);
+    expect(axisTargetQuality(0, 0.1)).toBeLessThan(1);
+  });
+
   test("axis quality uses RMS, not L1 mean, of section errors", () => {
     const score = scoreDriftReport(report({ axisErrors: [0, AXIS_QUALITY_TOLERANCE] }));
 

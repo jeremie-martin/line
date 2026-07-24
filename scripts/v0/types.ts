@@ -620,7 +620,7 @@ export type CompileStats = {
    *  Non-scoring diagnostics; absent when the lane never ran. */
   aim?: {
     /** Arc-probe design used by the production aim lane. */
-    probe_design: "cross5" | "grid9" | "pitch3";
+    probe_design: "signed3_narrow" | "signed3" | "signed3_wide";
     enum_considered: number;
     enum_no_target: number;
     enum_probe_crash: number;
@@ -635,9 +635,9 @@ export type CompileStats = {
     enum_lane_base_skips: number;
     /** Study-only telemetry; emitted only with LR_AIM_STUDY_STATS=1. */
     study?: {
-      enum_readiness_pairs: number;
-      enum_readiness_err_mean: number;
-      enum_readiness_gain_mean: number;
+      enum_projection_pairs: number;
+      enum_projection_err_mean: number;
+      enum_objective_gain_mean: number;
       /** R3 joint-model split: rotate recruit rate, rotate-probe failures
        *  and rotated-proposal gate outcomes. */
       enum_rot_probe_crash: number;
@@ -662,7 +662,7 @@ export type CompileStats = {
       joint_probe_saved_frames_mean: number;
       joint_probe_suffix_after_current_mean: number;
       joint_probe_suffix_after_next: number;
-      joint_probe_launch_read_frames_mean: number;
+      joint_probe_anchor_scan_frames_mean: number;
       joint_probe_current_ok: number;
       joint_probe_next_state_ok: number;
       joint_fit_degraded_outputs: number;
@@ -736,17 +736,12 @@ export type CompileStats = {
   };
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;
-  /** Realized-arrival catchability per committed contact gap (null for
-   *  non-contact/uncommitted), joinable with report gap outcomes by index.
-   *  This is the narrow catchability factor, not composite readiness. */
-  catchability_per_gap?: (number | null)[];
-  catchability_mean?: number | null;
-  catchability_min?: number | null;
   /**
    * End-to-end validation on the transitions selected into this output.
    * Prediction comes from the preceding fit's canonical ballistic launch;
    * truth is the next committed fit's exact scorer-window measurement.
-   * This is diagnostic only and never feeds search policy.
+   * This validates ballistic projection only. Selected fits are not the
+   * counterfactual proposal population required to validate readiness.
    */
   ballistic_selected_transitions?: {
     eligible: number;
@@ -755,14 +750,6 @@ export type CompileStats = {
     speed: BallisticPredictionErrorSummary;
     air: BallisticPredictionErrorSummary;
     elevation: BallisticPredictionErrorSummary;
-    catchability: BallisticPredictionErrorSummary;
-    readiness_quality_pairs: number;
-    readiness_mean: number | null;
-    next_quality_mean: number | null;
-    readiness_quality_product_mean: number | null;
-    /** Pearson association; diagnostic only because readiness and exact
-     * current-gap quality are intentionally different quantities. */
-    readiness_quality_correlation: number | null;
   };
 
   /** Target-state placement counters. Non-scoring diagnostics. */
@@ -864,7 +851,10 @@ export type Gap = {
   index: number;
   /** Start frame (inclusive). */
   startFrame: number;
-  /** End frame (the Contact frame; exclusive for sample-counting; for tail gap = endOfSpec). */
+  /**
+   * End frame (inclusive). For a contact gap this is the authored contact
+   * frame; for the tail gap it is endOfSpec.
+   */
   endFrame: number;
   /** True iff this gap's end is a hard Contact (false for tail gap). */
   endsWithContact: boolean;

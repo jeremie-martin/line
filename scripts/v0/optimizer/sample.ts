@@ -38,6 +38,7 @@ import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { BallisticFitFields } from "../core/ballistic_projection.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
 import type { SupportGeometryMode } from "../core/support_geometry.ts";
+import { arcProposalTargetsForGap } from "./arc_proposal.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
@@ -58,6 +59,40 @@ export type SampledCandidateObservation = {
   fit: Candidate | null;
 };
 
+/**
+ * Study-only view of one real production-sampler attempt. `contextKey` is the
+ * immutable prefix engine: repeated attempts with the same key, gap, and mode
+ * belong to one counterfactual bundle. Consumers must copy any retained data
+ * synchronously; production owns the referenced objects.
+ */
+export type CandidateSampleTrace = {
+  contextKey: object;
+  /** Causal compile context available before this proposal. Study consumers
+   * retain only the fields they need; production never installs the sink. */
+  specContext: SpecContext;
+  gap: Gap;
+  targetState: ImpactFrameTargetState;
+  /** Deterministic proposal-stream identity supplied by the pool owner.
+   * Together with `attempt`, this identifies one policy draw even when the
+   * same immutable prefix engine is revisited by multiple search streams. */
+  proposalBatchId: number | null;
+  attempt: number;
+  mode: CandidateSampleMode;
+  geometryTargets: AxisValues;
+  supportGeometryMode?: SupportGeometryMode;
+  fit: Candidate | null;
+};
+
+let candidateSampleTraceSink:
+  ((trace: CandidateSampleTrace) => void) | null = null;
+
+/** Install or clear the readiness-corpus observer. Null in production. */
+export function setCandidateSampleTraceSink(
+  sink: ((trace: CandidateSampleTrace) => void) | null,
+): void {
+  candidateSampleTraceSink = sink;
+}
+
 /** Context that is constant across all gaps of a single compile call.
  *  Computed once by the chainer (Step 3) from the spec; passed
  *  unchanged into every per-gap call. */
@@ -69,6 +104,9 @@ export type SpecContext = {
   durationFrames: number;
   /** Unjittered per-gap targets, when callers need stable authored target patterns. */
   gapAxisTargets?: AxisValues[];
+  /** Contact-indexed sampled gaps for consumers that must distinguish the
+   * incoming scorer interval from the following outgoing interval. */
+  gaps?: readonly Gap[];
   /** Per-compile, per-engine/gap probe cache. The engine objects are immutable
    *  prefix states, so a WeakMap keeps the cache scoped to live search nodes. */
   probeCache?: WeakMap<object, Map<number, CandidateProbe>>;
@@ -154,12 +192,16 @@ export function sampleOneCandidate(
    *  K-prefix remains normal and deterministic. */
   mode: CandidateSampleMode = "normal",
   /** Optional geometry-only target override. Candidate scoring and hard gates
-   *  still use `gap.targets`; this only shapes the sampled line fragment. Defaults
-   *  to `gap.targets`, so generation pursues the literal per-gap target. */
-  geometryTargets: AxisValues = gap.targets,
+   * still use `gap.targets`; this only shapes the sampled line fragment.
+   * Production defaults to the contact-owned composition of incoming
+   * impact/grain and outgoing motion targets. Standalone study contexts that
+   * omit the gap timeline treat `gap.targets` as an explicit proposal bundle. */
+  geometryTargets?: AxisValues,
   /** Optional normal-stream support envelope for a compiler-owned specialist
    *  lane. It changes geometry only; hard gates and scoring remain literal. */
   supportGeometryMode?: SupportGeometryMode,
+  /** Study identity only; it does not influence proposal generation. */
+  proposalBatchId?: number,
 ): Candidate | null {
   return observeOneCandidate(
     engine,
@@ -171,6 +213,8 @@ export function sampleOneCandidate(
     mode,
     geometryTargets,
     supportGeometryMode,
+    undefined,
+    proposalBatchId,
   ).fit;
 }
 
@@ -189,12 +233,14 @@ export function observeOneCandidate(
   lineIdStart: number,
   attempt = 0,
   mode: CandidateSampleMode = "normal",
-  geometryTargets: AxisValues = gap.targets,
+  geometryTargets?: AxisValues,
   supportGeometryMode?: SupportGeometryMode,
   /** Study-only evaluator override. Omitted in production, preserving the
    * normal candidate path exactly; useful when an attribution study must
    * disable optional post-fit continuation on both compared families. */
   evaluationOptions?: CandidateLineEvaluationOptions,
+  /** Study identity only; it does not influence proposal generation. */
+  proposalBatchId?: number,
 ): SampledCandidateObservation {
   candidateSampleCount++;
   const probe = getCandidateProbe(engine, gap, ctx);
@@ -202,8 +248,14 @@ export function observeOneCandidate(
   // Pass the real attempt index: on steep-catch gaps the geometry sampler
   // interleaves template catches with normal random samples. For non-steep gaps
   // the attempt arg is unused and the RNG drives diversity.
+  const resolvedGeometryTargets = geometryTargets ??
+    (
+      ctx.gaps === undefined
+        ? gap.targets
+        : arcProposalTargetsForGap(gap, ctx.gaps)
+    );
   const geometry = sampleArcPlacementGeometry(
-    rng, probe.refX, probe.refY, geometryTargets, probe.targetState, attempt, gap, lineIdStart, mode,
+    rng, probe.refX, probe.refY, resolvedGeometryTargets, probe.targetState, attempt, gap, lineIdStart, mode,
     ctx.allContactFrames, supportGeometryMode,
   );
 
@@ -221,5 +273,17 @@ export function observeOneCandidate(
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     fit.sampleAttempt = attempt;
   }
+  candidateSampleTraceSink?.({
+    contextKey: engine,
+    specContext: ctx,
+    gap,
+    targetState: probe.targetState,
+    proposalBatchId: proposalBatchId ?? null,
+    attempt,
+    mode,
+    geometryTargets: resolvedGeometryTargets,
+    ...(supportGeometryMode === undefined ? {} : { supportGeometryMode }),
+    fit,
+  });
   return { geometry, fit };
 }

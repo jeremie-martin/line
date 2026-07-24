@@ -36,9 +36,7 @@ import {
   validateSpec,
 } from "../core/substrate.ts";
 import {
-  ballisticLaunchOf,
   copyBallisticFitFields,
-  projectBallisticGap,
   type BallisticFitFields,
 } from "../core/ballistic_projection.ts";
 import {
@@ -107,28 +105,27 @@ import {
   TRAVERSAL_BUDGET_MODEL_V1,
 } from "./budget_model.ts";
 import {
-  currentGapAxes,
-  frontierReadinessFromFit,
   nextContactGap,
   nextContactGapIndex,
-  nextGapFrameCount,
-  predictArrivalAtNextContact,
-  scoreCurrentTargetQuality,
-  scoreNextTargetReadiness,
-  setObjectiveBlendPowers,
+  projectOutgoingScorerGap,
+  scoreNextArcReadiness,
+  scoreSettledIncomingQuality,
+  scorerGapFrameCount,
+  setProposalUtilityPowers,
+  settledIncomingAxes,
 } from "./objective.ts";
+import { IMPACT_TARGETED_ASK } from "./impact_policy.ts";
 import {
-  effectiveAirAsk,
-  READINESS_AIR_DEADBAND,
-  READINESS_IMPACT_TARGETED_ASK,
-} from "./readiness.ts";
+  AIR_DELIVERABILITY_DEADBAND,
+  airDeliverabilityAsk,
+} from "./air_policy.ts";
+import { successorScorerGapAfter } from "./arc_proposal.ts";
 import {
   AXIS_QUALITY_TOLERANCE,
   axisErrorsForTargets,
   axisQualityFromErrors,
   MISSING_CONTACT_TOLERANCE,
 } from "../score.ts";
-import { predictCatchability } from "./catchability.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { getEngineRebuildCount } from "../core/polish.ts";
 import { registerCompileReset, resetPerCompileState } from "../core/compile_lifecycle.ts";
@@ -767,7 +764,6 @@ type NodeEvaluation = {
   key: LeafKey;
   outputDurationFrames: number;
   fullDuration: boolean;
-  catchabilityPerGap: (number | null)[];
 };
 
 type ConsiderResult = {
@@ -800,7 +796,6 @@ const MAX_NODES_FLOOR = 50_000;
 const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
-const HANDOFF_TRANSITION_MOTION_ATTEMPTS = 4;
 
 /** Budget (in frames) at which the compiler is considered "mature": the single
  *  shared maturity scale used by every budget→maturity smoothstep in this module
@@ -1200,7 +1195,7 @@ function compileHandoffInternal(
       `compileHandoff: policyBudget ${policyBudget} exceeds hard budget ${targetBudget}`,
     );
   }
-  setObjectiveBlendPowers();
+  setProposalUtilityPowers();
   // Budget-aware geometry reads this (per-compile constant) for the curvature fade.
   setCompileBudgetFrames(policyBudget);
   setAimCompileBudgetFrames(policyBudget);
@@ -1241,10 +1236,11 @@ function compileHandoffInternal(
     // compiler before it. A manual `start` is still honored by resolveStartState.
     const spec: Spec = { ...userSpec, preroll: undefined, contacts: feasibleContacts };
     const specProfile = buildHandoffSpecProfile(spec);
-    setObjectiveBlendPowers({
-      currentQualityPower: objectiveBlendCurrentPowerForSpec(policyBudget, specProfile),
-      readinessPower: objectiveBlendReadinessPowerForSpec(policyBudget, specProfile),
-      elevationReadiness: objectiveElevationReadinessForSpec(policyBudget, specProfile),
+    setProposalUtilityPowers({
+      settledIncomingQualityPower:
+        objectiveBlendCurrentPowerForSpec(policyBudget, specProfile),
+      futureQualityPower:
+        objectiveBlendReadinessPowerForSpec(policyBudget, specProfile),
     });
     const durationFrames = secToFrame(spec.duration);
     const allContactFrames = [...spec.contacts]
@@ -1266,7 +1262,12 @@ function compileHandoffInternal(
     // cannot desync.
     resolveImpactTargets(spec, gaps, gapAxisTargets);
 
-    const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
+    const ctx: SpecContext = {
+      allContactFrames,
+      durationFrames,
+      gapAxisTargets,
+      gaps,
+    };
     const targetProfile = buildHandoffTargetProfile(gaps, ctx);
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
     const budgetSlack = traversalBudgetSlack(policyBudget, spec);
@@ -1443,7 +1444,6 @@ function compileHandoffInternal(
           gaps,
           evaluation.outputDurationFrames,
           false,
-          evaluation.catchabilityPerGap,
         ),
         evaluation.key,
       );
@@ -1492,7 +1492,7 @@ function compileHandoffInternal(
         : selectedBallisticTransitionStats(
           paddedFits(bestRegisteredNode, gaps.length),
           gaps,
-          best.stats.catchability_per_gap ?? [],
+          gapAxisTargets,
         );
       return {
         ...best,
@@ -1720,7 +1720,6 @@ function compileHandoffInternal(
               gaps,
               evaluation.outputDurationFrames,
               false,
-              evaluation.catchabilityPerGap,
             ),
             evaluation.key,
           );
@@ -1897,11 +1896,23 @@ function compileHandoffInternal(
             const weakGapSse = axisEntries.reduce((sum, [, value]) => sum + value.error * value.error, 0);
             const inheritedFit = kWorst > 0 ? incumbent.search.prefixFits[kWorst - 1] : undefined;
             const weakGap = gaps[kWorst];
-            const arrival = inheritedFit != null && weakGap !== undefined
-              ? predictArrivalAtNextContact(inheritedFit, weakGap)
+            const projection = inheritedFit != null && weakGap !== undefined
+              ? projectOutgoingScorerGap(
+                inheritedFit,
+                weakGap,
+                gapAxisTargets,
+              )
               : null;
-            const readiness = inheritedFit != null && weakGap !== undefined
-              ? frontierReadinessFromFit(inheritedFit, weakGap)
+            const readiness =
+              projection !== null &&
+                weakGap !== undefined &&
+                weakGap.endsWithContact
+              ? scoreNextArcReadiness(
+                projection.projection,
+                weakGap,
+                successorScorerGapAfter(weakGap, gaps),
+                gapAxisTargets,
+              )
               : null;
             return {
               weakAxis,
@@ -1910,8 +1921,10 @@ function compileHandoffInternal(
               weakAxisError: weakValue?.error ?? null,
               weakAxisCeiling: weakValue?.ceiling ?? null,
               weakGapSse,
-              weakArrivalSpeed: arrival?.incoming.speed ?? null,
-              weakArrivalAngle: arrival?.incoming.comAngleDeg ?? null,
+              weakArrivalSpeed:
+                projection?.projection.boundary.incoming.speed ?? null,
+              weakArrivalAngle:
+                projection?.projection.boundary.incoming.comAngleDeg ?? null,
               weakArrivalReadiness: readiness?.readiness ?? null,
               weakArrivalCatchability: readiness?.catchability ?? null,
               weakArrivalSpeedFit: readiness?.speedFit ?? null,
@@ -2312,7 +2325,7 @@ function objectiveBlendCurrentPowerForSpec(
   targetBudget: number,
   profile: HandoffSpecProfile,
 ): number | undefined {
-  if (readEnv("LR_M64_OBJECTIVE_CURRENT_POWER") !== undefined) return undefined;
+  if (readEnv("LR_OBJECTIVE_SETTLED_POWER") !== undefined) return undefined;
   if (readEnv("LR_IMPACT_OFF") === "1") return undefined;
   const power = continuousObjectiveCurrentPower(targetBudget, objectiveCurrentPowerProfile(profile));
   return power <= OBJECTIVE_CURRENT_BASE_POWER + OBJECTIVE_CURRENT_POWER_ACTIVATION_EPSILON
@@ -2432,7 +2445,7 @@ function objectiveBlendReadinessPowerForSpec(
   targetBudget: number,
   profile: HandoffSpecProfile,
 ): number | undefined {
-  if (readEnv("LR_M75_OBJECTIVE_READINESS_POWER") !== undefined) return undefined;
+  if (readEnv("LR_OBJECTIVE_FUTURE_POWER") !== undefined) return undefined;
   const raw = readEnv("LR_M75_MATURE_OBJECTIVE_READINESS_POWER");
   if (targetBudget < OBJECTIVE_MATURE_MIN_BUDGET_FRAMES) return undefined;
   if (raw !== undefined && raw !== "0") {
@@ -3272,7 +3285,7 @@ function sampleSeededCatchCandidates(
     spec.onAttempt();
     const cand = sampleOneCandidate(
       node.prefixEngine, gap, rng, ctx, node.prefixNextLineId, spec.sampleSeed(attempt), spec.mode,
-      gap.targets,
+      undefined,
       spec.timeSupport ? "time-extend" : undefined,
     );
     if (cand !== null) {
@@ -3365,19 +3378,27 @@ function supportTimeCoverageDeficit(
   if (nextGap === null) return 0;
   const nextTargets = ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
   if (nextTargets.air === undefined) return 0;
-  const gapFrames = nextGapFrameCount(nextGap);
-  const ask = effectiveAirAsk(nextTargets.air, gapFrames);
+  const gapFrames = scorerGapFrameCount(nextGap);
+  const ask = airDeliverabilityAsk(nextTargets.air, gapFrames);
   const entrySpeed = getCandidateProbe(node.prefixEngine, gap, ctx).targetState.speed;
   if (supportExtensionPressure({ air: nextTargets.air, gapFrames, speed: entrySpeed }) <= 0) {
     return 0;
   }
   const predictedAir = pool.flatMap(({ candidate }) => {
-    const arrival = predictArrivalAtNextContact(candidate, nextGap);
-    return arrival?.airFraction === undefined ? [] : [arrival.airFraction];
+    const projection = projectOutgoingScorerGap(
+      candidate,
+      nextGap,
+      ctx.gapAxisTargets,
+    );
+    return projection === null
+      ? []
+      : projection.achieved.air === undefined
+      ? []
+      : [projection.achieved.air];
   });
   return predictedAir.length === 0
     ? 0
-    : Math.max(0, Math.min(...predictedAir) - ask - READINESS_AIR_DEADBAND);
+    : Math.max(0, Math.min(...predictedAir) - ask - AIR_DELIVERABILITY_DEADBAND);
 }
 
 function supportTimeCandidates(
@@ -3417,16 +3438,24 @@ function retainAirCoverageImprovements(
   if (nextGap === null) return [];
   const nextTargets = ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
   if (nextTargets.air === undefined) return [];
-  const gapFrames = nextGapFrameCount(nextGap);
-  const ask = effectiveAirAsk(nextTargets.air, gapFrames);
+  const gapFrames = scorerGapFrameCount(nextGap);
+  const ask = airDeliverabilityAsk(nextTargets.air, gapFrames);
   const incumbentErrors = pool.flatMap(({ candidate }) => {
-    const air = predictArrivalAtNextContact(candidate, nextGap)?.airFraction;
+    const air = projectOutgoingScorerGap(
+      candidate,
+      nextGap,
+      ctx.gapAxisTargets,
+    )?.achieved.air;
     return air === undefined ? [] : [Math.abs(air - ask)];
   });
   if (incumbentErrors.length === 0) return [];
   const bestIncumbentError = Math.min(...incumbentErrors);
   return candidates.filter((candidate) => {
-    const air = predictArrivalAtNextContact(candidate, nextGap)?.airFraction;
+    const air = projectOutgoingScorerGap(
+      candidate,
+      nextGap,
+      ctx.gapAxisTargets,
+    )?.achieved.air;
     return air !== undefined && Math.abs(air - ask) + 1e-9 < bestIncumbentError;
   });
 }
@@ -3453,74 +3482,6 @@ function admittedHandoffPool(
   poolSize: number,
 ): HandoffAdmittedCandidate[] {
   return sorted.slice(0, poolSize).map((candidate, rank) => ({ candidate, rank }));
-}
-
-function transitionMotionCandidate(
-  node: SearchNode,
-  gaps: Gap[],
-  ctx: SpecContext,
-  seed: number,
-  budgetSlack: number,
-): { candidate: Candidate; sourceAxis: AxisName } | null {
-  if (budgetSlack < HANDOFF_LOW_SLACK_BRANCH_THRESHOLD) return null;
-  const gap = gaps[node.gapIndex];
-  const nextGap = gaps[node.gapIndex + 1];
-  if (!gap?.endsWithContact || !nextGap?.endsWithContact) return null;
-
-  const motionTargets = { ...gap.targets };
-  const motionAxes = ["air", "speed", "elevation", "amplitude"] as const;
-  let material = false;
-  let sourceAxis: AxisName = "air";
-  let largestTransition = -Infinity;
-  for (const axis of motionAxes) {
-    const currentTarget = ctx.gapAxisTargets?.[node.gapIndex]?.[axis];
-    const nextTarget = ctx.gapAxisTargets?.[node.gapIndex + 1]?.[axis];
-    if (
-      currentTarget === nextTarget ||
-      (
-        currentTarget !== undefined &&
-        nextTarget !== undefined &&
-        Math.abs(nextTarget - currentTarget) <= CALIB.SIGMA
-      )
-    ) continue;
-    material = true;
-    const transition = currentTarget === undefined || nextTarget === undefined
-      ? Infinity
-      : Math.abs(nextTarget - currentTarget);
-    if (transition > largestTransition) {
-      largestTransition = transition;
-      sourceAxis = axis;
-    }
-    const sampledNext = nextGap.targets[axis];
-    if (sampledNext === undefined) delete motionTargets[axis];
-    else motionTargets[axis] = sampledNext;
-  }
-  if (!material) return null;
-
-  const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
-  const candidates: Candidate[] = [];
-  for (let attempt = 0; attempt < HANDOFF_TRANSITION_MOTION_ATTEMPTS; attempt++) {
-    const candidate = sampleOneCandidate(
-      node.prefixEngine,
-      gap,
-      rng,
-      ctx,
-      node.prefixNextLineId,
-      attempt,
-      "normal",
-      motionTargets,
-    );
-    if (candidate !== null) candidates.push(candidate);
-  }
-  if (candidates.length === 0) return null;
-  const candidate = candidates.reduce((best, candidate) => {
-    const bestObjective = candidateQualityObjective(node.prefixEngine, best, gap, gaps, ctx);
-    const objective = candidateQualityObjective(node.prefixEngine, candidate, gap, gaps, ctx);
-    if (objective !== null && (bestObjective === null || objective > bestObjective)) return candidate;
-    if (objective === bestObjective && candidate.cost < best.cost) return candidate;
-    return best;
-  });
-  return { candidate, sourceAxis };
 }
 
 function rankedOptions(
@@ -3628,35 +3589,6 @@ function rankedOptions(
   } else {
     scored = pool.map(({ candidate, rank }) => scorePoolCandidate(candidate, rank));
   }
-  const transitionCandidate = transitionMotionCandidate(
-    node,
-    gaps,
-    ctx,
-    seed,
-    config.budgetSlack ?? 0,
-  );
-  if (transitionCandidate !== null) {
-    scored.push(scoreCandidateForHandoff(
-      node,
-      transitionCandidate.candidate,
-      extraRankBase,
-      "axisq",
-      gaps,
-      ctx,
-      seed,
-      telemetry,
-      preview,
-      previewCostWeight,
-      previewScorePressure,
-      config.releaseSetup ?? false,
-      targetBudget,
-      transitionCandidate.sourceAxis,
-      config.budgetSlack ?? 0,
-      openingBestOpportunity,
-      undefined,
-      allowForwardEval,
-    ));
-  }
   if (handoffCapacityProbeHook !== null && targetBudget >= 500000) {
     const incumbent = [...scored]
       .filter((option): option is RankedOption & { candidate: Candidate } => option.candidate !== null)
@@ -3685,6 +3617,9 @@ function rankedOptions(
     const nextTargets = nextGap === null
       ? null
       : ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
+    const readinessOutgoingGap = nextGap === null
+      ? null
+      : successorScorerGapAfter(nextGap, gaps);
     const entrySpeed = getCandidateProbe(node.prefixEngine, gap, ctx).targetState.speed;
     const collisionWindows = new Map<number, HandoffPoolProbeCollisionWindow | null>();
     const contactGeometry = new Map<number, HandoffPoolProbeContactGeometry | null>();
@@ -3732,10 +3667,21 @@ function rankedOptions(
         );
         const launch = candidate.ballisticLaunch;
         const release = launch?.state;
-        const arrival = nextGap === null ? null : predictArrivalAtNextContact(candidate, nextGap);
-        const readiness = arrival === null || nextTargets === null
+        const projection = nextGap === null
           ? null
-          : scoreNextTargetReadiness(arrival, nextTargets);
+          : projectOutgoingScorerGap(
+            candidate,
+            nextGap,
+            ctx.gapAxisTargets,
+          );
+        const readiness = projection === null || nextGap === null
+          ? null
+          : scoreNextArcReadiness(
+            projection.projection,
+            nextGap,
+            readinessOutgoingGap,
+            ctx.gapAxisTargets,
+          );
         return {
           qualityRank,
           lineLength: candidate.lines.reduce(
@@ -3757,9 +3703,9 @@ function rankedOptions(
             gaps,
             ctx,
           ),
-          currentQuality: scoreCurrentTargetQuality(
+          currentQuality: scoreSettledIncomingQuality(
             currentTargets,
-            currentGapAxes(candidate),
+            settledIncomingAxes(candidate),
           ),
           readiness: readiness?.readiness ?? null,
           catchability: readiness?.catchability ?? null,
@@ -3780,11 +3726,13 @@ function rankedOptions(
           releaseVy: release?.vy ?? null,
           releaseGrounded: launch?.groundedFrames ?? null,
           releaseAirborne: launch?.airborne ?? null,
-          arrivalSpeed: arrival?.incoming.speed ?? null,
-          arrivalAngleDeg: arrival?.incoming.comAngleDeg ?? null,
-          arrivalAir: arrival?.airFraction ?? null,
-          arrivalGapFrames: arrival?.gapFrameCount ?? null,
-          arrivalElevation: arrival?.elevation ?? null,
+          arrivalSpeed:
+            projection?.projection.boundary.incoming.speed ?? null,
+          arrivalAngleDeg:
+            projection?.projection.boundary.incoming.comAngleDeg ?? null,
+          arrivalAir: projection?.achieved.air ?? null,
+          arrivalGapFrames: projection?.projection.frameCount ?? null,
+          arrivalElevation: projection?.projection.elevation ?? null,
           admitted: admitted.has(candidate),
           ...(handoffScores.has(candidate)
             ? { handoffScore: handoffScores.get(candidate) }
@@ -3831,7 +3779,7 @@ function rankedOptions(
   const supportOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "axisq",
     sourceAxis: "air",
-    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1),
+    rankBase: extraRankBase,
     generate: () => supportCount > 0
       ? retainAirCoverageImprovements(
         [
@@ -3872,8 +3820,7 @@ function rankedOptions(
   const reuseLimit = config.reuseLimit ?? reuseCandidateLimit(node, targetBudget, telemetry);
   const reuseOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "reuse",
-    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1) +
-      admittedSupportOptions.length,
+    rankBase: extraRankBase + admittedSupportOptions.length,
     generate: () => reuseCatchCandidates(node, gaps, ctx, telemetry, reuseLimit),
     cache: {
       key: reuseLimit,
@@ -3887,8 +3834,8 @@ function rankedOptions(
   for (const option of reuseOptions) scored.push(option);
   const brakeOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "brake",
-    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1) +
-      admittedSupportOptions.length + reuseOptions.length,
+    rankBase: extraRankBase + admittedSupportOptions.length +
+      reuseOptions.length,
     generate: () => brakeCatchCandidates(node, gaps, ctx, seed, telemetry),
     cache: {
       key: seed,
@@ -5240,7 +5187,10 @@ function releaseVerticalSetupPressure(
 }
 
 function candidateOvershootPenalty(candidate: Candidate, gap: Gap): number {
-  return handoffAxisOvershootPenalty(gap.targets, currentGapAxes(candidate));
+  return handoffAxisOvershootPenalty(
+    gap.targets,
+    settledIncomingAxes(candidate),
+  );
 }
 
 export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisValues): number {
@@ -5431,7 +5381,7 @@ function recordFwdEvalAgreement(
   // Telemetry-only; split at the objective ramp midpoint so the classifier can't
   // drift back to the old stray inline 0.35.
   const impactTargeted = impactTarget !== undefined &&
-    impactTarget >= READINESS_IMPACT_TARGETED_ASK;
+    impactTarget >= IMPACT_TARGETED_ASK;
   if (agree) {
     if (impactTargeted) fwdEvalTotals.fwd_agree_impact_targeted++;
     else fwdEvalTotals.fwd_agree_not_impact_targeted++;
@@ -5935,7 +5885,7 @@ export function objectiveLeafValue(
     }
     // Reproduce the true scorer's [startFrame, endFrame] axis factor from the
     // canonical current-gap vector.
-    const achieved = currentGapAxes(fit);
+    const achieved = settledIncomingAxes(fit);
     for (const e of axisErrorsForTargets(fwdEvalRuntime.gapAxisTargets[i], achieved)) errors.push(e);
   }
   // axis_quality = exp(-rms(ALL committed-prefix errors) / AXIS_QUALITY_TOLERANCE) — the scorer's
@@ -5983,7 +5933,14 @@ export function forwardTerminalReadiness(search: SearchNode, gaps: Gap[]): numbe
     if (!gaps[i]?.endsWithContact) continue;
     const fit = search.prefixFits[i];
     if (fit === null || fit === undefined) continue;
-    return frontierReadinessFromFit(fit, nextGap)?.readiness ?? 1;
+    const projection = projectOutgoingScorerGap(fit, nextGap);
+    return projection === null
+      ? 1
+      : scoreNextArcReadiness(
+        projection.projection,
+        nextGap,
+        successorScorerGapAfter(nextGap, gaps),
+      ).readiness;
   }
   return 1;
 }
@@ -7152,7 +7109,6 @@ function evaluateNode(
   key: LeafKey;
   outputDurationFrames: number;
   fullDuration: boolean;
-  catchabilityPerGap: (number | null)[];
 } {
   const fullDuration = isTerminalNode(node.search, gaps);
   const partialHorizonFrame = fullDuration
@@ -7167,30 +7123,11 @@ function evaluateNode(
     det, spec, gaps, allContactFrames, durationFrames, [], fits, gapAxisTargets,
   );
   const report = fullDuration ? rawReport : asPartialReport(rawReport, partialHorizonFrame);
-  // Catchability telemetry: the REALIZED arrival into each committed contact
-  // gap, scored by the empirical catchability surface. This deliberately does
-  // not claim to be the five-factor readiness composite. Pure reads on the detection's velocity
-  // array (already charged as part of this evaluation) — the shared prefix
-  // engine must NOT be touched here, even read-only: frame-cache effects
-  // perturb later metered charges in the continuing search.
-  // Element type widened to include `undefined`: a committed gap's endFrame can
-  // sit past the detected terminus, so the out-of-bounds read below is a real
-  // guard (no `noUncheckedIndexedAccess` in tsconfig).
-  const velocity: readonly ({ x: number; y: number } | undefined)[] = det.measurements.velocity;
-  const catchabilityPerGap: (number | null)[] = gaps.map((gap, k) => {
-    if (fits[k] === null || !gap.endsWithContact) return null;
-    const v = velocity[gap.endFrame];
-    if (v === undefined) return null;
-    const { speed, angleDeg } = speedAngleFromVelocity(v);
-    if (!Number.isFinite(speed) || speed <= 0) return null;
-    return round3(predictCatchability(speed, angleDeg));
-  });
   return {
     report,
     key: leafKeyForReport(report, durationFrames),
     outputDurationFrames,
     fullDuration,
-    catchabilityPerGap,
   };
 }
 
@@ -7240,14 +7177,10 @@ function buildNodeOutput(
   gaps: Gap[],
   outputDurationFrames: number,
   budgetExhausted: boolean,
-  /** Realized-arrival catchability per gap, computed in evaluateNode from the
-   *  evaluation's own detection. It is not composite readiness. */
-  catchabilityPerGap: (number | null)[] = [],
 ): CompileOutput {
   const fits = paddedFits(node, gaps.length);
   const allLines = [...node.startLines];
   for (const fit of fits) if (fit !== null) allLines.push(...fit.lines);
-  const catchabilityValues = catchabilityPerGap.filter((r): r is number => r !== null);
   const { speed: startSpeed, angleDeg: startAngleDeg } = speedAngleFromVelocity(
     node.startState.velocity,
   );
@@ -7291,16 +7224,6 @@ function buildNodeOutput(
       // How many committed fits in THIS output came from the proposer
       // (selection-level win rate; `aim.enum_emitted` is the pool-level rate).
       handoff_aimed_selected: fits.filter((fit) => fit !== null && fit.aimed === true).length,
-      catchability_per_gap: catchabilityPerGap,
-      catchability_mean: catchabilityValues.length > 0
-        ? round3(
-          catchabilityValues.reduce((a, b) => a + b, 0) /
-            catchabilityValues.length,
-        )
-        : null,
-      catchability_min: catchabilityValues.length > 0
-        ? Math.min(...catchabilityValues)
-        : null,
       handoff_selected_axis_quality_by_axis: axisQualitySourceCounts,
     },
   };
@@ -7325,20 +7248,13 @@ type SelectedBallisticTransitionStats =
 function selectedBallisticTransitionStats(
   fits: readonly (GapFit | null)[],
   gaps: readonly Gap[],
-  realizedCatchability: readonly (number | null)[],
+  gapAxisTargets: readonly AxisValues[],
 ): SelectedBallisticTransitionStats | null {
   let eligible = 0;
   let projected = 0;
   const speed = emptyBallisticErrorAccumulator();
   const air = emptyBallisticErrorAccumulator();
   const elevation = emptyBallisticErrorAccumulator();
-  const catchability = emptyBallisticErrorAccumulator();
-  let readinessQualityPairs = 0;
-  let readinessSum = 0;
-  let nextQualitySum = 0;
-  let readinessQualityProductSum = 0;
-  let readinessSquareSum = 0;
-  let nextQualitySquareSum = 0;
 
   for (let index = 0; index < gaps.length; index++) {
     const fit = fits[index];
@@ -7349,20 +7265,13 @@ function selectedBallisticTransitionStats(
     if (nextFit === null) continue;
     eligible++;
 
-    const launch = ballisticLaunchOf(fit);
-    if (
-      launch === undefined ||
-      launch.gapStartFrame !== gaps[nextIndex].startFrame
-    ) continue;
-    const prediction = projectBallisticGap(
-      launch,
-      gaps[nextIndex].endFrame,
-      {
-        terminalContact: "grounded",
-        includeElevation: true,
-      },
+    const projectedOutgoing = projectOutgoingScorerGap(
+      fit,
+      gaps[nextIndex],
+      gapAxisTargets,
     );
-    if (prediction === null) continue;
+    if (projectedOutgoing === null) continue;
+    const prediction = projectedOutgoing.projection;
     projected++;
 
     recordBallisticError(
@@ -7372,7 +7281,7 @@ function selectedBallisticTransitionStats(
     );
     recordBallisticError(
       air,
-      prediction.airFraction,
+      projectedOutgoing.achieved.air,
       nextFit.achieved.air,
     );
     recordBallisticError(
@@ -7380,38 +7289,6 @@ function selectedBallisticTransitionStats(
       prediction.elevation,
       nextFit.achieved.elevation,
     );
-
-    const arrival = {
-      incoming: prediction.boundary.incoming,
-      meanSpeedPx: prediction.meanSpeedPx,
-      airFraction: prediction.airFraction,
-      gapFrameCount: prediction.frameCount,
-      ...(prediction.elevation === null
-        ? {}
-        : { elevation: prediction.elevation }),
-    };
-    const readiness = scoreNextTargetReadiness(
-      arrival,
-      gaps[nextIndex].targets,
-    );
-    const realized = realizedCatchability[nextIndex];
-    recordBallisticError(
-      catchability,
-      readiness?.catchability,
-      realized,
-    );
-    if (readiness === null) continue;
-    const nextQuality = scoreCurrentTargetQuality(
-      gaps[nextIndex].targets,
-      nextFit.achieved,
-    );
-    if (!Number.isFinite(nextQuality)) continue;
-    readinessQualityPairs++;
-    readinessSum += readiness.readiness;
-    nextQualitySum += nextQuality;
-    readinessQualityProductSum += readiness.readiness * nextQuality;
-    readinessSquareSum += readiness.readiness * readiness.readiness;
-    nextQualitySquareSum += nextQuality * nextQuality;
   }
 
   if (eligible === 0) return null;
@@ -7422,45 +7299,7 @@ function selectedBallisticTransitionStats(
     speed: summarizeBallisticErrors(speed),
     air: summarizeBallisticErrors(air),
     elevation: summarizeBallisticErrors(elevation),
-    catchability: summarizeBallisticErrors(catchability),
-    readiness_quality_pairs: readinessQualityPairs,
-    readiness_mean: meanOrNull(readinessSum, readinessQualityPairs),
-    next_quality_mean: meanOrNull(nextQualitySum, readinessQualityPairs),
-    readiness_quality_product_mean: meanOrNull(
-      readinessQualityProductSum,
-      readinessQualityPairs,
-    ),
-    readiness_quality_correlation: pearsonFromSums(
-      readinessQualityPairs,
-      readinessSum,
-      nextQualitySum,
-      readinessSquareSum,
-      nextQualitySquareSum,
-      readinessQualityProductSum,
-    ),
   };
-}
-
-function pearsonFromSums(
-  count: number,
-  xSum: number,
-  ySum: number,
-  xSquareSum: number,
-  ySquareSum: number,
-  productSum: number,
-): number | null {
-  if (count < 2) return null;
-  const xVarianceNumerator = count * xSquareSum - xSum * xSum;
-  const yVarianceNumerator = count * ySquareSum - ySum * ySum;
-  const denominator = Math.sqrt(
-    Math.max(0, xVarianceNumerator) *
-      Math.max(0, yVarianceNumerator),
-  );
-  if (!(denominator > 0)) return null;
-  const value = (count * productSum - xSum * ySum) / denominator;
-  return Number.isFinite(value)
-    ? Math.max(-1, Math.min(1, value))
-    : null;
 }
 
 function emptyBallisticErrorAccumulator(): BallisticErrorAccumulator {
@@ -7510,10 +7349,6 @@ function summarizeBallisticErrors(
     bias: round6(accumulator.signedErrorSum / accumulator.pairs),
     max_abs_error: round6(accumulator.maxAbsError),
   };
-}
-
-function meanOrNull(sum: number, count: number): number | null {
-  return count === 0 ? null : round6(sum / count);
 }
 
 /** Single pass over `node.rankTrace` producing both the per-source selection

@@ -37,7 +37,12 @@ import {
   type HandoffNodeEvent,
 } from "./optimizer/handoff.ts";
 import { extendNodeCached, getCandidatesSorted, type SearchNode } from "./optimizer/node.ts";
-import { frontierReadinessFromFit } from "./optimizer/objective.ts";
+import {
+  nextContactGap,
+  projectOutgoingScorerGap,
+  scoreNextArcReadiness,
+} from "./optimizer/objective.ts";
+import { successorScorerGapAfter } from "./optimizer/arc_proposal.ts";
 import {
   aimTopKBasesEffective,
   makeEnumAimedCandidates,
@@ -197,9 +202,25 @@ for (const [parentRank, current] of parentCandidates.entries()) {
         ? getCandidatesSorted(afterPair, setup.gaps, setup.ctx, parentRecord.node.searchSeed, 8).length
         : null;
       const terminalFit = afterPair.prefixFits[afterPair.gapIndex - 1];
-      const terminalReadiness = terminalFit !== null && terminalFit !== undefined && afterGap?.endsWithContact
-        ? frontierReadinessFromFit(terminalFit, afterGap)?.readiness ?? 0
-        : 0;
+      const terminalProjection =
+        terminalFit !== null &&
+          terminalFit !== undefined &&
+          afterGap?.endsWithContact
+          ? projectOutgoingScorerGap(
+            terminalFit,
+            afterGap,
+            setup.ctx.gapAxisTargets,
+          )
+          : null;
+      const terminalReadiness =
+        terminalProjection === null || afterGap === undefined
+          ? 0
+          : scoreNextArcReadiness(
+            terminalProjection.projection,
+            afterGap,
+            successorScorerGapAfter(afterGap, setup.gaps),
+            setup.ctx.gapAxisTargets,
+          ).readiness;
       viablePairs.push({
         parentRank,
         childRank,

@@ -59,7 +59,7 @@ import {
 import { evaluateJointArcLines, type JointArcProbeObservation } from "./optimizer/arc_probe.ts";
 import { compileHandoff, type HandoffNode } from "./optimizer/handoff.ts";
 import { extendNodeCached, makeRootNode, type SearchNode } from "./optimizer/node.ts";
-import { scoreGapObjectiveWithCurrentQuality } from "./optimizer/objective.ts";
+import { scoreProjectedOutgoingSurrogate } from "./optimizer/objective.ts";
 import { isStrictlyBetter, type LeafKey } from "./optimizer/register.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap, type TrackLine } from "./types.ts";
@@ -194,20 +194,17 @@ function score(
   const readout = scoreCompletedArcPrediction(outputs, current, jointArcCurrentScoreAxes(current));
   if (Number.isFinite(readout.exitFrame) && readout.exitFrame > nextGap.endFrame) return null;
   if (readout.state === null) return null;
-  const arrival = {
-    incoming: readout.state,
-    ...(Number.isFinite(readout.nextMeanSpeedPx)
-      ? { meanSpeedPx: readout.nextMeanSpeedPx }
-      : {}),
-    ...(Number.isFinite(readout.nextAirFraction) &&
-        Number.isFinite(readout.nextGapFrameCount)
-      ? {
-        airFraction: readout.nextAirFraction,
-        gapFrameCount: readout.nextGapFrameCount,
-      }
-      : {}),
-  };
-  return scoreGapObjectiveWithCurrentQuality(readout.currentQuality, arrival, next)?.value ?? null;
+  return scoreProjectedOutgoingSurrogate(
+    readout.currentQuality,
+    next,
+    {
+      meanSpeedPx: readout.nextMeanSpeedPx,
+      airFraction: readout.nextAirFraction,
+      ...(Number.isFinite(readout.nextElevation)
+        ? { elevation: readout.nextElevation }
+        : {}),
+    },
+  )?.value ?? null;
 }
 
 function scan(

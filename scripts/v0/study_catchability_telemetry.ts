@@ -2,7 +2,7 @@
  * Study-only catchability call telemetry — histograms every catchability
  * value produced during a run. Extracted out of the production readiness model
  * (optimizer/readiness.ts) so that core file carries no instrumentation state;
- * this module subscribes via setCatchabilityObserver and is
+ * this module subscribes to the canonical readiness scorer and is
  * imported only by study drivers (study_catchability_histogram.ts). Gated on
  * LR_CATCHABILITY_TELEMETRY=1 (default off); when the flag is unset the recorder
  * no-ops, and in production this module is never imported at all so the observer
@@ -19,7 +19,9 @@
  * snapshot of this state is meaningless by design.
  */
 
-import { setCatchabilityObserver } from "./optimizer/catchability.ts";
+import {
+  setReadinessCatchabilityObserver,
+} from "./optimizer/readiness_scoring.ts";
 
 export type CatchabilityTelemetryBin = {
   lo: number;
@@ -77,7 +79,7 @@ function recordCatchabilityTelemetry(value: number): void {
 
 // Subscribe once at module load. Present only when a study
 // driver imports this module; production never does.
-setCatchabilityObserver(recordCatchabilityTelemetry);
+setReadinessCatchabilityObserver(recordCatchabilityTelemetry);
 
 export function setCatchabilityTelemetryEnabled(enabled: boolean): void {
   catchabilityTelemetryEnabled = enabled;

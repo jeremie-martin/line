@@ -48,7 +48,7 @@ describe("detector runway policy", () => {
   test("measures runway from the first launch sample, not the later anchor", () => {
     const launch = {
       anchorFrame: 14,
-      sampleCount: 4,
+      anchorScanFrames: 4,
       airborne: true,
     } as Parameters<typeof ballisticLaunchLeavesDetectorRunway>[0];
     expect(ballisticLaunchLeavesDetectorRunway(launch, 16)).toBe(true);

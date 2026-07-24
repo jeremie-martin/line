@@ -11,9 +11,13 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { K_BOUNCE_LANDING } from "../lib/detector.ts";
 import { loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
+import {
+  airFractionWithTerminalOccupancy,
+  ballisticLaunchOf,
+  projectBallisticGap,
+} from "./core/ballistic_projection.ts";
 import { sliceTimeline, type GapFit } from "./core/substrate.ts";
 import { compileHandoff, type HandoffNode } from "./optimizer/handoff.ts";
-import { predictArrivalAtNextContact } from "./optimizer/objective.ts";
 import { secToFrame } from "./types.ts";
 
 type Row = {
@@ -129,16 +133,31 @@ for (const specName of specNames) {
       const elevation = report?.axes.elevation;
       const priorFit = fits[gapIndex - 1];
       if (elevation === undefined || priorFit === null || priorFit === undefined) continue;
-      const arrival = predictArrivalAtNextContact(priorFit, gaps[gapIndex]);
-      const predicted = arrival?.elevation;
-      if (predicted === undefined || !Number.isFinite(predicted) || arrival.airFraction === undefined) continue;
+      const launch = ballisticLaunchOf(priorFit);
+      if (
+        launch === undefined ||
+        launch.gapStartFrame !== gaps[gapIndex].startFrame
+      ) continue;
+      const projection = projectBallisticGap(
+        launch,
+        gaps[gapIndex].endFrame,
+        {
+          includeElevation: true,
+        },
+      );
+      const predicted = projection?.elevation;
+      if (
+        predicted === null ||
+        predicted === undefined ||
+        !Number.isFinite(predicted)
+      ) continue;
       rows.push({
         spec: specName,
         seed,
         gap: gapIndex,
         gapFraction: gapIndex / Math.max(1, gaps.length - 1),
         target: elevation.target,
-        nextAir: arrival.airFraction,
+        nextAir: airFractionWithTerminalOccupancy(projection, false),
         predicted,
         achieved: elevation.achieved,
         predictionError: predicted - elevation.achieved,

@@ -13,9 +13,9 @@
  * rather than rewrites.
  *
  * There is ONE lane: the enumerative proposer (makeEnumAimedCandidates) —
- * joint knob deltas → local response model over current axes and next rider
- * state → current axis-quality × readiness objective swept in-model → top-k
- * proposals through exact production evaluation. Its
+ * configured knob vectors → local response model over current axes and
+ * outgoing-gap aggregates → a two-layer proposal objective swept in-model →
+ * top-k proposals through exact production evaluation. Its
  * hand-tuned predecessors (V3 speed-aim, V4 angle-aim +
  * arrival-conditioned scoop, rotate fallback, climb defer) were each
  * subsumed and deleted once their ablation priced at ~zero.
@@ -49,9 +49,10 @@
  * CURRENT-INSTANCE CHOICES (defaults, not rules — revisitable with evidence):
  * two knobs (exit pitch + whole-arc rotation); fixed 5-probe cross design; a
  * shared hybrid joint response model also used by the study harness; top-2
- * emitted proposals per refined base; readiness consumes the full predicted
- * arrival-state boundary, though the current surface still reads speed and
- * CoM angle only (pose parked by R0).
+ * emitted proposals per refined base. The local response fit scores only the
+ * settled incoming and projected outgoing layers it actually predicts. Once a
+ * proposal is simulated, pool ranking evaluates the full articulated
+ * next-arc readiness model.
  */
 
 import { getPhysicsFrameCount, K_BOUNCE_LANDING } from "../../lib/detector.ts";
@@ -70,18 +71,10 @@ import {
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
   adjustArcTailLength,
-  arcKnobSpan,
-  arcProbeDesign,
-  fitJointArcResponseModel,
   jointArcCurrentScoreAxes,
   predictedCurrentAxes,
   scoreCompletedArcPrediction,
-  predictJointArcScoreReadout,
-  predictJointArcOutputs,
-  type ArcKnobs,
-  type ArcProbeDesignName,
   type JointArcCurrentScoreAxes,
-  type JointArcResponseModel,
 } from "./arc_model.ts";
 import {
   fitArcVectorResponseModel,
@@ -95,10 +88,7 @@ import {
 } from "./arc_probe.ts";
 import {
   ARC_CONTROL_DEFAULT,
-  ARC_PROPOSAL_COUNT_DEFAULT,
   ARC_PROBE_LAYOUTS,
-  ARC_PROBE_RANGE_SCALE_DEFAULT,
-  ARC_PROPOSAL_RANGE_SCALE_DEFAULT,
   ARC_TRAINING_METHODS,
   arcControlProposalValues,
   arcControlProbeVectors,
@@ -116,37 +106,29 @@ import {
   type ArcKnobSequence,
 } from "./arc_actuator.ts";
 import {
-  currentGapAxes,
   nextContactGap,
-  nextGapFrameCount,
-  predictArrivalAtNextContact,
-  scoreGapObjectiveForTargets,
-  scoreGapObjectiveWithCurrentQuality,
-  scoreNextTargetReadiness,
-  type ObjectiveArrivalState,
+  projectOutgoingScorerGap,
+  proposalUtility,
+  scoreCandidateProposal,
+  scoreProjectedOutgoingSurrogate,
+  scorerGapFrameCount,
 } from "./objective.ts";
+import { successorScorerGapAfter } from "./arc_proposal.ts";
 import {
-  effectiveAirAsk,
-  isElevationReadinessEnabled,
-  READINESS_AIR_DEADBAND,
-} from "./readiness.ts";
+  AIR_DELIVERABILITY_DEADBAND,
+  airDeliverabilityAsk,
+} from "./air_policy.ts";
 import type { Gap } from "../types.ts";
 
 // ───────────────────────────── 1 · Flags ─────────────────────────────
 // Keep one top-level ablation switch; production aim policy constants are frozen.
 
-/** Solve range (deg). ±10 is the span validated by the sensitivity studies.
- *  VERDICT (2026-06-10, span=14 vs default): clamp 27%→17%, miss 0.57→0.54,
- *  Δheadline +0.3 INCONCLUSIVE — extra speed authority converts to ~no
- *  score. Speed-aiming is saturated at the default span; don't widen
- *  without a new target. */
-const AIM_DELTA_MAX_DEG = 10;
-
-/** The enumerative proposer — THE aiming lane (docs/READINESS_ROADMAP.md).
- *  Fit a coherent per-knob next-gap projection from shared probes, enumerate
- *  the knob space inside the models (free), score each variation as current
- *  axis quality × the canonical five-factor readiness composite, and propose
- *  the top-2 through the unchanged production evaluation. Subsumed and replaced every
+/** The enumerative proposer — the aiming lane.
+ *  Fit scorer-facing outputs from shared probes, enumerate the configured
+ *  knob space inside the model, score each variation by settled incoming
+ *  quality × projected outgoing quality, and propose the top candidates
+ *  through the unchanged exact evaluator. Full next-arc readiness enters only
+ *  after that exact evaluation, in canonical pool ranking. This lane subsumed every
  *  hand-tuned predecessor:
  *  V3 speed-aim + V4 angle-aim triggers (ACCEPT Δ+3.3 → 600.71), the
  *  elevation climb-defer (removed at parity Δ−0.1 → 600.57), and the V4
@@ -167,9 +149,6 @@ const AIR_KNOB_MIN_MISMATCH = 0.10;
 /** Don't bother editing for less than this many frames of release shift. */
 const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
 
-/** Accepted production probe design. Alternate probe designs remain available
- *  to study harnesses through arc_model.ts, not as ambient compiler env state. */
-const AIM_JOINT_PROBE_DESIGN: ArcProbeDesignName = "cross5";
 /**
  * The normal compiler's two response coordinates are positional: first knob
  * value = `rotateDeg`, second = `pitchDeg`. `LR_AIM_KNOB_SEQUENCE=a,b` is the
@@ -255,27 +234,6 @@ function aimControl(): AimControl {
   };
 }
 
-/** The historic joint adapter is retained only for its exact historical
- * coordinate system. The selected tail→post source default always uses the
- * dimension-generic configured controller, matching its matrix evidence. */
-function isLegacyJointAimControl(control: AimControl): boolean {
-  const legacySequence: ArcKnobSequence = ["whole_rotation", "tail_pitch"];
-  return control.trainingMethod === "base_additive" &&
-    control.probeLayout === "signed3" &&
-    control.probeRangeScale === ARC_PROBE_RANGE_SCALE_DEFAULT &&
-    control.proposalRangeScale === ARC_PROPOSAL_RANGE_SCALE_DEFAULT &&
-    control.proposalCount === ARC_PROPOSAL_COUNT_DEFAULT &&
-    control.sequence.length === legacySequence.length &&
-    control.sequence.every((id, index) => id === legacySequence[index]);
-}
-// Study-only scarce-budget model-selection policy. Pitch is the lower-cost
-// primary actuator; rotate observations are recruited only if that local
-// response is range-bound or has no improving proposal. Mature compiles retain
-// the accepted full joint model. Reverted unless the full screen validates the
-// budget-specific allocation.
-const AIM_ADAPTIVE_ROTATION_SCARCE_MAX_BUDGET = 250_000;
-const AIM_ADAPTIVE_ROTATION_RECRUIT_MARGIN_DEG = 0.25;
-
 function aimStudyStatsEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_STUDY_STATS === "1";
@@ -360,8 +318,8 @@ export function recordLaneBaseSkip(): void {
 }
 
 /** Quality-objective pool ranking (LR_RANK_QUALITY): make the shared objective
- *  — current-axis-quality × composite next-gap readiness, computed from each
- *  candidate's ACHIEVED axes and its arrival state at the next contact — the
+ *  — settled incoming quality × projected outgoing quality × next-arc
+ *  readiness — the
  *  JUDGE of the per-gap pool sort (node.ts), so the aim lane refines the
  *  quality-best base instead of the cost-best one. The per-gap pool sort ranks
  *  by the objective; handoff branch selection still uses mature forward eval
@@ -379,11 +337,11 @@ export function rankQualityEnabled(): boolean {
  *  LR_AIM_STUDY_STATS=1). Default production stats keep only the proposer
  *  funnel and probe cost; these fields answer campaign-analysis questions. */
 export type AimStudyStats = {
-  /** Mean |predicted − achieved| arrival readiness and its actual denominator. */
-  enum_readiness_pairs: number;
-  enum_readiness_err_mean: number;
-  /** Mean predicted readiness gain over δ=0, over emitted. */
-  enum_readiness_gain_mean: number;
+  /** Mean |predicted − achieved| projected outgoing quality. */
+  enum_projection_pairs: number;
+  enum_projection_err_mean: number;
+  /** Mean surrogate-objective gain over δ=0, over emitted. */
+  enum_objective_gain_mean: number;
   /** Deferred additive rotate-knob split: rotate recruit rate, rotate-probe failures
    *  (lane falls back to pitch-only), and how rotated (dr≠0) proposals
    *  fare at the production gates vs emitted. */
@@ -413,7 +371,7 @@ export type AimStudyStats = {
   joint_probe_saved_frames_mean: number;
   joint_probe_suffix_after_current_mean: number;
   joint_probe_suffix_after_next: number;
-  joint_probe_launch_read_frames_mean: number;
+  joint_probe_anchor_scan_frames_mean: number;
   /** Per-row hard-gate outcomes over short probe rows. Gate-failed rows carry
    *  no current-gap outputs, which thins the per-output fit data — the
    *  upstream cause of every degradation counter below. */
@@ -471,9 +429,8 @@ export type AimStudyStats = {
  *  Production block: considered → (no_target | probe_crash | on_target) →
  *  (gate_fail | emitted), plus the probe volume charged to get there. */
 export type AimStats = {
-  /** The fixed arc-probe design this compile ran. Lets archives distinguish
-   *  runs if a study harness produces alternate probe-design archives. */
-  probe_design: ArcProbeDesignName;
+  /** The configured probe layout used by the active controller. */
+  probe_design: ArcProbeLayoutId;
   enum_considered: number;
   enum_no_target: number;
   enum_probe_crash: number;
@@ -496,7 +453,7 @@ const aimTotals = {
   enum_considered: 0, enum_no_target: 0,
   enum_probe_crash: 0, enum_on_target: 0, enum_gate_fail: 0, enum_emitted: 0,
   enum_model_unscoreable: 0, enum_next_before_exit: 0,
-  enumReadinessErrSum: 0, enumReadinessGainSum: 0, enumAchieved: 0,
+  enumProjectionErrSum: 0, enumObjectiveGainSum: 0, enumAchieved: 0,
   enum_rot_probe_crash: 0, enum_rot_recruited: 0, enum_rot_emitted: 0,
   enum_rot_gate_fail: 0,
   // Selection-rank telemetry (recordLanePoolRank).
@@ -507,7 +464,7 @@ const aimTotals = {
   jointProbeHorizonSum: 0, jointProbeSuffixSum: 0, jointProbeSuffixRows: 0,
   jointProbeFullHorizonSum: 0, jointProbeSavedFramesSum: 0,
   jointProbeSuffixAfterCurrentSum: 0, jointProbeSuffixAfterNext: 0,
-  jointProbeLaunchReadFramesSum: 0, jointProbeLaunchReadFrameRows: 0,
+  jointProbeAnchorScanFramesSum: 0, jointProbeAnchorScanFrameRows: 0,
   joint_probe_current_ok: 0, joint_probe_next_state_ok: 0,
   joint_probe_frames_charged: 0,
   // Top-K base refinement.
@@ -568,9 +525,9 @@ function recordJointProbeRows(
       aimTotals.jointProbeSuffixAfterCurrentSum += row.suffixFrame - gap.endFrame;
       if (row.suffixFrame >= nextFrame) aimTotals.jointProbeSuffixAfterNext++;
     }
-    if (row.launchReadFrames !== null) {
-      aimTotals.jointProbeLaunchReadFrameRows++;
-      aimTotals.jointProbeLaunchReadFramesSum += row.launchReadFrames;
+    if (row.anchorScanFrames !== null) {
+      aimTotals.jointProbeAnchorScanFrameRows++;
+      aimTotals.jointProbeAnchorScanFramesSum += row.anchorScanFrames;
     }
   }
 }
@@ -620,7 +577,7 @@ export function snapshotAimStats(): AimStats | null {
   if (aimTotals.enum_considered === 0) return null;
   const round3 = (x: number): number => Math.round(x * 1000) / 1000;
   const stats: AimStats = {
-    probe_design: AIM_JOINT_PROBE_DESIGN,
+    probe_design: aimProbeLayout(),
     enum_considered: aimTotals.enum_considered,
     enum_no_target: aimTotals.enum_no_target,
     enum_probe_crash: aimTotals.enum_probe_crash,
@@ -636,11 +593,11 @@ export function snapshotAimStats(): AimStats | null {
   };
   if (!aimStudyStatsEnabled()) return stats;
   stats.study = {
-    enum_readiness_pairs: aimTotals.enumAchieved,
-    enum_readiness_err_mean: aimTotals.enumAchieved > 0
-      ? round3(aimTotals.enumReadinessErrSum / aimTotals.enumAchieved) : 0,
-    enum_readiness_gain_mean: aimTotals.enum_emitted > 0
-      ? round3(aimTotals.enumReadinessGainSum / aimTotals.enum_emitted) : 0,
+    enum_projection_pairs: aimTotals.enumAchieved,
+    enum_projection_err_mean: aimTotals.enumAchieved > 0
+      ? round3(aimTotals.enumProjectionErrSum / aimTotals.enumAchieved) : 0,
+    enum_objective_gain_mean: aimTotals.enum_emitted > 0
+      ? round3(aimTotals.enumObjectiveGainSum / aimTotals.enum_emitted) : 0,
     enum_rot_probe_crash: aimTotals.enum_rot_probe_crash,
     enum_rot_recruited: aimTotals.enum_rot_recruited,
     enum_rot_emitted: aimTotals.enum_rot_emitted,
@@ -662,8 +619,8 @@ export function snapshotAimStats(): AimStats | null {
     joint_probe_suffix_after_current_mean: aimTotals.jointProbeSuffixRows > 0
       ? round3(aimTotals.jointProbeSuffixAfterCurrentSum / aimTotals.jointProbeSuffixRows) : 0,
     joint_probe_suffix_after_next: aimTotals.jointProbeSuffixAfterNext,
-    joint_probe_launch_read_frames_mean: aimTotals.jointProbeLaunchReadFrameRows > 0
-      ? round3(aimTotals.jointProbeLaunchReadFramesSum / aimTotals.jointProbeLaunchReadFrameRows) : 0,
+    joint_probe_anchor_scan_frames_mean: aimTotals.jointProbeAnchorScanFrameRows > 0
+      ? round3(aimTotals.jointProbeAnchorScanFramesSum / aimTotals.jointProbeAnchorScanFrameRows) : 0,
     joint_probe_current_ok: aimTotals.joint_probe_current_ok,
     joint_probe_next_state_ok: aimTotals.joint_probe_next_state_ok,
     joint_fit_degraded_outputs: aimTotals.joint_fit_degraded_outputs,
@@ -693,37 +650,14 @@ export function snapshotAimStats(): AimStats | null {
   return stats;
 }
 
-/** Below this |δ*| the aimed variant would duplicate the base candidate.
- *  NOTE: this is the pitch half-window of the *near-base* duplicate skip
- *  (the axis-aligned box test at the enumeration loop below). That is a
- *  DIFFERENT test from `distinctJointKnobs` (the ellipse separation between
- *  two proposals): different shape (box vs ellipse), different reference
- *  point (base 0,0 vs an arbitrary peer proposal) and different scales
- *  (0.25/0.25 here vs ENUM_MIN_SEP_DEG=1.5 / ENUM_ROT_STEP_DEG=0.5 there).
- *  Its numeric coincidence with ENUM_STEP_DEG (both 0.25) is not a shared
- *  quantity — they are independent knobs that happen to agree. */
-const AIM_MIN_DELTA_DEG = 0.25;
-
 // ───────────────────────────── 4 · Probes ────────────────────────────
 
 // ───────────────────────────── 6 · Lanes ─────────────────────────────
 
 // ──────────────── R2 · Enumerative proposer (LR_AIM_ENUM) ────────────────
 
-/** Emitted proposals per refined base (the "1000 variations" live inside the
- *  model; only the top 2 are simulated). k=2 is the measured knee under the
- *  current budget economics: k=3 spends the third proposal before low-budget
- *  compiles have enough room for it. */
-const ENUM_TOP_K = ARC_PROPOSAL_COUNT_DEFAULT;
-/** Enumeration step (deg) — far below model error; effectively continuous. */
-const ENUM_STEP_DEG = 0.25;
-/** Minimum spacing between proposed deltas (keep the k proposals distinct
- *  arc shapes, not near-duplicates). */
-const ENUM_MIN_SEP_DEG = 1.5;
-/** Rotation enumeration step (deg). */
-const ENUM_ROT_STEP_DEG = 0.5;
 // FALSIFIED SHAPES (2026-06-10, both vs aim-enum-r2-03 = 600.71):
-//  · elevation climb-defer to the legacy lane: removal = exact parity
+//  · elevation climb-defer: removal = exact parity
 //    (Δ−0.1, CI [−0.6, 0.2]) — the speed-fit and impact-feasibility terms
 //    already steer demanding climbs; the defer was dead weight (deleted).
 //  · sigmoid-reshaped readiness (σ((r−0.55)/0.10), the "smooth veto"):
@@ -732,15 +666,16 @@ const ENUM_ROT_STEP_DEG = 0.5;
 //    fast arrivals (v2→v3 lesson). The raw surface IS the right shape:
 //    veto at the low end (0.2–0.4), informative slope at the top.
 
-/** The enumerative proposer. Shared joint response model fitted from
- *  `cross5`/`grid9` probe rides, predicting current-gap axes, exit state, and
- *  eligible next-arrival rider state; one objective over the knob space:
+/** The enumerative proposer. A shared response model fitted from the
+ *  configured probe layout predicts current-gap axes and scorer-compatible
+ *  outgoing-gap aggregates. Its cheap local objective is deliberately only:
  *
  *    objective(δp, δr) = current-axis-quality(predictedCurrentAxes, targets)
- *                      × next-gap-readiness(predictedNextState, next targets)
+ *                      × projected-outgoing-quality(predictedAggregates)
  *
- *  The readiness term is owned by optimizer/readiness.ts and is exactly
- *  catchability × speed fit × air fit × impact feasibility × elevation fit. */
+ *  This is a proposal heuristic, not the canonical candidate judge. The exact
+ *  candidate evaluation and pool rank later apply the full three-layer
+ *  objective, including next-arc readiness from the exact candidate launch. */
 export function makeEnumAimedCandidates(
   // deno-lint-ignore no-explicit-any
   engine: any,
@@ -757,196 +692,29 @@ export function makeEnumAimedCandidates(
 ): Candidate[] {
   aimTotals.enum_considered++;
   aimTotals.enum_lane_bases++; // one base actually refined
-  const nextGap = nextContactGap(gap, gaps);
+  const nextGap = successorScorerGapAfter(gap, gaps);
   if (nextGap === null) {
     aimTotals.enum_no_target++;
     return [];
   }
-  if (nextGap.targets.speed === undefined && nextGap.targets.impact === undefined) {
+  const nextTargets = objectiveTargetsForGap(nextGap, ctx);
+  if (
+    nextTargets.speed === undefined &&
+    nextTargets.air === undefined &&
+    nextTargets.elevation === undefined
+  ) {
     aimTotals.enum_no_target++;
     return [];
   }
   const control = aimControl();
-  if (isLegacyJointAimControl(control)) {
-    return makeJointAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase, control.sequence);
-  }
   return makeConfiguredAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase, control);
-}
-
-function makeJointAimedCandidates(
-  // deno-lint-ignore no-explicit-any
-  engine: any,
-  gap: Gap,
-  nextGap: Gap,
-  ctx: SpecContext,
-  base: Candidate,
-  lineIdStart: number,
-  airKnobBase: boolean,
-  knobSequence: ArcKnobSequence,
-): Candidate[] {
-  const adaptiveRotation = aimCompileBudgetFrames <= AIM_ADAPTIVE_ROTATION_SCARCE_MAX_BUDGET;
-  let probeDesignName: ArcProbeDesignName = adaptiveRotation
-    ? "pitch3"
-    : AIM_JOINT_PROBE_DESIGN;
-  let span = arcKnobSpan(arcProbeDesign(probeDesignName));
-  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
-  const nextFrame = nextGap.endFrame;
-  const includeElevation = isElevationReadinessEnabled();
-  const framesBeforeProbes = getPhysicsFrameCount();
-  const actuatorContext = arcKnobSequenceNeedsContactPoint(knobSequence)
-    ? (() => {
-      const target = getCandidateProbe(engine, gap, ctx).targetState;
-      return { contactPoint: { x: target.sledX, y: target.sledY } };
-    })()
-    : undefined;
-  let probeRows = arcProbeDesign(probeDesignName).map((knobs) =>
-    evaluateArcKnobSequence(
-      engine, base.lines, knobSequence, [knobs.rotateDeg, knobs.pitchDeg], knobs,
-      gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
-      { includeElevation }, actuatorContext,
-    )
-  );
-  recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
-  let model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
-    context: { gap, axisMeasureEnd, nextFrame },
-  });
-
-  const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };
-  const currentTargets = objectiveTargetsForGap(gap, ctx);
-  const currentScoreAxes = jointArcCurrentScoreAxes(currentTargets);
-  const nextTargets = objectiveTargetsForGap(nextGap, ctx);
-  let baseOutputs = predictJointArcOutputs(model, baseKnobs);
-  let baseScore = scoreJointKnobs(
-    model,
-    baseKnobs,
-    currentTargets,
-    currentScoreAxes,
-    nextTargets,
-    nextGap,
-  );
-  if (baseScore === "next_before_exit") {
-    aimTotals.enum_next_before_exit++;
-    return [];
-  }
-  if (baseScore === "model_unscoreable") {
-    aimTotals.enum_model_unscoreable++;
-    return [];
-  }
-
-  let scored = scoreJointKnobGrid(
-    model, span, baseScore, currentTargets, currentScoreAxes, nextTargets, nextGap,
-  );
-  const pitchBest = scored[0];
-  const pitchBound = pitchBest === undefined ||
-    Math.abs(pitchBest.knobs.pitchDeg) >=
-      Math.min(AIM_DELTA_MAX_DEG, span.pitchDeg) - AIM_ADAPTIVE_ROTATION_RECRUIT_MARGIN_DEG;
-  if (adaptiveRotation && pitchBound) {
-    const rotationRows = arcProbeDesign("cross5")
-      .filter((knobs) => knobs.rotateDeg !== 0)
-      .map((knobs) =>
-        evaluateArcKnobSequence(
-          engine, base.lines, knobSequence, [knobs.rotateDeg, knobs.pitchDeg], knobs,
-          gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
-          { includeElevation }, actuatorContext,
-        )
-      );
-    probeRows = [...probeRows, ...rotationRows];
-    recordJointProbeRows(rotationRows, gap, axisMeasureEnd, nextFrame);
-    probeDesignName = "cross5";
-    span = arcKnobSpan(arcProbeDesign(probeDesignName));
-    model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
-      context: { gap, axisMeasureEnd, nextFrame },
-    });
-    baseOutputs = predictJointArcOutputs(model, baseKnobs);
-    baseScore = scoreJointKnobs(model, baseKnobs, currentTargets, currentScoreAxes, nextTargets, nextGap);
-    if (baseScore === "next_before_exit") {
-      aimTotals.enum_next_before_exit++;
-      return [];
-    }
-    if (baseScore === "model_unscoreable") {
-      aimTotals.enum_model_unscoreable++;
-      return [];
-    }
-    aimTotals.enum_rot_recruited++;
-    scored = scoreJointKnobGrid(
-      model, span, baseScore, currentTargets, currentScoreAxes, nextTargets, nextGap,
-    );
-  }
-  aimTotals.joint_probe_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBeforeProbes);
-  recordJointModelCoverage(model, baseOutputs, gap);
-
-  const chosen: JointScoredKnobs[] = [];
-  for (const cand of scored) {
-    if (chosen.length >= ENUM_TOP_K) break;
-    if (chosen.every((prev) => distinctJointKnobs(prev.knobs, cand.knobs))) chosen.push(cand);
-  }
-  const out: Candidate[] = [];
-  if (chosen.length === 0 && !airKnobBase) {
-    aimTotals.enum_on_target++;
-    return out;
-  }
-
-  const probe = getCandidateProbe(engine, gap, ctx);
-  // M4 Part B: air-matched ride-out variant — generation insurance for gaps
-  // whose pool is air-narrow. Orthogonal to the pitch/rotate sweep, so it is
-  // emitted even when the sweep found nothing above the base (on_target).
-  if (airKnobBase) {
-    const airCand = makeAirMatchedCandidate(
-      engine, gap, nextGap, ctx, base, baseOutputs, lineIdStart, axisMeasureEnd, probe,
-    );
-    if (airCand !== null) out.push(airCand);
-  }
-  if (chosen.length === 0) {
-    aimTotals.enum_on_target++;
-    return out;
-  }
-  for (const cand of chosen) {
-    const aimedLines = applyArcKnobSequence(
-      base.lines, knobSequence, [cand.knobs.rotateDeg, cand.knobs.pitchDeg], actuatorContext,
-    )
-      .map((l, i) => ({ ...l, id: lineIdStart + i }));
-    const fit = tryCandidateLines(
-      engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,
-      axisMeasureEnd, gap.targets, true,
-      "normal", probe.preTargetSledTrace,
-    ) as Candidate | null;
-    if (fit === null) {
-      aimTotals.enum_gate_fail++;
-      if (cand.knobs.rotateDeg !== 0) aimTotals.enum_rot_gate_fail++;
-      continue;
-    }
-    aimTotals.enum_emitted++;
-    if (cand.knobs.rotateDeg !== 0) aimTotals.enum_rot_emitted++;
-    aimTotals.enumReadinessGainSum += cand.val - baseScore.val;
-    if (aimStudyStatsEnabled()) {
-      const nextAimTargets = nextGap.targets;
-      const predictedReadiness = scoreNextTargetReadiness(
-        cand.arrival,
-        nextAimTargets,
-      );
-      const achievedArrival = predictArrivalAtNextContact(fit, nextGap);
-      const achievedReadiness = achievedArrival === null
-        ? null
-        : scoreNextTargetReadiness(achievedArrival, nextAimTargets);
-      if (predictedReadiness !== null && achievedReadiness !== null) {
-        aimTotals.enumAchieved++;
-        aimTotals.enumReadinessErrSum += Math.abs(
-          predictedReadiness.readiness - achievedReadiness.readiness,
-        );
-      }
-    }
-    fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
-    fit.aimed = true;
-    out.push(fit);
-  }
-  return out;
 }
 
 /** A candidate in the explicit ordered physical-coordinate space. */
 type ConfiguredScoredKnobs = Readonly<{
   values: number[];
   val: number;
-  arrival: ObjectiveArrivalState;
+  projectedOutgoingQuality: number;
   currentQuality: number;
 }>;
 
@@ -966,31 +734,27 @@ function scoreConfiguredKnobs(
 ): ConfiguredScoreResult {
   const outputs = predictArcVectorOutputs(model, values);
   const readout = scoreCompletedArcPrediction(outputs, currentTargets, currentScoreAxes);
-  if (Number.isFinite(readout.exitFrame) && readout.exitFrame > nextGap.endFrame) return "next_before_exit";
-  if (readout.state === null) return "model_unscoreable";
-  const arrival: ObjectiveArrivalState = {
-    incoming: readout.state,
-    ...(Number.isFinite(readout.nextMeanSpeedPx)
-      ? { meanSpeedPx: readout.nextMeanSpeedPx }
-      : {}),
-    ...(Number.isFinite(readout.nextAirFraction) &&
-        Number.isFinite(readout.nextGapFrameCount)
-      ? {
-        airFraction: readout.nextAirFraction,
-        gapFrameCount: readout.nextGapFrameCount,
-      }
-      : {}),
-    ...(Number.isFinite(readout.nextElevation)
-      ? { elevation: readout.nextElevation }
-      : {}),
-  };
-  const objective = scoreGapObjectiveWithCurrentQuality(readout.currentQuality, arrival, nextTargets);
-  if (objective === null) return "model_unscoreable";
+  if (!Number.isFinite(readout.currentQuality)) {
+    return "model_unscoreable";
+  }
+  if (
+    Number.isFinite(readout.exitFrame) &&
+    readout.exitFrame >= nextGap.endFrame
+  ) return "next_before_exit";
+  const projectedOutgoingQuality = projectedReadoutQuality(
+    readout,
+    nextTargets,
+  );
+  if (projectedOutgoingQuality === null) return "model_unscoreable";
   return {
     values: [...values],
-    val: objective.value,
-    arrival,
-    currentQuality: objective.currentQuality,
+    val: proposalUtility(
+      readout.currentQuality,
+      projectedOutgoingQuality,
+      { readiness: 1 },
+    ),
+    projectedOutgoingQuality,
+    currentQuality: readout.currentQuality,
   };
 }
 
@@ -1074,7 +838,8 @@ function makeConfiguredAimedCandidates(
   const sequence = control.sequence;
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
-  const includeElevation = isElevationReadinessEnabled();
+  const includeElevation =
+    objectiveTargetsForGap(nextGap, ctx).elevation !== undefined;
   const framesBeforeProbes = getPhysicsFrameCount();
   const actuatorContext = arcKnobSequenceNeedsContactPoint(sequence)
     ? (() => {
@@ -1098,7 +863,10 @@ function makeConfiguredAimedCandidates(
     ctx.allContactFrames,
     axisMeasureEnd,
     nextFrame,
-    { includeElevation },
+    {
+      includeElevation,
+      targetEndsWithContact: nextGap.endsWithContact,
+    },
     actuatorContext,
   );
 
@@ -1225,20 +993,17 @@ function makeConfiguredAimedCandidates(
       continue;
     }
     aimTotals.enum_emitted++;
-    aimTotals.enumReadinessGainSum += candidate.val - baseScore.val;
+    aimTotals.enumObjectiveGainSum += candidate.val - baseScore.val;
     if (aimStudyStatsEnabled()) {
-      const predictedReadiness = scoreNextTargetReadiness(
-        candidate.arrival,
-        nextGap.targets,
+      const achievedProjection = projectOutgoingScorerGap(
+        fit,
+        nextGap,
+        ctx.gapAxisTargets,
       );
-      const achievedArrival = predictArrivalAtNextContact(fit, nextGap);
-      const achievedReadiness = achievedArrival === null
-        ? null
-        : scoreNextTargetReadiness(achievedArrival, nextGap.targets);
-      if (predictedReadiness !== null && achievedReadiness !== null) {
+      if (achievedProjection !== null) {
         aimTotals.enumAchieved++;
-        aimTotals.enumReadinessErrSum += Math.abs(
-          predictedReadiness.readiness - achievedReadiness.readiness,
+        aimTotals.enumProjectionErrSum += Math.abs(
+          candidate.projectedOutgoingQuality - achievedProjection.quality,
         );
       }
     }
@@ -1247,34 +1012,6 @@ function makeConfiguredAimedCandidates(
     out.push(fit);
   }
   return out;
-}
-
-function scoreJointKnobGrid(
-  model: JointArcResponseModel,
-  span: { pitchDeg: number; rotateDeg: number },
-  baseScore: JointScoredKnobs,
-  currentTargets: AxisValues,
-  currentScoreAxes: JointArcCurrentScoreAxes,
-  nextTargets: AxisValues,
-  nextGap: Gap,
-): JointScoredKnobs[] {
-  const pitchSpan = Math.min(AIM_DELTA_MAX_DEG, span.pitchDeg);
-  const scored: JointScoredKnobs[] = [];
-  for (let pitchDeg = -pitchSpan; pitchDeg <= pitchSpan + 1e-9; pitchDeg += ENUM_STEP_DEG) {
-    for (let rotateDeg = -span.rotateDeg; rotateDeg <= span.rotateDeg + 1e-9; rotateDeg += ENUM_ROT_STEP_DEG) {
-      if (Math.abs(pitchDeg) < AIM_MIN_DELTA_DEG && Math.abs(rotateDeg) < ENUM_ROT_STEP_DEG / 2) continue;
-      const score = scoreJointKnobs(
-        model, { pitchDeg, rotateDeg }, currentTargets, currentScoreAxes, nextTargets, nextGap,
-      );
-      if (typeof score !== "string" && score.val > baseScore.val + 1e-4) scored.push(score);
-    }
-  }
-  return scored.sort((a, b) =>
-    b.val - a.val ||
-    b.currentQuality - a.currentQuality ||
-    Math.abs(a.knobs.rotateDeg) - Math.abs(b.knobs.rotateDeg) ||
-    Math.abs(a.knobs.pitchDeg) - Math.abs(b.knobs.pitchDeg)
-  );
 }
 
 /** M4 Part B — the air knob: ONE deterministic air-matched ride-out variant
@@ -1310,10 +1047,14 @@ function makeAirMatchedCandidate(
     ? launch.state.speed
     : baseOutputs["exit.speed"];
   if (!Number.isFinite(relFrame) || !Number.isFinite(relSpeed) || relSpeed <= 0) return null;
-  const gapFrames = nextGapFrameCount(nextGap);
-  const effAsk = effectiveAirAsk(ask, gapFrames);
+  const gapFrames = scorerGapFrameCount(nextGap);
+  const effAsk = airDeliverabilityAsk(ask, gapFrames);
   const predAir = measured
-    ? predictArrivalAtNextContact(base, nextGap)?.airFraction
+    ? projectOutgoingScorerGap(
+      base,
+      nextGap,
+      ctx.gapAxisTargets,
+    )?.achieved.air
     : baseOutputs["next.airFraction"];
   if (predAir === undefined || !Number.isFinite(predAir)) return null;
   if (Math.abs(predAir - effAsk) <= AIR_KNOB_MIN_MISMATCH) return null;
@@ -1346,73 +1087,25 @@ function makeAirMatchedCandidate(
   return fit;
 }
 
-type JointScoredKnobs = {
-  knobs: ArcKnobs;
-  val: number;
-  arrival: ObjectiveArrivalState;
-  currentQuality: number;
-};
-
-type JointScoreResult = JointScoredKnobs | "next_before_exit" | "model_unscoreable";
-
-function scoreJointKnobs(
-  model: ReturnType<typeof fitJointArcResponseModel>,
-  knobs: ArcKnobs,
-  currentTargets: AxisValues,
-  currentScoreAxes: JointArcCurrentScoreAxes,
-  nextTargets: AxisValues,
-  nextGap: Pick<Gap, "startFrame" | "endFrame">,
-): JointScoreResult {
-  const readout = predictJointArcScoreReadout(model, knobs, currentTargets, currentScoreAxes);
-  const exitFrame = readout.exitFrame;
-  if (Number.isFinite(exitFrame) && exitFrame > nextGap.endFrame) return "next_before_exit";
-  const state = readout.state;
-  if (state === null) return "model_unscoreable";
-  // Align the sweep's speed-fit with the pool sort (objective.ts H4): score against the predicted
-  // MEAN-of-flight speed (trapezoidal of exit + next), the statistic the speed target authors,
-  // not the catch-instant arrival. Falls back to catch-instant when the exit speed is unavailable.
-  const arrival: ObjectiveArrivalState = {
-    incoming: state,
-    ...(Number.isFinite(readout.nextMeanSpeedPx)
-      ? { meanSpeedPx: readout.nextMeanSpeedPx }
-      : {}),
-    ...(Number.isFinite(readout.nextAirFraction) &&
-        Number.isFinite(readout.nextGapFrameCount)
-      ? {
-        airFraction: readout.nextAirFraction,
-        gapFrameCount: readout.nextGapFrameCount,
-      }
-      : {}),
-    ...(Number.isFinite(readout.nextElevation)
-      ? { elevation: readout.nextElevation }
-      : {}),
-  };
-  const objective = scoreGapObjectiveWithCurrentQuality(
-    readout.currentQuality,
-    arrival,
-    nextTargets,
-  );
-  if (objective === null) return "model_unscoreable";
-  return {
-    knobs,
-    val: objective.value,
-    arrival,
-    currentQuality: objective.currentQuality,
-  };
-}
-
-/** Inter-proposal separation: an ELLIPSE (Mahalanobis-style) distance test
- *  between two arbitrary proposals — keep the top-K chosen proposals as
- *  distinct arc shapes. This is a DIFFERENT test from the near-base box skip
- *  at the enumeration loop (which uses AIM_MIN_DELTA_DEG): different shape
- *  (ellipse vs box), reference point (peer proposal vs base 0,0) and scales
- *  (ENUM_MIN_SEP_DEG=1.5 / ENUM_ROT_STEP_DEG=0.5 here vs 0.25/0.25 there).
- *  They share the "minimum meaningful knob separation" notion but not a
- *  formula; do not collapse them. */
-function distinctJointKnobs(a: ArcKnobs, b: ArcKnobs): boolean {
-  const dp = Math.abs(a.pitchDeg - b.pitchDeg) / ENUM_MIN_SEP_DEG;
-  const dr = Math.abs(a.rotateDeg - b.rotateDeg) / ENUM_ROT_STEP_DEG;
-  return dp * dp + dr * dr >= 1;
+function projectedReadoutQuality(
+  readout: {
+    nextMeanSpeedPx: number;
+    nextAirFraction: number;
+    nextElevation: number;
+  },
+  outgoingTargets: AxisValues,
+): number | null {
+  return scoreProjectedOutgoingSurrogate(
+    1,
+    outgoingTargets,
+    {
+      meanSpeedPx: readout.nextMeanSpeedPx,
+      airFraction: readout.nextAirFraction,
+      ...(Number.isFinite(readout.nextElevation)
+        ? { elevation: readout.nextElevation }
+        : {}),
+    },
+  )?.projectedOutgoingQuality ?? null;
 }
 
 // ─────────── 7 · Quality-objective pool sort (LR_RANK_QUALITY) ───────────
@@ -1435,13 +1128,7 @@ function distinctJointKnobs(a: ArcKnobs, b: ArcKnobs): boolean {
  *  impossible); a number = the objective. Absent key = not yet computed. */
 const objectiveCache = new WeakMap<Candidate, number | null>();
 
-/** A candidate's rank objective: current-axis-quality × next-gap-readiness, or
- *  null (there is no next contact, the arrival state is unavailable, or
- *  prediction is impossible). The candidate's release state is propagated
- *  ballistically to the next contact (predict-only — no charged ride is ever
- *  taken). Prediction-impossible (missing release state, comAngle-less
- *  propagation) → null objective (cost order). Memoized so no candidate is scored
- *  twice. */
+/** Canonical three-layer candidate objective, memoized by candidate identity. */
 export function candidateQualityObjective(
   // deno-lint-ignore no-explicit-any
   _engine: any,
@@ -1452,26 +1139,18 @@ export function candidateQualityObjective(
 ): number | null {
   const cached = objectiveCache.get(candidate);
   if (cached !== undefined) return cached;
-  const nextGap = nextContactGap(gap, gaps);
-  if (nextGap === null) return memoObjective(candidate, null);
-
-  // PREDICTED ARRIVAL: propagate the candidate's release state ballistically to
-  // the next contact. No charged ride. Prediction-impossible (missing release
-  // state, non-airborne release, comAngle-less propagation result) → null
-  // objective (cost order).
-  const arrival = predictArrivalAtNextContact(candidate, nextGap);
-  if (arrival === null || arrival.incoming.comAngleDeg === null) {
+  const objective = scoreCandidateProposal(
+    candidate,
+    gap,
+    gaps,
+    ctx?.gapAxisTargets,
+  );
+  if (objective === null) {
     aimTotals.rank_quality_pred_bail++;
     return memoObjective(candidate, null);
   }
   aimTotals.rank_quality_pred_used++;
-  const objective = scoreGapObjectiveForTargets(
-    objectiveTargetsForGap(gap, ctx),
-    currentGapAxes(candidate),
-    arrival,
-    objectiveTargetsForGap(nextGap, ctx),
-  );
-  return memoObjective(candidate, objective === null ? null : objective.value);
+  return memoObjective(candidate, objective.value);
 }
 
 function objectiveTargetsForGap(gap: Gap, ctx?: SpecContext): AxisValues {
@@ -1553,13 +1232,17 @@ export function recordPoolAirSpread(
   if (nextGap === null) return;
   const ask = objectiveTargetsForGap(nextGap, ctx)?.air;
   if (typeof ask !== "number" || !Number.isFinite(ask)) return;
-  const effAsk = effectiveAirAsk(ask, nextGapFrameCount(nextGap));
+  const effAsk = airDeliverabilityAsk(ask, scorerGapFrameCount(nextGap));
   let n = 0;
   let sum = 0;
   let min = Infinity;
   let max = -Infinity;
   for (const cand of pool) {
-    const air = predictArrivalAtNextContact(cand, nextGap)?.airFraction;
+    const air = projectOutgoingScorerGap(
+      cand,
+      nextGap,
+      ctx?.gapAxisTargets,
+    )?.achieved.air;
     if (air === undefined || !Number.isFinite(air)) continue;
     n++;
     sum += air;
@@ -1572,7 +1255,7 @@ export function recordPoolAirSpread(
   aimTotals.rankAirPredSum += sum;
   aimTotals.rankAirAskSum += effAsk;
   aimTotals.rankAirSpreadSum += n >= 2 ? max - min : 0;
-  if (min <= effAsk + READINESS_AIR_DEADBAND) aimTotals.rank_air_deliverable_pools++;
+  if (min <= effAsk + AIR_DELIVERABILITY_DEADBAND) aimTotals.rank_air_deliverable_pools++;
 }
 
 /** Once-per-pool-build telemetry over the FINAL ordering: pool count, top-3 /

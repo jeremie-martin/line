@@ -1056,9 +1056,6 @@ function compactStats(stats: CompileStats | null): object | null {
     // Enumerative-proposer funnel + prediction accuracy (optimizer/aim.ts).
     aim: stats.aim,
     handoff_aimed_selected: stats.handoff_aimed_selected,
-    catchability_per_gap: stats.catchability_per_gap,
-    catchability_mean: stats.catchability_mean,
-    catchability_min: stats.catchability_min,
     sim_frames: stats.sim_frames,
     budget_exhausted: stats.budget_exhausted,
     traversal_budget_model: stats.traversal_budget_model,

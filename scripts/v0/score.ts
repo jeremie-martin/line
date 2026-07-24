@@ -190,6 +190,18 @@ export function axisQualityForTargets(targets: AxisValues, achieved: AxisValues)
   return axisQualityFromErrors(axisErrorsForTargets(targets, achieved));
 }
 
+/** Canonical scorer quality for one authored axis value. */
+export function axisTargetQuality(
+  target: number | undefined,
+  achieved: number | null | undefined,
+): number {
+  if (target === undefined) return 1;
+  if (achieved === null || achieved === undefined || !Number.isFinite(achieved)) {
+    return 0;
+  }
+  return axisQualityFromErrors([achieved - target]).axis_quality;
+}
+
 export function worstContacts(report: DriftReport, limit = 3): WorstContact[] {
   return [...report.contacts]
     .filter((c) => c.status !== "hit")

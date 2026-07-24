@@ -17,19 +17,18 @@ import {
   predictJointArcOutputs,
   predictJointArcScoreReadout,
   predictLinearModel,
-  propagateBallisticArrivalState,
   rotateArcLines,
   scaleArcLines,
+  scoreCompletedArcPrediction,
   type RiderArrivalState,
 } from "../scripts/v0/optimizer/arc_model.ts";
-import {
-  predictCatchability,
-  predictCatchabilityForState,
-} from "../scripts/v0/optimizer/catchability.ts";
 import {
   BALLISTIC_POINT_IDS,
   type ConstraintBallisticState,
 } from "../scripts/v0/core/ballistic_micro_sim.ts";
+import {
+  propagateBallisticState,
+} from "../scripts/v0/core/ballistic_projection.ts";
 
 function line(id: number, x1: number, y1: number, x2: number, y2: number): TrackLine {
   return {
@@ -475,6 +474,36 @@ describe("arc_model joint response helpers", () => {
     expect(predictedCurrentAxes(outputs).air).toBeUndefined();
   });
 
+  test("a missing authored current-axis prediction is unscoreable, never perfect", () => {
+    const missing = scoreCompletedArcPrediction(
+      {},
+      { air: 0.6 },
+      {
+        air: true,
+        speed: false,
+        grain: false,
+        elevation: false,
+        amplitude: false,
+        impact: false,
+      },
+    );
+    expect(missing.currentQuality).toBeNaN();
+
+    const present = scoreCompletedArcPrediction(
+      { "current.axis.air": 0.6 },
+      { air: 0.6 },
+      {
+        air: true,
+        speed: false,
+        grain: false,
+        elevation: false,
+        amplitude: false,
+        impact: false,
+      },
+    );
+    expect(present.currentQuality).toBe(1);
+  });
+
   test("constraint propagation re-anchors so chained and combined calls agree", () => {
     const points = Object.fromEntries(BALLISTIC_POINT_IDS.map((id, index) => [
       id,
@@ -503,9 +532,9 @@ describe("arc_model joint response helpers", () => {
         sledIntact: true,
       },
     };
-    const combined = propagateBallisticArrivalState(state, 15);
-    const chained = propagateBallisticArrivalState(
-      propagateBallisticArrivalState(state, 10),
+    const combined = propagateBallisticState(state, 15);
+    const chained = propagateBallisticState(
+      propagateBallisticState(state, 10),
       5,
     );
 
@@ -516,16 +545,4 @@ describe("arc_model joint response helpers", () => {
     expect(chained.constraintState?.frameOffset).toBe(0);
   });
 
-});
-
-describe("catchability state wrapper", () => {
-  test("state wrapper delegates to the current speed/angle surface", () => {
-    expect(
-      predictCatchabilityForState({ speed: 9, comAngleDeg: 10 }),
-    ).toBeCloseTo(predictCatchability(9, 10));
-  });
-
-  test("state wrapper treats unknown velocity angle as unreadable", () => {
-    expect(predictCatchabilityForState({ speed: 9, comAngleDeg: null })).toBe(0);
-  });
 });

@@ -8,7 +8,7 @@
  * sites can share it without an import cycle: optimizer/arc_probe.ts imports
  * `axisCost` from core/candidate.ts, so candidate.ts cannot import from
  * arc_probe.ts (same constraint the launch-read dedup hit — see
- * core/launch_read.ts). The two call sites differ only in where the per-frame
+ * core/ballistic_launch.ts). The two call sites differ only in where the per-frame
  * rider position comes from (the metered ENGINE in arc_probe.ts vs the
  * DETECTION arrays in candidate.ts) and in the airborne predicate's source;
  * the float-op sequence of the plane math is identical and lives here.
@@ -83,6 +83,34 @@ export function firstAirborneExitFrame(
   const exit = arcExitPlane(lines);
   for (let frame = startFrame; frame <= endFrame; frame++) {
     if (airborneAtFrame(frame) === true && positionPastArcExit(positionAtFrame(frame), exit)) return frame;
+  }
+  return null;
+}
+
+/**
+ * First geometric exit that is known, from the already simulated causal
+ * window, to remain airborne through `endFrame`.
+ *
+ * A one-frame airborne excursion followed by another contact with the same
+ * arc is not a ballistic hand-off. This helper deliberately chooses the later
+ * clean exit in that case. It does not inspect any frame beyond `endFrame`.
+ */
+export function firstCleanAirborneExitFrame(
+  lines: readonly ExitLine[],
+  startFrame: number,
+  endFrame: number,
+  airborneAtFrame: (frame: number) => boolean | undefined,
+  positionAtFrame: (frame: number) => Vec2 | null | undefined,
+): number | null {
+  const exit = arcExitPlane(lines);
+  let cleanSuffixStart: number | null = null;
+  for (let frame = endFrame; frame >= startFrame; frame--) {
+    if (airborneAtFrame(frame) !== true) break;
+    cleanSuffixStart = frame;
+  }
+  if (cleanSuffixStart === null) return null;
+  for (let frame = cleanSuffixStart; frame <= endFrame; frame++) {
+    if (positionPastArcExit(positionAtFrame(frame), exit)) return frame;
   }
   return null;
 }

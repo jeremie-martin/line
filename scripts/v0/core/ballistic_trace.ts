@@ -10,12 +10,12 @@
 import { COLLISION_UPDATE_TYPE } from "../../lib/update_types.ts";
 import {
   BALLISTIC_POINT_IDS,
+  constraintBallisticOrientationFromState,
   constraintBallisticStateFromRider,
 } from "./ballistic_micro_sim.ts";
 import {
-  LAUNCH_READ_FRAMES,
-} from "./launch_read.ts";
-
+  ballisticArticulationFeatures,
+} from "./ballistic_projection.ts";
 export const BALLISTIC_TRACE_POINT_IDS = BALLISTIC_POINT_IDS;
 
 export type BallisticTracePointId = typeof BALLISTIC_TRACE_POINT_IDS[number];
@@ -35,16 +35,27 @@ export type BallisticTraceState = {
   sledIntact: boolean | null;
 };
 export type BallisticTraceSample = BallisticTraceState & { frame: number };
+export type BallisticTraceTruthSample = {
+  frame: number;
+  body: BallisticTraceKinematicState;
+  sledPoseDeg: number;
+  sledPoseRateDegPerFrame: number;
+  articulation: NonNullable<
+    ReturnType<typeof ballisticArticulationFeatures>
+  >;
+  riderMounted: boolean;
+  sledIntact: boolean;
+};
 export type BallisticTraceTruth = {
-  precontact: BallisticTraceSample;
-  contact: BallisticTraceSample;
+  precontact: BallisticTraceTruthSample;
+  contact: BallisticTraceTruthSample;
 };
 export type BallisticTraceObservation = {
   population: "candidate_pool" | "aim_probe";
   gapIndex: number;
-  launchFrame: number;
+  anchorFrame: number;
   targetFrame: number;
-  samples: BallisticTraceSample[];
+  anchor: BallisticTraceSample;
   collisionWitnesses: {
     frame: number;
     points: BallisticTracePointId[];
@@ -55,10 +66,10 @@ export type BallisticTraceObservation = {
 export type BallisticTraceCandidate = {
   population: BallisticTraceObservation["population"];
   gapIndex: number;
-  launchFrame: number;
+  anchorFrame: number;
   targetFrame: number;
   /**
-   * Materializes raw launch samples and unmetered full-simulation truth.
+   * Materializes the exact production anchor and unmetered full-simulation truth.
    * This is benchmark-only and is called solely by an installed collector.
    */
   capture: () => BallisticTraceObservation | null;
@@ -84,6 +95,28 @@ export function recordBallisticTraceCandidate(candidate: BallisticTraceCandidate
 }
 
 /**
+ * Whether the collision-free suffix is physically valid through `truthFrame`.
+ *
+ * A collision on the exact anchor frame is legal: the captured anchor already
+ * contains its resolved effect and prediction begins at anchor + 1. A
+ * collision on the requested truth frame is not legal, because that truth is
+ * no longer the collision-free state the predictor is meant to estimate.
+ */
+export function ballisticTraceCollisionFreeThrough(
+  observation: Pick<
+    BallisticTraceObservation,
+    "anchorFrame" | "collisionWitnesses"
+  >,
+  truthFrame: number,
+): boolean {
+  return observation.collisionWitnesses.every(
+    (witness) =>
+      witness.frame <= observation.anchorFrame ||
+      witness.frame > truthFrame,
+  );
+}
+
+/**
  * Capture the exact raw state available to a production launch read and the
  * engine truth at the authored next-contact frame. `readRider` is deliberately
  * supplied by the benchmark-enabled call site: its target reads must not charge
@@ -92,31 +125,30 @@ export function recordBallisticTraceCandidate(candidate: BallisticTraceCandidate
 export function captureBallisticTraceObservation(options: {
   population: BallisticTraceObservation["population"];
   gapIndex: number;
-  launchFrame: number;
+  anchorFrame: number;
   targetFrame: number;
-  sampleAllowed: (frame: number) => boolean;
   readRider: (frame: number) => unknown;
   readUpdates: (frame: number) => unknown;
 }): BallisticTraceObservation | null {
-  const samples: BallisticTraceSample[] = [];
-  for (let offset = 0; offset < LAUNCH_READ_FRAMES; offset++) {
-    const frame = options.launchFrame + offset;
-    if (frame >= options.targetFrame || !options.sampleAllowed(frame)) break;
-    const state = traceStateFromRider(options.readRider(frame));
-    if (state === null) break;
-    samples.push({ frame, ...state });
-  }
-  if (samples.length === 0 || options.targetFrame <= options.launchFrame) return null;
+  if (options.targetFrame <= options.anchorFrame) return null;
+  const anchorState = traceStateFromRider(
+    options.readRider(options.anchorFrame),
+  );
+  if (anchorState === null) return null;
 
   // Read the later frame first so the precontact read is cached afterward.
-  const contactState = traceStateFromRider(options.readRider(options.targetFrame));
+  const contactState = traceTruthStateFromRider(
+    options.readRider(options.targetFrame),
+  );
   const precontactFrame = options.targetFrame - 1;
-  const precontactState = traceStateFromRider(options.readRider(precontactFrame));
+  const precontactState = traceTruthStateFromRider(
+    options.readRider(precontactFrame),
+  );
   if (contactState === null || precontactState === null) return null;
 
   const pointIds = new Set<string>(BALLISTIC_TRACE_POINT_IDS);
   const collisionWitnesses: BallisticTraceObservation["collisionWitnesses"] = [];
-  for (let frame = options.launchFrame; frame <= options.targetFrame; frame++) {
+  for (let frame = options.anchorFrame; frame <= options.targetFrame; frame++) {
     const updates = options.readUpdates(frame);
     if (!Array.isArray(updates)) continue;
     const points = new Set<BallisticTracePointId>();
@@ -136,9 +168,9 @@ export function captureBallisticTraceObservation(options: {
   return {
     population: options.population,
     gapIndex: options.gapIndex,
-    launchFrame: options.launchFrame,
+    anchorFrame: options.anchorFrame,
     targetFrame: options.targetFrame,
-    samples,
+    anchor: { frame: options.anchorFrame, ...anchorState },
     collisionWitnesses,
     truth: {
       precontact: { frame: precontactFrame, ...precontactState },
@@ -147,10 +179,23 @@ export function captureBallisticTraceObservation(options: {
   };
 }
 
-function traceStateFromRider(rider: any): BallisticTraceState | null {
+function traceKinematicStateFromRider(
+  rider: any,
+): BallisticTraceKinematicState | null {
   const position = rider?.position;
   const velocity = rider?.velocity;
   if (!finiteVector(position) || !finiteVector(velocity)) return null;
+  return {
+    x: position.x,
+    y: position.y,
+    vx: velocity.x,
+    vy: velocity.y,
+  };
+}
+
+function traceStateFromRider(rider: any): BallisticTraceState | null {
+  const body = traceKinematicStateFromRider(rider);
+  if (body === null) return null;
 
   const constraintState = constraintBallisticStateFromRider(rider);
   if (constraintState === null) return null;
@@ -167,10 +212,37 @@ function traceStateFromRider(rider: any): BallisticTraceState | null {
     };
   }
 
-  const body = { x: position.x, y: position.y, vx: velocity.x, vy: velocity.y };
   return {
     body,
     points,
+    riderMounted: constraintState.riderMounted,
+    sledIntact: constraintState.sledIntact,
+  };
+}
+
+function traceTruthStateFromRider(
+  rider: any,
+): Omit<BallisticTraceTruthSample, "frame"> | null {
+  const body = traceKinematicStateFromRider(rider);
+  if (body === null) return null;
+  const constraintState = constraintBallisticStateFromRider(rider);
+  if (constraintState === null) return null;
+  const speed = Math.hypot(body.vx, body.vy);
+  const orientation = constraintBallisticOrientationFromState(
+    constraintState,
+  );
+  const articulation = ballisticArticulationFeatures({
+    constraintState,
+    comAngleDeg: speed > 0
+      ? Math.atan2(body.vy, body.vx) * 180 / Math.PI
+      : null,
+  });
+  if (articulation === null) return null;
+  return {
+    body,
+    sledPoseDeg: orientation.sledPoseDeg,
+    sledPoseRateDegPerFrame: orientation.sledPoseRateDegPerFrame,
+    articulation,
     riderMounted: constraintState.riderMounted,
     sledIntact: constraintState.sledIntact,
   };

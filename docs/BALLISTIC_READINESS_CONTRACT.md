@@ -1,111 +1,121 @@
-# Ballistic projection, catchability, and readiness
+# Ballistic projection and next-arc readiness
 
-Status: **current semantic contract and implementation map**.
+Status: **normative target architecture**.
 
-This document defines the production architecture. It describes what the
-current code means, the invariants future changes must preserve, and the
-evidence required for empirical claims. It is not an experiment log.
+This document defines the meaning, ownership, frame alignment, and interfaces
+of ballistic projection, scorer-gap evaluation, next-arc readiness, and
+proposal utility. It deliberately distinguishes the intended architecture from
+the current implementation; the implementation status is recorded in
+[§11](#11-current-implementation-status).
 
-Direct-predictor iteration is documented in
-[`../ballistic-goal.md`](../ballistic-goal.md). Compiler comparisons and
-promotion are documented in [`../goal.md`](../goal.md) and
-[`HOW_TO_WORK.md`](HOW_TO_WORK.md).
+Direct ballistic-model iteration belongs in
+[`../ballistic-goal.md`](../ballistic-goal.md). Readiness-model iteration
+belongs in [`../readiness-goal.md`](../readiness-goal.md). Compiler comparison
+and promotion belong in [`../goal.md`](../goal.md).
 
-## 1. The pipeline
+## 1. Contact-indexed ownership
 
-The compiler answers five different questions:
+Let:
 
-1. **Ballistic projection:** from a causal airborne launch observation, where
-   will the rider be and what trajectory aggregates will have accumulated at a
-   later authored contact?
-2. **Catchability:** from that incoming boundary and known next-gap context,
-   how likely is one proposal from the current generator policy to pass the
-   hard catch gates?
-3. **Readiness:** how good is the complete forward setup?
-4. **Proposal utility:** how should exact current-gap quality and readiness be
-   combined to order work?
-5. **Exact judgment:** after real simulation, which branch is actually best?
+- `C_i` be an authored contact frame;
+- `A_i` be the catch/arc placed at `C_i`;
+- `G_i = [C_i, C_(i+1)]` be the outgoing scorer gap produced by `A_i`;
+- `E_i` be the geometric exit from `A_i`;
+- `L_i` be the last causal launch anchor used by the ballistic predictor.
 
-They are intentionally separate:
+While evaluating one proposed `A_i`, the compiler has three distinct horizons:
 
 ```text
-causal simulated prefix
-  -> launch observation
-  -> collision-free ballistic projection
-  -> complete next-gap aggregates
-  -> catchability and target-fit factors
-  -> readiness
-  -> proposal utility / work ordering
-  -> exact candidate simulation and hard gates
-  -> exact forward judge
+        exact incoming gap              outgoing gap of A_i
+  [ C_(i-1) -------- C_i ] [ C_i ---------------- C_(i+1) ]
+                         A_i \ exact prefix ... L_i ... ballistic ...
+                                                            |
+                                                            v
+                                                  incoming boundary
+                                                     for A_(i+1)
+                                                            |
+                                                            v
+                                               next-arc readiness predicts
+                                                 A_(i+1) and its outgoing
+                                              [ C_(i+1) ----- C_(i+2) ]
 ```
 
-Ballistics is deterministic physics. Catchability is an empirical,
-generator-policy-conditional model. Readiness is a five-factor score. Proposal
-utility is search policy. The exact simulation and forward judge remain
-authoritative.
+The layers are:
 
-## 2. Canonical terminology
+1. **Incoming-gap evaluation:** exact simulation scores
+   `[C_(i-1), C_i]`. The impact at `C_i` is delivered by `A_i`.
+2. **Outgoing-gap projection:** exact simulation covers `C_i ... L_i`;
+   collision-free ballistics predicts `L_i + 1 ... C_(i+1)`. Their sufficient
+   statistics are composed to estimate `G_i`.
+3. **Next-arc readiness:** from the predicted incoming boundary at `C_(i+1)`
+   and causal authored context, cheaply estimate the quality of the unbuilt
+   `A_(i+1)`.
+4. **Proposal utility:** search policy combines the three distinct signals.
+5. **Exact judgment:** real simulation, hard gates, and the forward judge remain
+   authoritative.
+
+The direct projection of `G_i` is not readiness. Readiness begins at
+`C_(i+1)` and concerns `A_(i+1)`.
+
+## 2. Why readiness is arc-owned
+
+Scorer axes do not all have the same temporal owner:
+
+- speed, air, elevation, and amplitude are reduced over a scorer gap;
+- impact is measured at the gap's terminal contact and depends on the catch
+  placed there;
+- catchability is a property of attempting that catch under a named generator
+  policy.
+
+Consequently, readiness for `A_(i+1)` has:
+
+- catchability at `C_(i+1)`;
+- impact feasibility at `C_(i+1)`, for the impact target of the incoming gap
+  `G_i`;
+- speed, air, and elevation fit over the arc's outgoing gap
+  `G_(i+1) = [C_(i+1), C_(i+2)]`.
+
+Calling all five factors “the next gap” obscures this ownership. Moving impact
+to `C_(i+2)` would predict the catch `A_(i+2)`, one arc farther ahead than the
+other factors.
+
+## 3. Canonical terminology
 
 | Term | Exact meaning |
 |---|---|
-| **scorer gap** | The inclusive authored interval whose axes and terminal contact are scored. |
-| **catch/arc** | Geometry built at one contact to catch the incoming rider and guide the ride-out. |
-| **geometric exit** | The first airborne frame past the constructed arc's end plane. |
-| **launch anchor** | The last causal engine frame whose exact rider state initializes projection. It may be zero to three frames after geometric exit. |
-| **observed prefix** | Exact simulated samples from scorer-gap start through launch anchor, inclusive. |
+| **incoming scorer gap** | The scorer interval ending at the contact where the candidate arc is placed. |
+| **outgoing scorer gap** | The scorer interval starting at that contact and shaped by the candidate arc's ride-out. |
+| **geometric exit** | The first airborne frame past the candidate arc's end plane. |
+| **launch anchor** | The last causal engine frame whose exact rider state initializes ballistic projection. It may be zero to three frames after geometric exit. |
+| **observed prefix** | Exact samples from the outgoing scorer-gap start through the launch anchor, inclusive. |
 | **ballistic suffix** | Collision-free trajectory strictly after the launch anchor. |
-| **incoming boundary** | Pre-contact configuration plus incoming target-frame velocity at the next authored contact. |
-| **gap projection** | Prefix and suffix composed into scorer-compatible full-gap quantities. |
-| **catchability** | Probability that one proposal from the named generator policy passes survival, landing, and off-beat gates. |
-| **readiness** | `catchability × speedFit × airFit × impactFeasibility × elevationFit`. |
-| **proposal utility** | Search-policy value combining exact current-gap quality with readiness. |
-| **knob surrogate** | Local controls-to-projected-features model used to propose exact work. |
+| **incoming boundary** | Collision-free pre-contact configuration and target-frame incoming velocity at the next authored contact. It is not a post-impact state. |
+| **outgoing-gap projection** | Observed prefix and ballistic suffix composed into scorer-compatible physical quantities for one outgoing scorer gap. |
+| **catchability** | Probability that one proposal from a named generator policy passes its hard viability gates. |
+| **next-arc readiness** | `catchability × speedFit × airFit × impactFeasibility × elevationFit` for one unbuilt arc. |
+| **proposal utility** | Explicit search-policy value combining settled incoming quality, projected outgoing quality, and next-arc readiness. |
 | **exact judge** | Real simulation, hard gates, and forward branch evaluation. |
 
-“Arrival state” without a named frame or boundary is not a valid public
-concept. “Readiness” never means catchability alone.
-
-## 3. Time, gaps, and ownership
-
-Let `C_i` and `C_(i+1)` be consecutive authored contact frames:
-
-```text
-              scorer gap G_(i+1)
-       [ C_i ------------------------------- C_(i+1) ]
-          catch/arc i
-               \ exact ride-out / A_i ... ballistic ... incoming
-```
-
-While choosing catch/arc `i`:
-
-- `G_(i+1)` starts at `C_i` and ends at `C_(i+1)`;
-- the simulated ride-out after `C_i` is the observed prefix;
-- `A_i` is its last usable causal launch anchor;
-- only `A_i + 1 ... C_(i+1)` is predicted;
-- readiness describes the setup at `C_(i+1)` for building catch/arc `i+1`.
-
-It does not predict the ride-out after `C_(i+1)`. That becomes the next
-application of the same pipeline.
-
-Non-contact timeline slices are skipped deliberately. “Next gap” in this
-pipeline means the next contact-terminating scorer gap.
+Unqualified names such as `currentGap`, `nextGap`, `arrivalState`, or
+`nextTargets` are forbidden at public layer boundaries. They are too dependent
+on the caller's point of view.
 
 ## 4. Frame and interval contract
 
-The scorer interval is `[startFrame, endFrame]`, inclusive. Therefore:
+Scorer reductions use `[startFrame, endFrame]`, inclusive:
 
 ```text
-frameCount = endFrame - startFrame + 1
+frameCount    = endFrame - startFrame + 1
 elapsedFrames = endFrame - startFrame
 ```
 
-These values are not interchangeable.
+Consecutive scorer gaps share their contact frame. Frame counts and elapsed
+durations are not interchangeable.
 
-The engine has a contact-frame asymmetry: velocity at the authored contact is
+The engine has a contact-frame asymmetry: the authored contact's velocity is
 the incoming velocity, while position may already reflect catch constraints
-when catch geometry exists. The canonical boundary therefore names each
-quantity:
+when catch geometry exists. The canonical collision-free boundary therefore
+names every frame:
 
 ```ts
 type IncomingContactBoundary = {
@@ -119,19 +129,23 @@ type IncomingContactBoundary = {
 };
 ```
 
-Pre-contact position, incoming velocity, collision-free contact position, and
-post-impact state must never be substituted for one another.
+Pre-contact position, incoming target-frame velocity, collision-free contact
+position, and simulated post-impact state must never be substituted for one
+another.
 
-## 5. Canonical implementation boundaries
+Only `L_i + 1 ... C_(i+1)` is predicted. The launch anchor is included once in
+the exact prefix and never again in the suffix.
 
-### 5.1 Launch acquisition
+## 5. Ballistic projection
 
-`core/ballistic_launch.ts` owns launch acquisition:
+### 5.1 Input
+
+Launch acquisition produces one causal packet:
 
 ```ts
 type BallisticLaunchObservation = {
-  gapStartFrame: number;
-  anchorFrame: number;
+  outgoingGapStartFrame: number; // C_i
+  anchorFrame: number;           // L_i
   state: BallisticState;
   prefix: BallisticObservedPrefix;
   sampleCount: number;
@@ -140,31 +154,19 @@ type BallisticLaunchObservation = {
 };
 ```
 
-The detector selects consecutive causal airborne samples. Production
-reconstructs the exact ten-point rider state once, at `anchorFrame`.
-`ballisticLaunchFirstSampleFrame()` recovers the geometric-read start when a
-consumer needs it; `anchorFrame` and that first sample are not synonyms.
+Production may reconstruct the exact rider state once at `anchorFrame`. No
+target-frame or future read is legal.
 
-The packet owns the exact current and previous point positions, binding state,
-and exact observed prefix. A target-frame or future read is forbidden.
+### 5.2 Output
 
-### 5.2 Ballistic dynamics
+The collision-free kernel owns:
 
-`core/ballistic_micro_sim.ts` is the one collision-free constraint kernel.
-`core/ballistic_projection.ts` exposes it through coherent primitive states:
+- one coherent propagated primitive state;
+- pre-contact and target-frame incoming kinematics;
+- additive suffix summaries required by scorer reductions;
+- constraint and binding state when available.
 
-- `x`, `y`, `vx`, and `vy` come from one propagated constraint state;
-- speed and CoM direction are derived from that velocity;
-- sled pose and binding integrity come from the same trajectory;
-- propagation re-anchors the state, so chained and combined propagation agree.
-
-The kernel owns physics and additive suffix summaries. It does not know
-targets, candidate cost, readiness, or compiler ranking.
-
-### 5.3 Gap composition
-
-`projectBallisticGap()` is the one full-gap composer. It combines the exact
-prefix with frames strictly after the anchor:
+The outgoing-gap composer owns:
 
 ```text
 meanSpeed =
@@ -176,55 +178,90 @@ airFraction =
   / inclusiveGapFrameCount
 ```
 
-This is not an endpoint average or a 50/50 prefix/suffix blend.
+It also owns elevation and amplitude when requested. It does not own authored
+targets, target compatibility, catchability, readiness, or ranking.
 
-Authored-contact projection uses `terminalContact: "grounded"`: the terminal
-frame is removed from airborne occupancy while its incoming velocity remains
-the collision-free incoming velocity. Tail projection uses
-`terminalContact: "none"`.
+For an authored terminal contact, the target frame is grounded for air
+occupancy while retaining its collision-free incoming velocity. An open tail
+uses no such correction.
 
-Elevation is computed only when the readiness policy requests it. Amplitude is
-available to explicit consumers but is not one of the five readiness factors.
+### 5.3 Two consumers
 
-### 5.4 Catchability
+The same outgoing-gap projection has two legitimate consumers:
 
-`optimizer/catchability.ts` owns one swappable model interface:
+1. its physical aggregates complete the estimate of `G_i`;
+2. its incoming boundary is the dynamic input to readiness for `A_(i+1)`.
+
+The physical aggregates of `G_i` must not be passed off as predictions of
+`G_(i+1)`.
+
+## 6. Scorer-gap quality
+
+### 6.1 Settled incoming quality
+
+The candidate's exact simulation scores `[C_(i-1), C_i]`, including the impact
+delivered by the proposed `A_i`. This is settled incoming-gap quality.
+
+### 6.2 Projected outgoing quality
+
+The ballistic projection scores the axes of `G_i` that do not require the
+unbuilt terminal catch:
+
+- speed;
+- air;
+- elevation when authored and enabled;
+- amplitude when authored and requested.
+
+Its target compatibility uses the scorer's canonical axis definitions. It does
+not invent impact at `C_(i+1)`, because `A_(i+1)` has not been built.
+
+Exact prefix and predicted suffix are combined with their real frame counts.
+No endpoint average or 50/50 blend is valid.
+
+## 7. Next-arc readiness
+
+### 7.1 Causal input
+
+The readiness model receives:
 
 ```ts
-type CatchabilityContext = {
-  nextGapTargets: AxisValues;
-  nextGapFrameCount?: number;
+type NextArcReadinessInput = {
+  incomingBoundary: IncomingContactBoundary; // at C_(i+1)
+
+  // G_i: known context for catching at C_(i+1), including its impact ask.
+  incomingGap: ScorerGapContext;
+
+  // G_(i+1): known context for the ride-out after A_(i+1).
+  // Null when there is no following scorer gap.
+  outgoingGap: ScorerGapContext | null;
+
   generatorPolicyId: string;
 };
-
-type CatchabilityEstimate = {
-  pViableAttempt: number;
-  modelId: string;
-};
 ```
 
-Its meaning is:
+Known authored targets, durations, contact geometry, and policy identity are
+causal inputs. Realized proposal geometry, future engine state, selected-path
+outcomes, and any simulation of `A_(i+1)` are forbidden production inputs.
 
-```text
-P(one generated catch passes hard gates
-  | incoming boundary, known next-gap context, generator policy)
-```
+The predicted boundary is the production input. An exact subsequently observed
+boundary may be stored only as diagnostic truth for separating upstream
+ballistic error from readiness-model error.
 
-Authored targets and duration are causal known context. Realized next geometry,
-future engine state, or the outcome itself are forbidden inputs.
+### 7.2 Factors
 
-The current `speed-angle-table-r0` model is the active implementation, not a
-compatibility branch. Its calibration came from an older twelve-track study.
-It remains usable code, but it is **not yet validated as calibrated for the
-current V2 distribution and generator policy**.
+For one proposal `A_(i+1)` from the named policy:
 
-Committed best paths cannot supply catchability truth because their successful
-catches are selected. Representative truth requires frozen counterfactual
-incoming boundaries and fixed bundles of fresh production generation attempts.
+| Factor | Meaning | Truth population |
+|---|---|---|
+| `catchability` | `P(proposal passes survival, landing, and off-beat gates | input)` | All attempts, including failures |
+| `impactFeasibility` | Probability a viable proposal delivers the authored impact ask at `C_(i+1)` | Viable attempts with an incoming-gap impact ask |
+| `speedFit` | Expected scorer-compatible speed fit over `G_(i+1)` | Viable attempts with an outgoing speed ask |
+| `airFit` | Expected scorer-compatible air fit over `G_(i+1)` | Viable attempts with an outgoing air ask |
+| `elevationFit` | Expected scorer-compatible elevation fit over `G_(i+1)` | Viable attempts with an outgoing elevation ask |
 
-### 5.5 Readiness
+An unauthored component is exactly `1`.
 
-`optimizer/readiness.ts` owns exactly:
+Readiness retains the agreed definition:
 
 ```text
 readiness =
@@ -235,300 +272,222 @@ readiness =
   × elevationFit
 ```
 
-- `catchability` is the empirical model above;
-- speed, air, and elevation fit compare the canonical gap projection with
-  authored next-gap targets;
-- impact feasibility is an explicit physics prior, not a calibrated
-  probability;
-- an unauthored or deliberately disabled component is exactly `1`;
-- a targeted enabled component whose projection input is missing fails closed;
-- readiness is in `[0,1]`, but is not itself a probability.
+This is a decomposed expected-utility surrogate, not automatically a calibrated
+probability. Component predictions may be correlated, so the product must also
+be validated directly against realized joint utility.
 
-Elevation enablement is shared by production ranking and the aim probe. The
-probe requests and fits elevation whenever the readiness policy enables it.
+### 7.3 Speed, air, and elevation modeling
 
-### 5.6 Proposal utility and consumers
+Applying the exact scorer transform to the outgoing-gap projection of `A_i`
+does not predict the next arc; it only scores `G_i`.
 
-`optimizer/objective.ts` owns:
+The next-arc factors must predict outcomes caused by the unknown `A_(i+1)`.
+Two model families are legitimate:
 
-```text
-proposalUtility = currentGapQuality × readiness
-```
+1. **Direct:** predict expected realized target fit from the readiness input.
+2. **Structured:** predict the next arc's prefix/exit sufficient statistics,
+   reuse the canonical ballistic kernel for its suffix, compose the complete
+   outgoing gap, then integrate the scorer-compatible fit.
 
-with explicit configurable powers. Current-gap quality is measured exactly on
-the current scorer interval. Readiness looks one contact ahead. The two are
-not averaged or mislabeled as one model.
+The final truth remains the complete outgoing scorer-gap outcome. Arc-prefix
+speed, exit state, and suffix statistics are useful intermediate labels, not
+substitutes for the final quantity.
 
-Readiness may:
-
-- choose virtual knob proposals;
-- order a candidate pool before exact branch evaluation;
-- inform explicitly named compute-allocation heuristics;
-- appear in diagnostics.
-
-It may not:
-
-- bypass exact candidate simulation;
-- bypass survival, landing, or off-beat gates;
-- replace the exact forward judge;
-- silently become a hard acceptance criterion.
-
-### 5.7 Knob surrogate
-
-The aim lane observes a small set of exact knob rows and fits local response
-surfaces. Probe rows and real candidates share launch acquisition, projection,
-composition, readiness, and proposal utility.
-
-The surrogate predicts primitive velocity and sufficient gap statistics.
-Dependent speed and angle are derived once. Missing output coverage is
-observable and fails to the explicit candidate-order fallback.
-
-Direct ballistic accuracy does not validate this surrogate. It requires its
-own held-out prediction and proposal-regret evidence.
-
-## 6. Fallbacks and efficiency
-
-The normal hot path follows these rules:
-
-- one rider reconstruction at the selected launch anchor;
-- one exact prefix reduction;
-- one suffix walk per unique launch/target/policy request;
-- shared projection memoization for ranking consumers;
-- no benchmark truth reads or trace serialization without an installed study
-  sink;
-- no study-only pool walks unless their study flag is enabled;
-- telemetry performs no RNG draws, charged rides, or shared-cache mutation.
-
-An unavailable projection never becomes a perfect score. The candidate remains
-eligible only through the explicit deterministic fallback order already tested
-by the pool ranker.
-
-The frozen ballistic collector is independently sharded, bounded in memory,
-resumable, and writes compressed shards. One failed shard does not erase
-completed work.
-
-## 7. What the current evidence establishes
-
-Evidence must be stated per layer.
-
-### Direct dynamics
-
-The frozen corpus contains up to 202,752 real predictor calls from all 44
-canonical V2 cases, the first three canonical seeds, both pool and aim-probe
-populations, at 250k. Evaluation reuses the corpus and imports the production
-kernel.
-
-Current clean-flight coverage is 194,413 pre-contact position rows and 202,162
-contact rows across all 132 case-seed groups. Mean absolute errors are:
-
-| quantity | error |
-|---|---:|
-| pre-contact position | `0.0453 px` |
-| contact velocity vector | `0.00185 px/frame` |
-| contact speed | `0.000804 px/frame` |
-| contact direction | `0.01146 deg` |
-
-This validates collision-free dynamics at the direct-call boundary.
-
-### Production selected transitions
-
-The 2026-07-24 one-seed V2 diagnostic archived 11,627 eligible transitions.
-11,620 projected successfully. Against the exact next committed scorer gap:
-
-| projected quantity | MAE | signed bias |
-|---|---:|---:|
-| mean speed | `0.0000087` | `+0.0000068` |
-| air fraction | `0.02487` | `-0.02332` |
-| elevation | `0.000020` | `-0.000020` |
-| catchability recomputed from exact incoming kinematics | `0.000463` | `+0.000185` |
-
-The catchability row validates transport of the model's inputs, not empirical
-catch-success calibration. The air residual is a real, consistent occupancy
-boundary effect; it is mostly inside the readiness deadband but remains a
-composition diagnostic.
-
-Readiness and the exact next-gap quality are different quantities, so their
-association—not equality—is the useful check. The within-run Pearson
-association was positive in 131/132 runs, with run mean `0.622` and median
-`0.681`.
-
-### Aim surrogate and candidate ordering
-
-The same diagnostic compared fitted aim predictions with the achieved
-readiness obtained after exact candidate simulation:
+Because target quality is nonlinear, generally:
 
 ```text
-292,674 paired predictions / 292,864 emitted candidates (99.94%)
-readiness MAE 0.05464
-534,752 / 534,752 targeted current-axis terms modeled
-671 / 170,538 sweeps model-unscoreable (0.39%)
+quality(E[achieved]) != E[quality(achieved)]
 ```
 
-This establishes high coverage and bounded surrogate error. It does not
-establish that the proposal utility chooses the best future branch.
+A model that predicts only a raw mean must either predict enough of the outcome
+distribution to integrate expected quality or be evaluated against the bias
+introduced by transforming the mean.
 
-The study-only forward-agreement instrument then compared the pool's
-proposal-utility top-1 with the winner of the exact forward rollouts that the
-compiler had already charged:
+## 8. Proposal utility
+
+Proposal utility is the only layer allowed to combine:
+
+- settled incoming-gap quality;
+- projected outgoing-gap quality;
+- next-arc readiness.
+
+Conceptually:
 
 ```text
-41,512 measured pools
-top-1 agreement 29.25%
-impact-targeted agreement 21.61%
-non-impact agreement 46.19%
-mean quality rank of the exact forward winner 2.56
+proposalUtility = searchPolicy(
+  settledIncomingQuality,
+  projectedOutgoingQuality,
+  nextArcReadiness,
+)
 ```
 
-Aimed candidates were exact-forward winners in 29,794 pools and were present
-in 37,759, so the aim proposer itself is productive. The weak boundary is the
-one-step readiness/proposal-utility ordering, especially under impact asks.
-That is the clearest current explanation for why better physical prediction
-has not translated into a better compiler.
+The exact function and any powers are search policy, not physical semantics.
+It must not relabel projected outgoing quality as readiness or count the same
+axis twice.
 
-The instrumented and uninstrumented diagnostics produced identical scores and
-track hashes in all 132 paired runs, confirming that these study counters did
-not perturb compiler behavior.
+Readiness may order work and propose candidates. It may not bypass exact
+simulation, hard gates, or the forward judge.
 
-The corrected detector-runway gate suppressed 168/1,688 eligible duplicate
-fallbacks. The remaining contact-phase lane made 1,520 exact attempts, rejected
-1,509, and emitted 11. Its low yield is a separate efficiency/search-policy
-question, not a ballistic correctness failure.
+## 9. Frozen readiness corpus
 
-### Compiler outcome
+One row group represents a real production decision boundary at `C_i`.
 
-The same N=1 diagnostic is descriptive only:
+### 9.1 Frozen inputs
+
+Store exactly what production could know before proposing `A_i`:
+
+- the predecessor's predicted incoming boundary at `C_i`;
+- incoming and outgoing scorer-gap targets and inclusive frame counts;
+- named generator policy and any other explicit causal policy context.
+
+Also store the exact incoming boundary when it becomes observable, but mark it
+as diagnostic truth and never expose it to a production-equivalent model.
+
+### 9.2 Attempt outcomes
+
+For every retained proposal attempt:
+
+- retain hard-gate failure as a catchability outcome;
+- for a viable proposal, retain exact impact delivery at `C_i`;
+- retain exact next-arc prefix, exit, and launch sufficient statistics;
+- obtain benchmark-only truth through the outgoing gap to `C_(i+1)`;
+- retain achieved speed, air, and elevation plus their target fits;
+- retain failure or truncation explicitly rather than filtering it away.
+
+The outgoing truth must not construct the catch at `C_(i+1)`. Its terminal air
+occupancy is canonicalized as grounded conditional on a future successful
+authored contact, matching the scorer convention, while incoming velocity
+remains collision-free.
+
+### 9.3 Representativeness and leakage
+
+- Contexts and attempts come from the real production sampler.
+- Failed attempts remain in the denominator.
+- Retention is deterministic and bounded per case/seed.
+- Attempts from one context never cross train/validation partitions.
+- Collection may perform expensive future simulation; production models may
+  use only the frozen causal input fields.
+- Policy identity is part of the corpus and model interface.
+- Empty coverage, NaN, missing shards, schema drift, or incompatible policy
+  identity fail loudly.
+
+Ordinary model iteration reuses the frozen corpus and performs no compilation
+or simulation.
+
+## 10. Evaluation
+
+All reports macro-average case/seed groups so high-search-volume cases cannot
+dominate.
+
+Primary component losses:
+
+- catchability: Brier score over all attempts;
+- impact feasibility: Brier score over viable, impact-authored attempts;
+- speed, air, and elevation fit: squared error against realized
+  scorer-compatible fit on viable attempts.
+
+Secondary evidence includes log loss and calibration for probabilities; MAE,
+raw physical error, signed bias, target buckets, and regime coverage for
+continuous outcomes.
+
+For each context, empirical joint truth is the mean attempt utility:
 
 ```text
-baseline 516.66 -> candidate 489.71  (delta -26.95)
-representative +9.75
-legacy-regression +27.88
-capability -239.29
-valid runs 129/132 -> 121/132
+attemptUtility =
+  0                                      if proposal is not viable
+  impactPass × speedFit × airFit
+    × elevationFit                       otherwise
 ```
 
-The loss is concentrated in rapid-pickup and dense-recovery capability cases.
-It does not refute the direct ballistic model; it shows that physics accuracy
-alone does not establish catchability calibration, readiness ordering, search
-allocation, or compiler value.
+where every unauthored factor is `1`. Composite readiness is evaluated against
+the context mean using squared error, calibration, association, and pool
+ranking/regret when exact pools are available.
 
-N=1 supplies no between-seed variance. The comparison layer therefore marks
-seed-block inference unavailable, returns an inconclusive/non-promotable
-result, and reports only descriptive deltas.
+Direct ballistic accuracy, outgoing-gap composition accuracy, readiness
+component accuracy, proposal ordering, and compiler score are separate claims.
 
-## 8. Evidence still required
+## 11. Current implementation status
 
-The architecture and review fixes are implemented. These empirical questions
-remain open:
+The 2026-07-24 implementation now has:
 
-1. revalidate or replace catchability on current-V2 counterfactual attempts;
-2. replay representative candidate pools to improve readiness/proposal-utility
-   ordering, with special attention to impact-targeted gaps;
-3. add frozen top-k regret to the existing surrogate coverage/error evidence;
-4. characterize whether the air-occupancy bias warrants a more exact terminal
-   correction;
-5. determine whether current catchability inputs need duration, targets, pose,
-   or constraint-state features;
-6. decide whether the very low-yield contact-phase lane earns its charged
-   attempts;
-7. use a multi-seed canonical comparison before any promotion claim.
+| Layer | Status |
+|---|---|
+| Causal launch acquisition | Aligned; one causal launch packet owns the exact prefix and anchor state. |
+| Collision-free ballistic kernel | Aligned and independently benchmarked. |
+| Prefix/suffix outgoing-gap composition | Aligned, memoized, and scored separately from readiness. |
+| Incoming boundary | Explicitly frame-aligned and collision-free. |
+| Settled incoming-gap measurement | Owned by `settledIncomingAxes` and `scoreSettledIncomingQuality`. |
+| Projected outgoing-gap target fit | Owned by `projectOutgoingScorerGap`; impact is absent by construction. |
+| Catchability for the next arc | Refit on all retained attempts from the contact-indexed corpus. |
+| Impact feasibility for the next arc | Refit on viable attempts with an incoming-gap impact ask. |
+| Next-arc speed/air fit | Refit from the unbuilt arc's realized outgoing gap. |
+| Next-arc elevation fit | Exactly neutral pending a relevant authored population. |
+| Frozen readiness corpus | Schema v3: 44 V2 cases, three seeds, 132,493 contexts, 421,932 attempts. |
+| Production inference | One stable exported artifact; dependency-free TypeScript inference has exact fixture parity with Python. |
+| Proposal utility | Explicitly combines settled incoming quality, projected outgoing quality, and next-arc readiness once each. |
+| Aim surrogate | Uses only settled and projected layers because its small local fit does not reconstruct the full articulated readiness boundary. Exact candidates use all three layers. |
+| Compiler evidence | Unit/contract evidence is in place; hot-path telemetry and independent compiler promotion remain pending. |
 
-These are separate claims. “Better ballistics,” “better catchability,” “better
-readiness,” and “better compiler” must never be reported as synonyms.
+The invalid earlier speed/air result remains withdrawn. It measured outgoing
+ballistic composition, not next-arc readiness.
 
-## 9. Working commands
-
-Direct predictor iteration, with no compilation or truth resimulation:
-
-```bash
-npm run benchmark:ballistic
-```
-
-One-time corpus collection only when its population or protocol is genuinely
-stale:
-
-```bash
-npm run benchmark:ballistic:collect
-```
-
-End-to-end descriptive compiler diagnostic:
-
-```bash
-LR_AIM_STUDY_STATS=1 LR_FWD_EVAL_AGREEMENT=1 \
-  npm run benchmark -- eval --seeds=1 --jobs=48 \
-  --out=generated/benchmark-v2/eval/DESCRIPTIVE-N1.json
-```
-
-Ordinary compiler comparison at any useful depth:
-
-```bash
-npm run benchmark -- eval --seeds=N --jobs=48
-```
-
-N=1 is diagnostic only. N≥2 can estimate seed uncertainty; the operator chooses
-the depth appropriate to the decision. Cached baseline slots are reused.
-
-## 10. Review checklist
-
-Use this checklist for every change touching launch reads, projection,
-catchability, readiness, aiming, ranking, or their benchmarks.
+## 12. Implementation checklist
 
 ### Meaning and ownership
 
-- [ ] Ballistics contains only deterministic collision-free physics and
-  additive trajectory summaries.
-- [ ] Catchability means one-policy-proposal hard-gate success probability.
-- [ ] Readiness is exactly the named five-factor product.
-- [ ] Proposal utility is the only layer combining current quality and
-  readiness.
-- [ ] Current-gap quality contains no future prediction.
-- [ ] Every formula and policy has one production owner; benchmarks import it.
-- [ ] Telemetry names the quantity it actually records.
+- [x] Every public scorer interval is owned relative to explicit contacts.
+- [x] Every candidate arc is owned by its terminal contact.
+- [x] Exact incoming, projected outgoing, and readiness signals have separate
+      types and production owners.
+- [x] Impact is owned by the catch at the terminal contact.
+- [x] Projected outgoing axes never enter next-arc readiness as if they were
+      future arc outcomes.
+- [x] Proposal utility counts every quantity at most once.
 
-### Gaps, frames, and causality
+### Frames and causality
 
-- [ ] A catch at `C_i` projects scorer gap `[C_i, C_(i+1)]`.
-- [ ] `gapStartFrame`, geometric exit, first launch sample, anchor,
-  pre-contact, target, and post-impact frames remain distinct.
-- [ ] Scorer frame counts are inclusive; elapsed durations are not.
-- [ ] Launch acquisition reads no target or future frame.
-- [ ] Known authored targets/duration are allowed context; realized future
-  geometry and outcomes are not.
-- [ ] Contact projection requests `"grounded"` and final-tail projection
-  requests `"none"`.
+- [x] Gap start, geometric exit, first launch sample, launch anchor,
+      pre-contact, target-frame incoming, and post-impact frames remain
+      separately named.
+- [x] Scorer frame counts are inclusive.
+- [x] Launch acquisition reads no target or future frame.
+- [x] The readiness production input contains no realized next-arc geometry or
+      outcome.
+- [x] Predicted and exact incoming boundaries remain separate corpus fields.
 
-### State and composition
+### Physics and composition
 
-- [ ] Point state includes current/previous positions and bindings.
-- [ ] Position and velocity come from one coherent primitive state.
-- [ ] Speed, direction, pose, and integrity are derived from that state.
-- [ ] Only frames after the anchor are predicted.
-- [ ] Prefix and suffix neither omit nor double-count the anchor boundary.
-- [ ] Speed, air, elevation, and amplitude use scorer-identical reducers and
-  denominators.
-- [ ] Missing or non-finite targeted inputs fail closed.
-- [ ] Chained propagation matches combined propagation.
+- [x] Position and velocity come from one coherent primitive state.
+- [x] Only frames after the launch anchor are predicted.
+- [x] Prefix and suffix neither omit nor double-count the anchor.
+- [x] Prefix/suffix composition uses additive sufficient statistics and exact
+      frame counts.
+- [x] Target-contact air occupancy and incoming velocity preserve the engine's
+      asymmetric convention.
+- [x] Chained propagation matches combined propagation.
 
-### Models and search
+### Readiness models
 
-- [ ] Catchability truth uses counterfactual attempts from the stated current
-  generator policy.
-- [ ] Target-fit terms are not hidden inside catchability.
-- [ ] Impact feasibility is not described as a calibrated probability.
-- [ ] Readiness does not bypass exact simulation or hard gates.
-- [ ] Probe and candidate paths share projection/readiness code.
-- [ ] Surrogate outputs are coherent, and missing outputs are observable.
-- [ ] Candidate cloning preserves or explicitly invalidates its launch packet.
-- [ ] Pool ordering and exact forward judging remain separately measured.
+- [x] Catchability includes failed attempts and names its generator policy.
+- [x] Impact truth is conditional on immediate next-arc viability.
+- [x] Speed and air truth come from the outgoing gap of the
+      unbuilt next arc, not the gap used to obtain its incoming state.
+- [x] Elevation remains neutral until representative authored truth exists.
+- [x] Structured data generation reuses the production ballistic kernel rather than
+      copying physics.
+- [x] Each active component and the final product are independently validated
+      on a locked seed.
+- [ ] Selected-path ordering is independently validated.
+- [x] Missing targeted inputs fail explicitly; unauthored factors are `1`.
 
 ### Efficiency and evidence
 
-- [ ] One anchor rider read and at most one cached projection serve each unique
-  request.
-- [ ] Default telemetry performs no extra physics or pool traversal.
-- [ ] Study telemetry is explicit and cannot affect output.
-- [ ] Direct, composition, surrogate, catchability, readiness/ranking, and
-  compiler evidence are reported separately.
-- [ ] Empty coverage, NaN, incompatible corpus metadata, and absent truth fail
-  loudly.
-- [ ] Compiler results include budgets, validity, important regimes, runtime,
-  and physical interpretation—not only a headline.
+- [x] One launch read and one memoized outgoing projection serve all production
+      consumers.
+- [x] Study hooks perform no work when disabled.
+- [x] Corpus shards are bounded, resumable, and independently recoverable.
+- [x] Export parity proves the evaluated and production inference formulas agree.
+- [x] Empty coverage, NaN, incompatible metadata, and missing truth fail loudly.
+- [ ] Hot-path inference cost and selected-transition telemetry are validated.
+- [ ] Compiler promotion occurs only through `goal.md` after layer-specific
+      validation.

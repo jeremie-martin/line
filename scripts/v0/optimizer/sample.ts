@@ -254,9 +254,15 @@ export function observeOneCandidate(
         ? gap.targets
         : arcProposalTargetsForGap(gap, ctx.gaps)
     );
+  // Two bags, deliberately. `resolvedGeometryTargets` is the contact-owned
+  // composition: entry axes (impact, grain) from this gap plus motion axes from
+  // the outgoing one, which is what the RIDE-OUT geometry must satisfy. But the
+  // sampler also shapes the APPROACH, comparing authored speed against the
+  // rider's arriving speed — that belongs to the gap ending here. Passing one
+  // composed bag made the approach chase the next interval's targets.
   const geometry = sampleArcPlacementGeometry(
     rng, probe.refX, probe.refY, resolvedGeometryTargets, probe.targetState, attempt, gap, lineIdStart, mode,
-    ctx.allContactFrames, supportGeometryMode,
+    ctx.allContactFrames, supportGeometryMode, gap.targets,
   );
 
   const fit = tryCandidateGeometry(

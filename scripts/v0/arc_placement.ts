@@ -560,6 +560,15 @@ export function readTargetStateFromRider(
   return { sledX, sledY, velocity, speed, angleDeg };
 }
 
+/**
+ * Approach shaping reads the INCOMING gap's motion targets (default on).
+ * `LR_ENTRY_AIM=0` restores the single composed bag for A/B comparison.
+ */
+function entryAimEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_ENTRY_AIM !== "0";
+}
+
 export function sampleArcPlacementGeometry(
   rng: () => number,
   _refX: number,
@@ -572,6 +581,9 @@ export function sampleArcPlacementGeometry(
   mode: CandidateSampleMode = "normal",
   allContactFrames: readonly number[] = [],
   geometryModeOverride?: SupportGeometryMode,
+  /** Targets of the scorer gap ending at this contact; see
+   *  `contactCenteredPressures`. Omitted ⇒ `targets` (single-bag behaviour). */
+  entryTargets: AxisValues = targets,
 ): ArcPlacementGeometry {
   recordArcPlacementSample(mode);
   lastGeometryWasImpactTemplate = false;
@@ -580,7 +592,7 @@ export function sampleArcPlacementGeometry(
       kind: "lines",
       lines: sampleContactCenteredLines(
         rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
-        geometryModeOverride ?? supportGeometryMode(),
+        geometryModeOverride ?? supportGeometryMode(), entryTargets,
       ),
     };
   }
@@ -1006,11 +1018,22 @@ function contactCenteredPressures(
   targets: AxisValues,
   gap: Gap,
   allContactFrames: readonly number[],
+  /**
+   * Targets of the scorer gap ENDING at this contact. The motion axes in
+   * `targets` describe the ride-out AFTER the contact (they are consumed
+   * alongside `nextGapFrames`), but the pressures below shape the APPROACH:
+   * they compare the authored speed against `targetState.speed`, which is the
+   * rider's speed arriving here. Approach shaping must therefore read the
+   * incoming gap. Defaults to `targets` so study callers that supply one bag
+   * keep their existing behaviour.
+   */
+  entryTargets: AxisValues = targets,
 ): ContactCenteredPressures {
-  const targetSpeedPx = targets.speed === undefined
+  const approach = entryAimEnabled() ? entryTargets : targets;
+  const targetSpeedPx = approach.speed === undefined
     ? targetState.speed
-    : authoredSpeedToPx(targets.speed);
-  const air = clamp(targets.air ?? 0.5, 0, 1);
+    : authoredSpeedToPx(approach.speed);
+  const air = clamp(approach.air ?? 0.5, 0, 1);
   const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
   const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
   const denseContactPressure = nextGapFrames === null
@@ -1081,6 +1104,7 @@ function sampleContactCenteredLines(
   allContactFrames: readonly number[],
   attempt: number,
   geometryMode: ReturnType<typeof supportGeometryMode>,
+  entryTargets: AxisValues = targets,
 ): TrackLine[] {
   const rawRolls: ContactCenteredRolls = {
     segmentLengthRoll: rng(),
@@ -1107,7 +1131,9 @@ function sampleContactCenteredLines(
     brakePressure,
     accelPressure,
     speedCarryPressure,
-  } = contactCenteredPressures(targetState, targets, gap, allContactFrames);
+  } = contactCenteredPressures(
+    targetState, targets, gap, allContactFrames, entryTargets,
+  );
   const sustainedContactCarryPressure = speedCarryPressure
     * (nextGapFrames === null ? 0 : clamp((15 - nextGapFrames) / 2, 0, 1))
     * (1 - clamp((air - 0.62) / 0.12, 0, 1));

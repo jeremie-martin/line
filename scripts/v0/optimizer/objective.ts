@@ -1,4 +1,4 @@
-import { axisQualityForTargets } from "../score.ts";
+import { axisQualityForTargets, axisQualityFromErrors } from "../score.ts";
 import {
   speedPxToAuthored,
   type AxisValues,
@@ -107,14 +107,63 @@ export function scoreSettledIncomingQuality(
   return axisQualityForTargets(targets, achieved).axis_quality;
 }
 
+/**
+ * How recoverable an error on this axis is, by SIDE.
+ *
+ * The scorer is symmetric because it measures. A RANKER chooses, and the two
+ * sides of a target are not equally recoverable by the arc that comes next:
+ *
+ *  - speed: arriving too FAST can be bled off by the following catch, arriving
+ *    too slow cannot be manufactured. Half-weight the fast side.
+ *  - air: predicted air ABOVE the ask is the recoverable selection lottery —
+ *    the pool usually contains a shorter ride-out. Predicted air below the ask
+ *    is a real miss, but the projection is an optimistic upper bound, so the
+ *    slow side of that distribution is inflated. Half-weight the under side.
+ *
+ * This is the asymmetry the pre-refactor readiness carried on exactly these two
+ * axes, in the same directions and for the same stated reasons, and it is what
+ * damps the alternating good/bad-catch oscillation the dense specs exhibit.
+ * Both compilers meet that oscillation; the one with this term damps it, the
+ * one without amplifies it until the track cannot continue.
+ *
+ * `LR_PROJECTED_RECOVERABILITY=0` restores symmetric scoring.
+ */
+const RECOVERABLE_SIDE_WEIGHT = 0.5;
+
+function recoverabilityWeightedError(
+  axis: string,
+  error: number,
+): number {
+  if (!projectedRecoverabilityEnabled()) return error;
+  if (axis === "speed" && error > 0) return RECOVERABLE_SIDE_WEIGHT * error;
+  if (axis === "air" && error < 0) return RECOVERABLE_SIDE_WEIGHT * error;
+  return error;
+}
+
+function projectedRecoverabilityEnabled(): boolean {
+  return (globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  }).process?.env?.LR_PROJECTED_RECOVERABILITY !== "0";
+}
+
 export function scoreProjectedOutgoingAxes(
   targets: AxisValues,
   achieved: AxisValues,
 ): { quality: number; scoredAxisCount: number } {
-  const summary = axisQualityForTargets(targets, achieved);
+  const errors: number[] = [];
+  for (const [axis, target] of Object.entries(targets)) {
+    if (target === undefined) continue;
+    const value = (achieved as Record<string, number | undefined>)[axis];
+    if (value === undefined) continue;
+    errors.push(recoverabilityWeightedError(axis, value - target));
+  }
+  if (errors.length === 0) {
+    const summary = axisQualityForTargets(targets, achieved);
+    return { quality: summary.axis_quality, scoredAxisCount: summary.axis_count };
+  }
   return {
-    quality: summary.axis_quality,
-    scoredAxisCount: summary.axis_count,
+    quality: axisQualityFromErrors(errors).axis_quality,
+    scoredAxisCount: errors.length,
   };
 }
 

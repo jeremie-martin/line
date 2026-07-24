@@ -371,7 +371,6 @@ export type AimStudyStats = {
   joint_probe_saved_frames_mean: number;
   joint_probe_suffix_after_current_mean: number;
   joint_probe_suffix_after_next: number;
-  joint_probe_anchor_scan_frames_mean: number;
   /** Per-row hard-gate outcomes over short probe rows. Gate-failed rows carry
    *  no current-gap outputs, which thins the per-output fit data — the
    *  upstream cause of every degradation counter below. */
@@ -464,7 +463,6 @@ const aimTotals = {
   jointProbeHorizonSum: 0, jointProbeSuffixSum: 0, jointProbeSuffixRows: 0,
   jointProbeFullHorizonSum: 0, jointProbeSavedFramesSum: 0,
   jointProbeSuffixAfterCurrentSum: 0, jointProbeSuffixAfterNext: 0,
-  jointProbeAnchorScanFramesSum: 0, jointProbeAnchorScanFrameRows: 0,
   joint_probe_current_ok: 0, joint_probe_next_state_ok: 0,
   joint_probe_frames_charged: 0,
   // Top-K base refinement.
@@ -524,10 +522,6 @@ function recordJointProbeRows(
       aimTotals.jointProbeSuffixSum += row.suffixFrame;
       aimTotals.jointProbeSuffixAfterCurrentSum += row.suffixFrame - gap.endFrame;
       if (row.suffixFrame >= nextFrame) aimTotals.jointProbeSuffixAfterNext++;
-    }
-    if (row.anchorScanFrames !== null) {
-      aimTotals.jointProbeAnchorScanFrameRows++;
-      aimTotals.jointProbeAnchorScanFramesSum += row.anchorScanFrames;
     }
   }
 }
@@ -619,8 +613,6 @@ export function snapshotAimStats(): AimStats | null {
     joint_probe_suffix_after_current_mean: aimTotals.jointProbeSuffixRows > 0
       ? round3(aimTotals.jointProbeSuffixAfterCurrentSum / aimTotals.jointProbeSuffixRows) : 0,
     joint_probe_suffix_after_next: aimTotals.jointProbeSuffixAfterNext,
-    joint_probe_anchor_scan_frames_mean: aimTotals.jointProbeAnchorScanFrameRows > 0
-      ? round3(aimTotals.jointProbeAnchorScanFramesSum / aimTotals.jointProbeAnchorScanFrameRows) : 0,
     joint_probe_current_ok: aimTotals.joint_probe_current_ok,
     joint_probe_next_state_ok: aimTotals.joint_probe_next_state_ok,
     joint_fit_degraded_outputs: aimTotals.joint_fit_degraded_outputs,
@@ -976,7 +968,7 @@ function makeConfiguredAimedCandidates(
   const out: Candidate[] = [];
   if (airKnobBase) {
     const airCand = makeAirMatchedCandidate(
-      engine, gap, nextGap, ctx, base, baseOutputs, lineIdStart, axisMeasureEnd, probe,
+      engine, gap, nextGap, ctx, base, lineIdStart, axisMeasureEnd, probe,
     );
     if (airCand !== null) out.push(airCand);
   }
@@ -1031,31 +1023,28 @@ function makeAirMatchedCandidate(
   nextGap: Gap,
   ctx: SpecContext,
   base: Candidate,
-  baseOutputs: Record<string, number>,
   lineIdStart: number,
   axisMeasureEnd: number,
   probe: ReturnType<typeof getCandidateProbe>,
 ): Candidate | null {
   const ask = objectiveTargetsForGap(nextGap, ctx)?.air;
   if (typeof ask !== "number" || !Number.isFinite(ask)) return null;
+  // The release lever is the base candidate's own exact launch: its anchor is
+  // the geometric arc exit, so `relFrame` is the exit frame with no correction.
+  // (The former fallback read `exit.frame`/`exit.speed`, which no probe has
+  // ever emitted, so that branch could only ever return null.)
   const launch = base.ballisticLaunch;
-  const measured = launch !== undefined && launch.airborne;
-  const relFrame = measured
-    ? launch.anchorFrame
-    : baseOutputs["exit.frame"];
-  const relSpeed = measured
-    ? launch.state.speed
-    : baseOutputs["exit.speed"];
+  if (launch === undefined || !launch.airborne) return null;
+  const relFrame = launch.anchorFrame;
+  const relSpeed = launch.state.speed;
   if (!Number.isFinite(relFrame) || !Number.isFinite(relSpeed) || relSpeed <= 0) return null;
   const gapFrames = scorerGapFrameCount(nextGap);
   const effAsk = airDeliverabilityAsk(ask, gapFrames);
-  const predAir = measured
-    ? projectOutgoingScorerGap(
-      base,
-      nextGap,
-      ctx.gapAxisTargets,
-    )?.achieved.air
-    : baseOutputs["next.airFraction"];
+  const predAir = projectOutgoingScorerGap(
+    base,
+    nextGap,
+    ctx.gapAxisTargets,
+  )?.achieved.air;
   if (predAir === undefined || !Number.isFinite(predAir)) return null;
   if (Math.abs(predAir - effAsk) <= AIR_KNOB_MIN_MISMATCH) return null;
   // Target release frame delivering effAsk, kept strictly rideable: after the

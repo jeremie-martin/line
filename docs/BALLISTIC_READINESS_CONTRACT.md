@@ -85,8 +85,8 @@ other factors.
 |---|---|
 | **incoming scorer gap** | The scorer interval ending at the contact where the candidate arc is placed. |
 | **outgoing scorer gap** | The scorer interval starting at that contact and shaped by the candidate arc's ride-out. |
-| **geometric exit** | The first airborne frame past the candidate arc's end plane. |
-| **launch anchor** | The last causal engine frame whose exact rider state initializes ballistic projection. It may be zero to three frames after geometric exit. |
+| **geometric exit** | The first frame that is airborne, past the candidate arc's end plane, and still airborne one frame later. A function of the geometry and the trajectory alone. |
+| **launch anchor** | The geometric exit. There is no separate anchor rule: the exit frame IS the frame whose exact rider state initializes ballistic projection. |
 | **observed prefix** | Exact samples from the outgoing scorer-gap start through the launch anchor, inclusive. |
 | **ballistic suffix** | Collision-free trajectory strictly after the launch anchor. |
 | **incoming boundary** | Collision-free pre-contact configuration and target-frame incoming velocity at the next authored contact. It is not a post-impact state. |
@@ -144,18 +144,32 @@ Launch acquisition produces one causal packet:
 
 ```ts
 type BallisticLaunchObservation = {
-  outgoingGapStartFrame: number; // C_i
-  anchorFrame: number;           // L_i
+  gapStartFrame: number; // C_i
+  anchorFrame: number;   // L_i, the geometric exit
   state: BallisticState;
   prefix: BallisticObservedPrefix;
-  sampleCount: number;
   groundedFrames: number;
   airborne: boolean;
 };
 ```
 
-Production may reconstruct the exact rider state once at `anchorFrame`. No
-target-frame or future read is legal.
+Production reconstructs the exact rider state exactly once, at `anchorFrame`.
+No target-frame or future read is legal.
+
+`anchorFrame` is the geometric exit, verbatim. Acquisition performs no forward
+scan: the constraint kernel needs one state (ten points plus their previous
+positions), and the measured boundary error at the next authored contact is
+~1e-5 px, so later anchors bought nothing while making the anchor a function of
+the caller's detection-window schedule.
+
+Every acquisition targets the NEXT AUTHORED CONTACT. Measurement boundaries
+such as an axis-lookahead frame are not legal target frames: using one made two
+call sites disagree about which launches were admissible.
+
+Growing the detection window to find the exit is a cost optimization and may
+never influence a reported quantity. Two callers that grow on different
+schedules must acquire the identical launch; `tests/exit_read.test.ts` and
+`tests/ballistic_launch.test.ts` pin that.
 
 ### 5.2 Output
 
@@ -327,6 +341,36 @@ axis twice.
 
 Readiness may order work and propose candidates. It may not bypass exact
 simulation, hard gates, or the forward judge.
+
+### 8.1 When no launch can be acquired
+
+A viable candidate may still have no ballistic launch: its geometric exit is
+not confirmable inside the simulated window, the anchor would fall at or past
+the next authored contact, or the launch state is unreadable. Such a candidate
+has no projected outgoing quality and no readiness, so it has no proposal
+utility at all.
+
+**Current policy, stated so it is a decision rather than an accident:** a
+candidate with no proposal utility sorts below *every* candidate that has one,
+regardless of its exact incoming-gap cost, and is excluded from aim refinement.
+It is not rejected — the exact judge may still select it if nothing better
+exists.
+
+Measured mass, so the policy can be priced: across 8 canonical V2 cases at
+50k budget, 99.33% of acquisitions confirmed an exit, 0.06% were not
+confirmable in the window, and 0.60% were unreadable or acausal.
+
+Alternatives worth testing, none of which has been:
+
+1. **Neutral utility** — score the candidate as if readiness were `1`, so it
+   competes on its settled incoming quality alone. Treats "unknown future" as
+   "average future" rather than "worst future".
+2. **Cost-order interleave** — rank launch-less candidates among the scored
+   ones by their exact cost rather than appending them below.
+3. **Pay for the answer** — extend the detection window far enough to confirm
+   the exit, trading simulated frames for coverage on the 0.06%.
+4. **Explicit rejection** — refuse the candidate outright, making the absence of
+   a ballistic hand-off a hard gate rather than a ranking penalty.
 
 ## 9. Frozen readiness corpus
 

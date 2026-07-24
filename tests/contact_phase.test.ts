@@ -45,12 +45,13 @@ describe("detector runway policy", () => {
     });
   });
 
-  test("measures runway from the first launch sample, not the later anchor", () => {
+  test("measures runway from the anchor, which is the geometric arc exit", () => {
     const launch = {
-      anchorFrame: 14,
-      anchorScanFrames: 4,
+      anchorFrame: 11,
       airborne: true,
     } as Parameters<typeof ballisticLaunchLeavesDetectorRunway>[0];
+    // MIN_LANDING_AIRBORNE_FRAMES - 1 = 5 frames of runway are required.
     expect(ballisticLaunchLeavesDetectorRunway(launch, 16)).toBe(true);
+    expect(ballisticLaunchLeavesDetectorRunway(launch, 15)).toBe(false);
   });
 });

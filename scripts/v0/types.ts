@@ -662,7 +662,6 @@ export type CompileStats = {
       joint_probe_saved_frames_mean: number;
       joint_probe_suffix_after_current_mean: number;
       joint_probe_suffix_after_next: number;
-      joint_probe_anchor_scan_frames_mean: number;
       joint_probe_current_ok: number;
       joint_probe_next_state_ok: number;
       joint_fit_degraded_outputs: number;
@@ -692,9 +691,9 @@ export type CompileStats = {
   release_exit?: {
     release_exit_used: number;
     release_exit_fallback_no_exit: number;
-    release_exit_fallback_next_contact: number;
     release_exit_fallback_unreadable: number;
     release_exit_airborne: number;
+    release_exit_reconfirm_broken: number;
   };
   /** Short-horizon gap-fit funnel (core/candidate.ts). Non-scoring
    *  diagnostics: truncated vs full-horizon evals and frames saved. */

@@ -16,7 +16,6 @@ import {
   axisLookaheadEndFrame,
   tryCandidateLines,
 } from "../core/candidate.ts";
-import { ballisticLaunchFirstSampleFrame } from "../core/ballistic_launch.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { Gap, TrackLine } from "../types.ts";
 import { nextContactGap } from "./objective.ts";
@@ -164,9 +163,11 @@ export function ballisticLaunchLeavesDetectorRunway(
   launch: Candidate["ballisticLaunch"],
   nextContactFrame: number,
 ): boolean {
+  // The anchor IS the geometric arc exit, so the runway is measured from the
+  // exit with no correction. (It used to be measured from an anchor that sat
+  // up to three frames later, silently shortening the runway.)
   return launch !== undefined && launch.airborne &&
-    nextContactFrame - ballisticLaunchFirstSampleFrame(launch) >=
-      MIN_LANDING_AIRBORNE_FRAMES - 1;
+    nextContactFrame - launch.anchorFrame >= MIN_LANDING_AIRBORNE_FRAMES - 1;
 }
 
 function buildDetectorRunwayLines(

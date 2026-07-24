@@ -124,7 +124,6 @@ function ballisticLaunch(
         (_, index) => vy * index,
       ),
     },
-    anchorScanFrames: 1,
     groundedFrames: 1,
     airborne: true,
   };

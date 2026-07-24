@@ -13,7 +13,7 @@
  * track. For each committed contact gap, compare the two measurements of its axes
  * on the IDENTICAL geometry:
  *   - BALLISTIC  = the committed fit.achieved (engine through the arc to the
- *                  geometric exit, then propagateBallisticArrivalState suffix).
+ *                  geometric exit, then the projectBallisticGap suffix).
  *   - COMPOSED   = measureGapAxes over a detection of the WHOLE composed track
  *                  (winningNode.prefixEngine, all arcs present) — what the FULL leaf
  *                  actually scores.

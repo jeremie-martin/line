@@ -14,6 +14,11 @@
  * the float-op sequence of the plane math is identical and lives here.
  *
  * Jérémie's hard requirement: ONE definition of "the rider has exited the arc".
+ * That definition is `confirmedArcExitFrame`, and it is a function of the
+ * geometry and the trajectory alone — never of how far the caller happened to
+ * simulate. The exit frame IS the ballistic launch anchor (see
+ * core/ballistic_launch.ts): there is no separate anchor rule, no forward scan,
+ * and no second notion of "clean".
  */
 
 export type Vec2 = { x: number; y: number };
@@ -88,14 +93,39 @@ export function firstAirborneExitFrame(
 }
 
 /**
- * First geometric exit that is known, from the already simulated causal
- * window, to remain airborne through `endFrame`.
+ * Airborne continuation required to confirm a geometric exit, in frames.
  *
- * A one-frame airborne excursion followed by another contact with the same
- * arc is not a ballistic hand-off. This helper deliberately chooses the later
- * clean exit in that case. It does not inspect any frame beyond `endFrame`.
+ * A single frame is enough, and it is measured rather than assumed: over
+ * 202,752 real production launches (all 44 canonical V2 cases × 3 seeds, the
+ * frozen ballistic corpus), only 12 — 0.0059% — took ANY collision update
+ * strictly after the launch anchor, and every one of those occurred at exactly
+ * anchor+1 on a trailing point (TAIL, LFOOT/RFOOT). One confirming frame
+ * catches precisely that failure mode; requiring more would cost simulated
+ * frames to defend against something that does not happen.
  */
-export function firstCleanAirborneExitFrame(
+export const ARC_EXIT_CONFIRM_FRAMES = 1;
+
+/**
+ * THE geometric arc exit: the first frame at which the rider is airborne, past
+ * the arc-end plane, and STAYS airborne for `ARC_EXIT_CONFIRM_FRAMES` more
+ * frames. That trailing frame rejects the one real failure mode — a trailing
+ * sled/limb point grazing the arc on the very next frame — without treating a
+ * later, unrelated contact as evidence about this exit.
+ *
+ * SCHEDULE INDEPENDENCE (the property the callers rely on): the answer is the
+ * FIRST qualifying frame, and qualification depends only on frames in
+ * `[f, f + ARC_EXIT_CONFIRM_FRAMES]`. So once the observed window reaches
+ * `exit + ARC_EXIT_CONFIRM_FRAMES`, growing it further can never change the
+ * answer, and two callers that grow their detection windows on different
+ * schedules necessarily agree. `null` means "not confirmable in this window" —
+ * the caller must simulate further, never "there is no exit".
+ *
+ * This replaced a horizon-relative rule ("the airborne run ending at
+ * `endFrame`"), under which the exit frame — and therefore the launch state,
+ * the exact/predicted split, and every readiness feature — moved with however
+ * far the caller happened to simulate.
+ */
+export function confirmedArcExitFrame(
   lines: readonly ExitLine[],
   startFrame: number,
   endFrame: number,
@@ -103,45 +133,79 @@ export function firstCleanAirborneExitFrame(
   positionAtFrame: (frame: number) => Vec2 | null | undefined,
 ): number | null {
   const exit = arcExitPlane(lines);
-  let cleanSuffixStart: number | null = null;
-  for (let frame = endFrame; frame >= startFrame; frame--) {
-    if (airborneAtFrame(frame) !== true) break;
-    cleanSuffixStart = frame;
-  }
-  if (cleanSuffixStart === null) return null;
-  for (let frame = cleanSuffixStart; frame <= endFrame; frame++) {
-    if (positionPastArcExit(positionAtFrame(frame), exit)) return frame;
+  const lastConfirmable = endFrame - ARC_EXIT_CONFIRM_FRAMES;
+  for (let frame = startFrame; frame <= lastConfirmable; frame++) {
+    if (airborneAtFrame(frame) !== true) continue;
+    if (!positionPastArcExit(positionAtFrame(frame), exit)) continue;
+    let confirmed = true;
+    for (let ahead = 1; ahead <= ARC_EXIT_CONFIRM_FRAMES; ahead++) {
+      if (airborneAtFrame(frame + ahead) !== true) {
+        confirmed = false;
+        break;
+      }
+    }
+    if (confirmed) return frame;
   }
   return null;
 }
 
 /**
- * Single source of truth for the SHORT-HORIZON detection window growth loop
- * (the minimal-simulation principle: the engine simulates only inside arcs;
- * after a clean airborne arc exit everything is ballistic). Grows the detection
- * window in 4-frame chunks from `minExit` up to `cap`, stopping as soon as
- * either the rider terminated before the chunk horizon (a ride-out / death the
- * caller must see in full) or a clean airborne arc-exit was found in the chunk.
+ * Diagnostic only: the first frame after a confirmed exit's confirmation
+ * window at which the rider is observed NOT airborne, within the window the
+ * caller already simulated. Null when the flight stays clean.
  *
- * Parametrized over a single `probe(horizon)` callback so both call sites
- * (optimizer/arc_probe.ts on the metered ENGINE, core/candidate.ts on the
- * DETECTION arrays) share the exact chunk schedule and stop condition; the
- * caller's `probe` re-detects to `horizon` and reports whether the rider
- * terminated before it and/or a clean exit was found. The float-free chunk
- * arithmetic (start at `minExit`, step `min(cap, horizon + 4)`, while
- * `horizon < cap`) lives here so the window growth cannot fork.
+ * This is the standing measurement of what the confirmation rule gives up. It
+ * reads only already-detected frames, so it costs no simulation.
+ */
+export function arcExitAirborneBreakFrame(
+  exitFrame: number,
+  endFrame: number,
+  airborneAtFrame: (frame: number) => boolean | undefined,
+): number | null {
+  for (
+    let frame = exitFrame + ARC_EXIT_CONFIRM_FRAMES + 1;
+    frame <= endFrame;
+    frame++
+  ) {
+    if (airborneAtFrame(frame) === false) return frame;
+  }
+  return null;
+}
+
+/**
+ * Detection-window growth for the minimal-simulation principle: the engine
+ * simulates only until the rider has demonstrably left the arc; everything
+ * after that is ballistic. Grows the window in `GROW_CHUNK_FRAMES` steps from
+ * `minExit` to `cap`, stopping as soon as either the rider terminated before
+ * the chunk horizon (a ride-out / death the caller must see in full) or the
+ * exit was confirmed inside the chunk.
+ *
+ * THIS IS A COST OPTIMIZATION AND NOTHING ELSE. The chunk size trades detection
+ * work (`detectWindow` re-walks the whole window on every call, so growing one
+ * frame at a time is quadratic) against wasted simulation past a death. It must
+ * not influence any reported quantity: `confirmedArcExitFrame` returns the
+ * first frame confirmable within the window, so every schedule that reaches
+ * `exit + ARC_EXIT_CONFIRM_FRAMES` yields the same exit, the same anchor, and
+ * the same launch state. `tests/exit_read.test.ts` pins that invariant.
  *
  * Returns the chosen stop horizon (≤ `cap`). `cap` is returned when neither
  * stop condition fires within the window.
  */
+export const GROW_CHUNK_FRAMES = 4;
+
 export type ShortHorizonProbe = { terminatedEarly: boolean; exitFound: boolean };
 
 export function growShortHorizon(
   minExit: number,
   cap: number,
   probe: (horizon: number) => ShortHorizonProbe,
+  chunkFrames: number = GROW_CHUNK_FRAMES,
 ): number {
-  for (let horizon = minExit; horizon < cap; horizon = Math.min(cap, horizon + 4)) {
+  for (
+    let horizon = minExit;
+    horizon < cap;
+    horizon = Math.min(cap, horizon + chunkFrames)
+  ) {
     const { terminatedEarly, exitFound } = probe(horizon);
     if (terminatedEarly || exitFound) return horizon;
   }

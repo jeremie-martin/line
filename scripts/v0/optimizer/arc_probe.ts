@@ -29,7 +29,7 @@ import {
   recordBallisticTraceCandidate,
 } from "../core/ballistic_trace.ts";
 import {
-  firstCleanAirborneExitFrame,
+  confirmedArcExitFrame,
   growShortHorizon,
 } from "../core/exit_read.ts";
 import {
@@ -83,14 +83,11 @@ export type JointArcProbeObservation = JointArcProbeRow & {
   /** Last simulated frame used by this observation. In short mode this is the
    *  stop frame chosen by the exit detector, not the former full next-gap horizon. */
   horizonFrame: number;
-  /** First frame at/after the current catch where the rider has crossed the
-   *  arc-end plane and the observed suffix remains airborne.
-   *  Short-mode ballistic completion starts from this frame. */
+  /** The confirmed geometric arc exit at/after the current catch. This is the
+   *  ballistic launch anchor; short-mode completion starts from this frame. */
   suffixFrame: number | null;
-  /** True for every emitted suffix; null when no clean exit was observed. */
+  /** True for every emitted suffix; null when no confirmed exit was observed. */
   cleanAirborneSuffix: boolean | null;
-  /** Consecutive causal detector frames inspected before the exact anchor read. */
-  anchorScanFrames: number | null;
 };
 
 export type JointArcProbeOptions = {
@@ -219,7 +216,7 @@ function observeShortJointArcLines(
   const offBeatEnd = Math.min(axisMeasureEnd, horizon);
   const offBeatLandings = countOffBeatLandings(det.events, gap.startFrame, offBeatEnd, [...contactFrames]);
   const currentOk = survivedCurrent && landingOk && offBeatLandings === 0;
-  const suffixFrame = firstCleanAirborneExitFrameAtOrAfter(
+  const suffixFrame = confirmedArcExitFrameAtOrAfter(
     det,
     lines,
     gap.endFrame,
@@ -229,8 +226,7 @@ function observeShortJointArcLines(
     ? null
     : captureBallisticLaunchObservation(fork, det, {
       gapStartFrame: gap.endFrame,
-      firstSampleFrame: suffixFrame,
-      lastSampleFrame: horizon,
+      anchorFrame: suffixFrame,
       targetFrameExclusive: nextFrame,
       groundedFrames: 0,
     });
@@ -296,7 +292,6 @@ function observeShortJointArcLines(
     horizonFrame: horizon,
     suffixFrame,
     cleanAirborneSuffix,
-    anchorScanFrames: launch?.anchorScanFrames ?? null,
     gate: {
       currentOk,
       survivedCurrent,
@@ -392,7 +387,6 @@ function observeFullJointArcLines(
     horizonFrame: horizon,
     suffixFrame: null,
     cleanAirborneSuffix: null,
-    anchorScanFrames: null,
     gate: {
       currentOk,
       survivedCurrent,
@@ -431,7 +425,7 @@ function shortProbeHorizon(engine: any, lines: TrackLine[], gap: Gap, nextFrame:
     const det = detectWindow(engine, gap.startFrame, horizon);
     return {
       terminatedEarly: det.terminus.frame < horizon && det.terminus.reason !== "endOfSpec",
-      exitFound: firstCleanAirborneExitFrameAtOrAfter(
+      exitFound: confirmedArcExitFrameAtOrAfter(
         det,
         lines,
         minExit,
@@ -460,16 +454,21 @@ function addProjectionOutputs(
   addFinite(outputs, "next.elevation", projection.elevation);
 }
 
-function firstCleanAirborneExitFrameAtOrAfter(
+function confirmedArcExitFrameAtOrAfter(
   det: ReturnType<typeof detectWindow>,
   lines: readonly TrackLine[],
   startFrame: number,
   endFrame: number,
 ): number | null {
-  // Delegates to the shared clean geometric-exit detector. Position and
-  // airborne occupancy both come from the existing causal detection window.
-  // The canonical launch capture performs the only rider reconstruction.
-  return firstCleanAirborneExitFrame(
+  // Delegates to the shared geometric-exit definition. Position and airborne
+  // occupancy both come from the existing causal detection window. The
+  // canonical launch capture performs the only rider reconstruction.
+  //
+  // This probe grows its window without the candidate evaluator's survival
+  // floor, and still returns the same exit frame for the same lines: the exit
+  // is the first frame confirmable in the window, so a longer window cannot
+  // move it.
+  return confirmedArcExitFrame(
     lines,
     startFrame,
     endFrame,

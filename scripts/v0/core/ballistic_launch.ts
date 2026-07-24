@@ -1,9 +1,17 @@
 /**
  * Canonical causal launch acquisition.
  *
- * The detector already owns the simulated prefix. We use it to select the last
- * consecutive airborne sample and summarize the exact gap prefix, then perform
- * one rider read at that anchor to capture the ten-point constraint state.
+ * THE ANCHOR IS THE CONFIRMED GEOMETRIC ARC EXIT (core/exit_read.ts
+ * `confirmedArcExitFrame`) — a physical fact about the geometry and the
+ * trajectory. There is deliberately no forward scan and no alternative anchor
+ * rule. A scan existed while the predictor fitted a velocity from several
+ * samples; the constraint micro-simulation needs exactly one state (ten points
+ * plus their previous positions), and the measured boundary error at the next
+ * authored contact is ~1e-5 px, so buying 0-3 extra exact frames bought
+ * nothing while making the anchor a function of the detection-window schedule.
+ *
+ * The detector already owns the simulated prefix; we summarize the exact gap
+ * prefix from it and perform exactly one rider read, at the anchor.
  */
 
 import {
@@ -21,16 +29,14 @@ import {
 import { summarizeBallisticAxisPrefix } from "./measure.ts";
 import { airborneAt, velocityAt } from "./substrate.ts";
 
-/** Maximum consecutive causal frames inspected before selecting the latest
- * exact rider-state anchor. Only the selected anchor performs a rider read. */
-export const BALLISTIC_ANCHOR_SCAN_FRAMES = 4;
-
 export type BallisticLaunchCapture = {
+  /** Start of the scorer interval this launch completes: the authored contact
+   *  where the arc was placed, which is also the outgoing gap's first frame. */
   gapStartFrame: number;
-  firstSampleFrame: number;
-  /** Inclusive cap from the already-simulated detector window. */
-  lastSampleFrame: number;
-  /** Launch acquisition is strictly causal and may not sample this frame. */
+  /** The confirmed geometric arc exit. This is the anchor, verbatim. */
+  anchorFrame: number;
+  /** The authored contact this launch flies toward. Acquisition is strictly
+   *  causal and may not read this frame or any later one. */
   targetFrameExclusive: number;
   groundedFrames: number;
 };
@@ -41,29 +47,19 @@ export function captureBallisticLaunchObservation(
   det: Detection,
   capture: BallisticLaunchCapture,
 ): BallisticLaunchObservation | null {
-  const lastAllowed = Math.min(
-    capture.lastSampleFrame,
-    capture.targetFrameExclusive - 1,
-    capture.firstSampleFrame + BALLISTIC_ANCHOR_SCAN_FRAMES - 1,
-  );
-  let anchorFrame: number | null = null;
-  let anchorScanFrames = 0;
-  for (
-    let frame = capture.firstSampleFrame;
-    frame <= lastAllowed;
-    frame++
-  ) {
-    if (airborneAt(det, frame) !== true) break;
-    const velocity = velocityAt(det, frame);
-    if (
-      velocity === undefined ||
-      !Number.isFinite(velocity.x) ||
-      !Number.isFinite(velocity.y)
-    ) break;
-    anchorFrame = frame;
-    anchorScanFrames++;
-  }
-  if (anchorFrame === null) return null;
+  const anchorFrame = capture.anchorFrame;
+  if (
+    !Number.isSafeInteger(anchorFrame) ||
+    anchorFrame < capture.gapStartFrame ||
+    anchorFrame >= capture.targetFrameExclusive
+  ) return null;
+  if (airborneAt(det, anchorFrame) !== true) return null;
+  const anchorVelocity = velocityAt(det, anchorFrame);
+  if (
+    anchorVelocity === undefined ||
+    !Number.isFinite(anchorVelocity.x) ||
+    !Number.isFinite(anchorVelocity.y)
+  ) return null;
 
   const rider = getRiderMetered(engine, anchorFrame);
   if (!riderUsable(rider)) return null;
@@ -114,53 +110,8 @@ export function captureBallisticLaunchObservation(
     anchorFrame,
     state,
     prefix: prefixWithAmplitude,
-    anchorScanFrames,
     groundedFrames: capture.groundedFrames,
     airborne: true,
-  };
-}
-
-/** First causal sample represented by a consecutive launch read. */
-export function ballisticLaunchFirstSampleFrame(
-  launch: Pick<
-    BallisticLaunchObservation,
-    "anchorFrame" | "anchorScanFrames"
-  >,
-): number {
-  return launch.anchorFrame - launch.anchorScanFrames + 1;
-}
-
-/**
- * Reuse the already-read anchor state for a different scorer interval. This is
- * the only supported way to share one engine read between current-gap
- * completion and next-gap readiness.
- */
-export function rebaseBallisticLaunchObservation(
-  det: Detection,
-  launch: BallisticLaunchObservation,
-  gapStartFrame: number,
-): BallisticLaunchObservation | null {
-  const prefix = summarizeBallisticAxisPrefix(
-    det,
-    { startFrame: gapStartFrame },
-    launch.anchorFrame,
-  );
-  if (
-    prefix === null ||
-    prefix.startFrame !== gapStartFrame ||
-    prefix.prefixEndFrame !== launch.anchorFrame
-  ) return null;
-  return {
-    ...launch,
-    gapStartFrame,
-    prefix: {
-      ...prefix,
-      displacementYByFrame: prefixDisplacements(
-        det,
-        gapStartFrame,
-        launch.anchorFrame,
-      ),
-    },
   };
 }
 

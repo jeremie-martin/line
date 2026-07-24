@@ -150,8 +150,6 @@ export type BallisticLaunchObservation = {
   anchorFrame: number;
   state: BallisticState;
   prefix: BallisticObservedPrefix;
-  /** Consecutive causal detector frames inspected through `anchorFrame`. */
-  anchorScanFrames: number;
   /** Diagnostic contact occupancy between the preceding catch and anchor. */
   groundedFrames: number;
   /** Must be true before collision-free projection is legal. */

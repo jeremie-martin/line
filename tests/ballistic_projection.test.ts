@@ -66,7 +66,6 @@ function launch(): BallisticLaunchObservation {
       v0SpeedPx: 3,
       displacementYByFrame: [0, 2, 5],
     },
-    anchorScanFrames: 1,
     groundedFrames: 1,
     airborne: true,
   };

@@ -337,3 +337,24 @@ What remains unexplained in `6d064b0` is therefore the exit-detector change and
 the replacement of the hand-built readiness estimators with the trained
 artifact — the latter being a model fitted on a corpus collected under a
 DIFFERENT compiler, replacing estimators that had co-evolved with the search.
+
+**Falsification 6 — `cost` scoring the wrong gap is a real inconsistency but
+not the deficit.** Implemented the principled version: `cost` measures what the
+arc owns, using the SAME ownership split as `composeArcProposalTargets` — the
+impact and grain it delivers at its own contact (from the exact measurement the
+fit already carries) plus the motion of the gap it opens (from the memoized
+outgoing projection, zero engine frames).
+
+  owned-gap cost   dense 34.7 / 28.2, 0/10   healthy 76.4 / 72.0
+  current          dense 34.3 / 27.8, 1/10   healthy 76.4 / 72.0
+
+A wash: +0.4 on dense landing, one completion lost, healthy identical, per-case
+depth better on three and worse on two. Reverted rather than kept behind a
+default-off flag, which would be another parallel path.
+
+The reason it cannot matter is measurable and was already in hand: at the
+benchmark's budgets the three-layer objective orders **98.5%** of the pool, and
+`localScore` — the only branch-selection consumer of `cost` — is short-circuited
+by forward-eval above 75k. So `cost` survives mainly as a tiebreak. The design
+inconsistency is real and worth fixing eventually for coherence; it is not worth
+attributing the deficit to.

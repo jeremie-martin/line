@@ -252,3 +252,69 @@ the survival gate to the truncated horizon (`min(horizon, …)`) and narrows the
 off-beat window, while a full-horizon fallback applies both at full width. The
 screen now reports `trunc%` alongside the per-gate failure split so the bisect
 can show it directly.
+
+### 2026-07-25 — trajectory, not generation; three falsifications and two keeps
+
+**The discriminator.** Per-gap viability, `8f73527` (healthy, 9/10 completions)
+vs `cdba2d7` (broken, 1/10), same spec and seed, on two dense cases. At gap 0
+both compilers start from an identical engine state, so the candidate SET is
+generator-determined.
+
+| band | 8f73527 | cdba2d7 | | 8f73527 | cdba2d7 |
+|---|---:|---:|---|---:|---:|
+| | *dense_recovery* | | | *pickup_progression* | |
+| gaps 0–4 | 45.5% | **44.4%** | | 45.7% | **45.5%** |
+| gaps 5–9 | 42.7% | **43.2%** | | 45.0% | **43.4%** |
+| gaps 10–19 | 41.7% | 23.6% | | 41.9% | 31.5% |
+| gaps 40+ | 28.2% | 17.9% | | 34.3% | 25.7% |
+
+Early gaps are **identical**; divergence begins only once the trajectories
+separate. **The generator is fine. The search commits worse catches.** This is
+why the approach-aim arm failed — it changed generation, which was never the
+problem.
+
+**Falsified this session, with the measurement that killed each:**
+
+1. *Approach aim from the incoming gap* — see the previous entry. Landing rate
+   did not recover, depth got worse, headline 491.31 → 487.03.
+2. *The deleted catch+8 release fallback dumps candidates to the bottom of the
+   pool.* Measured objective-bail rates: `8f73527` 3.7% / 14.0% / 6.7% vs
+   `cdba2d7` 4.0% / 2.0% / 9.0% on dense_recovery / pickup / amplitude_tides.
+   `cdba2d7` is not systematically worse and is much better on pickup. Nearly
+   all candidates ARE scored, so ranking blindness is not the mechanism.
+3. *The scorer's RMS axis pooling compresses the projected term on short gaps.*
+   Measured per-pool spread of each objective layer: the projected layer is
+   MORE spread on dense specs (0.406, 0.419) than on healthy ones (0.267,
+   0.469). Not compressed.
+
+Also ruled out by the gate breakdown across the bisect: truncation rate ROSE at
+`cdba2d7` (95.0% → 97.6%) rather than falling, and survival failures FELL
+(2.8% → 1.4%). Only landing failures track the deficit: 39.0 → 42.7 → 46.6.
+
+**Kept, both principled and measured, neither closing the deficit:**
+
+- *Projected outgoing air is scored against the deliverable ask* (`e142a44`).
+  Restores a physical constraint the pre-refactor readiness encoded as
+  `effectiveAirAsk` and which survives as `airDeliverabilityAsk`, applied where
+  ranking scores air. Binds on 47%/46% of dense gaps and 0% of healthy — the
+  discriminating pattern the mechanism predicts. Dense land 33.5 → 34.5, depth
+  better on three cases and worse on none, healthy bit-identical.
+- *The next-arc air factor is excluded from the readiness product.* It carries
+  no boundary information (a no-physics lookup scores 0.01228 against the
+  model's 0.01022; boundary-only 0.03843 against a global mean of 0.03925), and
+  removing it is better on BOTH strata. The compiler ablation independently
+  prices it lowest of the four factors (~5 points against catchability's ~25).
+
+**The open structural fact, not yet acted on.** Per-pool spread shows that on
+dense specs `readiness` sits at a mean level of **0.089–0.095** with ~118%
+relative spread, against 0.288–0.300 and ~80% on healthy specs. So the ranking
+of a real arc is dominated by a prediction about an arc that does not exist
+yet, and the domination gets stronger exactly as catchability falls — a
+feedback loop: hard spec → low catchability → readiness dominates → ranking
+driven by next-arc prediction → worse commits → harder spec. `settled` and
+`projected` are qualities on ~0.5; multiplying them by a probability-like
+product on ~0.09 is a scale mismatch, not a search-policy choice anyone made.
+
+Sweeping `LR_OBJECTIVE_FUTURE_POWER` to 0.5 and 2.0 both improved dense landing
+slightly (35.4 and 36.5 against 34.3), which is knob noise at 2 seeds rather
+than a mechanism, and is recorded here only so it is not mistaken for a lead.

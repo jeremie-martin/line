@@ -686,6 +686,12 @@ export type CompileStats = {
       enum_air_emitted: number;
     };
   };
+  /** Collision-free frames advanced by the ballistic kernel. The budget is
+   *  denominated in ENGINE frames, which this kernel never charges, so without
+   *  this counter the volume of ballistic work is invisible. Compare against
+   *  `sim_frames`: a ratio near 1 means the compile ran a full shadow flight
+   *  simulation alongside its real one. */
+  ballistic_micro_sim_frames?: number;
   /** Geometric-exit release-read funnel (core/candidate.ts). Non-scoring
    *  diagnostics; absent under LR_RANK_QUALITY=off (no read taken). */
   release_exit?: {

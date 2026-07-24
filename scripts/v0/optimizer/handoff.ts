@@ -132,6 +132,7 @@ import { registerCompileReset, resetPerCompileState } from "../core/compile_life
 import { supportExtensionPressure } from "../core/support_geometry.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import { getSimFrames, refundSimFramesTo } from "./sim_frames.ts";
+import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
   setCompileBudgetFrames,
   setImpactProfilePressures,
@@ -1503,6 +1504,7 @@ function compileHandoffInternal(
           candidates_viable: getViableCandidates(),
           budget_exhausted: budgetExhausted,
           sim_frames: getSimFrames(),
+          ballistic_micro_sim_frames: getMicroSimFrames(),
           traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
           predicted_first_completion_frames: predictedFirstCompletionFrames,
           budget_slack: budgetSlackTelemetry,
@@ -7203,6 +7205,7 @@ function buildNodeOutput(
       total_committed_cost: node.search.cumulativeCost,
       committed_costs_per_gap: fits.map((fit) => fit === null ? null : fit.cost),
       sim_frames: getSimFrames(),
+      ballistic_micro_sim_frames: getMicroSimFrames(),
       budget_exhausted: budgetExhausted,
       handoff_skips: node.skippedContacts,
       handoff_start_rank: node.startRank,

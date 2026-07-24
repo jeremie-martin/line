@@ -8,6 +8,8 @@
  * reproduces the rider's free-flight state at a tiny fraction of a full fork.
  */
 
+import { registerCompileReset } from "./compile_lifecycle.ts";
+
 export const BALLISTIC_POINT_IDS = [
   "PEG",
   "TAIL",
@@ -395,7 +397,24 @@ function frozenState(state: MutableState): ConstraintBallisticState {
   };
 }
 
+/**
+ * Collision-free frames advanced since the last reset. The compiler's budget is
+ * denominated in ENGINE frames, which this kernel never charges — so without a
+ * counter the volume of ballistic work a compile performs is invisible.
+ */
+let microSimFrames = 0;
+
+export function getMicroSimFrames(): number {
+  return microSimFrames;
+}
+
+export function resetMicroSimFrames(): void {
+  microSimFrames = 0;
+}
+registerCompileReset(resetMicroSimFrames);
+
 function step(state: MutableState, gravity: number): void {
+  microSimFrames++;
   for (let index = 0; index < BALLISTIC_POINT_IDS.length; index++) {
     const nvx = state.px[index] - state.prevx[index];
     const nvy = state.py[index] - state.prevy[index] + gravity;

@@ -171,6 +171,14 @@ never influence a reported quantity. Two callers that grow on different
 schedules must acquire the identical launch; `tests/exit_read.test.ts` and
 `tests/ballistic_launch.test.ts` pin that.
 
+Cost note: this kernel is a faithful reimplementation of the engine's airborne
+solver, so its per-frame cost is comparable to the engine's rather than
+negligible. What it buys is that engine frames are the search BUDGET and this
+charges none of them, plus a counterfactual the engine cannot answer without a
+fork. Whether it is cheaper in wall clock is an open, unmeasured question
+tracked in [`../ballistic-goal.md`](../ballistic-goal.md); the volume is
+reported per compile as `CompileStats.ballistic_micro_sim_frames`.
+
 ### 5.2 Output
 
 The collision-free kernel owns:

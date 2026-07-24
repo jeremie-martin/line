@@ -201,3 +201,54 @@ comparison run.
 - `EVALUATOR_FINGERPRINT` refresh. Live is `6d58e529b802`, the committed
   constant is `6f760d9c1cc9`, and it was ALREADY stale at `HEAD~1`
   (`31c8c167c6bf`). Golden-harness tripwire only; benchmark-v2 is unaffected.
+
+### 2026-07-25 — bisect: the deficit is `cdba2d7`, and the ballistic work is exonerated
+
+Hypothesis-free localisation. A Tier-0 screen (5 dense + 3 healthy cases, 250k,
+2 seeds, ~2 min per state) run in a detached worktree at each buildable commit
+between the accepted baseline and HEAD. `engine-rs` is unchanged across the
+whole range, so one shared WASM binary keeps the comparison fair.
+
+| commit | dense land% | dense viab% | **completions** | healthy land% | healthy viab% |
+|---|---:|---:|---:|---:|---:|
+| `02c7828` accepted baseline | 46.9 | 41.9 | **6/10** | 73.3 | 68.3 |
+| `2d66844` articulated predictor | 45.8 | 40.6 | **8/10** | 73.6 | 68.8 |
+| `8f73527` constraint predictor | 48.6 | 43.8 | **9/10** | 71.1 | 65.7 |
+| **`cdba2d7` refactor pipeline** | **39.5** | **33.4** | **1/10** | 73.4 | 68.6 |
+| `6d064b0` contact-indexed | 33.9 | 27.6 | **0/10** | 75.5 | 71.0 |
+| `9ce9430` anchor = exit (HEAD) | 33.5 | 27.0 | 0/10 | 75.3 | 70.8 |
+
+Healthy controls are flat across the entire range (71–76%), which is exactly the
+control behaviour the screen needs to be trusted.
+
+Three conclusions, none of which required a hypothesis:
+
+1. **The ballistic predictor work is exonerated.** `2d66844` and `8f73527` are
+   at or ABOVE the baseline on every column — 8/10 and 9/10 completions against
+   the baseline's 6/10. Whatever costs the deficit, it is not the predictor.
+2. **`cdba2d7` is the primary culprit**: 48.6 → 39.5 land, 43.8 → 33.4 viable,
+   and completions collapse 9/10 → 1/10. That single commit carries most of it.
+3. **`6d064b0` is a real but secondary second drop** (39.5 → 33.9), and
+   `9ce9430` is noise (39.5 → 33.5 is within the 6d064b0 step).
+
+Critically, **`cdba2d7` predates `arc_proposal.ts`** — it still aims the
+geometry sampler at the literal `gap.targets`. So the composed-target aim, which
+had been the leading suspect all evening, belongs to the SMALLER second drop and
+cannot explain the big one.
+
+File-level bisection inside `cdba2d7` does not work: it is one entangled
+refactor, and reverting subsets produces chimeras that fail to compile
+(`measure.ts` back to `8f73527` breaks `polish.ts`'s `measureGrainFromLines`
+import; `aim.ts` back breaks on `OBJECTIVE_AIR_DEADBAND`). A revert of the whole
+candidate-evaluation group (candidate + measure + substrate + polish) gave dense
+land 33.0% — worse than `cdba2d7` itself, i.e. an incoherent mixed state rather
+than evidence.
+
+Next: mechanism-level measurement rather than file reverts. `cdba2d7` changed
+the arc-exit detector (`firstAirborneExitFrame` → `firstCleanAirborneExitFrame`,
+horizon-relative and much stricter), which changes how often the short-horizon
+gap fit TRUNCATES. That matters for the gates, because a truncated fit clamps
+the survival gate to the truncated horizon (`min(horizon, …)`) and narrows the
+off-beat window, while a full-horizon fallback applies both at full width. The
+screen now reports `trunc%` alongside the per-gate failure split so the bisect
+can show it directly.

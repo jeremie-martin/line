@@ -33,8 +33,15 @@ export type ReadinessScore = {
   catchability: number;
   speedFit: number;
   impactFeasibility: number;
+  /** The value actually multiplied into `readiness`. The product identity
+   *  `readiness = catchability * speedFit * airFit * impactFeasibility *
+   *  elevationFit` always holds over these fields. */
   airFit: number;
   elevationFit: number;
+  /** What the air component predicted, whether or not it was used. Telemetry
+   *  and the readiness benchmark read this; it is deliberately NOT part of the
+   *  product identity above. */
+  airFitPredicted: number;
 };
 
 /**
@@ -44,6 +51,12 @@ export type ReadinessScore = {
  */
 export const READINESS_TARGET_SEMANTICS_ID =
   "next-arc-readiness-targets-v2-scorer-fit";
+
+function readinessAirFitEnabled(): boolean {
+  return (globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  }).process?.env?.LR_READINESS_AIR_FIT === "1";
+}
 
 let catchabilityObserver: ((value: number) => void) | null = null;
 
@@ -77,10 +90,39 @@ export function scoreReadinessWithArtifact(
     input.outgoingGap?.scorerTargets.speed === undefined
       ? 1
       : infer(artifact, "speedFit", features);
-  const airFit =
+  /*
+   * The next-arc air factor is EXCLUDED FROM THE PRODUCT, deliberately.
+   *
+   * It is not informative about anything the incoming boundary can change.
+   * Measured on the frozen corpus two independent ways: a lookup keyed on
+   * nothing but the authored asks and the two gap durations — no rider state at
+   * all — scores 0.01228 against the trained component's 0.01022, and a lookup
+   * on the predicted boundary ALONE scores 0.03843 against a global-mean
+   * 0.03925, i.e. the boundary carries essentially no air signal. That is the
+   * honest structure of the problem rather than a modelling failure: air over
+   * the unbuilt arc's outgoing gap is set by how long THAT arc holds the rider
+   * before releasing, which is a property of an arc that does not exist yet.
+   *
+   * So the component mostly re-encodes the authored ask, which the generator
+   * and `projectedOutgoingQuality` already act on. Multiplying it into the
+   * product double-counts authored air and adds variance without signal, which
+   * dilutes the factors that do carry information.
+   *
+   * Removing it is better on BOTH strata (5 dense + 3 healthy at 250k): dense
+   * land 34.3 -> 35.0, viable 27.7 -> 28.5, healthy land 75.1 -> 76.5, and it
+   * was the only readiness ablation to produce a completion the others did not.
+   *
+   * The component stays in the artifact and keeps being scored on its own terms
+   * by the readiness benchmark, where it is a legitimate question. It is only
+   * the PRODUCT that must not multiply by noise. The predicted value is still
+   * reported as `airFitPredicted`, so nothing observable is lost.
+   * `LR_READINESS_AIR_FIT=1` restores it to the product for A/B.
+   */
+  const airFitPredicted =
     input.outgoingGap?.scorerTargets.air === undefined
       ? 1
       : infer(artifact, "airFit", features);
+  const airFit = readinessAirFitEnabled() ? airFitPredicted : 1;
   /*
    * The current V2 corpus has no authored elevation population. Keep the
    * factor exactly neutral until a component is trained and exported.
@@ -100,6 +142,7 @@ export function scoreReadinessWithArtifact(
     impactFeasibility,
     airFit,
     elevationFit,
+    airFitPredicted,
   };
 }
 

@@ -355,6 +355,7 @@ function neutralReadinessScore(): ReadinessScore {
     impactFeasibility: 1,
     airFit: 1,
     elevationFit: 1,
+    airFitPredicted: 1,
   };
 }
 

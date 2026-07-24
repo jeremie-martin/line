@@ -386,7 +386,6 @@ type Segment2Row = {
   landingFrameOffset: number | null;
   landingProbeFrames: number;
   achieved: ReturnType<typeof roundAxes>;
-  achievedAtEnd: ReturnType<typeof roundAxes>;
   finalLineCount: number | null;
   error: string | null;
   returnBoundary: ReturnBoundary | null;
@@ -550,7 +549,6 @@ type Row = {
     landingFrameOffset: number | null;
     landingProbeFrames: number;
     achieved: ReturnType<typeof roundAxes>;
-    achievedAtEnd: ReturnType<typeof roundAxes>;
     finalLineCount: number | null;
     error: string | null;
   };
@@ -993,7 +991,6 @@ function evaluateRow(
     landingFrameOffset: s1LandingOffset,
     landingProbeFrames: l1Frames,
     achieved: roundAxes(fit1.achieved),
-    achievedAtEnd: roundAxes(fit1.achievedAtEnd),
     finalLineCount: fit1.lines.length,
     error: null,
   };
@@ -1119,7 +1116,7 @@ function evaluateSegment2(
 ): Segment2Row {
   if (member.lines === null) {
     charge({ admission: 0, landing: 0 });
-    return { family, label: member.label, contactForm: member.form, admitted: false, admissionFrames: 0, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: member.error, returnBoundary: null, ballisticRelease: null };
+    return { family, label: member.label, contactForm: member.form, admitted: false, admissionFrames: 0, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, finalLineCount: null, error: member.error, returnBoundary: null, ballisticRelease: null };
   }
   const before = getSimFrames();
   const fit2 = tryCandidateLines(
@@ -1137,7 +1134,7 @@ function evaluateSegment2(
   const admissionFrames = getSimFrames() - before;
   if (fit2 === null) {
     charge({ admission: admissionFrames, landing: 0 });
-    return { family, label: member.label, contactForm: member.form, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null, error: null, returnBoundary: null, ballisticRelease: null };
+    return { family, label: member.label, contactForm: member.form, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0, achieved: null, finalLineCount: null, error: null, returnBoundary: null, ballisticRelease: null };
   }
   let finalFit2 = fit2;
   let ballistic: BallisticRelease | null = null;
@@ -1147,7 +1144,7 @@ function evaluateSegment2(
       charge({ admission: admissionFrames, landing: 0 });
       return {
         family, label: member.label, contactForm: member.form, admitted: false, admissionFrames, landingFrameOffset: null, landingProbeFrames: 0,
-        achieved: null, achievedAtEnd: null, finalLineCount: null, error: release.error, returnBoundary: null,
+        achieved: null, finalLineCount: null, error: release.error, returnBoundary: null,
         ballisticRelease: { ...release, reAdmissionFrames: 0, retainedSecondCapture: false },
       };
     }
@@ -1169,7 +1166,7 @@ function evaluateSegment2(
       charge({ admission: admissionFrames + reAdmissionFrames, landing: 0 });
       return {
         family, label: member.label, contactForm: member.form, admitted: false, admissionFrames: admissionFrames + reAdmissionFrames,
-        landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null,
+        landingFrameOffset: null, landingProbeFrames: 0, achieved: null, finalLineCount: null,
         error: "ballistic release line set is not admitted at k+1", returnBoundary: null,
         ballisticRelease: { ...release, reAdmissionFrames, retainedSecondCapture: false, error: "ballistic release line set is not admitted at k+1" },
       };
@@ -1179,7 +1176,7 @@ function evaluateSegment2(
       charge({ admission: admissionFrames + reAdmissionFrames, landing: 0 });
       return {
         family, label: member.label, contactForm: member.form, admitted: false, admissionFrames: admissionFrames + reAdmissionFrames,
-        landingFrameOffset: null, landingProbeFrames: 0, achieved: null, achievedAtEnd: null, finalLineCount: null,
+        landingFrameOffset: null, landingProbeFrames: 0, achieved: null, finalLineCount: null,
         error: "ballistic release changed the second C1 capture geometry", returnBoundary: null,
         ballisticRelease: { ...release, reAdmissionFrames, retainedSecondCapture, error: "ballistic release changed the second C1 capture geometry" },
       };
@@ -1206,7 +1203,6 @@ function evaluateSegment2(
       landingFrameOffset: null,
       landingProbeFrames,
       achieved: null,
-      achievedAtEnd: null,
       finalLineCount: null,
       error: "ballistic release displaced the owned second C1 capture",
       returnBoundary: null,
@@ -1230,7 +1226,6 @@ function evaluateSegment2(
     landingFrameOffset,
     landingProbeFrames,
     achieved: roundAxes(fit2.achieved),
-    achievedAtEnd: roundAxes(fit2.achievedAtEnd),
     finalLineCount: finalFit2.lines.length,
     error: null,
     returnBoundary,
@@ -2197,7 +2192,6 @@ function emptySegment1(error: string | null) {
     landingFrameOffset: null,
     landingProbeFrames: 0,
     achieved: null,
-    achievedAtEnd: null,
     finalLineCount: null,
     error,
   };

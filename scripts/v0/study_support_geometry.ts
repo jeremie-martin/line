@@ -397,7 +397,6 @@ function summarizePoolCandidate(candidate: HandoffPoolProbeCandidate | undefined
     releaseAirborne: candidate.releaseAirborne,
     arrivalAir: candidate.arrivalAir === null ? null : round(candidate.arrivalAir),
     achieved: roundedAxes(candidate.achieved),
-    achievedAtEnd: candidate.achievedAtEnd === undefined ? null : roundedAxes(candidate.achievedAtEnd),
     admitted: candidate.admitted,
   };
 }

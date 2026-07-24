@@ -531,7 +531,7 @@ function runTrial(
       steps.push({ gapIndex: gap.index, authored, entry: { speed: round(probe.targetState.speed), angleDeg: round(probe.targetState.angleDeg) }, carriedEnergyDebt: family === "energy-continuous" ? round(controllerDebt) : null, contactPhaseFrames: family === "contact-phase-continuous" ? previousContactPhaseFrames : null, incomingAirborneAgeFrames, carriedNormalAcceleration: family === "frenet-curvature-continuous" && previousNormalAcceleration !== null ? round(previousNormalAcceleration) : null, sledContactTiming: null, candidates, chosen: null, result: "no-admitted-candidate" });
       break;
     }
-    const achieved = chosen.fit.achievedAtEnd ?? chosen.fit.achieved;
+    const achieved = chosen.fit.achieved;
     steps.push({
       gapIndex: gap.index,
       authored,

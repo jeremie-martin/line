@@ -326,8 +326,8 @@ function firstViableReturn(
 }
 
 function sameGapAxes(left: Candidate, right: Candidate, gap: Gap): boolean {
-  const leftAchieved = left.achievedAtEnd ?? left.achieved;
-  const rightAchieved = right.achievedAtEnd ?? right.achieved;
+  const leftAchieved = left.achieved;
+  const rightAchieved = right.achieved;
   return (Object.keys(gap.targets) as AxisName[]).every((axis) => {
     const a = leftAchieved[axis];
     const b = rightAchieved[axis];
@@ -441,7 +441,7 @@ function pairMetrics(current: Candidate, next: Candidate, currentGap: Gap, nextG
 }
 
 function gapMetrics(candidate: Candidate, gap: Gap): { errors: number[]; impactAbsError: number | null } {
-  const achieved = candidate.achievedAtEnd ?? candidate.achieved;
+  const achieved = candidate.achieved;
   const errors = (Object.keys(gap.targets) as AxisName[]).flatMap((axis) =>
     finite(gap.targets[axis]) && finite(achieved[axis]) ? [achieved[axis]! - gap.targets[axis]!] : []
   );

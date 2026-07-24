@@ -28,9 +28,9 @@ export const BASELINE_CACHE_SHARD_SCHEMA = "line.benchmark-v2.canonical-baseline
 export const BASELINE_CACHE_LADDER_SCHEMA = "line.benchmark-v2.canonical-seed-ladder.v1" as const;
 export const BASELINE_REFERENCE_CACHE_SCHEMA = "line.benchmark-v2.baseline-reference.v10" as const;
 export const MAX_FIXED_N = 300;
-/** Two blocks are the smallest useful paired comparison: the uncertainty
- * estimator needs at least one leave-one-out degree of freedom. */
-export const MIN_FIXED_N = 2;
+/** One block is useful for deterministic diagnostics; promotion-strength
+ * uncertainty evidence is a scientific choice, not a command restriction. */
+export const MIN_FIXED_N = 1;
 
 const SOURCE_MANIFEST = "benchmark/v2/compat/source-manifest.json";
 const HELDOUT_MANIFEST = "benchmark/v2/compat/heldout-manifest.json";
@@ -74,11 +74,7 @@ export type CanonicalBaselineCache = {
 
 export type BaselineCacheView = {
   baselinePath: string;
-  sourceSchema: string;
   cache: CanonicalBaselineCache;
-  /** v9 had no manifest field.  Its retained development archive is a valid
-   * immutable 48-slot anchor, but extension publishes v10 explicitly. */
-  legacyAnchor: boolean;
 };
 
 type LoadedCacheShard = {
@@ -110,18 +106,15 @@ export function readBaselineCache(baselinePath = "benchmark/v2/baseline.json"): 
   const absolute = resolve(baselinePath);
   const baseline = JSON.parse(readFileSync(absolute, "utf8"));
   if (
-    !["line.benchmark-v2.baseline-reference.v9", BASELINE_REFERENCE_CACHE_SCHEMA].includes(baseline.schema) ||
-    baseline.status !== "canonical-baseline"
+    baseline.schema !== BASELINE_REFERENCE_CACHE_SCHEMA ||
+    baseline.status !== "canonical-baseline" ||
+    baseline.canonical_cache === undefined
   ) throw new Error(`unsupported baseline reference; establish a canonical baseline`);
-  const cache = baseline.canonical_cache === undefined
-    ? legacyAnchorCache(baseline)
-    : parseCache(baseline.canonical_cache, baseline);
+  const cache = parseCache(baseline.canonical_cache, baseline);
   validateCacheStructure(cache, baseline);
   return {
     baselinePath: absolute,
-    sourceSchema: baseline.schema,
     cache,
-    legacyAnchor: baseline.canonical_cache === undefined,
   };
 }
 
@@ -141,7 +134,7 @@ export function initialCanonicalBaselineCache(input: {
     implementation_fingerprint: string;
   };
 }): CanonicalBaselineCache {
-  return legacyAnchorCache({
+  return canonicalCacheFromDevelopment({
     label: input.baselineLabel,
     candidate_fingerprint: input.candidateFingerprint,
     suite_fingerprint: input.suiteFingerprint,
@@ -333,16 +326,16 @@ function parseCache(value: any, baseline: any): CanonicalBaselineCache {
   return value as CanonicalBaselineCache;
 }
 
-function legacyAnchorCache(baseline: any): CanonicalBaselineCache {
+function canonicalCacheFromDevelopment(baseline: any): CanonicalBaselineCache {
   const schedule = baseline.development?.seed_schedule;
   if (
     schedule?.profile !== "canonical" || !Number.isSafeInteger(schedule?.seedsPerBudget) ||
     !Array.isArray(schedule?.byBudget)
-  ) throw new Error(`legacy baseline has an invalid canonical development seed schedule`);
+  ) throw new Error(`baseline has an invalid canonical development seed schedule`);
   if (typeof baseline.development?.compressed_archive !== "string") {
-    throw new Error(`legacy baseline has no retained canonical development archive`);
+    throw new Error(`baseline has no retained canonical development archive`);
   }
-  const ladder = extendLegacyLadder(schedule, MAX_FIXED_N);
+  const ladder = extendSeedLadder(schedule, MAX_FIXED_N);
   return {
     schema: BASELINE_CACHE_SCHEMA,
     baselineLabel: baseline.label,
@@ -363,13 +356,11 @@ function legacyAnchorCache(baseline: any): CanonicalBaselineCache {
 }
 
 /**
- * Historical v9 schedules encoded budget offsets using the requested depth,
- * which makes a naive N=37 prefix differ from N=48 at the second budget.  We
- * retain every measured v9 seed exactly, then allocate new, disjoint tail
- * seeds above the historical maximum.  That gives the old 48-slot archive a
- * genuine stable-prefix interpretation without rewriting its evidence.
+ * Preserve every measured seed in the accepted archive, then allocate a
+ * disjoint deterministic tail. Every requested depth is therefore a genuine
+ * prefix of one stable ladder and never recomputes accepted evidence.
  */
-function extendLegacyLadder(schedule: any, maximumSeedsPerBudget: number): CanonicalSeedLadder {
+function extendSeedLadder(schedule: any, maximumSeedsPerBudget: number): CanonicalSeedLadder {
   const used = new Set<number>(schedule.byBudget.flatMap((entry: any) => entry.actualSeeds));
   let next = Math.max(...used) + 1;
   const allocate = (): number => {
@@ -513,16 +504,15 @@ function loadShardArchive(shard: BaselineCacheShard): LoadedCacheShard {
   if (shard.archive !== undefined) {
     return loadIndexedArchive(shard.archive, shard.archiveSha256, shard.compressedArchive, shard.compressedArchiveSha256);
   }
-  return loadLegacyCompressedArchive(shard.compressedArchive, shard.compressedArchiveSha256, shard.archiveSha256);
+  return loadCompressedArchive(shard.compressedArchive, shard.compressedArchiveSha256, shard.archiveSha256);
 }
 
 /**
- * Historical anchors were originally retained only as gzip archives.  Small
- * ones still rescore directly; deep anchors use their checksum-
- * bound retained decision index so status and decisions never create a V8-
- * sized JSON string.
+ * Shards retained only as gzip archives rescore directly when small. Deep
+ * shards use their checksum-bound decision index so status and decisions
+ * never create a V8-sized JSON string.
  */
-function loadLegacyCompressedArchive(path: string, compressedSha: string, archiveSha: string): LoadedCacheShard {
+function loadCompressedArchive(path: string, compressedSha: string, archiveSha: string): LoadedCacheShard {
   const bytes = readFileSync(resolve(path));
   if (sha256Buffer(bytes) !== compressedSha) throw new Error(`${path}: compressed archive checksum mismatch`);
   const raw = gunzipSync(bytes);

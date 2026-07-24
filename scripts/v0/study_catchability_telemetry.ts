@@ -1,15 +1,15 @@
 /**
- * Study-only catchability call telemetry — histograms every readinessCatch()
+ * Study-only catchability call telemetry — histograms every catchability
  * value produced during a run. Extracted out of the production readiness model
  * (optimizer/readiness.ts) so that core file carries no instrumentation state;
- * this module subscribes to readinessCatch via setCatchabilityObserver and is
+ * this module subscribes via setCatchabilityObserver and is
  * imported only by study drivers (study_catchability_histogram.ts). Gated on
  * LR_CATCHABILITY_TELEMETRY=1 (default off); when the flag is unset the recorder
  * no-ops, and in production this module is never imported at all so the observer
  * in readiness.ts stays null and the hot path is untouched.
  *
  * DELIBERATELY process-scoped, NOT per-compile: study_catchability_histogram.ts
- * resets once at process start and aggregates every readinessCatch() call across
+ * resets once at process start and aggregates every catchability call across
  * ALL compiles in the run into one histogram. It is therefore intentionally
  * EXCLUDED from the per-compile lifecycle registry (core/compile_lifecycle.ts) —
  * registering resetCatchabilityTelemetry there would wipe the cross-compile
@@ -19,7 +19,7 @@
  * snapshot of this state is meaningless by design.
  */
 
-import { setCatchabilityObserver } from "./optimizer/readiness.ts";
+import { setCatchabilityObserver } from "./optimizer/catchability.ts";
 
 export type CatchabilityTelemetryBin = {
   lo: number;
@@ -75,7 +75,7 @@ function recordCatchabilityTelemetry(value: number): void {
   telemetryBins[i]++;
 }
 
-// Subscribe to readinessCatch once at module load. Present only when a study
+// Subscribe once at module load. Present only when a study
 // driver imports this module; production never does.
 setCatchabilityObserver(recordCatchabilityTelemetry);
 

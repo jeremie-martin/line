@@ -141,7 +141,8 @@ function summarizeCandidate(
   if (candidate === null) return { attempt, admitted: false };
   const child = advanceToGap(extendNodeCached(search, candidate), ctx.gaps, next.index);
   const nextCandidates = getCandidatesSorted(child, ctx.gaps, ctx.ctx, searchSeed, 32);
-  const release = candidate.releaseArrivalState;
+  const launch = candidate.ballisticLaunch;
+  const release = launch?.state;
   return {
     attempt,
     admitted: true,
@@ -154,10 +155,10 @@ function summarizeCandidate(
       candidate.lines.at(-1)!.x2 - candidate.lines.at(-1)!.x1,
     ) * 180 / Math.PI),
     release: release === undefined ? null : {
-      frame: release.frame,
+      frame: launch!.anchorFrame,
       speed: round(Math.hypot(release.vx, release.vy)),
       angleDeg: round(Math.atan2(release.vy, release.vx) * 180 / Math.PI),
-      airborne: release.airborne,
+      airborne: launch!.airborne,
     },
     nextCandidates: nextCandidates.length,
   };

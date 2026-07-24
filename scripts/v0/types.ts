@@ -374,6 +374,13 @@ export type DriftReport = {
   terminus: { frame: number; reason: string };
 };
 
+export type BallisticPredictionErrorSummary = {
+  pairs: number;
+  mae: number | null;
+  bias: number | null;
+  max_abs_error: number | null;
+};
+
 /**
  * Per-compile work counters. Non-modifying instrumentation that captures where the
  * compiler spends effort. Each compile is one independent run at a single budget;
@@ -628,6 +635,7 @@ export type CompileStats = {
     enum_lane_base_skips: number;
     /** Study-only telemetry; emitted only with LR_AIM_STUDY_STATS=1. */
     study?: {
+      enum_readiness_pairs: number;
       enum_readiness_err_mean: number;
       enum_readiness_gain_mean: number;
       /** R3 joint-model split: rotate recruit rate, rotate-probe failures
@@ -707,12 +715,6 @@ export type CompileStats = {
     start_eval_frames_charged: number;
     /** Rollout dead-ends (both leaf modes): recursion hit a zero-candidate node. */
     fwd_rollout_no_candidate: number;
-    /** Dead-rider proof (full-leaf path only). reports = all full-leaf detections;
-     *  dead_uncovered = those whose terminus is a non-endOfSpec death past the last
-     *  committed contact (the uncovered span the objective leaf's missed-penalty would
-     *  otherwise have to cover). Read from a default-mode run; expect ≈0. */
-    fwd_leaf_reports: number;
-    fwd_leaf_dead_uncovered: number;
     fwd_pools: number;
     fwd_top1_agree: number;
     fwd_rank_of_quality_top1_sum: number;
@@ -734,13 +736,34 @@ export type CompileStats = {
   };
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;
-  /** Readiness v0 (optimizer/readiness.ts, READINESS_ROADMAP R1, telemetry
-   *  only): realized-arrival catchability per committed contact gap (null
-   *  for non-contact/uncommitted), joinable with report gap outcomes by
-   *  index; plus mean/min summaries. Consumed by no decision. */
-  readiness_per_gap?: (number | null)[];
-  readiness_mean?: number | null;
-  readiness_min?: number | null;
+  /** Realized-arrival catchability per committed contact gap (null for
+   *  non-contact/uncommitted), joinable with report gap outcomes by index.
+   *  This is the narrow catchability factor, not composite readiness. */
+  catchability_per_gap?: (number | null)[];
+  catchability_mean?: number | null;
+  catchability_min?: number | null;
+  /**
+   * End-to-end validation on the transitions selected into this output.
+   * Prediction comes from the preceding fit's canonical ballistic launch;
+   * truth is the next committed fit's exact scorer-window measurement.
+   * This is diagnostic only and never feeds search policy.
+   */
+  ballistic_selected_transitions?: {
+    eligible: number;
+    projected: number;
+    unprojectable: number;
+    speed: BallisticPredictionErrorSummary;
+    air: BallisticPredictionErrorSummary;
+    elevation: BallisticPredictionErrorSummary;
+    catchability: BallisticPredictionErrorSummary;
+    readiness_quality_pairs: number;
+    readiness_mean: number | null;
+    next_quality_mean: number | null;
+    readiness_quality_product_mean: number | null;
+    /** Pearson association; diagnostic only because readiness and exact
+     * current-gap quality are intentionally different quantities. */
+    readiness_quality_correlation: number | null;
+  };
 
   /** Target-state placement counters. Non-scoring diagnostics. */
   arc_placement?: {

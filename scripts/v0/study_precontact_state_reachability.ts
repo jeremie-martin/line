@@ -332,7 +332,7 @@ function evaluateCurrentStream(
     charge(frames);
     if (fit === null) continue;
     admitted++;
-    const achievedImpact = (fit.achievedAtEnd ?? fit.achieved).impact;
+    const achievedImpact = (fit.achieved).impact;
     const impactAbsError = achievedImpact === undefined || target.impact === undefined ? null : Math.abs(achievedImpact - target.impact);
     if (impactAbsError !== null) bestImpactAbsError = bestImpactAbsError === null ? impactAbsError : Math.min(bestImpactAbsError, impactAbsError);
     const currentEngine = engine.addLine(fit.lines.map((line: TrackLine) => engineLineFromTrackLine(line)));

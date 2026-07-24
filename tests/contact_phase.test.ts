@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { MIN_LANDING_AIRBORNE_FRAMES } from "../scripts/lib/detector.ts";
 import {
+  ballisticLaunchLeavesDetectorRunway,
   detectorRunwayControl,
   detectorRunwayEnabled,
   detectorRunwaySpacingEligible,
@@ -42,5 +43,14 @@ describe("detector runway policy", () => {
       approachDeltaDeg: 0,
       tangentFrames: 2.1,
     });
+  });
+
+  test("measures runway from the first launch sample, not the later anchor", () => {
+    const launch = {
+      anchorFrame: 14,
+      sampleCount: 4,
+      airborne: true,
+    } as Parameters<typeof ballisticLaunchLeavesDetectorRunway>[0];
+    expect(ballisticLaunchLeavesDetectorRunway(launch, 16)).toBe(true);
   });
 });

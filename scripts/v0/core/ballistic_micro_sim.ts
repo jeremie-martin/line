@@ -8,8 +8,6 @@
  * reproduces the rider's free-flight state at a tiny fraction of a full fork.
  */
 
-import type { GapFit } from "./substrate.ts";
-
 export const BALLISTIC_POINT_IDS = [
   "PEG",
   "TAIL",
@@ -41,15 +39,6 @@ export type ConstraintBallisticState = {
   sledIntact: boolean;
 };
 
-/**
- * Compiler-private extension of the evaluator-owned release-state shape.
- * Keeping this outside substrate.ts prevents predictor internals from changing
- * the immutable Benchmark V2 scoring definition.
- */
-export type ConstraintReleaseArrivalState =
-  & NonNullable<GapFit["releaseArrivalState"]>
-  & { constraintState?: ConstraintBallisticState };
-
 export type ConstraintBallisticSample = {
   frame: number;
   points: Record<
@@ -65,6 +54,13 @@ export type ConstraintBallisticSample = {
   >;
   riderMounted: boolean | null;
   sledIntact: boolean | null;
+};
+
+export type ConstraintBallisticOrientation = {
+  /** Exact TAIL->NOSE pose after this micro-simulation step. */
+  sledPoseDeg: number;
+  /** Wrapped frame-to-frame pose delta in degrees/frame. */
+  sledPoseRateDegPerFrame: number;
 };
 
 type MutableState = {
@@ -257,27 +253,6 @@ export function cloneConstraintBallisticState(
   };
 }
 
-export function constraintStateFromReleaseArrival(
-  state: GapFit["releaseArrivalState"],
-): ConstraintBallisticState | undefined {
-  return (state as ConstraintReleaseArrivalState | undefined)?.constraintState;
-}
-
-export function cloneConstraintReleaseArrival(
-  state: GapFit["releaseArrivalState"],
-): ConstraintReleaseArrivalState | undefined {
-  if (state === undefined) return undefined;
-  const extended = state as ConstraintReleaseArrivalState;
-  return {
-    ...extended,
-    ...(extended.constraintState === undefined
-      ? {}
-      : {
-        constraintState: cloneConstraintBallisticState(extended.constraintState),
-      }),
-  };
-}
-
 /** Advance and re-anchor so chained propagation equals one combined advance. */
 export function advanceConstraintBallisticState(
   state: ConstraintBallisticState,
@@ -287,12 +262,54 @@ export function advanceConstraintBallisticState(
   arrival: { x: number; y: number; vx: number; vy: number };
   constraintState: ConstraintBallisticState;
 } | null {
+  return advanceConstraintBallisticTrajectory(
+    state,
+    dtFramesFromFirstSample,
+    gravity,
+  );
+}
+
+/**
+ * Advance the exact collision-free constraint state once while exposing every
+ * post-anchor body state to `visit`. Relative frames use the same origin as
+ * `ConstraintBallisticState.frameOffset`: a normalized launch has offset 0,
+ * and its first visited state is relative frame 1.
+ *
+ * This is the canonical hot path for suffix aggregates. It avoids repeatedly
+ * re-running the micro-simulation from the launch for every requested frame.
+ */
+export function advanceConstraintBallisticTrajectory(
+  state: ConstraintBallisticState,
+  dtFramesFromFirstSample: number,
+  gravity: number,
+  visit?: (
+    relativeFrame: number,
+    arrival: Readonly<{ x: number; y: number; vx: number; vy: number }>,
+    orientation: Readonly<ConstraintBallisticOrientation>,
+  ) => void,
+): {
+  arrival: { x: number; y: number; vx: number; vy: number };
+  constraintState: ConstraintBallisticState;
+} | null {
   const dt = Math.max(0, Math.round(dtFramesFromFirstSample));
   const frameOffset = Math.max(0, Math.round(state.frameOffset));
   if (dt < frameOffset || !Number.isFinite(gravity)) return null;
   const mutable = mutableState(state);
-  for (let frame = frameOffset; frame < dt; frame++) step(mutable, gravity);
-  const arrival = bodyState(mutable);
+  let arrival = bodyState(mutable);
+  let previousSledPoseDeg = sledPoseDeg(mutable);
+  for (let frame = frameOffset; frame < dt; frame++) {
+    step(mutable, gravity);
+    arrival = bodyState(mutable);
+    const currentSledPoseDeg = sledPoseDeg(mutable);
+    const orientation: ConstraintBallisticOrientation = {
+      sledPoseDeg: currentSledPoseDeg,
+      sledPoseRateDegPerFrame: wrappedDegrees(
+        currentSledPoseDeg - previousSledPoseDeg,
+      ),
+    };
+    visit?.(frame + 1, arrival, orientation);
+    previousSledPoseDeg = currentSledPoseDeg;
+  }
   const constraintState = frozenState(mutable);
   return [...Object.values(arrival), constraintState.frameOffset].every(Number.isFinite)
     ? { arrival, constraintState }
@@ -423,6 +440,19 @@ function bodyState(state: MutableState): {
     vy += state.vy[index];
   }
   return { x: x / 6, y: y / 6, vx: vx / 6, vy: vy / 6 };
+}
+
+function sledPoseDeg(state: MutableState): number {
+  const tail = 1;
+  const nose = 2;
+  return Math.atan2(
+    state.py[nose] - state.py[tail],
+    state.px[nose] - state.px[tail],
+  ) * 180 / Math.PI;
+}
+
+function wrappedDegrees(value: number): number {
+  return ((value + 180) % 360 + 360) % 360 - 180;
 }
 
 function bindingState(value: unknown): boolean | null {

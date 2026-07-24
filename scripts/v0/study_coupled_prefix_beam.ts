@@ -241,7 +241,8 @@ function compareByGeneratorRank(a: BeamEntry, b: BeamEntry): number {
 }
 
 function summarizeStep(gap: number, rank: number, candidate: ReturnType<typeof getCandidatesSorted>[number]): Step {
-  const release = candidate.releaseArrivalState;
+  const launch = candidate.ballisticLaunch;
+  const release = launch?.state;
   const tail = candidate.lines.at(-1);
   return {
     gap,
@@ -250,7 +251,7 @@ function summarizeStep(gap: number, rank: number, candidate: ReturnType<typeof g
     cost: round(candidate.cost),
     lineCount: candidate.lines.length,
     length: round(candidate.lines.reduce((sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1), 0)),
-    releaseFrame: release?.frame ?? null,
+    releaseFrame: launch?.anchorFrame ?? null,
     releaseSpeed: release === undefined ? null : round(Math.hypot(release.vx, release.vy)),
     releaseAngleDeg: release === undefined ? null : round(Math.atan2(release.vy, release.vx) * 180 / Math.PI),
   };

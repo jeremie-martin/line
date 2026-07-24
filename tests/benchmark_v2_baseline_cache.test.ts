@@ -27,6 +27,18 @@ describe("canonical baseline cache fixed-N plans", () => {
     expect(n251.missingBaselineCompiles).toBe(0);
   });
 
+  it("allows a one-seed diagnostic from the same canonical cache prefix", () => {
+    const plan = baselineCachePlan(readBaselineCache(), 1);
+    expect(plan).toMatchObject({
+      requestedSeeds: 1,
+      coveredSeeds: 1,
+      missingBaselineSeeds: 0,
+    });
+    expect(plan.candidateCompiles).toBe(
+      plan.developmentSources * plan.budgets.length,
+    );
+  });
+
   it("keeps every historical 48-slot seed and allocates disjoint stable tails", () => {
     const cache = readBaselineCache();
     const n37 = seedScheduleAtDepth(cache.cache, 37);
@@ -57,9 +69,10 @@ describe("canonical baseline cache fixed-N plans", () => {
   });
 
   it("accepts fixed-N eval syntax without a registered operating point", () => {
+    expect(() => assertEvalArguments(["--seeds=1"])).not.toThrow();
     expect(() => assertEvalArguments(["--seeds=2"])).not.toThrow();
     expect(() => assertEvalArguments(["--seeds=83"])).not.toThrow();
-    expect(() => assertEvalArguments(["--to-verdict", "--seeds=83"])).not.toThrow();
-    expect(() => assertEvalArguments(["--to-verdict", "--seeds=83", "--depth=83"])).toThrow(/does not accept/);
+    expect(() => assertEvalArguments(["--to-verdict", "--seeds=83"])).toThrow(/does not accept/);
+    expect(() => assertEvalArguments(["--seeds=83", "--depth=83"])).toThrow(/does not accept/);
   });
 });

@@ -12,7 +12,8 @@ import {
 } from "../scripts/v0/benchmark_v2/model.ts";
 import { COMPILER_IDENTITY_PROTOCOL } from "../scripts/v0/benchmark_v2/runner.ts";
 import {
-  BENCHMARK_DEFINITION_SOURCE_FILES,
+  BENCHMARK_IMPLEMENTATION_SOURCE_FILES,
+  BENCHMARK_SCORING_PROTOCOL_FINGERPRINT,
   RUNNER_IMPLEMENTATION_SOURCE_FILES,
   canonicalMembers,
   executionPolicyIdentity,
@@ -24,7 +25,8 @@ import {
 
 describe("Benchmark V2 suite identity", () => {
   test("binds the shared headline scorer to suite and execution identity", () => {
-    expect(BENCHMARK_DEFINITION_SOURCE_FILES).toContain("scripts/v0/score.ts");
+    expect(BENCHMARK_IMPLEMENTATION_SOURCE_FILES).toContain("scripts/v0/score.ts");
+    expect(BENCHMARK_SCORING_PROTOCOL_FINGERPRINT).toMatch(/^[a-f0-9]{64}$/);
     expect(RUNNER_IMPLEMENTATION_SOURCE_FILES).toContain("scripts/v0/score.ts");
   });
 

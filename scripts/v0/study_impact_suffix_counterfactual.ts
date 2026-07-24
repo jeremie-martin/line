@@ -335,7 +335,7 @@ function candidateMetrics(
   setup: Setup,
 ): CandidateMetrics {
   const targets = setup.ctx.gapAxisTargets?.[gap.index] ?? gap.targets;
-  const values = candidate.achievedAtEnd ?? candidate.achieved;
+  const values = candidate.achieved;
   const poolIndex = pool.findIndex((entry) => sameCandidate(entry, candidate));
   const error = (axis: AxisName): number | null => finite(targets[axis]) && finite(values[axis])
     ? round(Math.abs(values[axis]! - targets[axis]!))

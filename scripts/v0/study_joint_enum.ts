@@ -138,7 +138,18 @@ function quadModel(lo: number, mid: number, hi: number, P: number): (d: number) 
 function makeObjective(nextGap: Gap) {
   const nextTargets = nextGap.targets;
   return (s: number, a: number): number => {
-    return scoreNextTargetReadiness({ speed: s, comAngleDeg: a }, nextTargets)?.readiness ?? 0;
+    const radians = a * Math.PI / 180;
+    return scoreNextTargetReadiness({
+      incoming: {
+        vx: s * Math.cos(radians),
+        vy: s * Math.sin(radians),
+        speed: s,
+        comAngleDeg: a,
+        sledPoseDeg: null,
+        sledPoseRateDegPerFrame: null,
+      },
+      meanSpeedPx: s,
+    }, nextTargets)?.readiness ?? 0;
   };
 }
 

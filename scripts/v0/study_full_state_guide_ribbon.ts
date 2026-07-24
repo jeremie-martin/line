@@ -129,7 +129,7 @@ function runState(id: StateId): StateResult {
       };
       reasons.push("current ribbon not admitted");
     } else {
-      const achieved = fit.achievedAtEnd ?? fit.achieved;
+      const achieved = fit.achieved;
       const impactAchieved = achieved.impact ?? null;
       const currentEngine = prepared.engine.addLine(fit.lines.map((line: TrackLine) => engineLineFromTrackLine(line)));
       const topology = targetTopology(currentEngine, prepared.current.endFrame, fit.lines);

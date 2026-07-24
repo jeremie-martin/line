@@ -29,18 +29,18 @@ npm run benchmark -- rebaseline \
 ```
 
 `eval` is exactly `eval --seeds=2`; there is no separate quick/probe
-comparison. `N` is an ordinary compute choice in `2..300`. Choose it from the importance
-and uncertainty of the question. Running N=100 simply because spare compute is
-available is valid. The cache uses one stable seed ladder, so N=100 is the
-prefix of N=300 and does not recompute baseline evidence.
+comparison. `N` is an ordinary compute choice in `1..300`. N=1 is a descriptive
+pipeline diagnostic: it reports scores, validity, regimes, and telemetry, but
+seed-block inference is unavailable and the result is never promotable. Choose
+larger N from the importance and uncertainty of the question. Running N=100
+simply because spare compute is available is valid. The cache uses one stable
+seed ladder, so N=100 is the prefix of N=300 and does not recompute baseline
+evidence.
 
 `eval --seeds=N` always exits 0 after a completed comparison. The artifact
 contains the statistical result; an inconclusive or negative scientific result
 is not a process failure. `--resume --out=SAME_PATH` resumes the exact frozen
 candidate snapshot and checkpoint.
-
-The older `eval --to-verdict --seeds=N` spelling remains a compatibility alias
-for the same stateless comparison. It has no additional authority or cost.
 
 ## What to inspect
 

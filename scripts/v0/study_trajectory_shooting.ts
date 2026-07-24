@@ -593,13 +593,14 @@ function summarizeRelease(fit: Candidate): {
   poseDeg: number | null;
   poseRateDegPerFrame: number | null;
 } | null {
-  const release = fit.releaseArrivalState;
+  const launch = fit.ballisticLaunch;
+  const release = launch?.state;
   return release === undefined ? null : {
-    frame: release.frame,
+    frame: launch!.anchorFrame,
     vx: round(release.vx),
     vy: round(release.vy),
-    airborne: release.airborne,
-    grounded: release.grounded,
+    airborne: launch!.airborne,
+    grounded: launch!.groundedFrames,
     poseDeg: release.sledPoseDeg === null ? null : round(release.sledPoseDeg),
     poseRateDegPerFrame: release.sledPoseRateDegPerFrame === null
       ? null

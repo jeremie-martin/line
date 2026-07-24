@@ -38,7 +38,7 @@ import {
   isAuthoredContactEvent,
   velocityAt,
 } from "./substrate.ts";
-import { AXIS_MEASURE, type GapMeasureCtx } from "./measure.ts";
+import { measureGrainFromLines } from "./measure.ts";
 import {
   makeAirPolishCandidates,
 } from "./candidate.ts";
@@ -48,11 +48,10 @@ import { registerCompileReset } from "./compile_lifecycle.ts";
 export type PolishRebuildEngine = (fits: (GapFit | null)[], upTo: number) => any;
 
 // Grain reduction for a fit: median catch-line length / LINE_LENGTH_CAP.
-// Delegates to the single-source-of-truth `grain` reduction registered in
-// AXIS_MEASURE (which reads only `gapLines`); an empty gap yields 0 here,
+// Delegates to the single-source-of-truth geometry reduction; an empty gap yields 0 here,
 // matching the former local `measureFitGrain` copy.
 function measureFitGrain(fit: GapFit): number {
-  return AXIS_MEASURE.grain({ gapLines: fit.lines } as GapMeasureCtx) ?? 0;
+  return measureGrainFromLines(fit.lines) ?? 0;
 }
 
 // Extra frames simulated past the spec's nominal end so the detector sees the
@@ -1618,6 +1617,26 @@ function meanSectionAxisError(
     n++;
   }
   return n > 0 ? total / n : Infinity;
+}
+
+function grainFitsInRange(
+  firstFrame: number,
+  lastFrame: number,
+  gaps: readonly Gap[],
+  fits: readonly (GapFit | null)[],
+): Array<{ owner: number; fit: GapFit }> {
+  const entries: Array<{ owner: number; fit: GapFit }> = [];
+  for (let owner = 0; owner < gaps.length; owner++) {
+    const fit = fits[owner];
+    if (
+      fit !== null &&
+      gaps[owner].endFrame >= firstFrame &&
+      gaps[owner].endFrame <= lastFrame
+    ) {
+      entries.push({ owner, fit });
+    }
+  }
+  return entries;
 }
 
 function updateGeometryAxes(fit: GapFit): void {

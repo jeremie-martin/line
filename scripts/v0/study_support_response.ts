@@ -33,7 +33,10 @@ import {
   type HandoffPoolProbeRecord,
   type HandoffRankTraceEntry,
 } from "./optimizer/handoff.ts";
-import { effectiveAirAsk, OBJECTIVE_AIR_DEADBAND } from "./optimizer/objective.ts";
+import {
+  effectiveAirAsk,
+  READINESS_AIR_DEADBAND,
+} from "./optimizer/readiness.ts";
 import {
   contactLineIdsAt,
   frameOffset,
@@ -271,7 +274,7 @@ function summarizeGaps(
       : Math.min(...predictedAir.map((air) => Math.abs(air - effectiveAsk)));
     const coverageDeficit = predictedAir.length === 0
       ? 1
-      : Math.max(0, Math.min(...predictedAir) - effectiveAsk - OBJECTIVE_AIR_DEADBAND);
+      : Math.max(0, Math.min(...predictedAir) - effectiveAsk - READINESS_AIR_DEADBAND);
     const gate = gates.get(gapIndex) ?? emptyGate();
     const scoredCandidates = candidates.filter(
       (candidate): candidate is HandoffPoolProbeCandidate & { handoffScore: number } =>
@@ -333,7 +336,7 @@ function summarizeGaps(
         admitted: candidates.filter((candidate) => candidate.admitted).length,
         scored: scoredCandidates.length,
         withinAirDeadband: predictedAir.filter(
-          (air) => Math.abs(air - effectiveAsk) <= OBJECTIVE_AIR_DEADBAND,
+          (air) => Math.abs(air - effectiveAsk) <= READINESS_AIR_DEADBAND,
         ).length,
         lineLength: summary(candidates.map((candidate) => candidate.lineLength)),
         meanSegmentLength: summary(candidates.map((candidate) => candidate.meanSegmentLength)),

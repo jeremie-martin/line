@@ -5,35 +5,41 @@ import {
   detectWindow,
 } from "../core/candidate.ts";
 import {
+  ballisticLaunchFirstSampleFrame,
+  captureBallisticLaunchObservation,
+} from "../core/ballistic_launch.ts";
+import {
+  projectBallisticGap,
+  type BallisticGapProjection,
+} from "../core/ballistic_projection.ts";
+import {
   measureGapAxes,
-  measureGapAxesWithBallisticSuffix,
   summarizeBallisticAxisPrefix,
-  type BallisticAxisSuffix,
 } from "../core/measure.ts";
 import {
   airborneAt,
   contactLineIdsAt,
   engineLineFromTrackLine,
   isAuthoredContactEvent,
+  positionAt,
 } from "../core/substrate.ts";
-import {
-  gravityCorrectedLaunchAverage,
-  LAUNCH_READ_FRAMES,
-} from "../core/launch_read.ts";
-import { constraintBallisticStateFromRider } from "../core/ballistic_micro_sim.ts";
 import {
   ballisticTraceEnabled,
   captureBallisticTraceObservation,
   recordBallisticTraceCandidate,
 } from "../core/ballistic_trace.ts";
 import { firstAirborneExitFrame, growShortHorizon } from "../core/exit_read.ts";
-import { ELEVATION, IMPACT_WINDOW, type Gap, type TrackLine } from "../types.ts";
+import {
+  IMPACT_WINDOW,
+  netDyToElevation,
+  type Gap,
+  type TrackLine,
+} from "../types.ts";
 import {
   addFinite,
   applyArcKnobs,
   arcResponseOutputs,
   normalizeAngleDeg,
-  propagateBallisticArrivalState,
   stateOutputs,
   type ArcKnobs,
   type JointArcProbeRow,
@@ -90,6 +96,8 @@ export type JointArcProbeObservation = JointArcProbeRow & {
 export type JointArcProbeOptions = {
   mode?: JointArcProbeMode;
   includeTruth?: boolean;
+  /** Request the conditional elevation readiness output from both probe modes. */
+  includeElevation?: boolean;
 };
 
 export type JointArcProbeResult = JointArcProbeObservation & {
@@ -135,10 +143,7 @@ export function evaluateArcActuatorPair(
   return evaluateJointArcLines(engine, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, options);
 }
 
-/** Generic ordered-knob counterpart to the legacy pair adapter.  Model
- * coordinates remain caller-owned: a two-control production adapter encodes
- * its first and second positional values in `rotateDeg` and `pitchDeg`, while
- * matrix studies may use scalar re-encodings for one-dimensional stages. */
+/** Evaluate an ordered physical-control sequence through the canonical probe. */
 export function evaluateArcKnobSequence(
   // deno-lint-ignore no-explicit-any
   engine: any,
@@ -171,10 +176,19 @@ export function evaluateJointArcLines(
   const fork = engine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
   const mode = options.mode ?? "short";
   const observed = mode === "full"
-    ? observeFullJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame)
-    : observeShortJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame);
+    ? observeFullJointArcLines(
+      fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
+      options.includeElevation === true,
+    )
+    : observeShortJointArcLines(
+      fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
+      options.includeElevation === true,
+    );
   const truth = options.includeTruth && mode !== "full"
-    ? observeFullJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame)
+    ? observeFullJointArcLines(
+      fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
+      options.includeElevation === true,
+    )
     : undefined;
   return { ...observed, lines, ...(truth === undefined ? {} : { truth }) };
 }
@@ -188,6 +202,7 @@ function observeShortJointArcLines(
   contactFrames: readonly number[],
   axisMeasureEnd: number,
   nextFrame: number,
+  includeElevation: boolean,
 ): JointArcProbeObservation {
   const horizon = shortProbeHorizon(fork, lines, gap, nextFrame);
   const det = detectWindow(fork, gap.startFrame, horizon);
@@ -198,23 +213,42 @@ function observeShortJointArcLines(
   const offBeatEnd = Math.min(axisMeasureEnd, horizon);
   const offBeatLandings = countOffBeatLandings(det.events, gap.startFrame, offBeatEnd, [...contactFrames]);
   const currentOk = survivedCurrent && landingOk && offBeatLandings === 0;
-  const suffixFrame = firstAirborneExitFrameAtOrAfter(fork, det, lines, gap.endFrame, horizon);
-  const suffixRead = suffixFrame === null
+  const suffixFrame = firstAirborneExitFrameAtOrAfter(
+    det,
+    lines,
+    gap.endFrame,
+    horizon,
+  );
+  const launch = suffixFrame === null
     ? null
-    : readLaunchState(fork, det, suffixFrame, horizon, nextFrame);
-  const suffixState = suffixRead?.state ?? null;
+    : captureBallisticLaunchObservation(fork, det, {
+      gapStartFrame: gap.endFrame,
+      firstSampleFrame: suffixFrame,
+      lastSampleFrame: horizon,
+      targetFrameExclusive: nextFrame,
+      groundedFrames: 0,
+    });
+  const suffixState = launch?.state ?? null;
+  const projectionFrame = launch?.anchorFrame ?? null;
   const cleanAirborneSuffix = suffixFrame === null ? null : cleanAirborneRange(det, suffixFrame, horizon);
-  const nextStateOk = suffixState !== null && suffixFrame !== null && suffixFrame < nextFrame;
-  if (ballisticTraceEnabled() && suffixFrame !== null && suffixState !== null && suffixFrame < nextFrame) {
+  const nextProjection = launch === null
+    ? null
+    : projectBallisticGap(launch, nextFrame, {
+      terminalContact: "grounded",
+      includeElevation,
+    });
+  const nextStateOk = nextProjection !== null;
+  if (ballisticTraceEnabled() && launch !== null && launch.anchorFrame < nextFrame) {
+    const traceLaunchFrame = ballisticLaunchFirstSampleFrame(launch);
     recordBallisticTraceCandidate({
       population: "aim_probe",
       gapIndex: gap.index,
-      launchFrame: suffixFrame,
+      launchFrame: traceLaunchFrame,
       targetFrame: nextFrame,
       capture: () => captureBallisticTraceObservation({
         population: "aim_probe",
         gapIndex: gap.index,
-        launchFrame: suffixFrame,
+        launchFrame: traceLaunchFrame,
         targetFrame: nextFrame,
         sampleAllowed: (frame) => frame <= horizon && airborneAt(det, frame) === true,
         // Benchmark-only truth reads are intentionally raw/unmetered: this fork
@@ -226,35 +260,22 @@ function observeShortJointArcLines(
   }
 
   const outputs: Record<string, number> = {};
-  const latentOutputs: Record<string, number> = {};
-  if (suffixFrame !== null && suffixState !== null) {
-    addLatentSuffixOutputs(latentOutputs, suffixFrame, suffixState);
-    if (nextStateOk) {
-      Object.assign(
-        outputs,
-        stateOutputs(
-          propagateBallisticArrivalState(suffixState, nextFrame - suffixFrame),
-        ),
-      );
-    }
-    const summary = summarizeBallisticAxisPrefix(det, gap, Math.min(suffixFrame, axisMeasureEnd));
-    if (summary !== null) {
-      const prefixFrames = Math.max(0, summary.prefixEndFrame - summary.startFrame + 1);
-      addFinite(latentOutputs, "latent.prefix.airFrames", summary.airFrames);
-      if (prefixFrames > 0) addFinite(latentOutputs, "latent.prefix.airFraction", summary.airFrames / prefixFrames);
-      addFinite(latentOutputs, "latent.prefix.speedSumPx", summary.speedSumPx);
-      addFinite(latentOutputs, "latent.prefix.speedFrames", summary.speedFrames);
-      if (summary.speedFrames > 0) {
-        addFinite(latentOutputs, "latent.prefix.speedMeanPx", summary.speedSumPx / summary.speedFrames);
-      }
-      addFinite(latentOutputs, "latent.prefix.dy", summary.dy);
-      addFinite(latentOutputs, "latent.prefix.v0SpeedPx", summary.v0SpeedPx);
-    }
+  if (projectionFrame !== null && suffixState !== null) {
+    if (nextProjection !== null) addProjectionOutputs(outputs, nextProjection);
   }
   if (currentOk) {
-    const suffix = suffixState === null || suffixFrame === null ? null : ballisticAxisSuffix(suffixFrame, suffixState);
-    const achieved = measureGapAxesWithBallisticSuffix(det, gap, lines, axisMeasureEnd, suffix);
-    Object.assign(outputs, arcResponseOutputs(gap.targets, achieved, axisCost(gap.targets, achieved), null));
+    // Current quality is always the exact scorer interval. The ballistic
+    // projection above belongs exclusively to next-gap readiness.
+    const achieved = measureGapAxes(det, gap, lines, gap.endFrame);
+    Object.assign(
+      outputs,
+      arcResponseOutputs(
+        gap.targets,
+        achieved,
+        axisCost(gap.targets, achieved),
+        null,
+      ),
+    );
     if (suffixState !== null) {
       addFinite(outputs, "current.releaseSpeedPx", suffixState.speed);
       addFinite(outputs, "current.releaseVy", suffixState.vy);
@@ -264,12 +285,11 @@ function observeShortJointArcLines(
   return {
     knobs,
     outputs,
-    ...(Object.keys(latentOutputs).length === 0 ? {} : { latentOutputs }),
     mode: "short",
     horizonFrame: horizon,
     suffixFrame,
     cleanAirborneSuffix,
-    launchReadFrames: suffixRead?.readFrames ?? null,
+    launchReadFrames: launch?.sampleCount ?? null,
     gate: {
       currentOk,
       survivedCurrent,
@@ -291,6 +311,7 @@ function observeFullJointArcLines(
   contactFrames: readonly number[],
   axisMeasureEnd: number,
   nextFrame: number,
+  includeElevation: boolean,
 ): JointArcProbeObservation {
   const horizon = fullProbeHorizon(gap, axisMeasureEnd, nextFrame);
   const det = detectWindow(fork, gap.startFrame, horizon);
@@ -304,13 +325,52 @@ function observeFullJointArcLines(
 
   const outputs: Record<string, number> = {};
   if (currentOk) {
-    const achieved = measureGapAxes(det, gap, lines, axisMeasureEnd);
+    const achieved = measureGapAxes(det, gap, lines, gap.endFrame);
     Object.assign(outputs, arcResponseOutputs(gap.targets, achieved, axisCost(gap.targets, achieved), null));
   }
 
   if (nextStateOk) {
     const state = readArrivalState(fork, nextFrame);
     if (state !== null) Object.assign(outputs, stateOutputs(state));
+    const nextSummary = summarizeBallisticAxisPrefix(
+      det,
+      { startFrame: gap.endFrame },
+      nextFrame,
+    );
+    if (nextSummary !== null) {
+      const nextFrames = nextFrame - gap.endFrame + 1;
+      if (nextSummary.speedFrames > 0) {
+        addFinite(
+          outputs,
+          "next.meanSpeedPx",
+          nextSummary.speedSumPx / nextSummary.speedFrames,
+        );
+      }
+      if (nextFrames > 0) {
+        // The full probe has not constructed the next catch. Readiness is
+        // conditional on that authored contact succeeding, so its terminal
+        // frame is grounded while its detector velocity remains the incoming
+        // velocity used above.
+        const terminalAir = airborneAt(det, nextFrame) === true ? 1 : 0;
+        addFinite(
+          outputs,
+          "next.airFraction",
+          Math.max(0, nextSummary.airFrames - terminalAir) / nextFrames,
+        );
+        addFinite(outputs, "next.frameCount", nextFrames);
+      }
+      if (includeElevation && nextFrame > gap.endFrame) {
+        addFinite(
+          outputs,
+          "next.elevation",
+          netDyToElevation(
+            nextSummary.dy,
+            nextSummary.v0SpeedPx,
+            nextFrame - gap.endFrame,
+          ),
+        );
+      }
+    }
   }
 
   return {
@@ -359,43 +419,42 @@ function shortProbeHorizon(engine: any, lines: TrackLine[], gap: Gap, nextFrame:
     const det = detectWindow(engine, gap.startFrame, horizon);
     return {
       terminatedEarly: det.terminus.frame < horizon && det.terminus.reason !== "endOfSpec",
-      exitFound: firstAirborneExitFrameAtOrAfter(engine, det, lines, minExit, horizon) !== null,
+      exitFound: firstAirborneExitFrameAtOrAfter(
+        det,
+        lines,
+        minExit,
+        horizon,
+      ) !== null,
     };
   });
 }
 
-function ballisticAxisSuffix(frame: number, state: RiderArrivalState): BallisticAxisSuffix {
-  return { frame, vx: state.vx, vy: state.vy };
-}
-
-function addLatentSuffixOutputs(outputs: Record<string, number>, frame: number, state: RiderArrivalState): void {
-  addFinite(outputs, "latent.suffix.frame", frame);
-  addFinite(outputs, "latent.suffix.x", state.x);
-  addFinite(outputs, "latent.suffix.y", state.y);
-  addFinite(outputs, "latent.suffix.vx", state.vx);
-  addFinite(outputs, "latent.suffix.vy", state.vy);
-  addFinite(outputs, "latent.suffix.sledPoseDeg", state.sledPoseDeg);
-  addFinite(outputs, "latent.suffix.sledPoseRateDegPerFrame", state.sledPoseRateDegPerFrame);
+function addProjectionOutputs(
+  outputs: Record<string, number>,
+  projection: BallisticGapProjection,
+): void {
+  Object.assign(outputs, stateOutputs(projection.boundary.projectedContact));
+  addFinite(outputs, "next.meanSpeedPx", projection.meanSpeedPx);
+  addFinite(outputs, "next.airFraction", projection.airFraction);
+  addFinite(outputs, "next.frameCount", projection.frameCount);
+  addFinite(outputs, "next.elevation", projection.elevation);
 }
 
 function firstAirborneExitFrameAtOrAfter(
-  // deno-lint-ignore no-explicit-any
-  engine: any,
   det: ReturnType<typeof detectWindow>,
   lines: readonly TrackLine[],
   startFrame: number,
   endFrame: number,
 ): number | null {
   // Delegates to the shared geometric exit detector (core/exit_read.ts). The
-  // engine call site reads the rider POSITION from the metered engine; airborne
-  // from the detection. Position is only read when airborne === true (the
-  // shared scanner short-circuits exactly as the former inlined loop did).
+  // Position and airborne occupancy both come from the existing detection.
+  // The canonical launch capture performs the only rider reconstruction.
   return firstAirborneExitFrame(
     lines,
     startFrame,
     endFrame,
     (frame) => airborneAt(det, frame),
-    (frame) => getRiderMetered(engine, frame)?.position,
+    (frame) => positionAt(det, frame),
   );
 }
 
@@ -404,69 +463,6 @@ function cleanAirborneRange(det: ReturnType<typeof detectWindow>, startFrame: nu
     if (airborneAt(det, frame) !== true) return false;
   }
   return true;
-}
-
-/** The short probe's launch state: `readArrivalState` at the suffix frame,
- *  with the velocity replaced by a gravity-corrected average of up to
- *  LAUNCH_READ_FRAMES consecutive airborne velocity reads. The single-frame
- *  velocity readout oscillates with internal constraint dynamics (rms ~0.02
- *  px/f per frame increment in free flight — study_exit_readout.ts), and the
- *  ballistic completion amplifies that launch error over dt frames; averaging
- *  engine states (each compensated by g·k) removes most of it. The averaged
- *  frames are already simulated on the fork (≤ horizon), so this charges no
- *  extra physics frames. Falls back to the plain single read when later
- *  frames are not airborne or unreadable. */
-// deno-lint-ignore no-explicit-any
-function readLaunchState(
-  engine: any,
-  det: ReturnType<typeof detectWindow>,
-  frame: number,
-  horizon: number,
-  targetFrame: number,
-): { state: RiderArrivalState; readFrames: number } | null {
-  const riders = [];
-  for (let offset = 0; offset < LAUNCH_READ_FRAMES; offset++) {
-    const sampleFrame = frame + offset;
-    if (
-      sampleFrame > horizon ||
-      sampleFrame >= targetFrame ||
-      airborneAt(det, sampleFrame) !== true
-    ) break;
-    const rider = getRiderMetered(engine, sampleFrame);
-    const velocity = rider?.velocity;
-    if (
-      velocity === undefined ||
-      !Number.isFinite(velocity.x) ||
-      !Number.isFinite(velocity.y)
-    ) break;
-    riders.push(rider);
-  }
-  if (riders.length === 0) return null;
-  const base = arrivalStateFromRider(engine, riders[0], frame);
-  if (base === null) return null;
-  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  const { vx, vy, n } = gravityCorrectedLaunchAverage(
-    { x: base.vx, y: base.vy },
-    g,
-    (offset) => offset < riders.length,
-    (offset) => riders[offset]?.velocity,
-  );
-  const constraintState = constraintBallisticStateFromRider(
-    riders[riders.length - 1],
-    riders.length - 1,
-  );
-  const speed = Math.hypot(vx, vy);
-  return {
-    state: {
-      ...base,
-      vx,
-      vy,
-      speed,
-      comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
-      ...(constraintState === null ? {} : { constraintState }),
-    },
-    readFrames: n,
-  };
 }
 
 // deno-lint-ignore no-explicit-any

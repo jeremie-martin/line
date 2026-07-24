@@ -1,5 +1,5 @@
 /**
- * Histogram every actual readinessCatch() call made during one or more compiles.
+ * Histogram every actual catchability prediction made during one or more compiles.
  *
  * This is call-site telemetry, not a distinct-arc census: if production computes
  * catchability for a virtual model point, a candidate-pool rank, or committed

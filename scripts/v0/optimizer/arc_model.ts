@@ -8,17 +8,14 @@ import {
   type Gap,
   type TrackLine,
 } from "../types.ts";
-import {
-  completeBallisticSpanAxesFromSummary,
-  type BallisticAxisPrefixSummary,
-  type BallisticAxisSuffix,
-} from "../core/measure.ts";
 import { LOCAL_IMPACT_COST_WEIGHT } from "../core/candidate.ts";
 import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
 import {
-  advanceConstraintBallisticState,
-  type ConstraintBallisticState,
-} from "../core/ballistic_micro_sim.ts";
+  incomingKinematics,
+  propagateBallisticState,
+  type BallisticState,
+  type IncomingKinematics,
+} from "../core/ballistic_projection.ts";
 
 export type ArcKnobs = {
   /** Rotate the last third of the arc about the suffix joint, in degrees. */
@@ -27,104 +24,13 @@ export type ArcKnobs = {
   rotateDeg: number;
 };
 
-export type RiderArrivalState = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  speed: number;
-  /** CoM velocity direction in degrees, positive = screen-down. */
-  comAngleDeg: number | null;
-  /** Sled TAIL->NOSE pose in degrees, positive = screen-down. */
-  sledPoseDeg: number | null;
-  /** Frame-to-frame sled-pose angular velocity in degrees/frame. */
-  sledPoseRateDegPerFrame: number | null;
-  /** Exact ten-point/previous-point launch state for the current predictor. */
-  constraintState?: ConstraintBallisticState;
-};
+export type RiderArrivalState = BallisticState;
 
 export function propagateBallisticArrivalState(
   state: RiderArrivalState,
   dtFrames: number,
 ): RiderArrivalState {
-  const dt = Math.max(0, Math.round(dtFrames));
-  const advanced = state.constraintState === undefined
-    ? null
-    : advanceConstraintBallisticState(
-      state.constraintState,
-      dt,
-      ELEVATION.GRAVITY_PX_PER_FRAME2,
-    );
-  if (advanced !== null) {
-    const { x, y, vx, vy } = advanced.arrival;
-    const speed = Math.hypot(vx, vy);
-    const sledPoseDeg = state.sledPoseDeg !== null &&
-        state.sledPoseRateDegPerFrame !== null
-      ? normalizeAngleDeg(state.sledPoseDeg + state.sledPoseRateDegPerFrame * dt)
-      : state.sledPoseDeg;
-    return {
-      x,
-      y,
-      vx,
-      vy,
-      speed,
-      comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
-      sledPoseDeg,
-      sledPoseRateDegPerFrame: state.sledPoseRateDegPerFrame,
-      constraintState: advanced.constraintState,
-    };
-  }
-  return propagateBallisticArrivalStateFromValues(
-    state.x,
-    state.y,
-    state.vx,
-    state.vy,
-    state.sledPoseDeg,
-    state.sledPoseRateDegPerFrame,
-    dtFrames,
-  );
-}
-
-function propagateBallisticArrivalStateFromValues(
-  stateX: number,
-  stateY: number,
-  stateVx: number,
-  stateVy: number,
-  stateSledPoseDeg: number | null,
-  stateSledPoseRateDegPerFrame: number | null,
-  dtFrames: number,
-): RiderArrivalState {
-  // Pure readout gravity, deliberately. A per-frame "effective gravity"
-  // correction (+0.0084, from committed-track airborne stretches) was tried
-  // and FALSIFIED on probe trajectories: the signed vy error vs full-sim
-  // truth is CONSTANT across dt buckets (−0.021/−0.035/−0.025 for dt
-  // <10/10-20/20-40), not linear in dt — the deviation is a launch-read
-  // transient, corrected at the read (arc_probe.ts LAUNCH_VY_OFFSET_PX),
-  // not an acceleration. The committed-track study's per-run mean dvy−g
-  // telescopes to (vy(b)−vy(a))/(b−a), so a decaying post-launch transient
-  // masquerades there as a per-frame bias.
-  const dt = Math.max(0, Math.round(dtFrames));
-  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  const x = stateX + stateVx * dt;
-  // lr-core's Verlet step applies gravity before the next frame's velocity read.
-  const y = stateY + stateVy * dt + 0.5 * g * dt * (dt + 1);
-  const vx = stateVx;
-  const vy = stateVy + g * dt;
-  const speed = Math.hypot(vx, vy);
-  const comAngleDeg = speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null;
-  const sledPoseDeg = stateSledPoseDeg !== null && stateSledPoseRateDegPerFrame !== null
-    ? normalizeAngleDeg(stateSledPoseDeg + stateSledPoseRateDegPerFrame * dt)
-    : stateSledPoseDeg;
-  return {
-    x,
-    y,
-    vx,
-    vy,
-    speed,
-    comAngleDeg,
-    sledPoseDeg,
-    sledPoseRateDegPerFrame: stateSledPoseRateDegPerFrame,
-  };
+  return propagateBallisticState(state, dtFrames);
 }
 
 export type LinearModel = {
@@ -203,45 +109,35 @@ type JointArcScoreReadoutModels = {
   outputNextY?: FittedArcOutputEntry;
   outputNextVx?: FittedArcOutputEntry;
   outputNextVy?: FittedArcOutputEntry;
-  outputNextSpeed?: FittedArcOutputEntry;
-  outputNextComAngleDeg?: FittedArcOutputEntry;
   outputNextSledPoseDeg?: FittedArcOutputEntry;
   outputNextSledPoseRateDegPerFrame?: FittedArcOutputEntry;
-  latentSuffixFrame?: FittedArcOutputEntry;
-  latentSuffixX?: FittedArcOutputEntry;
-  latentSuffixY?: FittedArcOutputEntry;
-  latentSuffixVx?: FittedArcOutputEntry;
-  latentSuffixVy?: FittedArcOutputEntry;
-  latentSuffixSledPoseDeg?: FittedArcOutputEntry;
-  latentSuffixSledPoseRateDegPerFrame?: FittedArcOutputEntry;
-  latentPrefixAirFraction?: FittedArcOutputEntry;
-  latentPrefixAirFrames?: FittedArcOutputEntry;
-  latentPrefixSpeedMeanPx?: FittedArcOutputEntry;
-  latentPrefixSpeedFrames?: FittedArcOutputEntry;
-  latentPrefixSpeedSumPx?: FittedArcOutputEntry;
-  latentPrefixDy?: FittedArcOutputEntry;
-  latentPrefixV0SpeedPx?: FittedArcOutputEntry;
-  hasLatent: boolean;
+  outputNextMeanSpeedPx?: FittedArcOutputEntry;
+  outputNextAirFraction?: FittedArcOutputEntry;
+  outputNextGapFrameCount?: FittedArcOutputEntry;
+  outputNextElevation?: FittedArcOutputEntry;
 };
 
 export type JointArcProbeRow = {
   knobs: ArcKnobs;
   outputs: Record<string, number>;
-  latentOutputs?: Record<string, number>;
 };
 
 export type JointArcResponseModel = {
   context: JointArcResponseContext;
   outputModels: Map<string, FittedArcOutputEntry>;
-  latentModels: Map<string, FittedArcOutputEntry>;
   scoreReadout: JointArcScoreReadoutModels;
 };
 
 export type JointArcScoreReadout = {
   currentQuality: number;
-  state: RiderArrivalState | null;
+  state: IncomingKinematics | null;
   exitFrame: number;
   exitSpeed: number;
+  nextMeanSpeedPx: number;
+  nextAirFraction: number;
+  /** Inclusive scorer-frame count over the projected next gap. */
+  nextGapFrameCount: number;
+  nextElevation: number;
 };
 
 export type JointArcCurrentScoreAxes = {
@@ -689,15 +585,9 @@ function fitHybridArcOutput(
   output: string,
   probeDesignName: ArcProbeDesignName,
 ): FittedArcOutputModel | null {
-  // pitch3 has only a pitch axis and 3 rows. The cross5/grid9 forms degenerate
-  // here: additiveQuadraticFeatures is dim 5 (>3 rows → fitter returns null) and
-  // linearArcFeatures carries an all-zero rotateDeg column (identified only via
-  // the 1e-9 ridge — not relied on). The richer forms also buy nothing: under
-  // short-mode production the reducer OWNS the current-axis outputs (clearReducer-
-  // OwnedOutputs), and the pitch curve is the only live axis, so a single simple
-  // pitch-only ladder applied uniformly to ALL outputs (latent and direct) is the
-  // right, robust choice. No surface form under pitch3 (a pitch-only interpolator
-  // adds nothing the 3-point quadratic doesn't already capture exactly).
+  // pitch3 has only a pitch axis and three rows. Cross/grid feature sets are
+  // underidentified here, while a three-point pitch quadratic is exact for
+  // every direct output and has a deterministic two-row linear fallback.
   if (probeDesignName === "pitch3") {
     const ladder: Array<[ArcResponseFitForm, (knobs: ArcKnobs) => number[]]> = [
       ["pitch_quadratic", pitchQuadraticFeatures], // 3 rows = exact
@@ -769,32 +659,21 @@ export function fitJointArcResponseModel(
   modelName: ArcResponseModelName = "hybrid",
   options: JointArcResponseFitOptions,
 ): JointArcResponseModel {
-  const latentModels = fitJointValueModels(
-    rows,
-    jointArcOutputKeys(rows, "latentOutputs"),
-    "latentOutputs",
-    probeDesignName,
-    modelName,
-  );
   const outputModels = fitJointValueModels(
     rows,
-    jointArcOutputKeys(rows, "outputs"),
-    "outputs",
+    jointArcOutputKeys(rows),
     probeDesignName,
     modelName,
-    latentModels.size > 0 ? reducerOwnsOutputKey : undefined,
   );
   return {
     context: options.context,
     outputModels,
-    latentModels,
-    scoreReadout: buildJointArcScoreReadoutModels(outputModels, latentModels),
+    scoreReadout: buildJointArcScoreReadoutModels(outputModels),
   };
 }
 
 function buildJointArcScoreReadoutModels(
   outputModels: JointArcResponseModel["outputModels"],
-  latentModels: JointArcResponseModel["latentModels"],
 ): JointArcScoreReadoutModels {
   return {
     outputAir: outputModels.get("current.axis.air"),
@@ -809,34 +688,18 @@ function buildJointArcScoreReadoutModels(
     outputNextY: outputModels.get("next.y"),
     outputNextVx: outputModels.get("next.vx"),
     outputNextVy: outputModels.get("next.vy"),
-    outputNextSpeed: outputModels.get("next.speed"),
-    outputNextComAngleDeg: outputModels.get("next.comAngleDeg"),
     outputNextSledPoseDeg: outputModels.get("next.sledPoseDeg"),
     outputNextSledPoseRateDegPerFrame: outputModels.get("next.sledPoseRateDegPerFrame"),
-    latentSuffixFrame: latentModels.get("latent.suffix.frame"),
-    latentSuffixX: latentModels.get("latent.suffix.x"),
-    latentSuffixY: latentModels.get("latent.suffix.y"),
-    latentSuffixVx: latentModels.get("latent.suffix.vx"),
-    latentSuffixVy: latentModels.get("latent.suffix.vy"),
-    latentSuffixSledPoseDeg: latentModels.get("latent.suffix.sledPoseDeg"),
-    latentSuffixSledPoseRateDegPerFrame: latentModels.get("latent.suffix.sledPoseRateDegPerFrame"),
-    latentPrefixAirFraction: latentModels.get("latent.prefix.airFraction"),
-    latentPrefixAirFrames: latentModels.get("latent.prefix.airFrames"),
-    latentPrefixSpeedMeanPx: latentModels.get("latent.prefix.speedMeanPx"),
-    latentPrefixSpeedFrames: latentModels.get("latent.prefix.speedFrames"),
-    latentPrefixSpeedSumPx: latentModels.get("latent.prefix.speedSumPx"),
-    latentPrefixDy: latentModels.get("latent.prefix.dy"),
-    latentPrefixV0SpeedPx: latentModels.get("latent.prefix.v0SpeedPx"),
-    hasLatent: latentModels.size > 0,
+    outputNextMeanSpeedPx: outputModels.get("next.meanSpeedPx"),
+    outputNextAirFraction: outputModels.get("next.airFraction"),
+    outputNextGapFrameCount: outputModels.get("next.frameCount"),
+    outputNextElevation: outputModels.get("next.elevation"),
   };
 }
-
-type JointArcValueSource = "outputs" | "latentOutputs";
 
 function fitJointValueModels(
   rows: readonly JointArcProbeRow[],
   keys: readonly string[],
-  source: JointArcValueSource,
   probeDesignName: ArcProbeDesignName,
   modelName: ArcResponseModelName,
   skipKey?: (key: string) => boolean,
@@ -846,13 +709,13 @@ function fitJointValueModels(
   for (const output of keys) {
     if (skipKey?.(output) === true) continue;
     const angle = isArcAngleOutput(output);
-    const finiteRows = rows.filter((r) => Number.isFinite(valueFromRow(r, source, output)));
+    const finiteRows = rows.filter((r) => Number.isFinite(r.outputs[output]));
     if (finiteRows.length === 0) continue;
-    const baselineValue = baseline === undefined ? undefined : valueFromRow(baseline, source, output);
-    const fallbackRef = valueFromRow(finiteRows[0], source, output);
+    const baselineValue = baseline?.outputs[output];
+    const fallbackRef = finiteRows[0].outputs[output];
     const ref = typeof baselineValue === "number" && Number.isFinite(baselineValue) ? baselineValue : fallbackRef;
     const fitRows = finiteRows.map((r) => {
-      const value = valueFromRow(r, source, output);
+      const value = r.outputs[output];
       return {
         knobs: r.knobs,
         value: angle ? unwrapAngleAround(value, ref) : value,
@@ -864,55 +727,35 @@ function fitJointValueModels(
   return models;
 }
 
-function valueFromRow(row: JointArcProbeRow, source: JointArcValueSource, key: string): number {
-  const values = source === "outputs" ? row.outputs : row.latentOutputs;
-  return values?.[key] ?? NaN;
-}
-
-function jointArcOutputKeys(rows: readonly JointArcProbeRow[], source: JointArcValueSource): string[] {
+function jointArcOutputKeys(rows: readonly JointArcProbeRow[]): string[] {
   const keys = new Set<string>();
   for (const row of rows) {
-    const values = source === "outputs" ? row.outputs : row.latentOutputs;
-    for (const key of Object.keys(values ?? {})) keys.add(key);
+    for (const key of Object.keys(row.outputs)) keys.add(key);
   }
   return [...keys].sort();
 }
 
 export function predictJointArcOutputs(model: JointArcResponseModel, knobs: ArcKnobs): Record<string, number> {
-  const latent: Record<string, number> = {};
-  predictFittedValuesInto(model.latentModels, knobs, latent);
   const direct: Record<string, number> = {};
   predictFittedValuesInto(model.outputModels, knobs, direct);
-  return completeArcPrediction(direct, latent, model.context);
+  return completeArcPrediction(direct, model.context);
 }
 
 /**
- * Combine fitted direct outputs and fitted latent suffix outputs into the
- * canonical prediction vector consumed by an aiming controller.  The vector
- * model used by multi-knob experiments calls this boundary too, so the
- * ballistic reducer and current-cost definition remain exactly shared with
- * the historical two-coordinate response model.
+ * Complete the canonical prediction vector consumed by an aiming controller.
+ * Every model predicts the same direct physical/scorer outputs.
  */
 export function completeArcPrediction(
   directOutputs: Readonly<Record<string, number>>,
-  latentOutputs: Readonly<Record<string, number>>,
   context: JointArcResponseContext,
 ): Record<string, number> {
   const outputs = { ...directOutputs };
-  if (Object.keys(latentOutputs).length > 0) {
-    clearReducerOwnedOutputs(outputs);
-    reduceLatentJointArcOutputsInto(latentOutputs as Record<string, number>, context, outputs);
-  }
   const computedCost = currentCostFromPredictedAxes(outputs, context.gap);
   if (computedCost !== null) outputs["current.cost"] = computedCost;
   return outputs;
 }
 
-/** Read the objective-facing values from an already-completed response vector.
- * This is deliberately separate from the legacy model's fitted-entry readout:
- * it allows a response model with any number of physical coordinates to share
- * the same quality, arrival, and exit semantics without pretending that a
- * third knob is a hidden `pitchDeg` or `rotateDeg` value. */
+/** Read objective-facing values from an already-completed response vector. */
 export function scoreCompletedArcPrediction(
   outputs: Readonly<Record<string, number>>,
   currentTargets: AxisValues,
@@ -928,9 +771,13 @@ export function scoreCompletedArcPrediction(
     currentQuality: currentQualityFromAxisValues(
       currentTargets, air, speed, grain, elevation, amplitude, impact,
     ),
-    state: predictedArrivalState(outputs as Record<string, number>),
+    state: predictedIncomingKinematics(outputs as Record<string, number>),
     exitFrame: outputs["exit.frame"] ?? NaN,
     exitSpeed: outputs["exit.speed"] ?? NaN,
+    nextMeanSpeedPx: outputs["next.meanSpeedPx"] ?? NaN,
+    nextAirFraction: outputs["next.airFraction"] ?? NaN,
+    nextGapFrameCount: outputs["next.frameCount"] ?? NaN,
+    nextElevation: outputs["next.elevation"] ?? NaN,
   };
 }
 
@@ -955,106 +802,22 @@ export function predictJointArcScoreReadout(
   const amplitude = scoreAmplitude ? predictEntryValue(readout.outputAmplitude, knobs) : NaN;
   const impact = scoreImpact ? predictEntryValue(readout.outputImpact, knobs) : NaN;
 
-  let state = predictedArrivalStateFromDirectOutputs(readout, knobs);
+  const state = predictedIncomingKinematicsFromDirectOutputs(readout, knobs);
   let exitFrame = predictEntryValue(readout.outputExitFrame, knobs);
   let exitSpeed = predictEntryValue(readout.outputExitSpeed, knobs);
-
-  if (readout.hasLatent) {
-    const suffixFrame = predictEntryValue(readout.latentSuffixFrame, knobs);
-    const suffixX = predictEntryValue(readout.latentSuffixX, knobs);
-    const suffixY = predictEntryValue(readout.latentSuffixY, knobs);
-    const suffixVx = predictEntryValue(readout.latentSuffixVx, knobs);
-    const suffixVy = predictEntryValue(readout.latentSuffixVy, knobs);
-    if (
-      Number.isFinite(suffixFrame) &&
-      Number.isFinite(suffixX) &&
-      Number.isFinite(suffixY) &&
-      Number.isFinite(suffixVx) &&
-      Number.isFinite(suffixVy)
-    ) {
-      const suffixSpeed = Math.hypot(suffixVx, suffixVy);
-      if (Number.isFinite(suffixSpeed)) {
-        exitFrame = suffixFrame;
-        exitSpeed = suffixSpeed;
-        if (scoreAir || scoreSpeed || scoreElevation) {
-          const startFrame = model.context.gap.startFrame;
-          const rangeEndFrame = model.context.axisMeasureEnd;
-          const prefixEnd = Math.max(startFrame, Math.min(rangeEndFrame, Math.round(suffixFrame)));
-          const prefixFrames = Math.max(0, prefixEnd - startFrame + 1);
-          const prefixAirFraction = predictEntryValue(readout.latentPrefixAirFraction, knobs);
-          const prefixAirFrames = Number.isFinite(prefixAirFraction)
-            ? Math.max(0, Math.min(1, prefixAirFraction)) * prefixFrames
-            : predictEntryValue(readout.latentPrefixAirFrames, knobs);
-          const prefixSpeedMeanPx = predictEntryValue(readout.latentPrefixSpeedMeanPx, knobs);
-          const prefixSpeedFrames = Number.isFinite(prefixSpeedMeanPx)
-            ? prefixFrames
-            : predictEntryValue(readout.latentPrefixSpeedFrames, knobs);
-          const prefixSpeedSumPx = Number.isFinite(prefixSpeedMeanPx)
-            ? prefixSpeedMeanPx * prefixSpeedFrames
-            : predictEntryValue(readout.latentPrefixSpeedSumPx, knobs);
-          const prefixDy = predictEntryValue(readout.latentPrefixDy, knobs);
-          const prefixV0SpeedPx = predictEntryValue(readout.latentPrefixV0SpeedPx, knobs);
-          if (
-            Number.isFinite(prefixAirFrames) &&
-            Number.isFinite(prefixSpeedSumPx) &&
-            Number.isFinite(prefixSpeedFrames) &&
-            Number.isFinite(prefixDy) &&
-            Number.isFinite(prefixV0SpeedPx)
-          ) {
-            const suffixFrames = Math.max(0, rangeEndFrame - prefixEnd);
-            if (scoreAir) {
-              const totalFrames = prefixFrames + suffixFrames;
-              if (totalFrames > 0) {
-                const boundedPrefixAirFrames = Math.max(0, Math.min(prefixFrames, prefixAirFrames));
-                air = (boundedPrefixAirFrames + suffixFrames) / totalFrames;
-              }
-            }
-            if (scoreSpeed) {
-              let speedSumPx = prefixSpeedSumPx;
-              let speedFrames = Math.max(0, Math.min(prefixFrames, prefixSpeedFrames));
-              for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
-                const vy = suffixVy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
-                speedSumPx += Math.sqrt(suffixVx * suffixVx + vy * vy);
-                speedFrames++;
-              }
-              if (speedFrames > 0) speedAxis = speedPxToAuthored(speedSumPx / speedFrames);
-            }
-            if (
-              scoreElevation &&
-              rangeEndFrame > startFrame &&
-              Number.isFinite(prefixV0SpeedPx)
-            ) {
-              let dy = prefixDy;
-              for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
-                dy += suffixVy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
-              }
-              elevation = netDyToElevation(
-                dy,
-                Math.max(0, prefixV0SpeedPx),
-                rangeEndFrame - startFrame,
-              );
-            }
-          }
-        }
-        if (state === null && suffixFrame < model.context.nextFrame) {
-          const suffixSledPoseDeg = predictEntryValue(readout.latentSuffixSledPoseDeg, knobs);
-          const suffixSledPoseRateDegPerFrame = predictEntryValue(readout.latentSuffixSledPoseRateDegPerFrame, knobs);
-          state = propagateBallisticArrivalState({
-            x: suffixX,
-            y: suffixY,
-            vx: suffixVx,
-            vy: suffixVy,
-            speed: suffixSpeed,
-            comAngleDeg: suffixSpeed > 0 ? Math.atan2(suffixVy, suffixVx) * 180 / Math.PI : null,
-            sledPoseDeg: Number.isFinite(suffixSledPoseDeg) ? suffixSledPoseDeg : null,
-            sledPoseRateDegPerFrame: Number.isFinite(suffixSledPoseRateDegPerFrame)
-              ? suffixSledPoseRateDegPerFrame
-              : null,
-          }, model.context.nextFrame - suffixFrame);
-        }
-      }
-    }
-  }
+  const nextMeanSpeedPx = predictEntryValue(
+    readout.outputNextMeanSpeedPx,
+    knobs,
+  );
+  const nextAirFraction = predictEntryValue(
+    readout.outputNextAirFraction,
+    knobs,
+  );
+  const nextGapFrameCount = predictEntryValue(
+    readout.outputNextGapFrameCount,
+    knobs,
+  );
+  const nextElevation = predictEntryValue(readout.outputNextElevation, knobs);
 
   return {
     currentQuality: currentQualityFromAxisValues(
@@ -1069,6 +832,10 @@ export function predictJointArcScoreReadout(
     state,
     exitFrame,
     exitSpeed,
+    nextMeanSpeedPx,
+    nextAirFraction,
+    nextGapFrameCount,
+    nextElevation,
   };
 }
 
@@ -1087,47 +854,6 @@ function shouldScoreCurrentAxis(targets: AxisValues, axis: string): boolean {
   return !REPORT_ONLY_AXIS_SET.has(axis) && Number.isFinite(targets[axis as keyof AxisValues]);
 }
 
-/** Axes the latent reducer reconstructs ballistically (via
- *  `completeBallisticSpanAxesFromSummary` → `axisResponseOutputs`). It owns ONLY
- *  these; grain/amplitude/impact are fitted model outputs the reducer never
- *  overwrites, so their predictions are deliberately left intact (see
- *  `clearReducerOwnedOutputs`). */
-const REDUCER_BALLISTIC_AXES = ["air", "speed", "elevation"] as const;
-
-function reducerOwnsOutputKey(key: string): boolean {
-  return key.startsWith("exit.") ||
-    key === "current.cost" ||
-    key === "current.releaseSpeedPx" ||
-    key === "current.releaseVy" ||
-    REDUCER_BALLISTIC_AXES.some((axis) =>
-      key === `current.axis.${axis}` || key === `current.error.${axis}`
-    );
-}
-
-/** Clear every output key the latent reducer (`reduceLatentJointArcOutputs`)
- *  recomputes, before it overwrites: the reducer skips non-finite values
- *  (`addFinite`) and may emit nothing at all (null suffix), so a stale fitted
- *  prediction must not leak through. `next.*` is deliberately not cleared:
- *  short probes fit the constraint-solver terminal prediction directly, avoiding an
- *  incoherent independent fit of its correlated launch coordinates. The
- *  reducer's `current.*` keys are an explicit small set:
- *  `current.cost` (added by `predictJointArcOutputs`), the two release scalars,
- *  and axis/error for the ballistic axes only (NOT grain/amplitude/impact). */
-function clearReducerOwnedOutputs(outputs: Record<string, number>): void {
-  for (const key of Object.keys(outputs)) {
-    if (reducerOwnsOutputKey(key)) delete outputs[key];
-  }
-}
-
-function predictFittedValues(
-  models: JointArcResponseModel["outputModels"],
-  knobs: ArcKnobs,
-): Record<string, number> {
-  const values: Record<string, number> = {};
-  predictFittedValuesInto(models, knobs, values);
-  return values;
-}
-
 function predictFittedValuesInto(
   models: JointArcResponseModel["outputModels"],
   knobs: ArcKnobs,
@@ -1143,48 +869,6 @@ function predictEntryValue(fitted: FittedArcOutputEntry | undefined, knobs: ArcK
   if (fitted === undefined) return NaN;
   const pred = fitted.model.predict(knobs);
   return fitted.angle ? unwrapAngleAround(pred, fitted.ref) : pred;
-}
-
-/** The fast-physics reducer: latent suffix state + prefix summaries → final
- * output vector. Exported so studies can decompose latent-mode error into
- * fit error vs reducer error by applying it to MEASURED latents directly. */
-export function reduceLatentJointArcOutputs(
-  latent: Record<string, number>,
-  context: JointArcResponseContext,
-): Record<string, number> {
-  const outputs: Record<string, number> = {};
-  reduceLatentJointArcOutputsInto(latent, context, outputs);
-  return outputs;
-}
-
-function reduceLatentJointArcOutputsInto(
-  latent: Record<string, number>,
-  context: JointArcResponseContext,
-  outputs: Record<string, number>,
-): void {
-
-  const suffixFrame = latent["latent.suffix.frame"];
-  const suffixState = suffixStateFromLatent(latent);
-  if (suffixState === null || !Number.isFinite(suffixFrame)) return;
-
-  outputs["current.releaseSpeedPx"] = suffixState.speed;
-  outputs["current.releaseVy"] = suffixState.vy;
-  addValidatedExitStateOutputs(outputs, suffixState, suffixFrame);
-
-  const prefix = prefixSummaryFromLatent(latent, context.gap.startFrame, suffixFrame, context.axisMeasureEnd);
-  if (prefix !== null) {
-    const suffix: BallisticAxisSuffix = { frame: suffixFrame, vx: suffixState.vx, vy: suffixState.vy };
-    const axes = completeBallisticSpanAxesFromSummary(prefix, context.axisMeasureEnd, suffix);
-    addAxisResponseOutputs(outputs, context.gap.targets, axes);
-  }
-
-  if (
-    predictedArrivalState(outputs) === null &&
-    suffixFrame < context.nextFrame
-  ) {
-    const nextState = propagateBallisticArrivalState(suffixState, context.nextFrame - suffixFrame);
-    addValidatedStateOutputs(outputs, nextState);
-  }
 }
 
 function currentCostFromPredictedAxes(outputs: Record<string, number>, gap: Gap): number | null {
@@ -1236,103 +920,6 @@ function currentCostFromPredictedAxes(outputs: Record<string, number>, gap: Gap)
   return hasTargetedAxis ? cost : null;
 }
 
-function suffixStateFromLatent(latent: Record<string, number>): RiderArrivalState | null {
-  const x = latent["latent.suffix.x"];
-  const y = latent["latent.suffix.y"];
-  const vx = latent["latent.suffix.vx"];
-  const vy = latent["latent.suffix.vy"];
-  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(vx) || !Number.isFinite(vy)) return null;
-  const speed = Math.hypot(vx, vy);
-  if (!Number.isFinite(speed)) return null;
-  return {
-    x,
-    y,
-    vx,
-    vy,
-    speed,
-    comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
-    sledPoseDeg: Number.isFinite(latent["latent.suffix.sledPoseDeg"]) ? latent["latent.suffix.sledPoseDeg"] : null,
-    sledPoseRateDegPerFrame: Number.isFinite(latent["latent.suffix.sledPoseRateDegPerFrame"])
-      ? latent["latent.suffix.sledPoseRateDegPerFrame"]
-    : null,
-  };
-}
-
-function prefixSummaryFromLatent(
-  latent: Record<string, number>,
-  startFrame: number,
-  suffixFrame: number,
-  rangeEndFrame: number,
-): BallisticAxisPrefixSummary | null {
-  const prefixEndFrame = Math.max(startFrame, Math.min(rangeEndFrame, Math.round(suffixFrame)));
-  const prefixFrames = Math.max(0, prefixEndFrame - startFrame + 1);
-  const airFraction = latent["latent.prefix.airFraction"];
-  const airFrames = Number.isFinite(airFraction)
-    ? Math.max(0, Math.min(1, airFraction)) * prefixFrames
-    : latent["latent.prefix.airFrames"];
-  const speedMeanPx = latent["latent.prefix.speedMeanPx"];
-  const speedFrames = Number.isFinite(speedMeanPx) ? prefixFrames : latent["latent.prefix.speedFrames"];
-  const speedSumPx = Number.isFinite(speedMeanPx)
-    ? speedMeanPx * speedFrames
-    : latent["latent.prefix.speedSumPx"];
-  const dy = latent["latent.prefix.dy"];
-  const v0SpeedPx = latent["latent.prefix.v0SpeedPx"];
-  if (
-    !Number.isFinite(airFrames) ||
-    !Number.isFinite(speedSumPx) ||
-    !Number.isFinite(speedFrames) ||
-    !Number.isFinite(dy) ||
-    !Number.isFinite(v0SpeedPx)
-  ) return null;
-  return {
-    startFrame,
-    prefixEndFrame,
-    airFrames,
-    speedSumPx,
-    speedFrames,
-    dy,
-    v0SpeedPx,
-  };
-}
-
-/** The 9-key `exit.*` block at the suffix/exit frame: the suffix launch state
- *  written under the reducer's `exit.*` keys. Single source for both the latent
- *  reducer (reduceLatentJointArcOutputs) and study-local direct rows so the key
- *  set and values stay identical across model spaces. */
-export function exitStateOutputs(state: RiderArrivalState, frame: number): Record<string, number> {
-  const outputs: Record<string, number> = {};
-  addExitStateOutputs(outputs, state, frame);
-  return outputs;
-}
-
-function addExitStateOutputs(outputs: Record<string, number>, state: RiderArrivalState, frame: number): void {
-  if (Number.isFinite(frame)) outputs["exit.frame"] = frame;
-  if (Number.isFinite(state.x)) outputs["exit.x"] = state.x;
-  if (Number.isFinite(state.y)) outputs["exit.y"] = state.y;
-  if (Number.isFinite(state.vx)) outputs["exit.vx"] = state.vx;
-  if (Number.isFinite(state.vy)) outputs["exit.vy"] = state.vy;
-  if (Number.isFinite(state.speed)) outputs["exit.speed"] = state.speed;
-  if (state.comAngleDeg !== null && Number.isFinite(state.comAngleDeg)) outputs["exit.comAngleDeg"] = state.comAngleDeg;
-  if (state.sledPoseDeg !== null && Number.isFinite(state.sledPoseDeg)) outputs["exit.sledPoseDeg"] = state.sledPoseDeg;
-  if (state.sledPoseRateDegPerFrame !== null && Number.isFinite(state.sledPoseRateDegPerFrame)) {
-    outputs["exit.sledPoseRateDegPerFrame"] = state.sledPoseRateDegPerFrame;
-  }
-}
-
-function addValidatedExitStateOutputs(outputs: Record<string, number>, state: RiderArrivalState, frame: number): void {
-  outputs["exit.frame"] = frame;
-  outputs["exit.x"] = state.x;
-  outputs["exit.y"] = state.y;
-  outputs["exit.vx"] = state.vx;
-  outputs["exit.vy"] = state.vy;
-  outputs["exit.speed"] = state.speed;
-  if (state.comAngleDeg !== null) outputs["exit.comAngleDeg"] = state.comAngleDeg;
-  if (state.sledPoseDeg !== null) outputs["exit.sledPoseDeg"] = state.sledPoseDeg;
-  if (state.sledPoseRateDegPerFrame !== null) {
-    outputs["exit.sledPoseRateDegPerFrame"] = state.sledPoseRateDegPerFrame;
-  }
-}
-
 export function stateOutputs(state: RiderArrivalState): Record<string, number> {
   const outputs: Record<string, number> = {};
   addStateOutputs(outputs, state);
@@ -1344,23 +931,8 @@ function addStateOutputs(outputs: Record<string, number>, state: RiderArrivalSta
   if (Number.isFinite(state.y)) outputs["next.y"] = state.y;
   if (Number.isFinite(state.vx)) outputs["next.vx"] = state.vx;
   if (Number.isFinite(state.vy)) outputs["next.vy"] = state.vy;
-  if (Number.isFinite(state.speed)) outputs["next.speed"] = state.speed;
-  if (state.comAngleDeg !== null && Number.isFinite(state.comAngleDeg)) outputs["next.comAngleDeg"] = state.comAngleDeg;
   if (state.sledPoseDeg !== null && Number.isFinite(state.sledPoseDeg)) outputs["next.sledPoseDeg"] = state.sledPoseDeg;
   if (state.sledPoseRateDegPerFrame !== null && Number.isFinite(state.sledPoseRateDegPerFrame)) {
-    outputs["next.sledPoseRateDegPerFrame"] = state.sledPoseRateDegPerFrame;
-  }
-}
-
-function addValidatedStateOutputs(outputs: Record<string, number>, state: RiderArrivalState): void {
-  outputs["next.x"] = state.x;
-  outputs["next.y"] = state.y;
-  outputs["next.vx"] = state.vx;
-  outputs["next.vy"] = state.vy;
-  outputs["next.speed"] = state.speed;
-  if (state.comAngleDeg !== null) outputs["next.comAngleDeg"] = state.comAngleDeg;
-  if (state.sledPoseDeg !== null) outputs["next.sledPoseDeg"] = state.sledPoseDeg;
-  if (state.sledPoseRateDegPerFrame !== null) {
     outputs["next.sledPoseRateDegPerFrame"] = state.sledPoseRateDegPerFrame;
   }
 }
@@ -1549,13 +1121,11 @@ export function predictedArrivalState(outputs: Record<string, number>): RiderArr
   const vx = outputs["next.vx"];
   const vy = outputs["next.vy"];
   if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(vx) || !Number.isFinite(vy)) return null;
-  const measuredSpeed = outputs["next.speed"];
-  const speed = Number.isFinite(measuredSpeed) ? measuredSpeed : Math.hypot(vx, vy);
+  const speed = Math.hypot(vx, vy);
   if (!Number.isFinite(speed)) return null;
-  const measuredAngle = outputs["next.comAngleDeg"];
-  const comAngleDeg = Number.isFinite(measuredAngle)
-    ? measuredAngle
-    : speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null;
+  const comAngleDeg = speed > 0
+    ? Math.atan2(vy, vx) * 180 / Math.PI
+    : null;
   const sledPoseDeg = Number.isFinite(outputs["next.sledPoseDeg"]) ? outputs["next.sledPoseDeg"] : null;
   const sledPoseRateDegPerFrame = Number.isFinite(outputs["next.sledPoseRateDegPerFrame"])
     ? outputs["next.sledPoseRateDegPerFrame"]
@@ -1563,25 +1133,48 @@ export function predictedArrivalState(outputs: Record<string, number>): RiderArr
   return { x, y, vx, vy, speed, comAngleDeg, sledPoseDeg, sledPoseRateDegPerFrame };
 }
 
-function predictedArrivalStateFromDirectOutputs(
+export function predictedIncomingKinematics(
+  outputs: Record<string, number>,
+): IncomingKinematics | null {
+  const vx = outputs["next.vx"];
+  const vy = outputs["next.vy"];
+  if (!Number.isFinite(vx) || !Number.isFinite(vy)) return null;
+  const state = predictedArrivalState(outputs);
+  if (state !== null) return incomingKinematics(state);
+  const speed = Math.hypot(vx, vy);
+  if (!Number.isFinite(speed)) return null;
+  return {
+    vx,
+    vy,
+    speed,
+    comAngleDeg: speed > 0
+      ? Math.atan2(vy, vx) * 180 / Math.PI
+      : null,
+    sledPoseDeg: Number.isFinite(outputs["next.sledPoseDeg"])
+      ? outputs["next.sledPoseDeg"]
+      : null,
+    sledPoseRateDegPerFrame:
+      Number.isFinite(outputs["next.sledPoseRateDegPerFrame"])
+        ? outputs["next.sledPoseRateDegPerFrame"]
+        : null,
+  };
+}
+
+function predictedIncomingKinematicsFromDirectOutputs(
   models: JointArcScoreReadoutModels,
   knobs: ArcKnobs,
-): RiderArrivalState | null {
-  const x = predictEntryValue(models.outputNextX, knobs);
-  const y = predictEntryValue(models.outputNextY, knobs);
+): IncomingKinematics | null {
   const vx = predictEntryValue(models.outputNextVx, knobs);
   const vy = predictEntryValue(models.outputNextVy, knobs);
-  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(vx) || !Number.isFinite(vy)) return null;
-  const measuredSpeed = predictEntryValue(models.outputNextSpeed, knobs);
-  const speed = Number.isFinite(measuredSpeed) ? measuredSpeed : Math.hypot(vx, vy);
+  if (!Number.isFinite(vx) || !Number.isFinite(vy)) return null;
+  const speed = Math.hypot(vx, vy);
   if (!Number.isFinite(speed)) return null;
-  const measuredAngle = predictEntryValue(models.outputNextComAngleDeg, knobs);
-  const comAngleDeg = Number.isFinite(measuredAngle)
-    ? measuredAngle
-    : speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null;
+  const comAngleDeg = speed > 0
+    ? Math.atan2(vy, vx) * 180 / Math.PI
+    : null;
   const sledPoseDeg = predictOptionalEntryValue(models.outputNextSledPoseDeg, knobs);
   const sledPoseRateDegPerFrame = predictOptionalEntryValue(models.outputNextSledPoseRateDegPerFrame, knobs);
-  return { x, y, vx, vy, speed, comAngleDeg, sledPoseDeg, sledPoseRateDegPerFrame };
+  return { vx, vy, speed, comAngleDeg, sledPoseDeg, sledPoseRateDegPerFrame };
 }
 
 function predictOptionalEntryValue(

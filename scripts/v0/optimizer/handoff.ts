@@ -36,6 +36,12 @@ import {
   validateSpec,
 } from "../core/substrate.ts";
 import {
+  ballisticLaunchOf,
+  copyBallisticFitFields,
+  projectBallisticGap,
+  type BallisticFitFields,
+} from "../core/ballistic_projection.ts";
+import {
   AXES,
   AXIS_VALUE_MAX,
   CALIB,
@@ -53,6 +59,7 @@ import {
   secToFrame,
   type AxisName,
   type AxisValues,
+  type BallisticPredictionErrorSummary,
   type CandidateSampleMode,
   type HandoffContactCountCounter,
   type HandoffEvaluationPhase,
@@ -72,7 +79,6 @@ import {
   translateTrackLines,
   tryCandidateLines,
 } from "../core/candidate.ts";
-import { cloneConstraintReleaseArrival } from "../core/ballistic_micro_sim.ts";
 import { pickLowestCost } from "./solver.ts";
 import {
   getCandidatesSorted,
@@ -101,24 +107,28 @@ import {
   TRAVERSAL_BUDGET_MODEL_V1,
 } from "./budget_model.ts";
 import {
-  effectiveAirAsk,
+  currentGapAxes,
   frontierReadinessFromFit,
   nextContactGap,
   nextContactGapIndex,
-  OBJECTIVE_AIR_DEADBAND,
-  OBJECTIVE_IMPACT_TARGETED_ASK,
+  nextGapFrameCount,
   predictArrivalAtNextContact,
   scoreCurrentTargetQuality,
   scoreNextTargetReadiness,
   setObjectiveBlendPowers,
 } from "./objective.ts";
 import {
+  effectiveAirAsk,
+  READINESS_AIR_DEADBAND,
+  READINESS_IMPACT_TARGETED_ASK,
+} from "./readiness.ts";
+import {
   AXIS_QUALITY_TOLERANCE,
   axisErrorsForTargets,
   axisQualityFromErrors,
   MISSING_CONTACT_TOLERANCE,
 } from "../score.ts";
-import { readinessCatch } from "./readiness.ts";
+import { predictCatchability } from "./catchability.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { getEngineRebuildCount } from "../core/polish.ts";
 import { registerCompileReset, resetPerCompileState } from "../core/compile_lifecycle.ts";
@@ -242,7 +252,6 @@ export type HandoffPoolProbeCandidate = {
   totalTurnDeg: number;
   cost: number;
   achieved: AxisValues;
-  achievedAtEnd?: AxisValues;
   qualityObjective: number | null;
   currentQuality: number;
   readiness: number | null;
@@ -758,7 +767,7 @@ type NodeEvaluation = {
   key: LeafKey;
   outputDurationFrames: number;
   fullDuration: boolean;
-  readinessPerGap: (number | null)[];
+  catchabilityPerGap: (number | null)[];
 };
 
 type ConsiderResult = {
@@ -1363,6 +1372,11 @@ function compileHandoffInternal(
     const repair = repairConfig(policyBudget, specProfile);
     const repairEnabled = policyBudget >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
+    // `BestSoFarRegister` intentionally owns only the public output. Keep the
+    // matching node solely so snapshot-time diagnostics can validate the exact
+    // selected transitions without re-running physics or instrumenting every
+    // candidate considered by the search.
+    let bestRegisteredNode: HandoffNode | null = null;
     let firstTerminalFrame = -1;
     let firstCompletionFrame = -1;
     // Instrumentation scaffold (observe-only; never read by the search → byte-identical when off):
@@ -1429,10 +1443,11 @@ function compileHandoffInternal(
           gaps,
           evaluation.outputDurationFrames,
           false,
-          evaluation.readinessPerGap,
+          evaluation.catchabilityPerGap,
         ),
         evaluation.key,
       );
+      if (improved) bestRegisteredNode = node;
       recordImprovementTelemetry(telemetry, phase, improved);
       const terminal = isTerminalNode(node.search, gaps);
       if (terminal) {
@@ -1472,6 +1487,13 @@ function compileHandoffInternal(
       const releaseExitStats = snapshotReleaseExitStats();
       const gapfitShortStats = snapshotGapfitShortStats();
       const fwdEvalStats = snapshotFwdEvalStats();
+      const selectedTransitionStats = bestRegisteredNode === null
+        ? null
+        : selectedBallisticTransitionStats(
+          paddedFits(bestRegisteredNode, gaps.length),
+          gaps,
+          best.stats.catchability_per_gap ?? [],
+        );
       return {
         ...best,
         budget,
@@ -1561,6 +1583,9 @@ function compileHandoffInternal(
           // rollout frame cost share + true-rollout-vs-quality-objective agreement. Absent
           // when forward-eval never ran (gate off) → ablation archives stay byte-identical.
           ...(fwdEvalStats !== null ? { fwd_eval: fwdEvalStats } : {}),
+          ...(selectedTransitionStats === null
+            ? {}
+            : { ballistic_selected_transitions: selectedTransitionStats }),
           // Repair characterization (only present when the repair post-pass ran → baseline
           // golden.json unchanged, no snapshot churn). Aggregates are always cheap; the full
           // per-restart records (up to maxAttempts each) are heavy archive bloat, so they ride
@@ -1695,10 +1720,11 @@ function compileHandoffInternal(
               gaps,
               evaluation.outputDurationFrames,
               false,
-              evaluation.readinessPerGap,
+              evaluation.catchabilityPerGap,
             ),
             evaluation.key,
           );
+          if (improved) bestRegisteredNode = polishNode;
           recordImprovementTelemetry(telemetry, "polish", improved);
           const event: HandoffNodeEvent = {
             phase: "polish",
@@ -1884,8 +1910,8 @@ function compileHandoffInternal(
               weakAxisError: weakValue?.error ?? null,
               weakAxisCeiling: weakValue?.ceiling ?? null,
               weakGapSse,
-              weakArrivalSpeed: arrival?.speed ?? null,
-              weakArrivalAngle: arrival?.comAngleDeg ?? null,
+              weakArrivalSpeed: arrival?.incoming.speed ?? null,
+              weakArrivalAngle: arrival?.incoming.comAngleDeg ?? null,
               weakArrivalReadiness: readiness?.readiness ?? null,
               weakArrivalCatchability: readiness?.catchability ?? null,
               weakArrivalSpeedFit: readiness?.speedFit ?? null,
@@ -2121,7 +2147,6 @@ function cloneResolvedStart(start: ResolvedStart): ResolvedStart {
 }
 
 function cloneGapFit(fit: GapFit): GapFit {
-  const releaseArrivalState = cloneConstraintReleaseArrival(fit.releaseArrivalState);
   return {
     arc: fit.arc === null ? null : { ...fit.arc, anchor: { ...fit.arc.anchor } },
     geometry: fit.geometry,
@@ -2129,7 +2154,9 @@ function cloneGapFit(fit: GapFit): GapFit {
     achieved: { ...fit.achieved },
     cost: fit.cost,
     ...copyOptionalGapFitFields(fit, { cloneObjects: true }),
-    ...(releaseArrivalState === undefined ? {} : { releaseArrivalState }),
+    ...copyBallisticFitFields(fit as GapFit & BallisticFitFields, {
+      clone: true,
+    }),
   };
 }
 
@@ -3282,6 +3309,7 @@ function startupDeadEndOptions(
     targetBudget: config.targetBudget ?? 0,
     budgetSlack: 0,
     openingBestOpportunity: 0,
+    allowForwardEval: false,
   }, {
     tag: "startup",
     rankBase: 0,
@@ -3337,7 +3365,7 @@ function supportTimeCoverageDeficit(
   if (nextGap === null) return 0;
   const nextTargets = ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
   if (nextTargets.air === undefined) return 0;
-  const gapFrames = Math.max(1, nextGap.endFrame - nextGap.startFrame);
+  const gapFrames = nextGapFrameCount(nextGap);
   const ask = effectiveAirAsk(nextTargets.air, gapFrames);
   const entrySpeed = getCandidateProbe(node.prefixEngine, gap, ctx).targetState.speed;
   if (supportExtensionPressure({ air: nextTargets.air, gapFrames, speed: entrySpeed }) <= 0) {
@@ -3345,11 +3373,11 @@ function supportTimeCoverageDeficit(
   }
   const predictedAir = pool.flatMap(({ candidate }) => {
     const arrival = predictArrivalAtNextContact(candidate, nextGap);
-    return arrival?.nextAir === undefined ? [] : [arrival.nextAir];
+    return arrival?.airFraction === undefined ? [] : [arrival.airFraction];
   });
   return predictedAir.length === 0
     ? 0
-    : Math.max(0, Math.min(...predictedAir) - ask - OBJECTIVE_AIR_DEADBAND);
+    : Math.max(0, Math.min(...predictedAir) - ask - READINESS_AIR_DEADBAND);
 }
 
 function supportTimeCandidates(
@@ -3389,16 +3417,16 @@ function retainAirCoverageImprovements(
   if (nextGap === null) return [];
   const nextTargets = ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
   if (nextTargets.air === undefined) return [];
-  const gapFrames = Math.max(1, nextGap.endFrame - nextGap.startFrame);
+  const gapFrames = nextGapFrameCount(nextGap);
   const ask = effectiveAirAsk(nextTargets.air, gapFrames);
   const incumbentErrors = pool.flatMap(({ candidate }) => {
-    const air = predictArrivalAtNextContact(candidate, nextGap)?.nextAir;
+    const air = predictArrivalAtNextContact(candidate, nextGap)?.airFraction;
     return air === undefined ? [] : [Math.abs(air - ask)];
   });
   if (incumbentErrors.length === 0) return [];
   const bestIncumbentError = Math.min(...incumbentErrors);
   return candidates.filter((candidate) => {
-    const air = predictArrivalAtNextContact(candidate, nextGap)?.nextAir;
+    const air = predictArrivalAtNextContact(candidate, nextGap)?.airFraction;
     return air !== undefined && Math.abs(air - ask) + 1e-9 < bestIncumbentError;
   });
 }
@@ -3702,7 +3730,8 @@ function rankedOptions(
             ((angle - segmentAngles[index] + 180) % 360 + 360) % 360 - 180,
           ), 0
         );
-        const release = candidate.releaseArrivalState;
+        const launch = candidate.ballisticLaunch;
+        const release = launch?.state;
         const arrival = nextGap === null ? null : predictArrivalAtNextContact(candidate, nextGap);
         const readiness = arrival === null || nextTargets === null
           ? null
@@ -3721,9 +3750,6 @@ function rankedOptions(
           totalTurnDeg,
           cost: candidate.cost,
           achieved: candidate.achieved,
-          ...(candidate.achievedAtEnd === undefined
-            ? {}
-            : { achievedAtEnd: candidate.achievedAtEnd }),
           qualityObjective: candidateQualityObjective(
             node.prefixEngine,
             candidate,
@@ -3731,15 +3757,20 @@ function rankedOptions(
             gaps,
             ctx,
           ),
-          currentQuality: scoreCurrentTargetQuality(currentTargets, candidate.achieved),
+          currentQuality: scoreCurrentTargetQuality(
+            currentTargets,
+            currentGapAxes(candidate),
+          ),
           readiness: readiness?.readiness ?? null,
           catchability: readiness?.catchability ?? null,
           speedFit: readiness?.speedFit ?? null,
           impactFeasibility: readiness?.impactFeasibility ?? null,
           airFit: readiness?.airFit ?? null,
           elevationFit: readiness?.elevationFit ?? null,
-          releaseFrame: release?.frame ?? null,
-          releaseElapsedFrames: release === undefined ? null : release.frame - gap.endFrame,
+          releaseFrame: launch?.anchorFrame ?? null,
+          releaseElapsedFrames: launch === undefined
+            ? null
+            : launch.anchorFrame - gap.endFrame,
           catchWindowGroundedFrames: candidate.releaseGroundedFrames ?? null,
           releaseDisplacement: release === undefined || candidate.ref === undefined
             ? null
@@ -3747,13 +3778,13 @@ function rankedOptions(
           releaseSpeed: release === undefined ? null : Math.hypot(release.vx, release.vy),
           releaseVx: release?.vx ?? null,
           releaseVy: release?.vy ?? null,
-          releaseGrounded: release?.grounded ?? null,
-          releaseAirborne: release?.airborne ?? null,
-          arrivalSpeed: arrival?.speed ?? null,
-          arrivalAngleDeg: arrival?.comAngleDeg ?? null,
-          arrivalAir: arrival?.nextAir ?? null,
-          arrivalGapFrames: arrival?.nextGapFrames ?? null,
-          arrivalElevation: arrival?.nextElevation ?? null,
+          releaseGrounded: launch?.groundedFrames ?? null,
+          releaseAirborne: launch?.airborne ?? null,
+          arrivalSpeed: arrival?.incoming.speed ?? null,
+          arrivalAngleDeg: arrival?.incoming.comAngleDeg ?? null,
+          arrivalAir: arrival?.airFraction ?? null,
+          arrivalGapFrames: arrival?.gapFrameCount ?? null,
+          arrivalElevation: arrival?.elevation ?? null,
           admitted: admitted.has(candidate),
           ...(handoffScores.has(candidate)
             ? { handoffScore: handoffScores.get(candidate) }
@@ -5209,7 +5240,7 @@ function releaseVerticalSetupPressure(
 }
 
 function candidateOvershootPenalty(candidate: Candidate, gap: Gap): number {
-  return handoffAxisOvershootPenalty(gap.targets, candidate.achieved);
+  return handoffAxisOvershootPenalty(gap.targets, currentGapAxes(candidate));
 }
 
 export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisValues): number {
@@ -5232,8 +5263,9 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 // the measure-only agreement instrument below) is a near-self-contained unit that touches the
 // DFS core at only two call sites (scoreCandidateForHandoff, the telemetry hook in expandNode).
 // A physical move to forward_eval.ts is DEFERRED, not rejected: the remaining blocker is threading
-// fwdEvalRuntime explicitly through production scorers and EXTERNAL importers (eval_arc_apples.ts,
-// eval_leaf_factors.ts, eval_leaf_window.ts call setForwardEvalContext then read objectiveLeafValue),
+// fwdEvalRuntime explicitly through production scorers and EXTERNAL importers
+// (eval_arc_apples.ts and eval_leaf_factors.ts call setForwardEvalContext then
+// read objectiveLeafValue),
 // which have no test coverage of their own.
 // ════════════════════════════════════════════════════════════════════════════════════════
 // ── True-score forward arc evaluation (DEFAULT ranker ≥75k; also start selection & repair) ──
@@ -5399,7 +5431,7 @@ function recordFwdEvalAgreement(
   // Telemetry-only; split at the objective ramp midpoint so the classifier can't
   // drift back to the old stray inline 0.35.
   const impactTargeted = impactTarget !== undefined &&
-    impactTarget >= OBJECTIVE_IMPACT_TARGETED_ASK;
+    impactTarget >= READINESS_IMPACT_TARGETED_ASK;
   if (agree) {
     if (impactTargeted) fwdEvalTotals.fwd_agree_impact_targeted++;
     else fwdEvalTotals.fwd_agree_not_impact_targeted++;
@@ -5901,12 +5933,9 @@ export function objectiveLeafValue(
       missingFitCount += 1; // defensive: a contact gap that never committed a catch
       continue;
     }
-    // Reproduce the TRUE scorer's axis factor: it measures each gap over [start, endFrame]
-    // (buildDriftReport), so read the GAP-WINDOW achieved (`achievedAtEnd`) — not the LOOKAHEAD
-    // `achieved` the local ranker uses (which for air gaps spans through the next contact and is
-    // the wrong window to reproduce the scorer). achievedAtEnd is undefined when the two windows
-    // coincide (non-air gaps), so fall back to `achieved` then.
-    const achieved = fit.achievedAtEnd ?? fit.achieved;
+    // Reproduce the true scorer's [startFrame, endFrame] axis factor from the
+    // canonical current-gap vector.
+    const achieved = currentGapAxes(fit);
     for (const e of axisErrorsForTargets(fwdEvalRuntime.gapAxisTargets[i], achieved)) errors.push(e);
   }
   // axis_quality = exp(-rms(ALL committed-prefix errors) / AXIS_QUALITY_TOLERANCE) — the scorer's
@@ -7071,6 +7100,10 @@ function round3(x: number): number {
   return Math.round(x * 1000) / 1000;
 }
 
+function round6(x: number): number {
+  return Math.round(x * 1_000_000) / 1_000_000;
+}
+
 function clamp01(x: number): number {
   return Math.max(0, Math.min(1, x));
 }
@@ -7119,7 +7152,7 @@ function evaluateNode(
   key: LeafKey;
   outputDurationFrames: number;
   fullDuration: boolean;
-  readinessPerGap: (number | null)[];
+  catchabilityPerGap: (number | null)[];
 } {
   const fullDuration = isTerminalNode(node.search, gaps);
   const partialHorizonFrame = fullDuration
@@ -7134,9 +7167,9 @@ function evaluateNode(
     det, spec, gaps, allContactFrames, durationFrames, [], fits, gapAxisTargets,
   );
   const report = fullDuration ? rawReport : asPartialReport(rawReport, partialHorizonFrame);
-  // Readiness v0 telemetry (optimizer/readiness.ts, roadmap R1): the
-  // REALIZED arrival into each committed contact gap, scored by the
-  // empirical catchability surface. Pure reads on the detection's velocity
+  // Catchability telemetry: the REALIZED arrival into each committed contact
+  // gap, scored by the empirical catchability surface. This deliberately does
+  // not claim to be the five-factor readiness composite. Pure reads on the detection's velocity
   // array (already charged as part of this evaluation) — the shared prefix
   // engine must NOT be touched here, even read-only: frame-cache effects
   // perturb later metered charges in the continuing search.
@@ -7144,20 +7177,20 @@ function evaluateNode(
   // sit past the detected terminus, so the out-of-bounds read below is a real
   // guard (no `noUncheckedIndexedAccess` in tsconfig).
   const velocity: readonly ({ x: number; y: number } | undefined)[] = det.measurements.velocity;
-  const readinessPerGap: (number | null)[] = gaps.map((gap, k) => {
+  const catchabilityPerGap: (number | null)[] = gaps.map((gap, k) => {
     if (fits[k] === null || !gap.endsWithContact) return null;
     const v = velocity[gap.endFrame];
     if (v === undefined) return null;
     const { speed, angleDeg } = speedAngleFromVelocity(v);
     if (!Number.isFinite(speed) || speed <= 0) return null;
-    return round3(readinessCatch(speed, angleDeg));
+    return round3(predictCatchability(speed, angleDeg));
   });
   return {
     report,
     key: leafKeyForReport(report, durationFrames),
     outputDurationFrames,
     fullDuration,
-    readinessPerGap,
+    catchabilityPerGap,
   };
 }
 
@@ -7207,14 +7240,14 @@ function buildNodeOutput(
   gaps: Gap[],
   outputDurationFrames: number,
   budgetExhausted: boolean,
-  /** Realized-arrival readiness per gap, computed in evaluateNode from the
-   *  evaluation's own detection (readiness v0 telemetry). */
-  readinessPerGap: (number | null)[] = [],
+  /** Realized-arrival catchability per gap, computed in evaluateNode from the
+   *  evaluation's own detection. It is not composite readiness. */
+  catchabilityPerGap: (number | null)[] = [],
 ): CompileOutput {
   const fits = paddedFits(node, gaps.length);
   const allLines = [...node.startLines];
   for (const fit of fits) if (fit !== null) allLines.push(...fit.lines);
-  const readinessVals = readinessPerGap.filter((r): r is number => r !== null);
+  const catchabilityValues = catchabilityPerGap.filter((r): r is number => r !== null);
   const { speed: startSpeed, angleDeg: startAngleDeg } = speedAngleFromVelocity(
     node.startState.velocity,
   );
@@ -7258,17 +7291,229 @@ function buildNodeOutput(
       // How many committed fits in THIS output came from the proposer
       // (selection-level win rate; `aim.enum_emitted` is the pool-level rate).
       handoff_aimed_selected: fits.filter((fit) => fit !== null && fit.aimed === true).length,
-      // Readiness v0 (roadmap R1, telemetry only): realized-arrival
-      // catchability per committed gap; per-gap array joins with
-      // report.gaps outcomes by index in the lab.
-      readiness_per_gap: readinessPerGap,
-      readiness_mean: readinessVals.length > 0
-        ? round3(readinessVals.reduce((a, b) => a + b, 0) / readinessVals.length)
+      catchability_per_gap: catchabilityPerGap,
+      catchability_mean: catchabilityValues.length > 0
+        ? round3(
+          catchabilityValues.reduce((a, b) => a + b, 0) /
+            catchabilityValues.length,
+        )
         : null,
-      readiness_min: readinessVals.length > 0 ? Math.min(...readinessVals) : null,
+      catchability_min: catchabilityValues.length > 0
+        ? Math.min(...catchabilityValues)
+        : null,
       handoff_selected_axis_quality_by_axis: axisQualitySourceCounts,
     },
   };
+}
+
+type BallisticErrorAccumulator = {
+  pairs: number;
+  absErrorSum: number;
+  signedErrorSum: number;
+  maxAbsError: number;
+};
+
+type SelectedBallisticTransitionStats =
+  NonNullable<CompileStats["ballistic_selected_transitions"]>;
+
+/**
+ * Validate only transitions in the returned best path. The projected values
+ * and the exact next-gap values describe the same inclusive scorer interval;
+ * no candidate-loop simulation, look-ahead truth, or benchmark-only model is
+ * involved.
+ */
+function selectedBallisticTransitionStats(
+  fits: readonly (GapFit | null)[],
+  gaps: readonly Gap[],
+  realizedCatchability: readonly (number | null)[],
+): SelectedBallisticTransitionStats | null {
+  let eligible = 0;
+  let projected = 0;
+  const speed = emptyBallisticErrorAccumulator();
+  const air = emptyBallisticErrorAccumulator();
+  const elevation = emptyBallisticErrorAccumulator();
+  const catchability = emptyBallisticErrorAccumulator();
+  let readinessQualityPairs = 0;
+  let readinessSum = 0;
+  let nextQualitySum = 0;
+  let readinessQualityProductSum = 0;
+  let readinessSquareSum = 0;
+  let nextQualitySquareSum = 0;
+
+  for (let index = 0; index < gaps.length; index++) {
+    const fit = fits[index];
+    if (fit === null || !gaps[index].endsWithContact) continue;
+    const nextIndex = nextContactGapIndex(gaps, index + 1);
+    if (nextIndex < 0) continue;
+    const nextFit = fits[nextIndex];
+    if (nextFit === null) continue;
+    eligible++;
+
+    const launch = ballisticLaunchOf(fit);
+    if (
+      launch === undefined ||
+      launch.gapStartFrame !== gaps[nextIndex].startFrame
+    ) continue;
+    const prediction = projectBallisticGap(
+      launch,
+      gaps[nextIndex].endFrame,
+      {
+        terminalContact: "grounded",
+        includeElevation: true,
+      },
+    );
+    if (prediction === null) continue;
+    projected++;
+
+    recordBallisticError(
+      speed,
+      speedPxToAuthored(prediction.meanSpeedPx),
+      nextFit.achieved.speed,
+    );
+    recordBallisticError(
+      air,
+      prediction.airFraction,
+      nextFit.achieved.air,
+    );
+    recordBallisticError(
+      elevation,
+      prediction.elevation,
+      nextFit.achieved.elevation,
+    );
+
+    const arrival = {
+      incoming: prediction.boundary.incoming,
+      meanSpeedPx: prediction.meanSpeedPx,
+      airFraction: prediction.airFraction,
+      gapFrameCount: prediction.frameCount,
+      ...(prediction.elevation === null
+        ? {}
+        : { elevation: prediction.elevation }),
+    };
+    const readiness = scoreNextTargetReadiness(
+      arrival,
+      gaps[nextIndex].targets,
+    );
+    const realized = realizedCatchability[nextIndex];
+    recordBallisticError(
+      catchability,
+      readiness?.catchability,
+      realized,
+    );
+    if (readiness === null) continue;
+    const nextQuality = scoreCurrentTargetQuality(
+      gaps[nextIndex].targets,
+      nextFit.achieved,
+    );
+    if (!Number.isFinite(nextQuality)) continue;
+    readinessQualityPairs++;
+    readinessSum += readiness.readiness;
+    nextQualitySum += nextQuality;
+    readinessQualityProductSum += readiness.readiness * nextQuality;
+    readinessSquareSum += readiness.readiness * readiness.readiness;
+    nextQualitySquareSum += nextQuality * nextQuality;
+  }
+
+  if (eligible === 0) return null;
+  return {
+    eligible,
+    projected,
+    unprojectable: eligible - projected,
+    speed: summarizeBallisticErrors(speed),
+    air: summarizeBallisticErrors(air),
+    elevation: summarizeBallisticErrors(elevation),
+    catchability: summarizeBallisticErrors(catchability),
+    readiness_quality_pairs: readinessQualityPairs,
+    readiness_mean: meanOrNull(readinessSum, readinessQualityPairs),
+    next_quality_mean: meanOrNull(nextQualitySum, readinessQualityPairs),
+    readiness_quality_product_mean: meanOrNull(
+      readinessQualityProductSum,
+      readinessQualityPairs,
+    ),
+    readiness_quality_correlation: pearsonFromSums(
+      readinessQualityPairs,
+      readinessSum,
+      nextQualitySum,
+      readinessSquareSum,
+      nextQualitySquareSum,
+      readinessQualityProductSum,
+    ),
+  };
+}
+
+function pearsonFromSums(
+  count: number,
+  xSum: number,
+  ySum: number,
+  xSquareSum: number,
+  ySquareSum: number,
+  productSum: number,
+): number | null {
+  if (count < 2) return null;
+  const xVarianceNumerator = count * xSquareSum - xSum * xSum;
+  const yVarianceNumerator = count * ySquareSum - ySum * ySum;
+  const denominator = Math.sqrt(
+    Math.max(0, xVarianceNumerator) *
+      Math.max(0, yVarianceNumerator),
+  );
+  if (!(denominator > 0)) return null;
+  const value = (count * productSum - xSum * ySum) / denominator;
+  return Number.isFinite(value)
+    ? Math.max(-1, Math.min(1, value))
+    : null;
+}
+
+function emptyBallisticErrorAccumulator(): BallisticErrorAccumulator {
+  return {
+    pairs: 0,
+    absErrorSum: 0,
+    signedErrorSum: 0,
+    maxAbsError: 0,
+  };
+}
+
+function recordBallisticError(
+  accumulator: BallisticErrorAccumulator,
+  predicted: number | null | undefined,
+  actual: number | null | undefined,
+): void {
+  if (
+    predicted === null ||
+    predicted === undefined ||
+    actual === null ||
+    actual === undefined ||
+    !Number.isFinite(predicted) ||
+    !Number.isFinite(actual)
+  ) return;
+  const error = predicted - actual;
+  const absolute = Math.abs(error);
+  accumulator.pairs++;
+  accumulator.absErrorSum += absolute;
+  accumulator.signedErrorSum += error;
+  accumulator.maxAbsError = Math.max(accumulator.maxAbsError, absolute);
+}
+
+function summarizeBallisticErrors(
+  accumulator: BallisticErrorAccumulator,
+): BallisticPredictionErrorSummary {
+  if (accumulator.pairs === 0) {
+    return {
+      pairs: 0,
+      mae: null,
+      bias: null,
+      max_abs_error: null,
+    };
+  }
+  return {
+    pairs: accumulator.pairs,
+    mae: round6(accumulator.absErrorSum / accumulator.pairs),
+    bias: round6(accumulator.signedErrorSum / accumulator.pairs),
+    max_abs_error: round6(accumulator.maxAbsError),
+  };
+}
+
+function meanOrNull(sum: number, count: number): number | null {
+  return count === 0 ? null : round6(sum / count);
 }
 
 /** Single pass over `node.rankTrace` producing both the per-source selection

@@ -37,8 +37,10 @@ import {
   studentTQuantile,
   type DecisionRun,
 } from "../v0/benchmark_v2/decision_model.ts";
-import { DECISION_INFERENCE_SOURCE_FILES } from "../v0/benchmark_v2/decision_model.ts";
-import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "../v0/benchmark_v2/certification_identity.ts";
+import { DECISION_INFERENCE_PROTOCOL_FINGERPRINT } from "../v0/benchmark_v2/decision_model.ts";
+import {
+  CERTIFICATION_GENERATOR_PROTOCOL_FINGERPRINT,
+} from "../v0/benchmark_v2/certification_identity.ts";
 import {
   EVAL_CHAIN_INFERENCE_SOURCE_FILES,
   evalFutilityStops,
@@ -381,7 +383,7 @@ function workerLoop(): void {
 
 async function main(): Promise<void> {
   const startedAt = Date.now();
-  const certificationGeneratorFingerprint = fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES);
+  const certificationGeneratorFingerprint = CERTIFICATION_GENERATOR_PROTOCOL_FINGERPRINT;
   const executionPlan = validationExecutionPlan(PREDECLARED);
   const executionPlanFingerprint = validationExecutionPlanFingerprint(executionPlan);
   const independentPath = resolve(REPO, argumentValue("independent-reference") ??
@@ -634,7 +636,7 @@ async function main(): Promise<void> {
     : { ...robustBars, ...truthTransferBar };
   const powerReported = mode === "holdout" ? powerBars : undefined;
   const allBarsMet = Object.values(barsMet).every((met) => met);
-  if (fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES) !== certificationGeneratorFingerprint) {
+  if (CERTIFICATION_GENERATOR_PROTOCOL_FINGERPRINT !== certificationGeneratorFingerprint) {
     throw new Error(`certification generator sources changed while the study was running; discard and rerun`);
   }
 
@@ -665,7 +667,7 @@ async function main(): Promise<void> {
     },
     suiteFingerprint: identity.suiteFingerprint,
     scorerFingerprint,
-    decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
+    decisionInferenceFingerprint: DECISION_INFERENCE_PROTOCOL_FINGERPRINT,
     evalChainInferenceFingerprint: fingerprintFiles(EVAL_CHAIN_INFERENCE_SOURCE_FILES),
     certificationGeneratorFingerprint,
     methodology: {

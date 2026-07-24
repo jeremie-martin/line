@@ -1,113 +1,228 @@
 /**
- * Readiness v0 — the empirical catchability surface (R1 of
- * docs/READINESS_ROADMAP.md).
+ * Canonical next-gap readiness composition.
  *
- * r(speed, comAngle) ∈ [0,1]: from this arrival state, what fraction of
- * production-sampled catches pass the hard gates (survival, on-beat landing
- * ±1f, no off-beat)? Fitted from R0 ground truth — study_catchability.ts,
- * 2,871 perturbed arrivals × 8 production re-fits @300k across 12 tracks
- * (generated/analysis/catchability_300k.jsonl, 2026-06-10): Gaussian-kernel
- * local means (σ_speed 0.75 px/f, σ_angle 4°) at the grid knots below,
- * shrunk toward the global mean 0.794 with pseudo-weight 8 — low-data
- * regions (steeper than ~35°, slower than ~7 px/f, upward arrivals beyond
- * −13°) read as ~neutral, never confident. Bilinear between knots, clamped
- * at the edges.
+ * readiness =
+ *   catchability
+ *   × speed fit
+ *   × air fit
+ *   × impact feasibility
+ *   × elevation fit
  *
- * CURRENT INSTANCE of the readiness concept (one component, two inputs,
- * an empirical table): the R0 verdict PARKED sled pose as an input (catch
- * rate is flat across pose−comAngle misalignment up to 90°; only the >90°
- * regime — 4.2% of arrivals — degrades, and remains majority-catchable).
- * Pose stays a first-class measurable/controllable quantity elsewhere
- * (ProbeOutcome.sledPoseDeg; ~40° of exit-pitch authority) — parked here
- * means "not a catchability signal", not "not interesting": intentional
- * pose/rotation steering (e.g. upside-down at the right beat) is a future
- * aesthetic target, roadmap §R3. Future components (impact-feasibility,
- * speed-compatibility), richer fits, or learned models replace the table
- * behind the same state-shaped function boundary.
- *
- * Production now uses this as a proposer signal. The scalar table still
- * reads only speed and CoM angle; the wrapper below accepts the broader
- * predicted rider-arrival state so pose, angular rate, position, or other
- * components can become readiness inputs without changing call sites.
+ * Catchability is predicted by `catchability.ts`. This module owns the other
+ * factors and their product. It does not own current-gap quality or proposal
+ * utility; those are search-policy concerns in `objective.ts`.
  */
 
-import type { RiderArrivalState } from "./arc_model.ts";
+import { K_BOUNCE_LANDING } from "../../lib/detector.ts";
+import {
+  authoredSpeedToPx,
+  impactToRedirArcPx,
+  IMPACT,
+  type AxisValues,
+} from "../types.ts";
+import {
+  estimateCatchability,
+  isValidCatchabilityState,
+  PRODUCTION_CATCHABILITY_POLICY_ID,
+  type CatchabilityState,
+} from "./catchability.ts";
 
-/** Grid knots. Rows = arrival CoM velocity angle (deg, +down); columns =
- *  arrival speed (px/frame). Values = smoothed tier-B catch rate. */
-const ANGLE_KNOTS = [-15, -5, 0, 5, 10, 15, 20, 25, 30, 40] as const;
-const SPEED_KNOTS = [6, 7, 8, 9, 10, 11, 12] as const;
-const RATE_GRID: readonly (readonly number[])[] = [
-  [0.781, 0.744, 0.669, 0.636, 0.695, 0.772, 0.792],
-  [0.589, 0.378, 0.394, 0.465, 0.551, 0.659, 0.775],
-  [0.544, 0.361, 0.442, 0.538, 0.628, 0.721, 0.798],
-  [0.58, 0.426, 0.538, 0.639, 0.719, 0.803, 0.858],
-  [0.665, 0.527, 0.642, 0.74, 0.803, 0.87, 0.914],
-  [0.743, 0.619, 0.706, 0.808, 0.861, 0.909, 0.942],
-  [0.778, 0.676, 0.724, 0.84, 0.894, 0.926, 0.946],
-  [0.79, 0.726, 0.733, 0.844, 0.895, 0.916, 0.928],
-  [0.793, 0.778, 0.766, 0.831, 0.868, 0.879, 0.879],
-  [0.794, 0.794, 0.792, 0.783, 0.777, 0.768, 0.75],
-];
+/** E-fold tolerance for next-gap mean-flight speed readiness, px/frame. */
+export const READINESS_SPEED_SCALE_PXF = 0.75;
+/** Excess speed is cheaper than insufficient speed. */
+export const READINESS_SPEED_OVERSHOOT_WEIGHT = 0.5;
+export const READINESS_IMPACT_ASK_RAMP_START = 0.2;
+export const READINESS_IMPACT_ASK_RAMP_SPAN = 0.2;
+export const READINESS_IMPACT_TARGETED_ASK =
+  READINESS_IMPACT_ASK_RAMP_START +
+  READINESS_IMPACT_ASK_RAMP_SPAN / 2;
+export const READINESS_AIR_SCALE = 0.25;
+export const READINESS_AIR_DEADBAND = 0.05;
+export const READINESS_AIR_UNDERSHOOT_WEIGHT = 0.5;
 
-// Study-only observer hook. study_catchability_telemetry.ts subscribes here to
-// histogram every readinessCatch() value across a run (LR_CATCHABILITY_TELEMETRY
-// study path). Null in production — the optional call below is a no-op and can
-// never affect the returned readiness (computed before the observer fires). The
-// telemetry state itself lives in the study module, not this core model file.
-let catchabilityObserver: ((value: number) => void) | null = null;
-export function setCatchabilityObserver(observer: ((value: number) => void) | null): void {
-  catchabilityObserver = observer;
+let elevationReadinessEnabled = false;
+
+export function setElevationReadinessEnabled(enabled: boolean): void {
+  elevationReadinessEnabled = enabled;
 }
 
-/** Locate `x` in ascending `knots`: returns [index, t] with t ∈ [0,1] the
- *  fraction toward the next knot; clamps outside the range. */
-function locate(knots: readonly number[], x: number): [number, number] {
-  if (x <= knots[0]) return [0, 0];
-  const last = knots.length - 1;
-  if (x >= knots[last]) return [last - 1, 1];
-  let i = 0;
-  while (x > knots[i + 1]) i++;
-  return [i, (x - knots[i]) / (knots[i + 1] - knots[i])];
+export function isElevationReadinessEnabled(): boolean {
+  return elevationReadinessEnabled;
 }
 
-/** Shared usability predicate for a predicted arrival state's scalar fields:
- *  both the arrival speed and CoM velocity angle must be finite numbers (a
- *  null comAngle — an unresolved heading — reads as non-finite via
- *  Number.isFinite). This is the single condition behind the two guards that
- *  test it identically — objective.scoreNextTargetReadiness and readinessCatch
- *  below — each of which keeps its own distinct failure encoding (return null
- *  vs observer(0)+return 0). readinessCatchState's `comAngleDeg === null` guard
- *  is a narrower type-narrowing check and is intentionally left separate. */
-export function isValidArrivalState(speed: number, comAngleDeg: number | null): boolean {
-  return Number.isFinite(speed) && Number.isFinite(comAngleDeg);
+export type ReadinessInput = {
+  incoming: CatchabilityState;
+  /** Scorer-compatible mean speed over the complete next gap. */
+  meanSpeedPx?: number;
+  /** Scorer-compatible airborne fraction over the complete next gap. */
+  airFraction?: number;
+  /** Inclusive scorer-frame count for the complete next gap. */
+  gapFrameCount?: number;
+  elevation?: number;
+};
+
+export type ReadinessScore = {
+  readiness: number;
+  catchability: number;
+  speedFit: number;
+  impactFeasibility: number;
+  airFit: number;
+  elevationFit: number;
+};
+
+export function scoreReadiness(
+  input: ReadinessInput,
+  nextTargets: AxisValues,
+): ReadinessScore | null {
+  const incoming = input?.incoming;
+  if (
+    incoming === undefined ||
+    !isValidCatchabilityState(
+      incoming.speed,
+      incoming.comAngleDeg,
+    )
+  ) return null;
+  const speedFit = speedFitFactor(input.meanSpeedPx, nextTargets);
+  if (speedFit === null) return null;
+  const airFit = airFitFactor(
+    input.airFraction,
+    input.gapFrameCount,
+    nextTargets,
+  );
+  if (airFit === null) return null;
+  const elevationFit = elevationFitFactor(input.elevation, nextTargets);
+  if (elevationFit === null) return null;
+  const catchability = estimateCatchability(incoming, {
+    nextGapTargets: nextTargets,
+    ...(input.gapFrameCount === undefined
+      ? {}
+      : { nextGapFrameCount: input.gapFrameCount }),
+    generatorPolicyId: PRODUCTION_CATCHABILITY_POLICY_ID,
+  }).pViableAttempt;
+  const impactFeasibility = impactFeasibilityFactor(
+    incoming,
+    nextTargets,
+  );
+  return {
+    readiness:
+      catchability *
+      speedFit *
+      airFit *
+      impactFeasibility *
+      elevationFit,
+    catchability,
+    speedFit,
+    impactFeasibility,
+    airFit,
+    elevationFit,
+  };
 }
 
-/** Catchability readiness of an arrival state: smooth, continuous over the
- *  whole (speed, angle) plane (bilinear inside the knot range, clamped to
- *  the edge values outside). */
-export function readinessCatch(speedPxPerFrame: number, comAngleDeg: number): number {
-  if (!isValidArrivalState(speedPxPerFrame, comAngleDeg)) {
-    catchabilityObserver?.(0);
-    return 0;
-  }
-  const [ai, at] = locate(ANGLE_KNOTS, comAngleDeg);
-  const [si, st] = locate(SPEED_KNOTS, speedPxPerFrame);
-  const top = RATE_GRID[ai][si] * (1 - st) + RATE_GRID[ai][si + 1] * st;
-  const bot = RATE_GRID[ai + 1][si] * (1 - st) + RATE_GRID[ai + 1][si + 1] * st;
-  const r = top * (1 - at) + bot * at;
-  const clamped = Math.min(1, Math.max(0, r));
-  catchabilityObserver?.(clamped);
-  return clamped;
+export function effectiveAirAsk(
+  ask: number,
+  gapFrameCount: number,
+): number {
+  return Math.max(
+    ask,
+    Math.min(1, K_BOUNCE_LANDING / Math.max(1, gapFrameCount)),
+  );
 }
 
-export type ReadinessArrivalState =
-  & Pick<RiderArrivalState, "speed" | "comAngleDeg">
-  & Partial<RiderArrivalState>;
+export function impactAskPressure(impactAsk: number): number {
+  return smoothstep01(
+    (impactAsk - READINESS_IMPACT_ASK_RAMP_START) /
+      READINESS_IMPACT_ASK_RAMP_SPAN,
+  );
+}
 
-/** Catchability readiness from the full predicted rider-arrival state. Current
- *  production consumes speed and CoM velocity angle only; the state-shaped API
- *  is the boundary for richer readiness components. */
-export function readinessCatchState(state: ReadinessArrivalState): number {
-  return state.comAngleDeg === null ? 0 : readinessCatch(state.speed, state.comAngleDeg);
+export function impactFeasibility(
+  speed: number,
+  comAngleDeg: number,
+  impactAsk: number,
+): number {
+  const maxTurnRad = Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION);
+  const deliverableTurnRad = Math.min(
+    (Math.max(0, comAngleDeg) * Math.PI) / 180,
+    maxTurnRad,
+  );
+  return Math.min(
+    1,
+    Math.max(
+      0,
+      (speed * deliverableTurnRad) / impactToRedirArcPx(impactAsk),
+    ),
+  );
+}
+
+function speedFitFactor(
+  meanSpeedPx: number | undefined,
+  nextTargets: AxisValues,
+): number | null {
+  const target = nextTargets.speed;
+  if (target === undefined) return 1;
+  if (meanSpeedPx === undefined || !Number.isFinite(meanSpeedPx)) return null;
+  const delta = meanSpeedPx - authoredSpeedToPx(target);
+  const penalty = delta > 0
+    ? delta * READINESS_SPEED_OVERSHOOT_WEIGHT
+    : -delta;
+  return Math.exp(-penalty / READINESS_SPEED_SCALE_PXF);
+}
+
+function airFitFactor(
+  airFraction: number | undefined,
+  gapFrameCount: number | undefined,
+  nextTargets: AxisValues,
+): number | null {
+  const ask = nextTargets.air;
+  if (ask === undefined) return 1;
+  if (
+    airFraction === undefined ||
+    gapFrameCount === undefined ||
+    !Number.isFinite(airFraction) ||
+    !Number.isFinite(gapFrameCount)
+  ) return null;
+  const delta = airFraction - effectiveAirAsk(ask, gapFrameCount);
+  const over = Math.max(0, delta - READINESS_AIR_DEADBAND);
+  const under = Math.max(0, -delta - READINESS_AIR_DEADBAND);
+  return Math.exp(
+    -(over + READINESS_AIR_UNDERSHOOT_WEIGHT * under) /
+      READINESS_AIR_SCALE,
+  );
+}
+
+function elevationFitFactor(
+  elevation: number | undefined,
+  nextTargets: AxisValues,
+): number | null {
+  if (!elevationReadinessEnabled) return 1;
+  const target = nextTargets.elevation;
+  if (target === undefined) return 1;
+  if (elevation === undefined || !Number.isFinite(elevation)) return null;
+  const pressure = smoothstep01((target - 0.5) / 0.2);
+  if (pressure <= 0) return 1;
+  const delta = elevation - target;
+  const penalty = delta < 0 ? -delta : delta * 0.5;
+  const fit = Math.exp(-penalty / 0.2);
+  return 1 + (fit - 1) * pressure;
+}
+
+function impactFeasibilityFactor(
+  incoming: CatchabilityState,
+  nextTargets: AxisValues,
+): number {
+  const impactAsk = nextTargets.impact;
+  if (impactAsk === undefined || incoming.comAngleDeg === null) return 1;
+  const pressure = impactAskPressure(impactAsk);
+  if (pressure <= 0) return 1;
+  const feasibility = impactFeasibility(
+    incoming.speed,
+    incoming.comAngleDeg,
+    impactAsk,
+  );
+  return 1 + (feasibility - 1) * pressure;
+}
+
+function smoothstep01(value: number): number {
+  const clamped = Math.max(0, Math.min(1, value));
+  return clamped * clamped * (3 - 2 * clamped);
 }

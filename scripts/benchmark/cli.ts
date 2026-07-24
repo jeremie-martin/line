@@ -252,7 +252,6 @@ function printHelp(): void {
     `  Common execution flags: --jobs=N, --no-resource-stats, --resource-interval=SECONDS\n` +
     `  Eval paths: --out=RUN.json and --artifact=COMPARISON.json\n\n` +
     `Comparisons are stateless and repeatable. The baseline is never recomputed unless baseline-cache extend reports a missing tail.\n` +
-    `The old --to-verdict --seeds=N spelling is accepted as a compatibility alias with identical behavior.\n` +
     `With --json, invoke through \`npm run --silent benchmark -- ...\` or call this CLI directly so npm's script banner does not prefix stdout.\n` +
     `Eval exit codes: 0 completed, 1 invalid. The comparison result lives in the artifact, not the process exit code.\n` +
     `Compiler execution defaults to 48 workers and prints resource samples every five seconds.`);

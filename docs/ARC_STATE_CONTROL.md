@@ -1,5 +1,14 @@
 # Arc-state control — the aiming layer
 
+> **Historical design and evidence record.** Names such as “current working
+> tree” below describe the 2026-06 campaign snapshot, not the present checkout.
+> The authoritative definitions of ballistic projection, catchability,
+> five-factor readiness, proposal utility, frame boundaries, and the current
+> semantic checklist are in
+> [`BALLISTIC_READINESS_CONTRACT.md`](BALLISTIC_READINESS_CONTRACT.md).
+> The latent response path described in this historical record no longer
+> exists in production.
+
 2026-06-11 · branch arc-rewrite · accepted canonical baseline
 `scoop-off-price-01` (600.91). The working tree now contains the true joint
 probe/model/proposer path described below. Its first full-next-state canonical

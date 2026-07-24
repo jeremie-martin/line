@@ -1,11 +1,8 @@
 /**
  * Dimension-generic local response models for arc-control experiments.
  *
- * The established `arc_model.ts` model intentionally remains a two-coordinate
- * production adapter.  This module is the explicit alternative for an ordered
- * knob vector of any length: values stay positional all the way from probe to
- * prediction, so no third control can be silently folded into either legacy
- * coordinate.
+ * Values stay positional from probe to prediction, so every declared physical
+ * control remains explicit.
  */
 import {
   completeArcPrediction,
@@ -20,7 +17,6 @@ export type ArcVectorTrainingKind = "additive" | "joint";
 export type ArcVectorProbeRow = Readonly<{
   values: readonly number[];
   outputs: Readonly<Record<string, number>>;
-  latentOutputs?: Readonly<Record<string, number>>;
 }>;
 
 export type ArcVectorFitForm =
@@ -48,7 +44,6 @@ export type ArcVectorResponseModel = Readonly<{
   trainingKind: ArcVectorTrainingKind;
   context: JointArcResponseContext;
   outputModels: ReadonlyMap<string, FittedOutputEntry>;
-  latentModels: ReadonlyMap<string, FittedOutputEntry>;
 }>;
 
 /** Fit one model per measured output.  `joint` gets the complete signed-cube
@@ -70,12 +65,11 @@ export function fitArcVectorResponseModel(
     spans: [...spans],
     trainingKind,
     context,
-    outputModels: fitValueModels(rows, spans, trainingKind, "outputs"),
-    latentModels: fitValueModels(rows, spans, trainingKind, "latentOutputs"),
+    outputModels: fitValueModels(rows, spans, trainingKind),
   };
 }
 
-/** Complete the same canonical output vector as the legacy response model. */
+/** Complete the canonical direct-output vector. */
 export function predictArcVectorOutputs(
   model: ArcVectorResponseModel,
   values: readonly number[],
@@ -83,8 +77,7 @@ export function predictArcVectorOutputs(
   assertVectorLength(values, model.dimensions);
   const featureCache = new Map<ArcVectorFitForm, number[]>();
   const direct = predictValues(model.outputModels, values, model.spans, featureCache);
-  const latent = predictValues(model.latentModels, values, model.spans, featureCache);
-  return completeArcPrediction(direct, latent, model.context);
+  return completeArcPrediction(direct, model.context);
 }
 
 export function arcVectorModelFormCounts(model: ArcVectorResponseModel): Record<ArcVectorFitForm, number> {
@@ -94,7 +87,7 @@ export function arcVectorModelFormCounts(model: ArcVectorResponseModel): Record<
     linear: 0,
     constant: 0,
   };
-  for (const entry of [...model.outputModels.values(), ...model.latentModels.values()]) {
+  for (const entry of model.outputModels.values()) {
     counts[entry.model.form]++;
   }
   return counts;
@@ -102,31 +95,28 @@ export function arcVectorModelFormCounts(model: ArcVectorResponseModel): Record<
 
 export function arcVectorModelDegradedOutputCount(model: ArcVectorResponseModel): number {
   let count = 0;
-  for (const entry of [...model.outputModels.values(), ...model.latentModels.values()]) {
+  for (const entry of model.outputModels.values()) {
     if (entry.model.degraded) count++;
   }
   return count;
 }
 
-type ValueSource = "outputs" | "latentOutputs";
-
 function fitValueModels(
   rows: readonly ArcVectorProbeRow[],
   spans: readonly number[],
   trainingKind: ArcVectorTrainingKind,
-  source: ValueSource,
 ): Map<string, FittedOutputEntry> {
   const models = new Map<string, FittedOutputEntry>();
   const baseline = rows.find((row) => row.values.every((value) => value === 0));
-  for (const key of outputKeys(rows, source)) {
-    const finiteRows = rows.filter((row) => Number.isFinite(valueFrom(row, source, key)));
+  for (const key of outputKeys(rows)) {
+    const finiteRows = rows.filter((row) => Number.isFinite(row.outputs[key]));
     if (finiteRows.length === 0) continue;
     const angle = isArcAngleOutput(key);
-    const baselineValue = baseline === undefined ? NaN : valueFrom(baseline, source, key);
-    const ref = Number.isFinite(baselineValue) ? baselineValue : valueFrom(finiteRows[0], source, key);
+    const baselineValue = baseline?.outputs[key] ?? NaN;
+    const ref = Number.isFinite(baselineValue) ? baselineValue : finiteRows[0].outputs[key];
     const fitRows = finiteRows.map((row) => ({
       values: row.values,
-      value: angle ? unwrapAngle(valueFrom(row, source, key), ref) : valueFrom(row, source, key),
+      value: angle ? unwrapAngle(row.outputs[key], ref) : row.outputs[key],
     }));
     const model = fitArcVectorOutput(fitRows, spans, trainingKind);
     if (model !== null) models.set(key, { angle, ref, model });
@@ -134,17 +124,12 @@ function fitValueModels(
   return models;
 }
 
-function outputKeys(rows: readonly ArcVectorProbeRow[], source: ValueSource): string[] {
+function outputKeys(rows: readonly ArcVectorProbeRow[]): string[] {
   const keys = new Set<string>();
   for (const row of rows) {
-    const values = source === "outputs" ? row.outputs : row.latentOutputs;
-    for (const key of Object.keys(values ?? {})) keys.add(key);
+    for (const key of Object.keys(row.outputs)) keys.add(key);
   }
   return [...keys].sort();
-}
-
-function valueFrom(row: ArcVectorProbeRow, source: ValueSource, key: string): number {
-  return (source === "outputs" ? row.outputs : row.latentOutputs)?.[key] ?? NaN;
 }
 
 function fitArcVectorOutput(

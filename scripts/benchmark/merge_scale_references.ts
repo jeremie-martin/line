@@ -99,7 +99,7 @@ const merged = {
     "Derived artifact; no compilation performed here.",
   suiteFingerprint: first.suiteFingerprint,
   sourceManifestFingerprint: first.sourceManifestFingerprint,
-  definitionFingerprint: first.definitionFingerprint,
+  scoringProtocolFingerprint: first.scoringProtocolFingerprint,
   scorerFingerprint: first.scorerFingerprint,
   transform: first.transform,
   candidate: first.candidate,

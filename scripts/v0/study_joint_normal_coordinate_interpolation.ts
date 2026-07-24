@@ -254,7 +254,7 @@ function pairMetrics(current: Candidate, next: Candidate, currentGap: Gap, nextG
 }
 
 function gapMetrics(candidate: Candidate, gap: Gap): { errors: number[]; impactAbsError: number | null } {
-  const achieved = candidate.achievedAtEnd ?? candidate.achieved;
+  const achieved = candidate.achieved;
   const errors = (Object.keys(gap.targets) as AxisName[]).flatMap((axis) =>
     finite(gap.targets[axis]) && finite(achieved[axis]) ? [achieved[axis]! - gap.targets[axis]!] : []
   );

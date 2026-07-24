@@ -201,7 +201,7 @@ type Row = {
   speedErrAbs: number | null;
   airErrAbs: number | null;
   collateral: number | null;
-  achievedAtEnd: { air: number | null; speed: number | null; impact: number | null } | null;
+  achieved: { air: number | null; speed: number | null; impact: number | null } | null;
   release: { speed: number | null; velocityY: number | null; airborne: boolean | null; groundedFrames: number | null } | null;
   targetContact: TargetContactTopology | null;
   chain: ChainMeasure | null;
@@ -483,7 +483,7 @@ function evaluateRow(
     impactTarget: trueTargets.impact ?? null,
     impactAchieved: null, impactErrSigned: null,
     speedErrAbs: null, airErrAbs: null, collateral: null,
-    achievedAtEnd: null, release: null, targetContact: null, chain: null, chainable: false, chainableStrict: false,
+    achieved: null, release: null, targetContact: null, chain: null, chainable: false, chainableStrict: false,
     totalFrames: 0, error: geometryError,
   };
   if (lines === null) return empty;
@@ -508,7 +508,7 @@ function evaluateRow(
     return { ...empty, admissionFrames, totalFrames: admissionFrames };
   }
 
-  const achieved = fit.achievedAtEnd ?? fit.achieved;
+  const achieved = fit.achieved;
   const impactAchieved = achieved.impact ?? null;
   const impactTarget = trueTargets.impact ?? null;
   const speedErrAbs = trueTargets.speed !== undefined && achieved.speed !== undefined
@@ -534,7 +534,7 @@ function evaluateRow(
     speedErrAbs: speedErrAbs === null ? null : round(speedErrAbs),
     airErrAbs: airErrAbs === null ? null : round(airErrAbs),
     collateral: round(collateral),
-    achievedAtEnd: {
+    achieved: {
       air: achieved.air === undefined ? null : round(achieved.air),
       speed: achieved.speed === undefined ? null : round(achieved.speed),
       impact: achieved.impact === undefined ? null : round(achieved.impact),

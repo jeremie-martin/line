@@ -8,7 +8,6 @@
 import {
   DEFAULT_PARAMS,
   detect, extractCandidateWindow, extractRawTrajectory, extractRawTrajectoryWindow,
-  getRiderMetered,
   K_BOUNCE_LANDING,
   type CandidateWindowRaw, type Detection, type DetEvent, type RawTrajectory,
 } from "../../lib/detector.ts";
@@ -28,7 +27,6 @@ import {
   AXES,
   type AxisValues,
   type Arc, type TrackLine, type Gap,
-  ELEVATION,
   FPS,
   IMPACT_WINDOW,
   impactEnvNum,
@@ -51,17 +49,16 @@ import {
 } from "./substrate.ts";
 import {
   measureGapAxes,
-  measureGapAxesWithBallisticSuffix,
-  type BallisticAxisSuffix,
 } from "./measure.ts";
 import {
-  gravityCorrectedLaunchAverage,
-  LAUNCH_READ_FRAMES,
-} from "./launch_read.ts";
+  ballisticLaunchFirstSampleFrame,
+  captureBallisticLaunchObservation,
+} from "./ballistic_launch.ts";
 import {
-  constraintBallisticStateFromRider,
-  type ConstraintReleaseArrivalState,
-} from "./ballistic_micro_sim.ts";
+  copyBallisticFitFields,
+  type BallisticGapFit,
+  type BallisticLaunchObservation,
+} from "./ballistic_projection.ts";
 import {
   ballisticTraceEnabled,
   captureBallisticTraceObservation,
@@ -121,7 +118,7 @@ const AXIS_SAFE_CAP_MEASURE_END_OFFSET = 2;
  *    · PREDICTED-ARRIVAL capture — the detection loops below record the rider's
  *      position so `evaluateGapFit` can hand the ranker a full launch/exit state
  *      to propagate ballistically to the next contact (vs charging a probe ride);
- *    · the pool-time `releaseArrivalState` field that carries it; and
+ *    · the pool-time `ballisticLaunch` packet that carries it; and
  *    · the GEOMETRIC ARC-EXIT release read (see the `evaluateGapFit` call site)
  *      that supplies that state from the arc-exit frame instead of catch+8. */
 export const POOL_MODE: boolean = true;
@@ -249,7 +246,6 @@ export const LOCAL_IMPACT_COST_WEIGHT = Math.max(0, impactEnvNum("LR_IMPACT_LOCA
 export type LandingProbeCostSink = {
   cost: number | null;
   achieved?: AxisValues;
-  achievedAtEnd?: AxisValues;
 };
 
 /** The seam the study apparatus registers through. All methods run only while a
@@ -286,8 +282,19 @@ export function attachHandoffScoreToProbe(lines: object, score: number): void {
 type WindowDetection = Detection & { frameOffset?: number };
 
 type CandidateLinesEvaluation =
-  | { fit: GapFit; failure: null }
+  | { fit: BallisticGapFit; failure: null }
   | { fit: null; failure: ArcPlacementDirectFailureReason };
+type EvaluatedGapFit = Pick<
+  BallisticGapFit,
+  | "lines"
+  | "achieved"
+  | "cost"
+  | "releaseSpeed"
+  | "releaseVelocityY"
+  | "releaseGroundedFrames"
+  | "releaseAirborne"
+  | "ballisticLaunch"
+>;
 type PreTargetSledTraceProvider = () => PreTargetSledTrace;
 
 /**
@@ -748,17 +755,20 @@ function evaluateCandidateLines(
     searchTargets, useWindowDetection,
     /* landingProbeEligible */ true,
   );
-  if (base.fit === null) return base;
+  if (base.ok === false) return { fit: null, failure: base.failure };
   const best = chooseRideOutPolishedFit(
     base.fit,
     gap,
     axisMeasureEnd,
     lines,
     lineIdStart,
-    (extendedLines) => evaluateGapFit(
-      baseEngine, gap, extendedLines, axisMeasureEnd, allContactFrames,
-      searchTargets, useWindowDetection,
-    ).fit,
+    (extendedLines) => {
+      const evaluated = evaluateGapFit(
+        baseEngine, gap, extendedLines, axisMeasureEnd, allContactFrames,
+        searchTargets, useWindowDetection,
+      );
+      return evaluated.ok === true ? evaluated.fit : null;
+    },
     allowRideOutPolish,
   );
 
@@ -770,6 +780,7 @@ function evaluateCandidateLines(
       achieved: best.achieved,
       cost: best.cost,
       ...copyOptionalGapFitFields(best),
+      ...copyBallisticFitFields(best),
     },
     failure: null,
   };
@@ -781,14 +792,14 @@ function evaluateCandidateLines(
  * the proposed geometry untouched without changing production's default.
  */
 export function chooseRideOutPolishedFit(
-  base: GapFit,
+  base: EvaluatedGapFit,
   gap: Gap,
   axisMeasureEnd: number,
   lines: readonly TrackLine[],
   lineIdStart: number,
-  evaluate: (extendedLines: TrackLine[]) => GapFit | null,
+  evaluate: (extendedLines: TrackLine[]) => EvaluatedGapFit | null,
   allowRideOutPolish = true,
-): GapFit {
+): EvaluatedGapFit {
   if (!allowRideOutPolish || !shouldTryCandidateRideOut(gap, axisMeasureEnd)) return base;
   let best = base;
   const rideOutId = lineIdStart + lines.length;
@@ -805,9 +816,9 @@ export function chooseRideOutPolishedFit(
  * Short-horizon detection for a candidate gap fit (the minimal-simulation
  * principle): grow the detection window in 4-frame chunks (shared schedule,
  * core/exit_read.ts `growShortHorizon`) until a CLEAN airborne geometric arc
- * exit (shared detector, core/exit_read.ts `firstAirborneExitFrame`) is found,
- * then read the smoothed launch state at the exit frame (shared estimator,
- * core/launch_read.ts) for the ballistic axis-suffix completion.
+ * exit (shared detector, core/exit_read.ts `firstAirborneExitFrame`) is found.
+ * Current axes end at `gap.endFrame`, already inside this exact prefix; the
+ * exit state is captured separately for next-gap readiness.
  *
  * Mirrors optimizer/arc_probe.ts short mode exactly, except this reads off the
  * DETECTION arrays (positionAt/airborneAt/velocityAt) where arc_probe reads the
@@ -816,7 +827,6 @@ export function chooseRideOutPolishedFit(
  *   - the growth loop stopped on an early termination (a ride-out / death the
  *     caller must see in full), or hit the cap with no exit;
  *   - the exit frame would ride into the next contact (no ballistic flight);
- *   - the exit-frame launch state is unreadable;
  *   - the truncated horizon is not below the full horizon (no frames to save).
  */
 function computeShortGapFitDetection(
@@ -825,10 +835,10 @@ function computeShortGapFitDetection(
   gap: Gap,
   axisMeasureEnd: number,
   fullHorizon: number,
-): { det: Detection; stopHorizon: number; exitFrame: number; suffix: BallisticAxisSuffix } | null {
+): { det: Detection; stopHorizon: number; exitFrame: number } | null {
   const minExit = gap.endFrame;
   // Cap covers the survival margin (endFrame+SURVIVAL_MARGIN), the catch+8 launch read
-  // (endFrame+8+LAUNCH_READ_FRAMES), the impact axis window, and the lookahead
+  // (endFrame+8 plus the launch capture), the impact axis window, and the lookahead
   // boundary — mirrors arc_probe.ts axisSafeCap (= endFrame+max(20,IMPACT_WINDOW+2))
   // with axisMeasureEnd+2 standing in for nextFrame+2.
   const axisSafeCap = gap.endFrame + Math.max(AXIS_SAFE_CAP_MIN_FRAMES, IMPACT_WINDOW + 2);
@@ -867,70 +877,21 @@ function computeShortGapFitDetection(
   const nextContact = axisMeasureEnd > gap.endFrame ? axisMeasureEnd : null;
   if (nextContact !== null && exitFrame > nextContact - 2) return null;
 
-  const suffix = ballisticSuffixAtExit(det, exitFrame, nextContact ?? Infinity);
-  if (suffix === null) return null;
-  return { det, stopHorizon: horizon, exitFrame, suffix };
-}
-
-/** Shared smoothed ballistic launch read at `frame`, off the detection arrays
- *  (positionAt/velocityAt/airborneAt) via the gravity-corrected launch-average
- *  estimator (core/launch_read.ts). Returns the read position plus the smoothed
- *  {vx,vy}; null when the frame position/velocity is unreadable or the velocity
- *  is non-finite. Callers layer their own extra checks/fields on top. */
-function readSmoothedLaunch(
-  det: Detection,
-  frame: number,
-  sampleEndFrameExclusive = Infinity,
-): { pos: { x: number; y: number }; vx: number; vy: number; readFrames: number } | null {
-  const pos = positionAt(det, frame);
-  const v0 = velocityAt(det, frame);
-  if (pos === undefined || v0 === undefined) return null;
-  if (!Number.isFinite(v0.x) || !Number.isFinite(v0.y)) return null;
-  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  const { vx, vy, n } = gravityCorrectedLaunchAverage(
-    v0,
-    g,
-    (k) => frame + k < sampleEndFrameExclusive && airborneAt(det, frame + k) === true,
-    (k) => velocityAt(det, frame + k),
-  );
-  return { pos, vx, vy, readFrames: n };
-}
-
-/** Smoothed ballistic launch state at the geometric exit frame, read off the
- *  detection (shared estimator, core/launch_read.ts) — the suffix velocity the
- *  axis completion propagates ballistically. Null when the exit-frame
- *  position/velocity is unreadable. */
-function ballisticSuffixAtExit(
-  det: Detection,
-  exitFrame: number,
-  sampleEndFrameExclusive = Infinity,
-): BallisticAxisSuffix | null {
-  const launch = readSmoothedLaunch(det, exitFrame, sampleEndFrameExclusive);
-  if (launch === null) return null;
-  return { frame: exitFrame, vx: launch.vx, vy: launch.vy };
+  return { det, stopHorizon: horizon, exitFrame };
 }
 
 function measureAchieved(
   det: Detection,
   gap: Gap,
   lines: readonly TrackLine[],
-  axisMeasureEnd: number,
-  ballisticSuffix: BallisticAxisSuffix | null,
-): { achieved: AxisValues; achievedAtEnd?: AxisValues } {
-  // Axis measurement: engine prefix + ballistic suffix when truncated (the
-  // shared measure.ts completion), the verbatim full-detection read otherwise.
-  const achieved = ballisticSuffix === null
-    ? measureGapAxes(det, gap, lines, axisMeasureEnd)
-    : measureGapAxesWithBallisticSuffix(det, gap, lines, axisMeasureEnd, ballisticSuffix);
-  // GAP-WINDOW achieved (the true scorer's window): when the lookahead window
-  // extends past gap.endFrame (air/lookahead gaps), `achieved` above is measured
-  // over the wrong window to reproduce the scorer, so also read the [start, endFrame]
-  // axes — PURE ENGINE off the SAME det (gap.endFrame is inside the prefix the survival
-  // floor already guarantees; zero ballistic, zero extra frames). For non-lookahead,
-  // non-truncated gaps the two windows coincide, so `achieved` already IS the gap-window
-  // value and we leave achievedAtEnd undefined (the objective leaf falls back to achieved).
-  if (axisMeasureEnd === gap.endFrame && ballisticSuffix === null) return { achieved };
-  return { achieved, achievedAtEnd: measureGapAxes(det, gap, lines, gap.endFrame) };
+): { achieved: AxisValues } {
+  /*
+   * Current quality owns the exact scorer interval. The old `achieved` value
+   * sometimes ran through the following contact, mixing current quality with
+   * next-gap setup. Forward-looking information now travels only through the
+   * explicit ballistic-launch/readiness interface.
+   */
+  return { achieved: measureGapAxes(det, gap, lines, gap.endFrame) };
 }
 
 function evaluateGapFit(
@@ -946,21 +907,20 @@ function evaluateGapFit(
    *  gates the landing-window probe so each candidate is recorded once. */
   landingProbeEligible = false,
 ): {
+  ok: true;
   fit: Pick<
-    GapFit,
+    BallisticGapFit,
     | "lines"
     | "achieved"
-    | "achievedAtEnd"
     | "cost"
     | "releaseSpeed"
     | "releaseVelocityY"
     | "releaseGroundedFrames"
     | "releaseAirborne"
-    | "releaseArrivalState"
+    | "ballisticLaunch"
   >;
-  failure: null;
 } | {
-  fit: null;
+  ok: false;
   failure: ArcPlacementDirectFailureReason;
 } {
   // deno-lint-ignore no-explicit-any
@@ -970,27 +930,31 @@ function evaluateGapFit(
   const redetect = (h: number): Detection =>
     useWindowDetection ? detectWindow(eng, gap.startFrame, h) : detect(extractRawTrajectory(eng, h));
 
-  // SHORT-HORIZON GAP FIT (the minimal-simulation principle — same conversion the
-  // probe ride does in optimizer/arc_probe.ts short mode, via the shared
-  // core/exit_read.ts helpers). Grow the detection window in 4-frame chunks until
-  // a clean airborne arc exit is found, then complete the axis measurement
-  // ballistically from the exit-frame launch state — instead of riding the engine
-  // through the next gap to `axisMeasureEnd`. Falls back to the full horizon when
-  // no clean exit is found within the cap (ride-outs / tail-riders), which is
-  // byte-identical to the former behavior.
+  // SHORT-HORIZON GAP FIT (the minimal-simulation principle — same exit
+  // detector used by optimizer/arc_probe.ts). Grow the exact prefix in
+  // four-frame chunks until a clean airborne exit is found. Current-gap axes
+  // are already fully observed at gap.endFrame; the exit packet is used only
+  // for next-gap readiness. Fall back to the full horizon when no clean exit
+  // exists within the cap (ride-outs / tail-riders).
   const needsFinalTailOffBeatGate = offBeatGateEnd > axisMeasureEnd;
   const short = needsFinalTailOffBeatGate
     ? null
     : computeShortGapFitDetection(redetect, lines, gap, axisMeasureEnd, fullHorizon);
   const truncated = short !== null;
-  const horizon = truncated ? short.stopHorizon : fullHorizon;
-  const det = truncated ? short.det : redetect(fullHorizon);
-  // Ballistic suffix for the axis measurement past the truncated detection;
-  // null in the full-horizon path (measureGapAxesWithBallisticSuffix degrades to
-  // measureGapAxes when rangeEndFrame ≤ the detection's last frame). The survival
-  // boundary clamps to the truncated horizon.
-  const ballisticSuffix = truncated ? short.suffix : null;
-  const ballisticExitFrame = truncated ? short.exitFrame : null;
+  const horizon = truncated ? short!.stopHorizon : fullHorizon;
+  const det = truncated ? short!.det : redetect(fullHorizon);
+  const ballisticExitFrame = truncated ? short!.exitFrame : null;
+  const exitBallisticLaunch = ballisticExitFrame === null
+    ? null
+    : captureBallisticLaunchObservation(eng, det, {
+      // This observation predicts the next scorer interval, which starts at
+      // the current authored contact.
+      gapStartFrame: gap.endFrame,
+      firstSampleFrame: ballisticExitFrame,
+      lastSampleFrame: horizon,
+      targetFrameExclusive: axisMeasureEnd,
+      groundedFrames: 0,
+    });
   if (truncated) {
     gapfitShortTotals.gapfit_truncated++;
     gapfitShortTotals.gapfit_frames_saved += Math.max(0, fullHorizon - horizon);
@@ -1013,7 +977,7 @@ function evaluateGapFit(
     : Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd);
   if (det.terminus.frame < minSurvival && det.terminus.reason !== "endOfSpec") {
     if (landingProbeEligible && landingProbeHook !== null) landingProbeHook.onSurvivalFailure(gap, lines);
-    return { fit: null, failure: "survival" };
+    return { ok: false, failure: "survival" };
   }
 
   // Study-only probe (no-op unless a study script enabled it): record what a
@@ -1030,7 +994,7 @@ function evaluateGapFit(
       && Math.abs(e.frame - gap.endFrame) <= 1
       && intersectsLineIds(e, det, owned),
   );
-  if (!landingNearTarget) return { fit: null, failure: "landing" };
+  if (!landingNearTarget) return { ok: false, failure: "landing" };
 
   // Hard gate 3: no off-beat landings before the next measurement boundary. For
   // the final authored contact, extend the gate through the already-simulated
@@ -1038,10 +1002,10 @@ function evaluateGapFit(
   const offBeat = countOffBeatLandings(
     det.events, gap.startFrame, offBeatGateEnd, allContactFrames,
   );
-  if (offBeat > 0) return { fit: null, failure: "offbeat" };
+  if (offBeat > 0) return { ok: false, failure: "offbeat" };
 
-  const { achieved, achievedAtEnd } = measureAchieved(
-    det, gap, lines, axisMeasureEnd, ballisticSuffix,
+  const { achieved } = measureAchieved(
+    det, gap, lines,
   );
   const releaseFrame = releaseStateFrame(gap, allContactFrames);
   const releaseSpeed = speedAt(det, releaseFrame);
@@ -1058,17 +1022,17 @@ function evaluateGapFit(
   if (probeRecord !== null) {
     probeRecord.cost = cost;
     probeRecord.achieved = achieved;
-    if (achievedAtEnd !== undefined) probeRecord.achievedAtEnd = achievedAtEnd;
   }
   // PREDICTED-ARRIVAL: full launch/exit state for the ranker to propagate
   // ballistically to the next contact instead of charging a probe ride, read off
   // the SAME detection (zero extra frames). The catch+8 read is the
   // load-bearing FALLBACK; the geometric arc-exit read below is the default.
   const nextBound = POOL_MODE ? nextContactBound(gap, allContactFrames) : null;
-  let releaseArrivalState = POOL_MODE
-    ? releaseArrivalStateAt(
+  let ballisticLaunch = POOL_MODE
+    ? ballisticLaunchAt(
       eng,
       det,
+      gap.endFrame,
       releaseFrame,
       releaseGroundedFrames,
       releaseAirborne,
@@ -1086,18 +1050,25 @@ function evaluateGapFit(
   if (POOL_MODE) {
     // The truncated path already found the clean exit for its ballistic suffix;
     // pass it through so the release read does not scan the same window again.
-    releaseArrivalState = releaseExitArrivalState(
-      eng, det, gap, lines, horizon, nextBound, ballisticExitFrame,
-    ) ?? releaseArrivalState;
+    ballisticLaunch = releaseExitBallisticLaunch(
+      eng,
+      det,
+      gap,
+      lines,
+      horizon,
+      nextBound,
+      ballisticExitFrame,
+      exitBallisticLaunch,
+    ) ?? ballisticLaunch;
     const targetFrame = nextBound?.nextContact;
     if (
       ballisticTraceEnabled() &&
-      releaseArrivalState !== undefined &&
-      releaseArrivalState.airborne &&
+      ballisticLaunch !== undefined &&
+      ballisticLaunch.airborne &&
       targetFrame !== undefined &&
-      releaseArrivalState.frame < targetFrame
+      ballisticLaunch.anchorFrame < targetFrame
     ) {
-      const launchFrame = releaseArrivalState.frame;
+      const launchFrame = ballisticLaunchFirstSampleFrame(ballisticLaunch);
       recordBallisticTraceCandidate({
         population: "candidate_pool",
         gapIndex: gap.index,
@@ -1119,6 +1090,7 @@ function evaluateGapFit(
     }
   }
   return {
+    ok: true,
     fit: {
       lines,
       achieved,
@@ -1126,64 +1098,35 @@ function evaluateGapFit(
       releaseSpeed,
       releaseGroundedFrames,
       ...copyOptionalGapFitFields({
-        achievedAtEnd,
         releaseVelocityY: releaseVelocity?.y,
         releaseAirborne,
-        releaseArrivalState,
       }),
+      ...copyBallisticFitFields({ ballisticLaunch }),
     },
-    failure: null,
   };
 }
 
-/** Full launch/exit state at `releaseFrame`, read off an existing detection for
- *  ballistic propagation by the quality ranker (POOL_MODE). The
- *  velocity is the gravity-corrected average of up to LAUNCH_READ_FRAMES
- *  consecutive AIRBORNE frames starting at `releaseFrame` plus the constant
- *  LAUNCH_VY_OFFSET_PX — the same smoothed launch read the short probe uses
- *  (arc_probe.ts readLaunchState, commit f23ef60), computed here from the
- *  detection's per-frame velocity/airborne arrays. The final already-simulated
- *  launch frame is read once to capture the exact point/previous-point state
- *  selected by the frozen predictor benchmark. `pose` is not carried in detection
- *  measurements and the rank objective does not consume it, so it is left null. Returns
- *  undefined when the release-frame position/velocity is unreadable. `grounded`
- *  / `airborne` are passed through so the ranker can reject non-ballistic
- *  (ground-touching) post-catch segments. */
-function releaseArrivalStateAt(
+/** Capture the canonical exact point state at the latest causal airborne frame
+ * starting at `releaseFrame`. Detector samples select the anchor; the engine is
+ * read exactly once at that anchor. */
+function ballisticLaunchAt(
   // deno-lint-ignore no-explicit-any
   engine: any,
   det: Detection,
+  gapStartFrame: number,
   releaseFrame: number,
   grounded: number,
   airborne: boolean | undefined,
   sampleEndFrameExclusive = Infinity,
-): ConstraintReleaseArrivalState | undefined {
-  // Gravity-corrected launch read (shared estimator — core/launch_read.ts).
-  // This call site differs from optimizer/arc_probe.ts only in the velocity
-  // source (detection arrays vs metered engine) and in having no fork-horizon
-  // bound. Additionally require the release position to be finite (the arrival
-  // state carries it) before attaching pose/grounded/airborne.
-  const launch = readSmoothedLaunch(det, releaseFrame, sampleEndFrameExclusive);
-  if (launch === null) return undefined;
-  const { pos } = launch;
-  if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return undefined;
-  const constraintFrameOffset = launch.readFrames - 1;
-  const constraintState = constraintBallisticStateFromRider(
-    getRiderMetered(engine, releaseFrame + constraintFrameOffset),
-    constraintFrameOffset,
-  );
-  return {
-    frame: releaseFrame,
-    x: pos.x,
-    y: pos.y,
-    vx: launch.vx,
-    vy: launch.vy,
-    sledPoseDeg: null,
-    sledPoseRateDegPerFrame: null,
-    grounded,
-    airborne: airborne === true,
-    ...(constraintState === null ? {} : { constraintState }),
-  };
+): BallisticLaunchObservation | undefined {
+  if (airborne !== true) return undefined;
+  return captureBallisticLaunchObservation(engine, det, {
+    gapStartFrame,
+    firstSampleFrame: releaseFrame,
+    lastSampleFrame: sampleEndFrameExclusive - 1,
+    targetFrameExclusive: sampleEndFrameExclusive,
+    groundedFrames: grounded,
+  }) ?? undefined;
 }
 
 /** The first contact after `gap.endFrame` and the latest usable
@@ -1213,7 +1156,7 @@ function nextContactBound(
  *  return path bumps a `release_exit_*` counter. Does NOT touch the cost-term
  *  release fields — only the predicted-arrival ranker state. `knownExitFrame`
  *  skips the scan when short-horizon detection already located the same exit. */
-function releaseExitArrivalState(
+function releaseExitBallisticLaunch(
   // deno-lint-ignore no-explicit-any
   engine: any,
   det: Detection,
@@ -1222,7 +1165,8 @@ function releaseExitArrivalState(
   horizon: number,
   bound: { nextContact: number; latestBallisticFrame: number } | null,
   knownExitFrame: number | null = null,
-): ConstraintReleaseArrivalState | null {
+  knownLaunch: BallisticLaunchObservation | null = null,
+): BallisticLaunchObservation | null {
   const exitFrame = knownExitFrame ?? firstAirborneExitFrame(
     lines,
     gap.endFrame,
@@ -1245,14 +1189,17 @@ function releaseExitArrivalState(
   // predictedArrivalApplies / the predict branch in optimizer/aim.ts and
   // predictArrivalAtNextContact (objective.ts, propagating from rel.frame) behave
   // correctly with the later, shorter-dt launch.
-  const state = releaseArrivalStateAt(
-    engine,
-    det,
-    exitFrame,
-    0,
-    true,
-    bound?.nextContact,
-  );
+  const state = knownLaunch !== null
+    ? knownLaunch
+    : ballisticLaunchAt(
+      engine,
+      det,
+      gap.endFrame,
+      exitFrame,
+      0,
+      true,
+      bound?.nextContact,
+    );
   if (state === undefined) {
     releaseExitTotals.release_exit_fallback_unreadable++;
     return null;
@@ -1306,7 +1253,7 @@ function shouldTryCandidateRideOut(
     );
 }
 
-function rideOutSources(lines: TrackLine[]): TrackLine[] {
+function rideOutSources(lines: readonly TrackLine[]): TrackLine[] {
   return lines.slice(Math.max(0, lines.length - AIR_POLISH_RIDEOUT_SOURCE_TAIL_LINES));
 }
 

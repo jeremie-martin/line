@@ -883,7 +883,6 @@ function summarizeCandidate(candidate: Candidate) {
   return {
     cost: round(candidate.cost),
     achieved: roundRecord(candidate.achieved),
-    achievedAtEnd: candidate.achievedAtEnd === undefined ? null : roundRecord(candidate.achievedAtEnd),
     finalLineCount: candidate.lines.length,
     finalLineHash: sha256(stableJson(candidate.lines)),
   };

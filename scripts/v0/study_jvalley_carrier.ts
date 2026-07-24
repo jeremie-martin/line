@@ -214,7 +214,7 @@ type Row = {
   geometry: JValleyGeometry | null;
   admitted: boolean;
   admissionFrames: number;
-  achievedAtEnd: { air: number | null; speed: number | null; impact: number | null } | null;
+  achieved: { air: number | null; speed: number | null; impact: number | null } | null;
   currentGapErr: { speedAbs: number | null; airAbs: number | null; impactSigned: number | null } | null;
   finalLineCount: number | null;
   release: { speed: number | null; velocityY: number | null; airborne: boolean | null; groundedFrames: number | null } | null;
@@ -617,7 +617,7 @@ function evaluateRow(
   const empty: Row = {
     index, family, label, params, geometry,
     admitted: false, admissionFrames: 0,
-    achievedAtEnd: null, currentGapErr: null, finalLineCount: null,
+    achieved: null, currentGapErr: null, finalLineCount: null,
     release: null, chain: null, chained: false, chainableWithMargin: false,
     totalFrames: 0, error: geometryError,
   };
@@ -643,7 +643,7 @@ function evaluateRow(
     return { ...empty, admissionFrames, totalFrames: admissionFrames };
   }
 
-  const achieved = fit.achievedAtEnd ?? fit.achieved;
+  const achieved = fit.achieved;
   const speedErrAbs = trueTargets.speed !== undefined && achieved.speed !== undefined
     ? Math.abs(achieved.speed - trueTargets.speed)
     : null;
@@ -662,7 +662,7 @@ function evaluateRow(
     index, family, label, params, geometry,
     admitted: true,
     admissionFrames,
-    achievedAtEnd: {
+    achieved: {
       air: achieved.air === undefined ? null : round(achieved.air),
       speed: achieved.speed === undefined ? null : round(achieved.speed),
       impact: achieved.impact === undefined ? null : round(achieved.impact),
@@ -786,8 +786,8 @@ function summarizeFamily(rows: readonly Row[]): FamilySummary {
 
   const arrivalSpeeds = chainedRows.map((r) => r.chain!.arrivalSpeed!).filter((v) => v !== null);
   const arrivalAngles = chainedRows.map((r) => r.chain!.arrivalAngleDeg).filter((v): v is number => v !== null);
-  const impactAchieved = chainedRows.map((r) => r.achievedAtEnd?.impact).filter((v): v is number => v !== null && v !== undefined);
-  const airAchieved = chainedRows.map((r) => r.achievedAtEnd?.air).filter((v): v is number => v !== null && v !== undefined);
+  const impactAchieved = chainedRows.map((r) => r.achieved?.impact).filter((v): v is number => v !== null && v !== undefined);
+  const airAchieved = chainedRows.map((r) => r.achieved?.air).filter((v): v is number => v !== null && v !== undefined);
   const impactErr = chainedRows.map((r) => r.currentGapErr?.impactSigned).filter((v): v is number => v !== null && v !== undefined).map((v) => Math.abs(v));
   const airErr = chainedRows.map((r) => r.currentGapErr?.airAbs).filter((v): v is number => v !== null && v !== undefined);
   const speedErr = chainedRows.map((r) => r.currentGapErr?.speedAbs).filter((v): v is number => v !== null && v !== undefined);

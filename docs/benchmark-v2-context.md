@@ -147,7 +147,7 @@ candidate-only and runs during an explicit rebaseline.
 
 Historical allocation studies included a separate probe profile, which remains
 retained evidence but is no longer a live comparison path. Operators choose
-canonical N directly from 2 through 300. The retained zero-inflated coverage study informs the conservative
+canonical N directly from 1 through 300. The retained zero-inflated coverage study informs the conservative
 intervals. The 750k ceiling bounds per-compile compute. Public execution
 defaults to 48 workers on the 64-logical-CPU reference host and reports
 resource use while running. Actual seed labels are deterministic IID inputs.

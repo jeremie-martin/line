@@ -16,6 +16,7 @@ import {
   axisLookaheadEndFrame,
   tryCandidateLines,
 } from "../core/candidate.ts";
+import { ballisticLaunchFirstSampleFrame } from "../core/ballistic_launch.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { Gap, TrackLine } from "../types.ts";
 import { nextContactGap } from "./objective.ts";
@@ -120,7 +121,14 @@ export function makeDetectorRunwayCandidates(
   if (!detectorRunwaySpacingEligible(spacingFrames)) return [];
   if (gap.endFrame < PHASE_FRAMES) return [];
   runwayTotals.spacing_eligible_pools++;
-  if (incumbents.some((candidate) => leavesDetectorRunway(candidate, nextGap.endFrame))) {
+  if (
+    incumbents.some((candidate) =>
+      ballisticLaunchLeavesDetectorRunway(
+        candidate.ballisticLaunch,
+        nextGap.endFrame,
+      )
+    )
+  ) {
     runwayTotals.suppressed_by_existing_runway++;
     return [];
   }
@@ -152,10 +160,13 @@ export function makeDetectorRunwayCandidates(
   return [fit];
 }
 
-function leavesDetectorRunway(candidate: Candidate, nextContactFrame: number): boolean {
-  const release = candidate.releaseArrivalState;
-  return release !== undefined && release.airborne &&
-    nextContactFrame - release.frame >= MIN_LANDING_AIRBORNE_FRAMES - 1;
+export function ballisticLaunchLeavesDetectorRunway(
+  launch: Candidate["ballisticLaunch"],
+  nextContactFrame: number,
+): boolean {
+  return launch !== undefined && launch.airborne &&
+    nextContactFrame - ballisticLaunchFirstSampleFrame(launch) >=
+      MIN_LANDING_AIRBORNE_FRAMES - 1;
 }
 
 function buildDetectorRunwayLines(

@@ -1602,7 +1602,7 @@ function digestCandidate(candidate: Candidate, node: HandoffNode, gap: Gap, gaps
 }
 
 function axisRms(candidate: Candidate, targets: AxisValues): number {
-  const achieved = candidate.achievedAtEnd ?? candidate.achieved;
+  const achieved = candidate.achieved;
   const errors = Object.entries(targets).flatMap(([axis, target]) => {
     const value = achieved[axis as keyof AxisValues];
     return typeof target === "number" && typeof value === "number" && Number.isFinite(value)

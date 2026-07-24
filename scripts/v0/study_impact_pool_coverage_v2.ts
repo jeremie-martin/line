@@ -86,7 +86,7 @@ setHandoffPoolProbeHook((record: HandoffPoolProbeRecord) => {
   const target = record.targets.impact;
   if (target === undefined) return;
   const values = record.candidates.map((candidate) => {
-    const axes = candidate.achievedAtEnd ?? candidate.achieved;
+    const axes = candidate.achieved;
     return axes.impact ?? null;
   });
   const defined = values.filter((value): value is number => value !== null);

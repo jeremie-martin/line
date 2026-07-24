@@ -1,5 +1,11 @@
 # Arc Aiming Formalization
 
+> **Historical design record.** This document describes the former
+> direct-versus-latent campaign and is not an implementation contract. The
+> latent response path and its dedicated studies have been removed. The
+> authoritative current semantics and checklist are in
+> [`BALLISTIC_READINESS_CONTRACT.md`](BALLISTIC_READINESS_CONTRACT.md).
+
 Purpose: improve arc placement by adding a local aiming proposer on top of the
 ordinary sampled-candidate compiler.
 

@@ -356,7 +356,7 @@ for (const id of ids) {
       const children = getCandidatesSorted(parentNode, setup.gaps, setup.ctx, winner.searchSeed, childCount);
       if (children.length > 0) parentsWithChildren++;
       for (const [childRank, child] of children.entries()) {
-        const achieved = child.achievedAtEnd ?? child.achieved;
+        const achieved = child.achieved;
         const target = setup.targets[weak.index].impact;
         if (target === undefined || achieved.impact === undefined) continue;
         const node = extendNodeCached(parentNode, child);
@@ -414,7 +414,7 @@ for (const id of ids) {
               setup.ctx,
             );
             if (child === null) continue;
-            const achieved = child.achievedAtEnd ?? child.achieved;
+            const achieved = child.achieved;
             const target = setup.targets[weak.index].impact;
             if (target === undefined || achieved.impact === undefined) continue;
             const node = extendNodeCached(parentNode, child);

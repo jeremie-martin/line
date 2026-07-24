@@ -178,7 +178,7 @@ async function main(): Promise<void> {
     note: "Exploratory paired-seed study. Not a canonical headline or candidate decision.",
     suiteFingerprint: identity.suiteFingerprint,
     sourceManifestFingerprint: identity.sourceManifestFingerprint,
-    definitionFingerprint: identity.definitionFingerprint,
+    scoringProtocolFingerprint: identity.scoringProtocolFingerprint,
     scorerFingerprint: fingerprintFiles([
       "scripts/v0/benchmark_v2/evaluator.ts",
       "scripts/v0/benchmark_v2/score_model.ts",

@@ -71,7 +71,7 @@ let activeSeed = 0;
 let poolCount = 0;
 
 const axesOf = (candidate: HandoffPoolProbeCandidate): AxisValues =>
-  candidate.achievedAtEnd ?? candidate.achieved;
+  candidate.achieved;
 
 function candidateAxisValue(candidate: HandoffPoolProbeCandidate): number | null {
   const value = nextGap

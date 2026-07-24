@@ -26,7 +26,7 @@ export const LAUNCH_READ_FRAMES = 4;
  *  this is a read offset, not an acceleration. Fitted on 22.7k probe rows
  *  across 6 golden specs (smoothed read: +0.0345; raw read: +0.0265) and
  *  validated out-of-sample — see the calibration note in
- *  docs/ARC_AIMING_FORMALIZATION.md and study_latent_decomposition.ts. */
+ *  docs/BALLISTIC_READINESS_CONTRACT.md. */
 export const LAUNCH_VY_OFFSET_PX = 0.0345;
 
 export type LaunchVelocity = { x: number; y: number };

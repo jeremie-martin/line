@@ -32,18 +32,19 @@ import {
 } from "../core/polish.ts";
 import type { Gap, TrackLine } from "../types.ts";
 import type { Spec } from "./types.ts";
+import type { BallisticFitFields } from "../core/ballistic_projection.ts";
 
 /** Optional fit fields whose values become stale when polish mutates geometry:
  *  `aimed` describes the original proposer, `ref` is tied to the original
- *  landing pose, and `releaseArrivalState` is a trajectory read that polish does
+ *  landing pose, and `ballisticLaunch` is a trajectory read that polish does
  *  not recompute. Keep dropping them to preserve the old polished-leaf contract;
  *  clone every other field generically so new GapFit metadata is not silently
  *  lost. */
 function cloneFitForPolish(fit: GapFit): GapFit {
-  const clone = structuredClone(fit) as GapFit;
+  const clone = structuredClone(fit) as GapFit & BallisticFitFields;
   delete clone.aimed;
   delete clone.ref;
-  delete clone.releaseArrivalState;
+  delete clone.ballisticLaunch;
   return clone;
 }
 

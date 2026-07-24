@@ -233,7 +233,7 @@ function auditState(
         }
       }
     }
-    const achieved = candidate.achievedAtEnd ?? candidate.achieved;
+    const achieved = candidate.achieved;
     const impact = target === undefined || achieved.impact === undefined
       ? null
       : Math.abs(achieved.impact - target);

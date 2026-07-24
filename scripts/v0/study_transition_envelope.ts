@@ -775,15 +775,15 @@ function summarizeCandidate(fit: Candidate) {
   return {
     cost: round(fit.cost),
     achievedLookahead: roundAxes(fit.achieved),
-    achievedCurrentScorerWindow: roundAxes(fit.achievedAtEnd ?? fit.achieved),
+    achievedCurrentScorerWindow: roundAxes(fit.achieved),
     finalLineCount: fit.lines.length,
     finalLineHash: sha256(stableJson(fit.lines)),
-    release: fit.releaseArrivalState === undefined ? null : {
-      frame: fit.releaseArrivalState.frame,
-      vx: round(fit.releaseArrivalState.vx),
-      vy: round(fit.releaseArrivalState.vy),
-      grounded: fit.releaseArrivalState.grounded,
-      airborne: fit.releaseArrivalState.airborne,
+    release: fit.ballisticLaunch === undefined ? null : {
+      frame: fit.ballisticLaunch.anchorFrame,
+      vx: round(fit.ballisticLaunch.state.vx),
+      vy: round(fit.ballisticLaunch.state.vy),
+      grounded: fit.ballisticLaunch.groundedFrames,
+      airborne: fit.ballisticLaunch.airborne,
     },
   };
 }

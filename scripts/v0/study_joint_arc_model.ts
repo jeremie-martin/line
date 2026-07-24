@@ -146,7 +146,6 @@ type SampleRow = {
   rotateDeg: number;
   gate: Gate;
   outputs: Record<string, number>;
-  latentOutputs?: Record<string, number>;
   truthOutputs?: Record<string, number>;
   truthGate?: Gate;
   horizonFrame: number;
@@ -301,7 +300,6 @@ function evaluateKnobs(
     rotateDeg: knobs.rotateDeg,
     gate: probe.gate,
     outputs: probe.outputs,
-    ...(probe.latentOutputs === undefined ? {} : { latentOutputs: probe.latentOutputs }),
     ...(probe.truth === undefined ? {} : {
       truthOutputs: probe.truth.outputs,
       truthGate: probe.truth.gate,
@@ -508,7 +506,6 @@ for (const groupRows of groups.values()) {
     .map((r): JointArcProbeRow => ({
       knobs: { pitchDeg: r.pitchDeg, rotateDeg: r.rotateDeg },
       outputs: r.outputs,
-      ...(r.latentOutputs === undefined ? {} : { latentOutputs: r.latentOutputs }),
     }));
   if (probeRows.length === 0) continue;
   const context = groupRows[0].modelContext;

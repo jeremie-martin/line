@@ -11,8 +11,7 @@ describe("lean eval argument contract", () => {
 
   test("accepts arbitrary fixed-N comparisons without a formal mode", () => {
     expect(() => assertEvalArguments(["--seeds=100", "--jobs=48"])).not.toThrow();
-    expect(() => assertEvalArguments(["--to-verdict", "--seeds=37"])).not.toThrow();
-    expect(() => assertEvalArguments(["--to-verdict"])).toThrow(/no longer a separate workflow/);
+    expect(() => assertEvalArguments(["--to-verdict", "--seeds=37"])).toThrow(/does not accept/);
     expect(() => assertEvalArguments(["--seeds=100", "--depth=100"])).toThrow(/does not accept/);
   });
 

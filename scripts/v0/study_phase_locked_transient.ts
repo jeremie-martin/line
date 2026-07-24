@@ -436,8 +436,8 @@ function sameLines(left: readonly TrackLine[], right: readonly TrackLine[]): boo
 }
 
 function sameAxes(left: Candidate, right: Candidate, gap: Gap): boolean {
-  const a = left.achievedAtEnd ?? left.achieved;
-  const b = right.achievedAtEnd ?? right.achieved;
+  const a = left.achieved;
+  const b = right.achieved;
   return (Object.keys(gap.targets) as AxisName[]).every((axis) => a[axis] === b[axis]);
 }
 
@@ -450,7 +450,7 @@ function twoGapRms(first: Candidate, firstGap: Gap, second: Candidate, secondGap
 }
 
 function axisErrors(candidate: Candidate, gap: Gap): number[] {
-  const achieved = candidate.achievedAtEnd ?? candidate.achieved;
+  const achieved = candidate.achieved;
   return (Object.keys(gap.targets) as AxisName[]).flatMap((axis) => {
     const target = gap.targets[axis];
     const value = achieved[axis];

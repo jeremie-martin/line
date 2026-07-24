@@ -31,7 +31,7 @@ import { gunzipSync } from "node:zlib";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { benchmarkDecisionPolicy, COMPILER_IDENTITY_PROTOCOL } from "../../benchmark/v2/decision-policy.ts";
 import {
-  DECISION_INFERENCE_SOURCE_FILES,
+  DECISION_INFERENCE_PROTOCOL_FINGERPRINT,
   pairedV2DecisionForCalibration,
   studentTQuantile,
   type DecisionRun,
@@ -329,12 +329,12 @@ async function main(): Promise<void> {
     "scripts/v0/benchmark_v2/score_model.ts",
     "scripts/v0/score.ts",
   ]);
-  const decisionInferenceFingerprint = fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES);
+  const decisionInferenceFingerprint = DECISION_INFERENCE_PROTOCOL_FINGERPRINT;
   if (
     !["line.benchmark-v2.budget-scale-study.v1", "line.benchmark-v2.budget-scale-study.v2"].includes(reference.schema) ||
     reference.suiteFingerprint !== identity.suiteFingerprint ||
     reference.sourceManifestFingerprint !== identity.sourceManifestFingerprint ||
-    reference.definitionFingerprint !== identity.definitionFingerprint ||
+    reference.scoringProtocolFingerprint !== identity.scoringProtocolFingerprint ||
     reference.scorerFingerprint !== scorerFingerprint ||
     JSON.stringify(reference.transform) !== JSON.stringify(baseSuite.transform)
   ) {

@@ -26,7 +26,7 @@ type Study = {
   schema: string;
   suiteFingerprint: string;
   sourceManifestFingerprint: string;
-  definitionFingerprint: string;
+  scoringProtocolFingerprint: string;
   scorerFingerprint: string;
   transform: unknown;
   budgets: number[];
@@ -60,7 +60,7 @@ const scorerFingerprint = fingerprintFiles([
 if (
   study.suiteFingerprint !== identity.suiteFingerprint ||
   study.sourceManifestFingerprint !== identity.sourceManifestFingerprint ||
-  study.definitionFingerprint !== identity.definitionFingerprint ||
+  study.scoringProtocolFingerprint !== identity.scoringProtocolFingerprint ||
   study.scorerFingerprint !== scorerFingerprint ||
   JSON.stringify(study.transform) !== JSON.stringify(suite.transform)
 ) throw new Error(`seed allocation reference is stale for the current suite, sources, transform, or scorer`);

@@ -174,7 +174,7 @@ function resolveDeferredPairs(): void {
 
 function candidatePoint(candidate: HandoffPoolProbeCandidate, targets: AxisValues, axes: readonly AxisName[]): CandidatePoint[] {
   if (!finite(candidate.handoffScore)) return [];
-  const achieved = candidate.achievedAtEnd ?? candidate.achieved;
+  const achieved = candidate.achieved;
   const errors: Partial<Record<AxisName, number>> = {};
   for (const axis of axes) {
     const target = targets[axis];

@@ -2,9 +2,11 @@ import { describe, expect, test } from "vitest";
 import { LineRiderEngine } from "../scripts/lib/_lr_engine_wasm.ts";
 import {
   advanceConstraintBallisticState,
+  advanceConstraintBallisticTrajectory,
   constraintBallisticStateFromRider,
   predictConstraintBallisticArrival,
 } from "../scripts/v0/core/ballistic_micro_sim.ts";
+import { sledPoseDegFromRider } from "../scripts/lib/detector.ts";
 import { ELEVATION } from "../scripts/v0/types.ts";
 
 describe("collision-free ballistic rider micro-simulation", () => {
@@ -58,4 +60,43 @@ describe("collision-free ballistic rider micro-simulation", () => {
       expect(chained.arrival[key]).toBeCloseTo(combined.arrival[key], 10);
     }
   });
+
+  test("projects sled pose and pose rate from the same constraint trajectory", () => {
+    const engine = new LineRiderEngine().setStart(
+      { x: 4, y: -12 },
+      { x: 1.2, y: -0.6 },
+    );
+    const launchFrame = 10;
+    const targetFrame = 45;
+    const state = constraintBallisticStateFromRider(
+      engine.getRider(launchFrame),
+    )!;
+    let terminal:
+      | { sledPoseDeg: number; sledPoseRateDegPerFrame: number }
+      | null = null;
+    advanceConstraintBallisticTrajectory(
+      state,
+      targetFrame - launchFrame,
+      ELEVATION.GRAVITY_PX_PER_FRAME2,
+      (relativeFrame, _arrival, orientation) => {
+        if (relativeFrame === targetFrame - launchFrame) {
+          terminal = orientation;
+        }
+      },
+    );
+
+    const truthPose = sledPoseDegFromRider(engine.getRider(targetFrame));
+    const previousPose = sledPoseDegFromRider(engine.getRider(targetFrame - 1));
+    const truthRate = wrappedDegrees(truthPose - previousPose);
+    expect(terminal).not.toBeNull();
+    expect(wrappedDegrees(terminal!.sledPoseDeg - truthPose)).toBeCloseTo(
+      0,
+      10,
+    );
+    expect(terminal!.sledPoseRateDegPerFrame).toBeCloseTo(truthRate, 10);
+  });
 });
+
+function wrappedDegrees(value: number): number {
+  return ((value + 180) % 360 + 360) % 360 - 180;
+}

@@ -10,10 +10,12 @@ import {
   type EvalCertificationArtifactPaths,
   type EvalOperatingPoint,
 } from "../../../benchmark/v2/eval-policy.ts";
-import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
+import { DECISION_INFERENCE_PROTOCOL_FINGERPRINT } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
 import { EVAL_CHAIN_INFERENCE_SOURCE_FILES } from "./eval_chain_inference.ts";
-import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "./certification_identity.ts";
+import {
+  CERTIFICATION_GENERATOR_PROTOCOL_FINGERPRINT,
+} from "./certification_identity.ts";
 import { certificationReportFromArtifact } from "./certification_declaration.ts";
 import { fingerprintFiles } from "./suite_model.ts";
 import { registeredFixedNAsEvalPoint } from "./operating_points.ts";
@@ -37,7 +39,7 @@ export function requireCurrentDecisionCalibration(
   if (
     calibration.schema !== "line.benchmark-v2.decision-calibration.v2" ||
     calibration.suiteFingerprint !== suiteFingerprint ||
-    calibration.decisionInferenceFingerprint !== fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES)
+    calibration.decisionInferenceFingerprint !== DECISION_INFERENCE_PROTOCOL_FINGERPRINT
   ) throw new Error(`decision calibration is stale for the current suite or inference implementation`);
 
   const coveragePath = resolve(calibration.coverageStudy?.path ?? "");
@@ -48,7 +50,7 @@ export function requireCurrentDecisionCalibration(
     sha256(coverageBytes) !== calibration.coverageStudy?.sha256 ||
     coverage.schema !== "line.benchmark-v2.decision-coverage-study.v3" ||
     coverage.suiteFingerprint !== suiteFingerprint ||
-    coverage.decisionInferenceFingerprint !== fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES)
+    coverage.decisionInferenceFingerprint !== DECISION_INFERENCE_PROTOCOL_FINGERPRINT
   ) throw new Error(`zero-inflated coverage evidence is stale for the current decision rule`);
   assertDecisionCoverageAdequate(coverage);
 
@@ -119,9 +121,9 @@ export function requireCertifiedOperatingPoint(
   // a demonstrably large actual candidate at a perfectly calibrated N.
   const powerIsDiagnostic = fixedN || menuPoint === undefined;
   const paths = artifactPaths ?? point.certification;
-  const inferenceFingerprint = fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES);
+  const inferenceFingerprint = DECISION_INFERENCE_PROTOCOL_FINGERPRINT;
   const evalChainInferenceFingerprint = fingerprintFiles(EVAL_CHAIN_INFERENCE_SOURCE_FILES);
-  const certificationGeneratorFingerprint = fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES);
+  const certificationGeneratorFingerprint = CERTIFICATION_GENERATOR_PROTOCOL_FINGERPRINT;
   const verifiedReferences = new Set<string>();
   const menu = readCertificationArtifact(
     paths.menuCertification,

@@ -35,13 +35,14 @@ import {
 } from "../arc_placement.ts";
 import { getRiderMetered } from "../../lib/detector.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
+import type { BallisticFitFields } from "../core/ballistic_projection.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
 import type { SupportGeometryMode } from "../core/support_geometry.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
  *  surface self-contained. */
-export type Candidate = GapFit & {
+export type Candidate = GapFit & BallisticFitFields & {
   /** Attempt index inside the deterministic per-gap sample prefix. This lets a
    *  larger cached prefix answer a later smaller-K request exactly. */
   sampleAttempt?: number;

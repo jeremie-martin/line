@@ -201,7 +201,7 @@ for (const id of ids) {
             entry.prefixEngine, gap, lines, entry.prefixNextLineId, setup.ctx.allContactFrames,
             measureEnd, gap.targets, true, "normal", probe.preTargetSledTrace,
           );
-          const achieved = fit?.achievedAtEnd ?? fit?.achieved;
+          const achieved = fit?.achieved;
           const impactTarget = gap.targets.impact;
           trials.push({
             spec: id, seed, gapIndex: index, family: variant.family, deltaDeg: variant.deltaDeg,

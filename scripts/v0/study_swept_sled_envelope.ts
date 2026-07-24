@@ -189,7 +189,7 @@ function runState(id: StateId): StateResult {
       };
       reasons.push("current contour not admitted");
     } else {
-      const achieved = fit.achievedAtEnd ?? fit.achieved;
+      const achieved = fit.achieved;
       const achievedImpact = achieved.impact ?? null;
       const topology = measureTargetTopology(prepared, fit);
       current = {

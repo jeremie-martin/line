@@ -5,9 +5,6 @@
  *     Candidate-only canonical run against the first N slots of the immutable
  *     baseline cache. N defaults to 2 and is chosen by the operator, not by a
  *     registry. The command writes reproducible evidence and no project state.
- *
- * `--to-verdict --seeds=N` remains as a compatibility alias for the second
- * form, but it has no extra authority and consumes no ledger or budget.
  */
 
 import { createHash } from "node:crypto";
@@ -96,8 +93,7 @@ export async function runEvalCommand(argv = process.argv.slice(2)): Promise<numb
  * misspelled flags before preparation or compiler work starts.
  */
 export function assertEvalArguments(argv: string[]): void {
-  const hasExplicitSeeds = argv.some((arg) => arg.startsWith("--seeds="));
-  const booleans = new Set(["resume", "json", "to-verdict"]);
+  const booleans = new Set(["resume", "json"]);
   const values = new Set(["seeds", "out", "artifact", "baseline", "jobs", "mode", "margin"]);
   const accepted = [...booleans, ...[...values].map((name) => `${name}=VALUE`)].join(", ");
 
@@ -110,9 +106,6 @@ export function assertEvalArguments(argv: string[]): void {
     if (equals === -1 && values.has(name)) throw new Error(`eval requires --${name}=VALUE`);
     if (equals !== -1 && booleans.has(name)) throw new Error(`eval flag --${name} does not take a value`);
     throw new Error(`eval does not accept ${arg}; accepted flags: ${accepted}`);
-  }
-  if (!hasExplicitSeeds && argv.includes("--to-verdict")) {
-    throw new Error(`--to-verdict is no longer a separate workflow; choose the comparison size with --seeds=N`);
   }
 }
 
@@ -250,9 +243,6 @@ async function runCachedComparison(argv: string[]): Promise<number> {
         nextCommand,
         runnerFingerprintsMatch: decided.artifact.implementationFingerprintsMatch,
       }));
-      if (argv.includes("--to-verdict")) {
-        console.log(`  note: --to-verdict is now a compatibility alias; this was the same stateless cached comparison`);
-      }
     }
     return 0;
   } finally {

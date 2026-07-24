@@ -52,11 +52,10 @@ import {
   seedScheduleAtDepth,
   type BaselineCacheView,
 } from "./baseline_cache.ts";
-import { DECISION_INFERENCE_SOURCE_FILES } from "./decision_model.ts";
+import { DECISION_INFERENCE_PROTOCOL_FINGERPRINT } from "./decision_model.ts";
 import { decisionProtocolFingerprint } from "./decision_protocol.ts";
 
 const DECISION_SCHEMA = "line.benchmark-v2.decision.v4" as const;
-const BASELINE_SCHEMA = "line.benchmark-v2.baseline-reference.v9" as const;
 const BASELINE_CACHE_REFERENCE_SCHEMA = "line.benchmark-v2.baseline-reference.v10" as const;
 const DEFAULT_BASELINE_PATH = "benchmark/v2/baseline.json";
 const PROBE_BASELINE_SCHEMA = "line.benchmark-v2.probe-baseline-reference.v1" as const;
@@ -91,7 +90,7 @@ type VerifiedArchive = {
 };
 
 type BaselineReference = {
-  schema: typeof BASELINE_SCHEMA | typeof BASELINE_CACHE_REFERENCE_SCHEMA | typeof PROBE_BASELINE_SCHEMA;
+  schema: typeof BASELINE_CACHE_REFERENCE_SCHEMA | typeof PROBE_BASELINE_SCHEMA;
   label: string;
   status: "canonical-baseline" | "provisional-listening-review-required" | "screening-baseline";
   suite_fingerprint: string;
@@ -180,7 +179,7 @@ export async function runDecisionCommand(argv = process.argv.slice(2)): Promise<
   const artifact: DecisionArtifact = {
     schema: DECISION_SCHEMA,
     generatedAt: new Date().toISOString(),
-    decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
+    decisionInferenceFingerprint: DECISION_INFERENCE_PROTOCOL_FINGERPRINT,
     decisionProtocolFingerprint: decisionProtocolFingerprint(),
     executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
     base: archiveReference(base),
@@ -420,7 +419,7 @@ export async function evalDecisionAgainstBaselineCache(
   const artifact: DecisionArtifact = {
     schema: DECISION_SCHEMA,
     generatedAt: new Date().toISOString(),
-    decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
+    decisionInferenceFingerprint: DECISION_INFERENCE_PROTOCOL_FINGERPRINT,
     decisionProtocolFingerprint: decisionProtocolFingerprint(),
     executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
     base: {
@@ -467,7 +466,7 @@ export function assertComparisonRequestLink(
   if (archive.git?.candidateFingerprint !== expected.candidateFingerprint) {
     throw new Error(`${expected.label} did not reproduce its frozen compiler snapshot identity`);
   }
-  const link = archive.comparisonRequest ?? archive.confirmationDeclaration;
+  const link = archive.comparisonRequest;
   if (
     link === undefined || resolve(link.path) !== resolve(expected.requestPath) ||
     link.sha256 !== expected.requestSha256
@@ -646,7 +645,7 @@ function validateArchiveScope(
   if (JSON.stringify(archive.identity.sources) !== JSON.stringify(expectedSources)) {
     throw new Error(`archive source identities do not match the current canonical sources`);
   }
-  const customCanonicalSeedBase = profileName === "canonical" && archive.confirmationDeclaration !== undefined
+  const customCanonicalSeedBase = profileName === "canonical" && archive.comparisonRequest !== undefined
     ? archive.identity?.seedSchedule?.seedBase
     : undefined;
   // A requested comparison depth replaces the manifest allocation; the caller
@@ -914,7 +913,7 @@ function baselineArchive(profile: DecisionProfile): {
   const baseline = JSON.parse(readFileSync(path, "utf8")) as BaselineReference;
   const schemaAllowed = profile === "probe"
     ? baseline.schema === PROBE_BASELINE_SCHEMA
-    : baseline.schema === BASELINE_SCHEMA || baseline.schema === BASELINE_CACHE_REFERENCE_SCHEMA;
+    : baseline.schema === BASELINE_CACHE_REFERENCE_SCHEMA;
   if (
     !schemaAllowed || baseline.execution_protocol !== BENCHMARK_EXECUTION_PROTOCOL ||
     baseline.compiler_identity_protocol !== COMPILER_IDENTITY_PROTOCOL
@@ -973,6 +972,7 @@ function assertStoredHeadline(archive: any, recomputed: number, label: string): 
  */
 export function underPoweredHint(result: V2Decision, seedsPerBudget: number): string | null {
   const unresolved = result.outcome === "unresolved" || result.outcome === "inconclusive";
+  if (!result.uncertainty.seed.available) return null;
   const se = result.uncertainty.seed.standardError;
   const df = result.uncertainty.seed.degreesOfFreedom ?? Infinity;
   const distance = result.delta - result.threshold;
@@ -1022,18 +1022,29 @@ export function renderDecision(artifact: DecisionArtifact, outPath: string): str
       `(valid ${entry.baseValid}->${entry.candidateValid}/${entry.total})`
     ),
   ];
+  const inferenceLines = central.available
+    ? [
+      `  ${(central.centralLevel * 100).toFixed(0)}% coverage-target seed-block interval ` +
+        `(${(central.centralCriticalLevel * 100).toFixed(0)}% t critical): ` +
+        `[${formatSigned(central.centralLo)}, ${formatSigned(central.centralHi)}]`,
+      `  one-sided bounds: lower ${formatSigned(central.lowerBound)}, upper ${formatSigned(central.upperBound)}`,
+      `  formal seed-block SE: ${result.uncertainty.seed.standardError.toFixed(2)} ` +
+        `(df ${result.uncertainty.seed.degreesOfFreedom?.toFixed(1) ?? "infinite"})`,
+    ]
+    : [
+      "  seed-block inference: unavailable (one seed block; descriptive diagnostic only)",
+    ];
+  const confidenceText = (confidence: V2Decision["confidence"]): string =>
+    confidence.available
+      ? `[${formatSigned(confidence.centralLo)}, ${formatSigned(confidence.centralHi)}]`
+      : "[descriptive only]";
   const lines = [
     `Benchmark V2 decision - ${result.profile} ${result.authority}`,
     `  policy: ${result.mode}; ${thresholdText}; ${(central.oneSidedLevel * 100).toFixed(0)}% coverage target ` +
       `using a ${(central.oneSidedCriticalLevel * 100).toFixed(0)}% one-sided t critical`,
     `  headline: ${result.baseHeadline.toFixed(2)} -> ${result.candidateHeadline.toFixed(2)} ` +
       `(delta ${formatSigned(result.delta)})`,
-    `  ${(central.centralLevel * 100).toFixed(0)}% coverage-target seed-block interval ` +
-      `(${(central.centralCriticalLevel * 100).toFixed(0)}% t critical): ` +
-      `[${formatSigned(central.centralLo)}, ${formatSigned(central.centralHi)}]`,
-    `  one-sided bounds: lower ${formatSigned(central.lowerBound)}, upper ${formatSigned(central.upperBound)}`,
-    `  formal seed-block SE: ${result.uncertainty.seed.standardError.toFixed(2)} ` +
-      `(df ${result.uncertainty.seed.degreesOfFreedom?.toFixed(1) ?? "infinite"})`,
+    ...inferenceLines,
     `  sensitivity SE: crossed ${result.uncertainty.jointSensitivity.standardError.toFixed(2)}, ` +
       `catalog ${result.uncertainty.catalogSensitivity.standardError.toFixed(2)}`,
     `  validity: ${result.validity.baseValid}/${result.validity.total} -> ` +
@@ -1042,13 +1053,13 @@ export function renderDecision(artifact: DecisionArtifact, outPath: string): str
     "  budgets (delta; stress-calibrated coverage-target interval):",
     ...result.perBudget.map((entry) =>
       `    ${(entry.budget / 1000).toFixed(0).padStart(4)}k  ${formatSigned(entry.delta)}  ` +
-      `[${formatSigned(entry.confidence.centralLo)}, ${formatSigned(entry.confidence.centralHi)}]  ` +
+      `${confidenceText(entry.confidence)}  ` +
       `valid ${entry.baseValid}->${entry.candidateValid}/${entry.total}`
     ),
     "  strata (delta; stress-calibrated coverage-target interval):",
     ...result.perStratum.map((entry) =>
       `    ${entry.stratum.padEnd(20)} ${formatSigned(entry.delta)}  ` +
-      `[${formatSigned(entry.confidence.centralLo)}, ${formatSigned(entry.confidence.centralHi)}]`
+      confidenceText(entry.confidence)
     ),
     ...caseLines,
     `  OUTCOME: ${result.outcome.toUpperCase()}` +

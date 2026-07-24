@@ -69,7 +69,7 @@ export function verifyScaleStudyArchive(
     !SCALE_STUDY_SCHEMAS.includes(archive?.schema) ||
     archive.suiteFingerprint !== options.identity.suiteFingerprint ||
     archive.sourceManifestFingerprint !== options.identity.sourceManifestFingerprint ||
-    archive.definitionFingerprint !== options.identity.definitionFingerprint ||
+    archive.scoringProtocolFingerprint !== options.identity.scoringProtocolFingerprint ||
     archive.scorerFingerprint !== options.scorerFingerprint ||
     JSON.stringify(archive.transform) !== JSON.stringify(options.suite.transform)
   ) {

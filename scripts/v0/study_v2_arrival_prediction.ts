@@ -101,13 +101,13 @@ for (const definition of cases) {
         if (fit === null || fit === undefined || nextFit === null || nextFit === undefined) continue;
         const arrival = predictArrivalAtNextContact(fit, next);
         if (arrival === null) continue;
-        const achieved = nextFit.achievedAtEnd ?? nextFit.achieved;
+        const achieved = nextFit.achieved;
         const target = setup.gapAxisTargets[next.index];
         const observations: Array<[Axis, number | undefined, number | undefined, number | undefined]> = [
-          ["speed", arrival.meanSpeed, achieved.speed === undefined ? undefined : authoredSpeedToPx(achieved.speed),
+          ["speed", arrival.meanSpeedPx, achieved.speed === undefined ? undefined : authoredSpeedToPx(achieved.speed),
             target.speed === undefined ? undefined : authoredSpeedToPx(target.speed)],
-          ["air", arrival.nextAir, achieved.air, target.air],
-          ["elevation", arrival.nextElevation, achieved.elevation, target.elevation],
+          ["air", arrival.airFraction, achieved.air, target.air],
+          ["elevation", arrival.elevation, achieved.elevation, target.elevation],
         ];
         for (const [axis, predicted, actual, authoredTarget] of observations) {
           // Keep the observation contract aligned with the scorer: an axis that

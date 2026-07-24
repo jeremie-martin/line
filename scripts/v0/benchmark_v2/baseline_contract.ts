@@ -26,7 +26,7 @@ export function readBaselineContract(baselinePath = DEFAULT_BASELINE_PATH): Base
   }
   const baseline = JSON.parse(readFileSync(resolve(baselinePath), "utf8"));
   if (
-    !["line.benchmark-v2.baseline-reference.v9", "line.benchmark-v2.baseline-reference.v10"].includes(baseline.schema) ||
+    baseline.schema !== "line.benchmark-v2.baseline-reference.v10" ||
     baseline.status !== "canonical-baseline"
   ) {
     throw new Error(`unsupported baseline reference; establish a new baseline`);

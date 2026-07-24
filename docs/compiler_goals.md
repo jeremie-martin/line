@@ -42,7 +42,7 @@ contract is `benchmark-v2-decisions.md`.)
   specs at a fixed budget.
 - `npm run benchmark -- eval --seeds=N` compares the current compiler on the
   44 development cases with the identical immutable baseline-cache prefix and
-  compiles only the candidate. `eval` defaults to N=2; any N in `2..300` is an
+  compiles only the candidate. `eval` defaults to N=2; any N in `1..300` is an
   ordinary operator-selected compute choice.
 - Improvement and simplification outcomes live in the standalone comparison
   artifact. After convincing evidence, `rebaseline --from=COMPARISON

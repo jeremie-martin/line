@@ -339,8 +339,8 @@ for (const specName of specs) {
       const rawFits = [...winner.search.prefixFits];
       rawFits[gap.index] = candidate;
       if (suffixMode === "release-translate") {
-        const from = incumbentFit.releaseArrivalState;
-        const to = candidate.releaseArrivalState;
+        const from = incumbentFit.ballisticLaunch?.state;
+        const to = candidate.ballisticLaunch?.state;
         if (from === undefined || to === undefined) continue;
         const dx = to.x - from.x;
         const dy = to.y - from.y;

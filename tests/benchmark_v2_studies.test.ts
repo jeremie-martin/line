@@ -4,7 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { gunzipSync, gzipSync } from "node:zlib";
 import { describe, expect, test } from "vitest";
-import { CERTIFICATION_GENERATOR_SOURCE_FILES } from "../scripts/v0/benchmark_v2/certification_identity.ts";
+import {
+  CERTIFICATION_GENERATOR_PROTOCOL_FINGERPRINT,
+} from "../scripts/v0/benchmark_v2/certification_identity.ts";
 import { fingerprintFiles } from "../scripts/v0/benchmark_v2/suite_model.ts";
 import {
   assertKnobOnlyDelta,
@@ -73,7 +75,7 @@ describe("retained study artifacts", () => {
       // Their stamped inference identity must remain reviewable, but an edit
       // to the current stateless comparison policy must not rewrite history.
       expect(v.evalChainInferenceFingerprint).toMatch(/^[a-f0-9]{64}$/);
-      expect(v.certificationGeneratorFingerprint).toBe(fingerprintFiles(CERTIFICATION_GENERATOR_SOURCE_FILES));
+      expect(v.certificationGeneratorFingerprint).toBe(CERTIFICATION_GENERATOR_PROTOCOL_FINGERPRINT);
       expect(v.methodology.futility).toContain(`depth-${v.predeclared.depth}`);
       expect(v.methodology.futility).not.toContain("depth-32");
       for (const reference of [v.independentReference, v.originalReference]) {
@@ -180,7 +182,8 @@ describe("study_lib verification helpers", () => {
   test("verifyScaleStudyArchive enforces scope, duplicates, and rescoring (stub rescorer)", () => {
     const identity = {
       suiteFingerprint: "s", suiteManifestFingerprint: "sm",
-      sourceManifestFingerprint: "src", definitionFingerprint: "def",
+      sourceManifestFingerprint: "src", scoringProtocolFingerprint: "score-protocol",
+      benchmarkImplementationFingerprint: "implementation",
     } as any;
     const suite = { transform: { kind: "production_felt_jolt", jolt_ms: -15 } } as any;
     const sources = [
@@ -214,7 +217,8 @@ describe("study_lib verification helpers", () => {
     });
     const archive = {
       schema: "line.benchmark-v2.budget-scale-study.v2",
-      suiteFingerprint: "s", sourceManifestFingerprint: "src", definitionFingerprint: "def",
+      suiteFingerprint: "s", sourceManifestFingerprint: "src",
+      scoringProtocolFingerprint: "score-protocol",
       scorerFingerprint: "scorer",
       transform: suite.transform,
       candidate,

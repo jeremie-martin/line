@@ -124,6 +124,23 @@ describe("Benchmark V2 decision model", () => {
     expect(decision.outcome).toBe("inconclusive");
   });
 
+  test("keeps one-seed runs descriptive and never promotion-authoritative", () => {
+    const s = suite();
+    s.profiles.canonical.seeds_per_budget = 1;
+    const base = runs(s, "canonical", () => 0);
+    const candidate = runs(s, "canonical", () => 20);
+    const decision = pairedV2Decision(base, candidate, s, {
+      profile: "canonical", mode: "improvement", iterations: 500, bootstrapSeed: 1,
+    });
+    expect(decision.delta).toBeGreaterThan(0);
+    expect(decision.confidence.available).toBe(false);
+    expect(decision.confidence.standardError).toBe(0);
+    expect(decision.outcome).toBe("inconclusive");
+    expect(decision.promotable).toBe(false);
+    expect(decision.perBudget.every((entry) => !entry.confidence.available)).toBe(true);
+    expect(decision.perStratum.every((entry) => !entry.confidence.available)).toBe(true);
+  });
+
   test("calibration fast path exactly matches the full calibration verdict", () => {
     const s = suite();
     const base = runs(s, "canonical", () => 0);

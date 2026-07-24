@@ -161,17 +161,10 @@ export async function runBenchmarkV2(
   const linkedDevelopmentPath = argument("development-archive") === undefined
     ? undefined
     : resolve(argument("development-archive")!);
-  const confirmationDeclarationPath = argument("confirmation-declaration") === undefined
-    ? undefined
-    : resolve(argument("confirmation-declaration")!);
   const comparisonRequestPath = argument("comparison-request") === undefined
     ? undefined
     : resolve(argument("comparison-request")!);
-  if (confirmationDeclarationPath !== undefined && comparisonRequestPath !== undefined) {
-    throw new Error(`use either --comparison-request or the legacy --confirmation-declaration, not both`);
-  }
-  const hasCanonicalRequest =
-    confirmationDeclarationPath !== undefined || comparisonRequestPath !== undefined;
+  const hasCanonicalRequest = comparisonRequestPath !== undefined;
   /** A cache shard is a canonical run over a contiguous seed-slot tail of the
    * frozen baseline.  It is deliberately distinct from a confirmation: it
    * never carries a candidate verdict and is only admitted through the
@@ -346,9 +339,6 @@ export async function runBenchmarkV2(
   const linkedDevelopment = linkedDevelopmentPath === undefined
     ? undefined
     : archiveLink(linkedDevelopmentPath);
-  const confirmationDeclaration = confirmationDeclarationPath === undefined
-    ? undefined
-    : archiveLink(confirmationDeclarationPath);
   const comparisonRequest = comparisonRequestPath === undefined
     ? undefined
     : archiveLink(comparisonRequestPath);
@@ -390,7 +380,6 @@ export async function runBenchmarkV2(
     },
     runtime,
     linkedDevelopment,
-    confirmationDeclaration,
     comparisonRequest,
     ...(baselineCacheShard ? {
       baselineCacheShard: {
@@ -583,7 +572,6 @@ export async function runBenchmarkV2(
       logicalCpus: cpus().length,
     },
     linkedDevelopment,
-    confirmationDeclaration,
     comparisonRequest,
     ...(baselineCacheShard ? {
       baselineCacheShard: {
@@ -664,7 +652,6 @@ export async function runBenchmarkV2(
     developmentSummaries,
     qualificationSummaries,
     linkedDevelopment,
-    confirmationDeclaration,
     comparisonRequest,
     ...(exploration ? {
       exploration: {

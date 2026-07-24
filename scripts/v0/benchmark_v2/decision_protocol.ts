@@ -3,13 +3,13 @@ import { fingerprintFiles } from "./suite_model.ts";
 /**
  * Surfaces that fix comparison integrity, snapshot/freezing, and promotion
  * semantics. Statistical inference has its own identity
- * (DECISION_INFERENCE_SOURCE_FILES); this fingerprint records operational
+ * (`DECISION_INFERENCE_PROTOCOL_FINGERPRINT`); this fingerprint records operational
  * provenance without turning ordinary comparisons into a permission gate.
  *
  * Runner *execution* is separately bound by the implementation fingerprint,
  * the execution-policy identity, and runner-compatibility approvals; suite
- * semantics are bound by the suite fingerprint
- * (BENCHMARK_DEFINITION_SOURCE_FILES).
+ * semantics are bound by the suite manifest, source identities, and explicit
+ * scoring-protocol fingerprint in `suite_model.ts`.
  */
 export const DECISION_PROTOCOL_SOURCE_FILES = [
   "benchmark/v2/eval-policy.ts",

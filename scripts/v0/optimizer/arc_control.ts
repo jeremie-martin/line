@@ -262,7 +262,12 @@ export function arcControlProposalValues(
  * inverse-model search range.  `base_additive` observes one center plus each
  * non-center axis point; `base_joint` observes the complete tensor product.
  */
-export function arcControlProbeVectors(configuration: ArcControlConfiguration): number[][] {
+export function arcControlProbeVectors(
+  configuration: Pick<
+    ArcControlConfiguration,
+    "sequence" | "trainingMethod" | "probeLayout" | "probeRangeScale"
+  >,
+): number[][] {
   const spans = configuration.sequence.map(arcKnobProbeSpan);
   const points = ARC_PROBE_LAYOUTS[configuration.probeLayout].normalizedPoints;
   if (configuration.trainingMethod !== "base_joint") {

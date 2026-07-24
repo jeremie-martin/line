@@ -334,7 +334,7 @@ for (const specName of specs) {
       if (children.length > 0) parentsWithChildren++;
       for (let childRank = 0; childRank < children.length; childRank++) {
         const node = extendNodeCached(parentNode, children[childRank]);
-        const achieved = children[childRank].achievedAtEnd ?? children[childRank].achieved;
+        const achieved = children[childRank].achieved;
         const target = gapAxisTargets[weak.index].impact;
         if (target === undefined || achieved.impact === undefined) continue;
         pairs.push({

@@ -86,12 +86,12 @@ function finite(value: number | null | undefined): value is number {
 }
 
 function impactOf(candidate: HandoffPoolProbeCandidate): number | null {
-  const axes = candidate.achievedAtEnd ?? candidate.achieved;
+  const axes = candidate.achieved;
   return finite(axes.impact) ? axes.impact : null;
 }
 
 function scorerWindowRms(candidate: HandoffPoolProbeCandidate, targets: AxisValues): number {
-  const achieved = candidate.achievedAtEnd ?? candidate.achieved;
+  const achieved = candidate.achieved;
   const errors = AXES.flatMap((axis) => {
     const target = targets[axis];
     const value = achieved[axis];

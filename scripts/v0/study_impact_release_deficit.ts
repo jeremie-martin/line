@@ -70,7 +70,7 @@ let activeSeed = 0;
 let poolCount = 0;
 
 const axesOf = (candidate: HandoffPoolProbeCandidate): AxisValues =>
-  candidate.achievedAtEnd ?? candidate.achieved;
+  candidate.achieved;
 
 function stateOf(candidate: HandoffPoolProbeCandidate, target: number): CandidateState {
   const impact = axesOf(candidate).impact!;

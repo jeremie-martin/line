@@ -46,6 +46,7 @@ function tempDir(): string {
 
 function decision(overrides: Partial<V2Decision>): V2Decision {
   const bounds = {
+    available: true,
     estimate: 1.2,
     standardError: 2,
     degreesOfFreedom: null,

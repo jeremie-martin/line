@@ -51,8 +51,8 @@ import {
 } from "./core/launch_read.ts";
 import {
   constraintBallisticStateFromSamples,
-  predictConstraintBallisticArrival,
 } from "./core/ballistic_micro_sim.ts";
+import { propagateBallisticState } from "./core/ballistic_projection.ts";
 import {
   loadSourceManifest,
   loadSourceSpec,
@@ -270,6 +270,8 @@ const report = {
   generatedAt: new Date().toISOString(),
   compiler: corpus.compiler,
   compilerFingerprint: corpus.compilerFingerprint,
+  evaluationCompilerFingerprint:
+    compilerCandidateIdentity("wasm").candidateFingerprint,
   corpus: relativeToCwd(corpusPath),
   corpusGeneratedAt: corpus.generatedAt,
   protocol: corpus.protocol,
@@ -548,13 +550,11 @@ function loadCorpus(): BallisticCorpus {
   if (parsed.schema !== "line.ballistic-predictor-corpus.v6") {
     throw new Error(`unsupported ballistic corpus schema`);
   }
-  const compilerFingerprint = compilerCandidateIdentity("wasm").candidateFingerprint;
-  if (parsed.compilerFingerprint !== compilerFingerprint) {
-    throw new Error(
-      `ballistic corpus belongs to a different current compiler; ` +
-        `recollect it explicitly after promoting or changing current`,
-    );
-  }
+  // The frozen rows are predictor inputs plus independent future truth. Their
+  // purpose is fast model iteration, so ordinary compiler source changes do
+  // not invalidate them. Collection provenance remains in the manifest and
+  // report; schema, protocol, case membership, and shard integrity are the
+  // compatibility gates below.
   if (
     parsed.protocol.budget !== BALLISTIC_BENCHMARK_BUDGET ||
     parsed.protocol.seeds.length !== BALLISTIC_BENCHMARK_SEEDS.length ||
@@ -999,10 +999,34 @@ function predictAll(samples: readonly Sample[], targetFrame: number): Record<str
 
 /** Must mirror the predictor currently used by the compiler. */
 function predictCurrent(input: PredictorInput): KinematicState {
-  return input.constraintState === null
-    ? input.fallback
-    : predictConstraintBallisticArrival(input.constraintState, input.dt, g) ??
-      input.fallback;
+  const last = input.samples[input.samples.length - 1];
+  const speed = Math.hypot(last.body.vx, last.body.vy);
+  const state = propagateBallisticState({
+    ...last.body,
+    speed,
+    comAngleDeg: speed > 0
+      ? Math.atan2(last.body.vy, last.body.vx) * 180 / Math.PI
+      : null,
+    sledPoseDeg: null,
+    sledPoseRateDegPerFrame: null,
+    ...(input.constraintState === null
+      ? {}
+      : {
+        constraintState: {
+          ...input.constraintState,
+          // Corpus rows may contain several samples, but production captures
+          // the exact point/previous-point state only at the last causal
+          // anchor. Re-anchor the equivalent frozen state explicitly.
+          frameOffset: 0,
+        },
+      }),
+  }, input.targetFrame - last.frame);
+  return {
+    x: state.x,
+    y: state.y,
+    vx: state.vx,
+    vy: state.vy,
+  };
 }
 
 function meanLaunchVelocity(

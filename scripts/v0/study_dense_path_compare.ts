@@ -94,7 +94,8 @@ function summarizePath(node: HandoffNode) {
     const trace = node.rankTrace[gap];
     if (fit === null) return { gap, source: trace?.source ?? "skip", rank: trace?.rank ?? -1, fit: null };
     const tail = fit.lines.at(-1)!;
-    const release = fit.releaseArrivalState;
+    const launch = fit.ballisticLaunch;
+    const release = launch?.state;
     return {
       gap,
       source: trace?.source ?? "unknown",
@@ -106,10 +107,10 @@ function summarizePath(node: HandoffNode) {
       post: summarizePostGeometry(fit),
       achieved: Object.fromEntries(Object.entries(fit.achieved).map(([name, value]) => [name, round(value)])),
       release: release === undefined ? null : {
-        frame: release.frame,
+        frame: launch!.anchorFrame,
         speed: round(Math.hypot(release.vx, release.vy)),
         angle: round(Math.atan2(release.vy, release.vx) * 180 / Math.PI),
-        airborne: release.airborne,
+        airborne: launch!.airborne,
       },
     };
   });
@@ -155,8 +156,8 @@ function summarizePostGeometry(fit: NonNullable<HandoffNode["search"]["prefixFit
   const post = fit.lines.slice(joint);
   const length = post.reduce((sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1), 0);
   const speed = fit.releaseSpeed ?? Math.hypot(
-    fit.releaseArrivalState?.vx ?? 0,
-    fit.releaseArrivalState?.vy ?? 0,
+    fit.ballisticLaunch?.state.vx ?? 0,
+    fit.ballisticLaunch?.state.vy ?? 0,
   );
   const start = post[0];
   const end = post.at(-1)!;

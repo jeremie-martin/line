@@ -77,7 +77,7 @@ let activeSeed = 0;
 let poolCount = 0;
 
 const axesOf = (candidate: HandoffPoolProbeCandidate): AxisValues =>
-  candidate.achievedAtEnd ?? candidate.achieved;
+  candidate.achieved;
 
 function axisRms(candidate: HandoffPoolProbeCandidate, targets: AxisValues): number {
   const achieved = axesOf(candidate);

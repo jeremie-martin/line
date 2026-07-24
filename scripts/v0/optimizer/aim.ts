@@ -39,7 +39,7 @@
  *   I2 DETERMINISM. Lanes consume ZERO rng draws; lane candidates carry no
  *      sampleAttempt and live outside sampleOrder, so the attempt-prefix
  *      property of the candidate cache stays intact.
- *   I3 BUDGET HONESTY. Probe frames are metered (getRiderMetered).
+ *   I3 BUDGET HONESTY. Probe simulation and launch reads are metered.
  *   I4 NO HIDDEN CHARGED-ROLLOUT COST. A lane must not silently multiply the
  *      evals billed inside forward-eval rollouts (v4-01 −3.8; scoop-rollout
  *      −9.0; attempt-0 −29.5). This is NOT "don't simulate more".
@@ -54,15 +54,19 @@
  * CoM angle only (pose parked by R0).
  */
 
-import { getPhysicsFrameCount, getRiderMetered, K_BOUNCE_LANDING, sledPoseDegFromRider } from "../../lib/detector.ts";
+import { getPhysicsFrameCount, K_BOUNCE_LANDING } from "../../lib/detector.ts";
 import {
   axisLookaheadEndFrame,
   POOL_MODE,
   tryCandidateLines,
 } from "../core/candidate.ts";
-import { engineLineFromTrackLine } from "../core/substrate.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
-import { AXES, type AxisName, type TrackLine } from "../types.ts";
+import {
+  AXES,
+  type AxisName,
+  type AxisValues,
+  type TrackLine,
+} from "../types.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
   adjustArcTailLength,
@@ -78,7 +82,6 @@ import {
   type ArcProbeDesignName,
   type JointArcCurrentScoreAxes,
   type JointArcResponseModel,
-  type RiderArrivalState,
 } from "./arc_model.ts";
 import {
   fitArcVectorResponseModel,
@@ -113,17 +116,20 @@ import {
   type ArcKnobSequence,
 } from "./arc_actuator.ts";
 import {
-  effectiveAirAsk,
+  currentGapAxes,
   nextContactGap,
   nextGapFrameCount,
-  OBJECTIVE_AIR_DEADBAND,
   predictArrivalAtNextContact,
-  predictedNextGapAir,
   scoreGapObjectiveForTargets,
   scoreGapObjectiveWithCurrentQuality,
   scoreNextTargetReadiness,
   type ObjectiveArrivalState,
 } from "./objective.ts";
+import {
+  effectiveAirAsk,
+  isElevationReadinessEnabled,
+  READINESS_AIR_DEADBAND,
+} from "./readiness.ts";
 import type { Gap } from "../types.ts";
 
 // ───────────────────────────── 1 · Flags ─────────────────────────────
@@ -137,11 +143,10 @@ import type { Gap } from "../types.ts";
 const AIM_DELTA_MAX_DEG = 10;
 
 /** The enumerative proposer — THE aiming lane (docs/READINESS_ROADMAP.md).
- *  Fit per-knob arrival models (speed, CoM angle at the next beat) from
- *  shared probes, enumerate the knob space inside the models (free), score
- *  each variation as readiness(predicted arrival) × speed-target fit ×
- *  impact-feasibility, propose the top-2 through the unchanged production
- *  evaluation. Subsumed and replaced every
+ *  Fit a coherent per-knob next-gap projection from shared probes, enumerate
+ *  the knob space inside the models (free), score each variation as current
+ *  axis quality × the canonical five-factor readiness composite, and propose
+ *  the top-2 through the unchanged production evaluation. Subsumed and replaced every
  *  hand-tuned predecessor:
  *  V3 speed-aim + V4 angle-aim triggers (ACCEPT Δ+3.3 → 600.71), the
  *  elevation climb-defer (removed at parity Δ−0.1 → 600.57), and the V4
@@ -374,7 +379,8 @@ export function rankQualityEnabled(): boolean {
  *  LR_AIM_STUDY_STATS=1). Default production stats keep only the proposer
  *  funnel and probe cost; these fields answer campaign-analysis questions. */
 export type AimStudyStats = {
-  /** Mean |predicted − achieved| arrival readiness over emitted. */
+  /** Mean |predicted − achieved| arrival readiness and its actual denominator. */
+  enum_readiness_pairs: number;
   enum_readiness_err_mean: number;
   /** Mean predicted readiness gain over δ=0, over emitted. */
   enum_readiness_gain_mean: number;
@@ -419,9 +425,9 @@ export type AimStudyStats = {
   joint_fit_degraded_outputs: number;
   /** Per-sweep current-gap term coverage: of the gap's targeted axes, how
    *  many had a model prediction at the base knobs (sums), and how many
-   *  sweeps had NONE — i.e. the objective degraded to
-   *  readiness × speed-fit × impact-feasibility with axis quality pinned
-   *  at its empty-default 1. Before the identifiability ladder this
+   *  sweeps had NONE — i.e. the objective degraded to next-gap readiness
+   *  with current axis quality pinned at its empty-default 1. Before the
+   *  identifiability ladder this
    *  degradation was silent; it must stay observable. */
   enum_current_axes_targeted: number;
   enum_current_axes_modeled: number;
@@ -579,7 +585,6 @@ function recordJointProbeRows(
 function recordJointModelCoverage(
   model: Readonly<{
     outputModels: ReadonlyMap<string, Readonly<{ model: Readonly<{ degraded: boolean }> }>>;
-    latentModels: ReadonlyMap<string, Readonly<{ model: Readonly<{ degraded: boolean }> }>>;
   }>,
   baseOutputs: Record<string, number>,
   gap: Gap,
@@ -597,9 +602,6 @@ function recordJointModelCoverage(
   if (targeted > 0 && modeled === 0) aimTotals.enum_current_term_missing++;
   let degraded = 0;
   for (const fitted of model.outputModels.values()) {
-    if (fitted.model.degraded) degraded++;
-  }
-  for (const fitted of model.latentModels.values()) {
     if (fitted.model.degraded) degraded++;
   }
   aimTotals.joint_fit_degraded_outputs += degraded;
@@ -634,6 +636,7 @@ export function snapshotAimStats(): AimStats | null {
   };
   if (!aimStudyStatsEnabled()) return stats;
   stats.study = {
+    enum_readiness_pairs: aimTotals.enumAchieved,
     enum_readiness_err_mean: aimTotals.enumAchieved > 0
       ? round3(aimTotals.enumReadinessErrSum / aimTotals.enumAchieved) : 0,
     enum_readiness_gain_mean: aimTotals.enum_emitted > 0
@@ -703,60 +706,6 @@ const AIM_MIN_DELTA_DEG = 0.25;
 
 // ───────────────────────────── 4 · Probes ────────────────────────────
 
-/** The output vector of one probe ride: the full rider state readable at one
- *  frame. One ride yields ALL quantities at once — probe count scales with
- *  model order per knob, never with the number of predicted outputs. Future
- *  quantities (e.g. measured axis values via a full candidate evaluation per
- *  probe — expensive, see V2 study) extend this type; consumers fit per
- *  quantity from the same outcomes unchanged. */
-export type ProbeOutcome = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  /** CoM speed (px/f). */
-  speed: number;
-  /** CoM VELOCITY direction (deg, +down) — where the mass is GOING.
-   *  Null at zero speed. */
-  comAngleDeg: number | null;
-  /** Sled pose / "internal rotation" (TAIL→NOSE, deg, +down) — where the
-   *  rider is POINTING. A different quantity from comAngleDeg. Null when
-   *  unreadable. Free to read (same frame); consumed by no decision yet. */
-  sledPoseDeg: number | null;
-};
-
-/** Ride the perturbed candidate on a forked engine and read the full
- *  ProbeOutcome at `frame`. Returns null when the probe ride breaks the
- *  sled / ejects the rider (don't fit through a crash) or speed is not
- *  finite. Frames are metered via getRiderMetered (invariant I3); the pose
- *  read is a same-frame property read costing zero metered frames. */
-function probeRide(
-  // deno-lint-ignore no-explicit-any
-  engine: any,
-  lines: TrackLine[],
-  frame: number,
-): ProbeOutcome | null {
-  const fork = engine.addLine(lines.map((l) => engineLineFromTrackLine(l)));
-  const rider = getRiderMetered(fork, frame);
-  try {
-    if (rider.get?.("SLED_INTACT")?.isBinded?.() === false) return null;
-    if (rider.get?.("RIDER_MOUNTED")?.isBinded?.() === false) return null;
-  } catch { /* treat as intact */ }
-  const pos = rider.position ?? { x: NaN, y: NaN };
-  const v = rider.velocity ?? { x: 0, y: 0 };
-  const speed = Math.hypot(v.x, v.y);
-  if (!Number.isFinite(speed)) return null;
-  return {
-    x: pos.x,
-    y: pos.y,
-    vx: v.x,
-    vy: v.y,
-    speed,
-    comAngleDeg: speed > 0 ? (Math.atan2(v.y, v.x) * 180) / Math.PI : null,
-    sledPoseDeg: sledPoseDegFromRider(rider),
-  };
-}
-
 // ───────────────────────────── 6 · Lanes ─────────────────────────────
 
 // ──────────────── R2 · Enumerative proposer (LR_AIM_ENUM) ────────────────
@@ -790,8 +739,8 @@ const ENUM_ROT_STEP_DEG = 0.5;
  *    objective(δp, δr) = current-axis-quality(predictedCurrentAxes, targets)
  *                      × next-gap-readiness(predictedNextState, next targets)
  *
- *  The readiness term is owned by optimizer/objective.ts and decomposes into
- *  catchability × speed-fit × impact-feasibility. */
+ *  The readiness term is owned by optimizer/readiness.ts and is exactly
+ *  catchability × speed fit × air fit × impact feasibility × elevation fit. */
 export function makeEnumAimedCandidates(
   // deno-lint-ignore no-explicit-any
   engine: any,
@@ -842,6 +791,7 @@ function makeJointAimedCandidates(
   let span = arcKnobSpan(arcProbeDesign(probeDesignName));
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
+  const includeElevation = isElevationReadinessEnabled();
   const framesBeforeProbes = getPhysicsFrameCount();
   const actuatorContext = arcKnobSequenceNeedsContactPoint(knobSequence)
     ? (() => {
@@ -852,7 +802,8 @@ function makeJointAimedCandidates(
   let probeRows = arcProbeDesign(probeDesignName).map((knobs) =>
     evaluateArcKnobSequence(
       engine, base.lines, knobSequence, [knobs.rotateDeg, knobs.pitchDeg], knobs,
-      gap, ctx.allContactFrames, axisMeasureEnd, nextFrame, {}, actuatorContext,
+      gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
+      { includeElevation }, actuatorContext,
     )
   );
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
@@ -895,7 +846,8 @@ function makeJointAimedCandidates(
       .map((knobs) =>
         evaluateArcKnobSequence(
           engine, base.lines, knobSequence, [knobs.rotateDeg, knobs.pitchDeg], knobs,
-          gap, ctx.allContactFrames, axisMeasureEnd, nextFrame, {}, actuatorContext,
+          gap, ctx.allContactFrames, axisMeasureEnd, nextFrame,
+          { includeElevation }, actuatorContext,
         )
       );
     probeRows = [...probeRows, ...rotationRows];
@@ -966,13 +918,22 @@ function makeJointAimedCandidates(
     aimTotals.enum_emitted++;
     if (cand.knobs.rotateDeg !== 0) aimTotals.enum_rot_emitted++;
     aimTotals.enumReadinessGainSum += cand.val - baseScore.val;
-    const achieved = probeRide(engine, aimedLines, nextFrame);
-    const nextAimTargets = nextGap.targets;
-    const predictedReadiness = scoreNextTargetReadiness(cand.state, nextAimTargets);
-    const achievedReadiness = achieved === null ? null : scoreNextTargetReadiness(achieved, nextAimTargets);
-    if (predictedReadiness !== null && achievedReadiness !== null) {
-      aimTotals.enumAchieved++;
-      aimTotals.enumReadinessErrSum += Math.abs(predictedReadiness.readiness - achievedReadiness.readiness);
+    if (aimStudyStatsEnabled()) {
+      const nextAimTargets = nextGap.targets;
+      const predictedReadiness = scoreNextTargetReadiness(
+        cand.arrival,
+        nextAimTargets,
+      );
+      const achievedArrival = predictArrivalAtNextContact(fit, nextGap);
+      const achievedReadiness = achievedArrival === null
+        ? null
+        : scoreNextTargetReadiness(achievedArrival, nextAimTargets);
+      if (predictedReadiness !== null && achievedReadiness !== null) {
+        aimTotals.enumAchieved++;
+        aimTotals.enumReadinessErrSum += Math.abs(
+          predictedReadiness.readiness - achievedReadiness.readiness,
+        );
+      }
     }
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     fit.aimed = true;
@@ -985,7 +946,7 @@ function makeJointAimedCandidates(
 type ConfiguredScoredKnobs = Readonly<{
   values: number[];
   val: number;
-  state: RiderArrivalState;
+  arrival: ObjectiveArrivalState;
   currentQuality: number;
 }>;
 
@@ -1007,20 +968,28 @@ function scoreConfiguredKnobs(
   const readout = scoreCompletedArcPrediction(outputs, currentTargets, currentScoreAxes);
   if (Number.isFinite(readout.exitFrame) && readout.exitFrame > nextGap.endFrame) return "next_before_exit";
   if (readout.state === null) return "model_unscoreable";
-  const arrival: ObjectiveArrivalState = { ...readout.state };
-  if (Number.isFinite(readout.exitSpeed) && Number.isFinite(readout.state.speed)) {
-    arrival.meanSpeed = (readout.exitSpeed + readout.state.speed) / 2;
-  }
-  if (Number.isFinite(readout.exitFrame)) {
-    arrival.nextAir = predictedNextGapAir(readout.exitFrame, nextGap);
-    arrival.nextGapFrames = nextGapFrameCount(nextGap);
-  }
+  const arrival: ObjectiveArrivalState = {
+    incoming: readout.state,
+    ...(Number.isFinite(readout.nextMeanSpeedPx)
+      ? { meanSpeedPx: readout.nextMeanSpeedPx }
+      : {}),
+    ...(Number.isFinite(readout.nextAirFraction) &&
+        Number.isFinite(readout.nextGapFrameCount)
+      ? {
+        airFraction: readout.nextAirFraction,
+        gapFrameCount: readout.nextGapFrameCount,
+      }
+      : {}),
+    ...(Number.isFinite(readout.nextElevation)
+      ? { elevation: readout.nextElevation }
+      : {}),
+  };
   const objective = scoreGapObjectiveWithCurrentQuality(readout.currentQuality, arrival, nextTargets);
   if (objective === null) return "model_unscoreable";
   return {
     values: [...values],
     val: objective.value,
-    state: readout.state,
+    arrival,
     currentQuality: objective.currentQuality,
   };
 }
@@ -1105,6 +1074,7 @@ function makeConfiguredAimedCandidates(
   const sequence = control.sequence;
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
+  const includeElevation = isElevationReadinessEnabled();
   const framesBeforeProbes = getPhysicsFrameCount();
   const actuatorContext = arcKnobSequenceNeedsContactPoint(sequence)
     ? (() => {
@@ -1128,7 +1098,7 @@ function makeConfiguredAimedCandidates(
     ctx.allContactFrames,
     axisMeasureEnd,
     nextFrame,
-    {},
+    { includeElevation },
     actuatorContext,
   );
 
@@ -1136,7 +1106,6 @@ function makeConfiguredAimedCandidates(
   const vectorRow = (values: readonly number[], row: JointArcProbeObservation): ArcVectorProbeRow => ({
     values: [...values],
     outputs: row.outputs,
-    ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
   });
   let baseOutputs: Record<string, number> = {};
   let baseScore: ConfiguredScoredKnobs | null = null;
@@ -1257,12 +1226,21 @@ function makeConfiguredAimedCandidates(
     }
     aimTotals.enum_emitted++;
     aimTotals.enumReadinessGainSum += candidate.val - baseScore.val;
-    const achieved = probeRide(engine, aimedLines, nextFrame);
-    const predictedReadiness = scoreNextTargetReadiness(candidate.state, nextGap.targets);
-    const achievedReadiness = achieved === null ? null : scoreNextTargetReadiness(achieved, nextGap.targets);
-    if (predictedReadiness !== null && achievedReadiness !== null) {
-      aimTotals.enumAchieved++;
-      aimTotals.enumReadinessErrSum += Math.abs(predictedReadiness.readiness - achievedReadiness.readiness);
+    if (aimStudyStatsEnabled()) {
+      const predictedReadiness = scoreNextTargetReadiness(
+        candidate.arrival,
+        nextGap.targets,
+      );
+      const achievedArrival = predictArrivalAtNextContact(fit, nextGap);
+      const achievedReadiness = achievedArrival === null
+        ? null
+        : scoreNextTargetReadiness(achievedArrival, nextGap.targets);
+      if (predictedReadiness !== null && achievedReadiness !== null) {
+        aimTotals.enumAchieved++;
+        aimTotals.enumReadinessErrSum += Math.abs(
+          predictedReadiness.readiness - achievedReadiness.readiness,
+        );
+      }
     }
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     fit.aimed = true;
@@ -1323,14 +1301,21 @@ function makeAirMatchedCandidate(
 ): Candidate | null {
   const ask = objectiveTargetsForGap(nextGap, ctx)?.air;
   if (typeof ask !== "number" || !Number.isFinite(ask)) return null;
-  const rel = base.releaseArrivalState;
-  const measured = rel !== undefined && rel.airborne;
-  const relFrame = measured ? rel.frame : baseOutputs["exit.frame"];
-  const relSpeed = measured ? Math.hypot(rel.vx, rel.vy) : baseOutputs["exit.speed"];
+  const launch = base.ballisticLaunch;
+  const measured = launch !== undefined && launch.airborne;
+  const relFrame = measured
+    ? launch.anchorFrame
+    : baseOutputs["exit.frame"];
+  const relSpeed = measured
+    ? launch.state.speed
+    : baseOutputs["exit.speed"];
   if (!Number.isFinite(relFrame) || !Number.isFinite(relSpeed) || relSpeed <= 0) return null;
   const gapFrames = nextGapFrameCount(nextGap);
   const effAsk = effectiveAirAsk(ask, gapFrames);
-  const predAir = predictedNextGapAir(relFrame, nextGap);
+  const predAir = measured
+    ? predictArrivalAtNextContact(base, nextGap)?.airFraction
+    : baseOutputs["next.airFraction"];
+  if (predAir === undefined || !Number.isFinite(predAir)) return null;
   if (Math.abs(predAir - effAsk) <= AIR_KNOB_MIN_MISMATCH) return null;
   // Target release frame delivering effAsk, kept strictly rideable: after the
   // current catch, and leaving the landing detector its ≥K_BOUNCE_LANDING
@@ -1338,7 +1323,7 @@ function makeAirMatchedCandidate(
   const latestRelease = nextGap.endFrame - K_BOUNCE_LANDING - 2;
   const desired = Math.max(
     gap.endFrame + 1,
-    Math.min(latestRelease, nextGap.endFrame - effAsk * gapFrames),
+    Math.min(latestRelease, relFrame + (predAir - effAsk) * gapFrames),
   );
   const dtFrames = desired - relFrame;
   if (Math.abs(dtFrames) < AIR_KNOB_MIN_SHIFT_FRAMES) return null;
@@ -1364,7 +1349,7 @@ function makeAirMatchedCandidate(
 type JointScoredKnobs = {
   knobs: ArcKnobs;
   val: number;
-  state: RiderArrivalState;
+  arrival: ObjectiveArrivalState;
   currentQuality: number;
 };
 
@@ -1386,25 +1371,34 @@ function scoreJointKnobs(
   // Align the sweep's speed-fit with the pool sort (objective.ts H4): score against the predicted
   // MEAN-of-flight speed (trapezoidal of exit + next), the statistic the speed target authors,
   // not the catch-instant arrival. Falls back to catch-instant when the exit speed is unavailable.
-  const exitSpeed = readout.exitSpeed;
-  const arrival: ObjectiveArrivalState = { ...state };
-  if (Number.isFinite(exitSpeed) && Number.isFinite(state.speed)) {
-    arrival.meanSpeed = (exitSpeed + state.speed) / 2;
-  }
-  // M4: the predicted exit frame gives the sweep the same air-fit statistic the
-  // pool sort scores (predicted next-gap airborne fraction), so knob variants
-  // are judged on air setup too.
-  if (Number.isFinite(exitFrame)) {
-    arrival.nextAir = predictedNextGapAir(exitFrame, nextGap);
-    arrival.nextGapFrames = nextGapFrameCount(nextGap);
-  }
+  const arrival: ObjectiveArrivalState = {
+    incoming: state,
+    ...(Number.isFinite(readout.nextMeanSpeedPx)
+      ? { meanSpeedPx: readout.nextMeanSpeedPx }
+      : {}),
+    ...(Number.isFinite(readout.nextAirFraction) &&
+        Number.isFinite(readout.nextGapFrameCount)
+      ? {
+        airFraction: readout.nextAirFraction,
+        gapFrameCount: readout.nextGapFrameCount,
+      }
+      : {}),
+    ...(Number.isFinite(readout.nextElevation)
+      ? { elevation: readout.nextElevation }
+      : {}),
+  };
   const objective = scoreGapObjectiveWithCurrentQuality(
     readout.currentQuality,
     arrival,
     nextTargets,
   );
   if (objective === null) return "model_unscoreable";
-  return { knobs, val: objective.value, state, currentQuality: objective.currentQuality };
+  return {
+    knobs,
+    val: objective.value,
+    arrival,
+    currentQuality: objective.currentQuality,
+  };
 }
 
 /** Inter-proposal separation: an ELLIPSE (Mahalanobis-style) distance test
@@ -1466,14 +1460,14 @@ export function candidateQualityObjective(
   // state, non-airborne release, comAngle-less propagation result) → null
   // objective (cost order).
   const arrival = predictArrivalAtNextContact(candidate, nextGap);
-  if (arrival === null || arrival.comAngleDeg === null) {
+  if (arrival === null || arrival.incoming.comAngleDeg === null) {
     aimTotals.rank_quality_pred_bail++;
     return memoObjective(candidate, null);
   }
   aimTotals.rank_quality_pred_used++;
   const objective = scoreGapObjectiveForTargets(
     objectiveTargetsForGap(gap, ctx),
-    candidate.achieved,
+    currentGapAxes(candidate),
     arrival,
     objectiveTargetsForGap(nextGap, ctx),
   );
@@ -1520,7 +1514,7 @@ export function sortCandidatesByQuality(
     }
   }
   if (!anyDefined) {
-    if (record) {
+    if (record && aimStudyStatsEnabled()) {
       recordRankQualityPool(costSorted, costSorted);
       recordPoolAirSpread(gap, gaps, costSorted, ctx);
     }
@@ -1536,7 +1530,7 @@ export function sortCandidatesByQuality(
     if (ob !== undefined) return 1;
     return 0; // both undefined: keep cost/sample order
   });
-  if (record) {
+  if (record && aimStudyStatsEnabled()) {
     recordRankQualityPool(costSorted, ranked);
     recordPoolAirSpread(gap, gaps, costSorted, ctx);
   }
@@ -1565,9 +1559,8 @@ export function recordPoolAirSpread(
   let min = Infinity;
   let max = -Infinity;
   for (const cand of pool) {
-    const rel = cand.releaseArrivalState;
-    if (rel === undefined || !rel.airborne || rel.frame >= nextGap.endFrame) continue;
-    const air = predictedNextGapAir(rel.frame, nextGap);
+    const air = predictArrivalAtNextContact(cand, nextGap)?.airFraction;
+    if (air === undefined || !Number.isFinite(air)) continue;
     n++;
     sum += air;
     if (air < min) min = air;
@@ -1579,7 +1572,7 @@ export function recordPoolAirSpread(
   aimTotals.rankAirPredSum += sum;
   aimTotals.rankAirAskSum += effAsk;
   aimTotals.rankAirSpreadSum += n >= 2 ? max - min : 0;
-  if (min <= effAsk + OBJECTIVE_AIR_DEADBAND) aimTotals.rank_air_deliverable_pools++;
+  if (min <= effAsk + READINESS_AIR_DEADBAND) aimTotals.rank_air_deliverable_pools++;
 }
 
 /** Once-per-pool-build telemetry over the FINAL ordering: pool count, top-3 /

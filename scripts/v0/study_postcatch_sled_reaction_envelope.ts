@@ -284,7 +284,7 @@ function runAttempts(prepared: PreparedTrajectoryFixtureCore, charge: (frames: n
       topology(full, prepared.current.endFrame, envelopeIds),
     );
     const envelopeResponseTopology = topology(full, prepared.current.endFrame + 1, envelopeIds);
-    const achieved = augmented.achievedAtEnd ?? augmented.achieved;
+    const achieved = augmented.achieved;
     const impactAchieved = achieved.impact ?? null;
     const impactErrSigned = impactAchieved === null || target.impact === undefined ? null : round(impactAchieved - target.impact);
     if ((rawTargetTopology?.sledZeroFriction ?? 0) < MIN_SLED_ZERO_FRICTION_UPDATES) reasons.push(`raw target topology below ${MIN_SLED_ZERO_FRICTION_UPDATES}`);

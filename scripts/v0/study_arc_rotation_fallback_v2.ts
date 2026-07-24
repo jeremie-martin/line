@@ -34,7 +34,7 @@ import {
 } from "./optimizer/arc_model.ts";
 import { evaluateJointArcKnobs } from "./optimizer/arc_probe.ts";
 import { isStrictlyBetter, type LeafKey } from "./optimizer/register.ts";
-import { nextGapFrameCount, predictedNextGapAir, scoreGapObjectiveWithCurrentQuality } from "./optimizer/objective.ts";
+import { scoreGapObjectiveWithCurrentQuality } from "./optimizer/objective.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap } from "./types.ts";
 import type { Spec } from "./optimizer/types.ts";
@@ -84,14 +84,19 @@ function score(model: JointArcResponseModel, knobs: ArcKnobs, currentTargets: Ax
   const readout = predictJointArcScoreReadout(model, knobs, currentTargets, jointArcCurrentScoreAxes(currentTargets));
   if (Number.isFinite(readout.exitFrame) && readout.exitFrame > nextGap.endFrame) return null;
   if (readout.state === null) return null;
-  const arrival = { ...readout.state };
-  if (Number.isFinite(readout.exitSpeed) && Number.isFinite(readout.state.speed)) {
-    arrival.meanSpeed = (readout.exitSpeed + readout.state.speed) / 2;
-  }
-  if (Number.isFinite(readout.exitFrame)) {
-    arrival.nextAir = predictedNextGapAir(readout.exitFrame, nextGap);
-    arrival.nextGapFrames = nextGapFrameCount(nextGap);
-  }
+  const arrival = {
+    incoming: readout.state,
+    ...(Number.isFinite(readout.nextMeanSpeedPx)
+      ? { meanSpeedPx: readout.nextMeanSpeedPx }
+      : {}),
+    ...(Number.isFinite(readout.nextAirFraction) &&
+        Number.isFinite(readout.nextGapFrameCount)
+      ? {
+        airFraction: readout.nextAirFraction,
+        gapFrameCount: readout.nextGapFrameCount,
+      }
+      : {}),
+  };
   return scoreGapObjectiveWithCurrentQuality(readout.currentQuality, arrival, nextTargets)?.value ?? null;
 }
 
@@ -171,7 +176,6 @@ for (const id of ids) for (const seed of seeds) {
       ));
       const model = fitJointArcResponseModel(probes.map((row): JointArcProbeRow => ({
         knobs: row.knobs, outputs: row.outputs,
-        ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
       })), "cross5", "hybrid", { context: { gap, axisMeasureEnd, nextFrame: next.endFrame } });
       const all = ranked(model, setup.ctx.gapAxisTargets?.[gap.index] ?? gap.targets, setup.ctx.gapAxisTargets?.[next.index] ?? next.targets, next);
       const negProbe = probes.find((row) => row.knobs.rotateDeg < 0);

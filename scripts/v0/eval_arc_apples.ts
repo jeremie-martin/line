@@ -5,11 +5,8 @@
  * WHY THIS EXISTS
  * ---------------
  * The forward-eval rollout has two leaf scorers:
- *   - SHORT (objective): reads each candidate's `fit.achieved`, measured the
- *     minimal-simulation way — engine through the arc to its geometric EXIT, then
- *     the airborne suffix propagated BALLISTICALLY
- *     (core/measure.ts measureGapAxesWithBallisticSuffix, the ballistic suffix the
- *     short evaluateGapFit produces in core/candidate.ts).
+ *   - SHORT (objective): reads each candidate's `fit.achieved`, measured exactly
+ *     on the current scorer interval by the truncated candidate evaluation.
  *   - FULL: re-detects the whole composed prefix with the engine and the true
  *     scorer measures the achieved axes from THAT (core/measure.ts measureGapAxes,
  *     via buildDriftReport).
@@ -27,7 +24,7 @@
  *      fixed initial condition.
  *   2. From that SAME state, sample ~1000 candidate arcs at gap G via the normal
  *      sampler (getCandidatesSorted). Each viable arc carries a GapFit with
- *      `achieved` (the SHORT/ballistic measurement) and `lines`.
+ *      `achieved` (the SHORT exact-window measurement) and `lines`.
  *   3. For each arc, compute the FULL achieved: re-detect the SAME arc on the SAME
  *      entry engine to the full horizon, then measureGapAxes over the SAME window.
  *   4. Compare per-axis (smoking gun = impact, which is engine-simulated in BOTH
@@ -247,8 +244,8 @@ function fullLeafScore(node: SearchNode, setup: SearchSetup): number {
 // extend the SAME entry engine with the candidate's lines, detect to the full
 // horizon, and measureGapAxes over the SAME axisMeasureEnd the short path used.
 // This is exactly the per-arc analog of forwardNodeScore's re-detection — the
-// engine simulates the WHOLE composed track (arc + airborne to the next contact),
-// vs the short path's ballistic suffix past the geometric exit.
+// engine simulates the WHOLE composed track, whereas the short path stops once
+// the current exact scorer interval and causal launch packet are available.
 function fullAchievedForArc(
   entry: SearchNode,
   candidate: Candidate,
@@ -550,7 +547,7 @@ async function main(): Promise<void> {
       `  impact is engine-simulated AT THE CATCH in BOTH paths (inside the arc,`,
     );
     console.log(
-      `  before the ballistic suffix). Per-arc it should be ~0.`,
+      `  before the predicted next-gap suffix). Per-arc it should be ~0.`,
     );
     console.log(
       `  -> max|s−f| = ${impactSt.maxAbs.toFixed(6)}  over ${impactSt.n} arcs  ` +

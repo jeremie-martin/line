@@ -130,15 +130,15 @@ for (const specName of specNames) {
       const priorFit = fits[gapIndex - 1];
       if (elevation === undefined || priorFit === null || priorFit === undefined) continue;
       const arrival = predictArrivalAtNextContact(priorFit, gaps[gapIndex]);
-      const predicted = arrival?.nextElevation;
-      if (predicted === undefined || !Number.isFinite(predicted) || arrival.nextAir === undefined) continue;
+      const predicted = arrival?.elevation;
+      if (predicted === undefined || !Number.isFinite(predicted) || arrival.airFraction === undefined) continue;
       rows.push({
         spec: specName,
         seed,
         gap: gapIndex,
         gapFraction: gapIndex / Math.max(1, gaps.length - 1),
         target: elevation.target,
-        nextAir: arrival.nextAir,
+        nextAir: arrival.airFraction,
         predicted,
         achieved: elevation.achieved,
         predictionError: predicted - elevation.achieved,

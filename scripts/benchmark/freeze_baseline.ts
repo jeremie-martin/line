@@ -287,7 +287,7 @@ function renderMarkdown(baseline: any): string {
       `Canonical headline: **${development.canonical_headline.toFixed(2)}**. ` +
       `Qualification monitor: **${qualification.monitor_score.toFixed(2)}** (indicative only).`,
     "",
-    "Probe and confirmation actual seeds are disjoint at every shared budget. Probe evidence screens candidates; only a declared `eval --to-verdict` confirmation can promote one.",
+    "Probe and canonical actual seeds are disjoint at every shared budget. Promotion uses a retained `eval --seeds=N` comparison artifact.",
     "",
     `Canonical cache: stable ladder through **${(baseline as any).canonical_cache.ladder.maximumSeedsPerBudget}** slots/budget; ` +
       `accepted development evidence covers slots [0, ${(baseline as any).canonical_cache.shards.at(-1).endSeedSlotExclusive}).`,

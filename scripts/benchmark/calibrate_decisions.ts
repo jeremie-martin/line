@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { benchmarkDecisionPolicy } from "../../benchmark/v2/decision-policy.ts";
 import {
-  DECISION_INFERENCE_SOURCE_FILES,
+  DECISION_INFERENCE_PROTOCOL_FINGERPRINT,
   pairedV2Decision,
   pairedV2DecisionForCalibration,
   v2HeadlineForDecisionRuns,
@@ -40,7 +40,7 @@ const coverageStudy = JSON.parse(coverageStudyBytes.toString("utf8"));
 if (
   coverageStudy.schema !== "line.benchmark-v2.decision-coverage-study.v3" ||
   coverageStudy.suiteFingerprint !== identity.suiteFingerprint ||
-  coverageStudy.decisionInferenceFingerprint !== fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES) ||
+  coverageStudy.decisionInferenceFingerprint !== DECISION_INFERENCE_PROTOCOL_FINGERPRINT ||
   !Array.isArray(coverageStudy.powerResults) || coverageStudy.powerResults.length === 0 ||
   !Array.isArray(coverageStudy.safetyResults) || coverageStudy.safetyResults.length === 0 ||
   !Array.isArray(coverageStudy.diagnosticResults) || coverageStudy.diagnosticResults.length === 0
@@ -80,7 +80,7 @@ const report = {
   schema: "line.benchmark-v2.decision-calibration.v2",
   generatedAt: new Date().toISOString(),
   suiteFingerprint: identity.suiteFingerprint,
-  decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
+  decisionInferenceFingerprint: DECISION_INFERENCE_PROTOCOL_FINGERPRINT,
   policy: benchmarkDecisionPolicy,
   simulation: {
     trials,

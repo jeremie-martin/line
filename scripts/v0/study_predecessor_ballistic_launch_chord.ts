@@ -170,7 +170,7 @@ function evaluateCurrent(prepared: PreparedTrajectoryFixtureCore, engine: any, l
     charge(frames);
     if (fit === null) continue;
     admitted++;
-    const impact = (fit.achievedAtEnd ?? fit.achieved).impact;
+    const impact = (fit.achieved).impact;
     const impactAbsError = impact === undefined || target.impact === undefined ? null : Math.abs(impact - target.impact);
     if (impactAbsError !== null) bestImpactAbsError = bestImpactAbsError === null ? impactAbsError : Math.min(bestImpactAbsError, impactAbsError);
     const currentEngine = engine.addLine(fit.lines.map((line: TrackLine) => engineLineFromTrackLine(line)));

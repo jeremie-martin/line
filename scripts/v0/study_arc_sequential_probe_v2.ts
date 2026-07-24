@@ -39,7 +39,7 @@ import {
 } from "./optimizer/arc_model.ts";
 import { evaluateJointArcKnobs } from "./optimizer/arc_probe.ts";
 import { isStrictlyBetter, type LeafKey } from "./optimizer/register.ts";
-import { nextGapFrameCount, predictedNextGapAir, scoreGapObjectiveWithCurrentQuality } from "./optimizer/objective.ts";
+import { scoreGapObjectiveWithCurrentQuality } from "./optimizer/objective.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./optimizer/sample.ts";
 import { CALIB, secToFrame, type AxisValues, type Gap } from "./types.ts";
 import type { Spec } from "./optimizer/types.ts";
@@ -88,12 +88,19 @@ function score(model: JointArcResponseModel, knobs: ArcKnobs, current: AxisValue
   const readout = predictJointArcScoreReadout(model, knobs, current, jointArcCurrentScoreAxes(current));
   if (Number.isFinite(readout.exitFrame) && readout.exitFrame > nextGap.endFrame) return null;
   if (readout.state === null) return null;
-  const arrival = { ...readout.state };
-  if (Number.isFinite(readout.exitSpeed) && Number.isFinite(readout.state.speed)) arrival.meanSpeed = (readout.exitSpeed + readout.state.speed) / 2;
-  if (Number.isFinite(readout.exitFrame)) {
-    arrival.nextAir = predictedNextGapAir(readout.exitFrame, nextGap);
-    arrival.nextGapFrames = nextGapFrameCount(nextGap);
-  }
+  const arrival = {
+    incoming: readout.state,
+    ...(Number.isFinite(readout.nextMeanSpeedPx)
+      ? { meanSpeedPx: readout.nextMeanSpeedPx }
+      : {}),
+    ...(Number.isFinite(readout.nextAirFraction) &&
+        Number.isFinite(readout.nextGapFrameCount)
+      ? {
+        airFraction: readout.nextAirFraction,
+        gapFrameCount: readout.nextGapFrameCount,
+      }
+      : {}),
+  };
   return scoreGapObjectiveWithCurrentQuality(readout.currentQuality, arrival, next)?.value ?? null;
 }
 function distinct(a: ArcKnobs, b: ArcKnobs): boolean {
@@ -182,7 +189,6 @@ for (const id of ids) for (const seed of seeds) {
       const crossRows = arcProbeDesign("cross5").map(observe);
       const cross = fitJointArcResponseModel(crossRows.map((row): JointArcProbeRow => ({
         knobs: row.knobs, outputs: row.outputs,
-        ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
       })), "cross5", "hybrid", {
         context: { gap, axisMeasureEnd: measureEnd, nextFrame: nextGap.endFrame },
       });
@@ -191,7 +197,6 @@ for (const id of ids) for (const seed of seeds) {
       const pitchRows = arcProbeDesign("pitch3").map(observe);
       const pitchModel = fitJointArcResponseModel(pitchRows.map((row): JointArcProbeRow => ({
         knobs: row.knobs, outputs: row.outputs,
-        ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
       })), "pitch3", "hybrid", {
         context: { gap, axisMeasureEnd: measureEnd, nextFrame: nextGap.endFrame },
       });
@@ -212,12 +217,10 @@ for (const id of ids) for (const seed of seeds) {
         const rows: JointArcProbeRow[] = [
           ...pitchRows.map((row) => ({
             knobs: { pitchDeg: row.knobs.pitchDeg - pStar, rotateDeg: 0 }, outputs: row.outputs,
-            ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
           })),
           { knobs: { pitchDeg: 0, rotateDeg: 0 }, outputs: virtualCenter },
           ...conditionals.map((row) => ({
             knobs: { pitchDeg: 0, rotateDeg: row.knobs.rotateDeg }, outputs: row.outputs,
-            ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
           })),
         ];
         const conditionalModel = fitJointArcResponseModel(rows, "cross5", "hybrid", {
@@ -244,7 +247,6 @@ for (const id of ids) for (const seed of seeds) {
       const rotationRows = [0, -2.5, 2.5].map((rotateDeg) => observe({ pitchDeg: 0, rotateDeg }));
       const rotationModel = fitJointArcResponseModel(rotationRows.map((row): JointArcProbeRow => ({
         knobs: { pitchDeg: row.knobs.rotateDeg, rotateDeg: 0 }, outputs: row.outputs,
-        ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
       })), "pitch3", "hybrid", {
         context: { gap, axisMeasureEnd: measureEnd, nextFrame: nextGap.endFrame },
       });
@@ -270,7 +272,6 @@ for (const id of ids) for (const seed of seeds) {
           { knobs: { pitchDeg: 0, rotateDeg: 0 }, outputs: virtualCenter },
           ...conditionals.map((row): JointArcProbeRow => ({
             knobs: { pitchDeg: row.knobs.pitchDeg, rotateDeg: 0 }, outputs: row.outputs,
-            ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
           })),
         ], "pitch3", "hybrid", {
           context: { gap, axisMeasureEnd: measureEnd, nextFrame: nextGap.endFrame },

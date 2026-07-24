@@ -182,7 +182,6 @@ type Seg2Row = {
   admitted: boolean;
   admissionFrames: number;
   achieved: RoundedAxes;
-  achievedAtEnd: RoundedAxes;
   impactErrAbs: number | null;
   airErrAbs: number | null;
   speedErrAbs: number | null;
@@ -216,7 +215,6 @@ type Row = {
   replayMismatch: boolean;
   admissionFrames: number;
   achieved: RoundedAxes;
-  achievedAtEnd: RoundedAxes;
   arrival: ArrivalDiagnostics | null;
   seg2: Seg2Block;
   totalChargedFrames: number;
@@ -349,7 +347,6 @@ function runState(id: StateId): StateResult {
       replayMismatch,
       admissionFrames: s1Frames,
       achieved: fit1 === null ? null : roundAxes(fit1.achieved),
-      achievedAtEnd: fit1 === null ? null : roundAxes(fit1.achievedAtEnd),
       arrival: null,
       seg2: null,
       totalChargedFrames: s1Frames,
@@ -662,7 +659,7 @@ function evaluateSegment2(
   charge: (frames: number) => void,
 ): Seg2Row {
   if (member.lines === null) {
-    return { label: member.label, admitted: false, admissionFrames: 0, achieved: null, achievedAtEnd: null, impactErrAbs: null, airErrAbs: null, speedErrAbs: null, finalLineCount: null, error: member.error };
+    return { label: member.label, admitted: false, admissionFrames: 0, achieved: null, impactErrAbs: null, airErrAbs: null, speedErrAbs: null, finalLineCount: null, error: member.error };
   }
   const before = getSimFrames();
   const fit2 = tryCandidateLines(
@@ -680,16 +677,15 @@ function evaluateSegment2(
   const admissionFrames = getSimFrames() - before;
   charge(admissionFrames);
   if (fit2 === null) {
-    return { label: member.label, admitted: false, admissionFrames, achieved: null, achievedAtEnd: null, impactErrAbs: null, airErrAbs: null, speedErrAbs: null, finalLineCount: null, error: null };
+    return { label: member.label, admitted: false, admissionFrames, achieved: null, impactErrAbs: null, airErrAbs: null, speedErrAbs: null, finalLineCount: null, error: null };
   }
-  const achieved = fit2.achievedAtEnd ?? fit2.achieved;
+  const achieved = fit2.achieved;
   const errs = axisErrAbs(achieved, outgoingTargets);
   return {
     label: member.label,
     admitted: true,
     admissionFrames,
     achieved: roundAxes(fit2.achieved),
-    achievedAtEnd: roundAxes(fit2.achievedAtEnd),
     impactErrAbs: errs.impact,
     airErrAbs: errs.air,
     speedErrAbs: errs.speed,

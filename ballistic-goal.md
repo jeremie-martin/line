@@ -51,12 +51,15 @@ Every saved call contains the exact one-to-four pre-target reads, all ten rider
 points with their Verlet previous positions, binding state, collision witnesses,
 and simulated truth.
 
-The corpus always belongs to `current`. Recollect only when `current`, the V2
-case membership, or the fixed protocol changes. Collection refuses to overwrite
-it unless `--replace-corpus` is explicitly supplied, and evaluation refuses a
-corpus whose compiler fingerprint no longer matches `current`. Ordinary model
-iterations reuse it, perform no compilation or truth simulation, and finish in
-seconds.
+The corpus freezes a representative predictor-input distribution plus
+independent future truth. Recollect when V2 case membership or the collection
+protocol changes, or when evidence shows that compiler behavior has materially
+shifted the launch-state distribution. An unrelated compiler source fingerprint
+change does not invalidate physical input/truth rows. Collection refuses to
+overwrite the corpus unless `--replace-corpus` is explicitly supplied;
+evaluation checks schema, fixed budget/seeds/populations, canonical case
+membership, shard coverage, and shard presence. Ordinary model iterations
+reuse it, perform no compilation or truth simulation, and finish in seconds.
 
 ## Score
 

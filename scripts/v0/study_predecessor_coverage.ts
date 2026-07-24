@@ -617,14 +617,14 @@ const rows = analysisPool.map(({ candidate, poolRank }) => {
       if (attempt === undefined) return minimum;
       return minimum === null ? attempt : Math.min(minimum, attempt);
     }, null),
-    arrivalAir: nullableRound(arrival?.nextAir ?? null),
-    arrivalSpeed: nullableRound(arrival?.speed ?? null),
-    arrivalAngleDeg: nullableRound(arrival?.comAngleDeg ?? null),
-    arrivalElevation: nullableRound(arrival?.nextElevation ?? null),
-    releaseFrame: candidate.releaseArrivalState?.frame ?? null,
-    releaseVx: nullableRound(candidate.releaseArrivalState?.vx ?? null),
-    releaseVy: nullableRound(candidate.releaseArrivalState?.vy ?? null),
-    releaseGrounded: candidate.releaseArrivalState?.grounded ?? null,
+    arrivalAir: nullableRound(arrival?.airFraction ?? null),
+    arrivalSpeed: nullableRound(arrival?.incoming.speed ?? null),
+    arrivalAngleDeg: nullableRound(arrival?.incoming.comAngleDeg ?? null),
+    arrivalElevation: nullableRound(arrival?.elevation ?? null),
+    releaseFrame: candidate.ballisticLaunch?.anchorFrame ?? null,
+    releaseVx: nullableRound(candidate.ballisticLaunch?.state.vx ?? null),
+    releaseVy: nullableRound(candidate.ballisticLaunch?.state.vy ?? null),
+    releaseGrounded: candidate.ballisticLaunch?.groundedFrames ?? null,
     nextTargetState: {
       speed: round(nextTargetState.speed),
       angleDeg: round(nextTargetState.angleDeg),
@@ -1870,8 +1870,8 @@ function evaluateRunwayAdjustment(
   const deltaFrames = latestGrounded - transition.lastGroundedBeforeTarget;
   if (deltaFrames >= 0) return null;
   const speed = candidate.releaseSpeed ?? Math.hypot(
-    candidate.releaseArrivalState?.vx ?? 0,
-    candidate.releaseArrivalState?.vy ?? 0,
+    candidate.ballisticLaunch?.state.vx ?? 0,
+    candidate.ballisticLaunch?.state.vy ?? 0,
   );
   if (!(speed > 0)) return null;
   const deltaPx = deltaFrames * speed;
@@ -2575,10 +2575,14 @@ function evaluateTwoStepKnobs(
             vy: round(arrivalState.velocity.y),
           },
           releaseState: {
-            frame: fit.releaseArrivalState?.frame ?? null,
-            vx: fit.releaseArrivalState === undefined ? null : round(fit.releaseArrivalState.vx),
-            vy: fit.releaseArrivalState === undefined ? null : round(fit.releaseArrivalState.vy),
-            grounded: fit.releaseArrivalState?.grounded ?? null,
+            frame: fit.ballisticLaunch?.anchorFrame ?? null,
+            vx: fit.ballisticLaunch === undefined
+              ? null
+              : round(fit.ballisticLaunch.state.vx),
+            vy: fit.ballisticLaunch === undefined
+              ? null
+              : round(fit.ballisticLaunch.state.vy),
+            grounded: fit.ballisticLaunch?.groundedFrames ?? null,
           },
           coverage,
           boundedOutcome: outcomeDepth === 0 ||

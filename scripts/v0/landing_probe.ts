@@ -54,10 +54,8 @@ export type LandingWindowProbeRecord = {
   isTemplate: boolean;
   /** Final axisCost of the candidate; null if it failed a hard gate. */
   cost: number | null;
-  /** Candidate-local measured axes. `achievedAtEnd` is the scorer-window value
-   *  when the normal candidate read extends into a lookahead window. */
+  /** Candidate-local axes on the canonical scorer-owned interval. */
   achieved?: AxisValues;
-  achievedAtEnd?: AxisValues;
   /** Handoff ranking score (lower = better; −forwardArcValue at ≥75k, else the
    *  composite local score). Attached by scoreCandidateForHandoff when probing. */
   handoffScore?: number;

@@ -159,7 +159,6 @@ for (const id of ids) {
         const model = fitJointArcResponseModel(
           probes.map((row): JointArcProbeRow => ({
             knobs: row.knobs, outputs: row.outputs,
-            ...(row.latentOutputs === undefined ? {} : { latentOutputs: row.latentOutputs }),
           })),
           "cross5", "hybrid", { context: { gap, axisMeasureEnd, nextFrame: next.endFrame } },
         );

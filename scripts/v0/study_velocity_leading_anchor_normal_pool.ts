@@ -284,7 +284,7 @@ function compareReplay(expected: readonly { attempt: number; hash: string }[], a
 }
 
 function axisRms(candidate: Candidate, targets: AxisValues): number {
-  const achieved = candidate.achievedAtEnd ?? candidate.achieved;
+  const achieved = candidate.achieved;
   const squares = (Object.keys(targets) as Array<keyof AxisValues>).flatMap((axis) => {
     const target = targets[axis];
     const value = achieved[axis];

@@ -401,7 +401,8 @@ function numberArg(name: string, fallback: number): number {
  * candidate gate, never inputs to a policy or a post-hoc score.
  */
 function summarizeCandidate(candidate: Candidate, includeGeometry = false): Record<string, unknown> {
-  const state = candidate.releaseArrivalState;
+  const launch = candidate.ballisticLaunch;
+  const state = launch?.state;
   const tail = candidate.lines.at(-1);
   return {
     cost: round(candidate.cost),
@@ -413,11 +414,11 @@ function summarizeCandidate(candidate: Candidate, includeGeometry = false): Reco
     terminalAngleDeg: tail === undefined ? null : round(Math.atan2(tail.y2 - tail.y1, tail.x2 - tail.x1) * 180 / Math.PI),
     achieved: Object.fromEntries(Object.entries(candidate.achieved).map(([name, value]) => [name, round(value)])),
     release: state === undefined ? null : {
-      frame: state.frame,
+      frame: launch!.anchorFrame,
       speed: round(Math.hypot(state.vx, state.vy)),
       vx: round(state.vx),
       vy: round(state.vy),
-      airborne: state.airborne,
+      airborne: launch!.airborne,
     },
     releaseGroundedFrames: candidate.releaseGroundedFrames ?? null,
     ...(includeGeometry ? {

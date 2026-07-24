@@ -2,7 +2,11 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { RUN_ARCHIVE_SCHEMA } from "../v0/benchmark_v2/runner.ts";
-import { DECISION_INFERENCE_SOURCE_FILES, pairedV2Decision, type DecisionRun } from "../v0/benchmark_v2/decision_model.ts";
+import {
+  DECISION_INFERENCE_PROTOCOL_FINGERPRINT,
+  pairedV2Decision,
+  type DecisionRun,
+} from "../v0/benchmark_v2/decision_model.ts";
 import { loadSourceManifest, resolveSources } from "../v0/benchmark_v2/model.ts";
 import { fingerprintFiles, loadSuiteManifest } from "../v0/benchmark_v2/suite_model.ts";
 import { round, sha256 } from "../v0/benchmark_v2/util.ts";
@@ -23,7 +27,7 @@ const report = {
   status: "complete",
   purpose: "Confirm that the frozen probe detects broad and axis-specific compiler degradations under an identical execution policy.",
   executionPolicyFingerprint: archives.baseline.identity.executionPolicyFingerprint,
-  decisionInferenceFingerprint: fingerprintFiles(DECISION_INFERENCE_SOURCE_FILES),
+  decisionInferenceFingerprint: DECISION_INFERENCE_PROTOCOL_FINGERPRINT,
   cases: [
     summarize("baseline", archives.baseline),
     summarize("impact_blindness", archives.impactOff),

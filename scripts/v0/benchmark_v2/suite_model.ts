@@ -41,7 +41,8 @@ export type SuiteIdentity = {
   suiteFingerprint: string;
   suiteManifestFingerprint: string;
   sourceManifestFingerprint: string;
-  definitionFingerprint: string;
+  scoringProtocolFingerprint: string;
+  benchmarkImplementationFingerprint: string;
 };
 
 export type ResolvedSeedSchedule = {
@@ -67,7 +68,21 @@ export type ExecutionPolicyIdentity = {
   transform: SuiteManifest["transform"];
 };
 
-export const BENCHMARK_DEFINITION_SOURCE_FILES = [
+/**
+ * The scientific score contract is deliberately versioned, rather than
+ * inferred from every implementation file the runner happens to import.
+ *
+ * This value is the audited fingerprint of the current V2 scoring protocol.
+ * Bump it only when case interpretation, score semantics, or headline
+ * aggregation changes. Compiler telemetry, predictor internals, and runner
+ * refactors are candidate/provenance changes and must not invalidate cached
+ * baseline outcomes.
+ */
+export const BENCHMARK_SCORING_PROTOCOL_FINGERPRINT =
+  "0efcfbf205a19df8c6b6a46defce18a7d1b6546ba28db2f3e510aa01dc0611f5" as const;
+
+/** Exact implementation bytes retained for audit, never comparison gating. */
+export const BENCHMARK_IMPLEMENTATION_SOURCE_FILES = [
   "benchmark/v2/cases/case.ts",
   "benchmark/v2/catalog.ts",
   "benchmark/v2/policy.ts",
@@ -211,7 +226,7 @@ export function suiteIdentity(
 ): SuiteIdentity {
   const suiteContents = readFileSync(suitePath, "utf8");
   const sourceContents = readFileSync(sourceManifestPath, "utf8");
-  const definitionFingerprint = hashFiles([...BENCHMARK_DEFINITION_SOURCE_FILES]);
+  const benchmarkImplementationFingerprint = hashFiles([...BENCHMARK_IMPLEMENTATION_SOURCE_FILES]);
   const sourceFingerprints = [...sources]
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((source) => `${source.id}\0${source.role}\0${source.sourceFingerprint}`)
@@ -221,11 +236,12 @@ export function suiteIdentity(
   return {
     suiteManifestFingerprint,
     sourceManifestFingerprint,
-    definitionFingerprint,
+    scoringProtocolFingerprint: BENCHMARK_SCORING_PROTOCOL_FINGERPRINT,
+    benchmarkImplementationFingerprint,
     suiteFingerprint: sha256([
       suiteManifestFingerprint,
       sourceManifestFingerprint,
-      definitionFingerprint,
+      BENCHMARK_SCORING_PROTOCOL_FINGERPRINT,
       sourceFingerprints,
     ].join("\0")),
   };

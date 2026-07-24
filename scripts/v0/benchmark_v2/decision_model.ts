@@ -7,7 +7,16 @@ import {
   type SuiteParent,
 } from "./suite_model.ts";
 
-export const DECISION_INFERENCE_SOURCE_FILES = [
+/**
+ * Audited identity of the calibrated N>=2 statistical decision rule. The N=1
+ * descriptive branch never emits an inferential verdict and is outside that
+ * calibration domain.
+ */
+export const DECISION_INFERENCE_PROTOCOL_FINGERPRINT =
+  "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f" as const;
+
+/** Exact implementation bytes retained for audit, never evidence gating. */
+export const DECISION_INFERENCE_IMPLEMENTATION_SOURCE_FILES = [
   "benchmark/v2/decision-policy.ts",
   "scripts/v0/benchmark_v2/decision_model.ts",
   "scripts/v0/benchmark_v2/evaluator.ts",
@@ -36,6 +45,8 @@ export type DecisionOptions = {
 };
 
 export type ConfidenceBounds = {
+  /** False when the archive has only one seed block and no sampling variance can be inferred. */
+  available: boolean;
   estimate: number;
   standardError: number;
   degreesOfFreedom: number | null;
@@ -171,9 +182,9 @@ export function pairedV2CalibrationVerdict(
     policy.alpha,
     policy.criticalAlpha,
   );
-  const outcome = confidence.lowerBound > policy.threshold
+  const outcome = confidence.available && confidence.lowerBound > policy.threshold
     ? policy.positiveOutcome
-    : confidence.upperBound < policy.threshold
+    : confidence.available && confidence.upperBound < policy.threshold
       ? policy.negativeOutcome
       : policy.unresolvedOutcome;
   return { delta: round(pointDelta), confidence, outcome };
@@ -233,8 +244,8 @@ function pairedV2DecisionCore(
   const catalogSensitivity = includeSensitivity
     ? sensitivityInterval(pointDelta, catalogOnlyDeltas)
     : unavailableSensitivity(pointDelta);
-  const positive = seedConfidence.lowerBound > policy.threshold;
-  const negative = seedConfidence.upperBound < policy.threshold;
+  const positive = seedConfidence.available && seedConfidence.lowerBound > policy.threshold;
+  const negative = seedConfidence.available && seedConfidence.upperBound < policy.threshold;
   const outcome = positive
     ? policy.positiveOutcome
     : negative
@@ -659,11 +670,13 @@ function seedBlockConfidence(
   const rawWeights = new Map(suite.budget_weights.map((entry) => [entry.budget, entry.weight]));
   const weightTotal = budgets.reduce((sum, budget) => sum + (rawWeights.get(budget) ?? 0), 0);
   if (weightTotal <= 0) throw new Error(`decision scope has no positive budget weight`);
+  if (budgets.some((budget) => (fullSeeds.get(budget)?.length ?? 0) < 2)) {
+    return unavailableConfidence(estimate, alpha, criticalAlpha);
+  }
   const varianceComponents: Array<{ variance: number; degreesOfFreedom: number }> = [];
 
   for (const budget of budgets) {
     const slots = fullSeeds.get(budget)!;
-    if (slots.length < 2) throw new Error(`${budget}: at least two seed blocks are required for inference`);
     const baseFull = scorePlan(base, suite, [budget], fullParents, fullSeeds);
     const candidateFull = scorePlan(candidate, suite, [budget], fullParents, fullSeeds);
     const fullDelta = metric(candidateFull, budget) - metric(baseFull, budget);
@@ -700,6 +713,7 @@ function seedBlockConfidence(
   const centralCritical = standardError === 0 ? 0 : studentTQuantile(1 - centralTail, degreesOfFreedom);
   const oneSidedCritical = standardError === 0 ? 0 : studentTQuantile(1 - criticalAlpha, degreesOfFreedom);
   return {
+    available: true,
     estimate: round(estimate),
     standardError: round(standardError),
     degreesOfFreedom: Number.isFinite(degreesOfFreedom) ? round(degreesOfFreedom) : null,
@@ -711,6 +725,33 @@ function seedBlockConfidence(
     oneSidedCriticalLevel: round(1 - criticalAlpha),
     lowerBound: round(estimate - oneSidedCritical * standardError),
     upperBound: round(estimate + oneSidedCritical * standardError),
+  };
+}
+
+/**
+ * A one-seed archive is a useful end-to-end diagnostic, but it cannot estimate
+ * between-seed uncertainty. The point-valued bounds are serialization
+ * placeholders only; every decision path must gate on `available`.
+ */
+function unavailableConfidence(
+  estimate: number,
+  alpha: number,
+  criticalAlpha: number,
+): ConfidenceBounds {
+  const rounded = round(estimate);
+  return {
+    available: false,
+    estimate: rounded,
+    standardError: 0,
+    degreesOfFreedom: null,
+    centralLevel: benchmarkDecisionPolicy.centralIntervalLevel,
+    centralCriticalLevel: benchmarkDecisionPolicy.centralCriticalIntervalLevel,
+    centralLo: rounded,
+    centralHi: rounded,
+    oneSidedLevel: round(1 - alpha),
+    oneSidedCriticalLevel: round(1 - criticalAlpha),
+    lowerBound: rounded,
+    upperBound: rounded,
   };
 }
 

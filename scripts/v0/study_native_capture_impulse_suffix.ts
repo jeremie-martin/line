@@ -232,7 +232,7 @@ function aggregateVelocity(rider: any): { x: number; y: number } | null {
 
 function metrics(node: HandoffNode, gap: Gap, setup: Setup, candidate: Candidate): Metrics {
   const targets = setup.ctx.gapAxisTargets?.[gap.index] ?? gap.targets;
-  const achieved = candidate.achievedAtEnd ?? candidate.achieved;
+  const achieved = candidate.achieved;
   const errors = Object.entries(targets).flatMap(([axis, target]) => {
     const value = achieved[axis as keyof AxisValues];
     return typeof target === "number" && typeof value === "number" && Number.isFinite(value) ? [(value - target) ** 2] : [];

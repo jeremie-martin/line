@@ -33,21 +33,10 @@ export type GapFit = {
   /** Source geometry family for diagnostics/reuse. Evaluation always uses `lines`. */
   geometry: "arc" | "lines";
   lines: TrackLine[];
-  /** Achieved axis values measured over the LOOKAHEAD window
-   *  [gap.start, axisLookaheadEndFrame] — for air gaps this runs through the NEXT
-   *  contact (core/candidate.ts axisLookaheadEndFrame), so the local feasibility
-   *  ranker (axisCost) can prefer a catch that "keeps riding". This is the single
-   *  ballistic measurement (engine through the arc, ballistic suffix past the exit). */
+  /** Exact current-gap axes over [gap.startFrame, gap.endFrame], matching the
+   *  scorer interval. Future setup is represented only by ballisticLaunch and
+   *  the readiness layer. */
   achieved: AxisValues;
-  /** Achieved axis values measured over the GAP window [gap.start, gap.endFrame] —
-   *  the SAME window the true scorer uses (buildDriftReport `measureGapAxes(det, g,
-   *  …, g.endFrame)`). For non-air gaps the lookahead window IS the gap window, so
-   *  this equals `achieved` and is left undefined (read `achievedAtEnd ?? achieved`).
-   *  Present only for air/lookahead gaps where the two windows differ. PURE ENGINE
-   *  (gap.endFrame is inside the already-simulated prefix — zero ballistic, zero
-   *  extra frames); it lets the objective leaf reproduce the true scorer's axis
-   *  factor for committed gaps instead of scoring the wrong (lookahead) window. */
-  achievedAtEnd?: AxisValues;
   /** Aggregate axis cost (lower = better fit). */
   cost: number;
   /** Rider speed at the post-catch release probe frame, in raw px/frame.
@@ -70,41 +59,16 @@ export type GapFit = {
    *  translate this catch's geometry to a different gap's entry state for
    *  catch-reuse on periodic specs (the geometry is sled-relative). */
   ref?: { x: number; y: number };
-  /** PREDICTED-ARRIVAL (LR_RANK_PREDICT_ARRIVAL pool sort): the rider's full
-   *  launch/exit state at the post-catch release probe frame, read off the SAME
-   *  detection the candidate evaluation already ran (zero extra frames, zero
-   *  RNG). Carries position+velocity (smoothed launch read, arc_probe.ts launch
-   *  fix) so the quality ranker can propagate it BALLISTICALLY to the next
-   *  contact instead of charging a probe ride. `frame` is the release frame the
-   *  state was read at; `airborne` is whether the rider is in free flight at the
-   *  release frame (the ranker's ballistic-validity gate); `grounded` is the
-   *  grounded-frame count between catch and release (diagnostic — the catch
-   *  contact itself is grounded, so this is normally ≥1 even for clean launches).
-   *  Present ONLY when the predict flag is on; never set otherwise (flag-off path
-   *  is bit-identical). */
-  releaseArrivalState?: {
-    frame: number;
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    sledPoseDeg: number | null;
-    sledPoseRateDegPerFrame: number | null;
-    grounded: number;
-    airborne: boolean;
-  };
 };
 
 type GapFitOptionalFields = Pick<
   GapFit,
-  | "achievedAtEnd"
   | "releaseSpeed"
   | "aimed"
   | "releaseVelocityY"
   | "releaseGroundedFrames"
   | "releaseAirborne"
   | "ref"
-  | "releaseArrivalState"
 >;
 
 export function copyOptionalGapFitFields(
@@ -113,18 +77,12 @@ export function copyOptionalGapFitFields(
 ): Partial<GapFitOptionalFields> {
   const cloneObjects = opts.cloneObjects === true;
   const out: Partial<GapFitOptionalFields> = {};
-  if (fit.achievedAtEnd !== undefined) {
-    out.achievedAtEnd = cloneObjects ? { ...fit.achievedAtEnd } : fit.achievedAtEnd;
-  }
   if (fit.releaseSpeed !== undefined) out.releaseSpeed = fit.releaseSpeed;
   if (fit.aimed !== undefined) out.aimed = fit.aimed;
   if (fit.releaseVelocityY !== undefined) out.releaseVelocityY = fit.releaseVelocityY;
   if (fit.releaseGroundedFrames !== undefined) out.releaseGroundedFrames = fit.releaseGroundedFrames;
   if (fit.releaseAirborne !== undefined) out.releaseAirborne = fit.releaseAirborne;
   if (fit.ref !== undefined) out.ref = cloneObjects ? { ...fit.ref } : fit.ref;
-  if (fit.releaseArrivalState !== undefined) {
-    out.releaseArrivalState = cloneObjects ? { ...fit.releaseArrivalState } : fit.releaseArrivalState;
-  }
   return out;
 }
 

@@ -18,13 +18,14 @@ import {
   predictJointArcScoreReadout,
   predictLinearModel,
   propagateBallisticArrivalState,
-  reduceLatentJointArcOutputs,
   rotateArcLines,
   scaleArcLines,
-  stateOutputs,
   type RiderArrivalState,
 } from "../scripts/v0/optimizer/arc_model.ts";
-import { readinessCatch, readinessCatchState } from "../scripts/v0/optimizer/readiness.ts";
+import {
+  predictCatchability,
+  predictCatchabilityForState,
+} from "../scripts/v0/optimizer/catchability.ts";
 import {
   BALLISTIC_POINT_IDS,
   type ConstraintBallisticState,
@@ -193,50 +194,6 @@ describe("arc_model joint response helpers", () => {
     expect(pitchQuadraticFeatures({ pitchDeg: 3, rotateDeg: 7 })).toEqual([1, 3, 9]);
   });
 
-  test("pitch3 latent pipeline predicts a sensible arrival state", () => {
-    const rows = arcProbeDesign("pitch3").map((knobs) => {
-      const p = knobs.pitchDeg;
-      return {
-        knobs,
-        outputs: {
-          "current.cost": 0.2,
-          "current.axis.air": 0,
-          "current.axis.amplitude": 0.42,
-          "current.error.amplitude": 0.02,
-        },
-        latentOutputs: {
-          "latent.suffix.frame": 10,
-          "latent.suffix.x": 100 + p,
-          "latent.suffix.y": 50 + 2 * p,
-          "latent.suffix.vx": 3 + 0.01 * p,
-          "latent.suffix.vy": 1,
-          "latent.suffix.sledPoseDeg": 20 + p,
-          "latent.suffix.sledPoseRateDegPerFrame": 2,
-          "latent.prefix.airFrames": 5,
-          "latent.prefix.speedSumPx": 55,
-          "latent.prefix.speedFrames": 11,
-          "latent.prefix.dy": 4,
-          "latent.prefix.v0SpeedPx": 5,
-        },
-      };
-    });
-    const model = fitJointArcResponseModel(rows, "pitch3", "hybrid", {
-      context: {
-        gap: { index: 0, startFrame: 0, endFrame: 8, endsWithContact: true, targets: { air: 0.5, amplitude: 0.4 } },
-        axisMeasureEnd: 12,
-        nextFrame: 13,
-      },
-    });
-    const outputs = predictJointArcOutputs(model, { pitchDeg: 4, rotateDeg: 0 });
-    const state = predictedArrivalState(outputs);
-    expect(state).not.toBeNull();
-    // exit.* is the suffix state directly (x=100+p); next.* is that propagated
-    // ballistically to nextFrame, so it carries the vx*dt drift.
-    expect(outputs["exit.x"]).toBeCloseTo(104, 6);
-    expect(outputs["exit.sledPoseDeg"]).toBeCloseTo(24, 6);
-    expect(outputs["current.axis.amplitude"]).toBeCloseTo(0.42, 6);
-  });
-
   test("response outputs include all achieved axes but only targeted errors", () => {
     const outputs = arcResponseOutputs(
       { air: 0.5, impact: 0.8 },
@@ -278,14 +235,11 @@ describe("arc_model joint response helpers", () => {
     const state = predictedArrivalState(outputs);
     expect(state).not.toBeNull();
     expect(state!.x).toBeCloseTo(100);
-    expect(state!.speed).toBeCloseTo(9.1);
-    expect(state!.comAngleDeg).toBeCloseTo(10);
+    expect(state!.speed).toBeCloseTo(Math.hypot(9, 1));
+    expect(state!.comAngleDeg).toBeCloseTo(Math.atan2(1, 9) * 180 / Math.PI);
   });
 
-  test("full-mode direct outputs (next.* only, no latentOutputs) fit and predict an arrival for pitch3", () => {
-    // Full mode emits direct current.*/next.* outputs and NO latentOutputs —
-    // predictJointArcOutputs must fit the per-output models directly and
-    // predictedArrivalState must read next.* without any latent reducer.
+  test("full-mode outputs fit and predict an arrival for pitch3", () => {
     const rows = arcProbeDesign("pitch3").map((knobs) => {
       const p = knobs.pitchDeg;
       return {
@@ -306,7 +260,6 @@ describe("arc_model joint response helpers", () => {
       };
     });
     const model = fitJointArcResponseModel(rows, "pitch3", "hybrid", { context: TEST_RESPONSE_CONTEXT });
-    expect(model.latentModels.size).toBe(0);
     // pitch3 designs key onto the pitch_quadratic/pitch_linear ladder.
     expect(model.outputModels.get("next.speed")?.model.form).toBe("pitch_quadratic");
     const outputs = predictJointArcOutputs(model, { pitchDeg: 4, rotateDeg: 0 });
@@ -314,8 +267,10 @@ describe("arc_model joint response helpers", () => {
     const state = predictedArrivalState(outputs);
     expect(state).not.toBeNull();
     expect(state!.x).toBeCloseTo(104);
-    expect(state!.speed).toBeCloseTo(9.5);
-    expect(state!.comAngleDeg).toBeCloseTo(14);
+    expect(state!.speed).toBeCloseTo(Math.hypot(9.4, 1.2));
+    expect(state!.comAngleDeg).toBeCloseTo(
+      Math.atan2(1.2, 9.4) * 180 / Math.PI,
+    );
   });
 
   test("hybrid identifiability ladder keeps current-axis models when a probe row fails the gates", () => {
@@ -374,11 +329,7 @@ describe("arc_model joint response helpers", () => {
     expect(model.outputModels.get("current.axis.speed")?.model.degraded).toBe(false);
   });
 
-  test("direct short rows (ballistic exit.*/next.* in outputs, no latentOutputs) fit and predict for cross5 and pitch3", () => {
-    // DIRECT model space: each short probe row already carries the ballistic
-    // reduction (exit.*/next.*) in `outputs` and NO latentOutputs. The fit must
-    // run knobs → those outputs directly and predictedArrivalState read next.*
-    // with no latent reducer involved.
+  test("short rows fit ballistic exit and terminal outputs for cross5 and pitch3", () => {
     for (const design of ["cross5", "pitch3"] as const) {
       const rows = arcProbeDesign(design).map((knobs) => {
         const p = knobs.pitchDeg;
@@ -412,8 +363,6 @@ describe("arc_model joint response helpers", () => {
         };
       });
       const model = fitJointArcResponseModel(rows, design, "hybrid", { context: TEST_RESPONSE_CONTEXT });
-      // No latent models — the direct fits own every prediction.
-      expect(model.latentModels.size).toBe(0);
       const outputs = predictJointArcOutputs(model, { pitchDeg: 4, rotateDeg: 0 });
       // exit.frame is fitted, so the next_before_exit guard reads a real value.
       expect(outputs["exit.frame"]).toBeCloseTo(10, 6);
@@ -421,8 +370,11 @@ describe("arc_model joint response helpers", () => {
       const state = predictedArrivalState(outputs);
       expect(state).not.toBeNull();
       expect(state!.x).toBeCloseTo(104, 6);
-      expect(state!.speed).toBeCloseTo(9.5, 6);
-      expect(state!.comAngleDeg).toBeCloseTo(14, 6);
+      expect(state!.speed).toBeCloseTo(Math.hypot(9.4, 1.2), 6);
+      expect(state!.comAngleDeg).toBeCloseTo(
+        Math.atan2(1.2, 9.4) * 180 / Math.PI,
+        6,
+      );
     }
   });
 
@@ -458,7 +410,6 @@ describe("arc_model joint response helpers", () => {
       };
     });
     const model = fitJointArcResponseModel(rows, "pitch3", "hybrid", { context: TEST_RESPONSE_CONTEXT });
-    expect(model.latentModels.size).toBe(0);
     // The +8.5 row at −178° is unwrapped to 182° around the 175° baseline ref.
     expect(model.outputModels.get("next.comAngleDeg")?.angle).toBe(true);
     const base = predictJointArcOutputs(model, { pitchDeg: 0, rotateDeg: 0 });
@@ -467,7 +418,10 @@ describe("arc_model joint response helpers", () => {
     // Predicting at the +8.5 knob recovers the unwrapped 182° branch.
     const high = predictJointArcOutputs(model, { pitchDeg: 8.5, rotateDeg: 0 });
     expect(high["next.comAngleDeg"]).toBeCloseTo(182, 6);
-    expect(predictedArrivalState(base)?.comAngleDeg).toBeCloseTo(175, 6);
+    expect(predictedArrivalState(base)?.comAngleDeg).toBeCloseTo(
+      Math.atan2(1, 9) * 180 / Math.PI,
+      6,
+    );
   });
 
   test("gate-failed direct row still yields a scoreable arrival and no current-axis model for its missing axis", () => {
@@ -509,7 +463,6 @@ describe("arc_model joint response helpers", () => {
       };
     });
     const model = fitJointArcResponseModel(rows, "pitch3", "hybrid", { context: TEST_RESPONSE_CONTEXT });
-    expect(model.latentModels.size).toBe(0);
     const outputs = predictJointArcOutputs(model, { pitchDeg: 4, rotateDeg: 0 });
     // The arrival is scoreable: next.* came from all three rows.
     const state = predictedArrivalState(outputs);
@@ -520,182 +473,6 @@ describe("arc_model joint response helpers", () => {
     // current axis for it.
     expect(model.outputModels.has("current.axis.air")).toBe(false);
     expect(predictedCurrentAxes(outputs).air).toBeUndefined();
-  });
-
-  test("direct outputs of a row equal the reducer applied to that row's measured latents", () => {
-    // Pins fit(reduce(·)) and reduce(·) to ONE reduction. Build a single
-    // synthetic measured suffix state, derive the direct outputs the way
-    // arc_probe does (exitStateOutputs + propagate→stateOutputs), and the
-    // latent outputs the reducer consumes; the reducer's exit.*/next.* must
-    // match the direct exit.*/next.* exactly.
-    const suffixFrame = 9;
-    const suffix: RiderArrivalState = {
-      x: 123.4,
-      y: 56.7,
-      vx: 8.25,
-      vy: -1.5,
-      speed: Math.hypot(8.25, -1.5),
-      comAngleDeg: Math.atan2(-1.5, 8.25) * 180 / Math.PI,
-      sledPoseDeg: 17.5,
-      sledPoseRateDegPerFrame: 1.25,
-    };
-    const context = {
-      gap: { index: 0, startFrame: 0, endFrame: 8, endsWithContact: true, targets: {} },
-      axisMeasureEnd: 12,
-      nextFrame: 13,
-    };
-
-    // Direct path (mirrors study-local per-row reduction from measured latents).
-    const direct: Record<string, number> = {
-      "exit.frame": suffixFrame,
-      "exit.x": suffix.x,
-      "exit.y": suffix.y,
-      "exit.vx": suffix.vx,
-      "exit.vy": suffix.vy,
-      "exit.speed": suffix.speed,
-      "exit.comAngleDeg": suffix.comAngleDeg!,
-      "exit.sledPoseDeg": suffix.sledPoseDeg!,
-      "exit.sledPoseRateDegPerFrame": suffix.sledPoseRateDegPerFrame!,
-    };
-    Object.assign(direct, stateOutputs(propagateBallisticArrivalState(suffix, context.nextFrame - suffixFrame)));
-
-    // Latent path: the latent keys a measured row carries, run through the reducer.
-    const latent: Record<string, number> = {
-      "latent.suffix.frame": suffixFrame,
-      "latent.suffix.x": suffix.x,
-      "latent.suffix.y": suffix.y,
-      "latent.suffix.vx": suffix.vx,
-      "latent.suffix.vy": suffix.vy,
-      "latent.suffix.sledPoseDeg": suffix.sledPoseDeg!,
-      "latent.suffix.sledPoseRateDegPerFrame": suffix.sledPoseRateDegPerFrame!,
-    };
-    const reduced = reduceLatentJointArcOutputs(latent, context);
-
-    for (const key of Object.keys(direct)) {
-      expect(reduced[key]).toBeCloseTo(direct[key], 9);
-    }
-  });
-
-  test("a suffix read at the target frame is not treated as a prediction", () => {
-    const targetFrame = 13;
-    const reduced = reduceLatentJointArcOutputs({
-      "latent.suffix.frame": targetFrame,
-      "latent.suffix.x": 100,
-      "latent.suffix.y": 50,
-      "latent.suffix.vx": 8,
-      "latent.suffix.vy": 1,
-    }, {
-      gap: { index: 0, startFrame: 0, endFrame: 8, endsWithContact: true, targets: {} },
-      axisMeasureEnd: 12,
-      nextFrame: targetFrame,
-    });
-
-    expect(reduced["exit.frame"]).toBe(targetFrame);
-    expect(reduced["next.x"]).toBeUndefined();
-    expect(reduced["next.vx"]).toBeUndefined();
-  });
-
-  test("latent joint response predicts suffix state and reduces it to final outputs", () => {
-    const rows = arcProbeDesign("cross5").map((knobs) => {
-      const p = knobs.pitchDeg;
-      const r = knobs.rotateDeg;
-      return {
-        knobs,
-        outputs: {
-          "current.cost": 0.2,
-          "current.axis.air": 0,
-          "current.axis.amplitude": 0.42,
-          "current.error.amplitude": 0.02,
-        },
-        latentOutputs: {
-          "latent.suffix.frame": 10,
-          "latent.suffix.x": 100 + p + r,
-          "latent.suffix.y": 50 + 2 * p - r,
-          "latent.suffix.vx": 3 + 0.01 * p,
-          "latent.suffix.vy": 1 + 0.02 * r,
-          "latent.suffix.sledPoseDeg": 20 + p,
-          "latent.suffix.sledPoseRateDegPerFrame": 2,
-          "latent.prefix.airFrames": 5,
-          "latent.prefix.speedSumPx": 55,
-          "latent.prefix.speedFrames": 11,
-          "latent.prefix.dy": 4,
-          "latent.prefix.v0SpeedPx": 5,
-        },
-      };
-    });
-    const model = fitJointArcResponseModel(rows, "cross5", "additive_quadratic", {
-      context: {
-        gap: {
-          index: 0,
-          startFrame: 0,
-          endFrame: 8,
-          endsWithContact: true,
-          targets: { air: 0.5, amplitude: 0.4 },
-        },
-        axisMeasureEnd: 12,
-        nextFrame: 13,
-      },
-    });
-    const outputs = predictJointArcOutputs(model, { pitchDeg: 0, rotateDeg: 0 });
-    expect(outputs["current.axis.air"]).toBeCloseTo(7 / 13);
-    expect(outputs["current.error.air"]).toBeCloseTo(7 / 13 - 0.5);
-    expect(outputs["current.axis.amplitude"]).toBeCloseTo(0.42);
-    expect(outputs["current.releaseSpeedPx"]).toBeCloseTo(Math.hypot(3, 1));
-
-    const state = predictedArrivalState(outputs);
-    expect(state).not.toBeNull();
-    expect(state!.x).toBeCloseTo(109);
-    // Next-arrival propagation uses PURE readout gravity: the launch-read
-    // transient is corrected at the read (arc_probe LAUNCH_VY_OFFSET_PX),
-    // never as an acceleration (falsified — see propagateBallisticArrivalState).
-    expect(state!.y).toBeCloseTo(50 + 3 + 0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * 3 * 4);
-    expect(state!.vy).toBeCloseTo(1 + ELEVATION.GRAVITY_PX_PER_FRAME2 * 3);
-    expect(state!.sledPoseDeg).toBeCloseTo(26);
-  });
-
-  test("short-mode terminal outputs take precedence over independently fitted suffix latents", () => {
-    const rows = arcProbeDesign("cross5").map((knobs) => ({
-      knobs,
-      outputs: {
-        "next.x": 500,
-        "next.y": 600,
-        "next.vx": 7,
-        "next.vy": 8,
-        "next.speed": Math.hypot(7, 8),
-        "next.comAngleDeg": Math.atan2(8, 7) * 180 / Math.PI,
-      },
-      latentOutputs: {
-        "latent.suffix.frame": 10,
-        "latent.suffix.x": 100,
-        "latent.suffix.y": 50,
-        "latent.suffix.vx": 3,
-        "latent.suffix.vy": 1,
-      },
-    }));
-    const model = fitJointArcResponseModel(rows, "cross5", "additive_quadratic", {
-      context: {
-        gap: {
-          index: 0,
-          startFrame: 0,
-          endFrame: 8,
-          endsWithContact: true,
-          targets: {},
-        },
-        axisMeasureEnd: 12,
-        nextFrame: 15,
-      },
-    });
-    const knobs = { pitchDeg: 0, rotateDeg: 0 };
-    const completed = predictedArrivalState(predictJointArcOutputs(model, knobs));
-    const optimized = predictJointArcScoreReadout(model, knobs, {}).state;
-
-    for (const state of [completed, optimized]) {
-      expect(state).not.toBeNull();
-      expect(state!.x).toBeCloseTo(500);
-      expect(state!.y).toBeCloseTo(600);
-      expect(state!.vx).toBeCloseTo(7);
-      expect(state!.vy).toBeCloseTo(8);
-    }
   });
 
   test("constraint propagation re-anchors so chained and combined calls agree", () => {
@@ -741,12 +518,14 @@ describe("arc_model joint response helpers", () => {
 
 });
 
-describe("readiness state wrapper", () => {
-  test("readinessCatchState delegates to the current speed/angle surface", () => {
-    expect(readinessCatchState({ speed: 9, comAngleDeg: 10 })).toBeCloseTo(readinessCatch(9, 10));
+describe("catchability state wrapper", () => {
+  test("state wrapper delegates to the current speed/angle surface", () => {
+    expect(
+      predictCatchabilityForState({ speed: 9, comAngleDeg: 10 }),
+    ).toBeCloseTo(predictCatchability(9, 10));
   });
 
-  test("readinessCatchState treats unknown velocity angle as unreadable", () => {
-    expect(readinessCatchState({ speed: 9, comAngleDeg: null })).toBe(0);
+  test("state wrapper treats unknown velocity angle as unreadable", () => {
+    expect(predictCatchabilityForState({ speed: 9, comAngleDeg: null })).toBe(0);
   });
 });

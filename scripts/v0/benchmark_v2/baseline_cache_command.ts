@@ -39,8 +39,6 @@ export function runBaselineCacheCommand(argv: string[]): number {
     emit(argv, {
       schema: "line.benchmark-v2.baseline-cache-status.v1",
       baseline: view.cache.baselineLabel,
-      sourceSchema: view.sourceSchema,
-      legacyAnchor: view.legacyAnchor,
       maximumSeeds: view.cache.ladder.maximumSeedsPerBudget,
       ...plan,
       nextCommand: plan.missingBaselineSeeds === 0

@@ -328,91 +328,14 @@ describe("contact-indexed proposal objective", () => {
       [current, next, after],
     );
     expect(scored).not.toBeNull();
-    // Splitting readiness by role regroups its factors; it does not drop or
-    // duplicate any of them. At the shipped exponents the product is therefore
-    // exactly the three layers. Note this is an ALGEBRAIC identity, not a
-    // bitwise one: the regrouping changes multiplication order, so the two
-    // expressions can differ in the last ulp and the search can take a
-    // different path. Measured, not assumed.
-    expect(scored!.value).toBeCloseTo(
+    // Exactly the three layers, multiplied in this order. The order is load
+    // bearing: an algebraically identical regrouping cost 14 headline points at
+    // N=48 (see proposalUtility).
+    expect(scored!.value).toBe(
       scored!.settledIncomingQuality *
         scored!.projectedOutgoingQuality *
         scored!.readiness,
-      12,
     );
-    // Feasibility is separable: raising its exponent reaches catchability only.
-    setProposalUtilityPowers({ feasibilityPower: 2 });
-    try {
-      const weighted = scoreCandidateProposal(fit, current, [current, next, after]);
-      expect(weighted!.value).toBeCloseTo(
-        weighted!.settledIncomingQuality *
-          weighted!.projectedOutgoingQuality *
-          weighted!.readiness *
-          weighted!.catchability,
-        12,
-      );
-    } finally {
-      setProposalUtilityPowers();
-    }
-  });
-
-  test("proposal utility splits readiness by role, not by model", () => {
-    const current = gap(0, 0, 20, { air: 0.5 });
-    const next = gap(1, 20, 40, { speed: 0.5 });
-    const after = gap(2, 40, 60, { air: 0.4 });
-    const fit = candidate(
-      0,
-      { air: 0.45 },
-      ballisticLaunch(20, 22, 9.5, -1),
-    );
-
-    setProposalUtilityPowers({
-      settledIncomingQualityPower: 2,
-      futureQualityPower: 0.5,
-    });
-    try {
-      const scored = scoreCandidateProposal(
-        fit,
-        current,
-        [current, next, after],
-      );
-      expect(scored).not.toBeNull();
-      // The readiness factors that GRADE the next arc travel with projected
-      // quality; only catchability, which admits it, carries the feasibility
-      // exponent. readiness / catchability is that grading group exactly.
-      const grading = scored!.readiness / scored!.catchability;
-      expect(scored!.value).toBeCloseTo(
-        scored!.settledIncomingQuality ** 2 *
-          (scored!.projectedOutgoingQuality * grading) ** 0.5 *
-          scored!.catchability,
-        12,
-      );
-    } finally {
-      setProposalUtilityPowers();
-    }
-
-    setProposalUtilityPowers({
-      settledIncomingQualityPower: 2,
-      futureQualityPower: 0.5,
-      feasibilityPower: 3,
-    });
-    try {
-      const scored = scoreCandidateProposal(
-        fit,
-        current,
-        [current, next, after],
-      );
-      expect(scored).not.toBeNull();
-      const grading = scored!.readiness / scored!.catchability;
-      expect(scored!.value).toBeCloseTo(
-        scored!.settledIncomingQuality ** 2 *
-          (scored!.projectedOutgoingQuality * grading) ** 0.5 *
-          scored!.catchability ** 3,
-        12,
-      );
-    } finally {
-      setProposalUtilityPowers();
-    }
   });
 
   test("candidate pool ranking uses the canonical proposal objective over cost", () => {

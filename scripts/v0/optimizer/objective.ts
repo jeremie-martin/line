@@ -46,45 +46,12 @@ const OBJECTIVE_FUTURE_POWER_ENV = objectiveEnvNum(
   "LR_OBJECTIVE_FUTURE_POWER",
   1,
 );
-/*
- * Exponent on FEASIBILITY, the third role in the product.
- *
- * `readiness` bundles two different questions. `catchability` asks whether the
- * next arc can be caught AT ALL - it is the dead-end predictor, and dead ends
- * are what the search pays for in backtracking. `speedFit`, `airFit`,
- * `impactFeasibility` and `elevationFit` ask how WELL the next arc will score,
- * which is the same kind of question `projectedOutgoingQuality` already asks.
- * So the factors are split by ROLE rather than by which model produced them:
- * future QUALITY takes `objectiveFuturePower`, feasibility takes this one.
- * Every factor still appears exactly once, and at 1/1/1 the product is
- * algebraically identical to settled x projected x readiness.
- *
- * Default 1, i.e. the product is exactly settled x projected x readiness.
- *
- * 2 was tried and REJECTED at N=48. It does buy completion - lost runs 372 ->
- * 298, frontier_dense_recovery 8 -> 20 of 144 valid, capability -164.65 ->
- * -117.71 - but it pays for it in score everywhere else: representative
- * +9.93 -> -10.29, development_music -12.61 -> -28.83, legacy_regression
- * +30.56 -> +10.55, headline delta -15.33 -> -25.25. Over-weighting admission
- * makes the search prefer arcs that land safely over arcs that score, and a
- * completed track that misses its axes is worth less than the axes are.
- *
- * The lesson is about the instrument, not the knob: frames-to-first-completion
- * ranks how fast a spec finishes, not how well it scores, and every screen that
- * selected this weight was blind to the half of the objective that decided it.
- */
-const OBJECTIVE_FEASIBILITY_POWER_ENV = objectiveEnvNum(
-  "LR_OBJECTIVE_FEASIBILITY_POWER",
-  1,
-);
 let objectiveSettledPower = OBJECTIVE_SETTLED_POWER_ENV;
 let objectiveFuturePower = OBJECTIVE_FUTURE_POWER_ENV;
-let objectiveFeasibilityPower = OBJECTIVE_FEASIBILITY_POWER_ENV;
 
 type ProposalUtilityPowerConfig = {
   settledIncomingQualityPower?: number;
   futureQualityPower?: number;
-  feasibilityPower?: number;
 };
 
 export function setProposalUtilityPowers(
@@ -95,9 +62,6 @@ export function setProposalUtilityPowers(
   );
   objectiveFuturePower = normalizeObjectivePower(
     config.futureQualityPower ?? OBJECTIVE_FUTURE_POWER_ENV,
-  );
-  objectiveFeasibilityPower = normalizeObjectivePower(
-    config.feasibilityPower ?? OBJECTIVE_FEASIBILITY_POWER_ENV,
   );
 }
 
@@ -448,35 +412,29 @@ function neutralReadinessScore(): ReadinessScore {
 export function proposalUtility(
   settledIncomingQuality: number,
   projectedOutgoingQuality: number,
-  readiness: ReadinessFactors,
+  readiness: Pick<ReadinessScore, "readiness">,
 ): number {
+  /*
+   * DO NOT re-associate this expression. It is three multiplications and looks
+   * like it could be grouped any way at all, but the compiler's headline is
+   * chaotically sensitive to the result's last bits: regrouping it as
+   * settled x (projected x gradingFactors) x catchability is algebraically
+   * identical - verified, 61% of random inputs differ, max relative difference
+   * 8.0e-16, about 3.6 ulp - and cost 14 headline points at N=48 (-15.33 ->
+   * -29.34), seven times the seed-block SE. Ranking ties break differently and
+   * the search takes a different path.
+   *
+   * The corollary is worth as much as the warning: a 14-point swing can be
+   * produced with ZERO semantic content, so a single N=48 delta of that size
+   * carries much less meaning than its confidence interval suggests.
+   */
   return (
     objectivePower(settledIncomingQuality, objectiveSettledPower) *
-    objectivePower(
-      projectedOutgoingQuality * readinessFutureQuality(readiness),
-      objectiveFuturePower,
-    ) *
-    objectivePower(readiness.catchability, objectiveFeasibilityPower)
+    objectivePower(projectedOutgoingQuality, objectiveFuturePower) *
+    objectivePower(readiness.readiness, objectiveFuturePower)
   );
 }
 
-export type ReadinessFactors = Pick<
-  ReadinessScore,
-  "catchability" | "speedFit" | "airFit" | "impactFeasibility" | "elevationFit"
->;
-
-/** The readiness factors that GRADE the next arc rather than admit it. Their
- *  product with `catchability` is `readiness` itself, so nothing is dropped and
- *  nothing is counted twice - the two groups just carry the exponent of the
- *  question they answer. */
-function readinessFutureQuality(readiness: ReadinessFactors): number {
-  return (
-    readiness.speedFit *
-    readiness.airFit *
-    readiness.impactFeasibility *
-    readiness.elevationFit
-  );
-}
 
 function objectivePower(value: number, power: number): number {
   if (power === 1) return value;

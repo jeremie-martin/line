@@ -170,15 +170,42 @@ export function assertCompatibleReadinessArtifact(
         `${artifact.targetSemanticsId}`,
     );
   }
-  if (
-    artifact.featureNames.length !== READINESS_FEATURE_NAMES.length ||
-    artifact.featureNames.some(
-      (name, index) => name !== READINESS_FEATURE_NAMES[index],
-    )
-  ) {
-    throw new Error(
-      `readiness model feature schema does not match the production extractor`,
-    );
+  /*
+   * The extractor and the model are deliberately NOT the same list.
+   *
+   * `READINESS_FEATURE_NAMES` says what the compiler can OBSERVE; an artifact's
+   * `featureNames` say what it USES. Requiring them to be identical made those
+   * two questions one, and that had a nasty consequence: choosing to drop a
+   * feature from the model meant editing the extractor, which is fingerprinted
+   * by the readiness corpus guard, which invalidated the corpus - and a corpus
+   * can only be recollected by running the compiler, which needs a model that
+   * matches the extractor. Feature selection was therefore impossible without
+   * either a hand-written bootstrap artifact or weakening the guard.
+   *
+   * Requiring only that every column the artifact uses EXISTS in the extractor
+   * dissolves that: the corpus keeps recording the full vector, models declare
+   * their own subset, and `infer` projects. Feature-selection experiments cost
+   * a retrain and nothing else.
+   *
+   * This is not weaker. An unknown or duplicated column is still rejected, and
+   * `featureTransformId` still binds the MEANING of a column, which is what
+   * changes silently and dangerously.
+   */
+  const known = new Set<string>(READINESS_FEATURE_NAMES);
+  const seen = new Set<string>();
+  for (const name of artifact.featureNames) {
+    if (!known.has(name)) {
+      throw new Error(
+        `readiness model feature schema does not match the production ` +
+          `extractor: unknown feature ${name}`,
+      );
+    }
+    if (seen.has(name)) {
+      throw new Error(
+        `readiness model feature schema repeats feature ${name}`,
+      );
+    }
+    seen.add(name);
   }
   for (
     const component of [
@@ -220,12 +247,48 @@ export function applyReadinessStudyAblation(
   );
 }
 
+/** Column indices into the production vector for the subset an artifact uses,
+ *  plus a reusable buffer. `null` means it uses the whole vector in order, in
+ *  which case the vector is passed straight through and nothing is copied. */
+type FeatureProjection = { indices: number[]; buffer: number[] } | null;
+const featureProjections = new WeakMap<
+  ReadinessModelArtifact,
+  FeatureProjection
+>();
+
+function featureProjection(artifact: ReadinessModelArtifact): FeatureProjection {
+  const cached = featureProjections.get(artifact);
+  if (cached !== undefined) return cached;
+  const identity = artifact.featureNames.length ===
+      READINESS_FEATURE_NAMES.length &&
+    artifact.featureNames.every(
+      (name, index) => name === READINESS_FEATURE_NAMES[index],
+    );
+  const projection: FeatureProjection = identity ? null : {
+    indices: artifact.featureNames.map((name) =>
+      READINESS_FEATURE_NAMES.indexOf(
+        name as (typeof READINESS_FEATURE_NAMES)[number],
+      )
+    ),
+    buffer: new Array<number>(artifact.featureNames.length).fill(0),
+  };
+  featureProjections.set(artifact, projection);
+  return projection;
+}
+
 function infer(
   artifact: ReadinessModelArtifact,
   component: "catchability" | "impactFeasibility" | "speedFit" | "airFit",
   features: readonly number[],
 ): number {
-  return predictReadinessComponent(artifact, component, features);
+  const projection = featureProjection(artifact);
+  if (projection === null) {
+    return predictReadinessComponent(artifact, component, features);
+  }
+  for (let i = 0; i < projection.indices.length; i++) {
+    projection.buffer[i] = features[projection.indices[i]];
+  }
+  return predictReadinessComponent(artifact, component, projection.buffer);
 }
 
 function ablatedFactor(

@@ -634,3 +634,38 @@ across 1-4 dimensions, all three builders, compared by raw float64 bit pattern �
 Verdict: kept. Session total: **13,654.0 -> 11,828.5 ns/frame mean**
 (**12,799.5 -> 10,985.0** median), **-13.4%**, with three accepted mechanisms,
 one rejected, and both identity gates bit-identical at every step.
+
+## Attempt 9 (2026-07-25) — sample environment flags once per compile, KEEP
+
+Mechanism kept: Attempt 5 moved `LR_PROJECTED_RECOVERABILITY` from once per axis
+to once per scoring call, and the re-profile showed it *still* costing **4.39%**
+(388.3 ms) — because `scoreProjectedOutgoingAxes` runs about **111,000 times per
+compile**, and 111,000 x 268 ns is 30 ms of pure environment lookup per compile.
+Per-call was still far too often.
+
+New `scripts/v0/env_flags.ts` gives a flag a compile-scoped reader:
+`compileScopedEnv(name)` returns a closure that re-reads `process.env` only when
+the epoch has moved, and `compileHandoffInternal` — the single funnel behind
+both `compileHandoff` and `compileHandoffFromSnapshot` — bumps the epoch when a
+compile begins. A compile is the coarsest scope that still honors how tests,
+studies and scripts use these flags: set the variable, then run a compile. The
+value cannot change *during* a compile in any case, since compilation is
+synchronous.
+
+Applied to the one flag that is measurably hot. The remaining getters sit on
+coarse paths and stay as they are.
+
+- **Focused correctness:** `npx vitest run tests/objective_quality.test.ts tests/handoff_policy.test.ts tests/optimizer_handoff.test.ts`
+  passed: 57/57 tests, including the cases that flip other flags between compiles.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36,
+  repair_cells=36, repair_restarts=493).
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - swapped files: `scripts/v0/env_flags.ts`, `scripts/v0/optimizer/objective.ts`,
+    `scripts/v0/optimizer/handoff.ts`
+  - base mean **12,264.1 ns/frame**, candidate mean **11,905.9 ns/frame**
+  - delta median/mean **-3.01% / -2.92%**, 95% CI **[-3.13%, -2.66%]**
+  - candidate won **98/100** rounds, `P(candidate faster)=100.0%`
+
+Verdict: kept. The mechanism is now available for any other flag that lands on a
+hot path.

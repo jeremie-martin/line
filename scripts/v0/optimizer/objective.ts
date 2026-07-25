@@ -1,4 +1,5 @@
 import { axisQualityForTargets, axisQualityFromErrors } from "../score.ts";
+import { compileScopedEnv } from "../env_flags.ts";
 import {
   speedPxToAuthored,
   type AxisValues,
@@ -145,10 +146,14 @@ function recoverabilityWeightedError(
   return error;
 }
 
+/** Sampled once per compile: this is consulted once per scored gap, ~111,000
+ *  times per compile, and a raw `process.env` read costs ~268 ns. */
+const readProjectedRecoverability = compileScopedEnv(
+  "LR_PROJECTED_RECOVERABILITY",
+);
+
 function projectedRecoverabilityEnabled(): boolean {
-  return (globalThis as {
-    process?: { env?: Record<string, string | undefined> };
-  }).process?.env?.LR_PROJECTED_RECOVERABILITY !== "0";
+  return readProjectedRecoverability() !== "0";
 }
 
 export function scoreProjectedOutgoingAxes(

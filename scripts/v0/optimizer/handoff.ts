@@ -22,6 +22,7 @@
  */
 
 import { getRiderMetered, K_BOUNCE_LANDING } from "../../lib/detector.ts";
+import { beginEnvFlagEpoch } from "../env_flags.ts";
 import { makeRng } from "../../lib/rng.ts";
 import {
   type GapFit,
@@ -1184,6 +1185,7 @@ function compileHandoffInternal(
   opts: CompileHandoffOptions,
   initialSnapshot: HandoffNodeSnapshot | null,
 ): CompileCheckpoint {
+  beginEnvFlagEpoch();
   if (!Number.isSafeInteger(seed)) {
     throw new Error(`compileHandoff: seed must be a safe integer, got ${seed}`);
   }

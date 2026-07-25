@@ -831,3 +831,27 @@ identified TypeScript levers that remain — `currentQualityFromAxisValues`'
 per-call objects, the detector window buffer, general allocation — total perhaps
 5-8%, which would land near 10,300-10,500. Anything below that has to come out
 of the Rust kernel.
+
+## Attempt 14 (2026-07-25) — read the axis value from the argument, not a packed object, KEEP
+
+Mechanism kept: `currentQualityFromAxisValues` receives the six axis values as
+arguments and immediately packed them into `{ air, speed, grain, elevation,
+amplitude, impact }` so the AXES loop could read one back out by name — an
+allocation per scored candidate, plus a dynamic key load per axis. The loop now
+selects the argument with a switch. An unknown axis falls to NaN, exactly as the
+absent object key did, so the `Number.isFinite` rejection is unchanged.
+
+Self time before: 3.37% (279.6 ms of 8,295 ms).
+
+- **Focused correctness:** `npx vitest run tests/arc_model.test.ts tests/optimizer_sample.test.ts`
+  passed: 30/30 tests.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36).
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **11,262.7 ns/frame**, candidate mean **11,222.8 ns/frame**
+  - delta median/mean **-0.50% / -0.34%**, 95% CI **[-0.65%, -0.06%]**
+  - candidate won **63/100** rounds, `P(candidate faster)=99.7%`
+
+Verdict: kept — over the discovery bar, and the interval stays below zero, but
+this is the first accepted mechanism under 1%: the cheap allocation removals in
+this compiler are running out.

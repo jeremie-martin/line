@@ -1056,14 +1056,25 @@ function currentQualityFromAxisValues(
   impact: number,
   scoreAxes: JointArcCurrentScoreAxes = jointArcCurrentScoreAxes(targets),
 ): number {
-  const values = { air, speed, grain, elevation, amplitude, impact };
   const scoredTargets: AxisValues = {};
   const achieved: AxisValues = {};
   for (const axis of AXES) {
     if (!scoreAxes[axis]) continue;
     const target = targets[axis];
     if (target === undefined || !Number.isFinite(target)) continue;
-    const value = values[axis];
+    /* The six values arrive as arguments; packing them into an object per call
+     * just to read one back out by name allocated once per scored candidate.
+     * An unknown axis still reads as NaN, exactly as the absent object key did. */
+    let value: number;
+    switch (axis) {
+      case "air": value = air; break;
+      case "speed": value = speed; break;
+      case "grain": value = grain; break;
+      case "elevation": value = elevation; break;
+      case "amplitude": value = amplitude; break;
+      case "impact": value = impact; break;
+      default: value = NaN; break;
+    }
     if (!Number.isFinite(value)) return NaN;
     scoredTargets[axis] = target;
     achieved[axis] = value;

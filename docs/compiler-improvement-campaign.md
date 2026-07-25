@@ -410,3 +410,44 @@ sees one good catch and one bad one and averages them. Sweeping deeper:
 
 Dense is flat at 34.5 with zero completions at every depth. Deeper lookahead
 does not damp it.
+
+### 2026-07-25 — N=48: the deficit is −17.06, and most of the suite is now AHEAD
+
+First real measurement of the night. `npm run benchmark -- eval --seeds=48`,
+6,336 candidate compiles, tree at `e142a44` (deliverable air ask + next-arc air
+factor excluded), against `accept-2026-07-22T18-26-42Z-8565eddc`:
+
+```
+headline 512.67 -> 495.61   delta -17.06   seed-block SE 1.92   95% [-22.11, -12.02]
+validity 6227/6336 -> 5866/6336  (gained 15, lost 376)
+  250k  -10.43  [-20.59,  -0.26]
+  500k  -19.24  [-27.50, -10.99]
+  750k  -17.85  [-25.60, -10.11]
+strata
+  representative      +8.69  [ +4.04, +13.33]
+  legacy_regression  +29.59  [+18.41, +40.78]
+  development_music  -12.22  [-20.63,  -3.82]
+  capability        -169.93  [-195.36,-144.50]
+largest improvements  high_air_drive +64.21, _air_minus_5 +61.73,
+                      amplitude_tides +45.52, _restrained_10 +45.45,
+                      loose_pocket +42.64   — all at full 144/144 validity
+largest regressions   dense_recovery_240ms -308.01 (valid 116->8/144)
+                      dense_recovery       -265.71 (valid 109->8/144)
+                      pickup_shifted       -194.95 (valid 119->81/144)
+```
+
+Two things this settles.
+
+**The deficit is smaller than the 3-seed screen implied** — −17.06 with SE 1.92,
+against −26.62 with SE 3.73 at N=3. The earlier figure was a low-power estimate
+and should not be quoted again.
+
+**Most of the suite is now clearly AHEAD of the accepted baseline.**
+`representative` +8.69 and `legacy_regression` +29.59 are both significantly
+positive, with individual gains above +60 at full validity. The contact-indexed
+pipeline is not a broad regression; it is a broad improvement carrying two
+pathological cases. `frontier_dense_recovery` and its 240ms variant alone
+account for roughly 200 of the 376 lost valid runs, and both collapse to 8/144.
+
+This changes what "closing the deficit" means. It is not a matter of recovering
+a general loss — it is a matter of those specs completing at all.

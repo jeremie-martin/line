@@ -589,3 +589,48 @@ repeated packed-array loads about as well as hoisted locals, and the added
 `missingGoToLeft !== undefined` test per node paid for the rest. The lesson for
 this vein: the readiness cost is real work, so cutting it needs fewer node
 visits or fewer inferences, not cheaper node visits.
+
+## Attempt 8 (2026-07-25) — build feature vectors without intermediates, KEEP
+
+Mechanism kept: the three feature builders composed their result out of
+temporary arrays. `normalized` allocated a mapped copy; `linearFeatures` spread
+it into a new array; `additiveQuadraticFeatures` allocated the normalized copy,
+a squared copy, and the spread result — three arrays per vector;
+`tensorQuadraticFeatures` rebuilt the whole vector with `flatMap` per dimension,
+allocating a fresh array and `d` small basis arrays per pass. All of it runs per
+fit form per knob candidate, and the same builders run again during fitting.
+
+Each now writes one pre-sized array. The tensor basis expands in place, back to
+front, so every prefix is read before anything overwrites it — processing prefix
+`p` writes `3p..3p+2`, which never reaches below `p` — preserving the same
+prefix-major order, with `prefix * 1` replaced by `prefix` (exact in IEEE-754).
+`normalized` is gone; its length-and-finiteness assertion is now made by each
+builder, so invalid input still fails identically.
+
+Equivalence was checked numerically before the gates: 240,000 random vectors
+across 1-4 dimensions, all three builders, compared by raw float64 bit pattern —
+**zero mismatches**.
+
+- **Focused correctness:** `npx vitest run tests/arc_model.test.ts tests/optimizer_sample.test.ts`
+  passed: 30/30 tests.
+- **Identity gates:** both bit-identical.
+  - `npm run verify:optimizer`: 4/4 cases byte-identical.
+  - `npm run verify:compiler:behavior -- --budgets=100000,150000,200000`:
+    36/36 cells byte-identical, repair_cells=36, repair_restarts=493.
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=30 --reps=4 --warmup=1`
+  - base mean **12,806.6 ns/frame**, candidate mean **12,246.7 ns/frame**
+  - delta median/mean **-4.25% / -4.37%**, 95% CI **[-4.75%, -3.97%]**
+  - candidate won **30/30** rounds, `P(candidate faster)=100.0%`
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **12,790.0 ns/frame**, candidate mean **12,265.3 ns/frame**
+  - delta median/mean **-4.19% / -4.10%**, 95% CI **[-4.42%, -3.79%]**
+  - candidate won **99/100** rounds, `P(candidate faster)=100.0%`
+- **Current standing:** `npm run perf`
+  - mean **11,828.5 ns/physics-frame**
+  - median **10,985.0 ns/physics-frame**
+  - stddev **1,327.0**
+  - frames **50,321**
+
+Verdict: kept. Session total: **13,654.0 -> 11,828.5 ns/frame mean**
+(**12,799.5 -> 10,985.0** median), **-13.4%**, with three accepted mechanisms,
+one rejected, and both identity gates bit-identical at every step.

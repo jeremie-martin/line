@@ -237,30 +237,61 @@ function predictValues(
   return out;
 }
 
+/* The three feature builders write one pre-sized array instead of composing
+ * intermediates. `normalized` used to allocate a map result that was then
+ * spread — three arrays per additive-quadratic vector, built once per fit form
+ * per knob candidate. The values, their order, and the arithmetic are the
+ * same; only the intermediates are gone. */
+
 function linearFeatures(values: readonly number[], spans: readonly number[]): number[] {
-  return [1, ...normalized(values, spans)];
+  assertVectorLength(values, spans.length);
+  const count = values.length;
+  const features = new Array<number>(1 + count);
+  features[0] = 1;
+  for (let index = 0; index < count; index++) features[1 + index] = values[index] / spans[index];
+  return features;
 }
 
 function additiveQuadraticFeatures(values: readonly number[], spans: readonly number[]): number[] {
-  const normalizedValues = normalized(values, spans);
-  return [1, ...normalizedValues, ...normalizedValues.map((value) => value * value)];
+  assertVectorLength(values, spans.length);
+  const count = values.length;
+  const features = new Array<number>(1 + 2 * count);
+  features[0] = 1;
+  for (let index = 0; index < count; index++) {
+    const value = values[index] / spans[index];
+    features[1 + index] = value;
+    features[1 + count + index] = value * value;
+  }
+  return features;
 }
 
 /** Full degree-two tensor-product basis.  For signed-three probe points it
  * has exactly 3^d features, so a complete d-dimensional cube identifies it
  * without inventing interaction observations. */
 function tensorQuadraticFeatures(values: readonly number[], spans: readonly number[]): number[] {
-  let features = [1];
-  for (const value of normalized(values, spans)) {
-    const basis = [1, value, value * value];
-    features = features.flatMap((prefix) => basis.map((term) => prefix * term));
+  assertVectorLength(values, spans.length);
+  const count = values.length;
+  let size = 1;
+  for (let index = 0; index < count; index++) size *= 3;
+  /* Expanded in place, back to front, so each prefix is read before anything
+   * writes over it: processing prefix `p` writes 3p..3p+2, which never reaches
+   * below p. Same prefix-major order the flatMap produced, and `prefix * 1` is
+   * exactly `prefix`. */
+  const features = new Array<number>(size);
+  features[0] = 1;
+  let width = 1;
+  for (let index = 0; index < count; index++) {
+    const value = values[index] / spans[index];
+    const squared = value * value;
+    for (let prefixIndex = width - 1; prefixIndex >= 0; prefixIndex--) {
+      const prefix = features[prefixIndex];
+      features[3 * prefixIndex] = prefix;
+      features[3 * prefixIndex + 1] = prefix * value;
+      features[3 * prefixIndex + 2] = prefix * squared;
+    }
+    width *= 3;
   }
   return features;
-}
-
-function normalized(values: readonly number[], spans: readonly number[]): number[] {
-  assertVectorLength(values, spans.length);
-  return values.map((value, index) => value / spans[index]);
 }
 
 function assertVectorLength(values: readonly number[], expected: number): void {

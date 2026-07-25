@@ -233,7 +233,7 @@ Headline 491.31 → 487.03, capability −199 → −228.
 
 ---
 
-## 5b. What the deficit actually is
+## 6. What the deficit actually is
 
 Every entry above assumed the capability specs could not be compiled. They can.
 
@@ -272,7 +272,50 @@ are significantly AHEAD at N=48.
 
 ---
 
-## 6. Working agreements
+## 7. The fix, and what it cost
+
+The drift in §5b is an ADMISSION failure, not a grading failure: the search
+commits arcs that leave the rider slightly worse placed, and pays for it in
+backtracking. The three-layer product could not express that preference,
+because `readiness` bundles both kinds of question behind one exponent.
+
+The objective now groups its factors by the QUESTION they answer rather than by
+which model produced them:
+
+```text
+proposalUtility =
+    settledIncomingQuality ^ 1
+  x (projectedOutgoingQuality x speedFit x airFit
+     x impactFeasibility x elevationFit) ^ 1
+  x catchability ^ 2
+```
+
+`catchability` ADMITS the next arc. The other four GRADE it, which is the
+question `projectedOutgoingQuality` already asks, so they travel with it. Every
+factor appears exactly once and neutral exponents reproduce
+`settled x projected x readiness` algebraically — asserted by the same test that
+rejected an earlier version of this change for bolting an extra exponent onto a
+factor already inside the product.
+
+**What it bought** (TTC, mean of 3 seeds, 500k, new default vs previous):
+`pickup_shifted` 296k vs 2-of-3 seeds never completing; `dense_dialogue_10` 246k
+vs 302k; `dense_dialogue` 262k vs 268k; `low_air_endurance_7s` 213k (3/3) vs
+2-of-3; and the healthy controls improve 10–14% too — `amplitude_tides` 170k vs
+197k, `countercurrent` 194k vs 213k, `high_air_drive` 185k vs 205k,
+`loose_pocket` 196k vs 223k. On `pickup_progression` at 1.5M, 330k vs 486k
+against a baseline of 342k.
+
+**What it cost.** `frontier_dense_recovery`, measured at 3M where both arms can
+finish: 1557k vs 917k mean frames to first completion. The 240ms variant goes
+the other way (3/3 seeds vs 2/3). The default stands because at benchmark
+budgets neither arm completes that spec — both need ≳0.9M against a 750k top
+tier — so the slowdown is not scored while the gains elsewhere are. **That is a
+judgement about the suite, not a measurement.** If a budget tier above 1M is
+ever added, re-examine it rather than inheriting it.
+
+---
+
+## 8. Working agreements
 
 - No hand-waving. Claims are backed by measurement, and the measurement's
   limits are stated.

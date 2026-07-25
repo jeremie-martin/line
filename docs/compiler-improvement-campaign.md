@@ -561,3 +561,59 @@ how good the gap this arc opens is, readiness asks whether the NEXT arc can be
 built at all — so they get separate exponents.
 `LR_OBJECTIVE_READINESS_POWER`, default 1, which reproduces the previous product
 bit-for-bit (verified: gamma=1 returns the earlier HEAD TTC numbers exactly).
+
+### 2026-07-25 — the fix: split the future layer by role, weight feasibility
+
+The drift signature says the search under-weights future feasibility against
+present quality, and the three-layer product could not express that. The first
+attempt bolted an extra exponent onto `catchability`, which already appears
+inside `readiness`; the objective's own test caught it as a violation of
+"contains all three temporal layers exactly once" and was right to.
+
+The principled form groups the readiness factors by the QUESTION they answer
+rather than by which model produced them:
+
+```text
+proposalUtility =
+    settledIncomingQuality ^ 1
+  x (projectedOutgoingQuality x speedFit x airFit
+     x impactFeasibility x elevationFit) ^ 1
+  x catchability ^ 2
+```
+
+`catchability` ADMITS the next arc — it is the dead-end predictor, and dead ends
+are what the search pays for in backtracking. The other four GRADE it, which is
+the question `projectedOutgoingQuality` already asks. Every factor still appears
+exactly once and neutral exponents reproduce `settled x projected x readiness`
+algebraically, which a test now asserts directly.
+
+**The screen (TTC, 3 seeds, mean).** First arm of the campaign with no downside
+anywhere:
+
+```
+                              500k budget        default    previous
+frontier_pickup_progression_shifted              296k       2/3 seeds never
+dense_dialogue_impact_contrast_10                246k       302k
+dense_dialogue                                   262k       268k
+frontier_low_air_endurance_7s                    213k (3/3) 2/3 seeds never
+amplitude_tides            (healthy control)     170k       197k
+countercurrent             (healthy control)     194k       213k
+high_air_drive             (healthy control)     185k       205k
+loose_pocket               (healthy control)     196k       223k
+frontier_pickup_progression      @1.5M           330k       486k   (base 342k)
+```
+
+Two specs recover a seed that previously never completed, and the healthy
+controls improve 10–14% as well — this is not a capability-vs-representative
+trade.
+
+`frontier_dense_recovery` remains unresolved. It completes on two of three seeds
+either way, at 1.0–1.5M frames against the baseline's 470k, and a 1.5M probe
+budget is the same order as its completion frame, so that comparison is noise
+and is reported as such rather than counted as a win.
+
+The exponent sweeps that led here, for the record (TTC on
+`frontier_pickup_progression` @1.5M, mean of 3 seeds): readiness exponent
+0.5 → 610k, 1 → 486k, 1.5 → 349k, 2 → 373k, 3 → 331k; feasibility exponent
+1 → 486k, 1.5 → 301k, 2 → 330k, 3 → 320k. The sign is unambiguous and the
+optimum is broad, which is what a real effect looks like rather than a tuned one.

@@ -79,6 +79,7 @@ import {
 import {
   fitArcVectorResponseModel,
   predictArcVectorOutputs,
+  predictArcVectorScoreReadout,
   type ArcVectorProbeRow,
   type ArcVectorResponseModel,
 } from "./arc_vector_model.ts";
@@ -768,8 +769,7 @@ function scoreConfiguredKnobs(
   nextTargets: AxisValues,
   nextGap: Gap,
 ): ConfiguredScoreResult {
-  const outputs = predictArcVectorOutputs(model, values);
-  const readout = scoreCompletedArcPrediction(outputs, currentTargets, currentScoreAxes);
+  const readout = predictArcVectorScoreReadout(model, values, currentTargets, currentScoreAxes);
   if (!Number.isFinite(readout.currentQuality)) {
     return "model_unscoreable";
   }

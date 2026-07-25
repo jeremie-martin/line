@@ -6,11 +6,16 @@
  */
 import {
   completeArcPrediction,
+  currentQualityFromAxisValues,
   fitLinearLeastSquares,
+  incomingKinematicsFromValues,
   isArcAngleOutput,
   normalizeAngleDeg,
+  type JointArcCurrentScoreAxes,
   type JointArcResponseContext,
+  type JointArcScoreReadout,
 } from "./arc_model.ts";
+import type { AxisValues } from "../types.ts";
 
 export type ArcVectorTrainingKind = "additive" | "joint";
 
@@ -50,6 +55,33 @@ type PredictEntry = Readonly<{
   coefficients: readonly number[];
 }>;
 
+/** The outputs the knob-scoring readout actually reads, resolved once per model
+ *  to positions in `outputEntries`. A model fits ~21 outputs; the readout reads
+ *  at most these 18, and typically 12 exist. */
+const READOUT_KEYS = [
+  "current.axis.air",
+  "current.axis.speed",
+  "current.axis.grain",
+  "current.axis.elevation",
+  "current.axis.amplitude",
+  "current.axis.impact",
+  "exit.frame",
+  "exit.speed",
+  "next.meanSpeedPx",
+  "next.airFraction",
+  "next.frameCount",
+  "next.elevation",
+  "next.x",
+  "next.y",
+  "next.vx",
+  "next.vy",
+  "next.sledPoseDeg",
+  "next.sledPoseRateDegPerFrame",
+] as const;
+
+type ReadoutKey = (typeof READOUT_KEYS)[number];
+type ReadoutSlots = Readonly<Record<ReadoutKey, number>>;
+
 export type ArcVectorResponseModel = Readonly<{
   dimensions: number;
   spans: readonly number[];
@@ -57,6 +89,13 @@ export type ArcVectorResponseModel = Readonly<{
   context: JointArcResponseContext;
   outputModels: ReadonlyMap<string, FittedOutputEntry>;
   outputEntries: readonly PredictEntry[];
+  /** Position in `outputEntries` of each readout output, or -1 when unfitted. */
+  readoutSlots: ReadoutSlots;
+  /** The entries the readout needs, ascending — the only ones it predicts. */
+  readoutEntryIndices: readonly number[];
+  /** Scratch, one slot per entry. Nothing escapes the readout, and a compile is
+   *  single-threaded, so one buffer per model is enough. */
+  readoutBuffer: number[];
 }>;
 
 /** Fit one model per measured output.  `joint` gets the complete signed-cube
@@ -74,14 +113,38 @@ export function fitArcVectorResponseModel(
   }
   for (const row of rows) assertVectorLength(row.values, spans.length);
   const outputModels = fitValueModels(rows, spans, trainingKind);
+  const outputEntries = flattenOutputModels(outputModels);
+  const readoutSlots = resolveReadoutSlots(outputEntries);
   return {
     dimensions: spans.length,
     spans: [...spans],
     trainingKind,
     context,
     outputModels,
-    outputEntries: flattenOutputModels(outputModels),
+    outputEntries,
+    readoutSlots,
+    readoutEntryIndices: readoutEntryIndices(readoutSlots),
+    readoutBuffer: new Array<number>(outputEntries.length).fill(0),
   };
+}
+
+function resolveReadoutSlots(entries: readonly PredictEntry[]): ReadoutSlots {
+  const slots = {} as Record<ReadoutKey, number>;
+  for (const key of READOUT_KEYS) slots[key] = -1;
+  for (let index = 0; index < entries.length; index++) {
+    const key = entries[index].key as ReadoutKey;
+    if (Object.hasOwn(slots, key)) slots[key] = index;
+  }
+  return slots;
+}
+
+function readoutEntryIndices(slots: ReadoutSlots): number[] {
+  const indices: number[] = [];
+  for (const key of READOUT_KEYS) {
+    const slot = slots[key];
+    if (slot >= 0) indices.push(slot);
+  }
+  return indices.sort((a, b) => a - b);
 }
 
 function flattenOutputModels(
@@ -108,6 +171,71 @@ export function predictArcVectorOutputs(
   assertVectorLength(values, model.dimensions);
   const direct = predictValues(model.outputEntries, values, model.spans);
   return completeArcPrediction(direct, model.context);
+}
+
+/**
+ * Score one knob candidate, predicting ONLY the outputs the readout reads.
+ *
+ * The full path predicts every fitted output — measured at 21 per call, 75,600
+ * calls per compile — routes them through a string-keyed record, copies that
+ * record, and then looks twelve of them back up by name. The readout needs no
+ * more than the eighteen `READOUT_KEYS`, so the rest is predicted and discarded.
+ *
+ * Values are identical: the same entries are evaluated with the same features,
+ * the same coefficient order and the same `unwrapAngle`, just written by index.
+ * An output this model did not fit has slot -1 and reads as NaN — exactly what
+ * the absent record key already meant here, since `currentQualityFromAxisValues`
+ * rejects `undefined` and `NaN` alike through `Number.isFinite` and the readout
+ * fields applied `?? NaN`. `current.cost` is not computed because the readout
+ * never reads it; callers wanting the whole record still call
+ * `predictArcVectorOutputs`.
+ */
+export function predictArcVectorScoreReadout(
+  model: ArcVectorResponseModel,
+  values: readonly number[],
+  currentTargets: AxisValues,
+  scoreAxes: JointArcCurrentScoreAxes,
+): JointArcScoreReadout {
+  assertVectorLength(values, model.dimensions);
+  const buffer = model.readoutBuffer;
+  predictReadoutValuesInto(
+    model.outputEntries,
+    model.readoutEntryIndices,
+    values,
+    model.spans,
+    buffer,
+  );
+  const slots = model.readoutSlots;
+  return {
+    currentQuality: currentQualityFromAxisValues(
+      currentTargets,
+      scoreAxes.air ? slotValue(buffer, slots["current.axis.air"]) : NaN,
+      scoreAxes.speed ? slotValue(buffer, slots["current.axis.speed"]) : NaN,
+      scoreAxes.grain ? slotValue(buffer, slots["current.axis.grain"]) : NaN,
+      scoreAxes.elevation ? slotValue(buffer, slots["current.axis.elevation"]) : NaN,
+      scoreAxes.amplitude ? slotValue(buffer, slots["current.axis.amplitude"]) : NaN,
+      scoreAxes.impact ? slotValue(buffer, slots["current.axis.impact"]) : NaN,
+      scoreAxes,
+    ),
+    state: incomingKinematicsFromValues(
+      slotValue(buffer, slots["next.x"]),
+      slotValue(buffer, slots["next.y"]),
+      slotValue(buffer, slots["next.vx"]),
+      slotValue(buffer, slots["next.vy"]),
+      slotValue(buffer, slots["next.sledPoseDeg"]),
+      slotValue(buffer, slots["next.sledPoseRateDegPerFrame"]),
+    ),
+    exitFrame: slotValue(buffer, slots["exit.frame"]),
+    exitSpeed: slotValue(buffer, slots["exit.speed"]),
+    nextMeanSpeedPx: slotValue(buffer, slots["next.meanSpeedPx"]),
+    nextAirFraction: slotValue(buffer, slots["next.airFraction"]),
+    nextGapFrameCount: slotValue(buffer, slots["next.frameCount"]),
+    nextElevation: slotValue(buffer, slots["next.elevation"]),
+  };
+}
+
+function slotValue(buffer: readonly number[], slot: number): number {
+  return slot < 0 ? NaN : buffer[slot];
 }
 
 export function arcVectorModelFormCounts(model: ArcVectorResponseModel): Record<ArcVectorFitForm, number> {
@@ -197,6 +325,44 @@ function fitArcVectorOutput(
     };
   }
   return null;
+}
+
+/** Predict the selected entries positionally, in `outputEntries` order. Same
+ *  features, same coefficient order, same arithmetic as the record form. */
+function predictReadoutValuesInto(
+  entries: readonly PredictEntry[],
+  indices: readonly number[],
+  values: readonly number[],
+  spans: readonly number[],
+  buffer: number[],
+): void {
+  let tensorQuadratic: number[] | null = null;
+  let additiveQuadratic: number[] | null = null;
+  let linear: number[] | null = null;
+  let constant: number[] | null = null;
+  for (let i = 0; i < indices.length; i++) {
+    const entryIndex = indices[i];
+    const entry = entries[entryIndex];
+    let features: number[];
+    switch (entry.form) {
+      case "tensor_quadratic":
+        features = tensorQuadratic ??= tensorQuadraticFeatures(values, spans);
+        break;
+      case "additive_quadratic":
+        features = additiveQuadratic ??= additiveQuadraticFeatures(values, spans);
+        break;
+      case "linear":
+        features = linear ??= linearFeatures(values, spans);
+        break;
+      case "constant":
+        features = constant ??= [1];
+        break;
+    }
+    const coefficients = entry.coefficients;
+    let value = 0;
+    for (let index = 0; index < features.length; index++) value += coefficients[index] * features[index];
+    buffer[entryIndex] = entry.angle ? unwrapAngle(value, entry.ref) : value;
+  }
 }
 
 function predictValues(

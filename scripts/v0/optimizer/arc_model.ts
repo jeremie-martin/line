@@ -1046,7 +1046,7 @@ export function predictedCurrentQuality(outputs: Record<string, number>, targets
   );
 }
 
-function currentQualityFromAxisValues(
+export function currentQualityFromAxisValues(
   targets: AxisValues,
   air: number,
   speed: number,
@@ -1083,19 +1083,36 @@ function currentQualityFromAxisValues(
 }
 
 export function predictedArrivalState(outputs: Record<string, number>): RiderArrivalState | null {
-  const x = outputs["next.x"];
-  const y = outputs["next.y"];
-  const vx = outputs["next.vx"];
-  const vy = outputs["next.vy"];
+  return arrivalStateFromValues(
+    outputs["next.x"],
+    outputs["next.y"],
+    outputs["next.vx"],
+    outputs["next.vy"],
+    outputs["next.sledPoseDeg"],
+    outputs["next.sledPoseRateDegPerFrame"],
+  );
+}
+
+/** The record-free core of `predictedArrivalState`. A caller that already holds
+ *  the six values — the arc-vector readout reads them positionally — reaches the
+ *  same state without a string-keyed record to look them up in. */
+export function arrivalStateFromValues(
+  x: number,
+  y: number,
+  vx: number,
+  vy: number,
+  poseDeg: number,
+  poseRateDegPerFrame: number,
+): RiderArrivalState | null {
   if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(vx) || !Number.isFinite(vy)) return null;
   const speed = Math.hypot(vx, vy);
   if (!Number.isFinite(speed)) return null;
   const comAngleDeg = speed > 0
     ? Math.atan2(vy, vx) * 180 / Math.PI
     : null;
-  const sledPoseDeg = Number.isFinite(outputs["next.sledPoseDeg"]) ? outputs["next.sledPoseDeg"] : null;
-  const sledPoseRateDegPerFrame = Number.isFinite(outputs["next.sledPoseRateDegPerFrame"])
-    ? outputs["next.sledPoseRateDegPerFrame"]
+  const sledPoseDeg = Number.isFinite(poseDeg) ? poseDeg : null;
+  const sledPoseRateDegPerFrame = Number.isFinite(poseRateDegPerFrame)
+    ? poseRateDegPerFrame
     : null;
   return { x, y, vx, vy, speed, comAngleDeg, sledPoseDeg, sledPoseRateDegPerFrame };
 }
@@ -1103,10 +1120,27 @@ export function predictedArrivalState(outputs: Record<string, number>): RiderArr
 export function predictedIncomingKinematics(
   outputs: Record<string, number>,
 ): IncomingKinematics | null {
-  const vx = outputs["next.vx"];
-  const vy = outputs["next.vy"];
+  return incomingKinematicsFromValues(
+    outputs["next.x"],
+    outputs["next.y"],
+    outputs["next.vx"],
+    outputs["next.vy"],
+    outputs["next.sledPoseDeg"],
+    outputs["next.sledPoseRateDegPerFrame"],
+  );
+}
+
+/** The record-free core of `predictedIncomingKinematics`. */
+export function incomingKinematicsFromValues(
+  x: number,
+  y: number,
+  vx: number,
+  vy: number,
+  poseDeg: number,
+  poseRateDegPerFrame: number,
+): IncomingKinematics | null {
   if (!Number.isFinite(vx) || !Number.isFinite(vy)) return null;
-  const state = predictedArrivalState(outputs);
+  const state = arrivalStateFromValues(x, y, vx, vy, poseDeg, poseRateDegPerFrame);
   if (state !== null) return incomingKinematics(state);
   const speed = Math.hypot(vx, vy);
   if (!Number.isFinite(speed)) return null;
@@ -1117,13 +1151,10 @@ export function predictedIncomingKinematics(
     comAngleDeg: speed > 0
       ? Math.atan2(vy, vx) * 180 / Math.PI
       : null,
-    sledPoseDeg: Number.isFinite(outputs["next.sledPoseDeg"])
-      ? outputs["next.sledPoseDeg"]
+    sledPoseDeg: Number.isFinite(poseDeg) ? poseDeg : null,
+    sledPoseRateDegPerFrame: Number.isFinite(poseRateDegPerFrame)
+      ? poseRateDegPerFrame
       : null,
-    sledPoseRateDegPerFrame:
-      Number.isFinite(outputs["next.sledPoseRateDegPerFrame"])
-        ? outputs["next.sledPoseRateDegPerFrame"]
-        : null,
   };
 }
 

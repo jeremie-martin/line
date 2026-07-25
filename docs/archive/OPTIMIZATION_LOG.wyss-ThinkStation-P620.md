@@ -933,3 +933,44 @@ The engine is not obviously reachable from the outside either: it was already
 given a `get_unchecked` pass, a gated sqrt and a lazy sqrt in the 2026-07-09
 session, and the remaining mass is `step_state` itself — the bit-faithful
 physics, ported verbatim, where the arithmetic is the product.
+
+## Attempt 16 (2026-07-26) — predict only the outputs the readout reads, KEEP (-7.67%)
+
+**The measurement that unlocked it.** Attempts 11 and 12 concluded "the prediction
+record is not the cost" and I generalised that to "predictValues is arithmetic,
+leave it alone". That generalisation was wrong, and a counter proved it: per
+compile `predictValues` runs **75,600 times over 21 outputs each, but only
+101.2 multiply-adds per call** — **7.7 ms of arithmetic in a 751 ms compile**,
+against a profiled 8.45% (~63 ms). So ~55 ms per compile really was overhead;
+the earlier attempts had simply moved it instead of removing it.
+
+Mechanism kept: `scoreConfiguredKnobs` needs at most the 18 `READOUT_KEYS`, of
+which ~12 exist in a fitted model — but the full path predicted **all 21**
+outputs, built a string-keyed record of them, copied that record in
+`completeArcPrediction`, and then looked twelve back up by name.
+`predictArcVectorScoreReadout` resolves those keys to entry positions once per
+model, predicts **only those entries** into a per-model scratch buffer, and
+builds the readout by index. Roughly 40% of the per-output work on the hottest
+path simply stops happening, and the record and its copy stop happening at all.
+
+Bit-identity: same entries, same features, same coefficient order, same
+`unwrapAngle`. An output the model did not fit has slot -1 and reads as NaN —
+exactly what the absent record key already meant, since
+`currentQualityFromAxisValues` rejects `undefined` and `NaN` alike through
+`Number.isFinite` and the readout fields applied `?? NaN`. `current.cost` is not
+computed because this readout never reads it; `predictArcVectorOutputs` still
+serves callers that want the whole record.
+
+- **Focused correctness:** 63/63 tests across arc_model, optimizer_sample,
+  objective_quality and optimizer_solver.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36 cells,
+  repair_cells=36, repair_restarts=493).
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **11,199.8 ns/frame**, candidate mean **10,353.0 ns/frame**
+  - delta median/mean **-7.67% / -7.55%**, 95% CI **[-7.80%, -7.23%]**
+  - candidate won **99/100** rounds, `P(candidate faster)=100.0%`
+
+Verdict: kept — the largest single win of the campaign, and the rule holds
+again: **stop doing the work**. Attempt 12 reshaped the same path and measured
+-0.07%; this one deletes 40% of it and measures -7.67%.

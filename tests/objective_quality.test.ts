@@ -328,29 +328,32 @@ describe("contact-indexed proposal objective", () => {
       [current, next, after],
     );
     expect(scored).not.toBeNull();
-    // At neutral exponents the product is exactly the three layers: splitting
-    // readiness by role regroups its factors, it does not drop or duplicate
-    // any of them.
-    setProposalUtilityPowers({ feasibilityPower: 1 });
+    // Splitting readiness by role regroups its factors; it does not drop or
+    // duplicate any of them. At the shipped exponents the product is therefore
+    // exactly the three layers. Note this is an ALGEBRAIC identity, not a
+    // bitwise one: the regrouping changes multiplication order, so the two
+    // expressions can differ in the last ulp and the search can take a
+    // different path. Measured, not assumed.
+    expect(scored!.value).toBeCloseTo(
+      scored!.settledIncomingQuality *
+        scored!.projectedOutgoingQuality *
+        scored!.readiness,
+      12,
+    );
+    // Feasibility is separable: raising its exponent reaches catchability only.
+    setProposalUtilityPowers({ feasibilityPower: 2 });
     try {
-      const neutral = scoreCandidateProposal(fit, current, [current, next, after]);
-      expect(neutral!.value).toBeCloseTo(
-        neutral!.settledIncomingQuality *
-          neutral!.projectedOutgoingQuality *
-          neutral!.readiness,
+      const weighted = scoreCandidateProposal(fit, current, [current, next, after]);
+      expect(weighted!.value).toBeCloseTo(
+        weighted!.settledIncomingQuality *
+          weighted!.projectedOutgoingQuality *
+          weighted!.readiness *
+          weighted!.catchability,
         12,
       );
     } finally {
       setProposalUtilityPowers();
     }
-    // The shipped default weights feasibility squared.
-    expect(scored!.value).toBeCloseTo(
-      scored!.settledIncomingQuality *
-        scored!.projectedOutgoingQuality *
-        scored!.readiness *
-        scored!.catchability,
-      12,
-    );
   });
 
   test("proposal utility splits readiness by role, not by model", () => {
@@ -381,7 +384,7 @@ describe("contact-indexed proposal objective", () => {
       expect(scored!.value).toBeCloseTo(
         scored!.settledIncomingQuality ** 2 *
           (scored!.projectedOutgoingQuality * grading) ** 0.5 *
-          scored!.catchability ** 2,
+          scored!.catchability,
         12,
       );
     } finally {

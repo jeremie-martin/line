@@ -64,13 +64,23 @@ const OBJECTIVE_FUTURE_POWER_ENV = objectiveEnvNum(
  * Every factor still appears exactly once, and at 1/1/1 the product is
  * algebraically identical to settled x projected x readiness.
  *
- * Default 2: the drift the search accumulates is a feasibility failure, not a
- * quality failure, and weighting the whole readiness product to correct it also
- * amplifies impact-chasing - worst exactly where impact asks are aggressive.
+ * Default 1, i.e. the product is exactly settled x projected x readiness.
+ *
+ * 2 was tried and REJECTED at N=48. It does buy completion - lost runs 372 ->
+ * 298, frontier_dense_recovery 8 -> 20 of 144 valid, capability -164.65 ->
+ * -117.71 - but it pays for it in score everywhere else: representative
+ * +9.93 -> -10.29, development_music -12.61 -> -28.83, legacy_regression
+ * +30.56 -> +10.55, headline delta -15.33 -> -25.25. Over-weighting admission
+ * makes the search prefer arcs that land safely over arcs that score, and a
+ * completed track that misses its axes is worth less than the axes are.
+ *
+ * The lesson is about the instrument, not the knob: frames-to-first-completion
+ * ranks how fast a spec finishes, not how well it scores, and every screen that
+ * selected this weight was blind to the half of the objective that decided it.
  */
 const OBJECTIVE_FEASIBILITY_POWER_ENV = objectiveEnvNum(
   "LR_OBJECTIVE_FEASIBILITY_POWER",
-  2,
+  1,
 );
 let objectiveSettledPower = OBJECTIVE_SETTLED_POWER_ENV;
 let objectiveFuturePower = OBJECTIVE_FUTURE_POWER_ENV;

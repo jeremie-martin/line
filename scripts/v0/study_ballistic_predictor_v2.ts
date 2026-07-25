@@ -126,7 +126,16 @@ type ErrorSummary = {
   articulationMae: number;
   bindingMismatchRate: number;
 };
-type MacroErrorSummary = ErrorSummary & { groups: number };
+/** `spread` is the standard deviation of each metric ACROSS case-seed groups,
+ *  not across rows: it answers "does this model fail evenly, or fall apart on
+ *  particular cases", which is the question a mean cannot answer. */
+type MacroErrorSummary = ErrorSummary & {
+  groups: number;
+  spread: Pick<
+    ErrorSummary,
+    "positionMae" | "velocityMae" | "speedMae" | "angleMaeDeg"
+  >;
+};
 type ErrorTotals = {
   rows: number;
   x: number;
@@ -185,6 +194,25 @@ const CURRENT_PREDICTOR = {
   name: "current",
   predict: predictCurrent,
 } as const satisfies Predictor;
+/*
+ * The SCALE the scores are expressed in, not a competitor.
+ *
+ * Normalizing each component by the current model was fine while the current
+ * model had error. It is exact now, so that denominator is zero and every
+ * alternative scores Infinity - the score cannot rank anything. The fix is to
+ * divide by something that belongs to the PROBLEM rather than to whichever
+ * model happens to be installed: a predictor that does nothing at all, leaving
+ * the rider exactly where it was at launch. Its error is how hard the
+ * prediction is over these horizons, it is strictly positive, and it does not
+ * move when the production model changes.
+ *
+ * So a score reads directly: 0 is exact, 1 is no better than not predicting.
+ */
+const REFERENCE_PREDICTOR = {
+  name: "frozen_anchor",
+  predict: predictFrozenAnchor,
+} as const satisfies Predictor;
+const REFERENCE_MODEL = REFERENCE_PREDICTOR.name;
 /**
  * The only experiment switch. Return one named predictor while testing it;
  * return null between experiments.
@@ -196,8 +224,8 @@ const ALTERNATIVE_PREDICTOR = configuredAlternative();
 const CURRENT_MODEL = CURRENT_PREDICTOR.name;
 const ALTERNATIVE_MODEL = ALTERNATIVE_PREDICTOR?.name ?? null;
 const PREDICTORS: readonly Predictor[] = ALTERNATIVE_PREDICTOR === null
-  ? [CURRENT_PREDICTOR]
-  : [CURRENT_PREDICTOR, ALTERNATIVE_PREDICTOR];
+  ? [CURRENT_PREDICTOR, REFERENCE_PREDICTOR]
+  : [CURRENT_PREDICTOR, ALTERNATIVE_PREDICTOR, REFERENCE_PREDICTOR];
 rejectFixedProtocolOverride("seed");
 rejectFixedProtocolOverride("seeds");
 rejectFixedProtocolOverride("budget");
@@ -311,8 +339,8 @@ const report = {
 };
 mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, `${JSON.stringify(report, null, 2)}\n`);
-printSummary(overall as Record<TruthTarget, Record<string, ErrorSummary>>);
-printScores(score);
+// Per-case macro summaries, so the printed spread is across the 44 cases.
+printSummary(macroByCase as Record<TruthTarget, Record<string, ErrorSummary>>);
 printTiming(TIMING);
 console.log(`\nreport: ${relativeToCwd(outputPath)}`);
 
@@ -929,8 +957,23 @@ function summarizeMacroTotals(
     .map(summarizeTotals);
   const metric = (key: Exclude<keyof ErrorSummary, "rows">): number =>
     mean(summaries.map((summary) => summary[key]));
+  const spreadOf = (key: Exclude<keyof ErrorSummary, "rows">): number => {
+    const values = summaries.map((summary) => summary[key]);
+    if (values.length < 2) return 0;
+    const average = mean(values);
+    return Math.sqrt(
+      values.reduce((sum, value) => sum + (value - average) ** 2, 0) /
+        (values.length - 1),
+    );
+  };
   return {
     groups: summaries.length,
+    spread: {
+      positionMae: spreadOf("positionMae"),
+      velocityMae: spreadOf("velocityMae"),
+      speedMae: spreadOf("speedMae"),
+      angleMaeDeg: spreadOf("angleMaeDeg"),
+    },
     rows: summaries.reduce((sum, summary) => sum + summary.rows, 0),
     xMae: metric("xMae"),
     yMae: metric("yMae"),
@@ -1205,6 +1248,26 @@ function closedFormPose(
   return { deg, rate: wrappedDegrees(deg - prevDeg) };
 }
 
+
+/** Every quantity held at its launch value - the honest "no prediction at all".
+ *  It still ANSWERS every question, because a component it left undefined would
+ *  drop out of the scale rather than contribute its full difficulty to it. */
+function predictFrozenAnchor(input: PredictorInput): BallisticState {
+  const body = input.anchor.body;
+  const speed = Math.hypot(body.vx, body.vy);
+  const pose = closedFormPose(input.constraintState);
+  return {
+    ...body,
+    speed,
+    comAngleDeg: speed > 0 ? Math.atan2(body.vy, body.vx) * 180 / Math.PI : null,
+    sledPoseDeg: pose === null ? null : pose.deg,
+    sledPoseRateDegPerFrame: pose === null ? null : pose.rate,
+    ...(input.constraintState === null || input.constraintState === undefined
+      ? {}
+      : { constraintState: { ...input.constraintState, frameOffset: 0 } }),
+  };
+}
+
 /** Must mirror the predictor currently used by the compiler. */
 function predictCurrent(input: PredictorInput): BallisticState {
   const last = input.anchor;
@@ -1249,13 +1312,13 @@ function predictorScores(
   expectedGroups: number,
 ) {
   const currentPosition = requiredScoreSummary(
-    positionSummaries[CURRENT_MODEL],
-    `${CURRENT_MODEL} position`,
+    positionSummaries[REFERENCE_MODEL],
+    `${REFERENCE_MODEL} position`,
     expectedGroups,
   );
   const currentContact = requiredScoreSummary(
-    contactSummaries[CURRENT_MODEL],
-    `${CURRENT_MODEL} contact`,
+    contactSummaries[REFERENCE_MODEL],
+    `${REFERENCE_MODEL} contact`,
     expectedGroups,
   );
   const components = [
@@ -1269,6 +1332,22 @@ function predictorScores(
     ["bindingIntegrity", "contact", "bindingMismatchRate"],
   ] as const;
   const minimumImprovementPct = 1;
+  const referenceComponentError: Record<string, number> = {
+    position: currentPosition.positionMae,
+    velocity: currentContact.velocityMae,
+    speed: currentContact.speedMae,
+    angle: currentContact.angleMaeDeg,
+    sledPose: currentContact.sledPoseMaeDeg,
+    sledPoseRate: currentContact.sledPoseRateMaeDegPerFrame,
+    articulation: currentContact.articulationMae,
+    bindingIntegrity: currentContact.bindingMismatchRate,
+  };
+  const informativeComponents = components
+    .map(([label]) => label as string)
+    .filter((label) => (referenceComponentError[label] ?? 0) > 0);
+  if (informativeComponents.length === 0) {
+    throw new Error(`the reference predictor has zero error on every component`);
+  }
   const modelScores = models.map((model) => {
     const position = requiredScoreSummary(
       positionSummaries[model],
@@ -1304,7 +1383,19 @@ function predictorScores(
     };
     return {
       model,
-      rawScore: mean(Object.values(ratios)),
+      /*
+       * Average only the components the reference model actually gets WRONG.
+       * If doing nothing already scores zero error on a component - binding
+       * integrity, typically, since bindings rarely break in free flight -
+       * then the component says nothing about a predictor, and
+       * `normalizedError` reports 1 for everyone. Averaging it in adds a
+       * constant to every score and shrinks the spread between models.
+       */
+      rawScore: mean(
+        informativeComponents
+          .map((component) => ratios[component])
+          .filter((value) => Number.isFinite(value)),
+      ),
       ratios,
     };
   });
@@ -1316,9 +1407,16 @@ function predictorScores(
   if (ALTERNATIVE_MODEL !== null && alternativeScore === null) {
     throw new Error(`alternative predictor score is missing`);
   }
+  /*
+   * Scores are already expressed as a fraction of the reference model's error,
+   * so a DIFFERENCE between two of them is directly interpretable: 0.4 means
+   * "four tenths of the do-nothing error worse". Dividing by `currentScore`
+   * would reintroduce the zero denominator the reference scale exists to
+   * remove.
+   */
   const alternativeImprovementPct = alternativeScore === null
     ? null
-    : 100 * (currentScore - alternativeScore) / currentScore;
+    : 100 * (currentScore - alternativeScore);
   const decision = alternativeImprovementPct === null
     ? "no_alternative"
     : alternativeImprovementPct >= minimumImprovementPct
@@ -1338,8 +1436,11 @@ function predictorScores(
     aggregation:
       "equal case-seed macro mean of current-normalized component MAEs",
     componentWeights: Object.fromEntries(
-      components.map(([label]) => [label, 1 / components.length]),
+      informativeComponents.map((label) => [label, 1 / informativeComponents.length]),
     ),
+    uninformativeComponents: components
+      .map(([label]) => label as string)
+      .filter((label) => !informativeComponents.includes(label)),
     componentTruth: {
       position: "authored precontact, excluding rows whose truth frame was sampled",
       velocity: "authored contact",
@@ -1358,7 +1459,7 @@ function predictorScores(
       contactCaseSeedGroups: currentContact.groups,
     },
     models: modelScores.map((entry) => {
-      const improvementPct = 100 * (currentScore - entry.rawScore) / currentScore;
+        const improvementPct = 100 * (currentScore - entry.rawScore);
       return {
         model: entry.model,
         score: round(entry.rawScore),
@@ -1393,11 +1494,21 @@ function requiredScoreSummary(
       summary.articulationMae,
       summary.bindingMismatchRate,
     ];
+  /*
+   * Coverage problems are fatal; an unanswerable COMPONENT is not.
+   *
+   * A model that cannot produce sled pose, or articulation, is a legitimate
+   * experiment - that is exactly what a cheap model trades away. Killing the
+   * whole run because one component came back null makes the harness hostile
+   * to the experiments it exists to run (it did, twice, on the first cheap
+   * model). Non-finite components are dropped from the mean instead, and the
+   * raw error table still shows everything the model DID answer.
+   */
   if (
     summary === undefined ||
     summary.rows <= 0 ||
     summary.groups !== expectedGroups ||
-    values.some((value) => !Number.isFinite(value) || value < 0)
+    values.some((value) => Number.isFinite(value) && value < 0)
   ) {
     throw new Error(
       `ballistic score coverage is invalid for ${label}: ` +
@@ -1412,23 +1523,31 @@ function printSummary(
 ): void {
   for (const target of ["precontact", "contact"] as const) {
     console.log(`\n${target} truth`);
-    console.log("model                         rows   posMAE   velMAE  speedMAE angleMAE");
+    console.log(
+      "model                         rows      posMAE       velMAE     speedMAE     angleMAE",
+    );
     for (const [model, summary] of Object.entries(summaries[target])
       .sort((a, b) => a[1].velocityMae - b[1].velocityMae)) {
+      // deno-lint-ignore no-explicit-any
+      const sd = (summary as any).spread ?? {};
+      const cell = (value: number, dispersion: number, digits: number): string =>
+        `${value.toFixed(digits)}±${(dispersion ?? 0).toFixed(digits)}`;
       console.log(
         `${model.padEnd(29)} ${String(summary.rows).padStart(4)} ` +
-        `${summary.positionMae.toFixed(3).padStart(8)} ` +
-        `${summary.velocityMae.toFixed(4).padStart(8)} ` +
-        `${summary.speedMae.toFixed(4).padStart(9)} ` +
-        `${summary.angleMaeDeg.toFixed(3).padStart(8)}`,
+        `${cell(summary.positionMae, sd.positionMae, 2).padStart(12)} ` +
+        `${cell(summary.velocityMae, sd.velocityMae, 3).padStart(12)} ` +
+        `${cell(summary.speedMae, sd.speedMae, 3).padStart(12)} ` +
+        `${cell(summary.angleMaeDeg, sd.angleMaeDeg, 2).padStart(12)}`,
       );
     }
+    console.log("  mean ± sd across the 44 cases");
   }
 }
 
 function printScores(score: ReturnType<typeof predictorScores>): void {
   console.log(
-    `\noverall predictor score (lower is better; current = ${score.currentScore.toFixed(3)})`,
+    `\noverall predictor score - fraction of the do-nothing (${REFERENCE_MODEL}) error; ` +
+      `0 = exact, 1 = no better than not predicting`,
   );
   if (
     score.alternativeModel === null ||
@@ -1438,9 +1557,10 @@ function printScores(score: ReturnType<typeof predictorScores>): void {
     console.log(`no alternative configured; current corpus is ready for the next experiment`);
   } else {
     console.log(
-      `alternative ${score.alternativeModel} = ${score.alternativeScore.toFixed(4)}; ` +
-        `${score.alternativeImprovementPct.toFixed(2)}% vs current; ` +
-        `threshold ${score.minimumImprovementPct}%; decision ${score.decision}`,
+      `alternative ${score.alternativeModel} = ${score.alternativeScore.toFixed(4)} vs ` +
+        `current ${score.currentScore.toFixed(4)}; ` +
+        `${score.alternativeImprovementPct.toFixed(2)} points of reference error; ` +
+        `decision ${score.decision}`,
     );
   }
   for (const entry of score.models) {

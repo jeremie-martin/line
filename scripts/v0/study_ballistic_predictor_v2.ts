@@ -40,6 +40,7 @@ import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { ELEVATION } from "./types.ts";
+import { BALLISTIC_POINT_IDS } from "./core/ballistic_micro_sim.ts";
 import { applyJolt } from "../produce/seed.ts";
 import {
   ballisticTraceCollisionFreeThrough,
@@ -218,7 +219,7 @@ const REFERENCE_MODEL = REFERENCE_PREDICTOR.name;
  * return null between experiments.
  */
 function configuredAlternative(): Predictor | null {
-  return { name: "closed_form_com", predict: predictClosedFormCom };
+  return { name: "closed_form_system", predict: predictClosedFormSystem };
 }
 const ALTERNATIVE_PREDICTOR = configuredAlternative();
 const CURRENT_MODEL = CURRENT_PREDICTOR.name;
@@ -1265,6 +1266,65 @@ function predictFrozenAnchor(input: PredictorInput): BallisticState {
     ...(input.constraintState === null || input.constraintState === undefined
       ? {}
       : { constraintState: { ...input.constraintState, frameOffset: 0 } }),
+  };
+}
+
+
+/*
+ * Closed-form SYSTEM propagation - the correction the first cut was missing.
+ *
+ * `closed_form_com` propagated the rider's own six-point mean using the rider's
+ * own velocity, as if the rider were a free projectile. It is not. Only the
+ * TEN-point system is: the constraints are internal, symmetric and massless, so
+ * they cancel in the system sum but not in any subset of it. The rider's
+ * instantaneous velocity therefore contains the sled-rider oscillation, and
+ * extrapolating it linearly extrapolates the oscillation too.
+ *
+ * So propagate the thing that is actually ballistic, and carry the rider across
+ * on the offset it had at launch:
+ *
+ *   S_n = S_0 + n*VS_0 + g*n*(n+1)/2      (exact)
+ *   R_n = S_n + (R_0 - S_0)               (offset frozen)
+ *
+ * This is still O(1) - one pass over ten points at launch, then arithmetic.
+ * It trades "the rider keeps its launch velocity" for "the rider keeps its
+ * launch offset", and the second is the better approximation whenever the
+ * relative motion is a bounded oscillation rather than a drift.
+ */
+function predictClosedFormSystem(input: PredictorInput): BallisticState {
+  const constraintState = input.constraintState;
+  if (constraintState === null || constraintState === undefined) {
+    return predictClosedFormCom(input);
+  }
+  const last = input.anchor;
+  const n = Math.max(0, Math.round(input.targetFrame - last.frame));
+  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
+  let sx = 0, sy = 0, svx = 0, svy = 0, count = 0;
+  for (const id of BALLISTIC_POINT_IDS) {
+    const point = constraintState.points[id];
+    if (point === undefined) continue;
+    sx += point.x; sy += point.y; svx += point.vx; svy += point.vy; count++;
+  }
+  if (count === 0) return predictClosedFormCom(input);
+  sx /= count; sy /= count; svx /= count; svy /= count;
+  // Rider offset from the system centre, held at its launch value.
+  const offsetX = last.body.x - sx;
+  const offsetY = last.body.y - sy;
+  const vy = svy + n * g;
+  const x = sx + n * svx + offsetX;
+  const y = sy + n * svy + g * n * (n + 1) / 2 + offsetY;
+  const speed = Math.hypot(svx, vy);
+  const pose = closedFormPose(constraintState);
+  return {
+    x,
+    y,
+    vx: svx,
+    vy,
+    speed,
+    comAngleDeg: speed > 0 ? Math.atan2(vy, svx) * 180 / Math.PI : null,
+    sledPoseDeg: pose === null ? null : pose.deg + n * pose.rate,
+    sledPoseRateDegPerFrame: pose === null ? null : pose.rate,
+    constraintState: { ...constraintState, frameOffset: 0 },
   };
 }
 

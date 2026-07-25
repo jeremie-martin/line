@@ -39,6 +39,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gzipSync, gunzipSync } from "node:zlib";
+import { ELEVATION } from "./types.ts";
 import { applyJolt } from "../produce/seed.ts";
 import {
   ballisticTraceCollisionFreeThrough,
@@ -174,6 +175,12 @@ const BALLISTIC_BENCHMARK_SEEDS = [735_656_107, 735_656_108, 735_656_109] as con
 const BALLISTIC_SAMPLE_CAP_PER_CASE_SEED = 1_536;
 const BALLISTIC_COLLECTION_JOBS = 48;
 const BALLISTIC_POPULATIONS = ["candidate_pool", "aim_probe"] as const;
+/* Declared here, not beside measureTiming: the corpus evaluation runs at module
+ * top level, so the sample buffer must be initialized before it. */
+const TIMING_SAMPLE_CAP = 2_048;
+const TIMING_BLOCKS = 12;
+const timingSample: PredictorInput[] = [];
+
 const CURRENT_PREDICTOR = {
   name: "current",
   predict: predictCurrent,
@@ -183,7 +190,7 @@ const CURRENT_PREDICTOR = {
  * return null between experiments.
  */
 function configuredAlternative(): Predictor | null {
-  return null;
+  return { name: "closed_form_com", predict: predictClosedFormCom };
 }
 const ALTERNATIVE_PREDICTOR = configuredAlternative();
 const CURRENT_MODEL = CURRENT_PREDICTOR.name;
@@ -273,6 +280,9 @@ const {
 const perBudget = Object.fromEntries(
   budgets.map((budget) => [String(budget), overall]),
 );
+/* Timing replays the held sample AFTER evaluation, so it never perturbs the
+ * accuracy pass and the JIT is warm for every predictor equally. */
+const TIMING = measureTiming();
 const report = {
   schema: "line.study-ballistic-predictor-v2.v9",
   generatedAt: new Date().toISOString(),
@@ -296,11 +306,14 @@ const report = {
   perBudget,
   byHorizon,
   byPopulation,
+  // Reported beside the score, deliberately not inside it. See measureTiming.
+  cost: TIMING,
 };
 mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, `${JSON.stringify(report, null, 2)}\n`);
 printSummary(overall as Record<TruthTarget, Record<string, ErrorSummary>>);
 printScores(score);
+printTiming(TIMING);
 console.log(`\nreport: ${relativeToCwd(outputPath)}`);
 
 async function collectCorpus(): Promise<BallisticCorpus> {
@@ -1023,6 +1036,21 @@ function countBy(values: readonly string[]): Record<string, number> {
   return counts;
 }
 
+/*
+ * Cost is REPORTED, never scored.
+ *
+ * A predictor's usefulness is accuracy per unit of time, but the two are not
+ * commensurable and the exchange rate is a judgement about the compiler, not a
+ * property of the corpus. So timing stays out of `rawScore` and out of
+ * `decision` entirely - nothing is ever adopted or rejected here on speed. It
+ * is printed next to the accuracy so a human can weigh them.
+ *
+ * Timing is measured in BLOCKS rather than per call: a per-call
+ * `hrtime.bigint()` pair costs on the order of a cheap predictor's entire run,
+ * so per-call timing would mostly measure the clock. Each block replays the
+ * same held sample of real call sites, and the reported spread is across
+ * blocks, which is what makes the mean interpretable.
+ */
 function predictAll(
   anchor: Sample,
   targetFrame: number,
@@ -1033,9 +1061,148 @@ function predictAll(
     // Exact previous-point positions make earlier trace samples unnecessary.
     constraintState: constraintBallisticStateFromSamples([anchor]),
   };
+  if (timingSample.length < TIMING_SAMPLE_CAP) timingSample.push(input);
   return Object.fromEntries(
     PREDICTORS.map((predictor) => [predictor.name, predictor.predict(input)]),
   );
+}
+
+type TimingSummary = {
+  model: string;
+  calls: number;
+  blocks: number;
+  meanNsPerCall: number;
+  sdNsPerCall: number;
+  minNsPerCall: number;
+  maxNsPerCall: number;
+};
+
+/** Replay the held sample `TIMING_BLOCKS` times per predictor and report the
+ *  per-call cost with its spread across blocks. Information only. */
+function measureTiming(): TimingSummary[] {
+  if (timingSample.length === 0) return [];
+  const out: TimingSummary[] = [];
+  for (const predictor of PREDICTORS) {
+    // One untimed warm pass so JIT state is comparable across predictors.
+    for (const input of timingSample) predictor.predict(input);
+    const perCall: number[] = [];
+    for (let block = 0; block < TIMING_BLOCKS; block++) {
+      const started = process.hrtime.bigint();
+      for (const input of timingSample) predictor.predict(input);
+      const elapsed = Number(process.hrtime.bigint() - started);
+      perCall.push(elapsed / timingSample.length);
+    }
+    const mean = perCall.reduce((a, b) => a + b, 0) / perCall.length;
+    const variance = perCall.reduce((a, b) => a + (b - mean) ** 2, 0) /
+      Math.max(1, perCall.length - 1);
+    out.push({
+      model: predictor.name,
+      calls: timingSample.length * TIMING_BLOCKS,
+      blocks: TIMING_BLOCKS,
+      meanNsPerCall: round(mean),
+      sdNsPerCall: round(Math.sqrt(variance)),
+      minNsPerCall: round(Math.min(...perCall)),
+      maxNsPerCall: round(Math.max(...perCall)),
+    });
+  }
+  return out;
+}
+
+function printTiming(timings: readonly TimingSummary[]): void {
+  if (timings.length === 0) return;
+  console.log(`\ncost per prediction (INFORMATION ONLY - never scored, never gated)`);
+  console.log("model                        ns/call       sd      min      max   xCurrent");
+  const current = timings.find((t) => t.model === CURRENT_MODEL)?.meanNsPerCall;
+  for (const t of timings) {
+    const ratio = current === undefined || current === 0
+      ? ""
+      : `${(t.meanNsPerCall / current).toFixed(3)}x`;
+    console.log(
+      `${t.model.padEnd(26)} ${t.meanNsPerCall.toFixed(0).padStart(9)} ` +
+      `${t.sdNsPerCall.toFixed(0).padStart(8)} ${t.minNsPerCall.toFixed(0).padStart(8)} ` +
+      `${t.maxNsPerCall.toFixed(0).padStart(8)} ${ratio.padStart(10)}`,
+    );
+  }
+  console.log(
+    `  ${timings[0].blocks} blocks x ${(timings[0].calls / timings[0].blocks).toFixed(0)} held call sites; ` +
+      `spread is across blocks, so it reflects machine noise rather than input variation`,
+  );
+}
+
+
+/*
+ * Closed-form centre-of-mass propagation: O(1), no stepping, no constraints.
+ *
+ * Justification for why this can be exact at all: in free flight every
+ * constraint in the kernel moves its two points by equal and opposite amounts
+ * (`px[p1] -= dx; px[p2] += dx`), there are no per-point masses, and the joint
+ * passes only read positions to flip binding flags. The SUM of the ten point
+ * positions is therefore invariant under the whole solve, so the ten-point
+ * system centre of mass follows exact Verlet projectile motion:
+ *
+ *   v_n = v_0 + n*g          x_n = x_0 + n*vx_0
+ *                            y_n = y_0 + n*vy_0 + g*n*(n+1)/2
+ *
+ * Measured system-COM residual per frame: 1.1e-13 px on frontier_dense_recovery.
+ *
+ * What it CANNOT reproduce is the reason the exact kernel exists. Production
+ * consumes the six-point RIDER average (BODY_INDICES 4..9), not the ten-point
+ * system average, and the rider is coupled to the sled through the bind
+ * constraints - so momentum flows across that boundary and the rider mean
+ * drifts from the system parabola by 0.017-0.045 px per frame. This predictor
+ * also cannot produce sled pose, pose rate, or articulation at all; those
+ * components will score as misses, which is the honest cost of not stepping.
+ *
+ * It is here to price that trade, not to win the score.
+ */
+function predictClosedFormCom(input: PredictorInput): BallisticState {
+  const last = input.anchor;
+  const n = Math.max(0, Math.round(input.targetFrame - last.frame));
+  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
+  const pose = closedFormPose(input.constraintState);
+  const vx = last.body.vx;
+  const vy = last.body.vy + n * g;
+  const speed = Math.hypot(vx, vy);
+  return {
+    x: last.body.x + n * vx,
+    y: last.body.y + n * last.body.vy + g * n * (n + 1) / 2,
+    vx,
+    vy,
+    speed,
+    comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
+    // A cheap model still has to answer every question production asks. The
+    // cheapest honest answer for pose is that the sled keeps rotating at the
+    // rate it left the arc with - first order, still O(1). It ignores the
+    // articulation that the constraint solve would apply, which is precisely
+    // the error this experiment is here to price.
+    sledPoseDeg: pose === null ? null : pose.deg + n * pose.rate,
+    sledPoseRateDegPerFrame: pose === null ? null : pose.rate,
+    // Articulation frozen at launch: the exact anchor packet is carried through
+    // UNADVANCED, so every articulation and binding question is answered from
+    // the pose the rider left the arc with. Costs nothing, and makes the
+    // model's blind spot explicit rather than returning nulls that the
+    // evaluator would have to special-case.
+    ...(input.constraintState === null || input.constraintState === undefined
+      ? {}
+      : { constraintState: { ...input.constraintState, frameOffset: 0 } }),
+  };
+}
+
+/** Sled TAIL->NOSE pose and its per-frame rate, read from the anchor's exact
+ *  points and their Verlet previous positions. Two atan2 calls. */
+function closedFormPose(
+  constraintState: PredictorInput["constraintState"],
+): { deg: number; rate: number } | null {
+  if (constraintState === null || constraintState === undefined) return null;
+  const tail = constraintState.points.TAIL;
+  const nose = constraintState.points.NOSE;
+  if (tail === undefined || nose === undefined) return null;
+  const deg = Math.atan2(nose.y - tail.y, nose.x - tail.x) * 180 / Math.PI;
+  const prevDeg = Math.atan2(
+    (nose.y - nose.vy) - (tail.y - tail.vy),
+    (nose.x - nose.vx) - (tail.x - tail.vx),
+  ) * 180 / Math.PI;
+  return { deg, rate: wrappedDegrees(deg - prevDeg) };
 }
 
 /** Must mirror the predictor currently used by the compiler. */

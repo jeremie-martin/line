@@ -795,3 +795,39 @@ puts it back in the product, which keeps the A/B arm intact; with the flag off
 Verdict: kept. Unlike the three rejected plumbing attempts, this one removes
 work rather than reshaping it — which is the pattern that keeps paying in this
 compiler.
+
+### Session standing (2026-07-25, after Attempt 13)
+
+`npm run perf`: mean **11,068.0**, median **10,300.9**, stddev 1,313.4, frames
+50,321.
+
+From the session baseline of 13,654.0 / 12,799.5 that is **-18.9% mean, -19.5%
+median**, over six accepted mechanisms and three rejected ones, with
+`verify:optimizer` and `verify:compiler:behavior` bit-identical at every step.
+
+| attempt | mechanism | Δ at R=100 |
+|---|---|---:|
+| 5 | env read out of the per-axis loop | -3.60% |
+| 6 | flat prediction entries, no Map walk | -4.91% |
+| 7 | readiness traversal monomorphized | REJECT +0.17% |
+| 8 | feature vectors without intermediates | -4.19% |
+| 9 | env flags sampled once per compile | -3.01% |
+| 10 | axis targets without entry pairs | -4.25% |
+| 11 | prediction completed in place | REJECT **+15.07%** |
+| 12 | record-free knob readout | INCONCLUSIVE -0.07% |
+| 13 | readiness air component not inferred | -1.85% |
+
+**What the wins have in common:** every accepted mechanism either stopped doing
+something (an environment lookup, an inference, an allocation) or removed a data
+structure that was being built and thrown away. **Every rejected one reshaped
+work that still happened** — and two of the three were bit-identical and
+strictly less work on paper, one of them 15% slower in practice.
+
+**Where the remaining time is**, from a profile of the current tree: WASM engine
+**35.0%** (`wasm-function[31]` alone 20.6%), optimizer TypeScript 35.5%, core
+7.9%, GC 6.1%, `score.ts` 3.5% (untouchable — hashed by `EVALUATOR_FINGERPRINT`),
+and roughly 4.5% that is tsx module loading rather than compiling at all. The
+identified TypeScript levers that remain — `currentQualityFromAxisValues`'
+per-call objects, the detector window buffer, general allocation — total perhaps
+5-8%, which would land near 10,300-10,500. Anything below that has to come out
+of the Rust kernel.

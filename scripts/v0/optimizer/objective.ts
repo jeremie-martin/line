@@ -130,11 +130,16 @@ export function scoreSettledIncomingQuality(
  */
 const RECOVERABLE_SIDE_WEIGHT = 0.5;
 
+/** `enabled` is read once per scoring call rather than once per axis: reading
+ *  `process.env` costs ~268 ns, which at one read per axis error was 7% of a
+ *  whole compile. The flag is still sampled per call, so a caller that flips it
+ *  between calls sees the change exactly as before. */
 function recoverabilityWeightedError(
   axis: string,
   error: number,
+  enabled: boolean,
 ): number {
-  if (!projectedRecoverabilityEnabled()) return error;
+  if (!enabled) return error;
   if (axis === "speed" && error > 0) return RECOVERABLE_SIDE_WEIGHT * error;
   if (axis === "air" && error < 0) return RECOVERABLE_SIDE_WEIGHT * error;
   return error;
@@ -151,11 +156,12 @@ export function scoreProjectedOutgoingAxes(
   achieved: AxisValues,
 ): { quality: number; scoredAxisCount: number } {
   const errors: number[] = [];
+  const recoverability = projectedRecoverabilityEnabled();
   for (const [axis, target] of Object.entries(targets)) {
     if (target === undefined) continue;
     const value = (achieved as Record<string, number | undefined>)[axis];
     if (value === undefined) continue;
-    errors.push(recoverabilityWeightedError(axis, value - target));
+    errors.push(recoverabilityWeightedError(axis, value - target, recoverability));
   }
   if (errors.length === 0) {
     const summary = axisQualityForTargets(targets, achieved);

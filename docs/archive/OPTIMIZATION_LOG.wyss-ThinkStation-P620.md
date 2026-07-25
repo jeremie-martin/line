@@ -402,3 +402,116 @@ accepted WASM artifact remained `433a35ba440b6c773f3a6c5d4fdcbd91`.
     candidate mean **7,001.6 ns/frame**, delta median/mean **-0.01% / +0.03%**,
     95% CI **[-0.46%, 0.58%]**, candidate won **15/30** rounds,
     `P(candidate faster)=48.3%`.
+
+## Baseline (2026-07-25) — new compiler identity after the ballistic-cost campaign
+
+Repository state: `4a2a69f` (`codex/engine-improvement-research-handoff`), clean
+source. Host: Linux x86_64, Node `v22.22.2`. Everything below this line is
+measured against THIS compiler; the 2026-07-09 standings above describe a
+compiler that no longer exists and must not be compared to.
+
+**Why a re-baseline.** The compiler changed intentionally between 2026-07-09 and
+now (closed-form ballistic projection shipped by default, readiness retrained
+twice, review fixes). Both recorded identity baselines were therefore stale:
+`verify:optimizer` diverged on 4/4 cases and `verify:compiler:behavior` on its
+first cell.
+
+**The 61k rung is deliberately excluded.** A full-grid `--update` refuses to
+record, correctly, because `opening_burst|seed1|budget61000` is INVALID at HEAD
+(`sync:0drift/19missing; died:rideStalled@160`) — the known low-budget
+regression traced in `7f14e49` / `docs/compiler-improvement-campaign.md`. Forcing
+it would freeze an invalid track as the reference and destroy the only signal
+below the benchmark's 250k floor. So the speed-campaign identity gate is the
+three valid rungs:
+
+```bash
+npm run verify:compiler:behavior -- --budgets=100000,150000,200000
+```
+
+recorded green at 36/36 cells, repair_cells=36, repair_restarts=493. The
+pre-rework 4-rung reference is preserved unmodified at
+`generated/verify-compiler-behavior/baseline.2026-07-09-pre-rework.json`.
+`npm run verify:optimizer` was re-recorded on the same tree (4 cases @ 40k).
+
+- **Perf:** `npm run perf`
+  - mean **13,654.0 ns/physics-frame**
+  - median **12,799.5 ns/physics-frame**
+  - stddev **1,406.0**
+  - frames **50,321**
+
+Roughly double the 2026-07-09 standing of ~7,000 — and that is *after* the
+closed form removed the shadow simulation that used to run unbilled beside the
+real one. The added per-candidate machinery more than paid that back.
+
+**Where the time goes now** (`npm run cbench:prof -- --spec=mini_burst --seed=0
+--budget=50000 --reps=10 --warmup=1`, self time, 8,660 ms sampled). The
+2026-07-09 profile in `docs/engine_speed_methodology.md` (41% `step_state`, 26%
+other WASM, 21% JS detector) no longer describes this compiler:
+
+| share | bucket |
+| ---: | --- |
+| 46.6% | optimizer (`scripts/v0/optimizer/**`) |
+| 29.2% | WASM engine |
+| 6.3% | core (`scripts/v0/core/**`) |
+| 5.7% | GC |
+| 3.5% | other `scripts/v0` (scorer helpers) |
+| 3.4% | node builtins (module loading — harness, not compile) |
+
+Top self-time functions: `wasm-function[31]` 16.7%, `predictValues`
+(`arc_vector_model.ts`) 11.3%, `projectedRecoverabilityEnabled`
+(`objective.ts`) 7.1%, GC 5.7%, `predictReadinessComponent`
+(`readiness_model_artifact.ts`) 4.9%, `scoreProjectedOutgoingAxes` 3.1%,
+`currentQualityFromAxisValues` 2.5%.
+
+The engine is no longer the majority of the compile. The optimizer's own
+TypeScript is.
+
+## Attempt 5 (2026-07-25) — hoist the recoverability env read out of the axis loop, KEEP
+
+Mechanism kept: `scoreProjectedOutgoingAxes` called `recoverabilityWeightedError`
+per axis, and that function opened with `projectedRecoverabilityEnabled()`, which
+reads `process.env.LR_PROJECTED_RECOVERABILITY`. The flag is now read once per
+scoring call and passed in.
+
+Measured on this host, a `process.env` read costs **268.3 ns** against **0.81 ns**
+for a cached boolean — **330x**. At one read per axis error that single
+environment variable was **7.11% of the entire compile** (615.8 ms of 8,660 ms
+sampled). All env-flag getters in the compile path together were 7.63%, so this
+one call site is essentially the whole pattern.
+
+The flag is still sampled per call, so a caller that flips it between calls sees
+the change exactly as before; only the redundant reads within one call are gone.
+No arithmetic changed.
+
+- **Focused correctness:**
+  - `npx vitest run tests/objective_quality.test.ts tests/handoff_policy.test.ts`
+    passed: 38/38 tests.
+- **Identity gates:** both bit-identical.
+  - `npm run verify:optimizer`: 4/4 cases byte-identical.
+  - `npm run verify:compiler:behavior -- --budgets=100000,150000,200000`:
+    36/36 cells byte-identical, repair_cells=36, repair_restarts=493.
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=30 --reps=4 --warmup=1`
+  - swapped file: `scripts/v0/optimizer/objective.ts`
+  - base mean **14,023.1 ns/frame**, candidate mean **13,481.2 ns/frame**
+  - delta median/mean **-3.93% / -3.85%**, 95% CI **[-4.53%, -3.09%]**
+  - candidate won **29/30** rounds, `P(candidate faster)=100.0%`
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **13,917.3 ns/frame**, candidate mean **13,432.6 ns/frame**
+  - delta median/mean **-3.60% / -3.47%**, 95% CI **[-3.76%, -3.17%]**
+  - candidate won **99/100** rounds, `P(candidate faster)=100.0%`
+- **Current standing:** `npm run perf`
+  - mean **13,260.2 ns/physics-frame**
+  - median **12,362.2 ns/physics-frame**
+  - stddev **1,405.9**
+  - frames **50,321**
+
+Verdict: kept. Both identity gates stayed bit-identical and the full paired gate
+cleared the thresholds with the interval well below zero.
+
+**The transferable lesson:** `process.env` is not a property read, it is a ~268 ns
+interceptor call. Any feature flag consulted inside a per-candidate or per-axis
+loop is a measurable tax. The remaining getters (`aim.ts` x7,
+`ballisticClosedFormEnabled`, `kinematicSupportEnabled`, `detectorRunwayEnabled`,
+`supportGeometryMode`, `readinessAirFitEnabled`) are each under 0.25% today
+because they sit on coarser paths — worth a look only if one moves onto a hot
+loop.

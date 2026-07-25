@@ -67,12 +67,32 @@ export function setReadinessCatchabilityObserver(
   catchabilityObserver = observer;
 }
 
+/** Built once. This check runs on every readiness call - the compiler's hottest
+ *  path - so it must not allocate. */
+const KNOWN_FEATURE_NAMES: ReadonlySet<string> = new Set(READINESS_FEATURE_NAMES);
+
+/*
+ * `assertCompatibleReadinessArtifact` is called per scoring call but its answer
+ * depends only on the artifact, which is a module-level singleton in production.
+ * Validate each artifact once and remember it; a rejected artifact throws every
+ * time, since only success is recorded.
+ */
+const validatedArtifacts = new WeakSet<ReadinessModelArtifact>();
+
+function assertCompatibleReadinessArtifactOnce(
+  artifact: ReadinessModelArtifact,
+): void {
+  if (validatedArtifacts.has(artifact)) return;
+  assertCompatibleReadinessArtifact(artifact);
+  validatedArtifacts.add(artifact);
+}
+
 export function scoreReadinessWithArtifact(
   input: NextArcReadinessInput,
   artifact: ReadinessModelArtifact,
   ablation: ReadinessStudyAblation = "normal",
 ): ReadinessScore {
-  assertCompatibleReadinessArtifact(artifact);
+  assertCompatibleReadinessArtifactOnce(artifact);
   const features = readinessFeatureVector(input);
   const impossibleBinding =
     input.incomingBoundary.incoming.riderMounted === false ||
@@ -187,25 +207,24 @@ export function assertCompatibleReadinessArtifact(
    * their own subset, and `infer` projects. Feature-selection experiments cost
    * a retrain and nothing else.
    *
-   * This is not weaker. An unknown or duplicated column is still rejected, and
-   * `featureTransformId` still binds the MEANING of a column, which is what
-   * changes silently and dangerously.
+   * This is not weaker where it matters: an unknown column is rejected here,
+   * duplicates are already rejected by the artifact parser
+   * (`readiness_model_artifact.ts`), and `featureTransformId` still binds the
+   * MEANING of a column, which is what changes silently and dangerously.
+   *
+   * What it does give up is a mechanical tripwire: appending or reordering
+   * `READINESS_FEATURE_NAMES` no longer invalidates an old artifact by itself,
+   * because the columns it names still exist and are still projected correctly.
+   * That is the intended trade - it is exactly what makes a subset legal - and
+   * the transform id is what must be bumped when a column's meaning moves.
    */
-  const known = new Set<string>(READINESS_FEATURE_NAMES);
-  const seen = new Set<string>();
   for (const name of artifact.featureNames) {
-    if (!known.has(name)) {
+    if (!KNOWN_FEATURE_NAMES.has(name)) {
       throw new Error(
         `readiness model feature schema does not match the production ` +
           `extractor: unknown feature ${name}`,
       );
     }
-    if (seen.has(name)) {
-      throw new Error(
-        `readiness model feature schema repeats feature ${name}`,
-      );
-    }
-    seen.add(name);
   }
   for (
     const component of [

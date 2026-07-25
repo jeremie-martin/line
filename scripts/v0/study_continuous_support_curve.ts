@@ -943,7 +943,16 @@ function observedCompilerIdentity() {
     "tsconfig.json",
   ];
   const head = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-  const diff = execFileSync("git", ["diff", "--binary", "HEAD", "--", ...compilerPaths], { encoding: "utf8" });
+  /*
+   * `compilerPaths` covers the megabyte-scale readiness model artifact, which
+   * is a single line: any dirty worktree emits both the old and the new line
+   * and blows execFileSync's 1 MB default buffer, failing as an opaque git
+   * error rather than a size limit. Hash the raw Buffer so the cap is a byte
+   * budget rather than a V8 string-length ceiling.
+   */
+  const diff = execFileSync("git", ["diff", "--binary", "HEAD", "--", ...compilerPaths], {
+    maxBuffer: 512 * 1024 * 1024,
+  });
   const untrackedSourceFiles = execFileSync(
     "git",
     ["ls-files", "--others", "--exclude-standard", "-z", "--", ...compilerPaths],

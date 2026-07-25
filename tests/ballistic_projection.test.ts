@@ -144,4 +144,53 @@ describe("canonical ballistic gap projection", () => {
       source.prefix.displacementYByFrame,
     );
   });
+
+  /*
+   * These pin the closed-form path's FAIL-CLOSED behaviour, which the exact
+   * kernel got for free by returning null.
+   *
+   * Note what is deliberately NOT claimed here: `launch()` builds a rigid,
+   * non-articulating body, where the ten-point system centre and the six-point
+   * body centre move identically. That fixture therefore cannot tell the two
+   * projection paths apart - it is a shared-behaviour fixture, not a
+   * discriminating one. The place the two are actually compared is the frozen
+   * 202,752-row predictor corpus (`npm run benchmark:ballistic`), against
+   * engine truth on real articulating bodies.
+   */
+  test("closed-form projection refuses a non-anchored constraint packet", () => {
+    const observation = launch();
+    const state = observation.state.constraintState;
+    if (state === undefined) throw new Error("fixture lost its constraint state");
+    // Production always anchors at the launch frame; the closed-form loop
+    // measures from the anchor, so a non-zero offset must be refused rather
+    // than silently disagreeing with the kernel.
+    const offset: BallisticLaunchObservation = {
+      ...observation,
+      state: { ...observation.state, constraintState: { ...state, frameOffset: 3 } },
+    };
+    expect(projectBallisticGap(offset, offset.anchorFrame + 8, {})).toBeNull();
+  });
+
+  test("closed-form projection refuses a non-finite launch state", () => {
+    const observation = launch();
+    const state = observation.state.constraintState;
+    if (state === undefined) throw new Error("fixture lost its constraint state");
+    const broken: BallisticLaunchObservation = {
+      ...observation,
+      state: {
+        ...observation.state,
+        constraintState: {
+          ...state,
+          points: {
+            ...state.points,
+            NOSE: { ...state.points.NOSE, vx: Number.NaN },
+          },
+        },
+      },
+    };
+    // The kernel failed closed by returning null. The closed form has no
+    // failure of its own, so an unusable launch must be rejected here rather
+    // than reaching the readiness extractor, which throws mid-compile.
+    expect(projectBallisticGap(broken, broken.anchorFrame + 8, {})).toBeNull();
+  });
 });

@@ -462,6 +462,30 @@ export function projectBallisticGap(
     : null;
   let terminalConstraintState = launch.state.constraintState;
   if (closedFormOriginState !== null) {
+    /*
+     * The kernel FAILS CLOSED - `advanceConstraintBallisticTrajectory` returns
+     * null and the caller treats the arrival as unusable. The closed form has
+     * no such failure, so it must not hand a non-finite value downstream: the
+     * readiness extractor would throw on it mid-compile instead of the
+     * candidate simply being rejected. Guard the launch state up front rather
+     * than per frame; every later value is an affine function of it, so if the
+     * origin is finite the whole trajectory is.
+     */
+    if (
+      !Number.isFinite(closedFormOriginState.sx) ||
+      !Number.isFinite(closedFormOriginState.sy) ||
+      !Number.isFinite(closedFormOriginState.svx) ||
+      !Number.isFinite(closedFormOriginState.svy) ||
+      !Number.isFinite(closedFormOriginState.offsetX) ||
+      !Number.isFinite(closedFormOriginState.offsetY)
+    ) return null;
+    /*
+     * The kernel honours `frameOffset`; this loop measures k from the anchor
+     * directly. Production always passes 0 (`captureBallisticLaunchObservation`
+     * anchors the packet at the launch frame), so rather than silently
+     * disagreeing on a path nobody takes, refuse it.
+     */
+    if (launch.state.constraintState.frameOffset !== 0) return null;
     for (let k = 1; k <= dt; k++) {
       const projected = closedFormStateAt(
         closedFormOriginState,
@@ -475,8 +499,28 @@ export function projectBallisticGap(
       if (k === preContactDt) preContact = projected;
       if (k === dt) incoming = projected;
     }
-    // Articulation is frozen at launch: the exact anchor packet is carried
-    // through unadvanced rather than re-solved.
+    /*
+     * Articulation is frozen at launch: the exact anchor packet is carried
+     * through unadvanced rather than re-solved. Two consequences are real and
+     * are stated here rather than discovered later.
+     *
+     * 1. `riderMounted` / `sledIntact` keep their launch values, so a predicted
+     *    IN-FLIGHT dismount cannot occur. The kernel can break either (bind
+     *    endurance, `ballistic_micro_sim.ts` `resolveConstraint`; joint cross,
+     *    `resolveJoint`), so the `impossibleBinding` gate in
+     *    `optimizer/readiness_scoring.ts` is now reachable only from launch
+     *    state. This is not a slip: the closed form models the body as RIGID,
+     *    and a rigid body never stretches a constraint, so "bindings never
+     *    break" is what its own assumption implies. It is an accepted loss of
+     *    resolution, bounded by the 24-seed parity measurement.
+     *
+     * 2. The per-frame suffix reports the ten-point SYSTEM speed while the
+     *    prefix carries the engine's six-point BODY speed, so `meanSpeedPx`,
+     *    `dy` and `elevation` mix two body definitions across the anchor. The
+     *    model asserts the two coincide - it freezes the rider's relative
+     *    velocity at zero - which is exactly the approximation measured at
+     *    0.034 px/frame of speed error against engine truth.
+     */
     terminalConstraintState = launch.state.constraintState;
   } else {
     const advanced = advanceConstraintBallisticTrajectory(

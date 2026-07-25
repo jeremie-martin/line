@@ -807,3 +807,89 @@ predictor cannot supply at all — 0.0463 against the do-nothing model's 0.0453.
 3. **The `capability` stratum cannot rank arms at these seed counts.** Its CI
    spans +/-60 and it inverted the ranking between the two best arms we measured.
    Judge on `representative` and validity.
+
+### NEXT CAMPAIGN — `frontier_dense_recovery`: the outstanding capability debt
+
+Named here so it is inherited deliberately rather than forgotten. This is the
+largest single prize left, and it is worth more than any remaining ballistic
+accuracy.
+
+**The debt.** When the contact-indexed compiler was promoted as the canonical
+baseline, one regression was accepted as documented debt rather than fixed. Two
+specs — `frontier_dense_recovery` and its 240ms variant — went from 46-48 of 48
+valid at 500k/750k to 3-6, and account for ~200 of the lost runs. At 250k the
+OLD baseline itself passed them only 15-20 times in 48, so that tier was always
+a coin flip; at 500k and 750k it was deterministic, and that is the real loss.
+
+**What is already known** (do not re-derive):
+
+- It is **not a capability loss, it is an efficiency loss.** Given budget, the
+  compiler completes `dense_recovery` — it just needs ~1.42M frames where the
+  old baseline needed ~334k. That is 4.25x slower to the first complete track,
+  which drops it below two of the three budget tiers.
+- The shape is **cumulative drift, not a wall.** Per-gap landing rate tracks the
+  old baseline within 1.5 points for twenty gaps, then separates (41.5 -> 28.8
+  in the 20-39 band) while the baseline holds 41-50% out to gap 109. There is no
+  single impassable gap; each committed arc leaves the rider slightly worse
+  placed and it compounds. Short specs never accumulate enough to show it, which
+  is why `representative` and `legacy_regression` are ahead.
+- Cost per look is fine; **yield per look is not.** Frames per candidate
+  evaluation are flat (15.4 vs 15.6); looks per committed contact rose 124 ->
+  206.
+- **Ten hypotheses are already falsified** — see the falsification list in
+  `docs/BALLISTIC_READINESS_DECISIONS.md` §5. Re-deriving any of them costs
+  hours.
+
+**Instrument warnings, learned the hard way.** `first_completion_frame` (TTC) is
+the natural metric here and it is a good DIAGNOSTIC — but it ranks how fast a
+spec finishes, not how well it scores, and it selected a losing arm when used
+alone. Pair it with a quality measure. And note the `capability` stratum cannot
+rank arms at low seed counts (CI +/-60); judge on `representative` and validity.
+
+**Framing for whoever picks this up:** the deficit is a search-efficiency loss
+with a cumulative-drift signature, on specs long enough for drift to compound
+past the budget. The question is not "why can't it do this" but "why does each
+committed arc cost slightly more than it should, and what would make the search
+notice".
+
+### 2026-07-23 cheap-model panel — recovered from a gitignored artifact
+
+Fourteen closed-form models were built, compared, and deleted without ever being
+timed; their absolute figures appeared in no document. Recovered here from
+`generated/analysis/ballistic-v2-all44-all-budgets-s735656107.json` (112 MB,
+gitignored) so the artifact itself is disposable. All against engine truth,
+44 cases x 3 budgets:
+
+```
+model                                     pre pos   contact pos   velMAE  angleMAE
+assembly_frozen_relative                    0.390        0.453    0.1153     0.496
+assembly_damped_tau4  (= production_artic)  0.419        0.520    0.0537     0.200
+assembly_damped_tau6/8/12/16                0.419        0.520    0.055-0.068
+assembly_rotating_position_center_velocity  0.419        0.520    0.0598     0.220
+assembly_rotating_angle                     0.419        0.520    0.1022     0.373
+assembly_rotating_velocity                  0.460        0.551    0.1045     0.397
+body_displacement                           0.840        0.952    0.1038     0.423
+body_recent_weighted                        0.958        1.067    0.1149     0.486
+assembly_linear_relative                    0.979        1.073    0.1153     0.496
+production (point-mass parabola)            1.082        1.188    0.1190     0.510
+assembly_center                             1.291        1.363    0.0598     0.220
+```
+
+Two things this settles.
+
+**The adopted "articulated" model was `assembly_damped_tau4`** — one of the
+panel, promoted on a 58.84% error reduction with no cost column.
+
+**An open lead, recorded not pursued.** Our shipped `closed_form_system` is
+0.560 pre / 0.583 contact on position — WORSE than several of these (best
+0.390/0.453) while matching the best on velocity (0.053) and angle (0.200). The
+difference is the relative-velocity treatment: we freeze the rider's launch
+offset, which is the tau -> infinity limit, whereas `assembly_damped_tau*` decays
+the relative velocity as exp(-dt/tau). Adding that decay would likely close most
+of the position gap and stay O(1).
+
+It is **not** being pursued, deliberately: the closed form is already at compiler
+parity, so there is nothing for better position accuracy to recover, and the
+readiness model has since been retrained on the inputs it actually receives —
+so improving them would require another retrain merely to express itself. This
+is here for whoever has a reason to want the accuracy back.

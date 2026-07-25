@@ -53,7 +53,7 @@ copied into prose.
 
 Why this definition — `redirArc` replaced the perpendicular `redir = v·sinΔθ`
 (label-driven, 4 tracks + an independent agent + a flat-slam generalization track;
-full history in `docs/impact_problem_statement.md`):
+full history in `docs/archive/impact_problem_statement.md`):
 
 - **CoM-velocity-only** ⇒ immune to sled rotation and limb whip, which look
   violent but are not felt.

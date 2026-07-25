@@ -58,7 +58,6 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`creative_workflow.md`](creative_workflow.md) | REFERENCE | Worked song→track→video example, and the `productions/<song>/` pipeline: `analyze_audio.py` → `characterize` → `select.json` → `npm run produce` (`scripts/produce/`). |
 | [`engine_speed_methodology.md`](engine_speed_methodology.md) | REFERENCE | Detailed engine-perf statistics and historical method; see `engine-workflow.md` for current workflow. |
 | [`impact_contract.md`](impact_contract.md) | REFERENCE | Self-contained per-beat impact contract (the impact metric definition). |
-| [`impact_problem_statement.md`](impact_problem_statement.md) | REFERENCE | Impact semantics living doc. |
 | [`impact_generation_and_landing_notes.md`](impact_generation_and_landing_notes.md) | REFERENCE | Impact-as-generation analysis + landing-redefinition notes. |
 | [`budget-control-design.md`](budget-control-design.md) | REFERENCE | Conceptual contract for difficulty-normalized budget control and validation gates. |
 | [`difficulty-model-study.md`](difficulty-model-study.md) | REFERENCE | First-completion cost vs full-score difficulty characterization. |
@@ -78,7 +77,7 @@ metric/workflow.
 
 `GOAL_LDS_COMPILER_IMPROVEMENT_V2.md`, `GOAL_LDS_ARC_PLACEMENT.md`, `FOCUS_FRAGILE_SPECS.md`, `PLATEAU_CAMPAIGN_LOG.md`,
 `GOAL_LDS_PLATEAU_BREAKOUT.md`, `GOAL_LDS_LOW_BUDGET.md`, `speed_policy_followups.md`,
-`arc_placement.md`, `TODO.md`, `short-leaf-campaign.md`, `short-leaf-campaign-log.md`,
+`arc_placement.md`, `short-leaf-campaign.md`, `short-leaf-campaign-log.md`,
 `lookahead-campaign-v1.md`, `lookahead-prompt-v1.md`, `lookahead-log-v1.md`,
 `push-700-log-v1.md`, `compiler-improvement-log-v1.md`,
 `compiler-baseline-evolution-v1.csv`, `handoff-compiler-v1.html`,

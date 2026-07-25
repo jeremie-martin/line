@@ -1,7 +1,7 @@
 # Impact generation + landing-redefinition notes (2026-06-09)
 
 Status: analysis/strategy notes. No code changed by this document. Companion to
-`docs/impact_problem_statement.md` (the rejected windowed-normal proposal) and the
+`docs/archive/impact_problem_statement.md` (the rejected windowed-normal proposal) and the
 `landing-impact-lever` memory (the measurement history). Written after the `redir`
 metric shipped into the compiler (commit `d3e4973`) and after ~30 steering probes
 (impact campaign log, now in git history) mostly washed.

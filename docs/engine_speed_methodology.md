@@ -19,7 +19,7 @@
 >   *Decision rule*.)
 > - **Engine:** every physics/perf/verify command runs under `LR_ENGINE=wasm`.
 > - **Record:** every attempt — kept or rejected — gets one entry in
->   [`../OPTIMIZATION_LOG.md`](../OPTIMIZATION_LOG.md).
+>   [`archive/OPTIMIZATION_LOG.md`](archive/OPTIMIZATION_LOG.md).
 
 This document is the canonical method. It exists because the engine is already
 deeply optimized (170+ logged sessions, ≈56× faster than the pristine JS engine),
@@ -205,7 +205,7 @@ tsx scripts/v0/bench/perf_ab.ts --js --rounds=100    # JS/TS change: swaps chang
 tsx scripts/v0/bench/perf_ab.ts --ref=<older-baseline-ref> --rounds=100 --p=0.9987
 ```
 
-Every run — accept or reject — is one entry in `OPTIMIZATION_LOG.md`: what was
+Every run — accept or reject — is one entry in `docs/archive/OPTIMIZATION_LOG.md`: what was
 tried, the verify result, the A/B verdict (`P(faster)`, win-count, Δ CI), and the
 one-line *why*. Negative results are first-class: they stop us re-exploring dead
 ends (most of the 170 sessions are exactly this).
@@ -253,7 +253,7 @@ plentiful. To reach <3,000 from ~5,950, the math requires real cuts to the physi
   verdict (keep needs `P(faster) ≥ 0.95` **and** median Δ < 0).
 - `LR_ENGINE=wasm npm run verify` (`verify:engine` + `verify:optimizer`) — the
   correctness gate.
-- `OPTIMIZATION_LOG.md` — the running, chronological record of every attempt.
+- `docs/archive/OPTIMIZATION_LOG.md` — the (retired) running, chronological record of every attempt.
 
 ## Appendix — how we measured this (for reference)
 

@@ -445,7 +445,7 @@ riskier proposal distributions where edge clipping would obscure the response.
 ## Next Study
 
 For the follow-up on candidate-count versus proposal-distribution control, see
-`docs/arc-sampling-control.md`. The important split is:
+`docs/archive/arc-sampling-control.md`. The important split is:
 
 ```text
 q = how many candidates are sampled

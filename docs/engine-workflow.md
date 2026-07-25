@@ -51,8 +51,8 @@ compiler-driver hot paths are not allowed.
 
 Absolute `ns/physics-frame` standings are machine-specific. At the start of a
 session, identify the active log for the current host. If none exists, create
-`OPTIMIZATION_LOG.<hostname>.md` and record the verified baseline there. Use the
-older top-level `OPTIMIZATION_LOG.md` only as background mechanism history when it
+`docs/archive/OPTIMIZATION_LOG.<hostname>.md` and record the verified baseline there. Use the
+older `docs/archive/OPTIMIZATION_LOG.md` only as background mechanism history when it
 was measured on another machine; do not compare absolute standings across
 machines.
 

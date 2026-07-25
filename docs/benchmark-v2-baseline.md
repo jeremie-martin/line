@@ -1,24 +1,20 @@
 # Benchmark V2 Baseline
 
-Label: `accept-2026-07-22T18-26-42Z-8565eddc`. Suite: `d01c8a064a201b08`.
+Label: `accept-2026-07-25T05-30-00Z-contact-indexed`. Suite: `d01c8a064a201b08`.
 
-Historical probe headline: **506.24**. Canonical headline: **513.77**.
-Qualification monitor: **391.39** (indicative only).
+Probe headline: **480.65**. Canonical headline: **494.91**. Qualification monitor: **392.50** (indicative only).
 
-The historical probe reference is retained for artifact compatibility only.
-Current comparisons use the canonical seed ladder directly at any requested N,
-compile only the candidate, and compare it with the identical cached baseline
-prefix. Promotion consumes an explicit favorable comparison artifact.
+Probe and canonical actual seeds are disjoint at every shared budget. Promotion uses a retained `eval --seeds=N` comparison artifact.
 
-Canonical cache: stable ladder through **300** slots/budget; accepted development evidence covers slots [0, 300).
+Canonical cache: stable ladder through **300** slots/budget; accepted development evidence covers slots [0, 8).
 
 | Budget | Probe | Valid | Canonical | Valid | Qualification | Valid |
 |---:|---:|---:|---:|---:|---:|---:|
-| 250k | 467.32 | 127/132 | 462.89 | 12587/13200 | 380.57 | 40/40 |
-| 500k | 521.80 | 132/132 | 522.45 | 13191/13200 | 391.51 | 40/40 |
-| 750k | - | - | 533.21 | 13196/13200 | 398.40 | 40/40 |
+| 250k | 450.09 | 115/132 | 448.76 | 306/352 | 381.86 | 40/40 |
+| 500k | 492.87 | 123/132 | 497.97 | 334/352 | 394.50 | 40/40 |
+| 750k | - | - | 520.59 | 338/352 | 396.24 | 40/40 |
 
-Candidate: `7ad483ec55b187d4e7d8a9c39fc60e9fb19641b2ac07e04d4ae446db4d76e83d`.
+Candidate: `e099dcea8bda093fed8c880ef64dcf466b00140613d2256eea8f05686ab20820`.
 Inference rule: `56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f`.
-Decision protocol: `ed2207b936a20d559b60dbb7c5d1fbbf970b346d9438597f3bd3f5bb00f6bd02`.
+Decision protocol: `d1327e987864601be002729fb03bb66fcc226f04401593adb5909143463420c4`.
 Decision calibration: `380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9`.

@@ -974,3 +974,25 @@ serves callers that want the whole record.
 Verdict: kept — the largest single win of the campaign, and the rule holds
 again: **stop doing the work**. Attempt 12 reshaped the same path and measured
 -0.07%; this one deletes 40% of it and measures -7.67%.
+
+### Standing after Attempt 16 (2026-07-26) — target met
+
+`npm run perf`: mean **9,964.0 ns/physics-frame**, median **9,411.3**, stddev
+1,006.8, frames 50,321.
+
+Against the session baseline of 13,654.0 / 12,799.5 that is **-27.0% mean,
+-26.5% median**, with eight accepted mechanisms and both identity gates
+bit-identical at every step.
+
+**The correction worth recording.** After Attempts 11, 12 and 15 all measured
+slower-or-neutral, this log concluded the remaining cost was "arithmetic that
+produces the answer" and that the TypeScript surface was exhausted. That was
+wrong, and it was wrong because it generalised from failed *reshapings* to a
+claim about *totals* without ever counting the work. One counter — 75,600 calls,
+21 outputs, 101 multiply-adds — showed the arithmetic was 1% of the compile while
+the function profiled at 8.45%, and the very next candidate took 7.67%.
+
+The instruction the earlier entries gave ("a future attempt on this vein needs an
+in-situ measurement before any code is written") was the right instruction. The
+mistake was writing a conclusion about the vein in the same breath, instead of
+just doing the measurement.

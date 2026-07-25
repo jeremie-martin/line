@@ -643,3 +643,50 @@ Both need ≳0.9M frames and the top tier is 750k, so the slowdown is invisible 
 the score, while the gains elsewhere are not. That reasoning would flip
 immediately if the suite gained a budget tier above 1M, and it is recorded here
 so the trade is re-examined rather than inherited if that happens.
+
+### 2026-07-25 — N=48 #3 rejects the feasibility weight, and indicts the instrument
+
+```
+headline delta -25.25   SE 1.74   95% [-29.82, -20.68]     (previous arm -15.33)
+validity 6227 -> 5951   (gained 22, lost 298; previous arm lost 372)
+strata
+  representative      -10.29   was +9.93
+  legacy_regression   +10.55   was +30.56
+  development_music   -28.83   was -12.61
+  capability         -117.71   was -164.65
+largest regressions  dense_recovery_240ms -306.64 (valid 116->20/144)
+                     dense_recovery       -264.11 (valid 109->20/144)
+                     dense_dialogue       -101.29 (valid 144->119/144)
+```
+
+The arm did exactly what it was designed to do. Every completion measure
+improved — 74 fewer lost runs, `frontier_dense_recovery` from 8 to 20 of 144
+valid, its 240ms variant from 10 to 20, `pickup_shifted` from 85 to 110, the
+capability stratum up 47 points. And the headline got 10 points worse, because
+score fell everywhere else.
+
+**Over-weighting admission makes the search prefer arcs that land safely over
+arcs that score.** A completed track that misses its axes is worth less than the
+axes are. That is a coherent, predictable consequence of the change, and it was
+invisible to every screen that selected it.
+
+**The instrument was the mistake, not the knob.** `first_completion_frame` ranks
+how fast a spec finishes; the benchmark scores how well it finishes. The two
+agree while a spec is failing to complete at all — which is why TTC diagnosed
+the deficit correctly — and diverge exactly when an arm starts trading quality
+for completion, which is what this arm did. Eight specs improving on TTC with no
+downside anywhere looked like an unambiguous win and was measuring half the
+objective.
+
+TTC keeps its place as a *diagnostic* for why a spec cannot finish. It is not a
+selection criterion, and no arm should be promoted on it again without a paired
+quality measure.
+
+**Kept:** the role split itself, at the neutral exponent. Grouping the
+objective's factors by the question they answer is clearer than grouping them by
+which model emitted them, and at exponent 1 it is the same product — but the
+identity is ALGEBRAIC, not bitwise. The regrouping changes multiplication order,
+so results differ in the last ulp and the search takes a different path:
+`pickup_progression` TTC 319k/305k/345k against 513k/396k/549k before the split.
+This tree is therefore NOT the one N=48 #2 measured, and is being measured in
+its own right rather than inheriting that result.

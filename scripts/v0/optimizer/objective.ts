@@ -28,16 +28,11 @@ import {
   type ReadinessScore,
 } from "./readiness.ts";
 
-function objectiveEnvNum(
-  name: string,
-  fallback: number,
-  allowZero = false,
-): number {
+function objectiveEnvNum(name: string, fallback: number): number {
   const raw = (globalThis as {
     process?: { env?: Record<string, string | undefined> };
   }).process?.env?.[name];
   const n = raw === undefined || raw === "" ? NaN : Number(raw);
-  if (allowZero) return Number.isFinite(n) && n >= 0 ? Math.min(4, n) : fallback;
   return Number.isFinite(n) && n > 0
     ? Math.min(4, Math.max(0.25, n))
     : fallback;

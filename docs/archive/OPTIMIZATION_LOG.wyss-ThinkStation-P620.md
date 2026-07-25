@@ -855,3 +855,37 @@ Self time before: 3.37% (279.6 ms of 8,295 ms).
 Verdict: kept — over the discovery bar, and the interval stays below zero, but
 this is the first accepted mechanism under 1%: the cheap allocation removals in
 this compiler are running out.
+
+### Session close (2026-07-25)
+
+`npm run perf`: mean **11,013.5**, median **10,212.1**, stddev 1,314.7, frames
+50,321. Against the session baseline of 13,654.0 / 12,799.5 that is **-19.3%
+mean, -20.2% median**, with seven accepted mechanisms, three rejected, and both
+identity gates bit-identical at every single step.
+
+**What is left, ranked, for whoever picks this up.**
+
+1. **The Rust/WASM engine — 35% of the compile**, `wasm-function[31]` alone
+   20.6%. The only remaining mass large enough to move the headline. Needs the
+   engine gates (`cargo test`, `npm run build:wasm`, `npm run wasm:all`) and
+   WASM-mode `perf_ab`, so cycles are much slower than the JS ones used here.
+2. **GC, 6.1%.** The obvious per-frame allocation left is
+   `detectCandidateWindowBuffer`, which builds a `{x, y}` velocity object per
+   frame (and a position object per frame under pool mode). Removing it means
+   changing `WindowDetection`'s shape for every consumer — a wide refactor of a
+   shared structure, which is precisely the kind of change that has failed here
+   three times out of four.
+3. **`predictValues`, 8.5%.** Do not attack it by reshaping the prediction
+   record; that has now been measured three ways and the record is not the cost
+   (Attempts 11 and 12). Find out what the 8.5% actually is first — a counter, or
+   a deliberately perturbed build — before writing code.
+4. **`predictReadinessComponent`, ~5%** after Attempt 13. What remains is the
+   real traversal of three 200-tree ensembles per readiness call. Attempt 7 shows
+   cheaper node visits do not pay; fewer inferences do.
+
+**The rule this session established, and it held nine times out of ten:** in this
+compiler, *stopping work* pays and *reshaping work* does not. Every accepted
+mechanism removed something — an environment lookup, an inference, an allocation,
+a data structure built and thrown away. Every rejected one rearranged work that
+still happened, and two of those were bit-identical and strictly less work on
+paper, one of them 15% slower in practice.

@@ -1315,6 +1315,31 @@ function predictClosedFormSystem(input: PredictorInput): BallisticState {
   const y = sy + n * svy + g * n * (n + 1) / 2 + offsetY;
   const speed = Math.hypot(svx, vy);
   const pose = closedFormPose(constraintState);
+  /*
+   * Rotation rate from the SYSTEM's angular momentum rather than a one-frame
+   * finite difference of the TAIL->NOSE segment.
+   *
+   * A rigid body in free flight conserves angular momentum, so its angular
+   * velocity is constant and pose really is linear in time - the linear
+   * extrapolation is the right shape. What was wrong is the estimate of the
+   * slope: differencing one segment across one frame measures that segment's
+   * articulation as much as the body's rotation. With equal masses and no
+   * external torque, omega = sum(r x v) / sum(|r|^2) over all ten points about
+   * the system centre, which uses every point instead of two.
+   */
+  let angularNumerator = 0;
+  let angularDenominator = 0;
+  for (const id of BALLISTIC_POINT_IDS) {
+    const point = constraintState.points[id];
+    if (point === undefined) continue;
+    const rx = point.x - sx;
+    const ry = point.y - sy;
+    angularNumerator += rx * (point.vy - svy) - ry * (point.vx - svx);
+    angularDenominator += rx * rx + ry * ry;
+  }
+  const omegaDegPerFrame = angularDenominator > 0
+    ? angularNumerator / angularDenominator * 180 / Math.PI
+    : 0;
   return {
     x,
     y,
@@ -1322,8 +1347,8 @@ function predictClosedFormSystem(input: PredictorInput): BallisticState {
     vy,
     speed,
     comAngleDeg: speed > 0 ? Math.atan2(vy, svx) * 180 / Math.PI : null,
-    sledPoseDeg: pose === null ? null : pose.deg + n * pose.rate,
-    sledPoseRateDegPerFrame: pose === null ? null : pose.rate,
+    sledPoseDeg: pose === null ? null : pose.deg + n * omegaDegPerFrame,
+    sledPoseRateDegPerFrame: omegaDegPerFrame,
     constraintState: { ...constraintState, frameOffset: 0 },
   };
 }

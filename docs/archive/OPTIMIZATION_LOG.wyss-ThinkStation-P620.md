@@ -996,3 +996,38 @@ The instruction the earlier entries gave ("a future attempt on this vein needs a
 in-situ measurement before any code is written") was the right instruction. The
 mistake was writing a conclusion about the vein in the same breath, instead of
 just doing the measurement.
+
+## Attempt 17 (2026-07-26) — hand the scorer its errors instead of two objects, KEEP (-4.31%)
+
+Counted first, again. `currentQualityFromAxisValues` runs **75,530 times per
+compile and scores exactly 3.00 axes per call** — and that call plus the scorer
+functions it reaches (`axisErrorsForTargets` 1.27%, `axisQualityFromErrors`
+2.70%) came to **7.4% of the compile, about 730 ns to score three numbers**.
+
+Mechanism kept: it built a `scoredTargets` and an `achieved` object and handed
+them to `axisQualityForTargets`, which walks AXES a *second* time, re-checks the
+report-only set and finiteness, and allocates the errors array itself. The
+caller already knows the axes and the values, so it now builds the errors array
+directly and calls `axisQualityFromErrors` — the same scorer function
+`objective.ts` already calls this way. Two objects, a second pass and a call
+layer stop happening per scored candidate.
+
+Bit-identity: same AXES order, same `value - target`, same report-only skip
+(`REPORT_ONLY_AXIS_SET` lives in `types.ts` and was already imported here, so no
+scorer semantics moved out of `score.ts`), and a scored axis with a non-finite
+value still short-circuits to NaN *before* the report-only filter — exactly
+where it happened when the filter lived downstream.
+
+- **Focused correctness:** 45/45 tests.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36).
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **10,329.4 ns/frame**, candidate mean **9,882.6 ns/frame**
+  - delta median/mean **-4.31% / -4.31%**, 95% CI **[-4.55%, -4.00%]**
+  - candidate won **99/100** rounds, `P(candidate faster)=100.0%`
+
+Also counted, and worth recording as closed: **readiness is only 583 calls per
+compile with 0.0% repeated (boundary, gap) inputs** — memoisation is not
+available and its ~4.8% is 583 x 600 real tree traversals. And **100% of the
+75,530 knob candidates are fully scored** — none are rejected after paying for
+the readout, so there is no lazy-evaluation win in `scoreConfiguredKnobs`.

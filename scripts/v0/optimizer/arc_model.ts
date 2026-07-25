@@ -9,7 +9,7 @@ import {
   type TrackLine,
 } from "../types.ts";
 import { LOCAL_IMPACT_COST_WEIGHT } from "../core/candidate.ts";
-import { axisQualityForTargets } from "../score.ts";
+import { axisQualityForTargets, axisQualityFromErrors } from "../score.ts";
 import {
   incomingKinematics,
   type BallisticState,
@@ -1056,15 +1056,20 @@ export function currentQualityFromAxisValues(
   impact: number,
   scoreAxes: JointArcCurrentScoreAxes = jointArcCurrentScoreAxes(targets),
 ): number {
-  const scoredTargets: AxisValues = {};
-  const achieved: AxisValues = {};
+  /* Hands the scorer its errors directly. The `scoredTargets` and `achieved`
+   * objects existed only so `axisQualityForTargets` could re-derive the same
+   * errors: it walks AXES a second time, re-checks the report-only set and
+   * finiteness, and allocates the array itself. This runs 75,530 times per
+   * compile to score three axes, so the two objects and the second pass are the
+   * bulk of it. Same axes, same AXES order, same `value - target`, so
+   * `axisQualityFromErrors` receives an identical array — and a scored axis
+   * whose value is non-finite still short-circuits to NaN before the
+   * report-only filter, exactly as it did when the filter lived downstream. */
+  const errors: number[] = [];
   for (const axis of AXES) {
     if (!scoreAxes[axis]) continue;
     const target = targets[axis];
     if (target === undefined || !Number.isFinite(target)) continue;
-    /* The six values arrive as arguments; packing them into an object per call
-     * just to read one back out by name allocated once per scored candidate.
-     * An unknown axis still reads as NaN, exactly as the absent object key did. */
     let value: number;
     switch (axis) {
       case "air": value = air; break;
@@ -1076,10 +1081,10 @@ export function currentQualityFromAxisValues(
       default: value = NaN; break;
     }
     if (!Number.isFinite(value)) return NaN;
-    scoredTargets[axis] = target;
-    achieved[axis] = value;
+    if (REPORT_ONLY_AXIS_SET.has(axis)) continue;
+    errors.push(value - target);
   }
-  return axisQualityForTargets(scoredTargets, achieved).axis_quality;
+  return axisQualityFromErrors(errors).axis_quality;
 }
 
 export function predictedArrivalState(outputs: Record<string, number>): RiderArrivalState | null {

@@ -561,3 +561,31 @@ largest JavaScript cost in the compiler.
 Verdict: kept. Every round favored the candidate and the interval is far from
 zero. Session total so far: **13,654.0 -> 12,567.7 ns/frame**, -8.0%, both
 identity gates bit-identical throughout.
+
+## Attempt 7 (2026-07-25) — monomorphize the readiness tree traversal, REJECT
+
+Mechanism tried: `predictTree` ran `"isLeaf" in tree` on every node visit to tell
+an ordinary tree from a histogram tree, and read all six node arrays through
+`tree.x[index]` — polymorphic loads across the two tree shapes, ~1,000 node
+visits per component prediction, four components per readiness call. The
+candidate attached the parse-time-derived `isLeaf` to every tree (the parser
+already computes it for ordinary trees and then discards it), so the shape test
+disappeared and the absent `missingGoToLeft` became the `histogram &&` guard,
+and hoisted all six array references to locals read once per traversal.
+
+- **Focused correctness:** `npx vitest run tests/readiness_model_artifact.test.ts`
+  passed: 8/8 tests.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36).
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=30 --reps=4 --warmup=1`
+  - base mean **12,741.7 ns/frame**, candidate mean **12,813.2 ns/frame**
+  - delta median/mean **+0.17% / +0.57%**, 95% CI **[+0.16%, +1.05%]**
+  - candidate won **12/30** rounds, `P(candidate faster)=0.4%`
+
+Verdict: rejected and reverted, despite being bit-identical and strictly less
+work on paper. `predictReadinessComponent`'s 4.94% is the traversal arithmetic
+itself, not the shape test — V8 already handles a two-shape `in` check and
+repeated packed-array loads about as well as hoisted locals, and the added
+`missingGoToLeft !== undefined` test per node paid for the rest. The lesson for
+this vein: the readiness cost is real work, so cutting it needs fewer node
+visits or fewer inferences, not cheaper node visits.

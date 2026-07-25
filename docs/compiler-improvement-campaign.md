@@ -716,3 +716,94 @@ be produced with zero semantic content. The confidence interval measures seed
 variance; it does not measure how much of a delta is the search landing in a
 different basin. Deltas of this magnitude are therefore weak evidence about a
 mechanism unless the change is bit-level inert or the effect is much larger.
+
+### 2026-07-25 — the ballistic layer was never priced; pricing it paid 44x
+
+A history survey of the predictor chain turned up a single structural fact:
+**every predictor generation was chosen on error ratio alone, and cost was never
+measured once.** The written rule was "adopt when the frozen-corpus score is at
+least 1% lower". Under it, three successive models shipped — point-mass parabola
+(1.19 px), articulated assembly (0.52 px), exact 22-constraint kernel
+(0.047 px) — each strictly more expensive than the last. A fourteen-model panel
+of cheap closed-form alternatives was built on 2026-07-23, compared on error,
+and deleted **without ever being timed**. The first per-prediction timing in the
+project's history was taken on 2026-07-25, six days and four commits after the
+exact kernel shipped.
+
+The rule was also self-sealing. Once the kernel reached zero error the score
+divided by zero, every alternative scored `Infinity`, and `decision` could only
+answer `keep_current`. A cheaper model was unreachable by construction.
+
+**What pricing it revealed.** Per frame the kernel costs 1.92–2.06 us against
+the engine's 1.47–1.70 — 1.3x MORE. Its real advantage was that its frames were
+never charged to the frame budget: 31.5% of everything the compiler simulated
+was unbilled, up to 0.92 unbilled per billed on air-heavy specs, sitting
+directly on the axis the suite varies to test scaling.
+
+**The replacement.** In free flight every constraint moves its two points
+equally and oppositely, there are no masses, and the joints only read positions,
+so the ten-point system centre is exactly ballistic — residual 1.1e-13 px/frame.
+The 135 solves per frame buy only the rider-vs-system difference. Carrying the
+rider on its launch offset, and taking sled-pose rate from conserved angular
+momentum rather than a two-point difference (12.76 -> 4.64 deg), gives:
+
+```
+                  ns/call   posMAE    speedMAE   angleMAE
+exact kernel       19,806    0.000     0.0000      0.00
+closed form           451    0.58 px   0.034       0.20      44x cheaper
+do nothing            233  173.65 px   0.732      14.29
+```
+
+**Adopted at parity, which is the correct bar** — a worse predictor cannot beat
+a perfect one, so an apparent gain is the search finding a different basin.
+24 seeds: headline 494.91 -> 494.63, delta -0.28, SE 2.50, 95% [-7.00, +6.44];
+no stratum significantly different; validity flat. Micro-sim frames: zero.
+
+Known cost, checked rather than assumed: `frontier_pickup_progression` stalls
+more often (750k: 3/24 vs 0/16). The failure mode is IDENTICAL in both —
+`terminus:rideStalled` on a marginal-energy track the kernel itself fails 15/16
+times at 250k — so it is the same margin crossed more often, not a new
+mechanism.
+
+### 2026-07-25 — readiness had been training on a distribution that no longer existed
+
+Independent of the above, and a latent defect: the readiness corpus carries a
+sampler fingerprint over the whole proposal path, and the guard had been
+refusing to load it since the overnight rework. **Every readiness number the
+compiler acted on came from a model fitted to inputs it no longer saw.**
+Recollected and retrained; measured alone, with the predictor unchanged, it was
+worth +7.34 headline and took `legacy_regression` from significant (-5.98) to
+not (-3.13).
+
+### 2026-07-25 — the extractor and the model are now separate lists
+
+Removing a feature from the readiness model used to require editing the
+extractor, which the corpus guard fingerprints, which invalidated the corpus,
+which can only be rebuilt by running the compiler, which needs a model matching
+the extractor. Feature selection was impossible without a hand-written bootstrap
+artifact or weakening the guard.
+
+`READINESS_FEATURE_NAMES` now says what the compiler can OBSERVE; an artifact's
+`featureNames` say what it USES. Compatibility requires only that every column
+exists in the extractor and appears once; `infer` projects. This is not weaker —
+unknown and repeated columns are still rejected, and `featureTransformId` still
+binds a column's meaning. Feature-selection experiments now cost a retrain.
+
+First use: the 8 `articulation:*` features are gone from the model (at most
+0.75% OOF, two components BETTER). They were the one output the closed-form
+predictor cannot supply at all — 0.0463 against the do-nothing model's 0.0453.
+
+### 2026-07-25 — instrument lessons worth more than the result
+
+1. **A metric that ranks completion does not rank quality.** `first_completion_frame`
+   diagnosed the capability deficit correctly and cheaply, then selected a
+   losing arm, because it measures how fast a spec finishes rather than how well.
+   Diagnostic, never a selection criterion, without a paired quality measure.
+2. **A 14-point headline swing can have zero semantic content.** An
+   algebraically exact regrouping of `proposalUtility` cost 14 points at N=48 —
+   7x the seed-block SE — purely through last-ulp reassociation changing which
+   ranking ties break. The confidence interval measures seed variance; it does
+   not measure which basin the search landed in.
+3. **The `capability` stratum cannot rank arms at these seed counts.** Its CI
+   spans +/-60 and it inverted the ranking between the two best arms we measured.
+   Judge on `representative` and validity.

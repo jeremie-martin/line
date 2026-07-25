@@ -292,15 +292,38 @@ export function propagateBallisticState(
  * The per-frame loop needs only `speed` and `vy`; pose is needed at the two
  * captured frames alone. So every frame costs a hypot and a few adds instead of
  * 135 constraint solves. Measured against the exact kernel on the frozen
- * corpus: 0.58 px position, 0.034 px/frame speed, 0.20 deg angle, at 300 ns per
- * prediction against 19,972.
+ * corpus of 202,752 real call sites: 0.58 px position, 0.034 px/frame speed,
+ * 0.20 deg angle, at 451 ns per prediction against 19,806 - 44x cheaper - and
+ * with sled pose taken from the system's conserved angular momentum rather than
+ * a two-point finite difference.
  *
- * `LR_BALLISTIC_CLOSED_FORM=1` selects it. Default is the exact kernel.
+ * THIS IS THE DEFAULT. `LR_BALLISTIC_CLOSED_FORM=0` restores the exact kernel
+ * for A/B work.
+ *
+ * The exact kernel was never a free choice, it was an unpriced one: it charges
+ * nothing to the frame budget, so a near-complete shadow simulation ran beside
+ * the real one - 31.5% of all frames the compiler simulated, and up to 0.92
+ * unbilled per billed on air-heavy specs. Under the closed form that is zero,
+ * and the budget axis finally measures what it claims to.
+ *
+ * Adopted at statistical parity, not improvement, which is the correct bar: a
+ * worse predictor cannot beat a perfect one. 24 seeds, against the kernel with
+ * readiness retrained on each predictor's own corpus - headline 494.91 ->
+ * 494.63, delta -0.28, SE 2.50, 95% [-7.00, +6.44]; representative +3.33,
+ * legacy_regression -4.61, music +2.34, capability -15.14, no stratum
+ * significantly different and validity flat at 2928/3168 against 2932.
+ *
+ * Known cost, recorded rather than buried: `frontier_pickup_progression` stalls
+ * a little more often (750k: 3 of 24 against the kernel's 0 of 16). The failure
+ * mode is IDENTICAL in both - `terminus:rideStalled` on a marginal-energy track
+ * that the kernel also fails 15 of 16 times at 250k - so this is the same
+ * physical margin crossed slightly more often, not a new mechanism, and it is
+ * already inside the parity result above.
  */
 function ballisticClosedFormEnabled(): boolean {
   return (globalThis as {
     process?: { env?: Record<string, string | undefined> };
-  }).process?.env?.LR_BALLISTIC_CLOSED_FORM === "1";
+  }).process?.env?.LR_BALLISTIC_CLOSED_FORM !== "0";
 }
 
 type ClosedFormOrigin = {

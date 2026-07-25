@@ -328,15 +328,32 @@ describe("contact-indexed proposal objective", () => {
       [current, next, after],
     );
     expect(scored).not.toBeNull();
+    // At neutral exponents the product is exactly the three layers: splitting
+    // readiness by role regroups its factors, it does not drop or duplicate
+    // any of them.
+    setProposalUtilityPowers({ feasibilityPower: 1 });
+    try {
+      const neutral = scoreCandidateProposal(fit, current, [current, next, after]);
+      expect(neutral!.value).toBeCloseTo(
+        neutral!.settledIncomingQuality *
+          neutral!.projectedOutgoingQuality *
+          neutral!.readiness,
+        12,
+      );
+    } finally {
+      setProposalUtilityPowers();
+    }
+    // The shipped default weights feasibility squared.
     expect(scored!.value).toBeCloseTo(
       scored!.settledIncomingQuality *
         scored!.projectedOutgoingQuality *
-        scored!.readiness,
+        scored!.readiness *
+        scored!.catchability,
       12,
     );
   });
 
-  test("proposal utility gives readiness an exponent of its own", () => {
+  test("proposal utility splits readiness by role, not by model", () => {
     const current = gap(0, 0, 20, { air: 0.5 });
     const next = gap(1, 20, 40, { speed: 0.5 });
     const after = gap(2, 40, 60, { air: 0.4 });
@@ -357,13 +374,14 @@ describe("contact-indexed proposal objective", () => {
         [current, next, after],
       );
       expect(scored).not.toBeNull();
-      // readiness does NOT follow futureQualityPower: projected quality asks
-      // how good the gap this arc opens is, readiness asks whether the next arc
-      // can be built at all. Unset, its exponent is 1.
+      // The readiness factors that GRADE the next arc travel with projected
+      // quality; only catchability, which admits it, carries the feasibility
+      // exponent. readiness / catchability is that grading group exactly.
+      const grading = scored!.readiness / scored!.catchability;
       expect(scored!.value).toBeCloseTo(
         scored!.settledIncomingQuality ** 2 *
-          scored!.projectedOutgoingQuality ** 0.5 *
-          scored!.readiness,
+          (scored!.projectedOutgoingQuality * grading) ** 0.5 *
+          scored!.catchability ** 2,
         12,
       );
     } finally {
@@ -373,7 +391,7 @@ describe("contact-indexed proposal objective", () => {
     setProposalUtilityPowers({
       settledIncomingQualityPower: 2,
       futureQualityPower: 0.5,
-      readinessPower: 3,
+      feasibilityPower: 3,
     });
     try {
       const scored = scoreCandidateProposal(
@@ -382,10 +400,11 @@ describe("contact-indexed proposal objective", () => {
         [current, next, after],
       );
       expect(scored).not.toBeNull();
+      const grading = scored!.readiness / scored!.catchability;
       expect(scored!.value).toBeCloseTo(
         scored!.settledIncomingQuality ** 2 *
-          scored!.projectedOutgoingQuality ** 0.5 *
-          scored!.readiness ** 3,
+          (scored!.projectedOutgoingQuality * grading) ** 0.5 *
+          scored!.catchability ** 3,
         12,
       );
     } finally {

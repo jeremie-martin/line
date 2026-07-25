@@ -52,45 +52,34 @@ const OBJECTIVE_FUTURE_POWER_ENV = objectiveEnvNum(
   1,
 );
 /*
- * Readiness carries its own exponent, separate from projected quality, because
- * the two answer different questions about the same future: projected quality
- * asks "how good is the gap this arc opens", readiness asks "can the NEXT arc
- * be built at all". Sharing one exponent forces the search to trade present
- * score against future feasibility at a fixed rate. Default 1 => exactly the
- * previous product.
- */
-const OBJECTIVE_READINESS_POWER_ENV = objectiveEnvNum(
-  "LR_OBJECTIVE_READINESS_POWER",
-  1,
-);
-/*
- * ADDITIONAL exponent on catchability, on top of the one it already carries as
- * a factor inside `readiness`. Zero (the default) leaves the product untouched.
+ * Exponent on FEASIBILITY, the third role in the product.
  *
- * The readiness product mixes two different questions. `catchability` asks
- * whether the next arc can be caught AT ALL - it is the dead-end predictor, and
- * dead ends are what the search pays for in backtracking. `speedFit` and
- * `impactFeasibility` ask how WELL the next arc will score, which is the same
- * kind of question `projectedOutgoingQuality` already asks. Weighting the whole
- * product to buy drift control therefore also amplifies impact-chasing, which
- * is worst exactly where impact asks are aggressive. This exponent reaches the
- * feasibility factor alone.
+ * `readiness` bundles two different questions. `catchability` asks whether the
+ * next arc can be caught AT ALL - it is the dead-end predictor, and dead ends
+ * are what the search pays for in backtracking. `speedFit`, `airFit`,
+ * `impactFeasibility` and `elevationFit` ask how WELL the next arc will score,
+ * which is the same kind of question `projectedOutgoingQuality` already asks.
+ * So the factors are split by ROLE rather than by which model produced them:
+ * future QUALITY takes `objectiveFuturePower`, feasibility takes this one.
+ * Every factor still appears exactly once, and at 1/1/1 the product is
+ * algebraically identical to settled x projected x readiness.
+ *
+ * Default 2: the drift the search accumulates is a feasibility failure, not a
+ * quality failure, and weighting the whole readiness product to correct it also
+ * amplifies impact-chasing - worst exactly where impact asks are aggressive.
  */
-const OBJECTIVE_CATCHABILITY_POWER_ENV = objectiveEnvNum(
-  "LR_OBJECTIVE_CATCHABILITY_POWER",
-  0,
-  true,
+const OBJECTIVE_FEASIBILITY_POWER_ENV = objectiveEnvNum(
+  "LR_OBJECTIVE_FEASIBILITY_POWER",
+  2,
 );
 let objectiveSettledPower = OBJECTIVE_SETTLED_POWER_ENV;
 let objectiveFuturePower = OBJECTIVE_FUTURE_POWER_ENV;
-let objectiveReadinessPower = OBJECTIVE_READINESS_POWER_ENV;
-let objectiveCatchabilityPower = OBJECTIVE_CATCHABILITY_POWER_ENV;
+let objectiveFeasibilityPower = OBJECTIVE_FEASIBILITY_POWER_ENV;
 
 type ProposalUtilityPowerConfig = {
   settledIncomingQualityPower?: number;
   futureQualityPower?: number;
-  readinessPower?: number;
-  catchabilityPower?: number;
+  feasibilityPower?: number;
 };
 
 export function setProposalUtilityPowers(
@@ -102,18 +91,9 @@ export function setProposalUtilityPowers(
   objectiveFuturePower = normalizeObjectivePower(
     config.futureQualityPower ?? OBJECTIVE_FUTURE_POWER_ENV,
   );
-  objectiveReadinessPower = normalizeObjectivePower(
-    config.readinessPower ?? OBJECTIVE_READINESS_POWER_ENV,
+  objectiveFeasibilityPower = normalizeObjectivePower(
+    config.feasibilityPower ?? OBJECTIVE_FEASIBILITY_POWER_ENV,
   );
-  objectiveCatchabilityPower = normalizeExtraPower(
-    config.catchabilityPower ?? OBJECTIVE_CATCHABILITY_POWER_ENV,
-  );
-}
-
-/** Additive exponents are allowed to be zero (the neutral value) and are not
- *  floored at 0.25 the way the multiplicative ones are. */
-function normalizeExtraPower(power: number): number {
-  return Number.isFinite(power) && power >= 0 ? Math.min(4, power) : 0;
 }
 
 function normalizeObjectivePower(power: number): number {
@@ -463,15 +443,33 @@ function neutralReadinessScore(): ReadinessScore {
 export function proposalUtility(
   settledIncomingQuality: number,
   projectedOutgoingQuality: number,
-  readiness: Pick<ReadinessScore, "readiness" | "catchability">,
+  readiness: ReadinessFactors,
 ): number {
   return (
     objectivePower(settledIncomingQuality, objectiveSettledPower) *
-    objectivePower(projectedOutgoingQuality, objectiveFuturePower) *
-    objectivePower(readiness.readiness, objectiveReadinessPower) *
-    (objectiveCatchabilityPower === 0
-      ? 1
-      : objectivePower(readiness.catchability, objectiveCatchabilityPower))
+    objectivePower(
+      projectedOutgoingQuality * readinessFutureQuality(readiness),
+      objectiveFuturePower,
+    ) *
+    objectivePower(readiness.catchability, objectiveFeasibilityPower)
+  );
+}
+
+export type ReadinessFactors = Pick<
+  ReadinessScore,
+  "catchability" | "speedFit" | "airFit" | "impactFeasibility" | "elevationFit"
+>;
+
+/** The readiness factors that GRADE the next arc rather than admit it. Their
+ *  product with `catchability` is `readiness` itself, so nothing is dropped and
+ *  nothing is counted twice - the two groups just carry the exponent of the
+ *  question they answer. */
+function readinessFutureQuality(readiness: ReadinessFactors): number {
+  return (
+    readiness.speedFit *
+    readiness.airFit *
+    readiness.impactFeasibility *
+    readiness.elevationFit
   );
 }
 

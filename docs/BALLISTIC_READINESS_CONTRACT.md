@@ -175,9 +175,15 @@ Cost note: this kernel is a faithful reimplementation of the engine's airborne
 solver, so its per-frame cost is comparable to the engine's rather than
 negligible. What it buys is that engine frames are the search BUDGET and this
 charges none of them, plus a counterfactual the engine cannot answer without a
-fork. Whether it is cheaper in wall clock is an open, unmeasured question
-tracked in [`../ballistic-goal.md`](../ballistic-goal.md); the volume is
-reported per compile as `CompileStats.ballistic_micro_sim_frames`.
+fork. Whether it is cheaper in wall clock was open until 2026-07-25, and the answer
+was NO for the exact kernel: 1.92-2.06 us per frame against the engine's
+1.47-1.70, i.e. ~1.3x MORE. Its real advantage was that its frames were never
+charged to the frame budget, so a shadow simulation ran beside the real one -
+31.5% of everything the compiler simulated. The default is now an O(1) closed
+form at 451 ns per prediction against 19,806, adopted at measured parity, with
+the unbilled frames at zero. The volume is still reported as
+`CompileStats.ballistic_micro_sim_frames`, which now reads 0 unless
+`LR_BALLISTIC_CLOSED_FORM=0` selects the kernel.
 
 ### 5.2 Output
 
@@ -334,6 +340,20 @@ quality(E[achieved]) != E[quality(achieved)]
 A model that predicts only a raw mean must either predict enough of the outcome
 distribution to integrate expected quality or be evaluated against the bias
 introduced by transforming the mean.
+
+### 7.3 The extractor is deliberately a superset of the model
+
+`READINESS_FEATURE_NAMES` says what the compiler can OBSERVE; an artifact's
+`featureNames` say what that model USES. They need not match, and since
+2026-07-25 they do not: the extractor emits 88 columns, the shipped model uses
+80, and `infer` projects onto the model's columns.
+
+This is load bearing. While the two had to be identical, dropping a feature from
+the model meant editing the extractor, which the corpus guard fingerprints,
+which invalidated the corpus, which can only be rebuilt by running the compiler,
+which needs a model matching the extractor. Compatibility now requires only that
+every column an artifact names exists in the extractor and appears once;
+`featureTransformId` still binds what a column MEANS.
 
 ## 8. Proposal utility
 

@@ -3,6 +3,10 @@
 **Start here:** [`HOW_TO_WORK.md`](HOW_TO_WORK.md) — the single how-to-work doc (goal,
 how to run, how to decide, principles, active campaigns, current baseline).
 
+A tag here never outranks a file's own banner: if a document opens by calling
+itself historical, it is ARCHIVE regardless of what this table once said. That
+inversion is how three superseded campaigns stayed indexed as LIVE.
+
 Tags: **LIVE** = current guidance · **REFERENCE** = stable background · **ARCHIVE** =
 historical record, not live guidance.
 
@@ -15,14 +19,18 @@ historical record, not live guidance.
 | [`benchmark-v2-decisions.md`](benchmark-v2-decisions.md) | LIVE | Statistical estimand, confidence method, policies, artifacts, and exit codes. |
 | [`benchmark-v2.md`](benchmark-v2.md) | LIVE | Benchmark V2 commands and operations. |
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen compiler behavior and budget contract. |
+| [`compiler-improvement-campaign.md`](compiler-improvement-campaign.md) | LIVE | The append-only campaign log. Dated entries; the header names the accepted baseline. |
+| [`BALLISTIC_READINESS_DECISIONS.md`](BALLISTIC_READINESS_DECISIONS.md) | LIVE | Why the ballistic/readiness contract says what it says: settled decisions, evidence, and ten falsified hypotheses. |
+| [`benchmark-v2-baseline.md`](benchmark-v2-baseline.md) | LIVE | Generated summary of the currently accepted baseline. |
+| [`benchmark-v2-audit.md`](benchmark-v2-audit.md) | LIVE | Suite audit and case provenance. |
 | [`REBASELINE.md`](REBASELINE.md) | LIVE | Accepted-attempt rebaseline and initial/suite-rollover bootstrap semantics. |
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | LIVE | The active compiler's search algorithm. |
 | [`BALLISTIC_READINESS_CONTRACT.md`](BALLISTIC_READINESS_CONTRACT.md) | LIVE | Pre-implementation source of truth for ballistic projection, gap composition, readiness, and proposal-utility boundaries. |
-| [`ARC_AIMING_FORMALIZATION.md`](ARC_AIMING_FORMALIZATION.md) | LIVE | The aiming model and the shared current-quality × readiness objective. |
+| [`ARC_AIMING_FORMALIZATION.md`](ARC_AIMING_FORMALIZATION.md) | ARCHIVE | The aiming model and the shared current-quality × readiness objective. |
 | [`READINESS_ROADMAP.md`](READINESS_ROADMAP.md) | REFERENCE | Historical readiness experiments and former composite semantics; not the current contract. |
-| [`ARC_STATE_CONTROL.md`](ARC_STATE_CONTROL.md) | LIVE | Arc-state control, joint model shape, and proposer/search boundary. |
+| [`ARC_STATE_CONTROL.md`](ARC_STATE_CONTROL.md) | ARCHIVE | Arc-state control, joint model shape, and proposer/search boundary. |
 
 ## Live campaigns
 
@@ -33,9 +41,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | Doc | Tag | What |
 |---|---|---|
 | [`../goal.md`](../goal.md) | LIVE | The active compiler-improvement goal and fixed-N promotion discipline. |
-| [`geometry-campaign.md`](geometry-campaign.md) | LIVE | Arc shape/placement/aim is the ceiling. Board `eval_geometry.sh`; companions `geometry-prompt.md`, `geometry-log.md`. |
-| [`planning-campaign.md`](planning-campaign.md) | LIVE | Long-horizon / global planning. Board `eval_planning.sh`; companion `global-planning.md`. |
-| [`impact-mission.md`](impact-mission.md) | LIVE | Impact metric + steering (the campaign that produced the current baseline). Board `eval_impact.sh`; companions `impact-campaign.md`, `IMPACT_PAIR_PLANNING.md`. |
+| [`impact-mission.md`](impact-mission.md) | REFERENCE | Impact metric + steering (the campaign that produced the current baseline). Metric stated symbolically, so it survived the recalibration. |
 
 ## Reference
 
@@ -56,7 +62,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`impact_generation_and_landing_notes.md`](impact_generation_and_landing_notes.md) | REFERENCE | Impact-as-generation analysis + landing-redefinition notes. |
 | [`budget-control-design.md`](budget-control-design.md) | REFERENCE | Conceptual contract for difficulty-normalized budget control and validation gates. |
 | [`difficulty-model-study.md`](difficulty-model-study.md) | REFERENCE | First-completion cost vs full-score difficulty characterization. |
-| [`../TOOLING_NOTES.md`](../TOOLING_NOTES.md) | REFERENCE | Living log of tooling/harness friction + resolutions. |
+| [`../TOOLING_NOTES.md`](../TOOLING_NOTES.md) | ARCHIVE | V1-era tooling notes; its own banner warns the commands may no longer exist. |
 
 HTML views: `archive/handoff-compiler-v1.html` is a historical V1 generated view. The V2 baseline of
 record is `../benchmark/v2/baseline.json`. `forward-eval-map.html` is **hand-maintained** (no generator); re-verify its

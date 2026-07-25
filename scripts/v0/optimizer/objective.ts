@@ -418,7 +418,7 @@ export function proposalUtility(
    * DO NOT re-associate this expression. It is three multiplications and looks
    * like it could be grouped any way at all, but the compiler's headline is
    * chaotically sensitive to the result's last bits: regrouping it as
-   * settled x (projected x gradingFactors) x catchability is algebraically
+   * settled x (projected x the four grading factors) x catchability - the role-split form deleted in a7bdf70 is algebraically
    * identical - verified, 61% of random inputs differ, max relative difference
    * 8.0e-16, about 3.6 ulp - and cost 14 headline points at N=48 (-15.33 ->
    * -29.34), seven times the seed-block SE. Ranking ties break differently and

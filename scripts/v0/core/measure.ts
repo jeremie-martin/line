@@ -104,8 +104,11 @@ const measureElevation: AxisReduction = ({ det, gap, rangeEndFrame }) => {
  * below the chord contribute nothing (clamped at 0 = no upward arc).
  *
  * Vertical displacement is reconstructed by integrating `vy` from the gap start:
- * the compiler's candidate-window detections drop the per-frame `position` array
- * to save allocation, but `velocity` is always present, and the integral of vy
+ * NOT because position is unavailable - `POOL_MODE` is a hard `true` and every
+ * candidate detection populates `position`. The integral form IS the
+ * fingerprinted definition of this axis, so reading `position` directly would
+ * change the float-op sequence and move a scored quantity. Do not "simplify" it.
+ * `velocity` is always present, and the integral of vy
  * is exactly the chord-relative height we need. Two passes, no allocation; this
  * runs per candidate, so it stays as cheap as `measureAir`/`measureSpeed`.
  */

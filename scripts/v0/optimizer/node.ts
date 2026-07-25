@@ -5,9 +5,14 @@
  * committed, what their fits are, what the engine state looks like, and
  * optionally a memoized candidate list for the next gap.
  *
- * Candidate count is a code constant or an explicit caller override, never a
- * budget-derived value. That keeps the search policy independent of budget;
- * budget only decides how far into the deterministic node sequence we get.
+ * Candidate count is a code constant or an explicit caller override. The handoff
+ * caller DOES derive its override from the compile's target budget
+ * (`budgetAwareQualitySampleCount`, optimizer/handoff.ts) - this module used to
+ * claim otherwise, which is a dangerous thing to believe while debugging
+ * reproducibility. What still holds, and is the property that matters: the
+ * target budget is a per-compile constant, so the count never changes mid-node
+ * and a compile stays deterministic in (spec, seed, budget). It is NOT constant
+ * ACROSS budgets, and two budgets will walk different node sequences.
  */
 
 import { makeRng } from "../../lib/rng.ts";

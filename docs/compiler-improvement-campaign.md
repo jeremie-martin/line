@@ -3,8 +3,13 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`accept-2026-07-22T18-26-42Z-8565eddc`, canonical headline 513.77. Its
-cache covers 300 seeds per budget.
+`accept-2026-07-25T15-30-00Z-closed-form`, canonical headline 498.9141. Its
+cache covers 8 seeds per budget and extends on demand.
+
+A baseline archive is always EXACTLY 8 canonical seeds per budget - the seed
+schedule packs 250k to slots 0-7, 500k to 8-15, 750k to 16-23, leaving the probe
+profile 24-26 / 27-29 / 30-32, and anything deeper collides with it. Deeper runs
+are evidence, not baselines.
 
 The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows

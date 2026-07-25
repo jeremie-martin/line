@@ -2,8 +2,15 @@
 
 The single self-contained statement of what per-beat `impact` means at every
 layer, why each piece is designed the way it is, and the evidence behind it.
-Last validated 2026-06-09 (fingerprint `eede9661bba6`, canonical reference
-570.25, archive `impact-ballistic-bound-canon-01`).
+Last validated 2026-07-25 against `scripts/v0/types.ts` and
+`scripts/v0/core/substrate.ts`. The canonical reference is whatever
+`benchmark/v2/baseline.json` currently says (498.91 at the time of writing) —
+this document deliberately no longer pins a headline, because the ruler is
+re-based and a stale number here reads as a current anchor.
+
+**The code is the definition.** `IMPACT` in `types.ts` and
+`impactFeasibilityBound` in `substrate.ts` are normative; if this file ever
+disagrees with them, they win and this file is the bug.
 
 ## The promise (authoring semantics)
 
@@ -37,9 +44,12 @@ Authoring helpers: `beats([{t, impact?}])`, `withImpact(contacts, rule)`
 Impact = **velocity-redirection ARC**: `redirArc = v·Δθ`, the incoming CoM speed
 (`v`, px/frame) times the net heading change (`Δθ`, radians) of the CoM velocity
 over the `IMPACT_WINDOW = 6` frame (~0.15 s) episode after the landing, mapped to
-a **felt [0,1]** by `normImpact` — `0 = soft` (`redirArc ≈ REDIRARC.SOFT = 2.0`
-px/frame), `1 = very strong` (`redirArc ≈ REDIRARC.VERY_STRONG = 6.5`); gentler
-clamps to 0, harder to 1.
+a **felt [0,1]** by `normImpact` — `0 = soft` (`redirArc ≈ REDIRARC.SOFT`,
+currently **0**), `1 = very strong` (`redirArc ≈ REDIRARC.VERY_STRONG`,
+currently **7.29**); gentler clamps to 0, harder to 1. Both are env-overridable
+(`LR_IMPACT_SOFT`, `LR_IMPACT_VSTRONG`) and were re-anchored when the metric
+went linear — read them from `types.ts:1095,1101` rather than trusting a number
+copied into prose.
 
 Why this definition — `redirArc` replaced the perpendicular `redir = v·sinΔθ`
 (label-driven, 4 tracks + an independent agent + a flat-slam generalization track;
@@ -70,9 +80,11 @@ kept only for the dashboard's comparison lane.)
 - An authored contact is matched to its beat within ±1 frame
   (`findAuthoredContactNearFrame`). Detector-limited intervals may use a
   persistent bounce because a distinct landing is not representable there.
-- The scale `REDIRARC.SOFT = 2.0` / `VERY_STRONG = 6.5` (px/frame) is felt-anchored
-  to the user's labels (soft ≈ 2.0, very strong ≈ 6.5; `normImpact`/`impactToRedirArcPx`
-  in types.ts). The achievable-envelope distribution (calibrate_corpus.ts: 11,607
+- The scale `REDIRARC.SOFT` / `VERY_STRONG` (px/frame) is felt-anchored to the
+  user's labels. It was re-fit when the metric became linear and now reads
+  **0 / 7.29** (`types.ts:1095,1101`); the 2.0 / 6.5 pair below belongs to the
+  superseded saturating metric and is retained only to explain the corpus
+  percentiles that were measured under it. The achievable-envelope distribution (calibrate_corpus.ts: 11,607
   landings / ~400 perturbed variants; redirArc p50 1.44, p95 4.47, p99 6.63) confirms
   very-strong ≈ the top-1% landing, and gives a stable scale (p99 6.63, within 5% across
   very different corpora).
@@ -94,7 +106,14 @@ no fitted constants:
 - exit allowance: the redirected motion must fit before the next beat ⇒
   `θ_out ≤ atan(g·N_next/2 ÷ v)`;
 - catchability: total turn ≤ `asin(CATCHABLE_REDIR_FRACTION = 0.9)`;
-- `bound = v·sin(min(θ_in + θ_out, cap)) / 8.5`.
+- `bound = normImpact(v · min(θ_in + θ_out, asin(0.9)))` — see
+  `substrate.ts:474-477`.
+
+  **NOT** `v·sin(...) / 8.5`, which is what this line said until 2026-07-25.
+  That is the retired saturating metric with the legacy `CALIB.REDIR_CAP`
+  divisor, itself annotated `[LEGACY — NOT SCORED as of 2026-06-14]` at
+  `types.ts:1149-1152`. Under the linear form there is no `sin` and no divisor:
+  the turn is capped by catchability, then multiplied by speed and normalized.
 
 Dense-beat limit: `bound ≈ g·(N_prev+N_next)/2 ÷ 8.5` — the vertical-velocity
 budget around the beat. This is why tight grooves cap near 0.45–0.5 regardless

@@ -13,9 +13,12 @@
  * scalar budget (an independent full run; the budget is the stop condition) and a
  * strict best-so-far register ranks every prefix output considered, returning the
  * best reached at that budget. The enforced contract is determinism per
- * (spec, seed, budget). NOTE: this step's search does not yet READ the budget to
- * change its policy — making it budget-aware is the next project (see
- * `docs/compiler_goals.md`).
+ * (spec, seed, budget). NOTE: search policy IS budget-aware throughout -
+ * candidate breadth (`budgetAwareQualitySampleCount`), the forward-eval gate
+ * (`usesForwardEvalAtBudget`), branch width, the repair phase and every maturity
+ * smoothstep read the compile's target budget. This header claimed the opposite
+ * until 2026-07-25, which invited "make it budget-aware" work on a system
+ * already saturated with it.
  */
 
 import { getRiderMetered, K_BOUNCE_LANDING } from "../../lib/detector.ts";
@@ -5244,7 +5247,7 @@ type ForwardRolloutShape = {
 };
 type CandidateForwardPolicy = ForwardRolloutShape & {
   charge: boolean;
-  /** Leaf scorer for the rollout terminus. "full" (default) re-detects the whole
+  /** Leaf scorer for the rollout terminus. "objective" (DEFAULT, zero engine frames); "full" re-detects the whole
    *  partial track from frame 0 on a fresh engine fork (forwardNodeScore). "objective"
    *  scores the leaf with ZERO engine frames from data the rollout already has
    *  (rolled-gap axis quality × next-gap readiness × missed-step penalty —
@@ -5460,7 +5463,7 @@ function readEnv(name: string): string | undefined {
  *  first complete track, then the rest of the budget is spent restarting the real frontier-DFS
  *  (fresh seed) from the weakest AFFORDABLE gap of the incumbent, rebuilding the suffix to a
  *  complete track accepted iff it beats the incumbent. Honest (sims charged), gated to high budget
- *  (completion is DFS's job at low budget → ≤100k byte-identical), deterministic per (spec,seed,budget). */
+ *  (completion is DFS's job at low budget → <100k byte-identical; repair RUNS at exactly 100k), deterministic per (spec,seed,budget). */
 type RepairConfig = {
   minBudget: number;
   mainMargin: number;
@@ -5751,7 +5754,7 @@ function parseRolloutShape(raw: string): ForwardRolloutShape | null {
   return { variant: v, depth, branch };
 }
 
-/** Leaf scorer for the rollout terminus. DEFAULT "full" (byte-identical re-detection).
+/** Leaf scorer for the rollout terminus. DEFAULT "objective" (zero engine frames); "full" is the explicit escape hatch.
  *  LR_FWD_EVAL_LEAF=objective scores the leaf with zero engine frames (objectiveLeafValue).
  *  Parsed as a SEPARATE var from LR_FWD_EVAL so fwdEvalRuntime.defaultConfig / the mature-avg
  *  upgrade stay untouched (an objective-leaf greedy:2 is still the "default config"). */
@@ -5971,7 +5974,7 @@ function forwardRolloutScore(
   search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, depthLeft: number, branch: number,
   leafObjective: boolean,
 ): number {
-  // Leaf scorer: full re-detection (default) or zero-frame objective value. The missing-contact
+  // Leaf scorer: zero-frame objective value (DEFAULT) or full re-detection (LR_FWD_EVAL_LEAF=full). The missing-contact
   // penalty is derived by the leaf scorer itself from the node's own committed depth
   // (objectiveLeafValue's futureMissing / forwardNodeScore's re-detection).
   const leafValue = (node: SearchNode): number =>

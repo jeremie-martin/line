@@ -322,13 +322,11 @@ const ELEVATION_RIDEOUT_SHORTEN = 1.0;
  *  longer arcs; the forward-eval keeps whatever scores. SPAN/FLOOR/CAP below are
  *  the knob.
  *
- *  Shipped at NEUTRAL (1.0/1.0/28/220 = the historical behavior, byte-identical
- *  baseline) on purpose: an *active* widening to 0.6–1.6 / 16–320 was measured at
- *  HEADLINE 611.6 vs 624.6 (Δ−13, decide REJECT) — the wider pool dilutes quality
- *  faster than the forward-eval recovers it. The campaign's job is to OPEN this
- *  range AND add the supporting arc-placement work (better landing setup for long
- *  ride-outs, selection/budget so longer arcs are kept only where they pay) until
- *  the canonical decide ACCEPTs. (Arc-placement campaign log: git history.) */
+ *  OPENED and ACCEPTED (35b5a4f, +7.7 headline): the span is 0.80-1.45 with a
+ *  28-260 px clamp, room-gated so both ends fade to neutral 1.0 as room -> 0,
+ *  which keeps dense gaps byte-identical. This paragraph previously said
+ *  "shipped at NEUTRAL (1.0/1.0/28/220)" and quoted the pre-widening values,
+ *  which stopped being true when the campaign it describes succeeded. */
 const ARC_LEN_SPAN_LO = 0.80;
 const ARC_LEN_SPAN_HI = 1.45;
 const ARC_LEN_FLOOR = 28;

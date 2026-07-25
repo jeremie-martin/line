@@ -47,7 +47,7 @@
  *      rest of the pool still competes.
  *
  * CURRENT-INSTANCE CHOICES (defaults, not rules — revisitable with evidence):
- * two knobs (exit pitch + whole-arc rotation); fixed 5-probe cross design; a
+ * two knobs (tail pitch + post-contact pitch; whole-arc rotation was replaced in 5d71efb); fixed 5-probe cross design; a
  * shared hybrid joint response model also used by the study harness; top-2
  * emitted proposals per refined base. The local response fit scores only the
  * settled incoming and projected outgoing layers it actually predicts. Once a

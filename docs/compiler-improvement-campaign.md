@@ -617,3 +617,29 @@ The exponent sweeps that led here, for the record (TTC on
 0.5 → 610k, 1 → 486k, 1.5 → 349k, 2 → 373k, 3 → 331k; feasibility exponent
 1 → 486k, 1.5 → 301k, 2 → 330k, 3 → 320k. The sign is unambiguous and the
 optimum is broad, which is what a real effect looks like rather than a tuned one.
+
+### 2026-07-25 — the dense_recovery trade, resolved at a budget that can see it
+
+The screen reported `frontier_dense_recovery` as unresolved because a 1.5M probe
+budget is the same order as its completion frame. Re-run at 3M, where both arms
+can actually finish, it resolves — and not in the new default's favour:
+
+```
+                                       previous product      feasibility^2
+frontier_dense_recovery            3/3, mean  917k        3/3, mean 1557k
+  per seed                     1595k / 667k / 490k    2040k / 1007k / 1624k
+frontier_dense_recovery_240ms_figures  2/3               3/3, mean 2047k
+  per seed                     563k / none / 2184k     870k / 2794k / 2476k
+```
+
+So the feasibility weighting is not free. It helps every other spec measured,
+healthy and capability alike, and it converts the 240ms variant from 2/3 seeds
+to 3/3 — but it costs `frontier_dense_recovery` roughly 70% more frames to
+reach its first completion.
+
+**Why this is still the right default, stated as a judgement and not as a
+measurement:** at benchmark budgets neither arm completes that spec at all.
+Both need ≳0.9M frames and the top tier is 750k, so the slowdown is invisible to
+the score, while the gains elsewhere are not. That reasoning would flip
+immediately if the suite gained a budget tier above 1M, and it is recorded here
+so the trade is re-examined rather than inherited if that happens.

@@ -1,8 +1,8 @@
 # Benchmark V2 Baseline
 
-Label: `accept-2026-07-25T05-30-00Z-contact-indexed`. Suite: `d01c8a064a201b08`.
+Label: `accept-2026-07-25T15-30-00Z-closed-form`. Suite: `d01c8a064a201b08`.
 
-Probe headline: **480.65**. Canonical headline: **494.91**. Qualification monitor: **392.50** (indicative only).
+Probe headline: **487.02**. Canonical headline: **498.91**. Qualification monitor: **394.17** (indicative only).
 
 Probe and canonical actual seeds are disjoint at every shared budget. Promotion uses a retained `eval --seeds=N` comparison artifact.
 
@@ -10,11 +10,11 @@ Canonical cache: stable ladder through **300** slots/budget; accepted developmen
 
 | Budget | Probe | Valid | Canonical | Valid | Qualification | Valid |
 |---:|---:|---:|---:|---:|---:|---:|
-| 250k | 450.09 | 115/132 | 448.76 | 306/352 | 381.86 | 40/40 |
-| 500k | 492.87 | 123/132 | 497.97 | 334/352 | 394.50 | 40/40 |
-| 750k | - | - | 520.59 | 338/352 | 396.24 | 40/40 |
+| 250k | 446.18 | 116/132 | 448.36 | 305/352 | 386.20 | 40/40 |
+| 500k | 503.36 | 125/132 | 504.62 | 333/352 | 394.34 | 40/40 |
+| 750k | - | - | 523.11 | 336/352 | 399.19 | 40/40 |
 
-Candidate: `e099dcea8bda093fed8c880ef64dcf466b00140613d2256eea8f05686ab20820`.
+Candidate: `be7f23e9a370ce5e4b4ac0b90730b2e429e87a25a7a72e9efb854d9dc93b404e`.
 Inference rule: `56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f`.
-Decision protocol: `d1327e987864601be002729fb03bb66fcc226f04401593adb5909143463420c4`.
+Decision protocol: `66df2a60541432357fa203e1d45f4377878960f42d47a72a1a153adcf5205d2c`.
 Decision calibration: `380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9`.

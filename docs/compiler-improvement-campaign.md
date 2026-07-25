@@ -690,3 +690,29 @@ so results differ in the last ulp and the search takes a different path:
 `pickup_progression` TTC 319k/305k/345k against 513k/396k/549k before the split.
 This tree is therefore NOT the one N=48 #2 measured, and is being measured in
 its own right rather than inheriting that result.
+
+### 2026-07-25 — N=48 #4: an algebra-preserving regroup costs 14 points
+
+The role split was re-measured at its neutral exponent, expecting the same
+compiler written more clearly. It is not the same compiler:
+
+```
+delta -29.34  [-33.84, -24.83]        vs -15.33 unsplit, -25.25 weighted
+strata  representative -10.75 | capability -137.67 | legacy +3.13 | music -29.50
+validity 6227 -> 5945
+```
+
+The regrouping is algebraically exact. Verified over two million random inputs:
+61% differ between the two associations, maximum relative difference **8.0e-16**
+(~3.6 ulp). That is the entire semantic content of the change, and it moved the
+headline 14 points — **seven times the seed-block SE** — because ranking ties
+break differently and the search walks a different tree.
+
+Reverted; the restored product is bit-for-bit the tree N=48 #2 measured
+(`pickup_progression` TTC 513010/396401/548736, identical).
+
+**The corollary applies to every number in this campaign.** A 14-point swing can
+be produced with zero semantic content. The confidence interval measures seed
+variance; it does not measure how much of a delta is the search landing in a
+different basin. Deltas of this magnitude are therefore weak evidence about a
+mechanism unless the change is bit-level inert or the effect is much larger.

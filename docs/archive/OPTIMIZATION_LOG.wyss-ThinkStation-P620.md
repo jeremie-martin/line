@@ -515,3 +515,49 @@ loop is a measurable tax. The remaining getters (`aim.ts` x7,
 `supportGeometryMode`, `readinessAirFitEnabled`) are each under 0.25% today
 because they sit on coarser paths — worth a look only if one moves onto a hot
 loop.
+
+## Attempt 6 (2026-07-25) — flatten the arc-vector prediction loop, KEEP
+
+Mechanism kept: `predictValues` walked a `ReadonlyMap<string, FittedOutputEntry>`
+with array destructuring, and consulted a `Map<form, number[]>` feature cache —
+allocated fresh per call and both `get` and `set` on every output — before doing
+the dot product through two levels of indirection (`entry.model.coefficients`).
+It is called once per knob candidate over every fitted output, so all of that
+plumbing is paid per output per candidate.
+
+Now `fitArcVectorResponseModel` also stores `outputEntries`: the same outputs
+flattened, in Map insertion order, to `{key, angle, ref, form, coefficients}`.
+Prediction walks that array by index, and the per-call feature memo is four
+locals — one per fit form — instead of a Map. Each form is still built on first
+use by the same function, the coefficients are read in the same order, and the
+dot product is unchanged, so every prediction is bit-identical. `outputModels`
+is unchanged and still serves the form/degraded counts in `aim.ts`.
+
+`predictValues` was 11.33% of the profiled compile (980.9 ms of 8,660 ms), the
+largest JavaScript cost in the compiler.
+
+- **Focused correctness:**
+  - `npx vitest run tests/arc_model.test.ts tests/optimizer_sample.test.ts tests/objective_quality.test.ts`
+    passed: 45/45 tests.
+- **Identity gates:** both bit-identical.
+  - `npm run verify:optimizer`: 4/4 cases byte-identical.
+  - `npm run verify:compiler:behavior -- --budgets=100000,150000,200000`:
+    36/36 cells byte-identical, repair_cells=36, repair_restarts=493.
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=30 --reps=4 --warmup=1`
+  - swapped file: `scripts/v0/optimizer/arc_vector_model.ts`
+  - base mean **13,434.6 ns/frame**, candidate mean **12,805.0 ns/frame**
+  - delta median/mean **-4.75% / -4.68%**, 95% CI **[-5.02%, -4.34%]**
+  - candidate won **30/30** rounds, `P(candidate faster)=100.0%`
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **13,440.7 ns/frame**, candidate mean **12,777.1 ns/frame**
+  - delta median/mean **-4.91% / -4.93%**, 95% CI **[-5.14%, -4.70%]**
+  - candidate won **100/100** rounds, `P(candidate faster)=100.0%`
+- **Current standing:** `npm run perf`
+  - mean **12,567.7 ns/physics-frame**
+  - median **11,694.1 ns/physics-frame**
+  - stddev **1,410.1**
+  - frames **50,321**
+
+Verdict: kept. Every round favored the candidate and the interval is far from
+zero. Session total so far: **13,654.0 -> 12,567.7 ns/frame**, -8.0%, both
+identity gates bit-identical throughout.

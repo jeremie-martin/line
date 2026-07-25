@@ -38,12 +38,25 @@ type FittedOutputEntry = Readonly<{
   model: ArcVectorFittedOutput;
 }>;
 
+/** One fitted output flattened for prediction. Prediction runs once per knob
+ *  candidate over every output, so the hot loop reads these fields directly
+ *  instead of walking the Map and its nested model object per output. Built in
+ *  Map insertion order, so predictions are made in the same order as before. */
+type PredictEntry = Readonly<{
+  key: string;
+  angle: boolean;
+  ref: number;
+  form: ArcVectorFitForm;
+  coefficients: readonly number[];
+}>;
+
 export type ArcVectorResponseModel = Readonly<{
   dimensions: number;
   spans: readonly number[];
   trainingKind: ArcVectorTrainingKind;
   context: JointArcResponseContext;
   outputModels: ReadonlyMap<string, FittedOutputEntry>;
+  outputEntries: readonly PredictEntry[];
 }>;
 
 /** Fit one model per measured output.  `joint` gets the complete signed-cube
@@ -60,13 +73,31 @@ export function fitArcVectorResponseModel(
     if (!(span > 0) || !Number.isFinite(span)) throw new Error(`invalid arc vector span ${span}`);
   }
   for (const row of rows) assertVectorLength(row.values, spans.length);
+  const outputModels = fitValueModels(rows, spans, trainingKind);
   return {
     dimensions: spans.length,
     spans: [...spans],
     trainingKind,
     context,
-    outputModels: fitValueModels(rows, spans, trainingKind),
+    outputModels,
+    outputEntries: flattenOutputModels(outputModels),
   };
+}
+
+function flattenOutputModels(
+  models: ReadonlyMap<string, FittedOutputEntry>,
+): PredictEntry[] {
+  const entries: PredictEntry[] = [];
+  for (const [key, entry] of models) {
+    entries.push({
+      key,
+      angle: entry.angle,
+      ref: entry.ref,
+      form: entry.model.form,
+      coefficients: entry.model.coefficients,
+    });
+  }
+  return entries;
 }
 
 /** Complete the canonical direct-output vector. */
@@ -75,8 +106,7 @@ export function predictArcVectorOutputs(
   values: readonly number[],
 ): Record<string, number> {
   assertVectorLength(values, model.dimensions);
-  const featureCache = new Map<ArcVectorFitForm, number[]>();
-  const direct = predictValues(model.outputModels, values, model.spans, featureCache);
+  const direct = predictValues(model.outputEntries, values, model.spans);
   return completeArcPrediction(direct, model.context);
 }
 
@@ -170,29 +200,41 @@ function fitArcVectorOutput(
 }
 
 function predictValues(
-  models: ReadonlyMap<string, FittedOutputEntry>,
+  entries: readonly PredictEntry[],
   values: readonly number[],
   spans: readonly number[],
-  featureCache: Map<ArcVectorFitForm, number[]>,
 ): Record<string, number> {
+  /* There are exactly four fit forms, so the per-call memo of computed feature
+   * vectors is four slots rather than a Map allocated per call and probed once
+   * per output. Each form is still built on first use, by the same function. */
+  let tensorQuadratic: number[] | null = null;
+  let additiveQuadratic: number[] | null = null;
+  let linear: number[] | null = null;
+  let constant: number[] | null = null;
   const out: Record<string, number> = {};
-  for (const [key, entry] of models) {
-    const features = featureCache.get(entry.model.form) ?? vectorFeatures(entry.model.form, values, spans);
-    featureCache.set(entry.model.form, features);
+  for (let entryIndex = 0; entryIndex < entries.length; entryIndex++) {
+    const entry = entries[entryIndex];
+    let features: number[];
+    switch (entry.form) {
+      case "tensor_quadratic":
+        features = tensorQuadratic ??= tensorQuadraticFeatures(values, spans);
+        break;
+      case "additive_quadratic":
+        features = additiveQuadratic ??= additiveQuadraticFeatures(values, spans);
+        break;
+      case "linear":
+        features = linear ??= linearFeatures(values, spans);
+        break;
+      case "constant":
+        features = constant ??= [1];
+        break;
+    }
+    const coefficients = entry.coefficients;
     let value = 0;
-    for (let index = 0; index < features.length; index++) value += entry.model.coefficients[index] * features[index];
-    out[key] = entry.angle ? unwrapAngle(value, entry.ref) : value;
+    for (let index = 0; index < features.length; index++) value += coefficients[index] * features[index];
+    out[entry.key] = entry.angle ? unwrapAngle(value, entry.ref) : value;
   }
   return out;
-}
-
-function vectorFeatures(form: ArcVectorFitForm, values: readonly number[], spans: readonly number[]): number[] {
-  switch (form) {
-    case "tensor_quadratic": return tensorQuadraticFeatures(values, spans);
-    case "additive_quadratic": return additiveQuadraticFeatures(values, spans);
-    case "linear": return linearFeatures(values, spans);
-    case "constant": return [1];
-  }
 }
 
 function linearFeatures(values: readonly number[], spans: readonly number[]): number[] {

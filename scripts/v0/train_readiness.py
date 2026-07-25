@@ -128,11 +128,56 @@ def parse_args() -> argparse.Namespace:
         help="comma-separated component names; intended only for debugging",
     )
     parser.add_argument(
+        "--drop-feature-prefix",
+        default=None,
+        help=(
+            "comma-separated feature-name prefixes to remove before training. "
+            "Diagnostic only: a model trained this way does not match the "
+            "TypeScript feature vector and must not be exported to production "
+            "without the matching change there. Use it to ask whether a group "
+            "of features earns its place before paying to predict it."
+        ),
+    )
+    parser.add_argument(
         "--linear-only",
         action="store_true",
         help="skip the single nonlinear diagnostic model",
     )
     return parser.parse_args()
+
+
+def drop_feature_columns(
+    metadata: dict[str, Any],
+    data: dict[str, Any],
+    prefixes: str | None,
+) -> None:
+    """Remove whole feature groups in place, by name prefix."""
+    if not prefixes:
+        return
+    wanted = [p.strip() for p in prefixes.split(",") if p.strip()]
+    if not wanted:
+        return
+    names = metadata["featureNames"]
+    keep = [
+        index
+        for index, name in enumerate(names)
+        if not any(name.startswith(prefix) for prefix in wanted)
+    ]
+    dropped = [name for index, name in enumerate(names) if index not in set(keep)]
+    if not dropped:
+        raise ValueError(f"no features matched {wanted}")
+    data["X"] = data["X"][:, keep]
+    metadata["featureNames"] = [names[index] for index in keep]
+    metadata["droppedFeatures"] = dropped
+    # A model on a different feature space has no incumbent to be compared
+    # against: the runtime artifact expects the full vector, so parity is
+    # meaningless here rather than merely inconvenient.
+    data["hasIncumbent"] = False
+    print(
+        f"dropped {len(dropped)} of {len(names)} features "
+        f"({', '.join(dropped)})",
+        flush=True,
+    )
 
 
 def load_dataset(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -932,6 +977,7 @@ def fit_target(
 def main() -> None:
     args = parse_args()
     metadata, data = load_dataset(Path(args.dataset))
+    drop_feature_columns(metadata, data, args.drop_feature_prefix)
     requested = [value for value in args.components.split(",") if value]
     unknown = sorted(set(requested) - set(PRIMARY_TARGETS))
     if unknown:

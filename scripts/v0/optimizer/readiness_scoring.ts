@@ -133,16 +133,23 @@ export function scoreReadinessWithArtifact(
    * was the only readiness ablation to produce a completion the others did not.
    *
    * The component stays in the artifact and keeps being scored on its own terms
-   * by the readiness benchmark, where it is a legitimate question. It is only
-   * the PRODUCT that must not multiply by noise. The predicted value is still
-   * reported as `airFitPredicted`, so nothing observable is lost.
+   * by the readiness benchmark, which reads the artifact directly rather than
+   * this function. It is only the PRODUCT that must not multiply by noise.
    * `LR_READINESS_AIR_FIT=1` restores it to the product for A/B.
+   *
+   * With the flag off the component is NOT INFERRED AT ALL, and
+   * `airFitPredicted` reports the neutral 1 that was multiplied in. That is one
+   * of four 200-tree inferences per readiness call — the compiler's second
+   * largest JavaScript cost — spent on a number no caller reads: production
+   * reads `airFit`, and no study reads `airFitPredicted`. With the flag on it is
+   * inferred and reported exactly as before, so the A/B arm is intact.
    */
-  const airFitPredicted =
-    input.outgoingGap?.scorerTargets.air === undefined
-      ? 1
-      : infer(artifact, "airFit", features);
-  const airFit = readinessAirFitEnabled() ? airFitPredicted : 1;
+  const airFitEnabled = readinessAirFitEnabled();
+  const airFitPredicted = !airFitEnabled ||
+      input.outgoingGap?.scorerTargets.air === undefined
+    ? 1
+    : infer(artifact, "airFit", features);
+  const airFit = airFitEnabled ? airFitPredicted : 1;
   /*
    * The current V2 corpus has no authored elevation population. Keep the
    * factor exactly neutral until a component is trained and exported.

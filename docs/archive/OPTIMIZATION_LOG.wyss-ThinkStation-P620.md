@@ -764,3 +764,34 @@ deliberately perturbed build — before any code is written.
 (The candidate's own implementation had one defect worth noting if anyone
 retries: it allocated a small closure per call to read the slots. That is worth
 tenths of a percent, not the missing 8%.)
+
+## Attempt 13 (2026-07-25) — stop inferring a readiness component nobody reads, KEEP
+
+Mechanism kept: `scoreReadinessWithArtifact` always inferred the `airFit`
+component — a full 200-tree traversal — and then multiplied the product by 1,
+because the air factor is deliberately excluded from the readiness product
+(documented at length in `readiness_scoring.ts`). The predicted value was kept
+as `airFitPredicted` so "nothing observable is lost", but nothing reads it:
+production reads `readiness.airFit`, and no study or benchmark reads
+`airFitPredicted` at all — the readiness benchmark scores components straight
+from the artifact.
+
+So one of up to four inferences per readiness call, on the compiler's
+second-largest JavaScript cost (`predictReadinessComponent`, 5.97%), produced a
+number with no consumer. It is now inferred only when `LR_READINESS_AIR_FIT=1`
+puts it back in the product, which keeps the A/B arm intact; with the flag off
+`airFitPredicted` reports the neutral 1 that was multiplied in.
+
+- **Focused correctness:** `npx vitest run tests/readiness_model_artifact.test.ts tests/objective_quality.test.ts`
+  passed: 23/23 tests.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36,
+  repair_cells=36, repair_restarts=493).
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **11,447.7 ns/frame**, candidate mean **11,228.3 ns/frame**
+  - delta median/mean **-1.85% / -1.91%**, 95% CI **[-2.11%, -1.69%]**
+  - candidate won **97/100** rounds, `P(candidate faster)=100.0%`
+
+Verdict: kept. Unlike the three rejected plumbing attempts, this one removes
+work rather than reshaping it — which is the pattern that keeps paying in this
+compiler.

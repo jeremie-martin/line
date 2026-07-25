@@ -89,9 +89,9 @@ case/seed tasks. Ordinary evaluation performs no compiler or engine work.
 Use grouped development and validation partitions. Attempts from one decision
 boundary never cross partitions. Reports macro-average case/seed groups.
 
-The frozen V2 corpus is schema `line.readiness-corpus.v3`: 44 canonical cases,
-three canonical seeds, 132,493 retained decision contexts, and 421,932 retained
-proposal attempts. The first two seeds are development data; the third is
+The frozen V2 corpus is schema `line.readiness-corpus.v6`: 44 canonical cases,
+three canonical seeds, 131,930 retained decision contexts, and 486,066 retained
+proposal attempts of 639,353 observed. The first two seeds are development data; the third is
 locked validation.
 
 ## Component scores
@@ -157,7 +157,7 @@ family-cluster bootstrap interval for absolute MSE improvement is
 `[0.0410, 0.0642]`.
 
 The runtime owns no Python or scikit-learn dependency. Python owns training and
-exports the stable `line.readiness-model.v1` tree arrays; TypeScript owns the
+exports the stable `line.readiness-model.v3` tree arrays; TypeScript owns the
 canonical causal feature vector, validates the artifact once, and performs
 inference.
 

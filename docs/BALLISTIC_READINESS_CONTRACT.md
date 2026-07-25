@@ -276,10 +276,10 @@ For one proposal `A_(i+1)` from the named policy:
 | Factor | Meaning | Truth population |
 |---|---|---|
 | `catchability` | `P(proposal passes survival, landing, and off-beat gates | input)` | All attempts, including failures |
-| `impactFeasibility` | Probability a viable proposal delivers the authored impact ask at `C_(i+1)` | Viable attempts with an incoming-gap impact ask |
+| `impactFeasibility` | Expected scorer-compatible impact fit at `C_(i+1)`, conditional on viability. NOT a one-sided "impact >= ask" classifier. | Viable attempts with an incoming-gap impact ask |
 | `speedFit` | Expected scorer-compatible speed fit over `G_(i+1)` | Viable attempts with an outgoing speed ask |
-| `airFit` | Expected scorer-compatible air fit over `G_(i+1)` | Viable attempts with an outgoing air ask |
-| `elevationFit` | Expected scorer-compatible elevation fit over `G_(i+1)` | Viable attempts with an outgoing elevation ask |
+| `airFit` | Expected scorer-compatible air fit over `G_(i+1)`. **Predicted and reported, but excluded from the product** — measured to carry no information the incoming boundary can supply. | Viable attempts with an outgoing air ask |
+| `elevationFit` | Expected scorer-compatible elevation fit over `G_(i+1)`. Exactly `1` today: V2 authors elevation zero times, so there is no population to fit. | Viable attempts with an outgoing elevation ask |
 
 An unauthored component is exactly `1`.
 
@@ -293,6 +293,16 @@ readiness =
   × impactFeasibility
   × elevationFit
 ```
+
+`airFit` is currently pinned to `1` in that product. The component is still
+trained, still reported (as `airFitPredicted`), and still scored on its own
+terms by the readiness benchmark — but it is not multiplied in, because it was
+measured to carry no information the incoming boundary can supply: a lookup on
+the authored asks and gap durations alone, with no rider state, scores 0.01228
+against the trained component's 0.01022. Air over the unbuilt arc's outgoing
+gap is set by how long THAT arc holds the rider, which is a property of an arc
+that does not exist yet. Multiplying by it double-counts the authored ask and
+dilutes the factors that do carry signal.
 
 This is a decomposed expected-utility surrogate, not automatically a calibrated
 probability. Component predictions may be correlated, so the product must also
@@ -447,7 +457,8 @@ For each context, empirical joint truth is the mean attempt utility:
 ```text
 attemptUtility =
   0                                      if proposal is not viable
-  impactPass × speedFit × airFit
+  0                                      if the outgoing truth is missing
+  impactFit × speedFit × airFit
     × elevationFit                       otherwise
 ```
 
@@ -474,7 +485,7 @@ The 2026-07-24 implementation now has:
 | Impact feasibility for the next arc | Refit on viable attempts with an incoming-gap impact ask. |
 | Next-arc speed/air fit | Refit from the unbuilt arc's realized outgoing gap. |
 | Next-arc elevation fit | Exactly neutral pending a relevant authored population. |
-| Frozen readiness corpus | Schema v3: 44 V2 cases, three seeds, 132,493 contexts, 421,932 attempts. |
+| Frozen readiness corpus | Schema v6: 44 V2 cases, three seeds, 131,930 contexts, 486,066 retained of 639,353 attempts. |
 | Production inference | One stable exported artifact; dependency-free TypeScript inference has exact fixture parity with Python. |
 | Proposal utility | Explicitly combines settled incoming quality, projected outgoing quality, and next-arc readiness once each. |
 | Aim surrogate | Uses only settled and projected layers because its small local fit does not reconstruct the full articulated readiness boundary. Exact candidates use all three layers. |

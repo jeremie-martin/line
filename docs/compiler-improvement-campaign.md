@@ -893,3 +893,52 @@ parity, so there is nothing for better position accuracy to recover, and the
 readiness model has since been retrained on the inputs it actually receives —
 so improving them would require another retrain merely to express itself. This
 is here for whoever has a reason to want the accuracy back.
+
+### 2026-07-25 — a regression the benchmark structurally cannot see
+
+`npm run verify:compiler:behavior` exercises budgets 61k/100k/150k/200k — all
+BELOW the benchmark's lowest tier of 250k. It refuses to re-baseline, correctly,
+because one cell of 48 is invalid:
+
+```
+opening_burst|seed1|budget61000: INVALID (sync:0drift/19missing; died:rideStalled@160)
+```
+
+Traced rather than assumed:
+
+| state | result |
+|---|---|
+| recorded baseline (pre-rework) | score **629.99**, valid, 126 lines |
+| closed form as measured at 24 seeds (`8a477fb`) | score **332.32**, valid, 128 lines |
+| after the review-fix retrain (`405c75c`) | **INVALID**, 39 lines |
+| exact kernel, same model | score 281.02, **valid**, 127 lines |
+
+Three things this says, and one it does not.
+
+**The case was already degrading before today.** It lost half its score during
+the overnight rework, long before the closed form existed. The retrain pushed an
+already-marginal cell over the line rather than breaking a healthy one.
+
+**The predictor is implicated at this budget** — same model, kernel valid, closed
+form not — which is consistent with the `frontier_pickup_progression` finding:
+the same `rideStalled` margin, crossed more often, on tracks with no energy to
+spare. 61k is a quarter of the lowest benchmark tier, so the search has far less
+room to recover from a slightly worse arc.
+
+**Neither new guard is responsible**, checked: production builds its packet with
+`constraintBallisticStateFromRider(rider, 0)`, so the `frameOffset` refusal never
+fires, and the finiteness guard can only convert a downstream throw into a clean
+rejection.
+
+**What it does not say** is that the adoption was wrong. The same tree measures
+at parity at 24 seeds with the best `representative` reading of the campaign
+(+4.07). One cell of 48, at a budget nothing else tests, on a case already at
+half its original score.
+
+**The standing gap this exposes.** The suite's lowest tier is 250k and the wide
+determinism arm is the only thing exercising 61k-200k — but it is a
+bit-identity check, not a scored comparison, so it can only say "something
+changed", never "this got worse by N". Behaviour below 250k is therefore
+effectively unmeasured. `verify:compiler:behavior` stays un-re-baselined until
+that cell is valid again; forcing it would record an invalid track as the
+reference and destroy the only signal that exists down there.

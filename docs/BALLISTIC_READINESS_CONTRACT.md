@@ -357,6 +357,36 @@ The exact function and any powers are search policy, not physical semantics.
 It must not relabel projected outgoing quality as readiness or count the same
 axis twice.
 
+**The grouping is by role, not by producer.** `nextArcReadiness` is a product of
+five factors that answer two different questions. `catchability` ADMITS the next
+arc — it asks whether the arc can be caught at all, and a wrong answer costs the
+search a dead end and the backtracking that follows. `speedFit`, `airFit`,
+`impactFeasibility` and `elevationFit` GRADE it — the same question
+`projectedOutgoingQuality` asks about the gap this arc opens. So the search
+policy groups the grading factors with projected quality and lets admission
+carry its own exponent:
+
+```text
+proposalUtility =
+    settledIncomingQuality ^ settledPower
+  x (projectedOutgoingQuality x speedFit x airFit
+     x impactFeasibility x elevationFit) ^ futurePower
+  x catchability ^ feasibilityPower
+```
+
+This is a regrouping, not a relabelling: every factor appears exactly once, and
+at neutral exponents the expression is algebraically identical to
+`settled x projected x readiness`. A test asserts that identity directly, so the
+regrouping cannot silently start dropping or duplicating a factor.
+
+The shipped exponents are 1 / 1 / **2**. Feasibility is weighted because the
+measured failure mode is cumulative: each committed arc leaves the rider
+slightly worse placed than it needs to be, the deficit compounds with depth, and
+on long specs it compounds past the frame budget. That is an admission failure,
+not a grading failure — and weighting the whole readiness product to correct it
+also amplifies impact-chasing, which is worst exactly where impact asks are
+aggressive.
+
 Readiness may order work and propose candidates. It may not bypass exact
 simulation, hard gates, or the forward judge.
 

@@ -725,3 +725,42 @@ Two things to take from it: the prediction record's *shape discipline* is
 load-bearing far beyond the cost of building it, and per-object microbenchmarks
 do not predict this code. The way out is not to tune the record but to stop
 passing one through the hot path at all.
+
+## Attempt 12 (2026-07-25) — score a knob candidate without a prediction record, INCONCLUSIVE
+
+Mechanism tried: `scoreConfiguredKnobs` predicted ~25 outputs into a string-keyed
+record, `completeArcPrediction` copied it, and `scoreCompletedArcPrediction` then
+looked twelve of them back up by name. The candidate resolved those twelve keys
+to positions in `outputEntries` once per model, predicted positionally into a
+per-model scratch buffer, and built the same readout by index — no record, no
+copy, no `current.cost` (which that readout never reads).
+
+The target was chosen from the call tree, not by guesswork: **8.32% of the
+compile flows through `predictArcVectorOutputs <- scoreConfiguredKnobs`**, and
+every other route into it is under 0.02%.
+
+- **Focused correctness:** 63/63 tests.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36) — the
+  positional readout reproduces the record path exactly, including the
+  `undefined`-reads-as-NaN behavior of a missing output.
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **11,435.2 ns/frame**, candidate mean **11,429.4 ns/frame**
+  - delta median/mean **-0.07% / -0.04%**, 95% CI **[-0.42%, +0.24%]**
+  - candidate won **52/100** rounds, `P(candidate faster)=65.5%`
+
+Verdict: inconclusive, so reverted. The interval bounds the true effect below
+0.42% either way — removing the record is worth essentially nothing.
+
+**This is the third measurement saying the same thing: the prediction record is
+not where this code spends its time.** An isolated benchmark says building it
+costs 4x the arithmetic that fills it (2,187 ns vs 476 ns); deleting a whole
+copy of it made the compiler 15% slower (Attempt 11); and removing it from the
+hot path entirely is a wash. Whatever `predictValues`' 8% is, it is not the
+record, and per-object microbenchmarks do not predict this compiler. A future
+attempt on this vein needs an in-situ measurement — a counter, or a profile of a
+deliberately perturbed build — before any code is written.
+
+(The candidate's own implementation had one defect worth noting if anyone
+retries: it allocated a small closure per call to read the slots. That is worth
+tenths of a percent, not the missing 8%.)

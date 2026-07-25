@@ -190,9 +190,9 @@ version and measure that.
 
 ## 5. Falsified — do not retry
 
-Eight hypotheses have been killed by measurement. Listing them is the point:
-each one is an idea that reads well and is wrong, and the cost of re-deriving
-any of them is hours.
+Ten hypotheses have been killed by measurement. Listing them is the point: each
+one is an idea that reads well and is wrong, and the cost of re-deriving any of
+them is hours.
 
 1. **Approach aim from the incoming gap** — table below.
 2. **The deleted catch+8 release fallback** — bail rates are low everywhere.
@@ -214,6 +214,13 @@ any of them is hours.
    pickup TTC goes 486k → 986k. This also guts the "the corpus is stale,
    retrain it" lead — whatever the provenance bookkeeping says, the learned
    component beats the hand-fit surface it replaced.
+10. **Weighting feasibility in the proposal objective** (`catchability^2`) —
+    N=48 delta −25.25 against −15.33. It buys completion exactly as designed
+    (lost runs 372 → 298, `frontier_dense_recovery` 8 → 20 of 144 valid,
+    capability −164.65 → −117.71) and pays for it in score everywhere else
+    (representative +9.93 → −10.29, music −12.61 → −28.83). Over-weighting
+    admission makes the search prefer arcs that LAND over arcs that SCORE.
+    See §7 for the instrument lesson, which is the more valuable half.
 
 **Approach aim from the incoming gap** (commit `3aea1b3`, reverted `bd573cf`).
 Hypothesis: the sampler's approach shaping should read the incoming gap's
@@ -305,13 +312,39 @@ vs 302k; `dense_dialogue` 262k vs 268k; `low_air_endurance_7s` 213k (3/3) vs
 `loose_pocket` 196k vs 223k. On `pickup_progression` at 1.5M, 330k vs 486k
 against a baseline of 342k.
 
-**What it cost.** `frontier_dense_recovery`, measured at 3M where both arms can
-finish: 1557k vs 917k mean frames to first completion. The 240ms variant goes
-the other way (3/3 seeds vs 2/3). The default stands because at benchmark
-budgets neither arm completes that spec — both need ≳0.9M against a 750k top
-tier — so the slowdown is not scored while the gains elsewhere are. **That is a
-judgement about the suite, not a measurement.** If a budget tier above 1M is
-ever added, re-examine it rather than inheriting it.
+**What it cost, and why the weight was rejected.** `frontier_dense_recovery`,
+measured at 3M where both arms can finish: 1557k vs 917k mean frames to first
+completion (the 240ms variant went the other way, 3/3 seeds vs 2/3). That was
+the visible cost. The decisive one only appeared at N=48: **delta −25.25 against
+−15.33**. Completion improved everywhere — lost runs 372 → 298,
+`frontier_dense_recovery` 8 → 20 of 144 valid, capability −164.65 → −117.71 —
+and score fell everywhere else: representative +9.93 → **−10.29**, music
+−12.61 → −28.83, legacy_regression +30.56 → +10.55.
+
+Over-weighting admission makes the search prefer arcs that LAND over arcs that
+SCORE, and a completed track that misses its axes is worth less than the axes
+are. The exponent is back to 1; the role grouping stays, because it is the
+clearer statement of the same product.
+
+### 7.1 The instrument lesson
+
+This is the more valuable half of the result.
+
+`first_completion_frame` ranks how fast a spec finishes. The benchmark scores
+how well it finishes. The two agree while a spec is failing to complete at all —
+which is why TTC diagnosed the deficit correctly and cheaply — and they diverge
+exactly when an arm starts trading quality for completion, which is what this
+arm did. Eight specs improving with no downside anywhere looked like an
+unambiguous win and was measuring half the objective.
+
+**TTC is a diagnostic, not a selection criterion.** No arm gets promoted on it
+again without a paired quality measure.
+
+A second trap found the same night: the role split is **algebraically** neutral
+at exponent 1 but not **bitwise** neutral. Regrouping changes multiplication
+order, results differ in the last ulp, and the search takes a different path —
+`pickup_progression` TTC 319k/305k/345k against 513k/396k/549k before the split.
+A "pure refactor" of the objective still needs its own measurement.
 
 ---
 

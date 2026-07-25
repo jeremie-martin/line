@@ -65,7 +65,18 @@ export function assertCompilerSourcesCommitted(
 }
 
 export function compilerCandidateIdentity(engine: string): CompilerCandidateIdentity {
-  const git = (args: string[]): string => execFileSync("git", args, { encoding: "utf8" }).trimEnd();
+  /*
+   * The compiler sources include a megabyte-scale readiness model artifact, so
+   * a binary diff against HEAD can exceed execFileSync's 1 MB default buffer
+   * and fail with ENOBUFS - which reads as a git failure rather than a size
+   * limit. The identity is a hash of this output, so it must never be
+   * truncated; give it room well past any plausible artifact.
+   */
+  const git = (args: string[]): string =>
+    execFileSync("git", args, {
+      encoding: "utf8",
+      maxBuffer: 512 * 1024 * 1024,
+    }).trimEnd();
   const compilerDiff = git(["diff", "--binary", "HEAD", "--", ...COMPILER_SOURCE_PATHS]);
   const compilerFiles = materializedCompilerSourceFiles();
   const compilerSourceFingerprint = fingerprintFiles(compilerFiles);

@@ -691,3 +691,37 @@ Self time before: 4.20% (371.9 ms of 8,851 ms).
   - candidate won **99/100** rounds, `P(candidate faster)=100.0%`
 
 Verdict: kept.
+
+## Attempt 11 (2026-07-25) — complete the arc prediction in place, REJECT (large regression)
+
+Mechanism tried: `completeArcPrediction` does `{...directOutputs}` and both of its
+callers build that vector immediately before the call and never touch it again,
+so the copy looked unobservable and free to delete — a second 25-key
+string-keyed record built per knob candidate.
+
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36), 45/45
+  focused tests.
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **11,403.7 ns/frame**, candidate mean **13,121.0 ns/frame**
+  - delta median/mean **+15.16% / +15.07%**, 95% CI **[+14.79%, +15.35%]**
+  - candidate won **0/100** rounds, `P(candidate faster)=0.0%`
+
+Verdict: rejected and reverted. **Deleting a whole object copy per prediction
+made the compiler 15% SLOWER** — the largest single effect measured in this
+campaign, in the wrong direction.
+
+The obvious explanation is wrong. An isolated microbenchmark of the three
+shapes says grow-then-clone costs 1,184 ns to build and 260 ns to read back,
+grow-only costs **645 ns** to build and 262 ns to read — i.e. in isolation the
+candidate is strictly cheaper on both counts, and cloning a pre-built template
+is worse still (6,431 ns). So the regression is not "the spread produced a
+faster object to read" in any way a standalone benchmark reproduces; the likely
+cause is that consumers used to receive an object created at exactly ONE site
+and now receive one created at two, which their inline caches see as different
+maps — but that is a hypothesis, and the only measured fact is the 15%.
+
+Two things to take from it: the prediction record's *shape discipline* is
+load-bearing far beyond the cost of building it, and per-object microbenchmarks
+do not predict this code. The way out is not to tune the record but to stop
+passing one through the hot path at all.

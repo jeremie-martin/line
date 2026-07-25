@@ -190,6 +190,31 @@ version and measure that.
 
 ## 5. Falsified — do not retry
 
+Eight hypotheses have been killed by measurement. Listing them is the point:
+each one is an idea that reads well and is wrong, and the cost of re-deriving
+any of them is hours.
+
+1. **Approach aim from the incoming gap** — table below.
+2. **The deleted catch+8 release fallback** — bail rates are low everywhere.
+3. **RMS pooling compressing the projected term** — it is MORE spread on dense.
+4. **Truncation** — it rose, and survival failures fell.
+5. **Readiness itself** — ablating it makes dense WORSE (34.3 → 29.1), so its
+   dominance in the product is earned, not incidental.
+6. **The composed aim** — restoring the legacy literal aim recovers nothing.
+7. **`cost` scoring the gap the arc did not produce** — a real inconsistency,
+   but a wash: the objective orders 98.5% of the pool and forward-eval
+   short-circuits cost above 75k.
+8. **Per-candidate evaluation cost** ("the rework rides each candidate
+   further") — frames per evaluation are FLAT (15.4 vs 15.6 on dense; HEAD is
+   cheaper on pickup, 14.8 vs 18.4). HEAD gets MORE looks per frame budget, not
+   fewer.
+9. **The learned catchability component** — swapping back to the baseline's
+   empirical bilinear RATE_GRID over (angle, speed) is decisively worse on every
+   spec and seed: `frontier_dense_recovery` stops completing entirely, and
+   pickup TTC goes 486k → 986k. This also guts the "the corpus is stale,
+   retrain it" lead — whatever the provenance bookkeeping says, the learned
+   component beats the hand-fit surface it replaced.
+
 **Approach aim from the incoming gap** (commit `3aea1b3`, reverted `bd573cf`).
 Hypothesis: the sampler's approach shaping should read the incoming gap's
 air/speed while the ride-out reads the outgoing gap's. Falsified by argument
@@ -205,6 +230,45 @@ air/speed while the ride-out reads the outgoing gap's. Falsified by argument
 | | entry-aim | 74.2% | 68.9% | 97 |
 
 Headline 491.31 → 487.03, capability −199 → −228.
+
+---
+
+## 5b. What the deficit actually is
+
+Every entry above assumed the capability specs could not be compiled. They can.
+
+```
+frontier_dense_recovery    first completion   250k   500k   750k
+baseline 02c7828                 334k frames    no    yes    yes
+HEAD                           1,420k frames    no     no     no
+```
+
+HEAD is **4.25× slower to the first complete track**, which drops it below two
+of three budget tiers; the stratum scores a non-completing run as invalid, so a
+continuous efficiency loss reads as a binary capability cliff.
+
+**The instrument that follows from this** — `first_completion_frame` at a large
+fixed budget — is continuous, deterministic per (spec, seed, budget), immune to
+CPU contention, and costs ~4 minutes for six numbers. It replaced the benchmark
+for iteration and is what produced everything below.
+
+**The loss is cumulative drift, not a wall.** Per-gap landing rate on
+`frontier_pickup_progression` at 250k:
+
+| gap band | HEAD | baseline |
+|---|---:|---:|
+| 0–4 | 44.1 | 45.8 |
+| 5–9 | 42.9 | 44.8 |
+| 10–19 | 38.6 | 39.9 |
+| **20–39** | **28.8** | **41.5** |
+| 40+ | 20.3 | 28.7 |
+
+The two agree within ~1.5 points for twenty gaps and then separate. The baseline
+holds 41–50% all the way to gap 109 and never decays. There is no single
+impassable gap: each committed arc leaves the rider slightly worse placed, and
+it compounds with depth. Short specs never accumulate enough drift to show it,
+which is exactly why `representative` (+8.69) and `legacy_regression` (+29.59)
+are significantly AHEAD at N=48.
 
 ---
 

@@ -28,11 +28,16 @@ import {
   type ReadinessScore,
 } from "./readiness.ts";
 
-function objectiveEnvNum(name: string, fallback: number): number {
+function objectiveEnvNum(
+  name: string,
+  fallback: number,
+  allowZero = false,
+): number {
   const raw = (globalThis as {
     process?: { env?: Record<string, string | undefined> };
   }).process?.env?.[name];
   const n = raw === undefined || raw === "" ? NaN : Number(raw);
+  if (allowZero) return Number.isFinite(n) && n >= 0 ? Math.min(4, n) : fallback;
   return Number.isFinite(n) && n > 0
     ? Math.min(4, Math.max(0.25, n))
     : fallback;
@@ -58,14 +63,34 @@ const OBJECTIVE_READINESS_POWER_ENV = objectiveEnvNum(
   "LR_OBJECTIVE_READINESS_POWER",
   1,
 );
+/*
+ * ADDITIONAL exponent on catchability, on top of the one it already carries as
+ * a factor inside `readiness`. Zero (the default) leaves the product untouched.
+ *
+ * The readiness product mixes two different questions. `catchability` asks
+ * whether the next arc can be caught AT ALL - it is the dead-end predictor, and
+ * dead ends are what the search pays for in backtracking. `speedFit` and
+ * `impactFeasibility` ask how WELL the next arc will score, which is the same
+ * kind of question `projectedOutgoingQuality` already asks. Weighting the whole
+ * product to buy drift control therefore also amplifies impact-chasing, which
+ * is worst exactly where impact asks are aggressive. This exponent reaches the
+ * feasibility factor alone.
+ */
+const OBJECTIVE_CATCHABILITY_POWER_ENV = objectiveEnvNum(
+  "LR_OBJECTIVE_CATCHABILITY_POWER",
+  0,
+  true,
+);
 let objectiveSettledPower = OBJECTIVE_SETTLED_POWER_ENV;
 let objectiveFuturePower = OBJECTIVE_FUTURE_POWER_ENV;
 let objectiveReadinessPower = OBJECTIVE_READINESS_POWER_ENV;
+let objectiveCatchabilityPower = OBJECTIVE_CATCHABILITY_POWER_ENV;
 
 type ProposalUtilityPowerConfig = {
   settledIncomingQualityPower?: number;
   futureQualityPower?: number;
   readinessPower?: number;
+  catchabilityPower?: number;
 };
 
 export function setProposalUtilityPowers(
@@ -80,6 +105,15 @@ export function setProposalUtilityPowers(
   objectiveReadinessPower = normalizeObjectivePower(
     config.readinessPower ?? OBJECTIVE_READINESS_POWER_ENV,
   );
+  objectiveCatchabilityPower = normalizeExtraPower(
+    config.catchabilityPower ?? OBJECTIVE_CATCHABILITY_POWER_ENV,
+  );
+}
+
+/** Additive exponents are allowed to be zero (the neutral value) and are not
+ *  floored at 0.25 the way the multiplicative ones are. */
+function normalizeExtraPower(power: number): number {
+  return Number.isFinite(power) && power >= 0 ? Math.min(4, power) : 0;
 }
 
 function normalizeObjectivePower(power: number): number {
@@ -429,12 +463,15 @@ function neutralReadinessScore(): ReadinessScore {
 export function proposalUtility(
   settledIncomingQuality: number,
   projectedOutgoingQuality: number,
-  readiness: Pick<ReadinessScore, "readiness">,
+  readiness: Pick<ReadinessScore, "readiness" | "catchability">,
 ): number {
   return (
     objectivePower(settledIncomingQuality, objectiveSettledPower) *
     objectivePower(projectedOutgoingQuality, objectiveFuturePower) *
-    objectivePower(readiness.readiness, objectiveReadinessPower)
+    objectivePower(readiness.readiness, objectiveReadinessPower) *
+    (objectiveCatchabilityPower === 0
+      ? 1
+      : objectivePower(readiness.catchability, objectiveCatchabilityPower))
   );
 }
 

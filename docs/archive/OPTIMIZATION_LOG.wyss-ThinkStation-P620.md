@@ -669,3 +669,25 @@ coarse paths and stay as they are.
 
 Verdict: kept. The mechanism is now available for any other flag that lands on a
 hot path.
+
+## Attempt 10 (2026-07-25) — walk the axis targets without materializing pairs, KEEP
+
+Mechanism kept: `scoreProjectedOutgoingAxes` iterated `Object.entries(targets)`,
+which allocates one array of `[key, value]` pairs — plus a pair array per axis —
+on every one of its ~111,000 calls per compile. `for...in` walks the same own
+string keys in the same insertion order with no allocation. The axis objects are
+plain literals with no enumerable inherited properties, so the visited key set is
+identical, and the error order into `axisQualityFromErrors` is unchanged.
+
+Self time before: 4.20% (371.9 ms of 8,851 ms).
+
+- **Focused correctness:** `npx vitest run tests/objective_quality.test.ts tests/handoff_policy.test.ts`
+  passed: 38/38 tests.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36).
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **11,908.9 ns/frame**, candidate mean **11,400.0 ns/frame**
+  - delta median/mean **-4.25% / -4.27%**, 95% CI **[-4.48%, -4.01%]**
+  - candidate won **99/100** rounds, `P(candidate faster)=100.0%`
+
+Verdict: kept.

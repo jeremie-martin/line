@@ -162,9 +162,15 @@ export function scoreProjectedOutgoingAxes(
 ): { quality: number; scoredAxisCount: number } {
   const errors: number[] = [];
   const recoverability = projectedRecoverabilityEnabled();
-  for (const [axis, target] of Object.entries(targets)) {
+  /* `for...in` walks the same own string keys in the same insertion order as
+   * `Object.entries`, without materializing an array of [key, value] pairs per
+   * call — and this runs about 111,000 times per compile. */
+  const targetValues = targets as Record<string, number | undefined>;
+  const achievedValues = achieved as Record<string, number | undefined>;
+  for (const axis in targetValues) {
+    const target = targetValues[axis];
     if (target === undefined) continue;
-    const value = (achieved as Record<string, number | undefined>)[axis];
+    const value = achievedValues[axis];
     if (value === undefined) continue;
     errors.push(recoverabilityWeightedError(axis, value - target, recoverability));
   }

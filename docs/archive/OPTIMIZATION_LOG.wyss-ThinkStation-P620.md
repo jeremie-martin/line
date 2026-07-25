@@ -889,3 +889,47 @@ mechanism removed something — an environment lookup, an inference, an allocati
 a data structure built and thrown away. Every rejected one rearranged work that
 still happened, and two of those were bit-identical and strictly less work on
 paper, one of them 15% slower in practice.
+
+## Attempt 15 (2026-07-25) — first engine candidate: stop scanning past the insertion point, REJECT
+
+Named the wasm functions first, rather than guessing from `wasm-function[31]`:
+built with `strip = false` and `wasm-opt -g` purely as a **measurement artifact**
+(the accepted kernel `433a35ba440b` was saved and restored afterwards). That gives
+the engine's real breakdown, 34.76% of the compile in total:
+
+| share | function |
+| ---: | --- |
+| 23.32% | `kernel::step_state` (both const-generic variants: 20.23% TRACK, 3.09% not) |
+| 2.92% | `engine::update_computed` |
+| 2.04% | `line::push_line` |
+| 1.75% | `engine::Cache::add_line` |
+| 1.6% | dlmalloc (malloc/free/realloc/chunk bookkeeping) |
+| 0.74% | `engine::Cache::summarize_frame` |
+| 0.50% | `frame::add_to_cell` |
+
+Mechanism tried: `insert_grid_line` scans the WHOLE bucket on every insert, even
+though the bucket is sorted by (group asc, id desc) — so the duplicate it is
+looking for can only sit at the insertion point. The candidate broke out of the
+loop there, which is provably order-identical.
+
+- **Correctness — all green:** `cargo test` 5/5; `LR_ENGINE=wasm npm run verify`
+  byte-identical (engine trace oracle + optimizer 4/4);
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36 cells;
+  **`npm run wasm:all` ALL GREEN**, including `trace:diff` (every point position
+  bit-identical), replay, forking/budget and compile-hash.
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --rounds=100 --reps=4 --warmup=1`
+  (WASM mode, base kernel built from HEAD in a throwaway worktree)
+  - base mean **11,177.5 ns/frame**, candidate mean **11,279.9 ns/frame**
+  - delta median/mean **+0.67% / +0.92%**, 95% CI **[+0.66%, +1.20%]**
+  - candidate won **26/100** rounds, `P(candidate faster)=0.0%`
+
+Verdict: rejected, reverted, accepted artifact `433a35ba440b` restored and
+re-verified. The buckets are evidently small enough that scanning to the end is
+cheaper than the extra branch needed to stop early — the loop is short and
+predictable, and the break made it neither.
+
+This is the fourth time in this campaign that strictly-less-work measured slower.
+The engine is not obviously reachable from the outside either: it was already
+given a `get_unchecked` pass, a gated sqrt and a lazy sqrt in the 2026-07-09
+session, and the remaining mass is `step_state` itself — the bit-faithful
+physics, ported verbatim, where the arithmetic is the product.

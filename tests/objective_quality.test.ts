@@ -336,7 +336,7 @@ describe("contact-indexed proposal objective", () => {
     );
   });
 
-  test("proposal utility applies configured settled and future powers", () => {
+  test("proposal utility gives readiness an exponent of its own", () => {
     const current = gap(0, 0, 20, { air: 0.5 });
     const next = gap(1, 20, 40, { speed: 0.5 });
     const after = gap(2, 40, 60, { air: 0.4 });
@@ -357,10 +357,35 @@ describe("contact-indexed proposal objective", () => {
         [current, next, after],
       );
       expect(scored).not.toBeNull();
+      // readiness does NOT follow futureQualityPower: projected quality asks
+      // how good the gap this arc opens is, readiness asks whether the next arc
+      // can be built at all. Unset, its exponent is 1.
       expect(scored!.value).toBeCloseTo(
         scored!.settledIncomingQuality ** 2 *
           scored!.projectedOutgoingQuality ** 0.5 *
-          scored!.readiness ** 0.5,
+          scored!.readiness,
+        12,
+      );
+    } finally {
+      setProposalUtilityPowers();
+    }
+
+    setProposalUtilityPowers({
+      settledIncomingQualityPower: 2,
+      futureQualityPower: 0.5,
+      readinessPower: 3,
+    });
+    try {
+      const scored = scoreCandidateProposal(
+        fit,
+        current,
+        [current, next, after],
+      );
+      expect(scored).not.toBeNull();
+      expect(scored!.value).toBeCloseTo(
+        scored!.settledIncomingQuality ** 2 *
+          scored!.projectedOutgoingQuality ** 0.5 *
+          scored!.readiness ** 3,
         12,
       );
     } finally {

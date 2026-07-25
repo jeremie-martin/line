@@ -67,10 +67,20 @@ reuse it, perform no compilation or truth simulation, and finish in seconds.
 
 ## Score
 
-Lower is better. `current` is normalized to `1.0`.
+Lower is better, expressed as a fraction of the `frozen_anchor` reference: **0
+is exact, 1 is no better than not predicting at all.**
 
-The score uses intact, collision-free flight rows and equally averages four
-current-normalized, equal-case-and-seed errors:
+The reference is a fixed do-nothing predictor that holds every quantity at its
+launch value. Normalizing by `current` instead — as this did until 2026-07-25 —
+breaks the moment the current model is exact, because the denominator is zero
+and every alternative scores `Infinity`. The denominator must belong to the
+PROBLEM, not to whichever model happens to be installed.
+
+Components the reference already gets right carry no information about a
+predictor and are dropped from the mean rather than scored 1 for everyone.
+
+The score uses intact, collision-free flight rows and equally averages
+reference-normalized, equal-case-and-seed errors over:
 
 - precontact position error, excluding rows that sampled the truth frame;
 - contact velocity-vector error;
@@ -84,16 +94,42 @@ unexpected tradeoff remains visible.
 
 ## Decision rule
 
-Adopt a predictor change when its frozen-corpus score is at least 1% lower than
-`current`:
+**A predictor is chosen on accuracy PER UNIT OF TIME, and the exchange rate is a
+judgement, not a formula.**
 
-```text
-(current_score - new_score) / current_score >= 0.01
-```
+The previous rule was purely error-based — *adopt when the frozen-corpus score
+is at least 1% lower than `current`* — and it is worth recording why it was
+replaced rather than quietly dropped. It selected three successive predictors,
+each strictly more expensive than the last, and **cost was never measured
+once**. The first per-prediction timing in this project's history was taken on
+2026-07-25, six days and four commits after the exact kernel had shipped and the
+readiness pipeline had been rebuilt on it. A fourteen-model panel of cheap
+closed-form models was built, compared on error alone, and deleted without ever
+being timed.
 
-Otherwise remove it and keep iterating. There is no predictor ledger,
-confidence procedure, staged screen, budget ladder, or separate promotion
-process.
+It also became self-sealing. Once the exact kernel reached zero error, the score
+divided by zero, every alternative scored `Infinity`, and the rule could only
+ever answer `keep_current` — a mechanism-level lock-in discovered only when
+somebody went looking for a cheaper model.
+
+So the harness now **reports** rather than decides:
+
+- accuracy per component, as mean ± standard deviation ACROSS THE 44 CASES, so a
+  model that falls apart on particular specs is distinguishable from one that is
+  uniformly mediocre;
+- a fixed `frozen_anchor` reference — a do-nothing predictor holding every
+  quantity at its launch value — so an absolute error has a scale;
+- cost in ns per prediction, measured in blocks over held real call sites,
+  printed beside the accuracy and **kept out of every score and gate**.
+
+A component a model cannot answer is skipped, not fatal. The harness exists to
+run experiments; refusing to measure a model because it lacks an output is
+hostile to the ones worth running.
+
+The adoption bar for a CHEAPER predictor is **parity on the compiler benchmark,
+not improvement**. A worse predictor cannot beat a perfect one; an apparent gain
+is the search landing in a different basin. Judge it on `representative` and
+validity, never on the headline, which the `capability` stratum dominates.
 
 ## Accuracy is solved
 
@@ -132,56 +168,61 @@ looks too good:
   ten-point state is read, the target is the authored next contact, and
   `dt = targetFrame - anchorFrame`.
 
-Consequence for this document: **no alternative predictor can clear the 1%
-decision rule, because there is no error left to remove.** Stop iterating on
-accuracy. Recollect the corpus after any change that moves the launch-state
-distribution, and treat a non-zero score as a regression alarm rather than an
-optimization target.
+Consequence for this document: accuracy is not the axis with anything left on
+it. What remained was **cost**, and that is now settled too — see below.
 
-## Open: is the kernel actually cheaper than simulating?
+## Settled: the kernel was not cheaper, and it did not pay rent
 
 The entire justification for this layer is that predicting a flight is cheaper
-than simulating it. That is an empirical claim about cost, and it is **not yet
-settled**.
+than simulating it. Measured, that claim was false for the exact kernel, and the
+layer's real advantage turned out to be an accounting artefact.
 
-What is measured (2026-07-24):
+**Per frame** (2026-07-24): the micro-simulation kernel costs 1.92–2.06 us,
+against 1.47–1.70 us for the engine on an empty track — roughly **1.3x MORE**
+expensive. Volume per compile at 250k ranged from 0.16 kernel frames per engine
+frame on `frontier_dense_recovery` to 0.99 on `river_reentry`.
 
-| | us per frame |
-|---|---:|
-| micro-simulation kernel | 1.92 - 2.06 |
-| engine, **empty track** | 1.47 - 1.70 |
+**Per prediction** (2026-07-25), over 202,752 real call sites:
 
-So against an empty track the kernel is roughly 1.3x **more** expensive per
-frame. Volume, per compile at a 250k budget:
+| model | ns/call | position MAE | speed MAE | angle MAE |
+|---|---:|---:|---:|---:|
+| exact 22-constraint kernel | 19,806 | 0.000 | 0.0000 | 0.00 |
+| **closed-form system** | **451** | 0.58 px | 0.034 px/f | 0.20 deg |
+| `frozen_anchor` (do nothing) | 233 | 173.65 px | 0.732 px/f | 14.29 deg |
 
-| case | engine frames | kernel frames | ratio |
-|---|---:|---:|---:|
-| frontier_dense_recovery | 250,508 | 40,806 | 0.16 |
-| high_air_drive | 261,876 | 170,659 | 0.65 |
-| river_reentry | 252,424 | 249,025 | **0.99** |
+**The unbilled shadow simulation was the real distortion.** Kernel frames charge
+nothing to the frame budget, so 31.5% of every frame the compiler simulated was
+free — up to 0.92 unbilled per billed on air-heavy specs. That sat directly on
+the budget axis, which is the axis the suite varies to test whether the compiler
+scales, so it was quietly flattering one class of spec. Under the closed form it
+is **zero**.
 
-On some specs the compiler runs a near-complete shadow flight simulation
-alongside its real one, costing up to ~9% of compile wall clock.
+**Adopted 2026-07-25 at statistical parity** (24 seeds, each predictor paired
+with readiness retrained on its own corpus): headline 494.91 -> 494.63, delta
+-0.28, SE 2.50, 95% [-7.00, +6.44]; no stratum significantly different; validity
+flat. `LR_BALLISTIC_CLOSED_FORM=0` restores the kernel.
 
-**Why this is not a verdict.** An empty track is the engine's best case: with no
-geometry near the rider, any spatial index finds nothing and collision work is
-skipped entirely. The alternative the compiler actually faces is simulating
-through a dense track it has just been building. That measurement has not been
-made — the first attempt crashed the WASM engine on a synthetic line batch.
+### Why the closed form can be this cheap
 
-**What the kernel buys regardless of wall clock**, and why the layer is not in
-question:
+In free flight every constraint moves its two points by equal and opposite
+amounts, there are no per-point masses, and the joint passes only read
+positions. The SUM of the ten point positions is therefore invariant under the
+whole solve, so the ten-point system centre follows exact Verlet projectile
+motion — measured residual **1.1e-13 px per frame**. What the 135 constraint
+solves per frame actually buy is the difference between that system centre and
+the six-point RIDER mean, which is coupled to the sled through the binds and
+drifts 0.017–0.045 px per frame.
 
-- the compiler's budget is denominated in ENGINE frames. The kernel charges
-  zero, so this lookahead is free in the currency the search is rationed by.
-- it answers a counterfactual the engine cannot answer cheaply: the
-  collision-free continuation *as if no further arc were placed*. Getting that
-  from the engine means forking, which invalidates the frame cache.
+So the rider is carried on the offset it held at launch, and sled pose advances
+at a rate taken from the system's conserved angular momentum rather than a
+two-point finite difference — which alone took pose error from 12.76 to 4.64
+degrees.
 
-**To settle it**, measure marginal per-frame engine cost against line count and
-proximity to the flight path, with a fresh engine per flight so nothing is
-served from the frame cache, then weigh it against the kernel volume now
-reported per compile as `CompileStats.ballistic_micro_sim_frames`.
+Its one irreducible blind spot is articulation, where it scores 0.0463 against
+the do-nothing model's 0.0453, i.e. no signal at all. That was resolved by
+asking whether readiness needs it: dropping all 8 `articulation:*` features
+costs at most 0.75% OOF and makes two components better, so the model no longer
+asks for it.
 
 ## Boundary
 
@@ -207,3 +248,8 @@ Only then use the normal compiler benchmark from `goal.md`.
 | 2026-07-23 | articulated assembly/body model | 0.4116 (58.84% lower) | adopt; direct terminal outputs used for fitted compiler path |
 | 2026-07-24 | collision-free ten-point constraint micro-simulation | 0.0313 (96.87% lower) | adopt; causal launch-only state, exact shared production kernel |
 | 2026-07-24 | launch anchor = confirmed geometric arc exit | 0.0000 (error is now float noise) | adopt; accuracy work on this goal is closed |
+| 2026-07-25 | closed-form system propagation, O(1), no stepping | 0.58 px / 0.034 px-f / 0.20 deg at **451 ns vs 19,806** | **adopt as default**; compiler parity at 24 seeds, and the unbilled shadow simulation goes to zero |
+
+Note the shape of that last row: it is the first entry in this table whose
+decision was not made on the error column. Every earlier adoption was, and the
+cost column did not exist to be weighed.

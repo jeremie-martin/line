@@ -37,9 +37,11 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
   const argument = (name: string): string | undefined =>
     argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
   if (process.env.LR_ENGINE !== "wasm") throw new Error(`rebaseline requires LR_ENGINE=wasm`);
-  const allowedValues = new Set(["from", "label", "archive-dir", "out-dir", "jobs"]);
+  const allowedValues = new Set(["from", "label", "archive-dir", "out-dir", "jobs", "force-reason"]);
   for (const value of argv) {
-    if (value === "--resume" || value === "--discard-pending") continue;
+    if (
+      value === "--resume" || value === "--discard-pending" || value === "--force"
+    ) continue;
     if (!value.startsWith("--")) throw new Error(`rebaseline does not accept positional argument ${value}`);
     const equals = value.indexOf("=");
     const name = value.slice(2, equals === -1 ? undefined : equals);
@@ -71,10 +73,37 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
 
   const artifactPath = resolve(from);
   const artifact = readComparisonArtifact(artifactPath);
-  if (artifact.decision.result.outcome !== "accept") {
+  /*
+   * A promotion is not always an accepted improvement.
+   *
+   * The default gate is right: a candidate that did not clear the decision
+   * procedure should not silently become the reference everything else is
+   * measured against. But the project also deliberately REPLACES the baseline -
+   * to adopt a change that is at parity while being cheaper, or to move off a
+   * baseline whose strata no longer reflect what is being built. Until now the
+   * only route for that was `benchmark -- baseline`, a full freeze that
+   * recomputes every development compile from scratch. When the evidence is a
+   * comparison that ALREADY ran at full seed depth, that is thousands of
+   * compiles of pure waste - the archive it would rebuild is sitting right
+   * there, checksummed, and this command already reuses it via
+   * `retainExistingRun`.
+   *
+   * So a forced promotion is allowed, must be explicit, and must say why. The
+   * reason and the bypassed outcome are recorded in the bundle, so the ledger
+   * shows a deliberate replacement rather than an ordinary acceptance.
+   */
+  const forced = argv.includes("--force");
+  const forceReason = argument("force-reason");
+  if (artifact.decision.result.outcome !== "accept" && !forced) {
     throw new Error(
       `comparison result is ${artifact.decision.result.outcome}, not a supported improvement; ` +
-      `collect clearer evidence or keep iterating`,
+      `collect clearer evidence, keep iterating, or promote deliberately with ` +
+      `--force --force-reason="..."`,
+    );
+  }
+  if (forced && (forceReason === undefined || forceReason.trim() === "")) {
+    throw new Error(
+      `--force requires --force-reason="why this baseline is being replaced"`,
     );
   }
   const candidatePath = resolve(artifact.candidate.archivePath);
@@ -151,6 +180,14 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
         artifact: relativeToCwd(artifactPath),
         artifactSha256: await sha256Stream(createReadStream(artifactPath)),
         seeds: artifact.base.seeds,
+        outcome: artifact.decision.result.outcome,
+        delta: artifact.decision.result.delta,
+        ...(forced
+          ? {
+            forced: true,
+            forceReason: forceReason?.trim(),
+          }
+          : {}),
       },
       compilerSnapshot: retainedSnapshot,
       decisionContract: requireCurrentDecisionCalibration(identity.suiteFingerprint),

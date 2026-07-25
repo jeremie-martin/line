@@ -451,3 +451,113 @@ account for roughly 200 of the 376 lost valid runs, and both collapse to 8/144.
 
 This changes what "closing the deficit" means. It is not a matter of recovering
 a general loss — it is a matter of those specs completing at all.
+
+### 2026-07-25 — the deficit is a SEARCH-EFFICIENCY loss, not a capability loss
+
+The previous entry left "those specs completing at all" as the open question.
+It has an answer, and it changes the diagnosis completely.
+
+`frontier_dense_recovery` was believed not to complete "at ANY budget". That was
+an artefact of only ever asking it at benchmark budgets. Given more:
+
+```
+                first completion   250k   500k   750k
+baseline 02c7828      334k frames    no    yes    yes
+HEAD                1,420k frames    no     no     no
+```
+
+HEAD is not incapable of these specs. It reaches the first complete track
+**4.25x slower**, which drops it below two of the three budget tiers. The
+capability stratum scores a non-completing run as invalid, so a continuous
+efficiency loss shows up as a binary cliff.
+
+That gives the campaign the instrument it had been missing all night:
+`first_completion_frame` at a large fixed budget — continuous, deterministic per
+(spec, seed, budget), ~4 minutes for six numbers, immune to CPU contention.
+Three seeds, two specs, 1.5M frames:
+
+```
+                       dense_recovery              pickup_progression
+baseline 02c7828   470k / 433k / 639k          335k / 340k / 351k   (sd 8k)
+HEAD              1337k / 1509k / none         513k / 396k / 549k   (sd 79k)
+```
+
+Two signals: HEAD is systematically slower, and its variance explodes. The
+baseline is metronomic on pickup (sd 8k); HEAD wanders (sd 79k).
+
+**Where the frames go.** Decomposing TTC into cost-per-look and looks-per-step
+exonerates the ballistic layer a second time:
+
+```
+                    frames/eval        evals/commit      commits @250k
+dense_recovery    15.4 vs 15.6 base   198.7 vs 206.2      82 vs 78
+pickup_progress   14.8 vs 18.4 base   206.4 vs 123.7      82 vs 110
+amplitude_tides   19.2 vs 21.1 base   134.5 vs 122.5      97 vs 97
+countercurrent    18.6 vs 20.7 base   171.0 vs 155.0      79 vs 79
+```
+
+Each look is as cheap or cheaper than the baseline's — the deleted engine-based
+suffix measurement means HEAD gets *more* looks per frame budget (16,927 vs
+13,606 on pickup). It converts them worse: 206 looks per committed contact
+against 124. Healthy controls are unaffected to the commit (97/97, 79/79).
+
+**The shape of the loss: cumulative drift, not a wall.** Per-gap landing rate on
+`frontier_pickup_progression` at 250k:
+
+```
+gap band    HEAD    baseline
+0-4         44.1      45.8
+5-9         42.9      44.8
+10-19       38.6      39.9
+20-39       28.8      41.5
+40+         20.3      28.7
+```
+
+The two are within ~1.5 points for the first twenty gaps and then separate. The
+baseline holds 41-50% all the way to gap 109 and never degrades; HEAD decays
+with depth and its tail goes ragged (7.5, 45.8, 8.9, 9.1, 2.9, 18.6, ...) while
+attempts explode (940, 1291, 1135 at the last three gaps).
+
+This rules out the framing every earlier entry assumed. There is no single hard
+gap that HEAD cannot pass. Each committed arc leaves the rider slightly worse
+placed than the baseline's would, the deficit compounds with depth, and on a
+123-contact spec it compounds past the budget. Short specs never accumulate
+enough drift to show it — which is exactly why `representative` (+8.69) and
+`legacy_regression` (+29.59) are significantly AHEAD.
+
+### 2026-07-25 — falsified: the learned catchability model (8th)
+
+`cdba2d7` replaced the baseline's hand-fit bilinear grid of empirical landing
+rates (`readinessCatch` over a 10x7 (angle, speed) RATE_GRID) with a learned
+component (`infer(artifact, "catchability", features)`). Since catchability is
+precisely the dead-end predictor, and dead ends are what "looks per committed
+contact" counts, a mis-calibrated model is a clean explanation for the drift.
+
+Probe (legacy-shaped, therefore screen-only by the working agreement): drop the
+baseline grid back in behind `LR_READINESS_CATCH_GRID=1`. Identical inputs —
+arrival speed and CoM velocity angle.
+
+```
+                    dense_recovery TTC        pickup TTC
+HEAD (learned)   1337k / 1509k / none     513k / 396k / 549k
+grid probe        none / none / none      740k / 803k / 1416k
+```
+
+The learned model is decisively BETTER than the grid it replaced, on both specs
+and every seed. Catchability is exonerated, and the queued "the corpus is stale,
+retrain it" lead is much weaker than it looked: whatever the corpus's provenance
+bookkeeping says, the component it produced outperforms the hand-fit surface.
+Reverted.
+
+### 2026-07-25 — readiness gets its own exponent (default-off, no-op at 1)
+
+The drift signature says the search under-weights future feasibility against
+present quality. The three-layer product could not express that: `readiness` and
+`projectedOutgoingQuality` shared one exponent (`objectiveFuturePower`), so the
+rate at which the search trades score against feasibility was fixed.
+
+They answer different questions about the same future — projected quality asks
+how good the gap this arc opens is, readiness asks whether the NEXT arc can be
+built at all — so they get separate exponents.
+`LR_OBJECTIVE_READINESS_POWER`, default 1, which reproduces the previous product
+bit-for-bit (verified: gamma=1 returns the earlier HEAD TTC numbers exactly).

@@ -46,12 +46,26 @@ const OBJECTIVE_FUTURE_POWER_ENV = objectiveEnvNum(
   "LR_OBJECTIVE_FUTURE_POWER",
   1,
 );
+/*
+ * Readiness carries its own exponent, separate from projected quality, because
+ * the two answer different questions about the same future: projected quality
+ * asks "how good is the gap this arc opens", readiness asks "can the NEXT arc
+ * be built at all". Sharing one exponent forces the search to trade present
+ * score against future feasibility at a fixed rate. Default 1 => exactly the
+ * previous product.
+ */
+const OBJECTIVE_READINESS_POWER_ENV = objectiveEnvNum(
+  "LR_OBJECTIVE_READINESS_POWER",
+  1,
+);
 let objectiveSettledPower = OBJECTIVE_SETTLED_POWER_ENV;
 let objectiveFuturePower = OBJECTIVE_FUTURE_POWER_ENV;
+let objectiveReadinessPower = OBJECTIVE_READINESS_POWER_ENV;
 
 type ProposalUtilityPowerConfig = {
   settledIncomingQualityPower?: number;
   futureQualityPower?: number;
+  readinessPower?: number;
 };
 
 export function setProposalUtilityPowers(
@@ -62,6 +76,9 @@ export function setProposalUtilityPowers(
   );
   objectiveFuturePower = normalizeObjectivePower(
     config.futureQualityPower ?? OBJECTIVE_FUTURE_POWER_ENV,
+  );
+  objectiveReadinessPower = normalizeObjectivePower(
+    config.readinessPower ?? OBJECTIVE_READINESS_POWER_ENV,
   );
 }
 
@@ -417,7 +434,7 @@ export function proposalUtility(
   return (
     objectivePower(settledIncomingQuality, objectiveSettledPower) *
     objectivePower(projectedOutgoingQuality, objectiveFuturePower) *
-    objectivePower(readiness.readiness, objectiveFuturePower)
+    objectivePower(readiness.readiness, objectiveReadinessPower)
   );
 }
 

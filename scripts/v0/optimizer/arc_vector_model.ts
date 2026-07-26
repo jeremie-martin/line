@@ -265,6 +265,7 @@ function fitValueModels(
   trainingKind: ArcVectorTrainingKind,
 ): Map<string, FittedOutputEntry> {
   const models = new Map<string, FittedOutputEntry>();
+  const candidates = fitCandidateLadder(spans, trainingKind);
   const baseline = rows.find((row) => row.values.every((value) => value === 0));
   for (const key of outputKeys(rows)) {
     const finiteRows = rows.filter((row) => Number.isFinite(row.outputs[key]));
@@ -276,7 +277,7 @@ function fitValueModels(
       values: row.values,
       value: angle ? unwrapAngle(row.outputs[key], ref) : row.outputs[key],
     }));
-    const model = fitArcVectorOutput(fitRows, spans, trainingKind);
+    const model = fitArcVectorOutput(fitRows, candidates);
     if (model !== null) models.set(key, { angle, ref, model });
   }
   return models;
@@ -290,16 +291,21 @@ function outputKeys(rows: readonly ArcVectorProbeRow[]): string[] {
   return [...keys].sort();
 }
 
-function fitArcVectorOutput(
-  rows: ReadonlyArray<Readonly<{ values: readonly number[]; value: number }>>,
+/** The ladder of forms to try, richest first. It depends only on the spans and
+ *  the training kind — both fixed for a model — but was rebuilt for every one of
+ *  the ~21 outputs, allocating an array and three or four closures each time,
+ *  across ~2,692 models per compile. Built once per model now; same forms, same
+ *  order, same feature functions. */
+type FitCandidate = Readonly<{
+  form: ArcVectorFitForm;
+  features(values: readonly number[]): number[];
+}>;
+
+function fitCandidateLadder(
   spans: readonly number[],
   trainingKind: ArcVectorTrainingKind,
-): ArcVectorFittedOutput | null {
-  type Candidate = Readonly<{
-    form: ArcVectorFitForm;
-    features(values: readonly number[]): number[];
-  }>;
-  const candidates: Candidate[] = trainingKind === "joint"
+): FitCandidate[] {
+  return trainingKind === "joint"
     ? [
       { form: "tensor_quadratic", features: (values) => tensorQuadraticFeatures(values, spans) },
       { form: "additive_quadratic", features: (values) => additiveQuadraticFeatures(values, spans) },
@@ -311,6 +317,12 @@ function fitArcVectorOutput(
       { form: "linear", features: (values) => linearFeatures(values, spans) },
       { form: "constant", features: () => [1] },
     ];
+}
+
+function fitArcVectorOutput(
+  rows: ReadonlyArray<Readonly<{ values: readonly number[]; value: number }>>,
+  candidates: readonly FitCandidate[],
+): ArcVectorFittedOutput | null {
   for (let index = 0; index < candidates.length; index++) {
     const candidate = candidates[index];
     const fitted = fitLinearLeastSquares(rows.map((row) => ({

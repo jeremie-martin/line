@@ -1439,3 +1439,25 @@ So the conclusion is stronger than "not reached": **the remaining route to <8,00
 optimises the measurement while likely degrading the thing the measurement stands
 in for.** Recorded here rather than implemented, because that distinction is
 exactly what this log exists to protect.
+
+## Attempt 24 (2026-07-26) — build the fit-candidate ladder once per model, KEEP (-0.40%)
+
+Mechanism kept: `fitArcVectorOutput` rebuilt its ladder of forms to try — an
+array plus three or four capturing closures — on **every output**, though it
+depends only on `spans` and `trainingKind`, both fixed for a model. That is ~21
+outputs x ~2,692 models per compile, so roughly 200,000 closure allocations and
+as many esbuild `__name` wrapper calls (`__name` measured at 1.10% of the
+compile). Built once per model now; same forms, same order, same feature
+functions.
+
+- **Focused correctness:** 45/45 tests.
+- **Identity gates:** `verify:optimizer` 4/4 byte-identical,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36, and the new
+  **`verify:determinism`** 3/3 identical compiles.
+- **Full A/B gate:** base **9,723.2**, candidate **9,692.0 ns/frame**; delta
+  median/mean **-0.40% / -0.31%**, 95% CI **[-0.62%, +0.05%]**, 67/100 rounds,
+  `P(candidate faster)=95.7%`.
+
+Verdict: kept — over the discovery bar, if barely. Small, but it is the eleventh
+accepted mechanism and it came from the same question as the big ones: what is
+being rebuilt that never changes?

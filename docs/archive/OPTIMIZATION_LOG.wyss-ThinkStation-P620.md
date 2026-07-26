@@ -1067,3 +1067,39 @@ Verdict: kept. Recorded with both runs because the decision changed with rounds:
 R=100 was underpowered for a ~1% effect on this noise, not null. Re-running an
 inconclusive at higher R is the documented remedy — but it is only honest if the
 first result is reported too, which is why it is here.
+
+## Attempt 19 (2026-07-26) — flatten the readiness trees into one cache-line-per-node block, REJECT
+
+Hypothesis, from Attempt 7's failure: `predictReadinessComponent`'s ~5% is not
+instructions but **memory latency**. The parsed model is 800 trees as ~4,000
+separate JS arrays over ~0.93 MB, and a node visit reads five of them
+(`feature`, `threshold`, `childrenLeft`, `childrenRight`, `isLeaf`) — about
+3,000 scattered node visits per readiness call, measured at ~17 ns each, which
+is L3-latency shaped rather than work shaped.
+
+Mechanism tried: flatten all 23,200 nodes into one `Float64Array` at 8 doubles —
+exactly one 64-byte cache line — per node, plus `Int32Array` tree offsets, so a
+node visit is a single line instead of five scattered ones.
+
+- **Equivalence, checked before the gates:** 320,000 tree traversals over the
+  real production model, comparing the flat traversal against the original
+  node-array traversal by raw float64 bit pattern, with 6% of features injected
+  non-finite to exercise the missing-value branch — **0 mismatches**.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36), 23/23 tests.
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - base mean **9,914.2 ns/frame**, candidate mean **9,992.5 ns/frame**
+  - delta median/mean **+0.65% / +0.80%**, 95% CI **[+0.50%, +1.14%]**
+  - candidate won **20/100** rounds, `P(candidate faster)=0.0%`
+
+Verdict: rejected and reverted. The layout hypothesis is wrong too — either the
+padding to 1.48 MB costs more than the locality buys, or V8's packed-double
+arrays were already serving these reads better than an indexed `Float64Array`
+with integer coercions.
+
+**This vein is now closed on evidence, not on assumption:** the readiness
+traversal has resisted an instruction-level mechanism (Attempt 7, +0.17%) and a
+layout-level one (this, +0.65%), and its inputs are 583 calls per compile with
+**0.0% repeats**, so there is nothing to memoise. Its ~5% is 583 x 600 real tree
+traversals. Cutting it needs fewer trees, which is a model decision, not a speed
+refactor.

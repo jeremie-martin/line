@@ -1323,3 +1323,41 @@ repeat **0.0%**, knob candidates are **100%** used, candidate windows repeat
 **5.1%**, fitted feature vectors were 21x redundant but the whole fitting path is
 under the noise floor, and the 407x line-registration churn is 2,692 genuinely
 distinct arcs. What is left is singular work.
+
+### The one remaining class with headroom: the compile is single-threaded (2026-07-26)
+
+A correction to the conclusion two entries above. That conclusion was about
+making the *same sequential work* cheaper, and it holds: redundancy is exhausted,
+the engine is closed on six probes, and nine consecutive attempts came back inside
+the noise floor.
+
+But the compile does not use the machine:
+
+```
+Percent of CPU this job got: 152%      (on a 64-core host)
+User 3.91s / System 0.31s / Elapsed 2.77s   — 3 compiles + warmup
+```
+
+~1.5 cores, and most of the half is V8's background JIT/GC. **The compiler
+evaluates 2,692 candidate arcs strictly one after another**, and each is an
+independent (add lines -> simulate window -> detect -> score) unit given its
+parent engine state.
+
+**This is the only untested class that is big enough to reach <8,000**, and it can
+be bit-identical: candidate evaluation is deterministic, so evaluating a gap's
+pool concurrently and merging the results **in the original order** produces the
+same ranking and the same track. The engine work is ~40% of the compile; even
+modest fan-out takes the headline well below 8,000.
+
+**Why it is not attempted here.** It is a re-architecture, not a speed refactor:
+per-worker engine instances, replaying the track prefix to the parent version on
+every sync, structured-clone of candidate geometry and results across threads,
+and a deterministic merge — with the failure mode being *subtle* non-determinism
+that the identity gates would catch only sometimes. It is days of work with a
+real chance of ending in a revert, and it cannot be landed as one gated mechanism
+in the style of the twenty-three attempts above. It needs to be a named project
+with its own plan, not the next entry in this log.
+
+So the honest statement of the ceiling is narrower than "unreachable": **<8,000 is
+unreachable by making this sequential compiler cheaper, and plausibly reachable by
+making it concurrent.**

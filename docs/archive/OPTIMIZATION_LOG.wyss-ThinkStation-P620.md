@@ -1361,3 +1361,47 @@ with its own plan, not the next entry in this log.
 So the honest statement of the ceiling is narrower than "unreachable": **<8,000 is
 unreachable by making this sequential compiler cheaper, and plausibly reachable by
 making it concurrent.**
+
+### Parallel candidate evaluation is FEASIBLE — measured break-even (2026-07-26)
+
+Before proposing the project, the thing that would kill it was measured: the cost
+of standing a worker's engine up at a parent state, against the work it could
+take off the main thread.
+
+```
+WebAssembly.Module compile   : 0.10 ms   (once per worker process)
+WebAssembly.Instance create  : 0.04 ms   each
+replay 33 lines into engine  : 0.06 ms
+simulate prefix to frame 400 : 0.96 ms
+-> per-sync cost             : ~1.02 ms
+per-candidate engine work    : ~0.104 ms   (engine share / 2,692 arcs)
+=> break-even                : ~10 candidates per sync
+```
+
+**A gap's pool is ~80 candidates** (2,692 arcs over ~33 gaps), which is 8x
+break-even, so the class pays even with naive per-sync replay. Sync cost scales
+with prefix length (~2.4 us/frame), so later gaps are more expensive; persistent
+workers that advance with the search and sync only the delta avoid that entirely.
+
+**Design, if it is taken up:**
+1. A determinism harness FIRST — compile the same (spec, seed, budget) N times
+   under fan-out and compare track/report/stats hashes. Nothing is trusted before
+   this exists, because the failure mode is intermittent.
+2. Batch at the **pool boundary**: a gap's candidate list is generated on the main
+   thread, evaluated across workers, and merged **in the original index order** —
+   ranking then sees exactly the sequence it sees today.
+3. Persistent workers, each with its own engine instance, advancing along the
+   search's accepted prefix so a sync is a delta, not a replay.
+4. Gate exactly as here: `verify:optimizer`, `verify:compiler:behavior` at the
+   three rungs, then `perf_ab`.
+
+**Why it was not started in this session.** It is days of work whose failure mode
+is *intermittent* non-determinism — the one thing the identity gates catch only
+sometimes — and a half-landed worker pool is worse than none. It needs to be a
+named project, which is what this entry makes it.
+
+**Bottom line for the speed goal:** <8,000 is out of reach for the sequential
+compiler (23 gated attempts, redundancy exhausted, engine closed on six probes),
+and in reach for a concurrent one (engine is ~40% of the compile; break-even is
+8x clear). The remaining question is not "is there speed left" but "should this
+compiler be made concurrent", which is a project decision.

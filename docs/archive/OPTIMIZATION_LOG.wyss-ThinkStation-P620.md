@@ -1124,3 +1124,30 @@ R=200 — this one's interval already bounds the effect below 0.27% in both
 directions, so more rounds would only buy precision on a number that is zero.
 V8's young-generation allocation for a 5-element array is evidently as cheap as
 reusing one.
+
+### Where the compile stands at 9,457.9 ns/physics-frame (2026-07-26)
+
+Ten accepted mechanisms, ten rejected or inconclusive, both identity gates
+bit-identical at every step. From the session baseline of 13,654.0 that is
+**-30.7% mean** (12,799.5 -> 8,894.7 median, -30.5%).
+
+**Every remaining bucket has now been counted, not estimated:**
+
+| bucket | share | what the count says |
+| --- | ---: | --- |
+| `step_state` | ~30% | ~2,861 ns per BILLED frame against ~2,500 measured isolated at this line density — the billing is honest, there is no hidden re-simulation. Tracking is free (2,853 vs 2,805 ns/frame with it compiled out). Density scaling is weak (10x lines = +15%). |
+| engine reconcile + line registration | ~7% | **13,423 line registrations for 33 final lines — 407x** — but that is 2,692 genuinely evaluated candidate arcs, each of which must be in the grid to be simulated. |
+| readiness inference | ~5% | 583 calls/compile, **0.0% repeated inputs**, 600 real tree traversals each. Closed: resisted an instruction-level mechanism (Attempt 7) and a layout-level one (Attempt 19). |
+| GC | ~5.5% | 94% scavenges; the big per-call allocations on the knob path are gone (Attempts 16, 17, 18) and reusing the last one measured zero (Attempt 20). |
+| arc-vector readout | ~4.5% | Now predicts only the ~12 outputs the readout reads. 101 multiply-adds per call is the arithmetic floor. |
+| detector window | ~3.4% | `Math.hypot` per frame — required for bit-identity — feeding sums that are genuinely read. |
+| `score.ts` | ~2.6% | Untouchable: hashed whole by `EVALUATOR_FINGERPRINT`. |
+
+**The <8,000 target is not reachable bit-identically from here.** It needs
+another -15.4%, and no bucket above has that much overhead left in it: the four
+most recent attempts were all rejects or nulls, each against a counted
+hypothesis rather than a guess. Reaching it would require the compiler to do
+less work per candidate — fewer knob candidates than 75,530, fewer than 2,692
+evaluated arcs, or smaller models than 3 x 200 trees. Those are compiler-quality
+decisions with a benchmark to price them, not speed refactors, and they belong to
+`npm run benchmark -- eval` rather than `perf_ab`.

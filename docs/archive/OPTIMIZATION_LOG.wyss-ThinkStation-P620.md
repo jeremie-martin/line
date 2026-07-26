@@ -1589,3 +1589,37 @@ wiring — batching at `solveOneGap`/`getCandidatesSorted`, synchronous
 `Atomics` + `receiveMessageOnPort` handoff, order-preserving merge — plus the
 open judgement about `perf` latency versus `benchmark -- eval` throughput on a
 box that already runs 48 parallel compiles.
+
+### The seam for fan-out, located exactly (2026-07-26)
+
+`solveOneGapAttemptRange` (solver.ts, ~30 lines) is the batch, and
+`observeOneCandidate` (sample.ts) splits cleanly down the middle:
+
+```ts
+const probe    = getCandidateProbe(engine, gap, ctx);       // engine — IDENTICAL for every attempt in the loop
+const geometry = sampleArcPlacementGeometry(rng, probe..., attempt, ...);  // rng + probe + attempt — NO engine
+const fit      = tryCandidateGeometry(engine, gap, geometry, ...);         // engine — the expensive part
+```
+
+- **Generation is RNG-sequential but engine-free.** The shared `rng` closure makes
+  attempt N depend on how many draws attempts 0..N-1 consumed, so generation must
+  stay ordered — but it never touches the engine, so it is cheap and stays on the
+  main thread.
+- **Evaluation is engine-bound but independent per candidate.** Each
+  `tryCandidateGeometry` is a pure function of (engine state, geometry).
+
+So the shape is: compute `probe` once, draw all K geometries sequentially
+(preserving the RNG stream exactly), evaluate them across workers, merge in
+attempt order and filter nulls — which is precisely what the loop does today.
+Bit-identity follows from the RNG order being untouched and worker engines being
+proven identical.
+
+**Everything needed to build it is now known:** the seam, the batch statistics
+(90% of evaluations in batches of 16+), the sync cost (~1 ms), the handoff cost
+(12.4 us), the determinism gate, and the projection (~7,587 ns/frame).
+
+**It is not started because it is a multi-hour change to the compiler's hottest
+path, and a half-built parallel evaluator is the one outcome worse than being
+short of the target** — it would leave "bit-identical" untrustworthy. It is a
+first-class piece of work for a session that can see it through, not the last act
+of a long one.

@@ -547,3 +547,72 @@ per §7.1). So the `follow` column is not "more future weight", it is the
 settled:future ratio, running 1:1 → 1:1.5 → 1:2 — and it improves monotonically,
 0.00 → +0.24 → +1.72. That is the gradient to follow next, and it was not the
 axis this sweep was designed to test.
+
+---
+
+## 11. Readiness recalibration: CLOSED, and it closes §10.2
+
+§10.2 left one route open. The exponent had been refuted, but an exponent scales
+`log(readiness)` UNIFORMLY, and the level asymmetry it exposed is structural —
+readiness is a product of up to five factors while settled and projected are
+single axis-quality scores, so multiplying deflates it mechanically. Bounding
+only the TAIL is a different intervention with a different possible answer:
+`readiness -> floor + (1 - floor) * readiness`, monotone, so readiness's own
+ordering of a pool is preserved exactly.
+
+**Decisively worse, monotonically** (`objective-recal-16s01`, 16 seeds, 2
+budgets, baseline 485.92 — a different seed epoch from Sweep A, so its baseline
+differs and only within-sweep deltas are comparable):
+
+| floor | headline | delta | SE | 95% CI |
+|---:|---:|---:|---:|---|
+| 0 | 485.92 | **+0.00** | 0.00 | identical fraction 1.0000 |
+| 0.05 | 452.42 | **−33.50** | 2.08 | [−37.59, −29.42] |
+| 0.15 | 433.73 | **−52.19** | 3.39 | [−58.84, −45.54] |
+| 0.30 | 409.05 | **−76.88** | 2.48 | [−81.73, −72.02] |
+
+Not marginal and not ambiguous: the smallest floor tested costs more than twice
+the worst exponent cell in Sweep A, and every interval sits far from zero.
+
+### 11.1 What the two sweeps together actually say
+
+**Readiness's near-zero tail is the most valuable signal in the objective, and
+its low level is not a defect.**
+
+`catchability` lives inside readiness, so a readiness near zero is the model
+saying "this candidate cannot be caught". Because the objective is a product,
+that produces an unboundedly negative log — which is precisely the mechanism by
+which the search refuses to commit to a dead end. A floor caps that refusal:
+at 0.05, a hopeless candidate is penalized no more than `log(0.05)` however
+hopeless it is, and the search starts accepting arcs it should reject.
+
+That is why tail-bounding costs so much more than uniform down-weighting. The
+exponent at 0.5 halves the penalty on every candidate; the floor removes it
+almost entirely from exactly the candidates it was carrying information about.
+It also retro-explains Sweep A's worst cell: `dense_dialogue`, readiness level
+0.061 — the spec whose pools live closest to the tail — lost −63.59 where no
+other spec lost more than −9.
+
+So the observation in §10.2 stands as an observation and is retired as a lead:
+the layer the compiler trusts least does dominate its ranking, and that is the
+admission mechanism working, not an accident to be corrected. **Both routes for
+rebalancing readiness against the other layers are now closed** — uniform (§10)
+and tail-bounded (§11). A future attempt needs a genuinely different mechanism
+and a reason to expect a different answer.
+
+### 11.2 A measurement error worth recording
+
+Sweep A's `settled1--future1--readiness1` cell was reported as an exponent
+result at +1.95. It was not. Under the v1 environment rule every non-default cell
+emitted all three power variables, and `handoff.ts` disables its per-spec
+exponent gates on the mere PRESENCE of `LR_OBJECTIVE_SETTLED_POWER` or
+`LR_OBJECTIVE_FUTURE_POWER`. That cell had the same exponents as the default and
+differed only by having both gates off, so +1.95 is the combined price of the
+gates, not an exponent measurement.
+
+Caught because the floor axis made it fatal rather than merely untidy: a cell
+varying only the floor would have carried a gate change across the 40 of 44 specs
+the settled gate touches. Emission is now per-variable and the matrix schema is
+v2. The general lesson is the §7.1 one again in a new costume — an env variable
+whose PRESENCE is load bearing is a side channel, and a matrix that sets
+variables in blocks will find it.

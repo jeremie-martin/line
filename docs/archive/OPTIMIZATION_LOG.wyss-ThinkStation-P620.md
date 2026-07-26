@@ -1281,3 +1281,23 @@ engine 37% (closed on six probes), `score.ts` 2.6% (fingerprinted), readiness 5%
 the accessible remainder no longer contains a 15.4% overhead to remove. Reaching
 <8,000 requires the compiler to evaluate fewer than 2,692 candidate arcs, which
 changes its output and is priced by `npm run benchmark -- eval`.
+
+### Measured, not attempted: the collision caches are already effective (2026-07-26)
+
+Before sizing `LineCellCache` (64 slots) or `ActiveCellCache` (128), which would
+be bit-identical, the hit rate was measured with counters exported through a
+throwaway ABI on a measurement build (reverted; accepted artifact `433a35ba440b`
+restored and re-verified):
+
+```
+LineCellCache lookups : 3,489,000   (69 per billed frame)
+LineCellCache hits    : 3,244,180   93.0% hit rate
+misses (FlatIntMap)   : 244,820
+```
+
+At 93% there is no room worth taking: eliminating **every** miss saves on the
+order of 0.5% of a compile, well inside this host's noise floor. The 3.49M
+lookups themselves are the collision path doing its job — 10 points x 6
+iterations per frame — not overhead around it.
+
+Recorded so nobody spends a build cycle on cache sizing.

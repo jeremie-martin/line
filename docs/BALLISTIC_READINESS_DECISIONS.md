@@ -616,3 +616,74 @@ the settled gate touches. Emission is now per-variable and the matrix schema is
 v2. The general lesson is the §7.1 one again in a new costume — an env variable
 whose PRESENCE is load bearing is a side channel, and a matrix that sets
 variables in blocks will find it.
+
+---
+
+## 12. Sweep B, and the instrument finding that overrides it
+
+Sweep B tested the settled:future exponent ratio — the only monotone gradient in
+Sweep A — with handoff's per-spec gates disabled in every cell so ratios are
+comparable. Baseline 482.90, 16 seeds, 2 budgets:
+
+| cell | ratio | delta | SE | 95% CI |
+|---|---:|---:|---:|---|
+| settled1 future1 | 1:1 | +4.09 | 2.81 | [−1.41, +9.59] |
+| settled1 future1.5 | 1:1.5 | +14.49 | 2.99 | [+8.64, +20.35] |
+| settled1 future2 | 1:2 | +3.85 | 2.69 | [−1.42, +9.11] |
+| settled1 future3 | 1:3 | +9.43 | 3.53 | [+2.51, +16.34] |
+| settled1 future4 | 1:4 | +10.04 | 2.53 | [+5.09, +15.00] |
+| settled0.5 future1 | 1:2 | +4.49 | 2.75 | [−0.90, +9.88] |
+| settled0.25 future1 | 1:4 | +10.88 | 3.32 | [+4.39, +17.38] |
+
+### 12.1 What survives: exponent ratios are what matter
+
+The two ratio-identical pairs agree within noise: 1:2 gives +3.85 and +4.49
+(0.64 apart, SEs 2.69 and 2.75), 1:4 gives +10.04 and +10.88 (0.84 apart, SEs
+2.53 and 3.32). Their `scoreIdenticalFraction` is ~0.08, not 1.0, so they are
+rank-equivalent without being bit-equivalent, exactly as §7.1 predicts.
+
+This was previously argued from `log(v^p) = p log v` and never measured. It is
+now measured, WITHIN one seed epoch, which is the comparison the next section
+says is the only trustworthy kind. **Read the exponent surface in terms of
+ratios; the third degree of freedom is not real.**
+
+### 12.2 The finding that matters more: a 16-seed screen cannot rank cells
+
+`settled1--future1.5--readinessfollow` was run in BOTH sweeps, with byte-identical
+environments (`LR_OBJECTIVE_SETTLED_POWER=1`, `LR_OBJECTIVE_FUTURE_POWER=1.5`).
+The source fingerprints differ, because the readiness-floor mechanism landed in
+between — but that mechanism is exact identity at floor 0, verified directly
+under this cell's own environment: `verify_optimizer` at `97ce486` and at HEAD
+produce the same four hashes, `d12673d2e767f0c5 / 1c31267b7dd19516 /
+2007cb62d3414fad / 7d43f5b61f487c56`. Same compiler behaviour.
+
+| | delta | 95% CI |
+|---|---:|---|
+| Sweep A, seed epoch 3020588797 | **+0.24** | [−3.04, +3.52] |
+| Sweep B, seed epoch 3840591047 | **+14.49** | [+8.64, +20.35] |
+
+**The same compiler, twice, 14.25 points apart, with non-overlapping 95%
+intervals.**
+
+The intervals are not wrong, they are answering a narrower question than they
+appear to. A seed-block SE measures variance across seeds WITHIN an epoch. It
+does not measure the variance that comes from the search landing in a different
+basin, which is what changing the epoch exposes — the same effect `a7bdf70`
+found when 3.6 ulp of reassociation moved the headline 14 points.
+
+Consequences, and they are strict:
+
+1. **Never compare cells across matrices.** Only within-epoch deltas mean
+   anything. §12.1 survives because both its pairs are within one epoch.
+2. **A 16-seed screen may reject an arm; it may not rank arms.** Sweep B's
+   +14.49 is not evidence that 1:1.5 beats 1:2 — the same cell moved 14 points
+   with nothing changed at all.
+3. **A "significant" screen CI is not a promotion signal.** This is the §7.1
+   lesson in a second costume: there, an instrument measured half the objective;
+   here, an interval measures part of the variance.
+4. Nothing in Sweep A or Sweep B is promotable. What they legitimately produced
+   is one falsification (§10), one closure (§11), one structural fact (§12.1),
+   and this.
+
+The working agreement in §8 already said real measurements are N=48. This is the
+first time the cost of ignoring it has been priced: **14 points, from nothing.**

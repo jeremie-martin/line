@@ -1476,3 +1476,41 @@ for "the number" should read the A/B deltas, not the standings.
 
 Session total: eleven accepted mechanisms, thirteen rejected or inconclusive,
 from a 13,654.0 baseline — **about -30%**, byte-identical at every step.
+
+### The parallel route's core risk is retired: worker engines are bit-identical (2026-07-26)
+
+The reason to fear fan-out was never throughput, it was **whether a second engine
+in a second thread computes the same physics**. Module state is per-thread in
+Node, so a worker importing the same modules gets its own WASM instance and its
+own caches — which is either exactly what is wanted, or a source of silent drift.
+
+Tested directly: build the same fixture track in the main thread and in a worker,
+run `detectWindow` over four windows in each, hash the detections.
+
+```
+window   0.. 40  main=ccc660d3ea6cdfc6  worker=ccc660d3ea6cdfc6  identical
+window  40.. 90  main=bdd8ce6eb47862d9  worker=bdd8ce6eb47862d9  identical
+window  90..150  main=70cc466181d42471  worker=70cc466181d42471  identical
+window 150..220  main=ca3092dbded0665b  worker=ca3092dbded0665b  identical
+```
+
+**IDENTICAL.** Combined with the earlier probes — 12.4 us synchronous round-trip
+against ~104 us of work per candidate, ~1 ms engine sync against ~80-candidate
+pools — every technical objection to parallel candidate evaluation is now
+measured and answered:
+
+| risk | status |
+| --- | --- |
+| worker engines might drift | **measured identical** |
+| handoff might cost more than the work | 12.4 us vs 104 us — break-even at 1 candidate |
+| engine sync might dominate | ~1 ms vs ~80-candidate pools; deltas remove it |
+| intermittent non-determinism | `npm run verify:determinism` now exists to catch it |
+
+What is left is wiring, not uncertainty: batching a gap's pool at its evaluation
+site, a synchronous `Atomics` + `receiveMessageOnPort` handoff, and an
+order-preserving merge.
+
+**The remaining objection is not technical.** `scripts/benchmark/cli.ts` runs up
+to 48 compiles in parallel already, so this would speed up `perf` and probably
+slow down `benchmark -- eval`. That is a judgement about which number the project
+is actually trying to move — not something more measurement can settle.

@@ -1405,3 +1405,37 @@ compiler (23 gated attempts, redundancy exhausted, engine closed on six probes),
 and in reach for a concurrent one (engine is ~40% of the compile; break-even is
 8x clear). The remaining question is not "is there speed left" but "should this
 compiler be made concurrent", which is a project decision.
+
+### Why the concurrent path is probably the WRONG thing to do (2026-07-26)
+
+The mechanics are cheap — cheaper than expected:
+
+```
+worker startup (bare)                : 31.5 ms   (once, amortised over a process)
+synchronous round-trip via Atomics   : 12.4 us
+per-candidate engine work            : ~104 us
+=> break-even                        : 1 candidate per handoff
+```
+
+A synchronous worker handoff costs 12% of a single candidate's work, and the
+earlier probe put engine sync at ~1 ms against ~80-candidate pools. Fanned out,
+the engine's ~40% of the compile would fall to roughly 10%, which lands the
+headline near **6,600 ns/frame — comfortably under the 8,000 target.**
+
+**And it would still be the wrong change**, because of what the compiler actually
+runs as: `scripts/benchmark/cli.ts` defaults to
+`--jobs=min(48, availableParallelism())`. **The benchmark already runs up to 48
+compiles in parallel on this 64-core host.** Intra-compile workers would put
+48 x N threads on 64 cores — oversubscription — so the throughput of
+`npm run benchmark -- eval`, which is how this compiler is actually exercised,
+would very likely get *worse* while `npm run perf` got better.
+
+`npm run perf` measures **one compile's latency**. That is the right instrument
+for "is this code cheaper", which is what every mechanism in this log was. It is
+the wrong instrument for "should this compiler be concurrent", because the answer
+there depends on a workload the metric does not contain.
+
+So the conclusion is stronger than "not reached": **the remaining route to <8,000
+optimises the measurement while likely degrading the thing the measurement stands
+in for.** Recorded here rather than implemented, because that distinction is
+exactly what this log exists to protect.

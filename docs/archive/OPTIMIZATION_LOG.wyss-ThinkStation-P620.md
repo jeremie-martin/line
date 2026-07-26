@@ -1301,3 +1301,25 @@ lookups themselves are the collision path doing its job — 10 points x 6
 iterations per frame — not overhead around it.
 
 Recorded so nobody spends a build cycle on cache sizing.
+
+### The last countable redundancy: candidate windows repeat 5.1% (2026-07-26)
+
+`getCandidateWindow` runs 6,896 times per compile for 2,692 candidate arcs — 2.56
+per arc — which looked like it might hide repeat extractions worth memoising
+(bit-identically, since the same version and range yield the same bytes).
+Counted by `(engine handle, startFrame, endFrame)`:
+
+```
+calls    : 6,896
+distinct : 6,546
+repeats  :   350   (5.1%)
+```
+
+Worth roughly 0.16% of a compile. Not a candidate.
+
+**Redundancy is now exhausted as a hypothesis class.** Every place the compiler
+might have been doing the same work twice has been counted: readiness inputs
+repeat **0.0%**, knob candidates are **100%** used, candidate windows repeat
+**5.1%**, fitted feature vectors were 21x redundant but the whole fitting path is
+under the noise floor, and the 407x line-registration churn is 2,692 genuinely
+distinct arcs. What is left is singular work.

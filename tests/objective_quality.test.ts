@@ -338,6 +338,50 @@ describe("contact-indexed proposal objective", () => {
     );
   });
 
+  test("the readiness exponent follows the future exponent unless set", () => {
+    const current = gap(0, 0, 20, { air: 0.5 });
+    const next = gap(1, 20, 40, { speed: 0.5 });
+    const after = gap(2, 40, 60, { air: 0.4 });
+    const gaps = [current, next, after];
+    const scoreOnce = () =>
+      scoreCandidateProposal(
+        candidate(0, { air: 0.45 }, ballisticLaunch(20, 22, 9.5, -1)),
+        current,
+        gaps,
+      )!;
+    const clamped = (value: number, power: number) =>
+      Math.max(0, Math.min(1, value)) ** power;
+
+    try {
+      // Unset: readiness follows futureQualityPower, reproducing exactly the
+      // two-exponent compiler this knob was added beside. This is what keeps the
+      // default tree bit-identical on the five specs where
+      // objectiveBlendReadinessPowerForSpec resolves a non-neutral value.
+      setProposalUtilityPowers({ futureQualityPower: 0.75 });
+      const shared = scoreOnce();
+      expect(shared.readiness).toBeLessThan(1);
+      expect(shared.projectedOutgoingQuality).toBeLessThan(1);
+      expect(shared.value).toBe(
+        shared.settledIncomingQuality *
+          clamped(shared.projectedOutgoingQuality, 0.75) *
+          clamped(shared.readiness, 0.75),
+      );
+
+      // Set: readiness decouples and projected keeps the future exponent. This
+      // is the arm the exponent sweep measures.
+      setProposalUtilityPowers({ futureQualityPower: 0.75, readinessPower: 2 });
+      const split = scoreOnce();
+      expect(split.value).toBe(
+        split.settledIncomingQuality *
+          clamped(split.projectedOutgoingQuality, 0.75) *
+          clamped(split.readiness, 2),
+      );
+      expect(split.value).not.toBe(shared.value);
+    } finally {
+      setProposalUtilityPowers();
+    }
+  });
+
   test("candidate pool ranking uses the canonical proposal objective over cost", () => {
     const current = gap(0, 0, 20, { air: 0.5 });
     const next = gap(1, 20, 40, { speed: 0.4 });

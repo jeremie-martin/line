@@ -39,6 +39,20 @@ function objectiveEnvNum(name: string, fallback: number): number {
     : fallback;
 }
 
+/** As `objectiveEnvNum`, but distinguishes "unset" from "set to the default".
+ *  The readiness exponent needs that distinction: unset means FOLLOW the future
+ *  exponent, which is not the same as pinning it to 1. */
+function objectiveEnvNumOrUndefined(name: string): number | undefined {
+  const raw = (globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  }).process?.env?.[name];
+  if (raw === undefined || raw === "") return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0
+    ? Math.min(4, Math.max(0.25, n))
+    : undefined;
+}
+
 const OBJECTIVE_SETTLED_POWER_ENV = objectiveEnvNum(
   "LR_OBJECTIVE_SETTLED_POWER",
   1,
@@ -47,12 +61,40 @@ const OBJECTIVE_FUTURE_POWER_ENV = objectiveEnvNum(
   "LR_OBJECTIVE_FUTURE_POWER",
   1,
 );
+/**
+ * Exponent on READINESS, separately from projected outgoing quality.
+ *
+ * These two terms answer different questions about the same future and are not
+ * equally trustworthy. Projected quality is a near-exact physical prediction —
+ * the ballistic boundary measures 0.50 px of contact-position error. Readiness
+ * is a learned estimate of an arc that does not exist yet, validating at MSE
+ * 0.0187 / r 0.787. Sharing one exponent fixes the rate at which the search
+ * trades them, and there is no reason that rate should be 1:1.
+ *
+ * UNSET MEANS FOLLOW `objectiveFuturePower`, which is what the compiler did
+ * before this knob existed, so the default tree is bit-identical — including on
+ * the five specs where `objectiveBlendReadinessPowerForSpec` resolves 0.75.
+ * That fallback is the whole reason this is infrastructure rather than a change:
+ * decoupling the two exponents is a MEASURED arm, not a fix (see
+ * docs/BALLISTIC_READINESS_DECISIONS.md §7.2).
+ *
+ * This restores `f438c43`, which introduced the same knob on the same argument
+ * and was removed three hours later as collateral of the `a7bdf70` role-split
+ * revert, having never been swept at any value.
+ */
+const OBJECTIVE_READINESS_POWER_ENV = objectiveEnvNumOrUndefined(
+  "LR_OBJECTIVE_READINESS_POWER",
+);
 let objectiveSettledPower = OBJECTIVE_SETTLED_POWER_ENV;
 let objectiveFuturePower = OBJECTIVE_FUTURE_POWER_ENV;
+let objectiveReadinessPower = OBJECTIVE_READINESS_POWER_ENV ??
+  OBJECTIVE_FUTURE_POWER_ENV;
 
 type ProposalUtilityPowerConfig = {
   settledIncomingQualityPower?: number;
   futureQualityPower?: number;
+  /** Omitted means "follow `futureQualityPower`". */
+  readinessPower?: number;
 };
 
 export function setProposalUtilityPowers(
@@ -63,6 +105,12 @@ export function setProposalUtilityPowers(
   );
   objectiveFuturePower = normalizeObjectivePower(
     config.futureQualityPower ?? OBJECTIVE_FUTURE_POWER_ENV,
+  );
+  /* `objectiveFuturePower` is already normalized, and `normalizeObjectivePower`
+   * is idempotent on its own range, so the fallback path cannot perturb it. */
+  objectiveReadinessPower = normalizeObjectivePower(
+    config.readinessPower ?? OBJECTIVE_READINESS_POWER_ENV ??
+      objectiveFuturePower,
   );
 }
 
@@ -507,18 +555,18 @@ export function proposalUtility(
    * produced with ZERO semantic content, so a single N=48 delta of that size
    * carries much less meaning than its confidence interval suggests.
    *
-   * KNOWN DEFECT: `objectiveFuturePower` is applied to BOTH the projected term
-   * and readiness, which are not equally trustworthy — projected rests on a
-   * 0.50 px boundary, readiness validates at MSE 0.0187 / r 0.787. Worse, the
-   * per-spec value comes from handoff.ts `objectiveBlendReadinessPowerForSpec`,
-   * a gate accepted in 2026-07 when the exponent reached readiness alone. A
-   * third exponent existed for three hours (f438c43) and was removed as
-   * collateral of the a7bdf70 revert, never swept. Contract §8.2.
+   * The three exponents are INDEPENDENT but the readiness one still FOLLOWS the
+   * future one by default, so the shipped tree is the shared-exponent compiler
+   * until a sweep says otherwise. See `OBJECTIVE_READINESS_POWER_ENV` for why
+   * that default is deliberate, and contract §8.2 for the open defect it leaves
+   * standing: the per-spec value comes from handoff.ts
+   * `objectiveBlendReadinessPowerForSpec`, a gate accepted in 2026-07 when the
+   * exponent reached readiness alone.
    */
   return (
     objectivePower(settledIncomingQuality, objectiveSettledPower) *
     objectivePower(projectedOutgoingQuality, objectiveFuturePower) *
-    objectivePower(readiness.readiness, objectiveFuturePower)
+    objectivePower(readiness.readiness, objectiveReadinessPower)
   );
 }
 

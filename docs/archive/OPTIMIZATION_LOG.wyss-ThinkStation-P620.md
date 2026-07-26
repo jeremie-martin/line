@@ -1103,3 +1103,24 @@ layout-level one (this, +0.65%), and its inputs are 583 calls per compile with
 **0.0% repeats**, so there is nothing to memoise. Its ~5% is 583 x 600 real tree
 traversals. Cutting it needs fewer trees, which is a model decision, not a speed
 refactor.
+
+## Attempt 20 (2026-07-26) — per-model feature scratch on the readout path, INCONCLUSIVE
+
+Mechanism tried: `predictReadoutValuesInto` builds a feature vector per fit form
+per call — 75,530 calls per compile, so ~150,000 short-lived arrays — and the
+vector never outlives the call. The candidate gave each model a scratch array per
+form, filled in place, keeping the allocating builders for fitting and the full
+record path.
+
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36), 45/45 tests.
+- **Full A/B gate:** base **9,897.6**, candidate **9,893.5 ns/frame**;
+  delta median/mean **-0.06% / -0.03%**, 95% CI **[-0.27%, +0.20%]**,
+  53/100 rounds, `P(candidate faster)=60.4%`.
+
+Verdict: inconclusive and reverted. Unlike Attempt 18 — which was inconclusive at
+R=100 with a -1.08% median and 81/100 rounds, and resolved to a clear keep at
+R=200 — this one's interval already bounds the effect below 0.27% in both
+directions, so more rounds would only buy precision on a number that is zero.
+V8's young-generation allocation for a 5-element array is evidently as cheap as
+reusing one.

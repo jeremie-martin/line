@@ -112,6 +112,7 @@ import {
   proposalUtility,
   type GapObjectiveScore,
   scoreCandidateProposal,
+  projectedOutgoingSurrogateQuality,
   scoreProjectedOutgoingSurrogate,
   scorerGapFrameCount,
 } from "./objective.ts";
@@ -1128,17 +1129,12 @@ function projectedReadoutQuality(
   },
   outgoingTargets: AxisValues,
 ): number | null {
-  return scoreProjectedOutgoingSurrogate(
-    1,
+  return projectedOutgoingSurrogateQuality(
     outgoingTargets,
-    {
-      meanSpeedPx: readout.nextMeanSpeedPx,
-      airFraction: readout.nextAirFraction,
-      ...(Number.isFinite(readout.nextElevation)
-        ? { elevation: readout.nextElevation }
-        : {}),
-    },
-  )?.projectedOutgoingQuality ?? null;
+    readout.nextMeanSpeedPx,
+    readout.nextAirFraction,
+    Number.isFinite(readout.nextElevation) ? readout.nextElevation : undefined,
+  );
 }
 
 // ─────────── 7 · Quality-objective pool sort (LR_RANK_QUALITY) ───────────

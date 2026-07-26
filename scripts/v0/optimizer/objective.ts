@@ -223,6 +223,62 @@ export function scoreProjectedOutgoingSurrogate(
   };
 }
 
+/**
+ * The quality half of `scoreProjectedOutgoingSurrogate`, for the knob-scoring
+ * path that uses only that.
+ *
+ * That path called the surrogate 75,530 times per compile and threw away its
+ * `value`, having first packed its three scalars into an aggregate object — with
+ * a conditional spread, so two shapes — which the surrogate unpacked into an
+ * `achieved` object for the axis loop to read back out. This takes the scalars,
+ * builds the errors directly, and does not compute a `proposalUtility` the
+ * caller recomputes anyway with the real settled quality.
+ *
+ * Identical by construction: the same three null-returns in the same order
+ * (speed, air, elevation), the same `for...in` order over the targets, the same
+ * `recoverabilityWeightedError`, and the same `axisQualityFromErrors`. When no
+ * axis contributes an error the old code fell back to
+ * `axisQualityForTargets(targets, achieved)`, whose error list is empty for
+ * exactly the same reason — so `axisQualityFromErrors([])` is that same value.
+ */
+export function projectedOutgoingSurrogateQuality(
+  outgoingTargets: AxisValues,
+  meanSpeedPx: number,
+  airFraction: number,
+  elevation: number | undefined,
+): number | null {
+  let speedValue: number | undefined;
+  if (outgoingTargets.speed !== undefined) {
+    if (!Number.isFinite(meanSpeedPx)) return null;
+    speedValue = speedPxToAuthored(meanSpeedPx);
+  }
+  let airValue: number | undefined;
+  if (outgoingTargets.air !== undefined) {
+    if (!Number.isFinite(airFraction)) return null;
+    airValue = airFraction;
+  }
+  let elevationValue: number | undefined;
+  if (outgoingTargets.elevation !== undefined) {
+    if (elevation === undefined || !Number.isFinite(elevation)) return null;
+    elevationValue = elevation;
+  }
+
+  const errors: number[] = [];
+  const recoverability = projectedRecoverabilityEnabled();
+  const targetValues = outgoingTargets as Record<string, number | undefined>;
+  for (const axis in targetValues) {
+    const target = targetValues[axis];
+    if (target === undefined) continue;
+    let value: number | undefined;
+    if (axis === "speed") value = speedValue;
+    else if (axis === "air") value = airValue;
+    else if (axis === "elevation") value = elevationValue;
+    if (value === undefined) continue;
+    errors.push(recoverabilityWeightedError(axis, value - target, recoverability));
+  }
+  return axisQualityFromErrors(errors).axis_quality;
+}
+
 export function scorerTargetsForGap(
   gap: Gap,
   gapAxisTargets?: readonly AxisValues[],

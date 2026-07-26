@@ -1031,3 +1031,39 @@ compile with 0.0% repeated (boundary, gap) inputs** — memoisation is not
 available and its ~4.8% is 583 x 600 real tree traversals. And **100% of the
 75,530 knob candidates are fully scored** — none are rejected after paying for
 the readout, so there is no lazy-evaluation win in `scoreConfiguredKnobs`.
+
+## Attempt 18 (2026-07-26) — stop building three objects and a discarded utility per knob candidate, KEEP (-1.16%)
+
+Mechanism kept: `projectedReadoutQuality` packed three scalars into an aggregate
+object — with a **conditional spread**, so two hidden shapes — and handed it to
+`scoreProjectedOutgoingSurrogate`, which unpacked it into an `achieved` object
+for the axis loop to read back out, allocated a `{ readiness: 1 }` argument,
+computed a `proposalUtility`, and returned a `{ projectedOutgoingQuality, value }`
+object of which the caller **used one field and threw the other away** — while
+`scoreConfiguredKnobs` then recomputed `proposalUtility` itself with the real
+settled quality. All of that, 75,530 times per compile.
+
+`projectedOutgoingSurrogateQuality` takes the three scalars, builds the errors
+directly and returns the number. Identical by construction: the same three
+null-returns in the same order (speed, air, elevation), the same `for...in` order
+over the targets, the same `recoverabilityWeightedError`, the same
+`axisQualityFromErrors`. The old empty-errors fallback went through
+`axisQualityForTargets(targets, achieved)`, whose error list is empty in exactly
+the same case, so `axisQualityFromErrors([])` is that same value.
+`scoreProjectedOutgoingSurrogate` is unchanged for the three studies that use it.
+
+- **Focused correctness:** 63/63 tests.
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36).
+- **A/B at R=100: INCONCLUSIVE** — median **-1.08%**, 81/100 rounds,
+  `P(faster)=94.7%`, CI [-1.17%, +0.20%]. Below the 0.95 bar, with the mean
+  dragged by a few slow rounds while the sign test was already decisive.
+- **A/B at R=200 (the doc's remedy for exactly this state): KEEP**
+  - base mean **9,911.3 ns/frame**, candidate mean **9,792.4 ns/frame**
+  - delta median/mean **-1.16% / -1.18%**, 95% CI **[-1.40%, -0.99%]**
+  - candidate won **165/200** rounds, `P(candidate faster)=100.0%`
+
+Verdict: kept. Recorded with both runs because the decision changed with rounds:
+R=100 was underpowered for a ~1% effect on this noise, not null. Re-running an
+inconclusive at higher R is the documented remedy — but it is only honest if the
+first result is reported too, which is why it is here.

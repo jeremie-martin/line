@@ -128,9 +128,13 @@ export function scoreReadinessWithArtifact(
    * product double-counts authored air and adds variance without signal, which
    * dilutes the factors that do carry information.
    *
-   * Removing it is better on BOTH strata (5 dense + 3 healthy at 250k): dense
-   * land 34.3 -> 35.0, viable 27.7 -> 28.5, healthy land 75.1 -> 76.5, and it
-   * was the only readiness ablation to produce a completion the others did not.
+   * UNREPRODUCED LEAD (2026-07-25, exact-kernel ballistic default): removing it
+   * measured better on BOTH strata (5 dense + 3 healthy at 250k) — dense land
+   * 34.3 -> 35.0, viable 27.7 -> 28.5, healthy land 75.1 -> 76.5, and it was the
+   * only readiness ablation to produce a completion the others did not. Not
+   * re-measured since the closed form became the default. The information
+   * argument above stands on its own; the deltas are a lead. See
+   * docs/BALLISTIC_READINESS_DECISIONS.md §9.
    *
    * The component stays in the artifact and keeps being scored on its own terms
    * by the readiness benchmark, which reads the artifact directly rather than

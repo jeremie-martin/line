@@ -121,11 +121,14 @@ export function scoreSettledIncomingQuality(
  *    is a real miss, but the projection is an optimistic upper bound, so the
  *    slow side of that distribution is inflated. Half-weight the under side.
  *
- * This is the asymmetry the pre-refactor readiness carried on exactly these two
- * axes, in the same directions and for the same stated reasons, and it is what
- * damps the alternating good/bad-catch oscillation the dense specs exhibit.
- * Both compilers meet that oscillation; the one with this term damps it, the
- * one without amplifies it until the track cannot continue.
+ * UNREPRODUCED LEAD (9da13c0, 2026-07-25, exact-kernel ballistic default): the
+ * justification recorded at the time was that this is the asymmetry the
+ * pre-refactor readiness carried on exactly these two axes, and that it damps
+ * the alternating good/bad-catch oscillation the dense specs exhibit — "the one
+ * with this term damps it, the one without amplifies it until the track cannot
+ * continue". That was measured before the closed-form projection became the
+ * default, and has not been re-measured since. Treat the mechanism as real and
+ * the conclusion as a lead. See docs/BALLISTIC_READINESS_DECISIONS.md §9.
  *
  * `LR_PROJECTED_RECOVERABILITY=0` restores symmetric scoring.
  */
@@ -380,11 +383,14 @@ export function projectOutgoingScorerGap(
  * swamps the speed and impact differences — the ranking goes blind to the axes
  * it could still act on, exactly on the dense specs where gaps are shortest.
  *
- * This is the constraint the pre-refactor readiness air-fit encoded as
- * `effectiveAirAsk`, whose comment was explicit: "this clamp is what keeps the
- * air-fit from fighting catchability on short gaps". The same formula survives
- * as `airDeliverabilityAsk` and is already applied by the generation lanes; it
- * was simply never applied where ranking scores air.
+ * UNREPRODUCED LEAD (e142a44, 2026-07-25, exact-kernel ballistic default): the
+ * saturation argument above is the constraint the pre-refactor readiness air-fit
+ * encoded as `effectiveAirAsk` ("this clamp is what keeps the air-fit from
+ * fighting catchability on short gaps"). The same formula survives as
+ * `airDeliverabilityAsk` and is already applied by the generation lanes; it was
+ * simply never applied where ranking scores air. The saturation claim has not
+ * been re-measured on the current default. See
+ * docs/BALLISTIC_READINESS_DECISIONS.md §9.
  *
  * `LR_PROJECTED_AIR_DELIVERABLE=0` restores the raw ask for A/B.
  */
@@ -500,6 +506,14 @@ export function proposalUtility(
    * The corollary is worth as much as the warning: a 14-point swing can be
    * produced with ZERO semantic content, so a single N=48 delta of that size
    * carries much less meaning than its confidence interval suggests.
+   *
+   * KNOWN DEFECT: `objectiveFuturePower` is applied to BOTH the projected term
+   * and readiness, which are not equally trustworthy — projected rests on a
+   * 0.50 px boundary, readiness validates at MSE 0.0187 / r 0.787. Worse, the
+   * per-spec value comes from handoff.ts `objectiveBlendReadinessPowerForSpec`,
+   * a gate accepted in 2026-07 when the exponent reached readiness alone. A
+   * third exponent existed for three hours (f438c43) and was removed as
+   * collateral of the a7bdf70 revert, never swept. Contract §8.2.
    */
   return (
     objectivePower(settledIncomingQuality, objectiveSettledPower) *

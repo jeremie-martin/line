@@ -240,11 +240,33 @@ unbuilt terminal catch:
 - elevation when authored and enabled;
 - amplitude when authored and requested.
 
-Its target compatibility uses the scorer's canonical axis definitions. It does
-not invent impact at `C_(i+1)`, because `A_(i+1)` has not been built.
+It does not invent impact at `C_(i+1)`, because `A_(i+1)` has not been built.
 
 Exact prefix and predicted suffix are combined with their real frame counts.
 No endpoint average or 50/50 blend is valid.
+
+#### 6.2.1 Two deliberate departures from canonical scorer semantics
+
+Projected outgoing quality is a RANKING signal, not a scorer reading, and
+`scoreProjectedOutgoingAxes` applies two adjustments the scorer does not. Both
+are default-on, both have an A/B flag, and both are stated here because a reader
+who assumes a faithful scorer transform will misread the layer.
+
+1. **Side-asymmetric error weighting** (`RECOVERABLE_SIDE_WEIGHT = 0.5`,
+   `LR_PROJECTED_RECOVERABILITY=0` disables). Speed error above target and air
+   error below target are half-weighted, on the argument that the following
+   catch can bleed off excess speed but cannot manufacture missing speed, and
+   that the air projection is an optimistic upper bound.
+2. **Deliverability-clamped air ask** (`projectedOutgoingTargets` →
+   `airDeliverabilityAsk`, `LR_PROJECTED_AIR_DELIVERABLE=0` disables). A landing
+   needs `K_BOUNCE_LANDING` airborne frames, so on a short gap an air fraction
+   below `K / frameCount` is physically undeliverable; scoring against the raw
+   ask saturates the air term for every candidate at once and, because axes pool
+   through one RMS, blinds the ranking to speed and impact.
+
+Both landed 2026-07-25 (`e142a44`, `9da13c0`). Their stated justifications are
+recorded in the source comments and are UNREPRODUCED against the current tree —
+see the standing note in `BALLISTIC_READINESS_DECISIONS.md` §9.
 
 ## 7. Next-arc readiness
 
@@ -284,7 +306,7 @@ For one proposal `A_(i+1)` from the named policy:
 | `catchability` | `P(proposal passes survival, landing, and off-beat gates | input)` | All attempts, including failures |
 | `impactFeasibility` | Expected scorer-compatible impact fit at `C_(i+1)`, conditional on viability. NOT a one-sided "impact >= ask" classifier. | Viable attempts with an incoming-gap impact ask |
 | `speedFit` | Expected scorer-compatible speed fit over `G_(i+1)` | Viable attempts with an outgoing speed ask |
-| `airFit` | Expected scorer-compatible air fit over `G_(i+1)`. **Predicted and reported, but excluded from the product** — measured to carry no information the incoming boundary can supply. | Viable attempts with an outgoing air ask |
+| `airFit` | Expected scorer-compatible air fit over `G_(i+1)`. **Excluded from the product, and by default not inferred at all** — measured to carry no information the incoming boundary can supply. | Viable attempts with an outgoing air ask |
 | `elevationFit` | Expected scorer-compatible elevation fit over `G_(i+1)`. Exactly `1` today: V2 authors elevation zero times, so there is no population to fit. | Viable attempts with an outgoing elevation ask |
 
 An unauthored component is exactly `1`.
@@ -300,15 +322,22 @@ readiness =
   × elevationFit
 ```
 
-`airFit` is currently pinned to `1` in that product. The component is still
-trained, still reported (as `airFitPredicted`), and still scored on its own
-terms by the readiness benchmark — but it is not multiplied in, because it was
-measured to carry no information the incoming boundary can supply: a lookup on
-the authored asks and gap durations alone, with no rider state, scores 0.01228
-against the trained component's 0.01022. Air over the unbuilt arc's outgoing
-gap is set by how long THAT arc holds the rider, which is a property of an arc
-that does not exist yet. Multiplying by it double-counts the authored ask and
-dilutes the factors that do carry signal.
+`airFit` is pinned to `1` in that product. The component is still trained, still
+present in the artifact, and still scored on its own terms by the readiness
+benchmark — which reads the artifact directly rather than through
+`scoreReadinessWithArtifact`.
+
+**In production it is not evaluated.** With `LR_READINESS_AIR_FIT` unset, the
+component is not inferred and `airFitPredicted` reports the neutral `1` that was
+multiplied in — it is NOT a live prediction. That saves one of four 200-tree
+inferences per readiness call. `LR_READINESS_AIR_FIT=1` restores both the
+inference and the product term for A/B.
+
+The stated reason for excluding it: measured to carry no information the
+incoming boundary can supply — a lookup on the authored asks and gap durations
+alone, with no rider state, scores 0.01228 against the trained component's
+0.01022. Air over the unbuilt arc's outgoing gap is set by how long THAT arc
+holds the rider, which is a property of an arc that does not exist yet.
 
 This is a decomposed expected-utility surrogate, not automatically a calibrated
 probability. Component predictions may be correlated, so the product must also
@@ -377,40 +406,83 @@ The exact function and any powers are search policy, not physical semantics.
 It must not relabel projected outgoing quality as readiness or count the same
 axis twice.
 
-**The grouping is by role, not by producer.** `nextArcReadiness` is a product of
-five factors that answer two different questions. `catchability` ADMITS the next
-arc — it asks whether the arc can be caught at all, and a wrong answer costs the
-search a dead end and the backtracking that follows. `speedFit`, `airFit`,
-`impactFeasibility` and `elevationFit` GRADE it — the same question
-`projectedOutgoingQuality` asks about the gap this arc opens. So the search
-policy groups the grading factors with projected quality and lets admission
-carry its own exponent:
+### 8.1 The shipped product
+
+`optimizer/objective.ts` `proposalUtility` is exactly three factors, in this
+association:
 
 ```text
 proposalUtility =
     settledIncomingQuality ^ settledPower
-  x (projectedOutgoingQuality x speedFit x airFit
-     x impactFeasibility x elevationFit) ^ futurePower
-  x catchability ^ feasibilityPower
+  x projectedOutgoingQuality ^ futurePower
+  x readiness              ^ futurePower
 ```
 
-This is a regrouping, not a relabelling: every factor appears exactly once, and
-at neutral exponents the expression is algebraically identical to
-`settled x projected x readiness`. A test asserts that identity directly, so the
-regrouping cannot silently start dropping or duplicating a factor.
+Two knobs, both defaulting to 1: `LR_OBJECTIVE_SETTLED_POWER` and
+`LR_OBJECTIVE_FUTURE_POWER`. `tests/objective_quality.test.ts` asserts the
+neutral-exponent identity `value === settled * projected * readiness` against
+this exact association.
 
-The shipped exponents are 1 / 1 / **2**. Feasibility is weighted because the
-measured failure mode is cumulative: each committed arc leaves the rider
-slightly worse placed than it needs to be, the deficit compounds with depth, and
-on long specs it compounds past the frame budget. That is an admission failure,
-not a grading failure — and weighting the whole readiness product to correct it
-also amplifies impact-chasing, which is worst exactly where impact asks are
-aggressive.
+**Do not re-associate this expression.** It is three multiplications and looks
+like it could be grouped any way at all. Grouping the four readiness grading
+factors with projected quality — algebraically identical, verified over two
+million random inputs at a maximum relative difference of 8.0e-16, about 3.6
+ulp — cost 14 headline points at N=48 (−15.33 → −29.34), seven times the
+seed-block SE, because ranking ties break differently and the search walks a
+different tree. Reverted in `a7bdf70` (2026-07-25).
+
+The corollary is worth as much as the warning, and it bears on every result in
+this area: a 14-point swing can be produced with ZERO semantic content, so a
+single N=48 delta of that magnitude carries much less meaning than its
+confidence interval suggests.
+
+### 8.2 KNOWN DEFECT: projected and readiness share one exponent
+
+`futurePower` is applied to both `projectedOutgoingQuality` and `readiness`.
+These two terms do not deserve equal weight, because they are not equally
+trustworthy: projected quality rests on a ballistic boundary measured at 0.50 px
+contact-position MAE, while the readiness composite validates at MSE 0.0187 /
+r 0.787. One is near-exact physics, the other a fuzzy estimate of an arc that
+does not exist yet.
+
+Worse, the exponent is fed from a gate NAMED for readiness.
+`handoff.ts` `objectiveBlendReadinessPowerForSpec` returns 0.75 for three spec
+signatures (M75 high-air-impact, M108 dense-drum, M115 compact) at budgets
+≥200k, and `handoff.ts` passes it as `futureQualityPower`. When M75 was accepted
+(`a3ff6b8`, 2026-07-04) the objective was `current^p x readiness^q` — there was
+no projected term, so the softening reached readiness alone. Since the
+contact-indexed pipeline landed (`6d064b0`, 2026-07-24) it has also been
+discounting the ballistic projection on those specs, and that was never
+revalidated.
+
+Measured surface (`npm run study:objective-powers`, static, no compiles):
+**5 of 44 development cases, 11.4%**, at every budget ≥250k and none at 75k —
+`meter_exchange`, `meter_exchange_speed_plus_4`, `split_signal`,
+`split_signal_impact_relief_12`, `wide_breaths_air_plus_5`. All five are in the
+`representative` stratum. For contrast `settledIncomingQualityPower` is gated on
+40 of 44 (90.9%) at ≥250k, but that is a separate continuous mechanism and it
+correctly reaches settled quality only.
+
+A third exponent existed briefly and was never swept: `f438c43` (2026-07-25
+02:54) added `objectiveReadinessPower` at default 1, bit-identical, on exactly
+this argument; `f1fef05` replaced it with the role split's feasibility power,
+and `a7bdf70` removed that as part of the revert, collapsing readiness back onto
+`futurePower`.
+
+### 8.3 Rejected exponent arms
+
+- `catchability^2` under the role split: N=48 delta −25.25 against −15.33. It
+  buys completion as designed (lost runs 372 → 298, `frontier_dense_recovery`
+  8 → 20 of 144 valid, capability −164.65 → −117.71) and pays for it in score
+  everywhere else (representative +9.93 → −10.29, music −12.61 → −28.83).
+  Over-weighting admission makes the search prefer arcs that LAND over arcs that
+  SCORE.
+- The role split at neutral exponents: −29.34. See §8.1.
 
 Readiness may order work and propose candidates. It may not bypass exact
 simulation, hard gates, or the forward judge.
 
-### 8.1 When no launch can be acquired
+### 8.4 When no launch can be acquired
 
 A viable candidate may still have no ballistic launch: its geometric exit is
 not confirmable inside the simulated window, the anchor would fall at or past
@@ -521,7 +593,7 @@ component accuracy, proposal ordering, and compiler score are separate claims.
 
 ## 11. Current implementation status
 
-The 2026-07-24 implementation now has:
+Verified against the tree on 2026-07-26:
 
 | Layer | Status |
 |---|---|
@@ -535,11 +607,11 @@ The 2026-07-24 implementation now has:
 | Impact feasibility for the next arc | Refit on viable attempts with an incoming-gap impact ask. |
 | Next-arc speed/air fit | Refit from the unbuilt arc's realized outgoing gap. |
 | Next-arc elevation fit | Exactly neutral pending a relevant authored population. |
-| Frozen readiness corpus | Schema v6: 44 V2 cases, three seeds, 131,930 contexts, 486,066 retained of 639,353 attempts. |
-| Production inference | One stable exported artifact; dependency-free TypeScript inference has exact fixture parity with Python. |
-| Proposal utility | Explicitly combines settled incoming quality, projected outgoing quality, and next-arc readiness once each. |
+| Frozen readiness corpus | Schema v6: 44 V2 cases, three seeds, 132,387 contexts, 470,101 retained of 617,789 attempts (`generated/analysis/readiness.json`, regenerated 2026-07-25). |
+| Production inference | One stable exported artifact; dependency-free TypeScript inference has exact fixture parity with Python. The extractor emits 88 columns, the shipped model uses 80, and `infer` projects (§7.3). |
+| Proposal utility | Combines settled incoming quality, projected outgoing quality, and next-arc readiness once each — but projected and readiness share one exponent. See §8.2. |
 | Aim surrogate | Uses only settled and projected layers because its small local fit does not reconstruct the full articulated readiness boundary. Exact candidates use all three layers. |
-| Compiler evidence | Unit/contract evidence is in place; hot-path telemetry and independent compiler promotion remain pending. |
+| Compiler evidence | Unit/contract evidence is in place; hot-path inference telemetry remains pending. Compiler promotion through the N=48 benchmark is exercised (three arms decided 2026-07-25) and the closed-form projection was adopted at 24-seed parity. |
 
 The invalid earlier speed/air result remains withdrawn. It measured outgoing
 ballistic composition, not next-arc readiness.

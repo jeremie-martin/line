@@ -106,7 +106,7 @@ redundancy on the benchmark. It is a simplification opportunity, not a bug.
 
 ### 2.4 Failure policy when no launch can be acquired
 
-Written down in contract §8.1 with four named alternatives, because it was
+Written down in contract §8.4 with four named alternatives, because it was
 previously an accident rather than a decision. Current policy: a candidate with
 no proposal utility sorts below every candidate that has one, regardless of its
 exact cost. Measured mass: 99.33% of acquisitions confirm an exit, 0.06% are
@@ -142,13 +142,24 @@ Yes, and it is **not cheaper per frame**: 1.92–2.06 µs/frame for the kernel v
 near-complete shadow flight simulation (`river_reentry`: 249,025 kernel frames
 against 252,424 engine frames), ~9% of wall clock.
 
-What it buys is **not CPU — it is budget**: the compiler's ration is denominated
-in engine frames and the kernel charges none. Plus a counterfactual the engine
-cannot answer without a fork.
+What it bought was **not CPU — it was budget**: the compiler's ration is
+denominated in engine frames and the kernel charges none. Plus a counterfactual
+the engine cannot answer without a fork.
 
-Open, unmeasured: cost against a *dense* track, which is the real alternative.
-Tracked in `ballistic-goal.md`; the volume is now visible per compile as
-`CompileStats.ballistic_micro_sim_frames`.
+**CLOSED, and it went the other way** (`673d42f`, 2026-07-25). "Charges no
+budget" was not a free lunch, it was an unpriced one: a near-complete shadow
+flight simulation ran beside the real one — 31.5% of every frame the compiler
+simulated, up to 0.92 unbilled per billed on air-heavy specs — so the budget
+axis was not measuring what it claimed to. The default is now an O(1) closed
+form at **451 ns per prediction against 19,806**, adopted at 24-seed parity
+(headline 494.91 → 494.63, delta −0.28, SE 2.50), with unbilled frames at zero.
+The exact kernel survives as the A/B arm behind `LR_BALLISTIC_CLOSED_FORM=0`,
+and `CompileStats.ballistic_micro_sim_frames` now reads 0 unless it is selected.
+
+The price, recorded rather than buried: the closed form is a *worse* predictor
+(0.58 px against ~1e-5 px) and `frontier_pickup_progression` stalls a little more
+often (750k: 3 of 24 against the kernel's 0 of 16), same `terminus:rideStalled`
+failure mode in both. That is inside the parity result above.
 
 ### 3.3 "Your approach-aim conclusion is wrong"
 
@@ -174,25 +185,32 @@ version and measure that.
 
 ## 4. Standing measurements — do not re-derive these
 
-| quantity | value | source |
-|---|---|---|
-| ballistic boundary error at the next contact | 1.7e-06 px position, 4.5e-06° angle; **exactly 0** for horizons ≥9 frames (128,727 of 202,752 rows) | `generated/analysis/ballistic-v2.json` |
-| readiness composite, locked validation | MSE 0.00683, MAE 0.0541, r 0.863 | `generated/analysis/readiness.json` |
-| readiness component vs attempt-noise floor | speed 8.7×, impact 5.6×, air 3.6× above the floor | same |
-| **airFit is mostly authored context** | a lookup on targets+durations with **no rider state** scores 0.01228 vs the model's 0.01022 | measured |
-| catchability is boundary-informed | boundary-only Brier 0.1702 beats per-case 0.1965; model 0.1235 | measured |
-| readiness compiler value | turning it off costs **112 headline points** (493.30 → 381.20) | ablation matrix N=3 |
-| per-factor value | catchability ≈25, speed ≈13, impact ≈11, air ≈5 | same |
-| frame accounting | fwd-eval 18–37%, aim probes 16–27%, pool+rest 37–60% | 3-seed archive |
-| pool ordering | the three-layer objective orders **98.5%** of candidates; cost decides ~1.5% | `LR_AIM_STUDY_STATS=1` |
+Each row names the ARM it was measured on. The shipped default changed on
+2026-07-25 (§3.2), so a kernel-era number is not a statement about production.
+
+| quantity | value | arm | source |
+|---|---|---|---|
+| ballistic boundary error, **shipped default** | 0.503 px contact position, 0.483 px pre-contact, 0.167° incoming angle, 0.034 px/frame speed | closed form | `generated/analysis/readiness.json`, 2026-07-25 |
+| ballistic boundary error, A/B arm | 1.7e-06 px position, 4.5e-06° angle; **exactly 0** for horizons ≥9 frames (128,727 of 202,752 rows) | exact kernel | `generated/analysis/ballistic-v2.json` |
+| readiness composite, locked validation | MSE 0.01875, MAE 0.09799, r 0.787, Spearman 0.794, calibration error 0.0746 | closed form | `generated/analysis/readiness.json`, 2026-07-25 |
+| readiness composite, superseded | MSE 0.00683, MAE 0.0541, r 0.863 | exact kernel | withdrawn as a production statement |
+| catchability | Brier 0.1222, log loss 0.392, AUC 0.898, calibration error 0.0127 | closed form | `generated/analysis/readiness.json` |
+| readiness component vs attempt-noise floor | speed 8.7×, impact 5.6×, air 3.6× above the floor | exact kernel | UNREPRODUCED on the closed form |
+| **airFit is mostly authored context** | a lookup on targets+durations with **no rider state** scores 0.01228 vs the model's 0.01022 | exact kernel | measured |
+| catchability is boundary-informed | boundary-only Brier 0.1702 beats per-case 0.1965; model 0.1235 | exact kernel | measured |
+| readiness compiler value | turning it off costs **112 headline points** (493.30 → 381.20) | pre-2026-07-25 | ablation matrix N=3 |
+| per-factor value | catchability ≈25, speed ≈13, impact ≈11, air ≈5 | pre-2026-07-25 | same |
+| frame accounting | fwd-eval 18–37%, aim probes 16–27%, pool+rest 37–60% | exact kernel — the 31.5% shadow sim is gone, so this split has MOVED | 3-seed archive |
+| pool ordering | the three-layer objective orders **98.5%** of candidates; cost decides ~1.5% | pre-2026-07-25 | `LR_AIM_STUDY_STATS=1` |
+| **shared future exponent surface** | `futureQualityPower ≠ 1` on **5 of 44** development cases (11.4%) at every budget ≥250k, 0 of 44 at 75k; all five in `representative`. `settledIncomingQualityPower ≠ 1` on 40 of 44. | current tree, 2026-07-26 | `npm run study:objective-powers` |
 
 ---
 
 ## 5. Falsified — do not retry
 
-Ten hypotheses have been killed by measurement. Listing them is the point: each
-one is an idea that reads well and is wrong, and the cost of re-deriving any of
-them is hours.
+Eleven hypotheses have been killed by measurement. Listing them is the point:
+each one is an idea that reads well and is wrong, and the cost of re-deriving
+any of them is hours.
 
 1. **Approach aim from the incoming gap** — table below.
 2. **The deleted catch+8 release fallback** — bail rates are low everywhere.
@@ -221,6 +239,11 @@ them is hours.
     (representative +9.93 → −10.29, music −12.61 → −28.83). Over-weighting
     admission makes the search prefer arcs that LAND over arcs that SCORE.
     See §7 for the instrument lesson, which is the more valuable half.
+11. **Regrouping the objective by factor role** at neutral exponents — N=48
+    delta −29.34 against −15.33, worse than the weighted variant it was meant to
+    tidy up. The regrouping is algebraically exact (max relative difference
+    8.0e-16 over two million random inputs), so its entire semantic content is
+    ~3.6 ulp. Reverted `a7bdf70`. **Do not re-associate `proposalUtility`.**
 
 **Approach aim from the incoming gap** (commit `3aea1b3`, reverted `bd573cf`).
 Hypothesis: the sampler's approach shaping should read the incoming gap's
@@ -279,18 +302,23 @@ are significantly AHEAD at N=48.
 
 ---
 
-## 7. The fix, and what it cost
+## 7. The attempted fix, and why it was reverted
 
-The drift in §5b is an ADMISSION failure, not a grading failure: the search
+**Outcome first: nothing from this section is in the tree.** The objective is
+the unsplit `settled^p x projected^q x readiness^q` (contract §8.1). Both arms
+below were measured and rejected. The section is kept because the reasoning was
+sound and the failure was instructive.
+
+The drift in §6 is an ADMISSION failure, not a grading failure: the search
 commits arcs that leave the rider slightly worse placed, and pays for it in
 backtracking. The three-layer product could not express that preference,
 because `readiness` bundles both kinds of question behind one exponent.
 
-The objective now groups its factors by the QUESTION they answer rather than by
-which model produced them:
+The attempt grouped the factors by the QUESTION they answer rather than by which
+model produced them:
 
 ```text
-proposalUtility =
+proposalUtility =                        <-- REVERTED, a7bdf70. Not the tree.
     settledIncomingQuality ^ 1
   x (projectedOutgoingQuality x speedFit x airFit
      x impactFeasibility x elevationFit) ^ 1
@@ -300,11 +328,9 @@ proposalUtility =
 `catchability` ADMITS the next arc. The other four GRADE it, which is the
 question `projectedOutgoingQuality` already asks, so they travel with it. Every
 factor appears exactly once and neutral exponents reproduce
-`settled x projected x readiness` algebraically — asserted by the same test that
-rejected an earlier version of this change for bolting an extra exponent onto a
-factor already inside the product.
+`settled x projected x readiness` algebraically.
 
-**What it bought** (TTC, mean of 3 seeds, 500k, new default vs previous):
+**What the weighted form bought** (TTC, mean of 3 seeds, 500k, arm vs previous):
 `pickup_shifted` 296k vs 2-of-3 seeds never completing; `dense_dialogue_10` 246k
 vs 302k; `dense_dialogue` 262k vs 268k; `low_air_endurance_7s` 213k (3/3) vs
 2-of-3; and the healthy controls improve 10–14% too — `amplitude_tides` 170k vs
@@ -323,8 +349,20 @@ and score fell everywhere else: representative +9.93 → **−10.29**, music
 
 Over-weighting admission makes the search prefer arcs that LAND over arcs that
 SCORE, and a completed track that misses its axes is worth less than the axes
-are. The exponent is back to 1; the role grouping stays, because it is the
-clearer statement of the same product.
+are. So the exponent went back to 1 — and then the *grouping* was measured at
+that neutral exponent and rejected too: **−29.34 against −15.33**, worse than
+the weighted variant it was supposed to clean up. `a7bdf70` restored the unsplit
+product exactly, verified bit-for-bit against the tree N=48 #2 measured
+(`pickup_progression` TTC 513010/396401/548736, identical).
+
+**The collateral, which matters for what comes next.** `f438c43` had introduced
+a third exponent — `objectiveReadinessPower`, default 1, bit-identical — on the
+argument that projected quality and readiness answer different questions and
+should not share a rate. `f1fef05` replaced it with the role split's feasibility
+power, and `a7bdf70` removed that. So readiness collapsed back onto
+`futurePower` and **the separate readiness exponent was never swept at any value
+other than 1.** It remains an open, untested lever; see contract §8.2 for why
+the accuracy asymmetry argues it should not be 1.
 
 ### 7.1 The instrument lesson
 
@@ -346,6 +384,31 @@ order, results differ in the last ulp, and the search takes a different path —
 `pickup_progression` TTC 319k/305k/345k against 513k/396k/549k before the split.
 A "pure refactor" of the objective still needs its own measurement.
 
+### 7.2 LIVE DEFECT: a readiness softening that reaches the ballistic term
+
+Found 2026-07-26, not yet fixed. `handoff.ts`
+`objectiveBlendReadinessPowerForSpec` resolves 0.75 for three spec signatures
+(M75 high-air-impact, M108 dense-drum, M115 compact) at budgets ≥200k, and
+`handoff.ts` passes that value as `futureQualityPower` — which `proposalUtility`
+applies to projected outgoing quality AND readiness.
+
+When M75 was accepted (`a3ff6b8`, 2026-07-04) the objective was
+`current^p x readiness^q`. There was no projected term, so the softening reached
+readiness alone, and that is the arm the acceptance measured. The contact-indexed
+pipeline (`6d064b0`, 2026-07-24) introduced projected quality sharing the
+exponent, and nobody revalidated the gate.
+
+**Surface, measured statically:** 5 of 44 development cases, 11.4%, at every
+budget ≥250k and none at 75k — `meter_exchange`,
+`meter_exchange_speed_plus_4`, `split_signal`, `split_signal_impact_relief_12`,
+`wide_breaths_air_plus_5`. All five sit in the `representative` stratum, which
+is the stratum §6 records as significantly AHEAD. Reproduce with
+`npm run study:objective-powers`.
+
+Re-pointing the gate at readiness alone CHANGES behaviour on those five cases,
+so per §3.4 and §7.1 it is a measured arm, not a fix. It rides with the exponent
+sweep rather than being patched in ahead of it.
+
 ---
 
 ## 8. Working agreements
@@ -358,3 +421,36 @@ A "pure refactor" of the objective still needs its own measurement.
 - Distinguish "the failure signature is clear" from "the cause is known".
 - Legacy-shaped arms are probes, never fixes (§3.4).
 - Falsified ideas are recorded here so they are not retried.
+- **A conclusion in a source comment is a lead, not a fact** (§9).
+
+---
+
+## 9. Source comments are dated evidence, not standing truth
+
+The compiler has moved far enough that a justifying measurement written into a
+comment is usually a statement about a compiler that no longer exists. Two of
+them were built on in a single day in July 2026, one of which reached a shipped
+hypothesis before anyone checked whether the metric it cited still existed.
+
+So comments are read in two kinds:
+
+- **Mechanism** — "this loop excludes the anchor frame", "read once per call
+  because `process.env` costs ~268 ns". Checkable against the code in seconds.
+  Trust normally.
+- **Conclusion** — "this is what damps the oscillation", "+4.1 headline",
+  "31.5% of all frames". An experiment result. **Treat as an unreproduced lead.**
+
+The rule: do not delete a conclusion (the number is the record of where somebody
+saw signal), and do not act on it either. Stamp it with the commit and date it
+was measured at, and mark it unreproduced against the current tree. Anything
+load-bearing gets re-measured before it justifies a change.
+
+Currently carrying this stamp, all measured 2026-07-25 on a tree that has since
+changed its ballistic default:
+
+| claim | where |
+|---|---|
+| the recoverability side-weighting damps the dense-spec catch oscillation | `optimizer/objective.ts` `RECOVERABLE_SIDE_WEIGHT` |
+| the raw air ask saturates and blinds the RMS on short gaps | `optimizer/objective.ts` `projectedOutgoingTargets` |
+| excluding `airFit` improves both strata (dense land 34.3 → 35.0, healthy 75.1 → 76.5) | `optimizer/readiness_scoring.ts` |
+| the closed form is at parity with the exact kernel | `core/ballistic_projection.ts` — 24 seeds, and the one measurement here taken ON the current default |

@@ -2451,6 +2451,19 @@ function plateauPressure(
     (1 - smoothstep((value - fullEnd) / (end - fullEnd)));
 }
 
+/**
+ * MISNAMED, and the mismatch is live. This resolves a READINESS softening — M75
+ * was accepted on 2026-07-04 when the objective was `current^p x readiness^q`
+ * and 0.75 reached readiness alone — but its result is passed as
+ * `futureQualityPower`, which `proposalUtility` applies to projected outgoing
+ * quality as well. Since 6d064b0 (2026-07-24) that has been discounting the
+ * ballistic term on the affected specs, unrevalidated.
+ *
+ * Surface: 5 of 44 development cases at budgets >=250k, none at 75k, all in the
+ * `representative` stratum. Reproduce with `npm run study:objective-powers`.
+ * Re-pointing this at readiness alone changes behaviour on those specs, so it is
+ * a measured arm, not a patch. See docs/BALLISTIC_READINESS_DECISIONS.md §7.2.
+ */
 function objectiveBlendReadinessPowerForSpec(
   targetBudget: number,
   profile: HandoffSpecProfile,
@@ -2479,6 +2492,41 @@ function objectiveBlendReadinessPowerForSpec(
     return M108_DENSE_DRUM_READINESS_POWER;
   }
   return undefined;
+}
+
+/**
+ * Diagnostic ONLY: the proposal-utility exponents production would resolve for
+ * one (spec, policy budget), without compiling anything.
+ *
+ * It calls the same profile builder and the same two gate functions the compile
+ * path calls at handoff.ts's `setProposalUtilityPowers` site, so a study can
+ * never drift from what the compiler actually does. `undefined` means "leave the
+ * env/source default", exactly as at the call site.
+ *
+ * NOTE the field names, which are the ones `setProposalUtilityPowers` takes:
+ * `futureQualityPower` is produced by `objectiveBlendReadinessPowerForSpec` but
+ * `proposalUtility` applies it to projected outgoing quality AND readiness. That
+ * asymmetry is the thing this diagnostic exists to measure; see
+ * docs/BALLISTIC_READINESS_DECISIONS.md.
+ */
+export function resolveProposalUtilityPowersForSpec(
+  spec: Spec,
+  policyBudget: number,
+): {
+  settledIncomingQualityPower: number | undefined;
+  futureQualityPower: number | undefined;
+} {
+  const profile = buildHandoffSpecProfile(spec);
+  return {
+    settledIncomingQualityPower: objectiveBlendCurrentPowerForSpec(
+      policyBudget,
+      profile,
+    ),
+    futureQualityPower: objectiveBlendReadinessPowerForSpec(
+      policyBudget,
+      profile,
+    ),
+  };
 }
 
 function objectiveElevationReadinessForSpec(

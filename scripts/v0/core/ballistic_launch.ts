@@ -5,10 +5,15 @@
  * `confirmedArcExitFrame`) — a physical fact about the geometry and the
  * trajectory. There is deliberately no forward scan and no alternative anchor
  * rule. A scan existed while the predictor fitted a velocity from several
- * samples; the constraint micro-simulation needs exactly one state (ten points
- * plus their previous positions), and the measured boundary error at the next
- * authored contact is ~1e-5 px, so buying 0-3 extra exact frames bought
- * nothing while making the anchor a function of the detection-window schedule.
+ * samples; both predictors need exactly one state (ten points plus their
+ * previous positions), so buying 0-3 extra exact frames bought nothing while
+ * making the anchor a function of the detection-window schedule.
+ *
+ * The boundary error that retired the scan was ~1e-5 px, measured on the exact
+ * constraint kernel, which is now the A/B arm; the shipped closed form sits at
+ * ~0.50 px. The argument is unaffected — a later anchor does not make either
+ * predictor need fewer states — but do not quote the 1e-5 as a property of the
+ * default. See docs/BALLISTIC_READINESS_DECISIONS.md §4.
  *
  * The detector already owns the simulated prefix; we summarize the exact gap
  * prefix from it and perform exactly one rider read, at the anchor.

@@ -80,6 +80,7 @@
     "lab": "node --no-warnings=ExperimentalWarning --expose-gc --import tsx scripts/v0/analysis/lab.ts",
     "study:joint-arc": "LR_ENGINE=wasm node --expose-gc --no-warnings=ExperimentalWarning --import tsx scripts/v0/study_joint_arc_model.ts",
     "study:arc-control-matrix": "LR_ENGINE=wasm node --expose-gc --no-warnings=ExperimentalWarning --import tsx scripts/v0/study_arc_control_matrix_v2.ts",
+    "study:objective-powers": "LR_ENGINE=wasm node --no-warnings=ExperimentalWarning --import tsx scripts/v0/study_objective_powers.ts",
     "study:exit-readout": "LR_ENGINE=wasm node --no-warnings=ExperimentalWarning --import tsx scripts/v0/study_exit_readout.ts",
     "decide": "npm run benchmark -- decide",
     "decide:v1": "tsx scripts/v0/analyze_golden_curve.ts decide",

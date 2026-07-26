@@ -25,6 +25,34 @@ describe("objective control configurations", () => {
     expect(configurations[0].id).toBe("settled1--future1--readiness0.5");
   });
 
+  test("each variable is emitted only when non-default", () => {
+    // handoff disables its per-spec exponent gates on the mere PRESENCE of
+    // LR_OBJECTIVE_SETTLED_POWER / LR_OBJECTIVE_FUTURE_POWER, so emitting them
+    // unconditionally would confound every cell with a gate change.
+    const [floorOnly] = enumerateObjectiveControlConfigurations({
+      readinessFloors: [0.15],
+    });
+    expect(objectiveControlEnvironment(floorOnly)).toEqual({
+      LR_OBJECTIVE_READINESS_FLOOR: "0.15",
+    });
+
+    const [futureOnly] = enumerateObjectiveControlConfigurations({
+      futurePowers: [1.5],
+    });
+    expect(objectiveControlEnvironment(futureOnly)).toEqual({
+      LR_OBJECTIVE_FUTURE_POWER: "1.5",
+    });
+  });
+
+  test("a floor of 1 or more is rejected", () => {
+    expect(() =>
+      enumerateObjectiveControlConfigurations({ readinessFloors: [1] })
+    ).toThrow(/must be in \[0, 1\)/);
+    expect(() =>
+      enumerateObjectiveControlConfigurations({ readinessFloors: [-0.1] })
+    ).toThrow(/must be in \[0, 1\)/);
+  });
+
   test("'follow' and a pinned 1 are different cells", () => {
     // Unset means readiness tracks the future exponent, which is NOT the same
     // compiler as readiness pinned to 1 whenever the future exponent moves.
@@ -53,6 +81,33 @@ describe("objective control configurations", () => {
     ).toThrow(/invalid settled exponent/);
   });
 
+  test("the readiness floor reaches the compiler and bounds the tail", async () => {
+    const [cell] = enumerateObjectiveControlConfigurations({
+      readinessFloors: [0.2],
+    });
+    const saved = { ...process.env };
+    try {
+      Object.assign(process.env, objectiveControlEnvironment(cell));
+      vi.resetModules();
+      const objective = await import("../scripts/v0/optimizer/objective.ts");
+      // Monotone, so readiness's own ordering of a pool survives exactly...
+      expect(objective.recalibrateReadiness(0)).toBeCloseTo(0.2, 12);
+      expect(objective.recalibrateReadiness(0.5)).toBeCloseTo(0.6, 12);
+      expect(objective.recalibrateReadiness(1)).toBeCloseTo(1, 12);
+      // ...but a near-zero readiness no longer contributes an unbounded log:
+      // 0.2 + 0.8e-6 rather than 1e-6, three orders of magnitude of penalty
+      // removed from exactly the candidates the floor exists to bound.
+      const bounded = objective.proposalUtility(1, 1, { readiness: 1e-6 });
+      expect(bounded).toBeCloseTo(0.2 + 0.8e-6, 12);
+    } finally {
+      for (const key of Object.keys(process.env)) {
+        if (key.startsWith("LR_OBJECTIVE_")) delete process.env[key];
+      }
+      Object.assign(process.env, saved);
+      vi.resetModules();
+    }
+  });
+
   test("the emitted environment actually drives the compiler's exponents", async () => {
     // The whole point of the scaffolding is that a matrix cell parametrizes the
     // REAL objective rather than a study-local copy. This asserts the variable
@@ -74,6 +129,7 @@ describe("objective control configurations", () => {
       objective.setProposalUtilityPowers();
       const value = objective.proposalUtility(0.5, 0.5, { readiness: 0.5 });
       expect(value).toBeCloseTo(0.5 ** 2 * 0.5 ** 1.5 * 0.5 ** 0.5, 12);
+      expect(objective.recalibrateReadiness(0.5)).toBe(0.5);
     } finally {
       for (const key of Object.keys(process.env)) {
         if (key.startsWith("LR_OBJECTIVE_")) delete process.env[key];

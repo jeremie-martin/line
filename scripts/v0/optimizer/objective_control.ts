@@ -34,14 +34,17 @@ export type ObjectiveControlConfiguration = Readonly<{
   futurePower: number;
   /** `null` = unset = follow `futurePower`. */
   readinessPower: number | null;
+  /** `readiness -> floor + (1 - floor) * readiness`. 0 = identity. */
+  readinessFloor: number;
 }>;
 
-/** The source default: all neutral, readiness following future. */
+/** The source default: all neutral, readiness following future, no floor. */
 export const OBJECTIVE_CONTROL_DEFAULT: ObjectiveControlConfiguration = {
   id: "settled1--future1--readinessfollow",
   settledPower: 1,
   futurePower: 1,
   readinessPower: null,
+  readinessFloor: 0,
 };
 
 export type ObjectiveControlMatrixOptions = Readonly<{
@@ -49,20 +52,25 @@ export type ObjectiveControlMatrixOptions = Readonly<{
   futurePowers?: readonly number[];
   /** `null` entries enumerate the follow-the-future-exponent cell. */
   readinessPowers?: readonly (number | null)[];
+  readinessFloors?: readonly number[];
 }>;
 
 function powerToken(power: number | null): string {
   return power === null ? "follow" : String(power);
 }
 
+/** The floor is omitted from the id when it is 0, so ids minted before the axis
+ *  existed still name the same cell. */
 export function objectiveConfigurationId(
   settledPower: number,
   futurePower: number,
   readinessPower: number | null,
+  readinessFloor: number,
 ): string {
   return `settled${powerToken(settledPower)}` +
     `--future${powerToken(futurePower)}` +
-    `--readiness${powerToken(readinessPower)}`;
+    `--readiness${powerToken(readinessPower)}` +
+    (readinessFloor === 0 ? "" : `--floor${readinessFloor}`);
 }
 
 function assertPower(power: number, axis: string): void {
@@ -94,19 +102,38 @@ export function enumerateObjectiveControlConfigurations(
   const readinessPowers = options.readinessPowers === undefined
     ? [OBJECTIVE_CONTROL_DEFAULT.readinessPower]
     : [...options.readinessPowers];
+  const readinessFloors = options.readinessFloors === undefined
+    ? [OBJECTIVE_CONTROL_DEFAULT.readinessFloor]
+    : [...options.readinessFloors];
   for (const power of settledPowers) assertPower(power, "settled");
   for (const power of futurePowers) assertPower(power, "future");
   for (const power of readinessPowers) {
     if (power !== null) assertPower(power, "readiness");
   }
+  for (const floor of readinessFloors) {
+    if (!Number.isFinite(floor) || floor < 0 || floor >= 1) {
+      throw new Error(
+        `invalid readiness floor ${floor}; must be in [0, 1) — a floor of 1 ` +
+          `would erase readiness from the ordering entirely`,
+      );
+    }
+  }
   const configurations = settledPowers.flatMap((settledPower) =>
     futurePowers.flatMap((futurePower) =>
-      readinessPowers.map((readinessPower) => ({
-        id: objectiveConfigurationId(settledPower, futurePower, readinessPower),
-        settledPower,
-        futurePower,
-        readinessPower,
-      }))
+      readinessPowers.flatMap((readinessPower) =>
+        readinessFloors.map((readinessFloor) => ({
+          id: objectiveConfigurationId(
+            settledPower,
+            futurePower,
+            readinessPower,
+            readinessFloor,
+          ),
+          settledPower,
+          futurePower,
+          readinessPower,
+          readinessFloor,
+        }))
+      )
     )
   );
   const ids = new Set(configurations.map((configuration) => configuration.id));
@@ -121,29 +148,54 @@ export function isObjectiveControlSourceDefault(
 ): boolean {
   return configuration.settledPower === OBJECTIVE_CONTROL_DEFAULT.settledPower &&
     configuration.futurePower === OBJECTIVE_CONTROL_DEFAULT.futurePower &&
-    configuration.readinessPower === OBJECTIVE_CONTROL_DEFAULT.readinessPower;
+    configuration.readinessPower === OBJECTIVE_CONTROL_DEFAULT.readinessPower &&
+    configuration.readinessFloor === OBJECTIVE_CONTROL_DEFAULT.readinessFloor;
 }
 
 /**
  * The compiler environment for one cell. `{}` for the source default, so the
  * baseline arm is the production compiler itself.
  *
- * NOTE what setting `LR_OBJECTIVE_SETTLED_POWER` / `LR_OBJECTIVE_FUTURE_POWER`
- * also does: `handoff.ts` disables its per-spec exponent gates when either is
- * present. That is intended for a sweep — an arm that pins an exponent should
- * mean it globally, not have five specs quietly overridden — but it does mean a
- * non-default cell is testing "this exponent everywhere" rather than "this
- * exponent plus the existing signature gates".
+ * EACH VARIABLE IS EMITTED ONLY WHEN IT IS NON-DEFAULT, and that is a
+ * correctness requirement rather than tidiness. `handoff.ts` disables its
+ * per-spec exponent gates when `LR_OBJECTIVE_SETTLED_POWER` or
+ * `LR_OBJECTIVE_FUTURE_POWER` is present at all, whatever its value. Emitting
+ * them unconditionally therefore made every non-default cell ALSO a
+ * gates-disabled cell, so a cell varying only the readiness floor would have
+ * been confounded with the gate change on the 40-of-44 specs the settled gate
+ * touches.
+ *
+ * Sweep A (`objective-sweep-a-16s01`) ran under the earlier all-or-nothing rule.
+ * That is why its `settled1--future1--readiness1` cell differs from the source
+ * default at all — same exponents, gates disabled — and its +1.95 is the
+ * combined price of both gates rather than an exponent result. Cells from that
+ * sweep are not directly comparable to cells minted after this change; the
+ * matrix schema is bumped so a resume cannot silently mix them.
+ *
+ * To disable the readiness gates deliberately, set
+ * `LR_M75_HIGH_AIR_IMPACT_READINESS075=0`, `LR_M108_DENSE_DRUM_READINESS075=0`
+ * and `LR_M115_COMPACT_READINESS075=0`, which target exactly that and nothing
+ * else.
  */
 export function objectiveControlEnvironment(
   configuration: ObjectiveControlConfiguration,
 ): Record<string, string> {
-  if (isObjectiveControlSourceDefault(configuration)) return {};
-  return {
-    LR_OBJECTIVE_SETTLED_POWER: String(configuration.settledPower),
-    LR_OBJECTIVE_FUTURE_POWER: String(configuration.futurePower),
-    ...(configuration.readinessPower === null
-      ? {}
-      : { LR_OBJECTIVE_READINESS_POWER: String(configuration.readinessPower) }),
-  };
+  const environment: Record<string, string> = {};
+  if (configuration.settledPower !== OBJECTIVE_CONTROL_DEFAULT.settledPower) {
+    environment.LR_OBJECTIVE_SETTLED_POWER = String(configuration.settledPower);
+  }
+  if (configuration.futurePower !== OBJECTIVE_CONTROL_DEFAULT.futurePower) {
+    environment.LR_OBJECTIVE_FUTURE_POWER = String(configuration.futurePower);
+  }
+  if (configuration.readinessPower !== null) {
+    environment.LR_OBJECTIVE_READINESS_POWER = String(
+      configuration.readinessPower,
+    );
+  }
+  if (configuration.readinessFloor !== OBJECTIVE_CONTROL_DEFAULT.readinessFloor) {
+    environment.LR_OBJECTIVE_READINESS_FLOOR = String(
+      configuration.readinessFloor,
+    );
+  }
+  return environment;
 }

@@ -85,10 +85,64 @@ const OBJECTIVE_FUTURE_POWER_ENV = objectiveEnvNum(
 const OBJECTIVE_READINESS_POWER_ENV = objectiveEnvNumOrUndefined(
   "LR_OBJECTIVE_READINESS_POWER",
 );
+/**
+ * Readiness RECALIBRATION: `readiness -> floor + (1 - floor) * readiness`.
+ *
+ * Distinct from the exponent, and the distinction is the whole point. Because
+ * `proposalUtility` is a product it orders candidates by a sum of logs, so an
+ * exponent scales readiness's log UNIFORMLY. This reshapes it NON-uniformly: it
+ * bounds the tail. A candidate whose readiness is ~0 currently contributes an
+ * unboundedly negative log and can dominate the ranking by itself; a floor of
+ * 0.05 caps that contribution at log(0.05) however small the readiness gets,
+ * while leaving well-separated mid-range candidates nearly untouched.
+ *
+ * It is monotone in `readiness`, so readiness's OWN ordering of a pool is
+ * preserved exactly. What changes is the rate at which readiness trades against
+ * settled and projected quality — search policy, not model semantics, which is
+ * why this lives here and not in `readiness_scoring.ts`. The invariant
+ * `readiness = catchability * speedFit * airFit * impactFeasibility *
+ * elevationFit` is untouched.
+ *
+ * WHY THIS IS WORTH A MEASUREMENT even though the exponent was refuted: the
+ * measured level asymmetry (readiness 0.06-0.33, settled/projected 0.46-0.72)
+ * is structural, not incidental — readiness is a product of up to five factors
+ * while the other layers are single axis-quality scores, so multiplying
+ * deflates it mechanically. Sweep A showed that scaling its log weight uniformly
+ * DOWN costs headline monotonically. Whether the same is true of bounding only
+ * its tail is a different question with a different answer available.
+ *
+ * `0` is the default and returns the input unchanged, bit-identically.
+ */
+const OBJECTIVE_READINESS_FLOOR_ENV = objectiveEnvFloor(
+  "LR_OBJECTIVE_READINESS_FLOOR",
+);
+
+function objectiveEnvFloor(name: string): number {
+  const raw = (globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  }).process?.env?.[name];
+  if (raw === undefined || raw === "") return 0;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0 || n >= 1) {
+    throw new Error(
+      `${name} must be in [0, 1); a floor of 1 would erase readiness entirely`,
+    );
+  }
+  return n;
+}
+
 let objectiveSettledPower = OBJECTIVE_SETTLED_POWER_ENV;
 let objectiveFuturePower = OBJECTIVE_FUTURE_POWER_ENV;
 let objectiveReadinessPower = OBJECTIVE_READINESS_POWER_ENV ??
   OBJECTIVE_FUTURE_POWER_ENV;
+
+/** Exported so a study can report the recalibrated level alongside the raw one. */
+export function recalibrateReadiness(readiness: number): number {
+  /* Exact identity at the default, so the shipped tree is bit-identical. */
+  if (OBJECTIVE_READINESS_FLOOR_ENV === 0) return readiness;
+  return OBJECTIVE_READINESS_FLOOR_ENV +
+    (1 - OBJECTIVE_READINESS_FLOOR_ENV) * readiness;
+}
 
 type ProposalUtilityPowerConfig = {
   settledIncomingQualityPower?: number;
@@ -566,7 +620,7 @@ export function proposalUtility(
   return (
     objectivePower(settledIncomingQuality, objectiveSettledPower) *
     objectivePower(projectedOutgoingQuality, objectiveFuturePower) *
-    objectivePower(readiness.readiness, objectiveReadinessPower)
+    objectivePower(recalibrateReadiness(readiness.readiness), objectiveReadinessPower)
   );
 }
 

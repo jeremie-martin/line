@@ -46,6 +46,21 @@ function readinessPowerList(): (number | null)[] {
   });
 }
 
+/** Floors may be 0, so this cannot reuse `positiveNumberList`. */
+function readinessFloorList(): number[] {
+  const raw = matrixArgument("readiness-floors");
+  if (raw === undefined) return [OBJECTIVE_CONTROL_DEFAULT.readinessFloor];
+  return raw.split(",").map((entry) => {
+    const floor = Number(entry.trim());
+    if (!Number.isFinite(floor) || floor < 0 || floor >= 1) {
+      throw new Error(
+        `--readiness-floors entries must be in [0, 1), got ${entry.trim()}`,
+      );
+    }
+    return floor;
+  });
+}
+
 const configurations = enumerateObjectiveControlConfigurations({
   settledPowers: positiveNumberList(
     "settled-powers",
@@ -56,20 +71,35 @@ const configurations = enumerateObjectiveControlConfigurations({
     OBJECTIVE_CONTROL_DEFAULT.futurePower,
   ),
   readinessPowers: readinessPowerList(),
+  readinessFloors: readinessFloorList(),
 });
 
 await runCompilerConfigurationMatrix<ObjectiveControlConfiguration>({
-  schema: "line.benchmark-v2.objective-power-matrix.v1",
-  configurationAxes: ["settled_power", "future_power", "readiness_power"],
+  /* v2: environment emission became per-variable. See
+   * optimizer/objective_control.ts objectiveControlEnvironment — v1 cells also
+   * disabled handoff's per-spec exponent gates and are not comparable. */
+  schema: "line.benchmark-v2.objective-power-matrix.v2",
+  configurationAxes: [
+    "settled_power",
+    "future_power",
+    "readiness_power",
+    "readiness_floor",
+  ],
   defaultOutputRoot: "generated/benchmark-v2/objective-power-matrices",
   explorationPrefix: "objective-power-matrix",
   configurations,
   idOf: (configuration) => configuration.id,
   environmentFor: objectiveControlEnvironment,
-  knownArguments: ["settled-powers", "future-powers", "readiness-powers"],
+  knownArguments: [
+    "settled-powers",
+    "future-powers",
+    "readiness-powers",
+    "readiness-floors",
+  ],
   dryRunExtras: {
     note:
       "readiness_power 'follow' is the shipped default: readiness takes the future exponent. " +
-      "A cell pinning readiness to 1 is a real arm, not the baseline.",
+      "readiness_floor recalibrates readiness to floor + (1-floor)*readiness, which bounds its " +
+      "tail rather than scaling its log weight uniformly the way an exponent does.",
   },
 });

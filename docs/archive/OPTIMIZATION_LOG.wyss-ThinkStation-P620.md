@@ -1461,3 +1461,18 @@ functions.
 Verdict: kept — over the discovery bar, if barely. Small, but it is the eleventh
 accepted mechanism and it came from the same question as the big ones: what is
 being rebuilt that never changes?
+
+### Standing after Attempt 24, and a note on reading standings
+
+`npm run perf`: mean **9,605.7**, median **9,097.4**, stddev 890.9.
+
+That reads *higher* than the 9,457.9 recorded two entries ago, after a kept
+-0.40% mechanism. It is not a regression: a 50-rep `perf` run has sd ~890, so
+SE ~126 and a 95% interval of roughly +-250 ns. **9,457.9 and 9,605.7 are the
+same quantity measured twice.** This is exactly why the workflow decides on
+paired `perf_ab` — which holds the machine, the process and the interleaving
+constant — and treats a bare standing as informational. Anyone reading this log
+for "the number" should read the A/B deltas, not the standings.
+
+Session total: eleven accepted mechanisms, thirteen rejected or inconclusive,
+from a 13,654.0 baseline — **about -30%**, byte-identical at every step.

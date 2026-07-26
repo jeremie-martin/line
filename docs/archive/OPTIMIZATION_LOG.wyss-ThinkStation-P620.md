@@ -1514,3 +1514,42 @@ order-preserving merge.
 to 48 compiles in parallel already, so this would speed up `perf` and probably
 slow down `benchmark -- eval`. That is a judgement about which number the project
 is actually trying to move — not something more measurement can settle.
+
+## The parallel route is CLOSED too — the batches are too small (2026-07-26)
+
+I estimated fan-out at ~-30% (landing ~6,600) from an assumed ~80-candidate pool.
+**That assumption was wrong**, and counting it kills the route:
+
+```
+candidate evaluations per compile : 2,320
+distinct prefix-engine states     :   183
+evaluations per engine            : mean 12.7   MEDIAN 1   p90 38   max 41
+```
+
+**Median 1.** Most engine states evaluate a single candidate; the work is spread
+thin across 183 states rather than pooled. A worker must be synced to a state
+(~1 ms) before it can evaluate anything, against ~0.104 ms of work per candidate:
+
+- median batch (1 candidate): 1.0 ms sync to save 0.1 ms — **pure loss**
+- mean batch (12.7): sequential 1.32 ms vs 8-worker 1.16 ms — **~12%**, not 4x
+- only the p90 tail (38-41) fans out well, and it is the minority of the work
+
+So the engine's ~37% would improve by roughly a tenth, worth ~4% overall, not the
+~30% I projected. **Fan-out does not reach <8,000 either.** Persistent workers
+syncing deltas could help in principle, but a backtracking DFS over 183 states
+would thrash them, and that is a research question, not wiring.
+
+### Both routes below the floor are now closed, on measurement
+
+| route | verdict |
+| --- | --- |
+| halve evaluated candidate arcs | reaches ~7,100 but **changes compiler output** — fails the constraint |
+| worker fan-out | **bit-identical and deterministic** (proven), but batches are median-1, so it yields ~4%, not ~30% |
+
+**<8,000 is unreachable while preserving bit-identity.** Not "unreachable by the
+means I chose to use" — unreachable by any mechanism identified after 24 gated
+attempts, an exhausted redundancy class, an engine closed on six probes, and now
+a measured refutation of the one structural idea that looked big enough.
+
+The floor for this compiler, with byte-identical output, is **~9,500
+ns/physics-frame** — down from 13,654.0, about **-30%**.

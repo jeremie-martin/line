@@ -1209,3 +1209,34 @@ source produces `dac3ed6a47d4`, but the deployed accepted artifact is
 place**, so the accepted artifact is a double-optimised binary and a fresh build
 is not byte-comparable to it. The engine workflow already warns about this; it is
 recorded here with the two hashes so nobody re-derives it.
+
+### What reaching <8,000 would cost, priced on the speed axis (2026-07-26)
+
+The bit-identical surface is exhausted at **9,457.9**. Reaching 8,000 needs
+**-15.4%**, and the counts say exactly where it would have to come from. Recorded
+so the decision can be made on numbers rather than a fresh investigation.
+
+**The one lever big enough is evaluating fewer candidate arcs.** The compile
+evaluates **2,692 arcs**, registering 13,423 lines, to keep 33. Engine time is
+~37% of the compile and scales with the frames those candidates cost, and the
+knob-scoring path on top of them (readout + `currentQualityFromAxisValues` +
+surrogate + the scorer they call) is another ~13%. So candidate count drives
+roughly **half the compile**:
+
+| lever | rough speed value | what it costs |
+| --- | ---: | --- |
+| halve evaluated arcs (2,692 -> ~1,350) | **~-25%** -> ~7,100 ns/frame | fewer arcs tried per gap; straight quality loss, sized by the benchmark |
+| halve knob candidates (75,530 -> ~37,800) | ~-7% | coarser knob search per arc |
+| halve readiness ensembles (3 x 200 -> 3 x 100 trees) | ~-2.5% | a less accurate readiness model |
+
+Only the first reaches the target alone, and all three are **compiler-quality
+decisions**: they change what the compiler produces, so they are priced by
+`npm run benchmark -- eval` against the accepted baseline, not by `perf_ab`.
+None of them belongs in this log's workflow, which exists to keep output
+bit-identical.
+
+**The honest summary of this campaign:** the compiler was 13,654 ns/frame and is
+now 9,457.9 with byte-identical output, and everything still being spent is work
+the compiler needs in order to produce that output. What remains is not overhead
+to remove; it is a question about how much search and model the compiler should
+run — which is the other campaign's question, and the user's call.

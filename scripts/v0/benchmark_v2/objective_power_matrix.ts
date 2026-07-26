@@ -61,6 +61,10 @@ function readinessFloorList(): number[] {
   });
 }
 
+/** Ratio sweeps need this; see objectiveControlEnvironment. The id carries it so
+ *  a gates-off cell can never be confused with the same exponents gates-on. */
+const disableSpecGates = process.argv.includes("--disable-spec-gates");
+
 const configurations = enumerateObjectiveControlConfigurations({
   settledPowers: positiveNumberList(
     "settled-powers",
@@ -88,15 +92,19 @@ await runCompilerConfigurationMatrix<ObjectiveControlConfiguration>({
   defaultOutputRoot: "generated/benchmark-v2/objective-power-matrices",
   explorationPrefix: "objective-power-matrix",
   configurations,
-  idOf: (configuration) => configuration.id,
-  environmentFor: objectiveControlEnvironment,
+  idOf: (configuration) =>
+    disableSpecGates ? `${configuration.id}--nogates` : configuration.id,
+  environmentFor: (configuration) =>
+    objectiveControlEnvironment(configuration, { disableSpecGates }),
   knownArguments: [
     "settled-powers",
     "future-powers",
     "readiness-powers",
     "readiness-floors",
   ],
+  knownFlags: ["disable-spec-gates"],
   dryRunExtras: {
+    disableSpecGates,
     note:
       "readiness_power 'follow' is the shipped default: readiness takes the future exponent. " +
       "readiness_floor recalibrates readiness to floor + (1-floor)*readiness, which bounds its " +

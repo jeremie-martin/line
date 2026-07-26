@@ -177,14 +177,32 @@ export function isObjectiveControlSourceDefault(
  * and `LR_M115_COMPACT_READINESS075=0`, which target exactly that and nothing
  * else.
  */
+export type ObjectiveControlEnvironmentOptions = Readonly<{
+  /**
+   * Emit `LR_OBJECTIVE_SETTLED_POWER` and `LR_OBJECTIVE_FUTURE_POWER` in EVERY
+   * cell, including cells that leave them at 1, which turns handoff's per-spec
+   * exponent gates off everywhere.
+   *
+   * Needed by any sweep comparing exponent RATIOS across cells. Under minimal
+   * emission a cell varying only `settledPower` leaves the future gate live
+   * while a cell varying only `futurePower` leaves the settled gate live, so two
+   * cells with the same ratio are not the same compiler and the comparison is
+   * invalid. This makes "gates off" an explicit, named property of a sweep
+   * rather than a side effect of which variables happened to be non-default.
+   */
+  disableSpecGates?: boolean;
+}>;
+
 export function objectiveControlEnvironment(
   configuration: ObjectiveControlConfiguration,
+  options: ObjectiveControlEnvironmentOptions = {},
 ): Record<string, string> {
   const environment: Record<string, string> = {};
-  if (configuration.settledPower !== OBJECTIVE_CONTROL_DEFAULT.settledPower) {
+  const pin = options.disableSpecGates === true;
+  if (pin || configuration.settledPower !== OBJECTIVE_CONTROL_DEFAULT.settledPower) {
     environment.LR_OBJECTIVE_SETTLED_POWER = String(configuration.settledPower);
   }
-  if (configuration.futurePower !== OBJECTIVE_CONTROL_DEFAULT.futurePower) {
+  if (pin || configuration.futurePower !== OBJECTIVE_CONTROL_DEFAULT.futurePower) {
     environment.LR_OBJECTIVE_FUTURE_POWER = String(configuration.futurePower);
   }
   if (configuration.readinessPower !== null) {

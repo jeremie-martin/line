@@ -1240,3 +1240,44 @@ now 9,457.9 with byte-identical output, and everything still being spent is work
 the compiler needs in order to produce that output. What remains is not overhead
 to remove; it is a question about how much search and model the compiler should
 run — which is the other campaign's question, and the user's call.
+
+## Attempt 23 (2026-07-26) — share fitted feature vectors across outputs, INCONCLUSIVE
+
+Mechanism tried: a probe row's feature vector depends only on its values, the fit
+form and the spans — never on which output is being fitted — yet each of the ~21
+outputs rebuilt them, and a compile fits ~2,692 models. The candidate memoised
+them per (form, row) inside one model fit; sharing is safe because
+`fitLinearLeastSquares` only reads `features`.
+
+- **Identity gates:** both bit-identical (`verify:optimizer` 4/4,
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36), 45/45 tests.
+- **Full A/B gate:** base **9,871.5**, candidate **9,856.2 ns/frame**; delta
+  median/mean **-0.30% / -0.15%**, 95% CI **[-0.42%, +0.18%]**, 59/100 rounds,
+  `P(candidate faster)=84.6%`.
+
+Verdict: inconclusive, reverted. The interval bounds the effect below 0.42%,
+which is under this host's ~0.5% minimum detectable effect — the fitting path is
+simply not big enough for a 21x redundancy in it to matter.
+
+### Final: the bit-identical surface is exhausted at 9,457.9 ns/physics-frame
+
+Twenty-three attempts: **ten accepted (-30.7% cumulative), thirteen rejected or
+inconclusive.** Every one of the last seven attempts failed, each against a
+*counted* hypothesis rather than a guess:
+
+| # | attempt | result |
+|---|---|---|
+| 17 | scorer errors direct | **-4.31% KEEP** |
+| 18 | three objects + discarded utility | **-1.16% KEEP** (R=200) |
+| 19 | readiness trees flattened to cache lines | +0.65% |
+| 20 | per-model feature scratch | -0.06%, null |
+| 21 | **wasm SIMD** (292 v128 instrs, `--diff` max err 0) | +0.01%, null |
+| 22 | **wasm-opt -O4** | +0.16% |
+| 23 | fitted features shared across outputs | -0.30%, under the noise floor |
+
+**The remaining 9,457.9 is work the compiler needs.** The immovable share alone —
+engine 37% (closed on six probes), `score.ts` 2.6% (fingerprinted), readiness 5%
+(closed on two), detector 3.2% (`Math.hypot`-bound) — is ~48% of the compile, and
+the accessible remainder no longer contains a 15.4% overhead to remove. Reaching
+<8,000 requires the compiler to evaluate fewer than 2,692 candidate arcs, which
+changes its output and is priced by `npm run benchmark -- eval`.

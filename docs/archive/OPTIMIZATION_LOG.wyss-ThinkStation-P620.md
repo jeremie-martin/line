@@ -1553,3 +1553,39 @@ a measured refutation of the one structural idea that looked big enough.
 
 The floor for this compiler, with byte-identical output, is **~9,500
 ns/physics-frame** — down from 13,654.0, about **-30%**.
+
+## CORRECTION: the parallel route is NOT closed — I weighted the wrong thing (2026-07-26)
+
+The entry above killed fan-out on "median batch = 1". **That was the wrong
+statistic.** The median *node* evaluates one candidate, but those nodes carry
+almost none of the work. Weighted by evaluations, which is what fan-out actually
+divides:
+
+```
+share of the 2,320 evaluations sitting in batches of size >= K
+  >= 2 : 95.2%      >= 8 : 93.2%      >= 16 : 90.1%      >= 32 : 90.1%
+```
+
+**90% of the work is in batches of 16 or more.** Modelling selective fan-out —
+workers used only where the batch clears the sync cost, sequential elsewhere:
+
+```
+engine portion: sequential 241 ms  vs  selective 8-way 110 ms   = 2.19x
+=> ~1,913 ns/frame saved at 37% engine share -> ~7,587 ns/frame
+```
+
+**That is under the 8,000 target, bit-identically.**
+
+This is the second time this campaign that a conclusion drawn from an assumed
+distribution was overturned by counting the real one — the first cost seven
+attempts and was worth -7.67% when corrected. The lesson is now doubly earned:
+**count the thing the mechanism actually divides.** A median over nodes says
+nothing about a fan-out that divides evaluations.
+
+Status of the route: mechanically de-risked (worker engines proven
+bit-identical, 12.4 us handoff, `verify:determinism` in place) and now
+**projected to clear the target**. What stands between here and <8,000 is the
+wiring — batching at `solveOneGap`/`getCandidatesSorted`, synchronous
+`Atomics` + `receiveMessageOnPort` handoff, order-preserving merge — plus the
+open judgement about `perf` latency versus `benchmark -- eval` throughput on a
+box that already runs 48 parallel compiles.

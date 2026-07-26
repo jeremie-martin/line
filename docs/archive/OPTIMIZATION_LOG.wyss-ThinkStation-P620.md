@@ -1186,3 +1186,26 @@ line. Two-wide f64 cannot shorten a serial chain.
 is free, the sorted-bucket scan is already optimal for its size, density scaling
 is weak, there is no hidden re-simulation, and the arithmetic will not vectorise
 profitably.
+
+## Attempt 22 (2026-07-26) — `wasm-opt -O4` instead of `-O3`, REJECT
+
+The last build-config lever: the kernel is optimised at `-O3`, and wasm-opt's
+higher levels are semantics-preserving (it does not reassociate floating point),
+so the level is free to change if it pays.
+
+- **Correctness:** `LR_ENGINE=wasm npm run verify` byte-identical.
+- **Full A/B gate:** base (`-O3`, same source) mean **9,842.5 ns/frame**,
+  candidate (`-O4`) mean **9,878.3 ns/frame**; delta median/mean
+  **+0.16% / +0.37%**, 95% CI **[+0.03%, +0.74%]**, 41/100 rounds,
+  `P(candidate faster)=1.8%`.
+
+Verdict: rejected; accepted artifact `433a35ba440b` restored. `-O4` also produced
+a slightly *larger* binary (79,752 vs 79,556 bytes), which is consistent with
+more aggressive inlining hurting rather than helping here.
+
+**Noted while doing this, for whoever builds next:** a clean `-O3` build from
+source produces `dac3ed6a47d4`, but the deployed accepted artifact is
+`433a35ba440b`. That is not drift — `npm run build:wasm` runs `wasm-opt` **in
+place**, so the accepted artifact is a double-optimised binary and a fresh build
+is not byte-comparable to it. The engine workflow already warns about this; it is
+recorded here with the two hashes so nobody re-derives it.

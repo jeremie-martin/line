@@ -687,3 +687,78 @@ Consequences, and they are strict:
 
 The working agreement in §8 already said real measurements are N=48. This is the
 first time the cost of ignoring it has been priced: **14 points, from nothing.**
+
+---
+
+## 13. N=48: the exponent ratio is a BUDGET trade the headline cancels
+
+Three arms at N=48 against `accept-2026-07-25T15-30-00Z-closed-form` (baseline
+497.82), env-configured so each is a distinct `candidateFingerprint`, gates off
+in all three. Before running them the tree was checked against the baseline's
+commit `3fa892e` — six benchmark cases at 250k, byte-identical hashes — because
+the branch carried unrelated compiler changes to `arc_model.ts` and
+`arc_vector_model.ts` and the local identity gates had been re-recorded after
+them, so 36/36 green said nothing about drift against the benchmark baseline.
+
+**Headline: all three inconclusive.**
+
+| ratio | delta | SE | 95% CI | outcome |
+|---|---:|---:|---|---|
+| 1:1 | +0.58 | 1.32 | [−2.89, +4.05] | inconclusive |
+| 1:2 | +1.06 | 1.43 | [−2.69, +4.80] | inconclusive |
+| 1:4 | −0.55 | 1.46 | [−4.36, +3.26] | inconclusive |
+
+**Per budget it is not flat at all — it is steep, monotone, and signed:**
+
+| ratio | 250k | 500k | 750k | valid gained/lost |
+|---|---:|---:|---:|---|
+| 1:1 | **+3.46** [+1.07, +5.85] | +1.57 | −2.98 | +68 / −48 |
+| 1:2 | **+6.21** [+1.97, +10.44] | +0.27 | −1.07 | +104 / −39 |
+| 1:4 | **+19.90** [+13.38, +26.42] | −2.66 | **−10.67** [−16.54, −4.80] | +141 / −42 |
+
+Weighting the future block harder is worth a great deal when budget is scarce and
+costs a great deal when it is plentiful. At 1:4 both ends are significant and
+they very nearly cancel: +19.90 and −10.67 average to −0.55.
+
+The canonical headline pools three budgets. An effect that reverses sign across
+them is therefore invisible to it by construction — which is why five screens and
+three N=48 arms all read "nothing here" while the largest single effect the
+campaign has measured was sitting inside them.
+
+### 13.1 The open question, and the trap it sits next to
+
+The obvious mechanism is that a scarce budget cannot afford dead ends, so
+weighting future quality — which contains `catchability` — buys completions,
+while a plentiful budget can afford to explore and pays for the same weighting in
+present quality. The validity column is consistent: 1:4 gains 83 valid runs at
+250k against 8 lost.
+
+**That is also exactly the signature §5.10 already rejected once.** The
+`catchability^2` arm bought completion as designed and lost score everywhere
+else, and the lesson recorded in §7.1 was that an instrument which ranks
+completion is blind to the half of the objective that decides promotion. A
+headline gain that is mostly recovered completions is not the same as a quality
+gain, and this result does not yet distinguish them.
+
+So the required next measurement is not another exponent: it is whether the
++19.90 at 250k survives conditioning on runs that completed in BOTH arms. If it
+does, a budget-conditioned exponent is a real lever. If it does not, this is
+§5.10 in new clothes and the axis is closed.
+
+### 13.2 What the screens got wrong, precisely
+
+| ratio | 16-seed screen | N=48 headline |
+|---|---|---|
+| 1:1 | +4.09 | +0.58 |
+| 1:2 | +3.85 / +4.49 | +1.06 |
+| 1:4 | +10.04 / +10.88 | −0.55 |
+
+The 1:4 pair agreed with each other to 0.84 and was described here as the
+strongest thing the screens produced. It was wrong by 11 points and by sign.
+
+**Within-epoch replication is not independent replication.** Two cells sharing a
+seed epoch share its basin, so they agree with each other while both sit far from
+the truth. §12.1's ratio-invariance conclusion still stands, because it is a
+statement about two cells being the SAME — agreement is exactly what it needed.
+§12's magnitudes do not, because agreement was never evidence about those. Do not
+read a within-epoch replication as an error bar.

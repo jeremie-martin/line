@@ -244,6 +244,9 @@ any of them is hours.
     tidy up. The regrouping is algebraically exact (max relative difference
     8.0e-16 over two million random inputs), so its entire semantic content is
     ~3.6 ulp. Reverted `a7bdf70`. **Do not re-associate `proposalUtility`.**
+12. **Down-weighting readiness relative to projected outgoing quality** — the
+    accuracy argument in §10. Sweep A measured it across 12 cells and it is
+    wrong in SIGN, monotonically. See §10 for the surface and the mechanism.
 
 **Approach aim from the incoming gap** (commit `3aea1b3`, reverted `bd573cf`).
 Hypothesis: the sampler's approach shaping should read the incoming gap's
@@ -454,3 +457,93 @@ changed its ballistic default:
 | the raw air ask saturates and blinds the RMS on short gaps | `optimizer/objective.ts` `projectedOutgoingTargets` |
 | excluding `airFit` improves both strata (dense land 34.3 → 35.0, healthy 75.1 → 76.5) | `optimizer/readiness_scoring.ts` |
 | the closed form is at parity with the exact kernel | `core/ballistic_projection.ts` — 24 seeds, and the one measurement here taken ON the current default |
+
+---
+
+## 10. Sweep A: the exponents must not diverge, and why
+
+The open lever from §7's collateral was finally measured. The argument for it
+was that projected outgoing quality and readiness are not equally trustworthy —
+projected rests on a 0.50 px ballistic boundary, readiness validates at MSE
+0.0187 / r 0.787 — so the search should not trade them at a fixed 1:1 rate.
+
+**That argument is wrong in sign.** 12 cells, 16 seeds, 2 budgets, one shared
+seed epoch, baseline 484.55 (`generated/benchmark-v2/objective-power-matrices/objective-sweep-a-16s01`):
+
+| future | readiness | delta | SE | 95% CI |
+|---:|---:|---:|---:|---|
+| 1 | follow | **+0.00** | 0.00 | identical fraction 1.0000 |
+| 1 | 1 | +1.95 | 1.17 | [−0.35, +4.24] |
+| 1 | 0.75 | −0.33 | 1.22 | [−2.72, +2.07] |
+| 1 | 0.5 | −4.17 | 1.05 | [−6.23, −2.11] |
+| 1.5 | follow | +0.24 | 1.67 | [−3.04, +3.52] |
+| 1.5 | 1 | +1.51 | 1.50 | [−1.43, +4.46] |
+| 1.5 | 0.75 | −3.23 | 1.21 | [−5.60, −0.86] |
+| 1.5 | 0.5 | −14.83 | 5.35 | [−25.31, −4.35] |
+| 2 | follow | +1.72 | 1.51 | [−1.24, +4.67] |
+| 2 | 1 | −2.34 | 1.34 | [−4.96, +0.29] |
+| 2 | 0.75 | −8.99 | 3.52 | [−15.90, −2.08] |
+| 2 | 0.5 | −6.18 | 0.79 | [−7.73, −4.63] |
+
+Within every row, separating the two exponents costs headline, and the cost
+grows with the separation. The `follow` column — where readiness always equals
+future — is the best column and the only one that never goes significantly
+negative. Nothing here is promotable: every CI except the null cell crosses
+zero, which is expected of a 16-seed screen.
+
+**The null cell is worth its cost.** `future1--readinessfollow` is the source
+default, so its environment is empty and it is the same compiler as the baseline
+arm: delta exactly 0.00, SE 0.00, identical fraction 1.0000. The paired
+machinery demonstrably reports zero for an identical compiler.
+
+### 10.1 The mechanism: an exponent is a log-domain weight
+
+`proposalUtility` is a PRODUCT, so it orders candidates by a sum of logs, and
+each layer's weight in that ordering is its exponent times the spread of its
+log — approximately spread/level. Measured per candidate pool with
+`npm run study:layer-spread` (reading the pre-existing
+`snapshotObjectiveLayerSpread`, no new instrumentation), at 250k seed 0:
+
+| spec | level: settled / projected / readiness | log-weight: s / p / r | read÷proj |
+|---|---|---|---:|
+| river_reentry | 0.604 / 0.671 / 0.255 | 0.60 / 0.55 / 1.33 | 2.40 |
+| countercurrent | 0.693 / 0.716 / 0.331 | 0.53 / 0.56 / 1.01 | 1.82 |
+| split_signal | 0.558 / 0.574 / 0.241 | 0.38 / 0.38 / 1.13 | 2.94 |
+| meter_exchange | 0.616 / 0.722 / 0.225 | 0.57 / 0.52 / 1.35 | 2.60 |
+| dense_dialogue | 0.459 / 0.501 / 0.061 | 0.51 / 0.41 / 1.49 | 3.61 |
+| high_air_drive | 0.603 / 0.668 / 0.211 | 0.51 / 0.58 / 1.37 | 2.37 |
+
+**Readiness already carries ~2.6x more of the candidate ordering than projected
+does, at equal exponents** — not because it spreads more in absolute terms (it
+spreads slightly LESS: raw ratio 1.32 the other way) but because it sits at a
+much lower level, 0.06–0.33 against 0.46–0.72. Halving its exponent therefore
+removes the ordering's single largest term.
+
+Note the trap, since it cost a wrong conclusion here first: RAW spread says the
+two layers are comparable and suggests the exponents could be traded freely.
+Only the normalized statistic matches the measured surface. For a product
+objective, always normalize.
+
+The mechanism predicts WHICH specs suffer, and that is the check that makes it
+an explanation rather than a story. Against `future1.5--readiness0.5`, per-spec
+delta correlates with the log-weight ratio at **r = −0.78** (n=6), and
+`dense_dialogue` — highest ratio 3.61, readiness level 0.061 — loses **−63.59**,
+an order of magnitude worse than any other spec.
+
+### 10.2 What this does NOT settle
+
+The accuracy asymmetry is real; only the proposed remedy is refuted. It remains
+true that the layer the compiler trusts least dominates its ranking, and that
+this is an accident of level rather than a design decision. Acting on it, if it
+should be acted on, has to happen somewhere other than the exponent — a
+recalibration of readiness's output range would move the log-weight without
+discarding the ordering signal, and is untested.
+
+### 10.3 The live axis Sweep A actually found
+
+Only exponent RATIOS affect ranking: scaling all three by a positive constant
+scales `log value` by that constant and preserves order (bitwise it does not,
+per §7.1). So the `follow` column is not "more future weight", it is the
+settled:future ratio, running 1:1 → 1:1.5 → 1:2 — and it improves monotonically,
+0.00 → +0.24 → +1.72. That is the gradient to follow next, and it was not the
+axis this sweep was designed to test.

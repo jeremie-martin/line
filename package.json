@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Procedural Line Rider track generation synced to music — exploratory.",
+  "description": "Procedural Line Rider track generation synced to music \u2014 exploratory.",
   "scripts": {
     "probe": "tsx scripts/probe.ts",
     "probe2": "tsx scripts/probe2.ts",
@@ -109,6 +109,7 @@
     "verify:engine": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts",
     "verify:optimizer": "tsx scripts/v0/bench/verify_optimizer.ts",
     "verify:compiler:behavior": "tsx scripts/v0/bench/verify_compiler_behavior.ts",
+    "verify:determinism": "tsx scripts/v0/bench/verify_determinism.ts",
     "verify:optimizer:wide": "tsx scripts/v0/bench/verify_compiler_behavior.ts",
     "verify:optimizer:floor": "tsx scripts/v0/bench/verify_optimizer_budget_floor.ts"
   },

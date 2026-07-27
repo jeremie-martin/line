@@ -549,12 +549,34 @@ frontier, found eleven times. The carrier ramp in both directions and twice, the
 flatten, the front-load, the post-turn widening, the template gates and this are
 not eleven independent failures.
 
-**What it leaves open, and it is the one thing untouched.** `v` in the metric is
-the speed ONE FRAME BEFORE the contact. The speed AXIS scores the MEAN over the
-gap. Arriving above one's own gap mean is impact the speed axis cannot see, and
-nothing in the compiler aims for it — while descending into a contact raises
-exactly that, on the same unauthored elevation axis the accepted dive already
-spends. That is the next mechanism, and it is on the other factor of the product.
+**The other factor, tested, and the frontier closes from both sides.** `v` in the
+metric is the speed ONE FRAME BEFORE the contact while the speed AXIS scores the
+MEAN over the gap, so arriving above one's own gap mean is impact the speed axis
+cannot see. Aiming the energy-targeted launch above the gap's speed ask in
+proportion to the next contact's impact ask is **byte-identical** at gains of
+0.15 and 0.30 — because the launch is already saturated at its descent clamp:
+`vyClamped = clamp(vyTarget, -0.92gN, 0.45gN)`, and on a dense gap the energy
+target wants 1.46 against a cap of 0.79.
+
+That cap is the real lever, and it bounds both factors at once — a harder dive
+arrives faster AND steeper. Opening it does nothing either:
+
+| descent cap | delivered impact | speed one frame before contact |
+|---|---:|---:|
+| 0.45 (shipped) | 0.283 | 10.55 |
+| 0.7 | 0.284 | 10.54 |
+| 1.0 | 0.289 | 10.49 |
+
+The pool gains steeper-launch candidates and **the search does not commit them**.
+
+So both factors of `v * dtheta` are now closed from opposite directions: pushing
+the angle is cancelled by braking, pushing the speed is cancelled by selection.
+The compiler is on the efficient frontier of this metric at this operating point,
+and the remaining impact headroom is not reachable by a stronger single-axis
+command. What would move it is a change to what the SEARCH is willing to commit —
+the same admission-versus-score trade §5.10 of the decisions doc priced at −25
+when it was pushed the other way — or a geometry family that produces incidence
+without braking, which is not in the current arc vocabulary.
 
 **So 22% of scored contacts — 85 of 383 — are GLANCING.** They touch, are not
 turned at all, free-fall through the rest of the window, and deliver ~0.15

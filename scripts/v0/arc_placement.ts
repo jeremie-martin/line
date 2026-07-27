@@ -176,6 +176,31 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // -13.56 with representative -17.76, and the pair together -13.03. The limit is
 // not how the existing rotation is distributed.
 /**
+ * Upper bound on the energy-targeted launch's downward velocity, as a fraction
+ * of `g * N`. It is what BINDS on dense specs, and opening it changes nothing.
+ *
+ * Measured 2026-07-27 at 0.45 / 0.7 / 1.0: delivered impact 0.283 / 0.284 /
+ * 0.289 and the speed one frame before the contact 10.55 / 10.54 / 10.49. The
+ * pool gains steeper-launch candidates and the SEARCH does not commit them.
+ *
+ * With the turn side near-conserved (see `IMPACT_INCIDENCE_AIM`), that closes
+ * both factors of `v * dtheta` from opposite directions: pushing the angle is
+ * cancelled by braking, pushing the speed is cancelled by selection. The
+ * compiler sits on the efficient frontier of this metric, and moving it needs
+ * something other than a stronger single-axis command.
+ */
+const LAUNCH_DESCENT_CAP = 0.45;
+/**
+ * Fraction of the gap's speed ask added to the ENERGY target per unit of the
+ * next contact's impact ask, so the rider would arrive above its own gap mean —
+ * impact the gap-mean speed axis cannot see. OFF, and byte-identical at 0.15 and
+ * 0.30 because the launch is already saturated at `LAUNCH_DESCENT_CAP`: the
+ * energy target wants vy ~= 1.46 on a dense gap against a cap of 0.79, so
+ * raising it only pushes further past a clamp. Kept at 0 with the reason
+ * recorded, because the idea is sound and the obstacle is the cap below.
+ */
+const IMPACT_ARRIVAL_SPEED_GAIN = 0;
+/**
  * Strength of the incidence-targeted contact angle. OFF — and the reason is the
  * most useful thing measured on 2026-07-27.
  *
@@ -1452,7 +1477,20 @@ function sampleContactCenteredLines(
     const dhDown = (vT * vT - vIn * vIn) / (2 * g);
     const vyLevel = -0.5 * g * N;
     const vyTarget = dhDown / N + vyLevel;
-    const vyClamped = clamp(vyTarget, -0.92 * g * N, 0.45 * g * N);
+    /*
+     * The upper bound is how hard the launch may DIVE, and it is what actually
+     * binds. On a dense spec (N about 10) the energy target wants vy ~= 1.46
+     * against a cap of 0.79, so it is already saturated and raising the energy
+     * target above changes nothing — measured byte-identical at gains of 0.15
+     * and 0.30. Both factors of the scored impact sit behind this one cap: a
+     * harder dive arrives FASTER (the `v` in `v * dtheta`, which the gap-mean
+     * speed axis does not see) and STEEPER (the "from" end of the turn).
+     */
+    const vyClamped = clamp(
+      vyTarget,
+      -0.92 * g * N,
+      LAUNCH_DESCENT_CAP * g * N,
+    );
     const energyLaunchDeg = (Math.atan2(vyClamped, vIn) * 180) / Math.PI;
     postAngleDeg = lerp(angledPostAngleDeg, energyLaunchDeg, blend);
   }

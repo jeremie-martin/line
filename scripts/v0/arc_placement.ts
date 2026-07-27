@@ -299,9 +299,36 @@ const RUNG_RELEASE_SPAN_SALT = 13;
 // (attempt 0 still exempt) is +5.87; half the span is +7.13. Raising the 15
 // degree delta cap to 30 is NEGATIVE (-4.33 and -3.90) because it buys the
 // arrival with air.
-const STEEP_ARRIVAL_MIN_ASK = 0.30;
+// The ask floor is GONE (2026-07-27). It suppressed the dive below a 0.30 next
+// beat ask, and removing it entirely is worth +19.09 headline at N=8 —
+// indistinguishable from lowering it to 0.15 (+19.00), which is what should
+// happen if the floor was only ever suppression: `needed arrival angle minus
+// predicted arrival angle` already goes to zero on its own for a small ask, so
+// the constant did nothing but stop the formula being consulted. The gain is
+// mostly NOT impact (bias -0.1660 -> -0.1673); it is TIMING. On a short gap a
+// flat or rising launch flies past the beat, and a small downward pitch lands
+// the rider on it: dense_dialogue +112.19 and 20->24 of 24 valid, its contrast
+// variant +108.83 and 18->24, frontier_pickup_progression +167.13 and 16->19.
 const STEEP_ARRIVAL_DELIVERY_EFFICIENCY = 0.68;
 const STEEP_ARRIVAL_DELTA_MAX_DEG = 15;
+/**
+ * Share of the commanded dive that EVERY pool member carries; the attempt span
+ * varies the rest. At 0 the span ran 0..1 of the command, so the pool's mean
+ * member took half of what the ask needs.
+ *
+ * Measured 2026-07-27 at N=8 on top of the removed ask floor, against
+ * `steep-arrival-default`: +21.36 headline with representative
+ * +18.08 [+15.43, +20.73] and legacy_regression +8.37 [+3.46, +13.27], 35 valid
+ * runs gained and 7 lost, every budget positive. Three other ways of deepening
+ * the same dive land within one standard error of it on the headline —
+ * delivery efficiency 0.4 (+24.67) and 0.5 (+23.93), and the floor combined with
+ * efficiency 0.5 (+20.50) — but all of them buy it from `capability`, whose
+ * interval spans ±100 at these seed counts, while this one is the only arm whose
+ * `representative` reading (70% of the headline) is above +13. Efficiency 0.6 is
+ * +13.29 and the ride-out span's own analogue at full strength is -2.02, so the
+ * neighbourhood is bracketed rather than open-ended.
+ */
+const STEEP_ARRIVAL_SPAN_FLOOR = 0.5;
 const STEEP_ARRIVAL_ABS_CAP_DEG = 40;
 const STEEP_ARRIVAL_SPAN_SALT = 11;
 // Share of the attempt span that produces NO downward pitch. Zero at the
@@ -333,6 +360,14 @@ export function clearImpactTemplateMarker(): void {
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
+/* The grounded ride-out has its own closed-form inversion of the air ask
+ * (`supportReferenceLength`), reserved to part of the attempt span exactly as
+ * the steep-arrival dive was. The analogy was measured on 2026-07-27 and does
+ * NOT carry: a span floor of 0.5 is +5.00 headline against the dive's +21.36,
+ * and taking the blend strength to 1 is -2.02. Air is already the axis the
+ * compiler overshoots by only +0.048, so there is little there to win. */
+const LENGTH_BLEND_BASE = 0.6;
+const LENGTH_BLEND_FLOOR = 0;
 const DENSE_SPACING_POST_LENGTH_NEUTRAL_CAP = 220;
 const DENSE_SPACING_POST_LENGTH_MIN_CAP = 36;
 const DENSE_SPACING_POST_LENGTH_MAX_CAP = 180;
@@ -1305,11 +1340,12 @@ function sampleContactCenteredLines(
   if (nextGapFrames !== null && targets.air !== undefined) {
     const speed = Math.max(1, targetState.speed);
     const targetLen = supportReferenceLength({ air, gapFrames: nextGapFrames, speed });
-    const blend = clamp(ccSpanBlends(attempt).length, 0, 1);
+    const spanBlend = clamp(ccSpanBlends(attempt).length, 0, 1);
+    const blend = LENGTH_BLEND_FLOOR + (1 - LENGTH_BLEND_FLOOR) * spanBlend;
     const highAirPressure = clamp(
       (air - HIGH_AIR_LENGTH_BLEND_PRESSURE_START) / HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN, 0, 1,
     );
-    const blendStrength = 0.6 + HIGH_AIR_LENGTH_BLEND_EXTRA * highAirPressure;
+    const blendStrength = LENGTH_BLEND_BASE + HIGH_AIR_LENGTH_BLEND_EXTRA * highAirPressure;
     postLength = clamp(lerp(sampledPostLength, targetLen, blend * blendStrength), 28, 360);
     supportPlan = planSupportGeometry({
       mode: geometryMode,
@@ -1749,7 +1785,6 @@ function impactDeliveryAdjustment(params: {
 
   if (
     params.gap.nextImpact !== undefined
-    && params.gap.nextImpact >= STEEP_ARRIVAL_MIN_ASK
     && params.nextGapFrames !== null
     && params.nextGapFrames > 4
   ) {
@@ -1771,7 +1806,11 @@ function impactDeliveryAdjustment(params: {
         (lowDiscrepancyRoll(params.attempt, STEEP_ARRIVAL_SPAN_SALT) - zeroBand) /
           (1 - zeroBand),
       );
-      const delta = deltaMax * spanRoll;
+      /* The span currently runs 0..1 of the computed dive, so the pool's MEAN
+       * member carries half of what the ask needs. A floor raises the whole
+       * span toward the command while keeping variation below it. */
+      const delta = deltaMax *
+        (STEEP_ARRIVAL_SPAN_FLOOR + (1 - STEEP_ARRIVAL_SPAN_FLOOR) * spanRoll);
       if (delta > 0.01) {
         postAngleDeg = Math.min(postAngleDeg + delta, ELEVATION_POST_ANGLE_MAX);
       }

@@ -3,8 +3,11 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`accept-2026-07-25T15-30-00Z-closed-form`, canonical headline 498.9141. Its
-cache covers 8 seeds per budget and extends on demand.
+`steep-arrival-default`, canonical headline 507.33 (the same compiler measures
+509.11 at N=48, +11.29 against the previous baseline). Its cache covers 8 seeds
+per budget and extends on demand.
+
+Previous: `accept-2026-07-25T15-30-00Z-closed-form`, 498.9141.
 
 A baseline archive is always EXACTLY 8 canonical seeds per budget - the seed
 schedule packs 250k to slots 0-7, 500k to 8-15, 750k to 16-23, leaving the probe
@@ -320,6 +323,64 @@ the documented capability debt moved in the right direction as a side effect
 rather than being paid for.
 
 Promoted with `rebaseline --label=steep-arrival-default`.
+
+## 2026-07-27 — the arrival vein pays again: the ask floor is not a limit
+
+Every dial on the steep-arrival lever is positive against the new baseline
+(N=8, 1,056 candidate compiles each):
+
+| arm | headline | delta | valid | representative | capability |
+|---|---:|---:|---:|---:|---:|
+| ask floor 0.30 → 0.15 | 526.33 | **+19.00** | 984→1005 | +11.50 [+9.54, +13.47] | +71.91 |
+| ask floor 0.30 → 0 | 526.43 | **+19.09** | 984→1005 | +11.63 [+9.72, +13.55] | +71.91 |
+| delta cap 15° → 18° | 515.91 | +8.58 | 984→986 | +0.66 | +51.72 |
+| delivery efficiency 0.68 → 0.5 | 514.87 | +7.54 | 984→992 | +1.58 | +45.79 |
+| ride-out span floor 0.5 | 512.33 | +5.00 | 984→982 | +2.27 [+0.29, +4.24] | +23.43 |
+| ride-out blend strength 1 | 505.32 | −2.02 | 984→979 | +0.79 | −4.65 |
+| ask floor 0 + delta 18° | 528.31 | **+20.98** | 984→1011 | +13.46 [+10.92, +16.00] | +73.43 |
+| ask floor 0 + efficiency 0.5 | 531.26 | **+23.93** | 984→1009 | +12.50 [+10.57, +14.43] | **+101.41 [+36.53, +166.30]** |
+| ask floor 0 + ride-out floor 0.5 | 522.13 | +14.79 | 984→1000 | +12.24 | +39.55 |
+
+**The 0.30 ask floor was pure cost.** Removing it entirely is the same as
+lowering it to 0.15 (+19.09 vs +19.00), which is what should happen if the floor
+was never doing anything but suppression: the dive is computed as
+`needed arrival angle − predicted arrival angle`, and that difference already
+goes to zero on its own for a small ask. The constant only stopped the formula
+from being consulted.
+
+**And the gain is not (only) impact.** The impact bias barely moves (−0.1660 →
+−0.1673) while `dense_dialogue` gains +112.19 and goes 20→24 of 24 valid, its
+contrast variant +108.83 and 18→24, `frontier_pickup_progression` +167.13 and
+16→19. On a short gap a flat or rising launch flies past the beat and the catch
+misses; a small downward pitch lands the rider on time. So the same lever that
+supplies redirection on a long gap supplies TIMING on a short one, which is why
+the dense specs — the standing capability debt of this campaign — move first.
+
+### Batch 6 — four ways to deepen the same dive, and why the headline cannot rank them
+
+All on top of the removed ask floor, N=8:
+
+| arm | delta | representative | capability | valid |
+|---|---:|---:|---:|---:|
+| delivery efficiency 0.4 | +24.67 | +12.97 [+10.50, +15.45] | +103.26 [+46.37, +160.15] | 984→1016 |
+| delivery efficiency 0.5 | +23.93 | +12.50 [+10.57, +14.43] | +101.41 [+36.53, +166.30] | 984→1009 |
+| **span floor 0.5** | **+21.36** | **+18.08 [+15.43, +20.73]** | +50.64 [−33.24, +134.51] | 984→1012 |
+| efficiency 0.5 + span floor 0.5 | +20.50 | +11.58 [−3.63, +26.79] | +79.03 | 984→1021 |
+| efficiency 0.6 | +13.29 | +12.66 [+11.34, +13.98] | +29.37 | 984→999 |
+
+Every one of these deepens the average dive and they are **substitutes, not
+complements** — combining efficiency 0.5 with the span floor is worse than
+either alone. Their headline deltas sit inside one standard error of each other,
+which is exactly the situation §12.2 of the decisions doc says a small screen
+cannot resolve.
+
+So the choice is made on `representative`, which is 70% of the headline and the
+stratum with an interval narrow enough to mean something: **the span floor is
++18.08 against +11.6 to +13.0 for the others**, and the arms that beat it on the
+headline do so entirely through `capability`, whose interval spans ±100 here.
+The span floor also has the cleanest statement — the pool's mean member should
+carry the dive the ask needs, not half of it — and it is bracketed on both sides
+(efficiency 0.6 +13.29, the ride-out analogue at full strength −2.02).
 
 **Next**: the arrival vein is open and the brackets say where. The 15° delta cap
 binds on high asks (the deficit is typically 24°) and 30° fails because it buys

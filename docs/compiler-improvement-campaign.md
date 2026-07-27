@@ -602,6 +602,26 @@ the turn holds. That is precisely what the frontier predicts a smoother turn doe
 not the eleven that preceded it. `sparse_lowline` also recovers (+21.26, +27.46),
 the group the accepted dive had cost.
 
+### The search's own reasons are earned, not obstacles
+
+The frontier's second half is that the search DECLINES the aggressive shapes, so
+the natural follow-up is whether the factor doing the declining is informative.
+`airFit` was already excluded from the readiness product on exactly that argument
+and measured better, so there is precedent and an existing mechanism
+(`LR_READINESS_STUDY_ABLATION`, no source change needed). Both remaining
+candidates are load-bearing:
+
+| ablation | headline | representative | legacy_regression |
+|---|---:|---:|---:|
+| without `impactFeasibility` | −7.98 | −8.72 [−10.71, −6.74] | −13.42 [−18.27, −8.58] |
+| without `speedFit` | −17.28 | −14.84 [−17.59, −12.09] | −14.06 [−20.48, −7.63] |
+
+So the readiness product is not over-constraining the search out of ignorance —
+`impactFeasibility` in particular is the factor that would have to be wrong for
+"the search declines faster arrivals" to be a modelling error, and removing it
+costs 8 points with two strata significantly negative. `airFit` was the one
+uninformative factor and it is already gone.
+
 ### The frontier, stated
 
 So both factors of `v * dtheta` are closed from opposite directions: pushing

@@ -352,13 +352,17 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
         let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(I), *s.prevy.get_unchecked(I));
         for entry in lns.iter() {
             let l = &entry.line;
+            let pnt_dir = l.normx * vxi + l.normy * vyi;
+            if pnt_dir > 0.0 {
+                // Continue with the remaining canonical collision predicates.
+            } else {
+                continue;
+            }
             let ox = pxi - l.p1x;
             let oy = pyi - l.p1y;
             let perp_comp = l.normx * ox + l.normy * oy;
             let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
-            let pnt_dir = l.normx * vxi + l.normy * vyi;
-            if pnt_dir > 0.0
-                && perp_comp > 0.0
+            if perp_comp > 0.0
                 && perp_comp < MAX_FORCE_LENGTH
                 && line_pos >= l.left_bound
                 && line_pos <= l.right_bound

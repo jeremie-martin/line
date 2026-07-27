@@ -204,6 +204,26 @@ const SEGMENT_LENGTH_REFINE = 1;
  */
 const IMPACT_MIN_INCIDENCE_DEG = 0;
 /**
+ * Amplitude ask below which the pop-arc shaping is not commanded at all, and the
+ * share of the commanded blend every pool member carries. Both shipped, and they
+ * settle whether the 2026-07-27 dive result was a PATTERN or a fact about that
+ * one lever.
+ *
+ * It was the lever. Deleting the dive's ask floor was +19.09 and lifting its
+ * attempt span to 0.5..1 was +21.36; the same two moves here are -1.16 and -0.85,
+ * with `development_music` significantly negative in both (-3.93, -4.69), even
+ * though the amplitude bias does improve slightly (-0.1251 -> -0.1207). The
+ * ride-out length's analogue behaved the same way (+5.00 at a 0.5 span floor,
+ * -2.02 at full blend strength).
+ *
+ * So "the physically-derived shape is reserved to part of the attempt span, and
+ * should not be" is NOT a general principle of this sampler. Only the arrival
+ * carried it, which is consistent with the arrival being the one input the scored
+ * impact reads directly.
+ */
+const AMP_ONSET = 0.30;
+const AMP_SPAN_FLOOR = 0;
+/**
  * Extra post-contact subdivision per unit of the contact's impact ask, so the
  * commanded turn arrives through more and smaller collision impulses.
  *
@@ -1661,8 +1681,20 @@ function sampleContactCenteredLines(
   // flutter, and scales up naturally where contacts are sparse.
   if (targets.amplitude !== undefined && nextGapFrames !== null) {
     const amp = clamp(targets.amplitude, 0, 1);
-    const amplitudePressure = smoothstep((amp - 0.30) / 0.45);
-    const blend = clamp(ccSpanBlends(attempt).launch, 0, 1) * amplitudePressure;
+    /*
+     * The same DOUBLE RESERVATION the steep-arrival dive carried until
+     * 2026-07-27: a hand-placed onset below which the physically-derived shape is
+     * not commanded at all, and an attempt span whose mean member takes half of
+     * what is commanded. Deleting the dive's ask floor was +19.09 headline and
+     * lifting its span to 0.5..1 was +21.36, so the pattern is worth measuring
+     * wherever it appears — and here it is on an axis nothing in this campaign
+     * has touched, whose bias is -0.124. Roughly two thirds of authored
+     * amplitude sits at or below the 0.30 onset and therefore receives nothing.
+     */
+    const amplitudePressure = smoothstep((amp - AMP_ONSET) / 0.45);
+    const spanned = clamp(ccSpanBlends(attempt).launch, 0, 1);
+    const blend = (AMP_SPAN_FLOOR + (1 - AMP_SPAN_FLOOR) * spanned) *
+      amplitudePressure;
     // Shorten the grounded ride-out so the airborne arc fills more of the gap.
     ({ postAngleDeg, postLength } = blendPostTowardPopArc(
       postAngleDeg, postLength, nextGapFrames, targetState.velocity.x, blend, 1,

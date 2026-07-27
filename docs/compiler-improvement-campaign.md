@@ -649,6 +649,36 @@ So the readiness product is not over-constraining the search out of ignorance �
 costs 8 points with two strata significantly negative. `airFit` was the one
 uninformative factor and it is already gone.
 
+### The reservation pattern was the LEVER, not a principle
+
+With the impact bias fixed (below), the remaining priced headroom is air, speed,
+amplitude and validity — and amplitude had never been touched. It carries exactly
+the double reservation the steep-arrival dive did: a hand-placed 0.30 onset below
+which the pop-arc shaping is not commanded at all (roughly two thirds of authored
+amplitude sits at or under it) and an attempt span whose mean member takes half.
+
+Deleting the dive's ask floor was +19.09 and lifting its span to 0.5..1 was
++21.36. The same two moves on amplitude are **-1.16 and -0.85**, with
+`development_music` significantly negative in both (-3.93, -4.69), even though the
+amplitude bias does improve slightly (-0.1251 -> -0.1207). The ride-out length's
+analogue behaved the same way earlier (+5.00 at a 0.5 span floor, -2.02 at full
+blend strength).
+
+So "a physically-derived shape is reserved to part of the attempt span and should
+not be" is **not a general principle of this sampler**. Only the arrival carried
+it — consistent with the arrival being the one input the scored impact reads
+directly. (The combined amplitude arm is void: the source was edited while it was
+running. The two single arms agree, so it was not re-run.)
+
+**A workflow note worth keeping.** Mid-session the WASM artifact was rebuilt by
+something in the toolchain, and `eval` correctly refused every comparison with
+`engine artifact differs from the retained baseline`. Behaviour was unaffected —
+`verify:optimizer` and the full suite passed on the rebuilt binary — so this was
+build reproducibility, not drift. The recorded bytes are retained inside the
+baseline's own compiler snapshot (`benchmark/v2/runs/<label>-compiler-snapshot.tar.gz`
+contains `engine-rs/target/.../lr_engine.wasm`), and restoring them from there
+returns the fingerprint exactly and unblocks comparisons.
+
 ### The impact bias is a FIXED POINT of this geometry
 
 The strongest form of the result, and it reframes the +67 the pricing instrument

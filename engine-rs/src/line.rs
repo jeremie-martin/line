@@ -4,6 +4,8 @@
 //! `collide` (the forward-sim response) lives in the kernel; this owns the line
 //! record, the `shouldCollide`/`collidesWith` predicate, and grid registration.
 
+use std::rc::Rc;
+
 use crate::grid::{classic_cells, hash_int_pair, FlatIntMap};
 
 pub(crate) const MAX_FORCE_LENGTH: f64 = 10.0;
@@ -31,7 +33,7 @@ pub(crate) struct Line {
 #[derive(Clone)]
 pub(crate) struct GridLine {
     pub group: u8,
-    pub line: Line,
+    pub line: Rc<Line>,
 }
 
 pub(crate) fn build_line(id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) -> Line {
@@ -103,7 +105,7 @@ fn center_group(dx: i64, dy: i64) -> u8 {
 }
 
 #[inline]
-fn insert_grid_line(bucket: &mut Vec<GridLine>, group: u8, l: &Line) {
+fn insert_grid_line(bucket: &mut Vec<GridLine>, group: u8, l: &Rc<Line>) {
     let id = l.id;
     let mut pos = bucket.len();
     for (idx, e) in bucket.iter().enumerate() {
@@ -118,7 +120,7 @@ fn insert_grid_line(bucket: &mut Vec<GridLine>, group: u8, l: &Line) {
         pos,
         GridLine {
             group,
-            line: l.clone(),
+            line: Rc::clone(l),
         },
     );
 }
@@ -128,12 +130,13 @@ fn insert_grid_line(bucket: &mut Vec<GridLine>, group: u8, l: &Line) {
 /// contains C. Each center bucket is sorted by the original 3×3 cell order, then
 /// by DESCENDING line id inside that cell, preserving getLinesNearEntity order.
 pub(crate) fn push_line(grid: &mut FlatIntMap<Vec<GridLine>>, l: Line, cells: &[(i64, i64)]) {
+    let line = Rc::new(l);
     for &(cx, cy) in cells {
         for dx in -1..=1 {
             for dy in -1..=1 {
                 let center = hash_int_pair(cx - dx, cy - dy);
                 let group = center_group(dx, dy);
-                insert_grid_line(grid.get_or_insert_default(center), group, &l);
+                insert_grid_line(grid.get_or_insert_default(center), group, &line);
             }
         }
     }

@@ -176,6 +176,26 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // -13.56 with representative -17.76, and the pair together -13.03. The limit is
 // not how the existing rotation is distributed.
 /**
+ * Extra post-contact subdivision per unit of the contact's impact ask, so the
+ * commanded turn arrives through more and smaller collision impulses.
+ *
+ * Measured 2026-07-27 at N=8 against `dive-span-floor`, the ladder separates by
+ * SHAPE rather than by headline: 1 / 2 / 3 give +6.42 / +3.70 / +0.82 overall,
+ * while `representative` rises monotonically +1.33 / +3.83 / +5.09 and
+ * `development_music` with it +5.00 / +8.09 / +9.06, and `capability` — the
+ * stratum whose interval spans +/-90 at this seed count — falls +36.05 / +3.62 /
+ * -23.84 and carries the headline with it. 2 is the only rung with no stratum
+ * negative and two significantly positive.
+ *
+ * It is also the only arm in the campaign that moves EVERY axis the same way:
+ * speed bias -0.0226 -> -0.0124 and its rms 0.0985 -> 0.0841, air, impact and
+ * amplitude all better, and the contact speed measured by
+ * `npm run study:impact-window` rises 10.55 -> 10.72 while the turn holds. That
+ * is what the frontier predicts a smoother turn should do, and it is why this
+ * lever is not the eleven that came before it.
+ */
+const IMPACT_SEGMENT_REFINE = 2;
+/**
  * Upper bound on the energy-targeted launch's downward velocity, as a fraction
  * of `g * N`. It is what BINDS on dense specs, and opening it changes nothing.
  *
@@ -1653,7 +1673,30 @@ function sampleContactCenteredLines(
   }
 
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
-  const nominalPostSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
+  /*
+   * SEGMENT REFINEMENT ON IMPACT CONTACTS.
+   *
+   * The turn is delivered by a POLYLINE, and every vertex is a discrete
+   * direction change the collision response pays for in speed. At the sampled
+   * `segmentLength` of 12-40px the whole six-frame window — about 60px — spans
+   * only two or three vertices, so the redirection arrives as a few impulses
+   * rather than a curve. That is the measured frontier's mechanism: turn and
+   * speed trade at close to 1:1 along every angle lever, and `v * dtheta` is
+   * what is scored.
+   *
+   * Grain is UNAUTHORED in the canonical distribution, so line length is a free
+   * axis here exactly as elevation is — and spending a free axis is what the two
+   * accepted changes of 2026-07-27 did. Subdividing the post-contact branch in
+   * proportion to what the contact asks for delivers the same commanded turn
+   * through more, smaller impulses.
+   */
+  const segmentRefinement = 1 +
+    IMPACT_SEGMENT_REFINE * clamp(targets.impact ?? 0, 0, 1);
+  const nominalPostSegments = clampInt(
+    Math.round(postLength * segmentRefinement / segmentLength),
+    2,
+    16,
+  );
   supportGeometryProbeHook?.({
     gapIndex: gap.index,
     attempt,

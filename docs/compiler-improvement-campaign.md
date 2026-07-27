@@ -569,7 +569,42 @@ arrives faster AND steeper. Opening it does nothing either:
 
 The pool gains steeper-launch candidates and **the search does not commit them**.
 
-So both factors of `v * dtheta` are now closed from opposite directions: pushing
+### The way through the frontier: stop paying for the turn
+
+If turn and speed trade at 1:1, the question is not how much to turn but what the
+turn COSTS — and the cost is discrete. The redirection is delivered by a
+POLYLINE, and every vertex is a collision impulse. `segmentLength` is sampled
+12-40px, so the six-frame window — about 60px — spans only two or three
+vertices: the turn arrives as a few slams rather than a curve.
+
+Grain is UNAUTHORED in the canonical distribution, so line length is a free axis
+exactly as elevation is, and spending a free axis is what both accepted changes
+of this session did. Subdividing the post-contact branch in proportion to the
+contact's ask:
+
+| refinement | headline | representative | development_music | capability | speed rms |
+|---|---:|---:|---:|---:|---:|
+| 0 (shipped) | — | — | — | — | 0.0985 |
+| 1 | **+6.42** | +1.33 [−8.62, +11.27] | +5.00 | +36.05 | 0.0858 |
+| **2** | **+3.70** | **+3.83 [+1.75, +5.90]** | **+8.09 [+0.65, +15.54]** | +3.62 | **0.0841** |
+| 3 | +0.82 | +5.09 [+2.82, +7.37] | +9.06 [+4.01, +14.11] | −23.84 | 0.0812 |
+
+The ladder separates by SHAPE, not by headline: `representative` and
+`development_music` rise monotonically with refinement while `capability` — the
+stratum whose interval spans ±90 here — falls and carries the headline with it.
+Rung 2 is the only one with no stratum negative and two significantly positive.
+
+**It is the only arm in the campaign that moves every axis the same way.** Speed
+bias −0.0226 → −0.0124 and its rms 0.0985 → 0.0841, air, impact and amplitude all
+better; and on the window instrument the contact speed rises 10.55 → 10.72 while
+the turn holds. That is precisely what the frontier predicts a smoother turn does
+— it buys back the speed the impulses were spending — which is why this lever is
+not the eleven that preceded it. `sparse_lowline` also recovers (+21.26, +27.46),
+the group the accepted dive had cost.
+
+### The frontier, stated
+
+So both factors of `v * dtheta` are closed from opposite directions: pushing
 the angle is cancelled by braking, pushing the speed is cancelled by selection.
 The compiler is on the efficient frontier of this metric at this operating point,
 and the remaining impact headroom is not reachable by a stronger single-axis

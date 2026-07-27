@@ -1151,3 +1151,38 @@ less work per candidate — fewer knob candidates than 75,530, fewer than 2,692
 evaluated arcs, or smaller models than 3 x 200 trees. Those are compiler-quality
 decisions with a benchmark to price them, not speed refactors, and they belong to
 `npm run benchmark -- eval` rather than `perf_ab`.
+
+## Attempt 21 (2026-07-26) — build the kernel with wasm SIMD, INCONCLUSIVE
+
+The last untested avenue against the largest bucket. The kernel is built
+scalar-only — no `simd128` anywhere in `Cargo.toml` or the build script — so
+LLVM cannot vectorise the solver's paired x/y arithmetic, which is the natural
+2-wide shape (`dx`/`dy`, `p1x`/`p1y`, ...). Auto-vectorisation is safe here
+because LLVM will not reassociate floating point without fast-math flags, so the
+per-lane results are IEEE-identical.
+
+Built with `RUSTFLAGS="-C target-feature=+simd128"` and `wasm-opt --enable-simd`.
+**292 v128/f64x2 instructions** appear in the artifact, so the vectoriser did
+fire.
+
+- **Correctness — everything green, including the strongest check available:**
+  `cargo test` 5/5; `LR_ENGINE=wasm npm run verify` byte-identical;
+  **`npm run verify:engine -- --diff` bit-identical over every point position on
+  all five fixtures, max err 0** (1220/1220/2260/740 frames);
+  `verify:compiler:behavior -- --budgets=100000,150000,200000` 36/36 cells;
+  `npm run wasm:all` ALL GREEN.
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --rounds=100 --reps=4 --warmup=1`
+  - base mean **9,775.5 ns/frame**, candidate mean **9,792.1 ns/frame**
+  - delta median/mean **+0.01% / +0.17%**, 95% CI **[-0.12%, +0.50%]**
+  - candidate won **49/100** rounds, `P(candidate faster)=15.8%`
+
+Verdict: inconclusive, reverted, accepted artifact `433a35ba440b` restored and
+re-verified. Vectorising bought nothing because these loops are
+**dependency-chain bound, not throughput bound**: each constraint solve feeds the
+next through the same two points, and the collision test is a short predicate per
+line. Two-wide f64 cannot shorten a serial chain.
+
+**With this the engine has no accessible headroom left, on evidence:** tracking
+is free, the sorted-bucket scan is already optimal for its size, density scaling
+is weak, there is no hidden re-simulation, and the arithmetic will not vectorise
+profitably.

@@ -186,6 +186,24 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
  */
 const SEGMENT_LENGTH_REFINE = 1;
 /**
+ * Degrees of incidence the contact surface must make across the arrival heading,
+ * applied as a one-sided FLOOR so it binds only on glancing contacts. OFF, and
+ * it closes the glancing population as a lever.
+ *
+ * The floor binds as designed — mid-band incidence 1.78 -> 3.07 -> 6.61 -> 10.29
+ * degrees at caps of off / 5 / 8 / 12 — and delivered impact FALLS with it,
+ * 0.291 -> 0.260 -> 0.247 -> 0.234, while the measured turn also falls
+ * (11.3 -> 10.2 degrees) DESPITE the incidence rising. The mechanism is visible
+ * in the window: give-back climbs 0.002 -> 0.012 and the peak stops being at the
+ * deadline, 90% -> 63%. Forcing a surface across the arrival makes those contacts
+ * EJECT rather than redirect — the rider is thrown and free-flight rotation
+ * unwinds the turn before it is read.
+ *
+ * So the ~1 degree the glancing 22% meet their surface at is what those contacts
+ * can sustain, not a command the compiler failed to give.
+ */
+const IMPACT_MIN_INCIDENCE_DEG = 0;
+/**
  * Extra post-contact subdivision per unit of the contact's impact ask, so the
  * commanded turn arrives through more and smaller collision impulses.
  *
@@ -1431,6 +1449,40 @@ function sampleContactCenteredLines(
    * This blends the contact angle toward the one the ask requires relative to
    * the arrival. `0` is the shipped behaviour exactly.
    */
+  /*
+   * MINIMUM INCIDENCE, one-sided.
+   *
+   * A catch can only redirect what it intercepts. Measured over 383 committed
+   * contacts (`npm run study:impact-window`), 22% are GLANCING: they meet the
+   * surface at about ONE degree, are not turned at all, and free-fall through
+   * the scoring window while gravity steepens the heading by the `g/|v|` the
+   * absolute-value metric reads as redirection. Within the same ask band they
+   * sit at 0.96-1.78 degrees of incidence and deliver 0.107-0.118, against
+   * 2.83-11.50 degrees for the contacts that engage.
+   *
+   * Aiming every contact at the incidence its ask needs is the arm below, and it
+   * fails: it moves all of them and pays the speed cost everywhere, because turn
+   * and speed trade at close to 1:1. A FLOOR does not. It binds only where the
+   * surface would otherwise lie along the arrival — the population getting
+   * nothing for its trouble — and leaves the contacts already turning untouched,
+   * so the trade is paid only where there is nothing to lose.
+   */
+  if (IMPACT_MIN_INCIDENCE_DEG > 0 && targets.impact !== undefined) {
+    /* The floor is the incidence the ask NEEDS, capped — not a fraction of the
+     * cap scaled by the ask. Scaling by the ask defeats the floor exactly where
+     * the glancing population lives: at a 0.25 ask a 6-degree cap becomes 1.5
+     * degrees, and the mid-band incidence stayed at 1.07 degrees when that form
+     * was measured. `neededTurnDegForImpact` is the metric's own inverse and
+     * returns 10.4 degrees for that same ask. */
+    const floorDeg = targetState.angleDeg - Math.min(
+      neededTurnDegForImpact(
+        Math.min(targets.impact, impactCeiling(targetState.speed)),
+        targetState.speed,
+      ),
+      IMPACT_MIN_INCIDENCE_DEG,
+    );
+    contactAngleDeg = clamp(Math.min(contactAngleDeg, floorDeg), -14, 65);
+  }
   if (IMPACT_INCIDENCE_AIM > 0 && targets.impact !== undefined) {
     const needed = neededTurnDegForImpact(
       Math.min(targets.impact, impactCeiling(targetState.speed)),

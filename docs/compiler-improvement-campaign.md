@@ -602,6 +602,33 @@ the turn holds. That is precisely what the frontier predicts a smoother turn doe
 not the eleven that preceded it. `sparse_lowline` also recovers (+21.26, +27.46),
 the group the accepted dive had cost.
 
+### The glancing 22% cannot be commanded either
+
+The one population left unattacked was the 22% of contacts that meet their
+surface at about one degree and are never turned. Aiming every contact at the
+incidence its ask needs fails by paying the speed cost everywhere, but a
+one-sided FLOOR binds only on that population and leaves the rest untouched.
+
+The floor has to be the incidence the ask NEEDS, capped — scaling a cap by the ask
+defeats it exactly where the glancing contacts live, since at a 0.25 ask a
+6-degree cap becomes 1.5 degrees. With `neededTurnDegForImpact` as the floor and
+a cap swept off / 5 / 8 / 12 degrees:
+
+| cap | mid-band incidence | delivered (all) | turn at +6 | give-back | peak-at-deadline |
+|---|---:|---:|---:|---:|---:|
+| off | 1.78° | 0.291 | 11.3° | 0.002 | 90% |
+| 5° | 3.07° | 0.260 | 10.4° | 0.003 | 84% |
+| 8° | 6.61° | 0.247 | 10.2° | 0.009 | 71% |
+| 12° | 10.29° | 0.234 | 10.4° | 0.012 | 63% |
+
+**Incidence rises and the measured turn FALLS**, while give-back climbs sixfold
+and the peak stops arriving at the deadline. Forcing a surface across the arrival
+makes those contacts EJECT rather than redirect: the rider is thrown, and
+free-flight rotation unwinds the turn before it is read. So the one degree is
+what those contacts can sustain, not a command the compiler failed to give — and
+the give-back mechanism this campaign hypothesised early and could not find does
+exist, but only when the geometry is forced past what it can carry.
+
 ### The search's own reasons are earned, not obstacles
 
 The frontier's second half is that the search DECLINES the aggressive shapes, so

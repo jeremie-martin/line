@@ -3,24 +3,24 @@
   "suite": "smoke",
   "cases": {
     "tiny_dance|seed0": {
-      "hash": "e82fdac7de352be8",
-      "lines": 21,
-      "sim_frames": 40610
+      "hash": "6c3a73914eb7e823",
+      "lines": 20,
+      "sim_frames": 40681
     },
     "syncopated_switchback|seed1": {
-      "hash": "875610ebaa3640e5",
-      "lines": 108,
-      "sim_frames": 41386
+      "hash": "0b9b223dd126bba1",
+      "lines": 111,
+      "sim_frames": 40574
     },
     "drums_signature|seed2": {
-      "hash": "692023f1b30ada0b",
-      "lines": 166,
-      "sim_frames": 40016
+      "hash": "30c43edb500b8683",
+      "lines": 223,
+      "sim_frames": 41033
     },
     "mini_burst|seed0": {
-      "hash": "2b797368b87defd8",
-      "lines": 33,
-      "sim_frames": 40288
+      "hash": "68deded0317a9f16",
+      "lines": 35,
+      "sim_frames": 40090
     }
   }
 }

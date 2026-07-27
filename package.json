@@ -117,7 +117,8 @@
     "verify:compiler:behavior": "tsx scripts/v0/bench/verify_compiler_behavior.ts",
     "verify:determinism": "tsx scripts/v0/bench/verify_determinism.ts",
     "verify:optimizer:wide": "tsx scripts/v0/bench/verify_compiler_behavior.ts",
-    "verify:optimizer:floor": "tsx scripts/v0/bench/verify_optimizer_budget_floor.ts"
+    "verify:optimizer:floor": "tsx scripts/v0/bench/verify_optimizer_budget_floor.ts",
+    "study:impact-window": "LR_ENGINE=wasm node --no-warnings=ExperimentalWarning --import tsx scripts/v0/study_impact_window.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

@@ -3,11 +3,18 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`steep-arrival-default`, canonical headline 507.33 (the same compiler measures
-509.11 at N=48, +11.29 against the previous baseline). Its cache covers 8 seeds
-per budget and extends on demand.
+`dive-span-floor`, canonical headline 528.69 (the same compiler measures 527.41
+at N=48). Its cache covers 8 seeds per budget and extends on demand.
 
-Previous: `accept-2026-07-25T15-30-00Z-closed-form`, 498.9141.
+Accepted this session, both on one mechanism — the steep-arrival dive:
+
+| baseline | canonical | N=48 delta | evidence |
+|---|---:|---:|---|
+| `accept-2026-07-25T15-30-00Z-closed-form` | 498.91 | — | previous |
+| `steep-arrival-default` | 507.33 | **+11.29** [+7.49, +15.09] | dive at every attempt, whole span |
+| `dive-span-floor` | **528.69** | **+18.30** [+13.67, +22.94] | ask floor deleted, span floor 0.5 |
+
+Qualification monitor 394.17 → 399.50 → 404.04, at 120/120 valid throughout.
 
 A baseline archive is always EXACTLY 8 canonical seeds per budget - the seed
 schedule packs 250k to slots 0-7, 500k to 8-15, 750k to 16-23, leaving the probe
@@ -381,6 +388,226 @@ headline do so entirely through `capability`, whose interval spans ±100 here.
 The span floor also has the cleanest statement — the pool's mean member should
 carry the dive the ask needs, not half of it — and it is bracketed on both sides
 (efficiency 0.6 +13.29, the ride-out analogue at full strength −2.02).
+
+### Batches 7-9 — the vein is now bracketed on every side
+
+Re-measured against `dive-span-floor`, all N=8:
+
+| arm | delta | representative | verdict |
+|---|---:|---:|---|
+| carrier onset 0.15 | −0.23 | −10.66 | the ramp's optimum did NOT move |
+| carrier onset 0, full at 0.65 | +0.54 | −13.20 | idem |
+| dive span floor 0.75 | −10.42 | −5.10 | 0.5 is bracketed above |
+| dive span floor 1.0 | −14.34 | −12.97 | idem |
+| delivery efficiency 0.5 | −0.86 | −6.50 | substitutes with the span floor |
+| template arrival angle 8°→4° | −5.50 | −0.63 | closed |
+| template lane rate ⅓→0.66 | −4.06 | −6.14 | closed |
+| template attempt ramp 6→2 | −6.63 | −0.00 | closed |
+| template pressure gate 0.35→0.2 | +0.34 (SE 0.38) | +0.61 | inert |
+| all three template gates open | −17.47 | −12.80 | closed |
+| carrier front-load 1.6→2.0 | +1.75 | +0.29 | noise |
+
+Two of these were worth running for what they rule out rather than what they
+find. The **carrier re-sweep** was justified — the scoop's cost is
+arrival-dependent, so its optimum could have moved once every arrival carried a
+dive — and it did not move at all, which closes that ramp for good. The
+**template gates** are the converting half of the mechanism (the dive supplies
+the vertical velocity, the valley is the surface that turns it), so steeper
+arrivals should have wanted more of them; every gate is at or past its optimum
+instead.
+
+### 2026-07-27 — what the impact metric actually measures, and the measurement that follows
+
+The campaign has been reasoning about impact from the doc comment. The
+implementation says something narrower (`substrate.ts redirArcPxAtLanding`):
+
+```ts
+v0 = velocityAt(landing - 1);  aIn = atan2(v0.y, v0.x)
+for (f = landing; f <= landing + W; f++) turn = |wrapPi(angle(v(f)) - aIn)|   // ASSIGNED
+return |v0| * turn
+```
+
+`turn` is assigned, not accumulated, so the scored quantity is **endpoint to
+endpoint**: the CoM heading at exactly `landing + 6` against the heading one
+frame before the contact, scaled by the arrival speed. Four consequences, two of
+which contradict things this campaign has assumed:
+
+1. **The path inside the window is invisible.** A turn achieved and given back
+   scores what remains at the deadline; a gradual turn and a snapped one score
+   the same. So "sharpness" is not rewarded — which is why the front-load arms
+   are flat (+1.75, −2.13). That lever redistributes rotation *within* a window
+   the metric cannot see inside.
+2. **The window is a deadline.** A turn still in progress at +6 is counted
+   partially.
+3. **Only the arrival SPEED enters as the multiplier**, not the arrival angle.
+   The angle enters only as the "from" end of the difference.
+4. It is absolute and wrapped, and CoM-only.
+
+**The measurement.** `npm run study:impact-window` re-simulates committed tracks
+and records the turn at every frame of the window, the maximum reached, and
+whether the rider is supported. 417 contacts, six specs, 250k:
+
+```
+frame   +0     +1     +2     +3     +4     +5     +6
+turn   0.91°  1.98°  6.10°  9.81° 12.89° 14.61° 15.83°     still climbing at the deadline
+air     0%     3%     6%     7%    18%    25%    32%       separation begins at +4
+```
+
+- **give-back is 0.002 impact units** and the peak is AT the deadline on 89% of
+  contacts. The shortfall is a truncation, not a loss.
+- Split by whether the rider held contact through the window, at an identical
+  mean ask (0.539 vs 0.540): supported delivers **0.449**, separating delivers
+  **0.358** — 25% more impact for the same request. Per spec the ordering
+  follows: `believer_impact_56s` is 3% airborne and delivers 98% of its ask;
+  `dense_dialogue` and `frontier_pickup_progression` are 18-23% airborne and
+  deliver 52-53%.
+
+So impact accrues at ~2-3°/frame **only while the rider is supported**, and the
+compiler separates two frames before the measurement is taken.
+
+**Why it separates, and the ceiling that follows.** Separation distance
+discriminates the two candidate causes, because the sampled ride-out is 28-220px:
+
+```
+separates at   +1     +2     +3     +4     +5     +6    never
+distance      9.7px  20.9   31.1   41.6   53.2   63.3     -
+delivered/ask  36%    49%    46%    59%    61%    68%     82%
+```
+
+Every extra supported frame is worth 0.05-0.08 of delivered impact, and the
+median separation is at **43px**. Forcing a hard 60px floor on the ride-out —
+`IMPACT_WINDOW * speed`, the length that would hold the rider to the deadline —
+changes the distribution by **nothing**:
+
+| support floor | p50 separation | airborne at +6 | achieved |
+|---|---:|---:|---:|
+| off | 43px | 50% | 0.283 |
+| ask-scaled | 42px | 50% | 0.289 |
+| hard 60px | **43px** | **52%** | 0.291 |
+
+So the rider is not running out of line — it leaves a surface that is still
+there.
+
+**And the metric does not require contact at any frame**, which is where a
+tempting conclusion has to be resisted. `impact` is `∠v(+6)` against `∠v(-1)`;
+a turn delivered in two frames and then coasted loses only what gravity unwinds,
+`g/|v| ≈ 1.0°` per airborne frame. So "the window and the flight compete for the
+same frames" does NOT follow from separation alone, and was written here before
+it was checked.
+
+Checking it splits the population in two. Turn AFTER the rider leaves, by the
+frame it left:
+
+```
+left at +1 (n=22):   1.5° -> 5.5°     +0.81 deg/frame after leaving
+left at +2 (n=27):   4.7° -> 8.9°     +1.05
+left at +3 (n=36):   3.8° -> 6.3°     +0.83
+left at +4 (n=59):  12.1° -> 13.4°    +0.64
+left at +5 (n=63):  15.1° -> 15.6°    +0.55
+```
+
+`g/|v|` is ~1.0°/frame, and for the early-separating groups it accounts for the
+ENTIRE measured turn: `1.5 + 5 × 0.81 = 5.5`. Gravity steepens a free-falling
+rider's heading away from its arrival heading, and the absolute-value metric
+reads that as redirection.
+
+### The frontier: `v · dtheta` is near-conserved, and that explains eleven batches
+
+Incidence — the angle between the touched surface and the arrival heading — is
+what separates the two populations, and it survives controlling for the ask:
+
+```
+ask band       glancing incidence -> achieved      engaged incidence -> achieved
+0.20-0.35            1.53 deg -> 0.107                  5.26 deg -> 0.154
+0.35-0.50            0.96 deg -> 0.117                 11.50 deg -> 0.262
+0.50-0.70           18.39 deg -> 0.339                 19.21 deg -> 0.491
+0.70-1.01           16.51 deg -> 0.357                 21.56 deg -> 0.596
+```
+
+Delivered impact tracks incidence across bands, which is what the physics
+demands: the rider leaves along the surface it met, so `dtheta` is about the
+angle that surface makes across the arrival. That gives the metric's inverse
+directly — to deliver `X` at speed `v` the surface must sit `X * 7.29 / v`
+radians across the arrival, 14.6 degrees for a 0.35 ask at speed 10, against the
+5.3 the mid band gets.
+
+The compiler cannot express that today: `contactAngleDeg` is a WORLD-frame angle
+nudged by `impactCurveP * 18`, while the quantity that turns the rider is
+`contactAngle - arrivalHeading`. So an incidence-targeted contact angle was
+implemented and measured:
+
+| incidence aim | engaged incidence | turn at +6 | speed at contact | achieved |
+|---|---:|---:|---:|---:|
+| 0 (shipped) | 13.26° | 11.1° | 10.16 | 0.283 |
+| 0.5 | 14.98° | 13.1° | **8.13** | 0.275 |
+| 1.0 | 21.73° | 17.9° | **7.46** | 41 of 240 contacts still land |
+
+**It works and it does not pay.** The turn rises 18%, the contact speed falls
+20%, and the score is their PRODUCT. Bending the trajectory costs speed at close
+to the rate it buys angle, so `redirArc` is near-conserved along this axis — one
+frontier, found eleven times. The carrier ramp in both directions and twice, the
+flatten, the front-load, the post-turn widening, the template gates and this are
+not eleven independent failures.
+
+**What it leaves open, and it is the one thing untouched.** `v` in the metric is
+the speed ONE FRAME BEFORE the contact. The speed AXIS scores the MEAN over the
+gap. Arriving above one's own gap mean is impact the speed axis cannot see, and
+nothing in the compiler aims for it — while descending into a contact raises
+exactly that, on the same unauthored elevation axis the accepted dive already
+spends. That is the next mechanism, and it is on the other factor of the product.
+
+**So 22% of scored contacts — 85 of 383 — are GLANCING.** They touch, are not
+turned at all, free-fall through the rest of the window, and deliver ~0.15
+against asks of ~0.3-0.4. The contacts that stay supported past +4 have genuine
+12-17° turns. The mid-band shortfall that resisted every lever in batches 1-11 is
+two pooled populations: real catches that under-turn, and catches that never
+engage. Nothing measured so far distinguishes the second geometrically; the
+candidate quantity is the arrival heading against the contact surface angle at
+the landing point, which is what the carrier's flatten is supposed to control.
+
+At full strength the support floor did measure +6.85 headline at N=8 (+6.60 with
+the flight knee), but entirely through `capability` — interval ±110 at that seed
+count — with `representative` +0.81 and the impact bias unmoved. An unexplained
+gain on the one stratum that cannot rank arms is the shape §7.1 of the decisions
+doc warns about, so it is recorded and reverted rather than promoted.
+
+**Also measured, and left as a lead.** The one group the accepted dive regressed
+is `sparse_transition` (−14.26), and conditioning the dive on the gap's flight
+share recovers it exactly (`sparse_lowline` +23.80, its variant +23.81) while
+costing more elsewhere, monotonically: exponent 0.5 → −10.08, 1 → −26.97, 2 →
+−53.09. A knee form that binds only where there is no flight is the right shape;
+at 0.3 it is inert (−0.04) because almost every flight share is above it. The
+binding knee is worth at most the ~+2 that group carries.
+
+### What is left, priced on the new operating point
+
+Re-scoring the `dive-span-floor` archive under counterfactuals:
+
+```
+debias impact  (-0.166)   598.82  (+70.13)      impact -> min(ask, bound)  605.19 (+76.50)
+debias air     (+0.056)   530.45   (+1.75)      debias ALL axes            606.64 (+77.95)
+debias speed   (-0.023)   528.88   (+0.19)      speed is nearly SOLVED - the dive
+debias amplitude(-0.125)  531.80   (+3.10)      took its bias -0.045 -> -0.023
+```
+
+**Impact still holds every remaining point, and it is all in one place.** By ask
+band, delivered share of the ask: 0.25 → 53%, 0.36 → 53%, 0.61 → 79%, 0.79 →
+74%, 0.93 → 68%. The mid band is **immovable by every arrival lever measured** —
+all three best arms leave it at 0.134-0.135 on a 0.25 ask and 0.188-0.189 on a
+0.36 ask, to three decimals — while carrying 0.21-0.34 of feasibility-bound
+headroom.
+
+The one mechanism that does move it is the carrier's scoop, and that is priced:
+it buys mid-band impact at +0.014 to +0.053 and pays −0.026 to −0.080 of speed
+bias plus −0.043 to −0.076 of the NEXT contact's impact. Its optimum has now been
+confirmed twice, before and after the arrival change.
+
+So the next attempt needs a way to turn the rider sharply INSIDE the six-frame
+scoring window without dragging it around a curve. The front-load lever is
+exactly that idea and it is flat here, which suggests the limit is not how the
+existing rotation is distributed but that the rotation is not there to
+redistribute. A geometry that ends the approach and starts the departure at
+different angles — a corner rather than an arc — is the untested shape.
 
 **Next**: the arrival vein is open and the brackets say where. The 15° delta cap
 binds on high asks (the deficit is typically 24°) and 30° fails because it buys

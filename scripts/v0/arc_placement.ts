@@ -36,7 +36,9 @@ import {
   type TrackLine,
   authoredSpeedToPx,
   elevationToLaunchVy,
+  IMPACT_WINDOW,
   impactCeiling,
+  impactEnvNum,
   impactToRedirArcPx,
   normImpact,
 } from "./types.ts";
@@ -143,6 +145,11 @@ const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
 // -0.076). Less pressure trades the other way. The ablation also prices the
 // whole carrier at +69.5 headline and shows its scoop is what costs
 // frontier_dense_recovery its validity (0 -> 14 of 24 with the carrier off).
+// RE-SWEPT 2026-07-27 on top of the steep-arrival defaults, because the scoop's
+// cost is arrival-dependent — bending a flat trajectory brakes, converting an
+// already-vertical one need not — so the optimum could have moved. It did not:
+// onset 0.15 is -0.23 and onset 0 with full pressure at 0.65 is +0.54, both with
+// representative -10.66 and -13.20. The ramp is closed at 0.25.
 const IMPACT_CURVE_TARGET_START = 0.25;
 const IMPACT_CURVE_TARGET_SPAN = 0.40;
 const IMPACT_CURVE_ELEVATION_ROOM_TARGET_START = 0.20;
@@ -162,6 +169,36 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // 24:−12.1}, frontload {1.2:+2.4, 1.6:+4.1, 2.0:+2.7} — so the peak moved up to flatten 18 /
 // frontload 1.6 (Δ+4.1 vs old 12/1.2, positive at both budgets, 100% validity; INDICATIVE
 // probe tier, canonical run to promote). Onset held at 0.25 (start 0.10 → −9.6, over-scoops).
+// Re-measured 2026-07-27 against the steep-arrival defaults, on the argument
+// that impact is scored over a 6-frame window so a turn taken sharply scores
+// more than the same turn spread out. Both are still at their optimum:
+// front-load 2.0 is +1.75 and 2.4 is -2.13 (noise either side), flatten 22 is
+// -13.56 with representative -17.76, and the pair together -13.03. The limit is
+// not how the existing rotation is distributed.
+/**
+ * Strength of the incidence-targeted contact angle. OFF — and the reason is the
+ * most useful thing measured on 2026-07-27.
+ *
+ * It does what it says: aiming the contact surface at the incidence the ask
+ * needs raises the engaged incidence from 13.26 to 14.98 degrees at strength 0.5
+ * and the turn at the deadline from 11.1 to 13.1. The speed one frame before the
+ * contact falls from 10.16 to 8.13 in the same arm, and the scored impact is
+ * `v * dtheta`, so the product is flat to negative (0.283 -> 0.275). At strength
+ * 1 the compiler stops hitting its contacts at all: 41 of 240 authored contacts
+ * still land.
+ *
+ * Bending the trajectory costs speed at close to the rate it buys angle, so
+ * `redirArc` is near-conserved along this axis. That is one frontier, and it is
+ * why the carrier ramp (both directions, twice), the flatten, the front-load,
+ * the post-turn widening, the template gates and this all measure flat or
+ * negative: they are the same trade found repeatedly.
+ *
+ * What it does NOT close: `v` here is the speed one frame before the contact,
+ * while the speed AXIS scores the mean over the gap. Arriving above one's own
+ * gap mean is impact the speed axis cannot see, and nothing in the compiler
+ * aims for it.
+ */
+const IMPACT_INCIDENCE_AIM = 0;
 const IMPACT_CURVE_FLATTEN_DEG = 18;
 const IMPACT_CURVE_FRONTLOAD = 1.6;
 // Mature-budget impact POST-TURN sampler.
@@ -214,6 +251,13 @@ const IMPACT_ARRIVAL_TARGET_SPAN = 0.40;
 const IMPACT_ARRIVAL_BUDGET_FADE_START_FRAMES = 50_000;
 const IMPACT_ARRIVAL_BUDGET_FADE_SPAN_FRAMES = 50_000;
 
+// The template is the CONVERTING half of the impact mechanism: the dive supplies
+// the vertical velocity and this valley is the surface that turns it. Its gates
+// were re-measured on 2026-07-27 against the steep-arrival defaults, on the
+// theory that steeper arrivals should want more converting catches. They do not:
+// lane rate 0.66 is -4.06, attempt ramp 2 is -6.63, arrival angle 4 is -5.50,
+// all three together -17.47, and dropping the pressure gate to 0.2 is inert
+// (+0.34, SE 0.38). Every gate is at or past its optimum.
 const IMPACT_TEMPLATE_MIN_PRESSURE = 0.35;
 const IMPACT_TEMPLATE_LANE_RATE = 1 / 3;
 const IMPACT_TEMPLATE_ATTEMPT_RAMP_START = 6;
@@ -309,6 +353,9 @@ const RUNG_RELEASE_SPAN_SALT = 13;
 // flat or rising launch flies past the beat, and a small downward pitch lands
 // the rider on it: dense_dialogue +112.19 and 20->24 of 24 valid, its contrast
 // variant +108.83 and 18->24, frontier_pickup_progression +167.13 and 16->19.
+// Delivery efficiency 0.5 was +23.93 BEFORE the span floor and is -0.86 after
+// it: commanding a bigger turn and carrying more of the commanded one are two
+// ways to spend the same budget, so only one of them pays.
 const STEEP_ARRIVAL_DELIVERY_EFFICIENCY = 0.68;
 const STEEP_ARRIVAL_DELTA_MAX_DEG = 15;
 /**
@@ -328,7 +375,66 @@ const STEEP_ARRIVAL_DELTA_MAX_DEG = 15;
  * +13.29 and the ride-out span's own analogue at full strength is -2.02, so the
  * neighbourhood is bracketed rather than open-ended.
  */
+// Bracketed on both sides: 0 is the pre-2026-07-27 default, 0.75 is -10.42 and
+// 1 is -14.34 (representative -12.97), so the pool still needs members that
+// carry less than the full command.
 const STEEP_ARRIVAL_SPAN_FLOOR = 0.5;
+/**
+ * Strength of an impact-window support floor on the post-contact ride, scaled by
+ * the contact's own ask. OFF, and the measurement that turned it off is the
+ * useful part.
+ *
+ * The idea was that the turn accrues only while the rider is supported, so an
+ * arc whose contact asks for impact should hold the rider for the scoring
+ * window — `IMPACT_WINDOW * speed`, about 60px. Forcing exactly that as a hard
+ * floor changes the separation distribution by NOTHING: median distance
+ * travelled before separation stays 43px, airborne share at the deadline stays
+ * ~50%, achieved impact 0.283 -> 0.291. The rider is not running out of line.
+ *
+ * It leaves a surface that is still there. And the metric requires contact at no
+ * frame at all — it is the heading at +W against the heading at -1 — so a turn
+ * delivered early and coasted loses only `g/|v|`, about 1 degree per airborne
+ * frame. Measuring the turn AFTER separation shows that rate IS the whole story
+ * for early separations: contacts that leave at +1 to +3 carry 1.5-4.7 degrees
+ * and gain 0.8-1.05 per frame afterwards, which is exactly free fall steepening
+ * a heading the absolute-value metric reads as redirection. 22% of scored
+ * contacts are therefore GLANCING — they touch, are not turned, and deliver
+ * ~0.15 against asks of ~0.3-0.4 — while the ones supported past +4 have real
+ * 12-17 degree turns. Lengthening the ride cannot fix a catch that never
+ * engages.
+ *
+ * At full strength this measured +6.85 headline at N=8 (and +6.60 with the
+ * flight knee), but entirely through `capability`, whose interval spans +/-110
+ * at that seed count, with `representative` +0.81 and the impact bias unmoved.
+ * An unexplained gain on the one stratum that cannot rank arms is exactly the
+ * shape this campaign has promoted twice and lost at N=48, so it is recorded
+ * rather than shipped.
+ */
+const IMPACT_SUPPORT_WINDOW = 0;
+/**
+ * Flight share at or above which the dive is applied in full; below it the pitch
+ * is scaled down proportionally. `0` disables the gate exactly.
+ *
+ * A downward pitch only becomes arrival velocity while the rider is in the AIR.
+ * On a gap the rider spends mostly grounded it just tilts the ride-out downhill,
+ * which costs the supported character the low-air specs are scored on and buys
+ * no arrival angle, because the surface holds the trajectory.
+ *
+ * The KNEE matters, not the shape. Scaling the dive by the flight share
+ * proportionally recovers the one group the accepted dive regressed —
+ * `sparse_lowline` +23.80 and its variant +23.81 at N=8, against the -18.12 and
+ * -10.58 they had lost — and pays for it everywhere else, monotonically:
+ * exponent 0.5 is -10.08, 1 is -26.97, 2 is -53.09. The gate has to bind ONLY
+ * where there is no flight for the dive to act on, which is what a knee does and
+ * a power does not.
+ *
+ * Left OFF: a knee of 0.3 is inert (-0.04, and `sparse_lowline_air_minus_4`
+ * recovers only +4.14 of its -10.58), because almost every gap's flight share is
+ * already above it. The knee that would bind is between 0.3 and the proportional
+ * form, and finding it is tuning a constant for at most the ~+2 headline that
+ * group is worth. Recorded as a lead, not shipped.
+ */
+const STEEP_ARRIVAL_FLIGHT_KNEE = 0;
 const STEEP_ARRIVAL_ABS_CAP_DEG = 40;
 const STEEP_ARRIVAL_SPAN_SALT = 11;
 // Share of the attempt span that produces NO downward pitch. Zero at the
@@ -1232,6 +1338,45 @@ function sampleContactCenteredLines(
       contactAngleDeg - impactCurveP * IMPACT_CURVE_FLATTEN_DEG, -14, 65,
     );
   }
+  /*
+   * INCIDENCE-TARGETED CONTACT ANGLE.
+   *
+   * The scored turn is the CoM heading at +W against the heading one frame
+   * before the contact, and the rider leaves along the surface it met, so what
+   * the ask actually requires is an INCIDENCE — the angle between the contact
+   * surface and the ARRIVAL heading — of `neededTurnDegForImpact(ask, speed)`.
+   * The flatten above commands a WORLD-frame nudge instead, so the delivered
+   * incidence tracks the carrier's pressure ramp rather than the ask, and
+   * whatever angle the arrival happens to bring is uncorrected.
+   *
+   * Measured 2026-07-27 over 383 committed contacts (`npm run
+   * study:impact-window`), incidence at the touched surface against delivered
+   * impact, controlled within ask bands:
+   *
+   *   ask 0.20-0.35   glancing  1.53 deg -> 0.107     engaged  5.26 deg -> 0.154
+   *   ask 0.35-0.50   glancing  0.96 deg -> 0.117     engaged 11.50 deg -> 0.262
+   *   ask 0.50-0.70   glancing 18.39 deg -> 0.339     engaged 19.21 deg -> 0.491
+   *   ask 0.70-1.01   glancing 16.51 deg -> 0.357     engaged 21.56 deg -> 0.596
+   *
+   * Delivered impact tracks incidence across bands, and 22% of scored contacts
+   * are GLANCING — they meet the surface at about one degree, are not turned at
+   * all, and free-fall through the window while gravity steepens the heading by
+   * the `g/|v|` the absolute-value metric reads as redirection.
+   *
+   * This blends the contact angle toward the one the ask requires relative to
+   * the arrival. `0` is the shipped behaviour exactly.
+   */
+  if (IMPACT_INCIDENCE_AIM > 0 && targets.impact !== undefined) {
+    const needed = neededTurnDegForImpact(
+      Math.min(targets.impact, impactCeiling(targetState.speed)),
+      targetState.speed,
+    );
+    contactAngleDeg = clamp(
+      lerp(contactAngleDeg, targetState.angleDeg - needed, IMPACT_INCIDENCE_AIM),
+      -14,
+      65,
+    );
+  }
   const preLength = clamp(
     (6 + sampledRolls.preLengthRoll * 28)
       * (1 - 0.45 * clearancePressure)
@@ -1392,6 +1537,42 @@ function sampleContactCenteredLines(
     ({ postAngleDeg, postLength } = blendPostTowardPopArc(
       postAngleDeg, postLength, nextGapFrames, targetState.velocity.x, blend, 1,
     ));
+  }
+
+  /*
+   * SUPPORT THROUGH THE SCORING WINDOW.
+   *
+   * The scored impact is endpoint-to-endpoint — `redirArcPxAtLanding` assigns
+   * rather than accumulates, so it is the CoM heading at exactly
+   * `IMPACT_WINDOW` frames after the contact against the heading one frame
+   * before it. Measured over 417 committed contacts on six specs
+   * (`npm run study:impact-window`), the turn accrues steadily while the rider
+   * is SUPPORTED and stops when it separates:
+   *
+   *   frame   +0     +1     +2     +3     +4     +5     +6
+   *   turn   0.91   1.98   6.10   9.81  12.89  14.61  15.83   deg
+   *   air     0%     3%     6%     7%    18%    25%    32%
+   *
+   * It is a truncation, not a give-back: the mean turn GIVEN BACK before the
+   * deadline is 0.002 impact units and the peak is at the deadline itself on 89%
+   * of contacts. Split by whether the rider held contact through the window, at
+   * an identical mean ask of 0.539/0.540, the supported half delivers 0.449 and
+   * the separating half 0.358 — 25% more impact for the same request.
+   *
+   * The post-contact ride is otherwise sized from the AIR ask alone and knows
+   * nothing about the window, so on a gap that wants air the rider separates
+   * around frame +4 and the turn stops two frames before it is read. This lifts
+   * the ride toward the length that holds the rider for the whole window,
+   * `IMPACT_WINDOW * speed`, in proportion to what the contact actually asks
+   * for. It never shortens the ride, and it trades against exactly one axis.
+   */
+  if (IMPACT_SUPPORT_WINDOW > 0 && targets.impact !== undefined) {
+    const ask = clamp(targets.impact, 0, 1);
+    const windowPx = IMPACT_WINDOW * Math.max(1, targetState.speed);
+    postLength = Math.max(
+      postLength,
+      lerp(postLength, windowPx, clamp(IMPACT_SUPPORT_WINDOW * ask, 0, 1)),
+    );
   }
 
   ({ postAngleDeg, postLength } = impactDeliveryAdjustment({
@@ -1809,8 +1990,28 @@ function impactDeliveryAdjustment(params: {
       /* The span currently runs 0..1 of the computed dive, so the pool's MEAN
        * member carries half of what the ask needs. A floor raises the whole
        * span toward the command while keeping variation below it. */
-      const delta = deltaMax *
-        (STEEP_ARRIVAL_SPAN_FLOOR + (1 - STEEP_ARRIVAL_SPAN_FLOOR) * spanRoll);
+      const spanned = STEEP_ARRIVAL_SPAN_FLOOR +
+        (1 - STEEP_ARRIVAL_SPAN_FLOOR) * spanRoll;
+      /* `steepArrivalDeltaMaxDeg` already derives the ride/flight split from the
+       * same post length and speed, so the share costs no new state. It is
+       * conditioned per GAP rather than per spec deliberately: the per-spec air
+       * mean cannot separate the group this protects (`sparse_lowline` 0.265)
+       * from the one that gained most from the dive
+       * (`frontier_pickup_progression` 0.235, +115.75). */
+      const rideFrames = clamp(
+        postLength / Math.max(1, params.targetState.speed),
+        0,
+        params.nextGapFrames - 1,
+      );
+      const flightShare = clamp(
+        (params.nextGapFrames - rideFrames) / Math.max(1, params.nextGapFrames),
+        0,
+        1,
+      );
+      const flightGate = STEEP_ARRIVAL_FLIGHT_KNEE <= 0
+        ? 1
+        : clamp(flightShare / STEEP_ARRIVAL_FLIGHT_KNEE, 0, 1);
+      const delta = deltaMax * spanned * flightGate;
       if (delta > 0.01) {
         postAngleDeg = Math.min(postAngleDeg + delta, ELEVATION_POST_ANGLE_MAX);
       }

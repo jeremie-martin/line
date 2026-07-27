@@ -253,7 +253,13 @@ pub(crate) fn unhash_int_pair(n: i64) -> (i64, i64) {
 
 #[inline]
 pub(crate) fn cell_cor(x: f64) -> i64 {
-    (x / GRID_SIZE).floor() as i64
+    let scaled = x / GRID_SIZE;
+    let truncated = scaled as i64;
+    if truncated != i64::MIN && scaled < truncated as f64 {
+        truncated - 1
+    } else {
+        truncated
+    }
 }
 
 #[inline]
@@ -344,6 +350,38 @@ mod tests {
             for y in -32..=32 {
                 assert_eq!(unhash_int_pair(hash_int_pair(x, y)), (x, y));
             }
+        }
+    }
+
+    #[test]
+    fn branch_floor_cell_coordinate_matches_rust_floor_cast() {
+        let edge_values = [
+            f64::NEG_INFINITY,
+            -1.0e300,
+            -28.000000000000004,
+            -28.0,
+            -27.999999999999996,
+            -14.0,
+            -0.0,
+            0.0,
+            13.999999999999998,
+            14.0,
+            14.000000000000002,
+            1.0e300,
+            f64::INFINITY,
+            f64::NAN,
+        ];
+        for value in edge_values {
+            assert_eq!(cell_cor(value), (value / GRID_SIZE).floor() as i64);
+        }
+
+        let mut bits = 0x4d59_5df4_d0f3_3173_u64;
+        for _ in 0..100_000 {
+            bits = bits
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            let value = f64::from_bits(bits);
+            assert_eq!(cell_cor(value), (value / GRID_SIZE).floor() as i64);
         }
     }
 }

@@ -252,8 +252,7 @@ pub(crate) fn unhash_int_pair(n: i64) -> (i64, i64) {
 }
 
 #[inline]
-pub(crate) fn cell_cor(x: f64) -> i64 {
-    let scaled = x / GRID_SIZE;
+pub(crate) fn cell_cor_from_scaled(scaled: f64) -> i64 {
     let truncated = scaled as i64;
     if truncated != i64::MIN && scaled < truncated as f64 {
         truncated - 1
@@ -263,6 +262,12 @@ pub(crate) fn cell_cor(x: f64) -> i64 {
 }
 
 #[inline]
+pub(crate) fn cell_cor(x: f64) -> i64 {
+    cell_cor_from_scaled(x / GRID_SIZE)
+}
+
+#[inline]
+#[cfg(test)]
 pub(crate) fn cell_hash(px: f64, py: f64) -> i64 {
     hash_int_pair(cell_cor(px), cell_cor(py))
 }

@@ -11,7 +11,7 @@
 use crate::frame::{
     add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, SnapNode,
 };
-use crate::grid::{cell_hash, FlatIntMap};
+use crate::grid::{cell_cor_from_scaled, hash_int_pair, FlatIntMap, GRID_SIZE};
 use crate::line::{GridLine, MAX_FORCE_LENGTH};
 use crate::{
     BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT, LHAND, NENT, NITER,
@@ -20,11 +20,33 @@ use crate::{
 
 const LINE_CELL_CACHE_SLOTS: usize = 64;
 
+#[derive(Clone, Copy)]
+struct PointCell {
+    key: i64,
+    min_x: f64,
+    max_x: f64,
+    min_y: f64,
+    max_y: f64,
+    valid: bool,
+}
+
+impl PointCell {
+    const EMPTY: PointCell = PointCell {
+        key: 0,
+        min_x: 0.0,
+        max_x: 0.0,
+        min_y: 0.0,
+        max_y: 0.0,
+        valid: false,
+    };
+}
+
 pub(crate) struct LineCellCache {
     keys: [i64; LINE_CELL_CACHE_SLOTS],
     ptrs: [*const Vec<GridLine>; LINE_CELL_CACHE_SLOTS],
     epochs: [u32; LINE_CELL_CACHE_SLOTS],
     current_epoch: u32,
+    point_cells: [PointCell; NENT],
 }
 
 impl Default for LineCellCache {
@@ -34,6 +56,7 @@ impl Default for LineCellCache {
             ptrs: [std::ptr::null(); LINE_CELL_CACHE_SLOTS],
             epochs: [0; LINE_CELL_CACHE_SLOTS],
             current_epoch: 1,
+            point_cells: [PointCell::EMPTY; NENT],
         }
     }
 }
@@ -51,6 +74,37 @@ impl LineCellCache {
     #[inline]
     fn slot(cell: i64) -> usize {
         ((cell as u64).wrapping_mul(0x9E3779B97F4A7C15) as usize) & (LINE_CELL_CACHE_SLOTS - 1)
+    }
+
+    #[inline(always)]
+    fn point_cell<const I: usize>(&mut self, px: f64, py: f64) -> i64 {
+        let scaled_x = px / GRID_SIZE;
+        let scaled_y = py / GRID_SIZE;
+        let cached = unsafe { self.point_cells.get_unchecked_mut(I) };
+        if cached.valid
+            && scaled_x >= cached.min_x
+            && scaled_x < cached.max_x
+            && scaled_y >= cached.min_y
+            && scaled_y < cached.max_y
+        {
+            return cached.key;
+        }
+
+        let cell_x = cell_cor_from_scaled(scaled_x);
+        let cell_y = cell_cor_from_scaled(scaled_y);
+        let min_x = cell_x as f64;
+        let max_x = cell_x.checked_add(1).map_or(min_x, |value| value as f64);
+        let min_y = cell_y as f64;
+        let max_y = cell_y.checked_add(1).map_or(min_y, |value| value as f64);
+        *cached = PointCell {
+            key: hash_int_pair(cell_x, cell_y),
+            min_x,
+            max_x,
+            min_y,
+            max_y,
+            valid: scaled_x.is_finite() && scaled_y.is_finite() && min_x < max_x && min_y < max_y,
+        };
+        cached.key
     }
 
     #[inline]
@@ -278,7 +332,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
         *s.vx.get_unchecked(I),
         *s.vy.get_unchecked(I),
     );
-    let center_cell = cell_hash(pxi, pyi);
+    let center_cell = line_cache.point_cell::<I>(pxi, pyi);
     // addToGrid (A): pre-collision snapshot.
     if TRACK {
         add_to_grid(
@@ -341,7 +395,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
                 events.push((it, l.id, I as i32));
                 // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
                 if TRACK {
-                    let pcell = cell_hash(pxi, pyi);
+                    let pcell = line_cache.point_cell::<I>(pxi, pyi);
                     add_to_grid(
                         hist,
                         touched_cells,
@@ -569,6 +623,43 @@ pub(crate) fn step_state<const TRACK: bool>(
             // allow
         } else if s.fsu[bind] == -1 {
             s.fsu[bind] = 0;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn point_cell_cache_matches_exact_grid_hash() {
+        let mut cache = LineCellCache::default();
+        let mut positions = Vec::new();
+        for cell in -256..=256 {
+            let boundary = cell as f64 * GRID_SIZE;
+            positions.extend([
+                (boundary - 1e-10, boundary + 1e-10),
+                (boundary, boundary),
+                (boundary + 1e-10, boundary - 1e-10),
+                (boundary + GRID_SIZE * 0.5, boundary + GRID_SIZE * 0.75),
+            ]);
+        }
+
+        let mut state = 0x6a09_e667_f3bc_c909_u64;
+        for _ in 0..100_000 {
+            state = state
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            let x = ((state >> 11) as f64 / ((1_u64 << 53) as f64)) * 2e6 - 1e6;
+            state = state
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            let y = ((state >> 11) as f64 / ((1_u64 << 53) as f64)) * 2e6 - 1e6;
+            positions.push((x, y));
+        }
+
+        for (x, y) in positions {
+            assert_eq!(cache.point_cell::<PEG>(x, y), crate::grid::cell_hash(x, y));
         }
     }
 }

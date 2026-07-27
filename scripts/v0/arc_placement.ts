@@ -132,6 +132,17 @@ const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
 // Ramp retuned for the envelope ruler (2026-06-09): scored targets on previously
 // conflicted beats now sit at 0.45-0.65 (was ~0.85), where the old 0.45-start ramp
 // delivered ~zero pressure. Start 0.25 puts ~0.7 pressure at a 0.5 ask.
+//
+// The onset was swept in both directions on 2026-07-26 and 0.25 is a real
+// optimum, not an inherited guess: at N=8 against the closed-form baseline, an
+// onset of 0 with full pressure at 0.65 / 0.45 / 0.30 gives -0.83 / -20.68 /
+// -38.77, and onsets of 0.35 / 0.45 / off give -6.69 / -12.50 / -69.55. More
+// pressure lifts a mid-band ask exactly as intended (delivered +0.014 to +0.053)
+// and costs more than it gains: the scoop BRAKES (speed bias -0.026 to -0.080)
+// and flattens the launch the next contact must arrive on (its impact -0.043 to
+// -0.076). Less pressure trades the other way. The ablation also prices the
+// whole carrier at +69.5 headline and shows its scoop is what costs
+// frontier_dense_recovery its validity (0 -> 14 of 24 with the carrier off).
 const IMPACT_CURVE_TARGET_START = 0.25;
 const IMPACT_CURVE_TARGET_SPAN = 0.40;
 const IMPACT_CURVE_ELEVATION_ROOM_TARGET_START = 0.20;
@@ -162,6 +173,15 @@ const IMPACT_CURVE_FRONTLOAD = 1.6;
 // while 50k completion remains protected.
 const IMPACT_POST_TURN_BUDGET_START_FRAMES = 100_000;
 const IMPACT_POST_TURN_BUDGET_SPAN_FRAMES = 100_000;
+// Widening the post-contact launch angle does NOT manufacture redirection, and
+// the 0.60 restriction below is therefore not the limit it looks like. Measured
+// 2026-07-26: opening this lever to mid-band asks (onset 0.15) and removing its
+// carrier-pressure factor moves the impact bias by 0.004 and costs 21.93
+// headline with 20 lost valid runs. The reason is physical and rules out a whole
+// family of ideas — after the catch the rider LEAVES the surface, so a wider
+// post-contact angle just drops the line away beneath it. Redirection can only
+// come from velocity the surface can still turn, which means it must come from
+// the ARRIVAL (see the steep-arrival block below).
 const IMPACT_POST_TURN_MAX_EXTRA_DEG = 28;
 const IMPACT_POST_TURN_MIN_MISSING_DEG = 2;
 const IMPACT_POST_TURN_TARGET_START = 0.60;
@@ -183,6 +203,14 @@ const IMPACT_POST_TURN_TARGET_SPAN = 0.20;
 // dense asks sit at 0.35-0.55 ⇒ pressure 0.1-0.6 there, 1.0 at 0.7+.
 const IMPACT_ARRIVAL_TARGET_START = 0.30;
 const IMPACT_ARRIVAL_TARGET_SPAN = 0.40;
+// The fade puts this lever fully OFF at every canonical benchmark budget
+// (fade = 1 - smoothstep((budget - 50k)/50k) = 0 for budget >= 100k, and the
+// suite's lowest tier is 250k). The V1-era dilution finding that set it was
+// re-measured on Benchmark V2 on 2026-07-26 and still holds: forcing full
+// pressure at every budget is -10.59 headline and does not move the impact bias
+// at all (-0.1713 -> -0.1738). Blending toward the SYMMETRIC pop arc only
+// reaches the arrival velocity the feasibility bound already assumes; raising it
+// takes the steep-arrival dive below.
 const IMPACT_ARRIVAL_BUDGET_FADE_START_FRAMES = 50_000;
 const IMPACT_ARRIVAL_BUDGET_FADE_SPAN_FRAMES = 50_000;
 
@@ -246,21 +274,47 @@ const RUNG_RELEASE_SPAN_FRAMES = 6;
 const RUNG_RELEASE_MIN_GROUNDED_FRAMES = 1;
 const RUNG_RELEASE_SPAN_SALT = 13;
 
-// M3 k-1 steep-arrival span. Later attempts on gaps whose NEXT beat wants impact
-// pitch the final launch downward by a measured delivery-efficiency inverse,
-// keeping attempt 0 byte-identical so the default shape remains in every pool.
+// STEEP ARRIVAL. On a gap whose NEXT beat wants impact, pitch the final launch
+// downward by the measured delivery-efficiency inverse of what that ask needs.
+//
+// This is the only mechanism that raises the arrival's vertical velocity, and
+// the arrival is the only source of redirection that does not BRAKE the rider: a
+// scoop drags the centre of mass around a curve and pays in speed (the carrier
+// block above prices that at 0.026-0.080 of speed bias), while a steep arrival
+// hands the catch a vertical component to convert. Read the feasibility bound
+// under a flat launch — fall for the whole airborne share of the gap instead of
+// rising and returning — and the mean reachable impact is 0.650 against the
+// symmetric-pop bound's 0.575 and an achieved 0.374, with 66% of authored asks
+// reachable instead of 54%. Elevation is unauthored in the canonical
+// distribution, so the altitude a dive spends is free, and air OVERSHOOTS by
+// +0.048, so spending airtime falling rather than rising helps that axis too.
+//
+// Measured 2026-07-26 at N=8 against `accept-2026-07-25T15-30-00Z-closed-form`:
+// the dive was reserved to attempt > 0 and to half the attempt span at mature
+// budgets. Applying it across the whole span and at every attempt is +8.42
+// headline with representative +10.64 [+8.14, +13.14], legacy_regression +12.71
+// [+6.33, +19.08], development_music +10.76 [+5.81, +15.72], 10 valid runs
+// gained, and the impact and speed biases improving together (-0.1713 ->
+// -0.1660, -0.0446 -> -0.0370) for the first time in the campaign. Span only
+// (attempt 0 still exempt) is +5.87; half the span is +7.13. Raising the 15
+// degree delta cap to 30 is NEGATIVE (-4.33 and -3.90) because it buys the
+// arrival with air.
 const STEEP_ARRIVAL_MIN_ASK = 0.30;
 const STEEP_ARRIVAL_DELIVERY_EFFICIENCY = 0.68;
 const STEEP_ARRIVAL_DELTA_MAX_DEG = 15;
 const STEEP_ARRIVAL_ABS_CAP_DEG = 40;
 const STEEP_ARRIVAL_SPAN_SALT = 11;
-// Paired with the arrival-conditioned template path: more steep launches so
-// the converting catch has dives to harvest.
-const STEEP_ARRIVAL_ZERO_BAND = 0.6;
+// Share of the attempt span that produces NO downward pitch. Zero at the
+// budgets the suite measures: the reservation was three constants and a branch
+// on the spec's authored max impact, and the branch was unreachable — every one
+// of the 44 development cases authors a max impact above the 0.68 threshold, so
+// the 0.6 general band was dead code and only the 0.5 hard-impact band ever
+// applied. Scarce budgets keep their own reserve, which nothing in the canonical
+// suite exercises (its lowest tier is 250k) and which protects completion where
+// the search has no room to recover.
 const STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES = 200_000;
 const STEEP_ARRIVAL_SCARCE_ZERO_BAND = 0.25;
-const STEEP_ARRIVAL_HARD_IMPACT_PROFILE_MIN = 0.68;
-const STEEP_ARRIVAL_HARD_IMPACT_ZERO_BAND = 0.5;
+const STEEP_ARRIVAL_MATURE_ZERO_BAND = 0;
 
 // Study-only marker: was the LAST geometry produced by sampleContactCenteredLines an
 // impact template lane? Read by the landing-window probe (core/candidate.ts) to
@@ -275,12 +329,6 @@ export function wasLastGeometryImpactTemplate(): boolean {
  * provenance of the previous sampled arc in landing-probe metadata. */
 export function clearImpactTemplateMarker(): void {
   lastGeometryWasImpactTemplate = false;
-}
-let currentSteepArrivalSpecMaxImpact = 0;
-export function setSteepArrivalSpecMaxImpact(maxImpact: number): void {
-  currentSteepArrivalSpecMaxImpact = Number.isFinite(maxImpact)
-    ? clamp(maxImpact, 0, 1)
-    : 0;
 }
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
@@ -1700,8 +1748,7 @@ function impactDeliveryAdjustment(params: {
   }
 
   if (
-    params.attempt > 0
-    && params.gap.nextImpact !== undefined
+    params.gap.nextImpact !== undefined
     && params.gap.nextImpact >= STEEP_ARRIVAL_MIN_ASK
     && params.nextGapFrames !== null
     && params.nextGapFrames > 4
@@ -1718,7 +1765,7 @@ function impactDeliveryAdjustment(params: {
         currentCompileBudgetFrames > 0 &&
           currentCompileBudgetFrames < STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES
           ? STEEP_ARRIVAL_SCARCE_ZERO_BAND
-          : steepArrivalMatureZeroBand();
+          : STEEP_ARRIVAL_MATURE_ZERO_BAND;
       const spanRoll = Math.max(
         0,
         (lowDiscrepancyRoll(params.attempt, STEEP_ARRIVAL_SPAN_SALT) - zeroBand) /
@@ -1755,13 +1802,6 @@ function steepArrivalDeltaMaxDeg(
   );
   const needDeg = Math.min((needRad * 180) / Math.PI, STEEP_ARRIVAL_ABS_CAP_DEG);
   return clamp(needDeg - arrDeg, 0, STEEP_ARRIVAL_DELTA_MAX_DEG);
-}
-
-function steepArrivalMatureZeroBand(): number {
-  if (currentSteepArrivalSpecMaxImpact >= STEEP_ARRIVAL_HARD_IMPACT_PROFILE_MIN) {
-    return STEEP_ARRIVAL_HARD_IMPACT_ZERO_BAND;
-  }
-  return STEEP_ARRIVAL_ZERO_BAND;
 }
 
 function impactTemplateLaneEligibility(

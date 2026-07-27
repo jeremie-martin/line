@@ -15,6 +15,323 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-26 — where the headline actually is: impact, and it is steering
+
+Every entry before this one attacks the SEARCH. This one starts from the
+scorer's own error budget and arrives somewhere else.
+
+### The instrument: exact counterfactual re-scoring, zero compiles
+
+`weightedAxisRms` is `sqrt(sum(w * rms_axis^2) / sum(w))` and the run score is
+`1000 * exp(-rms / 0.25)`, so a per-gap axis archive can be re-scored under any
+counterfactual and re-aggregated through the exact hierarchy. Replaying the
+accepted baseline archive unchanged reproduces `498.9141` to four decimals, so
+the tool is the evaluator, not a model of it.
+
+Where the squared weighted error sits (974 valid runs, 87,453 scored contacts):
+
+| axis | rms | mean signed | share of weighted SSE |
+|---|---:|---:|---:|
+| **impact** | **0.2223** | **−0.1713** | **54%** |
+| amplitude | 0.2373 | −0.1275 | 19% |
+| speed | 0.1142 | −0.0446 | 14% |
+| air | 0.1090 | +0.0476 | 13% |
+
+Every axis is biased the same way — too much air, too little speed, impact and
+amplitude — but impact is the only one that pays: removing its bias alone is
+worth **+66.8 headline** (498.91 → 565.72), against +2.9 for amplitude, +1.8 for
+speed and +1.8 for air. Bias is 58% of impact's MSE. The conversion is roughly
+**7 headline points per 0.01 of mean impact**, priced directly:
+
+```
+uniform lift of achieved impact   +0.02  +0.04  +0.06  +0.08  +0.10  +0.12
+headline delta                   +14.2  +27.4  +39.4  +49.7  +58.1  +64.1
+```
+
+### The diagnosis: the undershoot is on the EASY asks
+
+Splitting by whether the authored ask is inside the ballistic feasibility bound
+(`substrate.ts impactFeasibilityBound`, a diagnostic that never touches the
+target) settles what kind of failure this is:
+
+| population | n | ask | bound | achieved | delivered |
+|---|---:|---:|---:|---:|---:|
+| ask ≤ bound | 13,178 | 0.250 | 0.591 | 0.136 | **55% of ask** |
+| ask ≤ bound | 23,633 | 0.360 | 0.570 | 0.190 | **53% of ask** |
+| ask ≤ bound | 6,064 | 0.590 | 0.703 | 0.514 | 87% of ask |
+| ask ≤ bound | 3,527 | 0.792 | 0.914 | 0.705 | 89% of ask |
+| ask > bound | 15,972 | 0.620 | 0.511 | 0.447 | 88% of BOUND |
+| ask > bound | 20,570 | 0.786 | 0.539 | 0.555 | 103% of BOUND |
+
+**The compiler is at the physical limit whenever the ask is hard and leaves half
+of an easy ask on the table** — on contacts carrying 0.21–0.34 of bound
+headroom. It is not a capability ceiling and not a budget question: the bias is
+−0.170 / −0.174 / −0.169 at 250k / 500k / 750k.
+
+Two more measurements make it steering rather than ranking:
+
+- **No axis trade.** Within one (spec, gap) across seeds, a larger delivered
+  impact correlates −0.14 with |speed error| and −0.03 with |air error|. Impact
+  accuracy is very nearly free, and across seeds a lower impact rms goes with a
+  HIGHER run score (r = −0.71).
+- **The pool already contains it.** Per contact, the best of 24 runs delivers
+  +0.144 more impact than the mean run; 41.5% of contacts are hit by at least
+  one run and 3.4% on average. Replacing each contact by its own best-across-runs
+  value takes impact rms 0.212 → 0.104.
+
+### The reframing this forces: validity is an +11 prize, impact is a +67 one
+
+Priced on the same instrument, giving **every** invalid run the mean score of
+its own (spec, budget) valid runs is worth **+11.3** headline (498.91 → 510.21).
+That is the whole of the `frontier_dense_recovery` capability debt that the
+previous entry names as "the largest single prize left", plus every other
+invalid run in the suite, and it is a sixth of what the impact bias costs.
+
+The arithmetic is the aggregation's: `capability` is 15% of the headline and its
+`dense_recovery_frontier` group is one of three, while impact is 30% of the axis
+weight on all 44 cases at all three budgets. Nothing about the earlier
+diagnosis was wrong — the deficit is real and its shape was correctly
+identified — but it is not where the headline is.
+
+### The mechanism: a hand-placed onset in the carrier's ask ramp
+
+`arc_placement.ts impactCurvePressure` is
+`smoothstep((ask − 0.25)/0.40) * smoothstep((speed − 6)/4)`. Observed speeds are
+9–11.4 px/frame, so the speed factor is 0.94–1.00 and inert; the ask factor is
+**0.04 at a 0.30 ask and 0.32 at 0.40**, reaching 1 only at 0.65. That pressure
+scales the whole carrier: the contact-angle flatten (18°), the front-loaded
+post-contact curvature (−1.6), the post-turn sampler and the template lane.
+
+The delivered share of the ask tracks that pressure, not the ask:
+
+```
+ask 0.62-0.75   P=0.0 -> 0.195   P=0.6 -> 0.474   P=0.8 -> 0.673   P=1.0 -> 0.766
+ask 0.50-0.62                    P=0.4 -> 0.555   P=0.6 -> 0.688   P=0.8 -> 0.789
+d(achieved)/d(ask)  = 0.25 inside the dead zone, > 1.0 across the ramp
+```
+
+Hypothesis: the ask→pressure map, not the carrier's authority, is what leaves
+the reachable asks unserved. Boundary: one continuous map from an authored input;
+no case identity, no budget or failure keying.
+
+### Falsified first, cheaply
+
+`LOCAL_IMPACT_COST_WEIGHT` (`LR_IMPACT_LOCAL_W`, flat 0.5) is a documented,
+deliberate 2:1 divergence from the scorer's equal axis weighting. Setting it to
+1 at N=8 (1,056 candidate compiles, 7m17s) moves **nothing**: delta −0.02,
+validity identical 974/1056, and the impact bias is unchanged to four decimals
+(−0.1713). It survives only as a tiebreak, exactly as §5.7 of
+`BALLISTIC_READINESS_DECISIONS.md` predicted. Retired.
+
+The same run established the reference point: the tree at `85e9d96` is
+**bit-identical** to the accepted baseline (delta +0.00 on every budget, stratum
+and case, validity 974/1056 → 974/1056), so the `arc_model.ts` /
+`arc_vector_model.ts` drift noted in §13 of the decisions doc is behaviourally
+inert and every arm below is attributable.
+
+### Batch 1 — the carrier's ask pressure is refuted, monotonically
+
+Five arms at N=8 (1,056 candidate compiles each, ~7m15s each, ~37min total),
+all env-configured against the same cached baseline prefix. The carrier arms
+move the ask→pressure map's onset to 0 and vary where it reaches full pressure.
+
+| arm | headline | delta | valid | representative | capability |
+|---|---:|---:|---:|---:|---:|
+| onset 0, full at 0.65 | 498.08 | −0.83 | 974→1007 | −11.94 | +57.29 |
+| onset 0, full at 0.45 | 478.23 | −20.68 | 974→1011 | −36.32 | +50.58 |
+| onset 0, full at 0.30 | 460.15 | −38.77 | 974→1012 | −54.01 | +28.38 |
+| pop-arrival on at every budget | 488.32 | −10.59 | 974→971 | −8.85 | −24.29 |
+| steep-arrival band 0.6→0.25 | 498.91 | **+0.00** | 974→974 | +0.00 | +0.00 |
+
+**The mechanism is confirmed and the lever is refuted.** Paired on the 969 cells
+valid in both arms, the first carrier arm does exactly what the hypothesis
+predicted in the band it targets — delivered impact at a 0.25 ask +0.014, at a
+0.36 ask +0.019, band rms −0.005 and −0.014 — and then loses more elsewhere:
+
+```
+                     ask 0.25   ask 0.36   ask 0.61   ask 0.79   speed bias
+onset 0 / full 0.65   +0.0136    +0.0185    -0.0434    -0.0274     -0.0257
+onset 0 / full 0.45   +0.0238    +0.0338    -0.069     -0.056      -0.0604
+onset 0 / full 0.30   +0.049     +0.043     -0.076     -0.074      -0.0802
+```
+
+Priced on the counterfactual instrument, the first arm decomposes as mid-band
+gain **+5.3**, speed cost **−5.3**, high-band impact cost **−18.9**, validity
+gain ~+18. So the carrier's scoop is not free: it brakes the rider, and it
+flattens the launch that the NEXT contact has to arrive on. Turning at a contact
+costs the speed axis and costs the following contact its arrival angle, and both
+costs scale with the pressure while the gain saturates.
+
+Two corrections this forces on the earlier reasoning:
+
+- **"Impact accuracy is nearly free" was an artefact of the comparison.** The
+  within-contact correlation of −0.14 against |speed error| is across SEEDS of
+  one compiler — selection variation, where the pool's higher-impact members
+  happen to be its better-behaved ones. A geometry change that manufactures
+  impact pays for it. Selection variation does not price a mechanism.
+- **The high band is worth 4x the mid band per unit of impact.** A 0.043 loss
+  above a 0.5 ask costs 18.9 headline; the whole mid-band gain was 5.3. Any arm
+  that touches impact must be read on both bands.
+
+**Retired**: the carrier ask-ramp onset, in the direction of more pressure.
+Also retired: forcing the impact-arrival pop arc on at benchmark budgets
+(−10.59, and the impact bias does not move at all, −0.1713 → −0.1738), so the
+V1-era dilution finding that set its fade still holds.
+
+**Instrument defect found and fixed**: the steep-arrival arm was bit-identical
+because `steepArrivalMatureZeroBand` returns `HARD_IMPACT_ZERO_BAND` (0.5) for
+any spec whose authored max impact is ≥ 0.68, which is all 44 development cases.
+The 0.6 constant the arm moved is unreachable on this suite. Both bands are now
+env-tunable so a shadowed arm reports as a change of nothing rather than as
+evidence.
+
+### Batch 2 — the carrier is at a true optimum, and the arrival is the lever
+
+| arm | headline | delta | valid | representative | impact bias | speed bias |
+|---|---:|---:|---:|---:|---:|---:|
+| carrier onset 0.35 (less scoop) | 492.22 | −6.69 | 974→969 | −0.74 | −0.1717 | −0.0226 |
+| carrier onset 0.45 | 486.41 | −12.50 | 974→983 | −11.43 | −0.1830 | **+0.0016** |
+| carrier OFF (onset 2) | 429.37 | **−69.55** | 974→1025 | −89.95 | −0.2267 | +0.0499 |
+| post-turn onset 0.60→0.15, carrier gate off | 476.99 | −21.93 | 974→957 | −16.57 | −0.1755 | −0.0505 |
+| **steep-arrival mature band 0.5→0.15** | **506.05** | **+7.13** | 974→980 | **+4.77** | −0.1696 | −0.0398 |
+
+**The carrier's ask onset is a genuine local optimum**: 0.25 beats 0, 0.35, 0.45
+and off, and the ablation prices the whole mechanism at **+69.5**. Two facts fall
+out of the ablation that are worth more than the arm:
+
+- **The speed undershoot IS the carrier.** Weaken it and the speed bias goes to
+  zero (+0.0016 at onset 0.45, +0.0499 with it off) — so −0.045 of speed is the
+  price the suite currently pays for its impact, knowingly or not.
+- **The carrier's scoop is what kills `frontier_dense_recovery`.** With it off,
+  that case goes 0→14 of 24 valid, its 240ms variant 1→14, `dense_dialogue`
+  18→23, and total validity 974→1025. The documented capability debt is a side
+  effect of impact steering, not of the contact-indexed refactor alone.
+
+**Falsified: widening the post-contact launch angle.** Opening
+`impactPostTurnExtraDeg` to mid-band asks and removing its carrier gate moves the
+impact bias by 0.004 and costs 21.9 headline with 20 lost valid runs. The reason
+is physical and settles a whole family of ideas: after the catch the rider LEAVES
+the surface, so a wider post-contact angle just drops the line away beneath it.
+Redirection can only come from velocity the surface can still turn — which means
+it has to come from the ARRIVAL.
+
+**The live mechanism: arrival vertical velocity.** Reading the feasibility bound
+under a flat launch instead of a symmetric pop — fall for the whole airborne
+share of the gap rather than rise and return — raises the mean reachable impact
+from 0.575 to **0.650** against an achieved 0.374, and takes the reachable share
+of asks from 54% to **66%**. Elevation is unauthored in this suite, so altitude
+is a free axis and a dive is nearly free on the scored ones; air OVERSHOOTS by
++0.048, so spending airtime on falling rather than rising helps that axis too.
+`STEEP_ARRIVAL` already inverts the metric properly (it computes the arrival
+angle the next ask needs and pitches the launch down by the deficit), but it is
+gated to attempt > 0, asks ≥ 0.30, a 15° cap, and half the attempt span. Opening
+only the span is +7.13 with representative +4.77 [+2.34, +7.20] and
+development_music +7.64 [+1.90, +13.38] — every stratum positive, six valid runs
+gained, and both the impact and speed biases improved together for the first
+time in the campaign.
+
+### Batch 3 — the candidate: the dive is the default shape, not a late variant
+
+| arm | headline | delta | valid | representative | impact | speed |
+|---|---:|---:|---:|---:|---:|---:|
+| objective axis pooling rms→mse | 484.32 | −14.60 | 974→962 | −7.88 | −0.1683 | −0.0486 |
+| mature span reserve 0.5→0 | 504.78 | +5.87 | 974→983 | +4.62 | −0.1692 | −0.0387 |
+| span reserve 0.15 + 30° cap | 494.58 | −4.33 | 974→986 | −1.05 | −0.1709 | −0.0373 |
+| span reserve 0 + 30° cap | 502.81 | +3.90 | 974→1000 | −0.27 | −0.1733 | −0.0357 |
+| **span reserve 0 + every attempt** | **507.33** | **+8.42** | 974→984 | **+10.64** | **−0.1660** | **−0.0370** |
+
+The winner is the only arm in the campaign with three of four strata
+significantly positive: representative +10.64 [+8.14, +13.14],
+legacy_regression +12.71 [+6.33, +19.08], development_music +10.76
+[+5.81, +15.72]. `capability` reads −5.59 with a ±104 interval, which is the
+stratum §7.1 of the decisions doc already records as unable to rank arms at these
+seed counts. Impact bias −0.1713 → −0.1660 and speed −0.0446 → −0.0370 move
+together, which no scoop arm managed.
+
+Two brackets close the mechanism rather than leaving it open: raising the 15°
+delta cap to 30° is negative at both span settings (−4.33, +3.90 against +7.13,
++5.87) because a bigger dive buys the arrival with air (+0.062 air bias), and
+attempt-0 exemption costs 2.5 points, so the dive belongs in every pool member
+rather than in the late attempts only.
+
+**Also falsified: aligning the search's axis pooling with the scorer's.**
+`proposalUtility` multiplies per-gap `exp(-rms/T)`, so the search orders
+candidates by a sum of square ROOTS while the scorer orders a run by a sum of
+SQUARES; the root form is concave, prefers concentrating error in one gap, and
+its per-axis gradient saturates at `1/sqrt(k)` once one axis dominates — which is
+impact on 54% of the weighted error. Replacing it with `exp(-mse/T^2)` (same
+value at `rms = T`, same ordering within one gap, different trade between gaps)
+does move the axes in the predicted direction: impact bias −0.1683, high-band
+0.79-ask bias −0.2029 against −0.2096, best of any non-arrival arm. It costs
+14.60 headline anyway, through 15 lost valid runs concentrated on
+`frontier_pickup_progression` (−271.94). The argument survives; the form does
+not, and `score.ts` was never touched so the suite identity is intact.
+
+### The candidate, as a source default
+
+Baked into `arc_placement.ts` rather than left as a knob:
+
+- the steep-arrival dive applies at **every attempt**, not only after the first;
+- the mature share of the attempt span reserved for undived launches is **0**,
+  which deleted `steepArrivalMatureZeroBand`, its two hard-impact constants, the
+  unreachable general band, and the `setSteepArrivalSpecMaxImpact` plumbing in
+  `handoff.ts` — the branch was dead, since all 44 development cases author a max
+  impact of at least 0.86 against its 0.68 threshold;
+- scarce budgets keep their own 0.25 reserve, which the canonical suite never
+  exercises (lowest tier 250k) and which protects completion where the search has
+  no room to recover.
+
+Every refuted knob was reverted to its shipped constant with the measurement
+recorded in its comment, so the diff is the mechanism plus evidence and nothing
+else. Full test suite: 864 passing. `verify:optimizer` now differs from its
+recorded baseline by design.
+
+### N=48 — ACCEPTED, +11.29
+
+`npm run benchmark -- eval --seeds=48 --jobs=48`, 6,336 candidate compiles,
+42m54s, zero baseline compiles:
+
+```
+headline 497.82 -> 509.11   delta +11.29   seed-block SE 1.45   95% [+7.49, +15.09]
+one-sided lower +7.87                      RESULT: STRONGER THAN BASELINE
+validity 5852/6336 -> 5902/6336  (gained 96, lost 46)
+  250k  +14.78  [+10.87, +18.69]
+  500k  +12.07  [ +6.31, +17.84]
+  750k   +7.65  [ -0.64, +15.94]
+strata
+  representative     +11.33  [+10.23, +12.44]
+  legacy_regression  +12.22  [ +8.23, +16.20]
+  development_music   +8.26  [ +6.19, +10.33]
+  capability         +11.46  [-12.40, +35.32]
+largest improvements  low_air_endurance_7s +56.75 (valid 140->143),
+                      low_air_endurance +36.49, pickup_progression +33.04
+                      (valid 85->91), _4s +31.79, _6s +22.04
+largest regression    pickup_progression_shifted -11.59 (valid 78->79)
+```
+
+Everything a promotion should check is coherent. All four strata positive and
+three of them significantly so; all three budgets positive; the effect is
+monotone in scarcity (+14.78 at 250k to +7.65 at 750k) which is what a mechanism
+that supplies a physically missing quantity should look like — it helps most
+where the search has least room to find the shape by luck. Nothing is traded:
+the single regression is −11.59 against improvements up to +56.75, and
+`frontier_dense_recovery` goes 6→20 of 144 valid with its 240ms variant 7→16, so
+the documented capability debt moved in the right direction as a side effect
+rather than being paid for.
+
+Promoted with `rebaseline --label=steep-arrival-default`.
+
+**Next**: the arrival vein is open and the brackets say where. The 15° delta cap
+binds on high asks (the deficit is typically 24°) and 30° fails because it buys
+the arrival with AIR (+0.062 bias) — the rider must stay aloft until the beat, so
+a deeper dive lengthens the flight. The physical way out is to buy the arrival
+with SLOPE instead of flight time: pair the dive with a LONGER grounded ride-out
+so the same vertical velocity is reached in fewer airborne frames.
+`blendPostTowardPopArc` currently does the opposite (it shortens the ride-out to
+give the flight room), and `postLength` is a sampled distribution modulated by
+the air ask rather than an inversion of it — `grounded_frames = (1 - air) * N`
+is available in closed form and untested.
+
 ## Current mechanism: ballistic launch read
 
 Hypothesis: the short-probe launch read uses the correct discrete free-fall

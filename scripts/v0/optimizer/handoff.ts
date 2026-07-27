@@ -142,7 +142,6 @@ import {
   setCompileBudgetFrames,
   setImpactProfilePressures,
   setImpactTemplateSpecMeanImpact,
-  setSteepArrivalSpecMaxImpact,
   snapshotArcPlacementStats,
 } from "../arc_placement.ts";
 import { makeSolidLine } from "../arc.ts";
@@ -1170,7 +1169,6 @@ function resolveImpactTargets(
       }
     }
   }
-  setSteepArrivalSpecMaxImpact(impactOff ? 0 : maxAuthoredImpact);
   const impactProfile = impactOff ? null : impactCurveProfileStats(gaps, gapAxisTargets);
   setImpactProfilePressures({
     elevationRoom: impactProfile === null ? 0 : impactCurveElevationRoomPressure(impactProfile),

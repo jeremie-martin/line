@@ -176,6 +176,16 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // -13.56 with representative -17.76, and the pair together -13.03. The limit is
 // not how the existing rotation is distributed.
 /**
+ * Divisor on the sampled arc segment length where grain is unauthored, so the
+ * WHOLE arc is built from finer lines. Off, and it bounds the refinement lever:
+ * the accepted post-contact subdivision does not generalise. Measured 2026-07-27
+ * at 1.5 / 2 / 3 against `segment-refine`: -1.89 / -2.40 / -0.79 headline with
+ * representative -0.37 / -0.46 / +0.09 and the axis biases unmoved to three
+ * decimals. Refining the segments the rider rides BEFORE and BETWEEN contacts
+ * buys nothing; only the ones that carry the redirection do.
+ */
+const SEGMENT_LENGTH_REFINE = 1;
+/**
  * Extra post-contact subdivision per unit of the contact's impact ask, so the
  * commanded turn arrives through more and smaller collision impulses.
  *
@@ -964,8 +974,18 @@ function targetStateControls(
     1,
   );
 
+  /*
+   * The arc is a POLYLINE and every vertex is a collision impulse the rider pays
+   * for in speed. Subdividing the POST-CONTACT branch in proportion to the
+   * impact ask was accepted on 2026-07-27 (N=48 +2.01, representative
+   * +3.78 [+0.88, +6.67], contact speed 10.55 -> 10.72 with the turn held), and
+   * the same argument applies to every segment the rider rides, not only the
+   * ones after a scored contact. Grain is unauthored in the canonical
+   * distribution, so this length is free there; where grain IS authored it is a
+   * scored target and must not be touched. `1` is the shipped behaviour.
+   */
   const segmentLength = targets.grain === undefined
-    ? 12 + rolls.segmentLength * 28
+    ? (12 + rolls.segmentLength * 28) / SEGMENT_LENGTH_REFINE
     : clamp(targets.grain * TARGET_GRAIN_LINE_LENGTH_PX + (rolls.segmentLength - 0.5) * 8, 5, 49);
 
   const baseAngle = clamp(targetState.angleDeg, -25, 75);

@@ -649,6 +649,43 @@ So the readiness product is not over-constraining the search out of ignorance �
 costs 8 points with two strata significantly negative. `airFit` was the one
 uninformative factor and it is already gone.
 
+### The impact bias is a FIXED POINT of this geometry
+
+The strongest form of the result, and it reframes the +67 the pricing instrument
+found. Mean impact bias across every arm measured this session:
+
+```
+arm                        impact bias   speed bias   speed rms   headline
+segment-refine (accepted)     -0.1661      -0.0124      0.0841      532.40
+carrier onset 0 / full 0.65   -0.1804      -0.0486      0.1055      529.23
+carrier onset 0.15            -0.1750      -0.0454      0.1036      528.46
+dive span floor 0.75          -0.1671      -0.0186      0.0990      518.27
+dive span floor 1.0           -0.1675      -0.0162      0.1037      514.35
+steep efficiency 0.5          -0.1697      -0.0234      0.0988      527.83
+global segment refine 1.5     -0.1661      -0.0121      0.0843      530.51
+global segment refine 3       -0.1661      -0.0124      0.0844      531.61
+post segment refine 1         -0.1647      -0.0139      0.0858      535.11
+post segment refine 3         -0.1649      -0.0093      0.0812      529.51
+```
+
+**The impact bias spans -0.1647 to -0.1804 — at most 1% — across the entire
+lever family**, including the arms that were accepted. The headline moves 514 to
+535 across the same set, entirely through validity and the OTHER axes. The best
+impact bias any arm produced is 0.0014 better than the baseline's.
+
+So the +67 that debiasing impact prices is **not available to arc shaping**. The
+counterfactual instrument was correct about where the error IS and silent about
+whether it is reachable; twenty arms answer that question. This is why every
+mid-band lever measured flat: not eleven coincidences, and not even one trade —
+a fixed point.
+
+**What that makes reachable.** With the impact bias fixed, the remaining priced
+headroom is air +1.7, speed +0.2, amplitude +3.1 and validity's +11 ceiling —
+about +16, so roughly **548** as this compiler family's realistic ceiling on this
+suite. That is a falsifiable prediction, not a resignation: any candidate that
+takes the headline materially past it must move the impact bias, and nothing in
+this vocabulary does.
+
 ### The frontier, stated
 
 So both factors of `v * dtheta` are closed from opposite directions: pushing

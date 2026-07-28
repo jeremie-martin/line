@@ -3,17 +3,37 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`paced-forward-eval-width`, canonical headline 541.57 (the same compiler measures
-541.95 at N=24). Its cache covers 8 seeds per budget and extends on demand.
-Qualification monitor 408.81 at 120/120 valid; 750k reaches 352 of 352 valid and
-scores 569.17 on its own.
+`paced-aim-lane`, canonical headline 548.54. Its cache covers 8 seeds per budget
+and extends on demand. Qualification monitor 408.72 at 120/120 valid.
 
 | baseline | canonical | evidence |
 |---|---:|---|
 | `steep-arrival-default` | 507.33 | N=48 +11.29 |
 | `dive-span-floor` | 528.69 | N=48 +18.30 |
 | `segment-refine` | 532.40 | N=48 +2.01 |
-| **`paced-forward-eval-width`** | **541.57** | **N=24 +10.66 [+5.13, +16.19]** |
+| `paced-forward-eval-width` | 541.57 | N=24 +10.66 [+5.13, +16.19] |
+| **`paced-aim-lane`** | **548.54** | **N=8 +6.97, three strata exactly 0.00** |
+
+### What 570 would now require
+
+Re-pricing on the accepted archive with `study_headline_counterfactual.ts`:
+
+| counterfactual | headline | delta |
+|---|---:|---:|
+| **every seed scores its cell's BEST** | **572.03** | **+23.50** |
+| invalid runs score their cell's MEAN | 560.05 | +11.51 |
+| valid runs score their cell's BEST | 560.26 | +11.72 |
+| impact rms x0.75 / x0.5 / x0 | 600 / 649 / 706 | +51.4 / +100.7 / +157.1 |
+| air rms x0.75 / x0 | 560 / 577 | +11.4 / +28.2 |
+| speed rms x0.75 / x0 | 555 / 563 | +6.0 / +14.1 |
+| amplitude rms x0.75 / x0 | 554 / 561 | +5.1 / +12.9 (n=288) |
+
+**A compiler as reliable as its own best seed of eight would score 572.** That
+prize is now split evenly between validity (+11.51, and every invalid run left is
+at 250k on four frontier cells) and quality spread among valid runs (+11.72). The
+pacing family took the first half of it; nothing measured this session touches
+the second. Every other route needs the impact axis, which this session closed
+from three further directions on top of the campaign's twenty.
 
 Accepted this session, both on one mechanism — the steep-arrival dive:
 

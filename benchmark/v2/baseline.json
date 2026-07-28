@@ -1,9 +1,9 @@
 {
   "schema": "line.benchmark-v2.baseline-reference.v10",
   "status": "canonical-baseline",
-  "label": "segment-refine",
-  "generated_at": "2026-07-27T09:03:40.286Z",
-  "bundle": "benchmark/v2/runs/segment-refine-baseline.json",
+  "label": "paced-forward-eval-width",
+  "generated_at": "2026-07-28T00:30:25.830Z",
+  "bundle": "benchmark/v2/runs/paced-forward-eval-width-baseline.json",
   "catalog_fingerprint": "7dca7a96370bcc3545bfc66b704941aa1501558134007b1194d3c655379931f5",
   "suite_fingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
@@ -11,7 +11,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "4aeda87a662b069f8d0e000dbd54724934f592e12597b4ebcb53bd39cf404bd2",
+  "compiler_source_fingerprint": "ea9a223145a510dba355da0d49be0e29a342e46bd0973a063198dc12b92e80ce",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -100,26 +100,26 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
-  "candidate_fingerprint": "bd312744bdce88acdb0e8df57611378697549fb863ad249cec30b2cffc1368d4",
+  "candidate_fingerprint": "fd5db82821d9a2b2ba1eb04f8bc5608625342aa127c639bd93e398306b31bf81",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "66df2a60541432357fa203e1d45f4377878960f42d47a72a1a153adcf5205d2c",
   "decision_calibration_fingerprint": "380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/segment-refine-compiler-snapshot.tar.gz",
-    "archiveSha256": "f72143e40727963e12f5a20f08e3b16f2f7bd385d3ddda2663f3b8f83a92322e",
-    "candidateFingerprint": "bd312744bdce88acdb0e8df57611378697549fb863ad249cec30b2cffc1368d4",
-    "compilerSourceFingerprint": "4aeda87a662b069f8d0e000dbd54724934f592e12597b4ebcb53bd39cf404bd2",
+    "archive": "benchmark/v2/runs/paced-forward-eval-width-compiler-snapshot.tar.gz",
+    "archiveSha256": "34a7f147708b65cee57bdcc38f1c745e1bc0ff5874b410776a52f95da20c08b5",
+    "candidateFingerprint": "fd5db82821d9a2b2ba1eb04f8bc5608625342aa127c639bd93e398306b31bf81",
+    "compilerSourceFingerprint": "ea9a223145a510dba355da0d49be0e29a342e46bd0973a063198dc12b92e80ce",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
   },
   "probe": {
     "execution_policy_fingerprint": "5e336cda28b31c14ba42bcafd6d695f492b62b2df370fcd95ccd4725e476b92a",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "c7e9d6ffb0361d768c436e1a8281c0652b29f00f65946bef8d2e57f50876d3a6",
-    "compressed_archive": "benchmark/v2/runs/segment-refine-probe.json.gz",
-    "compressed_archive_sha256": "830abf0a9a25c6455242e9dfa160f8d4ef98d6d5be7509429886ec4ac8a90a54",
-    "canonical_headline": 535.6364,
+    "archive_sha256": "8a5dc38cb8480d8274ef2078c45b8ffb48c7500828a5538c9202525763c3bbe1",
+    "compressed_archive": "benchmark/v2/runs/paced-forward-eval-width-probe.json.gz",
+    "compressed_archive_sha256": "09247fb1b6df20983867b8e4b8b5998ed2a4555df1a75e10902471aff91cf3b8",
+    "canonical_headline": 537.7351,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "probe",
@@ -147,14 +147,14 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 510.8132,
-        "valid_runs": 121,
+        "score": 511.6387,
+        "valid_runs": 122,
         "total_runs": 132
       },
       {
         "budget": 500000,
-        "score": 545.5657,
-        "valid_runs": 129,
+        "score": 548.1736,
+        "valid_runs": 131,
         "total_runs": 132
       }
     ]
@@ -162,10 +162,10 @@
   "development": {
     "execution_policy_fingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "4840ed4cb0c16fee508442641bfac0bfa8ff03a1272f76bc74eaf41587195f55",
-    "compressed_archive": "benchmark/v2/runs/segment-refine-development.json.gz",
-    "compressed_archive_sha256": "dc63fef53079afe911a8c5afaf2ce1e5f47931444ffc22521bf5031173d9bc39",
-    "canonical_headline": 532.3973,
+    "archive_sha256": "89b9e73995396a105c2361b5e149b0dff8388e25b85c770cbb4878f8d35eb213",
+    "compressed_archive": "benchmark/v2/runs/paced-forward-eval-width-development.json.gz",
+    "compressed_archive_sha256": "e65920b291ac533f938add00dd740909aff37b69d64596b1f00ea2490c739ff4",
+    "canonical_headline": 541.5664,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -216,20 +216,20 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 509.7332,
-        "valid_runs": 322,
+        "score": 508.1267,
+        "valid_runs": 321,
         "total_runs": 352
       },
       {
         "budget": 500000,
-        "score": 528.7389,
-        "valid_runs": 342,
+        "score": 538.3816,
+        "valid_runs": 347,
         "total_runs": 352
       },
       {
         "budget": 750000,
-        "score": 553.6041,
-        "valid_runs": 348,
+        "score": 569.1674,
+        "valid_runs": 352,
         "total_runs": 352
       }
     ]
@@ -237,9 +237,9 @@
   "qualification": {
     "execution_policy_fingerprint": "6aead4041cc8bef727be3feb1fca610e1c3a8d994bf6cfce387d50ffea42611e",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "0039092ef0902e4202ce0b1ed62603cf39ff07db539daa70b05e362449a9bbda",
-    "compressed_archive": "benchmark/v2/runs/segment-refine-qualification.json.gz",
-    "compressed_archive_sha256": "97bde4626a35e67b6aec9e5ca0cd4b192afbaa874b1ccc6c2be88fb191d60010",
+    "archive_sha256": "a732216c861cbeb8a60f45aede72f358d525ffb5b998ec7949a7cd78d6ea129a",
+    "compressed_archive": "benchmark/v2/runs/paced-forward-eval-width-qualification.json.gz",
+    "compressed_archive_sha256": "9f2e20d43a936da60ae94c5690208e6671a1f071ad42e5f4f30d98b27cb7439a",
     "monitor_score": 408.8071,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
@@ -308,12 +308,12 @@
         "total_runs": 40
       }
     ],
-    "linked_development_archive_sha256": "4840ed4cb0c16fee508442641bfac0bfa8ff03a1272f76bc74eaf41587195f55"
+    "linked_development_archive_sha256": "89b9e73995396a105c2361b5e149b0dff8388e25b85c770cbb4878f8d35eb213"
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "segment-refine",
-    "candidateFingerprint": "bd312744bdce88acdb0e8df57611378697549fb863ad249cec30b2cffc1368d4",
+    "baselineLabel": "paced-forward-eval-width",
+    "candidateFingerprint": "fd5db82821d9a2b2ba1eb04f8bc5608625342aa127c639bd93e398306b31bf81",
     "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -1243,9 +1243,9 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 8,
-        "archiveSha256": "4840ed4cb0c16fee508442641bfac0bfa8ff03a1272f76bc74eaf41587195f55",
-        "compressedArchive": "benchmark/v2/runs/segment-refine-development.json.gz",
-        "compressedArchiveSha256": "dc63fef53079afe911a8c5afaf2ce1e5f47931444ffc22521bf5031173d9bc39",
+        "archiveSha256": "89b9e73995396a105c2361b5e149b0dff8388e25b85c770cbb4878f8d35eb213",
+        "compressedArchive": "benchmark/v2/runs/paced-forward-eval-width-development.json.gz",
+        "compressedArchiveSha256": "e65920b291ac533f938add00dd740909aff37b69d64596b1f00ea2490c739ff4",
         "executionPolicyFingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
         "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
       }

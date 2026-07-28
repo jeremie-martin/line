@@ -1,21 +1,21 @@
 {
   "schema": "line.benchmark-v2.probe-baseline-reference.v1",
   "status": "screening-baseline",
-  "label": "segment-refine",
-  "generated_at": "2026-07-27T09:03:40.286Z",
+  "label": "paced-forward-eval-width",
+  "generated_at": "2026-07-28T00:30:25.830Z",
   "suite_fingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
   "listening_review_fingerprint": "973af98ec3de6eba662298115e07792e35d859063bbbb3839cdf5e07409a314f",
   "listening_review_status": "approved",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "candidate_fingerprint": "bd312744bdce88acdb0e8df57611378697549fb863ad249cec30b2cffc1368d4",
+  "candidate_fingerprint": "fd5db82821d9a2b2ba1eb04f8bc5608625342aa127c639bd93e398306b31bf81",
   "probe": {
     "execution_policy_fingerprint": "5e336cda28b31c14ba42bcafd6d695f492b62b2df370fcd95ccd4725e476b92a",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "c7e9d6ffb0361d768c436e1a8281c0652b29f00f65946bef8d2e57f50876d3a6",
-    "compressed_archive": "benchmark/v2/runs/segment-refine-probe.json.gz",
-    "compressed_archive_sha256": "830abf0a9a25c6455242e9dfa160f8d4ef98d6d5be7509429886ec4ac8a90a54",
-    "canonical_headline": 535.6364,
+    "archive_sha256": "8a5dc38cb8480d8274ef2078c45b8ffb48c7500828a5538c9202525763c3bbe1",
+    "compressed_archive": "benchmark/v2/runs/paced-forward-eval-width-probe.json.gz",
+    "compressed_archive_sha256": "09247fb1b6df20983867b8e4b8b5998ed2a4555df1a75e10902471aff91cf3b8",
+    "canonical_headline": 537.7351,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "probe",
@@ -43,14 +43,14 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 510.8132,
-        "valid_runs": 121,
+        "score": 511.6387,
+        "valid_runs": 122,
         "total_runs": 132
       },
       {
         "budget": 500000,
-        "score": 545.5657,
-        "valid_runs": 129,
+        "score": 548.1736,
+        "valid_runs": 131,
         "total_runs": 132
       }
     ]

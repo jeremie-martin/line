@@ -3,8 +3,17 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`dive-span-floor`, canonical headline 528.69 (the same compiler measures 527.41
-at N=48). Its cache covers 8 seeds per budget and extends on demand.
+`paced-forward-eval-width`, canonical headline 541.57 (the same compiler measures
+541.95 at N=24). Its cache covers 8 seeds per budget and extends on demand.
+Qualification monitor 408.81 at 120/120 valid; 750k reaches 352 of 352 valid and
+scores 569.17 on its own.
+
+| baseline | canonical | evidence |
+|---|---:|---|
+| `steep-arrival-default` | 507.33 | N=48 +11.29 |
+| `dive-span-floor` | 528.69 | N=48 +18.30 |
+| `segment-refine` | 532.40 | N=48 +2.01 |
+| **`paced-forward-eval-width`** | **541.57** | **N=24 +10.66 [+5.13, +16.19]** |
 
 Accepted this session, both on one mechanism — the steep-arrival dive:
 

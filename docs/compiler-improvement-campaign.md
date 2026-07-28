@@ -415,11 +415,27 @@ one physically-named failure.
 
 **Not an impulse-granularity problem.** Doubling `IMPACT_SEGMENT_REFINE` to 4
 takes bounces only 184 → 170 and their delivery 0.273 → 0.286, with the
-population mean unmoved at 0.363. The shape that distinguishes the held group is
-a CONCAVE branch, which is what the impact template lane builds and what the
-campaign has measured negative every time its gates were opened — so the open
-question is not whether the shape works but why the search will not commit it,
-and that is where the next attempt should start.
+population mean unmoved at 0.363.
+
+**And the bounce is removable — removing it does not pay.** The held group's
+branch rotates only −1.06 degrees across the deadline, so the shape it needs is a
+SHALLOW valley rather than the template's, and building one directly into the
+ordinary branch (rise across the window's own share of the ride-out, scaled by
+the ask) works far better than any template gate ever did:
+
+| window rise per unit ask | bounces | held | delivered | arrival speed |
+|---|---:|---:|---:|---:|
+| 0 (shipped) | 184 | 240 | 0.363 | 10.67 |
+| 1.5 deg | 68 | — | 0.348 | 10.33 |
+| 3 deg | 68 | — | 0.346 | 10.26 |
+| 6 deg | **75** | **351** | 0.341 | 10.12 |
+
+**Bounces fall 59% and delivered impact falls with them, at every dose.** The
+mechanism saturates immediately — 1.5 degrees removes as many bounces as 6 — and
+the cost does not: riding up the valley brakes the rider, and the metric
+multiplies the speed it takes. This is the sixth closure of the impact axis this
+session and the most complete: the bounce is a real, large, correctly-identified
+failure, and the branch shape that fixes it costs more than the turn it recovers.
 
 ### The engine-speed commits are behaviourally inert, verified
 

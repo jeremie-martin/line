@@ -57,6 +57,67 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — air overshoots, and the cap that causes it is load-bearing
+
+Re-pricing the accepted archive (`study_headline_counterfactual.ts`, zero
+compiles) moved the aim off impact: **air is worth +12.23 for a 25% bias
+removal** against the +11.4 that 570 needs, and the seed spread alone is
++13.16.
+
+**The diagnosis.** Signed per-gap axis bias over 97,046 gaps:
+
+| axis | bias | rms | undershoot% |
+|---|---:|---:|---:|
+| impact | -0.167 | 0.219 | 90.7 |
+| amplitude | -0.122 | 0.235 | 82.3 |
+| **air** | **+0.066** | 0.129 | **24.8** |
+| speed | -0.005 | 0.085 | 46.7 |
+
+Air is the one axis that OVERSHOOTS — 75% of gaps deliver more air than
+authored. Bucketed by ask, it is a floor signature: asks in 0-0.2 are met at a
+mean 0.424 (100% over), and the bias falls monotonically to -0.059 by 0.8+.
+
+**The floor is real but not binding where the mass is.** Minimum achieved air
+scales as ~0.14 s / gap-duration (0.667 at 0-0.2 s, 0.462, 0.333, 0.231, 0.036
+at 0.7 s+) — the ~5-frame contact floor. But on the dominant low-ask
+population, 18,707 gaps of 0.45-0.7 s, the floor is 0.231, the ask is 0.249 and
+the delivery is 0.381. The physics permits the ask.
+
+**The low-ask band is 23.3% of gaps and 71.1% of all air error.** Split across
+seeds on 2,859 low-ask gap cells: ask 0.239, mean achieved 0.411, BEST-seed
+achieved 0.324, across-seed spread 0.198. So the overshoot is about half
+systematic (+0.085 that no seed beats) and half selection (+0.087). Closing
+only the selection half takes air rms to x0.819.
+
+**The chain, traced.** `targetStatePostLength` already aims correctly —
+`targetGroundFrames = (1 - air) * nextGapFrames` is exactly the complement of
+the ask. But for a low-air ask (air 0.25, `lowAir` 0.545) the request of 0.75
+is clipped to `GROUND_ROOM_BASE` 0.72, and then `targetStateSafePostCap`
+permits only `speed * N * (0.34 + 0.26 * 0.545)` = **0.482 * speed * N**.
+
+| arm | delta | SE | repr | capa | lega | verdict |
+|---|---:|---:|---:|---:|---:|---|
+| `GROUND_ROOM_BASE` 0.72 → 0.88 | **+0.00** | 0.00 | +0.00 | +0.00 | +0.00 | **byte-identical** |
+| `SAFE_CAP_LOW_AIR_BONUS` 0.26 → 0.50 | -5.10 | 4.12 | +0.57 | **-37.77** | +1.61 | **reject** |
+| both | -5.15 | 4.11 | +0.57 | -38.10 | +1.61 | reject |
+
+**The byte-identical result is the confirmation.** Raising the ground-room clip
+changes nothing because `safePostCap` clips `targetPost` first, exactly as the
+arithmetic predicts. `safePostCap` is the binding constraint on delivering a
+low air ask.
+
+**And it is load-bearing.** Relaxing it uniformly costs -37.77 on `capability`
+and six valid runs — precisely the "a longer ride-out crowds the next landing"
+failure the cap exists to prevent. But `representative` is +0.57 and
+`legacy_regression` +1.61: where there is room, the longer ride-out is better.
+
+**Decision: retire the uniform cap relaxation; the lever is the room gate, not
+the coefficient.** The cap already carries `dense` as its room signal, but
+`dense` gates only the penalty term and not the low-air bonus. Next arms gate
+the bonus by room, and widen the room-gated `ARC_LEN_SPAN` high end — which
+adds long candidates to the pool rather than moving a cap, the shape that made
+the original span widening survive at +7.7.
+
 ## 2026-07-28 — the simulation-economy vein is bracketed on every side
 
 Five arms, N=8 against `scarce-lean` (558.63), ~7 min each.

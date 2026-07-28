@@ -392,6 +392,18 @@ a covering sequence spends the same draws on the space's middle. The pool's
 randomness is not a defect to be averaged out — it is the search's only source of
 the improbable.
 
+### The branching factor is at its optimum, bracketed both ways
+
+The forward-eval width bracket implied that search width is the live parameter,
+so the actual branching factor was bracketed directly: `HANDOFF_BRANCHING` 2 is
+**−8.16** (validity 1042 → 1020, `representative` −9.2, 250k −20.1) and 4 is
+**−4.32** (`capability` −17.7, `development_music` −17.8). 3 is the peak.
+
+Two brackets in one session then agree on the shape without agreeing on the
+parameter: narrowing the ROLLED head to 2 pays +9.86 while narrowing the EXPANDED
+tree to 2 costs 8.16. What the accepted mechanism buys is not a narrower search —
+it is not paying to rank candidates the search will not expand.
+
 ### Two scorer-alignment nulls, and where the ranking actually happens
 
 `axisCost` weights every axis 1 except `impact` at 0.5, while the headline

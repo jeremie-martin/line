@@ -57,6 +57,46 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — pool-widening pays where cap-raising breaks
+
+Six arms, N=8 against `scarce-lean` (558.63).
+
+| arm | delta | SE | repr | capa | lega | dev |
+|---|---:|---:|---:|---:|---:|---:|
+| safe cap 0.50, **room-gated by `dense`** | +0.07 | 1.87 | +0.82 | **-5.28** | +2.83 | +0.14 |
+| room gate `DENSE_FRAMES` 26 → 18 | -1.16 | 1.53 | -0.14 | -5.82 | -1.77 | -0.21 |
+| `ARC_LEN_SPAN_HI` 1.45 → 1.65 | -0.28 | 0.54 | -0.12 | +1.01 | -5.17 | +3.38 |
+| **`ARC_LEN_SPAN_HI` 1.45 → 1.85** | **+0.65** | 0.61 | +0.14 | +1.51 | +1.22 | +3.96 |
+| `ARC_LEN_SPAN_HI` 1.45 → 2.30 | +0.21 | 0.56 | -0.53 | +1.49 | +0.85 | +5.44 |
+| span 1.85 + gated cap 0.36 | -0.08 | 1.50 | +0.38 | -4.06 | +0.85 | +3.44 |
+
+**The gate is the right mechanism and it is not enough.** Gating the low-air
+cap bonus by `dense` — the room signal already in that formula, where it gates
+only the penalty term — recovers capability from -37.77 to -5.28 and keeps the
+`representative` and `legacy_regression` gains. But it still costs 250k and
+three valid runs at 0.50, and still costs capability -4.06 at 0.36. The cap
+resists every relaxation that reaches it.
+
+**The distinction that separates the whole batch: add candidates, do not move
+caps.** Widening the room-gated `ARC_LEN_SPAN` high end puts LONGER arcs in the
+pool while leaving the short ones there, so dense gaps keep the candidate they
+need and the ranker chooses. That is the only arm with every stratum positive
+and validity unchanged. Raising `safePostCap` forces the choice on every
+candidate at once, and the gaps that need the short arc have nowhere to go.
+
+**Decision: retire the safe-cap lane; the span widening peaks at 1.85 and is
+inside noise.** The bracket is 1.65 -0.28, 1.85 +0.65, 2.30 +0.21 against SEs
+of ~0.55 — a real but ~1-sigma effect, not worth a promotion and a cache reset
+on its own. The air axis's systematic half is defended by a cap that is doing
+its job.
+
+**Next.** Of the counterfactuals, the seed spread is the largest addressable
+pool: `valid runs score their cell's BEST` = 571.80, +13.16, which alone clears
+570. The mechanism that converts leftover budget into per-seed improvement is
+the repair phase, and its loop terminates on a permanent ban — a gap that
+fails once is excluded for the rest of the compile, even though every accepted
+repair elsewhere replaces the incumbent that ban was measured against.
+
 ## 2026-07-28 — air overshoots, and the cap that causes it is load-bearing
 
 Re-pricing the accepted archive (`study_headline_counterfactual.ts`, zero

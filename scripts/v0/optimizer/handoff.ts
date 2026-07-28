@@ -802,7 +802,20 @@ const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
 // loop at ~budget nodes (seconds) instead of an unbounded hang. The floor covers tiny
 // budgets; diagnostic probes still pass an explicit small `maxNodes`.
 const MAX_NODES_FLOOR = 50_000;
-const HANDOFF_CANDIDATE_POOL = 8;
+/**
+ * How many sampled candidates a gap admits to its pool.
+ *
+ * The pool's own per-candidate PREVIEW is a charged simulation, so this is the
+ * accepted forward-eval prune one layer down: with the rolled head at 2 and
+ * `HANDOFF_BRANCHING` at 3, a pool of eight paid preview cost for candidates the
+ * search could neither rank honestly nor expand.
+ *
+ * Bracketed at N=8 against `readiness-catch-impact`: 3 gives +1.83, 4 gives
+ * -3.54 (capability -34.8), **5 gives +3.32**, 6 gives +2.28, 8 is the shipped
+ * value. Five is an interior optimum and the only rung with every stratum and
+ * every budget positive.
+ */
+const HANDOFF_CANDIDATE_POOL = 5;
 /**
  * How many of the PRE-SORTED pool are worth a charged forward rollout when the
  * compile is not on course to finish. `0` disables the prune.

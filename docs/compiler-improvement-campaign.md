@@ -3,8 +3,8 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`paced-aim-lane`, canonical headline 548.54. Its cache covers 8 seeds per budget
-and extends on demand. Qualification monitor 408.72 at 120/120 valid.
+`readiness-catch-impact`, canonical headline 553.73. Its cache covers 8 seeds per
+budget and extends on demand. Qualification monitor 407.20 at 120/120 valid.
 
 | baseline | canonical | evidence |
 |---|---:|---|
@@ -12,7 +12,8 @@ and extends on demand. Qualification monitor 408.72 at 120/120 valid.
 | `dive-span-floor` | 528.69 | N=48 +18.30 |
 | `segment-refine` | 532.40 | N=48 +2.01 |
 | `paced-forward-eval-width` | 541.57 | N=24 +10.66 [+5.13, +16.19] |
-| **`paced-aim-lane`** | **548.54** | **N=8 +6.97, three strata exactly 0.00** |
+| `paced-aim-lane` | 548.54 | N=8 +6.97, three strata exactly 0.00 |
+| **`readiness-catch-impact`** | **553.73** | **N=24 +6.05, promotable, validity 3089→3131** |
 
 ### What 570 would now require
 
@@ -436,6 +437,26 @@ trainer adopts on a metric the compiler does not use. The rule should be scored
 over the components the product multiplies; that is the fix a future retrain
 needs before this lever is worth re-opening, and it is why an 80% model gain is
 worth three headline points.
+
+**ACCEPTED, once the components are separated.** Projecting the training dataset
+onto the incumbent's own 80 columns makes the refit's components interchangeable
+with the shipped ones, and the attribution is clean:
+
+| readiness components refit | delta (N=8) | representative | legacy | capability |
+|---|---:|---:|---:|---:|
+| all four | −2.87 | −2.6 | −13.1 | +2.2 |
+| **catchability + impactFeasibility** | **+5.20** | **−0.7** | **−3.9** | **+41.3** |
+
+`speedFit` carries the entire damage — which is exactly the component the
+adoption rule had no business selecting, since the composite it scored was
+dominated by the `airFit` the product excludes. N=24 on the retained hybrid:
+
+```
+headline 547.48 -> 553.53   delta +6.05   seed-block SE 2.20   promotable
+validity 3089/3168 -> 3131/3168  (gained 46, lost 4)
+  250k +4.24   500k +10.80   750k -0.67
+strata  representative -1.36 | capability +49.70 | legacy_regression -3.92 | development_music -1.26
+```
 
 **Tooling fix required to get there**: `train_readiness.py` demanded that the
 incumbent artifact's feature list EQUAL the corpus's, which is the stale half of

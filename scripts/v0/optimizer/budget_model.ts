@@ -47,6 +47,36 @@ export function traversalBudgetSlack(
   return Math.max(0, budgetFrames) / predictFirstCompletionFrames(spec, model);
 }
 
+/**
+ * The same slack, re-estimated from the compile's OWN pace.
+ *
+ * The structural model is a regression on contact count and duration, so it
+ * cannot know that one spec is expensive per contact: on
+ * `frontier_pickup_progression_shifted` at 250k it predicts 164,440 frames
+ * against a first complete traversal at 271,068. `spent / deepestGap *
+ * totalGaps` is the compile's own measured cost to reach the end and needs no
+ * model. Blend the two by the share of the budget already spent, so the prior
+ * rules while there is no evidence and the evidence rules once there is — no
+ * threshold, and exactly the structural predictor when nothing has been
+ * observed yet.
+ */
+export function observedTraversalBudgetSlack(input: {
+  budgetFrames: number;
+  spentFrames: number;
+  /** Gaps the traversal has reached; 0 or less before it has reached any. */
+  deepestGap: number;
+  totalGaps: number;
+  predictedFrames: number;
+}): number {
+  const { budgetFrames, spentFrames, deepestGap, totalGaps, predictedFrames } = input;
+  if (!(budgetFrames > 0) || !(totalGaps > 0)) return Infinity;
+  if (!(deepestGap > 0) || !(spentFrames > 0)) return budgetFrames / Math.max(1, predictedFrames);
+  const evidence = Math.min(1, spentFrames / budgetFrames);
+  const measured = (spentFrames * totalGaps) / deepestGap;
+  const projected = Math.max(1, (1 - evidence) * predictedFrames + evidence * measured);
+  return budgetFrames / projected;
+}
+
 function feasibleContactFrames(spec: Spec): number[] {
   return spec.contacts
     .map((contact) => secToFrame(contact.t))

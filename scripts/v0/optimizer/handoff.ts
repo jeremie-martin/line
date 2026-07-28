@@ -106,6 +106,7 @@ import {
 } from "./kinematic_support.ts";
 import {
   predictFirstCompletionFrames,
+  observedTraversalBudgetSlack,
   traversalBudgetSlack,
   TRAVERSAL_BUDGET_MODEL_V1,
 } from "./budget_model.ts";
@@ -635,6 +636,8 @@ type HandoffSearchPolicy = {
   reuseLimit: number;
   tailBranching: number;
   forwardStageTop: number;
+  /** Observed-pace slack; Infinity once the compile has a completion. */
+  pacedSlack: number;
   /** Slack-conditioned pre-completion rollout depth (2026-07-16). The 250k
    *  capability invalids sit at the completion knee (valid first completions
    *  at 242-260k frames of a 250k budget), and forward-eval charges ~30% of
@@ -799,6 +802,27 @@ const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
 // budgets; diagnostic probes still pass an explicit small `maxNodes`.
 const MAX_NODES_FLOOR = 50_000;
 const HANDOFF_CANDIDATE_POOL = 8;
+/**
+ * How many of the PRE-SORTED pool are worth a charged forward rollout when the
+ * compile is not on course to finish. `0` disables the prune.
+ *
+ * Forward evaluation refines an ordering the pool already has: eight candidates
+ * arrive sorted by the free local cost and `HANDOFF_BRANCHING` = 3 are expanded,
+ * yet all eight pay a charged rollout. Pruning to the head unconditionally is
+ * worth +9.86 at N=8 on its own — capability +126.56, validity 1012 -> 1027 with
+ * none lost, 500k and 750k both reaching 352 of 352 — but it costs
+ * `representative` 10.31 and `legacy_regression` 19.12, concentrated on the
+ * LOW-AIR family that needs breadth to find a long grounded ride-out.
+ *
+ * Both halves are one fact: a narrow roll is a deeper search and a wide roll is
+ * a broader one, and the two populations want opposite things. So the width
+ * follows the compile's own pace — full while it is on course to finish, the
+ * head once its measured cost to reach the end has passed the budget it has.
+ */
+const HANDOFF_FORWARD_EVAL_TOP = 2;
+/** Paced slack at which the width starts narrowing, and where it is fully narrow. */
+const HANDOFF_FORWARD_EVAL_PACE_START = 1.5;
+const HANDOFF_FORWARD_EVAL_PACE_FULL = 1.0;
 const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
 
@@ -1653,6 +1677,13 @@ function compileHandoffInternal(
           sparseContactCadence,
           targetBudget: policyBudget,
           budgetSlack,
+          pacedSlack: firstCompletionFrame >= 0 ? Infinity : observedTraversalBudgetSlack({
+            budgetFrames: policyBudget,
+            spentFrames: getSimFrames(),
+            deepestGap: telemetry.deepestSeenGap,
+            totalGaps: gaps.length,
+            predictedFrames: predictedFirstCompletionFrames,
+          }),
           hasCompletion: firstCompletionFrame >= 0,
         });
       const policy = resolvePolicy(node.search);
@@ -3052,6 +3083,7 @@ function expandNode(
     axisQualitySearch: policy.axisQualitySearch,
     releaseSetup: policy.releaseSetup,
     forwardStageTop: policy.forwardStageTop,
+    pacedSlack: policy.pacedSlack,
     forwardEval: policy.forwardEval,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
@@ -3168,6 +3200,7 @@ function rescueOptions(
     axisQualitySearch: policy.axisQualitySearch,
     releaseSetup: policy.releaseSetup,
     forwardStageTop: policy.forwardStageTop,
+    pacedSlack: policy.pacedSlack,
     forwardEval: policy.forwardEval,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
@@ -3557,6 +3590,7 @@ function rankedOptions(
     releaseSetup?: boolean;
     targetBudget?: number;
     budgetSlack?: number;
+    pacedSlack?: number;
     forwardStageTop?: number;
     /** Slack-conditioned pre-completion depth (see HandoffSearchPolicy.forwardEval).
      *  Default true so non-policy callers keep the historical behavior. */
@@ -3589,6 +3623,16 @@ function rankedOptions(
     config.budgetSlack ?? 0,
   );
   const allowForwardEval = config.forwardEval ?? true;
+  /* Narrow the rolled head as the compile's own pace falls behind its budget:
+   * full width while it is on course, `HANDOFF_FORWARD_EVAL_TOP` once its
+   * measured cost to reach the end has passed the budget it has. */
+  const pacePressure = clamp01(
+    (HANDOFF_FORWARD_EVAL_PACE_START - (config.pacedSlack ?? Infinity)) /
+      (HANDOFF_FORWARD_EVAL_PACE_START - HANDOFF_FORWARD_EVAL_PACE_FULL),
+  );
+  const forwardEvalTop = HANDOFF_FORWARD_EVAL_TOP <= 0 ? 0 : Math.round(
+    pool.length + (HANDOFF_FORWARD_EVAL_TOP - pool.length) * pacePressure,
+  );
   const scorePoolCandidate = (
     candidate: Candidate,
     rank: number,
@@ -3641,6 +3685,25 @@ function rankedOptions(
       option.candidate !== null && finalists.has(option.candidate)
         ? scorePoolCandidate(option.candidate, option.rank, effectiveForwardConfig)
         : { ...option, score: Infinity }
+    );
+  } else if (
+    forwardEvalTop > 0 && forwardEvalTop < pool.length && allowForwardEval &&
+    effectiveForwardConfig !== null && usesForwardEvalAtBudget(targetBudget)
+  ) {
+    scored = pool.map(({ candidate, rank }) =>
+      rank < forwardEvalTop
+        ? scorePoolCandidate(candidate, rank)
+        : { ...scoreCandidateForHandoff(
+            node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
+            previewScorePressure,
+            config.releaseSetup ?? false,
+            targetBudget,
+            undefined,
+            config.budgetSlack ?? 0,
+            openingBestOpportunity,
+            undefined,
+            false,
+          ), score: Infinity }
     );
   } else {
     scored = pool.map(({ candidate, rank }) => scorePoolCandidate(candidate, rank));
@@ -4384,6 +4447,7 @@ function completeNearTailSuffix(
       axisQualitySearch: policy.axisQualitySearch,
       releaseSetup: policy.releaseSetup,
       forwardStageTop: policy.forwardStageTop,
+    pacedSlack: policy.pacedSlack,
       forwardEval: policy.forwardEval,
       reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
@@ -4442,6 +4506,7 @@ function resolveHandoffSearchPolicy({
   sparseContactCadence,
   targetBudget,
   budgetSlack,
+  pacedSlack,
   hasCompletion,
 }: {
   node: SearchNode;
@@ -4452,6 +4517,7 @@ function resolveHandoffSearchPolicy({
   sparseContactCadence: boolean;
   targetBudget: number;
   budgetSlack: number;
+  pacedSlack: number;
   hasCompletion: boolean;
 }): HandoffSearchPolicy {
   const nCand = qualityHandoffSampleCount(targetProfile, sparseContactCadence, targetBudget);
@@ -4465,6 +4531,7 @@ function resolveHandoffSearchPolicy({
     branchLimit: lowSlackTraversalBranchLimit(budgetSlack, hasCompletion),
     reuseLimit: reuseCandidateLimit(node, targetBudget, telemetry),
     tailBranching: TAIL_COMPLETION_FALLBACK_BRANCHING,
+    pacedSlack,
     forwardStageTop: hasCompletion
       ? Math.max(0, Number.parseInt(readEnv("LR_POST_COMPLETION_FWD_STAGE_TOP") ?? "0", 10) || 0)
       : 0,

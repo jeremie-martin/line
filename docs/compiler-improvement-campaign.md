@@ -25,6 +25,272 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — the delivered turn IS the incidence, and the incidence is not for sale
+
+Baseline of record for this entry: `segment-refine`, canonical 532.40, cache
+[0,8). The tree at `06b4b6e` replays it bit-identically (N=2, delta +0.00 on
+every stratum and case), so the engine-speed commits since the promotion are
+behaviourally inert and every arm below is attributable. Those commits DO change
+the WASM bytes, and `eval` correctly refuses a comparison until the baseline's
+own artifact is restored from
+`benchmark/v2/runs/segment-refine-compiler-snapshot.tar.gz`.
+
+### The measurement: what the rider rides inside the scoring window
+
+`scripts/v0/study_impact_branch.ts` walks the contiguous surface ahead of each
+scored contact and records the branch's angle profile over the deadline distance
+(`IMPACT_WINDOW * speed`, about 60 px — the only surface the metric can see),
+the frame the rider separates, and the turn accrued by then. 512 committed
+contacts over six specs at 250k:
+
+| rotation to the deadline | > +6 deg | +2..+6 | -2..+2 | rotates up |
+|---|---:|---:|---:|---:|
+| separation frame | 3.68 | 4.81 | 5.52 | 6.0..6.7 |
+| delivered / ask | 0.51 | 0.62 | 0.66 | 0.59 |
+
+The rider leaves because the branch curves DOWN out from under it — 92% of
+branches are longer than the deadline distance, so it is not running out of
+line. Contacts that never separate have rotated +1.50 degrees where the
+population mean is +4.98.
+
+**But the turn does not accrue from support.** Holding the caught angle across
+the deadline distance and spending the rotation on the rest of the ride-out
+(`IMPACT_DEADLINE_KNEE`) moves support at +6 from 60% to 75% and the per-frame
+turn does not change at all: 0.99/1.71/4.35/6.99/9.22/10.73/11.74 against
+0.94/1.70/4.76/7.82/10.02/11.11/11.91. The delivered turn simply IS the
+incidence — 11.74 degrees against a mean incidence of 10.85, and 4.51 against
+2.51 in the mid band. Everything else nets out.
+
+So the mid-band shortfall is an incidence shortfall, and it is arithmetic: a
+0.25 ask needs 10.4 degrees at speed 10 and the sampler's offset terms supply
+2.5.
+
+### Three arms, and the incidence is refuted in its decoupled form too
+
+The 2026-07-27 incidence floor moved `contactAngleDeg` itself, which is also the
+reference for the approach, the ride-out and therefore the launch — so it
+flattened the whole arc and the arrival speed fell 10.16 to 8.13. This session
+separated them: `contactSurfaceDeg` floors only the surface the rider meets
+(final approach segment, contact vertex, post branch), leaving every derived
+angle on the unfloored reference.
+
+| arm | headline | delta | SE |
+|---|---:|---:|---:|
+| deadline knee alone | 521.96 | **−10.44** | 4.83 |
+| incidence floor 12 deg, decoupled | 510.90 | **−21.49** | 5.27 |
+| both | 464.47 | **−67.93** | 3.11 |
+
+Strongly super-additive in the wrong direction. The geometry probe says why:
+mid-band delivered impact does rise exactly as designed (0.119 → 0.183, mid
+incidence 2.75 → 10.88) and the arrival speed collapses with it, 10.70 → 9.01
+across the whole population. **The coupling was not the obstacle — the energy
+was.** Turning the rider costs `sin^2(theta)` of its kinetic energy at every
+contact, the compiler is already at the equilibrium its speed asks allow, and
+there is nothing to spend.
+
+### And the arrival surplus is a marker, not a lever
+
+Splitting committed contacts by the arrival speed's surplus over the gap's own
+authored speed ask is the strongest correlate of delivered impact in the
+campaign, and it survives controlling for the ask:
+
+```
+mid band (ask 0.31)   surplus -0.58  -0.05  +0.48  +1.34   delivered 0.114 0.140 0.202 0.285
+high band (ask 0.63)  surplus -0.67  +0.05  +0.57  +1.27   delivered 0.250 0.383 0.508 0.646
+```
+
+The mechanism is explicit in the sampler — `brakePressure` flattens the contact
+by 18 degrees times the surplus over 6.6 px/frame, `accelPressure` steepens it
+by 16 — so the cross-section reads as causal and prices +1 px/frame of surplus
+at +0.10 to +0.20 of delivered impact, which is +70 headline.
+
+It is not. Aiming the compiler's own speed targets at the endpoint the impact
+ask needs (`ask / cos(neededTurn)`, resolved once in `resolveImpactTargets`,
+compiler aim only — the evaluator resolves its own targets) DOES move the rider:
+mean arrival surplus 0.10 → 0.71, contact speed 10.70 → 11.22. Delivered impact
+moves 0.366 → 0.367. The pressures re-centre on the lifted target, so the
+incidence falls by exactly what the speed buys. Two smaller launch arms agree —
+targeting the gap MEAN rather than its endpoint (+0.02 surplus), and adding the
+next catch's `1 − cos(theta)` energy cost to the drop target with the descent cap
+opened to 3.0 (+0.08) — and the campaign's earlier descent-cap sweep already
+said the search will not commit a steeper launch.
+
+**So the surplus split was selection.** Contacts that arrive fast are contacts
+whose gap went well. This is the second time this campaign has priced a
+mechanism off a cross-section and found nothing there; the first was
+"impact accuracy is nearly free" in the 2026-07-26 entry.
+
+### Where the headline actually is, priced on the accepted archive
+
+`scripts/v0/study_headline_counterfactual.ts` replays a retained archive through
+`v2HeadlineForDecisionRuns` — the exact promotion aggregation — so it reproduces
+532.3973 to four decimals and prices a counterfactual with zero compiles:
+
+| counterfactual | headline | delta |
+|---|---:|---:|
+| every seed scores its cell's BEST | 567.19 | +34.79 |
+| every run scores its cell's MEAN | 555.31 | +22.91 |
+| **invalid runs score their cell's MEAN** | **555.18** | **+22.79** |
+| valid runs score their cell's BEST | 543.71 | +11.32 |
+| impact rms x0.75 / x0.5 / x0 | 582 / 630 / 685 | +49.7 / +97.5 / +152.2 |
+| air rms x0.75 / x0 | 542 / 556 | +9.6 / +23.3 |
+| speed rms x0.75 / x0 | 538 / 546 | +5.8 / +13.6 |
+| amplitude rms x0.75 / x0 | 537 / 545 | +5.0 / +12.9 (n=288) |
+
+**The reliability prize IS the validity prize.** Removing all seed-to-seed
+variation is worth +22.91 and removing invalidity alone is worth +22.79 of it;
+the spread among valid runs is only +11.32. And it is concentrated: two cells
+are 0 of 8 — `frontier_pickup_progression_shifted|250k` and
+`frontier_dense_recovery_240ms_figures|250k` — with `frontier_dense_recovery`
+1 of 8 at 250k.
+
+Every one of them fails the same way, and it is not what the 2026-07-25 entry
+assumed: `terminus rideStalled`, contacts hit 90 of 110, and the emitted TRACK
+is 1,941 frames of an authored 2,340. The rider is moving at 8-11 px/frame right
+to the end — it simply runs off the end of a track the compile never finished
+building. Frame accounting on that cell: 73,803 of 250,000 frames go to forward
+rollouts, `fwd_rollout_no_candidate` is 769 of 1,453 calls, and the first
+complete traversal arrives at frame 271,068.
+
+### ACCEPTED: forward evaluation only refines the head of an ordering the pool already has
+
+`admittedHandoffPool` hands `rankedOptions` eight candidates already sorted by the
+free local cost, of which `HANDOFF_BRANCHING` = 3 are expanded, and every one of
+the eight then pays a CHARGED forward rollout. The staged path directly above it
+already implements the alternative — score a cheap pre-stage, promote finalists —
+but it is gated on `forwardStageTop`, which is 0 outside a post-completion env
+override. So the pre-prune the campaign has had on its lever list since the
+forward-eval entry ("top-k pre-prune, winner mean q-rank 2.6") was never built.
+
+`HANDOFF_FORWARD_EVAL_TOP` builds it: the pre-sorted head is rolled honestly and
+the tail is scored without a rollout and sorted behind it. N=8 against
+`segment-refine`:
+
+| top | headline | delta | SE | valid | representative | capability |
+|---|---:|---:|---:|---:|---:|---:|
+| 6 | 528.90 | −3.50 | 4.42 | | | |
+| 4 | 531.11 | −1.28 | 5.39 | | | |
+| 3 | 534.20 | +1.80 | 5.95 | 1012→1019 | −3.4 | +32.7 |
+| **2** | **542.26** | **+9.86** | **2.38** | 1012→1027 | −10.31 | **+126.56** |
+| 1 | 526.66 | −5.74 | 2.42 | 1012→1034 | −26.3 | +112.1 |
+
+**An interior optimum, bracketed on both sides.** Narrowing always buys validity
+(1019 → 1027 → 1034) and always costs breadth (−3.4 → −10.3 → −26.3); two is
+where the two curves cross. This is a continuous trade between how many
+candidates a gap ranks honestly and how far the compile gets, not a threshold at
+`HANDOFF_BRANCHING` = 3. It buys the dense frontier and it costs breadth:
+
+```
+frontier_dense_recovery_240ms_figures  +253.90  valid  9 -> 16
+frontier_dense_recovery                +216.81  valid 13 -> 17
+frontier_pickup_progression_shifted    +163.65  valid 13 -> 17
+frontier_low_air_endurance_6s           -36.29  valid 24 -> 24
+frontier_low_air_endurance              -31.52  valid 24 -> 24
+sparse_lowline_air_minus_4              -27.32  valid 24 -> 24
+```
+
+Validity 1012 → 1027 with none lost, and 500k and 750k reach 352 of 352. The
+losers are the LOW-AIR family, which needs breadth to find a long grounded
+ride-out — the same population the incidence arm below hurts, for the same
+reason: they have the least energy to spare and the most search to do.
+
+`representative` −10.31 [−11.70, −8.92] and `legacy_regression` −19.12 are
+significantly negative, so this is a real capability-for-quality trade rather
+than a free win; the headline says the trade is favourable and the validity side
+of it is a count rather than a noisy score.
+
+### The width should follow the compile's own pace, and then the trade disappears
+
+The bracket says narrowing buys the frontier and sells breadth, so the question
+is whether the compiler can tell the two apart at the moment it chooses. It can:
+`traversalBudgetSlack` is a regression on contact count and duration, but
+`spent / deepestGap * totalGaps` is the compile's own measured cost to reach the
+end. `observedTraversalBudgetSlack` blends them by the share of budget already
+spent — exactly the prior when nothing has been observed, the evidence once
+there is any, and no threshold. The rolled head then runs full width while the
+compile is on course and narrows to two once its own pace says it will not
+finish.
+
+| arm | delta | SE | repr | capability | legacy | dev-music | valid |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| flat top-2 | +9.86 | 2.38 | −10.31 | +126.56 | −19.12 | — | 1027 |
+| **paced width** | **+9.17** | 4.86 | **+0.42** | +58.5 | **+1.3** | **+0.2** | 1020 |
+| paced + attempt-ramped incidence floor | +8.58 | 5.12 | −1.8 | +66.3 | +3.4 | −9.1 | 1027 |
+| flat top-2 + attempt-ramped floor | +6.49 | 2.41 | −11.9 | +110.4 | −16.1 | −2.3 | 1031 |
+
+**Same headline, and the trade is gone.** The paced arm keeps
+`frontier_dense_recovery_240ms_figures` +272.7 (9 → 16 valid) and
+`frontier_dense_recovery` +134.8 while `representative`, `legacy_regression` and
+`development_music` all come back to zero or better — where the flat prune was
+significantly negative on two of them. It costs half the capability gain and a
+wider interval, because it fires on fewer nodes.
+
+The attempt-ramped incidence floor adds validity on both bases (1020 → 1027,
+1027 → 1031) and pays for it: `development_music` −9.1 paced, `representative`
+−11.9 flat. Its catching surface is real and the population that wants it is
+already served by the width, so it stays retired.
+
+### N=24 — ACCEPTED, +10.66
+
+`npm run benchmark -- eval --seeds=24 --jobs=48`, after extending the baseline
+tail by 16 slots (2,112 baseline compiles) — 3,168 candidate compiles:
+
+```
+headline 531.29 -> 541.95   delta +10.66   seed-block SE 1.98   95% [+5.13, +16.19]
+RESULT: STRONGER THAN BASELINE          promotable
+validity 3027/3168 -> 3065/3168  (gained 49, lost 11)
+  250k  -0.47
+  500k  +10.33
+  750k  +18.63
+strata
+  representative      +0.20
+  capability         +70.02
+  legacy_regression   +0.16
+  development_music   +0.02
+```
+
+Every stratum non-negative and one strongly positive, which no arm in this
+campaign has managed before; the gain is monotone in budget, which is what a
+mechanism that stops wasting a scarce resource should look like — the more
+budget there is, the more of it the paced width leaves for depth. The flat
+prune's +9.86 is inside this interval and its shape is strictly worse, so the
+pacing is what is promoted rather than the prune.
+
+### The incidence floor is a VALIDITY mechanism, not an impact one
+
+Reading the refuted arm's own case table settles what it was actually doing:
+
+```
+frontier_dense_recovery_240ms_figures  +220.55  valid  9 -> 23 of 24
+frontier_dense_recovery                 +84.86  valid 13 -> 19
+dense_dialogue                         -118.56  valid 24 -> 24
+frontier_low_air_endurance_6s           -96.15  valid 24 -> 24
+```
+
+validity 1012 → 1041, capability +31.48, representative −31.10. A surface
+further across the arrival is a surface that CATCHES — it intercepts a rider the
+aligned surface passes through — and it costs `1 − cos(incidence)` of the speed
+to do it. Where the search is landing its catches that is pure loss; where it is
+failing to land any it is the difference between a scored run and a zero.
+
+So the floor belongs where the ordinary sample has already failed, and the
+compiler's own measure of that is the ATTEMPT index. Ramping the floor across the
+attempt span leaves the guided prefix at the shipped surface and offers the
+catching one in the wide tail that a healthy gap never reaches. Not yet measured
+at the time of writing.
+
+### Falsified: pacing the forward-eval gate on the compile's own progress
+
+`HANDOFF_LOW_SLACK_BRANCH_THRESHOLD` disables pre-completion forward evaluation
+below a slack of 1.5, and `traversalBudgetSlack` is a regression on contact count
+and duration that reads 1.52 on the cell it decides — a 1.65x underestimate of
+that cell's true cost. Replacing it with a blend of the prediction and the
+compile's own measured pace (`spent / deepestGap * totalGaps`, weighted by the
+share of budget observed, so it is exactly the prior when nothing is observed)
+fires as designed and makes the cell WORSE: rollout frames 73,803 → 39,498 and
+committed gaps 110 → 89. Pre-completion forward evaluation is not only a quality
+refinement — it is what advances the frontier. Reverted.
+
 ## 2026-07-26 — where the headline actually is: impact, and it is steering
 
 Every entry before this one attacks the SEARCH. This one starts from the

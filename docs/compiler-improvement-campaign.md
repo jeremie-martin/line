@@ -111,6 +111,17 @@ refit, and it is exactly what the piecewise stack could never do.
 capa +0.37, lega +2.95, dev +1.66); validity unchanged at 3144. Qualification
 405.41 → 405.64, up this time.
 
+**The boundary: generate wider, admit narrower.** Applying the identical law to
+`HANDOFF_CANDIDATE_POOL` — the pool the ranker ADMITS from, a flat constant with
+no budget dependence at all — is **-1.75** at the sqrt exponent (5/7/9 across
+the budgets; 500k -2.1, 750k -2.3) and **-1.94** at a quarter power (5/6/7;
+750k -4.9). Both lose precisely at the budgets they widen, which agrees with the
+accepted `pool-five`: narrowing that pool from 8 to 5 was +3.32. Breadth is a
+GENERATION device and more budget should buy more of it; the pool is a SELECTION
+device, and widening selection dilutes it however much budget exists. The rule
+is about the SHAPE of a budget dependence, not a claim that every knob grows —
+a scale-free law for a selection knob may correctly be flat.
+
 **The generalisation to carry forward.** The same critique applies to every
 other maturity ramp in `handoff.ts`: `maturityPressure` is
 `smoothstep(b/(b+150k))`, which reads 0.684 / 0.865 / 0.926 at 250k / 500k /

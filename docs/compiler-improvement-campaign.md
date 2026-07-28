@@ -60,6 +60,40 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — "add candidates" only pays when the candidates are viable
+
+The accepted span widening suggests a general rule: widen a sampling degree of
+freedom and let the ranker choose. Tested on the three angle rolls, N=8 against
+`span-handover`.
+
+| arm | delta | SE | capa | valid | verdict |
+|---|---:|---:|---:|---:|---|
+| `postAngle` span ±7° → ±11° | -2.29 | 2.08 | **-14.00** | 1048 → 1042 | reject |
+| `contactAngle` span ±7-12° → ±11-17° | -0.96 | 2.03 | -6.25 | 1048 → 1047 | reject |
+| `preAngle` span ±5-9° → ±8-13° | **+0.00** | 0.00 | +0.00 | 1048 → 1048 | **inert** |
+
+**The rule needs its second clause.** Widening the LENGTH span was +0.65 with
+every stratum positive and validity unchanged; widening the ANGLE spans loses,
+and loses through validity — six runs on `postAngle`, one on `contactAngle`,
+with capability taking the damage both times. A longer arc is geometrically
+safe; a wilder launch angle produces candidates that gate-fail, and at a pool of
+five a wasted slot is expensive. Candidate viability already sits at 65.1% /
+65.9% / 67.5% across the three budgets, so the shipped spans are tuned at that
+frontier, not below it.
+
+**The `preAngle` roll is dead weight.** Its span was verified applied at the
+call site and the result is byte-identical at every budget and stratum, so the
+pre-arc angle it samples never reaches committed output. Left in place — this
+is an observation, not a change — but it is one sixth of the sampler's degrees
+of freedom producing nothing.
+
+**Start selection is not the seed-variance source.** 1055 of 1056 runs choose
+start rank 0 and only 1 of 132 cells varies across seeds. But the mean
+within-cell score spread is **35.6 points**, which is where the +13.16 seed
+counterfactual lives: it comes from the per-gap geometry sampling, and every
+knob that governs that sampling — pool size, per-gap sample count, length span,
+the three angle spans — is now bracketed at or beside its optimum.
+
 ## 2026-07-28 — ACCEPTED: the span, the handover, and 194 lines of dead gates
 
 The three arms that survived their brackets, composed and resolved.

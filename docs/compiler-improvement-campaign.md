@@ -60,6 +60,50 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — adapting to the budget that is LEFT: what it pays for, and what it does not
+
+Jeremie's framing: every high-budget compile becomes a low-budget one as it
+spends, so the compiler should adapt to the budget REMAINING rather than
+pre-deciding from the budget it started with. The campaign's two largest
+accepts are already of exactly this kind — `observedTraversalBudgetSlack`
+re-estimates the slack from the compile's own traversal rate — so the question
+is which decisions it generalises to. Three families, all N=8 against
+`span-handover`.
+
+| adaptation | shape of the decision | delta | SE | capa |
+|---|---|---:|---:|---:|
+| forward-eval rollout width on live pace | **continuous ramp** on HOW MUCH | **+10.66** | (N=24) | - |
+| aim-lane suppression on live pace | **continuous ramp** | **+6.97** | (N=8) | - |
+| per-gap sample count on remaining budget | per-decision QUALITY | -0.41 | 0.34 | -0.96 |
+| ditto, half strength | per-decision QUALITY | -0.26 | 0.19 | -1.38 |
+| pre-completion sample share 0.60 | per-decision QUALITY | -4.47 | 1.93 | -11.64 |
+| branch + rollout-depth gates on live pace | **binary gate** on WHETHER | -5.38 | 3.28 | **-33.87** |
+| rollout-depth gate alone on live pace | **binary gate** | -8.05 | 4.53 | **-51.59** |
+
+**The principle holds, with two clauses it did not obviously have.**
+
+*It must throttle magnitude, not trigger a mode.* `pacedSlack` FALLS as a
+compile spends, so feeding it to a binary threshold makes the pre-completion
+throttles fire far more often — depth 1, branching 2 — on compiles that would
+have finished comfortably. Capability loses 33.9 and 51.6 and six valid runs.
+The accepted arms feed the same signal into a ramp between slack 1.5 and 1.0
+and adjust HOW MUCH to spend; those pay +10.66 and +6.97. Same signal, opposite
+sign, and the shape of the decision is the only difference.
+
+*It applies to deadline pressure, not to decision quality.* Re-keying the
+per-gap sample count on the budget still unspent is -0.41, and its budget split
+is the tell: 250k is EXACTLY 0.00 (it already samples at the scarce value)
+while 500k and 750k lose as they deplete. A mature compile wants its full
+sample all the way to the end, because sampling width buys the quality of each
+gap's decision, which is worth the same at frame 10,000 and frame 700,000.
+Deadline pressure is a property of the remaining budget; decision quality is
+not.
+
+**Retire**: remaining-keyed sample count, pre-completion sample share, and both
+paced binary gates. **Retain and generalise**: live-state adaptation as a
+continuous throttle on expenditure magnitude — which is what the two largest
+accepts in this campaign already are.
+
 ## 2026-07-28 — where the headline is, and why the scarce budget cannot be bought
 
 The headline decomposes 20/50/30 over budgets that score **250k 524.87, 500k

@@ -60,6 +60,45 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — every invalid run is a ride that stalls, and the handoff cannot see it
+
+The remaining validity pool is worth +6.16 (`invalid runs score their cell's
+MEAN`). It is exactly 8 runs of 1056, and they are strikingly uniform: **all 8
+are at 250k, all 8 are `terminus:rideStalled`**, on three `capability` sources
+(`frontier_dense_recovery` x4, `..._240ms_figures` x2,
+`frontier_pickup_progression_shifted` x2).
+
+**It is not a completion failure.** On `frontier_pickup_progression_shifted`
+all 110 authored contacts are reported and 99 are hit — the track is built and
+the rider stops at contact 99. The failure is a slow speed bleed, not a search
+that ran out of budget.
+
+That makes the stall guard the obvious suspect: `handoffStateCost` charges
+`HANDOFF_STATE_STALL_WEIGHT_MULTIPLIER` only under `if (speed <= 1e-6)` — a
+cliff at literally zero, so a rider crawling toward a stall is charged nothing
+until it has already stopped and the track is committed. Replacing the cliff
+with a ramp over a stall speed (the cliff being its limit as speed → 0) is the
+direct test.
+
+| ramp reaches below | delta | valid |
+|---|---:|---:|
+| 1.5 px/frame | **+0.00** | 1048 |
+| 3.0 px/frame | **+0.00** | 1048 |
+| 6.0 px/frame | **+0.00** | 1048 |
+
+**Byte-identical at every floor, including 6.0 px/frame against a typical
+arrival speed of ~10.6.** No committed handoff in the entire archive ever exits
+below 6 px/frame. The rider is healthy at every single handoff boundary and
+stalls anyway.
+
+**Decision: retire the handoff-side stall guard, and relocate the failure.**
+`rideStalled` is not predictable from the handoff exit state, because the exit
+state is never near a stall. The bleed happens INSIDE a gap's ride — grounded
+deceleration over the committed geometry between handoffs — so any fix belongs
+in arc geometry (do not build a segment that bleeds the rider), not in handoff
+selection or ranking. That is a different mechanism from anything this campaign
+has touched.
+
 ## 2026-07-28 — the sampler's determinism is at an interior optimum too
 
 The one live measurement left is the within-cell seed spread of 35.6 points.

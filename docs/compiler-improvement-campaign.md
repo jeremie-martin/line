@@ -502,6 +502,24 @@ delta cap). So the impact ceiling on this suite is an AIR ceiling wearing
 impact's clothes, and the open question is the one the 2026-07-27 entry left:
 buy the arrival with SLOPE instead of flight time.
 
+### And the lever that names closes too: slope cannot be bought by length
+
+The entry above ends by naming the 2026-07-27 lever — buy the arrival with SLOPE
+instead of flight time — so it was built: when the steep-arrival dive fires,
+extend the grounded ride-out in proportion to the commanded dive, so the same
+vertical velocity is reached on the ground instead of in the air.
+
+It does nothing for air and costs impact: air bias +0.0427 → +0.0445 with its rms
+0.1083 → 0.1229, delivered impact 0.363 → 0.354, and 13 of 532 scored contacts
+lost. The reason is the one the air-length work already established and this
+confirms from the other side: **the rider does not ride to the end of the
+branch.** Lengthening the line cannot keep it grounded, exactly as raising the
+reference cap, the blend floor, the blend strength and the 220px clamp could not.
+
+So the air ceiling that caps the dive is not a line-length ceiling either. Every
+lever this campaign has named — including the ones its own log left open — has now
+been measured.
+
 ### The engine-speed commits are behaviourally inert, verified
 
 `eval` refuses a comparison when the WASM bytes differ from the baseline's, so

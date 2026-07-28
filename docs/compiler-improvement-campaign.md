@@ -57,6 +57,45 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — repair spends two-thirds of the budget to accept two things
+
+The seed spread is the largest addressable pool left (`valid runs score their
+cell's BEST` = 571.80, +13.16, which alone clears 570), and the phase that
+converts leftover budget into per-seed improvement is repair. Its telemetry,
+read straight off the accepted archive:
+
+| budget | restarts | gaps touched | accepts | frames spent | first completion |
+|---|---:|---:|---:|---:|---:|
+| 250k | 24.3 | 7.0 | 0.9 | 69,686 | 161,735 |
+| 500k | 20.5 | 6.5 | 1.6 | 276,540 | 192,523 |
+| 750k | 15.5 | **5.4** | **2.0** | **502,982** | 211,730 |
+
+**At 750k, repair burns 503k frames — two-thirds of the whole budget — to touch
+5.4 gaps and accept 2 improvements.** And `gaps_touched` FALLS as the budget
+grows while frames spent rises 7x, because each restart is sized by its own
+measured cost-to-re-complete: a bigger budget buys bigger restarts, not more of
+them.
+
+**Both count levers are exactly null**, and the same telemetry says why —
+`budget_exhausted` is 352/352 at every budget, so the loop is never terminated
+by running out of candidate gaps:
+
+| arm | delta | SE | verdict |
+|---|---:|---:|---|
+| clear the exhausted-gap ban whenever a repair is accepted | -0.01 | 0.02 | null |
+| `LR_REPAIR_MAX_ATTEMPTS` 64 → 160 | **+0.00** | 0.00 | **byte-identical** |
+
+The ban set was a real suspicion — a gap is excluded for the rest of the
+compile after one failed round, even though every accepted repair replaces the
+incumbent that ban was measured against — but it never binds, because budget
+runs out first. Restarts average 15.5-24.3 against a cap of 64, so the cap
+never binds either.
+
+**Decision: retire both count levers; the binder is restart COST.** The
+indicated change is to bound a single restart by the budget it leaves behind
+rather than by its own cost-to-end, which forces cheaper and nearer anchors and
+spreads the same frames over more gaps.
+
 ## 2026-07-28 — pool-widening pays where cap-raising breaks
 
 Six arms, N=8 against `scarce-lean` (558.63).

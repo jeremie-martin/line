@@ -868,7 +868,6 @@ const M94_LOW_IMPACT_MEDIAN_GAP_MAX_FRAMES = 40;
 const M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX = 0.20;
 const M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES = 200_000;
-const M144_SIGNATURE_REPAIR_MAX_BUDGET_FRAMES = 325_000;
 const M152_CANYON_QUALITY_MIN_BUDGET_FRAMES = 250_000;
 const M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M75_HIGH_AIR_IMPACT_READINESS_POWER = 0.75;
@@ -1288,8 +1287,6 @@ function compileHandoffInternal(
     setProposalUtilityPowers({
       settledIncomingQualityPower:
         objectiveBlendCurrentPowerForSpec(policyBudget, specProfile),
-      futureQualityPower:
-        objectiveBlendReadinessPowerForSpec(policyBudget, specProfile),
     });
     const durationFrames = secToFrame(spec.duration);
     const allContactFrames = [...spec.contacts]
@@ -2501,7 +2498,14 @@ function plateauPressure(
 }
 
 /**
- * MISNAMED, and the mismatch is live. This resolves a READINESS softening — M75
+ * NO LONGER APPLIED IN PRODUCTION (2026-07-28). Deleting the call site measured
+ * +0.00 with SE 0.19 — the tightest null the campaign has produced — so the
+ * three signature gates were buying nothing, and re-pointing the softening at
+ * readiness alone was +0.17 with SE 0.20. Retained only for the diagnostic
+ * below, which `study_objective_powers` reads. The description that follows is
+ * the history that made it worth measuring.
+ *
+ * MISNAMED, and the mismatch was live. This resolves a READINESS softening — M75
  * was accepted on 2026-07-04 when the objective was `current^p x readiness^q`
  * and 0.75 reached readiness alone — but its result is passed as
  * `futureQualityPower`, which `proposalUtility` applies to projected outgoing
@@ -5643,31 +5647,17 @@ type RepairConfig = {
   upstreamOrder: "nearest-first" | "oldest-first";
   log: boolean;
 };
-const REPAIR_MAIN_MARGIN_MATURE = 1.1;
+/** Repair takes over at the first completion, not after a margin past it.
+ *  Bracketed N=8 against `scarce-lean`: 1.0 +0.28 (SE 0.14), 1.1 shipped,
+ *  1.25 -0.52 (SE 0.15). At 1.0 the five profile-band carve-outs that used to
+ *  force this value back down (M101 flat-compact, M102 high-air-low-grain,
+ *  M108 drums-pulse, M116 stable-dense, M144 residual) are all no-ops, so they
+ *  and their profile predicates are gone with them. */
+const REPAIR_MAIN_MARGIN_MATURE = 1.0;
 const REPAIR_FEAS_MARGIN_SCARCE = 1.05;
 const REPAIR_FEAS_MARGIN_MATURE = 1.0;
 const REPAIR_MARGIN_RAMP_START_FRAMES = 100_000;
 const REPAIR_MARGIN_RAMP_SPAN_FRAMES = 100_000;
-const M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES = 200_000;
-const M101_REPAIR_FLAT_COMPACT_MAX_CONTACTS = 32;
-const M102_REPAIR_HIGH_AIR_MEAN_MIN = 0.61;
-const M102_REPAIR_HIGH_AIR_RANGE_MAX = 0.40;
-const M102_REPAIR_LOW_GRAIN_MEAN_MAX = 0.49;
-const M108_REPAIR_PULSE_CONTACT_MIN = 50;
-const M108_REPAIR_PULSE_AIR_MEAN_MIN = 0.59;
-const M108_REPAIR_PULSE_AIR_MEAN_MAX = 0.61;
-const M108_REPAIR_PULSE_AIR_RANGE_MIN = 0.18;
-const M108_REPAIR_PULSE_AIR_RANGE_MAX = 0.22;
-const M108_REPAIR_PULSE_SPEED_MEAN_MIN = 0.59;
-const M108_REPAIR_PULSE_SPEED_MEAN_MAX = 0.61;
-const M108_REPAIR_PULSE_SPEED_RANGE_MAX = 0.02;
-const M108_REPAIR_PULSE_IMPACT_MEAN_MIN = 0.44;
-const M108_REPAIR_PULSE_IMPACT_MEAN_MAX = 0.46;
-
-type RepairMainMarginRule = {
-  envName: string;
-  matches: boolean;
-};
 
 function repairRampMargin(
   targetBudget: number,
@@ -5681,173 +5671,8 @@ function repairRampMargin(
   return scarceMargin + (matureMargin - scarceMargin) * pressure;
 }
 
-function defaultRepairMainMargin(targetBudget: number, profile: HandoffSpecProfile): number {
-  const ramp = repairRampMargin(targetBudget, 1, REPAIR_MAIN_MARGIN_MATURE);
-  if (targetBudget < M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES) return ramp;
-
-  const flatCompact = m101FlatCompactRepairProfile(profile);
-  const highAirLowGrain = m102HighAirLowGrainRepairProfile(profile);
-  const drumsPulse = m108DrumsPulseRepairProfile(profile);
-  const stableDense = m116StableDenseRepairProfile(profile);
-  const rules: RepairMainMarginRule[] = [
-    { envName: "LR_M101_REPAIR_FLAT_COMPACT_MAIN100", matches: flatCompact },
-    { envName: "LR_M102_REPAIR_HIGH_AIR_LOW_GRAIN_MAIN100", matches: highAirLowGrain },
-    { envName: "LR_M108_DRUMS_PULSE_REPAIR_MAIN100", matches: drumsPulse },
-    { envName: "LR_M116_STABLE_DENSE_REPAIR_MAIN100", matches: stableDense },
-    {
-      envName: "LR_M144_RESIDUAL_REPAIR_MAIN100",
-      matches: m144ResidualRepairMain100Profile(profile, targetBudget),
-    },
-  ];
-  const firstMatchingRule = rules.find((rule) => rule.matches);
-  return firstMatchingRule !== undefined && readEnv(firstMatchingRule.envName) !== "0"
-    ? 1.0
-    : ramp;
-}
-
-function m101FlatCompactRepairProfile(profile: HandoffSpecProfile): boolean {
-  if (profile.contactCount > M101_REPAIR_FLAT_COMPACT_MAX_CONTACTS) return false;
-  const verticalProfile = authoredVerticalObjectiveProfile(profile);
-  return verticalProfile.elevationRange <= 0 && verticalProfile.amplitudeRange <= 0;
-}
-
-function m102HighAirLowGrainRepairProfile(profile: HandoffSpecProfile): boolean {
-  if (profile.axes.air.count < 2) return false;
-  const meanAir = profile.axes.air.mean;
-  if (meanAir === null) return false;
-  const meanGrain = meanOrZero(profile.authoredGrain);
-  return meanAir >= M102_REPAIR_HIGH_AIR_MEAN_MIN &&
-    profile.axes.air.range <= M102_REPAIR_HIGH_AIR_RANGE_MAX &&
-    meanGrain <= M102_REPAIR_LOW_GRAIN_MEAN_MAX;
-}
-
-function m108DrumsPulseRepairProfile(profile: HandoffSpecProfile): boolean {
-  const verticalProfile = authoredVerticalObjectiveProfile(profile);
-  if (verticalProfile.elevationRange > 0 || verticalProfile.amplitudeRange > 0) return false;
-  if (
-    profile.contactCount < M108_REPAIR_PULSE_CONTACT_MIN ||
-    profile.axes.air.count < 2 ||
-    profile.axes.speed.count < 2 ||
-    profile.axes.impact.mean === null
-  ) {
-    return false;
-  }
-
-  const meanAir = profile.axes.air.mean;
-  const meanSpeed = profile.axes.speed.mean;
-  const meanImpact = profile.axes.impact.mean;
-  if (meanAir === null || meanSpeed === null || meanImpact === null) return false;
-  const airRange = profile.axes.air.range;
-  const speedRange = profile.axes.speed.range;
-
-  return meanAir >= M108_REPAIR_PULSE_AIR_MEAN_MIN &&
-    meanAir <= M108_REPAIR_PULSE_AIR_MEAN_MAX &&
-    airRange >= M108_REPAIR_PULSE_AIR_RANGE_MIN &&
-    airRange <= M108_REPAIR_PULSE_AIR_RANGE_MAX &&
-    meanSpeed >= M108_REPAIR_PULSE_SPEED_MEAN_MIN &&
-    meanSpeed <= M108_REPAIR_PULSE_SPEED_MEAN_MAX &&
-    speedRange <= M108_REPAIR_PULSE_SPEED_RANGE_MAX &&
-    meanImpact >= M108_REPAIR_PULSE_IMPACT_MEAN_MIN &&
-    meanImpact <= M108_REPAIR_PULSE_IMPACT_MEAN_MAX;
-}
-
-function m116StableDenseRepairProfile(profile: HandoffSpecProfile): boolean {
-  const verticalProfile = authoredVerticalObjectiveProfile(profile);
-  if (verticalProfile.elevationRange > 0 || verticalProfile.amplitudeRange > 0) return false;
-  if (profile.axes.air.count < 2 || profile.axes.speed.count < 2 || profile.axes.impact.mean === null) {
-    return false;
-  }
-
-  const medianGapFrames = profile.medianContactGapFrames;
-  if (medianGapFrames === null) return false;
-  const meanAir = profile.axes.air.mean;
-  const meanSpeed = profile.axes.speed.mean;
-  const meanImpact = profile.axes.impact.mean;
-  if (meanAir === null || meanSpeed === null || meanImpact === null) return false;
-  const airRange = profile.axes.air.range;
-  const speedRange = profile.axes.speed.range;
-
-  const pendulumPocket = profile.contactCount >= 50 &&
-    medianGapFrames <= 20 &&
-    meanAir >= 0.47 &&
-    meanAir <= 0.49 &&
-    airRange >= 0.68 &&
-    airRange <= 0.72 &&
-    meanSpeed >= 0.54 &&
-    meanSpeed <= 0.56 &&
-    speedRange <= 0.02 &&
-    meanImpact >= 0.41 &&
-    meanImpact <= 0.44;
-
-  const denseSprintPocket = profile.contactCount >= 39 &&
-    profile.contactCount <= 43 &&
-    medianGapFrames <= 21 &&
-    meanAir >= 0.64 &&
-    meanAir <= 0.67 &&
-    airRange >= 0.48 &&
-    airRange <= 0.52 &&
-    meanSpeed >= 0.67 &&
-    meanSpeed <= 0.70 &&
-    speedRange >= 0.38 &&
-    speedRange <= 0.42 &&
-    meanImpact >= 0.49 &&
-    meanImpact <= 0.52;
-
-  return pendulumPocket || denseSprintPocket;
-}
-
-function m144ResidualRepairMain100Profile(profile: HandoffSpecProfile, targetBudget: number): boolean {
-  if (profile.contactCount < 2) return false;
-  const medianGapFrames = profile.medianContactGapFrames;
-  if (medianGapFrames === null) return false;
-  const verticalProfile = authoredVerticalObjectiveProfile(profile);
-
-  if (profile.axes.air.count < 2 || profile.axes.speed.count < 2) return false;
-
-  const meanAir = profile.axes.air.mean;
-  const meanSpeed = profile.axes.speed.mean;
-  const meanImpact = meanOrZero(profile.axes.impact);
-  if (meanAir === null || meanSpeed === null) return false;
-  const airRange = profile.axes.air.range;
-  const speedRange = profile.axes.speed.range;
-  const grainRange = rangeOrNegativeInfinityWhenMissing(profile.authoredGrain);
-
-  const signaturePocket = profile.contactCount >= 50 &&
-    profile.contactCount <= 60 &&
-    medianGapFrames <= 20 &&
-    verticalProfile.elevationRange <= 0 &&
-    verticalProfile.amplitudeRange <= 0 &&
-    meanAir >= 0.53 &&
-    meanAir <= 0.56 &&
-    airRange >= 0.12 &&
-    airRange <= 0.18 &&
-    meanSpeed >= 0.64 &&
-    meanSpeed <= 0.67 &&
-    speedRange >= 0.36 &&
-    speedRange <= 0.44 &&
-    meanImpact >= 0.44 &&
-    meanImpact <= 0.48 &&
-    grainRange >= 0.45;
-
-  const soarPocket = profile.contactCount >= 14 &&
-    profile.contactCount <= 18 &&
-    medianGapFrames >= 26 &&
-    medianGapFrames <= 30 &&
-    verticalProfile.elevationRange <= 0 &&
-    verticalProfile.amplitudeRange >= 0.58 &&
-    verticalProfile.amplitudeRange <= 0.66 &&
-    meanAir >= 0.58 &&
-    meanAir <= 0.62 &&
-    airRange >= 0.36 &&
-    airRange <= 0.40 &&
-    meanSpeed >= 0.59 &&
-    meanSpeed <= 0.61 &&
-    speedRange <= 0.02 &&
-    meanImpact >= 0.34 &&
-    meanImpact <= 0.39;
-
-  return (signaturePocket && targetBudget < M144_SIGNATURE_REPAIR_MAX_BUDGET_FRAMES) ||
-    soarPocket;
+function defaultRepairMainMargin(): number {
+  return REPAIR_MAIN_MARGIN_MATURE;
 }
 
 function defaultRepairFeasMargin(targetBudget: number): number {
@@ -5879,7 +5704,7 @@ function repairConfig(targetBudget: number, profile: HandoffSpecProfile): Repair
     // Completion-triggered split: run the main search to firstCompletion*mainMargin, then repair.
     // Default eases from 1.0 at the 100k repair gate to 1.1 by 200k; low budgets
     // stay byte-identical while mature budgets keep a little more main-search context before repair.
-    mainMargin: flt("LR_REPAIR_MAIN_MARGIN", defaultRepairMainMargin(targetBudget, profile), 1.0, 10.0),
+    mainMargin: flt("LR_REPAIR_MAIN_MARGIN", defaultRepairMainMargin(), 1.0, 10.0),
     // Feasibility margin: require (measured cost-to-end × feasMargin) ≤ remaining budget, and size each
     // restart's ceiling to cost × feasMargin. Keep scarce budgets at the accepted 1.05 headroom, then
     // fade toward the exact measured-cost ceiling as budget matures; explicit env overrides still win.

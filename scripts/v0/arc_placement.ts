@@ -604,13 +604,22 @@ const ELEVATION_RIDEOUT_SHORTEN = 1.0;
  *  longer arcs; the forward-eval keeps whatever scores. SPAN/FLOOR/CAP below are
  *  the knob.
  *
+ *  RE-WIDENED 2026-07-28: the high end goes 1.45 -> 1.85. Air is the one axis
+ *  that OVERSHOOTS (bias +0.066, 75% of gaps over the ask), the low-ask band is
+ *  23.3% of gaps but 71.1% of all air error, and the ride-out length is the
+ *  lever that sets it. Bracketed N=8: 1.65 -0.28, 1.85 +0.65, 2.30 +0.21.
+ *  Raising `targetStateSafePostCap` instead — the constraint that actually
+ *  binds a low-air ask — costs -37.77 on `capability`: widening the SPAN adds
+ *  long arcs to the pool while leaving the short ones in it, so a dense gap
+ *  keeps the candidate it needs and the ranker chooses.
+ *
  *  OPENED and ACCEPTED (35b5a4f, +7.7 headline): the span is 0.80-1.45 with a
  *  28-260 px clamp, room-gated so both ends fade to neutral 1.0 as room -> 0,
  *  which keeps dense gaps byte-identical. This paragraph previously said
  *  "shipped at NEUTRAL (1.0/1.0/28/220)" and quoted the pre-widening values,
  *  which stopped being true when the campaign it describes succeeded. */
 const ARC_LEN_SPAN_LO = 0.80;
-const ARC_LEN_SPAN_HI = 1.45;
+const ARC_LEN_SPAN_HI = 1.85;
 const ARC_LEN_FLOOR = 28;
 const ARC_LEN_CAP = 260;
 const ARC_LEN_SPAN_SALT = 9;

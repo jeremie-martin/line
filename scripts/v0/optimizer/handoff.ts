@@ -922,14 +922,12 @@ const M108_DRUMS_CRESCENDO_IMPACT_MEAN_MAX = 0.40;
  *  deterministic batch, and the true-score forward ranker can use the extra pool.
  *  LR_QUALITY_NCAND overrides this unified breadth for controlled studies. */
 const HANDOFF_QUALITY_N_CAND = 32;
-const HANDOFF_QUALITY_LEAN_N_CAND = 29;
-const HANDOFF_QUALITY_SCARCE_LEAN_START_FRAMES = 50_000;
-const HANDOFF_QUALITY_SCARCE_LEAN_SPAN_FRAMES = 50_000;
-const HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES = 100_000;
 /** The canonical range's own scarce lean: full at 250k, gone by 450k. */
-const HANDOFF_QUALITY_CANONICAL_SCARCE_N_CAND = 24;
-const HANDOFF_QUALITY_CANONICAL_SCARCE_START_FRAMES = 250_000;
-const HANDOFF_QUALITY_CANONICAL_SCARCE_SPAN_FRAMES = 200_000;
+/** The scale-free per-gap breadth law: `N_CAND_AT_REF` candidates at
+ *  `REF_FRAMES`, growing as sqrt(budget) with no ceiling. */
+const HANDOFF_QUALITY_N_CAND_AT_REF = 24;
+const HANDOFF_QUALITY_N_CAND_REF_FRAMES = 250_000;
+const HANDOFF_QUALITY_N_CAND_FLOOR = 8;
 const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
 const HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE = 0.40;
 const HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS = 32;
@@ -4732,46 +4730,37 @@ function qualityBreadth(
 }
 
 function budgetAwareQualitySampleCount(targetBudget: number | undefined): number {
+  /*
+   * ONE SCALE-FREE LAW, replacing five piecewise segments.
+   *
+   * This used to be `scarceLean` (faded out by 100k), `matureLean` (saturated
+   * by 250k), a canonical-scarce segment and a hard `HANDOFF_QUALITY_N_CAND`
+   * ceiling. Together they produced a NON-MONOTONIC curve — 29 candidates at
+   * 100k, 32 at 125k, 24 at 250k, 29 at 500k and 29 at 750k — which is not a
+   * statement about budget at all, only an interpolation through the three
+   * budgets the benchmark happens to run. Outside that window the answer was
+   * arbitrary, and at the top the ceiling pinned every mature budget to the
+   * same 29 however much budget existed.
+   *
+   * The law: per-gap breadth grows as the SQUARE ROOT of the budget. Doubling
+   * the frames buys sqrt(2) times the candidates per gap — the standard
+   * diminishing-returns allocation, monotone, with no ceiling and no special
+   * budgets in it. Anchored on the two operating points that were measured
+   * directly: 250k wants 24 (sampling 24 there is +8.8 against 29), and the
+   * top of the range wants far more than the ceiling allowed (lifting 750k to
+   * 44 is +2.7 on that budget, to 36 is +1.1, both with 250k and 500k
+   * byte-identical). The law reads 24 at 250k, 34 at 500k and 42 at 750k, and
+   * keeps rising for any budget beyond them.
+   */
   if (typeof targetBudget !== "number" || !Number.isFinite(targetBudget)) {
     return HANDOFF_QUALITY_N_CAND;
   }
-  const scarceLean = 1 - smoothstep(
-    (targetBudget - HANDOFF_QUALITY_SCARCE_LEAN_START_FRAMES) /
-      HANDOFF_QUALITY_SCARCE_LEAN_SPAN_FRAMES,
-  );
-  const matureLean = smoothstep(
-    (targetBudget - HANDOFF_MATURITY_BUDGET_SCALE_FRAMES) /
-      HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES,
-  );
-  const lean = Math.max(scarceLean, matureLean);
-  const base = clampIntLocal(
-    HANDOFF_QUALITY_N_CAND - (HANDOFF_QUALITY_N_CAND - HANDOFF_QUALITY_LEAN_N_CAND) * lean,
-    HANDOFF_QUALITY_LEAN_N_CAND,
-    HANDOFF_QUALITY_N_CAND,
-  );
-  /*
-   * THE SCARCE END OF THE CANONICAL RANGE.
-   *
-   * Both leans above are inert where the benchmark actually runs: `scarceLean`
-   * has faded out by 100k and `matureLean` has saturated by 250k, so 250k, 500k
-   * and 750k all sample the same 29 candidates to admit five. The sweep says
-   * they should not — holding everything else fixed, sampling 24 is +8.8 at 250k
-   * and −2.5 / −2.6 at 500k / 750k, while sampling 16 is −3.1 / −13.7 / −7.0.
-   * The scarce budget wants a narrower sample because a frame spent generating a
-   * candidate it will not admit is a frame it does not have; the mature budgets
-   * can afford the breadth and lose real quality without it.
-   *
-   * So the lean is extended to cover the scarce end of the canonical range
-   * rather than stopping short of it.
-   */
-  const canonicalScarce = 1 - smoothstep(
-    (targetBudget - HANDOFF_QUALITY_CANONICAL_SCARCE_START_FRAMES) /
-      HANDOFF_QUALITY_CANONICAL_SCARCE_SPAN_FRAMES,
-  );
-  return clampIntLocal(
-    base - (base - HANDOFF_QUALITY_CANONICAL_SCARCE_N_CAND) * canonicalScarce,
-    HANDOFF_QUALITY_CANONICAL_SCARCE_N_CAND,
-    HANDOFF_QUALITY_N_CAND,
+  return Math.max(
+    HANDOFF_QUALITY_N_CAND_FLOOR,
+    Math.round(
+      HANDOFF_QUALITY_N_CAND_AT_REF *
+        Math.sqrt(Math.max(0, targetBudget) / HANDOFF_QUALITY_N_CAND_REF_FRAMES),
+    ),
   );
 }
 

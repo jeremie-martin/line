@@ -364,6 +364,27 @@ through the window, the decoupled incidence floor, the speed-target lift with
 un-lifted pressures, the launch turn-loss term, and now the commanded drop — all
 land within 1% of the same impact bias.
 
+### Repair looks wasteful and is at its optimum
+
+With the pacing accepted twice, the remaining budget question is the repair
+phase, and its accounting looks damning. At 500k it spends **43-59% of the whole
+budget** — `river_reentry` 252,092 frames on 5 restarts, `open_hook` 295,304 on
+4 — for one to three accepts, and full evaluations fall as a result:
+`river_reentry` 39 at 250k against 14 at 500k, `open_hook` 59 against 10. At 250k
+it is 21-42 restarts for zero or one accept.
+
+Both ways of cheapening it are rejected. Each restart is sized to the measured
+cost-to-end, so an early anchor costs nearly a whole recompile; `upstreamOrder`
+gives that expensive early anchor first claim. Flipping to `nearest-first` is
+**−3.28 (reject)**, every stratum negative. Giving the main search half again as
+much before repair begins (`mainMargin` 1.1 → 1.5) is **−1.89 (reject)**, every
+stratum negative and every budget.
+
+So the expensive early-anchor restart earns its cost: it can alter the weak gap's
+inherited ARRIVAL, which is the one thing a cheap local restart cannot do, and
+the comment that shipped that choice was right. Repair is not the pacing family's
+next target — it is already paying for what it takes.
+
 ### Falsified: rushing the first completion — and it bounds the pacing family
 
 The budget decomposition says where the headline is lost: at 250k the accepted

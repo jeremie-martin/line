@@ -392,6 +392,17 @@ a covering sequence spends the same draws on the space's middle. The pool's
 randomness is not a defect to be averaged out — it is the search's only source of
 the improbable.
 
+### The engine-speed commits are behaviourally inert, verified
+
+`eval` refuses a comparison when the WASM bytes differ from the baseline's, so
+the four engine commits of 2026-07-27 were disabled all session by restoring the
+retained artifact. They cost nothing: compiled against each artifact in turn,
+`river_reentry`, `dense_dialogue` and `frontier_dense_recovery` produce identical
+line counts, committed gaps, sim-frame totals and durations (951/88/250117,
+960/130/254805, 1197/123/260967). They are pure speedups, so the working
+artifact can be rebuilt and re-frozen into a baseline whenever convenient with no
+score consequence — only the comparison lock requires the swap.
+
 ### The branching factor is at its optimum, bracketed both ways
 
 The forward-eval width bracket implied that search width is the live parameter,

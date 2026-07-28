@@ -910,6 +910,10 @@ const HANDOFF_QUALITY_LEAN_N_CAND = 29;
 const HANDOFF_QUALITY_SCARCE_LEAN_START_FRAMES = 50_000;
 const HANDOFF_QUALITY_SCARCE_LEAN_SPAN_FRAMES = 50_000;
 const HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES = 100_000;
+/** The canonical range's own scarce lean: full at 250k, gone by 450k. */
+const HANDOFF_QUALITY_CANONICAL_SCARCE_N_CAND = 24;
+const HANDOFF_QUALITY_CANONICAL_SCARCE_START_FRAMES = 250_000;
+const HANDOFF_QUALITY_CANONICAL_SCARCE_SPAN_FRAMES = 200_000;
 const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
 const HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE = 0.40;
 const HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS = 32;
@@ -4719,9 +4723,33 @@ function budgetAwareQualitySampleCount(targetBudget: number | undefined): number
       HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES,
   );
   const lean = Math.max(scarceLean, matureLean);
-  return clampIntLocal(
+  const base = clampIntLocal(
     HANDOFF_QUALITY_N_CAND - (HANDOFF_QUALITY_N_CAND - HANDOFF_QUALITY_LEAN_N_CAND) * lean,
     HANDOFF_QUALITY_LEAN_N_CAND,
+    HANDOFF_QUALITY_N_CAND,
+  );
+  /*
+   * THE SCARCE END OF THE CANONICAL RANGE.
+   *
+   * Both leans above are inert where the benchmark actually runs: `scarceLean`
+   * has faded out by 100k and `matureLean` has saturated by 250k, so 250k, 500k
+   * and 750k all sample the same 29 candidates to admit five. The sweep says
+   * they should not — holding everything else fixed, sampling 24 is +8.8 at 250k
+   * and −2.5 / −2.6 at 500k / 750k, while sampling 16 is −3.1 / −13.7 / −7.0.
+   * The scarce budget wants a narrower sample because a frame spent generating a
+   * candidate it will not admit is a frame it does not have; the mature budgets
+   * can afford the breadth and lose real quality without it.
+   *
+   * So the lean is extended to cover the scarce end of the canonical range
+   * rather than stopping short of it.
+   */
+  const canonicalScarce = 1 - smoothstep(
+    (targetBudget - HANDOFF_QUALITY_CANONICAL_SCARCE_START_FRAMES) /
+      HANDOFF_QUALITY_CANONICAL_SCARCE_SPAN_FRAMES,
+  );
+  return clampIntLocal(
+    base - (base - HANDOFF_QUALITY_CANONICAL_SCARCE_N_CAND) * canonicalScarce,
+    HANDOFF_QUALITY_CANONICAL_SCARCE_N_CAND,
     HANDOFF_QUALITY_N_CAND,
   );
 }

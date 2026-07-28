@@ -410,6 +410,10 @@ gates collapse `frontier_dense_recovery`, which the attempt gate instead takes
 to **123 of 123 committed contacts at 250k**, the only configuration all session
 to finish that spec at the scarce budget.
 
+The dose is bracketed too — strength 0.25 is −1.95 against 0.5's −2.09, with
+`pickup_progression_shifted` at −107.6 either way — so the trade is structural
+rather than a matter of degree.
+
 The attempt gate is the right shape and still not enough: coverage is worth +110
 to the case whose ride-out lives in a wide continuous range and −107 to the case
 whose viable catch is a rare small region, and no quantity measured this session

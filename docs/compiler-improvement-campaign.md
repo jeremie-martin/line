@@ -392,6 +392,35 @@ a covering sequence spends the same draws on the space's middle. The pool's
 randomness is not a defect to be averaged out — it is the search's only source of
 the improbable.
 
+### The largest un-attacked population: 35% of contacts BOUNCE
+
+`study_impact_branch.ts` now splits scored contacts by whether support goes
+supported → airborne → supported inside the window. Over 532 committed contacts:
+
+| population | n | ask | delivered | share | turn | incidence | rotate-to-deadline |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| bounces in window | 184 (35%) | 0.520 | 0.273 | **53%** | 10.50° | 11.27° | **+5.27** |
+| no bounce, separates | 108 (20%) | 0.588 | 0.366 | 62% | 14.00° | 15.06° | +6.92 |
+| **no bounce, held** | 240 (45%) | 0.554 | 0.430 | **78%** | 16.72° | 14.97° | **−1.06** |
+
+The held population is the only one whose TURN EXCEEDS ITS INCIDENCE — a concave
+branch keeps turning the rider after the impulse — and it rides the only surface
+that rotates UP across the deadline. Bouncers deliver 0.8 degrees LESS than their
+incidence and leave at frame 3.03 against 4.94 and 7.
+
+Bringing the 184 bouncers to the held population's 78% would be +0.047 of mean
+delivered impact, about **+33 headline** at the campaign's 7-points-per-0.01 —
+the largest single population left, and the impact axis's error concentrated in
+one physically-named failure.
+
+**Not an impulse-granularity problem.** Doubling `IMPACT_SEGMENT_REFINE` to 4
+takes bounces only 184 → 170 and their delivery 0.273 → 0.286, with the
+population mean unmoved at 0.363. The shape that distinguishes the held group is
+a CONCAVE branch, which is what the impact template lane builds and what the
+campaign has measured negative every time its gates were opened — so the open
+question is not whether the shape works but why the search will not commit it,
+and that is where the next attempt should start.
+
 ### The engine-speed commits are behaviourally inert, verified
 
 `eval` refuses a comparison when the WASM bytes differ from the baseline's, so

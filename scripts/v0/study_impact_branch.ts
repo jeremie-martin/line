@@ -269,6 +269,19 @@ async function main(argv = process.argv.slice(2)): Promise<void> {
   }
   report("never separates", rows.filter((r) => r.separationFrame < 0));
 
+  console.log(`\n-- by contact continuity: does the rider BOUNCE inside the window? --`);
+  const bounced = (r: Row): boolean => {
+    let left = false;
+    for (let i = 0; i < r.supportedByFrame.length; i++) {
+      if (!r.supportedByFrame[i]) left = true;
+      else if (left) return true; // supported -> airborne -> supported again
+    }
+    return false;
+  };
+  report("bounces in window", rows.filter(bounced));
+  report("no bounce, separates", rows.filter((r) => !bounced(r) && r.separationFrame >= 0));
+  report("no bounce, held", rows.filter((r) => !bounced(r) && r.separationFrame < 0));
+
   console.log(`\n-- by branch rotation over the deadline distance --`);
   const bands: Array<[string, (r: Row) => boolean]> = [
     ["rotates up   < -6", (r) => r.deadlineSurfaceDeg - r.contactSurfaceDeg < -6],

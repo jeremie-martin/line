@@ -83,9 +83,24 @@ N=8 as +1.12 — identical to the pre-cleanup arm, confirming the deletion is
 behaviour-preserving.
 
 **Qualification falls 407.33 → 405.41** while development rises. That is the
-held-out monitor and it is recorded, not tuned against; it is 5 cases at 40
-runs per budget and correspondingly noisy, but the direction is opposite to
-development's and should be watched by the next campaign.
+held-out monitor and it is recorded, not tuned against. Per cell it is broad
+rather than one outlier — 12 of 15 down, concentrated at the scarce budget:
+
+| cell | before | after | delta |
+|---|---:|---:|---:|
+| `luna_bala_44s` 250k | 595.8 | 582.2 | **-13.6** |
+| `amor_na_praia_46s` 250k | 579.0 | 568.4 | -10.6 |
+| `tiki_tiki_48s` 250k | 485.4 | 476.3 | -9.1 |
+| `luna_bala_44s` 750k | 603.3 | 597.8 | -5.6 |
+| (11 more, all within ±4.4) | | | |
+
+The qualification specs are real music tracks of 44-81 s — far longer and
+denser than any development case — and the loss is at 250k, where such a spec
+is already budget-starved. A longer ride-out costs simulation frames, so the
+span widening reaching further under budget pressure is the mechanism that fits
+the shape. Development's own 250k moved +0.84, so the two disagree on the
+scarce budget specifically. Recorded for the next campaign; the accepted
+contract is development and this is not tuned against.
 
 **Friction.** A `rebaseline` needs a comparison holding exactly 8 canonical
 seeds, so an N=24 resolution can never be promoted directly: the N=8 arm must

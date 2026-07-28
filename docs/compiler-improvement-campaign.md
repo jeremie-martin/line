@@ -364,6 +364,34 @@ through the window, the decoupled incidence floor, the speed-target lift with
 un-lifted pressures, the launch turn-loss term, and now the commanded drop — all
 land within 1% of the same impact bias.
 
+### Falsified: stratifying the candidate pool's wide tail
+
+With validity nearly spent, the priced prize moved: on the accepted archive
+giving every VALID run its own cell's best score is worth **+14.18**, more than
+the +8.93 left in validity. That is search variance under a fixed budget, and the
+textbook answer is to stop sampling the pool independently. The sampler half
+does it already — `ccGuidedRoll` stratifies against the attempt index through
+`lowDiscrepancyRoll` — but the guide weight decays as `1/(1+(attempt/4)^2)`, so
+the wide tail that supplies most of the pool is drawn independently. Stratifying
+that tail costs no draws: the RNG stream is consumed identically.
+
+It is **−11.60**, with `capability` −38.0 and validity 1042 → 1035, and the case
+table says exactly what was traded:
+
+```
+frontier_low_air_endurance_7s        +107.3  valid 23 -> 24
+frontier_pickup_progression_shifted  -115.1
+frontier_dense_recovery               -98.1  valid 20 -> 18
+dense_dialogue_impact_contrast_10     -79.7  valid 24 -> 21
+```
+
+Even coverage helps the case that needs a well-covered knob space and hurts every
+case that needs a RARE draw. On the dense frontier a viable catch is a small
+region the pool finds by luck, and independence is what buys the lottery tickets;
+a covering sequence spends the same draws on the space's middle. The pool's
+randomness is not a defect to be averaged out — it is the search's only source of
+the improbable.
+
 ### Repair looks wasteful and is at its optimum
 
 With the pacing accepted twice, the remaining budget question is the repair

@@ -520,6 +520,26 @@ So the air ceiling that caps the dive is not a line-length ceiling either. Every
 lever this campaign has named — including the ones its own log left open — has now
 been measured.
 
+### The separation primitive is not smooth curvature
+
+The one thing left unexplained was why the rider leaves a branch that is still
+there. The rigid-body criterion is exact and computable — a rider holds while
+`v^2 * kappa < g cos(theta)`, which at the measured operating point (v 10.7,
+g 0.175) is 0.088 deg/px, or 5.3 degrees across the 60px the metric sees — and
+the population split sits exactly on it: the branches that lose the rider rotate
++5.27 and +6.92 across the deadline, the ones that hold rotate −1.06.
+
+Capping the branch's per-segment DOWNWARD rotation at that limit — which adds no
+climb and so cannot brake — binds as intended (mean rotation across the deadline
+2.75 → 1.82 degrees) and changes nothing else: delivered 0.363 → 0.360, bounces
+184 → 179, held 240 → 249, air bias +0.0427 → +0.0465.
+
+So separation is NOT governed by the smooth-curvature criterion. It is governed
+by the bounce — 35% of contacts — and by the articulated sled, whose points leave
+and return on their own dynamics rather than the centre of mass's. That is the
+primitive the next attempt has to model, and no arc-shape lever in this
+vocabulary reaches it.
+
 ### The engine-speed commits are behaviourally inert, verified
 
 `eval` refuses a comparison when the WASM bytes differ from the baseline's, so

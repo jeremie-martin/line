@@ -60,6 +60,39 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — the sampler's determinism is at an interior optimum too
+
+The one live measurement left is the within-cell seed spread of 35.6 points.
+`placementGuideWeight` is the knob that produces it: `baseGuide = 1 / (1 +
+(attempt/6)^2)` decays the deterministic low-discrepancy sequence into the
+seed's raw random draw as the attempt index grows. A low-discrepancy sequence
+covers a sample space more evenly than random draws, so holding it for more of
+the batch should cut the spread and cover better.
+
+| guide reach | delta | SE | 250k | 500k | 750k | capa | valid |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 3 (less guided) | -1.79 | 1.44 | -7.9 | -0.1 | -0.6 | -12.55 | 1048 → 1045 |
+| **6 (shipped)** | **0** | - | - | - | - | - | 1048 |
+| 12 | -0.97 | 0.92 | -6.0 | +0.2 | +0.4 | -6.58 | 1048 → 1043 |
+| 24 | -1.31 | 1.43 | -4.7 | -0.4 | -0.5 | -7.67 | 1048 → 1047 |
+
+**Both directions lose, and both lose the same way** — through `capability` and
+through validity, both at 250k. The seed's randomness is doing real work at the
+scarce budget: it finds completions the deterministic sequence misses, and the
+low-discrepancy sequence's even coverage does not substitute for that. At 500k
+and 750k more determinism is mildly positive (+0.2/+0.4 at reach 12), which is
+consistent — a mature budget does not need luck to complete.
+
+**Decision: retire the guide lever.** The shipped 6 is an interior optimum on a
+four-point bracket.
+
+**Where this leaves the seed spread.** It is +13.16 of headline, it is not
+start selection (1055/1056 runs pick rank 0), it is not the guide, and every
+knob governing the per-gap sampling that produces it — pool size, sample count,
+length span, three angle spans, guide reach — is now bracketed at or beside its
+optimum. Closing it requires a mechanism that does not yet exist in the
+compiler, not a re-tune of one that does.
+
 ## 2026-07-28 — "add candidates" only pays when the candidates are viable
 
 The accepted span widening suggests a general rule: widen a sampling degree of

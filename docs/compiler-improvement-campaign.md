@@ -319,6 +319,60 @@ the early-compile pace estimate is pessimistic before any gap has been reached,
 so a breadth cut fires on healthy compiles too. Lookahead is refundable; the
 pool that lookahead ranks is not.
 
+### The readiness model was stale after all — well calibrated, badly fit
+
+`SAMPLER_FILES` includes `arc_placement.ts`, so the corpus behind
+`optimizer/readiness_model.json` predates the steep-arrival dive, the span
+floor and the segment refinement. The 2026-07-25 entry declined to recollect on
+the argument that the failure was generation rather than ranking; with the
+generation questions closed, the argument no longer holds.
+
+Collecting a fresh canonical corpus is cheap — 132 compiles, 132,647 contexts,
+about four minutes — and it first says the incumbent is FINE: catchability
+AUC 0.844 development / 0.839 validation, ECE 0.034, composite r 0.646/0.634.
+Calibration is not fit, though. Refitting on that corpus improves the
+decision-seed composite MSE by **80.9%** and the trainer's own rule adopts it.
+
+N=8 against `paced-aim-lane`:
+
+```
+headline 548.54 -> 553.07   delta +4.54   SE 5.78
+validity 1032/1056 -> 1048/1056        (only 8 invalid runs left in the suite)
+  250k +15.0   500k +3.4   750k -0.5
+strata  representative -1.7 | capability +44.4 | legacy_regression -9.6 | development_music +1.0
+  frontier_pickup_progression_shifted  +90.1  valid 15 -> 22
+  frontier_pickup_progression          +73.3  valid 21 -> 24
+  frontier_dense_recovery_240ms_figures +36.3 valid 20 -> 23
+  regression_transition_mosaic         -17.1  valid 24 -> 24
+```
+
+A better ranker converts almost entirely into validity at the scarce budget
+(+15.0 at 250k, −0.5 at 750k) and costs quality where the old model's biases
+happened to suit the case.
+
+**N=24 settles it at +2.96 [−3.78, +9.70], not promotable**: validity
+3089 → 3136 (gained 52, lost 5) against `representative` −4.21,
+`legacy_regression` −9.09 and `development_music` −1.32, with capability +45.87.
+Retired, and the model reverted.
+
+**Why the 80.9% did not arrive.** Per component the refit improves `airFit` by
+90.2%, `impactFeasibility` by 71.4%, `speedFit` by 51.2% — and `catchability`,
+the factor that actually gates whether a catch lands, by 3.1%. The composite the
+adoption rule scores is dominated by `airFit`, which
+`readiness_scoring.ts` deliberately EXCLUDES from the readiness product on the
+argument that it carries no information the incoming boundary can change. So the
+trainer adopts on a metric the compiler does not use. The rule should be scored
+over the components the product multiplies; that is the fix a future retrain
+needs before this lever is worth re-opening, and it is why an 80% model gain is
+worth three headline points.
+
+**Tooling fix required to get there**: `train_readiness.py` demanded that the
+incumbent artifact's feature list EQUAL the corpus's, which is the stale half of
+the extractor/model split `readiness_scoring.ts` documents as deliberate — the
+incumbent declares 80 of the extractor's 88 columns. The check is now a subset
+check with a projection wherever the incumbent is evaluated, exactly as the
+TypeScript side already does.
+
 ### The incidence floor is a VALIDITY mechanism, not an impact one
 
 Reading the refuted arm's own case table settles what it was actually doing:

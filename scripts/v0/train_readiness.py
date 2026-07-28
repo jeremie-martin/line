@@ -1027,8 +1027,22 @@ def main() -> None:
                 raise ValueError(
                     f"incumbent readiness artifact mismatch at {key}"
                 )
-        if incumbent.get("featureNames") != metadata["featureNames"]:
-            raise ValueError("incumbent readiness feature names do not match")
+        # The extractor and the model are deliberately NOT the same list: the
+        # corpus records every column the compiler can OBSERVE and an artifact
+        # declares the subset it USES, which is what makes feature selection
+        # possible at all (see optimizer/readiness_scoring.ts). Require only
+        # that every column the incumbent uses still exists, and project the
+        # matrix onto its order wherever the incumbent is evaluated.
+        missing = [
+            name
+            for name in incumbent.get("featureNames", [])
+            if name not in set(metadata["featureNames"])
+        ]
+        if missing:
+            raise ValueError(
+                "incumbent readiness features are absent from the corpus: "
+                + ", ".join(missing)
+            )
     artifacts: dict[str, Any] = {}
     for name in requested:
         target = target_from_data(name, data)
@@ -1175,6 +1189,11 @@ def main() -> None:
             )
         model_artifact = copy.deepcopy(incumbent)
         artifacts = {}
+        incumbent_columns = [
+            metadata["featureNames"].index(name)
+            for name in model_artifact["featureNames"]
+        ]
+        incumbent_X = data["X"][:, incumbent_columns]
         fixture_indices = np.unique(
             np.linspace(
                 0,
@@ -1190,10 +1209,10 @@ def main() -> None:
             component["parity"] = {
                 "tolerance": 1e-12,
                 "pythonMaxAbsoluteError": 0.0,
-                "features": data["X"][fixture_indices].tolist(),
+                "features": incumbent_X[fixture_indices].tolist(),
                 "expected": predict_serialized(
                     component,
-                    data["X"][fixture_indices],
+                    incumbent_X[fixture_indices],
                 ).tolist(),
             }
             artifacts[name] = component

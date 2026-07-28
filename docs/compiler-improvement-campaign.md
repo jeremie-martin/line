@@ -57,6 +57,35 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — the deep repair restart is the productive unit
+
+Given that repair spends 503k of a 750k budget to touch 5.4 gaps and accept 2,
+the obvious hypothesis is that the same frames should be spread over more gaps.
+Bounding a single restart by the share of the repair budget it leaves behind —
+rather than by its own cost-to-end — tests it directly.
+
+| restart may claim | delta | SE | 250k | 500k | 750k | repr | capa | lega |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0.20 of remaining | **-4.92** | 0.30 | -4.0 | -6.1 | -3.6 | -5.23 | -3.06 | -6.58 |
+| 0.34 of remaining | -2.37 | 0.30 | -3.0 | -3.0 | -1.0 | -2.48 | -1.33 | -3.89 |
+| 0.60 of remaining | -0.50 | 0.17 | -1.5 | -0.5 | +0.2 | -0.56 | -0.22 | -0.84 |
+| all of it (shipped) | 0 | - | - | - | - | - | - | - |
+
+**Falsified, monotonically, on every stratum and every budget.** The dose
+response is as clean as the campaign has produced: truncating a repair restart
+costs in direct proportion to how much of it is truncated. Concentration is not
+the flaw — it is the mechanism. A restart that re-completes the track from an
+early anchor is the unit of work that pays, and 5.4 gaps of it beats any
+larger number of shallower attempts.
+
+**Decision: retire the restart-cost lever, and invert the indication.** If
+truncation costs proportionally, then the shipped `REPAIR_FEAS_MARGIN_MATURE`
+of exactly 1.0 — which sizes a mature restart's ceiling at precisely its own
+estimated cost-to-re-complete, with zero headroom — is truncating every restart
+whose estimate under-prices it. At 750k only 4.2 of 15.5 restarts reconverge
+and 2.0 accept; the remainder are unaccounted for and truncation is a candidate
+explanation.
+
 ## 2026-07-28 — repair spends two-thirds of the budget to accept two things
 
 The seed spread is the largest addressable pool left (`valid runs score their

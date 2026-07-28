@@ -57,6 +57,47 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — the axis map is complete, and most of the priced pool is physics
+
+`REPAIR_FEAS_MARGIN_MATURE` 1.0 → 1.20 is **-0.63, reject** (250k -0.6, 500k
+-0.6, 750k -0.7). Both directions on restart cost now lose, so the shipped
+repair economics sit at a genuine optimum and the vein is closed.
+
+**Amplitude, the one axis not inspected this session, closes on a physical
+law.** It carries the largest rms of any axis (0.235) and undershoots 82.3% of
+the time, and the undershoot grows with the ask — 0.8+ asks deliver a mean
+0.363, bias -0.499. But split by gap duration, the high-ask population is
+duration-bound:
+
+| gap duration | mean ask | mean achieved | **max achieved** |
+|---|---:|---:|---:|
+| 0.3-0.45 s | 0.554 | 0.052 | **0.095** |
+| 0.45-0.6 s | 0.749 | 0.073 | 0.139 |
+| 0.6-0.9 s | 0.672 | 0.206 | 0.355 |
+| 0.9 s+ | 0.660 | **0.597** | 1.000 |
+
+The maximum ACHIEVED over 4,728 runs scales as N^2 — the ballistic apex law
+`pop ~ g*N^2/8` that `track-variety` documented. On gaps with room the axis is
+essentially delivered (bias -0.063); on short gaps the authored ask is not
+reachable by any geometry. Amplitude's -0.122 bias is an authored-vs-physics
+mismatch, not a compiler deficiency, and is not a legitimate target.
+
+**What this does to the counterfactual pricing.** The re-priced pools —
+impact +52.08, air +12.23, speed +6.37, amplitude +5.00 for a 25% bias removal
+— are upper bounds on the PHYSICS, not on the engineering:
+
+| axis | bias | status |
+|---|---:|---|
+| impact | -0.167 | frontier bracketed over eleven batches; `v * dtheta` near-conserved |
+| amplitude | -0.122 | `pop ~ g*N^2/8`; unreachable on short gaps |
+| air | +0.066 | floor real below ~0.14 s/gap; addressable part measured at +0.65 |
+| speed | -0.005 | already unbiased |
+
+Three of the four are bounded by the same fact: a gap of N frames admits only
+so much flight. The one pool that is not a physics bound is the seed spread
+(+13.16), and the phase that would close it is now measured at its optimum in
+both directions.
+
 ## 2026-07-28 — the deep repair restart is the productive unit
 
 Given that repair spends 503k of a 750k budget to touch 5.4 gaps and accept 2,

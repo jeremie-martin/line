@@ -60,6 +60,49 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — where the headline is, and why the scarce budget cannot be bought
+
+The headline decomposes 20/50/30 over budgets that score **250k 524.87, 500k
+564.47, 750k 571.41**. The 750k budget already clears 570 on its own; the
+weighted headline is held down by a 250k that is 40 points behind 500k.
+
+**What makes 250k different, measured.** The share of the budget spent before
+any completion exists:
+
+| budget | first completion | % of budget pre-completion |
+|---|---:|---:|
+| 250k | 168,789 | **67.5%** |
+| 500k | 194,747 | 38.9% |
+| 750k | 214,018 | 28.5% |
+
+Two-thirds of the scarce budget goes to reaching a first completion, leaving a
+third for repair — the compiler's improvement engine, which cannot run at all
+until a completion is held. The obvious move is to reach it more cheaply:
+before a completion the decision is "can I finish?", not "which is best?".
+
+| pre-completion share of the quality sample | delta | SE | 250k | capa |
+|---|---:|---:|---:|---:|
+| 0.35 | **-13.25** | 1.86 | -21.3 | -27.90 |
+| 0.60 | -4.47 | 1.93 | -7.6 | -11.64 |
+| 0.80 | -2.53 | 1.39 | -10.7 | - |
+| 1.00 (shipped) | 0 | - | - | - |
+
+**Falsified, monotonically and steeply, and 250k is hurt WORST** — the budget
+the change was designed to help. The pre-completion phase is not overhead. The
+quality of the gaps it commits is what determines whether the search can reach
+the end at all, so a cheaper sample commits worse gaps and completion recedes.
+This also retro-explains the accepted `scarce-lean`: 24 of 29 is 0.83, a mild
+trim at the edge of the same cliff that 0.60 falls off.
+
+**And repair's raw-SSE targeting is right, despite aiming at bounded axes.**
+Impact is the largest error on 61.8% of gaps and the two physics-bounded axes
+(impact, amplitude) take 73.1% of repair's targets, so standardising each
+axis by its own spread should send repair where improvement is available. It is
+**-0.39 (SE 0.13), reject**, uniformly, and half-strength is -0.33. The reason
+is that the scorer measures raw error: a small gain on a large error moves the
+headline more than a large gain on a small one. "Improvable" and "worth points"
+are different quantities and only the second is paid.
+
 ## 2026-07-28 — every invalid run is a ride that stalls, and the handoff cannot see it
 
 The remaining validity pool is worth +6.16 (`invalid runs score their cell's

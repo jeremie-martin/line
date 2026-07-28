@@ -319,6 +319,25 @@ the early-compile pace estimate is pessimistic before any gap has been reached,
 so a breadth cut fires on healthy compiles too. Lookahead is refundable; the
 pool that lookahead ranks is not.
 
+### Two more closures on the improvement phase and the air axis
+
+**The ride-out does not hold because it is short — and holding it straight is
+worse.** The air axis inverts into a grounded ride-out LENGTH, and none of the
+length controls bind: the reference cap replaced by the detector's physical
+landing floor is +0.002 of bias, the blend floor at 0.5 and the blend strength at
+0.85 are flat, and raising the 220px clamp to 360 is BYTE-IDENTICAL. Holding the
+caught angle for the distance the air ask wants grounded — the same shape that
+raised supported-at-+6 from 60% to 75% — makes the capped population WORSE, air
+bias +0.110 -> +0.123. The rider on those gaps is bouncing rather than riding, so
+a branch that rotates down follows it and re-contacts while a straight one lets
+it bounce over. Air is not a length problem.
+
+**The post-completion staged rollout is inert.** `forwardStageTop` has been
+present and off since it was written; turning it on at 4 (so only four finalists
+pay the full-depth rollout after the first completion, which is where 500k and
+750k spend most of their budget) is **+0.10 with SE 0.24** — the cleanest null in
+the campaign.
+
 ### The fifth closure: supplying the energy directly does not move impact either
 
 Every impact arm this session ended at the same explanation — turning the rider

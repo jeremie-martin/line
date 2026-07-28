@@ -57,6 +57,49 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — the simulation-economy vein is bracketed on every side
+
+Five arms, N=8 against `scarce-lean` (558.63), ~7 min each.
+
+| arm | delta | SE | 250k | 500k | 750k | verdict |
+|---|---:|---:|---:|---:|---:|---|
+| `REPAIR_MAIN_MARGIN_MATURE` 1.1 → 1.0 | +0.28 | 0.14 | +0.8 | +0.3 | -0.0 | simplification |
+| `REPAIR_MAIN_MARGIN_MATURE` 1.1 → 1.25 | -0.52 | 0.15 | -0.8 | -0.5 | -0.4 | **reject** |
+| 0.75 exponent re-pointed at readiness alone | +0.17 | 0.20 | +0.1 | +0.2 | +0.3 | null |
+| the three signature exponent gates deleted | **+0.00** | 0.19 | -0.1 | +0.1 | -0.1 | **null** |
+| `HANDOFF_FORWARD_EVAL_PACE_START` 1.5 → 2.0 | -1.56 | 1.51 | **-7.2** | -0.2 | +0.0 | **reject** |
+
+**The pace ramp is at its start point for a reason.** Engaging the width
+narrowing earlier (slack 2.0 rather than 1.5) costs -7.2 at 250k. Together with
+the accepted arm's own bracket this closes the ramp on both sides.
+
+**The repair handover margin is at its optimum.** 1.25 rejects cleanly; 1.0 is
+weakly better than the shipped 1.1. The interesting part is not the +0.28 but
+that 1.0 makes five hand-carved signature rules (`M101` flat-compact, `M102`
+high-air-low-grain, `M108` drums-pulse, `M116` stable-dense, `M144` residual)
+into no-ops, since every one of them exists only to force the margin back to
+1.0 on a narrow profile band.
+
+**Two documented defects are worth exactly nothing.** `BALLISTIC_READINESS_
+CONTRACT.md` and the source comment at `objectiveBlendReadinessPowerForSpec`
+both flag that the 0.75 softening has, since `6d064b0` (2026-07-24), been
+discounting the ballistic projection as well as readiness — accepted on
+2026-07-04 when the objective had no projected term, never revalidated. It
+reaches 5 of 44 development cases, all `representative`. Re-pointing it at
+readiness alone (the plumbing already exists: `readinessPower` defaults to
+following `futureQualityPower`) is +0.17 ± 0.20. Deleting the three gates
+outright is **+0.00 ± 0.19** — the tightest null the campaign has produced.
+
+**Decision: retire the vein; retain both simplifications.** Pool size, per-gap
+sample count, forward-eval width, pace-ramp start and repair handover margin
+have now all been bracketed on both sides and all sit at or beside their
+optimum. Eight case-keyed rules are removable at measured parity, which is
+worth doing on its own terms but is not headline progress.
+
+**Next.** Re-pricing the accepted archive moved the aim. Air is now worth
++12.23 for a 25% bias removal against the +11.4 that 570 needs, and the seed
+spread alone is +13.16 (`valid runs score their cell's BEST` = 571.80).
+
 ## 2026-07-28 — the budget-aware sample count was not budget-aware
 
 **Hypothesis.** `budgetAwareQualitySampleCount` exists to scale the per-gap

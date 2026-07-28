@@ -319,6 +319,33 @@ the early-compile pace estimate is pessimistic before any gap has been reached,
 so a breadth cut fires on healthy compiles too. Lookahead is refundable; the
 pool that lookahead ranks is not.
 
+### Falsified: rushing the first completion — and it bounds the pacing family
+
+The budget decomposition says where the headline is lost: at 250k the accepted
+compiler scores 508 and at 750k it scores **569 on its own**, and the difference
+is almost entirely how much budget is left after the first complete track.
+Measured on the healthy representative cases at 250k, the first completion costs
+**65-82% of the budget** — `river_reentry` 186,796, `dense_dialogue` 204,121,
+`open_hook` 162,026 — so only a fifth to a third of the compile is spent
+improving. At 750k that same ~180k is a quarter of the budget.
+
+The obvious inference is that lookahead before the first completion is ranking
+two speculative futures against nothing, so it should be bought at the narrow
+width and opened up afterwards. It does what it says — first completion
+186,796 → 167,626 on `river_reentry`, 162,026 → 149,111 on `open_hook` — and it
+is **−4.11**, with `representative` −8.7, `legacy_regression` −15.7 and 750k
+−12.1.
+
+The reason is visible in the same probe: full evaluations collapse 24 → 5 on
+`river_reentry` and 55 → 3 on `countercurrent`. **The pre-completion search is
+not speculative — it is choosing the prefix the whole track is built on**, and a
+narrow prefix arrives sooner at a path the improvement phase cannot escape.
+
+That bounds the whole pacing family, and explains why the two accepted arms
+work: they narrow only where the compile's own pace says it will NOT finish, so
+the prefix they degrade is one that was going to score zero. Where a completion
+is reachable, breadth in the prefix is worth more than the budget it costs.
+
 ### The readiness model was stale after all — well calibrated, badly fit
 
 `SAMPLER_FILES` includes `arc_placement.ts`, so the corpus behind

@@ -122,6 +122,34 @@ device, and widening selection dilutes it however much budget exists. The rule
 is about the SHAPE of a budget dependence, not a claim that every knob grows —
 a scale-free law for a selection knob may correctly be flat.
 
+**The audit, executed: only ONE ceiling was binding.** Every other capped
+budget knob was tested with the same law and the same anchor, N=8 against
+`breadth-law`:
+
+| knob | its cap | delta | 750k | verdict |
+|---|---|---:|---:|---|
+| per-gap breadth | 32, leaned to 29 | **+1.24** | +2.03 | **ACCEPTED** |
+| admitted pool | flat 5, no budget term | -1.75 | -2.3 | correctly flat |
+| ditto, quarter power | | -1.94 | -4.9 | correctly flat |
+| tree width `HANDOFF_BRANCHING` | flat 3 | -1.73 | -0.5 | at its optimum |
+| ditto via `branchLimit` | | **+0.00** | +0.0 | the gate never binds |
+| tail-completion window | `8 + 4p`, max 12 | -0.86 | **+0.0** | no headroom at the top |
+| mature reuse extra | at most +1, ever | -0.32 | -1.1 | correctly capped |
+
+**And the distinctions that fell out of it.** Widening pays for GENERATION
+WITHIN a gap and nowhere else:
+- *not* for selection — the pool admits from the breadth, and widening it
+  dilutes (which is why `pool-five` narrowed it and paid +3.32);
+- *not* for tree width — a wider sample costs linearly, a wider tree multiplies
+  and starves depth, so 3 is optimal even at 750k;
+- *not* for reuse — reuse recycles committed geometry rather than generating
+  fresh options, so more of it behaves like a selection widening.
+
+So "the compiler must scale to any budget" is a rule about the SHAPE of a
+budget dependence — no saturation or ceiling fitted to the benchmark's
+operating points — and for most knobs the correct scale-free law turns out to
+be flat. Only the per-gap breadth was being held back by its ceiling.
+
 **The generalisation to carry forward.** The same critique applies to every
 other maturity ramp in `handoff.ts`: `maturityPressure` is
 `smoothstep(b/(b+150k))`, which reads 0.684 / 0.865 / 0.926 at 250k / 500k /

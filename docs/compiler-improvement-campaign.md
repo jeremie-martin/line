@@ -437,6 +437,34 @@ multiplies the speed it takes. This is the sixth closure of the impact axis this
 session and the most complete: the bounce is a real, large, correctly-identified
 failure, and the branch shape that fixes it costs more than the turn it recovers.
 
+### The correction the six closures point at: normal forces do no work
+
+Every impact closure this session was explained as "turning the rider costs
+kinetic energy nothing replaces". That is true of a COLLISION and false of a
+CURVE. A surface exerts only a normal force, and a normal force does no work on a
+rider sliding along it — a smooth curve redirects the velocity for free. The
+energy account is therefore not a property of turning; it is a property of two
+specific things:
+
+1. **discrete impulses**, which kill the normal component and cost
+   `v(1 − cos θ)` per vertex — the polyline's price, and why the accepted
+   segment refinement paid;
+2. **net climb**, which is potential energy — and why the shallow valley above
+   brakes: it turns the rider by rising, and pays gravity for the privilege.
+
+That is exactly what the held population's numbers say. Its turn EXCEEDS its
+incidence — more rotation than the impulse delivered — because the surface keeps
+turning it afterwards, and it does so at the HIGHEST arrival speed of the three
+groups (10.72 against 10.55). Free turning is already visible in the data.
+
+So the open question is sharper than "the energy is not there". It is: what
+surface turns the rider through the scored window while its height still FALLS?
+The arrival is descending and a catch must present a surface no steeper than the
+arrival, so the vertex turn is upward by construction — but the rotation AFTER it
+need not climb if the branch starts steep enough to keep descending while it
+curves. Nothing in this session tried that shape; every valley arm rotated up
+from an already-flat contact and paid for it in height.
+
 ### The engine-speed commits are behaviourally inert, verified
 
 `eval` refuses a comparison when the WASM bytes differ from the baseline's, so

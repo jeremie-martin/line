@@ -3,10 +3,8 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`span-handover`, canonical headline 559.75. Its cache covers 8 seeds per
-budget and extends on demand. Qualification monitor 405.41 at 120/120 valid —
-DOWN 1.92 while development rose, which is monitoring evidence and is recorded
-as such, not tuned against.
+`breadth-law`, canonical headline 560.85. Its cache covers 8 seeds per budget
+and extends on demand. Qualification monitor 405.64 at 120/120 valid.
 
 | baseline | canonical | evidence |
 |---|---:|---|
@@ -18,7 +16,8 @@ as such, not tuned against.
 | `readiness-catch-impact` | 553.73 | N=24 +6.05, promotable, validity 3089→3131 |
 | `pool-five` | 557.05 | N=24 +4.18, promotable, every stratum and budget positive |
 | `scarce-lean` | 558.63 | N=24 +1.00 [-0.71, +2.70]; 500k/750k exactly 0.00 by construction |
-| **`span-handover`** | **559.75** | **N=24 +0.65 SE 0.27, ACCEPT/promotable, every stratum and budget positive** |
+| `span-handover` | 559.75 | N=24 +0.65 SE 0.27, ACCEPT/promotable, every stratum and budget positive |
+| **`breadth-law`** | **560.85** | **N=24 +1.24 SE 0.27 [+0.49, +1.98], ACCEPT/promotable; a law, not a refit** |
 
 ### What 570 would now require
 
@@ -59,6 +58,66 @@ are evidence, not baselines.
 The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
+
+## 2026-07-28 — ACCEPTED: one scale-free law for per-gap breadth
+
+Jeremie, on the campaign's habit of chasing the scarce budget: *250k will never
+reach 750k, that's the whole point of using a higher budget* — and then, on the
+shape of the fix: *these saturations are quite questionable, the compiler
+behaviour should scale to just about any budget.* Both are right, and together
+they produced the cleanest mechanism of the campaign.
+
+**What the stack actually was.** `budgetAwareQualitySampleCount` had five
+piecewise pieces — `scarceLean` (faded out by 100k), `matureLean` (saturated by
+250k), a canonical-scarce segment, and a hard `HANDOFF_QUALITY_N_CAND` ceiling
+over all of it. The curve it produced is not monotone:
+
+| budget | 100k | 125k | 250k | 500k | 750k |
+|---|---:|---:|---:|---:|---:|
+| nCand | 29 | **32** | **24** | 29 | 29 |
+
+That is an interpolation through the three budgets the benchmark runs, not a
+statement about budget. Outside the window the answer is arbitrary.
+
+**The ceiling was the binding part.** The "mature" lean leans DOWNWARD from 32,
+so every canonical budget sat pinned at 29 and the compiler could not invest
+more per gap however much budget existed — a 750k compile spent with a 500k
+policy that merely ran longer. Lifting the top alone confirms it, with the
+other budgets byte-identical by construction:
+
+| arm | delta | SE | 250k | 500k | 750k |
+|---|---:|---:|---:|---:|---:|
+| 750k ceiling → 44 | +0.82 | 0.12 | +0.0 | +0.0 | **+2.7** |
+| 750k ceiling → 36 | +0.33 | 0.33 | +0.0 | +0.0 | +1.1 |
+
+**The law.** Per-gap breadth grows as the SQUARE ROOT of the budget: doubling
+the frames buys sqrt(2) times the candidates per gap — the standard
+diminishing-returns allocation, monotone, no ceiling, no special budgets. ONE
+anchor (24 candidates at 250k, the point measured directly at +8.8 against 29)
+replaces seven constants:
+
+| budget | 50k | 100k | 250k | 500k | 750k | 1M | 2M |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| nCand | 11 | 15 | **24** | 34 | 42 | 48 | 68 |
+
+**500k was not fitted, and the law predicted it.** Anchored at 250k and
+calibrated at 750k, it says 500k should sample 34 rather than the shipped 29 —
+an operating point neither end informed. It verified: 500k +0.97 at N=8, +1.25
+at N=24. Predicting an unfitted budget is evidence of a different kind from a
+refit, and it is exactly what the piecewise stack could never do.
+
+**N=24: +1.24, SE 0.27, CI [+0.49, +1.98], ACCEPT, promotable.** 250k +0.00
+(byte-identical), 500k +1.25, 750k +2.03; every stratum positive (repr +1.15,
+capa +0.37, lega +2.95, dev +1.66); validity unchanged at 3144. Qualification
+405.41 → 405.64, up this time.
+
+**The generalisation to carry forward.** The same critique applies to every
+other maturity ramp in `handoff.ts`: `maturityPressure` is
+`smoothstep(b/(b+150k))`, which reads 0.684 / 0.865 / 0.926 at 250k / 500k /
+750k — asymptotic, so a doubling of budget from 500k to 750k moves it 0.06. It
+governs future-preview pressure, mature reuse, the tail throttle and the
+tail-completion window. Every one of those is a ceiling waiting to be replaced
+by a law.
 
 ## 2026-07-28 — the accepted ramp's own shape, bracketed on all four sides
 

@@ -1,9 +1,9 @@
 {
   "schema": "line.benchmark-v2.baseline-reference.v10",
   "status": "canonical-baseline",
-  "label": "span-handover",
-  "generated_at": "2026-07-28T13:07:28.823Z",
-  "bundle": "benchmark/v2/runs/span-handover-baseline.json",
+  "label": "breadth-law",
+  "generated_at": "2026-07-28T19:20:05.662Z",
+  "bundle": "benchmark/v2/runs/breadth-law-baseline.json",
   "catalog_fingerprint": "7dca7a96370bcc3545bfc66b704941aa1501558134007b1194d3c655379931f5",
   "suite_fingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
@@ -11,7 +11,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "b12188608a0b4d600a93ddaf511266d329275bf9e7b0e5daf49782cef02e12bb",
+  "compiler_source_fingerprint": "37023d88bddbd4a33832916034b13c6bf142fae01ee153124af59f486bc7f037",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -100,26 +100,26 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
-  "candidate_fingerprint": "9dc54379dd092ce7f48a2efc7dd9fbef43f49935844111b7300943c75e7a04de",
+  "candidate_fingerprint": "25752f12bf0a246fc397d59277af0d9a90fffdcc10ac8c4d49936473feaa3ae2",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "66df2a60541432357fa203e1d45f4377878960f42d47a72a1a153adcf5205d2c",
   "decision_calibration_fingerprint": "380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/span-handover-compiler-snapshot.tar.gz",
-    "archiveSha256": "34edf5b136e9b49599cbdaa486c1f6bd805aca43accc6ba51806207797889973",
-    "candidateFingerprint": "9dc54379dd092ce7f48a2efc7dd9fbef43f49935844111b7300943c75e7a04de",
-    "compilerSourceFingerprint": "b12188608a0b4d600a93ddaf511266d329275bf9e7b0e5daf49782cef02e12bb",
+    "archive": "benchmark/v2/runs/breadth-law-compiler-snapshot.tar.gz",
+    "archiveSha256": "f44fa468ad655300c0960c1b7cd8408b048e80566754cb1a9853e219917aaa5f",
+    "candidateFingerprint": "25752f12bf0a246fc397d59277af0d9a90fffdcc10ac8c4d49936473feaa3ae2",
+    "compilerSourceFingerprint": "37023d88bddbd4a33832916034b13c6bf142fae01ee153124af59f486bc7f037",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
   },
   "probe": {
     "execution_policy_fingerprint": "5e336cda28b31c14ba42bcafd6d695f492b62b2df370fcd95ccd4725e476b92a",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "f64ecad9a28fe58e6e71928b3d53c80df1b05ef80fe0fdcaf7f3a262ec44c818",
-    "compressed_archive": "benchmark/v2/runs/span-handover-probe.json.gz",
-    "compressed_archive_sha256": "ece6d4f37403eb71e47e4fdbb91625242aa2d40ac80d887a22e7d7eec40868f5",
-    "canonical_headline": 558.3113,
+    "archive_sha256": "2595d815b325095ab41f21caf831621f6e24fb34ba6266688efcf0455712e90c",
+    "compressed_archive": "benchmark/v2/runs/breadth-law-probe.json.gz",
+    "compressed_archive_sha256": "f7478c2dfde39553c80c6f438e63ec1a0eb6bc3b0d4b040a20171fe1b0f978c5",
+    "canonical_headline": 558.509,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "probe",
@@ -153,7 +153,7 @@
       },
       {
         "budget": 500000,
-        "score": 565.682,
+        "score": 565.9588,
         "valid_runs": 132,
         "total_runs": 132
       }
@@ -162,10 +162,10 @@
   "development": {
     "execution_policy_fingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "84da6367f825d552fd14d190f189716c9d8c67688e50f6a5d38a57d57f13a40f",
-    "compressed_archive": "benchmark/v2/runs/span-handover-development.json.gz",
-    "compressed_archive_sha256": "e3e3fba47a228ca3da31774c0bd993369bc43363ccc17b0fa351a3e081d9c57c",
-    "canonical_headline": 559.7518,
+    "archive_sha256": "802898aacf3fd91e2935d29f095571f640e26ab482cf3940bdde8f8b8ff3ed6d",
+    "compressed_archive": "benchmark/v2/runs/breadth-law-development.json.gz",
+    "compressed_archive_sha256": "e3d082e7be9aae6f527e2d312c5d8c43c69e6847c6832ff06f3ffbfbe1f5ea46",
+    "canonical_headline": 560.8472,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -222,13 +222,13 @@
       },
       {
         "budget": 500000,
-        "score": 565.6412,
+        "score": 566.6104,
         "valid_runs": 352,
         "total_runs": 352
       },
       {
         "budget": 750000,
-        "score": 572.1038,
+        "score": 574.1397,
         "valid_runs": 352,
         "total_runs": 352
       }
@@ -237,10 +237,10 @@
   "qualification": {
     "execution_policy_fingerprint": "6aead4041cc8bef727be3feb1fca610e1c3a8d994bf6cfce387d50ffea42611e",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "49f45ba3f8dd105ee28d62999ef720f39441ab038c4b8bf859132bd487326a28",
-    "compressed_archive": "benchmark/v2/runs/span-handover-qualification.json.gz",
-    "compressed_archive_sha256": "a74dbaab93a30e27ceb632d875ba49fe9bd1afa71d62a1cd752229c82b20a619",
-    "monitor_score": 405.4096,
+    "archive_sha256": "e603c39eeea280a2bcb3b3bda40ace95283634ac95b49df0ad675b1faeda2ef5",
+    "compressed_archive": "benchmark/v2/runs/breadth-law-qualification.json.gz",
+    "compressed_archive_sha256": "d6cbdccd1821973962aa3a0caf4b843a7de530f5e5dcacbed0b72a6b731443d8",
+    "monitor_score": 405.6381,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -297,23 +297,23 @@
       },
       {
         "budget": 500000,
-        "score": 406.7322,
+        "score": 405.9294,
         "valid_runs": 40,
         "total_runs": 40
       },
       {
         "budget": 750000,
-        "score": 407.6803,
+        "score": 409.7801,
         "valid_runs": 40,
         "total_runs": 40
       }
     ],
-    "linked_development_archive_sha256": "84da6367f825d552fd14d190f189716c9d8c67688e50f6a5d38a57d57f13a40f"
+    "linked_development_archive_sha256": "802898aacf3fd91e2935d29f095571f640e26ab482cf3940bdde8f8b8ff3ed6d"
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "span-handover",
-    "candidateFingerprint": "9dc54379dd092ce7f48a2efc7dd9fbef43f49935844111b7300943c75e7a04de",
+    "baselineLabel": "breadth-law",
+    "candidateFingerprint": "25752f12bf0a246fc397d59277af0d9a90fffdcc10ac8c4d49936473feaa3ae2",
     "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -1243,21 +1243,10 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 8,
-        "archiveSha256": "84da6367f825d552fd14d190f189716c9d8c67688e50f6a5d38a57d57f13a40f",
-        "compressedArchive": "benchmark/v2/runs/span-handover-development.json.gz",
-        "compressedArchiveSha256": "e3e3fba47a228ca3da31774c0bd993369bc43363ccc17b0fa351a3e081d9c57c",
+        "archiveSha256": "802898aacf3fd91e2935d29f095571f640e26ab482cf3940bdde8f8b8ff3ed6d",
+        "compressedArchive": "benchmark/v2/runs/breadth-law-development.json.gz",
+        "compressedArchiveSha256": "e3d082e7be9aae6f527e2d312c5d8c43c69e6847c6832ff06f3ffbfbe1f5ea46",
         "executionPolicyFingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
-        "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
-      },
-      {
-        "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
-        "firstSeedSlot": 8,
-        "endSeedSlotExclusive": 24,
-        "archiveSha256": "dd583bb9564fd0608daf1b391cc70a08972722c421cf39c5fa80cf556e2187aa",
-        "archive": "benchmark/v2/runs/span-handover-slots-8-24.json",
-        "compressedArchive": "benchmark/v2/runs/span-handover-slots-8-24.json.gz",
-        "compressedArchiveSha256": "5d06227e83d07c9577dc2b3d4d90cdccb54496e6cfc284c53065ad27a1a39a76",
-        "executionPolicyFingerprint": "48895225be668c09b0022c5b3d5abb9b2cb6a6c81cabf8cc07c8005cb8bfd3b6",
         "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
       }
     ]

@@ -465,6 +465,43 @@ need not climb if the branch starts steep enough to keep descending while it
 curves. Nothing in this session tried that shape; every valley arm rotated up
 from an already-flat contact and paid for it in height.
 
+### THE CEILING, correctly stated at last: there is no descending rotation left
+
+The correction above predicts a specific shape — meet the rider on a surface
+closer to its arrival, then curve down to the flattened angle across the window,
+so the same heading is reached at the deadline by free curvature instead of a
+lossy impulse, while descending the whole way. Measured (`ENTRY_CURVE_SHARE`,
+share of the flatten moved from vertex to curve):
+
+| share | delivered | arrival speed | turn | incidence | free rotation past the impulse |
+|---|---:|---:|---:|---:|---:|
+| 0 (shipped) | 0.363 | 10.67 | 14.02° | 13.71° | **+0.31°** |
+| 0.25 | 0.340 | 10.51 | 13.20° | 11.61° | +1.59° |
+| 0.50 | 0.340 | **10.74** | 12.86° | 9.61° | **+3.25°** |
+
+**The physics is confirmed and the ceiling is elsewhere.** At share 0.5 the
+arrival speed is fully preserved — 10.74 against the shipped 10.67, the first
+arm all session to add turn-shaping at no speed cost — bounces fall 184 → 50, and
+the branch delivers **ten times** the post-impulse rotation the shipped one does.
+Free turning is real and the compiler was not using it.
+
+It still loses, and the reason is geometric rather than energetic. The catch
+surface is ALREADY nearly horizontal: the carrier flattens `contactAngleDeg` to
+about +2 degrees against a 13-degree descending arrival. Rotation that keeps
+descending is rotation between the arrival angle and horizontal, and the vertex
+impulse has already spent all of it. Everything past horizontal is climb, which
+is what every valley arm paid for. So moving turn from impulse to curve cannot
+ADD turn here — it can only re-allocate the same 13 degrees, and it gives up more
+at the vertex than the capped window share returns.
+
+**Which names the one lever that remains.** More descending rotation requires a
+STEEPER ARRIVAL — more angle between the incoming heading and horizontal. That is
+the steep-arrival dive, already accepted twice this campaign, and its cap is the
+AIR axis: a deeper dive lengthens the flight (+0.062 air bias at a 30-degree
+delta cap). So the impact ceiling on this suite is an AIR ceiling wearing
+impact's clothes, and the open question is the one the 2026-07-27 entry left:
+buy the arrival with SLOPE instead of flight time.
+
 ### The engine-speed commits are behaviourally inert, verified
 
 `eval` refuses a comparison when the WASM bytes differ from the baseline's, so

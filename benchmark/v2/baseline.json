@@ -1,9 +1,9 @@
 {
   "schema": "line.benchmark-v2.baseline-reference.v10",
   "status": "canonical-baseline",
-  "label": "readiness-catch-impact",
-  "generated_at": "2026-07-28T03:14:57.928Z",
-  "bundle": "benchmark/v2/runs/readiness-catch-impact-baseline.json",
+  "label": "pool-five",
+  "generated_at": "2026-07-28T07:39:15.047Z",
+  "bundle": "benchmark/v2/runs/pool-five-baseline.json",
   "catalog_fingerprint": "7dca7a96370bcc3545bfc66b704941aa1501558134007b1194d3c655379931f5",
   "suite_fingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
@@ -11,7 +11,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "7cdbd9e9996200243071b978223e9cc2e3e8b443a8f3314b3923b22c9d30cb8f",
+  "compiler_source_fingerprint": "84712ad0a820523f82302e67d6758ec3953fce9f12b5fc485db5ae6329e411e9",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -100,26 +100,26 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
-  "candidate_fingerprint": "ea5fba7467f676ad002d79cfc477b52a37c16e042ca8d17c56865fa780663606",
+  "candidate_fingerprint": "d3289ca0e006c37122836f526d4985a0f7a21f7df9b9b0db4e39efc037886a90",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "66df2a60541432357fa203e1d45f4377878960f42d47a72a1a153adcf5205d2c",
   "decision_calibration_fingerprint": "380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/readiness-catch-impact-compiler-snapshot.tar.gz",
-    "archiveSha256": "8e508db09e787922b0dacd3348a61bbb8324bb94dbc3804544d2ef46ca3cdb71",
-    "candidateFingerprint": "ea5fba7467f676ad002d79cfc477b52a37c16e042ca8d17c56865fa780663606",
-    "compilerSourceFingerprint": "7cdbd9e9996200243071b978223e9cc2e3e8b443a8f3314b3923b22c9d30cb8f",
+    "archive": "benchmark/v2/runs/pool-five-compiler-snapshot.tar.gz",
+    "archiveSha256": "737fc241bdca6bdfb6782cf584c508583451c84bacf33a03b8473fdf395b88bb",
+    "candidateFingerprint": "d3289ca0e006c37122836f526d4985a0f7a21f7df9b9b0db4e39efc037886a90",
+    "compilerSourceFingerprint": "84712ad0a820523f82302e67d6758ec3953fce9f12b5fc485db5ae6329e411e9",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
   },
   "probe": {
     "execution_policy_fingerprint": "5e336cda28b31c14ba42bcafd6d695f492b62b2df370fcd95ccd4725e476b92a",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "b866e1d4b0f10af1fa4c419478c6580187627736e4711de5ace3ec287579afe0",
-    "compressed_archive": "benchmark/v2/runs/readiness-catch-impact-probe.json.gz",
-    "compressed_archive_sha256": "7a54a6c143aeb22493643be7440d95d7bd61a6f0dd798b63c62300403411897c",
-    "canonical_headline": 549.1044,
+    "archive_sha256": "a762b1b11a7731843289d2ceb4d7bd5f526f8b8f519b138c8ec09453e14def68",
+    "compressed_archive": "benchmark/v2/runs/pool-five-probe.json.gz",
+    "compressed_archive_sha256": "b51eb0dce2e4b6ccb924d3082bf0eddd0b83f12bfe307ffe10942fb57bb9a32e",
+    "canonical_headline": 554.1064,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "probe",
@@ -147,13 +147,13 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 515.3736,
-        "valid_runs": 127,
+        "score": 524.4408,
+        "valid_runs": 129,
         "total_runs": 132
       },
       {
         "budget": 500000,
-        "score": 562.5967,
+        "score": 565.9726,
         "valid_runs": 132,
         "total_runs": 132
       }
@@ -162,10 +162,10 @@
   "development": {
     "execution_policy_fingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "dc68b4740bb49d0c8e10ef1c937757c5d44279f8f3f9ef73aed8ba266d925943",
-    "compressed_archive": "benchmark/v2/runs/readiness-catch-impact-development.json.gz",
-    "compressed_archive_sha256": "e2548896cb7ee16e45e2b9c73a047715001fdca16bb7d5e9467f77be1b268b60",
-    "canonical_headline": 553.7343,
+    "archive_sha256": "d3292dbe60da370a17b637c149e04ea6c2cf9699f5afc4987fc157571b70879d",
+    "compressed_archive": "benchmark/v2/runs/pool-five-development.json.gz",
+    "compressed_archive_sha256": "75f75684f64b3bc060bb0c67176956ffe5097c9ed3b711aa704e0a1def22b2bd",
+    "canonical_headline": 557.0544,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -216,19 +216,19 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 510.8395,
-        "valid_runs": 338,
+        "score": 516.9741,
+        "valid_runs": 340,
         "total_runs": 352
       },
       {
         "budget": 500000,
-        "score": 561.7924,
+        "score": 564.4715,
         "valid_runs": 352,
         "total_runs": 352
       },
       {
         "budget": 750000,
-        "score": 568.9005,
+        "score": 571.4126,
         "valid_runs": 352,
         "total_runs": 352
       }
@@ -237,10 +237,10 @@
   "qualification": {
     "execution_policy_fingerprint": "6aead4041cc8bef727be3feb1fca610e1c3a8d994bf6cfce387d50ffea42611e",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "fc22ea239a0626dfb79c65fdef3f3ed548e1b4fcba7fdc15c6ac2dec91c266de",
-    "compressed_archive": "benchmark/v2/runs/readiness-catch-impact-qualification.json.gz",
-    "compressed_archive_sha256": "25802e4bd219b991484abfc72b93df698ee2972deb180676462f91c05ab247fe",
-    "monitor_score": 407.1962,
+    "archive_sha256": "4664c6c02c09e4fc9bb84cf73063a75fe33bc7f23fe15ee629593b4bf1dba3b6",
+    "compressed_archive": "benchmark/v2/runs/pool-five-qualification.json.gz",
+    "compressed_archive_sha256": "41f4dab43739d5c5db294d3e96c7427834c5eaf5aea19a2733f1d124a9d7fc37",
+    "monitor_score": 407.5508,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -291,29 +291,29 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 401.4597,
+        "score": 403.8828,
         "valid_runs": 40,
         "total_runs": 40
       },
       {
         "budget": 500000,
-        "score": 407.2154,
+        "score": 407.7294,
         "valid_runs": 40,
         "total_runs": 40
       },
       {
         "budget": 750000,
-        "score": 410.9884,
+        "score": 409.6984,
         "valid_runs": 40,
         "total_runs": 40
       }
     ],
-    "linked_development_archive_sha256": "dc68b4740bb49d0c8e10ef1c937757c5d44279f8f3f9ef73aed8ba266d925943"
+    "linked_development_archive_sha256": "d3292dbe60da370a17b637c149e04ea6c2cf9699f5afc4987fc157571b70879d"
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "readiness-catch-impact",
-    "candidateFingerprint": "ea5fba7467f676ad002d79cfc477b52a37c16e042ca8d17c56865fa780663606",
+    "baselineLabel": "pool-five",
+    "candidateFingerprint": "d3289ca0e006c37122836f526d4985a0f7a21f7df9b9b0db4e39efc037886a90",
     "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -1243,21 +1243,10 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 8,
-        "archiveSha256": "dc68b4740bb49d0c8e10ef1c937757c5d44279f8f3f9ef73aed8ba266d925943",
-        "compressedArchive": "benchmark/v2/runs/readiness-catch-impact-development.json.gz",
-        "compressedArchiveSha256": "e2548896cb7ee16e45e2b9c73a047715001fdca16bb7d5e9467f77be1b268b60",
+        "archiveSha256": "d3292dbe60da370a17b637c149e04ea6c2cf9699f5afc4987fc157571b70879d",
+        "compressedArchive": "benchmark/v2/runs/pool-five-development.json.gz",
+        "compressedArchiveSha256": "75f75684f64b3bc060bb0c67176956ffe5097c9ed3b711aa704e0a1def22b2bd",
         "executionPolicyFingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
-        "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
-      },
-      {
-        "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
-        "firstSeedSlot": 8,
-        "endSeedSlotExclusive": 24,
-        "archiveSha256": "cf6dfd85b25c173ec04553d77b814ad8b22f8416dc238cd934cb8b282eafa1e5",
-        "archive": "benchmark/v2/runs/readiness-catch-impact-slots-8-24.json",
-        "compressedArchive": "benchmark/v2/runs/readiness-catch-impact-slots-8-24.json.gz",
-        "compressedArchiveSha256": "22724da4f3b705d5d64d3d0c17d1aad6ae51f9b627cf3dcc28831ec9ffef066a",
-        "executionPolicyFingerprint": "48895225be668c09b0022c5b3d5abb9b2cb6a6c81cabf8cc07c8005cb8bfd3b6",
         "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
       }
     ]

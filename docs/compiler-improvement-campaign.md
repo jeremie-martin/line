@@ -3,7 +3,7 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`readiness-catch-impact`, canonical headline 553.73. Its cache covers 8 seeds per
+`pool-five`, canonical headline 557.05. Its cache covers 8 seeds per
 budget and extends on demand. Qualification monitor 407.20 at 120/120 valid.
 
 | baseline | canonical | evidence |
@@ -13,7 +13,8 @@ budget and extends on demand. Qualification monitor 407.20 at 120/120 valid.
 | `segment-refine` | 532.40 | N=48 +2.01 |
 | `paced-forward-eval-width` | 541.57 | N=24 +10.66 [+5.13, +16.19] |
 | `paced-aim-lane` | 548.54 | N=8 +6.97, three strata exactly 0.00 |
-| **`readiness-catch-impact`** | **553.73** | **N=24 +6.05, promotable, validity 3089→3131** |
+| `readiness-catch-impact` | 553.73 | N=24 +6.05, promotable, validity 3089→3131 |
+| **`pool-five`** | **557.05** | **N=24 +4.18, promotable, every stratum and budget positive** |
 
 ### What 570 would now require
 
@@ -598,6 +599,35 @@ So the search declines the template for reasons its ranker gets RIGHT, and a
 better ranker declines it harder. Combined with the bounce work above — where the
 shallow valley removes 63% of bounces and loses anyway — the converting shape is
 closed from both the geometry side and the ranking side.
+
+### ACCEPTED: the pool is larger than the width the search can rank
+
+The accepted forward-eval prune stops paying for rollouts on candidates the
+search will not expand. One layer down, the pool's own per-candidate PREVIEW is
+also a charged simulation — so with the rolled head at 2 and `HANDOFF_BRANCHING`
+at 3, a pool of eight was paying preview cost for candidates it could neither
+rank honestly nor expand.
+
+| pool | delta (N=8) | note |
+|---|---:|---|
+| 3 | +1.83 | |
+| 4 | −3.54 | capability −34.8 |
+| **5** | **+3.32** | every stratum and budget positive |
+| 6 | +2.28 | |
+| 8 | shipped | |
+
+An interior optimum with a sharp hole at 4. N=24:
+
+```
+headline 553.53 -> 557.71   delta +4.18   seed-block SE 1.66   promotable
+validity 3131/3168 -> 3136/3168
+  250k +2.75   500k +6.07   750k +1.99
+strata  representative +2.50 | capability +15.03 | legacy_regression +0.02 | development_music +3.41
+```
+
+This is the third accept from one principle — spend a charged simulation only
+where it changes a decision the search will act on — after the paced rolled head
+and the paced aim lane.
 
 ### The engine-speed commits are behaviourally inert, verified
 

@@ -834,7 +834,24 @@ const HANDOFF_CANDIDATE_POOL = 5;
  * head once its measured cost to reach the end has passed the budget it has.
  */
 const HANDOFF_FORWARD_EVAL_TOP = 2;
-/** Paced slack at which the width starts narrowing, and where it is fully narrow. */
+/** Paced slack at which the width starts narrowing, and where it is fully narrow.
+ *  Both ends bracketed 2026-07-28 against `span-handover`, and the gradient runs
+ *  one way — narrow HARDER. Widening the window from the START end (2.0) is
+ *  -1.56 with 250k -7.2; widening it from the FULL end (0.7), so pressure rises
+ *  more slowly, is -2.53 with 250k -13.1 and nine valid runs lost. Tightening it
+ *  to 1.2 is **+1.30, 250k +6.2, capability +8.23, and two valid runs GAINED**.
+ *
+ *  The floor has its own interior optimum at `HANDOFF_FORWARD_EVAL_TOP`: 0 is
+ *  -4.59 (capability -31.76), 1 is +0.89, 2 shipped, 3 is -1.25. Tightening the
+ *  window and lowering the floor are SUBSTITUTES rather than complements —
+ *  composing 1.2 with a floor of 1 is only +0.30, below either alone — so the
+ *  window carries it and the floor stays at 2.
+ *
+ *  1.2 did NOT survive depth: N=24 is +0.42 (SE 0.93, CI [-2.19, +3.02]),
+ *  against +1.30 at N=8, with 250k +6.2 -> +1.92 and capability +8.23 -> +2.77.
+ *  Validity still improves (3144 -> 3149) and the point estimate is positive at
+ *  both depths, but it is not decisive, so the shipped 1.0 stands and the
+ *  bracket is recorded here rather than promoted. */
 const HANDOFF_FORWARD_EVAL_PACE_START = 1.5;
 const HANDOFF_FORWARD_EVAL_PACE_FULL = 1.0;
 /** Whether the aiming lane is held to the same pace rule as the rolled head. */

@@ -1248,6 +1248,17 @@
         "compressedArchiveSha256": "e3e3fba47a228ca3da31774c0bd993369bc43363ccc17b0fa351a3e081d9c57c",
         "executionPolicyFingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
         "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
+      },
+      {
+        "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
+        "firstSeedSlot": 8,
+        "endSeedSlotExclusive": 24,
+        "archiveSha256": "dd583bb9564fd0608daf1b391cc70a08972722c421cf39c5fa80cf556e2187aa",
+        "archive": "benchmark/v2/runs/span-handover-slots-8-24.json",
+        "compressedArchive": "benchmark/v2/runs/span-handover-slots-8-24.json.gz",
+        "compressedArchiveSha256": "5d06227e83d07c9577dc2b3d4d90cdccb54496e6cfc284c53065ad27a1a39a76",
+        "executionPolicyFingerprint": "48895225be668c09b0022c5b3d5abb9b2cb6a6c81cabf8cc07c8005cb8bfd3b6",
+        "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
       }
     ]
   }

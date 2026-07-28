@@ -60,6 +60,41 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-28 — the accepted ramp's own shape, bracketed on all four sides
+
+The synthesis above says live-state adaptation pays as a continuous ramp on
+expenditure magnitude. The campaign's largest accept (+10.66) is exactly that
+ramp — and neither of its two shape constants had ever been fitted. Both are
+now bracketed, N=8 against `span-handover`.
+
+| arm | delta | SE | 250k | capa | valid |
+|---|---:|---:|---:|---:|---:|
+| `PACE_START` 1.5 → 2.0 (wider window) | -1.56 | 1.51 | -7.2 | - | 1046 |
+| `PACE_FULL` 1.0 → 0.7 (slower rise) | -2.53 | 1.72 | -13.1 | -17.11 | **1039** |
+| **`PACE_FULL` 1.0 → 1.2 (faster rise)** | **+1.30** | 1.36 | **+6.2** | **+8.23** | **1050** |
+| `FORWARD_EVAL_TOP` 2 → 0 | -4.59 | 4.41 | -3.0 | -31.76 | 1046 |
+| **`FORWARD_EVAL_TOP` 2 → 1** | **+0.89** | 2.18 | **+5.0** | **+6.20** | **1049** |
+| `FORWARD_EVAL_TOP` 2 → 3 | -1.25 | 1.49 | -6.2 | -8.48 | 1046 |
+| `TOP` 1 + `PACE_FULL` 1.2 | +0.30 | 2.20 | +1.0 | +1.60 | 1049 |
+
+**The gradient runs one way: narrow HARDER.** Every arm that keeps the rolled
+head wider under pace pressure loses and loses validity; both arms that narrow
+it further gain, and gain validity. The floor has a clean interior optimum
+(0 is -4.59, 1 is +0.89, 2 shipped, 3 is -1.25).
+
+**And the two ways to narrow are SUBSTITUTES, not complements.** Composing the
+tighter window with the lower floor is +0.30 — below either alone — because both
+express the same thing and doing both overshoots into the same territory that
+made `TOP = 0` cost 31.8 of capability.
+
+**Resolved and NOT promoted.** The best single arm, `PACE_FULL` 1.2, is +0.42 at
+N=24 (SE 0.93, CI [-2.19, +3.02]) against +1.30 at N=8 — 250k +6.2 → +1.92 and
+capability +8.23 → +2.77. Validity still improves (3144 → 3149, 16 gained / 11
+lost) and the point estimate is positive at both depths, but the interval is
+not decisive and this is a re-tune of a constant rather than a defect fix. The
+shipped 1.0 stands; the bracket is recorded at the constant so the next
+campaign does not re-spend it.
+
 ## 2026-07-28 — adapting to the budget that is LEFT: what it pays for, and what it does not
 
 Jeremie's framing: every high-budget compile becomes a low-budget one as it

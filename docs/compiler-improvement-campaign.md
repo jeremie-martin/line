@@ -3,8 +3,10 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`scarce-lean`, canonical headline 558.63. Its cache covers 8 seeds per
-budget and extends on demand. Qualification monitor 407.33 at 120/120 valid.
+`span-handover`, canonical headline 559.75. Its cache covers 8 seeds per
+budget and extends on demand. Qualification monitor 405.41 at 120/120 valid —
+DOWN 1.92 while development rose, which is monitoring evidence and is recorded
+as such, not tuned against.
 
 | baseline | canonical | evidence |
 |---|---:|---|
@@ -15,7 +17,8 @@ budget and extends on demand. Qualification monitor 407.33 at 120/120 valid.
 | `paced-aim-lane` | 548.54 | N=8 +6.97, three strata exactly 0.00 |
 | `readiness-catch-impact` | 553.73 | N=24 +6.05, promotable, validity 3089→3131 |
 | `pool-five` | 557.05 | N=24 +4.18, promotable, every stratum and budget positive |
-| **`scarce-lean`** | **558.63** | **N=24 +1.00 [-0.71, +2.70]; 500k/750k exactly 0.00 by construction** |
+| `scarce-lean` | 558.63 | N=24 +1.00 [-0.71, +2.70]; 500k/750k exactly 0.00 by construction |
+| **`span-handover`** | **559.75** | **N=24 +0.65 SE 0.27, ACCEPT/promotable, every stratum and budget positive** |
 
 ### What 570 would now require
 
@@ -56,6 +59,39 @@ are evidence, not baselines.
 The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
+
+## 2026-07-28 — ACCEPTED: the span, the handover, and 194 lines of dead gates
+
+The three arms that survived their brackets, composed and resolved.
+
+| part | own N=8 delta |
+|---|---:|
+| `ARC_LEN_SPAN_HI` 1.45 → 1.85 | +0.65 |
+| `REPAIR_MAIN_MARGIN_MATURE` 1.1 → 1.0 | +0.28 |
+| delete the three signature exponent gates | +0.00 |
+
+Composite N=8 **+1.12** (SE 0.56); N=24 **+0.65, SE 0.27, CI [-0.07, +1.37],
+ACCEPT, promotable**. Every stratum positive (repr +0.36, capa +1.43, lega
++0.47, dev +2.66), every budget positive (250k +0.84, 500k +0.78, 750k +0.30),
+validity unchanged at 3144/3168.
+
+**The cleanup is the other half.** 194 lines of profile-band carve-outs go:
+five that force the repair margin back to 1.0 and are no-ops at the new
+default, three that gate a 0.75 objective exponent on spec signatures and
+measured exactly +0.00. After the deletion the committed source re-measured at
+N=8 as +1.12 — identical to the pre-cleanup arm, confirming the deletion is
+behaviour-preserving.
+
+**Qualification falls 407.33 → 405.41** while development rises. That is the
+held-out monitor and it is recorded, not tuned against; it is 5 cases at 40
+runs per budget and correspondingly noisy, but the direction is opposite to
+development's and should be watched by the next campaign.
+
+**Friction.** A `rebaseline` needs a comparison holding exactly 8 canonical
+seeds, so an N=24 resolution can never be promoted directly: the N=8 arm must
+be re-run against the identical committed source and promoted with `--force`
+citing the deeper evidence. This is the second time this session; it costs a
+7-minute re-measure each time.
 
 ## 2026-07-28 — the axis map is complete, and most of the priced pool is physics
 

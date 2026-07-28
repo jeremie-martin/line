@@ -1,9 +1,9 @@
 {
   "schema": "line.benchmark-v2.baseline-reference.v10",
   "status": "canonical-baseline",
-  "label": "scarce-lean",
-  "generated_at": "2026-07-28T08:56:48.838Z",
-  "bundle": "benchmark/v2/runs/scarce-lean-baseline.json",
+  "label": "span-handover",
+  "generated_at": "2026-07-28T13:07:28.823Z",
+  "bundle": "benchmark/v2/runs/span-handover-baseline.json",
   "catalog_fingerprint": "7dca7a96370bcc3545bfc66b704941aa1501558134007b1194d3c655379931f5",
   "suite_fingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
@@ -11,7 +11,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "a7a0749b90ebde3f9bafb5a9b17b26cb3ae3ee94e8edbb5dbf9f2045f3a2b67a",
+  "compiler_source_fingerprint": "b12188608a0b4d600a93ddaf511266d329275bf9e7b0e5daf49782cef02e12bb",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -100,26 +100,26 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
-  "candidate_fingerprint": "3b6a175c366ad7ec40c07d15f01e90d13883ee1a5b2671cd42f511fb24162acd",
+  "candidate_fingerprint": "9dc54379dd092ce7f48a2efc7dd9fbef43f49935844111b7300943c75e7a04de",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "66df2a60541432357fa203e1d45f4377878960f42d47a72a1a153adcf5205d2c",
   "decision_calibration_fingerprint": "380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/scarce-lean-compiler-snapshot.tar.gz",
-    "archiveSha256": "4932fe761b75b3c7392828ef3a70ff4bccf760e479edf0fc455707ce98ca9619",
-    "candidateFingerprint": "3b6a175c366ad7ec40c07d15f01e90d13883ee1a5b2671cd42f511fb24162acd",
-    "compilerSourceFingerprint": "a7a0749b90ebde3f9bafb5a9b17b26cb3ae3ee94e8edbb5dbf9f2045f3a2b67a",
+    "archive": "benchmark/v2/runs/span-handover-compiler-snapshot.tar.gz",
+    "archiveSha256": "34edf5b136e9b49599cbdaa486c1f6bd805aca43accc6ba51806207797889973",
+    "candidateFingerprint": "9dc54379dd092ce7f48a2efc7dd9fbef43f49935844111b7300943c75e7a04de",
+    "compilerSourceFingerprint": "b12188608a0b4d600a93ddaf511266d329275bf9e7b0e5daf49782cef02e12bb",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
   },
   "probe": {
     "execution_policy_fingerprint": "5e336cda28b31c14ba42bcafd6d695f492b62b2df370fcd95ccd4725e476b92a",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "3a48efc7c5a67cfba03751f18ea00a5ba8704866140e7b956715864ca31afdd2",
-    "compressed_archive": "benchmark/v2/runs/scarce-lean-probe.json.gz",
-    "compressed_archive_sha256": "7cae490023c77ac540064a2fdae59fca195e6a1eb7e295fd1e29d7018b5a4585",
-    "canonical_headline": 558.3828,
+    "archive_sha256": "f64ecad9a28fe58e6e71928b3d53c80df1b05ef80fe0fdcaf7f3a262ec44c818",
+    "compressed_archive": "benchmark/v2/runs/span-handover-probe.json.gz",
+    "compressed_archive_sha256": "ece6d4f37403eb71e47e4fdbb91625242aa2d40ac80d887a22e7d7eec40868f5",
+    "canonical_headline": 558.3113,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "probe",
@@ -147,13 +147,13 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 539.4084,
+        "score": 539.8846,
         "valid_runs": 130,
         "total_runs": 132
       },
       {
         "budget": 500000,
-        "score": 565.9726,
+        "score": 565.682,
         "valid_runs": 132,
         "total_runs": 132
       }
@@ -162,10 +162,10 @@
   "development": {
     "execution_policy_fingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "84250a84ac9ba3ef077dc97efcf4ee7c16705e03d9fbbd5a8d2e718482e82a20",
-    "compressed_archive": "benchmark/v2/runs/scarce-lean-development.json.gz",
-    "compressed_archive_sha256": "c1c06ba48cca8d70746575e2a5ad2ff5a9e12236efb4e53abee8948224509f23",
-    "canonical_headline": 558.6344,
+    "archive_sha256": "84da6367f825d552fd14d190f189716c9d8c67688e50f6a5d38a57d57f13a40f",
+    "compressed_archive": "benchmark/v2/runs/span-handover-development.json.gz",
+    "compressed_archive_sha256": "e3e3fba47a228ca3da31774c0bd993369bc43363ccc17b0fa351a3e081d9c57c",
+    "canonical_headline": 559.7518,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -216,19 +216,19 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 524.8741,
+        "score": 526.5003,
         "valid_runs": 344,
         "total_runs": 352
       },
       {
         "budget": 500000,
-        "score": 564.4715,
+        "score": 565.6412,
         "valid_runs": 352,
         "total_runs": 352
       },
       {
         "budget": 750000,
-        "score": 571.4126,
+        "score": 572.1038,
         "valid_runs": 352,
         "total_runs": 352
       }
@@ -237,10 +237,10 @@
   "qualification": {
     "execution_policy_fingerprint": "6aead4041cc8bef727be3feb1fca610e1c3a8d994bf6cfce387d50ffea42611e",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "d96f8e43af714f55db627b61db032c9662d5794b60046eaa03a7c4402cc0491a",
-    "compressed_archive": "benchmark/v2/runs/scarce-lean-qualification.json.gz",
-    "compressed_archive_sha256": "a3e0a480790af859230617e2a770d11a9a25ff6b65fbcddfb7209652ff98155a",
-    "monitor_score": 407.3279,
+    "archive_sha256": "49f45ba3f8dd105ee28d62999ef720f39441ab038c4b8bf859132bd487326a28",
+    "compressed_archive": "benchmark/v2/runs/span-handover-qualification.json.gz",
+    "compressed_archive_sha256": "a74dbaab93a30e27ceb632d875ba49fe9bd1afa71d62a1cd752229c82b20a619",
+    "monitor_score": 405.4096,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -291,29 +291,29 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 402.7685,
+        "score": 398.6969,
         "valid_runs": 40,
         "total_runs": 40
       },
       {
         "budget": 500000,
-        "score": 407.7294,
+        "score": 406.7322,
         "valid_runs": 40,
         "total_runs": 40
       },
       {
         "budget": 750000,
-        "score": 409.6984,
+        "score": 407.6803,
         "valid_runs": 40,
         "total_runs": 40
       }
     ],
-    "linked_development_archive_sha256": "84250a84ac9ba3ef077dc97efcf4ee7c16705e03d9fbbd5a8d2e718482e82a20"
+    "linked_development_archive_sha256": "84da6367f825d552fd14d190f189716c9d8c67688e50f6a5d38a57d57f13a40f"
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "scarce-lean",
-    "candidateFingerprint": "3b6a175c366ad7ec40c07d15f01e90d13883ee1a5b2671cd42f511fb24162acd",
+    "baselineLabel": "span-handover",
+    "candidateFingerprint": "9dc54379dd092ce7f48a2efc7dd9fbef43f49935844111b7300943c75e7a04de",
     "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -1243,9 +1243,9 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 8,
-        "archiveSha256": "84250a84ac9ba3ef077dc97efcf4ee7c16705e03d9fbbd5a8d2e718482e82a20",
-        "compressedArchive": "benchmark/v2/runs/scarce-lean-development.json.gz",
-        "compressedArchiveSha256": "c1c06ba48cca8d70746575e2a5ad2ff5a9e12236efb4e53abee8948224509f23",
+        "archiveSha256": "84da6367f825d552fd14d190f189716c9d8c67688e50f6a5d38a57d57f13a40f",
+        "compressedArchive": "benchmark/v2/runs/span-handover-development.json.gz",
+        "compressedArchiveSha256": "e3e3fba47a228ca3da31774c0bd993369bc43363ccc17b0fa351a3e081d9c57c",
         "executionPolicyFingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
         "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
       }

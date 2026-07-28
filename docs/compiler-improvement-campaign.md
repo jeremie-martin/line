@@ -558,6 +558,16 @@ depth — which is the one control that reaches the sled rather than the centre 
 mass, meeting the rider earlier in the same fall at a lower normal closing speed
 — all leave it within 3%.
 
+A fifth control tests the finite-body reading directly — the rider is not a
+point, so a convexity gentle for the centre of mass can still be sharp under the
+15px sled, and bouncers arrive with LOWER normal closing speed than holders (2.06
+against 2.77 px/frame), which rules impact severity out. Forbidding DOWNWARD
+rotation over the first sled length is the first intervention that improves the
+bouncers themselves — their delivered impact 0.273 → 0.306 and their turn 10.50 →
+11.93 degrees — and the population nets exactly flat at every dose (8px 0.365,
+15px 0.363, 25px 0.362 against 0.363), because the holders give back what the
+bouncers gain.
+
 So the bounce is a property of the articulated rider meeting a surface at these
 arrival speeds, not of anything the arc vocabulary shapes. Its 25-point delivery
 gap (53% of ask against 78%) is the largest identified prize left on this suite

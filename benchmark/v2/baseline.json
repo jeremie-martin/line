@@ -1248,6 +1248,17 @@
         "compressedArchiveSha256": "e2548896cb7ee16e45e2b9c73a047715001fdca16bb7d5e9467f77be1b268b60",
         "executionPolicyFingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
         "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
+      },
+      {
+        "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
+        "firstSeedSlot": 8,
+        "endSeedSlotExclusive": 24,
+        "archiveSha256": "cf6dfd85b25c173ec04553d77b814ad8b22f8416dc238cd934cb8b282eafa1e5",
+        "archive": "benchmark/v2/runs/readiness-catch-impact-slots-8-24.json",
+        "compressedArchive": "benchmark/v2/runs/readiness-catch-impact-slots-8-24.json.gz",
+        "compressedArchiveSha256": "22724da4f3b705d5d64d3d0c17d1aad6ae51f9b627cf3dcc28831ec9ffef066a",
+        "executionPolicyFingerprint": "48895225be668c09b0022c5b3d5abb9b2cb6a6c81cabf8cc07c8005cb8bfd3b6",
+        "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
       }
     ]
   }

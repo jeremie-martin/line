@@ -392,6 +392,30 @@ a covering sequence spends the same draws on the space's middle. The pool's
 randomness is not a defect to be averaged out — it is the search's only source of
 the improbable.
 
+### The pool's two populations cannot be told apart
+
+The flat stratification's case table is a split, not a null, so it was gated
+three ways. None separates the populations:
+
+| gate | `low_air_endurance_7s` | `pickup_progression_shifted` | headline |
+|---|---:|---:|---:|
+| none (flat) | +107.3 | −115.1 | −11.60 |
+| air ask below 0.45 | — | — | dense_recovery 108 → 68 commits |
+| gap room (`denseContactPressure`) | — | — | dense_recovery 108 → 51 commits |
+| attempt index, tail left random | +110.3 | −106.7 | −2.09 |
+
+The air ask fails because both populations author 0.248. Gap length fails
+because the per-gap spread is what matters and the mean hides it — and both
+gates collapse `frontier_dense_recovery`, which the attempt gate instead takes
+to **123 of 123 committed contacts at 250k**, the only configuration all session
+to finish that spec at the scarce budget.
+
+The attempt gate is the right shape and still not enough: coverage is worth +110
+to the case whose ride-out lives in a wide continuous range and −107 to the case
+whose viable catch is a rare small region, and no quantity measured this session
+tells those two apart. They are both `capability` frontier cases with the same
+authored air and opposite needs from their pool.
+
 ### Repair looks wasteful and is at its optimum
 
 With the pacing accepted twice, the remaining budget question is the repair

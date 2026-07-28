@@ -392,6 +392,27 @@ a covering sequence spends the same draws on the space's middle. The pool's
 randomness is not a defect to be averaged out — it is the search's only source of
 the improbable.
 
+### Two scorer-alignment nulls, and where the ranking actually happens
+
+`axisCost` weights every axis 1 except `impact` at 0.5, while the headline
+weights air/speed/impact 0.3 and amplitude 0.1 — so on the 288 amplitude-authored
+gaps it valued amplitude error three times what the headline pays. Correcting it
+is **byte-identical on every case**, which locates the ranking: `axisCost` is a
+tiebreak, and the pool is ordered by `sortCandidatesByQuality`. That also
+explains the 2026-07-26 result that moving `LOCAL_IMPACT_COST_WEIGHT` to 1 "moves
+nothing" — it was never the deciding function.
+
+The same misalignment IS present where the decision happens.
+`scoreProjectedOutgoingAxes` pools axis errors through
+`axisQualityFromErrors`, an UNWEIGHTED rms, so on an air+speed+amplitude gap the
+search weights amplitude a third against the headline's 14.3%. Scaling each error
+by `sqrt(w / mean w)` before the pooling makes that rms the weighted one without
+touching `score.ts` or the suite fingerprint — and it is **−0.54 with SE 0.49**.
+
+So the search's equal pooling is not costing the headline anything: the axis it
+over-weights is the one whose error it can least change, and correcting the
+weights just moves effort onto axes that were already at their limit.
+
 ### The pool's two populations cannot be told apart
 
 The flat stratification's case table is a split, not a null, so it was gated

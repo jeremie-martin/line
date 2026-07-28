@@ -319,6 +319,31 @@ the early-compile pace estimate is pessimistic before any gap has been reached,
 so a breadth cut fires on healthy compiles too. Lookahead is refundable; the
 pool that lookahead ranks is not.
 
+### The fifth closure: supplying the energy directly does not move impact either
+
+Every impact arm this session ended at the same explanation — turning the rider
+costs `v^2 sin^2(theta) / 2` of kinetic energy and nothing replaces it, because
+the energy-targeted launch only converts the rider's PACE to the gap's ask and is
+capped at `LAUNCH_DESCENT_CAP * g * N` besides. Elevation is unauthored in this
+distribution, so height is free here exactly as grain was for the segment
+refinement, and `netDyToElevation` is the axis's own inverse. Commanding each
+gap's drop to be the drop its next contact's turn will cost — resolved through
+`elevationToLaunchVy` against the band the speed supports, `min(g*N,
+VERTICAL_FRACTION * speed)`, which on a dense gap is 2.2x what the descent cap
+allows and reached by a path that cap does not bound — is the direct test of that
+explanation.
+
+It arrives and it does not convert: arrival speed 10.62 -> 10.78, surplus 0.10 ->
+0.22, delivered impact 0.363 -> 0.360, mid-band incidence 4.19 -> 4.14. Reverted.
+
+So the energy account was the right diagnosis of why the earlier arms failed and
+is not itself the lever: paying the bill does not buy the turn, because what
+converts speed into incidence is the sampler's `brakePressure` against a target
+that moves with the rider. Five independent mechanisms this session — support
+through the window, the decoupled incidence floor, the speed-target lift with
+un-lifted pressures, the launch turn-loss term, and now the commanded drop — all
+land within 1% of the same impact bias.
+
 ### Falsified: rushing the first completion — and it bounds the pacing family
 
 The budget decomposition says where the headline is lost: at 250k the accepted

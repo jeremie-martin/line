@@ -458,6 +458,13 @@ validity 3089/3168 -> 3131/3168  (gained 46, lost 4)
 strata  representative -1.36 | capability +49.70 | legacy_regression -3.92 | development_music -1.26
 ```
 
+**And the loop converges in one round.** Recollecting under the promoted model —
+the shipped hybrid measures composite MSE 0.0182 on its own corpus against the
+0.0409 the old model measured on the previous one — and refitting again adopts
+(55.6% composite improvement) and is worth **−0.47** on the headline, trading
+capability −13.1 for representative +1.6 and legacy +2.8. One refit is the whole
+prize; policy iteration on this model does not compound.
+
 **Tooling fix required to get there**: `train_readiness.py` demanded that the
 incumbent artifact's feature list EQUAL the corpus's, which is the stale half of
 the extractor/model split `readiness_scoring.ts` documents as deliberate — the

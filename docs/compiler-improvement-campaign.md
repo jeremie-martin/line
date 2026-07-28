@@ -540,6 +540,30 @@ and return on their own dynamics rather than the centre of mass's. That is the
 primitive the next attempt has to model, and no arc-shape lever in this
 vocabulary reaches it.
 
+### The bounce is invariant to everything the arc vocabulary controls
+
+Four independent controls, all measured against the bounce rate of 184 in 532:
+
+| control | bounces | delivered |
+|---|---:|---:|
+| shipped | 184 | 0.363 |
+| segment granularity (`IMPACT_SEGMENT_REFINE` 2 → 4) | 170 | 0.363 |
+| ballistic curvature limit enforced | 179 | 0.360 |
+| contact surface lifted 1.5px toward the rider | 186 | 0.356 |
+| shallow valley across the window (6 deg/ask) | **68** | 0.341 |
+
+Only the valley moves it, and only by turning the rider with a climb it pays for
+in speed. Granularity, the exact rigid-body curvature limit, and the contact
+depth — which is the one control that reaches the sled rather than the centre of
+mass, meeting the rider earlier in the same fall at a lower normal closing speed
+— all leave it within 3%.
+
+So the bounce is a property of the articulated rider meeting a surface at these
+arrival speeds, not of anything the arc vocabulary shapes. Its 25-point delivery
+gap (53% of ask against 78%) is the largest identified prize left on this suite
+and it is not reachable from geometry; reaching it means modelling the sled's
+own response, which is a different project from arc placement.
+
 ### The engine-speed commits are behaviourally inert, verified
 
 `eval` refuses a comparison when the WASM bytes differ from the baseline's, so

@@ -558,6 +558,11 @@ depth — which is the one control that reaches the sled rather than the centre 
 mass, meeting the rider earlier in the same fall at a lower normal closing speed
 — all leave it within 3%.
 
+**Resolved at depth: the no-convexity zone is a null.** It reads +0.98 with
+SE 0.97 at N=8 and **−0.23 [−1.60, +1.15] at N=24**, validity 3131 → 3129. The
+N=8 positive was noise, and the deeper run is what a +1 point estimate on a 1.0
+standard error deserves before anyone promotes it.
+
 A fifth control tests the finite-body reading directly — the rider is not a
 point, so a convexity gentle for the centre of mass can still be sharp under the
 15px sled, and bouncers arrive with LOWER normal closing speed than holders (2.06

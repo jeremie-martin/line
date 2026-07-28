@@ -3,8 +3,8 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`pool-five`, canonical headline 557.05. Its cache covers 8 seeds per
-budget and extends on demand. Qualification monitor 407.20 at 120/120 valid.
+`scarce-lean`, canonical headline 558.63. Its cache covers 8 seeds per
+budget and extends on demand. Qualification monitor 407.33 at 120/120 valid.
 
 | baseline | canonical | evidence |
 |---|---:|---|
@@ -14,7 +14,8 @@ budget and extends on demand. Qualification monitor 407.20 at 120/120 valid.
 | `paced-forward-eval-width` | 541.57 | N=24 +10.66 [+5.13, +16.19] |
 | `paced-aim-lane` | 548.54 | N=8 +6.97, three strata exactly 0.00 |
 | `readiness-catch-impact` | 553.73 | N=24 +6.05, promotable, validity 3089→3131 |
-| **`pool-five`** | **557.05** | **N=24 +4.18, promotable, every stratum and budget positive** |
+| `pool-five` | 557.05 | N=24 +4.18, promotable, every stratum and budget positive |
+| **`scarce-lean`** | **558.63** | **N=24 +1.00 [-0.71, +2.70]; 500k/750k exactly 0.00 by construction** |
 
 ### What 570 would now require
 
@@ -55,6 +56,56 @@ are evidence, not baselines.
 The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
+
+## 2026-07-28 — the budget-aware sample count was not budget-aware
+
+**Hypothesis.** `budgetAwareQualitySampleCount` exists to scale the per-gap
+candidate sample with the budget, but both of its leans terminate below the
+range the benchmark measures: the scarce lean fades out by 100k and the mature
+lean saturates by 250k. If the shipped 29 is a compromise between two budget
+regimes that never actually got to disagree, then sweeping the count should
+show the scarce end and the mature end wanting different values.
+
+**Evidence** (`LR_QUALITY_NCAND`, N=8 against `pool-five`, ~7 min per arm):
+
+| nCand | delta | 250k | 500k | 750k |
+|---:|---:|---:|---:|---:|
+| 16 | -9.57 | -3.1 | -13.7 | -7.0 |
+| 24 | -0.26 | **+8.8** | -2.5 | -2.6 |
+| 29 (shipped) | - | - | - | - |
+| 48 | -2.02 | -4.1 | -3.7 | +2.1 |
+
+They disagree, cleanly and in the direction the dormant lean was written for:
+the scarce budget wants a smaller per-gap pool and the mature budgets do not.
+A flat re-tune is a wash precisely because it averages the two regimes.
+
+**The change.** Extend the scarce lean into the canonical range — start 250k,
+span 200k, floor 24 — giving 24 at 250k, 27 at 350k, and 29 from 450k up. 500k
+and 750k are byte-identical by construction.
+
+**Result.** N=8 +1.58 (SE 1.30); N=24 **+1.00**, SE 0.61, CI [-0.71, +2.70],
+`inconclusive`. Both untouched budgets measure exactly 0.00, so the whole
+effect is the 250k stratum's +4.99 (N=8: +7.9), and validity strictly improves,
+3136 → 3144 valid (18 gained, 10 lost). Capability +6.90.
+
+**Decision: retain, promoted as `scarce-lean` (558.63).** The headline evidence
+is inconclusive on its own and is recorded as such. It is promoted on the
+mechanism rather than the point estimate: a function whose entire purpose is
+budget-awareness was returning one identical value at every budget the
+benchmark measures, and the fix cannot regress the two budgets it provably does
+not touch. Qualification monitor moves 407.55 → 407.33 (monitoring evidence).
+
+**Friction.** `rebaseline --from=` needs the `.json.comparison.json` sidecar,
+not the eval `--out=` path; the run archive itself fails with the unhelpful
+`unsupported cached comparison artifact`. Also: a baseline archive must hold
+exactly 8 canonical seeds per budget, so every promotion resets the cache and
+the next N=24 pays a ~14 min `baseline-cache extend` before it can start.
+
+**Next.** The three accepts before this one and this one are all the same
+principle — spend a charged simulation only where it changes a decision the
+search will act on. That vein is now bracketed on both sides at four sites.
+Moving to the post-completion phase, where 500k and 750k (80% of the budget
+weight) actually spend their frames.
 
 ## 2026-07-28 — the delivered turn IS the incidence, and the incidence is not for sale
 

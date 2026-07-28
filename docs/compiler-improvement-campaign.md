@@ -579,6 +579,26 @@ gap (53% of ask against 78%) is the largest identified prize left on this suite
 and it is not reachable from geometry; reaching it means modelling the sled's
 own response, which is a different project from arc placement.
 
+### The template gates were never a ranking artefact
+
+The impact template lane builds exactly the concave shape the bounce measurement
+identifies as best-delivering, and its gates were refuted against
+`dive-span-floor` — three baselines and, more to the point, one readiness refit
+ago, with `impactFeasibility` since improved 71%. If the search had been
+declining the converting shape out of a bad estimate, this is where it would
+show.
+
+It does not. Lane rate ⅓ → 0.66 under the refit ranker is **−5.26 (reject)**,
+against the −4.06 the same arm measured under the old one: `representative` −6.3,
+`legacy_regression` −8.1, `development_music` −7.0, and the loss deepens with
+budget (250k −2.7, 500k −4.4, 750k −8.4). `frontier_pickup_progression` −52.2 and
+`high_air_drive` −34.5 carry it.
+
+So the search declines the template for reasons its ranker gets RIGHT, and a
+better ranker declines it harder. Combined with the bounce work above — where the
+shallow valley removes 63% of bounces and loses anyway — the converting shape is
+closed from both the geometry side and the ranking side.
+
 ### The engine-speed commits are behaviourally inert, verified
 
 `eval` refuses a comparison when the WASM bytes differ from the baseline's, so

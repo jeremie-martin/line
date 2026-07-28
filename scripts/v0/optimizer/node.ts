@@ -72,6 +72,21 @@ export function setRolloutAimSuppressed(active: boolean): void {
   rolloutAimSuppressed = active;
 }
 
+/**
+ * Suppress the enumerative aiming lane while the compile is behind its own pace.
+ *
+ * The lane fits a local response model by SIMULATING a probe design per base,
+ * and it is the compiler's second largest lookahead spend after forward
+ * evaluation: measured on `frontier_dense_recovery` at 250k it charges 42,859 of
+ * 250,851 frames, 17% of the budget, on a compile that never finishes building
+ * its track. Pacing the forward-eval width on the same signal was worth +10.66,
+ * so the question this asks is whether the aim lane is the same kind of spend.
+ */
+let aimLanePaceSuppressed = false;
+export function setAimLanePaceSuppressed(active: boolean): void {
+  aimLanePaceSuppressed = active;
+}
+
 /** Generation-time raw-normal snapshot for observation studies. The callback
  * runs after an ordinary attempt prefix is created or extended, before the
  * current pool's lane extras and ranking. Observers that retain historical
@@ -234,7 +249,7 @@ function sortWithLaneExtras(
   // branch-widening failure.
   const aimedExtras: Candidate[] = [];
   if (
-    nCand > 1 && sorted.length > 0 && aimEnumEnabled() &&
+    nCand > 1 && sorted.length > 0 && aimEnumEnabled() && !aimLanePaceSuppressed &&
     !(inRolloutContext && (!rolloutAimEnabled || rolloutAimSuppressed))
   ) {
     // Refine the first K candidates of the quality-sorted pool, not just

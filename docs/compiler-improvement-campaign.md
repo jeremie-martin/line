@@ -265,6 +265,40 @@ budget there is, the more of it the paced width leaves for depth. The flat
 prune's +9.86 is inside this interval and its shape is strictly worse, so the
 pacing is what is promoted rather than the prune.
 
+### The same rule on the second lookahead consumer: the aiming lane
+
+The enumerative proposer fits a local response model by SIMULATING a probe
+design per base, and it is the compiler's second largest lookahead spend:
+measured on `frontier_dense_recovery` at 250k it charges 42,859 of 250,851
+frames — 17% of the budget — on a compile that never finishes building its
+track. Holding it to the same rule (`AIM_LANE_PACE_SUPPRESS`: the lane runs
+while the compile is on course, and not once its own pace says it will not
+finish) takes that cell from 78 to **108 of 123 committed contacts**.
+
+N=8 against `paced-forward-eval-width`:
+
+```
+headline 541.57 -> 548.54   delta +6.97   SE 4.90
+validity 1020/1056 -> 1032/1056
+  250k +4.1   500k +12.3   750k +0.1
+strata  representative 0.0 | capability +46.5 | legacy_regression 0.0 | development_music 0.0
+  frontier_pickup_progression  +119.0  valid 16 -> 21
+  frontier_dense_recovery       +98.6
+  frontier_low_air_endurance_7s +55.3  valid 23 -> 24
+```
+
+**Three strata are exactly zero** — the pace gate never fires on a compile that
+finishes, so 85% of the headline weight is byte-identical and the whole movement
+is on the frontier that was failing. It reads inconclusive only because
+`capability` carries all of the variance.
+
+**Falsified in the same batch: pacing the per-gap SAMPLE COUNT.** Cutting `nCand`
+by up to half on the same signal takes `frontier_dense_recovery` back from 108 to
+83 committed contacts and drops `river_reentry` from 24 full evaluations to 3 —
+the early-compile pace estimate is pessimistic before any gap has been reached,
+so a breadth cut fires on healthy compiles too. Lookahead is refundable; the
+pool that lookahead ranks is not.
+
 ### The incidence floor is a VALIDITY mechanism, not an impact one
 
 Reading the refuted arm's own case table settles what it was actually doing:

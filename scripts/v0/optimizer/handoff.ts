@@ -87,6 +87,7 @@ import {
   extendNodeCached,
   isLeafNode,
   makeRootNode,
+  setAimLanePaceSuppressed,
   setRolloutAimSuppressed,
   setRolloutContext,
   type SearchNode,
@@ -823,6 +824,8 @@ const HANDOFF_FORWARD_EVAL_TOP = 2;
 /** Paced slack at which the width starts narrowing, and where it is fully narrow. */
 const HANDOFF_FORWARD_EVAL_PACE_START = 1.5;
 const HANDOFF_FORWARD_EVAL_PACE_FULL = 1.0;
+/** Whether the aiming lane is held to the same pace rule as the rolled head. */
+const AIM_LANE_PACE_SUPPRESS = true;
 const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
 
@@ -3601,13 +3604,24 @@ function rankedOptions(
   const targetBudget = config.targetBudget ?? 0;
   const gap = gaps[node.gapIndex];
   const normalCandidates = requestedCandidates;
-  const sorted = getCandidatesSorted(
-    node,
-    gaps,
-    ctx,
-    seed,
-    normalCandidates,
-  );
+  /* The aiming lane is a simulated probe design per base — the second largest
+   * lookahead spend after forward evaluation. Hold it to the same rule: only
+   * while the compile is on course to finish (see `AIM_LANE_PACE_SUPPRESS`). */
+  const aimPaceSuppressed = AIM_LANE_PACE_SUPPRESS &&
+    (config.pacedSlack ?? Infinity) < HANDOFF_FORWARD_EVAL_PACE_FULL;
+  setAimLanePaceSuppressed(aimPaceSuppressed);
+  let sorted: Candidate[];
+  try {
+    sorted = getCandidatesSorted(
+      node,
+      gaps,
+      ctx,
+      seed,
+      normalCandidates,
+    );
+  } finally {
+    setAimLanePaceSuppressed(false);
+  }
   const poolSize = config.poolSize ?? handoffCandidatePool();
   const pool = admittedHandoffPool(sorted, poolSize);
   const preview = config.preview ?? true;

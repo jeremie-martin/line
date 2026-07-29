@@ -60,6 +60,47 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-29 — the forward half of the ranker cannot see impact, and the settled half weighs it correctly
+
+The impact spread is structural per gap, so the actionable question is whether
+the RANKER handles a gap it cannot satisfy. Two paths, and the first one turned
+out not to exist.
+
+**`scoreProjectedOutgoingAxes` never sees impact.** Adding an impact branch to
+`recoverabilityWeightedError` — the existing axis-and-sign hook that already
+discounts speed overshoot and air undershoot — is **byte-identical at 0.4, 0.7
+AND 1.3**. The reason is structural: `scoreProjectedOutgoingSurrogate` fills
+`achieved` with speed, air and elevation ONLY, so the axis loop skips impact
+and amplitude entirely. **The forward-looking half of the ranking objective is
+blind to impact.** It ranks a candidate by the speed and air its arc will
+produce, never by the turn it will deliver.
+
+That is not an oversight to fix casually: impact at a contact is the endpoint
+heading change over a six-frame window, which the ballistic projection does not
+predict. It is the reason the arc-ownership model gives an arc the impact at
+its OWN contact — which is the settled half.
+
+**And the settled half weighs it correctly.** Softening or sharpening impact
+undershoot in `scoreSettledIncomingQuality`, the one place the ranker does see
+an arc's own impact:
+
+| weight on impact undershoot | 0.4 | 0.7 | **1.0 (shipped)** | 1.3 |
+|---|---:|---:|---:|---:|
+| delta | -9.39 | -4.27 | **0** | -10.02 |
+| 750k | -10.9 | -11.6 | - | -4.0 |
+
+A clean interior optimum in both directions. Softening loses because the scorer
+measures RAW error, so a marginal impact gain is worth more than the air and
+speed it costs — the same lesson the repair weak-gap standardisation taught.
+Sharpening loses because the extra impact is bought from axes that could have
+delivered.
+
+**So the impact frontier is not a weighting or a selection problem.** The
+ranker's treatment of impact is already optimal given what it can see, and what
+it can see forward is nothing. Closing the axis needs a predictor of an arc's
+delivered turn before the arc is built — a mechanism the compiler does not
+have — not a re-weighting of one it does.
+
 ## 2026-07-29 — the stale-sweep audit, executed: only the efficiency was stale
 
 The efficiency find generalises to a rule — *when a mechanism changes what a

@@ -71,9 +71,15 @@ out not to exist.
 discounts speed overshoot and air undershoot — is **byte-identical at 0.4, 0.7
 AND 1.3**. The reason is structural: `scoreProjectedOutgoingSurrogate` fills
 `achieved` with speed, air and elevation ONLY, so the axis loop skips impact
-and amplitude entirely. **The forward-looking half of the ranking objective is
-blind to impact.** It ranks a candidate by the speed and air its arc will
-produce, never by the turn it will deliver.
+and amplitude entirely. **The projected AXIS-QUALITY term is blind to impact:**
+it ranks a candidate's future by the speed and air its arc will produce, never
+by the turn it will deliver.
+
+To be precise, the forward signal as a whole is NOT blind — `readiness` is a
+separate multiplicative factor and its product contains `impactFeasibility`, a
+LEARNED estimate of whether the next ask is reachable. So the ranker does carry
+a forward impact signal; what it lacks is impact in the projected axis quality,
+where the other axes are predicted physically rather than learned.
 
 That is not an oversight to fix casually: impact at a contact is the endpoint
 heading change over a six-frame window, which the ballistic projection does not
@@ -96,10 +102,13 @@ Sharpening loses because the extra impact is bought from axes that could have
 delivered.
 
 **So the impact frontier is not a weighting or a selection problem.** The
-ranker's treatment of impact is already optimal given what it can see, and what
-it can see forward is nothing. Closing the axis needs a predictor of an arc's
-delivered turn before the arc is built — a mechanism the compiler does not
-have — not a re-weighting of one it does.
+ranker's treatment of impact is optimal given what it has: an exact measurement
+at the arc's own contact, and a learned feasibility estimate for the next one.
+What it lacks is a PHYSICAL forward prediction of delivered turn, the way it
+has one for speed and air. Closing the axis means building that predictor —
+impact is the endpoint heading change over a six-frame window, which the
+ballistic projection does not compute — not re-weighting the terms that exist.
+That is the concrete next mechanism, and it is a substantial one.
 
 ## 2026-07-29 — the stale-sweep audit, executed: only the efficiency was stale
 

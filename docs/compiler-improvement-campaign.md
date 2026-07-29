@@ -92,6 +92,30 @@ validity 1047 → 1050**, recovering three of the runs the flat 1.10 cost. Both
 higher references reject (0.80 -3.19, 0.90 -2.14). Positive and
 reliability-improving but not decisive, so it is recorded rather than promoted.
 
+**Four more constants, stale by the same rule** (all bracketed under
+`span-handover`, i.e. at a flat 29 candidates per gap):
+
+| constant | then | now | verdict |
+|---|---:|---:|---|
+| `HANDOFF_FORWARD_EVAL_TOP` = 1 | +0.89 | **-1.07** | 2 is right at the new breadth |
+| `HANDOFF_FORWARD_EVAL_TOP` = 3 | -1.25 | -4.05 | idem |
+| `HANDOFF_FORWARD_EVAL_PACE_FULL` = 1.2 | +1.30 | **-2.32** | 1.0 is right now |
+| **`HANDOFF_BRANCHING` = 4** | **-1.73** | **+0.74** | **the sign flipped** |
+
+Two of these reversed sign, which is the audit working as designed: the
+constants really did re-optimise when the pool they draw from went from 29 to
+81. `HANDOFF_BRANCHING` is the only one that moved in our favour — with 81
+candidates a wider tree pays — and it peaks at 4 (5 is -2.88). At +0.74 with
+SE 1.81 it is not decisive on its own, and it ANTI-COMPOSES with the efficiency
+law (-1.76 together), because that law lowers exactly the mature efficiency a
+wider tree wants high. Neither is promoted.
+
+**The recoverability weight, flagged stale by its own comment** ("measured
+before the closed-form projection became the default, and has not been
+re-measured since"), is at a clean interior optimum: off -2.17, 0.25 -1.76,
+**0.5 shipped**, 0.75 -1.94. The mechanism is confirmed real under the new
+regime and the value survives — the source's open question is now answered.
+
 **The readiness retrain is closed, and instructively.** `SAMPLER_FILES`
 includes both files changed today, so the corpus fingerprint is genuinely
 stale; regenerating it (523M, composite MSE 0.0137, r 0.742) and retraining is
@@ -160,6 +184,34 @@ next arm should be aimed at recovering it.
 **The lesson worth keeping.** When a mechanism changes what a neighbouring
 constant means, every prior sweep of that constant is stale. Both of these sat
 in the two biggest gains of the campaign, in plain sight, for two days.
+
+**What 590 requires, exactly.** The headline is `1000 * exp(-rms / 0.25)`, so
+568.28 is a weighted axis rms of 0.1413 and 590 is 0.1319 — a **6.6%
+reduction**. From impact alone that is rms 0.216 -> 0.194, i.e. the bias moving
+**-0.164 -> -0.130**. That is the quantity eleven batches and this campaign's
+frontier analysis have failed to move, and it did not move when the arrival
+geometry changed either (-0.167 -> -0.164 across the efficiency refit).
+
+**Where impact's error actually lives** (new instrument, on the accepted
+archive). Its rms of 0.216 splits into a bias of 0.164 and a spread of 0.140,
+and that spread decomposes as:
+
+| component | sd |
+|---|---:|
+| **between-gap** (the seed-mean differs by gap) | **0.1245** |
+| within-run across gaps | 0.1156 |
+| across-seed at a FIXED gap | **0.0546** |
+
+The spread is **structural per-gap, not seed luck** — 5x larger between gaps
+than between seeds at the same gap. Some gaps fail to deliver impact for every
+seed. So the counterfactual's +19.24 "every seed scores its cell's best" is
+mostly NOT reachable by making the search luckier; the same gaps are hard every
+time. The addressable form of the question is which gaps are structurally
+infeasible and what the arc should do instead of chasing them —
+`impactFeasibility` already computes the first half, but it enters only through
+the readiness PRODUCT, which scales the whole objective uniformly and never
+de-prioritises the impact axis at a gap that cannot reach its ask. That
+plumbing does not exist yet and is the concrete next mechanism.
 
 ## 2026-07-28 — ACCEPTED: one scale-free law for per-gap breadth
 

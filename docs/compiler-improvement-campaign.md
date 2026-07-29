@@ -60,6 +60,67 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-29 — the forward impact predictor: built, measured, and retired
+
+The previous entry named the missing mechanism: a PHYSICAL forward prediction
+of delivered turn, the way speed and air have one. It is buildable in closed
+form and it does not pay. All arms N=8 against `fitted-law-command` (568.28).
+
+**The predictor.** The scorer measures `redirArc = speed(landing-1) *
+|theta(landing+6) - theta(landing-1)|`, and the ballistic projection already
+carries the first two exactly, in `boundary.incoming`. The third belongs to an
+arc the search has not chosen, so the prediction is of the turn the arrival
+MAKES AVAILABLE, using the compiler's own model rather than a new one:
+`steepArrivalDeltaDeg` sizes a commanded dive by inverting `needRad = redirArc
+/ (efficiency * speed)`, which read forward says a rider arriving `angle` below
+horizontal onto a level catch supplies about `speed * angle` of turn, capped by
+the ejection limit `asin(IMPACT.CATCHABLE_REDIR_FRACTION)` that `impactCeiling`
+already uses. A closed form over numbers the projection produced — no
+simulation, consistent with the minimal-simulation rule.
+
+**As a fourth projected axis it fails for two structural reasons.**
+
+| form | delivery 0.6/0.7 | 1.0 | 1.4/1.5 |
+|---|---:|---:|---:|
+| unbounded (the available turn) | -2.75 | **-5.14** | -12.98 |
+| bounded at the ask | -2.31 | -2.27 | **-1.01** |
+
+*The axis error is signed.* An upper bound reports OVERSHOOT wherever the
+arrival could turn further than the ask, while the realized axis undershoots
+92% of the time — a wrong-signed error is worse than none. Bounding the
+prediction at the ask (the compiler aims at the ask, so the delivery is capped
+by the aim as well as the physics) turns it into a feasibility signal
+denominated in axis error and halves the loss, -5.14 -> -2.27.
+
+*And `axisQualityFromErrors` divides by the axis count.* Adding an axis
+renormalizes quality for every gap that has an impact target, regardless of
+whether the prediction is any good. The bounded form improves monotonically as
+the signal fires LESS (-2.27 at delivery 1.0, -1.01 at 1.4), and the limit —
+where the prediction is effectively always satisfied — still costs about -1.
+That residual is pure renormalization, so the design is unsound independently
+of predictor quality.
+
+**As a multiplicative factor it is simply worse than the learned one.** The
+right home for a feasibility signal is the readiness product, where
+`impactFeasibility` already lives as a gradient-boosted component and neither
+structural flaw applies. Substituting the physical form for it:
+
+| physical share of `impactFeasibility` | 0.25 | 0.5 | 1.0 |
+|---|---:|---:|---:|
+| delta | -0.60 | -6.98 | **-7.90** |
+| capability | - | - | **-30.75** |
+
+Monotone toward the shipped learned component, so the physical estimate carries
+no complementary information either.
+
+**Decision: retire the forward impact predictor.** It answers the question the
+projection cannot — but a physical arrival-angle bound is a worse reachability
+estimate than the learned component already in the readiness product, and there
+is no role in which it pays. The lead this campaign generated for itself is
+closed by its own evidence. What remains true is the diagnosis that produced
+it: impact's spread is structural per gap, the ranker's treatment of impact is
+optimal given what it has, and 590 needs the bias itself to move.
+
 ## 2026-07-29 — the forward half of the ranker cannot see impact, and the settled half weighs it correctly
 
 The impact spread is structural per gap, so the actionable question is whether

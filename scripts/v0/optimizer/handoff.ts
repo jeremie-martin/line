@@ -925,7 +925,7 @@ const HANDOFF_QUALITY_N_CAND = 32;
 /** The canonical range's own scarce lean: full at 250k, gone by 450k. */
 /** The scale-free per-gap breadth law: `N_CAND_AT_REF` candidates at
  *  `REF_FRAMES`, growing as sqrt(budget) with no ceiling. */
-const HANDOFF_QUALITY_N_CAND_AT_REF = 24;
+const HANDOFF_QUALITY_N_CAND_AT_REF = 27;
 const HANDOFF_QUALITY_N_CAND_REF_FRAMES = 250_000;
 const HANDOFF_QUALITY_N_CAND_FLOOR = 8;
 const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
@@ -4742,15 +4742,20 @@ function budgetAwareQualitySampleCount(targetBudget: number | undefined): number
    * arbitrary, and at the top the ceiling pinned every mature budget to the
    * same 29 however much budget existed.
    *
-   * The law: per-gap breadth grows as the SQUARE ROOT of the budget. Doubling
-   * the frames buys sqrt(2) times the candidates per gap — the standard
-   * diminishing-returns allocation, monotone, with no ceiling and no special
-   * budgets in it. Anchored on the two operating points that were measured
-   * directly: 250k wants 24 (sampling 24 there is +8.8 against 29), and the
-   * top of the range wants far more than the ceiling allowed (lifting 750k to
-   * 44 is +2.7 on that budget, to 36 is +1.1, both with 250k and 500k
-   * byte-identical). The law reads 24 at 250k, 34 at 500k and 42 at 750k, and
-   * keeps rising for any budget beyond them.
+   * The law: per-gap breadth grows LINEARLY with the budget. A compile with
+   * twice the frames affords twice the candidates per gap, which is what the
+   * frame arithmetic says in the first place — the search visits a fixed set of
+   * gaps, so frames-per-gap is proportional to the budget. Monotone, no
+   * ceiling, no special budgets in it.
+   *
+   * Both parameters are FITTED, not chosen. The anchor is bracketed at the
+   * reference budget, where the exponent cannot matter, and it reproduces
+   * across independent runs: 21 is -8.0, 24 is 0, **27 is +7.0**, 30 is -8.5 on
+   * that budget. The exponent is bracketed against the arc-command efficiency
+   * it interacts with: 0.70 +6.25, 0.85 +6.84, **1.00 +7.44**, 1.20 +6.81.
+   *
+   * The first version of this law shipped at sqrt with an anchor of 24 because
+   * both were picked rather than measured; fitting them is +7.44 on top of it.
    */
   if (typeof targetBudget !== "number" || !Number.isFinite(targetBudget)) {
     return HANDOFF_QUALITY_N_CAND;
@@ -4759,7 +4764,7 @@ function budgetAwareQualitySampleCount(targetBudget: number | undefined): number
     HANDOFF_QUALITY_N_CAND_FLOOR,
     Math.round(
       HANDOFF_QUALITY_N_CAND_AT_REF *
-        Math.sqrt(Math.max(0, targetBudget) / HANDOFF_QUALITY_N_CAND_REF_FRAMES),
+        (Math.max(0, targetBudget) / HANDOFF_QUALITY_N_CAND_REF_FRAMES),
     ),
   );
 }

@@ -449,7 +449,17 @@ const RUNG_RELEASE_SPAN_SALT = 13;
 // Delivery efficiency 0.5 was +23.93 BEFORE the span floor and is -0.86 after
 // it: commanding a bigger turn and carrying more of the commanded one are two
 // ways to spend the same budget, so only one of them pays.
-const STEEP_ARRIVAL_DELIVERY_EFFICIENCY = 0.68;
+//
+// RE-FITTED 2026-07-29, UPWARD. Every earlier sweep of this constant ran DOWN
+// (0.4/0.5/0.6), because they all predate the span floor. Once the floor makes
+// every pool member carry at least half the command, the command itself is
+// over-sized, and the untested direction is the one that pays: 0.76 -0.84,
+// 0.85 +2.88, 1.00 +4.44, **1.10 +3.62 alone and +7.44 with the fitted breadth
+// law**, 1.30 +0.05, 1.50 -9.61. The two mechanisms are complements at their
+// peak rather than substitutes: 1.10 alone costs 250k (-3.7) and the breadth
+// law's anchor pays for exactly that (+7.0 there), so together every budget is
+// positive.
+const STEEP_ARRIVAL_DELIVERY_EFFICIENCY = 1.10;
 const STEEP_ARRIVAL_DELTA_MAX_DEG = 15;
 /**
  * Share of the commanded dive that EVERY pool member carries; the attempt span

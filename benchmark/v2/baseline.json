@@ -1,9 +1,9 @@
 {
   "schema": "line.benchmark-v2.baseline-reference.v10",
   "status": "canonical-baseline",
-  "label": "breadth-law",
-  "generated_at": "2026-07-28T19:20:05.662Z",
-  "bundle": "benchmark/v2/runs/breadth-law-baseline.json",
+  "label": "fitted-law-command",
+  "generated_at": "2026-07-29T01:52:33.729Z",
+  "bundle": "benchmark/v2/runs/fitted-law-command-baseline.json",
   "catalog_fingerprint": "7dca7a96370bcc3545bfc66b704941aa1501558134007b1194d3c655379931f5",
   "suite_fingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
   "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
@@ -11,7 +11,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "37023d88bddbd4a33832916034b13c6bf142fae01ee153124af59f486bc7f037",
+  "compiler_source_fingerprint": "394ab2682e9f94ee54b95eb19ad142199de46241dea581a5422c0407b5d5463c",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -100,26 +100,26 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
-  "candidate_fingerprint": "25752f12bf0a246fc397d59277af0d9a90fffdcc10ac8c4d49936473feaa3ae2",
+  "candidate_fingerprint": "c8dc7d015b943e10fc82ff6340311ba3141d7dbc4156d4998ab7ab8b8625ddda",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "66df2a60541432357fa203e1d45f4377878960f42d47a72a1a153adcf5205d2c",
   "decision_calibration_fingerprint": "380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/breadth-law-compiler-snapshot.tar.gz",
-    "archiveSha256": "f44fa468ad655300c0960c1b7cd8408b048e80566754cb1a9853e219917aaa5f",
-    "candidateFingerprint": "25752f12bf0a246fc397d59277af0d9a90fffdcc10ac8c4d49936473feaa3ae2",
-    "compilerSourceFingerprint": "37023d88bddbd4a33832916034b13c6bf142fae01ee153124af59f486bc7f037",
+    "archive": "benchmark/v2/runs/fitted-law-command-compiler-snapshot.tar.gz",
+    "archiveSha256": "6255c096247062d180003f259c28560d04a9500ba2337eefb5f47a90a0f4c732",
+    "candidateFingerprint": "c8dc7d015b943e10fc82ff6340311ba3141d7dbc4156d4998ab7ab8b8625ddda",
+    "compilerSourceFingerprint": "394ab2682e9f94ee54b95eb19ad142199de46241dea581a5422c0407b5d5463c",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
   },
   "probe": {
     "execution_policy_fingerprint": "5e336cda28b31c14ba42bcafd6d695f492b62b2df370fcd95ccd4725e476b92a",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "2595d815b325095ab41f21caf831621f6e24fb34ba6266688efcf0455712e90c",
-    "compressed_archive": "benchmark/v2/runs/breadth-law-probe.json.gz",
-    "compressed_archive_sha256": "f7478c2dfde39553c80c6f438e63ec1a0eb6bc3b0d4b040a20171fe1b0f978c5",
-    "canonical_headline": 558.509,
+    "archive_sha256": "79ec803f1d33977ee6426fcc98e189cc48c5712c60cf72e436a09dfef550db94",
+    "compressed_archive": "benchmark/v2/runs/fitted-law-command-probe.json.gz",
+    "compressed_archive_sha256": "c5ec91762a7ab1b644d68b67cf356efd1fa9872766fc7be6af0562fc1e32c99e",
+    "canonical_headline": 561.3798,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "probe",
@@ -147,13 +147,13 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 539.8846,
-        "valid_runs": 130,
+        "score": 526.7136,
+        "valid_runs": 128,
         "total_runs": 132
       },
       {
         "budget": 500000,
-        "score": 565.9588,
+        "score": 575.2463,
         "valid_runs": 132,
         "total_runs": 132
       }
@@ -162,10 +162,10 @@
   "development": {
     "execution_policy_fingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "802898aacf3fd91e2935d29f095571f640e26ab482cf3940bdde8f8b8ff3ed6d",
-    "compressed_archive": "benchmark/v2/runs/breadth-law-development.json.gz",
-    "compressed_archive_sha256": "e3d082e7be9aae6f527e2d312c5d8c43c69e6847c6832ff06f3ffbfbe1f5ea46",
-    "canonical_headline": 560.8472,
+    "archive_sha256": "69626030124dceaede3ff471d5f535c116cdf8f9a4c8f7d2f993a7a3fa165fba",
+    "compressed_archive": "benchmark/v2/runs/fitted-law-command-development.json.gz",
+    "compressed_archive_sha256": "c09fa5609b4ab6868f40fbcd761cef2571a7a86f6bf955d8d43b0a85aa61dd7f",
+    "canonical_headline": 568.2825,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -216,19 +216,19 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 526.5003,
-        "valid_runs": 344,
+        "score": 529.707,
+        "valid_runs": 343,
         "total_runs": 352
       },
       {
         "budget": 500000,
-        "score": 566.6104,
+        "score": 575.0635,
         "valid_runs": 352,
         "total_runs": 352
       },
       {
         "budget": 750000,
-        "score": 574.1397,
+        "score": 582.6978,
         "valid_runs": 352,
         "total_runs": 352
       }
@@ -237,10 +237,10 @@
   "qualification": {
     "execution_policy_fingerprint": "6aead4041cc8bef727be3feb1fca610e1c3a8d994bf6cfce387d50ffea42611e",
     "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
-    "archive_sha256": "e603c39eeea280a2bcb3b3bda40ace95283634ac95b49df0ad675b1faeda2ef5",
-    "compressed_archive": "benchmark/v2/runs/breadth-law-qualification.json.gz",
-    "compressed_archive_sha256": "d6cbdccd1821973962aa3a0caf4b843a7de530f5e5dcacbed0b72a6b731443d8",
-    "monitor_score": 405.6381,
+    "archive_sha256": "1f065cb0a6f8b1528633de322baf2049e49288669d2240e485195dccc450ff84",
+    "compressed_archive": "benchmark/v2/runs/fitted-law-command-qualification.json.gz",
+    "compressed_archive_sha256": "14c8488c7f27a26f8b53d6d2b0024d39a06b79212dcab5cee6a74c682ae2848e",
+    "monitor_score": 407.566,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -291,29 +291,29 @@
     "budgets": [
       {
         "budget": 250000,
-        "score": 398.6969,
+        "score": 399.8291,
         "valid_runs": 40,
         "total_runs": 40
       },
       {
         "budget": 500000,
-        "score": 405.9294,
+        "score": 408.0894,
         "valid_runs": 40,
         "total_runs": 40
       },
       {
         "budget": 750000,
-        "score": 409.7801,
+        "score": 411.8516,
         "valid_runs": 40,
         "total_runs": 40
       }
     ],
-    "linked_development_archive_sha256": "802898aacf3fd91e2935d29f095571f640e26ab482cf3940bdde8f8b8ff3ed6d"
+    "linked_development_archive_sha256": "69626030124dceaede3ff471d5f535c116cdf8f9a4c8f7d2f993a7a3fa165fba"
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "breadth-law",
-    "candidateFingerprint": "25752f12bf0a246fc397d59277af0d9a90fffdcc10ac8c4d49936473feaa3ae2",
+    "baselineLabel": "fitted-law-command",
+    "candidateFingerprint": "c8dc7d015b943e10fc82ff6340311ba3141d7dbc4156d4998ab7ab8b8625ddda",
     "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -1243,9 +1243,9 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 8,
-        "archiveSha256": "802898aacf3fd91e2935d29f095571f640e26ab482cf3940bdde8f8b8ff3ed6d",
-        "compressedArchive": "benchmark/v2/runs/breadth-law-development.json.gz",
-        "compressedArchiveSha256": "e3d082e7be9aae6f527e2d312c5d8c43c69e6847c6832ff06f3ffbfbe1f5ea46",
+        "archiveSha256": "69626030124dceaede3ff471d5f535c116cdf8f9a4c8f7d2f993a7a3fa165fba",
+        "compressedArchive": "benchmark/v2/runs/fitted-law-command-development.json.gz",
+        "compressedArchiveSha256": "c09fa5609b4ab6868f40fbcd761cef2571a7a86f6bf955d8d43b0a85aa61dd7f",
         "executionPolicyFingerprint": "4e63167d84507d9734c77317ec4391e716eb1db94bc4b26b3c89516984c8ec8c",
         "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988"
       }

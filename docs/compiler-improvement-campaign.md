@@ -3,8 +3,8 @@
 Target: accepted Benchmark V2 development headline 550.
 
 Current accepted baseline:
-`breadth-law`, canonical headline 560.85. Its cache covers 8 seeds per budget
-and extends on demand. Qualification monitor 405.64 at 120/120 valid.
+`fitted-law-command`, canonical headline 568.28. Its cache covers 8 seeds per
+budget and extends on demand. Qualification monitor 407.57 at 120/120 valid.
 
 | baseline | canonical | evidence |
 |---|---:|---|
@@ -17,7 +17,8 @@ and extends on demand. Qualification monitor 405.64 at 120/120 valid.
 | `pool-five` | 557.05 | N=24 +4.18, promotable, every stratum and budget positive |
 | `scarce-lean` | 558.63 | N=24 +1.00 [-0.71, +2.70]; 500k/750k exactly 0.00 by construction |
 | `span-handover` | 559.75 | N=24 +0.65 SE 0.27, ACCEPT/promotable, every stratum and budget positive |
-| **`breadth-law`** | **560.85** | **N=24 +1.24 SE 0.27 [+0.49, +1.98], ACCEPT/promotable; a law, not a refit** |
+| `breadth-law` | 560.85 | N=24 +1.24 SE 0.27 [+0.49, +1.98], ACCEPT/promotable; a law, not a refit |
+| **`fitted-law-command`** | **568.28** | **N=24 +5.57 SE 1.45 [+1.62, +9.51], ACCEPT/promotable; two unfitted constants fitted** |
 
 ### What 570 would now require
 
@@ -58,6 +59,66 @@ are evidence, not baselines.
 The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
+
+## 2026-07-29 — ACCEPTED: the two constants that were chosen, not measured
+
+Asked which of the last 48 hours' gains still had headroom. The answer was the
+same defect in both of the largest: **a parameter nobody had swept, because the
+sweep that would have caught it predated the change that made it wrong.**
+
+**The arc-command efficiency, 0.68 → 1.10.** Every sweep of this constant ran
+DOWNWARD (0.4 / 0.5 / 0.6) and every one of them predates the span floor that
+shipped in the same commit as the +18.30 gain. Once the floor makes every pool
+member carry at least half the commanded dive, the command itself is
+over-sized, so the untested direction is up:
+
+| efficiency | 0.76 | 0.85 | 0.95 | **1.00** | 1.10 | 1.30 | 1.50 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| delta | -0.84 | +2.88 | -0.08 | **+4.44** | +3.62 | +0.05 | -9.61 |
+
+**The breadth law, sqrt/24 → linear/27.** Committed hours earlier with BOTH
+parameters picked rather than measured — sqrt because it is the textbook
+diminishing-returns form, and the anchor inherited from a sweep of the old
+piecewise function under a different pool size.
+
+The anchor is bracketed at the reference budget, where the exponent cannot
+matter, and it reproduces across independent runs (two arms with different
+exponents measured the identical 250k configuration and both read +7.0):
+
+| anchor (250k nCand) | 21 | 24 | **27** | 30 |
+|---|---:|---:|---:|---:|
+| 250k delta | -8.0 | 0 | **+7.0** | -8.5 |
+
+The exponent, bracketed against the efficiency it interacts with:
+
+| exponent at eff 1.10 | 0.70 | 0.85 | **1.00** | 1.20 |
+|---|---:|---:|---:|---:|
+| delta | +6.25 | +6.84 | **+7.44** | +6.81 |
+
+**Linear is what the frame arithmetic says.** The search visits a fixed set of
+gaps, so frames-per-gap is proportional to the budget; per-gap breadth should
+be too. 27 / 54 / 81 candidates at 250k / 500k / 750k, still with no ceiling.
+
+**They are complements at their peak, not substitutes.** Efficiency 1.10 alone
+costs 250k (-3.7); the breadth anchor pays for exactly that (+7.0 there). Every
+budget is positive together where neither is alone.
+
+**N=24: +5.57, SE 1.45, CI [+1.62, +9.51], ACCEPT, promotable.** 250k +0.04,
+500k +5.82, 750k +8.83; every stratum positive (repr +7.14, capa +0.20, lega
++2.40, dev +6.01). Qualification 405.64 → **407.57**, agreeing with development
+this time.
+
+**REGRESSION, recorded not hidden.** Validity 3144 → 3128 (10 gained, 26 lost),
+entirely in the three `capability` sources at 250k that were already the only
+invalid runs in the archive: `frontier_dense_recovery` (16),
+`frontier_pickup_progression_shifted` (12), `..._240ms_figures` (11). This
+deepens the standing `rideStalled` debt rather than opening a new failure, and
+the capability stratum still nets +0.20 — but it is a reliability cost, and the
+next arm should be aimed at recovering it.
+
+**The lesson worth keeping.** When a mechanism changes what a neighbouring
+constant means, every prior sweep of that constant is stale. Both of these sat
+in the two biggest gains of the campaign, in plain sight, for two days.
 
 ## 2026-07-28 — ACCEPTED: one scale-free law for per-gap breadth
 

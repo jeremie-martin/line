@@ -272,17 +272,13 @@ export const AIM_TOPK_BASES = 4;
 const AIM_TOPK_MATURE_BUDGET_FRAMES = 100_000;
 const AIM_LOW_AIR_TOPK_MAX = 3;
 const AIM_LOW_AIR_TOPK_AIR_MAX = 0.30;
-// High-budget uniform aim-base count. A uniform top-6 policy (every mature gap,
-// 100k+) canonically gained the mature budgets (250k +0.5, 375k +1.6, 500k
-// +0.8) but cratered 125k (-18.9): the extra probe cost starves the scarce tier
-// where ~50-93% of the budget already goes just to first completion. The mature
-// gain is BROAD (not the retired spec-gated fifth-base tier, whose 5->6 bump was -0.5),
-// so raise the uniform base from AIM_TOPK_BASES (4) to AIM_TOPK_BASES_HIGH (6) only
-// on compiles whose TARGET budget clears AIM_TOPK_HIGH_BUDGET_FRAMES, leaving 125k
-// at 4. Per-compile-constant budget (each golden checkpoint is an independent full
-// compile) so K_effective never changes mid-node — same determinism contract as the
-// K>1 maturity gate above.
-const AIM_TOPK_BASES_HIGH = 6;
+// High-budget aim-base count, anchored at the accepted six bases at 250k.
+// As with per-gap sampling breadth, a compile with twice the frames can afford
+// twice as many fixed-cost local refinements per visited gap. Keeping K fixed
+// while sampled breadth grows 27/54/81 would refine a shrinking fraction of
+// the exact pool as budget rises.
+const AIM_TOPK_BASES_AT_REF = 6;
+const AIM_TOPK_BASES_REF_FRAMES = 250_000;
 const AIM_TOPK_HIGH_BUDGET_FRAMES = 200_000;
 
 let aimCompileBudgetFrames = 0;
@@ -302,7 +298,13 @@ export function aimTopKBasesEffective(gap?: Gap, _gaps?: readonly Gap[], _ctx?: 
   // (canonical: K=6 at 250k/375k/500k = +0.5/+1.6/+0.8) but starves 125k (-18.9), so
   // gate the rise on the compile budget.
   const highBudget = aimCompileBudgetFrames >= AIM_TOPK_HIGH_BUDGET_FRAMES;
-  const baseK = highBudget ? AIM_TOPK_BASES_HIGH : AIM_TOPK_BASES;
+  const baseK = highBudget
+    ? Math.max(
+      AIM_TOPK_BASES,
+      Math.round(AIM_TOPK_BASES_AT_REF *
+        aimCompileBudgetFrames / AIM_TOPK_BASES_REF_FRAMES),
+    )
+    : AIM_TOPK_BASES;
   if (gap?.targets.air !== undefined && gap.targets.air <= AIM_LOW_AIR_TOPK_AIR_MAX) {
     return Math.min(baseK, AIM_LOW_AIR_TOPK_MAX);
   }

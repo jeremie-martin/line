@@ -269,7 +269,7 @@ function sortWithLaneExtras(
       if (b >= bases) { recordLaneBaseSkip(); continue; }
       aimedExtras.push(...makeEnumAimedCandidates(
         node.prefixEngine, gap, gaps, ctx, sorted[b], node.prefixNextLineId,
-        b === 0, // air-matched variant: first (quality-best) base only
+        true,
       ));
     }
   }

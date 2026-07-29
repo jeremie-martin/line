@@ -60,6 +60,55 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-29 — why the impact bias will not move: the post-contact angle is not free
+
+The metric is the ENDPOINT heading at `landing+6`, not the peak turn, so
+whatever the rider's heading is six frames after a contact IS its impact. And
+the ride-out is typically ~15 frames (`targetGroundFrames ~ (1-air)*N`), so the
+rider is still ON the post-contact line at +6: its heading is that line's
+angle, with no gravity dilution. That makes
+
+    Delta-theta = |theta_post - theta_in|
+
+almost exactly, and every degree of extra upward tilt on the post-contact line
+is a degree of measured turn. `nonBrakePostAngleDeg = contactAngleDeg - (3 + 6 *
+air) + ...` sets `theta_post`, clamped to `[-8, 65]`. A direct, continuous,
+never-swept lever pointed straight at the bias.
+
+| arm | delta | SE | 250k | capa | valid |
+|---|---:|---:|---:|---:|---:|
+| clamp floor -8 → -20 (allow more upward) | -2.84 | 0.95 | -7.3 | -9.82 | 1047 → 1040 |
+| base tilt 3 → 9 (more upward everywhere) | **-16.56** | 4.93 | -15.5 | **-60.40** | 1047 → 1039 |
+
+**Both reject, and the second one explains the whole frontier.** Capability
+-60.40 is a timing failure, not a quality one: a more upward launch flies higher
+and longer and arrives at the next contact LATE. That is the same mechanism the
++18.30 `dive-span-floor` commit identified when it found its gain was "mostly
+not impact — it is TIMING".
+
+**The post-contact angle is the ballistic solution for the authored air, not a
+free parameter.** A launch at angle `theta` with speed `v` is airborne for
+`2 v sin(theta) / g` frames, and the compiler must be airborne for `air * N` of
+them. Solving gives the angle the shipped formula already produces:
+
+| air ask | shipped `-(3 + 6*air)` | `asin(g * air * N / 2v)` at N=30, v=10.6 |
+|---|---:|---:|
+| 0.35 | 5.1° | 5.0° |
+| 0.50 | 6.0° | 7.1° |
+
+The formula IS the flight-time relation. Tilting the line further up does not
+buy turn — it buys air the gap did not ask for and an arrival the next contact
+cannot catch.
+
+**So the frontier, stated structurally.** `Delta-theta = |theta_post -
+theta_in|`, where `theta_post` is PINNED by the authored air ask and the gap
+duration, and `theta_in` is the arrival angle that the steep-arrival dive
+already pushes to its bracketed limit. Both terms are determined by quantities
+the compiler does not get to choose. This is a sharper statement than the
+campaign's earlier "`v * dtheta` is near-conserved": it names WHICH constraint
+binds, and it predicts that impact moves only if the authored air or the gap
+length moves — neither of which is the compiler's to change.
+
 ## 2026-07-29 — the forward impact predictor: built, measured, and retired
 
 The previous entry named the missing mechanism: a PHYSICAL forward prediction

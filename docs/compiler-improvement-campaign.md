@@ -1,10 +1,10 @@
 # Compiler Improvement Campaign
 
-Target: accepted Benchmark V2 development headline 550.
+Target: accepted Benchmark V2 development headline above 590.
 
 Current accepted baseline:
-`fitted-law-command`, canonical headline 568.28. Its cache covers 8 seeds per
-budget and extends on demand. Qualification monitor 407.57 at 120/120 valid.
+`air-matched-breadth-law`, canonical headline 572.67. Its cache covers 8 seeds
+per budget and extends on demand. Qualification monitor 410.94 at 120/120 valid.
 
 | baseline | canonical | evidence |
 |---|---:|---|
@@ -18,28 +18,29 @@ budget and extends on demand. Qualification monitor 407.57 at 120/120 valid.
 | `scarce-lean` | 558.63 | N=24 +1.00 [-0.71, +2.70]; 500k/750k exactly 0.00 by construction |
 | `span-handover` | 559.75 | N=24 +0.65 SE 0.27, ACCEPT/promotable, every stratum and budget positive |
 | `breadth-law` | 560.85 | N=24 +1.24 SE 0.27 [+0.49, +1.98], ACCEPT/promotable; a law, not a refit |
-| **`fitted-law-command`** | **568.28** | **N=24 +5.57 SE 1.45 [+1.62, +9.51], ACCEPT/promotable; two unfitted constants fitted** |
+| `fitted-law-command` | 568.28 | N=24 +5.57 SE 1.45 [+1.62, +9.51], ACCEPT/promotable; two unfitted constants fitted |
+| **`air-matched-breadth-law`** | **572.67** | **N=8 +4.39 SE 1.46, one-sided lower +0.39; all-base air matching plus linear aim refinement** |
 
-### What 570 would now require
+### What 590 would now require
 
 Re-pricing on the accepted archive with `study_headline_counterfactual.ts`:
 
 | counterfactual | headline | delta |
 |---|---:|---:|
-| **every seed scores its cell's BEST** | **572.03** | **+23.50** |
-| invalid runs score their cell's MEAN | 560.05 | +11.51 |
-| valid runs score their cell's BEST | 560.26 | +11.72 |
-| impact rms x0.75 / x0.5 / x0 | 600 / 649 / 706 | +51.4 / +100.7 / +157.1 |
-| air rms x0.75 / x0 | 560 / 577 | +11.4 / +28.2 |
-| speed rms x0.75 / x0 | 555 / 563 | +6.0 / +14.1 |
-| amplitude rms x0.75 / x0 | 554 / 561 | +5.1 / +12.9 (n=288) |
+| **every seed scores its cell's BEST** | **592.16** | **+19.48** |
+| invalid runs score their cell's MEAN | 580.06 | +7.38 |
+| valid runs score their cell's BEST | 584.54 | +11.87 |
+| impact rms x0.75 / x0.5 / x0 | 625.75 / 677.18 / 737.48 | +53.08 / +104.51 / +164.81 |
+| air rms x0.75 / x0.5 / x0 | 582.65 / 590.48 / 597.29 | +9.98 / +17.80 / +24.61 |
+| speed rms x0.75 / x0 | 578.69 / 586.82 | +6.02 / +14.14 |
+| amplitude rms x0.75 / x0 | 577.91 / 586.18 | +5.23 / +13.51 (n=288) |
 
-**A compiler as reliable as its own best seed of eight would score 572.** That
-prize is now split evenly between validity (+11.51, and every invalid run left is
-at 250k on four frontier cells) and quality spread among valid runs (+11.72). The
-pacing family took the first half of it; nothing measured this session touches
-the second. Every other route needs the impact axis, which this session closed
-from three further directions on top of the campaign's twenty.
+**A compiler as reliable as its own best seed of eight would score 592.16.**
+The target is now inside the search's demonstrated output rather than beyond
+its geometry. The remaining prize is mostly quality spread among valid runs
+(+11.87), with invalid 250k frontier runs worth another +7.38. Halving air RMS
+also clears the target at 590.48, but the accepted air mechanism reduced that
+ceiling by only 3.6 points; reliability is the larger live route.
 
 Accepted this session, both on one mechanism — the steep-arrival dive:
 
@@ -59,6 +60,45 @@ are evidence, not baselines.
 The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
+
+## 2026-07-29 — ACCEPTED: air matching inherits the breadth law
+
+**Hypothesis.** The last 24 hours' largest gains came from stale ceilings:
+ordinary per-gap generation now scales 27/54/81, but the aim lane still refined
+six bases at every canonical budget, and only its first base emitted the
+deterministic air-matched ride-out. The exact ranker can admit narrowly from a
+broader set of release solutions, so emit air matching for every already-refined
+base and scale non-low-air refinement linearly from six bases at 250k:
+6/12/18. The accepted low-air cap of three remains fixed.
+
+**Evidence.** Focused optimizer tests passed (4 files, 48 tests). Canonical N=2
+screening took about 2m25s per arm: all-base air matching +6.75; two bases only
++0.68; all-base plus linear K +7.80; sqrt K (6/8/10) +5.77. The exact N=8
+comparison took 8m22s:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `air-allbases-linear-aimk-n8` | **572.67** | **+4.39** | +2.98 | **+5.25** | **+3.90** | 1046/1056 |
+
+Seed-block SE 1.46, one-sided lower bound +0.39; representative +5.15
+[+2.96,+7.34]. Validity changes only in the already-marginal 250k frontier
+(4 gained, 5 lost); both mature budgets remain 352/352 valid. Qualification
+407.57 -> **410.94**, 120/120 valid.
+
+**Neighbor brackets.** The old air mismatch gate remains at an interior optimum
+(0.05 +2.66 and 0.15 +0.17 versus 0.10 +6.75 at N=2). Four search children are
+parity (+7.76 versus +7.80), pool four loses (+6.02 and one extra invalid),
+delivery efficiency 1.00 loses (+2.45), and scaling the low-air K cap loses
+(+7.22 with direct endurance regressions). A semantic forward-value memo was
+byte-identical despite 132k hits; terminal-air occupancy conventions lost
+-8 to -11; start width 24 concentrated a noisy gain at 250k but lost mature
+quality; paced brake suppression lost validity. Retired.
+
+**Decision.** Promoted as `air-matched-breadth-law` from the exact N=8 snapshot.
+The general mechanism is the same one that paid yesterday: generate wider,
+admit narrowly, and remove a budget ceiling only where the work unit has fixed
+per-gap cost. Next: reduce the now-priced +19.48 seed/basin spread; no
+acceleration-line work.
 
 ## 2026-07-29 — the impact bias, attacked from the delivery curve: the compiler is already right
 

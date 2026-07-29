@@ -60,6 +60,59 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-29 — the impact bias, attacked from the delivery curve: the compiler is already right
+
+Impact is not a passive consequence of the flight geometry. Testing that
+directly: airborne frames predict achieved impact at only **r = 0.34**, and the
+symmetric-ballistic law `redirArc ~ g * airborneFrames` over-predicts (mean
+0.486 against 0.378). What achieved impact DOES track is the ask itself, at
+**r = 0.816** — far above air (0.23), speed (0.21) or gap duration (0.24). The
+compiler is actively steering impact and falling short, not drifting.
+
+**The delivery curve is non-monotonic, and that looked like a gate.**
+`achieved = 0.870 * ask - 0.093` overall, but by band:
+
+| ask band | n | mean ask | achieved | ratio | mean dur | mean speed ask |
+|---|---:|---:|---:|---:|---:|---:|
+| 0-0.2 | 1,868 | 0.136 | 0.124 | **0.91** | 1.122 s | 0.609 |
+| 0.2-0.35 | 27,162 | 0.288 | 0.142 | **0.49** | 0.572 s | 0.695 |
+| 0.35-0.5 | 13,314 | 0.398 | 0.203 | **0.51** | 0.578 s | 0.698 |
+| 0.5-0.65 | 16,888 | 0.583 | 0.473 | **0.81** | 0.576 s | 0.691 |
+| 0.65-0.8 | 22,918 | 0.719 | 0.552 | 0.77 | 0.617 s | 0.713 |
+| 0.8+ | 14,899 | 0.868 | 0.622 | 0.72 | 0.693 s | 0.749 |
+
+The three middle bands sit on the SAME gaps — duration 0.572 / 0.578 / 0.576 s,
+speed ask 0.695 / 0.698 / 0.691 — and deliver 0.49 / 0.51 / 0.81 of their ask. A
+SMALLER turn delivered worse than a larger one on identical geometry is not a
+physical limit, and the discontinuity lands exactly where the impact-curve
+pressure ramp does: `IMPACT_CURVE_TARGET_START` 0.25 / `SPAN` 0.40 puts ~0.10
+pressure at a 0.29 ask and ~0.83 at a 0.58 ask. 42% of gaps sit at a tenth of
+the lever. Closing that gap would move the bias from -0.164 to about -0.11,
+past what 590 needs.
+
+**It is not a gate. Re-sweeping the ramp rejects, hard and monotonically:**
+
+| ramp | delta | SE | repr |
+|---|---:|---:|---:|
+| START 0.25 → 0.10, SPAN 0.40 → 0.25 | **-42.49** | 0.96 | **-47.19** |
+| SPAN 0.40 → 0.22 | -9.05 | 1.52 | -14.05 |
+| START 0.25 → 0.15, SPAN 0.40 → 0.33 | -20.62 | 1.32 | -22.56 |
+
+**So the band table inverts.** The mid-band gaps deliver half their ask not
+because a threshold blocks them but because the compiler correctly DECLINES the
+trade there: applying the impact machinery to a mid-band ask costs far more in
+the other axes than the turn is worth. The discontinuity is a selection
+outcome, and the ramp that produces it is at a sharp optimum. The apparent
+anomaly was the compiler being right.
+
+**With the post-angle bracket also closed** — tilt 0 is -1.52, 3 shipped, 6 is
+-3.42, 9 is -16.56 with capability -60.40 — every route to the impact bias this
+campaign can name is now measured and closed: the arrival angle (the dive, at
+its bracketed limit), the post-contact angle (the ballistic solution for the
+authored air), the ranker's weighting (symmetric optimum), the repair target
+(raw SSE optimum), the forward predictor (worse than the learned estimate), and
+the delivery ramp (sharp optimum). The bias is where the axis trade puts it.
+
 ## 2026-07-29 — why the impact bias will not move: the post-contact angle is not free
 
 The metric is the ENDPOINT heading at `landing+6`, not the peak turn, so

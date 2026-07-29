@@ -60,6 +60,47 @@ The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
 the concise hypothesis/evidence/decision format required by `goal.md`.
 
+## 2026-07-29 — the stale-sweep audit, executed: only the efficiency was stale
+
+The efficiency find generalises to a rule — *when a mechanism changes what a
+neighbouring constant MEANS, every prior sweep of that constant is stale* — so
+every constant downstream of the two changes was re-swept. N=8 against
+`fitted-law-command` (568.28).
+
+| stale-by | constant | arms | verdict |
+|---|---|---|---|
+| breadth now 27/54/81, was flat 29 | `HANDOFF_CANDIDATE_POOL` | 7 → -1.56, 10 → -5.46 | not stale; 5 holds |
+| efficiency now 1.10, was 0.68 | `STEEP_ARRIVAL_SPAN_FLOOR` | 0.35 → -7.91, 0.65 → -1.16 | not stale; 0.5 holds |
+| efficiency now 1.10 | `STEEP_ARRIVAL_DELTA_MAX_DEG` | 22 → -3.01, 10 → -9.40 | not stale; 15 holds |
+| efficiency now 1.10 | `STEEP_ARRIVAL_ABS_CAP_DEG` | 55 → -0.30 | not stale |
+| breadth: the ranker now sorts 81, not 29 | objective `settled` | 1.5 → -4.94, 2.0 → -12.76 | not stale; 1 holds |
+| ditto | objective `future` | 1.5 → -3.65 | not stale |
+| ditto | objective `readiness` | 0.5 → **-40.13** | readiness is the load-bearing term |
+| breadth: more candidates to find a safe one | room-gated low-air cap | -0.90 | still closed |
+| ditto | `ARC_LEN_SPAN_HI` 2.40 | +0.01 | 1.85 holds |
+
+**Nine re-sweeps, one live.** Only the delivery efficiency was genuinely stale;
+everything else sits at a local optimum in both directions under the new
+regime. That is a strong statement about the fitted configuration rather than a
+run of bad luck — the audit was designed to find staleness and did not.
+
+**The efficiency-as-a-law arm.** Efficiency is the fraction of a commanded turn
+the search actually delivers, which depends on how well it can SELECT for one —
+and that now scales with the budget. Coupling it the same way (0.68 at the
+reference, exponent 0.5, so 0.68 / 0.96 / 1.18) is **+0.45 with 250k +3.8 and
+validity 1047 → 1050**, recovering three of the runs the flat 1.10 cost. Both
+higher references reject (0.80 -3.19, 0.90 -2.14). Positive and
+reliability-improving but not decisive, so it is recorded rather than promoted.
+
+**The readiness retrain is closed, and instructively.** `SAMPLER_FILES`
+includes both files changed today, so the corpus fingerprint is genuinely
+stale; regenerating it (523M, composite MSE 0.0137, r 0.742) and retraining is
+**-16.03, capability -118.28** — and identically so with `--incumbent-model`,
+so the trainer adopts the same components either way. The fresh model is BETTER
+on `representative` (+2.27) and collapses on the hard cases. The incumbent, on
+a corpus that no longer matches the sampler, generalises better than one fitted
+to the sampler as it stands. Retrain reverted.
+
 ## 2026-07-29 — ACCEPTED: the two constants that were chosen, not measured
 
 Asked which of the last 48 hours' gains still had headroom. The answer was the

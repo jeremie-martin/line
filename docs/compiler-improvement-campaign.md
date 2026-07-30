@@ -3,8 +3,9 @@
 Target: accepted Benchmark V2 development headline above 590.
 
 Current accepted baseline:
-`air-matched-breadth-law`, canonical headline 572.67. Its cache covers 8 seeds
-per budget and extends on demand. Qualification monitor 410.94 at 120/120 valid.
+`postcompletion-aim-center-reuse`, canonical headline 571.08 at N=48. Its cache
+covers all 48 accepted seeds per budget and extends on demand. Qualification
+monitor 411.10 at 120/120 valid.
 
 | baseline | canonical | evidence |
 |---|---:|---|
@@ -19,7 +20,8 @@ per budget and extends on demand. Qualification monitor 410.94 at 120/120 valid.
 | `span-handover` | 559.75 | N=24 +0.65 SE 0.27, ACCEPT/promotable, every stratum and budget positive |
 | `breadth-law` | 560.85 | N=24 +1.24 SE 0.27 [+0.49, +1.98], ACCEPT/promotable; a law, not a refit |
 | `fitted-law-command` | 568.28 | N=24 +5.57 SE 1.45 [+1.62, +9.51], ACCEPT/promotable; two unfitted constants fitted |
-| **`air-matched-breadth-law`** | **572.67** | **N=8 +4.39 SE 1.46, one-sided lower +0.39; all-base air matching plus linear aim refinement** |
+| `air-matched-breadth-law` | 572.67 | N=8 +4.39 SE 1.46, one-sided lower +0.39; all-base air matching plus linear aim refinement |
+| **`postcompletion-aim-center-reuse`** | **571.08** | **N=48 +0.0842 SE 0.0217, 95% CI [+0.0271,+0.1413]; exact center-row reuse after first completion** |
 
 ### What 590 would now require
 
@@ -52,10 +54,12 @@ Accepted this session, both on one mechanism — the steep-arrival dive:
 
 Qualification monitor 394.17 → 399.50 → 404.04, at 120/120 valid throughout.
 
-A baseline archive is always EXACTLY 8 canonical seeds per budget - the seed
-schedule packs 250k to slots 0-7, 500k to 8-15, 750k to 16-23, leaving the probe
-profile 24-26 / 27-29 / 30-32, and anything deeper collides with it. Deeper runs
-are evidence, not baselines.
+The declared canonical profile remains exactly eight seeds per budget and
+disjoint from the three-seed probe profile. A promotion from fixed-N evidence
+now retains the accepted deeper prefix as the baseline cache itself; the
+current baseline therefore publishes `[0,48)` rather than throwing away 40
+measured slots. Profile-level disjointness still applies to the first eight
+canonical slots, while fixed-N tail slots retain their literal schedule.
 
 The previous long-form campaign log remains recoverable from repository
 history; older material is also under `docs/archive/`. This file now follows
@@ -99,6 +103,304 @@ The general mechanism is the same one that paid yesterday: generate wider,
 admit narrowly, and remove a budget ceiling only where the work unit has fixed
 per-gap cost. Next: reduce the now-priced +19.48 seed/basin spread; no
 acceleration-line work.
+
+## 2026-07-30 — RETIRED: low-discrepancy launch/length tail
+
+**Hypothesis.** Once the accepted breadth law grows the ordinary pool past its
+historical 16-attempt profile, later attempts should cover launch and ride-out
+length jointly instead of repeating the same profile. Attempts 0--15 stayed
+byte-identical; attempt 16 onward used a deterministic, non-repeating R2
+sequence. The mechanism had no benchmark rung, case identity, or candidate-count
+ceiling.
+
+**Evidence.** Focused optimizer tests passed (4 files, 72 tests). The full N=48
+comparison took about 53 minutes including checkpoint resume after the host
+reboot:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `r2-profile-tail-n48` | 568.52 | **-2.48** | +0.93 | **-5.19** | -0.25 | 6253/6336 |
+
+Seed-block SE 1.24, 99% central interval [-5.79,+0.82]. Representative was
+flat (+0.04), but capability fell -14.43 and validity moved 31 gained / 36
+lost. The broader coordinate basis therefore did not become broader *physical*
+coverage in the nonlinear generator; this independently confirms the earlier
+Halton-prefix observation.
+
+**Decision.** Retired and source-reverted. N=48 baseline cache coverage is now
+published for slots 0--47, so subsequent candidates compile only their 6,336
+candidate cells. Candidate evaluation now uses N=48 only.
+
+## 2026-07-30 — RETIRED: branch-lineage proposal streams
+
+**Hypothesis.** Sibling prefixes previously replayed the same normalized
+`(searchSeed, gapIndex)` proposal coordinates. A deterministic lineage derived
+from committed attempt identities should make ordinary frontier branches cover
+different basins without adding candidates. The root stream stayed historical;
+the rule had no budget, case identity, or candidate-count ceiling.
+
+**Evidence.** Focused optimizer tests passed (4 files, ultimately 71 tests).
+Three paired N=48 comparisons separated the mechanism from rollout and repair
+stream interactions:
+
+| formulation | delta | 250k | 500k | 750k | representative | capability |
+|---|---:|---:|---:|---:|---:|---:|
+| lineage in frontier and rollouts | +0.97 | +5.96 | -0.13 | -0.51 | -0.83 | +10.87 |
+| common rollout streams | +1.45 | **+10.99** | -0.76 | -1.22 | -1.51 | **+17.11** |
+| common rollouts, historical repair | **+1.71** | **+11.19** | -0.59 | -0.79 | -1.25 | **+17.16** |
+
+The best formulation scored 572.71 versus the deep baseline 571.00, SE 0.80,
+99% central interval [-0.41,+3.82], and remained inconclusive/non-promotable.
+Validity moved 6258 -> 6281 (49 gained, 26 lost), entirely at 250k. The gain
+was dominated by `frontier_pickup_progression_shifted`; mature budgets and the
+representative stratum remained negative. Keeping common rollout coordinates
+required cache isolation by resolved proposal seed; a focused regression test
+caught and fixed the otherwise call-order-dependent rollout/frontier cache.
+
+**Decision.** Retired and source-reverted. This larger current-baseline N=48
+read confirms the older prefix-conditioned-sampling panel: diversification can
+recover a scarce rapid-pickup basin, but it is not broad reliability. Repair
+already supplies fresh deterministic seeds, and further stream-policy tuning
+would be adapting to one capability family rather than improving the compiler.
+
+## 2026-07-30 — RETIRED: measured residual air correction
+
+**Hypothesis.** The accepted closed-form air matcher assumes a one-to-one
+release response. Its first exact evaluated fit supplies a measured response:
+when that fit reduced absolute projected air error but remained outside the
+ordinary 0.05 deliverability deadband, offer one further residual correction
+from the fit's own ballistic launch. This added at most one deterministic,
+fixed-cost candidate per already-refined base and inherited the accepted linear
+aim-base budget law; it had no case, benchmark-rung, or acceleration logic.
+
+**Evidence.** Focused optimizer tests passed sequentially (5 files, 86 tests).
+The N=48 candidate-only comparison took 46m54s:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `air-residual-correction-n48` | 567.97 | **-3.03** | -0.01 | -1.52 | **-7.57** | 6253/6336 |
+
+Seed-block SE 1.20, 95% central interval [-6.19,+0.13], one-sided upper
+-0.18: not better than baseline. Representative (+0.06), legacy (+0.26), and
+development music (+0.14) were near parity, but capability fell -20.71. The
+loss was concentrated in mature tight catches:
+`frontier_pickup_progression_shifted` fell -81.82 and lost five valid runs.
+
+**Decision.** Retired and source-reverted. A first-pass reduction in projected
+air error does not establish a convergent physical tail-length response; the
+second correction over-controls the geometry precisely where mature catches
+are tight. The accepted one-pass matcher remains the boundary.
+
+## 2026-07-30 — RETIRED: scale-relative rescue breadth
+
+**Hypothesis.** Ordinary generation now follows the accepted linear breadth law
+(27/54/81 at canonical budgets), while dead-end and short-deadline rescue
+remained fixed at their 250k counts. Preserve each measured rescue/ordinary
+ratio and scale only deterministic rescue generation with ordinary breadth;
+keep admission fixed. The same law extends without a ceiling to 150k and
+1M--3M, and the 250k compiler stays exact.
+
+**Evidence.** Focused tests passed in an isolated accepted-source worktree
+(69 tests). The candidate was then frozen and evaluated from the cache-owning
+worktree at N=48, taking 46m48s:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `scale-relative-rescue-n48` | 567.88 | **-3.12** | +0.00 | -1.63 | **-7.68** | 6252/6336 |
+
+Seed-block SE 1.20, 95% central interval [-6.27,+0.04], one-sided upper
+-0.28: not better than baseline. The reference 250k configuration reproduced
+to +0.004, while capability fell -20.74 at mature budgets. Six valid runs were
+lost, dominated by `frontier_pickup_progression_shifted` (-81.82, five losses)
+and `frontier_dense_recovery_240ms_figures` (-14.93, one loss).
+
+**Decision.** Retired and source-reverted. Rescue is not ordinary generation:
+once the main pool is already 54/81-wide, multiplying emergency retries
+displaces completion work and changes marginal tight-catch paths. The fixed
+rescue dose is a protective selection boundary, not an untapped breadth
+ceiling; do not revisit with a smaller fitted ratio.
+
+## 2026-07-30 — RETIRED: support-time coverage ablation
+
+**Hypothesis.** All-base air matching may have superseded the older
+support-time candidate family. Disable that family by default while preserving
+its physical deficit calculation and the independent kinematic lane exactly;
+the ablation removes work only from the six low-air/sparse families where the
+legacy lane still runs.
+
+**Evidence.** Focused tests passed (4 files, 67 tests). The candidate-only N=48
+comparison took 47m24s:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `support-ablation-n48` | 555.28 | **-15.72** | -14.93 | -17.11 | -13.93 | 6150/6336 |
+
+Seed-block SE 0.54, 95% interval [-17.13,-14.31]. Capability fell -101.47
+and validity lost 108 runs, with no gains. The mechanism is direct:
+`frontier_low_air_endurance_7s` lost 79/144 valid runs and fell -550.70;
+the 6s variant lost 29 and fell -410.18. Representative also moved
+significantly negative (-0.72), while unaffected strata stayed exactly zero.
+
+**Decision.** Retired and source-reverted. The lane's low selection count was
+misleading: its support geometry is a completion prerequisite on long grounded
+ride-outs, not redundant tail diversity. Preserve it at every budget; the
+all-base air matcher complements rather than supersedes it.
+
+## 2026-07-30 — RETIRED: post-aim air matching
+
+**Hypothesis.** The accepted aim controller and closed-form air matcher each
+improve a different part of the same arc, but the air slot currently edits the
+raw sampled base before aim. Keep exactly one air-match attempt per refined
+base and source it from the quality-best exactly evaluated aim proposal,
+falling back to the raw base only when no aim proposal survives. This composes
+the controls without extra simulation, RNG, budget thresholds, or acceleration
+logic; fixed work per refined base inherits the accepted scale-free K law.
+
+**Evidence.** Focused tests passed (4 files, 67 tests). The candidate-only N=48
+comparison took 49m38s:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `postaim-airmatch-n48` | 567.19 | **-3.81** | -2.74 | -5.03 | -2.50 | 6245/6336 |
+
+Seed-block SE 1.24, 95% interval [-7.08,-0.55]. Every stratum moved negative:
+representative -1.02, capability -18.61, legacy -2.70, and development music
+-0.71. Validity moved 6258 -> 6245 (30 gained, 43 lost). The largest losses
+were shifted pickup (-67.82), pickup (-21.88), 7s low-air endurance (-28.05),
+and dense-240 recovery (-7.16).
+
+**Decision.** Retired and source-reverted. Pitch/rotation aiming and tail-length
+air correction are not separable controls merely because each succeeds alone:
+the aimed geometry changes the release/catch basin on which the closed-form
+tail edit acts. Keep the accepted one-pass matcher on the raw refined base.
+Do not retry source blends or post-aim residual variants.
+
+## 2026-07-30 — RETIRED: extra air-only breadth
+
+**Hypothesis.** The accepted quality-ranked refinement band may leave useful
+raw bases unexplored by the cheap exact air matcher. Give a second,
+equally-sized quality-ranked band air matching only, keeping the aim:air work
+ratio at 1:2 under the same continuous structural-slack activation and
+low-air cap. This adds no acceleration logic and scales with the existing
+150k–3M breadth law.
+
+**Evidence.** Focused policy tests covered the 150k, 250k, 500k, 750k, 1M,
+and 3M mappings. The candidate-only N=48 comparison took 47m34s:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `extra-airband-n48` | 570.39 | **-0.61** | -0.06 | -0.64 | -0.92 | 6256/6336 |
+
+Seed-block SE was 0.93 with a 95% interval of [-3.09,+1.87], so the small N=8
+gain did not survive the acceptance sample. Representative improved
+significantly (+0.90), but capability fell -7.98; validity moved 6258 -> 6256.
+The largest regressions were shifted pickup (-28.44, one loss) and dense-240
+recovery (-13.68, one loss), outweighing gains in the high-air, dense-contrast,
+pickup-lattice, and meter cases.
+
+**Decision.** Retired and source-reverted. The second band finds some useful
+representative diversity, but at mature budgets it displaces stronger
+completion paths and loses capability validity. Preserve the accepted
+single-band air matcher; do not infer promotion from the earlier N=8 result.
+
+## 2026-07-30 — RETIRED: traversal-slack future weighting
+
+**Hypothesis.** A retained N=48 objective sweep had measured settled:future
+1:4 at +19.90 for the scarce budget and -10.67 for the plentiful budget.
+Express scarcity as `budget / predicted_first_completion_frames`: use that
+endpoint through two predicted traversals, then smoothstep back to the accepted
+per-spec settled policy and neutral future power by three traversals. This
+reproduced the measured scarce endpoint without naming a benchmark budget,
+became exactly inert when work was plentiful, and extended unchanged from 150K
+through multi-million-frame budgets.
+
+**Evidence.** Focused policy/optimizer tests passed (4 files, 43 tests). The
+candidate-only N=48 comparison took 47m46s:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `traversal-future-n48` | 568.64 | **-2.36** | **-13.76** | +0.78 | +0.00 | 6247/6336 |
+
+Seed-block SE was 0.27 with a 95% interval of [-3.09,-1.64]. Validity moved
+6258 -> 6247 (25 gained, 36 lost), entirely at 250k. Representative fell
+-2.61 and legacy regression -1.90; development music gained +0.71. The largest
+loss was 7s low-air endurance (-15.11, one validity loss), while dense dialogue
+gained +7.62/+10.75. The high-budget boundary was exactly inert as designed,
+and the narrow transition band at 500k was modestly positive, but the historical
+scarce-budget sign reversed decisively on the current compiler.
+
+**Decision.** Retired and source-reverted. The old 1:4 endpoint was not a
+portable scarcity law: after the steep-arrival and air-matched breadth changes,
+future-heavy admission again trades away more scored quality and low-air
+completion than it recovers. Structural traversal slack is still the right
+scale-free unit for policies that genuinely vary with scarcity, but it cannot
+make a stale objective endpoint current. Do not fit a weaker ratio to this
+benchmark ladder.
+
+## 2026-07-30 — RETIRED: exact aim center-row reuse
+
+**Hypothesis.** Every refined base was already an exact evaluated candidate
+with scorer axes and a confirmed ballistic launch, yet the five-row local aim
+fit rode its unchanged zero-control lines again. Reconstruct that center row
+from the retained exact fit and closed-form ballistic projection; keep all four
+nonzero probes and every proposed candidate on the ordinary exact evaluator.
+This removes one duplicated ride per refined base under the existing unbounded
+6/12/18 aim law, without changing acceleration, controls, or RNG.
+
+**Evidence.** Exact-output and cross-scale pool-equivalence tests passed at
+150k, 250k, 750k, and 3M. The candidate-only N=48 comparison took 49m46s:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `aim-zero-reuse-n48` | 569.32 | **-1.68** | +0.54 | **-3.77** | +0.32 | 6256/6336 |
+
+Seed-block SE was 1.28 with a 95% interval of [-5.09,+1.74]. The saved work
+did buy more refined bases (tail-shard totals +5.3%/+6.1%/+6.1% across the
+three budgets), and 750k improved significantly by +0.32. Representative
+also improved +0.50, with legacy +0.58 and development music +0.21. But
+capability fell -13.99: shifted pickup -48.90, dense-240 recovery -24.04,
+7s low-air -12.99, and ordinary pickup -10.07. Validity moved 6258 -> 6256
+(34 gained, 36 lost), including three losses at 500k.
+
+**Decision.** Retired; the source lived only in the isolated measured
+worktree. Exact semantic reuse is not automatically score-monotone under a
+frame-bounded search: the extra traversal changes which capability basin owns
+the later budget. The positive representative and 750k movements still price
+probe efficiency, but do not justify this pure reinvestment path. A distinct
+follow-up may amortize a pool-local response across bases only if it treats the
+shared model as a proposal prior and retains exact candidate validation.
+
+## 2026-07-30 — ACCEPTED: exact aim center-row reuse after completion
+
+**Hypothesis.** The unconditional center-row reuse above changed the search
+basin before the compiler owned a valid full track. Keep the exact historical
+probe during completion search, then enable the same semantic reuse only after
+`hasCompletion`: reconstruct the unchanged center row from the already-exact
+candidate axes and confirmed ballistic launch, while all four nonzero probes
+and every proposal continue through exact engine evaluation. The phase gate is
+structural rather than budget-based, so the mechanism inherits the existing
+aim-breadth law from 150k through 3M and beyond.
+
+**Evidence.** Exact-output and fresh-engine pool-equivalence tests passed at
+150k, 250k, 750k, and 3M; the focused optimizer suite passed 70/70 tests. The
+candidate-only N=48 comparison was positive at every canonical budget with
+validity exactly unchanged:
+
+| result | headline | delta | 250k | 500k | 750k | valid |
+|---|---:|---:|---:|---:|---:|---:|
+| `postcompletion-zero-reuse-n48` | **571.0840** | **+0.0842** | +0.0329 | +0.1123 | +0.0718 | 6258/6336 |
+
+Seed-block SE was 0.0217, 95% interval [+0.0271,+0.1413], and the one-sided
+lower bound was +0.0328. All strata moved positive: representative +0.0862,
+capability +0.0302, legacy +0.1483, and development music +0.0920. Validity
+was bit-for-bit flat at every budget: zero gained and zero lost.
+
+**Decision.** Promoted as `postcompletion-aim-center-reuse`. The baseline
+retains the full accepted `[0,48)` archive at 571.08; the refreshed probe is
+563.78 and qualification is 411.10 at 120/120 valid. The publication path was
+also corrected to distinguish the declared eight-seed canonical profile from
+deeper fixed-N cache tails, allowing accepted N=48 evidence to become the
+baseline without weakening profile-level seed disjointness.
 
 ## 2026-07-29 — the impact bias, attacked from the delivery curve: the compiler is already right
 

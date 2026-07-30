@@ -1,10 +1,11 @@
 /**
- * Shared study-only reporting of the production impact measurement.
+ * Shared study-only reporting of the production impact measurement
+ * (the scored redirection impulse, contactRedirArcPxAtLanding since 2026-07-31).
  *
  * This module reports a closed capture's scored contact outcome; it never
  * selects a capture or turns impact residual into a planning input.
  */
-import { redirArcPxAtLanding } from "../core/substrate.ts";
+import { contactRedirArcPxAtLanding } from "../core/substrate.ts";
 import { IMPACT_WINDOW, normImpact } from "../types.ts";
 import {
   postimpactRedirArcToImpact,
@@ -12,7 +13,7 @@ import {
 } from "./postimpact_physics.ts";
 
 export type ScoredContactImpactOutcome = {
-  metric: "redirArcPxAtLanding -> normImpact";
+  metric: "contactRedirArcPxAtLanding -> normImpact";
   windowFrames: number;
   availability:
     | "measured"
@@ -34,7 +35,7 @@ export function scoredContactImpactFromRedir(input: {
   redirArcPx: number | undefined;
 }, convention?: Readonly<PostimpactImpactConvention>): ScoredContactImpactOutcome {
   const base = {
-    metric: "redirArcPxAtLanding -> normImpact" as const,
+    metric: "contactRedirArcPxAtLanding -> normImpact" as const,
     windowFrames: convention?.impactWindowFrames ?? IMPACT_WINDOW,
     target: input.target,
     landingFrame: input.landingFrame,
@@ -62,12 +63,12 @@ export function scoredContactImpactFromRedir(input: {
 
 /** Read the exact production impact metric for an already-owned landing. */
 export function scoredContactImpact(
-  detection: Parameters<typeof redirArcPxAtLanding>[0],
+  detection: Parameters<typeof contactRedirArcPxAtLanding>[0],
   input: { target: number | null; landingFrame: number | null; responseWindowComplete: boolean },
 ): ScoredContactImpactOutcome {
   const redirArcPx = input.landingFrame === null || !input.responseWindowComplete
     ? undefined
-    : redirArcPxAtLanding(detection, input.landingFrame, IMPACT_WINDOW);
+    : contactRedirArcPxAtLanding(detection, input.landingFrame, IMPACT_WINDOW);
   return scoredContactImpactFromRedir({ ...input, redirArcPx });
 }
 
@@ -77,12 +78,12 @@ export function scoredContactImpact(
  * boundary, rather than re-reading ambient production constants.
  */
 export function scoredContactImpactWithConvention(
-  detection: Parameters<typeof redirArcPxAtLanding>[0],
+  detection: Parameters<typeof contactRedirArcPxAtLanding>[0],
   input: { target: number | null; landingFrame: number | null; responseWindowComplete: boolean },
   convention: Readonly<PostimpactImpactConvention>,
 ): ScoredContactImpactOutcome {
   const redirArcPx = input.landingFrame === null || !input.responseWindowComplete
     ? undefined
-    : redirArcPxAtLanding(detection, input.landingFrame, convention.impactWindowFrames);
+    : contactRedirArcPxAtLanding(detection, input.landingFrame, convention.impactWindowFrames);
   return scoredContactImpactFromRedir({ ...input, redirArcPx }, convention);
 }

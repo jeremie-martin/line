@@ -202,7 +202,7 @@ export const EXPLORATORY_BUDGETS = [
  * DELIBERATE ruler change updates this constant in the same commit. Soft
  * tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "6f760d9c1cc9"; // 2026-07-09: metadata refresh after behavior-preserving measure.ts speed refactors (8c86213, 4145942); ruler behavior unchanged (verify:compiler:behavior bit-identical)
+export const EVALUATOR_FINGERPRINT = "afbdb18787e6"; // 2026-07-31: DELIBERATE ruler change — scored impact promoted to the redirection impulse (contactRedirArcPxAtLanding, accumulated contacted-frame Σ v̄·|Δθ|), anchors SOFT=0/VSTRONG=7.55, ceiling = speed × MAX_RELIABLE_TURN_RAD(1.0). Scores are NOT comparable to pre-promotion history. See docs/impact_definition.md.
 
 /**
  * Worker-timeout (hang-detection safety cap) for a row of independent budget

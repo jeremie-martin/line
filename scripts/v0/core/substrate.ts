@@ -192,19 +192,57 @@ export function findAuthoredContactNearFrame(
 }
 
 /**
- * Redirection ARC `redirArc = v·Δθ` (px/frame, UNNORMALIZED) — the SCORED production
- * definition of impact (LOCKED 2026-06-14). `v` = incoming CoM speed; `Δθ` = net heading
- * change of the CoM velocity over the `window`-frame (~0.15s) episode after the landing.
- * It is the arc the velocity vector sweeps as the surface bends the path — speed-weighted
- * ("at speed hits harder") with no sin-compression of the biggest slams (which is why it
- * beats `redir` and generalizes where the force metric overfit; see
- * docs/impact_problem_statement.md). Callers normalize via `normImpact` (types.ts).
+ * Redirection IMPULSE `cArc = Σ v̄·|Δθ|` (px/frame, UNNORMALIZED) — the SCORED production
+ * definition of impact (PROMOTED 2026-07-31, superseding the net-form `redirArc`). Per
+ * in-window frame: the wrapped CoM heading change × the midpoint speed, accumulated over
+ * CONTACTED frames only, RAW velocities. The contacted-only rule IS the gravity
+ * treatment: airborne frames contribute zero (flight is not impact — gravity's ballistic
+ * bending never enters), while on supported steps the ground cancels gravity so the raw
+ * path bend is the real redirection. Vs the legacy net form: S-bends and bounce
+ * reflections ADD instead of cancelling (a bend-then-unbend contact cannot read 0), and
+ * a ride-out velocity reversal cannot fake Δθ≈π (midpoint speed ≈ 0 at the flip).
+ * Callers normalize via `normImpact` (types.ts). Calibration + adjudication:
+ * docs/impact_definition.md.
  *
  * CoM-velocity-only (immune to sled rotation / limb whip), needs no catch-line geometry,
- * cheap on the hot path. The incoming heading is the velocity one frame before the landing;
- * `Δθ` is the net (last in-window frame) wrapped angle from it. Shared by the scored
- * reduction (`measureImpact`), the report, the dashboard, and — by delegation — the study
- * harnesses' `redirArcPx`. `undefined` when no incoming velocity; `0` when ~stationary.
+ * cheap on the hot path (reads only the extracted velocity/airborne arrays). The incoming
+ * velocity is the frame before the landing. Shared by the scored reduction
+ * (`measureImpact`), the trajectory-layer report (`scored_contact_impact.ts`), the
+ * dashboard, and — by delegation — the study harnesses (`impact_support.ts
+ * contactRedirArcPx`). `undefined` when no incoming velocity.
+ */
+export function contactRedirArcPxAtLanding(
+  det: Detection,
+  landingFrame: number,
+  window: number = IMPACT_WINDOW,
+): number | undefined {
+  const vIn = velocityAt(det, landingFrame - 1) ?? velocityAt(det, landingFrame);
+  if (vIn === undefined) return undefined;
+  const end = Math.min(measurementLastFrame(det), landingFrame + Math.max(0, window));
+  let prev = vIn;
+  let arc = 0;
+  for (let f = landingFrame; f <= end; f++) {
+    const v = velocityAt(det, f);
+    if (v === undefined) continue;
+    if (airborneAt(det, f) === false) {
+      const s0 = Math.hypot(prev.x, prev.y), s1 = Math.hypot(v.x, v.y);
+      if (s0 > 1e-9 && s1 > 1e-9) {
+        const turn = Math.abs(wrapPi(Math.atan2(v.y, v.x) - Math.atan2(prev.y, prev.x)));
+        arc += 0.5 * (s0 + s1) * turn;
+      }
+    }
+    prev = v;
+  }
+  return arc;
+}
+
+/**
+ * [LEGACY — NOT SCORED as of 2026-07-31] Redirection ARC `redirArc = v·Δθ` (px/frame,
+ * UNNORMALIZED): incoming CoM speed × NET heading change at the window end. Was the
+ * scored definition 2026-06-14 → 2026-07-31; superseded by the accumulated
+ * contacted-frame `contactRedirArcPxAtLanding` above (net form cancels bend-then-unbend
+ * and can read Δθ≈π on ride-out reversals). Kept as the comparison lane for the
+ * dashboard/studies (`impact_support.ts redirArcPx`) and `analysis/simulate.ts`.
  */
 export function redirArcPxAtLanding(
   det: Detection,
@@ -449,9 +487,9 @@ const IMPACT_BOUND_GRAVITY_PX_PER_FRAME2 = 0.175;
  *     vy_in ≤ g·N_prev/2, so θ_in ≤ atan(g·N_prev/2 ÷ v);
  *   - exit allowance: the redirected motion must fit before the next beat,
  *     vy_out ≤ g·N_next/2, so θ_out ≤ atan(g·N_next/2 ÷ v);
- *   - catchability: total turn ≤ asin(CATCHABLE_REDIR_FRACTION) — beyond it the
- *     hit ejects (the impactCeiling bound).
- * bound = normImpact(v·min(θ_in+θ_out, asin(0.9))). In the small-angle
+ *   - catchability: total turn ≤ IMPACT.MAX_RELIABLE_TURN_RAD (atlas-measured;
+ *     beyond it the hit ejects — the impactCeiling bound).
+ * bound = normImpact(v·min(θ_in+θ_out, 1.0)). In the small-angle
  * (dense-beat) regime the redirArc reduces to ≈ g·(N_prev+N_next)/2 — the
  * total vertical-velocity budget around the beat — which is why dense grooves
  * physically cap near 0.45-0.5 regardless of speed. Validated against the
@@ -473,8 +511,8 @@ export function impactFeasibilityBound(
   const g = IMPACT_BOUND_GRAVITY_PX_PER_FRAME2;
   const thetaIn = Math.atan2(g * Math.max(0, prevGapSeconds) * FPS / 2, v);
   const thetaOut = Math.atan2(g * Math.max(0, nextGapSeconds) * FPS / 2, v);
-  const maxTurn = Math.min(thetaIn + thetaOut, Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION));
-  return normImpact(v * maxTurn); // redirArc = v·Δθ, felt-anchored normalization
+  const maxTurn = Math.min(thetaIn + thetaOut, IMPACT.MAX_RELIABLE_TURN_RAD);
+  return normImpact(v * maxTurn); // impulse ≈ v·Δθ (single-bend), felt-anchored normalization
 }
 
 // ─────────── Cross-gap target sampling ───────────

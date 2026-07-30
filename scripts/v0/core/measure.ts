@@ -26,7 +26,7 @@ import {
 } from "../types.ts";
 import { netDyToElevation } from "../types.ts";
 import {
-  airborneAt, findAuthoredContactNearFrame, meanSpeedPxOverRange, redirArcPxAtLanding,
+  airborneAt, contactRedirArcPxAtLanding, findAuthoredContactNearFrame, meanSpeedPxOverRange,
   measurementLastFrame, median, speedAt, velocityAt,
 } from "./substrate.ts";
 
@@ -137,11 +137,12 @@ const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
 };
 
 /**
- * Landing intensity at the gap's terminating beat: the rider's **velocity REDIRECTION
- * ARC** (`substrate.ts redirArcPxAtLanding` — `redirArc = v·Δθ`, incoming CoM speed ×
- * net heading change over the `IMPACT_WINDOW`-frame episode, "how hard the catch bends
- * the path" / "claquage"), mapped to felt [0,1] by `normImpact` (0 = soft, 1 = very
- * strong). See `Contact.impact` and the `REDIRARC`/`IMPACT` blocks in types.ts.
+ * Landing intensity at the gap's terminating beat: the rider's **redirection
+ * IMPULSE** (`substrate.ts contactRedirArcPxAtLanding` — `cArc = Σ v̄·|Δθ|`, per-frame
+ * CoM heading change × midpoint speed accumulated over CONTACTED frames of the
+ * `IMPACT_WINDOW` episode, "how hard the ground bends the path" / "claquage"; airborne
+ * bending never counts), mapped to felt [0,1] by `normImpact` (0 = perfectly smooth,
+ * 1 = very strong). See `Contact.impact` and the `REDIRARC`/`IMPACT` blocks in types.ts.
  *
  * GATED on `gap.targets.impact`: impact is authored per-beat, so it's worth
  * measuring ONLY where a beat requested it (the cheap span-mean axes don't scan
@@ -160,7 +161,7 @@ const measureImpact: AxisReduction = ({ det, gap }) => {
     gap.endFrame - gap.startFrame,
   );
   if (landing === undefined) return undefined;
-  const px = redirArcPxAtLanding(det, landing.frame, IMPACT_WINDOW);
+  const px = contactRedirArcPxAtLanding(det, landing.frame, IMPACT_WINDOW);
   return px === undefined ? undefined : normImpact(px);
 };
 

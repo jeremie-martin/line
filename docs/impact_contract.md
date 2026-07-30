@@ -2,8 +2,9 @@
 
 The single self-contained statement of what per-beat `impact` means at every
 layer, why each piece is designed the way it is, and the evidence behind it.
-Last validated 2026-07-25 against `scripts/v0/types.ts` and
-`scripts/v0/core/substrate.ts`. The canonical reference is whatever
+Last validated 2026-07-31 against `scripts/v0/types.ts` and
+`scripts/v0/core/substrate.ts` (the cArc promotion — a deliberate ruler change,
+evaluator fingerprint afbdb18787e6). The canonical reference is whatever
 `benchmark/v2/baseline.json` currently says (498.91 at the time of writing) —
 this document deliberately no longer pins a headline, because the ruler is
 re-based and a stale number here reads as a current anchor.
@@ -17,16 +18,18 @@ disagrees with them, they win and this file is the bug.
 `Contact.impact ∈ [0, 1]` is the **desired felt hardness of that landing**, on
 one absolute scale shared by every beat of every spec:
 
-| authored | means | redirArc (px/frame) |
+| authored | means | impulse cArc (px/frame) |
 |---|---|---|
-| 0.0 | soft (gentlest real landing) | ≈ 2.0 |
-| ~0.45 | medium / a decent hit | ≈ 4.0 |
-| ~0.7 | a strong slam | ≈ 5.2 |
-| 1.0 | very strong | ≈ 6.5 (harder clamps to 1) |
+| 0.0 | perfectly smooth (tangential kiss, zero path bending) | 0 |
+| ~0.43 | medium (felt-level-2 median) | ≈ 3.2 |
+| ~0.68 | strong (felt-level-3 median) | ≈ 5.2 |
+| 1.0 | very strong | ≥ 7.55 (harder saturates at 1) |
 
-(Felt-anchored, LOCKED 2026-06-14. The soft→medium low end is intentionally coarse —
-`redirArc` can't separate soft from medium, both ~2–3 px/frame — so meaningful authoring
-resolution lives from ~medium-strong up. End anchors are provisional, thin label data.)
+(Felt/compatibility-anchored, PROMOTED 2026-07-31. The scale top is deliberately
+BELOW the physical ceiling (~11.3 at envelope speed): 1.0 means "very strong",
+exactly what existing specs mean, not "physics maximum" — headroom saturates. An
+incidental floor of ≈ 0.25–0.3 exists in practice: the compiler cannot land
+*softer* than the redirection its geometry gives away for free.)
 
 The author needs no physics knowledge. The word *possible* is load-bearing:
 1.0 asks for the hardest *physical* version of the hit at that beat (see
@@ -39,39 +42,50 @@ beat, which we rejected).
 Authoring helpers: `beats([{t, impact?}])`, `withImpact(contacts, rule)`
 (`scripts/v0/core/beats.ts`).
 
-## Definition (what impact IS) — UPDATED 2026-06-14: `redirArc`
+## Definition (what impact IS) — PROMOTED 2026-07-31: the redirection impulse `cArc`
 
-Impact = **velocity-redirection ARC**: `redirArc = v·Δθ`, the incoming CoM speed
-(`v`, px/frame) times the net heading change (`Δθ`, radians) of the CoM velocity
-over the `IMPACT_WINDOW = 6` frame (~0.15 s) episode after the landing, mapped to
-a **felt [0,1]** by `normImpact` — `0 = soft` (`redirArc ≈ REDIRARC.SOFT`,
-currently **0**), `1 = very strong` (`redirArc ≈ REDIRARC.VERY_STRONG`,
-currently **7.29**); gentler clamps to 0, harder to 1. Both are env-overridable
-(`LR_IMPACT_SOFT`, `LR_IMPACT_VSTRONG`) and were re-anchored when the metric
-went linear — read them from `types.ts:1095,1101` rather than trusting a number
-copied into prose.
+Impact = **redirection impulse**: `cArc = Σ v̄·|Δθ|` — per in-window frame, the
+wrapped CoM heading change times the midpoint speed, ACCUMULATED over CONTACTED
+frames of the `IMPACT_WINDOW = 6` frame (~0.15 s) episode after touchdown.
+Airborne frames contribute zero (flight is not impact — gravity's ballistic
+bending never enters); contacted frames use RAW velocities (during support the
+ground cancels gravity, so the raw path bend is the real redirection). Mapped to
+a **felt [0,1]** by `normImpact` — `0` = zero impulse (`REDIRARC.SOFT = 0`, the
+physical floor), `1` = very strong (`REDIRARC.VERY_STRONG`, currently **7.55**);
+harder saturates at 1. Both env-overridable (`LR_IMPACT_SOFT`,
+`LR_IMPACT_VSTRONG`) — read them from `types.ts` rather than trusting prose.
 
-Why this definition — `redirArc` replaced the perpendicular `redir = v·sinΔθ`
-(label-driven, 4 tracks + an independent agent + a flat-slam generalization track;
-full history in `docs/archive/impact_problem_statement.md`):
+Why this definition — `cArc` replaced the net-form `redirArc = v·Δθ` (which had
+itself replaced `redir = v·sinΔθ`; full history
+`docs/archive/impact_problem_statement.md` + `docs/impact_definition.md`):
+
+- **Accumulated, contacted-only** ⇒ bend-then-unbend contacts cannot cancel to
+  0 (the user felt one such beat as "definitely more than 0.00"); bounce
+  reflections add; ride-out velocity reversals cannot fake Δθ≈π (midpoint
+  speed ≈ 0 at the flip); windowed gravity bending is structurally excluded.
+- **Label-adjudicated** ⇒ pooled felt Spearman 0.810 vs 0.788 (better or equal
+  on every discriminating set), and the divergence shortlist — the only beats
+  where the two metrics disagree — went 3-1-5 for cArc, including two explicit
+  "CARC better than CURRENT" user judgments.
 
 - **CoM-velocity-only** ⇒ immune to sled rotation and limb whip, which look
   violent but are not felt.
-- **Redirection arc, not perpendicular** ⇒ `v·Δθ` keeps `redir`'s speed weighting
-  but removes its `sin` *compression* of the biggest slams (`sin` can't tell a 60°
-  bend from a 120° one). It beat `redir`/`turn` on the felt labels (mean Spearman
-  0.81 vs 0.79/0.77) and — decisively — generalized to flat-drop slams where
-  `turn` (speed-blind) fell. Force/onset/concentration metrics overfit one track
-  and were rejected.
-- **Windowed (~6 frames), not instantaneous** ⇒ the engine's soft collision
-  smears the hit over frames; felt labels match best at W≈6.
-- **Felt-anchored scale** ⇒ 0 = soft, 1 = very strong, matching how specs author
-  (full [0.1,1.0] range, median 0.5) and how the user labels.
+- **Speed-weighted, no sin-compression** ⇒ inherits everything that made the
+  net form win over `redir`/`turn`/force-family (all retired ×2–3, do not
+  revisit).
+- **Windowed W=6, a PERCEPTUAL constant (~150 ms)** ⇒ felt match peaks at
+  W=6–7 and degrades at ≤5 and ≥8 (validated on 67 leveled beats); W is pinned
+  by perception, not tunable for robustness.
+- **Felt/compatibility scale** ⇒ 0 = perfectly smooth, 1 = very strong;
+  VSTRONG=7.55 is the combined-corpus compatibility optimum (flat valley
+  7.3–7.9), so every existing authored ask keeps its meaning — no migration.
 
-Production source: `redirArcPxAtLanding` (`scripts/v0/core/substrate.ts`) +
-`normImpact` (`types.ts`) — the single definition shared by the scorer, the report,
-the dashboard, and the study harnesses. (`redirImpactPxAtLanding` = the old `redir`,
-kept only for the dashboard's comparison lane.)
+Production source: `contactRedirArcPxAtLanding` (`scripts/v0/core/substrate.ts`)
++ `normImpact` (`types.ts`) — the single definition shared by the scorer, the
+trajectory-layer report (`scored_contact_impact.ts`), the dashboard, and the
+study harnesses. (`redirArcPxAtLanding` = the pre-promotion net form, kept as
+the dashboard's LEGACY comparison lane; `redirImpactPxAtLanding` = the older
+`redir`.)
 
 ## Measurement & calibration
 
@@ -80,17 +94,16 @@ kept only for the dashboard's comparison lane.)
 - An authored contact is matched to its beat within ±1 frame
   (`findAuthoredContactNearFrame`). Detector-limited intervals may use a
   persistent bounce because a distinct landing is not representable there.
-- The scale `REDIRARC.SOFT` / `VERY_STRONG` (px/frame) is felt-anchored to the
-  user's labels. It was re-fit when the metric became linear and now reads
-  **0 / 7.29** (`types.ts:1095,1101`); the 2.0 / 6.5 pair below belongs to the
-  superseded saturating metric and is retained only to explain the corpus
-  percentiles that were measured under it. The achievable-envelope distribution (calibrate_corpus.ts: 11,607
-  landings / ~400 perturbed variants; redirArc p50 1.44, p95 4.47, p99 6.63) confirms
-  very-strong ≈ the top-1% landing, and gives a stable scale (p99 6.63, within 5% across
-  very different corpora).
-- Validated against the user's felt labels across 4 tracks (impact_lab_v2, climb_terrace,
-  rolling_drop, the flat-slam staircase; `study_impact_labels.ts` / the `/impact/`
-  dashboard). End anchors (soft/very-strong) are thin-data provisional.
+- The scale `REDIRARC.SOFT` / `VERY_STRONG` reads **0 / 7.55** and was
+  calibrated from scratch by three independent studies (2026-07-31,
+  `docs/impact_definition.md` Calibration): the catchability atlas (physics
+  endpoints: reliable in-window turn ≈ 1.0 rad at any speed; in-envelope top
+  ≈ 11.2–12.6), the perceptual-curve study (isotonic vs linear on 90 leveled
+  beats: linear stands), and the scale audit (compatibility optimum V* = 7.55,
+  flat valley 7.3–7.9; ask-weighted meaning shift ≈ 0.04 ⇒ no spec migration).
+  Revalidated on the canonical V2 inventory (44 sources × 3 seeds @750k,
+  12,168 landings): ceiling 0 violations, valley flat, envelope <2% seed
+  drift, 6.6% visible divergence vs the legacy metric.
 - Known open edge: a beyond-catchable hit ejects the rider and reads as a
   failed contact rather than impact 1.0 (ejection saturation — flagged, only
   relevant if steering ever pushes past the catchable bound).
@@ -105,17 +118,15 @@ no fitted constants:
   `vy_in ≤ g·N_prev/2` ⇒ `θ_in ≤ atan(g·N_prev/2 ÷ v)`;
 - exit allowance: the redirected motion must fit before the next beat ⇒
   `θ_out ≤ atan(g·N_next/2 ÷ v)`;
-- catchability: total turn ≤ `asin(CATCHABLE_REDIR_FRACTION = 0.9)`;
-- `bound = normImpact(v · min(θ_in + θ_out, asin(0.9)))` — see
-  `substrate.ts:474-477`.
+- catchability: total turn ≤ `IMPACT.MAX_RELIABLE_TURN_RAD = 1.0` — no longer
+  the inherited `asin(0.9)` ≈ 1.12 guess but the atlas-MEASURED reliable bound
+  (±6% across the speed envelope; 0 of ~13k real landings exceed it; the
+  fraction form `CATCHABLE_REDIR_FRACTION = sin(1.0)` is kept so sealed
+  fixture conventions keep their shape while clamping at exactly 1.0 rad);
+- `bound = normImpact(v · min(θ_in + θ_out, 1.0))` (`substrate.ts
+  impactFeasibilityBound`).
 
-  **NOT** `v·sin(...) / 8.5`, which is what this line said until 2026-07-25.
-  That is the retired saturating metric with the legacy `CALIB.REDIR_CAP`
-  divisor, itself annotated `[LEGACY — NOT SCORED as of 2026-06-14]` at
-  `types.ts:1149-1152`. Under the linear form there is no `sin` and no divisor:
-  the turn is capped by catchability, then multiplied by speed and normalized.
-
-Dense-beat limit: `bound ≈ g·(N_prev+N_next)/2 ÷ 8.5` — the vertical-velocity
+Dense-beat limit: `bound ≈ normImpact(g·(N_prev+N_next)/2)` — the vertical-velocity
 budget around the beat. This is why tight grooves cap near 0.45–0.5 regardless
 of speed, and why big slams live on open beats.
 
@@ -176,5 +187,9 @@ reading intact; the evaluator fingerprint guards the ruler pieces, and
 - `study_impact_anatomy.py` — error anatomy + counterfactual rulers from any
   archive. `study_landing_window.ts` — candidate-pool/selection tracing.
   `study_score_without_impact.ts` — with/without recompute.
-- Tests: `tests/v0_impact.test.ts` (16) pin definition, window, ceiling,
-  geometry-independence; suite 247/248 (1 pre-existing unrelated failure).
+- Tests: `tests/v0_impact.test.ts` (22) pin definition (accumulated,
+  contacted-only, airborne-zero), window, ceiling, geometry-independence, and
+  the candidate family; full suite green post-promotion except 18 pre-existing
+  benchmark-v2 governance failures unrelated to impact (verified identical on
+  the pre-promotion tree). Hot path: 362 ns/call (vs 221 legacy), gated to
+  authored landings.

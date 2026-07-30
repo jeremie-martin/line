@@ -63,9 +63,9 @@ type MetricDef = { key: string; label: string; group: "com" | "body"; cap: numbe
 // the beats whose labels decide the promotion.
 const METRICS: MetricDef[] = [
   { key: "current", label: "CURRENT", group: "com", cap: REDIRARC.VERY_STRONG,
-    sub: "production · redirArc = v·Δθ_net over W6 (normImpact scale)", fn: (s, f) => SS.redirArcPx(s, f) },
-  { key: "carc",    label: "CARC",    group: "com", cap: REDIRARC.VERY_STRONG,
-    sub: "challenger · Σ v̄·|Δθ| contacted frames only (same scale, provisional cap)", fn: (s, f) => SS.contactRedirArcPx(s, f) },
+    sub: "production (2026-07-31) · redirection impulse Σ v̄·|Δθ|, contacted frames, normImpact scale", fn: (s, f) => SS.contactRedirArcPx(s, f) },
+  { key: "legacy",  label: "LEGACY",  group: "com", cap: REDIRARC.VERY_STRONG,
+    sub: "pre-promotion scored metric · redirArc = v·Δθ_net (comparison lane)", fn: (s, f) => SS.redirArcPx(s, f) },
 ];
 const normVal = (_key: string, raw: number, cap: number): number => Math.min(1, Math.max(0, raw / cap));
 

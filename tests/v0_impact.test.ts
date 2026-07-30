@@ -1,10 +1,11 @@
 /**
  * Landing `impact` lever — measurement, scoring, and the beat authoring helpers.
  *
- *  - measureImpact computes the velocity REDIRECTION ARC `redirArc = v·Δθ` (incoming CoM
- *    speed × NET heading change at the window end, over IMPACT_WINDOW frames), CoM-only
- *    (NO catch-line geometry), mapped to felt [0,1] by `normImpact` (0 = SOFT @0 px/f — the
- *    physical floor, no redirection; 1 = VSTRONG @7.29 px/f) — both full `detect` and offset.
+ *  - measureImpact computes the redirection IMPULSE `cArc = Σ v̄·|Δθ|` (per-frame CoM
+ *    heading change × midpoint speed, ACCUMULATED over CONTACTED frames of the
+ *    IMPACT_WINDOW episode; airborne frames contribute zero), CoM-only (NO catch-line
+ *    geometry), mapped to felt [0,1] by `normImpact` (0 = SOFT @0 px/f — the physical
+ *    floor, no redirection; 1 = VSTRONG @7.55 px/f) — both full `detect` and offset.
  *  - impact is SCORED: an authored target folds into the contract `axis_quality`
  *    (target/achieved/error/ceiling in the drift report), draws no RNG, stays out of
  *    TARGET_AXES, and compiles deterministically.
@@ -84,12 +85,25 @@ describe("measureImpact (redirArc = v·Δθ reduction)", () => {
     expect(call(det)).toBeCloseTo(norm(3 * (Math.PI / 2)), 5);
   });
 
-  test("NET turn at the window end, not the in-window peak", () => {
-    // heading spikes to 1.0 rad mid-window then settles to 0.5 rad by the end:
-    // redirArc must reflect the 0.5-rad endpoint (= |v_in|·0.5), NOT the 1.0 peak.
-    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : f <= 13 ? vel(1.0, 10) : vel(0.5, 10)));
-    expect(call(det)).toBeCloseTo(norm(10 * 0.5), 5);
-    expect(call(det)).toBeLessThan(norm(10 * 1.0)); // not the peak
+  test("ACCUMULATED turn: bend-then-unbend adds, it does not cancel", () => {
+    // heading bends to 1.0 rad mid-window then settles back to 0.5 rad: the scored
+    // impulse accumulates |Δθ| per frame (1.0 + 0.5 = 1.5 rad at speed 3) — the
+    // legacy net form would have read only the 0.5-rad endpoint.
+    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 3, y: 0 } : f <= 13 ? vel(1.0, 3) : vel(0.5, 3)));
+    expect(call(det)).toBeCloseTo(norm(3 * 1.5), 5);
+    expect(call(det)!).toBeGreaterThan(norm(3 * 0.5)); // not the net endpoint
+  });
+
+  test("airborne frames inside the window contribute zero (flight is not impact)", () => {
+    // gravity-like bending while airborne: the scored impulse ignores it entirely.
+    const g = 0.175;
+    const det = makeDet({
+      landingFrame: 10,
+      velocity: Array.from({ length: 20 }, (_, f) => (f <= 9 ? { x: 10, y: 0 } : { x: 10, y: g * (f - 9) })),
+      contactLineIds: arrAt(20, 10, [1]),
+      airborne: Array.from({ length: 20 }, () => true), // never grounded in-window
+    });
+    expect(call(det)).toBeCloseTo(0, 9);
   });
 
   test("geometry-independent: ignores catch-line tangent / owned lines (CoM-only)", () => {
@@ -202,12 +216,15 @@ describe("contactRedirArcPx (redirection-impulse candidate)", () => {
   });
 });
 
-describe("impactCeiling (redirArc bound)", () => {
-  test("scales with speed (CATCHABLE_REDIR_FRACTION) and clamps to [0,1]", () => {
-    const maxTurn = Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION); // ≈ 1.12 rad
-    expect(impactCeiling(0)).toBe(0); // 0 redirArc < soft ⇒ 0
-    expect(impactCeiling(5)).toBeCloseTo(norm(5 * maxTurn), 5); // ≈ 0.80
-    expect(impactCeiling(100)).toBe(1); // 100·1.12 ≫ very-strong ⇒ 1
+describe("impactCeiling (atlas-measured reliable-turn bound)", () => {
+  test("scales with speed (MAX_RELIABLE_TURN_RAD) and clamps to [0,1]", () => {
+    expect(IMPACT.MAX_RELIABLE_TURN_RAD).toBeCloseTo(1.0, 9);
+    // the fraction form is the SAME bound (asin(sin(1.0)) = 1.0) so every sealed
+    // consumer of asin(CATCHABLE_REDIR_FRACTION) clamps at exactly the measured turn
+    expect(Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION)).toBeCloseTo(IMPACT.MAX_RELIABLE_TURN_RAD, 9);
+    expect(impactCeiling(0)).toBe(0); // no speed ⇒ no impact possible
+    expect(impactCeiling(5)).toBeCloseTo(norm(5 * 1.0), 5); // ≈ 0.66 at VSTRONG 7.55
+    expect(impactCeiling(100)).toBe(1); // ≫ very-strong ⇒ 1
   });
 });
 

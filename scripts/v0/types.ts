@@ -1039,24 +1039,34 @@ export function elevationCeiling(speedPx: number, frames: number): number {
 }
 
 /**
- * Landing-impact model (absolute, speed-bounded). Impact is the rider's **velocity
- * REDIRECTION ARC** `redirArc = v·Δθ` — incoming CoM speed × net heading change over the
- * `IMPACT_WINDOW`-frame episode after contact (how hard the catch bends the path), mapped
- * to felt [0,1] by `normImpact` (`REDIRARC.SOFT`/`VERY_STRONG`). See `redirArcPxAtLanding`
- * (substrate.ts) and `docs/impact_problem_statement.md`.
+ * Landing-impact model (absolute, speed-bounded). Impact is the rider's **redirection
+ * impulse** `cArc = Σ v̄·|Δθ|` — per-frame CoM heading change × midpoint speed,
+ * accumulated over CONTACTED frames of the `IMPACT_WINDOW` episode after touchdown
+ * (how hard the ground bends the path; airborne bending — gravity — never counts),
+ * mapped to felt [0,1] by `normImpact` (`REDIRARC.SOFT`/`VERY_STRONG`). Scored by
+ * `contactRedirArcPxAtLanding` (substrate.ts); promoted 2026-07-31 over the net-form
+ * `redirArc = v·Δθ` (divergence-label adjudication + felt-rank edge — see
+ * `docs/impact_definition.md`).
  *
- * The achievable impact is bounded ABOVE by speed: the turn a catch can deliver is
- * capped, and beyond the catchable ceiling a hard hit ejects (the catch fails).
- * `impactCeiling` reports that honest per-beat bound so
- * a target above it reads as physics, not an optimizer miss. PROVISIONAL — recalibrate
- * against `study_impact_calibrate.ts` / `specs/probe_impact.ts`.
+ * The achievable impact is bounded ABOVE by speed: the reliable in-window turn is
+ * capped (`IMPACT.MAX_RELIABLE_TURN_RAD`, atlas-measured), and beyond it the hit
+ * ejects (the catch fails). `impactCeiling` reports that honest per-beat bound so
+ * a target above it reads as physics, not an optimizer miss.
  */
 export const IMPACT = {
-  /** Catchability cap, consumed as `asin(CATCHABLE_REDIR_FRACTION)` = the maximum
-   *  *catchable* CoM turn angle (≈64° at 0.9): beyond this the landing ejects and fails
-   *  the contact. Used by `impactCeiling`/`impactFeasibilityBound` (and the arc-placement
-   *  redir lever's turn clamp) under the redirArc = v·Δθ metric. Provisional. */
-  CATCHABLE_REDIR_FRACTION: 0.9,
+  /** Maximum RELIABLE CoM turn (rad) the engine can deliver within the impact window —
+   *  MEASURED by the catchability atlas (study_catchability_atlas.ts, 2026-07-31):
+   *  ceiling(speed) ≈ speed × 1.0 rad within ±6% across the SPEED_RULER envelope
+   *  (flat-slam frontier at normal closing ≈ 6–7 px/f; scoop frontier at centripetal
+   *  ≈ 3 px/f²; ≥80% catch across pose phases). Replaces the inherited 0.9-fraction
+   *  guess (asin(0.9) ≈ 1.12 rad). Revalidated: 0 of ~13k real landings exceed it. */
+  MAX_RELIABLE_TURN_RAD: 1.0,
+  /** = sin(MAX_RELIABLE_TURN_RAD). The same bound expressed as a redirection
+   *  FRACTION, because the aim/feasibility clamps and the sealed
+   *  `PostimpactImpactConvention` consume it as `asin(fraction)` — keeping the
+   *  fraction form means every consumer and frozen fixture keeps its shape while
+   *  the effective clamp becomes exactly the measured 1.0 rad. */
+  CATCHABLE_REDIR_FRACTION: Math.sin(1.0),
   /** [LEGACY — NOT SCORED] catchable fraction for the OLD one-frame normal-closing
    *  metric. Kept only for `calibrate_impact.ts` (the point-baseline study tool).
    *  The scored impact uses CATCHABLE_REDIR_FRACTION above — don't tune this one. */
@@ -1069,17 +1079,17 @@ export const IMPACT = {
 export const IMPACT_WINDOW = 6;
 
 /**
- * Felt impact scale (LOCKED 2026-06-14, user decision): impact = velocity-redirection ARC
- * `redirArc = v·Δθ` (incoming CoM speed px/frame × net heading change over IMPACT_WINDOW,
- * radians), mapped affine to [0,1] so 0 = a "soft" landing and 1 = "very strong". Anchors
- * from the user's felt labels (docs/impact_problem_statement.md): soft ≈ 2.0 px/frame,
- * very strong ≈ 6.5 px/frame. Gentler-than-soft clamps to 0; harder-than-very-strong to 1.
- * Provisional end anchors (thin soft/very-strong label data) — structure is fixed.
+ * Felt impact scale (PROMOTED 2026-07-31, user decision): impact = the **redirection
+ * impulse** `cArc = Σ v̄·|Δθ|` accumulated over CONTACTED frames of the IMPACT_WINDOW
+ * episode (`contactRedirArcPxAtLanding`, substrate.ts), mapped affine to [0,1] so
+ * 0 = a perfectly smooth catch (zero path bending) and 1 = "very strong". Successor
+ * to the 2026-06-14 net-form `redirArc = v·Δθ` lock — same anchors structure, same
+ * window; the accumulated contacted-only form won the divergence-label adjudication
+ * and never cancels on bend-then-unbend contacts. History + calibration:
+ * docs/impact_definition.md.
  */
 /** Calibration anchors are env-tunable so they can be A/B'd without a recompile
- *  (LR_IMPACT_SOFT / LR_IMPACT_VSTRONG). Defaults = the shipped values. The user's felt
- *  labels (54 beats, docs/impact_problem_statement.md) put soft ≈ 2.8–2.9 and very-strong
- *  ≈ 6.5 px/frame; the shipped SOFT=2.0 sits below the felt soft and is under review. */
+ *  (LR_IMPACT_SOFT / LR_IMPACT_VSTRONG). Defaults = the shipped values. */
 /** Parse a numeric env knob (`name`), falling back to `dflt` when unset, empty,
  *  or non-finite. Shared single source of truth for env-tunable float knobs. */
 export function impactEnvNum(name: string, dflt: number): number {
@@ -1093,12 +1103,16 @@ export const REDIRARC = {
    *  redirection is zero impact. Derived 2026-06-15: the achievable-range fit wanted SOFT < 0
    *  (unphysical), so it's floored at 0; a non-redirecting catch reads 0. Env-overridable for study. */
   SOFT: impactEnvNum("LR_IMPACT_SOFT", 0),
-  /** redirArc (px/frame) at a felt "very strong" landing → impact 1. VSTRONG = 7.29: auto-fit on a
-   *  rich (authored, achieved-px) cloud (1767 landings, SOFT pinned 0, per-level-median least-squares),
-   *  in a flat valley [7.3, 8.5]; corroborated by the author's perceptual "very strong" (~7–8px) and the
-   *  achievable hard-hit ceiling. The compiler's `v·Δθ` IS the felt-impact measure (author-validated),
-   *  so the [0,1] map is a straight linear normalization of it. */
-  VERY_STRONG: impactEnvNum("LR_IMPACT_VSTRONG", 7.29),
+  /** Scored-impulse px/frame at a felt "very strong" landing → impact 1. VSTRONG = 7.55
+   *  (2026-07-31, the cArc promotion): the combined-corpus compatibility optimum V* —
+   *  equal-weight over the canonical V2 inventory (12,168 landings, V* 7.45) and the
+   *  production/labeled corpus (937 landings, V* 7.85) — inside a FLAT valley [7.3, 7.9]
+   *  (mean meaning-shift ≤ 0.05 anywhere in it, so existing authored specs keep their
+   *  meaning with NO migration), mid-CI of the felt "very strong" [6.4, 13.4], and
+   *  deliberately BELOW the atlas physics top (~11.3): [0,1] is the felt/compatibility
+   *  scale; physical headroom above it saturates. Linear map (isotonic-vs-linear found
+   *  no defensible curvature). See docs/impact_definition.md Calibration. */
+  VERY_STRONG: impactEnvNum("LR_IMPACT_VSTRONG", 7.55),
 };
 // Fail fast on a degenerate env-set anchor pair: a non-positive span makes
 // normImpact divide by zero (silently clamped to 0/1) or, when SOFT > VERY_STRONG,
@@ -1135,12 +1149,11 @@ export const wrapPi = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a)
 /**
  * Maximum catchable normalized impact [0,1] at the given entering speed (px/frame).
  * `target > impactCeiling(speed)` ⇒ the shortfall is physics (too slow to redirect at all,
- * or the hit would eject), not a compiler miss. Max catchable redirArc = entering speed ×
- * the largest catchable turn (asin of the catchable redirection fraction).
+ * or the hit would eject), not a compiler miss. Max reliable impulse = entering speed ×
+ * `IMPACT.MAX_RELIABLE_TURN_RAD` (the atlas-measured window-turn bound).
  */
 export function impactCeiling(speedPx: number): number {
-  const maxTurn = Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION); // ≈ 1.12 rad (64°)
-  return normImpact(Math.max(0, speedPx) * maxTurn);
+  return normImpact(Math.max(0, speedPx) * IMPACT.MAX_RELIABLE_TURN_RAD); // atlas: ceil(s) ≈ s × 1.0 rad
 }
 
 export const CALIB = {

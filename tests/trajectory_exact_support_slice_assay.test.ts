@@ -140,7 +140,7 @@ describe("exact support slice assay rules", () => {
     expect(sameOwnedCaptureEvent(event, { ...event })).toBe(true);
     expect(sameOwnedCaptureEvent(event, { ...event, type: "bounce" })).toBe(false);
     const impact = {
-      metric: "redirArcPxAtLanding -> normImpact", windowFrames: 6, availability: "measured",
+      metric: "contactRedirArcPxAtLanding -> normImpact", windowFrames: 6, availability: "measured",
       target: 0.4, landingFrame: 50, redirArcPx: 5, achieved: 0.3, residual: -0.1,
     } as const;
     expect(sameScoredContactImpact(impact, { ...impact })).toBe(true);

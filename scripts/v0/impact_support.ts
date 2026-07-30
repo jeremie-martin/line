@@ -21,6 +21,7 @@ import { extractRawTrajectory, detect, type Detection } from "../lib/detector.ts
 import {
   airborneAt,
   contactLineIdsAt,
+  contactRedirArcPxAtLanding,
   measurementLastFrame,
   redirArcPxAtLanding,
   velocityAt,
@@ -361,6 +362,11 @@ export function contactRedirArcPx(
   opts: { tau?: number; stepGravity?: boolean } = {},
 ): number {
   const tau = opts.tau ?? Infinity;
+  // Default path = the SCORED production definition (substrate.ts) — one source.
+  // The generalized loop below exists only for the study arms (tau / stepGravity).
+  if (tau === Infinity && !opts.stepGravity) {
+    return contactRedirArcPxAtLanding(sim.det, lf, W) ?? 0;
+  }
   const vIn = velocityAt(sim.det, lf - 1) ?? velocityAt(sim.det, lf);
   if (vIn === undefined) return 0;
   const end = Math.min(measurementLastFrame(sim.det), lf + Math.max(0, W));

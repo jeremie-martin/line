@@ -16,7 +16,7 @@ import { axisLookaheadEndFrame, detectWindow, tryCandidateLines } from "./core/c
 import {
   engineLineFromTrackLine,
   offBeatLandingEvents,
-  redirArcPxAtLanding,
+  contactRedirArcPxAtLanding,
 } from "./core/substrate.ts";
 import { makeRng } from "../lib/rng.ts";
 import { getSimFrames } from "./optimizer/sim_frames.ts";
@@ -175,7 +175,7 @@ const output = {
     requestedSurvivalFramesAfterTarget: LOCAL_SURVIVAL_WINDOW_FRAMES,
     detectorPersistenceFrames: PERSISTENCE_FRAMES,
     scorerImpactWindowFrames: IMPACT_WINDOW,
-    scorerImpactDefinition: "redirArcPxAtLanding(selected owned landing, IMPACT_WINDOW) -> normImpact; reported only when the entire response window is readable",
+    scorerImpactDefinition: "contactRedirArcPxAtLanding(selected owned landing, IMPACT_WINDOW) -> normImpact; reported only when the entire response window is readable",
     boundary: "The window stops before the next authored contact; its available horizon is reported per fixture.",
   },
   directScreen: {
@@ -236,7 +236,7 @@ type ScoredImpactAvailability =
 type ScoredImpactOutcome = {
   /** Exact production impact metric availability for this local owned event. */
   availability: ScoredImpactAvailability;
-  metric: "redirArcPxAtLanding -> normImpact";
+  metric: "contactRedirArcPxAtLanding -> normImpact";
   windowFrames: number;
   target: number | null;
   landingFrame: number | null;
@@ -688,7 +688,7 @@ function measureOwnedScoredImpact(
 ): ScoredImpactOutcome {
   const landing = observation.selectedOwnedEvent;
   const base = {
-    metric: "redirArcPxAtLanding -> normImpact" as const,
+    metric: "contactRedirArcPxAtLanding -> normImpact" as const,
     windowFrames: IMPACT_WINDOW,
     target: target === undefined ? null : round(target),
     landingFrame: landing?.frame ?? null,
@@ -723,7 +723,7 @@ function measureOwnedScoredImpact(
       residual: null,
     };
   }
-  const redirArcPx = redirArcPxAtLanding(detection, landing.frame, IMPACT_WINDOW);
+  const redirArcPx = contactRedirArcPxAtLanding(detection, landing.frame, IMPACT_WINDOW);
   if (redirArcPx === undefined) {
     return {
       ...base,
@@ -746,7 +746,7 @@ function measureOwnedScoredImpact(
 function unobservedImpactOutcome(target: number | undefined): ScoredImpactOutcome {
   return {
     availability: target === undefined ? "not_authored" : "not_observed_preclear",
-    metric: "redirArcPxAtLanding -> normImpact",
+    metric: "contactRedirArcPxAtLanding -> normImpact",
     windowFrames: IMPACT_WINDOW,
     target: target === undefined ? null : round(target),
     landingFrame: null,

@@ -136,16 +136,28 @@ ruler choice.
 - **`impactCeiling` = clamp01(s × 1.0 / VSTRONG_CARC)** — the honesty report;
   it reaches 1.0 at s ≈ 7.6 px/f, truthfully leaving headroom above.
 
-## Decision state
+## Decision state — PROMOTED 2026-07-31 (explicit user go)
 
-- **Scored metric stays `redirArc`** until the explicit go — nothing in the
-  scorer touched by the 2026-07-30/31 work.
-- **Promotion is fully specified**: divergence labels favor `cArc` (3-1-5, see
-  adjudication), calibration triangulated above. Remaining: wire
-  `contactRedirArcPx` + the new anchors/ceiling into `measureImpact`/types,
-  hot-path cost check, tests, golden re-baseline, fingerprint bump. Gated on
-  explicit user go (scoring-definition change). Compiler-lever alignment
-  (aim/readiness) deliberately lags as a later campaign.
+- **Scored metric = `contactRedirArcPxAtLanding`** (substrate.ts), anchors
+  SOFT=0 / VSTRONG=7.55 linear (`normImpact`), ceiling and every
+  aim/feasibility clamp on `IMPACT.MAX_RELIABLE_TURN_RAD = 1.0` (the fraction
+  form is kept as `sin(1.0)` so sealed fixture conventions keep their shape).
+  Evaluator fingerprint bumped 6f760d9c1cc9 → **afbdb18787e6** — pre-promotion
+  scores are not comparable.
+- **Promotion validation**: full test suite green (22 impact tests incl. new
+  accumulated/airborne-zero semantics; the only failures are 18 pre-existing
+  benchmark-v2 governance breaks, verified identical pre-swap); hot path
+  362 ns/call (vs 221 legacy; gated to authored landings); post-swap
+  asked→achieved response on impact_calib_rich is unchanged within noise and
+  reaches ~0.94 at ask 0.95; golden 40-spec @50k ×12 seeds under the new
+  ruler: **372.53** (405.45 excl-impact, pass 0.9458) — the new reference.
+- **Benchmark V2 campaign**: the retained 750k/N=48 baseline was scored under
+  the old ruler; comparisons across the promotion are ruler-mixed and need a
+  deliberate baseline re-freeze (`npm run benchmark -- baseline`) — left as an
+  explicit campaign decision, not done as part of the promotion.
+- **Compiler-lever alignment** (aim/readiness exploiting the accumulated form
+  and the ~13% frontier headroom) deliberately lags as the next campaign.
+- The dashboard lanes are now CURRENT (scored impulse) vs LEGACY (net form).
 
 ## Ground truth & tools
 

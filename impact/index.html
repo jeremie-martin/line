@@ -128,7 +128,14 @@ async function boot(){
   clip().addEventListener("timeupdate", onTimeupdate);
   clip().addEventListener("loadedmetadata", renderClipbar);
   requestAnimationFrame(loop);
-  select(0,{seek:true});
+  // ?frame=<landingFrame> deep-links a specific impact (shortlist.md uses this)
+  const wantFrame = Number(qs.get("frame"));
+  let start = 0;
+  if (Number.isFinite(wantFrame) && qs.get("frame") !== null) {
+    let best = 1e9;
+    B.beats.forEach((bt, i) => { const d = Math.abs(bt.frame - wantFrame); if (d < best) { best = d; start = i; } });
+  }
+  select(start,{seek:true});
   window.addEventListener("resize", drawLanes);
 }
 function fail(msg){ document.getElementById("err").style.display="block"; document.getElementById("err").textContent=msg; }

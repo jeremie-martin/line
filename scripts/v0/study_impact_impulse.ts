@@ -19,7 +19,7 @@
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_impact_impulse.ts
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as SS from "./impact_support.ts";
 import { normImpact } from "./types.ts";
@@ -52,6 +52,7 @@ const labeled: LabeledRow[] = [];
 const landings: LandingRow[] = [];
 const perSetRho: Record<string, Partial<Record<Cand, number>>> = {};
 const sims = new Map<string, SS.Sim>();
+const annotatedFrames = new Map<string, number[]>(); // frames with ANY annotation (ordinal/tags/note)
 
 for (const name of SETS) {
   const trackPath = firstExisting(`generated/${name}.track.json`, `labels/impact/${name}.track.json`);
@@ -66,7 +67,10 @@ for (const name of SETS) {
   }
 
   const raw = (JSON.parse(readFileSync(labelPath, "utf8")).labels ?? {}) as
-    Record<string, { ordinal?: string | null }>;
+    Record<string, { ordinal?: string | null; tags?: string[]; note?: string }>;
+  annotatedFrames.set(name, Object.entries(raw)
+    .filter(([, a]) => a && (a.ordinal || a.tags?.length || a.note?.trim()))
+    .map(([f]) => Number(f)));
   // Three June sets carry intensity only in free-text voice notes (the dashboard
   // ordinal was never filled). labels/impact/<n>.levels.json is the persisted
   // interpretation of those notes (numeric, FELT_ORDINAL scale) — per-beat fallback.
@@ -155,6 +159,34 @@ const pctRank = (xs: number[]) => {
   return xs.map((x) => sorted.findIndex((s) => s >= x) / Math.max(1, sorted.length - 1));
 };
 const prodPct = pctRank(landings.map((l) => l.m.redirArc));
+// The labeling shortlist: beats where the challenger most rank-disagrees with
+// production are the ONLY informative ones to label next (agreeing beats carry no
+// signal for the promote-or-keep decision). Written with dashboard deep links.
+{
+  const candPct = pctRank(landings.map((l) => l.m.cArc));
+  const ranked = landings
+    .map((l, i) => ({ ...l, d: candPct[i] - prodPct[i] }))
+    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d))
+    .slice(0, 16);
+  const isLabeled = (r: LandingRow) => (annotatedFrames.get(r.set) ?? []).some((f) => Math.abs(f - r.frame) <= 6);
+  const md = [
+    `# Impact labeling shortlist — CURRENT ↔ CARC divergence`,
+    ``,
+    `The ${ranked.length} landings (of ${landings.length}) where the challenger most rank-disagrees with the`,
+    `production metric. Label THESE in the dashboard (set the INTENSITY ordinal!), then rerun`,
+    `\`LR_ENGINE=wasm npx tsx scripts/v0/study_impact_impulse.ts\`. Regenerate this file the same way.`,
+    ``,
+    `| open | set | frame | t(s) | Δpct | CURRENT [0,1] | CARC raw | labeled? |`,
+    `|---|---|---|---|---|---|---|---|`,
+    ...ranked.map((r) =>
+      `| [▶](http://127.0.0.1:8767/impact/?data=/generated/impact-study/${r.set}.bundle.json&frame=${r.frame}) ` +
+      `| ${r.set} | ${r.frame} | ${(r.frame / 40).toFixed(2)} | ${r.d >= 0 ? "+" : ""}${r.d.toFixed(2)} ` +
+      `| ${normImpact(r.m.redirArc).toFixed(2)} | ${r.m.cArc.toFixed(2)} | ${isLabeled(r) ? "✓" : "**no**"} |`),
+    ``,
+  ].join("\n");
+  writeFileSync("generated/impact-study/shortlist.md", md);
+  console.log(`\n(wrote generated/impact-study/shortlist.md — ${ranked.filter((r) => !isLabeled(r)).length}/${ranked.length} still unlabeled)`);
+}
 for (const cand of ["cArc", "cArcOn"] as const) {
   const candPct = pctRank(landings.map((l) => l.m[cand]));
   const ranked = landings

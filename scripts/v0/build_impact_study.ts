@@ -24,7 +24,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node
 import { execFileSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { pathToFileURL } from "node:url";
-import { FPS, secToFrame, type DriftReport } from "./types.ts";
+import { FPS, REDIRARC, secToFrame, type DriftReport } from "./types.ts";
 import * as SS from "./impact_support.ts";
 
 const argv = process.argv.slice(2);
@@ -55,36 +55,19 @@ mkdirSync(clipsDir, { recursive: true });
 // ── candidate metric registry — one entry per lane. `fn` returns the RAW value
 //    (its own units); `cap` normalizes to [0,1] for the bars. group orders the lanes. ──
 type MetricDef = { key: string; label: string; group: "com" | "body"; cap: number; sub: string; fn: (sim: SS.Sim, f: number) => number };
-// Live contenders only — the rejected/outdated metrics (point, dv, jolt, whip, deform,
-// rot, window) were pruned 2026-06-14 per user feedback to keep the board clean. They
-// remain in impact_support.ts if ever needed for a diagnostic.
+// Two-lane decision board (2026-07-30, docs/impact_definition.md): the SCORED
+// production metric vs the ONE standing challenger, both on the production felt
+// scale (raw / VERY_STRONG; SOFT = 0). The 2026-06-14 seven-candidate board and its
+// corpus-percentile scale were retired with the metric zoo — the page's divergence
+// (stdev over lanes) is now exactly |current − carc|/2, so "next divergent" walks
+// the beats whose labels decide the promotion.
 const METRICS: MetricDef[] = [
-  { key: "redir",   label: "REDIR",   group: "com",  cap: SS.REDIR_CAP,     sub: "how MUCH redirected (locked metric)", fn: (s, f) => SS.redirPx(s, f) },
-  { key: "redirArc",label: "REDIRarc",group: "com",  cap: SS.REDIR_CAP,     sub: "v·Δθ speed-weighted redirection (LEAD)", fn: (s, f) => SS.redirArcPx(s, f) },
-  { key: "redirDec",label: "REDIR·on",group: "com",  cap: SS.REDIR_CAP,     sub: "redir, landing-weighted τ4", fn: (s, f) => SS.redirDecayPx(s, f) },
-  { key: "snap",    label: "SNAP",    group: "com",  cap: SS.CAPS.snap,     sub: "suddenness · peak per-frame ⊥ change", fn: (s, f) => SS.snapPx(s, f) },
-  { key: "turn",    label: "TURN",    group: "com",  cap: SS.CAPS.turnDeg,  sub: "net heading change (deg)", fn: (s, f) => SS.turnNetDeg(s, f) },
-  { key: "comDecel",label: "DECEL",   group: "com",  cap: SS.CAPS.comDecel, sub: "peak decel into surface (force, LEAD)", fn: (s, f) => SS.comDecelNormalPx(s, f) },
-  { key: "decelDec",label: "DECEL·on",group: "com",  cap: SS.CAPS.comDecel, sub: "decel into surface, landing-weighted τ4", fn: (s, f) => SS.comDecelDecayPx(s, f) },
+  { key: "current", label: "CURRENT", group: "com", cap: REDIRARC.VERY_STRONG,
+    sub: "production · redirArc = v·Δθ_net over W6 (normImpact scale)", fn: (s, f) => SS.redirArcPx(s, f) },
+  { key: "carc",    label: "CARC",    group: "com", cap: REDIRARC.VERY_STRONG,
+    sub: "challenger · Σ v̄·|Δθ| contacted frames only (same scale, provisional cap)", fn: (s, f) => SS.contactRedirArcPx(s, f) },
 ];
-
-// ── corpus percentile map (apples-to-apples [0,1]) if calibrated; else raw/cap ──
-// study_impact_corpus.ts writes corpus_percentiles.json (per-metric sorted corpus values).
-// When present, each lane value = fraction of corpus landings ≤ this raw value (median
-// landing = 0.5, p95 = 0.95) — one comparable scale across metrics, no hand-picked cap.
-// --scale picks how raw → [0,1]: p99 (default, 1.0 = top-1% hardest landing in the corpus,
-// linear below — normal hits mid-scale), p95, max, or pctile (corpus percentile, median=0.5).
-const SCALE = arg("scale") ?? "p99";
-let CORPUS: { metrics: Record<string, { sorted: number[]; capP95: number; capP99: number }> } | null = null;
-const corpusPath = resolve(outRoot, "corpus_percentiles.json");
-if (existsSync(corpusPath)) { CORPUS = JSON.parse(readFileSync(corpusPath, "utf8")); console.log(`(normalizing lanes by corpus ${SCALE})`); }
-function normVal(key: string, raw: number, cap: number): number {
-  const m = CORPUS?.metrics[key]; const s = m?.sorted;
-  if (!m || !s?.length) return Math.min(1, Math.max(0, raw / cap));
-  if (SCALE === "pctile") { let lo = 0, hi = s.length; while (lo < hi) { const k = (lo + hi) >> 1; if (s[k] <= raw) lo = k + 1; else hi = k; } return lo / s.length; }
-  const anchor = SCALE === "max" ? s[s.length - 1] : SCALE === "p95" ? m.capP95 : m.capP99;
-  return anchor > 0 ? Math.min(1, raw / anchor) : 0;
-}
+const normVal = (_key: string, raw: number, cap: number): number => Math.min(1, Math.max(0, raw / cap));
 
 // ── simulate (or load the watched detection) ──────────────────────────────────
 const track = JSON.parse(readFileSync(trackPath, "utf8"));
@@ -130,8 +113,6 @@ for (let i = 0; i < landings.length; i++) {
   const t = frame / FPS;
   const values: Record<string, number> = {}, raw: Record<string, number> = {};
   for (const m of METRICS) { const v = m.fn(sim, frame); raw[m.key] = r3(v); values[m.key] = r3(normVal(m.key, v, m.cap)); }
-  // ENS — mean of the two leads (REDIR·on + DECEL) on the calibrated [0,1] scale.
-  values["ens"] = r3((values["redirDec"] + values["comDecel"]) / 2); raw["ens"] = values["ens"];
   const clipName = `beat_${frame}.mp4`;
   const start = Math.max(0, t - pre);
   if (!skipClips) {
@@ -158,11 +139,8 @@ console.log(`cut ${cut}/${landings.length} clips`);
 const videoUrl = "/" + resolve(videoPath).slice(resolve(".").length + 1);
 const bundle = {
   name, fps: FPS, durationS: r3(sim.last / FPS), video: videoUrl, pre, post,
-  scale: CORPUS ? `corpus-${SCALE}` : "raw/cap",
-  metrics: [
-    ...METRICS.map((m) => ({ key: m.key, label: m.label, group: m.group, sub: m.sub, cap: m.cap })),
-    { key: "ens", label: "ENS", group: "com" as const, sub: "ensemble · mean of REDIR·on + DECEL", cap: 1 },
-  ],
+  scale: "felt-normImpact",
+  metrics: METRICS.map((m) => ({ key: m.key, label: m.label, group: m.group, sub: m.sub, cap: m.cap })),
   beats,
 };
 const bundlePath = resolve(outRoot, `${name}.bundle.json`);
@@ -179,7 +157,7 @@ const rows = beats.map((b) =>
 const md = [
   `# Impact study reference — ${name}`,
   ``,
-  `${beats.length} landings. Values are normalized [0,1] (per-metric cap). Reference an impact by **#** or **t(s)**.`,
+  `${beats.length} landings. Values on the production felt scale [0,1] (raw px/frame ÷ ${REDIRARC.VERY_STRONG}). Reference an impact by **#** or **t(s)**.`,
   `Clips: \`generated/impact-study/${name}/clips/beat_<frame>.mp4\`. Dashboard: \`/impact/?data=/generated/impact-study/${name}.bundle.json\`.`,
   ``,
   head, sep, ...rows, ``,

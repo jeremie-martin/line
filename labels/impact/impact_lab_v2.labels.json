@@ -1,0 +1,116 @@
+{
+  "name": "impact_lab_v2",
+  "updatedAt": "2026-06-14T17:04:01.954Z",
+  "labels": {
+    "46": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    },
+    "95": {
+      "ordinal": null,
+      "tags": [],
+      "note": "soft-medium"
+    },
+    "143": {
+      "ordinal": null,
+      "tags": [],
+      "note": "stronger than #0, not yet \"strong\""
+    },
+    "191": {
+      "ordinal": null,
+      "tags": [],
+      "note": "stronger than #0 and #1, slightly less than #2"
+    },
+    "239": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium"
+    },
+    "287": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    },
+    "335": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    },
+    "383": {
+      "ordinal": null,
+      "tags": [],
+      "note": "strong"
+    },
+    "431": {
+      "ordinal": null,
+      "tags": [],
+      "note": "strong (perhapos ever ever so slightly more than #7?)"
+    },
+    "478": {
+      "ordinal": null,
+      "tags": [],
+      "note": "strong"
+    },
+    "526": {
+      "ordinal": null,
+      "tags": [],
+      "note": "strongest so far, between strong and very-strong maybe"
+    },
+    "574": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium"
+    },
+    "622": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    },
+    "670": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong but less than #12"
+    },
+    "718": {
+      "ordinal": null,
+      "tags": [],
+      "note": "soft-medium"
+    },
+    "766": {
+      "ordinal": null,
+      "tags": [],
+      "note": "strong"
+    },
+    "814": {
+      "ordinal": null,
+      "tags": [],
+      "note": "strong (stronger than #15)"
+    },
+    "862": {
+      "ordinal": null,
+      "tags": [],
+      "note": "strong (about the same as #16)"
+    },
+    "911": {
+      "ordinal": null,
+      "tags": [],
+      "note": "strong"
+    },
+    "958": {
+      "ordinal": null,
+      "tags": [],
+      "note": "soft-medium (a bit stronger than the other soft-medium, but not yet medium)"
+    },
+    "1007": {
+      "ordinal": null,
+      "tags": [],
+      "note": "soft (could be softer)"
+    },
+    "1055": {
+      "ordinal": null,
+      "tags": [],
+      "note": "strong (not the strongest with \"strong\" label, but strong)"
+    }
+  }
+}

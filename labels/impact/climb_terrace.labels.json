@@ -1,0 +1,81 @@
+{
+  "name": "climb_terrace",
+  "updatedAt": "2026-06-14T17:07:54.822Z",
+  "labels": {
+    "39": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium"
+    },
+    "79": {
+      "ordinal": null,
+      "tags": [],
+      "note": "soft"
+    },
+    "119": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium, perhaps ever so slightly less than #0 but still medium"
+    },
+    "159": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium"
+    },
+    "199": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium"
+    },
+    "239": {
+      "ordinal": null,
+      "tags": [],
+      "note": "sfot"
+    },
+    "278": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium"
+    },
+    "318": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    },
+    "358": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    },
+    "398": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    },
+    "439": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium"
+    },
+    "478": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    },
+    "519": {
+      "ordinal": null,
+      "tags": [],
+      "note": "soft-medium"
+    },
+    "559": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    },
+    "599": {
+      "ordinal": null,
+      "tags": [],
+      "note": "medium-strong"
+    }
+  }
+}

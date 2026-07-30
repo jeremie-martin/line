@@ -1,0 +1,109 @@
+{
+  "name": "shelter_impact_2m",
+  "updatedAt": "2026-06-14T14:15:05.478Z",
+  "labels": {
+    "60": {
+      "ordinal": null,
+      "tags": [
+        "smooth"
+      ],
+      "note": ""
+    },
+    "109": {
+      "ordinal": null,
+      "tags": [
+        "smooth"
+      ],
+      "note": "this one is a bit peculiar because it feels very smooth and not impactful to me, but many metrics score it quite high"
+    },
+    "1358": {
+      "ordinal": null,
+      "tags": [],
+      "note": "this one feels quite strong, perhaps because of the angle of the sled compared to the segment which results in the rider snapping to the segment in a sudden manner"
+    },
+    "1430": {
+      "ordinal": null,
+      "tags": [],
+      "note": "this one is quite strong too"
+    },
+    "1550": {
+      "ordinal": null,
+      "tags": [
+        "smooth"
+      ],
+      "note": "super smooth, basically no impact there"
+    },
+    "1597": {
+      "ordinal": null,
+      "tags": [],
+      "note": "not super stronge"
+    },
+    "1693": {
+      "ordinal": null,
+      "tags": [],
+      "note": "stronger than the last two just before"
+    },
+    "1789": {
+      "ordinal": null,
+      "tags": [
+        "smooth"
+      ],
+      "note": ""
+    },
+    "1837": {
+      "ordinal": "very_strong",
+      "tags": [],
+      "note": ""
+    },
+    "1933": {
+      "ordinal": "strong",
+      "tags": [],
+      "note": ""
+    },
+    "1982": {
+      "ordinal": null,
+      "tags": [],
+      "note": "a bit stronger that the previous one"
+    },
+    "2077": {
+      "ordinal": "very_strong",
+      "tags": [],
+      "note": ""
+    },
+    "2582": {
+      "ordinal": "soft",
+      "tags": [],
+      "note": ""
+    },
+    "2750": {
+      "ordinal": null,
+      "tags": [],
+      "note": "pretty smooth, not the smoothest but pretty smooth"
+    },
+    "2845": {
+      "ordinal": null,
+      "tags": [],
+      "note": "less strong than one would get, something pretty smooth at the end of the day"
+    },
+    "2894": {
+      "ordinal": null,
+      "tags": [],
+      "note": "pretty strong, and here it's not becayuse the moment of the impact but what happen in the next few frames i'd say"
+    },
+    "2965": {
+      "ordinal": null,
+      "tags": [],
+      "note": "pretty smooth"
+    },
+    "3037": {
+      "ordinal": "strong",
+      "tags": [],
+      "note": ""
+    },
+    "3086": {
+      "ordinal": "strong",
+      "tags": [],
+      "note": "pretty much as strong as the last one"
+    }
+  }
+}

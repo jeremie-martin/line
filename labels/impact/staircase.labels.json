@@ -1,0 +1,76 @@
+{
+  "name": "staircase",
+  "updatedAt": "2026-06-14T17:46:00.092Z",
+  "labels": {
+    "30": {
+      "ordinal": "medium",
+      "tags": [],
+      "note": ""
+    },
+    "161": {
+      "ordinal": "medium_strong",
+      "tags": [],
+      "note": ""
+    },
+    "285": {
+      "ordinal": "strong_very_strong",
+      "tags": [],
+      "note": ""
+    },
+    "385": {
+      "ordinal": "strong_very_strong",
+      "tags": [],
+      "note": ""
+    },
+    "465": {
+      "ordinal": "strong_very_strong",
+      "tags": [],
+      "note": ""
+    },
+    "537": {
+      "ordinal": "strong",
+      "tags": [],
+      "note": ""
+    },
+    "601": {
+      "ordinal": "medium_strong",
+      "tags": [],
+      "note": ""
+    },
+    "660": {
+      "ordinal": "medium_strong",
+      "tags": [],
+      "note": ""
+    },
+    "733": {
+      "ordinal": "strong",
+      "tags": [],
+      "note": ""
+    },
+    "796": {
+      "ordinal": "very_strong",
+      "tags": [],
+      "note": ""
+    },
+    "838": {
+      "ordinal": "strong",
+      "tags": [],
+      "note": ""
+    },
+    "900": {
+      "ordinal": "strong_very_strong",
+      "tags": [],
+      "note": ""
+    },
+    "936": {
+      "ordinal": "medium",
+      "tags": [],
+      "note": ""
+    },
+    "992": {
+      "ordinal": "medium_strong",
+      "tags": [],
+      "note": ""
+    }
+  }
+}

@@ -82,15 +82,55 @@ accumulated form cannot cancel. The one CURRENT lean (@349) is tonal ("pretty
 smooth" vs 0.43/0.52). No beat contradicts CARC outright. Combined with the
 pooled Spearman edge (≥ on every set), the evidence now points one way.
 
+## Calibration (2026-07-31, from-scratch — three independent studies)
+
+Three evidence sources, one job each: **physics sets the endpoints, perception
+sets the curve, the real catalog sets compatibility.** Tools:
+`study_catchability_atlas.ts` · `study_impact_perceptual_curve.ts` ·
+`study_impact_scale_audit.ts` (all analysis-only).
+
+**Atlas** (1,295 controlled drops: speed × arrival angle × geometry × pose
+phase): the flat-slam eject frontier sits at normal closing ≈ 6–7 px/f; the
+scoop frontier at centripetal ≈ 3 px/f² (~17 g); the **max reliable in-window
+turn is ≈ 1.0 rad at any speed**, so the empirical ceiling is
+`ceilCArcPx(s) ≈ s × 1.0` (±6% over the SPEED_RULER envelope; replaces the
+inherited `asin(0.9)` net-turn form). Reliable in-envelope physics top:
+**cArc ≈ 11.2–12.6** — well above where felt/catalog live (see below). Rig
+footnote: net-form redirArc shows reversal pathology on steep ride-outs
+(velocity flips ⇒ Δθ≈π); cArc is immune (midpoint speed ≈ 0 at the flip).
+
+**Perceptual curve** (90 leveled beats, per-track + pooled isotonic vs linear):
+monotone confirmed; isotonic gains are within small-n flexibility; **linear
+stands**. Felt "very strong" median 9.3 with 90% CI [6.4, 13.4] — the felt data
+cannot arbitrate the anchor (relative-labels doctrine holds).
+
+**Scale audit** (impact_calib_rich × 3 seeds @150k + 937 landings on 15 real
+tracks): asked→achieved is near-diagonal from 0.35 up with an incidental floor
+≈ 0.2–0.3 at the gentle end; **compatibility-optimal anchor V\* = 7.85**
+(ask-corpus mean meaning-shift 0.046, p90 0.093; vs 0.109/0.224 at the physics
+top 11.3, which would also make asks above ~0.6 undeliverable). Per-band shift
+≤ 0.06 except [0.8,1) at 0.121 — precisely the beats where the divergence
+adjudication favored CARC. Envelope seed-stable (~10%).
+
+**Resulting calibration (proposed):**
+
+- `SOFT = 0` (physical floor, unchanged) · **`VSTRONG_CARC = 7.85`** · linear.
+- **[0,1] is the felt/compatibility scale, not the physics range**: authored 1
+  = "very strong" exactly as today's specs mean it (no migration — all 4,484
+  authored asks keep their meaning); the physics headroom above it saturates.
+- **`impactCeiling` = clamp01(s × 1.0 / 7.85)** — the honesty report; it
+  reaches 1.0 at s ≈ 7.9 px/f, truthfully leaving headroom above.
+
 ## Decision state
 
-- **Scored metric stays `redirArc`** (substrate.ts `redirArcPxAtLanding` +
-  types.ts `normImpact`). Untouched by the 2026-07-30 work.
-- **Promotion path for `cArc`**: the divergence shortlist is fully labeled
-  (2026-07-30) and favors `cArc` — see adjudication above. RECOMMENDED: promote.
-  Remaining steps: wire `contactRedirArcPx` into `measureImpact`, recalibrate
-  VSTRONG on the `cArc` envelope (`calibrate_corpus.ts`), golden re-baseline,
-  fingerprint bump. Still gated on explicit user go (scoring-definition change).
+- **Scored metric stays `redirArc`** until the explicit go — nothing in the
+  scorer touched by the 2026-07-30/31 work.
+- **Promotion is fully specified**: divergence labels favor `cArc` (3-1-5, see
+  adjudication), calibration triangulated above. Remaining: wire
+  `contactRedirArcPx` + the new anchors/ceiling into `measureImpact`/types,
+  hot-path cost check, tests, golden re-baseline, fingerprint bump. Gated on
+  explicit user go (scoring-definition change). Compiler-lever alignment
+  (aim/readiness) deliberately lags as a later campaign.
 
 ## Ground truth & tools
 

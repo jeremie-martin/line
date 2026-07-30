@@ -88,12 +88,16 @@ export function freezeBaseline(bundleArgument: string): void {
   ) {
     throw new Error(`baseline compiler snapshot does not reproduce the measured compiler identity`);
   }
-  assertProfileSeedsDisjoint(probe, development);
+  const catalogLock = JSON.parse(readFileSync("benchmark/v2/catalog.lock.json", "utf8"));
+  assertProfileSeedsDisjoint(
+    probe,
+    development,
+    catalogLock.profiles.canonical.seedsPerBudget,
+  );
   const decisionContract = requireCurrentDecisionCalibration(development.identity.suiteFingerprint);
   if (JSON.stringify(bundle.decisionContract) !== JSON.stringify(decisionContract)) {
     throw new Error(`decision or calibration contract changed while baseline evidence was running; if the change is intentional, migrate the contract (benchmark migrate) and re-freeze`);
   }
-  const catalogLock = JSON.parse(readFileSync("benchmark/v2/catalog.lock.json", "utf8"));
   const developmentSummary = archiveSummary(development, bundle.development);
   const baseline = {
     schema: BASELINE_REFERENCE_CACHE_SCHEMA,
@@ -240,14 +244,32 @@ function candidateFingerprint(archive: any): string {
   })).digest("hex");
 }
 
-function assertProfileSeedsDisjoint(probe: any, canonical: any): void {
+/**
+ * Keep the two declared benchmark profiles independent. A promoted canonical
+ * archive can be deeper than the declared canonical profile because fixed-N
+ * acceptance retains its full cache prefix; those tail slots are not part of
+ * the profile-level probe/canonical split and may reuse the finite probe seed
+ * namespace.
+ */
+export function assertProfileSeedsDisjoint(
+  probe: any,
+  canonical: any,
+  canonicalProfileDepth: number,
+): void {
+  if (!Number.isSafeInteger(canonicalProfileDepth) || canonicalProfileDepth < 1) {
+    throw new Error(`canonical profile depth must be a positive integer`);
+  }
   const probeByBudget = new Map<number, Set<number>>(probe.identity.seedSchedule.byBudget.map((entry: any) => [
     entry.budget,
     new Set<number>(entry.actualSeeds),
   ]));
   for (const entry of canonical.identity.seedSchedule.byBudget) {
     const probeSeeds = probeByBudget.get(entry.budget);
-    if (probeSeeds !== undefined && entry.actualSeeds.some((seed: number) => probeSeeds.has(seed))) {
+    const profileSeeds = entry.actualSeeds.slice(0, canonicalProfileDepth);
+    if (profileSeeds.length !== canonicalProfileDepth) {
+      throw new Error(`${entry.budget}: canonical archive is shallower than the declared profile`);
+    }
+    if (probeSeeds !== undefined && profileSeeds.some((seed: number) => probeSeeds.has(seed))) {
       throw new Error(`${entry.budget}: baseline probe and canonical seeds overlap`);
     }
   }

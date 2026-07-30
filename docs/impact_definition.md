@@ -112,14 +112,29 @@ top 11.3, which would also make asks above ~0.6 undeliverable). Per-band shift
 ≤ 0.06 except [0.8,1) at 0.121 — precisely the beats where the divergence
 adjudication favored CARC. Envelope seed-stable (~10%).
 
+**Benchmark revalidation (2026-07-31, `study_impact_benchmark_validation.ts`):**
+the canonical V2 development inventory (44 sources × 3 seeds @750k → 12,168
+authored landings; ask distribution matches the catalog, mean 0.542) reproduces
+every result: ceiling law **0 violations** (max in-window turn 0.76 rad, p99
+0.55); meaning-shift valley flat over V ∈ [7.3, 7.9] (bench V* 7.45, production
+V* 7.85, combined equal-weight **V* = 7.55**; physics-top 11.3 confirmed bad:
+0.136/0.261); envelope seed-stable (<2%); redirArc reversal pathology present in
+the atlas but fires **0×** on canonical content (robustness insurance, not a
+live bug); visible divergence |Δnorm| > 0.1 on 6.6% of landings. The known
+mid-band delivery shortfall (asks 0.25–0.5 achieving ~0.1–0.2) reproduces
+identically under both metrics — a compiler-campaign issue, untouched by the
+ruler choice.
+
 **Resulting calibration (proposed):**
 
-- `SOFT = 0` (physical floor, unchanged) · **`VSTRONG_CARC = 7.85`** · linear.
+- `SOFT = 0` (physical floor, unchanged) · **`VSTRONG_CARC = 7.55`** (combined
+  compatibility optimum; the valley is flat so any value in 7.3–7.9 is
+  defensible) · linear.
 - **[0,1] is the felt/compatibility scale, not the physics range**: authored 1
   = "very strong" exactly as today's specs mean it (no migration — all 4,484
   authored asks keep their meaning); the physics headroom above it saturates.
-- **`impactCeiling` = clamp01(s × 1.0 / 7.85)** — the honesty report; it
-  reaches 1.0 at s ≈ 7.9 px/f, truthfully leaving headroom above.
+- **`impactCeiling` = clamp01(s × 1.0 / VSTRONG_CARC)** — the honesty report;
+  it reaches 1.0 at s ≈ 7.6 px/f, truthfully leaving headroom above.
 
 ## Decision state
 

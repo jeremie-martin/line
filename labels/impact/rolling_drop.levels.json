@@ -1,0 +1,22 @@
+{
+  "name": "rolling_drop",
+  "source": "Numeric felt levels interpreted 2026-07-30 (Claude) from the user's free-text voice notes in rolling_drop.labels.json (ordinal field never filled; see impact_lab_v2.levels.json for the scale convention). Notes also carry a distinct QUALITY axis (clean/at-one-point vs distributed) which is deliberately NOT folded into the level.",
+  "levels": {
+    "44": { "felt": 2, "basis": "would have been strong but late/lasting — 'I guess, medium'" },
+    "91": { "felt": 1.5, "basis": "between soft and medium (very clean)" },
+    "137": { "felt": 3, "basis": "definitely strong" },
+    "183": { "felt": 3, "basis": "definitely strong as well, a tad less clean" },
+    "229": { "felt": 2, "basis": "medium, smooth" },
+    "275": { "felt": 1.8, "basis": "less strong than the last one (#4 medium), but cleaner", "uncertain": true },
+    "321": { "felt": 2.5, "basis": "between medium and strong" },
+    "367": { "felt": 2.5, "basis": "about the same as last one, not quite strong" },
+    "412": { "felt": 3, "basis": "strong, nice" },
+    "459": { "felt": 3.1, "basis": "strong, slightly more than the last one, more than #7/#8" },
+    "505": { "felt": 3.05, "basis": "slightly less strong than #9 (3.1)" },
+    "551": { "felt": 3.2, "basis": "strong, maybe the strongest yet, not by a huge margin" },
+    "596": { "felt": 2.7, "basis": "a bit less than strong, quite smooth (distributed along the arc)" },
+    "642": { "felt": 3, "basis": "a good strong clean impact" },
+    "688": { "felt": 2.5, "basis": "between medium and strong" },
+    "734": { "felt": 2.5, "basis": "between medium and strong" }
+  }
+}

@@ -55,7 +55,7 @@ const hyp = Math.hypot;
 // User's rough felt ordinal (5 = very strong slam … 1 = soft). Honest-vibe labels.
 // Default = the original 8 hand-typed Shelter labels; --labels=<name> loads the
 // dashboard annotations from generated/impact-study/<name>.labels.json instead.
-const ORD: Record<string, number> = { soft: 1, soft_medium: 1.5, medium: 2, medium_strong: 2.5, strong: 3, strong_very_strong: 3.5, very_strong: 4 };
+const ORD = SS.FELT_ORDINAL; // single source (impact_support.ts)
 const labelsName = arg("labels");
 let LABELS: { t: number; score: number; note: string; tags?: string[] }[] = [
   { t: 72.33, score: 5, note: "very strong" },

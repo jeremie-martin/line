@@ -1,0 +1,28 @@
+{
+  "name": "impact_lab_v2",
+  "source": "Numeric felt levels interpreted 2026-07-30 (Claude) from the user's free-text notes in impact_lab_v2.labels.json (the dashboard ordinal field was never filled for this set; the June adjudication interpreted the same notes at session time without persisting). Scale matches FELT_ORDINAL: 1=soft, 1.5=soft-medium, 2=medium, 2.5=medium-strong, 3=strong, 3.5=strong/very-strong, 4=very strong. Quarter steps encode explicit relative comparisons in the notes.",
+  "levels": {
+    "46": { "felt": 2.5, "basis": "medium-strong" },
+    "95": { "felt": 1.5, "basis": "soft-medium" },
+    "143": { "felt": 2.75, "basis": "stronger than #0 (2.5), not yet strong" },
+    "191": { "felt": 2.7, "basis": "stronger than #0/#1, slightly less than #2 (2.75)" },
+    "239": { "felt": 2, "basis": "medium" },
+    "287": { "felt": 2.5, "basis": "medium-strong" },
+    "335": { "felt": 2.5, "basis": "medium-strong" },
+    "383": { "felt": 3, "basis": "strong" },
+    "431": { "felt": 3.05, "basis": "strong, perhaps ever so slightly more than #7 (3)" },
+    "478": { "felt": 3, "basis": "strong" },
+    "526": { "felt": 3.5, "basis": "strongest so far, between strong and very-strong" },
+    "574": { "felt": 2, "basis": "medium" },
+    "622": { "felt": 2.5, "basis": "medium-strong" },
+    "670": { "felt": 2.4, "basis": "medium-strong but less than #12 (2.5)" },
+    "718": { "felt": 1.5, "basis": "soft-medium" },
+    "766": { "felt": 3, "basis": "strong" },
+    "814": { "felt": 3.1, "basis": "strong, stronger than #15 (3)" },
+    "862": { "felt": 3.1, "basis": "strong, about the same as #16 (3.1)" },
+    "911": { "felt": 3, "basis": "strong" },
+    "958": { "felt": 1.7, "basis": "soft-medium, a bit stronger than the others, not yet medium" },
+    "1007": { "felt": 1.1, "basis": "soft (could be softer)" },
+    "1055": { "felt": 3, "basis": "strong (not the strongest strong)" }
+  }
+}

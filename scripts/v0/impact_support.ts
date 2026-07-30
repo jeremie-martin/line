@@ -18,7 +18,13 @@
  */
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { extractRawTrajectory, detect, type Detection } from "../lib/detector.ts";
-import { redirArcPxAtLanding, contactLineIdsAt, velocityAt, measurementLastFrame } from "./core/substrate.ts";
+import {
+  airborneAt,
+  contactLineIdsAt,
+  measurementLastFrame,
+  redirArcPxAtLanding,
+  velocityAt,
+} from "./core/substrate.ts";
 import { CALIB, IMPACT_WINDOW as IMPACT_WINDOW_CANON, wrapPi, type TrackLine } from "./types.ts";
 
 const hyp = Math.hypot;
@@ -323,6 +329,63 @@ export function turnNetDeg(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
 export function redirArcPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
   return redirArcPxAtLanding(sim.det, lf, W) ?? 0;
 }
+
+// ── redirection-impulse candidate family (2026-07-30, docs/impact_definition.md) ──
+/** Dashboard INTENSITY ordinal → numeric felt scale. Single source for every label
+ *  study (study_impact_labels.ts, study_impact_impulse.ts). */
+export const FELT_ORDINAL: Record<string, number> = {
+  soft: 1, soft_medium: 1.5, medium: 2, medium_strong: 2.5, strong: 3, strong_very_strong: 3.5, very_strong: 4,
+};
+
+/**
+ * contactRedirArcPx — accumulated redirection impulse: Σ over CONTACTED in-window
+ * frames of midpoint speed × |per-frame heading change| (px/frame). The contacted-only
+ * rule IS the gravity treatment: airborne frames contribute zero (flight is not
+ * impact — gravity's ballistic bending never enters), while contacted frames keep
+ * their RAW velocities (during support the ground cancels gravity, so the raw path
+ * bend is the real redirection; subtracting g·dt on a supported step mis-attributes
+ * the support force and manufactures ~GRAVITY px/f of phantom arc per frame —
+ * `stepGravity: true` exists only as a study arm, `study_impact_impulse.ts` cArcG).
+ *
+ * `tau` (frames) optionally onset-weights each step by exp(-(f-lf)/tau): the
+ * perceptual-attribution arm — path bending AT the touchdown is the landing, bending
+ * late in the window is the arc doing its thing. Default Infinity = no decay.
+ *
+ * Vs the SCORED `redirArcPxAtLanding` (v·Δθ_net): accumulated not net (S-bends and
+ * bounce reflections add instead of cancelling), and windowed airborne frames read 0.
+ */
+export function contactRedirArcPx(
+  sim: Sim,
+  lf: number,
+  W = IMPACT_WINDOW,
+  opts: { tau?: number; stepGravity?: boolean } = {},
+): number {
+  const tau = opts.tau ?? Infinity;
+  const vIn = velocityAt(sim.det, lf - 1) ?? velocityAt(sim.det, lf);
+  if (vIn === undefined) return 0;
+  const end = Math.min(measurementLastFrame(sim.det), lf + Math.max(0, W));
+  let prev = vIn;
+  let prevFrame = lf - 1;
+  let arc = 0;
+  for (let f = lf; f <= end; f++) {
+    const v = velocityAt(sim.det, f);
+    if (v === undefined) continue;
+    const dt = f - prevFrame;
+    const cur = opts.stepGravity ? { x: v.x, y: v.y - GRAVITY * dt } : v;
+    if (airborneAt(sim.det, f) === false) {
+      const s0 = hyp(prev.x, prev.y), s1 = hyp(cur.x, cur.y);
+      if (s0 > 1e-9 && s1 > 1e-9) {
+        const turn = Math.abs(wrapPi(Math.atan2(cur.y, cur.x) - Math.atan2(prev.y, prev.x)));
+        const w = Number.isFinite(tau) ? Math.exp(-(f - lf) / tau) : 1;
+        arc += 0.5 * (s0 + s1) * turn * w;
+      }
+    }
+    prev = v;
+    prevFrame = f;
+  }
+  return arc;
+}
+
 /** Velocity-change decomposition over the window, gravity-corrected. `perp`=redir,
  *  `par`=peak along-heading slowdown, `dvTotal`=peak PER-FRAME |Δv| (not hyp of
  *  separately-maxed components). All px/frame. */

@@ -1,0 +1,21 @@
+{
+  "name": "climb_terrace",
+  "source": "Numeric felt levels interpreted 2026-07-30 (Claude) from the user's free-text notes in climb_terrace.labels.json (ordinal field never filled; see impact_lab_v2.levels.json for the scale convention).",
+  "levels": {
+    "39": { "felt": 2, "basis": "medium" },
+    "79": { "felt": 1, "basis": "soft" },
+    "119": { "felt": 1.95, "basis": "medium, ever so slightly less than #0 (2)" },
+    "159": { "felt": 2, "basis": "medium" },
+    "199": { "felt": 2, "basis": "medium" },
+    "239": { "felt": 1, "basis": "sfot [soft]" },
+    "278": { "felt": 2, "basis": "medium" },
+    "318": { "felt": 2.5, "basis": "medium-strong" },
+    "358": { "felt": 2.5, "basis": "medium-strong" },
+    "398": { "felt": 2.5, "basis": "medium-strong" },
+    "439": { "felt": 2, "basis": "medium" },
+    "478": { "felt": 2.5, "basis": "medium-strong" },
+    "519": { "felt": 1.5, "basis": "soft-medium" },
+    "559": { "felt": 2.5, "basis": "medium-strong" },
+    "599": { "felt": 2.5, "basis": "medium-strong" }
+  }
+}

@@ -14,6 +14,7 @@ import { describe, expect, test } from "vitest";
 import { AXIS_MEASURE } from "../scripts/v0/core/measure.ts";
 import { beats, withImpact } from "../scripts/v0/core/beats.ts";
 import { constant } from "../scripts/v0/core/curves.ts";
+import { GRAVITY, contactRedirArcPx, redirArcPx, type Sim } from "../scripts/v0/impact_support.ts";
 import { scoreDriftReport } from "../scripts/v0/score.ts";
 import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import {
@@ -32,6 +33,7 @@ function makeDet(opts: {
   landingFrame: number;
   velocity: Array<{ x: number; y: number }>;
   contactLineIds: number[][];
+  airborne?: boolean[];
   frameOffset?: number;
 }): Detection {
   const n = opts.velocity.length;
@@ -41,7 +43,7 @@ function makeDet(opts: {
     measurements: {
       velocity: opts.velocity,
       contactLineIds: opts.contactLineIds,
-      airborne: new Array(n).fill(false),
+      airborne: opts.airborne ?? new Array(n).fill(false),
       position: [],
       speed: opts.velocity.map((v) => Math.hypot(v.x, v.y)),
       sledContacts: [],
@@ -141,6 +143,62 @@ describe("measureImpact (redirArc = v·Δθ reduction)", () => {
     // speed 10, π/2 turn → redirArc 10·1.571 ≈ 15.7 ≫ 7.29 ⇒ 1.
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : { x: 0, y: 10 }));
     expect(call(det)).toBe(1);
+  });
+});
+
+describe("contactRedirArcPx (redirection-impulse candidate)", () => {
+  const asSim = (det: Detection): Sim => ({
+    det,
+    vel: det.measurements.velocity,
+    last: det.terminus.frame,
+    track: {},
+    eng: null,
+    lineById: new Map(),
+    cids: det.measurements.contactLineIds,
+  }) as Sim;
+
+  const lf = 10;
+  const flatDet = (vfn: (f: number) => { x: number; y: number }, airborne?: boolean[]) =>
+    makeDet({
+      landingFrame: lf,
+      velocity: Array.from({ length: 20 }, (_, f) => vfn(f)),
+      contactLineIds: arrAt(20, lf, [1]),
+      airborne,
+    });
+
+  test("flat sustained ride: raw reads 0; stepGravity manufactures the support artifact", () => {
+    // Constant velocity on sustained contact — the path never bends, so the raw
+    // contacted-only impulse is exactly 0. Subtracting g·dt per supported step
+    // mis-attributes the ground's support force: ~v·atan(g/v) ≈ GRAVITY per frame.
+    const sim = asSim(flatDet(() => ({ x: 10, y: 0 })));
+    expect(contactRedirArcPx(sim, lf)).toBeCloseTo(0, 9);
+    expect(contactRedirArcPx(sim, lf, IMPACT_WINDOW, { stepGravity: true }))
+      .toBeGreaterThan(6 * GRAVITY * 0.9); // ≈ 7 frames × 0.175 px/f of phantom arc
+  });
+
+  test("windowed airborne frames contribute zero (flight is not impact)", () => {
+    // Ballistic gravity bending inside the window: production redirArc reads a turn,
+    // the contacted-only impulse reads 0 — the rule IS the gravity treatment.
+    const airborne = new Array(20).fill(true);
+    const sim = asSim(flatDet((f) => (f < lf ? { x: 10, y: 0 } : { x: 10, y: GRAVITY * (f - (lf - 1)) }), airborne));
+    expect(contactRedirArcPx(sim, lf)).toBeCloseTo(0, 9);
+    expect(redirArcPx(sim, lf)).toBeGreaterThan(0);
+  });
+
+  test("bend-then-unbend: accumulated keeps both bends, net redirArc cancels", () => {
+    // Heading 0 → 0.5 rad → back to 0 inside the window, speed 10 throughout.
+    const sim = asSim(flatDet((f) => (f < lf || f > 12 ? { x: 10, y: 0 } : vel(0.5, 10))));
+    expect(contactRedirArcPx(sim, lf)).toBeCloseTo(10 * 0.5 * 2, 9); // both bends count
+    expect(redirArcPx(sim, lf)).toBeCloseTo(0, 9); // net endpoint turn cancelled
+  });
+
+  test("onset decay discounts late bending; tau=∞ equals the undecayed value", () => {
+    const early = asSim(flatDet((f) => (f < lf ? { x: 10, y: 0 } : vel(0.5, 10))));
+    const late = asSim(flatDet((f) => (f < lf + IMPACT_WINDOW ? { x: 10, y: 0 } : vel(0.5, 10))));
+    const undecayed = contactRedirArcPx(early, lf);
+    expect(contactRedirArcPx(early, lf, IMPACT_WINDOW, { tau: 4 })).toBeCloseTo(undecayed, 9); // turn at dt=0
+    expect(contactRedirArcPx(late, lf, IMPACT_WINDOW, { tau: 4 }))
+      .toBeCloseTo(undecayed * Math.exp(-IMPACT_WINDOW / 4), 9); // same turn, decayed
   });
 });
 

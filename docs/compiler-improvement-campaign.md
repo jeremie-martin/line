@@ -130,7 +130,7 @@ existing two-output response surface to propose such pairs. The later
 descent-cap null likewise asked search to discover the exchange incidentally;
 it did not place a compensated Pareto candidate in the pool.
 
-### Study sequence before a compiler candidate
+### Required sequence for the next compiler candidate
 
 1. **Final-trajectory phase audit, N=48/750k.** Regenerate the fixed accepted
    schedule and retain compact per-gap
@@ -166,6 +166,67 @@ surplus at fixed mean, if exact simulation erases the modeled exchange, if the
 next catch gives the speed back as reduced incidence, or if the exchange merely
 moves error into air/amplitude/adjacent gaps. A positive result must be broad
 across continuous physical strata, not driven by named cases.
+
+## 2026-07-30 — RETIRED: maximum arrival speed on the fixed-mean local surface
+
+**Hypothesis and population.** The accepted 750k/N=48 data identified impact
+asks in `[0.20, 0.50)` as the first addressable population: the two bands
+delivered only 50.9%/53.5% of their asks, had mean feasibility bounds
+0.550/0.551, and carried 30.4% of impact SSE. Their speed bias was
+-0.021/-0.024, so there was no empirical need to trade an already-fast mean
+for arrival speed.
+
+The candidate reused the normal `tail_pitch × post_contact_pitch` response
+surface. On eligible gaps it reserved the second of the existing two proposal
+slots for the modeled point with the highest terminal arrival speed, requiring:
+
+- at least +0.25 px/frame arrival-speed gain;
+- no worse absolute whole-gap mean-speed error;
+- no worse current-gap quality or projected outgoing quality.
+
+The best ordinary proposal remained in slot one. This added no probes or exact
+candidate evaluations, used no budget identity, and passed all 151 test files
+(872 tests). The full command was:
+
+```bash
+npm run benchmark -- eval --seeds=48 --jobs=48
+```
+
+It completed 2,112 candidate compiles in 28m20s at 1.26 runs/s, with peak RSS
+1.05 GiB. Comparison artifact:
+`generated/benchmark-v2/eval/cached-N48-2026-07-30T20-18-57Z.json.comparison.json`.
+
+| result | baseline | candidate | delta / evidence |
+|---|---:|---:|---|
+| headline | 587.0568 | 586.9191 | **-0.1377**, SE 0.3709, 95% `[-1.1335,+0.8581]` |
+| validity | 2112/2112 | 2112/2112 | flat |
+| representative | 619.72 | 619.57 | -0.16 |
+| capability | 466.32 | 467.69 | **+1.37** |
+| legacy regression | 593.14 | 590.80 | -2.35 |
+| development music | 479.77 | 479.80 | +0.03 |
+
+The capability gain was coherent (`dense_recovery_frontier` +3.20), but it was
+offset by `high_air_energy` -4.60 and `legacy_transition_regression` -3.84.
+`high_air_drive` alone moved -17.12 while its air-minus variant moved +8.28.
+
+Exact final-trajectory residuals show why the headline did not move. The
+candidate changed 55% of impact and speed observations, yet global RMS changed
+only 0.210975 -> 0.210839 for impact and 0.074312 -> 0.074093 for speed. In the
+targeted bands:
+
+| impact ask | impact RMS | speed RMS |
+|---|---:|---:|
+| 0.20-0.35 | 0.162754 -> 0.162550 | 0.072911 -> 0.072493 |
+| 0.35-0.50 | 0.211189 -> 0.211062 | 0.061627 -> 0.062591 |
+
+**Decision.** Retired and source-reverted; the active baseline remains
+587.0568. This does not falsify fixed-mean temporal allocation: both targeted
+impact bands improved slightly. It falsifies maximum arrival speed as a useful
+surrogate and broad second-slot replacement as an integration policy. A future
+candidate must model or exactly test the complete transfer
+`arrival speed × through-contact heading change`, preserve ordinary proposal
+diversity, and demonstrate a materially sized contact-level effect before
+another N=48 comparison.
 
 Any compute-dependent policy remains a scale law over work and physical
 opportunity, checked at 150k, 750k and 1M-3M. Budget identity must not enter the

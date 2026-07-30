@@ -11,7 +11,8 @@
  * say where a mechanism would have to bite to be worth its risk.
  *
  *   npm exec tsx scripts/v0/study_headline_counterfactual.ts -- \
- *     --archive=benchmark/v2/runs/segment-refine-development.json.gz
+ *     --archive=benchmark/v2/runs/segment-refine-development.json.gz \
+ *     --budgets=750000
  */
 import { gunzipSync } from "node:zlib";
 import { readFileSync } from "node:fs";
@@ -48,8 +49,36 @@ const archivePath = argument(argv, "archive") ??
 const suitePath = argument(argv, "suite") ?? "benchmark/v2/compat/suite-manifest.json";
 const manifestPath = argument(argv, "manifest") ?? "benchmark/v2/compat/source-manifest.json";
 
-const { rows, canonical } = load(archivePath);
-const suite = loadSuiteManifest(suitePath, resolveSources(loadSourceManifest(manifestPath)));
+const loaded = load(archivePath);
+const requestedBudgets = argument(argv, "budgets")
+  ?.split(",")
+  .map(Number)
+  .filter((budget) => Number.isSafeInteger(budget) && budget > 0);
+const rows = requestedBudgets === undefined
+  ? loaded.rows
+  : loaded.rows.filter((row) => requestedBudgets.includes(row.budget));
+if (rows.length === 0) throw new Error(`no archive rows match the requested budgets`);
+const loadedSuite = loadSuiteManifest(suitePath, resolveSources(loadSourceManifest(manifestPath)));
+const availableBudgets = [...new Set(rows.map((row) => row.budget))].sort((a, b) => a - b);
+const seedDepths = availableBudgets.map((budget) =>
+  new Set(rows.filter((row) => row.budget === budget).map((row) => row.seedSlot)).size
+);
+if (new Set(seedDepths).size !== 1) {
+  throw new Error(`selected budgets do not share one seed depth`);
+}
+const availableSeeds = seedDepths[0];
+const suite = {
+  ...loadedSuite,
+  profiles: {
+    ...loadedSuite.profiles,
+    canonical: {
+      ...loadedSuite.profiles.canonical,
+      budgets: availableBudgets,
+      seeds_per_budget: availableSeeds,
+    },
+  },
+};
+const canonical = requestedBudgets === undefined ? loaded.canonical : null;
 
 const headline = (mutate: (row: Row) => { score: number; valid: boolean }): number =>
   v2HeadlineForDecisionRuns(
@@ -60,7 +89,8 @@ const headline = (mutate: (row: Row) => { score: number; valid: boolean }): numb
 
 const base = headline((row) => row.score);
 console.log(`archive          ${archivePath}`);
-console.log(`canonical        ${canonical.toFixed(4)}`);
+console.log(`budgets          ${availableBudgets.join(",")}`);
+console.log(`canonical        ${canonical === null ? "(projected scope)" : canonical.toFixed(4)}`);
 console.log(`replayed         ${base.toFixed(4)}   (must match)`);
 console.log(`valid            ${rows.filter((r) => r.score.valid).length}/${rows.length}`);
 
@@ -104,11 +134,11 @@ const allMean = headline((row) => ({
 console.log(`valid runs score their cell's BEST    ${validBest.toFixed(2)}  (+${(validBest - base).toFixed(2)})`);
 console.log(`every run scores its cell's MEAN      ${allMean.toFixed(2)}  (+${(allMean - base).toFixed(2)})`);
 
-console.log(`\n== what each axis costs, as a pure bias removal ==`);
+console.log(`\n== what each axis costs, as an RMS-scaling upper bound ==`);
 for (const axis of ["impact", "air", "speed", "amplitude"]) {
   const present = rows.filter((r) => r.components[axis] !== undefined && r.score.valid);
   if (present.length === 0) continue;
-  for (const factor of [0.75, 0.5, 0]) {
+  for (const factor of [0.75, 0.7, 0.5, 0]) {
     const lifted = headline((row) => {
       if (!row.score.valid) return row.score;
       const component = row.components[axis];

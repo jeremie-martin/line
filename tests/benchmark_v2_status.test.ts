@@ -24,7 +24,7 @@ describe("Benchmark V2 status", () => {
     });
     expect(status.baseline.headline).toBe(587.0568);
     expect(status.baseline.budgets).toEqual([750_000]);
-    expect(status.baseline.targetHeadline).toBe(590);
+    expect(status.baseline.targetHeadline).toBe(650);
     expect(status.cache.missingBaselineCompiles).toBe(0);
     expect((status as any).era).toBeUndefined();
     expect(status.comparisonReady).toBe(true);
@@ -37,7 +37,7 @@ describe("Benchmark V2 status", () => {
     expect(text).toContain("cached comparison N=48");
     expect(text).toContain("2112 candidate compiles");
     expect(text).toContain("587.06; 750k");
-    expect(text).toContain("campaign target: >590.00");
+    expect(text).toContain("campaign target: >650.00");
     expect(text).toContain(`nextCommand: ${status.nextCommand}`);
     expect(status.nextCommand).toMatch(/^npm run benchmark -- /);
     expect(text).not.toContain("budget spent");

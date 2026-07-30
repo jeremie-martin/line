@@ -1,6 +1,6 @@
 # Active Compiler Improvement Goal
 
-Raise the active 750k Benchmark V2 development headline above 590 through
+Raise the active 750k Benchmark V2 development headline above 650 through
 broad, source-default compiler changes. The current N=48 campaign baseline is
 `postcompletion-aim-center-reuse-750k` at **587.0568**, with 2112/2112 valid
 runs.

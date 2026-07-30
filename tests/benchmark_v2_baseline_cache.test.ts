@@ -18,7 +18,7 @@ describe("canonical baseline cache fixed-N plans", () => {
     expect(cache.campaignScope).toEqual({
       budgets: [750_000],
       seeds: 48,
-      targetHeadline: 590,
+      targetHeadline: 650,
     });
     const plan = baselineCachePlan(cache, 48);
     verifyBaselineCache(cache, 48);

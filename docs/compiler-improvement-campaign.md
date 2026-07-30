@@ -1,6 +1,7 @@
 # Compiler Improvement Campaign
 
-Target: accepted Benchmark V2 development headline above 590.
+Target: accepted Benchmark V2 development headline above 650, then continue
+pushing the same broad compiler laws as far as the evidence supports.
 
 Current active campaign baseline:
 `postcompletion-aim-center-reuse-750k`, headline **587.0568** at 750k/N=48,
@@ -29,26 +30,146 @@ compiles). Compiler mechanisms must still scale continuously through 150k and
 | `air-matched-breadth-law` | 572.67 | N=8 +4.39 SE 1.46, one-sided lower +0.39; all-base air matching plus linear aim refinement |
 | **`postcompletion-aim-center-reuse`** | **571.08** | **N=48 +0.0842 SE 0.0217, 95% CI [+0.0271,+0.1413]; exact center-row reuse after first completion** |
 
-### What 590 would now require
+### What 650 now requires
 
-Re-pricing on the accepted archive with `study_headline_counterfactual.ts`:
+`study_headline_counterfactual.ts` now accepts `--budgets=750000`, so it can
+replay the active projected scope rather than silently pricing the frozen
+three-budget ladder. On the accepted N=48 archive it reproduces **587.0568**
+exactly:
 
-| counterfactual | headline | delta |
+| counterfactual | 750k headline | delta |
 |---|---:|---:|
-| **every seed scores its cell's BEST** | **592.16** | **+19.48** |
-| invalid runs score their cell's MEAN | 580.06 | +7.38 |
-| valid runs score their cell's BEST | 584.54 | +11.87 |
-| impact rms x0.75 / x0.5 / x0 | 625.75 / 677.18 / 737.48 | +53.08 / +104.51 / +164.81 |
-| air rms x0.75 / x0.5 / x0 | 582.65 / 590.48 / 597.29 | +9.98 / +17.80 / +24.61 |
-| speed rms x0.75 / x0 | 578.69 / 586.82 | +6.02 / +14.14 |
-| amplitude rms x0.75 / x0 | 577.91 / 586.18 | +5.23 / +13.51 (n=288) |
+| every seed scores its cell's BEST | 603.31 | +16.25 |
+| every run scores its cell's MEAN | 587.17 | +0.11 |
+| impact rms x0.75 / **x0.70** / x0.5 | 640.94 / **651.69** / 693.22 | +53.89 / **+64.63** / +106.16 |
+| air rms x0.75 / x0 | 597.26 / 612.28 | +10.20 / +25.23 |
+| speed rms x0.75 / x0 | 592.93 / 600.85 | +5.87 / +13.80 |
+| amplitude rms x0.75 / x0 | 592.39 / 600.88 | +5.33 / +13.82 (576 runs) |
 
-**A compiler as reliable as its own best seed of eight would score 592.16.**
-The target is now inside the search's demonstrated output rather than beyond
-its geometry. The remaining prize is mostly quality spread among valid runs
-(+11.87), with invalid 250k frontier runs worth another +7.38. Halving air RMS
-also clears the target at 590.48, but the accepted air mechanism reduced that
-ceiling by only 3.6 points; reliability is the larger live route.
+There is no validity prize left at this operating point: all 2,112 runs are
+valid. Best-seed reliability cannot reach 650 either. No non-impact axis can
+reach it even if its error disappears entirely. The single-axis scale of the
+new target is therefore about a **30% reduction in impact RMS**; combinations
+remain possible, and 650 is a milestone rather than a ceiling.
+
+The raw accepted residuals make the direction sharper:
+
+| axis | observations | rms | mean achieved-target | undershoot |
+|---|---:|---:|---:|---:|
+| impact | 194,688 | 0.2110 | **-0.1589** | **92.38%** |
+| air | 194,688 | 0.1099 | +0.0547 | 22.74% |
+| speed | 194,688 | 0.0743 | **-0.0055** | 48.51% |
+| amplitude | 47,328 | 0.2303 | -0.1230 | 82.13% |
+
+Speed is already centered. A useful impact mechanism therefore cannot simply
+raise physical speed everywhere; it must preserve the gap mean or buy back the
+speed error elsewhere.
+
+The old delivery-curve shape also survives on the new baseline. Asks in
+0.20-0.35 and 0.35-0.50 deliver only 50.9% and 53.5% of the request while their
+mean feasibility bounds are both about 0.55; together they carry 30.4% of
+impact SSE. Asks at 0.65+ carry 60.0% of impact SSE, but their mean bounds
+(0.58) are below their mean asks (0.72/0.87). The phase study must therefore
+separate addressable delivery from bound-limited demand; a universal arrival
+boost would repeat the rejected carrier mistake.
+
+## 2026-07-30 — research reset: speed is an integral constraint, not a phase command
+
+**Primary hypothesis.** If a gap asks for speed 0.5 but its ending impact is
+more deliverable with arrival speed 0.6, the compiler may deliberately seek
+0.6 in the impact-relevant late approach and compensate with approximately 0.4
+elsewhere. The evaluator sees the realized arithmetic mean over the complete
+inclusive gap, so a compensated physical profile can score 0.5 while presenting
+more kinetic speed to the ending catch. The numbers are illustrative; the
+mechanism must derive its allocation from physical state, authored asks, phase
+lengths and feasibility.
+
+This is **temporal allocation under a whole-gap constraint**, not a compiler
+target rewrite. The exact evaluator target remains 0.5.
+
+### What the code already does
+
+- Speed is the arithmetic mean of every measured `|velocity|` from
+  `gap.startFrame` through `gap.endFrame`, grounded and airborne alike. Air is
+  the airborne-frame fraction over the same inclusive interval.
+- Impact is event-local: incoming CoM speed one frame before the ending contact
+  times the net heading change through contact +6.
+- Generation nevertheless feeds one scalar speed ask into several different
+  jobs: brake/acceleration and carry pressures, contact and post angles, the
+  energy-shaped launch, and speed-relative elevation. That is the coupling a
+  phase allocator would have to separate.
+- `STEEP_ARRIVAL` already uses the following contact's impact ask to shape the
+  outgoing launch. It raises the probability of a steep, fast arrival, but it
+  neither represents nor closes a compensated speed budget.
+- The local aim model already predicts **both quantities needed for this
+  experiment**: `next.meanSpeedPx` and the projected next-contact state,
+  including arrival speed and angle. Its two normal coordinates are
+  `tail_pitch` and `post_contact_pitch`. The proposal objective currently reads
+  the whole-gap mean, air and elevation, but not arrival speed; the full ranker
+  sees a learned impact-feasibility signal only after a candidate has been
+  proposed and exactly evaluated.
+
+That last boundary is the most concrete untapped potential: the compiler
+already observes a local response surface containing whole-gap mean and arrival
+speed, but its proposer never asks whether a point on that surface preserves
+the first while improving the second.
+
+### What the old negative result did and did not test
+
+The 2026-07-28 endpoint-speed arm raised the compiler's scalar speed target.
+Arrival surplus rose 0.10 -> 0.71 px/frame and contact speed 10.70 -> 11.22,
+while delivered impact stayed 0.366 -> 0.367 because all the speed-conditioned
+contact pressures re-centered on the higher scalar ask and incidence fell.
+Smaller mean-target and energy-cost arms agreed.
+
+Keep that as a boundary: a scalar target lift is not the lever, and
+cross-sectional arrival-surplus correlations are not causal. It does **not**
+test a fixed-mean phase exchange. No arm held the exact whole-gap mean near its
+authored value while independently varying arrival speed, nor did one use the
+existing two-output response surface to propose such pairs. The later
+descent-cap null likewise asked search to discover the exchange incidentally;
+it did not place a compensated Pareto candidate in the pool.
+
+### Study sequence before a compiler candidate
+
+1. **Final-trajectory phase audit, N=48/750k.** Regenerate the fixed accepted
+   schedule and retain compact per-gap
+   moments: exact whole mean, arrival speed at -1, grounded and airborne means,
+   release frame, early/middle/late speed sums, air, incidence, delivered
+   impact and every axis residual. The accepted archive retains per-gap means
+   and track hashes, but neither track geometry nor frame trajectories, so it
+   cannot answer the phase question. Use associations only to size the
+   experiment, never as causal evidence.
+2. **Frozen-state response/Pareto assay.** Reuse the arc-control study harness
+   on representative current compiler states. Enumerate the existing
+   `tail_pitch × post_contact_pitch` response surface without changing the
+   compiler judge. For each base, ask whether an exactly evaluated candidate
+   can increase next arrival speed while keeping next mean-speed error no worse,
+   preserving air/current quality and surviving. Report coverage by impact ask,
+   speed ask, air ask, gap duration, ride/flight share and source family.
+3. **One-contact causal transfer.** Continue matched base and compensated
+   candidates through the next catch. Measure delivered impact, incidence,
+   speed loss through +6, all axes and validity. This is the decisive guard
+   against repeating the old cancellation: arrival speed is useful only if the
+   next catch converts it into `v * delta-theta`.
+4. **Compensation-location grid.** If transfer exists, compare where the offset
+   is paid: supported ride, launch/transit, or a mixture. Vary arrival surplus
+   and compensation strength continuously. Select from a Pareto frontier; do
+   not install a fixed `0.6/0.4` schedule.
+5. **Only then, proposer candidate.** Emit a small number of compensated
+   Pareto proposals while leaving ordinary candidates, exact evaluation and the
+   canonical ranker unchanged. Publish or reject only with the official
+   cache-backed N=48/750k comparison.
+
+The mechanism is falsified early if the current controls cannot produce arrival
+surplus at fixed mean, if exact simulation erases the modeled exchange, if the
+next catch gives the speed back as reduced incidence, or if the exchange merely
+moves error into air/amplitude/adjacent gaps. A positive result must be broad
+across continuous physical strata, not driven by named cases.
+
+Any compute-dependent policy remains a scale law over work and physical
+opportunity, checked at 150k, 750k and 1M-3M. Budget identity must not enter the
+compiler. Acceleration/kinematic-line work remains deferred.
 
 Accepted this session, both on one mechanism — the steep-arrival dive:
 

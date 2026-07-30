@@ -4,7 +4,7 @@ Active campaign label: `postcompletion-aim-center-reuse-750k`. Suite:
 `d01c8a064a201b08`.
 
 Official campaign headline: **587.0568** at 750k/N=48, with **2112/2112**
-valid runs. Target: **>590**.
+valid runs. Target: **>650**.
 
 The active baseline was created without compilation by projecting the exact
 750k rows from the retained `postcompletion-aim-center-reuse` N=48 archive.

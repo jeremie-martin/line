@@ -4,6 +4,11 @@ Status: authoritative contract for the canonical compiler benchmark. Benchmark V
 earlier V2 prototypes are historical evidence and are not score-comparable with this
 suite.
 
+Operational note (2026-07-30): the active compiler-improvement campaign temporarily
+uses only the canonical 750k rows at fixed N=48. This is a baseline/evaluation
+projection, not a suite change: the 250k/500k/750k contract, weights, evidence, and
+suite fingerprint below remain frozen for later restoration.
+
 ## Product question
 
 The compiler produces long Line Rider tracks synchronized to music. Benchmark V2 asks:
@@ -195,3 +200,8 @@ interpretation, budgets, or seed policy creates a new suite fingerprint and requ
 new intentional baseline. Statistical-model changes should be tested against
 the retained calibration fixtures, but they do not require a separate workflow
 state machine before ordinary comparisons can run.
+
+Temporarily selecting a declared subset of retained canonical budgets for a compiler
+campaign does not redefine those suite fields. The scope must be recorded separately,
+must preserve the omitted evidence, and must not introduce budget-identity behavior
+into the compiler.

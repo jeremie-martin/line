@@ -487,8 +487,9 @@ describe("JSON CLI surface", () => {
       "--import", "tsx", "scripts/benchmark/cli.ts", "help",
     ], { cwd: process.cwd(), encoding: "utf8" });
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("eval --seeds=N");
-    expect(result.stdout).toContain("baseline-cache extend --seeds=N");
+    expect(result.stdout).toContain("eval --seeds=48");
+    expect(result.stdout).toContain("750k-only");
+    expect(result.stdout).toContain("baseline-cache status --seeds=48");
     expect(result.stdout).toContain("rebaseline --from=COMPARISON");
     expect(result.stdout).toContain("--no-resource-stats");
     expect(result.stdout).not.toContain("--abort-in-flight");

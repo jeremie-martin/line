@@ -8,10 +8,32 @@ import {
 } from "../scripts/v0/benchmark_v2/baseline_cache.ts";
 import { buildWorkerTasks } from "../scripts/v0/benchmark_v2/runner.ts";
 import { assertEvalArguments } from "../scripts/v0/benchmark_v2/eval.ts";
+import { decisionProtocolFingerprint } from "../scripts/v0/benchmark_v2/decision_protocol.ts";
+import { readFileSync } from "node:fs";
 
 describe("canonical baseline cache fixed-N plans", () => {
-  it("plans any N deterministically from the cache prefix, without compiler work", () => {
+  it("uses the active 750k campaign projection at fixed N=48", () => {
     const cache = readBaselineCache();
+    const reference = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
+    expect(cache.campaignScope).toEqual({
+      budgets: [750_000],
+      seeds: 48,
+      targetHeadline: 590,
+    });
+    const plan = baselineCachePlan(cache, 48);
+    verifyBaselineCache(cache, 48);
+    expect(plan).toMatchObject({
+      requestedSeeds: 48,
+      coveredSeeds: 48,
+      missingBaselineSeeds: 0,
+      budgets: [750_000],
+      candidateCompiles: 2_112,
+    });
+    expect(reference.decision_protocol_fingerprint).toBe(decisionProtocolFingerprint());
+  });
+
+  it("plans any N deterministically from the cache prefix, without compiler work", () => {
+    const cache = readBaselineCache("benchmark/v2/baseline.json");
     // Coverage is read from the cache rather than hardcoded: a baseline may be
     // frozen at any depth and extended on demand, so pinning a slot count here
     // would assert a property of one particular baseline instead of the
@@ -38,7 +60,7 @@ describe("canonical baseline cache fixed-N plans", () => {
   });
 
   it("allows a one-seed diagnostic from the same canonical cache prefix", () => {
-    const plan = baselineCachePlan(readBaselineCache(), 1);
+    const plan = baselineCachePlan(readBaselineCache("benchmark/v2/baseline.json"), 1);
     expect(plan).toMatchObject({
       requestedSeeds: 1,
       coveredSeeds: 1,
@@ -50,7 +72,7 @@ describe("canonical baseline cache fixed-N plans", () => {
   });
 
   it("keeps every historical 48-slot seed and allocates disjoint stable tails", () => {
-    const cache = readBaselineCache();
+    const cache = readBaselineCache("benchmark/v2/baseline.json");
     const n37 = seedScheduleAtDepth(cache.cache, 37);
     const n83 = seedScheduleAtDepth(cache.cache, 83);
     const n251 = seedScheduleAtDepth(cache.cache, 251);
@@ -63,7 +85,7 @@ describe("canonical baseline cache fixed-N plans", () => {
   });
 
   it("hands a tail extension only its missing seed slots", () => {
-    const schedule = seedScheduleAtDepth(readBaselineCache().cache, 83);
+    const schedule = seedScheduleAtDepth(readBaselineCache("benchmark/v2/baseline.json").cache, 83);
     const tasks = buildWorkerTasks(
       schedule,
       [{ id: "case-a" }, { id: "case-b" }],

@@ -1,0 +1,207 @@
+{
+  "schema": "line.benchmark-v2.campaign-baseline.v1",
+  "status": "active-campaign-baseline",
+  "label": "postcompletion-aim-center-reuse-750k",
+  "generated_at": "2026-07-30T00:00:00.000Z",
+  "purpose": "Temporary 750k-only impact/headline compiler improvement campaign",
+  "scope": {
+    "profile": "canonical",
+    "budgets": [
+      750000
+    ],
+    "seeds": 48,
+    "target_headline": 590,
+    "deferred_budgets": [
+      250000,
+      500000
+    ],
+    "compiler_scale_contract": "Compiler mechanisms must remain continuous and meaningful beyond the measured budget, including 150k and 1M-3M; benchmark budget identity must not enter compiler behavior."
+  },
+  "source_baseline": {
+    "path": "benchmark/v2/baseline.json",
+    "label": "postcompletion-aim-center-reuse",
+    "cache_fingerprint": "908aedcb0398e0bd258b145cfc21d60e12b9a9f59fef0ffe6d6d50e4158a825f",
+    "full_ladder_headline": 571.084,
+    "note": "The complete 250k/500k/750k baseline and its evidence remain frozen here for restoration and scale diagnostics."
+  },
+  "execution_protocol": "line.benchmark-v2.execution-protocol.v4",
+  "compiler_identity_protocol": "line.compiler-source-identity.v2",
+  "listening_review_status": "approved",
+  "listening_review_fingerprint": "973af98ec3de6eba662298115e07792e35d859063bbbb3839cdf5e07409a314f",
+  "candidate_fingerprint": "aaadaa3969c70a608f539f76ac0962cb0c30ef96e59f426f021d40b9208ff97b",
+  "suite_fingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
+  "engine_artifact_fingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3",
+  "compiler_snapshot": {
+    "schema": "line.benchmark-v2.compiler-snapshot.v1",
+    "archive": "benchmark/v2/runs/postcompletion-aim-center-reuse-compiler-snapshot.tar.gz",
+    "archiveSha256": "6d7ed06843fe2983318d2d2aa56df36055b5de333c2d77562a43e56ea9aae449",
+    "candidateFingerprint": "aaadaa3969c70a608f539f76ac0962cb0c30ef96e59f426f021d40b9208ff97b",
+    "compilerSourceFingerprint": "80c58ad9f08e6f721b7957e337f16d513cf962c533edf27bb4835691a89dd099",
+    "compilerEnvironment": {},
+    "engineArtifactFingerprint": "702922acdb2d5317e1c6f60129d2286aa7779dc034f7042e728e69ff43d02aa3"
+  },
+  "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
+  "decision_protocol_fingerprint": "b5fd72bf8776a289784d0da682c3bf0c0a315dd643989c739d9db3bf7d538da1",
+  "decision_calibration_fingerprint": "380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9",
+  "development": {
+    "execution_policy_fingerprint": "cf1a3bff98b7db03821b75d3c51b626cd06fb94e7a01a2d8f4b05c9c88aaf869",
+    "implementation_fingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
+    "archive_sha256": "bab0cad47dc6b284bae27a9d8f2937fa4782094fa50a3a86e26ec1ae8260043e",
+    "compressed_archive": "benchmark/v2/runs/postcompletion-aim-center-reuse-development.json.gz",
+    "compressed_archive_sha256": "69e1e87e329a75a3299e523a4edeff172438d964430b06d754c2a3f89eea626c",
+    "canonical_headline": 587.0568,
+    "seed_schedule": {
+      "kind": "profile_budget_disjoint_contiguous",
+      "profile": "canonical",
+      "seedBase": 0,
+      "seedsPerBudget": 48,
+      "byBudget": [
+        {
+          "budget": 750000,
+          "actualSeeds": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            608,
+            609,
+            610,
+            611,
+            612,
+            613,
+            614,
+            615,
+            616,
+            617,
+            618,
+            619,
+            620,
+            621,
+            622,
+            623,
+            624,
+            625,
+            626,
+            627,
+            628,
+            629,
+            630,
+            631,
+            632,
+            633,
+            634,
+            635,
+            636,
+            637,
+            638,
+            639,
+            640,
+            641,
+            642,
+            643,
+            644,
+            645,
+            646,
+            647
+          ]
+        }
+      ]
+    },
+    "budgets": [
+      {
+        "budget": 750000,
+        "score": 587.0568,
+        "valid_runs": 2112,
+        "total_runs": 2112
+      }
+    ]
+  },
+  "canonical_cache": {
+    "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
+    "baselineLabel": "postcompletion-aim-center-reuse-750k",
+    "candidateFingerprint": "aaadaa3969c70a608f539f76ac0962cb0c30ef96e59f426f021d40b9208ff97b",
+    "suiteFingerprint": "d01c8a064a201b08631d2b2347e95f4327ad01e295ecd36059e8e3df4a545c70",
+    "ladder": {
+      "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
+      "profile": "canonical",
+      "seedBase": 0,
+      "maximumSeedsPerBudget": 48,
+      "byBudget": [
+        {
+          "budget": 750000,
+          "actualSeeds": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            608,
+            609,
+            610,
+            611,
+            612,
+            613,
+            614,
+            615,
+            616,
+            617,
+            618,
+            619,
+            620,
+            621,
+            622,
+            623,
+            624,
+            625,
+            626,
+            627,
+            628,
+            629,
+            630,
+            631,
+            632,
+            633,
+            634,
+            635,
+            636,
+            637,
+            638,
+            639,
+            640,
+            641,
+            642,
+            643,
+            644,
+            645,
+            646,
+            647
+          ]
+        }
+      ]
+    },
+    "shards": [
+      {
+        "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
+        "firstSeedSlot": 0,
+        "endSeedSlotExclusive": 48,
+        "archiveSha256": "bab0cad47dc6b284bae27a9d8f2937fa4782094fa50a3a86e26ec1ae8260043e",
+        "compressedArchive": "benchmark/v2/runs/postcompletion-aim-center-reuse-development.json.gz",
+        "compressedArchiveSha256": "69e1e87e329a75a3299e523a4edeff172438d964430b06d754c2a3f89eea626c",
+        "executionPolicyFingerprint": "cf1a3bff98b7db03821b75d3c51b626cd06fb94e7a01a2d8f4b05c9c88aaf869",
+        "implementationFingerprint": "be66b30daca2a65f9fb9f08592690d90cbbb37cb3bdb9f313178052dbc362988",
+        "budgetProjection": {
+          "schema": "line.benchmark-v2.cache-budget-projection.v1",
+          "sourceBaseline": "benchmark/v2/baseline.json",
+          "sourceCacheFingerprint": "908aedcb0398e0bd258b145cfc21d60e12b9a9f59fef0ffe6d6d50e4158a825f"
+        }
+      }
+    ]
+  }
+}

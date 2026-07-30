@@ -1,8 +1,8 @@
 # How To Work On The Compiler
 
-Benchmark V2 has one development loop: compare the current compiler with the
-accepted baseline at whatever depth is useful, then explicitly promote a
-convincing result.
+The active compiler campaign compares the current compiler with a retained
+750k-only baseline at N=48, then explicitly promotes a convincing result. The
+frozen 250k/500k/750k V2 baseline remains intact for later restoration.
 
 ## Normal loop
 
@@ -10,17 +10,11 @@ convincing result.
 # Regenerate and validate deterministic benchmark metadata when needed.
 npm run benchmark -- prepare
 
-# Read-only: does the cache already cover the comparison you want?
-npm run benchmark -- status --seeds=100
+# Read-only: verify the official 750k/N=48 baseline and exact work.
+npm run benchmark -- status
 
-# Smallest canonical cached comparison: 264 candidate compiles.
-npm run benchmark -- eval
-
-# Heavy comparison. Only the candidate is compiled; baseline slots are reused.
-npm run benchmark -- eval --seeds=100 --jobs=48
-
-# Only if status says some baseline slots are missing:
-npm run benchmark -- baseline-cache extend --seeds=100 --jobs=48
+# Official comparison: 44 cases x 48 seeds = 2,112 candidate compiles.
+npm run benchmark -- eval --seeds=48 --jobs=48
 
 # Promote a favorable comparison artifact.
 npm run benchmark -- rebaseline \
@@ -28,16 +22,16 @@ npm run benchmark -- rebaseline \
   --label=descriptive-label
 ```
 
-`eval` is exactly `eval --seeds=2`; there is no separate quick/probe
-comparison. `N` is an ordinary compute choice in `1..300`. N=1 is a descriptive
-pipeline diagnostic: it reports scores, validity, regimes, and telemetry, but
-seed-block inference is unavailable and the result is never promotable. Choose
-larger N from the importance and uncertainty of the question. Running N=100
-simply because spare compute is available is valid. The cache uses one stable
-seed ladder, so N=100 is the prefix of N=300 and does not recompute baseline
-evidence.
+The active campaign accepts only N=48. There is no N=2/N=4 probe and no
+adaptive depth sequence. Its baseline cache is a checksummed projection of the
+already accepted N=48 archive's 750k rows, so every comparison compiles only
+the 2,112 candidate cells.
 
-`eval --seeds=N` always exits 0 after a completed comparison. The artifact
+The frozen full-ladder machinery is still inspectable with
+`--baseline=benchmark/v2/baseline.json`. It is not the campaign acceptance
+surface while 250k and 500k are deferred.
+
+`eval --seeds=48` always exits 0 after a completed comparison. The artifact
 contains the statistical result; an inconclusive or negative scientific result
 is not a process failure. `--resume --out=SAME_PATH` resumes the exact frozen
 candidate snapshot and checkpoint.
@@ -45,14 +39,14 @@ candidate snapshot and checkpoint.
 ## What to inspect
 
 - headline delta, seed-block SE, and interval;
-- movement at 250k, 500k, and 750k;
+- movement at 750k;
 - representative, capability, regression, and development-music strata;
 - validity gains and losses;
 - largest case regressions and improvements;
 - whether the result matches the proposed physical mechanism.
 
 The confidence calculation is a useful common ruler, not a permission system.
-Multiple inspected candidates or repeated depths create selection effects;
+Multiple inspected candidates or repeated runs create selection effects;
 record them honestly and use a sufficiently clear final comparison for
 promotion.
 
@@ -71,24 +65,27 @@ source defaults before a normal cached comparison.
 
 ## Baselines
 
-`benchmark/v2/baseline.json` names the accepted compiler snapshot and canonical
-cache. Cache shards are immutable, checksummed, contiguous seed-slot ranges.
-`baseline-cache extend` is the only normal operation that compiles baseline
-work, and it compiles only a missing tail.
+`benchmark/v2/campaign-baseline.json` names the active 750k compiler snapshot
+and N=48 cache. The initial cache projects the exact 750k rows from
+`benchmark/v2/baseline.json`; its source cache and archive are verified in full
+before the projection is used.
 
 `rebaseline --from=...` verifies the measured snapshot and current committed
-compiler identity, retains the candidate development evidence, refreshes
-compatibility reference material, runs qualification, and starts the new
-baseline cache from the promoted canonical archive.
+compiler identity, retains the candidate 750k development evidence, and starts
+the next campaign cache directly from that N=48 archive. It neither compiles
+nor changes the deferred 250k/500k evidence.
 
-Use `benchmark baseline` only for an intentional full freeze such as bootstrap
-or suite replacement.
+`benchmark/v2/baseline.json` remains the frozen full-ladder reference. Use
+`benchmark baseline` only for an intentional full-suite freeze or restoration.
 
 ## Discipline
 
 - Keep one mechanism per candidate where practical.
 - Prefer focused tests and bounded panels before expensive runs.
 - Do not tune case by case or against qualification monitors.
+- Keep compute-dependent mechanisms continuous across at least 150k and
+  1M-3M; never key compiler behavior to 750k or benchmark budget identity.
+- Keep acceleration/kinematic-line work deferred.
 - Preserve resumable outputs for long runs.
 - Keep raw/generated archives out of commits.
 - Treat old declarations, certification studies, and accounting files as

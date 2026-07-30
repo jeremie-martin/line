@@ -32,6 +32,14 @@ import { loadSourceManifest, resolveSources } from "./model.ts";
 import { compilerCandidateIdentity } from "./runner.ts";
 import { suiteIdentity } from "./suite_model.ts";
 import type { CachedComparisonArtifact } from "./eval.ts";
+import {
+  BASELINE_CACHE_LADDER_SCHEMA,
+  BASELINE_CACHE_SCHEMA,
+  BASELINE_CACHE_SHARD_SCHEMA,
+  CAMPAIGN_BASELINE_REFERENCE_SCHEMA,
+  baselineCacheManifestFingerprint,
+} from "./baseline_cache.ts";
+import { loadVerifiedArchive } from "./decide.ts";
 
 export async function runRebaselineCommand(argv = process.argv.slice(2)): Promise<number> {
   const argument = (name: string): string | undefined =>
@@ -132,6 +140,34 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
   };
   validateCompilerSnapshot(retainedSnapshot);
 
+  const comparisonBaseline = JSON.parse(readFileSync(resolve(artifact.base.baselinePath), "utf8"));
+  if (
+    comparisonBaseline.schema === CAMPAIGN_BASELINE_REFERENCE_SCHEMA &&
+    comparisonBaseline.status === "active-campaign-baseline"
+  ) {
+    if (
+      baselineCacheManifestFingerprint(comparisonBaseline.canonical_cache) !==
+        artifact.base.cacheFingerprint
+    ) {
+      throw new Error(`the active campaign baseline changed after this comparison`);
+    }
+    promoteCampaignBaseline({
+      comparisonBaseline,
+      artifact,
+      artifactPath,
+      candidatePath,
+      retainedSnapshot,
+      archiveDir,
+      safeLabel,
+      forced,
+      forceReason,
+    });
+    console.log(`rebaselined the 750k campaign to ${safeLabel}`);
+    console.log(`  frozen 250k/500k V2 evidence was not run or changed`);
+    console.log(`  nextCommand: npm run benchmark -- eval --seeds=${comparisonBaseline.scope.seeds}`);
+    return 0;
+  }
+
   let workspace: ReturnType<typeof createSnapshotWorkspace> | undefined;
   try {
     workspace = createSnapshotWorkspace(retainedSnapshot);
@@ -216,8 +252,10 @@ function readComparisonArtifact(path: string): CachedComparisonArtifact {
     }
   }
   const artifact = JSON.parse(bytes.toString("utf8")) as CachedComparisonArtifact;
+  const schema = (artifact as any).schema;
   if (
-    artifact.schema !== "line.benchmark-v2.cached-comparison.v1" ||
+    (schema !== "line.benchmark-v2.cached-comparison.v1" &&
+      schema !== "line.benchmark-v2.cached-comparison.v2") ||
     artifact.status !== "complete" ||
     typeof artifact.candidate?.archivePath !== "string" ||
     artifact.candidate?.snapshot === undefined ||
@@ -226,6 +264,125 @@ function readComparisonArtifact(path: string): CachedComparisonArtifact {
     throw new Error(`unsupported cached comparison artifact`);
   }
   return artifact;
+}
+
+function promoteCampaignBaseline(input: {
+  comparisonBaseline: any;
+  artifact: CachedComparisonArtifact;
+  artifactPath: string;
+  candidatePath: string;
+  retainedSnapshot: CompilerSnapshot;
+  archiveDir: string;
+  safeLabel: string;
+  forced: boolean;
+  forceReason: string | undefined;
+}): void {
+  const { comparisonBaseline, artifact } = input;
+  const scope = comparisonBaseline.scope;
+  if (
+    scope?.profile !== "canonical" || !Array.isArray(scope.budgets) ||
+    scope.budgets.length === 0 || !Number.isSafeInteger(scope.seeds) ||
+    JSON.stringify(artifact.base.budgets) !== JSON.stringify(scope.budgets) ||
+    artifact.base.seeds !== scope.seeds
+  ) {
+    throw new Error(`comparison does not match the active campaign's fixed scope`);
+  }
+  const verified = loadVerifiedArchive(input.candidatePath);
+  const archive = verified.archive;
+  if (
+    archive.mode !== "development" || archive.profile !== "canonical" ||
+    JSON.stringify(archive.identity?.budgets) !== JSON.stringify(scope.budgets) ||
+    archive.identity?.seedSchedule?.seedsPerBudget !== scope.seeds ||
+    archive.git?.candidateFingerprint !== artifact.candidate.snapshot.candidateFingerprint ||
+    Math.abs(archive.canonicalHeadline - artifact.decision.result.candidateHeadline) > 0.0001
+  ) {
+    throw new Error(`candidate archive does not match the promotable campaign evidence`);
+  }
+  const retainedDevelopment = retainExistingRun(
+    input.candidatePath,
+    artifact.candidate.archiveSha256,
+    artifact.candidate.compressedArchiveSha256,
+    input.archiveDir,
+    `${input.safeLabel}-development-${scope.budgets.map((budget: number) => `${budget / 1000}k`).join("-")}`,
+  );
+  const retainedComparison = resolve(input.archiveDir, `${input.safeLabel}-comparison.json`);
+  copyFileDurable(input.artifactPath, retainedComparison);
+  writeFileAtomicDurable(
+    `${retainedComparison}.sha256`,
+    `${createHash("sha256").update(readFileSync(retainedComparison)).digest("hex")}  ${relativeToCwd(retainedComparison)}\n`,
+  );
+
+  const schedule = archive.identity.seedSchedule;
+  const developmentBudgets = archive.developmentSummaries.map((summary: any) => ({
+    budget: summary.budget,
+    score: summary.score,
+    valid_runs: summary.validRuns,
+    total_runs: summary.totalRuns,
+  }));
+  const campaign = {
+    ...comparisonBaseline,
+    schema: CAMPAIGN_BASELINE_REFERENCE_SCHEMA,
+    status: "active-campaign-baseline",
+    label: input.safeLabel,
+    generated_at: new Date().toISOString(),
+    candidate_fingerprint: archive.git.candidateFingerprint,
+    suite_fingerprint: archive.identity.suiteFingerprint,
+    engine_artifact_fingerprint: archive.git.engineArtifactFingerprint,
+    compiler_snapshot: input.retainedSnapshot,
+    decision_inference_fingerprint: artifact.decision.decisionInferenceFingerprint,
+    decision_protocol_fingerprint: artifact.decision.decisionProtocolFingerprint,
+    development: {
+      execution_policy_fingerprint: archive.identity.executionPolicyFingerprint,
+      implementation_fingerprint: archive.identity.implementationFingerprint,
+      archive_sha256: artifact.candidate.archiveSha256,
+      compressed_archive: relativeToCwd(retainedDevelopment),
+      compressed_archive_sha256: artifact.candidate.compressedArchiveSha256,
+      canonical_headline: archive.canonicalHeadline,
+      seed_schedule: schedule,
+      budgets: developmentBudgets,
+    },
+    canonical_cache: {
+      schema: BASELINE_CACHE_SCHEMA,
+      baselineLabel: input.safeLabel,
+      candidateFingerprint: archive.git.candidateFingerprint,
+      suiteFingerprint: archive.identity.suiteFingerprint,
+      ladder: {
+        schema: BASELINE_CACHE_LADDER_SCHEMA,
+        profile: "canonical",
+        seedBase: schedule.seedBase,
+        maximumSeedsPerBudget: scope.seeds,
+        byBudget: schedule.byBudget,
+      },
+      shards: [{
+        schema: BASELINE_CACHE_SHARD_SCHEMA,
+        firstSeedSlot: 0,
+        endSeedSlotExclusive: scope.seeds,
+        archiveSha256: artifact.candidate.archiveSha256,
+        compressedArchive: relativeToCwd(retainedDevelopment),
+        compressedArchiveSha256: artifact.candidate.compressedArchiveSha256,
+        executionPolicyFingerprint: archive.identity.executionPolicyFingerprint,
+        implementationFingerprint: archive.identity.implementationFingerprint,
+      }],
+    },
+    promoted_comparison: {
+      artifact: relativeToCwd(retainedComparison),
+      artifact_sha256: createHash("sha256").update(readFileSync(retainedComparison)).digest("hex"),
+      seeds: artifact.base.seeds,
+      budgets: artifact.base.budgets,
+      outcome: artifact.decision.result.outcome,
+      delta: artifact.decision.result.delta,
+      ...(input.forced
+        ? { forced: true, force_reason: input.forceReason?.trim() }
+        : {}),
+    },
+    monitoring: {
+      qualification: "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence",
+    },
+  };
+  writeFileAtomicDurable(
+    resolve(artifact.base.baselinePath),
+    `${JSON.stringify(campaign, null, 2)}\n`,
+  );
 }
 
 function runnerBaseArgs(jobs: number): string[] {

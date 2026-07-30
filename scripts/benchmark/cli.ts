@@ -94,7 +94,7 @@ async function main(rawArgs: string[]): Promise<void> {
     } else if (command === "rebaseline") {
       process.exitCode = await monitored("rebaseline", args, () => runRebaselineCommand(commandArgs));
     } else if (command === "canonical") {
-      throw new Error(`canonical is no longer a separate workflow; use \`npm run benchmark -- eval --seeds=N\``);
+      throw new Error(`canonical is no longer a separate workflow; use \`npm run benchmark -- eval --seeds=48\``);
     } else if (command === "baseline") {
       await monitored("baseline", args, () => runBaselineBenchmark(benchmarkArgs("canonical", args)));
     } else {
@@ -209,7 +209,7 @@ function commandName(
   args: string[],
 ): "eval" | "canonical" | "baseline" | "rebaseline" | "decide" | "prepare" | "explain" | "status" | "family" | "baseline-cache" | "help" {
   if (args.includes("full") || args.includes("--full")) {
-    throw new Error(`the full alias was retired; choose the comparison size explicitly with \`eval --seeds=N\``);
+    throw new Error(`the full alias was retired; the active campaign command is \`eval --seeds=48\``);
   }
   if (args.includes("help") || args.includes("--help") || args.includes("-h")) return "help";
   if (args.includes("baseline-cache")) return "baseline-cache";
@@ -230,20 +230,18 @@ function commandName(
 
 function printHelp(): void {
   console.log(`Benchmark V2\n\n` +
-    `  npm run benchmark -- eval        Smallest canonical cached comparison (N=2)\n` +
-    `  npm run benchmark -- eval --seeds=N [--jobs=48] [--resume]\n` +
-    `                                   Canonical candidate-only comparison against cached baseline slots [0,N)\n` +
-    `  npm run benchmark -- status [--seeds=N]\n` +
-    `                                   Read-only baseline/cache readiness and exact compute required\n` +
-    `  npm run benchmark -- baseline-cache status --seeds=N\n` +
-    `  npm run benchmark -- baseline-cache extend --seeds=N [--jobs=48] [--resume]\n` +
-    `                                   Immutable baseline prefix cache; extension compiles only a missing tail\n` +
+    `  npm run benchmark -- eval --seeds=48 [--jobs=48] [--resume]\n` +
+    `                                   Active 750k-only candidate comparison against retained N=48 rows\n` +
+    `  npm run benchmark -- status\n` +
+    `                                   Read-only campaign baseline/cache readiness and exact compute required\n` +
+    `  npm run benchmark -- baseline-cache status --seeds=48\n` +
+    `                                   Verify the active campaign projection\n` +
     `  npm run benchmark -- family capture NAME --variant=ID [--note=TEXT]\n` +
     `  npm run benchmark -- family run NAME [--seeds=6] [--jobs=N]\n` +
     `  npm run benchmark -- family select NAME --variant=ID [--reason=TEXT]\n` +
     `                                   Shared-seed descriptive variant exploration\n` +
     `  npm run benchmark -- rebaseline --from=COMPARISON --label=LABEL\n` +
-    `                                   Promote a favorable cached comparison and refresh retained references\n` +
+    `                                   Promote a favorable 750k comparison without compiling deferred budgets\n` +
     `  npm run benchmark -- baseline    Explicit full baseline freeze for bootstrap or suite replacement\n` +
     `  npm run benchmark -- decide ARCHIVE [--base=BASE] [--mode=simplification --margin=POINTS]\n` +
     `                                   Standalone archive diagnostic; normal work uses eval\n` +
@@ -251,7 +249,7 @@ function printHelp(): void {
     `  npm run benchmark -- explain <archive.json>\n\n` +
     `  Common execution flags: --jobs=N, --no-resource-stats, --resource-interval=SECONDS\n` +
     `  Eval paths: --out=RUN.json and --artifact=COMPARISON.json\n\n` +
-    `Comparisons are stateless and repeatable. The baseline is never recomputed unless baseline-cache extend reports a missing tail.\n` +
+    `Comparisons are stateless and repeatable. The active campaign is fixed at 750k/N=48; its baseline is never recomputed.\n` +
     `With --json, invoke through \`npm run --silent benchmark -- ...\` or call this CLI directly so npm's script banner does not prefix stdout.\n` +
     `Eval exit codes: 0 completed, 1 invalid. The comparison result lives in the artifact, not the process exit code.\n` +
     `Compiler execution defaults to 48 workers and prints resource samples every five seconds.`);

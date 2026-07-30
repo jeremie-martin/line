@@ -7,11 +7,13 @@ import {
 } from "./baseline_cache.ts";
 
 export type BenchmarkStatus = {
-  schema: "line.benchmark-v2.status.v2";
+  schema: "line.benchmark-v2.status.v3";
   baseline: {
     label: string;
     headline: number;
     candidateFingerprint: string;
+    budgets: number[];
+    targetHeadline: number | null;
   };
   cache: {
     requestedSeeds: number;
@@ -32,9 +34,13 @@ export type BenchmarkStatus = {
   nextCommand: string;
 };
 
-export function benchmarkStatus(requestedSeeds = 100): BenchmarkStatus {
-  const cache = readBaselineCache();
-  const plan = baselineCachePlan(cache, requestedSeeds);
+export function benchmarkStatus(requestedSeeds?: number, baselinePath?: string): BenchmarkStatus {
+  const cache = readBaselineCache(baselinePath);
+  const depth = requestedSeeds ?? cache.campaignScope?.seeds ?? 100;
+  if (cache.campaignScope !== undefined && depth !== cache.campaignScope.seeds) {
+    throw new Error(`the active campaign uses N=${cache.campaignScope.seeds} only`);
+  }
+  const plan = baselineCachePlan(cache, depth);
   verifyBaselineCache(cache, plan.coveredSeeds === 0 ? undefined : plan.coveredSeeds);
   const baseline = JSON.parse(readFileSync(cache.baselinePath, "utf8"));
   const compiler = compilerCandidateIdentity("wasm");
@@ -42,11 +48,13 @@ export function benchmarkStatus(requestedSeeds = 100): BenchmarkStatus {
   const engineMatches = compiler.engineArtifactFingerprint === baseline.engine_artifact_fingerprint;
   const ready = plan.missingBaselineSeeds === 0;
   return {
-    schema: "line.benchmark-v2.status.v2",
+    schema: "line.benchmark-v2.status.v3",
     baseline: {
       label: cache.cache.baselineLabel,
       headline: baseline.development.canonical_headline,
       candidateFingerprint: cache.cache.candidateFingerprint,
+      budgets: cache.cache.ladder.byBudget.map((entry) => entry.budget),
+      targetHeadline: cache.campaignScope?.targetHeadline ?? null,
     },
     cache: {
       requestedSeeds: plan.requestedSeeds,
@@ -65,15 +73,19 @@ export function benchmarkStatus(requestedSeeds = 100): BenchmarkStatus {
     },
     comparisonReady: engineMatches,
     nextCommand: ready
-      ? `npm run benchmark -- eval --seeds=${requestedSeeds}`
-      : `npm run benchmark -- baseline-cache extend --seeds=${requestedSeeds}`,
+      ? `npm run benchmark -- eval --seeds=${depth}${baselineArgument(baselinePath)}`
+      : `npm run benchmark -- baseline-cache extend --seeds=${depth}${baselineArgument(baselinePath)}`,
   };
 }
 
 export function renderBenchmarkStatus(status: BenchmarkStatus): string {
   return [
     `Benchmark V2 status`,
-    `  baseline: ${status.baseline.label} (${status.baseline.headline.toFixed(2)})`,
+    `  baseline: ${status.baseline.label} (${status.baseline.headline.toFixed(2)}; ` +
+      `${status.baseline.budgets.map((budget) => `${budget / 1000}k`).join("/")})`,
+    ...(status.baseline.targetHeadline === null ? [] : [
+      `  campaign target: >${status.baseline.targetHeadline.toFixed(2)}`,
+    ]),
     `  current compiler: ${status.compiler.matchesBaseline ? "matches baseline" : "candidate differs from baseline"}`,
     `  source state: ${status.compiler.committed ? "committed" : `uncommitted: ${status.compiler.dirtyPaths.join(", ")}`}`,
     `  comparison: ${status.comparisonReady ? "ready" : "blocked by engine artifact mismatch"}`,
@@ -91,11 +103,20 @@ export function renderBenchmarkStatus(status: BenchmarkStatus): string {
 
 export function runStatusCommand(argv: string[]): number {
   const seedArgument = argv.find((arg) => arg.startsWith("--seeds="));
-  if (argv.some((arg) => arg.startsWith("--") && arg !== "--json" && !arg.startsWith("--seeds="))) {
-    throw new Error(`status accepts only --seeds=N and --json`);
+  const baselineArgumentValue = argv.find((arg) => arg.startsWith("--baseline="));
+  if (argv.some((arg) =>
+    arg.startsWith("--") && arg !== "--json" &&
+    !arg.startsWith("--seeds=") && !arg.startsWith("--baseline=")
+  )) {
+    throw new Error(`status accepts only --seeds=N, --baseline=FILE, and --json`);
   }
-  const requestedSeeds = seedArgument === undefined ? 100 : Number(seedArgument.slice("--seeds=".length));
-  const status = benchmarkStatus(requestedSeeds);
+  const requestedSeeds = seedArgument === undefined ? undefined : Number(seedArgument.slice("--seeds=".length));
+  const baselinePath = baselineArgumentValue?.slice("--baseline=".length);
+  const status = benchmarkStatus(requestedSeeds, baselinePath);
   console.log(argv.includes("--json") ? JSON.stringify(status, null, 2) : renderBenchmarkStatus(status));
   return 0;
+}
+
+function baselineArgument(path: string | undefined): string {
+  return path === undefined ? "" : ` --baseline=${path}`;
 }

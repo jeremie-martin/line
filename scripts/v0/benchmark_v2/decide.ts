@@ -125,6 +125,7 @@ export type DecisionArtifact = {
     manifestPath: string;
     manifestFingerprint: string;
     coverageDepth: number;
+    budgets: number[];
     shardRanges: Array<{ firstSeedSlot: number; endSeedSlotExclusive: number }>;
     compatibilityApprovals: RunnerCompatibilityApproval[];
   };
@@ -285,10 +286,12 @@ export async function loadValidatedDecisionPairForCalibration(
 export function suiteAtDepth(
   suite: ReturnType<typeof loadSuiteManifest>,
   depth: number,
+  budgets = suite.profiles.canonical.budgets,
 ): ReturnType<typeof loadSuiteManifest> {
   if (!Number.isSafeInteger(depth) || depth < 1) throw new Error(`eval depth must be a positive integer`);
   const clone = structuredClone(suite);
   clone.profiles.canonical.seeds_per_budget = depth;
+  clone.profiles.canonical.budgets = [...budgets];
   return clone;
 }
 
@@ -345,6 +348,8 @@ export async function evalDecisionAgainstBaselineCache(
     contracts.set(source.id, buildAxisContract(spec, source.eligibleComponents, source.diagnosticComponents));
   }
   const schedule = seedScheduleAtDepth(cache.cache, options.depth);
+  const budgets = schedule.byBudget.map((entry) => entry.budget);
+  const budgetSet = new Set(budgets);
   validateArchiveScope(
     candidate.archive,
     suite,
@@ -354,20 +359,24 @@ export async function evalDecisionAgainstBaselineCache(
     options.depth,
     candidate.indexed,
     schedule,
+    undefined,
+    budgets,
   );
   validateCandidateIdentity(candidate.archive);
 
   const approvals: RunnerCompatibilityApproval[] = [];
   const baseRuns: DecisionRun[] = [];
   for (const { shard, archive, indexed } of evidence) {
-    const shardSchedule = seedScheduleAtDepth(cache.cache, shard.endSeedSlotExclusive);
+    const shardSchedule = shard.budgetProjection === undefined
+      ? seedScheduleAtDepth(cache.cache, shard.endSeedSlotExclusive)
+      : archive.identity.seedSchedule as ResolvedSeedSchedule;
     validateArchiveScope(
       archive,
       suite,
       sources,
       contracts,
       listeningReview.fingerprint,
-      shard.endSeedSlotExclusive,
+      shardSchedule.seedsPerBudget,
       indexed,
       shardSchedule,
       {
@@ -377,6 +386,7 @@ export async function evalDecisionAgainstBaselineCache(
         // rows are sliced to `options.depth` below.
         endSeedSlotExclusive: shard.endSeedSlotExclusive,
       },
+      shard.budgetProjection === undefined ? budgets : archive.identity.budgets,
     );
     validateCandidateIdentity(archive);
     if (archive.identity?.executionProtocol !== candidate.archive.identity?.executionProtocol) {
@@ -405,10 +415,12 @@ export async function evalDecisionAgainstBaselineCache(
     } catch {
       // No approval is required for the lean comparison path.
     }
-    baseRuns.push(...toDecisionRuns(archive).filter((row) => row.seedSlot < options.depth));
+    baseRuns.push(...toDecisionRuns(archive).filter((row) =>
+      row.seedSlot < options.depth && budgetSet.has(row.budget)
+    ));
   }
-  const candidateRuns = toDecisionRuns(candidate.archive);
-  const result = pairedV2Decision(baseRuns, candidateRuns, suiteAtDepth(suite, options.depth), {
+  const candidateRuns = toDecisionRuns(candidate.archive).filter((row) => budgetSet.has(row.budget));
+  const result = pairedV2Decision(baseRuns, candidateRuns, suiteAtDepth(suite, options.depth, budgets), {
     profile: "canonical",
     mode: options.mode,
     margin: options.mode === "simplification" ? options.margin ?? undefined : undefined,
@@ -439,6 +451,7 @@ export async function evalDecisionAgainstBaselineCache(
       manifestPath: relativeToCwd(cache.baselinePath),
       manifestFingerprint,
       coverageDepth: options.depth,
+      budgets,
       shardRanges: evidence.map(({ shard }) => ({
         firstSeedSlot: shard.firstSeedSlot,
         endSeedSlotExclusive: shard.endSeedSlotExclusive,
@@ -596,6 +609,7 @@ function validateArchiveScope(
   indexed = false,
   explicitSchedule?: ResolvedSeedSchedule,
   seedSlotRange?: { firstSeedSlot: number; endSeedSlotExclusive: number },
+  expectedBudgets = suite.profiles[archiveProfile(archive)].budgets,
 ): void {
   const profileName = archiveProfile(archive);
   const profile = suite.profiles[profileName];
@@ -656,12 +670,12 @@ function validateArchiveScope(
   const schedule = explicitSchedule ?? resolvedSeedSchedule(
     suite,
     profileName,
-    profile.budgets,
+    expectedBudgets,
     depthOverride ?? profile.seeds_per_budget,
     customCanonicalSeedBase,
   );
   if (
-    JSON.stringify(archive.identity.budgets) !== JSON.stringify(profile.budgets) ||
+    JSON.stringify(archive.identity.budgets) !== JSON.stringify(expectedBudgets) ||
     JSON.stringify(archive.identity.seedSchedule) !== JSON.stringify(schedule) ||
     JSON.stringify(archive.identity.transform) !== JSON.stringify(suite.transform)
   ) {

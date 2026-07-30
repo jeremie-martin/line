@@ -27,6 +27,9 @@ export const BASELINE_CACHE_SCHEMA = "line.benchmark-v2.canonical-baseline-cache
 export const BASELINE_CACHE_SHARD_SCHEMA = "line.benchmark-v2.canonical-baseline-cache-shard.v1" as const;
 export const BASELINE_CACHE_LADDER_SCHEMA = "line.benchmark-v2.canonical-seed-ladder.v1" as const;
 export const BASELINE_REFERENCE_CACHE_SCHEMA = "line.benchmark-v2.baseline-reference.v10" as const;
+export const CAMPAIGN_BASELINE_REFERENCE_SCHEMA = "line.benchmark-v2.campaign-baseline.v1" as const;
+export const CACHE_BUDGET_PROJECTION_SCHEMA = "line.benchmark-v2.cache-budget-projection.v1" as const;
+export const DEFAULT_CAMPAIGN_BASELINE_PATH = "benchmark/v2/campaign-baseline.json";
 export const MAX_FIXED_N = 300;
 /** One block is useful for deterministic diagnostics; promotion-strength
  * uncertainty evidence is a scientific choice, not a command restriction. */
@@ -61,6 +64,16 @@ export type BaselineCacheShard = {
   compressedArchiveSha256: string;
   executionPolicyFingerprint: string;
   implementationFingerprint: string;
+  /**
+   * A campaign may reuse a checksummed superset archive from the frozen V2
+   * baseline. The source cache is verified in full before only the campaign's
+   * declared budget rows are projected into a comparison.
+   */
+  budgetProjection?: {
+    schema: typeof CACHE_BUDGET_PROJECTION_SCHEMA;
+    sourceBaseline: string;
+    sourceCacheFingerprint: string;
+  };
 };
 
 export type CanonicalBaselineCache = {
@@ -75,6 +88,11 @@ export type CanonicalBaselineCache = {
 export type BaselineCacheView = {
   baselinePath: string;
   cache: CanonicalBaselineCache;
+  campaignScope?: {
+    budgets: number[];
+    seeds: number;
+    targetHeadline: number;
+  };
 };
 
 type LoadedCacheShard = {
@@ -102,19 +120,23 @@ export function assertFixedSeedCount(value: number, label = "seeds"): number {
   return value;
 }
 
-export function readBaselineCache(baselinePath = "benchmark/v2/baseline.json"): BaselineCacheView {
+export function readBaselineCache(baselinePath = DEFAULT_CAMPAIGN_BASELINE_PATH): BaselineCacheView {
   const absolute = resolve(baselinePath);
   const baseline = JSON.parse(readFileSync(absolute, "utf8"));
-  if (
-    baseline.schema !== BASELINE_REFERENCE_CACHE_SCHEMA ||
-    baseline.status !== "canonical-baseline" ||
-    baseline.canonical_cache === undefined
-  ) throw new Error(`unsupported baseline reference; establish a canonical baseline`);
+  const canonical = baseline.schema === BASELINE_REFERENCE_CACHE_SCHEMA &&
+    baseline.status === "canonical-baseline";
+  const campaign = baseline.schema === CAMPAIGN_BASELINE_REFERENCE_SCHEMA &&
+    baseline.status === "active-campaign-baseline";
+  if ((!canonical && !campaign) || baseline.canonical_cache === undefined) {
+    throw new Error(`unsupported baseline reference; establish a canonical or campaign baseline`);
+  }
   const cache = parseCache(baseline.canonical_cache, baseline);
   validateCacheStructure(cache, baseline);
+  const campaignScope = campaign ? parseCampaignScope(baseline, cache) : undefined;
   return {
     baselinePath: absolute,
     cache,
+    ...(campaignScope === undefined ? {} : { campaignScope }),
   };
 }
 
@@ -195,6 +217,13 @@ export function seedScheduleAtDepth(cache: CanonicalBaselineCache, depth: number
 /** Verify every shard's bytes, metadata, exact seed slots, and full source
  * cross-product before it can serve a candidate comparison. */
 export function verifyBaselineCache(view: BaselineCacheView, requestedSeeds?: number): void {
+  verifiedBaselineCacheShards(view, requestedSeeds);
+}
+
+function verifiedBaselineCacheShards(
+  view: BaselineCacheView,
+  requestedSeeds?: number,
+): Array<{ shard: BaselineCacheShard; archive: any; indexed: boolean }> {
   const depth = requestedSeeds === undefined ? cacheCoverage(view.cache) : assertFixedSeedCount(requestedSeeds);
   if (depth > view.cache.ladder.maximumSeedsPerBudget) {
     throw new Error(`baseline cache has no ladder coverage through seed slot ${depth}`);
@@ -204,9 +233,10 @@ export function verifyBaselineCache(view: BaselineCacheView, requestedSeeds?: nu
     SUITE_MANIFEST,
     resolveSources(loadSourceManifest(SOURCE_MANIFEST)),
   )).sort();
-  for (const shard of view.cache.shards) {
-    verifyShard(view.cache, shard, expected, sources);
-  }
+  return view.cache.shards.map((shard) => ({
+    shard,
+    ...verifyShard(view.cache, shard, expected, sources),
+  }));
 }
 
 /** Raw shard evidence is exposed only after the same full verification used by
@@ -219,10 +249,8 @@ export function loadBaselineCacheEvidence(
   if (cacheCoverage(view.cache) < depth) {
     throw new Error(`baseline cache covers ${cacheCoverage(view.cache)} seed slots, not requested ${depth}`);
   }
-  verifyBaselineCache(view, depth);
-  return view.cache.shards
-    .filter((shard) => shard.firstSeedSlot < depth)
-    .map((shard) => ({ shard, ...loadShardArchive(shard) }));
+  return verifiedBaselineCacheShards(view, depth)
+    .filter(({ shard }) => shard.firstSeedSlot < depth);
 }
 
 /**
@@ -239,6 +267,12 @@ export function extendBaselineCache(input: {
   const plan = baselineCachePlan(view, input.seeds);
   verifyBaselineCache(view, plan.coveredSeeds === 0 ? undefined : plan.coveredSeeds);
   if (plan.missingBaselineSeeds === 0) return plan;
+  if (view.campaignScope !== undefined) {
+    throw new Error(
+      `campaign baselines are fixed at N=${view.campaignScope.seeds}; ` +
+      `promote an N=${view.campaignScope.seeds} campaign comparison instead of extending them`,
+    );
+  }
   acquireCacheLock();
   let workspace: ReturnType<typeof createSnapshotWorkspace> | undefined;
   try {
@@ -412,7 +446,12 @@ function validateCacheStructure(cache: CanonicalBaselineCache, baseline: any): v
       !fingerprint(shard.archiveSha256) || !fingerprint(shard.compressedArchiveSha256) ||
       !fingerprint(shard.executionPolicyFingerprint) || !fingerprint(shard.implementationFingerprint) ||
       typeof shard.compressedArchive !== "string" ||
-      (shard.archive !== undefined && typeof shard.archive !== "string")
+      (shard.archive !== undefined && typeof shard.archive !== "string") ||
+      (shard.budgetProjection !== undefined && (
+        shard.budgetProjection.schema !== CACHE_BUDGET_PROJECTION_SCHEMA ||
+        typeof shard.budgetProjection.sourceBaseline !== "string" ||
+        !fingerprint(shard.budgetProjection.sourceCacheFingerprint)
+      ))
     ) throw new Error(`canonical baseline cache shards must be contiguous, non-overlapping, and content-addressed`);
     cursor = shard.endSeedSlotExclusive;
   }
@@ -424,7 +463,9 @@ function verifyShard(
   expectedSchedule: ResolvedSeedSchedule,
   sources: string[],
 ): LoadedCacheShard {
-  const loaded = loadShardArchive(shard);
+  const loaded = shard.budgetProjection === undefined
+    ? loadShardArchive(shard)
+    : verifyBudgetProjection(cache, shard, expectedSchedule);
   const archive = loaded.archive;
   if (
     archive.schema !== RUN_ARCHIVE_SCHEMA || archive.mode !== "development" || archive.profile !== "canonical" ||
@@ -447,7 +488,10 @@ function verifyShard(
       for (const source of sources) expectedKeys.add(`${budget.budget}/${slot}/${source}`);
     }
   }
-  const rows = archive.runs;
+  const selectedBudgets = new Set(expectedSchedule.byBudget.map((entry) => entry.budget));
+  const rows = shard.budgetProjection === undefined
+    ? archive.runs
+    : archive.runs?.filter((row: any) => selectedBudgets.has(row.task?.budget));
   if (!Array.isArray(rows)) throw new Error(`${shard.compressedArchive}: cache shard has no run rows`);
   for (const row of rows) {
     const key = `${row.task?.budget}/${row.task?.seedSlot}/${row.task?.sourceId}`;
@@ -459,6 +503,91 @@ function verifyShard(
   }
   if (expectedKeys.size > 0) throw new Error(`${shard.compressedArchive}: cache shard is missing ${expectedKeys.size} declared runs`);
   return loaded;
+}
+
+function verifyBudgetProjection(
+  cache: CanonicalBaselineCache,
+  shard: BaselineCacheShard,
+  expectedSchedule: ResolvedSeedSchedule,
+): LoadedCacheShard {
+  const projection = shard.budgetProjection!;
+  const source = readBaselineCache(projection.sourceBaseline);
+  if (source.campaignScope !== undefined) {
+    throw new Error(`${shard.compressedArchive}: a budget projection must originate in a frozen canonical baseline`);
+  }
+  if (baselineCacheManifestFingerprint(source.cache) !== projection.sourceCacheFingerprint) {
+    throw new Error(`${shard.compressedArchive}: projected source baseline cache changed`);
+  }
+  if (
+    source.cache.candidateFingerprint !== cache.candidateFingerprint ||
+    source.cache.suiteFingerprint !== cache.suiteFingerprint
+  ) {
+    throw new Error(`${shard.compressedArchive}: projected source baseline identity changed`);
+  }
+  const sourceShard = source.cache.shards.find((entry) =>
+    entry.firstSeedSlot === shard.firstSeedSlot &&
+    entry.endSeedSlotExclusive === shard.endSeedSlotExclusive &&
+    entry.archiveSha256 === shard.archiveSha256 &&
+    entry.compressedArchiveSha256 === shard.compressedArchiveSha256 &&
+    entry.executionPolicyFingerprint === shard.executionPolicyFingerprint &&
+    entry.implementationFingerprint === shard.implementationFingerprint
+  );
+  if (sourceShard === undefined) {
+    throw new Error(`${shard.compressedArchive}: projected evidence is not a shard of its source baseline`);
+  }
+  for (const projected of expectedSchedule.byBudget) {
+    const sourceBudget = source.cache.ladder.byBudget.find((entry) => entry.budget === projected.budget);
+    if (
+      sourceBudget === undefined ||
+      JSON.stringify(sourceBudget.actualSeeds.slice(0, expectedSchedule.seedsPerBudget)) !==
+        JSON.stringify(projected.actualSeeds)
+    ) {
+      throw new Error(`${shard.compressedArchive}: projected budget seed schedule changed`);
+    }
+  }
+  const sourceSchedule = seedScheduleAtDepth(
+    source.cache,
+    Math.max(shard.endSeedSlotExclusive, cacheCoverage(source.cache)),
+  );
+  return verifyShard(source.cache, sourceShard, sourceSchedule, canonicalSourceIds());
+}
+
+function parseCampaignScope(
+  baseline: any,
+  cache: CanonicalBaselineCache,
+): BaselineCacheView["campaignScope"] {
+  const scope = baseline.scope;
+  const budgets = cache.ladder.byBudget.map((entry) => entry.budget);
+  if (
+    scope?.profile !== "canonical" || !Array.isArray(scope.budgets) ||
+    JSON.stringify(scope.budgets) !== JSON.stringify(budgets) ||
+    !Number.isSafeInteger(scope.seeds) || scope.seeds < MIN_FIXED_N ||
+    scope.seeds !== cache.ladder.maximumSeedsPerBudget ||
+    !Number.isFinite(scope.target_headline)
+  ) {
+    throw new Error(`campaign baseline scope is malformed or disagrees with its cache`);
+  }
+  const development = baseline.development;
+  const schedule = seedScheduleAtDepth(cache, scope.seeds);
+  if (
+    !Number.isFinite(development?.canonical_headline) ||
+    JSON.stringify(development?.seed_schedule) !== JSON.stringify(schedule) ||
+    !Array.isArray(development?.budgets) ||
+    JSON.stringify(development.budgets.map((entry: any) => entry.budget)) !== JSON.stringify(scope.budgets) ||
+    (scope.budgets.length === 1 &&
+      Math.abs(development.canonical_headline - development.budgets[0]?.score) > 0.0001) ||
+    development.budgets.some((entry: any) =>
+      !Number.isFinite(entry.score) || !Number.isSafeInteger(entry.valid_runs) ||
+      !Number.isSafeInteger(entry.total_runs)
+    )
+  ) {
+    throw new Error(`campaign baseline development summary does not match its fixed scope`);
+  }
+  return {
+    budgets: [...scope.budgets],
+    seeds: scope.seeds,
+    targetHeadline: scope.target_headline,
+  };
 }
 
 function runnerArgs(input: {
@@ -517,7 +646,11 @@ function loadCompressedArchive(path: string, compressedSha: string, archiveSha: 
   if (sha256Buffer(bytes) !== compressedSha) throw new Error(`${path}: compressed archive checksum mismatch`);
   const raw = gunzipSync(bytes);
   if (sha256Buffer(raw) !== archiveSha) throw new Error(`${path}: decompressed archive checksum mismatch`);
-  if (raw.byteLength >= INDEXED_COMPRESSED_ARCHIVE_THRESHOLD_BYTES) {
+  const indexPath = resolve(path).replace(/\.json\.gz$/, ".decision-index.json");
+  if (
+    raw.byteLength >= INDEXED_COMPRESSED_ARCHIVE_THRESHOLD_BYTES ||
+    (indexPath !== resolve(path) && existsSync(indexPath))
+  ) {
     return loadIndexedCompressedArchive(path, raw, compressedSha, archiveSha);
   }
   return { archive: JSON.parse(raw.toString("utf8")), indexed: false };
@@ -579,7 +712,7 @@ function loadIndexedArchive(
     index.compressedArchiveSha256 !== compressedSha || typeof index.payloadSha256 !== "string" ||
     index.archive === null || typeof index.archive !== "object"
   ) throw new Error(`${indexPath}: decision index does not describe this cache shard`);
-  if (sha256(JSON.stringify(index.archive)) !== index.payloadSha256) {
+  if (sha256String(JSON.stringify(index.archive)) !== index.payloadSha256) {
     throw new Error(`${indexPath}: decision-index payload checksum mismatch`);
   }
   if (readRawDecisionIndexCommitment(absolute) !== index.payloadSha256) {

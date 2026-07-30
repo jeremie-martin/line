@@ -1,20 +1,25 @@
 # Benchmark V2 Baseline
 
-Label: `postcompletion-aim-center-reuse`. Suite: `d01c8a064a201b08`.
+Active campaign label: `postcompletion-aim-center-reuse-750k`. Suite:
+`d01c8a064a201b08`.
 
-Probe headline: **563.78**. Canonical headline: **571.08**. Qualification monitor: **411.10** (indicative only).
+Official campaign headline: **587.0568** at 750k/N=48, with **2112/2112**
+valid runs. Target: **>590**.
 
-Probe and the declared canonical-profile prefix are seed-disjoint at every shared budget. Promotion retains the full accepted `eval --seeds=N` cache prefix.
+The active baseline was created without compilation by projecting the exact
+750k rows from the retained `postcompletion-aim-center-reuse` N=48 archive.
+The projection verifies the source cache and complete archive before use.
 
-Canonical cache: stable ladder through **300** slots/budget; accepted development evidence covers slots [0, 48).
+The 250k and 500k budgets are temporarily deferred from the official headline.
+They are preserved unchanged in `benchmark/v2/baseline.json`, whose historical
+full-ladder headline is **571.0840** and whose budget scores remain:
 
-| Budget | Probe | Valid | Canonical | Valid | Qualification | Valid |
-|---:|---:|---:|---:|---:|---:|---:|
-| 250k | 525.82 | 127/132 | 526.41 | 2034/2112 | 406.24 | 40/40 |
-| 500k | 578.97 | 132/132 | 579.37 | 2112/2112 | 410.45 | 40/40 |
-| 750k | - | - | 587.06 | 2112/2112 | 415.42 | 40/40 |
+| Budget | Frozen score | Valid |
+|---:|---:|---:|
+| 250k | 526.4128 | 2034/2112 |
+| 500k | 579.3689 | 2112/2112 |
+| **750k (active)** | **587.0568** | **2112/2112** |
 
 Candidate: `aaadaa3969c70a608f539f76ac0962cb0c30ef96e59f426f021d40b9208ff97b`.
 Inference rule: `56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f`.
-Decision protocol: `ff7ba3e4064cd0771a8a811ce45177c31b3b2db070c8b5b0ae5f9383d24b6fc8`.
 Decision calibration: `380bb3c930b98ebb9de394615a0cf1a672a2ec4fd77ede2291b8ccca76bd1cf9`.

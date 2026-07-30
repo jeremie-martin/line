@@ -2,11 +2,11 @@
 
 ## Estimand
 
-The primary estimate is the paired difference:
+For the active campaign, the primary estimate is the paired difference:
 
-`candidate canonical headline - accepted-baseline canonical headline`
+`candidate 750k headline - active 750k campaign-baseline headline`
 
-at the same literal seed slots and canonical budgets. Invalid runs score zero
+at the same 48 literal seed slots. Invalid runs score zero
 under the ordinary V2 scoring contract; validity changes are therefore part of
 the product effect, not removed as outliers.
 
@@ -32,18 +32,9 @@ result means the simplification is supported as non-inferior at that margin.
 
 ## Choosing N
 
-Any N from 2 through the cache maximum is runnable. Larger N generally reduces
-seed noise and costs proportionally more candidate compiles. Reasonable uses
-include:
-
-- a small N for directional triage;
-- N=48 or N=100 for a serious candidate;
-- N=300 for a modest or high-stakes effect;
-- an extra heavy run when compute is available and uncertainty warrants it.
-
-N must be chosen before that candidate run. Looking at N=48 and then running
-N=100 is allowed, but the N=100 result should be read as an adaptively chosen
-follow-up—not pooled with N=48 as independent evidence.
+N is fixed at 48 for every active-campaign comparison. Directional N=2/N=4/N=8
+probes and adaptive depth follow-ups are disabled. The full-ladder historical
+cache remains intact but is outside current acceptance.
 
 ## Promotion judgment
 
@@ -52,7 +43,7 @@ command, but the agent or operator should also check:
 
 - representative behavior is not being traded for one capability rescue;
 - validity losses and largest case regressions are acceptable;
-- budget movement is coherent;
+- the 750k movement is coherent and the mechanism itself remains scale-free;
 - the measured effect fits the mechanism hypothesis;
 - the source default is general and maintainable.
 

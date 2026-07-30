@@ -5,8 +5,8 @@ Reference host: 64 logical CPUs, 62.6 GiB RAM. Engine: WASM. Concurrency: 48.
 ## Results
 
 The table preserves capacity measurements from several workflow generations.
-Rows named probe, stage 0, or confirmation are historical; current comparisons
-use the canonical candidate-only `eval --seeds=N` path.
+Rows named probe, stage 0, or confirmation are historical; active comparisons
+use the 750k-only candidate path at N=48.
 
 | Workload | Wall time | Peak process CPU | Peak host CPU | Peak RSS | Result |
 |---|---:|---:|---:|---:|---|
@@ -38,10 +38,11 @@ are unchanged, establishing that the lifecycle correction affects resource owner
 not compiler behavior.
 
 The first three rows are retained V2.2 measurements; the historical canonical
-rows derive from the retained v2-initial baseline artifacts. Current comparison
-cost is exactly `132 × N` candidate compiles when the baseline cache already
-covers N. Rebaseline runs qualification only after an explicit favorable
-comparison is selected for promotion.
+rows derive from the retained v2-initial baseline artifacts. The active
+750k/N=48 campaign costs exactly `44 × 48 = 2,112` candidate compiles, with no
+baseline work. The frozen full ladder would remain `132 × N` if explicitly
+restored. Scoped campaign promotion retains the selected development archive
+without running deferred-budget or qualification work.
 
 Public commands default to 48 workers and print a resource sample every five seconds:
 process cores, whole-host CPU, RSS, JavaScript heap, system memory, and one-minute load.

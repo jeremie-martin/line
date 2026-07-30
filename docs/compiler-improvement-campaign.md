@@ -2,10 +2,16 @@
 
 Target: accepted Benchmark V2 development headline above 590.
 
-Current accepted baseline:
-`postcompletion-aim-center-reuse`, canonical headline 571.08 at N=48. Its cache
-covers all 48 accepted seeds per budget and extends on demand. Qualification
-monitor 411.10 at 120/120 valid.
+Current active campaign baseline:
+`postcompletion-aim-center-reuse-750k`, headline **587.0568** at 750k/N=48,
+2112/2112 valid. It is a zero-compile projection of the accepted
+`postcompletion-aim-center-reuse` archive. The frozen 250k/500k/750k baseline
+remains intact at 571.0840, but 250k and 500k are temporarily deferred from
+the official optimization headline.
+
+All campaign acceptance runs are now 750k/N=48 only (2,112 candidate
+compiles). Compiler mechanisms must still scale continuously through 150k and
+1M-3M; no budget-identity branching or acceleration-line work.
 
 | baseline | canonical | evidence |
 |---|---:|---|

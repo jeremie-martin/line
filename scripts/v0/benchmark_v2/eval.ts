@@ -2,9 +2,11 @@
  * Lean Benchmark V2 evaluation.
  *
  *   eval [--seeds=N]
- *     Candidate-only canonical run against the first N slots of the immutable
- *     baseline cache. N defaults to 2 and is chosen by the operator, not by a
- *     registry. The command writes reproducible evidence and no project state.
+ *     Candidate-only canonical run against the first N slots of the active
+ *     baseline cache. The temporary campaign baseline fixes both N and its
+ *     official budget scope; the frozen full-ladder V2 baseline remains
+ *     available explicitly. The command writes reproducible evidence and no
+ *     project state.
  */
 
 import { createHash } from "node:crypto";
@@ -38,8 +40,8 @@ import { compilerCandidateIdentity } from "./compiler_identity.ts";
 const SOURCE_MANIFEST = "benchmark/v2/compat/source-manifest.json";
 const HELDOUT_MANIFEST = "benchmark/v2/compat/heldout-manifest.json";
 const SUITE_MANIFEST = "benchmark/v2/compat/suite-manifest.json";
-const COMPARISON_REQUEST_SCHEMA = "line.benchmark-v2.comparison-request.v1" as const;
-const CACHED_COMPARISON_SCHEMA = "line.benchmark-v2.cached-comparison.v1" as const;
+const COMPARISON_REQUEST_SCHEMA = "line.benchmark-v2.comparison-request.v2" as const;
+const CACHED_COMPARISON_SCHEMA = "line.benchmark-v2.cached-comparison.v2" as const;
 
 type ComparisonMode = "improvement" | "simplification";
 
@@ -52,6 +54,7 @@ export type ComparisonRequest = {
   candidateFingerprint: string;
   candidateSnapshot: CompilerSnapshot;
   seeds: number;
+  budgets: number[];
   mode: ComparisonMode;
   margin: number | null;
   canonicalSeedBase: number;
@@ -68,6 +71,7 @@ export type CachedComparisonArtifact = {
     baselinePath: string;
     cacheFingerprint: string;
     seeds: number;
+    budgets: number[];
   };
   candidate: {
     archivePath: string;
@@ -130,13 +134,14 @@ function runnerBaseArgs(jobs: number): string[] {
 async function runCachedComparison(argv: string[]): Promise<number> {
   const argument = argumentIn(argv);
   requireWasm("eval");
-  const seedsRaw = argument("seeds") ?? "2";
+  const cache = readBaselineCache(argument("baseline"));
+  const seedsRaw = argument("seeds") ?? String(cache.campaignScope?.seeds ?? 2);
   if (!/^\d+$/.test(seedsRaw)) throw new Error(`eval --seeds requires an integer N`);
   const seeds = Number(seedsRaw);
+  assertCampaignDepth(cache, seeds);
   const jobs = parseJobs(argument("jobs"));
   const mode = parseMode(argument("mode"));
   const margin = parseMargin(mode, argument("margin"));
-  const cache = readBaselineCache(argument("baseline"));
   assertBaselineEngineComparable(cache.baselinePath);
   const plan = baselineCachePlan(cache, seeds);
   if (plan.missingBaselineSeeds > 0) {
@@ -167,6 +172,7 @@ async function runCachedComparison(argv: string[]): Promise<number> {
       `--comparison-request=${requestPath}`,
       `--canonical-seed-base=${request.canonicalSeedBase}`,
       `--seeds-per-budget=${seeds}`,
+      `--comparison-budgets=${request.budgets.join(",")}`,
       `--seed-schedule=${requestPath}`,
       ...(argv.includes("--resume") ? ["--resume"] : []),
     ], outPath);
@@ -177,7 +183,8 @@ async function runCachedComparison(argv: string[]): Promise<number> {
         workerFailures: run.workerFailures,
         evidencePaths: [relativeToCwd(`${outPath}.checkpoint.jsonl`)],
         nextCommand:
-          `npm run benchmark -- eval --seeds=${seeds} --resume --out=${relativeToCwd(outPath)}`,
+          `npm run benchmark -- eval --seeds=${seeds} --resume --out=${relativeToCwd(outPath)}` +
+          baselineArgument(argument("baseline")),
       });
       if (argv.includes("--json")) console.log(JSON.stringify(payload, null, 2));
       else console.error(payload.reason);
@@ -203,6 +210,7 @@ async function runCachedComparison(argv: string[]): Promise<number> {
       artifactPath,
       seeds,
       cacheCoverage(cacheAfter.cache),
+      argument("baseline"),
     );
     decided.artifact.nextCommand = nextCommand;
     const artifact: CachedComparisonArtifact = {
@@ -214,6 +222,7 @@ async function runCachedComparison(argv: string[]): Promise<number> {
         baselinePath: relativeToCwd(cacheAfter.baselinePath),
         cacheFingerprint: request.baselineCacheFingerprint,
         seeds,
+        budgets: [...request.budgets],
       },
       candidate: {
         archivePath: relativeToCwd(run.outputPath),
@@ -273,6 +282,7 @@ function createComparisonRequest(
     candidateFingerprint: snapshot.candidateFingerprint,
     candidateSnapshot: snapshot,
     seeds,
+    budgets: schedule.byBudget.map((entry) => entry.budget),
     mode,
     margin,
     canonicalSeedBase: schedule.seedBase,
@@ -299,6 +309,7 @@ function readComparisonRequest(
     request.seeds !== seeds ||
     request.mode !== mode ||
     request.margin !== margin ||
+    JSON.stringify(request.budgets) !== JSON.stringify(cache.cache.ladder.byBudget.map((entry) => entry.budget)) ||
     request.baselineLabel !== cache.cache.baselineLabel ||
     request.baselineCacheFingerprint !== baselineCacheManifestFingerprint(cache.cache) ||
     request.candidateSnapshot?.candidateFingerprint !== request.candidateFingerprint ||
@@ -314,15 +325,26 @@ function comparisonNextCommand(
   artifactPath: string,
   seeds: number,
   availableSeeds: number,
+  baselinePath: string | undefined,
 ): string {
   if (outcome === "accept") {
     return `npm run benchmark -- rebaseline --from=${relativeToCwd(artifactPath)} --label=accepted-candidate`;
   }
   if ((outcome === "inconclusive" || outcome === "unresolved") && seeds < availableSeeds) {
     const next = Math.min(availableSeeds, Math.max(seeds + 1, seeds * 2));
-    return `npm run benchmark -- eval --seeds=${next}`;
+    return `npm run benchmark -- eval --seeds=${next}${baselineArgument(baselinePath)}`;
   }
-  return `npm run benchmark -- eval`;
+  return `npm run benchmark -- eval --seeds=${seeds}${baselineArgument(baselinePath)}`;
+}
+
+function assertCampaignDepth(cache: BaselineCacheView, seeds: number): void {
+  if (cache.campaignScope !== undefined && seeds !== cache.campaignScope.seeds) {
+    throw new Error(
+      `the active campaign uses N=${cache.campaignScope.seeds} only; ` +
+      `the frozen full-ladder baseline remains available with ` +
+      `--baseline=benchmark/v2/baseline.json`,
+    );
+  }
 }
 
 function writeArtifact(path: string, artifact: CachedComparisonArtifact): void {
@@ -413,4 +435,8 @@ function sha256String(value: string): string {
 function relativeToCwd(path: string): string {
   const prefix = `${process.cwd()}/`;
   return path.startsWith(prefix) ? path.slice(prefix.length) : path;
+}
+
+function baselineArgument(path: string | undefined): string {
+  return path === undefined ? "" : ` --baseline=${path}`;
 }

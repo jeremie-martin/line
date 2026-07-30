@@ -193,6 +193,9 @@ export async function runBenchmarkV2(
   const explorationBudgets = argument("exploration-budgets") === undefined
     ? undefined
     : budgetList(argument("exploration-budgets")!, "exploration-budgets");
+  const comparisonBudgets = argument("comparison-budgets") === undefined
+    ? undefined
+    : budgetList(argument("comparison-budgets")!, "comparison-budgets");
   const throughSeedSlot = argument("through-seed-slot") === undefined
     ? undefined
     : Number(argument("through-seed-slot"));
@@ -256,6 +259,23 @@ export async function runBenchmarkV2(
   );
   if (profileName === "canonical") requireApprovedListeningReview(listeningReview);
   const profile = suite.profiles[profileName];
+  if (comparisonBudgets !== undefined) {
+    if (
+      !hasCanonicalRequest || baselineCacheShard || exploration ||
+      profileName !== "canonical" || mode !== "development"
+    ) {
+      throw new Error(`--comparison-budgets requires a canonical development comparison request`);
+    }
+    const canonical = suite.profiles.canonical.budgets;
+    if (
+      comparisonBudgets.some((budget) => !canonical.includes(budget)) ||
+      comparisonBudgets.some((budget, index) =>
+        index > 0 && canonical.indexOf(comparisonBudgets[index - 1]) >= canonical.indexOf(budget)
+      )
+    ) {
+      throw new Error(`--comparison-budgets must be an ordered subset of the canonical budget ladder`);
+    }
+  }
   // An exploration may intentionally use the full canonical budget ladder
   // without becoming a canonical evaluation: it remains development-only,
   // uses fresh exploration seeds, and cannot enter the decision machinery.
@@ -270,7 +290,7 @@ export async function runBenchmarkV2(
       `${suite.profiles.canonical.budgets.join(",")}`,
     );
   }
-  const effectiveBudgets = explorationBudgets ?? profile.budgets;
+  const effectiveBudgets = comparisonBudgets ?? explorationBudgets ?? profile.budgets;
   const effectiveSeedsPerBudget = explorationSeedsPerBudget ?? confirmationSeedsPerBudgetOverride ?? profile.seeds_per_budget;
   if (!exploration) {
     validateSubsetFlags({

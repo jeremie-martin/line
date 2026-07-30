@@ -1,19 +1,20 @@
 # Benchmark V2
 
-Benchmark V2 measures the compiler across the 44-case development catalog and
-the canonical 250k/500k/750k budget ladder. The authoritative product and
-scoring contract is in `benchmark-v2-context.md`.
+Benchmark V2's frozen contract measures the compiler across the 44-case
+development catalog and canonical 250k/500k/750k budget ladder. The active
+compiler-improvement campaign temporarily projects that unchanged suite onto
+750k only at N=48. The authoritative product and scoring contract remains in
+`benchmark-v2-context.md`.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
 | `benchmark prepare` | Regenerate and validate catalog evidence |
-| `benchmark status --seeds=N` | Show cache coverage and exact work for N |
-| `benchmark eval` | Smallest canonical cached comparison (N=2) |
-| `benchmark eval --seeds=N` | Candidate-only canonical comparison against cached baseline prefix |
-| `benchmark baseline-cache status --seeds=N` | Verify cache and show its plan |
-| `benchmark baseline-cache extend --seeds=N` | Compile only a missing baseline tail |
+| `benchmark status` | Show the active 750k/N=48 baseline and exact work |
+| `benchmark eval --seeds=48` | Candidate-only 750k comparison against the retained N=48 baseline |
+| `benchmark baseline-cache status --seeds=48` | Verify the active campaign cache |
+| `benchmark baseline-cache extend --seeds=N --baseline=benchmark/v2/baseline.json` | Explicitly extend only the frozen full-ladder cache |
 | `benchmark rebaseline --from=FILE --label=LABEL` | Promote one favorable comparison |
 | `benchmark explain ARCHIVE` | Diagnose an archive |
 
@@ -22,24 +23,23 @@ to at most 48 workers and retain resumable checkpoints.
 
 ## Cached comparisons
 
-The canonical baseline owns a stable, budget-disjoint seed ladder through 300
-slots per budget. Cache shards cover contiguous ranges such as `[0,48)` and
-`[48,300)`. `benchmark eval` is exactly
-`benchmark eval --seeds=2`; there is no separate probe screen. A comparison at N:
+The active campaign baseline owns the retained 750k seed schedule through 48
+slots. Its first baseline is a verified projection of the accepted full-ladder
+archive, not a recompile. A campaign comparison:
 
-1. verifies every baseline shard and the literal N-slot schedule;
+1. verifies the frozen source cache, archive, 750k projection, and literal
+   48-slot schedule;
 2. freezes the current compiler into a checksummed snapshot;
-3. runs only that candidate at N;
+3. runs only that candidate at N=48;
 4. validates suite, engine, runtime, scope, schedule, archive, and cache
    identities;
 5. computes one paired comparison and writes a standalone artifact.
 
-No command mutates project state during comparison. Running N=37 after N=100
-uses the first 37 cached slots. Running N=100 after N=48 adds candidate work
-only; it does not pool earlier candidate output.
+No command mutates project state during comparison. N=48 is fixed for this
+campaign; lower-depth probes are intentionally disabled.
 
 The candidate output defaults to
-`generated/benchmark-v2/eval/cached-N<N>-<timestamp>.json`. Its neighboring
+`generated/benchmark-v2/eval/cached-N48-<timestamp>.json`. Its neighboring
 files are:
 
 - `.request.json`: exact baseline binding, schedule, and compiler snapshot;
@@ -49,7 +49,7 @@ files are:
 
 ## Promotion
 
-Promotion is explicit:
+Campaign promotion is explicit:
 
 ```bash
 npm run benchmark -- rebaseline --from=...comparison.json --label=...
@@ -57,12 +57,16 @@ npm run benchmark -- rebaseline --from=...comparison.json --label=...
 
 The comparison must report a favorable improvement result. Rebaseline also
 requires the checked-out compiler bytes to match the measured snapshot and be
-committed. It then refreshes compatibility reference material and runs the qualification sidecar,
-builds a baseline bundle, and publishes `baseline.json`,
-`probe-baseline.json`, and the baseline summary through a recoverable journal.
+committed. It retains the exact 750k archive and updates
+`campaign-baseline.json`; it does not compile or mutate the deferred 250k/500k
+reference.
 
-The qualification monitor is linked reporting evidence. It never changes the
-development result and must not be used for case-specific tuning.
+The original full-ladder baseline remains at `benchmark/v2/baseline.json` and
+can be inspected explicitly with `--baseline=benchmark/v2/baseline.json`.
+
+The prior qualification monitor remains preserved with the frozen full-ladder
+baseline. Scoped campaign promotion does not refresh it, and it must not be
+used for case-specific tuning.
 
 ## Identity boundary
 
@@ -83,7 +87,7 @@ result makes differing runner provenance visible.
 Use:
 
 ```bash
-npm run --silent benchmark -- eval --seeds=100 --json
+npm run --silent benchmark -- eval --seeds=48 --json
 ```
 
 Stdout contains one JSON value; progress goes to stderr. Eval returns 0 for any

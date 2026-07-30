@@ -5,7 +5,7 @@ import {
   type CompilerSnapshot,
 } from "./compiler_snapshot.ts";
 
-export const DEFAULT_BASELINE_PATH = "benchmark/v2/baseline.json";
+export const DEFAULT_BASELINE_PATH = "benchmark/v2/campaign-baseline.json";
 
 export type BaselineContract = {
   label: string;
@@ -25,10 +25,11 @@ export function readBaselineContract(baselinePath = DEFAULT_BASELINE_PATH): Base
     throw new Error(`baseline publication is incomplete; rerun baseline or rebaseline to recover it`);
   }
   const baseline = JSON.parse(readFileSync(resolve(baselinePath), "utf8"));
-  if (
-    baseline.schema !== "line.benchmark-v2.baseline-reference.v10" ||
-    baseline.status !== "canonical-baseline"
-  ) {
+  const canonical = baseline.schema === "line.benchmark-v2.baseline-reference.v10" &&
+    baseline.status === "canonical-baseline";
+  const campaign = baseline.schema === "line.benchmark-v2.campaign-baseline.v1" &&
+    baseline.status === "active-campaign-baseline";
+  if (!canonical && !campaign) {
     throw new Error(`unsupported baseline reference; establish a new baseline`);
   }
   if (baseline.listening_review_status !== "approved") {

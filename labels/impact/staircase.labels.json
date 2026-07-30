@@ -1,11 +1,16 @@
 {
   "name": "staircase",
-  "updatedAt": "2026-06-14T17:46:00.092Z",
+  "updatedAt": "2026-07-30T21:15:44.884Z",
   "labels": {
     "30": {
       "ordinal": "medium",
       "tags": [],
       "note": ""
+    },
+    "118": {
+      "ordinal": null,
+      "tags": [],
+      "note": "it's one of these very weird very small non-impactful bounce, both are probably ok, not the absolute smoothest for sure tho"
     },
     "161": {
       "ordinal": "medium_strong",

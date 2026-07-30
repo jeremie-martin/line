@@ -73,15 +73,24 @@ cArcG 0.817 ≥ cArc 0.810 > redirArc 0.788 > redir 0.783 > turn 0.759 > cArcOn 
   (6.11 vs 6.10). Known limit of a single scalar; style stays in dashboard tags
   (smooth/snappy/slam), not in the intensity formula.
 
+**Divergence adjudication (2026-07-30 evening, user notes on all 9 unlabeled
+shortlist beats):** CARC 3 · CURRENT 1 (marginal) · neutral 5. The wins: shelter
+@1334 and @1453 judged "CARC better than CURRENT" outright, and shelter @12 is
+the structural case — CURRENT's *net* Δθ cancels to exactly 0.00 on a
+bend-then-unbend contact the user felt as "definitely more than 0.00"; the
+accumulated form cannot cancel. The one CURRENT lean (@349) is tonal ("pretty
+smooth" vs 0.43/0.52). No beat contradicts CARC outright. Combined with the
+pooled Spearman edge (≥ on every set), the evidence now points one way.
+
 ## Decision state
 
 - **Scored metric stays `redirArc`** (substrate.ts `redirArcPxAtLanding` +
   types.ts `normImpact`). Untouched by the 2026-07-30 work.
-- **Promotion path for `cArc`**: label the divergence shortlist the study prints
-  (landings where prod and cArc rank-disagree most — the only informative beats);
-  if the gap holds, wire `contactRedirArcPx` into `measureImpact`, recalibrate
-  VSTRONG on the ejection envelope (`calibrate_corpus.ts`), golden re-baseline,
-  fingerprint bump. Gate on explicit go.
+- **Promotion path for `cArc`**: the divergence shortlist is fully labeled
+  (2026-07-30) and favors `cArc` — see adjudication above. RECOMMENDED: promote.
+  Remaining steps: wire `contactRedirArcPx` into `measureImpact`, recalibrate
+  VSTRONG on the `cArc` envelope (`calibrate_corpus.ts`), golden re-baseline,
+  fingerprint bump. Still gated on explicit user go (scoring-definition change).
 
 ## Ground truth & tools
 

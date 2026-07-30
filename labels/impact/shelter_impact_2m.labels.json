@@ -1,7 +1,12 @@
 {
   "name": "shelter_impact_2m",
-  "updatedAt": "2026-06-14T14:15:05.478Z",
+  "updatedAt": "2026-07-30T21:19:20.394Z",
   "labels": {
+    "12": {
+      "ordinal": null,
+      "tags": [],
+      "note": "definitely more than 0.00 due to not being perfectly smooth unlike the next one"
+    },
     "60": {
       "ordinal": null,
       "tags": [
@@ -16,6 +21,16 @@
       ],
       "note": "this one is a bit peculiar because it feels very smooth and not impactful to me, but many metrics score it quite high"
     },
+    "349": {
+      "ordinal": null,
+      "tags": [],
+      "note": "pretty smooth all things considered, i mean it's definitely not <0.25 we can feel some impact, but it feels pretty smooth to me"
+    },
+    "1334": {
+      "ordinal": null,
+      "tags": [],
+      "note": "CARC better than CURRENT"
+    },
     "1358": {
       "ordinal": null,
       "tags": [],
@@ -25,6 +40,11 @@
       "ordinal": null,
       "tags": [],
       "note": "this one is quite strong too"
+    },
+    "1453": {
+      "ordinal": null,
+      "tags": [],
+      "note": "CARC better than CURRENT"
     },
     "1550": {
       "ordinal": null,
@@ -69,6 +89,11 @@
       "ordinal": "very_strong",
       "tags": [],
       "note": ""
+    },
+    "2558": {
+      "ordinal": null,
+      "tags": [],
+      "note": "this one is particular because the rider does a weird bounce, but the 0.36 rating sounds about right"
     },
     "2582": {
       "ordinal": "soft",

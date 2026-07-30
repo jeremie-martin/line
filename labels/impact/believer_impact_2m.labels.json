@@ -1,6 +1,6 @@
 {
   "name": "believer_impact_2m",
-  "updatedAt": "2026-06-14T15:13:35.903Z",
+  "updatedAt": "2026-07-30T21:18:48.030Z",
   "labels": {
     "40": {
       "ordinal": null,
@@ -77,6 +77,11 @@
       "tags": [],
       "note": ""
     },
+    "1135": {
+      "ordinal": null,
+      "tags": [],
+      "note": "doesn't feel that much more impactful than the next one, definitely a lot less impactful than the previous one "
+    },
     "1383": {
       "ordinal": "strong",
       "tags": [],
@@ -141,6 +146,16 @@
       "ordinal": null,
       "tags": [],
       "note": "between strong and very strong"
+    },
+    "2190": {
+      "ordinal": null,
+      "tags": [],
+      "note": "one of these very weird bounces, probably an ok assesment"
+    },
+    "2228": {
+      "ordinal": null,
+      "tags": [],
+      "note": "very weird bounce, perhaps should be a bit higher but honestly it's so weird that it's probably ok i guess? it definitely does NOT feel like a strong impact tho"
     }
   }
 }

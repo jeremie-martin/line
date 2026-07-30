@@ -10,6 +10,7 @@ import {
 import {
   airFractionWithTerminalOccupancy,
   projectBallisticGap,
+  type BallisticLaunchObservation,
   type BallisticGapProjection,
 } from "../core/ballistic_projection.ts";
 import {
@@ -22,6 +23,7 @@ import {
   engineLineFromTrackLine,
   isAuthoredContactEvent,
   positionAt,
+  type GapFit,
 } from "../core/substrate.ts";
 import {
   ballisticTraceEnabled,
@@ -103,6 +105,65 @@ export type JointArcProbeResult = JointArcProbeObservation & {
   lines: TrackLine[];
   truth?: JointArcProbeObservation;
 };
+
+/**
+ * Reuse the exact candidate evaluation as the zero-control row of a local arc
+ * response model.
+ *
+ * A surviving `GapFit` has already measured the current scorer interval and
+ * captured the same confirmed-exit ballistic packet that the short joint probe
+ * reconstructs. Projecting that immutable packet to `nextFrame` therefore
+ * produces the zero row without riding the unchanged lines a second time.
+ * Non-zero control rows still go through the ordinary metered probe, and every
+ * proposal still goes through exact production evaluation.
+ */
+export function projectJointArcBaseFit(
+  fit: Pick<GapFit, "achieved" | "cost"> & {
+    ballisticLaunch: BallisticLaunchObservation;
+  },
+  gap: Gap,
+  nextFrame: number,
+  options: Pick<JointArcProbeOptions, "includeElevation" | "targetEndsWithContact"> = {},
+): JointArcProbeObservation {
+  const launch = fit.ballisticLaunch;
+  const projection = projectBallisticGap(launch, nextFrame, {
+    includeElevation: options.includeElevation === true,
+  });
+  const outputs = arcResponseOutputs(
+    gap.targets,
+    fit.achieved,
+    fit.cost,
+    null,
+  );
+  if (projection !== null) {
+    addProjectionOutputs(
+      outputs,
+      projection,
+      options.targetEndsWithContact !== false,
+    );
+  }
+  addFinite(outputs, "current.releaseSpeedPx", launch.state.speed);
+  addFinite(outputs, "current.releaseVy", launch.state.vy);
+  const suffixFrame = launch.anchorFrame;
+  return {
+    knobs: { pitchDeg: 0, rotateDeg: 0 },
+    outputs,
+    mode: "short",
+    horizonFrame: suffixFrame,
+    suffixFrame,
+    cleanAirborneSuffix: true,
+    gate: {
+      // The source fit exists only after these exact production gates passed.
+      currentOk: true,
+      survivedCurrent: true,
+      landingOk: true,
+      offBeatLandings: 0,
+      nextStateOk: projection !== null,
+      terminusFrame: suffixFrame,
+      terminusReason: "memoizedCandidate",
+    },
+  };
+}
 
 export function evaluateJointArcKnobs(
   // deno-lint-ignore no-explicit-any

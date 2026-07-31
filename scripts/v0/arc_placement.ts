@@ -37,7 +37,6 @@ import {
   authoredSpeedToPx,
   elevationToLaunchVy,
   IMPACT_WINDOW,
-  impactCeiling,
   impactEnvNum,
   impactToRedirArcPx,
   normImpact,
@@ -1517,7 +1516,7 @@ function sampleContactCenteredLines(
      * returns 10.4 degrees for that same ask. */
     const floorDeg = targetState.angleDeg - Math.min(
       neededTurnDegForImpact(
-        Math.min(targets.impact, impactCeiling(targetState.speed)),
+        targets.impact,
         targetState.speed,
       ),
       IMPACT_MIN_INCIDENCE_DEG,
@@ -1526,7 +1525,7 @@ function sampleContactCenteredLines(
   }
   if (IMPACT_INCIDENCE_AIM > 0 && targets.impact !== undefined) {
     const needed = neededTurnDegForImpact(
-      Math.min(targets.impact, impactCeiling(targetState.speed)),
+      targets.impact,
       targetState.speed,
     );
     contactAngleDeg = clamp(
@@ -2282,8 +2281,7 @@ function impactTemplateLaneEligibility(
     (targetState.angleDeg - IMPACT_TEMPLATE_ARRIVAL_ANGLE_START_DEG) /
       IMPACT_TEMPLATE_ARRIVAL_ANGLE_SPAN_DEG,
   ) * smoothstep(
-    (Math.min(targets.impact, impactCeiling(targetState.speed)) -
-      IMPACT_TEMPLATE_ARRIVAL_ASK_START) / IMPACT_TEMPLATE_ARRIVAL_ASK_SPAN,
+    (targets.impact - IMPACT_TEMPLATE_ARRIVAL_ASK_START) / IMPACT_TEMPLATE_ARRIVAL_ASK_SPAN,
   ) * smoothstep(
     (targetState.speed - IMPACT_TEMPLATE_ARRIVAL_SPEED_START_PX) /
       IMPACT_TEMPLATE_ARRIVAL_SPEED_SPAN_PX,
@@ -2402,7 +2400,7 @@ function impactCurvePressure(
   targetImpact: number | undefined,
 ): number {
   if (targetImpact === undefined) return 0;
-  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
+  const target = targetImpact;
   const targetStart = impactCurveTargetStart(target);
   const targetPressure = smoothstep(
     (target - targetStart) / IMPACT_CURVE_TARGET_SPAN,
@@ -2467,7 +2465,7 @@ function redirMissingTurnDeg(
   currentDeltaDeg: number,
   config: RedirMissingTurnConfig,
 ): { missingDeltaDeg: number; targetPressure: number } | null {
-  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
+  const target = targetImpact;
   const targetPressure = smoothstep((target - config.targetStart) / config.targetSpan);
   if (targetPressure <= 0) return null;
 

@@ -2,17 +2,21 @@
 
 Raise the active 750k Benchmark V2 development headline above 650 through
 broad, source-default compiler changes. The current N=48 campaign baseline is
-`contact-redir-impulse-v2-750k` at **593.5031**, with 2111/2112 valid runs.
-It is the first scorer-bound baseline for accumulated contacted-frame
-redirection impulse: suite `7bd878d8aaea08a9`, scoring protocol
+`readiness-contact-impulse-v3-750k` at **595.8997**, with 2112/2112 valid runs.
+It uses accumulated contacted-frame redirection impulse: suite
+`7bd878d8aaea08a9`, scoring protocol
 `c71466608589ae757`, Golden evaluator `07cf88383150`.
 
-Current candidate: the scorer-bound readiness refresh under target protocol
+The scorer-bound readiness refresh under target protocol
 `next-arc-readiness-targets-v3-contacted-frame-impulse`. Development OOF selects
 only impact feasibility plus the disabled air diagnostic; catchability and
-speed remain unchanged. Locked-seed shipped-product MSE improves 23.1%, but
-this is not a campaign acceptance claim until the exact 750k/N=48 compiler
-comparison is complete. Durable offline evidence is
+speed remain unchanged. Locked-seed shipped-product MSE improves 23.1%. Its
+exact 750k/N=48 compiler comparison was positive (+2.3966, 95% CI
+[-1.2805,+6.0737]), gained the sole missing valid row, and was significantly
+positive in the representative stratum. The ordinary statistical verdict was
+`inconclusive`; the owner explicitly promoted it as the correct scorer-aligned
+recalibration. The active reference records the forced rationale without
+rewriting that verdict. Durable evidence is
 `benchmark/v2/studies/readiness-contact-impulse-v3.json`.
 
 Read `docs/HOW_TO_WORK.md`, `docs/benchmark-v2-context.md`,

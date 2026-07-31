@@ -29,6 +29,12 @@ describe("canonical baseline cache fixed-N plans", () => {
       budgets: [750_000],
       candidateCompiles: 2_112,
     });
+    expect(reference.compiler_source_fingerprint).toBe(
+      reference.compiler_snapshot.compilerSourceFingerprint,
+    );
+    expect(reference.candidate_fingerprint).toBe(
+      reference.compiler_snapshot.candidateFingerprint,
+    );
     expect(reference.decision_protocol_fingerprint).toBe(decisionProtocolFingerprint());
   });
 

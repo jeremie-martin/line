@@ -617,7 +617,7 @@ Verified against the tree on 2026-07-31:
 | Production inference | Scorer-bound hybrid exported: catchability/speed retained, impact and the disabled air diagnostic refit. Dependency-free TypeScript inference has exact fixture parity with Python. The extractor emits 88 columns, the shipped model uses 80, and `infer` projects (§7.3). |
 | Proposal utility | Combines settled incoming quality, projected outgoing quality, and next-arc readiness once each — but projected and readiness share one exponent. See §8.2. |
 | Aim surrogate | Uses only settled and projected layers because its small local fit does not reconstruct the full articulated readiness boundary. Exact candidates use all three layers. |
-| Compiler evidence | Unit/contract evidence is in place; hot-path inference telemetry remains pending. Independent 750k/N=48 validation of the 2026-07-31 scorer-bound refit is pending. |
+| Compiler evidence | Unit/contract evidence is in place; hot-path inference telemetry remains follow-up work. The exact 750k/N=48 comparison completed 2112/2112 rows with zero worker failures: 593.5031 → 595.8997, +2.3966, 95% CI [-1.2805,+6.0737], validity +1, representative +1.1415 [+0.2741,+2.0089]. The ordinary verdict was inconclusive; an explicit owner override promoted the scorer-aligned refit as `readiness-contact-impulse-v3-750k` while preserving that verdict. |
 
 The invalid earlier speed/air result remains withdrawn. It measured outgoing
 ballistic composition, not next-arc readiness.
@@ -680,5 +680,5 @@ ballistic composition, not next-arc readiness.
 - [x] Export parity proves the evaluated and production inference formulas agree.
 - [x] Empty coverage, NaN, incompatible metadata, and missing truth fail loudly.
 - [ ] Hot-path inference cost and selected-transition telemetry are validated.
-- [ ] Compiler promotion occurs only through `goal.md` after layer-specific
-      validation.
+- [x] Compiler promotion occurred through `goal.md`; the active reference
+      records the ordinary inconclusive verdict and explicit owner override.

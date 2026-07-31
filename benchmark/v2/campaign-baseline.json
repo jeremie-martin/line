@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v1",
   "status": "active-campaign-baseline",
-  "label": "contact-redir-impulse-v2-750k",
-  "generated_at": "2026-07-31T11:31:12.783Z",
+  "label": "readiness-contact-impulse-v3-750k",
+  "generated_at": "2026-07-31T13:13:28.750Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
@@ -25,7 +25,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "bd79c384dbe32dc540ea92e87cb4003c75d50de97bdcda3072d419878ca6345f",
+  "compiler_source_fingerprint": "7c6cb134e548b2592c33dab244ae288d305e5edcc218bb33bd268fefd76527e7",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -114,26 +114,26 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "c2f3e2328123898427a68dbcfd78b574e38ae2a6035937728adfd83667e8c800",
+  "candidate_fingerprint": "55050d5ee766b2b58deebfc5568c529d405cf67cb4e87f0856853f776798b8a2",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
-  "decision_protocol_fingerprint": "e621f8803bf3ae51855e6ab070fc5344336a836f3a0c0840299da9c55eed239e",
+  "decision_protocol_fingerprint": "2326d37029084c82eb5d039236645161e64c0ecac9e476050beac83702682f8d",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/contact-redir-impulse-v2-750k-compiler-snapshot.tar.gz",
-    "archiveSha256": "da032252ac71688724062a076f073cf20a26ef4436c466bc3381cd4f95a4aa5a",
-    "candidateFingerprint": "c2f3e2328123898427a68dbcfd78b574e38ae2a6035937728adfd83667e8c800",
-    "compilerSourceFingerprint": "bd79c384dbe32dc540ea92e87cb4003c75d50de97bdcda3072d419878ca6345f",
+    "archive": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-compiler-snapshot.tar.gz",
+    "archiveSha256": "55e99e0002ef46431fd6c949d5ae4ef4f26ef3c95bdb6d092fc06cb983aa1210",
+    "candidateFingerprint": "55050d5ee766b2b58deebfc5568c529d405cf67cb4e87f0856853f776798b8a2",
+    "compilerSourceFingerprint": "7c6cb134e548b2592c33dab244ae288d305e5edcc218bb33bd268fefd76527e7",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
     "execution_policy_fingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
-    "implementation_fingerprint": "7dd300fff7e3d6302e39bc24467bc4d511d3642eae540efbfe9bd06ebbd0d771",
-    "archive_sha256": "de0aeebc64dc1774902c4aee2b614afe7316ab4dea9d3a54d5065942f5c26f17",
-    "compressed_archive": "benchmark/v2/runs/contact-redir-impulse-v2-750k-development.json.gz",
-    "compressed_archive_sha256": "b4a43b207ef54d303882f55ac887af694d3c568f46a835c47a401a1a46c27516",
-    "canonical_headline": 593.5031,
+    "implementation_fingerprint": "5569195d2b395f0feafc81191c49dea3c06c6fbe48bfb052fcca632622b2f0bc",
+    "archive_sha256": "ec4f458ea102d42fcf8f48009ad90f4fdf6a92b6edd8fe295846bdf7bf761fc1",
+    "compressed_archive": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-development-750k.json.gz",
+    "compressed_archive_sha256": "7ec567fd0df58e707734afbd99f82731210401c1dbdb04b7bfbe818b1e7edab4",
+    "canonical_headline": 595.8997,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -198,16 +198,16 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 593.5031,
-        "valid_runs": 2111,
+        "score": 595.8997,
+        "valid_runs": 2112,
         "total_runs": 2112
       }
     ]
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "contact-redir-impulse-v2-750k",
-    "candidateFingerprint": "c2f3e2328123898427a68dbcfd78b574e38ae2a6035937728adfd83667e8c800",
+    "baselineLabel": "readiness-contact-impulse-v3-750k",
+    "candidateFingerprint": "55050d5ee766b2b58deebfc5568c529d405cf67cb4e87f0856853f776798b8a2",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -275,12 +275,11 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 48,
-        "archive": "benchmark/v2/runs/contact-redir-impulse-v2-750k-development.json",
-        "archiveSha256": "de0aeebc64dc1774902c4aee2b614afe7316ab4dea9d3a54d5065942f5c26f17",
-        "compressedArchive": "benchmark/v2/runs/contact-redir-impulse-v2-750k-development.json.gz",
-        "compressedArchiveSha256": "b4a43b207ef54d303882f55ac887af694d3c568f46a835c47a401a1a46c27516",
+        "archiveSha256": "ec4f458ea102d42fcf8f48009ad90f4fdf6a92b6edd8fe295846bdf7bf761fc1",
+        "compressedArchive": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-development-750k.json.gz",
+        "compressedArchiveSha256": "7ec567fd0df58e707734afbd99f82731210401c1dbdb04b7bfbe818b1e7edab4",
         "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
-        "implementationFingerprint": "7dd300fff7e3d6302e39bc24467bc4d511d3642eae540efbfe9bd06ebbd0d771"
+        "implementationFingerprint": "5569195d2b395f0feafc81191c49dea3c06c6fbe48bfb052fcca632622b2f0bc"
       }
     ]
   },
@@ -296,6 +295,18 @@
     "used_prior_baseline_for": "literal-seed-schedule-only"
   },
   "monitoring": {
-    "qualification": "not run for this scorer-bound 750k development bootstrap; the deferred 250k/500k evidence remains unchanged"
+    "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
+  },
+  "promoted_comparison": {
+    "artifact": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-comparison.json",
+    "artifact_sha256": "b01448257582b1a309419c8f6a99e6b9b06aef9a04b407623aff4dff967bad2a",
+    "seeds": 48,
+    "budgets": [
+      750000
+    ],
+    "outcome": "inconclusive",
+    "delta": 2.3966,
+    "forced": true,
+    "force_reason": "Explicit owner decision: adopt the scorer-aligned readiness retrain despite the ordinary inconclusive seed-confidence verdict; locked readiness MSE improved 23.1%, all 14 families improved, the compiler point estimate was +2.3966, validity improved 2111 to 2112, and representative performance was significantly positive."
   }
 }

@@ -11,10 +11,24 @@ npm run benchmark -- rebaseline \
 Rebaseline verifies:
 
 - the comparison artifact and checksum;
-- a favorable improvement result;
+- a favorable improvement result, unless an explicit forced replacement is declared;
 - the candidate raw/gzip archive checksums;
 - the exact compiler snapshot;
 - the checked-out committed compiler matches that snapshot.
+
+The ordinary path requires a favorable (`accept`) comparison. An explicit
+owner override may publish other complete evidence with:
+
+```bash
+npm run benchmark -- rebaseline \
+  --from=generated/benchmark-v2/eval/RUN.json.comparison.json \
+  --label=deliberate-replacement \
+  --force \
+  --force-reason="why accepting the measured uncertainty is correct"
+```
+
+The override is provenance, not a revised statistical result. Publication
+retains the comparison's original outcome and records the reason.
 
 For the active 750k/N=48 campaign, it retains the exact candidate development
 archive and snapshot, publishes `campaign-baseline.json`, and starts the next

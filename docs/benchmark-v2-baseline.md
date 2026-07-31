@@ -1,21 +1,24 @@
 # Benchmark V2 Baseline
 
-Active campaign label: `contact-redir-impulse-v2-750k`. Suite:
+Active campaign label: `readiness-contact-impulse-v3-750k`. Suite:
 `7bd878d8aaea08a9`.
 
-Official campaign headline: **593.5031** at 750k/N=48, with **2111/2112**
+Official campaign headline: **595.8997** at 750k/N=48, with **2112/2112**
 valid runs. Target: **>650**.
 
-This is a fresh scorer-bound bootstrap for accumulated contacted-frame
-redirection impulse. It is not a candidate comparison and reports no delta
-against the prior net-redirection-arc ruler. The old active baseline supplied
-only its literal seed schedule: 16–23 and 608–647.
+This is the scorer-aligned readiness refit under accumulated contacted-frame
+redirection impulse. It was compared against the first current-ruler bootstrap
+on the identical literal seed schedule: 16–23 and 608–647. The comparison
+point estimate was +2.3966 (593.5031 → 595.8997), with 95% CI
+[-1.2805,+6.0737]. Its ordinary verdict remains `inconclusive`. An explicit
+owner override promoted the recalibration; the active reference records both
+the original verdict and the reason for overriding it.
 
 The 250k and 500k budgets are temporarily deferred from the official headline.
 Their old-ruler evidence remains unchanged in `benchmark/v2/baseline.json`; it
 was neither recomputed nor used to construct this baseline. Those historical
 scores are ruler-incompatible and are not deltas or reference points for
-**593.5031**.
+**595.8997**.
 
 Identity:
 
@@ -23,7 +26,7 @@ Identity:
   `c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6`;
 - Golden evaluator: `07cf88383150`;
 - candidate:
-  `c2f3e2328123898427a68dbcfd78b574e38ae2a6035937728adfd83667e8c800`;
+  `55050d5ee766b2b58deebfc5568c529d405cf67cb4e87f0856853f776798b8a2`;
 - optimized WASM:
   `12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6`;
 - inference rule:
@@ -35,13 +38,12 @@ Retained evidence:
 
 | Artifact | Path | SHA-256 |
 |---|---|---|
-| Raw development archive | `benchmark/v2/runs/contact-redir-impulse-v2-750k-development.json` | `de0aeebc64dc1774902c4aee2b614afe7316ab4dea9d3a54d5065942f5c26f17` |
-| Compressed archive | `benchmark/v2/runs/contact-redir-impulse-v2-750k-development.json.gz` | `b4a43b207ef54d303882f55ac887af694d3c568f46a835c47a401a1a46c27516` |
-| Decision index | `benchmark/v2/runs/contact-redir-impulse-v2-750k-development.json.decision-index.json` | `eed94e610a555c3606461ac6e5c48425cec12a426cc28da7ec50671600302007` |
-| Compiler snapshot | `benchmark/v2/runs/contact-redir-impulse-v2-750k-compiler-snapshot.tar.gz` | `da032252ac71688724062a076f073cf20a26ef4436c466bc3381cd4f95a4aa5a` |
-| Bootstrap request | `benchmark/v2/runs/contact-redir-impulse-v2-750k-bootstrap-request.json` | `5ce9183422d19c40bcaaeb8724e8b151248fade8f14bf7780285c3794ccbe903` |
+| Raw archive content commitment | `benchmark/v2/runs/readiness-contact-impulse-v3-750k-development-750k.json.gz.archive.sha256` | `ec4f458ea102d42fcf8f48009ad90f4fdf6a92b6edd8fe295846bdf7bf761fc1` |
+| Compressed archive | `benchmark/v2/runs/readiness-contact-impulse-v3-750k-development-750k.json.gz` | `7ec567fd0df58e707734afbd99f82731210401c1dbdb04b7bfbe818b1e7edab4` |
+| Decision index | `benchmark/v2/runs/readiness-contact-impulse-v3-750k-development-750k.decision-index.json` | `aab430f17a8c5e5e3d493215dbd9ba266f5da05b26652297d613ff44995fdd14` |
+| Promoted comparison | `benchmark/v2/runs/readiness-contact-impulse-v3-750k-comparison.json` | `b01448257582b1a309419c8f6a99e6b9b06aef9a04b407623aff4dff967bad2a` |
+| Compiler snapshot | `benchmark/v2/runs/readiness-contact-impulse-v3-750k-compiler-snapshot.tar.gz` | `55e99e0002ef46431fd6c949d5ae4ef4f26ef3c95bdb6d092fc06cb983aa1210` |
 
-The sole invalid score is `frontier_dense_recovery` at actual seed 645
-(`rideStalled`); execution still completed with zero worker failures.
+All 2,112 scores are valid and execution completed with zero worker failures.
 See `docs/benchmark-v2-current-baseline-analysis.md` for the within-baseline
 distribution, component, seed, target-band, and outlier analysis.

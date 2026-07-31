@@ -4,14 +4,14 @@ Target: accepted Benchmark V2 development headline above 650, then continue
 pushing the same broad compiler laws as far as the evidence supports.
 
 Current active campaign baseline:
-`contact-redir-impulse-v2-750k`, headline **593.5031** at 750k/N=48,
-2111/2112 valid. Suite `7bd878d8aaea08a9`; scoring protocol
-`c71466608589ae757`; Golden evaluator `07cf88383150`. This is the fresh
-scorer-bound bootstrap for accumulated contacted-frame redirection impulse.
-There is no comparison or delta against the prior net-redirection-arc ruler.
-The old 250k/500k evidence remains intact and deferred; it was not recomputed.
-See `docs/benchmark-v2-current-baseline-analysis.md` for current-ruler
-distribution and behavior analysis.
+`readiness-contact-impulse-v3-750k`, headline **595.8997** at 750k/N=48,
+2112/2112 valid. Suite `7bd878d8aaea08a9`; scoring protocol
+`c71466608589ae757`; Golden evaluator `07cf88383150`. This is the
+scorer-aligned readiness refit promoted by explicit owner override after a
+positive but ordinary-inconclusive comparison. The old 250k/500k evidence
+remains intact and deferred; it was not recomputed. See
+`docs/benchmark-v2-current-baseline-analysis.md` for current-ruler distribution
+and behavior analysis.
 
 All campaign acceptance runs are now 750k/N=48 only (2,112 candidate
 compiles). Compiler mechanisms must still scale continuously through 150k and
@@ -33,7 +33,7 @@ compiles). Compiler mechanisms must still scale continuously through 150k and
 | `air-matched-breadth-law` | 572.67 | N=8 +4.39 SE 1.46, one-sided lower +0.39; all-base air matching plus linear aim refinement |
 | **`postcompletion-aim-center-reuse`** | **571.08** | **N=48 +0.0842 SE 0.0217, 95% CI [+0.0271,+0.1413]; exact center-row reuse after first completion** |
 
-## 2026-07-31 — pending: scorer-bound readiness refresh
+## 2026-07-31 — promoted by explicit override: scorer-bound readiness refresh
 
 The promoted impact ruler changed the label behind readiness's
 `impactFeasibility`, so the former model is retained only as the exact context
@@ -46,9 +46,24 @@ replacement is fixed from development OOF, and the locked decision seed scores
 the air-excluded product the compiler actually multiplies. Catchability and
 speed are retained; impact is refit; air is refit only as a disabled diagnostic.
 Locked-seed impact MSE improves 39.5%, and shipped-product MSE improves 23.1%
-with all 14 families better. This is offline adoption only. The exact
-750k/N=48 compiler comparison against `contact-redir-impulse-v2-750k` is the
-promotion decision; no cross-ruler comparison is involved.
+with all 14 families better.
+
+The exact 750k/N=48 compiler comparison completed 2,112/2,112 rows with zero
+worker failures. Headline moved **593.5031 → 595.8997**: delta **+2.3966**,
+seed-block SE 1.3697, central 95% CI **[-1.2805,+6.0737]**. Validity gained one
+row and lost none. Representative was significantly positive (+1.1415
+[+0.2741,+2.0089]); capability was +9.0191, legacy +2.7843, and development
+music -0.6741, with the latter three intervals crossing zero.
+
+The ordinary governed result is therefore `inconclusive`, not an automated
+acceptance. The owner explicitly accepted the residual uncertainty because
+this is the correct scorer-aligned recalibration, the locked prediction result
+is decisive, the compiler point estimate is favorable, validity is complete,
+and the representative stratum is positive. It was force-promoted as
+`readiness-contact-impulse-v3-750k`. The campaign reference preserves the
+ordinary verdict and override rationale; it does not misstate the comparison
+as statistically conclusive. No cross-ruler comparison is involved, and the
+deferred 250k/500k evidence was not touched.
 
 ### Historical pre-scorer-bound analysis: what 650 required
 

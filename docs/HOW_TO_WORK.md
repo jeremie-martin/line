@@ -50,6 +50,13 @@ Multiple inspected candidates or repeated runs create selection effects;
 record them honestly and use a sufficiently clear final comparison for
 promotion.
 
+Ordinary `rebaseline` accepts only a comparison whose governed outcome is
+`accept`. A deliberate owner decision may override that gate with
+`--force --force-reason="..."`. This does not change the measured outcome:
+the published reference records the original verdict, `forced: true`, and the
+reason. Use it for an explicit policy decision, never to make an inconclusive
+interval look conclusive.
+
 ## Variant families
 
 When one mechanism has several credible implementations:

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { loadVerifiedArchive } from "../v0/benchmark_v2/decide.ts";
 import {
@@ -16,8 +16,10 @@ const outPath = resolve(argument("out") ?? "benchmark/v2/studies/current-baselin
 const markdownPath = resolve(argument("markdown") ?? "docs/benchmark-v2-current-baseline-analysis.md");
 const baselineBytes = readFileSync(baselinePath);
 const baseline = JSON.parse(baselineBytes.toString("utf8"));
-const rawPath = resolve(baseline.development?.compressed_archive?.replace(/\.gz$/, "") ?? "");
-const verified = loadVerifiedArchive(rawPath, {
+const compressedPath = resolve(baseline.development?.compressed_archive ?? "");
+const rawPath = compressedPath.replace(/\.gz$/, "");
+const archivePath = existsSync(rawPath) ? rawPath : compressedPath;
+const verified = loadVerifiedArchive(archivePath, {
   archive_sha256: baseline.development.archive_sha256,
   compressed_archive_sha256: baseline.development.compressed_archive_sha256,
 });
@@ -37,13 +39,16 @@ if (
   archive.runs.some((row: any) => row.status !== "ok")
 ) throw new Error(`active campaign baseline is not the exact scorer-bound 750k/N=48 archive`);
 
-const rawArchive = JSON.parse(readFileSync(rawPath, "utf8"));
-if (
-  rawArchive.decisionIndexPayloadSha256 !== JSON.parse(
-    readFileSync(`${rawPath}.decision-index.json`, "utf8"),
-  ).payloadSha256 ||
-  rawArchive.runs.length !== archive.runs.length
-) throw new Error(`raw archive is detached from its decision index`);
+const rawArchive = archive;
+if (archivePath === rawPath) {
+  const indexedRawArchive = JSON.parse(readFileSync(rawPath, "utf8"));
+  if (
+    indexedRawArchive.decisionIndexPayloadSha256 !== JSON.parse(
+      readFileSync(`${rawPath}.decision-index.json`, "utf8"),
+    ).payloadSha256 ||
+    indexedRawArchive.runs.length !== archive.runs.length
+  ) throw new Error(`raw archive is detached from its decision index`);
+}
 
 const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
 const sourceById = new Map(sources.map((source) => [source.id, source]));
@@ -273,8 +278,9 @@ const report = {
     budget,
     seedsPerCase: baseline.scope.seeds,
     cases: sources.length,
-    rawArchive: relative(rawPath),
-    rawArchiveSha256: verified.archiveSha256,
+    rawArchiveRetained: existsSync(rawPath),
+    rawArchive: existsSync(rawPath) ? relative(rawPath) : null,
+    rawArchiveSha256: baseline.development.archive_sha256,
     compressedArchive: baseline.development.compressed_archive,
     compressedArchiveSha256: baseline.development.compressed_archive_sha256,
   },
@@ -506,7 +512,7 @@ function renderMarkdown(value: any): string {
     "",
     "## Suite hierarchy",
     "",
-    "| Stratum | Weight | Score | Contribution to 56.50-point target gap |",
+    `| Stratum | Weight | Score | Contribution to ${value.headline.gapToTarget.toFixed(2)}-point target gap |`,
     "|---|---:|---:|---:|",
     ...value.hierarchy.strata.map((entry: any) =>
       `| ${entry.id} | ${(100 * entry.weight).toFixed(0)}% | ${entry.score.toFixed(2)} | ` +
@@ -581,7 +587,9 @@ function renderMarkdown(value: any): string {
       `${entry.meanAbsoluteError.toFixed(3)} | ${entry.rmsError.toFixed(3)} |`
     ),
     "",
-    "## Seed stability and the invalid row",
+    value.invalidRunDiagnostics.length > 0
+      ? "## Seed stability and invalid rows"
+      : "## Seed stability",
     "",
     "| Most influential seed removals | Seed slot / actual | Seed headline | Valid | LOO headline change |",
     "|---|---|---:|---:|---:|",

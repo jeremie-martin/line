@@ -1,7 +1,7 @@
 {
   "schema": "line.readiness-refresh-evidence.v1",
   "generatedAt": "2026-07-31T12:34:21.681Z",
-  "status": "offline_adopted_compiler_validation_pending",
+  "status": "compiler_inconclusive_force_promoted",
   "targetSemanticsId": "next-arc-readiness-targets-v3-contacted-frame-impulse",
   "corpus": {
     "schema": "line.readiness-corpus.v7",
@@ -67,5 +67,72 @@
     "generatedTrainingDatasetSha256": "cac3514bb10d452df414f4ea7516eb82936dafd2466b56eb1a06b2a6d3aecbdb",
     "generatedTrainingReportSha256": "2a05dd99ab926996f4f4211e03ca9bf243d05aed5c902ebfacc35a17ce026e5b"
   },
-  "compilerDecision": null
+  "compilerDecision": {
+    "status": "complete",
+    "outcome": "inconclusive",
+    "ordinaryPromotable": false,
+    "action": "force_promote_as_active_campaign_baseline",
+    "base": {
+      "label": "contact-redir-impulse-v2-750k",
+      "candidateFingerprint": "c2f3e2328123898427a68dbcfd78b574e38ae2a6035937728adfd83667e8c800",
+      "headline": 593.5031,
+      "validRuns": 2111
+    },
+    "candidate": {
+      "commit": "03b0555",
+      "candidateFingerprint": "55050d5ee766b2b58deebfc5568c529d405cf67cb4e87f0856853f776798b8a2",
+      "compilerSourceFingerprint": "7c6cb134e548b2592c33dab244ae288d305e5edcc218bb33bd268fefd76527e7",
+      "headline": 595.8997,
+      "validRuns": 2112,
+      "workerFailures": 0
+    },
+    "request": {
+      "cases": 44,
+      "budget": 750000,
+      "seedsPerCase": 48,
+      "jobs": 48,
+      "rows": 2112,
+      "sha256": "0da8020f1247150ac368744c141693465210cbdc486a75b5590bc1e5dd57f9d9"
+    },
+    "result": {
+      "delta": 2.3966,
+      "standardError": 1.3697,
+      "central95": [-1.2805, 6.0737],
+      "oneSided95": [-0.9022, 5.6954],
+      "validityGained": 1,
+      "validityLost": 0,
+      "strata": {
+        "representative": { "delta": 1.1415, "central95": [0.2741, 2.0089] },
+        "capability": { "delta": 9.0191, "central95": [-14.1483, 32.1865] },
+        "legacy_regression": { "delta": 2.7843, "central95": [-2.6799, 8.2485] },
+        "development_music": { "delta": -0.6741, "central95": [-2.9634, 1.6152] }
+      }
+    },
+    "artifacts": {
+      "archive": {
+        "path": "generated/benchmark-v2/eval/cached-N48-2026-07-31T12-44-37Z.json",
+        "sha256": "ec4f458ea102d42fcf8f48009ad90f4fdf6a92b6edd8fe295846bdf7bf761fc1"
+      },
+      "compressedArchive": {
+        "path": "generated/benchmark-v2/eval/cached-N48-2026-07-31T12-44-37Z.json.gz",
+        "sha256": "7ec567fd0df58e707734afbd99f82731210401c1dbdb04b7bfbe818b1e7edab4"
+      },
+      "summarySha256": "0f3c19f9e71390467c7596c2a8c9291f02d0efd81217d6dc2a04dd126d52c6d8",
+      "decisionIndexSha256": "aab430f17a8c5e5e3d493215dbd9ba266f5da05b26652297d613ff44995fdd14",
+      "comparisonSha256": "b01448257582b1a309419c8f6a99e6b9b06aef9a04b407623aff4dff967bad2a",
+      "compilerSnapshot": {
+        "path": "generated/benchmark-v2/eval/cached-N48-2026-07-31T12-44-37Z-compiler-snapshot.tar.gz",
+        "sha256": "55e99e0002ef46431fd6c949d5ae4ef4f26ef3c95bdb6d092fc06cb983aa1210"
+      }
+    },
+    "promotion": {
+      "label": "readiness-contact-impulse-v3-750k",
+      "forced": true,
+      "ordinaryOutcomePreserved": "inconclusive",
+      "reason": "Explicit owner decision to adopt the scorer-aligned readiness retrain despite unresolved seed-block uncertainty; locked readiness MSE improved 23.1%, all 14 families improved, the compiler point estimate was positive, validity became complete, and representative performance was significantly positive.",
+      "retainedComparison": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-comparison.json",
+      "retainedCompressedArchive": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-development-750k.json.gz",
+      "retainedCompilerSnapshot": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-compiler-snapshot.tar.gz"
+    }
+  }
 }

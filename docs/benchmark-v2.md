@@ -55,11 +55,17 @@ Campaign promotion is explicit:
 npm run benchmark -- rebaseline --from=...comparison.json --label=...
 ```
 
-The comparison must report a favorable improvement result. Rebaseline also
+The ordinary path requires a favorable improvement result. Rebaseline also
 requires the checked-out compiler bytes to match the measured snapshot and be
 committed. It retains the exact 750k archive and updates
 `campaign-baseline.json`; it does not compile or mutate the deferred 250k/500k
 reference.
+
+A deliberate owner decision can override only the favorable-result gate with
+`--force --force-reason="..."`. All identity, checksum, completeness, snapshot,
+and committed-source checks still apply. The published baseline preserves the
+comparison's original outcome plus the override reason; force never relabels
+inconclusive evidence as an ordinary acceptance.
 
 The original full-ladder baseline remains at `benchmark/v2/baseline.json` and
 can be inspected explicitly with `--baseline=benchmark/v2/baseline.json`.

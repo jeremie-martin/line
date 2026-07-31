@@ -1,7 +1,8 @@
 # Next-Arc Readiness Model Goal
 
 Status: **the accumulated-contact-impulse corpus and scorer-bound component
-refresh are complete; independent N=48 compiler validation is pending**.
+refresh are complete and promoted as `readiness-contact-impulse-v3-750k` by
+explicit owner override after an ordinary inconclusive N=48 verdict**.
 
 Build the best cheap estimate of whether the predicted incoming boundary at an
 authored contact is set up for a successful next arc. This is separate from
@@ -193,6 +194,14 @@ exports the stable `line.readiness-model.v3` tree arrays; TypeScript owns the
 canonical causal feature vector, validates the artifact once, and performs
 inference.
 
+Independent compiler validation completed all 2,112 requested 750k/N=48 rows
+with zero worker failures. Headline moved `593.5031 → 595.8997` (+2.3966,
+95% CI `[-1.2805,+6.0737]`), validity moved `2111 → 2112`, and the
+representative stratum improved +1.1415 `[+0.2741,+2.0089]`. The ordinary rule
+classified the overall interval as inconclusive. The owner explicitly accepted
+the residual uncertainty and force-promoted the scorer-aligned model; the
+active reference preserves both that override and the original verdict.
+
 ## Required implementation order
 
 1. [x] Replace ambiguous gap terminology with contact-indexed input/output types.
@@ -203,8 +212,10 @@ inference.
 6. [x] Leave elevation neutral until a relevant authored population exists.
 7. [x] Validate the five-factor product on the locked corpus.
 8. [x] Rebuild proposal utility without duplicate quantities.
-9. [ ] Complete production telemetry and hot-path performance validation.
-10. [ ] Run the independent compiler benchmark through `goal.md`.
+9. [ ] Complete production telemetry and hot-path performance characterization
+       as a follow-up; the explicit promotion decision waived it as a blocker.
+10. [x] Run the independent compiler benchmark through `goal.md`; record the
+        inconclusive ordinary verdict and explicit owner promotion separately.
 
 ## Invalidated prior result
 

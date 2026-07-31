@@ -806,7 +806,15 @@ Opened once on the locked seed, impact MSE falls `0.015226 → 0.009204`
 `0.7857 → 0.8152`; all 14 families improve and the family-cluster interval for
 absolute MSE improvement is `[0.00369,0.00586]`.
 
-This adopts the artifact for compiler validation, not for campaign promotion.
-The compiler can still react discontinuously to a better ranker, as the earlier
-retrain demonstrated. The independent 750k/N=48 comparison against the active
-scorer-bound baseline remains the promotion decision.
+The independent 750k/N=48 comparison completed all 2,112 rows with zero worker
+failures. Headline moved `593.5031 → 595.8997` (+2.3966, seed-block SE 1.3697,
+95% CI `[-1.2805,+6.0737]`); validity improved `2111 → 2112`, and the
+representative stratum improved +1.1415 `[+0.2741,+2.0089]`. Because the
+overall interval crosses zero, the ordinary governed outcome remains
+`inconclusive` and `promotable=false`.
+
+The owner explicitly chose the scorer-aligned recalibration despite that
+residual uncertainty. It was force-promoted as
+`readiness-contact-impulse-v3-750k`; the active baseline records the original
+outcome, the override, and its rationale rather than relabeling the comparison
+as an ordinary statistical acceptance.

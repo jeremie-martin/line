@@ -4,7 +4,7 @@
   "scoringProtocolFingerprint": "c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6",
   "generatorFingerprint": "75ca2fbe1ecd90a3ba748bc08ddddb0e1380c41794b10ed8dfa596f4a7d111df",
   "policyFingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
-  "inferenceFingerprint": "1e94bf8b01ffc3f616003b62ba9a74b7c68a5b087f84606ec98e9369682a767e",
+  "inferenceFingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
   "policy": {
     "schema": "line.benchmark-v2.sequential-eval-policy.v1",
     "mode": "improvement",
@@ -200,7 +200,7 @@
     "note": "This replay did not choose the policy and does not revise the historical owner override. Under the live strict queue, N=32 would have accepted and N=48 would never have been run; the N=48 row is shown only because the completed historical archive already exists.",
     "looks": [
       {
-        "schema": "line.benchmark-v2.sequential-look-decision.v1",
+        "schema": "line.benchmark-v2.sequential-look-decision.v2",
         "depth": 8,
         "maximumDepth": 48,
         "informationFraction": 0.16666666666666666,
@@ -224,7 +224,7 @@
         }
       },
       {
-        "schema": "line.benchmark-v2.sequential-look-decision.v1",
+        "schema": "line.benchmark-v2.sequential-look-decision.v2",
         "depth": 16,
         "maximumDepth": 48,
         "informationFraction": 0.3333333333333333,
@@ -248,7 +248,7 @@
         }
       },
       {
-        "schema": "line.benchmark-v2.sequential-look-decision.v1",
+        "schema": "line.benchmark-v2.sequential-look-decision.v2",
         "depth": 32,
         "maximumDepth": 48,
         "informationFraction": 0.6666666666666666,
@@ -272,7 +272,7 @@
         }
       },
       {
-        "schema": "line.benchmark-v2.sequential-look-decision.v1",
+        "schema": "line.benchmark-v2.sequential-look-decision.v2",
         "depth": 48,
         "maximumDepth": 48,
         "informationFraction": 1,

@@ -35,6 +35,7 @@ import {
 import { writeFileAtomicDurable } from "./durable_fs.ts";
 import { renderCachedComparison } from "./eval_report.ts";
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
+import { acquireRunLock } from "./runner.ts";
 import { benchmarkSequentialEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import {
   requireSequentialEvalCalibration,
@@ -48,7 +49,7 @@ import {
 const SOURCE_MANIFEST = "benchmark/v2/compat/source-manifest.json";
 const HELDOUT_MANIFEST = "benchmark/v2/compat/heldout-manifest.json";
 const SUITE_MANIFEST = "benchmark/v2/compat/suite-manifest.json";
-const COMPARISON_REQUEST_SCHEMA = "line.benchmark-v2.comparison-request.v3" as const;
+const COMPARISON_REQUEST_SCHEMA = "line.benchmark-v2.comparison-request.v4" as const;
 const CACHED_COMPARISON_SCHEMA = "line.benchmark-v2.cached-comparison.v3" as const;
 const SEQUENTIAL_LOOK_ARTIFACT_SCHEMA = "line.benchmark-v2.sequential-look-artifact.v1" as const;
 
@@ -57,6 +58,7 @@ type ComparisonMode = "improvement" | "simplification";
 export type ComparisonRequest = {
   schema: typeof COMPARISON_REQUEST_SCHEMA;
   generatedAt: string;
+  artifactPath: string;
   baselinePath: string;
   baselineLabel: string;
   baselineCacheFingerprint: string;
@@ -195,17 +197,30 @@ async function runCachedComparison(argv: string[]): Promise<number> {
 
   const stamp = timestamp();
   const outPath = resolve(argument("out") ?? `generated/benchmark-v2/eval/cached-N${seeds}-${stamp}.json`);
-  const artifactPath = resolve(argument("artifact") ?? `${outPath}.comparison.json`);
+  const explicitArtifactPath = argument("artifact") === undefined ? undefined : resolve(argument("artifact")!);
+  const defaultArtifactPath = resolve(`${outPath}.comparison.json`);
   const requestPath = resolve(`${outPath}.request.json`);
   mkdirSync(dirname(outPath), { recursive: true });
 
-  const request = argv.includes("--resume")
-    ? readComparisonRequest(requestPath, cache, seeds, mode, margin)
-    : createComparisonRequest(requestPath, outPath, cache, seeds, mode, margin);
-  const requestSha256 = sha256(readFileSync(requestPath));
-
+  // Every wave uses a distinct archive path but the complete attempt shares
+  // one request and checkpoint. Hold this parent lock across request loading,
+  // all strict looks, and publication so overlapping resumes cannot race.
+  const releaseAttemptLock = acquireRunLock(`${outPath}.attempt`);
   let workspace: ReturnType<typeof createSnapshotWorkspace> | undefined;
   try {
+    const request = argv.includes("--resume")
+      ? readComparisonRequest(requestPath, cache, seeds, mode, margin, explicitArtifactPath)
+      : createComparisonRequest(
+        requestPath,
+        outPath,
+        explicitArtifactPath ?? defaultArtifactPath,
+        cache,
+        seeds,
+        mode,
+        margin,
+      );
+    const artifactPath = resolve(request.artifactPath);
+    const requestSha256 = sha256(readFileSync(requestPath));
     workspace = createSnapshotWorkspace(request.candidateSnapshot);
     const looks = sequential ? [...benchmarkSequentialEvalPolicy.looks] : [seeds];
     const completedLooks: SequentialLookDecision[] = [];
@@ -223,7 +238,13 @@ async function runCachedComparison(argv: string[]): Promise<number> {
           baselineCoverage: cacheCoverage(cacheBeforeLook.cache),
           nextCommands: [
             `npm run benchmark -- baseline-cache extend --seeds=${look} --jobs=${jobs}${baselineArgument(argument("baseline"))}`,
-            `npm run benchmark -- eval --seeds=${seeds} --jobs=${jobs} --resume --out=${relativeToCwd(outPath)}${baselineArgument(argument("baseline"))}`,
+            evalResumeCommand({
+              seeds,
+              jobs,
+              outPath,
+              artifactPath,
+              baselinePath: argument("baseline"),
+            }),
           ],
         };
         writeArtifact(suffixedJsonPath(outPath, ".paused"), pause);
@@ -288,9 +309,13 @@ async function runCachedComparison(argv: string[]): Promise<number> {
         reason: "one or more compiler workers failed; resume the same candidate output",
         workerFailures: run?.workerFailures ?? 1,
         evidencePaths: [relativeToCwd(`${outPath}.checkpoint.jsonl`)],
-        nextCommand:
-          `npm run benchmark -- eval --seeds=${seeds} --resume --out=${relativeToCwd(outPath)}` +
-          baselineArgument(argument("baseline")),
+        nextCommand: evalResumeCommand({
+          seeds,
+          jobs,
+          outPath,
+          artifactPath,
+          baselinePath: argument("baseline"),
+        }),
       });
       if (argv.includes("--json")) console.log(JSON.stringify(payload, null, 2));
       else console.error(payload.reason);
@@ -372,13 +397,18 @@ async function runCachedComparison(argv: string[]): Promise<number> {
     }
     return 0;
   } finally {
-    if (workspace !== undefined) disposeSnapshotWorkspace(workspace);
+    try {
+      if (workspace !== undefined) disposeSnapshotWorkspace(workspace);
+    } finally {
+      releaseAttemptLock();
+    }
   }
 }
 
 function createComparisonRequest(
   requestPath: string,
   outPath: string,
+  artifactPath: string,
   cache: BaselineCacheView,
   seeds: number,
   mode: ComparisonMode,
@@ -393,6 +423,7 @@ function createComparisonRequest(
   const request: ComparisonRequest = {
     schema: COMPARISON_REQUEST_SCHEMA,
     generatedAt: new Date().toISOString(),
+    artifactPath: relativeToCwd(artifactPath),
     baselinePath: relativeToCwd(cache.baselinePath),
     baselineLabel: cache.cache.baselineLabel,
     baselineCacheFingerprint: baselineCacheManifestFingerprint(cache.cache),
@@ -433,6 +464,7 @@ function readComparisonRequest(
   seeds: number,
   mode: ComparisonMode,
   margin: number | null,
+  explicitArtifactPath: string | undefined,
 ): ComparisonRequest {
   if (!existsSync(requestPath)) {
     throw new Error(`--resume requires the original request at ${relativeToCwd(requestPath)}`);
@@ -440,6 +472,8 @@ function readComparisonRequest(
   const request = JSON.parse(readFileSync(requestPath, "utf8")) as ComparisonRequest;
   if (
     request.schema !== COMPARISON_REQUEST_SCHEMA ||
+    typeof request.artifactPath !== "string" || request.artifactPath === "" ||
+    (explicitArtifactPath !== undefined && resolve(request.artifactPath) !== explicitArtifactPath) ||
     request.seeds !== seeds ||
     request.mode !== mode ||
     request.margin !== margin ||
@@ -462,6 +496,18 @@ function readComparisonRequest(
   }
   assertCacheCompatibleWithRequest(cache, request);
   return request;
+}
+
+export function evalResumeCommand(input: {
+  seeds: number;
+  jobs: number;
+  outPath: string;
+  artifactPath: string;
+  baselinePath?: string;
+}): string {
+  return `npm run benchmark -- eval --seeds=${input.seeds} --jobs=${input.jobs} --resume ` +
+    `--out=${relativeToCwd(input.outPath)} --artifact=${relativeToCwd(input.artifactPath)}` +
+    baselineArgument(input.baselinePath);
 }
 
 function baselineIdentityFingerprint(cache: BaselineCacheView): string {

@@ -51,7 +51,11 @@ not inherit this improvement rule.
 If the baseline cache lacks the next declared prefix, eval writes a structured
 pause artifact and exits before candidate tail work enters the queue. Run the
 printed `baseline-cache extend --seeds=LOOK`, then resume the identical request.
-Existing shards are immutable; only a checksummed tail can be appended.
+The request persists the comparison-artifact destination, and every printed
+resume command reproduces it. Existing shards are immutable; only a
+checksummed tail can be appended. One attempt-wide lock covers the shared
+request, checkpoint, all look artifacts, and final publication, so a second
+process cannot resume the same `--out` concurrently.
 
 The candidate output defaults to
 `generated/benchmark-v2/eval/cached-N48-<timestamp>`. Its neighboring

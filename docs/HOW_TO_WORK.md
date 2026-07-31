@@ -45,7 +45,9 @@ surface while 250k and 500k are deferred.
 `eval --seeds=48` always exits 0 after a completed comparison. The artifact
 contains the statistical result; an inconclusive or negative scientific result
 is not a process failure. `--resume --out=SAME_PATH` resumes the exact frozen
-candidate snapshot and checkpoint.
+candidate snapshot and checkpoint. Eval preserves any original `--artifact`
+destination in the frozen request and printed resume command, and refuses a
+concurrent process targeting that same attempt output.
 
 ## What to inspect
 

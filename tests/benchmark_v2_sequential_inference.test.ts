@@ -8,7 +8,7 @@ import {
 } from "../scripts/v0/benchmark_v2/sequential_inference.ts";
 import type { ConfidenceBounds } from "../scripts/v0/benchmark_v2/decision_model.ts";
 
-function confidence(estimate: number, standardError: number, df = 47): ConfidenceBounds {
+function confidence(estimate: number, standardError: number, df: number | null = 47): ConfidenceBounds {
   return {
     available: true,
     estimate,
@@ -56,6 +56,16 @@ describe("sequential Benchmark V2 inference", () => {
     expect(referenceTDirectionalProbability(confidence(1, 0))).toBe(1);
     expect(referenceTDirectionalProbability(confidence(-1, 0))).toBe(0);
     expect(referenceTDirectionalProbability(confidence(0, 0))).toBe(0.5);
+    expect(referenceTDirectionalProbability(confidence(0, 1, null))).toBe(0.5);
+
+    const positive = sequentialLookDecision(confidence(1, 0, null), 8, 1.7);
+    const negative = sequentialLookDecision(confidence(-1, 0, null), 8, 1.7);
+    expect(positive.tStatistic).toBe("positive-infinity");
+    expect(negative.tStatistic).toBe("negative-infinity");
+    expect(positive.action).toBe("accept");
+    expect(negative.action).toBe("reject");
+    expect(Number.isFinite(positive.requiredDirectionalProbability)).toBe(true);
+    expect(JSON.parse(JSON.stringify(positive))).toEqual(positive);
   });
 
   test("rejects undeclared looks", () => {

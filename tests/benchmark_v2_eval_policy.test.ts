@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { assertEvalArguments, evalWorkerFailurePayload } from "../scripts/v0/benchmark_v2/eval.ts";
+import { assertEvalArguments, evalResumeCommand, evalWorkerFailurePayload } from "../scripts/v0/benchmark_v2/eval.ts";
 
 describe("lean eval argument contract", () => {
   test("accepts the active default and explicit output controls", () => {
@@ -37,5 +37,19 @@ describe("lean eval argument contract", () => {
       evidencePaths: ["run.checkpoint.jsonl"],
       nextCommand: "benchmark eval --seeds=100 --resume",
     });
+  });
+
+  test("resume commands preserve the exact comparison artifact destination", () => {
+    expect(evalResumeCommand({
+      seeds: 48,
+      jobs: 48,
+      outPath: "/tmp/candidate.json",
+      artifactPath: "/tmp/custom-comparison.json",
+      baselinePath: "benchmark/v2/campaign-baseline.json",
+    })).toBe(
+      "npm run benchmark -- eval --seeds=48 --jobs=48 --resume " +
+      "--out=/tmp/candidate.json --artifact=/tmp/custom-comparison.json " +
+      "--baseline=benchmark/v2/campaign-baseline.json",
+    );
   });
 });

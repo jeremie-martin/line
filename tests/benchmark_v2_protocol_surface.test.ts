@@ -97,7 +97,7 @@ function decision(overrides: Partial<V2Decision>): V2Decision {
 describe("run lock", () => {
   test("acquires, refuses a live holder, and steals a stale lock", () => {
     const out = join(tempDir(), "archive.json");
-    acquireRunLock(out);
+    const release = acquireRunLock(out);
     const holder = JSON.parse(readFileSync(`${out}.lock`, "utf8"));
     expect(holder.pid).toBe(process.pid);
 
@@ -107,6 +107,19 @@ describe("run lock", () => {
     writeFileSync(`${out}.lock`, `${JSON.stringify({ pid: 999_999_999, startedAt: "2026-01-01T00:00:00Z" })}\n`);
     expect(() => acquireRunLock(out)).not.toThrow();
     expect(JSON.parse(readFileSync(`${out}.lock`, "utf8")).pid).toBe(process.pid);
+
+    // The first owner must not remove the replacement lock.
+    release();
+    expect(existsSync(`${out}.lock`)).toBe(true);
+  });
+
+  test("supports ownership-safe explicit release", () => {
+    const out = join(tempDir(), "archive.json");
+    const release = acquireRunLock(out);
+    expect(existsSync(`${out}.lock`)).toBe(true);
+    release();
+    expect(existsSync(`${out}.lock`)).toBe(false);
+    expect(() => acquireRunLock(out)).not.toThrow();
   });
 
   test("only one concurrent contender can reclaim a stale lock", async () => {

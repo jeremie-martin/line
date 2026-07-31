@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   appendFileSync,
   closeSync,
@@ -1710,11 +1710,16 @@ export function invalidatePublishedRunArtifacts(outputPath: string): void {
  * Two concurrent runs sharing one --out would interleave the same checkpoint
  * JSONL and clobber each other's archives. An exclusive pid lockfile refuses
  * the second run while the first is alive and steals stale locks from dead
- * processes; it is removed on any exit.
+ * processes. The returned release function supports a parent operation that
+ * spans child runs; otherwise the lock is removed on process exit.
  */
-export function acquireRunLock(outputPath: string): void {
+export function acquireRunLock(outputPath: string): () => void {
   const lockPath = `${outputPath}.lock`;
-  const payload = `${JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() })}\n`;
+  const payload = `${JSON.stringify({
+    pid: process.pid,
+    startedAt: new Date().toISOString(),
+    token: randomUUID(),
+  })}\n`;
   try {
     writeFileSync(lockPath, payload, { flag: "wx" });
   } catch (error) {
@@ -1745,14 +1750,32 @@ export function acquireRunLock(outputPath: string): void {
       rmSync(takeoverPath, { force: true });
     }
   }
-  process.on("exit", () => {
-    rmSync(lockPath, { force: true });
-  });
+  let released = false;
+  const release = (): void => {
+    if (released) return;
+    released = true;
+    try {
+      // Never remove a successor's lock if the file was replaced between
+      // acquisition and cleanup.
+      if (readFileSync(lockPath, "utf8") === payload) rmSync(lockPath, { force: true });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+  };
+  const releaseOnExit = (): void => release();
+  process.once("exit", releaseOnExit);
+  return () => {
+    process.off("exit", releaseOnExit);
+    release();
+  };
 }
 
-function readLockHolder(lockPath: string): { pid: number; startedAt: string } {
+function readLockHolder(lockPath: string): { pid: number; startedAt: string; token?: string } {
   const holder = JSON.parse(readFileSync(lockPath, "utf8"));
-  if (!Number.isInteger(holder.pid) || typeof holder.startedAt !== "string") {
+  if (
+    !Number.isInteger(holder.pid) || typeof holder.startedAt !== "string" ||
+    (holder.token !== undefined && typeof holder.token !== "string")
+  ) {
     throw new Error(`benchmark lock ${relativeToCwd(lockPath)} is malformed; inspect it before retrying`);
   }
   return holder;

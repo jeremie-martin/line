@@ -15,16 +15,17 @@ export const SEQUENTIAL_EVAL_INFERENCE_SOURCE_FILES = [
 ] as const;
 
 export type SequentialAction = "accept" | "reject" | "continue" | "inconclusive";
+export type SerializableTStatistic = number | "positive-infinity" | "negative-infinity";
 
 export type SequentialLookDecision = {
-  schema: "line.benchmark-v2.sequential-look-decision.v1";
+  schema: "line.benchmark-v2.sequential-look-decision.v2";
   depth: number;
   maximumDepth: number;
   informationFraction: number;
   estimate: number;
   standardError: number;
   degreesOfFreedom: number | null;
-  tStatistic: number;
+  tStatistic: SerializableTStatistic;
   directionalProbability: number;
   requiredT: number;
   requiredDirectionalProbability: number;
@@ -75,7 +76,7 @@ export function referenceTDirectionalProbability(confidence: ConfidenceBounds): 
     return confidence.estimate > 0 ? 1 : confidence.estimate < 0 ? 0 : 0.5;
   }
   const degreesOfFreedom = confidence.degreesOfFreedom ?? Infinity;
-  return studentTCdf(confidence.estimate / confidence.standardError, degreesOfFreedom);
+  return referenceTCdf(confidence.estimate / confidence.standardError, degreesOfFreedom);
 }
 
 export function sequentialRequiredT(depth: number, boundaryConstant: number): number {
@@ -100,7 +101,7 @@ export function sequentialLookDecision(
       ? confidence.estimate > 0 ? Infinity : confidence.estimate < 0 ? -Infinity : 0
       : confidence.estimate / confidence.standardError;
   const probability = referenceTDirectionalProbability(confidence);
-  const requiredProbability = studentTCdf(requiredT, degreesOfFreedom);
+  const requiredProbability = referenceTCdf(requiredT, degreesOfFreedom);
   const finalLook = depth === benchmarkSequentialEvalPolicy.maximumDepth;
   const action: SequentialAction = tStatistic >= requiredT
     ? "accept"
@@ -110,19 +111,44 @@ export function sequentialLookDecision(
         ? "inconclusive"
         : "continue";
   return {
-    schema: "line.benchmark-v2.sequential-look-decision.v1",
+    schema: "line.benchmark-v2.sequential-look-decision.v2",
     depth,
     maximumDepth: benchmarkSequentialEvalPolicy.maximumDepth,
     informationFraction: depth / benchmarkSequentialEvalPolicy.maximumDepth,
     estimate: confidence.estimate,
     standardError: confidence.standardError,
     degreesOfFreedom: confidence.degreesOfFreedom,
-    tStatistic: round(tStatistic),
+    tStatistic: serializeTStatistic(tStatistic),
     directionalProbability: round(probability),
     requiredT: round(requiredT),
     requiredDirectionalProbability: round(requiredProbability),
     action,
   };
+}
+
+/** Student-t converges to the standard normal when the effective degrees of
+ * freedom are unavailable. Keep that limiting case explicit: passing Infinity
+ * through the incomplete-beta implementation produces NaN. */
+function referenceTCdf(value: number, degreesOfFreedom: number): number {
+  return Number.isFinite(degreesOfFreedom) ? studentTCdf(value, degreesOfFreedom) : normalCdf(value);
+}
+
+function normalCdf(value: number): number {
+  if (value === Infinity) return 1;
+  if (value === -Infinity) return 0;
+  if (value === 0) return 0.5;
+  const sign = value < 0 ? -1 : 1;
+  const x = Math.abs(value) / Math.sqrt(2);
+  const t = 1 / (1 + 0.3275911 * x);
+  const erf = sign * (1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t +
+    0.254829592) * t * Math.exp(-x * x));
+  return 0.5 * (1 + erf);
+}
+
+function serializeTStatistic(value: number): SerializableTStatistic {
+  if (value === Infinity) return "positive-infinity";
+  if (value === -Infinity) return "negative-infinity";
+  return round(value);
 }
 
 export function requireSequentialEvalCalibration(

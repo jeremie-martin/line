@@ -94,7 +94,6 @@ import {
 } from "./node.ts";
 import {
   candidateQualityObjective,
-  setAimBaseFitReuseAllowed,
   setAimCompileBudgetFrames,
   snapshotAimStats,
   snapshotObjectiveLayerSpread,
@@ -3647,7 +3646,6 @@ function rankedOptions(
   const aimPaceSuppressed = AIM_LANE_PACE_SUPPRESS &&
     (config.pacedSlack ?? Infinity) < HANDOFF_FORWARD_EVAL_PACE_FULL;
   setAimLanePaceSuppressed(aimPaceSuppressed);
-  setAimBaseFitReuseAllowed(telemetry.hasCompletion);
   let sorted: Candidate[];
   try {
     sorted = getCandidatesSorted(
@@ -3659,7 +3657,6 @@ function rankedOptions(
     );
   } finally {
     setAimLanePaceSuppressed(false);
-    setAimBaseFitReuseAllowed(false);
   }
   const poolSize = config.poolSize ?? handoffCandidatePool();
   const pool = admittedHandoffPool(sorted, poolSize);

@@ -28,7 +28,7 @@ import {
 } from "./landing_probe.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
-import { IMPACT, impactToRedirArcPx } from "./types.ts";
+import { IMPACT, impactToRawPx } from "./types.ts";
 import { extractTrackArcs } from "./analysis/geometry.ts";
 import { developmentCases } from "../../benchmark/v2/catalog.ts";
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
@@ -149,7 +149,7 @@ for (const specName of specNames) {
       const speedRef = speeds.length > 0 ? median(speeds) : 10;
       const neededTurnDeg = (
         clamp(
-          impactToRedirArcPx(target) / Math.max(1, speedRef),
+          impactToRawPx(target) / Math.max(1, speedRef),
           0,
           Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
         ) * 180

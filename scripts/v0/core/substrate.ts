@@ -206,10 +206,11 @@ export function findAuthoredContactNearFrame(
  *
  * CoM-velocity-only (immune to sled rotation / limb whip), needs no catch-line geometry,
  * cheap on the hot path (reads only the extracted velocity/airborne arrays). The incoming
- * velocity is the frame before the landing. Shared by the scored reduction
+ * baseline is the frame before landing, falling back to the landing frame; the
+ * result is `undefined` only if both are unavailable. Shared by the scored reduction
  * (`measureImpact`), the trajectory-layer report (`scored_contact_impact.ts`), the
  * dashboard, and — by delegation — the study harnesses (`impact_support.ts
- * contactRedirArcPx`). `undefined` when no incoming velocity.
+ * contactRedirArcPx`).
  */
 export function contactRedirArcPxAtLanding(
   det: Detection,
@@ -234,36 +235,6 @@ export function contactRedirArcPxAtLanding(
     prev = v;
   }
   return arc;
-}
-
-/**
- * [LEGACY — NOT SCORED as of 2026-07-31] Redirection ARC `redirArc = v·Δθ` (px/frame,
- * UNNORMALIZED): incoming CoM speed × NET heading change at the window end. Was the
- * scored definition 2026-06-14 → 2026-07-31; superseded by the accumulated
- * contacted-frame `contactRedirArcPxAtLanding` above (net form cancels bend-then-unbend
- * and can read Δθ≈π on ride-out reversals). Kept as the comparison lane for the
- * dashboard/studies (`impact_support.ts redirArcPx`) ONLY — anything that reports a
- * felt impact (i.e. normalizes through `normImpact`, whose anchors moved with the
- * promotion) must read the scored `contactRedirArcPxAtLanding` instead.
- */
-export function redirArcPxAtLanding(
-  det: Detection,
-  landingFrame: number,
-  window: number = IMPACT_WINDOW,
-): number | undefined {
-  const v0 = velocityAt(det, landingFrame - 1) ?? velocityAt(det, landingFrame);
-  if (v0 === undefined) return undefined;
-  const speed = Math.hypot(v0.x, v0.y);
-  if (speed <= 1e-9) return 0;
-  const aIn = Math.atan2(v0.y, v0.x);
-  const end = Math.min(measurementLastFrame(det), landingFrame + Math.max(0, window));
-  let turn = 0;
-  for (let f = landingFrame; f <= end; f++) {
-    const v = velocityAt(det, f);
-    if (v === undefined) continue;
-    turn = Math.abs(wrapPi(Math.atan2(v.y, v.x) - aIn)); // net heading change at the last valid in-window frame
-  }
-  return speed * turn;
 }
 
 export function addMissedContactRetryOwners(
@@ -483,26 +454,26 @@ const IMPACT_BOUND_GRAVITY_PX_PER_FRAME2 = 0.175;
  * DERIVED per-beat diagnostic for the scored impact request (part of the
  * evaluator report — this function is inside the fingerprinted source slice).
  *
- * Impact is the redirection arc: redirArc = v·Δθ. The turn a catch can
- * deliver is bounded by pure ballistics around the beat:
+ * Scored impact is the accumulated contacted-frame impulse
+ * `cArc = Σ v̄·|Δθ|`. This diagnostic approximates a catch as one monotone
+ * bend, where `cArc ≈ v·Δθ`, and estimates the turn budget from pure
+ * ballistics around the beat:
  *   - arrival crossing angle: falling for at most the previous beat gap gives
  *     vy_in ≤ g·N_prev/2, so θ_in ≤ atan(g·N_prev/2 ÷ v);
  *   - exit allowance: the redirected motion must fit before the next beat,
  *     vy_out ≤ g·N_next/2, so θ_out ≤ atan(g·N_next/2 ÷ v);
  *   - catchability: total turn ≤ IMPACT.MAX_RELIABLE_TURN_RAD (atlas-measured;
  *     beyond it the hit ejects — the impactCeiling bound).
- * bound = normImpact(v·min(θ_in+θ_out, 1.0)). In the small-angle
- * (dense-beat) regime the redirArc reduces to ≈ g·(N_prev+N_next)/2 — the
+ * estimate = normImpact(v·min(θ_in+θ_out, 1.0)). In the small-angle
+ * (dense-beat) regime the raw impulse reduces to ≈ g·(N_prev+N_next)/2 — the
  * total vertical-velocity budget around the beat — which is why dense grooves
- * physically cap near 0.45-0.5 regardless of speed. Validated against the
- * canonical-archive frontier: p95 achieved tracks this bound within a few
- * percent across density × speed strata (dense/fast bound 0.474 vs p95 0.480;
- * mixed 0.67 vs 0.66; sparse 0.85 vs 0.72 — stretch where the search has room).
+ * tend to be harder than sparse beats regardless of speed.
  *
- * This estimate is diagnostic only. Authored impact keeps its absolute musical
- * meaning ("how hard the music wants this hit") in both optimization and scoring;
- * a bound below the request describes a difficult or inconsistent ask without
- * silently rewriting it.
+ * Despite the historical name, this is not a sound upper bound: the canonical
+ * V2 study observed achieved impact above it on 28.9% of landings. It is a
+ * diagnostic difficulty hint only. Authored impact keeps its absolute musical
+ * meaning ("how hard the music wants this hit") in optimization and scoring;
+ * this value never clamps, forgives, or otherwise rewrites the target.
  */
 export function impactFeasibilityBound(
   speedTarget: number | undefined,

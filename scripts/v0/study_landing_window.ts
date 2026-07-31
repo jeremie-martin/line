@@ -1,6 +1,7 @@
 /**
  * Landing-window prize study (read-only diagnostic for the landing-redefinition
- * project — docs/impact_generation_and_landing_notes.md, ladder B/C sizing).
+ * project — docs/archive/impact-generation-and-landing-notes-2026-06-09.md,
+ * ladder B/C sizing).
  *
  * Question: how much otherwise-viable arc material does the ±1-frame acceptance
  * gate throw away, and is the discarded material richer in achieved impact than

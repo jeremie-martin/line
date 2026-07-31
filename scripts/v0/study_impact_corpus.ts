@@ -61,8 +61,8 @@ async function loadSpec(name: string): Promise<Spec> {
 
 // The six live contenders, raw units (the dashboard/build_impact_study mirror this set).
 const METRICS: { key: string; label: string; unit: string; fn: (s: SS.Sim, f: number) => number }[] = [
-  { key: "redir",    label: "REDIR",    unit: "px/f",  fn: (s, f) => SS.redirPx(s, f) },
-  { key: "redirArc", label: "REDIRarc", unit: "px/f",  fn: (s, f) => SS.redirArcPx(s, f) },
+  { key: "redir",    label: "REDIR",    unit: "px/f",  fn: (s, f) => SS.legacyPerpendicularRedirectionPx(s, f) },
+  { key: "redirArc", label: "REDIRarc", unit: "px/f",  fn: (s, f) => SS.legacyNetRedirArcPx(s, f) },
   { key: "redirDec", label: "REDIR·on", unit: "px/f",  fn: (s, f) => SS.redirDecayPx(s, f) },
   { key: "snap",     label: "SNAP",     unit: "px/f²", fn: (s, f) => SS.snapPx(s, f) },
   { key: "turn",     label: "TURN",     unit: "deg",   fn: (s, f) => SS.turnNetDeg(s, f) },
@@ -81,7 +81,7 @@ for (const name of CORPUS) {
     const sim = SS.simulateTrack(track);
     for (const e of sim.det.events) {
       if (e.type !== "landing" || e.frame < 3 || e.frame > sim.last - 2) continue;
-      if (SS.pointImpactPx(sim, e.frame) === undefined) continue;
+      if (SS.legacyNormalClosingSpeedPx(sim, e.frame) === undefined) continue;
       for (const m of METRICS) vals[m.key].push(m.fn(sim, e.frame));
       n++;
     }

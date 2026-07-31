@@ -82,7 +82,7 @@
     <div class="hint" id="clipHint">red tick = this impact · grey ticks = other contacts in the clip</div>
   </div>
   <div>
-    <h2>WHAT EACH METRIC SAYS</h2>
+    <h2>IMPACT MEASUREMENT</h2>
     <div id="metricBars"></div>
   </div>
   <div class="anno">
@@ -118,11 +118,14 @@ async function boot(){
   if(!dataUrl){ return fail("add ?data=/generated/impact-study/<name>.bundle.json to the URL"); }
   try { B = await (await fetch(dataUrl)).json(); } catch(e){ return fail("could not load bundle: "+e); }
   COM = B.metrics.filter(m=>m.group==="com").map(m=>m.key);
+  const hasComparison = COM.length > 1;
+  document.getElementById("nextDiverge").hidden = !hasComparison;
+  document.getElementById("toggleDiverge").hidden = !hasComparison;
   try { const r = await (await fetch("/api/impact-labels?name="+encodeURIComponent(B.name))).json();
         B.beats.forEach(bt=> bt.anno = r.labels?.[String(bt.frame)] ?? null); } catch(e){ B.beats.forEach(bt=>bt.anno=null); }
   document.getElementById("trackName").textContent = B.name;
   document.getElementById("nBeats").textContent = B.beats.length;
-  for(const bt of B.beats) bt.diverge = stdev(COM.map(k=>bt.values[k]));
+  for(const bt of B.beats) bt.diverge = hasComparison ? stdev(COM.map(k=>bt.values[k])) : 0;
   buildChips(); drawLanes(); refreshCounts();
   // video event wiring (shared by both modes)
   clip().addEventListener("timeupdate", onTimeupdate);
@@ -187,7 +190,7 @@ function select(i,opts={}){
   document.getElementById("beatMeta").innerHTML =
     `beat <b>#${bt.i}</b> · t=<b>${bt.t.toFixed(2)}s</b>` + (bt.phase?` · ${bt.phase}`:"") +
     (bt.target!=null?` · target <b>${bt.target.toFixed(2)}</b>/ach ${bt.achieved?.toFixed(2)}`:"") +
-    ` · divergence ${bt.diverge.toFixed(2)}`;
+    (COM.length>1?` · divergence ${bt.diverge.toFixed(2)}`:"");
   const mb=document.getElementById("metricBars"); mb.innerHTML="";
   for(const m of B.metrics){ const val=bt.values[m.key];
     const row=document.createElement("div"); row.className="mbar";

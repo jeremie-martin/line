@@ -11,7 +11,7 @@ import { PERSISTENCE_FRAMES } from "../../lib/detector.ts";
 import { adaptiveCurveSegmentCount } from "./curve_resolution.ts";
 import {
   assertImpactConvention,
-  postimpactImpactToRedirArcPx,
+  postimpactFeltToRawImpactPx,
   type PostimpactImpactConvention,
   type PostimpactTrackLine,
 } from "./postimpact_physics.ts";
@@ -26,7 +26,7 @@ export type PostimpactContactKinematicFrame = {
   };
   impact: {
     target: number;
-    requestedRedirArcPx: number;
+    requestedRawImpactPx: number;
     requestedTurnDeg: number;
     catchableTurnDeg: number;
   } | null;
@@ -94,16 +94,16 @@ export function postimpactContactKinematicFrameFromPlanningState(
     return { anchor, com: { headingDeg, speedPxPerFrame: speed }, impact: null };
   }
   const target = bounded("impact", impact, 0, 1);
-  const requestedRedirArcPx = postimpactImpactToRedirArcPx(target, convention);
-  const requestedTurnDeg = degrees(requestedRedirArcPx / speed);
+  const requestedRawImpactPx = postimpactFeltToRawImpactPx(target, convention);
+  const requestedTurnDeg = degrees(requestedRawImpactPx / speed);
   const catchableTurnDeg = degrees(Math.min(
-    requestedRedirArcPx / speed,
+    requestedRawImpactPx / speed,
     Math.asin(convention.catchableRedirFraction),
   ));
   return {
     anchor,
     com: { headingDeg, speedPxPerFrame: speed },
-    impact: { target, requestedRedirArcPx, requestedTurnDeg, catchableTurnDeg },
+    impact: { target, requestedRawImpactPx, requestedTurnDeg, catchableTurnDeg },
   };
 }
 

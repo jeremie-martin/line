@@ -38,7 +38,7 @@ import {
   elevationToLaunchVy,
   IMPACT_WINDOW,
   impactEnvNum,
-  impactToRedirArcPx,
+  impactToRawPx,
   normImpact,
 } from "./types.ts";
 
@@ -164,7 +164,7 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // deeper was WORSE, because sin saturated near 90° so extra scoop bought nothing).
 // RE-FIT 2026-06-15 for the LINEAR redirArc = v·Δθ metric (SOFT=0, VSTRONG=7.29 at the
 // time; the scored metric has since been promoted to the accumulated impulse and VSTRONG
-// to the live REDIRARC.VERY_STRONG — the numbers below are the measurements as taken): with no
+// to the live IMPACT_RULER.VERY_STRONG — the numbers below are the measurements as taken): with no
 // angular saturation, deeper scoop now PAYS. eval_impact board (13 specs × 9 seeds, 150k/300k)
 // brackets BOTH knobs with overshoot on each side — flatten {0:−36.6, 12:base, 18:+2.4,
 // 24:−12.1}, frontload {1.2:+2.4, 1.6:+4.1, 2.0:+2.7} — so the peak moved up to flatten 18 /
@@ -1725,7 +1725,7 @@ function sampleContactCenteredLines(
    * SUPPORT THROUGH THE SCORING WINDOW.
    *
    * [The measurement below was taken under the PRE-2026-07-31 metric, which was
-   * endpoint-to-endpoint — `redirArcPxAtLanding` assigned rather than accumulated,
+   * endpoint-to-endpoint — the retired net metric assigned rather than accumulated,
    * so it read the CoM heading at exactly `IMPACT_WINDOW` frames after the contact
    * against the heading one frame before it. The scored metric is now the
    * CONTACTED-frame accumulation `contactRedirArcPxAtLanding`, which only
@@ -2248,7 +2248,7 @@ function steepArrivalDeltaMaxDeg(
   const vArr = Math.max(1, Math.hypot(vx, vyArr));
   const arrDeg = (Math.atan2(vyArr, vx) * 180) / Math.PI;
   const needRad = Math.min(
-    impactToRedirArcPx(nextAsk) / (STEEP_ARRIVAL_DELIVERY_EFFICIENCY * vArr),
+    impactToRawPx(nextAsk) / (STEEP_ARRIVAL_DELIVERY_EFFICIENCY * vArr),
     Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
   );
   const needDeg = Math.min((needRad * 180) / Math.PI, STEEP_ARRIVAL_ABS_CAP_DEG);
@@ -2440,7 +2440,7 @@ function predictedRedirImpactAtAngleDelta(speedPx: number, deltaDeg: number): nu
  *  for the three redir levers (contact-shift, entry-shift, post-turn). */
 function neededTurnDegForImpact(target: number, speedPx: number): number {
   const turnRad = clamp(
-    impactToRedirArcPx(target) / Math.max(1, speedPx),
+    impactToRawPx(target) / Math.max(1, speedPx),
     0,
     Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
   );

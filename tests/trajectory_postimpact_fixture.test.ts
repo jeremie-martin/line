@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { makeBaseEngine } from "../scripts/v0/core/substrate.ts";
-import { IMPACT, IMPACT_WINDOW, REDIRARC, SPEED_RULER } from "../scripts/v0/types.ts";
+import { IMPACT, IMPACT_RULER, IMPACT_WINDOW, SPEED_RULER } from "../scripts/v0/types.ts";
 import {
   sha256,
   stableJson,
@@ -117,8 +117,8 @@ describe("post-impact frozen-prefix boundary", () => {
     expect(result.audit.impactConvention).toEqual({
       impactWindowFrames: IMPACT_WINDOW,
       catchableRedirFraction: IMPACT.CATCHABLE_REDIR_FRACTION,
-      redirArcSoftPxPerFrame: REDIRARC.SOFT,
-      redirArcVeryStrongPxPerFrame: REDIRARC.VERY_STRONG,
+      redirArcSoftPxPerFrame: IMPACT_RULER.SOFT,
+      redirArcVeryStrongPxPerFrame: IMPACT_RULER.VERY_STRONG,
       speedRulerMinPxPerFrame: SPEED_RULER.MIN_PX_PER_FRAME,
       speedRulerMaxPxPerFrame: SPEED_RULER.MAX_PX_PER_FRAME,
     });

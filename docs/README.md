@@ -41,7 +41,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | Doc | Tag | What |
 |---|---|---|
 | [`../goal.md`](../goal.md) | LIVE | The active compiler-improvement goal and fixed-N promotion discipline. |
-| [`impact-mission.md`](impact-mission.md) | REFERENCE | Impact metric + steering (the campaign that produced the current baseline). Metric stated symbolically, so it survived the recalibration. |
+| [`impact-mission.md`](impact-mission.md) | LIVE | Current impact mission, ownership boundaries, and change discipline. |
 
 ## Reference
 
@@ -57,8 +57,8 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`metric_problem_statement.md`](metric_problem_statement.md) | ARCHIVE | Statistical rationale for the retired V1 metric and decision rule. |
 | [`creative_workflow.md`](creative_workflow.md) | REFERENCE | Worked song→track→video example, and the `productions/<song>/` pipeline: `analyze_audio.py` → `characterize` → `select.json` → `npm run produce` (`scripts/produce/`). |
 | [`engine_speed_methodology.md`](engine_speed_methodology.md) | REFERENCE | Detailed engine-perf statistics and historical method; see `engine-workflow.md` for current workflow. |
-| [`impact_contract.md`](impact_contract.md) | REFERENCE | Self-contained per-beat impact contract (the impact metric definition). |
-| [`impact_generation_and_landing_notes.md`](impact_generation_and_landing_notes.md) | REFERENCE | Impact-as-generation analysis + landing-redefinition notes. |
+| [`impact_definition.md`](impact_definition.md) | LIVE | Concise production formula, exact frame semantics, ruler, and legacy policy. |
+| [`impact_contract.md`](impact_contract.md) | LIVE | Self-contained per-beat impact contract across authoring, scoring, and generation. |
 | [`budget-control-design.md`](budget-control-design.md) | REFERENCE | Conceptual contract for difficulty-normalized budget control and validation gates. |
 | [`difficulty-model-study.md`](difficulty-model-study.md) | REFERENCE | First-completion cost vs full-score difficulty characterization. |
 | [`../TOOLING_NOTES.md`](../TOOLING_NOTES.md) | ARCHIVE | V1-era tooling notes; its own banner warns the commands may no longer exist. |
@@ -92,3 +92,7 @@ campaigns; they are evidence history, not current operating instructions.
 This includes the retired
 [`closure register`](archive/benchmark-v2/closure-register-era-workflow.md) and
 [`era operating points`](archive/benchmark-v2/operating-points-era-workflow.md).
+
+The retired impact campaigns are preserved as
+`archive/impact-mission-2026-06-15.md` and
+`archive/impact-generation-and-landing-notes-2026-06-09.md`.

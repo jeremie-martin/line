@@ -20,18 +20,25 @@ type Measured = { t: number; target: number; achieved: number; error: number };
 type AxisData = { axis: string; label: string; color: string; target: Pt[]; measured: Measured[] };
 type Phase = { name: string; t0: number; t1: number; color: string };
 type Bundle = {
+  schema: "line-overlay/v2";
+  impactMetric: {
+    id: "contact-redirection-impulse";
+    version: 1;
+    rawUnit: "px/frame";
+    windowFrames: number;
+    soft: number;
+    veryStrong: number;
+  };
   title: string; artist: string; tempo: string;
   durationS: number; fps: number;
   score: number; axisRms: number;
   contactsHit: number; contactsTotal: number; offBeat: number; reachedEnd: boolean;
   axes: AxisData[];
   contacts: {
-    t: number; landed: boolean; impact: number | null;
-    impactTarget?: number | null; impactAchieved?: number | null; impactError?: number | null;
-    impactWindow?: number | null; impactRedir?: number | null; impactSnap?: number | null; impactJolt?: number | null;
-    impactWhip?: number | null; impactComDecel?: number | null;
-    impactDeform?: number | null; impactRot?: number | null;
-    impactTurn?: number | null; impactDv?: number | null;
+    t: number; landed: boolean;
+    impactTarget?: number | null; impactError?: number | null;
+    impactMeasured: number | null;
+    impactRawPxPerFrame: number | null;
   }[];
   phases: Phase[];
 };
@@ -137,10 +144,8 @@ const AxisChart: React.FC<{
   );
 };
 
-// ── beat-impact row (creative default): colored bar = measured PRODUCTION impact
-//    (`impactRedir` = velocity redirection), white cap = authored target.
-//    Bars light up as the playhead crosses each beat. The detailed multi-candidate
-//    comparison lives in the separate `ImpactStudyOverlay` composition. ──────────
+// ── beat-impact row: colored bar = the measured production contact-redirection
+//    impulse on the felt ruler; white cap = authored target. ───────────────────
 const IMPACT_RAMP = ["#38d6c8", "#f0b429", "#ff5a4f"]; // soft → medium → hard
 const IMPACT_LABEL_COLOR = "#ff6b5c"; // distinct from air (teal) / speed (amber)
 // Full-height impact lane: a peer of the AIR/SPEED charts (label + live readout
@@ -153,14 +158,14 @@ const ImpactRow: React.FC<{
   const barMax = h - S.impactHead; // headroom for the label/readout and the glow caps
   const half = S.impactBarW / 2;
   // current readout = most recent landed beat at/just before the playhead
-  const landed = contacts.filter((c) => c.t <= t && (c.impactRedir ?? c.impact) != null);
+  const landed = contacts.filter((c) => c.t <= t && c.impactMeasured != null);
   const cur = landed.length ? landed[landed.length - 1] : null;
-  const curV = cur ? cur.impactRedir ?? cur.impact : null;
+  const curV = cur?.impactMeasured ?? null;
   return (
     <svg width={w} height={h} style={{ display: "block" }}>
       <line x1={S.padL} y1={h - 0.5} x2={w - S.padR} y2={h - 0.5} stroke="rgba(255,255,255,0.10)" />
       {contacts.map((c, i) => {
-        const v = c.impactRedir ?? c.impact; // production metric (redir); fall back for old JSON
+        const v = c.impactMeasured;
         const target = c.impactTarget;
         if (v == null && target == null) return null;
         const x = tx(c.t);
@@ -199,20 +204,20 @@ const ImpactRow: React.FC<{
   );
 };
 
-// ── BIG impact panel (top-center): two stacked lanes for the metric REVIEW —
-//    REDIR (the locked "how MUCH redirected" magnitude) over SNAP (the candidate
-//    "how SUDDENLY / force" suddenness). Same time axis + same colour ramp so the
-//    divergence beats — tall REDIR + short SNAP = big-but-smooth; the reverse =
-//    small-but-snappy — pop out for felt labelling. White ticks = authored target
-//    (REDIR lane only). See docs/impact_problem_statement.md. ───────────────────
+// ── BIG impact detail panel: the same single production metric as the compact
+//    row, with more room for per-landing target/measured inspection. ───────────
 const impactMetric = (c: Bundle["contacts"][number], key: string): number | null => {
   const value = c[key as keyof typeof c];
   return typeof value === "number" ? value : null;
 };
 const heroColor = (v: number) => interpolateColors(Math.min(1, v), [0, 0.5, 1], ["#38d6c8", "#f0b429", "#ff4d4d"]);
 const IMPACT_LANES = [
-  { key: "impactRedir", name: "REDIR", sub: "how MUCH redirected · locked metric", target: true },
-  { key: "impactSnap", name: "SNAP", sub: "how SUDDENLY · force candidate", target: false },
+  {
+    key: "impactMeasured",
+    name: "IMPACT",
+    sub: "contact redirection impulse · Σ v̄·|Δθ|",
+    target: true,
+  },
 ] as const;
 const BigImpactPanel: React.FC<{ contacts: Bundle["contacts"]; width: number; t: number; durationS: number; enter: number }>
 = ({ contacts, width, t, durationS, enter }) => {
@@ -239,9 +244,9 @@ const BigImpactPanel: React.FC<{ contacts: Bundle["contacts"]; width: number; t:
       background: "rgba(9,11,16,0.93)", border: BORDER, borderRadius: 14,
     }}>
       <svg width={w} height={h} style={{ display: "block" }}>
-        <text x={padL} y={26} fontFamily={FONT} fontSize={17} fontWeight={700} fill="#e6eaf2" letterSpacing={2}>LANDING IMPACT — METRIC REVIEW</text>
-        <text x={padL + 330} y={26} fontFamily={FONT} fontSize={12} fill="#7c8499">REDIR vs SNAP · white ticks = target</text>
-        {/* live readout: both candidates for the current landing */}
+        <text x={padL} y={26} fontFamily={FONT} fontSize={17} fontWeight={700} fill="#e6eaf2" letterSpacing={2}>LANDING IMPACT</text>
+        <text x={padL + 230} y={26} fontFamily={FONT} fontSize={12} fill="#7c8499">measured cArc · white ticks = target</text>
+        {/* live readout for the current landing */}
         {current && (
           <text x={x1} y={28} textAnchor="end" fontFamily={FONT} fontSize={20} fontWeight={700}>
             {IMPACT_LANES.map((l, j) => {
@@ -704,14 +709,14 @@ export const CurveOverlay: React.FC = () => {
   );
 };
 
-// ── ImpactStudyOverlay: big impact target-vs-measured panel plus the ordinary
+// ── ImpactDetailOverlay: big impact target-vs-measured panel plus the ordinary
 //    bottom-left axis context, without the compact impact row. ──────────────────
-export const ImpactStudyOverlay: React.FC = () => {
+export const ImpactDetailOverlay: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
   const t = frame / fps;
   const { dataFile, videoFile } = overlayInputs();
-  const data = useBundle(dataFile, "impact-study-data");
+  const data = useBundle(dataFile, "impact-detail-data");
   if (!data) return <AbsoluteFill style={{ backgroundColor: "#000" }} />;
   const enter = spring({ frame, fps, config: { damping: 20, mass: 0.7 } });
   const activePhase = activePhaseAt(data.phases, t);

@@ -202,7 +202,7 @@ export const EXPLORATORY_BUDGETS = [
  * DELIBERATE ruler change updates this constant in the same commit. Soft
  * tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "afbdb18787e6"; // 2026-07-31: DELIBERATE ruler change — scored impact promoted to the redirection impulse (contactRedirArcPxAtLanding, accumulated contacted-frame Σ v̄·|Δθ|), anchors SOFT=0/VSTRONG=7.55, ceiling = speed × MAX_RELIABLE_TURN_RAD(1.0). Scores are NOT comparable to pre-promotion history. See docs/impact_definition.md.
+export const EVALUATOR_FINGERPRINT = "07cf88383150"; // 2026-07-31: current-only impact contract cleanup. Scored semantics remain contactRedirArcPxAtLanding → normImpact (Σ v̄·|Δθ| on contacted frames, SOFT=0/VSTRONG=7.55); retired net code left the fingerprinted substrate, stale redirArc names and unused migration/rescale switches were removed, and formula-neutral names now mark current raw values. The source identity changed, so the committed fingerprint moves even though the numeric ruler did not. See docs/impact_definition.md.
 
 /**
  * Worker-timeout (hang-detection safety cap) for a row of independent budget

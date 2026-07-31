@@ -3,15 +3,13 @@
 The single self-contained statement of what per-beat `impact` means at every
 layer, why each piece is designed the way it is, and the evidence behind it.
 Last validated 2026-07-31 against `scripts/v0/types.ts` and
-`scripts/v0/core/substrate.ts` (the cArc promotion — a deliberate ruler change,
-evaluator fingerprint afbdb18787e6). The canonical reference is whatever
-`benchmark/v2/baseline.json` currently says (498.91 at the time of writing) —
-this document deliberately no longer pins a headline, because the ruler is
-re-based and a stale number here reads as a current anchor.
+`scripts/v0/core/substrate.ts` (the cArc promotion — a deliberate ruler change).
+The committed evaluator fingerprint and benchmark baseline are the operational
+references; this document deliberately does not copy their values.
 
-**The code is the definition.** `IMPACT` in `types.ts` and
-`impactFeasibilityBound` in `substrate.ts` are normative; if this file ever
-disagrees with them, they win and this file is the bug.
+**The code is the definition.** `contactRedirArcPxAtLanding` in `substrate.ts`,
+plus `IMPACT_RULER`, `normImpact`, and `IMPACT` in `types.ts`, are normative; if
+this file ever disagrees with them, this file is the bug.
 
 ## The promise (authoring semantics)
 
@@ -31,16 +29,21 @@ exactly what existing specs mean, not "physics maximum" — headroom saturates. 
 incidental floor of ≈ 0.25–0.3 exists in practice: the compiler cannot land
 *softer* than the redirection its geometry gives away for free.)
 
-The author needs no physics knowledge. The word *possible* is load-bearing:
-1.0 asks for the hardest *physical* version of the hit at that beat (see
-Feasibility). Below the per-beat bound, the scale is absolute everywhere;
-above it, asks saturate at the bound (authoring 0.8 and 1.0 on a tight groove
-beat request the same thing — deliberate: the alternative, scaling targets
-relative to feasibility, would make 1.0 mean a different hardness on every
-beat, which we rejected).
+The author needs no physics knowledge. The scale is absolute everywhere:
+1.0 means "very strong", not "the hardest thing this particular beat can do".
+The authored/scored target is never clamped to a feasibility model. If a beat
+cannot deliver the ask, the residual remains visible and the report's
+`feasibility_bound` / `ceiling` diagnostics explain the likely physical limit.
 
 Authoring helpers: `beats([{t, impact?}])`, `withImpact(contacts, rule)`
 (`scripts/v0/core/beats.ts`).
+
+The 2026-07-31 raw-metric promotion does not transform current-convention
+authored targets. Existing normalized asks retain their values and felt
+meaning. `withImpactLegacy` is a separate explicit opt-in for source numbers
+from an older authoring convention; it resolves those numbers once while the
+spec module constructs its contacts. No scorer, optimizer, report, or preview
+path remaps a resolved `Contact.impact`.
 
 ## Definition (what impact IS) — PROMOTED 2026-07-31: the redirection impulse `cArc`
 
@@ -50,8 +53,8 @@ frames of the `IMPACT_WINDOW = 6` frame (~0.15 s) episode after touchdown.
 Airborne frames contribute zero (flight is not impact — gravity's ballistic
 bending never enters); contacted frames use RAW velocities (during support the
 ground cancels gravity, so the raw path bend is the real redirection). Mapped to
-a **felt [0,1]** by `normImpact` — `0` = zero impulse (`REDIRARC.SOFT = 0`, the
-physical floor), `1` = very strong (`REDIRARC.VERY_STRONG`, currently **7.55**);
+a **felt [0,1]** by `normImpact` — `0` = zero impulse (`IMPACT_RULER.SOFT = 0`, the
+physical floor), `1` = very strong (`IMPACT_RULER.VERY_STRONG`, currently **7.55**);
 harder saturates at 1. Both env-overridable (`LR_IMPACT_SOFT`,
 `LR_IMPACT_VSTRONG`) — read them from `types.ts` rather than trusting prose.
 
@@ -82,10 +85,10 @@ itself replaced `redir = v·sinΔθ`; full history
 
 Production source: `contactRedirArcPxAtLanding` (`scripts/v0/core/substrate.ts`)
 + `normImpact` (`types.ts`) — the single definition shared by the scorer, the
-trajectory-layer report (`scored_contact_impact.ts`), the dashboard, and the
-study harnesses. (`redirArcPxAtLanding` = the pre-promotion net form, kept as
-the dashboard's LEGACY comparison lane; `redirImpactPxAtLanding` = the older
-`redir`.)
+trajectory-layer report (`scored_contact_impact.ts`), and production preview.
+Retired formulas exist only as explicitly `legacy...` analysis functions in
+`impact_support.ts`; they are not exported from the scorer substrate and are
+never a production fallback.
 
 ## Measurement & calibration
 
@@ -94,7 +97,7 @@ the dashboard's LEGACY comparison lane; `redirImpactPxAtLanding` = the older
 - An authored contact is matched to its beat within ±1 frame
   (`findAuthoredContactNearFrame`). Detector-limited intervals may use a
   persistent bounce because a distinct landing is not representable there.
-- The scale `REDIRARC.SOFT` / `VERY_STRONG` reads **0 / 7.55** and was
+- The scale `IMPACT_RULER.SOFT` / `VERY_STRONG` reads **0 / 7.55** and was
   calibrated from scratch by three independent studies (2026-07-31,
   `docs/impact_definition.md` Calibration): the catchability atlas (physics
   endpoints: reliable in-window turn ≈ 1.0 rad at any speed; in-envelope top
@@ -248,9 +251,9 @@ not match production scoring.
 
 ## Alignment invariant (every layer asks for the same thing)
 
-authoring (absolute intent) → feasibility (derived bound) → scoring
-(min, hashed) → search targets (same min, mirrored) → generation pressure
-(reads the same resolved target). A change to any layer must keep the others'
+authoring (absolute intent) → scoring (the same unmodified target) → search and
+generation pressure (the same resolved target), with feasibility and actual
+ceiling attached as diagnostics. A change to any layer must keep the others'
 reading intact; the evaluator fingerprint guards the ruler pieces, and
 `verify:optimizer` pins the compiler's end-to-end behavior.
 
@@ -261,9 +264,9 @@ reading intact; the evaluator fingerprint guards the ruler pieces, and
 - `study_impact_anatomy.py` — error anatomy + counterfactual rulers from any
   archive. `study_landing_window.ts` — candidate-pool/selection tracing.
   `study_score_without_impact.ts` — with/without recompute.
-- Tests: `tests/v0_impact.test.ts` (22) pin definition (accumulated,
-  contacted-only, airborne-zero), window, ceiling, geometry-independence, and
-  the candidate family; full suite green post-promotion except 18 pre-existing
-  benchmark-v2 governance failures unrelated to impact (verified identical on
-  the pre-promotion tree). Hot path: 362 ns/call (vs 221 legacy), gated to
-  authored landings.
+- Tests: `tests/v0_impact.test.ts` pins the exact scored loop (midpoint speed,
+  inclusive right boundary, contacted-only accumulation, airborne advancement,
+  missing samples, truncation and frame offsets), ruler, ceiling, and
+  geometry-independence. `tests/overlay_impact.test.ts` pins the current-only
+  effects contract. Historical suite counts and benchmark results belong in
+  run artifacts, not in this contract.

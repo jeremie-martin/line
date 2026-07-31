@@ -1,5 +1,5 @@
 /**
- * Shared support for the impact-metric study harnesses and the overlay generator.
+ * Shared support for impact-metric study harnesses.
  *
  * This is the SINGLE SOURCE for:
  *   - the rider topology (sled/body points, constraint sticks) — mirrors
@@ -7,14 +7,12 @@
  *   - the provisional normalization caps and the canonical impact window.
  *   - track load + simulate, surface geometry, rider-point access, landing/rest
  *     detection, and the stats block — all previously copy-pasted per script.
- *   - the CANONICAL windowed impact-metric definitions (redir / turnNet / dvGrav /
- *     comDecel / deform / jolt). Every harness and `make_overlay_data.ts` computes
- *     a metric through exactly ONE function here, so the video the user judges and
- *     the analysis that defines a metric can never silently disagree.
+ *   - analysis-only legacy/candidate metric definitions. Every legacy export is
+ *     named `legacy...`; production preview/scoring must use
+ *     `contactRedirArcPxAtLanding`/`contactRedirArcPx`.
  *
- * The `point` baseline reuses `normalImpactPxAtLanding` (core/substrate.ts), the
- * same definition the shipped scorer uses — studies are no longer allowed to
- * re-derive it and drift from production.
+ * This module is not a second production ruler. The only scored delegate here
+ * is `contactRedirArcPx`, which calls the core substrate implementation.
  */
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { extractRawTrajectory, detect, type Detection } from "../lib/detector.ts";
@@ -23,7 +21,6 @@ import {
   contactLineIdsAt,
   contactRedirArcPxAtLanding,
   measurementLastFrame,
-  redirArcPxAtLanding,
   velocityAt,
 } from "./core/substrate.ts";
 import { CALIB, IMPACT_WINDOW as IMPACT_WINDOW_CANON, wrapPi, type TrackLine } from "./types.ts";
@@ -31,29 +28,21 @@ import { CALIB, IMPACT_WINDOW as IMPACT_WINDOW_CANON, wrapPi, type TrackLine } f
 const hyp = Math.hypot;
 export { wrapPi }; // canonical home is types.ts; re-exported so SS.wrapPi consumers still resolve
 
-// ── legacy impact metrics (moved from core/substrate.ts, item #105) ──────────
-//   Both are documented LEGACY / not-the-scored-metric; their sole callers are the
-//   study delegates below (pointImpactPx / redirPx). Relocated out of the
-//   fingerprinted substrate slice — byte-identical, no scorer dependency. The one
-//   SCORED impact metric (contactRedirArcPxAtLanding, since 2026-07-31) stays in
-//   substrate.ts, alongside the now-legacy net form redirArcPxAtLanding.
+// ── legacy impact metrics — ANALYSIS ONLY ───────────────────────────────────
+// The scored substrate exports exactly one impact measurement. Retired formulas
+// live here, with explicit names, so production code cannot import one by accident.
 /**
  * LEGACY one-frame "normal impact speed" (px/frame, UNNORMALIZED): the magnitude of
  * the rider's PRE-impact velocity component perpendicular to the catch surface it
- * fired against, ÷ `CALIB.IMPACT_CAP`. This was the OLD impact metric; it is NO
- * LONGER the scored definition — landing intensity is now the velocity REDIRECTION
- * (`redirImpactPxAtLanding`, used by `measureImpact`/`buildDriftReport`/`inspect`).
- * Kept only as the comparison "point" baseline in the study harnesses
- * (`impact_support.ts pointImpactPx`) and the study overlay's reference lane.
+ * fired against. This was the OLD impact metric and is not used by production.
+ * Kept only as an explicitly legacy analysis baseline.
  *
- * `lineFor(id)` resolves a fired line id to its endpoints — the per-gap scored
- * reduction passes a resolver that returns ONLY this gap's owned lines (so a
- * stray foreign line firing at the same frame is ignored); the full-track
- * read-outs pass a resolver over all track lines. The surface tangent is the
- * average of the fired lines' unit tangents (robust to a multi-segment catch).
+ * `lineFor(id)` resolves a fired line id to its endpoints. Analysis callers
+ * normally resolve over all track lines. The surface tangent is the average
+ * of the fired lines' unit tangents (robust to a multi-segment catch).
  * Returns `undefined` when there's no usable fired-line geometry or no velocity.
  */
-export function normalImpactPxAtLanding(
+export function legacyNormalClosingSpeedPxAtLanding(
   det: Detection,
   landingFrame: number,
   lineFor: (id: number) => { x1: number; y1: number; x2: number; y2: number } | undefined,
@@ -81,11 +70,10 @@ export function normalImpactPxAtLanding(
  * [LEGACY / ANALYSIS — not the scored metric] `redir` (px/frame, UNNORMALIZED): the peak
  * magnitude of the rider's CoM velocity component PERPENDICULAR to its incoming heading
  * over the `window`-frame episode (= peak v·sin(turn)). Superseded as the SCORED impact by
- * `redirArcPxAtLanding` (2026-06-14), itself superseded by `contactRedirArcPxAtLanding`
- * (2026-07-31); kept for the dashboard's REDIR comparison lane
- * and study harnesses' `redirPx`. CoM-velocity-only (immune to sled rotation / limb whip).
+ * the net redirection arc (2026-06-14), itself superseded by
+ * `contactRedirArcPxAtLanding` (2026-07-31); kept only for explicit analysis.
  */
-export function redirImpactPxAtLanding(
+export function legacyPerpendicularRedirectionPxAtLanding(
   det: Detection,
   landingFrame: number,
   window: number = IMPACT_WINDOW,
@@ -105,6 +93,33 @@ export function redirImpactPxAtLanding(
     if (perp > peak) peak = perp;
   }
   return peak;
+}
+
+/**
+ * [LEGACY / ANALYSIS — not the scored metric] Incoming speed × NET endpoint
+ * heading change. This was scored from 2026-06-14 through 2026-07-31. It shares
+ * the landing anchor, inclusive window and truncation convention with the
+ * current metric, but intentionally does not share its accumulation/contact
+ * semantics.
+ */
+export function legacyNetRedirArcPxAtLanding(
+  det: Detection,
+  landingFrame: number,
+  window: number = IMPACT_WINDOW,
+): number | undefined {
+  const v0 = velocityAt(det, landingFrame - 1) ?? velocityAt(det, landingFrame);
+  if (v0 === undefined) return undefined;
+  const speed = Math.hypot(v0.x, v0.y);
+  if (speed <= 1e-9) return 0;
+  const aIn = Math.atan2(v0.y, v0.x);
+  const end = Math.min(measurementLastFrame(det), landingFrame + Math.max(0, window));
+  let turn = 0;
+  for (let f = landingFrame; f <= end; f++) {
+    const v = velocityAt(det, f);
+    if (v === undefined) continue;
+    turn = Math.abs(wrapPi(Math.atan2(v.y, v.x) - aIn));
+  }
+  return speed * turn;
 }
 
 // ── rider topology — single source (engine-rs/src/lib.rs ITER + BASE) ────────
@@ -132,13 +147,27 @@ export const STICKS: { a: PointName; b: PointName; group: StickGroup }[] = [
 //    (types.ts / CALIB) so studies and the scorer never diverge. ───────────────
 export const IMPACT_WINDOW = IMPACT_WINDOW_CANON; // = 6 (types.ts: the locked redir window)
 export const GRAVITY = 0.175;            // px/frame² (down = +y)
-export const IMPACT_CAP = CALIB.IMPACT_CAP; // OLD point-metric cap (px/frame) = 5; for the point baseline
-export const REDIR_CAP = CALIB.REDIR_CAP;   // = 8.5; the scored redir impact cap (see CALIB)
+export const LEGACY_NORMAL_CLOSING_CAP = CALIB.IMPACT_CAP;
+export const LEGACY_PERPENDICULAR_REDIRECTION_CAP = CALIB.REDIR_CAP;
+/** Frozen ruler used only to reproduce the retired 2026-06-14 net metric. */
+export const LEGACY_NET_REDIR_ARC_RULER = Object.freeze({
+  SOFT: 0,
+  VERY_STRONG: 7.29,
+});
+export const legacyNetRedirArcToFelt = (rawPxPerFrame: number): number =>
+  Math.min(
+    1,
+    Math.max(
+      0,
+      (rawPxPerFrame - LEGACY_NET_REDIR_ARC_RULER.SOFT) /
+        (LEGACY_NET_REDIR_ARC_RULER.VERY_STRONG - LEGACY_NET_REDIR_ARC_RULER.SOFT),
+    ),
+  );
 export const CAPS = {
   jolt: 6, whip: 6, comDecel: 3, deform: 0.9, rotDeg: 12, turnDeg: 35,
-  snap: 2.0, // px/frame²; display cap for the (rejected) SNAP study lane — calibrated to the
-  //          golden snap envelope (p95≈1.9, max≈2.14). NOTE: unrelated to REDIRARC.SOFT (also
-  //          2.0 but px/frame, the scored soft anchor) — coincidental, do not unify.
+  // px/frame²; display cap for the rejected SNAP analysis lane, calibrated to
+  // the golden snap envelope (p95≈1.9, max≈2.14).
+  snap: 2.0,
 } as const;
 export const norm01 = (x: number, cap: number) => Math.min(1, Math.max(0, x / cap));
 
@@ -184,10 +213,9 @@ export function surfaceTangentAt(sim: Sim, f: number): [number, number] | null {
 export function surfaceNormalAt(sim: Sim, f: number): [number, number] | null {
   const t = surfaceTangentAt(sim, f); return t ? [-t[1], t[0]] : null;
 }
-/** `point` — pre-impact CoM normal closing speed (px/frame). The shipped scorer's
- *  definition (core/substrate.ts), reused so studies cannot drift from production. */
-export function pointImpactPx(sim: Sim, lf: number): number | undefined {
-  return normalImpactPxAtLanding(sim.det, lf, (id) => sim.lineById.get(id));
+/** Retired pre-impact CoM normal-closing speed (px/frame). */
+export function legacyNormalClosingSpeedPx(sim: Sim, lf: number): number | undefined {
+  return legacyNormalClosingSpeedPxAtLanding(sim.det, lf, (id) => sim.lineById.get(id));
 }
 
 // ── rider-point access ───────────────────────────────────────────────────────
@@ -265,17 +293,15 @@ export function rank(xs: number[]): number[] { const idx = xs.map((_, i) => i).s
 export const spearman = (xs: number[], ys: number[]) => pearson(rank(xs), rank(ys));
 export const cv = (xs: number[]) => { const m = mean(xs); return m <= 1e-9 ? 0 : Math.sqrt(mean(xs.map((x) => (x - m) ** 2))) / m; };
 
-// ── CANONICAL windowed impact metrics ────────────────────────────────────────
+// ── analysis-only windowed impact metrics ───────────────────────────────────
 /** Incoming CoM velocity for a landing (the frame `point` reads). */
 function incoming(sim: Sim, lf: number) { return velocityAt(sim.det, lf - 1) ?? velocityAt(sim.det, lf); }
 
-/** redir — peak lateral speed acquired ⊥ the incoming heading over the window
- *  (= speed·sin(turn)); the perpendicular (redirection) component of Δv. px/frame.
- *  DELEGATES to the production definition `redirImpactPxAtLanding` (core/substrate.ts)
- *  so studies and the scorer share one source. (Study sims are offset-0, so this is
- *  behaviour-identical to the former inline loop.) */
-export function redirPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
-  return redirImpactPxAtLanding(sim.det, lf, W) ?? 0;
+/** LEGACY redir — peak lateral speed acquired ⊥ the incoming heading over the
+ *  window (= speed·sin(turn)); the perpendicular component of Δv. px/frame.
+ *  Delegates to the analysis-only implementation above. */
+export function legacyPerpendicularRedirectionPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
+  return legacyPerpendicularRedirectionPxAtLanding(sim.det, lf, W) ?? 0;
 }
 /** snap — peak PER-FRAME ⊥ velocity change over the window (px/frame²). Where `redir`
  *  measures HOW MUCH the path was bent (the redirection magnitude), `snap` measures how
@@ -327,11 +353,10 @@ export function turnNetDeg(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
  *  surface-faceting artifact → generalizes where comDecel overfit), tangent-aware (a clean
  *  tangent arrival builds Δθ≈0 → reads ~0). px/frame. Independent-agent recommendation
  *  (2026-06-14); strictly dominates `redir` and ties `turn` on the felt labels. Was the
- *  SCORED definition 2026-06-14 → 2026-07-31; DELEGATES to `redirArcPxAtLanding`
- *  (core/substrate.ts), now the LEGACY comparison lane — the scored metric is
- *  `contactRedirArcPx` below. One source either way. */
-export function redirArcPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
-  return redirArcPxAtLanding(sim.det, lf, W) ?? 0;
+ *  SCORED definition 2026-06-14 → 2026-07-31; now implemented only here as the
+ *  explicitly named LEGACY comparison lane. */
+export function legacyNetRedirArcPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
+  return legacyNetRedirArcPxAtLanding(sim.det, lf, W) ?? 0;
 }
 
 // ── redirection-impulse candidate family (2026-07-30, docs/impact_definition.md) ──
@@ -355,7 +380,7 @@ export const FELT_ORDINAL: Record<string, number> = {
  * perceptual-attribution arm — path bending AT the touchdown is the landing, bending
  * late in the window is the arc doing its thing. Default Infinity = no decay.
  *
- * Vs the SCORED `redirArcPxAtLanding` (v·Δθ_net): accumulated not net (S-bends and
+ * Vs the LEGACY net metric (v·Δθ_net): accumulated not net (S-bends and
  * bounce reflections add instead of cancelling), and windowed airborne frames read 0.
  */
 export function contactRedirArcPx(
@@ -453,10 +478,10 @@ export function bodyJolt(sim: Sim, lf: number, W = IMPACT_WINDOW): { jolt: numbe
   return { jolt, whip };
 }
 
-/** The (rejected) decayed-peak windowed normal-speed proposal, kept as a labeled
- *  candidate read-out for the overlay. px/frame. */
-export function windowedNormalPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
-  let m = pointImpactPx(sim, lf) ?? 0;
+/** The rejected decayed-peak windowed normal-speed proposal, kept as an
+ *  explicitly legacy analysis read-out. px/frame. */
+export function legacyWindowedNormalPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
+  let m = legacyNormalClosingSpeedPx(sim, lf) ?? 0;
   for (let k = lf; k <= Math.min(sim.last, lf + W); k++) {
     const t = surfaceTangentAt(sim, k), vin = velocityAt(sim.det, k - 1) ?? velocityAt(sim.det, k);
     if (t && vin) { const np = Math.abs(t[0] * vin.y - t[1] * vin.x); const w = 1 - 0.5 * Math.min(W, k - lf) / W; m = Math.max(m, w * np); }

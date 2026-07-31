@@ -1,20 +1,20 @@
 /**
  * study_impact_fullrange — the EXPRESSIVENESS test (the fixed staircase).
  *
- * Authors a fresh spec NATIVELY on the new felt scale (impact 0.1→1.0), with SETUP that scales
+ * Authors a fresh spec NATIVELY on the current felt scale (impact 0.1→1.0), with SETUP that scales
  * with the ask — soft beats get tight gaps, hard hits get the room (vertical-velocity budget) they
  * physically need. This is the honest test of the mission's core goal: given a well-authored spec,
  * can the author dial impact across the WHOLE range and get a meaningful, discriminating result?
  * (The earlier uniform staircase starved the setup and was rightly rejected.)
  *
- *   LR_ENGINE=wasm LR_IMPACT_SOFT=2.8 LR_IMPACT_VSTRONG=6.5 npx tsx scripts/v0/study_impact_fullrange.ts [--budget=150000] [--seeds=4]
+ *   LR_ENGINE=wasm npx tsx scripts/v0/study_impact_fullrange.ts [--budget=150000] [--seeds=4]
  *
- * Run with anchor-A anchors set (native new-scale authoring => NO rescale). Reports, per authored
- * level: achieved redirArc px and achieved impact (normImpact under the live anchors), so we see
+ * Reports, per authored level: achieved raw contact-redirection impulse and
+ * achieved impact (normImpact under the live anchors), so we see
  * whether achieved tracks authored monotonically across [0.1,1.0].
  */
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { type Spec, type Contact, secToFrame, normImpact, REDIRARC } from "./types.ts";
+import { type Spec, type Contact, secToFrame, normImpact, IMPACT_RULER } from "./types.ts";
 import { constant } from "./core/curves.ts";
 import * as SS from "./impact_support.ts";
 
@@ -57,12 +57,12 @@ for (let seed = 0; seed < NSEEDS; seed++) {
     let best = -1, bestD = 5;
     for (const f of levelOfFrame.keys()) { const d = Math.abs(f - e.frame); if (d < bestD) { bestD = d; best = f; } }
     if (best < 0) continue;
-    const px = SS.redirArcPx(sim, e.frame);
+    const px = SS.contactRedirArcPx(sim, e.frame);
     if (px !== undefined && Number.isFinite(px)) byLevel.get(levelOfFrame.get(best)!)!.push(px);
   }
 }
-console.log(`full-range expressiveness — anchors SOFT=${REDIRARC.SOFT}/VSTRONG=${REDIRARC.VERY_STRONG}, native new-scale authoring (no rescale), budget ${BUDGET}, ${NSEEDS} seeds\n`);
-console.log(`  authored  gap(s)  n   redirArc p50   achieved-impact p50   (want: achieved-impact ≈ authored, monotone)`);
+console.log(`full-range expressiveness — anchors SOFT=${IMPACT_RULER.SOFT}/VSTRONG=${IMPACT_RULER.VERY_STRONG}, native current-scale authoring, budget ${BUDGET}, ${NSEEDS} seeds\n`);
+console.log(`  authored  gap(s)  n   raw-impact p50   achieved-impact p50   (want: achieved-impact ≈ authored, monotone)`);
 let prev = -1, mono = true;
 for (const lv of LEVELS) {
   const xs = byLevel.get(lv)!; const p50 = P(xs, 0.5); const ai = normImpact(p50);

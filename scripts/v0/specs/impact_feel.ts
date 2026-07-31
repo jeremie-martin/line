@@ -1,16 +1,16 @@
 /**
- * impact_feel — a FELT-LABELING instrument for the redirArc impact metric (not a benchmark; not in
+ * impact_feel — a FELT-LABELING instrument for the current impact metric (not a benchmark; not in
  * GOLDEN_SPECS). Loaded via `run.ts --spec` and rendered for the /impact/ video dashboard so a human
  * can WATCH each landing and judge how hard it feels vs what was authored. Authored NATIVELY on the
- * new redirArc felt scale (0 = soft, 1 = very strong), no migration.
+ * current felt scale (0 = soft, 1 = very strong), no migration.
  *
  *   Section 1 — STAIRCASE: impact 0.1 → 1.0, two beats per level, well-spaced. The gap grows with the
  *     ask (hard hits get the vy budget they need) and amplitude + air rise WITH impact — aligned
  *     authoring, so the same up-arc that makes amplitude/air also delivers the redirection and each
  *     level is physically achievable. Question to the eye: does 0.3 feel soft, 0.5 medium, 1.0 strong?
- *   Section 2 — SPEED: impact held at 0.7, forward speed swept 0.4 → 1.0. redirArc = speed·Δθ, so the
- *     same authored impact lands harder when the rider arrives faster — i.e. impact needs the right
- *     arrival conditions, it is not free on a slow flat approach.
+ *   Section 2 — SPEED: impact held at 0.7, forward speed swept 0.4 → 1.0. The raw
+ *     contact-redirection impulse is speed-weighted, so the same authored impact needs the right
+ *     arrival conditions; it is not free on a slow flat approach.
  */
 import type { Contact, Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";

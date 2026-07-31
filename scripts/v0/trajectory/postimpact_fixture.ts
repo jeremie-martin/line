@@ -7,7 +7,7 @@
  */
 import { readFileSync } from "node:fs";
 import { engineLineFromTrackLine, makeBaseEngine } from "../core/substrate.ts";
-import { IMPACT, IMPACT_WINDOW, REDIRARC, SPEED_RULER, type TrackLine } from "../types.ts";
+import { IMPACT, IMPACT_RULER, IMPACT_WINDOW, SPEED_RULER, type TrackLine } from "../types.ts";
 import {
   assertPostimpactV3FixtureIntegrity,
   sha256,
@@ -371,8 +371,8 @@ function activeImpactConvention(): Readonly<PostimpactImpactConvention> {
   return Object.freeze({
     impactWindowFrames: IMPACT_WINDOW,
     catchableRedirFraction: IMPACT.CATCHABLE_REDIR_FRACTION,
-    redirArcSoftPxPerFrame: REDIRARC.SOFT,
-    redirArcVeryStrongPxPerFrame: REDIRARC.VERY_STRONG,
+    redirArcSoftPxPerFrame: IMPACT_RULER.SOFT,
+    redirArcVeryStrongPxPerFrame: IMPACT_RULER.VERY_STRONG,
     speedRulerMinPxPerFrame: SPEED_RULER.MIN_PX_PER_FRAME,
     speedRulerMaxPxPerFrame: SPEED_RULER.MAX_PX_PER_FRAME,
   });

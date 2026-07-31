@@ -153,8 +153,8 @@ export type Contact = {
    * `cArc = Σ v̄·|Δθ|` — the per-frame CoM heading change × midpoint speed, ACCUMULATED
    * over the CONTACTED frames of the `IMPACT_WINDOW`-frame (~0.15s) episode after
    * touchdown (airborne frames contribute zero — flight is not impact) — mapped to
-   * [0,1] by `normImpact` against `REDIRARC.SOFT`/`REDIRARC.VERY_STRONG` (read the
-   * live values from the `REDIRARC` block below rather than a number copied into
+   * [0,1] by `normImpact` against `IMPACT_RULER.SOFT`/`IMPACT_RULER.VERY_STRONG` (read the
+   * live values from the `IMPACT_RULER` block below rather than a number copied into
    * prose; gentler than SOFT clamps to 0, harder than VERY_STRONG to 1).
    * PROMOTED 2026-07-31 over the net-form `redirArc = v·Δθ` (LOCKED 2026-06-14);
    * history, adjudication and calibration in `docs/impact_definition.md`.
@@ -178,7 +178,7 @@ export type Contact = {
    * Status: SCORED (folds into the contract `axis_quality`). Measured by
    * `contactRedirArcPxAtLanding` (substrate.ts) → `normImpact`; reported with target/achieved/
    * error/ceiling. The compiler steers toward it via the arc-placement redir lever
-   * (target → needed CoM turn = impactToRedirArcPx(target)/speed) and candidate ranking.
+   * (target → needed CoM turn = impactToRawPx(target)/speed) and candidate ranking.
    */
   impact?: number;
 };
@@ -1068,7 +1068,7 @@ if (!(MAX_RELIABLE_TURN_RAD > 0) || MAX_RELIABLE_TURN_RAD > Math.PI / 2) {
  * impulse** `cArc = Σ v̄·|Δθ|` — per-frame CoM heading change × midpoint speed,
  * accumulated over CONTACTED frames of the `IMPACT_WINDOW` episode after touchdown
  * (how hard the ground bends the path; airborne bending — gravity — never counts),
- * mapped to felt [0,1] by `normImpact` (`REDIRARC.SOFT`/`VERY_STRONG`). Scored by
+ * mapped to felt [0,1] by `normImpact` (`IMPACT_RULER.SOFT`/`VERY_STRONG`). Scored by
  * `contactRedirArcPxAtLanding` (substrate.ts); promoted 2026-07-31 over the net-form
  * `redirArc = v·Δθ` (divergence-label adjudication + felt-rank edge — see
  * `docs/impact_definition.md`).
@@ -1122,8 +1122,9 @@ export function impactEnvNum(name: string, dflt: number): number {
   const n = Number(raw);
   return Number.isFinite(n) ? n : dflt;
 }
-export const REDIRARC = {
-  /** redirArc (px/frame) at a felt "soft" landing → impact 0. SOFT = 0: the PHYSICAL floor — zero
+export const IMPACT_RULER = {
+  /** Raw scored impulse (px/frame) at a felt "soft" landing → impact 0. SOFT = 0:
+   *  the PHYSICAL floor — zero
    *  redirection is zero impact. Derived 2026-06-15: the achievable-range fit wanted SOFT < 0
    *  (unphysical), so it's floored at 0; a non-redirecting catch reads 0. Env-overridable for study. */
   SOFT: impactEnvNum("LR_IMPACT_SOFT", 0),
@@ -1137,37 +1138,47 @@ export const REDIRARC = {
    *  scale; physical headroom above it saturates. Linear map (isotonic-vs-linear found
    *  no defensible curvature). See docs/impact_definition.md Calibration. */
   VERY_STRONG: impactEnvNum("LR_IMPACT_VSTRONG", 7.55),
-};
+} as const;
 // Fail fast on a degenerate env-set anchor pair: a non-positive span makes
 // normImpact divide by zero (silently clamped to 0/1) or, when SOFT > VERY_STRONG,
 // inverts the scored impact axis — both silently corrupt the headline.
-if (!(REDIRARC.VERY_STRONG > REDIRARC.SOFT)) {
+if (!(IMPACT_RULER.VERY_STRONG > IMPACT_RULER.SOFT)) {
   throw new Error(
-    `Invalid impact anchors: LR_IMPACT_VSTRONG (${REDIRARC.VERY_STRONG}) must be > ` +
-      `LR_IMPACT_SOFT (${REDIRARC.SOFT}); a non-positive span corrupts the scored impact axis.`,
+    `Invalid impact anchors: LR_IMPACT_VSTRONG (${IMPACT_RULER.VERY_STRONG}) must be > ` +
+      `LR_IMPACT_SOFT (${IMPACT_RULER.SOFT}); a non-positive span corrupts the scored impact axis.`,
   );
 }
-/** redirArc px/frame → felt impact [0,1] (the SCORED normalization). */
-export function normImpact(redirArcPx: number): number {
-  return Math.max(0, Math.min(1, (redirArcPx - REDIRARC.SOFT) / (REDIRARC.VERY_STRONG - REDIRARC.SOFT)));
+/**
+ * Stable identity carried by production preview payloads. Bump `version` only
+ * when the raw measurement or normalization contract changes.
+ */
+export const IMPACT_METRIC = Object.freeze({
+  id: "contact-redirection-impulse",
+  version: 1,
+  rawUnit: "px/frame",
+  windowFrames: IMPACT_WINDOW,
+  soft: IMPACT_RULER.SOFT,
+  veryStrong: IMPACT_RULER.VERY_STRONG,
+});
+
+/** Raw scored contact-redirection impulse (px/frame) → felt impact [0,1]. */
+export function normImpact(rawImpactPx: number): number {
+  return Math.max(
+    0,
+    Math.min(
+      1,
+      (rawImpactPx - IMPACT_RULER.SOFT) /
+        (IMPACT_RULER.VERY_STRONG - IMPACT_RULER.SOFT),
+    ),
+  );
 }
-/** Inverse: the redirArc (px/frame) an authored impact [0,1] is asking for. Used by the
- *  generation lever / readiness to convert a normalized ask into a target turn. */
-export function impactToRedirArcPx(impact: number): number {
-  return REDIRARC.SOFT + Math.max(0, Math.min(1, impact)) * (REDIRARC.VERY_STRONG - REDIRARC.SOFT);
+/** Inverse: raw scored impulse (px/frame) requested by authored impact [0,1]. */
+export function impactToRawPx(impact: number): number {
+  return IMPACT_RULER.SOFT + Math.max(0, Math.min(1, impact)) *
+    (IMPACT_RULER.VERY_STRONG - IMPACT_RULER.SOFT);
 }
-/** SUPERSEDED — the convention rescale is now baked at authoring (golden specs use
- *  `withImpactLegacy`/`migrateImpact`, beats.ts), so authored impact already sits on the new felt
- *  scale and this is identity by default. Kept only as the `LR_IMPACT_RESCALE=1` study switch (and so
- *  legacy callers still resolve); remove once all callers drop it. */
-const _impactRescaleOn = ((globalThis as { process?: { env?: Record<string, string | undefined> } })
-  .process?.env?.["LR_IMPACT_RESCALE"]) === "1";
-export function rescaleAuthoredImpact(authored: number): number {
-  if (!_impactRescaleOn) return authored;
-  return normImpact(authored * CALIB.REDIR_CAP);
-}
-/** Wrap an angle (radians) to (−π, π]. Canonical home (the scored impact's net-heading-change
- *  and the study harnesses' turnNetDeg share this one definition). */
+/** Wrap an angle (radians) to (−π, π]. Canonical home (the scored impact's per-frame
+ *  heading-change terms and the study harnesses' turnNetDeg share this definition). */
 export const wrapPi = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 
 /**
@@ -1184,14 +1195,12 @@ export const CALIB = {
   /** Divisor for `grain` axis. units. */
   LINE_LENGTH_CAP: 49,
   /** [LEGACY — NOT SCORED as of 2026-06-14] Cap for the OLD perpendicular `redir`
-   *  metric (v·sin Δθ). The scored impact is now `redirArc = v·Δθ` on the felt scale
-   *  `REDIRARC.SOFT`/`VERY_STRONG` via `normImpact` (see above). Kept only for the
-   *  dashboard's REDIR comparison lane and the `study_*` harnesses' `redirPx`. */
+   *  metric (v·sin Δθ). The scored impact is the contacted-frame impulse on the felt
+   *  `IMPACT_RULER` scale. Kept only for explicit analysis comparisons. */
   REDIR_CAP: 8.5,
   /** [LEGACY — NOT SCORED] Divisor for the OLD one-frame normal-closing impact
-   *  ("point"). The scored impact is REDIR_CAP above (redirection) — don't tune this
-   *  one for scoring. Kept because the `study_*` harnesses and `make_overlay_data`
-   *  still normalize the point baseline by it for side-by-side comparison. */
+   *  ("point"). Do not tune this for scoring; it is retained only for explicit
+   *  analysis comparisons. */
   IMPACT_CAP: 5,
   /** Divisor for `amplitude` axis: peak upward chord-relative sagitta (px) that
    *  maps to a normalized amplitude of 1.0. Provisional — calibrate against the

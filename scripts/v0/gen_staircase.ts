@@ -65,5 +65,5 @@ contacts.forEach((e, i) => {
   const v0 = sim.vel[e.frame - 1] ?? sim.vel[e.frame];
   const speed = v0 ? Math.hypot(v0.x, v0.y) : 0, vy = v0 ? v0.y : 0;
   console.log(`  ${String(i).padEnd(3)} ${(e.frame / 40).toFixed(1).padStart(5)}  ${e.type.padEnd(8)} ${vy.toFixed(1).padStart(5)}  ${speed.toFixed(1).padStart(5)} | ` +
-    `${SS.redirArcPx(sim, e.frame).toFixed(2).padStart(7)}  ${SS.turnNetDeg(sim, e.frame).toFixed(1).padStart(5)}  ${SS.redirPx(sim, e.frame).toFixed(2).padStart(5)}  ${SS.comDecelNormalPx(sim, e.frame).toFixed(2).padStart(6)}`);
+    `${SS.legacyNetRedirArcPx(sim, e.frame).toFixed(2).padStart(7)}  ${SS.turnNetDeg(sim, e.frame).toFixed(1).padStart(5)}  ${SS.legacyPerpendicularRedirectionPx(sim, e.frame).toFixed(2).padStart(5)}  ${SS.comDecelNormalPx(sim, e.frame).toFixed(2).padStart(6)}`);
 });

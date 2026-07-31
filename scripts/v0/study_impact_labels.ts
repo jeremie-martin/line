@@ -82,8 +82,8 @@ if (labelsName !== undefined) {
 function metrics(lf: number) {
   const v0 = sim.vel[lf - 1] ?? sim.vel[lf];
   const s = v0 ? hyp(v0.x, v0.y) : 0, hx = s > 1e-9 ? v0!.x / s : 0, hy = s > 1e-9 ? v0!.y / s : 0;
-  const point = SS.pointImpactPx(sim, lf) ?? 0;
-  const redir = SS.redirPx(sim, lf, W);
+  const point = SS.legacyNormalClosingSpeedPx(sim, lf) ?? 0;
+  const redir = SS.legacyPerpendicularRedirectionPx(sim, lf, W);
   const turn = SS.turnNetDeg(sim, lf, W);
   const dv = SS.velChange(sim, lf, W).dvGrav;
   const snap = SS.snapPx(sim, lf, W); // touchdown-INCLUSIVE force/suddenness (shared source)
@@ -152,7 +152,7 @@ console.log(`    72.33 > 63.93 (very strong > a bit less):  ` + KEYS.map((k) => 
 console.log(`\n  redir window sweep — Spearman(redir_W, felt) and the 41.13>63.93 (sudden>gradual) call:`);
 const lf41 = rows.find((r) => Math.abs(r.t - 41.13) < 0.5)!.lf, lf63 = rows.find((r) => Math.abs(r.t - 63.93) < 0.5)!.lf;
 for (const w of [4, 5, 6, 7, 8, 10, 12]) {
-  const rd = rows.map((r) => SS.redirPx(sim, r.lf, w)), tn = rows.map((r) => SS.turnNetDeg(sim, r.lf, w));
-  const a = SS.redirPx(sim, lf41, w), b = SS.redirPx(sim, lf63, w);
+  const rd = rows.map((r) => SS.legacyPerpendicularRedirectionPx(sim, r.lf, w)), tn = rows.map((r) => SS.turnNetDeg(sim, r.lf, w));
+  const a = SS.legacyPerpendicularRedirectionPx(sim, lf41, w), b = SS.legacyPerpendicularRedirectionPx(sim, lf63, w);
   console.log(`    W=${String(w).padStart(2)}  redir ρ ${SS.spearman(rd, felt).toFixed(3)}  turn ρ ${SS.spearman(tn, felt).toFixed(3)}   41.13=${a.toFixed(2)} vs 63.93=${b.toFixed(2)}  ${a > b ? "✓" : "✗"}`);
 }

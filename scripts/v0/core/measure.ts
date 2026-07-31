@@ -142,7 +142,7 @@ const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
  * CoM heading change × midpoint speed accumulated over CONTACTED frames of the
  * `IMPACT_WINDOW` episode, "how hard the ground bends the path" / "claquage"; airborne
  * bending never counts), mapped to felt [0,1] by `normImpact` (0 = perfectly smooth,
- * 1 = very strong). See `Contact.impact` and the `REDIRARC`/`IMPACT` blocks in types.ts.
+ * 1 = very strong). See `Contact.impact` and the `IMPACT_RULER`/`IMPACT` blocks in types.ts.
  *
  * GATED on `gap.targets.impact`: impact is authored per-beat, so it's worth
  * measuring ONLY where a beat requested it (the cheap span-mean axes don't scan

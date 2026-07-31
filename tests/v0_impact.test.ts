@@ -13,19 +13,38 @@
  */
 import { describe, expect, test } from "vitest";
 import { AXIS_MEASURE } from "../scripts/v0/core/measure.ts";
-import { beats, withImpact } from "../scripts/v0/core/beats.ts";
+import { contactRedirArcPxAtLanding } from "../scripts/v0/core/substrate.ts";
+import {
+  LEGACY_IMPACT_AUTHORING_CONVERSION,
+  beats,
+  migrateImpact,
+  withImpact,
+} from "../scripts/v0/core/beats.ts";
 import { constant } from "../scripts/v0/core/curves.ts";
-import { GRAVITY, contactRedirArcPx, redirArcPx, type Sim } from "../scripts/v0/impact_support.ts";
+import {
+  GRAVITY,
+  contactRedirArcPx,
+  legacyNetRedirArcPx,
+  type Sim,
+} from "../scripts/v0/impact_support.ts";
 import { scoreDriftReport } from "../scripts/v0/score.ts";
 import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import {
-  REDIRARC, IMPACT, IMPACT_WINDOW, impactCeiling, type Gap, type Spec, type TrackLine,
+  IMPACT,
+  IMPACT_METRIC,
+  IMPACT_RULER,
+  IMPACT_WINDOW,
+  impactCeiling,
+  type Gap,
+  type Spec,
+  type TrackLine,
 } from "../scripts/v0/types.ts";
 import type { Detection } from "../scripts/lib/detector.ts";
 
-/** Independent reference normalization (mirrors types.normImpact) — redirArc px → felt [0,1]. */
+/** Independent reference normalization (mirrors types.normImpact). */
 const norm = (px: number) =>
-  Math.max(0, Math.min(1, (px - REDIRARC.SOFT) / (REDIRARC.VERY_STRONG - REDIRARC.SOFT)));
+  Math.max(0, Math.min(1, (px - IMPACT_RULER.SOFT) /
+    (IMPACT_RULER.VERY_STRONG - IMPACT_RULER.SOFT)));
 /** Unit-speed velocity at heading `θ` (rad) and magnitude `s`. */
 const vel = (theta: number, s: number) => ({ x: s * Math.cos(theta), y: s * Math.sin(theta) });
 
@@ -70,19 +89,59 @@ describe("measureImpact (cArc = Σ v̄·|Δθ| impulse reduction)", () => {
       contactLineIds: arrAt(n, lf - off, [1]),
       frameOffset: off,
     });
-  // gapLines are intentionally varied/empty: redirArc is CoM-only and ignores them.
+  // gapLines are intentionally varied/empty: scored impact is CoM-only.
   const call = (det: Detection, g: Gap = gap, gapLines: TrackLine[] = []) =>
     measureImpact({ det, gap: g, gapLines, rangeEndFrame: g.endFrame });
 
-  test("straight glide (no heading change) ⇒ redirArc = 0 ⇒ impact 0", () => {
+  test("straight glide (no heading change) ⇒ raw impulse 0 ⇒ impact 0", () => {
     const det = detFor(10, 20, () => ({ x: 9, y: 4 })); // constant velocity → no turn
     expect(call(det)).toBeCloseTo(0, 6);
   });
 
-  test("net redirection ⇒ |v_in|·Δθ, felt-normalized", () => {
-    // incoming (3,0) speed 3; window-end heading turns to π/2 → redirArc = 3·(π/2).
+  test("single redirection ⇒ midpoint-speed·|Δθ|, felt-normalized", () => {
+    // Equal speeds make the midpoint speed 3.
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 3, y: 0 } : { x: 0, y: 3 }));
     expect(call(det)).toBeCloseTo(norm(3 * (Math.PI / 2)), 5);
+  });
+
+  test("uses the arithmetic midpoint of unequal consecutive speeds", () => {
+    // Incoming speed 2, landing-frame speed 4, turn 0.5 rad:
+    // 0.5 × (2 + 4) × 0.5 = 1.5 px/frame.
+    const det = detFor(10, 20, (f) => f <= 9 ? vel(0, 2) : vel(0.5, 4));
+    expect(contactRedirArcPxAtLanding(det, 10)).toBeCloseTo(1.5, 12);
+    expect(call(det)).toBeCloseTo(norm(1.5), 12);
+  });
+
+  test("the right boundary is inclusive at landing + IMPACT_WINDOW", () => {
+    const atBoundary = detFor(10, 20, (f) =>
+      f < 10 + IMPACT_WINDOW ? vel(0, 4) : vel(0.5, 4));
+    const afterBoundary = detFor(10, 20, (f) =>
+      f <= 10 + IMPACT_WINDOW ? vel(0, 4) : vel(0.5, 4));
+    expect(contactRedirArcPxAtLanding(atBoundary, 10)).toBeCloseTo(2, 12);
+    expect(contactRedirArcPxAtLanding(afterBoundary, 10)).toBeCloseTo(0, 12);
+  });
+
+  test("a missing in-window velocity bridges from the previous valid sample", () => {
+    const det = detFor(10, 20, (f) => f <= 11 ? vel(0, 5) : vel(0.4, 5));
+    det.measurements.velocity[11] = undefined as never;
+    // f=11 contributes nothing and does not invent a velocity. At f=12 the
+    // loop compares with the last valid sample at f=10, preserving the 0.4 turn.
+    expect(contactRedirArcPxAtLanding(det, 10)).toBeCloseTo(2, 12);
+  });
+
+  test("falls back to the landing velocity when the pre-landing sample is missing", () => {
+    const det = detFor(10, 20, (f) => f <= 10 ? vel(0, 5) : vel(0.4, 5));
+    det.measurements.velocity[9] = undefined as never;
+    // The landing sample initializes `prev`; it is not counted against itself.
+    expect(contactRedirArcPxAtLanding(det, 10)).toBeCloseTo(2, 12);
+  });
+
+  test("returns undefined when neither incoming sample is available", () => {
+    const det = detFor(10, 20, () => vel(0, 5));
+    det.measurements.velocity[9] = undefined as never;
+    det.measurements.velocity[10] = undefined as never;
+    expect(contactRedirArcPxAtLanding(det, 10)).toBeUndefined();
+    expect(call(det)).toBeUndefined();
   });
 
   test("ACCUMULATED turn: bend-then-unbend adds, it does not cancel", () => {
@@ -135,7 +194,7 @@ describe("measureImpact (cArc = Σ v̄·|Δθ| impulse reduction)", () => {
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : vel(0.5, 10)));
     const horiz = call(det, gap, [line(1, 0, 0, 100, 0)]);
     const slant = call(det, gap, [line(1, 0, 0, 100, 100)]);
-    const none = call(det, gap, []); // no owned line ⇒ STILL a value (redirArc ignores lines)
+    const none = call(det, gap, []); // no owned line ⇒ STILL a value
     expect(horiz).toBeCloseTo(norm(10 * 0.5), 5);
     expect(slant).toBeCloseTo(horiz!, 9);
     expect(none).toBeCloseTo(horiz!, 9);
@@ -153,12 +212,24 @@ describe("measureImpact (cArc = Σ v̄·|Δθ| impulse reduction)", () => {
     expect(call(det, { ...gap, endFrame: 110 })).toBeCloseTo(norm(3 * (Math.PI / 2)), 5);
   });
 
+  test("matches a detector landing one frame after the authored contact", () => {
+    const det = detFor(11, 20, (f) => f <= 10 ? vel(0, 3) : vel(Math.PI / 2, 3));
+    expect(call(det)).toBeCloseTo(norm(3 * Math.PI / 2), 12);
+  });
+
   test("window truncates at the detection end (no crash)", () => {
     // landing near the last frame: the window is cut at the detection end (frame 12),
     // so only the single touchdown bend at frame 10 is accumulated — no crash, and
     // the truncated tail is silently absent (accumulation can only under-read).
     const det = detFor(10, 13, (f) => (f <= 9 ? { x: 3, y: 0 } : { x: 0, y: 3 }));
     expect(call(det)).toBeCloseTo(norm(3 * (Math.PI / 2)), 5);
+  });
+
+  test("zero and negative windows include only the touchdown step", () => {
+    const det = detFor(10, 20, (f) =>
+      f <= 9 ? vel(0, 4) : f === 10 ? vel(0.25, 4) : vel(0.75, 4));
+    expect(contactRedirArcPxAtLanding(det, 10, 0)).toBeCloseTo(1, 12);
+    expect(contactRedirArcPxAtLanding(det, 10, -5)).toBeCloseTo(1, 12);
   });
 
   test("gated: undefined when the beat did not author impact", () => {
@@ -171,7 +242,7 @@ describe("measureImpact (cArc = Σ v̄·|Δθ| impulse reduction)", () => {
     expect(call(det)).toBeUndefined();
   });
 
-  test("SOFT=0 floor: a small redirArc reads small & linear (no dead-zone)", () => {
+  test("SOFT=0 floor: a small impulse reads small & linear (no dead-zone)", () => {
     // speed 3, single 0.2-rad bend → impulse 0.6 px/f → 0.6/VSTRONG(7.55) ≈ 0.08.
     // SOFT=0 means a gentle redirect is a small REAL impact, not clamped to 0.
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 3, y: 0 } : vel(0.2, 3)));
@@ -184,6 +255,23 @@ describe("measureImpact (cArc = Σ v̄·|Δθ| impulse reduction)", () => {
     // speed 10, π/2 turn → impulse 10·1.571 ≈ 15.7 ≫ VSTRONG(7.55) ⇒ 1.
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : { x: 0, y: 10 }));
     expect(call(det)).toBe(1);
+  });
+});
+
+describe("production impact ruler identity", () => {
+  test("pins the shipped defaults when study overrides are absent", () => {
+    if (process.env.LR_IMPACT_SOFT === undefined) expect(IMPACT_RULER.SOFT).toBe(0);
+    if (process.env.LR_IMPACT_VSTRONG === undefined) {
+      expect(IMPACT_RULER.VERY_STRONG).toBe(7.55);
+    }
+    expect(IMPACT_METRIC).toMatchObject({
+      id: "contact-redirection-impulse",
+      version: 1,
+      rawUnit: "px/frame",
+      windowFrames: 6,
+      soft: IMPACT_RULER.SOFT,
+      veryStrong: IMPACT_RULER.VERY_STRONG,
+    });
   });
 });
 
@@ -218,19 +306,19 @@ describe("contactRedirArcPx (study delegate for the SCORED redirection impulse)"
   });
 
   test("windowed airborne frames contribute zero (flight is not impact)", () => {
-    // Ballistic gravity bending inside the window: production redirArc reads a turn,
-    // the contacted-only impulse reads 0 — the rule IS the gravity treatment.
+    // Ballistic gravity bending inside the window: the legacy net formula reads
+    // a turn; the contacted-only impulse reads 0.
     const airborne = new Array(20).fill(true);
     const sim = asSim(flatDet((f) => (f < lf ? { x: 10, y: 0 } : { x: 10, y: GRAVITY * (f - (lf - 1)) }), airborne));
     expect(contactRedirArcPx(sim, lf)).toBeCloseTo(0, 9);
-    expect(redirArcPx(sim, lf)).toBeGreaterThan(0);
+    expect(legacyNetRedirArcPx(sim, lf)).toBeGreaterThan(0);
   });
 
   test("bend-then-unbend: accumulated keeps both bends, net redirArc cancels", () => {
     // Heading 0 → 0.5 rad → back to 0 inside the window, speed 10 throughout.
     const sim = asSim(flatDet((f) => (f < lf || f > 12 ? { x: 10, y: 0 } : vel(0.5, 10))));
     expect(contactRedirArcPx(sim, lf)).toBeCloseTo(10 * 0.5 * 2, 9); // both bends count
-    expect(redirArcPx(sim, lf)).toBeCloseTo(0, 9); // net endpoint turn cancelled
+    expect(legacyNetRedirArcPx(sim, lf)).toBeCloseTo(0, 9); // net endpoint turn cancelled
   });
 
   test("onset decay discounts late bending; tau=∞ equals the undecayed value", () => {
@@ -296,6 +384,16 @@ describe("impact is scored (v2)", () => {
 });
 
 describe("beat authoring helpers", () => {
+  test("old authored values use the single affine compatibility conversion", () => {
+    if (process.env.LR_IMPACT_MIGRATE_SOFT === undefined &&
+        process.env.LR_IMPACT_MIGRATE_SPAN === undefined) {
+      expect(LEGACY_IMPACT_AUTHORING_CONVERSION).toEqual({ soft: 0.2, span: 0.8 });
+      expect(migrateImpact(0.2)).toBe(0);
+      expect(migrateImpact(0.45)).toBeCloseTo(0.3125, 12);
+      expect(migrateImpact(1)).toBe(1);
+    }
+  });
+
   test("beats preserves t, clamps impact, leaves impact-less beats untargeted", () => {
     const out = beats([{ t: 0.5, impact: 0.8 }, { t: 1.0, impact: 1.5 }, { t: 1.5 }]);
     expect(out[0]).toEqual({ t: 0.5, impact: 0.8 });

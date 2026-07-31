@@ -23,11 +23,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as SS from "./impact_support.ts";
-import { FPS, REDIRARC, normImpact } from "./types.ts";
+import { FPS, IMPACT_RULER, normImpact } from "./types.ts";
 
 const W = SS.IMPACT_WINDOW;
 
-/** Pre-promotion `REDIRARC.VERY_STRONG`, frozen. `normImpact` now anchors the SCORED
+/** Pre-promotion `IMPACT_RULER.VERY_STRONG`, frozen. `normImpact` now anchors the SCORED
  *  impulse (7.55); running it over a legacy `redirArc` raw value would print a hybrid
  *  that is neither metric on its own scale. Legacy readouts normalize by this instead. */
 const OLD_VSTRONG = 7.29;
@@ -44,11 +44,11 @@ type Cand = "redirArc" | "cArc" | "cArcG" | "cArcOn" | "redir" | "turn";
 const CANDS: Cand[] = ["redirArc", "cArc", "cArcG", "cArcOn", "redir", "turn"];
 function candidates(sim: SS.Sim, lf: number): Record<Cand, number> {
   return {
-    redirArc: SS.redirArcPx(sim, lf, W),
+    redirArc: SS.legacyNetRedirArcPx(sim, lf, W),
     cArc: SS.contactRedirArcPx(sim, lf, W),
     cArcG: SS.contactRedirArcPx(sim, lf, W, { stepGravity: true }),
     cArcOn: SS.contactRedirArcPx(sim, lf, W, { tau: 4 }),
-    redir: SS.redirPx(sim, lf, W),
+    redir: SS.legacyPerpendicularRedirectionPx(sim, lf, W),
     turn: SS.turnNetDeg(sim, lf, W),
   };
 }
@@ -129,7 +129,7 @@ for (const w of [4, 5, 6, 7, 8]) {
   const rhoAt = (k: "redirArc" | "cArc") => SS.mean(DISCRIMINATING.map((n) => {
     const rs = labeled.filter((r) => r.set === n); if (rs.length < 3) return NaN;
     const sim = sims.get(n)!;
-    const xs = rs.map((r) => k === "redirArc" ? SS.redirArcPx(sim, r.frame, w) : SS.contactRedirArcPx(sim, r.frame, w));
+    const xs = rs.map((r) => k === "redirArc" ? SS.legacyNetRedirArcPx(sim, r.frame, w) : SS.contactRedirArcPx(sim, r.frame, w));
     return SS.spearman(xs, rs.map((r) => r.felt));
   }).filter((x) => Number.isFinite(x)));
   console.log(`  ${String(w).padStart(2)}${w === W ? "*" : " "} ` + [rhoAt("redirArc"), rhoAt("cArc")].map((x) => x.toFixed(3).padStart(9)).join(""));
@@ -189,7 +189,7 @@ const prodPct = pctRank(landings.map((l) => l.m.redirArc));
     `production metric. Label THESE in the dashboard (set the INTENSITY ordinal!), then rerun`,
     `\`LR_ENGINE=wasm npx tsx scripts/v0/study_impact_impulse.ts\`. Regenerate this file the same way.`,
     ``,
-    `NOTE the two [0,1] columns use each metric's OWN anchor (SCORED ÷ ${REDIRARC.VERY_STRONG}, LEGACY ÷ ${OLD_VSTRONG},`,
+    `NOTE the two [0,1] columns use each metric's OWN anchor (SCORED ÷ ${IMPACT_RULER.VERY_STRONG}, LEGACY ÷ ${OLD_VSTRONG},`,
     `the pre-promotion value). The dashboard board deliberately puts BOTH lanes on the shipped`,
     `anchor so the bars are directly comparable, so its LEGACY bar reads slightly lower than this column.`,
     ``,

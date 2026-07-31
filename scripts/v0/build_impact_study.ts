@@ -1,10 +1,8 @@
 /**
  * Build the per-track IMPACT STUDY bundle for the dashboard at `/impact/`:
- *   - every landing on the two-lane decision board — the SCORED production metric
- *     (CURRENT, the accumulated redirection impulse) against the pre-promotion net
- *     form (LEGACY) — computed through the canonical impact_support.ts definitions
- *     (one window, one felt scale) so the dashboard and the scorer can never
- *     silently diverge. The 2026-06-14 seven-candidate metric zoo is retired;
+ *   - every landing on the SCORED production metric. `--include-legacy` adds the
+ *     pre-promotion net form on its own frozen ruler for explicit historical
+ *     comparison; it is never mixed with the current ruler;
  *   - a short looping mini-CLIP cut from the ride video around each landing, so a felt
  *     judgment needs one click, not scrubbing;
  *   - a plain markdown reference INDEX (t · beat# · phase · every metric · clip path) so
@@ -20,13 +18,13 @@
  *     --video=shakedown/shelter_impact_2m/video_with_audio.mp4 \
  *     [--detect=shakedown/shelter_impact_2m/detection.json]  # validate vs the WATCHED run \
  *     [--report=generated/shelter_impact_2m.report.json] [--spec=scripts/v0/specs/shelter_impact.ts] \
- *     [--pre=0.7 --post=0.7]   # clip seconds before/after the landing
+ *     [--pre=0.7 --post=0.7] [--include-legacy]
  */
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { pathToFileURL } from "node:url";
-import { FPS, REDIRARC, secToFrame, type DriftReport } from "./types.ts";
+import { FPS, IMPACT_RULER, normImpact, secToFrame, type DriftReport } from "./types.ts";
 import * as SS from "./impact_support.ts";
 
 const argv = process.argv.slice(2);
@@ -46,6 +44,7 @@ const specArg = arg("spec");
 const pre = Number(arg("pre") ?? "0.7");
 const post = Number(arg("post") ?? "0.7");
 const skipClips = argv.includes("--skip-clips"); // rewrite bundle/index, keep existing clips
+const includeLegacy = argv.includes("--include-legacy");
 
 if (!existsSync(trackPath)) { console.error(`track not found: ${trackPath}`); process.exit(1); }
 if (!existsSync(videoPath)) { console.error(`video not found: ${videoPath}`); process.exit(1); }
@@ -56,20 +55,35 @@ mkdirSync(clipsDir, { recursive: true });
 
 // ── candidate metric registry — one entry per lane. `fn` returns the RAW value
 //    (its own units); `cap` normalizes to [0,1] for the bars. group orders the lanes. ──
-type MetricDef = { key: string; label: string; group: "com" | "body"; cap: number; sub: string; fn: (sim: SS.Sim, f: number) => number };
-// Two-lane decision board (2026-07-30, docs/impact_definition.md): the SCORED
-// production metric vs the ONE standing challenger, both on the production felt
-// scale (raw / VERY_STRONG; SOFT = 0). The 2026-06-14 seven-candidate board and its
-// corpus-percentile scale were retired with the metric zoo — the page's divergence
-// (stdev over lanes) is now exactly |current − carc|/2, so "next divergent" walks
-// the beats whose labels decide the promotion.
+type MetricDef = {
+  key: string;
+  label: string;
+  group: "com" | "body";
+  cap: number;
+  sub: string;
+  fn: (sim: SS.Sim, f: number) => number;
+  normalize: (raw: number) => number;
+};
 const METRICS: MetricDef[] = [
-  { key: "current", label: "CURRENT", group: "com", cap: REDIRARC.VERY_STRONG,
-    sub: "production (2026-07-31) · redirection impulse Σ v̄·|Δθ|, contacted frames, normImpact scale", fn: (s, f) => SS.contactRedirArcPx(s, f) },
-  { key: "legacy",  label: "LEGACY",  group: "com", cap: REDIRARC.VERY_STRONG,
-    sub: "pre-promotion scored metric · redirArc = v·Δθ_net (comparison lane)", fn: (s, f) => SS.redirArcPx(s, f) },
+  {
+    key: "current",
+    label: "CURRENT",
+    group: "com",
+    cap: IMPACT_RULER.VERY_STRONG,
+    sub: "production · contacted-frame redirection impulse Σ v̄·|Δθ| · current normImpact ruler",
+    fn: (s, f) => SS.contactRedirArcPx(s, f),
+    normalize: normImpact,
+  },
+  ...(includeLegacy ? [{
+    key: "legacy",
+    label: "LEGACY",
+    group: "com" as const,
+    cap: SS.LEGACY_NET_REDIR_ARC_RULER.VERY_STRONG,
+    sub: "retired net redirArc = v·Δθ_net · frozen 2026-06-14 ruler",
+    fn: (s: SS.Sim, f: number) => SS.legacyNetRedirArcPx(s, f),
+    normalize: SS.legacyNetRedirArcToFelt,
+  }] : []),
 ];
-const normVal = (_key: string, raw: number, cap: number): number => Math.min(1, Math.max(0, raw / cap));
 
 // ── simulate (or load the watched detection) ──────────────────────────────────
 const track = JSON.parse(readFileSync(trackPath, "utf8"));
@@ -114,7 +128,11 @@ for (let i = 0; i < landings.length; i++) {
   const frame = landings[i];
   const t = frame / FPS;
   const values: Record<string, number> = {}, raw: Record<string, number> = {};
-  for (const m of METRICS) { const v = m.fn(sim, frame); raw[m.key] = r3(v); values[m.key] = r3(normVal(m.key, v, m.cap)); }
+  for (const m of METRICS) {
+    const v = m.fn(sim, frame);
+    raw[m.key] = r3(v);
+    values[m.key] = r3(m.normalize(v));
+  }
   const clipName = `beat_${frame}.mp4`;
   const start = Math.max(0, t - pre);
   if (!skipClips) {
@@ -159,7 +177,7 @@ const rows = beats.map((b) =>
 const md = [
   `# Impact study reference — ${name}`,
   ``,
-  `${beats.length} landings. Values on the production felt scale [0,1] (raw px/frame ÷ ${REDIRARC.VERY_STRONG}). Reference an impact by **#** or **t(s)**.`,
+  `${beats.length} landings. CURRENT uses the production felt ruler (SOFT=${IMPACT_RULER.SOFT}, VSTRONG=${IMPACT_RULER.VERY_STRONG}).${includeLegacy ? ` LEGACY uses its frozen ${SS.LEGACY_NET_REDIR_ARC_RULER.SOFT}/${SS.LEGACY_NET_REDIR_ARC_RULER.VERY_STRONG} ruler.` : ""} Reference an impact by **#** or **t(s)**.`,
   `Clips: \`generated/impact-study/${name}/clips/beat_<frame>.mp4\`. Dashboard: \`/impact/?data=/generated/impact-study/${name}.bundle.json\`.`,
   ``,
   head, sep, ...rows, ``,

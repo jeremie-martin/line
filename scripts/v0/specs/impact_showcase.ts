@@ -1,12 +1,13 @@
 /**
- * impact_showcase — full-range impact authored NATIVELY on the new redirArc felt scale (0=soft,
+ * impact_showcase — full-range impact authored NATIVELY on the current felt scale (0=soft,
  * 1=very strong), with the other axes set COMPATIBLE: amplitude + air rise WITH impact, and the
  * gap grows with the ask (a hard hit gets the vy budget it needs). Tests the mission's core goal —
  * can an author dial impact 0.1→1.0 across a beat list and get a meaningful, discriminating amount
  * WITHOUT sacrificing the other axes — in the physically-compatible regime (impact redirection
  * served by the same up-arc that makes amplitude/air, not fought by a flat scoop).
  *
- * New-convention authoring: impact values are the NEW scale (no migrateImpact wrap).
+ * Current-convention authoring: impact values are already on the production felt
+ * scale (no migrateImpact wrap).
  */
 import type { Contact, Spec } from "../types.ts";
 import { constant, keyframes } from "../core/curves.ts";

@@ -106,8 +106,8 @@ function sectionScale(t: number): number {
   return 0.28;
 }
 
-// Authored under the pre-redirArc impact convention; withImpactLegacy migrates
-// these values once to the current redirArc felt scale at spec load.
+// Authored under the pre-current-ruler impact convention; withImpactLegacy migrates
+// these values once to the current felt-impact scale at spec load.
 function impactAt(t: number, energy: number): number {
   let v = sectionBase(t) + sectionScale(t) * energy;
   if (near(t, phraseHits)) v += 0.06;

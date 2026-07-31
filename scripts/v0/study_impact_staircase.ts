@@ -3,7 +3,7 @@
  *
  * Authors a staircase of beats stepping authored impact 0.0 → 1.0 (several beats per level),
  * on uniform geometry at a few speeds, compiles with the CURRENT metric, and measures the RAW
- * redirArc (px/frame) the compiler actually DELIVERS at each authored level. This is the
+ * contact-redirection impulse (px/frame) the compiler actually DELIVERS at each authored level. This is the
  * anchor-independent evidence for: (a) the reliably-achievable range (floor & ceiling), (b)
  * where it SATURATES (→ the "reasonable, not rare-max" ceiling), and (c) whether the response
  * is monotone/discriminating across [0.1,1.0].
@@ -11,10 +11,10 @@
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_impact_staircase.ts [--budget=150000] [--seeds=3]
  *
  * Run it with anchors at their default (LR_IMPACT_SOFT/VSTRONG unset) — what matters is the
- * raw redirArc curve, which the report then maps under several candidate anchor sets.
+ * raw impulse curve, which the report then maps under several candidate anchor sets.
  */
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { type Spec, type Contact, secToFrame } from "./types.ts";
+import { IMPACT_RULER, type Spec, type Contact, secToFrame } from "./types.ts";
 import { constant } from "./core/curves.ts";
 import * as SS from "./impact_support.ts";
 
@@ -47,7 +47,11 @@ const P = (xs: number[], p: number) => xs.length ? [...xs].sort((a, b) => a - b)
 const mean = (xs: number[]) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : NaN;
 
 // candidate anchor sets to preview how the raw curve would normalize
-const ANCHORS: [string, number, number][] = [["S2.0/V6.5(shipped)", 2.0, 6.5], ["S2.8/V5.5", 2.8, 5.5], ["S2.8/V5.0", 2.8, 5.0], ["S2.5/V5.0", 2.5, 5.0]];
+const ANCHORS: [string, number, number][] = [
+  [`shipped ${IMPACT_RULER.SOFT}/${IMPACT_RULER.VERY_STRONG}`, IMPACT_RULER.SOFT, IMPACT_RULER.VERY_STRONG],
+  ["0/7.3", 0, 7.3],
+  ["0/7.9", 0, 7.9],
+];
 const norm = (px: number, s: number, v: number) => Math.max(0, Math.min(1, (px - s) / (v - s)));
 
 console.log(`staircase: levels ${LEVELS.join(",")} x ${PER} beats x speeds ${SPEEDS.join(",")} x ${NSEEDS} seeds, budget ${BUDGET}\n`);
@@ -66,12 +70,12 @@ for (const speed of SPEEDS) {
       let best = -1, bestD = 5;
       for (const f of levelOfFrame.keys()) { const d = Math.abs(f - e.frame); if (d < bestD) { bestD = d; best = f; } }
       if (best < 0) continue;
-      const px = SS.redirArcPx(sim, e.frame);
+      const px = SS.contactRedirArcPx(sim, e.frame);
       if (px !== undefined && Number.isFinite(px)) byLevel.get(levelOfFrame.get(best)!)!.push(px);
     }
   }
   console.log(`──────── speed ${speed} (≈${(0.0 + speed).toFixed(2)} authored) ────────`);
-  console.log(`  authored  n   redirArc: p25   p50   p75    | normImpact under candidate anchors`);
+  console.log(`  authored  n   raw impact: p25   p50   p75    | normImpact under candidate anchors`);
   for (const lv of LEVELS) {
     const xs = byLevel.get(lv)!;
     const p50 = P(xs, 0.5);

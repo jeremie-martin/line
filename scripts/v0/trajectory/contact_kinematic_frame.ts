@@ -7,7 +7,7 @@
  */
 import {
   IMPACT,
-  impactToRedirArcPx,
+  impactToRawPx,
   type AxisValues,
 } from "../types.ts";
 import type { PlanningState } from "./state.ts";
@@ -24,7 +24,7 @@ export type ContactKinematicFrame = {
   /** Null only when the contact did not author an impact requirement. */
   impact: {
     target: number;
-    requestedRedirArcPx: number;
+    requestedRawImpactPx: number;
     requestedTurnDeg: number;
     catchableTurnDeg: number;
   } | null;
@@ -49,16 +49,16 @@ export function contactKinematicFrameFromPlanningState(
     return { anchor, com: { headingDeg, speedPxPerFrame: speed }, impact: null };
   }
   const target = bounded("currentTargets.impact", impact, 0, 1);
-  const requestedRedirArcPx = impactToRedirArcPx(target);
-  const requestedTurnDeg = degrees(requestedRedirArcPx / speed);
+  const requestedRawImpactPx = impactToRawPx(target);
+  const requestedTurnDeg = degrees(requestedRawImpactPx / speed);
   const catchableTurnDeg = degrees(Math.min(
-    requestedRedirArcPx / speed,
+    requestedRawImpactPx / speed,
     Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
   ));
   return {
     anchor,
     com: { headingDeg, speedPxPerFrame: speed },
-    impact: { target, requestedRedirArcPx, requestedTurnDeg, catchableTurnDeg },
+    impact: { target, requestedRawImpactPx, requestedTurnDeg, catchableTurnDeg },
   };
 }
 

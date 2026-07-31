@@ -7,7 +7,7 @@
  * metric, not as the production ruler.]
  *
  * The pre-promotion scored impact was endpoint-to-endpoint, not a path integral
- * (`substrate.ts redirArcPxAtLanding`):
+ * (`substrate.ts contactRedirArcPxAtLanding`):
  *
  *   impact = |v(landing-1)| * |wrapPi( angle(v(landing+W)) - angle(v(landing-1)) )|
  *

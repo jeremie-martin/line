@@ -9,7 +9,7 @@ const frame: ContactKinematicFrame = {
     anchorPoint: "TAIL", headingSource: "reference_point_velocity",
   },
   com: { headingDeg: 0, speedPxPerFrame: 8 },
-  impact: { target: .6, requestedRedirArcPx: 4.8, requestedTurnDeg: 34.4, catchableTurnDeg: 18 },
+  impact: { target: .6, requestedRawImpactPx: 4.8, requestedTurnDeg: 34.4, catchableTurnDeg: 18 },
 };
 
 function state(rate = 2): PlanningState {

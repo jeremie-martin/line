@@ -22,7 +22,7 @@ const frame: ContactKinematicFrame = {
   com: { headingDeg: 0, speedPxPerFrame: 10 },
   impact: {
     target: 0.8,
-    requestedRedirArcPx: 5,
+    requestedRawImpactPx: 5,
     requestedTurnDeg: 30,
     catchableTurnDeg: 30,
   },
@@ -94,7 +94,7 @@ describe("contact capture arc", () => {
   });
 
   test("fails closed for authored zero impact until neutral incidence has its own study", () => {
-    const zeroImpact = { ...frame, impact: { ...frame.impact!, target: 0, requestedRedirArcPx: 0, requestedTurnDeg: 0, catchableTurnDeg: 0 } };
+    const zeroImpact = { ...frame, impact: { ...frame.impact!, target: 0, requestedRawImpactPx: 0, requestedTurnDeg: 0, catchableTurnDeg: 0 } };
     expect(() => makeContactCaptureArcScreen(zeroImpact)).toThrow(/zero-impact contact/);
     expect(() => resolveContactCaptureArc(zeroImpact, {
       turnOrientation: -1,

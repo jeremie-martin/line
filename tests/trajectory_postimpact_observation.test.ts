@@ -22,14 +22,14 @@ import {
   unresolvedPostimpactOffBeatLandingFramesAtWindowEnd,
 } from "../scripts/v0/trajectory/postimpact_observation.ts";
 import { studySourceIdentity } from "../scripts/v0/trajectory/study_artifact.ts";
-import { IMPACT, IMPACT_WINDOW, REDIRARC, SPEED_RULER, speedPxToAuthored } from "../scripts/v0/types.ts";
+import { IMPACT, IMPACT_RULER, IMPACT_WINDOW, SPEED_RULER, speedPxToAuthored } from "../scripts/v0/types.ts";
 import { postimpactSpeedPxToAuthored } from "../scripts/v0/trajectory/postimpact_physics.ts";
 
 const ACTIVE_CONVENTION = Object.freeze({
   impactWindowFrames: IMPACT_WINDOW,
   catchableRedirFraction: IMPACT.CATCHABLE_REDIR_FRACTION,
-  redirArcSoftPxPerFrame: REDIRARC.SOFT,
-  redirArcVeryStrongPxPerFrame: REDIRARC.VERY_STRONG,
+  redirArcSoftPxPerFrame: IMPACT_RULER.SOFT,
+  redirArcVeryStrongPxPerFrame: IMPACT_RULER.VERY_STRONG,
   speedRulerMinPxPerFrame: SPEED_RULER.MIN_PX_PER_FRAME,
   speedRulerMaxPxPerFrame: SPEED_RULER.MAX_PX_PER_FRAME,
 });

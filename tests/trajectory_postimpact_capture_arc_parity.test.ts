@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { IMPACT, IMPACT_WINDOW, REDIRARC, SPEED_RULER } from "../scripts/v0/types.ts";
+import { IMPACT, IMPACT_RULER, IMPACT_WINDOW, SPEED_RULER } from "../scripts/v0/types.ts";
 import {
   realizeContactCaptureArc,
   resolveContactCaptureArc,
@@ -19,8 +19,8 @@ import { targetFrameFromPlanningState } from "../scripts/v0/trajectory/target_fr
 const ACTIVE_CONVENTION: Readonly<PostimpactImpactConvention> = Object.freeze({
   impactWindowFrames: IMPACT_WINDOW,
   catchableRedirFraction: IMPACT.CATCHABLE_REDIR_FRACTION,
-  redirArcSoftPxPerFrame: REDIRARC.SOFT,
-  redirArcVeryStrongPxPerFrame: REDIRARC.VERY_STRONG,
+  redirArcSoftPxPerFrame: IMPACT_RULER.SOFT,
+  redirArcVeryStrongPxPerFrame: IMPACT_RULER.VERY_STRONG,
   speedRulerMinPxPerFrame: SPEED_RULER.MIN_PX_PER_FRAME,
   speedRulerMaxPxPerFrame: SPEED_RULER.MAX_PX_PER_FRAME,
 });

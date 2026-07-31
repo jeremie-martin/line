@@ -8,7 +8,7 @@
 import { contactRedirArcPxAtLanding } from "../core/substrate.ts";
 import { IMPACT_WINDOW, normImpact } from "../types.ts";
 import {
-  postimpactRedirArcToImpact,
+  postimpactRawImpactToFelt,
   type PostimpactImpactConvention,
 } from "./postimpact_physics.ts";
 
@@ -22,17 +22,17 @@ export type ScoredContactImpactOutcome = {
     | "measurement_unavailable";
   target: number | null;
   landingFrame: number | null;
-  redirArcPx: number | null;
+  rawPxPerFrame: number | null;
   achieved: number | null;
   residual: number | null;
 };
 
 /** Build a stable outcome once the exact raw impact measurement is known. */
-export function scoredContactImpactFromRedir(input: {
+export function scoredContactImpactFromRaw(input: {
   target: number | null;
   landingFrame: number | null;
   responseWindowComplete: boolean;
-  redirArcPx: number | undefined;
+  rawPxPerFrame: number | undefined;
 }, convention?: Readonly<PostimpactImpactConvention>): ScoredContactImpactOutcome {
   const base = {
     metric: "contactRedirArcPxAtLanding -> normImpact" as const,
@@ -41,21 +41,21 @@ export function scoredContactImpactFromRedir(input: {
     landingFrame: input.landingFrame,
   };
   if (input.landingFrame === null) {
-    return { ...base, availability: "no_owned_contact", redirArcPx: null, achieved: null, residual: null };
+    return { ...base, availability: "no_owned_contact", rawPxPerFrame: null, achieved: null, residual: null };
   }
   if (!input.responseWindowComplete) {
-    return { ...base, availability: "response_window_unavailable", redirArcPx: null, achieved: null, residual: null };
+    return { ...base, availability: "response_window_unavailable", rawPxPerFrame: null, achieved: null, residual: null };
   }
-  if (input.redirArcPx === undefined) {
-    return { ...base, availability: "measurement_unavailable", redirArcPx: null, achieved: null, residual: null };
+  if (input.rawPxPerFrame === undefined) {
+    return { ...base, availability: "measurement_unavailable", rawPxPerFrame: null, achieved: null, residual: null };
   }
   const achieved = convention === undefined
-    ? normImpact(input.redirArcPx)
-    : postimpactRedirArcToImpact(input.redirArcPx, convention);
+    ? normImpact(input.rawPxPerFrame)
+    : postimpactRawImpactToFelt(input.rawPxPerFrame, convention);
   return {
     ...base,
     availability: "measured",
-    redirArcPx: input.redirArcPx,
+    rawPxPerFrame: input.rawPxPerFrame,
     achieved,
     residual: input.target === null ? null : achieved - input.target,
   };
@@ -66,10 +66,10 @@ export function scoredContactImpact(
   detection: Parameters<typeof contactRedirArcPxAtLanding>[0],
   input: { target: number | null; landingFrame: number | null; responseWindowComplete: boolean },
 ): ScoredContactImpactOutcome {
-  const redirArcPx = input.landingFrame === null || !input.responseWindowComplete
+  const rawPxPerFrame = input.landingFrame === null || !input.responseWindowComplete
     ? undefined
     : contactRedirArcPxAtLanding(detection, input.landingFrame, IMPACT_WINDOW);
-  return scoredContactImpactFromRedir({ ...input, redirArcPx });
+  return scoredContactImpactFromRaw({ ...input, rawPxPerFrame });
 }
 
 /**
@@ -82,8 +82,8 @@ export function scoredContactImpactWithConvention(
   input: { target: number | null; landingFrame: number | null; responseWindowComplete: boolean },
   convention: Readonly<PostimpactImpactConvention>,
 ): ScoredContactImpactOutcome {
-  const redirArcPx = input.landingFrame === null || !input.responseWindowComplete
+  const rawPxPerFrame = input.landingFrame === null || !input.responseWindowComplete
     ? undefined
     : contactRedirArcPxAtLanding(detection, input.landingFrame, convention.impactWindowFrames);
-  return scoredContactImpactFromRedir({ ...input, redirArcPx }, convention);
+  return scoredContactImpactFromRaw({ ...input, rawPxPerFrame }, convention);
 }

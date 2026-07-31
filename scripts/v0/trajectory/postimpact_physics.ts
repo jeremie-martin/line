@@ -21,7 +21,9 @@ export type PostimpactTrackLine = {
 export type PostimpactImpactConvention = {
   impactWindowFrames: number;
   catchableRedirFraction: number;
+  /** Historical serialized fixture key; stores the active raw-impact soft anchor. */
   redirArcSoftPxPerFrame: number;
+  /** Historical serialized fixture key; stores the active raw-impact very-strong anchor. */
   redirArcVeryStrongPxPerFrame: number;
   /** Canonical authored-speed ruler sealed for descriptive measurement. */
   speedRulerMinPxPerFrame: number;
@@ -34,7 +36,7 @@ export type PostimpactSpeedRuler = Readonly<{
   speedRulerMaxPxPerFrame: number;
 }>;
 
-export function postimpactImpactToRedirArcPx(
+export function postimpactFeltToRawImpactPx(
   impact: number,
   convention: PostimpactImpactConvention,
 ): number {
@@ -43,13 +45,13 @@ export function postimpactImpactToRedirArcPx(
     (convention.redirArcVeryStrongPxPerFrame - convention.redirArcSoftPxPerFrame);
 }
 
-export function postimpactRedirArcToImpact(
-  redirArcPxPerFrame: number,
+export function postimpactRawImpactToFelt(
+  rawImpactPxPerFrame: number,
   convention: PostimpactImpactConvention,
 ): number {
   assertImpactConvention(convention);
   return clamp01(
-    (redirArcPxPerFrame - convention.redirArcSoftPxPerFrame) /
+    (rawImpactPxPerFrame - convention.redirArcSoftPxPerFrame) /
       (convention.redirArcVeryStrongPxPerFrame - convention.redirArcSoftPxPerFrame),
   );
 }

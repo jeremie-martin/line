@@ -139,7 +139,7 @@ function runCell(base: Omit<Row, "outcome" | "lf" | "contact14" | "mSpeed" | "mA
   }
   return {
     ...base, outcome, lf, contact14, mSpeed, mAlpha,
-    cArc: SS.contactRedirArcPx(sim, lf), redirArc: SS.redirArcPx(sim, lf),
+    cArc: SS.contactRedirArcPx(sim, lf), redirArc: SS.legacyNetRedirArcPx(sim, lf),
   };
 }
 

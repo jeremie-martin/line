@@ -6,9 +6,9 @@
 # Fast iteration harness for the redirArc impact-metric era (commit 79627f5: impact redefined
 # as redirArc = v·Δθ, felt-anchored normImpact, dead-zone below SOFT=2.0, saturate at 6.5).
 # Use this to A/B any compiler/calibration change against a FROZEN reference = the current
-# new-metric, PLANNING-OFF compiler.
+# current-metric, PLANNING-OFF compiler.
 #   docs/impact_contract.md            — the metric contract (definition/feasibility/scoring).
-#   docs/impact_problem_statement.md   — the full calibration trail + the convention caveat
+#   docs/impact_definition.md          — current formula, frame semantics, ruler, legacy policy
 #                                        (existing specs authored on the OLD soft≈0.2 scale).
 #   generated/impact-study/            — the before/after metric study + analyze_shift.py.
 #

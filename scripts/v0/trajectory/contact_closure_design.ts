@@ -6,7 +6,7 @@
  * defined in target-frame units and is independent of case identity, duration,
  * legacy geometry, or a prior study result.
  */
-import { IMPACT, impactToRedirArcPx, type AxisValues } from "../types.ts";
+import { IMPACT, impactToRawPx, type AxisValues } from "../types.ts";
 import type { ContactClosureControl } from "./contact_closure.ts";
 import type { TargetFrame } from "./target_frame.ts";
 
@@ -54,7 +54,7 @@ export function contactTurnScreenMagnitudeDeg(
   if (impact === undefined) throw new Error("local contact-closure screen requires an authored current impact target");
   const speed = positive("frame.speedPxPerFrame", frame.speedPxPerFrame);
   const radians = Math.min(
-    impactToRedirArcPx(impact) / speed,
+    impactToRawPx(impact) / speed,
     Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
   );
   const degrees = radians * 180 / Math.PI;

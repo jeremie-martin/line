@@ -6,7 +6,7 @@ function frame(): ContactKinematicFrame {
   return {
     anchor: { reference: { x: 0, y: 0 }, headingDeg: 0, speedPxPerFrame: 8, sledSpanPx: 12, anchorPoint: "TAIL", headingSource: "reference_point_velocity" },
     com: { headingDeg: 0, speedPxPerFrame: 8 },
-    impact: { target: .5, requestedRedirArcPx: 5, requestedTurnDeg: 35, catchableTurnDeg: 20 },
+    impact: { target: .5, requestedRawImpactPx: 5, requestedTurnDeg: 35, catchableTurnDeg: 20 },
   };
 }
 

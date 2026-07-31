@@ -243,7 +243,7 @@ type ScoredImpactOutcome = {
   responseEndFrame: number | null;
   persistenceWindowComplete: boolean | null;
   responseWindowComplete: boolean | null;
-  redirArcPx: number | null;
+  rawPxPerFrame: number | null;
   achieved: number | null;
   residual: number | null;
 };
@@ -700,7 +700,7 @@ function measureOwnedScoredImpact(
     return {
       ...base,
       availability: "not_authored",
-      redirArcPx: null,
+      rawPxPerFrame: null,
       achieved: null,
       residual: null,
     };
@@ -709,7 +709,7 @@ function measureOwnedScoredImpact(
     return {
       ...base,
       availability: "no_owned_contact",
-      redirArcPx: null,
+      rawPxPerFrame: null,
       achieved: null,
       residual: null,
     };
@@ -718,26 +718,26 @@ function measureOwnedScoredImpact(
     return {
       ...base,
       availability: "response_unavailable",
-      redirArcPx: null,
+      rawPxPerFrame: null,
       achieved: null,
       residual: null,
     };
   }
-  const redirArcPx = contactRedirArcPxAtLanding(detection, landing.frame, IMPACT_WINDOW);
-  if (redirArcPx === undefined) {
+  const rawPxPerFrame = contactRedirArcPxAtLanding(detection, landing.frame, IMPACT_WINDOW);
+  if (rawPxPerFrame === undefined) {
     return {
       ...base,
       availability: "measurement_unavailable",
-      redirArcPx: null,
+      rawPxPerFrame: null,
       achieved: null,
       residual: null,
     };
   }
-  const achieved = normImpact(redirArcPx);
+  const achieved = normImpact(rawPxPerFrame);
   return {
     ...base,
     availability: "measured",
-    redirArcPx: round(redirArcPx),
+    rawPxPerFrame: round(rawPxPerFrame),
     achieved: round(achieved),
     residual: round(achieved - target),
   };
@@ -753,7 +753,7 @@ function unobservedImpactOutcome(target: number | undefined): ScoredImpactOutcom
     responseEndFrame: null,
     persistenceWindowComplete: null,
     responseWindowComplete: null,
-    redirArcPx: null,
+    rawPxPerFrame: null,
     achieved: null,
     residual: null,
   };

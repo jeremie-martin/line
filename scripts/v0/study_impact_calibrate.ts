@@ -51,8 +51,8 @@ for (const name of SPECS) {
   let n = 0;
   for (const e of sim.det.events) {
     if (e.type !== "landing" || e.frame < 3 || e.frame > sim.last - 2) continue;
-    const pt = SS.pointImpactPx(sim, e.frame); if (pt === undefined) continue;
-    recs.push({ spec: name, t: e.frame / 40, redir: SS.redirPx(sim, e.frame, W), point: pt, snap: SS.snapPx(sim, e.frame, W) });
+    const pt = SS.legacyNormalClosingSpeedPx(sim, e.frame); if (pt === undefined) continue;
+    recs.push({ spec: name, t: e.frame / 40, redir: SS.legacyPerpendicularRedirectionPx(sim, e.frame, W), point: pt, snap: SS.snapPx(sim, e.frame, W) });
     n++;
   }
   console.log(`  ${name.padEnd(22)} ${n} landings`);
@@ -64,7 +64,7 @@ const snap = recs.map((r) => r.snap).sort((a, b) => a - b);
 const P = (xs: number[], p: number) => xs[Math.min(xs.length - 1, Math.floor(p * xs.length))];
 console.log(`\n=== redir envelope across ${recs.length} landings / ${SPECS.length} golden tracks (W=${W}, px/frame) ===`);
 console.log(`  redir  p50 ${P(redir, .5).toFixed(2)}  p75 ${P(redir, .75).toFixed(2)}  p90 ${P(redir, .9).toFixed(2)}  p95 ${P(redir, .95).toFixed(2)}  p99 ${P(redir, .99).toFixed(2)}  max ${redir[redir.length - 1].toFixed(2)}`);
-console.log(`  point  p50 ${P(point, .5).toFixed(2)}  p75 ${P(point, .75).toFixed(2)}  p90 ${P(point, .9).toFixed(2)}  p95 ${P(point, .95).toFixed(2)}  p99 ${P(point, .99).toFixed(2)}  max ${point[point.length - 1].toFixed(2)}  (current IMPACT_CAP=${SS.IMPACT_CAP})`);
+console.log(`  point  p50 ${P(point, .5).toFixed(2)}  p75 ${P(point, .75).toFixed(2)}  p90 ${P(point, .9).toFixed(2)}  p95 ${P(point, .95).toFixed(2)}  p99 ${P(point, .99).toFixed(2)}  max ${point[point.length - 1].toFixed(2)}  (legacy cap=${SS.LEGACY_NORMAL_CLOSING_CAP})`);
 console.log(`  snap   p50 ${P(snap, .5).toFixed(2)}  p75 ${P(snap, .75).toFixed(2)}  p90 ${P(snap, .9).toFixed(2)}  p95 ${P(snap, .95).toFixed(2)}  p99 ${P(snap, .99).toFixed(2)}  max ${snap[snap.length - 1].toFixed(2)}  (px/frame²; current CAPS.snap=${SS.CAPS.snap})`);
 
 const pctOf = (v: number) => 100 * redir.filter((x) => x <= v).length / redir.length;
@@ -78,7 +78,7 @@ if (labelTrackArg !== undefined) {
   console.log(`\n=== user-labeled Shelter beats — redir@${W} and their percentile in the golden envelope ===`);
   for (const [t, note] of LABELS) {
     const lf = SS.landingNear(shelter, Math.round(t * 40));
-    const r = SS.redirPx(shelter, lf, W);
+    const r = SS.legacyPerpendicularRedirectionPx(shelter, lf, W);
     console.log(`  t=${t.toFixed(2).padStart(6)}  ${note.padEnd(14)} redir ${r.toFixed(2).padStart(5)}  (${pctOf(r).toFixed(0)}th pct of corpus)`);
   }
 } else {

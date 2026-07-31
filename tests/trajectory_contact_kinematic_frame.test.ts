@@ -36,7 +36,7 @@ describe("contact kinematic frame", () => {
     expect(frame.anchor).toBe(anchor);
     expect(frame.com).toEqual({ headingDeg: 0, speedPxPerFrame: 10 });
     // 0.5 × VSTRONG(7.55) = 3.775 px requested; ÷ speed 10 → 0.3775 rad = 21.629°
-    expect(frame.impact?.requestedRedirArcPx).toBeCloseTo(3.775, 12);
+    expect(frame.impact?.requestedRawImpactPx).toBeCloseTo(3.775, 12);
     expect(frame.impact?.requestedTurnDeg).toBeCloseTo(21.629, 3);
     expect(frame.impact?.catchableTurnDeg).toBeCloseTo(frame.impact?.requestedTurnDeg ?? 0, 12);
   });

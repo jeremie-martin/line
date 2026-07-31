@@ -1201,8 +1201,8 @@ function resolveImpactTargets(
   if (!impactOff) {
     for (const c of spec.contacts) {
       // The convention rescale is now BAKED at authoring (golden specs use withImpactLegacy /
-      // migrateImpact, beats.ts) — authored impact already sits on the new felt scale here, no
-      // runtime remap. New specs author natively on the new scale.
+      // migrateImpact, beats.ts) — authored impact already sits on the current felt scale here,
+      // with no runtime remap. New specs author natively on the current scale.
       if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
     }
   }

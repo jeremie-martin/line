@@ -141,10 +141,10 @@ const output = {
         record.incidence.shareOfRequestedTurn === null ? [] : [record.incidence.shareOfRequestedTurn],
       )),
       carrierLengthPx: summarize(observed.map((record) => record.carrier.lengthPx)),
-      scorerRedirArcPx: summarize(observed.map((record) => record.response.redirArcPx)),
+      scorerRawImpactPx: summarize(observed.map((record) => record.response.rawImpactPx)),
       scorerImpact: summarize(observed.map((record) => record.response.normalizedImpact)),
-      responseShareOfRequestedArc: summarize(observed.flatMap((record) =>
-        record.response.shareOfRequestedArc === null ? [] : [record.response.shareOfRequestedArc],
+      responseShareOfRequestedImpact: summarize(observed.flatMap((record) =>
+        record.response.shareOfRequestedImpact === null ? [] : [record.response.shareOfRequestedImpact],
       )),
       responseTurnDeg: summarize(observed.map((record) => record.response.netTurnDeg)),
     },
@@ -228,12 +228,10 @@ function replayRawRecord(
   const preSpeed = Math.hypot(preVelocity.x, preVelocity.y);
   if (!(preSpeed > 0)) throw new Error(`raw record ${record.label}: non-positive incoming CoM speed`);
   const preHeadingDeg = Math.atan2(preVelocity.y, preVelocity.x) * 180 / Math.PI;
-  const targetArc = kinematic.impact?.requestedRedirArcPx ?? null;
-  const requestedTurnDeg = targetArc === null ? null : targetArc / preSpeed * 180 / Math.PI;
-  // Field name `redirArcPx` is historical: it now carries the scored accumulated
-  // redirection impulse (contactRedirArcPxAtLanding), not the legacy net v·Δθ arc.
-  const redirArcPx = contactRedirArcPxAtLanding(observed.detection, observed.selected.frame, IMPACT_WINDOW);
-  if (redirArcPx === undefined) throw new Error(`raw record ${record.label}: scorer response is unreadable`);
+  const targetRawImpactPx = kinematic.impact?.requestedRawImpactPx ?? null;
+  const requestedTurnDeg = targetRawImpactPx === null ? null : targetRawImpactPx / preSpeed * 180 / Math.PI;
+  const rawImpactPx = contactRedirArcPxAtLanding(observed.detection, observed.selected.frame, IMPACT_WINDOW);
+  if (rawImpactPx === undefined) throw new Error(`raw record ${record.label}: scorer response is unreadable`);
   const responseFrame = Math.min(
     observed.responseEndFrame,
     observed.selected.frame + IMPACT_WINDOW,
@@ -278,10 +276,12 @@ function replayRawRecord(
         frame: responseFrame,
         headingDeg: round(responseHeadingDeg),
         netTurnDeg: round(netTurnDeg),
-        redirArcPx: round(redirArcPx),
-        normalizedImpact: round(normImpact(redirArcPx)),
-        requestedRedirArcPx: targetArc === null ? null : round(targetArc),
-        shareOfRequestedArc: targetArc === null || targetArc <= 1e-9 ? null : round(redirArcPx / targetArc),
+        rawImpactPx: round(rawImpactPx),
+        normalizedImpact: round(normImpact(rawImpactPx)),
+        requestedRawImpactPx: targetRawImpactPx === null ? null : round(targetRawImpactPx),
+        shareOfRequestedImpact: targetRawImpactPx === null || targetRawImpactPx <= 1e-9
+          ? null
+          : round(rawImpactPx / targetRawImpactPx),
       },
     };
   });

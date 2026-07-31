@@ -17,9 +17,19 @@
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
-import { AXES, FPS, secToFrame, type Spec, type DriftReport } from "./v0/types.ts";
+import {
+  AXES,
+  FPS,
+  IMPACT_METRIC,
+  normImpact,
+  secToFrame,
+  type Spec,
+  type DriftReport,
+} from "./v0/types.ts";
+import { contactRedirArcPxAtLanding } from "./v0/core/substrate.ts";
 import { scoreDriftReport } from "./v0/score.ts";
-import * as SS from "./v0/impact_support.ts";
+import { LineRiderEngine, createLineFromJson } from "./lib/_lr_engine.ts";
+import { detect, extractRawTrajectory } from "./lib/detector.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string, def?: string): string => {
@@ -47,52 +57,38 @@ const track = JSON.parse(readFileSync(resolve(trackPath), "utf8")) as {
 const durationS = track.duration / FPS;
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
-// Per-beat MEASURED landing-impact candidates for the overlay, ALL computed through
-// the canonical definitions in scripts/v0/impact_support.ts (one window, one set of
-// caps, one rider topology) so the rendered video and the analysis harnesses can
-// never silently diverge. See docs/impact_problem_statement.md for what each means:
-//   point   pre-impact CoM normal closing speed (the shipped scorer's definition)
-//   redir   perpendicular (redirection) component of the CoM velocity change — the
-//           converged felt-impact candidate; rotation-immune, excludes slowdown
-//   snap    peak PER-FRAME ⊥ velocity change = the redirection FORCE/suddenness — how
-//           VIOLENTLY the path is bent (vs redir's how MUCH); the smooth-vs-snappy axis
-//   turn    net CoM heading change; dv = total gravity-corrected |Δv| (impulse)
-//   jolt/whip/deform/rot = body-motion candidates kept as REJECTED/diagnostic
-//           (rotation-confounded — they flag rotation-settles the rider doesn't feel)
-//   window  the rejected decayed windowed normal-speed proposal
-type BeatImpact = { point: number; window: number; redir: number; snap: number; jolt: number; whip: number; comDecel: number; deform: number; rot: number; turn: number; dv: number };
+// Per-landing production impact. The overlay deliberately carries exactly one
+// measured ruler: the same raw function and normalization used by scoring.
+// Candidate/retired metrics belong in the separate analysis dashboard.
+type BeatImpact = { rawPxPerFrame: number; measured: number };
 function impactByFrame(): Map<number, BeatImpact> {
   const out = new Map<number, BeatImpact>();
   if (!track.lines?.length) return out;
-  const sim = SS.simulateTrack(track);
-  for (const e of sim.det.events) {
+  let engine = new LineRiderEngine().setStart(
+    { x: track.startPosition?.x ?? 0, y: track.startPosition?.y ?? 0 },
+    {
+      x: track.riders?.[0]?.startVelocity?.x ?? 0.4,
+      y: track.riders?.[0]?.startVelocity?.y ?? 0,
+    },
+  );
+  for (const line of track.lines) {
+    engine = engine.addLine(createLineFromJson(line));
+  }
+  const detection = detect(extractRawTrajectory(engine, track.duration));
+  for (const e of detection.events) {
     if (e.type !== "landing") continue;
     const f = e.frame;
-    const px = SS.pointImpactPx(sim, f);
-    if (px === undefined) continue;
-    const vc = SS.velChange(sim, f);
-    const bj = SS.bodyJolt(sim, f);
-    const df = SS.deformStats(sim, f);
+    const rawPxPerFrame = contactRedirArcPxAtLanding(detection, f);
+    if (rawPxPerFrame === undefined) continue;
     out.set(f, {
-      point: SS.norm01(px, SS.IMPACT_CAP),
-      window: SS.norm01(SS.windowedNormalPx(sim, f), SS.IMPACT_CAP),
-      // [LEGACY LANE] the pre-2026-06-14 `redir = v·sinΔθ` candidate on its own REDIR_CAP
-      // scale — NOT the scored impact (that is `contactRedirArcPxAtLanding` → `normImpact`).
-      redir: SS.norm01(SS.redirPx(sim, f), SS.REDIR_CAP),
-      snap: SS.norm01(SS.snapPx(sim, f), SS.CAPS.snap),   // force/suddenness candidate (under review)
-      turn: SS.norm01(SS.turnNetDeg(sim, f), SS.CAPS.turnDeg),
-      dv: SS.norm01(vc.dvGrav, SS.IMPACT_CAP),
-      jolt: SS.norm01(bj.jolt, SS.CAPS.jolt),
-      whip: SS.norm01(bj.whip, SS.CAPS.whip),
-      comDecel: SS.norm01(SS.comDecelNormalPx(sim, f), SS.CAPS.comDecel),
-      deform: df ? SS.norm01(df.peak, SS.CAPS.deform) : 0,
-      rot: SS.norm01(SS.sledRotDeg(sim, f), SS.CAPS.rotDeg),
+      rawPxPerFrame,
+      measured: normImpact(rawPxPerFrame),
     });
   }
   return out;
 }
 const impactFrames = impactByFrame();
-/** Measured impact candidates for a beat at time t (nearest landing within ±1 frame). */
+/** Current measured impact for a beat at time t (nearest landing within ±1 frame). */
 function beatImpact(tSec: number): BeatImpact | undefined {
   const f = secToFrame(tSec);
   return impactFrames.get(f) ?? impactFrames.get(f - 1) ?? impactFrames.get(f + 1);
@@ -157,28 +153,23 @@ const axesOut = AXES.filter((a) => spec.axes[a]).map((axis) => {
 const contacts = report.contacts.map((c) => {
   const imp = beatImpact(c.t_target);
   const score = impactScore(c.t_target);
+  const landed = c.status !== "missing";
+  if (landed && imp !== undefined && score !== undefined &&
+      Math.abs(imp.measured - score.achieved) > 0.002) {
+    throw new Error(
+      `impact metric mismatch at t=${c.t_target}: report=${score.achieved}, ` +
+        `track=${r3(imp.measured)}. Regenerate the report and overlay from the same ruler.`,
+    );
+  }
   return {
     t: r3(c.t_target),
-    landed: c.status !== "missing",
+    landed,
     impactTarget: score === undefined ? null : score.target,
-    impactAchieved: score === undefined ? null : score.achieved,
     impactError: score === undefined ? null : score.error,
-    // Measured landing intensity [0,1], three candidate definitions; null if the
-    // beat didn't land. Report-only read-outs — see docs/impact_problem_statement.md.
-    //   impact       = current one-frame point metric (the solid bar)
-    //   impactWindow = proposed decayed-peak windowed metric (ghost outline)
-    //   impactRedir  = true CoM velocity redirection (tick)
-    impact: imp === undefined ? null : r3(imp.point),
-    impactWindow: imp === undefined ? null : r3(imp.window),
-    impactRedir: imp === undefined ? null : r3(imp.redir),
-    impactSnap: imp === undefined ? null : r3(imp.snap),
-    impactJolt: imp === undefined ? null : r3(imp.jolt),
-    impactWhip: imp === undefined ? null : r3(imp.whip),
-    impactComDecel: imp === undefined ? null : r3(imp.comDecel),
-    impactDeform: imp === undefined ? null : r3(imp.deform),
-    impactRot: imp === undefined ? null : r3(imp.rot),
-    impactTurn: imp === undefined ? null : r3(imp.turn),
-    impactDv: imp === undefined ? null : r3(imp.dv),
+    impactMeasured: !landed
+      ? null
+      : score?.achieved ?? (imp === undefined ? null : r3(imp.measured)),
+    impactRawPxPerFrame: !landed || imp === undefined ? null : r3(imp.rawPxPerFrame),
   };
 });
 
@@ -189,6 +180,8 @@ const phases = meta.phases ?? [{ name: "TRACK", t0: 0, t1: durationS, color: "#5
 const score = scoreDriftReport(report, { totalFrames: track.duration });
 
 const bundle = {
+  schema: "line-overlay/v2",
+  impactMetric: IMPACT_METRIC,
   title: meta.title ?? "TRACK",
   artist: meta.artist ?? "",
   tempo: meta.tempo ?? "",

@@ -7,7 +7,7 @@
  *   0. authored-ask histogram (sanity vs the catalog distribution)
  *   A. asked → achieved response per ask band (old norm + cArc/V_NEW) + miss rate
  *   B. meaning-shift audit: V* re-derived on THIS corpus; shift at the old anchor
- *      (7.29), the shipped anchor (V_NEW = REDIRARC.VERY_STRONG), 7.85 and 11.3
+ *      (7.29), the shipped anchor (V_NEW = IMPACT_RULER.VERY_STRONG), 7.85 and 11.3
  *   C. ceiling law: in-window turn (cArc/speedIn) distribution + violations > 1.0 rad
  *   D. redirArc reversal pathology census (net turn > 2.5 rad) — the old metric's
  *      failure mode frequency on canonical content
@@ -15,7 +15,7 @@
  *   F. visible-divergence rate |newNorm − oldNorm| > 0.1
  *
  * "old norm" throughout = clamp(redirArc / OLD_VSTRONG) with OLD_VSTRONG frozen at the
- * PRE-promotion 7.29 — deliberately not the live REDIRARC.VERY_STRONG, so the drift is
+ * PRE-promotion 7.29 — deliberately not the live IMPACT_RULER.VERY_STRONG, so the drift is
  * measured against what shipped before the cArc promotion rather than against itself.
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_impact_benchmark_validation.ts \
@@ -28,17 +28,17 @@ import { resolve } from "node:path";
 import * as SS from "./impact_support.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { loadSourceManifest, resolveSources, loadSourceSpec } from "./benchmark_v2/model.ts";
-import { FPS, REDIRARC } from "./types.ts";
+import { FPS, IMPACT_RULER } from "./types.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string, dflt: string) => argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? dflt;
 const SEEDS = arg("seeds", "0,1,2").split(",").map(Number);
 const BUDGET = Number(arg("budget", "750000"));
 const MANIFEST = arg("manifest", "benchmark/v2/compat/source-manifest.json");
-const V_NEW = REDIRARC.VERY_STRONG; // the SHIPPED cArc anchor (docs/impact_definition.md Calibration)
+const V_NEW = IMPACT_RULER.VERY_STRONG; // the SHIPPED cArc anchor
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 
-/** Pre-promotion `REDIRARC.VERY_STRONG` — the baseline this validation measures drift AGAINST.
+/** Pre-promotion `IMPACT_RULER.VERY_STRONG` — the baseline this validation measures drift AGAINST.
  *  Frozen on purpose: it must NOT follow the live anchor, or the meaning-shift audit compares
  *  the new metric against a baseline that already absorbed the new anchor (self-referential V*). */
 const OLD_VSTRONG = 7.29;
@@ -92,7 +92,7 @@ function measure(src: string, seed: number, sim: SS.Sim, lf: number, ask: number
   return {
     src, seed, frame: lf, ask, hit,
     speedIn: v ? Math.hypot(v.x, v.y) : 0,
-    redirArc: SS.redirArcPx(sim, lf), cArc: SS.contactRedirArcPx(sim, lf), contact14,
+    redirArc: SS.legacyNetRedirArcPx(sim, lf), cArc: SS.contactRedirArcPx(sim, lf), contact14,
   };
 }
 console.log(`\ndataset: ${lands.length} landings (${lands.filter((l) => l.ask !== null).length} authored) in ${((Date.now() - t0) / 60000).toFixed(1)} min`);

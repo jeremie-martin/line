@@ -6,7 +6,7 @@
  */
 import { MIN_LANDING_AIRBORNE_FRAMES } from "../../lib/detector.ts";
 import {
-  impactToRedirArcPx,
+  impactToRawPx,
   IMPACT,
   type Gap,
 } from "../types.ts";
@@ -76,7 +76,7 @@ export function deriveTrajectoryIntent(
   const impactTurnDeg = currentGap.targets.impact === undefined
     ? 0
     : radiansToDeg(Math.min(
-      impactToRedirArcPx(currentGap.targets.impact) / Math.max(1, contactAnchorState.speed),
+      impactToRawPx(currentGap.targets.impact) / Math.max(1, contactAnchorState.speed),
       Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
     ));
   // Impact gives a required turn magnitude, not a preferred turn direction.

@@ -19,7 +19,7 @@ import { existsSync, mkdirSync, writeFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { type Spec, type Curve, secToFrame, REDIRARC } from "./types.ts";
+import { IMPACT_RULER, type Spec, type Curve, secToFrame } from "./types.ts";
 import * as SS from "./impact_support.ts";
 
 const argv = process.argv.slice(2);
@@ -56,8 +56,9 @@ function allSpecFiles(): { name: string; path: string }[] {
 
 // candidate metrics (same set the dashboard/build use)
 const METRICS: { key: string; unit: string; fn: (s: SS.Sim, f: number) => number }[] = [
-  { key: "redir",    unit: "px/f",  fn: (s, f) => SS.redirPx(s, f) },
-  { key: "redirArc", unit: "px/f",  fn: (s, f) => SS.redirArcPx(s, f) },
+  { key: "impact",   unit: "px/f",  fn: (s, f) => SS.contactRedirArcPx(s, f) },
+  { key: "redir",    unit: "px/f",  fn: (s, f) => SS.legacyPerpendicularRedirectionPx(s, f) },
+  { key: "redirArc", unit: "px/f",  fn: (s, f) => SS.legacyNetRedirArcPx(s, f) },
   { key: "redirDec", unit: "px/f",  fn: (s, f) => SS.redirDecayPx(s, f) },
   { key: "snap",     unit: "px/f²", fn: (s, f) => SS.snapPx(s, f) },
   { key: "turn",     unit: "deg",   fn: (s, f) => SS.turnNetDeg(s, f) },
@@ -92,7 +93,7 @@ const specs = allSpecs.filter((_, idx) => ((idx % SHARD_N) + SHARD_N) % SHARD_N 
 console.log(`calibrate_corpus — shard ${SHARD_K}/${SHARD_N}: ${specs.length}/${allSpecs.length} specs × ${perSpec} variants (perturb ±${PCT * 100}%, budget ${BUDGET}, seed-vary ${SEED_VARY})\n`);
 
 const vals: Record<string, number[]> = Object.fromEntries(METRICS.map((m) => [m.key, []]));
-// RESPONSE CURVE: achieved redirArc bucketed by the AUTHORED impact of the beat the landing
+// RESPONSE CURVE: achieved production impulse bucketed by the AUTHORED impact of the beat the landing
 // hit — the thing we actually need to calibrate (does authoring grade impact? reach per level?).
 // 10 bins [0,0.1)…[0.9,1.0]; a landing is matched to the nearest authored beat (±4 frames).
 const NBINS = 10;
@@ -117,13 +118,18 @@ for (const { name, path } of specs) {
       let n = 0;
       for (const e of sim.det.events) {
         if (e.type !== "landing" || e.frame < 3 || e.frame > sim.last - 2) continue;
-        if (SS.pointImpactPx(sim, e.frame) === undefined) continue;
+        if (SS.legacyNormalClosingSpeedPx(sim, e.frame) === undefined) continue;
         for (const m of METRICS) vals[m.key].push(m.fn(sim, e.frame));
         n++;
-        // response: attribute this landing's redirArc to the authored impact it was asked for.
+        // response: attribute this landing's scored raw impulse to the authored ask.
         let bestF = -1, bestD = 5;
         for (const f of impByFrame.keys()) { const d = Math.abs(f - e.frame); if (d < bestD) { bestD = d; bestF = f; } }
-        if (bestF >= 0) { const ra = SS.redirArcPx(sim, e.frame); if (Number.isFinite(ra)) respBins[binOf(impByFrame.get(bestF)!)].push(ra); }
+        if (bestF >= 0) {
+          const rawImpact = SS.contactRedirArcPx(sim, e.frame);
+          if (Number.isFinite(rawImpact)) {
+            respBins[binOf(impByFrame.get(bestF)!)].push(rawImpact);
+          }
+        }
       }
       okVariants++; specOk++; specLand += n; totalLandings += n;
     } catch { failVariants++; }
@@ -145,17 +151,17 @@ for (const m of METRICS) {
     capP95: Math.round(P(s, 0.95) * 1000) / 1000, capP99: Math.round(P(s, 0.99) * 1000) / 1000,
   };
 }
-// ── RESPONSE CURVE: achieved redirArc by AUTHORED impact level (the calibration evidence) ──
-// Anchor previews: how each authored level's MEDIAN achieved redirArc would normalize under a
+// ── RESPONSE CURVE: achieved raw impact by AUTHORED impact level ──────────────
+// Anchor previews: how each authored level's MEDIAN achieved impulse would normalize under a
 // few candidate (SOFT,VERY_STRONG) sets, so we can read off discrimination/dead-zone/saturation.
 const ANCHORS: [string, number, number][] = [
-  [`shipped ${REDIRARC.SOFT}/${REDIRARC.VERY_STRONG}`, REDIRARC.SOFT, REDIRARC.VERY_STRONG],
-  ["2.8/5.5", 2.8, 5.5], ["2.5/5.5", 2.5, 5.5], ["2.5/6.0", 2.5, 6.0],
+  [`shipped ${IMPACT_RULER.SOFT}/${IMPACT_RULER.VERY_STRONG}`, IMPACT_RULER.SOFT, IMPACT_RULER.VERY_STRONG],
+  ["0/7.3", 0, 7.3], ["0/7.9", 0, 7.9],
 ];
 const norm = (px: number, s: number, v: number) => Math.max(0, Math.min(1, (px - s) / (v - s)));
 const respOut: Record<string, unknown> = {};
-console.log(`\n=== RESPONSE: achieved redirArc by AUTHORED impact level (${respBins.reduce((a, b) => a + b.length, 0)} attributed landings) ===`);
-console.log(`  authored      n   redirArc(px) p10  p25  p50  p75  p90   |  normImpact(p50) under  ${ANCHORS.map((a) => a[0]).join("  ")}`);
+console.log(`\n=== RESPONSE: achieved raw impact by AUTHORED impact level (${respBins.reduce((a, b) => a + b.length, 0)} attributed landings) ===`);
+console.log(`  authored      n   impact(px) p10  p25  p50  p75  p90   |  normImpact(p50) under  ${ANCHORS.map((a) => a[0]).join("  ")}`);
 for (let b = 0; b < NBINS; b++) {
   const xs = [...respBins[b]].sort((a, b) => a - b);
   const lo = (b / NBINS).toFixed(1), hi = ((b + 1) / NBINS).toFixed(1);
@@ -169,7 +175,7 @@ console.log(`  (monotone rising p50 ⇒ authoring grades; where p50 stops rising
 
 mkdirSync(resolve(OUT, ".."), { recursive: true });
 writeFileSync(OUT, JSON.stringify({ source: "calibrate_corpus", count: COUNT, perturb: PCT, budget: BUDGET, seedVary: SEED_VARY, window: SS.IMPACT_WINDOW, okVariants, failVariants, totalLandings,
-  redirArcRaw: [...vals.redirArc].map((x) => Math.round(x * 1000) / 1000),   // for cross-shard merge
-  responseRaw: respBins.map((b) => b.map((x) => Math.round(x * 1000) / 1000)), // per-authored-bin raw redirArc, for merge
+  impactRaw: [...vals.impact].map((x) => Math.round(x * 1000) / 1000),
+  responseRaw: respBins.map((b) => b.map((x) => Math.round(x * 1000) / 1000)),
   metrics: out, responseByAuthored: respOut }, null, 2) + "\n");
 console.log(`\nwrote ${OUT}`);

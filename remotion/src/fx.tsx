@@ -6,9 +6,8 @@
  * re-render. This lets us sweep dozens of looks (camera shake, chromatic
  * aberration, grade, vignette, flash, color tint) by varying --props alone.
  *
- * Impact-driven effects read the SAME landing/impact times the ride's beat-punch
- * uses (overlay.json `contacts`, magnitude = impactRedir ?? impact), via a simple
- * decaying "trauma" accumulator — so shake/chroma/flash land on the felt slams.
+ * Impact-driven effects read the SAME scored landing metric shown by the overlay
+ * (`contacts[].impactMeasured`), via a simple decaying "trauma" accumulator.
  *
  * All `fx`-driven effects default OFF/identity: with no `fx` prop, RideFX/TintLayer/
  * VignetteLayer/FlashLayer are no-ops. (BottomFade is a separate, always-on seam fix
@@ -16,6 +15,7 @@
  */
 import React from "react";
 import { AbsoluteFill, OffthreadVideo, staticFile } from "remotion";
+import { traumaAt, type ImpactContact } from "./impact";
 
 // ── config ───────────────────────────────────────────────────────────────────
 export type ShakeFX = {
@@ -62,8 +62,7 @@ export type FXConfig = {
   flash?: Partial<FlashFX>;
 };
 
-// Impact magnitudes (impactRedir) typically run ~0.2–0.45, so gates sit low and
-// gain lifts a single hit toward a satisfying trauma; clustered hits stack to 1.
+// Thresholds are authored directly on the production felt ruler [0,1].
 export const SHAKE_DEFAULT: ShakeFX = {
   maxPx: 16, maxRotDeg: 0.6, overscan: 1.05, freq: 11, decayPerSec: 6, gain: 1.8, minImpact: 0.22, power: 1.5,
 };
@@ -77,28 +76,9 @@ export const TINT_DEFAULT: TintFX = { color: "#1b2a4a", byPhase: false, opacity:
 export const VIGNETTE_DEFAULT: VignetteFX = { strength: 0, rx: 72, ry: 52, core: 65, cx: 50, cy: 36, pulse: 0 };
 export const FLASH_DEFAULT: FlashFX = { color: "#ffffff", maxOpacity: 0, decayPerSec: 9, gain: 1.8, minImpact: 0.3, blend: "screen" };
 
-// ── impact "trauma" model ──────────────────────────────────────────────────────
-type Contact = { t: number; impact: number | null; impactRedir?: number | null };
-export const impactStrength = (c: Contact): number => (c.impactRedir ?? c.impact ?? 0);
-
-/** Decaying, clamped accumulator of recent impacts at time `t` (s), then raised to
- *  `power`. Returns 0..1. Clustered hits stack (capped at 1). */
-export function traumaAt(
-  t: number, contacts: Contact[],
-  { decayPerSec, gain, minImpact, power }: { decayPerSec: number; gain: number; minImpact: number; power: number },
-): number {
-  let tr = 0;
-  for (const c of contacts) {
-    const s = impactStrength(c);
-    if (c.t > t || s < minImpact) continue;
-    tr += s * gain * Math.exp(-(t - c.t) * decayPerSec);
-  }
-  return Math.pow(Math.min(1, tr), power);
-}
-
 // ── the ride video, with shake + chroma + grade applied ─────────────────────────
 export const RideFX: React.FC<{
-  videoFile: string; shiftPx: number; t: number; contacts: Contact[]; fx: FXConfig;
+  videoFile: string; shiftPx: number; t: number; contacts: ImpactContact[]; fx: FXConfig;
 }> = ({ videoFile, shiftPx, t, contacts, fx }) => {
   const shake = fx.shake ? { ...SHAKE_DEFAULT, ...fx.shake } : null;
   const chroma = fx.chroma ? { ...CHROMA_DEFAULT, ...fx.chroma } : null;
@@ -175,7 +155,7 @@ export const TintLayer: React.FC<{ fx: FXConfig; phaseColor?: string; enter: num
 };
 
 // ── vignette (static + optional impact pulse) ───────────────────────────────────
-export const VignetteLayer: React.FC<{ fx: FXConfig; t: number; contacts: Contact[]; enter: number }> = ({ fx, t, contacts, enter }) => {
+export const VignetteLayer: React.FC<{ fx: FXConfig; t: number; contacts: ImpactContact[]; enter: number }> = ({ fx, t, contacts, enter }) => {
   if (!fx.vignette) return null;
   const cfg = { ...VIGNETTE_DEFAULT, ...fx.vignette };
   // reuse the shake trauma shape (the SHAKE_DEFAULT params) for the pulse term, so the
@@ -209,7 +189,7 @@ export const BottomFade: React.FC<{ startPct?: number; endPct?: number }> = ({ s
 );
 
 // ── full-frame impact flash ─────────────────────────────────────────────────────
-export const FlashLayer: React.FC<{ fx: FXConfig; t: number; contacts: Contact[] }> = ({ fx, t, contacts }) => {
+export const FlashLayer: React.FC<{ fx: FXConfig; t: number; contacts: ImpactContact[] }> = ({ fx, t, contacts }) => {
   if (!fx.flash) return null;
   const cfg = { ...FLASH_DEFAULT, ...fx.flash };
   if (cfg.maxOpacity <= 0) return null;

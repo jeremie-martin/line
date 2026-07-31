@@ -168,7 +168,9 @@ CREATE TABLE IF NOT EXISTS landings (
   dspeed_px REAL,
   -- the SCORED impact metric at this landing: redir_px is the raw production
   -- measurement (px/frame) and redir_norm is normImpact(redir_px) — i.e. against
-  -- REDIRARC.SOFT/VERY_STRONG, NOT REDIR_CAP. The metric itself moved on
+  -- IMPACT_RULER.SOFT/VERY_STRONG, not a legacy candidate cap. The SQL column
+  -- names are retained for database compatibility; they carry the current
+  -- contact-redirection impulse. The metric itself moved on
   -- 2026-07-31 (net-form redirArc = v·Δθ → accumulated contacted-frame impulse
   -- Σ v̄·|Δθ|), so rows written on either side of that boundary are NOT comparable.
   -- Which ruler a row is on is recoverable: checkpoints.run_id → runs.evaluator_fingerprint

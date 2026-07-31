@@ -291,17 +291,17 @@ function makeEpisode(
   const tangentSignedDeltaDeg = tangent === null ? NaN : normalizeDeg(tangentDeg - incomingAngleDeg);
   const tangentDelta = tangent === null ? NaN : axisDeltaDeg(tangentDeg, incomingAngleDeg);
   const tangentPredNorm = finite(tangentDelta)
-    ? clamp01(Math.abs(Math.sin(tangentDelta * Math.PI / 180)) * incomingSpeed / SS.REDIR_CAP)
+    ? clamp01(Math.abs(Math.sin(tangentDelta * Math.PI / 180)) * incomingSpeed / SS.LEGACY_PERPENDICULAR_REDIRECTION_CAP)
     : NaN;
 
-  const achievedPx = SS.redirPx(sim, lf, W);
+  const achievedPx = SS.legacyPerpendicularRedirectionPx(sim, lf, W);
   const vel = SS.velChange(sim, lf, W);
   const body = SS.bodyJolt(sim, lf, W);
   const deform = SS.deformStats(sim, lf, W);
   const contacts = contactStats(sim, lf);
   const redir = redirEpisodeDetails(sim, lf);
   const target = impact.target;
-  const achieved = achievedPx / SS.REDIR_CAP;
+  const achieved = achievedPx / SS.LEGACY_PERPENDICULAR_REDIRECTION_CAP;
 
   return {
     archive,
@@ -331,8 +331,8 @@ function makeEpisode(
     redirAtLandingPx: redir.atLanding,
     peakOffset: redir.peakOffset,
     ratePeakOffset: redir.ratePeakOffset,
-    pointNormalPx: SS.pointImpactPx(sim, lf) ?? 0,
-    windowedNormalPx: SS.windowedNormalPx(sim, lf, W),
+    pointNormalPx: SS.legacyNormalClosingSpeedPx(sim, lf) ?? 0,
+    windowedNormalPx: SS.legacyWindowedNormalPx(sim, lf, W),
     tangentDeltaDeg: tangentDelta,
     tangentSignedDeltaDeg,
     tangentPredNorm,

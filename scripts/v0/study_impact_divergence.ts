@@ -55,7 +55,7 @@ for (const name of SPECS) {
     const landings: number[] = [];
     for (const e of sim.det.events) {
       if (e.type !== "landing" || e.frame < 3 || e.frame > sim.last - 2) continue;
-      if (SS.pointImpactPx(sim, e.frame) === undefined) continue;
+      if (SS.legacyNormalClosingSpeedPx(sim, e.frame) === undefined) continue;
       landings.push(e.frame);
       for (const c of CAND) perMetric[c.key].push(norm(c.key, c.fn(sim, e.frame)));
     }

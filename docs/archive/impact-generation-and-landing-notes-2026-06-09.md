@@ -1,5 +1,9 @@
 # Impact generation + landing-redefinition notes (2026-06-09)
 
+> ARCHIVE: this analysis predates both the net-arc and accumulated-impulse
+> promotions. Its metric claims and commands are historical. See
+> `../impact_definition.md`, `../impact_contract.md`, and `../impact-mission.md`.
+
 Status: analysis/strategy notes. No code changed by this document. Companion to
 `docs/archive/impact_problem_statement.md` (the rejected windowed-normal proposal) and the
 `landing-impact-lever` memory (the measurement history). Written after the `redir`

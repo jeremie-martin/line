@@ -76,7 +76,8 @@ if (!spec) {
 // Felt-jolt beat alignment (production default). The slam the viewer feels — the
 // peak per-frame velocity redirection — trails first contact by a systematic
 // ~2-3 frames (~50-75ms; measured p50 +3 over 7,501 episodes, see
-// docs/impact_generation_and_landing_notes.md § "Empirical verdict"). Shifting
+// docs/archive/impact-generation-and-landing-notes-2026-06-09.md
+// § "Empirical verdict"). Shifting
 // every contact earlier puts the slam, not the touch, on the musical beat.
 // A/B-validated on shelter_amp (2026-06-09). LR_JOLT_OFFSET_MS overrides; 0
 // disables. This is an authoring-layer transform on THIS production CLI only:

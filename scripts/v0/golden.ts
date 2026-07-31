@@ -38,7 +38,8 @@ export function defaultJobsForParallelism(cpuCount: number): number {
   return Math.max(1, Math.floor(cpuCount / 2));
 }
 
-import { FPS, REDIRARC, REPORT_ONLY_AXIS_SET, impactEnvNum, type CompileStats, type DriftReport, type Spec } from "./types.ts";
+import { FPS, IMPACT_RULER, REPORT_ONLY_AXIS_SET, type CompileStats, type DriftReport, type Spec } from "./types.ts";
+import { LEGACY_IMPACT_AUTHORING_CONVERSION } from "./core/beats.ts";
 import {
   parseBudgetList,
   weightedBudgetScore,
@@ -286,19 +287,12 @@ function impactMigrationFingerprintSource(): string {
   );
 }
 
-function envValue(name: string): string | undefined {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.[name];
-}
-
 function impactMigrationFingerprintConfig(): string {
-  const mode = envValue("LR_IMPACT_MIGRATE") === "legacy" ? "legacy" : "affine";
-  if (mode === "legacy") return mode;
-  const soft = impactEnvNum("LR_IMPACT_MIGRATE_SOFT", 0.2);
-  const span = impactEnvNum("LR_IMPACT_MIGRATE_SPAN", 0.8);
-  return `${mode}\0${soft}\0${span}`;
+  return `affine\0${LEGACY_IMPACT_AUTHORING_CONVERSION.soft}\0` +
+    `${LEGACY_IMPACT_AUTHORING_CONVERSION.span}`;
 }
 
-function evaluatorFingerprint(): string {
+export function evaluatorFingerprint(): string {
   const h = createHash("sha256");
   const specDir = resolve("specs/golden");
   h.update(readFileSync(resolve("scripts/v0/score.ts")));
@@ -308,7 +302,7 @@ function evaluatorFingerprint(): string {
   // targets also pass through migrateImpact/withImpactLegacy at spec-load time, so the effective
   // migration mode and knobs are part of the resolved spec targets as long as those helpers remain live.
   // Fold both in.
-  h.update(`\0impact-anchors\0${REDIRARC.SOFT}\0${REDIRARC.VERY_STRONG}`);
+  h.update(`\0impact-anchors\0${IMPACT_RULER.SOFT}\0${IMPACT_RULER.VERY_STRONG}`);
   h.update(`\0impact-migration-config\0${impactMigrationFingerprintConfig()}`);
   h.update("\0impact-migration-source\0");
   h.update(impactMigrationFingerprintSource());

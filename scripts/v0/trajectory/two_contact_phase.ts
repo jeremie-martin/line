@@ -8,7 +8,7 @@
  * outgoing interval, later contact, axis, seed, case, or score input.
  */
 import { PERSISTENCE_FRAMES } from "../../lib/detector.ts";
-import { IMPACT, IMPACT_WINDOW, impactToRedirArcPx, type TrackLine } from "../types.ts";
+import { IMPACT, IMPACT_WINDOW, impactToRawPx, type TrackLine } from "../types.ts";
 import { contactKinematicFrameFromPlanningState } from "./contact_kinematic_frame.ts";
 import {
   activeNormalForDirectedTangent,
@@ -368,7 +368,7 @@ export function realizeTwoContactPhase(
 function characteristicTurnDeg(currentImpact: number | undefined, speed: number): number {
   if (!Number.isFinite(speed) || speed <= 0) throw new Error(`observedComSpeed must be positive and finite, got ${speed}`);
   if (currentImpact === undefined) return 12;
-  const redirection = impactToRedirArcPx(clamp(currentImpact, 0, 1));
+  const redirection = impactToRawPx(clamp(currentImpact, 0, 1));
   const radians = Math.min(
     redirection / speed,
     Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),

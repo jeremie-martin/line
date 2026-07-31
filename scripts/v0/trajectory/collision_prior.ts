@@ -8,7 +8,7 @@
 import {
   IMPACT,
   authoredSpeedToPx,
-  impactToRedirArcPx,
+  impactToRawPx,
   type AxisValues,
 } from "../types.ts";
 import type { IncomingTargetFrame } from "./envelope/model.ts";
@@ -77,12 +77,13 @@ export function brakingImpactEntryPrior(
   const targetSpeedPxPerFrame = authoredSpeedToPx(speedTarget);
   const incomingSpeed = requirePositive("frame.speedPxPerFrame", frame.speedPxPerFrame);
   const brakingSpeedDeficitPxPerFrame = incomingSpeed - targetSpeedPxPerFrame;
-  // `redirArc` is speed times an angular deflection. Invert it in radians,
+  // The raw scored impulse is speed times an angular deflection in the
+  // single-bend planning approximation. Invert it in radians,
   // then apply the physical catchability ceiling in that same angular unit.
   // Applying `asin` to the raw ratio would be dimensionally wrong and would
   // overstate small deflections while saturating them prematurely.
   const requiredRedirectionTurnDeg = Math.min(
-    impactToRedirArcPx(impact) / incomingSpeed,
+    impactToRawPx(impact) / incomingSpeed,
     Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
   ) * 180 / Math.PI;
   if (!(brakingSpeedDeficitPxPerFrame > 0) || !(requiredRedirectionTurnDeg > 0)) {

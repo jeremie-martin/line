@@ -19,7 +19,7 @@
  */
 
 import type { Contact } from "../types.ts";
-import { normImpact, CALIB, impactEnvNum } from "../types.ts";
+import { impactEnvNum } from "../types.ts";
 import { clamp } from "./substrate.ts";
 
 /** A per-beat impact: a constant, or a function of (time s, index, beat count).
@@ -63,39 +63,37 @@ export function withImpact(contacts: Contact[], rule: ImpactRule): Contact[] {
 }
 
 /**
- * Migrate an OLD-convention authored impact (the pre-redirArc scale, felt-"soft"≈0.2 under
- * `redir/REDIR_CAP`) onto the new redirArc felt scale [0,1]. Two schemes (`LR_IMPACT_MIGRATE`):
+ * Migrate an OLD-convention authored impact (the pre-2026 ruler, felt-"soft"≈0.2 under
+ * legacy `redir/REDIR_CAP`) onto the current felt impact scale [0,1]:
+ * `a_new = clamp01((a_old − SOFT_OLD)/SPAN_OLD)`.
  *
- *  - **"affine"** (the recommended re-bake): `a_new = clamp01((a_old − SOFT_OLD)/SPAN_OLD)`, i.e. just
- *    align the conventions — old-soft 0.2 → new-0 (soft), old-hard 0.85 → 0.81. This is a pure,
- *    monotone, rank-preserving convention shift that is **independent of the felt anchors**, so the
- *    achievable-range calibration (SOFT/VSTRONG) can be tuned freely without re-crushing the specs. It
- *    does NOT saturate (old-median 0.45 → 0.31, medium).
- *  - **"legacy"** (default, the `·REDIR_CAP` bridge): `a_new = normImpact(a_old · REDIR_CAP)`. Requests
- *    the same physical px the old value asked for — but it re-normalizes through px with the LIVE
- *    anchors, so under the (lower) achievable anchors it OVER-SATURATES (everything ≥~0.45 → 1.0). Kept
- *    only for A/B against affine; to be deleted once the affine re-bake is frozen on disk.
+ * This is a pure, monotone, rank-preserving convention shift independent of
+ * the current ruler anchors. The soft/span inputs remain study-overridable
+ * while the small compatibility corpus is source-authored in the old convention.
  */
-// Affine convention shift is now the DEFAULT (anchor-independent (a−0.2)/0.8). `LR_IMPACT_MIGRATE=legacy`
-// restores the old `normImpact(a·REDIR_CAP)` bridge for A/B only. The on-disk spec values are the
-// ORIGINAL old-convention numbers; this transforms them once at load — there is no frozen-literal bake,
-// so re-running never double-applies.
-const MIGRATE_AFFINE = ((globalThis as { process?: { env?: Record<string, string | undefined> } })
-  .process?.env?.LR_IMPACT_MIGRATE) !== "legacy";
-const MIGRATE_SOFT_OLD = impactEnvNum("LR_IMPACT_MIGRATE_SOFT", 0.2);
-// Guard against a degenerate study override (LR_IMPACT_MIGRATE_SPAN=0), which would
-// make the affine shift below divide by zero and emit NaN impacts into the ruler.
-const MIGRATE_SPAN_OLD = Math.max(1e-6, impactEnvNum("LR_IMPACT_MIGRATE_SPAN", 0.8));
+export const LEGACY_IMPACT_AUTHORING_CONVERSION = Object.freeze({
+  soft: impactEnvNum("LR_IMPACT_MIGRATE_SOFT", 0.2),
+  // Guard against a degenerate study override, which would otherwise divide
+  // by zero and emit NaN targets while constructing a spec.
+  span: Math.max(1e-6, impactEnvNum("LR_IMPACT_MIGRATE_SPAN", 0.8)),
+});
 export const migrateImpact = (aOld: number): number =>
-  MIGRATE_AFFINE
-    ? clamp((aOld - MIGRATE_SOFT_OLD) / MIGRATE_SPAN_OLD, 0, 1)
-    : normImpact(aOld * CALIB.REDIR_CAP);
+  clamp(
+    (aOld - LEGACY_IMPACT_AUTHORING_CONVERSION.soft) /
+      LEGACY_IMPACT_AUTHORING_CONVERSION.span,
+    0,
+    1,
+  );
 
 /**
- * `withImpact` for the pre-redirArc spec corpus: the rule outputs OLD-convention values which are
- * migrated to the new felt scale at authoring time (`migrateImpact`). Existing golden specs use
- * this so their on-disk numbers stay readable while the resolved targets are new-convention; new
- * specs use `withImpact` directly (no migration). Keeps the bake on-disk, not a runtime remap.
+ * `withImpact` for explicitly pre-current-convention source values. The
+ * conversion runs while the spec module constructs `Contact[]`; the scorer,
+ * optimizer, and report receive only the resolved current-convention target.
+ * Source literals remain unchanged. New specs use `withImpact` directly.
+ *
+ * This compatibility helper predates, and is independent of, the 2026-07-31
+ * raw-metric promotion. That promotion does not migrate current-convention
+ * `Contact.impact` targets.
  */
 export function withImpactLegacy(contacts: Contact[], rule: ImpactRule): Contact[] {
   const migrated: ImpactRule = typeof rule === "function"

@@ -5,7 +5,7 @@ import {
   oneFrameLagNeutralEntryPrior,
   targetNeutralEntryPrior,
 } from "../scripts/v0/trajectory/collision_prior.ts";
-import { IMPACT, impactToRedirArcPx } from "../scripts/v0/types.ts";
+import { IMPACT, impactToRawPx } from "../scripts/v0/types.ts";
 import type { IncomingTargetFrame } from "../scripts/v0/trajectory/envelope/model.ts";
 
 const frame: IncomingTargetFrame = {
@@ -37,7 +37,7 @@ describe("collision entry priors", () => {
   test("inverts redirection impact in angle space before catchability clamping", () => {
     const moderate = brakingImpactEntryPrior(frame, { speed: 0.8, impact: 0.5 });
     const expectedModerate = Math.min(
-      impactToRedirArcPx(0.5) / frame.speedPxPerFrame,
+      impactToRawPx(0.5) / frame.speedPxPerFrame,
       Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
     ) * 180 / Math.PI;
     expect(moderate.diagnostics.requiredRedirectionTurnDeg).toBeCloseTo(expectedModerate, 12);

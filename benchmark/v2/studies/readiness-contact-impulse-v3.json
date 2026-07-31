@@ -1,0 +1,71 @@
+{
+  "schema": "line.readiness-refresh-evidence.v1",
+  "generatedAt": "2026-07-31T12:34:21.681Z",
+  "status": "offline_adopted_compiler_validation_pending",
+  "targetSemanticsId": "next-arc-readiness-targets-v3-contacted-frame-impulse",
+  "corpus": {
+    "schema": "line.readiness-corpus.v7",
+    "compilerFingerprint": "f5e70bed04733988aa4d20d09e63c167a0a7b0657fb89c9c003532affac06687",
+    "samplerFingerprint": "45d53ce529f523c20385fe65b15c68f04e2e7082c4fec98a277b074cc65b8ca8",
+    "contextSelectionArtifactFingerprint": "7c85fb50e73937f7255d549876bb0b1e3567357c51e86f4c074b04bb8502f380",
+    "contextSelectionTargetSemanticsId": "next-arc-readiness-targets-v2-scorer-fit",
+    "cases": 44,
+    "seeds": [735656107, 735656108, 735656109],
+    "budget": 250000,
+    "shards": 132,
+    "contexts": 124516,
+    "predictedBoundaryContexts": 121741,
+    "seenContexts": 128797,
+    "observedAttempts": 580067,
+    "retainedAttempts": 564207,
+    "viableAttempts": 375206
+  },
+  "selection": {
+    "method": "development OOF component selection, followed by one locked-seed shipped-product decision",
+    "selectedComponents": ["impactFeasibility", "airFit"],
+    "retainedComponents": ["catchability", "speedFit"],
+    "neutralComponents": ["elevationFit"],
+    "airFitProductionStatus": "disabled_diagnostic_only",
+    "impactFeasibility": {
+      "development": {
+        "currentMse": 0.015206653295626073,
+        "candidateMse": 0.01202006059105423,
+        "improvementPct": 20.955253221222645,
+        "absoluteImprovementBootstrap95": [0.0013250180202151233, 0.004109382136747267]
+      },
+      "validation": {
+        "currentMse": 0.015226222716642052,
+        "candidateMse": 0.009204365483803477,
+        "improvementPct": 39.54925226633371,
+        "absoluteImprovementBootstrap95": [0.00444340354050852, 0.006710462972767694],
+        "familiesImproved": 14,
+        "familiesRegressed": 0
+      }
+    },
+    "shippedCompositeValidation": {
+      "currentMse": 0.0223320057840853,
+      "candidateMse": 0.017180323695308353,
+      "improvementPct": 23.068604488935986,
+      "currentMae": 0.11584467962623926,
+      "candidateMae": 0.09656065037618032,
+      "currentCorrelation": 0.7856566517965143,
+      "candidateCorrelation": 0.8151808431087837,
+      "absoluteImprovementBootstrap95": [0.003693716412192973, 0.005860883028150984],
+      "familiesImproved": 14,
+      "familiesRegressed": 0
+    }
+  },
+  "artifacts": {
+    "runtimeModel": {
+      "path": "scripts/v0/optimizer/readiness_model.json",
+      "sha256": "6b33b4025a004fe34aa04b16e19b9c9c2e2ade0a27f49e7b350563142dc9531c"
+    },
+    "parityFixture": {
+      "path": "tests/fixtures/readiness_model_parity.json",
+      "sha256": "6a4f167062fd1584210a3eb2ea505cee4e039bbeb32f9acc9eaa46569b517858"
+    },
+    "generatedTrainingDatasetSha256": "cac3514bb10d452df414f4ea7516eb82936dafd2466b56eb1a06b2a6d3aecbdb",
+    "generatedTrainingReportSha256": "2a05dd99ab926996f4f4211e03ca9bf243d05aed5c902ebfacc35a17ce026e5b"
+  },
+  "compilerDecision": null
+}

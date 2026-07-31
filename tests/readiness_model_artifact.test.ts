@@ -4,6 +4,11 @@ import {
   predictReadinessComponent,
   READINESS_MODEL_ARTIFACT_SCHEMA,
 } from "../scripts/v0/optimizer/readiness_model_artifact.ts";
+import {
+  assertCompatibleReadinessArtifact,
+  READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS,
+  READINESS_TARGET_SEMANTICS_ID,
+} from "../scripts/v0/optimizer/readiness_scoring.ts";
 import runtimeModel from "../scripts/v0/optimizer/readiness_model.json" with {
   type: "json",
 };
@@ -31,6 +36,28 @@ function artifact(
 }
 
 describe("readiness model artifact inference", () => {
+  test("previous scorer semantics are legal only for context collection", () => {
+    expect(runtimeModel.targetSemanticsId).toBe(
+      READINESS_TARGET_SEMANTICS_ID,
+    );
+    const previous = parseReadinessModelArtifact({
+      ...runtimeModel,
+      targetSemanticsId:
+        READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS[0],
+    });
+
+    expect(() => assertCompatibleReadinessArtifact(previous))
+      .toThrow(/target semantics are stale/);
+    expect(() =>
+      assertCompatibleReadinessArtifact(previous, {
+        allowTargetSemanticsIds:
+          READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS,
+      })
+    ).not.toThrow();
+    expect(() => assertCompatibleReadinessArtifact(previous))
+      .toThrow(/target semantics are stale/);
+  });
+
   test("standardizes ridge features and clips the identity link", () => {
     const parsed = parseReadinessModelArtifact(artifact({
       family: "ridge",

@@ -50,7 +50,24 @@ export type ReadinessScore = {
  * not a one-sided "impact >= ask" classifier.
  */
 export const READINESS_TARGET_SEMANTICS_ID =
-  "next-arc-readiness-targets-v2-scorer-fit";
+  "next-arc-readiness-targets-v3-contacted-frame-impulse";
+
+/**
+ * A scorer-bound refresh has to collect contexts with the model that currently
+ * drives production before it can train the replacement. These are legal only
+ * as collection-time context selectors; production compatibility remains
+ * strict and never consults this list.
+ */
+export const READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS = [
+  "next-arc-readiness-targets-v2-scorer-fit",
+] as const;
+
+export type ReadinessArtifactCompatibility = {
+  allowTargetSemanticsIds?: readonly string[];
+  /** Offline evaluation may score a disabled component without multiplying it
+   * into the shipped readiness product. Production leaves this false. */
+  inferDisabledComponents?: boolean;
+};
 
 function readinessAirFitEnabled(): boolean {
   return (globalThis as {
@@ -91,8 +108,15 @@ export function scoreReadinessWithArtifact(
   input: NextArcReadinessInput,
   artifact: ReadinessModelArtifact,
   ablation: ReadinessStudyAblation = "normal",
+  compatibility?: ReadinessArtifactCompatibility,
 ): ReadinessScore {
-  assertCompatibleReadinessArtifactOnce(artifact);
+  if (compatibility === undefined) {
+    assertCompatibleReadinessArtifactOnce(artifact);
+  } else {
+    // A relaxed collection-time check must never populate the production
+    // validation cache: the same artifact must still fail under strict use.
+    assertCompatibleReadinessArtifact(artifact, compatibility);
+  }
   const features = readinessFeatureVector(input);
   const impossibleBinding =
     input.incomingBoundary.incoming.riderMounted === false ||
@@ -149,7 +173,9 @@ export function scoreReadinessWithArtifact(
    * inferred and reported exactly as before, so the A/B arm is intact.
    */
   const airFitEnabled = readinessAirFitEnabled();
-  const airFitPredicted = !airFitEnabled ||
+  const inferAirFit = airFitEnabled ||
+    compatibility?.inferDisabledComponents === true;
+  const airFitPredicted = !inferAirFit ||
       input.outgoingGap?.scorerTargets.air === undefined
     ? 1
     : infer(artifact, "airFit", features);
@@ -179,6 +205,7 @@ export function scoreReadinessWithArtifact(
 
 export function assertCompatibleReadinessArtifact(
   artifact: ReadinessModelArtifact,
+  compatibility: ReadinessArtifactCompatibility = {},
 ): void {
   if (
     artifact.generatorPolicyId !==
@@ -195,7 +222,12 @@ export function assertCompatibleReadinessArtifact(
         `${artifact.featureTransformId}`,
     );
   }
-  if (artifact.targetSemanticsId !== READINESS_TARGET_SEMANTICS_ID) {
+  if (
+    artifact.targetSemanticsId !== READINESS_TARGET_SEMANTICS_ID &&
+    !compatibility.allowTargetSemanticsIds?.includes(
+      artifact.targetSemanticsId,
+    )
+  ) {
     throw new Error(
       `readiness model target semantics are stale: ` +
         `${artifact.targetSemanticsId}`,

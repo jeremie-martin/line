@@ -17,9 +17,11 @@ import modelJson from "./readiness_model.json" with { type: "json" };
 import type { NextArcReadinessInput } from "./readiness_features.ts";
 import {
   parseReadinessModelArtifact,
+  type ReadinessModelArtifact,
 } from "./readiness_model_artifact.ts";
 import {
   applyReadinessStudyAblation,
+  READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS,
   type ReadinessScore,
   type ReadinessStudyAblation,
   scoreReadinessWithArtifact,
@@ -37,7 +39,22 @@ const READINESS_STUDY_ABLATION = parseReadinessStudyAblation(
   }).process?.env?.LR_READINESS_STUDY_ABLATION,
 );
 
-const READINESS_MODEL = parseReadinessModelArtifact(modelJson);
+const READINESS_CONTEXT_BOOTSTRAP = (() => {
+  const env = (globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  }).process?.env;
+  const collection = env?.LR_READINESS_COLLECTION === "1";
+  const allowPrevious =
+    env?.LR_READINESS_ALLOW_PREVIOUS_TARGET_CONTEXT === "1";
+  if (collection !== allowPrevious) {
+    throw new Error(
+      "readiness context bootstrap requires both collection guards",
+    );
+  }
+  return collection && allowPrevious;
+})();
+
+let READINESS_MODEL = parseReadinessModelArtifact(modelJson);
 if (
   READINESS_MODEL.trainingCorpus.schema === "bootstrap-untrained" &&
   (globalThis as {
@@ -56,7 +73,27 @@ export function scoreReadiness(
     input,
     READINESS_MODEL,
     READINESS_STUDY_ABLATION,
+    READINESS_CONTEXT_BOOTSTRAP
+      ? {
+        allowTargetSemanticsIds:
+          READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS,
+      }
+      : undefined,
   );
+}
+
+/** Install the explicit context-selector artifact for a governed corpus
+ * collection worker. The paired environment guards make this unreachable from
+ * ordinary compiler execution. */
+export function setReadinessCollectionModel(
+  artifact: ReadinessModelArtifact,
+): void {
+  if (!READINESS_CONTEXT_BOOTSTRAP) {
+    throw new Error(
+      "a readiness context-selector override is legal only during collection",
+    );
+  }
+  READINESS_MODEL = artifact;
 }
 
 function parseReadinessStudyAblation(

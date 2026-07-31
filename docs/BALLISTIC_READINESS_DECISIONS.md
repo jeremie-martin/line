@@ -762,3 +762,51 @@ the truth. §12.1's ratio-invariance conclusion still stands, because it is a
 statement about two cells being the SAME — agreement is exactly what it needed.
 §12's magnitudes do not, because agreement was never evidence about those. Do not
 read a within-epoch replication as an error bar.
+
+---
+
+## 14. 2026-07-31 scorer-bound readiness refresh
+
+The impact ruler changed from net redirection arc to accumulated redirection
+impulse over contacted frames. The old readiness artifact therefore remained a
+useful context selector but was not valid impact-label evidence.
+
+The refresh makes that boundary mechanical:
+
+- target protocol is
+  `next-arc-readiness-targets-v3-contacted-frame-impulse`;
+- corpus schema v7 records both the new label protocol and the exact previous
+  context-selector artifact (`7c85fb50e739…`, target protocol v2);
+- production rejects v2; only collection workers may admit it, behind two
+  explicit guards, and a relaxed check never populates the strict runtime cache;
+- the 44-case, three-seed corpus has 124,516 retained contexts (121,741 with a
+  predicted boundary) and 564,207 retained attempts of 580,067 observed;
+- the scorer-bound sampler fingerprint is `45d53ce529f5…`.
+
+The trainer also had a real decision defect. Its product metric included
+`airFit` even though production does not infer or multiply that factor. It now
+retains full five-factor truth for research, evaluates the shipped product
+against air-excluded truth, and fixes component replacements from development
+OOF before opening the locked seed. Diagnostic inference reports the real air
+model rather than the neutral product value `1`.
+
+Development fixes this hybrid:
+
+| component | development result | fixed decision |
+|---|---:|---|
+| catchability | −2.46%, bootstrap entirely negative | retain |
+| impact feasibility | **+20.96%**, bootstrap `[+0.00133,+0.00411]` absolute MSE | **replace** |
+| speed fit | +3.04%, bootstrap crosses zero | retain |
+| air fit (disabled diagnostic) | +16.47%, bootstrap `[+0.00067,+0.00863]` | replace diagnostic |
+| elevation fit | no authored population | neutral |
+
+Opened once on the locked seed, impact MSE falls `0.015226 → 0.009204`
+(39.5%, all 14 origin families). The fixed shipped product falls
+`0.022332 → 0.017180` (23.1%), MAE `0.11584 → 0.09656`, correlation
+`0.7857 → 0.8152`; all 14 families improve and the family-cluster interval for
+absolute MSE improvement is `[0.00369,0.00586]`.
+
+This adopts the artifact for compiler validation, not for campaign promotion.
+The compiler can still react discontinuously to a better ranker, as the earlier
+retrain demonstrated. The independent 750k/N=48 comparison against the active
+scorer-bound baseline remains the promotion decision.

@@ -1,7 +1,7 @@
 # Next-Arc Readiness Model Goal
 
-Status: **contract, frozen corpus, component models, and production inference
-are implemented; compiler validation is pending**.
+Status: **the accumulated-contact-impulse corpus and scorer-bound component
+refresh are complete; independent N=48 compiler validation is pending**.
 
 Build the best cheap estimate of whether the predicted incoming boundary at an
 authored contact is set up for a successful next arc. This is separate from
@@ -64,10 +64,25 @@ materially changes:
 npm run benchmark:readiness:collect
 ```
 
+A scorer-target identity change is a bootstrap, not ordinary iteration. Keep
+the exact former runtime artifact at an explicit path and use it for both
+context selection and incumbent comparison:
+
+```bash
+npm run benchmark:readiness:collect -- --replace-corpus --incumbent-model=PATH
+npm run benchmark:readiness:dataset -- --incumbent-model=PATH
+uv run scripts/v0/train_readiness.py --incumbent-model=PATH
+```
+
+The corpus records that artifact's checksum and old target protocol. The
+collection worker may run it only behind the paired collection guards; ordinary
+production remains strict. Never edit the old artifact's protocol string.
+
 The trainer compares a small, fixed set of standard models with grouped
-cross-validation, chooses from development data only, checks the locked third
-seed, and exports one dependency-free runtime artifact. There is no permanent
-model registry or experiment-state machine.
+cross-validation. Development OOF evidence chooses both each model form and
+whether that component replaces its incumbent. The locked third seed then
+decides the already-fixed hybrid once, against the product production actually
+multiplies. There is no permanent model registry or experiment-state machine.
 
 ## Frozen corpus
 
@@ -89,10 +104,18 @@ case/seed tasks. Ordinary evaluation performs no compiler or engine work.
 Use grouped development and validation partitions. Attempts from one decision
 boundary never cross partitions. Reports macro-average case/seed groups.
 
-The frozen V2 corpus is schema `line.readiness-corpus.v6`: 44 canonical cases,
-three canonical seeds, 131,930 retained decision contexts, and 486,066 retained
-proposal attempts of 639,353 observed. The first two seeds are development data; the third is
-locked validation.
+The frozen V2 corpus is schema `line.readiness-corpus.v7`: 44 canonical cases,
+three canonical seeds, 124,516 retained decision contexts, and 564,207 retained
+proposal attempts of 580,067 observed. Of the retained contexts, 121,741 have a
+production-predicted boundary. The first two seeds are development data; the
+third is locked validation.
+
+Schema v7 binds the labels to target protocol
+`next-arc-readiness-targets-v3-contacted-frame-impulse`. Its contexts were
+selected by the exact previous production artifact (`7c85fb50e739…`, target
+protocol v2), explicitly as a bootstrap selector only. Production rejects that
+old protocol; the collection worker permits it behind two collection-only
+guards so fresh labels can be learned without relabeling the old model.
 
 ## Component scores
 
@@ -101,11 +124,11 @@ Lower is better.
 | Component | Primary score |
 |---|---|
 | catchability | Brier score over all attempts |
-| impact feasibility | Brier score over viable impact-authored attempts |
+| impact feasibility | squared error against mean scorer-compatible impact fit over viable impact-authored attempts |
 | speed fit | squared error against realized outgoing-gap target fit |
 | air fit | squared error against realized outgoing-gap target fit |
 | elevation fit | squared error against realized outgoing-gap target fit |
-| composite readiness | squared error against mean realized joint attempt utility per context |
+| shipped composite readiness | squared error against mean realized `catchability × impact × speed × elevation` attempt utility per context |
 
 Reports also show calibration, MAE, raw physical error, bias, target/regime
 buckets, coverage, and pool ranking/regret where available.
@@ -115,12 +138,20 @@ predict structured arc-prefix and launch outcomes and reuse the canonical
 ballistic kernel. In either case it is judged against the complete outgoing
 scorer-gap truth.
 
+`airFit` remains trained and evaluated independently, but the shipped product
+does not infer or multiply it. The full five-factor joint utility remains
+research truth; it cannot decide a production artifact while air is disabled.
+
 ## Decision rule
 
-An alternative replaces `current` when:
+Development OOF first fixes a hybrid: a component enters only when its primary
+score is at least 1% lower and the family-cluster bootstrap lower bound is
+positive. The locked seed is not consulted for that selection. The fixed hybrid
+replaces `current` when:
 
-1. its development primary score is at least 1% lower;
-2. validation also improves;
+1. its shipped-product validation MSE is at least 1% lower with a positive
+   family-cluster bootstrap lower bound;
+2. a scorer-identity change includes a freshly selected impact component;
 3. coverage is complete and important regimes show no contradictory failure;
 4. every input is causal and available identically in production;
 5. the implementation is simpler than, or materially more accurate than, the
@@ -135,26 +166,27 @@ compiler comparison and promotion decision.
 
 ## Current component decision
 
-The selected artifact uses compact histogram-gradient-boosted regressors. On
-the locked validation seed, primary loss improved over the former production
-estimators by:
+The 2026-07-31 scorer-bound refresh uses the exact former production model only
+as its context selector and reference. Development OOF retains catchability and
+speed, selects a new 200-tree impact regressor, selects a new air diagnostic,
+and leaves elevation neutral. On the locked seed:
 
-| Component | Improvement |
-|---|---:|
-| catchability | 13.3% |
-| impact feasibility | 9.4% |
-| speed fit | 95.7% |
-| air fit | 94.3% |
+| Component | Decision | Improvement |
+|---|---|---:|
+| catchability | retain incumbent | candidate +0.7% (inconclusive) |
+| impact feasibility | **replace** | **39.5%** |
+| speed fit | retain incumbent | candidate +29.4%, not development-stable |
+| air fit | replace diagnostic | 45.5% |
 
-All 14 origin families improved for every component. Elevation remains exactly
-neutral because current V2 has no authored elevation population. Python export
-parity is below `2e-15`; the checked TypeScript fixtures match exactly.
+Impact and air improve all 14 origin families on the locked seed. Elevation
+remains exactly neutral because current V2 has no authored elevation population.
+Python export parity is below `2.2e-15`; the checked TypeScript fixture matches.
 
-The complete product also improves on locked validation: macro context MSE
-falls from `0.07182` to `0.01563` (78.2%), MAE from `0.1903` to `0.0798`, and
-correlation rises from `0.578` to `0.792`. All 14 origin families improve; the
-family-cluster bootstrap interval for absolute MSE improvement is
-`[0.0410, 0.0642]`.
+The fixed shipped product improves on locked validation: macro context MSE
+falls from `0.022332` to `0.017180` (23.1%), MAE from `0.11584` to `0.09656`,
+and correlation rises from `0.7857` to `0.8152`. All 14 origin families improve;
+the family-cluster bootstrap interval for absolute MSE improvement is
+`[0.00369, 0.00586]`.
 
 The runtime owns no Python or scikit-learn dependency. Python owns training and
 exports the stable `line.readiness-model.v3` tree arrays; TypeScript owns the

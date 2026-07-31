@@ -186,7 +186,7 @@ def load_dataset(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         if (
             metadata.get("kind") != "metadata"
             or metadata.get("schema")
-            != "line.readiness-training-dataset.v3"
+            != "line.readiness-training-dataset.v4"
         ):
             raise ValueError("unsupported readiness training dataset")
         row_count = int(metadata["rows"])
@@ -205,6 +205,7 @@ def load_dataset(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
             "airFit": np.full(row_count, np.nan),
             "elevationFit": np.full(row_count, np.nan),
             "utility": np.empty(row_count),
+            "researchUtility": np.empty(row_count),
             "currentCatchability": np.empty(row_count),
             "currentImpactFeasibility": np.empty(row_count),
             "currentSpeedFit": np.empty(row_count),
@@ -242,7 +243,8 @@ def load_dataset(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
             for target in ("speedFit", "airFit", "elevationFit"):
                 value = truth[target]
                 data[target][index] = np.nan if value is None else value
-            data["utility"][index] = truth["utility"]
+            data["utility"][index] = truth["productionUtility"]
+            data["researchUtility"][index] = truth["utility"]
             data["currentCatchability"][index] = current["catchability"]
             data["currentImpactFeasibility"][index] = current[
                 "impactFeasibility"
@@ -882,13 +884,17 @@ def fit_target(
         val_groups,
         val_families,
     )
-    # Component validation is diagnostic only. Selecting individual
-    # components on the decision seed and then evaluating their product on the
-    # same seed would leak the decision set into the alternative. Development
-    # OOF therefore fixes every component before one wholesale product test.
+    # Component validation is diagnostic only. Development OOF decides whether
+    # each component enters the candidate before the decision seed is opened;
+    # selecting components on validation would leak that seed into the model.
+    replace_in_candidate = (
+        development_improvement >= 1.0
+        and development_evidence["bootstrap95"][0] > 0
+    )
     decision_rule = (
-        "development OOF fixes this component; only the complete candidate "
-        "artifact may be accepted or rejected on the decision seed"
+        "replace in the candidate only when development OOF improves by at "
+        "least 1% with a positive family-cluster bootstrap lower bound; "
+        "validation is diagnostic until the fixed product decision"
     )
     report = {
         "selected": candidate.name,
@@ -924,7 +930,11 @@ def fit_target(
             "improvementPct": validation_improvement,
             "pairedEvidence": validation_evidence,
         },
-        "decision": "candidate_for_product_decision",
+        "decision": (
+            "replace_in_candidate"
+            if replace_in_candidate
+            else "retain_incumbent_in_candidate"
+        ),
         "statisticalPower": (
             "component_validation_is_diagnostic_only"
         ),
@@ -997,13 +1007,13 @@ def main() -> None:
             "development":
                 "first two canonical seeds; 5-fold GroupKFold by origin family",
             "validation":
-                "third canonical decision seed; used once for wholesale artifact adoption",
+                "third canonical decision seed; used once for the development-fixed hybrid artifact",
             "primaryScoring":
                 "macro-average of case/seed groups, matching the TypeScript evaluator",
             "uncertainty":
                 "paired 10,000-draw family-cluster bootstrap and exact sign-flip test",
             "selection":
-                "development OOF only; among deployable models within 1% of best, choose the fewest estimated inference steps",
+                "development OOF chooses each model and whether it replaces its incumbent; validation decides only the fixed shipped-product hybrid",
             "reference": (
                 "checked policy-compatible runtime artifact"
                 if data["hasIncumbent"]
@@ -1043,6 +1053,21 @@ def main() -> None:
                 "incumbent readiness features are absent from the corpus: "
                 + ", ".join(missing)
             )
+        # A single runtime artifact has one shared feature order. Fit refreshed
+        # components on the incumbent's declared subset so a development-fixed
+        # hybrid can retain unaffected components without inventing a second
+        # inference path. The extractor still records its full causal superset.
+        incumbent_columns = [
+            metadata["featureNames"].index(name)
+            for name in incumbent["featureNames"]
+        ]
+        data["X"] = data["X"][:, incumbent_columns]
+        metadata["featureNames"] = list(incumbent["featureNames"])
+        report["dataset"]["featureNames"] = metadata["featureNames"]
+        report["method"]["featureProjection"] = (
+            "candidate components use the incumbent artifact feature subset "
+            "so selected and retained components share one runtime vector"
+        )
     artifacts: dict[str, Any] = {}
     for name in requested:
         target = target_from_data(name, data)
@@ -1057,17 +1082,25 @@ def main() -> None:
         report["components"][name] = component_report
         artifacts[name] = artifact
 
+    selected_components = {
+        name
+        for name, component_report in report["components"].items()
+        if component_report.get("decision") == "replace_in_candidate"
+    }
+
     validation = data["partition"] == "validation"
     validation_indices = np.flatnonzero(validation)
     if len(validation_indices) == 0:
         raise ValueError("readiness dataset has no decision-seed contexts")
     current_composite = np.ones(len(data["X"]), dtype=np.float64)
     alternative_composite = np.ones(len(data["X"]), dtype=np.float64)
+    # This is the product the compiler actually multiplies. airFit remains a
+    # trained diagnostic component but is deliberately excluded in TypeScript,
+    # so it cannot dominate artifact adoption here.
     component_sources = {
         "catchability": ("currentCatchability", None),
         "impactFeasibility": ("currentImpactFeasibility", "authoredImpact"),
         "speedFit": ("currentSpeedFit", "authoredSpeed"),
-        "airFit": ("currentAirFit", "authoredAir"),
         "elevationFit": ("currentElevationFit", "authoredElevation"),
     }
     for name, (current_name, authored_name) in component_sources.items():
@@ -1081,7 +1114,7 @@ def main() -> None:
             data[current_name],
             1.0,
         )
-        if name in artifacts:
+        if name in selected_components:
             alternative_component = np.where(
                 authored,
                 predict_serialized(artifacts[name], data["X"]),
@@ -1130,6 +1163,15 @@ def main() -> None:
         composite_improvement >= 1.0
         and composite_evidence["bootstrap95"][0] > 0
     )
+    target_semantics_changed = (
+        incumbent is not None
+        and incumbent.get("targetSemanticsId") != metadata["targetSemanticsId"]
+    )
+    scorer_refresh_complete = (
+        not target_semantics_changed
+        or "impactFeasibility" in selected_components
+    )
+    composite_adopt = composite_adopt and scorer_refresh_complete
     report["compositeValidation"] = {
         "current": model_summary(
             composite_target,
@@ -1146,7 +1188,7 @@ def main() -> None:
         "improvementPct": composite_improvement,
         "pairedEvidence": composite_evidence,
         "scope":
-            "decision seed only; the complete component suite was fixed by development OOF",
+            "decision seed only; component replacements were fixed by development OOF and the target is the shipped air-excluded product",
     }
     report["artifactDecision"] = {
         "decision": (
@@ -1155,10 +1197,15 @@ def main() -> None:
             else "retain_incumbent"
         ),
         "rule": (
-            "the complete candidate must improve decision-seed MSE by at "
-            "least 1% with a positive family-cluster bootstrap lower bound"
+            "the development-fixed shipped-product hybrid must improve "
+            "decision-seed MSE by at least 1% with a positive family-cluster "
+            "bootstrap lower bound; a scorer identity change also requires "
+            "a freshly selected impactFeasibility component"
         ),
         "componentDecisionsAreSufficient": False,
+        "selectedComponents": sorted(selected_components),
+        "targetSemanticsChanged": target_semantics_changed,
+        "scorerRefreshComplete": scorer_refresh_complete,
     }
 
     if composite_adopt:
@@ -1179,7 +1226,18 @@ def main() -> None:
             },
             "featureNames": metadata["featureNames"],
             "corpus": metadata["corpus"],
-            "components": artifacts,
+            "components": {
+                name: (
+                    artifacts[name]
+                    if name in selected_components
+                    else copy.deepcopy(component)
+                )
+                for name, component in (
+                    incumbent["components"].items()
+                    if incumbent is not None
+                    else artifacts.items()
+                )
+            },
         }
     else:
         if incumbent is None:

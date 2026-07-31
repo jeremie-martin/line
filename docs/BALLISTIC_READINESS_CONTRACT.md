@@ -566,7 +566,8 @@ dominate.
 Primary component losses:
 
 - catchability: Brier score over all attempts;
-- impact feasibility: Brier score over viable, impact-authored attempts;
+- impact feasibility: squared error against mean scorer-compatible fit over
+  viable, impact-authored attempts;
 - speed, air, and elevation fit: squared error against realized
   scorer-compatible fit on viable attempts.
 
@@ -574,7 +575,7 @@ Secondary evidence includes log loss and calibration for probabilities; MAE,
 raw physical error, signed bias, target buckets, and regime coverage for
 continuous outcomes.
 
-For each context, empirical joint truth is the mean attempt utility:
+For each context, full research joint truth is the mean attempt utility:
 
 ```text
 attemptUtility =
@@ -588,12 +589,17 @@ where every unauthored factor is `1`. Composite readiness is evaluated against
 the context mean using squared error, calibration, association, and pool
 ranking/regret when exact pools are available.
 
+The shipped product currently excludes `airFit` (§7.2). Artifact adoption must
+therefore use the corresponding production truth — the same expression with
+`airFit = 1` — while retaining the full joint truth for component research. A
+disabled factor may not dominate selection for a product that does not infer it.
+
 Direct ballistic accuracy, outgoing-gap composition accuracy, readiness
 component accuracy, proposal ordering, and compiler score are separate claims.
 
 ## 11. Current implementation status
 
-Verified against the tree on 2026-07-26:
+Verified against the tree on 2026-07-31:
 
 | Layer | Status |
 |---|---|
@@ -604,14 +610,14 @@ Verified against the tree on 2026-07-26:
 | Settled incoming-gap measurement | Owned by `settledIncomingAxes` and `scoreSettledIncomingQuality`. |
 | Projected outgoing-gap target fit | Owned by `projectOutgoingScorerGap`; impact is absent by construction. |
 | Catchability for the next arc | Refit on all retained attempts from the contact-indexed corpus. |
-| Impact feasibility for the next arc | Refit on viable attempts with an incoming-gap impact ask. |
+| Impact feasibility for the next arc | Scorer-bound refit on viable attempts with an incoming-gap impact ask under accumulated contacted-frame impulse. |
 | Next-arc speed/air fit | Refit from the unbuilt arc's realized outgoing gap. |
 | Next-arc elevation fit | Exactly neutral pending a relevant authored population. |
-| Frozen readiness corpus | Schema v6: 44 V2 cases, three seeds, 132,387 contexts, 470,101 retained of 617,789 attempts (`generated/analysis/readiness.json`, regenerated 2026-07-25). |
-| Production inference | One stable exported artifact; dependency-free TypeScript inference has exact fixture parity with Python. The extractor emits 88 columns, the shipped model uses 80, and `infer` projects (§7.3). |
+| Frozen readiness corpus | Schema v7: 44 V2 cases, three seeds, 124,516 contexts, 564,207 retained of 580,067 attempts (`generated/analysis/readiness.json`, regenerated 2026-07-31). Labels bind target protocol `next-arc-readiness-targets-v3-contacted-frame-impulse`; the prior v2 artifact is recorded and legal only as the bootstrap context selector. |
+| Production inference | Scorer-bound hybrid exported: catchability/speed retained, impact and the disabled air diagnostic refit. Dependency-free TypeScript inference has exact fixture parity with Python. The extractor emits 88 columns, the shipped model uses 80, and `infer` projects (§7.3). |
 | Proposal utility | Combines settled incoming quality, projected outgoing quality, and next-arc readiness once each — but projected and readiness share one exponent. See §8.2. |
 | Aim surrogate | Uses only settled and projected layers because its small local fit does not reconstruct the full articulated readiness boundary. Exact candidates use all three layers. |
-| Compiler evidence | Unit/contract evidence is in place; hot-path inference telemetry remains pending. Compiler promotion through the N=48 benchmark is exercised (three arms decided 2026-07-25) and the closed-form projection was adopted at 24-seed parity. |
+| Compiler evidence | Unit/contract evidence is in place; hot-path inference telemetry remains pending. Independent 750k/N=48 validation of the 2026-07-31 scorer-bound refit is pending. |
 
 The invalid earlier speed/air result remains withdrawn. It measured outgoing
 ballistic composition, not next-arc readiness.

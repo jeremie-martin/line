@@ -91,9 +91,11 @@ import {
 } from "./optimizer/readiness_model_artifact.ts";
 import {
   assertCompatibleReadinessArtifact,
+  READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS,
   READINESS_TARGET_SEMANTICS_ID,
   scoreReadinessWithArtifact,
 } from "./optimizer/readiness_scoring.ts";
+import { setReadinessCollectionModel } from "./optimizer/readiness.ts";
 
 type FrozenScorerGap = {
   index: number;
@@ -161,7 +163,7 @@ type ReadinessContext = {
 };
 
 type ReadinessCorpus = {
-  schema: "line.readiness-corpus.v6";
+  schema: "line.readiness-corpus.v7";
   generatedAt: string;
   compilerFingerprint: string;
   samplerFingerprint: string;
@@ -173,7 +175,9 @@ type ReadinessCorpus = {
     contextCapPerCaseSeed: number;
     primaryPolicy: "normal_literal";
     generatorPolicyId: string;
+    targetSemanticsId: string;
     contextSelectionArtifactFingerprint: string;
+    contextSelectionTargetSemanticsId: string;
   };
   cases: string[];
   joltMs: number;
@@ -265,6 +269,7 @@ type ReadinessEvaluationRow = {
     airFitNoise: number | null;
     elevationFitNoise: number | null;
     utility: number;
+    productionUtility: number;
     outgoingStatus: Record<OutgoingTruth["status"], number>;
     incomingBoundaryError: {
       precontactPositionPx: number;
@@ -364,7 +369,8 @@ const corpusPath = resolve(
   argValue("corpus") ?? "generated/analysis/readiness-corpus",
 );
 const runtimeModelPath = resolve(
-  "scripts/v0/optimizer/readiness_model.json",
+  argValue("incumbent-model") ??
+    "scripts/v0/optimizer/readiness_model.json",
 );
 const incumbentArtifact = loadCompatibleIncumbentArtifact(
   runtimeModelPath,
@@ -411,6 +417,9 @@ for (const sourceId of sourceIds) {
 
 const workerSourceId = argValue("_worker-source");
 if (workerSourceId !== undefined) {
+  if (incumbentArtifact !== null) {
+    setReadinessCollectionModel(incumbentArtifact);
+  }
   const workerSeed = exactCanonicalSeed(argValue("_worker-seed"));
   const workerOutput = argValue("_worker-output");
   if (workerOutput === undefined) {
@@ -613,7 +622,7 @@ async function collectCorpus(): Promise<ReadinessCorpus> {
       throw new Error(`sampler sources changed during readiness collection`);
     }
     const manifest: ReadinessCorpus = {
-      schema: "line.readiness-corpus.v6",
+      schema: "line.readiness-corpus.v7",
       generatedAt: new Date().toISOString(),
       compilerFingerprint,
       samplerFingerprint,
@@ -625,9 +634,13 @@ async function collectCorpus(): Promise<ReadinessCorpus> {
         contextCapPerCaseSeed: READINESS_CONTEXT_CAP_PER_CASE_SEED,
         primaryPolicy: PRIMARY_POLICY,
         generatorPolicyId: PRODUCTION_ARC_PROPOSAL_POLICY_ID,
+        targetSemanticsId: READINESS_TARGET_SEMANTICS_ID,
         contextSelectionArtifactFingerprint: incumbentArtifact === null
           ? "neutral-bootstrap"
           : readinessArtifactFingerprint(runtimeModelPath),
+        contextSelectionTargetSemanticsId: incumbentArtifact === null
+          ? "neutral-bootstrap"
+          : incumbentArtifact.targetSemanticsId,
       },
       cases: sourceIds,
       joltMs: suite.transform.jolt_ms,
@@ -1195,6 +1208,7 @@ function* buildEvaluationRows(
           "elevation",
         ),
         utility: realizedContextUtility(context),
+        productionUtility: realizedProductionUtility(context),
         outgoingStatus,
         incomingBoundaryError: context.exactIncomingBoundary === null
           ? null
@@ -1292,7 +1306,7 @@ async function writeTrainingDataset(
   const records = function* (): Generator<string> {
     yield `${JSON.stringify({
       kind: "metadata",
-      schema: "line.readiness-training-dataset.v3",
+      schema: "line.readiness-training-dataset.v4",
       generatedAt: new Date().toISOString(),
       corpus: {
         schema: corpus.schema,
@@ -1300,7 +1314,10 @@ async function writeTrainingDataset(
         samplerFingerprint: corpus.samplerFingerprint,
         contextSelectionArtifactFingerprint:
           corpus.protocol.contextSelectionArtifactFingerprint,
+        contextSelectionTargetSemanticsId:
+          corpus.protocol.contextSelectionTargetSemanticsId,
         generatorPolicyId: corpus.protocol.generatorPolicyId,
+        targetSemanticsId: corpus.protocol.targetSemanticsId,
         budget: corpus.protocol.budget,
         seeds: corpus.protocol.seeds,
         cases: corpus.cases,
@@ -1338,6 +1355,8 @@ async function writeTrainingDataset(
           "mean outgoing scorer-gap elevation fit, conditional on viable",
         readiness:
           "mean joint utility of one proposal; failures have utility zero",
+        productionReadiness:
+          "mean shipped-product utility (catchability x impact x speed x elevation); air is excluded",
       },
     })}\n`;
     for (const row of rows) {
@@ -1467,8 +1486,11 @@ function evaluateCorpus(
       budget: corpus.protocol.budget,
       primaryPolicy: corpus.protocol.primaryPolicy,
       samplerFingerprint: corpus.samplerFingerprint,
+      targetSemanticsId: corpus.protocol.targetSemanticsId,
       contextSelectionArtifactFingerprint:
         corpus.protocol.contextSelectionArtifactFingerprint,
+      contextSelectionTargetSemanticsId:
+        corpus.protocol.contextSelectionTargetSemanticsId,
     },
     modelNames: models.map((model) => model.name),
     modelMetadata: Object.fromEntries(
@@ -1492,7 +1514,9 @@ function evaluateCorpus(
       elevationFit:
         "E[outgoing scorer-gap elevation target fit | viable proposal]",
       composite:
-        "mean realized joint utility of one proposal; failures have utility 0",
+        "shipped-product utility; air is excluded and failures have utility 0",
+      researchComposite:
+        "full realized joint utility including air; retained as component research truth",
       targetOwnership:
         "entry impact belongs to incomingGap; speed/air/elevation belong to outgoingGap",
       currentModelStatus:
@@ -1645,7 +1669,7 @@ function evaluateModel(
       compositeRows.push({
         group,
         predicted: prediction.readiness,
-        truth: row.truth.utility,
+        truth: row.truth.productionUtility,
       });
     }
   }
@@ -1723,7 +1747,19 @@ function currentPrediction(
       readiness: 1,
     };
   }
-  return scoreReadinessWithArtifact(input, incumbentArtifact);
+  const scored = scoreReadinessWithArtifact(input, incumbentArtifact, "normal", {
+    allowTargetSemanticsIds:
+      READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS,
+    inferDisabledComponents: true,
+  });
+  return {
+    catchability: scored.catchability,
+    speedFit: scored.speedFit,
+    airFit: scored.airFitPredicted,
+    impactFeasibility: scored.impactFeasibility,
+    elevationFit: scored.elevationFit,
+    readiness: scored.readiness,
+  };
 }
 
 function impactFitValues(context: ReadinessContext): number[] {
@@ -1783,6 +1819,17 @@ function meanNoise(values: readonly number[]): number | null {
 }
 
 function realizedContextUtility(context: ReadinessContext): number {
+  return realizedContextUtilityWithAxes(context, true);
+}
+
+function realizedProductionUtility(context: ReadinessContext): number {
+  return realizedContextUtilityWithAxes(context, false);
+}
+
+function realizedContextUtilityWithAxes(
+  context: ReadinessContext,
+  includeAir: boolean,
+): number {
   const impactTarget = context.incomingGap.scorerTargets.impact;
   return mean(context.attempts.map((attempt) => {
     if (!attempt.viable) return 0;
@@ -1792,7 +1839,8 @@ function realizedContextUtility(context: ReadinessContext): number {
     const outgoing = attempt.outgoing;
     if (context.outgoingGap === null) return impactFit;
     if (outgoing === null) return 0;
-    return impactFit * outgoing.fit.speed * outgoing.fit.air *
+    return impactFit * outgoing.fit.speed *
+      (includeAir ? outgoing.fit.air : 1) *
       outgoing.fit.elevation;
   }));
 }
@@ -2292,7 +2340,10 @@ function loadCompatibleIncumbentArtifact(
     const artifact = parseReadinessModelArtifact(
       JSON.parse(readFileSync(path, "utf8")),
     );
-    assertCompatibleReadinessArtifact(artifact);
+    assertCompatibleReadinessArtifact(artifact, {
+      allowTargetSemanticsIds:
+        READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS,
+    });
     if (artifact.trainingCorpus.schema === "bootstrap-untrained") {
       return null;
     }
@@ -2324,7 +2375,7 @@ function loadCorpus(): ReadinessCorpus {
   const corpus = JSON.parse(
     readFileSync(manifestPath, "utf8"),
   ) as ReadinessCorpus;
-  if (corpus.schema !== "line.readiness-corpus.v6") {
+  if (corpus.schema !== "line.readiness-corpus.v7") {
     throw new Error(`unsupported readiness corpus schema`);
   }
   if (
@@ -2334,8 +2385,19 @@ function loadCorpus(): ReadinessCorpus {
     corpus.protocol.primaryPolicy !== PRIMARY_POLICY ||
     corpus.protocol.generatorPolicyId !==
       PRODUCTION_ARC_PROPOSAL_POLICY_ID ||
+    corpus.protocol.targetSemanticsId !== READINESS_TARGET_SEMANTICS_ID ||
     typeof corpus.protocol.contextSelectionArtifactFingerprint !== "string" ||
     corpus.protocol.contextSelectionArtifactFingerprint.length === 0 ||
+    (
+      corpus.protocol.contextSelectionTargetSemanticsId !==
+        READINESS_TARGET_SEMANTICS_ID &&
+      corpus.protocol.contextSelectionTargetSemanticsId !==
+        "neutral-bootstrap" &&
+      !READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS.includes(
+        corpus.protocol.contextSelectionTargetSemanticsId as
+          typeof READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS[number],
+      )
+    ) ||
     corpus.protocol.seeds.length !== READINESS_SEEDS.length ||
     corpus.protocol.seeds.some(
       (seed, index) => seed !== READINESS_SEEDS[index],
@@ -2479,10 +2541,16 @@ function runCollectionWorker(
         `--_worker-source=${task.sourceId}`,
         `--_worker-seed=${task.seed}`,
         `--_worker-output=${resolve(stagingPath, task.relativePath)}`,
+        `--incumbent-model=${runtimeModelPath}`,
       ],
       {
         cwd: process.cwd(),
-        env: { ...process.env, LR_ENGINE: "wasm" },
+        env: {
+          ...process.env,
+          LR_ENGINE: "wasm",
+          LR_READINESS_COLLECTION: "1",
+          LR_READINESS_ALLOW_PREVIOUS_TARGET_CONTEXT: "1",
+        },
         stdio: ["pipe", "pipe", "pipe"],
       },
     );

@@ -7,6 +7,14 @@ It is the first scorer-bound baseline for accumulated contacted-frame
 redirection impulse: suite `7bd878d8aaea08a9`, scoring protocol
 `c71466608589ae757`, Golden evaluator `07cf88383150`.
 
+Current candidate: the scorer-bound readiness refresh under target protocol
+`next-arc-readiness-targets-v3-contacted-frame-impulse`. Development OOF selects
+only impact feasibility plus the disabled air diagnostic; catchability and
+speed remain unchanged. Locked-seed shipped-product MSE improves 23.1%, but
+this is not a campaign acceptance claim until the exact 750k/N=48 compiler
+comparison is complete. Durable offline evidence is
+`benchmark/v2/studies/readiness-contact-impulse-v3.json`.
+
 Read `docs/HOW_TO_WORK.md`, `docs/benchmark-v2-context.md`,
 `docs/benchmark-v2.md`, `docs/benchmark-v2-decisions.md`, and
 `docs/compiler-improvement-campaign.md` before substantial work. Use

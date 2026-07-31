@@ -33,6 +33,23 @@ compiles). Compiler mechanisms must still scale continuously through 150k and
 | `air-matched-breadth-law` | 572.67 | N=8 +4.39 SE 1.46, one-sided lower +0.39; all-base air matching plus linear aim refinement |
 | **`postcompletion-aim-center-reuse`** | **571.08** | **N=48 +0.0842 SE 0.0217, 95% CI [+0.0271,+0.1413]; exact center-row reuse after first completion** |
 
+## 2026-07-31 — pending: scorer-bound readiness refresh
+
+The promoted impact ruler changed the label behind readiness's
+`impactFeasibility`, so the former model is retained only as the exact context
+selector, not relabeled as current evidence. A fresh 44-case/three-seed corpus
+contains 124,516 contexts and 564,207 retained attempts under target protocol
+`next-arc-readiness-targets-v3-contacted-frame-impulse`.
+
+The refresh also fixes the trainer's known adoption mismatch: component
+replacement is fixed from development OOF, and the locked decision seed scores
+the air-excluded product the compiler actually multiplies. Catchability and
+speed are retained; impact is refit; air is refit only as a disabled diagnostic.
+Locked-seed impact MSE improves 39.5%, and shipped-product MSE improves 23.1%
+with all 14 families better. This is offline adoption only. The exact
+750k/N=48 compiler comparison against `contact-redir-impulse-v2-750k` is the
+promotion decision; no cross-ruler comparison is involved.
+
 ### Historical pre-scorer-bound analysis: what 650 required
 
 Everything in this subsection predates scoring protocol `c7146660` and uses

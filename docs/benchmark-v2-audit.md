@@ -1,6 +1,6 @@
 # Benchmark V2 Static Audit
 
-Characterization: `2ae982a1b58fc399`. Audit: `edc200a0d11c45b1`.
+Characterization: `5d1726299e3f4173`. Audit: `cfdec471908c09b2`.
 
 This report contains no compiler or heldout outcome.
 

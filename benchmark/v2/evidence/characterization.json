@@ -38889,7 +38889,7 @@
         "scripts/v0/specs/shelter_impact_sync.ts",
         "scripts/v0/specs/_music.ts"
       ],
-      "sourceFingerprint": "4cd2369ddaa20228f117e515e59d8b79cdc72a9b571bfdb41c6188900a78feed",
+      "sourceFingerprint": "dc0c2d8a12a026420ba012e834f58ab493044728bd47712932a1785553cc847a",
       "originFamily": "qualification",
       "musicBacked": true,
       "musicWorkId": "shelter_impact_sync_81s",
@@ -40881,5 +40881,5 @@
       ]
     }
   ],
-  "dataFingerprint": "2ae982a1b58fc399f1231bf499e3daec251f16573d4e74b28c6678ac04805985"
+  "dataFingerprint": "5d1726299e3f417383a79bdc723ab3eb27fa21b8c6c0c7c9eb07ed099ff00354"
 }

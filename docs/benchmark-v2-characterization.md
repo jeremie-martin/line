@@ -1,6 +1,6 @@
 # Benchmark V2 Static Characterization
 
-Data fingerprint: `2ae982a1b58fc399`.
+Data fingerprint: `5d1726299e3f4173`.
 
 This report inspects source only. It contains no compiler run or heldout outcome.
 

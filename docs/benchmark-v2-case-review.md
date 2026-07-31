@@ -1,7 +1,7 @@
 # Benchmark V2 Case Review
 
-Characterization: `2ae982a1b58fc399`. Audit: `edc200a0d11c45b1`.
-Listening review: **approved** (`973af98ec3de6eba`).
+Characterization: `5d1726299e3f4173`. Audit: `cfdec471908c09b2`.
+Listening review: **awaiting-human-review** (`6e9ca2fbdfc3ab3c`).
 
 Selection is based on source structure and stated benchmark intent. It contains no compiler or qualification result.
 

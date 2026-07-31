@@ -1,6 +1,6 @@
 {
   "schema": "line.benchmark-v2.audit.v2",
-  "characterizationFingerprint": "2ae982a1b58fc399f1231bf499e3daec251f16573d4e74b28c6678ac04805985",
+  "characterizationFingerprint": "5d1726299e3f417383a79bdc723ab3eb27fa21b8c6c0c7c9eb07ed099ff00354",
   "auditRuleFingerprint": "84e049510a2e2782c2f2a4bbabde691e54472e821d2afcdc14824f8545b92d46",
   "hardFailures": [],
   "warnings": [
@@ -6715,5 +6715,5 @@
       "cosine": 0
     }
   ],
-  "auditFingerprint": "edc200a0d11c45b1a7da2dbc80ca7ffe6202df9b76bd9b81c6abacc72c8fc87a"
+  "auditFingerprint": "cfdec471908c09b2013401ebf88eda3d3c7cf0383dcc3419ecf6cf50b680feef"
 }

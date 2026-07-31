@@ -199,11 +199,31 @@ looks clean, so you never learn the spec is demanding something that beat
 forbids. Un-clamped, the mistake surfaces as error and `feasibility_bound`
 explains it.
 
-The cost is real and currently unmeasured: every over-ask is a quiet drag on the
-headline, and nobody has split impact error into "above the bound" (irreducible
-under the model) versus "below it" (genuine compiler shortfall) since the clamp
-was removed. That split is the measurement that should decide whether any form
-of bounding comes back.
+**MEASURED 2026-07-31 (`study_impact_error_split.ts`, canonical V2 inventory,
+44 sources × 3 seeds @750k, 12,168 authored contacts) — the answer is: do NOT
+restore the clamp.** The decisive number is not the error split, it is the
+model's falsification rate:
+
+- **28.9% of landings achieved MORE impact than their feasibility bound said was
+  possible.** The bound is not an upper bound; it is a soft, frequently-exceeded
+  frontier. (Its sibling, the actual-speed `ceiling`, was violated 0/12,168 times
+  — that one is sound.)
+- Clamping would therefore forgive error on beats where the compiler
+  demonstrably CAN deliver more. The apparent headline win — mean |err| 0.162 →
+  0.119, rms 0.207 → 0.146 — is mostly that forgiveness, not a truer ruler.
+- It follows that the "irreducible" share of error (0.104 mean, 64% of the total)
+  is NOT trustworthy as a physics floor, because it rests on a model that is
+  wrong about a third of the time. Treat it as a difficulty hint, never as a
+  scoring input.
+
+The same run located where the real headroom is, and it is not physics: in the
+**0.125–0.5 ask band (43% of all authored contacts)** the bound says 0.53–0.57
+is available and the compiler delivers **0.14–0.24** against asks of 0.21–0.42.
+That shortfall sits entirely INSIDE the bound, so it is compiler headroom, not
+an over-ask. (Note `IMPACT_TARGETED_ASK = 0.3` in `optimizer/impact_policy.ts`:
+much of that band is not even treated as materially targeted for search
+allocation.) At high asks the picture inverts — the 0.875–1.0 band asks 0.91,
+the bound says 0.60, and delivery lands at 0.62, i.e. right at the frontier.
 
 Note for anyone reading old harnesses: `eval_leaf_factors.ts`,
 `eval_arc_apples.ts` and `eval_pergap_vs_composed.ts` still apply

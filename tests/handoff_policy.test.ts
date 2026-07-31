@@ -99,7 +99,7 @@ function totalSignedTurnDeg(lines: TrackLine[]): number {
 describe("handoff policy boundaries", () => {
   test("candidate pool has no contact-count regime cliff", () => {
     const formerCliffCounts = [29, 30, 31, 60, 61, 77];
-    expect(formerCliffCounts.map(() => handoffCandidatePool())).toEqual([7, 7, 7, 7, 7, 7]);
+    expect(formerCliffCounts.map(() => handoffCandidatePool())).toEqual([5, 5, 5, 5, 5, 5]);
   });
 
   test("sample schedule uses one unified quality breadth", () => {

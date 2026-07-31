@@ -112,6 +112,48 @@ the two capability validity losses reinforce that result. Source was reverted;
 candidate comparison, not a comparison between impact definitions, and no
 override or rebaseline was used.
 
+## 2026-07-31 — RETIRED: seven-candidate handoff pool on the current ruler
+
+**Hypothesis.** Revisit the historical `HANDOFF_CANDIDATE_POOL=7` arm after the
+impact promotion and readiness refit. Admit seven rather than five ranked
+candidates at every scale, without changing generation breadth, tree width,
+budget policy, RNG, or scorer. Old evidence nominated the arm only; the
+candidate was reimplemented on the current committed compiler and evaluated
+entirely against the current active baseline.
+
+**Evidence.** The focused optimizer suite passed 80/80 tests. A deterministic
+scope panel preserved all ten 750k cases but was mixed: six improved, four
+declined; its 150k slice lost dense-240 validity, and all three selected 3M
+stress cases declined. Those diagnostics had no promotion authority. The
+governed run used suite `7bd878d8aaea08a9`, scoring protocol
+`c71466608589ae757`, engine artifact `12c25081c829506a`, the literal current
+48-seed schedule, and 48 workers. It completed all 2,112 requested rows with
+zero worker failures and perfect validity:
+
+| look | paired delta | SE | P(improvement) | required | action |
+|---:|---:|---:|---:|---:|---|
+| N=8 | +0.7892 | 0.8496 | 80.81% | 99.90% | continue |
+| N=16 | +0.9920 | 0.7390 | 90.03% | 99.80% | continue |
+| N=32 | +0.2162 | 0.4989 | 66.61% | 98.88% | continue |
+| N=48 | **+0.4834** | 0.4142 | **87.55%** | **97.23%** | **inconclusive** |
+
+The final headline was **596.3831** against **595.8997**, with central 95%
+interval **[-0.6286,+1.5954]**. Representative was +0.4950, capability
++1.9693, legacy regression -2.0551, and development music +0.9404; every
+stratum interval crossed zero. Validity was exactly 2,112/2,112 on both sides.
+The raw and gzip archive checksums are `1d1e8ced1cb75506...` and
+`faacb3d303f1d396...`; the compiler snapshot checksum is
+`2ea5bc4192e9bb94...` under
+`generated/benchmark-v2/eval/handoff-pool-seven-750k*`.
+
+**Decision.** The point estimate is encouraging and reliability is intact, but
+the observed paired variance leaves only 87.55% probability of improvement at
+the maximum declared look. That does not meet the ordinary 97.23% boundary.
+No override or rebaseline was used; source was reverted and
+`readiness-contact-impulse-v3-750k` remains active. The single-seed cross-scale
+warning also argues against treating the small 750k mean as sufficient. This
+is current-ruler evidence, not a comparison between impact definitions.
+
 ### Historical pre-scorer-bound analysis: what 650 required
 
 Everything in this subsection predates scoring protocol `c7146660` and uses

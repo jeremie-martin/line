@@ -13,7 +13,10 @@ import {
   validateSpec,
 } from "../scripts/v0/core/substrate.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
-import { setAimCompileBudgetFrames } from "../scripts/v0/optimizer/aim.ts";
+import {
+  setAimBaseFitReuseAllowed,
+  setAimCompileBudgetFrames,
+} from "../scripts/v0/optimizer/aim.ts";
 import {
   evaluateArcKnobSequence,
   projectJointArcBaseFit,
@@ -101,11 +104,13 @@ describe("joint arc base-fit projection", () => {
     const poolWith = (
       reuseBaseFit: boolean,
       budget: number,
+      allowed = reuseBaseFit,
     ) => {
       resetPerCompileState();
       setCompileBudgetFrames(budget);
       setAimCompileBudgetFrames(budget);
       setAimLanePaceSuppressed(false);
+      setAimBaseFitReuseAllowed(allowed);
       if (reuseBaseFit) delete process.env.LR_AIM_REUSE_BASE_FIT;
       else process.env.LR_AIM_REUSE_BASE_FIT = "0";
       const freshContext: SpecContext = {
@@ -135,14 +140,20 @@ describe("joint arc base-fit projection", () => {
       for (const budget of [150_000, 250_000, 750_000, 3_000_000]) {
         const reusedPool = poolWith(true, budget);
         const probedPool = poolWith(false, budget);
+        const preCompletionPool = poolWith(true, budget, false);
         expect(reusedPool.candidates, `candidate pool at ${budget}`).toEqual(
           probedPool.candidates,
         );
         expect(reusedPool.frames, `physics frames at ${budget}`).toBeLessThan(
           probedPool.frames,
         );
+        expect(
+          preCompletionPool.candidates,
+          `pre-completion pool at ${budget}`,
+        ).toEqual(probedPool.candidates);
       }
     } finally {
+      setAimBaseFitReuseAllowed(false);
       delete process.env.LR_AIM_REUSE_BASE_FIT;
     }
   }, 60_000);

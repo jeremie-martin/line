@@ -74,6 +74,44 @@ records N=48 as its promotion depth and current cache coverage without
 retroactively changing the verdict. Future improvements use the scorer-bound
 sequential calibration in `benchmark-v2-sequential-eval-calibration.md`.
 
+## 2026-07-31 — RETIRED: unconditional aim center-row reuse on the current ruler
+
+**Hypothesis.** The old-ruler campaign had rejected exact center-row reuse
+before first completion but accepted it after completion. Re-test the simpler
+unconditional mechanism from the current committed compiler: reconstruct only
+the already-exact zero-control row throughout search, while every nonzero probe
+and emitted proposal still receives exact optimized-WASM evaluation. Historical
+archives nominated the mechanism only; they were not reused as evidence.
+
+**Evidence.** Exact-pool equivalence and lower probe-frame charge passed at
+150k, 250k, 750k, and 3M, and the focused optimizer suite passed 80/80 tests.
+The governed current-ruler run used suite `7bd878d8aaea08a9`, scoring protocol
+`c71466608589ae757`, engine artifact `12c25081c829506a`, the active literal
+48-seed schedule, and 48 workers. All 2,112 requested rows completed with zero
+worker failures:
+
+| look | paired delta | SE | P(improvement) | required | action |
+|---:|---:|---:|---:|---:|---|
+| N=8 | +0.3180 | 0.2543 | 87.44% | 99.90% | continue |
+| N=16 | -3.5115 | 3.5941 | 17.20% | 99.80% | continue |
+| N=32 | -3.9982 | 3.1105 | 10.41% | 98.88% | continue |
+| N=48 | **-2.5760** | 2.1223 | **11.54%** | **97.23%** | **inconclusive** |
+
+The final headline was **593.3237** against **595.8997**, with central 95%
+interval **[-8.2735,+3.1215]**. Representative improved +0.3789 and legacy
+regression +0.5055, but capability fell -19.2660. Validity moved
+2,112/2,112 to 2,110/2,112: shifted pickup and dense-240 recovery each lost
+one seed. The raw and gzip archive checksums are `455110377d36fe24...` and
+`92d4447b01e2e607...`; the compiler snapshot checksum is
+`32d66405004a2d2d...` under
+`generated/benchmark-v2/eval/aim-center-reuse-all-phases-750k*`.
+
+**Decision.** Ordinary sequential evidence did not accept the candidate, and
+the two capability validity losses reinforce that result. Source was reverted;
+`readiness-contact-impulse-v3-750k` remains active. This is a current-ruler
+candidate comparison, not a comparison between impact definitions, and no
+override or rebaseline was used.
+
 ### Historical pre-scorer-bound analysis: what 650 required
 
 Everything in this subsection predates scoring protocol `c7146660` and uses

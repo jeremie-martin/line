@@ -243,12 +243,18 @@ function aimStudyStatsEnabled(): boolean {
     .process?.env?.LR_AIM_STUDY_STATS === "1";
 }
 
-/** Reuse the already-exact base row throughout the search. The reconstructed
- * row is semantically identical to the zero-control engine probe; nonzero
- * probes and every emitted proposal still pass through exact evaluation. */
+let aimBaseFitReuseAllowed = false;
+
+/** Scoped by the handoff ranker: exact base-fit reuse is a quality-phase
+ * optimization only, after the compile already owns a complete valid track. */
+export function setAimBaseFitReuseAllowed(allowed: boolean): void {
+  aimBaseFitReuseAllowed = allowed;
+}
+
 function aimReuseBaseFitEnabled(): boolean {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_REUSE_BASE_FIT !== "0";
+  return aimBaseFitReuseAllowed &&
+    (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.LR_AIM_REUSE_BASE_FIT !== "0";
 }
 
 /** Accepted mature aim-base count. K=1 runs the lane on `sorted[0]` only; K>1

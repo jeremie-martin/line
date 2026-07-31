@@ -109,6 +109,7 @@ export const RUNNER_IMPLEMENTATION_SOURCE_FILES = [
   "scripts/v0/benchmark_v2/campaign_bootstrap.ts",
   "scripts/v0/benchmark_v2/campaign_bootstrap_request.ts",
   "scripts/v0/benchmark_v2/runner.ts",
+  "scripts/v0/benchmark_v2/round_progress.ts",
   "scripts/v0/benchmark_v2/canonical.ts",
   "scripts/v0/benchmark_v2/click_model.ts",
   "scripts/v0/benchmark_v2/checkpoint_model.ts",

@@ -22,6 +22,12 @@ use strict N=8/16/32/48 looks with a calibrated symmetric O'Brien-Fleming
 Student-t boundary. The one-sided total false-promotion tolerance is 5%; there
 is no predictive futility stop. This migration changed no score or archive.
 
+The current runner also emits diagnostic per-seed progress after each complete
+44-case block. It uses verified matched baseline rows and the same observed
+seed-block SE and reference-t probability as the decision model. Only strict
+look artifacts have decision authority; the progress log is reconstructable
+and does not change scorer, inference, calibration, or baseline evidence.
+
 The 250k and 500k budgets are temporarily deferred from the official headline.
 Their old-ruler evidence remains unchanged in `benchmark/v2/baseline.json`; it
 was neither recomputed nor used to construct this baseline. Those historical
@@ -40,7 +46,7 @@ Identity:
 - inference rule:
   `56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f`;
 - decision protocol:
-  `02c0b9988f9be71ec17894e741e0d59bd9ea8cb9992d31eca2725f8bdecb8559`;
+  `51871c665c44138e26daaa25b69ce94ade49ceccccd32c9ba56eabfadc18819e`;
 - decision calibration:
   `b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1`.
 - sequential policy:

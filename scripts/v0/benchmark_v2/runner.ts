@@ -73,6 +73,12 @@ import { compilerCandidateIdentity } from "./compiler_identity.ts";
 import { latestSuccessfulResults } from "./checkpoint_model.ts";
 import { syncFile, writeFileAtomicDurable } from "./durable_fs.ts";
 import {
+  loadRoundProgressReference,
+  renderRoundProgress,
+  roundProgressLog,
+  RoundProgressAccumulator,
+} from "./round_progress.ts";
+import {
   readCampaignBootstrapRequest,
   validateCampaignBootstrapRequest,
 } from "./campaign_bootstrap_request.ts";
@@ -172,8 +178,17 @@ export async function runBenchmarkV2(
   const bootstrapRequestPath = argument("bootstrap-request") === undefined
     ? undefined
     : resolve(argument("bootstrap-request")!);
+  const roundProgressReferencePath = argument("round-progress-reference") === undefined
+    ? undefined
+    : resolve(argument("round-progress-reference")!);
+  const roundProgressOutputPath = argument("round-progress-out") === undefined
+    ? undefined
+    : resolve(argument("round-progress-out")!);
   if (comparisonRequestPath !== undefined && bootstrapRequestPath !== undefined) {
     throw new Error(`--comparison-request and --bootstrap-request are mutually exclusive`);
+  }
+  if ((roundProgressReferencePath === undefined) !== (roundProgressOutputPath === undefined)) {
+    throw new Error(`--round-progress-reference and --round-progress-out must be supplied together`);
   }
   const hasCanonicalRequest =
     comparisonRequestPath !== undefined || bootstrapRequestPath !== undefined;
@@ -380,6 +395,23 @@ export async function runBenchmarkV2(
     ? execution
     : executionPolicyIdentity({ ...executionInput, seedSchedule: measuredSchedule });
   const git = compilerCandidateIdentity(engine);
+  if (roundProgressReferencePath !== undefined && (
+    comparisonRequestPath === undefined || !finalizePrefix || mode !== "development" ||
+    profileName !== "canonical" || throughSeedSlot === undefined || baselineCacheShard || exploration
+  )) {
+    throw new Error(`round progress is reserved for a governed canonical comparison wave`);
+  }
+  const roundProgressReference = roundProgressReferencePath === undefined
+    ? undefined
+    : loadRoundProgressReference(roundProgressReferencePath, suite, {
+      candidateFingerprint: git.candidateFingerprint,
+      suiteFingerprint: suiteId.suiteFingerprint,
+      seedScheduleFingerprint: sha256(JSON.stringify(schedule)),
+      maximumDepth: effectiveSeedsPerBudget,
+      throughDepth: measuredDepth,
+      budgets: effectiveBudgets,
+      sources: sources.map((source) => source.id),
+    });
   if (bootstrapRequestPath !== undefined) {
     validateCampaignBootstrapRequest(
       readCampaignBootstrapRequest(bootstrapRequestPath),
@@ -465,6 +497,9 @@ export async function runBenchmarkV2(
     throw new Error(`wave execution must resume its attempt checkpoint; pass --resume`);
   }
   const streamingArchive = tasks.length > STREAMING_ARCHIVE_TASK_THRESHOLD;
+  if (roundProgressReference !== undefined && streamingArchive) {
+    throw new Error(`round progress is currently bounded to the active in-memory campaign scope`);
+  }
   const restored = streamingArchive
     ? []
     : loadOrInitializeCheckpoint(checkpointPath, runPlanFingerprint, hasFlag("resume"));
@@ -487,6 +522,19 @@ export async function runBenchmarkV2(
   const streamingProgress = streamingArchive
     ? newStreamingProgress(restoredSuccessKeys.size, effectiveBudgets)
     : undefined;
+  const roundProgress = roundProgressReference === undefined
+    ? undefined
+    : new RoundProgressAccumulator(
+      roundProgressReference,
+      suite,
+      scoredProgress.map(compactDecisionRun),
+    );
+  if (roundProgress !== undefined) {
+    writeFileAtomicDurable(
+      roundProgressOutputPath!,
+      roundProgressLog(roundProgressReference!, roundProgress.allEvents()),
+    );
+  }
   const startedAt = performance.now();
 
   console.log(`Benchmark V2 ${mode} ${profileName}${exploration ? ` exploration ${explorationId}` : ""}`);
@@ -498,6 +546,15 @@ export async function runBenchmarkV2(
     `  suite ${suiteId.suiteFingerprint.slice(0, 16)}, policy ` +
     `${execution.executionPolicyFingerprint.slice(0, 16)}, audit ${audit.auditFingerprint.slice(0, 16)}`,
   );
+  if (roundProgress !== undefined) {
+    console.log(
+      `  round progress: one line per complete ${sources.length}-case seed block; ` +
+      `${relativeToCwd(roundProgressOutputPath!)}`,
+    );
+    if (roundProgress.completedDepth > 0) {
+      console.log(`  round progress restored through N=${roundProgress.completedDepth}`);
+    }
+  }
 
   const fresh = await runWorkerPool(pending, jobs, (result) => {
     appendFileSync(checkpointPath, `${JSON.stringify({ type: "result", result })}\n`);
@@ -514,7 +571,22 @@ export async function runBenchmarkV2(
       }
     } else {
       scoredProgress.push(scored);
-      if (scoredProgress.length === tasks.length || scoredProgress.length % sources.length === 0) {
+      if (roundProgress !== undefined) {
+        const elapsedSeconds = Math.max(0.001, (performance.now() - startedAt) / 1000);
+        const freshDone = Math.max(0, scoredProgress.length - restored.length);
+        const rate = freshDone / elapsedSeconds;
+        const etaSeconds = rate > 0 ? (tasks.length - scoredProgress.length) / rate : 0;
+        const workerFailures = scoredProgress.filter((row) => row.status !== "ok").length;
+        for (const event of roundProgress.record(compactDecisionRun(scored))) {
+          appendFileSync(roundProgressOutputPath!, `${JSON.stringify(event)}\n`);
+          console.log(renderRoundProgress(event, {
+            waveDepth: measuredDepth,
+            workerFailures,
+            rate,
+            etaSeconds,
+          }));
+        }
+      } else if (scoredProgress.length === tasks.length || scoredProgress.length % sources.length === 0) {
         printProgress(scoredProgress, tasks.length, effectiveBudgets, startedAt, restored.length);
       }
     }
@@ -1341,6 +1413,24 @@ function errorRunScore(authored: number, status: string, message: string): V2Run
     expectedObservations: {},
     components: {},
     diagnostics: {},
+  };
+}
+
+function compactDecisionRun(
+  row: WorkerResult & { score: V2RunScore },
+): {
+  sourceId: string;
+  budget: number;
+  seedSlot: number;
+  actualSeed: number;
+  score: { score: number; valid: boolean };
+} {
+  return {
+    sourceId: row.task.sourceId,
+    budget: row.task.budget,
+    seedSlot: row.task.seedSlot,
+    actualSeed: row.task.actualSeed,
+    score: { score: row.score.score, valid: row.score.valid },
   };
 }
 

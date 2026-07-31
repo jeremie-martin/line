@@ -63,6 +63,13 @@ uses one O'Brien-Fleming Student-t boundary calibrated to one-sided total alpha
    negative crossing rejects; no predictive-futility rule stops a plausible
    recovery. An uncrossed N=48 result is inconclusive.
 
+During a wave, terminal progress is one line per genuinely complete 44-case
+seed block. It reports the observed paired delta, seed-block SE and directional
+probability as they evolve, plus validity, failures, throughput, and ETA.
+Intermediate rounds are diagnostic only; promotion and rejection remain
+restricted to the predeclared N=8/16/32/48 looks. The same summaries are kept
+in a reconstructable `.progress.jsonl` beside the governed checkpoint.
+
 The active campaign cache currently covers N=48 because this baseline predates
 the sequential workflow. It is the exact fresh 750k archive from the governed
 scorer-bound bootstrap, using literal seeds 16–23 and 608–647. Never recompute

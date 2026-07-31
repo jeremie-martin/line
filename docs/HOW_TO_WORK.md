@@ -32,6 +32,20 @@ false-promotion tolerance is 5%; one calibrated O'Brien-Fleming Student-t
 boundary derives every look threshold. The symmetric boundary can reject
 clear harm early. There is no predictive futility stop.
 
+The terminal prints one concise line only after a complete 44-case seed block
+exists, even when workers finish individual cases out of order. Each line shows
+that round's validity and paired delta, the cumulative candidate headline,
+paired delta, measured seed-block SE and directional Student-t probability,
+worker failures, throughput, and ETA. At N=8/16/32/48 it also prints `LOOK`
+with the calibrated requirement and action. Probabilities on intervening rounds
+are descriptive feedback, never additional stopping opportunities.
+
+The neighboring `.progress.jsonl` is an append-friendly, diagnostic-only copy
+of those exact round summaries. It is rebuilt from the verified baseline
+reference and successful checkpoint rows on resume, so it neither changes the
+checkpoint identity nor becomes promotion evidence. The checksummed
+`.round-progress-reference.json` binds the baseline rows used for the display.
+
 The current cache already covers N=48. A baseline promoted at N=8, N=16, or
 N=32 initially retains only that accepted prefix. If a later candidate reaches
 a missing look, eval pauses without queuing candidate tail work and prints the

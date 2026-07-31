@@ -16,6 +16,7 @@ import {
   baselineCacheManifestFingerprint,
   baselineCachePlan,
   cacheCoverage,
+  loadBaselineCacheEvidence,
   readBaselineCache,
   seedScheduleAtDepth,
   verifyBaselineCache,
@@ -36,6 +37,10 @@ import { writeFileAtomicDurable } from "./durable_fs.ts";
 import { renderCachedComparison } from "./eval_report.ts";
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
 import { acquireRunLock } from "./runner.ts";
+import {
+  ROUND_PROGRESS_REFERENCE_SCHEMA,
+  type RoundProgressReference,
+} from "./round_progress.ts";
 import { benchmarkSequentialEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import {
   requireSequentialEvalCalibration,
@@ -223,6 +228,8 @@ async function runCachedComparison(argv: string[]): Promise<number> {
     const requestSha256 = sha256(readFileSync(requestPath));
     workspace = createSnapshotWorkspace(request.candidateSnapshot);
     const looks = sequential ? [...benchmarkSequentialEvalPolicy.looks] : [seeds];
+    const roundProgressReferencePath = resolve(`${outPath}.round-progress-reference.json`);
+    const roundProgressOutputPath = resolve(`${outPath}.progress.jsonl`);
     const completedLooks: SequentialLookDecision[] = [];
     let run: SnapshotBenchmarkRun | undefined;
     let decided: Awaited<ReturnType<typeof evalDecisionAgainstBaselineCache>> | undefined;
@@ -256,6 +263,15 @@ async function runCachedComparison(argv: string[]): Promise<number> {
         return 0;
       }
       const waveOutputPath = sequential ? suffixedJsonPath(outPath, `.N${look}`) : outPath;
+      if (sequential) {
+        writeRoundProgressReference(
+          roundProgressReferencePath,
+          cacheBeforeLook,
+          request,
+          look,
+          calibration!.boundaryConstant,
+        );
+      }
       run = runInWorkspace(workspace, "development", [
         "--profile=canonical",
         ...runnerBaseArgs(jobs),
@@ -267,6 +283,10 @@ async function runCachedComparison(argv: string[]): Promise<number> {
         ...(sequential ? [`--checkpoint=${outPath}.checkpoint.jsonl`] : []),
         `--through-seed-slot=${look}`,
         ...(sequential ? ["--finalize-prefix"] : []),
+        ...(sequential ? [
+          `--round-progress-reference=${roundProgressReferencePath}`,
+          `--round-progress-out=${roundProgressOutputPath}`,
+        ] : []),
         ...(argv.includes("--resume") || lookIndex > 0 ? ["--resume"] : []),
       ], waveOutputPath);
       if (run.workerFailures > 0) break;
@@ -394,6 +414,9 @@ async function runCachedComparison(argv: string[]): Promise<number> {
         runnerFingerprintsMatch: decided.artifact.implementationFingerprintsMatch,
         ...(sequential ? { sequentialLooks: completedLooks } : {}),
       }));
+      if (sequential) {
+        console.log(`  round progress log: ${relativeToCwd(roundProgressOutputPath)} (diagnostic only)`);
+      }
     }
     return 0;
   } finally {
@@ -403,6 +426,46 @@ async function runCachedComparison(argv: string[]): Promise<number> {
       releaseAttemptLock();
     }
   }
+}
+
+function writeRoundProgressReference(
+  path: string,
+  cache: BaselineCacheView,
+  request: ComparisonRequest,
+  throughDepth: number,
+  boundaryConstant: number,
+): void {
+  const budgets = new Set(request.budgets);
+  const runs = loadBaselineCacheEvidence(cache, throughDepth)
+    .flatMap(({ archive }) => archive.runs)
+    .filter((row: any) => row.task.seedSlot < throughDepth && budgets.has(row.task.budget))
+    .map((row: any) => ({
+      sourceId: row.task.sourceId,
+      budget: row.task.budget,
+      seedSlot: row.task.seedSlot,
+      actualSeed: row.task.actualSeed,
+      score: { score: row.score.score, valid: row.score.valid },
+    }));
+  const reference: RoundProgressReference = {
+    schema: ROUND_PROGRESS_REFERENCE_SCHEMA,
+    authority: "diagnostic-only",
+    baseline: {
+      label: cache.cache.baselineLabel,
+      candidateFingerprint: cache.cache.candidateFingerprint,
+      cacheFingerprint: baselineCacheManifestFingerprint(cache.cache),
+    },
+    candidateFingerprint: request.candidateFingerprint,
+    suiteFingerprint: cache.cache.suiteFingerprint,
+    seedScheduleFingerprint: request.seedScheduleFingerprint,
+    maximumDepth: request.seeds,
+    throughDepth,
+    looks: [...request.looks],
+    boundaryConstant,
+    budgets: [...request.budgets],
+    sources: [...new Set(runs.map((run) => run.sourceId))].sort(),
+    runs,
+  };
+  writeArtifact(path, reference);
 }
 
 function createComparisonRequest(

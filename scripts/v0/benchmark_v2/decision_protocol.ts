@@ -36,6 +36,7 @@ export const DECISION_PROTOCOL_SOURCE_FILES = [
   "scripts/v0/benchmark_v2/eval_report.ts",
   "scripts/v0/benchmark_v2/listening_review.ts",
   "scripts/v0/benchmark_v2/rebaseline.ts",
+  "scripts/v0/benchmark_v2/round_progress.ts",
   "scripts/v0/benchmark_v2/runner_compatibility.ts",
   "scripts/v0/benchmark_v2/sequential_inference.ts",
   "scripts/v0/benchmark_v2/status.ts",

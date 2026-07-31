@@ -43,6 +43,14 @@ projection from the old ruler. A campaign improvement comparison:
    cache, policy, calibration, and candidate identities;
 7. writes one standalone comparison artifact with every completed look.
 
+Within each wave, tasks are queued seed-major: all 44 development cases for one
+seed slot precede the next slot. Workers may overlap the boundary, so progress
+is emitted from completed cells rather than the queue position. A round line
+appears only when the full 44-case block and every earlier block are complete.
+It uses the same paired headline, jackknife seed-block SE, and reference-t
+probability as the decision layer. Only the four lines marked `LOOK` have
+stopping authority; intervening probabilities are descriptive.
+
 No command mutates project state during comparison. The declared maximum stays
 N=48; the four looks are one experiment, not independently selected probes.
 Explicit simplification and historical/deep comparisons remain fixed-N and do
@@ -63,6 +71,10 @@ files are:
 
 - `.request.json`: exact baseline binding, schedule, and compiler snapshot;
 - `.checkpoint.jsonl`: resumable worker results;
+- `.round-progress-reference.json`: checksummed verified baseline rows for the
+  current wave's diagnostic display;
+- `.progress.jsonl`: reconstructable per-seed paired summaries; diagnostic
+  only and rewritten coherently from the checkpoint on resume;
 - `.N8.json`, `.N16.json`, `.N32.json`, `.N48.json`: only the completed,
   published look prefixes (later files exist only when reached);
 - `.look-N.json`: fixed-look diagnostics plus the authoritative

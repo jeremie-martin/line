@@ -164,6 +164,10 @@ function buildSearchSetup(userSpec: Spec, seed: number): SearchSetup {
       const t = gapAxisTargets[gap.index];
       const bounded = Math.min(
         impact,
+      // NOTE (2026-07-31): production does NOT clamp the impact target — buildDriftReport
+      // records the authored value and scores the raw error; the bound is diagnostic only.
+      // The clamp below reproduces the RETIRED pre-0a461809 convention this study was
+      // written under. Kept so the study still measures what it originally measured.
         impactFeasibilityBound(t.speed, prevGapSeconds, nextGapSeconds),
       );
       gap.targets.impact = bounded;

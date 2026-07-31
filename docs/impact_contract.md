@@ -130,31 +130,85 @@ Dense-beat limit: `bound ≈ normImpact(g·(N_prev+N_next)/2)` — the vertical-
 budget around the beat. This is why tight grooves cap near 0.45–0.5 regardless
 of speed, and why big slams live on open beats.
 
-Evidence: the compiler's demonstrated p95 frontier tracks the bound within a
-few percent across density × speed strata (dense/fast 0.474 bound vs 0.480
-p95; mixed 0.67 vs 0.66; sparse 0.85 vs 0.72 — headroom where the search has
-room). Earlier, an empirical envelope using co-authored air/amplitude was
-shipped and then replaced: controlled analysis showed those inputs were
-selection proxies; the previous-gap ballistics carry the real signal.
+**The `speedTarget` argument is nearly vestigial, and this surprises people.**
+Since `v·atan(k/v) → k`, the speed cancels out of `v·(θ_in+θ_out)`: sweeping the
+authored speed across its whole range moves the bound by 0.003 at 0.3 s beat
+spacing and 0.012 at 0.5 s. Speed only matters once the gaps are long enough
+for the 1.0-rad clamp to be the binding term. So the bound is really a statement
+about BEAT SPACING — how much vertical velocity gravity can build in the gaps
+around this beat — wearing a speed costume. It is also a-priori by construction:
+it reads the AUTHORED speed target and the authored gap timings, because its
+question is "was this ask self-consistent to author?", not "what happened?".
+
+**Two different max-impact numbers ride in the report, and they answer different
+questions.** Do not conflate them:
+
+| field | input | question |
+|---|---|---|
+| `feasibility_bound` | authored speed + gap timings | was this ask self-consistent to AUTHOR? |
+| `ceiling` | ACTUAL CoM speed at the contact frame | given how fast the rider really arrived, what was the hardest catchable hit? |
+
+They routinely disagree — at 0.5 s spacing with authored speed 0.5, the bound
+reads 0.458 while a rider that actually arrives at 9 px/f has a ceiling of 1.00.
+Neither is wrong. If the rider shows up faster or steeper than authored, the
+`ceiling` says the hit was available; the `bound` says the SPEC did not plan for
+it. The turn budget still has to come from somewhere: a bigger turn needs more
+vertical velocity in and out, and that is bought with fall time in the
+surrounding gaps — which is exactly what the bound measures, using the gaps as
+they actually are.
+
+Evidence caveat: the "p95 frontier tracks the bound within a few percent"
+result below was measured under the PRE-2026-07-31 ruler (net-form metric,
+VSTRONG 7.29, `asin(0.9)` clamp) AND under the retired clamped-target
+convention. The reasoning still holds; the numbers are stale and have not been
+re-measured. Historic figures: dense/fast 0.474 bound vs 0.480 p95; mixed 0.67
+vs 0.66; sparse 0.85 vs 0.72. Earlier, an empirical envelope using co-authored
+air/amplitude was shipped and then replaced: controlled analysis showed those
+inputs were selection proxies; the previous-gap ballistics carry the real signal.
 
 ## Scoring (the ruler)
 
-`scored target = min(authored, bound)`, applied in `buildDriftReport`
-(fingerprinted authority) and mirrored at the compiler's target resolution so
-search and scorer chase one coherent target. The bound only ever lowers a
-target. Impact then enters `axis_quality` like every other axis
-(`exp(−rms/0.25)`), full weight.
+**`scored target = the authored value, unmodified.`** `buildDriftReport` records
+`{ target: authored, achieved: measured, error: |authored − achieved| }` and
+`score.ts` aggregates that raw error into `axis_quality`
+(`exp(−rms/0.25)`), full weight, like every other axis. `feasibility_bound` and
+`ceiling` are attached ALONGSIDE as diagnostics and are read by NOTHING in the
+scoring or search path — grep them: the only consumers are report readers and
+`study_repair_anchor_causality.ts`.
 
-Why the ruler (and not spec edits or generation-side clamps): one derived
-function in one hashed place; specs keep expressing pure musical intent; no
-future spec can silently reintroduce impossible asks; the fingerprint pins it.
+So an ask the physics cannot deliver stays in the score as permanent error. Ask
+0.8 where the beat allows 0.45 and you carry 0.35 forever; the bound sits next
+to it telling you why, but it does not forgive it.
 
-History that motivated this: with raw asks, ~34% of impact targets were
-physically impossible *given their beat context*; the optimizer correctly
-refused the bad trades (every steering probe chasing them washed), and the
-impossible residual poisoned the headline AND dragged other axes (~100 pts of
-deliberate trade). With bounded asks the full↔excl-impact gap narrowed from
-107 to 69 points and other-axis quality rose (592 → 639 excl-impact).
+**This is a deliberate reversal, and the reasoning on both sides is worth
+keeping.** Until `0a461809` (the Benchmark V2 build) the line
+`t = Math.min(t, impactFeasibilityBound(...))` clamped the target here, and this
+section documented that convention. Arguments for clamping, from the era when it
+was live: with raw asks ~34% of impact targets were physically impossible *given
+their beat context*; the optimizer correctly refused the bad trades (every
+steering probe chasing them washed), and the impossible residual poisoned the
+headline AND dragged other axes (~100 pts of deliberate trade). With bounded
+asks the full↔excl-impact gap narrowed from 107 to 69 points and other-axis
+quality rose (592 → 639 excl-impact).
+
+Arguments for the current un-clamped ruler: the score then depends on MEASUREMENT
+rather than on a model of feasibility — a model that is approximate (pure
+ballistics, geometry-blind) and that, when wrong, silently forgives real misses.
+Clamping also hides authoring mistakes: over-ask a dense groove and the score
+looks clean, so you never learn the spec is demanding something that beat
+forbids. Un-clamped, the mistake surfaces as error and `feasibility_bound`
+explains it.
+
+The cost is real and currently unmeasured: every over-ask is a quiet drag on the
+headline, and nobody has split impact error into "above the bound" (irreducible
+under the model) versus "below it" (genuine compiler shortfall) since the clamp
+was removed. That split is the measurement that should decide whether any form
+of bounding comes back.
+
+Note for anyone reading old harnesses: `eval_leaf_factors.ts`,
+`eval_arc_apples.ts` and `eval_pergap_vs_composed.ts` still apply
+`min(authored, bound)` themselves. They reproduce the RETIRED convention and do
+not match production scoring.
 
 ## Generation (how the compiler hits it)
 

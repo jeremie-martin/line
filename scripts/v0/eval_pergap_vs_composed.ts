@@ -95,6 +95,10 @@ function buildSearchSetup(userSpec: Spec, seed: number) {
       const nextGapSeconds = nextContact === undefined ? 1.5 : (nextContact - gap.endFrame) / FPS;
       const prevGapSeconds = (gap.endFrame - gap.startFrame) / FPS;
       const t = gapAxisTargets[gap.index];
+      // NOTE (2026-07-31): production does NOT clamp the impact target — buildDriftReport
+      // records the authored value and scores the raw error; the bound is diagnostic only.
+      // The clamp below reproduces the RETIRED pre-0a461809 convention this study was
+      // written under. Kept so the study still measures what it originally measured.
       const bounded = Math.min(impact, impactFeasibilityBound(t.speed, prevGapSeconds, nextGapSeconds));
       gap.targets.impact = bounded;
       gapAxisTargets[gap.index].impact = bounded;

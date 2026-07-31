@@ -9,6 +9,7 @@ import {
   type DecisionMode,
   type DecisionRun,
 } from "../v0/benchmark_v2/decision_model.ts";
+import { loadVerifiedArchive } from "../v0/benchmark_v2/decide.ts";
 import { buildAxisContract, scoreV2Report } from "../v0/benchmark_v2/evaluator.ts";
 import { loadSourceManifest, loadSourceSpec, resolveSources } from "../v0/benchmark_v2/model.ts";
 import {
@@ -39,14 +40,27 @@ const sources = resolveSources(loadSourceManifest(sourcePath));
 const baseSuite = loadSuiteManifest(suitePath, sources);
 const identity = suiteIdentity(suitePath, sourcePath, sources);
 const referenceArtifact = readVerifiedReference(referencePath);
-const reference = JSON.parse(referenceArtifact.bytes.toString("utf8"));
+const parsedReference = JSON.parse(referenceArtifact.bytes.toString("utf8"));
 const scorerFingerprint = fingerprintFiles([
   "scripts/v0/benchmark_v2/evaluator.ts",
   "scripts/v0/benchmark_v2/score_model.ts",
   "scripts/v0/score.ts",
 ]);
 const decisionInferenceFingerprint = DECISION_INFERENCE_PROTOCOL_FINGERPRINT;
-if (
+const indexedReference = parsedReference.schema === "line.benchmark-v2.decision-index.v1";
+const reference = indexedReference
+  ? decisionIndexReference(parsedReference, referencePath)
+  : parsedReference;
+if (indexedReference) {
+  if (
+    reference.suiteFingerprint !== identity.suiteFingerprint ||
+    reference.sourceManifestFingerprint !== identity.sourceManifestFingerprint ||
+    reference.scoringProtocolFingerprint !== identity.scoringProtocolFingerprint ||
+    JSON.stringify(reference.transform) !== JSON.stringify(baseSuite.transform)
+  ) {
+    throw new Error(`indexed coverage reference does not match the current suite, sources, transform, and scorer`);
+  }
+} else if (
   !["line.benchmark-v2.budget-scale-study.v1", "line.benchmark-v2.budget-scale-study.v2"].includes(reference.schema) ||
   reference.suiteFingerprint !== identity.suiteFingerprint ||
   reference.sourceManifestFingerprint !== identity.sourceManifestFingerprint ||
@@ -60,22 +74,28 @@ validateReferenceCompilerIdentity(reference.candidate);
 if (!Array.isArray(reference.seeds) || reference.seeds.length < 8 || new Set(reference.seeds).size !== reference.seeds.length) {
   throw new Error(`coverage reference requires at least eight unique seed blocks`);
 }
+const calibrationSuite = suiteForBudgets(baseSuite, reference.budgets ?? baseSuite.profiles.canonical.budgets);
 
 const members = canonicalMembers(baseSuite);
 const contracts = new Map();
-for (const source of sources) {
-  const spec = applyJolt(await loadSourceSpec(source), baseSuite.transform.jolt_ms);
-  contracts.set(source.id, buildAxisContract(spec, source.eligibleComponents, source.diagnosticComponents));
+if (!indexedReference) {
+  for (const source of sources) {
+    const spec = applyJolt(await loadSourceSpec(source), baseSuite.transform.jolt_ms);
+    contracts.set(source.id, buildAxisContract(spec, source.eligibleComponents, source.diagnosticComponents));
+  }
 }
 const referenceByCell = new Map<string, { score: number; valid: boolean }>();
 for (const row of reference.runs ?? []) {
   const source = sources.find((entry) => entry.id === row.task?.sourceId);
-  if (
-    source === undefined || row.status !== "ok" || row.report === null ||
+  if (source === undefined || row.status !== "ok" ||
     row.source?.sourceFingerprint !== source.sourceFingerprint || !Number.isSafeInteger(row.authoredContacts)
-  ) throw new Error(`coverage reference contains an invalid raw run`);
-  const rescored = scoreV2Report(row.report, row.authoredContacts, contracts.get(source.id), baseSuite);
-  if (JSON.stringify(rescored) !== JSON.stringify(row.score)) {
+  ) {
+    throw new Error(`coverage reference contains an invalid run`);
+  }
+  const rescored = indexedReference
+    ? validatedIndexedScore(row, source.id)
+    : scoreV2Report(row.report, row.authoredContacts, contracts.get(source.id), baseSuite);
+  if (!indexedReference && JSON.stringify(rescored) !== JSON.stringify(row.score)) {
     throw new Error(`${source.id}: coverage reference score does not match its raw report`);
   }
   referenceByCell.set(cellKey(source.id, row.task.budget, row.task.actualSeed), {
@@ -83,7 +103,7 @@ for (const row of reference.runs ?? []) {
     valid: rescored.valid,
   });
 }
-for (const budget of baseSuite.profiles.canonical.budgets) {
+for (const budget of calibrationSuite.profiles.canonical.budgets) {
   for (const seed of reference.seeds) {
     for (const sourceId of members) {
       if (!referenceByCell.has(cellKey(sourceId, budget, seed))) {
@@ -107,9 +127,9 @@ const results = [];
 const powerResults = [];
 const safetyResults = [];
 const diagnosticResults = [];
-const pairedNoninferiorityShift = solveEmpiricalShift(baseSuite, -2.5);
+const pairedNoninferiorityShift = solveEmpiricalShift(calibrationSuite, -2.5);
 for (const seedsPerBudget of seedCounts) {
-  const suite = suiteForSeeds(baseSuite, seedsPerBudget);
+  const suite = suiteForSeeds(calibrationSuite, seedsPerBudget);
   for (const scenario of nullScenarios) {
     const result = simulate(scenario, suite, seedsPerBudget, "improvement", undefined, 0);
     results.push({
@@ -178,8 +198,17 @@ const report = {
   decisionInferenceFingerprint,
   reference: relative(referencePath),
   referenceArtifactSha256: referenceArtifact.artifactSha256,
-  referenceRawSha256: referenceArtifact.rawSha256,
+  referenceRawSha256: indexedReference ? parsedReference.archiveSha256 : referenceArtifact.rawSha256,
+  referenceCompressedArchiveSha256: indexedReference
+    ? parsedReference.compressedArchiveSha256
+    : null,
   referenceCandidateFingerprint: reference.candidate?.candidateFingerprint ?? null,
+  referenceKind: indexedReference ? "scorer-bound-decision-index" : "rescored-raw-scale-study",
+  scope: {
+    profile: "canonical",
+    budgets: calibrationSuite.profiles.canonical.budgets,
+    availableSeedsPerBudget: reference.seeds.length,
+  },
   trials,
   design: {
     empirical_blocks: "Base and candidate independently resample whole observed catalog seed blocks within each budget.",
@@ -449,6 +478,83 @@ function validateReferenceCompilerIdentity(candidate: any): void {
   }
 }
 
+function decisionIndexReference(index: any, indexPath: string): any {
+  if (
+    typeof index.archiveSha256 !== "string" ||
+    typeof index.compressedArchiveSha256 !== "string" ||
+    typeof index.payloadSha256 !== "string" ||
+    index.archive === null || typeof index.archive !== "object" ||
+    !Array.isArray(index.archive.runs)
+  ) throw new Error(`coverage decision index is malformed`);
+  const rawPath = indexPath.replace(/\.decision-index\.json$/, "");
+  if (rawPath === indexPath) throw new Error(`coverage decision-index path is malformed`);
+  const verified = loadVerifiedArchive(rawPath);
+  if (
+    verified.archiveSha256 !== index.archiveSha256 ||
+    sha256(JSON.stringify(index.archive)) !== index.payloadSha256 ||
+    JSON.stringify(verified.archive) !== JSON.stringify(index.archive)
+  ) throw new Error(`coverage decision index is detached from its retained raw archive`);
+  const archive = index.archive;
+  const schedule = archive.identity?.seedSchedule;
+  if (
+    archive.schema !== "line.benchmark-v2.run-archive.v5" ||
+    archive.mode !== "development" ||
+    archive.profile !== "canonical" ||
+    archive.identity?.engine !== "wasm" ||
+    !Array.isArray(archive.identity?.budgets) ||
+    archive.identity.budgets.length !== 1 ||
+    !Array.isArray(schedule?.byBudget) ||
+    schedule.byBudget.length !== 1 ||
+    schedule.byBudget[0].budget !== archive.identity.budgets[0] ||
+    !Array.isArray(schedule.byBudget[0].actualSeeds) ||
+    schedule.byBudget[0].actualSeeds.length < 8 ||
+    new Set(schedule.byBudget[0].actualSeeds).size !== schedule.byBudget[0].actualSeeds.length
+  ) throw new Error(`coverage decision index is not a complete one-budget canonical WASM archive`);
+  return {
+    schema: "line.benchmark-v2.scorer-bound-index-reference.v1",
+    suiteFingerprint: archive.identity.suiteFingerprint,
+    sourceManifestFingerprint: archive.identity.sourceManifestFingerprint,
+    scoringProtocolFingerprint: archive.identity.scoringProtocolFingerprint,
+    transform: archive.identity.transform,
+    budgets: archive.identity.budgets,
+    seeds: schedule.byBudget[0].actualSeeds,
+    candidate: {
+      ...archive.git,
+      engine: archive.identity.engine,
+    },
+    runs: archive.runs,
+  };
+}
+
+function validatedIndexedScore(row: any, sourceId: string): { score: number; valid: boolean } {
+  if (
+    row.report !== undefined ||
+    typeof row.rawReportSha256 !== "string" ||
+    !/^[a-f0-9]{64}$/.test(row.rawReportSha256) ||
+    row.score?.schema !== "line.benchmark-v2.run-score.v2" ||
+    typeof row.score.score !== "number" ||
+    typeof row.score.valid !== "boolean"
+  ) throw new Error(`${sourceId}: indexed coverage score is malformed`);
+  return row.score;
+}
+
+function suiteForBudgets(suite: SuiteManifest, budgets: number[]): SuiteManifest {
+  const allowed = new Set(suite.profiles.canonical.budgets);
+  if (
+    budgets.length === 0 || new Set(budgets).size !== budgets.length ||
+    budgets.some((budget) => !allowed.has(budget))
+  ) throw new Error(`coverage reference budgets are outside the canonical suite`);
+  const cloned = structuredClone(suite);
+  cloned.profiles.canonical.budgets = [...budgets];
+  const weights = suite.budget_weights.filter((entry) => budgets.includes(entry.budget));
+  const weightTotal = weights.reduce((sum, entry) => sum + entry.weight, 0);
+  cloned.budget_weights = weights.map((entry) => ({
+    budget: entry.budget,
+    weight: entry.weight / weightTotal,
+  }));
+  return cloned;
+}
+
 function suiteForSeeds(suite: SuiteManifest, seedsPerBudget: number): SuiteManifest {
   const cloned = structuredClone(suite);
   cloned.profiles.canonical.seeds_per_budget = seedsPerBudget;
@@ -496,7 +602,9 @@ function renderMarkdown(report: any): string {
     "|---|---|---:|---:|---:|---:|---:|---:|",
     ...report.diagnosticResults.map((entry: any) => `| ${entry.scenario} | ${entry.mode}${entry.margin === null ? "" : ` (margin ${entry.margin})`} | ${entry.trueDelta.toFixed(2)} | ${entry.meanDelta.toFixed(2)} | ${percent(entry.positiveOutcome)} | ${percent(entry.negativeOutcome)} | ${percent(entry.unresolvedOutcome)} | ${percent(entry.centralCoverage)} |`),
     "",
-    "All stored empirical scores were recomputed from retained raw reports before simulation. Wilson 95% intervals accompany every Monte Carlo rate in the JSON artifact.",
+    report.referenceKind === "scorer-bound-decision-index"
+      ? "All empirical scores come from a checksummed decision index cryptographically bound to the retained raw scorer-bound archive. Wilson 95% intervals accompany every Monte Carlo rate in the JSON artifact."
+      : "All stored empirical scores were recomputed from retained raw reports before simulation. Wilson 95% intervals accompany every Monte Carlo rate in the JSON artifact.",
   ].join("\n")}\n`;
 }
 

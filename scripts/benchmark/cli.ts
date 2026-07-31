@@ -10,9 +10,10 @@ import { runRebaselineCommand } from "../v0/benchmark_v2/rebaseline.ts";
 import { runStatusCommand } from "../v0/benchmark_v2/status.ts";
 import { runFamilyCommand } from "../v0/benchmark_v2/family.ts";
 import { runBaselineCacheCommand } from "../v0/benchmark_v2/baseline_cache_command.ts";
+import { runCampaignBootstrapCommand } from "../v0/benchmark_v2/campaign_bootstrap.ts";
 
 const COMMAND_ALIASES = new Set([
-  "probe", "eval", "canonical", "baseline", "rebaseline", "decide", "prepare", "explain",
+  "probe", "eval", "canonical", "baseline", "bootstrap", "rebaseline", "decide", "prepare", "explain",
   "status", "family", "baseline-cache", "help", "--probe", "--help", "-h",
 ]);
 const raw = process.argv.slice(2);
@@ -97,6 +98,8 @@ async function main(rawArgs: string[]): Promise<void> {
       throw new Error(`canonical is no longer a separate workflow; use \`npm run benchmark -- eval --seeds=48\``);
     } else if (command === "baseline") {
       await monitored("baseline", args, () => runBaselineBenchmark(benchmarkArgs("canonical", args)));
+    } else if (command === "bootstrap") {
+      process.exitCode = await monitored("bootstrap", args, () => runCampaignBootstrapCommand(commandArgs));
     } else {
       throw new Error(`unknown benchmark command ${command}`);
     }
@@ -207,7 +210,7 @@ async function monitored<T>(label: string, args: string[], run: () => Promise<T>
 
 function commandName(
   args: string[],
-): "eval" | "canonical" | "baseline" | "rebaseline" | "decide" | "prepare" | "explain" | "status" | "family" | "baseline-cache" | "help" {
+): "eval" | "canonical" | "baseline" | "bootstrap" | "rebaseline" | "decide" | "prepare" | "explain" | "status" | "family" | "baseline-cache" | "help" {
   if (args.includes("full") || args.includes("--full")) {
     throw new Error(`the full alias was retired; the active campaign command is \`eval --seeds=48\``);
   }
@@ -218,6 +221,7 @@ function commandName(
   if (args.includes("probe") || args.includes("--probe")) return "eval";
   if (args.includes("eval")) return "eval";
   if (args.includes("canonical")) return "canonical";
+  if (args.includes("bootstrap")) return "bootstrap";
   if (args.includes("rebaseline")) return "rebaseline";
   if (args.includes("baseline")) return "baseline";
   if (args.includes("decide")) return "decide";
@@ -243,6 +247,8 @@ function printHelp(): void {
     `  npm run benchmark -- rebaseline --from=COMPARISON --label=LABEL\n` +
     `                                   Promote a favorable 750k comparison without compiling deferred budgets\n` +
     `  npm run benchmark -- baseline    Explicit full baseline freeze for bootstrap or suite replacement\n` +
+    `  npm run benchmark -- bootstrap --label=NAME --budget=750000 --seeds=48 --jobs=48 [--resume|--publish]\n` +
+    `                                   Scorer-bound 750k/N=48 active-campaign baseline bootstrap\n` +
     `  npm run benchmark -- decide ARCHIVE [--base=BASE] [--mode=simplification --margin=POINTS]\n` +
     `                                   Standalone archive diagnostic; normal work uses eval\n` +
     `  npm run benchmark -- prepare     Regenerate and validate catalog evidence\n` +

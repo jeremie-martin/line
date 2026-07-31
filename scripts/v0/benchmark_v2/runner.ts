@@ -72,6 +72,11 @@ import {
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
 import { latestSuccessfulResults } from "./checkpoint_model.ts";
 import { syncFile, writeFileAtomicDurable } from "./durable_fs.ts";
+import {
+  readCampaignBootstrapRequest,
+  validateCampaignBootstrapRequest,
+} from "./campaign_bootstrap_request.ts";
+import { EVALUATOR_FINGERPRINT } from "../golden_suite.ts";
 
 export const RUN_ARCHIVE_SCHEMA = BENCHMARK_RUN_ARCHIVE_SCHEMA;
 export { COMPILER_IDENTITY_PROTOCOL };
@@ -164,7 +169,14 @@ export async function runBenchmarkV2(
   const comparisonRequestPath = argument("comparison-request") === undefined
     ? undefined
     : resolve(argument("comparison-request")!);
-  const hasCanonicalRequest = comparisonRequestPath !== undefined;
+  const bootstrapRequestPath = argument("bootstrap-request") === undefined
+    ? undefined
+    : resolve(argument("bootstrap-request")!);
+  if (comparisonRequestPath !== undefined && bootstrapRequestPath !== undefined) {
+    throw new Error(`--comparison-request and --bootstrap-request are mutually exclusive`);
+  }
+  const hasCanonicalRequest =
+    comparisonRequestPath !== undefined || bootstrapRequestPath !== undefined;
   /** A cache shard is a canonical run over a contiguous seed-slot tail of the
    * frozen baseline.  It is deliberately distinct from a confirmation: it
    * never carries a candidate verdict and is only admitted through the
@@ -351,6 +363,22 @@ export async function runBenchmarkV2(
     transform: suite.transform,
   });
   const git = compilerCandidateIdentity(engine);
+  if (bootstrapRequestPath !== undefined) {
+    validateCampaignBootstrapRequest(
+      readCampaignBootstrapRequest(bootstrapRequestPath),
+      {
+        suiteFingerprint: suiteId.suiteFingerprint,
+        scoringProtocolFingerprint: suiteId.scoringProtocolFingerprint,
+        goldenEvaluatorFingerprint: EVALUATOR_FINGERPRINT,
+        candidateFingerprint: git.candidateFingerprint,
+        engineArtifactFingerprint: git.engineArtifactFingerprint,
+        budgets: [...effectiveBudgets],
+        seedSchedule: schedule,
+        developmentCases: developmentSources.length,
+        jobs,
+      },
+    );
+  }
   const runtime = {
     node: process.version,
     platform: platform(),
@@ -362,6 +390,9 @@ export async function runBenchmarkV2(
   const comparisonRequest = comparisonRequestPath === undefined
     ? undefined
     : archiveLink(comparisonRequestPath);
+  const bootstrapRequest = bootstrapRequestPath === undefined
+    ? undefined
+    : archiveLink(bootstrapRequestPath);
   if (mode === "qualification" && linkedDevelopment === undefined) {
     throw new Error(`qualification execution requires --development-archive=<frozen canonical archive>`);
   }
@@ -401,6 +432,7 @@ export async function runBenchmarkV2(
     runtime,
     linkedDevelopment,
     comparisonRequest,
+    bootstrapRequest,
     ...(baselineCacheShard ? {
       baselineCacheShard: {
         schema: "line.benchmark-v2.baseline-cache-shard-run.v1",
@@ -593,6 +625,7 @@ export async function runBenchmarkV2(
     },
     linkedDevelopment,
     comparisonRequest,
+    bootstrapRequest,
     ...(baselineCacheShard ? {
       baselineCacheShard: {
         schema: "line.benchmark-v2.baseline-cache-shard-run.v1",
@@ -673,6 +706,7 @@ export async function runBenchmarkV2(
     qualificationSummaries,
     linkedDevelopment,
     comparisonRequest,
+    bootstrapRequest,
     ...(exploration ? {
       exploration: {
         schema: "line.benchmark-v2.exploration-run.v1",

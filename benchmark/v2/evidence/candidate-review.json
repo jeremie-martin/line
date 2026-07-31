@@ -3,8 +3,8 @@
   "status": "canonical-selected-without-compiler-results",
   "characterization_fingerprint": "5d1726299e3f417383a79bdc723ab3eb27fa21b8c6c0c7c9eb07ed099ff00354",
   "audit_fingerprint": "cfdec471908c09b2013401ebf88eda3d3c7cf0383dcc3419ecf6cf50b680feef",
-  "listening_review_fingerprint": "6e9ca2fbdfc3ab3c74d0b72db72f134e344729c6121038bbb61743113ee3928b",
-  "listening_review_status": "awaiting-human-review",
+  "listening_review_fingerprint": "973af98ec3de6eba662298115e07792e35d859063bbbb3839cdf5e07409a314f",
+  "listening_review_status": "approved",
   "selection_basis": "Typed catalog membership, static source characterization, explicit parent variants, and static independence audit only. No compiler or qualification outcome was used.",
   "decisions": [
     {

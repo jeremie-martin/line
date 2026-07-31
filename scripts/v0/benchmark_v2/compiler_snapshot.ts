@@ -395,13 +395,22 @@ export function materializeDecisionCalibrationArtifacts(
   if (controls === null || typeof controls !== "object" || Array.isArray(controls)) {
     throw new Error(`decision calibration controls are malformed`);
   }
-  for (const name of ["identical", "knownBroadDegradation", "impactContractFailure"]) {
-    const control = controls[name];
-    if (control === null || typeof control !== "object" || Array.isArray(control)) {
-      throw new Error(`${name} calibration control is malformed`);
+  if (calibration.schema === "line.benchmark-v2.decision-calibration.v3") {
+    const reference = calibration.scorerBoundReference;
+    if (
+      reference === null || typeof reference !== "object" || Array.isArray(reference) ||
+      reference.path !== coverage.reference ||
+      reference.sha256 !== coverage.referenceArtifactSha256
+    ) throw new Error(`scorer-bound calibration reference is malformed`);
+  } else {
+    for (const name of ["identical", "knownBroadDegradation", "impactContractFailure"]) {
+      const control = controls[name];
+      if (control === null || typeof control !== "object" || Array.isArray(control)) {
+        throw new Error(`${name} calibration control is malformed`);
+      }
+      addCalibrationArtifact(artifacts, root, control.baseArchive, control.baseArchiveSha256, `${name} base control`);
+      addCalibrationArtifact(artifacts, root, control.candidateArchive, control.candidateArchiveSha256, `${name} candidate control`);
     }
-    addCalibrationArtifact(artifacts, root, control.baseArchive, control.baseArchiveSha256, `${name} base control`);
-    addCalibrationArtifact(artifacts, root, control.candidateArchive, control.candidateArchiveSha256, `${name} candidate control`);
   }
 
   for (const [path, artifact] of artifacts) {

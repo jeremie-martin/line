@@ -19,7 +19,7 @@ import {
 // means the statistics core changed behavior, not that a constant drifted.
 
 const FROZEN_DEFINITION_FINGERPRINT =
-  "0efcfbf205a19df8c6b6a46defce18a7d1b6546ba28db2f3e510aa01dc0611f5";
+  "c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6";
 
 function fixtureSuite(): SuiteManifest {
   return {

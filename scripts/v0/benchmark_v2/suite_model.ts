@@ -72,14 +72,16 @@ export type ExecutionPolicyIdentity = {
  * The scientific score contract is deliberately versioned, rather than
  * inferred from every implementation file the runner happens to import.
  *
- * This value is the audited fingerprint of the current V2 scoring protocol.
+ * This value is the audited fingerprint of the current V2 scoring protocol:
+ * impact is accumulated contacted-frame redirection impulse, not net
+ * redirection arc. Golden evaluation remains independently pinned.
  * Bump it only when case interpretation, score semantics, or headline
  * aggregation changes. Compiler telemetry, predictor internals, and runner
  * refactors are candidate/provenance changes and must not invalidate cached
  * baseline outcomes.
  */
 export const BENCHMARK_SCORING_PROTOCOL_FINGERPRINT =
-  "0efcfbf205a19df8c6b6a46defce18a7d1b6546ba28db2f3e510aa01dc0611f5" as const;
+  "c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6" as const;
 
 /** Exact implementation bytes retained for audit, never comparison gating. */
 export const BENCHMARK_IMPLEMENTATION_SOURCE_FILES = [
@@ -104,6 +106,8 @@ export const RUNNER_IMPLEMENTATION_SOURCE_FILES = [
   "benchmark/v2/decision-policy.ts",
   "scripts/v0/benchmark_v2/audit_model.ts",
   "scripts/v0/benchmark_v2/calibration_guard.ts",
+  "scripts/v0/benchmark_v2/campaign_bootstrap.ts",
+  "scripts/v0/benchmark_v2/campaign_bootstrap_request.ts",
   "scripts/v0/benchmark_v2/runner.ts",
   "scripts/v0/benchmark_v2/canonical.ts",
   "scripts/v0/benchmark_v2/click_model.ts",

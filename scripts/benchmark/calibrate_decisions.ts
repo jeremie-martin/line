@@ -13,14 +13,13 @@ import {
 import { loadSourceManifest, resolveSources } from "../v0/benchmark_v2/model.ts";
 import {
   canonicalMembers,
-  fingerprintFiles,
   loadSuiteManifest,
   resolvedSeedSchedule,
   suiteIdentity,
+  type SuiteManifest,
 } from "../v0/benchmark_v2/suite_model.ts";
-import { loadValidatedDecisionPairForCalibration } from "../v0/benchmark_v2/decide.ts";
 import { assertDecisionCoverageAdequate } from "../v0/benchmark_v2/calibration_guard.ts";
-import { argumentReader, mean, round, sha256File } from "../v0/benchmark_v2/util.ts";
+import { argumentReader, mean, round, sha256 } from "../v0/benchmark_v2/util.ts";
 
 const argument = argumentReader(process.argv.slice(2));
 
@@ -52,19 +51,27 @@ const coverageReferenceBytes = readFileSync(coverageStudy.reference);
 if (createHash("sha256").update(coverageReferenceBytes).digest("hex") !== coverageStudy.referenceArtifactSha256) {
   throw new Error(`decision coverage reference is missing or stale`);
 }
+const scorerBoundReference = loadScorerBoundReference(coverageStudy, coverageReferenceBytes);
 
 const controls = {
-  identical: await empiricalControl(
-    "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
-    "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
+  identical: empiricalControl(
+    scorerBoundReference,
+    "identity: the same scorer-bound rows are paired byte-for-byte",
+    (row) => row.score,
   ),
-  knownBroadDegradation: await empiricalControl(
-    "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
-    "benchmark/v2/runs/calibration-v2.6-quality-ncand-1-probe.json.gz",
+  knownBroadDegradation: empiricalControl(
+    scorerBoundReference,
+    "deterministic broad degradation: subtract 100 points from every valid scorer-bound row",
+    (row) => row.score.valid
+      ? { score: Math.max(0, row.score.score - 100), valid: true }
+      : { score: row.score.score, valid: false },
   ),
-  impactContractFailure: await empiricalControl(
-    "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz",
-    "benchmark/v2/runs/calibration-v2.6-impact-off-probe.json.gz",
+  impactContractFailure: empiricalControl(
+    scorerBoundReference,
+    "deterministic impact contract failure: hard-zero every row whose current score carries an impact component",
+    (row) => row.score.components?.impact === undefined
+      ? { score: row.score.score, valid: row.score.valid }
+      : { score: 0, valid: false },
   ),
   correlatedSeedAdversary: correlatedSeedControl(),
 };
@@ -77,7 +84,7 @@ const simulations = (["probe", "canonical"] as const).flatMap((profile) => [
 ]);
 
 const report = {
-  schema: "line.benchmark-v2.decision-calibration.v2",
+  schema: "line.benchmark-v2.decision-calibration.v3",
   generatedAt: new Date().toISOString(),
   suiteFingerprint: identity.suiteFingerprint,
   decisionInferenceFingerprint: DECISION_INFERENCE_PROTOCOL_FINGERPRINT,
@@ -90,7 +97,16 @@ const report = {
     note: "Repeated-sampling trials skip sensitivity bootstraps because they cannot affect the formal gate. Production decisions still use the policy's full sensitivity iteration count.",
   },
   empiricalControlPolicy:
-    "Retained probe controls may carry a historical listening-review fingerprint because listening evidence is not an input to probe execution or scoring. Every archive remains checksummed, scope-validated, and rescored from raw reports. Ordinary decisions and all canonical promotion evidence still require the current listening review.",
+    "Scorer-bound controls are deterministic transformations of the fresh checksummed canonical decision index. The index is cryptographically bound to its retained raw archive and carries the current scoring-protocol and suite identities; no old-ruler scores are reused or relabeled.",
+  scorerBoundReference: {
+    path: coverageStudy.reference,
+    sha256: coverageStudy.referenceArtifactSha256,
+    rawArchiveSha256: coverageStudy.referenceRawSha256,
+    candidateFingerprint: coverageStudy.referenceCandidateFingerprint,
+    profile: "canonical",
+    budgets: coverageStudy.scope.budgets,
+    seedsPerBudget: coverageStudy.scope.availableSeedsPerBudget,
+  },
   controls,
   coverageStudy: {
     path: coverageStudyPath,
@@ -108,29 +124,108 @@ write(outPath, `${JSON.stringify(report, null, 2)}\n`);
 write(markdownPath, renderMarkdown(report));
 console.log(renderMarkdown(report));
 
-async function empiricalControl(basePath: string, candidatePath: string): Promise<Record<string, unknown>> {
-  if (!existsSync(basePath) || !existsSync(candidatePath)) {
-    throw new Error(`required retained calibration control is missing: ${basePath} or ${candidatePath}`);
-  }
-  const validated = await loadValidatedDecisionPairForCalibration(basePath, candidatePath);
-  const decision = pairedV2Decision(validated.baseRuns, validated.candidateRuns, validated.suite, {
-    profile: "probe",
+function empiricalControl(
+  reference: ScorerBoundReference,
+  derivation: string,
+  transform: (row: any) => { score: number; valid: boolean },
+): Record<string, unknown> {
+  const base = reference.rows.map(decisionRun);
+  const candidate = reference.rows.map((row) => ({
+    ...decisionRun(row),
+    score: transform(row),
+  }));
+  const decision = pairedV2Decision(base, candidate, reference.suite, {
+    profile: "canonical",
     mode: "improvement",
     iterations: 5_000,
     bootstrapSeed: 0x51a7,
   });
   return {
     available: true,
-    baseArchive: basePath,
-    baseArchiveSha256: sha256File(basePath),
-    candidateArchive: candidatePath,
-    candidateArchiveSha256: sha256File(candidatePath),
+    referenceDecisionIndex: reference.path,
+    referenceDecisionIndexSha256: reference.sha256,
+    referenceRawArchiveSha256: reference.rawArchiveSha256,
+    derivation,
     delta: decision.delta,
     centralInterval: [decision.confidence.centralLo, decision.confidence.centralHi],
     lowerBound: decision.confidence.lowerBound,
     upperBound: decision.confidence.upperBound,
     outcome: decision.outcome,
   };
+}
+
+type ScorerBoundReference = {
+  path: string;
+  sha256: string;
+  rawArchiveSha256: string;
+  rows: any[];
+  suite: SuiteManifest;
+};
+
+function loadScorerBoundReference(coverage: any, bytes: Buffer): ScorerBoundReference {
+  const index = JSON.parse(bytes.toString("utf8"));
+  const archive = index.archive;
+  if (
+    coverage.referenceKind !== "scorer-bound-decision-index" ||
+    index.schema !== "line.benchmark-v2.decision-index.v1" ||
+    index.payloadSha256 !== sha256(JSON.stringify(archive)) ||
+    index.archiveSha256 !== coverage.referenceRawSha256 ||
+    archive?.schema !== "line.benchmark-v2.run-archive.v5" ||
+    archive?.mode !== "development" ||
+    archive?.profile !== "canonical" ||
+    archive?.identity?.engine !== "wasm" ||
+    archive?.identity?.suiteFingerprint !== identity.suiteFingerprint ||
+    archive?.identity?.scoringProtocolFingerprint !== identity.scoringProtocolFingerprint ||
+    archive?.git?.candidateFingerprint !== coverage.referenceCandidateFingerprint ||
+    JSON.stringify(archive?.identity?.budgets) !== JSON.stringify(coverage.scope?.budgets) ||
+    archive?.identity?.seedSchedule?.seedsPerBudget !== coverage.scope?.availableSeedsPerBudget ||
+    !Array.isArray(archive?.runs) ||
+    archive.runs.some((row: any) =>
+      row.status !== "ok" ||
+      row.score?.schema !== "line.benchmark-v2.run-score.v2" ||
+      typeof row.score?.score !== "number" ||
+      typeof row.score?.valid !== "boolean"
+    )
+  ) throw new Error(`decision calibration requires the fresh scorer-bound canonical decision index`);
+  return {
+    path: coverage.reference,
+    sha256: coverage.referenceArtifactSha256,
+    rawArchiveSha256: coverage.referenceRawSha256,
+    rows: archive.runs,
+    suite: suiteForCampaignScope(suite, coverage.scope.budgets, coverage.scope.availableSeedsPerBudget),
+  };
+}
+
+function decisionRun(row: any): DecisionRun {
+  return {
+    sourceId: row.task.sourceId,
+    budget: row.task.budget,
+    seedSlot: row.task.seedSlot,
+    actualSeed: row.task.actualSeed,
+    score: { score: row.score.score, valid: row.score.valid },
+  };
+}
+
+function suiteForCampaignScope(
+  sourceSuite: SuiteManifest,
+  budgets: number[],
+  seedsPerBudget: number,
+): SuiteManifest {
+  if (
+    !Array.isArray(budgets) || budgets.length === 0 ||
+    budgets.some((budget) => !sourceSuite.profiles.canonical.budgets.includes(budget)) ||
+    !Number.isSafeInteger(seedsPerBudget) || seedsPerBudget < 8
+  ) throw new Error(`scorer-bound calibration scope is malformed`);
+  const cloned = structuredClone(sourceSuite);
+  cloned.profiles.canonical.budgets = [...budgets];
+  cloned.profiles.canonical.seeds_per_budget = seedsPerBudget;
+  const weights = sourceSuite.budget_weights.filter((entry) => budgets.includes(entry.budget));
+  const total = weights.reduce((sum, entry) => sum + entry.weight, 0);
+  cloned.budget_weights = weights.map((entry) => ({
+    budget: entry.budget,
+    weight: entry.weight / total,
+  }));
+  return cloned;
 }
 
 function correlatedSeedControl(): Record<string, unknown> {
@@ -315,7 +410,7 @@ function renderMarkdown(report: any): string {
     "",
     report.simulation.note,
     "",
-    "## Empirical controls",
+    "## Scorer-bound controls",
     "",
     report.empiricalControlPolicy,
     "",

@@ -2,7 +2,10 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
-import { benchmarkDecisionCalibrationPolicy } from "../../../benchmark/v2/decision-policy.ts";
+import {
+  benchmarkDecisionCalibrationPolicy,
+  benchmarkDecisionPolicy,
+} from "../../../benchmark/v2/decision-policy.ts";
 import {
   benchmarkEvalPolicy,
   evalOperatingPoint,
@@ -36,8 +39,9 @@ export function requireCurrentDecisionCalibration(
   // Calibration binds the INFERENCE identity only (the code and constants
   // that map data to verdicts). Protocol-surface edits never invalidate
   // statistical evidence; they are re-stamped via `migrate --scope=protocol`.
+  const scorerBound = calibration.schema === "line.benchmark-v2.decision-calibration.v3";
   if (
-    calibration.schema !== "line.benchmark-v2.decision-calibration.v2" ||
+    !scorerBound && calibration.schema !== "line.benchmark-v2.decision-calibration.v2" ||
     calibration.suiteFingerprint !== suiteFingerprint ||
     calibration.decisionInferenceFingerprint !== DECISION_INFERENCE_PROTOCOL_FINGERPRINT
   ) throw new Error(`decision calibration is stale for the current suite or inference implementation`);
@@ -59,16 +63,62 @@ export function requireCurrentDecisionCalibration(
     coverage.referenceArtifactSha256,
     "zero-inflated coverage reference",
   );
-  for (const name of ["identical", "knownBroadDegradation", "impactContractFailure"] as const) {
-    const control = calibration.controls?.[name];
-    requireArtifact(control?.baseArchive, control?.baseArchiveSha256, `${name} base control`);
-    requireArtifact(control?.candidateArchive, control?.candidateArchiveSha256, `${name} candidate control`);
+  if (scorerBound) {
+    assertScorerBoundCalibration(calibration, coverage);
+  } else {
+    for (const name of ["identical", "knownBroadDegradation", "impactContractFailure"] as const) {
+      const control = calibration.controls?.[name];
+      requireArtifact(control?.baseArchive, control?.baseArchiveSha256, `${name} base control`);
+      requireArtifact(control?.candidateArchive, control?.candidateArchiveSha256, `${name} candidate control`);
+    }
   }
   return {
     inferenceFingerprint: calibration.decisionInferenceFingerprint,
     protocolFingerprint: decisionProtocolFingerprint(),
     calibrationFingerprint: decisionCalibrationFingerprint(calibration),
   };
+}
+
+function assertScorerBoundCalibration(calibration: any, coverage: any): void {
+  const reference = calibration.scorerBoundReference;
+  if (
+    coverage.referenceKind !== "scorer-bound-decision-index" ||
+    reference?.path !== coverage.reference ||
+    reference?.sha256 !== coverage.referenceArtifactSha256 ||
+    reference?.rawArchiveSha256 !== coverage.referenceRawSha256 ||
+    reference?.candidateFingerprint !== coverage.referenceCandidateFingerprint ||
+    reference?.profile !== "canonical" ||
+    JSON.stringify(reference?.budgets) !== JSON.stringify(coverage.scope?.budgets) ||
+    reference?.seedsPerBudget !== coverage.scope?.availableSeedsPerBudget
+  ) throw new Error(`scorer-bound calibration reference is detached from decision coverage`);
+  requireArtifact(reference.path, reference.sha256, "scorer-bound decision index");
+
+  for (const name of ["identical", "knownBroadDegradation", "impactContractFailure"] as const) {
+    const control = calibration.controls?.[name];
+    if (
+      control?.available !== true ||
+      control?.referenceDecisionIndex !== reference.path ||
+      control?.referenceDecisionIndexSha256 !== reference.sha256 ||
+      control?.referenceRawArchiveSha256 !== reference.rawArchiveSha256 ||
+      typeof control?.derivation !== "string" || control.derivation.length === 0 ||
+      typeof control?.delta !== "number" ||
+      !Array.isArray(control?.centralInterval) || control.centralInterval.length !== 2 ||
+      typeof control?.lowerBound !== "number" ||
+      typeof control?.upperBound !== "number"
+    ) throw new Error(`${name} scorer-bound calibration control is malformed`);
+  }
+  const identical = calibration.controls.identical;
+  if (
+    identical.delta !== 0 ||
+    identical.outcome !== benchmarkDecisionPolicy.profiles.canonical.unresolvedOutcome
+  ) throw new Error(`identical scorer-bound control does not remain unresolved at zero`);
+  for (const name of ["knownBroadDegradation", "impactContractFailure"] as const) {
+    const control = calibration.controls[name];
+    if (
+      !(control.delta < 0) ||
+      control.outcome !== benchmarkDecisionPolicy.profiles.canonical.negativeOutcome
+    ) throw new Error(`${name} scorer-bound control does not reject the known regression`);
+  }
 }
 
 export type CertifiedOperatingPoint = {

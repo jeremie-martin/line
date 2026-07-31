@@ -154,6 +154,11 @@ export async function runCampaignBootstrapCommand(argv = process.argv.slice(2)):
   if (resolve(request.outputPath) !== outPath) {
     throw new Error(`bootstrap request output does not match --out`);
   }
+  if (resume && completedRunArtifactsExist(outPath)) {
+    const result = retainAndValidate(requestPath, request, outPath);
+    printCompletedResult(result);
+    return 0;
+  }
 
   let workspace: ReturnType<typeof createSnapshotWorkspace> | undefined;
   try {
@@ -172,13 +177,7 @@ export async function runCampaignBootstrapCommand(argv = process.argv.slice(2)):
       throw new Error(`campaign bootstrap has ${run.workerFailures} worker failures; resume the identical request`);
     }
     const result = retainAndValidate(requestPath, request, run.outputPath);
-    console.log(`Campaign bootstrap complete: ${result.label}`);
-    console.log(`  headline: ${result.development.canonicalHeadline.toFixed(4)}`);
-    console.log(`  valid: ${result.development.validRuns}/${result.development.totalRuns}`);
-    console.log(`  raw sha256: ${result.development.archiveSha256}`);
-    console.log(`  gzip sha256: ${result.development.compressedArchiveSha256}`);
-    console.log(`  result: ${relativeToCwd(resultPath(requestPath))}`);
-    console.log(`  publication remains blocked until scorer-bound decision calibration is regenerated`);
+    printCompletedResult(result);
     return 0;
   } finally {
     if (workspace !== undefined) disposeSnapshotWorkspace(workspace);
@@ -379,10 +378,11 @@ function retainAndValidate(
   const recomputed = summarizeDevelopmentBudget(scoredRuns, REQUIRED_BUDGET, suite);
   if (
     recomputed.totalRuns !== REQUIRED_COMPILES ||
-    recomputed.validRuns !== REQUIRED_COMPILES ||
     recomputed.score !== archive.canonicalHeadline ||
     archive.developmentSummaries?.length !== 1 ||
-    archive.developmentSummaries[0].score !== recomputed.score
+    archive.developmentSummaries[0].score !== recomputed.score ||
+    archive.developmentSummaries[0].validRuns !== recomputed.validRuns ||
+    archive.developmentSummaries[0].totalRuns !== recomputed.totalRuns
   ) {
     throw new Error(`bootstrap headline, validity, or development scope did not recompute exactly`);
   }
@@ -548,6 +548,28 @@ function publishCampaignBootstrap(requestPath: string): number {
   console.log(`  valid: ${result.development.validRuns}/${result.development.totalRuns}`);
   console.log(`  no cross-ruler comparison or old-baseline delta was computed`);
   return 0;
+}
+
+function completedRunArtifactsExist(rawOutputPath: string): boolean {
+  return [
+    rawOutputPath,
+    `${rawOutputPath}.gz`,
+    `${rawOutputPath}.sha256`,
+    `${rawOutputPath}.gz.sha256`,
+    `${rawOutputPath}.decision-index.json`,
+    `${rawOutputPath}.decision-index.json.sha256`,
+    `${rawOutputPath}.summary.json`,
+  ].every(existsSync);
+}
+
+function printCompletedResult(result: BootstrapResult): void {
+  console.log(`Campaign bootstrap complete: ${result.label}`);
+  console.log(`  headline: ${result.development.canonicalHeadline.toFixed(4)}`);
+  console.log(`  valid: ${result.development.validRuns}/${result.development.totalRuns}`);
+  console.log(`  raw sha256: ${result.development.archiveSha256}`);
+  console.log(`  gzip sha256: ${result.development.compressedArchiveSha256}`);
+  console.log(`  result: ${relativeToCwd(resultPath(resolve(result.request.path)))}`);
+  console.log(`  publication remains blocked until scorer-bound decision calibration is regenerated`);
 }
 
 function currentSuite() {

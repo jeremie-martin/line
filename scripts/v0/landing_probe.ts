@@ -21,7 +21,7 @@ import {
   setLandingProbeHook,
   type LandingProbeHook,
 } from "./core/candidate.ts";
-import { redirArcPxAtLanding, speedAt } from "./core/substrate.ts";
+import { contactRedirArcPxAtLanding, speedAt } from "./core/substrate.ts";
 import { normImpact, type AxisValues, type Gap, type TrackLine } from "./types.ts";
 import { wasLastGeometryImpactTemplate } from "./arc_placement.ts";
 import type { Detection, DetEvent } from "../lib/detector.ts";
@@ -183,7 +183,7 @@ function probeLandingWindow(
     chosen = best;
     break;
   }
-  const impactPx = chosen === null ? undefined : redirArcPxAtLanding(det, chosen.frame);
+  const impactPx = chosen === null ? undefined : contactRedirArcPxAtLanding(det, chosen.frame);
   const incomingSpeed = chosen === null
     ? undefined
     : (speedAt(det, chosen.frame - 1) ?? speedAt(det, chosen.frame));

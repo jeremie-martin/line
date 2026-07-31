@@ -59,7 +59,7 @@ function line(id: number, x1: number, y1: number, x2: number, y2: number): Track
 
 const measureImpact = AXIS_MEASURE.impact;
 
-describe("measureImpact (redirArc = v·Δθ reduction)", () => {
+describe("measureImpact (cArc = Σ v̄·|Δθ| impulse reduction)", () => {
   // targets.impact set: measureImpact is gated to gaps whose beat authored impact.
   const gap: Gap = { index: 0, startFrame: 0, endFrame: 10, endsWithContact: true, targets: { impact: 0.5 } };
   // Build a det whose CoM velocity at absolute frame f is vfn(f), landing at `lf`.
@@ -145,7 +145,7 @@ describe("measureImpact (redirArc = v·Δθ reduction)", () => {
   });
 
   test("SOFT=0 floor: a small redirArc reads small & linear (no dead-zone)", () => {
-    // speed 3, tiny end turn 0.2 rad → redirArc 0.6 px/f → 0.6/VSTRONG(7.29) ≈ 0.08.
+    // speed 3, single 0.2-rad bend → impulse 0.6 px/f → 0.6/VSTRONG(7.55) ≈ 0.08.
     // SOFT=0 means a gentle redirect is a small REAL impact, not clamped to 0.
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 3, y: 0 } : vel(0.2, 3)));
     const v = call(det)!;
@@ -153,14 +153,14 @@ describe("measureImpact (redirArc = v·Δθ reduction)", () => {
     expect(v).toBeLessThan(0.15);
   });
 
-  test("saturates at 1.0 above very-strong (≥7.29 px/f redirArc)", () => {
-    // speed 10, π/2 turn → redirArc 10·1.571 ≈ 15.7 ≫ 7.29 ⇒ 1.
+  test("saturates at 1.0 above very-strong (≥VSTRONG px/f impulse)", () => {
+    // speed 10, π/2 turn → impulse 10·1.571 ≈ 15.7 ≫ VSTRONG(7.55) ⇒ 1.
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : { x: 0, y: 10 }));
     expect(call(det)).toBe(1);
   });
 });
 
-describe("contactRedirArcPx (redirection-impulse candidate)", () => {
+describe("contactRedirArcPx (study delegate for the SCORED redirection impulse)", () => {
   const asSim = (det: Detection): Sim => ({
     det,
     vel: det.measurements.velocity,

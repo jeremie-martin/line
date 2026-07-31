@@ -1038,6 +1038,24 @@ export function elevationCeiling(speedPx: number, frames: number): number {
   return netDyToElevation(dyAchievable, speedPx, frames);
 }
 
+/** Maximum RELIABLE CoM turn (rad) the engine can deliver within the impact window —
+ *  MEASURED by the catchability atlas (study_catchability_atlas.ts, 2026-07-31):
+ *  ceiling(speed) ≈ speed × 1.0 rad within ±6% across the SPEED_RULER envelope
+ *  (flat-slam frontier at normal closing ≈ 6–7 px/f; scoop frontier at centripetal
+ *  ≈ 3 px/f²; ≥80% catch across pose phases). Replaces the inherited 0.9-fraction
+ *  guess (asin(0.9) ≈ 1.12 rad). Revalidated: 0 of ~13k real landings exceed it.
+ *
+ *  Hoisted out of the `IMPACT` literal so `CATCHABLE_REDIR_FRACTION` can DERIVE from
+ *  it: the two are one bound in two forms, and a retune must move both together.
+ *  Must stay in (0, π/2] — `asin(sin(x)) === x` only holds there, and every aim clamp
+ *  recovers the turn that way (asserted below). */
+const MAX_RELIABLE_TURN_RAD = 1.0;
+if (!(MAX_RELIABLE_TURN_RAD > 0) || MAX_RELIABLE_TURN_RAD > Math.PI / 2) {
+  // Beyond π/2 the sin() round-trip folds back (asin(sin(2.0)) = 1.14), so the aim
+  // clamps would silently disagree with impactCeiling/impactFeasibilityBound.
+  throw new Error(`IMPACT.MAX_RELIABLE_TURN_RAD must be in (0, π/2]; got ${MAX_RELIABLE_TURN_RAD}`);
+}
+
 /**
  * Landing-impact model (absolute, speed-bounded). Impact is the rider's **redirection
  * impulse** `cArc = Σ v̄·|Δθ|` — per-frame CoM heading change × midpoint speed,
@@ -1054,19 +1072,18 @@ export function elevationCeiling(speedPx: number, frames: number): number {
  * a target above it reads as physics, not an optimizer miss.
  */
 export const IMPACT = {
-  /** Maximum RELIABLE CoM turn (rad) the engine can deliver within the impact window —
-   *  MEASURED by the catchability atlas (study_catchability_atlas.ts, 2026-07-31):
-   *  ceiling(speed) ≈ speed × 1.0 rad within ±6% across the SPEED_RULER envelope
-   *  (flat-slam frontier at normal closing ≈ 6–7 px/f; scoop frontier at centripetal
-   *  ≈ 3 px/f²; ≥80% catch across pose phases). Replaces the inherited 0.9-fraction
-   *  guess (asin(0.9) ≈ 1.12 rad). Revalidated: 0 of ~13k real landings exceed it. */
-  MAX_RELIABLE_TURN_RAD: 1.0,
-  /** = sin(MAX_RELIABLE_TURN_RAD). The same bound expressed as a redirection
-   *  FRACTION, because the aim/feasibility clamps and the sealed
-   *  `PostimpactImpactConvention` consume it as `asin(fraction)` — keeping the
-   *  fraction form means every consumer and frozen fixture keeps its shape while
-   *  the effective clamp becomes exactly the measured 1.0 rad. */
-  CATCHABLE_REDIR_FRACTION: Math.sin(1.0),
+  /** See `MAX_RELIABLE_TURN_RAD` above — the atlas-measured reliable in-window turn (rad).
+   *  Consumed directly by `impactCeiling` and `impactFeasibilityBound`. */
+  MAX_RELIABLE_TURN_RAD,
+  /** = sin(MAX_RELIABLE_TURN_RAD) — DERIVED, never hand-written. The same bound
+   *  expressed as a redirection FRACTION, because the aim/feasibility clamps and the
+   *  sealed `PostimpactImpactConvention` consume it as `asin(fraction)` — keeping the
+   *  fraction form means every consumer and frozen fixture keeps its shape while the
+   *  effective clamp is exactly the measured turn. Deriving it (rather than pinning the
+   *  literal `Math.sin(1.0)`) is what keeps `asin(CATCHABLE_REDIR_FRACTION) ===
+   *  MAX_RELIABLE_TURN_RAD` true through a future retune — the invariant
+   *  tests/v0_impact.test.ts pins and the six aim clamps depend on. */
+  CATCHABLE_REDIR_FRACTION: Math.sin(MAX_RELIABLE_TURN_RAD),
   /** [LEGACY — NOT SCORED] catchable fraction for the OLD one-frame normal-closing
    *  metric. Kept only for `calibrate_impact.ts` (the point-baseline study tool).
    *  The scored impact uses CATCHABLE_REDIR_FRACTION above — don't tune this one. */

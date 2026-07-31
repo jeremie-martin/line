@@ -1,8 +1,10 @@
 /**
  * Build the per-track IMPACT STUDY bundle for the dashboard at `/impact/`:
- *   - every landing's full candidate-metric vector (point/redir/snap/turn/dv/jolt/…),
- *     computed through the canonical impact_support.ts definitions (one window, one set
- *     of caps) so the dashboard and the scorer can never silently diverge;
+ *   - every landing on the two-lane decision board — the SCORED production metric
+ *     (CURRENT, the accumulated redirection impulse) against the pre-promotion net
+ *     form (LEGACY) — computed through the canonical impact_support.ts definitions
+ *     (one window, one felt scale) so the dashboard and the scorer can never
+ *     silently diverge. The 2026-06-14 seven-candidate metric zoo is retired;
  *   - a short looping mini-CLIP cut from the ride video around each landing, so a felt
  *     judgment needs one click, not scrubbing;
  *   - a plain markdown reference INDEX (t · beat# · phase · every metric · clip path) so

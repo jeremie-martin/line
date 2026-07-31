@@ -24,7 +24,7 @@ import {
 } from "./lib/detector.ts";
 import { exportVideo, MirrorUnreachableError } from "./lib/export.ts";
 import { IMPACT_WINDOW, normImpact, type Spec } from "./v0/types.ts";
-import { redirArcPxAtLanding } from "./v0/core/substrate.ts";
+import { contactRedirArcPxAtLanding } from "./v0/core/substrate.ts";
 import {
   cameraSidecarToRenderPlan,
   specZoomLaneToRenderPlan,
@@ -256,20 +256,21 @@ const det = detect(raw);
 console.timeEnd("detect");
 
 // Attach MEASURED landing impact to each landing event so the dashboard can show
-// per-beat intensity. Uses the shared redirArcPxAtLanding (same definition as the
-// scored core/measure.ts measureImpact) — redirArc = v·Δθ over the impact window,
-// mapped to felt [0,1] by normImpact (0=soft, 1=very strong). CoM-only: no resolver.
+// per-beat intensity. Uses the shared contactRedirArcPxAtLanding (same definition as
+// the scored core/measure.ts measureImpact) — the accumulated redirection impulse
+// Σ v̄·|Δθ| over contacted frames of the impact window, mapped to felt [0,1] by
+// normImpact (0=soft, 1=very strong). CoM-only: no resolver.
 {
   let n = 0, sum = 0;
   for (const e of det.events) {
     if (e.type !== "landing") continue;
-    const px = redirArcPxAtLanding(det, e.frame, IMPACT_WINDOW);
+    const px = contactRedirArcPxAtLanding(det, e.frame, IMPACT_WINDOW);
     if (px === undefined) continue;
     const impact = normImpact(px);
     (e as { impact?: number }).impact = Math.round(impact * 1000) / 1000;
     n++; sum += impact;
   }
-  if (n > 0) console.log(`impact: ${n} landings, mean ${(sum / n).toFixed(3)} (redirArc v·Δθ, felt-normalized)`);
+  if (n > 0) console.log(`impact: ${n} landings, mean ${(sum / n).toFixed(3)} (contact redirection impulse Σ v̄·|Δθ|, felt-normalized)`);
 }
 
 const byType = det.events.reduce<Record<string, number>>((acc, e) => {

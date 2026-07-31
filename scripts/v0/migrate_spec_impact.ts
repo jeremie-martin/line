@@ -1,8 +1,10 @@
 /**
- * migrate_spec_impact — reusable, NON-DESTRUCTIVE helper for the redirArc impact convention.
+ * migrate_spec_impact — reusable, NON-DESTRUCTIVE helper for the scored impact convention.
  *
- * The scored impact is `redirArc = v·Δθ`, felt-normalized to [0,1] via REDIRARC.SOFT/VSTRONG
- * (currently 0 / 7.29). New specs author NATIVELY on that scale (0 = soft … 1 = very strong) with
+ * The scored impact is the redirection impulse `cArc = Σ v̄·|Δθ|` (`contactRedirArcPxAtLanding`,
+ * substrate.ts; promoted 2026-07-31 over the net-form `redirArc = v·Δθ`), felt-normalized to
+ * [0,1] via REDIRARC.SOFT/VSTRONG — read the live values from types.ts rather than trusting a
+ * number copied into prose. New specs author NATIVELY on that scale (0 = soft … 1 = very strong) with
  * `withImpact`. OLD-convention specs (felt-"soft" ≈ 0.2 on the pre-redirArc scale) are brought onto
  * the new scale by the affine convention shift `migrateImpact(a) = clamp01((a − 0.2)/0.8)`, applied
  * once at load by `withImpactLegacy` — which is now the default. This tool lets you, on any clone:

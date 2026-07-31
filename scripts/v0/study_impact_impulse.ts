@@ -19,12 +19,18 @@
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_impact_impulse.ts
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as SS from "./impact_support.ts";
-import { normImpact } from "./types.ts";
+import { FPS, normImpact } from "./types.ts";
 
 const W = SS.IMPACT_WINDOW;
+
+/** Pre-promotion `REDIRARC.VERY_STRONG`, frozen. `normImpact` now anchors the SCORED
+ *  impulse (7.55); running it over a legacy `redirArc` raw value would print a hybrid
+ *  that is neither metric on its own scale. Legacy readouts normalize by this instead. */
+const OLD_VSTRONG = 7.29;
+const legacyNorm = (px: number) => Math.max(0, Math.min(1, px / OLD_VSTRONG));
 
 /** Discriminating sets (the 2026-06-14 adjudication) first; reference sets after. */
 const DISCRIMINATING = ["impact_lab_v2", "climb_terrace", "rolling_drop", "staircase"] as const;
@@ -168,24 +174,32 @@ const prodPct = pctRank(landings.map((l) => l.m.redirArc));
     .map((l, i) => ({ ...l, d: candPct[i] - prodPct[i] }))
     .sort((a, b) => Math.abs(b.d) - Math.abs(a.d))
     .slice(0, 16);
-  const isLabeled = (r: LandingRow) => (annotatedFrames.get(r.set) ?? []).some((f) => Math.abs(f - r.frame) <= 6);
+  // ✓ only when the beat actually yielded a FELT LEVEL (ordinal or levels.json overlay) — an
+  // annotation that is note-only carries no level and contributes nothing to the adjudication,
+  // so it must not read as done (shelter_impact_2m / believer_impact_2m are entirely note-only).
+  const isLeveled = (r: LandingRow) => labeled.some((l) => l.set === r.set && Math.abs(l.frame - r.frame) <= 6);
+  const hasNote = (r: LandingRow) => (annotatedFrames.get(r.set) ?? []).some((f) => Math.abs(f - r.frame) <= 6);
   const md = [
-    `# Impact labeling shortlist — CURRENT ↔ CARC divergence`,
+    `# Impact labeling shortlist — SCORED (cArc) ↔ LEGACY (redirArc) divergence`,
     ``,
     `The ${ranked.length} landings (of ${landings.length}) where the challenger most rank-disagrees with the`,
     `production metric. Label THESE in the dashboard (set the INTENSITY ordinal!), then rerun`,
     `\`LR_ENGINE=wasm npx tsx scripts/v0/study_impact_impulse.ts\`. Regenerate this file the same way.`,
     ``,
-    `| open | set | frame | t(s) | Δpct | CURRENT [0,1] | CARC raw | labeled? |`,
-    `|---|---|---|---|---|---|---|---|`,
+    `| open | set | frame | t(s) | Δpct | SCORED [0,1] | LEGACY [0,1] | cArc raw | leveled? |`,
+    `|---|---|---|---|---|---|---|---|---|`,
     ...ranked.map((r) =>
       `| [▶](http://127.0.0.1:8767/impact/?data=/generated/impact-study/${r.set}.bundle.json&frame=${r.frame}) ` +
-      `| ${r.set} | ${r.frame} | ${(r.frame / 40).toFixed(2)} | ${r.d >= 0 ? "+" : ""}${r.d.toFixed(2)} ` +
-      `| ${normImpact(r.m.redirArc).toFixed(2)} | ${r.m.cArc.toFixed(2)} | ${isLabeled(r) ? "✓" : "**no**"} |`),
+      `| ${r.set} | ${r.frame} | ${(r.frame / FPS).toFixed(2)} | ${r.d >= 0 ? "+" : ""}${r.d.toFixed(2)} ` +
+      `| ${normImpact(r.m.cArc).toFixed(2)} | ${legacyNorm(r.m.redirArc).toFixed(2)} ` +
+      `| ${r.m.cArc.toFixed(2)} | ${isLeveled(r) ? "✓" : hasNote(r) ? "note only" : "**no**"} |`),
     ``,
   ].join("\n");
-  writeFileSync("generated/impact-study/shortlist.md", md);
-  console.log(`\n(wrote generated/impact-study/shortlist.md — ${ranked.filter((r) => !isLabeled(r)).length}/${ranked.length} still unlabeled)`);
+  // The study reads its inputs from the tracked labels/impact/ fallback, so it must run on a
+  // fresh checkout where generated/ was never built — create the output directory ourselves.
+  mkdirSync(resolve("generated/impact-study"), { recursive: true });
+  writeFileSync(resolve("generated/impact-study/shortlist.md"), md);
+  console.log(`\n(wrote generated/impact-study/shortlist.md — ${ranked.filter((r) => !isLeveled(r)).length}/${ranked.length} still unlabeled)`);
 }
 for (const cand of ["cArc", "cArcOn"] as const) {
   const candPct = pctRank(landings.map((l) => l.m[cand]));
@@ -194,8 +208,8 @@ for (const cand of ["cArc", "cArcOn"] as const) {
     .sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
   console.log(`\n=== top divergence redirArc ↔ ${cand} (label these first; Δ = ${cand}pct − prodpct) ===`);
   for (const r of ranked.slice(0, 12)) {
-    console.log(`  ${r.set.padEnd(20)} frame ${String(r.frame).padStart(5)}  t=${(r.frame / 40).toFixed(2).padStart(7)}s` +
-      `  Δ ${r.d >= 0 ? "+" : ""}${r.d.toFixed(2)}  redirArc ${r.m.redirArc.toFixed(2).padStart(5)} (${normImpact(r.m.redirArc).toFixed(2)})` +
+    console.log(`  ${r.set.padEnd(20)} frame ${String(r.frame).padStart(5)}  t=${(r.frame / FPS).toFixed(2).padStart(7)}s` +
+      `  Δ ${r.d >= 0 ? "+" : ""}${r.d.toFixed(2)}  redirArc ${r.m.redirArc.toFixed(2).padStart(5)} (${legacyNorm(r.m.redirArc).toFixed(2)} legacy-norm)` +
       `  ${cand} ${r.m[cand].toFixed(2).padStart(5)}`);
   }
 }

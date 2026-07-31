@@ -108,8 +108,19 @@ for (const s of SETS) report(s, pts.filter((p) => p.set === s));
 console.log(`\n=== per-felt-level raw cArc median [bootstrap 90% CI] ===`);
 const bucket = (f: number) => Math.round(f * 2) / 2;
 const levels = [...new Set(pts.map((p) => bucket(p.felt)))].sort((a, b) => a - b);
-let seed = 12345;
-const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+// Deterministic mulberry32 (fixed seed ⇒ reproducible CIs). The previous LCG multiplied into
+// ~2^61, past the 2^53 exact-integer range of a double, so its low bits were lost to rounding:
+// the sequence cycled after 16,403 values — shorter than the 1000 replicates × n draws below,
+// which made a large share of the "independent" replicates exact repeats (under-dispersed CIs).
+// mulberry32 stays in exact-integer range via Math.imul/>>>0 and returns [0, 1), never 1.0.
+let seed = 12345 >>> 0;
+const rnd = () => {
+  seed = (seed + 0x6d2b79f5) >>> 0;
+  let t = seed;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
 for (const lv of levels) {
   const xs = pts.filter((p) => bucket(p.felt) === lv).map((p) => p.raw);
   const meds: number[] = [];

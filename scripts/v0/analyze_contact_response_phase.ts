@@ -10,7 +10,7 @@ import { dirname } from "node:path";
 import { clearImpactTemplateMarker, hasPreTargetSledProximityFromTrace, sampleArcPlacementGeometry } from "./arc_placement.ts";
 import { fingerprintFiles } from "./benchmark_v2/suite_model.ts";
 import { detectWindow } from "./core/candidate.ts";
-import { engineLineFromTrackLine, redirArcPxAtLanding, velocityAt } from "./core/substrate.ts";
+import { contactRedirArcPxAtLanding, engineLineFromTrackLine, velocityAt } from "./core/substrate.ts";
 import { makeRng } from "../lib/rng.ts";
 import { IMPACT_WINDOW, normImpact, type TrackLine } from "./types.ts";
 import {
@@ -230,7 +230,9 @@ function replayRawRecord(
   const preHeadingDeg = Math.atan2(preVelocity.y, preVelocity.x) * 180 / Math.PI;
   const targetArc = kinematic.impact?.requestedRedirArcPx ?? null;
   const requestedTurnDeg = targetArc === null ? null : targetArc / preSpeed * 180 / Math.PI;
-  const redirArcPx = redirArcPxAtLanding(observed.detection, observed.selected.frame, IMPACT_WINDOW);
+  // Field name `redirArcPx` is historical: it now carries the scored accumulated
+  // redirection impulse (contactRedirArcPxAtLanding), not the legacy net v·Δθ arc.
+  const redirArcPx = contactRedirArcPxAtLanding(observed.detection, observed.selected.frame, IMPACT_WINDOW);
   if (redirArcPx === undefined) throw new Error(`raw record ${record.label}: scorer response is unreadable`);
   const responseFrame = Math.min(
     observed.responseEndFrame,

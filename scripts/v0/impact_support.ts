@@ -35,7 +35,8 @@ export { wrapPi }; // canonical home is types.ts; re-exported so SS.wrapPi consu
 //   Both are documented LEGACY / not-the-scored-metric; their sole callers are the
 //   study delegates below (pointImpactPx / redirPx). Relocated out of the
 //   fingerprinted substrate slice — byte-identical, no scorer dependency. The one
-//   SCORED impact metric (redirArcPxAtLanding) stays in substrate.ts.
+//   SCORED impact metric (contactRedirArcPxAtLanding, since 2026-07-31) stays in
+//   substrate.ts, alongside the now-legacy net form redirArcPxAtLanding.
 /**
  * LEGACY one-frame "normal impact speed" (px/frame, UNNORMALIZED): the magnitude of
  * the rider's PRE-impact velocity component perpendicular to the catch surface it
@@ -80,7 +81,8 @@ export function normalImpactPxAtLanding(
  * [LEGACY / ANALYSIS — not the scored metric] `redir` (px/frame, UNNORMALIZED): the peak
  * magnitude of the rider's CoM velocity component PERPENDICULAR to its incoming heading
  * over the `window`-frame episode (= peak v·sin(turn)). Superseded as the SCORED impact by
- * `redirArcPxAtLanding` below (2026-06-14); kept for the dashboard's REDIR comparison lane
+ * `redirArcPxAtLanding` (2026-06-14), itself superseded by `contactRedirArcPxAtLanding`
+ * (2026-07-31); kept for the dashboard's REDIR comparison lane
  * and study harnesses' `redirPx`. CoM-velocity-only (immune to sled rotation / limb whip).
  */
 export function redirImpactPxAtLanding(
@@ -324,9 +326,10 @@ export function turnNetDeg(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
  *  speed weighting with no compression. CoM-only (rotation-immune), heading-anchored (no
  *  surface-faceting artifact → generalizes where comDecel overfit), tangent-aware (a clean
  *  tangent arrival builds Δθ≈0 → reads ~0). px/frame. Independent-agent recommendation
- *  (2026-06-14); strictly dominates `redir` and ties `turn` on the felt labels. DELEGATES
- *  to the SCORED production definition `redirArcPxAtLanding` (core/substrate.ts) so the
- *  dashboard/studies and the scorer share one source. */
+ *  (2026-06-14); strictly dominates `redir` and ties `turn` on the felt labels. Was the
+ *  SCORED definition 2026-06-14 → 2026-07-31; DELEGATES to `redirArcPxAtLanding`
+ *  (core/substrate.ts), now the LEGACY comparison lane — the scored metric is
+ *  `contactRedirArcPx` below. One source either way. */
 export function redirArcPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
   return redirArcPxAtLanding(sim.det, lf, W) ?? 0;
 }

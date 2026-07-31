@@ -82,6 +82,12 @@ accumulated form cannot cancel. The one CURRENT lean (@349) is tonal ("pretty
 smooth" vs 0.43/0.52). No beat contradicts CARC outright. Combined with the
 pooled Spearman edge (≥ on every set), the evidence now points one way.
 
+Scope note: those 9 annotations are FREE-TEXT ONLY (no INTENSITY ordinal was
+set), so they are qualitative evidence read by hand — they contributed zero new
+leveled beats, and every Spearman figure in this doc still rests on the original
+90. The shortlist's `leveled?` column distinguishes ✓ / "note only" / no for
+exactly this reason.
+
 ## Calibration (2026-07-31, from-scratch — three independent studies)
 
 Three evidence sources, one job each: **physics sets the endpoints, perception

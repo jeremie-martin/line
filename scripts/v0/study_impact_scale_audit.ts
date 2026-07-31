@@ -10,8 +10,11 @@
  *
  * B — MEANING SHIFT: across real compiled tracks (labeled studies + productions
  *     in generated/), per landing: Δ(V) = |clamp(cArc/V) − clamp(redirArc/7.29)|
- *     as a function of the candidate anchor V. Reports the compatibility-optimal
- *     V* and the shift at notable candidates (7.29 · atlas top ≈ 11.3 · V*).
+ *     as a function of the candidate anchor V. The 7.29 baseline is the FROZEN
+ *     pre-promotion anchor (OLD_VSTRONG), not the live REDIRARC.VERY_STRONG —
+ *     the drift is measured against what shipped before, not against itself.
+ *     Reports the compatibility-optimal V* and the shift at notable candidates
+ *     (7.29 · shipped REDIRARC.VERY_STRONG · atlas top ≈ 11.3 · V*).
  *
  * C — SEED STABILITY: cArc envelope across probe seeds.
  *
@@ -21,10 +24,17 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as SS from "./impact_support.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { normImpact, REDIRARC, type Spec } from "./types.ts";
+import { REDIRARC, type Spec } from "./types.ts";
 
 const QUICK = process.argv.includes("--quick");
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+
+/** Pre-promotion `REDIRARC.VERY_STRONG` — the baseline this audit measures drift AGAINST.
+ *  Frozen on purpose: it must NOT follow the live anchor (now 7.55, the cArc promotion),
+ *  or the meaning-shift comparison becomes self-referential and V* comes out wrong. */
+const OLD_VSTRONG = 7.29;
+/** The pre-promotion `normImpact`: SOFT was 0 before and after, so the divide is exact. */
+const oldNorm = (px: number) => clamp01(px / OLD_VSTRONG);
 
 // ── A: controllability via the purpose-built calibration corpus ───────────────
 // impact_calib_rich authors 10 impact levels × 14 deliberately-varied setups
@@ -60,11 +70,11 @@ for (const seed of SEEDS) {
 }
 
 console.log(`\n=== A: asked → achieved (median over hit contacts, all seeds) ===`);
-console.log(`   ask   n    speedIn   redirArc  old-norm    cArc   cArc/7.29  cArc/7.85  cArc/11.3`);
+console.log(`   ask   n    speedIn   redirArc  old-norm    cArc   cArc/${OLD_VSTRONG.toFixed(2)}  cArc/7.85  cArc/11.3`);
 for (const x of [...new Set(probeRows.map((r) => r.x))].sort((a, b) => a - b)) {
   const rs = probeRows.filter((r) => r.x === x);
   const m = (f: (r: ProbeRow) => number) => SS.pct(rs.map(f), 0.5);
-  console.log(`  ${x.toFixed(2)} ${String(rs.length).padStart(4)}   ${m((r) => r.speedIn).toFixed(1).padStart(6)}   ${m((r) => r.redirArc).toFixed(2).padStart(8)}  ${m((r) => normImpact(r.redirArc)).toFixed(2).padStart(8)}  ${m((r) => r.cArc).toFixed(2).padStart(6)}   ${m((r) => clamp01(r.cArc / 7.29)).toFixed(2).padStart(8)} ${m((r) => clamp01(r.cArc / 7.85)).toFixed(2).padStart(8)} ${m((r) => clamp01(r.cArc / 11.3)).toFixed(2).padStart(8)}`);
+  console.log(`  ${x.toFixed(2)} ${String(rs.length).padStart(4)}   ${m((r) => r.speedIn).toFixed(1).padStart(6)}   ${m((r) => r.redirArc).toFixed(2).padStart(8)}  ${m((r) => oldNorm(r.redirArc)).toFixed(2).padStart(8)}  ${m((r) => r.cArc).toFixed(2).padStart(6)}   ${m((r) => clamp01(r.cArc / OLD_VSTRONG)).toFixed(2).padStart(8)} ${m((r) => clamp01(r.cArc / 7.85)).toFixed(2).padStart(8)} ${m((r) => clamp01(r.cArc / 11.3)).toFixed(2).padStart(8)}`);
 }
 
 // ── C: seed stability (probe cArc envelope by seed) ───────────────────────────
@@ -98,26 +108,29 @@ for (const name of TRACKS) {
 console.log(`\nB: ${landRows.length} landings across ${new Set(landRows.map((r) => r.track)).size} real tracks`);
 
 const shiftAt = (V: number) => {
-  const ds = landRows.map((r) => Math.abs(clamp01(r.cArc / V) - normImpact(r.redirArc)));
+  const ds = landRows.map((r) => Math.abs(clamp01(r.cArc / V) - oldNorm(r.redirArc)));
   return { mean: SS.mean(ds), p90: SS.pct(ds, 0.9) };
 };
-let bestV = 7.29, bestMean = Infinity;
+let bestV = OLD_VSTRONG, bestMean = Infinity;
 for (let V = 6; V <= 13; V += 0.05) {
   const { mean } = shiftAt(V);
   if (mean < bestMean) { bestMean = mean; bestV = V; }
 }
 console.log(`\n=== B: meaning shift |newNorm − oldNorm| vs candidate anchor V ===`);
 console.log(`   V      mean    p90`);
-for (const V of [7.29, 8, bestV, 9, 10, 11.3]) {
+for (const V of [OLD_VSTRONG, REDIRARC.VERY_STRONG, 8, bestV, 9, 10, 11.3]) {
   const { mean, p90 } = shiftAt(V);
   console.log(`  ${V.toFixed(2).padStart(5)}  ${mean.toFixed(3)}  ${p90.toFixed(3)}${Math.abs(V - bestV) < 0.03 ? "   ← compatibility-optimal V*" : ""}`);
 }
-console.log(`\n  (old anchor VERY_STRONG=${REDIRARC.VERY_STRONG}; atlas reliable in-envelope top ≈ 11.2–12.6)`);
+console.log(
+  `\n  (old-norm baseline: pre-promotion VERY_STRONG=${OLD_VSTRONG}; currently shipped REDIRARC.VERY_STRONG=${REDIRARC.VERY_STRONG};` +
+    ` atlas reliable in-envelope top ≈ 11.2–12.6)`,
+);
 // where does the shift live? per-band table at V*
 console.log(`\n=== B: per-band shift at V*=${bestV.toFixed(2)} (old-norm band → mean shift, n) ===`);
 for (let lo = 0; lo < 1; lo += 0.2) {
-  const rs = landRows.filter((r) => { const o = normImpact(r.redirArc); return o >= lo && o < lo + 0.2; });
+  const rs = landRows.filter((r) => { const o = oldNorm(r.redirArc); return o >= lo && o < lo + 0.2; });
   if (!rs.length) continue;
-  const mean = SS.mean(rs.map((r) => Math.abs(clamp01(r.cArc / bestV) - normImpact(r.redirArc))));
+  const mean = SS.mean(rs.map((r) => Math.abs(clamp01(r.cArc / bestV) - oldNorm(r.redirArc))));
   console.log(`  [${lo.toFixed(1)}, ${(lo + 0.2).toFixed(1)})  n=${String(rs.length).padStart(4)}  mean shift ${mean.toFixed(3)}`);
 }

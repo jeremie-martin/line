@@ -5,13 +5,18 @@
  * whole impact-calibration battery on that dataset:
  *
  *   0. authored-ask histogram (sanity vs the catalog distribution)
- *   A. asked → achieved response per ask band (old norm + cArc/7.85) + miss rate
- *   B. meaning-shift audit: V* re-derived on THIS corpus; shift at 7.29/7.85/11.3
+ *   A. asked → achieved response per ask band (old norm + cArc/V_NEW) + miss rate
+ *   B. meaning-shift audit: V* re-derived on THIS corpus; shift at the old anchor
+ *      (7.29), the shipped anchor (V_NEW = REDIRARC.VERY_STRONG), 7.85 and 11.3
  *   C. ceiling law: in-window turn (cArc/speedIn) distribution + violations > 1.0 rad
  *   D. redirArc reversal pathology census (net turn > 2.5 rad) — the old metric's
  *      failure mode frequency on canonical content
  *   E. per-seed envelope stability
  *   F. visible-divergence rate |newNorm − oldNorm| > 0.1
+ *
+ * "old norm" throughout = clamp(redirArc / OLD_VSTRONG) with OLD_VSTRONG frozen at the
+ * PRE-promotion 7.29 — deliberately not the live REDIRARC.VERY_STRONG, so the drift is
+ * measured against what shipped before the cArc promotion rather than against itself.
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_impact_benchmark_validation.ts \
  *     [--seeds=0,1,2] [--budget=750000] [--manifest=benchmark/v2/compat/source-manifest.json]
@@ -23,15 +28,22 @@ import { resolve } from "node:path";
 import * as SS from "./impact_support.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { loadSourceManifest, resolveSources, loadSourceSpec } from "./benchmark_v2/model.ts";
-import { normImpact } from "./types.ts";
+import { REDIRARC } from "./types.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string, dflt: string) => argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? dflt;
 const SEEDS = arg("seeds", "0,1,2").split(",").map(Number);
 const BUDGET = Number(arg("budget", "750000"));
 const MANIFEST = arg("manifest", "benchmark/v2/compat/source-manifest.json");
-const V_NEW = 7.85; // proposed VSTRONG_CARC (docs/impact_definition.md Calibration)
+const V_NEW = REDIRARC.VERY_STRONG; // the SHIPPED cArc anchor (docs/impact_definition.md Calibration)
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+
+/** Pre-promotion `REDIRARC.VERY_STRONG` — the baseline this validation measures drift AGAINST.
+ *  Frozen on purpose: it must NOT follow the live anchor, or the meaning-shift audit compares
+ *  the new metric against a baseline that already absorbed the new anchor (self-referential V*). */
+const OLD_VSTRONG = 7.29;
+/** The pre-promotion `normImpact`: SOFT was 0 before and after, so the divide is exact. */
+const oldNorm = (px: number) => clamp01(px / OLD_VSTRONG);
 
 const sources = resolveSources(loadSourceManifest(MANIFEST));
 console.log(`${sources.length} canonical sources · seeds [${SEEDS.join(",")}] · budget ${BUDGET}`);
@@ -99,20 +111,21 @@ for (let lo = 0; lo < 1; lo += 0.125) {
   const rs = authored.filter((l) => l.ask! >= lo && l.ask! < lo + 0.125 + (lo >= 0.875 ? 1e-9 : 0));
   const misses = missByAsk.filter((m) => m.ask >= lo && m.ask < lo + 0.125 + (lo >= 0.875 ? 1e-9 : 0)).length;
   if (!rs.length && !misses) continue;
-  const mOld = rs.length ? SS.pct(rs.map((r) => normImpact(r.redirArc)), 0.5) : NaN;
+  const mOld = rs.length ? SS.pct(rs.map((r) => oldNorm(r.redirArc)), 0.5) : NaN;
   const mNew = rs.length ? SS.pct(rs.map((r) => clamp01(r.cArc / V_NEW)), 0.5) : NaN;
   console.log(`  [${lo.toFixed(3)},${(lo + 0.125).toFixed(3)}) ${String(rs.length).padStart(5)}  ${(100 * misses / Math.max(1, rs.length + misses)).toFixed(0).padStart(4)}%   ${mOld.toFixed(2).padStart(7)}  ${mNew.toFixed(2).padStart(8)}`);
 }
 
 // ── B: meaning shift ──────────────────────────────────────────────────────────
 const shiftAt = (V: number) => {
-  const ds = lands.map((r) => Math.abs(clamp01(r.cArc / V) - normImpact(r.redirArc)));
+  const ds = lands.map((r) => Math.abs(clamp01(r.cArc / V) - oldNorm(r.redirArc)));
   return { mean: SS.mean(ds), p90: SS.pct(ds, 0.9) };
 };
-let bestV = 7.29, bestMean = Infinity;
+let bestV = OLD_VSTRONG, bestMean = Infinity;
 for (let V = 6; V <= 13; V += 0.05) { const { mean } = shiftAt(V); if (mean < bestMean) { bestMean = mean; bestV = V; } }
 console.log(`\n=== B: meaning shift vs anchor V (this corpus) ===`);
-for (const V of [7.29, 7.85, bestV, 11.3]) {
+// old anchor · shipped anchor · 7.85 (historical calibration candidate) · this corpus' V* · atlas top
+for (const V of [...new Set([OLD_VSTRONG, V_NEW, 7.85, bestV, 11.3])].sort((a, b) => a - b)) {
   const { mean, p90 } = shiftAt(V);
   console.log(`  V=${V.toFixed(2).padStart(5)}  mean ${mean.toFixed(3)}  p90 ${p90.toFixed(3)}${Math.abs(V - bestV) < 0.03 ? "   ← V* on this corpus" : ""}`);
 }
@@ -128,7 +141,7 @@ for (const r of over.slice(0, 5)) console.log(`    ${r.src} s${r.seed} f${r.fram
 // ── D: redirArc reversal pathology census ─────────────────────────────────────
 const reversals = withSpeed.filter((l) => l.speedIn > 1e-6 && l.redirArc / l.speedIn > 2.5);
 console.log(`\n=== D: redirArc net-turn > 2.5 rad (reversal pathology): ${reversals.length}/${withSpeed.length} ===`);
-for (const r of reversals.slice(0, 5)) console.log(`    ${r.src} s${r.seed} f${r.frame}: netturn ${(r.redirArc / r.speedIn).toFixed(2)} rad — oldnorm ${normImpact(r.redirArc).toFixed(2)} vs newnorm ${clamp01(r.cArc / V_NEW).toFixed(2)}`);
+for (const r of reversals.slice(0, 5)) console.log(`    ${r.src} s${r.seed} f${r.frame}: netturn ${(r.redirArc / r.speedIn).toFixed(2)} rad — oldnorm ${oldNorm(r.redirArc).toFixed(2)} vs newnorm ${clamp01(r.cArc / V_NEW).toFixed(2)}`);
 
 // ── E: per-seed envelope ──────────────────────────────────────────────────────
 console.log(`\n=== E: cArc envelope by seed ===`);
@@ -138,5 +151,5 @@ for (const seed of SEEDS) {
 }
 
 // ── F: visible-divergence rate ────────────────────────────────────────────────
-const div = lands.filter((r) => Math.abs(clamp01(r.cArc / V_NEW) - normImpact(r.redirArc)) > 0.1);
+const div = lands.filter((r) => Math.abs(clamp01(r.cArc / V_NEW) - oldNorm(r.redirArc)) > 0.1);
 console.log(`\n=== F: landings where |newNorm − oldNorm| > 0.1: ${div.length}/${lands.length} (${(100 * div.length / lands.length).toFixed(1)}%) ===`);

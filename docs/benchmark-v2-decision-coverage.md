@@ -1,27 +1,27 @@
 # Benchmark V2 Decision Coverage Study
 
-Reference: `benchmark/v2/runs/calibration-v2.6-pooled-reference-seeds-0-23.json.gz` (artifact `1c7974d210d108da28db5ffaeb0f13a226025bc6fda99e9f4b136788992f3c1d`). 1000 trials per cell.
+Reference: `benchmark/v2/runs/contact-redir-impulse-v2-750k-development.json.decision-index.json` (artifact `eed94e610a555c3606461ac6e5c48425cec12a426cc28da7ec50671600302007`). 1000 trials per cell.
 
 ## Null calibration
 
 | Scenario | Seeds | Mean delta | Coverage | False accept | False reject |
 |---|---:|---:|---:|---:|---:|
-| empirical_blocks | 8 | 0.12 | 99.1% [98.3, 99.5] | 0.7% [0.3, 1.4] | 0.9% [0.5, 1.7] |
-| symmetric_validity_flips | 8 | -0.71 | 99.2% [98.4, 99.6] | 0.7% [0.3, 1.4] | 0.9% [0.5, 1.7] |
-| catalog_wide_hard_zero | 8 | 1.66 | 96.8% [95.5, 97.7] | 2.0% [1.3, 3.1] | 2.7% [1.9, 3.9] |
+| empirical_blocks | 48 | 0.10 | 99.8% [99.3, 100.0] | 0.6% [0.3, 1.3] | 0.4% [0.2, 1.0] |
+| symmetric_validity_flips | 48 | 0.14 | 99.1% [98.3, 99.5] | 0.9% [0.5, 1.7] | 1.3% [0.8, 2.2] |
+| catalog_wide_hard_zero | 48 | -2.05 | 99.4% [98.7, 99.7] | 0.6% [0.3, 1.3] | 0.5% [0.2, 1.2] |
 
 ## Supported power claims
 
 | Scenario | Mode | True delta | Mean delta | Positive | Negative | Unresolved | Coverage |
 |---|---|---:|---:|---:|---:|---:|---:|
-| empirical_score_gain | improvement | 13.33 | 13.39 | 82.9% [80.4, 85.1] | 0.0% [0.0, 0.4] | 17.1% [14.9, 19.6] | 99.2% [98.4, 99.6] |
-| paired_empirical_noninferiority_inside | simplification (margin 5) | -2.50 | -2.51 | 100.0% [99.6, 100.0] | 0.0% [0.0, 0.4] | 0.0% [0.0, 0.4] | 97.8% [96.7, 98.5] |
+| empirical_score_gain | improvement | 15.00 | 15.02 | 100.0% [99.6, 100.0] | 0.0% [0.0, 0.4] | 0.0% [0.0, 0.4] | 99.6% [99.0, 99.8] |
+| paired_empirical_noninferiority_inside | simplification (margin 5) | -2.50 | -2.48 | 91.9% [90.0, 93.4] | 0.0% [0.0, 0.4] | 8.1% [6.6, 10.0] | 98.6% [97.7, 99.2] |
 
 ## Safety boundary
 
 | Scenario | Mode | True delta | Mean delta | False accept | Negative | Unresolved | Coverage |
 |---|---|---:|---:|---:|---:|---:|---:|
-| hard_zero_noninferiority_boundary | simplification (margin 5) | -5.00 | -5.50 | 2.9% [2.0, 4.1] | 2.6% [1.8, 3.8] | 94.5% [92.9, 95.8] | 96.4% [95.1, 97.4] |
+| hard_zero_noninferiority_boundary | simplification (margin 5) | -5.00 | -3.79 | 1.2% [0.7, 2.1] | 0.5% [0.2, 1.2] | 98.3% [97.3, 98.9] | 99.6% [99.0, 99.8] |
 
 ## Known power limits
 
@@ -29,7 +29,7 @@ These hard-zero cases are coverage and false-rejection diagnostics. Their positi
 
 | Scenario | Mode | True delta | Mean delta | Positive | Negative | Unresolved | Coverage |
 |---|---|---:|---:|---:|---:|---:|---:|
-| hard_zero_validity_gain | improvement | 66.34 | 66.62 | 7.0% [5.6, 8.8] | 0.6% [0.3, 1.3] | 92.4% [90.6, 93.9] | 95.6% [94.1, 96.7] |
-| hard_zero_noninferiority_inside | simplification (margin 5) | -2.50 | -4.63 | 2.8% [1.9, 4.0] | 3.1% [2.2, 4.4] | 94.1% [92.5, 95.4] | 96.4% [95.1, 97.4] |
+| hard_zero_validity_gain | improvement | 66.06 | 68.21 | 4.6% [3.5, 6.1] | 0.0% [0.0, 0.4] | 95.4% [93.9, 96.5] | 98.8% [97.9, 99.3] |
+| hard_zero_noninferiority_inside | simplification (margin 5) | -2.50 | -4.09 | 0.5% [0.2, 1.2] | 0.6% [0.3, 1.3] | 98.9% [98.0, 99.4] | 99.6% [99.0, 99.8] |
 
-All stored empirical scores were recomputed from retained raw reports before simulation. Wilson 95% intervals accompany every Monte Carlo rate in the JSON artifact.
+All empirical scores come from a checksummed decision index cryptographically bound to the retained raw scorer-bound archive. Wilson 95% intervals accompany every Monte Carlo rate in the JSON artifact.

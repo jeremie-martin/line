@@ -56,7 +56,7 @@ export function requireCurrentDecisionCalibration(
     coverage.suiteFingerprint !== suiteFingerprint ||
     coverage.decisionInferenceFingerprint !== DECISION_INFERENCE_PROTOCOL_FINGERPRINT
   ) throw new Error(`zero-inflated coverage evidence is stale for the current decision rule`);
-  assertDecisionCoverageAdequate(coverage);
+  assertDecisionCoverageAdequate(coverage, calibratedCoverageSeedCount(coverage));
 
   requireArtifact(
     coverage.reference,
@@ -431,8 +431,14 @@ export function decisionCalibrationFingerprint(calibration: any): string {
   return sha256(Buffer.from(JSON.stringify(stable)));
 }
 
-export function assertDecisionCoverageAdequate(coverage: any): void {
+export function assertDecisionCoverageAdequate(
+  coverage: any,
+  seedsPerBudget: number = benchmarkDecisionCalibrationPolicy.seedsPerBudget,
+): void {
   const policy = benchmarkDecisionCalibrationPolicy;
+  if (!Number.isSafeInteger(seedsPerBudget) || seedsPerBudget < 2) {
+    throw new Error(`decision coverage seed depth is malformed`);
+  }
   if (!Number.isSafeInteger(coverage.trials) || coverage.trials < policy.minimumTrialsPerCell) {
     throw new Error(`decision coverage has fewer than ${policy.minimumTrialsPerCell} trials per cell`);
   }
@@ -442,9 +448,9 @@ export function assertDecisionCoverageAdequate(coverage: any): void {
   const diagnosticRows = coverage.diagnosticResults ?? [];
   for (const scenario of policy.requiredNullScenarios) {
     const row: any = nullRows.find((entry: any) =>
-      entry.scenario === scenario && entry.seedsPerBudget === policy.seedsPerBudget
+      entry.scenario === scenario && entry.seedsPerBudget === seedsPerBudget
     );
-    requireCoverageRow(row, scenario, "improvement", null, coverage.trials);
+    requireCoverageRow(row, scenario, "improvement", null, coverage.trials, seedsPerBudget);
     const falseAccept = validatedRate(row.falseAccept, row.trials, `${scenario} false accept`);
     const falseReject = validatedRate(row.falseReject, row.trials, `${scenario} false reject`);
     if (falseAccept.count !== row.positiveOutcome.count || falseReject.count !== row.negativeOutcome.count) {
@@ -455,7 +461,7 @@ export function assertDecisionCoverageAdequate(coverage: any): void {
   }
   for (const scenario of policy.requiredPoweredScenarios) {
     const row: any = poweredRows.find((entry: any) =>
-      entry.scenario === scenario && entry.seedsPerBudget === policy.seedsPerBudget
+      entry.scenario === scenario && entry.seedsPerBudget === seedsPerBudget
     );
     const simplification = scenario === "paired_empirical_noninferiority_inside";
     requireCoverageRow(
@@ -464,6 +470,7 @@ export function assertDecisionCoverageAdequate(coverage: any): void {
       simplification ? "simplification" : "improvement",
       simplification ? policy.simplificationStudyMargin : null,
       coverage.trials,
+      seedsPerBudget,
     );
     const lower = validatedRate(row.positiveOutcome, row.trials, `${scenario} positive outcome`).wilson95[0];
     if (lower < policy.minimumSupportedPowerWilsonLower) {
@@ -472,9 +479,16 @@ export function assertDecisionCoverageAdequate(coverage: any): void {
   }
   for (const scenario of policy.requiredSafetyScenarios) {
     const row: any = safetyRows.find((entry: any) =>
-      entry.scenario === scenario && entry.seedsPerBudget === policy.seedsPerBudget
+      entry.scenario === scenario && entry.seedsPerBudget === seedsPerBudget
     );
-    requireCoverageRow(row, scenario, "simplification", policy.simplificationStudyMargin, coverage.trials);
+    requireCoverageRow(
+      row,
+      scenario,
+      "simplification",
+      policy.simplificationStudyMargin,
+      coverage.trials,
+      seedsPerBudget,
+    );
     requireUpperBound(
       validatedRate(row.positiveOutcome, row.trials, `${scenario} positive outcome`),
       policy.maximumFalseDecisionWilsonUpper,
@@ -483,7 +497,7 @@ export function assertDecisionCoverageAdequate(coverage: any): void {
   }
   for (const scenario of policy.requiredDiagnosticScenarios) {
     const row: any = diagnosticRows.find((entry: any) =>
-      entry.scenario === scenario && entry.seedsPerBudget === policy.seedsPerBudget
+      entry.scenario === scenario && entry.seedsPerBudget === seedsPerBudget
     );
     const simplification = scenario === "hard_zero_noninferiority_inside";
     requireCoverageRow(
@@ -492,6 +506,7 @@ export function assertDecisionCoverageAdequate(coverage: any): void {
       simplification ? "simplification" : "improvement",
       simplification ? policy.simplificationStudyMargin : null,
       coverage.trials,
+      seedsPerBudget,
     );
     requireUpperBound(
       validatedRate(row.negativeOutcome, row.trials, `${scenario} negative outcome`),
@@ -507,10 +522,11 @@ function requireCoverageRow(
   mode: "improvement" | "simplification",
   margin: number | null,
   coverageTrials: number,
+  seedsPerBudget: number,
 ): void {
   const policy = benchmarkDecisionCalibrationPolicy;
   if (
-    row === undefined || row.seedsPerBudget !== policy.seedsPerBudget || row.mode !== mode || row.margin !== margin ||
+    row === undefined || row.seedsPerBudget !== seedsPerBudget || row.mode !== mode || row.margin !== margin ||
     row.trials !== coverageTrials || row.trials < policy.minimumTrialsPerCell
   ) throw new Error(`${scenario} decision-coverage cell is missing or incomplete`);
   const central = validatedRate(row.centralCoverage, row.trials, `${scenario} central coverage`);
@@ -524,6 +540,18 @@ function requireCoverageRow(
   if (lower < policy.minimumCoverageWilsonLower) {
     throw new Error(`${scenario} coverage lower bound ${lower} is below ${policy.minimumCoverageWilsonLower}`);
   }
+}
+
+function calibratedCoverageSeedCount(coverage: any): number {
+  if (coverage.referenceKind !== "scorer-bound-decision-index") {
+    return benchmarkDecisionCalibrationPolicy.seedsPerBudget;
+  }
+  const values = coverage.scope?.calibratedSeedsPerBudget;
+  if (
+    !Array.isArray(values) || values.length !== 1 ||
+    values[0] !== coverage.scope?.availableSeedsPerBudget
+  ) throw new Error(`scorer-bound coverage must calibrate the complete retained seed depth`);
+  return values[0];
 }
 
 function requireUpperBound(value: ValidatedRate, limit: number, label: string): void {

@@ -99,21 +99,21 @@ describe("Benchmark V2 numeric fixtures (external oracles)", () => {
       ...(coverage.powerResults ?? []),
       ...(coverage.safetyResults ?? []),
       ...(coverage.diagnosticResults ?? []),
-    ].filter((row: any) => row.seedsPerBudget === 8);
+    ].filter((row: any) => row.seedsPerBudget === 48);
     const byScenario = new Map(rows.map((row: any) => [row.scenario, row]));
     // R: binom.wilson / prop.test-derived 95% intervals, rounded at 1e-4.
-    expect(byScenario.get("empirical_blocks").falseAccept.count).toBe(7);
-    expect(byScenario.get("empirical_blocks").falseAccept.wilson95).toEqual([0.0034, 0.0144]);
-    expect(byScenario.get("empirical_blocks").centralCoverage.count).toBe(991);
-    expect(byScenario.get("empirical_blocks").centralCoverage.wilson95).toEqual([0.983, 0.9953]);
-    expect(byScenario.get("symmetric_validity_flips").falseAccept.count).toBe(7);
-    expect(byScenario.get("symmetric_validity_flips").falseAccept.wilson95).toEqual([0.0034, 0.0144]);
-    expect(byScenario.get("empirical_score_gain").positiveOutcome.count).toBe(829);
-    expect(byScenario.get("empirical_score_gain").positiveOutcome.wilson95).toEqual([0.8044, 0.8511]);
+    expect(byScenario.get("empirical_blocks").falseAccept.count).toBe(6);
+    expect(byScenario.get("empirical_blocks").falseAccept.wilson95).toEqual([0.0028, 0.013]);
+    expect(byScenario.get("empirical_blocks").centralCoverage.count).toBe(998);
+    expect(byScenario.get("empirical_blocks").centralCoverage.wilson95).toEqual([0.9927, 0.9995]);
+    expect(byScenario.get("symmetric_validity_flips").falseAccept.count).toBe(9);
+    expect(byScenario.get("symmetric_validity_flips").falseAccept.wilson95).toEqual([0.0047, 0.017]);
+    expect(byScenario.get("empirical_score_gain").positiveOutcome.count).toBe(1000);
+    expect(byScenario.get("empirical_score_gain").positiveOutcome.wilson95).toEqual([0.9962, 1]);
     expect(byScenario.get("empirical_score_gain").negativeOutcome.count).toBe(0);
     expect(byScenario.get("empirical_score_gain").negativeOutcome.wilson95).toEqual([0, 0.0038]);
-    expect(byScenario.get("paired_empirical_noninferiority_inside").positiveOutcome.count).toBe(1000);
-    expect(byScenario.get("paired_empirical_noninferiority_inside").positiveOutcome.wilson95).toEqual([0.9962, 1]);
+    expect(byScenario.get("paired_empirical_noninferiority_inside").positiveOutcome.count).toBe(919);
+    expect(byScenario.get("paired_empirical_noninferiority_inside").positiveOutcome.wilson95).toEqual([0.9004, 0.9344]);
   });
 
   test("the score protocol is explicit while implementation bytes remain auditable", () => {

@@ -46,7 +46,10 @@ if (
 ) {
   throw new Error(`decision coverage study is stale for the current suite`);
 }
-assertDecisionCoverageAdequate(coverageStudy);
+assertDecisionCoverageAdequate(
+  coverageStudy,
+  scorerBoundCoverageSeedCount(coverageStudy),
+);
 const coverageReferenceBytes = readFileSync(coverageStudy.reference);
 if (createHash("sha256").update(coverageReferenceBytes).digest("hex") !== coverageStudy.referenceArtifactSha256) {
   throw new Error(`decision coverage reference is missing or stale`);
@@ -194,6 +197,16 @@ function loadScorerBoundReference(coverage: any, bytes: Buffer): ScorerBoundRefe
     rows: archive.runs,
     suite: suiteForCampaignScope(suite, coverage.scope.budgets, coverage.scope.availableSeedsPerBudget),
   };
+}
+
+function scorerBoundCoverageSeedCount(coverage: any): number {
+  const values = coverage.scope?.calibratedSeedsPerBudget;
+  if (
+    coverage.referenceKind !== "scorer-bound-decision-index" ||
+    !Array.isArray(values) || values.length !== 1 ||
+    values[0] !== coverage.scope?.availableSeedsPerBudget
+  ) throw new Error(`decision calibration requires full-depth scorer-bound coverage`);
+  return values[0];
 }
 
 function decisionRun(row: any): DecisionRun {
@@ -401,6 +414,8 @@ function parentIds(): string[] {
 }
 
 function renderMarkdown(report: any): string {
+  const calibratedCanonicalSeeds =
+    report.scorerBoundReference?.seedsPerBudget ?? suite.profiles.canonical.seeds_per_budget;
   const lines = [
     "# Benchmark V2 Decision Calibration",
     "",
@@ -442,7 +457,7 @@ function renderMarkdown(report: any): string {
     "| Scenario | Seeds / budget | Coverage target | False accept | False reject |",
     "|---|---:|---:|---:|---:|",
     ...report.coverageStudy.results
-      .filter((entry: any) => entry.seedsPerBudget === suite.profiles.canonical.seeds_per_budget)
+      .filter((entry: any) => entry.seedsPerBudget === calibratedCanonicalSeeds)
       .map((entry: any) =>
         `| ${entry.scenario} | ${entry.seedsPerBudget} | ${formatRate(entry.centralCoverage)} | ` +
         `${formatRate(entry.falseAccept)} | ${formatRate(entry.falseReject)} |`
@@ -451,7 +466,7 @@ function renderMarkdown(report: any): string {
     "| Supported alternative | Mode | True delta | Positive | Negative | Unresolved | Coverage |",
     "|---|---|---:|---:|---:|---:|---:|",
     ...report.coverageStudy.powerResults
-      .filter((entry: any) => entry.seedsPerBudget === suite.profiles.canonical.seeds_per_budget)
+      .filter((entry: any) => entry.seedsPerBudget === calibratedCanonicalSeeds)
       .map((entry: any) =>
         `| ${entry.scenario} | ${entry.mode}${entry.margin === null ? "" : ` (margin ${entry.margin})`} | ` +
         `${entry.trueDelta.toFixed(2)} | ${formatRate(entry.positiveOutcome)} | ${formatRate(entry.negativeOutcome)} | ` +
@@ -461,7 +476,7 @@ function renderMarkdown(report: any): string {
     "| Safety boundary | Mode | True delta | False accept | Negative | Unresolved | Coverage |",
     "|---|---|---:|---:|---:|---:|---:|",
     ...report.coverageStudy.safetyResults
-      .filter((entry: any) => entry.seedsPerBudget === suite.profiles.canonical.seeds_per_budget)
+      .filter((entry: any) => entry.seedsPerBudget === calibratedCanonicalSeeds)
       .map((entry: any) =>
         `| ${entry.scenario} | ${entry.mode} (margin ${entry.margin}) | ${entry.trueDelta.toFixed(2)} | ` +
         `${formatRate(entry.positiveOutcome)} | ${formatRate(entry.negativeOutcome)} | ` +
@@ -473,7 +488,7 @@ function renderMarkdown(report: any): string {
     "| Diagnostic | Mode | True delta | Positive | Negative | Unresolved | Coverage |",
     "|---|---|---:|---:|---:|---:|---:|",
     ...report.coverageStudy.diagnosticResults
-      .filter((entry: any) => entry.seedsPerBudget === suite.profiles.canonical.seeds_per_budget)
+      .filter((entry: any) => entry.seedsPerBudget === calibratedCanonicalSeeds)
       .map((entry: any) =>
         `| ${entry.scenario} | ${entry.mode}${entry.margin === null ? "" : ` (margin ${entry.margin})`} | ` +
         `${entry.trueDelta.toFixed(2)} | ${formatRate(entry.positiveOutcome)} | ${formatRate(entry.negativeOutcome)} | ` +

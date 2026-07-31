@@ -4,11 +4,14 @@ Target: accepted Benchmark V2 development headline above 650, then continue
 pushing the same broad compiler laws as far as the evidence supports.
 
 Current active campaign baseline:
-`postcompletion-aim-center-reuse-750k`, headline **587.0568** at 750k/N=48,
-2112/2112 valid. It is a zero-compile projection of the accepted
-`postcompletion-aim-center-reuse` archive. The frozen 250k/500k/750k baseline
-remains intact at 571.0840, but 250k and 500k are temporarily deferred from
-the official optimization headline.
+`contact-redir-impulse-v2-750k`, headline **593.5031** at 750k/N=48,
+2111/2112 valid. Suite `7bd878d8aaea08a9`; scoring protocol
+`c71466608589ae757`; Golden evaluator `07cf88383150`. This is the fresh
+scorer-bound bootstrap for accumulated contacted-frame redirection impulse.
+There is no comparison or delta against the prior net-redirection-arc ruler.
+The old 250k/500k evidence remains intact and deferred; it was not recomputed.
+See `docs/benchmark-v2-current-baseline-analysis.md` for current-ruler
+distribution and behavior analysis.
 
 All campaign acceptance runs are now 750k/N=48 only (2,112 candidate
 compiles). Compiler mechanisms must still scale continuously through 150k and
@@ -30,10 +33,15 @@ compiles). Compiler mechanisms must still scale continuously through 150k and
 | `air-matched-breadth-law` | 572.67 | N=8 +4.39 SE 1.46, one-sided lower +0.39; all-base air matching plus linear aim refinement |
 | **`postcompletion-aim-center-reuse`** | **571.08** | **N=48 +0.0842 SE 0.0217, 95% CI [+0.0271,+0.1413]; exact center-row reuse after first completion** |
 
-### What 650 now requires
+### Historical pre-scorer-bound analysis: what 650 required
+
+Everything in this subsection predates scoring protocol `c7146660` and uses
+the old net-redirection-arc ruler. It is retained as campaign history only:
+its headlines, residuals, counterfactuals, and conclusions must not be
+compared with or relabeled as evidence for the active baseline.
 
 `study_headline_counterfactual.ts` now accepts `--budgets=750000`, so it can
-replay the active projected scope rather than silently pricing the frozen
+replay the then-active projected scope rather than silently pricing the frozen
 three-budget ladder. On the accepted N=48 archive it reproduces **587.0568**
 exactly:
 

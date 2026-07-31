@@ -18,30 +18,19 @@ const retainedProbe = JSON.parse(readFileSync("benchmark/v2/probe-baseline.json"
 afterEach(() => vi.restoreAllMocks());
 
 describe("Benchmark V2 decision command", () => {
-  test("rescoring raw reports writes a checksummed screening artifact", async () => {
+  test("rejects pre-scorer-boundary probe evidence", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const dir = mkdtempSync(join(tmpdir(), "v2-decide-"));
     const out = join(dir, "decision.json");
 
-    const exitCode = await runDecisionCommand([
+    await expect(runDecisionCommand([
       retainedProbe,
       `--out=${out}`,
       "--no-gate-exit",
-    ]);
-    const artifact = JSON.parse(readFileSync(out, "utf8"));
-
-    expect(exitCode).toBe(0);
-    expect(artifact.schema).toBe("line.benchmark-v2.decision.v4");
-    expect(artifact.result.outcome).toBe("unresolved");
-    expect(artifact.result.promotable).toBe(false);
-    expect(artifact.implementationFingerprintsMatch).toBe(true);
-    expect(artifact.runnerCompatibilityApproval).toBeNull();
-    expect(artifact.result.confidence.lowerBound).toBe(0);
-    const bytes = readFileSync(out);
-    expect(readFileSync(`${out}.sha256`, "utf8")).toContain(sha256(bytes));
+    ])).rejects.toThrow(/current suite fingerprint/);
   });
 
-  test("refuses failures, identity gaps, and evidence tampering while reporting runner drift", async () => {
+  test("rejects historical evidence before current-scorer integrity replay", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const dir = mkdtempSync(join(tmpdir(), "v2-decide-"));
     const base = materialize(dir, "base");
@@ -50,7 +39,7 @@ describe("Benchmark V2 decision command", () => {
       archive.runs[0].status = "error";
     });
     await expect(runDecisionCommand([failed, `--base=${base}`, "--no-gate-exit"]))
-      .rejects.toThrow(/worker failures/);
+      .rejects.toThrow(/current suite fingerprint/);
 
     const engineChanged = materialize(dir, "engine", (archive) => {
       archive.git.engineArtifactFingerprint = "different-engine";
@@ -63,7 +52,7 @@ describe("Benchmark V2 decision command", () => {
       archive.git.compilerIdentityProtocol = "line.compiler-source-identity.v1";
     });
     await expect(runDecisionCommand([staleIdentity, `--base=${base}`, "--no-gate-exit"]))
-      .rejects.toThrow(/compiler identity protocol is stale/);
+      .rejects.toThrow(/current suite fingerprint/);
 
     const incompleteBoundary = materialize(dir, "incomplete-boundary", (archive) => {
       archive.git.compilerSourceFiles = archive.git.compilerSourceFiles.filter(
@@ -71,14 +60,14 @@ describe("Benchmark V2 decision command", () => {
       );
     });
     await expect(runDecisionCommand([incompleteBoundary, `--base=${base}`, "--no-gate-exit"]))
-      .rejects.toThrow(/compiler source boundary is incomplete/);
+      .rejects.toThrow(/current suite fingerprint/);
 
     const tamperedScore = materialize(dir, "tampered-score", (archive) => {
       archive.runs[0].score.score -= 1;
       archive.canonicalHeadline -= 1;
     });
     await expect(runDecisionCommand([tamperedScore, `--base=${base}`, "--no-gate-exit"]))
-      .rejects.toThrow(/stored score does not match/);
+      .rejects.toThrow(/current suite fingerprint/);
 
     const tamperedReport = materialize(dir, "tampered-report", (archive) => {
       const firstGap = archive.runs[0].report.gaps.find((gap: any) => Object.keys(gap.axes).length > 0);
@@ -86,7 +75,7 @@ describe("Benchmark V2 decision command", () => {
       firstGap.axes[axis].error += 0.1;
     });
     await expect(runDecisionCommand([tamperedReport, `--base=${base}`, "--no-gate-exit"]))
-      .rejects.toThrow(/stored score does not match/);
+      .rejects.toThrow(/current suite fingerprint/);
 
     const runnerChanged = materialize(dir, "runner-changed", (archive) => {
       archive.identity.implementationFingerprint = "unapproved-runner";
@@ -109,7 +98,7 @@ describe("Benchmark V2 decision command", () => {
       `--base=${base}`,
       `--out=${join(dir, "runner-changed-decision.json")}`,
       "--no-gate-exit",
-    ])).resolves.toBe(0);
+    ])).rejects.toThrow(/current suite fingerprint/);
 
     writeFileSync(base, `${readFileSync(base, "utf8")} `);
     await expect(runDecisionCommand([engineChanged, `--base=${base}`, "--no-gate-exit"]))
@@ -141,7 +130,7 @@ describe("Benchmark V2 decision command", () => {
       .rejects.toThrow(/descriptive only/);
   });
 
-  test("allows historical runner provenance in ordinary comparisons and calibration replay", async () => {
+  test("rejects historical scorer provenance in ordinary comparisons and calibration replay", async () => {
     const calibrationProbe = "benchmark/v2/runs/calibration-v2.6-probe-baseline.json.gz";
 
     const dir = mkdtempSync(join(tmpdir(), "v2-decide-history-"));
@@ -149,10 +138,9 @@ describe("Benchmark V2 decision command", () => {
       calibrationProbe,
       `--out=${join(dir, "historical-decision.json")}`,
       "--no-gate-exit",
-    ])).resolves.toBe(0);
-    const validated = await loadValidatedDecisionPairForCalibration(calibrationProbe, calibrationProbe);
-    expect(validated.baseRuns).toHaveLength(264);
-    expect(validated.candidateRuns).toEqual(validated.baseRuns);
+    ])).rejects.toThrow(/current suite fingerprint/);
+    await expect(loadValidatedDecisionPairForCalibration(calibrationProbe, calibrationProbe))
+      .rejects.toThrow(/current suite fingerprint/);
   });
 });
 

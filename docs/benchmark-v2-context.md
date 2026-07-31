@@ -137,12 +137,14 @@ weight. The V2 score scale is independent of V1 and its historical headline.
 
 ## Compute profiles
 
-Active comparisons use the 44 development cases and canonical budgets. Actual
-seeds are disjoint across budgets.
+Active campaign comparisons use the 44 development cases at 750k/N=48. The
+historical full-ladder profile remains defined for explicit restoration and
+study work. Actual seeds are disjoint across budgets.
 
 | Profile | Budgets | Seeds per budget | Development compiles |
 |---|---|---:|---:|
-| canonical | 250k / 500k / 750k | operator-selected N | 132 × N |
+| active campaign | 750k | fixed 48 | 2,112 |
+| historical canonical ladder | 250k / 500k / 750k | operator-selected N | 132 × N |
 
 The accepted baseline has one immutable, prefix-addressable canonical seed
 ladder. Baseline cache shards retain its completed rows. A comparison at N
@@ -164,6 +166,9 @@ the typed case contract, materialized variant catalog, target resolution and key
 interpolation, measurement, scoring, weights, budgets, transform, and seed policy.
 The scoring boundary explicitly includes the shared shifted-geometric-mean helper in
 `scripts/v0/score.ts`; changing headline aggregation therefore changes the suite identity.
+The current scoring protocol also explicitly binds impact to accumulated
+contacted-frame redirection impulse rather than net redirection arc. Evidence
+from those two rulers cannot be compared or relabeled across the boundary.
 
 Each archive also records an execution-policy fingerprint covering suite identity,
 explicit execution protocol, engine, compiler entry point, profile, exact sources,

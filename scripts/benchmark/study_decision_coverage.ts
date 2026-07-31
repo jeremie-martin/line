@@ -30,8 +30,8 @@ const outPath = resolve(argument("out") ?? "benchmark/v2/studies/decision-covera
 const markdownPath = resolve(argument("markdown") ?? "docs/benchmark-v2-decision-coverage.md");
 const trials = integerArgument("trials", 1_000, 100);
 const seedCounts = (argument("seed-counts") ?? "8").split(",").map(Number);
-if (seedCounts.some((value) => !Number.isSafeInteger(value) || value < 2 || value > 12)) {
-  throw new Error(`--seed-counts must contain integers from 2 through 12`);
+if (seedCounts.some((value) => !Number.isSafeInteger(value) || value < 2 || value > 64)) {
+  throw new Error(`--seed-counts must contain integers from 2 through 64`);
 }
 
 const sourcePath = "benchmark/v2/compat/source-manifest.json";
@@ -127,7 +127,7 @@ const results = [];
 const powerResults = [];
 const safetyResults = [];
 const diagnosticResults = [];
-const pairedNoninferiorityShift = solveEmpiricalShift(calibrationSuite, -2.5);
+const pairedNoninferiorityShift = solvePairedEmpiricalShift(calibrationSuite, -2.5);
 for (const seedsPerBudget of seedCounts) {
   const suite = suiteForSeeds(calibrationSuite, seedsPerBudget);
   for (const scenario of nullScenarios) {
@@ -143,7 +143,9 @@ for (const seedsPerBudget of seedCounts) {
     const mode: DecisionMode = scenario === "empirical_score_gain" ? "improvement" : "simplification";
     const margin = mode === "simplification" ? 5 : undefined;
     const scoreShift = scenario === "empirical_score_gain" ? 15 : pairedNoninferiorityShift;
-    const trueDelta = empiricalShiftTruth(baseSuite, scoreShift);
+    const trueDelta = scenario === "paired_empirical_noninferiority_inside"
+      ? pairedEmpiricalShiftTruth(calibrationSuite, scoreShift)
+      : empiricalShiftTruth(calibrationSuite, scoreShift);
     const result = simulate(
       scenario,
       suite,
@@ -208,6 +210,7 @@ const report = {
     profile: "canonical",
     budgets: calibrationSuite.profiles.canonical.budgets,
     availableSeedsPerBudget: reference.seeds.length,
+    calibratedSeedsPerBudget: seedCounts,
   },
   trials,
   design: {
@@ -310,7 +313,12 @@ function trialRuns(
           const original = referenceByCell.get(cellKey(sourceId, budget, sharedSeed))!;
           baseScore = original;
           candidateScore = original.valid
-            ? { ...original, score: clampScore(original.score + scoreShift!) }
+            ? {
+              ...original,
+              score: clampScore(
+                original.score + scoreShift! + pairedSeedHeterogeneity(sharedSeed),
+              ),
+            }
             : original;
         } else if (scenario === "symmetric_validity_flips") {
           const original = referenceByCell.get(cellKey(sourceId, budget, sharedSeed))!;
@@ -333,12 +341,12 @@ function trialRuns(
   return { base, candidate };
 }
 
-function solveEmpiricalShift(suite: SuiteManifest, targetDelta: number): number {
+function solvePairedEmpiricalShift(suite: SuiteManifest, targetDelta: number): number {
   let low = -25;
-  let high = 0;
+  let high = 10;
   for (let iteration = 0; iteration < 50; iteration++) {
     const middle = (low + high) / 2;
-    if (empiricalShiftTruth(suite, middle) < targetDelta) low = middle;
+    if (pairedEmpiricalShiftTruth(suite, middle) < targetDelta) low = middle;
     else high = middle;
   }
   return (low + high) / 2;
@@ -411,6 +419,29 @@ function binomialProbability(n: number, successes: number, probability: number):
 }
 
 function empiricalShiftTruth(suite: SuiteManifest, shift: number): number {
+  return transformedEmpiricalTruth(suite, () => shift);
+}
+
+function pairedEmpiricalShiftTruth(suite: SuiteManifest, shift: number): number {
+  return transformedEmpiricalTruth(
+    suite,
+    (seed) => shift + pairedSeedHeterogeneity(seed),
+  );
+}
+
+function pairedSeedHeterogeneity(seed: number): number {
+  const index = reference.seeds.indexOf(seed);
+  if (index < 0) throw new Error(`paired empirical seed is outside the retained reference`);
+  // Six balanced repetitions of [-7,-5,-3,-1,+1,+3,+5,+7] provide enough
+  // real seed-block variation to exercise interval coverage at N=48 while
+  // preserving a zero-centered, deterministic alternative.
+  return 2 * (index % 8) - 7;
+}
+
+function transformedEmpiricalTruth(
+  suite: SuiteManifest,
+  shiftForSeed: (seed: number) => number,
+): number {
   const fullSuite = suiteForSeeds(suite, reference.seeds.length);
   const base: DecisionRun[] = [];
   const candidate: DecisionRun[] = [];
@@ -422,7 +453,9 @@ function empiricalShiftTruth(suite: SuiteManifest, shift: number): number {
         base.push({ ...task, score: { ...original } });
         candidate.push({
           ...task,
-          score: original.valid ? { ...original, score: clampScore(original.score + shift) } : { ...original },
+          score: original.valid
+            ? { ...original, score: clampScore(original.score + shiftForSeed(seed)) }
+            : { ...original },
         });
       }
     });

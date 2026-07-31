@@ -50,7 +50,7 @@ describe("Benchmark V2 suite identity", () => {
       .toThrow(/reserved heldout source fingerprint/);
   });
 
-  test("freezes resolved seeds and the approved V10 baseline", () => {
+  test("freezes resolved seeds and preserves the historical V10 baseline across the scorer boundary", () => {
     const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
     const identity = suiteIdentity("benchmark/v2/compat/suite-manifest.json", "benchmark/v2/compat/source-manifest.json", sources);
     const baseline = JSON.parse(readFileSync("benchmark/v2/baseline.json", "utf8")) as {
@@ -79,15 +79,16 @@ describe("Benchmark V2 suite identity", () => {
     expect(probeBaseline).toMatchObject({
       schema: "line.benchmark-v2.probe-baseline-reference.v1",
       status: "screening-baseline",
-      suite_fingerprint: identity.suiteFingerprint,
       execution_protocol: BENCHMARK_EXECUTION_PROTOCOL,
     });
+    expect(probeBaseline.suite_fingerprint).toBe(baseline.suite_fingerprint);
+    expect(probeBaseline.suite_fingerprint).not.toBe(identity.suiteFingerprint);
     expect(createHash("sha256").update(readFileSync(probeBaseline.probe.compressed_archive)).digest("hex"))
       .toBe(probeBaseline.probe.compressed_archive_sha256);
     expect(baseline.schema).toBe("line.benchmark-v2.baseline-reference.v10");
     expect(baseline.status).toBe("canonical-baseline");
     expect(baseline.listening_review_status).toBe("approved");
-    expect(baseline.suite_fingerprint).toBe(identity.suiteFingerprint);
+    expect(baseline.suite_fingerprint).not.toBe(identity.suiteFingerprint);
     expect(baseline.execution_protocol).toBe(BENCHMARK_EXECUTION_PROTOCOL);
     expect(baseline.decision_inference_fingerprint).toMatch(/^[a-f0-9]{64}$/);
     expect(baseline.decision_protocol_fingerprint).toMatch(/^[a-f0-9]{64}$/);

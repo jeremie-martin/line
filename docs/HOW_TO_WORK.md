@@ -23,9 +23,9 @@ npm run benchmark -- rebaseline \
 ```
 
 The active campaign accepts only N=48. There is no N=2/N=4 probe and no
-adaptive depth sequence. Its baseline cache is a checksummed projection of the
-already accepted N=48 archive's 750k rows, so every comparison compiles only
-the 2,112 candidate cells.
+adaptive depth sequence. Its baseline cache is the checksummed exact fresh
+N=48/750k scorer-bound archive, so every comparison compiles only the 2,112
+candidate cells.
 
 The frozen full-ladder machinery is still inspectable with
 `--baseline=benchmark/v2/baseline.json`. It is not the campaign acceptance
@@ -66,9 +66,9 @@ source defaults before a normal cached comparison.
 ## Baselines
 
 `benchmark/v2/campaign-baseline.json` names the active 750k compiler snapshot
-and N=48 cache. The initial cache projects the exact 750k rows from
-`benchmark/v2/baseline.json`; its source cache and archive are verified in full
-before the projection is used.
+and N=48 cache. The current cache is the fresh accumulated-contacted-frame-
+impulse bootstrap archive. It reuses only the historical baseline's literal
+seed schedule; it does not project or compare old-ruler scores.
 
 `rebaseline --from=...` verifies the measured snapshot and current committed
 compiler identity, retains the candidate 750k development evidence, and starts
@@ -77,6 +77,8 @@ nor changes the deferred 250k/500k evidence.
 
 `benchmark/v2/baseline.json` remains the frozen full-ladder reference. Use
 `benchmark baseline` only for an intentional full-suite freeze or restoration.
+Its scores predate the active scorer boundary and must not be reported as
+deltas against the current campaign.
 
 ## Discipline
 

@@ -1,10 +1,10 @@
 # Benchmark V2
 
-Benchmark V2's frozen contract measures the compiler across the 44-case
-development catalog and canonical 250k/500k/750k budget ladder. The active
-compiler-improvement campaign temporarily projects that unchanged suite onto
-750k only at N=48. The authoritative product and scoring contract remains in
-`benchmark-v2-context.md`.
+Benchmark V2's active campaign measures the compiler across the 44-case
+development catalog at 750k/N=48. The historical frozen contract retains the
+250k/500k/750k ladder, but its old-ruler scores are not comparable to the
+active accumulated-contacted-frame-impulse scorer. The authoritative product
+and scoring contract remains in `benchmark-v2-context.md`.
 
 ## Commands
 
@@ -16,6 +16,7 @@ compiler-improvement campaign temporarily projects that unchanged suite onto
 | `benchmark baseline-cache status --seeds=48` | Verify the active campaign cache |
 | `benchmark baseline-cache extend --seeds=N --baseline=benchmark/v2/baseline.json` | Explicitly extend only the frozen full-ladder cache |
 | `benchmark rebaseline --from=FILE --label=LABEL` | Promote one favorable comparison |
+| `benchmark bootstrap --label=NAME --budget=750000 --seeds=48 --jobs=48` | Explicit scorer-bound active-baseline bootstrap; governance use only |
 | `benchmark explain ARCHIVE` | Diagnose an archive |
 
 All public physics comparisons require the optimized WASM engine. They default
@@ -24,11 +25,10 @@ to at most 48 workers and retain resumable checkpoints.
 ## Cached comparisons
 
 The active campaign baseline owns the retained 750k seed schedule through 48
-slots. Its first baseline is a verified projection of the accepted full-ladder
-archive, not a recompile. A campaign comparison:
+slots. The current baseline is the exact fresh scorer-bound archive, not a
+projection from the old ruler. A campaign comparison:
 
-1. verifies the frozen source cache, archive, 750k projection, and literal
-   48-slot schedule;
+1. verifies the frozen source cache, archive, and literal 48-slot schedule;
 2. freezes the current compiler into a checksummed snapshot;
 3. runs only that candidate at N=48;
 4. validates suite, engine, runtime, scope, schedule, archive, and cache
@@ -63,6 +63,8 @@ reference.
 
 The original full-ladder baseline remains at `benchmark/v2/baseline.json` and
 can be inspected explicitly with `--baseline=benchmark/v2/baseline.json`.
+It predates scoring protocol `c7146660` and is historical evidence, not a
+comparison ruler for the active baseline.
 
 The prior qualification monitor remains preserved with the frozen full-ladder
 baseline. Scoped campaign promotion does not refresh it, and it must not be
@@ -81,6 +83,11 @@ not blocked solely by an operational runner-fingerprint change; it still
 requires matching suite, execution protocol, engine artifact, runtime,
 literal schedule, complete row scope, and content checksums. A note in the
 result makes differing runner provenance visible.
+
+The current suite identity explicitly binds impact to accumulated contacted-
+frame redirection impulse. Golden evaluation is independently pinned. A
+scorer change requires a fresh archive and scorer-bound calibration; changing
+the label on old score evidence is invalid.
 
 ## JSON and exit behavior
 

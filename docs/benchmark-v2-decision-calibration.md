@@ -1,20 +1,20 @@
 # Benchmark V2 Decision Calibration
 
-Suite: `d01c8a064a201b08`. Inference rule: `56b577326b380cfd`.
+Suite: `7bd878d8aaea08a9`. Inference rule: `56b577326b380cfd`.
 
 Simulation uses 200 formal-gate trials per scenario. Repeated seed schedules for one fixed catalog: shared budget seed-block SD 12 and parent x seed interaction SD 4. Gain/regression scenarios use one fixed heterogeneous parent-effect pattern (SD 12); the null has exactly zero catalog effect.
 
 Repeated-sampling trials skip sensitivity bootstraps because they cannot affect the formal gate. Production decisions still use the policy's full sensitivity iteration count.
 
-## Empirical controls
+## Scorer-bound controls
 
-Retained probe controls may carry a historical listening-review fingerprint because listening evidence is not an input to probe execution or scoring. Every archive remains checksummed, scope-validated, and rescored from raw reports. Ordinary decisions and all canonical promotion evidence still require the current listening review.
+Scorer-bound controls are deterministic transformations of the fresh checksummed canonical decision index. The index is cryptographically bound to its retained raw archive and carries the current scoring-protocol and suite identities; no old-ruler scores are reused or relabeled.
 
 | Control | Delta | Stress-calibrated interval | One-sided bounds | Outcome |
 |---|---:|---:|---:|---|
-| identical archive | 0.00 | [0.00, 0.00] | [0.00, 0.00] | unresolved |
-| known broad degradation | -151.86 | [-227.93, -75.79] | [-175.59, -128.13] | stop |
-| impact contract failure | -462.73 | [-479.88, -445.57] | [-470.05, -455.40] | stop |
+| identical archive | 0.00 | [0.00, 0.00] | [0.00, 0.00] | inconclusive |
+| known broad degradation | -100.14 | [-101.12, -99.17] | [-101.02, -99.27] | reject |
+| impact contract failure | -593.50 | [-597.13, -589.87] | [-596.76, -590.24] | reject |
 | catalog-wide correlated seed adversary | 2.99 | [-64.93, 70.90] | [-22.13, 28.10] | unresolved |
 
 ## Repeated-sampling simulation
@@ -36,24 +36,24 @@ Retained study: `benchmark/v2/studies/decision-coverage.json` (1000 trials per c
 
 | Scenario | Seeds / budget | Coverage target | False accept | False reject |
 |---|---:|---:|---:|---:|
-| empirical_blocks | 8 | 99.1% | 0.7% | 0.9% |
-| symmetric_validity_flips | 8 | 99.2% | 0.7% | 0.9% |
-| catalog_wide_hard_zero | 8 | 96.8% | 2.0% | 2.7% |
+| empirical_blocks | 48 | 99.8% | 0.6% | 0.4% |
+| symmetric_validity_flips | 48 | 99.1% | 0.9% | 1.3% |
+| catalog_wide_hard_zero | 48 | 99.4% | 0.6% | 0.5% |
 
 | Supported alternative | Mode | True delta | Positive | Negative | Unresolved | Coverage |
 |---|---|---:|---:|---:|---:|---:|
-| empirical_score_gain | improvement | 13.33 | 82.9% | 0.0% | 17.1% | 99.2% |
-| paired_empirical_noninferiority_inside | simplification (margin 5) | -2.50 | 100.0% | 0.0% | 0.0% | 97.8% |
+| empirical_score_gain | improvement | 15.00 | 100.0% | 0.0% | 0.0% | 99.6% |
+| paired_empirical_noninferiority_inside | simplification (margin 5) | -2.50 | 91.9% | 0.0% | 8.1% | 98.6% |
 
 | Safety boundary | Mode | True delta | False accept | Negative | Unresolved | Coverage |
 |---|---|---:|---:|---:|---:|---:|
-| hard_zero_noninferiority_boundary | simplification (margin 5) | -5.00 | 2.9% | 2.6% | 94.5% | 96.4% |
+| hard_zero_noninferiority_boundary | simplification (margin 5) | -5.00 | 1.2% | 0.5% | 98.3% | 99.6% |
 
 Known low-power hard-zero diagnostics (not supported power claims):
 
 | Diagnostic | Mode | True delta | Positive | Negative | Unresolved | Coverage |
 |---|---|---:|---:|---:|---:|---:|
-| hard_zero_validity_gain | improvement | 66.34 | 7.0% | 0.6% | 92.4% | 95.6% |
-| hard_zero_noninferiority_inside | simplification (margin 5) | -2.50 | 2.8% | 3.1% | 94.1% | 96.4% |
+| hard_zero_validity_gain | improvement | 66.06 | 4.6% | 0.0% | 95.4% | 98.8% |
+| hard_zero_noninferiority_inside | simplification (margin 5) | -2.50 | 0.5% | 0.6% | 98.9% | 99.6% |
 
 The repeated-sampling target is the frozen catalog, not a hypothetical random population of authored works. The formal gate uses the seed-block t interval. Parent-preserving catalog and crossed bootstrap intervals are sensitivity diagnostics only.

@@ -12,7 +12,7 @@ import { decisionProtocolFingerprint } from "../scripts/v0/benchmark_v2/decision
 import { readFileSync } from "node:fs";
 
 describe("canonical baseline cache fixed-N plans", () => {
-  it("uses the active 750k campaign projection at fixed N=48", () => {
+  it("uses the active scorer-bound 750k campaign archive at fixed N=48", () => {
     const cache = readBaselineCache();
     const reference = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
     expect(cache.campaignScope).toEqual({

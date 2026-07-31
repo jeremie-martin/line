@@ -771,7 +771,7 @@ export function studentTQuantile(probability: number, degreesOfFreedom: number):
   return (low + high) / 2;
 }
 
-function studentTCdf(value: number, degreesOfFreedom: number): number {
+export function studentTCdf(value: number, degreesOfFreedom: number): number {
   if (value === 0) return 0.5;
   const x = degreesOfFreedom / (degreesOfFreedom + value * value);
   const tail = 0.5 * regularizedIncompleteBeta(x, degreesOfFreedom / 2, 0.5);

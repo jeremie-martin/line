@@ -2,7 +2,9 @@ import { describe, expect, test } from "vitest";
 import {
   buildWorkerTasks,
   partialRunSummary,
+  seedSchedulePrefix,
   validateExplorationFlags,
+  validateFinalizePrefixFlags,
   validateSubsetFlags,
 } from "../scripts/v0/benchmark_v2/runner.ts";
 import type { ResolvedSeedSchedule } from "../scripts/v0/benchmark_v2/suite_model.ts";
@@ -24,6 +26,18 @@ const manifests = {
 };
 
 describe("buildWorkerTasks", () => {
+  test("publishes a self-consistent measured schedule without changing the declared ladder", () => {
+    const prefix = seedSchedulePrefix(schedule, 2);
+    expect(prefix.seedsPerBudget).toBe(2);
+    expect(prefix.byBudget).toEqual([
+      { budget: 250_000, actualSeeds: [200, 201] },
+      { budget: 500_000, actualSeeds: [203, 204] },
+    ]);
+    expect(schedule.seedsPerBudget).toBe(3);
+    expect(seedSchedulePrefix(schedule, 3)).toBe(schedule);
+    expect(() => seedSchedulePrefix(schedule, 4)).toThrow(/1\.\.3/);
+  });
+
   test("builds the full budget x seed x source cross product with ascending seed slots", () => {
     const tasks = buildWorkerTasks(schedule, sources, "development", 50, manifests);
     expect(tasks.length).toBe(2 * 3 * 2);
@@ -73,6 +87,31 @@ describe("buildWorkerTasks", () => {
     expect(tasks.length).toBe(2 * 1 * 2);
     expect(tasks.every((task) => task.seedSlot === 0)).toBe(true);
     expect(tasks.every((task) => task.mode === "qualification")).toBe(true);
+  });
+});
+
+describe("strict wave finalization", () => {
+  const valid = {
+    finalizePrefix: true,
+    throughSeedSlot: 8,
+    effectiveDepth: 48,
+    hasComparisonRequest: true,
+    baselineCacheShard: false,
+    exploration: false,
+    profileName: "canonical" as const,
+    mode: "development" as const,
+  };
+
+  test("allows both prefix and full-depth candidate waves", () => {
+    expect(() => validateFinalizePrefixFlags(valid)).not.toThrow();
+    expect(() => validateFinalizePrefixFlags({ ...valid, throughSeedSlot: 48 })).not.toThrow();
+  });
+
+  test("cannot publish undeclared, cache, exploration, or qualification work", () => {
+    expect(() => validateFinalizePrefixFlags({ ...valid, hasComparisonRequest: false })).toThrow();
+    expect(() => validateFinalizePrefixFlags({ ...valid, baselineCacheShard: true })).toThrow();
+    expect(() => validateFinalizePrefixFlags({ ...valid, exploration: true })).toThrow();
+    expect(() => validateFinalizePrefixFlags({ ...valid, mode: "qualification" })).toThrow();
   });
 });
 

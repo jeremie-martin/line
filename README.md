@@ -44,14 +44,15 @@ npm run parity
 
 # Benchmark V2 is the default compiler benchmark.
 npm run benchmark -- status
-npm run benchmark -- eval
-npm run benchmark -- baseline-cache status --seeds=300
-npm run benchmark -- eval --seeds=300
+npm run benchmark -- eval --seeds=48 --jobs=48
 
-# The fixed-N path reuses an immutable baseline-cache prefix and compiles only
-# the candidate.
-# After an accept, promote the retained attempt and refresh the screening reference.
-npm run benchmark -- rebaseline --label=NAME
+# Active improvement eval uses strict N=8/16/32/48 looks and compiles only the
+# candidate at each reached prefix. After an accept, promote that exact prefix.
+npm run benchmark -- rebaseline --from=COMPARISON.json --label=NAME
+
+# Historical/deep fixed-N work is explicit and separate.
+npm run benchmark -- baseline-cache status --seeds=300 --baseline=benchmark/v2/baseline.json
+npm run benchmark -- eval --seeds=300 --baseline=benchmark/v2/baseline.json
 
 # Bootstrap a new suite, or perform an intentional suite rollover only.
 npm run benchmark -- baseline --label=NAME

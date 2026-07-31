@@ -276,7 +276,7 @@ const report = {
     candidateFingerprint: baseline.candidate_fingerprint,
     engine: baseline.engine,
     budget,
-    seedsPerCase: baseline.scope.seeds,
+    seedsPerCase: baseline.scope.promotion_seeds,
     cases: sources.length,
     rawArchiveRetained: existsSync(rawPath),
     rawArchive: existsSync(rawPath) ? relative(rawPath) : null,

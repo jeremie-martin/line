@@ -1,0 +1,300 @@
+{
+  "schema": "line.benchmark-v2.sequential-eval-calibration.v1",
+  "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
+  "scoringProtocolFingerprint": "c71466608589ae75745608e1a451abe786e835f4ff0fd79314f155747283a3d6",
+  "generatorFingerprint": "75ca2fbe1ecd90a3ba748bc08ddddb0e1380c41794b10ed8dfa596f4a7d111df",
+  "policyFingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
+  "inferenceFingerprint": "1e94bf8b01ffc3f616003b62ba9a74b7c68a5b087f84606ec98e9369682a767e",
+  "policy": {
+    "schema": "line.benchmark-v2.sequential-eval-policy.v1",
+    "mode": "improvement",
+    "maximumDepth": 48,
+    "looks": [
+      8,
+      16,
+      32,
+      48
+    ],
+    "totalAlpha": 0.05,
+    "calibrationTargetFraction": 0.8,
+    "calibrationTrialsPerScenario": 10000,
+    "validationTrialsPerScenario": 10000,
+    "boundaryFamily": "obrien-fleming-t",
+    "symmetricHarmBoundary": true,
+    "predictiveFutility": false
+  },
+  "boundaryConstant": 1.96392337,
+  "method": {
+    "family": "obrien-fleming-t",
+    "equation": "cross when |T_N| >= c / sqrt(N / 48)",
+    "calibrationTarget": 0.04,
+    "validationCap": 0.05,
+    "stresses": {
+      "gaussian": "studentized independent unit-variance Gaussian observations",
+      "heavy_tailed": "studentized standardized Student-t(5) observations",
+      "zero_inflated": "studentized observations with 20% structural zeros and Gaussian non-zero mass"
+    },
+    "probability": "Reference-Student-t directional probability uses the paired seed-block jackknife SE and effective degrees of freedom; the calibrated crossing boundary, not an unadjusted probability, controls repeated looks."
+  },
+  "references": [
+    {
+      "path": "benchmark/v2/runs/contact-redir-impulse-v2-750k-development.json.decision-index.json",
+      "sha256": "eed94e610a555c3606461ac6e5c48425cec12a426cc28da7ec50671600302007",
+      "rawArchiveSha256": "de0aeebc64dc1774902c4aee2b614afe7316ab4dea9d3a54d5065942f5c26f17"
+    },
+    {
+      "path": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-development-750k.decision-index.json",
+      "sha256": "aab430f17a8c5e5e3d493215dbd9ba266f5da05b26652297d613ff44995fdd14",
+      "rawArchiveSha256": "ec4f458ea102d42fcf8f48009ad90f4fdf6a92b6edd8fe295846bdf7bf761fc1"
+    }
+  ],
+  "calibration": {
+    "trialsPerScenario": 10000,
+    "targetWilsonUpper": 0.04,
+    "scenarios": [
+      {
+        "scenario": "gaussian",
+        "promote": {
+          "count": 340,
+          "total": 10000,
+          "rate": 0.034,
+          "wilson95": [
+            0.03062309,
+            0.03773479
+          ]
+        },
+        "harm": {
+          "count": 360,
+          "total": 10000,
+          "rate": 0.036,
+          "wilson95": [
+            0.03252331,
+            0.03983304
+          ]
+        },
+        "cap": 0.04000000000000001
+      },
+      {
+        "scenario": "heavy_tailed",
+        "promote": {
+          "count": 314,
+          "total": 10000,
+          "rate": 0.0314,
+          "wilson95": [
+            0.02815776,
+            0.03500212
+          ]
+        },
+        "harm": {
+          "count": 328,
+          "total": 10000,
+          "rate": 0.0328,
+          "wilson95": [
+            0.02948452,
+            0.03647429
+          ]
+        },
+        "cap": 0.04000000000000001
+      },
+      {
+        "scenario": "zero_inflated",
+        "promote": {
+          "count": 303,
+          "total": 10000,
+          "rate": 0.0303,
+          "wilson95": [
+            0.02711657,
+            0.03384416
+          ]
+        },
+        "harm": {
+          "count": 341,
+          "total": 10000,
+          "rate": 0.0341,
+          "wilson95": [
+            0.03071803,
+            0.03783978
+          ]
+        },
+        "cap": 0.04000000000000001
+      }
+    ],
+    "allBarsMet": true
+  },
+  "validation": {
+    "trialsPerScenario": 10000,
+    "requiredWilsonUpper": 0.05,
+    "scenarios": [
+      {
+        "scenario": "gaussian",
+        "promote": {
+          "count": 347,
+          "total": 10000,
+          "rate": 0.0347,
+          "wilson95": [
+            0.03128781,
+            0.03846954
+          ]
+        },
+        "harm": {
+          "count": 337,
+          "total": 10000,
+          "rate": 0.0337,
+          "wilson95": [
+            0.03033834,
+            0.03741978
+          ]
+        },
+        "cap": 0.05
+      },
+      {
+        "scenario": "heavy_tailed",
+        "promote": {
+          "count": 311,
+          "total": 10000,
+          "rate": 0.0311,
+          "wilson95": [
+            0.02787369,
+            0.03468643
+          ]
+        },
+        "harm": {
+          "count": 299,
+          "total": 10000,
+          "rate": 0.0299,
+          "wilson95": [
+            0.02673824,
+            0.0334228
+          ]
+        },
+        "cap": 0.05
+      },
+      {
+        "scenario": "zero_inflated",
+        "promote": {
+          "count": 330,
+          "total": 10000,
+          "rate": 0.033,
+          "wilson95": [
+            0.0296742,
+            0.03668446
+          ]
+        },
+        "harm": {
+          "count": 331,
+          "total": 10000,
+          "rate": 0.0331,
+          "wilson95": [
+            0.02976905,
+            0.03678953
+          ]
+        },
+        "cap": 0.05
+      }
+    ],
+    "allBarsMet": true
+  },
+  "retrospective": {
+    "authority": "diagnostic-only",
+    "comparison": "contact-redir-impulse-v2 -> readiness-contact-impulse-v3",
+    "note": "This replay did not choose the policy and does not revise the historical owner override. Under the live strict queue, N=32 would have accepted and N=48 would never have been run; the N=48 row is shown only because the completed historical archive already exists.",
+    "looks": [
+      {
+        "schema": "line.benchmark-v2.sequential-look-decision.v1",
+        "depth": 8,
+        "maximumDepth": 48,
+        "informationFraction": 0.16666666666666666,
+        "estimate": 0.4043,
+        "standardError": 0.5578,
+        "degreesOfFreedom": 7,
+        "tStatistic": 0.72481176,
+        "directionalProbability": 0.75396078,
+        "requiredT": 4.81061015,
+        "requiredDirectionalProbability": 0.99902882,
+        "action": "continue",
+        "baseHeadline": 594.6832,
+        "candidateHeadline": 595.0875,
+        "delta": 0.4043,
+        "validity": {
+          "baseValid": 352,
+          "candidateValid": 352,
+          "total": 352,
+          "gained": 0,
+          "lost": 0
+        }
+      },
+      {
+        "schema": "line.benchmark-v2.sequential-look-decision.v1",
+        "depth": 16,
+        "maximumDepth": 48,
+        "informationFraction": 0.3333333333333333,
+        "estimate": 0.788,
+        "standardError": 0.4568,
+        "degreesOfFreedom": 15,
+        "tStatistic": 1.72504378,
+        "directionalProbability": 0.9474717,
+        "requiredT": 3.40161506,
+        "requiredDirectionalProbability": 0.99802766,
+        "action": "continue",
+        "baseHeadline": 594.4035,
+        "candidateHeadline": 595.1915,
+        "delta": 0.788,
+        "validity": {
+          "baseValid": 704,
+          "candidateValid": 704,
+          "total": 704,
+          "gained": 0,
+          "lost": 0
+        }
+      },
+      {
+        "schema": "line.benchmark-v2.sequential-look-decision.v1",
+        "depth": 32,
+        "maximumDepth": 48,
+        "informationFraction": 0.6666666666666666,
+        "estimate": 1.3,
+        "standardError": 0.3562,
+        "degreesOfFreedom": 31,
+        "tStatistic": 3.64963504,
+        "directionalProbability": 0.99952147,
+        "requiredT": 2.40530508,
+        "requiredDirectionalProbability": 0.98884194,
+        "action": "accept",
+        "baseHeadline": 594.705,
+        "candidateHeadline": 596.005,
+        "delta": 1.3,
+        "validity": {
+          "baseValid": 1408,
+          "candidateValid": 1408,
+          "total": 1408,
+          "gained": 0,
+          "lost": 0
+        }
+      },
+      {
+        "schema": "line.benchmark-v2.sequential-look-decision.v1",
+        "depth": 48,
+        "maximumDepth": 48,
+        "informationFraction": 1,
+        "estimate": 2.3966,
+        "standardError": 1.3697,
+        "degreesOfFreedom": 47,
+        "tStatistic": 1.74972622,
+        "directionalProbability": 0.9566537,
+        "requiredT": 1.96392337,
+        "requiredDirectionalProbability": 0.97226547,
+        "action": "inconclusive",
+        "baseHeadline": 593.5031,
+        "candidateHeadline": 595.8997,
+        "delta": 2.3966,
+        "validity": {
+          "baseValid": 2111,
+          "candidateValid": 2112,
+          "total": 2112,
+          "gained": 1,
+          "lost": 0
+        }
+      }
+    ]
+  }
+}

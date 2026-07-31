@@ -1,5 +1,5 @@
 {
-  "schema": "line.benchmark-v2.campaign-baseline.v1",
+  "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
   "label": "readiness-contact-impulse-v3-750k",
   "generated_at": "2026-07-31T13:13:28.750Z",
@@ -8,7 +8,14 @@
     "budgets": [
       750000
     ],
-    "seeds": 48,
+    "max_seeds": 48,
+    "promotion_seeds": 48,
+    "sequential_looks": [
+      8,
+      16,
+      32,
+      48
+    ],
     "target_headline": 650,
     "deferred_budgets": [
       250000,
@@ -116,8 +123,17 @@
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
   "candidate_fingerprint": "55050d5ee766b2b58deebfc5568c529d405cf67cb4e87f0856853f776798b8a2",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
-  "decision_protocol_fingerprint": "2326d37029084c82eb5d039236645161e64c0ecac9e476050beac83702682f8d",
+  "decision_protocol_fingerprint": "c045a451f3da536e457670dd7de68041cae2e3b7750aaf5aefedf944b66f88d2",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
+  "sequential_eval_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
+  "sequential_eval_inference_fingerprint": "1e94bf8b01ffc3f616003b62ba9a74b7c68a5b087f84606ec98e9369682a767e",
+  "sequential_eval_calibration_fingerprint": "fc933b6ff363f81d0e271b0d5f13bc38ad1410a4f569dda90e07f96b0434ba07",
+  "sequential_policy_migration": {
+    "status": "protocol-only-migration",
+    "basis": "The active baseline was accepted and compiled at N=48 before the strict sequential policy existed. Its measured headline and archive are unchanged; N=48 is now recorded as both its promotion depth and cache coverage.",
+    "score_recomputation": false,
+    "cross_ruler_comparison": false
+  },
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
     "archive": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-compiler-snapshot.tar.gz",
@@ -301,6 +317,8 @@
     "artifact": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-comparison.json",
     "artifact_sha256": "b01448257582b1a309419c8f6a99e6b9b06aef9a04b407623aff4dff967bad2a",
     "seeds": 48,
+    "maximum_seeds": 48,
+    "experiment": "historical-fixed-look-before-sequential-policy",
     "budgets": [
       750000
     ],

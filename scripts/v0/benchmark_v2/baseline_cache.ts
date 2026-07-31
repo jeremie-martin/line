@@ -12,6 +12,7 @@ import { closeSync, existsSync, openSync, readFileSync, readSync, unlinkSync } f
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
+import { benchmarkSequentialEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
 import {
   createSnapshotWorkspace,
   disposeSnapshotWorkspace,
@@ -19,6 +20,7 @@ import {
   validateCompilerSnapshot,
 } from "./compiler_snapshot.ts";
 import { copyFileDurable, writeFileAtomicDurable } from "./durable_fs.ts";
+import { v2HeadlineForDecisionRuns, type DecisionRun } from "./decision_model.ts";
 import { loadSourceManifest, resolveSources } from "./model.ts";
 import { DECISION_INDEX_SCHEMA, RUN_ARCHIVE_SCHEMA } from "./runner.ts";
 import { canonicalMembers, loadSuiteManifest, suiteIdentity, type ResolvedSeedSchedule } from "./suite_model.ts";
@@ -27,7 +29,7 @@ export const BASELINE_CACHE_SCHEMA = "line.benchmark-v2.canonical-baseline-cache
 export const BASELINE_CACHE_SHARD_SCHEMA = "line.benchmark-v2.canonical-baseline-cache-shard.v1" as const;
 export const BASELINE_CACHE_LADDER_SCHEMA = "line.benchmark-v2.canonical-seed-ladder.v1" as const;
 export const BASELINE_REFERENCE_CACHE_SCHEMA = "line.benchmark-v2.baseline-reference.v10" as const;
-export const CAMPAIGN_BASELINE_REFERENCE_SCHEMA = "line.benchmark-v2.campaign-baseline.v1" as const;
+export const CAMPAIGN_BASELINE_REFERENCE_SCHEMA = "line.benchmark-v2.campaign-baseline.v2" as const;
 export const CACHE_BUDGET_PROJECTION_SCHEMA = "line.benchmark-v2.cache-budget-projection.v1" as const;
 export const DEFAULT_CAMPAIGN_BASELINE_PATH = "benchmark/v2/campaign-baseline.json";
 export const MAX_FIXED_N = 300;
@@ -90,8 +92,13 @@ export type BaselineCacheView = {
   cache: CanonicalBaselineCache;
   campaignScope?: {
     budgets: number[];
-    seeds: number;
+    maximumSeeds: number;
+    promotionSeeds: number;
+    looks: number[];
     targetHeadline: number;
+    sequentialPolicyFingerprint: string;
+    sequentialInferenceFingerprint: string;
+    sequentialCalibrationFingerprint: string;
   };
 };
 
@@ -253,6 +260,35 @@ export function loadBaselineCacheEvidence(
     .filter(({ shard }) => shard.firstSeedSlot < depth);
 }
 
+/** Recompute a descriptive baseline headline from verified cache shards. This
+ * never changes the promotion headline tied to the accepted stopping depth. */
+export function baselineCacheHeadlineAtDepth(
+  view: BaselineCacheView,
+  depth: number,
+): { seeds: number; headline: number; validRuns: number; totalRuns: number } {
+  const evidence = loadBaselineCacheEvidence(view, depth);
+  const budgets = new Set(view.cache.ladder.byBudget.map((entry) => entry.budget));
+  const runs: DecisionRun[] = evidence.flatMap(({ archive }) => archive.runs)
+    .filter((row: any) => row.task.seedSlot < depth && budgets.has(row.task.budget))
+    .map((row: any) => ({
+      sourceId: row.task.sourceId,
+      budget: row.task.budget,
+      seedSlot: row.task.seedSlot,
+      actualSeed: row.task.actualSeed,
+      score: { score: row.score.score, valid: row.score.valid },
+    }));
+  const sources = resolveSources(loadSourceManifest(SOURCE_MANIFEST));
+  const suite = structuredClone(loadSuiteManifest(SUITE_MANIFEST, sources));
+  suite.profiles.canonical.seeds_per_budget = depth;
+  suite.profiles.canonical.budgets = [...budgets];
+  return {
+    seeds: depth,
+    headline: v2HeadlineForDecisionRuns(runs, suite, "canonical"),
+    validRuns: runs.filter((run) => run.score.valid).length,
+    totalRuns: runs.length,
+  };
+}
+
 /**
  * Explicitly extend only the missing baseline tail.  The caller must perform
  * preparation first; this function does no hidden cache build during eval.
@@ -267,12 +303,6 @@ export function extendBaselineCache(input: {
   const plan = baselineCachePlan(view, input.seeds);
   verifyBaselineCache(view, plan.coveredSeeds === 0 ? undefined : plan.coveredSeeds);
   if (plan.missingBaselineSeeds === 0) return plan;
-  if (view.campaignScope !== undefined) {
-    throw new Error(
-      `campaign baselines are fixed at N=${view.campaignScope.seeds}; ` +
-      `promote an N=${view.campaignScope.seeds} campaign comparison instead of extending them`,
-    );
-  }
   acquireCacheLock();
   let workspace: ReturnType<typeof createSnapshotWorkspace> | undefined;
   try {
@@ -348,7 +378,7 @@ export function extendBaselineCache(input: {
 
 export function renderBaselineCachePlan(plan: BaselineCachePlan): string {
   return [
-    `  fixed N: ${plan.requestedSeeds}; baseline cache coverage: ${plan.coveredSeeds}`,
+    `  requested prefix N=${plan.requestedSeeds}; baseline cache coverage: ${plan.coveredSeeds}`,
     `  baseline work: ${plan.missingBaselineSeeds} missing seed slots = ${plan.missingBaselineCompiles} compiles`,
     `  candidate work: ${plan.candidateSeeds} seed slots = ${plan.candidateCompiles} compiles`,
     `  shard ranges: ${plan.shardRanges.map((range) => `[${range.firstSeedSlot},${range.endSeedSlotExclusive})`).join(", ") || "none"}`,
@@ -561,14 +591,28 @@ function parseCampaignScope(
   if (
     scope?.profile !== "canonical" || !Array.isArray(scope.budgets) ||
     JSON.stringify(scope.budgets) !== JSON.stringify(budgets) ||
-    !Number.isSafeInteger(scope.seeds) || scope.seeds < MIN_FIXED_N ||
-    scope.seeds !== cache.ladder.maximumSeedsPerBudget ||
-    !Number.isFinite(scope.target_headline)
+    !Number.isSafeInteger(scope.max_seeds) || scope.max_seeds < MIN_FIXED_N ||
+    scope.max_seeds !== cache.ladder.maximumSeedsPerBudget ||
+    !Number.isSafeInteger(scope.promotion_seeds) || scope.promotion_seeds < MIN_FIXED_N ||
+    scope.promotion_seeds > scope.max_seeds ||
+    !(benchmarkSequentialEvalPolicy.looks as readonly number[]).includes(scope.promotion_seeds) ||
+    !Array.isArray(scope.sequential_looks) || scope.sequential_looks.length === 0 ||
+    scope.sequential_looks.at(-1) !== scope.max_seeds ||
+    scope.max_seeds !== benchmarkSequentialEvalPolicy.maximumDepth ||
+    JSON.stringify(scope.sequential_looks) !== JSON.stringify(benchmarkSequentialEvalPolicy.looks) ||
+    scope.sequential_looks.some((look: unknown, index: number) =>
+      !Number.isSafeInteger(look) || (look as number) < MIN_FIXED_N ||
+      (index > 0 && (scope.sequential_looks[index - 1] as number) >= (look as number))
+    ) ||
+    !Number.isFinite(scope.target_headline) ||
+    !fingerprint(baseline.sequential_eval_policy_fingerprint) ||
+    !fingerprint(baseline.sequential_eval_inference_fingerprint) ||
+    !fingerprint(baseline.sequential_eval_calibration_fingerprint)
   ) {
     throw new Error(`campaign baseline scope is malformed or disagrees with its cache`);
   }
   const development = baseline.development;
-  const schedule = seedScheduleAtDepth(cache, scope.seeds);
+  const schedule = seedScheduleAtDepth(cache, scope.promotion_seeds);
   if (
     !Number.isFinite(development?.canonical_headline) ||
     JSON.stringify(development?.seed_schedule) !== JSON.stringify(schedule) ||
@@ -581,12 +625,17 @@ function parseCampaignScope(
       !Number.isSafeInteger(entry.total_runs)
     )
   ) {
-    throw new Error(`campaign baseline development summary does not match its fixed scope`);
+    throw new Error(`campaign baseline development summary does not match its promotion scope`);
   }
   return {
     budgets: [...scope.budgets],
-    seeds: scope.seeds,
+    maximumSeeds: scope.max_seeds,
+    promotionSeeds: scope.promotion_seeds,
+    looks: [...scope.sequential_looks],
     targetHeadline: scope.target_headline,
+    sequentialPolicyFingerprint: baseline.sequential_eval_policy_fingerprint,
+    sequentialInferenceFingerprint: baseline.sequential_eval_inference_fingerprint,
+    sequentialCalibrationFingerprint: baseline.sequential_eval_calibration_fingerprint,
   };
 }
 
@@ -621,10 +670,33 @@ function runnerArgs(input: {
 }
 
 function publishCache(path: string, baseline: any, cache: CanonicalBaselineCache): void {
+  const { cache_monitoring: _oldMonitoring, ...baselineWithoutOldMonitoring } = baseline;
+  const campaignScope = baseline.status === "active-campaign-baseline"
+    ? parseCampaignScope(baseline, cache)
+    : undefined;
+  const coverage = cacheCoverage(cache);
+  const monitoring = campaignScope !== undefined && coverage > campaignScope.promotionSeeds
+    ? baselineCacheHeadlineAtDepth({ baselinePath: resolve(path), cache, campaignScope }, coverage)
+    : null;
   const baselineWithCache = {
-    ...baseline,
-    schema: BASELINE_REFERENCE_CACHE_SCHEMA,
+    ...baselineWithoutOldMonitoring,
+    schema: baseline.status === "active-campaign-baseline"
+      ? CAMPAIGN_BASELINE_REFERENCE_SCHEMA
+      : BASELINE_REFERENCE_CACHE_SCHEMA,
     canonical_cache: cache,
+    ...(monitoring === null ? {} : {
+      cache_monitoring: {
+        schema: "line.benchmark-v2.campaign-cache-monitoring.v1",
+        authority: "descriptive-only",
+        generated_at: new Date().toISOString(),
+        coverage_seeds: monitoring.seeds,
+        canonical_headline: monitoring.headline,
+        valid_runs: monitoring.validRuns,
+        total_runs: monitoring.totalRuns,
+        cache_manifest_fingerprint: baselineCacheManifestFingerprint(cache),
+        note: "This completed-cache headline does not replace the promotion headline or stopping depth.",
+      },
+    }),
   };
   writeFileAtomicDurable(path, `${JSON.stringify(baselineWithCache, null, 2)}\n`);
 }

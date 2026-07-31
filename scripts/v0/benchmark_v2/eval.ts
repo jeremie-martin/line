@@ -1,12 +1,11 @@
 /**
  * Lean Benchmark V2 evaluation.
  *
- *   eval [--seeds=N]
- *     Candidate-only canonical run against the first N slots of the active
- *     baseline cache. The temporary campaign baseline fixes both N and its
- *     official budget scope; the frozen full-ladder V2 baseline remains
- *     available explicitly. The command writes reproducible evidence and no
- *     project state.
+ *   eval [--seeds=48]
+ *     Candidate-only canonical improvement run at the predeclared
+ *     N=8/16/32/48 looks. Each strict wave is decided before later seed slots
+ *     enter the queue. Explicit simplification and non-campaign baselines keep
+ *     their fixed-N behavior.
  */
 
 import { createHash } from "node:crypto";
@@ -36,12 +35,22 @@ import {
 import { writeFileAtomicDurable } from "./durable_fs.ts";
 import { renderCachedComparison } from "./eval_report.ts";
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
+import { benchmarkSequentialEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
+import {
+  requireSequentialEvalCalibration,
+  sequentialEvalCalibrationFingerprint,
+  sequentialEvalInferenceFingerprint,
+  sequentialEvalPolicyFingerprint,
+  sequentialLookDecision,
+  type SequentialLookDecision,
+} from "./sequential_inference.ts";
 
 const SOURCE_MANIFEST = "benchmark/v2/compat/source-manifest.json";
 const HELDOUT_MANIFEST = "benchmark/v2/compat/heldout-manifest.json";
 const SUITE_MANIFEST = "benchmark/v2/compat/suite-manifest.json";
-const COMPARISON_REQUEST_SCHEMA = "line.benchmark-v2.comparison-request.v2" as const;
-const CACHED_COMPARISON_SCHEMA = "line.benchmark-v2.cached-comparison.v2" as const;
+const COMPARISON_REQUEST_SCHEMA = "line.benchmark-v2.comparison-request.v3" as const;
+const CACHED_COMPARISON_SCHEMA = "line.benchmark-v2.cached-comparison.v3" as const;
+const SEQUENTIAL_LOOK_ARTIFACT_SCHEMA = "line.benchmark-v2.sequential-look-artifact.v1" as const;
 
 type ComparisonMode = "improvement" | "simplification";
 
@@ -51,26 +60,38 @@ export type ComparisonRequest = {
   baselinePath: string;
   baselineLabel: string;
   baselineCacheFingerprint: string;
+  baselineIdentityFingerprint: string;
+  baselineInitialShards: BaselineCacheView["cache"]["shards"];
   candidateFingerprint: string;
   candidateSnapshot: CompilerSnapshot;
+  experiment: "sequential-improvement" | "fixed";
   seeds: number;
+  looks: number[];
   budgets: number[];
   mode: ComparisonMode;
   margin: number | null;
   canonicalSeedBase: number;
   seedScheduleFingerprint: string;
   canonicalSeedSchedule: ReturnType<typeof seedScheduleAtDepth>;
+  sequentialPolicyFingerprint: string | null;
+  sequentialInferenceFingerprint: string | null;
+  sequentialCalibrationFingerprint: string | null;
 };
 
 export type CachedComparisonArtifact = {
   schema: typeof CACHED_COMPARISON_SCHEMA;
   generatedAt: string;
   status: "complete";
+  /** The governed outcome. `decision.result` remains the ordinary fixed-look
+   * diagnostic and is never relabelled as a sequential verdict. */
+  outcome: "accept" | "reject" | "inconclusive" | "unresolved";
+  promotable: boolean;
   base: {
     label: string;
     baselinePath: string;
     cacheFingerprint: string;
     seeds: number;
+    maximumSeeds: number;
     budgets: number[];
   };
   candidate: {
@@ -84,6 +105,16 @@ export type CachedComparisonArtifact = {
     sha256: string;
   };
   decision: Awaited<ReturnType<typeof evalDecisionAgainstBaselineCache>>["artifact"];
+  sequential: {
+    policyFingerprint: string;
+    inferenceFingerprint: string;
+    calibrationFingerprint: string;
+    maximumSeeds: number;
+    stoppingDepth: number;
+    stoppingAction: Exclude<SequentialLookDecision["action"], "continue">;
+    looks: SequentialLookDecision[];
+    candidateCompiles: number;
+  } | null;
   nextCommand: string;
 };
 
@@ -135,7 +166,7 @@ async function runCachedComparison(argv: string[]): Promise<number> {
   const argument = argumentIn(argv);
   requireWasm("eval");
   const cache = readBaselineCache(argument("baseline"));
-  const seedsRaw = argument("seeds") ?? String(cache.campaignScope?.seeds ?? 2);
+  const seedsRaw = argument("seeds") ?? String(cache.campaignScope?.maximumSeeds ?? 2);
   if (!/^\d+$/.test(seedsRaw)) throw new Error(`eval --seeds requires an integer N`);
   const seeds = Number(seedsRaw);
   assertCampaignDepth(cache, seeds);
@@ -143,14 +174,24 @@ async function runCachedComparison(argv: string[]): Promise<number> {
   const mode = parseMode(argument("mode"));
   const margin = parseMargin(mode, argument("margin"));
   assertBaselineEngineComparable(cache.baselinePath);
+  const sequential = cache.campaignScope !== undefined && mode === "improvement";
+  const calibration = sequential
+    ? requireSequentialEvalCalibration(cache.cache.suiteFingerprint)
+    : null;
+  if (sequential && (
+    cache.campaignScope!.sequentialPolicyFingerprint !== sequentialEvalPolicyFingerprint() ||
+    cache.campaignScope!.sequentialInferenceFingerprint !== sequentialEvalInferenceFingerprint() ||
+    cache.campaignScope!.sequentialCalibrationFingerprint !== sequentialEvalCalibrationFingerprint()
+  )) throw new Error(`active campaign sequential policy provenance is stale; migrate or rebaseline before paid eval`);
   const plan = baselineCachePlan(cache, seeds);
-  if (plan.missingBaselineSeeds > 0) {
+  const initialRequiredDepth = sequential ? benchmarkSequentialEvalPolicy.looks[0] : seeds;
+  if (cacheCoverage(cache.cache) < initialRequiredDepth) {
     throw new Error(
-      `baseline cache covers ${plan.coveredSeeds}/${seeds} seeds; run ` +
-      `\`npm run benchmark -- baseline-cache extend --seeds=${seeds} --jobs=${jobs}\` first`,
+      `baseline cache covers ${cacheCoverage(cache.cache)}/${initialRequiredDepth} required initial seeds; run ` +
+      `\`npm run benchmark -- baseline-cache extend --seeds=${initialRequiredDepth} --jobs=${jobs}\` first`,
     );
   }
-  verifyBaselineCache(cache, seeds);
+  verifyBaselineCache(cache, sequential ? cacheCoverage(cache.cache) : seeds);
 
   const stamp = timestamp();
   const outPath = resolve(argument("out") ?? `generated/benchmark-v2/eval/cached-N${seeds}-${stamp}.json`);
@@ -166,21 +207,86 @@ async function runCachedComparison(argv: string[]): Promise<number> {
   let workspace: ReturnType<typeof createSnapshotWorkspace> | undefined;
   try {
     workspace = createSnapshotWorkspace(request.candidateSnapshot);
-    const run = runInWorkspace(workspace, "development", [
-      "--profile=canonical",
-      ...runnerBaseArgs(jobs),
-      `--comparison-request=${requestPath}`,
-      `--canonical-seed-base=${request.canonicalSeedBase}`,
-      `--seeds-per-budget=${seeds}`,
-      `--comparison-budgets=${request.budgets.join(",")}`,
-      `--seed-schedule=${requestPath}`,
-      ...(argv.includes("--resume") ? ["--resume"] : []),
-    ], outPath);
-    if (run.workerFailures > 0) {
+    const looks = sequential ? [...benchmarkSequentialEvalPolicy.looks] : [seeds];
+    const completedLooks: SequentialLookDecision[] = [];
+    let run: SnapshotBenchmarkRun | undefined;
+    let decided: Awaited<ReturnType<typeof evalDecisionAgainstBaselineCache>> | undefined;
+    for (const [lookIndex, look] of looks.entries()) {
+      const cacheBeforeLook = readBaselineCache(argument("baseline"));
+      assertCacheCompatibleWithRequest(cacheBeforeLook, request);
+      if (cacheCoverage(cacheBeforeLook.cache) < look) {
+        const pause = {
+          schema: "line.benchmark-v2.eval-pause.v1",
+          status: "awaiting-baseline-tail",
+          completedLooks,
+          requiredDepth: look,
+          baselineCoverage: cacheCoverage(cacheBeforeLook.cache),
+          nextCommands: [
+            `npm run benchmark -- baseline-cache extend --seeds=${look} --jobs=${jobs}${baselineArgument(argument("baseline"))}`,
+            `npm run benchmark -- eval --seeds=${seeds} --jobs=${jobs} --resume --out=${relativeToCwd(outPath)}${baselineArgument(argument("baseline"))}`,
+          ],
+        };
+        writeArtifact(suffixedJsonPath(outPath, ".paused"), pause);
+        if (argv.includes("--json")) console.log(JSON.stringify(pause, null, 2));
+        else {
+          console.log(`Sequential eval paused after N=${completedLooks.at(-1)?.depth ?? 0}: baseline tail through N=${look} is required.`);
+          for (const command of pause.nextCommands) console.log(`  ${command}`);
+        }
+        return 0;
+      }
+      const waveOutputPath = sequential ? suffixedJsonPath(outPath, `.N${look}`) : outPath;
+      run = runInWorkspace(workspace, "development", [
+        "--profile=canonical",
+        ...runnerBaseArgs(jobs),
+        `--comparison-request=${requestPath}`,
+        `--canonical-seed-base=${request.canonicalSeedBase}`,
+        `--seeds-per-budget=${seeds}`,
+        `--comparison-budgets=${request.budgets.join(",")}`,
+        `--seed-schedule=${requestPath}`,
+        ...(sequential ? [`--checkpoint=${outPath}.checkpoint.jsonl`] : []),
+        `--through-seed-slot=${look}`,
+        ...(sequential ? ["--finalize-prefix"] : []),
+        ...(argv.includes("--resume") || lookIndex > 0 ? ["--resume"] : []),
+      ], waveOutputPath);
+      if (run.workerFailures > 0) break;
+      const cacheAtLook = readBaselineCache(argument("baseline"));
+      assertCacheCompatibleWithRequest(cacheAtLook, request);
+      const prefixSchedule = seedScheduleAtDepth(cacheAtLook.cache, look);
+      decided = await evalDecisionAgainstBaselineCache(cacheAtLook, waveOutputPath, {
+        mode,
+        margin,
+        depth: look,
+        request: {
+          path: requestPath,
+          sha256: requestSha256,
+          seedScheduleFingerprint: sha256String(JSON.stringify(prefixSchedule)),
+          candidateFingerprint: request.candidateFingerprint,
+        },
+      });
+      if (!sequential) break;
+      const lookDecision = sequentialLookDecision(
+        decided.artifact.result.confidence,
+        look,
+        calibration!.boundaryConstant,
+      );
+      completedLooks.push(lookDecision);
+      writeArtifact(suffixedJsonPath(outPath, `.look-${look}`), {
+        schema: SEQUENTIAL_LOOK_ARTIFACT_SCHEMA,
+        generatedAt: new Date().toISOString(),
+        request: { path: relativeToCwd(requestPath), sha256: requestSha256 },
+        candidateArchive: relativeToCwd(run.outputPath),
+        candidateArchiveSha256: run.archiveSha256,
+        candidateCompressedArchiveSha256: run.compressedArchiveSha256,
+        decision: lookDecision,
+        fixedLookDiagnostics: decided.artifact.result,
+      });
+      if (lookDecision.action !== "continue") break;
+    }
+    if (run === undefined || decided === undefined || run.workerFailures > 0) {
       const payload = evalWorkerFailurePayload({
         stage: "cached",
         reason: "one or more compiler workers failed; resume the same candidate output",
-        workerFailures: run.workerFailures,
+        workerFailures: run?.workerFailures ?? 1,
         evidencePaths: [relativeToCwd(`${outPath}.checkpoint.jsonl`)],
         nextCommand:
           `npm run benchmark -- eval --seeds=${seeds} --resume --out=${relativeToCwd(outPath)}` +
@@ -191,37 +297,33 @@ async function runCachedComparison(argv: string[]): Promise<number> {
       return 1;
     }
     const cacheAfter = readBaselineCache(argument("baseline"));
-    if (baselineCacheManifestFingerprint(cacheAfter.cache) !== request.baselineCacheFingerprint) {
-      throw new Error(`baseline cache changed while the candidate was running; start a new comparison`);
-    }
-    const decided = await evalDecisionAgainstBaselineCache(cacheAfter, outPath, {
-      mode,
-      margin,
-      depth: seeds,
-      request: {
-        path: requestPath,
-        sha256: requestSha256,
-        seedScheduleFingerprint: request.seedScheduleFingerprint,
-        candidateFingerprint: request.candidateFingerprint,
-      },
-    });
+    assertCacheCompatibleWithRequest(cacheAfter, request);
+    const stoppingDepth = sequential ? completedLooks.at(-1)!.depth : seeds;
+    const sequentialOutcome = sequential ? completedLooks.at(-1)!.action : null;
+    if (sequentialOutcome === "continue") throw new Error(`sequential experiment ended before a terminal decision`);
+    const governedOutcome = sequential
+      ? sequentialOutcome!
+      : decided.artifact.result.outcome as "accept" | "reject" | "inconclusive" | "unresolved";
     const nextCommand = comparisonNextCommand(
-      decided.artifact.result.outcome,
+      governedOutcome,
       artifactPath,
-      seeds,
+      stoppingDepth,
       cacheCoverage(cacheAfter.cache),
       argument("baseline"),
+      sequential ? seeds : undefined,
     );
-    decided.artifact.nextCommand = nextCommand;
     const artifact: CachedComparisonArtifact = {
       schema: CACHED_COMPARISON_SCHEMA,
       generatedAt: new Date().toISOString(),
       status: "complete",
+      outcome: governedOutcome,
+      promotable: governedOutcome === "accept",
       base: {
         label: cacheAfter.cache.baselineLabel,
         baselinePath: relativeToCwd(cacheAfter.baselinePath),
-        cacheFingerprint: request.baselineCacheFingerprint,
-        seeds,
+        cacheFingerprint: baselineCacheManifestFingerprint(cacheAfter.cache),
+        seeds: stoppingDepth,
+        maximumSeeds: seeds,
         budgets: [...request.budgets],
       },
       candidate: {
@@ -235,6 +337,16 @@ async function runCachedComparison(argv: string[]): Promise<number> {
         sha256: requestSha256,
       },
       decision: decided.artifact,
+      sequential: sequential ? {
+        policyFingerprint: request.sequentialPolicyFingerprint!,
+        inferenceFingerprint: request.sequentialInferenceFingerprint!,
+        calibrationFingerprint: request.sequentialCalibrationFingerprint!,
+        maximumSeeds: seeds,
+        stoppingDepth,
+        stoppingAction: completedLooks.at(-1)!.action as Exclude<SequentialLookDecision["action"], "continue">,
+        looks: completedLooks,
+        candidateCompiles: stoppingDepth * plan.developmentSources * plan.budgets.length,
+      } : null,
       nextCommand,
     };
     writeArtifact(artifactPath, artifact);
@@ -242,15 +354,20 @@ async function runCachedComparison(argv: string[]): Promise<number> {
       console.log(JSON.stringify(artifact, null, 2));
     } else {
       console.log(renderCachedComparison({
-        result: decided.artifact.result,
+        result: {
+          ...decided.artifact.result,
+          outcome: governedOutcome,
+          promotable: governedOutcome === "accept",
+        },
         baseLabel: cacheAfter.cache.baselineLabel,
-        seeds,
+        seeds: stoppingDepth,
         archivePath: relativeToCwd(run.outputPath),
         artifactPath: relativeToCwd(artifactPath),
         snapshotPath: request.candidateSnapshot.archive,
         hint: decided.artifact.hint,
         nextCommand,
         runnerFingerprintsMatch: decided.artifact.implementationFingerprintsMatch,
+        ...(sequential ? { sequentialLooks: completedLooks } : {}),
       }));
     }
     return 0;
@@ -279,15 +396,32 @@ function createComparisonRequest(
     baselinePath: relativeToCwd(cache.baselinePath),
     baselineLabel: cache.cache.baselineLabel,
     baselineCacheFingerprint: baselineCacheManifestFingerprint(cache.cache),
+    baselineIdentityFingerprint: baselineIdentityFingerprint(cache),
+    baselineInitialShards: structuredClone(cache.cache.shards),
     candidateFingerprint: snapshot.candidateFingerprint,
     candidateSnapshot: snapshot,
+    experiment: cache.campaignScope !== undefined && mode === "improvement"
+      ? "sequential-improvement"
+      : "fixed",
     seeds,
+    looks: cache.campaignScope !== undefined && mode === "improvement"
+      ? [...benchmarkSequentialEvalPolicy.looks]
+      : [seeds],
     budgets: schedule.byBudget.map((entry) => entry.budget),
     mode,
     margin,
     canonicalSeedBase: schedule.seedBase,
     seedScheduleFingerprint: sha256String(JSON.stringify(schedule)),
     canonicalSeedSchedule: schedule,
+    sequentialPolicyFingerprint: cache.campaignScope !== undefined && mode === "improvement"
+      ? sequentialEvalPolicyFingerprint()
+      : null,
+    sequentialInferenceFingerprint: cache.campaignScope !== undefined && mode === "improvement"
+      ? sequentialEvalInferenceFingerprint()
+      : null,
+    sequentialCalibrationFingerprint: cache.campaignScope !== undefined && mode === "improvement"
+      ? sequentialEvalCalibrationFingerprint()
+      : null,
   };
   writeFileAtomicDurable(requestPath, `${JSON.stringify(request, null, 2)}\n`);
   return request;
@@ -311,13 +445,44 @@ function readComparisonRequest(
     request.margin !== margin ||
     JSON.stringify(request.budgets) !== JSON.stringify(cache.cache.ladder.byBudget.map((entry) => entry.budget)) ||
     request.baselineLabel !== cache.cache.baselineLabel ||
-    request.baselineCacheFingerprint !== baselineCacheManifestFingerprint(cache.cache) ||
+    request.baselineIdentityFingerprint !== baselineIdentityFingerprint(cache) ||
     request.candidateSnapshot?.candidateFingerprint !== request.candidateFingerprint ||
-    request.seedScheduleFingerprint !== sha256String(JSON.stringify(request.canonicalSeedSchedule))
+    request.seedScheduleFingerprint !== sha256String(JSON.stringify(request.canonicalSeedSchedule)) ||
+    request.experiment !== (cache.campaignScope !== undefined && mode === "improvement" ? "sequential-improvement" : "fixed") ||
+    JSON.stringify(request.looks) !== JSON.stringify(
+      cache.campaignScope !== undefined && mode === "improvement" ? benchmarkSequentialEvalPolicy.looks : [seeds]
+    ) ||
+    (request.experiment === "sequential-improvement" && (
+      request.sequentialPolicyFingerprint !== sequentialEvalPolicyFingerprint() ||
+      request.sequentialInferenceFingerprint !== sequentialEvalInferenceFingerprint() ||
+      request.sequentialCalibrationFingerprint !== sequentialEvalCalibrationFingerprint()
+    ))
   ) {
     throw new Error(`the saved comparison request does not match this resume command or current baseline cache`);
   }
+  assertCacheCompatibleWithRequest(cache, request);
   return request;
+}
+
+function baselineIdentityFingerprint(cache: BaselineCacheView): string {
+  return sha256String(JSON.stringify({
+    label: cache.cache.baselineLabel,
+    candidateFingerprint: cache.cache.candidateFingerprint,
+    suiteFingerprint: cache.cache.suiteFingerprint,
+    ladder: cache.cache.ladder,
+  }));
+}
+
+/** A frozen baseline may only gain verified tail shards while a candidate is
+ * paused. Existing shards, compiler identity, suite, and literal ladder remain
+ * immutable, so resume cannot drift onto another comparison ruler. */
+function assertCacheCompatibleWithRequest(cache: BaselineCacheView, request: ComparisonRequest): void {
+  if (
+    baselineIdentityFingerprint(cache) !== request.baselineIdentityFingerprint ||
+    request.baselineInitialShards.length > cache.cache.shards.length ||
+    JSON.stringify(cache.cache.shards.slice(0, request.baselineInitialShards.length)) !==
+      JSON.stringify(request.baselineInitialShards)
+  ) throw new Error(`baseline cache changed incompatibly while the candidate was running`);
 }
 
 function comparisonNextCommand(
@@ -326,6 +491,7 @@ function comparisonNextCommand(
   seeds: number,
   availableSeeds: number,
   baselinePath: string | undefined,
+  sequentialMaximumSeeds?: number,
 ): string {
   if (outcome === "accept") {
     return `npm run benchmark -- rebaseline --from=${relativeToCwd(artifactPath)} --label=accepted-candidate`;
@@ -334,20 +500,20 @@ function comparisonNextCommand(
     const next = Math.min(availableSeeds, Math.max(seeds + 1, seeds * 2));
     return `npm run benchmark -- eval --seeds=${next}${baselineArgument(baselinePath)}`;
   }
-  return `npm run benchmark -- eval --seeds=${seeds}${baselineArgument(baselinePath)}`;
+  return `npm run benchmark -- eval --seeds=${sequentialMaximumSeeds ?? seeds}${baselineArgument(baselinePath)}`;
 }
 
 function assertCampaignDepth(cache: BaselineCacheView, seeds: number): void {
-  if (cache.campaignScope !== undefined && seeds !== cache.campaignScope.seeds) {
+  if (cache.campaignScope !== undefined && seeds !== benchmarkSequentialEvalPolicy.maximumDepth) {
     throw new Error(
-      `the active campaign uses N=${cache.campaignScope.seeds} only; ` +
+      `the active campaign declares a maximum N=${benchmarkSequentialEvalPolicy.maximumDepth}; ` +
       `the frozen full-ladder baseline remains available with ` +
       `--baseline=benchmark/v2/baseline.json`,
     );
   }
 }
 
-function writeArtifact(path: string, artifact: CachedComparisonArtifact): void {
+function writeArtifact(path: string, artifact: unknown): void {
   const bytes = Buffer.from(`${JSON.stringify(artifact, null, 2)}\n`);
   writeFileAtomicDurable(path, bytes.toString("utf8"));
   writeFileAtomicDurable(`${path}.sha256`, `${sha256(bytes)}  ${relativeToCwd(path)}\n`);
@@ -422,6 +588,10 @@ function requireWasm(command: string): void {
 
 function timestamp(): string {
   return new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "Z");
+}
+
+function suffixedJsonPath(path: string, suffix: string): string {
+  return path.endsWith(".json") ? `${path.slice(0, -5)}${suffix}.json` : `${path}${suffix}.json`;
 }
 
 function sha256(value: Buffer): string {

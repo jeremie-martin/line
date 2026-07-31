@@ -182,6 +182,7 @@ export async function runBenchmarkV2(
    * never carries a candidate verdict and is only admitted through the
    * baseline-cache manifest validator. */
   const baselineCacheShard = hasFlag("baseline-cache-shard");
+  const finalizePrefix = hasFlag("finalize-prefix");
   const exploration = hasFlag("exploration");
   const explorationId = argument("exploration-id");
   const canonicalSeedBaseOverride = argument("canonical-seed-base") === undefined
@@ -337,6 +338,16 @@ export async function runBenchmarkV2(
       effectiveSeedsPerBudget,
       canonicalSeedBaseOverride,
     );
+  validateFinalizePrefixFlags({
+    finalizePrefix,
+    throughSeedSlot,
+    effectiveDepth: effectiveSeedsPerBudget,
+    hasComparisonRequest: comparisonRequestPath !== undefined,
+    baselineCacheShard,
+    exploration,
+    profileName,
+    mode,
+  });
   if (exploration) {
     const actualSeeds = schedule.byBudget.flatMap((entry) => entry.actualSeeds);
     if (actualSeeds.some((seed) => seed < 3_000_000_000 || seed >= 4_000_000_000)) {
@@ -345,7 +356,7 @@ export async function runBenchmarkV2(
   }
   const engine = process.env.LR_ENGINE ?? "typescript";
   const implementationFingerprint = fingerprintFiles(RUNNER_IMPLEMENTATION_SOURCE_FILES);
-  const execution = executionPolicyIdentity({
+  const executionInput = {
     suiteFingerprint: suiteId.suiteFingerprint,
     executionProtocol: BENCHMARK_EXECUTION_PROTOCOL,
     listeningReviewFingerprint: listeningReview.fingerprint,
@@ -361,7 +372,13 @@ export async function runBenchmarkV2(
       sourceFingerprint: source.sourceFingerprint,
     })),
     transform: suite.transform,
-  });
+  };
+  const execution = executionPolicyIdentity(executionInput);
+  const measuredDepth = throughSeedSlot ?? effectiveSeedsPerBudget;
+  const measuredSchedule = seedSchedulePrefix(schedule, measuredDepth);
+  const measuredExecution = measuredDepth === effectiveSeedsPerBudget
+    ? execution
+    : executionPolicyIdentity({ ...executionInput, seedSchedule: measuredSchedule });
   const git = compilerCandidateIdentity(engine);
   if (bootstrapRequestPath !== undefined) {
     validateCampaignBootstrapRequest(
@@ -515,7 +532,7 @@ export async function runBenchmarkV2(
   const workerFailures = finalIndex === undefined
     ? results!.filter((result) => result.status !== "ok").length
     : [...finalIndex.latest.values()].filter((entry) => entry.status !== "ok").length;
-  if (throughSeedSlot !== undefined && throughSeedSlot < effectiveSeedsPerBudget) {
+  if (throughSeedSlot !== undefined && throughSeedSlot < effectiveSeedsPerBudget && !finalizePrefix) {
     // Sub-depth wave: leave a partial-run summary (no archive/summary/sidecars)
     // recording progress and the shared checkpoint so a later wave can resume.
     const totalDeclaredTasks =
@@ -609,7 +626,7 @@ export async function runBenchmarkV2(
     generatedAt,
     identity: {
       ...suiteId,
-      ...execution,
+      ...measuredExecution,
       candidateReviewFingerprint: sourceInventoryFingerprint(reviewContents),
       listeningReviewFingerprint: listeningReview.fingerprint,
       listeningReviewStatus: listeningReview.review.status,
@@ -625,6 +642,16 @@ export async function runBenchmarkV2(
     },
     linkedDevelopment,
     comparisonRequest,
+    ...(finalizePrefix ? {
+      sequentialAttempt: {
+        schema: "line.benchmark-v2.sequential-attempt.v1",
+        declaredSeedsPerBudget: effectiveSeedsPerBudget,
+        completedSeedsPerBudget: measuredDepth,
+        declaredSeedScheduleFingerprint: sha256(JSON.stringify(schedule)),
+        measuredSeedScheduleFingerprint: sha256(JSON.stringify(measuredSchedule)),
+        runPlanFingerprint,
+      },
+    } : {}),
     bootstrapRequest,
     ...(baselineCacheShard ? {
       baselineCacheShard: {
@@ -687,12 +714,12 @@ export async function runBenchmarkV2(
     archiveSha256,
     compressedArchiveSha256,
     suiteFingerprint: suiteId.suiteFingerprint,
-    executionPolicyFingerprint: execution.executionPolicyFingerprint,
-    executionProtocol: execution.executionProtocol,
-    implementationFingerprint: execution.implementationFingerprint,
+    executionPolicyFingerprint: measuredExecution.executionPolicyFingerprint,
+    executionProtocol: measuredExecution.executionProtocol,
+    implementationFingerprint: measuredExecution.implementationFingerprint,
     listeningReviewFingerprint: listeningReview.fingerprint,
     listeningReviewStatus: listeningReview.review.status,
-    seedSchedule: schedule,
+    seedSchedule: measuredSchedule,
     compilerIdentityProtocol: git.compilerIdentityProtocol,
     compilerSourceFingerprint: git.compilerSourceFingerprint,
     compilerSourceFiles: git.compilerSourceFiles,
@@ -706,6 +733,16 @@ export async function runBenchmarkV2(
     qualificationSummaries,
     linkedDevelopment,
     comparisonRequest,
+    ...(finalizePrefix ? {
+      sequentialAttempt: {
+        schema: "line.benchmark-v2.sequential-attempt.v1",
+        declaredSeedsPerBudget: effectiveSeedsPerBudget,
+        completedSeedsPerBudget: measuredDepth,
+        declaredSeedScheduleFingerprint: sha256(JSON.stringify(schedule)),
+        measuredSeedScheduleFingerprint: sha256(JSON.stringify(measuredSchedule)),
+        runPlanFingerprint,
+      },
+    } : {}),
     bootstrapRequest,
     ...(exploration ? {
       exploration: {
@@ -855,6 +892,27 @@ function decisionRunProjection(row: Record<string, any>): Record<string, any> {
   };
 }
 
+/** Return the self-consistent schedule represented by a completed strict
+ * wave. The full declared schedule remains in the immutable request and
+ * checkpoint plan; published evidence contains only rows it actually scored. */
+export function seedSchedulePrefix(
+  schedule: ResolvedSeedSchedule,
+  depth: number,
+): ResolvedSeedSchedule {
+  if (!Number.isSafeInteger(depth) || depth < 1 || depth > schedule.seedsPerBudget) {
+    throw new Error(`seed-schedule prefix must be an integer in 1..${schedule.seedsPerBudget}`);
+  }
+  if (depth === schedule.seedsPerBudget) return schedule;
+  return {
+    ...schedule,
+    seedsPerBudget: depth,
+    byBudget: schedule.byBudget.map((entry) => ({
+      budget: entry.budget,
+      actualSeeds: entry.actualSeeds.slice(0, depth),
+    })),
+  };
+}
+
 /**
  * Builds the full worker-task cross product from a resolved seed schedule, then
  * (optionally) keeps only the leading `throughSeedSlot` seed slots per budget.
@@ -937,6 +995,26 @@ export function validateSubsetFlags(input: {
   if (baselineCacheShard && (fromSeedSlot === undefined || throughSeedSlot === undefined)) {
     throw new Error(`--baseline-cache-shard requires --from-seed-slot and --through-seed-slot`);
   }
+}
+
+/** `--finalize-prefix` is intentionally internal: only eval may turn a
+ * completed strict candidate wave into checksummed decision evidence. */
+export function validateFinalizePrefixFlags(input: {
+  finalizePrefix: boolean;
+  throughSeedSlot: number | undefined;
+  effectiveDepth: number;
+  hasComparisonRequest: boolean;
+  baselineCacheShard: boolean;
+  exploration: boolean;
+  profileName: "probe" | "canonical";
+  mode: RunnerMode;
+}): void {
+  if (!input.finalizePrefix) return;
+  if (
+    input.throughSeedSlot === undefined || input.throughSeedSlot > input.effectiveDepth ||
+    !input.hasComparisonRequest || input.baselineCacheShard || input.exploration ||
+    input.profileName !== "canonical" || input.mode !== "development"
+  ) throw new Error(`--finalize-prefix requires a canonical development comparison wave`);
 }
 
 export function validateExplorationFlags(input: {

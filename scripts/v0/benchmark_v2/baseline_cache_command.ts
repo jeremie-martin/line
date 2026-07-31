@@ -33,8 +33,11 @@ export function runBaselineCacheCommand(argv: string[]): number {
   if (!Number.isSafeInteger(jobs) || jobs < 1 || jobs > 48) throw new Error(`--jobs must be an integer in 1..48`);
 
   const view = readBaselineCache(baselinePath);
-  if (view.campaignScope !== undefined && seeds !== view.campaignScope.seeds) {
-    throw new Error(`the active campaign cache is fixed at N=${view.campaignScope.seeds}`);
+  if (
+    view.campaignScope !== undefined &&
+    (!view.campaignScope.looks.includes(seeds) || seeds > view.campaignScope.maximumSeeds)
+  ) {
+    throw new Error(`active campaign cache depth must be one of ${view.campaignScope.looks.join(",")}`);
   }
   const plan = baselineCachePlan(view, seeds);
   verifyBaselineCache(view, plan.coveredSeeds === 0 ? undefined : plan.coveredSeeds);
@@ -45,7 +48,7 @@ export function runBaselineCacheCommand(argv: string[]): number {
       maximumSeeds: view.cache.ladder.maximumSeedsPerBudget,
       ...plan,
       nextCommand: plan.missingBaselineSeeds === 0
-        ? `npm run benchmark -- eval --seeds=${seeds}${baselineArgument(baselinePath)}`
+        ? `npm run benchmark -- eval --seeds=${view.campaignScope?.maximumSeeds ?? seeds}${baselineArgument(baselinePath)}`
         : `npm run benchmark -- baseline-cache extend --seeds=${seeds} --jobs=${jobs}${baselineArgument(baselinePath)}`,
     });
     return 0;
@@ -61,7 +64,7 @@ export function runBaselineCacheCommand(argv: string[]): number {
     schema: "line.benchmark-v2.baseline-cache-extension.v1",
     status: "complete",
     ...completed,
-    nextCommand: `npm run benchmark -- eval --seeds=${seeds}${baselineArgument(baselinePath)}`,
+    nextCommand: `npm run benchmark -- eval --seeds=${view.campaignScope?.maximumSeeds ?? seeds}${baselineArgument(baselinePath)}`,
   });
   return 0;
 }

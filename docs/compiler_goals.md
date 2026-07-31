@@ -41,11 +41,14 @@ contract is `benchmark-v2-decisions.md`.)
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
 - `npm run benchmark -- eval --seeds=48 --jobs=48` compares the current compiler
-  on the 44 development cases at 750k with the exact immutable active cache and
-  compiles only the 2,112 candidate cells. Active-campaign N is fixed at 48;
-  lower-depth probes and arbitrary operator-selected depths are disabled.
+  on the 44 development cases at 750k with the exact immutable active cache.
+  It runs strict N=8/16/32/48 waves, so it compiles 352, 704, 1,408, or at most
+  2,112 candidate cells. Each wave covers every case and is decided before the
+  next wave enters the queue. Arbitrary active-campaign depths are disabled.
 - Improvement and simplification outcomes live in the standalone comparison
-  artifact. After convincing evidence, `rebaseline --from=COMPARISON
+  artifact. Active improvements use the calibrated sequential rule;
+  simplification and explicit deep/historical work remain fixed-N. After an
+  acceptance, `rebaseline --from=COMPARISON
   --label=LABEL` explicitly promotes that measured compiler snapshot.
 
 Any compiler change should preserve these tests and report its impact through the

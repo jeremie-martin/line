@@ -1,12 +1,12 @@
 /**
- * Pure rendering for an arbitrary fixed-N candidate run against the cached
- * baseline prefix.
+ * Pure rendering for a candidate run against the cached baseline prefix.
  *
  * Neither renderer reads or mutates governance state. There is no attempt
  * ledger, certification menu, or comparison budget in the active workflow.
  */
 
 import type { V2Decision } from "./decision_model.ts";
+import type { SequentialLookDecision } from "./sequential_inference.ts";
 
 export type CachedComparisonReport = {
   result: V2Decision;
@@ -18,6 +18,7 @@ export type CachedComparisonReport = {
   hint: string | null;
   nextCommand: string;
   runnerFingerprintsMatch: boolean;
+  sequentialLooks?: SequentialLookDecision[];
 };
 
 export function renderCachedComparison(report: CachedComparisonReport): string {
@@ -38,6 +39,12 @@ export function renderCachedComparison(report: CachedComparisonReport): string {
       `[${formatSigned(result.confidence.centralLo)}, ${formatSigned(result.confidence.centralHi)}]`,
     `  one-sided bounds: lower ${formatSigned(result.confidence.lowerBound)}, ` +
       `upper ${formatSigned(result.confidence.upperBound)}`,
+    ...(report.sequentialLooks === undefined ? [] : [
+      `  sequential rule: ${report.sequentialLooks.map((look) =>
+        `N=${look.depth} P(+)=` + `${(100 * look.directionalProbability).toFixed(2)}% ` +
+        `(required ${(100 * look.requiredDirectionalProbability).toFixed(2)}%): ${look.action}`
+      ).join("; ")}`,
+    ]),
     `  validity: ${result.validity.baseValid}/${result.validity.total} -> ` +
       `${result.validity.candidateValid}/${result.validity.total} ` +
       `(gained ${result.validity.gained}, lost ${result.validity.lost})`,

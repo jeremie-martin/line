@@ -18,6 +18,7 @@ import {
   suiteIdentity,
 } from "../v0/benchmark_v2/suite_model.ts";
 import { loadListeningReview } from "../v0/benchmark_v2/listening_review.ts";
+import { requireSequentialEvalCalibration } from "../v0/benchmark_v2/sequential_inference.ts";
 
 export const benchmarkV2Paths = {
   sourceManifest: "benchmark/v2/compat/source-manifest.json",
@@ -29,7 +30,11 @@ export const benchmarkV2Paths = {
   listeningReview: "benchmark/v2/evidence/listening-review.json",
 } as const;
 
-export async function prepareBenchmarkV2(): Promise<{
+export async function prepareBenchmarkV2(options: {
+  /** Scorer/suite bootstrap must create fresh run references before this
+   * calibration can exist. Ordinary preparation and paid eval fail closed. */
+  requireSequentialCalibration?: boolean;
+} = {}): Promise<{
   developmentCases: number;
   qualificationCases: number;
   characterizationFingerprint: string;
@@ -63,6 +68,12 @@ export async function prepareBenchmarkV2(): Promise<{
     benchmarkV2Paths.sourceManifest,
     development,
   );
+  // Preparation is the paid-run gate. A policy, inference, suite, scorer, or
+  // retained-reference change must regenerate the deterministic sequential
+  // calibration before an active campaign evaluation can begin.
+  if (options.requireSequentialCalibration !== false) {
+    requireSequentialEvalCalibration(identity.suiteFingerprint);
+  }
   const listeningReview = await loadListeningReview(
     benchmarkV2Paths.listeningReview,
     identity.suiteFingerprint,

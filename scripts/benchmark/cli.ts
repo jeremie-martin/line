@@ -83,7 +83,9 @@ async function main(rawArgs: string[]): Promise<void> {
     // Validate eval mode-specific flags before deterministic preparation. This
     // keeps a misspelled output destination from doing any paid work.
     if (command === "eval") assertEvalArguments(commandArgs);
-    const prepared = await prepareBenchmarkV2();
+    const prepared = await prepareBenchmarkV2({
+      requireSequentialCalibration: command !== "bootstrap" && command !== "baseline",
+    });
     console.log(
       `Prepared ${prepared.developmentCases} development + ${prepared.qualificationCases} qualification cases; ` +
       `audit ${prepared.auditFingerprint.slice(0, 16)}; listening review ${prepared.listeningReviewStatus}`,
@@ -235,11 +237,11 @@ function commandName(
 function printHelp(): void {
   console.log(`Benchmark V2\n\n` +
     `  npm run benchmark -- eval --seeds=48 [--jobs=48] [--resume]\n` +
-    `                                   Active 750k-only candidate comparison against retained N=48 rows\n` +
+    `                                   Active 750k improvement; strict N=8/16/32/48 looks, N=48 maximum\n` +
     `  npm run benchmark -- status\n` +
     `                                   Read-only campaign baseline/cache readiness and exact compute required\n` +
-    `  npm run benchmark -- baseline-cache status --seeds=48\n` +
-    `                                   Verify the active campaign projection\n` +
+    `  npm run benchmark -- baseline-cache status|extend --seeds=LOOK\n` +
+    `                                   Verify or append an N=8/16/32/48 active baseline prefix\n` +
     `  npm run benchmark -- family capture NAME --variant=ID [--note=TEXT]\n` +
     `  npm run benchmark -- family run NAME [--seeds=6] [--jobs=N]\n` +
     `  npm run benchmark -- family select NAME --variant=ID [--reason=TEXT]\n` +
@@ -255,7 +257,7 @@ function printHelp(): void {
     `  npm run benchmark -- explain <archive.json>\n\n` +
     `  Common execution flags: --jobs=N, --no-resource-stats, --resource-interval=SECONDS\n` +
     `  Eval paths: --out=RUN.json and --artifact=COMPARISON.json\n\n` +
-    `Comparisons are stateless and repeatable. The active campaign is fixed at 750k/N=48; its baseline is never recomputed.\n` +
+    `Active improvements declare N=48 once, decide complete N=8/16/32/48 prefixes, and never recompute cached baseline rows.\n` +
     `With --json, invoke through \`npm run --silent benchmark -- ...\` or call this CLI directly so npm's script banner does not prefix stdout.\n` +
     `Eval exit codes: 0 completed, 1 invalid. The comparison result lives in the artifact, not the process exit code.\n` +
     `Compiler execution defaults to 48 workers and prints resource samples every five seconds.`);

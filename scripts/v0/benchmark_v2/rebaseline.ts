@@ -2,9 +2,10 @@
  * Promote one explicit cached-comparison artifact.
  *
  * There is no implicit "latest attempt" and no governance state. The artifact
- * names the candidate archive and exact compiler snapshot. Rebaseline verifies
- * those bytes, runs the small probe and qualification sidecar, then publishes
- * the ordinary compact baseline references through a recoverable journal.
+ * names the candidate archive and exact compiler snapshot. Active-campaign
+ * promotion retains the accepted sequential prefix directly. Historical
+ * full-ladder rebaseline runs the small probe and qualification sidecar and
+ * publishes through a recoverable journal.
  */
 
 import { createHash } from "node:crypto";
@@ -40,6 +41,13 @@ import {
   baselineCacheManifestFingerprint,
 } from "./baseline_cache.ts";
 import { loadVerifiedArchive } from "./decide.ts";
+import { decisionProtocolFingerprint } from "./decision_protocol.ts";
+import {
+  requireSequentialEvalCalibration,
+  sequentialEvalCalibrationFingerprint,
+  sequentialEvalInferenceFingerprint,
+  sequentialEvalPolicyFingerprint,
+} from "./sequential_inference.ts";
 
 export async function runRebaselineCommand(argv = process.argv.slice(2)): Promise<number> {
   const argument = (name: string): string | undefined =>
@@ -91,7 +99,8 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
    * baseline whose strata no longer reflect what is being built. Until now the
    * only route for that was `benchmark -- baseline`, a full freeze that
    * recomputes every development compile from scratch. When the evidence is a
-   * comparison that ALREADY ran at full seed depth, that is thousands of
+   * comparison that already reached its governed stopping depth, that is
+   * hundreds or thousands of
    * compiles of pure waste - the archive it would rebuild is sitting right
    * there, checksummed, and this command already reuses it via
    * `retainExistingRun`.
@@ -102,9 +111,10 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
    */
   const forced = argv.includes("--force");
   const forceReason = argument("force-reason");
-  if (artifact.decision.result.outcome !== "accept" && !forced) {
+  const governedOutcome = comparisonOutcome(artifact);
+  if (governedOutcome !== "accept" && !forced) {
     throw new Error(
-      `comparison result is ${artifact.decision.result.outcome}, not a supported improvement; ` +
+      `comparison result is ${governedOutcome}, not a supported improvement; ` +
       `collect clearer evidence, keep iterating, or promote deliberately with ` +
       `--force --force-reason="..."`,
     );
@@ -164,7 +174,7 @@ export async function runRebaselineCommand(argv = process.argv.slice(2)): Promis
     });
     console.log(`rebaselined the 750k campaign to ${safeLabel}`);
     console.log(`  frozen 250k/500k V2 evidence was not run or changed`);
-    console.log(`  nextCommand: npm run benchmark -- eval --seeds=${comparisonBaseline.scope.seeds}`);
+    console.log(`  nextCommand: npm run benchmark -- eval --seeds=${comparisonBaseline.scope.max_seeds}`);
     return 0;
   }
 
@@ -255,7 +265,8 @@ function readComparisonArtifact(path: string): CachedComparisonArtifact {
   const schema = (artifact as any).schema;
   if (
     (schema !== "line.benchmark-v2.cached-comparison.v1" &&
-      schema !== "line.benchmark-v2.cached-comparison.v2") ||
+      schema !== "line.benchmark-v2.cached-comparison.v2" &&
+      schema !== "line.benchmark-v2.cached-comparison.v3") ||
     artifact.status !== "complete" ||
     typeof artifact.candidate?.archivePath !== "string" ||
     artifact.candidate?.snapshot === undefined ||
@@ -263,7 +274,22 @@ function readComparisonArtifact(path: string): CachedComparisonArtifact {
   ) {
     throw new Error(`unsupported cached comparison artifact`);
   }
+  if (schema === "line.benchmark-v2.cached-comparison.v3" && (
+    !["accept", "reject", "inconclusive", "unresolved"].includes((artifact as any).outcome) ||
+    typeof (artifact as any).promotable !== "boolean" ||
+    (artifact as any).promotable !== ((artifact as any).outcome === "accept")
+  )) throw new Error(`cached comparison has a malformed governed outcome`);
   return artifact;
+}
+
+function comparisonOutcome(
+  artifact: CachedComparisonArtifact,
+): "accept" | "reject" | "inconclusive" | "unresolved" {
+  const outcome = (artifact as any).outcome ?? artifact.decision.result.outcome;
+  if (!["accept", "reject", "inconclusive", "unresolved"].includes(outcome)) {
+    throw new Error(`cached comparison has no promotable canonical outcome`);
+  }
+  return outcome;
 }
 
 function promoteCampaignBaseline(input: {
@@ -279,20 +305,44 @@ function promoteCampaignBaseline(input: {
 }): void {
   const { comparisonBaseline, artifact } = input;
   const scope = comparisonBaseline.scope;
+  const calibration = requireSequentialEvalCalibration(comparisonBaseline.suite_fingerprint);
+  const sequential = artifact.sequential;
+  const fixedSimplification = sequential === null &&
+    artifact.decision.result.mode === "simplification" &&
+    artifact.base.seeds === scope?.max_seeds;
   if (
     scope?.profile !== "canonical" || !Array.isArray(scope.budgets) ||
-    scope.budgets.length === 0 || !Number.isSafeInteger(scope.seeds) ||
+    scope.budgets.length === 0 || !Number.isSafeInteger(scope.max_seeds) ||
+    !Array.isArray(scope.sequential_looks) ||
     JSON.stringify(artifact.base.budgets) !== JSON.stringify(scope.budgets) ||
-    artifact.base.seeds !== scope.seeds
+    !scope.sequential_looks.includes(artifact.base.seeds) ||
+    artifact.base.maximumSeeds !== scope.max_seeds ||
+    comparisonBaseline.sequential_eval_policy_fingerprint !== sequentialEvalPolicyFingerprint() ||
+    comparisonBaseline.sequential_eval_inference_fingerprint !== sequentialEvalInferenceFingerprint() ||
+    comparisonBaseline.sequential_eval_calibration_fingerprint !== sequentialEvalCalibrationFingerprint() ||
+    (sequential === null && !fixedSimplification) ||
+    (sequential !== null && (
+      sequential.maximumSeeds !== scope.max_seeds ||
+      sequential.stoppingDepth !== artifact.base.seeds ||
+      sequential.stoppingAction !== comparisonOutcome(artifact) ||
+      sequential.policyFingerprint !== sequentialEvalPolicyFingerprint() ||
+      sequential.inferenceFingerprint !== sequentialEvalInferenceFingerprint() ||
+      sequential.calibrationFingerprint !== sequentialEvalCalibrationFingerprint() ||
+      sequential.policyFingerprint !== comparisonBaseline.sequential_eval_policy_fingerprint ||
+      sequential.inferenceFingerprint !== comparisonBaseline.sequential_eval_inference_fingerprint ||
+      sequential.calibrationFingerprint !== comparisonBaseline.sequential_eval_calibration_fingerprint ||
+      calibration.policyFingerprint !== sequential.policyFingerprint
+    )) ||
+    artifact.decision.decisionProtocolFingerprint !== decisionProtocolFingerprint()
   ) {
-    throw new Error(`comparison does not match the active campaign's fixed scope`);
+    throw new Error(`comparison does not match the active campaign's sequential scope`);
   }
   const verified = loadVerifiedArchive(input.candidatePath);
   const archive = verified.archive;
   if (
     archive.mode !== "development" || archive.profile !== "canonical" ||
     JSON.stringify(archive.identity?.budgets) !== JSON.stringify(scope.budgets) ||
-    archive.identity?.seedSchedule?.seedsPerBudget !== scope.seeds ||
+    archive.identity?.seedSchedule?.seedsPerBudget !== artifact.base.seeds ||
     archive.git?.candidateFingerprint !== artifact.candidate.snapshot.candidateFingerprint ||
     Math.abs(archive.canonicalHeadline - artifact.decision.result.candidateHeadline) > 0.0001
   ) {
@@ -303,7 +353,7 @@ function promoteCampaignBaseline(input: {
     artifact.candidate.archiveSha256,
     artifact.candidate.compressedArchiveSha256,
     input.archiveDir,
-    `${input.safeLabel}-development-${scope.budgets.map((budget: number) => `${budget / 1000}k`).join("-")}`,
+    `${input.safeLabel}-development-${scope.budgets.map((budget: number) => `${budget / 1000}k`).join("-")}-N${artifact.base.seeds}`,
   );
   const retainedComparison = resolve(input.archiveDir, `${input.safeLabel}-comparison.json`);
   copyFileDurable(input.artifactPath, retainedComparison);
@@ -313,18 +363,65 @@ function promoteCampaignBaseline(input: {
   );
 
   const schedule = archive.identity.seedSchedule;
+  const requestBytes = readFileSync(resolve(artifact.request.path));
+  if (createHash("sha256").update(requestBytes).digest("hex") !== artifact.request.sha256) {
+    throw new Error(`comparison request checksum mismatch during campaign promotion`);
+  }
+  const request = JSON.parse(requestBytes.toString("utf8"));
+  if (sequential !== null && (
+    request.sequentialPolicyFingerprint !== sequential.policyFingerprint ||
+    request.sequentialInferenceFingerprint !== sequential.inferenceFingerprint ||
+    request.sequentialCalibrationFingerprint !== sequential.calibrationFingerprint ||
+    request.experiment !== "sequential-improvement"
+  )) throw new Error(`comparison request and sequential decision provenance disagree`);
+  if (fixedSimplification && (
+    request.experiment !== "fixed" || request.sequentialPolicyFingerprint !== null ||
+    request.sequentialInferenceFingerprint !== null || request.sequentialCalibrationFingerprint !== null
+  )) throw new Error(`fixed simplification request carries sequential provenance`);
+  const retainedRequest = resolve(input.archiveDir, `${input.safeLabel}-comparison-request.json`);
+  copyFileDurable(resolve(artifact.request.path), retainedRequest);
+  writeFileAtomicDurable(
+    `${retainedRequest}.sha256`,
+    `${artifact.request.sha256}  ${relativeToCwd(retainedRequest)}\n`,
+  );
+  const declaredSchedule = request.canonicalSeedSchedule;
+  if (
+    declaredSchedule?.seedsPerBudget !== scope.max_seeds ||
+    JSON.stringify(declaredSchedule.byBudget?.map((entry: any) => entry.budget)) !== JSON.stringify(scope.budgets) ||
+    JSON.stringify(declaredSchedule.byBudget?.map((entry: any) => ({
+      ...entry,
+      actualSeeds: entry.actualSeeds.slice(0, artifact.base.seeds),
+    }))) !== JSON.stringify(schedule.byBudget) ||
+    (sequential !== null && (
+      archive.sequentialAttempt?.declaredSeedsPerBudget !== scope.max_seeds ||
+      archive.sequentialAttempt?.completedSeedsPerBudget !== artifact.base.seeds ||
+      archive.sequentialAttempt?.declaredSeedScheduleFingerprint !==
+        createHash("sha256").update(JSON.stringify(declaredSchedule)).digest("hex") ||
+      archive.sequentialAttempt?.measuredSeedScheduleFingerprint !==
+        createHash("sha256").update(JSON.stringify(schedule)).digest("hex")
+    ))
+  ) throw new Error(`comparison request does not preserve the campaign's declared seed ladder`);
   const developmentBudgets = archive.developmentSummaries.map((summary: any) => ({
     budget: summary.budget,
     score: summary.score,
     valid_runs: summary.validRuns,
     total_runs: summary.totalRuns,
   }));
+  const {
+    sequential_policy_migration: _priorPolicyMigration,
+    cache_monitoring: _priorCacheMonitoring,
+    ...campaignTemplate
+  } = comparisonBaseline;
   const campaign = {
-    ...comparisonBaseline,
+    ...campaignTemplate,
     schema: CAMPAIGN_BASELINE_REFERENCE_SCHEMA,
     status: "active-campaign-baseline",
     label: input.safeLabel,
     generated_at: new Date().toISOString(),
+    scope: {
+      ...scope,
+      promotion_seeds: artifact.base.seeds,
+    },
     compiler_identity_protocol: archive.git.compilerIdentityProtocol,
     compiler_source_fingerprint: archive.git.compilerSourceFingerprint,
     compiler_source_files: archive.git.compilerSourceFiles,
@@ -336,6 +433,9 @@ function promoteCampaignBaseline(input: {
     compiler_snapshot: input.retainedSnapshot,
     decision_inference_fingerprint: artifact.decision.decisionInferenceFingerprint,
     decision_protocol_fingerprint: artifact.decision.decisionProtocolFingerprint,
+    sequential_eval_policy_fingerprint: sequentialEvalPolicyFingerprint(),
+    sequential_eval_inference_fingerprint: sequentialEvalInferenceFingerprint(),
+    sequential_eval_calibration_fingerprint: sequentialEvalCalibrationFingerprint(),
     development: {
       execution_policy_fingerprint: archive.identity.executionPolicyFingerprint,
       implementation_fingerprint: archive.identity.implementationFingerprint,
@@ -355,13 +455,13 @@ function promoteCampaignBaseline(input: {
         schema: BASELINE_CACHE_LADDER_SCHEMA,
         profile: "canonical",
         seedBase: schedule.seedBase,
-        maximumSeedsPerBudget: scope.seeds,
-        byBudget: schedule.byBudget,
+        maximumSeedsPerBudget: scope.max_seeds,
+        byBudget: declaredSchedule.byBudget,
       },
       shards: [{
         schema: BASELINE_CACHE_SHARD_SCHEMA,
         firstSeedSlot: 0,
-        endSeedSlotExclusive: scope.seeds,
+        endSeedSlotExclusive: artifact.base.seeds,
         archiveSha256: artifact.candidate.archiveSha256,
         compressedArchive: relativeToCwd(retainedDevelopment),
         compressedArchiveSha256: artifact.candidate.compressedArchiveSha256,
@@ -373,8 +473,18 @@ function promoteCampaignBaseline(input: {
       artifact: relativeToCwd(retainedComparison),
       artifact_sha256: createHash("sha256").update(readFileSync(retainedComparison)).digest("hex"),
       seeds: artifact.base.seeds,
+      maximum_seeds: scope.max_seeds,
+      experiment: sequential === null ? "fixed-simplification" : "sequential-improvement",
+      ...(sequential === null ? {} : {
+        stopping_action: sequential.stoppingAction,
+        sequential_policy_fingerprint: sequential.policyFingerprint,
+        sequential_inference_fingerprint: sequential.inferenceFingerprint,
+        sequential_calibration_fingerprint: sequential.calibrationFingerprint,
+      }),
+      request: relativeToCwd(retainedRequest),
+      request_sha256: artifact.request.sha256,
       budgets: artifact.base.budgets,
-      outcome: artifact.decision.result.outcome,
+      outcome: comparisonOutcome(artifact),
       delta: artifact.decision.result.delta,
       ...(input.forced
         ? { forced: true, force_reason: input.forceReason?.trim() }

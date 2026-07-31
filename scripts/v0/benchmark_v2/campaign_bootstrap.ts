@@ -49,6 +49,13 @@ import {
   loadSuiteManifest,
   suiteIdentity,
 } from "./suite_model.ts";
+import { benchmarkSequentialEvalPolicy } from "../../../benchmark/v2/eval-policy.ts";
+import {
+  requireSequentialEvalCalibration,
+  sequentialEvalCalibrationFingerprint,
+  sequentialEvalInferenceFingerprint,
+  sequentialEvalPolicyFingerprint,
+} from "./sequential_inference.ts";
 
 const ACTIVE_CAMPAIGN_BASELINE = "benchmark/v2/campaign-baseline.json";
 const SOURCE_MANIFEST = "benchmark/v2/compat/source-manifest.json";
@@ -441,6 +448,7 @@ function publishCampaignBootstrap(requestPath: string): number {
     jobs: REQUIRED_JOBS,
   });
   const decision = requireCurrentDecisionCalibration(identity.suiteFingerprint);
+  requireSequentialEvalCalibration(identity.suiteFingerprint);
   const verified = loadVerifiedArchive(resolve(result.development.archive));
   const archive = verified.archive;
   if (
@@ -463,7 +471,9 @@ function publishCampaignBootstrap(requestPath: string): number {
     scope: {
       profile: "canonical",
       budgets: [REQUIRED_BUDGET],
-      seeds: REQUIRED_SEEDS,
+      max_seeds: REQUIRED_SEEDS,
+      promotion_seeds: REQUIRED_SEEDS,
+      sequential_looks: [...benchmarkSequentialEvalPolicy.looks],
       target_headline: 650,
       deferred_budgets: [250_000, 500_000],
       compiler_scale_contract:
@@ -486,6 +496,9 @@ function publishCampaignBootstrap(requestPath: string): number {
     decision_inference_fingerprint: decision.inferenceFingerprint,
     decision_protocol_fingerprint: decision.protocolFingerprint,
     decision_calibration_fingerprint: decision.calibrationFingerprint,
+    sequential_eval_policy_fingerprint: sequentialEvalPolicyFingerprint(),
+    sequential_eval_inference_fingerprint: sequentialEvalInferenceFingerprint(),
+    sequential_eval_calibration_fingerprint: sequentialEvalCalibrationFingerprint(),
     compiler_snapshot: request.candidateSnapshot,
     development: {
       execution_policy_fingerprint: archive.identity.executionPolicyFingerprint,
@@ -569,7 +582,7 @@ function printCompletedResult(result: BootstrapResult): void {
   console.log(`  raw sha256: ${result.development.archiveSha256}`);
   console.log(`  gzip sha256: ${result.development.compressedArchiveSha256}`);
   console.log(`  result: ${relativeToCwd(resultPath(resolve(result.request.path)))}`);
-  console.log(`  publication remains blocked until scorer-bound decision calibration is regenerated`);
+  console.log(`  publication remains blocked until scorer-bound fixed and sequential calibration are regenerated`);
 }
 
 function currentSuite() {

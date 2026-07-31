@@ -1,8 +1,29 @@
-/**
- * Historical Benchmark V2 calibrated operating-point rows and exit codes.
+/** Active campaign improvement policy.
  *
- * The active CLI no longer restricts comparison sizes to this menu. These
- * rows remain available to reproduce older calibration studies.
+ * `totalAlpha` is the only operator-facing tolerance.  The calibration
+ * artifact derives the single O'Brien-Fleming boundary constant from it; the
+ * live evaluator never carries separately editable per-look probabilities.
+ */
+export const benchmarkSequentialEvalPolicy = {
+  schema: "line.benchmark-v2.sequential-eval-policy.v1",
+  mode: "improvement",
+  maximumDepth: 48,
+  looks: [8, 16, 32, 48],
+  totalAlpha: 0.05,
+  calibrationTargetFraction: 0.8,
+  calibrationTrialsPerScenario: 10_000,
+  validationTrialsPerScenario: 10_000,
+  boundaryFamily: "obrien-fleming-t",
+  symmetricHarmBoundary: true,
+  predictiveFutility: false,
+} as const;
+
+/**
+ * Historical fixed-N operating-point rows and exit codes.
+ *
+ * They remain available only for explicit simplification and historical/deep
+ * fixed-N work. Active campaign improvements use
+ * `benchmarkSequentialEvalPolicy` above.
  */
 
 export const EVAL_CERTIFICATION_ARTIFACT_PATHS = {

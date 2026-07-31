@@ -16,6 +16,9 @@ export type BaselineContract = {
   inferenceFingerprint: string;
   protocolFingerprint: string;
   calibrationFingerprint: string;
+  sequentialPolicyFingerprint: string | null;
+  sequentialInferenceFingerprint: string | null;
+  sequentialCalibrationFingerprint: string | null;
 };
 
 /** Read the compact baseline identity used by snapshots and exploratory tools.
@@ -27,7 +30,7 @@ export function readBaselineContract(baselinePath = DEFAULT_BASELINE_PATH): Base
   const baseline = JSON.parse(readFileSync(resolve(baselinePath), "utf8"));
   const canonical = baseline.schema === "line.benchmark-v2.baseline-reference.v10" &&
     baseline.status === "canonical-baseline";
-  const campaign = baseline.schema === "line.benchmark-v2.campaign-baseline.v1" &&
+  const campaign = baseline.schema === "line.benchmark-v2.campaign-baseline.v2" &&
     baseline.status === "active-campaign-baseline";
   if (!canonical && !campaign) {
     throw new Error(`unsupported baseline reference; establish a new baseline`);
@@ -46,5 +49,8 @@ export function readBaselineContract(baselinePath = DEFAULT_BASELINE_PATH): Base
     inferenceFingerprint: baseline.decision_inference_fingerprint,
     protocolFingerprint: baseline.decision_protocol_fingerprint,
     calibrationFingerprint: baseline.decision_calibration_fingerprint,
+    sequentialPolicyFingerprint: campaign ? baseline.sequential_eval_policy_fingerprint : null,
+    sequentialInferenceFingerprint: campaign ? baseline.sequential_eval_inference_fingerprint : null,
+    sequentialCalibrationFingerprint: campaign ? baseline.sequential_eval_calibration_fingerprint : null,
   };
 }

@@ -25,7 +25,8 @@ Read `docs/HOW_TO_WORK.md`, `docs/benchmark-v2-context.md`,
 `npm run benchmark -- prepare` after benchmark-definition changes and
 `npm run benchmark -- status` to verify the exact campaign baseline and work.
 
-The official campaign scope is temporarily **750k only, N=48 only**:
+The official campaign scope is temporarily **750k only**, with a predeclared
+maximum of N=48 and strict looks at **N=8/16/32/48**:
 
 ```bash
 npm run benchmark -- status
@@ -51,22 +52,29 @@ exercise representative mappings at 150k and 1M-3M in focused tests whenever
 a mechanism depends on compute. Acceleration/kinematic-line work remains
 explicitly deferred.
 
-Use compute in proportion to uncertainty, but publish campaign decisions only
-at N=48:
+Use compute in proportion to uncertainty. The governed improvement experiment
+uses one O'Brien-Fleming Student-t boundary calibrated to one-sided total alpha
+5% per direction:
 
 1. focused tests and a small cross-regime scope panel;
 2. one cache-backed `npm run benchmark -- eval --seeds=48`;
-3. no N=2/N=4/N=8 probes and no adaptive seed-depth ladder.
+3. the runner queues N=8, decides it, and queues N=16/32/48 only after a
+   `continue` result. A positive boundary crossing accepts; the symmetric
+   negative crossing rejects; no predictive-futility rule stops a plausible
+   recovery. An uncrossed N=48 result is inconclusive.
 
-The active campaign cache is fixed at N=48 and already complete. It is the
-exact fresh 750k archive from the governed scorer-bound bootstrap, using
-literal seeds 16–23 and 608–647. Never recompute that baseline.
+The active campaign cache currently covers N=48 because this baseline predates
+the sequential workflow. It is the exact fresh 750k archive from the governed
+scorer-bound bootstrap, using literal seeds 16–23 and 608–647. Never recompute
+covered rows. A future baseline promoted at an earlier look begins with that
+exact prefix; extend only the next declared baseline prefix if the candidate
+continues.
 
 Do not compare the active headline to a pre-`c7146660` score: the old baseline
 used net redirection arc, while the active ruler uses accumulated contacted-
 frame impulse. The old schedule was reused only as a literal seed schedule.
 
-Judge evidence by headline delta and uncertainty, stratum movement, validity
+Judge evidence by the governed sequential result, headline delta and uncertainty, stratum movement, validity
 gains/losses, material case regressions, and mechanism plausibility. Repeated
 runs are allowed when useful, but do not pretend adaptively selected results
 are one pooled independent experiment.

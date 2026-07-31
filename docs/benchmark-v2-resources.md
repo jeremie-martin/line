@@ -5,8 +5,8 @@ Reference host: 64 logical CPUs, 62.6 GiB RAM. Engine: WASM. Concurrency: 48.
 ## Results
 
 The table preserves capacity measurements from several workflow generations.
-Rows named probe, stage 0, or confirmation are historical; active comparisons
-use the 750k-only candidate path at N=48.
+Rows named probe, stage 0, confirmation, or futility are historical. Active
+comparisons use the 750k-only strict N=8/16/32/48 candidate path.
 
 | Workload | Wall time | Peak process CPU | Peak host CPU | Peak RSS | Result |
 |---|---:|---:|---:|---:|---|
@@ -21,9 +21,9 @@ use the 750k-only candidate path at N=48.
 | Retired depth-48 confirmation, 12,672 development + 120 qualification | 58m13s | — | — | — | historical accepted attempt `c8f9c284`; no worker failure |
 | Retired probe refresh, 264 compiles | 1m10s | 52.0 cores | 82% | 6.45 GiB | historical probe 462.73 |
 | Historical canonical N=100 candidate comparison, 13,200 compiles | completed | — | — | — | retired full-ladder workflow; zero baseline compiles |
-| Eval wave, 126 compiles/arm + interim look | ~90 s | — | — | — | measured, live validation V3 |
-| Eval futility stop at look k=2 (two-arm) | 173 s | — | — | — | measured (smoke): ~96% of the attempt's compute saved |
-| Eval depth-48 confirmation, 12,096 compiles two-arm + workspaces | ~45–50 min | — | — | — | measured, live validation V3 |
+| Retired eval wave, 126 compiles/arm + interim look | ~90 s | — | — | — | historical validation V3 |
+| Retired predictive-futility stop at look k=2 (two-arm) | 173 s | — | — | — | historical validation V3 |
+| Retired depth-48 confirmation, 12,096 compiles two-arm + workspaces | ~45–50 min | — | — | — | historical validation V3 |
 | Historical runner-compat probe replay, 264 compiles in a workspace | ~4 min | — | — | — | retired workflow timing |
 
 The first 48-worker trial exposed a worker-lifecycle defect: the pool reused a slot when
@@ -38,10 +38,13 @@ are unchanged, establishing that the lifecycle correction affects resource owner
 not compiler behavior.
 
 The first three rows are retained V2.2 measurements; the historical canonical
-rows derive from the retained v2-initial baseline artifacts. The active
-750k/N=48 campaign costs exactly `44 × 48 = 2,112` candidate compiles, with no
-baseline work. The frozen full ladder would remain `132 × N` if explicitly
-restored. Scoped campaign promotion retains the selected development archive
+rows derive from the retained v2-initial baseline artifacts. An active wave
+costs `44 × N`: 352 at N=8, 704 cumulative at N=16, 1,408 at N=32, and at most
+2,112 at N=48. The next wave is not queued until the current look returns
+`continue`. If the accepted baseline lacks that prefix, its same-sized missing
+tail is compiled explicitly before candidate resume; already cached baseline
+rows are never recomputed. The frozen full ladder remains `132 × N` if
+explicitly restored. Scoped campaign promotion retains the selected prefix
 without running deferred-budget or qualification work.
 
 Public commands default to 48 workers and print a resource sample every five seconds:

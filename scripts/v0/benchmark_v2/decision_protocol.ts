@@ -17,12 +17,15 @@ export const DECISION_PROTOCOL_SOURCE_FILES = [
   "benchmark/v2/runner-compatibility.json",
   "scripts/benchmark/cli.ts",
   "scripts/benchmark/freeze_baseline.ts",
+  "scripts/benchmark/calibrate_sequential_eval.ts",
   "scripts/benchmark/verify_runner_compatibility.ts",
   "scripts/v0/benchmark_v2/baseline_contract.ts",
   "scripts/v0/benchmark_v2/baseline_cache.ts",
   "scripts/v0/benchmark_v2/baseline_cache_command.ts",
   "scripts/v0/benchmark_v2/baseline.ts",
   "scripts/v0/benchmark_v2/baseline_publication.ts",
+  "scripts/v0/benchmark_v2/campaign_bootstrap.ts",
+  "scripts/v0/benchmark_v2/campaign_bootstrap_request.ts",
   "scripts/v0/benchmark_v2/compiler_identity.ts",
   "scripts/v0/benchmark_v2/compiler_snapshot.ts",
   "scripts/v0/benchmark_v2/decide.ts",
@@ -34,6 +37,7 @@ export const DECISION_PROTOCOL_SOURCE_FILES = [
   "scripts/v0/benchmark_v2/listening_review.ts",
   "scripts/v0/benchmark_v2/rebaseline.ts",
   "scripts/v0/benchmark_v2/runner_compatibility.ts",
+  "scripts/v0/benchmark_v2/sequential_inference.ts",
   "scripts/v0/benchmark_v2/status.ts",
 ] as const;
 

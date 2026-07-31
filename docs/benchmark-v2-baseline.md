@@ -4,7 +4,8 @@ Active campaign label: `readiness-contact-impulse-v3-750k`. Suite:
 `7bd878d8aaea08a9`.
 
 Official campaign headline: **595.8997** at 750k/N=48, with **2112/2112**
-valid runs. Target: **>650**.
+valid runs. N=48 is this baseline's promotion depth as well as its present
+cache coverage. Target: **>650**.
 
 This is the scorer-aligned readiness refit under accumulated contacted-frame
 redirection impulse. It was compared against the first current-ruler bootstrap
@@ -13,6 +14,13 @@ point estimate was +2.3966 (593.5031 → 595.8997), with 95% CI
 [-1.2805,+6.0737]. Its ordinary verdict remains `inconclusive`. An explicit
 owner override promoted the recalibration; the active reference records both
 the original verdict and the reason for overriding it.
+
+That comparison predates the current strict sequential policy, so its
+historical fixed-look verdict was not retroactively rewritten. The reference
+received a protocol-only migration: future improvements declare N=48 once and
+use strict N=8/16/32/48 looks with a calibrated symmetric O'Brien-Fleming
+Student-t boundary. The one-sided total false-promotion tolerance is 5%; there
+is no predictive futility stop. This migration changed no score or archive.
 
 The 250k and 500k budgets are temporarily deferred from the official headline.
 Their old-ruler evidence remains unchanged in `benchmark/v2/baseline.json`; it
@@ -31,8 +39,16 @@ Identity:
   `12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6`;
 - inference rule:
   `56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f`;
+- decision protocol:
+  `c045a451f3da536e457670dd7de68041cae2e3b7750aaf5aefedf944b66f88d2`;
 - decision calibration:
   `b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1`.
+- sequential policy:
+  `274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322`;
+- sequential inference:
+  `1e94bf8b01ffc3f616003b62ba9a74b7c68a5b087f84606ec98e9369682a767e`;
+- sequential calibration artifact:
+  `fc933b6ff363f81d0e271b0d5f13bc38ad1410a4f569dda90e07f96b0434ba07`.
 
 Retained evidence:
 

@@ -488,8 +488,8 @@ describe("JSON CLI surface", () => {
     ], { cwd: process.cwd(), encoding: "utf8" });
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("eval --seeds=48");
-    expect(result.stdout).toContain("750k-only");
-    expect(result.stdout).toContain("baseline-cache status --seeds=48");
+    expect(result.stdout).toContain("strict N=8/16/32/48 looks");
+    expect(result.stdout).toContain("baseline-cache status|extend --seeds=LOOK");
     expect(result.stdout).toContain("rebaseline --from=COMPARISON");
     expect(result.stdout).toContain("--no-resource-stats");
     expect(result.stdout).not.toContain("--abort-in-flight");

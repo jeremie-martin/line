@@ -13,9 +13,12 @@ remains intact and deferred; it was not recomputed. See
 `docs/benchmark-v2-current-baseline-analysis.md` for current-ruler distribution
 and behavior analysis.
 
-All campaign acceptance runs are now 750k/N=48 only (2,112 candidate
-compiles). Compiler mechanisms must still scale continuously through 150k and
-1M-3M; no budget-identity branching or acceleration-line work.
+All campaign acceptance experiments are 750k with a declared N=48 maximum and
+strict N=8/16/32/48 looks (352/704/1,408/2,112 cumulative candidate compiles).
+The symmetric calibrated boundary may accept improvement or reject harm early;
+there is no predictive-futility stop. Compiler mechanisms must still scale
+continuously through 150k and 1M-3M; no budget-identity branching or
+acceleration-line work.
 
 | baseline | canonical | evidence |
 |---|---:|---|
@@ -64,6 +67,12 @@ and the representative stratum is positive. It was force-promoted as
 ordinary verdict and override rationale; it does not misstate the comparison
 as statistically conclusive. No cross-ruler comparison is involved, and the
 deferred 250k/500k evidence was not touched.
+
+This comparison occurred before the strict sequential policy and remains a
+historical fixed-look result. The active reference's protocol-only migration
+records N=48 as its promotion depth and current cache coverage without
+retroactively changing the verdict. Future improvements use the scorer-bound
+sequential calibration in `benchmark-v2-sequential-eval-calibration.md`.
 
 ### Historical pre-scorer-bound analysis: what 650 required
 
@@ -356,8 +365,9 @@ coverage in the nonlinear generator; this independently confirms the earlier
 Halton-prefix observation.
 
 **Decision.** Retired and source-reverted. N=48 baseline cache coverage is now
-published for slots 0--47, so subsequent candidates compile only their 6,336
-candidate cells. Candidate evaluation now uses N=48 only.
+published for slots 0--47, so subsequent candidates then compiled only their
+6,336 candidate cells. That historical campaign used N=48 only; it is not the
+current strict-look policy.
 
 ## 2026-07-30 — RETIRED: branch-lineage proposal streams
 

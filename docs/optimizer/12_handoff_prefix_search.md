@@ -147,10 +147,12 @@ LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts
 npm run benchmark -- eval --seeds=48 --jobs=48
 ```
 
-The active campaign accepts only the fixed 44-case, 750k/N=48 comparison. It
-reuses all 2,112 baseline cells and compiles only the candidate, reporting the
-headline, hierarchy, validity, checkpoint identity, seed schedule, and compact
-compiler statistics. Lower-depth probes and adaptive N are disabled.
+The active campaign declares one 44-case, 750k experiment with an N=48 maximum.
+It executes strict N=8/16/32/48 waves (352/704/1,408/2,112 cumulative candidate
+cells), deciding each complete all-case prefix before the next enters the
+queue. These are calibrated planned looks, not lower-depth probes or
+operator-selected adaptive N. It reports the headline, hierarchy, validity,
+checkpoint identity, literal seed schedule, and compact compiler statistics.
 
 Historical `--full`, `--compiler`, custom V1 budget grids, and `golden.json`
 archives require `npm run golden:v1` and `npm run decide:v1`; they are not V2

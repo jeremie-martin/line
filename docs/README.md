@@ -40,7 +40,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 
 | Doc | Tag | What |
 |---|---|---|
-| [`../goal.md`](../goal.md) | LIVE | The active compiler-improvement goal and fixed-N promotion discipline. |
+| [`../goal.md`](../goal.md) | LIVE | The active compiler-improvement goal and strict sequential promotion discipline. |
 | [`impact-mission.md`](impact-mission.md) | LIVE | Current impact mission, ownership boundaries, and change discipline. |
 
 ## Reference
@@ -52,6 +52,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`benchmark-v2-seed-allocation.md`](benchmark-v2-seed-allocation.md) | REFERENCE | Empirical V2 seed-count allocation study. |
 | [`benchmark-v2-decision-calibration.md`](benchmark-v2-decision-calibration.md) | REFERENCE | Empirical and simulated V2 decision-rule calibration. |
 | [`benchmark-v2-decision-coverage.md`](benchmark-v2-decision-coverage.md) | REFERENCE | Real-block, validity-flip, and hard-zero coverage stress for the formal gate. |
+| [`benchmark-v2-sequential-eval-calibration.md`](benchmark-v2-sequential-eval-calibration.md) | LIVE | Scorer-bound N=8/16/32/48 boundary calibration, validation, and retrospective replay. |
 | [`benchmark-v2-responsiveness.md`](benchmark-v2-responsiveness.md) | REFERENCE | Graded and contract-level negative controls for the V2 score and gate. |
 | [`benchmark-v2-resources.md`](benchmark-v2-resources.md) | REFERENCE | Measured 48-worker CPU, memory, and wall-time envelope. |
 | [`metric_problem_statement.md`](metric_problem_statement.md) | ARCHIVE | Statistical rationale for the retired V1 metric and decision rule. |
@@ -63,8 +64,8 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`difficulty-model-study.md`](difficulty-model-study.md) | REFERENCE | First-completion cost vs full-score difficulty characterization. |
 | [`../TOOLING_NOTES.md`](../TOOLING_NOTES.md) | ARCHIVE | V1-era tooling notes; its own banner warns the commands may no longer exist. |
 
-HTML views: `archive/handoff-compiler-v1.html` is a historical V1 generated view. The V2 baseline of
-record is `../benchmark/v2/baseline.json`. `forward-eval-map.html` is **hand-maintained** (no generator); re-verify its
+HTML views: `archive/handoff-compiler-v1.html` is a historical V1 generated view. The active V2 campaign baseline of
+record is `../benchmark/v2/campaign-baseline.json`; `../benchmark/v2/baseline.json` is the frozen historical full ladder. `forward-eval-map.html` is **hand-maintained** (no generator); re-verify its
 `scripts/v0/*.ts` file:line anchors when that code changes.
 
 ## Component READMEs (co-located with code)

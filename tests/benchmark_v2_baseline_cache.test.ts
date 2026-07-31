@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   baselineCachePlan,
+  baselineCacheHeadlineAtDepth,
   cacheCoverage,
   readBaselineCache,
   seedScheduleAtDepth,
@@ -12,13 +13,18 @@ import { decisionProtocolFingerprint } from "../scripts/v0/benchmark_v2/decision
 import { readFileSync } from "node:fs";
 
 describe("canonical baseline cache fixed-N plans", () => {
-  it("uses the active scorer-bound 750k campaign archive at fixed N=48", () => {
+  it("uses the active scorer-bound 750k campaign archive with a four-look N=48 maximum", () => {
     const cache = readBaselineCache();
     const reference = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
     expect(cache.campaignScope).toEqual({
       budgets: [750_000],
-      seeds: 48,
+      maximumSeeds: 48,
+      promotionSeeds: 48,
+      looks: [8, 16, 32, 48],
       targetHeadline: 650,
+      sequentialPolicyFingerprint: reference.sequential_eval_policy_fingerprint,
+      sequentialInferenceFingerprint: reference.sequential_eval_inference_fingerprint,
+      sequentialCalibrationFingerprint: reference.sequential_eval_calibration_fingerprint,
     });
     const plan = baselineCachePlan(cache, 48);
     verifyBaselineCache(cache, 48);
@@ -36,6 +42,12 @@ describe("canonical baseline cache fixed-N plans", () => {
       reference.compiler_snapshot.candidateFingerprint,
     );
     expect(reference.decision_protocol_fingerprint).toBe(decisionProtocolFingerprint());
+    expect(baselineCacheHeadlineAtDepth(cache, 48)).toEqual({
+      seeds: 48,
+      headline: 595.8997,
+      validRuns: 2_112,
+      totalRuns: 2_112,
+    });
   });
 
   it("plans any N deterministically from the cache prefix, without compiler work", () => {

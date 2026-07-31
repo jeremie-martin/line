@@ -1,16 +1,20 @@
 # Benchmark V2 Seed Allocation Study
 
+> Historical allocation evidence. Its former three-seed probe, eight-seed
+> canonical policy, and fresh-epoch ledger are not the live campaign workflow.
+> Active 750k improvements use the retained literal ladder with strict
+> N=8/16/32/48 looks and a scorer-bound repeated-look calibration. The
+> historical/deep fixed-N surface remains separate.
+
 The reference contains 12 seeds at each of 3 budgets. Reference headline: **450.84**; valid 1358/1512.
 
 Schedule trials estimate the effect of seed count using disjoint budget blocks. The frozen V2 policy additionally separates probe and canonical actual-seed ranges; numeric seed labels are deterministic IID inputs.
 
-Benchmark V2 retains three probe seeds per budget and uses eight canonical seeds per
-budget. The increase is a promotion-stability decision informed jointly by this allocation
-study and the zero-inflated coverage study; it is not inferred from the four-seed row alone.
-Probe uses the fixed 24-29 schedule for reusable screening. Each canonical attempt declares
-a fresh random base of at least 1,000,000 and consumes 24 contiguous actual seeds across its
-three budgets. The confirmation ledger prevents epoch reuse; the high reserved boundary
-also makes promotion disjoint from probe and low-numbered calibration/reference studies.
+The table below explains why paired seed replication matters and is retained
+as variance history. It does not by itself authorize a live look or threshold.
+In the current workflow, the paired seed-block jackknife turns realized seed
+variation into the SE and directional Student-t probability; the calibrated
+O'Brien-Fleming boundary controls the four planned looks as one experiment.
 
 | Profile | Seeds / budget | Compiles | Headline abs. error p50 / p95 / max | Valid-rate abs. error p95 | Worst stratum p95 |
 |---|---:|---:|---:|---:|---:|

@@ -5,7 +5,7 @@ earlier V2 prototypes are historical evidence and are not score-comparable with 
 suite.
 
 Operational note (2026-07-31): the active compiler-improvement campaign uses only
-750k at fixed N=48 under the accumulated-contacted-frame-impulse scorer. That scorer
+750k with a predeclared N=48 maximum and strict N=8/16/32/48 looks under the accumulated-contacted-frame-impulse scorer. That scorer
 change created suite fingerprint `7bd878d8aaea08a9` and a fresh scorer-bound active
 baseline. The old 250k/500k evidence remains frozen and deferred; it was not projected,
 recomputed, or made score-comparable with the active campaign.
@@ -64,7 +64,7 @@ Five production references form a linked qualification monitor:
 
 A favorable full-ladder comparison first seals the complete development archive,
 then runs qualification and links it to that archive by SHA-256. The scoped active
-750k campaign instead promotes its exact N=48 development archive and leaves the
+750k campaign instead promotes its exact accepted-look development archive and leaves the
 historical qualification monitor untouched. Qualification never enters the headline
 or accepts an active-campaign candidate. Because these five results are shown at
 full-ladder accepted milestones, they are monitors rather than untouched statistical holdouts;
@@ -139,25 +139,32 @@ weight. The V2 score scale is independent of V1 and its historical headline.
 
 ## Compute profiles
 
-Active campaign comparisons use the 44 development cases at 750k/N=48. The
+Active campaign comparisons use the 44 development cases at 750k, with strict
+N=8/16/32/48 looks and at most N=48. The
 historical full-ladder profile remains defined for explicit restoration and
 study work. Actual seeds are disjoint across budgets.
 
 | Profile | Budgets | Seeds per budget | Development compiles |
 |---|---|---:|---:|
-| active campaign | 750k | fixed 48 | 2,112 |
+| active campaign | 750k | strict 8 / 16 / 32 / 48 | 352 / 704 / 1,408 / 2,112 |
 | historical canonical ladder | 250k / 500k / 750k | operator-selected N | 132 × N |
 
 The accepted baseline has one immutable, prefix-addressable canonical seed
-ladder. Baseline cache shards retain its completed rows. A comparison at N
-compiles only the candidate on the identical first N slots; the baseline is
-extended explicitly only when that prefix is missing. Qualification is
-candidate-only and runs during an explicit rebaseline.
+ladder. Baseline cache shards retain its completed rows. The runner compiles
+the candidate through one declared look at a time and decides before queuing
+the next. The baseline is extended explicitly only when the next prefix is
+missing. A promotion may therefore retain N=8, N=16, N=32, or N=48 as its
+authoritative headline depth. Later baseline-tail completion is monitoring,
+not a revised promotion result. Qualification remains deferred in the scoped
+campaign path.
 
 Historical allocation studies included a separate probe profile, which remains
 retained evidence but is no longer a live comparison path. Operators choose
-canonical N directly from 1 through 300. The retained zero-inflated coverage study informs the conservative
-intervals. The 750k ceiling bounds per-compile compute. Public execution
+canonical N directly from 1 through 300 only on the explicit historical/deep
+fixed-N surface. The active improvement surface accepts only its four planned
+looks. The retained zero-inflated coverage study informs fixed-look intervals;
+the scorer-bound sequential calibration separately controls repeated looks.
+The 750k ceiling bounds per-compile compute. Public execution
 defaults to 48 workers on the 64-logical-CPU reference host and reports
 resource use while running. Actual seed labels are deterministic IID inputs.
 
@@ -198,16 +205,19 @@ suite identity.
 4. Freeze catalog, weights, evaluator, profiles, and fingerprints.
 5. Establish a checksummed baseline.
 6. Improve the compiler using development results only.
-7. Screen cheaply, then run a cache-backed comparison at a useful N.
-8. Promote an explicit favorable comparison. The active 750k campaign retains
-   that exact development archive without qualification; an intentional future
+7. Screen with focused mechanism tests, then declare one cache-backed N=48
+   maximum experiment. Decide strict N=8/16/32/48 prefixes before queuing the
+   next wave.
+8. Promote an explicit sequential acceptance. The active 750k campaign retains
+   that exact stopping-prefix archive without qualification; an intentional future
    full-ladder freeze runs qualification as its linked monitoring sidecar.
 
 Any change to cases, membership, parent structure, weights, scoring, target
 interpretation, budgets, or seed policy creates a new suite fingerprint and requires a
-new intentional baseline. Statistical-model changes should be tested against
-the retained calibration fixtures, but they do not require a separate workflow
-state machine before ordinary comparisons can run.
+new intentional baseline. Statistical-rule changes invalidate their bound
+calibration and active policy provenance. Deterministic preparation and paid
+active eval fail closed until that evidence is regenerated; they do not rely
+on a mutable workflow ledger.
 
 Temporarily selecting a declared subset of retained canonical budgets for a compiler
 campaign does not redefine those suite fields. The scope must be recorded separately,

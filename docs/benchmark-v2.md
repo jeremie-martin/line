@@ -1,7 +1,8 @@
 # Benchmark V2
 
 Benchmark V2's active campaign measures the compiler across the 44-case
-development catalog at 750k/N=48. The historical frozen contract retains the
+development catalog at 750k, with a predeclared N=48 maximum and strict
+N=8/16/32/48 looks. The historical frozen contract retains the
 250k/500k/750k ladder, but its old-ruler scores are not comparable to the
 active accumulated-contacted-frame-impulse scorer. The authoritative product
 and scoring contract remains in `benchmark-v2-context.md`.
@@ -11,10 +12,11 @@ and scoring contract remains in `benchmark-v2-context.md`.
 | Command | Purpose |
 | --- | --- |
 | `benchmark prepare` | Regenerate and validate catalog evidence |
-| `benchmark status` | Show the active 750k/N=48 baseline and exact work |
-| `benchmark eval --seeds=48` | Candidate-only 750k comparison against the retained N=48 baseline |
-| `benchmark baseline-cache status --seeds=48` | Verify the active campaign cache |
-| `benchmark baseline-cache extend --seeds=N --baseline=benchmark/v2/baseline.json` | Explicitly extend only the frozen full-ladder cache |
+| `benchmark status` | Show the active 750k promotion headline, first look, cache coverage, and maximum work |
+| `benchmark eval --seeds=48` | Candidate-only strict N=8/16/32/48 improvement experiment |
+| `benchmark baseline-cache status --seeds=LOOK` | Verify one declared active-campaign prefix |
+| `benchmark baseline-cache extend --seeds=LOOK` | Explicitly append only a missing active-campaign prefix |
+| `benchmark baseline-cache extend --seeds=N --baseline=benchmark/v2/baseline.json` | Explicitly extend the historical full-ladder cache |
 | `benchmark rebaseline --from=FILE --label=LABEL` | Promote one favorable comparison |
 | `benchmark bootstrap --label=NAME --budget=750000 --seeds=48 --jobs=48` | Explicit scorer-bound active-baseline bootstrap; governance use only |
 | `benchmark explain ARCHIVE` | Diagnose an archive |
@@ -24,26 +26,43 @@ to at most 48 workers and retain resumable checkpoints.
 
 ## Cached comparisons
 
-The active campaign baseline owns the retained 750k seed schedule through 48
-slots. The current baseline is the exact fresh scorer-bound archive, not a
-projection from the old ruler. A campaign comparison:
+The active campaign baseline owns one literal 750k seed ladder through 48
+slots. The current baseline happens to cover all 48 because it predates the
+sequential workflow; future accepted baselines may initially contain only
+their stopping prefix. The baseline is exact scorer-bound evidence, not a
+projection from the old ruler. A campaign improvement comparison:
 
-1. verifies the frozen source cache, archive, and literal 48-slot schedule;
+1. verifies the frozen source cache, available shards, and literal 48-slot ladder;
 2. freezes the current compiler into a checksummed snapshot;
-3. runs only that candidate at N=48;
-4. validates suite, engine, runtime, scope, schedule, archive, and cache
-   identities;
-5. computes one paired comparison and writes a standalone artifact.
+3. queues only candidate slots `[0,8)`, with all 44 cases represented;
+4. publishes a checksummed, self-consistent N=8 prefix and applies the
+   calibrated sequential boundary;
+5. after `continue`, resumes the same request and checkpoint through N=16,
+   N=32, and N=48, never queuing a later wave before the earlier decision;
+6. validates suite, scorer, engine, runtime, scope, literal schedule, archive,
+   cache, policy, calibration, and candidate identities;
+7. writes one standalone comparison artifact with every completed look.
 
-No command mutates project state during comparison. N=48 is fixed for this
-campaign; lower-depth probes are intentionally disabled.
+No command mutates project state during comparison. The declared maximum stays
+N=48; the four looks are one experiment, not independently selected probes.
+Explicit simplification and historical/deep comparisons remain fixed-N and do
+not inherit this improvement rule.
+
+If the baseline cache lacks the next declared prefix, eval writes a structured
+pause artifact and exits before candidate tail work enters the queue. Run the
+printed `baseline-cache extend --seeds=LOOK`, then resume the identical request.
+Existing shards are immutable; only a checksummed tail can be appended.
 
 The candidate output defaults to
-`generated/benchmark-v2/eval/cached-N48-<timestamp>.json`. Its neighboring
+`generated/benchmark-v2/eval/cached-N48-<timestamp>`. Its neighboring
 files are:
 
 - `.request.json`: exact baseline binding, schedule, and compiler snapshot;
 - `.checkpoint.jsonl`: resumable worker results;
+- `.N8.json`, `.N16.json`, `.N32.json`, `.N48.json`: only the completed,
+  published look prefixes (later files exist only when reached);
+- `.look-N.json`: fixed-look diagnostics plus the authoritative
+  sequential probability, boundary, and action;
 - `.comparison.json`: compact result and promotion input;
 - `.gz`, decision index, summaries, and checksum sidecars.
 
@@ -55,11 +74,13 @@ Campaign promotion is explicit:
 npm run benchmark -- rebaseline --from=...comparison.json --label=...
 ```
 
-The ordinary path requires a favorable improvement result. Rebaseline also
+The ordinary path requires the sequential outcome `accept`. Rebaseline also
 requires the checked-out compiler bytes to match the measured snapshot and be
 committed. It retains the exact 750k archive and updates
 `campaign-baseline.json`; it does not compile or mutate the deferred 250k/500k
-reference.
+reference. It may promote at N=8, N=16, N=32, or N=48. The accepted prefix and
+its headline become the new promotion reference; a later cache extension may
+report a descriptive monitoring headline but cannot revise it.
 
 A deliberate owner decision can override only the favorable-result gate with
 `--force --force-reason="..."`. All identity, checksum, completeness, snapshot,

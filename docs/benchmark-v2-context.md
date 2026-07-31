@@ -4,10 +4,11 @@ Status: authoritative contract for the canonical compiler benchmark. Benchmark V
 earlier V2 prototypes are historical evidence and are not score-comparable with this
 suite.
 
-Operational note (2026-07-30): the active compiler-improvement campaign temporarily
-uses only the canonical 750k rows at fixed N=48. This is a baseline/evaluation
-projection, not a suite change: the 250k/500k/750k contract, weights, evidence, and
-suite fingerprint below remain frozen for later restoration.
+Operational note (2026-07-31): the active compiler-improvement campaign uses only
+750k at fixed N=48 under the accumulated-contacted-frame-impulse scorer. That scorer
+change created suite fingerprint `7bd878d8aaea08a9` and a fresh scorer-bound active
+baseline. The old 250k/500k evidence remains frozen and deferred; it was not projected,
+recomputed, or made score-comparable with the active campaign.
 
 ## Product question
 
@@ -61,11 +62,12 @@ Five production references form a linked qualification monitor:
 - `scripts/v0/specs/shelter_impact_sync.ts`;
 - `scripts/v0/specs/amour_de_ma_vie_short.ts`.
 
-A favorable comparison first seals the complete development archive,
-then runs qualification and links it to that archive by SHA-256. Qualification
-is displayed and trended but never enters the headline or accepts a compiler
-candidate. Because these five results are shown at accepted milestones, they
-are monitors rather than untouched statistical holdouts;
+A favorable full-ladder comparison first seals the complete development archive,
+then runs qualification and links it to that archive by SHA-256. The scoped active
+750k campaign instead promotes its exact N=48 development archive and leaves the
+historical qualification monitor untouched. Qualification never enters the headline
+or accepts an active-campaign candidate. Because these five results are shown at
+full-ladder accepted milestones, they are monitors rather than untouched statistical holdouts;
 case-specific tuning against them is prohibited. New production works preserve genuinely
 unseen evidence only when frozen before their first compile.
 
@@ -197,8 +199,9 @@ suite identity.
 5. Establish a checksummed baseline.
 6. Improve the compiler using development results only.
 7. Screen cheaply, then run a cache-backed comparison at a useful N.
-8. Promote an explicit favorable comparison and run qualification as its
-   linked monitoring sidecar.
+8. Promote an explicit favorable comparison. The active 750k campaign retains
+   that exact development archive without qualification; an intentional future
+   full-ladder freeze runs qualification as its linked monitoring sidecar.
 
 Any change to cases, membership, parent structure, weights, scoring, target
 interpretation, budgets, or seed policy creates a new suite fingerprint and requires a

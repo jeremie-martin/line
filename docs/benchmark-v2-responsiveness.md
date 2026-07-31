@@ -1,4 +1,8 @@
-# Benchmark V2 Responsiveness Calibration
+# Historical Benchmark V2 Responsiveness Calibration
+
+This retained study predates the accumulated-contacted-frame-impulse scorer
+boundary. It is historical within-ruler evidence only and is not valid current
+calibration or active-baseline comparison evidence.
 
 All runs use the same catalog, budgets, seed blocks, scoring, engine, and semantic execution protocol. Only the declared compiler environment changes.
 The row named `baseline` is the retained calibration reference, not an approved promotion baseline.

@@ -144,17 +144,13 @@ LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts
 ## Campaign Command
 
 ```bash
-npm run benchmark -- eval
+npm run benchmark -- eval --seeds=48 --jobs=48
 ```
 
-The command defaults to the smallest canonical cached comparison (N=2) and
-reports the V2 headline, per-budget scores, checkpoint identity, seed-policy
-metadata, and compact compiler statistics. Choose a larger N directly when
-the question warrants it:
-
-```bash
-npm run benchmark -- eval --seeds=100
-```
+The active campaign accepts only the fixed 44-case, 750k/N=48 comparison. It
+reuses all 2,112 baseline cells and compiles only the candidate, reporting the
+headline, hierarchy, validity, checkpoint identity, seed schedule, and compact
+compiler statistics. Lower-depth probes and adaptive N are disabled.
 
 Historical `--full`, `--compiler`, custom V1 budget grids, and `golden.json`
 archives require `npm run golden:v1` and `npm run decide:v1`; they are not V2

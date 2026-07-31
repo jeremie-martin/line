@@ -16,12 +16,19 @@ Rebaseline verifies:
 - the exact compiler snapshot;
 - the checked-out committed compiler matches that snapshot.
 
-It then replays the snapshot for the cheap probe baseline and qualification
-monitor, retains the canonical development archive, builds a baseline bundle,
-and publishes the compact baseline references. The publication journal makes
-an interrupted update recoverable by rerunning the same command.
+For the active 750k/N=48 campaign, it retains the exact candidate development
+archive and snapshot, publishes `campaign-baseline.json`, and starts the next
+cache from those same 48 seed slots. It does not run a probe, qualification, or
+the deferred 250k/500k budgets.
 
-Use `--resume` to resume probe or qualification worker checkpoints.
+Only an explicit full-ladder rebaseline replays the snapshot for the historical
+probe and qualification sidecars, builds a full baseline bundle, and publishes
+the compact full-ladder references. The publication journal makes an interrupted
+update recoverable by rerunning the same command.
+
+Use `--resume` to resume probe or qualification worker checkpoints during an
+explicit full-ladder rebaseline; the active campaign path reuses completed
+candidate evidence and has no such worker phase.
 `--discard-pending` is only for a journal that provably did not publish the
 new baseline; otherwise rerun to recover it.
 

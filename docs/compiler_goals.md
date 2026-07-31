@@ -40,10 +40,10 @@ contract is `benchmark-v2-decisions.md`.)
   handoff-specific diagnostics.
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
-- `npm run benchmark -- eval --seeds=N` compares the current compiler on the
-  44 development cases with the identical immutable baseline-cache prefix and
-  compiles only the candidate. `eval` defaults to N=2; any N in `1..300` is an
-  ordinary operator-selected compute choice.
+- `npm run benchmark -- eval --seeds=48 --jobs=48` compares the current compiler
+  on the 44 development cases at 750k with the exact immutable active cache and
+  compiles only the 2,112 candidate cells. Active-campaign N is fixed at 48;
+  lower-depth probes and arbitrary operator-selected depths are disabled.
 - Improvement and simplification outcomes live in the standalone comparison
   artifact. After convincing evidence, `rebaseline --from=COMPARISON
   --label=LABEL` explicitly promotes that measured compiler snapshot.

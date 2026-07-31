@@ -1,3 +1,8 @@
+/**
+ * Historical pre-scorer-boundary evidence renderer. This reproduces relationships
+ * within the old probe ruler only; it is not current calibration evidence and must
+ * never be compared with or relabeled as the active campaign baseline.
+ */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -110,7 +115,9 @@ function verified(path: string): any {
 
 function markdown(report: any): string {
   const lines = [
-    "# Benchmark V2 Responsiveness Calibration",
+    "# Historical Benchmark V2 Responsiveness Calibration",
+    "",
+    "This retained study predates the accumulated-contacted-frame-impulse scorer boundary. It is historical within-ruler evidence only and is not valid current calibration or active-baseline comparison evidence.",
     "",
     "All runs use the same catalog, budgets, seed blocks, scoring, engine, and semantic execution protocol. Only the declared compiler environment changes.",
     "The row named `baseline` is the retained calibration reference, not an approved promotion baseline.",

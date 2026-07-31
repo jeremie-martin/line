@@ -20,11 +20,11 @@ use the 750k-only candidate path at N=48.
 | Retired stage-0 screen, 264 compiles | 1m08s | 52.0 cores | 82% | 6.84 GiB | historical +16.66 screen; 22 validity gains, 0 losses |
 | Retired depth-48 confirmation, 12,672 development + 120 qualification | 58m13s | — | — | — | historical accepted attempt `c8f9c284`; no worker failure |
 | Retired probe refresh, 264 compiles | 1m10s | 52.0 cores | 82% | 6.45 GiB | historical probe 462.73 |
-| Current canonical N=100 candidate comparison, 13,200 compiles | completed | — | — | — | zero baseline compiles; baseline prefix reused |
+| Historical canonical N=100 candidate comparison, 13,200 compiles | completed | — | — | — | retired full-ladder workflow; zero baseline compiles |
 | Eval wave, 126 compiles/arm + interim look | ~90 s | — | — | — | measured, live validation V3 |
 | Eval futility stop at look k=2 (two-arm) | 173 s | — | — | — | measured (smoke): ~96% of the attempt's compute saved |
 | Eval depth-48 confirmation, 12,096 compiles two-arm + workspaces | ~45–50 min | — | — | — | measured, live validation V3 |
-| Runner-compat replay (current probe: 264 compiles in a workspace) | ~4 min | — | — | — | historical timing; current count is normative |
+| Historical runner-compat probe replay, 264 compiles in a workspace | ~4 min | — | — | — | retired workflow timing |
 
 The first 48-worker trial exposed a worker-lifecycle defect: the pool reused a slot when
 a worker posted its result, before the worker thread and WASM memory had terminated. RSS

@@ -81,8 +81,11 @@ npm run benchmark -- rebaseline --from=...comparison.json --label=...
 The ordinary path requires the sequential outcome `accept`. Rebaseline also
 requires the checked-out compiler bytes to match the measured snapshot and be
 committed. It retains the exact 750k archive and updates
-`campaign-baseline.json`; it does not compile or mutate the deferred 250k/500k
-reference. It may promote at N=8, N=16, N=32, or N=48. The accepted prefix and
+`campaign-baseline.json`; then regenerate the current-baseline analysis from
+that exact accepted prefix with
+`node --import tsx scripts/benchmark/analyze_campaign_baseline.ts`. Rebaseline
+does not compile or mutate the deferred 250k/500k reference. It may promote at
+N=8, N=16, N=32, or N=48. The accepted prefix and
 its headline become the new promotion reference; a later cache extension may
 report a descriptive monitoring headline but cannot revise it.
 

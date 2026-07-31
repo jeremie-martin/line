@@ -99,7 +99,14 @@ compiler identity, retains the candidate 750k development evidence, and starts
 the next campaign cache directly from its accepted stopping prefix. The
 promotion headline remains tied to that depth. A later completed cache tail is
 reported only as a descriptive monitoring headline and never overwrites the
-promotion headline. Rebaseline neither compiles
+promotion headline. After rebaseline, refresh the tracked current-baseline
+analysis from that exact prefix, including when acceptance stops before N=48:
+
+```bash
+node --import tsx scripts/benchmark/analyze_campaign_baseline.ts
+```
+
+Rebaseline neither compiles
 nor changes the deferred 250k/500k evidence.
 
 `benchmark/v2/baseline.json` remains the frozen full-ladder reference. Use

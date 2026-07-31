@@ -9,6 +9,10 @@ import {
 import { loadSourceManifest, resolveSources } from "../v0/benchmark_v2/model.ts";
 import { loadSuiteManifest } from "../v0/benchmark_v2/suite_model.ts";
 import { argumentReader, round } from "../v0/benchmark_v2/util.ts";
+import {
+  activeCampaignAnalysisContract,
+  activeCampaignComparisonGuidance,
+} from "./campaign_baseline_analysis_contract.ts";
 
 const argument = argumentReader(process.argv.slice(2));
 const baselinePath = resolve(argument("baseline") ?? "benchmark/v2/campaign-baseline.json");
@@ -24,6 +28,8 @@ const verified = loadVerifiedArchive(archivePath, {
   compressed_archive_sha256: baseline.development.compressed_archive_sha256,
 });
 const archive = verified.archive;
+const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
+const analysisContract = activeCampaignAnalysisContract(baseline, archive, sources.length);
 if (
   baseline.status !== "active-campaign-baseline" ||
   baseline.scorer_bound_bootstrap?.cross_ruler_comparison !== false ||
@@ -35,9 +41,11 @@ if (
   archive.profile !== "canonical" ||
   JSON.stringify(archive.identity?.budgets) !== JSON.stringify([750_000]) ||
   !Array.isArray(archive.runs) ||
-  archive.runs.length !== 2_112 ||
+  archive.runs.length !== analysisContract.expectedRows ||
   archive.runs.some((row: any) => row.status !== "ok")
-) throw new Error(`active campaign baseline is not the exact scorer-bound 750k/N=48 archive`);
+) throw new Error(
+  `active campaign baseline is not the exact scorer-bound 750k/N=${analysisContract.promotionSeeds} archive`,
+);
 
 const rawArchive = archive;
 if (archivePath === rawPath) {
@@ -50,7 +58,6 @@ if (archivePath === rawPath) {
   ) throw new Error(`raw archive is detached from its decision index`);
 }
 
-const sources = resolveSources(loadSourceManifest("benchmark/v2/compat/source-manifest.json"));
 const sourceById = new Map(sources.map((source) => [source.id, source]));
 const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);
 const budget = 750_000;
@@ -207,7 +214,10 @@ const pairedVariants = sources.filter((source) => source.parentId !== undefined)
     variantId: source.id,
     meanPairedRunScoreDifference: round(center),
     medianPairedRunScoreDifference: quantile(deltas, 0.5),
-    paired95Interval: [round(center - 2.0117 * se), round(center + 2.0117 * se)],
+    paired95Interval: [
+      round(center - analysisContract.paired95Critical * se),
+      round(center + analysisContract.paired95Critical * se),
+    ],
     officialAggregateDifference: round(
       officialCase.get(source.id).score - officialCase.get(source.parentId!).score,
     ),
@@ -491,7 +501,7 @@ function renderMarkdown(value: any): string {
     "",
     "## Executive read",
     "",
-    `- Official 750k/N=48 headline: **${value.headline.score.toFixed(4)}**; target gap: **${value.headline.gapToTarget.toFixed(4)}**.`,
+    `- Official 750k/N=${value.baseline.seedsPerCase} headline: **${value.headline.score.toFixed(4)}**; target gap: **${value.headline.gapToTarget.toFixed(4)}**.`,
     `- Validity: **${value.headline.validRuns}/${value.headline.totalRuns}** (${(100 * value.headline.validityRate).toFixed(2)}%).`,
     `- Run-score median ${value.distributions.allRunScores.median.toFixed(2)}, IQR ` +
       `${value.distributions.allRunScores.p25.toFixed(2)}–${value.distributions.allRunScores.p75.toFixed(2)}, ` +
@@ -599,7 +609,7 @@ function renderMarkdown(value: any): string {
     ),
     "",
     ...value.invalidRunDiagnostics.flatMap((entry: any) => [
-      `The sole invalid row is \`${entry.sourceId}\`, seed ${entry.actualSeed}: ` +
+      `An invalid row is \`${entry.sourceId}\`, seed ${entry.actualSeed}: ` +
         `${entry.hardFailures.join(", ")}. Its official hard zero is retained.`,
       "",
       `A diagnostic-only replacement with that case's valid-run median would move the headline by ` +
@@ -627,7 +637,7 @@ function renderMarkdown(value: any): string {
     "- The clearest impact-specific defect is systematic under-delivery, especially for 0.8–1.0 asks. That is a better optimization target than the raw scorer-boundary headline resemblance.",
     "- The case ranking and component correlations identify where this compiler struggles under the new ruler; they do not show whether the ruler change improved or worsened the compiler.",
     "- Impact target-band residuals show whether errors grow systematically with authored impulse demand. Those bands are a more useful optimization diagnostic than comparing this headline to the old-ruler headline.",
-    "- Future candidates should be compared only against this exact active archive on the literal N=48 seed schedule.",
+    `- ${activeCampaignComparisonGuidance(value.baseline.seedsPerCase)}`,
   ].join("\n")}\n`;
 }
 

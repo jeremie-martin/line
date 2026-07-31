@@ -148,20 +148,26 @@ export type Contact = {
   t: number;
   /**
    * Optional per-beat landing intensity ("how hard the rider slams into the arc" —
-   * "claquage"), absolute [0, 1] on a FELT scale: **0 = soft, 1 = very strong**.
-   * Defined as the rider's **velocity REDIRECTION ARC** `redirArc = v·Δθ` (incoming
-   * CoM speed × net heading change over the `IMPACT_WINDOW`-frame (~0.15s) episode after
-   * contact), mapped to [0,1] by `normImpact` (the felt scale: redirArc ≈ 2.0 px/frame →
-   * soft → 0; ≈ 6.5 px/frame → very strong → 1; gentler clamps to 0, harder to 1).
-   * Anchored to the user's felt labels (LOCKED 2026-06-14, docs/impact_problem_statement.md).
+   * "claquage"), absolute [0, 1] on a FELT scale: **0 = a perfectly smooth catch,
+   * 1 = very strong**. Defined as the rider's **redirection IMPULSE**
+   * `cArc = Σ v̄·|Δθ|` — the per-frame CoM heading change × midpoint speed, ACCUMULATED
+   * over the CONTACTED frames of the `IMPACT_WINDOW`-frame (~0.15s) episode after
+   * touchdown (airborne frames contribute zero — flight is not impact) — mapped to
+   * [0,1] by `normImpact` against `REDIRARC.SOFT`/`REDIRARC.VERY_STRONG` (read the
+   * live values from the `REDIRARC` block below rather than a number copied into
+   * prose; gentler than SOFT clamps to 0, harder than VERY_STRONG to 1).
+   * PROMOTED 2026-07-31 over the net-form `redirArc = v·Δθ` (LOCKED 2026-06-14);
+   * history, adjudication and calibration in `docs/impact_definition.md`.
    *
-   * Why the redirection arc (not perpendicular `redir = v·sinΔθ`, nor normal closing,
+   * Why the redirection impulse (not perpendicular `redir = v·sinΔθ`, nor normal closing,
    * nor body force): the felt hit is the surface *redirecting* the rider's path at speed;
    * `v·Δθ` keeps the speed weighting with no sin-compression of the biggest slams, beats
    * `redir`/`turn` and generalizes across tracks (incl. flat-drop slams), and stays
    * CoM-velocity-only so it's immune to sled rotation / limb whip (which look violent but
-   * aren't felt). Decelerating *along* the path (a glide slowing on a curved arc) builds
-   * no Δθ → reads ~0. See `docs/impact_problem_statement.md`.
+   * aren't felt). Accumulating |Δθ| rather than taking the net endpoint turn means a
+   * bend-then-unbend contact (S-bend, bounce reflection) adds instead of cancelling to 0.
+   * Decelerating *along* the path (a glide slowing on a straight line) builds no Δθ →
+   * reads ~0. See `docs/impact_definition.md`.
    *
    * Authored on the beat (NOT an axis): impact is an adjective on a discrete landing
    * event, where the axes (air/speed/elevation/amplitude) are continuous fields over
@@ -170,7 +176,7 @@ export type Contact = {
    * gap ends in exactly one beat, so per-gap scalar ≡ per-beat value).
    *
    * Status: SCORED (folds into the contract `axis_quality`). Measured by
-   * `redirArcPxAtLanding` (substrate.ts) → `normImpact`; reported with target/achieved/
+   * `contactRedirArcPxAtLanding` (substrate.ts) → `normImpact`; reported with target/achieved/
    * error/ceiling. The compiler steers toward it via the arc-placement redir lever
    * (target → needed CoM turn = impactToRedirArcPx(target)/speed) and candidate ranking.
    */
@@ -211,10 +217,11 @@ export type Curve = ((t: number) => number | undefined) & { meta?: CurveMeta };
  *                       landing chord (jump arc height / sagitta), normalized by
  *                       `CALIB.AMPLITUDE_CAP`, [0, 1]. Orthogonal to `air`:
  *                       `air` is how *long* aloft, `amplitude` is how *high*.
- *   - `impact`        — landing intensity at a beat: the rider's velocity
- *                       REDIRECTION ARC `redirArc = v·Δθ` over the `IMPACT_WINDOW`-frame
- *                       episode after contact, felt-normalized via `normImpact` [0, 1]
- *                       (0 = soft, 1 = very strong). NOT
+ *   - `impact`        — landing intensity at a beat: the rider's redirection
+ *                       IMPULSE `cArc = Σ v̄·|Δθ|` accumulated over the CONTACTED frames
+ *                       of the `IMPACT_WINDOW`-frame episode after touchdown,
+ *                       felt-normalized via `normImpact` [0, 1]
+ *                       (0 = perfectly smooth, 1 = very strong). NOT
  *                       authored as a curve — it is a per-beat qualifier
  *                       (`Contact.impact`) resolved into the terminating gap so it
  *                       can reuse this per-gap plumbing. SCORED. In AXES and scored,

@@ -163,7 +163,9 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // headline; the angle-shift mechanisms are ±2). On the OLD saturating v·sinΔθ metric the
 // surface peaked at flatten 12° / frontload 1.2 (flatten 18 → 579, frontload 1.4 → 581 —
 // deeper was WORSE, because sin saturated near 90° so extra scoop bought nothing).
-// RE-FIT 2026-06-15 for the LINEAR redirArc = v·Δθ metric (SOFT=0/VSTRONG=7.29): with no
+// RE-FIT 2026-06-15 for the LINEAR redirArc = v·Δθ metric (SOFT=0, VSTRONG=7.29 at the
+// time; the scored metric has since been promoted to the accumulated impulse and VSTRONG
+// to the live REDIRARC.VERY_STRONG — the numbers below are the measurements as taken): with no
 // angular saturation, deeper scoop now PAYS. eval_impact board (13 specs × 9 seeds, 150k/300k)
 // brackets BOTH knobs with overshoot on each side — flatten {0:−36.6, 12:base, 18:+2.4,
 // 24:−12.1}, frontload {1.2:+2.4, 1.6:+4.1, 2.0:+2.7} — so the peak moved up to flatten 18 /
@@ -1723,10 +1725,16 @@ function sampleContactCenteredLines(
   /*
    * SUPPORT THROUGH THE SCORING WINDOW.
    *
-   * The scored impact is endpoint-to-endpoint — `redirArcPxAtLanding` assigns
-   * rather than accumulates, so it is the CoM heading at exactly
-   * `IMPACT_WINDOW` frames after the contact against the heading one frame
-   * before it. Measured over 417 committed contacts on six specs
+   * [The measurement below was taken under the PRE-2026-07-31 metric, which was
+   * endpoint-to-endpoint — `redirArcPxAtLanding` assigned rather than accumulated,
+   * so it read the CoM heading at exactly `IMPACT_WINDOW` frames after the contact
+   * against the heading one frame before it. The scored metric is now the
+   * CONTACTED-frame accumulation `contactRedirArcPxAtLanding`, which only
+   * STRENGTHENS this lever: airborne frames now contribute exactly zero instead of
+   * merely failing to add turn, so separating early costs more than measured here.
+   * The give-back argument below is moot under accumulation.]
+   *
+   * Measured over 417 committed contacts on six specs
    * (`npm run study:impact-window`), the turn accrues steadily while the rider
    * is SUPPORTED and stops when it separates:
    *
@@ -2422,12 +2430,15 @@ function impactCurveTargetStart(targetImpact: number): number {
 
 function predictedRedirImpactAtAngleDelta(speedPx: number, deltaDeg: number): number {
   const deltaRad = (deltaDeg * Math.PI) / 180;
-  return normImpact(Math.abs(deltaRad) * Math.max(0, speedPx)); // redirArc = v·Δθ → felt [0,1]
+  // Single-bend model of the scored impulse (cArc = Σ v̄·|Δθ| collapses to v·|Δθ| when the
+  // whole turn is taken in one monotone bend) → felt [0,1].
+  return normImpact(Math.abs(deltaRad) * Math.max(0, speedPx));
 }
 
-/** Inverse of the redirArc metric: the CoM turn (degrees) a landing must deliver to achieve
- *  `target` impact at `speed` — Δθ = (target redirArc px)/speed, clamped to the catchable
- *  turn (`asin(CATCHABLE_REDIR_FRACTION)`, same ceiling impactCeiling uses). Single source
+/** Inverse of the scored impact metric under the single-bend model: the CoM turn (degrees)
+ *  a landing must deliver to achieve `target` impact at `speed` — Δθ = (target arc px)/speed,
+ *  clamped to `IMPACT.MAX_RELIABLE_TURN_RAD` (spelled `asin(CATCHABLE_REDIR_FRACTION)`, which
+ *  is the same bound — see types.ts; the ceiling impactCeiling uses). Single source
  *  for the three redir levers (contact-shift, entry-shift, post-turn). */
 function neededTurnDegForImpact(target: number, speedPx: number): number {
   const turnRad = clamp(

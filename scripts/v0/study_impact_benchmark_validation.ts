@@ -28,7 +28,7 @@ import { resolve } from "node:path";
 import * as SS from "./impact_support.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { loadSourceManifest, resolveSources, loadSourceSpec } from "./benchmark_v2/model.ts";
-import { REDIRARC } from "./types.ts";
+import { FPS, REDIRARC } from "./types.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string, dflt: string) => argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? dflt;
@@ -73,7 +73,7 @@ for (const source of sources) {
     for (const c of report.contacts) {
       const ask = askByT.get(c.t_target.toFixed(3)) ?? null;
       if (c.status !== "hit") { if (ask !== null) missByAsk.push({ ask }); continue; }
-      const lf = SS.landingNear(sim, Math.round(c.t_actual * 40));
+      const lf = SS.landingNear(sim, Math.round(c.t_actual! * FPS));
       if (lf < 0) { if (ask !== null) missByAsk.push({ ask }); continue; }
       claimed.add(lf);
       lands.push(measure(source.id, seed, sim, lf, ask, true));

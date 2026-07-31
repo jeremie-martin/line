@@ -46,7 +46,8 @@ export type LandingWindowProbeRecord = {
   acceptedAtW: number | null;
   /** Signed landing offset (landingFrame − endFrame) at that W; null if rejected. */
   offset: number | null;
-  /** Achieved impact (redirArc = v·Δθ → normImpact, felt [0,1]) at that landing. */
+  /** Achieved impact (the SCORED redirection impulse `contactRedirArcPxAtLanding`,
+   *  cArc = Σ v̄·|Δθ| over contacted frames → normImpact, felt [0,1]) at that landing. */
   impactAchieved: number | null;
   /** Incoming speed (px/frame) one frame before that landing. */
   incomingSpeed: number | null;

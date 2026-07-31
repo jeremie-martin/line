@@ -242,7 +242,9 @@ export function contactRedirArcPxAtLanding(
  * scored definition 2026-06-14 → 2026-07-31; superseded by the accumulated
  * contacted-frame `contactRedirArcPxAtLanding` above (net form cancels bend-then-unbend
  * and can read Δθ≈π on ride-out reversals). Kept as the comparison lane for the
- * dashboard/studies (`impact_support.ts redirArcPx`) and `analysis/simulate.ts`.
+ * dashboard/studies (`impact_support.ts redirArcPx`) ONLY — anything that reports a
+ * felt impact (i.e. normalizes through `normImpact`, whose anchors moved with the
+ * promotion) must read the scored `contactRedirArcPxAtLanding` instead.
  */
 export function redirArcPxAtLanding(
   det: Detection,

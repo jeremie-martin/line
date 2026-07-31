@@ -24,7 +24,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as SS from "./impact_support.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { REDIRARC, type Spec } from "./types.ts";
+import { FPS, REDIRARC, type Spec } from "./types.ts";
 
 const QUICK = process.argv.includes("--quick");
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
@@ -56,7 +56,7 @@ for (const seed of SEEDS) {
   for (const c of report.contacts) {
     const x = askByT.get(c.t_target.toFixed(3));
     if (x === undefined || c.status !== "hit") continue;
-    const lf = SS.landingNear(sim, Math.round(c.t_actual * 40));
+    const lf = SS.landingNear(sim, Math.round(c.t_actual! * FPS));
     if (lf < 0) continue;
     const v = sim.vel[lf - 1] ?? sim.vel[lf];
     probeRows.push({
@@ -70,11 +70,13 @@ for (const seed of SEEDS) {
 }
 
 console.log(`\n=== A: asked → achieved (median over hit contacts, all seeds) ===`);
-console.log(`   ask   n    speedIn   redirArc  old-norm    cArc   cArc/${OLD_VSTRONG.toFixed(2)}  cArc/7.85  cArc/11.3`);
+// Columns: the FROZEN pre-promotion anchor, the SHIPPED anchor (what production reads
+// today), the audit's compatibility candidate, and the atlas physics top.
+console.log(`   ask   n    speedIn   redirArc  old-norm    cArc   cArc/${OLD_VSTRONG.toFixed(2)}  cArc/${REDIRARC.VERY_STRONG.toFixed(2)}  cArc/7.85  cArc/11.3`);
 for (const x of [...new Set(probeRows.map((r) => r.x))].sort((a, b) => a - b)) {
   const rs = probeRows.filter((r) => r.x === x);
   const m = (f: (r: ProbeRow) => number) => SS.pct(rs.map(f), 0.5);
-  console.log(`  ${x.toFixed(2)} ${String(rs.length).padStart(4)}   ${m((r) => r.speedIn).toFixed(1).padStart(6)}   ${m((r) => r.redirArc).toFixed(2).padStart(8)}  ${m((r) => oldNorm(r.redirArc)).toFixed(2).padStart(8)}  ${m((r) => r.cArc).toFixed(2).padStart(6)}   ${m((r) => clamp01(r.cArc / OLD_VSTRONG)).toFixed(2).padStart(8)} ${m((r) => clamp01(r.cArc / 7.85)).toFixed(2).padStart(8)} ${m((r) => clamp01(r.cArc / 11.3)).toFixed(2).padStart(8)}`);
+  console.log(`  ${x.toFixed(2)} ${String(rs.length).padStart(4)}   ${m((r) => r.speedIn).toFixed(1).padStart(6)}   ${m((r) => r.redirArc).toFixed(2).padStart(8)}  ${m((r) => oldNorm(r.redirArc)).toFixed(2).padStart(8)}  ${m((r) => r.cArc).toFixed(2).padStart(6)}   ${m((r) => clamp01(r.cArc / OLD_VSTRONG)).toFixed(2).padStart(8)} ${m((r) => clamp01(r.cArc / REDIRARC.VERY_STRONG)).toFixed(2).padStart(8)} ${m((r) => clamp01(r.cArc / 7.85)).toFixed(2).padStart(8)} ${m((r) => clamp01(r.cArc / 11.3)).toFixed(2).padStart(8)}`);
 }
 
 // ── C: seed stability (probe cArc envelope by seed) ───────────────────────────
@@ -118,7 +120,7 @@ for (let V = 6; V <= 13; V += 0.05) {
 }
 console.log(`\n=== B: meaning shift |newNorm − oldNorm| vs candidate anchor V ===`);
 console.log(`   V      mean    p90`);
-for (const V of [OLD_VSTRONG, REDIRARC.VERY_STRONG, 8, bestV, 9, 10, 11.3]) {
+for (const V of [...new Set([OLD_VSTRONG, REDIRARC.VERY_STRONG, 8, bestV, 9, 10, 11.3])].sort((a, b) => a - b)) {
   const { mean, p90 } = shiftAt(V);
   console.log(`  ${V.toFixed(2).padStart(5)}  ${mean.toFixed(3)}  ${p90.toFixed(3)}${Math.abs(V - bestV) < 0.03 ? "   ← compatibility-optimal V*" : ""}`);
 }

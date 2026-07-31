@@ -76,7 +76,9 @@ function impactByFrame(): Map<number, BeatImpact> {
     out.set(f, {
       point: SS.norm01(px, SS.IMPACT_CAP),
       window: SS.norm01(SS.windowedNormalPx(sim, f), SS.IMPACT_CAP),
-      redir: SS.norm01(SS.redirPx(sim, f), SS.REDIR_CAP), // LOCKED impact metric, absolute scale
+      // [LEGACY LANE] the pre-2026-06-14 `redir = v·sinΔθ` candidate on its own REDIR_CAP
+      // scale — NOT the scored impact (that is `contactRedirArcPxAtLanding` → `normImpact`).
+      redir: SS.norm01(SS.redirPx(sim, f), SS.REDIR_CAP),
       snap: SS.norm01(SS.snapPx(sim, f), SS.CAPS.snap),   // force/suddenness candidate (under review)
       turn: SS.norm01(SS.turnNetDeg(sim, f), SS.CAPS.turnDeg),
       dv: SS.norm01(vc.dvGrav, SS.IMPACT_CAP),

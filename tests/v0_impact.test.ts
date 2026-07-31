@@ -106,6 +106,31 @@ describe("measureImpact (cArc = Σ v̄·|Δθ| impulse reduction)", () => {
     expect(call(det)).toBeCloseTo(0, 9);
   });
 
+  test("mixed window: flight bending is skipped, but the re-contact bend still counts", () => {
+    // The subtlest rule of the scored loop: the airborne gate suppresses the
+    // CONTRIBUTION of an airborne frame, yet `prev` still advances through it — so
+    // the 0.6 rad the rider accrues ballistically between touchdown and re-contact
+    // is excluded, while the 0.1 rad the ground puts in at re-contact is kept.
+    // headings: lf−1 = 0 · lf = 0.3 (contacted) · lf+1..3 = 0.5/0.7/0.9 (airborne)
+    //           lf+4.. = 1.0 (contacted). Speed 10 throughout.
+    const heading = (f: number) => (f <= 9 ? 0 : f === 10 ? 0.3 : f === 11 ? 0.5 : f === 12 ? 0.7 : f === 13 ? 0.9 : 1.0);
+    const det = makeDet({
+      landingFrame: 10,
+      velocity: Array.from({ length: 20 }, (_, f) => vel(heading(f), 10)),
+      contactLineIds: arrAt(20, 10, [1]),
+      airborne: Array.from({ length: 20 }, (_, f) => f >= 11 && f <= 13),
+    });
+    // 10·0.3 (touchdown) + 0 (three airborne frames) + 10·0.1 (re-contact) = 4.
+    expect(call(det)).toBeCloseTo(norm(4), 5);
+    // Guards the two plausible refactors of the loop, in both directions:
+    //  - moving `prev = v` INSIDE the airborne guard reads 10 (the whole 0.7 rad of
+    //    flight bending is billed to the re-contact frame — verified by mutation);
+    //  - breaking out of the loop at the first airborne frame reads 3 (the
+    //    re-contact bend is lost).
+    expect(call(det)).toBeLessThan(norm(10));
+    expect(call(det)).toBeGreaterThan(norm(3));
+  });
+
   test("geometry-independent: ignores catch-line tangent / owned lines (CoM-only)", () => {
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : vel(0.5, 10)));
     const horiz = call(det, gap, [line(1, 0, 0, 100, 0)]);
@@ -129,7 +154,9 @@ describe("measureImpact (cArc = Σ v̄·|Δθ| impulse reduction)", () => {
   });
 
   test("window truncates at the detection end (no crash)", () => {
-    // landing near the last frame: only frames 11,12 available; Δθ read at frame 12.
+    // landing near the last frame: the window is cut at the detection end (frame 12),
+    // so only the single touchdown bend at frame 10 is accumulated — no crash, and
+    // the truncated tail is silently absent (accumulation can only under-read).
     const det = detFor(10, 13, (f) => (f <= 9 ? { x: 3, y: 0 } : { x: 0, y: 3 }));
     expect(call(det)).toBeCloseTo(norm(3 * (Math.PI / 2)), 5);
   });

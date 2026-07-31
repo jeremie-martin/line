@@ -32,7 +32,9 @@ for (const name of SETS) {
   const levelsPath = firstExisting(`labels/impact/${name}.levels.json`);
   const overlay = levelsPath ? (JSON.parse(readFileSync(levelsPath, "utf8")).levels ?? {}) as Record<string, { felt: number }> : {};
   for (const [frameKey, a] of Object.entries(raw)) {
-    const felt = a?.ordinal != null ? SS.FELT_ORDINAL[a.ordinal] : overlay[frameKey]?.felt;
+    // An ordinal outside FELT_ORDINAL (or an empty one) carries no level — fall back to the
+    // levels.json overlay rather than silently dropping the beat.
+    const felt = (a?.ordinal ? SS.FELT_ORDINAL[a.ordinal] : undefined) ?? overlay[frameKey]?.felt;
     if (felt === undefined) continue;
     const lf = SS.landingNear(sim, Number(frameKey));
     if (lf < 0) continue;

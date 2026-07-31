@@ -4,8 +4,11 @@
  * air time), paired to the gap whose contact it realizes.
  *
  * Uses the SAME production machinery as the scorer (extractRawTrajectory,
- * detect, redirImpactPxAtLanding), so redir_norm here agrees with the
+ * detect, contactRedirArcPxAtLanding), so redir_norm here agrees with the
  * impact axis by construction. ~10 ms per track ⇒ ~1 min per full run.
+ * (`redir_px`/`redir_norm` follow the SCORED metric, so they moved with the
+ * 2026-07-31 promotion to the redirection impulse — rows written before it are
+ * on the old net-form ruler and are not comparable across that boundary.)
  *
  * Incremental per checkpoint via the `simulated` marker table; a run that is
  * re-ingested by the indexer drops its markers and landings automatically.
@@ -15,7 +18,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 import { LineRiderEngine, createLineFromJson } from "../../lib/_lr_engine.ts";
 import { extractRawTrajectory, detect } from "../../lib/detector.ts";
-import { redirArcPxAtLanding } from "../core/substrate.ts";
+import { contactRedirArcPxAtLanding } from "../core/substrate.ts";
 import { FPS, IMPACT_WINDOW, normImpact } from "../types.ts";
 
 export type SimulateOptions = {
@@ -158,7 +161,7 @@ function landingDynamics(trackPath: string): LandingRow[] {
     const vOut = velocity[Math.min(event.frame + IMPACT_WINDOW, lastFrame)];
     const speedIn = vIn !== undefined ? Math.hypot(vIn.x, vIn.y) : null;
     const speedOut = vOut !== undefined ? Math.hypot(vOut.x, vOut.y) : null;
-    const redir = redirArcPxAtLanding(det, event.frame);
+    const redir = contactRedirArcPxAtLanding(det, event.frame);
     out.push({
       frame: event.frame,
       air_frames: event.airborneFrom !== undefined ? event.frame - event.airborneFrom : null,

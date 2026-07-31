@@ -166,8 +166,14 @@ CREATE TABLE IF NOT EXISTS landings (
   speed_out_px REAL,
   -- speed_out − speed_in over the impact window: the landing's speed cost
   dspeed_px REAL,
-  -- velocity redirection over the impact window (the impact axis, px/frame
-  -- and normalized by REDIR_CAP)
+  -- the SCORED impact metric at this landing: redir_px is the raw production
+  -- measurement (px/frame) and redir_norm is normImpact(redir_px) — i.e. against
+  -- REDIRARC.SOFT/VERY_STRONG, NOT REDIR_CAP. The metric itself moved on
+  -- 2026-07-31 (net-form redirArc = v·Δθ → accumulated contacted-frame impulse
+  -- Σ v̄·|Δθ|), so rows written on either side of that boundary are NOT comparable.
+  -- Which ruler a row is on is recoverable: checkpoints.run_id → runs.evaluator_fingerprint
+  -- (the promotion bumped it 6f760d9c1cc9 → afbdb18787e6). Canned reports are
+  -- single-fingerprint by default; only --all-fingerprints can mix. See analysis/simulate.ts.
   redir_px REAL,
   redir_norm REAL,
   PRIMARY KEY (checkpoint_id, landing_index)

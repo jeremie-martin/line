@@ -4,8 +4,9 @@
  * the two zero-label checks (soft-end resolution, prod↔candidate divergence).
  *
  * Candidates (all CoM-based, px/frame, window = IMPACT_WINDOW unless noted):
- *   redirArc  v·Δθ_net             — the SCORED production metric (baseline)
+ *   redirArc  v·Δθ_net             — the PRE-PROMOTION metric (baseline; LEGACY since 2026-07-31)
  *   cArc      Σ v̄·|Δθ| contacted   — accumulated, contacted frames only, raw velocities
+ *                                     (PROMOTED 2026-07-31: this is now the scored metric)
  *   cArcG     Σ v̄·|Δθ| contacted   — per-step gravity subtracted (Codex dashboard lane;
  *                                     carries a ~GRAVITY px/f/frame support artifact)
  *   cArcOn    cArc with exp(-dt/4) — onset-weighted (perceptual attribution arm)
@@ -22,7 +23,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as SS from "./impact_support.ts";
-import { FPS, normImpact } from "./types.ts";
+import { FPS, REDIRARC, normImpact } from "./types.ts";
 
 const W = SS.IMPACT_WINDOW;
 
@@ -87,7 +88,9 @@ for (const name of SETS) {
   let drift = 0;
   const rows: LabeledRow[] = [];
   for (const [frameKey, a] of Object.entries(raw)) {
-    const felt = a?.ordinal != null ? SS.FELT_ORDINAL[a.ordinal] : overlay[frameKey]?.felt;
+    // An ordinal outside FELT_ORDINAL (or an empty one) carries no level — fall back to the
+    // levels.json overlay rather than silently dropping the beat.
+    const felt = (a?.ordinal ? SS.FELT_ORDINAL[a.ordinal] : undefined) ?? overlay[frameKey]?.felt;
     if (felt === undefined) continue;
     const lf = SS.landingNear(sim, Number(frameKey));
     if (lf < 0) { drift++; continue; }
@@ -185,6 +188,10 @@ const prodPct = pctRank(landings.map((l) => l.m.redirArc));
     `The ${ranked.length} landings (of ${landings.length}) where the challenger most rank-disagrees with the`,
     `production metric. Label THESE in the dashboard (set the INTENSITY ordinal!), then rerun`,
     `\`LR_ENGINE=wasm npx tsx scripts/v0/study_impact_impulse.ts\`. Regenerate this file the same way.`,
+    ``,
+    `NOTE the two [0,1] columns use each metric's OWN anchor (SCORED ÷ ${REDIRARC.VERY_STRONG}, LEGACY ÷ ${OLD_VSTRONG},`,
+    `the pre-promotion value). The dashboard board deliberately puts BOTH lanes on the shipped`,
+    `anchor so the bars are directly comparable, so its LEGACY bar reads slightly lower than this column.`,
     ``,
     `| open | set | frame | t(s) | Δpct | SCORED [0,1] | LEGACY [0,1] | cArc raw | leveled? |`,
     `|---|---|---|---|---|---|---|---|---|`,

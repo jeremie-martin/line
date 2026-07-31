@@ -475,7 +475,7 @@ A local-contact study is calibration-only and has these meanings:
   the bounded local primitive, bounded survival, complete persistence and
   scorer-response windows, and no off-beat landing before the next authored
   contact. Where impact is authored, the exact production
-  `redirArcPxAtLanding -> normImpact` target/residual is recorded.
+  `contactRedirArcPxAtLanding -> normImpact` target/residual is recorded.
 - **Persistence endpoint:** state at the detector's persistence horizon.
 - **Response endpoint:** state at the independent six-frame impact horizon.
 - **Full admission:** a downstream observation after local closure, not a

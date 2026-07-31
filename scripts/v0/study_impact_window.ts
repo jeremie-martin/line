@@ -1,7 +1,12 @@
 /**
  * Is the impact undershoot a MAGNITUDE failure or a DEADLINE failure?
  *
- * The scored impact is endpoint-to-endpoint, not a path integral
+ * [SUPERSEDED PREMISE — 2026-07-31: the scored impact is now the CONTACTED-frame
+ * path integral `contactRedirArcPxAtLanding`. This study still measures the
+ * endpoint (net) form below, so read it as a DEADLINE diagnostic for the legacy
+ * metric, not as the production ruler.]
+ *
+ * The pre-promotion scored impact was endpoint-to-endpoint, not a path integral
  * (`substrate.ts redirArcPxAtLanding`):
  *
  *   impact = |v(landing-1)| * |wrapPi( angle(v(landing+W)) - angle(v(landing-1)) )|

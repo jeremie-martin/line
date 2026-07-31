@@ -34,11 +34,16 @@ npm run lab -- report <name> [--axis A] [--run R] canned analyses (see usage for
   self-check). If it drifts, the ETL or scorer changed — investigate before
   trusting anything else.
 - `simulate` uses the scorer's own machinery (`extractRawTrajectory`,
-  `detect`, `redirImpactPxAtLanding`); re-simulated `redir_norm` matches
-  stored `gaps.impact_achieved` bit-exactly (verified over 57k landings).
+  `detect`, `contactRedirArcPxAtLanding`); re-simulated `redir_norm` matches
+  stored `gaps.impact_achieved` bit-exactly (verified over 57k landings under
+  the pre-2026-07-31 net-form metric; the promotion moved both together).
 - Canned reports default to the best-headline canonical run at the current
   `EVALUATOR_FINGERPRINT`; scores across fingerprints are NOT comparable
-  (raw axis measurements are). `--run` / `--all-fingerprints` to override.
+  (raw axis measurements are, EXCEPT `landings.redir_px`/`redir_norm` — the
+  scored impact metric itself changed on 2026-07-31, so those two columns are
+  only comparable within one fingerprint; join `checkpoints`→`runs` to tell
+  which ruler a row was written under). `--run` / `--all-fingerprints` to
+  override — the default single-fingerprint scope is what keeps this safe.
 
 ## Findings (2026-06-10, run arc-rewrite-work-new-smooth-merge-canon-01, headline 580.83)
 

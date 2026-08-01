@@ -49,7 +49,6 @@ import {
 import {
   compileHandoff,
   compileHandoffFromSnapshot,
-  isOnlineTraversalBehindSchedule,
   objectiveLeafValue,
   setForwardEvalContext,
   setHandoffCapacityProbeHook,
@@ -67,6 +66,7 @@ import {
   type HandoffPoolProbeRecord,
   type HandoffRankedOptionsProbeRecord,
 } from "./optimizer/handoff.ts";
+import { CompileDeadline, deadlineAtRisk } from "./optimizer/deadline.ts";
 import {
   extendNodeCached,
   getCandidatesSorted,
@@ -965,10 +965,9 @@ const output = {
   compileLandingProbe: compileLandingProbeSummary,
   capacityProbe: capacityProbe
     ? summarizeCapacityProbe(capacityProbeRecords, {
-      firstVisitedProgressFrame,
-      totalContactGaps,
       budget,
       gaps: setup.gaps,
+      durationFrames: Math.round(spec.duration * FPS),
     })
     : null,
   rankedOptionsProbe: rankedOptionsProbeGap < 0
@@ -1311,15 +1310,21 @@ function summarizeScoreAmbiguity(
 function summarizeCapacityProbe(
   records: HandoffCapacityProbeRecord[],
   context: {
-    firstVisitedProgressFrame: number | null;
-    totalContactGaps: number;
     budget: number;
     gaps: readonly Gap[];
+    durationFrames: number;
   },
 ) {
   const ordered = [...records].sort((a, b) => a.simFrames - b.simFrames || a.gapIndex - b.gapIndex);
   const deficient = ordered.filter((record) => record.capacity < 16);
-  const behindSchedule = ordered.filter((record) => isBehindSchedule(record, context));
+  const deadline = new CompileDeadline({
+    gaps: context.gaps,
+    durationFrames: context.durationFrames,
+    policyBudgetFrames: context.budget,
+    anchorGapIndex: 0,
+    includeStartup: true,
+  });
+  const behindSchedule = ordered.filter((record) => isBehindSchedule(record, deadline));
   const behindScheduleDeficient = behindSchedule.filter((record) => record.capacity < 16);
   return {
     observations: ordered.length,
@@ -1333,28 +1338,19 @@ function summarizeCapacityProbe(
   };
 }
 
-/** Delegates to the production online controller's measured-pace predicate. */
+/** Delegates to the compiler's one deadline signal (optimizer/deadline.ts).
+ *  The online lane's private spend-vs-progress comparator this used to call was
+ *  deleted with the signal unification; `margin < 1` is the verdict that
+ *  replaced it, and it contained every one of that comparator's firings. */
 function isBehindSchedule(
   record: HandoffCapacityProbeRecord,
-  context: {
-    firstVisitedProgressFrame: number | null;
-    totalContactGaps: number;
-    budget: number;
-    gaps: readonly Gap[];
-  },
+  deadline: CompileDeadline,
 ): boolean {
-  const first = context.firstVisitedProgressFrame;
-  const remaining = context.gaps
-    .slice(record.gapIndex)
-    .filter((gap) => gap.endsWithContact).length;
-  const completed = context.totalContactGaps - remaining;
-  return first !== null && isOnlineTraversalBehindSchedule({
-    firstProgressFrame: first,
-    simFrames: record.simFrames,
-    targetBudget: context.budget,
-    completedContacts: completed,
-    totalContacts: context.totalContactGaps,
-  });
+  return deadlineAtRisk(deadline.marginAt({
+    spentFrames: record.simFrames,
+    gapIndex: record.gapIndex,
+    costToEnd: null,
+  }));
 }
 
 function matchesProbeCandidate(candidate: Candidate, probe: HandoffPoolProbeRecord["candidates"][number]): boolean {

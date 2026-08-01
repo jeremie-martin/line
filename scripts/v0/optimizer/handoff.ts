@@ -87,7 +87,7 @@ import {
   extendNodeCached,
   isLeafNode,
   makeRootNode,
-  setAimLanePaceSuppressed,
+  setAimLaneDeadlineThrottled,
   setRolloutAimSuppressed,
   setRolloutContext,
   type SearchNode,
@@ -108,7 +108,6 @@ import {
 } from "./kinematic_support.ts";
 import {
   predictFirstCompletionFrames,
-  observedTraversalBudgetSlack,
   traversalBudgetSlack,
   TRAVERSAL_BUDGET_MODEL_V1,
 } from "./budget_model.ts";
@@ -116,6 +115,12 @@ import {
   CompileBudgetTelemetryRecorder,
   type BudgetTelemetryLevel,
 } from "./budget_telemetry.ts";
+import {
+  CompileDeadline,
+  deadlineAtRisk,
+  deadlinePressure,
+  underFullDeadlinePressure,
+} from "./deadline.ts";
 import {
   nextContactGap,
   nextContactGapIndex,
@@ -634,6 +639,33 @@ export function setHandoffDeadEndProbeHook(hook: HandoffDeadEndProbeHook | null)
   handoffDeadEndProbeHook = hook;
 }
 
+/**
+ * What the one deadline signal did at one pool build: the margin it read and
+ * every decision that read it. Everything here is already computed by the
+ * search — the probe only reports it — so the mechanism can be priced (ramp
+ * engagement per budget, throttle activations, how much of the narrowing
+ * happens after first completion) without a `CompileStats` field.
+ */
+export type HandoffDeadlineProbeRecord = {
+  simFrames: number;
+  gapIndex: number;
+  hasCompletion: boolean;
+  margin: number;
+  pressure: number;
+  poolSize: number;
+  forwardEvalTop: number;
+  aimLaneThrottled: boolean;
+  onlineContinuationApplied: boolean;
+};
+
+type HandoffDeadlineProbeHook = (record: HandoffDeadlineProbeRecord) => void;
+let handoffDeadlineProbeHook: HandoffDeadlineProbeHook | null = null;
+
+/** Observation-only deadline hook. Production never installs one. */
+export function setHandoffDeadlineProbeHook(hook: HandoffDeadlineProbeHook | null): void {
+  handoffDeadlineProbeHook = hook;
+}
+
 type HandoffSearchPolicy = {
   nCand: number;
   preview: boolean;
@@ -645,8 +677,12 @@ type HandoffSearchPolicy = {
   reuseLimit: number;
   tailBranching: number;
   forwardStageTop: number;
-  /** Observed-pace slack; Infinity once the compile has a completion. */
-  pacedSlack: number;
+  /** Live deadline margin at this node (optimizer/deadline.ts). Unlike the
+   *  paced slack it replaced it stays finite and meaningful after first
+   *  completion — the SIGNAL runs the whole compile. Which consumers act on it
+   *  there is a separate question, currently answered by the Phase-1a boundary
+   *  in `rankedOptions`. */
+  deadlineMargin: number;
   /** Slack-conditioned pre-completion rollout depth (2026-07-16). The 250k
    *  capability invalids sit at the completion knee (valid first completions
    *  at 242-260k frames of a 250k budget), and forward-eval charges ~30% of
@@ -838,32 +874,23 @@ const HANDOFF_CANDIDATE_POOL = 5;
  *
  * Both halves are one fact: a narrow roll is a deeper search and a wide roll is
  * a broader one, and the two populations want opposite things. So the width
- * follows the compile's own pace — full while it is on course to finish, the
- * head once its measured cost to reach the end has passed the budget it has.
+ * follows the compile's deadline margin (optimizer/deadline.ts) — full while it
+ * is on course to finish, the head once the budget it has left no longer covers
+ * the work it has left.
+ *
+ * The floor has its own interior optimum here: 0 is -4.59 (capability -31.76),
+ * 1 is +0.89, 2 shipped, 3 is -1.25. It is also the retention the aim lane
+ * mirrors under the same pressure (node.ts `AIM_LANE_DEADLINE_BASE_SHARE`):
+ * 2 of `HANDOFF_CANDIDATE_POOL`.
+ *
+ * The ramp's own endpoints moved with the signal and now live in margin units
+ * next to their derivation (`DEADLINE_MARGIN_FULL_PRESSURE`,
+ * `DEADLINE_MARGIN_NO_PRESSURE`). The 2026-07-28 bracket of the old paced-slack
+ * endpoints (start 2.0 is -1.56, full 0.7 is -2.53, tightening to 1.2 is +1.30
+ * at N=8 but only +0.42 at N=24) is a STALE sweep: it measured a different
+ * quantity's scale, not this one's.
  */
 const HANDOFF_FORWARD_EVAL_TOP = 2;
-/** Paced slack at which the width starts narrowing, and where it is fully narrow.
- *  Both ends bracketed 2026-07-28 against `span-handover`, and the gradient runs
- *  one way — narrow HARDER. Widening the window from the START end (2.0) is
- *  -1.56 with 250k -7.2; widening it from the FULL end (0.7), so pressure rises
- *  more slowly, is -2.53 with 250k -13.1 and nine valid runs lost. Tightening it
- *  to 1.2 is **+1.30, 250k +6.2, capability +8.23, and two valid runs GAINED**.
- *
- *  The floor has its own interior optimum at `HANDOFF_FORWARD_EVAL_TOP`: 0 is
- *  -4.59 (capability -31.76), 1 is +0.89, 2 shipped, 3 is -1.25. Tightening the
- *  window and lowering the floor are SUBSTITUTES rather than complements —
- *  composing 1.2 with a floor of 1 is only +0.30, below either alone — so the
- *  window carries it and the floor stays at 2.
- *
- *  1.2 did NOT survive depth: N=24 is +0.42 (SE 0.93, CI [-2.19, +3.02]),
- *  against +1.30 at N=8, with 250k +6.2 -> +1.92 and capability +8.23 -> +2.77.
- *  Validity still improves (3144 -> 3149) and the point estimate is positive at
- *  both depths, but it is not decisive, so the shipped 1.0 stands and the
- *  bracket is recorded here rather than promoted. */
-const HANDOFF_FORWARD_EVAL_PACE_START = 1.5;
-const HANDOFF_FORWARD_EVAL_PACE_FULL = 1.0;
-/** Whether the aiming lane is held to the same pace rule as the rolled head. */
-const AIM_LANE_PACE_SUPPRESS = true;
 const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
 
@@ -1109,11 +1136,6 @@ const OUTPUT_TAIL_PAD_FRAMES = 20;
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
  *  the completion suffix branches two-wide and is charged like normal search. */
 const TAIL_COMPLETION_CONTACT_WINDOW = 8;
-// The online controller starts only after ordinary backtracking is this many
-// contacts behind its measured first-completion pace. Keep this separate from
-// the tail-quality window: they currently agree by evidence, but govern
-// different decisions and can be compared as a bounded source family.
-const ONLINE_CONTINUATION_DELAY_CONTACTS = 8;
 const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 4;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 const QUALITY_SHALLOW_TAIL_THROTTLE_MAX_PRESSURE = 1.0;
@@ -1345,6 +1367,14 @@ function compileHandoffInternal(
     };
     const targetProfile = buildHandoffTargetProfile(gaps, ctx);
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
+    // DIFFICULTY, the static coordinate: `policyBudget / D(spec)` under
+    // TRAVERSAL_BUDGET_MODEL_V1, frozen for the whole compile. It chooses the
+    // SHAPE of spend (branch limit, forward-eval admission, opening-best and
+    // impact-best arms) and is deliberately budget-linear and stale — it is the
+    // yardstick controller behaviour is measured against, not a measurement of
+    // that behaviour (docs/budget-aware-map.md E1). The OTHER coordinate, "how
+    // pressed am I right now", is the live margin in optimizer/deadline.ts.
+    // Nothing should ever read one where it means the other.
     const budgetSlack = traversalBudgetSlack(policyBudget, spec);
     const budgetSlackTelemetry = round3(budgetSlack);
     setForwardEvalContext(spec, gapAxisTargets);
@@ -1386,6 +1416,16 @@ function compileHandoffInternal(
       durationFrames,
       hardBudgetFrames: targetBudget,
       policyBudgetFrames: policyBudget,
+    });
+    // DEADLINE, the live coordinate. Same pure estimator functions as the
+    // recorder above and no shared state with it: the recorder observes and
+    // never drives, this one drives and never records.
+    const deadline = new CompileDeadline({
+      gaps,
+      durationFrames,
+      policyBudgetFrames: policyBudget,
+      anchorGapIndex: root.search.gapIndex,
+      includeStartup: initialSnapshot === null,
     });
     const initialBudgetAttemptId = budgetRecorder.startAttempt({
       kind: initialSnapshot === null ? "initial" : "snapshot",
@@ -1504,6 +1544,15 @@ function compileHandoffInternal(
         framesAtReachTail.set(search, getSimFrames());
       }
     };
+    // The incumbent's MEASURED cost-to-end profile, built once by the repair
+    // phase (see `costToEnd` in runRepairPhase) and published here so the
+    // deadline margin can use it as its post-completion estimate: after first
+    // completion the structural suffix answers a question nobody is asking any
+    // more, while this profile is the measured work from gap k to the end on
+    // the path the compile actually took. Null until repair builds it — the
+    // post-completion window inside the main search, and every compile with
+    // repair disabled, falls back to the structural tail.
+    let incumbentCostToEnd: readonly number[] | null = null;
     // Count of complete tracks ever considered (any phase). A repair restart's delta tells us whether
     // it REACHED the end at all (completed), separate from whether it beat the incumbent (accepted).
     let terminalConsiders = 0;
@@ -1777,12 +1826,20 @@ function compileHandoffInternal(
           sparseContactCadence,
           targetBudget: policyBudget,
           budgetSlack,
-          pacedSlack: firstCompletionFrame >= 0 ? Infinity : observedTraversalBudgetSlack({
-            budgetFrames: policyBudget,
+          // Before first completion the compile is racing to the end and its
+          // own high water is what is left to cover; after it, this pass is a
+          // restart from an anchor and only THIS node's depth says how far it
+          // still has to go. The margin survives that switch, where the paced
+          // slack it replaced became Infinity — so the 46.3% of a 750k budget
+          // that runs post-completion now has a signal. Phase 1a keeps the two
+          // pool-affecting CONSUMERS pre-completion (see the boundary in
+          // `rankedOptions`); the signal is live throughout and observable.
+          deadlineMargin: deadline.marginAt({
             spentFrames: getSimFrames(),
-            deepestGap: telemetry.deepestSeenGap,
-            totalGaps: gaps.length,
-            predictedFrames: predictedFirstCompletionFrames,
+            gapIndex: firstCompletionFrame >= 0
+              ? search.gapIndex
+              : telemetry.deepestSeenGap,
+            costToEnd: firstCompletionFrame >= 0 ? incumbentCostToEnd : null,
           }),
           hasCompletion: firstCompletionFrame >= 0,
         });
@@ -2009,6 +2066,12 @@ function compileHandoffInternal(
           }
         }
       }
+      // One profile, two readers: repair sizes its ceilings from it, and the
+      // deadline margin uses it as the post-completion remaining-work estimate.
+      // Unmeasured anchors are -1 here; `marginAt` treats those exactly as the
+      // recorder does — non-positive means "no measurement", fall back to the
+      // structural tail — so the two never disagree about what is known.
+      incumbentCostToEnd = costToEnd;
       const estCostOf = (k: number): number => {
         const m = costToEnd[k];
         return m !== undefined && m >= 0 ? m : perGap * Math.max(1, gaps.length - k);
@@ -3303,7 +3366,7 @@ function expandNode(
     axisQualitySearch: policy.axisQualitySearch,
     releaseSetup: policy.releaseSetup,
     forwardStageTop: policy.forwardStageTop,
-    pacedSlack: policy.pacedSlack,
+    deadlineMargin: policy.deadlineMargin,
     forwardEval: policy.forwardEval,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
@@ -3420,7 +3483,7 @@ function rescueOptions(
     axisQualitySearch: policy.axisQualitySearch,
     releaseSetup: policy.releaseSetup,
     forwardStageTop: policy.forwardStageTop,
-    pacedSlack: policy.pacedSlack,
+    deadlineMargin: policy.deadlineMargin,
     forwardEval: policy.forwardEval,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
@@ -3810,7 +3873,8 @@ function rankedOptions(
     releaseSetup?: boolean;
     targetBudget?: number;
     budgetSlack?: number;
-    pacedSlack?: number;
+    /** Live deadline margin; Infinity for callers outside the paced search. */
+    deadlineMargin?: number;
     forwardStageTop?: number;
     /** Slack-conditioned pre-completion depth (see HandoffSearchPolicy.forwardEval).
      *  Default true so non-policy callers keep the historical behavior. */
@@ -3821,12 +3885,38 @@ function rankedOptions(
   const targetBudget = config.targetBudget ?? 0;
   const gap = gaps[node.gapIndex];
   const normalCandidates = requestedCandidates;
+  const deadlineMargin = config.deadlineMargin ?? Infinity;
+  /* PHASE-1a BOUNDARY — the deliberate scope of the two pool-affecting
+   * consumers below.
+   *
+   * The margin itself is live for the WHOLE compile (see the deadline read in
+   * `compileHandoffInternal`): after first completion it switches to the
+   * incumbent's measured cost-to-end and keeps its meaning, and the observation
+   * hook reports it either way. What is scoped is only who ACTS on it. Phase 1a
+   * ships the head-narrowing ramp and the aim-lane throttle at the same
+   * temporal scope the paced slack had — pre-completion — because the
+   * post-completion arm was measured separately and it is the localized cost:
+   * over 44 sources x 8 seeds at 750k the whole bundle reads -0.90 +/- 0.34 per
+   * cell against -0.39 +/- 0.27 with these two gated, and every one of the new
+   * cross-state pool reads (node.ts `LR_DEADLINE_CACHE_ASSERT`) came from the
+   * post-completion arm. Re-introducing it is Phase 1b's job, which owns the
+   * pool-memo cache key and the scoping question the repair phase raises
+   * (narrowing rollouts inside a repair episode fights the ROI study's
+   * bigger-ceilings-buy-acceptance result).
+   *
+   * SC-16, the online-continuation lane below, needs no gate here: its own
+   * `onlineContinuationFrontierReady` already requires `!hasCompletion`. */
+  const deadlineConsumersActive = !telemetry.hasCompletion;
   /* The aiming lane is a simulated probe design per base — the second largest
-   * lookahead spend after forward evaluation. Hold it to the same rule: only
-   * while the compile is on course to finish (see `AIM_LANE_PACE_SUPPRESS`). */
-  const aimPaceSuppressed = AIM_LANE_PACE_SUPPRESS &&
-    (config.pacedSlack ?? Infinity) < HANDOFF_FORWARD_EVAL_PACE_FULL;
-  setAimLanePaceSuppressed(aimPaceSuppressed);
+   * lookahead spend after forward evaluation. Hold it to the same rule as the
+   * rolled head below: at full deadline pressure it keeps only its head bases
+   * (node.ts `AIM_LANE_DEADLINE_BASE_SHARE`). The flag is scoped to this one
+   * `getCandidatesSorted` call and restored in `finally` — every other caller
+   * in the compile builds pools unthrottled, which is the property that keeps
+   * the pool memo's missing throttle key harmless. */
+  const aimLaneThrottled = deadlineConsumersActive &&
+    underFullDeadlinePressure(deadlineMargin);
+  setAimLaneDeadlineThrottled(aimLaneThrottled);
   setAimBaseFitReuseAllowed(telemetry.hasCompletion);
   let sorted: Candidate[];
   try {
@@ -3838,7 +3928,7 @@ function rankedOptions(
       normalCandidates,
     );
   } finally {
-    setAimLanePaceSuppressed(false);
+    setAimLaneDeadlineThrottled(false);
     setAimBaseFitReuseAllowed(false);
   }
   const poolSize = config.poolSize ?? handoffCandidatePool();
@@ -3856,15 +3946,13 @@ function rankedOptions(
     config.budgetSlack ?? 0,
   );
   const allowForwardEval = config.forwardEval ?? true;
-  /* Narrow the rolled head as the compile's own pace falls behind its budget:
-   * full width while it is on course, `HANDOFF_FORWARD_EVAL_TOP` once its
-   * measured cost to reach the end has passed the budget it has. */
-  const pacePressure = clamp01(
-    (HANDOFF_FORWARD_EVAL_PACE_START - (config.pacedSlack ?? Infinity)) /
-      (HANDOFF_FORWARD_EVAL_PACE_START - HANDOFF_FORWARD_EVAL_PACE_FULL),
-  );
+  /* Narrow the rolled head as the compile runs out of room: full width while
+   * the budget left comfortably covers the work left, `HANDOFF_FORWARD_EVAL_TOP`
+   * once it no longer does. Inside the Phase-1a boundary above, so the repair
+   * and resumed passes roll at full width as they do today. */
+  const pressure = deadlineConsumersActive ? deadlinePressure(deadlineMargin) : 0;
   const forwardEvalTop = HANDOFF_FORWARD_EVAL_TOP <= 0 ? 0 : Math.round(
-    pool.length + (HANDOFF_FORWARD_EVAL_TOP - pool.length) * pacePressure,
+    pool.length + (HANDOFF_FORWARD_EVAL_TOP - pool.length) * pressure,
   );
   const scorePoolCandidate = (
     candidate: Candidate,
@@ -4199,15 +4287,38 @@ function rankedOptions(
     },
   });
   for (const option of brakeOptions) scored.push(option);
-  // Once live first-completion pace has fallen materially behind budget, stop
-  // spending the active frontier on candidates whose charged rollout already
-  // proved they cannot place the next contact. This is dominance, not extra
-  // search work; ordinary/unknown pools and all post-completion quality work
-  // retain their existing order.
+  // Once the budget left no longer covers the work left, stop spending the
+  // active frontier on candidates whose charged rollout already proved they
+  // cannot place the next contact. This is dominance, not extra search work;
+  // ordinary/unknown pools and all post-completion quality work retain their
+  // existing order.
+  //
+  // The lane used to run its own spend-vs-progress comparator, which this
+  // verdict strictly contained: all 331 of its firings in the instrumented 150k
+  // corpus were already inside `margin < 1`, and it never fired in the first
+  // quarter of a compile. Its 750k firings were scored as false alarms by a
+  // completion predictor, which is the wrong ruler for a pruning filter —
+  // measured, they land on the knife-edge specs, and disabling the lane there
+  // costs `frontier_dense_recovery` ~50k frames to first completion out of a
+  // 750k budget it finishes at 88% of. Firing volume is preserved at 150k (329
+  // against the old 331) and roughly triples at 750k (230 against 72).
   const applyOnlineContinuation = onlineContinuationEnabled() &&
       onlineContinuationFrontierReady(node, telemetry) &&
-      onlineTraversalBehindSchedule(node, gaps, telemetry, targetBudget) &&
+      deadlineAtRisk(deadlineMargin) &&
       scored.some((option) => option.forwardContinuation === true);
+  if (handoffDeadlineProbeHook !== null) {
+    handoffDeadlineProbeHook({
+      simFrames: getSimFrames(),
+      gapIndex: node.gapIndex,
+      hasCompletion: telemetry.hasCompletion,
+      margin: deadlineMargin,
+      pressure,
+      poolSize: pool.length,
+      forwardEvalTop,
+      aimLaneThrottled,
+      onlineContinuationApplied: applyOnlineContinuation,
+    });
+  }
   const eligible = applyOnlineContinuation
     ? scored.filter((option) => option.forwardContinuation !== false)
     : scored;
@@ -4274,53 +4385,6 @@ function continuationCapacity(
   let child = extendNodeCached(node, candidate);
   while (child.gapIndex < nextGap.index) child = extendNodeCached(child, null);
   return getCandidatesSorted(child, gaps, ctx, seed, limit).length;
-}
-
-function onlineTraversalBehindSchedule(
-  node: SearchNode,
-  gaps: Gap[],
-  telemetry: HandoffTelemetry,
-  targetBudget: number,
-): boolean {
-  const firstProgressFrame = telemetry.firstProgressFrame;
-  const totalContacts = remainingContactCountFromGapIndex(0, gaps);
-  const remainingContacts = remainingContactCount(node, gaps);
-  const completedContacts = totalContacts - remainingContacts;
-  return firstProgressFrame !== null && isOnlineTraversalBehindSchedule({
-    firstProgressFrame,
-    simFrames: getSimFrames(),
-    targetBudget,
-    completedContacts,
-    totalContacts,
-  });
-}
-
-/** Compare live traversal spend with contact progress after removing the
- * measured startup cost. This is seed- and budget-specific; it does not depend
- * on the legacy static difficulty model. */
-export function isOnlineTraversalBehindSchedule(input: {
-  firstProgressFrame: number;
-  simFrames: number;
-  targetBudget: number;
-  completedContacts: number;
-  totalContacts: number;
-}): boolean {
-  if (
-    input.targetBudget <= input.firstProgressFrame ||
-    input.completedContacts <= 1 ||
-    input.totalContacts <= 1 ||
-    input.completedContacts > input.totalContacts
-  ) {
-    return false;
-  }
-  const spendFraction = Math.max(0, input.simFrames - input.firstProgressFrame) /
-    (input.targetBudget - input.firstProgressFrame);
-  // Backtracking within the delay horizon remains quality search rather than
-  // flipping scheduling. The horizon is a measured controller parameter, not
-  // a cadence or specification-specific threshold.
-  const progressFraction = (input.completedContacts - 1 + ONLINE_CONTINUATION_DELAY_CONTACTS) /
-    (input.totalContacts - 1);
-  return spendFraction > progressFraction;
 }
 
 function onlineContinuationFrontierReady(
@@ -4693,7 +4757,7 @@ function completeNearTailSuffix(
       axisQualitySearch: policy.axisQualitySearch,
       releaseSetup: policy.releaseSetup,
       forwardStageTop: policy.forwardStageTop,
-    pacedSlack: policy.pacedSlack,
+      deadlineMargin: policy.deadlineMargin,
       forwardEval: policy.forwardEval,
       reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
@@ -4754,7 +4818,7 @@ function resolveHandoffSearchPolicy({
   sparseContactCadence,
   targetBudget,
   budgetSlack,
-  pacedSlack,
+  deadlineMargin,
   hasCompletion,
 }: {
   node: SearchNode;
@@ -4765,7 +4829,7 @@ function resolveHandoffSearchPolicy({
   sparseContactCadence: boolean;
   targetBudget: number;
   budgetSlack: number;
-  pacedSlack: number;
+  deadlineMargin: number;
   hasCompletion: boolean;
 }): HandoffSearchPolicy {
   const nCand = qualityHandoffSampleCount(targetProfile, sparseContactCadence, targetBudget);
@@ -4779,7 +4843,7 @@ function resolveHandoffSearchPolicy({
     branchLimit: lowSlackTraversalBranchLimit(budgetSlack, hasCompletion),
     reuseLimit: reuseCandidateLimit(node, targetBudget, telemetry),
     tailBranching: TAIL_COMPLETION_FALLBACK_BRANCHING,
-    pacedSlack,
+    deadlineMargin,
     forwardStageTop: hasCompletion
       ? Math.max(0, Number.parseInt(readEnv("LR_POST_COMPLETION_FWD_STAGE_TOP") ?? "0", 10) || 0)
       : 0,
@@ -5522,6 +5586,13 @@ function scoreCandidateForHandoff(
   };
 }
 
+/**
+ * Reads a pool the deadline throttle may have built under either state, and is
+ * invariant to it by construction: the only thing it asks is whether the pool
+ * is non-empty, and the aim lane runs ONLY when the sampled pool is already
+ * non-empty and can only ADD to it. So no throttle state can turn a non-empty
+ * pool empty here (measured: 0 cross-state effects in 552,318 direct reads).
+ */
 function cachedForwardContinuation(
   child: SearchNode,
   gaps: Gap[],

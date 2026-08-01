@@ -26,7 +26,7 @@ import type { Candidate, SpecContext } from "../scripts/v0/optimizer/sample.ts";
 import {
   getCandidatesSorted,
   makeRootNode,
-  setAimLanePaceSuppressed,
+  setAimLaneDeadlineThrottled,
 } from "../scripts/v0/optimizer/node.ts";
 import { CALIB, secToFrame } from "../scripts/v0/types.ts";
 
@@ -109,7 +109,7 @@ describe("joint arc base-fit projection", () => {
       resetPerCompileState();
       setCompileBudgetFrames(budget);
       setAimCompileBudgetFrames(budget);
-      setAimLanePaceSuppressed(false);
+      setAimLaneDeadlineThrottled(false);
       setAimBaseFitReuseAllowed(allowed);
       if (reuseBaseFit) delete process.env.LR_AIM_REUSE_BASE_FIT;
       else process.env.LR_AIM_REUSE_BASE_FIT = "0";

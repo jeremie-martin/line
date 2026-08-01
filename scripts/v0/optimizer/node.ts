@@ -73,18 +73,88 @@ export function setRolloutAimSuppressed(active: boolean): void {
 }
 
 /**
- * Suppress the enumerative aiming lane while the compile is behind its own pace.
+ * Throttle the enumerative aiming lane while the compile is against its
+ * deadline (optimizer/deadline.ts: `margin <= DEADLINE_MARGIN_FULL_PRESSURE`,
+ * before first completion — see the Phase-1a boundary in handoff.ts).
  *
  * The lane fits a local response model by SIMULATING a probe design per base,
  * and it is the compiler's second largest lookahead spend after forward
  * evaluation: measured on `frontier_dense_recovery` at 250k it charges 42,859 of
  * 250,851 frames, 17% of the budget, on a compile that never finishes building
  * its track. Pacing the forward-eval width on the same signal was worth +10.66,
- * so the question this asks is whether the aim lane is the same kind of spend.
+ * and the lane is held to the same rule.
+ *
+ * TWO LEVELS, never a gradient. The state is binary because the pool memo
+ * (`node._candidatesCache`) is keyed on `(seed, nCand)` and not on the lane's
+ * inputs, so a pool built in one state and returned frozen in the other makes
+ * that node's content depend on WHEN it was first visited. A CONTINUOUS K would
+ * make "the other state" mean "the margin moved at all" and expose ~265 stale
+ * lane-sensitive reads per compile (phase0/h2-cache-transitions.md); grading K
+ * waits for a cache-key fix.
+ *
+ * The binary form is not free of that hazard either, and the measurement is
+ * what draws the current scope. Running the throttle for the whole compile put
+ * 764 of 11,792 frozen reads (6.5%) at 150k and 540 of 36,456 (1.5%) at 750k
+ * across the 44-source suite on the wrong side of a transition — ~9 and ~6 per
+ * compile, essentially all of them in the repair and resumed passes, where a
+ * restart re-reads a node the initial search already built. Holding the
+ * throttle to the pre-completion phase (Phase 1a) all but removes it: on the
+ * same 44x2 grid the count is 3 of 10,758 at 150k and 2 of 47,252 at 750k,
+ * 0.03% and 0.004%, against the 0 of 895,457 the old pace signal measured over
+ * 336 compiles — the residual is pre-completion and comes from the trigger
+ * point moving, not from the phase.
+ * Extending it past first completion is Phase 1b's, and needs the memo keyed on
+ * this flag first. Note the failure mode either way is compositionality, not
+ * reproducibility: the compile stays deterministic in (spec, seed, budget).
  */
-let aimLanePaceSuppressed = false;
-export function setAimLanePaceSuppressed(active: boolean): void {
-  aimLanePaceSuppressed = active;
+let aimLaneDeadlineThrottled = false;
+export function setAimLaneDeadlineThrottled(active: boolean): void {
+  aimLaneDeadlineThrottled = active;
+}
+
+/**
+ * Bases the throttled lane keeps, as a share of the unthrottled K.
+ *
+ * The rolled forward-eval head keeps `HANDOFF_FORWARD_EVAL_TOP` (2) of
+ * `HANDOFF_CANDIDATE_POOL` (5) under full deadline pressure; the aim lane is
+ * held to the same rule, so it keeps the same share of its bases. That lands on
+ * accepted counts at both ends of the budget range rather than on a new tuned
+ * number: K=4 -> 2 at 150k, K=7 -> 3 at 300k, K=18 -> 7 at 750k, and the floor
+ * of 1 is the lane's own accepted scarce-budget policy
+ * (`AIM_TOPK_MATURE_BUDGET_FRAMES`). It replaces a lane KILL, which is the one
+ * shape the campaign's own rule forbids: throttle a magnitude, never trigger a
+ * mode.
+ */
+const AIM_LANE_DEADLINE_BASE_SHARE = 2 / 5;
+
+function aimLaneBases(kEffective: number): number {
+  return aimLaneDeadlineThrottled
+    ? Math.max(1, Math.round(kEffective * AIM_LANE_DEADLINE_BASE_SHARE))
+    : kEffective;
+}
+
+/**
+ * Debug-only guard for the hazard the two-level throttle rides on.
+ *
+ * Exposure is a distributional property, not a structural one — the throttled
+ * caller asks at the largest nCand in the compile, so it USUALLY lands on a
+ * rebuilding path — which is exactly why it is counted rather than argued.
+ * Production reads nothing: `LR_DEADLINE_CACHE_ASSERT` is sampled once at
+ * module load and the map is only written under it.
+ */
+const deadlineCacheAssertEnabled =
+  (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_DEADLINE_CACHE_ASSERT === "1";
+const laneStateAtBuild = new WeakMap<object, boolean>();
+let deadlineCacheStats = { frozenReads: 0, crossStateReads: 0 };
+
+/** Frozen-content reads and how many of them crossed a throttle transition. */
+export function deadlineCacheAssertStats(): { frozenReads: number; crossStateReads: number } {
+  return { ...deadlineCacheStats };
+}
+
+export function resetDeadlineCacheAssertStats(): void {
+  deadlineCacheStats = { frozenReads: 0, crossStateReads: 0 };
 }
 
 /** Generation-time raw-normal snapshot for observation studies. The callback
@@ -181,6 +251,7 @@ export function getCandidatesSorted(
     node._candidatesCache.seed === seed &&
     node._candidatesCache.nCand === nCand
   ) {
+    if (deadlineCacheAssertEnabled) noteFrozenRead(node._candidatesCache);
     return node._candidatesCache.candidates;
   }
   const gap = gaps[node.gapIndex];
@@ -215,7 +286,18 @@ export function getCandidatesSorted(
   normalPoolSnapshotHook?.({ node, seed, gapIndex: gap.index, nCand, sampleOrder });
   const sorted = sortWithLaneExtras(node, gaps, ctx, gap, nCand, sampleOrder);
   node._candidatesCache = { seed, nCand, sampleOrder, candidates: sorted };
+  if (deadlineCacheAssertEnabled) {
+    laneStateAtBuild.set(node._candidatesCache, aimLaneDeadlineThrottled);
+  }
   return sorted;
+}
+
+function noteFrozenRead(cache: object): void {
+  deadlineCacheStats.frozenReads++;
+  const built = laneStateAtBuild.get(cache);
+  if (built !== undefined && built !== aimLaneDeadlineThrottled) {
+    deadlineCacheStats.crossStateReads++;
+  }
 }
 
 function sortWithLaneExtras(
@@ -249,7 +331,7 @@ function sortWithLaneExtras(
   // branch-widening failure.
   const aimedExtras: Candidate[] = [];
   if (
-    nCand > 1 && sorted.length > 0 && aimEnumEnabled() && !aimLanePaceSuppressed &&
+    nCand > 1 && sorted.length > 0 && aimEnumEnabled() &&
     !(inRolloutContext && (!rolloutAimEnabled || rolloutAimSuppressed))
   ) {
     // Refine the first K candidates of the quality-sorted pool, not just
@@ -262,8 +344,10 @@ function sortWithLaneExtras(
     // pool (only one wins per branch), so reusing the start id is safe; the merge
     // re-sort ranks all extras from all bases together.
     // K is gated on compile maturity and low-air targets (aimTopKBasesEffective):
-    // below the budget threshold this is 1; low-air mature gaps keep K=3.
-    const kEff = aimTopKBasesEffective(gap, gaps, ctx);
+    // below the budget threshold this is 1; low-air mature gaps keep K=3. A
+    // compile against its deadline keeps only a share of those bases
+    // (aimLaneBases) rather than losing the lane.
+    const kEff = aimLaneBases(aimTopKBasesEffective(gap, gaps, ctx));
     const bases = Math.min(kEff, sorted.length);
     for (let b = 0; b < kEff; b++) {
       if (b >= bases) { recordLaneBaseSkip(); continue; }

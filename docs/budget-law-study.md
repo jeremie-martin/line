@@ -25,6 +25,14 @@ span across the budgets measured here. See *The Live Slack Coordinate*.
 This is a Phase 1 study. Nothing in it changed policy, the frozen calibrator,
 the recorder, the estimator, or the artifact.
 
+**Status: Phase 2a executed recommendation (a). The shipped estimator artifact
+is schema v2 with `budgetExponent: 0.825` anchored at 750k — but its calibrated
+domain is [300k, 1.5M], not the [150k, 1.5M] proposed below. 150k could not be
+claimed: its interval coverage reached only 91.7% even after the intervals were
+stratified by regime, and its path-backed estimates turned out to be 19% biased,
+so the path claim was scoped to the domain too. See *2026-08-01 Budget Law* in
+[`compile-budget-telemetry.md`](compile-budget-telemetry.md).**
+
 ## Protocol
 
 One panel, four budgets, collected fresh on `09f1400` under current production
@@ -455,6 +463,14 @@ Four properties make this the right shape:
    interval ratios themselves should be refitted per event on the pooled
    multi-budget corpus and should probably widen with `|log(B / refB)|`; this
    study did not fit intervals and does not claim coverage.
+
+   *Phase 2a outcome: the third grade was not built, and the widening guess was
+   wrong. Measured, the interval a budget's own residuals ask for is not monotone
+   in `|log(B / refB)|` — the high-water upper ratio runs 1.438 at 150k, 1.214 at
+   300k, 1.269 at 750k, 1.218 at 1.5M — so distance from the reference is not the
+   variable. The variable that did carry is path availability, and the shipped
+   artifact stratifies on it. 150k still could not be covered and was left out of
+   the domain entirely.*
 
 Two things schema v2 must not silently inherit. The fitted reference
 coefficients here come from an SSE-NNLS fit, matching how the current artifact

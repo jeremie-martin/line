@@ -24,7 +24,7 @@ type CalibrationSample = {
   event: "start" | "high_water";
   actual: number;
   structural: number;
-  path: null;
+  path: number | null;
   pace: null;
   remainingContacts: number;
   remainingDurationFrames: number;
@@ -34,6 +34,32 @@ type CalibrationSample = {
 };
 
 type CalibrationReport = {
+  inputs: string[];
+  structuralForm: {
+    form: string;
+    referenceBudgetFrames: number;
+    budgetExponent: number;
+    budgets: number[];
+    samplesByBudget: Record<string, number>;
+    minimumBudgetsForLaw: number;
+  };
+  byBudget: Array<{
+    budget: number;
+    samples: number;
+    intervalCoverageBySample: number;
+    pathFree: { n: number; medianAbsolutePercentageError: number | null };
+  }>;
+  budgetTransfer: {
+    role: string;
+    applicable: boolean;
+    byHeldOutBudget: Array<{
+      heldOutBudget: number;
+      trainedBudgets: number[];
+      fittedBudgetExponent: number;
+      law: { pathFree: { medianAbsolutePercentageError: number | null } };
+      constantPooled: { pathFree: { medianAbsolutePercentageError: number | null } };
+    }>;
+  };
   staticMetrics: { weightedMedianAbsoluteLogError: number };
   acceptance: {
     accepted: boolean;
@@ -63,6 +89,20 @@ type CalibrationReport = {
     coverageConvention: string;
     coverage: number;
     coverageBySample: number;
+    stratification: {
+      applied: boolean;
+      minimumStratumSamples: number;
+      pathStrata: Array<{
+        event: string;
+        path: "withPath" | "withoutPath";
+        n: number;
+        fitted: boolean;
+        fallback: string | null;
+        lowerRatio: number;
+        upperRatio: number;
+        coverageBySample: number;
+      }>;
+    };
   };
 };
 
@@ -104,21 +144,35 @@ function run(samples: unknown[]): {
   output: string;
   report: string;
 } {
+  return runInputs([samples]);
+}
+
+/** One analysis file per element, which is how a multi-budget corpus arrives. */
+function runInputs(inputSamples: unknown[][]): {
+  status: number | null;
+  stderr: string;
+  stdout: string;
+  output: string;
+  report: string;
+} {
   const directory = mkdtempSync(join(tmpdir(), "line-budget-calibration-"));
   temporary.push(directory);
-  const input = join(directory, "analysis.json");
   const output = join(directory, "model.json");
   const report = join(directory, "report.json");
-  writeFileSync(input, `${JSON.stringify({
-    schema: "line.compile-budget-telemetry-analysis.v1",
-    inputs: ["synthetic"],
-    calibration_samples: samples,
-  })}\n`);
+  const inputs = inputSamples.map((samples, index) => {
+    const input = join(directory, `analysis-${index}.json`);
+    writeFileSync(input, `${JSON.stringify({
+      schema: "line.compile-budget-telemetry-analysis.v1",
+      inputs: [`synthetic-${index}`],
+      calibration_samples: samples,
+    })}\n`);
+    return input;
+  });
   const result = spawnSync(process.execPath, [
     "--import",
     "tsx",
     resolve("scripts/v0/calibrate_budget_estimator.ts"),
-    input,
+    ...inputs,
     `--out=${output}`,
     `--report=${report}`,
     "--folds=2",
@@ -131,12 +185,47 @@ function calibrate(samples: CalibrationSample[]): {
   model: BudgetEstimatorModelArtifact;
   report: CalibrationReport;
 } {
-  const result = run(samples);
+  return calibrateInputs([samples]);
+}
+
+function calibrateInputs(inputSamples: CalibrationSample[][]): {
+  model: BudgetEstimatorModelArtifact;
+  report: CalibrationReport;
+} {
+  const result = runInputs(inputSamples);
   expect(result.status, result.stderr || result.stdout).toBe(0);
   return {
     model: parseBudgetEstimatorModel(JSON.parse(readFileSync(result.output, "utf8"))),
     report: JSON.parse(readFileSync(result.report, "utf8")) as CalibrationReport,
   };
+}
+
+/**
+ * A corpus whose cost is exactly `3 * V1(shape) * (B / 750,000)^exponent`, one
+ * analysis file per budget. The truth is noiseless, so the fit either recovers
+ * the exponent or the search is wrong.
+ */
+function budgetPanel(budgets: number[], exponent: number): CalibrationSample[][] {
+  const shapes = [
+    { startupIncluded: false, remainingContacts: 1, remainingDurationFrames: 0 },
+    { startupIncluded: false, remainingContacts: 4, remainingDurationFrames: 0 },
+    { startupIncluded: true, remainingContacts: 9, remainingDurationFrames: 120 },
+  ];
+  let attemptId = 0;
+  return budgets.map((policyBudgetFrames) =>
+    ["family-a", "family-b", "family-c"].flatMap((group) =>
+      shapes.map((shape) =>
+        sample({
+          group,
+          attemptId: attemptId++,
+          policyBudgetFrames,
+          actual: 3 * structuralActual(shape) *
+            Math.pow(policyBudgetFrames / 750_000, exponent),
+          ...shape,
+        })
+      )
+    )
+  );
 }
 
 describe("budget estimator calibration", () => {
@@ -356,6 +445,185 @@ describe("budget estimator calibration", () => {
       expect(report.interval.coverageBySample).toBeCloseTo(report.interval.coverage, 6);
       expect(model.metrics.validationIntervalCoverageBySample)
         .toBeCloseTo(report.interval.coverageBySample, 5);
+    });
+  });
+
+  describe("multi-budget corpora", () => {
+    test("fits one shared exponent and declares schema v2", () => {
+      const budgets = [150_000, 300_000, 750_000, 1_500_000];
+      const { model, report } = calibrateInputs(budgetPanel(budgets, 0.6));
+
+      expect(report.inputs).toHaveLength(4);
+      expect(report.structuralForm.budgets).toEqual(budgets);
+      expect(report.structuralForm.form).toBe("reference_shape_times_budget_scale");
+      expect(model.schema).toBe("line.compile-budget-estimator-model.v2");
+      expect(model.structural.name).toContain("-law/");
+      expect(model.structural.referenceBudgetFrames).toBe(750_000);
+      expect(model.structural.budgetExponent!).toBeCloseTo(0.6, 3);
+      // Reference coefficients are the 750k anchor, so they read three times V1.
+      expect(model.structural.contactFrames)
+        .toBeCloseTo(3 * TRAVERSAL_BUDGET_MODEL_V1.contactFrames, 2);
+      // The domain is the corpus, which is now a band rather than a point.
+      expect(model.applicability.structuralPolicyBudgetFrames)
+        .toEqual({ min: 150_000, max: 1_500_000 });
+      // Every budget is predicted, not just the anchor.
+      for (const entry of report.byBudget) {
+        expect(entry.pathFree.medianAbsolutePercentageError!).toBeLessThan(0.01);
+      }
+    });
+
+    test("reports budget transfer as evidence, with the no-exponent control", () => {
+      const budgets = [150_000, 300_000, 750_000, 1_500_000];
+      const { report } = calibrateInputs(budgetPanel(budgets, 0.6));
+
+      expect(report.budgetTransfer.role).toBe("reported_evidence_not_an_acceptance_gate");
+      expect(report.budgetTransfer.applicable).toBe(true);
+      expect(report.budgetTransfer.byHeldOutBudget.map((entry) => entry.heldOutBudget))
+        .toEqual(budgets);
+      for (const entry of report.budgetTransfer.byHeldOutBudget) {
+        expect(entry.trainedBudgets).not.toContain(entry.heldOutBudget);
+        // A budget the fit never saw is still predicted by the exponent, and
+        // the same rows without one are not: that gap IS the law's evidence.
+        expect(entry.fittedBudgetExponent).toBeCloseTo(0.6, 3);
+        expect(entry.law.pathFree.medianAbsolutePercentageError!).toBeLessThan(0.01);
+        expect(entry.constantPooled.pathFree.medianAbsolutePercentageError!)
+          .toBeGreaterThan(entry.law.pathFree.medianAbsolutePercentageError!);
+      }
+    });
+
+    test("stays budget-independent below three budgets", () => {
+      // Two points define an exponent exactly and therefore measure nothing
+      // about it, so the artifact must not claim one.
+      const { model, report } = calibrateInputs(budgetPanel([300_000, 1_500_000], 0.6));
+
+      expect(model.structural).not.toHaveProperty("budgetExponent");
+      expect(model.structural).not.toHaveProperty("referenceBudgetFrames");
+      expect(model.structural.name).not.toContain("-law/");
+      expect(report.structuralForm.form).toBe("budget_independent");
+      expect(report.structuralForm.budgetExponent).toBe(0);
+      expect(report.budgetTransfer.applicable).toBe(false);
+      expect(report.budgetTransfer.byHeldOutBudget).toEqual([]);
+      // The domain still reports what the corpus covered.
+      expect(model.applicability.structuralPolicyBudgetFrames)
+        .toEqual({ min: 300_000, max: 1_500_000 });
+    });
+
+    test("leaves a single-budget corpus exactly as it was", () => {
+      const { model, report } = calibrateInputs(budgetPanel([750_000], 0.6));
+
+      expect(model.structural).not.toHaveProperty("budgetExponent");
+      expect(report.structuralForm.form).toBe("budget_independent");
+      expect(model.applicability.structuralPolicyBudgetFrames)
+        .toEqual({ min: 750_000, max: 750_000 });
+    });
+  });
+
+  describe("interval stratification", () => {
+    /**
+     * Two regimes with deliberately different spreads. Path-backed rows have a
+     * measured path within a few percent of the truth; path-free rows are a
+     * structural regression that misses by up to 40%. One pooled band cannot
+     * serve both, which is exactly the situation on the real panel.
+     */
+    const TIGHT = [0.98, 0.99, 1.0, 1.01, 1.02];
+    const WIDE = [0.62, 0.78, 0.95, 1.0, 1.05, 1.22, 1.38];
+    const regimeCorpus = (): CalibrationSample[] => {
+      const rows: CalibrationSample[] = [];
+      let attemptId = 0;
+      for (const group of ["family-a", "family-b", "family-c"]) {
+        for (const seed of [0, 1]) {
+          for (let index = 0; index < 70; index++) {
+            const shape = {
+              startupIncluded: false,
+              remainingContacts: 1 + (index % 7),
+              remainingDurationFrames: 0,
+            };
+            // Actual cost scatters widely around structure in BOTH regimes, so
+            // a structural-only estimate is poor for both and the selected
+            // candidate is genuinely `path_if_available`. What differs is the
+            // information available at read time.
+            const truth = 4 * structuralActual(shape) * WIDE[index % WIDE.length];
+            const context = `src/${seed}/750000`;
+            rows.push(sample({
+              group,
+              context,
+              attemptId: attemptId++,
+              event: "high_water",
+              actual: truth,
+              // The runtime routes this through the path base, so its residual
+              // is the path's own error and it belongs in its own band.
+              path: truth * TIGHT[index % TIGHT.length],
+              ...shape,
+            }));
+            rows.push(sample({
+              group,
+              context,
+              attemptId: attemptId++,
+              event: "high_water",
+              actual: 4 * structuralActual(shape) * WIDE[(index + 3) % WIDE.length],
+              path: null,
+              ...shape,
+            }));
+          }
+        }
+      }
+      return rows;
+    };
+
+    test("fits a band per event x path regime and reports the split", () => {
+      const { model, report } = calibrate(regimeCorpus());
+      const stratification = report.interval.stratification;
+
+      expect(stratification.applied).toBe(true);
+      // Derived from the requested coverage: 4 observations per 2.5% tail.
+      expect(stratification.minimumStratumSamples).toBe(160);
+      expect(model.schema).toBe("line.compile-budget-estimator-model.v2");
+
+      const strata = model.interval.byEventAndPath!.high_water!;
+      const withPath = strata.withPath!;
+      const withoutPath = strata.withoutPath!;
+      // The whole point: the measured regime is tighter than the regressed one.
+      expect(withPath.upperRatio).toBeLessThan(withoutPath.upperRatio);
+      expect(withPath.lowerRatio).toBeGreaterThan(withoutPath.lowerRatio);
+      for (const interval of [withPath, withoutPath]) {
+        expect(interval.lowerRatio).toBeLessThanOrEqual(1);
+        expect(interval.upperRatio).toBeGreaterThanOrEqual(1);
+      }
+      // Each band answers for its own regime rather than for the mixture.
+      for (const stratum of stratification.pathStrata) {
+        expect(stratum.fitted).toBe(true);
+        expect(stratum.n).toBeGreaterThanOrEqual(stratification.minimumStratumSamples);
+        expect(stratum.coverageBySample).toBeGreaterThanOrEqual(0.94);
+      }
+    });
+
+    test("falls back to the event band when a stratum is too thin to fit one", () => {
+      // Nine samples per family: no stratum can carry a 2.5% tail, so the
+      // artifact must claim no split at all rather than promise coverage from
+      // an extreme order statistic.
+      const { model, report } = calibrate(["family-a", "family-b", "family-c"].flatMap((group) =>
+        [1, 4, 9].map((remainingContacts, index) =>
+          sample({
+            group,
+            attemptId: index,
+            remainingContacts,
+            remainingDurationFrames: 0,
+            startupIncluded: false,
+            actual: 3 * structuralActual({
+              startupIncluded: false,
+              remainingContacts,
+              remainingDurationFrames: 0,
+            }),
+          })
+        )
+      ));
+
+      expect(report.interval.stratification.applied).toBe(false);
+      expect(model.interval).not.toHaveProperty("byEventAndPath");
+      for (const stratum of report.interval.stratification.pathStrata) {
+        expect(stratum.fitted).toBe(false);
+        expect(stratum.fallback).toBe("event");
+      }
     });
   });
 

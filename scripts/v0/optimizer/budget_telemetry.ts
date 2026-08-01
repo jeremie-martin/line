@@ -18,6 +18,7 @@ import {
   BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
   budgetEstimateInterval,
   budgetEstimatorApplicability,
+  budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
   type BudgetEstimatorApplicability,
 } from "./budget_estimator.ts";
@@ -87,7 +88,10 @@ export type BudgetEstimateObservation = {
   estimator_applicability: BudgetEstimatorApplicability;
   /** clamp((anchor structural work - current structural work) / anchor work, 0, 1). */
   structural_progress_fraction: number;
-  /** Structure-only remaining-work estimate at high_water. */
+  /**
+   * Structure-only remaining-work estimate at high_water, already multiplied by
+   * the artifact's budget-law scalar for this compile's policy budget.
+   */
   structural_work_prior_frames: number;
   /** Original incumbent's measured cost-to-end suffix; repair-only when known. */
   incumbent_path_work_estimate_frames: number | null;
@@ -187,7 +191,14 @@ export type CompileBudgetTelemetry = {
     hard_overrun_frames: number;
     budget_exhausted: boolean;
     initial_structural_work_prior_frames: number;
-    /** policy budget / initial structural prior, fixed at compile start. */
+    /**
+     * policy budget / initial structural prior, fixed at compile start.
+     *
+     * Unchanged in definition, but under a budget-law artifact the denominator
+     * carries the exponent, so this ratio grows as `B^(1-alpha)` rather than as
+     * `B`. It is telemetry, not the policy coordinate: `compile_stats.budget_slack`
+     * is a separate, budget-independent V1 quantity and is untouched.
+     */
     initial_structural_slack: number;
     /**
      * Whether the two fields above are inside the estimator's calibration
@@ -240,6 +251,16 @@ export class CompileBudgetTelemetryRecorder {
   private readonly hardBudgetFrames: number;
   private readonly policyBudgetFrames: number;
   private readonly model: TraversalBudgetModel;
+  /**
+   * The artifact's budget-law scalar at this compile's policy budget.
+   *
+   * It is a function of the budget alone, so it is resolved once here and never
+   * recomputed per observation. It comes from the frozen artifact rather than
+   * from `input.model`, because a caller-supplied traversal model overrides the
+   * three coefficients only — corrections, intervals, applicability, and now the
+   * budget law all remain the artifact's.
+   */
+  private readonly structuralScale: number;
   private readonly attempts: MutableAttempt[] = [];
   private readonly segments: BudgetExecutionSegment[] = [];
   private activeAttemptId: number | null = null;
@@ -258,6 +279,7 @@ export class CompileBudgetTelemetryRecorder {
     this.hardBudgetFrames = input.hardBudgetFrames;
     this.policyBudgetFrames = input.policyBudgetFrames;
     this.model = input.model ?? BUDGET_ESTIMATOR_TRAVERSAL_MODEL;
+    this.structuralScale = budgetEstimatorStructuralScale(input.policyBudgetFrames);
   }
 
   startAttempt(input: StartAttemptInput): number | null {
@@ -450,6 +472,24 @@ export class CompileBudgetTelemetryRecorder {
     return this.activeAttemptId === null ? null : this.attempts[this.activeAttemptId] ?? null;
   }
 
+  /**
+   * Structural remaining work at a gap, on this compile's budget scale.
+   *
+   * Anchor and high-water work share one scalar, so `structural_progress_fraction`
+   * and `episode_pace_work_estimate_frames` are unchanged by the law: the scale
+   * cancels in `(S0 - S) / S0` and in `spent * S / (S0 - S)`. Pace stays a pure
+   * measurement, which is the one component the law was never needed for.
+   */
+  private structuralWorkAt(gapIndex: number, includeStartup: boolean): number {
+    return this.structuralScale * structuralRemainingWork(
+      this.gaps,
+      this.durationFrames,
+      gapIndex,
+      includeStartup,
+      this.model,
+    );
+  }
+
   private buildObservation(
     attempt: MutableAttempt,
     totalSpentFrames: number,
@@ -458,19 +498,13 @@ export class CompileBudgetTelemetryRecorder {
   ): BudgetEstimateObservation {
     const totalSpent = nonNegativeInt(totalSpentFrames);
     const structure = remainingStructure(this.gaps, this.durationFrames, highWaterGap);
-    const structural = structuralRemainingWork(
-      this.gaps,
-      this.durationFrames,
+    const structural = this.structuralWorkAt(
       highWaterGap,
       attempt.includeStartup && highWaterGap === attempt.anchor.gap_index,
-      this.model,
     );
-    const startStructural = structuralRemainingWork(
-      this.gaps,
-      this.durationFrames,
+    const startStructural = this.structuralWorkAt(
       attempt.anchor.gap_index,
       attempt.includeStartup,
-      this.model,
     );
     const progressedStructural = Math.max(0, startStructural - structural);
     const progressFraction = startStructural > 0
@@ -502,7 +536,13 @@ export class CompileBudgetTelemetryRecorder {
       policyBudgetFrames: this.policyBudgetFrames,
       attemptKind: attempt.kind,
     });
-    const calibratedInterval = budgetEstimateInterval(estimated, event);
+    // The interval stratum uses the same path predicate as the correction
+    // factor: `pathEstimate` is already the positive-only value the selector
+    // would route through.
+    const calibratedInterval = budgetEstimateInterval(estimated, {
+      event,
+      pathAvailable: pathEstimate !== null,
+    });
     const { lower, upper } = applicability === "calibrated"
       ? calibratedInterval
       : {
@@ -627,9 +667,14 @@ export function remainingStructure(
 }
 
 /**
- * Structure-only remaining charged work:
+ * Structure-only remaining charged work at the model's own reference budget:
  * startup intercept + contact coefficient * suffix contacts + duration
  * coefficient * suffix authored frames. Startup is included at most once.
+ *
+ * Deliberately free of the budget law — this is the shape, and the recorder
+ * applies the artifact's `(B / refB)^alpha` scalar to it. A caller wanting the
+ * quantity a compile would record must multiply by
+ * `budgetEstimatorStructuralScale(policyBudgetFrames)`.
  */
 export function structuralRemainingWork(
   gaps: readonly Gap[],

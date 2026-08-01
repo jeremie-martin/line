@@ -1,22 +1,28 @@
 /**
  * Fit and validate the policy-neutral remaining-work estimator artifact.
  *
- * Input is the JSON emitted by analyze_budget_telemetry.ts. Source-family
- * groups are held out together, and every attempt has total weight one so a
- * dense trace cannot dominate a sparse one.
+ * Input is one or more JSON reports emitted by analyze_budget_telemetry.ts.
+ * Source-family groups are held out together, and every attempt has total
+ * weight one so a dense trace cannot dominate a sparse one.
+ *
+ * A corpus spanning at least three distinct policy budgets also fits the budget
+ * law `cost * (B / 750,000)^alpha` — one exponent on the whole difficulty
+ * scalar, anchored at the reference budget. See docs/budget-law-study.md.
  */
 
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import {
-  BUDGET_ESTIMATOR_MODEL_SCHEMA,
+  BUDGET_ESTIMATOR_MODEL_SCHEMA_V1,
+  BUDGET_ESTIMATOR_MODEL_SCHEMA_V2,
   estimateRemainingBudgetWork,
   parseBudgetEstimatorModel,
   type BudgetEstimatorAttemptKind,
   type BudgetEstimatorBaseMode,
   type BudgetEstimatorModelArtifact,
   type BudgetEstimatorPaceSchedule,
+  type BudgetEstimatorPathClaim,
 } from "./optimizer/budget_estimator.ts";
 import { TRAVERSAL_BUDGET_MODEL_V1 } from "./optimizer/budget_model.ts";
 
@@ -43,6 +49,13 @@ type Candidate = {
   baseMode: BudgetEstimatorBaseMode;
   paceSchedule: BudgetEstimatorPaceSchedule;
 };
+type StructuralCoefficients = {
+  interceptFrames: number;
+  contactFrames: number;
+  durationFrameScale: number;
+};
+/** Coefficients plus the shared budget exponent; zero means a v1-shaped model. */
+type StructuralFit = StructuralCoefficients & { budgetExponent: number };
 type Prediction = { sample: WeightedSample; predicted: number };
 type Metrics = {
   n: number;
@@ -77,10 +90,38 @@ const FITTED_ATTEMPT_KINDS: ReadonlySet<BudgetEstimatorAttemptKind> = new Set([
 /** Seed folds crossed with the family folds; 8 panel seeds give 4 pairs of 2. */
 const DEFAULT_SEED_FOLDS = 4;
 
+/**
+ * The budget the law's reference coefficients are anchored at.
+ *
+ * A scale-free law needs exactly one anchor and no other budget-keyed constant.
+ * 750k is the artifact's historical calibration point and the study's, so the
+ * reference coefficients stay comparable to every number already published.
+ */
+const LAW_REFERENCE_BUDGET_FRAMES = 750_000;
+/**
+ * Distinct policy budgets required before an exponent is fitted at all.
+ *
+ * Two points determine an exponent exactly and therefore measure nothing about
+ * it; three is the smallest corpus that can disagree with a power law. Below
+ * this the fit is the historical budget-independent one, bit for bit.
+ */
+const MIN_LAW_BUDGETS = 3;
+/** Exponent search range. Cost that FALLS with a larger budget is not a shape. */
+const LAW_EXPONENT_RANGE = { min: 0, max: 2 } as const;
+/**
+ * Expected observations per interval tail before a stratum is fitted on its own.
+ *
+ * Derived from the requested coverage rather than picked: at four expected
+ * observations in each tail the percentile is still an order statistic, but not
+ * the single most extreme one, so it cannot encode one attempt's luck as a
+ * coverage promise. A thinner stratum falls back to its event.
+ */
+const MIN_TAIL_OBSERVATIONS = 4;
+
 const args = process.argv.slice(2);
-const inputPath = args.find((value) => !value.startsWith("--"));
-if (inputPath === undefined) {
-  throw new Error("usage: calibrate_budget_estimator.ts <analysis.json> [--out=model.json] [--report=report.json] [--folds=5] [--coverage=0.95]");
+const inputPaths = args.filter((value) => !value.startsWith("--"));
+if (inputPaths.length === 0) {
+  throw new Error("usage: calibrate_budget_estimator.ts <analysis.json>... [--out=model.json] [--report=report.json] [--folds=5] [--coverage=0.95]");
 }
 const valueOf = (name: string): string | undefined => {
   const prefix = `--${name}=`;
@@ -91,12 +132,23 @@ const reportPath = resolve(valueOf("report") ?? "generated/analysis/budget-estim
 const requestedFolds = positiveInteger(valueOf("folds") ?? "5", "folds");
 const nominalCoverage = probability(valueOf("coverage") ?? "0.95", "coverage");
 const tailProbability = (1 - nominalCoverage) / 2;
-const analysis = JSON.parse(readFileSync(resolve(inputPath), "utf8"));
-const portableInputPath = relative(process.cwd(), resolve(inputPath));
-if (analysis.schema !== "line.compile-budget-telemetry-analysis.v1") {
-  throw new Error(`expected line.compile-budget-telemetry-analysis.v1, got ${String(analysis.schema)}`);
-}
-const parsedSamples = parseSamples(analysis.calibration_samples);
+const MIN_STRATUM_SAMPLES = Math.ceil(MIN_TAIL_OBSERVATIONS / tailProbability);
+const portableInputPaths = inputPaths.map((path) => relative(process.cwd(), resolve(path)));
+const analyses = inputPaths.map((path) => {
+  const analysis = JSON.parse(readFileSync(resolve(path), "utf8"));
+  if (analysis.schema !== "line.compile-budget-telemetry-analysis.v1") {
+    throw new Error(`${path}: expected line.compile-budget-telemetry-analysis.v1, got ${String(analysis.schema)}`);
+  }
+  return analysis;
+});
+// One corpus, however many analyses produced it. Each analysis already
+// validated its own payloads; pooling them here is what lets one fit see more
+// than one policy budget.
+const parsedSamples = analyses.flatMap((analysis, index) => {
+  const samples = parseSamples(analysis.calibration_samples, portableInputPaths[index]);
+  if (samples.length === 0) throw new Error(`${inputPaths[index]}: no calibration samples`);
+  return samples;
+});
 const rawSamples = parsedSamples.filter((sample) => FITTED_ATTEMPT_KINDS.has(sample.attemptKind));
 const excludedSamples = parsedSamples.filter((sample) => !FITTED_ATTEMPT_KINDS.has(sample.attemptKind));
 const excludedSamplesByKind = countByKind(excludedSamples);
@@ -145,6 +197,27 @@ const weighted = weightSamples(rawSamples).map((sample, index) => ({
   seedFold: seedBlocked ? foldBySeed.get(String(seedBySample[index]))! : 0,
 }));
 
+/*
+ * Whether this corpus can carry a budget law at all.
+ *
+ * Decided once over the WHOLE corpus rather than per fold: the fitted form must
+ * not change between folds, or the held-out numbers would describe a mixture of
+ * two models. Family x seed blocking keeps every budget in every training set,
+ * so this is also the form each fold actually fits.
+ */
+const distinctBudgets = [...new Set(weighted.map((sample) => sample.policyBudgetFrames))]
+  .sort((a, b) => a - b);
+const fitsBudgetLaw = distinctBudgets.length >= MIN_LAW_BUDGETS;
+/**
+ * Whether a budget can be held out and the rest still identify an exponent.
+ * Needs one more budget than the fit itself does.
+ */
+const transferable = distinctBudgets.length > MIN_LAW_BUDGETS;
+/** One structural fit per held-out cell, shared by every candidate. */
+const structuralByCell = new Map<string, StructuralFit>();
+/** `exponent:budget` -> scale; see `budgetScale`. */
+const budgetScaleCache = new Map<string, number>();
+
 const candidates: Candidate[] = [];
 for (const baseMode of [
   "structural",
@@ -164,9 +237,10 @@ const unitCorrection = { withoutPath: 1, withPath: 1 };
 // Evaluate the exact static model we will emit if no candidate clears the
 // acceptance gates. sample.structural belongs to the artifact that recorded
 // the input telemetry and may have different coefficients.
+const staticFit: StructuralFit = { ...TRAVERSAL_BUDGET_MODEL_V1, budgetExponent: 0 };
 const staticPredictions = weighted.map((sample) => ({
   sample,
-  predicted: predict(sample, TRAVERSAL_BUDGET_MODEL_V1, staticCandidate, unitCorrection),
+  predicted: predict(sample, staticFit, staticCandidate, unitCorrection),
 }));
 const staticMetrics = metrics(staticPredictions);
 const evaluated = candidates.map((candidate) => {
@@ -183,10 +257,23 @@ const selectedCandidate: Candidate = accepted
   ? best.candidate
   : staticCandidate;
 const selectedOof = accepted ? best.predictions : staticPredictions;
-const structural = accepted ? fitStructural(weighted) : { ...TRAVERSAL_BUDGET_MODEL_V1 };
+const structural: StructuralFit = accepted ? fitStructuralModel(weighted) : staticFit;
 const correctionFactors = accepted
   ? fitCorrection(weighted, structural, selectedCandidate)
   : { withoutPath: 1, withPath: 1 };
+const carriesBudgetLaw = accepted && structural.budgetExponent !== 0;
+/**
+ * The path claim this calibrator emits, and whether that alone makes the
+ * artifact schema v2.
+ *
+ * "No evidence, no claim" is the rule `structuralAttemptKinds` already applies
+ * to attempt kinds; this applies it to the policy budget for path-backed
+ * estimates too. The four-budget panel is why: path-backed estimates are
+ * unbiased at 300k-1.5M (median actual/predicted 0.99-1.01) and 19% biased at
+ * 150k, where the incumbent handed to repair came out of a search that barely
+ * completed, so a fit above 150k cannot vouch for them there.
+ */
+const PATH_CLAIM: BudgetEstimatorPathClaim = "calibrated_when_available_in_domain";
 /*
  * Interval percentiles are PER-OBSERVATION, while everything else here is
  * attempt-weighted.
@@ -238,15 +325,85 @@ const intervalByEvent = Object.fromEntries(intervalStrata.map((stratum) => [
   stratum.event,
   { lowerRatio: stratum.lowerRatio, upperRatio: stratum.upperRatio },
 ]));
-const intervalCoverage = weightedEventCoverage(selectedOof, intervalByEvent);
-const intervalCoverageBySample = sampleEventCoverage(selectedOof, intervalByEvent);
+/*
+ * Split each event again by whether the estimate is path-backed.
+ *
+ * A path-backed estimate is a measurement of the incumbent's own suffix; a
+ * path-free one is a regression on spec structure. They are different regimes
+ * with different spreads, so one pooled band necessarily under-covers whichever
+ * is noisier and over-covers the other, and the mixture weight varies across
+ * the corpus — on the four-budget panel the path-free share runs 84% at 150k
+ * against 64% at 750k, which is what made a single band under-deliver at the
+ * scarce budget.
+ *
+ * Conditioning on the REGIME is why this generalizes. Conditioning on the
+ * policy budget would fit the corpus's own identity and would have nothing to
+ * say at a budget between the fitted ones; a stratum knows only what the
+ * runtime also knows at the moment it reads the interval.
+ */
+const intervalPathStrata = intervalStrata.flatMap((eventStratum) =>
+  ([true, false] as const).map((withPath) => {
+    const predictions = selectedOof.filter(({ sample }) =>
+      sample.event === eventStratum.event && usesPath(sample) === withPath
+    );
+    // A 2.5% tail cannot be estimated from a handful of observations: below
+    // four expected observations per tail the percentile IS an extreme order
+    // statistic and would encode one attempt's luck as a coverage promise.
+    const fitted = predictions.length >= MIN_STRATUM_SAMPLES;
+    const ratios = predictions.map(({ sample, predicted }) => ({
+      value: sample.actual / Math.max(1, predicted),
+      weight: 1,
+    }));
+    const interval = fitted
+      ? {
+        lowerRatio: Math.min(1, weightedPercentile(ratios, tailProbability)),
+        upperRatio: Math.max(1, weightedPercentile(ratios, 1 - tailProbability)),
+      }
+      : { lowerRatio: eventStratum.lowerRatio, upperRatio: eventStratum.upperRatio };
+    const inside = predictions.filter(({ sample, predicted }) =>
+      sample.actual >= predicted * interval.lowerRatio &&
+      sample.actual <= predicted * interval.upperRatio
+    );
+    return {
+      event: eventStratum.event,
+      path: withPath ? ("withPath" as const) : ("withoutPath" as const),
+      n: predictions.length,
+      fitted,
+      fallback: fitted ? null : "event",
+      ...interval,
+      coverage: weightRatio(inside, predictions),
+      coverageBySample: predictions.length === 0 ? 0 : inside.length / predictions.length,
+    };
+  })
+);
+const intervalByEventAndPath: NonNullable<
+  BudgetEstimatorModelArtifact["interval"]["byEventAndPath"]
+> = {};
+for (const stratum of intervalPathStrata) {
+  if (!stratum.fitted) continue;
+  const entry = intervalByEventAndPath[stratum.event] ?? {};
+  entry[stratum.path] = { lowerRatio: round(stratum.lowerRatio), upperRatio: round(stratum.upperRatio) };
+  intervalByEventAndPath[stratum.event] = entry;
+}
+const stratifiesIntervals = Object.keys(intervalByEventAndPath).length > 0;
+const intervalRatiosFor = (sample: WeightedSample): { lowerRatio: number; upperRatio: number } =>
+  intervalByEventAndPath[sample.event]?.[usesPath(sample) ? "withPath" : "withoutPath"] ??
+    intervalByEvent[sample.event] ??
+    { lowerRatio, upperRatio };
+const intervalCoverage = weightedIntervalCoverage(selectedOof, intervalRatiosFor);
+const intervalCoverageBySample = sampleIntervalCoverage(selectedOof, intervalRatiosFor);
 const datasetFingerprint = createHash("sha256")
   .update(JSON.stringify(rawSamples))
   .digest("hex");
 const selectedMetrics = metrics(selectedOof);
 const candidateLabel = `${selectedCandidate.baseMode}+${selectedCandidate.paceSchedule}`;
 const model: BudgetEstimatorModelArtifact = {
-  schema: BUDGET_ESTIMATOR_MODEL_SCHEMA,
+  // v2 is declared whenever the artifact uses a v2 feature — a budget law,
+  // stratified intervals, or the domain-scoped path claim — because a reader
+  // pinned to v1 semantics would silently drop any of them and answer a
+  // different question. `PATH_CLAIM` alone makes that unconditional, so every
+  // artifact emitted here is v2 and v1 is a read-only compatibility path.
+  schema: BUDGET_ESTIMATOR_MODEL_SCHEMA_V2,
   modelId: `${accepted ? "calibrated" : "static"}-${candidateLabel}-${datasetFingerprint.slice(0, 12)}`,
   // The flag means "this artifact was fitted", so a rejected candidate must not
   // claim it: the emitted coefficients are the untouched static fallback, and
@@ -255,9 +412,11 @@ const model: BudgetEstimatorModelArtifact = {
   generatedAt: new Date().toISOString(),
   provenance: {
     generator: "scripts/v0/calibrate_budget_estimator.ts",
-    analysisSchema: analysis.schema,
+    analysisSchema: analyses[0].schema,
     datasetFingerprint,
-    inputs: Array.isArray(analysis.inputs) ? analysis.inputs : [portableInputPath],
+    inputs: analyses.flatMap((analysis, index) =>
+      Array.isArray(analysis.inputs) ? analysis.inputs : [portableInputPaths[index]]
+    ),
     groups: groups.length,
     samples: weighted.length,
     folds: foldCount,
@@ -267,14 +426,28 @@ const model: BudgetEstimatorModelArtifact = {
   },
   structural: {
     name: accepted
-      ? `budget-telemetry-nnls/${datasetFingerprint.slice(0, 12)}`
+      ? `budget-telemetry-nnls${carriesBudgetLaw ? "-law" : ""}/${datasetFingerprint.slice(0, 12)}`
       : TRAVERSAL_BUDGET_MODEL_V1.name,
     source: accepted
-      ? `${portableInputPath}; grouped ${foldCount}-fold validation`
+      ? `${portableInputPaths.join(" + ")}; grouped ${foldCount}-fold validation` +
+        // Claim transfer validation only when the table was actually produced;
+        // a three-budget corpus cannot hold one out and still identify an
+        // exponent, and an artifact must not assert evidence it does not have.
+        (carriesBudgetLaw ? `; budget law fitted at ${distinctBudgets.join(", ")}` : "") +
+        (carriesBudgetLaw && transferable ? "; budget-transfer validated" : "") +
+        (stratifiesIntervals ? "; intervals stratified by event x path availability" : "")
       : TRAVERSAL_BUDGET_MODEL_V1.source,
     interceptFrames: round(structural.interceptFrames),
     contactFrames: round(structural.contactFrames),
     durationFrameScale: round(structural.durationFrameScale),
+    // Omitted entirely without a law, so a budget-independent artifact stays
+    // byte-comparable with every one that came before it.
+    ...(carriesBudgetLaw
+      ? {
+        referenceBudgetFrames: LAW_REFERENCE_BUDGET_FRAMES,
+        budgetExponent: round(structural.budgetExponent),
+      }
+      : {}),
   },
   combination: {
     ...selectedCandidate,
@@ -289,6 +462,9 @@ const model: BudgetEstimatorModelArtifact = {
       event,
       { lowerRatio: round(interval.lowerRatio), upperRatio: round(interval.upperRatio) },
     ])),
+    // Omitted entirely when no stratum had the samples to earn one, so an
+    // artifact only claims a split it actually measured.
+    ...(stratifiesIntervals ? { byEventAndPath: intervalByEventAndPath } : {}),
   },
   applicability: {
     // Reduce, never spread: these arrays are one entry per sample and panels
@@ -303,7 +479,12 @@ const model: BudgetEstimatorModelArtifact = {
     structuralAttemptKinds: [...new Set(weighted
       .filter((sample) => !hasPath(sample))
       .map((sample) => sample.attemptKind))].sort(),
-    pathEstimate: "calibrated_when_available",
+    // No evidence, no claim — the same rule `structuralAttemptKinds` already
+    // applies to attempt kinds, now applied to the policy budget for path-backed
+    // estimates too. The path component was long held budget-independent; the
+    // four-budget panel shows it unbiased at 300k-1.5M and 19% biased at 150k,
+    // so a fit cannot vouch for it at budgets it never saw either.
+    pathEstimate: PATH_CLAIM,
   },
   metrics: {
     validationMedianAbsoluteLogError: round(selectedMetrics.weightedMedianAbsoluteLogError),
@@ -315,15 +496,153 @@ const model: BudgetEstimatorModelArtifact = {
   },
 };
 
+/*
+ * Per-budget held-out summaries.
+ *
+ * A corpus-wide median can hide a model that is right on average and wrong at
+ * both ends of the budget range — precisely the failure the budget law exists
+ * to remove — so every headline held-out statistic also gets a per-budget row.
+ * `pathFree` is the artifact's actual structural domain: observations the
+ * runtime would answer without an incumbent path.
+ */
+const perBudgetSummaries = distinctBudgets.map((budget) => {
+  const predictions = selectedOof.filter(({ sample }) => sample.policyBudgetFrames === budget);
+  const pathFree = predictions.filter(({ sample }) => !hasPath(sample));
+  return {
+    budget,
+    samples: predictions.length,
+    attempts: new Set(predictions.map(({ sample }) => attemptKey(sample))).size,
+    selected: errorSummary(predictions),
+    pathFree: errorSummary(pathFree),
+    intervalCoverage: weightedIntervalCoverage(predictions, intervalRatiosFor),
+    intervalCoverageBySample: sampleIntervalCoverage(predictions, intervalRatiosFor),
+    // The claim the stratification makes is that conditioning on the regime,
+    // not on the budget, is enough. These two rows are how that claim is
+    // checked: each stratum should hold its coverage at every budget.
+    byPath: ([true, false] as const).map((withPath) => {
+      const selected = predictions.filter(({ sample }) => usesPath(sample) === withPath);
+      return {
+        path: withPath ? "withPath" : "withoutPath",
+        samples: selected.length,
+        share: predictions.length === 0 ? 0 : selected.length / predictions.length,
+        intervalCoverageBySample: sampleIntervalCoverage(selected, intervalRatiosFor),
+        error: errorSummary(selected),
+      };
+    }),
+    byEvent: [...new Set(predictions.map(({ sample }) => sample.event))].sort().map((event) => {
+      const selected = predictions.filter(({ sample }) => sample.event === event);
+      const ratios = selected.map(({ sample, predicted }) => ({
+        value: sample.actual / Math.max(1, predicted),
+        weight: 1,
+      }));
+      return {
+        event,
+        samples: selected.length,
+        intervalCoverageBySample: sampleIntervalCoverage(selected, intervalRatiosFor),
+        // DIAGNOSTIC ONLY, never fitted into the artifact: the interval this
+        // budget's own held-out residuals would have asked for. Comparing it to
+        // the shipped ratios is what says whether the fitted strata can serve
+        // the whole domain, and if not, by how much they miss and in which tail.
+        residualRatiosAtThisBudget: {
+          lowerRatio: Math.min(1, weightedPercentile(ratios, tailProbability)),
+          upperRatio: Math.max(1, weightedPercentile(ratios, 1 - tailProbability)),
+        },
+      };
+    }),
+  };
+});
+
+/*
+ * Budget-transfer validation: fit without one budget, score on it.
+ *
+ * This is REPORTED EVIDENCE AND DELIBERATELY NOT A GATE, for three reasons.
+ * A gate needs a defined fallback, and there is none here: "the exponent did
+ * not transfer" does not imply "emit the budget-independent fit", which is
+ * worse at every budget in this corpus, nor "emit V1", which the acceptance
+ * gate already tests. It would also gate the wrong quantity — the selected
+ * estimate is path-backed at most observations, while transfer measures the
+ * structural component alone. And any threshold picked today would be a
+ * constant tuned to this panel's operating points, which is the shape the
+ * campaign's design rule exists to forbid. The numbers below let a reviewer set
+ * a bar with evidence instead.
+ */
+const budgetTransfer = {
+  role: "reported_evidence_not_an_acceptance_gate",
+  applicable: transferable,
+  note: transferable
+    ? "each row fits the structural model on every OTHER budget and scores this one"
+    : `needs more than ${MIN_LAW_BUDGETS} distinct budgets so each held-out fit ` +
+      `still spans enough to identify an exponent; this corpus has ${distinctBudgets.length}`,
+  byHeldOutBudget: !transferable ? [] : distinctBudgets.map((heldOut) => {
+    const train = weighted.filter((sample) => sample.policyBudgetFrames !== heldOut);
+    const test = weighted.filter((sample) => sample.policyBudgetFrames === heldOut);
+    const law = fitStructuralModel(train);
+    // Same training rows, same NNLS, no budget term: the honest control for
+    // "did the exponent earn this, or just a refreshed anchor?"
+    const constant = fitStructuralModel(train, false);
+    const structuralOnly = (fit: StructuralFit, rows: WeightedSample[]): Prediction[] =>
+      rows.map((sample) => ({
+        sample,
+        predicted: predict(sample, fit, staticCandidate, unitCorrection),
+      }));
+    const pathFree = test.filter((sample) => !hasPath(sample));
+    return {
+      heldOutBudget: heldOut,
+      trainedBudgets: distinctBudgets.filter((budget) => budget !== heldOut),
+      testSamples: test.length,
+      fittedBudgetExponent: law.budgetExponent,
+      law: {
+        allFitted: errorSummary(structuralOnly(law, test)),
+        pathFree: errorSummary(structuralOnly(law, pathFree)),
+      },
+      constantPooled: {
+        coefficients: {
+          interceptFrames: constant.interceptFrames,
+          contactFrames: constant.contactFrames,
+          durationFrameScale: constant.durationFrameScale,
+        },
+        allFitted: errorSummary(structuralOnly(constant, test)),
+        pathFree: errorSummary(structuralOnly(constant, pathFree)),
+      },
+      staticV1: {
+        allFitted: errorSummary(structuralOnly(staticFit, test)),
+        pathFree: errorSummary(structuralOnly(staticFit, pathFree)),
+      },
+    };
+  }),
+};
+
 const report = {
   schema: "line.compile-budget-estimator-calibration.v1",
   generatedAt: model.generatedAt,
-  input: portableInputPath,
+  input: portableInputPaths.join(" + "),
+  inputs: portableInputPaths,
   datasetFingerprint,
   samples: weighted.length,
   groups,
   foldCount,
   weighting: "each completed attempt has total weight one",
+  structuralForm: {
+    form: carriesBudgetLaw ? "reference_shape_times_budget_scale" : "budget_independent",
+    referenceBudgetFrames: LAW_REFERENCE_BUDGET_FRAMES,
+    budgetExponent: structural.budgetExponent,
+    budgets: distinctBudgets,
+    samplesByBudget: Object.fromEntries(distinctBudgets.map((budget) => [
+      budget,
+      weighted.filter((sample) => sample.policyBudgetFrames === budget).length,
+    ])),
+    minimumBudgetsForLaw: MIN_LAW_BUDGETS,
+    rationale:
+      "one exponent on the whole difficulty scalar, anchored once. Per-coefficient " +
+      "exponents fit this panel slightly better in sample and are worse on a " +
+      "held-out budget, because the coefficient MIX rotates with the budget while " +
+      "only the scalar transfers (docs/budget-law-study.md). The exponent is " +
+      "fitted jointly with the coefficients under the same weighted SSE the " +
+      "coefficients are fitted under; acceptance remains out-of-fold weighted " +
+      "median log error.",
+  },
+  byBudget: perBudgetSummaries,
+  budgetTransfer,
   foldDesign: {
     blocking: seedBlocked ? "source_family_and_seed" : "source_family_only",
     familyFolds: foldCount,
@@ -382,6 +701,26 @@ const report = {
     coverage: intervalCoverage,
     coverageBySample: intervalCoverageBySample,
     strata: intervalStrata,
+    stratification: {
+      dimension: "event x path_availability",
+      applied: stratifiesIntervals,
+      minimumStratumSamples: MIN_STRATUM_SAMPLES,
+      minimumStratumRationale:
+        `${MIN_TAIL_OBSERVATIONS} expected observations per ${tailProbability} tail; ` +
+        "a thinner stratum falls back to its event rather than promising coverage " +
+        "from an extreme order statistic",
+      pathPredicate:
+        "the selected candidate routes the estimate through the path base " +
+        "(base mode is not `structural` and the measured path is positive) — the " +
+        "same split the correction factors use and the runtime re-derives",
+      rationale:
+        "path-backed and path-free estimates are different regimes with different " +
+        "spreads, and their mixture weight varies across the corpus, so one pooled " +
+        "band under-covers the noisier population. Conditioning on the regime " +
+        "generalizes because the runtime knows it at read time; conditioning on the " +
+        "policy budget would only re-describe this corpus.",
+      pathStrata: intervalPathStrata,
+    },
   },
   candidates: evaluated.map(({ candidate, metrics: candidateMetrics }) => ({
     candidate,
@@ -419,13 +758,40 @@ console.log(
   `${(100 * intervalCoverageBySample).toFixed(1)}% per-sample ` +
   `[${lowerRatio.toFixed(3)}, ${upperRatio.toFixed(3)}]`,
 );
+console.log(
+  `  budgets ${distinctBudgets.join(", ")}; structural form ` +
+  (carriesBudgetLaw
+    ? `(B/${LAW_REFERENCE_BUDGET_FRAMES})^${structural.budgetExponent.toFixed(4)}, schema v2`
+    : "budget-independent, schema v1"),
+);
+for (const entry of perBudgetSummaries) {
+  console.log(
+    `    ${String(entry.budget).padStart(9)}: n ${String(entry.samples).padStart(6)}; ` +
+    `selected APE ${percent(entry.selected.medianAbsolutePercentageError)}; ` +
+    `path-free APE ${percent(entry.pathFree.medianAbsolutePercentageError)} ` +
+    `(n ${entry.pathFree.n}); interval ${percent(entry.intervalCoverageBySample)} per-sample ` +
+    `(${entry.byPath.map((stratum) =>
+      `${stratum.path} ${percent(stratum.intervalCoverageBySample)} of ${percent(stratum.share)}`
+    ).join(", ")})`,
+  );
+}
+for (const entry of budgetTransfer.byHeldOutBudget) {
+  console.log(
+    `    held out ${String(entry.heldOutBudget).padStart(9)}: alpha ` +
+    `${entry.fittedBudgetExponent.toFixed(4)}; law APE ` +
+    `${percent(entry.law.pathFree.medianAbsolutePercentageError)} path-free vs ` +
+    `${percent(entry.constantPooled.pathFree.medianAbsolutePercentageError)} pooled-constant, ` +
+    `${percent(entry.staticV1.pathFree.medianAbsolutePercentageError)} V1`,
+  );
+}
 console.log(`  model ${outputPath}`);
 console.log(`  report ${reportPath}`);
 
-function parseSamples(value: unknown): Sample[] {
-  if (!Array.isArray(value)) throw new Error("analysis calibration_samples must be an array");
-  return value.map((row, index) => {
-    if (typeof row !== "object" || row === null) throw new Error(`sample ${index} must be an object`);
+function parseSamples(value: unknown, input: string): Sample[] {
+  if (!Array.isArray(value)) throw new Error(`${input}: analysis calibration_samples must be an array`);
+  return value.map((row, position) => {
+    const index = `${input} sample ${position}`;
+    if (typeof row !== "object" || row === null) throw new Error(`${index} must be an object`);
     const sample = row as Sample;
     for (const name of [
       "actual",
@@ -438,13 +804,13 @@ function parseSamples(value: unknown): Sample[] {
       // artifact whose domain rejects everything.
       "policyBudgetFrames",
     ] as const) {
-      if (!Number.isFinite(sample[name])) throw new Error(`sample ${index} ${name} must be finite`);
+      if (!Number.isFinite(sample[name])) throw new Error(`${index} ${name} must be finite`);
     }
-    if (!(sample.actual > 0)) throw new Error(`sample ${index} actual must be positive`);
+    if (!(sample.actual > 0)) throw new Error(`${index} actual must be positive`);
     if (sample.policyBudgetFrames < 0) {
-      throw new Error(`sample ${index} policyBudgetFrames must be non-negative`);
+      throw new Error(`${index} policyBudgetFrames must be non-negative`);
     }
-    if (typeof sample.group !== "string" || sample.group.length === 0) throw new Error(`sample ${index} group is required`);
+    if (typeof sample.group !== "string" || sample.group.length === 0) throw new Error(`${index} group is required`);
     return {
       ...sample,
       startupIncluded: sample.startupIncluded ??
@@ -460,6 +826,18 @@ function parseSamples(value: unknown): Sample[] {
  */
 function hasPath(sample: Sample): boolean {
   return sample.path !== null && Number.isFinite(sample.path) && sample.path > 0;
+}
+
+/**
+ * Whether the SELECTED candidate routes this sample through the path base.
+ *
+ * The correction factor and the interval stratum must split the population the
+ * same way the runtime does, and the runtime's `budgetEstimateUsesPath` ignores
+ * an available path under a `structural` base mode. Splitting on `hasPath`
+ * alone would put estimates that never touched a path into the path stratum.
+ */
+function usesPath(sample: Sample): boolean {
+  return selectedCandidate.baseMode !== "structural" && hasPath(sample);
 }
 
 function extremum(samples: WeightedSample[], mode: "min" | "max"): number {
@@ -559,7 +937,14 @@ function crossValidatedPredictions(
             `blocking both axes`,
         );
       }
-      const structural = fitStructural(train);
+      // The structural fit does not depend on the candidate, so the twelve
+      // candidates share one fit per cell. Pure cache: same inputs, same output.
+      const cell = `${fold}:${seedFold}`;
+      let structural = structuralByCell.get(cell);
+      if (structural === undefined) {
+        structural = fitStructuralModel(train);
+        structuralByCell.set(cell, structural);
+      }
       const correction = fitCorrection(train, structural, candidate);
       for (const sample of test) {
         predictions.push({
@@ -574,7 +959,7 @@ function crossValidatedPredictions(
 
 function fitCorrection(
   samples: Array<Sample & { weight: number }>,
-  structural: { interceptFrames: number; contactFrames: number; durationFrameScale: number },
+  structural: StructuralFit,
   candidate: Candidate,
 ): { withoutPath: number; withPath: number } {
   const allLogs = samples.map((sample) => ({
@@ -599,14 +984,15 @@ function fitCorrection(
 
 function predict(
   sample: Sample,
-  structural: { interceptFrames: number; contactFrames: number; durationFrameScale: number },
+  structural: StructuralFit,
   candidate: Candidate,
   correctionFactors: { withoutPath: number; withPath: number },
 ): number {
-  const structuralPrediction =
+  const structuralPrediction = budgetScale(structural.budgetExponent, sample.policyBudgetFrames) * (
     (sample.startupIncluded ? structural.interceptFrames : 0) +
     structural.contactFrames * sample.remainingContacts +
-    structural.durationFrameScale * sample.remainingDurationFrames;
+    structural.durationFrameScale * sample.remainingDurationFrames
+  );
   return Math.max(1, estimateRemainingBudgetWork({
     structural: structuralPrediction,
     path: sample.path,
@@ -615,13 +1001,34 @@ function predict(
   }, artifactForPrediction(structural, candidate, correctionFactors)));
 }
 
+/**
+ * `(B / refB)^alpha`, memoized: a corpus holds a handful of distinct budgets and
+ * this is called once per sample per fold per candidate.
+ *
+ * A zero exponent returns exactly `1` — not `Math.pow(x, 0)` — so a
+ * single-budget corpus reproduces the pre-law arithmetic bit for bit. Must stay
+ * identical to `budgetEstimatorStructuralScale`, which is what the recorder
+ * applies at runtime.
+ */
+function budgetScale(exponent: number, policyBudgetFrames: number): number {
+  if (exponent === 0 || !(policyBudgetFrames > 0)) return 1;
+  const key = `${exponent}:${policyBudgetFrames}`;
+  const cached = budgetScaleCache.get(key);
+  if (cached !== undefined) return cached;
+  const scale = Math.pow(policyBudgetFrames / LAW_REFERENCE_BUDGET_FRAMES, exponent);
+  budgetScaleCache.set(key, scale);
+  return scale;
+}
+
 function artifactForPrediction(
-  structural: { interceptFrames: number; contactFrames: number; durationFrameScale: number },
+  structural: StructuralCoefficients,
   candidate: Candidate,
   correctionFactors: { withoutPath: number; withPath: number },
 ): BudgetEstimatorModelArtifact {
   return {
-    schema: BUDGET_ESTIMATOR_MODEL_SCHEMA,
+    // The scale is already inside `structural` above, so this evaluation stub
+    // stays budget-independent and needs no law fields.
+    schema: BUDGET_ESTIMATOR_MODEL_SCHEMA_V1,
     modelId: "calibration-evaluation",
     calibrated: false,
     generatedAt: "",
@@ -635,7 +1042,13 @@ function artifactForPrediction(
       folds: 0,
       acceptance: "evaluation",
     },
-    structural: { name: "evaluation", source: "calibration", ...structural },
+    structural: {
+      name: "evaluation",
+      source: "calibration",
+      interceptFrames: structural.interceptFrames,
+      contactFrames: structural.contactFrames,
+      durationFrameScale: structural.durationFrameScale,
+    },
     combination: {
       ...candidate,
       correctionWithoutPathFactor: correctionFactors.withoutPath,
@@ -657,11 +1070,139 @@ function artifactForPrediction(
   };
 }
 
-function fitStructural(samples: Array<Sample & { weight: number }>): {
-  interceptFrames: number;
-  contactFrames: number;
-  durationFrameScale: number;
-} {
+/**
+ * Fit the structural model, with the budget law when the corpus can carry one.
+ *
+ * One entry point, two forms of the same equation: the exponent is zero unless
+ * at least `MIN_LAW_BUDGETS` distinct policy budgets are present, and a zero
+ * exponent runs the historical fit unchanged rather than a scaled emulation of
+ * it, so a single-budget corpus refits bit for bit.
+ */
+function fitStructuralModel(
+  samples: WeightedSample[],
+  useLaw: boolean = fitsBudgetLaw,
+): StructuralFit {
+  if (!useLaw) return { ...fitStructural(samples), budgetExponent: 0 };
+  return fitBudgetLaw(samples);
+}
+
+/**
+ * Aggregated normal equations, one block per policy budget.
+ *
+ * `(B / refB)^alpha` depends only on the budget, so the weighted normal
+ * equations at ANY exponent are exact sums of a handful of precomputed 3x3
+ * blocks. That is what makes a fine exponent grid — and a refit inside every
+ * held-out cell — cost about as much as one pass over the samples.
+ */
+type BudgetBlock = { scale: number; matrix: number[][]; vector: number[]; qq: number };
+
+function budgetBlocks(samples: WeightedSample[]): BudgetBlock[] {
+  const byBudget = new Map<number, BudgetBlock>();
+  for (const sample of samples) {
+    let block = byBudget.get(sample.policyBudgetFrames);
+    if (block === undefined) {
+      block = {
+        scale: sample.policyBudgetFrames / LAW_REFERENCE_BUDGET_FRAMES,
+        matrix: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+        vector: [0, 0, 0],
+        qq: 0,
+      };
+      byBudget.set(sample.policyBudgetFrames, block);
+    }
+    const features = [
+      sample.startupIncluded ? 1 : 0,
+      sample.remainingContacts,
+      sample.remainingDurationFrames,
+    ];
+    block.qq += sample.weight * sample.actual * sample.actual;
+    for (let row = 0; row < 3; row++) {
+      block.vector[row] += sample.weight * features[row] * sample.actual;
+      for (let column = 0; column < 3; column++) {
+        block.matrix[row][column] += sample.weight * features[row] * features[column];
+      }
+    }
+  }
+  return [...byBudget.entries()].sort((a, b) => a[0] - b[0]).map(([, block]) => block);
+}
+
+/** Weighted NNLS for the reference coefficients at a fixed exponent. */
+function solveBudgetLawAt(
+  blocks: BudgetBlock[],
+  exponent: number,
+): { coefficients: number[]; sse: number } {
+  const matrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  const vector = [0, 0, 0];
+  let qq = 0;
+  for (const block of blocks) {
+    const power = Math.pow(block.scale, exponent);
+    qq += block.qq;
+    for (let row = 0; row < 3; row++) {
+      vector[row] += power * block.vector[row];
+      for (let column = 0; column < 3; column++) {
+        matrix[row][column] += power * power * block.matrix[row][column];
+      }
+    }
+  }
+  // Active-set enumeration over the seven non-empty supports, exactly the
+  // non-negativity the budget-independent fit enforces.
+  let best = { coefficients: [0, 0, 0], sse: Infinity };
+  for (let mask = 1; mask < 8; mask++) {
+    const indexes = [0, 1, 2].filter((index) => (mask & (1 << index)) !== 0);
+    const sub = indexes.map((row) => indexes.map((column) => matrix[row][column]));
+    const solved = solveLinearSystem(sub, indexes.map((row) => vector[row]));
+    if (solved === null || solved.some((entry) => entry < 0 || !Number.isFinite(entry))) continue;
+    const coefficients = [0, 0, 0];
+    indexes.forEach((index, position) => { coefficients[index] = solved[position]; });
+    let sse = qq;
+    for (let row = 0; row < 3; row++) {
+      sse -= 2 * coefficients[row] * vector[row];
+      for (let column = 0; column < 3; column++) {
+        sse += coefficients[row] * coefficients[column] * matrix[row][column];
+      }
+    }
+    if (sse < best.sse) best = { coefficients, sse };
+  }
+  return best;
+}
+
+/**
+ * Reference coefficients and the shared exponent, jointly under weighted SSE.
+ *
+ * The exponent is searched under the SAME objective that fits the coefficients
+ * it multiplies, because the NNLS coefficients are only conditionally optimal
+ * given the exponent under that objective; acceptance is still decided by
+ * out-of-fold weighted median log error, so the exponent is judged by the gate
+ * even though it is not fitted by it.
+ */
+function fitBudgetLaw(samples: WeightedSample[]): StructuralFit {
+  const blocks = budgetBlocks(samples);
+  let best = { exponent: 0, coefficients: [0, 0, 0], sse: Infinity };
+  const search = (low: number, high: number, step: number): void => {
+    const steps = Math.round((high - low) / step);
+    for (let index = 0; index <= steps; index++) {
+      // Integer stepping: an accumulated `+= step` makes the grid depend on
+      // where the refinement started, and these fits must be reproducible.
+      const exponent = Math.min(
+        LAW_EXPONENT_RANGE.max,
+        Math.max(LAW_EXPONENT_RANGE.min, low + index * step),
+      );
+      const solved = solveBudgetLawAt(blocks, exponent);
+      if (solved.sse < best.sse) best = { exponent, ...solved };
+    }
+  };
+  search(LAW_EXPONENT_RANGE.min, LAW_EXPONENT_RANGE.max, 0.05);
+  search(best.exponent - 0.05, best.exponent + 0.05, 0.005);
+  search(best.exponent - 0.005, best.exponent + 0.005, 0.0005);
+  if (!Number.isFinite(best.sse)) return { ...TRAVERSAL_BUDGET_MODEL_V1, budgetExponent: 0 };
+  return {
+    interceptFrames: best.coefficients[0],
+    contactFrames: best.coefficients[1],
+    durationFrameScale: best.coefficients[2],
+    budgetExponent: best.exponent,
+  };
+}
+
+function fitStructural(samples: Array<Sample & { weight: number }>): StructuralCoefficients {
   let best = { coefficients: [0, 0, 0], error: Infinity };
   for (let mask = 1; mask < 8; mask++) {
     const indexes = [0, 1, 2].filter((index) => (mask & (1 << index)) !== 0);
@@ -744,6 +1285,43 @@ function metrics(predictions: Prediction[]): Metrics {
   };
 }
 
+/**
+ * Percentage-error view of a prediction set, for the per-budget tables.
+ *
+ * `metrics()` above answers the acceptance question in log space; these are the
+ * numbers the study, the docs, and the analyzer quote — median APE with its
+ * signed twin, so overprediction and underprediction stay distinguishable.
+ */
+function errorSummary(predictions: Prediction[]): {
+  n: number;
+  medianAbsolutePercentageError: number | null;
+  p90AbsolutePercentageError: number | null;
+  medianSignedPercentageError: number | null;
+  weightedMedianAbsoluteLogError: number | null;
+} {
+  if (predictions.length === 0) {
+    return {
+      n: 0,
+      medianAbsolutePercentageError: null,
+      p90AbsolutePercentageError: null,
+      medianSignedPercentageError: null,
+      weightedMedianAbsoluteLogError: null,
+    };
+  }
+  const signed = predictions.map(({ sample, predicted }) => ({
+    value: (predicted - sample.actual) / sample.actual,
+    weight: 1,
+  }));
+  const absolute = signed.map((entry) => ({ ...entry, value: Math.abs(entry.value) }));
+  return {
+    n: predictions.length,
+    medianAbsolutePercentageError: round(weightedPercentile(absolute, 0.5)),
+    p90AbsolutePercentageError: round(weightedPercentile(absolute, 0.9)),
+    medianSignedPercentageError: round(weightedPercentile(signed, 0.5)),
+    weightedMedianAbsoluteLogError: round(metrics(predictions).weightedMedianAbsoluteLogError),
+  };
+}
+
 function compareCandidateResults(
   a: { candidate: Candidate; metrics: Metrics },
   b: { candidate: Candidate; metrics: Metrics },
@@ -773,35 +1351,39 @@ function weightRatio(subset: Prediction[], all: Prediction[]): number {
  * reader from comparing a fitted 95% against a measured 92% and concluding the
  * artifact is broken.
  */
-function sampleEventCoverage(
-  predictions: Prediction[],
-  intervals: Record<string, { lowerRatio: number; upperRatio: number }>,
-): number {
-  if (predictions.length === 0) return 0;
-  const covered = predictions.filter(({ sample, predicted }) => {
-    const interval = intervals[sample.event];
-    return interval !== undefined &&
-      sample.actual >= predicted * interval.lowerRatio &&
-      sample.actual <= predicted * interval.upperRatio;
-  }).length;
-  return covered / predictions.length;
+/**
+ * Resolve an observation's interval the way the runtime does: most specific
+ * stratum first, then its event, then the aggregate envelope.
+ */
+type IntervalLookup = (sample: WeightedSample) => { lowerRatio: number; upperRatio: number };
+
+function covers(prediction: Prediction, ratios: IntervalLookup): boolean {
+  const interval = ratios(prediction.sample);
+  return prediction.sample.actual >= prediction.predicted * interval.lowerRatio &&
+    prediction.sample.actual <= prediction.predicted * interval.upperRatio;
 }
 
-function weightedEventCoverage(
-  predictions: Prediction[],
-  intervals: Record<string, { lowerRatio: number; upperRatio: number }>,
-): number {
+/**
+ * Coverage counting raw samples rather than attempt weight.
+ *
+ * The fit targets this figure and `analyze_budget_telemetry.ts` publishes it,
+ * while the rest of the fit is attempt-weighted; the two diverge whenever
+ * per-attempt sample density differs across prediction regimes, since a dense
+ * path-backed repair and a sparse structural attempt each carry weight one.
+ * Emitting both stops the next reader from comparing a fitted 95% against a
+ * measured 92% and concluding the artifact is broken.
+ */
+function sampleIntervalCoverage(predictions: Prediction[], ratios: IntervalLookup): number {
+  if (predictions.length === 0) return 0;
+  return predictions.filter((prediction) => covers(prediction, ratios)).length / predictions.length;
+}
+
+function weightedIntervalCoverage(predictions: Prediction[], ratios: IntervalLookup): number {
   const total = predictions.reduce((sum, { sample }) => sum + sample.weight, 0);
-  const covered = predictions.reduce((sum, { sample, predicted }) => {
-    const interval = intervals[sample.event];
-    return sum + (
-      interval !== undefined &&
-      sample.actual >= predicted * interval.lowerRatio &&
-      sample.actual <= predicted * interval.upperRatio
-        ? sample.weight
-        : 0
-    );
-  }, 0);
+  const covered = predictions.reduce(
+    (sum, prediction) => sum + (covers(prediction, ratios) ? prediction.sample.weight : 0),
+    0,
+  );
   return total > 0 ? covered / total : 0;
 }
 
@@ -845,4 +1427,8 @@ function clamp01(value: number): number {
 
 function round(value: number): number {
   return Number(value.toFixed(6));
+}
+
+function percent(value: number | null): string {
+  return value === null ? "n/a" : `${(100 * value).toFixed(1)}%`;
 }

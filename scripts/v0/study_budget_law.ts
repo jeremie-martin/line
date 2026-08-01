@@ -26,7 +26,10 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, extname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { TRAVERSAL_BUDGET_MODEL_V1 } from "./optimizer/budget_model.ts";
-import { BUDGET_ESTIMATOR_MODEL } from "./optimizer/budget_estimator.ts";
+import {
+  BUDGET_ESTIMATOR_MODEL,
+  budgetEstimatorStructuralScale,
+} from "./optimizer/budget_estimator.ts";
 
 /** Anchor budget of the shipped artifact; the law's reference point. */
 const REFERENCE_BUDGET = 750_000;
@@ -341,7 +344,7 @@ function fit(): void {
       },
       firstCompletion: {
         v1: errorSummary(unit(initialStarts).map((row) => ({ row, predicted: structuralPredict(TRAVERSAL_BUDGET_MODEL_V1, row) }))),
-        artifact: errorSummary(unit(initialStarts).map((row) => ({ row, predicted: structuralPredict(BUDGET_ESTIMATOR_MODEL.structural, row) }))),
+        artifact: errorSummary(unit(initialStarts).map((row) => ({ row, predicted: artifactPredict(row) }))),
       },
       applicability: tally(selected.map((row) => row.estimatorApplicability)),
       intervalCoverage: ratio(
@@ -407,7 +410,7 @@ function fit(): void {
             error: errorSummary(test.map((row) => ({ row, predicted: logLawPredict(slackFit, row) }))),
           },
           incumbentV1: errorSummary(test.map((row) => ({ row, predicted: structuralPredict(TRAVERSAL_BUDGET_MODEL_V1, row) }))),
-          incumbentArtifact: errorSummary(test.map((row) => ({ row, predicted: structuralPredict(BUDGET_ESTIMATOR_MODEL.structural, row) }))),
+          incumbentArtifact: errorSummary(test.map((row) => ({ row, predicted: artifactPredict(row) }))),
           constantPooled: {
             coefficients: rounded(pooledConstant),
             error: errorSummary(test.map((row) => ({ row, predicted: structuralPredict(pooledConstant, row) }))),
@@ -449,7 +452,7 @@ function fit(): void {
         law_per_coefficient: errorSummary(predictLaw(initialStarts, primaryLawPer)),
         law_slack_form: errorSummary(initialStarts.map((row) => ({ row, predicted: logLawPredict(primarySlack, row) }))),
         incumbentV1: errorSummary(initialStarts.map((row) => ({ row, predicted: structuralPredict(TRAVERSAL_BUDGET_MODEL_V1, row) }))),
-        incumbentArtifact: errorSummary(initialStarts.map((row) => ({ row, predicted: structuralPredict(BUDGET_ESTIMATOR_MODEL.structural, row) }))),
+        incumbentArtifact: errorSummary(initialStarts.map((row) => ({ row, predicted: artifactPredict(row) }))),
         rows: initialStarts.map((row) => ({
           source: row.source.split("/").at(-1),
           contacts: row.remainingContacts,
@@ -458,7 +461,7 @@ function fit(): void {
           actual: row.actual,
           law_shared: round(lawPredict(primaryLaw, row)),
           v1: round(structuralPredict(TRAVERSAL_BUDGET_MODEL_V1, row)),
-          artifact: round(structuralPredict(BUDGET_ESTIMATOR_MODEL.structural, row)),
+          artifact: round(artifactPredict(row)),
         })),
       },
       allFittedKinds: {
@@ -466,7 +469,7 @@ function fit(): void {
         law_shared: errorSummary(predictLaw(fitted, calibratorLaw)),
         law_slack_form: errorSummary(fitted.map((row) => ({ row, predicted: logLawPredict(calibratorSlack, row) }))),
         incumbentV1: errorSummary(fitted.map((row) => ({ row, predicted: structuralPredict(TRAVERSAL_BUDGET_MODEL_V1, row) }))),
-        incumbentArtifact: errorSummary(fitted.map((row) => ({ row, predicted: structuralPredict(BUDGET_ESTIMATOR_MODEL.structural, row) }))),
+        incumbentArtifact: errorSummary(fitted.map((row) => ({ row, predicted: artifactPredict(row) }))),
         recordedCombined: errorSummary(fitted.map((row) => ({ row, predicted: row.combined }))),
         recordedPace: errorSummary(fitted.filter((row) => row.pace !== null && row.pace > 0)
           .map((row) => ({ row, predicted: row.pace! }))),
@@ -760,6 +763,19 @@ function predictLaw(rows: Row[], law: Law): Array<{ row: Row; predicted: number 
   return rows.map((row) => ({ row, predicted: lawPredict(law, row) }));
 }
 
+/**
+ * The frozen artifact's own structural prediction for a row.
+ *
+ * Since schema v2 the artifact may carry a budget exponent, and reading its
+ * three coefficients without the scale would report a model nobody ships. Ask
+ * the runtime for the scalar rather than re-deriving it here; on a v1 artifact
+ * it is exactly 1 and this is the plain coefficient prediction.
+ */
+function artifactPredict(row: Row): number {
+  return budgetEstimatorStructuralScale(row.budget) *
+    structuralPredict(BUDGET_ESTIMATOR_MODEL.structural, row);
+}
+
 function structuralPredict(model: Structural, row: Row): number {
   return Math.max(1,
     model.interceptFrames * row.x[0] +
@@ -853,7 +869,7 @@ function doubleBlockedHoldout(rows: Row[], budgets: number[]): Record<string, un
     perCoefficient: errorSummary(perCoefficient),
     slackForm: errorSummary(slackForm),
     incumbentV1: errorSummary(all.map((row) => ({ row, predicted: structuralPredict(TRAVERSAL_BUDGET_MODEL_V1, row) }))),
-    incumbentArtifact: errorSummary(all.map((row) => ({ row, predicted: structuralPredict(BUDGET_ESTIMATOR_MODEL.structural, row) }))),
+    incumbentArtifact: errorSummary(all.map((row) => ({ row, predicted: artifactPredict(row) }))),
     byBudget: budgets.map((budget) => ({
       budget,
       shared: errorSummary(shared.filter(({ row }) => row.budget === budget)),
@@ -862,7 +878,7 @@ function doubleBlockedHoldout(rows: Row[], budgets: number[]): Record<string, un
       incumbentV1: errorSummary(all.filter((row) => row.budget === budget)
         .map((row) => ({ row, predicted: structuralPredict(TRAVERSAL_BUDGET_MODEL_V1, row) }))),
       incumbentArtifact: errorSummary(all.filter((row) => row.budget === budget)
-        .map((row) => ({ row, predicted: structuralPredict(BUDGET_ESTIMATOR_MODEL.structural, row) }))),
+        .map((row) => ({ row, predicted: artifactPredict(row) }))),
     })),
   };
 }

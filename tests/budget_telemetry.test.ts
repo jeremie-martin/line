@@ -11,10 +11,15 @@ import type { Gap } from "../scripts/v0/types.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import {
   BUDGET_ESTIMATOR_MODEL,
+  BUDGET_ESTIMATOR_MODEL_SCHEMA_V1,
+  BUDGET_ESTIMATOR_MODEL_SCHEMA_V2,
   budgetEstimateInterval,
+  budgetEstimateUsesPath,
   budgetEstimatorApplicability,
+  budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
   parseBudgetEstimatorModel,
+  type BudgetEstimatorModelArtifact,
 } from "../scripts/v0/optimizer/budget_estimator.ts";
 
 const GAPS: Gap[] = [
@@ -31,6 +36,267 @@ const TEST_MODEL = {
   contactFrames: 10,
   durationFrameScale: 2,
 };
+
+/**
+ * A schema-v1 artifact, whatever schema the checked-in one currently declares:
+ * the shipped model with every v2 feature stripped back off.
+ */
+function v1Artifact(): BudgetEstimatorModelArtifact {
+  const model = structuredClone(BUDGET_ESTIMATOR_MODEL);
+  model.schema = BUDGET_ESTIMATOR_MODEL_SCHEMA_V1;
+  delete model.structural.referenceBudgetFrames;
+  delete model.structural.budgetExponent;
+  delete model.interval.byEventAndPath;
+  model.applicability.pathEstimate = "calibrated_when_available";
+  return model;
+}
+
+/** The same artifact carrying an exact, hand-checkable budget law. */
+function lawArtifact(budgetExponent: number): BudgetEstimatorModelArtifact {
+  const model = v1Artifact();
+  model.schema = BUDGET_ESTIMATOR_MODEL_SCHEMA_V2;
+  model.structural.referenceBudgetFrames = 750_000;
+  model.structural.budgetExponent = budgetExponent;
+  model.applicability.structuralPolicyBudgetFrames = { min: 150_000, max: 1_500_000 };
+  return model;
+}
+
+describe("budget estimator budget law", () => {
+  test("reads a v1 artifact as a zero-exponent law, byte for byte", () => {
+    const model = v1Artifact();
+    const parsed = parseBudgetEstimatorModel(model);
+
+    expect(parsed).toEqual(model);
+    // The artifact fingerprint is a hash of exactly this serialization, so
+    // key-for-key identity is what keeps an unchanged artifact unchanged.
+    expect(JSON.stringify(parsed)).toBe(JSON.stringify(model));
+    expect(parsed.structural).not.toHaveProperty("budgetExponent");
+    for (const budget of [1, 75_000, 750_000, 2_250_000]) {
+      expect(budgetEstimatorStructuralScale(budget, model)).toBe(1);
+    }
+    // A v2 artifact that simply has no exponent is the same model again.
+    const emptyLaw = { ...model, schema: BUDGET_ESTIMATOR_MODEL_SCHEMA_V2 };
+    expect(budgetEstimatorStructuralScale(150_000, emptyLaw)).toBe(1);
+  });
+
+  test("scales structural work by (budget / reference)^exponent", () => {
+    const half = lawArtifact(0.5);
+    expect(budgetEstimatorStructuralScale(3_000_000, half)).toBeCloseTo(2, 12);
+    expect(budgetEstimatorStructuralScale(750_000, half)).toBe(1);
+    expect(budgetEstimatorStructuralScale(187_500, half)).toBeCloseTo(0.5, 12);
+    // Degenerate budgets have no ratio to raise and must not zero an estimate.
+    expect(budgetEstimatorStructuralScale(0, half)).toBe(1);
+
+    const law = lawArtifact(0.8185);
+    expect(budgetEstimatorStructuralScale(150_000, law))
+      .toBeCloseTo(Math.pow(0.2, 0.8185), 12);
+    // The scale multiplies the structural quantity, so a path-free estimate
+    // moves with it and the corrections stay untouched.
+    const structural = 100_000;
+    const scaled = structural * budgetEstimatorStructuralScale(150_000, law);
+    expect(estimateRemainingBudgetWork({
+      structural: scaled,
+      path: null,
+      pace: null,
+      progressFraction: 0,
+    }, law)).toBeCloseTo(scaled * law.combination.correctionWithoutPathFactor, 6);
+  });
+
+  test("marks the calibrated domain edges and refuses an unreadable law", () => {
+    const law = lawArtifact(0.8185);
+    const domain = law.applicability.structuralPolicyBudgetFrames;
+    for (const [budget, expected] of [
+      [domain.min - 1, "extrapolated_policy_budget"],
+      [domain.min, "calibrated"],
+      [domain.max, "calibrated"],
+      [domain.max + 1, "extrapolated_policy_budget"],
+      // The out-of-range edges the study measured, and the 2M music corpus.
+      [75_000, "extrapolated_policy_budget"],
+      [2_000_000, "extrapolated_policy_budget"],
+      [2_250_000, "extrapolated_policy_budget"],
+    ] as const) {
+      expect(budgetEstimatorApplicability({
+        pathAvailable: false,
+        policyBudgetFrames: budget,
+        attemptKind: "initial",
+      }, law)).toBe(expected);
+    }
+
+    // A path-backed estimate is calibrated everywhere under the original claim
+    // and only inside the domain under the scoped one. The four-budget panel
+    // forced the option: path-backed estimates are unbiased at 300k-1.5M and
+    // 19% biased at 150k, so a fit above 150k cannot vouch for them there.
+    for (const [claim, atEdge] of [
+      ["calibrated_when_available", "calibrated"],
+      ["calibrated_when_available_in_domain", "extrapolated_policy_budget"],
+    ] as const) {
+      const scoped = structuredClone(law);
+      scoped.applicability.pathEstimate = claim;
+      for (const [budget, expected] of [
+        [domain.min - 1, atEdge],
+        [domain.min, "calibrated"],
+        [domain.max + 1, atEdge],
+      ] as const) {
+        expect(budgetEstimatorApplicability({
+          pathAvailable: true,
+          policyBudgetFrames: budget,
+          attemptKind: "repair",
+        }, scoped)).toBe(expected);
+      }
+    }
+    // The scoped claim is a v2 feature for the same reason the law is: a reader
+    // that predates it would report `calibrated` where this artifact does not.
+    expect(() => parseBudgetEstimatorModel({
+      ...law,
+      schema: BUDGET_ESTIMATOR_MODEL_SCHEMA_V1,
+      structural: { ...law.structural, referenceBudgetFrames: undefined, budgetExponent: undefined },
+      applicability: { ...law.applicability, pathEstimate: "calibrated_when_available_in_domain" },
+    })).toThrow(/domain-scoped path claim/);
+
+    expect(parseBudgetEstimatorModel(law)).toEqual(law);
+    // A v1 artifact carrying a law is the dangerous artifact: every reader that
+    // predates schema v2 would parse it and silently drop the exponent.
+    expect(() => parseBudgetEstimatorModel({ ...law, schema: BUDGET_ESTIMATOR_MODEL_SCHEMA_V1 }))
+      .toThrow(/cannot carry a budget law/);
+    expect(() => parseBudgetEstimatorModel({
+      ...law,
+      structural: { ...law.structural, referenceBudgetFrames: 0 },
+    })).toThrow(/referenceBudgetFrames/);
+    expect(() => parseBudgetEstimatorModel({
+      ...law,
+      structural: { ...law.structural, budgetExponent: -0.1 },
+    })).toThrow(/budgetExponent/);
+    const orphan = lawArtifact(0.8);
+    delete orphan.structural.referenceBudgetFrames;
+    expect(() => parseBudgetEstimatorModel(orphan)).toThrow(/requires a positive referenceBudgetFrames/);
+  });
+
+  test("resolves intervals stratum, then event, then aggregate", () => {
+    const model = v1Artifact();
+    model.interval = {
+      lowerRatio: 0.5,
+      upperRatio: 4,
+      nominalCoverage: 0.95,
+      byEvent: {
+        start: { lowerRatio: 0.8, upperRatio: 1.2 },
+        high_water: { lowerRatio: 0.7, upperRatio: 1.3 },
+      },
+    };
+
+    // Without strata the path dimension changes nothing at all: this is the
+    // pre-stratification artifact and it must answer exactly as it used to.
+    for (const pathAvailable of [true, false, undefined]) {
+      expect(budgetEstimateInterval(100, { event: "start", pathAvailable }, model))
+        .toEqual({ lower: 80, upper: 120 });
+    }
+    expect(budgetEstimateInterval(100, { event: "end", pathAvailable: true }, model))
+      .toEqual({ lower: 50, upper: 400 });
+    expect(budgetEstimateInterval(100, {}, model)).toEqual({ lower: 50, upper: 400 });
+
+    const stratified = structuredClone(model);
+    stratified.schema = BUDGET_ESTIMATOR_MODEL_SCHEMA_V2;
+    stratified.interval.byEventAndPath = {
+      // A path-backed estimate measures the incumbent's own suffix and is
+      // tighter; a path-free one is a regression and is not.
+      start: { withPath: { lowerRatio: 0.95, upperRatio: 1.05 } },
+      high_water: {
+        withPath: { lowerRatio: 0.9, upperRatio: 1.1 },
+        withoutPath: { lowerRatio: 0.6, upperRatio: 1.5 },
+      },
+    };
+    expect(budgetEstimateInterval(100, { event: "start", pathAvailable: true }, stratified))
+      .toEqual({ lower: 95, upper: 105 });
+    // `start` has no path-free stratum, so it falls back to its event.
+    expect(budgetEstimateInterval(100, { event: "start", pathAvailable: false }, stratified))
+      .toEqual({ lower: 80, upper: 120 });
+    expect(budgetEstimateInterval(100, { event: "high_water", pathAvailable: false }, stratified))
+      .toEqual({ lower: 60, upper: 150 });
+    // A caller that cannot say uses the event band, never a guessed stratum.
+    expect(budgetEstimateInterval(100, { event: "high_water" }, stratified))
+      .toEqual({ lower: 70, upper: 130 });
+    // `end` has neither stratum nor event, so it lands on the aggregate.
+    expect(budgetEstimateInterval(100, { event: "end", pathAvailable: true }, stratified))
+      .toEqual({ lower: 50, upper: 400 });
+
+    // "Path-backed" means the selector actually used the path. Under a
+    // structural base mode it never does, so such an estimate reads the
+    // path-free band however much measured path it had.
+    const structuralBase = structuredClone(stratified);
+    structuralBase.combination.baseMode = "structural";
+    expect(budgetEstimateUsesPath(true, structuralBase)).toBe(false);
+    expect(budgetEstimateInterval(100, { event: "high_water", pathAvailable: true }, structuralBase))
+      .toEqual({ lower: 60, upper: 150 });
+
+    expect(parseBudgetEstimatorModel(stratified)).toEqual(stratified);
+    expect(() => parseBudgetEstimatorModel({
+      ...stratified,
+      schema: BUDGET_ESTIMATOR_MODEL_SCHEMA_V1,
+    })).toThrow(/interval strata/);
+    expect(() => parseBudgetEstimatorModel({
+      ...stratified,
+      interval: {
+        ...stratified.interval,
+        byEventAndPath: { start: { withPath: { lowerRatio: 1.2, upperRatio: 1.5 } } },
+      },
+    })).toThrow(/invalid budget estimator interval for start\/withPath/);
+    expect(() => parseBudgetEstimatorModel({
+      ...stratified,
+      interval: {
+        ...stratified.interval,
+        byEventAndPath: { start: { sometimes: { lowerRatio: 0.9, upperRatio: 1.1 } } },
+      },
+    })).toThrow(/unknown budget estimator interval stratum/);
+  });
+
+  test("applies one budget scale per compile and leaves progress and pace invariant", () => {
+    const record = (policyBudgetFrames: number) => {
+      const recorder = new CompileBudgetTelemetryRecorder({
+        level: "trace",
+        gaps: GAPS,
+        durationFrames: 100,
+        hardBudgetFrames: 2_000_000,
+        policyBudgetFrames,
+        model: TEST_MODEL,
+      });
+      recorder.startAttempt({
+        kind: "initial",
+        searchSeed: 1,
+        hasFallback: false,
+        anchorGapIndex: 0,
+        startTotalSpentFrames: 0,
+        ceilingTotalSpentFrames: 2_000_000,
+        includeStartup: true,
+      });
+      recorder.observeActive(2, 10_000);
+      recorder.endActive(20_000, "compile_finished", null);
+      return recorder.snapshot(20_000, false)!.attempts[0];
+    };
+    const scarce = record(150_000);
+    const rich = record(1_500_000);
+    const expected = budgetEstimatorStructuralScale(150_000) /
+      budgetEstimatorStructuralScale(1_500_000);
+
+    // The whole law is one scalar per compile: structural work carries it and
+    // nothing else does.
+    expect(scarce.start.structural_work_prior_frames /
+      rich.start.structural_work_prior_frames).toBeCloseTo(expected, 12);
+    for (const index of [0, 1]) {
+      const a = scarce.observations![index];
+      const b = rich.observations![index];
+      // Both ratios cancel the scale exactly in exact arithmetic and to float
+      // noise in this one, so they are the same measurement at both budgets.
+      expect(a.structural_progress_fraction).toBeCloseTo(b.structural_progress_fraction, 12);
+      expect(a.episode_pace_work_estimate_frames === null)
+        .toBe(b.episode_pace_work_estimate_frames === null);
+      if (a.episode_pace_work_estimate_frames !== null) {
+        expect(a.episode_pace_work_estimate_frames / b.episode_pace_work_estimate_frames!)
+          .toBeCloseTo(1, 9);
+      }
+      expect(a.structural_work_prior_frames / b.structural_work_prior_frames)
+        .toBeCloseTo(expected, 12);
+    }
+  });
+});
 
 describe("compile budget telemetry", () => {
   test("describes the remaining suffix and structural work without hidden policy", () => {
@@ -95,8 +361,8 @@ describe("compile budget telemetry", () => {
       pace: 999,
       progressFraction: 1,
     }, model)).toBe(120);
-    expect(budgetEstimateInterval(100, "start", model)).toEqual({ lower: 80, upper: 120 });
-    expect(budgetEstimateInterval(100, "end", model)).toEqual({ lower: 50, upper: 200 });
+    expect(budgetEstimateInterval(100, { event: "start" }, model)).toEqual({ lower: 80, upper: 120 });
+    expect(budgetEstimateInterval(100, { event: "end" }, model)).toEqual({ lower: 50, upper: 200 });
     expect(budgetEstimatorApplicability({
       pathAvailable: false,
       policyBudgetFrames: model.applicability.structuralPolicyBudgetFrames.min,
@@ -107,6 +373,9 @@ describe("compile budget telemetry", () => {
       policyBudgetFrames: model.applicability.structuralPolicyBudgetFrames.max + 1,
       attemptKind: "initial",
     }, model)).toBe("extrapolated_policy_budget");
+    // This artifact makes the original unscoped path claim, so a path-backed
+    // estimate is calibrated at any budget.
+    model.applicability.pathEstimate = "calibrated_when_available";
     expect(budgetEstimatorApplicability({
       pathAvailable: true,
       policyBudgetFrames: model.applicability.structuralPolicyBudgetFrames.max + 1,
@@ -218,11 +487,20 @@ describe("compile budget telemetry", () => {
     const [start, advanced] = attempt?.observations ?? [];
 
     // The estimator's selector discards a non-positive path, so admitting one
-    // here would label a structural estimate as path-backed and calibrated.
+    // here would label a structural estimate as path-backed.
     expect(start.incumbent_path_work_estimate_frames).toBeNull();
     expect(start.estimator_applicability).not.toBe("calibrated");
     expect(advanced.incumbent_path_work_estimate_frames).toBe(250);
-    expect(advanced.estimator_applicability).toBe("calibrated");
+    // A path-backed observation is classified by the path rule, whatever the
+    // shipped artifact's domain says about this budget; a path-free repair
+    // would instead be `unvalidated_attempt_kind`.
+    expect(advanced.estimator_applicability).toBe(budgetEstimatorApplicability({
+      pathAvailable: true,
+      policyBudgetFrames: 800,
+      attemptKind: "repair",
+    }));
+    expect(advanced.estimator_applicability).not.toBe("unvalidated_attempt_kind");
+    expect(start.estimator_applicability).toBe("unvalidated_attempt_kind");
     expect(attempt?.ceiling_source).toBe("measured_cost_to_end");
   });
 
@@ -308,9 +586,15 @@ describe("compile budget telemetry", () => {
 
     expect(repairs.length).toBeGreaterThan(0);
     expect(observations.some((observation) =>
-      (observation.incumbent_path_work_estimate_frames ?? 0) > 0 &&
-      observation.estimator_applicability === "calibrated"
+      (observation.incumbent_path_work_estimate_frames ?? 0) > 0
     )).toBe(true);
+    // A measured path routes the estimate through the path branch, so such an
+    // observation is never classified by the path-free attempt-kind rule. It
+    // may still be out of the artifact's policy-budget domain.
+    for (const observation of observations) {
+      if ((observation.incumbent_path_work_estimate_frames ?? 0) <= 0) continue;
+      expect(observation.estimator_applicability).not.toBe("unvalidated_attempt_kind");
+    }
 
     for (const repair of repairs) {
       expect(["measured_cost_to_end", "per_gap_fallback", "repair_budget_remaining"])
@@ -391,7 +675,10 @@ describe("compile budget telemetry", () => {
     for (const repair of repairs) {
       expect(repair.start.incumbent_path_work_estimate_frames).not.toBeNull();
       expect(repair.start.incumbent_path_work_estimate_frames!).toBeGreaterThan(0);
-      expect(repair.start.estimator_applicability).toBe("calibrated");
+      // Path-backed, therefore never `unvalidated_attempt_kind`. Whether it is
+      // additionally `calibrated` depends on the artifact's domain and its
+      // declared path claim, which this test is not about.
+      expect(repair.start.estimator_applicability).not.toBe("unvalidated_attempt_kind");
       // Wherever a reach stamp exists the ceiling is sized from it, never from
       // the per-gap average. `per_gap_fallback` now means a node in neither
       // reach map, which a stamped incumbent path cannot be.

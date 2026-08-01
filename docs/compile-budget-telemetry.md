@@ -210,7 +210,7 @@ path base, so at such a repair's start `attempt_completion_margin` is the
 constant `feasMargin / correctionWithPathFactor` — arithmetic, not evidence
 about estimator accuracy. `feasMargin` itself ramps with the compile budget
 (1.05 scarce, 1 from 200k up), so at the calibrated 750k budget the constant is
-measured at exactly 1.062964 on every such start. Since repair ceilings became
+measured at exactly 1.062756 on every such start. Since repair ceilings became
 measured wherever a reach stamp exists, this covers nearly every repair start,
 so never read a repair's start margin as an accuracy signal.
 
@@ -290,9 +290,12 @@ be structural work at the attempt anchor and `S` structural work at the current
 high water:
 
 ```text
-structural S = startup intercept when applicable
-             + contact coefficient * remaining contacts
-             + duration coefficient * remaining duration frames
+structural S = ( startup intercept when applicable
+               + contact coefficient * remaining contacts
+               + duration coefficient * remaining duration frames )
+             * budget scale
+
+budget scale = (policy budget / reference budget) ^ budget exponent
 
 structural progress fraction = clamp((S0 - S) / S0, 0, 1)
 
@@ -301,11 +304,43 @@ episode pace = attempt spent * S / (S0 - S)
 incumbent path = measured cost-to-end suffix inherited by a repair attempt
 ```
 
+### The Budget Scale
+
+First-completion cost is not a property of a spec. It is a property of a spec
+*and* the policy budget the compiler was given, because the compiler's own
+breadth ramps spend more when handed more. Measured across a 10x budget range it
+scales as a power law with a single exponent near 0.82 and no ceiling; see
+[`budget-law-study.md`](budget-law-study.md).
+
+The artifact carries that as `structural.budgetExponent` and
+`structural.referenceBudgetFrames`. Three properties are load-bearing:
+
+- **One exponent on the whole difficulty scalar, never one per coefficient.**
+  The coefficient *mix* rotates with the budget — as the budget grows,
+  forward-search breadth loads more cost onto contacts and less onto authored
+  time — but only the scalar transfers. A three-exponent fit is slightly better
+  in sample and materially worse on a budget it was not fitted at.
+- **An absent or zero exponent is exactly the old model.** The scale is then the
+  literal number `1`, so a pre-law artifact predicts identically through the same
+  arithmetic. There is no second code path and no migration step.
+- **One scalar per compile.** The scale depends only on the policy budget, so
+  the recorder resolves it once at construction. It multiplies `S` and the
+  anchor work `S0` alike, which means it cancels in
+  `structural progress fraction` and in `episode pace`: both stay pure
+  measurements, unchanged by the law.
+
+Schema `line.compile-budget-estimator-model.v2` is what declares the law.
+Artifacts without one still declare `.v1`, and the runtime parses both. The
+version changes exactly when reading the artifact with v1 semantics would be
+wrong, because dropping the exponent silently is a 2-3x error away from the
+reference budget — the failure a version string exists to prevent. A `.v1`
+artifact carrying law fields is rejected at parse time.
+
 The component fields and availability are:
 
 | field | meaning | availability |
 |---|---|---|
-| `structural_work_prior_frames` | fitted structure-only remaining work `S` | always |
+| `structural_work_prior_frames` | fitted structure-only remaining work `S`, budget scale included | always |
 | `structural_startup_included` | whether `S` includes one-time startup work | initial attempt at its anchor only |
 | `structural_progress_fraction` | share of anchor structural work removed at high water | always; 1 when `S0` is zero |
 | `episode_pace_work_estimate_frames` | remaining work projected from this attempt's observed spend per unit of structural progress | after positive structural progress; otherwise `null` |
@@ -389,7 +424,7 @@ selected estimate = base * correction(path availability)
 pace weight = 0
 ```
 
-The current correction factors are `0.940766` with a path and `1.013378`
+The current correction factors are `0.940948` with a path and `1.015649`
 without one. Measured episode pace remains a first-class diagnostic but was not
 selected: on the 750k calibration corpus every tested pace blend made grouped
 held-out point error worse. That is a statement about that corpus, not a general
@@ -404,16 +439,32 @@ cost of improving the incumbent after reaching a terminal.
 
 ### Bounds And Budget Headroom
 
-Prediction bounds are empirical and event-specific. Starts, high-water updates,
-and spend-without-progress observations have different error distributions, so
-one aggregate interval would either undercover the latter or be needlessly wide
-for all observations.
+Prediction bounds are empirical and conditioned on the observation's regime.
+Starts, high-water updates, and spend-without-progress observations have
+different error distributions, so one aggregate interval would either undercover
+the latter or be needlessly wide for all observations. Since schema v2 each
+event is split again by whether the estimate is path-backed, because those are
+two more regimes with different spreads:
 
 ```text
-estimate lower = selected estimate * event lower ratio
-estimate upper = selected estimate * event upper ratio
+estimate lower = selected estimate * lower ratio
+estimate upper = selected estimate * upper ratio
 estimate uncertainty = (upper - lower) / 2
 ```
+
+The ratios resolve most-specific-first — the `(event, path availability)`
+stratum, then the event, then the aggregate — and each level is optional, so an
+artifact that fits only events behaves exactly as artifacts did before strata
+existed. On the shipped artifact the split is large: a path-backed high-water
+estimate reads `[0.943, 1.132]` and a path-free one `[0.712, 1.269]`, because
+one is a measurement of the incumbent's own suffix and the other is a regression
+on spec structure. Pooling them under one band necessarily undercovers whichever
+population is noisier, and their mixture weight varies across the corpus — the
+path-free share runs 84% at 150k against 57% at 1.5M.
+
+"Path-backed" means the artifact's selector actually routed the estimate through
+the path base, not merely that a path existed: under a `structural` base mode it
+never does. That is the same predicate the correction factors split on.
 
 The interval is multiplicative and generally asymmetric around the point;
 `estimate_uncertainty_frames` is half-width, not a standard deviation. Events
@@ -428,6 +479,12 @@ and `end` observations fall back to the aggregate ratios, which were themselves
 fitted without a single terminal or end sample. An interval on those two events
 is therefore arithmetic, never a calibrated claim — and on a completed attempt
 it is arithmetic on a zero point estimate.
+
+A stratum is fitted only when it holds enough observations for its tails to mean
+something: four expected observations per tail, so 160 at `nominalCoverage:
+0.95`. A thinner stratum falls back to its event rather than promising coverage
+from a single extreme order statistic, and the calibration report says which
+strata were fitted and which fell back.
 
 Completion margins have direct units:
 
@@ -471,7 +528,12 @@ initial structural slack = policy budget / initial structural work prior
 ```
 
 It is zero when the initial prior is zero. This is a frozen, start-of-compile
-ratio; it does not adapt as work is observed.
+ratio; it does not adapt as work is observed. Its definition is unchanged by the
+budget law, but its denominator is not: under a law artifact the prior carries
+the exponent, so this ratio grows as `B^(1-alpha)` instead of as `B`. That is
+telemetry describing measured spend and it is **not**
+`compile_stats.budget_slack`, which is the budget-independent V1 coordinate live
+policy reads — see *Two Structural Models*.
 
 ## Worked Observation
 
@@ -489,38 +551,78 @@ Then:
 ```text
 structural progress = (120,000 - 80,000) / 120,000 = 0.333
 episode pace        = 40,000 * 80,000 / 40,000       = 80,000
-selected estimate   = 72,000 * 0.940766              = 67,735
+selected estimate   = 72,000 * 0.940948              = 67,748
 hard remaining      = 750,000 - 540,000              = 210,000
 attempt remaining   = 650,000 - 540,000              = 110,000
-hard margin         = 210,000 / 67,735                = 3.10
-attempt margin      = 110,000 / 67,735                = 1.62
+hard margin         = 210,000 / 67,748                = 3.10
+attempt margin      = 110,000 / 67,748                = 1.62
 ```
 
-The current high-water interval ratios produce approximately
-`[53,342, 85,838]`. If this attempt first reaches a terminal at global work
-605,000, actual remaining work at the observation was 65,000, giving this point
-estimate an absolute percentage error of about 4.2%.
+This observation is path-backed, so it reads the `high_water/withPath` band and
+its interval is approximately `[63,870, 76,714]`. If this attempt first reaches a
+terminal at global work 605,000, actual remaining work at the observation was
+65,000, giving this point estimate an absolute percentage error of about 4.2%.
 
 ## Applicability
 
-The structural estimator is calibrated for the measured 750k policy budget.
-That qualifier matters because the compiler itself changes forward-search
-breadth as the initial policy budget and structural slack increase. A 2M run is
-not merely the same traversal with more frames after completion.
+The structural estimator is calibrated for the policy budgets its corpus
+covered, `applicability.structuralPolicyBudgetFrames`. That qualifier matters
+because the compiler itself changes forward-search breadth as the initial policy
+budget and structural slack increase. A 2M run is not merely the same traversal
+with more frames after completion.
+
+Without a budget law that domain is a single point — the one budget the panel
+was collected at. With one it is the band the panel spanned, because the
+exponent is what lets a fit at four budgets answer at every budget between them.
+Read the artifact; do not assume either shape.
+
+Outside the domain the behaviour is unchanged in both cases:
+`extrapolated_policy_budget`, null margins, and an interval widened to at least
+the remaining hard budget. There is deliberately **no graded middle band** — no
+third applicability grade for "outside the fitted band but inside the range the
+law was shown to extrapolate over". The study measured the law holding to 3x
+reference and breaking at 0.1x, so such a grade is defensible, but it would need
+its own fitted interval widening and its own coverage claim. It is a documented
+future option, not something to infer from the exponent's existence.
 
 Each observation therefore reports:
 
-- `calibrated`: structural estimate at the calibrated policy budget, or a
-  path-backed repair estimate;
-- `extrapolated_policy_budget`: structural estimate under an uncalibrated
-  policy budget.
-- `unvalidated_attempt_kind`: a structural estimate for an attempt kind with no
+- `calibrated`: an estimate inside the artifact's validated domain;
+- `extrapolated_policy_budget`: an estimate under a policy budget outside it;
+- `unvalidated_attempt_kind`: a path-free estimate for an attempt kind with no
   path-free evidence in the calibration corpus, which today means `snapshot`,
   `resumed`, and `repair`. The first two are never fitted at all; `repair` joins
   them because full incumbent-path coverage means no repair observation is
   path-free any more, so a repair that somehow lacked a path would be an
-  unmeasured case. Path-backed estimates still use their separately validated
-  applicability, which is what every real repair observation gets.
+  unmeasured case.
+
+A path-backed estimate always skips the attempt-kind test — it is a measurement
+of the incumbent's suffix and does not depend on how the attempt was started.
+**Whether it also skips the policy-budget test is the artifact's own
+declaration**, `applicability.pathEstimate`:
+
+| value | meaning |
+|---|---|
+| `calibrated_when_available` | the original rule: a path-backed estimate is calibrated at any policy budget |
+| `calibrated_when_available_in_domain` | schema v2: the policy-budget domain applies to path-backed estimates too |
+
+The shipped artifact declares the scoped rule, and the four-budget panel is why.
+Path-backed estimates are unbiased inside the domain — median actual/predicted
+0.994 at 1.5M, 0.995 at 750k, 1.006 at 300k — and **1.189 at 150k**, a 19%
+underprediction. At a scarce budget the incumbent handed to repair came out of a
+search that barely completed, so its measured cost-to-end understates what a
+repair will actually need. That is a point-estimate failure no interval width
+can honestly absorb: under the shipped bands only 35% of 150k path-backed
+observations fall inside their interval while the label said `calibrated`.
+Retracting the claim there is the whole reason the option exists.
+
+The cost is real and was accepted deliberately: at 2M, path-backed observations
+are accurate (2.5% median APE) and were `calibrated` under the old rule. They are
+now `extrapolated_policy_budget`, so the artifact gives up a true claim above the
+domain in exchange for not making a false one below it. Their components and
+point estimates are still recorded; only the margins go null and the interval
+expands. The rule lives in the artifact rather than in the runtime so that
+payloads recorded under the original rule keep re-deriving exactly.
 
 For extrapolated observations, the point components remain visible for study,
 but calibrated margins are `null` and the uncertainty interval expands to at
@@ -554,6 +656,16 @@ is a finding that V1 should be replaced in policy, and copying the estimator's
 coefficients into `budget_model.ts` would silently re-scale every slack-driven
 knob. V1 remains the live-policy coordinate system until a deliberate migration
 with its own multi-budget evidence and paired evaluation.
+
+**The budget law hardens that separation rather than softening it.** V1's job is
+to be a budget-*independent* difficulty yardstick so `budget_slack` can mean "how
+rich am I relative to this spec". The law's entire content is that actual cost is
+budget-*dependent* with exponent ~0.82. Substituting it for V1 would make slack
+proportional to `B^0.18` instead of `B`, collapsing a 30x live coordinate to a
+1.9x one and moving hundreds of compiles across the 1.5 branch-limit threshold —
+measured, not conjectured, in `budget-law-study.md`. An exponent in the telemetry
+estimator is a *spend* model in the one place a spend model belongs; the live
+predictor still needs a *difficulty* model. Do not port one to the other.
 
 ## Persistence
 
@@ -654,11 +766,15 @@ out-of-domain observation's interval is `[0, max(upper, hard remaining)]` by
 construction, so covering it says nothing; those samples are reported on their
 own row, labelled trivial, alongside the share of the corpus they represent.
 
-Refit the frozen artifact only from a reviewed analysis corpus:
+Refit the frozen artifact only from a reviewed analysis corpus. One or more
+analyses may be given, and they are pooled into one corpus:
 
 ```bash
 npx tsx scripts/v0/calibrate_budget_estimator.ts \
-  generated/budget-telemetry/panel.analysis.json \
+  generated/budget-telemetry/law/panel-150k.analysis.json \
+  generated/budget-telemetry/law/panel-300k.analysis.json \
+  generated/budget-telemetry/law/panel-750k.analysis.json \
+  generated/budget-telemetry/law/panel-1500k.analysis.json \
   --folds=5 --coverage=0.95 \
   --out=scripts/v0/optimizer/budget_estimator_model.json \
   --report=generated/budget-telemetry/panel.calibration.json
@@ -671,6 +787,66 @@ underprediction regression. A retained static model is emitted with
 `calibrated: false`, and the emitted artifact is parsed with the runtime's own
 validator before it is written — an invalid artifact would otherwise turn every
 compile in the repository into an import-time throw.
+
+### Multi-Budget Fitting
+
+A corpus spanning at least **three** distinct policy budgets also fits the
+budget exponent. Two budgets determine an exponent exactly and therefore measure
+nothing about it; three is the smallest corpus that can disagree with a power
+law. Below the threshold the fit is the historical budget-independent one, bit
+for bit, and the artifact keeps declaring schema v1 — a single-budget refit of
+an existing panel reproduces its predecessor byte for byte, which is the
+cheapest available proof that the law machinery is inert when unused.
+
+With the law, reference coefficients are anchored at 750,000 frames and the
+exponent is searched jointly with them under the same weighted SSE the
+coefficients are fitted under. Acceptance is unchanged: out-of-fold weighted
+median log error against the `TRAVERSAL_BUDGET_MODEL_V1` fallback, evaluated
+over the whole multi-budget corpus with the same double-blocked family x seed
+folds. The exponent is therefore *fitted* by SSE and *judged* by the gate. The
+form of the fit is decided once over the whole corpus, never per fold, so the
+held-out numbers describe one model rather than a mixture of two.
+
+Everything else is unchanged and deliberately so: `resumed` samples are still
+excluded from every part of the fit, interval percentiles are still taken per
+observation while the rest of the fit is attempt-weighted, and the applicability
+domain is still simply the min and max policy budget the fitted samples covered.
+
+Interval percentiles are taken per `(event, path availability)` stratum on the
+same double-held-out predictions and under the same per-observation weighting,
+with the fallback and the minimum-sample rule described under *Bounds And Budget
+Headroom*. Conditioning on the regime is deliberate and conditioning on the
+policy budget is deliberately avoided: a stratum uses only what the runtime also
+knows at the moment it reads the interval, so it generalizes to a budget between
+the fitted ones, whereas a per-budget table would only re-describe the corpus.
+
+The calibration report gains three sections:
+
+- `structuralForm` — the fitted exponent, the reference budget, the budgets
+  present, and sample counts per budget.
+- `byBudget` — every headline held-out statistic split by budget: selected and
+  path-free median APE with their signed twins, interval coverage under both
+  weightings, and per-path and per-event breakdowns. The per-path rows are how
+  the stratification's claim is checked: each regime should hold its coverage at
+  every budget, which is what "conditioning on the regime generalizes" has to
+  mean if it is true. Each event row also carries `residualRatiosAtThisBudget`,
+  the interval that budget's own residuals would have asked for. It is a
+  **diagnostic and is never fitted into the artifact**; comparing it to the
+  shipped ratios is what says whether the fitted strata can serve the whole
+  domain.
+- `budgetTransfer` — for each budget, a structural fit on every *other* budget
+  scored on that one, next to two controls: the same training rows with no
+  budget term at all, and V1.
+
+**Budget transfer is reported evidence and deliberately not an acceptance
+gate.** A gate needs a defined fallback and there is none: "the exponent did not
+transfer" implies neither "emit the budget-independent fit", which is worse at
+every budget in a multi-budget corpus, nor "emit V1", which the existing gate
+already tests. It would also gate the wrong quantity, since the selected
+estimate is path-backed at most observations while transfer measures the
+structural component alone. And any threshold chosen today would be a constant
+tuned to one panel's operating points, which is the shape this campaign's design
+rule forbids. The table exists so a reviewer can set a bar with evidence.
 
 ### Double-Blocked Folds
 
@@ -863,6 +1039,118 @@ high-water band moved from `[0.795, 1.252]` to `[0.788, 1.267]`, and the start
 band from `[0.573, 1.151]` to `[0.855, 1.256]` — the latter mostly because the
 old start band was fitted when repair starts were 52% path-free and is now
 fitted on a uniformly path-backed population.
+
+### 2026-08-01 Budget Law
+
+The shipped artifact is `calibrated-path_if_available+none-2c59b9a5802c`: schema
+v2, a budget exponent of 0.825 anchored at 750k, intervals stratified by event
+and path availability, a structural domain of [300k, 1.5M], and a path claim
+scoped to that same domain. Getting there took two rounds and both are recorded
+here, because the reasons a narrower artifact shipped are the useful part.
+
+**Round 1 fitted the four-budget panel and was refused.** 44 sources, 14
+families, seeds 0-7, budgets {150k, 300k, 750k, 1500k}, 167,835 samples of which
+167,119 fitted after excluding 716 `resumed`, all recorded by one estimator
+artifact with zero accounting violations. It reproduced the study's independent
+`calibrator`-view fit to four significant figures — reference coefficients
+24,126.7 / 3,696.4 / 19.04 against the study's 24,126.7 / 3,696.4 / 19.04, alpha
+0.8185 against 0.819 — from a different implementation and under the frozen
+calibrator's own fold design. Budget transfer, fitting three budgets and
+predicting the fourth, gave exponents of 0.825 / 0.803 / 0.824 / 0.829 and
+path-free median APEs of 10.0% / 8.3% / 5.4% / 4.6%, against 321% / 150% / 7.6% /
+66% for the same rows with no budget term and 43% / 17% / 63% / 79% for V1. The
+exponent, not a refreshed anchor, is what earns those numbers.
+
+It was refused on interval coverage at 150k: 91.1% held out and 90.0% live
+against a `nominalCoverage: 0.95` claim. That is the artifact's own printed
+promise, and a wider domain bought with a false claim is not worth having.
+
+**Round 2 tried to fix it with a mechanism and then narrowed instead.** The
+diagnosis said 150k was a different regime rather than a farther one — 84%
+path-free observations against 64% at 750k, 8.2% of panel cells censored — so
+the intervals were split by `(event, path availability)`, which conditions on
+the regime the runtime can see rather than on the corpus's budget identity. The
+split is real and large (path-backed high-water `[0.943, 1.132]` against
+path-free `[0.712, 1.269]`) and it is now how every interval is read, but at 150k
+it moved coverage only 91.1% to 91.7%. It was not forced any further.
+
+So the calibrated domain became [300k, 1.5M] — fitted on those three panels,
+135,796 samples — and that exposed the second finding. With 150k out of the
+structural domain, its path-backed observations were still `calibrated` through
+the budget-independent path rule, and against the sharper bands they covered
+**35%**. The cause is not interval width: path-backed estimates are unbiased at
+300k, 750k and 1.5M (median actual/predicted 1.006, 0.995, 0.994) and **19%
+biased at 150k**, where the incumbent handed to repair came out of a search that
+barely completed. Narrowing the structural domain while leaving that claim
+standing would have replaced one false claim with a worse one, so the path claim
+was scoped to the domain as well. Every claim the shipped artifact makes is now
+inside evidence, and 150k is uniformly `extrapolated_policy_budget`.
+
+Held out, per budget and per stratum:
+
+| budget | path-free APE | selected APE | coverage | withPath | withoutPath |
+|---:|---:|---:|---:|---:|---:|
+| 300,000 | 7.4% | 5.5% | 96.6% | 94.8% | 97.3% |
+| 750,000 | 5.5% | 3.3% | 94.5% | 95.4% | 93.9% |
+| 1,500,000 | 4.2% | 2.7% | 94.2% | 94.8% | 93.8% |
+
+A paired live check on an unseen seed 10 — the same 44 sources compiled twice on
+this tree, once under each artifact — measures the whole trade end to end:
+
+| corpus | structural APE | combined APE | calibrated coverage | in-domain samples |
+|---|---:|---:|---:|---:|
+| 150k, previous | 272.0% | 260.9% | 88.1% | 628 of 4,030 |
+| 150k, shipped | **9.4%** | **10.9%** | n/a — none claimed | 0 of 4,030 |
+| 300k, previous | 126.1% | 119.1% | 98.7% | 1,429 of 5,089 |
+| 300k, shipped | **6.9%** | **5.2%** | 97.0% | 5,057 of 5,089 |
+| 750k, previous | 6.1% | 3.10% | 94.1% | 5,580 of 5,590 |
+| 750k, shipped | 6.3% | 3.13% | **95.1%** | 5,580 of 5,590 |
+| 1.5M, previous | 43.9% | 39.9% | 98.3% | 2,732 of 6,331 |
+| 1.5M, shipped | **5.2%** | **2.8%** | 93.6% | 6,314 of 6,331 |
+| 2M music, previous | 59.8% | 59.2% | 100% | 154 of 504 |
+| 2M music, shipped | **10.5%** | **9.0%** | n/a — none claimed | 0 of 504 |
+
+Three lines in that table deserve their qualifier.
+
+**750k costs 0.03pp.** Pooling three budgets moves the reference coefficients off
+the 750k-only optimum, which the study predicted; live it is 3.13% against
+3.10%, and coverage at 750k improved from 94.1% to 95.1%. That is the price of
+being right at every other budget, and it is smaller than the round-1 four-budget
+fit's 3.31%.
+
+**1.5M coverage is 93.6% live against 94.2% held out.** It is the thinnest
+margin in the artifact, and the weakest cell is path-free at 1.5M (92.5% live,
+93.8% held out). The direction is not systematic — 750k went the other way, 94.5%
+held out to 95.1% live — so this reads as single-seed variation of the size the
+previous artifact also showed (95.0% held out, 94.1% live). It is the number to
+watch on the next panel.
+
+**The old artifact's 98.3% at 1.5M and 98.7% at 300k are not wins.** They are
+coverage over the 43% and 28% of observations that were in domain at all — the
+path-backed ones — while the structural majority was extrapolated and scored 44%
+and 126% APE. The shipped artifact claims four times as many observations at
+those budgets and covers them.
+
+Every out-of-range regime is labelled and behaves. At 2M — 2.67x reference — all
+504 observations are `extrapolated_policy_budget` with null margins even though
+the structural error collapsed from 59.8% to 10.5%; the 154 path-backed ones
+would have been accurate (2.5% median APE) and are the true claim the scoped
+path rule gives up. At 75k every one of 3,040 observations is extrapolated, the
+structural error is 27.8% against the study's 29.6%, and zero repair attempts run
+at all, which is the regime change that makes 75k out of domain rather than
+merely inaccurate.
+
+Neutrality is exact at every step: 176 paired golden compiles across four budgets
+and four paired 2M music compiles produced identical track hashes, scores, and
+`sim_frames` under both artifacts, and the two named reference tracks
+(`cold_start` and `tiny_dance` at 150k seed 0) hash unchanged.
+
+**150k is a distinct regime and needs its own treatment.** Both of its failures
+point the same way: 8.2% of its cells never complete, so its samples are
+conditioned on completing; its observations are 84% path-free; and the incumbent
+its repairs inherit is the product of a search that barely finished, which is why
+the path component is biased there and nowhere else. A future artifact that wants
+150k needs evidence about that regime — not a wider interval fitted above it.
 
 ## Non-Policy Status
 

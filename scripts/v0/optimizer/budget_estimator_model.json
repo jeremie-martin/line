@@ -1,68 +1,104 @@
 {
-  "schema": "line.compile-budget-estimator-model.v1",
-  "modelId": "calibrated-path_if_available+none-053987e23480",
+  "schema": "line.compile-budget-estimator-model.v2",
+  "modelId": "calibrated-path_if_available+none-2c59b9a5802c",
   "calibrated": true,
-  "generatedAt": "2026-08-01T10:47:43.179Z",
+  "generatedAt": "2026-08-01T14:11:28.290Z",
   "provenance": {
     "generator": "scripts/v0/calibrate_budget_estimator.ts",
     "analysisSchema": "line.compile-budget-telemetry-analysis.v1",
-    "datasetFingerprint": "053987e23480d85cdba93b6eff04b85d2aa67f63b6b6b0f429e2e546f58ecdab",
+    "datasetFingerprint": "2c59b9a5802c3574a64ac61c597c390b3fb0a99d8610ee4e995be590ae02d2a9",
     "inputs": [
-      "generated/budget-telemetry/panel-750k-8seeds.json"
+      "generated/budget-telemetry/law/panel-300k.json",
+      "generated/budget-telemetry/law/panel-750k.json",
+      "generated/budget-telemetry/law/panel-1500k.json"
     ],
     "groups": 14,
-    "samples": 44879,
+    "samples": 135796,
     "folds": 5,
     "acceptance": "accepted: >=5% weighted median log-error improvement and <=5% p90 underprediction regression"
   },
   "structural": {
-    "name": "budget-telemetry-nnls/053987e23480",
-    "source": "generated/budget-telemetry/panel-750k-8seeds.analysis.json; grouped 5-fold validation",
-    "interceptFrames": 24341.444331,
-    "contactFrames": 3922.700563,
-    "durationFrameScale": 11.742495
+    "name": "budget-telemetry-nnls-law/2c59b9a5802c",
+    "source": "generated/budget-telemetry/law/panel-300k.analysis.json + generated/budget-telemetry/law/panel-750k.analysis.json + generated/budget-telemetry/law/panel-1500k.analysis.json; grouped 5-fold validation; budget law fitted at 300000, 750000, 1500000; intervals stratified by event x path availability",
+    "interceptFrames": 23860.073855,
+    "contactFrames": 3699.918266,
+    "durationFrameScale": 18.350294,
+    "referenceBudgetFrames": 750000,
+    "budgetExponent": 0.825
   },
   "combination": {
     "baseMode": "path_if_available",
     "paceSchedule": "none",
-    "correctionWithoutPathFactor": 1.013378,
-    "correctionWithPathFactor": 0.940766
+    "correctionWithoutPathFactor": 1.015649,
+    "correctionWithPathFactor": 0.940948
   },
   "interval": {
-    "lowerRatio": 0.677847,
-    "upperRatio": 2.579478,
+    "lowerRatio": 0.689225,
+    "upperRatio": 2.130568,
     "nominalCoverage": 0.95,
     "byEvent": {
       "start": {
-        "lowerRatio": 0.854819,
-        "upperRatio": 1.256138
+        "lowerRatio": 0.833952,
+        "upperRatio": 1.223889
       },
       "high_water": {
-        "lowerRatio": 0.787511,
-        "upperRatio": 1.267262
+        "lowerRatio": 0.781325,
+        "upperRatio": 1.227266
       },
       "spend": {
-        "lowerRatio": 0.677847,
-        "upperRatio": 2.579478
+        "lowerRatio": 0.689225,
+        "upperRatio": 2.130568
+      }
+    },
+    "byEventAndPath": {
+      "start": {
+        "withPath": {
+          "lowerRatio": 0.909744,
+          "upperRatio": 1.223889
+        },
+        "withoutPath": {
+          "lowerRatio": 0.765442,
+          "upperRatio": 1.22364
+        }
+      },
+      "high_water": {
+        "withPath": {
+          "lowerRatio": 0.942763,
+          "upperRatio": 1.132393
+        },
+        "withoutPath": {
+          "lowerRatio": 0.71188,
+          "upperRatio": 1.26938
+        }
+      },
+      "spend": {
+        "withPath": {
+          "lowerRatio": 0.696434,
+          "upperRatio": 2.577604
+        },
+        "withoutPath": {
+          "lowerRatio": 0.689225,
+          "upperRatio": 2.067903
+        }
       }
     }
   },
   "applicability": {
     "structuralPolicyBudgetFrames": {
-      "min": 750000,
-      "max": 750000
+      "min": 300000,
+      "max": 1500000
     },
     "structuralAttemptKinds": [
       "initial"
     ],
-    "pathEstimate": "calibrated_when_available"
+    "pathEstimate": "calibrated_when_available_in_domain"
   },
   "metrics": {
-    "validationMedianAbsoluteLogError": 0.026257,
-    "validationP90UnderpredictionRatio": 1.080936,
-    "validationIntervalCoverage": 0.96301,
-    "validationIntervalCoverageBySample": 0.950088,
-    "staticMedianAbsoluteLogError": 0.838324,
+    "validationMedianAbsoluteLogError": 0.026881,
+    "validationP90UnderpredictionRatio": 1.08446,
+    "validationIntervalCoverage": 0.939078,
+    "validationIntervalCoverageBySample": 0.950021,
+    "staticMedianAbsoluteLogError": 0.859371,
     "acceptedAgainstStatic": true
   }
 }

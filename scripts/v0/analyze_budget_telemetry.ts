@@ -588,7 +588,10 @@ function validateEstimateAccounting(
       );
       continue;
     }
-    const calibratedInterval = budgetEstimateInterval(estimated, observation.event);
+    const calibratedInterval = budgetEstimateInterval(estimated, {
+      event: observation.event,
+      pathAvailable: path !== null,
+    });
     const inDomain = (applicability ?? expectedApplicability) === "calibrated";
     const lower = inDomain ? calibratedInterval.lower : 0;
     const upper = inDomain

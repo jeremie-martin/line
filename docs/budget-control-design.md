@@ -198,7 +198,16 @@ The current codebase has five pieces:
 - `scripts/v0/optimizer/budget_telemetry.ts` records compile accounting,
   execution segments, attempt lifecycles, structural/path/pace estimates,
   uncertainty, and completion margins. It is observation-only; see
-  [`compile-budget-telemetry.md`](compile-budget-telemetry.md).
+  [`compile-budget-telemetry.md`](compile-budget-telemetry.md). Two per-attempt
+  outcome fields now carry the quantity layer 4 is missing for the
+  post-completion knobs: `accepted_score_delta` is the incumbent score a repair
+  restart bought, and `first_accepted_improvement_offset_frames` is the charged
+  work it took to buy it — together a directly measured repair ROI per frame,
+  which is the mapping "where extra spend improves score" needs and which
+  completion rate cannot supply, since repairs complete at nearly 100%. The
+  surface also attributes the resumed-search phase, so the
+  repair-vs-resumed-frontier split is now measurable on both sides rather than
+  only on the repair side.
 - `scripts/v0/optimizer/budget_estimator_model.json` is the frozen telemetry
   estimator artifact. Its applicability is explicit: structural estimates are
   calibrated at the measured 750k policy budget, while available incumbent-path

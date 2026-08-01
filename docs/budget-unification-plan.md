@@ -28,10 +28,20 @@ Program success criteria, checkable at the end:
 
 ## Standing regime (all phases)
 
-- **Drift budget.** Coherence changes are judged "no material harm at N=48", not
-  significance. A running signed ledger of their headline deltas starts at 0;
-  floor **−3.0 points**; a promotion that would cross the floor waits until a
-  win repays the ledger.
+- **The gold standard.** Every candidate goes through the 48-seed sequential V2
+  eval. Boundary accept → promote. **Inconclusive → promote deliberately**
+  (`rebaseline --force` with the reason recorded): the program's default is to
+  move forward on parity, because coherence is the point and significance is
+  not the bar. Boundary reject or anything weird → **investigate before
+  judging**: add telemetry, study the archives, decompose if useful — a result
+  is rejected only when investigation confirms real harm or a real defect, and
+  a defect means fix-and-rerun, not abandon. Small implementation issues are
+  never grounds for rejecting a direction.
+- **Drift budget (the backstop).** A running signed ledger of coherence
+  promotions' headline deltas starts at 0; floor **−3.0 points**. The
+  default-promote posture operates freely above the floor; at the floor,
+  promotions wait until a win repays the ledger. This is the guard against
+  bleeding to death in −1s, nothing more.
 - **One deadline signal.** No new mechanism may compute its own "am I behind?".
   New consumers read the margin module.
 - **Bundles are candidates.** Mechanisms that share meaning move in one
@@ -41,7 +51,12 @@ Program success criteria, checkable at the end:
   changes; the map is amended so no superseded sweep survives as a live verdict.
 - **Comment hygiene.** Comments die or update in the same commit as their code.
 - **Instruments.** Promotion: the 750k N=48 gate. Evidence below 250k: golden v1
-  grid (75k–550k) and scale_study — non-promoting, but not blind.
+  grid (75k–550k) and scale_study — non-promoting, but not blind. The v1
+  harness is used opportunistically: its low-budget baseline reading gets
+  refreshed the first time a phase needs a before/after there (Phase 1's
+  evidence gate), not as a standing maintenance duty. Making low budgets a
+  promoting surface again is a separate decision, parked until the adaptive
+  machinery has produced something worth promoting there.
 - **Observation invariant.** The telemetry *recorder* never drives. Policy and
   recorder may share the estimator's pure functions; they never share state.
 
@@ -96,10 +111,11 @@ reproducibility), full vitest, analyzer clean on fresh traces. Decision: N=48
 sequential eval; accept on boundary; parity → drift-budget promotion; golden v1
 {150k, 300k} evidence reported alongside.
 
-**Iteration path.** Negative → decompose into three sub-candidates in order
-(pace-signal swap alone; + throttle upgrade; + post-completion extension),
-isolate the member, re-anchor its constants, retry once. Two decomposition
-rounds maximum, then stop and redesign with the evidence.
+**On an unexpected result.** Investigate with the scaffolding until understood
+— the telemetry, the archives, and per-member decomposition (the natural cut is
+pace-signal swap / throttle upgrade / post-completion extension) are the tools,
+not a script. What we want from this phase is one signal and a paced tail; how
+many iterations that takes is whatever the evidence demands.
 
 **Hazards addressed:** H2 per 0a; H1 untouched (no objective change); no new
 mode triggers; register and reset registry untouched.
@@ -116,10 +132,11 @@ been evaluated, and 18.6% of 750k repair spend buys zero.
    archived incumbents — scorer-weighted axis error instead of raw SSE;
    error-per-estimated-frame; exclusion of axes already at `weakAxisCeiling` —
    and score expected yield from the measured acceptance/gain distributions.
-2. Only a policy whose predicted effect clears the **+0.3 point** eval-slot
-   threshold at 750k (the ROI study's floor, set by candidate A's null) gets a
-   candidate; margin/interval-quantile affordability (attempt iff upper-bound
-   cost fits) rides in the same candidate.
+2. Default guidance, not law: a policy predicted well below **+0.3 points** at
+   750k (the floor candidate A's null established) should usually wait for a
+   stronger prediction rather than spend an eval slot; margin/interval-quantile
+   affordability (attempt iff upper-bound cost fits) rides in the same
+   candidate as whichever ranking wins the replay.
 3. If the zero-yield pool survives (1)–(2), the acceptance-prediction model
    (readiness-style features, trained offline from archives) is the follow-up —
    it is a model, not a knob, and gets its own proposal.
@@ -130,6 +147,19 @@ been evaluated, and 18.6% of 750k repair spend buys zero.
 **Hazard:** LC-22 — any change to the attempt sequence reseeds every downstream
 restart, so repair candidates are only ever evaluated whole, never as local
 perturbations.
+
+## Track R — stale-verdict re-tests (parallel, any time)
+
+The nearest-term headline material in the map, independent of every phase: six
+knobs whose "flat / at optimum" verdicts were all measured in one 2026-07-28
+session against a breadth law and scorer ruler that have both since been
+replaced (map Cluster B). The one re-test that already exists under the current
+ruler — pool = 7 — reads **+0.48 with a catalog-sensitivity CI excluding zero**,
+retired only because it missed a sequential boundary. Each re-test is one
+cheap N=48 eval; they can run whenever an eval slot is free. Resolve the map's
+−1.73 identification ambiguity (discrepancy 12) before reading the branching
+row. Verdicts that flip get promoted like any accept; verdicts that hold get
+their provenance re-stamped in the map so the staleness is cleared either way.
 
 ## Phase 3 — the ramp field
 

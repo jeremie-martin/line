@@ -201,7 +201,7 @@ both were invisible to the attempt view.
 |---|---|
 | `hard_budget` | the compile's hard budget; initial and resumed attempts |
 | `measured_cost_to_end` | the incumbent's measured cost-to-end at this anchor, times the repair feasibility margin |
-| `per_gap_fallback` | no measured cost at this anchor, so the coarse per-gap average was used |
+| `per_gap_fallback` | the anchor is in neither reach map, so the coarse per-gap average was used; rare |
 | `repair_budget_remaining` | the sized ceiling reached the repair budget and was clipped to it |
 
 This field makes one tautology visible in data. A `measured_cost_to_end`
@@ -210,7 +210,9 @@ path base, so at such a repair's start `attempt_completion_margin` is the
 constant `feasMargin / correctionWithPathFactor` — arithmetic, not evidence
 about estimator accuracy. `feasMargin` itself ramps with the compile budget
 (1.05 scarce, 1 from 200k up), so at the calibrated 750k budget the constant is
-measured at exactly 1.062964 on every such start.
+measured at exactly 1.062964 on every such start. Since repair ceilings became
+measured wherever a reach stamp exists, this covers nearly every repair start,
+so never read a repair's start margin as an accuracy signal.
 
 `first_accepted_improvement_offset_frames` is charged work from attempt start to
 the first improvement the best-so-far register adopted. That leaf need not be
@@ -345,21 +347,19 @@ construction: the incumbent's terminal node is reached at first completion, so
 its measured cost-to-end is zero, which the recorder stores as `null` rather
 than as a path-backed estimate of no remaining work.
 
-**Two profiles, one arithmetic.** Live repair policy — feasibility screening,
-weak-gap selection, and restart ceilings — reads the frontier-only profile.
-Telemetry reads a second profile that fills the frontier's gaps from the
-tail-completion stamps. They are computed in the same walk with the same
-formula and differ only in which reach timestamps they accept, so the recorder
-can be better informed than the decisions it observes without changing any of
-them. The visible consequence is a repair whose `ceiling_source` is
-`per_gap_fallback` while its observations carry a measured path: that
-combination is correct, and it is the evidence that live ceilings still run on
-the crude per-gap estimate wherever the frontier alone never reached.
+**One profile.** Repair policy — feasibility screening, weak-gap selection,
+and restart ceilings — and the recorder read the same array. The two stamp
+sources were briefly kept apart, with policy reading the frontier's alone while
+telemetry read both, so that closing the coverage hole could be proven
+behaviour-neutral first. They were merged once the wider profile had been
+measured: `per_gap_fallback` now means a node in neither reach map, which is
+rare. See "Measured repair cost everywhere" in
+`docs/budget-control-design.md` for that change and its evaluation status.
 
 The distinction matters because first completion routinely arrives through the
 tail pass. On the 2026-07-31 panel, all 34 repair-bearing cells completed that
 way, leaving 20.2% of pre-terminal repair observations and 155 of 307 repair
-anchors with no measured path at all — five compiles had none. Under the second
+anchors with no measured path at all — five compiles had none. Under the merged
 profile those cells measure a path at every pre-terminal repair observation.
 The 2026-08-01 recalibration panel confirms it end to end: **100% of pre-terminal
 repair observations (16,236 of 16,236) and 100% of repair anchors (883 of 883)

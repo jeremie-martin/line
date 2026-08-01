@@ -368,11 +368,17 @@ describe("compile budget telemetry", () => {
     expect(telemetry.segments.some((segment) => segment.kind === "unattributed")).toBe(false);
   }, 180_000);
 
-  test("measures an incumbent path for gaps only the tail-completion pass built", async () => {
+  test("sizes repairs from measured cost at gaps only the tail-completion pass built", async () => {
     // cold_start's first completion comes from the near-tail pass, whose nodes
     // the frontier never processes. Before those nodes were stamped, every gap
     // past the deepest processed one had no reach timestamp, so this compile
     // recorded zero path-backed repair observations.
+    //
+    // The stamps were telemetry-only at first, and this test then asserted the
+    // split they created: a `per_gap_fallback` ceiling next to a path-backed
+    // observation. Repair policy now reads the same profile the recorder does,
+    // so that combination is gone by design — the measured cost that was good
+    // enough to observe against is good enough to size the restart with.
     const spec = await loadGoldenSpec("cold_start", "base");
     const result = compileHandoff(spec, 0, {
       budget: 150_000,
@@ -386,17 +392,11 @@ describe("compile budget telemetry", () => {
       expect(repair.start.incumbent_path_work_estimate_frames).not.toBeNull();
       expect(repair.start.incumbent_path_work_estimate_frames!).toBeGreaterThan(0);
       expect(repair.start.estimator_applicability).toBe("calibrated");
+      // Wherever a reach stamp exists the ceiling is sized from it, never from
+      // the per-gap average. `per_gap_fallback` now means a node in neither
+      // reach map, which a stamped incumbent path cannot be.
+      expect(repair.ceiling_source).not.toBe("per_gap_fallback");
     }
-
-    // The previously impossible combination, and the point of keeping the two
-    // profiles separate: the LIVE ceiling still came from the crude per-gap
-    // fallback because live policy reads the frontier-only profile, while the
-    // recorder now sees the measured path. A repair sized on a guess but
-    // observed against a measurement is exactly what this makes visible.
-    expect(repairs.some((repair) =>
-      repair.ceiling_source === "per_gap_fallback" &&
-      repair.start.incumbent_path_work_estimate_frames !== null
-    )).toBe(true);
   }, 180_000);
 
   test("uses the hard budget as the initial attempt ceiling when policy budget is lower", async () => {

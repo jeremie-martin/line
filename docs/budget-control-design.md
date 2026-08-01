@@ -245,6 +245,31 @@ targeted validation case for the future controller.
 These are infrastructure and measurement steps. They do not yet install a
 slack-based production controller.
 
+### Measured repair cost everywhere (first telemetry-informed policy change)
+
+The repair phase's `costToEnd` profile now accepts a node's reach timestamp
+from either producer of incumbent nodes — the frontier and the near-tail
+completion pass — instead of the frontier alone. Policy and telemetry read one
+array again. This is the first change where the telemetry surface altered
+compiler behaviour rather than only describing it.
+
+The evidence is the coverage measurement that motivated it: first completion
+routinely arrives through the tail pass, so 161 of 307 panel repair attempts
+anchored at a gap the frontier never processed and were sized by `perGap`, the
+average-over-the-whole-search estimate the code itself calls dead-end-biased.
+At exactly those anchors the measured profile predicts actual repair completion
+cost to 3.0% median APE. Sizing a restart from a 3%-accurate measurement rather
+than from that average is the whole mechanism; `feasMargin` and every other knob
+are unchanged.
+
+A 24-cell sanity probe (6 golden specs × 2 seeds × {150k, 750k}) shows the
+mechanism moving as intended — `per_gap_fallback` ceilings 58.9% → 0%, repair
+rounds 314 → 361, accepted repairs 86 → 90, contract still passing everywhere —
+with a score effect well inside probe noise (mean `+0.30`, median `0.00`, 10
+wins / 10 losses / 4 ties). **Evaluation status: pending.** The probe is a
+mechanism check, not a verdict; the headline decision belongs to the official
+paired benchmark eval.
+
 ## Open Questions
 
 - Should `D(spec)` continue to be fitted from production telemetry, or should it

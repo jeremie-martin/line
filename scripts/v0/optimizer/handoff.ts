@@ -1487,19 +1487,16 @@ function compileHandoffInternal(
     // repair restart, so the system can be characterized and budget-aware allocation built on
     // MEASURED cost (vs the current crude perGap estimate). Surfaced in compile_stats.repair.
     const framesAtReach = new WeakMap<SearchNode, number>();
-    // TELEMETRY-ONLY second reach map. `framesAtReach` above stamps only nodes the
-    // frontier processes, but the near-tail completion pass builds its own suffix
-    // nodes and is where first completion actually lands, so every incumbent node
-    // past the deepest processed one had no timestamp at all: the measured
-    // cost-to-end profile fell back to -1 for those gaps. That hole is what left
-    // 20% of pre-terminal repair observations without an incumbent path. This map
-    // closes it for the recorder ONLY — live repair policy (estCostOf,
-    // pickFeasibleWeakGap, restart ceilings) keeps reading `framesAtReach` alone,
-    // so its decisions stay byte-identical.
+    // Second reach map for the OTHER producer of incumbent nodes. `framesAtReach`
+    // above stamps only nodes the frontier processes, but the near-tail completion
+    // pass builds its own suffix nodes and is where first completion routinely
+    // lands, so every incumbent node past the deepest processed one had no
+    // timestamp at all and the measured cost-to-end profile fell back to -1 there.
+    // Both maps answer the same question — the charged work at which that node
+    // first existed on the search's path — so repair reads them as one profile.
     const framesAtReachTail = new WeakMap<SearchNode, number>();
     // Stamped at construction, inside the charged tail attempt that built the
-    // node — the same "when was this first reached" quantity the frontier map
-    // records. Gated exactly like `framesAtReach`, so the low-budget hot path
+    // node. Gated exactly like `framesAtReach`, so the low-budget hot path
     // stays free; the gate is the repair phase, never the telemetry level, so
     // off/summary/trace do identical work.
     const stampTailReach = (search: SearchNode): void => {
@@ -1987,31 +1984,27 @@ function compileHandoffInternal(
         ? firstCompletionFrame / Math.max(1, telemetry.deepestSeenGap + 1)
         : 0;
       // MEASURED per-gap cost-to-end (Jérémie's "each arc associated with a budget"): from the first
-      // incumbent's own path, costToEnd[k] = firstCompletionFrame − framesAtReach[node@k] = the frames
+      // incumbent's own path, costToEnd[k] = firstCompletionFrame − reach[node@k] = the frames
       // the main search actually spent from first reaching gap k to completion, including intervening
       // branch exploration. Replaces the dead-end-biased perGap estimate for feasibility/ceiling.
       // Computed once from the original incumbent (stable profile; later repairs do not rewrite it).
+      // A reach timestamp is accepted from EITHER producer of incumbent nodes. Taking
+      // only the frontier's left every tail-suffix anchor — 161 of 307 repair attempts
+      // on the panel, and every anchor of a tail-completing compile — sized by perGap
+      // instead, even though the measured profile predicted actual completion cost at
+      // those very anchors to 3.0% median APE. perGap is an average over the whole
+      // search including its dead ends, so it over-sizes exactly the late, cheap
+      // anchors that tail completion produces, and `pickFeasibleWeakGap` then rejects
+      // gaps the budget could in fact afford.
       const costToEnd: number[] = [];
-      // Same walk, same arithmetic, one wider source of reach timestamps: a gap
-      // the frontier never processed still has one if the tail pass built that
-      // node. LIVE POLICY BELOW READS `costToEnd`, NOT THIS — the recorder's view
-      // is allowed to be better informed than the decisions it observes, and a
-      // repair whose ceiling was sized from `per_gap_fallback` while its
-      // observations carry a path is exactly the evidence that live ceilings run
-      // on the crude estimate for gaps the measured profile never covered.
-      const costToEndTelemetry: number[] = [];
       {
         const inc0 = bestCompleteNode;
         const root0 = inc0 ? startOptions.find((o) => o.rank === inc0.startRank)?.root : undefined;
         if (inc0 && root0 && firstCompletionFrame > 0) {
           let n = root0;
           for (let k = 0; k <= gaps.length; k++) {
-            const reach = framesAtReach.get(n);
+            const reach = framesAtReach.get(n) ?? framesAtReachTail.get(n);
             costToEnd[k] = reach !== undefined ? Math.max(0, firstCompletionFrame - reach) : -1;
-            const observedReach = reach ?? framesAtReachTail.get(n);
-            costToEndTelemetry[k] = observedReach !== undefined
-              ? Math.max(0, firstCompletionFrame - observedReach)
-              : -1;
             if (k < gaps.length) n = extendNodeCached(n, inc0.search.prefixFits[k] ?? null);
           }
         }
@@ -2020,7 +2013,8 @@ function compileHandoffInternal(
         const m = costToEnd[k];
         return m !== undefined && m >= 0 ? m : perGap * Math.max(1, gaps.length - k);
       };
-      // Observation-only mirror of the branch estCostOf just took.
+      // Observation-only mirror of the branch estCostOf just took. `per_gap_fallback`
+      // now means the node is in NEITHER reach map, which is rare.
       const estCostSourceOf = (k: number): "measured_cost_to_end" | "per_gap_fallback" => {
         const m = costToEnd[k];
         return m !== undefined && m >= 0 ? "measured_cost_to_end" : "per_gap_fallback";
@@ -2176,7 +2170,7 @@ function compileHandoffInternal(
             ceilingTotalSpentFrames: ceiling,
             ceilingSource,
             includeStartup: false,
-            pathEstimateByGap: costToEndTelemetry,
+            pathEstimateByGap: costToEnd,
           });
           const improvementFrameOffsets = runFrontierFrom(prefixNode, ceiling);
           const completed = terminalConsiders > terminalsBefore;

@@ -44,7 +44,7 @@ describe("canonical baseline cache fixed-N plans", () => {
     expect(reference.decision_protocol_fingerprint).toBe(decisionProtocolFingerprint());
     expect(baselineCacheHeadlineAtDepth(cache, 48)).toEqual({
       seeds: 48,
-      headline: 595.8997,
+      headline: 595.9097,
       validRuns: 2_112,
       totalRuns: 2_112,
     });

@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "readiness-contact-impulse-v3-750k",
-  "generated_at": "2026-07-31T13:13:28.750Z",
+  "label": "repair-tail-measured-cost-750k",
+  "generated_at": "2026-08-01T12:10:43.130Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "7c6cb134e548b2592c33dab244ae288d305e5edcc218bb33bd268fefd76527e7",
+  "compiler_source_fingerprint": "7191509e583a93d41f164754feb48eb3183028e17115be431d160fd0cf23d351",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -95,7 +95,10 @@
     "scripts/v0/optimizer/arc_probe.ts",
     "scripts/v0/optimizer/arc_proposal.ts",
     "scripts/v0/optimizer/arc_vector_model.ts",
+    "scripts/v0/optimizer/budget_estimator.ts",
+    "scripts/v0/optimizer/budget_estimator_model.json",
     "scripts/v0/optimizer/budget_model.ts",
+    "scripts/v0/optimizer/budget_telemetry.ts",
     "scripts/v0/optimizer/contact_phase.ts",
     "scripts/v0/optimizer/handoff.ts",
     "scripts/v0/optimizer/impact_policy.ts",
@@ -121,35 +124,29 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "55050d5ee766b2b58deebfc5568c529d405cf67cb4e87f0856853f776798b8a2",
+  "candidate_fingerprint": "20fd7d93c0a5816abb80d3f7bdbe67629ed43352d4790eedbd312dae2d7e96f0",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "af1467644835b2c09b8415dc42172fe921212ab2b0eb97da02f7956fb1184b8e",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
   "sequential_eval_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
   "sequential_eval_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-  "sequential_policy_migration": {
-    "status": "protocol-only-migration",
-    "basis": "The active baseline was accepted and compiled at N=48 before the strict sequential policy existed. Its measured headline and archive are unchanged; N=48 is now recorded as both its promotion depth and cache coverage.",
-    "score_recomputation": false,
-    "cross_ruler_comparison": false
-  },
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-compiler-snapshot.tar.gz",
-    "archiveSha256": "55e99e0002ef46431fd6c949d5ae4ef4f26ef3c95bdb6d092fc06cb983aa1210",
-    "candidateFingerprint": "55050d5ee766b2b58deebfc5568c529d405cf67cb4e87f0856853f776798b8a2",
-    "compilerSourceFingerprint": "7c6cb134e548b2592c33dab244ae288d305e5edcc218bb33bd268fefd76527e7",
+    "archive": "benchmark/v2/runs/repair-tail-measured-cost-750k-compiler-snapshot.tar.gz",
+    "archiveSha256": "afc427a64b26eeb29527a02b46677bf9ee193acc1b6dfea2a513106da8663975",
+    "candidateFingerprint": "20fd7d93c0a5816abb80d3f7bdbe67629ed43352d4790eedbd312dae2d7e96f0",
+    "compilerSourceFingerprint": "7191509e583a93d41f164754feb48eb3183028e17115be431d160fd0cf23d351",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
     "execution_policy_fingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
-    "implementation_fingerprint": "5569195d2b395f0feafc81191c49dea3c06c6fbe48bfb052fcca632622b2f0bc",
-    "archive_sha256": "ec4f458ea102d42fcf8f48009ad90f4fdf6a92b6edd8fe295846bdf7bf761fc1",
-    "compressed_archive": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-development-750k.json.gz",
-    "compressed_archive_sha256": "7ec567fd0df58e707734afbd99f82731210401c1dbdb04b7bfbe818b1e7edab4",
-    "canonical_headline": 595.8997,
+    "implementation_fingerprint": "30256508fec3b665e7d119d0a01800b6538df984c0aeb66b0b2adc3794ff36e6",
+    "archive_sha256": "259fbdba3c35852972804088c1fe02679de6ae0023e6a32244bfda91d2900ffa",
+    "compressed_archive": "benchmark/v2/runs/repair-tail-measured-cost-750k-development-750k-N48.json.gz",
+    "compressed_archive_sha256": "5621a60ce5a8325e18daf3935229f9b66651c0a278962c3a9534311753d14eec",
+    "canonical_headline": 595.9097,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -214,7 +211,7 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 595.8997,
+        "score": 595.9097,
         "valid_runs": 2112,
         "total_runs": 2112
       }
@@ -222,8 +219,8 @@
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "readiness-contact-impulse-v3-750k",
-    "candidateFingerprint": "55050d5ee766b2b58deebfc5568c529d405cf67cb4e87f0856853f776798b8a2",
+    "baselineLabel": "repair-tail-measured-cost-750k",
+    "candidateFingerprint": "20fd7d93c0a5816abb80d3f7bdbe67629ed43352d4790eedbd312dae2d7e96f0",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -291,11 +288,11 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 48,
-        "archiveSha256": "ec4f458ea102d42fcf8f48009ad90f4fdf6a92b6edd8fe295846bdf7bf761fc1",
-        "compressedArchive": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-development-750k.json.gz",
-        "compressedArchiveSha256": "7ec567fd0df58e707734afbd99f82731210401c1dbdb04b7bfbe818b1e7edab4",
+        "archiveSha256": "259fbdba3c35852972804088c1fe02679de6ae0023e6a32244bfda91d2900ffa",
+        "compressedArchive": "benchmark/v2/runs/repair-tail-measured-cost-750k-development-750k-N48.json.gz",
+        "compressedArchiveSha256": "5621a60ce5a8325e18daf3935229f9b66651c0a278962c3a9534311753d14eec",
         "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
-        "implementationFingerprint": "5569195d2b395f0feafc81191c49dea3c06c6fbe48bfb052fcca632622b2f0bc"
+        "implementationFingerprint": "30256508fec3b665e7d119d0a01800b6538df984c0aeb66b0b2adc3794ff36e6"
       }
     ]
   },
@@ -314,17 +311,23 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/readiness-contact-impulse-v3-750k-comparison.json",
-    "artifact_sha256": "b01448257582b1a309419c8f6a99e6b9b06aef9a04b407623aff4dff967bad2a",
+    "artifact": "benchmark/v2/runs/repair-tail-measured-cost-750k-comparison.json",
+    "artifact_sha256": "cb309cd9bfaf654e7c5fc674741afa6a3ad37a83a4ad6a39ce4c4cedd24381a9",
     "seeds": 48,
     "maximum_seeds": 48,
-    "experiment": "historical-fixed-look-before-sequential-policy",
+    "experiment": "sequential-improvement",
+    "stopping_action": "inconclusive",
+    "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
+    "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
+    "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
+    "request": "benchmark/v2/runs/repair-tail-measured-cost-750k-comparison-request.json",
+    "request_sha256": "c955e8ddf1265b0b585aeba91dab88dec564167e30e1ec5c0b0d7daf3208fb35",
     "budgets": [
       750000
     ],
     "outcome": "inconclusive",
-    "delta": 2.3966,
+    "delta": 0.01,
     "forced": true,
-    "force_reason": "Explicit owner decision: adopt the scorer-aligned readiness retrain despite the ordinary inconclusive seed-confidence verdict; locked readiness MSE improved 23.1%, all 14 families improved, the compiler point estimate was +2.3966, validity improved 2111 to 2112, and representative performance was significantly positive."
+    "force_reason": "Deliberate parity promotion approved by Jérémie 2026-08-01: repair ceilings sized from measured cost at all anchors (perGap fallback 59%->0%), unifying live policy with the calibrated telemetry profile; N=48 delta +0.01 [-0.02,+0.04], validity 2112/2112 unchanged; promoted for mechanism soundness per correctness-fix precedent, not for headline movement"
   }
 }

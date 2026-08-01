@@ -1393,7 +1393,10 @@ function compileHandoffInternal(
       hasFallback: false,
       anchorGapIndex: root.search.gapIndex,
       startTotalSpentFrames: 0,
-      ceilingTotalSpentFrames: policyBudget,
+      // The initial frontier is legally allowed to run until the hard capture
+      // budget. policyBudget tunes search policy; it is not this attempt's
+      // execution ceiling when the two budgets differ.
+      ceilingTotalSpentFrames: targetBudget,
       includeStartup: initialSnapshot === null,
     });
     budgetRecorder.recordSegment(

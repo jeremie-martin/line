@@ -93,9 +93,14 @@ for (const baseMode of [
   ] as const) candidates.push({ baseMode, paceSchedule });
 }
 
+const staticCandidate: Candidate = { baseMode: "structural", paceSchedule: "none" };
+const unitCorrection = { withoutPath: 1, withPath: 1 };
+// Evaluate the exact static model we will emit if no candidate clears the
+// acceptance gates. sample.structural belongs to the artifact that recorded
+// the input telemetry and may have different coefficients.
 const staticPredictions = weighted.map((sample) => ({
   sample,
-  predicted: Math.max(1, sample.structural),
+  predicted: predict(sample, TRAVERSAL_BUDGET_MODEL_V1, staticCandidate, unitCorrection),
 }));
 const staticMetrics = metrics(staticPredictions);
 const evaluated = candidates.map((candidate) => {
@@ -110,7 +115,7 @@ const accepted =
     staticMetrics.weightedP90ActualOverPrediction * 1.05;
 const selectedCandidate: Candidate = accepted
   ? best.candidate
-  : { baseMode: "structural", paceSchedule: "none" };
+  : staticCandidate;
 const selectedOof = accepted ? best.predictions : staticPredictions;
 const structural = accepted ? fitStructural(weighted) : { ...TRAVERSAL_BUDGET_MODEL_V1 };
 const correctionFactors = accepted
@@ -130,8 +135,10 @@ const intervalStrata = [...new Set(selectedOof.map(({ sample }) => sample.event)
     return {
       event,
       n: predictions.length,
-      lowerRatio: weightedPercentile(eventRatios, tailProbability),
-      upperRatio: weightedPercentile(eventRatios, 1 - tailProbability),
+      // Runtime artifacts require every interval to contain the point estimate.
+      // Keep that invariant per event, not only for the aggregate envelope.
+      lowerRatio: Math.min(1, weightedPercentile(eventRatios, tailProbability)),
+      upperRatio: Math.max(1, weightedPercentile(eventRatios, 1 - tailProbability)),
     };
   });
 const lowerRatio = Math.min(1, ...intervalStrata.map((stratum) => stratum.lowerRatio));

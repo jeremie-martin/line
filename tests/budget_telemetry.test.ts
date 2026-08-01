@@ -226,4 +226,25 @@ describe("compile budget telemetry", () => {
       trace.budgetTelemetry?.segments.reduce((sum, segment) => sum + segment.spent_frames, 0),
     ).toBe(trace.stats.sim_frames);
   }, 120_000);
+
+  test("uses the hard budget as the initial attempt ceiling when policy budget is lower", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const hardBudget = 20_000;
+    const result = compileHandoff(spec, 0, {
+      budget: hardBudget,
+      policyBudget: 10_000,
+      maxNodes: 12,
+      polish: false,
+      budgetTelemetry: "trace",
+    });
+    const attempt = result.budgetTelemetry?.attempts[0];
+
+    expect(result.stats.sim_frames).toBeGreaterThan(10_000);
+    expect(attempt?.ceiling_total_spent_frames).toBe(hardBudget);
+    expect(attempt?.local_budget_frames).toBe(hardBudget);
+    expect(attempt?.end?.attempt_remaining_frames).toBe(
+      Math.max(0, hardBudget - (attempt.end?.total_spent_frames ?? 0)),
+    );
+    expect(attempt?.end?.attempt_overrun_frames).toBe(0);
+  }, 120_000);
 });

@@ -39,6 +39,11 @@ The two compile budgets have different scopes:
 This distinction lets checkpoint/resume studies preserve one hard accounting
 envelope while exposing a smaller policy budget to an episode.
 
+The initial search attempt's execution ceiling is the hard budget, because the
+frontier may legally continue beyond a smaller policy budget. Policy budget
+changes decision parameters; it does not create a fictitious local stop. Repair
+attempts record their actual, potentially smaller compile-global ceilings.
+
 ## Implementation Map
 
 | concern | source of truth |
@@ -399,6 +404,16 @@ The calibrator holds source families together, fits non-negative structural
 coefficients, evaluates structural/path/pace combinations out of fold, and
 retains the static model unless median log error improves by at least 5% without
 more than a 5% p90 underprediction regression.
+
+The static comparator is recomputed from `TRAVERSAL_BUDGET_MODEL_V1` and the
+sample's raw structure fields. It does not reuse `sample.structural`, because
+that value belongs to whichever artifact recorded the input telemetry. If the
+candidate is rejected, metrics, intervals, and emitted coefficients therefore
+all describe the same V1 fallback model.
+
+Each fitted event interval is clamped to contain ratio `1`, so its lower bound
+cannot exceed the point estimate and its upper bound cannot fall below it. This
+is both the interval semantic and a runtime artifact-validation invariant.
 
 ## Validation Evidence
 

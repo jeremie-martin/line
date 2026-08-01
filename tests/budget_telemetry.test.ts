@@ -146,7 +146,7 @@ describe("compile budget telemetry", () => {
     recorder.endActive(260, "compile_finished", true);
     recorder.recordSegment("initial_search", 20, 260, "compile_finished", attempt);
 
-    const telemetry = recorder.snapshot(260, false);
+    const telemetry = recorder.snapshot(260, false, 240);
     expect(telemetry?.schema).toBe(BUDGET_TELEMETRY_SCHEMA);
     expect(telemetry?.compile).toMatchObject({
       hard_budget_frames: 1_000,
@@ -155,9 +155,22 @@ describe("compile budget telemetry", () => {
       hard_remaining_frames: 740,
       hard_overrun_frames: 0,
       budget_exhausted: false,
+      first_terminal_total_spent_frames: 240,
     });
+    // The compile-scope structural prior is a path-free estimate, so it carries
+    // the structural domain's verdict rather than an implicit "calibrated".
+    expect(telemetry?.compile.initial_structural_applicability).toBe(
+      budgetEstimatorApplicability({
+        pathAvailable: false,
+        policyBudgetFrames: 800,
+        attemptKind: "initial",
+      }),
+    );
+    // Payloads copy the artifact's own claim; they never assert calibration.
+    expect(telemetry?.model.calibrated).toBe(BUDGET_ESTIMATOR_MODEL.calibrated);
     expect(telemetry?.segments.map((segment) => segment.spent_frames)).toEqual([20, 240]);
     const recordedAttempt = telemetry?.attempts[0];
+    expect(recordedAttempt?.ceiling_source).toBe("hard_budget");
     expect(recordedAttempt?.outcome).toEqual({
       stop_reason: "compile_finished",
       end_total_spent_frames: 260,
@@ -165,6 +178,8 @@ describe("compile budget telemetry", () => {
       completed: true,
       first_terminal_offset_frames: 240,
       accepted_improvement: true,
+      first_accepted_improvement_offset_frames: null,
+      accepted_score_delta: null,
       censored: false,
     });
     expect(recordedAttempt?.observations?.map((observation) => observation.event)).toEqual([
@@ -174,6 +189,41 @@ describe("compile budget telemetry", () => {
       "terminal",
       "end",
     ]);
+  });
+
+  test("treats a zero incumbent path as absent rather than as a path-backed estimate", () => {
+    const recorder = new CompileBudgetTelemetryRecorder({
+      level: "trace",
+      gaps: GAPS,
+      durationFrames: 100,
+      hardBudgetFrames: 1_000,
+      policyBudgetFrames: 800,
+      model: TEST_MODEL,
+    });
+    recorder.startAttempt({
+      kind: "repair",
+      searchSeed: 3,
+      hasFallback: true,
+      anchorGapIndex: 1,
+      startTotalSpentFrames: 0,
+      ceilingTotalSpentFrames: 500,
+      ceilingSource: "measured_cost_to_end",
+      includeStartup: false,
+      // Gap 1 has no measured cost; gap 2 does.
+      pathEstimateByGap: [0, 0, 250, 0, 0],
+    });
+    recorder.observeActive(2, 100);
+    recorder.endActive(200, "frontier_exhausted", false);
+    const attempt = recorder.snapshot(200, false)?.attempts[0];
+    const [start, advanced] = attempt?.observations ?? [];
+
+    // The estimator's selector discards a non-positive path, so admitting one
+    // here would label a structural estimate as path-backed and calibrated.
+    expect(start.incumbent_path_work_estimate_frames).toBeNull();
+    expect(start.estimator_applicability).not.toBe("calibrated");
+    expect(advanced.incumbent_path_work_estimate_frames).toBe(250);
+    expect(advanced.estimator_applicability).toBe("calibrated");
+    expect(attempt?.ceiling_source).toBe("measured_cost_to_end");
   });
 
   test("keeps incomplete attempts explicitly censored", () => {
@@ -227,6 +277,128 @@ describe("compile budget telemetry", () => {
     ).toBe(trace.stats.sim_frames);
   }, 120_000);
 
+  test("stays behavior-neutral at a repair-enabled budget", async () => {
+    // The 20k cell above never reaches the repair gate, so it cannot prove that
+    // the repair-phase and resumed-search instrumentation is observation-only.
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const options = { budget: 150_000, polish: false } as const;
+    const off = compileHandoff(spec, 0, { ...options, budgetTelemetry: "off" });
+    const summary = compileHandoff(spec, 0, { ...options, budgetTelemetry: "summary" });
+    const trace = compileHandoff(spec, 0, { ...options, budgetTelemetry: "trace" });
+
+    for (const candidate of [summary, trace]) {
+      expect(candidate.track).toEqual(off.track);
+      expect(candidate.report).toEqual(off.report);
+      expect(candidate.stats).toEqual(off.stats);
+    }
+    expect(trace.budgetTelemetry?.attempts.some((attempt) => attempt.kind === "repair")).toBe(true);
+  }, 180_000);
+
+  test("attributes repair and resumed search at a repair-enabled budget", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const result = compileHandoff(spec, 0, {
+      budget: 150_000,
+      polish: false,
+      budgetTelemetry: "trace",
+    });
+    const telemetry = result.budgetTelemetry!;
+    const attempts = telemetry.attempts;
+    const repairs = attempts.filter((attempt) => attempt.kind === "repair");
+    const observations = attempts.flatMap((attempt) => attempt.observations ?? []);
+
+    expect(repairs.length).toBeGreaterThan(0);
+    expect(observations.some((observation) =>
+      (observation.incumbent_path_work_estimate_frames ?? 0) > 0 &&
+      observation.estimator_applicability === "calibrated"
+    )).toBe(true);
+
+    for (const repair of repairs) {
+      expect(["measured_cost_to_end", "per_gap_fallback", "repair_budget_remaining"])
+        .toContain(repair.ceiling_source);
+      // A repair always knows what it did to the incumbent's score; the
+      // improvement offset exists exactly when the register took something.
+      expect(repair.outcome.accepted_score_delta).not.toBeNull();
+      const offset = repair.outcome.first_accepted_improvement_offset_frames;
+      if (repair.outcome.accepted_improvement === true) {
+        expect(offset).not.toBeNull();
+        expect(offset!).toBeGreaterThanOrEqual(0);
+        expect(offset!).toBeLessThanOrEqual(repair.outcome.spent_frames!);
+      } else {
+        expect(offset).toBeNull();
+        expect(repair.outcome.accepted_score_delta).toBe(0);
+      }
+    }
+
+    // The resumed frontier owns charged work and can hold a terminal, so it
+    // must be an attempt and not only a segment.
+    const resumedSegments = telemetry.segments.filter((segment) => segment.kind === "resumed_search");
+    const resumed = attempts.filter((attempt) => attempt.kind === "resumed");
+    expect(resumed.length).toBe(resumedSegments.length);
+    for (const segment of resumedSegments) {
+      const attempt = attempts.find((candidate) => candidate.attempt_id === segment.attempt_id);
+      expect(attempt?.kind).toBe("resumed");
+      expect(attempt?.start_total_spent_frames).toBe(segment.start_total_spent_frames);
+      expect(attempt?.outcome.end_total_spent_frames).toBe(segment.end_total_spent_frames);
+      expect(attempt?.parent_attempt_id).toBe(attempts[0].attempt_id);
+      expect(attempt?.ceiling_total_spent_frames).toBe(telemetry.compile.hard_budget_frames);
+      const inside = attempt?.observations ?? [];
+      expect(inside.length).toBeGreaterThan(0);
+      for (const observation of inside) {
+        expect(observation.total_spent_frames).toBeGreaterThanOrEqual(segment.start_total_spent_frames);
+        expect(observation.total_spent_frames).toBeLessThanOrEqual(segment.end_total_spent_frames);
+      }
+    }
+
+    // The compiler's own first-terminal counter must agree with attribution.
+    const attributed = attempts
+      .filter((attempt) => attempt.outcome.first_terminal_offset_frames !== null)
+      .map((attempt) => attempt.start_total_spent_frames + attempt.outcome.first_terminal_offset_frames!);
+    expect(telemetry.compile.first_terminal_total_spent_frames).toBe(Math.min(...attributed));
+    expect(telemetry.compile.first_terminal_total_spent_frames)
+      .toBe(result.stats.first_completion_frame);
+
+    // Segments still partition all charged work exactly.
+    let cursor = 0;
+    for (const segment of telemetry.segments) {
+      expect(segment.start_total_spent_frames).toBe(cursor);
+      expect(segment.spent_frames).toBe(segment.end_total_spent_frames - cursor);
+      cursor = segment.end_total_spent_frames;
+    }
+    expect(cursor).toBe(telemetry.compile.total_spent_frames);
+    expect(telemetry.segments.some((segment) => segment.kind === "unattributed")).toBe(false);
+  }, 180_000);
+
+  test("measures an incumbent path for gaps only the tail-completion pass built", async () => {
+    // cold_start's first completion comes from the near-tail pass, whose nodes
+    // the frontier never processes. Before those nodes were stamped, every gap
+    // past the deepest processed one had no reach timestamp, so this compile
+    // recorded zero path-backed repair observations.
+    const spec = await loadGoldenSpec("cold_start", "base");
+    const result = compileHandoff(spec, 0, {
+      budget: 150_000,
+      polish: false,
+      budgetTelemetry: "trace",
+    });
+    const repairs = result.budgetTelemetry!.attempts.filter((attempt) => attempt.kind === "repair");
+    expect(repairs.length).toBeGreaterThan(0);
+
+    for (const repair of repairs) {
+      expect(repair.start.incumbent_path_work_estimate_frames).not.toBeNull();
+      expect(repair.start.incumbent_path_work_estimate_frames!).toBeGreaterThan(0);
+      expect(repair.start.estimator_applicability).toBe("calibrated");
+    }
+
+    // The previously impossible combination, and the point of keeping the two
+    // profiles separate: the LIVE ceiling still came from the crude per-gap
+    // fallback because live policy reads the frontier-only profile, while the
+    // recorder now sees the measured path. A repair sized on a guess but
+    // observed against a measurement is exactly what this makes visible.
+    expect(repairs.some((repair) =>
+      repair.ceiling_source === "per_gap_fallback" &&
+      repair.start.incumbent_path_work_estimate_frames !== null
+    )).toBe(true);
+  }, 180_000);
+
   test("uses the hard budget as the initial attempt ceiling when policy budget is lower", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const hardBudget = 20_000;
@@ -246,5 +418,6 @@ describe("compile budget telemetry", () => {
       Math.max(0, hardBudget - (attempt.end?.total_spent_frames ?? 0)),
     );
     expect(attempt?.end?.attempt_overrun_frames).toBe(0);
+    expect(attempt?.ceiling_source).toBe("hard_budget");
   }, 120_000);
 });

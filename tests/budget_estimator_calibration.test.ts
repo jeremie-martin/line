@@ -72,9 +72,12 @@ function structuralActual(input: {
     TRAVERSAL_BUDGET_MODEL_V1.durationFrameScale * input.remainingDurationFrames;
 }
 
-function calibrate(samples: CalibrationSample[]): {
-  model: BudgetEstimatorModelArtifact;
-  report: CalibrationReport;
+function run(samples: unknown[]): {
+  status: number | null;
+  stderr: string;
+  stdout: string;
+  output: string;
+  report: string;
 } {
   const directory = mkdtempSync(join(tmpdir(), "line-budget-calibration-"));
   temporary.push(directory);
@@ -96,10 +99,18 @@ function calibrate(samples: CalibrationSample[]): {
     "--folds=2",
     "--coverage=0.95",
   ], { encoding: "utf8" });
+  return { status: result.status, stderr: result.stderr, stdout: result.stdout, output, report };
+}
+
+function calibrate(samples: CalibrationSample[]): {
+  model: BudgetEstimatorModelArtifact;
+  report: CalibrationReport;
+} {
+  const result = run(samples);
   expect(result.status, result.stderr || result.stdout).toBe(0);
   return {
-    model: parseBudgetEstimatorModel(JSON.parse(readFileSync(output, "utf8"))),
-    report: JSON.parse(readFileSync(report, "utf8")) as CalibrationReport,
+    model: parseBudgetEstimatorModel(JSON.parse(readFileSync(result.output, "utf8"))),
+    report: JSON.parse(readFileSync(result.report, "utf8")) as CalibrationReport,
   };
 }
 
@@ -125,6 +136,50 @@ describe("budget estimator calibration", () => {
     expect(report.acceptance.selectedMetrics.weightedMedianAbsoluteLogError).toBe(0);
     expect(model.structural).toEqual(TRAVERSAL_BUDGET_MODEL_V1);
     expect(model.metrics.validationMedianAbsoluteLogError).toBe(0);
+    // A rejected candidate emits the untouched static fallback; saying it was
+    // fitted would be copied verbatim into every telemetry payload.
+    expect(model.calibrated).toBe(false);
+    expect(model.modelId.startsWith("static-")).toBe(true);
+    expect(model.metrics.acceptedAgainstStatic).toBe(false);
+  });
+
+  test("accepts a fitted candidate as calibrated", () => {
+    // Actual cost is a fixed multiple of structure, so the correction factor is
+    // a real fit and the acceptance gates clear.
+    const shapes = [
+      { startupIncluded: false, remainingContacts: 1, remainingDurationFrames: 0 },
+      { startupIncluded: false, remainingContacts: 4, remainingDurationFrames: 0 },
+      { startupIncluded: false, remainingContacts: 9, remainingDurationFrames: 0 },
+    ];
+    const { model, report } = calibrate(["family-a", "family-b", "family-c"].flatMap((group) =>
+      shapes.map((shape, index) =>
+        sample({
+          group,
+          attemptId: index,
+          actual: 3 * structuralActual(shape),
+          ...shape,
+        })
+      )
+    ));
+
+    expect(report.acceptance.accepted).toBe(true);
+    expect(model.calibrated).toBe(true);
+    expect(model.modelId.startsWith("calibrated-")).toBe(true);
+  });
+
+  test("rejects a sample whose policy budget cannot define the applicability domain", () => {
+    const shape = { startupIncluded: false, remainingContacts: 1, remainingDurationFrames: 0 };
+    const rows: Array<Record<string, unknown>> = [
+      { ...sample({ group: "family-a", actual: structuralActual(shape), ...shape }) },
+      { ...sample({ group: "family-b", actual: structuralActual(shape), ...shape }) },
+    ];
+    delete rows[1].policyBudgetFrames;
+    const result = run(rows);
+
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/policyBudgetFrames must be finite/);
+    // The guard runs before any write, so no artifact exists to be imported.
+    expect(() => readFileSync(result.output, "utf8")).toThrow();
   });
 
   test("emits point-containing event intervals that the runtime accepts", () => {

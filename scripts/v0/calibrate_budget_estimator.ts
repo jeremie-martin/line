@@ -12,6 +12,8 @@ import { dirname, relative, resolve } from "node:path";
 import {
   BUDGET_ESTIMATOR_MODEL_SCHEMA,
   estimateRemainingBudgetWork,
+  parseBudgetEstimatorModel,
+  type BudgetEstimatorAttemptKind,
   type BudgetEstimatorBaseMode,
   type BudgetEstimatorModelArtifact,
   type BudgetEstimatorPaceSchedule,
@@ -22,7 +24,7 @@ type Sample = {
   source: string;
   context: string;
   group: string;
-  attemptKind: "initial" | "snapshot" | "repair";
+  attemptKind: BudgetEstimatorAttemptKind;
   attemptId: number;
   event: "start" | "high_water" | "spend" | "terminal" | "end";
   actual: number;
@@ -156,7 +158,10 @@ const candidateLabel = `${selectedCandidate.baseMode}+${selectedCandidate.paceSc
 const model: BudgetEstimatorModelArtifact = {
   schema: BUDGET_ESTIMATOR_MODEL_SCHEMA,
   modelId: `${accepted ? "calibrated" : "static"}-${candidateLabel}-${datasetFingerprint.slice(0, 12)}`,
-  calibrated: true,
+  // The flag means "this artifact was fitted", so a rejected candidate must not
+  // claim it: the emitted coefficients are the untouched static fallback, and
+  // every telemetry payload copies this flag verbatim.
+  calibrated: accepted,
   generatedAt: new Date().toISOString(),
   provenance: {
     generator: "scripts/v0/calibrate_budget_estimator.ts",
@@ -196,12 +201,17 @@ const model: BudgetEstimatorModelArtifact = {
     ])),
   },
   applicability: {
+    // Reduce, never spread: these arrays are one entry per sample and panels
+    // already run to tens of thousands, where Math.min(...arr) throws a V8
+    // argument-limit RangeError.
     structuralPolicyBudgetFrames: {
-      min: Math.min(...weighted.map((sample) => sample.policyBudgetFrames)),
-      max: Math.max(...weighted.map((sample) => sample.policyBudgetFrames)),
+      min: extremum(weighted, "min"),
+      max: extremum(weighted, "max"),
     },
+    // A structural estimate is one made without a usable path, and the runtime
+    // treats a non-positive path as no path at all.
     structuralAttemptKinds: [...new Set(weighted
-      .filter((sample) => sample.path === null)
+      .filter((sample) => !hasPath(sample))
       .map((sample) => sample.attemptKind))].sort(),
     pathEstimate: "calibrated_when_available",
   },
@@ -245,6 +255,10 @@ const report = {
   })),
   model,
 };
+// Never write an artifact the runtime would reject: budget_estimator.ts parses
+// the frozen file at import time, so an invalid one turns every compile in the
+// repository into an import-time throw.
+parseBudgetEstimatorModel(model);
 mkdirSync(dirname(outputPath), { recursive: true });
 mkdirSync(dirname(reportPath), { recursive: true });
 writeFileSync(outputPath, `${JSON.stringify(model, null, 2)}\n`);
@@ -273,10 +287,17 @@ function parseSamples(value: unknown): Sample[] {
       "remainingContacts",
       "remainingDurationFrames",
       "progressFraction",
+      // Unvalidated until now, and it is the field the applicability domain is
+      // built from: one missing value poisons min/max with NaN and writes an
+      // artifact whose domain rejects everything.
+      "policyBudgetFrames",
     ] as const) {
       if (!Number.isFinite(sample[name])) throw new Error(`sample ${index} ${name} must be finite`);
     }
     if (!(sample.actual > 0)) throw new Error(`sample ${index} actual must be positive`);
+    if (sample.policyBudgetFrames < 0) {
+      throw new Error(`sample ${index} policyBudgetFrames must be non-negative`);
+    }
     if (typeof sample.group !== "string" || sample.group.length === 0) throw new Error(`sample ${index} group is required`);
     return {
       ...sample,
@@ -284,6 +305,23 @@ function parseSamples(value: unknown): Sample[] {
         (sample.attemptKind === "initial" && sample.progressFraction === 0),
     };
   });
+}
+
+/**
+ * Whether this sample has a path the runtime would actually use. The estimator
+ * discards non-positive paths, so bucketing on `path !== null` would fit the
+ * with-path correction on observations that never took the path branch.
+ */
+function hasPath(sample: Sample): boolean {
+  return sample.path !== null && Number.isFinite(sample.path) && sample.path > 0;
+}
+
+function extremum(samples: WeightedSample[], mode: "min" | "max"): number {
+  const pick = mode === "min" ? Math.min : Math.max;
+  return samples.reduce(
+    (best, sample) => pick(best, sample.policyBudgetFrames),
+    mode === "min" ? Infinity : -Infinity,
+  );
 }
 
 function weightSamples(samples: Sample[]): Array<Sample & { weight: number }> {
@@ -349,7 +387,7 @@ function fitCorrection(
   }));
   const correction = (withPath: boolean): number => {
     const subset = allLogs.filter(({ sample }) =>
-      (candidate.baseMode !== "structural" && sample.path !== null) === withPath
+      (candidate.baseMode !== "structural" && hasPath(sample)) === withPath
     );
     const values = subset.length > 0 ? subset : allLogs;
     return Math.exp(weightedPercentile(values, 0.5));

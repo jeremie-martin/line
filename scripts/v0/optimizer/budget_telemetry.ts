@@ -25,7 +25,23 @@ import {
 export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v1" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
-export type BudgetAttemptKind = "initial" | "snapshot" | "repair";
+export type BudgetAttemptKind = "initial" | "snapshot" | "repair" | "resumed";
+/**
+ * How `ceiling_total_spent_frames` was sized. This makes the repair tautology
+ * visible in data: a `measured_cost_to_end` ceiling derives from the same
+ * costToEnd profile the estimator uses as its path base, so a path-backed
+ * repair's `attempt_completion_margin` at its own start is a constant
+ * (feasMargin / correctionWithPathFactor), not evidence about the estimator.
+ */
+export type BudgetAttemptCeilingSource =
+  /** Compile hard budget: the initial and resumed frontiers may run to capture. */
+  | "hard_budget"
+  /** Incumbent's measured cost-to-end at the anchor, scaled by the feasibility margin. */
+  | "measured_cost_to_end"
+  /** No measured cost at the anchor; the coarse per-gap average was used instead. */
+  | "per_gap_fallback"
+  /** The sized ceiling reached or exceeded the repair budget and was clipped to it. */
+  | "repair_budget_remaining";
 export type BudgetSegmentKind =
   | "startup"
   | "initial_search"
@@ -97,11 +113,21 @@ export type BudgetAttemptTelemetry = {
   parent_attempt_id: number | null;
   search_seed: number;
   has_fallback: boolean;
-  /** Immutable suffix where this attempt began. */
+  /**
+   * Immutable suffix where this attempt began.
+   *
+   * A `resumed` attempt continues the initial attempt's own frontier, so it
+   * reports that tree's root anchor. Its frontier is mixed-depth by
+   * construction: anchor-relative quantities (structural progress, episode
+   * pace, first-terminal offset) are approximate continuations of the initial
+   * search, not fresh-start measurements.
+   */
   anchor: RemainingStructure;
   /** Compile-global work counters; local budget is ceiling - start. */
   start_total_spent_frames: number;
   ceiling_total_spent_frames: number;
+  /** How the ceiling above was sized. */
+  ceiling_source: BudgetAttemptCeilingSource;
   available_hard_budget_frames: number;
   local_budget_frames: number;
   start: BudgetEstimateObservation;
@@ -117,6 +143,16 @@ export type BudgetAttemptTelemetry = {
     first_terminal_offset_frames: number | null;
     /** Whether a repair changed the best incumbent; null when not applicable. */
     accepted_improvement: boolean | null;
+    /**
+     * Charged work from attempt start to the first improvement the best-so-far
+     * register adopted during this attempt. That leaf need not be terminal and
+     * need not be the one that ended the attempt. Null when the attempt
+     * produced no register improvement, and on attempt kinds that do not
+     * measure it.
+     */
+    first_accepted_improvement_offset_frames: number | null;
+    /** Incumbent full-score after this attempt minus before it; repair-only. */
+    accepted_score_delta: number | null;
     /** True when no terminal cost was observed; such attempts are not error samples. */
     censored: boolean;
   };
@@ -153,6 +189,18 @@ export type CompileBudgetTelemetry = {
     initial_structural_work_prior_frames: number;
     /** policy budget / initial structural prior, fixed at compile start. */
     initial_structural_slack: number;
+    /**
+     * Whether the two fields above are inside the estimator's calibration
+     * domain. They are a structural, path-free estimate at the first attempt's
+     * anchor, so they are `extrapolated_policy_budget` at any policy budget the
+     * artifact was not fitted at. Null when no attempt was recorded.
+     */
+    initial_structural_applicability: BudgetEstimatorApplicability | null;
+    /**
+     * The compiler's own first-terminal work counter, independent of attempt
+     * attribution. Null when no terminal traversal was considered.
+     */
+    first_terminal_total_spent_frames: number | null;
   };
   segments: BudgetExecutionSegment[];
   attempts: BudgetAttemptTelemetry[];
@@ -173,8 +221,15 @@ type StartAttemptInput = {
   anchorGapIndex: number;
   startTotalSpentFrames: number;
   ceilingTotalSpentFrames: number;
+  /** Defaults to `hard_budget`: the caller ran to the compile's outer limit. */
+  ceilingSource?: BudgetAttemptCeilingSource;
   includeStartup: boolean;
   pathEstimateByGap?: readonly number[] | null;
+};
+
+type EndAttemptOutcome = {
+  firstAcceptedImprovementOffsetFrames?: number | null;
+  acceptedScoreDelta?: number | null;
 };
 
 /** Runtime recorder. All methods are deterministic arithmetic over supplied values. */
@@ -220,6 +275,7 @@ export class CompileBudgetTelemetryRecorder {
       anchor: remainingStructure(this.gaps, this.durationFrames, anchorGap),
       start_total_spent_frames: startTotal,
       ceiling_total_spent_frames: ceilingTotal,
+      ceiling_source: input.ceilingSource ?? "hard_budget",
       available_hard_budget_frames: Math.max(0, this.hardBudgetFrames - startTotal),
       local_budget_frames: ceilingTotal - startTotal,
       start: null as unknown as BudgetEstimateObservation,
@@ -231,6 +287,8 @@ export class CompileBudgetTelemetryRecorder {
         completed: false,
         first_terminal_offset_frames: null,
         accepted_improvement: null,
+        first_accepted_improvement_offset_frames: null,
+        accepted_score_delta: null,
         censored: true,
       },
       includeStartup: input.includeStartup,
@@ -299,6 +357,7 @@ export class CompileBudgetTelemetryRecorder {
     totalSpentFrames: number,
     stopReason: BudgetAttemptStopReason,
     acceptedImprovement: boolean | null = null,
+    outcome: EndAttemptOutcome = {},
   ): void {
     const attempt = this.activeAttempt();
     if (attempt === null) return;
@@ -310,6 +369,9 @@ export class CompileBudgetTelemetryRecorder {
     attempt.outcome.end_total_spent_frames = totalSpent;
     attempt.outcome.spent_frames = Math.max(0, totalSpent - attempt.start_total_spent_frames);
     attempt.outcome.accepted_improvement = acceptedImprovement;
+    attempt.outcome.first_accepted_improvement_offset_frames =
+      finiteOrNull(outcome.firstAcceptedImprovementOffsetFrames);
+    attempt.outcome.accepted_score_delta = finiteOrNull(outcome.acceptedScoreDelta);
     this.activeAttemptId = null;
   }
 
@@ -333,7 +395,11 @@ export class CompileBudgetTelemetryRecorder {
     });
   }
 
-  snapshot(totalSpentFrames: number, budgetExhausted: boolean): CompileBudgetTelemetry | null {
+  snapshot(
+    totalSpentFrames: number,
+    budgetExhausted: boolean,
+    firstTerminalTotalSpentFrames: number | null = null,
+  ): CompileBudgetTelemetry | null {
     if (this.level === "off") return null;
     const totalSpent = nonNegativeInt(totalSpentFrames);
     const attempts = this.attempts.map((attempt) => this.snapshotAttempt(attempt, totalSpent));
@@ -361,6 +427,19 @@ export class CompileBudgetTelemetryRecorder {
         initial_structural_slack: initialStructural > 0
           ? this.policyBudgetFrames / initialStructural
           : 0,
+        // The two fields above are a path-free structural estimate, so they
+        // inherit the structural domain: mark it rather than let a reader
+        // assume the compile-scope numbers are calibrated everywhere.
+        initial_structural_applicability: initial === undefined
+          ? null
+          : budgetEstimatorApplicability({
+            pathAvailable: false,
+            policyBudgetFrames: this.policyBudgetFrames,
+            attemptKind: initial.kind,
+          }),
+        first_terminal_total_spent_frames: firstTerminalTotalSpentFrames === null
+          ? null
+          : nonNegativeInt(firstTerminalTotalSpentFrames),
       },
       segments,
       attempts,
@@ -400,7 +479,12 @@ export class CompileBudgetTelemetryRecorder {
     const attemptSpent = Math.max(0, totalSpent - attempt.start_total_spent_frames);
     const attemptRemaining = Math.max(0, attempt.ceiling_total_spent_frames - totalSpent);
     const pathRaw = attempt.pathEstimateByGap?.[structure.gap_index];
-    const pathEstimate = pathRaw !== undefined && pathRaw >= 0 ? pathRaw : null;
+    // A zero cost-to-end is not a measurement of "no work left": the incumbent
+    // profile writes zero whenever first completion did not post-date reaching
+    // that node. The estimator's own selector treats non-positive paths as
+    // absent, so admitting zero here would label a structural estimate
+    // path-backed (and therefore `calibrated`) on no evidence.
+    const pathEstimate = pathRaw !== undefined && pathRaw > 0 ? pathRaw : null;
     // Project this attempt's observed work per unit of structural progress over
     // the structural suffix still left. It is null until high water advances.
     const paceEstimate = progressedStructural > 0
@@ -491,6 +575,7 @@ export class CompileBudgetTelemetryRecorder {
       anchor: { ...attempt.anchor },
       start_total_spent_frames: attempt.start_total_spent_frames,
       ceiling_total_spent_frames: attempt.ceiling_total_spent_frames,
+      ceiling_source: attempt.ceiling_source,
       available_hard_budget_frames: attempt.available_hard_budget_frames,
       local_budget_frames: attempt.local_budget_frames,
       start: structuredClone(attempt.start),
@@ -593,6 +678,10 @@ function clampGapIndex(value: number, gapCount: number): number {
 function nonNegativeInt(value: number): number {
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.floor(value));
+}
+
+function finiteOrNull(value: number | null | undefined): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function clamp01(value: number): number {

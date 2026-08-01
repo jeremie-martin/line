@@ -1397,6 +1397,7 @@ function compileHandoffInternal(
       // budget. policyBudget tunes search policy; it is not this attempt's
       // execution ceiling when the two budgets differ.
       ceilingTotalSpentFrames: targetBudget,
+      ceilingSource: "hard_budget",
       includeStartup: initialSnapshot === null,
     });
     budgetRecorder.recordSegment(
@@ -1486,6 +1487,26 @@ function compileHandoffInternal(
     // repair restart, so the system can be characterized and budget-aware allocation built on
     // MEASURED cost (vs the current crude perGap estimate). Surfaced in compile_stats.repair.
     const framesAtReach = new WeakMap<SearchNode, number>();
+    // TELEMETRY-ONLY second reach map. `framesAtReach` above stamps only nodes the
+    // frontier processes, but the near-tail completion pass builds its own suffix
+    // nodes and is where first completion actually lands, so every incumbent node
+    // past the deepest processed one had no timestamp at all: the measured
+    // cost-to-end profile fell back to -1 for those gaps. That hole is what left
+    // 20% of pre-terminal repair observations without an incumbent path. This map
+    // closes it for the recorder ONLY — live repair policy (estCostOf,
+    // pickFeasibleWeakGap, restart ceilings) keeps reading `framesAtReach` alone,
+    // so its decisions stay byte-identical.
+    const framesAtReachTail = new WeakMap<SearchNode, number>();
+    // Stamped at construction, inside the charged tail attempt that built the
+    // node — the same "when was this first reached" quantity the frontier map
+    // records. Gated exactly like `framesAtReach`, so the low-budget hot path
+    // stays free; the gate is the repair phase, never the telemetry level, so
+    // off/summary/trace do identical work.
+    const stampTailReach = (search: SearchNode): void => {
+      if (repairEnabled && !framesAtReachTail.has(search)) {
+        framesAtReachTail.set(search, getSimFrames());
+      }
+    };
     // Count of complete tracks ever considered (any phase). A repair restart's delta tells us whether
     // it REACHED the end at all (completed), separate from whether it beat the incumbent (accepted).
     let terminalConsiders = 0;
@@ -1602,7 +1623,11 @@ function compileHandoffInternal(
       return {
         ...best,
         budget,
-        budgetTelemetry: budgetRecorder.snapshot(getSimFrames(), budgetExhausted),
+        budgetTelemetry: budgetRecorder.snapshot(
+          getSimFrames(),
+          budgetExhausted,
+          firstTerminalFrame >= 0 ? firstTerminalFrame : null,
+        ),
         stats: {
           ...best.stats,
           candidates_sampled: getCandidateSamples(),
@@ -1774,6 +1799,7 @@ function compileHandoffInternal(
         policy,
         resolvePolicy,
         policyBudget,
+        stampTailReach,
       );
       if (tailNode !== null) {
         const result = consider(tailNode, "tail");
@@ -1922,10 +1948,14 @@ function compileHandoffInternal(
     // register — all via processNode) seeded from one node, until `ceiling` sim-frames or the
     // frontier empties. Branches into the OTHER arcs at the restart gap, rebuilding the whole
     // tail with full power, not a greedy dive.
+    // The offsets are two counter reads per processed node (charged work and the
+    // register's improvement count) — no evaluation, no simulation, no effect on
+    // the frontier — so budget telemetry can record them without LR_REPAIR_LOG.
+    const trackImprovementOffsets = repair?.log === true || budgetTelemetryLevel !== "off";
     const runFrontierFrom = (initial: HandoffNode, ceiling: number): number[] => {
       const pass: HandoffNode[] = initial.skippedContacts === 0 ? [initial] : [];
       const fb: HandoffNode[] = initial.skippedContacts === 0 ? [] : [initial];
-      if (!repair?.log) {
+      if (!trackImprovementOffsets) {
         runFrontier(pass, fb, () => getSimFrames() < ceiling);
         return [];
       }
@@ -1962,6 +1992,14 @@ function compileHandoffInternal(
       // branch exploration. Replaces the dead-end-biased perGap estimate for feasibility/ceiling.
       // Computed once from the original incumbent (stable profile; later repairs do not rewrite it).
       const costToEnd: number[] = [];
+      // Same walk, same arithmetic, one wider source of reach timestamps: a gap
+      // the frontier never processed still has one if the tail pass built that
+      // node. LIVE POLICY BELOW READS `costToEnd`, NOT THIS — the recorder's view
+      // is allowed to be better informed than the decisions it observes, and a
+      // repair whose ceiling was sized from `per_gap_fallback` while its
+      // observations carry a path is exactly the evidence that live ceilings run
+      // on the crude estimate for gaps the measured profile never covered.
+      const costToEndTelemetry: number[] = [];
       {
         const inc0 = bestCompleteNode;
         const root0 = inc0 ? startOptions.find((o) => o.rank === inc0.startRank)?.root : undefined;
@@ -1970,6 +2008,10 @@ function compileHandoffInternal(
           for (let k = 0; k <= gaps.length; k++) {
             const reach = framesAtReach.get(n);
             costToEnd[k] = reach !== undefined ? Math.max(0, firstCompletionFrame - reach) : -1;
+            const observedReach = reach ?? framesAtReachTail.get(n);
+            costToEndTelemetry[k] = observedReach !== undefined
+              ? Math.max(0, firstCompletionFrame - observedReach)
+              : -1;
             if (k < gaps.length) n = extendNodeCached(n, inc0.search.prefixFits[k] ?? null);
           }
         }
@@ -1977,6 +2019,11 @@ function compileHandoffInternal(
       const estCostOf = (k: number): number => {
         const m = costToEnd[k];
         return m !== undefined && m >= 0 ? m : perGap * Math.max(1, gaps.length - k);
+      };
+      // Observation-only mirror of the branch estCostOf just took.
+      const estCostSourceOf = (k: number): "measured_cost_to_end" | "per_gap_fallback" => {
+        const m = costToEnd[k];
+        return m !== undefined && m >= 0 ? "measured_cost_to_end" : "per_gap_fallback";
       };
       const exhausted = new Set<number>();
       let attempts = 0;
@@ -2106,10 +2153,13 @@ function compileHandoffInternal(
             rankTrace: [],
             skippedContacts: 0,
           };
-          const ceiling = Math.min(
-            repairBudget,
-            getSimFrames() + Math.ceil(estCost * repair.feasMargin),
-          );
+          const sizedCeiling = getSimFrames() + Math.ceil(estCost * repair.feasMargin);
+          const ceiling = Math.min(repairBudget, sizedCeiling);
+          // Which of the two arguments of that Math.min won, and — when the
+          // sized one did — where its cost estimate came from.
+          const ceilingSource = sizedCeiling >= repairBudget
+            ? "repair_budget_remaining"
+            : estCostSourceOf(k);
           const beforeScore = evaluateCached(incumbent).key.full_score;
           const framesBefore = getSimFrames();
           const incumbentBefore = bestCompleteNode;
@@ -2124,8 +2174,9 @@ function compileHandoffInternal(
             anchorGapIndex: k,
             startTotalSpentFrames: framesBefore,
             ceilingTotalSpentFrames: ceiling,
+            ceilingSource,
             includeStartup: false,
-            pathEstimateByGap: costToEnd,
+            pathEstimateByGap: costToEndTelemetry,
           });
           const improvementFrameOffsets = runFrontierFrom(prefixNode, ceiling);
           const completed = terminalConsiders > terminalsBefore;
@@ -2139,6 +2190,13 @@ function compileHandoffInternal(
             getSimFrames(),
             getSimFrames() >= ceiling ? "local_ceiling" : "frontier_exhausted",
             improved,
+            {
+              // Both reads are of values this restart already computed: the
+              // scarce event a controller would need is WHEN the register first
+              // took something, not that the restart eventually completed.
+              firstAcceptedImprovementOffsetFrames: improvementFrameOffsets[0] ?? null,
+              acceptedScoreDelta: afterScore - beforeScore,
+            },
           );
           budgetRecorder.recordSegment(
             "repair_attempt",
@@ -2216,12 +2274,38 @@ function compileHandoffInternal(
     // frames should still buy normal search quality.
     if (repairEnabled && captured === null && getSimFrames() < targetBudget) {
       const resumeStart = getSimFrames();
+      // This phase can be a large share of a compile's charged work and can hold
+      // its first terminal, so it needs an ACTIVE attempt, not only a segment:
+      // observeActive/markTerminal are no-ops without one. It continues the
+      // initial attempt's own frontier, hence the initial root anchor and the
+      // hard budget as its ceiling.
+      const resumedAttemptId = budgetRecorder.startAttempt({
+        kind: "resumed",
+        parentAttemptId: initialBudgetAttemptId,
+        searchSeed,
+        hasFallback: false,
+        anchorGapIndex: root.search.gapIndex,
+        startTotalSpentFrames: resumeStart,
+        ceilingTotalSpentFrames: targetBudget,
+        ceilingSource: "hard_budget",
+        includeStartup: false,
+      });
       runFrontier(passStack, fallbackStack, () => getSimFrames() < targetBudget);
+      const resumeEnd = getSimFrames();
+      budgetRecorder.endActive(
+        resumeEnd,
+        captured !== null
+          ? (stopAfterFirstCompletion ? "first_completion_stop" : "budget_capture")
+          : resumeEnd >= targetBudget
+            ? "budget_capture"
+            : "frontier_exhausted",
+      );
       budgetRecorder.recordSegment(
         "resumed_search",
         resumeStart,
-        getSimFrames(),
-        getSimFrames() >= targetBudget ? "hard_budget" : "frontier_exhausted",
+        resumeEnd,
+        resumeEnd >= targetBudget ? "hard_budget" : "frontier_exhausted",
+        resumedAttemptId,
       );
     }
 
@@ -2237,6 +2321,7 @@ function compileHandoffInternal(
     captured.budgetTelemetry = budgetRecorder.snapshot(
       captured.stats.sim_frames,
       captured.stats.budget_exhausted,
+      firstTerminalFrame >= 0 ? firstTerminalFrame : null,
     );
 
     return captured;
@@ -4520,6 +4605,8 @@ function completeNearTail(
   policy: HandoffSearchPolicy,
   resolvePolicy: (search: SearchNode) => HandoffSearchPolicy,
   targetBudget: number,
+  /** Observation-only: see `framesAtReachTail` in compileHandoffInternal. */
+  stampReach?: (search: SearchNode) => void,
 ): HandoffNode | null {
   if (!shouldAttemptNearTailCompletion(node, gaps, targetBudget, telemetry)) {
     return null;
@@ -4537,6 +4624,9 @@ function completeNearTail(
     telemetry,
     resolvePolicy,
     targetBudget,
+    Infinity,
+    Infinity,
+    stampReach,
   );
   if (completed === null) return null;
 
@@ -4573,6 +4663,13 @@ function completeNearTailSuffix(
    *  Defaults preserve the near-tail caller (unbounded — its window is tiny). */
   maxNodes: number = Infinity,
   frameCeiling: number = Infinity,
+  /**
+   * Observation-only reach stamp for the suffix nodes this pass constructs.
+   * The frontier never processes them, yet first completion routinely lands
+   * here, so without it the incumbent cost-to-end profile has no timestamp for
+   * any gap past the deepest processed node.
+   */
+  stampReach?: (search: SearchNode) => void,
 ): CompletedHandoffSuffix | null {
   const stack: CompletedHandoffSuffix[] = [
     {
@@ -4589,6 +4686,7 @@ function completeNearTailSuffix(
 
     while (!isTerminalNode(search, gaps) && !gaps[search.gapIndex].endsWithContact) {
       search = extendNodeCached(search, null);
+      stampReach?.(search);
       rankTrace = appendSkipTrace(rankTrace);
     }
     if (isTerminalNode(search, gaps)) return { search, rankTrace };
@@ -4611,8 +4709,10 @@ function completeNearTailSuffix(
       .slice(0, policy.tailBranching);
     for (let i = options.length - 1; i >= 0; i--) {
       const option = options[i];
+      const extended = extendNodeCached(search, option.candidate!);
+      stampReach?.(extended);
       stack.push({
-        search: extendNodeCached(search, option.candidate!),
+        search: extended,
         rankTrace: appendOptionTrace(rankTrace, option),
       });
     }

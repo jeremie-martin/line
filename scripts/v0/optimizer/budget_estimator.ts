@@ -21,7 +21,7 @@ export type BudgetEstimatorApplicability =
   | "calibrated"
   | "extrapolated_policy_budget"
   | "unvalidated_attempt_kind";
-export type BudgetEstimatorAttemptKind = "initial" | "snapshot" | "repair";
+export type BudgetEstimatorAttemptKind = "initial" | "snapshot" | "repair" | "resumed";
 
 export type BudgetEstimatorModelArtifact = {
   schema: typeof BUDGET_ESTIMATOR_MODEL_SCHEMA;
@@ -181,7 +181,7 @@ export function parseBudgetEstimatorModel(value: unknown): BudgetEstimatorModelA
     model.applicability?.pathEstimate !== "calibrated_when_available" ||
     !Array.isArray(model.applicability.structuralAttemptKinds) ||
     model.applicability.structuralAttemptKinds.some((kind) =>
-      kind !== "initial" && kind !== "snapshot" && kind !== "repair"
+      kind !== "initial" && kind !== "snapshot" && kind !== "repair" && kind !== "resumed"
     ) ||
     model.applicability.structuralPolicyBudgetFrames.min >
       model.applicability.structuralPolicyBudgetFrames.max

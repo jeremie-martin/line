@@ -291,13 +291,16 @@ base 595.8997 -> candidate 596.3831   validity 2112/2112 (gained 0, lost 0)
 So the datum is exactly as claimed, and the catalog-sensitivity interval excludes
 zero while the seed-block interval does not.
 
-**Left open.** `docs/compiler-improvement-campaign.md` reports **−1.73** twice: at
-`:1161` as the *budget-law arm* on `HANDOFF_BRANCHING` inside the audit table, and
-at `:976` as the "then" value of the *flat `HANDOFF_BRANCHING = 4` arm* measured
-"under `span-handover`, i.e. at a flat 29 candidates per gap" (whose "now" value at
-81 candidates is **+0.74**, a sign flip). One survey merged these into a single
-measurement. I could not establish whether they are the same run; recorded as a
-doc ambiguity, not resolved.
+**Resolved (2026-08-01, Track R prep).** `docs/compiler-improvement-campaign.md`
+reports **−1.73** twice for `HANDOFF_BRANCHING`, and they are two DIFFERENT arms
+that coincidentally share a value: `:1161` is the *budget-law* arm from the July
+audit (sqrt-era ruler — stale, and the law shape is refuted for tree width);
+`:976` is the *flat 4* arm's "then" value under `span-handover`, whose "now"
+re-measurement under the current ruler reads **+0.74, SE 1.81** (peak at 4; 5 is
+−2.88), anti-composing with the arc-command efficiency law at −1.76 together —
+and per `:984` *neither was promoted*, so no anti-composition partner sits in
+the baseline. SC-06's live Track-R question is flat-4 alone, freshest datum
+inconclusive-positive.
 
 ### (i) `IMPACT_BEST_FWD_START_FRAMES = 300_000` — CONFIRMED verbatim
 
@@ -871,7 +874,7 @@ Found, not fixed. Nothing in the repo was changed except this file.
 | 9 | `compile_stats.repair.restarts` undercounts by one whenever capture fires inside the last restart | 168/352 compiles at 750k; `budgetTelemetry.attempts` is the complete record | do not use `stats.repair` as the repair ledger |
 | 10 | `objectiveLayerSpreadStat()` is spread twice into the same stats object | `handoff.ts:1635-1636` | harmless; a visible copy-paste artifact |
 | 11 | two surveys stated the pace prune shallows the tail unconditionally | `:5464-5466` shallows only when `resolved.variant === "greedy"` (§2, additional checks) | `avg` and `best` upgrades (SC-12/13/14) keep full depth in the pruned tail and in the pre-completion low-slack phase; the prune saves less than documented |
-| 12 | the campaign doc reports **−1.73** for two different arms | `:1161` (budget-law arm on `HANDOFF_BRANCHING`) and `:976` ("then" value of the flat-4 arm under `span-handover`) | unresolved; blocks a clean reading of Cluster B's SC-06 row |
+| 12 | the campaign doc reports **−1.73** for two different arms | `:1161` (budget-law arm on `HANDOFF_BRANCHING`) and `:976` ("then" value of the flat-4 arm under `span-handover`) | **RESOLVED 2026-08-01**: two distinct measurements sharing a value by coincidence. The law arm's −1.73 is the July audit (sqrt-era ruler). The flat-4 arm was already re-measured under the current ruler: **+0.74, SE 1.81, peak at 4** (5 is −2.88), anti-composing with the (unpromoted) arc-command efficiency law (−1.76 together) — "neither is promoted" (`:982-984`). SC-06's Track-R reading: the law verdict is stale-and-refuted-shape; flat-4 is the live question, and its freshest datum is inconclusive-positive standalone. |
 | 13 | snapshot-resume silently disables repair, nowhere stated | `:1352` gives `startOptions = []`, `:1476` requires `startOptions.length > 0` | the checkpoint/resume study arm and the production arm run structurally different compilers past first completion. Any study comparing a resumed suffix against a from-scratch run at the same budget is comparing two allocators. |
 | 14 | production runs at an operating point no evidence covers | all three live `select.json` carry `budget: 1000000`; the promotion gate is 750k only; the breadth law gives 108 candidates/gap at 1M | the law's acceptance argument (it predicted the unfitted 500k rung) is a *reason to believe* the extrapolation, not evidence for it |
 | 15 | the documented budget-overrun figure understates the measured one by ~2.4× | `docs/compile-budget-telemetry.md:44-46` reports "a 50-compile sample from the 2026-08-01 campaign, median overrun **0.93%** of the hard budget, p90 5.1%". Measured here over the full 750k N=48 baseline (2,112 rows): median **+2.25%**, p90 **+5.22%**, 100% overran, max +16.3%. | the p90s agree, the medians do not; the 50-compile sample is not representative of the median. The qualitative statement ("a positive `hard_overrun_frames` is the ordinary case") is right and the number should be restated from the full archive. |

@@ -28,15 +28,20 @@ Program success criteria, checkable at the end:
 
 ## Standing regime (all phases)
 
-- **The gold standard.** Every candidate goes through the 48-seed sequential V2
-  eval. Boundary accept → promote. **Inconclusive → promote deliberately**
-  (`rebaseline --force` with the reason recorded): the program's default is to
-  move forward on parity, because coherence is the point and significance is
-  not the bar. Boundary reject or anything weird → **investigate before
-  judging**: add telemetry, study the archives, decompose if useful — a result
-  is rejected only when investigation confirms real harm or a real defect, and
-  a defect means fix-and-rerun, not abandon. Small implementation issues are
-  never grounds for rejecting a direction.
+- **The gold standard, as evidence — the campaign owns the decision.** Every
+  candidate goes through the 48-seed sequential V2 eval. Its output — boundary
+  verdict, P(+), CI, point estimate, validity, strata — is **input**, recorded
+  in full, never a hard gate. The promotion rule: **promote unless the negative
+  boundary was crossed or something looks wrong.** Boundary accept → promote.
+  Inconclusive — positive, parity, or mildly negative — → promote deliberately
+  (`rebaseline --force`, reason + the eval's numbers recorded); a positive
+  point estimate at an insufficient P(+) is still a positive point estimate.
+  Negative boundary or any anomaly (validity loss, stratum collapse, weird
+  telemetry) → **investigate before judging**: a result is rejected only when
+  investigation confirms real harm or a real defect, and a defect means
+  fix-and-rerun, not abandon. The sequential calibration itself is deliberately
+  NOT loosened: strict boundaries keep "accept" meaningful as evidence, and the
+  `--force` path is the campaign's flexibility, by design.
 - **Drift budget (the backstop).** A running signed ledger of coherence
   promotions' headline deltas starts at 0; floor **−3.0 points**. The
   default-promote posture operates freely above the floor; at the floor,
@@ -132,11 +137,12 @@ been evaluated, and 18.6% of 750k repair spend buys zero.
    archived incumbents — scorer-weighted axis error instead of raw SSE;
    error-per-estimated-frame; exclusion of axes already at `weakAxisCeiling` —
    and score expected yield from the measured acceptance/gain distributions.
-2. Default guidance, not law: a policy predicted well below **+0.3 points** at
-   750k (the floor candidate A's null established) should usually wait for a
-   stronger prediction rather than spend an eval slot; margin/interval-quantile
-   affordability (attempt iff upper-bound cost fits) rides in the same
-   candidate as whichever ranking wins the replay.
+2. The replay prediction informs the design and sets expectations; it is not a
+   gate — an eval costs ~25 minutes and the promotion posture is
+   move-forward. (Context for calibrating expectations: candidate A's null
+   showed ceiling-accuracy effects at 750k sit near +0.0.)
+   Margin/interval-quantile affordability (attempt iff upper-bound cost fits)
+   rides in the same candidate as whichever ranking wins the replay.
 3. If the zero-yield pool survives (1)–(2), the acceptance-prediction model
    (readiness-style features, trained offline from archives) is the follow-up —
    it is a model, not a knob, and gets its own proposal.

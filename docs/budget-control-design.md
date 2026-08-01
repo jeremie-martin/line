@@ -210,9 +210,12 @@ The current codebase has five pieces:
   only on the repair side.
 - `scripts/v0/optimizer/budget_estimator_model.json` is the frozen telemetry
   estimator artifact. Its applicability is explicit: structural estimates are
-  calibrated at the measured 750k policy budget, while available incumbent-path
-  estimates remain separately identified. Extrapolated observations do not
-  expose calibrated completion margins.
+  calibrated at the measured 750k policy budget and, since the 2026-08-01
+  recalibration, only for `initial` attempts — full incumbent-path coverage
+  means no repair observation is path-free any more, and `resumed` attempts are
+  continuation-approximate and never fitted. Available incumbent-path estimates
+  remain separately identified. Extrapolated observations do not expose
+  calibrated completion margins.
 - `compile_stats` now records `predicted_first_completion_frames` and
   `budget_slack` for every handoff compile, plus top-level
   `first_completion_frame` when the search reaches a complete traversal. It

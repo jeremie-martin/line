@@ -19,7 +19,7 @@ type CalibrationSample = {
   source: string;
   context: string;
   group: string;
-  attemptKind: "initial" | "repair";
+  attemptKind: "initial" | "repair" | "resumed";
   attemptId: number;
   event: "start" | "high_water";
   actual: number;
@@ -38,6 +38,31 @@ type CalibrationReport = {
   acceptance: {
     accepted: boolean;
     selectedMetrics: { weightedMedianAbsoluteLogError: number };
+  };
+  fitPopulation: {
+    analysisSamples: number;
+    fittedSamples: number;
+    fittedAttemptKinds: string[];
+    excludedSamples: number;
+    excludedSamplesByKind: Record<string, number>;
+    excludedAttempts: number;
+    structuralAttemptKinds: string[];
+  };
+  foldDesign: {
+    blocking: string;
+    familyFolds: number;
+    seedFolds: number;
+    evaluationCells: number;
+    seeds: number[];
+    unresolvedSeedSamples: number;
+    seedFoldBySeed: Record<string, number | null>;
+    familyFoldByGroup: Record<string, number>;
+    note: string | null;
+  };
+  interval: {
+    coverageConvention: string;
+    coverage: number;
+    coverageBySample: number;
   };
 };
 
@@ -180,6 +205,158 @@ describe("budget estimator calibration", () => {
     expect(result.stderr).toMatch(/policyBudgetFrames must be finite/);
     // The guard runs before any write, so no artifact exists to be imported.
     expect(() => readFileSync(result.output, "utf8")).toThrow();
+  });
+
+  test("excludes resumed attempts from the fit without changing the artifact", () => {
+    // A resumed attempt reports its tree's root anchor while its frontier is
+    // already deep, so its features imply far more remaining work than it has.
+    // Admitting even a few would move the coefficients, the correction, and the
+    // event intervals — and would put `resumed` into structuralAttemptKinds,
+    // which is the artifact asserting calibration it does not have.
+    const shapes = [
+      { startupIncluded: false, remainingContacts: 1, remainingDurationFrames: 0 },
+      { startupIncluded: false, remainingContacts: 4, remainingDurationFrames: 0 },
+      { startupIncluded: false, remainingContacts: 9, remainingDurationFrames: 0 },
+    ];
+    const fittable = ["family-a", "family-b", "family-c"].flatMap((group) =>
+      shapes.map((shape, index) =>
+        sample({ group, attemptId: index, actual: 3 * structuralActual(shape), ...shape })
+      )
+    );
+    const resumed = ["family-a", "family-b", "family-c"].map((group) =>
+      sample({
+        group,
+        attemptKind: "resumed",
+        attemptId: 99,
+        // Continuation anchor: the features describe the whole spec while the
+        // frontier is nearly done, so actual work is a small fraction of them.
+        actual: 0.05 * structuralActual(shapes[2]),
+        ...shapes[2],
+      })
+    );
+
+    const clean = calibrate(fittable);
+    const contaminated = calibrate([...fittable, ...resumed]);
+
+    // Normalize only what a separate invocation must differ in: the wall-clock
+    // stamp and the temporary input path. Everything a compile reads is compared.
+    const normalized = (model: BudgetEstimatorModelArtifact) => ({
+      ...model,
+      generatedAt: "",
+      provenance: { ...model.provenance, inputs: [] },
+      structural: { ...model.structural, source: "" },
+    });
+    expect(normalized(contaminated.model)).toEqual(normalized(clean.model));
+    // The dataset fingerprint hashes the fitted sample set, so equality here is
+    // the direct statement that resumed samples never entered the fit.
+    expect(contaminated.model.provenance.datasetFingerprint)
+      .toBe(clean.model.provenance.datasetFingerprint);
+    expect(contaminated.model.applicability.structuralAttemptKinds).not.toContain("resumed");
+    expect(contaminated.report.fitPopulation).toMatchObject({
+      analysisSamples: fittable.length + resumed.length,
+      fittedSamples: fittable.length,
+      excludedSamples: resumed.length,
+      excludedSamplesByKind: { resumed: resumed.length },
+      excludedAttempts: resumed.length,
+      fittedAttemptKinds: ["initial", "repair", "snapshot"],
+    });
+    // The exclusion is a filter on fitting, not on input validation: a resumed
+    // sample is schema-valid telemetry and must not make the calibrator throw.
+    expect(clean.report.fitPopulation.excludedSamples).toBe(0);
+  });
+
+  describe("held-out fold design", () => {
+    // Cost per remaining contact depends only on the SEED. A fit that trained
+    // on a sample's own seed absorbs that scale and predicts it well; a fit
+    // that never saw the seed cannot. The emitted interval therefore reports
+    // which blocking actually happened, without reaching into the module.
+    const SEED_SCALE = new Map([[0, 20_000], [1, 60_000]]);
+    const corpus = (withSeedContext: boolean): CalibrationSample[] => {
+      const rows: CalibrationSample[] = [];
+      let attemptId = 0;
+      for (const group of ["family-a", "family-b"]) {
+        for (const [seed, scale] of SEED_SCALE) {
+          for (const remainingContacts of [1, 2, 3]) {
+            rows.push(sample({
+              group,
+              attemptId: attemptId++,
+              event: "high_water",
+              context: withSeedContext ? `src/${seed}/750000` : "test",
+              remainingContacts,
+              actual: scale * remainingContacts,
+            }));
+          }
+        }
+      }
+      return rows;
+    };
+
+    test("blocks held-out evaluation on both source family and seed", () => {
+      const { model, report } = calibrate(corpus(true));
+
+      expect(report.foldDesign.blocking).toBe("source_family_and_seed");
+      expect(report.foldDesign.familyFolds).toBe(2);
+      expect(report.foldDesign.seedFolds).toBe(2);
+      expect(report.foldDesign.evaluationCells).toBe(4);
+      expect(report.foldDesign.seeds).toEqual([0, 1]);
+      expect(report.foldDesign.unresolvedSeedSamples).toBe(0);
+      expect(report.foldDesign.note).toBeNull();
+      // Both axes partition: every family and every seed is in exactly one
+      // fold, and every fold index is used, so no cell trains on its own test.
+      expect(new Set(Object.values(report.foldDesign.familyFoldByGroup))).toEqual(new Set([0, 1]));
+      expect(new Set(Object.values(report.foldDesign.seedFoldBySeed))).toEqual(new Set([0, 1]));
+
+      // Each fit sees one seed and is scored on the other, so the cheap seed is
+      // predicted by the expensive seed's model and vice versa: held-out ratios
+      // reach 1/3 and 3, and the interval has to own both tails.
+      expect(model.interval.byEvent.high_water!.upperRatio).toBeGreaterThan(2.5);
+      expect(model.interval.byEvent.high_water!.lowerRatio).toBeLessThan(0.4);
+    });
+
+    test("falls back to family-only folds loudly when the seed is unrecoverable", () => {
+      const result = run(corpus(false));
+      expect(result.status, result.stderr).toBe(0);
+      const model = parseBudgetEstimatorModel(JSON.parse(readFileSync(result.output, "utf8")));
+      const report = JSON.parse(readFileSync(result.report, "utf8")) as CalibrationReport;
+
+      // Never silent: the degradation is on stderr and in the report.
+      expect(result.stderr).toMatch(/seed blocking DISABLED/);
+      expect(report.foldDesign.blocking).toBe("source_family_only");
+      expect(report.foldDesign.note).toMatch(/seed blocking DISABLED/);
+      expect(report.foldDesign.seedFolds).toBe(1);
+      expect(report.foldDesign.unresolvedSeedSamples).toBe(corpus(false).length);
+
+      // Both seeds are in every fit, so the model already knows the cheap seed
+      // and its held-out underprediction tail vanishes: the lower bound
+      // collapses to the clamp at 1. That missing tail is exactly the optimism
+      // the double blocking removes.
+      expect(model.interval.byEvent.high_water!.lowerRatio).toBeGreaterThan(0.9);
+    });
+
+    test("assigns folds deterministically across invocations", () => {
+      const first = calibrate(corpus(true));
+      const second = calibrate(corpus(true));
+
+      expect(second.report.foldDesign.familyFoldByGroup)
+        .toEqual(first.report.foldDesign.familyFoldByGroup);
+      expect(second.report.foldDesign.seedFoldBySeed)
+        .toEqual(first.report.foldDesign.seedFoldBySeed);
+      expect(second.model.interval).toEqual(first.model.interval);
+      expect(second.model.structural.contactFrames).toBe(first.model.structural.contactFrames);
+    });
+
+    test("reports interval coverage under both conventions", () => {
+      const { model, report } = calibrate(corpus(true));
+
+      expect(report.interval.coverageConvention).toBe("per_sample");
+      expect(report.interval.coverage).toBeGreaterThan(0);
+      expect(report.interval.coverageBySample).toBeGreaterThan(0);
+      // Every attempt here holds exactly one sample, so the two conventions
+      // must agree; they diverge only when sample density varies by attempt.
+      expect(report.interval.coverageBySample).toBeCloseTo(report.interval.coverage, 6);
+      expect(model.metrics.validationIntervalCoverageBySample)
+        .toBeCloseTo(report.interval.coverageBySample, 5);
+    });
   });
 
   test("emits point-containing event intervals that the runtime accepts", () => {

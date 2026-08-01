@@ -62,7 +62,18 @@ export type BudgetEstimatorModelArtifact = {
   metrics: {
     validationMedianAbsoluteLogError: number | null;
     validationP90UnderpredictionRatio: number | null;
+    /**
+     * Held-out interval coverage under ATTEMPT weighting, the convention the
+     * candidate choice and the coefficients are fitted under.
+     */
     validationIntervalCoverage: number | null;
+    /**
+     * Held-out interval coverage counting observations, which is the convention
+     * `interval.nominalCoverage` names and the one `analyze_budget_telemetry.ts`
+     * publishes. The two diverge when per-attempt observation density differs
+     * across prediction regimes, so both are carried rather than inferred.
+     */
+    validationIntervalCoverageBySample?: number | null;
     staticMedianAbsoluteLogError: number | null;
     acceptedAgainstStatic: boolean;
   };

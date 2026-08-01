@@ -210,7 +210,7 @@ path base, so at such a repair's start `attempt_completion_margin` is the
 constant `feasMargin / correctionWithPathFactor` — arithmetic, not evidence
 about estimator accuracy. `feasMargin` itself ramps with the compile budget
 (1.05 scarce, 1 from 200k up), so at the calibrated 750k budget the constant is
-measured at exactly 1.064478 on every such start.
+measured at exactly 1.062964 on every such start.
 
 `first_accepted_improvement_offset_frames` is charged work from attempt start to
 the first improvement the best-so-far register adopted. That leaf need not be
@@ -361,8 +361,12 @@ tail pass. On the 2026-07-31 panel, all 34 repair-bearing cells completed that
 way, leaving 20.2% of pre-terminal repair observations and 155 of 307 repair
 anchors with no measured path at all — five compiles had none. Under the second
 profile those cells measure a path at every pre-terminal repair observation.
-The frozen artifact's fitted corrections and intervals were selected against the
-sparse coverage, so **a recalibration is recommended at the next panel**.
+The 2026-08-01 recalibration panel confirms it end to end: **100% of pre-terminal
+repair observations (16,236 of 16,236) and 100% of repair anchors (883 of 883)
+carry a measured path**, against 79.8% and 47.6% before the fix. That is why the
+refitted artifact's `structuralAttemptKinds` is `["initial"]`: with full path
+coverage no repair observation lands in the path-free bucket, so the corpus
+contains no evidence for a path-free repair estimate.
 
 A repair at gap `k` inherits the profile. The repair keeps the incumbent prefix
 state but uses a new deterministic seed, so its eventual cost can differ. The
@@ -385,7 +389,7 @@ selected estimate = base * correction(path availability)
 pace weight = 0
 ```
 
-The current correction factors are `0.939428` with a path and `0.973451`
+The current correction factors are `0.940766` with a path and `1.013378`
 without one. Measured episode pace remains a first-class diagnostic but was not
 selected: on the 750k calibration corpus every tested pace blend made grouped
 held-out point error worse. That is a statement about that corpus, not a general
@@ -414,6 +418,9 @@ estimate uncertainty = (upper - lower) / 2
 The interval is multiplicative and generally asymmetric around the point;
 `estimate_uncertainty_frames` is half-width, not a standard deviation. Events
 without a fitted event-specific interval use the artifact's aggregate ratios.
+The ratios are fitted per observation rather than per attempt, so
+`nominalCoverage` is a claim about the observation population — see *Two
+Weightings, Deliberately*.
 
 The artifact fits `start`, `high_water`, and `spend` and nothing else, because
 those are the only events that can produce an error sample at all. `terminal`
@@ -482,17 +489,17 @@ Then:
 ```text
 structural progress = (120,000 - 80,000) / 120,000 = 0.333
 episode pace        = 40,000 * 80,000 / 40,000       = 80,000
-selected estimate   = 72,000 * 0.939428              = 67,639
+selected estimate   = 72,000 * 0.940766              = 67,735
 hard remaining      = 750,000 - 540,000              = 210,000
 attempt remaining   = 650,000 - 540,000              = 110,000
-hard margin         = 210,000 / 67,639                = 3.10
-attempt margin      = 110,000 / 67,639                = 1.63
+hard margin         = 210,000 / 67,735                = 3.10
+attempt margin      = 110,000 / 67,735                = 1.62
 ```
 
 The current high-water interval ratios produce approximately
-`[53,776, 84,662]`. If this attempt first reaches a terminal at global work
+`[53,342, 85,838]`. If this attempt first reaches a terminal at global work
 605,000, actual remaining work at the observation was 65,000, giving this point
-estimate an absolute percentage error of about 4.1%.
+estimate an absolute percentage error of about 4.2%.
 
 ## Applicability
 
@@ -507,9 +514,13 @@ Each observation therefore reports:
   path-backed repair estimate;
 - `extrapolated_policy_budget`: structural estimate under an uncalibrated
   policy budget.
-- `unvalidated_attempt_kind`: a structural estimate for an attempt kind absent
-  from the calibration corpus, which today means `snapshot` and `resumed`.
-  Path-backed estimates still use their separately validated applicability.
+- `unvalidated_attempt_kind`: a structural estimate for an attempt kind with no
+  path-free evidence in the calibration corpus, which today means `snapshot`,
+  `resumed`, and `repair`. The first two are never fitted at all; `repair` joins
+  them because full incumbent-path coverage means no repair observation is
+  path-free any more, so a repair that somehow lacked a path would be an
+  unmeasured case. Path-backed estimates still use their separately validated
+  applicability, which is what every real repair observation gets.
 
 For extrapolated observations, the point components remain visible for study,
 but calibrated margins are `null` and the uncertainty interval expands to at
@@ -523,9 +534,9 @@ interchangeable:
 
 | coefficient | `TRAVERSAL_BUDGET_MODEL_V1` | estimator artifact fit |
 |---|---:|---:|
-| intercept frames | 5,848.25 | 24,341.29 |
-| frames per remaining contact | 796.20 | 3,922.02 |
-| frames per remaining authored frame | 29.59 | 11.78 |
+| intercept frames | 5,848.25 | 24,341.44 |
+| frames per remaining contact | 796.20 | 3,922.70 |
+| frames per remaining authored frame | 29.59 | 11.74 |
 
 `TRAVERSAL_BUDGET_MODEL_V1` in `budget_model.ts` drives **all** live policy:
 `compile_stats.predicted_first_completion_frames`, `budget_slack`, the observed
@@ -653,17 +664,82 @@ npx tsx scripts/v0/calibrate_budget_estimator.ts \
   --report=generated/budget-telemetry/panel.calibration.json
 ```
 
-The calibrator holds source families together, fits non-negative structural
-coefficients, evaluates structural/path/pace combinations out of fold, and
-retains the static model unless median log error improves by at least 5% without
-more than a 5% p90 underprediction regression. A retained static model is
-emitted with `calibrated: false`, and the emitted artifact is parsed with the
-runtime's own validator before it is written — an invalid artifact would
-otherwise turn every compile in the repository into an import-time throw.
+The calibrator fits non-negative structural coefficients, evaluates
+structural/path/pace combinations out of fold, and retains the static model
+unless median log error improves by at least 5% without more than a 5% p90
+underprediction regression. A retained static model is emitted with
+`calibrated: false`, and the emitted artifact is parsed with the runtime's own
+validator before it is written — an invalid artifact would otherwise turn every
+compile in the repository into an import-time throw.
+
+### Double-Blocked Folds
+
+Held-out evaluation blocks on **both source family and seed**. Family folds are
+crossed with seed folds — five families by four seed pairs on the standard
+eight-seed panel, giving twenty cells — and each sample is scored only by the
+fit that withheld both its family and its seed. Both assignments are
+deterministic hashes of the group key, independent of the candidate being
+evaluated.
+
+The reason is that family folds alone leave every seed of a family in the fit
+whenever that family trains, so interval percentiles could be tuned to residuals
+whose seed the model had already seen. Measured on the 2026-08-01 panel the
+correction turned out to be **negligible** — the fitted ratios moved in the
+fourth decimal and held-out coverage was unchanged — so seed leakage was not, in
+fact, what any observed coverage gap came from. The blocking stays because it
+removes the possibility cheaply and because a null result is only informative
+once it has been measured; do not re-derive it as an open question.
+
+Seed identity comes from an explicit `seed` field if a future analyzer emits
+one, otherwise from the analysis context (`sourceId/seed/budget`, or
+`name/seed=N/budget=B` for golden archives). A corpus whose seeds cannot be
+recovered — run.ts sidecars carry none — or one with fewer than two distinct
+seeds falls back to family-only folds, and says so on stderr and in the report's
+`foldDesign.note`. It never degrades silently.
+
+### Two Weightings, Deliberately
+
+Every attempt carries total weight one, so a dense trace cannot dominate the
+fit. That governs candidate selection, the structural coefficients, and the
+correction factors, all of which describe attempts.
+
+**Interval percentiles are the exception: they are taken per observation.** An
+interval is not a claim about attempts. It is read one observation at a time —
+by the analyzer's headline coverage, and by anything looking at a single
+`estimate_lower_frames`/`estimate_upper_frames` pair — so `nominalCoverage` is a
+promise about the observation population and its percentiles have to be taken
+over observations or the number on the tin is wrong. The wedge is not academic:
+on the 2026-08-01 panel, intervals fitted under attempt weighting measured 95.2%
+attempt-weighted but only 92.7% per observation, because a dense path-backed
+repair and a sparse structural attempt each carry weight one while contributing
+very different observation counts. Fitting them per observation moves both to
+95.1% and 96.3% respectively.
+
+The calibration report therefore carries `interval.coverageConvention`,
+`interval.coverage` (attempt-weighted) and `interval.coverageBySample`, and the
+artifact carries both `metrics.validationIntervalCoverage` and
+`metrics.validationIntervalCoverageBySample`. `nominalCoverage` names the
+per-observation one. Quote which you mean.
 
 Path bucketing follows the same positive-path rule as the recorder: the
 with-path correction is fitted only on observations the runtime would actually
 route through the path branch.
+
+**`resumed` samples are excluded from every part of the fit** — candidate
+selection, the structural coefficients, both correction factors, the event
+intervals, and the `structuralAttemptKinds` derivation. A resumed attempt
+reports its tree's root anchor while its frontier is already deep, so its
+anchor, structural progress, and pace are the continuation approximations
+described under *Attempt kinds*, not fresh-start measurements: its features
+describe a search state it is not in, and its remaining work is a small
+fraction of what they imply. Admitting them is not merely noisy. Because the
+path-free bucket is what defines `structuralAttemptKinds`, it would also put
+`resumed` in the artifact's structural domain and make every such observation
+report `calibrated` — the exact false claim the applicability field exists to
+prevent. They remain in the analysis corpus as diagnostics, and the calibration
+report records the excluded count under `fitPopulation` so the exclusion is
+visible provenance rather than a silent filter. The analyzer, which measures
+rather than fits, still reports them on their own attempt-kind row.
 
 The static comparator is recomputed from `TRAVERSAL_BUDGET_MODEL_V1` and the
 sample's raw structure fields. It does not reuse `sample.structural`, because
@@ -727,9 +803,66 @@ A 2026-08-01 independent replication re-collected 112 compiles and reproduced
 the calibrated headline: 3.97% median APE and 97.0% calibrated interval
 coverage, with zero accounting violations. The same campaign produced the
 soft-cap and ceiling-overrun measurements quoted under *Mental Model And Units*.
-The incumbent-path coverage fix described under *Incumbent Path Measurement*
-landed after the frozen artifact was fitted, so its corrections and intervals
-still reflect the sparse-path corpus; recalibration is pending.
+
+### 2026-08-01 Recalibration
+
+The incumbent-path coverage fix landed after the 2026-07-31 artifact was fitted,
+so its corrections and intervals reflected the sparse-path corpus. A fresh panel
+was collected on the fixed tree with the same protocol — 44 development sources,
+14 origin families, eight seeds, 750k, trace level via
+`scripts/v0/benchmark_v2/scale_study.ts` — giving 352 traces, **1,383 attempts**
+(of which 134 are the newly attributed `resumed` phase) and 270,439,760 charged
+frames, all segmented with zero accounting violations. 45,047 samples were
+analyzed; 168 `resumed` samples were excluded from fitting, leaving 44,879.
+
+Grouped validation again selected `path_if_available+none`:
+
+```text
+weighted median |log(predicted / actual)|: 0.0263
+legacy static baseline:                    0.8383
+event-conditional interval, per observation: 95.0%
+event-conditional interval, attempt-weighted: 96.3%
+```
+
+The refit reproduces the previous structural coefficients to four significant
+figures, which is the cleanest evidence that the 2026-07-31 fit was sound and
+that what changed is bucketing, not physics. What moved is the path-free
+correction, `0.973451` to `1.013378`: the old value was pulled below one by the
+20.2% of repair observations that had no measured path and therefore shared the
+structural bucket. With those gone the structural branch is initial-attempt
+evidence only, and it wanted no net shrink.
+
+An unseen seed-10 all-family replay of the same 44 sources gives a **3.1%
+combined median absolute percentage error, improving on the previous artifact's
+3.8% on the identical corpus**, with the structural component unchanged at 6.1%.
+A repeat 2M music check (two Shelter, two Believer) accounted for all 8,113,178
+charged frames with zero violations, kept every path-backed repair observation
+`calibrated` at 2.5% median APE, and left all 369 extrapolated observations with
+null margins.
+
+Interval coverage held, but only after the fitting convention was corrected, and
+the route there is worth recording because the obvious diagnosis was wrong. A
+first refit under the old attempt-weighted interval convention delivered 95.2%
+attempt-weighted on the panel and 93.7% on the unseen seed, but just 92.7% and
+91.0% per observation — a `nominalCoverage: 0.95` artifact under-delivering
+against the convention its readers actually use. The suspicion was seed leakage
+in the folds. Blocking the folds on seed as well as family (see *Double-Blocked
+Folds*) moved the fitted ratios in the fourth decimal and changed coverage not
+at all: seed variance was never the problem. Taking the interval percentiles per
+observation instead was, and that is what the shipped artifact does.
+
+| corpus | artifact | per observation | attempt-weighted |
+|---|---|---:|---:|
+| fitting panel | 2026-07-31 | 94.7% | 95.9% |
+| fitting panel | 2026-08-01 | **95.1%** | 96.3% |
+| unseen seed 10 | 2026-07-31 | 94.0% | 95.5% |
+| unseen seed 10 | 2026-08-01 | **94.1%** | 95.1% |
+
+The intervals this costs are wider on the lower side and tighter above: the
+high-water band moved from `[0.795, 1.252]` to `[0.788, 1.267]`, and the start
+band from `[0.573, 1.151]` to `[0.855, 1.256]` — the latter mostly because the
+old start band was fitted when repair starts were 52% path-free and is now
+fitted on a uniformly path-backed population.
 
 ## Non-Policy Status
 

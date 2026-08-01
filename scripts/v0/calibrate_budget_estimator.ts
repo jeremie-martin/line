@@ -38,7 +38,7 @@ type Sample = {
   policyBudgetFrames: number;
 };
 
-type WeightedSample = Sample & { weight: number; fold: number };
+type WeightedSample = Sample & { weight: number; fold: number; seedFold: number };
 type Candidate = {
   baseMode: BudgetEstimatorBaseMode;
   paceSchedule: BudgetEstimatorPaceSchedule;
@@ -51,6 +51,31 @@ type Metrics = {
   weightedP90ActualOverPrediction: number;
   weightedBiasLogRatio: number;
 };
+
+/**
+ * The attempt kinds whose anchor semantics are exact, and therefore the only
+ * ones admitted as fit evidence.
+ *
+ * A `resumed` attempt continues the initial attempt's own tree: it reports that
+ * tree's ROOT anchor while its frontier is already deep and mixed-depth, so its
+ * anchor, `structural_progress_fraction`, and `episode_pace_work_estimate_frames`
+ * are documented continuation approximations rather than fresh-start
+ * measurements. Its features therefore describe a search state it is not in,
+ * and its remaining work is a small fraction of what they imply. Fitting such
+ * samples does not merely add noise: because the no-path bucket determines
+ * `structuralAttemptKinds`, it would also make the emitted artifact assert
+ * `calibrated` for exactly the observations the applicability system exists to
+ * mark as unvalidated. They stay in the analysis corpus as diagnostics and are
+ * excluded here, with the excluded count recorded in the calibration report.
+ */
+const FITTED_ATTEMPT_KINDS: ReadonlySet<BudgetEstimatorAttemptKind> = new Set([
+  "initial",
+  "snapshot",
+  "repair",
+]);
+
+/** Seed folds crossed with the family folds; 8 panel seeds give 4 pairs of 2. */
+const DEFAULT_SEED_FOLDS = 4;
 
 const args = process.argv.slice(2);
 const inputPath = args.find((value) => !value.startsWith("--"));
@@ -71,14 +96,53 @@ const portableInputPath = relative(process.cwd(), resolve(inputPath));
 if (analysis.schema !== "line.compile-budget-telemetry-analysis.v1") {
   throw new Error(`expected line.compile-budget-telemetry-analysis.v1, got ${String(analysis.schema)}`);
 }
-const rawSamples = parseSamples(analysis.calibration_samples);
+const parsedSamples = parseSamples(analysis.calibration_samples);
+const rawSamples = parsedSamples.filter((sample) => FITTED_ATTEMPT_KINDS.has(sample.attemptKind));
+const excludedSamples = parsedSamples.filter((sample) => !FITTED_ATTEMPT_KINDS.has(sample.attemptKind));
+const excludedSamplesByKind = countByKind(excludedSamples);
+if (rawSamples.length === 0) {
+  throw new Error(
+    `no fittable samples: all ${parsedSamples.length} belong to excluded attempt kinds ` +
+      `(${[...Object.keys(excludedSamplesByKind)].sort().join(", ")})`,
+  );
+}
 const groups = [...new Set(rawSamples.map((sample) => sample.group))].sort();
 if (groups.length < 2) throw new Error("calibration requires at least two source-family groups");
 const foldCount = Math.min(requestedFolds, groups.length);
 const foldByGroup = assignFolds(groups, foldCount);
-const weighted = weightSamples(rawSamples).map((sample) => ({
+/*
+ * Held-out evaluation blocks on BOTH source family and seed.
+ *
+ * Family folds alone leave every seed of a family in the fit whenever that
+ * family trains, so seed-level generalization is invisible to them. That is
+ * harmless while the point estimate is loose and the intervals are wide, and it
+ * silently overstates coverage once the estimate sharpens: intervals fitted on
+ * family-held-out-only ratios are tuned to residuals that already saw the seed.
+ * Crossing the family folds with seed folds and scoring each sample only where
+ * BOTH its family and its seed were withheld makes the fitted percentiles pay
+ * for seed variance, which is what lets them widen to honest coverage.
+ */
+const seedBySample = rawSamples.map(sampleSeed);
+const distinctSeeds = [...new Set(seedBySample.filter((seed): seed is number => seed !== null))]
+  .sort((a, b) => a - b);
+const unresolvedSeeds = seedBySample.filter((seed) => seed === null).length;
+const seedBlocked = unresolvedSeeds === 0 && distinctSeeds.length >= 2;
+const seedFoldCount = seedBlocked ? Math.min(DEFAULT_SEED_FOLDS, distinctSeeds.length) : 1;
+const foldBySeed = assignFolds(distinctSeeds.map(String), Math.max(1, seedFoldCount));
+const seedBlockingNote = seedBlocked
+  ? null
+  : unresolvedSeeds > 0
+  ? `seed blocking DISABLED: ${unresolvedSeeds} of ${rawSamples.length} samples have no ` +
+    `recoverable seed (context format not sourceId/seed/budget or name/seed=N/...), so ` +
+    `held-out evaluation blocks on source family only and interval ratios may be optimistic`
+  : `seed blocking DISABLED: the corpus contains ${distinctSeeds.length} distinct seed(s), ` +
+    `which cannot be split into held-out seed folds; held-out evaluation blocks on source ` +
+    `family only and interval ratios may be optimistic`;
+if (seedBlockingNote !== null) console.error(`WARNING: ${seedBlockingNote}`);
+const weighted = weightSamples(rawSamples).map((sample, index) => ({
   ...sample,
   fold: foldByGroup.get(sample.group)!,
+  seedFold: seedBlocked ? foldBySeed.get(String(seedBySample[index]))! : 0,
 }));
 
 const candidates: Candidate[] = [];
@@ -106,7 +170,7 @@ const staticPredictions = weighted.map((sample) => ({
 }));
 const staticMetrics = metrics(staticPredictions);
 const evaluated = candidates.map((candidate) => {
-  const predictions = crossValidatedPredictions(weighted, foldCount, candidate);
+  const predictions = crossValidatedPredictions(weighted, foldCount, seedFoldCount, candidate);
   return { candidate, metrics: metrics(predictions), predictions };
 }).sort(compareCandidateResults);
 const best = evaluated[0];
@@ -123,24 +187,49 @@ const structural = accepted ? fitStructural(weighted) : { ...TRAVERSAL_BUDGET_MO
 const correctionFactors = accepted
   ? fitCorrection(weighted, structural, selectedCandidate)
   : { withoutPath: 1, withPath: 1 };
-const ratios = selectedOof.map(({ sample, predicted }) => ({
-  value: sample.actual / Math.max(1, predicted),
-  weight: sample.weight,
-}));
+/*
+ * Interval percentiles are PER-OBSERVATION, while everything else here is
+ * attempt-weighted.
+ *
+ * The two weightings answer different questions and the split is deliberate.
+ * Attempt weighting exists so a dense trace cannot dominate the fit; that is
+ * the right convention for choosing a candidate and for the coefficients,
+ * which describe attempts. An interval is not a claim about attempts. It is
+ * read off one observation at a time — by the analyzer's headline coverage and
+ * by anything looking at a single `estimate_lower_frames`/`estimate_upper_frames`
+ * pair — so `nominalCoverage` is a promise about the observation population,
+ * and its percentiles must be taken over observations or the promise is
+ * mislabeled. Measured on the 2026-08-01 panel the wedge is 2.6 points
+ * (95.2% attempt-weighted against 92.7% per observation, in-sample), because
+ * a dense path-backed repair and a sparse structural attempt each carry weight
+ * one while contributing very different numbers of observations. Both figures
+ * are reported below; only this one is what `nominalCoverage` names.
+ */
 const intervalStrata = [...new Set(selectedOof.map(({ sample }) => sample.event))]
   .map((event) => {
     const predictions = selectedOof.filter(({ sample }) => sample.event === event);
     const eventRatios = predictions.map(({ sample, predicted }) => ({
       value: sample.actual / Math.max(1, predicted),
-      weight: sample.weight,
+      weight: 1,
     }));
+    const lowerRatio = Math.min(1, weightedPercentile(eventRatios, tailProbability));
+    const upperRatio = Math.max(1, weightedPercentile(eventRatios, 1 - tailProbability));
+    const inside = predictions.filter(({ sample, predicted }) =>
+      sample.actual >= predicted * lowerRatio && sample.actual <= predicted * upperRatio
+    );
     return {
       event,
       n: predictions.length,
       // Runtime artifacts require every interval to contain the point estimate.
       // Keep that invariant per event, not only for the aggregate envelope.
-      lowerRatio: Math.min(1, weightedPercentile(eventRatios, tailProbability)),
-      upperRatio: Math.max(1, weightedPercentile(eventRatios, 1 - tailProbability)),
+      lowerRatio,
+      upperRatio,
+      // Both conventions per stratum: `coverageBySample` is what these
+      // percentiles target and what the analyzer publishes; `coverage` is the
+      // attempt-weighted view of the same intervals, kept so the divergence
+      // stays legible instead of being rediscovered.
+      coverage: weightRatio(inside, predictions),
+      coverageBySample: predictions.length === 0 ? 0 : inside.length / predictions.length,
     };
   });
 const lowerRatio = Math.min(1, ...intervalStrata.map((stratum) => stratum.lowerRatio));
@@ -150,6 +239,7 @@ const intervalByEvent = Object.fromEntries(intervalStrata.map((stratum) => [
   { lowerRatio: stratum.lowerRatio, upperRatio: stratum.upperRatio },
 ]));
 const intervalCoverage = weightedEventCoverage(selectedOof, intervalByEvent);
+const intervalCoverageBySample = sampleEventCoverage(selectedOof, intervalByEvent);
 const datasetFingerprint = createHash("sha256")
   .update(JSON.stringify(rawSamples))
   .digest("hex");
@@ -219,6 +309,7 @@ const model: BudgetEstimatorModelArtifact = {
     validationMedianAbsoluteLogError: round(selectedMetrics.weightedMedianAbsoluteLogError),
     validationP90UnderpredictionRatio: round(selectedMetrics.weightedP90ActualOverPrediction),
     validationIntervalCoverage: round(intervalCoverage),
+    validationIntervalCoverageBySample: round(intervalCoverageBySample),
     staticMedianAbsoluteLogError: round(staticMetrics.weightedMedianAbsoluteLogError),
     acceptedAgainstStatic: accepted,
   },
@@ -233,6 +324,44 @@ const report = {
   groups,
   foldCount,
   weighting: "each completed attempt has total weight one",
+  foldDesign: {
+    blocking: seedBlocked ? "source_family_and_seed" : "source_family_only",
+    familyFolds: foldCount,
+    seedFolds: seedFoldCount,
+    evaluationCells: seedBlocked ? foldCount * seedFoldCount : foldCount,
+    seeds: distinctSeeds,
+    seedSource: "explicit sample.seed when present, else parsed from analysis context",
+    unresolvedSeedSamples: unresolvedSeeds,
+    seedFoldBySeed: Object.fromEntries(distinctSeeds.map((seed) => [
+      seed,
+      seedBlocked ? foldBySeed.get(String(seed))! : null,
+    ])),
+    familyFoldByGroup: Object.fromEntries(groups.map((group) => [group, foldByGroup.get(group)!])),
+    rationale:
+      "a sample is scored only by a fit that saw neither its source family nor " +
+      "its seed, so interval percentiles pay for seed variance instead of being " +
+      "tuned to residuals whose seed was already in the fit",
+    note: seedBlockingNote,
+  },
+  fitPopulation: {
+    analysisSamples: parsedSamples.length,
+    fittedSamples: rawSamples.length,
+    fittedAttemptKinds: [...FITTED_ATTEMPT_KINDS].sort(),
+    excludedSamples: excludedSamples.length,
+    excludedSamplesByKind,
+    excludedAttempts: new Set(excludedSamples.map(attemptKey)).size,
+    excludedRationale:
+      "resumed attempts continue an earlier search tree, so their anchor, " +
+      "structural progress, and episode pace are continuation approximations " +
+      "rather than fresh-start measurements; they remain analysis diagnostics " +
+      "and must not become calibration evidence",
+    structuralAttemptKinds: model.applicability.structuralAttemptKinds,
+    structuralAttemptKindsNote:
+      "attempt kinds observed WITHOUT a usable incumbent path among fitted " +
+      "samples. A kind absent here has no structural calibration evidence in " +
+      "this corpus, so the runtime marks its path-free estimates " +
+      "unvalidated_attempt_kind.",
+  },
   staticMetrics,
   acceptance: {
     accepted,
@@ -244,9 +373,14 @@ const report = {
   },
   interval: {
     nominalCoverage,
+    // The ratios are per-observation percentiles, so `nominalCoverage` is a
+    // claim about `coverageBySample`. `coverage` is the same intervals scored
+    // under the attempt weighting the rest of the fit uses.
+    coverageConvention: "per_sample",
     lowerRatio,
     upperRatio,
     coverage: intervalCoverage,
+    coverageBySample: intervalCoverageBySample,
     strata: intervalStrata,
   },
   candidates: evaluated.map(({ candidate, metrics: candidateMetrics }) => ({
@@ -264,14 +398,26 @@ mkdirSync(dirname(reportPath), { recursive: true });
 writeFileSync(outputPath, `${JSON.stringify(model, null, 2)}\n`);
 writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
 console.log(`budget estimator ${accepted ? "accepted" : "retained static"}: ${candidateLabel}`);
-console.log(`  samples ${weighted.length}; groups ${groups.length}; folds ${foldCount}`);
+console.log(
+  `  samples ${weighted.length}; groups ${groups.length}; folds ${foldCount} family` +
+  (seedBlocked ? ` x ${seedFoldCount} seed (${foldCount * seedFoldCount} held-out cells)` : ` (seed blocking off)`),
+);
+if (excludedSamples.length > 0) {
+  console.log(
+    `  excluded ${excludedSamples.length} samples of unfittable attempt kinds ` +
+    `(${Object.entries(excludedSamplesByKind).map(([kind, count]) => `${kind} ${count}`).join(", ")}); ` +
+    `structural kinds ${model.applicability.structuralAttemptKinds.join(", ")}`,
+  );
+}
 console.log(
   `  median |log ratio| ${selectedMetrics.weightedMedianAbsoluteLogError.toFixed(4)} ` +
   `(static ${staticMetrics.weightedMedianAbsoluteLogError.toFixed(4)})`,
 );
 console.log(
   `  p90 actual/predicted ${selectedMetrics.weightedP90ActualOverPrediction.toFixed(3)}; ` +
-  `interval ${(100 * intervalCoverage).toFixed(1)}% [${lowerRatio.toFixed(3)}, ${upperRatio.toFixed(3)}]`,
+  `interval ${(100 * intervalCoverage).toFixed(1)}% weighted / ` +
+  `${(100 * intervalCoverageBySample).toFixed(1)}% per-sample ` +
+  `[${lowerRatio.toFixed(3)}, ${upperRatio.toFixed(3)}]`,
 );
 console.log(`  model ${outputPath}`);
 console.log(`  report ${reportPath}`);
@@ -340,6 +486,40 @@ function attemptKey(sample: Sample): string {
   return `${sample.source}\u0000${sample.context}\u0000${sample.attemptKind}\u0000${sample.attemptId}`;
 }
 
+/**
+ * The seed a sample was compiled under, or null when the corpus cannot say.
+ *
+ * The analysis schema has no seed field, so the seed lives in the context the
+ * analyzer built from whichever producer it read: `sourceId/seed/budget` for
+ * scale-study and benchmark rows, `name/seed=N/budget=B` for golden archives,
+ * and the bare string `sidecar` for run.ts sidecars, which genuinely carry no
+ * seed. An explicit field is preferred if a future analyzer emits one. Never
+ * guess: an unrecoverable seed disables seed blocking loudly rather than
+ * silently collapsing every sample into one seed fold.
+ */
+function sampleSeed(sample: Sample): number | null {
+  const explicit = (sample as { seed?: unknown }).seed;
+  if (typeof explicit === "number" && Number.isSafeInteger(explicit)) return explicit;
+  const parts = sample.context.split("/");
+  for (const part of parts) {
+    if (!part.startsWith("seed=")) continue;
+    const labelled = Number(part.slice(5));
+    return Number.isSafeInteger(labelled) ? labelled : null;
+  }
+  // Positional form: exactly sourceId/seed/budget, middle field integral.
+  if (parts.length === 3) {
+    const positional = Number(parts[1]);
+    if (parts[1].length > 0 && Number.isSafeInteger(positional)) return positional;
+  }
+  return null;
+}
+
+function countByKind(samples: Sample[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const sample of samples) counts[sample.attemptKind] = (counts[sample.attemptKind] ?? 0) + 1;
+  return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)));
+}
+
 function assignFolds(groups: string[], folds: number): Map<string, number> {
   const ordered = [...groups].sort((a, b) => groupHash(a).localeCompare(groupHash(b)) || a.localeCompare(b));
   return new Map(ordered.map((group, index) => [group, index % folds]));
@@ -349,22 +529,44 @@ function groupHash(group: string): string {
   return createHash("sha256").update(group).digest("hex");
 }
 
+/**
+ * Predict every sample from a fit that saw neither its family nor its seed.
+ *
+ * Each (family fold, seed fold) cell is scored by a model trained on the
+ * samples outside BOTH, so the test cells partition the corpus exactly once and
+ * no residual is in-sample along either axis. With seed blocking off the seed
+ * condition drops out and this is the historical family-only scheme.
+ */
 function crossValidatedPredictions(
   samples: WeightedSample[],
   folds: number,
+  seedFolds: number,
   candidate: Candidate,
 ): Prediction[] {
   const predictions: Prediction[] = [];
   for (let fold = 0; fold < folds; fold++) {
-    const train = samples.filter((sample) => sample.fold !== fold);
-    const test = samples.filter((sample) => sample.fold === fold);
-    const structural = fitStructural(train);
-    const correction = fitCorrection(train, structural, candidate);
-    for (const sample of test) {
-      predictions.push({
-        sample,
-        predicted: predict(sample, structural, candidate, correction),
-      });
+    for (let seedFold = 0; seedFold < seedFolds; seedFold++) {
+      const test = samples.filter((sample) =>
+        sample.fold === fold && (!seedBlocked || sample.seedFold === seedFold)
+      );
+      if (test.length === 0) continue;
+      const train = samples.filter((sample) =>
+        sample.fold !== fold && (!seedBlocked || sample.seedFold !== seedFold)
+      );
+      if (train.length === 0) {
+        throw new Error(
+          `fold (family ${fold}, seed ${seedFold}) has no training samples left after ` +
+            `blocking both axes`,
+        );
+      }
+      const structural = fitStructural(train);
+      const correction = fitCorrection(train, structural, candidate);
+      for (const sample of test) {
+        predictions.push({
+          sample,
+          predicted: predict(sample, structural, candidate, correction),
+        });
+      }
     }
   }
   return predictions;
@@ -556,11 +758,33 @@ function candidateComplexity(candidate: Candidate): number {
     (candidate.paceSchedule === "none" ? 0 : 1);
 }
 
-function weightedCoverage(predictions: Prediction[], lower: number, upper: number): number {
-  const total = predictions.reduce((sum, { sample }) => sum + sample.weight, 0);
-  const covered = predictions.reduce((sum, { sample, predicted }) =>
-    sum + (sample.actual >= predicted * lower && sample.actual <= predicted * upper ? sample.weight : 0), 0);
-  return total > 0 ? covered / total : 0;
+function weightRatio(subset: Prediction[], all: Prediction[]): number {
+  const total = all.reduce((sum, { sample }) => sum + sample.weight, 0);
+  return total > 0 ? subset.reduce((sum, { sample }) => sum + sample.weight, 0) / total : 0;
+}
+
+/**
+ * Coverage counting raw samples rather than attempt weight.
+ *
+ * The fit targets the attempt-weighted figure, but `analyze_budget_telemetry.ts`
+ * publishes the per-sample one, and the two diverge whenever per-attempt sample
+ * density differs across prediction regimes — a dense path-backed repair and a
+ * sparse structural attempt each carry weight one. Emitting both stops the next
+ * reader from comparing a fitted 95% against a measured 92% and concluding the
+ * artifact is broken.
+ */
+function sampleEventCoverage(
+  predictions: Prediction[],
+  intervals: Record<string, { lowerRatio: number; upperRatio: number }>,
+): number {
+  if (predictions.length === 0) return 0;
+  const covered = predictions.filter(({ sample, predicted }) => {
+    const interval = intervals[sample.event];
+    return interval !== undefined &&
+      sample.actual >= predicted * interval.lowerRatio &&
+      sample.actual <= predicted * interval.upperRatio;
+  }).length;
+  return covered / predictions.length;
 }
 
 function weightedEventCoverage(

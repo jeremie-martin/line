@@ -65,25 +65,44 @@ Program success criteria, checkable at the end:
 - **Observation invariant.** The telemetry *recorder* never drives. Policy and
   recorder may share the estimator's pure functions; they never share state.
 
-## Phase 0 — prerequisites (in flight)
+## Phase 0 — prerequisites (DONE 2026-08-01)
 
-Two measurements, no compiler changes.
+Two measurements, no compiler changes. Full write-ups in the session archive
+(`phase0/h2-cache-transitions.md`, `phase0/signal-comparison.md`); decisive
+numbers and their design consequences here.
 
-**0a — H2 cache transitions.** Does any node's candidate pool ever get re-read
-under a different pace-suppression state than it was built under? Decides the
-Phase 1 throttle design: count = 0 → hazard is theoretical, close it with a
-guard test; count > 0 → the pool cache needs the pace epoch in its key (or an
-equivalent) before any live signal touches pool content.
+**0a — H2 cache transitions: exactly zero, with a boundary.** 895,457
+frozen-content cache reads across 336 compiles (with real suppression exposure:
+82/88 v2 compiles at 150k entered suppression; 4,845 pace flips) → **0
+cross-state re-reads**. The zero is partly empirical, not structural — the
+frozen path is taken by the flag's writer, it just never coincided — so it is
+closed by two unit tests plus the transition counter kept as a debug assertion.
+**It does not license a continuously graded K**: under gradation, exposure
+becomes ~265 lane-sensitive frozen reads per compile. Consequence: Phase 1 may
+swap the signal and soften the kill to a two-level throttle (same binary cache
+exposure as today), but continuous gradation of pool-affecting knobs waits for
+a cache-key fix. Side finding: golden v1 cannot measure this mechanism
+(2 suppressed calls in 160 compiles).
 
-**0b — signal vs outcome.** Score `pacedSlack`, the behind-schedule boolean, and
-the calibrated margin against realized remaining work / completion outcomes on
-the existing four-budget trace archives. Decides Phase 1 wiring: the margin must
-match or beat `pacedSlack` as a pre-completion deadline predictor at in-domain
-budgets, and the comparison provides the unit mapping for re-anchoring the ramp
-constants. If the naive blend carries independent information at out-of-domain
-budgets, the margin module blends it in explicitly rather than losing it.
-
-Exit gate: both answers written up; Phase 1 design finalized against them.
+**0b — signal vs outcome: the margin dominates everywhere it is defined, and
+the one exception is contractual, not informational.** As a completion-risk
+gate at 150k: margin false-alarms on **1.2%** of healthy compiles at 100%
+recall; `pacedSlack < 1` on 92.6%; the behind-boolean's 331 firings are all
+doomed compiles but late (already inside `margin < 1`), and at 750k all its 72
+firings are false alarms. On remaining work the estimator wins 3–25× at every
+budget, and `pacedSlack` is *anti-correlated* with the realized margin above
+300k. Three consequences: (i) `hard_completion_margin`'s **nulling at 150k is
+the applicability contract, not the predictor** (10.2% median APE there) — the
+policy module therefore consumes the raw point ratio directly, with measured
+per-budget accuracy documented, while the recorder keeps nulling calibrated
+*claims*; (ii) ramp re-anchoring: Youden-optimal margin threshold ≈ **1.25**
+replaces `pacedSlack`'s 1.0 — bracketed, not assumed; (iii) SC-09/GA-15 are
+effectively a ≤150k mechanism today (ramp engaged on 100% of 150k observations,
+2.3% at 750k), and completion risk is degenerate above 150k on this suite — so
+the bundle's 750k value rides on post-completion quality allocation, not on
+rescue. Noted for later: the artifact's weight-zero `episode_pace` component is
+the *most accurate* remaining-work estimator exactly at 75k–300k — a candidate
+input for the margin's low-budget estimate in a future revision.
 
 ## Phase 1 — the unification bundle
 
@@ -98,8 +117,10 @@ unpaced).
    Post-completion: the measured cost-to-end profile. Recorder untouched.
 2. Forward-eval head narrowing (SC-09) reads margin; ramp endpoints re-anchored
    in margin units from 0b's mapping, then bracketed.
-3. Aim-lane control (GA-15) becomes a magnitude throttle of K toward 1 — the
-   mode trigger at `pacedSlack < 1.0` is deleted. Design constrained by 0a.
+3. Aim-lane control (GA-15) softens from lane-kill to a **two-level throttle**
+   (full K vs reduced K) on the margin — same binary cache exposure 0a measured
+   at zero, closed by 0a's guard tests; continuous gradation is explicitly
+   deferred behind a pool-cache key fix.
 4. The online-continuation lane (SC-16) reads the margin verdict; its private
    spend-vs-progress comparator is deleted.
 5. Post-completion: the same narrowing law extends into the repair/resumed

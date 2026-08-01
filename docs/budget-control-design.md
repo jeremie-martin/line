@@ -190,10 +190,20 @@ default compiler behavior.
 
 ## Current Implementation
 
-The current codebase has three pieces:
+The current codebase has five pieces:
 
 - `scripts/v0/optimizer/budget_model.ts` stores `TRAVERSAL_BUDGET_MODEL_V1` and
-  exposes first-completion, suffix, and slack helpers.
+  exposes the legacy structural first-completion predictor and policy-facing
+  slack helper. Existing compiler policy still uses this model.
+- `scripts/v0/optimizer/budget_telemetry.ts` records compile accounting,
+  execution segments, attempt lifecycles, structural/path/pace estimates,
+  uncertainty, and completion margins. It is observation-only; see
+  [`compile-budget-telemetry.md`](compile-budget-telemetry.md).
+- `scripts/v0/optimizer/budget_estimator_model.json` is the frozen telemetry
+  estimator artifact. Its applicability is explicit: structural estimates are
+  calibrated at the measured 750k policy budget, while available incumbent-path
+  estimates remain separately identified. Extrapolated observations do not
+  expose calibrated completion margins.
 - `compile_stats` now records `predicted_first_completion_frames` and
   `budget_slack` for every handoff compile, plus top-level
   `first_completion_frame` when the search reaches a complete traversal. It

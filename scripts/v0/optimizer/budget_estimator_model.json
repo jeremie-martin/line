@@ -1,0 +1,68 @@
+{
+  "schema": "line.compile-budget-estimator-model.v1",
+  "modelId": "calibrated-path_if_available+none-e22a10f8d1be",
+  "calibrated": true,
+  "generatedAt": "2026-07-31T21:55:57.708Z",
+  "provenance": {
+    "generator": "scripts/v0/calibrate_budget_estimator.ts",
+    "analysisSchema": "line.compile-budget-telemetry-analysis.v1",
+    "datasetFingerprint": "e22a10f8d1beeea6aa48ca68608babb48a4a2f46f8726a5dd8265dbf24d90b91",
+    "inputs": [
+      "generated/budget-telemetry/panel-750k-8seeds.json"
+    ],
+    "groups": 14,
+    "samples": 44908,
+    "folds": 5,
+    "acceptance": "accepted: >=5% weighted median log-error improvement and <=5% p90 underprediction regression"
+  },
+  "structural": {
+    "name": "budget-telemetry-nnls/e22a10f8d1be",
+    "source": "generated/budget-telemetry/panel-750k-8seeds.analysis.json; grouped 5-fold validation",
+    "interceptFrames": 24341.290395,
+    "contactFrames": 3922.018625,
+    "durationFrameScale": 11.775878
+  },
+  "combination": {
+    "baseMode": "path_if_available",
+    "paceSchedule": "none",
+    "correctionWithoutPathFactor": 0.973451,
+    "correctionWithPathFactor": 0.939428
+  },
+  "interval": {
+    "lowerRatio": 0.572879,
+    "upperRatio": 2.58576,
+    "nominalCoverage": 0.95,
+    "byEvent": {
+      "start": {
+        "lowerRatio": 0.572879,
+        "upperRatio": 1.150739
+      },
+      "high_water": {
+        "lowerRatio": 0.795046,
+        "upperRatio": 1.251674
+      },
+      "spend": {
+        "lowerRatio": 0.744394,
+        "upperRatio": 2.58576
+      }
+    }
+  },
+  "applicability": {
+    "structuralPolicyBudgetFrames": {
+      "min": 750000,
+      "max": 750000
+    },
+    "structuralAttemptKinds": [
+      "initial",
+      "repair"
+    ],
+    "pathEstimate": "calibrated_when_available"
+  },
+  "metrics": {
+    "validationMedianAbsoluteLogError": 0.031949,
+    "validationP90UnderpredictionRatio": 1.10075,
+    "validationIntervalCoverage": 0.951221,
+    "staticMedianAbsoluteLogError": 0.839623,
+    "acceptedAgainstStatic": true
+  }
+}

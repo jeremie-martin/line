@@ -23,12 +23,20 @@ mkdirSync(work, { recursive: true });
 // the identical offset — that parity is exactly what this harness exists to check.
 const jolt = resolveJoltMs();
 console.log(`[1] compile+measure ${cfg.spec} seed ${seed} @ ${cfg.budget}`);
-const { track, report, metrics } = await runSeed({ specPath: cfg.spec, seed, budget: cfg.budget, jolt });
+const { track, report, budgetTelemetry, metrics } = await runSeed({
+  specPath: cfg.spec,
+  seed,
+  budget: cfg.budget,
+  jolt,
+});
+if (budgetTelemetry === null) throw new Error("production compile did not emit budget telemetry");
 console.log(`    score ${metrics.score.toFixed(0)}  stand ${metrics.standTimePct.toFixed(1)}%  rot ${metrics.rotations.toFixed(1)}  end=${metrics.reachedEnd}`);
 const trackPath = join(work, `s${seed}.track.json`);
 const reportPath = join(work, `s${seed}.report.json`);
+const budgetTelemetryPath = join(work, `s${seed}.budget-telemetry.json`);
 writeFileSync(trackPath, JSON.stringify(track));
 writeFileSync(reportPath, JSON.stringify(report));
+writeFileSync(budgetTelemetryPath, JSON.stringify(budgetTelemetry));
 
 console.log("[2] ensureMirror");
 const mirror = await ensureMirror();
@@ -37,7 +45,7 @@ const spectrumBase = await ensureSpectrum(cfg.audio, project, join(work, "spectr
 console.log("[4] renderBundle (ride → mux → overlay → remotion → bundle)");
 try {
   const dir = await renderBundle({
-    specPath: cfg.spec, trackPath, reportPath, audioPath: cfg.audio, spectrumBase,
+    specPath: cfg.spec, trackPath, reportPath, budgetTelemetryPath, audioPath: cfg.audio, spectrumBase,
     seed, song: project, project: "line", metrics, render: cfg.render, budget: cfg.budget, jolt, outDir: inbox,
     workDir: work, gitSha: "paritytest", host: hostname(), keepIntermediates: false,
   });

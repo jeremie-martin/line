@@ -11,7 +11,7 @@
  *                  paired to gaps via contact_index when the pairing is clean
  *   ingest_issues  every skipped/corrupt file — ingest never crashes
  *
- * checkpoints.compile_stats_json is a raw JSON blob, queryable with SQLite
+ * checkpoints.compile_stats_json and budget_telemetry_json are raw JSON blobs, queryable with SQLite
  * JSON1: json_extract(compile_stats_json, '$.handoff_brake_successes').
  *
  * Versioning: SCHEMA_VERSION mismatch ⇒ drop + full rebuild (rebuild < 2 min,
@@ -20,7 +20,7 @@
 
 import { AXES } from "../types.ts";
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 const axisColumns = AXES.flatMap((axis) => [
   `${axis}_target REAL`,
@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS checkpoints (
   n_arcs INTEGER,
   arc_pairing_confident INTEGER,
   compile_stats_json TEXT,
+  budget_telemetry_json TEXT,
   UNIQUE (run_id, spec, variant, seed, budget)
 );
 

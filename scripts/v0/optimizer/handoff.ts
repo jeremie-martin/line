@@ -113,6 +113,10 @@ import {
   TRAVERSAL_BUDGET_MODEL_V1,
 } from "./budget_model.ts";
 import {
+  CompileBudgetTelemetryRecorder,
+  type BudgetTelemetryLevel,
+} from "./budget_telemetry.ts";
+import {
   nextContactGap,
   nextContactGapIndex,
   projectOutgoingScorerGap,
@@ -183,6 +187,9 @@ export type CompileHandoffOptions = {
    *  `budget` on the preserved main frontier. Defaults to `budget`, so normal
    *  compiler behavior is unchanged. */
   policyBudget?: number;
+  /** Policy-neutral budget characterization. Summary is compact and default;
+   * trace additionally retains high-water and spend-decile observations. */
+  budgetTelemetry?: BudgetTelemetryLevel;
   /** Study hook: stop as soon as the first full-duration traversal is considered.
    *  This isolates path quality from post-completion search and repair budget. */
   stopAfterFirstCompletion?: boolean;
@@ -1259,6 +1266,12 @@ function compileHandoffInternal(
       `compileHandoff: policyBudget ${policyBudget} exceeds hard budget ${targetBudget}`,
     );
   }
+  const budgetTelemetryLevel = opts.budgetTelemetry ?? "summary";
+  if (!["off", "summary", "trace"].includes(budgetTelemetryLevel)) {
+    throw new Error(
+      `compileHandoff: budgetTelemetry must be off|summary|trace, got ${budgetTelemetryLevel}`,
+    );
+  }
   setProposalUtilityPowers();
   // Budget-aware geometry reads this (per-compile constant) for the curvature fade.
   setCompileBudgetFrames(policyBudget);
@@ -1367,6 +1380,29 @@ function compileHandoffInternal(
         skippedContacts: 0,
       }
       : cloneSnapshotRoot(initialSnapshot, gaps.length, searchSeed);
+    const budgetRecorder = new CompileBudgetTelemetryRecorder({
+      level: budgetTelemetryLevel,
+      gaps,
+      durationFrames,
+      hardBudgetFrames: targetBudget,
+      policyBudgetFrames: policyBudget,
+    });
+    const initialBudgetAttemptId = budgetRecorder.startAttempt({
+      kind: initialSnapshot === null ? "initial" : "snapshot",
+      searchSeed,
+      hasFallback: false,
+      anchorGapIndex: root.search.gapIndex,
+      startTotalSpentFrames: 0,
+      ceilingTotalSpentFrames: policyBudget,
+      includeStartup: initialSnapshot === null,
+    });
+    budgetRecorder.recordSegment(
+      "startup",
+      0,
+      getSimFrames(),
+      "search_ready",
+      initialBudgetAttemptId,
+    );
     const passStack: HandoffNode[] = root.skippedContacts === 0 ? [root] : [];
     const fallbackStack: HandoffNode[] = root.skippedContacts === 0 ? [] : [root];
     const register = new BestSoFarRegister();
@@ -1515,6 +1551,10 @@ function compileHandoffInternal(
       if (terminal) {
         terminalConsiders++;
         if (firstTerminalFrame < 0) firstTerminalFrame = getSimFrames();
+        // Terminal search nodes may stop before the unscored tail gap. For
+        // completion telemetry the remaining traversal work is nevertheless
+        // zero once the terminal has been considered.
+        budgetRecorder.markTerminal(getSimFrames(), gaps.length);
       }
       if (improved && terminal) {
         bestCompleteNode = node;
@@ -1559,6 +1599,7 @@ function compileHandoffInternal(
       return {
         ...best,
         budget,
+        budgetTelemetry: budgetRecorder.snapshot(getSimFrames(), budgetExhausted),
         stats: {
           ...best.stats,
           candidates_sampled: getCandidateSamples(),
@@ -1695,6 +1736,7 @@ function compileHandoffInternal(
       | { kind: "deferred" }
       | { kind: "expanded"; children: HandoffNode[] };
     const processNode = (node: HandoffNode): ProcessResult => {
+      budgetRecorder.observeActive(node.search.gapIndex, getSimFrames());
       // Only tracked when repair can consume it (>=150k); a no-op on the low-budget hot path.
       if (repairEnabled && !framesAtReach.has(node.search)) framesAtReach.set(node.search, getSimFrames());
       const nodeTerminal = isTerminalNode(node.search, gaps);
@@ -1913,8 +1955,9 @@ function compileHandoffInternal(
         : 0;
       // MEASURED per-gap cost-to-end (Jérémie's "each arc associated with a budget"): from the first
       // incumbent's own path, costToEnd[k] = firstCompletionFrame − framesAtReach[node@k] = the frames
-      // the main search actually spent getting from gap k to completion. Replaces the dead-end-biased
-      // perGap estimate for feasibility/ceiling. Computed once from the original incumbent (stable profile).
+      // the main search actually spent from first reaching gap k to completion, including intervening
+      // branch exploration. Replaces the dead-end-biased perGap estimate for feasibility/ceiling.
+      // Computed once from the original incumbent (stable profile; later repairs do not rewrite it).
       const costToEnd: number[] = [];
       {
         const inc0 = bestCompleteNode;
@@ -2070,6 +2113,17 @@ function compileHandoffInternal(
           const terminalsBefore = terminalConsiders;
           const predictedFeasible = estCost <= 0 ||
             estCost * repair.feasMargin <= repairBudget - framesBefore;
+          const repairAttemptId = budgetRecorder.startAttempt({
+            kind: "repair",
+            parentAttemptId: initialBudgetAttemptId,
+            searchSeed: restartSeed,
+            hasFallback: true,
+            anchorGapIndex: k,
+            startTotalSpentFrames: framesBefore,
+            ceilingTotalSpentFrames: ceiling,
+            includeStartup: false,
+            pathEstimateByGap: costToEnd,
+          });
           const improvementFrameOffsets = runFrontierFrom(prefixNode, ceiling);
           const completed = terminalConsiders > terminalsBefore;
           // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
@@ -2078,6 +2132,18 @@ function compileHandoffInternal(
           const improved = bestCompleteNode !== incumbentBefore;
           const afterScore = bestCompleteNode ? evaluateCached(bestCompleteNode).key.full_score : beforeScore;
           const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
+          budgetRecorder.endActive(
+            getSimFrames(),
+            getSimFrames() >= ceiling ? "local_ceiling" : "frontier_exhausted",
+            improved,
+          );
+          budgetRecorder.recordSegment(
+            "repair_attempt",
+            framesBefore,
+            getSimFrames(),
+            completed ? "terminal_considered" : "no_terminal",
+            repairAttemptId,
+          );
           repairRecords.push({
             round,
             worst: kWorst, anchor: k, up, totalGaps: gaps.length,
@@ -2114,9 +2180,26 @@ function compileHandoffInternal(
     // Main search. Completion-triggered handoff to repair: once a complete track exists, stop the
     // main search (after firstCompletion*mainMargin frames) and spend the rest on aimed repair.
     // Repair off, or before any completion → runs to budget exactly → byte-identical baseline.
+    const initialSearchStart = getSimFrames();
     runFrontier(passStack, fallbackStack, () =>
       !(repairEnabled && firstCompletionFrame >= 0 &&
         getSimFrames() >= firstCompletionFrame * repair!.mainMargin),
+    );
+    const initialSearchEnd = getSimFrames();
+    const initialStopReason = captured !== null
+      ? (stopAfterFirstCompletion ? "first_completion_stop" : "budget_capture")
+      : repairEnabled && firstCompletionFrame >= 0
+        ? "handoff_to_repair"
+        : frontierSize(passStack, fallbackStack) === 0
+          ? "frontier_exhausted"
+          : "compile_finished";
+    budgetRecorder.endActive(initialSearchEnd, initialStopReason);
+    budgetRecorder.recordSegment(
+      "initial_search",
+      initialSearchStart,
+      initialSearchEnd,
+      initialStopReason,
+      initialBudgetAttemptId,
     );
 
     // Contained worst-gap suffix-rebuild post-pass on the reserved budget tail.
@@ -2129,7 +2212,14 @@ function compileHandoffInternal(
     // still queued. Repair keeps first claim on post-completion budget, but leftover
     // frames should still buy normal search quality.
     if (repairEnabled && captured === null && getSimFrames() < targetBudget) {
+      const resumeStart = getSimFrames();
       runFrontier(passStack, fallbackStack, () => getSimFrames() < targetBudget);
+      budgetRecorder.recordSegment(
+        "resumed_search",
+        resumeStart,
+        getSimFrames(),
+        getSimFrames() >= targetBudget ? "hard_budget" : "frontier_exhausted",
+      );
     }
 
     // Frontier exhausted (or node cap hit) before the budget was reached: snapshot
@@ -2137,6 +2227,14 @@ function compileHandoffInternal(
     if (captured === null) {
       captured = snapshot(targetBudget, getSimFrames() >= targetBudget);
     }
+
+    // A budget snapshot can be captured inside processNode before the enclosing
+    // segment/attempt closes. Refresh only the observational payload here; the
+    // selected track, report, stats, and budget capture remain untouched.
+    captured.budgetTelemetry = budgetRecorder.snapshot(
+      captured.stats.sim_frames,
+      captured.stats.budget_exhausted,
+    );
 
     return captured;
   }
@@ -7215,6 +7313,7 @@ function buildNodeOutput(
   return {
     track: buildTrackJson(allLines, outputDurationFrames, node.startState),
     report,
+    budgetTelemetry: null,
     stats: {
       candidates_sampled: getCandidateSamples(),
       candidates_viable: getViableCandidates(),

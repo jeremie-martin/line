@@ -41,11 +41,15 @@ export type RunSeedInput = { specPath: string; seed: number; budget: number; jol
 export async function runSeed(inp: RunSeedInput): Promise<{
   track: ReturnType<typeof compileHandoff>["track"];
   report: ReturnType<typeof compileHandoff>["report"];
+  budgetTelemetry: ReturnType<typeof compileHandoff>["budgetTelemetry"];
   metrics: SeedMetrics;
 }> {
   const mod = await import(resolve(inp.specPath));
   const spec = applyJolt(mod.default as Spec, inp.jolt);
-  const { track, report } = compileHandoff(spec, inp.seed, { budget: inp.budget });
+  const { track, report, budgetTelemetry } = compileHandoff(spec, inp.seed, {
+    budget: inp.budget,
+    budgetTelemetry: "summary",
+  });
   const trace = extractTrace(track);
-  return { track, report, metrics: measure(inp.seed, track, report, trace) };
+  return { track, report, budgetTelemetry, metrics: measure(inp.seed, track, report, trace) };
 }

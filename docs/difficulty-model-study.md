@@ -181,17 +181,24 @@ measured `costToEnd` as real reach timestamps become available.
 
 ## Production Model
 
-The current trusted traversal model is stored in
+The legacy policy-facing traversal model is stored in
 `scripts/v0/optimizer/budget_model.ts` as `TRAVERSAL_BUDGET_MODEL_V1`.
-It deliberately changes no compiler behavior yet. It exposes three policy-facing
-helpers:
+It exposes two policy-facing helpers:
 
 - `predictFirstCompletionFrames(spec)` estimates the structural cost of the
   first complete traversal from feasible contact count plus authored duration.
-- `predictSuffixCompletionFrames(spec, gapIndex)` estimates the remaining cost
-  from a gap boundary with no full-run intercept, matching the repair-cost probe.
 - `traversalBudgetSlack(budget, spec)` normalizes a requested budget by predicted
   first-completion cost.
+
+The observation-only estimator is now separate. See
+[`compile-budget-telemetry.md`](compile-budget-telemetry.md) for its versioned
+attempt/segment schema, grouped calibration, uncertainty, and applicability
+contract. In particular, the 2026-07-31 validation showed that a structural fit
+at 750k does not extrapolate to fresh 2M compiles: higher-budget search-width
+policy changes first-completion work. That result supersedes any interpretation
+that contact count plus duration predicts production first completion equally
+well at arbitrary current budgets. The old fit remains a reference coordinate
+and existing policy input, not a universal operational deadline estimate.
 
 New budget-aware policy should prefer this normalized slack over raw budget
 thresholds when the question is "how much compute do we have for this spec?"

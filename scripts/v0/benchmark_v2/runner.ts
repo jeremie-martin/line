@@ -22,6 +22,7 @@ import { applyJolt } from "../../produce/seed.ts";
 import { compilerWorkerTimeoutMs } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
 import type { CompileStats, DriftReport, Spec } from "../types.ts";
+import type { CompileBudgetTelemetry } from "../optimizer/budget_telemetry.ts";
 import {
   BENCHMARK_EXECUTION_PROTOCOL,
   BENCHMARK_RUN_ARCHIVE_SCHEMA,
@@ -114,6 +115,7 @@ type WorkerSuccess = {
   elapsedMs: number;
   report: DriftReport;
   stats: CompileStats;
+  budgetTelemetry: CompileBudgetTelemetry | null;
   trackHash: string;
   authoredContacts: number;
 };
@@ -1915,7 +1917,10 @@ async function workerMain(task: WorkerTask): Promise<void> {
     const baseSpec = await loadSourceSpec(source);
     authoredContacts = baseSpec.contacts.length;
     const spec = applyJolt(baseSpec, task.joltMs);
-    const { track, report, stats } = compileHandoff(spec, task.actualSeed, { budget: task.budget });
+    const { track, report, stats, budgetTelemetry } = compileHandoff(spec, task.actualSeed, {
+      budget: task.budget,
+      budgetTelemetry: "summary",
+    });
     const trackHash = sha256(JSON.stringify(track));
     parentPort!.postMessage({
       status: "ok",
@@ -1923,6 +1928,7 @@ async function workerMain(task: WorkerTask): Promise<void> {
       elapsedMs: performance.now() - started,
       report,
       stats,
+      budgetTelemetry,
       trackHash,
       authoredContacts,
     } satisfies WorkerSuccess);

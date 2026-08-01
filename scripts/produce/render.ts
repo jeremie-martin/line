@@ -146,6 +146,7 @@ export type RenderInput = {
   specPath: string;
   trackPath: string;
   reportPath: string;
+  budgetTelemetryPath: string;
   audioPath: string;
   spectrumBase: string;     // basename of the once-computed spectrum in remotion/public/
   seed: number;
@@ -238,6 +239,7 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
       mkdirSync(tmp, { recursive: true });
       mkdirSync(dirname(final), { recursive: true });
       copyFileSync(outMp4, join(tmp, "video.mp4"));
+      copyFileSync(inp.budgetTelemetryPath, join(tmp, "budget-telemetry.json"));
       const upload = {
         project: inp.project,
         song: inp.song,

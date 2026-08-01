@@ -26,18 +26,28 @@ export type SeedWorkerInput = {
   trackOutPath: string | null;
   /** When set, the worker writes the drift report JSON here (for overlay data). */
   reportOutPath: string | null;
+  /** Optional compact compile-budget telemetry sidecar. */
+  budgetTelemetryOutPath?: string | null;
 };
 export type SeedWorkerMsg =
-  | { ok: true; seed: number; metrics: SeedMetrics; trackPath: string | null; reportPath: string | null }
+  | {
+    ok: true;
+    seed: number;
+    metrics: SeedMetrics;
+    trackPath: string | null;
+    reportPath: string | null;
+    budgetTelemetryPath: string | null;
+  }
   | { ok: false; seed: number; message: string };
 
 async function runWorker(): Promise<void> {
   if (!parentPort) throw new Error("worker requires parentPort");
   const inp = workerData as SeedWorkerInput;
   try {
-    const { track, report, metrics } = await runSeed(inp);
+    const { track, report, budgetTelemetry, metrics } = await runSeed(inp);
     let trackPath: string | null = null;
     let reportPath: string | null = null;
+    let budgetTelemetryPath: string | null = null;
     if (inp.trackOutPath) {
       writeFileSync(inp.trackOutPath, JSON.stringify(track));
       trackPath = inp.trackOutPath;
@@ -46,7 +56,21 @@ async function runWorker(): Promise<void> {
       writeFileSync(inp.reportOutPath, JSON.stringify(report));
       reportPath = inp.reportOutPath;
     }
-    parentPort.postMessage({ ok: true, seed: inp.seed, metrics, trackPath, reportPath } satisfies SeedWorkerMsg);
+    if (inp.budgetTelemetryOutPath) {
+      if (budgetTelemetry === null) {
+        throw new Error("production compile did not emit budget telemetry");
+      }
+      writeFileSync(inp.budgetTelemetryOutPath, JSON.stringify(budgetTelemetry));
+      budgetTelemetryPath = inp.budgetTelemetryOutPath;
+    }
+    parentPort.postMessage({
+      ok: true,
+      seed: inp.seed,
+      metrics,
+      trackPath,
+      reportPath,
+      budgetTelemetryPath,
+    } satisfies SeedWorkerMsg);
   } catch (e) {
     parentPort.postMessage({ ok: false, seed: inp.seed, message: String(e).slice(0, 200) } satisfies SeedWorkerMsg);
   }

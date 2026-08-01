@@ -8,6 +8,10 @@ import { applyJolt } from "../../produce/seed.ts";
 import { compilerWorkerTimeoutMs } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
 import type { CompileStats, DriftReport } from "../types.ts";
+import type {
+  BudgetTelemetryLevel,
+  CompileBudgetTelemetry,
+} from "../optimizer/budget_telemetry.ts";
 import {
   buildAxisContract,
   scoreV2Report,
@@ -32,6 +36,7 @@ type StudyTask = {
   actualSeed: number;
   joltMs: number;
   sourceManifestPath: string;
+  budgetTelemetryLevel: BudgetTelemetryLevel;
 };
 
 type StudyWorkerResult = {
@@ -41,6 +46,7 @@ type StudyWorkerResult = {
   authoredContacts: number;
   report?: DriftReport;
   stats?: CompileStats;
+  budgetTelemetry?: CompileBudgetTelemetry | null;
   trackHash?: string;
   error?: string;
 };
@@ -60,6 +66,7 @@ async function main(): Promise<void> {
   const budgets = integerList(argument("budgets") ?? "100000,200000,250000,500000,600000,1000000", "budgets");
   const seeds = integerList(argument("seeds") ?? "0", "seeds", true);
   const jobs = positiveInteger(argument("jobs") ?? String(Math.min(32, Math.max(1, availableParallelism() / 2))), "jobs");
+  const budgetTelemetryLevel = telemetryLevel(argument("budget-telemetry") ?? "summary");
   const sourceManifestPath = resolve(argument("manifest") ?? "benchmark/v2/compat/source-manifest.json");
   const suiteManifestPath = resolve(argument("suite") ?? "benchmark/v2/compat/suite-manifest.json");
   const outputPath = resolve(argument("out") ?? "generated/benchmark-v2/studies/budget-scale.json");
@@ -81,6 +88,7 @@ async function main(): Promise<void> {
     seedSlot,
     actualSeed,
     joltMs: suite.transform.jolt_ms,
+    budgetTelemetryLevel,
     sourceManifestPath,
   }))));
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -97,6 +105,7 @@ async function main(): Promise<void> {
     budgets,
     seeds,
     joltMs: suite.transform.jolt_ms,
+    budgetTelemetryLevel,
     sources: sources.map((source) => ({ id: source.id, fingerprint: source.sourceFingerprint })),
   };
   const planFingerprint = studyPlanFingerprint(planInput);
@@ -146,6 +155,7 @@ async function main(): Promise<void> {
       task: result.task,
       source: {
         id: source.id,
+        originFamily: source.originFamily,
         sourceFingerprint: source.sourceFingerprint,
         eligibleComponents: source.eligibleComponents,
         diagnosticComponents: source.diagnosticComponents,
@@ -158,6 +168,7 @@ async function main(): Promise<void> {
       trackHash: result.trackHash ?? null,
       score,
       stats: result.stats,
+      budgetTelemetry: result.budgetTelemetry ?? null,
       phaseResults: result.status === "ok" ? phases(source, result.report!) : [],
     };
   });
@@ -189,6 +200,7 @@ async function main(): Promise<void> {
     environment: runtime,
     budgets,
     seeds,
+    budgetTelemetryLevel,
     summaries,
     runs: scored,
   };
@@ -330,9 +342,12 @@ async function workerMain(task: StudyTask): Promise<void> {
     const base = await loadSourceSpec(source);
     authoredContacts = base.contacts.length;
     const spec = applyJolt(base, task.joltMs);
-    const { track, report, stats } = compileHandoff(spec, task.actualSeed, { budget: task.budget });
+    const { track, report, stats, budgetTelemetry } = compileHandoff(spec, task.actualSeed, {
+      budget: task.budget,
+      budgetTelemetry: task.budgetTelemetryLevel,
+    });
     const trackHash = createHash("sha256").update(JSON.stringify(track)).digest("hex");
-    parentPort!.postMessage({ task, status: "ok", elapsedMs: performance.now() - started, authoredContacts, report, stats, trackHash } satisfies StudyWorkerResult);
+    parentPort!.postMessage({ task, status: "ok", elapsedMs: performance.now() - started, authoredContacts, report, stats, budgetTelemetry, trackHash } satisfies StudyWorkerResult);
   } catch (error) {
     parentPort!.postMessage({
       task,
@@ -385,6 +400,11 @@ function integerList(text: string, name: string, allowZero = false): number[] {
   }
   if (new Set(values).size !== values.length) throw new Error(`--${name} contains duplicates`);
   return values;
+}
+
+function telemetryLevel(value: string): BudgetTelemetryLevel {
+  if (value === "off" || value === "summary" || value === "trace") return value;
+  throw new Error("--budget-telemetry must be off, summary, or trace");
 }
 
 function positiveInteger(text: string, name: string): number {

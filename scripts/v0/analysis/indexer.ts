@@ -227,8 +227,8 @@ function indexRun(db: DatabaseSync, ctx: RunContext): void {
       contacts, hits, drift, missing, axis_quality, axis_loss, axis_error_rms,
       elapsed_ms, track_hash, track_path, report_path, has_report,
       terminus_frame, terminus_reason, n_off_beat, n_gaps,
-      n_arcs, arc_pairing_confident, compile_stats_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      n_arcs, arc_pairing_confident, compile_stats_json, budget_telemetry_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const arcStmt = db.prepare(`
     INSERT INTO arcs (
@@ -292,6 +292,7 @@ function indexRun(db: DatabaseSync, ctx: RunContext): void {
         trackArcs !== null ? trackArcs.arcs.length : null,
         trackArcs !== null ? trackArcs.pairing_confident : null,
         cp.compile_stats !== undefined ? JSON.stringify(cp.compile_stats) : null,
+        cp.budget_telemetry !== undefined ? JSON.stringify(cp.budget_telemetry) : null,
       );
       const checkpointId = Number(cpInfo.lastInsertRowid);
 

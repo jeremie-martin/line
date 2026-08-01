@@ -105,7 +105,14 @@ function saveCursor(s: SongState): void {
 }
 
 // ── bounded async queue (the compile→render bridge; backpressure + Ctrl-C drop) ──
-type RenderItem = { song: SongState; seed: number; trackPath: string; reportPath: string; metrics: SeedMetrics };
+type RenderItem = {
+  song: SongState;
+  seed: number;
+  trackPath: string;
+  reportPath: string;
+  budgetTelemetryPath: string;
+  metrics: SeedMetrics;
+};
 class Queue {
   private items: RenderItem[] = [];
   private pulls: ((v: RenderItem | null) => void)[] = [];
@@ -155,7 +162,11 @@ function nextSeed(s: SongState): number {
   }
 }
 function cleanupScratch(base: string): void {
-  for (const f of [`${base}.track.json`, `${base}.report.json`]) { try { rmSync(f, { force: true }); } catch { /* best-effort */ } }
+  for (const f of [
+    `${base}.track.json`,
+    `${base}.report.json`,
+    `${base}.budget-telemetry.json`,
+  ]) { try { rmSync(f, { force: true }); } catch { /* best-effort */ } }
 }
 const anyInPipeline = () => songs.some((s) => s.inFlight > 0) || queue.size > 0;
 
@@ -172,6 +183,7 @@ async function compileLane(): Promise<void> {
     const msg = await spawnSeedWorker({
       specPath: song.cfg.spec, seed, budget: song.cfg.budget, jolt,
       trackOutPath: `${base}.track.json`, reportOutPath: `${base}.report.json`,
+      budgetTelemetryOutPath: `${base}.budget-telemetry.json`,
     });
     if (stopping) { cleanupScratch(base); break; }
     if (msg.ok && passesGate(msg.metrics, song.cfg.floors)) {
@@ -182,7 +194,14 @@ async function compileLane(): Promise<void> {
         cleanupScratch(base);
       } else {
         song.inFlight++;
-        await queue.push({ song, seed, trackPath: msg.trackPath!, reportPath: msg.reportPath!, metrics: msg.metrics });
+        await queue.push({
+          song,
+          seed,
+          trackPath: msg.trackPath!,
+          reportPath: msg.reportPath!,
+          budgetTelemetryPath: msg.budgetTelemetryPath!,
+          metrics: msg.metrics,
+        });
       }
     } else {
       cleanupScratch(base);
@@ -202,6 +221,7 @@ async function renderLane(): Promise<void> {
     try {
       const dir = await renderBundle({
         specPath: song.cfg.spec, trackPath: item.trackPath, reportPath: item.reportPath,
+        budgetTelemetryPath: item.budgetTelemetryPath,
         audioPath: song.cfg.audio, spectrumBase: song.spectrumBase, seed, song: song.name, project: PROJECT,
         metrics: item.metrics, render: song.cfg.render, budget: song.cfg.budget, jolt, outDir: runDir,
         workDir: scratchDir, gitSha, host,
@@ -258,7 +278,11 @@ async function main(): Promise<void> {
 
   // sweep disposable scratch inputs (qualifiers dropped on stop leave track/report behind)
   for (const f of readdirSync(scratchDir)) {
-    if (f.endsWith(".track.json") || f.endsWith(".report.json")) { try { rmSync(join(scratchDir, f)); } catch { /* best-effort */ } }
+    if (
+      f.endsWith(".track.json") ||
+      f.endsWith(".report.json") ||
+      f.endsWith(".budget-telemetry.json")
+    ) { try { rmSync(join(scratchDir, f)); } catch { /* best-effort */ } }
   }
   mirror?.kill();
   console.log(`\ndone${stopReason ? ` (${stopReason})` : ""}:`);

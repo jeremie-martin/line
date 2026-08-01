@@ -17,6 +17,7 @@ import type {
   Gap,
   Spec,
 } from "../types.ts";
+import type { CompileBudgetTelemetry } from "./budget_telemetry.ts";
 
 // ─────────── Re-exports of existing types ───────────
 
@@ -44,6 +45,8 @@ export type CompileOutput = {
   track: TrackJson;
   report: DriftReport;
   stats: CompileStats;
+  /** Policy-neutral budget/attempt characterization. */
+  budgetTelemetry: CompileBudgetTelemetry | null;
 };
 
 /** A compiler entry point produces one checkpoint per (independent) budget run. */

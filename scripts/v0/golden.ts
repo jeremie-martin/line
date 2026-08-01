@@ -39,6 +39,7 @@ export function defaultJobsForParallelism(cpuCount: number): number {
 }
 
 import { FPS, IMPACT_RULER, REPORT_ONLY_AXIS_SET, type CompileStats, type DriftReport, type Spec } from "./types.ts";
+import type { CompileBudgetTelemetry } from "./optimizer/budget_telemetry.ts";
 import { LEGACY_IMPACT_AUTHORING_CONVERSION } from "./core/beats.ts";
 import {
   parseBudgetList,
@@ -83,7 +84,12 @@ type CompileFn = (
   spec: Spec,
   seed: number,
   opts: { budget: number },
-) => { track: unknown; report: DriftReport; stats: CompileStats };
+) => {
+  track: unknown;
+  report: DriftReport;
+  stats: CompileStats;
+  budgetTelemetry: CompileBudgetTelemetry | null;
+};
 
 type CompilerName = "handoff";
 
@@ -113,6 +119,7 @@ type WorkerCheckpoint = {
   elapsed_ms: number;
   report: DriftReport;
   stats: CompileStats;
+  budgetTelemetry: CompileBudgetTelemetry | null;
   track_hash: string;
   track_path: string | null;
   report_path: string | null;
@@ -170,6 +177,7 @@ type ScoredCheckpoint = V0ContractScore & {
   worst_contacts: ReturnType<typeof worstContacts>;
   off_beat_frames: number[];
   compile_stats: CompileStats | null;
+  budget_telemetry: CompileBudgetTelemetry | null;
 };
 
 type ScoredRunRow = {
@@ -474,6 +482,7 @@ async function runWorker(): Promise<void> {
           elapsed_ms,
           report: checkpoint.report,
           stats: checkpoint.stats,
+          budgetTelemetry: checkpoint.budgetTelemetry,
           track_hash: hash,
           ...paths,
         });
@@ -569,6 +578,7 @@ function failedCheckpoint(
     worst_contacts: [],
     off_beat_frames: [],
     compile_stats: null,
+    budget_telemetry: null,
   };
 }
 
@@ -614,6 +624,7 @@ function scoreCheckpoint(
     worst_contacts: worstContacts(checkpoint.report, 3),
     off_beat_frames: checkpoint.report.off_beat_landings.slice(0, 5).map((l) => l.frame),
     compile_stats: checkpoint.stats,
+    budget_telemetry: checkpoint.budgetTelemetry,
   };
 }
 
@@ -1181,6 +1192,7 @@ function compactJsonCheckpoint(row: ScoredCheckpoint): object {
     track_path: row.track_path,
     report_path: row.report_path,
     compile_stats: compactStats(row.compile_stats),
+    budget_telemetry: row.budget_telemetry,
     message: row.message,
   };
 }
@@ -1203,6 +1215,7 @@ function detailedJsonCheckpoint(row: ScoredCheckpoint): object {
     worst_contacts: row.worst_contacts,
     off_beat_frames: row.off_beat_frames,
     compile_stats: row.compile_stats,
+    budget_telemetry: row.budget_telemetry,
   };
 }
 

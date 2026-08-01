@@ -18,11 +18,15 @@ npm run lab -- report <name> [--axis A] [--run R] canned analyses (see usage for
 |---|---|---|
 | runs | run dir | headline, score_without_impact, fingerprint, commit |
 | budget_scores / spec_scores | run × budget (× spec) | from golden.json |
-| checkpoints | run × spec × variant × seed × budget | scores + `compile_stats_json` blob (query via `json_extract`) |
+| checkpoints | run × spec × variant × seed × budget | scores + `compile_stats_json` and `budget_telemetry_json` blobs (query via `json_extract`) |
 | gaps | per gap | per-axis target/achieved/error + impact/elevation ceiling, raw speed |
 | arcs | per placed arc | from track.json: entry/exit tangent (deg, + = descending), signed turn (− = scoop), straightness, descent; `contact_index` pairs arc→gap (filter `checkpoints.arc_pairing_confident = 1`) |
 | landings | per landing event | from `simulate` re-simulation: speed in/out over IMPACT_WINDOW, dspeed_px, vx/vy_in, redir_px/norm, air_frames; `contact_index` pairs landing→gap |
 | ingest_issues | per problem | every skipped/corrupt file; cleared each index pass |
+
+`budget_telemetry_json` follows `line.compile-budget-telemetry.v1`. Its units,
+field semantics, estimator formulas, and analyzer commands are documented in
+[`docs/compile-budget-telemetry.md`](../../../docs/compile-budget-telemetry.md).
 
 ## Reproducibility contract
 

@@ -12,6 +12,7 @@
  * Outputs:
  *   <out>.track.json
  *   <out>.report.json
+ *   <out>.budget-telemetry.json
  */
 
 import { writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
@@ -60,6 +61,12 @@ if (!Number.isSafeInteger(budgetUnits) || budgetUnits <= 0) {
   console.error(`invalid --budget=${arg("budget")} (expected positive integer)`);
   process.exit(1);
 }
+const rawBudgetTelemetry = arg("budget-telemetry") ?? "trace";
+if (!["off", "summary", "trace"].includes(rawBudgetTelemetry)) {
+  console.error(`invalid --budget-telemetry=${rawBudgetTelemetry} (expected off|summary|trace)`);
+  process.exit(1);
+}
+const budgetTelemetryLevel = rawBudgetTelemetry as "off" | "summary" | "trace";
 
 const specName = basename(specPath).replace(/\.ts$/, "");
 const outPrefix = arg("out") ?? `generated/v0_${specName}`;
@@ -101,7 +108,10 @@ if (joltOffsetMs !== 0) {
 }
 
 const t0 = Date.now();
-const { track, report } = COMPILERS[compiler](compiledSpec, seed, { budget: budgetUnits });
+const { track, report, budgetTelemetry } = COMPILERS[compiler](compiledSpec, seed, {
+  budget: budgetUnits,
+  budgetTelemetry: budgetTelemetryLevel,
+});
 const elapsedMs = Date.now() - t0;
 
 mkdirSync(dirname(resolve(`${outPrefix}.track.json`)), { recursive: true });
@@ -116,6 +126,12 @@ const reportArtifact = identifyRunReport(report, {
   totalFrames: track.duration,
 });
 writeFileSync(resolve(`${outPrefix}.report.json`), JSON.stringify(reportArtifact, null, 2));
+const budgetTelemetryPath = resolve(`${outPrefix}.budget-telemetry.json`);
+if (budgetTelemetry !== null) {
+  writeFileSync(budgetTelemetryPath, JSON.stringify(budgetTelemetry, null, 2));
+} else if (existsSync(budgetTelemetryPath)) {
+  rmSync(budgetTelemetryPath, { force: true });
+}
 const cameraSidecar = specCameraToSidecar(spec);
 const cameraPath = resolve(`${outPrefix}.camera.json`);
 if (cameraSidecar !== null) {
@@ -175,6 +191,7 @@ const lines = [
 if (byAxis.length > 0) lines.push(`by axis (mean|err|):  ${byAxis.join("  ")}`);
 if (worstGaps.length > 0) lines.push("worst gaps (target→achieved):", ...worstGaps);
 lines.push(`full report → ${outPrefix}.report.json`);
+if (budgetTelemetry !== null) lines.push(`budget telemetry → ${outPrefix}.budget-telemetry.json`);
 if (cameraSidecar !== null) lines.push(`camera → ${outPrefix}.camera.json`);
 if (TRACE_EMIT) lines.push(`trace → ${outPrefix}.trace.json`);
 console.log("\n" + lines.join("\n") + "\n");

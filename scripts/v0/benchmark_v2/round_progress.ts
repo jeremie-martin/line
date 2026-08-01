@@ -154,6 +154,8 @@ export function validateRoundProgressReference(
  * after all canonical sources and budgets for slots [0,N) are present.
  */
 export class RoundProgressAccumulator {
+  readonly reference: RoundProgressReference;
+  readonly suite: SuiteManifest;
   readonly restoredEvents: RoundProgressEvent[];
   private readonly baselineByKey: Map<string, DecisionRun>;
   private readonly candidateByKey = new Map<string, DecisionRun>();
@@ -161,11 +163,19 @@ export class RoundProgressAccumulator {
   private readonly cellsPerRound: number;
   private nextDepth = 1;
 
+  /**
+   * Fields are declared and assigned explicitly rather than as constructor
+   * parameter properties: the runner's worker threads load this module without
+   * the tsx loader, under Node's strip-only type stripping, which rejects any
+   * TypeScript syntax that requires transformation.
+   */
   constructor(
-    readonly reference: RoundProgressReference,
-    readonly suite: SuiteManifest,
+    reference: RoundProgressReference,
+    suite: SuiteManifest,
     restored: DecisionRun[] = [],
   ) {
+    this.reference = reference;
+    this.suite = suite;
     this.baselineByKey = new Map(reference.runs.map((run) => [
       cellKey(run.sourceId, run.budget, run.seedSlot),
       run,

@@ -12,6 +12,9 @@
  * Outputs:
  *   <out>.track.json
  *   <out>.report.json
+ *   <out>.stats.json            compiler CompileStats (sim_frames, first
+ *                               completion, budget slack, …) — the counters the
+ *                               budget telemetry can be cross-checked against
  *   <out>.budget-telemetry.json
  */
 
@@ -108,7 +111,7 @@ if (joltOffsetMs !== 0) {
 }
 
 const t0 = Date.now();
-const { track, report, budgetTelemetry } = COMPILERS[compiler](compiledSpec, seed, {
+const { track, report, stats, budgetTelemetry } = COMPILERS[compiler](compiledSpec, seed, {
   budget: budgetUnits,
   budgetTelemetry: budgetTelemetryLevel,
 });
@@ -126,6 +129,26 @@ const reportArtifact = identifyRunReport(report, {
   totalFrames: track.duration,
 });
 writeFileSync(resolve(`${outPrefix}.report.json`), JSON.stringify(reportArtifact, null, 2));
+// Compiler counters (sim_frames, first_completion_frame, budget_exhausted,
+// predicted_first_completion_frames, budget_slack, …). The compile returns them
+// and every other consumer (golden, benchmark, lab) persists them; this CLI used
+// to drop them on the floor, which made the most basic budget-telemetry
+// cross-check — "does the recorder's accounting agree with the compiler's own
+// counters?" — impossible without a bespoke harness.
+const statsPath = resolve(`${outPrefix}.stats.json`);
+if (stats !== null && stats !== undefined) {
+  writeFileSync(statsPath, JSON.stringify({
+    spec: specPath,
+    compiler,
+    seed,
+    budget: budgetUnits,
+    budget_telemetry: budgetTelemetryLevel,
+    elapsed_ms: elapsedMs,
+    stats,
+  }, null, 2));
+} else if (existsSync(statsPath)) {
+  rmSync(statsPath, { force: true });
+}
 const budgetTelemetryPath = resolve(`${outPrefix}.budget-telemetry.json`);
 if (budgetTelemetry !== null) {
   writeFileSync(budgetTelemetryPath, JSON.stringify(budgetTelemetry, null, 2));
@@ -191,6 +214,7 @@ const lines = [
 if (byAxis.length > 0) lines.push(`by axis (mean|err|):  ${byAxis.join("  ")}`);
 if (worstGaps.length > 0) lines.push("worst gaps (target→achieved):", ...worstGaps);
 lines.push(`full report → ${outPrefix}.report.json`);
+if (stats !== null && stats !== undefined) lines.push(`compile stats → ${outPrefix}.stats.json`);
 if (budgetTelemetry !== null) lines.push(`budget telemetry → ${outPrefix}.budget-telemetry.json`);
 if (cameraSidecar !== null) lines.push(`camera → ${outPrefix}.camera.json`);
 if (TRACE_EMIT) lines.push(`trace → ${outPrefix}.trace.json`);

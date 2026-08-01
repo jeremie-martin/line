@@ -39,7 +39,10 @@ export function defaultJobsForParallelism(cpuCount: number): number {
 }
 
 import { FPS, IMPACT_RULER, REPORT_ONLY_AXIS_SET, type CompileStats, type DriftReport, type Spec } from "./types.ts";
-import type { CompileBudgetTelemetry } from "./optimizer/budget_telemetry.ts";
+import type {
+  BudgetEstimateObservation,
+  CompileBudgetTelemetry,
+} from "./optimizer/budget_telemetry.ts";
 import { LEGACY_IMPACT_AUTHORING_CONVERSION } from "./core/beats.ts";
 import {
   parseBudgetList,
@@ -1172,6 +1175,89 @@ function compactStats(stats: CompileStats | null): object | null {
   };
 }
 
+/** Copy only the listed keys that the source actually carries. Absent keys are
+ *  omitted, so a payload that gains or loses fields still archives cleanly. */
+function pickDefined<T extends object, K extends keyof T>(source: T, keys: readonly K[]): Partial<T> {
+  const out: Partial<T> = {};
+  for (const key of keys) if (source[key] !== undefined) out[key] = source[key];
+  return out;
+}
+
+/** Observation fields kept in the ARCHIVE form (see compactBudgetTelemetry).
+ *  `hard_remaining_frames`/`hard_overrun_frames` are not read by eye: they are
+ *  the two terms of the per-observation hard-budget identity that
+ *  analyze_budget_telemetry.ts validates, and dropping them makes every
+ *  archived observation an accounting violation. They cost 7.6% of the archive
+ *  form and keep `analyze_budget_telemetry.ts <golden.json>` exiting zero. */
+const ARCHIVED_OBSERVATION_FIELDS = [
+  "event",
+  "total_spent_frames",
+  "hard_remaining_frames",
+  "hard_overrun_frames",
+  "estimated_remaining_work_frames",
+  "estimate_lower_frames",
+  "estimate_upper_frames",
+  "estimator_applicability",
+] as const;
+
+/** Attempt fields kept in the ARCHIVE form: identity, anchor, work counters,
+ *  outcome. `start`/`end` are reduced; `observations` are dropped entirely. */
+const ARCHIVED_ATTEMPT_FIELDS = [
+  "attempt_id",
+  "kind",
+  "parent_attempt_id",
+  "search_seed",
+  "has_fallback",
+  "anchor",
+  "start_total_spent_frames",
+  "ceiling_total_spent_frames",
+  "ceiling_source",
+  "available_hard_budget_frames",
+  "local_budget_frames",
+  "outcome",
+] as const;
+
+function compactBudgetObservation(
+  observation: BudgetEstimateObservation | null | undefined,
+): object | null {
+  if (observation === null || observation === undefined) return null;
+  const compact: Record<string, unknown> = pickDefined(observation, ARCHIVED_OBSERVATION_FIELDS);
+  const gapIndex = observation.high_water?.gap_index;
+  if (gapIndex !== undefined) compact.high_water = { gap_index: gapIndex };
+  return compact;
+}
+
+/**
+ * Archive form of the compile-budget telemetry.
+ *
+ * The full payload costs 4.6 KB per attempt once nested and indented into
+ * golden.json (measured: 57.8 KB per checkpoint on a mini_burst 150k probe,
+ * 85% of that archive's bytes). The archive keeps the whole compile/model/
+ * segment account (the part that answers "where did this budget go?") and each
+ * attempt's identity, anchor, counters, and outcome, but reduces the start/end
+ * estimates to the point, interval, applicability, and accounting terms —
+ * 2.5 KB per attempt, 45% off.
+ *
+ * This is a LOSSY archive form, not a second schema: `archive_form` marks it so
+ * a reader never mistakes a stripped observation for a missing one. The full
+ * payload is still produced by every compile and persisted by run.ts sidecars,
+ * benchmark V2 rows, and `--details` golden archives.
+ */
+export function compactBudgetTelemetry(telemetry: CompileBudgetTelemetry | null): object | null {
+  if (telemetry === null) return null;
+  const attempts = Array.isArray(telemetry.attempts) ? telemetry.attempts : [];
+  return {
+    ...pickDefined(telemetry, ["schema", "level"] as const),
+    archive_form: "observations_reduced",
+    ...pickDefined(telemetry, ["model", "compile", "segments"] as const),
+    attempts: attempts.map((attempt) => ({
+      ...pickDefined(attempt, ARCHIVED_ATTEMPT_FIELDS),
+      start: compactBudgetObservation(attempt.start),
+      end: compactBudgetObservation(attempt.end),
+    })),
+  };
+}
+
 function compactJsonCheckpoint(row: ScoredCheckpoint): object {
   return {
     budget: row.budget,
@@ -1192,7 +1278,7 @@ function compactJsonCheckpoint(row: ScoredCheckpoint): object {
     track_path: row.track_path,
     report_path: row.report_path,
     compile_stats: compactStats(row.compile_stats),
-    budget_telemetry: row.budget_telemetry,
+    budget_telemetry: compactBudgetTelemetry(row.budget_telemetry),
     message: row.message,
   };
 }
@@ -1214,6 +1300,8 @@ function detailedJsonCheckpoint(row: ScoredCheckpoint): object {
     axes: row.axes,
     worst_contacts: row.worst_contacts,
     off_beat_frames: row.off_beat_frames,
+    // --details restores the FULL payloads the compact form reduces: whole
+    // CompileStats, and budget telemetry with every observation field intact.
     compile_stats: row.compile_stats,
     budget_telemetry: row.budget_telemetry,
   };

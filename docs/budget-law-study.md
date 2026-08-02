@@ -567,3 +567,85 @@ Study script: `scripts/v0/study_budget_law.ts` (`extract` and `fit` verbs). It
 adapts the frozen calibrator's NNLS and fold logic; it does not modify
 `calibrate_budget_estimator.ts`, `analyze_budget_telemetry.ts`,
 `budget_telemetry.ts`, `budget_estimator.ts`, or the artifact.
+
+## 2026-08-03 — the 1M operating point
+
+Production ships at 1,000,000 frames (`productions/*/select.json`) — above every
+budget the compiler has been tuned, calibrated or benchmarked at. 44 sources x seeds
+0-3 x 1M, trace, `scale_study`'s family-grouping path, head `69d71a8`, plus a
+same-head 750k companion so comparisons are paired on (source, seed). Both are the
+first trace archives where the margin trajectory and post-`ccfd58d` repair context
+coexist; 393M frames, exit 0, **zero violations**.
+
+### Estimator health, and the margin
+
+| panel | calibrated | coverage | combined APE | structural | margin p50 start/mid/completion | P(m<2) |
+|---|---:|---:|---:|---:|---|---:|
+| 750k, same head | 99.5% | 94.9% | 3.5% | 6.0% | 1.83 / 2.75 / 7.47 | 22.2% |
+| 1M | 99.5% | 94.6% | 3.0% | 5.6% | 1.93 / 2.97 / 8.25 | 15.0% |
+| 1.5M, shipped live check | 99.7% | 93.6% | 2.8% | 5.2% | — | — |
+
+1M is in domain and behaves like it: the only non-`calibrated` samples are the 104
+`resumed` observations, and coverage beats the artifact's held-out 94.2% at 1.5M —
+**its "thinnest margin" watch item is answered from the interior.** The margin only
+rises: on all 352 cells its minimum is its first reading. Controller-side engagement,
+via `setHandoffDeadlineProbeHook`, 44 sources x seed 0, per pool build:
+
+| budget | builds w/ pressure (pre-completion) | full pressure | aim throttled | online cont. | heads withheld/build | compiles engaged |
+|---|---:|---:|---:|---:|---:|---:|
+| 750k | 10.0% | 2.9% | 1.09% | 0.59% | 0.114 | 2/44 |
+| 1M | 5.0% | 0.6% | 0.22% | 0.17% | 0.045 | 2/44 |
+
+At 1M the whole mechanism is two specs: `frontier_dense_recovery` (48% of its own
+pre-completion builds, 6% at full pressure) and its `_240ms_figures` sibling (7%,
+down from 54%). **Pressure at 1M is not gone, it is targeted** — it lives on the
+knife-edge spec the anchors were bracketed on; V1 slack is 6.70 median.
+
+### What 108 candidates per gap buys
+
+`27 * B/250k` reads 108 per gap at 1M against 81 at 750k. Paired, 176 cells:
+
+| quantity | 750k | 1M | ratio | law |
+|---|---:|---:|---:|---:|
+| first completion (kf, mean) | 413.7 | 516.3 | **1.2549** paired median | 1.2657 (`B^0.82`) |
+| implied exponent | — | — | **0.789** | 0.82 +- 0.02 |
+| measured slack / fc-over-budget | 1.836 / 0.547 | 1.956 / 0.512 | — | 1.957 / 0.515 |
+| pool builds per compile | 295.0 | 301.3 | 1.021 | — |
+| charged frames per pool build | 2,600 | 3,383 | 1.301 | — |
+| repair spend (kf/compile) | 342.1 | 489.6 | 1.431 | 1.468 (`B^1.334`) |
+| repair gain (pts/compile) | 5.264 | 6.384 | 1.213 | 1.032 (`B^0.111`) |
+| repair ROI (pts/kf) | 0.01538 | 0.01304 | 0.848 | 0.703 (`B^-1.22`) |
+| restarts/compile, zero-gain | 2.886 / 18.2% | 2.886 / 14.8% | 1.000 | 1.072 / — |
+| benchmark score (mean over cells) | 597.46 | 600.40 | **+2.94 +- 2.03** | — |
+
+Phase shares move startup 1.3 -> 0.9%, initial 52.8 -> 49.8%, repair 44.6 -> 48.0%,
+resumed 1.3 -> 1.3%: the 750k row reproduces the study's 45.3% and 1M lands on the
+log-interpolation of the 750k and 1.5M rows (47.9% predicted). Act/pred against the
+ROI law is 0.997 first completion, 0.997 repair spend, 1.098 gain, 1.101 ROI:
+**the spend side transfers inside 0.4%, the yield side runs ~10% high, as at 2.25M.**
+And the 27 extra candidates buy a *more expensive node*, not more nodes and not a
+wider pool: +2.1% builds, pool still 4.2 wide, +30.1% per build.
+
+### What 1M contradicts — work items
+
+- **The repair-gain exponent is untestable at this panel size and has now missed high
+  three times.** Paired difference +1.12 +- 1.65 pts/compile (ns), point exponent
+  0.671 against 0.111. Refit with the tail modelled, or mark it descriptive-only.
+- **`B^1.334` for repair spend is a global slope read as a local law.** Within head it
+  is 1.246 +- 0.049, excluding 1.334 — as it must be, repair spend being the budget
+  residual: `(1 - a*fc/B)/(1 - fc/B)` is ~1.20 at `fc/B = 0.53`.
+- **More budget is not monotone per source.** 67 of 176 cells score *worse* at 1M than
+  at 750k on the same seed (p10 -8.8): -14.4 `rising_switch_tempo_fast_5`, -13.2
+  `frontier_dense_recovery`, +29.6 `regression_transition_mosaic_tempo_fast_5`.
+  Production compiles one seed of one spec — it draws from that spread.
+- **Music-backed sources take half the dividend.** The four `believer_*` sources (the
+  manifest's only music-backed entries, no Shelter) gain +4.54 / +3.77 / +0.08 /
+  -2.03 — mean +1.57 against +2.94 — and never come under pressure.
+- **Production's three specs have no evidence at any budget.** `tiki_tiki_48s`,
+  `amor_na_praia_46s`, `luna_bala_44s` all declare `"budget": 1000000` and none is in
+  any manifest. The operating point has evidence; the corpus does not.
+- **`censored start-upper underestimates` now reads 100% at both budgets** (7/7,
+  5/5) where the pre-law artifact read 12.5% at 750k. Artifact effect, n=12.
+
+Artifacts (gitignored) in `generated/budget-telemetry/dividends/`: the two panels,
+their `.analysis.{json,md}`, `repair-both.{json,md}`.

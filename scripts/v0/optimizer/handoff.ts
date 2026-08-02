@@ -682,8 +682,6 @@ export type HandoffDeadlineProbeRecord = {
   forwardEvalTop: number;
   aimLaneThrottled: boolean;
   onlineContinuationApplied: boolean;
-  /** Whether the greedy rollout kept its second hop at this node (Phase 1b D). */
-  rolloutDepthFull: boolean;
 };
 
 type HandoffDeadlineProbeHook = (record: HandoffDeadlineProbeRecord) => void;
@@ -4205,7 +4203,6 @@ function rankedOptions(
       forwardEvalTop,
       aimLaneThrottled,
       onlineContinuationApplied: applyOnlineContinuation,
-      rolloutDepthFull: allowForwardEval,
     });
   }
   const eligible = applyOnlineContinuation
@@ -4751,87 +4748,10 @@ function resolveHandoffSearchPolicy({
     forwardStageTop: hasCompletion
       ? Math.max(0, Number.parseInt(readEnv("LR_POST_COMPLETION_FWD_STAGE_TOP") ?? "0", 10) || 0)
       : 0,
-    forwardEval: fullRolloutDepth(node, hasCompletion, budgetSlack, deadlineMargin),
+    forwardEval: hasCompletion ||
+      !(budgetSlack < HANDOFF_LOW_SLACK_BRANCH_THRESHOLD) ||
+      readEnv("LR_PRECOMPLETION_FWD_EVAL") === "1",
   };
-}
-
-/**
- * Whether the greedy rollout keeps its SECOND HOP at this node.
- *
- * Two coordinates may shallow it, neither may deepen it:
- *
- *  - DIFFICULTY — `budgetSlack` below `HANDOFF_LOW_SLACK_BRANCH_THRESHOLD`
- *    pre-completion (SC-10, 2026-07-16). Static, unchanged, and inert at every
- *    budget ≥ 500k where slack measures 2.8–6.8.
- *  - DEADLINE — the live margin (optimizer/deadline.ts), pre-completion, as a
- *    graded SHARE of nodes. Phase 1b option D; this is the new half.
- *
- * ## Why a share of nodes and not a threshold
- *
- * `deadlinePressure` already maps the margin onto [0, 1] between
- * `DEADLINE_MARGIN_NO_PRESSURE` and `DEADLINE_MARGIN_FULL_PRESSURE`. Reading it
- * as the FRACTION of nodes that give up their second hop — drawn from the
- * node's own deterministic hash, the same device `matureForwardEvalConfig` and
- * `impactBestForwardEvalConfig` use — is a magnitude, not a mode: a compile
- * under half pressure buys half the saving and keeps half the lookahead.
- *
- * The alternative was measured on this exact signal, scope and anchor, and it
- * is why the graded form is the shipped one (44 sources x 8 seeds at 750k,
- * paired, `scratchpad/phase1b`):
- *
- *   | rollout-depth pressure  | headline | capability | invalid |
- *   | binary at margin ≤ 1.25 |   -6.22  |   -41.50   |    1    |
- *   | binary at margin ≤ 1.00 |   +0.19  |    +1.23   |    0    |
- *   | GRADED over the ramp    |   +0.68  |    +4.50   |    0    |
- *
- * The binary arm is not a smaller version of the graded one: it improved ten
- * capability cells by +143 points and then lost `dense_recovery_240ms_figures`
- * seed 22 outright (395.63 -> never completes), because switching every node of
- * a knife-edge compile to a shallower judge at once removes the lookahead that
- * was finding the completion. Tightening the threshold to `at risk` (the middle
- * row) avoids the collapse only by almost never firing. The campaign's own rule
- * — *throttle a magnitude, never trigger a mode* — predicted exactly this: its
- * previous instance, a rollout-depth gate on the live paced slack, is the worst
- * number on record at -8.05 / capability -51.59.
- *
- * ## Why it is safe where 1a's consumers were not
- *
- * Depth is read AFTER the pool is built and sorted, so this changes only what a
- * candidate's rollout COSTS, never which candidates exist — the map's GA-16
- * safe pattern. No pool-memo key is involved, and the `LR_DEADLINE_CACHE_ASSERT`
- * counter stays at zero cross-state reads.
- *
- * ## The interaction with the head narrowing (SC-09) is deliberate
- *
- * When depth is shallowed, `rankedOptions` skips the narrowing branch entirely,
- * and it must: under narrowing the tail ranks are ALREADY rolled at depth 1, so
- * stacking the two would charge the same frames and merely delete the tail's
- * selectability. A uniform depth-1 roll is both cheaper (it also sells the
- * head's second hop) and wider (every pool member stays selectable) — which is
- * why this is the one lever the two capability groups want in the same
- * direction, where the narrowing axis was two-sided and exhausted.
- *
- * `LR_PRECOMPLETION_FWD_EVAL=1` forces full depth everywhere, as before.
- */
-function fullRolloutDepth(
-  node: SearchNode,
-  hasCompletion: boolean,
-  budgetSlack: number,
-  deadlineMargin: number,
-): boolean {
-  if (readEnv("LR_PRECOMPLETION_FWD_EVAL") === "1") return true;
-  // Post-completion is a measured null on this lever (-0.02 headline, +0.13
-  // capability, 194 of 352 tracks changed) — repair episodes reinvest the freed
-  // frames in more restarts at the same total yield. Not shipped: churn without
-  // a return. The margin is live there and the scope is one condition away.
-  if (hasCompletion) return true;
-  if (budgetSlack < HANDOFF_LOW_SLACK_BRANCH_THRESHOLD) return false;
-  return unitHash(rolloutDepthDeadlineSeed(node)) >=
-    deadlinePressure(deadlineMargin);
-}
-
-function rolloutDepthDeadlineSeed(node: SearchNode): number {
-  return nodeHashSeed(node, 0x1b873593, 0xcc9e2d51);
 }
 
 function lowSlackTraversalBranchLimit(budgetSlack: number, hasCompletion: boolean): number {

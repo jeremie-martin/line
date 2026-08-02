@@ -916,7 +916,7 @@ const HANDOFF_CANDIDATE_POOL = 5;
  * quantity's scale, not this one's.
  */
 const HANDOFF_FORWARD_EVAL_TOP = 2;
-const HANDOFF_BRANCHING = 4;
+const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
 
 /** The half-point of the shared maturity scale (`maturityPressure`): the budget

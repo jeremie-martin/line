@@ -26,7 +26,6 @@ import {
   resetArcPlacementStats,
   sampleArcParamsRngDraws,
   sampleArcPlacementGeometry,
-  setCompileBudgetFrames,
   setImpactProfilePressures,
   snapshotArcPlacementStats,
   wasLastGeometryImpactTemplate,
@@ -301,7 +300,6 @@ describe("target-state arc placement", () => {
     const targets = { air: 0.5, speed: 0.75, grain: 0.5, impact: 0.56 };
     const contactGap = gap(0, 0, 30);
     try {
-      setCompileBudgetFrames(250_000);
       setImpactProfilePressures({ elevationRoom: 1, highSpeedRelief: 0, templateHold: 0 });
       const base = linesFromGeometry(sampleArcPlacementGeometry(
         () => 0.5,
@@ -333,7 +331,6 @@ describe("target-state arc placement", () => {
       expect(relieved.at(-1)?.y2).not.toBeCloseTo(base.at(-1)?.y2 ?? NaN, 4);
     } finally {
       setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
-      setCompileBudgetFrames(0);
     }
   });
 
@@ -342,7 +339,6 @@ describe("target-state arc placement", () => {
     const contactGap = gap(0, 0, 30);
     const targets = { air: 0.15, speed: 0.55, grain: 0.45, impact: 0.72 };
     try {
-      setCompileBudgetFrames(250_000);
       setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
       const base = linesFromGeometry(sampleArcPlacementGeometry(
         () => 0.5,
@@ -376,7 +372,6 @@ describe("target-state arc placement", () => {
       expect(totalLineLength(held)).toBeGreaterThan(totalLineLength(base) + 5);
     } finally {
       setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
-      setCompileBudgetFrames(0);
     }
   });
 
@@ -384,7 +379,6 @@ describe("target-state arc placement", () => {
     const state = targetState(9, 18);
     const contactGap = gap(0, 0, 30);
     try {
-      setCompileBudgetFrames(250_000);
       setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
       const hard = linesFromGeometry(sampleArcPlacementGeometry(
         () => 0.5,
@@ -402,7 +396,6 @@ describe("target-state arc placement", () => {
       expect(Math.abs(totalSignedTurnDeg(hard))).toBeGreaterThan(24);
     } finally {
       setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
-      setCompileBudgetFrames(0);
     }
   });
 

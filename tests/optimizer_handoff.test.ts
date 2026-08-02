@@ -253,9 +253,19 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     );
     expect(a.stats.handoff_partial_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_full_evaluations).toBeGreaterThan(0);
-    expect(a.stats.handoff_previews).toBeGreaterThan(0);
-    expect(a.stats.handoff_preview_contacts).toBeGreaterThan(0);
-    expect(a.stats.handoff_preview_survivors).toBeGreaterThan(0);
+    // The three preview counters are ZERO here and that is the current contract,
+    // not a gap. `previewNextContact` has exactly one caller: the local axis-L2
+    // branch of `scoreCandidateForHandoff`, which forward eval replaces at every
+    // budget >= 75,000. This case compiles at 20,000, so the branch DOES run —
+    // and `policy.preview` is hard-false, so nothing asks it for a preview.
+    // Until 2026-08 it still ran one, because `qualityFuturePreviewPressure`
+    // (a maturity x full-feedback ramp) was non-zero, which charged a lookahead
+    // and then multiplied it by 0.03 at this budget. That knob was deleted; the
+    // counters follow it. They are still compared a-vs-b below, which is what
+    // this test is actually for.
+    expect(a.stats.handoff_previews).toBe(0);
+    expect(a.stats.handoff_preview_contacts).toBe(0);
+    expect(a.stats.handoff_preview_survivors).toBe(0);
     expect(a.stats.handoff_far_back_pulses).toBeGreaterThanOrEqual(0);
     expect(a.stats.handoff_partial_evaluations).toBe(b.stats.handoff_partial_evaluations);
     expect(a.stats.handoff_frontier_size).toBe(b.stats.handoff_frontier_size);

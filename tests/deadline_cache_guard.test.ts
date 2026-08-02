@@ -15,7 +15,6 @@ describe("aim-lane throttle cache guard", () => {
   test("counts a frozen read that crosses a throttle transition, and only that", async () => {
     process.env.LR_DEADLINE_CACHE_ASSERT = "1";
     const { makeRng } = await import("../scripts/lib/rng.ts");
-    const { setCompileBudgetFrames } = await import("../scripts/v0/arc_placement.ts");
     const { resetPerCompileState } = await import("../scripts/v0/core/compile_lifecycle.ts");
     const substrate = await import("../scripts/v0/core/substrate.ts");
     const { loadGoldenSpec } = await import("../scripts/v0/golden_suite.ts");
@@ -42,7 +41,6 @@ describe("aim-lane throttle cache guard", () => {
     const ctx: SpecContext = { allContactFrames, durationFrames, gaps };
     const freshNode = () => {
       resetPerCompileState();
-      setCompileBudgetFrames(750_000);
       setAimCompileBudgetFrames(750_000);
       return node.makeRootNode(
         substrate.makeBaseEngine(substrate.resolveStartState(spec)),

@@ -16,9 +16,10 @@
  *
  * `readiness: null` means UNSET, which is not the same as 1: unset makes the
  * readiness exponent follow the future exponent, reproducing the two-exponent
- * compiler and preserving `objectiveBlendReadinessPowerForSpec`'s per-spec 0.75
- * on both terms. A cell that pins readiness to 1 is therefore a real arm, not
- * the default.
+ * compiler. (It used to also preserve a per-spec 0.75 that handoff.ts resolved
+ * for five specs; that gate was deleted in 2026-08, so today "follow" just means
+ * follow whatever the future exponent is set to.) A cell that pins readiness to
+ * 1 is therefore a real arm, not the default.
  */
 
 /** Matches `objective.ts` `normalizeObjectivePower`. A cell outside this range

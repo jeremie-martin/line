@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { makeRng } from "../scripts/lib/rng.ts";
 import { getPhysicsFrameCount } from "../scripts/lib/detector.ts";
-import { setCompileBudgetFrames } from "../scripts/v0/arc_placement.ts";
 import { axisLookaheadEndFrame } from "../scripts/v0/core/candidate.ts";
 import { resetPerCompileState } from "../scripts/v0/core/compile_lifecycle.ts";
 import {
@@ -107,7 +106,6 @@ describe("joint arc base-fit projection", () => {
       allowed = reuseBaseFit,
     ) => {
       resetPerCompileState();
-      setCompileBudgetFrames(budget);
       setAimCompileBudgetFrames(budget);
       setAimLaneDeadlineThrottled(false);
       setAimBaseFitReuseAllowed(allowed);

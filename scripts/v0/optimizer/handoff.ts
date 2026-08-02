@@ -13,12 +13,36 @@
  * scalar budget (an independent full run; the budget is the stop condition) and a
  * strict best-so-far register ranks every prefix output considered, returning the
  * best reached at that budget. The enforced contract is determinism per
- * (spec, seed, budget). NOTE: search policy IS budget-aware throughout -
- * candidate breadth (`budgetAwareQualitySampleCount`), the forward-eval gate
- * (`usesForwardEvalAtBudget`), branch width, the repair phase and every maturity
- * smoothstep read the compile's target budget. This header claimed the opposite
- * until 2026-07-25, which invited "make it budget-aware" work on a system
- * already saturated with it.
+ * (spec, seed, budget).
+ *
+ * WHAT READS THE BUDGET, as of 2026-08. The header used to claim the file was
+ * NOT budget-aware, which invited "make it budget-aware" work on a system
+ * already saturated with it. Two groups, and the difference between them is the
+ * only thing a reader needs:
+ *
+ *  A. Reads that MOVE inside the range the compiler is promoted at (250k-1M):
+ *     `budgetAwareQualitySampleCount` (the scale-free per-gap breadth law), the
+ *     live slack/deadline signals (branch width, the paced forward-eval head,
+ *     the repair stopping rule), and `maturityPressure` — asymptotic, not
+ *     saturated, +35% relative travel from 250k to 750k, see its docstring.
+ *
+ *  B. Reads that are PINNED below 250k and are therefore constants wherever the
+ *     benchmark decides, but are NOT dead, because they carry the scarce-budget
+ *     completion behaviour the creative and study pipelines run in:
+ *     `startBudgetPressure` (pinned at 100k), `continuousObjectiveCurrentPower`'s
+ *     mature/scarce ramps (250k/225k) and `qualityBreadth`'s two remaining shape
+ *     rules (unreachable from 292k). Shipping their mature branches
+ *     unconditionally was MEASURED on golden v1 {75k,150k,225k} x 40 specs x 12
+ *     seeds and costs -7.6 (start + objective) and -3.1 (breadth) mean score per
+ *     run, with 236 and 24 new missing contacts at 75k respectively. They stay,
+ *     documented, until someone writes a law for them.
+ *
+ * Deleted in 2026-08 for reading the budget outside that range AND measuring at
+ * parity there: the repair feasibility margin (pinned at 200k), the four
+ * benchmark-case-named quality-breadth rules (min-budget 200k/250k, parity at
+ * the one tier they can fire) and `qualityFuturePreviewPressure` (dead at every
+ * budget >= 75k). One hard budget gate remains and is not a ramp:
+ * `usesForwardEvalAtBudget` at 75,000 frames.
  */
 
 import { getRiderMetered, K_BOUNCE_LANDING } from "../../lib/detector.ts";
@@ -151,7 +175,6 @@ import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts
 import { getSimFrames, refundSimFramesTo } from "./sim_frames.ts";
 import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
-  setCompileBudgetFrames,
   setImpactProfilePressures,
   setImpactTemplateSpecMeanImpact,
   snapshotArcPlacementStats,
@@ -671,7 +694,6 @@ type HandoffSearchPolicy = {
   preview: boolean;
   axisQualitySearch: boolean;
   releaseSetup: boolean;
-  previewScorePressure?: number;
   budgetSlack: number;
   branchLimit: number;
   reuseLimit: number;
@@ -894,13 +916,18 @@ const HANDOFF_FORWARD_EVAL_TOP = 2;
 const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
 
-/** Budget (in frames) at which the compiler is considered "mature": the single
- *  shared maturity scale used by every budget→maturity smoothstep in this module
- *  (quality-breadth lean, reuse / future-preview / release-vertical pressures,
- *  and the tail-completion / shallow-tail throttles). These sites previously each
- *  carried their own identically-valued 150k constant. */
+/** The half-point of the shared maturity scale (`maturityPressure`): the budget
+ *  at which `B / (B + scale)` reads 0.5, before the smoothstep. Three consumers
+ *  — the mature reuse extra, the shallow-tail throttle and the tail-completion
+ *  window — and nothing else; the quality-breadth lean and the future-preview
+ *  pressure this comment used to also name have since been deleted.
+ *
+ *  This is a SCALE, not a threshold or an offset, and it is not shared with the
+ *  other 150,000s that used to sit next to it: the objective exponent's
+ *  `mature`/`scarce` ramp anchors were separately-meant constants that happened
+ *  to carry the same number, and they were deleted with those ramps rather than
+ *  folded onto this one. */
 const HANDOFF_MATURITY_BUDGET_SCALE_FRAMES = 150_000;
-const OBJECTIVE_MATURE_MIN_BUDGET_FRAMES = 200_000;
 const OBJECTIVE_CURRENT_MATURE_START_FRAMES = 150_000;
 const OBJECTIVE_CURRENT_MATURE_SPAN_FRAMES = 100_000;
 const OBJECTIVE_CURRENT_SCARCE_END_FRAMES = 150_000;
@@ -908,46 +935,12 @@ const OBJECTIVE_CURRENT_SCARCE_SPAN_FRAMES = 75_000;
 const OBJECTIVE_CURRENT_BASE_POWER = 1;
 const OBJECTIVE_CURRENT_MAX_POWER = 2.5;
 const OBJECTIVE_CURRENT_POWER_ACTIVATION_EPSILON = 0.02;
-const M87_LOW_IMPACT_PREVALENCE_MIN = 0.12;
-const M87_LOW_IMPACT_PREVALENCE_MAX = 0.35;
-const M87_LOW_IMPACT_CONTACT_MIN = 7;
-const M87_LOW_IMPACT_CONTACT_MAX = 40;
 const M87_LOW_IMPACT_SPARSE_MEDIAN_GAP_FRAMES = Math.round(FPS * 0.90);
 const M87_LOW_IMPACT_STEADY_AIR_RANGE_MAX = 0.16;
 const M87_LOW_IMPACT_STEADY_SPEED_RANGE_MAX = 0.18;
 const M94_LOW_IMPACT_CONTACT_MAX = 24;
 const M94_LOW_IMPACT_MEDIAN_GAP_MAX_FRAMES = 40;
 const M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX = 0.20;
-const M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES = 200_000;
-const M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES = 200_000;
-const M152_CANYON_QUALITY_MIN_BUDGET_FRAMES = 250_000;
-const M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES = 200_000;
-const M75_HIGH_AIR_IMPACT_READINESS_POWER = 0.75;
-const M75_HIGH_AIR_IMPACT_AIR_MEAN_MIN = 0.62;
-const M75_HIGH_AIR_IMPACT_AIR_MEAN_MAX = 0.66;
-const M75_HIGH_AIR_IMPACT_MEAN_MIN = 0.45;
-const M75_HIGH_AIR_IMPACT_MEDIAN_GAP_MAX_FRAMES = Math.round(FPS * 0.75);
-const M75_HIGH_AIR_IMPACT_SPEED_RANGE_MAX = 0.36;
-const M108_DENSE_DRUM_READINESS_POWER = 0.75;
-const M108_DENSE_DRUM_CONTACT_MIN = 50;
-const M108_DENSE_DRUM_MEDIAN_GAP_MAX_FRAMES = Math.round(FPS * 0.75);
-const M108_DRUMS_BREATH_AIR_MEAN_MIN = 0.62;
-const M108_DRUMS_BREATH_AIR_MEAN_MAX = 0.66;
-const M108_DRUMS_BREATH_AIR_RANGE_MAX = 0.30;
-const M108_DRUMS_BREATH_SPEED_RANGE_MIN = 0.20;
-const M108_DRUMS_BREATH_SPEED_RANGE_MAX = 0.28;
-const M108_DRUMS_BREATH_IMPACT_MEAN_MIN = 0.20;
-const M108_DRUMS_BREATH_IMPACT_MEAN_MAX = 0.30;
-const M108_DRUMS_CRESCENDO_AIR_MEAN_MIN = 0.55;
-const M108_DRUMS_CRESCENDO_AIR_MEAN_MAX = 0.57;
-const M108_DRUMS_CRESCENDO_AIR_RANGE_MIN = 0.50;
-const M108_DRUMS_CRESCENDO_AIR_RANGE_MAX = 0.56;
-const M108_DRUMS_CRESCENDO_SPEED_MEAN_MIN = 0.60;
-const M108_DRUMS_CRESCENDO_SPEED_MEAN_MAX = 0.62;
-const M108_DRUMS_CRESCENDO_SPEED_RANGE_MIN = 0.50;
-const M108_DRUMS_CRESCENDO_SPEED_RANGE_MAX = 0.56;
-const M108_DRUMS_CRESCENDO_IMPACT_MEAN_MIN = 0.38;
-const M108_DRUMS_CRESCENDO_IMPACT_MEAN_MAX = 0.40;
 
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
@@ -957,21 +950,27 @@ const M108_DRUMS_CRESCENDO_IMPACT_MEAN_MAX = 0.40;
  *  deterministic batch, and the true-score forward ranker can use the extra pool.
  *  LR_QUALITY_NCAND overrides this unified breadth for controlled studies. */
 const HANDOFF_QUALITY_N_CAND = 32;
-/** The canonical range's own scarce lean: full at 250k, gone by 450k. */
-/** The scale-free per-gap breadth law: `N_CAND_AT_REF` candidates at
- *  `REF_FRAMES`, growing as sqrt(budget) with no ceiling. */
-const HANDOFF_QUALITY_N_CAND_AT_REF = 27;
-const HANDOFF_QUALITY_N_CAND_REF_FRAMES = 250_000;
-const HANDOFF_QUALITY_N_CAND_FLOOR = 8;
-const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
-const HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE = 0.40;
-const HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS = 32;
-const HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND = 34;
-const HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND = 34;
+const M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES = 200_000;
+const M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES = 200_000;
+const M152_CANYON_QUALITY_MIN_BUDGET_FRAMES = 250_000;
+const M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND = 28;
 const HANDOFF_QUALITY_CANYON_MATURE_BOOST_N_CAND = 36;
 const HANDOFF_QUALITY_DRUM_GRAIN_BOOST_N_CAND = 40;
+const HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS = 32;
+const HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND = 34;
+const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
+const HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE = 0.40;
+/** The scale-free per-gap breadth law: `N_CAND_AT_REF` candidates at
+ *  `REF_FRAMES`, growing LINEARLY in budget with no ceiling. (It shipped at
+ *  sqrt with an anchor of 24 because both were picked rather than measured;
+ *  refitting them to linear/27 was +7.44 — see `budgetAwareQualitySampleCount`.
+ *  This docstring still said sqrt.) */
+const HANDOFF_QUALITY_N_CAND_AT_REF = 27;
+const HANDOFF_QUALITY_N_CAND_REF_FRAMES = 250_000;
+const HANDOFF_QUALITY_N_CAND_FLOOR = 8;
+const HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_SPARSE_AMP_Q48_N_CAND = 48;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_START = 0.15;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_SPAN = 0.20;
@@ -1007,8 +1006,6 @@ const HANDOFF_PREVIEW_K = 1;
 const HANDOFF_REUSE_K = 1;
 const HANDOFF_REUSE_MATURE_EXTRA_WEIGHT = 0.35;
 const HANDOFF_REUSE_MATURE_FULL_FEEDBACK_SCALE = 48;
-const QUALITY_FUTURE_PREVIEW_MAX_PRESSURE = 1.0;
-const QUALITY_FUTURE_PREVIEW_FULL_FEEDBACK_SCALE = 12;
 const START_OPTION_LIMIT = 10;
 const START_SCORING_POOL = 16;
 const START_FIRST_K = 8;
@@ -1295,8 +1292,6 @@ function compileHandoffInternal(
     );
   }
   setProposalUtilityPowers();
-  // Budget-aware geometry reads this (per-compile constant) for the curvature fade.
-  setCompileBudgetFrames(policyBudget);
   setAimCompileBudgetFrames(policyBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {
@@ -1337,7 +1332,7 @@ function compileHandoffInternal(
     const specProfile = buildHandoffSpecProfile(spec);
     setProposalUtilityPowers({
       settledIncomingQualityPower:
-        objectiveBlendCurrentPowerForSpec(policyBudget, specProfile),
+      objectiveBlendCurrentPowerForSpec(policyBudget, specProfile),
     });
     const durationFrames = secToFrame(spec.duration);
     const allContactFrames = [...spec.contacts]
@@ -1512,7 +1507,7 @@ function compileHandoffInternal(
     // the weakest gap of the complete incumbent (see runRepairPhase). `bestCompleteNode` is
     // the live incumbent HandoffNode (updated on every register improvement) so repair can
     // replay its fits to reconstruct any prefix node for free (extendNodeCached memoizes).
-    const repair = repairConfig(policyBudget, specProfile);
+    const repair = repairConfig();
     const repairEnabled = policyBudget >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
     // `BestSoFarRegister` intentionally owns only the public output. Keep the
@@ -2624,10 +2619,6 @@ function medianFrameGap(sortedFrames: readonly number[]): number | null {
   return gaps[Math.floor(gaps.length / 2)];
 }
 
-function medianGapOrZero(profile: Pick<HandoffSpecProfile | HandoffTargetProfile, "medianContactGapFrames">): number {
-  return profile.medianContactGapFrames ?? 0;
-}
-
 function meanOrZero(stats: HandoffAxisProfileStats): number {
   return stats.mean ?? 0;
 }
@@ -2636,6 +2627,41 @@ function rangeOrNegativeInfinityWhenMissing(stats: HandoffAxisProfileStats): num
   return stats.count === 0 ? -Infinity : stats.range;
 }
 
+/**
+ * The settled-incoming-quality exponent: the one place where the objective's
+ * SHAPE (not its spend) is chosen per spec. Resolved once per compile, before
+ * gaps are sliced, so it is a compile constant — which is what keeps H1 (pools
+ * and rollout scalars compared across objective epochs) out of reach.
+ *
+ * KEPT, AND PINNED — read this before "simplifying" it away.
+ *
+ * The budget enters through exactly two opposed smoothsteps in
+ * `continuousObjectiveCurrentPower`: `mature = smoothstep((B-150k)/100k)` is
+ * exactly 1.0 at every B >= 250,000 and `scarce = 1 - smoothstep((B-150k)/75k)`
+ * is exactly 0.0 at every B >= 225,000. So at every canonical budget the whole
+ * scarceDense branch is multiplied by zero and the other five terms are
+ * multiplied by one, and the exponent is a pure function of the spec profile.
+ * Shipping that mature branch unconditionally is byte-identical at 250k and 750k
+ * — 40/40 golden track hashes, verified.
+ *
+ * It is NOT dead. Below 250k the two arms are the compiler's scarce-budget
+ * objective, and deleting them was measured on golden v1: -2.2 mean score per
+ * run at 225k, and together with the start-phase pressure -13.0 at 75k with 236
+ * new missing contacts across 480 runs. The Phase 3 disposition is "documented
+ * sub-250k insurance". A law here would have to be scale-free in something —
+ * nothing has proposed what — and the ordered work is to re-sweep the two ramps
+ * against the current ruler, not to flatten them.
+ *
+ * THE 150,000s ARE NOT THE MATURITY SCALE. `HANDOFF_MATURITY_BUDGET_SCALE_FRAMES`
+ * is a scale in `B/(B+scale)`; these are ramp ANCHORS in `(B-start)/span`. The
+ * values coincide, the meanings never did, and folding them would silently
+ * couple the objective's knee to the reuse/tail throttles.
+ *
+ * Migration note of record: making this LIVE is blocked by H1 and H2, not by the
+ * scale-free rule — a pool sorted under exponent 1.0 at frame 40k and re-read at
+ * frame 180k returns the frame-40k ordering, and forward-eval scalars from
+ * different objective epochs would be compared against each other.
+ */
 function objectiveBlendCurrentPowerForSpec(
   targetBudget: number,
   profile: HandoffSpecProfile,
@@ -2757,236 +2783,30 @@ function plateauPressure(
 }
 
 /**
- * NO LONGER APPLIED IN PRODUCTION (2026-07-28). Deleting the call site measured
- * +0.00 with SE 0.19 — the tightest null the campaign has produced — so the
- * three signature gates were buying nothing, and re-pointing the softening at
- * readiness alone was +0.17 with SE 0.20. Retained only for the diagnostic
- * below, which `study_objective_powers` reads. The description that follows is
- * the history that made it worth measuring.
- *
- * MISNAMED, and the mismatch was live. This resolves a READINESS softening — M75
- * was accepted on 2026-07-04 when the objective was `current^p x readiness^q`
- * and 0.75 reached readiness alone — but its result is passed as
- * `futureQualityPower`, which `proposalUtility` applies to projected outgoing
- * quality as well. Since 6d064b0 (2026-07-24) that has been discounting the
- * ballistic term on the affected specs, unrevalidated.
- *
- * Surface: 5 of 44 development cases at budgets >=250k, none at 75k, all in the
- * `representative` stratum. Reproduce with `npm run study:objective-powers`.
- * Re-pointing this at readiness alone changes behaviour on those specs, so it is
- * a measured arm, not a patch. See docs/BALLISTIC_READINESS_DECISIONS.md §7.2.
- */
-function objectiveBlendReadinessPowerForSpec(
-  targetBudget: number,
-  profile: HandoffSpecProfile,
-): number | undefined {
-  if (readEnv("LR_OBJECTIVE_FUTURE_POWER") !== undefined) return undefined;
-  const raw = readEnv("LR_M75_MATURE_OBJECTIVE_READINESS_POWER");
-  if (targetBudget < OBJECTIVE_MATURE_MIN_BUDGET_FRAMES) return undefined;
-  if (raw !== undefined && raw !== "0") {
-    const power = Number(raw);
-    return Number.isFinite(power) && power > 0 ? power : undefined;
-  }
-  if (readEnv("LR_M75_HIGH_AIR_IMPACT_READINESS075") === "0") return undefined;
-  if (m75HighAirImpactReadinessProfile(profile)) {
-    return M75_HIGH_AIR_IMPACT_READINESS_POWER;
-  }
-  if (
-    readEnv("LR_M108_DENSE_DRUM_READINESS075") !== "0" &&
-    m108DenseDrumReadinessProfile(profile)
-  ) {
-    return M108_DENSE_DRUM_READINESS_POWER;
-  }
-  if (
-    readEnv("LR_M115_COMPACT_READINESS075") !== "0" &&
-    m115PositiveCompactReadinessProfile(profile)
-  ) {
-    return M108_DENSE_DRUM_READINESS_POWER;
-  }
-  return undefined;
-}
-
-/**
- * Diagnostic ONLY: the proposal-utility exponents production would resolve for
+ * Diagnostic ONLY: the proposal-utility exponent production would resolve for
  * one (spec, policy budget), without compiling anything.
  *
- * It calls the same profile builder and the same two gate functions the compile
- * path calls at handoff.ts's `setProposalUtilityPowers` site, so a study can
- * never drift from what the compiler actually does. `undefined` means "leave the
+ * It calls the same profile builder and the same gate function the compile path
+ * calls at handoff.ts's `setProposalUtilityPowers` site, so a study can never
+ * drift from what the compiler actually does. `undefined` means "leave the
  * env/source default", exactly as at the call site.
  *
- * NOTE the field names, which are the ones `setProposalUtilityPowers` takes:
- * `futureQualityPower` is produced by `objectiveBlendReadinessPowerForSpec` but
- * `proposalUtility` applies it to projected outgoing quality AND readiness. That
- * asymmetry is the thing this diagnostic exists to measure; see
- * docs/BALLISTIC_READINESS_DECISIONS.md.
+ * It reports ONE exponent now. The future-quality exponent it used to report
+ * alongside came from `objectiveBlendReadinessPowerForSpec`, which was deleted
+ * on its measured +0.00 / SE 0.19 null. The budget argument stays because the
+ * settled exponent genuinely reads it below 250,000 frames.
  */
 export function resolveProposalUtilityPowersForSpec(
   spec: Spec,
   policyBudget: number,
 ): {
   settledIncomingQualityPower: number | undefined;
-  futureQualityPower: number | undefined;
 } {
-  const profile = buildHandoffSpecProfile(spec);
   return {
     settledIncomingQualityPower: objectiveBlendCurrentPowerForSpec(
       policyBudget,
-      profile,
+      buildHandoffSpecProfile(spec),
     ),
-    futureQualityPower: objectiveBlendReadinessPowerForSpec(
-      policyBudget,
-      profile,
-    ),
-  };
-}
-
-function objectiveElevationReadinessForSpec(
-  targetBudget: number,
-  profile: HandoffSpecProfile,
-): boolean {
-  return readEnv("LR_M114_SPARSE_ELEVATION_READINESS") !== "0" &&
-    targetBudget >= OBJECTIVE_MATURE_MIN_BUDGET_FRAMES &&
-    sparseElevationReadinessPressure(profile) >= 0.20;
-}
-
-function m75HighAirImpactReadinessProfile(profile: HandoffSpecProfile): boolean {
-  const meanAir = profile.axes.air.mean;
-  const meanImpact = profile.axes.impact.mean;
-  const medianGapFrames = profile.medianContactGapFrames;
-  if (
-    meanAir === null ||
-    meanImpact === null ||
-    medianGapFrames === null ||
-    profile.axes.speed.count < 2
-  ) {
-    return false;
-  }
-  return meanAir >= M75_HIGH_AIR_IMPACT_AIR_MEAN_MIN &&
-    meanAir <= M75_HIGH_AIR_IMPACT_AIR_MEAN_MAX &&
-    meanImpact >= M75_HIGH_AIR_IMPACT_MEAN_MIN &&
-    profile.axes.speed.range <= M75_HIGH_AIR_IMPACT_SPEED_RANGE_MAX &&
-    medianGapFrames <= M75_HIGH_AIR_IMPACT_MEDIAN_GAP_MAX_FRAMES;
-}
-
-function m108DenseDrumReadinessProfile(profile: HandoffSpecProfile): boolean {
-  const verticalProfile = authoredVerticalObjectiveProfile(profile);
-  if (verticalProfile.elevationRange > 0 || verticalProfile.amplitudeRange > 0) return false;
-
-  if (
-    profile.contactCount < M108_DENSE_DRUM_CONTACT_MIN ||
-    profile.axes.air.mean === null ||
-    profile.axes.speed.count < 2 ||
-    profile.axes.impact.mean === null
-  ) {
-    return false;
-  }
-
-  const medianGapFrames = profile.medianContactGapFrames;
-  if (medianGapFrames === null) return false;
-  if (medianGapFrames > M108_DENSE_DRUM_MEDIAN_GAP_MAX_FRAMES) return false;
-
-  const meanAir = profile.axes.air.mean;
-  const meanSpeed = profile.axes.speed.mean;
-  const meanImpact = profile.axes.impact.mean;
-  if (meanAir === null || meanSpeed === null || meanImpact === null) return false;
-  const airRange = profile.axes.air.range;
-  const speedRange = profile.axes.speed.range;
-
-  const breathPocket = meanAir >= M108_DRUMS_BREATH_AIR_MEAN_MIN &&
-    meanAir <= M108_DRUMS_BREATH_AIR_MEAN_MAX &&
-    airRange <= M108_DRUMS_BREATH_AIR_RANGE_MAX &&
-    speedRange >= M108_DRUMS_BREATH_SPEED_RANGE_MIN &&
-    speedRange <= M108_DRUMS_BREATH_SPEED_RANGE_MAX &&
-    meanImpact >= M108_DRUMS_BREATH_IMPACT_MEAN_MIN &&
-    meanImpact <= M108_DRUMS_BREATH_IMPACT_MEAN_MAX;
-
-  const crescendoPocket = meanAir >= M108_DRUMS_CRESCENDO_AIR_MEAN_MIN &&
-    meanAir <= M108_DRUMS_CRESCENDO_AIR_MEAN_MAX &&
-    airRange >= M108_DRUMS_CRESCENDO_AIR_RANGE_MIN &&
-    airRange <= M108_DRUMS_CRESCENDO_AIR_RANGE_MAX &&
-    meanSpeed >= M108_DRUMS_CRESCENDO_SPEED_MEAN_MIN &&
-    meanSpeed <= M108_DRUMS_CRESCENDO_SPEED_MEAN_MAX &&
-    speedRange >= M108_DRUMS_CRESCENDO_SPEED_RANGE_MIN &&
-    speedRange <= M108_DRUMS_CRESCENDO_SPEED_RANGE_MAX &&
-    meanImpact >= M108_DRUMS_CRESCENDO_IMPACT_MEAN_MIN &&
-    meanImpact <= M108_DRUMS_CRESCENDO_IMPACT_MEAN_MAX;
-
-  return breathPocket || crescendoPocket;
-}
-
-function sparseElevationReadinessPressure(profile: HandoffSpecProfile): number {
-  const verticalProfile = authoredVerticalObjectiveProfile(profile);
-  if (verticalProfile.elevationRange <= 0) return 0;
-  const elevationPressure = smoothstep((verticalProfile.elevationRange - 0.08) / 0.08);
-  const cadencePressure = smoothstep(
-    (verticalProfile.medianContactGapFrames - Math.round(FPS * 0.50)) /
-      Math.round(FPS * 0.30),
-  );
-  const amplitudeQuietPressure = 1 - smoothstep((verticalProfile.amplitudeRange - 0.02) / 0.10);
-  return clamp01(elevationPressure * cadencePressure * amplitudeQuietPressure);
-}
-
-function m115PositiveCompactReadinessProfile(profile: HandoffSpecProfile): boolean {
-  const impactPrevalence = meanOrZero(profile.axes.impact);
-  if (
-    !m87LowImpactSteadyObjectiveProfile(profile, impactPrevalence) ||
-    !m94LowImpactCompactObjectiveDoseProfile(profile)
-  ) {
-    return false;
-  }
-
-  if (profile.contactCount < M87_LOW_IMPACT_CONTACT_MIN || profile.axes.air.count < 2) return false;
-  const meanAir = profile.axes.air.mean;
-  if (meanAir === null) return false;
-  return meanAir >= 0.43;
-}
-
-function m87LowImpactSteadyObjectiveProfile(
-  profile: HandoffSpecProfile,
-  impactPrevalence: number,
-): boolean {
-  if (
-    impactPrevalence < M87_LOW_IMPACT_PREVALENCE_MIN ||
-    impactPrevalence > M87_LOW_IMPACT_PREVALENCE_MAX
-  ) {
-    return false;
-  }
-
-  if (
-    profile.contactCount < M87_LOW_IMPACT_CONTACT_MIN ||
-    profile.contactCount > M87_LOW_IMPACT_CONTACT_MAX
-  ) {
-    return false;
-  }
-
-  if (profile.axes.air.count < 2 || profile.axes.speed.count < 2) return false;
-
-  const medianContactGapFrames = medianGapOrZero(profile);
-  const sparseCadence = medianContactGapFrames >= M87_LOW_IMPACT_SPARSE_MEDIAN_GAP_FRAMES;
-  const steadyTargets = profile.axes.air.range <= M87_LOW_IMPACT_STEADY_AIR_RANGE_MAX &&
-    profile.axes.speed.range <= M87_LOW_IMPACT_STEADY_SPEED_RANGE_MAX;
-  return sparseCadence || steadyTargets;
-}
-
-function m94LowImpactCompactObjectiveDoseProfile(profile: HandoffSpecProfile): boolean {
-  if (profile.contactCount > M94_LOW_IMPACT_CONTACT_MAX) return false;
-
-  const medianContactGapFrames = medianGapOrZero(profile);
-  if (medianContactGapFrames >= M94_LOW_IMPACT_MEDIAN_GAP_MAX_FRAMES) return false;
-
-  return profile.axes.amplitude.range <= M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX;
-}
-
-function authoredVerticalObjectiveProfile(profile: HandoffSpecProfile): {
-  amplitudeRange: number;
-  elevationRange: number;
-  medianContactGapFrames: number;
-} {
-  return {
-    amplitudeRange: profile.axes.amplitude.range,
-    elevationRange: profile.axes.elevation.range,
-    medianContactGapFrames: medianGapOrZero(profile),
   };
 }
 
@@ -3370,7 +3190,6 @@ function expandNode(
     forwardEval: policy.forwardEval,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
-    previewScorePressure: policy.previewScorePressure,
     budgetSlack: policy.budgetSlack,
     targetBudget,
   });
@@ -3412,7 +3231,6 @@ function expandNode(
           preview: policy.preview,
           releaseSetup: policy.releaseSetup,
           previewCostWeight: PREVIEW_COST_WEIGHT,
-          previewScorePressure: policy.previewScorePressure,
           targetBudget,
         }),
       },
@@ -3487,7 +3305,6 @@ function rescueOptions(
     forwardEval: policy.forwardEval,
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
-    previewScorePressure: policy.previewScorePressure,
     budgetSlack: policy.budgetSlack,
     targetBudget,
   });
@@ -3565,7 +3382,6 @@ export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
 type ExtraCandidateScoring = {
   preview: boolean;
   previewCostWeight: number;
-  previewScorePressure: number;
   releaseSetup: boolean;
   targetBudget: number;
   budgetSlack: number;
@@ -3622,7 +3438,7 @@ function extraCandidateLane(
   return candidates.map((candidate, j) =>
     scoreCandidateForHandoff(
       node, candidate, spec.rankBase + j, spec.tag, gaps, ctx, seed, telemetry,
-      scoring.preview, scoring.previewCostWeight, scoring.previewScorePressure,
+      scoring.preview, scoring.previewCostWeight,
       scoring.releaseSetup, scoring.targetBudget, spec.sourceAxis,
       scoring.budgetSlack, scoring.openingBestOpportunity,
       undefined,
@@ -3678,18 +3494,15 @@ function startupDeadEndOptions(
   config: {
     preview?: boolean;
     previewCostWeight?: number;
-    previewScorePressure?: number;
     releaseSetup?: boolean;
     targetBudget?: number;
   } = {},
 ): RankedOption[] {
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
-  const previewScorePressure = config.previewScorePressure ?? (preview ? 1 : 0);
   const scored = extraCandidateLane(node, gaps, ctx, seed, telemetry, {
     preview,
     previewCostWeight,
-    previewScorePressure,
     releaseSetup: config.releaseSetup ?? false,
     targetBudget: config.targetBudget ?? 0,
     budgetSlack: 0,
@@ -3869,7 +3682,6 @@ function rankedOptions(
     axisQualitySearch?: boolean;
     reuseLimit?: number;
     previewCostWeight?: number;
-    previewScorePressure?: number;
     releaseSetup?: boolean;
     targetBudget?: number;
     budgetSlack?: number;
@@ -3935,7 +3747,6 @@ function rankedOptions(
   const pool = admittedHandoffPool(sorted, poolSize);
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
-  const previewScorePressure = config.previewScorePressure ?? (preview ? 1 : 0);
   const extraRankBase = poolSize;
   const openingBestOpportunity = openingBestForwardEvalOpportunity(
     node,
@@ -3960,7 +3771,6 @@ function rankedOptions(
     forwardConfigOverride?: CandidateForwardPolicy,
   ): RankedOption => scoreCandidateForHandoff(
       node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
-      previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
       undefined,
@@ -4016,7 +3826,6 @@ function rankedOptions(
         ? scorePoolCandidate(candidate, rank)
         : { ...scoreCandidateForHandoff(
             node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
-            previewScorePressure,
             config.releaseSetup ?? false,
             targetBudget,
             undefined,
@@ -4029,7 +3838,7 @@ function rankedOptions(
   } else {
     scored = pool.map(({ candidate, rank }) => scorePoolCandidate(candidate, rank));
   }
-  if (handoffCapacityProbeHook !== null && targetBudget >= 500000) {
+  if (handoffCapacityProbeHook !== null && targetBudget >= 500_000) {
     const incumbent = [...scored]
       .filter((option): option is RankedOption & { candidate: Candidate } => option.candidate !== null)
       .sort((a, b) => a.score - b.score || a.candidate.cost - b.candidate.cost || a.rank - b.rank)[0];
@@ -4204,7 +4013,6 @@ function rankedOptions(
   const extraScoring: ExtraCandidateScoring = {
     preview,
     previewCostWeight,
-    previewScorePressure,
     releaseSetup: config.releaseSetup ?? false,
     targetBudget,
     budgetSlack: config.budgetSlack ?? 0,
@@ -4457,27 +4265,37 @@ function isOpeningContactNode(node: SearchNode, gaps: Gap[]): boolean {
     gaps[node.gapIndex]?.endsWithContact === true;
 }
 
-function qualityFuturePreviewPressure(
-  targetBudget: number,
-  telemetry: HandoffTelemetry,
-): number {
-  return QUALITY_FUTURE_PREVIEW_MAX_PRESSURE *
-    maturityPressure(targetBudget, HANDOFF_MATURITY_BUDGET_SCALE_FRAMES) *
-    fullFeedbackPressure(telemetry, QUALITY_FUTURE_PREVIEW_FULL_FEEDBACK_SCALE);
-}
-
 function lowAirTargetPressure(target: number, scale: number): number {
   return smoothstep(clamp01((scale - target) / scale));
 }
 
+/**
+ * THE SHARED MATURITY SCALE — `smoothstep(B / (B + scaleFrames))`, and the only
+ * budget-shaped signal left in this module that still moves inside the range the
+ * compiler is run at. Three consumers: `matureReuseExtraPressure`,
+ * `shallowQualityTailThrottlePressure`, `tailCompletionContactWindow`. (They
+ * used to inline this expression; they call it now, so there is one definition.)
+ *
+ * IT IS ASYMPTOTIC, NOT SATURATED, AND THAT DISTINCTION IS THE WHOLE POINT.
+ * At the 150k scale it reads 0.500 / 0.684 / 0.865 / 0.926 / 0.953 / 0.989 at
+ * 150k / 250k / 500k / 750k / 1M / 2.25M. Across the benchmark's own grid
+ * (250k → 750k) that is +35% relative travel, so unlike the geometry ramps, the
+ * repair margin, the start-phase pressure and the objective exponent — all of
+ * which were pinned below 250k and have been deleted for it — this one is doing
+ * live work at every budget that gets promoted, and replacing it with its
+ * mature value (1) is a behaviour change everywhere, not a simplification.
+ *
+ * Nor is the CEILING unexamined: two of the three consumers were re-fitted as
+ * unbounded budget laws in the 2026-07-28 audit and both lost — the tail window
+ * -0.86 (exactly +0.00 at 750k, i.e. no headroom at the top) and the mature
+ * reuse extra -0.32. So the shape is bounded on measured grounds. What has never
+ * been measured is the ramp against a FLAT constant; if that ever gets an eval,
+ * note that the honest arm is one bundle, because the three consumers share this
+ * function and cannot move independently.
+ */
 function maturityPressure(targetBudget: number, scaleFrames: number): number {
   const budget = Math.max(0, targetBudget);
   return smoothstep(clamp01(budget / (budget + scaleFrames)));
-}
-
-function fullFeedbackPressure(telemetry: HandoffTelemetry, scale: number): number {
-  const uniqueFull = uniqueFullEvaluations(telemetry);
-  return smoothstep(clamp01(uniqueFull / (uniqueFull + Math.max(1, scale))));
 }
 
 /**
@@ -4518,10 +4336,7 @@ function reuseCandidateLimit(
 }
 
 function matureReuseExtraPressure(targetBudget: number, uniqueFull: number): number {
-  const budget = Math.max(0, targetBudget);
-  const budgetPressure = smoothstep(
-    clamp01(budget / (budget + HANDOFF_MATURITY_BUDGET_SCALE_FRAMES)),
-  );
+  const budgetPressure = maturityPressure(targetBudget, HANDOFF_MATURITY_BUDGET_SCALE_FRAMES);
   const feedback = Math.max(0, uniqueFull);
   const feedbackPressure = smoothstep(
     clamp01(feedback / (feedback + HANDOFF_REUSE_MATURE_FULL_FEEDBACK_SCALE)),
@@ -4838,7 +4653,6 @@ function resolveHandoffSearchPolicy({
     preview: false,
     axisQualitySearch: true,
     releaseSetup: true,
-    previewScorePressure: qualityFuturePreviewPressure(targetBudget, telemetry),
     budgetSlack,
     branchLimit: lowSlackTraversalBranchLimit(budgetSlack, hasCompletion),
     reuseLimit: reuseCandidateLimit(node, targetBudget, telemetry),
@@ -5171,6 +4985,52 @@ function shouldBoostDrumGrainMatureQualityBreadth(profile: HandoffTargetProfile)
   return breathPocket || grainPocket || soloPocket;
 }
 
+function shouldLeanResidualQualityBreadth(profile: HandoffTargetProfile): boolean {
+  const medianGapFrames = profile.medianContactGapFrames;
+  const meanAir = profile.axes.air.mean;
+  const meanSpeed = profile.axes.speed.mean;
+  if (
+    medianGapFrames === null ||
+    meanAir === null ||
+    meanSpeed === null
+  ) {
+    return false;
+  }
+
+  const contacts = profile.contactCount;
+  const airRange = profile.axes.air.range;
+  const amplitudeRange = profile.axes.amplitude.range;
+  const elevationRange = profile.axes.elevation.range;
+
+  const terracePocket = contacts >= 22 &&
+    contacts <= 24 &&
+    medianGapFrames >= 22 &&
+    medianGapFrames <= 26 &&
+    meanAir >= 0.52 &&
+    meanAir <= 0.58 &&
+    meanSpeed >= 0.70 &&
+    meanSpeed <= 0.77 &&
+    amplitudeRange >= 0.42 &&
+    amplitudeRange <= 0.52 &&
+    elevationRange >= 0.08 &&
+    elevationRange <= 0.16;
+
+  const ridgePocket = contacts >= 22 &&
+    contacts <= 26 &&
+    medianGapFrames >= 22 &&
+    medianGapFrames <= 26 &&
+    meanAir >= 0.48 &&
+    meanAir <= 0.53 &&
+    airRange >= 0.10 &&
+    airRange <= 0.18 &&
+    amplitudeRange >= 0.08 &&
+    amplitudeRange <= 0.16 &&
+    elevationRange >= 0.12 &&
+    elevationRange <= 0.20;
+
+  return terracePocket || ridgePocket;
+}
+
 function shouldBoostSparseAmpQualityBreadthAllBudget(profile: HandoffTargetProfile): boolean {
   const medianGapFrames = profile.medianContactGapFrames;
   const meanAir = profile.axes.air.mean;
@@ -5294,52 +5154,6 @@ function shouldBoostSparseAmpQualityBreadthAllBudget(profile: HandoffTargetProfi
   return floatBoundsPocket || soarSettlePocket || ridgePulsePocket || rollingDropPocket;
 }
 
-function shouldLeanResidualQualityBreadth(profile: HandoffTargetProfile): boolean {
-  const medianGapFrames = profile.medianContactGapFrames;
-  const meanAir = profile.axes.air.mean;
-  const meanSpeed = profile.axes.speed.mean;
-  if (
-    medianGapFrames === null ||
-    meanAir === null ||
-    meanSpeed === null
-  ) {
-    return false;
-  }
-
-  const contacts = profile.contactCount;
-  const airRange = profile.axes.air.range;
-  const amplitudeRange = profile.axes.amplitude.range;
-  const elevationRange = profile.axes.elevation.range;
-
-  const terracePocket = contacts >= 22 &&
-    contacts <= 24 &&
-    medianGapFrames >= 22 &&
-    medianGapFrames <= 26 &&
-    meanAir >= 0.52 &&
-    meanAir <= 0.58 &&
-    meanSpeed >= 0.70 &&
-    meanSpeed <= 0.77 &&
-    amplitudeRange >= 0.42 &&
-    amplitudeRange <= 0.52 &&
-    elevationRange >= 0.08 &&
-    elevationRange <= 0.16;
-
-  const ridgePocket = contacts >= 22 &&
-    contacts <= 26 &&
-    medianGapFrames >= 22 &&
-    medianGapFrames <= 26 &&
-    meanAir >= 0.48 &&
-    meanAir <= 0.53 &&
-    airRange >= 0.10 &&
-    airRange <= 0.18 &&
-    amplitudeRange >= 0.08 &&
-    amplitudeRange <= 0.16 &&
-    elevationRange >= 0.12 &&
-    elevationRange <= 0.20;
-
-  return terracePocket || ridgePocket;
-}
-
 function smoothSparseAmplitudeQualityBreadth(
   profile: HandoffTargetProfile,
   base: number,
@@ -5445,10 +5259,7 @@ function shallowQualityTailThrottlePressure(
   targetBudget: number,
   uniqueFull: number,
 ): number {
-  const budget = Math.max(0, targetBudget);
-  const budgetPressure = smoothstep(
-    clamp01(budget / (budget + HANDOFF_MATURITY_BUDGET_SCALE_FRAMES)),
-  );
+  const budgetPressure = maturityPressure(targetBudget, HANDOFF_MATURITY_BUDGET_SCALE_FRAMES);
   const fullFeedback = Math.max(0, uniqueFull);
   const feedbackPressure = smoothstep(
     clamp01(
@@ -5467,9 +5278,13 @@ function tailCompletionWindowSeed(node: SearchNode, remainingContacts: number): 
   return nodeHashSeed(node, Math.imul(remainingContacts + 1, 0x165667b1), 0x68bc21eb);
 }
 
+/** 8 + 4·maturity: 10.73 contacts at 250k, 11.46 at 500k, 11.70 at 750k, 11.81
+ *  at 1M, 12 in the limit. The fractional part is realised as a stochastic gate
+ *  per (node, remainingContacts), so the window is continuous even though
+ *  contacts are integers — which is why a whole extra contact of breadth arrives
+ *  gradually across the grid rather than at a threshold. */
 function tailCompletionContactWindow(targetBudget: number): number {
-  const budget = Math.max(0, targetBudget);
-  const pressure = smoothstep(clamp01(budget / (budget + HANDOFF_MATURITY_BUDGET_SCALE_FRAMES)));
+  const pressure = maturityPressure(targetBudget, HANDOFF_MATURITY_BUDGET_SCALE_FRAMES);
   return TAIL_COMPLETION_CONTACT_WINDOW + TAIL_COMPLETION_BUDGET_WINDOW_EXTRA * pressure;
 }
 
@@ -5500,7 +5315,6 @@ function scoreCandidateForHandoff(
   telemetry: HandoffTelemetry,
   usePreview = true,
   previewCostWeight = PREVIEW_COST_WEIGHT,
-  previewScorePressure = usePreview ? 1 : 0,
   releaseSetup = false,
   targetBudget = 0,
   sourceAxis?: AxisName,
@@ -5545,8 +5359,19 @@ function scoreCandidateForHandoff(
       ...(forwardContinuation === null ? {} : { forwardContinuation }),
     };
   }
-  const usePreviewScore = previewScorePressure > 0;
-  const preview = (usePreview || usePreviewScore)
+  // THE LOCAL AXIS-L2 PROXY. Everything below this point is UNREACHABLE in
+  // production: `usesForwardEvalAtBudget` is true at every budget the compiler
+  // is run at (the gate is 75,000 frames, the lowest tier anyone runs is 75,000)
+  // and `fwdEvalRuntime.config` is only null under `LR_FWD_EVAL=off`. It is kept
+  // as the study escape hatch and as the historical record of what the ranker
+  // was before forward eval — not as a live lane. Do not tune it, and do not add
+  // budget shaping to it: the one budget-shaped input it had
+  // (`qualityFuturePreviewPressure`, a maturity × full-feedback ramp threaded
+  // through five call sites) was deleted in 2026-08 for being computed on every
+  // policy resolution and read by nothing. The off-arm consequently scores the
+  // preview at pressure 1 when `preview` is on and 0 when it is off, which is
+  // what the parameter default already said.
+  const preview = usePreview
     ? previewNextContact(child, gaps, ctx, seed, telemetry)
     : {
       horizon: 0,
@@ -5571,7 +5396,7 @@ function scoreCandidateForHandoff(
     ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex)
     : 0;
   recordCandidateReleaseCoverage(telemetry, candidate);
-  const previewScore = (scarcity + previewCost) * previewScorePressure;
+  const previewScore = scarcity + previewCost;
   const localScore = candidate.cost + previewScore + statePenalty + overshoot + releasePenalty;
   attachHandoffScoreToProbe(candidate.lines, localScore); // study probe; no-op when off
   return {
@@ -5933,33 +5758,20 @@ type RepairConfig = {
  *  force this value back down (M101 flat-compact, M102 high-air-low-grain,
  *  M108 drums-pulse, M116 stable-dense, M144 residual) are all no-ops, so they
  *  and their profile predicates are gone with them. */
-const REPAIR_MAIN_MARGIN_MATURE = 1.0;
-const REPAIR_FEAS_MARGIN_SCARCE = 1.05;
-const REPAIR_FEAS_MARGIN_MATURE = 1.0;
-const REPAIR_MARGIN_RAMP_START_FRAMES = 100_000;
-const REPAIR_MARGIN_RAMP_SPAN_FRAMES = 100_000;
+const REPAIR_MAIN_MARGIN = 1.0;
+/** Restart sizing headroom over the measured cost-to-end. Was a 100k/100k
+ *  smoothstep from 1.05 to 1.00 — which reached exactly 1.00 at 200,000 frames
+ *  and stayed there, so on every budget the compiler runs (repair itself is
+ *  gated at 100k, the benchmark's lowest tier is 250k) it was the flat mature
+ *  value with a scarce arm that only 100k-200k could see. Shipped flat 2026-08;
+ *  `LR_REPAIR_FEAS_MARGIN` still overrides for studies. */
+const REPAIR_FEAS_MARGIN = 1.0;
 
-function repairRampMargin(
-  targetBudget: number,
-  scarceMargin: number,
-  matureMargin: number,
-): number {
-  const pressure = smoothstep(
-    (targetBudget - REPAIR_MARGIN_RAMP_START_FRAMES) /
-      REPAIR_MARGIN_RAMP_SPAN_FRAMES,
-  );
-  return scarceMargin + (matureMargin - scarceMargin) * pressure;
-}
-
-function defaultRepairMainMargin(): number {
-  return REPAIR_MAIN_MARGIN_MATURE;
-}
-
-function defaultRepairFeasMargin(targetBudget: number): number {
-  return repairRampMargin(targetBudget, REPAIR_FEAS_MARGIN_SCARCE, REPAIR_FEAS_MARGIN_MATURE);
-}
-
-function repairConfig(targetBudget: number, profile: HandoffSpecProfile): RepairConfig {
+/** Repair configuration is now budget-blind and spec-blind: with `feasMargin`
+ *  flat the last budget-shaped default is gone, and the `profile` argument had
+ *  been unused since the five main-margin carve-outs were deleted. Every field
+ *  is a constant or an env override. */
+function repairConfig(): RepairConfig {
   const num = (name: string, def: number, lo: number, hi: number): number => {
     const n = Number.parseInt(readEnv(name) ?? "", 10);
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
@@ -5982,16 +5794,17 @@ function repairConfig(targetBudget: number, profile: HandoffSpecProfile): Repair
     // completion is still the binding constraint, so the gate stays.
     minBudget: num("LR_REPAIR_MIN_BUDGET", 100_000, 0, 100_000_000),
     // Completion-triggered split: run the main search to firstCompletion*mainMargin, then repair.
-    // Default eases from 1.0 at the 100k repair gate to 1.1 by 200k; low budgets
-    // stay byte-identical while mature budgets keep a little more main-search context before repair.
-    mainMargin: flt("LR_REPAIR_MAIN_MARGIN", defaultRepairMainMargin(), 1.0, 10.0),
+    // Flat 1.0 — repair takes over AT the first completion. (An earlier comment here
+    // described a 1.0→1.1 ease by 200k; no such ramp has existed since the value went flat.)
+    mainMargin: flt("LR_REPAIR_MAIN_MARGIN", REPAIR_MAIN_MARGIN, 1.0, 10.0),
     // Feasibility margin: require (measured cost-to-end × feasMargin) ≤ remaining budget, and size each
-    // restart's ceiling to cost × feasMargin. Keep scarce budgets at the accepted 1.05 headroom, then
-    // fade toward the exact measured-cost ceiling as budget matures; explicit env overrides still win.
-    feasMargin: flt("LR_REPAIR_FEAS_MARGIN", defaultRepairFeasMargin(targetBudget), 1.0, 10.0),
-    // Cap on repair restarts. High-budget binds on this (1M affords ~30-40 restarts); low/mid
-    // budgets exhaust the budget first, so a high cap is a no-op there. 16 plateaued 1M at 698;
-    // 64 → 706.6 (the cap, not the budget, was the 1M plateau).
+    // restart's ceiling to cost × feasMargin. Flat at the exact measured-cost ceiling; explicit
+    // env overrides still win.
+    feasMargin: flt("LR_REPAIR_FEAS_MARGIN", REPAIR_FEAS_MARGIN, 1.0, 10.0),
+    // Cap on repair restarts. NEVER BINDING as shipped: the max observed attempt count is 17
+    // across 3,696 archived compiles, and raising 64 → 160 is byte-identical. It is a runaway
+    // guard, not a tuned knob — do not re-sweep it as if it allocated anything. (The
+    // "1M affords ~30-40 restarts" note it used to carry was a projection, not a measurement.)
     maxAttempts: num("LR_REPAIR_MAX_ATTEMPTS", 64, 1, 1000),
     // Upstream blame: when a restart re-converges, walk the anchor up to N parents (each with a fresh
     // seed, so it's genuinely different — not the same-seed re-run that R3 rejected). LR_REPAIR_MAX_UPSTREAM
@@ -6871,13 +6684,6 @@ function startupSupportXDelayFrames(
   return START_SUPPORT_LOW_AIR_X_DELAY_FRAMES.slice(0, maxDelay + 1);
 }
 
-function startBudgetPressure(targetBudget: number): number {
-  return smoothstep(
-    (Math.max(0, targetBudget) - START_BUDGET_PRESSURE_START_FRAMES) /
-      START_BUDGET_PRESSURE_SPAN_FRAMES,
-  );
-}
-
 function startSeedForwardScore(
   seed: StartSeed,
   root: SearchNode,
@@ -6906,6 +6712,35 @@ function startSeedForwardScore(
     START_SUPPORT_DELAY_ROBUST_BRANCH,
   );
   return baseScore * (1 - pressure) + robustScore * pressure;
+}
+
+/**
+ * KEPT, AND PINNED — read this before "simplifying" it away.
+ *
+ * `smoothstep((B - 50k)/50k)` is exactly 1.0 at every B >= 100,000 frames, so on
+ * the whole benchmark grid this is the constant 1 and its three consumers (the
+ * ballistic/base split of the start scoring pool, the start-support x-delay
+ * count, and the support-delay robust-score blend) are budget-blind. Deleting it
+ * is byte-identical at 250k and 750k — 40/40 golden track hashes, verified.
+ *
+ * It is NOT dead. Below 100k it is the start phase's scarce-budget behaviour,
+ * and shipping the mature branch unconditionally was measured on golden v1:
+ * together with the objective's mature/scarce ramps it costs -13.0 mean score
+ * per run at 75k and turns 0 missing contacts into 236 across 480 runs. At 75k
+ * it hands 2 of the 15 shareable scoring seeds to ballistic starts instead of 4
+ * and blends the support-delay score half-and-half instead of taking the robust
+ * branch whole; that is a completion reserve, and the measurement says it works.
+ *
+ * The Phase 3 disposition is therefore "documented sub-250k insurance", not
+ * "constant" and not "law". A law here would have to be scale-free in the start
+ * pool's size, which nothing has proposed; do not re-sweep a ramp that never
+ * varies at a canonical budget.
+ */
+function startBudgetPressure(targetBudget: number): number {
+  return smoothstep(
+    (Math.max(0, targetBudget) - START_BUDGET_PRESSURE_START_FRAMES) /
+      START_BUDGET_PRESSURE_SPAN_FRAMES,
+  );
 }
 
 function startSupportDelayRobustScore(
@@ -7058,11 +6893,11 @@ function ballisticFirstContactStartCandidates(
  * ballistic first-contact starts.
  *
  * Slot 0 of the scoring pool is always reserved for the default spec start, so
- * only `START_SCORING_POOL - 1` seeds are shareable. Budget pressure hands up to
- * `START_BALLISTIC_SCORING_POOL` of those shareable seeds to ballistic starts —
- * capped both by that ceiling and by how many ballistic candidates actually
- * exist (`availableBallisticStarts`). Every seed not taken by ballistic starts
- * goes to base starts. In practice this yields 0-4 ballistic seeds.
+ * only `START_SCORING_POOL - 1` seeds are shareable. Up to
+ * `START_BALLISTIC_SCORING_POOL` of those shareable seeds go to ballistic
+ * starts, capped by how many ballistic candidates actually exist
+ * (`availableBallisticStarts`). Every seed not taken by ballistic starts goes to
+ * base starts. In practice this yields 0-4 ballistic seeds.
  */
 function splitStartScoringPool(
   budgetPressure: number,

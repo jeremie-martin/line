@@ -72,11 +72,13 @@ const OBJECTIVE_FUTURE_POWER_ENV = objectiveEnvNum(
  * trades them, and there is no reason that rate should be 1:1.
  *
  * UNSET MEANS FOLLOW `objectiveFuturePower`, which is what the compiler did
- * before this knob existed, so the default tree is bit-identical — including on
- * the five specs where `objectiveBlendReadinessPowerForSpec` resolves 0.75.
- * That fallback is the whole reason this is infrastructure rather than a change:
- * decoupling the two exponents is a MEASURED arm, not a fix (see
- * docs/BALLISTIC_READINESS_DECISIONS.md §7.2).
+ * before this knob existed, so the default tree is bit-identical. (It used to
+ * matter on five specs, where `handoff.ts` resolved a per-spec future exponent
+ * of 0.75; that gate was deleted in 2026-08 on a +0.00 / SE 0.19 null, so
+ * production now leaves the future exponent at its env/source default and the
+ * readiness exponent follows it there.) That fallback is the whole reason this
+ * is infrastructure rather than a change: decoupling the two exponents is a
+ * MEASURED arm, not a fix (see docs/BALLISTIC_READINESS_DECISIONS.md §7.2).
  *
  * This restores `f438c43`, which introduced the same knob on the same argument
  * and was removed three hours later as collateral of the `a7bdf70` role-split
@@ -612,10 +614,10 @@ export function proposalUtility(
    * The three exponents are INDEPENDENT but the readiness one still FOLLOWS the
    * future one by default, so the shipped tree is the shared-exponent compiler
    * until a sweep says otherwise. See `OBJECTIVE_READINESS_POWER_ENV` for why
-   * that default is deliberate, and contract §8.2 for the open defect it leaves
-   * standing: the per-spec value comes from handoff.ts
-   * `objectiveBlendReadinessPowerForSpec`, a gate accepted in 2026-07 when the
-   * exponent reached readiness alone.
+   * that default is deliberate. Contract §8.2's open defect — a per-spec 0.75
+   * resolved by handoff.ts for an exponent that had since grown to reach the
+   * projected term too — is CLOSED: that gate was deleted in 2026-08, so
+   * nothing per-spec feeds the future exponent any more.
    */
   return (
     objectivePower(settledIncomingQuality, objectiveSettledPower) *

@@ -642,14 +642,6 @@ const ARC_LEN_SPAN_SALT = 9;
 const ARC_LEN_ROOM_DENSE_FRAMES = 26;
 const ARC_LEN_ROOM_SPARSE_FRAMES = 46;
 
-/** NO-OP. Arc placement does not read the compile budget — see the file header.
- *  Retained only because `optimizer/handoff.ts` still calls it once per compile
- *  and four tests still set it; delete the call, the import and this function
- *  together in the next commit that touches `handoff.ts`. It stores nothing, so
- *  a caller that forgets it and a caller that passes 50k now get the same
- *  geometry — which is the point. */
-export function setCompileBudgetFrames(_frames: number): void {}
-
 let currentImpactTemplateSpecMeanImpact = 0;
 export function setImpactTemplateSpecMeanImpact(meanImpact: number): void {
   currentImpactTemplateSpecMeanImpact = Number.isFinite(meanImpact)

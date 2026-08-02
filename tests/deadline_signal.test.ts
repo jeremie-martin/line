@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { makeRng } from "../scripts/lib/rng.ts";
-import { setCompileBudgetFrames } from "../scripts/v0/arc_placement.ts";
 import { resetPerCompileState } from "../scripts/v0/core/compile_lifecycle.ts";
 import {
   effectiveAxes,
@@ -214,7 +213,6 @@ describe("aim-lane throttle — H2 closure", () => {
       pool.map((candidate) => `${candidate.cost.toFixed(6)}:${candidate.lines.length}`).join("|");
     const build = (prebuildNCand: number | null, nCand: number, throttled: boolean): string => {
       resetPerCompileState();
-      setCompileBudgetFrames(BUDGET);
       setAimCompileBudgetFrames(BUDGET);
       const node = makeRootNode(makeBaseEngine(resolveStartState(spec)), gaps.length);
       if (prebuildNCand !== null) getCandidatesSorted(node, gaps, ctx, 19, prebuildNCand);

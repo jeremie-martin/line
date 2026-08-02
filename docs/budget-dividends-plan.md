@@ -153,6 +153,17 @@ workflow (changed-cell count + the failure rate an observed zero excludes).
 Small, unglamorous, and the difference between the next 1b being caught in a
 4-minute grid instead of a 26-minute eval.
 
+**LANDED 2026-08-03.** `npm run benchmark:v2:mover-grid` derives the mini
+manifests from the canonical ones by source-id selector (presets `capability`
+— the default, all three frontier groups — and `p1b-collapse`; plus
+`stratum:`/`group:`/bare-id terms), runs both arms through `scale_study.ts`
+with the ref compiled in a throwaway worktree, and prints per-cell,
+per-source and per-group deltas. `--verify` proves compile-identity without
+compiling; `--report=<cand>,<ref>` re-reports existing archives. Every report
+ends with the action-set power footer —
+`npm run benchmark:v2:action-set-power` is the same calculator standalone.
+Evidence only: the aggregate is a renormalized subset score, never a headline.
+
 ## Explicitly out of scope
 
 The closed plan's do-not-reopen list stands: post-completion pressure and

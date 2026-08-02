@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "deadline-margin-750k",
-  "generated_at": "2026-08-02T01:52:25.074Z",
+  "label": "deadline-two-anchor-750k",
+  "generated_at": "2026-08-02T04:14:58.746Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "e1577381cf3a65161de153d3ab6090b73468e1945f712afca35f60d7d5d4abc9",
+  "compiler_source_fingerprint": "a442980fc3f4e70cda28d30483d2927d5adc054c99dd664813ed1760952cf10f",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -125,7 +125,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "ce8a4831d9c6df8998cb9f323f19ae9c4e0f94f6f411ff8fe6decf59ba3640c2",
+  "candidate_fingerprint": "a89cfcdf163bfe4ccc0951f8c34aea4e9425d309fffede7467576351ec8242c7",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "af1467644835b2c09b8415dc42172fe921212ab2b0eb97da02f7956fb1184b8e",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -134,20 +134,20 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/deadline-margin-750k-compiler-snapshot.tar.gz",
-    "archiveSha256": "6e976b10dad3e93cdaf4e8a367f44558a0ab921aacb6ece2ec89068465f74c3d",
-    "candidateFingerprint": "ce8a4831d9c6df8998cb9f323f19ae9c4e0f94f6f411ff8fe6decf59ba3640c2",
-    "compilerSourceFingerprint": "e1577381cf3a65161de153d3ab6090b73468e1945f712afca35f60d7d5d4abc9",
+    "archive": "benchmark/v2/runs/deadline-two-anchor-750k-compiler-snapshot.tar.gz",
+    "archiveSha256": "fc97a9a05e0e88de22842f2e8933b2d3513fdbd776e3fc9d691fc614ee6bb7d8",
+    "candidateFingerprint": "a89cfcdf163bfe4ccc0951f8c34aea4e9425d309fffede7467576351ec8242c7",
+    "compilerSourceFingerprint": "a442980fc3f4e70cda28d30483d2927d5adc054c99dd664813ed1760952cf10f",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
     "execution_policy_fingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
     "implementation_fingerprint": "30256508fec3b665e7d119d0a01800b6538df984c0aeb66b0b2adc3794ff36e6",
-    "archive_sha256": "16739c7b13b911a26b7eb65c9a87a1fc5f5c043597e6ec69eed583c36d137d82",
-    "compressed_archive": "benchmark/v2/runs/deadline-margin-750k-development-750k-N48.json.gz",
-    "compressed_archive_sha256": "2469ccb3bdb4eb8a28c6bb71ecd10fcc8e57c3403bf97ecf61e49080f53eaec2",
-    "canonical_headline": 595.6319,
+    "archive_sha256": "25bccb13142d44780dffc33f17dad4e53ce3d4137a8ac897fac6b7ad7563b0d1",
+    "compressed_archive": "benchmark/v2/runs/deadline-two-anchor-750k-development-750k-N48.json.gz",
+    "compressed_archive_sha256": "ef7f46745b4e75dfefe53c61df5ef044b44b58ccebc6b5d8291b002617290dc4",
+    "canonical_headline": 595.5349,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -212,7 +212,7 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 595.6319,
+        "score": 595.5349,
         "valid_runs": 2112,
         "total_runs": 2112
       }
@@ -220,8 +220,8 @@
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "deadline-margin-750k",
-    "candidateFingerprint": "ce8a4831d9c6df8998cb9f323f19ae9c4e0f94f6f411ff8fe6decf59ba3640c2",
+    "baselineLabel": "deadline-two-anchor-750k",
+    "candidateFingerprint": "a89cfcdf163bfe4ccc0951f8c34aea4e9425d309fffede7467576351ec8242c7",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -289,9 +289,9 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 48,
-        "archiveSha256": "16739c7b13b911a26b7eb65c9a87a1fc5f5c043597e6ec69eed583c36d137d82",
-        "compressedArchive": "benchmark/v2/runs/deadline-margin-750k-development-750k-N48.json.gz",
-        "compressedArchiveSha256": "2469ccb3bdb4eb8a28c6bb71ecd10fcc8e57c3403bf97ecf61e49080f53eaec2",
+        "archiveSha256": "25bccb13142d44780dffc33f17dad4e53ce3d4137a8ac897fac6b7ad7563b0d1",
+        "compressedArchive": "benchmark/v2/runs/deadline-two-anchor-750k-development-750k-N48.json.gz",
+        "compressedArchiveSha256": "ef7f46745b4e75dfefe53c61df5ef044b44b58ccebc6b5d8291b002617290dc4",
         "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
         "implementationFingerprint": "30256508fec3b665e7d119d0a01800b6538df984c0aeb66b0b2adc3794ff36e6"
       }
@@ -312,23 +312,23 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/deadline-margin-750k-comparison.json",
-    "artifact_sha256": "c0a8882d4993ce8997cd5e5b0e1a0980cf052be1f1931983f3a703af7ee856d7",
+    "artifact": "benchmark/v2/runs/deadline-two-anchor-750k-comparison.json",
+    "artifact_sha256": "bc9193bbfd0f26339d2606a9da7a1800b2dc6a8405b02fce30be4378a09bf974",
     "seeds": 48,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
-    "stopping_action": "reject",
+    "stopping_action": "inconclusive",
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/deadline-margin-750k-comparison-request.json",
-    "request_sha256": "34b4a07a4e91d1764322b0c3833fa5e24163d90f8ca1bd2d1f80178199061e43",
+    "request": "benchmark/v2/runs/deadline-two-anchor-750k-comparison-request.json",
+    "request_sha256": "7b5f7b58bd1b449c4a3ce695dfa865fd1a3a11bb27e6deb8fee40375d352f0f7",
     "budgets": [
       750000
     ],
-    "outcome": "reject",
-    "delta": -0.2778,
+    "outcome": "inconclusive",
+    "delta": -0.097,
     "forced": true,
-    "force_reason": "Deliberate promote-at-cost per docs/budget-unification-plan.md posture, investigation complete (scratchpad p1a-reject): N=48 delta -0.28 [-0.57,+0.02], negative boundary crossed, but the harm is fully localized (3 frontier sources; rep/legacy/music strata exactly 0.00; validity 2112/2112 both arms) and confirmed inherent, not defective: all three margin consumers individually load-bearing (+5.3 to +17.5 each), all anchors at measured local optima in both directions, the pressure axis two-sided across capability groups (separating needs a forbidden per-family gate), every tested repair loses validity or pays one group to the other. Phase 1a delivers the one-deadline-signal architecture (three competing signals deleted). Ledger books -0.28 (floor -3.0). Capability -1.85 recorded as debt owed by a later phase; identified repayment lane = rollout-depth (cost-side) pressure, Phase 1b option D"
+    "force_reason": "Coherence promotion per docs/budget-unification-plan.md posture: N=48 inconclusive at parity (P(+)=25.5%), validity 2112/2112 unchanged, capability +0.08. Riders: SC-16 verdict unified onto the full-pressure anchor (two live anchors, deadlineAtRisk deleted); repair affordability/ceilings sized by the estimator's fitted upper interval instead of the retired feasMargin fudge (calibrated quantile, shared cost-floor predicate, no zero-frame ceilings); three additive repair-context telemetry fields for future pricing (round index, upstream offset, weak-gap SSE)"
   }
 }

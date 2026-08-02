@@ -54,12 +54,17 @@
  *
  * `pacedSlack`'s 1.0/1.5 could not be carried across: its median runs 0.63 ->
  * 6.83 across 75k..2.25M (it is nearly linear in the budget), where the margin's
- * runs 1.32 -> 3.30 and tracks the REALIZED margin at every budget. The three
+ * runs 1.32 -> 3.30 and tracks the REALIZED margin at every budget. The two
  * anchors here are read off the 150k threshold sweep in
  * phase0/signal-comparison-table.md §H (28,625 observations, 29/352 compiles
  * never complete), the only corpus with a non-degenerate completion label —
  * re-derived over THIS margin, pace blend included, rather than carried over
  * from the pace-free signal the table was built on.
+ *
+ * They are TWO and not three by design: one point where the response saturates
+ * and one where it starts. A third anchor at `margin < 1` shipped with Phase 1a
+ * for the online-continuation lane alone and is gone — see
+ * `underFullDeadlinePressure`.
  */
 
 import type { Gap } from "../types.ts";
@@ -109,20 +114,6 @@ const DEADLINE_ESTIMATOR_MODEL: BudgetEstimatorModelArtifact = {
 };
 
 /**
- * The definitional point: the budget left is exactly the work estimated to
- * remain. Below it the compile is not predicted to finish at all.
- *
- * As a completion gate at 150k this is the accurate alarm the campaign had
- * three worse copies of: 100% recall on compiles that never complete at a
- * **1.2%** false-alarm rate, against 92.6% for `pacedSlack < 1` and 100% for
- * `pacedSlack < 1.5`. The online-continuation lane's own comparator fired 331
- * times in the instrumented corpus and every one of those firings was already
- * inside `margin < 1`, later (first fire at 30.8% of spend, against 30.4%), and
- * at 750k all 72 of its firings were false alarms.
- */
-export const DEADLINE_MARGIN_AT_RISK = 1;
-
-/**
  * Full deadline pressure at and below this margin.
  *
  * Youden-optimal completion gate over the 150k sweep: J = 0.815 at 1.25,
@@ -165,14 +156,21 @@ export function deadlinePressure(margin: number): number {
   return raw <= 0 || Number.isNaN(raw) ? 0 : raw >= 1 ? 1 : raw;
 }
 
-/** Whether the compile is at the ramp's full-pressure end. */
+/**
+ * Whether the compile is at the ramp's full-pressure end.
+ *
+ * The boolean face of the same anchor the ramp saturates at, so a consumer that
+ * can only be on or off (the aim-lane throttle, the online-continuation
+ * dominance filter) turns on exactly where a graded consumer reaches full
+ * response. There is no second, stricter alarm: `margin < 1` — "the budget left
+ * no longer covers the work left" — used to be one, and it bought nothing that
+ * this anchor does not already contain (its 331 firings in the instrumented
+ * 150k corpus were a strict late subset of `margin <= 1.25`), while splitting
+ * maximum response across two numbers made "how pressed is this compile" a
+ * per-consumer question again.
+ */
 export function underFullDeadlinePressure(margin: number): boolean {
   return margin <= DEADLINE_MARGIN_FULL_PRESSURE;
-}
-
-/** Whether the budget left no longer covers the estimated work left. */
-export function deadlineAtRisk(margin: number): boolean {
-  return margin < DEADLINE_MARGIN_AT_RISK;
 }
 
 /**

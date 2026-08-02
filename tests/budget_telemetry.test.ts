@@ -596,7 +596,28 @@ describe("compile budget telemetry", () => {
       expect(observation.estimator_applicability).not.toBe("unvalidated_attempt_kind");
     }
 
+    // Repair-only causal context: the round that picked the anchor, how far
+    // upstream the walk had gone when this attempt ran, and the weakness key
+    // the pick was made on. Without them an archive cannot tell a round from
+    // an attempt ordinal, and cannot price the upstream walk at all.
+    for (const attempt of attempts) {
+      if (attempt.kind === "repair") continue;
+      expect(attempt.repair_round_index).toBeNull();
+      expect(attempt.anchor_upstream_offset).toBeNull();
+      expect(attempt.incumbent_weak_gap_sse).toBeNull();
+    }
+    let previousRound = -1;
     for (const repair of repairs) {
+      expect(repair.repair_round_index).not.toBeNull();
+      expect(repair.anchor_upstream_offset).not.toBeNull();
+      // Rounds are assigned in order and an attempt never precedes its round.
+      expect(repair.repair_round_index!).toBeGreaterThanOrEqual(previousRound);
+      previousRound = repair.repair_round_index!;
+      expect(repair.anchor_upstream_offset!).toBeGreaterThanOrEqual(0);
+      // `picked weak gap = anchor + up` must be a real gap of the spec.
+      expect(repair.anchor_upstream_offset!)
+        .toBeLessThanOrEqual(repair.anchor.remaining_gaps);
+      expect(repair.incumbent_weak_gap_sse!).toBeGreaterThanOrEqual(0);
       expect(["measured_cost_to_end", "per_gap_fallback", "repair_budget_remaining"])
         .toContain(repair.ceiling_source);
       // A repair always knows what it did to the incumbent's score; the
@@ -683,6 +704,46 @@ describe("compile budget telemetry", () => {
       // the per-gap average. `per_gap_fallback` now means a node in neither
       // reach map, which a stamped incumbent path cannot be.
       expect(repair.ceiling_source).not.toBe("per_gap_fallback");
+    }
+  }, 180_000);
+
+  test("sizes a measured repair ceiling at the estimator's own upper bound", async () => {
+    // The affordability test and the ceiling are the estimator's upper interval
+    // bound for the attempt's own start observation — no hand-set feasibility
+    // margin sits between them. Policy and recorder reach it independently
+    // through the same pure functions and no shared state, which makes the
+    // sizing tautology exact and checkable from the archive alone.
+    //
+    // The bound is the CALIBRATED one, `point x start/withPath upper ratio`.
+    // The recorded `estimate_upper_frames` is not always the same number: out
+    // of the artifact's policy-budget domain the recorder widens it to the
+    // hard budget remaining, which is a scoping rule about what it may CLAIM,
+    // not a different bound. This compile runs at 150k, outside that domain,
+    // so it exercises exactly that divergence.
+    const spec = await loadGoldenSpec("cold_start", "base");
+    const result = compileHandoff(spec, 0, {
+      budget: 150_000,
+      polish: false,
+      budgetTelemetry: "trace",
+    });
+    const sized = result.budgetTelemetry!.attempts.filter((attempt) =>
+      attempt.kind === "repair" && attempt.ceiling_source === "measured_cost_to_end"
+    );
+    expect(sized.length).toBeGreaterThan(0);
+    for (const repair of sized) {
+      const path = repair.start.incumbent_path_work_estimate_frames;
+      expect(path).not.toBeNull();
+      const point = estimateRemainingBudgetWork({
+        structural: 0,
+        path,
+        pace: null,
+        progressFraction: 1,
+      });
+      // The recorder's own start point estimate is that same number: at a start
+      // there is no pace term yet, and the artifact's base mode takes the path.
+      expect(repair.start.estimated_remaining_work_frames).toBeCloseTo(point, 9);
+      const upper = budgetEstimateInterval(point, { event: "start", pathAvailable: true }).upper;
+      expect(repair.local_budget_frames).toBe(Math.ceil(upper));
     }
   }, 180_000);
 

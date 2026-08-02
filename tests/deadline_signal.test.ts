@@ -19,10 +19,8 @@ import {
 import { structuralRemainingWork } from "../scripts/v0/optimizer/budget_telemetry.ts";
 import {
   CompileDeadline,
-  DEADLINE_MARGIN_AT_RISK,
   DEADLINE_MARGIN_FULL_PRESSURE,
   DEADLINE_MARGIN_NO_PRESSURE,
-  deadlineAtRisk,
   deadlinePressure,
   underFullDeadlinePressure,
 } from "../scripts/v0/optimizer/deadline.ts";
@@ -153,8 +151,7 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     expect(high / low).toBeLessThan(budgetRatio);
   });
 
-  test("the ramp reads its three anchors in margin units", () => {
-    expect(DEADLINE_MARGIN_AT_RISK).toBe(1);
+  test("the ramp reads its two anchors in margin units", () => {
     expect(DEADLINE_MARGIN_FULL_PRESSURE).toBe(1.25);
     expect(DEADLINE_MARGIN_NO_PRESSURE).toBe(2);
     expect(deadlinePressure(Infinity)).toBe(0);
@@ -162,10 +159,13 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     expect(deadlinePressure(DEADLINE_MARGIN_FULL_PRESSURE)).toBe(1);
     expect(deadlinePressure(0)).toBe(1);
     expect(deadlinePressure(1.625)).toBeCloseTo(0.5, 12);
+    // The boolean verdict and the ramp's full-pressure end are the SAME anchor:
+    // no consumer may carry a private, stricter alarm beside the shared ramp.
     expect(underFullDeadlinePressure(DEADLINE_MARGIN_FULL_PRESSURE)).toBe(true);
     expect(underFullDeadlinePressure(1.26)).toBe(false);
-    expect(deadlineAtRisk(0.999)).toBe(true);
-    expect(deadlineAtRisk(1)).toBe(false);
+    for (const margin of [0, 0.5, 0.999, 1, 1.25, 1.2500001, 1.5, 2, Infinity]) {
+      expect(underFullDeadlinePressure(margin)).toBe(deadlinePressure(margin) >= 1);
+    }
   });
 });
 

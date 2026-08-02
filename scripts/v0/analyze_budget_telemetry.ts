@@ -533,6 +533,45 @@ function validateAttempt(
   if (!attempt.outcome.completed && !attempt.outcome.censored) {
     violations.push(`${prefix}: incomplete attempt is not censored`);
   }
+  validateRepairContext(prefix, attempt, violations);
+}
+
+/**
+ * The three repair-only causal fields, checked for shape rather than presence.
+ *
+ * They were added after the schema, so absent reads as null and an archive
+ * recorded before them is not in violation of anything. What IS a violation is
+ * a value on the wrong attempt kind — only a repair has a round, an upstream
+ * offset, or a weakness key — or an offset that does not fit its anchor: `up`
+ * counts gaps from this anchor FORWARD to the round's picked weak gap
+ * (`picked = anchor + up`), so it cannot reach past the end of the spec.
+ */
+function validateRepairContext(
+  prefix: string,
+  attempt: BudgetAttemptTelemetry,
+  violations: string[],
+): void {
+  const round = attempt.repair_round_index ?? null;
+  const up = attempt.anchor_upstream_offset ?? null;
+  const sse = attempt.incumbent_weak_gap_sse ?? null;
+  if (attempt.kind !== "repair") {
+    if (round !== null || up !== null || sse !== null) {
+      violations.push(`${prefix}: repair-only context on a ${attempt.kind} attempt`);
+    }
+    return;
+  }
+  if (round !== null && (!Number.isInteger(round) || round < 0)) {
+    violations.push(`${prefix}: repair round index is not a non-negative integer`);
+  }
+  if (up !== null && (!Number.isInteger(up) || up < 0)) {
+    violations.push(`${prefix}: upstream offset is not a non-negative integer`);
+  }
+  if (up !== null && up > attempt.anchor.remaining_gaps) {
+    violations.push(`${prefix}: upstream offset points past the end of the spec`);
+  }
+  if (sse !== null && (!Number.isFinite(sse) || sse < 0)) {
+    violations.push(`${prefix}: incumbent weak-gap SSE is not a non-negative number`);
+  }
 }
 
 /**

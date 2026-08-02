@@ -66,7 +66,7 @@ import {
   type HandoffPoolProbeRecord,
   type HandoffRankedOptionsProbeRecord,
 } from "./optimizer/handoff.ts";
-import { CompileDeadline, deadlineAtRisk } from "./optimizer/deadline.ts";
+import { CompileDeadline, underFullDeadlinePressure } from "./optimizer/deadline.ts";
 import {
   extendNodeCached,
   getCandidatesSorted,
@@ -1340,13 +1340,14 @@ function summarizeCapacityProbe(
 
 /** Delegates to the compiler's one deadline signal (optimizer/deadline.ts).
  *  The online lane's private spend-vs-progress comparator this used to call was
- *  deleted with the signal unification; `margin < 1` is the verdict that
- *  replaced it, and it contained every one of that comparator's firings. */
+ *  deleted with the signal unification, and the `margin < 1` anchor that briefly
+ *  replaced it went with the anchor unification; full deadline pressure is the
+ *  verdict the lane reads now, and it contains both of its predecessors. */
 function isBehindSchedule(
   record: HandoffCapacityProbeRecord,
   deadline: CompileDeadline,
 ): boolean {
-  return deadlineAtRisk(deadline.marginAt({
+  return underFullDeadlinePressure(deadline.marginAt({
     spentFrames: record.simFrames,
     gapIndex: record.gapIndex,
     costToEnd: null,

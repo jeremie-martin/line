@@ -170,6 +170,8 @@ Every attempt records:
 - anchor gap/contact/duration suffix;
 - global start, local ceiling, how that ceiling was sized, available hard
   budget, and local budget;
+- for a repair, the causal context of its anchor: which round picked it, how
+  far upstream this attempt walked, and the weakness key it was picked on;
 - start/end estimates and optional trace observations;
 - stop reason, charged work, first-terminal offset, censoring, whether a repair
   improved the incumbent, when it first did, and by how much score.
@@ -195,24 +197,44 @@ measurements. It exists because the phase owns real charged work — up to 48% o
 a compile — and can hold a compile's first terminal; without an active attempt
 both were invisible to the attempt view.
 
+Three fields carry a repair attempt's causal context and are `null` on every
+other kind. `repair_round_index` is the round that picked the weak gap; a round
+may spend several attempts walking its anchor upstream, so the attempt ordinal
+within a compile is NOT the round. `anchor_upstream_offset` is that walk's `up`,
+with `picked weak gap = anchor.gap_index + up`. `incumbent_weak_gap_sse` is the
+Σ axis-error² the ranking sorted the picked gap on, read off the incumbent drift
+report THAT round saw. The archive otherwise carries only the report at the end
+of the whole repair phase, so an offline replay of the selection sees a weakness
+map that accepted repairs have already moved — exact on zero-accept compiles,
+~40% decision-1 agreement everywhere else
+([`repair-selection-study.md`](repair-selection-study.md) *Limits* 1 and 5).
+All three are additive: an archive recorded before them reads `null` and is not
+in violation of anything.
+
 `ceiling_source` names how `ceiling_total_spent_frames` was sized:
 
 | value | meaning |
 |---|---|
 | `hard_budget` | the compile's hard budget; initial and resumed attempts |
-| `measured_cost_to_end` | the incumbent's measured cost-to-end at this anchor, times the repair feasibility margin |
-| `per_gap_fallback` | the anchor is in neither reach map, so the coarse per-gap average was used; rare |
+| `measured_cost_to_end` | the estimator's upper interval bound over the incumbent's measured cost-to-end at this anchor |
+| `per_gap_fallback` | the anchor has no positive measured cost, so the coarse per-gap average was used; rare |
 | `repair_budget_remaining` | the sized ceiling reached the repair budget and was clipped to it |
 
 This field makes one tautology visible in data. A `measured_cost_to_end`
-ceiling is derived from the same `costToEnd` profile the estimator uses as its
-path base, so at such a repair's start `attempt_completion_margin` is the
-constant `feasMargin / correctionWithPathFactor` — arithmetic, not evidence
-about estimator accuracy. `feasMargin` itself ramps with the compile budget
-(1.05 scarce, 1 from 200k up), so at the calibrated 750k budget the constant is
-measured at exactly 1.062756 on every such start. Since repair ceilings became
-measured wherever a reach stamp exists, this covers nearly every repair start,
-so never read a repair's start margin as an accuracy signal.
+ceiling is the estimator's own `start`/`withPath` upper bound over the same
+`costToEnd` profile the estimator uses as its path base, so at such a repair's
+start `attempt_completion_margin` is exactly the artifact's `start`/`withPath`
+upper ratio — **1.223889** under the current artifact, on every such start —
+and it is arithmetic, not evidence about estimator accuracy. Since repair
+ceilings became measured wherever a reach stamp exists, this covers nearly every
+repair start, so never read a repair's start margin as an accuracy signal.
+
+The bound the policy sizes from is the CALIBRATED one. `estimate_upper_frames`
+on the same observation can be larger: outside the artifact's policy-budget
+domain the recorder widens the recorded interval to the hard budget remaining,
+which is a rule about what it may *claim*, not a second bound. Policy consumes
+the point ratio and the fitted interval at every budget, exactly as
+[the margin does](#applicability).
 
 `first_accepted_improvement_offset_frames` is charged work from attempt start to
 the first improvement the best-so-far register adopted. That leaf need not be
@@ -517,9 +539,9 @@ become calibrated claims.
 A controller reading these should prefer `hard_completion_margin` and the two
 surpluses over `attempt_completion_margin`. On a repair whose `ceiling_source`
 is `measured_cost_to_end`, the attempt margin at the attempt's own start is the
-`feasMargin / correctionWithPathFactor` constant described under
-`ceiling_source`: it is the sizing rule read back, and it carries no information
-about whether that repair will finish.
+`start`/`withPath` upper-ratio constant described under `ceiling_source`: it is
+the sizing rule read back, and it carries no information about whether that
+repair will finish.
 
 At compile scope:
 

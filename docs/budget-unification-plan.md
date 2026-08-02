@@ -164,6 +164,23 @@ mode triggers; register and reset registry untouched.
 
 ## Phase 2 — repair selection
 
+**STATUS 2026-08-02: the reranking lane is CLOSED and the residual is one
+coherence rider.** [`repair-selection-study.md`](repair-selection-study.md)
+replayed every ranking in item 1 against 3,520 archived compiles and issued no
+admission ticket: ceiling-exclusion is bit-exactly inert (0 of 320,092 gaps sit
+at a `weakAxisCeiling`), scorer-weighting prices at −0.001 [−0.117, +0.112],
+and error-per-estimated-frame — the only policy that moves anything — reads
+−0.913 on the one decision the archives can price. The zero-yield pool is a
+coin flip, not a population (observed 18.6% against 19.1% modelled), so there
+is nothing for a ranking to route around. What survives is item 2's
+affordability change, which needs no ranking passenger, and item 4's telemetry,
+which the study upgraded from a ride-along to *the real deliverable* and grew
+to three fields. Both ride in the **coherence rider** candidate together with
+the SC-16 anchor unification left over from Phase 1a. Item 3 — the
+acceptance-prediction model — is untouched by the study and remains the follow-
+up, because it targets `p`, which is what the independence finding says the
+zero-yield pool is made of.
+
 **Goal.** Spend the repair phase's 45% of budget on anchors that can pay.
 Sizing is closed (candidate A: +0.01; ceilings advisory); *selection* has never
 been evaluated, and 18.6% of 750k repair spend buys zero.
@@ -183,8 +200,10 @@ been evaluated, and 18.6% of 750k repair spend buys zero.
 3. If the zero-yield pool survives (1)–(2), the acceptance-prediction model
    (readiness-style features, trained offline from archives) is the follow-up —
    it is a model, not a knob, and gets its own proposal.
-4. Two additive telemetry fields ride along (`up` offset, round index on repair
-   attempts) so `maxUpstream`/`upstreamOrder` become priceable.
+4. Three additive telemetry fields ride along (`up` offset and round index on
+   repair attempts, so `maxUpstream`/`upstreamOrder` become priceable, plus the
+   incumbent's weakness key at the pick, whose absence is the binding limit on
+   every offline replay of the selection).
 
 **Gates.** The replay study's prediction is the admission ticket; N=48 decides.
 **Hazard:** LC-22 — any change to the attempt sequence reseeds every downstream
@@ -220,9 +239,13 @@ pipelines (then write the law and validate on golden v1 75k–225k evidence)?
 **Order:** geometry group first (largest, cleanest decision, three defensible
 positions already written in the map); the `maturityPressure` family second
 (per-consumer — two of its four consumers already measured as losing laws, so
-honest constants are the likely outcome); the singles (start pressure,
-`feasMargin`, objective exponent) last. Cluster A dead-code deletions and the
-comment ledger ride with whichever commits touch their files.
+honest constants are the likely outcome); the singles (start pressure, the
+objective exponent) last. `feasMargin` is off this list: Phase 2's coherence
+rider deleted it rather than shaping it, replacing the hand-swept multiplier
+with the estimator's own fitted upper quantile — the third of the two
+questions, "is there a calibrated quantity that already answers this?".
+Cluster A dead-code deletions and the comment ledger ride with whichever
+commits touch their files.
 
 **Gates.** Byte-identity at benchmark budgets where claimed (hash proof);
 golden v1 evidence where behaviour changes below 250k; parity promotions under

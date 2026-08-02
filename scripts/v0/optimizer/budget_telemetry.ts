@@ -29,17 +29,18 @@ export type BudgetTelemetryLevel = "off" | "summary" | "trace";
 export type BudgetAttemptKind = "initial" | "snapshot" | "repair" | "resumed";
 /**
  * How `ceiling_total_spent_frames` was sized. This makes the repair tautology
- * visible in data: a `measured_cost_to_end` ceiling derives from the same
- * costToEnd profile the estimator uses as its path base, so a path-backed
- * repair's `attempt_completion_margin` at its own start is a constant
- * (feasMargin / correctionWithPathFactor), not evidence about the estimator.
+ * visible in data: a `measured_cost_to_end` ceiling is the estimator's own
+ * upper interval bound over the same costToEnd profile the estimator uses as
+ * its path base, so a path-backed repair's `attempt_completion_margin` at its
+ * own start is exactly the artifact's `start`/`withPath` upper ratio — the
+ * sizing rule read back, not evidence about the estimator.
  */
 export type BudgetAttemptCeilingSource =
   /** Compile hard budget: the initial and resumed frontiers may run to capture. */
   | "hard_budget"
-  /** Incumbent's measured cost-to-end at the anchor, scaled by the feasibility margin. */
+  /** Upper interval bound over the incumbent's measured cost-to-end at the anchor. */
   | "measured_cost_to_end"
-  /** No measured cost at the anchor; the coarse per-gap average was used instead. */
+  /** No positive measured cost at the anchor; the coarse per-gap average was used instead. */
   | "per_gap_fallback"
   /** The sized ceiling reached or exceeded the repair budget and was clipped to it. */
   | "repair_budget_remaining";
@@ -127,6 +128,36 @@ export type BudgetAttemptTelemetry = {
    * search, not fresh-start measurements.
    */
   anchor: RemainingStructure;
+  /**
+   * Which repair round produced this attempt; null on every other kind.
+   *
+   * A round is one pick of a weak gap. It can spend several attempts walking
+   * the anchor upstream, so the attempt ordinal within a compile is NOT the
+   * round index, and `docs/repair-selection-study.md` had to price by ordinal
+   * for want of this field — an error worth a full point of spurious yield in
+   * that study's own sensitivity check.
+   */
+  repair_round_index: number | null;
+  /**
+   * Gaps between the round's picked weak gap and this attempt's anchor, i.e.
+   * `up` in `anchor = kWorst - up`. Null on every non-repair kind.
+   *
+   * With the round index it makes `maxUpstream` and `upstreamOrder` priceable:
+   * the anchor alone cannot say whether it was chosen or walked to.
+   */
+  anchor_upstream_offset: number | null;
+  /**
+   * Σ axis-error² at the round's picked weak gap, in the incumbent report the
+   * pick was actually made against. Null on every non-repair kind, and null if
+   * that gap carried no reported axes.
+   *
+   * This is the ranking's own key at the moment it ranked. An archive records
+   * the drift report at the END of the repair phase, so any replay of the
+   * selection reads a weakness map that accepted repairs have already moved:
+   * exact on zero-accept compiles, ~40% decision-1 agreement everywhere else.
+   * This field is the fixed point of that comparison.
+   */
+  incumbent_weak_gap_sse: number | null;
   /** Compile-global work counters; local budget is ceiling - start. */
   start_total_spent_frames: number;
   ceiling_total_spent_frames: number;
@@ -236,6 +267,10 @@ type StartAttemptInput = {
   ceilingSource?: BudgetAttemptCeilingSource;
   includeStartup: boolean;
   pathEstimateByGap?: readonly number[] | null;
+  /** Repair-only causal context; see the fields of the same name on the record. */
+  repairRoundIndex?: number | null;
+  anchorUpstreamOffset?: number | null;
+  incumbentWeakGapSse?: number | null;
 };
 
 type EndAttemptOutcome = {
@@ -295,6 +330,9 @@ export class CompileBudgetTelemetryRecorder {
       search_seed: input.searchSeed,
       has_fallback: input.hasFallback,
       anchor: remainingStructure(this.gaps, this.durationFrames, anchorGap),
+      repair_round_index: finiteOrNull(input.repairRoundIndex),
+      anchor_upstream_offset: finiteOrNull(input.anchorUpstreamOffset),
+      incumbent_weak_gap_sse: finiteOrNull(input.incumbentWeakGapSse),
       start_total_spent_frames: startTotal,
       ceiling_total_spent_frames: ceilingTotal,
       ceiling_source: input.ceilingSource ?? "hard_budget",
@@ -613,6 +651,9 @@ export class CompileBudgetTelemetryRecorder {
       search_seed: attempt.search_seed,
       has_fallback: attempt.has_fallback,
       anchor: { ...attempt.anchor },
+      repair_round_index: attempt.repair_round_index,
+      anchor_upstream_offset: attempt.anchor_upstream_offset,
+      incumbent_weak_gap_sse: attempt.incumbent_weak_gap_sse,
       start_total_spent_frames: attempt.start_total_spent_frames,
       ceiling_total_spent_frames: attempt.ceiling_total_spent_frames,
       ceiling_source: attempt.ceiling_source,

@@ -950,14 +950,6 @@ const M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX = 0.20;
  *  deterministic batch, and the true-score forward ranker can use the extra pool.
  *  LR_QUALITY_NCAND overrides this unified breadth for controlled studies. */
 const HANDOFF_QUALITY_N_CAND = 32;
-const M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES = 200_000;
-const M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES = 200_000;
-const M152_CANYON_QUALITY_MIN_BUDGET_FRAMES = 250_000;
-const M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES = 200_000;
-const HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND = 34;
-const HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND = 28;
-const HANDOFF_QUALITY_CANYON_MATURE_BOOST_N_CAND = 36;
-const HANDOFF_QUALITY_DRUM_GRAIN_BOOST_N_CAND = 40;
 const HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS = 32;
 const HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
@@ -4728,42 +4720,47 @@ function qualityHandoffSampleCount(
 ): number {
   const base = handoffSampleCount(targetBudget);
   if (qualityNCandOverride() !== null) return base;
-  return qualityBreadth(profile, sparseContactCadence, targetBudget, base);
+  return qualityBreadth(profile, sparseContactCadence, base);
 }
 
 type QualityBreadthRule = {
-  envName?: string;
-  minBudgetFrames?: number;
   nCand: number;
   allowSparseSmooth?: boolean;
   matches: (profile: HandoffTargetProfile) => boolean;
 };
 
+/**
+ * The breadth law's SCARCE-BUDGET FLOOR, which is what these two rules are —
+ * not, as their history suggests, per-spec relief.
+ *
+ * They only run when the law returns fewer than `HANDOFF_QUALITY_N_CAND` (32),
+ * i.e. below B = 291,667 frames, where the law returns 8 / 16 / 24 at 75k / 150k
+ * / 225k and the floor `HANDOFF_QUALITY_N_CAND_FLOOR = 8` starts binding. Both
+ * predicates are budget-blind and broad — any spec with air range >= 0.50 or
+ * speed range >= 0.40, and any spec of <= 32 contacts with no amplitude — so
+ * across most of the suite the effect at low budget is "sample at least ~32
+ * candidates per gap however small the budget is".
+ *
+ * DELETED from this table in 2026-08: four rules keyed on benchmark-case
+ * signatures (M165 drum-grain 40, M152 canyon 36, M144 residual 28, M132
+ * dense-low-air 34) behind min-budget gates named after those same cases
+ * (200,000 / 250,000). They could only fire at 225k and 250k, and at 225k
+ * removing the WHOLE table measured +0.01 mean score per run (suite +2.84) on
+ * golden v1 x 40 specs x 12 seeds — so the case-named half was buying nothing at
+ * the only tier it could reach. Their four min-budget constants, four nCand
+ * constants, four predicates and four env kill-switches went with them.
+ *
+ * KEPT, because the measurement says so: removing the whole table costs -7.70
+ * mean score per run at 75k (suite -19.78, 24 new missing contacts) and -1.53 at
+ * 150k, where only these two rules can fire. The honest next step is not to
+ * delete them but to ask whether the law's own floor of 8 is simply wrong — this
+ * table has been compensating for it — and that is a bracket on
+ * `HANDOFF_QUALITY_N_CAND_FLOOR`, not a per-spec question.
+ *
+ * All of it is unreachable at every promoted budget: 20/20 golden track hashes
+ * unchanged at 750,000 with the whole table deleted.
+ */
 const QUALITY_BREADTH_RULES: readonly QualityBreadthRule[] = [
-  {
-    envName: "LR_M165_DRUM_GRAIN_QUALITY40",
-    minBudgetFrames: M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES,
-    nCand: HANDOFF_QUALITY_DRUM_GRAIN_BOOST_N_CAND,
-    matches: shouldBoostDrumGrainMatureQualityBreadth,
-  },
-  {
-    envName: "LR_M152_CANYON_QUALITY36",
-    minBudgetFrames: M152_CANYON_QUALITY_MIN_BUDGET_FRAMES,
-    nCand: HANDOFF_QUALITY_CANYON_MATURE_BOOST_N_CAND,
-    matches: shouldBoostCanyonMatureQualityBreadth,
-  },
-  {
-    envName: "LR_M144_RESIDUAL_QUALITY28",
-    minBudgetFrames: M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES,
-    nCand: HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND,
-    matches: shouldLeanResidualQualityBreadth,
-  },
-  {
-    envName: "LR_M132_DENSE_LOW_AIR_QUALITY34",
-    minBudgetFrames: M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES,
-    nCand: HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND,
-    matches: shouldBoostDenseLowAirQualityBreadth,
-  },
   {
     nCand: HANDOFF_QUALITY_N_CAND,
     matches: shouldRelaxMatureQualityLean,
@@ -4778,7 +4775,6 @@ const QUALITY_BREADTH_RULES: readonly QualityBreadthRule[] = [
 function qualityBreadth(
   profile: HandoffTargetProfile,
   sparseContactCadence: boolean,
-  targetBudget: number | undefined,
   base: number,
 ): number {
   if (
@@ -4789,12 +4785,7 @@ function qualityBreadth(
   }
   if (base >= HANDOFF_QUALITY_N_CAND) return base;
 
-  const budget = targetBudget ?? 0;
-  const rule = QUALITY_BREADTH_RULES.find((candidate) =>
-    (candidate.envName === undefined || readEnv(candidate.envName) !== "0") &&
-    budget >= (candidate.minBudgetFrames ?? 0) &&
-    candidate.matches(profile)
-  );
+  const rule = QUALITY_BREADTH_RULES.find((candidate) => candidate.matches(profile));
   if (rule !== undefined) {
     return rule.allowSparseSmooth === true && sparseContactCadence
       ? smoothSparseAmplitudeQualityBreadth(profile, rule.nCand)
@@ -4853,182 +4844,6 @@ function shouldRelaxMatureQualityLean(profile: HandoffTargetProfile): boolean {
 function shouldBoostShortNoAmpQualityBreadth(profile: HandoffTargetProfile): boolean {
   return profile.contactCount <= HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS &&
     profile.axes.amplitude.range <= 0;
-}
-
-function shouldBoostDenseLowAirQualityBreadth(profile: HandoffTargetProfile): boolean {
-  const medianGapFrames = profile.medianContactGapFrames;
-  const meanAir = profile.axes.air.mean;
-  const meanSpeed = profile.axes.speed.mean;
-  if (
-    medianGapFrames === null ||
-    meanAir === null ||
-    meanSpeed === null
-  ) {
-    return false;
-  }
-  return profile.contactCount >= 50 &&
-    medianGapFrames <= 20 &&
-    profile.axes.amplitude.range <= 0 &&
-    profile.axes.elevation.range <= 0 &&
-    meanAir >= 0.47 &&
-    meanAir <= 0.49 &&
-    profile.axes.air.range >= 0.68 &&
-    profile.axes.air.range <= 0.72 &&
-    meanSpeed >= 0.54 &&
-    meanSpeed <= 0.56 &&
-    profile.axes.speed.range <= 0.02;
-}
-
-function shouldBoostCanyonMatureQualityBreadth(profile: HandoffTargetProfile): boolean {
-  const medianGapFrames = profile.medianContactGapFrames;
-  const meanAir = profile.axes.air.mean;
-  const meanSpeed = profile.axes.speed.mean;
-  if (
-    medianGapFrames === null ||
-    meanAir === null ||
-    meanSpeed === null
-  ) {
-    return false;
-  }
-
-  const contacts = profile.contactCount;
-  const airRange = profile.axes.air.range;
-  const speedRange = profile.axes.speed.range;
-  const amplitudeRange = profile.axes.amplitude.range;
-  const elevationRange = profile.axes.elevation.range;
-
-  return contacts >= 19 &&
-    contacts <= 21 &&
-    medianGapFrames >= 24 &&
-    medianGapFrames <= 28 &&
-    meanAir >= 0.59 &&
-    meanAir <= 0.63 &&
-    airRange >= 0.28 &&
-    airRange <= 0.33 &&
-    meanSpeed >= 0.60 &&
-    meanSpeed <= 0.64 &&
-    speedRange >= 0.17 &&
-    speedRange <= 0.22 &&
-    amplitudeRange >= 0.45 &&
-    amplitudeRange <= 0.50 &&
-    elevationRange >= 0.26 &&
-    elevationRange <= 0.30;
-}
-
-function shouldBoostDrumGrainMatureQualityBreadth(profile: HandoffTargetProfile): boolean {
-  const medianGapFrames = profile.medianContactGapFrames;
-  const meanAir = profile.axes.air.mean;
-  const meanSpeed = profile.axes.speed.mean;
-  const meanImpact = profile.axes.impact.mean;
-  if (
-    medianGapFrames === null ||
-    meanAir === null ||
-    meanSpeed === null ||
-    meanImpact === null
-  ) {
-    return false;
-  }
-
-  const contacts = profile.contactCount;
-  const airRange = profile.axes.air.range;
-  const speedRange = profile.axes.speed.range;
-  const amplitudeRange = profile.axes.amplitude.range;
-  const elevationRange = profile.axes.elevation.range;
-  const impactRange = profile.axes.impact.range;
-
-  const breathPocket = contacts >= 50 &&
-    contacts <= 60 &&
-    medianGapFrames <= 20 &&
-    meanAir >= 0.63 &&
-    meanAir <= 0.66 &&
-    airRange >= 0.26 &&
-    airRange <= 0.30 &&
-    meanSpeed >= 0.59 &&
-    meanSpeed <= 0.61 &&
-    speedRange >= 0.22 &&
-    speedRange <= 0.26 &&
-    meanImpact >= 0.20 &&
-    meanImpact <= 0.25 &&
-    amplitudeRange <= 0 &&
-    elevationRange <= 0;
-
-  const grainPocket = contacts >= 37 &&
-    contacts <= 41 &&
-    medianGapFrames >= 19 &&
-    medianGapFrames <= 21 &&
-    meanAir >= 0.54 &&
-    meanAir <= 0.56 &&
-    airRange <= 0.02 &&
-    meanSpeed >= 0.57 &&
-    meanSpeed <= 0.59 &&
-    speedRange <= 0.02 &&
-    meanImpact >= 0.22 &&
-    meanImpact <= 0.25 &&
-    impactRange >= 0.45 &&
-    impactRange <= 0.50;
-
-  const soloPocket = contacts >= 74 &&
-    contacts <= 80 &&
-    medianGapFrames <= 14 &&
-    meanAir >= 0.51 &&
-    meanAir <= 0.53 &&
-    airRange <= 0.06 &&
-    meanSpeed >= 0.68 &&
-    meanSpeed <= 0.70 &&
-    speedRange <= 0.08 &&
-    meanImpact >= 0.25 &&
-    meanImpact <= 0.27 &&
-    impactRange <= 0.12 &&
-    amplitudeRange <= 0 &&
-    elevationRange <= 0;
-
-  return breathPocket || grainPocket || soloPocket;
-}
-
-function shouldLeanResidualQualityBreadth(profile: HandoffTargetProfile): boolean {
-  const medianGapFrames = profile.medianContactGapFrames;
-  const meanAir = profile.axes.air.mean;
-  const meanSpeed = profile.axes.speed.mean;
-  if (
-    medianGapFrames === null ||
-    meanAir === null ||
-    meanSpeed === null
-  ) {
-    return false;
-  }
-
-  const contacts = profile.contactCount;
-  const airRange = profile.axes.air.range;
-  const amplitudeRange = profile.axes.amplitude.range;
-  const elevationRange = profile.axes.elevation.range;
-
-  const terracePocket = contacts >= 22 &&
-    contacts <= 24 &&
-    medianGapFrames >= 22 &&
-    medianGapFrames <= 26 &&
-    meanAir >= 0.52 &&
-    meanAir <= 0.58 &&
-    meanSpeed >= 0.70 &&
-    meanSpeed <= 0.77 &&
-    amplitudeRange >= 0.42 &&
-    amplitudeRange <= 0.52 &&
-    elevationRange >= 0.08 &&
-    elevationRange <= 0.16;
-
-  const ridgePocket = contacts >= 22 &&
-    contacts <= 26 &&
-    medianGapFrames >= 22 &&
-    medianGapFrames <= 26 &&
-    meanAir >= 0.48 &&
-    meanAir <= 0.53 &&
-    airRange >= 0.10 &&
-    airRange <= 0.18 &&
-    amplitudeRange >= 0.08 &&
-    amplitudeRange <= 0.16 &&
-    elevationRange >= 0.12 &&
-    elevationRange <= 0.20;
-
-  return terracePocket || ridgePocket;
 }
 
 function shouldBoostSparseAmpQualityBreadthAllBudget(profile: HandoffTargetProfile): boolean {

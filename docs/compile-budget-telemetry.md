@@ -704,7 +704,8 @@ Telemetry is kept separate from score/report semantics:
 
 Golden archives embed a **reduced** copy, marked `archive_form:
 "observations_reduced"`. It keeps the whole compile, model, and segment account
-and every attempt's identity, anchor, counters, and outcome, but drops the
+and every attempt's identity, anchor, repair context (`repair_round_index`,
+`anchor_upstream_offset`, `incumbent_weak_gap_sse`), counters, and outcome, but drops the
 `observations` array entirely and trims `start`/`end` to the point estimate,
 interval, applicability, and the accounting terms the analyzer's identities need.
 The full payload is still produced by every compile and persisted by run.ts

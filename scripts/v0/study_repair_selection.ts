@@ -50,7 +50,17 @@ const COMPONENT_WEIGHTS: Record<string, number> = {
   amplitude: 0.1,
 };
 
-/** `handoff.ts` repair defaults, mirrored (read-only) for the replay's arithmetic. */
+/** `handoff.ts` repair defaults, mirrored (read-only) for the replay's arithmetic.
+ *
+ * ERA PIN: the four margin constants reproduce the compiler that PRODUCED the
+ * archived corpus this study was run on. That mechanism no longer exists at
+ * HEAD — the feasibility margin and its ramp were deleted (commit chain
+ * f96dc03/ccfd58d) in favour of `estCostUpperOf`'s calibrated start/withPath
+ * upper quantile (~1.15x measured cost, vs 1.05 -> 1.0 here). Replaying THIS
+ * rule against archives recorded at or after that change prices anchors the
+ * shipped compiler would size differently; either re-derive the replay from
+ * `ceiling_source`/`ceiling_total_spent_frames` in the newer telemetry or keep
+ * the inputs to pre-deletion archives. */
 const REPAIR_MAX_UPSTREAM = 4;
 const REPAIR_MAX_ATTEMPTS = 64;
 const REPAIR_FEAS_MARGIN_SCARCE = 1.05;
@@ -64,10 +74,15 @@ const REPAIR_MARGIN_RAMP_SPAN_FRAMES = 100_000;
  * The bucket is the ATTEMPT ordinal within the compile (`restart` in the ROI
  * study's tables), not the pick round. The two differ: one round of
  * `runRepairPhase` can emit up to `maxUpstream + 1` attempts as it walks the
- * anchor upstream, and the telemetry records no round field at all (ROI study
- * H6). The ordinal is what the archive measures, so it is what the replay prices
- * by — pricing an up-walk attempt at its round's rate would silently hand every
- * extra attempt the first attempt's acceptance.
+ * anchor upstream, and the CORPUS THIS STUDY RAN ON records no round field
+ * (ROI study H6). The ordinal is what that archive measures, so it is what the
+ * replay prices by — pricing an up-walk attempt at its round's rate would
+ * silently hand every extra attempt the first attempt's acceptance.
+ *
+ * Since ccfd58d the recorder DOES emit `repair_round_index` (with
+ * `anchor_upstream_offset` and `incumbent_weak_gap_sse`) precisely to retire
+ * this workaround; a rerun over post-ccfd58d archives should bucket on that
+ * field instead of the ordinal.
  */
 const ROUND_BUCKETS = 6;
 /** Local-budget bins of the outcome model. */
@@ -78,7 +93,8 @@ function smoothstep(x: number): number {
   return t * t * (3 - 2 * t);
 }
 
-/** `defaultRepairFeasMargin` (`handoff.ts:5887`), reproduced for the replay. */
+/** The DELETED `defaultRepairFeasMargin` (pre-f96dc03 handoff.ts), reproduced
+ *  for the replay of that era's archives — see the ERA PIN note above. */
 function feasMarginFor(targetBudget: number): number {
   const pressure = smoothstep(
     (targetBudget - REPAIR_MARGIN_RAMP_START_FRAMES) / REPAIR_MARGIN_RAMP_SPAN_FRAMES,

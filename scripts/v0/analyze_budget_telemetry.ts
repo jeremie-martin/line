@@ -294,6 +294,26 @@ const applicability = applicabilityStatuses.map((status) => {
   };
 });
 
+// Rows from REDUCED golden archives (`archive_form: "observations_reduced"`)
+// carry the point/interval fields but not the estimator components the
+// calibrator requires (`parseSamples` throws on the first row whose
+// `structural`/`remainingContacts`/`remainingDurationFrames`/`progressFraction`
+// is not finite). Withhold them from `calibration_samples` — with a warning,
+// so a reduced corpus reads as "not a calibration corpus; use run.ts sidecars
+// or a --details archive", not as a cryptic calibrator crash — while keeping
+// them in the accuracy tables above, where their `combined` column is valid.
+const calibratableSamples = samples.filter((sample) =>
+  [sample.structural, sample.remainingContacts, sample.remainingDurationFrames, sample.progressFraction]
+    .every((value) => typeof value === "number" && Number.isFinite(value))
+);
+if (emitSamples && calibratableSamples.length < samples.length) {
+  warnings.push(
+    `${samples.length - calibratableSamples.length} of ${samples.length} prediction samples come from ` +
+      "reduced archives (observations_reduced: estimator components stripped) and were withheld from " +
+      "calibration_samples; recalibrate from run.ts sidecars or --details golden archives",
+  );
+}
+
 const report: AnalysisReport = {
   schema: "line.compile-budget-telemetry-analysis.v1",
   inputs,
@@ -346,7 +366,7 @@ const report: AnalysisReport = {
     rate: ratio(censoredUpperUnderestimates, censoredAttempts),
   },
   applicability,
-  calibration_samples: emitSamples ? samples : null,
+  calibration_samples: emitSamples ? calibratableSamples : null,
   samples_omitted: !emitSamples,
 };
 

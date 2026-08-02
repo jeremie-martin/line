@@ -124,8 +124,13 @@ export function setAimLaneDeadlineThrottled(active: boolean): void {
  * (`AIM_TOPK_MATURE_BUDGET_FRAMES`). It replaces a lane KILL, which is the one
  * shape the campaign's own rule forbids: throttle a magnitude, never trigger a
  * mode.
+ *
+ * The literal is asserted against `HANDOFF_FORWARD_EVAL_TOP /
+ * HANDOFF_CANDIDATE_POOL` at handoff.ts module load (node.ts cannot import
+ * handoff.ts without a cycle), so re-tuning either pool constant fails fast
+ * instead of silently splitting the two consumers of the "same share" rule.
  */
-const AIM_LANE_DEADLINE_BASE_SHARE = 2 / 5;
+export const AIM_LANE_DEADLINE_BASE_SHARE = 2 / 5;
 
 function aimLaneBases(kEffective: number): number {
   return aimLaneDeadlineThrottled

@@ -158,13 +158,14 @@ export function isObjectiveControlSourceDefault(
  * baseline arm is the production compiler itself.
  *
  * EACH VARIABLE IS EMITTED ONLY WHEN IT IS NON-DEFAULT, and that is a
- * correctness requirement rather than tidiness. `handoff.ts` disables its
- * per-spec exponent gates when `LR_OBJECTIVE_SETTLED_POWER` or
- * `LR_OBJECTIVE_FUTURE_POWER` is present at all, whatever its value. Emitting
- * them unconditionally therefore made every non-default cell ALSO a
- * gates-disabled cell, so a cell varying only the readiness floor would have
- * been confounded with the gate change on the 40-of-44 specs the settled gate
- * touches.
+ * correctness requirement rather than tidiness. `handoff.ts` disables its one
+ * surviving per-spec exponent gate (`objectiveBlendCurrentPowerForSpec`) when
+ * `LR_OBJECTIVE_SETTLED_POWER` is present at all, whatever its value (the
+ * future/readiness gate and its three LR_M* kill-switches were deleted in
+ * d7c839f; `LR_OBJECTIVE_FUTURE_POWER` no longer disables anything). Emitting
+ * unconditionally therefore made every non-default cell ALSO a gates-disabled
+ * cell, so a cell varying only the readiness floor would have been confounded
+ * with the gate change on the 40-of-44 specs the settled gate touches.
  *
  * Sweep A (`objective-sweep-a-16s01`) ran under the earlier all-or-nothing rule.
  * That is why its `settled1--future1--readiness1` cell differs from the source
@@ -173,10 +174,9 @@ export function isObjectiveControlSourceDefault(
  * sweep are not directly comparable to cells minted after this change; the
  * matrix schema is bumped so a resume cannot silently mix them.
  *
- * To disable the readiness gates deliberately, set
- * `LR_M75_HIGH_AIR_IMPACT_READINESS075=0`, `LR_M108_DENSE_DRUM_READINESS075=0`
- * and `LR_M115_COMPACT_READINESS075=0`, which target exactly that and nothing
- * else.
+ * There is no targeted kill-switch for the settled gate: `disableSpecGates`
+ * below (which pins `LR_OBJECTIVE_SETTLED_POWER` into every cell) is the one
+ * deliberate way to turn it off.
  */
 export type ObjectiveControlEnvironmentOptions = Readonly<{
   /**
@@ -185,11 +185,13 @@ export type ObjectiveControlEnvironmentOptions = Readonly<{
    * exponent gates off everywhere.
    *
    * Needed by any sweep comparing exponent RATIOS across cells. Under minimal
-   * emission a cell varying only `settledPower` leaves the future gate live
-   * while a cell varying only `futurePower` leaves the settled gate live, so two
-   * cells with the same ratio are not the same compiler and the comparison is
-   * invalid. This makes "gates off" an explicit, named property of a sweep
-   * rather than a side effect of which variables happened to be non-default.
+   * emission a cell varying only `futurePower` leaves the settled gate live
+   * while a cell varying `settledPower` turns it off, so two cells with the
+   * same ratio are not the same compiler and the comparison is invalid. This
+   * makes "gates off" an explicit, named property of a sweep rather than a
+   * side effect of which variables happened to be non-default. (Since d7c839f
+   * only the settled gate exists; the `LR_OBJECTIVE_FUTURE_POWER` pin is kept
+   * for cell-env stability and is inert as a gate control.)
    */
   disableSpecGates?: boolean;
 }>;

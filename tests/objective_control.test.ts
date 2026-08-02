@@ -26,9 +26,11 @@ describe("objective control configurations", () => {
   });
 
   test("each variable is emitted only when non-default", () => {
-    // handoff disables its per-spec exponent gates on the mere PRESENCE of
-    // LR_OBJECTIVE_SETTLED_POWER / LR_OBJECTIVE_FUTURE_POWER, so emitting them
-    // unconditionally would confound every cell with a gate change.
+    // handoff disables its surviving per-spec exponent gate on the mere
+    // PRESENCE of LR_OBJECTIVE_SETTLED_POWER (the future/readiness gate and
+    // LR_OBJECTIVE_FUTURE_POWER's gate effect were deleted in d7c839f), so
+    // emitting variables unconditionally would confound every cell with a
+    // gate change.
     const [floorOnly] = enumerateObjectiveControlConfigurations({
       readinessFloors: [0.15],
     });

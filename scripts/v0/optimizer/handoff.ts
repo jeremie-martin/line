@@ -41,8 +41,11 @@
  * parity there: the repair feasibility margin (pinned at 200k), the four
  * benchmark-case-named quality-breadth rules (min-budget 200k/250k, parity at
  * the one tier they can fire) and `qualityFuturePreviewPressure` (dead at every
- * budget >= 75k). One hard budget gate remains and is not a ramp:
- * `usesForwardEvalAtBudget` at 75,000 frames.
+ * budget >= 75k). Two hard budget gates remain and are not ramps:
+ * `usesForwardEvalAtBudget` at 75,000 frames, and `repairConfig().minBudget`
+ * at 100,000 frames — below it no repair phase runs, so no measured
+ * cost-to-end profile ever exists and the post-completion deadline margin
+ * falls back to the structural suffix.
  */
 
 import { getRiderMetered, K_BOUNCE_LANDING } from "../../lib/detector.ts";
@@ -107,6 +110,7 @@ import {
 } from "../core/candidate.ts";
 import { pickLowestCost } from "./solver.ts";
 import {
+  AIM_LANE_DEADLINE_BASE_SHARE,
   getCandidatesSorted,
   extendNodeCached,
   isLeafNode,
@@ -916,6 +920,19 @@ const HANDOFF_CANDIDATE_POOL = 5;
  * quantity's scale, not this one's.
  */
 const HANDOFF_FORWARD_EVAL_TOP = 2;
+// The aim lane is held to the same retention share under full deadline
+// pressure (node.ts docstring: "the same rule as the rolled forward-eval
+// head"). node.ts cannot import these constants without a module cycle, so
+// the invariant is enforced here, once, at load: re-tune either pool constant
+// and this throws instead of silently splitting the two consumers.
+if (AIM_LANE_DEADLINE_BASE_SHARE !== HANDOFF_FORWARD_EVAL_TOP / HANDOFF_CANDIDATE_POOL) {
+  throw new Error(
+    "node.ts AIM_LANE_DEADLINE_BASE_SHARE must equal " +
+      "HANDOFF_FORWARD_EVAL_TOP / HANDOFF_CANDIDATE_POOL " +
+      `(${HANDOFF_FORWARD_EVAL_TOP}/${HANDOFF_CANDIDATE_POOL}); ` +
+      "re-derive both together (see node.ts aimLaneBases docstring)",
+  );
+}
 const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
 
@@ -2044,13 +2061,30 @@ function compileHandoffInternal(
       // anchors that tail completion produces, and `pickFeasibleWeakGap` then rejects
       // gaps the budget could in fact afford.
       const costToEnd: number[] = [];
+      // The charged-frame stamp at which a node FIRST existed, from either
+      // producer. A node can be stamped by BOTH maps: the tail pass builds a
+      // suffix node (stamping `framesAtReachTail`), and the frontier later pops
+      // the same memoized object (`extendNodeCached` returns shared identities)
+      // and stamps `framesAtReach` at a strictly later frame count. The merge
+      // must therefore take the EARLIEST stamp — a `??` preferring the frontier
+      // map returned the LATER one for such nodes, understating costToEnd at
+      // exactly the tail-created anchors the second map was added to serve.
+      const firstReachOf = (n: SearchNode): number | undefined => {
+        const frontier = framesAtReach.get(n);
+        const tail = framesAtReachTail.get(n);
+        return frontier === undefined
+          ? tail
+          : tail === undefined
+          ? frontier
+          : Math.min(frontier, tail);
+      };
       {
         const inc0 = bestCompleteNode;
         const root0 = inc0 ? startOptions.find((o) => o.rank === inc0.startRank)?.root : undefined;
         if (inc0 && root0 && firstCompletionFrame > 0) {
           let n = root0;
           for (let k = 0; k <= gaps.length; k++) {
-            const reach = framesAtReach.get(n) ?? framesAtReachTail.get(n);
+            const reach = firstReachOf(n);
             costToEnd[k] = reach !== undefined ? Math.max(0, firstCompletionFrame - reach) : -1;
             if (k < gaps.length) n = extendNodeCached(n, inc0.search.prefixFits[k] ?? null);
           }
@@ -2102,10 +2136,18 @@ function compileHandoffInternal(
        * can be held to (95% nominal, `byEventAndPath.start.withPath`), and it
        * moves with the estimator instead of having to be re-swept beside it.
        *
-       * The point estimate goes through `estimateRemainingBudgetWork` so that
-       * the ceiling is the recorder's own `estimate_upper_frames` for this
-       * attempt's start observation, arrived at from the same pure functions
-       * and no shared state. The structural slot is zero deliberately: the
+       * The point estimate goes through `estimateRemainingBudgetWork`, the
+       * same pure functions the recorder uses and no shared state. NOTE the
+       * ceiling is the artifact's calibrated band applied UNCONDITIONALLY
+       * (the `deadline.ts` contract: policy consumes the raw estimator at
+       * every budget) — it equals the recorder's `estimate_upper_frames` for
+       * this attempt's start observation only where applicability is
+       * `calibrated`. Repair runs from `minBudget` (100k) while the artifact's
+       * fitted domain starts at 300k; below that the recorder widens its
+       * recorded upper to `max(upper, hard_remaining)` and this ceiling does
+       * not, and the 95% coverage claim does not transfer (measured ~35%
+       * two-sided interval coverage at 150k, docs/compile-budget-telemetry.md).
+       * The structural slot is zero deliberately: the
        * artifact's base mode selects the path, and passing a structural number
        * here would smuggle a second structural model into a module that has no
        * business owning one (that is `optimizer/deadline.ts`).
@@ -2132,10 +2174,19 @@ function compileHandoffInternal(
             pace: null,
             progressFraction: 1,
           });
-        return budgetEstimateInterval(point, {
+        const upper = budgetEstimateInterval(point, {
           event: "start",
           pathAvailable: measured !== null,
         }).upper;
+        // Never hand repair a zero ceiling. A `structural` base-mode artifact
+        // (a legal artifact — it is the calibrator's static fallback whenever
+        // the acceptance gate fails) returns the deliberately-zero structural
+        // slot above as the base, which zeroes the point and the interval;
+        // unguarded, every restart would then be sized at zero frames and the
+        // attempt quota would burn doing nothing. Under a path-selecting
+        // artifact this branch is unreachable (measured > 0 and every upper
+        // ratio >= the positive correction), so it is a guard, not a tune.
+        return upper > 0 ? upper : measured ?? perGap * Math.max(1, gaps.length - k);
       };
       // Observation-only mirror of the branch the two functions above took.
       // `per_gap_fallback` means the anchor has no positive measured cost —
@@ -2287,6 +2338,13 @@ function compileHandoffInternal(
           const framesBefore = getSimFrames();
           const incumbentBefore = bestCompleteNode;
           const terminalsBefore = terminalConsiders;
+          // TAUTOLOGICALLY TRUE as recorded: the affordability gate at the top
+          // of this loop tests the same `estCostUpper` against the same
+          // remaining budget, and the prefix replay between the two reads is
+          // memoized (charges no frames). Every recorded restart therefore
+          // carries `predictedFeasible: true`; the field is kept for record
+          // schema stability (types.ts RepairRecord, study_difficulty_model.ts
+          // reads it), but conditioning an analysis on it selects everything.
           const predictedFeasible = estCostUpper <= repairBudget - framesBefore;
           const repairAttemptId = budgetRecorder.startAttempt({
             kind: "repair",
@@ -2333,7 +2391,7 @@ function compileHandoffInternal(
           repairRecords.push({
             round,
             worst: kWorst, anchor: k, up, totalGaps: gaps.length,
-            framesAtAnchor: framesAtReach.get(prefix) ?? -1,
+            framesAtAnchor: firstReachOf(prefix) ?? -1,
             framesBefore, framesSpent: getSimFrames() - framesBefore,
             estCost: Math.round(estCost), estCostUpper: Math.round(estCostUpper),
             predictedFeasible, completed,
@@ -2351,7 +2409,7 @@ function compileHandoffInternal(
               `accepted=${improved ? "yes" : "no"} dScore=${(afterScore - beforeScore).toFixed(2)} ` +
               `frames=${getSimFrames() - framesBefore} estCost=${Math.round(estCost)} ` +
               `estCostUpper=${Math.round(estCostUpper)} ` +
-              `framesAtAnchor=${framesAtReach.get(prefix) ?? -1} ` +
+              `framesAtAnchor=${firstReachOf(prefix) ?? -1} ` +
               `inhSpeed=${fit?.releaseSpeed?.toFixed(2) ?? "na"} ` +
               `inhVy=${fit?.releaseVelocityY?.toFixed(2) ?? "na"} ` +
               `inhGrounded=${fit?.releaseGroundedFrames ?? "na"}\n`,

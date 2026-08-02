@@ -1200,8 +1200,13 @@ const ARCHIVED_OBSERVATION_FIELDS = [
   "estimator_applicability",
 ] as const;
 
-/** Attempt fields kept in the ARCHIVE form: identity, anchor, work counters,
- *  outcome. `start`/`end` are reduced; `observations` are dropped entirely. */
+/** Attempt fields kept in the ARCHIVE form: identity, anchor + repair context,
+ *  work counters, outcome. `start`/`end` are reduced; `observations` are
+ *  dropped entirely. The three repair-context scalars stay in the archive
+ *  because they exist precisely so studies stop pricing repairs by attempt
+ *  ordinal (docs/repair-selection-study.md priced by ordinal for want of a
+ *  round field — an error worth a full point of spurious yield); dropping
+ *  them here would re-create that gap in the exact corpus those studies read. */
 const ARCHIVED_ATTEMPT_FIELDS = [
   "attempt_id",
   "kind",
@@ -1209,6 +1214,9 @@ const ARCHIVED_ATTEMPT_FIELDS = [
   "search_seed",
   "has_fallback",
   "anchor",
+  "repair_round_index",
+  "anchor_upstream_offset",
+  "incumbent_weak_gap_sse",
   "start_total_spent_frames",
   "ceiling_total_spent_frames",
   "ceiling_source",

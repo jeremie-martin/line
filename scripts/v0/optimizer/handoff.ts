@@ -884,7 +884,7 @@ const MAX_NODES_FLOOR = 50_000;
  * value. Five is an interior optimum and the only rung with every stratum and
  * every budget positive.
  */
-const HANDOFF_CANDIDATE_POOL = 7;
+const HANDOFF_CANDIDATE_POOL = 5;
 /**
  * How many of the PRE-SORTED pool are worth a charged forward rollout when the
  * compile is not on course to finish. `0` disables the prune.

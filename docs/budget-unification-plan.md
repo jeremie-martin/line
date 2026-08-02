@@ -106,6 +106,22 @@ input for the margin's low-budget estimate in a future revision.
 
 ## Phase 1 — the unification bundle
 
+**STATUS 2026-08-02: Phase 1a LANDED and PROMOTED** (`4325370`, baseline
+`deadline-margin-750k` at 595.63). One deadline signal; three competitors
+deleted; consumers pre-completion-scoped. The official eval read −0.28 with the
+negative boundary crossed — promoted deliberately after the mandated
+investigation confirmed the cost inherent, fully localized (three frontier
+sources; every other stratum exactly 0.00; validity unchanged), and the
+pressure axis exhausted two-sidedly (all consumers load-bearing; anchors at
+local optima; the two capability groups want opposite pressure and separating
+them needs a forbidden per-family gate). Ledger: −0.28 booked. **Capability
+debt −1.85 recorded against success criterion 4**, repayment lane = Phase 1b
+option D (rollout-depth pressure — cost-side, the GA-16-safe shape). The
+discovered-and-refuted subtlety worth keeping: the old paced blend's
+750k value was NOT lane-kill pessimism (it never fired there); softer-but-
+broader partial pressure completed frontier specs earlier. Evidence:
+scratchpad p1a-reject (15 arm archives).
+
 **Goal.** One live deadline signal; the three competitors deleted; deadline
 pressure extended past first completion (46.3% of a 750k budget currently
 unpaced).

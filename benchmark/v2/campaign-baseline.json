@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "repair-tail-measured-cost-750k",
-  "generated_at": "2026-08-01T12:10:43.130Z",
+  "label": "deadline-margin-750k",
+  "generated_at": "2026-08-02T01:52:25.074Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "7191509e583a93d41f164754feb48eb3183028e17115be431d160fd0cf23d351",
+  "compiler_source_fingerprint": "e1577381cf3a65161de153d3ab6090b73468e1945f712afca35f60d7d5d4abc9",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -100,6 +100,7 @@
     "scripts/v0/optimizer/budget_model.ts",
     "scripts/v0/optimizer/budget_telemetry.ts",
     "scripts/v0/optimizer/contact_phase.ts",
+    "scripts/v0/optimizer/deadline.ts",
     "scripts/v0/optimizer/handoff.ts",
     "scripts/v0/optimizer/impact_policy.ts",
     "scripts/v0/optimizer/kinematic_support.ts",
@@ -124,7 +125,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "20fd7d93c0a5816abb80d3f7bdbe67629ed43352d4790eedbd312dae2d7e96f0",
+  "candidate_fingerprint": "ce8a4831d9c6df8998cb9f323f19ae9c4e0f94f6f411ff8fe6decf59ba3640c2",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "af1467644835b2c09b8415dc42172fe921212ab2b0eb97da02f7956fb1184b8e",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -133,20 +134,20 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/repair-tail-measured-cost-750k-compiler-snapshot.tar.gz",
-    "archiveSha256": "afc427a64b26eeb29527a02b46677bf9ee193acc1b6dfea2a513106da8663975",
-    "candidateFingerprint": "20fd7d93c0a5816abb80d3f7bdbe67629ed43352d4790eedbd312dae2d7e96f0",
-    "compilerSourceFingerprint": "7191509e583a93d41f164754feb48eb3183028e17115be431d160fd0cf23d351",
+    "archive": "benchmark/v2/runs/deadline-margin-750k-compiler-snapshot.tar.gz",
+    "archiveSha256": "6e976b10dad3e93cdaf4e8a367f44558a0ab921aacb6ece2ec89068465f74c3d",
+    "candidateFingerprint": "ce8a4831d9c6df8998cb9f323f19ae9c4e0f94f6f411ff8fe6decf59ba3640c2",
+    "compilerSourceFingerprint": "e1577381cf3a65161de153d3ab6090b73468e1945f712afca35f60d7d5d4abc9",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
     "execution_policy_fingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
     "implementation_fingerprint": "30256508fec3b665e7d119d0a01800b6538df984c0aeb66b0b2adc3794ff36e6",
-    "archive_sha256": "259fbdba3c35852972804088c1fe02679de6ae0023e6a32244bfda91d2900ffa",
-    "compressed_archive": "benchmark/v2/runs/repair-tail-measured-cost-750k-development-750k-N48.json.gz",
-    "compressed_archive_sha256": "5621a60ce5a8325e18daf3935229f9b66651c0a278962c3a9534311753d14eec",
-    "canonical_headline": 595.9097,
+    "archive_sha256": "16739c7b13b911a26b7eb65c9a87a1fc5f5c043597e6ec69eed583c36d137d82",
+    "compressed_archive": "benchmark/v2/runs/deadline-margin-750k-development-750k-N48.json.gz",
+    "compressed_archive_sha256": "2469ccb3bdb4eb8a28c6bb71ecd10fcc8e57c3403bf97ecf61e49080f53eaec2",
+    "canonical_headline": 595.6319,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -211,7 +212,7 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 595.9097,
+        "score": 595.6319,
         "valid_runs": 2112,
         "total_runs": 2112
       }
@@ -219,8 +220,8 @@
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "repair-tail-measured-cost-750k",
-    "candidateFingerprint": "20fd7d93c0a5816abb80d3f7bdbe67629ed43352d4790eedbd312dae2d7e96f0",
+    "baselineLabel": "deadline-margin-750k",
+    "candidateFingerprint": "ce8a4831d9c6df8998cb9f323f19ae9c4e0f94f6f411ff8fe6decf59ba3640c2",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -288,9 +289,9 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 48,
-        "archiveSha256": "259fbdba3c35852972804088c1fe02679de6ae0023e6a32244bfda91d2900ffa",
-        "compressedArchive": "benchmark/v2/runs/repair-tail-measured-cost-750k-development-750k-N48.json.gz",
-        "compressedArchiveSha256": "5621a60ce5a8325e18daf3935229f9b66651c0a278962c3a9534311753d14eec",
+        "archiveSha256": "16739c7b13b911a26b7eb65c9a87a1fc5f5c043597e6ec69eed583c36d137d82",
+        "compressedArchive": "benchmark/v2/runs/deadline-margin-750k-development-750k-N48.json.gz",
+        "compressedArchiveSha256": "2469ccb3bdb4eb8a28c6bb71ecd10fcc8e57c3403bf97ecf61e49080f53eaec2",
         "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
         "implementationFingerprint": "30256508fec3b665e7d119d0a01800b6538df984c0aeb66b0b2adc3794ff36e6"
       }
@@ -311,23 +312,23 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/repair-tail-measured-cost-750k-comparison.json",
-    "artifact_sha256": "cb309cd9bfaf654e7c5fc674741afa6a3ad37a83a4ad6a39ce4c4cedd24381a9",
+    "artifact": "benchmark/v2/runs/deadline-margin-750k-comparison.json",
+    "artifact_sha256": "c0a8882d4993ce8997cd5e5b0e1a0980cf052be1f1931983f3a703af7ee856d7",
     "seeds": 48,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
-    "stopping_action": "inconclusive",
+    "stopping_action": "reject",
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/repair-tail-measured-cost-750k-comparison-request.json",
-    "request_sha256": "c955e8ddf1265b0b585aeba91dab88dec564167e30e1ec5c0b0d7daf3208fb35",
+    "request": "benchmark/v2/runs/deadline-margin-750k-comparison-request.json",
+    "request_sha256": "34b4a07a4e91d1764322b0c3833fa5e24163d90f8ca1bd2d1f80178199061e43",
     "budgets": [
       750000
     ],
-    "outcome": "inconclusive",
-    "delta": 0.01,
+    "outcome": "reject",
+    "delta": -0.2778,
     "forced": true,
-    "force_reason": "Deliberate parity promotion approved by Jérémie 2026-08-01: repair ceilings sized from measured cost at all anchors (perGap fallback 59%->0%), unifying live policy with the calibrated telemetry profile; N=48 delta +0.01 [-0.02,+0.04], validity 2112/2112 unchanged; promoted for mechanism soundness per correctness-fix precedent, not for headline movement"
+    "force_reason": "Deliberate promote-at-cost per docs/budget-unification-plan.md posture, investigation complete (scratchpad p1a-reject): N=48 delta -0.28 [-0.57,+0.02], negative boundary crossed, but the harm is fully localized (3 frontier sources; rep/legacy/music strata exactly 0.00; validity 2112/2112 both arms) and confirmed inherent, not defective: all three margin consumers individually load-bearing (+5.3 to +17.5 each), all anchors at measured local optima in both directions, the pressure axis two-sided across capability groups (separating needs a forbidden per-family gate), every tested repair loses validity or pays one group to the other. Phase 1a delivers the one-deadline-signal architecture (three competing signals deleted). Ledger books -0.28 (floor -3.0). Capability -1.85 recorded as debt owed by a later phase; identified repayment lane = rollout-depth (cost-side) pressure, Phase 1b option D"
   }
 }

@@ -542,15 +542,26 @@ uniqueFullEvaluations (live progress counter)
  └─► fullFeedbackPressure :4414 ──► SC-18 (12) · SC-19 (48) · SC-21 (6)
 ```
 
-### The four answers to "am I behind?"
+### The two answers to "am I behind?" — collapsed 2026-08-02 (Phase 1a, `deadline-margin-750k`)
 
 ```
-                       reads          updated        used by
-budgetSlack            B / D(spec)    never          SC-07, SC-10, SC-13, SC-14
-pacedSlack             blend          per node       SC-09, GA-15   (dies at completion)
-behind-schedule        spend vs gaps  per node       SC-16           (dies at completion)
-hard_completion_margin calibrated     per node       NOTHING — contractually observation-only
+                       reads              updated    used by
+budgetSlack            B / D(spec)        never      SC-07, SC-10, SC-13, SC-14  (DIFFICULTY: spend shape)
+deadline margin        remaining/estimate per node   SC-09 ramp, GA-15 throttle, SC-16 verdict  (DEADLINE: pressure)
 ```
+
+The margin (`optimizer/deadline.ts`) is the estimator's law-scaled structural
+base with the compile's own episode pace blended by progress, switching to the
+measured cost-to-end profile after first completion. `pacedSlack` and the
+behind-schedule comparator were DELETED in `4325370`; the recorder's
+`hard_completion_margin` remains observation-only (policy reads the same pure
+functions, never the recorder). Phase 1a scope: the two pool-affecting
+consumers act pre-completion only; the post-completion arm is Phase 1b.
+Promotion record: −0.28 at N=48, negative boundary, promoted deliberately after
+the investigation confirmed an inherent two-sided trade (all consumers
+load-bearing +5..+17, anchors at local optima); capability −1.85 recorded as
+debt, repayment lane = rollout-depth pressure (1b option D). The historical
+four-signal table this section replaced is preserved in git history.
 
 ### Shared constants and anchors
 

@@ -6,6 +6,30 @@
  * from that state, emits one small line-native catch fragment, and lets
  * `core/candidate.ts` validate landing, survival, off-beat behavior, and axis
  * quality in the engine.
+ *
+ * NOT BUDGET-AWARE. Geometry here is a pure function of the beat, the arriving
+ * rider state and the attempt index — the compile budget is not an input.
+ *
+ * It used to be. Eleven reads of a per-compile budget global fed ten smoothstep
+ * ramps and one hard `< 200_000` threshold, and every one of them was pinned at
+ * its mature value at or below 250k frames: identical geometry from the
+ * benchmark's lowest tier all the way to 5M, differing only across 50k–200k,
+ * a band nothing but the golden v1 evidence tiers and dev iteration still
+ * visits. They presented as adaptive and were constants. Deleted in the 2026-08
+ * budget-unification Phase 3; the mature branch now ships unconditionally.
+ *
+ * Evidence for the deletion, as one bundle (`arc_placement.ts` only):
+ *  - byte-identity at the budgets that decide — 40/40 golden track hashes
+ *    unchanged at 250k and 750k over 10 specs × 2 seeds, all scores identical
+ *    to the digit. 20/20 hashes DID change at 150k, so the instrument was live.
+ *  - sub-250k behaviour change, golden v1 {75k, 150k, 225k} × 40 specs × 12
+ *    seeds (1440 paired compiles): pooled Δ −0.18 points, spec-clustered
+ *    bootstrap SE 0.98, 95% CI [−2.11, +1.72]; per tier −0.28 / +0.07 / −0.33.
+ *    Zero contract-pass flips, identical validity, identical missing-contact
+ *    counts at every tier. Parity, and the eleven ramps bought nothing there.
+ *
+ * If a future controller genuinely needs geometry to see the budget, add one
+ * signal with a stated law and a measurement — do not resurrect a ramp.
  */
 
 import {
@@ -113,13 +137,9 @@ const CONTACT_CENTERED_REDIR_CONTACT_TARGET_START = 0.55;
 const CONTACT_CENTERED_REDIR_CONTACT_TARGET_SPAN = 0.35;
 const CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX = 6;
 const CONTACT_CENTERED_REDIR_CONTACT_SPEED_SPAN_PX = 4;
-const CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES = 125_000;
-const CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES = 75_000;
 const CONTACT_CENTERED_REDIR_ENTRY_SHIFT_MAX_DEG = 10;
 const CONTACT_CENTERED_REDIR_ENTRY_TARGET_START = 0.30;
 const CONTACT_CENTERED_REDIR_ENTRY_TARGET_SPAN = 0.25;
-const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES = 125_000;
-const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
 // Impact-driven post-contact CURVATURE. The redir metric rewards
 // the catch surface ROTATING the CoM velocity through the ~6-frame window
 // (empirically: achieved impact ≈ turnNetDeg ρ0.98, driven by tangentChangeDeg +
@@ -127,9 +147,10 @@ const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
 // contact-angle nudge moves the contact INSTANT, not the through-window rotation, so it
 // leaves achieved impact flat. This third modulation (alongside elevation/amplitude)
 // instead drives the SUSTAINED curvature: it flattens the contact angle into a scoop
-// (raises tangentDelta), FRONT-LOADS the contact→post rotation into the window (negative
-// curveBias), and overrides the high-budget curvature fade for impact beats. RNG-neutral
-// (curvature uses the deterministic low-discrepancy roll, not the rng() stream).
+// (raises tangentDelta) and FRONT-LOADS the contact→post rotation into the window
+// (negative curveBias) — impact beats are the only beats that get any curve bias at
+// all. RNG-neutral (curvature uses the deterministic low-discrepancy roll, not the
+// rng() stream).
 // Ramp retuned for the envelope ruler (2026-06-09): scored targets on previously
 // conflicted beats now sit at 0.45-0.65 (was ~0.85), where the old 0.45-start ramp
 // delivered ~zero pressure. Start 0.25 puts ~0.7 pressure at a 0.5 ask.
@@ -152,8 +173,6 @@ const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
 const IMPACT_CURVE_TARGET_START = 0.25;
 const IMPACT_CURVE_TARGET_SPAN = 0.40;
 const IMPACT_CURVE_ELEVATION_ROOM_TARGET_START = 0.20;
-const IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES = 125_000;
-const IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES = 125_000;
 const IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_START = 0.52;
 const IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_SPAN = 0.10;
 const IMPACT_CURVE_SPEED_START_PX = 6;
@@ -295,15 +314,12 @@ const IMPACT_ARRIVAL_SPEED_GAIN = 0;
 const IMPACT_INCIDENCE_AIM = 0;
 const IMPACT_CURVE_FLATTEN_DEG = 18;
 const IMPACT_CURVE_FRONTLOAD = 1.6;
-// Mature-budget impact POST-TURN sampler.
+// Impact POST-TURN sampler.
 // The curve modulation can only front-load whatever contact→post rotation already
-// exists. Remaining mature misses show contact runs are long enough but
+// exists. Remaining misses show contact runs are long enough but
 // tangentChangeDeg is near zero, so add a normal candidate-family variant that
 // widens the post-contact angle by the ceiling-aware missing redirection angle.
-// Spanned by attempt and mature-budget gated: selection can keep normal launches,
-// while 50k completion remains protected.
-const IMPACT_POST_TURN_BUDGET_START_FRAMES = 100_000;
-const IMPACT_POST_TURN_BUDGET_SPAN_FRAMES = 100_000;
+// Spanned by attempt, so selection can keep normal launches.
 // Widening the post-contact launch angle does NOT manufacture redirection, and
 // the 0.60 restriction below is therefore not the limit it looks like. Measured
 // 2026-07-26: opening this lever to mid-band asks (onset 0.15) and removing its
@@ -330,20 +346,6 @@ const IMPACT_POST_TURN_TARGET_SPAN = 0.20;
 // early-bend variant of this idea washed and regressed 50k; lanes are the
 // selection-protected retry). RNG-neutral: rolls are always drawn, lanes only
 // override the built lines; deterministic per attempt (low-discrepancy salts).
-// Impact-ARRIVAL launch ramp: pressure on the BOUNDED next-beat ask. Bounded
-// dense asks sit at 0.35-0.55 ⇒ pressure 0.1-0.6 there, 1.0 at 0.7+.
-const IMPACT_ARRIVAL_TARGET_START = 0.30;
-const IMPACT_ARRIVAL_TARGET_SPAN = 0.40;
-// The fade puts this lever fully OFF at every canonical benchmark budget
-// (fade = 1 - smoothstep((budget - 50k)/50k) = 0 for budget >= 100k, and the
-// suite's lowest tier is 250k). The V1-era dilution finding that set it was
-// re-measured on Benchmark V2 on 2026-07-26 and still holds: forcing full
-// pressure at every budget is -10.59 headline and does not move the impact bias
-// at all (-0.1713 -> -0.1738). Blending toward the SYMMETRIC pop arc only
-// reaches the arrival velocity the feasibility bound already assumes; raising it
-// takes the steep-arrival dive below.
-const IMPACT_ARRIVAL_BUDGET_FADE_START_FRAMES = 50_000;
-const IMPACT_ARRIVAL_BUDGET_FADE_SPAN_FRAMES = 50_000;
 
 // The template is the CONVERTING half of the impact mechanism: the dive supplies
 // the vertical velocity and this valley is the surface that turns it. Its gates
@@ -385,15 +387,9 @@ const IMPACT_TEMPLATE_HOP_SCALE = 0.72;
 const IMPACT_TEMPLATE_SCOOP_SEG_PX = 10;
 const IMPACT_TEMPLATE_SCOOP_BASE_FRAMES = 6;
 const IMPACT_TEMPLATE_SCOOP_SHORT_FRAMES = 5;
-const IMPACT_TEMPLATE_SCOOP_BUDGET_START_FRAMES = 100_000;
-const IMPACT_TEMPLATE_SCOOP_BUDGET_SPAN_FRAMES = 100_000;
 const IMPACT_TEMPLATE_SCOOP_MIN_SPEC_MEAN_IMPACT = 0.55;
 const IMPACT_TEMPLATE_END_ANGLE_MIN_DEG = -28;
-const IMPACT_TEMPLATE_BUDGET_START_FRAMES = 50_000;
-const IMPACT_TEMPLATE_BUDGET_SPAN_FRAMES = 50_000;
 const IMPACT_TEMPLATE_HOP_MIN_ROOM_FRAMES = Math.round(FPS * 1.25);
-const IMPACT_TEMPLATE_HOLD_BUDGET_START_FRAMES = 125_000;
-const IMPACT_TEMPLATE_HOLD_BUDGET_SPAN_FRAMES = 125_000;
 const IMPACT_TEMPLATE_HOLD_AIR_START = 0.22;
 const IMPACT_TEMPLATE_HOLD_AIR_SPAN = 0.22;
 const IMPACT_TEMPLATE_HOLD_IMPACT_START = 0.42;
@@ -541,17 +537,16 @@ const IMPACT_SUPPORT_WINDOW = 0;
 const STEEP_ARRIVAL_FLIGHT_KNEE = 0;
 const STEEP_ARRIVAL_ABS_CAP_DEG = 40;
 const STEEP_ARRIVAL_SPAN_SALT = 11;
-// Share of the attempt span that produces NO downward pitch. Zero at the
-// budgets the suite measures: the reservation was three constants and a branch
-// on the spec's authored max impact, and the branch was unreachable — every one
-// of the 44 development cases authors a max impact above the 0.68 threshold, so
-// the 0.6 general band was dead code and only the 0.5 hard-impact band ever
-// applied. Scarce budgets keep their own reserve, which nothing in the canonical
-// suite exercises (its lowest tier is 250k) and which protects completion where
-// the search has no room to recover.
-const STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES = 200_000;
-const STEEP_ARRIVAL_SCARCE_ZERO_BAND = 0.25;
-const STEEP_ARRIVAL_MATURE_ZERO_BAND = 0;
+// There is no zero band: every pool member carries at least SPAN_FLOOR of the
+// commanded dive. Two reservations were removed for the same reason — each was
+// unreachable in everything that decides. The impact-conditioned one branched on
+// the spec's authored max impact above 0.68, which all 44 development cases
+// exceed. The budget-conditioned one — a 0.25 band below a hard 200_000-frame
+// threshold, this file's only hard threshold — never fired at any benchmark or
+// production budget, and its stated purpose (protect completion where the search
+// cannot recover) was never measured in the eight months it stood. It is
+// measured now, with the rest of the group: see the file header. Parity below
+// 250k, zero completion losses.
 
 // Study-only marker: was the LAST geometry produced by sampleContactCenteredLines an
 // impact template lane? Read by the landing-window probe (core/candidate.ts) to
@@ -585,16 +580,20 @@ const DENSE_SPACING_POST_LENGTH_SPEED_SCALE = 0.52;
 const DENSE_SPACING_POST_LENGTH_LOW_AIR_SCALE = 0.16;
 const CONTACT_CENTERED_RNG_DRAWS = 8;
 const LAUNCH_GRAVITY_PX_PER_FRAME2 = 0.175;
-/** Budget-aware post-contact ride-out CURVATURE. The ride-out angle was lerped
- *  linearly start→end; biasing the interpolation makes the path concave/convex — a
- *  new shape dimension across the attempt batch that the cost-sorted handoff selects
- *  from. Measured: full curvature lifts scarce-budget COMPLETION a lot (25k +19, 50k
- *  +54 — more shapes to find a valid chain) but DILUTES the converged high-budget
- *  quality. So fade the span out as the compile budget grows: full ≤50k, off ≥100k.
- *  Deterministic per attempt (low-discrepancy salt, no rng draw). */
+/** Post-contact ride-out CURVATURE, on IMPACT beats only. The ride-out angle is
+ *  otherwise lerped linearly start→end; biasing the interpolation makes the path
+ *  concave/convex. The span is the exploration width around the front-load the
+ *  impact carrier commands; non-impact beats get no bias at all.
+ *  Deterministic per attempt (low-discrepancy salt, no rng draw).
+ *  History: this used to be a random shape dimension on EVERY beat, faded out by
+ *  compile budget (full ≤50k, off ≥100k) because it lifted scarce-budget
+ *  COMPLETION (25k +19, 50k +54 — more shapes to find a valid chain) while
+ *  DILUTING converged quality. The fade is exactly 0 from 100k frames up, so the
+ *  random arm was already dead at every budget the benchmark, production and dev
+ *  loops use; the golden v1 75k evidence tier was its last half-strength
+ *  foothold, and removing it there measured at parity (file header). Impact-beat
+ *  behaviour is unchanged at every budget. */
 const CONTACT_CENTERED_POST_CURVE_BIAS_SPAN = 0.6;
-const CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES = 50_000;
-const CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES = 50_000;
 /** Elevation steering. The post-contact ride-out angle decides where the rider
  *  goes next; up is −angle (screen y points down). When `elevation` is targeted
  *  we set that launch from the speed-relative elevation band (see types.ts
@@ -642,25 +641,14 @@ const ARC_LEN_SPAN_SALT = 9;
  *  at/above SPARSE frames (full HI). Smooth, deterministic, no spec-name branch. */
 const ARC_LEN_ROOM_DENSE_FRAMES = 26;
 const ARC_LEN_ROOM_SPARSE_FRAMES = 46;
-const ARC_LEN_ROOM_SMOOTH_BUDGET_START_FRAMES = 50_000;
-const ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES = 50_000;
 
-/** Per-compile frame budget, set once at compileHandoff entry (each compile is a
- *  single independent budget, run in its own worker / sequentially), read by the
- *  budget-aware geometry. A per-compile constant, so determinism stays per
- *  (spec, seed, budget) and the per-node candidate cache remains valid. */
-let currentCompileBudgetFrames = 0;
-export function setCompileBudgetFrames(frames: number): void {
-  currentCompileBudgetFrames = Math.max(0, frames | 0);
-}
-
-function compileBudgetPressure(startFrames: number, spanFrames: number): number {
-  return smoothstep((currentCompileBudgetFrames - startFrames) / spanFrames);
-}
-
-function compileBudgetFade(startFrames: number, spanFrames: number): number {
-  return 1 - compileBudgetPressure(startFrames, spanFrames);
-}
+/** NO-OP. Arc placement does not read the compile budget — see the file header.
+ *  Retained only because `optimizer/handoff.ts` still calls it once per compile
+ *  and four tests still set it; delete the call, the import and this function
+ *  together in the next commit that touches `handoff.ts`. It stores nothing, so
+ *  a caller that forgets it and a caller that passes 50k now get the same
+ *  geometry — which is the point. */
+export function setCompileBudgetFrames(_frames: number): void {}
 
 let currentImpactTemplateSpecMeanImpact = 0;
 export function setImpactTemplateSpecMeanImpact(meanImpact: number): void {
@@ -1546,19 +1534,10 @@ function sampleContactCenteredLines(
   const denseScaledPostLength = rawPostLength * (1 - 0.55 * denseContactPressure);
   const arcLenRoom = nextGapFrames === null
     ? 1
-    : (() => {
-      const linearRoom = clamp(
-        (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
-          (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
-        0, 1,
-      );
-      const smoothRoom = smoothstep(linearRoom);
-      const smoothBudgetPressure = compileBudgetPressure(
-        ARC_LEN_ROOM_SMOOTH_BUDGET_START_FRAMES,
-        ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES,
-      );
-      return lerp(linearRoom, smoothRoom, smoothBudgetPressure);
-    })();
+    : smoothstep(
+      (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
+        (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
+    );
   const spacingPostLengthCap = denseSpacingPostLengthCap(
     targetState.speed,
     nextGapFrames,
@@ -1851,22 +1830,16 @@ function sampleContactCenteredLines(
     y: targetState.sledY + tangentY * tangentJitter + normalY * normalJitter,
   };
 
-  const curveFadeBase = compileBudgetFade(
-    CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES,
-    CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES,
+  // Curvature authority belongs to impact beats: the through-window rotation IS
+  // the redirection. Non-impact beats keep the plain start→end interpolation.
+  // Front-load (negative bias) concentrates the contact→post rotation into the early
+  // segments the rider hugs during the redir window, scaled by impact pressure;
+  // the span is the exploration width around it.
+  const postCurveBias = impactCurveP <= 0 ? 0 : lerp(
+    (lowDiscrepancyRoll(attempt, 8) - 0.5) * 2 * CONTACT_CENTERED_POST_CURVE_BIAS_SPAN,
+    -IMPACT_CURVE_FRONTLOAD,
+    impactCurveP,
   );
-  // Impact beats keep full curvature authority at every budget (the through-window
-  // rotation IS the redirection; the budget fade would suppress it exactly where impact
-  // steering matters most). Non-impact beats are untouched.
-  const curveFade = Math.max(curveFadeBase, impactCurveP > 0 ? 1 : 0);
-  let postCurveBias = curveFade <= 0 ? 0
-    : (lowDiscrepancyRoll(attempt, 8) - 0.5) * 2 *
-      CONTACT_CENTERED_POST_CURVE_BIAS_SPAN * curveFade;
-  if (impactCurveP > 0) {
-    // Front-load (negative bias) concentrates the contact→post rotation into the early
-    // segments the rider hugs during the redir window, scaled by impact pressure.
-    postCurveBias = lerp(postCurveBias, -IMPACT_CURVE_FRONTLOAD, impactCurveP);
-  }
 
   // The old lip/bevel path is gone (neutralized by the redir-impact migration). A
   // separate redir-aware entry adjustment below only changes the final approach
@@ -1965,14 +1938,12 @@ function impactTemplateDescriptor(params: {
   attempt: number;
   contactAngleDeg: number;
 }): ImpactTemplateDescriptor | null {
-  const impactTemplateBudgetP = impactTemplateBudgetPressure();
   const impactTemplateEligibility = impactTemplateLaneEligibility(
     params.targets,
     params.targetState,
     params.gapFrames,
     params.nextGapFrames,
     params.impactCurveP,
-    impactTemplateBudgetP,
     params.attempt,
   );
   if (lowDiscrepancyRoll(params.attempt, IMPACT_TEMPLATE_ROLL_SALT) >= impactTemplateEligibility) {
@@ -2029,25 +2000,14 @@ function impactTemplateDescriptor(params: {
   };
 }
 
-function impactTemplateBudgetPressure(): number {
-  return compileBudgetPressure(
-    IMPACT_TEMPLATE_BUDGET_START_FRAMES,
-    IMPACT_TEMPLATE_BUDGET_SPAN_FRAMES,
-  );
-}
-
+/** Impact-heavy specs get the shorter scoop; everything else keeps the base one.
+ *  Two hand-picked frame counts, never a law — the compile budget used to lerp
+ *  between them (6 → 5 over 100k…200k frames), which resolved to a flat 5 at
+ *  every budget from 200k up and was the only thing the ramp ever did. */
 function impactTemplateScoopFrames(): number {
-  if (currentImpactTemplateSpecMeanImpact < IMPACT_TEMPLATE_SCOOP_MIN_SPEC_MEAN_IMPACT) {
-    return IMPACT_TEMPLATE_SCOOP_BASE_FRAMES;
-  }
-  return lerp(
-    IMPACT_TEMPLATE_SCOOP_BASE_FRAMES,
-    IMPACT_TEMPLATE_SCOOP_SHORT_FRAMES,
-    compileBudgetPressure(
-      IMPACT_TEMPLATE_SCOOP_BUDGET_START_FRAMES,
-      IMPACT_TEMPLATE_SCOOP_BUDGET_SPAN_FRAMES,
-    ),
-  );
+  return currentImpactTemplateSpecMeanImpact < IMPACT_TEMPLATE_SCOOP_MIN_SPEC_MEAN_IMPACT
+    ? IMPACT_TEMPLATE_SCOOP_BASE_FRAMES
+    : IMPACT_TEMPLATE_SCOOP_SHORT_FRAMES;
 }
 
 function impactTemplateHoldPressure(
@@ -2069,13 +2029,9 @@ function impactTemplateHoldPressure(
     (nextGapFrames - IMPACT_TEMPLATE_HOLD_ROOM_START_FRAMES) /
       IMPACT_TEMPLATE_HOLD_ROOM_SPAN_FRAMES,
   );
-  const budgetPressure = compileBudgetPressure(
-    IMPACT_TEMPLATE_HOLD_BUDGET_START_FRAMES,
-    IMPACT_TEMPLATE_HOLD_BUDGET_SPAN_FRAMES,
-  );
   return clamp(
     currentImpactProfilePressures.templateHold * lowAirPressure * impactPressure *
-      roomPressure * budgetPressure,
+      roomPressure,
     0,
     1,
   );
@@ -2124,38 +2080,19 @@ function impactDeliveryAdjustment(params: {
   let postAngleDeg = params.postAngleDeg;
   let postLength = params.postLength;
 
-  // Impact-ARRIVAL launch. The feasibility
-  // bound says a hard beat needs a steep arrival: the crossing angle is capped
-  // by the vertical velocity built falling INTO it (vy_in <= g*N/2). Today the
-  // launch toward a hard beat is shaped by speed/elevation/amplitude but never
-  // by the NEXT beat's impact ask -- so the rider often arrives flat and the
-  // catch has nothing to redirect. Blend the launch toward the symmetric pop
-  // arc (vy0 = -g*N/2 => arrival vy = +g*N/2, the bound's assumed maximum),
-  // spanned across the attempt batch and cost-ranked like every other launch
-  // lever. Same formula as the amplitude arc -- they agree when both fire.
-  if (params.gap.nextImpact !== undefined && params.nextGapFrames !== null) {
-    // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
-    // (slice: +50.5) but dilute converged high-budget quality (-8..-36) --
-    // the same profile as the post-curve span. Fade full <=50k -> off >=100k.
-    const budgetFade = compileBudgetFade(
-      IMPACT_ARRIVAL_BUDGET_FADE_START_FRAMES,
-      IMPACT_ARRIVAL_BUDGET_FADE_SPAN_FRAMES,
-    );
-    const arrivalPressure = budgetFade
-      * smoothstep((params.gap.nextImpact - IMPACT_ARRIVAL_TARGET_START) / IMPACT_ARRIVAL_TARGET_SPAN);
-    if (arrivalPressure > 0) {
-      const blend = clamp(ccSpanBlends(params.attempt).launch, 0, 1) * arrivalPressure;
-      // Shorten the grounded ride-out so the flight has the gap to build vy.
-      ({ postAngleDeg, postLength } = blendPostTowardPopArc(
-        postAngleDeg,
-        postLength,
-        params.nextGapFrames,
-        params.targetState.velocity.x,
-        blend,
-        0.6,
-      ));
-    }
-  }
+  // REMOVED (Phase 3, geometry group): the impact-ARRIVAL pop-arc blend. It
+  // shaped the launch toward the symmetric pop arc (vy0 = -g*N/2) when the NEXT
+  // beat authored impact, behind a fade that was full at ≤50k frames and exactly
+  // 0 from 100k up — so it was already dead at every budget the benchmark,
+  // production, dev and golden v1 evidence tiers run at. Its scarce-budget value
+  // (+50.5 on a 50k slice) never coexisted with its mature cost (-8..-36), and
+  // forcing it on at every budget was re-measured on Benchmark V2 (2026-07-26) at
+  // **-10.59 headline** with the impact bias unmoved (-0.1713 → -0.1738).
+  // Superseded by the steep-arrival dive below, which owns the same physical
+  // lever — supplying arrival vy — at every budget. Removing its last live
+  // foothold (half strength at the golden v1 75k tier) measured at parity with
+  // the rest of the group; see the file header. Recover from git if a sub-50k
+  // regime ever becomes a real operating point.
 
   if (params.impactCurveP > 0) {
     const extraTurnDeg = impactPostTurnExtraDeg(
@@ -2188,16 +2125,7 @@ function impactDeliveryAdjustment(params: {
       params.nextGapFrames,
     );
     if (deltaMax > 0.01) {
-      const zeroBand =
-        currentCompileBudgetFrames > 0 &&
-          currentCompileBudgetFrames < STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES
-          ? STEEP_ARRIVAL_SCARCE_ZERO_BAND
-          : STEEP_ARRIVAL_MATURE_ZERO_BAND;
-      const spanRoll = Math.max(
-        0,
-        (lowDiscrepancyRoll(params.attempt, STEEP_ARRIVAL_SPAN_SALT) - zeroBand) /
-          (1 - zeroBand),
-      );
+      const spanRoll = lowDiscrepancyRoll(params.attempt, STEEP_ARRIVAL_SPAN_SALT);
       /* The span currently runs 0..1 of the computed dive, so the pool's MEAN
        * member carries half of what the ask needs. A floor raises the whole
        * span toward the command while keeping variation below it. */
@@ -2261,7 +2189,6 @@ function impactTemplateLaneEligibility(
   gapFrames: number,
   nextGapFrames: number | null,
   impactCurveP: number,
-  budgetPressure: number,
   attempt: number,
 ): number {
   if (targets.impact === undefined) return 0;
@@ -2295,7 +2222,7 @@ function impactTemplateLaneEligibility(
     ? 0
     : smoothstep((nextGapFrames - 4) / IMPACT_TEMPLATE_ROOM_SPAN_FRAMES);
   return clamp(
-    IMPACT_TEMPLATE_LANE_RATE * budgetPressure * firing * roomP,
+    IMPACT_TEMPLATE_LANE_RATE * firing * roomP,
     0,
     1,
   );
@@ -2339,19 +2266,11 @@ function contactCenteredRedirAngleShiftDeg(params: ContactCenteredRedirAngleShif
   if (params.targetImpact === undefined) return 0;
 
   const entryShift = params.kind === "entry";
-  const mature = compileBudgetPressure(
-    entryShift
-      ? CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES
-      : CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES,
-    entryShift
-      ? CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES
-      : CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES,
-  );
   const speedPressure = smoothstep(
     (params.targetState.speed - CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX) /
       CONTACT_CENTERED_REDIR_CONTACT_SPEED_SPAN_PX,
   );
-  if (mature <= 0 || speedPressure <= 0) return 0;
+  if (speedPressure <= 0) return 0;
 
   let densePressure = 1;
   if (entryShift) {
@@ -2386,15 +2305,14 @@ function contactCenteredRedirAngleShiftDeg(params: ContactCenteredRedirAngleShif
       : CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG,
   );
   const shiftDeg = cappedShiftDeg
-    * mature * speedPressure * densePressure * turn.targetPressure * clamp(ccSpanBlends(params.attempt).launch, 0, 1);
+    * speedPressure * densePressure * turn.targetPressure * clamp(ccSpanBlends(params.attempt).launch, 0, 1);
   return entryShift ? shiftDeg : -shiftDeg;
 }
 
 /** Pressure [0,1] for the impact-driven curvature modulation: ramps with the
  *  ceiling-saturated impact target and gates on having enough incoming speed for a
- *  redirection to read as impact (redir = speed·sin(turn)). No budget gate — unlike the
- *  contact-angle nudge this is meant to work at every budget, and it explicitly overrides
- *  the high-budget curvature fade. Returns 0 when no impact is authored. */
+ *  redirection to read as impact (redir = speed·sin(turn)).
+ *  Returns 0 when no impact is authored. */
 function impactCurvePressure(
   targetState: ImpactFrameTargetState,
   targetImpact: number | undefined,
@@ -2412,17 +2330,12 @@ function impactCurvePressure(
 }
 
 function impactCurveTargetStart(targetImpact: number): number {
-  const maturePressure = compileBudgetPressure(
-    IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES,
-    IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES,
-  );
   const localReliefPressure = smoothstep(
     (targetImpact - IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_START) /
       IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_SPAN,
   );
   const profilePressure = currentImpactProfilePressures.elevationRoom *
-    (1 - currentImpactProfilePressures.highSpeedRelief * localReliefPressure) *
-    maturePressure;
+    (1 - currentImpactProfilePressures.highSpeedRelief * localReliefPressure);
   return lerp(IMPACT_CURVE_TARGET_START, IMPACT_CURVE_ELEVATION_ROOM_TARGET_START, profilePressure);
 }
 
@@ -2490,11 +2403,6 @@ function impactPostTurnExtraDeg(
   attempt: number,
 ): number {
   if (targetImpact === undefined) return 0;
-  const mature = compileBudgetPressure(
-    IMPACT_POST_TURN_BUDGET_START_FRAMES,
-    IMPACT_POST_TURN_BUDGET_SPAN_FRAMES,
-  );
-  if (mature <= 0) return 0;
 
   const currentDeltaDeg = Math.max(
     axisDeltaDeg(contactAngleDeg, targetState.angleDeg),
@@ -2509,7 +2417,7 @@ function impactPostTurnExtraDeg(
 
   const span = clamp(ccSpanBlends(attempt).launch, 0, 1);
   const sampleStrength = 0.25 + 0.75 * span;
-  const pressure = mature * turn.targetPressure * Math.sqrt(clamp(impactCurveP, 0, 1));
+  const pressure = turn.targetPressure * Math.sqrt(clamp(impactCurveP, 0, 1));
   return clamp(turn.missingDeltaDeg * sampleStrength * pressure, 0, IMPACT_POST_TURN_MAX_EXTRA_DEG);
 }
 

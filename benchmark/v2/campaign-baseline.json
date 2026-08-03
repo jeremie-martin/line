@@ -1,15 +1,15 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "margin-calibrated-base-750k",
-  "generated_at": "2026-08-03T07:46:06.948Z",
+  "label": "redraw-on-empty-750k",
+  "generated_at": "2026-08-03T09:24:02.686Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
       750000
     ],
     "max_seeds": 48,
-    "promotion_seeds": 48,
+    "promotion_seeds": 32,
     "sequential_looks": [
       8,
       16,
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "ff4a5b047a1c08026fbd5db5021ca2a9bc5c1815a24a0f5a36b79ea34bba9c78",
+  "compiler_source_fingerprint": "d412b4eb5952950891d35634f3cdbee4f05df5d3f67a4baa8937185d5d72eb17",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -125,7 +125,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "07a5c4ff9a67c2cadbd1cf20781e301ab72189f52801531643393163441e66c8",
+  "candidate_fingerprint": "9d26ed0cdc589de6f13dec141c1c81b270a81d8f8dafedc5fce76b23e958a64f",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "af1467644835b2c09b8415dc42172fe921212ab2b0eb97da02f7956fb1184b8e",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -134,25 +134,25 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/margin-calibrated-base-750k-compiler-snapshot.tar.gz",
-    "archiveSha256": "cac5b6aa1ca119cfe6205a58afd846b33e5c83d4b8eae454ff9935421982336e",
-    "candidateFingerprint": "07a5c4ff9a67c2cadbd1cf20781e301ab72189f52801531643393163441e66c8",
-    "compilerSourceFingerprint": "ff4a5b047a1c08026fbd5db5021ca2a9bc5c1815a24a0f5a36b79ea34bba9c78",
+    "archive": "benchmark/v2/runs/redraw-on-empty-750k-compiler-snapshot.tar.gz",
+    "archiveSha256": "1ec402a9b7f99b70ee17ccce02f06af9cc28c570c4676d7cf9600da5a52ffabb",
+    "candidateFingerprint": "9d26ed0cdc589de6f13dec141c1c81b270a81d8f8dafedc5fce76b23e958a64f",
+    "compilerSourceFingerprint": "d412b4eb5952950891d35634f3cdbee4f05df5d3f67a4baa8937185d5d72eb17",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
-    "execution_policy_fingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
+    "execution_policy_fingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
     "implementation_fingerprint": "30256508fec3b665e7d119d0a01800b6538df984c0aeb66b0b2adc3794ff36e6",
-    "archive_sha256": "065a479f7699db7b8075e1cdca1ba31f85aef264045a12b2c5f9aad7d19d3740",
-    "compressed_archive": "benchmark/v2/runs/margin-calibrated-base-750k-development-750k-N48.json.gz",
-    "compressed_archive_sha256": "a851c3bffd753735bacfd3431a913f93e9461279b5637f5256a3bb9bf290e346",
-    "canonical_headline": 595.2278,
+    "archive_sha256": "7386b53ac042ba168135d16280df09130bda5de1eb918e069e4bee9e01e6684f",
+    "compressed_archive": "benchmark/v2/runs/redraw-on-empty-750k-development-750k-N32.json.gz",
+    "compressed_archive_sha256": "99e68ca4b0ae4f8f7494a8d676d6ec94c1f722dea25d7285c59f4a8de8af8380",
+    "canonical_headline": 595.9728,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
       "seedBase": 0,
-      "seedsPerBudget": 48,
+      "seedsPerBudget": 32,
       "byBudget": [
         {
           "budget": 750000,
@@ -188,23 +188,7 @@
             628,
             629,
             630,
-            631,
-            632,
-            633,
-            634,
-            635,
-            636,
-            637,
-            638,
-            639,
-            640,
-            641,
-            642,
-            643,
-            644,
-            645,
-            646,
-            647
+            631
           ]
         }
       ]
@@ -212,16 +196,16 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 595.2278,
-        "valid_runs": 2112,
-        "total_runs": 2112
+        "score": 595.9728,
+        "valid_runs": 1408,
+        "total_runs": 1408
       }
     ]
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "margin-calibrated-base-750k",
-    "candidateFingerprint": "07a5c4ff9a67c2cadbd1cf20781e301ab72189f52801531643393163441e66c8",
+    "baselineLabel": "redraw-on-empty-750k",
+    "candidateFingerprint": "9d26ed0cdc589de6f13dec141c1c81b270a81d8f8dafedc5fce76b23e958a64f",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -288,11 +272,11 @@
       {
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
-        "endSeedSlotExclusive": 48,
-        "archiveSha256": "065a479f7699db7b8075e1cdca1ba31f85aef264045a12b2c5f9aad7d19d3740",
-        "compressedArchive": "benchmark/v2/runs/margin-calibrated-base-750k-development-750k-N48.json.gz",
-        "compressedArchiveSha256": "a851c3bffd753735bacfd3431a913f93e9461279b5637f5256a3bb9bf290e346",
-        "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
+        "endSeedSlotExclusive": 32,
+        "archiveSha256": "7386b53ac042ba168135d16280df09130bda5de1eb918e069e4bee9e01e6684f",
+        "compressedArchive": "benchmark/v2/runs/redraw-on-empty-750k-development-750k-N32.json.gz",
+        "compressedArchiveSha256": "99e68ca4b0ae4f8f7494a8d676d6ec94c1f722dea25d7285c59f4a8de8af8380",
+        "executionPolicyFingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
         "implementationFingerprint": "30256508fec3b665e7d119d0a01800b6538df984c0aeb66b0b2adc3794ff36e6"
       }
     ]
@@ -312,23 +296,21 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/margin-calibrated-base-750k-comparison.json",
-    "artifact_sha256": "f2f7d8a4e024d40218c67623e786c4d30e9f42fc8baa7a51c2ee3df342ec2d59",
-    "seeds": 48,
+    "artifact": "benchmark/v2/runs/redraw-on-empty-750k-comparison.json",
+    "artifact_sha256": "c2171159cde35c3125c300f7e792582aeba82b2624605f9c36810646db36fc32",
+    "seeds": 32,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
-    "stopping_action": "inconclusive",
+    "stopping_action": "accept",
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/margin-calibrated-base-750k-comparison-request.json",
-    "request_sha256": "524973489ee529629773df40e10ca5416274d91992b7ed03278b52baae847244",
+    "request": "benchmark/v2/runs/redraw-on-empty-750k-comparison-request.json",
+    "request_sha256": "4c88ab5b8394ae94bf709fa3bb6c94327a21fd7f2ebb36cb94a6b1becd10319f",
     "budgets": [
       750000
     ],
-    "outcome": "inconclusive",
-    "delta": -0.3071,
-    "forced": true,
-    "force_reason": "Coherence+correctness promotion per docs/budget-dividends-plan.md posture: N=48 inconclusive -0.31 [-0.91,+0.30], validity 2112/2112, capability +0.76. The margin's structural base becomes the calibrated artifact it was documented as deviating from; anchors proven self-consistent for this shape (corpus asks 1.30/1.90 vs shipped 1.25/2.0); engagement restored to design (21.5%->64.3% at 750k); H2 cross-state reads fall 8->1. The candidate's measured upside is healed completions (0 lost / 3 gained on capability grids; +52.9/+26.9 on the debt groups) which the ladder's seeds cannot express (zero baseline failures there) - tracked henceforth by the standing 250k low-budget reading where 118/528 baseline cells are invalid. Ledger books -0.31 (sum -0.68, floor -3.0)"
+    "outcome": "accept",
+    "delta": 0.7217
   }
 }

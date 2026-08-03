@@ -1,4 +1,4 @@
-When launching general purpose agents, only launch Opus 4.8 (medium thinking effort) agents
+When launching general purpose agents, only launch Opus 5 (xhigh reasoning effort) agents — never Fable 5 or Sonnet 5 (Jérémie, 2026-08-03; prefer the `opus-xhigh` agent type if defined in .claude/agents/)
 
 ## Minimal-simulation rule
 

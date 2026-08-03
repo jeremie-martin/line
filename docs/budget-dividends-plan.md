@@ -70,13 +70,79 @@ and does anything about the production operating point contradict the laws.
 Deliverable: a short dated section in `budget-law-study.md` — not a new study
 file — plus filed work items for surprises. Cost: minutes.
 
-**0b — the acceptance-surface decision.** The owner decides, with the evidence
-block in front of him: (i) add a **300k tier** to the acceptance surface —
-inside the estimator's calibrated domain, where allocation begins to bind,
-~15 minutes of baseline cache plus governance updates; (ii) a second,
-non-promoting but tracked surface; (iii) stay 750k-only, rationale recorded.
-The plan does not presume the answer. Executing whichever answer is chosen
-belongs to this phase. Phase 2 is conditional on (i) or (ii).
+**0b — the acceptance-surface decision. DECIDED AND EXECUTED 2026-08-03.** The
+owner chose **(ii): a second, non-promoting but tracked surface** — over (i) a
+300k promoting tier and (iii) 750k-only.
+
+*Why (ii) and not (i).* Two reasons, both about keeping the promoting
+instrument honest. The **apples-to-apples headline**: adding a budget to the
+acceptance surface changes what the headline number *means*, and every
+promotion in the ledger — and the drift ledger itself, criterion 4 — is
+denominated in the current one. A tier is a ruler change, and this campaign has
+already paid for one. The owner's **episode-transfer principle**: what
+transfers between operating points is the *evidence* about a mechanism, not the
+acceptance threshold; a mechanism that rescues completions at 250k should be
+*seen* at 250k and then *judged* on the surface the campaign already trusts.
+(ii) buys the seeing without touching the judging.
+
+*Why not (iii).* The motivating measurement is not marginal. At 250k the
+rescue-class lever read **capability +112.9 with 11 completions gained** —
+against the same mechanism family whose 750k reading was a −5.41 lottery. (That
+figure comes from the Phase-1 rescue-scale investigation and is quoted here as
+the decision's stated input; when Phase 1 closes it should be cited to its own
+archive, and this paragraph updated with the reference.) §6.2
+explains the gap structurally rather than as noise: on the promotion ladder's
+own seeds at 750k the capability sources are already all valid, so a rescue
+lever has nothing to rescue and can only lose. Staying 750k-only would keep
+that class of result permanently invisible, which is a measurement failure, not
+a conservative choice.
+
+*What was built.* `npm run benchmark:v2:low-budget-reading` — a standing paired
+reading, capability mini manifest (11 sources) x 48 seeds x 250k, working tree
+against the promoted campaign baseline's **compiler snapshot** (resolved from
+`campaign-baseline.json` and checksum-verified, the way the eval machinery does
+it — not a checkout of the promoting commit, because the snapshot is what the
+promotion actually verified and it holds the benchmark framework fixed across
+arms). Fixed verdict vocabulary — PARITY / RESCUE-POSITIVE / SCORE-POSITIVE /
+ADVERSE / UNDERPOWERED — with the criteria in the instrument header, an
+always-printed action-set power footer, and an accumulating history under
+`generated/benchmark-v2/low-budget/`. It is a **loop step, not a chain step**:
+documented in `HOW_TO_WORK.md`, wired into nothing, writing to no governance
+state. Built on Track T's mini-manifest and power calculator; the arm-reading
+and pairing half they share now lives in `scripts/benchmark/paired_grid.ts`.
+
+*Why 250k and not 300k.* 300k is the edge of the remaining-work estimator's
+calibrated domain — an argument about a *model*. This surface is evidence, and
+evidence wants the regime where completions are actually at risk. 250k is where
+the rescue-class measurement above was taken, it is a member of the canonical
+suite's own `probe` and `canonical` budget profiles, and it is one of the two
+budgets the campaign deferred rather than deleted — so the conversion path
+below reuses this exact operating point instead of inventing one.
+
+*The first reading, 2026-08-03, is in the history.* Tree at `c7b01d8` against
+`reach-stamp-min-merge-750k`: **PARITY, every one of 528 cells bit-identical**,
+controls included — the pipeline is proven end to end and the instrument
+self-checked. Two things worth keeping from it. First, the tree's
+`compilerSourceFingerprint` differs from the baseline's (`408db03…` vs
+`cfba095…`) purely because `package.json` gained npm-script lines, and the
+reading still correctly read PARITY: compiler identity is a conservative
+*identity*, tracks are the behaviour test, and the instrument uses the right
+one. Second, and the point of the whole phase: **118 of the 528 baseline cells
+are invalid at 250k** — `dense_recovery_frontier` is valid on 17 of 96 and
+`rapid_pickup_frontier` on 57 of 96, while every control and all of
+`low_air_frontier` are 100% valid. That is the rescue headroom, measured, on the
+promotion ladder's own seeds. At 750k it is zero. The surface has something to
+see.
+
+*The conversion path, if (i) is ever wanted.* Nothing here forecloses it, and
+the reading is deliberately shaped to be the on-ramp: (1) the operating point
+is already a deferred campaign budget with a literal seed schedule; (2) the
+accumulated readings under `generated/benchmark-v2/low-budget/` are the
+variance evidence a sequential calibration at that budget would need, at no
+extra compute; (3) promoting it means adding 250k to `scope.budgets`, building
+its baseline cache, and re-deriving the look boundary — and accepting the
+headline redefinition that (ii) was chosen to avoid. Phase 2 remains open under
+(ii) as the plan states.
 
 ## Phase 1 — revisitable depth (the campaign's centerpiece)
 
@@ -163,6 +229,14 @@ compiling; `--report=<cand>,<ref>` re-reports existing archives. Every report
 ends with the action-set power footer —
 `npm run benchmark:v2:action-set-power` is the same calculator standalone.
 Evidence only: the aggregate is a renormalized subset score, never a headline.
+
+**Extended 2026-08-03 by Phase 0b.** The half these instruments share — what a
+paired cell is, when two arms are comparable, and how a paired delta is blocked
+by seed — was extracted into `scripts/benchmark/paired_grid.ts` so the mover
+grid and the low-budget reading cannot drift apart on the arithmetic. The one
+behavioural difference is deliberate and named there: an engine-kernel
+difference is fatal to a mover grid (it compares TypeScript changes) and a
+stated warning in the low-budget reading (a tree legitimately spans a rebuild).
 
 ## Phase 4 — the forward-evaluation smell (added 2026-08-03, owner-mandated)
 

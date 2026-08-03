@@ -231,9 +231,11 @@ export function formatActionSetPower(power: ActionSetPower, eventName = "adverse
       : `  (exact, ${power.adverseEvents} events)`),
   );
   if (power.breakEven === null) {
+    // Kept short enough to survive an 80-120 column terminal unwrapped; the
+    // flags' full meaning is in --help and in this module's header.
     row(
       "break-even",
-      `not supplied — pass --value=<points> --event-cost=<points per ${eventName}> to price this action set`,
+      `not supplied — pass --value and --event-cost (points per ${eventName}) to price this action set`,
     );
   } else {
     const { value, eventCost, valueCells, tolerableEvents, rate, requiredChangedCells: needed } = power.breakEven;

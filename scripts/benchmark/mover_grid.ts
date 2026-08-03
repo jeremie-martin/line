@@ -66,7 +66,14 @@ import {
   type ActionSetPower,
   type BreakEvenInput,
 } from "./action_set_power.ts";
-import { readVerifiedArtifact } from "./study_lib.ts";
+import {
+  assertPairedArms,
+  describeArmIdentity,
+  pairGridCells,
+  readGridArm,
+  type GridArm,
+  type GridCell,
+} from "./paired_grid.ts";
 import {
   CANONICAL_SOURCE_MANIFEST,
   CANONICAL_SUITE_MANIFEST,
@@ -84,25 +91,13 @@ const MOVER_GRID_SCHEMA = "line.benchmark-v2.mover-grid.v1" as const;
 /** The engine kernel is a build artifact, not a tracked file; both arms share it. */
 const ENGINE_ARTIFACT = "engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm";
 
-type Cell = {
-  sourceId: string;
-  budget: number;
-  seed: number;
-  score: number;
-  valid: boolean;
-  trackHash: string | null;
-  firstCompletionFrame: number | null;
-  status: string;
-};
-
-type Arm = {
-  label: string;
-  path: string;
-  archive: any;
-  cells: Map<string, Cell>;
-  groups: Map<string, { score: number; stratum: string; members: string[] }>;
-  sources: Map<string, { score: number; validRuns: number; totalRuns: number }>;
-};
+/**
+ * Cells, arm reading, pairing and comparability are shared with the standing
+ * low-budget reading; see `paired_grid.ts`. What stays here is what this
+ * instrument uniquely says about an action set.
+ */
+type Cell = GridCell;
+type Arm = GridArm;
 
 await main();
 
@@ -151,8 +146,8 @@ async function main(): Promise<void> {
     if (candidatePath === undefined || refPath === undefined) {
       throw new Error(`--report needs two archive paths: --report=<candidate.json>,<ref.json>`);
     }
-    const candidate = readArm("candidate", candidatePath);
-    const reference = readArm("ref", refPath);
+    const candidate = readGridArm("candidate", candidatePath);
+    const reference = readGridArm("ref", refPath);
     const power = report(candidate, reference, { breakEven, eventName, canonicalGroups, maxCells });
     writeReport(argument("out"), { candidate: candidatePath, ref: refPath }, candidate, reference, power);
     return;
@@ -212,8 +207,8 @@ async function main(): Promise<void> {
   }
   console.log(`  both arms in ${((performance.now() - started) / 1000).toFixed(1)}s\n`);
 
-  const candidate = readArm("candidate", candidatePath);
-  const reference = readArm("ref", refPath);
+  const candidate = readGridArm("candidate", candidatePath);
+  const reference = readGridArm("ref", refPath);
   const power = report(candidate, reference, { breakEven, eventName, canonicalGroups, maxCells });
   writeReport(out, { candidate: candidatePath, ref: refPath, refCommit: ref }, candidate, reference, power);
 }
@@ -373,91 +368,6 @@ function disposeWorktree(workspace: string): void {
   rmSync(dirname(workspace), { recursive: true, force: true });
 }
 
-function readArm(label: string, path: string): Arm {
-  const archive = JSON.parse(readVerifiedArtifact(resolve(path)).bytes.toString("utf8"));
-  if (archive?.schema !== "line.benchmark-v2.budget-scale-study.v2") {
-    throw new Error(`${path}: not a budget-scale-study.v2 archive`);
-  }
-  const cells = new Map<string, Cell>();
-  for (const row of archive.runs) {
-    cells.set(cellKey(row.task.sourceId, row.task.budget, row.task.actualSeed), {
-      sourceId: row.task.sourceId,
-      budget: row.task.budget,
-      seed: row.task.actualSeed,
-      score: row.score.valid ? row.score.score : 0,
-      valid: row.score.valid === true,
-      trackHash: row.trackHash ?? null,
-      firstCompletionFrame: (row.stats ?? {}).first_completion_frame ?? null,
-      status: row.status,
-    });
-  }
-  const groups: Arm["groups"] = new Map(archive.summaries.flatMap((summary: any) =>
-    summary.groups.map((group: any) => [group.id, {
-      score: group.score as number,
-      stratum: group.stratum as string,
-      members: group.members as string[],
-    }] as const)
-  ));
-  const sources: Arm["sources"] = new Map(archive.summaries.flatMap((summary: any) =>
-    summary.specifications.map((entry: any) => [entry.id, {
-      score: entry.score as number,
-      validRuns: entry.validRuns as number,
-      totalRuns: entry.totalRuns as number,
-    }] as const)
-  ));
-  return { label, path, archive, cells, groups, sources };
-}
-
-function cellKey(sourceId: string, budget: number, seed: number): string {
-  return `${sourceId}\0${budget}\0${seed}`;
-}
-
-/**
- * A paired comparison is only paired if the two arms scored the same specs
- * with the same scorer. Anything else and the deltas below are measuring the
- * tooling, not the candidate.
- */
-function assertComparable(candidate: Arm, reference: Arm): void {
-  for (const field of ["suiteFingerprint", "sourceManifestFingerprint", "scoringProtocolFingerprint", "scorerFingerprint"]) {
-    if (candidate.archive[field] !== reference.archive[field]) {
-      throw new Error(`arms disagree on ${field}; the comparison is not paired`);
-    }
-  }
-  if (candidate.archive.candidate.engineArtifactFingerprint !== reference.archive.candidate.engineArtifactFingerprint) {
-    throw new Error(`arms ran different engine artifacts; rebuild so both arms share one kernel`);
-  }
-  const refSpecs = new Map(reference.archive.runs.map((row: any) => [row.task.sourceId, row.source.sourceFingerprint]));
-  for (const row of candidate.archive.runs) {
-    if (refSpecs.get(row.task.sourceId) !== row.source.sourceFingerprint) {
-      throw new Error(`${row.task.sourceId}: spec bytes differ between arms; the ref moved the benchmark, not the compiler`);
-    }
-  }
-  const missing = [...candidate.cells.keys()].filter((key) => !reference.cells.has(key));
-  if (missing.length > 0 || candidate.cells.size !== reference.cells.size) {
-    throw new Error(`arms cover different cells (${candidate.cells.size} vs ${reference.cells.size})`);
-  }
-}
-
-/**
- * Compiler identity records the `LR_`-prefixed environment and the compiler
- * bytes. An arm gated on anything else — a differently-prefixed probe knob, an
- * untracked input — is invisible to it, which is exactly how the p1b arms were
- * run. Say so rather than mis-report a real difference as a self-check.
- */
-function describeArmIdentity(candidate: Arm, reference: Arm, changedCells: number): string {
-  const same = candidate.archive.candidate.candidateFingerprint ===
-    reference.archive.candidate.candidateFingerprint;
-  if (same && changedCells === 0) {
-    return "arms share a candidate fingerprint and every cell is bit-identical — self-check passed";
-  }
-  if (same) {
-    return `arms share a candidate fingerprint yet differ on ${changedCells} cells: whatever separates them is ` +
-      `invisible to compiler identity (a non-LR_ env knob, or an untracked input). Record it yourself — the archive cannot.`;
-  }
-  return `candidate ${candidate.archive.candidate.candidateFingerprint.slice(0, 12)} vs ` +
-    `ref ${reference.archive.candidate.candidateFingerprint.slice(0, 12)}`;
-}
-
 function report(
   candidate: Arm,
   reference: Arm,
@@ -468,21 +378,10 @@ function report(
     maxCells: number;
   },
 ): ActionSetPower {
-  assertComparable(candidate, reference);
+  assertPairedArms(candidate, reference);
 
-  const keys = [...reference.cells.keys()].sort();
-  const changed: Cell[] = [];
-  const lost: Cell[] = [];
-  const gained: Cell[] = [];
-  let scoreDelta = 0;
-  for (const key of keys) {
-    const before = reference.cells.get(key)!;
-    const after = candidate.cells.get(key)!;
-    scoreDelta += after.score - before.score;
-    if (after.trackHash !== before.trackHash) changed.push(after);
-    if (before.valid && !after.valid) lost.push(after);
-    if (!before.valid && after.valid) gained.push(after);
-  }
+  const { pairs, changed, lost, gained, scoreDelta } = pairGridCells(candidate, reference);
+  const keys = pairs.map((pair) => pair.key);
 
   console.log(`GRID  ${keys.length} cells, candidate vs ref`);
   console.log(`  arms                ${describeArmIdentity(candidate, reference, changed.length)}`);
@@ -522,9 +421,7 @@ function report(
     );
   }
 
-  const moved = keys
-    .map((key) => ({ before: reference.cells.get(key)!, after: candidate.cells.get(key)! }))
-    .filter((pair) => pair.before.trackHash !== pair.after.trackHash);
+  const moved = changed.map((pair) => ({ before: pair.ref, after: pair.candidate }));
   // Validity flips are the whole point of the footer, so they are never elided;
   // the rest of the action set is truncated to keep the report readable.
   const flips = moved.filter((pair) => pair.before.valid !== pair.after.valid);

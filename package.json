@@ -49,6 +49,7 @@
     "benchmark:v2:study-scale": "LR_ENGINE=wasm node --import tsx scripts/v0/benchmark_v2/scale_study.ts",
     "benchmark:v2:mover-grid": "LR_ENGINE=wasm node --import tsx scripts/benchmark/mover_grid.ts",
     "benchmark:v2:action-set-power": "node --import tsx scripts/benchmark/action_set_power.ts",
+    "benchmark:v2:low-budget-reading": "LR_ENGINE=wasm node --import tsx scripts/benchmark/low_budget_reading.ts",
     "benchmark:v2:study-seeds": "LR_ENGINE=wasm node --import tsx scripts/v0/benchmark_v2/scale_study.ts --manifest=benchmark/v2/compat/source-manifest.json --suite=benchmark/v2/compat/suite-manifest.json --budgets=250000,500000,750000 --seeds=0,1,2,3,4,5,6,7,8,9,10,11 --jobs=16 --out=generated/benchmark-v2/studies/v2.1-seed-reference-750k.json",
     "benchmark:v2:analyze-seeds": "node --import tsx scripts/benchmark/analyze_seed_study.ts",
     "benchmark:v2:calibrate-decisions": "node --import tsx scripts/benchmark/calibrate_decisions.ts",

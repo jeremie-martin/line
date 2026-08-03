@@ -88,6 +88,72 @@ the published reference records the original verdict, `forced: true`, and the
 reason. Use it for an explicit policy decision, never to make an inconclusive
 interval look conclusive.
 
+## The low-budget reading — after an eval
+
+The acceptance surface is 750k only. Run the standing low-budget reading after
+an eval, whichever way the eval went:
+
+```bash
+npm run benchmark:v2:low-budget-reading -- --jobs=16 --label=after-<your-eval>
+```
+
+It compiles the capability mini manifest — all three frontier groups whole plus
+one back-filled control per remaining stratum, 11 sources — at **250k x 48
+seeds**, in two arms: the working tree, and the promoted campaign baseline's
+compiler. Roughly ten to twenty minutes for 1,056 compiles. `--dry-run` prints
+the plan and the resolved baseline without compiling anything.
+
+**Why it is a separate step and not part of eval.** It is *tracked but never
+promoting* — the owner's answer to the acceptance-surface question
+(`budget-dividends-plan.md` Phase 0b). It writes nothing to governance state,
+appears in no comparison artifact, and cannot accept or reject anything. What
+it does is make a class of result visible that the promoting instrument
+structurally cannot see: at 750k on the promotion ladder's own seeds the
+capability sources are already all valid, so a mechanism whose value is
+*rescuing compiles that fail* has nothing to rescue and can only lose
+(`budget-aware-map.md` §6.2). At 250k the failures exist.
+
+**Why 250k.** It is the measured rescue budget, not a calibration boundary: it
+is where the Phase-1 rescue-class reading was taken, it is a member of the
+canonical suite's own budget profiles, and it is one of the two budgets the
+campaign deferred rather than deleted — so if the reading is ever converted
+into a promoting tier it reuses this operating point instead of inventing one.
+300k is the edge of the remaining-work estimator's calibrated domain, which is
+an argument about a model; evidence wants the regime where completions are
+actually at risk. The first reading measured how at-risk: **118 of 528 baseline
+cells are invalid at 250k** — `dense_recovery_frontier` valid on 17 of 96,
+`rapid_pickup_frontier` on 57 of 96 — on the promotion ladder's own seeds,
+where 750k has none.
+
+**The baseline arm** is resolved from `benchmark/v2/campaign-baseline.json`'s
+`compiler_snapshot` — the checksum-verified tarball the promotion itself
+verified — extracted over a detached worktree carrying the *current* benchmark
+framework, exactly as the eval machinery does it. It is deliberately not a git
+checkout of the promoting commit: the snapshot survives history edits, and
+holding the framework fixed across arms means only the compiler differs.
+(`mover_grid.ts --ref` is the right tool when you genuinely want to compare two
+commits; a baseline is not a commit.)
+
+**Reading the output.** One block: who versus whom, the verdict, the capability
+group table, the paired delta blocked by seed, and the action-set power footer
+(always, never optional). The verdict vocabulary is fixed and its criteria live
+in the instrument's header — `PARITY`, `RESCUE-POSITIVE`, `SCORE-POSITIVE`,
+`ADVERSE`, `UNDERPOWERED`. `UNDERPOWERED` is the honest common case for a small
+action set and is not a failure; the footer states what action set the
+observation would have needed.
+
+Every run writes `generated/benchmark-v2/low-budget/<timestamp>-<label>.json`
+with a checksum sidecar — full per-cell records for both arms, the derived
+tables, the power statement, and both compilers' fingerprints — and appends one
+line to `index.jsonl`, so readings accumulate into a history that a later study
+can consume without re-running anything. The two arm archives are kept gzipped
+under `arms/` (~17 MB rather than ~195 MB; `--keep-raw-arms` opts out) and
+`--report=<tree.json.gz>,<baseline.json.gz>` re-derives a reading from them.
+
+The aggregate the reading prints is a renormalized subset score. It is not the
+suite headline and must never be quoted as one; per-cell scores and
+complete-group scores are exact.
+
 ## Variant families
 
 When one mechanism has several credible implementations:

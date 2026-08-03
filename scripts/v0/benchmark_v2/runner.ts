@@ -290,11 +290,17 @@ export async function runBenchmarkV2(
   if (profileName === "canonical") requireApprovedListeningReview(listeningReview);
   const profile = suite.profiles[profileName];
   if (comparisonBudgets !== undefined) {
+    // A baseline-cache shard extends a campaign-scoped cache, so it must be
+    // able to restrict the canonical ladder to the cache's own budgets — the
+    // explicit seed schedule it carries is validated against exactly that
+    // list. Without this, extending a cache whose scope is narrower than the
+    // catalog ladder (e.g. the 750k-only campaign) can never satisfy the
+    // schedule's byBudget-length check.
     if (
-      !hasCanonicalRequest || baselineCacheShard || exploration ||
+      (!hasCanonicalRequest && !baselineCacheShard) || exploration ||
       profileName !== "canonical" || mode !== "development"
     ) {
-      throw new Error(`--comparison-budgets requires a canonical development comparison request`);
+      throw new Error(`--comparison-budgets requires a canonical development comparison request or baseline-cache shard`);
     }
     const canonical = suite.profiles.canonical.budgets;
     if (

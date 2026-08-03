@@ -330,6 +330,10 @@ export function extendBaselineCache(input: {
       from: currentPlan.coveredSeeds,
       schedulePath,
       resume: input.resume,
+      // The cache's own budget scope. Without it the shard resolves the
+      // catalog's full canonical ladder and the campaign-scoped seed
+      // schedule can never validate (byBudget length mismatch).
+      budgets: current.cache.ladder.byBudget.map((entry) => entry.budget),
     }), outputPath);
     if (run.workerFailures > 0) throw new Error(`baseline cache tail had ${run.workerFailures} worker failure(s); resume the same extension`);
     // Keep the raw archive beside its compact decision index.  At N=300 the
@@ -647,9 +651,11 @@ function runnerArgs(input: {
   from: number;
   schedulePath: string;
   resume: boolean;
+  budgets: readonly number[];
 }): string[] {
   return [
     "--profile=canonical",
+    `--comparison-budgets=${input.budgets.join(",")}`,
     `--manifest=${resolve(SOURCE_MANIFEST)}`,
     `--heldout-manifest=${resolve(HELDOUT_MANIFEST)}`,
     `--suite=${resolve(SUITE_MANIFEST)}`,

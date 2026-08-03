@@ -164,6 +164,55 @@ ends with the action-set power footer —
 `npm run benchmark:v2:action-set-power` is the same calculator standalone.
 Evidence only: the aggregate is a renormalized subset score, never a headline.
 
+## Phase 4 — the forward-evaluation smell (added 2026-08-03, owner-mandated)
+
+**The observation.** 51% of forward-eval rollout calls end at a hop-1
+dead-end verdict (Phase 1's falsification measurement), on a mechanism that is
+~half of every compile's charged frames. The owner's fork, verbatim in
+spirit: *if this is real signal it is amazing; if it is artifact it is
+catastrophic; the answer probably lies between, and it is a huge smell that
+must be carefully understood.* Nothing in this repo has ever verified the
+verdicts' truth — the prior reassurance ("pruning working as designed") is an
+unverified claim of exactly the class this campaign has caught being wrong
+three times.
+
+**The fork, made checkable.** Three explanations, each with a discriminating
+measurement:
+
+1. **True signal** — the positions are genuinely dead. Check: at a sample of
+   hop-1 dead-end verdicts, run the FULL search-grade expansion at that child
+   (real breadth, real gates — not the rollout's view) and count survivors. A
+   verified-true rate near 100% vindicates the verdicts; the terrain is sharp
+   and the information is premium.
+2. **Rollout artifact** — the greedy child policy or the rollout's breadth at
+   the child declares death where the real search would find life. Check: the
+   same sample, plus breadth-parity audit (what nCand/gates does the rollout
+   use at the child versus what the search uses when it genuinely arrives
+   there?), plus the confusion matrix against realized search outcomes on
+   nodes the search later expanded (verdict said dead / search found child;
+   verdict said alive / search dead-ended).
+3. **Generation problem** — the pool's tail feeds rollouts candidates that
+   were never alive. Check: dead-end rate by pool rank and by pre-sort score
+   (if ranks 4–5 carry the rate and the pre-sort already priced them low, the
+   rollout re-purchases known information — the "cheaper rollouts" lever); by
+   gap band and spec family (concentrated = terrain, diffuse = machinery).
+
+**Improvement lanes, one per branch** (chosen by the evidence, never
+pre-committed): (1) true+concentrated → generation quality at hard gaps is
+the lever and the verdicts join the map as a trusted signal; (2) artifact →
+fix the rollout's child policy/breadth parity — a correctness candidate with
+ranking-wide consequences, evidence ladder + eval like any other; (3)
+generation → the pool/ranker feed at hard gaps, connected to the (now
+current-ruler) pool verdicts. Mixed outcomes get apportioned by the confusion
+matrix's numbers.
+
+**Inputs**: the rollout-economics study (running: spend decomposition,
+verdict value, rank/gap concentration) feeds this phase; the truth-check and
+breadth-parity audit are its own work. **Exit**: the 51% is explained with
+verified evidence, the chosen lane has its first candidate or a measured
+closure, and the map's forward-eval entries carry the verdict-truth numbers.
+Success criterion 5 applies: this phase ends landed or closed-as-measured.
+
 ## Explicitly out of scope
 
 The closed plan's do-not-reopen list stands: post-completion pressure and

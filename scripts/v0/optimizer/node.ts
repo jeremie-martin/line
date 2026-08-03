@@ -71,6 +71,11 @@ let rolloutAimSuppressed = false;
 export function setRolloutAimSuppressed(active: boolean): void {
   rolloutAimSuppressed = active;
 }
+/** Read the flag so a nested widened build (the rollout re-draw on empty) can
+ *  restore the caller's state instead of assuming it was off. */
+export function isRolloutAimSuppressed(): boolean {
+  return rolloutAimSuppressed;
+}
 
 /**
  * Throttle the enumerative aiming lane while the compile is against its

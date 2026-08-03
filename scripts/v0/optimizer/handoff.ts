@@ -114,6 +114,7 @@ import {
   getCandidatesSorted,
   extendNodeCached,
   isLeafNode,
+  isRolloutAimSuppressed,
   makeRootNode,
   setAimLaneDeadlineThrottled,
   setRolloutAimSuppressed,
@@ -1011,6 +1012,47 @@ const HANDOFF_RESCUE_MIN_GAP_FRAMES = 16;
 const HANDOFF_SHORT_RESCUE_N_CAND = 80;
 const HANDOFF_SHORT_RESCUE_CANDIDATE_POOL = 16;
 const HANDOFF_SHORT_RESCUE_MAX_GAP_FRAMES = 12;
+/**
+ * The rollout's own rescue: extra deterministic sampling when a CHARGED forward
+ * rollout's first rolled contact expands to nothing. Exactly the rule the three
+ * rescue tiers above already apply to the search — spend bounded work at a true
+ * dead end rather than let one empty draw stand as a verdict — one level up, on
+ * the mechanism that never had it.
+ *
+ * WHY. A rollout expands its first rolled contact at the shape's own width, and
+ * for the default greedy shape that width is ONE: `solveOneGap(K = 1)`, a single
+ * `sampleOneCandidate` attempt at attempt index 0. The gates are the same
+ * function the search uses, so the two never disagreed about what "viable"
+ * means — only about how hard to look, and the search looks 24-81x harder
+ * before its own lanes and rescues are counted. Auditing every hop-1 dead-end
+ * verdict on 64 compiles of this base (12,338 verdicts, 8 sources x 4 seeds x
+ * {150k, 750k}) by re-running the SAME generator at the SAME node: 51.3% of the
+ * verdicts are FALSE (54.4% at 150k, 47.3% at 750k). The error splits by
+ * terrain, not by pool rank — 57.5% of capability-frontier verdicts hold
+ * against 33.1% of representative ones, while the verified-true rate is flat to
+ * two points across pool ranks 0-4 — so this is the rollout's one-sample view of
+ * the world, not the pool's tail feeding it junk. The bit matters out of all
+ * proportion to its frequency: it fires on 5-7% of the rollout's decisions and
+ * carries half to two-thirds of all the leaf value the rollout re-orders, and
+ * `cachedForwardContinuation` hands it on to the online-continuation filter,
+ * which prunes the frontier on it under full deadline pressure.
+ *
+ * ONE extra draw, and the dose is arithmetic rather than taste. The refutation
+ * curve is front-loaded: draw 2 refutes 15.3% of all verdicts, draw 3 a further
+ * 5.4%, draws 4-5 a further 7.5% between them. Each further rung is taken only
+ * on the verdicts still standing, so at ~40 frames a draw the marginal cost per
+ * marginal correction is 261 / 628 / 845 / 1,539 / 2,161 frames for a ladder to
+ * 2 / 3 / 5 / 8 / 12 — draw 2 buys a correction 2.4x cheaper than draw 3 and
+ * 3.2x cheaper than draws 4-5. Priced against the free-judge ceiling (refunding
+ * EVERY rollout frame is worth +1.78 per cell at 750k, so a frame costs ~0.087
+ * points per 1% of the budget), the required value per corrected verdict rises
+ * 0.0030 -> 0.0073 -> 0.0098 points as the ladder lengthens. And the price is
+ * inverse to budget — the same dose is ~0.75% of frames at 750k and ~5% at 150k
+ * — so the cheapest rung is the only one the low-budget arm can afford at all.
+ * Wider doses are a monotone family that can be walked later on the same
+ * arithmetic; they are not a knob to tune, and least of all per budget.
+ */
+const HANDOFF_ROLLOUT_REDRAW_ON_EMPTY = 1;
 const HANDOFF_PREVIEW_K = 1;
 /** Reuse only the latest committed catch. Older translated catches can over-lock
  *  dense forward-dependent chains into a locally steady but globally brittle
@@ -5556,6 +5598,12 @@ const fwdEvalTotals = {
   // candidates and terminated the rollout early. In objective mode these carry the
   // explicit missing-step penalty; counted here regardless of mode.
   fwd_rollout_no_candidate: 0,
+  /** Re-draws on empty (HANDOFF_ROLLOUT_REDRAW_ON_EMPTY): first rolled contacts
+   *  that expanded to nothing at the shape's own width, and the subset the extra
+   *  draw refuted. `redraws - refuted` is what still lands as a dead-end verdict,
+   *  so the pair reads directly against `fwd_rollout_no_candidate`. */
+  fwd_rollout_redraws: 0,
+  fwd_rollout_redraw_refuted: 0,
   fwd_pools: 0,
   fwd_top1_agree: 0,
   fwd_rank_of_quality_top1_sum: 0,
@@ -5875,7 +5923,7 @@ function startForwardScore(
       ? forwardAvgNextScore(root, gaps, ctx, seed, cfg.branch, leafObjective)
       : forwardRolloutScore(
         root, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
-        leafObjective,
+        leafObjective, true, // firstHop: start selection's own hop-1 verdict
       );
   } finally {
     fwdEvalTotals.start_eval_frames_charged += Math.max(0, getSimFrames() - saved);
@@ -6016,11 +6064,77 @@ function advanceToNextContact(search: SearchNode, gaps: Gap[]): SearchNode | nul
   return n;
 }
 
+/**
+ * Re-draw the FIRST rolled contact of a charged rollout whose expansion at
+ * `width` came back empty (see HANDOFF_ROLLOUT_REDRAW_ON_EMPTY). Returns the
+ * widened pool, which is empty iff the extra draw did not refute the verdict.
+ * Only ever called on the empty path, so the 85-91% of rollouts whose first
+ * draw succeeds are untouched, and every frame it spends is inside the caller's
+ * own charge window.
+ *
+ * The ORDINARY generation path at a wider count, deliberately — not a second
+ * mechanism. `getCandidatesSorted`'s prefix contract makes the extra draw the
+ * very sample the SEARCH would take next here (`solveAdditionalCandidates`
+ * advances the per-gap RNG, itself keyed on (seed, gapIndex) alone, to attempt
+ * index `width`), so nothing invents a sample order, the compile stays
+ * deterministic in (spec, seed, budget), and the probe cannot find a catch the
+ * search would not have found. The audit's determinism self-check re-ran the
+ * rollout's own width first and reproduced the empty pool 12,338 times out of
+ * 12,338.
+ *
+ * The aim lane is suppressed, as `forwardFirstWidenedScore` already does for its
+ * own widened build: the lane runs as soon as nCand > 1, and it is not what
+ * refutes these verdicts — with the lane off the audit's verified-true rate and
+ * refutation curve are unchanged to a tenth of a point while the 2-wide rebuild
+ * costs 4.6x less. Restore rather than clear, so a future nested widened build
+ * cannot silently re-admit the lane into a rollout pool.
+ *
+ * The widened pool is LEFT IN THE NODE'S MEMO on purpose; the alternative — a
+ * cache-cleared copy, as the study's read-only probe used — would freeze the
+ * refuted verdict where it does the damage. `_candidatesCache` is keyed on
+ * (seed, nCand), a narrower request is served as a prefix of a wider cache and a
+ * wider one extends the same sample order, so: (i) a later real expansion at the
+ * search's own width (>= 8 everywhere, 32/80 in the rescue tiers) still builds
+ * exactly the pool it always would, with the aim lane live; (ii) a second
+ * rollout that dead-ends at this node pays nothing; and (iii)
+ * `cachedForwardContinuation` now reports the corrected bit, so the
+ * online-continuation filter stops pruning the frontier on a refuted proof.
+ */
+function redrawFirstHopOnEmpty(
+  at: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  width: number,
+): Candidate[] {
+  if (HANDOFF_ROLLOUT_REDRAW_ON_EMPTY <= 0) return [];
+  fwdEvalTotals.fwd_rollout_redraws++;
+  const savedAimSuppressed = isRolloutAimSuppressed();
+  setRolloutAimSuppressed(true);
+  let widened: Candidate[];
+  try {
+    widened = getCandidatesSorted(
+      at,
+      gaps,
+      ctx,
+      seed,
+      width + HANDOFF_ROLLOUT_REDRAW_ON_EMPTY,
+    );
+  } finally {
+    setRolloutAimSuppressed(savedAimSuppressed);
+  }
+  if (widened.length > 0) fwdEvalTotals.fwd_rollout_redraw_refuted++;
+  return widened;
+}
+
 /** greedy/best: best true partial-track score reachable from `search` within
- *  `depthLeft` contact gaps, branching `branch` (1 = greedy single rollout). */
+ *  `depthLeft` contact gaps, branching `branch` (1 = greedy single rollout).
+ *  `firstHop` marks the outermost call — the one whose empty expansion is the
+ *  hop-1 dead-end verdict the re-draw corrects; the recursion below is hop 2+
+ *  and keeps the single draw. */
 function forwardRolloutScore(
   search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, depthLeft: number, branch: number,
-  leafObjective: boolean,
+  leafObjective: boolean, firstHop = false,
 ): number {
   // Leaf scorer: zero-frame objective value (DEFAULT) or full re-detection (LR_FWD_EVAL_LEAF=full). The missing-contact
   // penalty is derived by the leaf scorer itself from the node's own committed depth
@@ -6036,7 +6150,10 @@ function forwardRolloutScore(
   if (at === null) {
     return leafValue(search);
   }
-  const cands = getCandidatesSorted(at, gaps, ctx, seed, branch);
+  let cands = getCandidatesSorted(at, gaps, ctx, seed, branch);
+  if (cands.length === 0 && firstHop) {
+    cands = redrawFirstHopOnEmpty(at, gaps, ctx, seed, branch);
+  }
   if (cands.length === 0) {
     fwdEvalTotals.fwd_rollout_no_candidate++;
     // Dead-end: the rollout could not place any further contact; the leaf scorer applies the full
@@ -6084,6 +6201,9 @@ function forwardFirstWidenedScore(
     setRolloutAimSuppressed(false);
   }
   if (cands.length === 0) {
+    cands = redrawFirstHopOnEmpty(at, gaps, ctx, seed, firstBranch);
+  }
+  if (cands.length === 0) {
     fwdEvalTotals.fwd_rollout_no_candidate++;
     return leafValue(search);
   }
@@ -6110,7 +6230,10 @@ function forwardAvgNextScore(
   if (at === null) {
     return leafValue(search);
   }
-  const cands = getCandidatesSorted(at, gaps, ctx, seed, m);
+  let cands = getCandidatesSorted(at, gaps, ctx, seed, m);
+  if (cands.length === 0) {
+    cands = redrawFirstHopOnEmpty(at, gaps, ctx, seed, m);
+  }
   if (cands.length === 0) {
     fwdEvalTotals.fwd_rollout_no_candidate++;
     // Dead-end: the leaf scorer applies the full missing-contact penalty from the node's own
@@ -6146,7 +6269,7 @@ function forwardArcValue(
       )
       : forwardRolloutScore(
         child, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
-        leafObjective,
+        leafObjective, true, // firstHop: this call's expansion IS the hop-1 verdict
       );
   } finally {
     setRolloutContext(false);
@@ -6712,7 +6835,10 @@ function startSupportDelayRobustScore(
 ): number {
   const at = advanceToNextContact(root, gaps);
   if (at === null) return forwardNodeScore(root, gaps, ctx);
-  const candidates = getCandidatesSorted(at, gaps, ctx, seed, branch);
+  let candidates = getCandidatesSorted(at, gaps, ctx, seed, branch);
+  if (candidates.length === 0) {
+    candidates = redrawFirstHopOnEmpty(at, gaps, ctx, seed, branch);
+  }
   if (candidates.length === 0) return forwardNodeScore(root, gaps, ctx);
   let sum = 0;
   for (const candidate of candidates) {

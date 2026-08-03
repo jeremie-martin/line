@@ -83,7 +83,20 @@ type CalibrationReport = {
     unresolvedSeedSamples: number;
     seedFoldBySeed: Record<string, number | null>;
     familyFoldByGroup: Record<string, number>;
+    appliedToPredictions: boolean;
     note: string | null;
+  };
+  provenance?: unknown;
+  pointModel: {
+    frozen: boolean;
+    modelId?: string;
+    note?: string;
+    intervalsFrozen?: boolean;
+    paceScheduleSweep?: Array<{
+      paceSchedule: string;
+      selected: boolean;
+      byBudget: Array<{ budget: number; medianAbsolutePercentageError: number | null }>;
+    }>;
   };
   interval: {
     coverageConvention: string;
@@ -97,6 +110,7 @@ type CalibrationReport = {
         path: "withPath" | "withoutPath";
         n: number;
         fitted: boolean;
+        source: "fitted" | "frozen";
         fallback: string | null;
         lowerRatio: number;
         upperRatio: number;
@@ -148,7 +162,7 @@ function run(samples: unknown[]): {
 }
 
 /** One analysis file per element, which is how a multi-budget corpus arrives. */
-function runInputs(inputSamples: unknown[][]): {
+function runInputs(inputSamples: unknown[][], extraArgs: string[] = []): {
   status: number | null;
   stderr: string;
   stdout: string;
@@ -177,6 +191,7 @@ function runInputs(inputSamples: unknown[][]): {
     `--report=${report}`,
     "--folds=2",
     "--coverage=0.95",
+    ...extraArgs,
   ], { encoding: "utf8" });
   return { status: result.status, stderr: result.stderr, stdout: result.stdout, output, report };
 }
@@ -188,16 +203,25 @@ function calibrate(samples: CalibrationSample[]): {
   return calibrateInputs([samples]);
 }
 
-function calibrateInputs(inputSamples: CalibrationSample[][]): {
+function calibrateInputs(inputSamples: CalibrationSample[][], extraArgs: string[] = []): {
   model: BudgetEstimatorModelArtifact;
   report: CalibrationReport;
 } {
-  const result = runInputs(inputSamples);
+  const result = runInputs(inputSamples, extraArgs);
   expect(result.status, result.stderr || result.stdout).toBe(0);
   return {
     model: parseBudgetEstimatorModel(JSON.parse(readFileSync(result.output, "utf8"))),
     report: JSON.parse(readFileSync(result.report, "utf8")) as CalibrationReport,
   };
+}
+
+/** Write an artifact to a temporary path so it can be frozen into a later run. */
+function freezeArtifact(model: BudgetEstimatorModelArtifact): string {
+  const directory = mkdtempSync(join(tmpdir(), "line-budget-frozen-"));
+  temporary.push(directory);
+  const path = join(directory, "artifact.json");
+  writeFileSync(path, `${JSON.stringify(model, null, 2)}\n`);
+  return path;
 }
 
 /**
@@ -515,6 +539,148 @@ describe("budget estimator calibration", () => {
       expect(report.structuralForm.form).toBe("budget_independent");
       expect(model.applicability.structuralPolicyBudgetFrames)
         .toEqual({ min: 750_000, max: 750_000 });
+    });
+  });
+
+  /*
+   * Widening an artifact's calibrated claim without re-deriving the numbers the
+   * claim is about. Since the margin's structural base became the artifact, the
+   * coefficients and correction factors are live policy, so a domain extension
+   * must be provably confined to the claim layer — which is what these tests
+   * check byte for byte.
+   */
+  describe("frozen point model", () => {
+    const frozenSource = (): BudgetEstimatorModelArtifact =>
+      calibrateInputs(budgetPanel([300_000, 750_000, 1_500_000], 0.6)).model;
+
+    test("re-emits the point model verbatim and takes the claim from the new corpus", () => {
+      const frozen = frozenSource();
+      const path = freezeArtifact(frozen);
+      const { model, report } = calibrateInputs(
+        budgetPanel([150_000, 250_000, 300_000, 750_000, 1_500_000], 0.6),
+        [`--freeze-point-model=${path}`],
+      );
+
+      // The half that is live policy, byte for byte.
+      expect(model.structural).toEqual(frozen.structural);
+      expect(model.combination).toEqual(frozen.combination);
+      // The half this corpus earned.
+      expect(model.applicability.structuralPolicyBudgetFrames)
+        .toEqual({ min: 150_000, max: 1_500_000 });
+      expect(frozen.applicability.structuralPolicyBudgetFrames)
+        .toEqual({ min: 300_000, max: 1_500_000 });
+      expect(model.modelId.startsWith("revalidated-")).toBe(true);
+      expect(model.calibrated).toBe(true);
+      expect(report.pointModel.frozen).toBe(true);
+      expect(report.pointModel.modelId).toBe(frozen.modelId);
+      expect(report.provenance ?? report.pointModel.note).toBeDefined();
+      // Nothing was fitted here, so there is no fit to hold a budget out of.
+      expect(report.budgetTransfer.applicable).toBe(false);
+      expect(report.foldDesign.appliedToPredictions).toBe(false);
+      // The frozen exponent still answers at the budgets it never saw.
+      for (const entry of report.byBudget) {
+        expect(entry.pathFree.medianAbsolutePercentageError!).toBeLessThan(0.01);
+      }
+    });
+
+    test("sweeps every pace schedule and reports the alternatives it did not pick", () => {
+      const frozen = frozenSource();
+      const path = freezeArtifact(frozen);
+      const { model, report } = calibrateInputs(
+        budgetPanel([300_000, 750_000, 1_500_000], 0.6),
+        [`--freeze-point-model=${path}`, "--pace-schedule=search"],
+      );
+
+      const sweep = report.pointModel.paceScheduleSweep!;
+      expect(sweep.map((entry) => entry.paceSchedule).sort()).toEqual([
+        "linear_progress",
+        "none",
+        "smoothstep_progress",
+        "sqrt_progress",
+      ]);
+      expect(sweep.filter((entry) => entry.selected)).toHaveLength(1);
+      expect(model.combination.paceSchedule)
+        .toBe(sweep.find((entry) => entry.selected)!.paceSchedule);
+      // Every point-estimate constant is still the frozen artifact's.
+      expect(model.structural).toEqual(frozen.structural);
+    });
+
+    test("honours an explicit schedule and leaves every fitted constant alone", () => {
+      const frozen = frozenSource();
+      const path = freezeArtifact(frozen);
+      const { model } = calibrateInputs(
+        budgetPanel([300_000, 750_000, 1_500_000], 0.6),
+        [`--freeze-point-model=${path}`, "--pace-schedule=sqrt_progress"],
+      );
+
+      expect(model.combination.paceSchedule).toBe("sqrt_progress");
+      expect(model.combination.correctionWithPathFactor)
+        .toBe(frozen.combination.correctionWithPathFactor);
+      expect(model.combination.correctionWithoutPathFactor)
+        .toBe(frozen.combination.correctionWithoutPathFactor);
+      expect(model.structural).toEqual(frozen.structural);
+    });
+
+    test("--freeze-intervals re-emits the bands and only the domain moves", () => {
+      const frozen = frozenSource();
+      const path = freezeArtifact(frozen);
+      const { model, report } = calibrateInputs(
+        budgetPanel([150_000, 250_000, 300_000, 750_000, 1_500_000], 0.6),
+        [`--freeze-point-model=${path}`, "--freeze-intervals"],
+      );
+
+      // Everything a reader of an interval sees is the incumbent's, byte for byte.
+      expect(model.interval).toEqual(frozen.interval);
+      expect(model.structural).toEqual(frozen.structural);
+      expect(model.combination).toEqual(frozen.combination);
+      // The one thing this run earned.
+      expect(model.applicability.structuralPolicyBudgetFrames.min).toBe(150_000);
+      expect(report.pointModel.intervalsFrozen).toBe(true);
+      // The strata are reported as measured, not fitted, so a reader cannot
+      // mistake a re-validation for a refit.
+      for (const stratum of report.interval.stratification.pathStrata) {
+        if (frozen.interval.byEventAndPath?.[stratum.event as "start"]?.[stratum.path] === undefined) continue;
+        expect(stratum.source).toBe("frozen");
+      }
+    });
+
+    test("refuses --freeze-intervals whose coverage promise this run would restate", () => {
+      const frozen = frozenSource();
+      const path = freezeArtifact({
+        ...frozen,
+        interval: { ...frozen.interval, nominalCoverage: 0.9 },
+      });
+      // The run asks for 0.95; relabelling a 0.9 band as a 0.95 one would
+      // restate a claim the bands never earned.
+      const result = runInputs(budgetPanel([300_000, 750_000, 1_500_000], 0.6), [
+        `--freeze-point-model=${path}`,
+        "--freeze-intervals",
+      ]);
+
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("carries nominalCoverage 0.9");
+    });
+
+    test("refuses a pace schedule without a frozen model", () => {
+      const result = runInputs(budgetPanel([750_000], 0.6), ["--pace-schedule=sqrt_progress"]);
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("--pace-schedule requires --freeze-point-model");
+    });
+
+    test("refuses to widen the claim of a model this corpus does not support", () => {
+      // A 20x-too-large point model: still an interval could be fitted around
+      // it, and that interval would be a calibrated-looking lie.
+      const frozen = frozenSource();
+      const path = freezeArtifact({
+        ...frozen,
+        structural: { ...frozen.structural, contactFrames: frozen.structural.contactFrames * 20 },
+      });
+      const result = runInputs(budgetPanel([300_000, 750_000, 1_500_000], 0.6), [
+        `--freeze-point-model=${path}`,
+      ]);
+
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("does not clear the static gates");
     });
   });
 

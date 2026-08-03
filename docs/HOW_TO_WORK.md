@@ -118,9 +118,12 @@ is where the Phase-1 rescue-class reading was taken, it is a member of the
 canonical suite's own budget profiles, and it is one of the two budgets the
 campaign deferred rather than deleted — so if the reading is ever converted
 into a promoting tier it reuses this operating point instead of inventing one.
-300k is the edge of the remaining-work estimator's calibrated domain, which is
+300k was the edge of the remaining-work estimator's calibrated domain, which is
 an argument about a model; evidence wants the regime where completions are
-actually at risk. The first reading measured how at-risk: **118 of 528 baseline
+actually at risk. That model question has since resolved the same way — the
+estimator's floor moved to 250k on 2026-08-03 — so this operating point reads
+calibrated margins rather than nulls.
+The first reading measured how at-risk: **118 of 528 baseline
 cells are invalid at 250k** — `dense_recovery_frontier` valid on 17 of 96,
 `rapid_pickup_frontier` on 57 of 96 — on the promotion ladder's own seeds,
 where 750k has none.

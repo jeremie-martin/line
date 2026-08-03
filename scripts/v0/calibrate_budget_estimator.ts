@@ -121,7 +121,7 @@ const MIN_TAIL_OBSERVATIONS = 4;
 const args = process.argv.slice(2);
 const inputPaths = args.filter((value) => !value.startsWith("--"));
 if (inputPaths.length === 0) {
-  throw new Error("usage: calibrate_budget_estimator.ts <analysis.json>... [--out=model.json] [--report=report.json] [--folds=5] [--coverage=0.95]");
+  throw new Error("usage: calibrate_budget_estimator.ts <analysis.json>... [--out=model.json] [--report=report.json] [--folds=5] [--coverage=0.95] [--freeze-point-model=artifact.json] [--freeze-intervals] [--pace-schedule=none|linear_progress|sqrt_progress|smoothstep_progress|search]");
 }
 const valueOf = (name: string): string | undefined => {
   const prefix = `--${name}=`;
@@ -129,8 +129,87 @@ const valueOf = (name: string): string | undefined => {
 };
 const outputPath = resolve(valueOf("out") ?? "generated/analysis/budget-estimator-model.json");
 const reportPath = resolve(valueOf("report") ?? "generated/analysis/budget-estimator-calibration.json");
+/*
+ * Extend an existing artifact's CLAIM without re-deriving its point estimate.
+ *
+ * An applicability domain is a statement about validated behaviour, not about
+ * which rows entered a sum of squares, so widening one does not require
+ * refitting the model it qualifies — and refitting is not free. Since the
+ * margin's structural base became the artifact (`deadline.ts`), the
+ * coefficients, base mode and correction factors are LIVE POLICY: moving them
+ * changes what the compiler searches, which makes a domain extension a
+ * promotion-class change instead of a telemetry one. Freezing the point model
+ * separates the two questions cleanly. It is also the stricter validation:
+ * every prediction is out of sample by construction rather than out of fold,
+ * so the frozen mode never needs the fold machinery to keep the point estimate
+ * honest — only the interval percentiles are fitted here, and the unseen-seed
+ * replay is what validates those, exactly as in the fitting mode.
+ */
+const freezePointModelPath = valueOf("freeze-point-model");
+const frozenPointModel = freezePointModelPath === undefined ? null : parseBudgetEstimatorModel(
+  JSON.parse(readFileSync(resolve(freezePointModelPath), "utf8")),
+);
+if (
+  frozenPointModel !== null &&
+  (frozenPointModel.structural.referenceBudgetFrames ?? LAW_REFERENCE_BUDGET_FRAMES) !==
+    LAW_REFERENCE_BUDGET_FRAMES
+) {
+  throw new Error(
+    `--freeze-point-model anchors its law at ${frozenPointModel.structural.referenceBudgetFrames} ` +
+      `frames; this calibrator anchors at ${LAW_REFERENCE_BUDGET_FRAMES}`,
+  );
+}
+/*
+ * The pace schedule is the one point-estimate component that carries no fitted
+ * constant: the coefficients, the exponent and the two correction factors are
+ * the numbers a fit produces, and a schedule is a fixed shape read off
+ * `progressFraction`. Re-selecting it under a frozen model therefore re-reads
+ * the model rather than re-deriving it, which is why it is the only override
+ * this mode offers. `search` scores all four and takes the best under the same
+ * comparator the fitting mode uses; every schedule's numbers land in the
+ * report either way, so the choice is visible rather than asserted.
+ */
+const paceScheduleArgument = valueOf("pace-schedule");
+if (paceScheduleArgument !== undefined && frozenPointModel === null) {
+  throw new Error("--pace-schedule requires --freeze-point-model; a fitting run selects its own");
+}
+/*
+ * Keep the incumbent's fitted bands and make the new budget earn its coverage
+ * WITH them, rather than refitting the percentiles over the wider corpus.
+ *
+ * One band serves the whole domain, so refitting is not free: adding a budget
+ * moves the pooled percentile and every other budget pays. Measured on the
+ * 2026-08-03 corpus, refitting to admit 250k cost 0.3-0.5pp of coverage at 300k,
+ * 750k and 1.5M and bought 1.1pp in one 250k sub-stratum — the incumbent's
+ * weakest cell, path-free at 1.5M, is the one that pays, and it is already the
+ * thinnest margin in the artifact. Freezing the bands makes the extension
+ * exactly what it claims to be: the same intervals, now validated over a wider
+ * range. It is also the stronger evidence, since the new budget's residuals
+ * were never in the percentile they are scored against.
+ *
+ * The refitting arm stays available (omit this flag) because "the band should
+ * describe the domain it claims" is a real argument; which one wins is a
+ * measurement, and both are reported per budget per stratum.
+ */
+const freezeIntervals = args.includes("--freeze-intervals");
+if (freezeIntervals && frozenPointModel === null) {
+  throw new Error("--freeze-intervals requires --freeze-point-model");
+}
+const frozenIntervals = freezeIntervals ? frozenPointModel!.interval : null;
+if (
+  paceScheduleArgument !== undefined && paceScheduleArgument !== "search" &&
+  !isPaceSchedule(paceScheduleArgument)
+) throw new Error(`--pace-schedule must be search or a valid schedule, got ${paceScheduleArgument}`);
 const requestedFolds = positiveInteger(valueOf("folds") ?? "5", "folds");
 const nominalCoverage = probability(valueOf("coverage") ?? "0.95", "coverage");
+// A frozen band's coverage promise is the one it was fitted to; re-labelling it
+// with a different `--coverage` would restate a claim without re-earning it.
+if (frozenIntervals !== null && frozenIntervals.nominalCoverage !== nominalCoverage) {
+  throw new Error(
+    `--freeze-intervals carries nominalCoverage ${frozenIntervals.nominalCoverage}; ` +
+      `pass --coverage=${frozenIntervals.nominalCoverage} or refit the bands`,
+  );
+}
 const tailProbability = (1 - nominalCoverage) / 2;
 const MIN_STRATUM_SAMPLES = Math.ceil(MIN_TAIL_OBSERVATIONS / tailProbability);
 const portableInputPaths = inputPaths.map((path) => relative(process.cwd(), resolve(path)));
@@ -207,29 +286,33 @@ const weighted = weightSamples(rawSamples).map((sample, index) => ({
  */
 const distinctBudgets = [...new Set(weighted.map((sample) => sample.policyBudgetFrames))]
   .sort((a, b) => a - b);
-const fitsBudgetLaw = distinctBudgets.length >= MIN_LAW_BUDGETS;
+const fitsBudgetLaw = frozenPointModel === null
+  ? distinctBudgets.length >= MIN_LAW_BUDGETS
+  : (frozenPointModel.structural.budgetExponent ?? 0) !== 0;
 /**
  * Whether a budget can be held out and the rest still identify an exponent.
- * Needs one more budget than the fit itself does.
+ * Needs one more budget than the fit itself does. A frozen point model fits
+ * nothing, so there is no fit to hold a budget out of.
  */
-const transferable = distinctBudgets.length > MIN_LAW_BUDGETS;
+const transferable = frozenPointModel === null && distinctBudgets.length > MIN_LAW_BUDGETS;
 /** One structural fit per held-out cell, shared by every candidate. */
 const structuralByCell = new Map<string, StructuralFit>();
 /** `exponent:budget` -> scale; see `budgetScale`. */
 const budgetScaleCache = new Map<string, number>();
 
+const PACE_SCHEDULES = [
+  "none",
+  "linear_progress",
+  "sqrt_progress",
+  "smoothstep_progress",
+] as const;
 const candidates: Candidate[] = [];
 for (const baseMode of [
   "structural",
   "path_if_available",
   "geometric_structural_path",
 ] as const) {
-  for (const paceSchedule of [
-    "none",
-    "linear_progress",
-    "sqrt_progress",
-    "smoothstep_progress",
-  ] as const) candidates.push({ baseMode, paceSchedule });
+  for (const paceSchedule of PACE_SCHEDULES) candidates.push({ baseMode, paceSchedule });
 }
 
 const staticCandidate: Candidate = { baseMode: "structural", paceSchedule: "none" };
@@ -243,24 +326,66 @@ const staticPredictions = weighted.map((sample) => ({
   predicted: predict(sample, staticFit, staticCandidate, unitCorrection),
 }));
 const staticMetrics = metrics(staticPredictions);
-const evaluated = candidates.map((candidate) => {
-  const predictions = crossValidatedPredictions(weighted, foldCount, seedFoldCount, candidate);
-  return { candidate, metrics: metrics(predictions), predictions };
-}).sort(compareCandidateResults);
+/** Coefficients, exponent, base mode and corrections of the model being scored. */
+const frozenStructural: StructuralFit | null = frozenPointModel === null ? null : {
+  interceptFrames: frozenPointModel.structural.interceptFrames,
+  contactFrames: frozenPointModel.structural.contactFrames,
+  durationFrameScale: frozenPointModel.structural.durationFrameScale,
+  budgetExponent: frozenPointModel.structural.budgetExponent ?? 0,
+};
+const frozenCorrection = frozenPointModel === null ? null : {
+  withoutPath: frozenPointModel.combination.correctionWithoutPathFactor,
+  withPath: frozenPointModel.combination.correctionWithPathFactor,
+};
+/*
+ * Frozen mode scores the artifact directly on every sample; fitting mode scores
+ * each sample by the fit that withheld both its family and its seed. Nothing is
+ * estimated from the corpus in the frozen case, so there is no in-sample
+ * residual to hold out and the two paths answer the same question.
+ */
+const evaluated = (frozenPointModel === null ? candidates : PACE_SCHEDULES
+  .filter((schedule) =>
+    paceScheduleArgument === "search" ||
+    schedule === (paceScheduleArgument ?? frozenPointModel.combination.paceSchedule)
+  )
+  .map((paceSchedule) => ({ baseMode: frozenPointModel.combination.baseMode, paceSchedule })))
+  .map((candidate) => {
+    const predictions = frozenPointModel === null
+      ? crossValidatedPredictions(weighted, foldCount, seedFoldCount, candidate)
+      : weighted.map((sample) => ({
+        sample,
+        predicted: predict(sample, frozenStructural!, candidate, frozenCorrection!),
+      }));
+    return { candidate, metrics: metrics(predictions), predictions };
+  }).sort(compareCandidateResults);
 const best = evaluated[0];
-const accepted =
+/*
+ * A frozen artifact was already accepted when it was fitted; this run
+ * re-validates it on a wider corpus rather than re-deciding it. The gate still
+ * runs, because a frozen model that cannot beat V1 on the corpus it is being
+ * claimed over is not a model this corpus supports — but the failure is a
+ * refusal, not a silent fall back to V1, which would throw away a shipped
+ * artifact on the strength of an out-of-domain panel.
+ */
+const clearsStaticGates =
   best.metrics.weightedMedianAbsoluteLogError <=
     staticMetrics.weightedMedianAbsoluteLogError * 0.95 &&
   best.metrics.weightedP90ActualOverPrediction <=
     staticMetrics.weightedP90ActualOverPrediction * 1.05;
-const selectedCandidate: Candidate = accepted
-  ? best.candidate
-  : staticCandidate;
+if (frozenPointModel !== null && !clearsStaticGates) {
+  throw new Error(
+    `--freeze-point-model ${freezePointModelPath} does not clear the static gates on this corpus ` +
+      `(median |log ratio| ${best.metrics.weightedMedianAbsoluteLogError.toFixed(4)} against V1's ` +
+      `${staticMetrics.weightedMedianAbsoluteLogError.toFixed(4)}); its claim cannot be widened here`,
+  );
+}
+const accepted = frozenPointModel !== null || clearsStaticGates;
+const selectedCandidate: Candidate = accepted ? best.candidate : staticCandidate;
 const selectedOof = accepted ? best.predictions : staticPredictions;
-const structural: StructuralFit = accepted ? fitStructuralModel(weighted) : staticFit;
-const correctionFactors = accepted
-  ? fitCorrection(weighted, structural, selectedCandidate)
-  : { withoutPath: 1, withPath: 1 };
+const structural: StructuralFit = frozenStructural ??
+  (accepted ? fitStructuralModel(weighted) : staticFit);
+const correctionFactors = frozenCorrection ??
+  (accepted ? fitCorrection(weighted, structural, selectedCandidate) : { withoutPath: 1, withPath: 1 });
 const carriesBudgetLaw = accepted && structural.budgetExponent !== 0;
 /**
  * The path claim this calibrator emits, and whether that alone makes the
@@ -299,14 +424,20 @@ const intervalStrata = [...new Set(selectedOof.map(({ sample }) => sample.event)
       value: sample.actual / Math.max(1, predicted),
       weight: 1,
     }));
-    const lowerRatio = Math.min(1, weightedPercentile(eventRatios, tailProbability));
-    const upperRatio = Math.max(1, weightedPercentile(eventRatios, 1 - tailProbability));
+    // Under `--freeze-intervals` the band is the incumbent's and this run only
+    // measures whether it holds; the percentile is not taken.
+    const frozen = frozenIntervals?.byEvent[event];
+    const lowerRatio = frozen?.lowerRatio ??
+      Math.min(1, weightedPercentile(eventRatios, tailProbability));
+    const upperRatio = frozen?.upperRatio ??
+      Math.max(1, weightedPercentile(eventRatios, 1 - tailProbability));
     const inside = predictions.filter(({ sample, predicted }) =>
       sample.actual >= predicted * lowerRatio && sample.actual <= predicted * upperRatio
     );
     return {
       event,
       n: predictions.length,
+      source: frozen === undefined ? ("fitted" as const) : ("frozen" as const),
       // Runtime artifacts require every interval to contain the point estimate.
       // Keep that invariant per event, not only for the aggregate envelope.
       lowerRatio,
@@ -319,8 +450,10 @@ const intervalStrata = [...new Set(selectedOof.map(({ sample }) => sample.event)
       coverageBySample: predictions.length === 0 ? 0 : inside.length / predictions.length,
     };
   });
-const lowerRatio = Math.min(1, ...intervalStrata.map((stratum) => stratum.lowerRatio));
-const upperRatio = Math.max(1, ...intervalStrata.map((stratum) => stratum.upperRatio));
+const lowerRatio = frozenIntervals?.lowerRatio ??
+  Math.min(1, ...intervalStrata.map((stratum) => stratum.lowerRatio));
+const upperRatio = frozenIntervals?.upperRatio ??
+  Math.max(1, ...intervalStrata.map((stratum) => stratum.upperRatio));
 const intervalByEvent = Object.fromEntries(intervalStrata.map((stratum) => [
   stratum.event,
   { lowerRatio: stratum.lowerRatio, upperRatio: stratum.upperRatio },
@@ -346,29 +479,32 @@ const intervalPathStrata = intervalStrata.flatMap((eventStratum) =>
     const predictions = selectedOof.filter(({ sample }) =>
       sample.event === eventStratum.event && usesPath(sample) === withPath
     );
+    const path = withPath ? ("withPath" as const) : ("withoutPath" as const);
+    const frozen = frozenIntervals?.byEventAndPath?.[eventStratum.event]?.[path];
     // A 2.5% tail cannot be estimated from a handful of observations: below
     // four expected observations per tail the percentile IS an extreme order
     // statistic and would encode one attempt's luck as a coverage promise.
-    const fitted = predictions.length >= MIN_STRATUM_SAMPLES;
+    const fitted = frozen !== undefined || predictions.length >= MIN_STRATUM_SAMPLES;
     const ratios = predictions.map(({ sample, predicted }) => ({
       value: sample.actual / Math.max(1, predicted),
       weight: 1,
     }));
-    const interval = fitted
+    const interval = frozen ?? (fitted
       ? {
         lowerRatio: Math.min(1, weightedPercentile(ratios, tailProbability)),
         upperRatio: Math.max(1, weightedPercentile(ratios, 1 - tailProbability)),
       }
-      : { lowerRatio: eventStratum.lowerRatio, upperRatio: eventStratum.upperRatio };
+      : { lowerRatio: eventStratum.lowerRatio, upperRatio: eventStratum.upperRatio });
     const inside = predictions.filter(({ sample, predicted }) =>
       sample.actual >= predicted * interval.lowerRatio &&
       sample.actual <= predicted * interval.upperRatio
     );
     return {
       event: eventStratum.event,
-      path: withPath ? ("withPath" as const) : ("withoutPath" as const),
+      path,
       n: predictions.length,
       fitted,
+      source: frozen === undefined ? ("fitted" as const) : ("frozen" as const),
       fallback: fitted ? null : "event",
       ...interval,
       coverage: weightRatio(inside, predictions),
@@ -404,7 +540,11 @@ const model: BudgetEstimatorModelArtifact = {
   // different question. `PATH_CLAIM` alone makes that unconditional, so every
   // artifact emitted here is v2 and v1 is a read-only compatibility path.
   schema: BUDGET_ESTIMATOR_MODEL_SCHEMA_V2,
-  modelId: `${accepted ? "calibrated" : "static"}-${candidateLabel}-${datasetFingerprint.slice(0, 12)}`,
+  // `revalidated` is a third provenance word beside `calibrated` and `static`:
+  // the numbers are a previous fit's, the claim around them is this corpus's.
+  modelId: `${
+    frozenPointModel !== null ? "revalidated" : accepted ? "calibrated" : "static"
+  }-${candidateLabel}-${datasetFingerprint.slice(0, 12)}`,
   // The flag means "this artifact was fitted", so a rejected candidate must not
   // claim it: the emitted coefficients are the untouched static fallback, and
   // every telemetry payload copies this flag verbatim.
@@ -420,11 +560,24 @@ const model: BudgetEstimatorModelArtifact = {
     groups: groups.length,
     samples: weighted.length,
     folds: foldCount,
-    acceptance: accepted
+    acceptance: frozenPointModel !== null
+      ? `point model frozen from ${freezePointModelPath} (${frozenPointModel.modelId}); ` +
+        (freezeIntervals
+          ? "interval bands frozen with it and re-validated over this corpus, so only the " +
+            "applicability domain, structural attempt kinds and metrics come from here"
+          : "interval strata refitted on this corpus, along with the applicability " +
+            "domain, structural attempt kinds and metrics") +
+        "; the frozen model re-cleared the static gates on this corpus"
+      : accepted
       ? "accepted: >=5% weighted median log-error improvement and <=5% p90 underprediction regression"
       : "retained static: candidate did not satisfy acceptance gates",
   },
-  structural: {
+  // A frozen point model is re-emitted verbatim, name and provenance string
+  // included, so the diff against its source artifact is confined to the claim
+  // layer and that confinement is checkable byte for byte. Where the numbers
+  // came from has not changed; only what is claimed about them has, and that is
+  // recorded in `provenance.acceptance` and the calibration report.
+  structural: frozenPointModel !== null ? { ...frozenPointModel.structural } : {
     name: accepted
       ? `budget-telemetry-nnls${carriesBudgetLaw ? "-law" : ""}/${datasetFingerprint.slice(0, 12)}`
       : TRAVERSAL_BUDGET_MODEL_V1.name,
@@ -454,7 +607,9 @@ const model: BudgetEstimatorModelArtifact = {
     correctionWithoutPathFactor: round(correctionFactors.withoutPath),
     correctionWithPathFactor: round(correctionFactors.withPath),
   },
-  interval: {
+  // Re-emitted verbatim under `--freeze-intervals`, for the same reason the
+  // frozen point model is: the diff must be confined to what this run earned.
+  interval: frozenIntervals ?? {
     lowerRatio: round(lowerRatio),
     upperRatio: round(upperRatio),
     nominalCoverage,
@@ -571,6 +726,11 @@ const budgetTransfer = {
   applicable: transferable,
   note: transferable
     ? "each row fits the structural model on every OTHER budget and scores this one"
+    : frozenPointModel !== null
+    ? "not applicable: the point model is frozen, so no structural fit is taken from " +
+      "this corpus and there is nothing to hold a budget out of. The per-budget rows " +
+      "above already measure the frozen model at every budget, which is the transfer " +
+      "question this table exists to answer when a model IS fitted here."
     : `needs more than ${MIN_LAW_BUDGETS} distinct budgets so each held-out fit ` +
       `still spans enough to identify an exponent; this corpus has ${distinctBudgets.length}`,
   byHeldOutBudget: !transferable ? [] : distinctBudgets.map((heldOut) => {
@@ -622,6 +782,53 @@ const report = {
   groups,
   foldCount,
   weighting: "each completed attempt has total weight one",
+  /*
+   * Which half of the artifact this run produced.
+   *
+   * A fitting run derives both halves at once. A frozen run derives only the
+   * claim layer, and says so here with the source artifact's identity, so a
+   * reader never has to diff two files to learn whether the point estimate
+   * moved.
+   */
+  pointModel: frozenPointModel === null
+    ? { frozen: false as const, fittedFrom: "this corpus" }
+    : {
+      frozen: true as const,
+      source: relative(process.cwd(), resolve(freezePointModelPath!)),
+      modelId: frozenPointModel.modelId,
+      paceScheduleFrozen: frozenPointModel.combination.paceSchedule,
+      paceScheduleSelected: selectedCandidate.paceSchedule,
+      paceScheduleArgument: paceScheduleArgument ?? "(inherited)",
+      intervalsFrozen: freezeIntervals,
+      intervalsNote: freezeIntervals
+        ? "the incumbent's bands, re-emitted verbatim; the per-budget rows below " +
+          "measure whether they hold over the wider domain rather than refitting " +
+          "them to it, so the new budget's residuals were never in the percentile " +
+          "they are scored against"
+        : "bands refitted over this corpus; every budget's residuals moved the " +
+          "pooled percentile, including the incumbent's",
+      note:
+        "structural coefficients, budget exponent, base mode and both correction " +
+        "factors are the frozen artifact's, re-emitted verbatim; only the pace " +
+        "schedule may be re-selected, because it is the one component that carries " +
+        "no fitted constant. Everything else in the emitted artifact — interval " +
+        "ratios and strata, applicability domain, structural attempt kinds, metrics " +
+        "— is this corpus's.",
+      /*
+       * Every schedule's numbers, not only the chosen one. With the rest of the
+       * point model held fixed this is a complete and cheap enumeration, so
+       * there is no reason to report a winner without its alternatives.
+       */
+      paceScheduleSweep: evaluated.map(({ candidate, metrics: candidateMetrics, predictions }) => ({
+        paceSchedule: candidate.paceSchedule,
+        selected: candidate.paceSchedule === selectedCandidate.paceSchedule,
+        metrics: candidateMetrics,
+        byBudget: distinctBudgets.map((budget) => ({
+          budget,
+          ...errorSummary(predictions.filter(({ sample }) => sample.policyBudgetFrames === budget)),
+        })),
+      })),
+    },
   structuralForm: {
     form: carriesBudgetLaw ? "reference_shape_times_budget_scale" : "budget_independent",
     referenceBudgetFrames: LAW_REFERENCE_BUDGET_FRAMES,
@@ -656,10 +863,14 @@ const report = {
       seedBlocked ? foldBySeed.get(String(seed))! : null,
     ])),
     familyFoldByGroup: Object.fromEntries(groups.map((group) => [group, foldByGroup.get(group)!])),
-    rationale:
-      "a sample is scored only by a fit that saw neither its source family nor " +
-      "its seed, so interval percentiles pay for seed variance instead of being " +
-      "tuned to residuals whose seed was already in the fit",
+    rationale: frozenPointModel !== null
+      ? "the point model is frozen, so every prediction is out of sample already and " +
+        "the folds do not gate it; the assignment is still reported because the " +
+        "interval percentiles are taken over exactly these residuals"
+      : "a sample is scored only by a fit that saw neither its source family nor " +
+        "its seed, so interval percentiles pay for seed variance instead of being " +
+        "tuned to residuals whose seed was already in the fit",
+    appliedToPredictions: frozenPointModel === null,
     note: seedBlockingNote,
   },
   fitPopulation: {
@@ -736,11 +947,29 @@ mkdirSync(dirname(outputPath), { recursive: true });
 mkdirSync(dirname(reportPath), { recursive: true });
 writeFileSync(outputPath, `${JSON.stringify(model, null, 2)}\n`);
 writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
-console.log(`budget estimator ${accepted ? "accepted" : "retained static"}: ${candidateLabel}`);
+console.log(
+  `budget estimator ${
+    frozenPointModel !== null
+      ? `revalidated (point model frozen from ${frozenPointModel.modelId})`
+      : accepted
+      ? "accepted"
+      : "retained static"
+  }: ${candidateLabel}`,
+);
 console.log(
   `  samples ${weighted.length}; groups ${groups.length}; folds ${foldCount} family` +
-  (seedBlocked ? ` x ${seedFoldCount} seed (${foldCount * seedFoldCount} held-out cells)` : ` (seed blocking off)`),
+  (seedBlocked ? ` x ${seedFoldCount} seed (${foldCount * seedFoldCount} held-out cells)` : ` (seed blocking off)`) +
+  (frozenPointModel !== null ? " — folds unused: the point model is frozen" : ""),
 );
+if (frozenPointModel !== null && evaluated.length > 1) {
+  for (const { candidate, metrics: candidateMetrics } of evaluated) {
+    console.log(
+      `  pace ${candidate.paceSchedule.padEnd(19)} median |log ratio| ` +
+      `${candidateMetrics.weightedMedianAbsoluteLogError.toFixed(4)}` +
+      (candidate.paceSchedule === selectedCandidate.paceSchedule ? "  <- selected" : ""),
+    );
+  }
+}
 if (excludedSamples.length > 0) {
   console.log(
     `  excluded ${excludedSamples.length} samples of unfittable attempt kinds ` +
@@ -1405,6 +1634,11 @@ function weightedPercentile(
     if (cumulative >= target) return entry.value;
   }
   return sorted.at(-1)!.value;
+}
+
+function isPaceSchedule(value: string): value is BudgetEstimatorPaceSchedule {
+  return value === "none" || value === "linear_progress" || value === "sqrt_progress" ||
+    value === "smoothstep_progress";
 }
 
 function positiveInteger(value: string, name: string): number {

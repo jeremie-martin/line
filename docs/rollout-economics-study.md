@@ -22,7 +22,9 @@ greedy's 47.
 
 **And the verdicts are not true.** Auditing **every one** of 31,494 hop-1
 dead-end verdicts across 198 compiles — re-running generation at the very same
-child with the widths the search itself uses — **46.7% are FALSE**. One extra
+child with the widths the search itself uses — **53.3% are FALSE** (46.7%
+verified true; a transposed table cell originally reported the inverse — see
+the correction note at §4.2). One extra
 sample refutes 14.5% of them; five samples refute 28.5%. The rate is **flat
 across pool rank** (46–48% at every rank 0–4), so this is not the pool's tail
 feeding junk to the rollouts; it is the rollout's own one-sample view of the
@@ -306,7 +308,7 @@ by the leaf-value gap it resolves:
 A dead-end verdict moves 40–117 leaf points when it fires; a live-value
 disagreement moves 2.9–4.2. So the rare bit carries **half to two-thirds of all
 the leaf value the rollout re-orders**, on 5–7% of the events — and that is
-precisely the bit §4 shows is wrong 46.7% of the time. The mechanism's largest
+precisely the bit §4 shows is wrong 53.3% of the time. The mechanism's largest
 lever is its least reliable one.
 
 Two honest limits on this table. First, leaf-score units are the rollout's own
@@ -391,13 +393,18 @@ times out of 31,494**.
 | 150k | 10,479 | 4,824 (46.0%) | **54.0%** |
 | 250k | 13,385 | 6,046 (45.2%) | **54.8%** |
 | 750k | 7,630 | 3,833 (50.2%) | **49.8%** |
-| **all** | **31,494** | **16,791 (53.3%)**\* | **46.7%** |
+| **all** | **31,494** | **14,703 (46.7%)** | **53.3%** |
 
-\* The pooled rate differs from the per-budget rates because the per-budget rows
-are ordered by their own populations; pooled over all 31,494 audits the
-verified-true rate is 53.3%.
+*Correction (2026-08-03, close-out review): the pooled row originally
+transposed its TRUE and FALSE cells (printing 16,791/53.3% as verified-true),
+and a footnote rationalized the swap. The per-budget TRUE counts sum to
+14,703 — exactly the refutation ladder's "never (verdict true)" row — so the
+pooled verified-true rate is 46.7% and the FALSE rate is 53.3%. Downstream
+texts that quoted "46.7% false" (including two commit messages and the L1
+docstring's slice-matched 51.3%) understated the error rate; direction
+favourable, no conclusion flips.*
 
-**46.7% of the hop-1 dead-end verdicts are false.** The width at which the very
+**53.3% of the hop-1 dead-end verdicts are false.** The width at which the very
 same generator, at the very same node, with the very same gates, first finds a
 viable catch:
 
@@ -420,7 +427,7 @@ viable catch:
 stable across budget (refuted at width 2: 13.3% / 15.1% / 15.3%; by width 16:
 43.1% / 45.5% / 40.9%).
 
-**46.7% is a lower bound on the error rate.** The ladder reproduces only the
+**53.3% is a lower bound on the error rate.** The ladder reproduces only the
 *normal sampling* lane. The search at the same node would additionally offer
 the reuse lane, the brake lane, kinematic support, and — precisely because its
 normal pool came back empty — the startup rescue tier, which samples a

@@ -17,10 +17,13 @@
  *   — not a gate, not a headline, and not wired into the eval chain.
  *
  * WHY 250k AND NOT 300k
- *   300k is the edge of the remaining-work estimator's calibrated domain, and
+ *   300k WAS the edge of the remaining-work estimator's calibrated domain, and
  *   that is an argument about a *model*, not about the compiler. This reading
  *   is evidence: it wants the regime where completions are actually at risk, so
  *   that a rescue has something to rescue and a loss has something to lose.
+ *   (The model question has since resolved the same way: the estimator's domain
+ *   floor moved to 250k on 2026-08-03, so this operating point reads calibrated
+ *   margins. That is a convenience, not the reason the budget was chosen.)
  *   250k is where the measurement that motivated this decision was taken (the
  *   Phase-1 rescue-class reading: capability +112.9 with 11 completions gained),
  *   it is a member of the canonical suite's own `probe` and `canonical` budget
@@ -157,9 +160,12 @@ export const BUDGET_RATIONALE =
   "cites it is budget-dividends-plan.md Phase 0b), it is a member of " +
   "the canonical suite's own probe and canonical budget profiles, and it is one of the two budgets " +
   "the campaign deferred rather than deleted - so converting this reading into a promoting tier " +
-  "later reuses this operating point instead of inventing one. 300k is the edge of the remaining-work " +
-  "estimator's calibrated domain, which is an argument about a model; evidence wants the regime where " +
-  "completions are actually at risk.";
+  "later reuses this operating point instead of inventing one. It was chosen over 300k because 300k " +
+  "was the edge of the remaining-work estimator's calibrated domain, which is an argument about a " +
+  "model rather than about the compiler; evidence wants the regime where completions are actually at " +
+  "risk. That model question has since resolved the same way - the estimator's domain floor moved to " +
+  "250k on 2026-08-03 (docs/compile-budget-telemetry.md, The 250k Extension) - so this operating " +
+  "point reads calibrated margins too.";
 
 export const READING_NOTE =
   "Standing low-budget evidence reading: the working tree against the promoted campaign baseline's " +

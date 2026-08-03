@@ -22,6 +22,16 @@ its current form and re-stamps the verdicts that no longer apply. §6 is what th
 program measured and is new; everything before it is the survey with the
 program's corrections folded in.
 
+**Re-reconciled at `31c2beb`, 2026-08-03, to the budget dividends campaign**
+(`docs/budget-dividends-plan.md`, now CLOSED). That campaign promoted three
+candidates and the two that moved the compiler are folded in here: the deadline
+margin's structural base is the calibrated artifact (Phase 3, `075e774`) and the
+forward-eval rollout re-draws on an empty first hop before accepting a dead-end
+verdict (Phase 4 L1, `bb45125`). One entry was added (SC-24, the re-draw —
+budget-blind, listed because it changes what two live deadline consumers read).
+§6.5 is the verdict-truth measurement and is new; §6.1's reopening conditions and
+§6.2 carry the campaign's stamps.
+
 This document maps and classifies. It does not decide. §7 groups the entries into
 clusters a decision could be taken over; the decision is the owner's.
 
@@ -43,8 +53,15 @@ each.** *Difficulty* is `budgetSlack = policyBudget / D(spec)` — the
 `TRAVERSAL_BUDGET_MODEL_V1` regression, frozen at frame 0, choosing the **shape**
 of spend (SC-07, SC-10, SC-13, SC-14). *Deadline* is the margin —
 `remaining policy budget / estimated remaining work`, recomputed per node in
-`optimizer/deadline.ts` (SLK-05), choosing the **pressure** on spend. Three
-consumers read the margin and all three read it at the same two anchors:
+`optimizer/deadline.ts` (SLK-05), choosing the **pressure** on spend. Its
+structural base is the **calibrated estimator's** coefficients, passed
+explicitly since `075e774` (2026-08-03): it used to take
+`structuralRemainingWork`'s silent `TRAVERSAL_BUDGET_MODEL_V1` default, which
+predicts 37% of the artifact's remaining work at a root node and left the live
+signal ~1.9× loose, so the ramp barely engaged (§6.4). The anchors did not move
+— the corpus asks 1.30 / 1.90 on the corrected shape against the shipped
+1.25 / 2.0. Three consumers read the margin and all three read it at the same
+two anchors:
 `DEADLINE_MARGIN_FULL_PRESSURE = 1.25` (Youden-optimal completion gate, J = 0.815)
 and `DEADLINE_MARGIN_NO_PRESSURE = 2.0` (the smallest round margin with a measured
 false-positive rate of exactly 0.000) — SC-09's rolled-head ramp, GA-15's
@@ -104,6 +121,17 @@ been made and both are closed: uniform post-completion pressure (above) and
 post-completion rollout-depth pressure (−0.018 over 194 changed tracks — repair
 reinvests the freed frames at unchanged yield). See §6.
 
+**One of the two live pool-affecting consumers now reads a corrected bit.**
+SC-16's dominance filter prunes the frontier on `forwardContinuation === false`
+— a charged rollout's proof that a candidate cannot place its next contact — and
+2026-08-03 measured that proof **53.3% wrong** on 31,494 audited verdicts, split
+by terrain (58.9% hold on the capability frontier, 30.3% on representative
+sources, 5.3% on `high_air_drive`). The cause is breadth, not disagreement about
+viability: the rollout's hop-1 expansion draws **one** sample where the search
+draws 23.5 / 30.3 / 80.9 at 150k / 250k / 750k through the same gates. `bb45125`
+re-draws once on empty (SC-24) and leaves the corrected pool in the node's memo,
+so the filter consumes the correction at its source. §6.5.
+
 **Most of what remains still cannot bind.** Of **68** budget-touching mechanisms,
 **14** cannot change behaviour at any budget the system runs: `SC-03` breadth floor
 · `SC-07` low-slack branch limit · `SC-08` the 75k forward-eval gate · `SC-10`
@@ -114,16 +142,25 @@ maturity gate · `OB-15` the frame limit · `PLB-02` `MAX_NODES_FLOOR` · `PLB-0
 worker-timeout ramp. That is down from 29, and eleven of the fifteen retired were
 the geometry ramps.
 
-**The instrument still cannot see most of this.** The promotion gate is a single
-budget (750k, N=48, 44 cases) and `analyze_campaign_baseline.ts` refuses any archive
-whose budgets are not exactly `[750000]`, while the campaign's own scale contract
-requires mechanisms to "remain continuous and meaningful beyond the measured
-budget, including 150k and 1M-3M". Production runs at 1,000,000 — above every
-budget the compiler has ever been tuned or measured at, sampling 108 candidates
-per gap on the strength of an extrapolated law. The program's answer was to make
-the golden v1 grid (75k/150k/225k, 1,440 paired compiles) the standing evidence
-surface for everything it deleted below 250k; it has no promotion authority and
-that has not changed.
+**The instrument still cannot see most of this — but it is no longer blind at
+either end.** The promotion gate is still a single budget (750k, N=48, 44 cases)
+and `analyze_campaign_baseline.ts` still refuses any archive whose budgets are not
+exactly `[750000]`, while the campaign's own scale contract requires mechanisms to
+"remain continuous and meaningful beyond the measured budget, including 150k and
+1M-3M". Production still runs at 1,000,000, sampling 108 candidates per gap on the
+strength of an extrapolated law — but that operating point now has evidence:
+2026-08-03's 1M validation panel (176 trace compiles plus a same-head 750k
+companion, `docs/budget-law-study.md`) found zero accounting violations, the
+estimator healthy from the interior (99.5% calibrated, 3.0% combined APE, coverage
+94.6% against the artifact's held-out 94.2% at 1.5M) and the laws holding at a
+budget they never saw — paired first-completion ratio 1.2549 against a predicted
+1.2657, phase shares on the 750k/1.5M log interpolation to 0.1pp. Below the gate,
+the golden v1 grid (75k/150k/225k, 1,440 paired compiles) remains the standing
+evidence surface for everything the unification program deleted, and the dividends
+campaign added a second: `npm run benchmark:v2:low-budget-reading`, a tracked
+**non-promoting** paired reading at 250k on the promotion ladder's own seeds
+(Phase 0b). Neither has promotion authority and that was a deliberate decision,
+not an omission — §5.
 
 ---
 
@@ -492,6 +529,20 @@ unchanged at 17; **dead** drops from 6 to 3 (`OB-04`, `OB-05`, `SC-18` deleted;
 reason). **law** stays at 2 — the program wrote no new law, it deleted the ramps
 that were pretending to be ones.
 
+### What the dividends campaign changed (2026-08-03)
+
+| | entries | which |
+|---|---:|---|
+| added | **1** | `SC-24` `HANDOFF_ROLLOUT_REDRAW_ON_EMPTY` (`bb45125`) — **budget-blind**, and listed anyway because it changes the bit SC-16 prunes on. Its price is inverse to budget (0.45–0.75% of frames at 750k, 1.71% at 250k), which is a scaling fact about a constant, not a budget read. |
+| retired | **0** | — |
+| same mechanism, new evidence | **4** | `SLK-05` (structural base swapped to the artifact's coefficients, `075e774`) · `SC-16` (its dominance premise measured false 53.3% of the time; unchanged, and now fed a corrected bit) · `SC-13` (priced: 62.8% of rollout frames at 750k, +4.59 ± 2.20 per cell) · `SC-12` (priced cheap: 4.9%, 22 f/call) |
+
+Net: **104 entries, 68 of them budget-touching, and the classes are unchanged.**
+The campaign wrote no new budget dependence and deleted none: two of its three
+promotions were a correction and an exact-parity review fix, and the third is a
+constant with no budget term. What moved is *evidence* — which is what a dividends
+campaign is supposed to move.
+
 ### By role
 
 | role | n |
@@ -650,7 +701,11 @@ and none of them beating the shipped value, the two capability groups wanting
 opposite pressure); the whole cost is the
 capability stratum, **−1.85**, every other stratum exactly 0.00. Rider
 (`deadline-two-anchor-750k`, `c26cfca`): **−0.097, P(+) 25.5%, capability +0.08,
-validity unchanged**, promoted at parity. Ledger −0.37 against a −3.0 floor.
+validity unchanged**, promoted at parity. Ledger −0.37 against a −3.0 floor at the
+unification program's close; **+0.04 at the dividends campaign's close**, after
+Phase 3's −0.31 and Phase 4 L1's +0.72 (`docs/budget-dividends-plan.md`). The
+capability stratum's own arithmetic across both: **−1.85 + 0.08 + 0.76 + 1.39 =
++0.38**, on point estimates whose intervals all cross zero.
 
 **The base shape was a deviation; it is now a measured decision (Phase 3,
 2026-08-03).** `CompileDeadline` used to build its structural suffix table by
@@ -755,6 +810,41 @@ ruler and came back the other way (§2h).
   cross-budget claim cannot be measured by the deciding instrument.
 - The only multi-budget instrument with family-grouped trace archives is
   `scale_study.ts`, which has **no promotion authority**.
+- **The dividends campaign answered the acceptance-surface question by choosing
+  not to widen the gate** (Phase 0b, 2026-08-03): a second budget on the
+  acceptance surface changes what the headline *means*, and every promotion and
+  the drift ledger are denominated in the current one. What was built instead is
+  `npm run benchmark:v2:low-budget-reading` — capability mini manifest (11
+  sources) × 48 seeds × 250k, working tree against the promoted baseline's
+  checksum-verified **compiler snapshot**, a fixed five-code verdict vocabulary,
+  an always-printed action-set power footer and an append-only history under
+  `generated/benchmark-v2/low-budget/`. It is tracked, never promoting: a loop
+  step documented in `HOW_TO_WORK.md`, wired into nothing, writing to no
+  governance state. It exists because of §6.2 — at 750k on the ladder's own seeds
+  the capability sources are all valid, so a rescue-class mechanism has nothing to
+  rescue and can only lose; at 250k **118 of 528 baseline cells are invalid**.
+- Two smaller instruments landed with it (Track T): `npm run
+  benchmark:v2:mover-grid`, mini manifests **derived** from the canonical ones by
+  selector (a suite edit cannot orphan them) run as paired grids against any ref,
+  and `npm run benchmark:v2:action-set-power`, which states how many cells a
+  candidate can change and what failure rate an observed zero excludes. Both are
+  evidence only — the aggregate is a renormalized subset score and is never a
+  headline.
+- **A latent defect in the promotion machinery surfaced the first time a
+  candidate was accepted mid-ladder** (`ae55f13`, 2026-08-03). Every prior
+  baseline had been promoted at full N=48 depth and published its cache straight
+  from the eval archive, so the baseline-cache *extension* path had never run. An
+  N=32 accept exercised it: the shard invocation ran `--profile=canonical` with no
+  budget restriction, the runner resolved the catalog's full 250k/500k/750k ladder
+  while the campaign schedule carries one budget, and the seed-schedule length
+  check correctly threw. The fix makes `--comparison-budgets` legal in
+  baseline-cache-shard mode — it *is* a canonical cache operation on the campaign
+  scope — and passes the cache's own ladder budgets. **Read it as a property of
+  the instrument, not an incident**: a governance path that only executes on an
+  outcome that has never happened is untested by construction, and this campaign
+  produced two of them (this, and `package.json` entering
+  `COMPILER_SOURCE_PATHS` so that a tooling-only commit moves the candidate
+  fingerprint).
 - `docs/repair-roi-study.md` H5: **allocation binds at 150k–300k, not at 750k.**
   At 150k a repair frame is worth 0.126 pts/kf, 7.5× its 750k value, and every 10%
   shaved off first completion at 150k is worth +0.6 to +1.4 points — the largest
@@ -833,7 +923,61 @@ and a positive pooled capability sum, at the cost of most of the upside; or (ii)
 make the depth decision **revisitable** — re-deepen the rollout when the shallow one
 fails to place the contact, which converts a lottery ticket into a retry. The second
 is a shape change and would need its own preview, powered against its action set.
-Neither is implemented.
+
+**BOTH WERE RUN, 2026-08-03 (dividends Phase 1), and the premise underneath them
+is falsified.** Eight arms on a collapse-enriched 7-source grid × 48 seeds × 750k
+(336 cells, 0 invalid in control):
+
+*(ii) revisitable depth works as designed and still loses by 16×.* `revisit1`
+re-deepens on placement failure and **rescued 2 of the lottery's 4 known losses at
+no upside cost** (healed +14.07 against L1's +14.03, 2 lost on 90 changed). But
+pooled over all eight arms the loss rate is **35 lost / 702 changed = 4.99%
+[3.47%, 6.93%]** against a break-even under **0.30%**. Making the lottery
+reversible bounds the tail; it does not move the order of magnitude.
+
+*The dividend it was spending is not there.* Mean sim frames over the 192
+capability-mover cells: 765,198 → 764,319 — **−878 frames, 0.115% of the
+compile** (−0.065% over all 336 cells; the 0.115% is the most favourable
+denominator). The reason is structural and was later confirmed independently:
+**51.0% of rollout calls dead-end at hop 1**, where depth 1 and depth 2 are the
+*same computation*, so half the lever is a no-op by construction — and the whole
+depth family is ceilinged at 2.5% / 9.0% / 2.5% of the compile at 150k / 250k /
+750k, with removing hop 2 outright costing −3.84 ± 3.35 per cell (§6.5).
+
+*And what 1b appeared to do was a width effect, not a depth one.* Splitting the
+mechanism in two — `headdepth` (the shallow-rolled tail keeps its score instead of
+being scored `Infinity`: **pure selectability, zero frames freed**) and
+`shallowhead` (the head drops its second hop too: **pure cost, no width**):
+
+| arm | capability sum | healed | changed | lost | up/down | Δ sim frames |
+|---|---:|---:|---:|---:|---:|---:|
+| lottery (both halves) | −184.02 | **+14.03** | 90 | 4 | 57/26 | −878 (−0.115%) |
+| width only, 0 frames | −222.74 | **+13.00** | 83 | 5 | 52/22 | **+749 (+0.098%)** |
+| cost only, no width | −16.24 | **−16.24** | 82 | **0** | 29/51 | +160 (+0.021%) |
+
+The width half reproduces **93% of the healed upside while freeing zero frames**
+and carries the collapse risk with it; the cost half — the actual depth dividend —
+is strictly negative and collapses nothing. On the changed cells the score tracks
+`deepest_seen_gap` at **r = +0.916** and frames freed at +0.295: the mechanism was
+never about frames. **Capability debt is not repayable on the depth axis at 750k.**
+
+*(i) share 0.2 is the survivor, and it is an operating-point result.* Zero losses
+on 79 changed cells on the eval block; pooled over three seed blocks **232 changed
+/ 1 lost = 0.43% against 1.407% tolerable** — clears break-even ~3×, but the raw
+capability sum by block is **+103.06 / −0.34 / +6.61**, i.e. it pays only where
+baseline failures exist to rescue (§6.2). Left as a reopener conditioned on the
+operating point, not on the mechanism.
+
+*The residue worth reopening* is the **width lever as its own family** (+13.00 for
+zero frames, with the collapse tail still attached and no reversibility story yet)
+and the **250k operating point**: the identical lottery arm reads capability
+**−184.02 at 750k and +112.90 at 250k**. State that flip with its completion
+ledger, which the dividends plan's Phase 0b quote omitted — at 250k the arm gains 11 and
+**loses 18**, net −7 completions, and the +112.90 is a raw shifted-geometric score
+sum. The sign flip is real and the mechanism is still a lottery.
+One debit recorded against revisitability: `revisit1` raised cross-state pool reads
+**6 → 38** on one pressed compile — no new memo key, but a changed visit order
+re-enters pools built under a different aim-lane throttle state.
 
 ### 6.2 The seed-block two-sidedness
 
@@ -848,6 +992,19 @@ therefore not a neutral referee for a mechanism whose value is *rescuing compile
 that fail*: on this suite, at these seeds, the failures it would rescue do not
 exist. Recorded as a property of the instrument, not as a reason to discount the
 verdict — the verdict is what governs.
+
+**Measured at a second operating point, 2026-08-03, and the structure holds
+exactly.** On the same 11-source capability manifest and the same seeds, at
+**250k**, 118 of 528 baseline cells are invalid (`dense_recovery_frontier` valid
+on 17 of 96, `rapid_pickup_frontier` on 57 of 96) where at 750k the number is
+zero. That is the rescue headroom, measured. And it converts: the paired 250k
+mover grid across the Phase 3 promotion (`b7de5c3` against `45707a7`) moved
+validity **410 → 446 — 53 completions gained, 17 lost, net +36** — on a candidate
+whose 750k eval read −0.31 with capability +0.76 and no completion movement at
+all. The consequence for how this map is read: **a capability reading at 750k is a
+quality reading; the completion half of a rescue mechanism's value is only visible
+below it.** That is why Phase 0b built a standing 250k surface (§5) instead of
+widening the gate.
 
 ### 6.3 The rider is exonerated — the four-arm decomposition
 
@@ -939,12 +1096,132 @@ incumbent's measured `costToEnd` and no model touches it.
 Power footer: an observed zero on a 243-cell action set excludes loss rates above
 1.23%. A full 44 × 8 grid at 750k followed.
 
-Two consequences to carry forward. The accuracy table in `deadline.ts`'s header
-is now a measurement of the base it computes rather than an upper bound. And the
+The full 44 × 8 grid read **579.57 → 594.74, +15.17**, 0 completions lost and 2
+gained — and the honest decomposition of that number is the finding, not the
+number: of the +852.1 total, **+832.0 comes from two validity flips** and +20.1
+from the other 78 changed cells (mean +0.26, **median −1.14**, 34 up / 44 down).
+The same shape holds on the capability grid: +1,272.1 of +1,306.3 from three
+flips, +34.3 over 240 same-validity cells. **The mechanism is healed completions,
+not better tracks** — on cells both arms complete, it is a wash with a slightly
+negative median, and first completion arrives a median 17,073 frames earlier on
+the capability movers. That is exactly the shape the promoting instrument cannot
+price: at N=48 it read **−0.31 [−0.91, +0.30], validity 2112/2112, capability
++0.76** and was promoted per posture (`b7de5c3`, headline 595.53 → 595.23, ledger
+−0.68), because the ladder's own seeds have **zero** baseline capability failures
+to heal. At 250k, across the same promotion, validity moved 410 → 446 (§6.2).
+
+Three consequences to carry forward. The accuracy table in `deadline.ts`'s header
+is now a measurement of the base it computes rather than an upper bound. The
 Phase 1a anchor brackets above are **stale by the stale-sweep rule** — they were
 taken on a signal ~1.9× looser — so re-bracketing `1.25 / 2.0` on the corrected
 signal is filed work; the corpus derivation and the shipped pair agree to the
-rounding, which is why it is not a blocker.
+rounding, which is why it is not a blocker. And the **pace term's price is stale
+in the same way**: the pace-free arm (capability −21.6, recovered to −0.8) was
+measured on the V1-shaped base, which is ~2.7× larger at a root node, so the term
+stays on an unrepriced number until someone re-runs it. The H2 exposure moved the
+right way: 8 cross-state reads before, **1** after, over 176 compiles — the
+throttle is engaged on more builds, so fewer cache lifetimes straddle a
+transition.
+
+### 6.5 The forward-eval dead-end verdict is mostly wrong — **MEASURED 2026-08-03 (dividends Phase 4)**
+
+The owner's smell: half of forward evaluation ends in a hop-1 dead-end verdict,
+on the mechanism that is a large share of every compile's charged frames, and
+nothing in this repo had ever verified the verdicts. Audited at 100% sampling —
+**31,494 verdicts over a 198-cell grid** (`docs/rollout-economics-study.md`).
+
+**Three corrections came out before the finding did.**
+
+*The 51% was the wrong population.* The literal `dead_hop1` verdict is
+**13.6–20.2% of linear rollout calls** (6.4–16.4% of all calls). What reproduces
+at 51% is a different quantity — rollouts that place at most one hop, 48.3%
+pooled — and only verdicts can be true or false. Sizing the truth question off
+the 51% overstates the population about 3×.
+
+*Rollouts are not half the frames.* Rollout + start-eval frames are **29.1% /
+27.7% / 20.5%** of charged sim frames at 150k / 250k / 750k on the instrumented
+grid (34.7% / 32.4% / 29.4% at 250k / 500k / 750k over 3,648 archived compiles).
+The "54%/46%" figure predates the closed-form ballistic cutover.
+
+*The dead-end rate is a property of the source mix, not of the compiler.* Across
+44 archived sources it spans **10.3% to 78.1%**, and the six sources above 60%
+are all capability-frontier members.
+
+**The finding.** The same generator, at the same node, through the same gates,
+finds a viable catch for **16,791 of 31,494 audited verdicts — 53.3% are false**;
+14,703 (46.7%) are verified true. Both are bounds in the same direction — 53.3% a
+*lower* bound on the error rate, 46.7% an *upper* bound on correctness — because
+the ladder reproduces only the ordinary sampling lane and never draws the reuse
+lane, the brake lane, kinematic support or the startup rescue tier's distinct
+catch stream, all of which the real search would offer and all of which can only
+add candidates. "Verified true" means "still dead after everything the *ordinary*
+generator can do". *(Read
+the study's §4.2 pooled row with care: its `verified TRUE` and `FALSE` columns
+are transposed — the per-budget rows sum to 14,703 true, the refutation ladder's
+own "never (verdict true)" row says 14,703, and the stratum table reweights to
+46.7% true. Discrepancy 17.)*
+
+*The cause is breadth, and it is a factor of 24–81.* The rollout's hop-1
+expansion is `solveOneGap(K = branch)` with `branch = 1` for the default greedy
+shape — **one** `sampleOneCandidate` attempt at index 0 — where the search at the
+same node draws `max(8, round(27·B/250k))` (measured 23.5 / 30.3 / 80.9 at 150k /
+250k / 750k) and then adds the aim lane, the reuse and brake lanes, kinematic
+support and three rescue tiers. The gates are the identical function. "The
+dead-end verdict is not *no continuation exists here*; it is *draw number 0 of
+the deterministic sample order at this gap did not catch*."
+
+*The error splits by terrain, not by pool rank.* Verified-true by stratum:
+**capability 58.9%** (n=17,181), legacy_regression 40.5% (2,367), **representative
+30.3%** (11,942) — `frontier_dense_recovery` 64.4%, `high_air_drive` 5.3%. By pool
+rank it is flat to two points (p0 47.2% → p4 47.3%), which **falsifies the
+generation branch**: the pool's tail is not feeding dead candidates into rollouts,
+and `HANDOFF_CANDIDATE_POOL = 5`'s "correctly flat" verdict is not explained that
+way. The two extra lanes do differ — `reuse` verdicts are the most trustworthy
+(60.3% true) and `brake` the least (30.0%). Pre-completion verdicts are 49.9%
+true against 39.9% post-completion. Against the realized search (32,733 joined
+nodes, an independent no-probe ruler) false-alive is **0.0%** and false-dead
+**21.6%** — the errors are one-sided by construction, and both rulers agree there
+is no reading in which the verdicts are trustworthy.
+
+*So the apportionment the phase asked for is a boundary, not a blend*: on the
+capability frontier the verdict is terrain information; on representative sources
+it is a breadth artifact; the compiler applies it identically to both.
+
+**What the phase shipped: L1, re-draw on empty** (`bb45125`, SC-24). One extra
+draw refutes 14.5% of all verdicts and five refute 28.5%, and the curve is
+front-loaded enough that the dose is arithmetic rather than taste: at ~40 frames
+a draw the marginal cost per marginal correction is 261 / 628 / 845 frames for a
+ladder to 2 / 3 / 5, so draw 2 buys a correction **2.4× cheaper than draw 3**.
+Suppressing the aim lane inside the probe leaves the verified-true rate and the
+refutation curve unchanged to a tenth of a point while making the 2-wide rebuild
+**4.6× cheaper** (185 → 40 median frames) — the correction is plain sampling
+breadth, not the aim lane. Accepted at the N=32 boundary: **+0.72 [−0.08, +1.53],
+P(+) 99.02% against a required 98.88%, validity 1408/1408, every stratum
+positive** (representative +0.39, capability +1.39, legacy +2.27, music +0.27).
+Realized price 0.45–1.71% of frames; dead-end verdicts per compile fall
+728.7 → 704.9 at 750k and 421.1 → 378.7 at 250k.
+
+**What is capped, and what is left.** Refunding **every** rollout frame is worth
+**+1.78 ± 1.31 per cell at 750k** — the hard ceiling on the entire "cheaper
+rollouts" family, and the reason correctness rather than cost is where the value
+is. Three lanes remain open with prices on them: the **impact widening** (SC-13)
+is 62.8% of rollout frames at 750k and buys +4.59 ± 2.20 per cell, so the trade
+the study predicted and nobody has run is narrowing it and spending the frames on
+the re-draw, which buys ~20× the coverage per frame; the **online-continuation
+filter** (SC-16) still prunes on a verdict that is ~70% wrong on representative
+sources, and is now fed a corrected bit rather than fixed; and the **dose ladder**
+beyond one draw is the same mechanism at 2.4×/3.2× the frames per correction.
+Hop-2 verdicts (`dead_hop2`, 5.6% of rollout calls at 750k) were deliberately out
+of scope. **The depth family has a ceiling**: hop-2 frames are 2.5% / 9.0% / 2.5%
+of the compile at 150k / 250k / 750k, and removing hop 2 costs −3.84 ± 3.35 per
+cell at 750k plus a completion at 250k.
+
+**Honesty note on the instrument.** The spend/verdict/confusion arm is
+bit-identical, proven on 198 of 198 cells. The truth-check arm is **not
+frame-identical** — frames are refunded and the build lands on a cache-cleared
+copy, but the engine's own frame cache is warmed by the work and cannot be
+un-warmed. At maximum perturbation: 12/12 identical track hashes and full scores,
+median |Δ sim_frames| 0.034%.
 
 ---
 
@@ -1006,7 +1283,7 @@ which was the point.
 | SC-06 `HANDOFF_BRANCHING = 3` | law arm −1.73 "at its optimum"; the flat-4 arm went −1.73 → **+0.74, SE 1.81** after the breadth law (peak at 4, 5 is −2.88), anti-composing with the never-promoted arc-command efficiency law | **RE-TESTED 2026-08-02 (`9a80915`, reverted `884173f`): −1.5932, SE 1.6581, P(+) 17.1%, inconclusive; capability −10.52, legacy_regression +0.97, representative −0.14, music −0.32; validity 2111/2112 (−1). Flat 3 stands as a CURRENT verdict.** |
 | SC-20 tail-completion window | law arm −0.86, 750k exactly +0.00 | still the 2026-07-28 session, but see Cluster C: the family's *shape* was re-measured in Phase 3 and the asymptote is correct, so this row is no longer the open question it looked like |
 | SC-19 mature reuse extra | law arm −0.32, "correctly capped" | as SC-20 |
-| SC-09 `HANDOFF_FORWARD_EVAL_TOP` / `PACE_FULL` brackets | `TOP = 1` +0.89 → −1.07; `PACE_FULL = 1.2` +1.30 → −2.32 | **`PACE_FULL` no longer exists** — the ramp's endpoints are the margin anchors, re-derived from 129,481 observations and bracketed in both directions during the Phase 1a investigation (both at local optima). `HANDOFF_FORWARD_EVAL_TOP = 2` survives as the ramp's narrow end and was re-checked at 3 in the same investigation. |
+| SC-09 `HANDOFF_FORWARD_EVAL_TOP` / `PACE_FULL` brackets | `TOP = 1` +0.89 → −1.07; `PACE_FULL = 1.2` +1.30 → −2.32 | **`PACE_FULL` no longer exists** — the ramp's endpoints are the margin anchors, re-derived from 129,481 observations and bracketed in both directions during the Phase 1a investigation (both at local optima). `HANDOFF_FORWARD_EVAL_TOP = 2` survives as the ramp's narrow end and was re-checked at 3 in the same investigation. **STALE AGAIN as of 2026-08-03 by the rule's own logic**: Phase 3 changed what the margin *is* (the base is the artifact's shape, the live signal ~1.9× tighter), so those brackets were taken on a signal that no longer exists. Nothing is known to be wrong — the corpus derivation on the corrected shape returns 1.30 / 1.90 against the shipped 1.25 / 2.0 — but the brackets no longer support the constants. Re-bracketing is filed, not blocking (§6.4). |
 | SC-21 shallow-tail throttle | never tested as a law | still untested as a law; the flat-constant arm for the whole family measured −14.6 (Cluster C), which is evidence about the shape, not about this consumer's exponent |
 
 **Evidence**: the audit table (`docs/compiler-improvement-campaign.md:1152-1164`),
@@ -1086,8 +1363,9 @@ twin is −6.22 with capability −41.50 (§6.1).
 
 **D1 — the post-completion pacing gap. STILL OPEN, and now expensively so.** The
 gap is unchanged: **46.3% of a 750k budget — and 54.6% of a 2.25M one — runs with
-no consumer acting on the deadline signal**, and the forward-eval rollouts that
-dominate the frame count run inside it. What changed is that a signal now *exists*
+no consumer acting on the deadline signal**, and a large share of the forward-eval
+rollouts runs inside it (post-completion verdicts are also the *less* reliable
+ones: 39.9% verified-true against 49.9% pre-completion, §6.5). What changed is that a signal now *exists*
 there (SLK-05 is live for the whole compile and observable), and that two attempts
 to consume it have been made and both are closed: **uniform post-completion
 pressure** measured ≈ −0.5 per cell over 225 of its 245 changed tracks and brought
@@ -1100,10 +1378,16 @@ a repair episode the margin's numerator is the *compile's* remaining budget whil
 its denominator is the *attempt's* work, so late episodes read full pressure by
 arithmetic rather than by evidence, and narrowing a repair rollout fights the ROI
 study's "bigger ceilings buy acceptance". *Evidence*: `docs/repair-roi-study.md`
-§Phase allocation; the two arms above. The often-quoted "rollouts are 54%/46% of
-all sim frames" comes from the forward-eval campaign notes, is a different
-decomposition, and is **UNVERIFIED here**. *Constraint*: still a **new** mechanism,
-not a migration, and the two obvious shapes are spent.
+§Phase allocation; the two arms above. **The often-quoted "rollouts are 54%/46% of
+all sim frames" is now measured and it is wrong**: rollout + start-eval frames are
+**29.1% / 27.7% / 20.5%** of charged sim frames at 150k / 250k / 750k on a
+198-cell instrumented grid, and 34.7% / 32.4% / 29.4% at 250k / 500k / 750k across
+3,648 archived compiles — the old figure predated the ballistic cutover
+(`docs/rollout-economics-study.md` §1.1). *Constraint*: still a **new** mechanism,
+not a migration, and the two obvious shapes are spent. *And the cost side of this
+lane is now capped*: refunding **every** rollout frame at 750k is worth
+**+1.78 ± 1.31 per cell**, so no speed-up of forward evaluation, however total,
+can be worth more than that at the production budget (§6.5).
 
 **D2 — replacing the pre-completion pace signal. EXECUTED as Phase 1a
 (`4325370`), promoted at a documented cost of −0.28.** Everything below is the
@@ -1188,10 +1472,35 @@ exactly (19.1% modelled against 18.6% observed, overdispersion 1.30). It is
 acceptance variance, not selection error, so there is no population for a ranking
 to route around. Anchor identity is second-order (≤1.5× gain span) against attempt
 ordinal (3–10×). What shipped instead is the affordability change (LC-19) and the
-three telemetry fields the study proved necessary (LC-30). The remaining lane is
+three telemetry fields the study proved necessary (LC-30). The remaining lane was
 acceptance *prediction*, which targets `p` — exactly what the independence finding
 says the zero-yield pool is made of — and it needs a compile-level signal, so it is
-its own proposal. The pre-program statement follows.
+its own proposal.
+
+**That lane now has its second null, and this one closes on economics rather than
+on fit (dividends Track P, 2026-08-03).** The obvious compile-level signal is the
+deadline margin's own trajectory, and it does not predict acceptance: no covariate
+clears both held-out lift and a Holm-corrected p; the five candidates are one
+variable (|r| 0.93–0.98); the best trace-750k lifts (+0.0034 to +0.0045 nats, Holm
+p 0.20–0.46) fail to replicate on the 5.4×-larger canonical corpus, where every
+lift is *negative*; and the whole set is dwarfed by the attempt ordinal at
+0.0148–0.0233 nats per attempt, the only validated acceptance variable. But the
+statistics are not what closes it. **A perfect oracle** — flag every zero-yield
+compile ex ante and redirect 100% of its repair frames at the observed ordinal≥2
+marginal rate of 0.0077 pts/kf — **is worth +0.45 to +0.48 points per compile,
+and that is the whole ceiling of the lane**; every reachable policy is negative
+(skip the worst-predicted 5 / 10 / 20 / 30% → **−0.046 / −0.136 / −0.354 /
+−0.616**), because the enrichment is real (1.7–2×) and useless: the flagged
+compiles are already the ones spending the least. And **the stratification is the
+null model's own mediator** — the 3× spread in zero-yield across
+`firstCompletionFrac` quintiles (10.4% → 31.0%) is 80–85% reproduced by the
+(ordinal × local-budget) coin-flip cell model already on record, with the residual
+tracking attempt *count* (observed/model 1.22 at one attempt, 0.59–0.81 at three
+or more). The margin trajectory tells you how many coin flips get tossed, not how
+they land. Two by-products: local budget makes held-out loss *worse* once ordinal
+is in, and the new round index is a worse partition than the ordinal (0.6758
+against 0.6693). **Do not re-open this on a better feature** — the ceiling is the
+problem. The pre-program statement follows.
 
 The sizing axis is closed: candidate A measured **+0.01
 at N=48/750k**, a perfect tighter ceiling is bounded at +0.26, and 12.2% of repair
@@ -1267,8 +1576,9 @@ byte-identity anchors with comments stating so.
 
 ## 8. Discrepancy ledger
 
-Found by the survey, not fixed by it. Rows the unification program has since
-closed are stamped **CLOSED** with the commit; the rest stand.
+Found by the survey, not fixed by it (row 17 is later — it was found by the
+dividends campaign). Rows a program has since closed are stamped **CLOSED** with
+the commit; the rest stand.
 
 | # | discrepancy | evidence | consequence |
 |---|---|---|---|
@@ -1285,9 +1595,10 @@ closed are stamped **CLOSED** with the commit; the rest stand.
 | 11 | two surveys stated the pace prune shallows the tail unconditionally | `:5464-5466` shallows only when `resolved.variant === "greedy"` (§2, additional checks) | `avg` and `best` upgrades (SC-12/13/14) keep full depth in the pruned tail and in the pre-completion low-slack phase; the prune saves less than documented |
 | 12 | the campaign doc reports **−1.73** for two different arms | `:1161` (budget-law arm on `HANDOFF_BRANCHING`) and `:976` ("then" value of the flat-4 arm under `span-handover`) | **RESOLVED 2026-08-01, then SETTLED by measurement 2026-08-02**: two distinct measurements sharing a value by coincidence. The law arm's −1.73 is the July audit (sqrt-era ruler); the flat-4 arm read **+0.74, SE 1.81** under the linear law. Track R re-ran flat-4 under the deadline-margin ruler: **−1.5932, SE 1.6581, inconclusive, capability −10.52, one validity loss** (`9a80915`, reverted `884173f`). Flat 3 is current, not stale. |
 | 13 | snapshot-resume silently disables repair, nowhere stated | `:1352` gives `startOptions = []`, `:1476` requires `startOptions.length > 0` | the checkpoint/resume study arm and the production arm run structurally different compilers past first completion. Any study comparing a resumed suffix against a from-scratch run at the same budget is comparing two allocators. |
-| 14 | production runs at an operating point no evidence covers | all three live `select.json` carry `budget: 1000000`; the promotion gate is 750k only; the breadth law gives 108 candidates/gap at 1M | the law's acceptance argument (it predicted the unfitted 500k rung) is a *reason to believe* the extrapolation, not evidence for it |
+| 14 | production runs at an operating point no evidence covers | all three live `select.json` carry `budget: 1000000`; the promotion gate is 750k only; the breadth law gives 108 candidates/gap at 1M | **CLOSED as a coverage gap `cbf7321` 2026-08-03, and it left three smaller ones.** The 1M validation panel (176 trace compiles + a same-head 750k companion, 393M frames, exit 0) found **zero accounting violations**, the estimator healthy from the interior (99.5% calibrated, 3.0% combined APE, coverage 94.6%) and the laws holding at a budget they never saw (paired fc ratio 1.2549 vs 1.2657 predicted, implied exponent 0.789; phase shares on the log interpolation to 0.1pp; ROI spend side inside 0.4%). Score dividend **+2.94 ± 2.03 per cell**. What replaces it: **1M is not monotone per source** — 67 of 176 cells score *worse* than the same seed at 750k, p10 −8.8 — and production ships one seed of one spec; **music-backed sources take half the dividend** (+1.57); and **production's three specs are in no manifest at any budget**. See `docs/budget-law-study.md`. |
 | 15 | the documented budget-overrun figure understates the measured one by ~2.4× | `docs/compile-budget-telemetry.md:44-46` reports "a 50-compile sample from the 2026-08-01 campaign, median overrun **0.93%** of the hard budget, p90 5.1%". Measured here over the full 750k N=48 baseline (2,112 rows): median **+2.25%**, p90 **+5.22%**, 100% overran, max +16.3%. | the p90s agree, the medians do not; the 50-compile sample is not representative of the median. The qualitative statement ("a positive `hard_overrun_frames` is the ordinary case") is right and the number should be restated from the full archive. |
 | 16 | one survey figure that could not be sourced | two surveys state "61–71% of a mature budget is spent after first completion"; `docs/repair-roi-study.md` §Phase allocation measures post-completion at **46.0%/46.3% at 750k**, 53.0% at 1.5M, 54.6% at 2.25M | the qualitative point (the majority-adjacent share of a mature budget is unpaced) survives; the number does not. Corrected throughout this map. |
+| 17 | `docs/rollout-economics-study.md` §4.2's pooled row transposes its two columns | the three per-budget `verified TRUE` counts sum to **14,703 = 46.7%**, the refutation ladder's own "never (verdict true)" row reads **14,703**, its refuted column sums to **16,791 = 53.3%**, and the stratum table reweights to 46.7% true — but the `all` row prints 16,791 (53.3%) under TRUE and 46.7% under FALSE, and the section heading, the lane table and two commit messages inherit it | **the verdicts are worse than the campaign claimed, not better**: 53.3% false on the study's grid, 51.3% on the post-Phase-3 re-probe, against a claimed 46.7%. No conclusion flips — every lane ranking and the L1 accept were argued on the terrain split and the refutation curve, both of which are unaffected — but the study's headline number should be restated and its footnote (which offers a bad explanation for the mismatch) deleted. **The shipped `HANDOFF_ROLLOUT_REDRAW_ON_EMPTY` docstring is correct**: it quotes the re-probe's 51.3% false / 54.4% / 47.3%, which are internally consistent. |
 
 ---
 
@@ -1311,7 +1622,7 @@ kept in its original tense where it is history and updated where the surrounding
 mechanism is still live — the point of keeping it is that the reason a mechanism
 was deleted is the reason not to rebuild it.
 
-### SC — search core (`handoff.ts` generation, ranking, forward evaluation) · 23
+### SC — search core (`handoff.ts` generation, ranking, forward evaluation) · 24
 
 **SC-01 `budgetAwareQualitySampleCount` — the per-gap breadth law**
 `handoff.ts:4960-4967`, constants `:932-938`; entry points `:4831`, `:4846`; → `policy.nCand` → `expandNode:3301` → `getCandidatesSorted:3833` · `policyBudget`, per-compile → **generation** · **LAW** · static · **binds**
@@ -1324,7 +1635,7 @@ Was six named spec signatures with flat overrides (28/32/34/34/40/48). **RETIRED
 
 **SC-03 `HANDOFF_QUALITY_N_CAND_FLOOR` — the low-end saturation**
 `:938`, applied `:4961-4966` · `policyBudget` → **generation** · **saturated (floor)** · static · never binds
-`8`. Shipped with the law, never bracketed. Binds below B = 69,444, adjacent by coincidence to SC-08's 75k gate: below ~70k the compiler simultaneously floors breadth and (below 75k) switches off forward eval. At the floor the admission ratio inverts from 5-of-81 to 5-of-8, a qualitatively different search. Unmeasured.
+`8`. Shipped with the law, never bracketed. Binds below B = 69,444, adjacent by coincidence to SC-08's 75k gate: below ~70k the compiler simultaneously floors breadth and (below 75k) switches off forward eval. At the floor the admission ratio inverts from 5-of-81 to 5-of-8, a qualitatively different search. **Still unmeasured** — nominated as a probe by both the unification follow-up register and the dividends campaign's Track P, run by neither; the constant has not moved since `c7f1518`. Its one new neighbour: SC-24's re-draw writes memo widths 2 and 4, which are below this floor **by construction**, which is what keeps the two from colliding at any budget. *(Anchor drift: the constant now sits near `:985`, not `:938`.)*
 
 **SC-04 `LR_QUALITY_NCAND` override**
 `:4839-4844` · env → **generation** · study-hook · static · n/a
@@ -1360,15 +1671,16 @@ Default 0, so never active. Only 3 or 4 are expressible (`stageTop >= HANDOFF_BR
 
 **SC-12 `matureForwardEvalConfig` — the vertical-drama `avg` upgrade**
 `:6389-6422`, pressure `:6481-6507`, constants `:1065-1073`, dispatched `:6317-6328` · `targetBudget` × authored axis targets × cadence, then a per-node hash draw → **lookahead-spend** · **saturated** · static · never binds (budget term)
-Upgrades `greedy:2:1` → `avg:2:1`. Budget term `smoothstep((B − 35k)/65k)` = 1 at every B ≥ 100k, so only the target/cadence pressure varies. No bracket found for 35k/65k. Takes priority over SC-13 (early return). Its real signal is authored geometry, not budget.
+Upgrades `greedy:2:1` → `avg:2:1`. Budget term `smoothstep((B − 35k)/65k)` = 1 at every B ≥ 100k, so only the target/cadence pressure varies. No bracket found for 35k/65k. Takes priority over SC-13 (early return). Its real signal is authored geometry, not budget. **Cheap, and measurably so** (§6.5): 22 frames/call and 4.9% of rollout frames at 750k, against SC-13's 167 and 62.8%. The two must never again be discussed as one "adaptive shape" family — and none of the three shape upgrades has ever been measured with the other two live.
 
 **SC-13 `impactBestForwardEvalConfig` — impact-pressured first-level width**
 `:6441-6467` + a 17-line rationale `:6424-6440`, constants `:1075-1083`, seed `:6473` · gap impact ask × `targetBudget` × `budgetSlack`, then a hash draw → **lookahead-spend** · **saturated (budget term)** · static · binds
 Widens the greedy rollout's FIRST rolled contact to best-of-3. Product of three smoothsteps: ask 0.25/0.2; **budget 300k/200k — zero at 250k by construction (§2i), 1 at 750k**; slack 2.5/2.0 — near-full at 750k's measured 4.21–6.75. Committed `c62cb3a`, +4.85. The rationale documents both falsified alternatives: unguarded width charged knife-edge completion hunts (8-wide stage-0 −21.9, `pickup_shifted` −276) and a post-completion-only gate (panel −7.9). Its widened pool build calls `setRolloutAimSuppressed(true)` because otherwise every prefix re-sort re-runs the charged aim lane (17/24 rideStalled).
+**Now priced, and it is the single largest line item in a 750k compile's rollout budget** (2026-08-03, §6.5): the widened lane is **62.8% of all rollout frames at 750k — 12.9% of the whole compile** — at 167 frames/call against 47 unwidened, and dropping it measures **−4.59 ± 2.20 per cell** at 750k and **exactly +0.00 on all 48 cells at 250k** (byte-identical compiles, which is this entry's by-construction claim confirmed empirically rather than argued). Two consequences. Its own docstring's diagnosis — "1-sample picks the two-gap optimum 8/24 vs best-of-8 24/24" — turns out to be a property of **every** gap and to be about *existence*, not only ranking, which is what SC-24 acts on. And the open lever is a **reallocation**, not a generalisation: widening to 3 everywhere would take the rollout share from 20.5% to ~35% of the compile, while narrowing this gate and spending the frames on SC-24's conditional re-draw buys ~20× the coverage per frame. Unmeasured.
 
 **SC-14 `openingBestForwardEvalOpportunity` / `openingBestForwardEvalConfig`**
 opportunity `:4339-4394`, config `:6330-6363`, slack pressures `:6365-6379`, constants `:1084-1093`, call `:3850` · `budgetSlack` + contact count + the pool's top-two quality objectives (zero sim frames) + a hash draw → **lookahead-spend** · **saturated** · static · **partial** (branch-2 always, branch-3 never)
-On the FIRST contact gap only, replaces `greedy:2:1` with `best:1:2` or `best:1:3`. Four smoothstep pressures. Branch-2 needs slack ≥ 2.75: 0% at 250k, **100% at 500k and 750k**, with the 750k median 5.023 sitting at the ramp's full point. Branch-3 needs slack ≥ 10: **unreachable at every measured budget; max slack is 6.748 at 750k and 8.997 at 1M** (§2d). Accepted `1baee0b` in a commit whose measurable content was entirely the branch-2 arm. `openingBestStructuralPressure` further restricts it to specs of ≲ 7 contacts.
+On the FIRST contact gap only, replaces `greedy:2:1` with `best:1:2` or `best:1:3`. Four smoothstep pressures. Branch-2 needs slack ≥ 2.75: 0% at 250k, **100% at 500k and 750k**, with the 750k median 5.023 sitting at the ramp's full point. Branch-3 needs slack ≥ 10: **unreachable at every measured budget; max slack is 6.748 at 750k and 8.997 at 1M** (§2d). Accepted `1baee0b` in a commit whose measurable content was entirely the branch-2 arm. `openingBestStructuralPressure` further restricts it to specs of ≲ 7 contacts. Independent corroboration from the rollout-shape census (§6.5): on an 11-source × 3-seed × 3-budget grid this config **never fired at all**.
 
 **SC-15 `startEvalConfig` — start selection by true forward score**
 `:5998-6019` (+ the sanctioned-exception note `:6004-6012`), `startForwardScore:6022`, call `:6703` · none — **explicitly ungated** → **lookahead-spend** · budget-blind · static · n/a
@@ -1376,7 +1688,7 @@ On the FIRST contact gap only, replaces `greedy:2:1` with `best:1:2` or `best:1:
 
 **SC-16 the continuation dominance filter**
 applied in `rankedOptions` · the shared deadline margin at `underFullDeadlinePressure` → **deadline-pressure** · **LIVE-ADAPTIVE** · live · binds
-Under full deadline pressure and not yet complete, drops options whose charged rollout already proved they cannot place the next contact (`forwardContinuation === false`). Dominance, not extra work — which is why it survives while binary gates on live pace are falsified: no quality is lost by definition. It used to be a **third, independent** pace estimator (`onlineTraversalBehindSchedule`: spend-fraction vs progress-fraction with an 8-contact grace, disagreeing with both `budgetSlack` and `pacedSlack` by construction); Phase 1a deleted the comparator and Phase 2's anchor unification deleted the private `margin < 1` threshold that briefly replaced it, so the lane now fires at the same anchor as SC-09 and GA-15. Depends on SC-09's depth-1 tail rollout to populate `forwardContinuation`.
+Under full deadline pressure and not yet complete, drops options whose charged rollout already proved they cannot place the next contact (`forwardContinuation === false`). Dominance, not extra work — which is why it survives while binary gates on live pace are falsified: no quality is lost by definition. **That last clause was measured on 2026-08-03 and it does not hold as written**: the "proof" is a single sample, and 53.3% of hop-1 dead-end verdicts are false — ~70% on the representative stratum and 70% on `brake`-lane candidates, which are the most likely to be the last option left (§6.5). The filter is a dominance rule over a bit that is usually wrong where dead-ends are rare. It was not changed; SC-24 corrects the bit at the producer, so this consumer reads a corrected `cachedForwardContinuation` without being touched. What is still uncollected is this filter's own firing rate by stratum and budget (`handoffDeadlineProbeHook.onlineContinuationApplied` reports it) and the verified-true rate restricted to the verdicts it actually acts on — one instrumented grid, and the hooks already exist. It used to be a **third, independent** pace estimator (`onlineTraversalBehindSchedule`: spend-fraction vs progress-fraction with an 8-contact grace, disagreeing with both `budgetSlack` and `pacedSlack` by construction); Phase 1a deleted the comparator and Phase 2's anchor unification deleted the private `margin < 1` threshold that briefly replaced it, so the lane now fires at the same anchor as SC-09 and GA-15. Depends on SC-09's depth-1 tail rollout to populate `forwardContinuation`.
 
 **SC-17 `maturityPressure` — the shared maturity scale** *(RE-CLASSIFIED 2026-08-02: **asymptotic, not saturated** — this map had it in the wrong class)*
 `maturityPressure(targetBudget, scale):4374`, constant `:875`; **three** live consumers, all of which now call the helper instead of inlining the expression (`d7c839f`, byte-identical) · `targetBudget` → **shared shape** · **asymptotic** · static · binds
@@ -1388,7 +1700,7 @@ Computed on every policy resolution and threaded through five call sites, but `s
 
 **SC-19 `matureReuseExtraPressure` / `reuseCandidateLimit`**
 `:4445-4466`, seed `:4468`, constants `:976-982`, wired `:4780` → `:3308` → `:4172` · `targetBudget` × `uniqueFullEvaluations`, then an **unsalted** `nodeHashSeed(node)` draw → **generation** · **saturated** · partially-live · binds
-1 reuse candidate, or 2 with probability `0.35 × maturityPressure` = 0.324 at 750k. Hard cap at +1 ever; the budget-law arm measured **−0.32 (750k −1.1) — "correctly capped"**. `HANDOFF_REUSE_K = 1`'s own docstring gives the reason: older translated catches over-lock dense forward-dependent chains. Reuse options are scored at full rollout depth even when SC-09 prunes the tail. The unsalted seed shares its random stream with any future unsalted consumer — a latent determinism hazard.
+1 reuse candidate, or 2 with probability `0.35 × maturityPressure` = 0.324 at 750k. Hard cap at +1 ever; the budget-law arm measured **−0.32 (750k −1.1) — "correctly capped"**. A side finding worth keeping (§6.5): reuse-lane candidates produce the *most* trustworthy dead-end verdicts of any lane (60.3% verified true against 30.0% for brake and ~47% for pool ranks 0–4) — an older translated catch that cannot continue usually really cannot. `HANDOFF_REUSE_K = 1`'s own docstring gives the reason: older translated catches over-lock dense forward-dependent chains. Reuse options are scored at full rollout depth even when SC-09 prunes the tail. The unsalted seed shares its random stream with any future unsalted consumer — a latent determinism hazard.
 
 **SC-20 `tailCompletionContactWindow` — tail-completion breadth**
 `:5406-5410`, gates `:5334-5364`, seed `:5402`, constants `:1108-1117`, caller `completeNearTail:4594` from `processNode:1791` · `policyBudget` + a per-node hash draw for the fractional boundary contact → **lookahead-spend** · **saturated (ceiling 12)** · static · binds
@@ -1405,6 +1717,11 @@ Suppresses tail completion for nodes with ≤ 2 remaining contacts once the comp
 **SC-23 `handoffCapacityProbeHook` budget gate**
 `:3944` — `if (handoffCapacityProbeHook !== null && targetBudget >= 500000)` · `targetBudget` → **observation** · study-hook · static · never binds
 The hook is null in production. The clearest benchmark-identity literal in the file; it was written without the numeric separator used everywhere else — a tell that it was added ad hoc — and `d7c839f` fixed the separator and left the hook. Harmless; a mechanical scale-contract grep hits it.
+
+**SC-24 `HANDOFF_ROLLOUT_REDRAW_ON_EMPTY` — the rollout's own rescue** *(ADDED `bb45125` 2026-08-03; budget-blind, listed because it changes what SC-16 reads)*
+constant + `redrawFirstHopOnEmpty`, called from `forwardRolloutScore` (outermost hop only, via a `firstHop` flag), `forwardFirstWidenedScore`, `forwardAvgNextScore` and the support-delay robust score · **none — the node's own outcome** → **lookahead-spend** · budget-blind · live · n/a
+`1`. When a charged rollout's FIRST rolled contact expands to an empty pool, re-run the ordinary generator at that node at `width + 1` before the dead-end verdict stands — the rule the search already applies to itself in three rescue tiers (32 / 80 / startup), one level up on the mechanism that never had it. Four properties are the whole design. **(1) The trigger is an outcome, not a signal** — no threshold, no mode, no per-spec or per-budget gate; the campaign's "throttle a magnitude, never trigger a mode" caveat does not apply because there is no signal to threshold. **(2) It is the ordinary generation path at a wider count**, so `getCandidatesSorted`'s prefix contract makes the extra draw the very sample the search would take next (`solveAdditionalCandidates` advances the per-gap RNG, keyed on `(seed, gapIndex)` alone) — determinism in `(spec, seed, budget)` is free and the probe cannot find a catch the search would not have. **(3) The aim lane is suppressed and the flag is saved/restored** rather than cleared, so a nested widened build cannot silently re-admit it; §6.5 measured that the lane contributes nothing to the refutation and 4.6× to the cost. **(4) The widened pool is left in the node's memo on purpose.** `_candidatesCache` is keyed on `(seed, nCand)`; a narrower later request is served as a prefix and a wider one extends the same sample order, and the re-draw only ever writes widths **2** and **4** while every other consumer asks for 1, 8, 16 or the search pool — whose breadth law floors at `HANDOFF_QUALITY_N_CAND_FLOOR = 8` — so the widths are **disjoint by construction at every budget**. That is what makes `cachedForwardContinuation` report the corrected bit to SC-16.
+Realized price 0.45–1.71% of frames (under the ~0.6–3.2% prediction, because the memo makes a repeat dead-end at an already-re-drawn node free). **Two things stated rather than hidden.** The "can only add candidates" claim is a strong prior, not a proof: `kinematicEligible` requires `poolForwardContinuationAbsent`, so refuting one verdict can switch the kinematic-support rescue *off* at that pool. And the dose is the only knob — draws 3 and 5 are the same mechanism at 2.4× and 3.2× the frames per correction (§6.5), walkable on the same arithmetic and explicitly **not** something to tune per budget. Counters: `fwd_rollout_redraws` and `fwd_rollout_redraw_refuted`, which read directly against `fwd_rollout_no_candidate`.
 
 ### LC — budget lifecycle, stopping and repair (`handoff.ts`) · 31
 
@@ -1560,7 +1877,7 @@ The only place in the compiler where budget changes *what is being maximised* ra
 
 **OB-15 the hard frame limit is a dead arm** — `detector.ts:502`, `:530`, throw sites `:442 :474 :556 :588 :605 :651`; re-export `sim_frames.ts:45` · **DEAD** · never binds. Zero callers repo-wide (§2e). Consequences: the budget is enforced entirely by cooperative polling and a single long extraction overshoots with nothing to stop it; `PhysicsFrameLimitExceeded` is unreachable and the `try/finally` in `forwardArcValue` guards a hypothetical; the per-frame incremental-charging branch — the *more* accurate accounting — is dead. **Do not delete casually** (it is the only available runaway guard for a future streaming mode) and **do not enable casually** (H8: it changes charge granularity, hence checkpoint timing, hence output).
 
-**OB-16 `refundSimFramesTo`** — `detector.ts:547`, used `handoff.ts:6313` · `LR_FWD_EVAL_CHARGE` → observation · study-hook · n/a. Rollout frames are **charged by default (honest)**; `=0` refunds them, isolating forward-eval quality from cost. With charging on, the forward-eval campaign notes put rollouts at 54%/46% of all sim frames (UNVERIFIED here), so this refund arm is the single largest possible distortion of the budget axis. It must never become a default — the same class of rule as the prohibition on full-path probe modes. This is the *only* legitimate un-charging mechanism in the compiler; anything else that simulates without charging is a bug.
+**OB-16 `refundSimFramesTo`** — `detector.ts:547`, used `handoff.ts:6313` · `LR_FWD_EVAL_CHARGE` → observation · study-hook · n/a. Rollout frames are **charged by default (honest)**; `=0` refunds them, isolating forward-eval quality from cost. With charging on, rollout + start-eval frames are **20.5–29.1%** of all charged sim frames (measured 2026-08-03, §6.5 — the forward-eval campaign's 54%/46% predates the ballistic cutover), so this refund arm is the single largest possible distortion of the budget axis. It must never become a default — the same class of rule as the prohibition on full-path probe modes. **Used deliberately once, as an arm rather than a default**: it is the free-judge counterfactual that ceilings the whole "cheaper rollouts" family at **+1.78 ± 1.31 per cell at 750k**, and it is what prices a rollout frame (~0.087 points per 1% of the budget) so that a dose can be chosen by arithmetic (SC-24). This is the *only* legitimate un-charging mechanism in the compiler; anything else that simulates without charging is a bug.
 
 **OB-17 `getCandidatesSorted` — the pool memo** — `node.ts:110-138`, `:162-219`, `:221-311`, `:400-419` · budget only through `nCand` → selection · contract · static · binds. **Hazards H2 and H3.** Memo keyed on `(seed, nCand)`. A larger cached prefix answers a smaller later request exactly; a smaller prefix is *extended* by replaying the RNG draws — both rest on `solver.ts`'s prefix property. **The key contains the seed and the count and nothing else, while the cached value is the fully sorted, lane-augmented pool**, so everything that influences that ordering is an implicit part of the key: the three objective exponents, `rankQualityEnabled()`, `aimEnumEnabled()`, `aimTopKBasesEffective`, and `aimLanePaceSuppressed`. Today all but the last are compile-constant, which is exactly why the memo is sound. The file header is itself a corrected provenance note: it used to claim the count was budget-independent, flagged as "a dangerous thing to believe while debugging reproducibility".
 
@@ -1602,7 +1919,7 @@ Three properties worth stating separately. **(1) The pace term is load-bearing, 
 
 **PLB-02 `maxNodes` backstop** — `:1279-1282`, constant `:803-812`, enforced `:1908` · `opts.maxNodes ?? max(50_000, targetBudget)` → stopping · contract · static · **never binds**. **The model of how a budget-derived bound should be written**: scale-free by construction, no fitted operating point, and its comment states the measured headroom (worst canonical spec ≈ 672 nodes @200k ≈ 0.003 nodes/frame, ~300× headroom). It reads `targetBudget`, not `policyBudget` — the only place on the search path where the *hard* budget enters a search parameter. `nodesExpanded` is compile-global and accumulates across main + repair + resumed.
 
-**PLB-03 the estimator artifact (budget law)** — `budget_estimator_model.json`, `budget_estimator.ts` → observation. Intercept 23860.07, contact 3699.92, duration 18.35, refB 750_000, **α 0.825**; calibrated domain [300k, 1.5M]; kinds `["initial"]`. `c9058fa` 2026-08-01 (schema v2) on 135,796 samples, 14 family groups, 5 double-blocked folds; held-out APE 5.5/3.3/2.7%, coverage 96.6/94.5/94.2%. **150k was refused** (coverage 91.7%, path estimates 19% biased). Must be re-fit whenever a breadth ramp, the forward-eval gate or the branch limit changes. `budget_telemetry.ts` is documented as observation-only: **no search, geometry, scoring, repair or RNG decision reads any of it.**
+**PLB-03 the estimator artifact (budget law)** — `budget_estimator_model.json`, `budget_estimator.ts` → **policy** (see below). Intercept 23860.07, contact 3699.92, duration 18.35, refB 750_000, **α 0.825**; calibrated domain **[250k, 1.5M]**; kinds `["initial"]`. Point model fitted `c9058fa` 2026-08-01 (schema v2) on 135,796 samples, 14 family groups, 5 double-blocked folds. Domain extended to 250k 2026-08-03 with the point model and the bands frozen byte-identical, re-validated on a fresh 1.20B-frame six-budget corpus at `31c2beb`: coverage 96.1/97.1/95.5/93.3% at 250k/300k/750k/1.5M, APE 4.6/5.5/3.5/3.1%, 44/44 paired cells bit-identical. **150k was refused a third time** (87.3% coverage with the shipped bands, 92.4% refitted; the `high_water`/`withPath` cell reads 33.4% because the path component is 19% biased there); **1.5M at 93.3% is the artifact's binding weakness and is pre-existing**. Must be re-fit whenever a breadth ramp, the forward-eval gate or the branch limit changes. `budget_telemetry.ts` the RECORDER is still observation-only — no search, geometry, scoring, repair or RNG decision reads a payload — but **the ARTIFACT is not**: since dividends Phase 3, `deadline.ts` reads `structural.*`, `combination.baseMode` and both correction factors, so moving those is a compiler change needing a paired eval. The claim layer (`applicability`, `interval`, `metrics`) and `combination.paceSchedule` are inert for policy and were the only fields the 250k extension touched.
 
 **PLB-04 env overrides that touch budget** → plumbing · contract · binds. `LR_REPAIR_MIN_BUDGET` 100k (never blocks) · `LR_FWD_EVAL_MIN_BUDGET` 75k (never blocks) · `LR_REPAIR_MAX_ATTEMPTS` 64 (never reached) · `LR_REPAIR_MAX_UPSTREAM` 4 (unmeasurable) · `LR_REPAIR_MAIN_MARGIN` 1.0 (at optimum) · `LR_REPAIR_UPSTREAM_ORDER` · `LR_ONLINE_CONTINUATION` · `LR_PROBE_BUDGET`. **The two raw-budget gates (75k forward-eval, 100k repair) are the last binary budget thresholds in the search**, both inert at every live operating point — and both would switch on hard under a fine-grained episode schedule.
 

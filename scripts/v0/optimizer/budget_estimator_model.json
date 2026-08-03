@@ -1,21 +1,22 @@
 {
   "schema": "line.compile-budget-estimator-model.v2",
-  "modelId": "calibrated-path_if_available+none-2c59b9a5802c",
+  "modelId": "revalidated-path_if_available+none-d0ec08d7b376",
   "calibrated": true,
-  "generatedAt": "2026-08-01T14:11:28.290Z",
+  "generatedAt": "2026-08-03T10:37:13.429Z",
   "provenance": {
     "generator": "scripts/v0/calibrate_budget_estimator.ts",
     "analysisSchema": "line.compile-budget-telemetry-analysis.v1",
-    "datasetFingerprint": "2c59b9a5802c3574a64ac61c597c390b3fb0a99d8610ee4e995be590ae02d2a9",
+    "datasetFingerprint": "d0ec08d7b376b5d9da3d0a3088a2beeb176a0becf58eee8ffd7554a84b9f79e1",
     "inputs": [
-      "generated/budget-telemetry/law/panel-300k.json",
-      "generated/budget-telemetry/law/panel-750k.json",
-      "generated/budget-telemetry/law/panel-1500k.json"
+      "generated/budget-telemetry/p2/panel-250k.json",
+      "generated/budget-telemetry/p2/panel-300k.json",
+      "generated/budget-telemetry/p2/panel-750k.json",
+      "generated/budget-telemetry/p2/panel-1500k.json"
     ],
     "groups": 14,
-    "samples": 135796,
+    "samples": 164159,
     "folds": 5,
-    "acceptance": "accepted: >=5% weighted median log-error improvement and <=5% p90 underprediction regression"
+    "acceptance": "point model frozen from scripts/v0/optimizer/budget_estimator_model.json (calibrated-path_if_available+none-2c59b9a5802c); interval bands frozen with it and re-validated over this corpus, so only the applicability domain, structural attempt kinds and metrics come from here; the frozen model re-cleared the static gates on this corpus"
   },
   "structural": {
     "name": "budget-telemetry-nnls-law/2c59b9a5802c",
@@ -85,7 +86,7 @@
   },
   "applicability": {
     "structuralPolicyBudgetFrames": {
-      "min": 300000,
+      "min": 250000,
       "max": 1500000
     },
     "structuralAttemptKinds": [
@@ -94,11 +95,11 @@
     "pathEstimate": "calibrated_when_available_in_domain"
   },
   "metrics": {
-    "validationMedianAbsoluteLogError": 0.026881,
-    "validationP90UnderpredictionRatio": 1.08446,
-    "validationIntervalCoverage": 0.939078,
-    "validationIntervalCoverageBySample": 0.950021,
-    "staticMedianAbsoluteLogError": 0.859371,
+    "validationMedianAbsoluteLogError": 0.030976,
+    "validationP90UnderpredictionRatio": 1.095936,
+    "validationIntervalCoverage": 0.937136,
+    "validationIntervalCoverageBySample": 0.953545,
+    "staticMedianAbsoluteLogError": 0.645399,
     "acceptedAgainstStatic": true
   }
 }

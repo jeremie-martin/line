@@ -8,6 +8,10 @@ This document is the semantic reference for the payload. The TypeScript types
 are the schema reference; the frozen estimator artifact is the source of truth
 for fitted coefficients and calibration bounds.
 
+The *artifact* is no longer observation-only even though the *recorder* is:
+`deadline.ts` reads its point-estimate fields. See *Non-Policy Status, And The
+One Exception*.
+
 ## Mental Model And Units
 
 The payload has one compile scope and two complementary views of its work:
@@ -636,7 +640,14 @@ search that barely completed, so its measured cost-to-end understates what a
 repair will actually need. That is a point-estimate failure no interval width
 can honestly absorb: under the shipped bands only 35% of 150k path-backed
 observations fall inside their interval while the label said `calibrated`.
-Retracting the claim there is the whole reason the option exists.
+Retracting the claim there is the whole reason the option exists. An independent
+2026-08-03 corpus on a later tree measures the same cell at **33.4%**, which is
+the cleanest available evidence that this is a property of the regime and not of
+one panel.
+
+The domain floor is **250k**, extended down from 300k on 2026-08-03 without
+touching the point estimate or the bands; see *2026-08-03 The 250k Extension*.
+150k remains outside it, measured and closed.
 
 The cost is real and was accepted deliberately: at 2M, path-backed observations
 are accurate (2.5% median APE) and were `calibrated` under the old rule. They are
@@ -810,6 +821,70 @@ underprediction regression. A retained static model is emitted with
 `calibrated: false`, and the emitted artifact is parsed with the runtime's own
 validator before it is written — an invalid artifact would otherwise turn every
 compile in the repository into an import-time throw.
+
+### Two Layers, And Widening A Claim Without Refitting
+
+The artifact has two halves and they have different consequences:
+
+| layer | fields | who reads it |
+|---|---|---|
+| point estimate | `structural.*`, `combination.baseMode`, both correction factors | the recorder **and `deadline.ts`** — live policy since the margin's structural base became the artifact |
+| claim | `applicability.*`, `interval.*`, `metrics.*`, `modelId` | telemetry only |
+
+`combination.paceSchedule` sits between them and is inert in practice:
+`deadline.ts` overrides it to `linear_progress` on its own copy for the reason
+written there, so the artifact's value never reaches policy.
+
+That split matters because moving a point-estimate field changes what the
+compiler searches. Measured, a 1% change to `structural.contactFrames` moved
+`sim_frames` on two of four probe cells; the claim layer and the pace schedule
+moved nothing at all. A refit is therefore a promotion-class change needing a
+paired benchmark evaluation, while widening a domain need not be one.
+
+`--freeze-point-model=<artifact.json>` is the mode that keeps them apart. The
+point estimate comes from the named artifact and is re-emitted **verbatim**, so
+the diff against its source is confined to the claim layer and that confinement
+is checkable byte for byte. The corpus is used only to re-validate it and to fit
+what a claim is made of — interval strata, the applicability domain, the
+structural attempt kinds, and the metrics:
+
+```bash
+npx tsx scripts/v0/calibrate_budget_estimator.ts \
+  generated/budget-telemetry/p2/panel-250k.analysis.json \
+  generated/budget-telemetry/p2/panel-300k.analysis.json \
+  generated/budget-telemetry/p2/panel-750k.analysis.json \
+  generated/budget-telemetry/p2/panel-1500k.analysis.json \
+  --freeze-point-model=scripts/v0/optimizer/budget_estimator_model.json \
+  --folds=5 --coverage=0.95 \
+  --out=scripts/v0/optimizer/budget_estimator_model.json \
+  --report=generated/budget-telemetry/p2/extension.calibration.json
+```
+
+An applicability domain is a statement about validated behaviour, not about
+which rows entered a sum of squares, so widening one does not require refitting
+the model it qualifies. Freezing is also the *stricter* validation: nothing is
+estimated from the corpus, so every prediction is out of sample by construction
+rather than out of fold. The folds are still reported, because the interval
+percentiles are taken over exactly those residuals, but they no longer gate the
+point estimate — `foldDesign.appliedToPredictions` says so. The unseen-seed
+replay remains what validates the intervals, exactly as in the fitting mode.
+
+Two guards keep the mode honest. A frozen model that cannot clear the static
+gates on the corpus it is being claimed over is **refused** rather than silently
+replaced by V1: a shipped artifact must not be thrown away on the strength of an
+out-of-domain panel, and an interval fitted around a bad point estimate is a
+calibrated-looking lie. And the emitted `modelId` reads `revalidated-…` rather
+than `calibrated-…`, so the provenance word says which half this corpus
+produced.
+
+`--pace-schedule=<schedule|search>` is the one override the mode offers, and
+only with a frozen model. The schedule is the sole point-estimate component that
+carries no fitted constant — the coefficients, the exponent and the two
+corrections are the numbers a fit produces, and a schedule is a fixed shape read
+off `progressFraction` — so re-selecting it re-reads the model rather than
+re-deriving it. `search` scores all four under the same comparator the fitting
+mode uses; either way every schedule's numbers land in the report's
+`pointModel.paceScheduleSweep`, so the choice is visible rather than asserted.
 
 ### Multi-Budget Fitting
 
@@ -1175,9 +1250,174 @@ its repairs inherit is the product of a search that barely finished, which is wh
 the path component is biased there and nowhere else. A future artifact that wants
 150k needs evidence about that regime — not a wider interval fitted above it.
 
-## Non-Policy Status
+### 2026-08-03 The 250k Extension
 
-This telemetry is a characterization surface, not a controller. Before any
-optimizer mechanism consumes it, that policy needs a separate proposal,
-multi-budget evidence for the intended domain, paired search-quality evaluation,
-and an explicit benchmark-governance decision.
+The domain floor moved 300k → 250k. **Nothing else in the artifact moved**:
+`structural`, `combination` and `interval` are byte-identical to
+`calibrated-path_if_available+none-2c59b9a5802c`, and the emitted artifact is
+`revalidated-path_if_available+none-d0ec08d7b376`. 150k was tried and refused for
+the third time, now with numbers on the current tree.
+
+**A fresh corpus, because the old one had gone stale.** The 2026-08-01 law panels
+predate the whole dividends campaign body of work — Phase 1a's single deadline
+signal, the eleven-ramp deletion, the Phase-3 margin base and the Phase-4
+redraw-on-empty among them. Spot-checked, `split_signal` seed 0 at 750k moved its
+first completion 376,849 → 331,925. So every panel was recollected at `31c2beb`:
+44 development sources from 14 origin families, seeds 0-7, budgets {75k (seeds
+0-1), 150k, 250k, 300k, 750k, 1500k}, plus an unseen seed-10 replay at each of
+150k / 250k / 300k / 750k / 1500k. **2,068 compiles, 1,197,570,520 charged
+frames, zero accounting violations, one recording artifact throughout**, all
+through `scale_study.ts` at `--budget-telemetry=trace`. (Two panels were
+recollected after an artifact-perturbation probe contaminated them mid-run; the
+mixed-fingerprint check that caught it is a whole-corpus analyzer check and it
+did its job.)
+
+The fresh corpus first reproduces the shipped fit. Refitting the incumbent's own
+form on {300k, 750k, 1500k} returns 23,316.5 / 3,614.0 / 21.74 with alpha 0.826,
+against the shipped 23,860.1 / 3,699.9 / 18.35 and 0.825 — and scores *worse* out
+of fold (0.0302) than the shipped model scores out of sample on the same rows
+(0.0298). The estimator survived the compiler drift.
+
+**250k is in regime and 150k is not, and the path component is what says so.**
+Median actual/predicted of the incumbent path, after the artifact's own
+correction — the exact quantity the 2026-08-01 section reads 1.189 at 150k:
+
+| budget | 150k | 250k | 300k | 750k | 1.5M |
+|---|---:|---:|---:|---:|---:|
+| corrected path actual/predicted | **1.185** | 1.011 | 1.009 | 0.998 | 0.994 |
+
+250k lands inside the 0.99–1.01 band the domain budgets occupy; 150k is 19%
+away, and the raw measurement's sign flips between them (−10.3% signed error at
+150k against +5.2% at 250k). Every other regime marker agrees on where the
+boundary is: initial attempts that never complete run 8.2% of cells at 150k, 4.0%
+at 250k, 0.6% at 300k and 0% at 750k and 1.5M (38.6% at 75k), and the path-free
+observation share runs 89.6% at 150k against 79.8% at 250k and 66.5% at 750k.
+
+Held out per budget, under the frozen point model and the frozen bands
+(`--freeze-point-model --freeze-intervals`), on the eight-seed panels and then on
+the unseen seed 10:
+
+| budget | selected APE | coverage, panel | coverage, unseen seed | withPath | withoutPath |
+|---:|---:|---:|---:|---:|---:|
+| 250,000 | 4.6% | **96.1%** | **95.9%** | 93.2% | 96.8% |
+| 300,000 | 5.5% | 97.1% | 96.6% | 95.5% | 97.6% |
+| 750,000 | 3.5% | 95.5% | 95.2% | 94.2% | 96.2% |
+| 1,500,000 | 3.1% | 93.3% | 93.2% | 94.5% | 92.5% |
+
+The three incumbent rows are **exactly** the shipped artifact's numbers on the
+same corpus, because the bands are the shipped bands. That is the whole point of
+freezing them, and it is a deliberate choice over the alternative:
+
+**Refitting the bands to admit 250k was measured and rejected.** One band serves
+the whole domain, so refitting is not free — the pooled percentile moves and
+every other budget pays. The refit arm lifts 250k's `withPath` cell from 93.2% to
+94.3% and costs 0.3pp at 300k, 0.4pp at 750k and 0.5pp at 1.5M, which lands on
+the artifact's already-thinnest cell. The diagnostic says why: the high-water band
+each budget's *own* residuals ask for is `[0.827, 1.264]` at 250k, `[0.841,
+1.223]` at 300k, `[0.791, 1.200]` at 750k and `[0.692, 1.242]` at 1.5M. The low
+tail widens with the budget, so pulling the pooled lower ratio up to serve 250k
+(0.718 → 0.754) is taken straight out of 1.5M. Validating the incumbent's band at
+a new budget is also the stronger evidence: the new budget's residuals were never
+in the percentile they are scored against.
+
+**1.5M is the artifact's binding weakness and it is pre-existing.** 93.3% on the
+panel and 93.2% on the unseen seed, under the *shipped* artifact, against a
+`nominalCoverage: 0.95` promise; the weak cell is path-free at 1.5M (92.5%). The
+2026-08-01 section called this "the number to watch on the next panel" at 93.6%
+live. Watched: it is still there, at the same size, on a fresh corpus and a
+drifted compiler. It is not caused by the extension — freezing the bands is
+precisely what keeps the extension from making it worse — and it is filed as work
+rather than fixed here, because the fix is either a third interval dimension or a
+point-estimate change, and both are their own evidence burden.
+
+**150k: refused a third time, with the mechanism named.** Under the frozen point
+model the 150k panel reads 9.8% selected APE — respectable — but coverage of
+**87.3%** with the frozen bands and **92.4%** with bands refitted to include it.
+The aggregate is not the finding. The finding is the `high_water`/`withPath` cell:
+**33.4%** with the frozen bands, **77.0%** with refitted ones, on 2,739 and 3,052
+observations. No interval width fixes a 19% point-estimate bias, and widening a
+pooled band far enough to try would wreck every other budget. The unseen seed
+agrees (93.8% aggregate, 89.9% withPath).
+
+Three further arms close the remaining doors:
+
+- **The unconstrained pooled refit is worse everywhere.** Fitting all five
+  budgets afresh — the arm that moves live policy — gives 150k 11.4% APE against
+  the frozen model's 9.8%, and degrades 250k (6.0% vs 4.6%), 300k (7.1% vs 5.5%),
+  750k (3.7% vs 3.5%) and 1.5M (3.3% vs 3.1%). Its 150k coverage is 92.6% and its
+  150k `withPath` cell is 77.1%: identical to the frozen model's. Refitting buys
+  nothing and rescues nothing.
+- **Episode pace is real at 150k and cannot be bought with one schedule.** Under
+  the frozen corrections, a nonzero schedule cuts 150k's selected APE from 9.8% to
+  **7.5%** (`smoothstep_progress`, `linear_progress`) or 7.3% (`sqrt_progress`) —
+  the largest single improvement any arm produced at 150k. It costs 750k (3.5% →
+  4.0/4.2/5.3%) and 1.5M (3.1% → 4.0/4.3/5.6%), and loses the corpus-wide
+  comparator at every schedule (0.0364 against 0.0412 / 0.0429 / 0.0502). The
+  reason is that pace carries a budget tilt of its own, and it runs the other way:
+  its median signed error is +4.1% at 150k, −0.6% at 250k, −1.3% at 300k, −2.7% at
+  750k and −4.8% at 1.5M, against the path's −10.3% / +5.2% / +5.4% / +6.5% /
+  +6.9%. Blending them at a fixed weight cancels the two tilts at exactly one
+  budget. Pace helps where the structural and path components are weak and hurts
+  where they are strong, so a single global weight cannot capture it; the shipped
+  artifact keeps `paceSchedule: "none"` on a five-budget corpus for the same
+  reason it did on a one-budget corpus, now with the trade measured. Making the
+  weight budget-conditional is either a per-budget table or a correction refit,
+  and the first is forbidden by the campaign's design rule while the second moves
+  live policy.
+- **75k is still a different animal.** 39% of its cells never complete, it runs
+  **zero repair attempts**, and it has no incumbent path at all — the path
+  component has `n = 0`. Nothing about the low-budget treatment reaches it.
+
+**Neutrality is exact.** The claim layer is not read by anything but telemetry, and
+that was checked rather than assumed. A probe that perturbed
+`structural.contactFrames` by 1% moved `sim_frames` on two of four reference
+cells; perturbing the applicability domain, the interval bands and the pace
+schedule moved nothing. End to end, the shipped and extended artifacts produce
+**44 of 44 paired cells identical in track hash, `sim_frames`, first-completion
+frame and score** on a full 250k seed-10 grid, and the four named reference cells
+hash unchanged. `analyze_budget_telemetry.ts` exits 0 on the new corpora and on an
+Aug-1 corpus recorded by the previous artifact. The full vitest suite has the same
+41 failures as `31c2beb` before any change, all in benchmark-governance and CLI
+suites that depend on generated artifacts, plus seven new passing tests.
+
+A live end-to-end check under the extended artifact — the 250k seed-10 grid
+recompiled and re-analyzed — records **4,244 of 4,282 observations `calibrated`
+where the shipped artifact recorded none**, at 95.9% interval coverage and 4.3%
+combined median APE, with every estimate, interval, margin and surplus re-derived
+from its own components and matched.
+
+**Reopening conditions for 150k.** The blocker is the path component's bias, so
+what changes the answer is anything that changes the incumbent handed to repair
+at a scarce budget: a repair mechanism that re-measures `costToEnd` after the
+first repair rather than inheriting the original profile; a 150k initial-attempt
+incompletion rate that stops conditioning the corpus (8.2% today, against 0.6% at
+the domain floor's neighbour 300k and 0% at 750k); or
+a point-estimate change that is going through a paired benchmark evaluation
+anyway, in which case a budget-conditional pace weight becomes affordable and the
+7.5% measurement above is what it should be judged against. Widening intervals is
+not on the list and should not be retried.
+
+## Non-Policy Status, And The One Exception
+
+The **recorder** is a characterization surface, not a controller: no search,
+geometry, scoring, repair, or RNG decision reads a telemetry payload. That has
+not changed and should not.
+
+The **artifact** is a different object and the statement no longer holds of it
+whole. Since the margin's structural base became the calibrated artifact
+(dividends Phase 3), `deadline.ts` reads `BUDGET_ESTIMATOR_MODEL.structural`,
+`combination.baseMode` and both correction factors, and the deadline ramp drives
+traversal breadth. Those fields are live policy. `applicability`, `interval`,
+`metrics` and `modelId` are not read by anything but telemetry, and
+`combination.paceSchedule` is overridden by `deadline.ts` before policy sees it.
+See *Two Layers, And Widening A Claim Without Refitting* for the split, the
+measurement behind it, and the calibrator mode that respects it.
+
+The practical consequence: **refitting the point estimate is a compiler change**
+and needs a paired benchmark evaluation like any other, while re-deriving the
+claim layer is not and does not. Do not conflate the two because they live in
+one file.
+
+Before any *new* optimizer mechanism consumes this telemetry, that policy still
+needs a separate proposal, multi-budget evidence for the intended domain, paired
+search-quality evaluation, and an explicit benchmark-governance decision.

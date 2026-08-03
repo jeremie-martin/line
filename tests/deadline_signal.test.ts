@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { makeRng } from "../scripts/lib/rng.ts";
 import { resetPerCompileState } from "../scripts/v0/core/compile_lifecycle.ts";
 import {
@@ -13,6 +13,7 @@ import {
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import { setAimCompileBudgetFrames } from "../scripts/v0/optimizer/aim.ts";
 import {
+  BUDGET_ESTIMATOR_MODEL,
   BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
@@ -80,12 +81,13 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
   /**
    * The base-shape decision, pinned.
    *
-   * `structuralRemainingWork`'s DEFAULT model is `TRAVERSAL_BUDGET_MODEL_V1`,
+   * `structuralRemainingWork` used to DEFAULT to `TRAVERSAL_BUDGET_MODEL_V1`,
    * and taking that default silently is how the shipped margin spent one era
    * being V1-shaped under the artifact's law scale — a signal ~1.9x looser than
    * the one its anchors were derived on, measured at +52.9 / +26.9 on two
-   * canonical capability groups when corrected. The model argument is therefore
-   * load-bearing and this test fails if a future edit drops it again.
+   * canonical capability groups when corrected. The default is gone, so the
+   * model argument is now required as well as load-bearing, and this test fails
+   * if a future edit passes the wrong one.
    */
   test("the structural base is the ARTIFACT's shape, never the function default", () => {
     expect(BUDGET_ESTIMATOR_TRAVERSAL_MODEL.contactFrames)
@@ -205,6 +207,53 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     expect(underFullDeadlinePressure(1.26)).toBe(false);
     for (const margin of [0, 0.5, 0.999, 1, 1.25, 1.2500001, 1.5, 2, Infinity]) {
       expect(underFullDeadlinePressure(margin)).toBe(deadlinePressure(margin) >= 1);
+    }
+  });
+
+  /**
+   * The pace-schedule override contract.
+   *
+   * `DEADLINE_ESTIMATOR_MODEL` swaps ONE known artifact selection — `"none"`,
+   * chosen on a telemetry-accuracy contest — for `"linear_progress"`, on a
+   * local copy. A future calibration selecting a THIRD schedule would be
+   * discarded here without a trace: the artifact, the recorder and the
+   * fingerprint would all describe a policy that never ran. The module asserts
+   * the precondition at load; this pins the value it asserts on and that the
+   * override is actually in effect.
+   */
+  test("the artifact says `none` and policy runs the pace blend anyway", () => {
+    expect(BUDGET_ESTIMATOR_MODEL.combination.paceSchedule).toBe("none");
+    // Same position, same spend: `expectedWork` prices it through the artifact
+    // as written (pace weight zero), the live margin through the override.
+    const paceFree = (BUDGET - 400_000) / expectedWork(2, false, null);
+    const live = deadline().marginAt({ spentFrames: 400_000, gapIndex: 2, costToEnd: null });
+    expect(live).not.toBeCloseTo(paceFree, 6);
+    expect(live).toBeLessThan(paceFree);
+  });
+
+  test("an artifact selecting a third schedule fails the module load", async () => {
+    vi.resetModules();
+    vi.doMock("../scripts/v0/optimizer/budget_estimator.ts", async () => {
+      const actual = await vi.importActual<
+        typeof import("../scripts/v0/optimizer/budget_estimator.ts")
+      >("../scripts/v0/optimizer/budget_estimator.ts");
+      return {
+        ...actual,
+        BUDGET_ESTIMATOR_MODEL: {
+          ...actual.BUDGET_ESTIMATOR_MODEL,
+          combination: {
+            ...actual.BUDGET_ESTIMATOR_MODEL.combination,
+            paceSchedule: "sqrt_progress",
+          },
+        },
+      };
+    });
+    try {
+      await expect(import("../scripts/v0/optimizer/deadline.ts"))
+        .rejects.toThrow(/paceSchedule/);
+    } finally {
+      vi.doUnmock("../scripts/v0/optimizer/budget_estimator.ts");
+      vi.resetModules();
     }
   });
 });

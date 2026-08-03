@@ -66,7 +66,8 @@ than the ceiling had left", not that a limit was violated.
 | concern | source of truth |
 |---|---|
 | payload types, accounting, observations, structural/pace arithmetic | `scripts/v0/optimizer/budget_telemetry.ts` |
-| lifecycle hooks and incumbent `costToEnd` construction | `scripts/v0/optimizer/handoff.ts` |
+| lifecycle hooks, incumbent `costToEnd` construction, and the live `interval` read that sizes repair restart ceilings (`repairRestartCeilingFrames`) | `scripts/v0/optimizer/handoff.ts` |
+| the live deadline margin and its ramp — the artifact's point layer as policy | `scripts/v0/optimizer/deadline.ts` |
 | point selection, correction, intervals, applicability | `scripts/v0/optimizer/budget_estimator.ts` |
 | fitted coefficients and calibration domain | `scripts/v0/optimizer/budget_estimator_model.json` |
 | accounting validation and error statistics | `scripts/v0/analyze_budget_telemetry.ts` |
@@ -408,8 +409,11 @@ construction: the incumbent's terminal node is reached at first completion, so
 its measured cost-to-end is zero, which the recorder stores as `null` rather
 than as a path-backed estimate of no remaining work.
 
-**One profile.** Repair policy — feasibility screening, weak-gap selection,
-and restart ceilings — and the recorder read the same array. The two stamp
+**One profile, three readers.** Repair policy — feasibility screening,
+weak-gap selection, and restart ceilings — the live deadline margin, which uses
+it as the post-completion remaining-work estimate in place of the structural
+suffix, and the recorder all read the same array, and all three apply the same
+non-positive-means-unmeasured predicate to it. The two stamp
 sources were briefly kept apart, with policy reading the frontier's alone while
 telemetry read both, so that closing the coverage hole could be proven
 behaviour-neutral first. They were merged once the wider profile had been
@@ -617,8 +621,12 @@ Each observation therefore reports:
 - `extrapolated_policy_budget`: an estimate under a policy budget outside it;
 - `unvalidated_attempt_kind`: a path-free estimate for an attempt kind with no
   path-free evidence in the calibration corpus, which today means `snapshot`,
-  `resumed`, and `repair`. The first two are never fitted at all; `repair` joins
-  them because full incumbent-path coverage means no repair observation is
+  `resumed`, and `repair`. `FITTED_ATTEMPT_KINDS` admits `initial`, `snapshot`
+  and `repair`, so the three land here for different reasons: `snapshot` is
+  admissible but absent from the corpus, `resumed` is deliberately excluded (its
+  root anchor and progress fraction are documented continuation approximations,
+  so its features describe a search state it is not in), and `repair` joins them
+  because full incumbent-path coverage means no repair observation is
   path-free any more, so a repair that somehow lacked a path would be an
   unmeasured case.
 
@@ -669,26 +677,34 @@ interchangeable:
 
 | coefficient | `TRAVERSAL_BUDGET_MODEL_V1` | estimator artifact fit |
 |---|---:|---:|
-| intercept frames | 5,848.25 | 24,341.44 |
-| frames per remaining contact | 796.20 | 3,922.70 |
-| frames per remaining authored frame | 29.59 | 11.74 |
+| intercept frames | 5,848.25 | 23,860.07 |
+| frames per remaining contact | 796.20 | 3,699.92 |
+| frames per remaining authored frame | 29.59 | 18.35 |
 
-`TRAVERSAL_BUDGET_MODEL_V1` in `budget_model.ts` drives **all** live policy:
-`compile_stats.predicted_first_completion_frames`, `budget_slack`, the observed
-paced slack, and everything downstream of them — traversal branch limit,
-forward-eval gating, opening breadth. Telemetry drives nothing. The two fits
+`TRAVERSAL_BUDGET_MODEL_V1` in `budget_model.ts` owns the DIFFICULTY
+coordinate: `compile_stats.predicted_first_completion_frames`, `budget_slack`,
+and everything downstream of it — traversal branch limit, forward-eval gating,
+opening breadth. The estimator artifact owns the DEADLINE coordinate:
+`deadline.ts`'s per-node margin takes its structural base, budget law and
+correction factor from the artifact, and its `interval` band sizes every repair
+restart ceiling. Both are live policy; the paced slack that used to sit between
+them is deleted. What must never happen is one being derived from the other, and
+neither is. The two fits
 weight the same two features oppositely — the estimator loads the intercept and
 the contact term, V1 loads the duration term — and their predictions diverge by
 2-3x away from 750k.
 
 So the headline "the fitted estimator beats the legacy static model by an order
-of magnitude in median log error" is a measurement at one policy budget, about
-remaining-work prediction from mid-search observations. At 150k the V1 prior was
-measured closer to truth than the estimator's structural component. Nothing here
-is a finding that V1 should be replaced in policy, and copying the estimator's
-coefficients into `budget_model.ts` would silently re-scale every slack-driven
-knob. V1 remains the live-policy coordinate system until a deliberate migration
-with its own multi-budget evidence and paired evaluation.
+of magnitude in median log error" is a measurement about remaining-work
+prediction from mid-search observations, not a verdict on the difficulty
+yardstick. It also now holds at 150k: the budget law's own fit reads 9.4-10.0%
+median APE there against V1's 43% (see the multi-budget sections below), so the
+earlier claim that V1 was closer to truth at 150k is superseded. Nothing here
+is a finding that V1 should be replaced as the difficulty coordinate, and
+copying the estimator's coefficients into `budget_model.ts` would silently
+re-scale every slack-driven knob. V1 remains the difficulty coordinate system
+until a deliberate migration with its own multi-budget evidence and paired
+evaluation.
 
 **The budget law hardens that separation rather than softening it.** V1's job is
 to be a budget-*independent* difficulty yardstick so `budget_slack` can mean "how
@@ -829,24 +845,43 @@ The artifact has two halves and they have different consequences:
 | layer | fields | who reads it |
 |---|---|---|
 | point estimate | `structural.*`, `combination.baseMode`, both correction factors | the recorder **and `deadline.ts`** — live policy since the margin's structural base became the artifact |
-| claim | `applicability.*`, `interval.*`, `metrics.*`, `modelId` | telemetry only |
+| claim, policy-bound | `interval.*` | the recorder **and `handoff.ts`** — `repairRestartCeilingFrames` resolves `byEventAndPath.start.{withPath,withoutPath}.upperRatio` and `pickFeasibleWeakGap` decides on it |
+| claim, inert | `applicability.*`, `metrics.*`, `modelId` | telemetry only |
 
 `combination.paceSchedule` sits between them and is inert in practice:
 `deadline.ts` overrides it to `linear_progress` on its own copy for the reason
-written there, so the artifact's value never reaches policy.
+written there, so the artifact's value never reaches policy. The override is a
+swap of ONE known value, asserted at module load, so a calibration selecting a
+third schedule fails rather than being discarded.
 
-That split matters because moving a point-estimate field changes what the
+The whole file is inside `COMPILER_SOURCE_PATHS`, so **any** edit to it already
+reads as a compiler change to the benchmark — the fingerprint has always agreed
+with the code here, and it is the prose that was wrong.
+
+`interval.*` is the layer that was mislabelled telemetry-only. It is not:
+`start.withPath.upperRatio` 1.223889 times the with-path correction 0.940948 is
+a 1.1514x multiplier on the measured cost-to-end, and that number decides which
+gap a repair restarts from, whether an upstream anchor is skipped, and how many
+frames the restart may spend. It IS the retired `feasMargin`, now sourced from a
+fitted band. The neutrality probe below that found it inert perturbed four cells
+and could only have excluded failure rates above ~53%; the action set for an
+interval change is repair-bearing compiles where the sized ceiling binds, and no
+four-cell null speaks to that.
+
+Moving a point-estimate field changes what the
 compiler searches. Measured, a 1% change to `structural.contactFrames` moved
-`sim_frames` on two of four probe cells; the claim layer and the pace schedule
-moved nothing at all. A refit is therefore a promotion-class change needing a
-paired benchmark evaluation, while widening a domain need not be one.
+`sim_frames` on two of four probe cells; the applicability domain, the metrics
+and the pace schedule moved nothing at all. Refitting either the point estimate
+or the interval bands is a promotion-class change needing a paired benchmark
+evaluation; widening the applicability domain alone is not.
 
 `--freeze-point-model=<artifact.json>` is the mode that keeps them apart. The
-point estimate comes from the named artifact and is re-emitted **verbatim**, so
-the diff against its source is confined to the claim layer and that confinement
-is checkable byte for byte. The corpus is used only to re-validate it and to fit
-what a claim is made of — interval strata, the applicability domain, the
-structural attempt kinds, and the metrics:
+point estimate comes from the named artifact and is re-emitted **verbatim**, and
+so are the interval bands — freezing them is implied, because they are policy
+too. The diff against the source artifact is then confined to the layers this
+run actually earned and that confinement is checkable byte for byte. The corpus
+is used only to re-validate the frozen halves and to fit what remains — the
+applicability domain, the structural attempt kinds, and the metrics:
 
 ```bash
 npx tsx scripts/v0/calibrate_budget_estimator.ts \
@@ -859,6 +894,11 @@ npx tsx scripts/v0/calibrate_budget_estimator.ts \
   --out=scripts/v0/optimizer/budget_estimator_model.json \
   --report=generated/budget-telemetry/p2/extension.calibration.json
 ```
+
+`--refit-intervals` is the explicit opt-out that restores band refitting. It
+prints a promotion-class warning and the artifact it emits needs the 48-seed
+benchmark, not a calibration report. `--freeze-intervals` is still accepted and
+is now a no-op reaffirmation of the default.
 
 An applicability domain is a statement about validated behaviour, not about
 which rows entered a sum of squares, so widening one does not require refitting
@@ -892,9 +932,12 @@ A corpus spanning at least **three** distinct policy budgets also fits the
 budget exponent. Two budgets determine an exponent exactly and therefore measure
 nothing about it; three is the smallest corpus that can disagree with a power
 law. Below the threshold the fit is the historical budget-independent one, bit
-for bit, and the artifact keeps declaring schema v1 — a single-budget refit of
-an existing panel reproduces its predecessor byte for byte, which is the
-cheapest available proof that the law machinery is inert when unused.
+for bit — a single-budget refit of an existing panel reproduces its
+predecessor's coefficients exactly, which is the cheapest available proof that
+the law machinery is inert when unused. The schema stamp no longer tracks that:
+the calibrator emits `v2` unconditionally, because the domain-scoped path claim
+it always writes is itself a v2 feature and a v1-only reader would silently drop
+it. `v1` is a read-only compatibility path.
 
 With the law, reference coefficients are anchored at 750,000 frames and the
 exponent is searched jointly with them under the same weighted SSE the
@@ -1140,11 +1183,15 @@ fitted on a uniformly path-backed population.
 
 ### 2026-08-01 Budget Law
 
-The shipped artifact is `calibrated-path_if_available+none-2c59b9a5802c`: schema
-v2, a budget exponent of 0.825 anchored at 750k, intervals stratified by event
-and path availability, a structural domain of [300k, 1.5M], and a path claim
-scoped to that same domain. Getting there took two rounds and both are recorded
-here, because the reasons a narrower artifact shipped are the useful part.
+The artifact this round shipped was `calibrated-path_if_available+none-2c59b9a5802c`:
+schema v2, a budget exponent of 0.825 anchored at 750k, intervals stratified by
+event and path availability, a structural domain of [300k, 1.5M], and a path
+claim scoped to that same domain. Getting there took two rounds and both are
+recorded here, because the reasons a narrower artifact shipped are the useful
+part. (The artifact shipped **today** is its revalidation,
+`revalidated-path_if_available+none-d0ec08d7b376` — the same point estimate and
+the same bands, over the extended domain **[250k, 1.5M]**; see *2026-08-03 The
+250k Extension* below.)
 
 **Round 1 fitted the four-budget panel and was refused.** 44 sources, 14
 families, seeds 0-7, budgets {150k, 300k, 750k, 1500k}, 167,835 samples of which
@@ -1368,11 +1415,17 @@ Three further arms close the remaining doors:
   **zero repair attempts**, and it has no incumbent path at all — the path
   component has `n = 0`. Nothing about the low-budget treatment reaches it.
 
-**Neutrality is exact.** The claim layer is not read by anything but telemetry, and
-that was checked rather than assumed. A probe that perturbed
+**Neutrality is exact for what this extension actually changed.** The extension
+moved the applicability domain and nothing else, and that was checked rather
+than assumed. A probe that perturbed
 `structural.contactFrames` by 1% moved `sim_frames` on two of four reference
 cells; perturbing the applicability domain, the interval bands and the pace
-schedule moved nothing. End to end, the shipped and extended artifacts produce
+schedule moved nothing. The interval half of that null is the weak one and must
+not be read as a classification: `interval.*` IS live policy (it sizes every
+repair restart ceiling), and four cells exclude only failure rates above ~53%
+on an action set — repair-bearing compiles where the ceiling binds — the probe
+did not sample. What licenses this extension is that the bands were **frozen**,
+not that moving them would have been safe. End to end, the shipped and extended artifacts produce
 **44 of 44 paired cells identical in track hash, `sim_frames`, first-completion
 frame and score** on a full 250k seed-10 grid, and the four named reference cells
 hash unchanged. `analyze_budget_telemetry.ts` exits 0 on the new corpora and on an
@@ -1407,16 +1460,23 @@ The **artifact** is a different object and the statement no longer holds of it
 whole. Since the margin's structural base became the calibrated artifact
 (dividends Phase 3), `deadline.ts` reads `BUDGET_ESTIMATOR_MODEL.structural`,
 `combination.baseMode` and both correction factors, and the deadline ramp drives
-traversal breadth. Those fields are live policy. `applicability`, `interval`,
-`metrics` and `modelId` are not read by anything but telemetry, and
-`combination.paceSchedule` is overridden by `deadline.ts` before policy sees it.
+traversal breadth. And `handoff.ts` has read `interval` since repair's
+hand-set feasibility margin was retired in its favour:
+`repairRestartCeilingFrames` resolves
+`byEventAndPath.start.{withPath,withoutPath}.upperRatio` and
+`pickFeasibleWeakGap` decides on the result. Those fields are all live policy.
+Only `applicability`, `metrics` and `modelId` are read by nothing but telemetry,
+and `combination.paceSchedule` is overridden by `deadline.ts` before policy sees
+it — under a load-time assert that the artifact still selects `"none"`.
 See *Two Layers, And Widening A Claim Without Refitting* for the split, the
 measurement behind it, and the calibrator mode that respects it.
 
-The practical consequence: **refitting the point estimate is a compiler change**
-and needs a paired benchmark evaluation like any other, while re-deriving the
-claim layer is not and does not. Do not conflate the two because they live in
-one file.
+The practical consequence: **refitting the point estimate or the interval bands
+is a compiler change** and needs a paired benchmark evaluation like any other,
+while widening the applicability domain is not and does not. Do not conflate
+them because they live in one file. The file is inside `COMPILER_SOURCE_PATHS`
+either way, so the benchmark's own identity check has never been fooled by the
+distinction; only readers were.
 
 Before any *new* optimizer mechanism consumes this telemetry, that policy still
 needs a separate proposal, multi-budget evidence for the intended domain, paired

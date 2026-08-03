@@ -741,6 +741,12 @@ export type CompileStats = {
     start_eval_frames_charged: number;
     /** Rollout dead-ends (both leaf modes): recursion hit a zero-candidate node. */
     fwd_rollout_no_candidate: number;
+    /** Re-draws on empty (HANDOFF_ROLLOUT_REDRAW_ON_EMPTY): first rolled contacts
+     *  that expanded to nothing at the shape's own width, and the subset the extra
+     *  draw refuted. `redraws - refuted` is what still lands as a dead-end verdict,
+     *  so the pair reads directly against `fwd_rollout_no_candidate`. */
+    fwd_rollout_redraws: number;
+    fwd_rollout_redraw_refuted: number;
     fwd_pools: number;
     fwd_top1_agree: number;
     fwd_rank_of_quality_top1_sum: number;

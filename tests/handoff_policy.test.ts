@@ -5,6 +5,7 @@ import {
   handoffAxisOvershootPenalty,
   handoffSampleCount,
   hasStartFeasibilityLookahead,
+  repairRestartCeilingFrames,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
   shortDeadlineRescueCandidateCount,
@@ -14,6 +15,12 @@ import {
   usesHighSpeedStartOvershootScoring,
   usesSparseContactCadence,
 } from "../scripts/v0/optimizer/handoff.ts";
+import {
+  BUDGET_ESTIMATOR_MODEL,
+  budgetEstimateInterval,
+  estimateRemainingBudgetWork,
+  type BudgetEstimatorModelArtifact,
+} from "../scripts/v0/optimizer/budget_estimator.ts";
 import {
   candidateOffBeatGateEndFrame,
   releaseSpeedPenalty,
@@ -470,5 +477,66 @@ describe("short deadline rescue policy", () => {
     expect(shortDeadlineRescueCandidateCount(11)).toBe(80);
     expect(shortDeadlineRescueCandidateCount(12)).toBe(0);
     expect(shortDeadlineRescueCandidateCount(16)).toBe(0);
+  });
+});
+
+/**
+ * The repair restart ceiling — `estCostUpperOf`, the one live read of the
+ * estimator artifact's CLAIM layer. It picks the gap a restart runs from
+ * (`pickFeasibleWeakGap`), whether an upstream anchor is skipped, and how many
+ * frames the restart may spend, so a zero here would burn the whole attempt
+ * quota on restarts sized at nothing.
+ */
+describe("repair restart ceiling", () => {
+  /** The calibrator's static fallback shape: legal, and it ignores the path. */
+  const STRUCTURAL_BASE: BudgetEstimatorModelArtifact = {
+    ...BUDGET_ESTIMATOR_MODEL,
+    combination: { ...BUDGET_ESTIMATOR_MODEL.combination, baseMode: "structural" },
+  };
+
+  test("prices a measured anchor at the artifact's path-backed start band", () => {
+    const measured = 40_000;
+    const point = estimateRemainingBudgetWork({
+      structural: 0,
+      path: measured,
+      pace: null,
+      progressFraction: 1,
+    });
+    const expected = budgetEstimateInterval(point, { event: "start", pathAvailable: true }).upper;
+
+    expect(expected).toBeGreaterThan(0);
+    expect(repairRestartCeilingFrames(measured, 999)).toBe(expected);
+    // The retired hand-set feasibility margin, now sourced from the artifact.
+    expect(expected / measured).toBeGreaterThan(1);
+  });
+
+  test("prices an unmeasured anchor at the path-free start band around the fallback", () => {
+    const fallback = 12_345;
+    expect(repairRestartCeilingFrames(null, fallback)).toBe(
+      budgetEstimateInterval(fallback, { event: "start", pathAvailable: false }).upper,
+    );
+  });
+
+  test("never hands repair a zero ceiling under a structural-base artifact", () => {
+    const measured = 40_000;
+    // The precondition the guard exists for: a structural base mode reads the
+    // deliberately-zero structural slot, so point and interval are both zero.
+    const point = estimateRemainingBudgetWork({
+      structural: 0,
+      path: measured,
+      pace: null,
+      progressFraction: 1,
+    }, STRUCTURAL_BASE);
+    expect(point).toBe(0);
+    expect(
+      budgetEstimateInterval(point, { event: "start", pathAvailable: true }, STRUCTURAL_BASE).upper,
+    ).toBe(0);
+
+    // Unguarded, every measured restart would be sized at zero frames.
+    expect(repairRestartCeilingFrames(measured, 999, STRUCTURAL_BASE)).toBe(measured);
+    // The per-gap fallback never goes through the estimator's base selector, so
+    // it is priced identically under either artifact and needs no guard.
+    expect(repairRestartCeilingFrames(null, 12_345, STRUCTURAL_BASE))
+      .toBe(repairRestartCeilingFrames(null, 12_345));
   });
 });

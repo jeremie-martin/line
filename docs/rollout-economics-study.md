@@ -518,7 +518,7 @@ the search actually built when it got there.
 
 32,733 joined nodes. The alive row is exactly 0% wrong, as it must be — one
 viable sample is a constructive proof of viability, so the mechanism's errors
-are all one-sided. The dead row is 21.6% wrong on this population against 46.7%
+are all one-sided. The dead row is 21.6% wrong on this population against 53.3%
 on the full verdict population, and the difference is selection, not
 contradiction: the search only *arrives* at 5,304 of the ~31k nodes it judged
 dead, and the ones it arrives at are the ones on paths whose earlier verdicts
@@ -626,7 +626,7 @@ depends on which one we are in.
 | lane | verdict |
 |---|---|
 | **1 — true signal** | **Partly true, and localized.** On the capability frontier 58.9% of verdicts hold (64.4% on `frontier_dense_recovery`). There the verdicts are terrain information and belong on the map as such. |
-| **2 — rollout artifact** | **The dominant explanation.** 46.7% of all verdicts are false; the gates are identical to the search's, so the entire discrepancy is breadth (§5); one extra draw refutes 14.5%; the false-dead rate is 21.6% even on the biased realized-search sample; on the representative stratum only 30.3% of verdicts hold and on `high_air_drive` 5.3%. |
+| **2 — rollout artifact** | **The dominant explanation.** 53.3% of all verdicts are false (46.7% verified true — see the §4.2 correction note); the gates are identical to the search's, so the entire discrepancy is breadth (§5); one extra draw refutes 14.5%; the false-dead rate is 21.6% even on the biased realized-search sample; on the representative stratum only 30.3% of verdicts hold and on `high_air_drive` 5.3%. |
 | **3 — generation problem** | **Falsified.** The dead-end rate is flat in pool rank (14.6%→16.7% from rank 0 to rank 4) and so is the verified-true rate (47.2%→47.3%). The pool's tail is not feeding dead candidates to the rollouts. |
 
 So the apportionment the plan asks for: **roughly half the verdicts are the
@@ -721,7 +721,7 @@ separable: firstBranch=3 both fixes dead-ends and picks a better child).
 
 **What.** `rankedOptions`' online-continuation filter drops, under full deadline
 pressure, "candidates whose charged rollout already proved they cannot place the
-next contact". §4 shows the proof is wrong 46.7% of the time overall and ~70%
+next contact". §4 shows the proof is wrong 53.3% of the time overall and ~70%
 of the time on the representative stratum, and `brake`-lane verdicts — 30.0%
 true — are the least reliable of all while being the most likely to be the last
 option left.

@@ -34,10 +34,11 @@
  *
  *   - the SHAPE is `BUDGET_ESTIMATOR_TRAVERSAL_MODEL`, the artifact's structural
  *     coefficients (intercept 23,860.07, contact 3,699.92, duration 18.35),
- *     passed EXPLICITLY at both call sites. `structuralRemainingWork`'s default
- *     is `TRAVERSAL_BUDGET_MODEL_V1`, and taking that default silently is how
- *     this module spent one era computing a looser signal than the one it
- *     documented — the decision section below is that measurement, and
+ *     passed EXPLICITLY at both call sites. `structuralRemainingWork` used to
+ *     default to `TRAVERSAL_BUDGET_MODEL_V1`, and taking that default silently
+ *     is how this module spent one era computing a looser signal than the one it
+ *     documented — the decision section below is that measurement. The default
+ *     is gone (every caller now names its model) and
  *     `tests/deadline_signal.test.ts` pins the argument so it cannot be dropped
  *     again;
  *   - the SCALE is the artifact's budget law, `budgetEstimatorStructuralScale`
@@ -49,9 +50,9 @@
  *
  * Policy consumes the RAW POINT RATIO at every budget. The estimator's
  * `applicability` nulling (`hard_completion_margin` is null outside the
- * artifact's fitted policy-budget domain, currently 300k-1.5M) governs what the
- * recorder may CLAIM is calibrated; it is not a statement that the predictor is
- * unusable there.
+ * artifact's fitted policy-budget domain, currently [250k, 1.5M]) governs what
+ * the recorder may CLAIM is calibrated; it is not a statement that the predictor
+ * is unusable there.
  *
  * The measured accuracy is over 129,481 archived pre-terminal observations
  * (phase0/signal-comparison.md §Answer 2) — median absolute percentage error
@@ -194,6 +195,21 @@ const DEADLINE_ESTIMATOR_MODEL: BudgetEstimatorModelArtifact = {
     paceSchedule: "linear_progress",
   },
 };
+// The override is a swap of ONE KNOWN selection for another, not a blanket
+// "policy always paces": the argument above is specifically about the artifact
+// giving pace weight zero. A future calibration that selected a third schedule
+// would be discarded here without a trace — the artifact, the recorder and the
+// fingerprint would all describe a blend that policy never ran. So the contract is
+// asserted at module load, the way handoff.ts pins its two coupled pool
+// constants: re-derive the override against the new selection instead.
+if (BUDGET_ESTIMATOR_MODEL.combination.paceSchedule !== "none") {
+  throw new Error(
+    "optimizer/deadline.ts overrides the estimator artifact's paceSchedule " +
+      `"none" with "linear_progress", but the artifact now selects ` +
+      `"${BUDGET_ESTIMATOR_MODEL.combination.paceSchedule}"; re-derive the override ` +
+      "against that selection (see DEADLINE_ESTIMATOR_MODEL) rather than discarding it",
+  );
+}
 
 /**
  * Full deadline pressure at and below this margin.

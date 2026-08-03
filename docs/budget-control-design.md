@@ -190,11 +190,32 @@ default compiler behavior.
 
 ## Current Implementation
 
-The current codebase has five pieces:
+> **2026-08-03 status.** The controller this section once described as future
+> work is shipped. `optimizer/deadline.ts` is the one live deadline signal, the
+> estimator artifact's budget law is its scale, and the artifact's interval band
+> sizes every repair restart ceiling. The *Validation Gates*, *Non-Circularity*,
+> *Layers* and *Working Rule* sections below are current and remain the design
+> rules; this section is the inventory, and it now names what actually runs.
+
+The current codebase has six pieces:
 
 - `scripts/v0/optimizer/budget_model.ts` stores `TRAVERSAL_BUDGET_MODEL_V1` and
   exposes the legacy structural first-completion predictor and policy-facing
-  slack helper. Existing compiler policy still uses this model.
+  slack helper. It is the DIFFICULTY coordinate: `budgetSlack = B / D(spec)`,
+  static per compile, chooses the shape of spend. It is never derived from the
+  estimator and the estimator is never derived from it.
+- `scripts/v0/optimizer/deadline.ts` is the DEADLINE coordinate and the only
+  live controller: one `CompileDeadline` per compile, read once per expanded
+  node, producing `margin = remaining policy budget / estimated remaining work`
+  and one ramp over it (`DEADLINE_MARGIN_FULL_PRESSURE` 1.25,
+  `DEADLINE_MARGIN_NO_PRESSURE` 2.0). Three consumers read that one signal —
+  the forward-eval head ramp, the aim-lane throttle and the
+  online-continuation dominance filter — and the three pace signals it replaced
+  (`observedTraversalBudgetSlack`, the online lane's spend-vs-progress
+  comparator, the aim lane's copy of the first) are deleted from the code. The
+  margin's structural base is the estimator artifact's coefficients and its
+  budget law, passed explicitly; the module's own header carries the
+  measurements that chose that shape.
 - `scripts/v0/optimizer/budget_telemetry.ts` records compile accounting,
   execution segments, attempt lifecycles, structural/path/pace estimates,
   uncertainty, and completion margins. It is observation-only; see
@@ -215,17 +236,30 @@ The current codebase has five pieces:
   coverage means no repair observation is path-free any more, and `resumed`
   attempts are continuation-approximate and never fitted. Available
   incumbent-path estimates are separately identified but, since the 2026-08-01
-  budget-law refit, only inside that same domain: they are unbiased at
-  300k-1.5M and 19% biased at 150k. Extrapolated observations do not expose
+  budget-law refit, only inside that same domain — `[250k, 1.5M]` since the
+  2026-08-03 revalidation: they are unbiased inside it and 19% biased at 150k.
+  Extrapolated observations do not expose
   calibrated completion margins. The schema-v2 structural block also carries
   `budgetExponent: 0.825` and `referenceBudgetFrames: 750000`, scaling remaining
   work by `(B / refB)^alpha` so one fit answers across a band of budgets instead
-  of at one point; an absent or zero exponent is exactly the v1 model. That
-  exponent is a measurement of what *this* controller chooses to spend, so it is
-  a spend model for telemetry only and must never be substituted for the layer-1
-  difficulty predictor — see *Non-Circularity* below and `budget-law-study.md`.
+  of at one point; an absent or zero exponent is exactly the v1 model.
+  **The artifact is LIVE POLICY on both layers, not telemetry.** Its
+  coefficients, base mode, correction factors and that exponent are the deadline
+  margin's base and scale (`deadline.ts`), and its `interval` band is the repair
+  restart ceiling (`handoff.ts` `repairRestartCeilingFrames`, feeding
+  `pickFeasibleWeakGap`). Only `applicability` and `metrics` are inert for
+  policy. Editing `budget_estimator_model.json` therefore changes what the
+  compiler searches, and correctly changes `compilerSourceFingerprint` — the
+  artifact is inside `COMPILER_SOURCE_PATHS`.
+  What *Non-Circularity* below still forbids is substituting this spend model
+  for the layer-1 difficulty predictor: the two coordinates stay separate
+  models, computed and passed separately (see `budget-law-study.md`).
   It is also a stale-sweep quantity: any change to a breadth ramp, the
-  forward-eval gate, or the branch limit owes it a re-fit.
+  forward-eval gate, or the branch limit owes it a re-fit — and because the fit
+  moves live policy, re-fitting it is a promotion-class change that takes the
+  48-seed benchmark. `calibrate_budget_estimator.ts --freeze-point-model`
+  freezes the bands with the point model for exactly that reason;
+  `--refit-intervals` is the explicit, loudly-warned opt-out.
 - `compile_stats` now records `predicted_first_completion_frames` and
   `budget_slack` for every handoff compile, plus top-level
   `first_completion_frame` when the search reaches a complete traversal. It
@@ -252,8 +286,12 @@ The known low-budget guard row is `solo_run`, seed `7`, budget `125k`
 (`16 missing`, `rideStalled@784` under fixed unified breadth). Treat it as a
 targeted validation case for the future controller.
 
-These are infrastructure and measurement steps. They do not yet install a
-slack-based production controller.
+The production controller is installed. It is not slack-based: `budgetSlack`
+stayed the difficulty coordinate and the controller reads the deadline margin
+instead, which is why the two are separate models above. The remaining gap is
+visibility — the margin is computed on every expanded node and appears in no
+eval archive, so the filed `1.25 / 2.0` re-bracket and the pace-term re-price
+have no data to run on.
 
 ### Measured repair cost everywhere (first telemetry-informed policy change)
 
@@ -276,9 +314,15 @@ A 24-cell sanity probe (6 golden specs × 2 seeds × {150k, 750k}) shows the
 mechanism moving as intended — `per_gap_fallback` ceilings 58.9% → 0%, repair
 rounds 314 → 361, accepted repairs 86 → 90, contract still passing everywhere —
 with a score effect well inside probe noise (mean `+0.30`, median `0.00`, 10
-wins / 10 losses / 4 ties). **Evaluation status: pending.** The probe is a
-mechanism check, not a verdict; the headline decision belongs to the official
-paired benchmark eval.
+wins / 10 losses / 4 ties). The probe was a mechanism check, not a verdict.
+
+**Evaluation status: evaluated and promoted.** `05cc801` made `firstReachOf`
+min-merge the two maps — take the EARLIEST stamp when both producers stamped the
+same memoized node, because the frontier can re-stamp a tail-created node later
+and shrink `costToEnd` at exactly the anchors the tail map was added for — and
+`69d71a8` promoted it at **exact parity**, +0.00 on every stratum and source at
+N=48, validity 2112/2112. `05cc801` also added the zero-ceiling guard that keeps a
+`structural`-base-mode artifact from sizing every restart at zero frames.
 
 ## Open Questions
 

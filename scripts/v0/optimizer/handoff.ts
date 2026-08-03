@@ -23,19 +23,25 @@
  *  A. Reads that MOVE inside the range the compiler is promoted at (250k-1M):
  *     `budgetAwareQualitySampleCount` (the scale-free per-gap breadth law), the
  *     live slack/deadline signals (branch width, the paced forward-eval head,
- *     the repair stopping rule), and `maturityPressure` — asymptotic, not
- *     saturated, +35% relative travel from 250k to 750k, see its docstring.
+ *     the repair stopping rule), `maturityPressure` — asymptotic, not
+ *     saturated, +35% relative travel from 250k to 750k, see its docstring —
+ *     and `impactBestForwardEvalConfig`'s raw-budget ramp
+ *     (`IMPACT_BEST_FWD_START_FRAMES` 300k, span 200k, saturated at 500k), the
+ *     one member of this group that is a benchmark-point-tuned ramp rather than
+ *     a law.
  *
  *  B. Reads that are PINNED below 250k and are therefore constants wherever the
  *     benchmark decides, but are NOT dead, because they carry the scarce-budget
  *     completion behaviour the creative and study pipelines run in:
  *     `startBudgetPressure` (pinned at 100k), `continuousObjectiveCurrentPower`'s
- *     mature/scarce ramps (250k/225k) and `qualityBreadth`'s two remaining shape
- *     rules (unreachable from 292k). Shipping their mature branches
- *     unconditionally was MEASURED on golden v1 {75k,150k,225k} x 40 specs x 12
- *     seeds and costs -7.6 (start + objective) and -3.1 (breadth) mean score per
- *     run, with 236 and 24 new missing contacts at 75k respectively. They stay,
- *     documented, until someone writes a law for them.
+ *     mature/scarce ramps (250k/225k), `qualityBreadth`'s two remaining shape
+ *     rules (unreachable from 292k) and `matureForwardEvalConfig`'s budget ramp
+ *     (`MATURE_AVG_FWD_EVAL_START_FRAMES` 35k, span 65k), which saturates at
+ *     100k and so reads exactly 1 at every promoted budget. Shipping their
+ *     mature branches unconditionally was MEASURED on golden v1 {75k,150k,225k}
+ *     x 40 specs x 12 seeds and costs -7.6 (start + objective) and -3.1
+ *     (breadth) mean score per run, with 236 and 24 new missing contacts at 75k
+ *     respectively. They stay, documented, until someone writes a law for them.
  *
  * Deleted in 2026-08 for reading the budget outside that range AND measuring at
  * parity there: the repair feasibility margin (pinned at 200k), the four
@@ -141,8 +147,10 @@ import {
   TRAVERSAL_BUDGET_MODEL_V1,
 } from "./budget_model.ts";
 import {
+  BUDGET_ESTIMATOR_MODEL,
   budgetEstimateInterval,
   estimateRemainingBudgetWork,
+  type BudgetEstimatorModelArtifact,
 } from "./budget_estimator.ts";
 import {
   CompileBudgetTelemetryRecorder,
@@ -2161,75 +2169,14 @@ function compileHandoffInternal(
        *  interval. */
       const estCostOf = (k: number): number =>
         measuredCostToEnd(k) ?? perGap * Math.max(1, gaps.length - k);
-      /**
-       * What a restart from k may cost at the top of the estimator's own
-       * interval — the quantity repair actually decides on.
-       *
-       * This replaces a hand-set feasibility margin (`feasMargin`, swept
-       * 1.5 -> 1.1 -> 1.05 -> a budget ramp -> flat 1.0 across a long chain of
-       * golden-grid arms) with the artifact's fitted upper quantile for
-       * exactly this observation. A
-       * repair sizing its restart is asking "how much work is left from this
-       * anchor" at the instant an attempt starts, from the incumbent's own
-       * measured suffix: the `start` event, path-backed — and that stratum is
-       * populated by repair-attempt starts and nothing else, because a repair
-       * is the only attempt kind that carries a path profile. The margin it
-       * yields is no longer a fudge factor but a coverage claim the calibrator
-       * can be held to (95% nominal, `byEventAndPath.start.withPath`), and it
-       * moves with the estimator instead of having to be re-swept beside it.
-       *
-       * The point estimate goes through `estimateRemainingBudgetWork`, the
-       * same pure functions the recorder uses and no shared state. NOTE the
-       * ceiling is the artifact's calibrated band applied UNCONDITIONALLY
-       * (the `deadline.ts` contract: policy consumes the raw estimator at
-       * every budget) — it equals the recorder's `estimate_upper_frames` for
-       * this attempt's start observation only where applicability is
-       * `calibrated`. Repair runs from `minBudget` (100k) while the artifact's
-       * fitted domain starts at 300k; below that the recorder widens its
-       * recorded upper to `max(upper, hard_remaining)` and this ceiling does
-       * not, and the 95% coverage claim does not transfer (measured ~35%
-       * two-sided interval coverage at 150k, docs/compile-budget-telemetry.md).
-       * The structural slot is zero deliberately: the
-       * artifact's base mode selects the path, and passing a structural number
-       * here would smuggle a second structural model into a module that has no
-       * business owning one (that is `optimizer/deadline.ts`).
-       *
-       * The per-gap fallback has no calibrated interval of its own — it is not
-       * one of the artifact's estimators, so neither its correction factor nor
-       * its coverage claim transfers — and it borrows the path-free `start`
-       * spread as the nearest fitted band, knowingly and without a calibration
-       * claim. It gets no correction factor, because a correction is a bias
-       * statement about a specific estimator and this one's bias is known to
-       * point the other way (it over-sizes the late, cheap anchors, which is
-       * why the measured profile exists at all). On the archived panels the two
-       * `start` upper ratios agree to four decimals, so the borrowing costs
-       * nothing today; the point is that the code says which one it is asking
-       * for.
-       */
-      const estCostUpperOf = (k: number): number => {
-        const measured = measuredCostToEnd(k);
-        const point = measured === null
-          ? perGap * Math.max(1, gaps.length - k)
-          : estimateRemainingBudgetWork({
-            structural: 0,
-            path: measured,
-            pace: null,
-            progressFraction: 1,
-          });
-        const upper = budgetEstimateInterval(point, {
-          event: "start",
-          pathAvailable: measured !== null,
-        }).upper;
-        // Never hand repair a zero ceiling. A `structural` base-mode artifact
-        // (a legal artifact — it is the calibrator's static fallback whenever
-        // the acceptance gate fails) returns the deliberately-zero structural
-        // slot above as the base, which zeroes the point and the interval;
-        // unguarded, every restart would then be sized at zero frames and the
-        // attempt quota would burn doing nothing. Under a path-selecting
-        // artifact this branch is unreachable (measured > 0 and every upper
-        // ratio >= the positive correction), so it is a guard, not a tune.
-        return upper > 0 ? upper : measured ?? perGap * Math.max(1, gaps.length - k);
-      };
+      /** What a restart from k may cost at the top of the estimator's own
+       *  interval — the quantity repair actually decides on, and the artifact's
+       *  claim layer entering live search policy. The pricing itself is
+       *  `repairRestartCeilingFrames`, which owns the derivation. */
+      const estCostUpperOf = (k: number): number => repairRestartCeilingFrames(
+        measuredCostToEnd(k),
+        perGap * Math.max(1, gaps.length - k),
+      );
       // Observation-only mirror of the branch the two functions above took.
       // `per_gap_fallback` means the anchor has no positive measured cost —
       // in neither reach map, or reached at or after first completion.
@@ -4781,6 +4728,84 @@ function gapAxisSse(gap: DriftReport["gaps"][number] | undefined): number | null
   return sse;
 }
 
+/**
+ * What a restart from an anchor may cost at the top of the estimator's own
+ * interval — the quantity repair actually decides on.
+ *
+ * This replaces a hand-set feasibility margin (`feasMargin`, swept
+ * 1.5 -> 1.1 -> 1.05 -> a budget ramp -> flat 1.0 across a long chain of
+ * golden-grid arms) with the artifact's fitted upper quantile for
+ * exactly this observation. A
+ * repair sizing its restart is asking "how much work is left from this
+ * anchor" at the instant an attempt starts, from the incumbent's own
+ * measured suffix: the `start` event, path-backed — and that stratum is
+ * populated by repair-attempt starts and nothing else, because a repair
+ * is the only attempt kind that carries a path profile. The margin it
+ * yields is no longer a fudge factor but a coverage claim the calibrator
+ * can be held to (95% nominal, `byEventAndPath.start.withPath`), and it
+ * moves with the estimator instead of having to be re-swept beside it.
+ *
+ * The point estimate goes through `estimateRemainingBudgetWork`, the
+ * same pure functions the recorder uses and no shared state. NOTE the
+ * ceiling is the artifact's calibrated band applied UNCONDITIONALLY
+ * (the `deadline.ts` contract: policy consumes the raw estimator at
+ * every budget) — it equals the recorder's `estimate_upper_frames` for
+ * this attempt's start observation only where applicability is
+ * `calibrated`. Repair runs from `minBudget` (100k) while the artifact's
+ * fitted domain is [250k, 1.5M]; below that the recorder widens its
+ * recorded upper to `max(upper, hard_remaining)` and this ceiling does
+ * not, and the 95% coverage claim does not transfer (measured ~35%
+ * two-sided interval coverage at 150k, docs/compile-budget-telemetry.md).
+ * The structural slot is zero deliberately: the
+ * artifact's base mode selects the path, and passing a structural number
+ * here would smuggle a second structural model into a module that has no
+ * business owning one (that is `optimizer/deadline.ts`).
+ *
+ * The per-gap fallback has no calibrated interval of its own — it is not
+ * one of the artifact's estimators, so neither its correction factor nor
+ * its coverage claim transfers — and it borrows the path-free `start`
+ * spread as the nearest fitted band, knowingly and without a calibration
+ * claim. It gets no correction factor, because a correction is a bias
+ * statement about a specific estimator and this one's bias is known to
+ * point the other way (it over-sizes the late, cheap anchors, which is
+ * why the measured profile exists at all). On the archived panels the two
+ * `start` upper ratios agree to three decimals, so the borrowing costs
+ * nothing today; the point is that the code says which one it is asking
+ * for.
+ *
+ * `model` is the artifact by default and a parameter so the zero-ceiling guard
+ * below can be exercised: it is unreachable under a path-selecting artifact.
+ */
+export function repairRestartCeilingFrames(
+  /** Measured cost-to-end at the anchor, or null where nothing was measured. */
+  measured: number | null,
+  /** The coarse per-gap average this anchor falls back to without a measurement. */
+  perGapFallbackFrames: number,
+  model: BudgetEstimatorModelArtifact = BUDGET_ESTIMATOR_MODEL,
+): number {
+  const point = measured === null
+    ? perGapFallbackFrames
+    : estimateRemainingBudgetWork({
+      structural: 0,
+      path: measured,
+      pace: null,
+      progressFraction: 1,
+    }, model);
+  const upper = budgetEstimateInterval(point, {
+    event: "start",
+    pathAvailable: measured !== null,
+  }, model).upper;
+  // Never hand repair a zero ceiling. A `structural` base-mode artifact
+  // (a legal artifact — it is the calibrator's static fallback whenever
+  // the acceptance gate fails) returns the deliberately-zero structural
+  // slot above as the base, which zeroes the point and the interval;
+  // unguarded, every restart would then be sized at zero frames and the
+  // attempt quota would burn doing nothing. Under a path-selecting
+  // artifact this branch is unreachable (measured > 0 and every upper
+  // ratio >= the positive correction), so it is a guard, not a tune.
+  return upper > 0 ? upper : measured ?? perGapFallbackFrames;
+}
+
 /** Weakest AFFORDABLE contact gap to restart repair from. Weakness = Σ axis-error² (its
  *  share of the score's axis_error_rms; for a VALID track drift/missing are 0 by construction,
  *  so axis_quality is the only quality lever → axis-SSE is the faithful "most valuable to
@@ -5649,6 +5674,13 @@ function snapshotFwdEvalStats(): FwdEvalStats | null {
   return { ...fwdEvalTotals };
 }
 
+/** Unconditional read of the same counters, for a probe or test observing ONE
+ *  mechanism outside a compile — the case the archive snapshot's null gate is
+ *  designed to exclude. */
+export function readFwdEvalCounters(): FwdEvalStats {
+  return { ...fwdEvalTotals };
+}
+
 /** Pure read over the POOL-SOURCE scored entries of one freshly-built pool: records the
  *  agreement of the true forward rollout (winner = min score) with the quality-objective
  *  rank (.rank, 0-based for source "pool"). No extra rollouts — scores are already computed
@@ -6100,7 +6132,7 @@ function advanceToNextContact(search: SearchNode, gaps: Gap[]): SearchNode | nul
  * `cachedForwardContinuation` now reports the corrected bit, so the
  * online-continuation filter stops pruning the frontier on a refuted proof.
  */
-function redrawFirstHopOnEmpty(
+export function redrawFirstHopOnEmpty(
   at: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,

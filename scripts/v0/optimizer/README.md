@@ -13,8 +13,10 @@ complete-or-partial output in a strict best-so-far register.
 
 1. **Determinism.** Same `(spec, seed, budget)` produces the same Track.
 2. **Budget is an input.** Each budget is an independent full run; the search may use
-   the requested budget. (Today's search is still budget-oblivious, but that is no
-   longer a contract — it is the lever the next project will use.)
+   the requested budget. The search READS it, on two separate coordinates:
+   DIFFICULTY (`budgetSlack = B / D(spec)`, static per compile, chooses the
+   shape of spend) and DEADLINE (`deadline.ts`'s live per-node margin, chooses
+   the pressure on spend). `handoff.ts`'s module header inventories every read.
 3. **Cheat resistance.** Work is metered in simulated rider frames at the
    trajectory-extraction boundary.
 4. **Engine honesty.** Every geometric decision is validated by `lr-core` and the
@@ -31,6 +33,10 @@ objective.ts    shared current-quality x readiness objective
 arc_model.ts    shared pitch/rotation knob transforms and response models
 arc_probe.ts    shared real-engine joint probe evaluator
 budget_model.ts structural traversal-cost predictor and budget slack helper
+deadline.ts     the one live deadline signal: per-node margin and its ramp
+budget_estimator.ts        runtime for the frozen remaining-work artifact
+budget_estimator_model.json  that artifact — LIVE POLICY on both layers
+budget_telemetry.ts        observation-only compile-budget recorder
 readiness.ts    catchability surface used by composite next-gap readiness
 handoff.ts      compileHandoff public entry point
 register.ts     strict best-so-far comparator
@@ -38,6 +44,13 @@ polish.ts       clone-and-test polish variants
 sim_frames.ts   physics-frame instrumentation
 types.ts        checkpoint and compile-output types
 ```
+
+`budget_estimator_model.json` is fitted offline by
+`scripts/v0/calibrate_budget_estimator.ts`, but it is not a report: its point
+layer is the deadline margin's base and scale, and its `interval` band is the
+repair restart ceiling. It is inside `COMPILER_SOURCE_PATHS`, so editing it is a
+compiler change to the benchmark. Only `applicability` and `metrics` are inert
+for policy. `budget_telemetry.ts` is the one module here that decides nothing.
 
 `node.ts`, `sample.ts`, and `solver.ts` are intentionally generic because future
 compiler variants should be able to reuse the same candidate and prefix-state

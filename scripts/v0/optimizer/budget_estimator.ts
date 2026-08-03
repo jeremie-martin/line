@@ -1,4 +1,24 @@
-/** Runtime for the frozen, policy-neutral remaining-work estimator artifact. */
+/**
+ * Runtime for the frozen remaining-work estimator artifact.
+ *
+ * POLICY-BOUND, not policy-neutral. The functions here make no optimizer
+ * decision themselves, but the artifact they read is live compiler policy on
+ * both of its layers, so any edit to `budget_estimator_model.json` changes what
+ * the compiler searches (and, correctly, its `compilerSourceFingerprint` — the
+ * artifact is inside `COMPILER_SOURCE_PATHS`):
+ *
+ *  - the POINT layer (`structural`, `combination`) is the deadline margin's base
+ *    and scale, `optimizer/deadline.ts`;
+ *  - the CLAIM layer's `interval` is the repair restart ceiling:
+ *    `handoff.ts` `repairRestartCeilingFrames` resolves
+ *    `byEventAndPath.start.{withPath,withoutPath}.upperRatio`, and
+ *    `pickFeasibleWeakGap` turns it into which gap a restart runs from, whether
+ *    an upstream anchor is skipped, and how many frames the restart may spend.
+ *
+ * Only `applicability` and `metrics` are genuinely inert for policy: they
+ * qualify what the telemetry recorder may CLAIM is calibrated and are read
+ * nowhere else.
+ */
 
 import { createHash } from "node:crypto";
 import modelJson from "./budget_estimator_model.json" with { type: "json" };
@@ -16,9 +36,10 @@ export const BUDGET_ESTIMATOR_MODEL_SCHEMA_V1 =
  * The version exists so a reader that only knows v1 semantics FAILS on a law
  * artifact instead of silently dropping the exponent — which away from the
  * reference budget is a 2-3x error, the exact mistake the measurement of
- * `docs/budget-law-study.md` documents. An artifact with no exponent needs only
- * v1 semantics, so the calibrator still stamps it `v1`: the version advertises a
- * capability actually in use rather than a global era.
+ * `docs/budget-law-study.md` documents. The version advertises a capability
+ * actually in use rather than a global era — but the domain-scoped path claim
+ * is itself a v2 feature and the calibrator emits it unconditionally, so every
+ * artifact it writes today is v2 and v1 is a read-only compatibility path.
  */
 export const BUDGET_ESTIMATOR_MODEL_SCHEMA_V2 =
   "line.compile-budget-estimator-model.v2" as const;

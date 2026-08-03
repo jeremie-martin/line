@@ -8,10 +8,7 @@
  */
 
 import type { Gap } from "../types.ts";
-import {
-  TRAVERSAL_BUDGET_MODEL_V1,
-  type TraversalBudgetModel,
-} from "./budget_model.ts";
+import type { TraversalBudgetModel } from "./budget_model.ts";
 import {
   BUDGET_ESTIMATOR_MODEL,
   BUDGET_ESTIMATOR_MODEL_FINGERPRINT,
@@ -716,13 +713,19 @@ export function remainingStructure(
  * applies the artifact's `(B / refB)^alpha` scalar to it. A caller wanting the
  * quantity a compile would record must multiply by
  * `budgetEstimatorStructuralScale(policyBudgetFrames)`.
+ *
+ * `model` is REQUIRED. It used to default to `TRAVERSAL_BUDGET_MODEL_V1`, a
+ * different regression from the one the shipped artifact carries, and taking
+ * that default silently is how the live deadline margin spent one era ~1.9x
+ * loose (optimizer/deadline.ts, "The base shape was a decision"). A caller that
+ * has to name its model cannot make that mistake by omission.
  */
 export function structuralRemainingWork(
   gaps: readonly Gap[],
   durationFrames: number,
   gapIndex: number,
   includeStartup: boolean,
-  model: TraversalBudgetModel = TRAVERSAL_BUDGET_MODEL_V1,
+  model: TraversalBudgetModel,
 ): number {
   const structure = remainingStructure(gaps, durationFrames, gapIndex);
   if (

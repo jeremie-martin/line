@@ -644,6 +644,69 @@ describe("budget estimator calibration", () => {
       }
     });
 
+    /**
+     * The bands are LIVE POLICY, so freezing them is what freezing the point
+     * model means.
+     *
+     * `interval.byEventAndPath.start.*.upperRatio` sizes every repair restart
+     * ceiling (`handoff.ts` `repairRestartCeilingFrames`). A run documented as a
+     * telemetry-only domain extension must not move search behaviour by
+     * omitting a flag, so `--freeze-point-model` implies `--freeze-intervals`
+     * and refitting is the explicit, loudly-warned opt-out.
+     */
+    test("--freeze-point-model freezes the bands without being asked", () => {
+      const frozen = frozenSource();
+      const path = freezeArtifact(frozen);
+      const { model, report } = calibrateInputs(
+        budgetPanel([150_000, 250_000, 300_000, 750_000, 1_500_000], 0.6),
+        [`--freeze-point-model=${path}`],
+      );
+
+      expect(model.interval).toEqual(frozen.interval);
+      expect(report.pointModel.intervalsFrozen).toBe(true);
+      for (const stratum of report.interval.stratification.pathStrata) {
+        if (frozen.interval.byEventAndPath?.[stratum.event as "start"]?.[stratum.path] === undefined) continue;
+        expect(stratum.source).toBe("frozen");
+      }
+    });
+
+    test("--refit-intervals restores the refitting arm and says it is promotion-class", () => {
+      const frozen = frozenSource();
+      const path = freezeArtifact(frozen);
+      const result = runInputs(budgetPanel([150_000, 250_000, 300_000, 750_000, 1_500_000], 0.6), [
+        `--freeze-point-model=${path}`,
+        "--refit-intervals",
+      ]);
+
+      expect(result.status, result.stderr || result.stdout).toBe(0);
+      expect(result.stderr).toContain("PROMOTION-CLASS");
+      expect(result.stderr).toContain("estCostUpperOf");
+      const report = JSON.parse(readFileSync(result.report, "utf8")) as CalibrationReport;
+      const model = parseBudgetEstimatorModel(JSON.parse(readFileSync(result.output, "utf8")));
+      expect(report.pointModel.intervalsFrozen).toBe(false);
+      // The point model is still the incumbent's; only the claim layer moved.
+      expect(model.structural).toEqual(frozen.structural);
+      for (const stratum of report.interval.stratification.pathStrata) {
+        expect(stratum.source).toBe("fitted");
+      }
+    });
+
+    test("refuses --refit-intervals without a frozen model, and beside --freeze-intervals", () => {
+      const corpus = budgetPanel([300_000, 750_000, 1_500_000], 0.6);
+      const bare = runInputs(corpus, ["--refit-intervals"]);
+      expect(bare.status).not.toBe(0);
+      expect(bare.stderr).toContain("--refit-intervals requires --freeze-point-model");
+
+      const path = freezeArtifact(frozenSource());
+      const both = runInputs(corpus, [
+        `--freeze-point-model=${path}`,
+        "--freeze-intervals",
+        "--refit-intervals",
+      ]);
+      expect(both.status).not.toBe(0);
+      expect(both.stderr).toContain("--refit-intervals contradicts --freeze-intervals");
+    });
+
     test("refuses --freeze-intervals whose coverage promise this run would restate", () => {
       const frozen = frozenSource();
       const path = freezeArtifact({

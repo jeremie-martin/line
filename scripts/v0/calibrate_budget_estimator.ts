@@ -121,7 +121,7 @@ const MIN_TAIL_OBSERVATIONS = 4;
 const args = process.argv.slice(2);
 const inputPaths = args.filter((value) => !value.startsWith("--"));
 if (inputPaths.length === 0) {
-  throw new Error("usage: calibrate_budget_estimator.ts <analysis.json>... [--out=model.json] [--report=report.json] [--folds=5] [--coverage=0.95] [--freeze-point-model=artifact.json] [--freeze-intervals] [--pace-schedule=none|linear_progress|sqrt_progress|smoothstep_progress|search]");
+  throw new Error("usage: calibrate_budget_estimator.ts <analysis.json>... [--out=model.json] [--report=report.json] [--folds=5] [--coverage=0.95] [--freeze-point-model=artifact.json] [--refit-intervals] [--pace-schedule=none|linear_progress|sqrt_progress|smoothstep_progress|search]");
 }
 const valueOf = (name: string): string | undefined => {
   const prefix = `--${name}=`;
@@ -187,13 +187,39 @@ if (paceScheduleArgument !== undefined && frozenPointModel === null) {
  * range. It is also the stronger evidence, since the new budget's residuals
  * were never in the percentile they are scored against.
  *
- * The refitting arm stays available (omit this flag) because "the band should
- * describe the domain it claims" is a real argument; which one wins is a
+ * The refitting arm stays available (`--refit-intervals`) because "the band
+ * should describe the domain it claims" is a real argument; which one wins is a
  * measurement, and both are reported per budget per stratum.
+ *
+ * Freezing is what `--freeze-point-model` MEANS, so it is implied rather than
+ * opt-in: the band is live compiler policy, not telemetry. `interval` resolves
+ * `start.{withPath,withoutPath}.upperRatio`, which `estCostUpperOf`
+ * (optimizer/handoff.ts) turns into every repair restart's frame ceiling — and
+ * with it which gap a restart runs from and whether an upstream anchor is
+ * skipped. A run documented as a telemetry-only domain extension must not move
+ * those by omitting a flag. Refitting is a promotion-class change and takes the
+ * 48-seed benchmark, not a calibration report.
  */
-const freezeIntervals = args.includes("--freeze-intervals");
-if (freezeIntervals && frozenPointModel === null) {
+const refitIntervals = args.includes("--refit-intervals");
+if (args.includes("--freeze-intervals") && frozenPointModel === null) {
   throw new Error("--freeze-intervals requires --freeze-point-model");
+}
+if (refitIntervals && frozenPointModel === null) {
+  throw new Error("--refit-intervals requires --freeze-point-model; a fitting run fits its own bands");
+}
+if (refitIntervals && args.includes("--freeze-intervals")) {
+  throw new Error("--refit-intervals contradicts --freeze-intervals; pass at most one");
+}
+const freezeIntervals = frozenPointModel !== null && !refitIntervals;
+if (refitIntervals) {
+  console.warn(
+    "\n!!! --refit-intervals: PROMOTION-CLASS CHANGE !!!\n" +
+      "The interval band is live compiler policy: handoff.ts estCostUpperOf sizes every\n" +
+      "repair restart ceiling from interval.byEventAndPath.start.*.upperRatio, which also\n" +
+      "selects the restart gap and the upstream-anchor skip. Refitting it moves search\n" +
+      "behaviour on every repair-bearing compile. Take the emitted artifact through the\n" +
+      "48-seed benchmark; do not ship it as a telemetry-only domain extension.\n",
+  );
 }
 const frozenIntervals = freezeIntervals ? frozenPointModel!.interval : null;
 if (
@@ -206,8 +232,9 @@ const nominalCoverage = probability(valueOf("coverage") ?? "0.95", "coverage");
 // with a different `--coverage` would restate a claim without re-earning it.
 if (frozenIntervals !== null && frozenIntervals.nominalCoverage !== nominalCoverage) {
   throw new Error(
-    `--freeze-intervals carries nominalCoverage ${frozenIntervals.nominalCoverage}; ` +
-      `pass --coverage=${frozenIntervals.nominalCoverage} or refit the bands`,
+    `the frozen band carries nominalCoverage ${frozenIntervals.nominalCoverage}; ` +
+      `pass --coverage=${frozenIntervals.nominalCoverage} or refit the bands ` +
+      "with --refit-intervals",
   );
 }
 const tailProbability = (1 - nominalCoverage) / 2;
@@ -565,8 +592,9 @@ const model: BudgetEstimatorModelArtifact = {
         (freezeIntervals
           ? "interval bands frozen with it and re-validated over this corpus, so only the " +
             "applicability domain, structural attempt kinds and metrics come from here"
-          : "interval strata refitted on this corpus, along with the applicability " +
-            "domain, structural attempt kinds and metrics") +
+          : "interval strata REFITTED on this corpus (--refit-intervals), along with the " +
+            "applicability domain, structural attempt kinds and metrics; the bands size " +
+            "every repair restart ceiling, so this artifact is a promotion-class change") +
         "; the frozen model re-cleared the static gates on this corpus"
       : accepted
       ? "accepted: >=5% weighted median log-error improvement and <=5% p90 underprediction regression"
@@ -801,12 +829,14 @@ const report = {
       paceScheduleArgument: paceScheduleArgument ?? "(inherited)",
       intervalsFrozen: freezeIntervals,
       intervalsNote: freezeIntervals
-        ? "the incumbent's bands, re-emitted verbatim; the per-budget rows below " +
-          "measure whether they hold over the wider domain rather than refitting " +
-          "them to it, so the new budget's residuals were never in the percentile " +
-          "they are scored against"
-        : "bands refitted over this corpus; every budget's residuals moved the " +
-          "pooled percentile, including the incumbent's",
+        ? "the incumbent's bands, re-emitted verbatim (the default under a frozen " +
+          "point model); the per-budget rows below measure whether they hold over " +
+          "the wider domain rather than refitting them to it, so the new budget's " +
+          "residuals were never in the percentile they are scored against"
+        : "bands refitted over this corpus under --refit-intervals; every budget's " +
+          "residuals moved the pooled percentile, including the incumbent's. The " +
+          "band is live repair policy (handoff.ts estCostUpperOf), so this artifact " +
+          "is promotion-class and needs a 48-seed benchmark before it ships",
       note:
         "structural coefficients, budget exponent, base mode and both correction " +
         "factors are the frozen artifact's, re-emitted verbatim; only the pace " +

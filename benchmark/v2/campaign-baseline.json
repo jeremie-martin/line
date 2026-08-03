@@ -127,7 +127,7 @@
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
   "candidate_fingerprint": "9d26ed0cdc589de6f13dec141c1c81b270a81d8f8dafedc5fce76b23e958a64f",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
-  "decision_protocol_fingerprint": "af1467644835b2c09b8415dc42172fe921212ab2b0eb97da02f7956fb1184b8e",
+  "decision_protocol_fingerprint": "c64eb99cf5ae8743cb86d050d478fe75db536f99c552c3747991b40cdf85f312",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
   "sequential_eval_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
   "sequential_eval_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
@@ -278,6 +278,17 @@
         "compressedArchiveSha256": "99e68ca4b0ae4f8f7494a8d676d6ec94c1f722dea25d7285c59f4a8de8af8380",
         "executionPolicyFingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
         "implementationFingerprint": "30256508fec3b665e7d119d0a01800b6538df984c0aeb66b0b2adc3794ff36e6"
+      },
+      {
+        "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
+        "firstSeedSlot": 32,
+        "endSeedSlotExclusive": 48,
+        "archiveSha256": "b32903c8da39c3663f0fb998355e33745a17f35431b654426e092886ed8334ca",
+        "archive": "benchmark/v2/runs/redraw-on-empty-750k-slots-32-48.json",
+        "compressedArchive": "benchmark/v2/runs/redraw-on-empty-750k-slots-32-48.json.gz",
+        "compressedArchiveSha256": "b1ab1456f57777ce4bfa8c52adbb407aeaae67eea027cb7099548ff856717d25",
+        "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
+        "implementationFingerprint": "ec0f05d8fc1a30d07f7908fb2fe879c1c70c7fad89845771758a741b98097a43"
       }
     ]
   },
@@ -312,5 +323,16 @@
     ],
     "outcome": "accept",
     "delta": 0.7217
+  },
+  "cache_monitoring": {
+    "schema": "line.benchmark-v2.campaign-cache-monitoring.v1",
+    "authority": "descriptive-only",
+    "generated_at": "2026-08-03T09:37:32.263Z",
+    "coverage_seeds": 48,
+    "canonical_headline": 596.0458,
+    "valid_runs": 2112,
+    "total_runs": 2112,
+    "cache_manifest_fingerprint": "764f7963964cf756281578f60e0f405afb90d9bf3da35b56cbbb1c6011ead396",
+    "note": "This completed-cache headline does not replace the promotion headline or stopping depth."
   }
 }

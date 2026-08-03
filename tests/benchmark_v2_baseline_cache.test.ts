@@ -19,7 +19,7 @@ describe("canonical baseline cache fixed-N plans", () => {
     expect(cache.campaignScope).toEqual({
       budgets: [750_000],
       maximumSeeds: 48,
-      promotionSeeds: 48,
+      promotionSeeds: 32,
       looks: [8, 16, 32, 48],
       targetHeadline: 650,
       sequentialPolicyFingerprint: reference.sequential_eval_policy_fingerprint,

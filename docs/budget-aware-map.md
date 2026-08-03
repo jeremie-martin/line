@@ -652,21 +652,22 @@ capability stratum, **−1.85**, every other stratum exactly 0.00. Rider
 (`deadline-two-anchor-750k`, `c26cfca`): **−0.097, P(+) 25.5%, capability +0.08,
 validity unchanged**, promoted at parity. Ledger −0.37 against a −3.0 floor.
 
-**A known deviation in the base, recorded because it is probably load-bearing.**
-`CompileDeadline` builds its structural suffix table by calling
-`structuralRemainingWork(gaps, durationFrames, gap, includeStartup)` **without a
-model argument**, so it takes that function's default — `TRAVERSAL_BUDGET_MODEL_V1`
-(intercept 5,848.25, contact 796.20, duration 29.59) — and multiplies it by
-`budgetEstimatorStructuralScale`, which *is* the artifact's law scale
-`(B/750k)^0.825`. The recorder, by contrast, passes the artifact's own structural
-coefficients (23,860.07 / 3,699.92 / 18.35). So the shipped signal is **V1 shape ×
-the artifact's law scale**, not the artifact's estimate, and it is systematically
-smaller — which makes the shipped margin *tighter* early and pulls it onto the
-compile's own pace as progress accumulates. The accidental reading is the
-interesting one: that is exactly SLK-04's architecture (a stale structural prior
-corrected toward measured pace), and Cluster E1(iii) is the recorded finding that
-the prior **has to be stale** for the correction to carry information. The
-consequence for the anchors is in §6.
+**The base shape was a deviation; it is now a measured decision (Phase 3,
+2026-08-03).** `CompileDeadline` used to build its structural suffix table by
+calling `structuralRemainingWork(gaps, durationFrames, gap, includeStartup)`
+**without a model argument**, so it took that function's default —
+`TRAVERSAL_BUDGET_MODEL_V1` (intercept 5,848.25, contact 796.20, duration
+29.59) — under `budgetEstimatorStructuralScale`, which *is* the artifact's law
+scale `(B/750k)^0.825`. The recorder passes the artifact's own coefficients
+(23,860.07 / 3,699.92 / 18.35). The shipped signal was therefore **V1 shape ×
+the artifact's law scale** and not the artifact's estimate: V1 predicts 37% of
+the artifact's remaining work at a root node, so the margin read ~1.9× loose and
+the ramp barely engaged. The accidental reading was that this reconstructed
+SLK-04's architecture — a stale structural prior corrected toward measured pace,
+which Cluster E1(iii) says the correction needs. **Measured, it does not hold**:
+the artifact model is now passed explicitly and the swap is worth +52.89 /
++26.85 on two canonical capability groups with zero completions lost. §6.4
+carries the numbers.
 
 ### Shared constants and anchors
 
@@ -679,7 +680,7 @@ consequence for the anchors is in §6.
 | **100,000** | `LR_REPAIR_MIN_BUDGET` default (LC-12), `AIM_TOPK_MATURE_BUDGET_FRAMES` (GA-11) | **coincidence of value, not of meaning**. The third occupant of this row, `REPAIR_MARGIN_RAMP_START_FRAMES`, is gone with its ramp (LC-19). |
 | **200,000** | `AIM_TOPK_HIGH_BUDGET_FRAMES` (GA-12) | **was the compiler's most-repeated budget literal, with every use a different mechanism.** `OBJECTIVE_MATURE_MIN_BUDGET_FRAMES` went with OB-04/05, the three M-rule min-budgets with SC-02's case rules, `STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES` and the four geometry ramp ends with the geometry group. One occupant left. |
 | **50,000** | `MAX_NODES_FLOOR` (PLB-02), `START_BUDGET_PRESSURE_START/SPAN` (LC-05) | unrelated; the four geometry ramps that shared it are gone. |
-| `TRAVERSAL_BUDGET_MODEL_V1` coefficients | `budgetSlack` (SLK-03), `budget_telemetry.structuralRemainingWork`'s default, the deadline margin's structural table (SLK-05, by taking that default), `calibrate_budget_estimator`'s `budgetExponent: 0` fallback | one 250k-fitted regression underneath four consumers; two use it as a *coordinate* and two as a *shape*. The `pacedSlack` prior left this row and the margin took its place — see the deviation note above. |
+| `TRAVERSAL_BUDGET_MODEL_V1` coefficients | `budgetSlack` (SLK-03), `budget_telemetry.structuralRemainingWork`'s default, `calibrate_budget_estimator`'s `budgetExponent: 0` fallback | one 250k-fitted regression underneath three consumers, one using it as a *coordinate* and two as a *shape*. **SLK-05 left this row on 2026-08-03**: the deadline margin took the default by accident and Phase 3 measured the accident out (§4, §6.4). What remains is the standing hazard that the default is silent — a new caller of `structuralRemainingWork` inherits a regression it did not choose. |
 
 ### Comparability and determinism hazard edges
 
@@ -870,16 +871,16 @@ composition. (Second lesson, now in the plan: a sequential candidate in a mechan
 family that has moved since its preview needs a composition re-probe *before* the
 eval, not an autopsy after it.)
 
-### 6.4 The deadline base and its anchors
+### 6.4 The deadline base and its anchors — **RESOLVED 2026-08-03 (Phase 3)**
 
 `DEADLINE_MARGIN_FULL_PRESSURE = 1.25` and `DEADLINE_MARGIN_NO_PRESSURE = 2.0` were
 re-derived from the 129,481-observation Phase 0 corpus, re-scored with the pace
 blend switched on — Youden J = 0.815 at 1.25 (against 0.717 at 1.5, 0.541 at 1.0),
 and 2.0 the smallest round threshold at FPR exactly 0.000. **That re-derivation
-used the artifact's structural coefficients**, and the shipped base uses V1's (§4).
-So the anchors are *derived* on a signal offset from the one they run on, and
+used the artifact's structural coefficients**, and the shipped base used V1's.
+So the anchors were *derived* on a signal offset from the one they ran on, and
 *validated* on the shipped one end-to-end. The Phase 1a investigation ran fifteen
-arms on the shipped code, 8 capability sources × the eval's own 48 seeds at 750k,
+arms on that code, 8 capability sources × the eval's own 48 seeds at 750k,
 scored against the 1a arm:
 
 | arm | Δ vs 1a | invalid cells |
@@ -891,16 +892,59 @@ scored against the 1a arm:
 | third anchor 0.8 / 1.25 (then 1.0) | −2.95 / **+0.06** | 2 / 0 |
 | GA-15 triggering on the third anchor instead | −0.08 | 0 |
 
-Nothing beats the shipped value; every consumer is load-bearing; and the one
-positive reading — collapsing the third anchor onto 1.25 — is precisely what the
-rider then shipped by deleting `deadlineAtRisk`. Note what is *not* in the table:
-`DEADLINE_MARGIN_FULL_PRESSURE` itself was never swept as a policy constant, only
-as a classifier threshold on the Phase 0 corpus. Two honest consequences: the accuracy table quoted in `deadline.ts`'s header is an upper bound
-on what was validated for the shipped base rather than a measurement of it (the
-header now says so), and **the base-shape swap — artifact coefficients plus a
-re-anchor on the same corpus — is a named, unexplored candidate**, not a bug fix,
-because the V1-shaped prior is what gives the pace term something independent to
-correct toward (Cluster E1(iii)).
+Nothing beat the shipped value on that signal; every consumer is load-bearing; and
+the one positive reading — collapsing the third anchor onto 1.25 — is precisely
+what the rider then shipped by deleting `deadlineAtRisk`. Note what is *not* in the
+table: `DEADLINE_MARGIN_FULL_PRESSURE` itself was never swept as a policy constant,
+only as a classifier threshold on the Phase 0 corpus.
+
+**Phase 3 resolved the base shape by measuring it, and the deviation lost.**
+`deadline.ts` now passes `BUDGET_ESTIMATOR_TRAVERSAL_MODEL` explicitly at both
+`structuralRemainingWork` call sites. Three pieces of evidence, in the order they
+were taken (worktree artifacts under `scratchpad/dividends-p3/`):
+
+*1 — the corpus, re-derived from coefficients rather than from the recorder's
+stored estimate*, so both shapes can be scored on the same 129k rows with
+everything else held identical. The reconstruction reproduces the shipped anchors
+on the artifact shape (150k: Youden-optimal **1.30**, smallest zero-FPR **1.90**),
+stable under both the recorded `episode_pace` and the controller's own pace
+formula — so the swap needed **no re-anchor**, and the plan's "swap + re-derive
+the constants" arm collapses onto the plain swap. On the V1 shape the same corpus
+asks for **3.00 / 3.40** at 150k and **4.00** at 750k. Both self-consistent
+readings call for far more pressure than shipped; the shipped pair was uniquely
+under-engaged. The engagement table quoted in `DEADLINE_MARGIN_NO_PRESSURE`'s
+docstring (75 / 71 / 49 / 19 / 10 / 7 % at 75k…2.25M) is the artifact-shaped
+signal's — the reconstruction returns 78 / 71 / 49 / 19 / 10 / 7, matching every
+in-domain budget to the printed digit. The V1-shaped signal over the same panels
+read **28 / 9 / 5 / 2 / 0.4 / 0.3 %**, so the docstring was describing a profile
+the shipped code did not produce: at 750k it was 2%, the same order as the 2.3%
+of the ramp it claimed to have flattened.
+
+*2 — a paired signal comparison*, both shapes computed inside one
+`CompileDeadline` over one set of compiles (8 capability sources × 2 seeds),
+counted at pre-completion pool builds:
+
+| budget | builds | median margin V1 → artifact | engaged `<2.0` | full pressure `≤1.25` |
+|---|---:|---|---|---|
+| 150k | 2,465 | 1.45 → **0.74** | 63.0% → **98.6%** | 44.4% → **75.1%** |
+| 750k | 3,164 | 3.32 → **1.52** | 21.5% → **64.3%** | 4.5% → **32.6%** |
+
+Post-completion builds are identical under either shape — there the base is the
+incumbent's measured `costToEnd` and no model touches it.
+
+*3 — a 48-seed capability mover grid at 750k*, paired against the V1-shaped tree:
+243 of 528 cells change, **0 completions lost**, 3 gained, `rapid_pickup_frontier`
+**+52.89** and `dense_recovery_frontier` **+26.85** (both canonical group scores),
+`low_air_frontier` −0.34, the three back-filled controls 0.00 / −0.06 / 0.00.
+Power footer: an observed zero on a 243-cell action set excludes loss rates above
+1.23%. A full 44 × 8 grid at 750k followed.
+
+Two consequences to carry forward. The accuracy table in `deadline.ts`'s header
+is now a measurement of the base it computes rather than an upper bound. And the
+Phase 1a anchor brackets above are **stale by the stale-sweep rule** — they were
+taken on a signal ~1.9× looser — so re-bracketing `1.25 / 2.0` on the corrected
+signal is filed work; the corpus derivation and the shipped pair agree to the
+rounding, which is why it is not a blocker.
 
 ---
 
@@ -1073,9 +1117,10 @@ where the estimator is `extrapolated_policy_budget` — was answered by *contrac
 policy consumes the raw point ratio at every budget and the applicability nulling
 stays a statement about what the recorder may claim. The coupling warning held
 exactly: SC-09, GA-15 and SC-16 moved in one candidate. One caveat the swap did
-NOT honour and should be read against §6.4: "the ramp constants are not in the
-margin's units" was answered by re-deriving them on the *artifact-shaped* margin,
-while the shipped base is V1-shaped.
+not honour at the time: "the ramp constants are not in the margin's units" was
+answered by re-deriving them on the *artifact-shaped* margin while the shipped
+base was V1-shaped. **Phase 3 closed that gap from the other side** — the base is
+artifact-shaped now, so the anchors and the signal are one quantity (§6.4).
 
 *Pre-program statement follows.* `pacedSlack` blends a
 250k-fitted regression with a naive `spent·totalGaps/deepestGap` extrapolation;
@@ -1178,10 +1223,14 @@ requirement forbids `D(spec)` from being future production spend, and `α = 0.82
 *is* a measurement of what this controller chooses to spend; (iii) **the live pace
 blend requires V1's staleness** — `observedTraversalBudgetSlack` corrected a
 structural prior toward the compile's own measured pace, and a law-based prior would
-have nothing independent to correct toward. *(iii) survived the program and is
-still live: the deadline margin inherited exactly this architecture, by taking
-`structuralRemainingWork`'s V1 default under the artifact's law scale — see §4 and
-§6.4.)* The legitimate open work is a
+have nothing independent to correct toward. *(iii) is now scoped: it holds for the
+DIFFICULTY coordinate, which is what it was measured on. It does **not** transfer
+to the deadline margin. That signal did inherit a V1-shaped prior by accident, and
+Phase 3 measured the inheritance out on 2026-08-03 — the artifact-shaped base
+gained +52.89 / +26.85 on two canonical capability groups with zero completions
+lost (§4, §6.4). Staleness bought a wider margin there, not more information; the
+independent correction the architecture wants is the pace term, which survives.*
+The legitimate open work is a
 reference-policy recalibration producing a versioned
 `reference-policy/v1 + contacts+duration/v2`, which changes `D`'s shape without
 making it budget-dependent — and that is a stale-sweep bomb, because it moves all
@@ -1527,7 +1576,7 @@ The only place in the compiler where budget changes *what is being maximised* ra
 
 ### SLK — slack and deadline production (`budget_model.ts`, `optimizer/deadline.ts`) · 4 live + 1 retired
 
-**SLK-01 `TRAVERSAL_BUDGET_MODEL_V1` — the difficulty yardstick** ★ do not migrate — `budget_model.ts:20-26` · none (a frozen coefficient triple) → allocation · contract · static · binds. `D(spec) = 5848.254347 + 796.19669·feasibleContacts + 29.587736·durationFrames`, source recorded in the file as one 250k golden archive. The full argument for freezing it is Cluster E1. Correctly-layered use already exists: `budget_telemetry.ts`'s `structuralRemainingWork` uses the same coefficients **as pure shape**, deliberately free of the budget law, and the estimator artifact applies `(B/refB)^α` on top. **The deadline margin (SLK-05) takes that function's V1 default** — so V1's coefficients now sit under the live deadline signal as well as under the difficulty coordinate, which is a fourth consumer this entry did not have when it was written (§4, §6.4).
+**SLK-01 `TRAVERSAL_BUDGET_MODEL_V1` — the difficulty yardstick** ★ do not migrate — `budget_model.ts:20-26` · none (a frozen coefficient triple) → allocation · contract · static · binds. `D(spec) = 5848.254347 + 796.19669·feasibleContacts + 29.587736·durationFrames`, source recorded in the file as one 250k golden archive. The full argument for freezing it is Cluster E1. Correctly-layered use already exists: `budget_telemetry.ts`'s `structuralRemainingWork` uses the same coefficients **as pure shape**, deliberately free of the budget law, and the estimator artifact applies `(B/refB)^α` on top. The deadline margin (SLK-05) briefly took that function's V1 default, putting V1's coefficients under the live deadline signal as well as under the difficulty coordinate; **Phase 3 measured that fourth consumer out on 2026-08-03** and `deadline.ts` passes the artifact's coefficients explicitly (§4, §6.4). The silent default remains the hazard: a new caller inherits a regression it did not choose.
 
 **SLK-02 `predictFirstCompletionFrames`** — `:28-40`, `feasibleContactFrames:80-85` · spec only → allocation · contract · static · binds. Denominator of `budgetSlack` and of `stats.predicted_first_completion_frames`; it was also the `predictedFrames` prior inside SLK-04, and that consumer is gone. Contacts are filtered by `secToFrame(t) >= K_BOUNCE_LANDING`, the same physical feasibility floor handoff applies, so predictor and search share one contact set. Known defect: the large fixed intercept (~5,848) dominates at small budgets, so slack ratios become meaningless far below the fitted grid.
 
@@ -1545,7 +1594,7 @@ return B / max(1, (1-evidence)*predicted + evidence*measured)
 
 **SLK-05 `CompileDeadline` — the live deadline margin** ★ the one answer to "am I behind?" — `optimizer/deadline.ts`, constructed `handoff.ts:1413`, read `:1827` · `policyBudget`, **live `getSimFrames()`**, the traversal's own gap position, the incumbent's measured `costToEnd`, and the estimator's pure functions → **deadline-pressure** · **LIVE-ADAPTIVE** · live · **binds**
 `margin = max(0, policyBudget − spent) / estimateRemainingBudgetWork({structural, path, pace, progressFraction})`, `Infinity` where no work is left. The structural suffix is tabulated once per compile; the path term is the incumbent's measured cost-to-end profile once it exists (the same array repair sizes its ceilings from), and the pace term — `spent · structural / progressed`, the recorder's `episode_pace` computed from state the search already owns — is dropped once a path exists rather than double-counting repair's spend. Pace is blended geometrically at the structural progress fraction, so at the first node the margin *is* the static structural estimate. Deterministic in `(spec, seed, budget)`: every input is fixed at construction or a counter the search owns.
-Three properties worth stating separately. **(1) The pace term is load-bearing, not decoration**: the pace-free arm broke the capability stratum outright — `frontier_dense_recovery` 0/4 valid at 750k, suite −21.6 — because the structural coefficients under-predict a spec that costs 2–3× the fitted rate per contact, and the pace-free margin then sits at median 2.78 (no pressure) on a compile that first completes at 88% of its budget. The blend recovers 3 of 4 cells; suite −21.6 → −0.8. It is a policy-side override of one artifact selector field (`paceSchedule: "linear_progress"` against the artifact's `"none"`), declared in the module where the reason lives; the artifact JSON, recorder, analyzer and fingerprint are untouched. **(2) The structural base is V1-shaped**, because `structuralRemainingWork`'s default model is `TRAVERSAL_BUDGET_MODEL_V1` and `deadline.ts` does not pass one — the law scale is the artifact's, the coefficients are not. Known deviation, probably load-bearing, §4 and §6.4. **(3) Accuracy, for the artifact-shaped estimate the Phase 0 corpus measured**: median APE 30.5% / 10.2% / 6.9% / 5.3% / 4.4% / 6.9% at 75k / 150k / 300k / 750k / 1.5M / 2.25M, Spearman 0.80–0.97 against the realized margin, a 3–25× win over `pacedSlack` at every budget in and out of domain. Policy consumes the raw point ratio at every budget; the estimator's `applicability` nulling governs what the *recorder* may claim, not whether the predictor is usable.
+Three properties worth stating separately. **(1) The pace term is load-bearing, not decoration**: the pace-free arm broke the capability stratum outright — `frontier_dense_recovery` 0/4 valid at 750k, suite −21.6 — because the structural coefficients under-predict a spec that costs 2–3× the fitted rate per contact, and the pace-free margin then sits at median 2.78 (no pressure) on a compile that first completes at 88% of its budget. The blend recovers 3 of 4 cells; suite −21.6 → −0.8. It is a policy-side override of one artifact selector field (`paceSchedule: "linear_progress"` against the artifact's `"none"`), declared in the module where the reason lives; the artifact JSON, recorder, analyzer and fingerprint are untouched. **(2) The structural base is the ARTIFACT's shape** — `deadline.ts` passes `BUDGET_ESTIMATOR_TRAVERSAL_MODEL` explicitly, because `structuralRemainingWork`'s default is `TRAVERSAL_BUDGET_MODEL_V1` and taking it silently was the deviation Phase 3 closed (+52.89 / +26.85 on two canonical capability groups, 0 completions lost; §4 and §6.4). **(3) Accuracy, now a measurement of the base computed here**: median APE 30.5% / 10.2% / 6.9% / 5.3% / 4.4% / 6.9% at 75k / 150k / 300k / 750k / 1.5M / 2.25M, Spearman 0.80–0.97 against the realized margin, a 3–25× win over `pacedSlack` at every budget in and out of domain. Policy consumes the raw point ratio at every budget; the estimator's `applicability` nulling governs what the *recorder* may claim, not whether the predictor is usable.
 
 ### PLB — plumbing, propagation and entry points · 20
 

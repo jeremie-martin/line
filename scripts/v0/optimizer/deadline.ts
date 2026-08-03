@@ -26,33 +26,26 @@
  *    compile, chooses the SHAPE of spend. Not this module.
  *  - DEADLINE is this margin — live, per node, chooses the PRESSURE on spend.
  *
- * ## What it reads, and what the accuracy numbers below are numbers about
+ * ## What it reads
  *
  * The estimate is `estimateRemainingBudgetWork` — the same pure functions the
  * telemetry recorder calls, never its state — over a structural suffix this
- * module tabulates itself. Read the tabulation below carefully, because it is
- * NOT the recorder's:
+ * module tabulates itself from the recorder's own model:
  *
- *   - the SHAPE is `structuralRemainingWork`'s DEFAULT model, which is
- *     `TRAVERSAL_BUDGET_MODEL_V1` (intercept 5,848.25, contact 796.20, duration
- *     29.59). The recorder passes the artifact's own structural coefficients
- *     (23,860.07 / 3,699.92 / 18.35); this module passes no model argument and
- *     therefore takes V1;
+ *   - the SHAPE is `BUDGET_ESTIMATOR_TRAVERSAL_MODEL`, the artifact's structural
+ *     coefficients (intercept 23,860.07, contact 3,699.92, duration 18.35),
+ *     passed EXPLICITLY at both call sites. `structuralRemainingWork`'s default
+ *     is `TRAVERSAL_BUDGET_MODEL_V1`, and taking that default silently is how
+ *     this module spent one era computing a looser signal than the one it
+ *     documented — the decision section below is that measurement, and
+ *     `tests/deadline_signal.test.ts` pins the argument so it cannot be dropped
+ *     again;
  *   - the SCALE is the artifact's budget law, `budgetEstimatorStructuralScale`
  *     = (B / 750k)^0.825;
  *   - the pace blend and the without-path correction factor are the artifact's.
  *
- * So the base is V1-shaped under the artifact's law scale, and it is
- * systematically smaller than the estimate the recorder records: tighter early,
- * pulled onto the compile's own measured pace as progress accumulates. That is
- * a KNOWN DEVIATION and it is plausibly load-bearing rather than a slip to
- * "fix" in passing — it reconstructs `observedTraversalBudgetSlack`'s
- * architecture, a deliberately STALE structural prior corrected toward measured
- * pace, and the map's Cluster E1(iii) is the recorded finding that the prior has
- * to be stale for the correction to carry information. Swapping in the
- * artifact's coefficients is a candidate (it must be bundled with a re-anchor,
- * because it moves the margin's scale), not a bug fix. See
- * docs/budget-aware-map.md section 6.4.
+ * So the base IS the estimate the recorder records, and the accuracy numbers
+ * below are numbers about the quantity computed here.
  *
  * Policy consumes the RAW POINT RATIO at every budget. The estimator's
  * `applicability` nulling (`hard_completion_margin` is null outside the
@@ -60,10 +53,9 @@
  * recorder may CLAIM is calibrated; it is not a statement that the predictor is
  * unusable there.
  *
- * The measured accuracy on record is the ARTIFACT-shaped margin's, over 129,481
- * archived pre-terminal observations (phase0/signal-comparison.md §Answer 2) —
- * median absolute percentage error against realized remaining first-completion
- * work:
+ * The measured accuracy is over 129,481 archived pre-terminal observations
+ * (phase0/signal-comparison.md §Answer 2) — median absolute percentage error
+ * against realized remaining first-completion work:
  *
  *     75k 30.5% | 150k 10.2% | 300k 6.9% | 750k 5.3% | 1.5M 4.4% | 2.25M 6.9%
  *
@@ -72,17 +64,49 @@
  * agreement with the realized margin is 0.80-0.97 (Spearman) where the paced
  * blend goes ANTI-correlated above 300k. (Those are the structural base alone;
  * `DEADLINE_ESTIMATOR_MODEL` below adds the compile's own pace to it, whose
- * component error is lower still below 300k.) TREAT THEM AS AN UPPER BOUND ON
- * WHAT WAS VALIDATED, NOT AS A MEASUREMENT OF THE BASE COMPUTED HERE: they say
- * the corpus supports this ESTIMATOR at this accuracy; they do not re-derive
- * for the V1-shaped base. What was validated end-to-end on the SHIPPED signal is
- * the thing that decides: every consumer and every constant below was bracketed
- * on this exact code over 8 capability sources x the eval's 48 seeds at 750k
- * (consumers off read -17.5 / -5.3 / -12.3; no constant beat its shipped value),
- * and the promoted N=48 result measured this composition. The one place the
- * estimate is genuinely weak is 75k, where the law extrapolates two octaves
- * below its corpus — and where the ramp is engaged on 75% of observations
+ * component error is lower still below 300k.) The one place the estimate is
+ * genuinely weak is 75k, where the law extrapolates two octaves below its
+ * corpus — and where the ramp is engaged on three quarters of observations
  * anyway, so the pressure decision there barely depends on its precision.
+ *
+ * ## The base shape was a decision, and it is measured (2026-08-03)
+ *
+ * Until this change the module passed no model argument, so the shipped base was
+ * V1-SHAPED under the artifact's law scale. V1 predicts 37% of the artifact's
+ * remaining work at a root node — median over the 44 canonical sources; the
+ * artifact's contact coefficient is 4.6x V1's and its duration coefficient
+ * 0.62x, so the ratio runs 2.72x at the root and narrows to 1.63x over the last
+ * three gaps. A smaller denominator is a LARGER margin, so the shipped signal
+ * read about 1.9x loose and a ramp whose anchors were derived on the
+ * artifact-shaped estimate (see below) barely engaged.
+ *
+ * That was recorded as a known deviation and argued to be plausibly
+ * load-bearing: it reconstructed `observedTraversalBudgetSlack`'s architecture,
+ * a deliberately STALE structural prior corrected toward measured pace, which
+ * the map's Cluster E1(iii) says the correction needs something independent to
+ * pull against. The argument does not survive its measurement:
+ *
+ *   - PAIRED SIGNAL COMPARISON — both shapes computed inside one
+ *     `CompileDeadline` over the same compiles (8 capability sources x 2 seeds),
+ *     counted at pre-completion pool builds, the decision-weighted population.
+ *     At 750k the ramp goes from 21.5% engaged / 4.5% at full pressure to 64.3%
+ *     / 32.6% (median margin 3.32 -> 1.52); at 150k from 63.0% / 44.4% to 98.6%
+ *     / 75.1%. POST-completion builds are bit-identical under either shape,
+ *     because there the base is the incumbent's measured cost-to-end and no
+ *     model touches it: the whole action is pre-completion.
+ *   - CAPABILITY MOVER GRID — 48 seeds at 750k, paired against the V1-shaped
+ *     tree. 243 of 528 cells change, ZERO completions lost, three gained, and
+ *     the two canonical groups that engage move +52.89 (`rapid_pickup_frontier`)
+ *     and +26.85 (`dense_recovery_frontier`). `low_air_frontier`, which engages
+ *     on ~1% of builds either way, is -0.34; the three back-filled controls are
+ *     flat (0.00 / -0.06 / 0.00). First completion arrives earlier on the
+ *     pressed specs, which is the mechanism doing the thing it exists for.
+ *
+ * The stale-prior finding survives where it was actually made — the DIFFICULTY
+ * coordinate, Cluster E1 — and it survives here as the pace term, which is what
+ * corrects an accurate base toward the compile's own evidence. What it never
+ * licensed was an inaccurate base: staleness bought a wider margin, not more
+ * information.
  *
  * ## The constants, in margin units
  *
@@ -94,12 +118,20 @@
  * never complete), the only corpus with a non-degenerate completion label,
  * re-scored with the pace blend switched on rather than carried over from the
  * pace-free signal the table was built on. That re-scoring used the ARTIFACT's
- * structural coefficients, not the V1 shape this module computes (see above), so
- * the anchors are derived on the estimator and confirmed on the controller: both
- * were bracketed on the shipped signal in the Phase 1a investigation and neither
- * direction beat them (no-pressure endpoint 1.5/3/4/6 = -2.60/-2.89/-0.06/-0.11
- * against 2.0). A base-shape swap would move the margin's scale and must
- * therefore re-derive them; that bundle is the named candidate, not a fix.
+ * structural coefficients — the shape this module now computes — so signal and
+ * anchors are derived on one quantity, and the base-shape swap needed no
+ * re-anchor: re-deriving them from the coefficients rather than from the
+ * recorder's stored estimate returns Youden-optimal 1.30 and smallest zero-FPR
+ * threshold 1.90 at 150k, stable under both the recorded episode pace and the
+ * controller's own pace formula. On the V1 shape the same corpus asks for
+ * 3.00 / 3.40 instead, which is the other half of why the deviation had to go.
+ *
+ * The Phase 1a brackets (no-pressure endpoint 1.5/3/4/6 = -2.60/-2.89/-0.06/
+ * -0.11 against 2.0) were taken on the V1-shaped signal and are STALE by the
+ * stale-sweep rule — a neighbouring mechanism changed what the constant means,
+ * and the ramp now engages three to seven times as often at 750k. Re-bracketing
+ * the pair on the corrected signal is filed work, not a blocker: the corpus
+ * derivation and the shipped pair agree to the rounding.
  *
  * They are TWO and not three by design: one point where the response saturates
  * and one where it starts. A third anchor at `margin < 1` shipped with Phase 1a
@@ -110,6 +142,7 @@
 import type { Gap } from "../types.ts";
 import {
   BUDGET_ESTIMATOR_MODEL,
+  BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
   type BudgetEstimatorModelArtifact,
@@ -140,6 +173,15 @@ import { structuralRemainingWork } from "./budget_telemetry.ts";
  * `observedTraversalBudgetSlack` made — its `spent * totalGaps / deepestGap`
  * is a gap-COUNT version of the same measurement — with the accurate base and
  * the work-weighted progress the naive form lacked.
+ *
+ * The pace-free arm that priced this term (capability stratum -21.6, recovered
+ * to -0.8) ran on the V1-SHAPED base, where the structure under-predicted by
+ * roughly the amount pace had to make up. Under the artifact shape the base is
+ * ~2.7x larger at a root node, so how much of that -21.6 is still the pace
+ * term's is an open number. Re-pricing it is filed work; the term stays until
+ * measured, because the argument for it — structure cannot see that THIS spec
+ * costs two or three times the fitted rate per contact — is about the residual
+ * and not about the coefficients.
  *
  * The artifact JSON, the recorder, the analyzer and the fingerprint are all
  * untouched: this is a policy-side override of one selector field, declared
@@ -175,13 +217,18 @@ export const DEADLINE_MARGIN_FULL_PRESSURE = 1.25;
  * width, 0.75, is independently the old ramp width carried across by units:
  * 0.5 in paced-slack units times the 150k median ratio 1.65/1.06 = 0.78.
  *
- * Measured engagement `P(margin < 2.0)` over the archived panels: 75% at 75k,
- * 71% at 150k, 49% at 300k, 19% at 750k, 10% at 1.5M, 7% at 2.25M. That is a
- * far flatter budget profile than the ramp it replaces (100% / 12.5% / 2.3% at
- * 150k / 300k / 750k) — deliberately: the old profile was `pacedSlack`'s unit
- * drift, not a statement about deadlines, and a scale-free signal cannot
- * reproduce it. The mechanism is consequently LIVE at 750k, where it used to be
- * effectively absent.
+ * Measured engagement `P(margin < 2.0)` over the archived panels, for the shape
+ * this module computes: 75% at 75k, 71% at 150k, 49% at 300k, 19% at 750k, 10%
+ * at 1.5M, 7% at 2.25M. That is a far flatter budget profile than the ramp it
+ * replaces (100% / 12.5% / 2.3% at 150k / 300k / 750k) — deliberately: the old
+ * profile was `pacedSlack`'s unit drift, not a statement about deadlines, and a
+ * scale-free signal cannot reproduce it. The mechanism is consequently LIVE at
+ * 750k, where it used to be effectively absent.
+ *
+ * Those are OBSERVATION-weighted over the recorder's panels. The population a
+ * consumer sees is different and denser: over pre-completion pool builds on the
+ * capability sources at 750k the ramp engages on 64.3% of builds and saturates
+ * on 32.6%.
  */
 export const DEADLINE_MARGIN_NO_PRESSURE = 2;
 
@@ -219,10 +266,10 @@ export function underFullDeadlinePressure(margin: number): boolean {
  * Deterministic in (spec, seed, budget): every input is either fixed at
  * construction or a counter the search owns. The per-gap structural suffix is
  * tabulated once here — `structuralRemainingWork` allocates, and this is read
- * once per expanded node — by calling the same pure function the recorder does.
- * The FUNCTION is shared; the MODEL is not, because this caller takes the
- * default (V1) and the recorder passes the artifact's. Do not read the shared
- * call as a guarantee that the two tables agree — see the header.
+ * once per expanded node — by calling the same pure function the recorder does
+ * with the same model. Both arguments are load-bearing: the function's default
+ * model is a DIFFERENT regression, and taking it silently is the deviation the
+ * header's decision section closed.
  */
 export class CompileDeadline {
   private readonly policyBudgetFrames: number;
@@ -245,8 +292,13 @@ export class CompileDeadline {
     const scale = budgetEstimatorStructuralScale(input.policyBudgetFrames);
     const table: number[] = [];
     for (let gap = 0; gap <= input.gaps.length; gap++) {
-      table[gap] = scale *
-        structuralRemainingWork(input.gaps, input.durationFrames, gap, false);
+      table[gap] = scale * structuralRemainingWork(
+        input.gaps,
+        input.durationFrames,
+        gap,
+        false,
+        BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
+      );
     }
     this.policyBudgetFrames = Math.max(0, input.policyBudgetFrames);
     this.anchorGapIndex = clampGap(input.anchorGapIndex, input.gaps.length);
@@ -257,6 +309,7 @@ export class CompileDeadline {
       input.durationFrames,
       this.anchorGapIndex,
       input.includeStartup,
+      BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
     );
   }
 

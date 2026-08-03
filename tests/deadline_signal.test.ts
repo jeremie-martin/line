@@ -13,9 +13,11 @@ import {
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import { setAimCompileBudgetFrames } from "../scripts/v0/optimizer/aim.ts";
 import {
+  BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
 } from "../scripts/v0/optimizer/budget_estimator.ts";
+import { TRAVERSAL_BUDGET_MODEL_V1 } from "../scripts/v0/optimizer/budget_model.ts";
 import { structuralRemainingWork } from "../scripts/v0/optimizer/budget_telemetry.ts";
 import {
   CompileDeadline,
@@ -59,7 +61,13 @@ function expectedWork(
   budget = BUDGET,
 ): number {
   const structural = budgetEstimatorStructuralScale(budget) *
-    structuralRemainingWork(GAPS, DURATION_FRAMES, gapIndex, includeStartup);
+    structuralRemainingWork(
+      GAPS,
+      DURATION_FRAMES,
+      gapIndex,
+      includeStartup,
+      BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
+    );
   return estimateRemainingBudgetWork({
     structural,
     path,
@@ -69,6 +77,32 @@ function expectedWork(
 }
 
 describe("optimizer/deadline.ts — the one live deadline signal", () => {
+  /**
+   * The base-shape decision, pinned.
+   *
+   * `structuralRemainingWork`'s DEFAULT model is `TRAVERSAL_BUDGET_MODEL_V1`,
+   * and taking that default silently is how the shipped margin spent one era
+   * being V1-shaped under the artifact's law scale — a signal ~1.9x looser than
+   * the one its anchors were derived on, measured at +52.9 / +26.9 on two
+   * canonical capability groups when corrected. The model argument is therefore
+   * load-bearing and this test fails if a future edit drops it again.
+   */
+  test("the structural base is the ARTIFACT's shape, never the function default", () => {
+    expect(BUDGET_ESTIMATOR_TRAVERSAL_MODEL.contactFrames)
+      .not.toBeCloseTo(TRAVERSAL_BUDGET_MODEL_V1.contactFrames, 6);
+    const v1Work = budgetEstimatorStructuralScale(BUDGET) *
+      structuralRemainingWork(GAPS, DURATION_FRAMES, 0, true, TRAVERSAL_BUDGET_MODEL_V1);
+    const v1Margin = BUDGET / estimateRemainingBudgetWork({
+      structural: v1Work,
+      path: null,
+      pace: null,
+      progressFraction: 0,
+    });
+    const margin = deadline().marginAt({ spentFrames: 0, gapIndex: 0, costToEnd: null });
+    expect(margin).not.toBeCloseTo(v1Margin, 6);
+    expect(margin).toBeLessThan(v1Margin);
+  });
+
   test("at the first node the margin IS the static structural estimate", () => {
     const margin = deadline().marginAt({ spentFrames: 0, gapIndex: 0, costToEnd: null });
     expect(margin).toBeCloseTo(BUDGET / expectedWork(0, true, null), 9);
@@ -100,7 +134,13 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     const grinding = deadline().marginAt({ spentFrames: 400_000, gapIndex: 2, costToEnd: null });
     const structuralOnly = (spent: number): number => {
       const structural = budgetEstimatorStructuralScale(BUDGET) *
-        structuralRemainingWork(GAPS, DURATION_FRAMES, 2, false);
+        structuralRemainingWork(
+          GAPS,
+          DURATION_FRAMES,
+          2,
+          false,
+          BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
+        );
       return (BUDGET - spent) /
         estimateRemainingBudgetWork({ structural, path: null, pace: null, progressFraction: 0 });
     };

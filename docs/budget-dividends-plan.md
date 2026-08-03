@@ -188,16 +188,29 @@ folds, per-observation intervals, resumed exclusion), honest applicability,
 and only then any policy consumer at those budgets. If 0b chooses 750k-only,
 this phase closes unopened — that is not a failure of the plan.
 
-## Phase 3 — the margin base-shape decision (deliberate, low urgency)
+## Phase 3 — the margin base-shape decision — **DECIDED 2026-08-03, candidate ready**
 
-The shipped margin's structural base is V1-shaped × the artifact's law scale —
+The shipped margin's structural base was V1-shaped × the artifact's law scale —
 documented as a deviation, possibly load-bearing (it reconstructs the proven
 prior+correction architecture that the deleted pace blend used, and the
 requires-staleness finding says that architecture wants a biased prior).
-Resolve it deliberately: one candidate that swaps to artifact coefficients and
-re-anchors the three constants, against the incumbent, one eval. Either
-outcome is a win: an accuracy gain, or the accident blessed with a measurement
-instead of a footnote. Nothing waits on this.
+**Measured, the deviation loses.** `deadline.ts` now passes
+`BUDGET_ESTIMATOR_TRAVERSAL_MODEL` explicitly at both `structuralRemainingWork`
+call sites; the anchors do not move, because re-deriving them from coefficients
+on the Phase-0 corpus returns 1.30 / 1.90 at 150k — the shipped pair — so the
+"swap + re-anchor" bundle the plan named collapses onto the plain swap.
+
+V1 predicts 37% of the artifact's remaining work at a root node, so the shipped
+signal read ~1.9x loose and the ramp barely engaged: at 750k, pre-completion
+pool builds went 21.5% → 64.3% engaged and 4.5% → 32.6% at full pressure. The
+48-seed capability mover grid at 750k reads +52.89 (`rapid_pickup_frontier`) and
++26.85 (`dense_recovery_frontier`) as canonical group scores, `low_air_frontier`
+−0.34, controls flat, **0 completions lost** on a 243-cell action set (excludes
+loss rates above 1.23%). Evidence and the patch are in
+`scratchpad/dividends-p3/`; the eval happens after review and commit on main.
+Two items filed by the decision: the Phase 1a anchor brackets are stale (taken
+on the looser signal) and the pace term's −21.6 pricing was taken on the
+V1-shaped base and needs re-pricing.
 
 ## Track P — probes (free, anytime, archives only)
 

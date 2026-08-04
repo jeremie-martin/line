@@ -1832,19 +1832,19 @@ function compileHandoffInternal(
     // Count of complete tracks ever considered (any phase). A repair restart's delta tells us whether
     // it REACHED the end at all (completed), separate from whether it beat the incumbent (accepted).
     let terminalConsiders = 0;
-    // THE TWO-COUNTERS WINDOW, measured.
-    //
-    // `isTerminalNode` is STRUCTURAL (`gapIndex === gaps.length`) and stamps
-    // `firstTerminalFrame`, which is the budget estimator's fit target. The
-    // controller's phase flip — `hasCompletion`, `firstCompletionFrame`, the
-    // repair trigger — waits for a terminal that ALSO improved the register,
-    // and the register ranks `contract_passed -> axis_quality` (register.ts
-    // `isStrictlyBetter`). A complete-but-drifting track is therefore terminal
-    // without improving, and in the window that opens the estimator's target
-    // event has already happened (honest prediction ~0) while the controller is
-    // still pressing as pre-completion. This counter is how often that happens;
-    // `firstTerminalFrame` vs `firstCompletionFrame` in the same block is how
-    // long the window lasts.
+    // SUBSEQUENT-TERMINAL CHURN. (The "two-counters window" reading this block
+    // was built to measure is FALSIFIED — 4,406/4,406 compiles across both
+    // N=48 archives and every probe: `firstTerminalFrame` equals
+    // `firstCompletionFrame` on all of them, because the register ranks
+    // `contract_passed` first (register.ts `isStrictlyBetter`) and a structural
+    // terminal (`gapIndex === gaps.length`) passes the contract by
+    // construction, so the FIRST terminal always improves. There is no window;
+    // the estimator's fit target and the controller's phase flip are the same
+    // event.) What this counter actually measures is how much of the
+    // post-completion budget re-derives a complete track that does not beat
+    // the incumbent's axis_quality — overwhelmingly repair restarts and
+    // tail-completion re-walks: a repair-ROI number, 95.6% of terminal
+    // considers at N=48 scale. See docs/forward-eval-metrics.md.
     let terminalConsidersWithoutImprovement = 0;
     type RepairRecord = {
       round: number;

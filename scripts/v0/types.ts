@@ -801,13 +801,15 @@ export type CompileStats = {
     deadline_post_full_pressure: number;
     deadline_post_margin_sum: number;
     deadline_post_margin_min: number | null;
-    /** THE TWO-COUNTERS WINDOW. Terminal (structurally complete) traversals
-     *  offered to the register, and how many of them did NOT improve it. The
-     *  estimator's fit target is the first terminal; the controller's phase flip
-     *  waits for the first terminal that also improved, so the two frames below
-     *  bracket a window in which the estimator's target event has happened while
-     *  the controller still presses as pre-completion. Both are null when the
-     *  compile never reached the corresponding event. */
+    /** SUBSEQUENT-TERMINAL CHURN (not a phase-flip window — that reading was
+     *  falsified 4,406/4,406 on 2026-08-04). Terminal (structurally complete)
+     *  traversals offered to the register, and how many did NOT improve it.
+     *  The FIRST terminal always improves by construction (`contract_passed`
+     *  ranks first in register.consider and terminals pass the contract), so
+     *  the two frames below coincide on every measured compile; the counter
+     *  reads as "how much post-completion budget re-derives a non-improvement"
+     *  — a repair-ROI number. Both frames are null when the compile never
+     *  reached a terminal. See docs/forward-eval-metrics.md. */
     deadline_terminal_considers: number;
     deadline_terminal_without_improvement: number;
     deadline_first_terminal_frame: number | null;

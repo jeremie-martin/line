@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "tail-lane-slack-750k",
-  "generated_at": "2026-08-04T00:40:14.083Z",
+  "label": "base-depth1-750k",
+  "generated_at": "2026-08-04T03:43:49.663Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "873c3a130b7e8f74898abb96acb5e4a875f6db7110509692e5ee13c0f2139fe3",
+  "compiler_source_fingerprint": "e3cf4b393c38b783c3d59c8fe64b2c5e448f1fa0200597b768f77837e4df9ce2",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -125,7 +125,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "833d5d488b8efdafc35a99b9a5a21f9309f07f0912072806faac71cd9a58f33f",
+  "candidate_fingerprint": "f8bdb19c2c5971dd5fe4827ac2c11369444f631d11514c4ddc389bb22f42b901",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "c64eb99cf5ae8743cb86d050d478fe75db536f99c552c3747991b40cdf85f312",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -134,20 +134,20 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/tail-lane-slack-750k-compiler-snapshot.tar.gz",
-    "archiveSha256": "2b6f14bd4bf760516af00bdf1d1a9342b1c87874eaf93134e9fbc8a472dcd9bb",
-    "candidateFingerprint": "833d5d488b8efdafc35a99b9a5a21f9309f07f0912072806faac71cd9a58f33f",
-    "compilerSourceFingerprint": "873c3a130b7e8f74898abb96acb5e4a875f6db7110509692e5ee13c0f2139fe3",
+    "archive": "benchmark/v2/runs/base-depth1-750k-compiler-snapshot.tar.gz",
+    "archiveSha256": "70a9b3a1765c2f927bdf91abe3913ab627597f6b0634fca97ba671e8744b9344",
+    "candidateFingerprint": "f8bdb19c2c5971dd5fe4827ac2c11369444f631d11514c4ddc389bb22f42b901",
+    "compilerSourceFingerprint": "e3cf4b393c38b783c3d59c8fe64b2c5e448f1fa0200597b768f77837e4df9ce2",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
     "execution_policy_fingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
     "implementation_fingerprint": "ec0f05d8fc1a30d07f7908fb2fe879c1c70c7fad89845771758a741b98097a43",
-    "archive_sha256": "090df9ed31efbef59dba5860d401cdb7539f55fe4722e17f30d9b81dcf691f3f",
-    "compressed_archive": "benchmark/v2/runs/tail-lane-slack-750k-development-750k-N48.json.gz",
-    "compressed_archive_sha256": "84154bab8eb229cb4ebbce254826f748f55423f7d638a7d62ce75a08c191dc3e",
-    "canonical_headline": 595.9843,
+    "archive_sha256": "a7ffb712d7513dc5218c5a317ec6e185fa6d1c1b02933fda77da23720345bd7a",
+    "compressed_archive": "benchmark/v2/runs/base-depth1-750k-development-750k-N48.json.gz",
+    "compressed_archive_sha256": "6029c6926986712d6f6a48d02b6b8cb10298136e2ac78f03b297cd61543e07d4",
+    "canonical_headline": 596.4148,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -212,7 +212,7 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 595.9843,
+        "score": 596.4148,
         "valid_runs": 2112,
         "total_runs": 2112
       }
@@ -220,8 +220,8 @@
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "tail-lane-slack-750k",
-    "candidateFingerprint": "833d5d488b8efdafc35a99b9a5a21f9309f07f0912072806faac71cd9a58f33f",
+    "baselineLabel": "base-depth1-750k",
+    "candidateFingerprint": "f8bdb19c2c5971dd5fe4827ac2c11369444f631d11514c4ddc389bb22f42b901",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -289,9 +289,9 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 48,
-        "archiveSha256": "090df9ed31efbef59dba5860d401cdb7539f55fe4722e17f30d9b81dcf691f3f",
-        "compressedArchive": "benchmark/v2/runs/tail-lane-slack-750k-development-750k-N48.json.gz",
-        "compressedArchiveSha256": "84154bab8eb229cb4ebbce254826f748f55423f7d638a7d62ce75a08c191dc3e",
+        "archiveSha256": "a7ffb712d7513dc5218c5a317ec6e185fa6d1c1b02933fda77da23720345bd7a",
+        "compressedArchive": "benchmark/v2/runs/base-depth1-750k-development-750k-N48.json.gz",
+        "compressedArchiveSha256": "6029c6926986712d6f6a48d02b6b8cb10298136e2ac78f03b297cd61543e07d4",
         "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
         "implementationFingerprint": "ec0f05d8fc1a30d07f7908fb2fe879c1c70c7fad89845771758a741b98097a43"
       }
@@ -312,8 +312,8 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/tail-lane-slack-750k-comparison.json",
-    "artifact_sha256": "49621e29b02b21ff144c2c7c9f534ac0191ecc33baa20aa12648d2805cf65ca6",
+    "artifact": "benchmark/v2/runs/base-depth1-750k-comparison.json",
+    "artifact_sha256": "89712176a5ded9257ae4c4044ef5fad5524760efbddff2d406273d780bd7c6c6",
     "seeds": 48,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
@@ -321,14 +321,14 @@
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/tail-lane-slack-750k-comparison-request.json",
-    "request_sha256": "57fb7b18bbfc60356cf9fae0ac20c31d20dbdd563cb5c6e6b6b6305acf522ce4",
+    "request": "benchmark/v2/runs/base-depth1-750k-comparison-request.json",
+    "request_sha256": "a4d88294b7f0b9315cfaa574c67a722e27c324d10cec97c85823af8f136da649",
     "budgets": [
       750000
     ],
     "outcome": "inconclusive",
-    "delta": -0.0615,
+    "delta": 0.4305,
     "forced": true,
-    "force_reason": "inconclusive -0.06 [-0.22,+0.10]; evidenced correctness fix (tail lane budgetSlack omission, siblings threaded in 1baee0b; map SLK-03 contradicted); validity 2112/2112 both arms; keeps Phase-4 impact-widening re-price honest"
+    "force_reason": "inconclusive +0.43 [-0.62,+1.49] P(+)=86%; confound-unmasked depth correction (old greedy:1 closure was measured arms-off); representative +1.39 significant; capability -2.37 recorded as debt; validity 2112/2112 both arms"
   }
 }

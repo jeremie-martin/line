@@ -1324,6 +1324,7 @@ const IMPACT_BEST_FWD_ASK_SPAN = 0.2;
 const IMPACT_BEST_FWD_SLACK_START = 2.5;
 const IMPACT_BEST_FWD_SLACK_SPAN = 2.0;
 const IMPACT_BEST_FWD_BRANCH = 3;
+const IMPACT_BEST_FWD_DEPTH = 2;
 const OPENING_BEST_FWD_SLACK_BRANCH2_START = 2.75;
 const OPENING_BEST_FWD_SLACK_BRANCH2_SPAN = 2.25;
 const OPENING_BEST_FWD_SLACK_BRANCH3_START = 10;
@@ -5973,6 +5974,8 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 // every one REFUSES an out-of-range value instead of clamping:
 //   LR_STUDY_IMPACT_ASK_START  impactBestForwardEvalConfig's gate       [0, 1]
 //   LR_STUDY_IMPACT_BRANCH     impactBestForwardEvalConfig's width      [1, 8]
+//   LR_STUDY_IMPACT_DEPTH      impactBestForwardEvalConfig's own depth  [1, 2]
+//                              (2 = the arm's pinned shape = production)
 //   LR_STUDY_ROLLOUT_REDRAW    redrawFirstHopOnEmpty's dose             [0, 7]
 //   LR_STUDY_HANDOFF_POOL      handoffCandidatePool (search-side, but the shape studies
 //                              move it against rollout width)           [3, 8]
@@ -7570,8 +7573,9 @@ function impactBestForwardEvalConfig(
     : 0;
   const pressure = askPressure * slackPressure;
   if (pressure <= 0 || unitHash(impactBestForwardEvalSeed(node)) >= pressure) return base;
-  // The arm's OWN shape, on the gaps it owns: greedy depth 2, first rolled
-  // contact widened to IMPACT_BEST_FWD_BRANCH samples, deeper hops single-draw.
+  // The arm's OWN shape, on the gaps it owns: greedy IMPACT_BEST_FWD_DEPTH deep,
+  // first rolled contact widened to IMPACT_BEST_FWD_BRANCH samples, deeper hops
+  // single-draw.
   // The deeper hop is load-bearing speed/drift control (the depth-1 best:1:3
   // form paid +0.016 speed RMS on flow sources), so the shape is PINNED here
   // rather than inherited: under a moved base (`LR_FWD_EVAL_BASE`) inheriting
@@ -7583,7 +7587,7 @@ function impactBestForwardEvalConfig(
   return {
     ...base,
     variant: "greedy",
-    depth: 2,
+    depth: impactBestFwdDepth(),
     branch: 1,
     firstBranch: impactBestFwdBranch(),
   };
@@ -7606,14 +7610,41 @@ function impactBestFwdEnabled(): boolean {
  * removal costs +4.59 ± 2.20 per cell — so the standing question is not whether
  * to keep it but whether its frames buy more when the GATE is narrower
  * (`..._ASK_START`, how much impact ask a gap needs before the widening is even
- * in play) or the WIDTH is smaller (`..._BRANCH`, samples at the first rolled
- * contact). Both refuse out-of-range values rather than clamping: `ASK_START`
- * must be a finite number in [0, 1] (the impact ask's own domain) and `BRANCH`
- * an integer in [1, 8] (1 disables the widening while keeping the arm's shape,
- * 8 is the rollout width clamp).
+ * in play), the WIDTH is smaller (`..._BRANCH`, samples at the first rolled
+ * contact), or the arm rolls one hop instead of two (`..._DEPTH`). All three
+ * refuse out-of-range values rather than clamping: `ASK_START` must be a finite
+ * number in [0, 1] (the impact ask's own domain), `BRANCH` an integer in [1, 8]
+ * (1 disables the widening while keeping the arm's shape, 8 is the rollout
+ * width clamp), and `DEPTH` an integer in [1, 2] — 2 is the arm's pinned shape,
+ * 1 is the production base's own depth, and the interval is deliberately closed
+ * there because depth 3 was measured negative on 5 of 6 sources (mandate
+ * iteration 2's dose ladder) and this knob exists to price the arm's SECOND hop,
+ * not to reopen deeper ones.
+ *
+ * MEASURED AND CLOSED 2026-08-04 (mandate iteration 6; 44 canonical v2 sources ×
+ * 8 seeds × 750k, same-seed paired, 352 cells/arm, 352/352 valid in every arm):
+ *  - `DEPTH=1` — flat −0.25 ± 0.76 (t = −0.33), suite-stratum-weighted
+ *    −0.36 ± 0.76 (t = −0.48), 22/44 sources positive. A measured WASH, and the
+ *    interesting part is what it costs: the arm's second hop is 41% of all
+ *    rollout frames (M1 19.5% → 12.0%, −20.1M frames) yet total simulated frames
+ *    move −0.14% — the charge is simply re-spent on search (forward-eval calls
+ *    +8.8%), and the two uses price equal at 750k. So the second hop is NOT
+ *    free-standing value the way mandate 2's base-depth ladder was; it is bought
+ *    at exactly its market price. Any future "narrow the arm and spend the
+ *    frames elsewhere" candidate starts from parity, not from a surplus, and
+ *    inherits the free-judge ceiling (+1.78 ± 1.31).
+ *  - `BRANCH=2` — flat −1.26 ± 0.69 (t = −1.82), suite-weighted −1.36 ± 0.71
+ *    (t = −1.91), 14/44 sources positive, 2/8 seeds. The +1.23 ± 5.17 measured
+ *    on the pre-promotion tree was noise and does not survive the re-probe;
+ *    width 3 is confirmed as the local optimum for this arm.
+ * Neither arm met the nomination bar (suite-weighted ≥ +0.3 at t ≥ 2), so the
+ * DEPTH×BRANCH combination was not run — the composition rule requires both
+ * factors to read ≥ 0 first. Both axes are CLOSED; these knobs stay as study
+ * instruments, never production shapes.
  */
 const readStudyImpactAskStart = compileScopedEnv("LR_STUDY_IMPACT_ASK_START");
 const readStudyImpactBranch = compileScopedEnv("LR_STUDY_IMPACT_BRANCH");
+const readStudyImpactDepth = compileScopedEnv("LR_STUDY_IMPACT_DEPTH");
 
 function impactBestFwdAskStart(): number {
   const raw = readStudyImpactAskStart();
@@ -7635,6 +7666,19 @@ function impactBestFwdBranch(): number {
   if (!Number.isInteger(n) || String(n) !== raw.trim() || n < 1 || n > 8) {
     throw new Error(
       `LR_STUDY_IMPACT_BRANCH must be an integer in [1, 8] (STUDY-ONLY; never set it in ` +
+        `production or in an eval), got "${raw}"`,
+    );
+  }
+  return n;
+}
+
+function impactBestFwdDepth(): number {
+  const raw = readStudyImpactDepth();
+  if (raw === undefined || raw === "") return IMPACT_BEST_FWD_DEPTH;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isInteger(n) || String(n) !== raw.trim() || n < 1 || n > 2) {
+    throw new Error(
+      `LR_STUDY_IMPACT_DEPTH must be an integer in [1, 2] (STUDY-ONLY; never set it in ` +
         `production or in an eval), got "${raw}"`,
     );
   }

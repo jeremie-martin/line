@@ -290,7 +290,7 @@ describe("study-only env gates refuse rather than clamp", () => {
     }
   }, 300_000);
 
-  test("LR_STUDY_IMPACT_ASK_START and LR_STUDY_IMPACT_BRANCH", async () => {
+  test("LR_STUDY_IMPACT_ASK_START, LR_STUDY_IMPACT_BRANCH and LR_STUDY_IMPACT_DEPTH", async () => {
     const s = await spec();
     for (const bad of ["-0.1", "1.1", "high"]) {
       expect(() => withEnv({ LR_STUDY_IMPACT_ASK_START: bad }, () =>
@@ -302,6 +302,33 @@ describe("study-only env gates refuse rather than clamp", () => {
         compileHandoff(s, 0, { budget: BUDGET })))
         .toThrow(/LR_STUDY_IMPACT_BRANCH must be an integer in \[1, 8\]/);
     }
+    // Depth is closed at 2 on purpose: 3 was measured negative on 5 of 6
+    // sources, so the knob refuses it rather than making the deeper hop one
+    // typo away.
+    for (const bad of ["0", "3", "two", "1.5", "-1"]) {
+      expect(() => withEnv({ LR_STUDY_IMPACT_DEPTH: bad }, () =>
+        compileHandoff(s, 0, { budget: BUDGET })))
+        .toThrow(/LR_STUDY_IMPACT_DEPTH must be an integer in \[1, 2\]/);
+    }
+  }, 300_000);
+
+  test("LR_STUDY_IMPACT_DEPTH moves the arm's own depth, and only the arm's", async () => {
+    const s = await spec();
+    const one = compiledUnder({ LR_STUDY_IMPACT_DEPTH: "1" }, s);
+    const two = compiledUnder({ LR_STUDY_IMPACT_DEPTH: "2" }, s);
+    const base = compiledUnder({ LR_FWD_EVAL: undefined, LR_FWD_EVAL_BASE: undefined }, s);
+
+    // 2 is the pinned shape: setting it explicitly is the production compile.
+    expect(two.track).toBe(base.track);
+    // 1 collapses the arm to a single hop while KEEPING its widening — the
+    // point of the probe is the second hop alone, not the width.
+    expect(one.shapes.get("greedy:1:1+fb3")).toBeGreaterThan(0);
+    expect(one.shapes.has("greedy:2:1+fb3")).toBe(false);
+    expect(base.shapes.get("greedy:2:1+fb3")).toBeGreaterThan(0);
+    // The depth-1 production BASE is untouched — the arm is the only shape that
+    // moved, so `greedy:1:1` (base) and `greedy:1:1+fb3` (arm) coexist.
+    expect(one.shapes.get("greedy:1:1")).toBeGreaterThan(0);
+    expect(one.track).not.toBe(base.track);
   }, 300_000);
 
   test("LR_STUDY_IMPACT_BRANCH moves the widening it names, and only that", async () => {

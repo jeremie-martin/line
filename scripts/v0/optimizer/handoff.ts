@@ -4841,8 +4841,46 @@ function reuseCatchCandidates(
   return out;
 }
 
+/**
+ * STUDY-ONLY override of the admitted pool size. **Never set this in
+ * production, in a benchmark eval, or in a promotion candidate.**
+ *
+ * It exists for one question the shape campaign has to answer and cannot answer
+ * any other way: the rollout width dose has a hard cliff at W = 6, one above
+ * `HANDOFF_CANDIDATE_POOL`, and the hypothesis is that a rollout wider than the
+ * pool the search will actually admit values a child the search can never take.
+ * Testing it means moving the pool, which is why the knob is here and why it
+ * refuses anything outside the bracketed range [3, 8] (the constant's own
+ * bracket: 3 = +1.83, 4 = -3.54, 5 = +3.32 shipped, 6 = +2.28, 8 = the previous
+ * value) instead of clamping — a study that silently ran at 5 because its env
+ * said `six` would be worse than no study.
+ *
+ * SHARE-INVARIANT EXEMPTION, stated precisely. The load-time assert above
+ * (`AIM_LANE_DEADLINE_BASE_SHARE === HANDOFF_FORWARD_EVAL_TOP /
+ * HANDOFF_CANDIDATE_POOL`) is an assert about the two CONSTANTS and this
+ * override does not touch either, so its precondition is intact and it keeps
+ * doing its job. What the override does break is the invariant's *meaning* at
+ * run time: under full deadline pressure the rolled head keeps
+ * `HANDOFF_FORWARD_EVAL_TOP` of `poolSize` while the aim lane keeps the frozen
+ * literal 2/5 of its bases, so the two "same share" consumers diverge for the
+ * duration of the study arm. That is measured to be nearly nothing at the
+ * budgets this knob is used at — full deadline pressure is 0.40% of
+ * pre-completion pool builds at 750k and exactly 0 at >= 1.5M — but it is a real
+ * divergence and any arm run with this knob states it.
+ */
+const readStudyHandoffPool = compileScopedEnv("LR_STUDY_HANDOFF_POOL");
+
 export function handoffCandidatePool(): number {
-  return HANDOFF_CANDIDATE_POOL;
+  const raw = readStudyHandoffPool();
+  if (raw === undefined || raw === "") return HANDOFF_CANDIDATE_POOL;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isInteger(n) || String(n) !== raw.trim() || n < 3 || n > 8) {
+    throw new Error(
+      `LR_STUDY_HANDOFF_POOL must be an integer in [3, 8] (STUDY-ONLY; never set it in ` +
+        `production or in an eval), got "${raw}"`,
+    );
+  }
+  return n;
 }
 
 function completeNearTail(
@@ -5813,13 +5851,24 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 // (eval_arc_apples.ts and eval_leaf_factors.ts call setForwardEvalContext then
 // read objectiveLeafValue),
 // which have no test coverage of their own.
+//
+// STUDY-ONLY KNOBS THAT REACH INTO THIS SUBSYSTEM, in one list so nobody has to find them
+// by grep. Every one defaults OFF (production is byte-identical with all of them unset) and
+// every one REFUSES an out-of-range value instead of clamping:
+//   LR_STUDY_IMPACT_ASK_START  impactBestForwardEvalConfig's gate       [0, 1]
+//   LR_STUDY_IMPACT_BRANCH     impactBestForwardEvalConfig's width      [1, 8]
+//   LR_STUDY_ROLLOUT_REDRAW    redrawFirstHopOnEmpty's dose             [0, 7]
+//   LR_STUDY_HANDOFF_POOL      handoffCandidatePool (search-side, but the shape studies
+//                              move it against rollout width)           [3, 8]
 // ════════════════════════════════════════════════════════════════════════════════════════
 // ── True-score forward arc evaluation (DEFAULT ranker ≥75k; also start selection & repair) ──
 // Rank each candidate arc by the TRUE metric score (scoreDriftReport via leafKeyForReport) of
 // where it LEADS over a short forward lookahead, instead of the local axis-L2 proxy. Rollouts are
 // CHARGED honestly by default (LR_FWD_EVAL_CHARGE=0 refunds them to measure the free ceiling).
-// Three variants, selected by LR_FWD_EVAL=<variant>[:depth[:branch]] (higher value = better arc;
-// rank by -value); greedy:2 is the honest sweet spot:
+// Three variants, selected by LR_FWD_EVAL=<variant>[:depth[:branch]] (full override — also
+// switches the adaptive arms OFF) or LR_FWD_EVAL_BASE=<...> (base-shape override that COMPOSES
+// with them; see resolveForwardEvalConfig and adaptiveArmsApply). Higher value = better arc;
+// rank by -value; greedy:2 is the honest sweet spot:
 //   greedy : single locally-cheapest rollout `depth` contacts deep; value = true score
 //            of the resulting partial track. Cheap, directional.
 //   best   : branch the top-`branch` candidates `depth` deep; value = MAX true score over
@@ -6147,6 +6196,20 @@ function warnUnparsedSpec(
   }
 }
 
+/** The two shape knobs are not additive and the precedence must be visible: an
+ *  arm that thinks it composed with the adaptive layer but did not is exactly
+ *  the confound this whole knob exists to remove. */
+function warnBaseOverrideIgnored(baseRaw: string, fullRaw: string): void {
+  const log = (globalThis as { console?: { warn?: (msg: string) => void } }).console?.warn;
+  if (log) {
+    log(
+      `[handoff] LR_FWD_EVAL_BASE="${baseRaw}" is IGNORED because LR_FWD_EVAL="${fullRaw}" is set: ` +
+        "the full override pins the shape AND switches the adaptive arms off. " +
+        "Unset LR_FWD_EVAL to compose.",
+    );
+  }
+}
+
 function readEnv(name: string): string | undefined {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.[name];
@@ -6268,14 +6331,48 @@ function objectiveLayerSpreadStat(): { objective_layer_spread?: NonNullable<Retu
   return spread === null ? {} : { objective_layer_spread: spread };
 }
 
+/** TWO shape knobs, and the difference between them is the adaptive layer.
+ *
+ *  `LR_FWD_EVAL=<shape>` is the FULL override and its semantics are unchanged:
+ *  it pins one rollout shape for the whole compile and sets
+ *  `defaultConfig = false`, which switches every adaptive arm off
+ *  (`adaptiveArmsApply`). That is deliberate — an arm that silently replaces the
+ *  shape you asked for makes the study arm unreadable — but it also means no
+ *  base-shape arm could ever be measured WITH the adaptive arms live, and the
+ *  arms are not small (the impact widening alone is 62.8% of rollout frames at
+ *  750k and is worth +4.59 ± 2.20).
+ *
+ *  `LR_FWD_EVAL_BASE=<shape>` is the COMPOSABLE override: it moves the compile's
+ *  BASE rollout shape and leaves the adaptive layer exactly as it is. The arms
+ *  keep owning the gaps they own and run the shapes they run there; the base
+ *  moves on every other gap. Only consulted when `LR_FWD_EVAL` is unset — the
+ *  full override wins and says so.
+ *
+ *  An unparsed `LR_FWD_EVAL_BASE` falls back to the knob default (`greedy:2`)
+ *  with a warning rather than disabling forward eval: a typo in a *base* knob
+ *  must not silently turn the ranker off, which is what the `LR_FWD_EVAL` typo
+ *  path does (kept, for compatibility with every study that relies on it). */
 function resolveForwardEvalConfig(): { config: CandidateForwardPolicy | null; defaultConfig: boolean } {
   const env = readEnv("LR_FWD_EVAL");
   const defaultConfig = env === undefined || env === "";
   if (env === "0" || env === "off") return { config: null, defaultConfig };
-  const shape = parseRolloutShape(env === undefined || env === "" ? "greedy:2" : env);
-  // A non-empty env that failed to parse is a typo, not an intentional disable — warn so the
-  // silent fallback to the local proxy ranker is visible (env is non-empty/non-off here).
-  if (shape === null && env !== undefined && env !== "") warnUnparsedSpec("LR_FWD_EVAL", env);
+  let shape: ForwardRolloutShape | null;
+  if (defaultConfig) {
+    const baseEnv = readEnv("LR_FWD_EVAL_BASE");
+    const overridden = baseEnv !== undefined && baseEnv !== "";
+    shape = overridden ? parseRolloutShape(baseEnv as string) : parseRolloutShape("greedy:2");
+    if (shape === null) {
+      warnUnparsedSpec("LR_FWD_EVAL_BASE", baseEnv as string);
+      shape = parseRolloutShape("greedy:2");
+    }
+  } else {
+    const baseEnv = readEnv("LR_FWD_EVAL_BASE");
+    if (baseEnv !== undefined && baseEnv !== "") warnBaseOverrideIgnored(baseEnv, env as string);
+    shape = parseRolloutShape(env as string);
+    // A non-empty env that failed to parse is a typo, not an intentional disable — warn so the
+    // silent fallback to the local proxy ranker is visible (env is non-empty/non-off here).
+    if (shape === null) warnUnparsedSpec("LR_FWD_EVAL", env as string);
+  }
   // Rollout frames are CHARGED honestly by default; LR_FWD_EVAL_CHARGE=0 refunds them (the
   // budget-refunded ceiling experiment). Resolved once here, not re-read per candidate.
   return {
@@ -6529,6 +6626,30 @@ function advanceToNextContact(search: SearchNode, gaps: Gap[]): SearchNode | nul
  * `cachedForwardContinuation` now reports the corrected bit, so the
  * online-continuation filter stops pruning the frontier on a refuted proof.
  */
+/**
+ * STUDY-ONLY dose override for the re-draw increment above. **Never set this in
+ * production, in a benchmark eval, or in a promotion candidate.**
+ *
+ * The constant's own docstring calls wider doses "a monotone family that can be
+ * walked later on the same arithmetic"; this is the knob that walks it, and
+ * nothing else. Refuses anything outside [0, 7] rather than clamping (0 is the
+ * pre-redraw world, 7 keeps the widened draw inside the rollout width clamp).
+ */
+const readStudyRolloutRedraw = compileScopedEnv("LR_STUDY_ROLLOUT_REDRAW");
+
+function rolloutRedrawOnEmpty(): number {
+  const raw = readStudyRolloutRedraw();
+  if (raw === undefined || raw === "") return HANDOFF_ROLLOUT_REDRAW_ON_EMPTY;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isInteger(n) || String(n) !== raw.trim() || n < 0 || n > 7) {
+    throw new Error(
+      `LR_STUDY_ROLLOUT_REDRAW must be an integer in [0, 7] (STUDY-ONLY; never set it in ` +
+        `production or in an eval), got "${raw}"`,
+    );
+  }
+  return n;
+}
+
 export function redrawFirstHopOnEmpty(
   at: SearchNode,
   gaps: Gap[],
@@ -6536,7 +6657,8 @@ export function redrawFirstHopOnEmpty(
   seed: number,
   width: number,
 ): Candidate[] {
-  if (HANDOFF_ROLLOUT_REDRAW_ON_EMPTY <= 0) return [];
+  const dose = rolloutRedrawOnEmpty();
+  if (dose <= 0) return [];
   fwdEvalTotals.fwd_rollout_redraws++;
   const savedAimSuppressed = isRolloutAimSuppressed();
   setRolloutAimSuppressed(true);
@@ -6547,7 +6669,7 @@ export function redrawFirstHopOnEmpty(
       gaps,
       ctx,
       seed,
-      width + HANDOFF_ROLLOUT_REDRAW_ON_EMPTY,
+      width + dose,
     );
   } finally {
     setRolloutAimSuppressed(savedAimSuppressed);
@@ -6740,6 +6862,27 @@ function forwardArcValue(
     : null;
   rolloutTrace = trace;
   if (traced) rolloutRedrawState = "none";
+  /* SCOPED AIM SUPPRESSION FOR WIDE BASE SHAPES (plan 4.1(b)).
+   *
+   * A base shape wider than one sample (`LR_FWD_EVAL_BASE=best:1:W`,
+   * `LR_FWD_EVAL=best:1:W`) rebuilds the rolled-level pool at nCand = W, which
+   * re-opens the charged aim lane inside the rollout on every prefix re-sort —
+   * 4.6x cost, zero refutation value, and the documented -34.6 / -258
+   * branch-widening failure was exactly unsuppressed width. Suppress it here,
+   * scoped and restored, the way `forwardFirstWidenedScore` and
+   * `redrawFirstHopOnEmpty` already do, instead of via the global
+   * `LR_ROLLOUT_AIM=0` (which is process-wide and cannot be a production shape).
+   *
+   * Gated on the COMPILE'S BASE width, not on this gap's effective shape: the
+   * adaptive arms' own shapes (opening-best's `best:1:2|3`) must keep behaving
+   * exactly as measured, and at base width 1 the flag is never touched at all,
+   * so production is byte-identical. On the arms' gaps under a wide base the
+   * outer suppression is provably inert anyway — `forwardFirstWidenedScore`
+   * already suppresses its own hop-1 build and every deeper hop draws nCand = 1,
+   * where node.ts's `nCand > 1` gate keeps the lane out regardless. */
+  const suppressWideBaseAim = (fwdEvalRuntime.config?.branch ?? 1) > 1;
+  const savedRolloutAimSuppressed = suppressWideBaseAim ? isRolloutAimSuppressed() : false;
+  if (suppressWideBaseAim) setRolloutAimSuppressed(true);
   let value = 0;
   try {
     value = cfg.variant === "avg"
@@ -6754,6 +6897,7 @@ function forwardArcValue(
       );
     return value;
   } finally {
+    if (suppressWideBaseAim) setRolloutAimSuppressed(savedRolloutAimSuppressed);
     rolloutTrace = null;
     setRolloutContext(false);
     // Cost instrument (measure-only): count the rollout's sim-frames even when charged
@@ -6800,6 +6944,38 @@ function forwardArcValue(
   }
 }
 
+/** THE ADAPTIVE LAYER'S COMPOSITION RULE, stated once.
+ *
+ *  All three upgrades (mature-avg, impact-best, opening-best) are shape
+ *  REPLACEMENTS scoped to the gaps they own: each one builds a complete rollout
+ *  shape and carries only `charge`/`leaf` over from the base. `impactBest` looks
+ *  like a delta (`{...base, firstBranch}`) but is not one — that spelling equals
+ *  `greedy:2:1 + firstBranch=3` exactly because the base could only ever BE
+ *  `greedy:2:1`, and the dispatcher in `forwardArcValue` honours `firstBranch`
+ *  for `variant === "greedy"` alone, so the same spelling on any other base
+ *  would silently DROP the widening. It is written as the replacement it is.
+ *
+ *  Two preconditions, both about who owns the shape:
+ *   - `defaultConfig` — the study full override (`LR_FWD_EVAL`) pins one shape
+ *     for the whole compile by design, and an arm replacing it would make the
+ *     study arm unreadable. `LR_FWD_EVAL_BASE` moves the base and keeps this
+ *     true, which is the whole point of having two knobs;
+ *   - the shape handed to an arm is still the compile's own base, i.e. no arm
+ *     upstream in the chain has already replaced it (mature > impact > opening).
+ *
+ *  This was spelled as the literal triple `greedy:2:1` while the base was a
+ *  constant; against a movable base it is the same predicate stated against the
+ *  base. Byte-identical whenever the base is the default. */
+function adaptiveArmsApply(base: CandidateForwardPolicy): boolean {
+  const compileBase = fwdEvalRuntime.config;
+  return fwdEvalRuntime.defaultConfig &&
+    compileBase !== null &&
+    base.variant === compileBase.variant &&
+    base.depth === compileBase.depth &&
+    base.branch === compileBase.branch &&
+    (base.firstBranch ?? 1) === (compileBase.firstBranch ?? 1);
+}
+
 function adaptiveForwardEvalConfig(
   base: CandidateForwardPolicy,
   node: SearchNode,
@@ -6819,13 +6995,7 @@ function openingBestForwardEvalConfig(
   budgetSlack: number,
   opportunity: number,
 ): CandidateForwardPolicy {
-  if (
-    !fwdEvalRuntime.defaultConfig ||
-    base.variant !== "greedy" ||
-    base.depth !== 2 ||
-    base.branch !== 1 ||
-    opportunity <= 0
-  ) {
+  if (!adaptiveArmsApply(base) || opportunity <= 0) {
     return base;
   }
 
@@ -6879,12 +7049,7 @@ function matureForwardEvalConfig(
   targetBudget: number,
   budgetSlack: number,
 ): CandidateForwardPolicy {
-  if (
-    !fwdEvalRuntime.defaultConfig ||
-    base.variant !== "greedy" ||
-    base.depth !== 2 ||
-    base.branch !== 1
-  ) {
+  if (!adaptiveArmsApply(base)) {
     return base;
   }
   const verticalPressure = verticalDramaForwardEvalPressure(node, gaps);
@@ -6935,7 +7100,7 @@ function impactBestForwardEvalConfig(
   const ask = gaps[node.gapIndex]?.targets?.impact;
   if (ask === undefined) return base;
   const askPressure = smoothstep(
-    (ask - IMPACT_BEST_FWD_ASK_START) / IMPACT_BEST_FWD_ASK_SPAN,
+    (ask - impactBestFwdAskStart()) / IMPACT_BEST_FWD_ASK_SPAN,
   );
   if (askPressure <= 0) return base;
   const budgetPressure = smoothstep(
@@ -6946,10 +7111,23 @@ function impactBestForwardEvalConfig(
     : 0;
   const pressure = askPressure * budgetPressure * slackPressure;
   if (pressure <= 0 || unitHash(impactBestForwardEvalSeed(node)) >= pressure) return base;
-  // Keep the base greedy shape (its deeper hop is load-bearing speed/drift
-  // control — the depth-1 best:1:3 form paid +0.016 speed RMS on flow sources);
-  // widen only the first rolled contact's sample.
-  return { ...base, firstBranch: IMPACT_BEST_FWD_BRANCH };
+  // The arm's OWN shape, on the gaps it owns: greedy depth 2, first rolled
+  // contact widened to IMPACT_BEST_FWD_BRANCH samples, deeper hops single-draw.
+  // The deeper hop is load-bearing speed/drift control (the depth-1 best:1:3
+  // form paid +0.016 speed RMS on flow sources), so the shape is PINNED here
+  // rather than inherited: under a moved base (`LR_FWD_EVAL_BASE`) inheriting
+  // would either change what this arm does on its own gaps or — for any
+  // non-greedy base — drop the widening silently, since `forwardArcValue`
+  // dispatches `firstBranch` on `variant === "greedy"` alone. Byte-identical to
+  // the previous `{ ...base, firstBranch }` whenever the base is `greedy:2:1`
+  // (same keys, same insertion order, same values).
+  return {
+    ...base,
+    variant: "greedy",
+    depth: 2,
+    branch: 1,
+    firstBranch: impactBestFwdBranch(),
+  };
 }
 
 /** Sampled once per compile: read on every `rankedOptions` call through
@@ -6959,6 +7137,49 @@ const readImpactBestFwd = compileScopedEnv("LR_IMPACT_BEST_FWD");
 
 function impactBestFwdEnabled(): boolean {
   return readImpactBestFwd() !== "0";
+}
+
+/**
+ * STUDY-ONLY re-scope knobs for the impact widening. **Never set either in
+ * production, in a benchmark eval, or in a promotion candidate.**
+ *
+ * This arm is 62.8% of all rollout frames at 750k and 72% at 2.5M, and its
+ * removal costs +4.59 ± 2.20 per cell — so the standing question is not whether
+ * to keep it but whether its frames buy more when the GATE is narrower
+ * (`..._ASK_START`, how much impact ask a gap needs before the widening is even
+ * in play) or the WIDTH is smaller (`..._BRANCH`, samples at the first rolled
+ * contact). Both refuse out-of-range values rather than clamping: `ASK_START`
+ * must be a finite number in [0, 1] (the impact ask's own domain) and `BRANCH`
+ * an integer in [1, 8] (1 disables the widening while keeping the arm's shape,
+ * 8 is the rollout width clamp).
+ */
+const readStudyImpactAskStart = compileScopedEnv("LR_STUDY_IMPACT_ASK_START");
+const readStudyImpactBranch = compileScopedEnv("LR_STUDY_IMPACT_BRANCH");
+
+function impactBestFwdAskStart(): number {
+  const raw = readStudyImpactAskStart();
+  if (raw === undefined || raw === "") return IMPACT_BEST_FWD_ASK_START;
+  const n = Number.parseFloat(raw);
+  if (!Number.isFinite(n) || n < 0 || n > 1) {
+    throw new Error(
+      `LR_STUDY_IMPACT_ASK_START must be a finite number in [0, 1] (STUDY-ONLY; never set it ` +
+        `in production or in an eval), got "${raw}"`,
+    );
+  }
+  return n;
+}
+
+function impactBestFwdBranch(): number {
+  const raw = readStudyImpactBranch();
+  if (raw === undefined || raw === "") return IMPACT_BEST_FWD_BRANCH;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isInteger(n) || String(n) !== raw.trim() || n < 1 || n > 8) {
+    throw new Error(
+      `LR_STUDY_IMPACT_BRANCH must be an integer in [1, 8] (STUDY-ONLY; never set it in ` +
+        `production or in an eval), got "${raw}"`,
+    );
+  }
+  return n;
 }
 
 function impactBestForwardEvalSeed(node: SearchNode): number {

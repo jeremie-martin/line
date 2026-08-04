@@ -696,4 +696,126 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     // Objective run completes with a valid output.
     expect(objA.track.lines.length).toBeGreaterThan(0);
   }, 180_000);
+
+  /**
+   * THE DE-DILUTED FOLD (`LR_LEAF_DEDILUTE=1`, study arm, default OFF).
+   *
+   * These pin the three properties the arm's whole argument rests on, because the arm lost
+   * its 750k panel and the properties are the reason it could only ever have won in one
+   * narrow place. Read `dedilutedAxisQuality` for the measurement; read these for the
+   * algebra it sits on.
+   */
+  describe("de-diluted leaf fold (LR_LEAF_DEDILUTE=1)", () => {
+    const withDedilute = <T>(on: boolean, gaps: Gap[], body: () => T): T => {
+      const prev = process.env.LR_LEAF_DEDILUTE;
+      if (on) process.env.LR_LEAF_DEDILUTE = "1";
+      else delete process.env.LR_LEAF_DEDILUTE;
+      try {
+        installTargets(gaps); // resolves the flag for the compile scope
+        return body();
+      } finally {
+        if (prev === undefined) delete process.env.LR_LEAF_DEDILUTE;
+        else process.env.LR_LEAF_DEDILUTE = prev;
+        installTargets(gaps); // restore the default resolution for later tests
+      }
+    };
+    const t: AxisValues = { speed: 1.0 };
+    /** `n` contact gaps plus one trailing contact so no leaf below is terminal. */
+    const chain = (n: number): Gap[] =>
+      Array.from({ length: n + 1 }, (_, i) => contactGap(i, t));
+    /** Prefix fits, all at the same error, then the candidate's own gaps. */
+    const leafWith = (prefixErr: number, prefixLen: number, ownErrs: number[]): SearchNode =>
+      leafOf([
+        ...Array.from({ length: prefixLen }, () => fitWith({ speed: 1.0 - prefixErr })),
+        ...ownErrs.map((e) => fitWith({ speed: 1.0 - e })),
+      ]);
+
+    test("the boundary is inert at 0: a pool with no shared prefix is bit-identical", () => {
+      const gaps = chain(2);
+      const leaf = leafWith(0, 0, [0.2, 0.1]);
+      const plain = withDedilute(false, gaps, () => objectiveLeafValue(leaf, gaps, DUR, 0));
+      expect(withDedilute(true, gaps, () => objectiveLeafValue(leaf, gaps, DUR, 0)))
+        .toBe(plain); // exact equality, not toBeCloseTo — the same code path must run
+      // ...and so is a non-zero boundary while the arm is off.
+      expect(withDedilute(false, gaps, () => objectiveLeafValue(leaf, gaps, DUR, 1)))
+        .toBe(plain);
+    });
+
+    test("EQUAL-DEPTH pools keep their exact order — the arm cannot touch them", () => {
+      // Both folds are strictly increasing in the candidate-specific error mass, and
+      // survival/missing depend only on the leaf's depth, so an equal-depth pool is ordered
+      // identically under both. This is why the arm's action is confined to mixed-depth
+      // pools; it is a property, not an accident, and it bounds what the arm can ever buy.
+      const gaps = chain(22);
+      for (const prefixLen of [2, 20]) {
+        const a = leafWith(0.2, prefixLen, [0.05, 0.05]);
+        const b = leafWith(0.2, prefixLen, [0.06, 0.06]);
+        const plainA = withDedilute(false, gaps, () => objectiveLeafValue(a, gaps, DUR, prefixLen));
+        const plainB = withDedilute(false, gaps, () => objectiveLeafValue(b, gaps, DUR, prefixLen));
+        const dedilA = withDedilute(true, gaps, () => objectiveLeafValue(a, gaps, DUR, prefixLen));
+        const dedilB = withDedilute(true, gaps, () => objectiveLeafValue(b, gaps, DUR, prefixLen));
+        expect(plainA).toBeGreaterThan(plainB); // the lower-error candidate wins
+        expect(dedilA).toBeGreaterThan(dedilB); // ...under both folds
+        // Ratios, not absolute differences: these leaves carry an exp(-remaining) factor, so
+        // the magnitudes are ~1e-7 and an absolute tolerance would pass on anything.
+        if (prefixLen === 2) {
+          // n_shared = n_new is the reweighting's own fixed point (the weight n_s/n_c is 1),
+          // so the two folds coincide there — worth pinning, because it says the arm is a
+          // reweighting and not a different metric.
+          expect(dedilA / plainA).toBeCloseTo(1, 12);
+        } else {
+          // With a long prefix the value MOVED, even though the order did not.
+          expect(dedilA / plainA).not.toBeCloseTo(1, 3);
+        }
+      }
+    });
+
+    test("MIXED-DEPTH: the plain fold inverts the order the candidate's own gaps dictate", () => {
+      // The one case the arm changes. Candidate A rolled 2 gaps at 0.145 error; candidate B
+      // dead-ended after 1 gap at 0.14. B's own gaps are strictly better per gap, and the
+      // de-diluted fold — which compares mean-squares — says so. The plain fold pools A's
+      // two gaps against a long, worse prefix, so A's EXTRA gap pulls the whole RMS toward
+      // its own better-than-prefix level and A wins the axis factor outright.
+      const gaps = chain(22);
+      const prefixLen = 20;
+      const prefixErr = 0.3; // the prefix is worse than either candidate's own gaps
+      const a = leafWith(prefixErr, prefixLen, [0.145, 0.145]);
+      const b = leafWith(prefixErr, prefixLen, [0.14]);
+      // Compare the AXIS factor alone: A and B sit at different depths, so their
+      // survival x missing premia differ by design and are not what this test is about.
+      const axisOnly = (leaf: SearchNode, depth: number, on: boolean): number =>
+        withDedilute(on, gaps, () => objectiveLeafValue(leaf, gaps, DUR, prefixLen)) /
+        ((gaps[depth - 1].endFrame / DUR) * Math.exp(-(gaps.length - depth)));
+      expect(axisOnly(a, prefixLen + 2, false))
+        .toBeGreaterThan(axisOnly(b, prefixLen + 1, false)); // plain: the deeper, worse-per-gap arc
+      expect(axisOnly(b, prefixLen + 1, true))
+        .toBeGreaterThan(axisOnly(a, prefixLen + 2, true)); // de-diluted: the better-per-gap arc
+    });
+
+    test("prefix-length invariance: the same own-gap errors order the same at prefix 2 and 20", () => {
+      // The stated design goal. Under the plain fold the pool's value SPREAD collapses as the
+      // prefix grows (that is the 35x contrast collapse); under the de-diluted fold the
+      // spread is a function of the candidate-specific errors alone.
+      const gaps = chain(22);
+      const spread = (prefixLen: number, on: boolean): number => {
+        const a = leafWith(0.2, prefixLen, [0.05, 0.05]);
+        const b = leafWith(0.2, prefixLen, [0.15, 0.15]);
+        const va = withDedilute(on, gaps, () => objectiveLeafValue(a, gaps, DUR, prefixLen));
+        const vb = withDedilute(on, gaps, () => objectiveLeafValue(b, gaps, DUR, prefixLen));
+        expect(va).toBeGreaterThan(vb); // order is the same everywhere, both folds
+        return (va - vb) / va; // relative contrast, survival/missing cancel (equal depth)
+      };
+      const plain2 = spread(2, false);
+      const plain20 = spread(20, false);
+      const dedil2 = spread(2, true);
+      const dedil20 = spread(20, true);
+      // The defect, reproduced: 10x more prefix, several times less contrast.
+      expect(plain20).toBeLessThan(plain2 / 3);
+      // The fix: contrast at prefix 20 is the same as at prefix 2 (both are the two-component
+      // fold of the same two mean-squares; only the prefix's LEVEL differs, and it is equal
+      // here by construction).
+      expect(dedil20).toBeCloseTo(dedil2, 12);
+      expect(dedil20).toBeGreaterThan(plain20);
+    });
+  });
 });

@@ -44,6 +44,8 @@ function deadlineBlock(overrides: Record<string, number> = {}): Record<string, n
     deadline_pre_full_pressure: 0,
     deadline_pre_margin_sum: 0,
     deadline_post_builds: 0,
+    deadline_post_pressured: 0,
+    deadline_post_full_pressure: 0,
     deadline_post_margin_sum: 0,
     deadline_terminal_considers: 0,
     deadline_terminal_without_improvement: 0,
@@ -280,6 +282,8 @@ describe("explained nulls", () => {
           preFullPressure: 1,
           preMarginSum: 350,
           postBuilds: 200,
+          postPressured: 80,
+          postFullPressure: 36,
           postMarginSum: 2_000,
           terminalConsiders: 87,
           terminalWithoutImprovement: 86,
@@ -290,6 +294,10 @@ describe("explained nulls", () => {
     expect(pooled.deadlinePreFullShare.value).toBeCloseTo(0.01, 12);
     expect(pooled.deadlinePreMarginMean.value).toBeCloseTo(3.5, 12);
     expect(pooled.deadlinePostMarginMean.value).toBeCloseTo(10, 12);
+    // The post twins are counterfactual (the phase gate zeroes the live pressure there), so
+    // they are denominated in POST builds and read directly against the pre pair above.
+    expect(pooled.deadlinePostPressuredShare.value).toBeCloseTo(0.4, 12);
+    expect(pooled.deadlinePostFullShare.value).toBeCloseTo(0.18, 12);
     expect(pooled.deadlineTerminalWithoutImprovement.value).toBeCloseTo(86 / 87, 12);
   });
 

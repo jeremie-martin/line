@@ -334,13 +334,17 @@ is snapshotted at `handoff.ts:2060`.
 | `deadline_pool_builds` | every `rankedOptions` call that read the margin, all callers |
 | `deadline_pre_builds` / `deadline_post_builds` | split at first completion, the Phase-1a consumer boundary. Builds whose caller passed no margin (the non-policy lanes read `Infinity`) are in neither, so `pool_builds − pre − post` is the unpaced remainder |
 | `deadline_pre_pressured` / `deadline_pre_full_pressure` | pre-completion builds where the ramp engaged (`pressure > 0`) and where it saturated (`pressure ≥ 1`) |
+| `deadline_post_pressured` / `deadline_post_full_pressure` | the same two rates AFTER first completion — necessarily counterfactual, because the phase gate (`deadlineConsumersActive = !hasCompletion`) forces the live pressure to 0 there. Computed from the margin the build already read, through the same `deadlinePressure` anchors, so the pre and post rates are the same number measured in two phases. Added 2026-08-04: the post arm is 71% of all pool builds and had no frequency measurement at all, only a mean margin |
 | `deadline_{pre,post}_margin_sum` / `_min` | margin distribution per phase; mean is `sum / builds`, min is `null` until a finite margin is seen |
 | `deadline_terminal_considers` / `deadline_terminal_without_improvement` | **a subsequent-terminal churn measure, NOT a phase-flip gap** (corrected 2026-08-04). It counts every complete track the search re-derives that fails to beat the incumbent's `axis_quality` — overwhelmingly repair restarts and tail-completion re-walks after the first completion. The *first* terminal is excluded by construction: `contract_passed` dominates `register.consider` and structural terminals pass the contract by construction, which is why `deadline_first_terminal_frame` and `deadline_first_improving_terminal_frame` coincide in 4,406 of 4,406 measured compiles (both N=48 archives + all probes). Read it as "how much of the post-completion budget re-derives a non-improvement" — a repair-ROI number — and never as evidence that the controller's phase flip lags the estimator's target event (that lever is falsified; see the plan's Mandate iteration 2). Incremented at `handoff.ts:1905-1906` |
 | `deadline_first_terminal_frame` / `deadline_first_improving_terminal_frame` | the frames that bracket that window; `null` when the compile never reached the event |
 
 The `fwd-metrics` reader prints the derived shares (pre-pressured, pre-full, mean
-pre/post margin, terminal-without-improvement) as its third table whenever the
-input carries the block.
+pre margin, post-pressured, post-full, mean post margin,
+terminal-without-improvement) as its third table whenever the input carries the
+block. Archives written before 2026-08-04 carry no post-pressure pair; the reader
+reads them as zero, so a `0.0%` post column on an old archive means *not
+measured*, not *never pressured* — check the archive date before comparing.
 
 ---
 

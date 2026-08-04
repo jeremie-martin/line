@@ -5696,6 +5696,10 @@ function scoreCandidateForHandoff(
       ctx,
       seed,
       effective,
+      // THE POOL BOUNDARY. Every option this value will be sorted against extends this same
+      // `node`, so gaps [0, node.gapIndex) are byte-identical across the comparison and the
+      // leaf must not let them dilute the part that differs (see dedilutedAxisQuality).
+      node.gapIndex,
     );
     const forwardContinuation = cachedForwardContinuation(child, gaps, seed);
     recordCandidateReleaseCoverage(telemetry, candidate);
@@ -5861,6 +5865,8 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //   LR_STUDY_ROLLOUT_REDRAW    redrawFirstHopOnEmpty's dose             [0, 7]
 //   LR_STUDY_HANDOFF_POOL      handoffCandidatePool (search-side, but the shape studies
 //                              move it against rollout width)           [3, 8]
+//   LR_LEAF_DEDILUTE           objectiveLeafValue's two-component fold  {1}
+//                              (measured −17.24 ± 3.04 pooled; see dedilutedAxisQuality)
 // ════════════════════════════════════════════════════════════════════════════════════════
 // ── True-score forward arc evaluation (DEFAULT ranker ≥75k; also start selection & repair) ──
 // Rank each candidate arc by the TRUE metric score (scoreDriftReport via leafKeyForReport) of
@@ -5914,6 +5920,9 @@ type ForwardEvalRuntime = {
   defaultConfig: boolean;
   /** Study-only agreement telemetry; default off in production ranking. */
   agreementTelemetry: boolean;
+  /** De-diluted leaf fold — STUDY ARM, DEFAULT OFF (`LR_LEAF_DEDILUTE=1` enables).
+   *  See `dedilutedAxisQuality` for the mechanism and the measured verdict. */
+  leafDedilute: boolean;
 };
 
 const fwdEvalRuntime: ForwardEvalRuntime = {
@@ -5923,6 +5932,7 @@ const fwdEvalRuntime: ForwardEvalRuntime = {
   minBudget: 0,
   defaultConfig: true,
   agreementTelemetry: false,
+  leafDedilute: false,
 };
 // REJECTED experiment (removed 2026-06-14): widening the rollout branch at
 // impact-targeted gaps (LR_FWD_EVAL_IMPACT_BRANCH) to discover dive-scoop pairs.
@@ -5957,6 +5967,15 @@ const deadlineTotals = {
   /** Smallest margin seen; `Infinity` until one is, nulled by the snapshot. */
   deadline_pre_margin_min: Infinity,
   deadline_post_builds: 0,
+  /** The PRE twins' counterfactual on the post side: how often the ramp WOULD have
+   *  engaged / saturated there. The phase gate (`deadlineConsumersActive`) forces the
+   *  live pressure to 0 after first completion, so the post arm's pressure was
+   *  unmeasurable from production archives — `deadline_post_margin_sum/min` gave the
+   *  level but never the frequency, and the frequency is what a post-completion
+   *  consumer's case rests on. Recomputed from the margin this build already read
+   *  (one clamped-linear ramp evaluation; no decision reads it). */
+  deadline_post_pressured: 0,
+  deadline_post_full_pressure: 0,
   deadline_post_margin_sum: 0,
   deadline_post_margin_min: Infinity,
 };
@@ -5969,14 +5988,18 @@ function resetDeadlineStats(): void {
   deadlineTotals.deadline_pre_margin_sum = 0;
   deadlineTotals.deadline_pre_margin_min = Infinity;
   deadlineTotals.deadline_post_builds = 0;
+  deadlineTotals.deadline_post_pressured = 0;
+  deadlineTotals.deadline_post_full_pressure = 0;
   deadlineTotals.deadline_post_margin_sum = 0;
   deadlineTotals.deadline_post_margin_min = Infinity;
 }
 registerCompileReset(resetDeadlineStats);
 
 /** Count one pool build against the ramp. `margin` and `pressure` are the two
- *  values `rankedOptions` just computed for its own decision; nothing here is
- *  recomputed and nothing is read back by the search. */
+ *  values `rankedOptions` just computed for its own decision; the only thing this
+ *  adds is the post-phase counterfactual pressure, which the caller cannot have
+ *  computed because the phase gate zeroes its `pressure` — and nothing here is
+ *  read back by the search. */
 function recordDeadlinePoolBuild(
   margin: number,
   pressure: number,
@@ -5993,7 +6016,13 @@ function recordDeadlinePoolBuild(
       deadlineTotals.deadline_pre_margin_min = margin;
     }
   } else {
+    // `pressure` is 0 here BY THE PHASE GATE, not by the margin, so the twin
+    // counters read the ramp directly. Same function, same anchors as the pre
+    // side, so the two phases' rates are comparable numbers.
+    const wouldPressure = deadlinePressure(margin);
     deadlineTotals.deadline_post_builds++;
+    if (wouldPressure > 0) deadlineTotals.deadline_post_pressured++;
+    if (wouldPressure >= 1) deadlineTotals.deadline_post_full_pressure++;
     deadlineTotals.deadline_post_margin_sum += margin;
     if (margin < deadlineTotals.deadline_post_margin_min) {
       deadlineTotals.deadline_post_margin_min = margin;
@@ -6013,6 +6042,8 @@ export function readDeadlinePoolCounters(): {
   deadline_pre_margin_sum: number;
   deadline_pre_margin_min: number | null;
   deadline_post_builds: number;
+  deadline_post_pressured: number;
+  deadline_post_full_pressure: number;
   deadline_post_margin_sum: number;
   deadline_post_margin_min: number | null;
 } {
@@ -6182,6 +6213,9 @@ export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]):
   fwdEvalRuntime.defaultConfig = resolved.defaultConfig;
   fwdEvalRuntime.minBudget = forwardEvalMinBudget();
   fwdEvalRuntime.agreementTelemetry = readEnv("LR_FWD_EVAL_AGREEMENT") === "1";
+  // De-diluted leaf fold: DEFAULT OFF (measured negative — see dedilutedAxisQuality).
+  // `LR_LEAF_DEDILUTE=1` is the study arm. Resolved once per compile, not per leaf.
+  fwdEvalRuntime.leafDedilute = readEnv("LR_LEAF_DEDILUTE") === "1";
 }
 
 /** Warn (once-per-call, stderr) when a study/control env spec was set to a
@@ -6441,11 +6475,17 @@ function startForwardScore(
   let value = 0;
   try {
     const leafObjective = cfg.leaf === "objective";
+    // Start roots share NOTHING (a different start state is the whole point), so the pool
+    // boundary is the root's own gapIndex — 0 in production, where the de-diluted fold is the
+    // plain fold by construction. Written as `root.gapIndex` rather than a literal so a future
+    // root that does carry a prefix stays correct.
+    const sharedPrefixGaps = root.gapIndex;
     value = cfg.variant === "avg"
-      ? forwardAvgNextScore(root, gaps, ctx, seed, cfg.branch, leafObjective)
+      ? forwardAvgNextScore(root, gaps, ctx, seed, cfg.branch, leafObjective, sharedPrefixGaps)
       : forwardRolloutScore(
         root, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
-        leafObjective, true, // firstHop: start selection's own hop-1 verdict
+        leafObjective, sharedPrefixGaps,
+        true, // firstHop: start selection's own hop-1 verdict
       );
     return value;
   } finally {
@@ -6516,11 +6556,20 @@ function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): nu
  *  an over-sped prefix be abandoned (accumulated error → low quality for every continuation).
  *  drift_quality / off_beat_quality are STRUCTURALLY 1 for the gate-passed committed contacts
  *  (every catch within ±1 frame, no off-beat — substrate.ts:659-671) and cannot be recomputed
- *  without re-detection, so they are omitted. No readiness, no hybrid. */
+ *  without re-detection, so they are omitted. No readiness, no hybrid.
+ *
+ *  `sharedPrefixGaps` is the caller's POOL BOUNDARY: the number of leading gaps that every
+ *  leaf in the comparison this value will enter has in common (for the per-candidate ranker,
+ *  the branch node's `gapIndex`). It is inert unless the `LR_LEAF_DEDILUTE=1` study arm is on
+ *  — and even then, zero (the parameter default, and what every study caller passes)
+ *  reproduces the plain whole-prefix fold bit-for-bit. See `dedilutedAxisQuality` for what
+ *  a non-zero boundary changes under that arm, what it provably cannot change, and why it
+ *  ships off. */
 export function objectiveLeafValue(
   leaf: SearchNode,
   gaps: Gap[],
   durationFrames: number,
+  sharedPrefixGaps = 0,
 ): number {
   // FAITHFUL reconstruction of the true scorer (score.ts:287) from the rollout's OWN committed
   // data, zero re-detection. The full scorer is axis × drift × missing × off_beat × survival; of
@@ -6535,6 +6584,9 @@ export function objectiveLeafValue(
   // prefix does NOT cancel across a pool (it would for a product) — including it is what lets the
   // score ABANDON an over-sped prefix (accumulated error → low quality for every continuation).
   const errors: number[] = [];
+  // Errors are pushed in increasing gap order, so the shared prefix's errors are exactly the
+  // first `sharedErrorCount` of them — no second array, no second pass over the fits.
+  let sharedErrorCount = 0;
   let missingFitCount = 0;
   for (let i = 0; i < leaf.gapIndex; i++) {
     if (!gaps[i]?.endsWithContact) continue; // non-contact gap: no committed catch
@@ -6547,10 +6599,15 @@ export function objectiveLeafValue(
     // canonical current-gap vector.
     const achieved = settledIncomingAxes(fit);
     for (const e of axisErrorsForTargets(fwdEvalRuntime.gapAxisTargets[i], achieved)) errors.push(e);
+    if (i < sharedPrefixGaps) sharedErrorCount = errors.length;
   }
-  // axis_quality = exp(-rms(ALL committed-prefix errors) / AXIS_QUALITY_TOLERANCE) — the scorer's
-  // own single-RMS fold, reproduced from the per-gap fits.
-  let value = 1000 * axisQualityFromErrors(errors).axis_quality;
+  // axis_quality = exp(-rms(committed-prefix errors) / AXIS_QUALITY_TOLERANCE) — the scorer's
+  // own single-RMS fold, reproduced from the per-gap fits. The de-diluted two-component fold
+  // is the LR_LEAF_DEDILUTE=1 study arm and is identical to this one when the pool has no
+  // shared prefix; production takes the plain branch.
+  let value = 1000 * (fwdEvalRuntime.leafDedilute
+    ? dedilutedAxisQuality(errors, sharedErrorCount)
+    : axisQualityFromErrors(errors).axis_quality);
   if (missingFitCount > 0) value *= Math.exp(-missingFitCount);
   // survival_quality (= deepest committed contact frame / total, score.ts:276) × missing_quality
   // (future contacts past that horizon, capped at the partial window) — the full leaf's terms read
@@ -6572,6 +6629,95 @@ export function objectiveLeafValue(
   const missingFactor = Math.exp(-futureMissing / MISSING_CONTACT_TOLERANCE);
   value *= survival * missingFactor;
   return value;
+}
+
+/**
+ * THE DE-DILUTED FOLD — the pool's shared prefix stays a LEVEL and stops being a DILUTER.
+ *
+ * Every candidate in a pool extends the SAME node, so the leaf values being compared share a
+ * byte-identical committed prefix and differ only in the 1-2 gaps the candidate and its rollout
+ * placed. The plain fold — one RMS over all committed errors — divides the candidate-specific
+ * squared error by the WHOLE prefix length, so the within-pool contrast decays as the track
+ * grows (measured: 35x collapse from the opening to the tail, 8/8 sources) and the judge ends
+ * up ordering a pool on ~0.1% value differences. THE HYPOTHESIS (mandate iteration 2) was that
+ * this decay, not the depth premium, is what the second rollout hop bought back by growing the
+ * candidate-specific numerator. The measurement at the bottom of this comment refutes it.
+ *
+ * The fix is a pure REWEIGHTING of the same errors — no constant, nothing to tune. Weight each
+ * newly-rolled error by `n_shared / n_new` and keep the shared errors at weight 1; the weighted
+ * mean-square telescopes to the unweighted mean of the two components:
+ *
+ *     rms = sqrt( ( meanSquare(shared) + meanSquare(new) ) / 2 )
+ *
+ * so the two halves of the track the pool is comparing enter with equal say whatever their
+ * lengths. What this preserves: the prefix is still in the value (an over-sped prefix still
+ * drags every continuation down and can still be abandoned — the property the single-RMS fold
+ * was chosen for), the ordering is unchanged wherever the shared prefix is empty (start
+ * selection, the first gap), and the depth premium (survival x missing_quality) is untouched.
+ * What it changes: d(value)/d(candidate error) no longer shrinks with the prefix length, which
+ * is the whole point. It is scale-free in track position and in budget by construction — the
+ * only lengths it reads are the two it is balancing.
+ *
+ * Comparisons ACROSS pools would see a different monotone transform of the same data; the
+ * production consumers are all within-pool (the sorts in `rankedOptions` /
+ * `startupDeadEndOptions`, the max inside a rollout's own branch set, and the measure-only
+ * agreement instrument), which is the audited precondition for doing this inside the leaf.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ * DEFAULT OFF. MEASURED, AND IT LOSES — read this before re-deriving the idea.
+ *
+ * WHAT IT CAN AND CANNOT TOUCH (algebra, not measurement). `survival` and `missing_quality`
+ * are functions of `leaf.gapIndex` alone (`processedHorizonFrame` reads authored gap frames),
+ * so two leaves at the SAME depth differ only in their axis factor. Both folds are strictly
+ * increasing in the candidate-specific squared-error mass, so on an equal-depth pool they
+ * induce the IDENTICAL order — de-diluting changes the numbers and not one decision. Its
+ * entire action is on pools whose leaves reach DIFFERENT depths (a rollout dead-ends where
+ * its sibling continued, ~7% of pools): there it raises the axis term's say against the depth
+ * premium, which is the same thing as pricing "this arc's own gaps came out well" against
+ * "this arc's rollout could keep going". The 35x contrast collapse is real, but it is a
+ * collapse in MAGNITUDE, and a sort does not read magnitudes.
+ *
+ * WHAT HAPPENED WHEN THAT EXCHANGE RATE MOVED (six-source panel, 750k, 8 seeds, paired,
+ * arms live, control arm reproduces the depth-1 archive trackHash 48/48): pooled
+ * −17.24 ± 3.04 (t=−5.67), 7 of 48 cells up. The sharp falsifier failed in the wrong
+ * direction — `frontier_pickup_progression` −8.33 ± 3.06 (t=−2.72, 0/8 seeds up) against a
+ * required +3.50 — and the controls collapsed (`frontier_low_air_endurance_4s` −43.07,
+ * t=−6.24; `regression_transition_mosaic_tempo_fast_5` −20.60; `dense_dialogue_impact_contrast_10`
+ * −16.25). The signature is uniform: first completion arrives LATER on all six sources, by
+ * 1% to 20% (low_air 348k → 419k frames), because a leaf that has stopped believing the depth
+ * premium keeps choosing arcs whose own gaps score well and whose rollout died. The premium
+ * was load-bearing. The second hop's value on the frontier sources is therefore NOT the
+ * contrast collapse — that hypothesis is spent; it is the extra composed-track information
+ * itself (see the campaign plan's Mandate iteration 2).
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ */
+function dedilutedAxisQuality(errors: readonly number[], sharedErrorCount: number): number {
+  // No shared prefix, or nothing newly rolled: the two-component fold IS the plain fold, and
+  // taking that path keeps those cases bit-identical to the pre-change value.
+  if (sharedErrorCount <= 0 || sharedErrorCount >= errors.length) {
+    return axisQualityFromErrors(errors).axis_quality;
+  }
+  const shared = meanSquareOfFinite(errors, 0, sharedErrorCount);
+  const rolled = meanSquareOfFinite(errors, sharedErrorCount, errors.length);
+  // A component with no finite error contributes nothing to weight or mass; the union fold is
+  // then exactly the other component's, so defer to it rather than inventing a value.
+  if (shared === null || rolled === null) return axisQualityFromErrors(errors).axis_quality;
+  const rms = Math.sqrt((shared + rolled) / 2);
+  return Math.exp(-(rms / AXIS_QUALITY_TOLERANCE));
+}
+
+/** Mean of squared FINITE errors over `[from, to)`, or null when the slice has none —
+ *  the same non-finite filtering `axisQualityFromErrors` applies, without its allocation. */
+function meanSquareOfFinite(errors: readonly number[], from: number, to: number): number | null {
+  let sum = 0;
+  let n = 0;
+  for (let i = from; i < to; i++) {
+    const e = errors[i];
+    if (!Number.isFinite(e)) continue;
+    sum += e * e;
+    n++;
+  }
+  return n === 0 ? null : sum / n;
 }
 
 /** Count of remaining contact gaps at or after `from` (the rollout's missing-step budget). */
@@ -6717,14 +6863,17 @@ export function redrawFirstHopOnEmpty(
  *  and keeps the single draw. */
 function forwardRolloutScore(
   search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, depthLeft: number, branch: number,
-  leafObjective: boolean, firstHop = false,
+  leafObjective: boolean, sharedPrefixGaps: number, firstHop = false,
 ): number {
   // Leaf scorer: zero-frame objective value (DEFAULT) or full re-detection (LR_FWD_EVAL_LEAF=full). The missing-contact
   // penalty is derived by the leaf scorer itself from the node's own committed depth
   // (objectiveLeafValue's futureMissing / forwardNodeScore's re-detection).
+  // `sharedPrefixGaps` is the OUTER pool's boundary and is passed down unchanged: every leaf
+  // this rollout's own max ranges over shares it too, and it is the comparison at the pool
+  // that the value is ultimately for.
   const leafValue = (node: SearchNode): number =>
     leafObjective
-      ? objectiveLeafValue(node, gaps, ctx.durationFrames)
+      ? objectiveLeafValue(node, gaps, ctx.durationFrames, sharedPrefixGaps)
       : forwardNodeScore(node, gaps, ctx);
   const trace = rolloutTrace; // measure-only; null in every uninstrumented compile
   if (depthLeft <= 0 || isTerminalNode(search, gaps)) {
@@ -6770,7 +6919,7 @@ function forwardRolloutScore(
   let best = -Infinity;
   for (const c of cands) {
     const s = forwardRolloutScore(
-      extendNodeCached(at, c), gaps, ctx, seed, depthLeft - 1, branch, leafObjective,
+      extendNodeCached(at, c), gaps, ctx, seed, depthLeft - 1, branch, leafObjective, sharedPrefixGaps,
     );
     if (s > best) best = s;
   }
@@ -6783,11 +6932,11 @@ function forwardRolloutScore(
  *  surrendering the deeper hops' drift control (see impactBestForwardEvalConfig). */
 function forwardFirstWidenedScore(
   search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, depthLeft: number,
-  firstBranch: number, leafObjective: boolean,
+  firstBranch: number, leafObjective: boolean, sharedPrefixGaps: number,
 ): number {
   const leafValue = (node: SearchNode): number =>
     leafObjective
-      ? objectiveLeafValue(node, gaps, ctx.durationFrames)
+      ? objectiveLeafValue(node, gaps, ctx.durationFrames, sharedPrefixGaps)
       : forwardNodeScore(node, gaps, ctx);
   if (depthLeft <= 0 || isTerminalNode(search, gaps)) {
     return leafValue(search);
@@ -6823,7 +6972,7 @@ function forwardFirstWidenedScore(
   let best = -Infinity;
   for (const c of cands) {
     const s = forwardRolloutScore(
-      extendNodeCached(at, c), gaps, ctx, seed, depthLeft - 1, 1, leafObjective,
+      extendNodeCached(at, c), gaps, ctx, seed, depthLeft - 1, 1, leafObjective, sharedPrefixGaps,
     );
     if (s > best) best = s;
   }
@@ -6833,11 +6982,11 @@ function forwardFirstWidenedScore(
 /** avg: mean true partial-track score over the top-`m` next-contact alternatives, 1 deep. */
 function forwardAvgNextScore(
   search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, m: number,
-  leafObjective: boolean,
+  leafObjective: boolean, sharedPrefixGaps: number,
 ): number {
   const leafValue = (node: SearchNode): number =>
     leafObjective
-      ? objectiveLeafValue(node, gaps, ctx.durationFrames)
+      ? objectiveLeafValue(node, gaps, ctx.durationFrames, sharedPrefixGaps)
       : forwardNodeScore(node, gaps, ctx);
   const at = advanceToNextContact(search, gaps);
   if (at === null) {
@@ -6863,6 +7012,7 @@ function forwardAvgNextScore(
  *  budget-refunded ceiling experiment that isolates eval quality from its cost. */
 function forwardArcValue(
   child: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, cfg: CandidateForwardPolicy,
+  sharedPrefixGaps: number,
 ): number {
   const saved = getSimFrames();
   // try/finally so a throw mid-rollout (e.g. a future frame limit) can't leak frames.
@@ -6910,14 +7060,15 @@ function forwardArcValue(
   let value = 0;
   try {
     value = cfg.variant === "avg"
-      ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch, leafObjective)
+      ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch, leafObjective, sharedPrefixGaps)
       : cfg.variant === "greedy" && (cfg.firstBranch ?? 1) > 1
       ? forwardFirstWidenedScore(
-        child, gaps, ctx, seed, cfg.depth, cfg.firstBranch as number, leafObjective,
+        child, gaps, ctx, seed, cfg.depth, cfg.firstBranch as number, leafObjective, sharedPrefixGaps,
       )
       : forwardRolloutScore(
         child, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
-        leafObjective, true, // firstHop: this call's expansion IS the hop-1 verdict
+        leafObjective, sharedPrefixGaps,
+        true, // firstHop: this call's expansion IS the hop-1 verdict
       );
     return value;
   } finally {
@@ -7639,6 +7790,7 @@ function startSupportDelayRobustScore(
       1,
       1,
       false, // start-selection robust score stays full-leaf
+      root.gapIndex, // start pool boundary; inert on the full leaf and at gapIndex 0 anyway
     );
   }
   return sum / candidates.length;

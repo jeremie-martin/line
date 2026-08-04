@@ -111,6 +111,8 @@ export type FwdCell = {
     preFullPressure: number;
     preMarginSum: number;
     postBuilds: number;
+    postPressured: number;
+    postFullPressure: number;
     postMarginSum: number;
     terminalConsiders: number;
     terminalWithoutImprovement: number;
@@ -148,6 +150,8 @@ function readDeadlineBlock(stats: Rec): FwdCell["deadline"] {
     preFullPressure: n("deadline_pre_full_pressure"),
     preMarginSum: n("deadline_pre_margin_sum"),
     postBuilds: n("deadline_post_builds"),
+    postPressured: n("deadline_post_pressured"),
+    postFullPressure: n("deadline_post_full_pressure"),
     postMarginSum: n("deadline_post_margin_sum"),
     terminalConsiders: n("deadline_terminal_considers"),
     terminalWithoutImprovement: n("deadline_terminal_without_improvement"),
@@ -323,6 +327,10 @@ export type Aggregate = {
   deadlinePrePressuredShare: Rate;
   deadlinePreFullShare: Rate;
   deadlinePreMarginMean: Rate;
+  /** The post-completion counterfactual twins: the ramp is switched OFF there by the
+   *  phase gate, so these say how often it WOULD have engaged / saturated. */
+  deadlinePostPressuredShare: Rate;
+  deadlinePostFullShare: Rate;
   deadlinePostMarginMean: Rate;
   deadlineTerminalWithoutImprovement: Rate;
 };
@@ -358,6 +366,8 @@ type Sums = {
   preFullPressure: number;
   preMarginSum: number;
   postBuilds: number;
+  postPressured: number;
+  postFullPressure: number;
   postMarginSum: number;
   terminalConsiders: number;
   terminalWithoutImprovement: number;
@@ -395,6 +405,8 @@ function emptySums(): Sums {
     preFullPressure: 0,
     preMarginSum: 0,
     postBuilds: 0,
+    postPressured: 0,
+    postFullPressure: 0,
     postMarginSum: 0,
     terminalConsiders: 0,
     terminalWithoutImprovement: 0,
@@ -444,6 +456,8 @@ function accumulate(sums: Sums, cell: FwdCell): void {
     sums.preFullPressure += cell.deadline.preFullPressure;
     sums.preMarginSum += cell.deadline.preMarginSum;
     sums.postBuilds += cell.deadline.postBuilds;
+    sums.postPressured += cell.deadline.postPressured;
+    sums.postFullPressure += cell.deadline.postFullPressure;
     sums.postMarginSum += cell.deadline.postMarginSum;
     sums.terminalConsiders += cell.deadline.terminalConsiders;
     sums.terminalWithoutImprovement += cell.deadline.terminalWithoutImprovement;
@@ -540,6 +554,16 @@ function summarize(key: string, sourceId: string, sums: Sums): Aggregate {
       sums.preMarginSum,
       dlDen(sums.preBuilds),
       dlMissing ? NO_DEADLINE : NO_PRE,
+    ),
+    deadlinePostPressuredShare: rate(
+      sums.postPressured,
+      dlDen(sums.postBuilds),
+      dlMissing ? NO_DEADLINE : NO_POST,
+    ),
+    deadlinePostFullShare: rate(
+      sums.postFullPressure,
+      dlDen(sums.postBuilds),
+      dlMissing ? NO_DEADLINE : NO_POST,
     ),
     deadlinePostMarginMean: rate(
       sums.postMarginSum,
@@ -655,6 +679,8 @@ function deadlineRow(entry: Aggregate): string[] {
     pct(entry.deadlinePrePressuredShare),
     pct(entry.deadlinePreFullShare),
     fixed(entry.deadlinePreMarginMean, 2),
+    pct(entry.deadlinePostPressuredShare),
+    pct(entry.deadlinePostFullShare),
     fixed(entry.deadlinePostMarginMean, 2),
     pct(entry.deadlineTerminalWithoutImprovement),
   ];
@@ -756,6 +782,8 @@ export function render(
             "pre pressured",
             "pre full",
             "pre margin",
+            "post pressured",
+            "post full",
             "post margin",
             "terminal no-improve",
           ],

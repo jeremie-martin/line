@@ -352,6 +352,30 @@ describe("deadline telemetry — the signal is visible in compile_stats", () => 
     }
     expect(d.deadline_post_builds > 0).toBe(d.deadline_post_margin_min !== null);
 
+    // THE POST SIDE. Its live pressure is 0 by the phase gate, never by the margin, so the
+    // twins are computed from the margin through the same ramp — and they have to satisfy
+    // the same anchor identities as the pre side, or they are measuring something else.
+    expect(d.deadline_post_full_pressure).toBeLessThanOrEqual(d.deadline_post_pressured);
+    expect(d.deadline_post_pressured).toBeLessThanOrEqual(d.deadline_post_builds);
+    if (d.deadline_post_margin_min !== null) {
+      expect(d.deadline_post_pressured > 0)
+        .toBe(d.deadline_post_margin_min < DEADLINE_MARGIN_NO_PRESSURE);
+      expect(d.deadline_post_full_pressure > 0)
+        .toBe(d.deadline_post_margin_min <= DEADLINE_MARGIN_FULL_PRESSURE);
+      expect(d.deadline_post_margin_min)
+        .toBeLessThanOrEqual(d.deadline_post_margin_sum / d.deadline_post_builds);
+    }
+    // The counters MOVE on a real compile — the whole point of adding them is that the post
+    // arm's frequency was unmeasured, and a pair of always-zero counters would measure it
+    // just as badly. This spec is post-completion-dominated (it completes at ~10% of budget),
+    // and the post margin gets pressed there where the pre margin never does.
+    expect(d.deadline_post_builds).toBeGreaterThan(0);
+    expect(d.deadline_post_pressured).toBeGreaterThan(0);
+    // Every `rankedOptions` call site passes a finite margin today, so the phase split is
+    // exhaustive. If this ever fails, a lane started building pools with no margin and the
+    // unpaced remainder went non-zero — that is a finding, not a broken assertion.
+    expect(d.deadline_pre_builds + d.deadline_post_builds).toBe(d.deadline_pool_builds);
+
     // The two-counters window: the estimator's target event (any terminal)
     // cannot post-date the controller's phase flip (a terminal that improved).
     expect(d.deadline_terminal_without_improvement)

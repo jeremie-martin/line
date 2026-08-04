@@ -792,6 +792,13 @@ export type CompileStats = {
      *  are deliberately held off (Phase 1a): the margin a post-completion
      *  consumer would have seen. */
     deadline_post_builds: number;
+    /** Counterfactual twins of the pre-side pair: how often the ramp WOULD have
+     *  engaged / saturated post-completion. The live pressure there is 0 by the
+     *  phase gate, not by the margin, so these are computed from the margin with
+     *  the same `deadlinePressure` anchors and are directly comparable to
+     *  `deadline_pre_pressured` / `deadline_pre_full_pressure`. */
+    deadline_post_pressured: number;
+    deadline_post_full_pressure: number;
     deadline_post_margin_sum: number;
     deadline_post_margin_min: number | null;
     /** THE TWO-COUNTERS WINDOW. Terminal (structurally complete) traversals

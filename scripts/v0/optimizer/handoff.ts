@@ -5868,7 +5868,8 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 // Three variants, selected by LR_FWD_EVAL=<variant>[:depth[:branch]] (full override — also
 // switches the adaptive arms OFF) or LR_FWD_EVAL_BASE=<...> (base-shape override that COMPOSES
 // with them; see resolveForwardEvalConfig and adaptiveArmsApply). Higher value = better arc;
-// rank by -value; greedy:2 is the honest sweet spot:
+// rank by -value; the production BASE is DEFAULT_FWD_EVAL_BASE (greedy:1 since 2026-08-04 —
+// the old greedy:2 base's defense was measured arms-off and inverted once composed):
 //   greedy : single locally-cheapest rollout `depth` contacts deep; value = true score
 //            of the resulting partial track. Cheap, directional.
 //   best   : branch the top-`branch` candidates `depth` deep; value = MAX true score over
@@ -6298,7 +6299,8 @@ function forwardEvalMinBudget(): number {
   return Number.isFinite(n) && n >= 0 ? n : 75_000;
 }
 
-/** Candidate ranker. DEFAULT greedy:2 (true forward-rollout score) — the high-budget win.
+/** Candidate ranker. DEFAULT base greedy:1 (true forward-rollout score, one contact hop;
+ *  see DEFAULT_FWD_EVAL_BASE for the measurement and the confound history).
  *  LR_FWD_EVAL=off|0 reverts to the local axis-L2 proxy; LR_FWD_EVAL=<greedy|best|avg>[:depth[:branch]]
  *  selects a rollout shape. Charged honestly by default (see forwardArcValue /
  *  LR_FWD_EVAL_CHARGE). */
@@ -6348,10 +6350,31 @@ function objectiveLayerSpreadStat(): { objective_layer_spread?: NonNullable<Retu
  *  moves on every other gap. Only consulted when `LR_FWD_EVAL` is unset — the
  *  full override wins and says so.
  *
- *  An unparsed `LR_FWD_EVAL_BASE` falls back to the knob default (`greedy:2`)
- *  with a warning rather than disabling forward eval: a typo in a *base* knob
- *  must not silently turn the ranker off, which is what the `LR_FWD_EVAL` typo
- *  path does (kept, for compatibility with every study that relies on it). */
+ *  An unparsed `LR_FWD_EVAL_BASE` falls back to the knob default
+ *  (`DEFAULT_FWD_EVAL_BASE`) with a warning rather than disabling forward eval:
+ *  a typo in a *base* knob must not silently turn the ranker off, which is what
+ *  the `LR_FWD_EVAL` typo path does (kept, for compatibility with every study
+ *  that relies on it). */
+/**
+ * The production BASE rollout shape: one contact hop, single sample, true-score
+ * leaf. The adaptive arms are untouched — the impact widening still runs its own
+ * `greedy:2:1+fb3` on the gaps it owns (`adaptiveArmsApply`).
+ *
+ * greedy:2 shipped as the base from the ranker's promotion until 2026-08-04,
+ * defended by the §7 arm `LR_FWD_EVAL=greedy:1` = −11.36 @250k / −3.84 @750k
+ * (docs/rollout-economics-study.md). That measurement carried a confound the
+ * flag itself created: any `LR_FWD_EVAL` value switches the adaptive arms OFF,
+ * so "greedy:1" was really "greedy:1 with the +4.59 impact widening removed".
+ * Measured COMPOSED via `LR_FWD_EVAL_BASE` (arms live) on the six-source panel,
+ * the sign inverts and holds at every budget: +5.50±2.44 @250k, +12.53±4.14
+ * (t=3.02, 15/18 cells, all strata positive) @750k, +3.59±4.01 @2.5M — while
+ * SPENDING fewer rollout frames (−0.22M @750k). The second hop was priced, not
+ * assumed: it bought nothing the impact arm's own depth-2 shape doesn't already
+ * buy on the gaps where depth matters. Promoted at N=48 (see the campaign plan,
+ * docs/forward-eval-value-plan.md Phase 5).
+ */
+const DEFAULT_FWD_EVAL_BASE = "greedy:1";
+
 function resolveForwardEvalConfig(): { config: CandidateForwardPolicy | null; defaultConfig: boolean } {
   const env = readEnv("LR_FWD_EVAL");
   const defaultConfig = env === undefined || env === "";
@@ -6360,10 +6383,10 @@ function resolveForwardEvalConfig(): { config: CandidateForwardPolicy | null; de
   if (defaultConfig) {
     const baseEnv = readEnv("LR_FWD_EVAL_BASE");
     const overridden = baseEnv !== undefined && baseEnv !== "";
-    shape = overridden ? parseRolloutShape(baseEnv as string) : parseRolloutShape("greedy:2");
+    shape = overridden ? parseRolloutShape(baseEnv as string) : parseRolloutShape(DEFAULT_FWD_EVAL_BASE);
     if (shape === null) {
       warnUnparsedSpec("LR_FWD_EVAL_BASE", baseEnv as string);
-      shape = parseRolloutShape("greedy:2");
+      shape = parseRolloutShape(DEFAULT_FWD_EVAL_BASE);
     }
   } else {
     const baseEnv = readEnv("LR_FWD_EVAL_BASE");

@@ -1219,6 +1219,98 @@ const HANDOFF_SHORT_RESCUE_MAX_GAP_FRAMES = 12;
  * arithmetic; they are not a knob to tune, and least of all per budget.
  */
 const HANDOFF_ROLLOUT_REDRAW_ON_EMPTY = 1;
+
+/**
+ * THE REDRAW-DOSE LAW — the dose above is the base draw, and this is the ONE
+ * constant that grades it with how hard the compile is pressed:
+ *
+ *     dose = max(1, round(HANDOFF_ROLLOUT_REDRAW_ON_EMPTY
+ *                         + REDRAW_DOSE_PRESSURE_SPAN * deadlinePressure(margin)))
+ *
+ * CONTRACT. The coordinate is the compile's own deadline pressure
+ * (optimizer/deadline.ts), read at the LIVE per-node margin the pool build was
+ * resolved with (`rankedOptions`'s `config.deadlineMargin`, itself
+ * `deadline.marginAt` at this node and this frame count). Pressure 0 gives
+ * `round(1) = 1` — the base dose, i.e. today's behaviour exactly — and the ramp
+ * is continuous from there to `1 + SPAN` at the full-pressure anchor. There is
+ * NO budget read, no slack read, and no mode: the budget enters only through the
+ * margin, which is the architecture's single budget/difficulty coordinate, so
+ * the law is automatically continuous over 150k-3M and carries no
+ * benchmark-keyed constant (`compiler_scale_contract`). The `round` is the same
+ * discretization the breadth law's `nCand = round(27*B/250k)` already uses.
+ *
+ * THE ANCHOR. SPAN = 5 is the measured full-pressure arm, not a fit: iteration 8
+ * priced a FLAT dose 6 (= 1 + 5) against HEAD on the four capability-frontier
+ * sources at 250k, 240 seeds each, 1,920 compiles.
+ *   - completion ledger: 576/960 -> 660/960 valid; rescued 215, lost 131;
+ *     discordant 346; rescue share 0.6214, Wilson 95% [0.5692, 0.6709],
+ *     McNemar exact p = 7.4e-6 (pre-registered bars: share >= 0.60 AND Wilson
+ *     lower > 0.50 -> REAL). The same instrument read 0.470 [0.417, 0.524] on the
+ *     pace term, which is what a seed lottery looks like.
+ *   - score, concordant-complete cells (n=445): +3.512 +- 0.766, t = +4.59.
+ *   - the 12-source completion-stable spot panel (288 pairs) is a measured NULL:
+ *     -0.444 +- 1.256, 0/288 completion changes, 80%-power MDE 3.52.
+ * The dose is GRADED IN PRESSURE and harmful at pressure 0 — binned by the
+ * control arm's full-pre-pressure share the rescue share walks
+ * 0.000 / 0.240 / 0.633 / 0.567 / 0.673 / 0.769 and the all-cell delta walks
+ * -24.4 / -48.7 / +46.8 / +32.7 / +73.2 / +103.9 (point-biserial r = +0.307,
+ * n = 346, t = +5.99). The zero-pressure bin reproduces, inside the 250k panel,
+ * the -6.49 +- 2.90 the same flat arm cost at 750k (mandate iteration 1). That
+ * sign flip IS the law: a flat dose pays the loss everywhere the compile is on
+ * course, and this ramp does not, because pressure is 0.00-1.36% of pre-completion
+ * pool builds on those sources at 750k and 0.40% suite-wide.
+ *
+ * THE MECHANISM, causally isolated: the payoff is the online-continuation
+ * filter's false prunes. With `LR_ONLINE_CONTINUATION=0` the same dose-6 arm
+ * reads 0.466 [0.356, 0.579], p = 0.64 — a lottery, the rescue vanishes — and
+ * both dense_recovery sources go 0/120 valid in BOTH arms, i.e. the filter
+ * CREATES the completion surface it then prunes. STANDING HAZARD: the filter is
+ * itself a full-pressure-gated, 250k-tier mechanism with a 37.8% false-verdict
+ * rate, and it and this law are ONE mechanism that must be re-priced together.
+ * If the filter is ever retired or made continuous, re-derive or delete this.
+ *
+ * HONEST SIZING. On the active promotion surface (750k only) this is
+ * approximately headline-NEUTRAL by construction — the coordinate is nearly
+ * dormant there, which is exactly why the flat arm's -6.49 does not come with
+ * it. What it buys is the low-budget completion surface (+0.74 headline points
+ * were the 250k slice at the legacy 0.2 budget weight) and, mostly, the scale
+ * contract: the mechanism now says what it means at every budget instead of
+ * being tuned off at one.
+ */
+const REDRAW_DOSE_PRESSURE_SPAN = 5;
+
+/**
+ * MEMO SAFETY — the widest pool the re-draw may ever request.
+ *
+ * `redrawFirstHopOnEmpty` leaves its widened pool IN the node memo on purpose
+ * (see its docstring), and `_candidatesCache` is keyed on `(seed, nCand)`: a
+ * narrower later request is re-sorted from a prefix and a wider one extends the
+ * sample order, but an EXACT nCand match is served frozen. The re-drawn pool is
+ * built with the aim lane suppressed, so the one thing that must never happen is
+ * a real search expansion — or the start scan — asking for exactly a width the
+ * re-draw wrote and being handed a lane-suppressed pool.
+ *
+ * At the base dose that was free: the re-draw wrote 2 (greedy) and 4 (the impact
+ * arm's `firstBranch = 3`), disjoint from every real consumer. The law raises the
+ * ceiling to `width + 1 + SPAN`, which for the impact arm would be 9 and would
+ * collide with `START_FIRST_K`/`START_NEXT_K` (8) and with the breadth law's own
+ * floor (`HANDOFF_QUALITY_N_CAND_FLOOR` = 8, and 9 is what the law returns at
+ * ~83k frames). So the REQUEST is bounded here — one below the smallest width any
+ * real expansion asks for — rather than the dose being tuned to fit. The bound
+ * never reduces a request below `width + 1`, so pressure 0 stays byte-identical
+ * at every width, including study widths above the bound.
+ *
+ * Known and deliberate overlaps, all of them rollout-internal and all in the same
+ * suppression regime, so the frozen content is what the reader would have built:
+ * the impact arm's own `firstBranch` build (`forwardFirstWidenedScore`
+ * suppresses the lane exactly as the re-draw does) and a second re-draw at the
+ * same node and dose. The one true exception is
+ * `startSupportDelayRobustScore`'s width-3 build, which is aim-LIVE — it is
+ * unreachable in production (it needs `LR_START_EVAL=greedy:2`; the default
+ * `best:1:5` fails its `variant/depth/branch` guard) and it runs during start
+ * selection, where there is no margin and the dose is 1.
+ */
+const REDRAW_MAX_TOTAL_WIDTH = HANDOFF_QUALITY_N_CAND_FLOOR - 1;
 const HANDOFF_PREVIEW_K = 1;
 /** Reuse only the latest committed catch. Older translated catches can over-lock
  *  dense forward-dependent chains into a locally steady but globally brittle
@@ -1250,6 +1342,20 @@ const START_SUPPORT_X_DELAY_FIRST_GAP_START_FRAMES = 20;
 const START_SUPPORT_X_DELAY_FIRST_GAP_SPAN_FRAMES = 10;
 const START_SUPPORT_DELAY_ROBUST_BRANCH = 3;
 const START_SUPPORT_LINE_BACKTRACK_PX = 80;
+// REDRAW-DOSE LAW, memo-safety invariant (see REDRAW_MAX_TOTAL_WIDTH): every
+// width the re-draw can write must stay strictly below every width a REAL
+// expansion asks for at the same node, or the (seed, nCand) memo hands one of
+// them the other's pool. Asserted at load, here rather than at the constant,
+// because the two start-scan widths are declared above this point. Lower any of
+// these three and the law's bound has to move with it.
+if (Math.min(START_FIRST_K, START_NEXT_K, HANDOFF_QUALITY_N_CAND_FLOOR) <= REDRAW_MAX_TOTAL_WIDTH) {
+  throw new Error(
+    `REDRAW_MAX_TOTAL_WIDTH (${REDRAW_MAX_TOTAL_WIDTH}) must stay below every real-expansion ` +
+      `pool width: START_FIRST_K=${START_FIRST_K}, START_NEXT_K=${START_NEXT_K}, ` +
+      `HANDOFF_QUALITY_N_CAND_FLOOR=${HANDOFF_QUALITY_N_CAND_FLOOR} ` +
+      "(see the redraw-dose law's memo-safety docstring)",
+  );
+}
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
 /** The one-contact preview already pays for a future candidate. Reuse its local
@@ -4026,29 +4132,66 @@ function admittedHandoffPool(
   return sorted.slice(0, poolSize).map((candidate, rank) => ({ candidate, rank }));
 }
 
+type RankedOptionsConfig = {
+  nCand?: number;
+  poolSize?: number;
+  preview?: boolean;
+  axisQualitySearch?: boolean;
+  reuseLimit?: number;
+  previewCostWeight?: number;
+  releaseSetup?: boolean;
+  targetBudget?: number;
+  budgetSlack?: number;
+  /** Live deadline margin; Infinity for callers outside the paced search. */
+  deadlineMargin?: number;
+  forwardStageTop?: number;
+  /** Slack-conditioned pre-completion depth (see HandoffSearchPolicy.forwardEval).
+   *  Default true so non-policy callers keep the historical behavior. */
+  forwardEval?: boolean;
+};
+
+/**
+ * Rank this node's options — and, for the whole of that work, publish the
+ * build's deadline pressure to the re-draw law (`rolloutRedrawPressure`).
+ *
+ * The scope is the ENTIRE build, not just the pool sort: rollouts run from the
+ * pool scoring, from the three extra candidate lanes, and from the staged
+ * pre-pass, and every one of them re-draws against the same node-level margin.
+ * Saved and restored rather than cleared, so a nested build (a rescue tier, the
+ * tail-completion lane) returns the outer build's pressure and a throw cannot
+ * leak a stale one into start selection.
+ *
+ * The pressure is the RAW ramp, deliberately: the phase-weighted `pressure`
+ * below is the head ramp's own consumer term (`postCompletionPhaseWeight`, 0 in
+ * production = the Phase-1a boundary), and folding that in would make the dose a
+ * MODE — full law before first completion, base draw after — which is the shape
+ * the law exists to avoid. The re-draw corrects a verdict; it does not spend the
+ * head's width.
+ */
 function rankedOptions(
   node: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
-  config: {
-    nCand?: number;
-    poolSize?: number;
-    preview?: boolean;
-    axisQualitySearch?: boolean;
-    reuseLimit?: number;
-    previewCostWeight?: number;
-    releaseSetup?: boolean;
-    targetBudget?: number;
-    budgetSlack?: number;
-    /** Live deadline margin; Infinity for callers outside the paced search. */
-    deadlineMargin?: number;
-    forwardStageTop?: number;
-    /** Slack-conditioned pre-completion depth (see HandoffSearchPolicy.forwardEval).
-     *  Default true so non-policy callers keep the historical behavior. */
-    forwardEval?: boolean;
-  } = {},
+  config: RankedOptionsConfig = {},
+): RankedOption[] {
+  const savedRedrawPressure = rolloutRedrawPressure;
+  rolloutRedrawPressure = deadlinePressure(config.deadlineMargin ?? Infinity);
+  try {
+    return rankedOptionsAtDeadlinePressure(node, gaps, ctx, seed, telemetry, config);
+  } finally {
+    rolloutRedrawPressure = savedRedrawPressure;
+  }
+}
+
+function rankedOptionsAtDeadlinePressure(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  telemetry: HandoffTelemetry,
+  config: RankedOptionsConfig,
 ): RankedOption[] {
   const requestedCandidates = config.nCand ?? HANDOFF_QUALITY_N_CAND;
   const targetBudget = config.targetBudget ?? 0;
@@ -5976,7 +6119,9 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //   LR_STUDY_IMPACT_BRANCH     impactBestForwardEvalConfig's width      [1, 8]
 //   LR_STUDY_IMPACT_DEPTH      impactBestForwardEvalConfig's own depth  [1, 2]
 //                              (2 = the arm's pinned shape = production)
-//   LR_STUDY_ROLLOUT_REDRAW    redrawFirstHopOnEmpty's dose             [0, 7]
+//   LR_STUDY_ROLLOUT_REDRAW    redrawFirstHopOnEmpty's dose, PINNED     [0, 7]
+//                              (bypasses the pressure law; =1 is the law at
+//                              pressure 0 = the pre-law compiler)
 //   LR_STUDY_HANDOFF_POOL      handoffCandidatePool (search-side, but the shape studies
 //                              move it against rollout width)           [3, 8]
 //   LR_LEAF_DEDILUTE           objectiveLeafValue's two-component fold  {1}
@@ -7059,33 +7204,76 @@ function advanceToNextContact(search: SearchNode, gaps: Gap[]): SearchNode | nul
  * (seed, nCand), a narrower request is served as a prefix of a wider cache and a
  * wider one extends the same sample order, so: (i) a later real expansion at the
  * search's own width (>= 8 everywhere, 32/80 in the rescue tiers) still builds
- * exactly the pool it always would, with the aim lane live; (ii) a second
- * rollout that dead-ends at this node pays nothing; and (iii)
+ * exactly the pool it always would, with the aim lane live — the dose law's
+ * `REDRAW_MAX_TOTAL_WIDTH` is what keeps that true now that the dose varies;
+ * (ii) a second rollout that dead-ends at this node pays nothing; and (iii)
  * `cachedForwardContinuation` now reports the corrected bit, so the
  * online-continuation filter stops pruning the frontier on a refuted proof.
  */
 /**
- * STUDY-ONLY dose override for the re-draw increment above. **Never set this in
+ * STUDY-ONLY dose override for the re-draw increment above: it PINS the dose,
+ * bypassing the pressure law (`REDRAW_DOSE_PRESSURE_SPAN`), so `=1` is the law's
+ * pressure-0 arm and the pre-law compiler exactly. **Never set this in
  * production, in a benchmark eval, or in a promotion candidate.**
  *
  * The constant's own docstring calls wider doses "a monotone family that can be
  * walked later on the same arithmetic"; this is the knob that walks it, and
  * nothing else. Refuses anything outside [0, 7] rather than clamping (0 is the
  * pre-redraw world, 7 keeps the widened draw inside the rollout width clamp).
+ * The pinned dose is still bounded by `REDRAW_MAX_TOTAL_WIDTH`, so a pinned arm
+ * above 4 is NOT the historical uncapped arm on the impact arm's `firstBranch=3`
+ * gaps (it re-draws at 7, not at 3 + dose).
  */
 const readStudyRolloutRedraw = compileScopedEnv("LR_STUDY_ROLLOUT_REDRAW");
 
-function rolloutRedrawOnEmpty(): number {
+/**
+ * Deadline pressure in force for re-draws inside the pool build being scored.
+ *
+ * Ambient rather than threaded, the way `setRolloutContext`,
+ * `setAimLaneDeadlineThrottled` and `setRolloutAimSuppressed` already are: the
+ * read happens four call levels below `rankedOptions` (pool scoring -> forward
+ * value -> rollout scorer -> re-draw) and on paths that also run from the extra
+ * candidate lanes, so threading it would touch every scorer signature to deliver
+ * one number that is constant for the whole build.
+ *
+ * `rankedOptions` sets it from ITS OWN `config.deadlineMargin` — the margin
+ * `deadline.marginAt` produced for this node at this frame count, not a
+ * compile-level snapshot — and restores the previous value in a `finally`, so
+ * nested builds (the rescue tiers, the tail-completion lane) nest correctly.
+ * Everything with no live margin reads 0 and therefore doses at the base draw:
+ * start selection and its support-delay robust score (they run before the search
+ * has a deadline at all) and the startup dead-end stream (its own catch
+ * generator, called outside `rankedOptions`). That is the pressure-0 arm, i.e.
+ * unchanged behaviour, not a special case of the law.
+ */
+let rolloutRedrawPressure = 0;
+
+/** Set the ambient pressure above. `rankedOptions` owns the production scope;
+ *  exported so the law can be exercised at a pinned pressure in tests. */
+export function setRolloutRedrawPressure(pressure: number): void {
+  rolloutRedrawPressure = pressure;
+}
+
+/** THE REDRAW-DOSE LAW (see `REDRAW_DOSE_PRESSURE_SPAN` for the contract, the
+ *  evidence and the hazard). Pure in `pressure`; monotone non-decreasing;
+ *  `pressure = 0` returns the base dose. */
+function rolloutRedrawOnEmpty(pressure: number): number {
   const raw = readStudyRolloutRedraw();
-  if (raw === undefined || raw === "") return HANDOFF_ROLLOUT_REDRAW_ON_EMPTY;
-  const n = Number.parseInt(raw, 10);
-  if (!Number.isInteger(n) || String(n) !== raw.trim() || n < 0 || n > 7) {
-    throw new Error(
-      `LR_STUDY_ROLLOUT_REDRAW must be an integer in [0, 7] (STUDY-ONLY; never set it in ` +
-        `production or in an eval), got "${raw}"`,
-    );
+  if (raw !== undefined && raw !== "") {
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isInteger(n) || String(n) !== raw.trim() || n < 0 || n > 7) {
+      throw new Error(
+        `LR_STUDY_ROLLOUT_REDRAW must be an integer in [0, 7] (STUDY-ONLY; never set it in ` +
+          `production or in an eval), got "${raw}"`,
+      );
+    }
+    return n;
   }
-  return n;
+  const p = Number.isFinite(pressure) ? Math.min(1, Math.max(0, pressure)) : 0;
+  return Math.max(
+    1,
+    Math.round(HANDOFF_ROLLOUT_REDRAW_ON_EMPTY + REDRAW_DOSE_PRESSURE_SPAN * p),
+  );
 }
 
 export function redrawFirstHopOnEmpty(
@@ -7095,7 +7283,7 @@ export function redrawFirstHopOnEmpty(
   seed: number,
   width: number,
 ): Candidate[] {
-  const dose = rolloutRedrawOnEmpty();
+  const dose = rolloutRedrawOnEmpty(rolloutRedrawPressure);
   if (dose <= 0) return [];
   fwdEvalTotals.fwd_rollout_redraws++;
   const savedAimSuppressed = isRolloutAimSuppressed();
@@ -7107,7 +7295,9 @@ export function redrawFirstHopOnEmpty(
       gaps,
       ctx,
       seed,
-      width + dose,
+      // The dose is a magnitude; the memo is what bounds it. `width + 1` is the
+      // floor so the base draw survives the bound at every width.
+      Math.max(width + 1, Math.min(width + dose, REDRAW_MAX_TOTAL_WIDTH)),
     );
   } finally {
     setRolloutAimSuppressed(savedAimSuppressed);

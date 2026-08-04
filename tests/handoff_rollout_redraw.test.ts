@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { makeRng } from "../scripts/lib/rng.ts";
+import { beginEnvFlagEpoch } from "../scripts/v0/env_flags.ts";
 import { resetPerCompileState } from "../scripts/v0/core/compile_lifecycle.ts";
 import {
   effectiveAxes,
@@ -15,7 +16,9 @@ import {
   compileHandoff,
   readFwdEvalCounters,
   redrawFirstHopOnEmpty,
+  setRolloutRedrawPressure,
 } from "../scripts/v0/optimizer/handoff.ts";
+import { deadlinePressure } from "../scripts/v0/optimizer/deadline.ts";
 import {
   getCandidatesSorted,
   isRolloutAimSuppressed,
@@ -157,6 +160,110 @@ describe("rollout re-draw on empty", () => {
     expect(after.fwd_rollout_redraws - before.fwd_rollout_redraws).toBe(1);
     expect(after.fwd_rollout_redraw_refuted - before.fwd_rollout_redraw_refuted).toBe(0);
   }, 120_000);
+
+  /**
+   * THE REDRAW-DOSE LAW (handoff.ts `REDRAW_DOSE_PRESSURE_SPAN`):
+   *   dose = max(1, round(1 + 5 * deadlinePressure(margin)))
+   * bounded by `REDRAW_MAX_TOTAL_WIDTH` so the widened request can never equal a
+   * width a real expansion asks for. The width the re-draw requested is readable
+   * off the memo it deliberately leaves behind, and at base width 0 the request
+   * IS the dose.
+   */
+  describe("dose law", () => {
+    /** The nCand the re-draw asked for, read off the memo it leaves behind. */
+    function redrawWidth(
+      spec: Spec,
+      gaps: Gap[],
+      ctx: SpecContext,
+      pressure: number,
+      width: number,
+    ): number {
+      const node = freshRoot(spec, gaps.length);
+      getCandidatesSorted(node, gaps, ctx, SEED, width);
+      setRolloutRedrawPressure(pressure);
+      try {
+        redrawFirstHopOnEmpty(node, gaps, ctx, SEED, width);
+      } finally {
+        setRolloutRedrawPressure(0);
+      }
+      return node._candidatesCache?.nCand ?? -1;
+    }
+
+    test("pressure 0 is the pre-law compiler: width + 1, at every width", async () => {
+      const { spec, gaps, ctx } = await panel();
+      for (const width of [0, 1, 2, 3]) {
+        expect(redrawWidth(spec, gaps, ctx, 0, width)).toBe(width + 1);
+      }
+    }, 120_000);
+
+    test("full pressure is the measured dose: 1 + SPAN = 6", async () => {
+      const { spec, gaps, ctx } = await panel();
+      // Full pressure is the ramp's own saturation, not a magic number: any
+      // margin at or below the full-pressure anchor reads 1.
+      expect(deadlinePressure(0.5)).toBe(1);
+      expect(redrawWidth(spec, gaps, ctx, 1, 0)).toBe(6);
+      expect(redrawWidth(spec, gaps, ctx, deadlinePressure(0.5), 1)).toBe(1 + 6);
+    }, 120_000);
+
+    test("monotone non-decreasing in pressure, base dose at 0, 1 + SPAN at 1", async () => {
+      const { spec, gaps, ctx } = await panel();
+      const doses = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+        .map((pressure) => redrawWidth(spec, gaps, ctx, pressure, 0));
+      expect(doses[0]).toBe(1);
+      expect(doses[doses.length - 1]).toBe(6);
+      for (let i = 1; i < doses.length; i++) {
+        expect(doses[i]).toBeGreaterThanOrEqual(doses[i - 1]);
+      }
+      // A magnitude, not a mode: the ramp actually visits the middle.
+      expect(new Set(doses).size).toBeGreaterThan(2);
+    }, 120_000);
+
+    test("no width it can write collides with a real expansion's width", async () => {
+      const { spec, gaps, ctx } = await panel();
+      // Every production rollout base width (greedy 1, the impact arm's
+      // firstBranch 3, opening-best's 2) crossed with the whole pressure range.
+      // The memo is keyed on (seed, nCand): the re-draw builds with the aim lane
+      // suppressed, so anything the SEARCH or the START SCAN asks for at the same
+      // node must stay strictly above everything below.
+      const realExpansionWidths = [8, 16, 27, 32, 80, 81]; // START_*_K / breadth law / rescue tiers
+      const written = new Set<number>();
+      for (const width of [1, 2, 3]) {
+        for (const pressure of [0, 0.25, 0.5, 0.75, 1]) {
+          written.add(redrawWidth(spec, gaps, ctx, pressure, width));
+        }
+      }
+      for (const w of written) {
+        expect(w).toBeLessThanOrEqual(7);
+        expect(realExpansionWidths).not.toContain(w);
+      }
+    }, 120_000);
+
+    test("the study knob PINS the dose and outranks the law", async () => {
+      const { spec, gaps, ctx } = await panel();
+      process.env.LR_STUDY_ROLLOUT_REDRAW = "1";
+      beginEnvFlagEpoch(); // compile-scoped reader; the flag is sampled per epoch
+      try {
+        // Pinned at the base dose, the law's coordinate stops mattering.
+        expect(redrawWidth(spec, gaps, ctx, 1, 0)).toBe(1);
+        expect(redrawWidth(spec, gaps, ctx, 1, 3)).toBe(4);
+      } finally {
+        delete process.env.LR_STUDY_ROLLOUT_REDRAW;
+        beginEnvFlagEpoch();
+      }
+    }, 120_000);
+
+    test("a compile leaves the ambient pressure clean", async () => {
+      const { spec, gaps, ctx } = await panel();
+      compileHandoff(spec, 0, { budget: 150_000 });
+      // `rankedOptions` publishes the build's pressure and restores it. Nothing
+      // sets the ambient here on purpose: if any path inside the compile leaked
+      // its pressure, this re-draw — outside every pool build — would over-dose.
+      const node = freshRoot(spec, gaps.length);
+      getCandidatesSorted(node, gaps, ctx, SEED, 0);
+      redrawFirstHopOnEmpty(node, gaps, ctx, SEED, 0);
+      expect(node._candidatesCache?.nCand).toBe(1);
+    }, 300_000);
+  });
 
   test("a real compile re-draws only on empties, and ships both counters", async () => {
     const { spec } = await panel();

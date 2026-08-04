@@ -1,8 +1,8 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "pace-term-removal-750k",
-  "generated_at": "2026-08-04T10:17:49.819Z",
+  "label": "redraw-dose-law-750k",
+  "generated_at": "2026-08-04T11:39:13.626Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "0e4bc96e47539a9cd06bdfb70bce9f6204043cac31966969e9efef4cad040f10",
+  "compiler_source_fingerprint": "e69db2a8c7447e074e6fe87ec773c6b06154fb264ff3424d4345f53a321b554f",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -125,7 +125,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "fdd0ecae4cd09e73559c94ad4f578db7725ce02aed16625c6e019d684fb05aac",
+  "candidate_fingerprint": "815ed914758c30d5e9e2c52a9300614104e1280bf1e372ea6887a3e734fd5b0d",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "c64eb99cf5ae8743cb86d050d478fe75db536f99c552c3747991b40cdf85f312",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -134,20 +134,20 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/pace-term-removal-750k-compiler-snapshot.tar.gz",
-    "archiveSha256": "27e19cae7264d04dbccb24e24997eac6d6e48cd840e0cb9139cf11e7660aa2d2",
-    "candidateFingerprint": "fdd0ecae4cd09e73559c94ad4f578db7725ce02aed16625c6e019d684fb05aac",
-    "compilerSourceFingerprint": "0e4bc96e47539a9cd06bdfb70bce9f6204043cac31966969e9efef4cad040f10",
+    "archive": "benchmark/v2/runs/redraw-dose-law-750k-compiler-snapshot.tar.gz",
+    "archiveSha256": "55576aa921ca1991094354d30baf7ee4c0cddc1371ed4114d4014f80b8b1cabd",
+    "candidateFingerprint": "815ed914758c30d5e9e2c52a9300614104e1280bf1e372ea6887a3e734fd5b0d",
+    "compilerSourceFingerprint": "e69db2a8c7447e074e6fe87ec773c6b06154fb264ff3424d4345f53a321b554f",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
     "execution_policy_fingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
     "implementation_fingerprint": "ec0f05d8fc1a30d07f7908fb2fe879c1c70c7fad89845771758a741b98097a43",
-    "archive_sha256": "cb92ede7d7830776710c5530a67a965c1fdbddb2e0bbefe310f05be77a140b92",
-    "compressed_archive": "benchmark/v2/runs/pace-term-removal-750k-development-750k-N48.json.gz",
-    "compressed_archive_sha256": "763230c663ffbdf8b0a62e0c7a41ff8550cd3568b5cabf18664e6eab24c60cdf",
-    "canonical_headline": 596.6657,
+    "archive_sha256": "ee8d739abac330a99cfc82c417d550a9912a680bf49947fe7748f2c3dc71d82d",
+    "compressed_archive": "benchmark/v2/runs/redraw-dose-law-750k-development-750k-N48.json.gz",
+    "compressed_archive_sha256": "f4210f871a37cfa9430290aa3bae19afd195521f40061384fa49d1248ac84c54",
+    "canonical_headline": 596.9655,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
@@ -212,7 +212,7 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 596.6657,
+        "score": 596.9655,
         "valid_runs": 2112,
         "total_runs": 2112
       }
@@ -220,8 +220,8 @@
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "pace-term-removal-750k",
-    "candidateFingerprint": "fdd0ecae4cd09e73559c94ad4f578db7725ce02aed16625c6e019d684fb05aac",
+    "baselineLabel": "redraw-dose-law-750k",
+    "candidateFingerprint": "815ed914758c30d5e9e2c52a9300614104e1280bf1e372ea6887a3e734fd5b0d",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -289,9 +289,9 @@
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
         "endSeedSlotExclusive": 48,
-        "archiveSha256": "cb92ede7d7830776710c5530a67a965c1fdbddb2e0bbefe310f05be77a140b92",
-        "compressedArchive": "benchmark/v2/runs/pace-term-removal-750k-development-750k-N48.json.gz",
-        "compressedArchiveSha256": "763230c663ffbdf8b0a62e0c7a41ff8550cd3568b5cabf18664e6eab24c60cdf",
+        "archiveSha256": "ee8d739abac330a99cfc82c417d550a9912a680bf49947fe7748f2c3dc71d82d",
+        "compressedArchive": "benchmark/v2/runs/redraw-dose-law-750k-development-750k-N48.json.gz",
+        "compressedArchiveSha256": "f4210f871a37cfa9430290aa3bae19afd195521f40061384fa49d1248ac84c54",
         "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
         "implementationFingerprint": "ec0f05d8fc1a30d07f7908fb2fe879c1c70c7fad89845771758a741b98097a43"
       }
@@ -312,8 +312,8 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/pace-term-removal-750k-comparison.json",
-    "artifact_sha256": "753801f9fa035362757aade9ffd04ee8124dac8cf26c0d17f1feb1a9798a33f5",
+    "artifact": "benchmark/v2/runs/redraw-dose-law-750k-comparison.json",
+    "artifact_sha256": "e74eba408054d1c128df369fba3f6a88e0f605236c085018de2e1bfbb6c13dc7",
     "seeds": 48,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
@@ -321,14 +321,14 @@
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/pace-term-removal-750k-comparison-request.json",
-    "request_sha256": "bc29d00d74ed97f2d8fbc7582fb15bbd2b6a5d0ab7c89d09031e87c715e2dd09",
+    "request": "benchmark/v2/runs/redraw-dose-law-750k-comparison-request.json",
+    "request_sha256": "4305cd120e941c36b7b63e942ba4bd124eaf08b0b26e742be5e95ca529861b88",
     "budgets": [
       750000
     ],
     "outcome": "inconclusive",
-    "delta": 0.2509,
+    "delta": 0.2998,
     "forced": true,
-    "force_reason": "inconclusive +0.25 [-0.40,+0.90] P(+)=84.9%; net-negative-code simplification DECIDED-SUPPORTED at 40-seed 250k surface; keep-argument premise inverted under measurement; legacy watch item resolved bit-identical at 750k; validity 2112/2112 both arms"
+    "force_reason": "inconclusive-positive +0.30 [-0.17,+0.77] P(+)=95.4%; scale-free law replacing flat redraw constant; representative +0.39 significant alone; 250k completion rescue REAL at 240 seeds (0.634, p<1e-5); validity 2112/2112 both arms"
   }
 }

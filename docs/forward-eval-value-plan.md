@@ -160,6 +160,32 @@ Work items:
 5. **The headline moved through the gold standard.** At least one shape-family candidate evaluated at N=48 with the campaign ledger closing ≥ −3.0, every arm's verdict recorded — including the negatives.
 6. **The continuation mandate is met**: the campaign does not close below a headline of **620** (see the final section).
 
+### Mandate iteration 7 — 2026-08-04: the pace-term row DECIDED; the simplification ships
+
+The filed 250k evidence surface was run to decision (7,846 compiles total): STABLE-40 × 40 seeds = **−0.224 [−1.051, +0.578]** suite-weighted — both pre-registered clauses pass, **DECIDED-SUPPORTED**. The completion ledger closed separately at 240 frontier seeds: rescued 155 / lost 175, rescue share 0.470 [0.417, 0.524], p=0.296 — **the knife-edge completions are a seed lottery the pace term reshuffles without winning or losing.** Whole-suite 250k consequence −1.25 [−3.11, +0.65]. The mechanism verdict travels with the row: the term is **active, not inert** (changes 55.4% of tracks at 250k) and its keep-argument's premise is INVERTED — at 250k the pace estimate sits *below* the structural base and RELIEVES pressure; at 150k it adds pressure as the argument predicted, and still does not pay. Watch item for the eval: `legacy_regression` −3.84 ± 1.59 (t=−2.42, not Bonferroni-significant over 4 strata) — re-read that stratum at N=48. **Methodology fact codified: an 8-seed 250k panel reading of a margin-side knob is not reproducible** (two independent 8-seed halves straddled both decision bars); 250k evidence panels need ≥40 seeds, and per-seed σ scales textbook-iid once completion-lottery cells are ledgered separately. Next: implement the removal (pace blend + the linear_progress override + its Phase-0 assert + the study gate), 48-seed gold standard, promote-as-simplification per the `7fe0b7e` precedent.
+
+## Success criteria — scored as of 2026-08-04 (pre-staged; the campaign remains open under the mandate)
+
+1. **Truth-in-labeling closed — MET** (`6ec8f3f`): `interval.*` policy-bound everywhere; calibrator freeze-implied with the frozen arm byte-identical under test; `budget-control-design.md` + optimizer README describe the shipped architecture; `redrawFirstHopOnEmpty` and the zero-ceiling guard tested.
+2. **Deadline signal visible — MET and consumed** (`d84c71c`, `bce18e9`): the full pre/post counter block ships in every archive; the parked re-brackets it existed to unblock were then actually run on that data (iteration 5) — the criterion's purpose is discharged, not just satisfied.
+3. **Measurement layer stands — MET** (`4ff32ae`): M0–M10 documented with anti-gaming contracts; Tier-1 reader + standing thermometer; the committed study compiles with identity 36/36; M9's first reading filed; the metrics doc has absorbed two corrections since (the churn counter, the post counters) — it is living, which was the point.
+4. **The smell adjudicated with evidence — MET, verdict inverted honestly** (`8acf60d`): the three-arm falsifier ran, the pre-registered prediction failed, the budget-conversion account was written, and the revision is stronger than the original story — correcting false dead-end verdicts is measurable and does not pay (three independent reproductions); the real finds were the `LR_FWD_EVAL` confound and the depth axis.
+5. **Headline through the gold standard — MET** (`3674b2f`, `1ecbc1b`): two candidates evaluated at N=48, both promoted under the standing posture, every arm's verdict recorded including all sixteen negatives; ledger closes the executable record at **+0.37** against the −3.0 floor.
+6. **Continuation mandate (≥620) — NOT MET, blocked on the plan's own owner gate**: 596.41; the in-scope vein map measured-empty with power stated; the escalation pool sized at the current baseline (+42.3 feasible / +77.7 nominal, 9.04 per 0.01); the decision is surfaced and pending. This criterion cannot be closed by implementation work — by the plan's own text it closes at 620 or at an owner redirect.
+
+## Follow-up register (as of the pre-staged close-out)
+
+| row | state | evidence surface |
+|---|---|---|
+| **Scoring-axis escalation** | OWNER-GATED, sized: impact 68.4% of weighted SSE, +42.3 feasible / +77.7 nominal, 9.04/0.01; best-priced slice Q2 asks (0.28–0.40) in representative sources = +33.0; ceteris-paribus caveat on record | owner decision, then the counterfactual instrument + this campaign's ladder |
+| Pace-term removal | DECIDED-SUPPORTED (iteration 7), shipping through the gold standard | 48-seed eval; watch `legacy_regression` at N=48 |
+| `nonrepair` post-deadline weight (+0.048 ± 0.020) | filed, not shipped — a lane mode worth ~+0.05 | reopen only with a law formulation |
+| RD6 250k validity rescue (`frontier_dense_recovery` 1/3→3/3) | filed — a low-budget completion-rescue class invisible to the promoting surface | redraw-dose LAW + the standing 250k reading, never the eval |
+| D1 impact-arm depth (−41% rollout frames at parity) | priced simplification arm for non-headline purposes | free-judge cap applies to any headline story |
+| Deadline anchors / pre-completion consumers | dormant at 750k (engagement-insensitive); reopen surface ≤250k only | ≥40-seed 250k panels (iteration-7 methodology) |
+| Two source-docstring hazards | discharged (discrepancy 18, `41931d1`) | — |
+| Carried from the dividends register (not this campaign's): 1.5M band weakness, production-songs corpus, per-regime bands, 150k via the 1.185 mechanism only | unchanged | as filed there |
+
 ## Hazards (priced up front)
 
 - **The breadth law eats the dividend** (measured): high-budget arms must spend frames on the rollout deliberately; hoping starvation relaxes by itself is refuted.

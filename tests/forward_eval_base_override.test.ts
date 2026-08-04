@@ -12,10 +12,13 @@ import {
 } from "../scripts/v0/core/substrate.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import { setAimCompileBudgetFrames } from "../scripts/v0/optimizer/aim.ts";
+import { deadlinePressure } from "../scripts/v0/optimizer/deadline.ts";
 import {
   compileHandoff,
   handoffCandidatePool,
+  postCompletionPhaseWeight,
   redrawFirstHopOnEmpty,
+  setHandoffDeadlineProbeHook,
   setHandoffRolloutProbeHook,
 } from "../scripts/v0/optimizer/handoff.ts";
 import {
@@ -123,6 +126,7 @@ function shapeKey(shape: Shape): string {
 
 afterEach(() => {
   setHandoffRolloutProbeHook(null);
+  setHandoffDeadlineProbeHook(null);
   setNormalPoolSnapshotHook(null);
 });
 
@@ -320,6 +324,114 @@ describe("study-only env gates refuse rather than clamp", () => {
       (base.shapes.get("greedy:2:1+fb3") as number);
     expect(ratio).toBeGreaterThan(0.2);
     expect(ratio).toBeLessThan(5);
+  }, 300_000);
+
+  test("LR_STUDY_POST_DEADLINE_W / _SCOPE refuse rather than clamp", () => {
+    expect(withEnv({ LR_STUDY_POST_DEADLINE_W: undefined }, postCompletionPhaseWeight)).toBe(0);
+    expect(withEnv({ LR_STUDY_POST_DEADLINE_W: "" }, postCompletionPhaseWeight)).toBe(0);
+    expect(withEnv({ LR_STUDY_POST_DEADLINE_W: "0" }, postCompletionPhaseWeight)).toBe(0);
+    expect(withEnv({ LR_STUDY_POST_DEADLINE_W: "1" }, postCompletionPhaseWeight)).toBe(1);
+    expect(withEnv({ LR_STUDY_POST_DEADLINE_W: "0.25" }, postCompletionPhaseWeight)).toBe(0.25);
+    expect(withEnv({ LR_STUDY_POST_DEADLINE_W: " 0.5 " }, postCompletionPhaseWeight)).toBe(0.5);
+    for (const bad of ["-0.1", "1.1", "half", "NaN", "1e400", " "]) {
+      expect(() => withEnv({ LR_STUDY_POST_DEADLINE_W: bad }, postCompletionPhaseWeight))
+        .toThrow(/LR_STUDY_POST_DEADLINE_W must be a finite number in \[0, 1\]/);
+    }
+    // The scope knob is only consulted once a weight is set — an out-of-range
+    // scope with no weight is silently irrelevant, which is the right shape: the
+    // arm is one knob, the scope is its modifier.
+    expect(withEnv({ LR_STUDY_POST_DEADLINE_SCOPE: "sideways" }, postCompletionPhaseWeight)).toBe(0);
+    expect(withEnv(
+      { LR_STUDY_POST_DEADLINE_W: "1", LR_STUDY_POST_DEADLINE_SCOPE: "nonrepair" },
+      postCompletionPhaseWeight,
+    )).toBe(1);
+    expect(withEnv(
+      { LR_STUDY_POST_DEADLINE_W: "1", LR_STUDY_POST_DEADLINE_SCOPE: " all " },
+      postCompletionPhaseWeight,
+    )).toBe(1);
+    for (const bad of ["repair", "ALL", "none", "1"]) {
+      expect(() => withEnv(
+        { LR_STUDY_POST_DEADLINE_W: "1", LR_STUDY_POST_DEADLINE_SCOPE: bad },
+        postCompletionPhaseWeight,
+      )).toThrow(/LR_STUDY_POST_DEADLINE_SCOPE must be "all" or "nonrepair"/);
+    }
+  });
+
+  test("the post-completion phase weight is a magnitude on the head ramp, and off by default", async () => {
+    const s = await spec();
+    /** One compile, returning every deadline read the pool builds made. */
+    const readsUnder = (env: Record<string, string | undefined>) => {
+      const reads: {
+        post: boolean;
+        repair: boolean;
+        margin: number;
+        pressure: number;
+        narrowed: boolean;
+      }[] = [];
+      const track = withEnv(env, () => {
+        setHandoffDeadlineProbeHook((r) => {
+          reads.push({
+            post: r.hasCompletion,
+            repair: r.repairLane,
+            margin: r.margin,
+            pressure: r.pressure,
+            narrowed: r.forwardEvalTop < r.poolSize,
+          });
+        });
+        try {
+          return JSON.stringify(compileHandoff(s, 0, { budget: BUDGET }).track);
+        } finally {
+          setHandoffDeadlineProbeHook(null);
+        }
+      });
+      return { reads, track };
+    };
+
+    const off = readsUnder({ LR_STUDY_POST_DEADLINE_W: undefined });
+    const full = readsUnder({ LR_STUDY_POST_DEADLINE_W: "1" });
+    const half = readsUnder({ LR_STUDY_POST_DEADLINE_W: "0.5" });
+    const nonrepair = readsUnder({
+      LR_STUDY_POST_DEADLINE_W: "1",
+      LR_STUDY_POST_DEADLINE_SCOPE: "nonrepair",
+    });
+
+    // Non-vacuity: the fixture really does run post-completion pool builds at a
+    // margin the ramp responds to, and they are overwhelmingly repair-lane ones
+    // (measured 93.6% of post-completion builds across 20 canonical 750k cells).
+    const postOff = off.reads.filter((r) => r.post);
+    expect(postOff.length).toBeGreaterThan(20);
+    expect(postOff.some((r) => r.margin < 2)).toBe(true);
+    expect(postOff.filter((r) => r.repair).length / postOff.length).toBeGreaterThan(0.5);
+
+    // DEFAULT = the Phase-1a boundary: the ramp is off after first completion no
+    // matter what the margin says, and the head is never narrowed there.
+    expect(postOff.every((r) => r.pressure === 0)).toBe(true);
+    expect(postOff.every((r) => !r.narrowed)).toBe(true);
+    // ...and it is untouched BEFORE first completion, in every arm.
+    for (const arm of [off, full, half, nonrepair]) {
+      expect(arm.reads.filter((r) => !r.post).every((r) => r.pressure === deadlinePressure(r.margin)))
+        .toBe(true);
+    }
+
+    // WEIGHT 1 = the original ungated form: post-completion pressure is the raw
+    // ramp, and it actually narrows heads.
+    const postFull = full.reads.filter((r) => r.post);
+    expect(postFull.every((r) => r.pressure === deadlinePressure(r.margin))).toBe(true);
+    expect(postFull.some((r) => r.pressure > 0)).toBe(true);
+    expect(postFull.some((r) => r.narrowed)).toBe(true);
+    expect(full.track).not.toBe(off.track);
+
+    // WEIGHT 0.5 = a magnitude, not a mode: same ramp, halved.
+    const postHalf = half.reads.filter((r) => r.post);
+    expect(postHalf.every((r) => r.pressure === 0.5 * deadlinePressure(r.margin))).toBe(true);
+    expect(postHalf.some((r) => r.pressure > 0)).toBe(true);
+
+    // SCOPE nonrepair leaves every repair-episode build unweighted — the
+    // repair-ROI conflict the scope exists to hold out.
+    expect(nonrepair.reads.filter((r) => r.post && r.repair).every((r) => r.pressure === 0))
+      .toBe(true);
+    expect(nonrepair.reads.filter((r) => r.post && !r.repair)
+      .every((r) => r.pressure === deadlinePressure(r.margin))).toBe(true);
   }, 300_000);
 });
 

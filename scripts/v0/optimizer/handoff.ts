@@ -831,6 +831,11 @@ export type HandoffDeadlineProbeRecord = {
   poolSize: number;
   forwardEvalTop: number;
   aimLaneThrottled: boolean;
+  /** This build happened inside a repair restart (`runFrontierFrom`). The two
+   *  post-completion lanes — repair episodes vs the main/resumed frontier —
+   *  answer the head ramp's phase-weight question differently, and this is the
+   *  only place the split is visible. */
+  repairLane: boolean;
   onlineContinuationApplied: boolean;
   /** How many ranked options the online-continuation filter DROPPED at this
    *  build; 0 unless `onlineContinuationApplied`. This is the population the
@@ -2569,7 +2574,17 @@ function compileHandoffInternal(
             anchorUpstreamOffset: up,
             incumbentWeakGapSse: pickedWeakGapSse,
           });
-          const improvementFrameOffsets = runFrontierFrom(prefixNode, ceiling);
+          // Mark the repair lane for the duration of the restart: every pool
+          // build inside it is a repair-episode build, which is the population
+          // the head ramp's phase-weight study can be scoped away from
+          // (`postCompletionPhaseWeight`). Inert in production.
+          repairLaneActive = true;
+          let improvementFrameOffsets: number[];
+          try {
+            improvementFrameOffsets = runFrontierFrom(prefixNode, ceiling);
+          } finally {
+            repairLaneActive = false;
+          }
           const completed = terminalConsiders > terminalsBefore;
           // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
           // comparator is axis_quality, not full_score — they can disagree). dScore is logged for
@@ -4058,7 +4073,11 @@ function rankedOptions(
    * bigger-ceilings-buy-acceptance result).
    *
    * SC-16, the online-continuation lane below, needs no gate here: its own
-   * `onlineContinuationFrontierReady` already requires `!hasCompletion`. */
+   * `onlineContinuationFrontierReady` already requires `!hasCompletion`.
+   *
+   * The boundary is a MODE (all three consumers on, then all three off) and the
+   * head ramp below is the one consumer that can be a magnitude instead — see
+   * `postCompletionPhaseWeight`, the study arm that measures exactly that. */
   const deadlineConsumersActive = !telemetry.hasCompletion;
   /* The aiming lane is a simulated probe design per base — the second largest
    * lookahead spend after forward evaluation. Hold it to the same rule as the
@@ -4066,7 +4085,12 @@ function rankedOptions(
    * (node.ts `AIM_LANE_DEADLINE_BASE_SHARE`). The flag is scoped to this one
    * `getCandidatesSorted` call and restored in `finally` — every other caller
    * in the compile builds pools unthrottled, which is the property that keeps
-   * the pool memo's missing throttle key harmless. */
+   * the pool memo's missing throttle key harmless.
+   *
+   * It stays PRE-COMPLETION-ONLY even under the head ramp's phase-weight study
+   * arm: this gate is binary (`underFullDeadlinePressure`), so weighting it
+   * would not throttle a magnitude, it would introduce a second mode. Out of
+   * scope by construction, not by omission. */
   const aimLaneThrottled = deadlineConsumersActive &&
     underFullDeadlinePressure(deadlineMargin);
   setAimLaneDeadlineThrottled(aimLaneThrottled);
@@ -4112,8 +4136,12 @@ function rankedOptions(
   /* Narrow the rolled head as the compile runs out of room: full width while
    * the budget left comfortably covers the work left, `HANDOFF_FORWARD_EVAL_TOP`
    * once it no longer does. Inside the Phase-1a boundary above, so the repair
-   * and resumed passes roll at full width as they do today. */
-  const pressure = deadlineConsumersActive ? deadlinePressure(deadlineMargin) : 0;
+   * and resumed passes roll at full width as they do today — unless the
+   * phase-weight study arm is set, which turns that boundary from a mode into a
+   * magnitude for this ONE consumer (`postCompletionPhaseWeight`; weight 0 =
+   * production = today's boundary exactly). */
+  const phaseWeight = deadlineConsumersActive ? 1 : postCompletionPhaseWeight();
+  const pressure = phaseWeight <= 0 ? 0 : phaseWeight * deadlinePressure(deadlineMargin);
   recordDeadlinePoolBuild(deadlineMargin, pressure, deadlineConsumersActive);
   const forwardEvalTop = HANDOFF_FORWARD_EVAL_TOP <= 0 ? 0 : Math.round(
     pool.length + (HANDOFF_FORWARD_EVAL_TOP - pool.length) * pressure,
@@ -4492,6 +4520,7 @@ function rankedOptions(
       poolSize: pool.length,
       forwardEvalTop,
       aimLaneThrottled,
+      repairLane: repairLaneActive,
       onlineContinuationApplied: applyOnlineContinuation,
       onlineContinuationPruned: pruned.length,
       onlineContinuationPrunedNodes: prunedNodes,
@@ -4568,6 +4597,27 @@ function continuationCapacity(
   return getCandidatesSorted(child, gaps, ctx, seed, limit).length;
 }
 
+/**
+ * The continuation filter's own phase gate — and it STAYS pre-completion-only,
+ * on argument rather than by inheritance.
+ *
+ * When the head ramp's Phase-1a boundary was re-opened as a graded phase weight
+ * (`postCompletionPhaseWeight`), this consumer was deliberately left out of
+ * the scope. Two reasons, both measured:
+ *
+ *  - the filter PRUNES a frontier node on a rollout's dead-end verdict, and
+ *    37.8% of the verdicts it acts on are FALSE (460 acted-on verdicts, all
+ *    audited, docs/forward-eval-metrics.md L3). Pre-completion that is a race
+ *    the compile is losing anyway; post-completion there is an adopted
+ *    incumbent to protect, and a false prune there can only lose quality the
+ *    compile already has;
+ *  - unlike the head ramp it is not a magnitude. It is on or off at
+ *    `underFullDeadlinePressure`, so a weight would not throttle it, it would
+ *    move a threshold — the named anti-pattern.
+ *
+ * If it is ever re-opened, the evidence it needs is a verdict-truth measurement
+ * on POST-completion prunes specifically, not this ramp's.
+ */
 function onlineContinuationFrontierReady(
   node: SearchNode,
   telemetry: HandoffTelemetry,
@@ -5867,6 +5917,10 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //                              move it against rollout width)           [3, 8]
 //   LR_LEAF_DEDILUTE           objectiveLeafValue's two-component fold  {1}
 //                              (measured −17.24 ± 3.04 pooled; see dedilutedAxisQuality)
+//   LR_STUDY_POST_DEADLINE_W   the head ramp's post-completion phase   [0, 1]
+//                              weight (0 = the Phase-1a boundary = production)
+//   LR_STUDY_POST_DEADLINE_SCOPE  which post-completion lanes that      all|nonrepair
+//                              weight reaches (see postCompletionPhaseWeight)
 // ════════════════════════════════════════════════════════════════════════════════════════
 // ── True-score forward arc evaluation (DEFAULT ranker ≥75k; also start selection & repair) ──
 // Rank each candidate arc by the TRUE metric score (scoreDriftReport via leafKeyForReport) of
@@ -5944,6 +5998,143 @@ const fwdEvalRuntime: ForwardEvalRuntime = {
 // at default (branch=1) it was a no-op; the global + parse + hot-path lookup are
 // gone — re-derive from this note if the experiment is ever revisited.
 
+// ── The post-completion phase weight (STUDY-ONLY; production value 0) ──
+/**
+ * How much of the live deadline pressure the HEAD RAMP acts on AFTER first
+ * completion. Zero in production, which is the Phase-1a boundary exactly.
+ *
+ * ## Why the knob exists
+ *
+ * `deadlineConsumersActive = !telemetry.hasCompletion` is a MODE: all three
+ * deadline consumers switch off at first completion, on **57.4% of all pool
+ * builds** (48 canonical 750k compiles), in the phase that is by far the MORE
+ * pressed one — full pressure fires on **22.70%** of post-completion builds
+ * against **1.20%** pre-completion (19x). The architecture's own rule is
+ * "throttle a magnitude, never trigger a mode", and this is the one consumer
+ * whose response is already continuous, so it is the one that can obey the rule.
+ *
+ * Scope is deliberate and narrow: the AIM THROTTLE and the CONTINUATION FILTER
+ * both stay pre-completion-only, each on its own argument (see the throttle's
+ * comment in `rankedOptions` and `onlineContinuationFrontierReady`). The pace
+ * term was retired post-completion already, so there is nothing to double-count.
+ *
+ * ## Why it is a knob and not a change — and what the knob then measured
+ *
+ * The boundary was DRAWN on a measurement — the ungated bundle read
+ * -0.90 +/- 0.34 per cell against -0.39 +/- 0.27 gated, 44 sources x 8 seeds at
+ * 750k, so ungating cost -0.51 per cell. That measurement was taken on the
+ * since-replaced V1-shaped margin base (~1.9x loose; see `deadline.ts`'s
+ * decision section) and BEFORE the 1.2 validity fix that moved the
+ * post-completion mean margin 5.76 -> 10.94. By the stale-sweep rule a
+ * neighbouring mechanism changed what the constant means, so the verdict was
+ * due a re-measure before it could be believed.
+ *
+ * **RE-MEASURED 2026-08-04 on the corrected margin, same grain (44 canonical
+ * sources x 8 seeds x 750k, 352 paired cells per arm, validity 352/352 in every
+ * arm) — the boundary SURVIVES, and the old number reproduces almost exactly:**
+ *
+ *   w = 0.25  +0.004 +/- 0.168   (177/352 cells unchanged)
+ *   w = 0.50  -0.201 +/- 0.193   (141/352 unchanged)
+ *   w = 1.00  -0.529 +/- 0.188  t = -2.82   (116/352 unchanged)
+ *
+ * Monotone in w, no positive dose, and the ungated endpoint costs the same
+ * -0.51 the boundary was drawn on. THE LOSS IS ENTIRELY THE REPAIR LANE: the
+ * same w = 1 restricted to `nonrepair` reads **+0.048 +/- 0.020 (t = +2.37)**.
+ * Mechanism, measured on 24 cells with the deadline probe: 93.6% of
+ * post-completion pool builds happen inside a repair restart, and 95.8% of
+ * post-completion FULL-pressure builds sit in the LAST spend decile — so
+ * post-completion "pressure" is overwhelmingly the compile running out of
+ * budget, not the compile running behind, and acting on it narrows the rolled
+ * head exactly where repair's own ROI wants width.
+ *
+ * So the production value stays 0 and the knob stays a study arm. What is NOT
+ * closed is the `nonrepair` lane: it is only 6.4% of post-completion builds
+ * (but 95.7% of them at full pressure), it is a small significant positive at
+ * both doses measured (w=0.5 +0.039 +/- 0.014, w=1.0 +0.048 +/- 0.020), and it
+ * is far too small to spend an eval slot on alone.
+ *
+ * `LR_STUDY_POST_DEADLINE_W` is a finite number in [0, 1] and REFUSES anything
+ * else rather than clamping; unset/empty is the production constant below.
+ * If the arm ever wins, the production candidate is a change to
+ * `POST_COMPLETION_DEADLINE_WEIGHT` and nothing else.
+ */
+const POST_COMPLETION_DEADLINE_WEIGHT = 0;
+
+/**
+ * Which post-completion lanes the weight reaches: `all` (default) or
+ * `nonrepair`.
+ *
+ * Repair-phase pool builds go through the SAME `rankedOptions` read — repair
+ * restarts drive `runFrontierFrom`, which drives the ordinary `expandNode` —
+ * so an unscoped weight narrows the rolled head INSIDE a repair episode, where
+ * the repair-ROI study says bigger ceilings buy acceptance. That is a real
+ * conflict of mechanisms and not a detail, so the study measures both scopings
+ * instead of assuming one. `nonrepair` excludes exactly the builds inside a
+ * repair restart (`repairLaneActive`), leaving the post-completion main-search
+ * window and the resumed frontier.
+ */
+type PostCompletionDeadlineScope = "all" | "nonrepair";
+const POST_COMPLETION_DEADLINE_SCOPE: PostCompletionDeadlineScope = "all";
+
+const readStudyPostDeadlineW = compileScopedEnv("LR_STUDY_POST_DEADLINE_W");
+const readStudyPostDeadlineScope = compileScopedEnv("LR_STUDY_POST_DEADLINE_SCOPE");
+
+function postCompletionDeadlineWeight(): number {
+  const raw = readStudyPostDeadlineW();
+  if (raw === undefined || raw === "") return POST_COMPLETION_DEADLINE_WEIGHT;
+  const n = Number.parseFloat(raw);
+  if (!Number.isFinite(n) || n < 0 || n > 1) {
+    throw new Error(
+      `LR_STUDY_POST_DEADLINE_W must be a finite number in [0, 1] (STUDY-ONLY; never set it ` +
+        `in production or in an eval), got "${raw}"`,
+    );
+  }
+  return n;
+}
+
+function postCompletionDeadlineScope(): PostCompletionDeadlineScope {
+  const raw = readStudyPostDeadlineScope();
+  if (raw === undefined || raw === "") return POST_COMPLETION_DEADLINE_SCOPE;
+  const value = raw.trim();
+  if (value !== "all" && value !== "nonrepair") {
+    throw new Error(
+      `LR_STUDY_POST_DEADLINE_SCOPE must be "all" or "nonrepair" (STUDY-ONLY; never set it ` +
+        `in production or in an eval), got "${raw}"`,
+    );
+  }
+  return value;
+}
+
+/**
+ * True while a repair restart is driving the frontier (`runFrontierFrom`).
+ *
+ * Set and cleared around that one call, so it marks exactly the repair-episode
+ * pool builds and nothing else. Production reads it only through
+ * `postCompletionPhaseWeight`, which returns before the read unless a study
+ * weight is set — the flag is otherwise inert, and it is reported on the
+ * observation-only deadline probe record so the two scopings can be sized from
+ * the same run.
+ */
+let repairLaneActive = false;
+
+registerCompileReset(() => {
+  repairLaneActive = false;
+});
+
+/**
+ * The head ramp's post-completion phase weight at THIS pool build.
+ *
+ * Production returns 0 on the first line, so the ramp reads exactly the
+ * pre-completion-only pressure it reads today and the scope knob is never even
+ * consulted. Exported for the tests that pin the refusal paths.
+ */
+export function postCompletionPhaseWeight(): number {
+  const weight = postCompletionDeadlineWeight();
+  if (weight <= 0) return 0;
+  if (postCompletionDeadlineScope() === "all") return weight;
+  return repairLaneActive ? 0 : weight;
+}
+
 // ── Deadline-signal instrument (MEASURE-ONLY) ──
 // The mechanism had no production telemetry: no archive could say how often the
 // head-narrowing ramp engages, or what margin the compile was actually running
@@ -6018,7 +6209,11 @@ function recordDeadlinePoolBuild(
   } else {
     // `pressure` is 0 here BY THE PHASE GATE, not by the margin, so the twin
     // counters read the ramp directly. Same function, same anchors as the pre
-    // side, so the two phases' rates are comparable numbers.
+    // side, so the two phases' rates are comparable numbers. Under the
+    // phase-weight study arm the caller's `pressure` is no longer 0 here, but
+    // these counters deliberately keep reading the UNWEIGHTED ramp: they answer
+    // "how pressed was this build", which must stay the same question across
+    // arms for the arms to be comparable.
     const wouldPressure = deadlinePressure(margin);
     deadlineTotals.deadline_post_builds++;
     if (wouldPressure > 0) deadlineTotals.deadline_post_pressured++;

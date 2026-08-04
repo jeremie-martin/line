@@ -5992,7 +5992,8 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 // constants they re-bracket are derived; they reach this subsystem through the head ramp,
 // the aim throttle and the continuation filter:
 //   LR_STUDY_DEADLINE_NO_PRESSURE / _FULL_PRESSURE   the two margin anchors  (0, 10]
-//   LR_STUDY_PACE_WEIGHT       scale on the pace term's blend weight    [0, 2]
+// (LR_STUDY_PACE_WEIGHT was the third; it is gone with the term it priced — see the
+//  tombstone in optimizer/deadline.ts.)
 // ════════════════════════════════════════════════════════════════════════════════════════
 // ── True-score forward arc evaluation (DEFAULT ranker ≥75k; also start selection & repair) ──
 // Rank each candidate arc by the TRUE metric score (scoreDriftReport via leafKeyForReport) of

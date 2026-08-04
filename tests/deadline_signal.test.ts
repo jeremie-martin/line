@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { makeRng } from "../scripts/lib/rng.ts";
 import { beginEnvFlagEpoch } from "../scripts/v0/env_flags.ts";
 import { resetPerCompileState } from "../scripts/v0/core/compile_lifecycle.ts";
@@ -140,8 +140,8 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     const resumed = deadline({ includeStartup: false })
       .marginAt({ spentFrames: 0, gapIndex: 0, costToEnd: null });
     expect(withStartup).toBeLessThan(resumed);
-    // Past the anchor the intercept is no longer due either way; only the
-    // progress the two anchors imply (and so the pace weight) differs.
+    // Past the anchor the intercept is no longer due either way, and nothing
+    // else in the margin remembers which anchor the compile started from.
     expect(deadline().marginAt({ spentFrames: 0, gapIndex: 2, costToEnd: null }))
       .toBe(deadline({ includeStartup: false })
         .marginAt({ spentFrames: 0, gapIndex: 2, costToEnd: null }));
@@ -153,36 +153,62 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     expect(spent).toBeLessThan(start);
   });
 
-  test("the compile's own cost per unit progress enters the estimate", () => {
-    // Same position, same budget, different spend to get there: the cheap
-    // traversal keeps its margin and the expensive one loses it, which the
-    // structural suffix alone cannot express (it is identical for both).
-    const cheap = deadline().marginAt({ spentFrames: 50_000, gapIndex: 2, costToEnd: null });
-    const grinding = deadline().marginAt({ spentFrames: 400_000, gapIndex: 2, costToEnd: null });
-    const structuralOnly = (spent: number): number => {
-      const structural = budgetEstimatorStructuralScale(BUDGET) *
-        structuralRemainingWork(
-          GAPS,
-          DURATION_FRAMES,
-          2,
-          false,
-          BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
-        );
-      return (BUDGET - spent) /
-        estimateRemainingBudgetWork({ structural, path: null, pace: null, progressFraction: 0 });
-    };
-    expect(structuralOnly(400_000) / structuralOnly(50_000))
-      .toBeCloseTo((BUDGET - 400_000) / (BUDGET - 50_000), 9);
-    // The margin falls faster than the budget alone: the denominator grew too.
-    expect(grinding / cheap).toBeLessThan((BUDGET - 400_000) / (BUDGET - 50_000));
-    // With no progress yet there is no pace evidence, so the estimate is the
-    // static one at any spend.
-    expect(deadline().marginAt({ spentFrames: 400_000, gapIndex: 0, costToEnd: null }))
-      .toBeCloseTo((BUDGET - 400_000) / expectedWork(0, true, null), 9);
+  /**
+   * THE PRE-COMPLETION MARGIN, IN CLOSED FORM — the pin the pace-term removal
+   * ships behind.
+   *
+   * Before first completion the denominator is ONE term: the artifact-shaped
+   * structural suffix, times the budget law's scale, times the artifact's
+   * without-path correction. Not "approximately that": bit-for-bit that, at
+   * every gap and every spend. The compile's own spend reaches the margin
+   * through the NUMERATOR ONLY.
+   *
+   * It used to reach the denominator as well, through an episode-pace blend
+   * (`spent * structural / progressed`, geometrically blended at the structural
+   * progress fraction), which made two compiles at the same position with
+   * different spend disagree about how much work was left. That term was
+   * measured at -0.016 +/- 0.381 (750k, 352 cells) and -0.224 [-1.051, +0.578]
+   * (250k, 40 seeds) and removed; the tombstone in `deadline.ts` carries the
+   * rest of the evidence. This test is what makes putting it back a visible
+   * act rather than a plausible-looking patch.
+   */
+  test("the pre-completion margin is the law-scaled structural base and nothing else", () => {
+    const scale = budgetEstimatorStructuralScale(BUDGET);
+    const correction = BUDGET_ESTIMATOR_MODEL.combination.correctionWithoutPathFactor;
+    expect(correction).toBeGreaterThan(0);
+    for (const gap of [0, 1, 2, 3, 4]) {
+      // The startup intercept is due at the anchor (gap 0 here) and nowhere else.
+      const work = scale * structuralRemainingWork(
+        GAPS,
+        DURATION_FRAMES,
+        gap,
+        gap === 0,
+        BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
+      ) * correction;
+      for (const spentFrames of [0, 50_000, 400_000, 700_000]) {
+        const margin = deadline().marginAt({ spentFrames, gapIndex: gap, costToEnd: null });
+        // gap 4 is terminal: no work left, no deadline.
+        if (gap === GAPS.length) {
+          expect(margin).toBe(Infinity);
+          continue;
+        }
+        expect(margin).toBe((BUDGET - spentFrames) / work);
+      }
+    }
+
+    // The same statement without the closed form, in case a future artifact
+    // changes the constants: the denominator does not depend on the spend, so
+    // the margin is exactly proportional to what is left of the budget.
+    const at = (spent: number): number =>
+      deadline().marginAt({ spentFrames: spent, gapIndex: 2, costToEnd: null });
+    expect(at(400_000) / at(50_000))
+      .toBeCloseTo((BUDGET - 400_000) / (BUDGET - 50_000), 12);
   });
 
   test("the measured cost-to-end profile replaces the structural suffix where defined", () => {
-    // A profile also means the pace term is dropped: the path IS the evidence.
+    // Post-completion the path IS the evidence, and it carries the artifact's
+    // OTHER correction factor (`correctionWithPathFactor`) — the one place the
+    // two phases' denominators differ by more than which suffix they read.
     const costToEnd = [-1, -1, 40_000, -1, -1];
     const withPath = deadline().marginAt({ spentFrames: 100_000, gapIndex: 2, costToEnd });
     expect(withPath).toBeCloseTo(
@@ -196,21 +222,21 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
   });
 
   /**
-   * THE PRE-REPAIR POST-COMPLETION WINDOW.
+   * THE PRE-REPAIR POST-COMPLETION WINDOW — the defect, and why it is now
+   * unreachable rather than merely fixed.
    *
    * Post-completion the caller switches `gapIndex` from the compile's high
    * water to the NODE'S OWN gap, because the pass is a restart from an anchor.
-   * If the profile is still null there, `marginAt` reads the compile as
-   * pre-completion and applies the episode-pace term — compile-GLOBAL spend
-   * divided by the progress implied by ONE node's depth — and the margin
-   * collapses on a node that is doing nothing wrong. `handoff.ts` used to build
-   * the profile only when the repair phase started, so that was the live
-   * reading for the whole pre-repair window and for every compile below the
-   * repair minimum; it now builds it at the instant the first completion is
-   * adopted. This pins the property that fix has to preserve: a profile with no
-   * measurement anywhere is still enough to retire the pace term.
+   * Under the episode-pace term, a null profile at that position made
+   * `marginAt` price the compile's GLOBAL spend against the progress implied by
+   * ONE shallow node's depth, and the margin collapsed on a node that was doing
+   * nothing wrong. Two things closed it: `handoff.ts` now builds the profile at
+   * the instant the first completion is ADOPTED rather than when repair starts
+   * (pinned by the source test below), and the pace term is gone, so the shape
+   * of the defect no longer exists — an all-unmeasured profile and a null
+   * profile at the same position are now the SAME number, not merely close.
    */
-  test("an all-unmeasured profile still retires the pace term", () => {
+  test("an all-unmeasured profile reads exactly as the structural suffix", () => {
     const spent = 400_000;
     const shallowGap = 1;
     // Every entry -1: the shape `handoff.ts` produces below the repair minimum,
@@ -220,13 +246,13 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
 
     const withProfile = deadline()
       .marginAt({ spentFrames: spent, gapIndex: shallowGap, costToEnd: unmeasured });
-    expect(withProfile).toBeCloseTo(structuralOnly, 9);
+    expect(withProfile).toBe(structuralOnly);
 
-    // The defect, for the record: the same position with a null profile prices
-    // the whole compile's spend against one shallow node's progress.
-    const paced = deadline()
-      .marginAt({ spentFrames: spent, gapIndex: shallowGap, costToEnd: null });
-    expect(paced).toBeLessThan(withProfile);
+    // The defect's old signature: a null profile at the same position used to
+    // read STRICTLY LOWER, because the pace term fired on it. There is no term
+    // left that can tell the two apart.
+    expect(deadline().marginAt({ spentFrames: spent, gapIndex: shallowGap, costToEnd: null }))
+      .toBe(withProfile);
   });
 
   /**
@@ -344,98 +370,26 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
   });
 
   /**
-   * The pace-term re-price knob.
+   * POLICY RUNS THE ARTIFACT AS WRITTEN.
    *
-   * The term's price on record was taken on the V1-shaped base; the scale is
-   * how it gets re-priced. `0` is a pure structural base and `1` is production;
-   * the schedule clamps the weight into [0, 1], so values above 1 saturate
-   * rather than scaling — pinned here so nobody reads a `1.5` arm as "1.5x the
-   * pace term".
-   */
-  test("LR_STUDY_PACE_WEIGHT scales the pace blend weight, refuses, and saturates above 1", () => {
-    const at = (env: Record<string, string | undefined>) =>
-      withEnv(env, () => deadline().marginAt({
-        spentFrames: 400_000,
-        gapIndex: 2,
-        costToEnd: null,
-      }));
-    const production = at({});
-    // Unset is production; `1` is the same number bit-for-bit (the multiply is
-    // the identity), which is what makes the default byte-identical.
-    expect(at({ LR_STUDY_PACE_WEIGHT: "1" })).toBe(production);
-    expect(at({ LR_STUDY_PACE_WEIGHT: "" })).toBe(production);
-
-    // Weight 0 is the pace-free base: the same quantity `expectedWork` prices
-    // through the artifact as written. Not bit-exact — the estimator's
-    // geometric blend returns `exp(log(base))` at weight 0 — so this is an
-    // equality to double-rounding, which is the honest claim.
-    const paceFree = (BUDGET - 400_000) / expectedWork(2, false, null);
-    expect(at({ LR_STUDY_PACE_WEIGHT: "0" })).toBeCloseTo(paceFree, 6);
-    expect(at({ LR_STUDY_PACE_WEIGHT: "0" })).not.toBe(production);
-
-    // Monotone in between, and the direction is the one the term exists for:
-    // more pace on a compile spending faster than its structure predicts means
-    // more estimated work, so a SMALLER margin.
-    const half = at({ LR_STUDY_PACE_WEIGHT: "0.5" });
-    expect(production).toBeLessThan(half);
-    expect(half).toBeLessThan(at({ LR_STUDY_PACE_WEIGHT: "0" }));
-
-    // Above 1 the schedule's own clamp binds, so the arm is "pace saturates
-    // earlier", not "more than pure pace".
-    const paceOnly = at({ LR_STUDY_PACE_WEIGHT: "2" });
-    expect(at({ LR_STUDY_PACE_WEIGHT: "1.5" })).toBeLessThanOrEqual(production);
-    expect(paceOnly).toBeLessThanOrEqual(at({ LR_STUDY_PACE_WEIGHT: "1.5" }));
-
-    for (const bad of ["-0.1", "2.1", "lots", "NaN", "1e400", " "]) {
-      expect(() => at({ LR_STUDY_PACE_WEIGHT: bad }))
-        .toThrow(/LR_STUDY_PACE_WEIGHT must be a finite number in \[0, 2\]/);
-    }
-  });
-
-  /**
-   * The pace-schedule override contract.
+   * There used to be a local copy of the artifact here with `paceSchedule`
+   * forced from `"none"` to `"linear_progress"`, a load-time assert guarding
+   * that override, and an `LR_STUDY_PACE_WEIGHT` knob to re-price it — and, in
+   * this file, three tests. All of it is gone with the term (see the tombstone
+   * in `deadline.ts`), and what replaces the assert is this: the live margin is
+   * BIT-FOR-BIT what the artifact-as-written prices, so a divergence between
+   * policy and the recorded artifact cannot exist to be asserted about.
    *
-   * `DEADLINE_ESTIMATOR_MODEL` swaps ONE known artifact selection — `"none"`,
-   * chosen on a telemetry-accuracy contest — for `"linear_progress"`, on a
-   * local copy. A future calibration selecting a THIRD schedule would be
-   * discarded here without a trace: the artifact, the recorder and the
-   * fingerprint would all describe a policy that never ran. The module asserts
-   * the precondition at load; this pins the value it asserts on and that the
-   * override is actually in effect.
+   * The equality is `toBe`, not `toBeCloseTo`, on purpose. The old override
+   * could only be compared to double-rounding, because the estimator's
+   * geometric blend returns `exp(log(base))` even at weight zero; running the
+   * artifact means never entering the blend at all.
    */
-  test("the artifact says `none` and policy runs the pace blend anyway", () => {
+  test("the artifact says `none` and policy prices exactly that", () => {
     expect(BUDGET_ESTIMATOR_MODEL.combination.paceSchedule).toBe("none");
-    // Same position, same spend: `expectedWork` prices it through the artifact
-    // as written (pace weight zero), the live margin through the override.
-    const paceFree = (BUDGET - 400_000) / expectedWork(2, false, null);
-    const live = deadline().marginAt({ spentFrames: 400_000, gapIndex: 2, costToEnd: null });
-    expect(live).not.toBeCloseTo(paceFree, 6);
-    expect(live).toBeLessThan(paceFree);
-  });
-
-  test("an artifact selecting a third schedule fails the module load", async () => {
-    vi.resetModules();
-    vi.doMock("../scripts/v0/optimizer/budget_estimator.ts", async () => {
-      const actual = await vi.importActual<
-        typeof import("../scripts/v0/optimizer/budget_estimator.ts")
-      >("../scripts/v0/optimizer/budget_estimator.ts");
-      return {
-        ...actual,
-        BUDGET_ESTIMATOR_MODEL: {
-          ...actual.BUDGET_ESTIMATOR_MODEL,
-          combination: {
-            ...actual.BUDGET_ESTIMATOR_MODEL.combination,
-            paceSchedule: "sqrt_progress",
-          },
-        },
-      };
-    });
-    try {
-      await expect(import("../scripts/v0/optimizer/deadline.ts"))
-        .rejects.toThrow(/paceSchedule/);
-    } finally {
-      vi.doUnmock("../scripts/v0/optimizer/budget_estimator.ts");
-      vi.resetModules();
+    for (const [gapIndex, spent] of [[0, 0], [2, 400_000], [3, 700_000]] as const) {
+      const live = deadline().marginAt({ spentFrames: spent, gapIndex, costToEnd: null });
+      expect(live).toBe((BUDGET - spent) / expectedWork(gapIndex, gapIndex === 0, null));
     }
   });
 });

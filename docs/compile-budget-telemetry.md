@@ -848,11 +848,13 @@ The artifact has two halves and they have different consequences:
 | claim, policy-bound | `interval.*` | the recorder **and `handoff.ts`** — `repairRestartCeilingFrames` resolves `byEventAndPath.start.{withPath,withoutPath}.upperRatio` and `pickFeasibleWeakGap` decides on it |
 | claim, inert | `applicability.*`, `metrics.*`, `modelId` | telemetry only |
 
-`combination.paceSchedule` sits between them and is inert in practice:
-`deadline.ts` overrides it to `linear_progress` on its own copy for the reason
-written there, so the artifact's value never reaches policy. The override is a
-swap of ONE known value, asserted at module load, so a calibration selecting a
-third schedule fails rather than being discarded.
+`combination.paceSchedule` is telemetry-only in fact as well as label since
+2026-08-04: the pace term was removed from the live margin (the removal was
+DECIDED on a 40-seed 250k panel after reading null at 750k — see
+`deadline.ts`'s tombstone), so policy reads the artifact as written and the
+schedule field only qualifies what the recorder and calibrator may claim.
+(Historically `deadline.ts` overrode it to `linear_progress` under a load-time
+assert; both the override and the assert are gone with the term.)
 
 The whole file is inside `COMPILER_SOURCE_PATHS`, so **any** edit to it already
 reads as a compiler change to the benchmark — the fingerprint has always agreed
@@ -1465,9 +1467,9 @@ hand-set feasibility margin was retired in its favour:
 `repairRestartCeilingFrames` resolves
 `byEventAndPath.start.{withPath,withoutPath}.upperRatio` and
 `pickFeasibleWeakGap` decides on the result. Those fields are all live policy.
-Only `applicability`, `metrics` and `modelId` are read by nothing but telemetry,
-and `combination.paceSchedule` is overridden by `deadline.ts` before policy sees
-it — under a load-time assert that the artifact still selects `"none"`.
+Only `applicability`, `metrics`, `modelId` and (since the 2026-08-04 pace-term
+removal) `combination.paceSchedule` are read by nothing but telemetry — policy
+consumes the artifact as written, with no override left in the tree.
 See *Two Layers, And Widening A Claim Without Refitting* for the split, the
 measurement behind it, and the calibrator mode that respects it.
 

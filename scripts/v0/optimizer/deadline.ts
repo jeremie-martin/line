@@ -3,6 +3,17 @@
  *
  *     margin = remaining policy budget / estimated remaining work to the end
  *
+ * ONE term in that denominator, in each of the compile's two phases:
+ *
+ *     pre-completion    work = structural suffix x law scale x correction
+ *     post-completion   work = incumbent's measured cost-to-end x correction
+ *
+ * and nothing else. There was a third, blended term — the compile's own episode
+ * pace, folded into the pre-completion form — and it is gone; the tombstone
+ * below the imports carries the decision and its evidence, and
+ * `tests/deadline_signal.test.ts` pins that the pre-completion margin is exactly
+ * the law-scaled structural base with no other factor in it.
+ *
  * A pure, per-node read over search-owned deterministic state (charged frames,
  * how far the traversal has reached, the spec's own structure) and the budget
  * estimator's pure functions. At the first node it *is* the static structural
@@ -49,10 +60,42 @@
  *     again;
  *   - the SCALE is the artifact's budget law, `budgetEstimatorStructuralScale`
  *     = (B / 750k)^0.825;
- *   - the pace blend and the without-path correction factor are the artifact's.
+ *   - the correction factor is the artifact's, and so is the pace weight: the
+ *     artifact selects `paceSchedule: "none"` and policy now runs the artifact
+ *     as written, so `estimateRemainingBudgetWork` is called with `pace: null`
+ *     and no local copy of the model exists.
  *
- * So the base IS the estimate the recorder records, and the accuracy numbers
- * below are numbers about the quantity computed here.
+ * So the base IS the estimate the recorder records — the two sides now run the
+ * same model as well as the same function, which they did not while the
+ * override existed — and the accuracy numbers below are numbers about the
+ * quantity computed here.
+ *
+ * ## Where the policy/telemetry boundary sits (2026-08-04)
+ *
+ * POLICY — this module — reads the artifact's structural coefficients, its
+ * budget law and its two correction factors, and nothing else from the
+ * estimator's combination block. It consumes `paceSchedule` only in the sense
+ * that the artifact says `"none"` and this module no longer contradicts it;
+ * there is no policy-side override of any artifact field left in the tree.
+ *
+ * TELEMETRY — `budget_telemetry.ts`, `analyze_budget_telemetry.ts`,
+ * `describe_budget_telemetry.ts`, `calibrate_budget_estimator.ts` — keeps the
+ * whole pace apparatus: the recorder still records
+ * `episode_pace_work_estimate_frames` and `structural_progress_fraction` on
+ * every observation, the artifact schema still carries a `paceSchedule` field,
+ * and the calibrator still sweeps the four schedules behind `--pace-schedule`.
+ * Those are MEASUREMENT: they let a future recalibration fit pace weights for an
+ * accuracy claim, and they let the analyzer say what the pace estimate would
+ * have read. None of them is on the deadline's path. If a recalibration ever
+ * selects a non-`"none"` schedule, policy will pick it up automatically —
+ * through the artifact, which is the only way it should ever arrive.
+ *
+ * ONE residue of the split is worth naming so nobody hunts it as a bug: the
+ * recorder passes its non-null `pace` into the artifact's ZERO-weight blend and
+ * therefore gets `exp(log(base))`, while this module passes `pace: null` and
+ * gets `base`. The two estimates differ by that round-trip — at most an ulp,
+ * never a term — and closing it would mean the recorder computing a pace it
+ * then declines to use, which is worth less than the observation it records.
  *
  * Policy consumes the RAW POINT RATIO at every budget. The estimator's
  * `applicability` nulling (`hard_completion_margin` is null outside the
@@ -69,12 +112,13 @@
  * against 262% / 53.8% / 22.5% / 82.4% / 108% / 118% for the paced slack it
  * replaced — a 3x to 25x win at every budget, in and out of domain. Rank
  * agreement with the realized margin is 0.80-0.97 (Spearman) where the paced
- * blend goes ANTI-correlated above 300k. (Those are the structural base alone;
- * `DEADLINE_ESTIMATOR_MODEL` below adds the compile's own pace to it, whose
- * component error is lower still below 300k.) The one place the estimate is
- * genuinely weak is 75k, where the law extrapolates two octaves below its
- * corpus — and where the ramp is engaged on three quarters of observations
- * anyway, so the pressure decision there barely depends on its precision.
+ * blend goes ANTI-correlated above 300k. Those are the structural base alone,
+ * which since the pace term's removal is the whole pre-completion estimate —
+ * the accuracy table and the shipped signal are now the same quantity. The one
+ * place the estimate is genuinely weak is 75k, where the law extrapolates two
+ * octaves below its corpus — and where the ramp is engaged on three quarters of
+ * observations anyway, so the pressure decision there barely depends on its
+ * precision.
  *
  * ## The base shape was a decision, and it is measured (2026-08-03)
  *
@@ -110,10 +154,11 @@
  *     pressed specs, which is the mechanism doing the thing it exists for.
  *
  * The stale-prior finding survives where it was actually made — the DIFFICULTY
- * coordinate, Cluster E1 — and it survives here as the pace term, which is what
- * corrects an accurate base toward the compile's own evidence. What it never
- * licensed was an inaccurate base: staleness bought a wider margin, not more
- * information.
+ * coordinate, Cluster E1. It did NOT survive here: the pace term was this
+ * module's version of it, an accurate base corrected toward the compile's own
+ * evidence, and the correction was measured worthless at two budgets and
+ * removed (the tombstone below). What staleness never licensed, either way, was
+ * an inaccurate base: it bought a wider margin, not more information.
  *
  * ## The constants, in margin units
  *
@@ -122,16 +167,20 @@
  * runs 1.32 -> 3.30 and tracks the REALIZED margin at every budget. The two
  * anchors here are read off the 150k threshold sweep in
  * phase0/signal-comparison-table.md §H (28,625 observations, 29/352 compiles
- * never complete), the only corpus with a non-degenerate completion label,
- * re-scored with the pace blend switched on rather than carried over from the
- * pace-free signal the table was built on. That re-scoring used the ARTIFACT's
- * structural coefficients — the shape this module now computes — so signal and
- * anchors are derived on one quantity, and the base-shape swap needed no
- * re-anchor: re-deriving them from the coefficients rather than from the
- * recorder's stored estimate returns Youden-optimal 1.30 and smallest zero-FPR
- * threshold 1.90 at 150k, stable under both the recorded episode pace and the
- * controller's own pace formula. On the V1 shape the same corpus asks for
- * 3.00 / 3.40 instead, which is the other half of why the deviation had to go.
+ * never complete), the only corpus with a non-degenerate completion label. That
+ * derivation used the ARTIFACT's structural coefficients — the shape this module
+ * computes — so signal and anchors are derived on one quantity, and the
+ * base-shape swap needed no re-anchor: re-deriving them from the coefficients
+ * rather than from the recorder's stored estimate returns Youden-optimal 1.30
+ * and smallest zero-FPR threshold 1.90 at 150k. On the V1 shape the same corpus
+ * asks for 3.00 / 3.40 instead, which is the other half of why the deviation had
+ * to go.
+ *
+ * The sweep was scored with the pace blend switched on, and the blend is now
+ * gone — but that does NOT re-stale the pair: the pace-free arm of the same
+ * corpus picks the same 1.25 (J 0.852 there, against 0.815 with the blend), so
+ * the blend moved the tail and never the anchor. See
+ * `DEADLINE_MARGIN_FULL_PRESSURE`.
  *
  * The Phase 1a brackets (no-pressure endpoint 1.5/3/4/6 = -2.60/-2.89/-0.06/
  * -0.11 against 2.0) were taken on the V1-shaped signal and are STALE by the
@@ -156,122 +205,68 @@ import {
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
   structuralRemainingWork,
-  type BudgetEstimatorModelArtifact,
 } from "./budget_estimator.ts";
 
-/**
- * The frozen artifact with its episode-pace component switched on.
+/*
+ * TOMBSTONE — the episode-pace term (removed 2026-08-04).
  *
- * The artifact gives pace weight zero (`paceSchedule: "none"`), selected on a
- * 750k corpus for the accuracy of a TELEMETRY claim. A controller needs
- * something the median-accuracy contest does not measure: per-compile
- * difficulty feedback. The structural coefficients are a regression over spec
- * structure, so on a spec that costs two or three times the fitted rate per
- * contact they under-predict the remaining work for the whole compile and the
- * margin reports "on course" while the search grinds. Measured on
- * `frontier_dense_recovery` at 750k, the structural remaining-work estimate is
- * ~2.2x optimistic and a pace-free margin sits at median 2.78 — no pressure —
- * on a compile that reaches first completion at 88% of its budget.
+ * For one era this module kept a LOCAL COPY of the estimator artifact with
+ * `paceSchedule` forced from the artifact's `"none"` to `"linear_progress"`,
+ * plus a load-time assert guarding that override and an `LR_STUDY_PACE_WEIGHT`
+ * knob to re-price it. All four are gone and the term with them. The argument
+ * for it was real and is worth keeping legible, because it is the argument any
+ * proposal to bring it back will make again:
  *
- * The pace term is that feedback, and it is not a guess: `episode_pace` has the
- * LOWEST median absolute error of any component at 75k (9.3%), 150k (8.8%) and
- * 300k (6.2%), and 9.2% at 750k against the structural base's 5.3%
- * (phase0/signal-comparison.md §Answer 2). Blended geometrically at the
- * structural progress fraction it changes almost nothing on a compile whose
- * cost matches its structure, and pulls the estimate onto the compile's own
- * evidence exactly where the structure is wrong. This is the same correction
- * `observedTraversalBudgetSlack` made — its `spent * totalGaps / deepestGap`
- * is a gap-COUNT version of the same measurement — with the accurate base and
- * the work-weighted progress the naive form lacked.
+ *   the structural coefficients are a regression over spec STRUCTURE, so on a
+ *   spec that costs two or three times the fitted rate per contact they
+ *   under-predict for the whole compile and the margin reports "on course"
+ *   while the search grinds. `episode_pace` — this compile's own charged
+ *   frames per unit of structural progress, projected over the suffix it has
+ *   left — is the cheapest available correction, and it is the LOWEST-error
+ *   estimator component at 75k (9.3%), 150k (8.8%) and 300k (6.2%).
  *
- * The pace-free arm that priced this term (capability stratum -21.6, recovered
- * to -0.8) ran on the V1-SHAPED base, where the structure under-predicted by
- * roughly the amount pace had to make up. Under the artifact shape the base is
- * ~2.7x larger at a root node, so how much of that -21.6 is still the pace
- * term's is an open number. Re-pricing it is filed work; the term stays until
- * measured, because the argument for it — structure cannot see that THIS spec
- * costs two or three times the fitted rate per contact — is about the residual
- * and not about the coefficients.
+ * The price on record that bought it (-21.6 on the capability stratum, recovered
+ * to -0.8) was taken on the V1-SHAPED base, where the structure under-predicted
+ * by roughly the amount pace had to make up. Under the artifact shape the base
+ * is ~2.7x larger at a root node, and re-priced there the term is worth nothing:
  *
- * The artifact JSON, the recorder, the analyzer and the fingerprint are all
- * untouched: this is a policy-side override of one selector field, declared
- * here where the reason lives.
+ *   - 750k, 44 sources x 8 seeds (352 paired cells): weight 0 = **-0.016 +/-
+ *     0.381**; weight 0.5 = +0.113 +/- 0.273; weight 1.5 = -0.149 +/- 0.176. It
+ *     bites at all on only 83 of 352 cells (23.6% of tracks).
+ *   - 250k, the budget the keep-argument reserved — STABLE-40 x 40 seeds =
+ *     **-0.224 [-1.051, +0.578]** suite-weighted, both pre-registered clauses
+ *     pass: **DECIDED-SUPPORTED**. Whole-suite 250k consequence -1.25
+ *     [-3.11, +0.65]. The term is ACTIVE there, not inert: it changes 55.4% of
+ *     tracks.
+ *   - the knife-edge completions that argument was really about were ledgered
+ *     separately at 240 frontier seeds: rescued 155 / lost 175, rescue share
+ *     0.470 [0.417, 0.524], p=0.296 — **a seed lottery the term reshuffles
+ *     without winning or losing.**
+ *   - 150k colour: null.
+ *
+ * And the premise INVERTED under measurement. The term was kept because pace
+ * would add pressure where structure was optimistic; at 250k — the budget where
+ * it is most active — the pace estimate sits BELOW the structural base and
+ * RELIEVES pressure instead. (At 150k it does add pressure, as predicted, and
+ * still does not pay.) So the surviving reading is not "free to keep at 750k,
+ * load-bearing lower down": it was measured at both budgets it was reserved
+ * for, and at the more active one it runs against its own argument.
+ *
+ * Do not re-derive this term from the accuracy table above. `episode_pace`
+ * being the lowest-error COMPONENT is the fact that motivated it, and it is
+ * still true; it is not evidence, because two budgets of paired compiles now say
+ * the margin's consumers do not convert that accuracy into score. Re-opening
+ * needs NEW evidence: a consumer that reads the margin differently, or a budget
+ * regime below 150k that nothing here has measured.
+ *
+ * Methodology fact that came out of the same work, cheap to lose and expensive
+ * to rediscover: an 8-seed 250k panel reading of a margin-side knob is NOT
+ * reproducible — two independent 8-seed halves straddled both decision bars.
+ * 250k evidence panels for this coordinate need >= 40 seeds.
+ *
+ * The observation side was deliberately NOT touched; see the policy/telemetry
+ * boundary section in the module header for exactly what stayed and why.
  */
-const DEADLINE_ESTIMATOR_MODEL: BudgetEstimatorModelArtifact = {
-  ...BUDGET_ESTIMATOR_MODEL,
-  combination: {
-    ...BUDGET_ESTIMATOR_MODEL.combination,
-    paceSchedule: "linear_progress",
-  },
-};
-// The override is a swap of ONE KNOWN selection for another, not a blanket
-// "policy always paces": the argument above is specifically about the artifact
-// giving pace weight zero. A future calibration that selected a third schedule
-// would be discarded here without a trace — the artifact, the recorder and the
-// fingerprint would all describe a blend that policy never ran. So the contract is
-// asserted at module load, the way handoff.ts pins its two coupled pool
-// constants: re-derive the override against the new selection instead.
-if (BUDGET_ESTIMATOR_MODEL.combination.paceSchedule !== "none") {
-  throw new Error(
-    "optimizer/deadline.ts overrides the estimator artifact's paceSchedule " +
-      `"none" with "linear_progress", but the artifact now selects ` +
-      `"${BUDGET_ESTIMATOR_MODEL.combination.paceSchedule}"; re-derive the override ` +
-      "against that selection (see DEADLINE_ESTIMATOR_MODEL) rather than discarding it",
-  );
-}
-
-/**
- * STUDY-ONLY re-price of the pace term's blend weight.
- *
- * The term's price on record (capability stratum -21.6, recovered to -0.8) was
- * taken on the V1-SHAPED base, where the structure under-predicted by roughly
- * the amount pace had to make up; under the artifact shape the base is ~2.7x
- * larger at a root node, so how much of that number is still the pace term's is
- * an open question the docstring above files as work. This knob is how it gets
- * answered without editing the artifact override.
- *
- * It scales the blend WEIGHT, not the pace estimate: the schedule is
- * `linear_progress`, so the weight is the structural progress fraction, and the
- * scale multiplies exactly that. `0` is a pure structural base (the estimator's
- * geometric blend at weight 0 returns `exp(log(base))` — the base to within
- * double-rounding, not bit-exactly); `1` is production. Values above 1 are a
- * legal but SATURATING arm: the schedule clamps the weight into [0, 1] and
- * weight 1 is already pure pace, so `1.5` means `min(1, 1.5 * progress)` and
- * reaches pure pace at two thirds of the way through. That is a real monotone
- * increase in pace reliance, and it is not a clean linear scale — read it as
- * "pace saturates earlier", never as "1.5x the pace term".
- *
- * REFUSES rather than clamps, and is read ONCE per `CompileDeadline` so the
- * margin stays a pure function of search-owned state.
- *
- * RE-PRICED 2026-08-04 at 44 sources x 8 seeds x 750k (352 paired cells per
- * arm): weight 0 (the term GONE) is **-0.016 +/- 0.381**, weight 0.5 is
- * +0.113 +/- 0.273, weight 1.5 is -0.149 +/- 0.176. At the promoting budget the
- * pace term is worth nothing measurable in either direction — the -21.6 that
- * bought it was a V1-shaped-base number and does not survive the base swap, as
- * the docstring above suspected. It bites at all on only 83 of 352 cells.
- *
- * It STAYS, and the reason is not inertia: the argument for it is about a
- * regime this panel cannot see. `episode_pace` is the lowest-error component at
- * 75k/150k/300k and the structural base's worst regime is exactly there; the
- * measured null is "free to keep at 750k", not "free to delete". Deleting it is
- * a simplification candidate whose evidence surface is the standing low-budget
- * reading plus a 250k panel, and it must not be taken on this measurement.
- */
-const readStudyPaceWeight = compileScopedEnv("LR_STUDY_PACE_WEIGHT");
-
-function studyPaceWeightScale(): number {
-  const raw = readStudyPaceWeight();
-  if (raw === undefined || raw === "") return 1;
-  const n = Number.parseFloat(raw);
-  if (!Number.isFinite(n) || n < 0 || n > 2) {
-    throw new Error(
-      `LR_STUDY_PACE_WEIGHT must be a finite number in [0, 2] (STUDY-ONLY; never set it in ` +
-        `production or in an eval), got "${raw}"`,
-    );
-  }
-  return n;
-}
 
 /**
  * Full deadline pressure at and below this margin.
@@ -280,8 +275,11 @@ function studyPaceWeightScale(): number {
  * against 0.717 at 1.5, 0.541 at 1.0 and 0.444 at 1.75 (and `pacedSlack`'s
  * best, 0.806 at its own 1.0). It is also where the population the old rule
  * called "behind" sits: observations with `pacedSlack < 1.0` have median
- * margin 1.27. The maximum is the same 1.25 the pace-free signal picked
- * (J 0.852 there), so the blend moved the tail without moving the anchor.
+ * margin 1.27. That sweep was scored with the episode-pace blend on; the
+ * pace-free arm of the same corpus — which since 2026-08-04 IS the shipped
+ * signal — puts its maximum at the same 1.25 (J 0.852 there). The blend moved
+ * the tail and never the anchor, which is why removing it left this constant
+ * where it was.
  */
 export const DEADLINE_MARGIN_FULL_PRESSURE = 1.25;
 
@@ -438,9 +436,6 @@ export class CompileDeadline {
   private readonly structuralByGap: readonly number[];
   /** The same at the anchor, with the one-time startup intercept still due. */
   private readonly anchorStructural: number;
-  /** STUDY-ONLY multiplier on the pace blend weight; 1 in production. Read
-   *  ONCE, here, so `marginAt` stays a pure read over search-owned state. */
-  private readonly paceWeightScale: number;
 
   constructor(input: {
     gaps: readonly Gap[];
@@ -473,7 +468,6 @@ export class CompileDeadline {
       input.includeStartup,
       BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
     );
-    this.paceWeightScale = studyPaceWeightScale();
   }
 
   /**
@@ -488,9 +482,15 @@ export class CompileDeadline {
    * `costToEnd` is the incumbent's measured frames-from-gap-k-to-completion
    * profile — the same array repair sizes its ceilings from. Once it exists it
    * IS the evidence, so the estimator prefers it over the structural suffix
-   * exactly as the recorder does, and the episode-pace term below is dropped
-   * rather than double-counting the repair phase's own spend into a
-   * cost-to-reach-the-end estimate.
+   * exactly as the recorder does.
+   *
+   * The estimator is called with the artifact as written — `pace: null`, and so
+   * `progressFraction` is inert — which makes the denominator ONE term in each
+   * phase: `structural * correctionWithoutPathFactor` before first completion,
+   * `measured * correctionWithPathFactor` after it. The compile's own spend
+   * therefore reaches the margin through the NUMERATOR only. It used to reach
+   * the denominator too, as an episode-pace blend; see the tombstone above the
+   * anchors for the measurement that removed it.
    *
    * Returns `Infinity` at a position with no work left, so a terminal node
    * reads as unpressed rather than as maximally behind.
@@ -505,26 +505,17 @@ export class CompileDeadline {
       ? this.anchorStructural
       : this.structuralByGap[gap];
     const measured = input.costToEnd?.[gap];
-    const progressed = Math.max(0, this.anchorStructural - structural);
+    // The model is named explicitly for the same reason
+    // `BUDGET_ESTIMATOR_TRAVERSAL_MODEL` is above: this argument also has a
+    // default, and this module already spent one era computing a signal it did
+    // not document because it took one. `pace: null` leaves `progressFraction`
+    // inert — the estimator reads it only to weight a pace that is not there.
     const work = estimateRemainingBudgetWork({
       structural,
       path: measured !== undefined && measured > 0 ? measured : null,
-      // THIS COMPILE'S OWN COST PER UNIT OF PROGRESS, projected over the suffix
-      // it has left — the recorder's `episode_pace`, computed the same way from
-      // state the search already owns. It is null until the traversal has
-      // progressed at all, so at the first node the margin is exactly the
-      // static structural estimate.
-      pace: input.costToEnd === null && progressed > 0
-        ? input.spentFrames * structural / progressed
-        : null,
-      // The blend weight IS the structural progress fraction
-      // (`paceSchedule: "linear_progress"`). `paceWeightScale` is 1 in
-      // production, so this multiply is the identity and the compile is
-      // byte-identical; the study arm re-prices the term by scaling the weight.
-      progressFraction: this.paceWeightScale * (this.anchorStructural > 0
-        ? clamp01(progressed / this.anchorStructural)
-        : 1),
-    }, DEADLINE_ESTIMATOR_MODEL);
+      pace: null,
+      progressFraction: 0,
+    }, BUDGET_ESTIMATOR_MODEL);
     if (!(work > 0)) return Infinity;
     return Math.max(0, this.policyBudgetFrames - input.spentFrames) / work;
   }
@@ -533,8 +524,4 @@ export class CompileDeadline {
 function clampGap(value: number, gapCount: number): number {
   const integer = Number.isFinite(value) ? Math.floor(value) : 0;
   return Math.max(0, Math.min(integer, gapCount));
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value));
 }

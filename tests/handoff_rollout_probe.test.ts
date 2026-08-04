@@ -23,9 +23,15 @@ import {
  *              measuring a different population from the shipping thermometer.
  */
 
-/** 400k, not the cheapest budget: the impact first-widened arm is gated behind
- *  `IMPACT_BEST_FWD_START_FRAMES = 300k`, so below it `firstBranch > 1` never
- *  occurs and the shape-attribution assertion would be vacuous. */
+/** 400k, not the cheapest budget: without a budget where the impact
+ *  first-widened arm actually fires, `firstBranch > 1` never occurs and the
+ *  shape-attribution assertion below is vacuous. That arm's only budget
+ *  coordinate is traversal slack (`B / D(spec)` past
+ *  `IMPACT_BEST_FWD_SLACK_START = 2.5`), which on this spec saturates at ~300k,
+ *  so 400k is comfortably inside the firing region. (Until 2026-08-04 a
+ *  raw-budget ramp — offender d3, 300k/200k — was the binding gate here and
+ *  chose this constant; removing it left the budget correct for a different,
+ *  better reason, so it stays.) */
 const BUDGET = 400_000;
 const SEED = 3;
 

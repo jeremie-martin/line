@@ -188,7 +188,7 @@ against source or archives.
 | f | dormant `policyBudget != budget` hook, no live caller | **CONFIRMED**; one attributed caller was wrong |
 | g | `pacedSlack → Infinity` at first completion | **RETIRED** (`4325370`) — the mechanism and all five identifiers are deleted; the finding survives as history |
 | h | July audit verdicts measured under a replaced ruler; pool=7 re-test | **CONFIRMED**; one identification left open |
-| i | `IMPACT_BEST_FWD_START_FRAMES = 300_000`, byte-identical-at-250k by design | **CONFIRMED verbatim** |
+| i | `IMPACT_BEST_FWD_START_FRAMES = 300_000`, byte-identical-at-250k by design | **RETIRED 2026-08-04** — the raw-budget factor (offender d3) and the double-counted budget coordinate (c1) are deleted; the gate is `askPressure × slackPressure` only. Byte-identical at 750k/500k/250k; standing 250k reading PARITY 0/528; the (300k,500k) sliver was the only binding region. |
 | j | aim doc/code disagreement since `d5731e5` | **CONFIRMED** |
 
 ### (a) `firstTerminalFrame` vs `firstCompletionFrame` — CONFIRMED, and the divergence is not observed
@@ -405,7 +405,7 @@ and per `:984` *neither was promoted*, so no anti-composition partner sits in
 the baseline. SC-06's live Track-R question is flat-4 alone, freshest datum
 inconclusive-positive.
 
-### (i) `IMPACT_BEST_FWD_START_FRAMES = 300_000` — CONFIRMED verbatim
+### (i) `IMPACT_BEST_FWD_START_FRAMES = 300_000` — CONFIRMED verbatim, then RETIRED 2026-08-04 (d3/c1 removal; gate is now `askPressure × slackPressure` — the section below is the historical record)
 
 `handoff.ts:1075-1079`:
 
@@ -1618,7 +1618,7 @@ the commit; the rest stand.
 | 3 | `LR_REPAIR_MAX_ATTEMPTS = 64`'s comment ("1M affords ~30-40 restarts; 16 plateaued at 698; 64 → 706.6") | max restarts observed anywhere is 17; 0 of 3,696 compiles reach the cap; `64 → 160` re-measured byte-identical | **CLOSED `d7c839f`**: re-documented as NEVER BINDING with those numbers and an explicit do-not-re-sweep — it is a runaway guard, not an allocation. |
 | 4 | three prose references still describe `objectiveBlendReadinessPowerForSpec` as live | `objective.ts:76`, `objective.ts:617`, `objective_control.ts:19`; production call site deleted 2026-07-28 | **CLOSED `d7c839f`**: the function is deleted and all three references with it. |
 | 5 | `docs/repair-roi-study.md` prices `mainMargin` with `first_terminal_total_spent_frames / policy_budget`, while the knob it prices multiplies `firstCompletionFrame` | verified §2a: two archive fields named `first_completion_frame` hold two different quantities | **the effect is currently null**: 2,414 archive rows across 250k/500k/750k carry both counters and **0 diverge**, so the study's phase split is not mis-computed at any measured budget. The correction note is about the *identity*, not the numbers: the study should say which counter it used, and re-price against `firstCompletionFrame` if it is ever run at a budget where the two can separate. **UNVERIFIED below 250k.** |
-| 6 | scale-contract violation, by design and documented as such | `IMPACT_BEST_FWD_START_FRAMES = 300_000` exists so "the charge-bounded completion knee stays byte-identical by construction" at 250k (§2i) | a threshold placed to preserve a benchmark operating point, in a compiler whose contract says budget identity must not enter behaviour. Now buying nothing, because 250k is deferred. |
+| 6 | scale-contract violation, by design and documented as such | `IMPACT_BEST_FWD_START_FRAMES = 300_000` exists so "the charge-bounded completion knee stays byte-identical by construction" at 250k (§2i) | **CLOSED 2026-08-04**: the offender is deleted (d3/c1 removal, forward-eval-value campaign). The knee is protected by the slack coordinate alone (max slack at 250k = 2.249 < 2.5 on all 44 sources); benchmark surface byte-identical, standing 250k reading PARITY. Off-surface (short specs with slack > 2.5 below 300k) the arm now opens on its own coordinate — the intended scale-contract behaviour. |
 | 7 | further benchmark-identity literals | `M132/M144/M165 = 200_000` and `M152_CANYON = 250_000` (SC-02); `targetBudget >= 500000` (SC-23, probe-gated, written without the file's numeric separator) | **CLOSED `f7d054f` + `d7c839f`**: the four case-named min-budget constants are deleted with their rules; SC-23's literal now uses the file's separator and stays as a probe hook. `HANDOFF_QUALITY_N_CAND = 32` is the sole gate left on that path. |
 | 8 | unpriced dormant hooks | `policyBudget` (LC-02): zero live callers, zero evaluations, empty commit body, and the phase it opens (the resumed frontier) has **no measured numerator** — `endActive` is called without an outcome object, so `accepted_score_delta`, `accepted_improvement` and `first_accepted_improvement_offset_frames` are `null` for every resumed attempt. `LC-31`: two live-budget parameters wired to `Infinity`. `SC-11` `forwardStageTop`: default 0, and turning it on measured **+0.10 SE 0.24**, the cleanest null in the campaign. | three mechanisms that look like control surfaces and are not |
 | 9 | `compile_stats.repair.restarts` undercounts by one whenever capture fires inside the last restart | 168/352 compiles at 750k; `budgetTelemetry.attempts` is the complete record | do not use `stats.repair` as the repair ledger |

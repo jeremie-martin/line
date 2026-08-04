@@ -242,9 +242,12 @@ against the branched total.)
 **The single largest line item in a 750k compile's rollout budget is
 `impactBestForwardEvalConfig`** — the impact-gap first-level widening, 62.8% of
 all rollout frames and 12.9% of the whole compile, at 167 frames per call
-against the unwidened 47. Its budget ramp (`IMPACT_BEST_FWD_START_FRAMES`) is
+against the unwidened 47. Its budget ramp (`IMPACT_BEST_FWD_START_FRAMES`) was
 zero at 250k by construction, which is why it is invisible below 750k and
-dominant at it. `openingBestForwardEvalConfig` never fired on this grid at all
+dominant at it. (2026-08-04: that ramp has since been REMOVED — the gate is now
+ask × slack only; at 250k the slack coordinate holds it shut on all 44 canonical
+sources, so this table's readings are unchanged, but do not cite the ramp as a
+live mechanism.) `openingBestForwardEvalConfig` never fired on this grid at all
 (its slack ramp starts at 2.75).
 
 **Any statement about "the rollout" at the production operating point that

@@ -44,8 +44,12 @@ import { CALIB, secToFrame, type Gap, type Spec } from "../scripts/v0/types.ts";
  */
 
 const SPEC_NAME = "dense_sprint";
-/** Big enough that `impactBestForwardEvalConfig`'s budget ramp is open (it is
- *  0 below 300k and saturates at 500k) and small enough to run in a test. */
+/** Big enough that `impactBestForwardEvalConfig` fires — its one budget
+ *  coordinate is traversal slack (`B / D(spec)` past 2.5), saturated on this
+ *  spec from ~300k — and small enough to run in a test. Before 2026-08-04 a
+ *  raw-budget ramp (offender d3, 300k/200k) was the binding gate here and is
+ *  why the constant is 400k; it was removed, the slack coordinate keeps the arm
+ *  firing at this budget, so the constant stays. */
 const BUDGET = 400_000;
 
 type Shape = { variant: string; depth: number; branch: number; firstBranch: number };

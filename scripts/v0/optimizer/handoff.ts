@@ -23,12 +23,14 @@
  *  A. Reads that MOVE inside the range the compiler is promoted at (250k-1M):
  *     `budgetAwareQualitySampleCount` (the scale-free per-gap breadth law), the
  *     live slack/deadline signals (branch width, the paced forward-eval head,
- *     the repair stopping rule), `maturityPressure` — asymptotic, not
- *     saturated, +35% relative travel from 250k to 750k, see its docstring —
- *     and `impactBestForwardEvalConfig`'s raw-budget ramp
- *     (`IMPACT_BEST_FWD_START_FRAMES` 300k, span 200k, saturated at 500k), the
- *     one member of this group that is a benchmark-point-tuned ramp rather than
- *     a law.
+ *     the repair stopping rule) and `maturityPressure` — asymptotic, not
+ *     saturated, +35% relative travel from 250k to 750k, see its docstring.
+ *     Every member is a law. The one benchmark-point-tuned ramp that used to
+ *     sit in this group — `impactBestForwardEvalConfig`'s raw-budget factor
+ *     (`IMPACT_BEST_FWD_START_FRAMES` 300k / span 200k, saturated at 500k) —
+ *     was REMOVED on 2026-08-04 together with the double-counted budget
+ *     coordinate it created; that arm now reads the budget exactly once, and
+ *     only through the difficulty-conditioned slack. See its docstring.
  *
  *  B. Reads that are PINNED below 250k and are therefore constants wherever the
  *     benchmark decides, but are NOT dead, because they carry the scarce-budget
@@ -1308,13 +1310,12 @@ const MATURE_AVG_FWD_EVAL_ELEVATION_CENTER = 0.50;
 const MATURE_AVG_FWD_EVAL_ELEVATION_SPAN = 0.24;
 const MATURE_AVG_FWD_EVAL_DENSE_FRAMES = 20;
 const MATURE_AVG_FWD_EVAL_SPARSE_FRAMES = 40;
-// Impact-pressured downstream width (see impactBestForwardEvalConfig). The
-// budget ramp deliberately starts ABOVE 250k so the charge-bounded completion
-// knee never pays the extra k+1 admissions (byte-identical there).
+// Impact-pressured downstream width (see impactBestForwardEvalConfig). Two
+// coordinates, and only two: how much impact the gap asks for, and how much
+// traversal slack the compile has (`B / D(spec)`). The budget enters once,
+// inside the slack, conditioned on the spec's difficulty.
 const IMPACT_BEST_FWD_ASK_START = 0.25;
 const IMPACT_BEST_FWD_ASK_SPAN = 0.2;
-const IMPACT_BEST_FWD_START_FRAMES = 300_000;
-const IMPACT_BEST_FWD_SPAN_FRAMES = 200_000;
 const IMPACT_BEST_FWD_SLACK_START = 2.5;
 const IMPACT_BEST_FWD_SLACK_SPAN = 2.0;
 const IMPACT_BEST_FWD_BRANCH = 3;
@@ -7092,7 +7093,7 @@ function matureForwardEvalConfig(
       };
     }
   }
-  return impactBestForwardEvalConfig(base, node, gaps, targetBudget, budgetSlack);
+  return impactBestForwardEvalConfig(base, node, gaps, budgetSlack);
 }
 
 /** Impact-pressured downstream width: the greedy rollout prices a candidate's
@@ -7103,20 +7104,43 @@ function matureForwardEvalConfig(
  *  optimum 8/24 vs best-of-8 24/24). Under continuous impact-ask × budget
  *  pressure, widen the greedy rollout's FIRST level to the best of
  *  IMPACT_BEST_FWD_BRANCH sampled attempts (deeper hops unchanged). Scope, all
- *  from measured failures: the budget ramp is zero at 250k (the charge-bounded
- *  completion knee stays byte-identical by construction); the SLACK ramp turns
- *  the width off when the traversal budget model reports a tight compile —
- *  unguarded width charged knife-edge completion hunts (certified f41e5494:
+ *  from measured failures: the SLACK ramp turns the width off when the
+ *  traversal budget model reports a tight compile — unguarded width charged
+ *  knife-edge completion hunts (certified f41e5494:
  *  pickup_shifted/dense_recovery −5 valid; 8-wide stage-0 −21.9 with
  *  pickup_shifted −276) — while a post-completion-only gate was equally
  *  falsified (panel −7.9, impact flat): the value lives in pre-completion
  *  trunk building at COMFORTABLE slack, and slack is the continuous signal
- *  that separates the two (the accepted slack-depth precedent). */
+ *  that separates the two (the accepted slack-depth precedent).
+ *
+ *  REMOVED 2026-08-04 — the raw-budget factor (offender d3) and with it the
+ *  double-counted budget coordinate (contamination c1). The gate used to be
+ *  `askPressure × smoothstep((B − 300k)/200k) × slackPressure`, and since
+ *  `slack = B / D(spec)` that read the budget twice: once absolute, once
+ *  inside the difficulty coordinate — the DIFFICULTY/DEADLINE conflation the
+ *  architecture forbids — with the absolute read placed, by its own former
+ *  docstring, so that "the charge-bounded completion knee never pays" at the
+ *  benchmark's own 250k operating point. That is the named anti-pattern
+ *  (`docs/budget-scaling-laws-not-saturations`, plan offender d3). On the
+ *  benchmark surface it also bought nothing the slack term did not already
+ *  buy: the ramp is exactly 1 at ≥ 500k, so every promoted budget is
+ *  byte-identical, and at ≤ 300k the slack gate is independently shut on ALL
+ *  44 canonical v2 sources (max slack at 250k = 2.249 < the slack start), so
+ *  the completion knee it claimed to protect is protected by the difficulty
+ *  coordinate alone. Verified: 750k/500k/250k compiles byte-identical
+ *  (track + budget telemetry + stats), the standing 250k reading at PARITY,
+ *  and the only measured divergence in the (300k, 500k) sliver where the raw
+ *  factor was the sole binding term. Off the benchmark surface the removal is
+ *  a real and INTENDED behaviour change: a short spec can carry slack > 2.5 at
+ *  200k, and there the arm now opens on its own coordinate instead of being
+ *  held shut by a constant placed for the benchmark's operating point — which
+ *  is what `compiler_scale_contract` asks for. What is left is a pure
+ *  two-coordinate law — ask pressure × slack pressure — with a
+ *  DIFFICULTY-conditioned magnitude and no benchmark-keyed constant. */
 function impactBestForwardEvalConfig(
   base: CandidateForwardPolicy,
   node: SearchNode,
   gaps: Gap[],
-  targetBudget: number,
   budgetSlack: number,
 ): CandidateForwardPolicy {
   if (!impactBestFwdEnabled()) return base;
@@ -7126,13 +7150,10 @@ function impactBestForwardEvalConfig(
     (ask - impactBestFwdAskStart()) / IMPACT_BEST_FWD_ASK_SPAN,
   );
   if (askPressure <= 0) return base;
-  const budgetPressure = smoothstep(
-    (targetBudget - IMPACT_BEST_FWD_START_FRAMES) / IMPACT_BEST_FWD_SPAN_FRAMES,
-  );
   const slackPressure = Number.isFinite(budgetSlack)
     ? smoothstep((budgetSlack - IMPACT_BEST_FWD_SLACK_START) / IMPACT_BEST_FWD_SLACK_SPAN)
     : 0;
-  const pressure = askPressure * budgetPressure * slackPressure;
+  const pressure = askPressure * slackPressure;
   if (pressure <= 0 || unitHash(impactBestForwardEvalSeed(node)) >= pressure) return base;
   // The arm's OWN shape, on the gaps it owns: greedy depth 2, first rolled
   // contact widened to IMPACT_BEST_FWD_BRANCH samples, deeper hops single-draw.

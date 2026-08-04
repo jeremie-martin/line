@@ -178,7 +178,7 @@ The filed 250k evidence surface was run to decision (7,846 compiles total): STAB
 | row | state | evidence surface |
 |---|---|---|
 | **Scoring-axis escalation** | OWNER-GATED, sized: impact 68.4% of weighted SSE, +42.3 feasible / +77.7 nominal, 9.04/0.01; best-priced slice Q2 asks (0.28–0.40) in representative sources = +33.0; ceteris-paribus caveat on record | owner decision, then the counterfactual instrument + this campaign's ladder |
-| Pace-term removal | DECIDED-SUPPORTED (iteration 7), shipping through the gold standard | 48-seed eval; watch `legacy_regression` at N=48 |
+| Pace-term removal | **SHIPPED AND PROMOTED** (`358ae77` + rebaseline): N=48 **+0.25 [−0.40, +0.90], P(+)=84.9%**, validity 2112/2112; the legacy watch item resolved bit-identical at 750k → **baseline of record `pace-term-removal-750k` = 596.67**, ledger +0.62 | closed |
 | `nonrepair` post-deadline weight (+0.048 ± 0.020) | filed, not shipped — a lane mode worth ~+0.05 | reopen only with a law formulation |
 | RD6 250k validity rescue (`frontier_dense_recovery` 1/3→3/3) | filed — a low-budget completion-rescue class invisible to the promoting surface | redraw-dose LAW + the standing 250k reading, never the eval |
 | D1 impact-arm depth (−41% rollout frames at parity) | priced simplification arm for non-headline purposes | free-judge cap applies to any headline story |

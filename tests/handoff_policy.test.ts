@@ -8,7 +8,7 @@ import {
   repairRestartCeilingFrames,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
-  shortDeadlineRescueCandidateCount,
+  shortGapRescueCandidateCount,
   startAngles,
   startSpeedAnchors,
   targetStartAngle,
@@ -472,11 +472,11 @@ describe("target-state arc placement", () => {
 
 describe("short deadline rescue policy", () => {
   test("short-deadline rescue is based on local gap duration", () => {
-    expect(shortDeadlineRescueCandidateCount(0)).toBe(0);
-    expect(shortDeadlineRescueCandidateCount(10)).toBe(80);
-    expect(shortDeadlineRescueCandidateCount(11)).toBe(80);
-    expect(shortDeadlineRescueCandidateCount(12)).toBe(0);
-    expect(shortDeadlineRescueCandidateCount(16)).toBe(0);
+    expect(shortGapRescueCandidateCount(0)).toBe(0);
+    expect(shortGapRescueCandidateCount(10)).toBe(80);
+    expect(shortGapRescueCandidateCount(11)).toBe(80);
+    expect(shortGapRescueCandidateCount(12)).toBe(0);
+    expect(shortGapRescueCandidateCount(16)).toBe(0);
   });
 });
 

@@ -1172,6 +1172,8 @@ function compactStats(stats: CompileStats | null): object | null {
     repair: stats.repair,
     // Forward-eval cost + agreement instrument (optimizer/handoff.ts, measure-only).
     fwd_eval: stats.fwd_eval,
+    // Deadline-signal engagement + the two-counters window (measure-only).
+    deadline: stats.deadline,
   };
 }
 

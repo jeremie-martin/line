@@ -17,7 +17,10 @@ import {
   budgetEstimatorApplicability,
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
+  remainingStructure,
+  structuralRemainingWork,
   type BudgetEstimatorApplicability,
+  type RemainingStructure,
 } from "./budget_estimator.ts";
 
 export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v1" as const;
@@ -56,17 +59,11 @@ export type BudgetAttemptStopReason =
   | "first_completion_stop"
   | "compile_finished";
 
-export type RemainingStructure = {
-  /** Next gap at the monotonic high-water boundary; gaps.length is terminal. */
-  gap_index: number;
-  /** Authored timeline frame at the boundary, not charged simulation work. */
-  anchor_frame: number;
-  remaining_gaps: number;
-  /** Contact-ending gaps in the suffix. */
-  remaining_contacts: number;
-  /** Authored timeline frames from the boundary to spec duration. */
-  remaining_duration_frames: number;
-};
+// `RemainingStructure` and its two producers moved to `budget_estimator.ts`:
+// they are the estimator's structural input, and `deadline.ts` (pure policy)
+// must compute them, which this observation-only module has no business owning.
+// Re-exported here because they name fields of the payload types below.
+export type { RemainingStructure };
 
 export type BudgetEstimateObservation = {
   /** Why this estimate was captured; see docs/compile-budget-telemetry.md. */
@@ -683,62 +680,6 @@ export class CompileBudgetTelemetryRecorder {
     }
     return segments;
   }
-}
-
-export function remainingStructure(
-  gaps: readonly Gap[],
-  durationFrames: number,
-  gapIndex: number,
-): RemainingStructure {
-  const anchor = clampGapIndex(gapIndex, gaps.length);
-  const anchorFrame = anchor < gaps.length
-    ? gaps[anchor].startFrame
-    : durationFrames;
-  const suffix = gaps.slice(anchor);
-  return {
-    gap_index: anchor,
-    anchor_frame: anchorFrame,
-    remaining_gaps: suffix.length,
-    remaining_contacts: suffix.filter((gap) => gap.endsWithContact).length,
-    remaining_duration_frames: Math.max(0, durationFrames - anchorFrame),
-  };
-}
-
-/**
- * Structure-only remaining charged work at the model's own reference budget:
- * startup intercept + contact coefficient * suffix contacts + duration
- * coefficient * suffix authored frames. Startup is included at most once.
- *
- * Deliberately free of the budget law — this is the shape, and the recorder
- * applies the artifact's `(B / refB)^alpha` scalar to it. A caller wanting the
- * quantity a compile would record must multiply by
- * `budgetEstimatorStructuralScale(policyBudgetFrames)`.
- *
- * `model` is REQUIRED. It used to default to `TRAVERSAL_BUDGET_MODEL_V1`, a
- * different regression from the one the shipped artifact carries, and taking
- * that default silently is how the live deadline margin spent one era ~1.9x
- * loose (optimizer/deadline.ts, "The base shape was a decision"). A caller that
- * has to name its model cannot make that mistake by omission.
- */
-export function structuralRemainingWork(
-  gaps: readonly Gap[],
-  durationFrames: number,
-  gapIndex: number,
-  includeStartup: boolean,
-  model: TraversalBudgetModel,
-): number {
-  const structure = remainingStructure(gaps, durationFrames, gapIndex);
-  if (
-    structure.remaining_gaps === 0 &&
-    structure.remaining_contacts === 0 &&
-    structure.remaining_duration_frames === 0
-  ) return 0;
-  return Math.max(
-    0,
-    (includeStartup ? model.interceptFrames : 0) +
-      model.contactFrames * structure.remaining_contacts +
-      model.durationFrameScale * structure.remaining_duration_frames,
-  );
 }
 
 /**

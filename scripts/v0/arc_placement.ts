@@ -1272,7 +1272,7 @@ export function setNormalPostCurveResolutionHook(hook: NormalPostCurveResolution
   normalPostCurveResolutionHook = hook;
 }
 
-/** Shared speed/dense/deadline pressure derivation for the contact-centered
+/** Shared speed/dense/short-gap pressure derivation for the contact-centered
  *  sampler. `sampleContactCenteredLines` and `guideContactCenteredRolls` both
  *  need the same block of derived pressures from the identical inputs, so it
  *  lives here as one source of truth for the 20/12, 18/10, and `CC_PRESSURE_*`
@@ -1284,7 +1284,7 @@ interface ContactCenteredPressures {
   nextGapFrames: number | null;
   gapFrames: number;
   denseContactPressure: number;
-  deadlinePressure: number;
+  shortGapPressure: number;
   absoluteSpeedPressure: number;
   brakePressure: number;
   accelPressure: number;
@@ -1306,7 +1306,11 @@ function contactCenteredPressures(
   const denseContactPressure = nextGapFrames === null
     ? 0
     : clamp((20 - nextGapFrames) / 12, 0, 1);
-  const deadlinePressure = clamp((18 - gapFrames) / 10, 0, 1);
+  // Scarcity of AUTHORED frames in this gap, not of compile budget: it was
+  // called `deadlinePressure` until the budget campaign made "deadline" the
+  // name of the live budget margin (optimizer/deadline.ts) and the collision
+  // became a real reading hazard. Nothing here has ever seen the budget.
+  const shortGapPressure = clamp((18 - gapFrames) / 10, 0, 1);
   const absoluteSpeedPressure = clamp(
     (targetState.speed - CC_PRESSURE_START_PX) / CC_PRESSURE_SPAN_PX, 0, 1,
   );
@@ -1320,7 +1324,7 @@ function contactCenteredPressures(
     nextGapFrames,
     gapFrames,
     denseContactPressure,
-    deadlinePressure,
+    shortGapPressure,
     absoluteSpeedPressure,
     brakePressure,
     accelPressure,
@@ -1392,7 +1396,7 @@ function sampleContactCenteredLines(
     nextGapFrames,
     gapFrames,
     denseContactPressure,
-    deadlinePressure,
+    shortGapPressure,
     absoluteSpeedPressure,
     brakePressure,
     accelPressure,
@@ -1401,7 +1405,7 @@ function sampleContactCenteredLines(
   const sustainedContactCarryPressure = speedCarryPressure
     * (nextGapFrames === null ? 0 : clamp((15 - nextGapFrames) / 2, 0, 1))
     * (1 - clamp((air - 0.62) / 0.12, 0, 1));
-  const clearancePressure = Math.max(deadlinePressure, absoluteSpeedPressure * 0.6);
+  const clearancePressure = Math.max(shortGapPressure, absoluteSpeedPressure * 0.6);
 
   const segmentLength = targets.grain !== undefined
     ? clamp(targets.grain * CALIB.LINE_LENGTH_CAP + (sampledRolls.segmentLengthRoll - 0.5) * 8, 4, 49)
@@ -2431,13 +2435,13 @@ function guideContactCenteredRolls(
   const {
     air,
     denseContactPressure,
-    deadlinePressure,
+    shortGapPressure,
     absoluteSpeedPressure,
     brakePressure,
     accelPressure,
     speedCarryPressure,
   } = contactCenteredPressures(targetState, targets, gap, allContactFrames);
-  const scarcity = Math.max(deadlinePressure, denseContactPressure);
+  const scarcity = Math.max(shortGapPressure, denseContactPressure);
 
   const guided: ContactCenteredRolls = {
     segmentLengthRoll: targets.grain === undefined
@@ -2453,7 +2457,7 @@ function guideContactCenteredRolls(
       0.24 + 0.48 * (1 - air) + 0.14 * speedCarryPressure
         + 0.08 * brakePressure - 0.22 * denseContactPressure, 0.08, 0.90,
     ),
-    preAngleRoll: clamp(0.50 - 0.10 * deadlinePressure - 0.06 * brakePressure, 0.22, 0.78),
+    preAngleRoll: clamp(0.50 - 0.10 * shortGapPressure - 0.06 * brakePressure, 0.22, 0.78),
     postAngleRoll: clamp(
       0.48 + 0.10 * accelPressure + 0.08 * speedCarryPressure
         - 0.06 * air + 0.04 * denseContactPressure, 0.22, 0.82,

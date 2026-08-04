@@ -4,8 +4,6 @@ import {
   adaptiveEstimate,
   BUDGET_TELEMETRY_SCHEMA,
   CompileBudgetTelemetryRecorder,
-  remainingStructure,
-  structuralRemainingWork,
 } from "../scripts/v0/optimizer/budget_telemetry.ts";
 import type { Gap } from "../scripts/v0/types.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
@@ -19,6 +17,8 @@ import {
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
   parseBudgetEstimatorModel,
+  remainingStructure,
+  structuralRemainingWork,
   type BudgetEstimatorModelArtifact,
 } from "../scripts/v0/optimizer/budget_estimator.ts";
 

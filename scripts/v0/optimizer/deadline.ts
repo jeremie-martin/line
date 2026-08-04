@@ -7,8 +7,14 @@
  * how far the traversal has reached, the spec's own structure) and the budget
  * estimator's pure functions. At the first node it *is* the static structural
  * estimate; it updates as the search spends and progresses; it keeps its meaning
- * after first completion, where the measured cost-to-end profile replaces the
- * structural suffix. It is the single answer to "am I behind?" — the three
+ * after first completion, where the incumbent's measured cost-to-end profile
+ * replaces the structural suffix — a profile `handoff.ts` establishes at the
+ * instant the first completion is ADOPTED, so the switch happens exactly when
+ * the phase does. (It used to wait for the repair phase, which left the margin
+ * projecting compile-global spend over per-node progress for the whole
+ * pre-repair window and for every compile below the repair minimum;
+ * `tests/deadline_signal.test.ts` pins the corrected behaviour.) It is the
+ * single answer to "am I behind?" — the three
  * competing answers it replaced (`observedTraversalBudgetSlack`'s paced slack,
  * the online lane's spend-vs-progress comparator, and the aim lane's copy of the
  * first) are gone.
@@ -30,7 +36,7 @@
  *
  * The estimate is `estimateRemainingBudgetWork` — the same pure functions the
  * telemetry recorder calls, never its state — over a structural suffix this
- * module tabulates itself from the recorder's own model:
+ * module tabulates itself from the estimator's own model:
  *
  *   - the SHAPE is `BUDGET_ESTIMATOR_TRAVERSAL_MODEL`, the artifact's structural
  *     coefficients (intercept 23,860.07, contact 3,699.92, duration 18.35),
@@ -146,9 +152,9 @@ import {
   BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
+  structuralRemainingWork,
   type BudgetEstimatorModelArtifact,
 } from "./budget_estimator.ts";
-import { structuralRemainingWork } from "./budget_telemetry.ts";
 
 /**
  * The frozen artifact with its episode-pace component switched on.

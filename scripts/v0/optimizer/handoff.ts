@@ -55,7 +55,7 @@
  */
 
 import { getRiderMetered, K_BOUNCE_LANDING } from "../../lib/detector.ts";
-import { beginEnvFlagEpoch } from "../env_flags.ts";
+import { beginEnvFlagEpoch, compileScopedEnv } from "../env_flags.ts";
 import { makeRng } from "../../lib/rng.ts";
 import {
   type GapFit,
@@ -1013,10 +1013,12 @@ const HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND = 48;
 const HANDOFF_RESCUE_CANDIDATE_POOL = 12;
 const HANDOFF_RESCUE_STARTUP_PRESSURE_HALFLIFE_FRAMES = FPS * 1.1;
 const HANDOFF_RESCUE_MIN_GAP_FRAMES = 16;
-/** Short required-contact gaps are deadline-dominated: the normal cheap prefix
- *  can have zero hits even when a catch exists later in the deterministic sample
- *  order. Rescue only clean prefixes at true dead-ends (caller-gated) so
- *  already-working dense paths keep their normal cheap order. */
+/** Short required-contact gaps are dominated by how few AUTHORED frames the
+ *  catch has to happen in — not by the compile's budget deadline: the normal
+ *  cheap prefix can have zero hits even when a catch exists later in the
+ *  deterministic sample order. Rescue only clean prefixes at true dead-ends
+ *  (caller-gated) so already-working dense paths keep their normal cheap
+ *  order. */
 const HANDOFF_SHORT_RESCUE_N_CAND = 80;
 const HANDOFF_SHORT_RESCUE_CANDIDATE_POOL = 16;
 const HANDOFF_SHORT_RESCUE_MAX_GAP_FRAMES = 12;
@@ -1601,18 +1603,93 @@ function compileHandoffInternal(
         framesAtReachTail.set(search, getSimFrames());
       }
     };
-    // The incumbent's MEASURED cost-to-end profile, built once by the repair
-    // phase (see `costToEnd` in runRepairPhase) and published here so the
+    // The charged-frame stamp at which a node FIRST existed, from either
+    // producer. A node can be stamped by BOTH maps: the tail pass builds a
+    // suffix node (stamping `framesAtReachTail`), and the frontier later pops
+    // the same memoized object (`extendNodeCached` returns shared identities)
+    // and stamps `framesAtReach` at a strictly later frame count. The merge
+    // must therefore take the EARLIEST stamp — a `??` preferring the frontier
+    // map returned the LATER one for such nodes, understating costToEnd at
+    // exactly the tail-created anchors the second map was added to serve.
+    const firstReachOf = (n: SearchNode): number | undefined => {
+      const frontier = framesAtReach.get(n);
+      const tail = framesAtReachTail.get(n);
+      return frontier === undefined
+        ? tail
+        : tail === undefined
+        ? frontier
+        : Math.min(frontier, tail);
+    };
+    // MEASURED per-gap cost-to-end (Jérémie's "each arc associated with a budget"):
+    // from an incumbent's own path, costToEnd[k] = firstCompletionFrame −
+    // reach[node@k] = the frames the main search actually spent from first
+    // reaching gap k to completion, including intervening branch exploration.
+    // A reach timestamp is accepted from EITHER producer of incumbent nodes.
+    // Taking only the frontier's left every tail-suffix anchor — 161 of 307
+    // repair attempts on the panel, and every anchor of a tail-completing
+    // compile — sized by the coarse per-gap average instead, even though the
+    // measured profile predicted actual completion cost at those very anchors
+    // to 3.0% median APE.
+    //
+    // The walk is free of charged work: every node on the incumbent's path was
+    // already built by the search and `extendNodeCached` memoizes, so this
+    // replays identities rather than physics.
+    const buildIncumbentCostToEnd = (): number[] => {
+      const costToEnd: number[] = [];
+      const inc0 = bestCompleteNode;
+      const root0 = inc0 ? startOptions.find((o) => o.rank === inc0.startRank)?.root : undefined;
+      if (inc0 && root0 && firstCompletionFrame > 0) {
+        let n = root0;
+        for (let k = 0; k <= gaps.length; k++) {
+          const reach = firstReachOf(n);
+          costToEnd[k] = reach !== undefined ? Math.max(0, firstCompletionFrame - reach) : -1;
+          if (k < gaps.length) n = extendNodeCached(n, inc0.search.prefixFits[k] ?? null);
+        }
+      }
+      return costToEnd;
+    };
+    // The incumbent's MEASURED cost-to-end profile, published here so the
     // deadline margin can use it as its post-completion estimate: after first
     // completion the structural suffix answers a question nobody is asking any
     // more, while this profile is the measured work from gap k to the end on
-    // the path the compile actually took. Null until repair builds it — the
-    // post-completion window inside the main search, and every compile with
-    // repair disabled, falls back to the structural tail.
+    // the path the compile actually took.
+    //
+    // It is established AT FIRST ADOPTED COMPLETION, not when the repair phase
+    // starts. Waiting for repair left the margin invalid over the whole
+    // pre-repair post-completion window — and over the whole of any compile
+    // below the repair minimum — because `marginAt` reads a null profile as
+    // "still racing to the end" and applies the episode-pace term, which
+    // post-completion divides COMPILE-GLOBAL spend by the node's OWN depth and
+    // collapses the margin on healthy nodes. The profile is what tells the
+    // margin the race is over, so it has to exist as soon as it is.
+    //
+    // Below the repair minimum both reach maps stay empty by design (the
+    // low-budget hot path pays nothing for them), so every entry is -1: a
+    // profile that carries no measurement anywhere. That is the correct answer
+    // there — no measured suffix, so the structural tail stands — and it still
+    // retires the pace term, which is what was wrong.
+    //
+    // The repair phase rebuilds it (`runRepairPhase`) because by then the main
+    // search may have adopted a better incumbent and repair sizes its ceilings
+    // from the profile of the incumbent it is about to attack.
     let incumbentCostToEnd: readonly number[] | null = null;
     // Count of complete tracks ever considered (any phase). A repair restart's delta tells us whether
     // it REACHED the end at all (completed), separate from whether it beat the incumbent (accepted).
     let terminalConsiders = 0;
+    // THE TWO-COUNTERS WINDOW, measured.
+    //
+    // `isTerminalNode` is STRUCTURAL (`gapIndex === gaps.length`) and stamps
+    // `firstTerminalFrame`, which is the budget estimator's fit target. The
+    // controller's phase flip — `hasCompletion`, `firstCompletionFrame`, the
+    // repair trigger — waits for a terminal that ALSO improved the register,
+    // and the register ranks `contract_passed -> axis_quality` (register.ts
+    // `isStrictlyBetter`). A complete-but-drifting track is therefore terminal
+    // without improving, and in the window that opens the estimator's target
+    // event has already happened (honest prediction ~0) while the controller is
+    // still pressing as pre-completion. This counter is how often that happens;
+    // `firstTerminalFrame` vs `firstCompletionFrame` in the same block is how
+    // long the window lasts.
+    let terminalConsidersWithoutImprovement = 0;
     type RepairRecord = {
       round: number;
       worst: number; anchor: number; up: number; totalGaps: number;
@@ -1677,6 +1754,7 @@ function compileHandoffInternal(
       const terminal = isTerminalNode(node.search, gaps);
       if (terminal) {
         terminalConsiders++;
+        if (!improved) terminalConsidersWithoutImprovement++;
         if (firstTerminalFrame < 0) firstTerminalFrame = getSimFrames();
         // Terminal search nodes may stop before the unscored tail gap. For
         // completion telemetry the remaining traversal work is nevertheless
@@ -1685,7 +1763,13 @@ function compileHandoffInternal(
       }
       if (improved && terminal) {
         bestCompleteNode = node;
-        if (firstCompletionFrame < 0) firstCompletionFrame = getSimFrames();
+        if (firstCompletionFrame < 0) {
+          firstCompletionFrame = getSimFrames();
+          // The margin's post-completion base, established at the instant the
+          // phase flips rather than when repair happens to start (see
+          // `buildIncumbentCostToEnd`). One walk per compile.
+          incumbentCostToEnd = buildIncumbentCostToEnd();
+        }
         telemetry.hasCompletion = true;
       }
       const event: HandoffNodeEvent = {
@@ -1716,6 +1800,7 @@ function compileHandoffInternal(
       const releaseExitStats = snapshotReleaseExitStats();
       const gapfitShortStats = snapshotGapfitShortStats();
       const fwdEvalStats = snapshotFwdEvalStats();
+      const deadlinePoolStats = readDeadlinePoolCounters();
       const selectedTransitionStats = bestRegisteredNode === null
         ? null
         : selectedBallisticTransitionStats(
@@ -1739,7 +1824,6 @@ function compileHandoffInternal(
           sim_frames: getSimFrames(),
           ballistic_micro_sim_frames: getMicroSimFrames(),
           ...objectiveLayerSpreadStat(),
-      ...objectiveLayerSpreadStat(),
           traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
           predicted_first_completion_frames: predictedFirstCompletionFrames,
           budget_slack: budgetSlackTelemetry,
@@ -1820,6 +1904,18 @@ function compileHandoffInternal(
           // rollout frame cost share + true-rollout-vs-quality-objective agreement. Absent
           // when forward-eval never ran (gate off) → ablation archives stay byte-identical.
           ...(fwdEvalStats !== null ? { fwd_eval: fwdEvalStats } : {}),
+          // Deadline-signal instrument (MEASURE-ONLY, optimizer/handoff.ts +
+          // optimizer/deadline.ts). Unconditional: every compile builds pools
+          // and reads the margin, so an archive without these counters is an
+          // archive that cannot say what pressure the compile ran under.
+          deadline: {
+            ...deadlinePoolStats,
+            deadline_terminal_considers: terminalConsiders,
+            deadline_terminal_without_improvement: terminalConsidersWithoutImprovement,
+            deadline_first_terminal_frame: firstTerminalFrame >= 0 ? firstTerminalFrame : null,
+            deadline_first_improving_terminal_frame:
+              firstCompletionFrame >= 0 ? firstCompletionFrame : null,
+          },
           ...(selectedTransitionStats === null
             ? {}
             : { ballistic_selected_transitions: selectedTransitionStats }),
@@ -1891,12 +1987,17 @@ function compileHandoffInternal(
           // that runs post-completion now has a signal. Phase 1a keeps the two
           // pool-affecting CONSUMERS pre-completion (see the boundary in
           // `rankedOptions`); the signal is live throughout and observable.
+          //
+          // `incumbentCostToEnd` is non-null exactly when a completion has been
+          // adopted (both are written in the same branch of `consider`), so the
+          // profile IS the phase flag the margin reads — it never sees the
+          // post-completion gap index with a pre-completion (null) profile.
           deadlineMargin: deadline.marginAt({
             spentFrames: getSimFrames(),
             gapIndex: firstCompletionFrame >= 0
               ? search.gapIndex
               : telemetry.deepestSeenGap,
-            costToEnd: firstCompletionFrame >= 0 ? incumbentCostToEnd : null,
+            costToEnd: incumbentCostToEnd,
           }),
           hasCompletion: firstCompletionFrame >= 0,
         });
@@ -2097,49 +2198,17 @@ function compileHandoffInternal(
       const perGap = firstCompletionFrame > 0
         ? firstCompletionFrame / Math.max(1, telemetry.deepestSeenGap + 1)
         : 0;
-      // MEASURED per-gap cost-to-end (Jérémie's "each arc associated with a budget"): from the first
-      // incumbent's own path, costToEnd[k] = firstCompletionFrame − reach[node@k] = the frames
-      // the main search actually spent from first reaching gap k to completion, including intervening
-      // branch exploration. Replaces the dead-end-biased perGap estimate for feasibility/ceiling.
-      // Computed once from the original incumbent (stable profile; later repairs do not rewrite it).
-      // A reach timestamp is accepted from EITHER producer of incumbent nodes. Taking
-      // only the frontier's left every tail-suffix anchor — 161 of 307 repair attempts
-      // on the panel, and every anchor of a tail-completing compile — sized by perGap
-      // instead, even though the measured profile predicted actual completion cost at
-      // those very anchors to 3.0% median APE. perGap is an average over the whole
-      // search including its dead ends, so it over-sizes exactly the late, cheap
-      // anchors that tail completion produces, and `pickFeasibleWeakGap` then rejects
-      // gaps the budget could in fact afford.
-      const costToEnd: number[] = [];
-      // The charged-frame stamp at which a node FIRST existed, from either
-      // producer. A node can be stamped by BOTH maps: the tail pass builds a
-      // suffix node (stamping `framesAtReachTail`), and the frontier later pops
-      // the same memoized object (`extendNodeCached` returns shared identities)
-      // and stamps `framesAtReach` at a strictly later frame count. The merge
-      // must therefore take the EARLIEST stamp — a `??` preferring the frontier
-      // map returned the LATER one for such nodes, understating costToEnd at
-      // exactly the tail-created anchors the second map was added to serve.
-      const firstReachOf = (n: SearchNode): number | undefined => {
-        const frontier = framesAtReach.get(n);
-        const tail = framesAtReachTail.get(n);
-        return frontier === undefined
-          ? tail
-          : tail === undefined
-          ? frontier
-          : Math.min(frontier, tail);
-      };
-      {
-        const inc0 = bestCompleteNode;
-        const root0 = inc0 ? startOptions.find((o) => o.rank === inc0.startRank)?.root : undefined;
-        if (inc0 && root0 && firstCompletionFrame > 0) {
-          let n = root0;
-          for (let k = 0; k <= gaps.length; k++) {
-            const reach = firstReachOf(n);
-            costToEnd[k] = reach !== undefined ? Math.max(0, firstCompletionFrame - reach) : -1;
-            if (k < gaps.length) n = extendNodeCached(n, inc0.search.prefixFits[k] ?? null);
-          }
-        }
-      }
+      // MEASURED per-gap cost-to-end (`buildIncumbentCostToEnd`, which owns the
+      // derivation). Replaces the dead-end-biased perGap estimate for
+      // feasibility/ceiling. Rebuilt HERE from the incumbent this phase is about
+      // to attack — the main search may have adopted a better complete track
+      // since the profile was first established at completion — and then held
+      // fixed for the whole phase (later repairs do not rewrite it). perGap is
+      // an average over the whole search including its dead ends, so it
+      // over-sizes exactly the late, cheap anchors that tail completion
+      // produces, and `pickFeasibleWeakGap` then rejects gaps the budget could
+      // in fact afford.
+      const costToEnd = buildIncumbentCostToEnd();
       // One profile, three readers: repair sizes its ceilings from it, the
       // deadline margin uses it as the post-completion remaining-work estimate,
       // and the telemetry recorder takes it as the estimator's path base.
@@ -3335,11 +3404,11 @@ function expandNode(
         },
       },
       {
-        // Short-deadline rescue: wide extra sampling only for tight deadlines;
-        // clean prefixes only.
-        predicate: () => node.skippedContacts === 0 && shouldAttemptShortDeadlineRescue(gap),
+        // Short-gap rescue: wide extra sampling only for very short AUTHORED
+        // gaps (nothing to do with the budget deadline); clean prefixes only.
+        predicate: () => node.skippedContacts === 0 && shouldAttemptShortGapRescue(gap),
         run: () => {
-          const nCand = shortDeadlineRescueCandidateCount(gap.endFrame - gap.startFrame);
+          const nCand = shortGapRescueCandidateCount(gap.endFrame - gap.startFrame);
           return rescueOptions(node.search, gaps, ctx, node.searchSeed, telemetry, policy, targetBudget, {
             nCand,
             poolSize: Math.min(nCand, HANDOFF_SHORT_RESCUE_CANDIDATE_POOL),
@@ -3481,16 +3550,16 @@ function startupRescueBreadth(endFrame: number): {
   };
 }
 
-function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
+function shouldAttemptShortGapRescue(gap: Gap): boolean {
   return gap.endsWithContact &&
-    shortDeadlineRescueCandidateCount(gap.endFrame - gap.startFrame) > 0;
+    shortGapRescueCandidateCount(gap.endFrame - gap.startFrame) > 0;
 }
 
 function shouldAttemptStartupDeadEndRescue(gap: Gap): boolean {
   return gap.endsWithContact && startupDeadEndCandidateCount(gap) > 0;
 }
 
-export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
+export function shortGapRescueCandidateCount(gapFrames: number): number {
   if (!Number.isFinite(gapFrames) || gapFrames <= 0) return 0;
   return gapFrames < HANDOFF_SHORT_RESCUE_MAX_GAP_FRAMES
     ? HANDOFF_SHORT_RESCUE_N_CAND
@@ -3884,6 +3953,7 @@ function rankedOptions(
    * once it no longer does. Inside the Phase-1a boundary above, so the repair
    * and resumed passes roll at full width as they do today. */
   const pressure = deadlineConsumersActive ? deadlinePressure(deadlineMargin) : 0;
+  recordDeadlinePoolBuild(deadlineMargin, pressure, deadlineConsumersActive);
   const forwardEvalTop = HANDOFF_FORWARD_EVAL_TOP <= 0 ? 0 : Math.round(
     pool.length + (HANDOFF_FORWARD_EVAL_TOP - pool.length) * pressure,
   );
@@ -4328,9 +4398,12 @@ function onlineContinuationFrontierReady(
     node.gapIndex + FAR_BACK_FRONTIER_LAG > telemetry.deepestSeenGap;
 }
 
+/** Sampled once per compile: consulted on every pool build, and a raw
+ *  `process.env` read is an interceptor call (~268 ns) not a property read. */
+const readOnlineContinuation = compileScopedEnv("LR_ONLINE_CONTINUATION");
+
 function onlineContinuationEnabled(): boolean {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_ONLINE_CONTINUATION !== "0";
+  return readOnlineContinuation() !== "0";
 }
 
 function openingBestForwardEvalOpportunity(
@@ -4701,6 +4774,15 @@ function completeNearTailSuffix(
       forwardEval: policy.forwardEval,
       reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      // The DIFFICULTY coordinate, like every other `rankedOptions` call site.
+      // It was missing here from the day the parameter was introduced
+      // (`1baee0b` threaded it through `expandNode`'s three call sites and not
+      // this one), so `config.budgetSlack ?? 0` priced the lane where first
+      // completion routinely lands as a maximally-starved compile and every
+      // slack-conditioned read — the impact widening above all — was switched
+      // off on it. Nothing ever documented that as policy, and the map's own
+      // consumer list (SLK-03) says the coordinate reaches every lane.
+      budgetSlack: policy.budgetSlack,
       targetBudget,
     })
       .filter((option) => option.candidate !== null)
@@ -4871,13 +4953,19 @@ function resolveHandoffSearchPolicy({
     tailBranching: TAIL_COMPLETION_FALLBACK_BRANCHING,
     deadlineMargin,
     forwardStageTop: hasCompletion
-      ? Math.max(0, Number.parseInt(readEnv("LR_POST_COMPLETION_FWD_STAGE_TOP") ?? "0", 10) || 0)
+      ? Math.max(0, Number.parseInt(readPostCompletionFwdStageTop() ?? "0", 10) || 0)
       : 0,
     forwardEval: hasCompletion ||
       !(budgetSlack < HANDOFF_LOW_SLACK_BRANCH_THRESHOLD) ||
-      readEnv("LR_PRECOMPLETION_FWD_EVAL") === "1",
+      readPrecompletionFwdEval() === "1",
   };
 }
+
+/** Both sampled once per compile: `resolveHandoffSearchPolicy` runs on every
+ *  expanded node, and a raw `process.env` read is an interceptor call
+ *  (~268 ns) not a property read. */
+const readPostCompletionFwdStageTop = compileScopedEnv("LR_POST_COMPLETION_FWD_STAGE_TOP");
+const readPrecompletionFwdEval = compileScopedEnv("LR_PRECOMPLETION_FWD_EVAL");
 
 function lowSlackTraversalBranchLimit(budgetSlack: number, hasCompletion: boolean): number {
   if (hasCompletion) return HANDOFF_BRANCHING;
@@ -5609,6 +5697,99 @@ const fwdEvalRuntime: ForwardEvalRuntime = {
 // at default (branch=1) it was a no-op; the global + parse + hot-path lookup are
 // gone — re-derive from this note if the experiment is ever revisited.
 
+// ── Deadline-signal instrument (MEASURE-ONLY) ──
+// The mechanism had no production telemetry: no archive could say how often the
+// head-narrowing ramp engages, or what margin the compile was actually running
+// at. Counted at the ONE place the ramp is read (`rankedOptions`), from the two
+// values that read has already computed — a pure read, no extra work, no
+// decision. Split at the Phase-1a boundary because the two populations answer
+// different questions: PRE-completion is the decision-weighted population the
+// ramp's 1.25/2.0 anchors were derived on and must be re-bracketed against,
+// POST-completion is the ~46% of a 750k budget the consumers are currently
+// held off, and the margin there is what a post-completion consumer would see.
+//
+// Builds whose caller passed no margin at all (the non-policy lanes read
+// Infinity) are in `deadline_pool_builds` and in neither phase, so
+// `pool_builds - pre_builds - post_builds` is the unpaced remainder.
+const deadlineTotals = {
+  deadline_pool_builds: 0,
+  deadline_pre_builds: 0,
+  deadline_pre_pressured: 0,
+  deadline_pre_full_pressure: 0,
+  deadline_pre_margin_sum: 0,
+  /** Smallest margin seen; `Infinity` until one is, nulled by the snapshot. */
+  deadline_pre_margin_min: Infinity,
+  deadline_post_builds: 0,
+  deadline_post_margin_sum: 0,
+  deadline_post_margin_min: Infinity,
+};
+
+function resetDeadlineStats(): void {
+  deadlineTotals.deadline_pool_builds = 0;
+  deadlineTotals.deadline_pre_builds = 0;
+  deadlineTotals.deadline_pre_pressured = 0;
+  deadlineTotals.deadline_pre_full_pressure = 0;
+  deadlineTotals.deadline_pre_margin_sum = 0;
+  deadlineTotals.deadline_pre_margin_min = Infinity;
+  deadlineTotals.deadline_post_builds = 0;
+  deadlineTotals.deadline_post_margin_sum = 0;
+  deadlineTotals.deadline_post_margin_min = Infinity;
+}
+registerCompileReset(resetDeadlineStats);
+
+/** Count one pool build against the ramp. `margin` and `pressure` are the two
+ *  values `rankedOptions` just computed for its own decision; nothing here is
+ *  recomputed and nothing is read back by the search. */
+function recordDeadlinePoolBuild(
+  margin: number,
+  pressure: number,
+  consumersActive: boolean,
+): void {
+  deadlineTotals.deadline_pool_builds++;
+  if (!Number.isFinite(margin)) return;
+  if (consumersActive) {
+    deadlineTotals.deadline_pre_builds++;
+    if (pressure > 0) deadlineTotals.deadline_pre_pressured++;
+    if (pressure >= 1) deadlineTotals.deadline_pre_full_pressure++;
+    deadlineTotals.deadline_pre_margin_sum += margin;
+    if (margin < deadlineTotals.deadline_pre_margin_min) {
+      deadlineTotals.deadline_pre_margin_min = margin;
+    }
+  } else {
+    deadlineTotals.deadline_post_builds++;
+    deadlineTotals.deadline_post_margin_sum += margin;
+    if (margin < deadlineTotals.deadline_post_margin_min) {
+      deadlineTotals.deadline_post_margin_min = margin;
+    }
+  }
+}
+
+/** JSON-safe read of the ramp counters: the two minima are null until a finite
+ *  margin has been observed in that phase, so an archive never carries an
+ *  `Infinity` that `JSON.stringify` would have silently turned into a null of
+ *  unknown meaning. Means are `*_margin_sum / *_builds` at aggregation. */
+export function readDeadlinePoolCounters(): {
+  deadline_pool_builds: number;
+  deadline_pre_builds: number;
+  deadline_pre_pressured: number;
+  deadline_pre_full_pressure: number;
+  deadline_pre_margin_sum: number;
+  deadline_pre_margin_min: number | null;
+  deadline_post_builds: number;
+  deadline_post_margin_sum: number;
+  deadline_post_margin_min: number | null;
+} {
+  return {
+    ...deadlineTotals,
+    deadline_pre_margin_min: deadlineTotals.deadline_pre_builds > 0
+      ? deadlineTotals.deadline_pre_margin_min
+      : null,
+    deadline_post_margin_min: deadlineTotals.deadline_post_builds > 0
+      ? deadlineTotals.deadline_post_margin_min
+      : null,
+  };
+}
+
 // ── Forward-eval cost + agreement instrument (MEASURE-ONLY) ──
 // Accumulates per compile, reset alongside the other lane stats. Two families:
 //   cost: rollout sim-frames charged + call counts (how big a frame sink fwd-eval is).
@@ -6225,12 +6406,18 @@ function forwardFirstWidenedScore(
   // nCand > 1 lane gate); keep that invariant for the widened build — without
   // suppression every prefix re-sort re-runs the CHARGED aim lane and the
   // budget stalls before completion (measured: 17/24 rideStalled).
+  //
+  // Restore rather than clear, for the reason `redrawFirstHopOnEmpty` gives:
+  // clearing is only correct while this is the outermost suppressing build, and
+  // a future nested widened build would silently re-admit the lane into a
+  // rollout pool. Identical today (nothing nests), a latent bug tomorrow.
+  const savedAimSuppressed = isRolloutAimSuppressed();
   setRolloutAimSuppressed(true);
   let cands: Candidate[];
   try {
     cands = getCandidatesSorted(at, gaps, ctx, seed, firstBranch);
   } finally {
-    setRolloutAimSuppressed(false);
+    setRolloutAimSuppressed(savedAimSuppressed);
   }
   if (cands.length === 0) {
     cands = redrawFirstHopOnEmpty(at, gaps, ctx, seed, firstBranch);
@@ -6465,8 +6652,13 @@ function impactBestForwardEvalConfig(
   return { ...base, firstBranch: IMPACT_BEST_FWD_BRANCH };
 }
 
+/** Sampled once per compile: read on every `rankedOptions` call through
+ *  `adaptiveForwardEvalConfig`, and a raw `process.env` read is an interceptor
+ *  call (~268 ns) not a property read. */
+const readImpactBestFwd = compileScopedEnv("LR_IMPACT_BEST_FWD");
+
 function impactBestFwdEnabled(): boolean {
-  return readEnv("LR_IMPACT_BEST_FWD") !== "0";
+  return readImpactBestFwd() !== "0";
 }
 
 function impactBestForwardEvalSeed(node: SearchNode): number {

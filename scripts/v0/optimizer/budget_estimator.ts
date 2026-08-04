@@ -21,6 +21,7 @@
  */
 
 import { createHash } from "node:crypto";
+import type { Gap } from "../types.ts";
 import modelJson from "./budget_estimator_model.json" with { type: "json" };
 import type { TraversalBudgetModel } from "./budget_model.ts";
 
@@ -240,6 +241,85 @@ export function budgetEstimatorStructuralScale(
   // reference has no ratio to raise and also leaves the estimate untouched.
   if (exponent === 0 || !(reference > 0) || !(policyBudgetFrames > 0)) return 1;
   return Math.pow(policyBudgetFrames / reference, exponent);
+}
+
+/** The spec-structure summary of a traversal suffix, the input to the estimator's
+ *  structural term. Pure authored geometry — no charged work appears here. */
+export type RemainingStructure = {
+  /** Next gap at the monotonic high-water boundary; gaps.length is terminal. */
+  gap_index: number;
+  /** Authored timeline frame at the boundary, not charged simulation work. */
+  anchor_frame: number;
+  remaining_gaps: number;
+  /** Contact-ending gaps in the suffix. */
+  remaining_contacts: number;
+  /** Authored timeline frames from the boundary to spec duration. */
+  remaining_duration_frames: number;
+};
+
+/**
+ * Tabulate the suffix a traversal has left from `gapIndex`.
+ *
+ * Lives beside the estimator that consumes it rather than in the telemetry
+ * recorder that used to own it: the recorder "deliberately owns no optimizer
+ * decisions", yet `optimizer/deadline.ts` — pure policy — has to compute this
+ * quantity to read the live margin. Nothing about the tabulation is
+ * observation-only.
+ */
+export function remainingStructure(
+  gaps: readonly Gap[],
+  durationFrames: number,
+  gapIndex: number,
+): RemainingStructure {
+  const anchor = clampGapIndex(gapIndex, gaps.length);
+  const anchorFrame = anchor < gaps.length
+    ? gaps[anchor].startFrame
+    : durationFrames;
+  const suffix = gaps.slice(anchor);
+  return {
+    gap_index: anchor,
+    anchor_frame: anchorFrame,
+    remaining_gaps: suffix.length,
+    remaining_contacts: suffix.filter((gap) => gap.endsWithContact).length,
+    remaining_duration_frames: Math.max(0, durationFrames - anchorFrame),
+  };
+}
+
+/**
+ * Structure-only remaining charged work at the model's own reference budget:
+ * startup intercept + contact coefficient * suffix contacts + duration
+ * coefficient * suffix authored frames. Startup is included at most once.
+ *
+ * Deliberately free of the budget law — this is the shape, and the recorder
+ * applies the artifact's `(B / refB)^alpha` scalar to it. A caller wanting the
+ * quantity a compile would record must multiply by
+ * `budgetEstimatorStructuralScale(policyBudgetFrames)`.
+ *
+ * `model` is REQUIRED. It used to default to `TRAVERSAL_BUDGET_MODEL_V1`, a
+ * different regression from the one the shipped artifact carries, and taking
+ * that default silently is how the live deadline margin spent one era ~1.9x
+ * loose (optimizer/deadline.ts, "The base shape was a decision"). A caller that
+ * has to name its model cannot make that mistake by omission.
+ */
+export function structuralRemainingWork(
+  gaps: readonly Gap[],
+  durationFrames: number,
+  gapIndex: number,
+  includeStartup: boolean,
+  model: TraversalBudgetModel,
+): number {
+  const structure = remainingStructure(gaps, durationFrames, gapIndex);
+  if (
+    structure.remaining_gaps === 0 &&
+    structure.remaining_contacts === 0 &&
+    structure.remaining_duration_frames === 0
+  ) return 0;
+  return Math.max(
+    0,
+    (includeStartup ? model.interceptFrames : 0) +
+      model.contactFrames * structure.remaining_contacts +
+      model.durationFrameScale * structure.remaining_duration_frames,
+  );
 }
 
 /**
@@ -467,6 +547,11 @@ function nonNegative(value: number): number {
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
+}
+
+function clampGapIndex(value: number, gapCount: number): number {
+  const integer = Number.isFinite(value) ? Math.floor(value) : 0;
+  return Math.max(0, Math.min(integer, gapCount));
 }
 
 function isBaseMode(value: unknown): value is BudgetEstimatorBaseMode {

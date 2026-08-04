@@ -1,5 +1,7 @@
 /**
- * Fit and validate the policy-neutral remaining-work estimator artifact.
+ * Fit and validate the remaining-work estimator artifact. The artifact is
+ * POLICY-BOUND on both layers (see optimizer/budget_estimator.ts): refits are
+ * promotion-class changes, which is why interval freezing is implied below.
  *
  * Input is one or more JSON reports emitted by analyze_budget_telemetry.ts.
  * Source-family groups are held out together, and every attempt has total

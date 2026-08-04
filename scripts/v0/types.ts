@@ -766,6 +766,46 @@ export type CompileStats = {
     fwd_disagree_winner_costlier: number;
     fwd_disagree_winner_cheaper: number;
   };
+  /** Deadline-signal instrument (optimizer/handoff.ts + optimizer/deadline.ts,
+   *  MEASURE-ONLY). The live margin — remaining policy budget over estimated
+   *  remaining work — chooses the PRESSURE on spend; these counters say how
+   *  often it engaged and at what margin the compile ran, split at the Phase-1a
+   *  consumer boundary (first completion). Present on every handoff compile:
+   *  every compile builds pools and reads the margin. */
+  deadline?: {
+    /** Pool builds (`rankedOptions` calls) that read the margin, all callers. */
+    deadline_pool_builds: number;
+    /** ... before first completion, where the ramp's consumers act. Builds whose
+     *  caller passed no margin are in neither phase, so the unpaced remainder is
+     *  `pool_builds - pre_builds - post_builds`. */
+    deadline_pre_builds: number;
+    /** Pre-completion builds where the ramp engaged (`pressure > 0`, i.e.
+     *  margin below DEADLINE_MARGIN_NO_PRESSURE) and where it saturated
+     *  (`pressure >= 1`, margin at or below DEADLINE_MARGIN_FULL_PRESSURE). */
+    deadline_pre_pressured: number;
+    deadline_pre_full_pressure: number;
+    /** Margin distribution over pre-completion builds; mean is `sum / builds`.
+     *  The minimum is null when the phase saw no finite margin. */
+    deadline_pre_margin_sum: number;
+    deadline_pre_margin_min: number | null;
+    /** The same after first completion, where the two pool-affecting consumers
+     *  are deliberately held off (Phase 1a): the margin a post-completion
+     *  consumer would have seen. */
+    deadline_post_builds: number;
+    deadline_post_margin_sum: number;
+    deadline_post_margin_min: number | null;
+    /** THE TWO-COUNTERS WINDOW. Terminal (structurally complete) traversals
+     *  offered to the register, and how many of them did NOT improve it. The
+     *  estimator's fit target is the first terminal; the controller's phase flip
+     *  waits for the first terminal that also improved, so the two frames below
+     *  bracket a window in which the estimator's target event has happened while
+     *  the controller still presses as pre-completion. Both are null when the
+     *  compile never reached the corresponding event. */
+    deadline_terminal_considers: number;
+    deadline_terminal_without_improvement: number;
+    deadline_first_terminal_frame: number | null;
+    deadline_first_improving_terminal_frame: number | null;
+  };
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;
   /**

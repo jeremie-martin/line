@@ -53,6 +53,7 @@
     "benchmark:v2:study-seeds": "LR_ENGINE=wasm node --import tsx scripts/v0/benchmark_v2/scale_study.ts --manifest=benchmark/v2/compat/source-manifest.json --suite=benchmark/v2/compat/suite-manifest.json --budgets=250000,500000,750000 --seeds=0,1,2,3,4,5,6,7,8,9,10,11 --jobs=16 --out=generated/benchmark-v2/studies/v2.1-seed-reference-750k.json",
     "benchmark:v2:analyze-seeds": "node --import tsx scripts/benchmark/analyze_seed_study.ts",
     "benchmark:v2:calibrate-decisions": "node --import tsx scripts/benchmark/calibrate_decisions.ts",
+    "calibrate:budget-estimator": "node --import tsx scripts/v0/calibrate_budget_estimator.ts",
     "benchmark:v2:study-decision-coverage": "node --import tsx scripts/benchmark/study_decision_coverage.ts",
     "benchmark:v2:study-coverage-reference": "LR_ENGINE=wasm node --import tsx scripts/v0/benchmark_v2/scale_study.ts --manifest=benchmark/v2/compat/source-manifest.json --suite=benchmark/v2/compat/suite-manifest.json --budgets=250000,500000,750000 --seeds=0,1,2,3,4,5,6,7,8,9,10,11 --jobs=32 --out=generated/benchmark-v2/studies/coverage-reference.json",
     "impact-probe": "LR_ENGINE=wasm node --expose-gc --import tsx scripts/v0/impact_frontier_probe.ts --reference=benchmark/v2/studies/impact-frontier-probe-v1-baseline.json",

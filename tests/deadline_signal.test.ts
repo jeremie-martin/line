@@ -17,9 +17,10 @@ import {
   BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
   budgetEstimatorStructuralScale,
   estimateRemainingBudgetWork,
+  structuralRemainingWork,
 } from "../scripts/v0/optimizer/budget_estimator.ts";
 import { TRAVERSAL_BUDGET_MODEL_V1 } from "../scripts/v0/optimizer/budget_model.ts";
-import { structuralRemainingWork } from "../scripts/v0/optimizer/budget_telemetry.ts";
+import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import {
   CompileDeadline,
   DEADLINE_MARGIN_FULL_PRESSURE,
@@ -170,6 +171,60 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     expect(unmeasured).toBeCloseTo((BUDGET - 100_000) / expectedWork(1, false, null), 9);
   });
 
+  /**
+   * THE PRE-REPAIR POST-COMPLETION WINDOW.
+   *
+   * Post-completion the caller switches `gapIndex` from the compile's high
+   * water to the NODE'S OWN gap, because the pass is a restart from an anchor.
+   * If the profile is still null there, `marginAt` reads the compile as
+   * pre-completion and applies the episode-pace term — compile-GLOBAL spend
+   * divided by the progress implied by ONE node's depth — and the margin
+   * collapses on a node that is doing nothing wrong. `handoff.ts` used to build
+   * the profile only when the repair phase started, so that was the live
+   * reading for the whole pre-repair window and for every compile below the
+   * repair minimum; it now builds it at the instant the first completion is
+   * adopted. This pins the property that fix has to preserve: a profile with no
+   * measurement anywhere is still enough to retire the pace term.
+   */
+  test("an all-unmeasured profile still retires the pace term", () => {
+    const spent = 400_000;
+    const shallowGap = 1;
+    // Every entry -1: the shape `handoff.ts` produces below the repair minimum,
+    // where the reach maps are deliberately never stamped.
+    const unmeasured = [-1, -1, -1, -1, -1];
+    const structuralOnly = (BUDGET - spent) / expectedWork(shallowGap, false, null);
+
+    const withProfile = deadline()
+      .marginAt({ spentFrames: spent, gapIndex: shallowGap, costToEnd: unmeasured });
+    expect(withProfile).toBeCloseTo(structuralOnly, 9);
+
+    // The defect, for the record: the same position with a null profile prices
+    // the whole compile's spend against one shallow node's progress.
+    const paced = deadline()
+      .marginAt({ spentFrames: spent, gapIndex: shallowGap, costToEnd: null });
+    expect(paced).toBeLessThan(withProfile);
+  });
+
+  /**
+   * The handoff side of the same contract. WHERE an assignment lives is not
+   * observable from a unit-level call, so this is a source pin, in the style of
+   * the aim-lane throttle test below: the profile must be written in the branch
+   * that stamps `firstCompletionFrame` — the phase flip — and the repair
+   * phase's own rebuild must be the only other writer.
+   */
+  test("the cost-to-end profile is established at first adopted completion", () => {
+    const source = readFileSync("scripts/v0/optimizer/handoff.ts", "utf8");
+    const writes = [...source.matchAll(/\bincumbentCostToEnd = ([^;]*);/g)].map((m) => m[1]);
+    expect(writes).toEqual(["buildIncumbentCostToEnd()", "costToEnd"]);
+    const stamp = source.indexOf("firstCompletionFrame = getSimFrames();");
+    const build = source.indexOf("incumbentCostToEnd = buildIncumbentCostToEnd();");
+    expect(stamp).toBeGreaterThan(0);
+    expect(build).toBeGreaterThan(stamp);
+    // Nothing closes between the two: same block, so the profile cannot come to
+    // exist without the phase having flipped, or the flip happen without it.
+    expect(source.slice(stamp, build)).not.toContain("}");
+  });
+
   test("a terminal position has no deadline and an exhausted budget has no margin", () => {
     expect(deadline().marginAt({ spentFrames: 0, gapIndex: GAPS.length, costToEnd: null }))
       .toBe(Infinity);
@@ -256,6 +311,57 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
       vi.resetModules();
     }
   });
+});
+
+/**
+ * The mechanism shipped with no production telemetry: no archive could say how
+ * often the ramp engaged or what margin the compile ran at, which is why the
+ * filed 1.25/2.0 re-bracket and the pace re-price had no data to run on. These
+ * pin that the counters exist, that they are internally consistent, and — the
+ * part that actually matters — that they are counting the RAMP and not
+ * something adjacent to it.
+ */
+describe("deadline telemetry — the signal is visible in compile_stats", () => {
+  test("the ramp counters agree with the ramp's own anchors", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const { stats } = compileHandoff(spec, 0, { budget: 150_000, polish: false });
+    const deadlineStats = stats.deadline;
+    expect(deadlineStats).toBeDefined();
+    const d = deadlineStats!;
+
+    // Every compile builds pools; builds whose caller passed no margin belong
+    // to neither phase, so the two phases can only under-count the total.
+    expect(d.deadline_pool_builds).toBeGreaterThan(0);
+    expect(d.deadline_pre_builds + d.deadline_post_builds)
+      .toBeLessThanOrEqual(d.deadline_pool_builds);
+    expect(d.deadline_pre_full_pressure).toBeLessThanOrEqual(d.deadline_pre_pressured);
+    expect(d.deadline_pre_pressured).toBeLessThanOrEqual(d.deadline_pre_builds);
+
+    // The engagement counters ARE the ramp: a build is counted pressured iff its
+    // margin was under the no-pressure anchor, so "any pressured build" and
+    // "the smallest margin is under the anchor" have to be the same statement.
+    expect(d.deadline_pre_builds > 0).toBe(d.deadline_pre_margin_min !== null);
+    if (d.deadline_pre_margin_min !== null) {
+      expect(d.deadline_pre_pressured > 0)
+        .toBe(d.deadline_pre_margin_min < DEADLINE_MARGIN_NO_PRESSURE);
+      expect(d.deadline_pre_full_pressure > 0)
+        .toBe(d.deadline_pre_margin_min <= DEADLINE_MARGIN_FULL_PRESSURE);
+      // min <= mean, so the pair really is a distribution summary of one set.
+      expect(d.deadline_pre_margin_min)
+        .toBeLessThanOrEqual(d.deadline_pre_margin_sum / d.deadline_pre_builds);
+    }
+    expect(d.deadline_post_builds > 0).toBe(d.deadline_post_margin_min !== null);
+
+    // The two-counters window: the estimator's target event (any terminal)
+    // cannot post-date the controller's phase flip (a terminal that improved).
+    expect(d.deadline_terminal_without_improvement)
+      .toBeLessThanOrEqual(d.deadline_terminal_considers);
+    if (d.deadline_first_improving_terminal_frame !== null) {
+      expect(d.deadline_first_terminal_frame).not.toBeNull();
+      expect(d.deadline_first_terminal_frame!)
+        .toBeLessThanOrEqual(d.deadline_first_improving_terminal_frame);
+    }
+  }, 120_000);
 });
 
 describe("aim-lane throttle — H2 closure", () => {

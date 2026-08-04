@@ -110,11 +110,15 @@ function payload(overrides: Record<string, unknown> = {}): Record<string, unknow
   };
 }
 
-function render(value: unknown): string {
+function render(value: unknown, stats?: unknown): string {
   const directory = mkdtempSync(join(tmpdir(), "line-describe-telemetry-"));
   const path = join(directory, "case.budget-telemetry.json");
   try {
     writeFileSync(path, JSON.stringify(value));
+    // run.ts writes this beside the sidecar; the renderer picks it up by name.
+    if (stats !== undefined) {
+      writeFileSync(join(directory, "case.stats.json"), JSON.stringify({ stats }));
+    }
     return describeBudgetTelemetry(path);
   } finally {
     rmSync(directory, { recursive: true, force: true });
@@ -179,8 +183,92 @@ describe("describe_budget_telemetry", () => {
 
   test("omits optional columns no attempt carries", () => {
     // ceiling_source is not in the v1 payload: an old sidecar must not grow a
-    // column of nulls for it.
-    expect(render(payload())).not.toContain("ceiling from");
+    // column of nulls for it. The three repair fields are null on an initial
+    // attempt, so their columns must disappear on a repair-free payload too.
+    const output = render(payload());
+    expect(output).not.toContain("ceiling from");
+    expect(output).not.toContain("weak sse");
+  });
+
+  /**
+   * The three repair fields are ALWAYS present on a repair attempt and were
+   * documented first-class, yet the tool reported all three as unrecognized on
+   * every repair-bearing payload. Recognizing them is the fix; rendering them
+   * is what the columns are for (the attempt ordinal is not the round index,
+   * and the anchor alone cannot say whether it was chosen or walked to).
+   */
+  test("renders the repair round, upstream walk and weakness key", () => {
+    const withRepair = payload() as { attempts: Record<string, unknown>[] };
+    withRepair.attempts.push({
+      ...withRepair.attempts[0],
+      attempt_id: 1,
+      kind: "repair",
+      parent_attempt_id: 0,
+      repair_round_index: 2,
+      anchor_upstream_offset: 3,
+      incumbent_weak_gap_sse: 0.2473,
+    });
+
+    const output = render(withRepair);
+
+    expect(output).toContain("round");
+    expect(output).toContain("weak sse");
+    expect(output).toContain("0.2473");
+    // ... and none of the three is reported as a field the tool cannot read.
+    expect(output).not.toContain("repair_round_index");
+    expect(output).not.toContain("anchor_upstream_offset");
+    expect(output).not.toContain("incumbent_weak_gap_sse");
+  });
+
+  /**
+   * `hard mrg` is `hard_remaining_frames / EST` and `EST` blends the episode
+   * pace in at `structural_progress_fraction`. Both inputs used to be
+   * recognized and never printed, so the walk showed the margin and neither
+   * term it is made of.
+   */
+  test("renders the margin's numerator and the pace-blend weight", () => {
+    const output = render(payload());
+    expect(output).toContain("hard rem");
+    expect(output).toContain("prog");
+    // structural_progress_fraction 0 in the fixture, rendered at 3 decimals.
+    expect(output).toContain("0.000");
+  });
+
+  /**
+   * "Recognized" and "rendered" are different claims. The six fields that are
+   * known and deliberately given no column are named in the legend, so their
+   * absence reads as a decision rather than as an omission.
+   */
+  test("names the recognized fields it deliberately does not render", () => {
+    const output = render(payload());
+    expect(output).toContain("recognized, not given a column");
+    for (
+      const field of [
+        "hard_overrun_frames",
+        "attempt_overrun_frames",
+        "estimate_uncertainty_frames",
+        "hard_completion_surplus_frames",
+        "attempt_completion_surplus_frames",
+        "structural_startup_included",
+      ]
+    ) {
+      expect(output).toContain(field);
+    }
+  });
+
+  /**
+   * Two different quantities ship under the word "slack" and used to print one
+   * above the other undistinguished: the compile block's is the ESTIMATOR
+   * ARTIFACT ratio (grows as B^(1-alpha), telemetry), the stats block's is the
+   * V1 traversal-model DIFFICULTY coordinate (linear in B, live policy).
+   */
+  test("labels the two differently-defined slacks", () => {
+    const output = render(payload(), { sim_frames: 799_359, budget_slack: 4.21 });
+    expect(output).toContain("initial structural slack (artifact)");
+    expect(output).toContain("budget_slack (traversal model V1)");
+    // Neither label may be the bare word both quantities used to print under.
+    expect(output).not.toMatch(/^ +initial structural slack +[\d.]/m);
+    expect(output).not.toMatch(/^ +budget_slack +[\d.]/m);
   });
 
   test("survives a payload missing, nulling or mistyping every field it reads", () => {

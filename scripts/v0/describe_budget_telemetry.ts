@@ -166,6 +166,11 @@ const KNOWN_ATTEMPT = new Set([
   "search_seed",
   "has_fallback",
   "anchor",
+  // Always present, null on every non-repair kind — so a repair-bearing payload
+  // used to report three first-class documented fields as unrecognized.
+  "repair_round_index",
+  "anchor_upstream_offset",
+  "incumbent_weak_gap_sse",
   "start_total_spent_frames",
   "ceiling_total_spent_frames",
   "ceiling_source",
@@ -200,6 +205,28 @@ const KNOWN_OBSERVATION = new Set([
   "attempt_completion_margin",
   "attempt_completion_surplus_frames",
 ]);
+/**
+ * Recognized on purpose and NOT given a column: every one of them is an exact
+ * function of two columns the walk already prints, and the walk is already
+ * fourteen columns wide. Named in the legend rather than left to be inferred
+ * from their absence — "recognized" and "rendered" are different claims, and
+ * the tool used to make only the first one visible.
+ *
+ *   hard_overrun_frames                = max(0, total − hard budget)
+ *   attempt_overrun_frames             = max(0, att sp − local budget)
+ *   estimate_uncertainty_frames        = (upper − lower) / 2
+ *   hard_completion_surplus_frames     = hard rem − EST
+ *   attempt_completion_surplus_frames  = att rem − EST
+ *   structural_startup_included        = (the one-time intercept still due)
+ */
+const RECOGNIZED_NOT_RENDERED = [
+  "hard_overrun_frames",
+  "attempt_overrun_frames",
+  "estimate_uncertainty_frames",
+  "hard_completion_surplus_frames",
+  "attempt_completion_surplus_frames",
+  "structural_startup_included",
+] as const;
 
 function collectUnknown(record: Rec | null, known: Set<string>, into: Set<string>): void {
   if (record === null) return;
@@ -249,8 +276,14 @@ function renderCompile(payload: Rec): string[] {
       ? null
       : count(compile.initial_structural_work_prior_frames),
   );
+  // TWO DIFFERENT SLACKS ship under that word and they used to print one above
+  // the other, undistinguished. This one is `policy budget / initial structural
+  // prior` under the ESTIMATOR ARTIFACT, so it grows as B^(1-alpha) and is
+  // telemetry. `budget_slack` in COMPILE STATS below is the V1 traversal-model
+  // DIFFICULTY coordinate, exactly linear in B, and it is live policy. Neither
+  // is convertible into the other; the labels say which is which.
   push(
-    "initial structural slack",
+    "initial structural slack (artifact)",
     num(compile.initial_structural_slack) === null ? null : ratio(compile.initial_structural_slack, 3),
   );
   // Compile-scope fields a later recorder may add; rendered only when present.
@@ -262,17 +295,20 @@ function renderCompile(payload: Rec): string[] {
   return ["COMPILE", ...renderTable(["field", "value"], ["l", "r"], rows, "  ").slice(1)];
 }
 
-const STATS_FIELDS = [
-  "sim_frames",
-  "first_completion_frame",
-  "predicted_first_completion_frames",
-  "budget_slack",
-  "budget_exhausted",
-  "leaves_considered",
-  "improvements",
-  "gap_commits",
-  "gap_backtracks",
-] as const;
+/** `budget_slack` is relabelled on the way out: it is the V1 traversal-model
+ *  DIFFICULTY coordinate (exactly linear in B, live policy), not the artifact
+ *  ratio the COMPILE block calls "initial structural slack". */
+const STATS_FIELDS: readonly (readonly [field: string, label: string])[] = [
+  ["sim_frames", "sim_frames"],
+  ["first_completion_frame", "first_completion_frame"],
+  ["predicted_first_completion_frames", "predicted_first_completion_frames"],
+  ["budget_slack", "budget_slack (traversal model V1)"],
+  ["budget_exhausted", "budget_exhausted"],
+  ["leaves_considered", "leaves_considered"],
+  ["improvements", "improvements"],
+  ["gap_commits", "gap_commits"],
+  ["gap_backtracks", "gap_backtracks"],
+];
 
 function renderStats(sidecarPath: string): string[] {
   const suffix = ".budget-telemetry.json";
@@ -290,9 +326,9 @@ function renderStats(sidecarPath: string): string[] {
   const stats = asRecord(envelope?.stats) ?? envelope;
   if (stats === null) return [];
   const rows: string[][] = [];
-  for (const field of STATS_FIELDS) {
+  for (const [field, label] of STATS_FIELDS) {
     const value = scalar(stats[field]);
-    if (value !== null) rows.push([field, value]);
+    if (value !== null) rows.push([label, value]);
   }
   const elapsed = scalar(envelope?.elapsed_ms);
   if (elapsed !== null) rows.push(["elapsed_ms", elapsed]);
@@ -363,6 +399,29 @@ const ATTEMPT_COLUMNS: AttemptColumn[] = [
     align: "r",
     cell: (_a, anchor) =>
       anchor === null ? MISSING : `${count(anchor.gap_index)}@${count(anchor.anchor_frame)}`,
+  },
+  // Repair-only, null on every other kind, so the three columns disappear on a
+  // payload with no repair phase. `round` is the pick of a weak gap (one round
+  // can spend several attempts walking the anchor upstream, so the attempt
+  // ordinal is NOT the round index); `up` is that walk's distance; `weak sse`
+  // is the ranking's own key at the moment it ranked.
+  {
+    header: "round",
+    align: "r",
+    optional: true,
+    cell: (a) => (num(a.repair_round_index) === null ? MISSING : count(a.repair_round_index)),
+  },
+  {
+    header: "up",
+    align: "r",
+    optional: true,
+    cell: (a) => (num(a.anchor_upstream_offset) === null ? MISSING : count(a.anchor_upstream_offset)),
+  },
+  {
+    header: "weak sse",
+    align: "r",
+    optional: true,
+    cell: (a) => (num(a.incumbent_weak_gap_sse) === null ? MISSING : ratio(a.incumbent_weak_gap_sse, 4)),
   },
   { header: "start", align: "r", cell: (a) => count(a.start_total_spent_frames) },
   { header: "ceiling", align: "r", cell: (a) => count(a.ceiling_total_spent_frames) },
@@ -436,12 +495,18 @@ function attemptObservations(attempt: Rec): { rows: unknown[]; source: string } 
   return { rows: fallback, source: "start/end only" };
 }
 
+// `hard rem` and `prog` are the two terms the margin is MADE of and were the
+// conspicuous omissions: `hard mrg` = hard rem / EST, and `prog` is the weight
+// at which EST blends the episode pace into the structural base. Without them
+// the walk showed the answer and neither of its inputs.
 const WALK_HEADERS = [
   "event",
   "total",
+  "hard rem",
   "att sp",
   "att rem",
   "hw",
+  "prog",
   "S",
   "path",
   "pace",
@@ -452,7 +517,9 @@ const WALK_HEADERS = [
   "att mrg",
   "app",
 ];
-const WALK_ALIGNS: Align[] = ["l", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "l"];
+const WALK_ALIGNS: Align[] = [
+  "l", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "l",
+];
 
 function walkRow(raw: unknown, unknown: Set<string>): string[] {
   const observation = asRecord(raw) ?? {};
@@ -461,9 +528,11 @@ function walkRow(raw: unknown, unknown: Set<string>): string[] {
   return [
     text(observation.event),
     count(observation.total_spent_frames),
+    count(observation.hard_remaining_frames),
     count(observation.attempt_spent_frames),
     count(observation.attempt_remaining_frames),
     highWater === null ? MISSING : count(highWater.gap_index),
+    ratio(observation.structural_progress_fraction, 3),
     count(observation.structural_work_prior_frames),
     count(observation.incumbent_path_work_estimate_frames),
     count(observation.episode_pace_work_estimate_frames),
@@ -487,7 +556,12 @@ function renderWalk(payload: Rec, unknown: Set<string>): string[] {
   });
   // One width set for every attempt, so the columns line up down the page.
   const widths = columnWidths(WALK_HEADERS, walks.flatMap((walk) => walk.cells));
-  const lines = ["OBSERVATION WALK   applicability: CAL calibrated · EXT extrapolated · UNV unvalidated kind"];
+  const lines = [
+    "OBSERVATION WALK   applicability: CAL calibrated · EXT extrapolated · UNV unvalidated kind",
+    `  recognized, not given a column (each derivable from two above): ${
+      RECOGNIZED_NOT_RENDERED.join(", ")
+    }`,
+  ];
   for (const { attempt, source, cells } of walks) {
     lines.push(
       "",

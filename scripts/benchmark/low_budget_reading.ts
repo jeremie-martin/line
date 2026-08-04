@@ -106,6 +106,7 @@ import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { arch, availableParallelism, platform } from "node:os";
 import { join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { actionSetPower, formatActionSetPower, type ActionSetPower } from "./action_set_power.ts";
 import {
   assertPairedArms,
@@ -860,7 +861,17 @@ export function writeReading(directory: string, record: ReadingRecord): { record
 // CLI
 // ---------------------------------------------------------------------------
 
-if (import.meta.url === `file://${process.argv[1]}`) await main();
+/** `file://${argv[1]}` string-compares an unresolved, unescaped path: it is
+ *  false for `node scripts/…` (relative) and for any path containing a space or
+ *  other percent-encoded character, and the module then silently does nothing.
+ *  `pathToFileURL(resolve(...))` is the same normalization `import.meta.url`
+ *  already carries (see describe_budget_telemetry.ts). */
+function isCliEntry(): boolean {
+  const entry = process.argv[1];
+  return entry !== undefined && import.meta.url === pathToFileURL(resolve(entry)).href;
+}
+
+if (isCliEntry()) await main();
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -882,6 +893,7 @@ async function main(): Promise<void> {
   if (!Number.isSafeInteger(seedBase) || seedBase < 0) throw new Error(`--seed-base must be a non-negative integer`);
   let seeds = Array.from({ length: seedCount }, (_, index) => seedBase + index);
   const jobs = Number(argument("jobs") ?? String(Math.min(16, Math.max(1, availableParallelism() - 1))));
+  if (!Number.isSafeInteger(jobs) || jobs < 1) throw new Error(`--jobs must be a positive integer`);
   const label = argument("label") ?? "tree-vs-baseline";
   const directory = resolve(argument("out") ?? READING_DIRECTORY);
   const generatedAt = new Date().toISOString();

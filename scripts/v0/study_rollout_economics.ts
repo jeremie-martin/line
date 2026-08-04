@@ -11,9 +11,9 @@
  * Four measurements, all from one instrumented compile:
  *
  *   SPEND      every charged rollout classified by outcome (no_hop / dead_hop1 /
- *              dead_hop2 / end_hop2 / full / branched) and by context (pool rank,
- *              gap band, pre/post first completion, configured depth), with the
- *              frames each class charges split by hop.
+ *              dead_hop1_refuted / dead_hop2 / end_hop2 / full / branched) and by
+ *              context (pool rank, gap band, pre/post first completion, configured
+ *              depth), with the frames each class charges split by hop.
  *   VERDICT    per pool: does the rollout's winner differ from the free pre-sort's
  *              #1, and when it does, was the disagreement DECIDED by a dead-end
  *              verdict or by a value difference between two live rides?
@@ -24,6 +24,25 @@
  *              compile it rides in is unchanged (`--verify-identity --truth-rate=1`).
  *   CONFUSION  the realized ruler: nodes a rollout judged, joined by node identity
  *              to the pool the search actually built when it arrived there.
+ *
+ * POST-L1 OUTCOME SEMANTICS (redraw-on-empty, shipped bb45125)
+ *   The compiler now re-draws the first hop at width+1 when it comes back empty,
+ *   so the single pre-L1 `dead_hop1` population splits in three and the study
+ *   reports all three:
+ *     trigger   = the first hop was empty at the shape's own width
+ *               = `dead_hop1 + dead_hop1_refuted` (record field `hop1Redrawn`)
+ *     refuted   = the extra draw found candidates; the verdict was overturned at
+ *                 the source and the rollout carried on → `dead_hop1_refuted`
+ *                 (sticky: it outranks whatever the deeper hops then did)
+ *     residual  = the extra draw found nothing either; the SURVIVING verdict,
+ *                 and the only thing `fwd_rollout_no_candidate` still counts
+ *               → `dead_hop1`, the class the TRUTH check samples
+ *   So `docs/rollout-economics-study.md` §1.2's pre-L1 `dead_hop1` column is
+ *   comparable to `dead_hop1 + dead_hop1_refuted` here, and §4.2's verified-true
+ *   rate is now measured on the residual population only (a strictly harder
+ *   population: L1 has already removed the cheapest refutations).
+ *   Branched shapes carry no hop trace and stay `branched`; their trigger and
+ *   refutation counts are still exact, via `hop1Redrawn`/`hop1Refuted`.
  *
  * Usage:
  *   node --import tsx scripts/v0/study_rollout_economics.ts \
@@ -58,9 +77,12 @@ import {
   resolveSources,
 } from "./benchmark_v2/model.ts";
 
+/** Canonical outcome order, emitted with the grid so every downstream table
+ *  prints the classes in the same sequence as the study's own §1.2. */
 const OUTCOMES: HandoffRolloutOutcome[] = [
   "no_hop",
   "dead_hop1",
+  "dead_hop1_refuted",
   "dead_hop2",
   "end_hop2",
   "full",
@@ -123,6 +145,11 @@ type Result = {
     fwdEvalCalls: number;
     startEvalFramesCharged: number;
     fwdRolloutNoCandidate: number;
+    /** The compiler's own L1 counters — the free thermometer (M3/M4). The hook's
+     *  `redraw.triggers`/`redraw.refuted` must agree with these; the study prints
+     *  the mismatch if they ever don't. */
+    fwdRolloutRedraws: number;
+    fwdRolloutRedrawRefuted: number;
     nodesExpanded: number;
     policyNCandMean: number | null;
   };
@@ -135,13 +162,25 @@ type Result = {
     byOutcomePhase: Record<string, Bucket>;
     byOutcomeDepth: Record<string, Bucket>;
     frameHistogram: Record<string, number[]>;
-    /** dead_hop1 rate per pool rank band. */
-    rankRate: Record<string, { rollouts: number; dead1: number }>;
-    /** dead_hop1 rate per gap decile. */
+    /** Residual (post-redraw) dead_hop1 rate per pool rank band, plus the refuted
+     *  column; the pre-L1-comparable trigger count is `dead1 + refuted`. */
+    rankRate: Record<string, { rollouts: number; dead1: number; refuted: number }>;
+    /** Per gap decile: [rollouts, residual dead_hop1, refuted]. */
     gapRate: number[][];
     /** Calls and frames by the rollout SHAPE the adaptive config resolved to. */
     byShape: Record<string, Bucket>;
     byShapeOutcome: Record<string, Bucket>;
+    /** THE POST-L1 SPLIT (see the header). `triggers` counts every rollout whose
+     *  first hop was empty at its own width — including branched shapes, whose
+     *  outcome class cannot name it. */
+    redraw: {
+      triggers: number;
+      refuted: number;
+      residual: number;
+      /** triggers/refuted split by shape and by pre/post first completion. */
+      byShape: Record<string, [number, number]>;
+      byPhase: Record<string, [number, number]>;
+    };
   };
   pools?: {
     n: number;
@@ -203,6 +242,15 @@ function bump(map: Record<string, Bucket>, key: string, record: HandoffRolloutPr
   bucket.leaf += Math.max(0, record.frames - hop1 - hop2);
 }
 
+/** The rollout SHAPE the adaptive config resolved to. `greedy:2:1` keeps its
+ *  pre-L1 spelling; the first-widened arm (`impactBestForwardEvalConfig`, same
+ *  variant/depth/branch) is separated as `greedy:2:1+fb3`. */
+function shapeKey(record: HandoffRolloutProbeRecord): string {
+  if (record.source === "start") return "start";
+  const base = `${record.variant}:${record.depth}:${record.branch}`;
+  return record.firstBranch > 1 ? `${base}+fb${record.firstBranch}` : base;
+}
+
 function logBucket(frames: number): number {
   if (frames <= 0) return 0;
   return Math.min(15, 1 + Math.floor(Math.log2(frames)));
@@ -236,8 +284,15 @@ async function workerMain(task: Task): Promise<void> {
     const frameHistogram: Record<string, number[]> = {};
     const byShape: Record<string, Bucket> = {};
     const byShapeOutcome: Record<string, Bucket> = {};
-    const rankRate: Record<string, { rollouts: number; dead1: number }> = {};
-    const gapRate: number[][] = Array.from({ length: 10 }, () => [0, 0]);
+    const rankRate: Record<string, { rollouts: number; dead1: number; refuted: number }> = {};
+    const gapRate: number[][] = Array.from({ length: 10 }, () => [0, 0, 0]);
+    const redraw = {
+      triggers: 0,
+      refuted: 0,
+      residual: 0,
+      byShape: {} as Record<string, [number, number]>,
+      byPhase: {} as Record<string, [number, number]>,
+    };
     let rolloutTotal = 0;
     let rolloutFrames = 0;
 
@@ -313,20 +368,40 @@ async function workerMain(task: Task): Promise<void> {
         bump(byOutcomeDepth, `${outcome}|d${record.depth}`, record);
         const hist = frameHistogram[outcome] ??= new Array(16).fill(0);
         hist[logBucket(record.frames)] += 1;
-        const shape = record.source === "start"
-          ? "start"
-          : `${record.variant}:${record.depth}:${record.branch}`;
+        // `+fbN` only when the first-widened arm is live, so the default key stays
+        // `greedy:2:1` and remains comparable with §1.2 while the impact-widening
+        // arm (same variant/depth/branch) gets its own row.
+        const shape = shapeKey(record);
         bump(byShape, shape, record);
         bump(byShapeOutcome, `${shape}|${outcome}`, record);
 
+        // THE POST-L1 SPLIT. Counted from the record's own trigger/refuted bits,
+        // not from the outcome class, so branched shapes are included too.
+        if (record.hop1Redrawn) {
+          redraw.triggers += 1;
+          if (record.hop1Refuted) redraw.refuted += 1;
+          else redraw.residual += 1;
+          const phase = record.hasCompletion ? "post" : "pre";
+          const shapeCell = redraw.byShape[shape] ??= [0, 0];
+          const phaseCell = redraw.byPhase[phase] ??= [0, 0];
+          shapeCell[0] += 1;
+          phaseCell[0] += 1;
+          if (record.hop1Refuted) {
+            shapeCell[1] += 1;
+            phaseCell[1] += 1;
+          }
+        }
+
         if (record.source === "pool" || record.source === "reuse" || record.source === "brake") {
           const key = rankKey(record);
-          const rate = rankRate[key] ??= { rollouts: 0, dead1: 0 };
+          const rate = rankRate[key] ??= { rollouts: 0, dead1: 0, refuted: 0 };
           rate.rollouts += 1;
           if (outcome === "dead_hop1") rate.dead1 += 1;
+          if (outcome === "dead_hop1_refuted") rate.refuted += 1;
           if (band >= 0) {
             gapRate[band][0] += 1;
             if (outcome === "dead_hop1") gapRate[band][1] += 1;
+            if (outcome === "dead_hop1_refuted") gapRate[band][2] += 1;
           }
         }
 
@@ -338,6 +413,9 @@ async function workerMain(task: Task): Promise<void> {
         if (record.deadNode !== null) verdicts.set(record.deadNode, false);
         else if (record.hop1Node !== null) verdicts.set(record.hop1Node, true);
 
+        // TRUTH is measured on the SURVIVING verdict only: a refuted rollout has
+        // no dead node (L1 already found the catch), so `dead_hop1` here is the
+        // residual population by construction.
         if (outcome !== "dead_hop1" || record.deadNode === null) return;
         truth.deadHop1Seen += 1;
         if (task.truthRate <= 0 || truth.sampled >= task.truthMax) return;
@@ -396,6 +474,8 @@ async function workerMain(task: Task): Promise<void> {
         fwdEvalCalls: fwd.fwd_eval_calls ?? 0,
         startEvalFramesCharged: fwd.start_eval_frames_charged ?? 0,
         fwdRolloutNoCandidate: fwd.fwd_rollout_no_candidate ?? 0,
+        fwdRolloutRedraws: fwd.fwd_rollout_redraws ?? 0,
+        fwdRolloutRedrawRefuted: fwd.fwd_rollout_redraw_refuted ?? 0,
         nodesExpanded: Number(anyStats.search_nodes_expanded ?? 0),
         policyNCandMean: policyNCandCount === 0 ? null : policyNCandSum / policyNCandCount,
       },
@@ -414,6 +494,7 @@ async function workerMain(task: Task): Promise<void> {
         gapRate,
         byShape,
         byShapeOutcome,
+        redraw,
       };
       result.pools = pools;
       result.truth = truth;
@@ -645,10 +726,27 @@ async function main(): Promise<void> {
             `${task.identity ? " (bare)" : ""} ${result.status} ` +
             `${(result.elapsedMs / 1000).toFixed(1)}s` +
             (result.rollouts ? ` rollouts=${result.rollouts.total}` : "") +
+            (result.rollouts
+              ? ` redraw=${result.rollouts.redraw.refuted}/${result.rollouts.redraw.triggers}`
+              : "") +
             (result.truth && result.truth.sampled > 0
               ? ` truth=${result.truth.verifiedTrue}/${result.truth.sampled}`
               : ""),
         );
+        // Cross-check: the hook's trigger count must equal the compiler's own
+        // `fwd_rollout_redraws`. A mismatch means a re-draw site the hook cannot
+        // see — say so loudly rather than quietly under-reporting M3's numerator.
+        if (
+          result.rollouts !== undefined && result.stats !== undefined &&
+          (result.rollouts.redraw.triggers !== result.stats.fwdRolloutRedraws ||
+            result.rollouts.redraw.refuted !== result.stats.fwdRolloutRedrawRefuted)
+        ) {
+          console.error(
+            `    REDRAW COUNTER MISMATCH ${task.sourceId}/s${task.seed}/${task.budget}: ` +
+              `hook ${result.rollouts.redraw.refuted}/${result.rollouts.redraw.triggers} vs ` +
+              `compiler ${result.stats.fwdRolloutRedrawRefuted}/${result.stats.fwdRolloutRedraws}`,
+          );
+        }
       }
     }),
   );
@@ -660,7 +758,17 @@ async function main(): Promise<void> {
       {
         schema: "line.study.rollout-economics.v1",
         generatedAt: new Date().toISOString(),
-        grid: { sourceIds, seeds, budgets, truthRate, truthMax, truthAim, joltMs, identity },
+        grid: {
+          sourceIds,
+          seeds,
+          budgets,
+          truthRate,
+          truthMax,
+          truthAim,
+          joltMs,
+          identity,
+          outcomeOrder: OUTCOMES,
+        },
         results,
       },
       null,

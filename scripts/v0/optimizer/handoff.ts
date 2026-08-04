@@ -623,6 +623,141 @@ export function setHandoffRankedOptionsProbeHook(hook: HandoffRankedOptionsProbe
   handoffRankedOptionsProbeHook = hook;
 }
 
+// ── Rollout-economics probe (MEASURE-ONLY; production installs no hook) ──
+// docs/rollout-economics-study.md. Every rollout the compiler charges reports
+// where its frames went and how it ended. Guarded by a null check on the hook,
+// so an uninstrumented compile pays one comparison per rollout and nothing else
+// — the `--verify-identity` arm of `study_rollout_economics.ts` proves it.
+export type HandoffRolloutOutcome =
+  /** Depth remained but there was no further contact to place (terminal prefix). */
+  | "no_hop"
+  /** The FIRST rolled contact produced no candidate AND the width+1 re-draw did
+   *  not find one either — the SURVIVING hop-1 dead-end verdict. Pre-L1 this
+   *  class was the whole empty-at-base-width population, so post-L1 the
+   *  comparable quantity against `docs/rollout-economics-study.md` §1.2 is
+   *  `dead_hop1 + dead_hop1_refuted`. */
+  | "dead_hop1"
+  /** Empty at the shape's own width, then REFUTED by `redrawFirstHopOnEmpty`:
+   *  the extra draw found candidates and the rollout carried on. Sticky — it
+   *  overrides whatever the deeper hops then did, because "the one-sample
+   *  verdict was false" is the fact this population exists to report and it
+   *  must not disappear into `full`. `hopFrames`/`hopsPlaced` still carry the
+   *  full trace for anyone who wants the deeper outcome. */
+  | "dead_hop1_refuted"
+  /** Hop 1 placed; the SECOND rolled contact produced no candidate (no re-draw
+   *  runs below hop 1, so this class is unchanged by L1). */
+  | "dead_hop2"
+  /** Hop 1 placed; the prefix reached its last contact before hop 2. */
+  | "end_hop2"
+  /** The configured depth was rolled in full. */
+  | "full"
+  /** A branched shape (best/avg/first-widened): frames only, no hop trace. */
+  | "branched";
+
+export type HandoffRolloutProbeRecord = {
+  /** Gap index of the DFS node whose pool this rollout prices. -1 for start selection. */
+  gapIndex: number;
+  /** Pre-sort (quality-objective) rank of the priced candidate; -1 for start selection. */
+  rank: number;
+  source: HandoffCandidateSource | "start";
+  variant: ForwardEvalVariant;
+  /** Configured rollout depth (1 when the pace prune shallowed it). */
+  depth: number;
+  branch: number;
+  /** First-level width of the greedy first-widened shape (`impactBestForwardEvalConfig`),
+   *  1 for every other shape. Without it `greedy:2:1` conflates the plain default
+   *  with the widened arm that is 62.8% of all rollout frames — the two are the
+   *  same (variant, depth, branch). */
+  firstBranch: number;
+  outcome: HandoffRolloutOutcome;
+  /** THE L1 TRIGGER. The rollout's first hop was empty at the shape's own width
+   *  and `redrawFirstHopOnEmpty` ran. True for branched shapes too, where the
+   *  hop trace (and therefore the outcome class) is unavailable. */
+  hop1Redrawn: boolean;
+  /** ...and the extra draw found candidates: the verdict was overturned at the
+   *  source. `hop1Redrawn && !hop1Refuted` is the residual dead-end verdict —
+   *  the population `fwd_rollout_no_candidate` still counts. */
+  hop1Refuted: boolean;
+  /** Rolled contacts that actually committed a candidate. */
+  hopsPlaced: number;
+  /** Total sim-frames the rollout charged. */
+  frames: number;
+  /** Sim-frames per hop (pool build + commit), outermost first. */
+  hopFrames: number[];
+  value: number;
+  hasCompletion: boolean;
+  targetBudget: number;
+  simFramesAtStart: number;
+  /** The node the rollout declared unable to continue (dead_hop1/dead_hop2 only). */
+  deadNode: SearchNode | null;
+  /** The FIRST rolled contact node, whatever the verdict — the join key for the
+   *  realized-search confusion matrix (alive row as well as dead row). */
+  hop1Node: SearchNode | null;
+  /** Live context for a truth check at `deadNode`; never retained by the compiler. */
+  gaps: Gap[] | null;
+  ctx: SpecContext | null;
+  seed: number;
+};
+
+type HandoffRolloutProbeHook = (record: HandoffRolloutProbeRecord) => void;
+let handoffRolloutProbeHook: HandoffRolloutProbeHook | null = null;
+
+/** Observation-only rollout hook. Production never installs one. */
+export function setHandoffRolloutProbeHook(hook: HandoffRolloutProbeHook | null): void {
+  handoffRolloutProbeHook = hook;
+}
+
+type RolloutTrace = {
+  hopFrames: number[];
+  hopsPlaced: number;
+  outcome: HandoffRolloutOutcome;
+  deadNode: SearchNode | null;
+  hop1Node: SearchNode | null;
+};
+let rolloutTrace: RolloutTrace | null = null;
+/** The three post-L1 first-hop states, as seen by `redrawFirstHopOnEmpty`:
+ *  "none" = the first hop was never empty at the shape's own width (no trigger);
+ *  "refuted" = empty, then the width+1 draw found candidates;
+ *  "residual" = empty, and the width+1 draw found nothing either.
+ *  Written only while a rollout probe hook is installed, reset at each rollout
+ *  entry point, read once in the same synchronous call. */
+type RolloutRedrawState = "none" | "refuted" | "residual";
+let rolloutRedrawState: RolloutRedrawState = "none";
+type RolloutProbeContext = {
+  gapIndex: number;
+  rank: number;
+  source: HandoffCandidateSource | "start";
+  hasCompletion: boolean;
+  targetBudget: number;
+};
+const START_ROLLOUT_CONTEXT: RolloutProbeContext = {
+  gapIndex: -1,
+  rank: -1,
+  source: "start",
+  hasCompletion: false,
+  targetBudget: 0,
+};
+let rolloutProbeContext: RolloutProbeContext = START_ROLLOUT_CONTEXT;
+
+/** Observation-only: the search genuinely arrived at `node` and built its real pool.
+ *  Joined against the rollout verdicts by node identity (`extendNodeCached` memoizes,
+ *  so the node the rollout judged IS the node the search later expands). */
+export type HandoffExpansionProbeRecord = {
+  node: SearchNode;
+  gapIndex: number;
+  poolCandidates: number;
+  hasCompletion: boolean;
+  nCand: number;
+};
+
+type HandoffExpansionProbeHook = (record: HandoffExpansionProbeRecord) => void;
+let handoffExpansionProbeHook: HandoffExpansionProbeHook | null = null;
+
+/** Observation-only expansion hook. Production never installs one. */
+export function setHandoffExpansionProbeHook(hook: HandoffExpansionProbeHook | null): void {
+  handoffExpansionProbeHook = hook;
+}
+
 export type HandoffFrontierProbeNode = {
   gapIndex: number;
   /** The choice that entered this node, if it came from an ordinary ranked pool. */
@@ -695,6 +830,20 @@ export type HandoffDeadlineProbeRecord = {
   forwardEvalTop: number;
   aimLaneThrottled: boolean;
   onlineContinuationApplied: boolean;
+  /** How many ranked options the online-continuation filter DROPPED at this
+   *  build; 0 unless `onlineContinuationApplied`. This is the population the
+   *  filter acts on — the only one whose verdict truth is a live question. */
+  onlineContinuationPruned: number;
+  /** The verdict node behind each dropped option: the next-contact node whose
+   *  memoized pool read empty. Live objects the compiler does not retain, so a
+   *  probe can re-draw there on a cache-isolated copy. Empty unless the filter
+   *  applied. Built inside the hook guard — an uninstrumented compile does not
+   *  walk them. */
+  onlineContinuationPrunedNodes: SearchNode[];
+  /** Context for that probe; the compiler already holds both. */
+  gaps: Gap[];
+  ctx: SpecContext;
+  seed: number;
 };
 
 type HandoffDeadlineProbeHook = (record: HandoffDeadlineProbeRecord) => void;
@@ -3936,6 +4085,17 @@ function rankedOptions(
   }
   const poolSize = config.poolSize ?? handoffCandidatePool();
   const pool = admittedHandoffPool(sorted, poolSize);
+  // Rollout-economics probe (measure-only): the search genuinely arrived here and
+  // built its real pool — the realized ruler the rollout verdicts are scored
+  // against. `?.()` short-circuits before the record literal, so an
+  // uninstrumented compile allocates nothing.
+  handoffExpansionProbeHook?.({
+    node,
+    gapIndex: node.gapIndex,
+    poolCandidates: sorted.length,
+    hasCompletion: telemetry.hasCompletion,
+    nCand: normalCandidates,
+  });
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
   const extraRankBase = poolSize;
@@ -4310,6 +4470,18 @@ function rankedOptions(
       underFullDeadlinePressure(deadlineMargin) &&
       scored.some((option) => option.forwardContinuation === true);
   if (handoffDeadlineProbeHook !== null) {
+    // Observation-only, and only inside the guard: the options this filter is
+    // about to drop, plus the node each verdict was read at. `advanceToNextContact`
+    // walks memoized `extendNodeCached` links and charges no frames, and the
+    // nodes it lands on are the ones the rollout already judged.
+    const pruned = applyOnlineContinuation
+      ? scored.filter((option) => option.forwardContinuation === false)
+      : [];
+    const prunedNodes: SearchNode[] = [];
+    for (const option of pruned) {
+      const at = advanceToNextContact(option.child, gaps);
+      if (at !== null) prunedNodes.push(at);
+    }
     handoffDeadlineProbeHook({
       simFrames: getSimFrames(),
       gapIndex: node.gapIndex,
@@ -4320,6 +4492,11 @@ function rankedOptions(
       forwardEvalTop,
       aimLaneThrottled,
       onlineContinuationApplied: applyOnlineContinuation,
+      onlineContinuationPruned: pruned.length,
+      onlineContinuationPrunedNodes: prunedNodes,
+      gaps,
+      ctx,
+      seed,
     });
   }
   const eligible = applyOnlineContinuation
@@ -5465,6 +5642,15 @@ function scoreCandidateForHandoff(
     const effective = allowForwardEval || resolved.variant !== "greedy"
       ? resolved
       : { ...resolved, depth: 1 };
+    if (handoffRolloutProbeHook !== null) {
+      rolloutProbeContext = {
+        gapIndex: node.gapIndex,
+        rank,
+        source,
+        hasCompletion: telemetry.hasCompletion,
+        targetBudget,
+      };
+    }
     const value = forwardArcValue(
       child,
       gaps,
@@ -6130,16 +6316,46 @@ function startForwardScore(
   // Start-selection rollouts are always charged (no refund here); count their sim-frames
   // separately from per-candidate forward eval (cost instrument, measure-only).
   const saved = getSimFrames();
+  if (handoffRolloutProbeHook !== null) rolloutRedrawState = "none";
+  let value = 0;
   try {
     const leafObjective = cfg.leaf === "objective";
-    return cfg.variant === "avg"
+    value = cfg.variant === "avg"
       ? forwardAvgNextScore(root, gaps, ctx, seed, cfg.branch, leafObjective)
       : forwardRolloutScore(
         root, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
         leafObjective, true, // firstHop: start selection's own hop-1 verdict
       );
+    return value;
   } finally {
-    fwdEvalTotals.start_eval_frames_charged += Math.max(0, getSimFrames() - saved);
+    const spent = Math.max(0, getSimFrames() - saved);
+    fwdEvalTotals.start_eval_frames_charged += spent;
+    // Rollout-economics probe (measure-only): start selection is its own charged
+    // rollout population and is reported as such — coarse, since best:1:5 branches.
+    handoffRolloutProbeHook?.({
+      gapIndex: -1,
+      rank: -1,
+      source: "start",
+      variant: cfg.variant,
+      depth: cfg.depth,
+      branch: cfg.branch,
+      firstBranch: 1, // start selection never uses the first-widened shape
+      outcome: "branched",
+      hop1Redrawn: rolloutRedrawState !== "none",
+      hop1Refuted: rolloutRedrawState === "refuted",
+      hopsPlaced: 0,
+      frames: spent,
+      hopFrames: [],
+      value,
+      hasCompletion: false,
+      targetBudget: 0,
+      simFramesAtStart: saved,
+      deadNode: null,
+      hop1Node: null,
+      gaps: null,
+      ctx: null,
+      seed,
+    });
   }
 }
 
@@ -6337,6 +6553,14 @@ export function redrawFirstHopOnEmpty(
     setRolloutAimSuppressed(savedAimSuppressed);
   }
   if (widened.length > 0) fwdEvalTotals.fwd_rollout_redraw_refuted++;
+  // Rollout-economics probe (measure-only): record WHICH of the three post-L1
+  // first-hop states this was, so the hook can report the L1 trigger population
+  // and its refuted subset separately from the surviving verdict. Only ever one
+  // re-draw per rollout (the flag is passed at the first hop alone), so a single
+  // slot is exact.
+  if (handoffRolloutProbeHook !== null) {
+    rolloutRedrawState = widened.length > 0 ? "refuted" : "residual";
+  }
   return widened;
 }
 
@@ -6356,22 +6580,46 @@ function forwardRolloutScore(
     leafObjective
       ? objectiveLeafValue(node, gaps, ctx.durationFrames)
       : forwardNodeScore(node, gaps, ctx);
+  const trace = rolloutTrace; // measure-only; null in every uninstrumented compile
   if (depthLeft <= 0 || isTerminalNode(search, gaps)) {
+    if (trace !== null) {
+      trace.outcome = depthLeft <= 0
+        ? "full"
+        : trace.hopsPlaced === 0
+        ? "no_hop"
+        : "end_hop2";
+    }
     return leafValue(search);
   }
   const at = advanceToNextContact(search, gaps);
   if (at === null) {
+    if (trace !== null) trace.outcome = trace.hopsPlaced === 0 ? "no_hop" : "end_hop2";
     return leafValue(search);
   }
+  const hopStart = trace === null ? 0 : getSimFrames();
+  if (trace !== null && trace.hopsPlaced === 0) trace.hop1Node = at;
   let cands = getCandidatesSorted(at, gaps, ctx, seed, branch);
   if (cands.length === 0 && firstHop) {
     cands = redrawFirstHopOnEmpty(at, gaps, ctx, seed, branch);
   }
   if (cands.length === 0) {
     fwdEvalTotals.fwd_rollout_no_candidate++;
+    if (trace !== null) {
+      trace.hopFrames.push(getSimFrames() - hopStart);
+      trace.outcome = trace.hopsPlaced === 0 ? "dead_hop1" : "dead_hop2";
+      trace.deadNode = at;
+    }
     // Dead-end: the rollout could not place any further contact; the leaf scorer applies the full
     // missing-contact penalty from the node's own committed depth.
     return leafValue(search);
+  }
+  if (trace !== null) {
+    // The hop's OWN cost: the pool build at the rolled contact (including the
+    // re-draw, when one ran). The recursion's frames are pushed by the level
+    // that spends them.
+    trace.hopFrames.push(getSimFrames() - hopStart);
+    trace.hopsPlaced++;
+    trace.outcome = "full"; // overwritten by the deeper level if it ends early
   }
   let best = -Infinity;
   for (const c of cands) {
@@ -6479,8 +6727,22 @@ function forwardArcValue(
   // Mark the rollout so the rolled-level pool can drop its aim probes (LR_ROLLOUT_AIM=0) — isolates
   // wide-branching value from aim-probe cost. The top-level pool (built before this) is unaffected.
   setRolloutContext(true);
+  // Rollout-economics probe (measure-only). Only the unbranched greedy shape —
+  // the default and the overwhelming majority — carries a hop trace; branched
+  // shapes report frames and nothing else, because "the" hop is not defined for
+  // them. The re-draw state is tracked for EVERY shape (each one re-draws at its
+  // own first hop), so the L1 trigger and refutation populations are complete
+  // even where the outcome class is `branched`.
+  const traced = handoffRolloutProbeHook !== null;
+  const linear = cfg.variant === "greedy" && cfg.branch === 1 && (cfg.firstBranch ?? 1) === 1;
+  const trace: RolloutTrace | null = traced && linear
+    ? { hopFrames: [], hopsPlaced: 0, outcome: "no_hop", deadNode: null, hop1Node: null }
+    : null;
+  rolloutTrace = trace;
+  if (traced) rolloutRedrawState = "none";
+  let value = 0;
   try {
-    return cfg.variant === "avg"
+    value = cfg.variant === "avg"
       ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch, leafObjective)
       : cfg.variant === "greedy" && (cfg.firstBranch ?? 1) > 1
       ? forwardFirstWidenedScore(
@@ -6490,13 +6752,51 @@ function forwardArcValue(
         child, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
         leafObjective, true, // firstHop: this call's expansion IS the hop-1 verdict
       );
+    return value;
   } finally {
+    rolloutTrace = null;
     setRolloutContext(false);
     // Cost instrument (measure-only): count the rollout's sim-frames even when charged
     // (the existing `saved` already reads getSimFrames). One call per ranked candidate.
-    fwdEvalTotals.fwd_eval_frames_charged += Math.max(0, getSimFrames() - saved);
+    const spent = Math.max(0, getSimFrames() - saved);
+    fwdEvalTotals.fwd_eval_frames_charged += spent;
     fwdEvalTotals.fwd_eval_calls++;
     if (!charge) refundSimFramesTo(saved);
+    if (handoffRolloutProbeHook !== null) {
+      const context = rolloutProbeContext;
+      const refuted = rolloutRedrawState === "refuted";
+      handoffRolloutProbeHook({
+        gapIndex: context.gapIndex,
+        rank: context.rank,
+        source: context.source,
+        variant: cfg.variant,
+        depth: cfg.depth,
+        branch: cfg.branch,
+        firstBranch: cfg.firstBranch ?? 1,
+        // Sticky: a refuted hop-1 verdict outranks whatever the deeper hops did.
+        // Only the linear shape can name it — a branched rollout has no "the" hop
+        // and stays `branched`, with hop1Redrawn/hop1Refuted carrying the split.
+        outcome: trace === null
+          ? "branched"
+          : refuted
+          ? "dead_hop1_refuted"
+          : trace.outcome,
+        hop1Redrawn: rolloutRedrawState !== "none",
+        hop1Refuted: refuted,
+        hopsPlaced: trace === null ? 0 : trace.hopsPlaced,
+        frames: spent,
+        hopFrames: trace === null ? [] : trace.hopFrames,
+        value,
+        hasCompletion: context.hasCompletion,
+        targetBudget: context.targetBudget,
+        simFramesAtStart: saved,
+        deadNode: trace === null ? null : trace.deadNode,
+        hop1Node: trace === null ? null : trace.hop1Node,
+        gaps,
+        ctx,
+        seed,
+      });
+    }
   }
 }
 

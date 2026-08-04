@@ -160,6 +160,18 @@ contact; `full` = the configured depth rolled out; `branched` = a non-greedy
 shape (`avg`, `best`, `firstBranch>1`, and start selection), which gets no hop
 trace because "the" hop is not defined for it.
 
+> **Post-L1 note (2026-08-04).** Every number in this section was measured
+> BEFORE redraw-on-empty shipped (`bb45125`), when `dead_hop1` was the whole
+> empty-at-base-width population. The instrument now splits that population in
+> three, and the study script emits a fourth class: `dead_hop1_refuted` (empty
+> at the shape's own width, then the width+1 re-draw found a candidate) versus
+> `dead_hop1` (still empty — the surviving verdict, and the only one
+> `fwd_rollout_no_candidate` counts). **The quantity comparable to the
+> `dead_hop1` column below is `dead_hop1 + dead_hop1_refuted`**, and §4.2's
+> verified-true rate is now measured on the residual population alone — a
+> strictly harder one, since L1 has already removed the cheapest refutations.
+> Definitions and the standing metric set: `docs/forward-eval-metrics.md`.
+
 **150k** — 63,753 rollouts, 2,979,427 charged frames:
 
 | outcome | calls | % calls | frames | % rollout frames | % of the compile | frames/call |

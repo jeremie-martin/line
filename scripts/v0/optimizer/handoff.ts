@@ -5331,6 +5331,15 @@ type QualityBreadthRule = {
  * table has been compensating for it — and that is a bracket on
  * `HANDOFF_QUALITY_N_CAND_FLOOR`, not a per-spec question.
  *
+ * That bracket is UNTESTABLE at the promoting surface, and the reason is
+ * arithmetic rather than an opinion: the law reaches 8 at
+ * `250,000 * 7.5 / 27` = 69,444 frames, so the floor binds only below ~69k —
+ * a factor of ten under 750k, and still a factor of seven under it at the
+ * widest study scale `studyNCandScale` admits. Any bracket on it has to be
+ * taken on the standing low-budget reading, never on a 750k panel;
+ * `tests/handoff_policy.test.ts` pins the arithmetic so the row cannot be
+ * re-parked as "unmeasured" by a future reader.
+ *
  * All of it is unreachable at every promoted budget: 20/20 golden track hashes
  * unchanged at 750,000 with the whole table deleted.
  */
@@ -5404,10 +5413,62 @@ function budgetAwareQualitySampleCount(targetBudget: number | undefined): number
   return Math.max(
     HANDOFF_QUALITY_N_CAND_FLOOR,
     Math.round(
-      HANDOFF_QUALITY_N_CAND_AT_REF *
-        (Math.max(0, targetBudget) / HANDOFF_QUALITY_N_CAND_REF_FRAMES),
+      studyNCandScale() * (HANDOFF_QUALITY_N_CAND_AT_REF *
+        (Math.max(0, targetBudget) / HANDOFF_QUALITY_N_CAND_REF_FRAMES)),
     ),
   );
+}
+
+/**
+ * STUDY-ONLY multiplier on the breadth law's OUTPUT, at a fixed budget.
+ *
+ * Not a re-fit and not a change of form: the law stays linear, its anchor and
+ * its reference budget are untouched, and the floor still applies to the scaled
+ * result. This exists to ask ONE question — is the law's value at the promoting
+ * budget still the local optimum now that the depth-1 promotion changed what a
+ * rollout costs around it (the stale-sweep rule) — and its answer is a probe,
+ * never a production candidate. If an off-1.0 arm wins, the follow-up is a
+ * proper cross-budget re-fit of the anchor and the exponent, because a scale
+ * applied at one budget IS a per-budget constant and this repo does not ship
+ * those.
+ *
+ * `LR_QUALITY_NCAND` cannot serve here: it is an absolute count capped at 64,
+ * and the law already returns 81 at 750k, so the whole neighbourhood of the
+ * promoting budget is out of its reach.
+ *
+ * REFUSES rather than clamps; unset/empty is exactly the shipped law.
+ *
+ * WALKED 2026-08-04 at 44 sources x 8 seeds x 750k (352 paired cells per arm;
+ * nCand 57 / 69 / 81 / 93 / 105):
+ *
+ *     0.70x  -2.276 +/- 0.708 (t=-3.21)      1.15x  -0.142 +/- 0.739
+ *     0.85x  -3.130 +/- 1.700                1.30x  -1.169 +/- 1.471
+ *
+ * **1.0 is re-confirmed as the local optimum under the depth-1 rollout
+ * economics**, and the curve is asymmetric: narrowing is significantly worse
+ * (0.70x is the only |t| > 2 result on the whole panel, and every stratum is
+ * negative), widening is a null that trends down. Both off-1.0 widenings also
+ * cost a completion the shipped law keeps (`frontier_pickup_progression_shifted`
+ * goes invalid at 0.85x seed 22 and at 1.30x seed 18; the base arm is 352/352
+ * valid) — the extra per-gap breadth is paid for in tree depth (nodes expanded
+ * 209 -> 163 across the walk) and the frontier sources are the ones that need
+ * the tree. The law's linear form and its 250k anchor were not touched and are
+ * not what this measured; the stale-sweep licence the depth-1 promotion opened
+ * on the constant is DISCHARGED, and no cross-budget re-fit is indicated.
+ */
+const readStudyNCandScale = compileScopedEnv("LR_STUDY_NCAND_SCALE");
+
+function studyNCandScale(): number {
+  const raw = readStudyNCandScale();
+  if (raw === undefined || raw === "") return 1;
+  const n = Number.parseFloat(raw);
+  if (!Number.isFinite(n) || n < 0.5 || n > 2) {
+    throw new Error(
+      `LR_STUDY_NCAND_SCALE must be a finite number in [0.5, 2] (STUDY-ONLY; never set it ` +
+        `in production or in an eval), got "${raw}"`,
+    );
+  }
+  return n;
 }
 
 function shouldRelaxMatureQualityLean(profile: HandoffTargetProfile): boolean {
@@ -5921,6 +5982,14 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //                              weight (0 = the Phase-1a boundary = production)
 //   LR_STUDY_POST_DEADLINE_SCOPE  which post-completion lanes that      all|nonrepair
 //                              weight reaches (see postCompletionPhaseWeight)
+//   LR_STUDY_NCAND_SCALE       multiplier on the breadth law's output   [0.5, 2]
+//                              at a fixed budget (see studyNCandScale) — a probe of the
+//                              law's local optimum, never a production shape
+// Two more live one module over, in optimizer/deadline.ts, because that is where the
+// constants they re-bracket are derived; they reach this subsystem through the head ramp,
+// the aim throttle and the continuation filter:
+//   LR_STUDY_DEADLINE_NO_PRESSURE / _FULL_PRESSURE   the two margin anchors  (0, 10]
+//   LR_STUDY_PACE_WEIGHT       scale on the pace term's blend weight    [0, 2]
 // ════════════════════════════════════════════════════════════════════════════════════════
 // ── True-score forward arc evaluation (DEFAULT ranker ≥75k; also start selection & repair) ──
 // Rank each candidate arc by the TRUE metric score (scoreDriftReport via leafKeyForReport) of

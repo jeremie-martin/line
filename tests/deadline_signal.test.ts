@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test, vi } from "vitest";
 import { makeRng } from "../scripts/lib/rng.ts";
+import { beginEnvFlagEpoch } from "../scripts/v0/env_flags.ts";
 import { resetPerCompileState } from "../scripts/v0/core/compile_lifecycle.ts";
 import {
   effectiveAxes,
@@ -25,6 +26,7 @@ import {
   CompileDeadline,
   DEADLINE_MARGIN_FULL_PRESSURE,
   DEADLINE_MARGIN_NO_PRESSURE,
+  deadlineMarginAnchors,
   deadlinePressure,
   underFullDeadlinePressure,
 } from "../scripts/v0/optimizer/deadline.ts";
@@ -53,6 +55,28 @@ function deadline(overrides: { includeStartup?: boolean; budget?: number } = {})
     anchorGapIndex: 0,
     includeStartup: overrides.includeStartup ?? true,
   });
+}
+
+/** Run `body` with `env` applied, restoring the environment afterwards. The
+ *  compile-scoped readers cache per epoch, and a direct call opens none of its
+ *  own, so the epoch is bumped on both edges. */
+function withEnv<T>(env: Record<string, string | undefined>, body: () => T): T {
+  const saved = new Map<string, string | undefined>();
+  for (const [k, v] of Object.entries(env)) {
+    saved.set(k, process.env[k]);
+    if (v === undefined) delete process.env[k];
+    else process.env[k] = v;
+  }
+  beginEnvFlagEpoch();
+  try {
+    return body();
+  } finally {
+    for (const [k, v] of saved) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+    beginEnvFlagEpoch();
+  }
 }
 
 /** What the estimator gives for the same position, computed independently. */
@@ -262,6 +286,109 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     expect(underFullDeadlinePressure(1.26)).toBe(false);
     for (const margin of [0, 0.5, 0.999, 1, 1.25, 1.2500001, 1.5, 2, Infinity]) {
       expect(underFullDeadlinePressure(margin)).toBe(deadlinePressure(margin) >= 1);
+    }
+  });
+
+  /**
+   * The anchor re-bracket knobs.
+   *
+   * The pair is filed STALE by the module header (derived on the V1-shaped
+   * signal, three neighbouring mechanisms have moved since), and these two
+   * variables are how the re-bracket is measured. Production is the shipped
+   * pair — the knobs unset must be exactly today's ramp — and an out-of-range
+   * or degenerate pair must REFUSE, because a sweep arm that silently ran at
+   * the default is worse than no arm.
+   */
+  test("LR_STUDY_DEADLINE_{NO,FULL}_PRESSURE re-bracket the ramp and refuse rather than clamp", () => {
+    // Unset is the shipped pair, exactly.
+    expect(withEnv({}, deadlineMarginAnchors))
+      .toEqual({ noPressure: DEADLINE_MARGIN_NO_PRESSURE, fullPressure: DEADLINE_MARGIN_FULL_PRESSURE });
+    expect(withEnv(
+      { LR_STUDY_DEADLINE_NO_PRESSURE: "", LR_STUDY_DEADLINE_FULL_PRESSURE: "" },
+      deadlineMarginAnchors,
+    )).toEqual({ noPressure: 2, fullPressure: 1.25 });
+
+    // Both anchors move, independently, and the ramp follows them.
+    expect(withEnv({ LR_STUDY_DEADLINE_NO_PRESSURE: "3" }, deadlineMarginAnchors))
+      .toEqual({ noPressure: 3, fullPressure: 1.25 });
+    expect(withEnv({ LR_STUDY_DEADLINE_NO_PRESSURE: "3" }, () => deadlinePressure(3))).toBe(0);
+    expect(withEnv({ LR_STUDY_DEADLINE_NO_PRESSURE: "3" }, () => deadlinePressure(2)))
+      .toBeCloseTo(1 / 1.75, 12);
+    expect(withEnv({ LR_STUDY_DEADLINE_FULL_PRESSURE: "1.5" }, () => deadlinePressure(1.5))).toBe(1);
+    expect(withEnv({ LR_STUDY_DEADLINE_FULL_PRESSURE: "1.5" }, () => underFullDeadlinePressure(1.4)))
+      .toBe(true);
+    // The boolean face tracks the SAME anchor under the study arm too — the
+    // identity the shipped pair satisfies is a property of the ramp, not of the
+    // two numbers that happen to be in it.
+    expect(withEnv(
+      { LR_STUDY_DEADLINE_NO_PRESSURE: "2.5", LR_STUDY_DEADLINE_FULL_PRESSURE: "1" },
+      () => [0.9, 1, 1.01, 1.75, 2.5, 3].map((m) =>
+        underFullDeadlinePressure(m) === (deadlinePressure(m) >= 1)
+      ),
+    )).toEqual([true, true, true, true, true, true]);
+
+    for (const bad of ["0", "-1", "10.1", "two", "NaN", "1e400", " "]) {
+      expect(() => withEnv({ LR_STUDY_DEADLINE_NO_PRESSURE: bad }, deadlineMarginAnchors))
+        .toThrow(/LR_STUDY_DEADLINE_NO_PRESSURE must be a finite number in \(0, 10\]/);
+      expect(() => withEnv({ LR_STUDY_DEADLINE_FULL_PRESSURE: bad }, deadlineMarginAnchors))
+        .toThrow(/LR_STUDY_DEADLINE_FULL_PRESSURE must be a finite number in \(0, 10\]/);
+    }
+    // A degenerate pair is refused, not silently repaired: at full == no the
+    // ramp divides by zero, and inverted it reads pressure backwards.
+    for (const pair of [["2", "2"], ["1.5", "2"], ["1.25", "3"]]) {
+      expect(() => withEnv(
+        { LR_STUDY_DEADLINE_NO_PRESSURE: pair[0], LR_STUDY_DEADLINE_FULL_PRESSURE: pair[1] },
+        deadlineMarginAnchors,
+      )).toThrow(/must be strictly below/);
+    }
+  });
+
+  /**
+   * The pace-term re-price knob.
+   *
+   * The term's price on record was taken on the V1-shaped base; the scale is
+   * how it gets re-priced. `0` is a pure structural base and `1` is production;
+   * the schedule clamps the weight into [0, 1], so values above 1 saturate
+   * rather than scaling — pinned here so nobody reads a `1.5` arm as "1.5x the
+   * pace term".
+   */
+  test("LR_STUDY_PACE_WEIGHT scales the pace blend weight, refuses, and saturates above 1", () => {
+    const at = (env: Record<string, string | undefined>) =>
+      withEnv(env, () => deadline().marginAt({
+        spentFrames: 400_000,
+        gapIndex: 2,
+        costToEnd: null,
+      }));
+    const production = at({});
+    // Unset is production; `1` is the same number bit-for-bit (the multiply is
+    // the identity), which is what makes the default byte-identical.
+    expect(at({ LR_STUDY_PACE_WEIGHT: "1" })).toBe(production);
+    expect(at({ LR_STUDY_PACE_WEIGHT: "" })).toBe(production);
+
+    // Weight 0 is the pace-free base: the same quantity `expectedWork` prices
+    // through the artifact as written. Not bit-exact — the estimator's
+    // geometric blend returns `exp(log(base))` at weight 0 — so this is an
+    // equality to double-rounding, which is the honest claim.
+    const paceFree = (BUDGET - 400_000) / expectedWork(2, false, null);
+    expect(at({ LR_STUDY_PACE_WEIGHT: "0" })).toBeCloseTo(paceFree, 6);
+    expect(at({ LR_STUDY_PACE_WEIGHT: "0" })).not.toBe(production);
+
+    // Monotone in between, and the direction is the one the term exists for:
+    // more pace on a compile spending faster than its structure predicts means
+    // more estimated work, so a SMALLER margin.
+    const half = at({ LR_STUDY_PACE_WEIGHT: "0.5" });
+    expect(production).toBeLessThan(half);
+    expect(half).toBeLessThan(at({ LR_STUDY_PACE_WEIGHT: "0" }));
+
+    // Above 1 the schedule's own clamp binds, so the arm is "pace saturates
+    // earlier", not "more than pure pace".
+    const paceOnly = at({ LR_STUDY_PACE_WEIGHT: "2" });
+    expect(at({ LR_STUDY_PACE_WEIGHT: "1.5" })).toBeLessThanOrEqual(production);
+    expect(paceOnly).toBeLessThanOrEqual(at({ LR_STUDY_PACE_WEIGHT: "1.5" }));
+
+    for (const bad of ["-0.1", "2.1", "lots", "NaN", "1e400", " "]) {
+      expect(() => at({ LR_STUDY_PACE_WEIGHT: bad }))
+        .toThrow(/LR_STUDY_PACE_WEIGHT must be a finite number in \[0, 2\]/);
     }
   });
 

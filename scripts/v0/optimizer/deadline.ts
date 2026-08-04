@@ -138,7 +138,9 @@
  * stale-sweep rule — a neighbouring mechanism changed what the constant means,
  * and the ramp now engages three to seven times as often at 750k. Re-bracketing
  * the pair on the corrected signal is filed work, not a blocker: the corpus
- * derivation and the shipped pair agree to the rounding.
+ * derivation and the shipped pair agree to the rounding. The re-bracket runs
+ * through `LR_STUDY_DEADLINE_NO_PRESSURE` / `LR_STUDY_DEADLINE_FULL_PRESSURE`
+ * (see `deadlineMarginAnchors`), which is why those exist.
  *
  * They are TWO and not three by design: one point where the response saturates
  * and one where it starts. A third anchor at `margin < 1` shipped with Phase 1a
@@ -147,6 +149,7 @@
  */
 
 import type { Gap } from "../types.ts";
+import { compileScopedEnv } from "../env_flags.ts";
 import {
   BUDGET_ESTIMATOR_MODEL,
   BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
@@ -218,6 +221,59 @@ if (BUDGET_ESTIMATOR_MODEL.combination.paceSchedule !== "none") {
 }
 
 /**
+ * STUDY-ONLY re-price of the pace term's blend weight.
+ *
+ * The term's price on record (capability stratum -21.6, recovered to -0.8) was
+ * taken on the V1-SHAPED base, where the structure under-predicted by roughly
+ * the amount pace had to make up; under the artifact shape the base is ~2.7x
+ * larger at a root node, so how much of that number is still the pace term's is
+ * an open question the docstring above files as work. This knob is how it gets
+ * answered without editing the artifact override.
+ *
+ * It scales the blend WEIGHT, not the pace estimate: the schedule is
+ * `linear_progress`, so the weight is the structural progress fraction, and the
+ * scale multiplies exactly that. `0` is a pure structural base (the estimator's
+ * geometric blend at weight 0 returns `exp(log(base))` — the base to within
+ * double-rounding, not bit-exactly); `1` is production. Values above 1 are a
+ * legal but SATURATING arm: the schedule clamps the weight into [0, 1] and
+ * weight 1 is already pure pace, so `1.5` means `min(1, 1.5 * progress)` and
+ * reaches pure pace at two thirds of the way through. That is a real monotone
+ * increase in pace reliance, and it is not a clean linear scale — read it as
+ * "pace saturates earlier", never as "1.5x the pace term".
+ *
+ * REFUSES rather than clamps, and is read ONCE per `CompileDeadline` so the
+ * margin stays a pure function of search-owned state.
+ *
+ * RE-PRICED 2026-08-04 at 44 sources x 8 seeds x 750k (352 paired cells per
+ * arm): weight 0 (the term GONE) is **-0.016 +/- 0.381**, weight 0.5 is
+ * +0.113 +/- 0.273, weight 1.5 is -0.149 +/- 0.176. At the promoting budget the
+ * pace term is worth nothing measurable in either direction — the -21.6 that
+ * bought it was a V1-shaped-base number and does not survive the base swap, as
+ * the docstring above suspected. It bites at all on only 83 of 352 cells.
+ *
+ * It STAYS, and the reason is not inertia: the argument for it is about a
+ * regime this panel cannot see. `episode_pace` is the lowest-error component at
+ * 75k/150k/300k and the structural base's worst regime is exactly there; the
+ * measured null is "free to keep at 750k", not "free to delete". Deleting it is
+ * a simplification candidate whose evidence surface is the standing low-budget
+ * reading plus a 250k panel, and it must not be taken on this measurement.
+ */
+const readStudyPaceWeight = compileScopedEnv("LR_STUDY_PACE_WEIGHT");
+
+function studyPaceWeightScale(): number {
+  const raw = readStudyPaceWeight();
+  if (raw === undefined || raw === "") return 1;
+  const n = Number.parseFloat(raw);
+  if (!Number.isFinite(n) || n < 0 || n > 2) {
+    throw new Error(
+      `LR_STUDY_PACE_WEIGHT must be a finite number in [0, 2] (STUDY-ONLY; never set it in ` +
+        `production or in an eval), got "${raw}"`,
+    );
+  }
+  return n;
+}
+
+/**
  * Full deadline pressure at and below this margin.
  *
  * Youden-optimal completion gate over the 150k sweep: J = 0.815 at 1.25,
@@ -255,13 +311,94 @@ export const DEADLINE_MARGIN_FULL_PRESSURE = 1.25;
 export const DEADLINE_MARGIN_NO_PRESSURE = 2;
 
 /**
+ * STUDY-ONLY re-bracket of the two anchors above.
+ *
+ * The pair was derived once, on the 150k sweep, and the neighbourhood has moved
+ * three times since: the base swapped from V1-shaped to the artifact shape (the
+ * header's decision section), the post-completion margin validity fix landed
+ * (`handoff.ts` supplies `costToEnd` at adoption), and the depth-1 promotion
+ * changed what the head ramp is narrowing. The module header already files the
+ * pair as STALE by the stale-sweep rule. These two variables are how that
+ * re-bracket is measured without editing a constant per arm.
+ *
+ * Both REFUSE rather than clamp — an arm that silently ran at the shipped pair
+ * because its env said `two` is worse than no arm — and the pair is refused
+ * when it is degenerate (`full >= no` inverts or collapses the ramp, and
+ * `deadlinePressure` would divide by zero or by a negative width).
+ *
+ * Unset/empty is exactly the shipped pair, so production is byte-identical.
+ *
+ * RE-BRACKETED 2026-08-04 on the corrected signal, at 44 sources x 8 seeds x
+ * 750k (352 paired cells per arm), six pairs. **Every arm is a measured null**
+ * — largest |t| = 1.20, and the 95% interval of the best arm
+ * (2.5/1.5, +0.245 +/- 0.650) excludes nothing worth having:
+ *
+ *     1.75/1.25  -0.294 +/- 0.414   2.0/1.0   -0.762 +/- 0.760
+ *     2.5 /1.25  +0.068 +/- 0.630   2.0/1.5   -0.034 +/- 0.333
+ *     3.0 /1.25  -0.876 +/- 0.729   2.5/1.5   +0.245 +/- 0.650
+ *
+ * The dose is real and large — pre-completion ramp engagement walks
+ * 15.3% -> 23.6% (shipped) -> 46.5% -> 60.1% of pool builds across
+ * NO = 1.75/2.0/2.5/3.0, and full-pressure saturation walks 0.01% -> 0.28% ->
+ * 1.96% across FULL = 1.0/1.25/1.5 — so this is not a knob that failed to move
+ * anything. The finding is that **the pre-completion consumers are insensitive
+ * to it in aggregate at 750k**: a 2.5x change in how often the ramp engages
+ * costs 0.9 panel points, inside noise. The shipped pair stays, now on evidence
+ * rather than on an un-re-derived 150k sweep, and the stale-sweep flag above is
+ * discharged. Re-open only from a budget where the ramp is not nearly-dormant
+ * (full pressure is 0.28% of pre-completion builds at 750k), i.e. 250k and
+ * below, where the evidence surface is the standing low-budget reading.
+ */
+const readStudyNoPressure = compileScopedEnv("LR_STUDY_DEADLINE_NO_PRESSURE");
+const readStudyFullPressure = compileScopedEnv("LR_STUDY_DEADLINE_FULL_PRESSURE");
+
+/** Margin anchors in force for this compile: the shipped pair unless a study
+ *  arm overrode one or both of them. */
+export function deadlineMarginAnchors(): { noPressure: number; fullPressure: number } {
+  const noPressure = studyAnchor(
+    "LR_STUDY_DEADLINE_NO_PRESSURE",
+    readStudyNoPressure(),
+    DEADLINE_MARGIN_NO_PRESSURE,
+  );
+  const fullPressure = studyAnchor(
+    "LR_STUDY_DEADLINE_FULL_PRESSURE",
+    readStudyFullPressure(),
+    DEADLINE_MARGIN_FULL_PRESSURE,
+  );
+  if (!(fullPressure < noPressure)) {
+    throw new Error(
+      `LR_STUDY_DEADLINE_FULL_PRESSURE (${fullPressure}) must be strictly below ` +
+        `LR_STUDY_DEADLINE_NO_PRESSURE (${noPressure}): the ramp has no width otherwise ` +
+        "(STUDY-ONLY; never set either in production or in an eval)",
+    );
+  }
+  return { noPressure, fullPressure };
+}
+
+function studyAnchor(name: string, raw: string | undefined, shipped: number): number {
+  if (raw === undefined || raw === "") return shipped;
+  const n = Number.parseFloat(raw);
+  // The window is wide on purpose: it exists to catch a typo or a unit error,
+  // not to express an opinion about where the anchor belongs. A margin is a
+  // ratio of frames to frames, so 0 and 10 bracket every anchor any sweep has
+  // ever proposed by a factor of three on both sides.
+  if (!Number.isFinite(n) || n <= 0 || n > 10) {
+    throw new Error(
+      `${name} must be a finite number in (0, 10] (STUDY-ONLY; never set it in production ` +
+        `or in an eval), got "${raw}"`,
+    );
+  }
+  return n;
+}
+
+/**
  * Deadline pressure in [0, 1]: 0 while the compile is comfortably on course, 1
  * once it is at or past the Youden point. One ramp, read by every consumer, so
  * "how hard is this compile pressed" has a single definition.
  */
 export function deadlinePressure(margin: number): number {
-  const raw = (DEADLINE_MARGIN_NO_PRESSURE - margin) /
-    (DEADLINE_MARGIN_NO_PRESSURE - DEADLINE_MARGIN_FULL_PRESSURE);
+  const { noPressure, fullPressure } = deadlineMarginAnchors();
+  const raw = (noPressure - margin) / (noPressure - fullPressure);
   return raw <= 0 || Number.isNaN(raw) ? 0 : raw >= 1 ? 1 : raw;
 }
 
@@ -279,7 +416,7 @@ export function deadlinePressure(margin: number): number {
  * per-consumer question again.
  */
 export function underFullDeadlinePressure(margin: number): boolean {
-  return margin <= DEADLINE_MARGIN_FULL_PRESSURE;
+  return margin <= deadlineMarginAnchors().fullPressure;
 }
 
 /**
@@ -301,6 +438,9 @@ export class CompileDeadline {
   private readonly structuralByGap: readonly number[];
   /** The same at the anchor, with the one-time startup intercept still due. */
   private readonly anchorStructural: number;
+  /** STUDY-ONLY multiplier on the pace blend weight; 1 in production. Read
+   *  ONCE, here, so `marginAt` stays a pure read over search-owned state. */
+  private readonly paceWeightScale: number;
 
   constructor(input: {
     gaps: readonly Gap[];
@@ -333,6 +473,7 @@ export class CompileDeadline {
       input.includeStartup,
       BUDGET_ESTIMATOR_TRAVERSAL_MODEL,
     );
+    this.paceWeightScale = studyPaceWeightScale();
   }
 
   /**
@@ -376,9 +517,13 @@ export class CompileDeadline {
       pace: input.costToEnd === null && progressed > 0
         ? input.spentFrames * structural / progressed
         : null,
-      progressFraction: this.anchorStructural > 0
+      // The blend weight IS the structural progress fraction
+      // (`paceSchedule: "linear_progress"`). `paceWeightScale` is 1 in
+      // production, so this multiply is the identity and the compile is
+      // byte-identical; the study arm re-prices the term by scaling the weight.
+      progressFraction: this.paceWeightScale * (this.anchorStructural > 0
         ? clamp01(progressed / this.anchorStructural)
-        : 1,
+        : 1),
     }, DEADLINE_ESTIMATOR_MODEL);
     if (!(work > 0)) return Infinity;
     return Math.max(0, this.policyBudgetFrames - input.spentFrames) / work;

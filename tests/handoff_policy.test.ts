@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { beginEnvFlagEpoch } from "../scripts/v0/env_flags.ts";
 import {
   brakeCandidateCount,
   handoffCandidatePool,
@@ -130,6 +131,81 @@ describe("handoff policy boundaries", () => {
       } else {
         process.env.LR_QUALITY_NCAND = previousQuality;
       }
+    }
+  });
+
+  /**
+   * The breadth law's STUDY-ONLY output scale.
+   *
+   * A probe of the law's local optimum at a fixed budget under the depth-1
+   * rollout economics (the stale-sweep rule), never a production shape: a scale
+   * applied at one budget IS a per-budget constant. It exists because
+   * `LR_QUALITY_NCAND` cannot reach here — that knob is an absolute count
+   * capped at 64 and the law already returns 81 at 750k.
+   */
+  test("LR_STUDY_NCAND_SCALE scales the breadth law's output and refuses rather than clamps", () => {
+    const previous = process.env.LR_STUDY_NCAND_SCALE;
+    const at = (scale: string | undefined, budget: number) => {
+      if (scale === undefined) delete process.env.LR_STUDY_NCAND_SCALE;
+      else process.env.LR_STUDY_NCAND_SCALE = scale;
+      beginEnvFlagEpoch();
+      return handoffSampleCount(budget);
+    };
+    try {
+      // The shipped law at the promoting budget, and the scale walking it.
+      expect(at(undefined, 750_000)).toBe(81);
+      expect(at("1", 750_000)).toBe(81);
+      expect(at("", 750_000)).toBe(81);
+      expect(at("0.7", 750_000)).toBe(57);
+      expect(at("0.85", 750_000)).toBe(69);
+      expect(at("1.15", 750_000)).toBe(93);
+      expect(at("1.3", 750_000)).toBe(105);
+      // The law's FORM is untouched: still linear in the budget, still anchored
+      // at 27 per 250k, with the scale a constant factor on the whole curve.
+      expect(at("1.3", 250_000)).toBe(35);
+      expect(at("1.3", 1_500_000)).toBe(211);
+      // The floor still applies to the scaled result, and it is a floor on the
+      // law's output, not a second budget regime.
+      expect(at("0.5", 50_000)).toBe(8);
+      for (const bad of ["0.49", "2.01", "0", "-1", "double", "NaN", "1e400", " "]) {
+        expect(() => at(bad, 750_000))
+          .toThrow(/LR_STUDY_NCAND_SCALE must be a finite number in \[0.5, 2\]/);
+      }
+    } finally {
+      if (previous === undefined) delete process.env.LR_STUDY_NCAND_SCALE;
+      else process.env.LR_STUDY_NCAND_SCALE = previous;
+      beginEnvFlagEpoch();
+    }
+  });
+
+  /**
+   * `HANDOFF_QUALITY_N_CAND_FLOOR` is UNTESTABLE at the promoting surface, and
+   * that is arithmetic rather than an opinion: the law returns 8 exactly at
+   * `250k * 7.5 / 27` = 69,444 frames, so the floor binds only below ~69k —
+   * a factor of ten under 750k, and still a factor of seven under it at the
+   * widest study scale this file admits. A bracket on the floor has to be taken
+   * on the low-budget reading, never on a 750k panel.
+   */
+  test("the breadth floor cannot bind at any promoted budget", () => {
+    const previous = process.env.LR_STUDY_NCAND_SCALE;
+    try {
+      for (const budget of [250_000, 500_000, 750_000, 1_500_000]) {
+        for (const scale of [undefined, "0.5"]) {
+          if (scale === undefined) delete process.env.LR_STUDY_NCAND_SCALE;
+          else process.env.LR_STUDY_NCAND_SCALE = scale;
+          beginEnvFlagEpoch();
+          expect(handoffSampleCount(budget)).toBeGreaterThan(8);
+        }
+      }
+      delete process.env.LR_STUDY_NCAND_SCALE;
+      beginEnvFlagEpoch();
+      expect(handoffSampleCount(69_445)).toBe(8);
+      expect(handoffSampleCount(69_444)).toBe(8);
+      expect(handoffSampleCount(80_000)).toBeGreaterThan(8);
+    } finally {
+      if (previous === undefined) delete process.env.LR_STUDY_NCAND_SCALE;
+      else process.env.LR_STUDY_NCAND_SCALE = previous;
+      beginEnvFlagEpoch();
     }
   });
 

@@ -14,6 +14,7 @@ import {
   type BallisticGapProjection,
 } from "../core/ballistic_projection.ts";
 import {
+  measureAmplitudePeakPx,
   measureGapAxes,
   summarizeBallisticAxisPrefix,
 } from "../core/measure.ts";
@@ -36,6 +37,7 @@ import {
 } from "../core/exit_read.ts";
 import {
   IMPACT_WINDOW,
+  CALIB,
   netDyToElevation,
   type Gap,
   type TrackLine,
@@ -97,6 +99,8 @@ export type JointArcProbeOptions = {
   includeTruth?: boolean;
   /** Request the conditional elevation readiness output from both probe modes. */
   includeElevation?: boolean;
+  /** Request scorer-normalized outgoing ballistic amplitude. */
+  includeAmplitude?: boolean;
   /** Whether the projected scorer interval ends at an authored contact. */
   targetEndsWithContact?: boolean;
 };
@@ -123,11 +127,15 @@ export function projectJointArcBaseFit(
   },
   gap: Gap,
   nextFrame: number,
-  options: Pick<JointArcProbeOptions, "includeElevation" | "targetEndsWithContact"> = {},
+  options: Pick<
+    JointArcProbeOptions,
+    "includeElevation" | "includeAmplitude" | "targetEndsWithContact"
+  > = {},
 ): JointArcProbeObservation {
   const launch = fit.ballisticLaunch;
   const projection = projectBallisticGap(launch, nextFrame, {
     includeElevation: options.includeElevation === true,
+    includeAmplitude: options.includeAmplitude === true,
   });
   const outputs = arcResponseOutputs(
     gap.targets,
@@ -239,17 +247,20 @@ export function evaluateJointArcLines(
     ? observeFullJointArcLines(
       fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
       options.includeElevation === true,
+      options.includeAmplitude === true,
       options.targetEndsWithContact !== false,
     )
     : observeShortJointArcLines(
       fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
       options.includeElevation === true,
+      options.includeAmplitude === true,
       options.targetEndsWithContact !== false,
     );
   const truth = options.includeTruth && mode !== "full"
     ? observeFullJointArcLines(
       fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
       options.includeElevation === true,
+      options.includeAmplitude === true,
       options.targetEndsWithContact !== false,
     )
     : undefined;
@@ -266,6 +277,7 @@ function observeShortJointArcLines(
   axisMeasureEnd: number,
   nextFrame: number,
   includeElevation: boolean,
+  includeAmplitude: boolean,
   targetEndsWithContact: boolean,
 ): JointArcProbeObservation {
   const horizon = shortProbeHorizon(fork, lines, gap, nextFrame);
@@ -296,7 +308,7 @@ function observeShortJointArcLines(
   const cleanAirborneSuffix = suffixFrame === null ? null : true;
   const nextProjection = launch === null
     ? null
-    : projectBallisticGap(launch, nextFrame, { includeElevation });
+    : projectBallisticGap(launch, nextFrame, { includeElevation, includeAmplitude });
   const nextStateOk = nextProjection !== null;
   if (ballisticTraceEnabled() && launch !== null && launch.anchorFrame < nextFrame) {
     recordBallisticTraceCandidate({
@@ -375,6 +387,7 @@ function observeFullJointArcLines(
   axisMeasureEnd: number,
   nextFrame: number,
   includeElevation: boolean,
+  includeAmplitude: boolean,
   targetEndsWithContact: boolean,
 ): JointArcProbeObservation {
   const horizon = fullProbeHorizon(gap, axisMeasureEnd, nextFrame);
@@ -437,6 +450,18 @@ function observeFullJointArcLines(
             nextFrame - gap.endFrame,
           ),
         );
+      }
+      if (includeAmplitude && nextFrame > gap.endFrame) {
+        const peakPx = measureAmplitudePeakPx(det, {
+          index: gap.index + 1,
+          startFrame: gap.endFrame,
+          endFrame: nextFrame,
+          endsWithContact: targetEndsWithContact,
+          targets: { amplitude: 0 },
+        });
+        if (peakPx !== undefined) {
+          addFinite(outputs, "next.amplitude", Math.min(1, peakPx / CALIB.AMPLITUDE_CAP));
+        }
       }
     }
   }
@@ -513,6 +538,7 @@ function addProjectionOutputs(
   );
   addFinite(outputs, "next.frameCount", projection.frameCount);
   addFinite(outputs, "next.elevation", projection.elevation);
+  addFinite(outputs, "next.amplitude", projection.amplitude);
 }
 
 function confirmedArcExitFrameAtOrAfter(

@@ -71,6 +71,7 @@ const READOUT_KEYS = [
   "next.airFraction",
   "next.frameCount",
   "next.elevation",
+  "next.amplitude",
   "next.x",
   "next.y",
   "next.vx",
@@ -231,6 +232,7 @@ export function predictArcVectorScoreReadout(
     nextAirFraction: slotValue(buffer, slots["next.airFraction"]),
     nextGapFrameCount: slotValue(buffer, slots["next.frameCount"]),
     nextElevation: slotValue(buffer, slots["next.elevation"]),
+    nextAmplitude: slotValue(buffer, slots["next.amplitude"]),
   };
 }
 

@@ -112,7 +112,11 @@ const measureElevation: AxisReduction = ({ det, gap, rangeEndFrame }) => {
  * is exactly the chord-relative height we need. Two passes, no allocation; this
  * runs per candidate, so it stays as cheap as `measureAir`/`measureSpeed`.
  */
-const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
+export function measureAmplitudePeakPx(
+  det: Detection,
+  gap: Gap,
+  rangeEndFrame = gap.endFrame,
+): number | undefined {
   const a = gap.startFrame;
   const b = Math.min(rangeEndFrame, measurementLastFrame(det));
   const span = b - a;
@@ -133,7 +137,12 @@ const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
     const above = chord - dy;
     if (above > peak) peak = above;
   }
-  return Math.min(1, peak / CALIB.AMPLITUDE_CAP);
+  return peak;
+}
+
+const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
+  const peak = measureAmplitudePeakPx(det, gap, rangeEndFrame);
+  return peak === undefined ? undefined : Math.min(1, peak / CALIB.AMPLITUDE_CAP);
 };
 
 /**

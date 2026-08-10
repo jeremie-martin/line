@@ -107,6 +107,7 @@ type JointArcScoreReadoutModels = {
   outputNextAirFraction?: FittedArcOutputEntry;
   outputNextGapFrameCount?: FittedArcOutputEntry;
   outputNextElevation?: FittedArcOutputEntry;
+  outputNextAmplitude?: FittedArcOutputEntry;
 };
 
 export type JointArcProbeRow = {
@@ -130,6 +131,7 @@ export type JointArcScoreReadout = {
   /** Inclusive scorer-frame count over the projected next gap. */
   nextGapFrameCount: number;
   nextElevation: number;
+  nextAmplitude: number;
 };
 
 export type JointArcCurrentScoreAxes = {
@@ -686,6 +688,7 @@ function buildJointArcScoreReadoutModels(
     outputNextAirFraction: outputModels.get("next.airFraction"),
     outputNextGapFrameCount: outputModels.get("next.frameCount"),
     outputNextElevation: outputModels.get("next.elevation"),
+    outputNextAmplitude: outputModels.get("next.amplitude"),
   };
 }
 
@@ -777,6 +780,7 @@ export function scoreCompletedArcPrediction(
     nextAirFraction: outputs["next.airFraction"] ?? NaN,
     nextGapFrameCount: outputs["next.frameCount"] ?? NaN,
     nextElevation: outputs["next.elevation"] ?? NaN,
+    nextAmplitude: outputs["next.amplitude"] ?? NaN,
   };
 }
 
@@ -817,6 +821,7 @@ export function predictJointArcScoreReadout(
     knobs,
   );
   const nextElevation = predictEntryValue(readout.outputNextElevation, knobs);
+  const nextAmplitude = predictEntryValue(readout.outputNextAmplitude, knobs);
 
   return {
     currentQuality: currentQualityFromAxisValues(
@@ -836,6 +841,7 @@ export function predictJointArcScoreReadout(
     nextAirFraction,
     nextGapFrameCount,
     nextElevation,
+    nextAmplitude,
   };
 }
 

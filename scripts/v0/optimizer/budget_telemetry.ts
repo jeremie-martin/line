@@ -23,7 +23,7 @@ import {
   type RemainingStructure,
 } from "./budget_estimator.ts";
 
-export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v1" as const;
+export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v2" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
 export type BudgetAttemptKind = "initial" | "snapshot" | "repair" | "resumed";
@@ -106,6 +106,17 @@ export type BudgetEstimateObservation = {
   attempt_completion_surplus_frames: number;
 };
 
+export type BudgetRepairGapState = {
+  gap_index: number;
+  sse: number;
+  axes: Record<string, {
+    target: number;
+    achieved: number;
+    signed_error: number;
+    squared_error: number;
+  }>;
+};
+
 export type BudgetAttemptTelemetry = {
   attempt_id: number;
   kind: BudgetAttemptKind;
@@ -152,6 +163,8 @@ export type BudgetAttemptTelemetry = {
    * This field is the fixed point of that comparison.
    */
   incumbent_weak_gap_sse: number | null;
+  /** Exact selected-gap state before this repair attempt. */
+  repair_weak_gap_before: BudgetRepairGapState | null;
   /** Compile-global work counters; local budget is ceiling - start. */
   start_total_spent_frames: number;
   ceiling_total_spent_frames: number;
@@ -180,8 +193,16 @@ export type BudgetAttemptTelemetry = {
      * measure it.
      */
     first_accepted_improvement_offset_frames: number | null;
-    /** Incumbent full-score after this attempt minus before it; repair-only. */
+    /** Charged work to the final register improvement observed in this attempt. */
+    final_accepted_improvement_offset_frames: number | null;
+    /** Number of register improvements observed during this attempt. */
+    register_improvement_count: number | null;
+    /** Number of terminal improvements observed during this attempt. */
+    terminal_improvement_count: number | null;
+    /** Incumbent full-score after this attempt minus before it; repair/resumed. */
     accepted_score_delta: number | null;
+    /** Exact selected-gap state after this repair attempt. */
+    repair_weak_gap_after: BudgetRepairGapState | null;
     /** True when no terminal cost was observed; such attempts are not error samples. */
     censored: boolean;
   };
@@ -194,6 +215,40 @@ export type BudgetExecutionSegment = {
   end_total_spent_frames: number;
   spent_frames: number;
   stop_reason: string;
+};
+
+/** Trace-only accounting for one atomic frontier node. A node is the smallest
+ * unit the compiler currently lets finish once admitted. */
+export type BudgetAtomicNodeTelemetry = {
+  attempt_id: number;
+  attempt_kind: BudgetAttemptKind;
+  gap_index: number;
+  remaining_contacts: number;
+  start_total_spent_frames: number;
+  hard_remaining_frames_at_start: number;
+  attempt_remaining_frames_at_start: number;
+  policy_candidate_count: number | null;
+  policy_branch_limit: number | null;
+  main_evaluation_frames: number;
+  tail_completion_frames: number;
+  post_tail_work_frames: number;
+  spent_frames: number;
+  result: "captured" | "deferred" | "expanded";
+  register_improvements: number;
+  terminal_considers: number;
+  tail_attempts: number;
+  tail_terminal_evaluations: number;
+  tail_duplicate_terminal_evaluations: number;
+  tail_improvements: number;
+};
+
+export type BudgetResumeAdmissionTelemetry = {
+  mode: "legacy" | "none" | "remainder-aware";
+  available_hard_budget_frames: number;
+  planned_candidate_count: number | null;
+  estimated_atomic_upper_frames: number | null;
+  admitted: boolean;
+  reason: "legacy" | "disabled" | "fits_remainder" | "exceeds_remainder" | "no_cost_history";
 };
 
 export type CompileBudgetTelemetry = {
@@ -211,6 +266,10 @@ export type CompileBudgetTelemetry = {
     hard_budget_frames: number;
     /** Budget exposed to compiler policy (`opts.policyBudget`, defaulting to hard). */
     policy_budget_frames: number;
+    /** Budget exposed specifically to search-shape policy. */
+    search_policy_budget_frames: number;
+    /** Compile-global ceiling available to the repair phase. */
+    repair_budget_frames: number;
     total_spent_frames: number;
     hard_remaining_frames: number;
     hard_overrun_frames: number;
@@ -237,9 +296,12 @@ export type CompileBudgetTelemetry = {
      * attribution. Null when no terminal traversal was considered.
      */
     first_terminal_total_spent_frames: number | null;
+    resume_admission?: BudgetResumeAdmissionTelemetry;
   };
   segments: BudgetExecutionSegment[];
   attempts: BudgetAttemptTelemetry[];
+  /** Present only at trace level. */
+  atomic_nodes?: BudgetAtomicNodeTelemetry[];
 };
 
 type MutableAttempt = BudgetAttemptTelemetry & {
@@ -265,12 +327,23 @@ type StartAttemptInput = {
   repairRoundIndex?: number | null;
   anchorUpstreamOffset?: number | null;
   incumbentWeakGapSse?: number | null;
+  repairWeakGapBefore?: BudgetRepairGapState | null;
 };
 
 type EndAttemptOutcome = {
   firstAcceptedImprovementOffsetFrames?: number | null;
+  finalAcceptedImprovementOffsetFrames?: number | null;
+  registerImprovementCount?: number | null;
+  terminalImprovementCount?: number | null;
   acceptedScoreDelta?: number | null;
+  repairWeakGapAfter?: BudgetRepairGapState | null;
 };
+
+type RecordAtomicNodeInput = Omit<
+  BudgetAtomicNodeTelemetry,
+  "attempt_id" | "attempt_kind" | "hard_remaining_frames_at_start" |
+    "attempt_remaining_frames_at_start"
+>;
 
 /** Runtime recorder. All methods are deterministic arithmetic over supplied values. */
 export class CompileBudgetTelemetryRecorder {
@@ -279,6 +352,8 @@ export class CompileBudgetTelemetryRecorder {
   private readonly durationFrames: number;
   private readonly hardBudgetFrames: number;
   private readonly policyBudgetFrames: number;
+  private readonly searchPolicyBudgetFrames: number;
+  private readonly repairBudgetFrames: number;
   private readonly model: TraversalBudgetModel;
   /**
    * The artifact's budget-law scalar at this compile's policy budget.
@@ -292,6 +367,8 @@ export class CompileBudgetTelemetryRecorder {
   private readonly structuralScale: number;
   private readonly attempts: MutableAttempt[] = [];
   private readonly segments: BudgetExecutionSegment[] = [];
+  private readonly atomicNodes: BudgetAtomicNodeTelemetry[] = [];
+  private resumeAdmission: BudgetResumeAdmissionTelemetry | null = null;
   private activeAttemptId: number | null = null;
 
   constructor(input: {
@@ -300,6 +377,8 @@ export class CompileBudgetTelemetryRecorder {
     durationFrames: number;
     hardBudgetFrames: number;
     policyBudgetFrames: number;
+    searchPolicyBudgetFrames?: number;
+    repairBudgetFrames?: number;
     model?: TraversalBudgetModel;
   }) {
     this.level = input.level;
@@ -307,8 +386,10 @@ export class CompileBudgetTelemetryRecorder {
     this.durationFrames = input.durationFrames;
     this.hardBudgetFrames = input.hardBudgetFrames;
     this.policyBudgetFrames = input.policyBudgetFrames;
+    this.searchPolicyBudgetFrames = input.searchPolicyBudgetFrames ?? input.policyBudgetFrames;
+    this.repairBudgetFrames = input.repairBudgetFrames ?? input.policyBudgetFrames;
     this.model = input.model ?? BUDGET_ESTIMATOR_TRAVERSAL_MODEL;
-    this.structuralScale = budgetEstimatorStructuralScale(input.policyBudgetFrames);
+    this.structuralScale = budgetEstimatorStructuralScale(this.searchPolicyBudgetFrames);
   }
 
   startAttempt(input: StartAttemptInput): number | null {
@@ -327,6 +408,7 @@ export class CompileBudgetTelemetryRecorder {
       repair_round_index: finiteOrNull(input.repairRoundIndex),
       anchor_upstream_offset: finiteOrNull(input.anchorUpstreamOffset),
       incumbent_weak_gap_sse: finiteOrNull(input.incumbentWeakGapSse),
+      repair_weak_gap_before: input.repairWeakGapBefore ?? null,
       start_total_spent_frames: startTotal,
       ceiling_total_spent_frames: ceilingTotal,
       ceiling_source: input.ceilingSource ?? "hard_budget",
@@ -342,7 +424,11 @@ export class CompileBudgetTelemetryRecorder {
         first_terminal_offset_frames: null,
         accepted_improvement: null,
         first_accepted_improvement_offset_frames: null,
+        final_accepted_improvement_offset_frames: null,
+        register_improvement_count: null,
+        terminal_improvement_count: null,
         accepted_score_delta: null,
+        repair_weak_gap_after: null,
         censored: true,
       },
       includeStartup: input.includeStartup,
@@ -425,7 +511,14 @@ export class CompileBudgetTelemetryRecorder {
     attempt.outcome.accepted_improvement = acceptedImprovement;
     attempt.outcome.first_accepted_improvement_offset_frames =
       finiteOrNull(outcome.firstAcceptedImprovementOffsetFrames);
+    attempt.outcome.final_accepted_improvement_offset_frames =
+      finiteOrNull(outcome.finalAcceptedImprovementOffsetFrames);
+    attempt.outcome.register_improvement_count =
+      finiteOrNull(outcome.registerImprovementCount);
+    attempt.outcome.terminal_improvement_count =
+      finiteOrNull(outcome.terminalImprovementCount);
     attempt.outcome.accepted_score_delta = finiteOrNull(outcome.acceptedScoreDelta);
+    attempt.outcome.repair_weak_gap_after = outcome.repairWeakGapAfter ?? null;
     this.activeAttemptId = null;
   }
 
@@ -447,6 +540,41 @@ export class CompileBudgetTelemetryRecorder {
       spent_frames: end - start,
       stop_reason: stopReason,
     });
+  }
+
+  recordAtomicNode(input: RecordAtomicNodeInput): void {
+    if (this.level !== "trace") return;
+    const attempt = this.activeAttempt();
+    if (attempt === null) return;
+    const start = nonNegativeInt(input.start_total_spent_frames);
+    this.atomicNodes.push({
+      ...input,
+      attempt_id: attempt.attempt_id,
+      attempt_kind: attempt.kind,
+      start_total_spent_frames: start,
+      hard_remaining_frames_at_start: Math.max(0, this.hardBudgetFrames - start),
+      attempt_remaining_frames_at_start: Math.max(
+        0,
+        attempt.ceiling_total_spent_frames - start,
+      ),
+      main_evaluation_frames: nonNegativeInt(input.main_evaluation_frames),
+      tail_completion_frames: nonNegativeInt(input.tail_completion_frames),
+      post_tail_work_frames: nonNegativeInt(input.post_tail_work_frames),
+      spent_frames: nonNegativeInt(input.spent_frames),
+      register_improvements: nonNegativeInt(input.register_improvements),
+      terminal_considers: nonNegativeInt(input.terminal_considers),
+      tail_attempts: nonNegativeInt(input.tail_attempts),
+      tail_terminal_evaluations: nonNegativeInt(input.tail_terminal_evaluations),
+      tail_duplicate_terminal_evaluations: nonNegativeInt(
+        input.tail_duplicate_terminal_evaluations,
+      ),
+      tail_improvements: nonNegativeInt(input.tail_improvements),
+    });
+  }
+
+  recordResumeAdmission(input: BudgetResumeAdmissionTelemetry): void {
+    if (this.level === "off") return;
+    this.resumeAdmission = { ...input };
   }
 
   snapshot(
@@ -473,13 +601,15 @@ export class CompileBudgetTelemetryRecorder {
       compile: {
         hard_budget_frames: this.hardBudgetFrames,
         policy_budget_frames: this.policyBudgetFrames,
+        search_policy_budget_frames: this.searchPolicyBudgetFrames,
+        repair_budget_frames: this.repairBudgetFrames,
         total_spent_frames: totalSpent,
         hard_remaining_frames: Math.max(0, this.hardBudgetFrames - totalSpent),
         hard_overrun_frames: Math.max(0, totalSpent - this.hardBudgetFrames),
         budget_exhausted: budgetExhausted,
         initial_structural_work_prior_frames: initialStructural,
         initial_structural_slack: initialStructural > 0
-          ? this.policyBudgetFrames / initialStructural
+          ? this.searchPolicyBudgetFrames / initialStructural
           : 0,
         // The two fields above are a path-free structural estimate, so they
         // inherit the structural domain: mark it rather than let a reader
@@ -488,15 +618,19 @@ export class CompileBudgetTelemetryRecorder {
           ? null
           : budgetEstimatorApplicability({
             pathAvailable: false,
-            policyBudgetFrames: this.policyBudgetFrames,
+            policyBudgetFrames: this.searchPolicyBudgetFrames,
             attemptKind: initial.kind,
           }),
         first_terminal_total_spent_frames: firstTerminalTotalSpentFrames === null
           ? null
           : nonNegativeInt(firstTerminalTotalSpentFrames),
+        ...(this.resumeAdmission === null
+          ? {}
+          : { resume_admission: { ...this.resumeAdmission } }),
       },
       segments,
       attempts,
+      ...(this.level === "trace" ? { atomic_nodes: this.atomicNodes.map((node) => ({ ...node })) } : {}),
     };
   }
 
@@ -565,7 +699,7 @@ export class CompileBudgetTelemetryRecorder {
     const hardRemaining = Math.max(0, this.hardBudgetFrames - totalSpent);
     const applicability = budgetEstimatorApplicability({
       pathAvailable: pathEstimate !== null,
-      policyBudgetFrames: this.policyBudgetFrames,
+      policyBudgetFrames: this.searchPolicyBudgetFrames,
       attemptKind: attempt.kind,
     });
     // The interval stratum uses the same path predicate as the correction
@@ -648,6 +782,9 @@ export class CompileBudgetTelemetryRecorder {
       repair_round_index: attempt.repair_round_index,
       anchor_upstream_offset: attempt.anchor_upstream_offset,
       incumbent_weak_gap_sse: attempt.incumbent_weak_gap_sse,
+      repair_weak_gap_before: attempt.repair_weak_gap_before === null
+        ? null
+        : structuredClone(attempt.repair_weak_gap_before),
       start_total_spent_frames: attempt.start_total_spent_frames,
       ceiling_total_spent_frames: attempt.ceiling_total_spent_frames,
       ceiling_source: attempt.ceiling_source,

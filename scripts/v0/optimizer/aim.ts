@@ -389,6 +389,86 @@ function aimStudyStatsEnabled(): boolean {
     .process?.env?.LR_AIM_STUDY_STATS === "1";
 }
 
+function repairAuxStudyCertificateEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_STUDY_REPAIR_AUX_CERTIFICATE === "1";
+}
+
+const AIM_OUTGOING_AMPLITUDE_ONSET = 0.30;
+const AIM_OUTGOING_AMPLITUDE_MATURE_BUDGET = 500_000;
+const AIM_OUTGOING_AMPLITUDE_PROFILE_MEAN_MIN = 0.25;
+const AIM_OUTGOING_AMPLITUDE_PROFILE_AIR_MAX = 0.60;
+
+type OutgoingAmplitudeProfile = {
+  meanAmplitude: number | null;
+  meanAir: number | null;
+};
+
+const outgoingAmplitudeProfileCache = new WeakMap<SpecContext, OutgoingAmplitudeProfile>();
+
+function outgoingAmplitudeProfile(ctx: SpecContext): OutgoingAmplitudeProfile {
+  const cached = outgoingAmplitudeProfileCache.get(ctx);
+  if (cached !== undefined) return cached;
+  const targets = ctx.gapAxisTargets ?? ctx.gaps?.map((gap) => gap.targets) ?? [];
+  const mean = (axis: "amplitude" | "air"): number | null => {
+    const values = targets.map((target) => target[axis]).filter((value): value is number =>
+      value !== undefined && Number.isFinite(value)
+    );
+    return values.length === 0
+      ? null
+      : values.reduce((sum, value) => sum + value, 0) / values.length;
+  };
+  const profile = { meanAmplitude: mean("amplitude"), meanAir: mean("air") };
+  outgoingAmplitudeProfileCache.set(ctx, profile);
+  return profile;
+}
+
+export function aimOutgoingAmplitudeEligible(
+  target: number | undefined,
+  environment: Record<string, string | undefined> =
+    (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env ?? {},
+  budgetFrames = 0,
+  profile: OutgoingAmplitudeProfile = { meanAmplitude: null, meanAir: null },
+): boolean {
+  if (target === undefined) return false;
+  // Promoted after a seven-seed paired validation: only mature sources with a
+  // substantive amplitude program and non-high mean air get the fourth
+  // outgoing model output.  `off` remains the exact pre-promotion control.
+  const requested = environment.LR_AIM_OUTGOING_AMPLITUDE;
+  const mode = requested === undefined || requested === ""
+    ? "mature-distinct"
+    : requested;
+  if (mode === "0" || mode === "off") return false;
+  if (mode === "1" || mode === "all") return true;
+  if (mode === "commanded") return target >= AIM_OUTGOING_AMPLITUDE_ONSET;
+  if (mode === "mature") return budgetFrames >= AIM_OUTGOING_AMPLITUDE_MATURE_BUDGET;
+  if (mode === "mature-commanded") {
+    return budgetFrames >= AIM_OUTGOING_AMPLITUDE_MATURE_BUDGET &&
+      target >= AIM_OUTGOING_AMPLITUDE_ONSET;
+  }
+  if (mode === "mature-distinct") {
+    return budgetFrames >= AIM_OUTGOING_AMPLITUDE_MATURE_BUDGET &&
+      profile.meanAmplitude !== null &&
+      profile.meanAmplitude >= AIM_OUTGOING_AMPLITUDE_PROFILE_MEAN_MIN &&
+      profile.meanAir !== null &&
+      profile.meanAir <= AIM_OUTGOING_AMPLITUDE_PROFILE_AIR_MAX;
+  }
+  throw new Error(`unknown LR_AIM_OUTGOING_AMPLITUDE=${mode}`);
+}
+
+function exactAxisSse(targets: AxisValues, achieved: AxisValues): number {
+  let sse = 0;
+  for (const axis of Object.keys(targets) as AxisName[]) {
+    const target = targets[axis];
+    const value = achieved[axis];
+    if (target === undefined || value === undefined) continue;
+    const error = value - target;
+    sse += error * error;
+  }
+  return sse;
+}
+
 let aimBaseFitReuseAllowed = false;
 
 /** Scoped by the handoff ranker: exact base-fit reuse is a quality-phase
@@ -1077,8 +1157,16 @@ function makeConfiguredAimedCandidates(
   const sequence = control.sequence;
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
+  const currentTargets = objectiveTargetsForGap(gap, ctx);
+  const nextTargets = objectiveTargetsForGap(nextGap, ctx);
   const includeElevation =
-    objectiveTargetsForGap(nextGap, ctx).elevation !== undefined;
+    nextTargets.elevation !== undefined;
+  const includeAmplitude = aimOutgoingAmplitudeEligible(
+    nextTargets.amplitude,
+    undefined,
+    aimCompileBudgetFrames,
+    outgoingAmplitudeProfile(ctx),
+  );
   const framesBeforeProbes = getPhysicsFrameCount();
   const actuatorContext = arcKnobSequenceNeedsContactPoint(sequence)
     ? (() => {
@@ -1089,9 +1177,7 @@ function makeConfiguredAimedCandidates(
       };
     })()
     : undefined;
-  const currentTargets = objectiveTargetsForGap(gap, ctx);
   const currentScoreAxes = jointArcCurrentScoreAxes(currentTargets);
-  const nextTargets = objectiveTargetsForGap(nextGap, ctx);
   const observe = (
     appliedSequence: ArcKnobSequence,
     values: readonly number[],
@@ -1107,6 +1193,7 @@ function makeConfiguredAimedCandidates(
     nextFrame,
     {
       includeElevation,
+      includeAmplitude,
       targetEndsWithContact: nextGap.endsWithContact,
     },
     actuatorContext,
@@ -1187,6 +1274,7 @@ function makeConfiguredAimedCandidates(
           values.every((value) => Math.abs(value) < 1e-12)
         ? projectJointArcBaseFit(reusableBaseFit, gap, nextFrame, {
           includeElevation,
+          includeAmplitude,
           targetEndsWithContact: nextGap.endsWithContact,
         })
         : observe(sequence, values),
@@ -1290,6 +1378,40 @@ function makeConfiguredAimedCandidates(
         );
       }
     }
+    if (admission !== null && repairAuxStudyCertificateEnabled()) {
+      // Everything captured here is already available at the admission point:
+      // two exact current-gap measurements and two uncharged outgoing
+      // projections.  The tag is copied with the fit but is never consulted by
+      // proposal, ranking, traversal, repair, or register logic.
+      const baseOutgoing = projectOutgoingScorerGap(
+        base,
+        nextGap,
+        ctx.gapAxisTargets,
+      );
+      const candidateOutgoing = projectOutgoingScorerGap(
+        fit,
+        nextGap,
+        ctx.gapAxisTargets,
+      );
+      fit.repairAuxStudyCertificate = {
+        schema: "line.handoff.repair-aux-study-certificate.v1",
+        gapIndex: gap.index,
+        nextGapIndex: nextGap.index,
+        admission,
+        currentTargets: { ...currentTargets },
+        nextTargets: { ...nextTargets },
+        base: {
+          achieved: { ...base.achieved },
+          currentSse: exactAxisSse(currentTargets, base.achieved),
+          projectedOutgoingQuality: baseOutgoing?.quality ?? null,
+        },
+        candidate: {
+          achieved: { ...fit.achieved },
+          currentSse: exactAxisSse(currentTargets, fit.achieved),
+          projectedOutgoingQuality: candidateOutgoing?.quality ?? null,
+        },
+      };
+    }
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     fit.aimed = true;
     out.push(fit);
@@ -1372,6 +1494,7 @@ function projectedReadoutQuality(
     nextMeanSpeedPx: number;
     nextAirFraction: number;
     nextElevation: number;
+    nextAmplitude: number;
   },
   outgoingTargets: AxisValues,
 ): number | null {
@@ -1380,6 +1503,7 @@ function projectedReadoutQuality(
     readout.nextMeanSpeedPx,
     readout.nextAirFraction,
     Number.isFinite(readout.nextElevation) ? readout.nextElevation : undefined,
+    Number.isFinite(readout.nextAmplitude) ? readout.nextAmplitude : undefined,
   );
 }
 

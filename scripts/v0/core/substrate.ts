@@ -16,15 +16,44 @@ import {
   type FrameSpanAxisName,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
-  AXES, TARGET_AXES, AXIS_VALUE_MAX, FPS, IMPACT, IMPACT_WINDOW, START_DEFAULTS, PREROLL,
+  AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, IMPACT, IMPACT_WINDOW, START_DEFAULTS, PREROLL,
   secToFrame,
   authoredSpeedToPx, elevationCeiling, impactCeiling, normImpact, wrapPi,
 } from "../types.ts";
-import { measureGapAxes, AXIS_MEASURE, type GapMeasureCtx } from "./measure.ts";
+import {
+  measureAmplitudePeakPx,
+  measureGapAxes,
+  AXIS_MEASURE,
+  type GapMeasureCtx,
+} from "./measure.ts";
 
 export type ResolvedStart = {
   position: { x: number; y: number };
   velocity: { x: number; y: number };
+};
+
+/**
+ * Observation-only provenance carried by a repair auxiliary fit.  It records
+ * quantities the compiler had already computed when the auxiliary candidate
+ * passed its admission gate.  No ranker reads this object.
+ */
+export type RepairAuxStudyCertificate = {
+  schema: "line.handoff.repair-aux-study-certificate.v1";
+  gapIndex: number;
+  nextGapIndex: number;
+  admission: "impact-speed-pareto" | "impact-speed-air-outgoing-pareto";
+  currentTargets: AxisValues;
+  nextTargets: AxisValues;
+  base: {
+    achieved: AxisValues;
+    currentSse: number;
+    projectedOutgoingQuality: number | null;
+  };
+  candidate: {
+    achieved: AxisValues;
+    currentSse: number;
+    projectedOutgoingQuality: number | null;
+  };
 };
 
 export type GapFit = {
@@ -51,6 +80,8 @@ export type GapFit = {
   /** True when this fit was proposed by the enumerative proposer
    *  (optimizer/aim.ts). Telemetry only — never read by ranking. */
   aimed?: boolean;
+  /** Study-only provenance for an admitted repair auxiliary proposal. */
+  repairAuxStudyCertificate?: RepairAuxStudyCertificate;
   /** Rider vertical velocity at the post-catch release probe frame, in raw px/frame.
    *  Used by quality search to avoid launchy exits before tight/low-air contacts. */
   releaseVelocityY?: number;
@@ -72,6 +103,7 @@ type GapFitOptionalFields = Pick<
   | "releaseSpeed"
   | "contactFrameOffset"
   | "aimed"
+  | "repairAuxStudyCertificate"
   | "releaseVelocityY"
   | "releaseGroundedFrames"
   | "releaseAirborne"
@@ -89,6 +121,24 @@ export function copyOptionalGapFitFields(
     out.contactFrameOffset = fit.contactFrameOffset;
   }
   if (fit.aimed !== undefined) out.aimed = fit.aimed;
+  if (fit.repairAuxStudyCertificate !== undefined) {
+    const certificate = fit.repairAuxStudyCertificate;
+    out.repairAuxStudyCertificate = cloneObjects
+      ? {
+        ...certificate,
+        currentTargets: { ...certificate.currentTargets },
+        nextTargets: { ...certificate.nextTargets },
+        base: {
+          ...certificate.base,
+          achieved: { ...certificate.base.achieved },
+        },
+        candidate: {
+          ...certificate.candidate,
+          achieved: { ...certificate.candidate.achieved },
+        },
+      }
+      : certificate;
+  }
   if (fit.releaseVelocityY !== undefined) out.releaseVelocityY = fit.releaseVelocityY;
   if (fit.releaseGroundedFrames !== undefined) out.releaseGroundedFrames = fit.releaseGroundedFrames;
   if (fit.releaseAirborne !== undefined) out.releaseAirborne = fit.releaseAirborne;
@@ -721,6 +771,18 @@ export function buildDriftReport(
           achieved: achievedRaw,
           error: Math.abs(targetRaw - achievedRaw),
         };
+      }
+      if (name === "amplitude") {
+        const achievedPeakPx = measureAmplitudePeakPx(det, g, g.endFrame);
+        if (achievedPeakPx !== undefined) {
+          const targetPeakPx = t * CALIB.AMPLITUDE_CAP;
+          axes[name].raw = {
+            unit: "px",
+            target: targetPeakPx,
+            achieved: achievedPeakPx,
+            error: Math.abs(targetPeakPx - achievedPeakPx),
+          };
+        }
       }
     }
     const survived = det.terminus.frame >= g.endFrame

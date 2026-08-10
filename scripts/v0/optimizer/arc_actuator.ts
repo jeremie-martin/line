@@ -25,6 +25,7 @@ export type ArcKnobId =
   | "whole_rotation"
   | "interior_normal_bow"
   | "post_contact_pitch"
+  | "post_contact_extent"
   | "post_contact_normal_bow"
   | "post_contact_normal_skew"
   | "post_contact_window_turn"
@@ -51,7 +52,7 @@ export type ArcActuatorContext = Readonly<{
 export type ArcKnobDefinition = Readonly<{
   id: ArcKnobId;
   label: string;
-  unit: "deg";
+  unit: "deg" | "fraction";
   span: number;
   /** Deterministic inverse-model enumeration resolution in this knob's unit. */
   scanStep: number;
@@ -197,6 +198,59 @@ const postContactPitch: ArcActuator = {
       return { x: pivot.x + x * c - y * s, y: pivot.y + x * s + y * c };
     };
     const adjusted = vertices.map((point, index) => index > contactIndex ? rotate(point) : point);
+    return lines.map((line, index) => ({
+      ...line,
+      x1: adjusted[index].x,
+      y1: adjusted[index].y,
+      x2: adjusted[index + 1].x,
+      y2: adjusted[index + 1].y,
+    }));
+  },
+};
+
+/**
+ * Scale the candidate-owned branch after the exact target-contact vertex while
+ * preserving that vertex and every incoming line.  This is a release-time
+ * coordinate, not another curvature coordinate: angles and normalized branch
+ * shape remain unchanged, while support duration and the native ballistic
+ * launch state move together.  A value of +0.2 makes the branch 20% longer.
+ */
+const postContactExtent: ArcActuator = {
+  id: "post_contact_extent",
+  label: "post-contact support extent",
+  unit: "fraction",
+  span: 0.35,
+  scanStep: 0.025,
+  proposalSeparation: 0.05,
+  needsContactPoint: true,
+  apply(lines, fraction, context) {
+    const contact = context?.contactPoint;
+    if (lines.length < 2 || fraction === 0 || contact === undefined) return clone(lines);
+    const vertices = [{ x: lines[0].x1, y: lines[0].y1 }];
+    for (const line of lines) {
+      const previous = vertices[vertices.length - 1];
+      if (Math.hypot(line.x1 - previous.x, line.y1 - previous.y) > 1e-6) return clone(lines);
+      vertices.push({ x: line.x2, y: line.y2 });
+    }
+    let contactIndex = -1;
+    let nearest = Infinity;
+    for (let index = 1; index + 1 < vertices.length; index++) {
+      const point = vertices[index];
+      const distance = Math.hypot(point.x - contact.x, point.y - contact.y);
+      if (distance < nearest) {
+        nearest = distance;
+        contactIndex = index;
+      }
+    }
+    if (contactIndex < 1) return clone(lines);
+    const pivot = vertices[contactIndex];
+    const scale = Math.max(0.25, 1 + fraction);
+    const adjusted = vertices.map((point, index) => index <= contactIndex
+      ? point
+      : {
+        x: pivot.x + (point.x - pivot.x) * scale,
+        y: pivot.y + (point.y - pivot.y) * scale,
+      });
     return lines.map((line, index) => ({
       ...line,
       x1: adjusted[index].x,
@@ -456,6 +510,7 @@ export const ARC_KNOBS: Readonly<Record<ArcKnobId, ArcKnobDefinition>> = {
   whole_rotation: wholeRotation,
   interior_normal_bow: interiorNormalBow,
   post_contact_pitch: postContactPitch,
+  post_contact_extent: postContactExtent,
   post_contact_normal_bow: postContactNormalBow,
   post_contact_normal_skew: postContactNormalSkew,
   post_contact_window_turn: postContactWindowTurn,

@@ -821,6 +821,35 @@ export type CompileStats = {
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;
   /**
+   * Study-only final-path join for repair auxiliary fits.  `emission` contains
+   * only quantities already computed at candidate admission; final gap reports
+   * are attached after the returned track has been scored.  Never read by the
+   * compiler.
+   */
+  handoff_repair_aux_selected_certificates?: Array<{
+    selected_gap_index: number;
+    emission: {
+      schema: "line.handoff.repair-aux-study-certificate.v1";
+      gapIndex: number;
+      nextGapIndex: number;
+      admission: "impact-speed-pareto" | "impact-speed-air-outgoing-pareto";
+      currentTargets: AxisValues;
+      nextTargets: AxisValues;
+      base: {
+        achieved: AxisValues;
+        currentSse: number;
+        projectedOutgoingQuality: number | null;
+      };
+      candidate: {
+        achieved: AxisValues;
+        currentSse: number;
+        projectedOutgoingQuality: number | null;
+      };
+    };
+    final_current_gap: GapAxisReport | null;
+    final_next_gap: GapAxisReport | null;
+  }>;
+  /**
    * End-to-end validation on the transitions selected into this output.
    * Prediction comes from the preceding fit's canonical ballistic launch;
    * truth is the next committed fit's exact scorer-window measurement.
@@ -1089,7 +1118,7 @@ export type GapAxisValueReport = {
   feasibility_bound?: number;
   /** Raw diagnostic units for axes whose authored scale hides physical units. */
   raw?: {
-    unit: "px/frame";
+    unit: "px/frame" | "px";
     target: number;
     achieved: number;
     error: number;

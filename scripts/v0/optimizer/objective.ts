@@ -353,6 +353,7 @@ export function projectedOutgoingSurrogateQuality(
   meanSpeedPx: number,
   airFraction: number,
   elevation: number | undefined,
+  amplitude: number | undefined = undefined,
 ): number | null {
   let speedValue: number | undefined;
   if (outgoingTargets.speed !== undefined) {
@@ -369,6 +370,10 @@ export function projectedOutgoingSurrogateQuality(
     if (elevation === undefined || !Number.isFinite(elevation)) return null;
     elevationValue = elevation;
   }
+  let amplitudeValue: number | undefined;
+  if (outgoingTargets.amplitude !== undefined && Number.isFinite(amplitude)) {
+    amplitudeValue = amplitude;
+  }
 
   const errors: number[] = [];
   const recoverability = projectedRecoverabilityEnabled();
@@ -380,6 +385,7 @@ export function projectedOutgoingSurrogateQuality(
     if (axis === "speed") value = speedValue;
     else if (axis === "air") value = airValue;
     else if (axis === "elevation") value = elevationValue;
+    else if (axis === "amplitude") value = amplitudeValue;
     if (value === undefined) continue;
     errors.push(recoverabilityWeightedError(axis, value - target, recoverability));
   }

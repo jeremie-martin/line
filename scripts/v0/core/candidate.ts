@@ -303,6 +303,13 @@ type EvaluatedGapFit = Pick<
   | "releaseAirborne"
   | "ballisticLaunch"
 >;
+type GapFitEvaluation = {
+  ok: true;
+  fit: EvaluatedGapFit;
+} | {
+  ok: false;
+  failure: ArcPlacementDirectFailureReason;
+};
 type PreTargetSledTraceProvider = () => PreTargetSledTrace;
 
 /**
@@ -914,23 +921,7 @@ function evaluateGapFit(
   /** True only for the per-candidate BASE evaluation (not ride-out re-evals);
    *  gates the landing-window probe so each candidate is recorded once. */
   landingProbeEligible = false,
-): {
-  ok: true;
-  fit: Pick<
-    BallisticGapFit,
-    | "lines"
-    | "achieved"
-    | "cost"
-    | "releaseSpeed"
-    | "releaseVelocityY"
-    | "releaseGroundedFrames"
-    | "releaseAirborne"
-    | "ballisticLaunch"
-  >;
-} | {
-  ok: false;
-  failure: ArcPlacementDirectFailureReason;
-} {
+): GapFitEvaluation {
   // deno-lint-ignore no-explicit-any
   const eng: any = baseEngine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
   const offBeatGateEnd = candidateOffBeatGateEndFrame(gap, axisMeasureEnd, allContactFrames);

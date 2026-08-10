@@ -153,6 +153,28 @@ const AIR_KNOB_MIN_MISMATCH = 0.10;
 /** Don't bother editing for less than this many frames of release shift. */
 const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
 
+let aimRepairLaneActive = false;
+
+export function setAimRepairLaneActive(active: boolean): void {
+  aimRepairLaneActive = active;
+}
+
+export function aimControlPhase(
+  environment: Record<string, string | undefined> =
+    (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {},
+): "all" | "repair" {
+  const value = environment.LR_AIM_CONTROL_PHASE;
+  if (value === undefined || value === "" || value === "all") return "all";
+  if (value === "repair") return "repair";
+  throw new Error(`LR_AIM_CONTROL_PHASE must be all or repair; got ${value}`);
+}
+
+export function aimControlOverrideActive(
+  phase: "all" | "repair" = aimControlPhase(),
+): boolean {
+  return phase === "all" || aimRepairLaneActive;
+}
+
 /**
  * The normal compiler's two response coordinates are positional: first knob
  * value = `rotateDeg`, second = `pitchDeg`. `LR_AIM_KNOB_SEQUENCE=a,b` is the
@@ -161,8 +183,10 @@ const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
  * before confirmation.
  */
 function aimKnobSequence(): ArcKnobSequence {
-  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_KNOB_SEQUENCE;
+  const requested = aimControlOverrideActive()
+    ? (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.LR_AIM_KNOB_SEQUENCE
+    : undefined;
   if (requested !== undefined && requested !== "") {
     const sequence = requested.split(",").map((id) => id.trim()).filter(Boolean) as ArcKnobId[];
     if (sequence.length < 1) {
@@ -178,8 +202,10 @@ function aimKnobSequence(): ArcKnobSequence {
  * knob sequence.  It is intentionally an exploration override only: any
  * selected behavior has to become the source default before confirmation. */
 function aimTrainingMethod(): ArcTrainingMethod {
-  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_TRAINING_METHOD;
+  const requested = aimControlOverrideActive()
+    ? (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.LR_AIM_TRAINING_METHOD
+    : undefined;
   if (requested === undefined || requested === "") return ARC_CONTROL_DEFAULT.trainingMethod;
   if (!(ARC_TRAINING_METHODS as readonly string[]).includes(requested)) {
     throw new Error(`unknown LR_AIM_TRAINING_METHOD=${requested}`);
@@ -188,16 +214,20 @@ function aimTrainingMethod(): ArcTrainingMethod {
 }
 
 function aimProbeLayout(): ArcProbeLayoutId {
-  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_PROBE_LAYOUT;
+  const requested = aimControlOverrideActive()
+    ? (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.LR_AIM_PROBE_LAYOUT
+    : undefined;
   if (requested === undefined || requested === "") return ARC_CONTROL_DEFAULT.probeLayout;
   if (!(requested in ARC_PROBE_LAYOUTS)) throw new Error(`unknown LR_AIM_PROBE_LAYOUT=${requested}`);
   return requested as ArcProbeLayoutId;
 }
 
 function aimProposalCount(): number {
-  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_PROPOSAL_COUNT;
+  const requested = aimControlOverrideActive()
+    ? (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.LR_AIM_PROPOSAL_COUNT
+    : undefined;
   if (requested === undefined || requested === "") return ARC_CONTROL_DEFAULT.proposalCount;
   const value = Number(requested);
   if (!Number.isSafeInteger(value) || value < 1) {
@@ -210,8 +240,10 @@ function aimPositiveRangeScale(
   variable: "LR_AIM_PROBE_RANGE_SCALE" | "LR_AIM_PROPOSAL_RANGE_SCALE",
   fallback: number,
 ): number {
-  const requested = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.[variable];
+  const requested = aimControlOverrideActive()
+    ? (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.[variable]
+    : undefined;
   if (requested === undefined || requested === "") return fallback;
   const value = Number(requested);
   if (!Number.isFinite(value) || value <= 0) throw new Error(`invalid ${variable}=${requested}`);
@@ -227,6 +259,57 @@ type AimControl = Readonly<{
   proposalCount: number;
 }>;
 
+type AimAuxAdmission =
+  | "impact-speed-pareto"
+  | "impact-speed-air-outgoing-pareto";
+
+export function impactSpeedParetoImproves(
+  base: AxisValues,
+  candidate: AxisValues,
+  targets: AxisValues,
+): boolean {
+  const targetImpact = targets.impact;
+  const targetSpeed = targets.speed;
+  const baseImpact = base.impact;
+  const baseSpeed = base.speed;
+  const candidateImpact = candidate.impact;
+  const candidateSpeed = candidate.speed;
+  if (
+    targetImpact === undefined || targetSpeed === undefined ||
+    baseImpact === undefined || baseSpeed === undefined ||
+    candidateImpact === undefined || candidateSpeed === undefined
+  ) return false;
+  const baseImpactError = Math.abs(baseImpact - targetImpact);
+  const baseSpeedError = Math.abs(baseSpeed - targetSpeed);
+  const candidateImpactError = Math.abs(candidateImpact - targetImpact);
+  const candidateSpeedError = Math.abs(candidateSpeed - targetSpeed);
+  return candidateImpactError < baseImpactError - 1e-9 &&
+    candidateSpeedError <= baseSpeedError + 1e-9;
+}
+
+/** Conservative repair-only admission.  Impact remains the strict improvement
+ * axis, while every other exactly observed layer that this local actuator can
+ * disturb must be non-worse.  This is intentionally stronger than the pool's
+ * later scalar rank: a small gain on one layer may not buy debt on another. */
+export function impactSpeedAirOutgoingParetoImproves(
+  base: AxisValues,
+  candidate: AxisValues,
+  targets: AxisValues,
+  baseOutgoingQuality: number,
+  candidateOutgoingQuality: number,
+): boolean {
+  if (!impactSpeedParetoImproves(base, candidate, targets)) return false;
+  if (
+    !Number.isFinite(baseOutgoingQuality) ||
+    !Number.isFinite(candidateOutgoingQuality) ||
+    candidateOutgoingQuality < baseOutgoingQuality - 1e-9
+  ) return false;
+  if (targets.air === undefined) return true;
+  if (base.air === undefined || candidate.air === undefined) return false;
+  return Math.abs(candidate.air - targets.air) <=
+    Math.abs(base.air - targets.air) + 1e-9;
+}
+
 function aimControl(): AimControl {
   return {
     sequence: aimKnobSequence(),
@@ -235,6 +318,69 @@ function aimControl(): AimControl {
     probeRangeScale: aimPositiveRangeScale("LR_AIM_PROBE_RANGE_SCALE", ARC_CONTROL_DEFAULT.probeRangeScale),
     proposalRangeScale: aimPositiveRangeScale("LR_AIM_PROPOSAL_RANGE_SCALE", ARC_CONTROL_DEFAULT.proposalRangeScale),
     proposalCount: aimProposalCount(),
+  };
+}
+
+function aimRepairAuxControl(): { control: AimControl; admission: AimAuxAdmission | null } | null {
+  if (!aimRepairLaneActive) return null;
+  const environment =
+    (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
+  const requested = environment.LR_AIM_REPAIR_AUX_KNOB_SEQUENCE;
+  if (requested === undefined || requested === "" || requested === "off") return null;
+  const sequence = requested.split(",").map((id) => id.trim()).filter(Boolean) as ArcKnobId[];
+  if (sequence.length < 1) {
+    throw new Error(`LR_AIM_REPAIR_AUX_KNOB_SEQUENCE must name at least one knob`);
+  }
+  for (const id of sequence) getArcKnob(id);
+  const trainingMethod = environment.LR_AIM_REPAIR_AUX_TRAINING_METHOD ??
+    ARC_CONTROL_DEFAULT.trainingMethod;
+  if (!(ARC_TRAINING_METHODS as readonly string[]).includes(trainingMethod)) {
+    throw new Error(`unknown LR_AIM_REPAIR_AUX_TRAINING_METHOD=${trainingMethod}`);
+  }
+  const probeLayout = environment.LR_AIM_REPAIR_AUX_PROBE_LAYOUT ??
+    ARC_CONTROL_DEFAULT.probeLayout;
+  if (!(probeLayout in ARC_PROBE_LAYOUTS)) {
+    throw new Error(`unknown LR_AIM_REPAIR_AUX_PROBE_LAYOUT=${probeLayout}`);
+  }
+  const positive = (name: string, fallback: number): number => {
+    const raw = environment[name];
+    if (raw === undefined || raw === "") return fallback;
+    const value = Number(raw);
+    if (!Number.isFinite(value) || value <= 0) throw new Error(`invalid ${name}=${raw}`);
+    return value;
+  };
+  const proposalCountRaw = environment.LR_AIM_REPAIR_AUX_PROPOSAL_COUNT;
+  const proposalCount = proposalCountRaw === undefined || proposalCountRaw === ""
+    ? ARC_CONTROL_DEFAULT.proposalCount
+    : Number(proposalCountRaw);
+  if (!Number.isSafeInteger(proposalCount) || proposalCount < 1) {
+    throw new Error(`invalid LR_AIM_REPAIR_AUX_PROPOSAL_COUNT=${proposalCountRaw}`);
+  }
+  const admissionRaw = environment.LR_AIM_REPAIR_AUX_ADMISSION;
+  const admission = admissionRaw === undefined || admissionRaw === "" || admissionRaw === "off"
+    ? null
+    : admissionRaw === "impact-speed-pareto" ||
+        admissionRaw === "impact-speed-air-outgoing-pareto"
+    ? admissionRaw
+    : (() => {
+      throw new Error(`unknown LR_AIM_REPAIR_AUX_ADMISSION=${admissionRaw}`);
+    })();
+  return {
+    control: {
+      sequence,
+      trainingMethod: trainingMethod as ArcTrainingMethod,
+      probeLayout: probeLayout as ArcProbeLayoutId,
+      probeRangeScale: positive(
+        "LR_AIM_REPAIR_AUX_PROBE_RANGE_SCALE",
+        ARC_CONTROL_DEFAULT.probeRangeScale,
+      ),
+      proposalRangeScale: positive(
+        "LR_AIM_REPAIR_AUX_PROPOSAL_RANGE_SCALE",
+        ARC_CONTROL_DEFAULT.proposalRangeScale,
+      ),
+      proposalCount,
+    },
+    admission,
   };
 }
 
@@ -296,6 +442,23 @@ const AIM_TOPK_BASES_AT_REF = 6;
 const AIM_TOPK_BASES_REF_FRAMES = 250_000;
 const AIM_TOPK_HIGH_BUDGET_FRAMES = 200_000;
 
+/** Study control for the previously unfitted mature breadth exponent.  The
+ * production value is exactly linear; every arm remains anchored at K=6 at
+ * 250k and changes only how refinement breadth scales above that point. */
+export function aimTopKScaleExponent(
+  environment: Record<string, string | undefined> =
+    (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env ?? {},
+): number {
+  const raw = environment.LR_AIM_TOPK_SCALE_EXPONENT;
+  if (raw === undefined || raw === "") return 1;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0 || value > 2) {
+    throw new Error(`invalid LR_AIM_TOPK_SCALE_EXPONENT=${raw}`);
+  }
+  return value;
+}
+
 let aimCompileBudgetFrames = 0;
 /** Set the compile target budget for the K>1 maturity gate. Called once per
  *  compile at compileHandoff entry, alongside the other budget setters. */
@@ -317,7 +480,10 @@ export function aimTopKBasesEffective(gap?: Gap, _gaps?: readonly Gap[], _ctx?: 
     ? Math.max(
       AIM_TOPK_BASES,
       Math.round(AIM_TOPK_BASES_AT_REF *
-        aimCompileBudgetFrames / AIM_TOPK_BASES_REF_FRAMES),
+        Math.pow(
+          aimCompileBudgetFrames / AIM_TOPK_BASES_REF_FRAMES,
+          aimTopKScaleExponent(),
+        )),
     )
     : AIM_TOPK_BASES;
   if (gap?.targets.air !== undefined && gap.targets.air <= AIM_LOW_AIR_TOPK_AIR_MAX) {
@@ -579,6 +745,7 @@ function recordJointModelCoverage(
 }
 
 export function resetAimStats(): void {
+  aimRepairLaneActive = false;
   for (const key of Object.keys(aimTotals) as (keyof typeof aimTotals)[]) {
     aimTotals[key] = 0;
   }
@@ -744,6 +911,9 @@ export function makeEnumAimedCandidates(
    *  variant is per-pool generation insurance, and one per pool is enough
    *  (per-base emission at K=4–6 priced out mature budgets in probe cycle 1). */
   airKnobBase: boolean,
+  /** The repair-only auxiliary model is per-pool exploration insurance, so
+   *  the caller offers it only on the quality-best refined base. */
+  repairAuxBase = true,
 ): Candidate[] {
   aimTotals.enum_considered++;
   aimTotals.enum_lane_bases++; // one base actually refined
@@ -762,7 +932,21 @@ export function makeEnumAimedCandidates(
     return [];
   }
   const control = aimControl();
-  return makeConfiguredAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase, control);
+  const primary = makeConfiguredAimedCandidates(
+    engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase, control,
+  );
+  const repairAux = repairAuxBase ? aimRepairAuxControl() : null;
+  if (repairAux === null) return primary;
+  // Additive means additive: retain the complete production controller and
+  // offer the auxiliary geometry beside it.  The air insurance variant belongs
+  // to the primary base and must not be duplicated by the second model.
+  return [
+    ...primary,
+    ...makeConfiguredAimedCandidates(
+      engine, gap, nextGap, ctx, base, lineIdStart, false, repairAux.control,
+      repairAux.admission,
+    ),
+  ];
 }
 
 /** A candidate in the explicit ordered physical-coordinate space. */
@@ -888,6 +1072,7 @@ function makeConfiguredAimedCandidates(
   lineIdStart: number,
   airKnobBase: boolean,
   control: AimControl,
+  admission: AimAuxAdmission | null = null,
 ): Candidate[] {
   const sequence = control.sequence;
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
@@ -898,7 +1083,10 @@ function makeConfiguredAimedCandidates(
   const actuatorContext = arcKnobSequenceNeedsContactPoint(sequence)
     ? (() => {
       const target = getCandidateProbe(engine, gap, ctx).targetState;
-      return { contactPoint: { x: target.sledX, y: target.sledY } };
+      return {
+        contactPoint: { x: target.sledX, y: target.sledY },
+        contactSpeedPx: target.speed,
+      };
     })()
     : undefined;
   const currentTargets = objectiveTargetsForGap(gap, ctx);
@@ -1062,6 +1250,30 @@ function makeConfiguredAimedCandidates(
     if (fit === null) {
       aimTotals.enum_gate_fail++;
       continue;
+    }
+    if (
+      admission === "impact-speed-pareto" &&
+      !impactSpeedParetoImproves(base.achieved, fit.achieved, currentTargets)
+    ) {
+      aimTotals.enum_gate_fail++;
+      continue;
+    }
+    if (admission === "impact-speed-air-outgoing-pareto") {
+      const baseOutgoing = projectOutgoingScorerGap(base, nextGap, ctx.gapAxisTargets);
+      const candidateOutgoing = projectOutgoingScorerGap(fit, nextGap, ctx.gapAxisTargets);
+      if (
+        baseOutgoing === null || candidateOutgoing === null ||
+        !impactSpeedAirOutgoingParetoImproves(
+          base.achieved,
+          fit.achieved,
+          currentTargets,
+          baseOutgoing.quality,
+          candidateOutgoing.quality,
+        )
+      ) {
+        aimTotals.enum_gate_fail++;
+        continue;
+      }
     }
     aimTotals.enum_emitted++;
     aimTotals.enumObjectiveGainSum += candidate.val - baseScore.val;

@@ -8,7 +8,7 @@
  * future three-control policy must declare its additional probe plan instead
  * of silently treating an unobserved coordinate as additive.
  */
-import { type TrackLine } from "../types.ts";
+import { IMPACT_WINDOW, type TrackLine } from "../types.ts";
 import {
   pitchExitLines,
   rotateArcLines,
@@ -26,7 +26,9 @@ export type ArcKnobId =
   | "interior_normal_bow"
   | "post_contact_pitch"
   | "post_contact_normal_bow"
-  | "post_contact_normal_skew";
+  | "post_contact_normal_skew"
+  | "post_contact_window_turn"
+  | "post_contact_window_bow";
 export type ArcActuatorId = ArcKnobId;
 
 /** Ordered, possibly repeated, transform names.  Order is data—not a hidden
@@ -41,6 +43,9 @@ export type ArcActuatorContext = Readonly<{
   /** Optional immutable target-frame contact reference for future local
    * contact-point actuators. */
   contactPoint?: Readonly<{ x: number; y: number }>;
+  /** Predicted sled-point speed at contact.  Window-local actuators use this
+   * with the scorer's existing IMPACT_WINDOW to select physical support. */
+  contactSpeedPx?: number;
 }>;
 
 export type ArcKnobDefinition = Readonly<{
@@ -312,6 +317,139 @@ const postContactNormalSkew: ArcActuator = {
   ),
 };
 
+/**
+ * Change the carrier tangent at contact, then fade the displacement and its
+ * derivative to zero by the end of the scored impact window.  Unlike the
+ * endpoint-preserving bow/skew controls, whose zero contact derivative makes
+ * them mostly continuation controls, this coordinate owns exactly the early
+ * supported turn that the impact ruler measures.  Vertices before contact and
+ * at/after the selected support boundary are preserved byte-for-byte.
+ *
+ * The profile `27/4 s(1-s)^2` peaks at one.  Dividing displacement by its
+ * contact slope (27/4) makes the control's unit approximately the requested
+ * tangent change in degrees rather than a branch-length-relative offset.
+ */
+const WINDOW_TURN_PROFILE_SLOPE = 27 / 4;
+
+function deformPostContactWindowNormal(
+  lines: TrackLine[],
+  deg: number,
+  context: ArcActuatorContext | undefined,
+  profile: PostContactNormalProfile,
+  amplitudeDivisor: number,
+): TrackLine[] {
+  const contact = context?.contactPoint;
+  const speed = context?.contactSpeedPx;
+  if (
+    lines.length < 3 || deg === 0 || contact === undefined ||
+    speed === undefined || !Number.isFinite(speed) || !(speed > 0)
+  ) return clone(lines);
+
+  const vertices = [{ x: lines[0].x1, y: lines[0].y1 }];
+  for (const line of lines) {
+    const previous = vertices[vertices.length - 1];
+    if (Math.hypot(line.x1 - previous.x, line.y1 - previous.y) > 1e-6) return clone(lines);
+    const length = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+    if (!(length > 1e-9)) return clone(lines);
+    vertices.push({ x: line.x2, y: line.y2 });
+  }
+
+  let contactIndex = -1;
+  let nearest = Infinity;
+  for (let index = 1; index + 1 < vertices.length; index++) {
+    const point = vertices[index];
+    const distance = Math.hypot(point.x - contact.x, point.y - contact.y);
+    if (distance < nearest) {
+      nearest = distance;
+      contactIndex = index;
+    }
+  }
+  if (contactIndex < 1 || contactIndex + 2 >= vertices.length) return clone(lines);
+
+  const windowLength = IMPACT_WINDOW * speed;
+  const distances = new Array<number>(vertices.length).fill(0);
+  let supportIndex = -1;
+  for (let index = contactIndex + 1; index < vertices.length; index++) {
+    distances[index] = distances[index - 1] + Math.hypot(
+      vertices[index].x - vertices[index - 1].x,
+      vertices[index].y - vertices[index - 1].y,
+    );
+    if (supportIndex < 0 && distances[index] >= windowLength) supportIndex = index;
+  }
+  if (supportIndex < 0) supportIndex = vertices.length - 1;
+  if (supportIndex < contactIndex + 2) return clone(lines);
+
+  const pivot = vertices[contactIndex];
+  const support = vertices[supportIndex];
+  const chordX = support.x - pivot.x;
+  const chordY = support.y - pivot.y;
+  const chordLength = Math.hypot(chordX, chordY);
+  const supportLength = distances[supportIndex];
+  if (!(chordLength > 1e-9) || !(supportLength > 1e-9)) return clone(lines);
+  const normalX = -chordY / chordLength;
+  const normalY = chordX / chordLength;
+  const amplitude = supportLength * Math.tan(deg * Math.PI / 180) / amplitudeDivisor;
+  const adjusted = vertices.map((vertex, index) => {
+    if (index <= contactIndex || index >= supportIndex) return vertex;
+    const s = distances[index] / supportLength;
+    const displacement = amplitude * profile(s);
+    return {
+      x: vertex.x + normalX * displacement,
+      y: vertex.y + normalY * displacement,
+    };
+  });
+  return lines.map((line, index) => ({
+    ...line,
+    x1: adjusted[index].x,
+    y1: adjusted[index].y,
+    x2: adjusted[index + 1].x,
+    y2: adjusted[index + 1].y,
+  }));
+}
+
+const postContactWindowTurn: ArcActuator = {
+  id: "post_contact_window_turn",
+  label: "contact-window carrier turn",
+  unit: "deg",
+  span: 6,
+  scanStep: 0.5,
+  proposalSeparation: 1,
+  needsContactPoint: true,
+  apply: (lines, deg, context) => deformPostContactWindowNormal(
+    lines,
+    deg,
+    context,
+    (s) => WINDOW_TURN_PROFILE_SLOPE * s * (1 - s) ** 2,
+    WINDOW_TURN_PROFILE_SLOPE,
+  ),
+};
+
+/**
+ * Put a single smooth normal lobe inside the scored contact window.  Its zero
+ * value and derivative at both boundaries preserve the admitted contact
+ * tangent and the continuation tangent; unlike the whole-branch bow, its peak
+ * is guaranteed to occur while the impact ruler is still accumulating
+ * contacted-frame redirection.
+ */
+const postContactWindowBow: ArcActuator = {
+  id: "post_contact_window_bow",
+  label: "contact-window endpoint-and-tangent-preserving bow",
+  unit: "deg",
+  span: 2.5,
+  scanStep: 0.5,
+  proposalSeparation: 0.5,
+  needsContactPoint: true,
+  apply: (lines, deg, context) => deformPostContactWindowNormal(
+    lines,
+    deg,
+    context,
+    // Unit peak at the middle; value and continuous derivative are zero at
+    // contact and at the physical support boundary.
+    (s) => 16 * s * s * (1 - s) ** 2,
+    1,
+  ),
+};
+
 /** The single source of truth for atomic knob definitions. */
 export const ARC_KNOBS: Readonly<Record<ArcKnobId, ArcKnobDefinition>> = {
   tail_pitch: tailPitch,
@@ -320,6 +458,8 @@ export const ARC_KNOBS: Readonly<Record<ArcKnobId, ArcKnobDefinition>> = {
   post_contact_pitch: postContactPitch,
   post_contact_normal_bow: postContactNormalBow,
   post_contact_normal_skew: postContactNormalSkew,
+  post_contact_window_turn: postContactWindowTurn,
+  post_contact_window_bow: postContactWindowBow,
 };
 
 export function getArcKnob(id: ArcKnobId): ArcKnobDefinition {

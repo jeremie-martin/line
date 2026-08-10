@@ -24,7 +24,7 @@
  * the shared RNG state being advanced deterministically.
  */
 
-import { sampleOneCandidate, type Candidate, type SpecContext } from "./sample.ts";
+import { sampleCandidateFamily, type Candidate, type SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
 
 /** Sample up to K candidates at the gap, returning the viable ones in
@@ -75,19 +75,16 @@ export function solveOneGapAttemptRange(
   }
   const out: Candidate[] = [];
   for (let attempt = attemptStart; attempt < attemptEnd; attempt++) {
-    const c = sampleOneCandidate(
+    const family = sampleCandidateFamily(
       engine,
       gap,
       rng,
       ctx,
       lineIdStart,
       attempt,
-      "normal",
-      undefined,
-      undefined,
       proposalBatchId,
     );
-    if (c !== null) out.push(c);
+    out.push(...family);
   }
   return out;
 }

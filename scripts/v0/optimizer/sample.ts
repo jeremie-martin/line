@@ -28,6 +28,9 @@ import {
 import {
   readPreTargetSledTrace,
   readTargetStateFromRider,
+  impactSegmentLaw,
+  nativeCatchFrameMode,
+  recordNormalPostCurveResolutionSibling,
   sampleArcPlacementGeometry,
   type ArcPlacementGeometry,
   type ImpactFrameTargetState,
@@ -39,6 +42,38 @@ import type { BallisticFitFields } from "../core/ballistic_projection.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
 import type { SupportGeometryMode } from "../core/support_geometry.ts";
 import { arcProposalTargetsForGap } from "./arc_proposal.ts";
+import { compileScopedEnv } from "../env_flags.ts";
+import {
+  characterizeNativeCatchHistory,
+  nativeCatchReferenceFrame,
+  readNativeCatchSledPoints,
+  type NativeCatchReferenceFrame,
+} from "../trajectory/native_catch_history.ts";
+import type { PrecontactMulticontactHistoryReady } from "../trajectory/precontact_multicontact_history.ts";
+import { axisErrorsForTargets } from "../score.ts";
+
+export type NativeCatchHistoryMode =
+  | "damp"
+  | "damp-strong"
+  | "damp-coherent"
+  | "damp-detector";
+const readNativeCatchHistoryMode = compileScopedEnv("LR_NATIVE_CATCH_HISTORY");
+
+export function nativeCatchHistoryMode(
+  environment?: Record<string, string | undefined>,
+): NativeCatchHistoryMode | null {
+  const value = environment === undefined
+    ? readNativeCatchHistoryMode()
+    : environment.LR_NATIVE_CATCH_HISTORY;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (
+    value === "damp" || value === "damp-strong" || value === "damp-coherent" ||
+    value === "damp-detector"
+  ) return value;
+  throw new Error(
+    `LR_NATIVE_CATCH_HISTORY must be off, damp, damp-strong, damp-coherent, or damp-detector; got ${value}`,
+  );
+}
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
@@ -57,7 +92,35 @@ export type Candidate = GapFit & BallisticFitFields & {
 export type SampledCandidateObservation = {
   geometry: ArcPlacementGeometry;
   fit: Candidate | null;
+  activeSiblingFit?: Candidate | null;
+  resolutionSiblingFit?: Candidate | null;
 };
+
+/**
+ * Exact current-gap certificate for an additive resolution sibling. Every
+ * scored axis must be no worse than the nominal parent and the pooled SSE must
+ * improve strictly. This is deliberately stronger than the ordinary ranker:
+ * the extra geometry is insurance, not a replacement candidate.
+ */
+export function resolutionSiblingHasNoAxisDebt(
+  targets: AxisValues,
+  nominal: Pick<Candidate, "achieved">,
+  refined: Pick<Candidate, "achieved">,
+): boolean {
+  const base = axisErrorsForTargets(targets, nominal.achieved);
+  const sibling = axisErrorsForTargets(targets, refined.achieved);
+  if (base.length === 0 || sibling.length !== base.length) return false;
+  let baseSse = 0;
+  let siblingSse = 0;
+  for (let index = 0; index < base.length; index++) {
+    const baseError = base[index]!;
+    const siblingError = sibling[index]!;
+    if (Math.abs(siblingError) > Math.abs(baseError) + 1e-12) return false;
+    baseSse += baseError * baseError;
+    siblingSse += siblingError * siblingError;
+  }
+  return siblingSse < baseSse - 1e-12;
+}
 
 /**
  * Study-only view of one real production-sampler attempt. `contextKey` is the
@@ -117,6 +180,8 @@ export type CandidateProbe = {
   refY: number;
   targetState: ImpactFrameTargetState;
   preTargetSledTrace: () => PreTargetSledTrace;
+  precontactHistory: () => PrecontactMulticontactHistoryReady | null;
+  nativeCatchReference: () => NativeCatchReferenceFrame | null;
 };
 
 let candidateSampleCount = 0;
@@ -153,12 +218,21 @@ export function getCandidateProbe(engine: any, gap: Gap, ctx: SpecContext): Cand
   const refX = rider.position.x;
   const refY = rider.position.y;
   const targetState = readTargetStateFromRider(rider, refX, refY);
+  const targetSledPoints = readNativeCatchSledPoints(rider);
   let preTargetTrace: PreTargetSledTrace | undefined;
+  let precontactHistory: PrecontactMulticontactHistoryReady | null | undefined;
   const probe: CandidateProbe = {
     refX,
     refY,
     targetState,
     preTargetSledTrace: () => preTargetTrace ??= readPreTargetSledTrace(engine, gap),
+    precontactHistory: () => precontactHistory ??= characterizeNativeCatchHistory(
+      preTargetTrace ??= readPreTargetSledTrace(engine, gap),
+      Math.max(0, gap.startFrame),
+      gap.endFrame,
+      targetSledPoints,
+    ),
+    nativeCatchReference: () => nativeCatchReferenceFrame(targetSledPoints, refX, refY),
   };
   byGap.set(gap.index, probe);
   return probe;
@@ -219,6 +293,33 @@ export function sampleOneCandidate(
 }
 
 /**
+ * Production solver view of one RNG attempt. Default behavior returns exactly
+ * one fit; the default-off active-material study may append one coincident
+ * sibling while retaining the solid parent first.
+ */
+export function sampleCandidateFamily(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  rng: () => number,
+  ctx: SpecContext,
+  lineIdStart: number,
+  attempt = 0,
+  proposalBatchId?: number,
+): Candidate[] {
+  const observed = observeOneCandidate(
+    engine, gap, rng, ctx, lineIdStart, attempt, "normal",
+    undefined, undefined, undefined, proposalBatchId,
+  );
+  return [
+    observed.fit,
+    observed.activeSiblingFit ?? null,
+    observed.resolutionSiblingFit ?? null,
+  ]
+    .filter((fit): fit is Candidate => fit !== null);
+}
+
+/**
  * Execute the same atomic operation as `sampleOneCandidate`, retaining the
  * raw generated geometry for audit studies. It does not retry, rank, or alter
  * the candidate path; callers that only need production behavior should use
@@ -254,9 +355,23 @@ export function observeOneCandidate(
         ? gap.targets
         : arcProposalTargetsForGap(gap, ctx.gaps)
     );
+  const historyMode = nativeCatchHistoryMode();
+  const frameMode = nativeCatchFrameMode();
+  const segmentLaw = impactSegmentLaw();
+  const segmentNeedsHistory = segmentLaw === "high-ask-dense-history" ||
+    segmentLaw === "high-ask-detector-history";
+  const history = historyMode !== null || segmentNeedsHistory
+    ? probe.precontactHistory()
+    : null;
   const geometry = sampleArcPlacementGeometry(
     rng, probe.refX, probe.refY, resolvedGeometryTargets, probe.targetState, attempt, gap, lineIdStart, mode,
     ctx.allContactFrames, supportGeometryMode,
+    historyMode === null && !segmentNeedsHistory && frameMode === null ? undefined : {
+      mode: historyMode,
+      history,
+      frameMode,
+      reference: frameMode === null ? null : probe.nativeCatchReference(),
+    },
   );
 
   const fit = tryCandidateGeometry(
@@ -273,6 +388,57 @@ export function observeOneCandidate(
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     fit.sampleAttempt = attempt;
   }
+  let activeSiblingFit: Candidate | null | undefined;
+  if (geometry.activeSiblingLines !== undefined) {
+    candidateSampleCount++;
+    activeSiblingFit = tryCandidateGeometry(
+      engine,
+      gap,
+      { kind: "lines", lines: geometry.activeSiblingLines },
+      lineIdStart,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      mode,
+      probe.preTargetSledTrace,
+      evaluationOptions,
+    ) as Candidate | null;
+    if (activeSiblingFit !== null) {
+      viableCandidateCount++;
+      activeSiblingFit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      activeSiblingFit.sampleAttempt = attempt;
+    }
+  }
+  let resolutionSiblingFit: Candidate | null | undefined;
+  if (geometry.resolutionSiblingLines !== undefined && fit !== null) {
+    candidateSampleCount++;
+    const evaluated = tryCandidateGeometry(
+      engine,
+      gap,
+      { kind: "lines", lines: geometry.resolutionSiblingLines },
+      lineIdStart,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      mode,
+      probe.preTargetSledTrace,
+      evaluationOptions,
+    ) as Candidate | null;
+    const admitted = evaluated !== null && resolutionSiblingHasNoAxisDebt(
+      gap.targets,
+      fit,
+      evaluated,
+    );
+    recordNormalPostCurveResolutionSibling(admitted);
+    resolutionSiblingFit = admitted ? evaluated : null;
+    if (resolutionSiblingFit !== null) {
+      viableCandidateCount++;
+      resolutionSiblingFit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+      resolutionSiblingFit.sampleAttempt = attempt;
+    }
+  }
   candidateSampleTraceSink?.({
     contextKey: engine,
     specContext: ctx,
@@ -285,5 +451,10 @@ export function observeOneCandidate(
     ...(supportGeometryMode === undefined ? {} : { supportGeometryMode }),
     fit,
   });
-  return { geometry, fit };
+  return {
+    geometry,
+    fit,
+    ...(activeSiblingFit === undefined ? {} : { activeSiblingFit }),
+    ...(resolutionSiblingFit === undefined ? {} : { resolutionSiblingFit }),
+  };
 }

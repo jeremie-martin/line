@@ -133,10 +133,17 @@ import {
   candidateQualityObjective,
   setAimBaseFitReuseAllowed,
   setAimCompileBudgetFrames,
+  setAimRepairLaneActive,
   snapshotAimStats,
   snapshotObjectiveLayerSpread,
 } from "./aim.ts";
 import { snapshotDetectorRunwayStats } from "./contact_phase.ts";
+import {
+  makeContactTransitionCandidates,
+  recordContactTransitionBranchSelection,
+  recordContactTransitionFinalTrack,
+  snapshotContactTransitionStats,
+} from "./contact_transition.ts";
 import {
   isKinematicSupportCandidate,
   makeKinematicSupportCandidates,
@@ -175,6 +182,10 @@ import {
 } from "./objective.ts";
 import { IMPACT_TARGETED_ASK } from "./impact_policy.ts";
 import {
+  IMPACT_RESPONSE_MODEL_THRESHOLD_LOGIT,
+  impactResponseModelLogit,
+} from "./impact_response_model.ts";
+import {
   AIR_DELIVERABILITY_DEADBAND,
   airDeliverabilityAsk,
 } from "./air_policy.ts";
@@ -193,11 +204,14 @@ import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts
 import { getSimFrames, refundSimFramesTo } from "./sim_frames.ts";
 import { getMicroSimFrames } from "../core/ballistic_micro_sim.ts";
 import {
+  applyImpactWindowAccelerationAfterReference,
+  setImpactCarrierRippleRepairActive,
   setImpactProfilePressures,
   setImpactTemplateSpecMeanImpact,
   snapshotArcPlacementStats,
 } from "../arc_placement.ts";
 import { makeSolidLine } from "../arc.ts";
+import type { PrecontactMulticontactHistoryReady } from "../trajectory/precontact_multicontact_history.ts";
 import {
   getCandidateProbe,
   getCandidateSamples,
@@ -212,6 +226,283 @@ import type {
   DriftReport,
   Spec,
 } from "./types.ts";
+
+export type ImpactRepairInsuranceMode = "same-speed";
+
+export type ImpactResponseAdmissionMode =
+  | "exact-safe-8"
+  | "exact-safe-all"
+  | "exact-safe-8-admit"
+  | "exact-safe-8-repair"
+  | "exact-contact-all-repair"
+  | "model-exact-contact-repair"
+  | "cached-contact-repair"
+  | "same-speed-tail-repair"
+  | "same-speed-active-tail-repair"
+  | "model-safe-08-admit"
+  | "model-safe-08-post";
+const readImpactResponseAdmission = compileScopedEnv("LR_IMPACT_RESPONSE_ADMISSION");
+const readStudyRepairRefreshCostToEnd = compileScopedEnv(
+  "LR_STUDY_REPAIR_REFRESH_COST_TO_END",
+);
+
+export function repairRefreshCostToEndEnabled(
+  environment?: Record<string, string | undefined>,
+): boolean {
+  const value = environment === undefined
+    ? readStudyRepairRefreshCostToEnd()
+    : environment.LR_STUDY_REPAIR_REFRESH_COST_TO_END;
+  if (value === undefined || value === "" || value === "0" || value === "off") return false;
+  if (value === "1" || value === "on") return true;
+  throw new Error(`LR_STUDY_REPAIR_REFRESH_COST_TO_END must be 0 or 1; got ${value}`);
+}
+
+/**
+ * Replace only the newly observed suffix of a repair cost-to-end profile.
+ * Prefix nodes reached before this restart retain the main-search measurement;
+ * nodes first reached during it are priced from their reach to the exact frame
+ * at which the final incumbent of the restart was adopted.
+ */
+export function refreshRepairCostToEndProfile(
+  previous: readonly number[],
+  incumbentReachFrames: readonly (number | undefined)[],
+  restartStartFrame: number,
+  acceptedFrame: number,
+  anchorGap: number,
+): { profile: number[]; changed: number; newlyMeasured: number } {
+  const profile = [...previous];
+  let changed = 0;
+  let newlyMeasured = 0;
+  for (let gap = Math.max(0, anchorGap); gap < incumbentReachFrames.length; gap++) {
+    const reach = incumbentReachFrames[gap];
+    if (
+      reach === undefined || !Number.isFinite(reach) ||
+      reach < restartStartFrame || reach > acceptedFrame
+    ) continue;
+    const next = Math.max(0, acceptedFrame - reach);
+    const before = profile[gap] ?? -1;
+    if (before === next) continue;
+    if (before <= 0 && next > 0) newlyMeasured++;
+    profile[gap] = next;
+    changed++;
+  }
+  return { profile, changed, newlyMeasured };
+}
+
+export function impactResponseAdmissionMode(
+  environment?: Record<string, string | undefined>,
+): ImpactResponseAdmissionMode | null {
+  const value = environment === undefined
+    ? readImpactResponseAdmission()
+    : environment.LR_IMPACT_RESPONSE_ADMISSION;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (
+    value === "exact-safe-8" || value === "exact-safe-all" ||
+    value === "exact-safe-8-admit" || value === "exact-safe-8-repair" ||
+    value === "exact-contact-all-repair" || value === "model-exact-contact-repair" ||
+    value === "cached-contact-repair" || value === "same-speed-tail-repair" ||
+    value === "same-speed-active-tail-repair" ||
+    value === "model-safe-08-admit" || value === "model-safe-08-post"
+  ) return value;
+  throw new Error(
+    `LR_IMPACT_RESPONSE_ADMISSION must be off, exact-safe-8, exact-safe-all, ` +
+      `exact-safe-8-admit, exact-safe-8-repair, exact-contact-all-repair, ` +
+      `model-exact-contact-repair, cached-contact-repair, same-speed-tail-repair, ` +
+      `same-speed-active-tail-repair, ` +
+      `model-safe-08-admit, or model-safe-08-post; got ${value}`,
+  );
+}
+
+type ImpactResponseAdmissionStats = NonNullable<CompileStats["impact_response_admission"]>;
+const impactResponseAdmissionTotals: ImpactResponseAdmissionStats = {
+  eligible_pools: 0,
+  prefiltered_candidates: 0,
+  response_probes: 0,
+  response_probe_frames: 0,
+  safe_candidates: 0,
+  already_admitted: 0,
+  inserted: 0,
+  branch_reserved: 0,
+  final_selected: 0,
+  impact_error_gain_sum: 0,
+  settled_quality_gain_sum: 0,
+  model_candidates_scored: 0,
+  model_candidates_admitted: 0,
+  contact_retention_rejects: 0,
+  active_repair_probes: 0,
+  active_repair_probe_frames: 0,
+  active_repair_viable: 0,
+  active_repair_interaction_passed: 0,
+  active_repair_material_lines: 0,
+  active_repair_final_lines: 0,
+};
+let impactResponseAdmittedCandidates = new WeakSet<Candidate>();
+
+function resetImpactResponseAdmissionStats(): void {
+  for (const key of Object.keys(impactResponseAdmissionTotals) as Array<keyof ImpactResponseAdmissionStats>) {
+    impactResponseAdmissionTotals[key] = 0;
+  }
+  impactResponseAdmittedCandidates = new WeakSet<Candidate>();
+}
+registerCompileReset(resetImpactResponseAdmissionStats);
+
+function snapshotImpactResponseAdmissionStats(): ImpactResponseAdmissionStats | null {
+  return impactResponseAdmissionMode() === null && impactResponseAdmissionTotals.eligible_pools === 0
+    ? null
+    : { ...impactResponseAdmissionTotals };
+}
+
+export function impactRepairInsuranceMode(
+  environment: Record<string, string | undefined> = process.env,
+): ImpactRepairInsuranceMode | null {
+  const value = environment.LR_IMPACT_REPAIR_INSURANCE;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (value === "1" || value === "same-speed") return "same-speed";
+  throw new Error(`LR_IMPACT_REPAIR_INSURANCE must be off or same-speed; got ${value}`);
+}
+
+type ImpactRepairInsuranceStats = NonNullable<CompileStats["impact_repair_insurance"]>;
+const impactRepairInsuranceTotals: ImpactRepairInsuranceStats = {
+  eligible_pools: 0,
+  specialist_available: 0,
+  specialist_already_selected: 0,
+  specialist_inserted: 0,
+  final_selected: 0,
+  suppressed_by_reserved_branch: 0,
+  impact_error_gain_sum: 0,
+  speed_error_delta_sum: 0,
+  displaced_score_delta_sum: 0,
+};
+let impactRepairInsuredCandidates = new WeakSet<Candidate>();
+
+function resetImpactRepairInsuranceStats(): void {
+  for (const key of Object.keys(impactRepairInsuranceTotals) as Array<keyof ImpactRepairInsuranceStats>) {
+    impactRepairInsuranceTotals[key] = 0;
+  }
+  impactRepairInsuredCandidates = new WeakSet<Candidate>();
+}
+registerCompileReset(resetImpactRepairInsuranceStats);
+
+function snapshotImpactRepairInsuranceStats(): ImpactRepairInsuranceStats | null {
+  return impactRepairInsuranceMode() === null && impactRepairInsuranceTotals.eligible_pools === 0
+    ? null
+    : { ...impactRepairInsuranceTotals };
+}
+
+export type ImpactSurgicalRepairMode =
+  | "same-speed-suffix"
+  | "release-transport"
+  | "post-contact-bridge-quarter"
+  | "seeded-suffix-restart"
+  | "joint-pair-restart"
+  | "joint-pair-quality-restart"
+  | "joint-pair-balanced-restart"
+  | "joint-pair-contrast-restart"
+  | "joint-pair-balanced-terminal"
+  | "joint-pair-score-terminal"
+  | "joint-pair-window-terminal"
+  | "joint-pair-cached-terminal";
+
+export function impactSurgicalRepairMode(
+  environment: Record<string, string | undefined> = process.env,
+): ImpactSurgicalRepairMode | null {
+  const value = environment.LR_IMPACT_SURGICAL_REPAIR;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (value === "1" || value === "same-speed-suffix") return "same-speed-suffix";
+  if (
+    value === "release-transport" || value === "post-contact-bridge-quarter" ||
+    value === "seeded-suffix-restart" || value === "joint-pair-restart" ||
+    value === "joint-pair-quality-restart" || value === "joint-pair-balanced-restart" ||
+    value === "joint-pair-contrast-restart" || value === "joint-pair-balanced-terminal" ||
+    value === "joint-pair-score-terminal" || value === "joint-pair-window-terminal" ||
+    value === "joint-pair-cached-terminal"
+  ) return value;
+  throw new Error(
+    `LR_IMPACT_SURGICAL_REPAIR must be off, same-speed-suffix, release-transport, ` +
+      `post-contact-bridge-quarter, seeded-suffix-restart, joint-pair-restart, or ` +
+      `joint-pair-quality-restart, joint-pair-balanced-restart, or ` +
+      `joint-pair-contrast-restart, joint-pair-balanced-terminal, or ` +
+      `joint-pair-score-terminal, joint-pair-window-terminal, or ` +
+      `joint-pair-cached-terminal; got ${value}`,
+  );
+}
+
+export type RepairFrontierOrder = "objective";
+
+export function repairFrontierOrder(
+  environment: Record<string, string | undefined> = process.env,
+): RepairFrontierOrder | null {
+  const value = environment.LR_REPAIR_FRONTIER_ORDER;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (value === "objective") return value;
+  throw new Error(`LR_REPAIR_FRONTIER_ORDER must be off or objective; got ${value}`);
+}
+
+const JOINT_PAIR_REPAIR_CURRENT_LIMIT = 12;
+const JOINT_PAIR_REPAIR_NEXT_LIMIT = 6;
+const JOINT_PAIR_REPAIR_RETURN_LIMIT = 4;
+const JOINT_PAIR_REPAIR_MIN_IMPACT_GAIN = .025;
+const JOINT_PAIR_REPAIR_MIN_TARGET_CONTRAST = .2;
+const JOINT_PAIR_REPAIR_MIN_RMS_GAIN = .025;
+const JOINT_PAIR_REPAIR_WINDOW_MIN_FRAMES = 17;
+const JOINT_PAIR_REPAIR_WINDOW_MAX_FRAMES = 25;
+
+/** Frozen atlas opportunity gate: [17,25) frames carries 64.5% of current
+ * impact SSE. The gate is source- and seed-blind and requires an impact ask. */
+export function jointPairRepairWindowEligible(
+  gap: Gap | undefined,
+  targets: AxisValues | undefined,
+): boolean {
+  if (gap === undefined || targets?.impact === undefined) return false;
+  const frames = gap.endFrame - gap.startFrame;
+  return frames >= JOINT_PAIR_REPAIR_WINDOW_MIN_FRAMES &&
+    frames < JOINT_PAIR_REPAIR_WINDOW_MAX_FRAMES;
+}
+
+type ImpactSurgicalRepairStats = NonNullable<CompileStats["impact_surgical_repair"]>;
+const impactSurgicalRepairTotals: ImpactSurgicalRepairStats = {
+  eligible_gaps: 0,
+  cached_pools: 0,
+  specialist_available: 0,
+  attempts: 0,
+  bridge_constructed: 0,
+  bridge_candidate_valid: 0,
+  bridge_delivery_passed: 0,
+  bridge_speed_state_passed: 0,
+  bridge_deformation_state_passed: 0,
+  bridge_relative_velocity_state_passed: 0,
+  bridge_phase_state_passed: 0,
+  bridge_state_passed: 0,
+  bridge_contact_passed: 0,
+  contract_passed: 0,
+  accepted: 0,
+  final_selected: 0,
+  local_impact_error_gain_sum: 0,
+  local_speed_error_delta_sum: 0,
+  local_pair_sse_gain_sum: 0,
+  local_secondary_sse_delta_sum: 0,
+  local_impact_target_contrast_sum: 0,
+  joint_cached_next_pools: 0,
+  joint_cached_return_pools: 0,
+  release_velocity_delta_sum: 0,
+  suffix_translation_px_sum: 0,
+  frames_spent: 0,
+};
+let impactSurgicalCandidates = new WeakSet<Candidate>();
+
+function resetImpactSurgicalRepairStats(): void {
+  for (const key of Object.keys(impactSurgicalRepairTotals) as Array<keyof ImpactSurgicalRepairStats>) {
+    impactSurgicalRepairTotals[key] = 0;
+  }
+  impactSurgicalCandidates = new WeakSet<Candidate>();
+}
+registerCompileReset(resetImpactSurgicalRepairStats);
+
+function snapshotImpactSurgicalRepairStats(): ImpactSurgicalRepairStats | null {
+  return impactSurgicalRepairMode() === null && impactSurgicalRepairTotals.eligible_gaps === 0
+    ? null
+    : { ...impactSurgicalRepairTotals };
+}
 
 export type CompileHandoffOptions = {
   /** Simulated-frame budget for this run. One scalar budget = one independent full
@@ -390,6 +681,7 @@ export type HandoffPoolProbeContactResponse = {
 export type HandoffPoolProbeRecord = {
   gapIndex: number;
   entrySpeed: number;
+  precontactHistory: PrecontactMulticontactHistoryReady | null;
   targets: AxisValues;
   nextTargets: AxisValues | null;
   candidates: HandoffPoolProbeCandidate[];
@@ -535,14 +827,31 @@ function candidateOwnedContactResponse(
   prefixEngine: any,
   candidate: Candidate,
   gap: Gap,
+  metered = false,
 ): HandoffPoolProbeContactResponse | null {
   try {
     const engine = prefixEngine.addLine(candidate.lines.map(engineLineFromTrackLine));
+    return candidateOwnedContactResponseOnEngine(engine, candidate, gap, metered);
+  } catch {
+    return null;
+  }
+}
+
+/** Read a candidate response from the engine that already owns its lines. */
+function candidateOwnedContactResponseOnEngine(
+  engine: any,
+  candidate: Candidate,
+  gap: Gap,
+  metered = false,
+): HandoffPoolProbeContactResponse | null {
+  try {
     if (typeof engine?.getUpdatesAtFrame !== "function" || typeof engine?.getRider !== "function") return null;
     const candidateLineIds = new Set(candidate.lines.map((line) => line.id));
     const samples: HandoffPoolProbeContactResponse["samples"] = [];
     for (let frame = gap.endFrame; frame <= gap.endFrame + IMPACT_WINDOW; frame++) {
-      const rider = engine.getRider(Math.max(0, frame));
+      const rider = metered
+        ? getRiderMetered(engine, Math.max(0, frame))
+        : engine.getRider(Math.max(0, frame));
       const points: HandoffPoolProbeContactResponse["samples"][number]["points"] = {};
       for (const name of ["PEG", "TAIL", "NOSE", "STRING"] as const) {
         const point = rider?.get?.(name);
@@ -578,6 +887,225 @@ function candidateOwnedContactResponse(
   } catch {
     return null;
   }
+}
+
+type CandidateContactResponseSummary = {
+  collectiveSpeedDelta: number;
+  rmsPairDistanceChange: number;
+  rmsRelativeVelocityChange: number;
+  absPhaseSlipDeg: number;
+  candidateOwnedSledContactFrames: number;
+  candidateOwnedSledUpdateCount: number;
+  candidateOwnedSledPointCoverage: number;
+};
+
+function summarizeCandidateContactResponse(
+  response: HandoffPoolProbeContactResponse | null,
+): CandidateContactResponseSummary | null {
+  if (response === null || response.samples.length < 2) return null;
+  const snapshots = response.samples.map((sample) => {
+    const points = (["PEG", "TAIL", "NOSE", "STRING"] as const).map((name) => sample.points[name]);
+    if (points.some((point) => point === undefined || point.vx === null || point.vy === null)) return null;
+    const readable = points as Array<NonNullable<typeof points[number]>>;
+    const centerVelocity = {
+      x: readable.reduce((sum, point) => sum + point.vx! / readable.length, 0),
+      y: readable.reduce((sum, point) => sum + point.vy! / readable.length, 0),
+    };
+    const relativeVelocities = readable.map((point) => ({
+      x: point.vx! - centerVelocity.x,
+      y: point.vy! - centerVelocity.y,
+    }));
+    const pairDistances: number[] = [];
+    for (let left = 0; left < readable.length; left++) {
+      for (let right = left + 1; right < readable.length; right++) {
+        pairDistances.push(Math.hypot(
+          readable[left]!.x - readable[right]!.x,
+          readable[left]!.y - readable[right]!.y,
+        ));
+      }
+    }
+    const tail = readable[1]!;
+    const nose = readable[2]!;
+    return {
+      velocity: centerVelocity,
+      relativeVelocities,
+      pairDistances,
+      pose: Math.atan2(nose.y - tail.y, nose.x - tail.x),
+    };
+  });
+  if (snapshots.some((snapshot) => snapshot === null)) return null;
+  const first = snapshots[0]!;
+  const last = snapshots[snapshots.length - 1]!;
+  if (first === null || last === null) return null;
+  const angleDelta = (from: number, to: number): number => {
+    let delta = to - from;
+    while (delta <= -Math.PI) delta += 2 * Math.PI;
+    while (delta > Math.PI) delta -= 2 * Math.PI;
+    return delta;
+  };
+  const collectiveTurn = angleDelta(
+    Math.atan2(first.velocity.y, first.velocity.x),
+    Math.atan2(last.velocity.y, last.velocity.x),
+  );
+  const poseTurn = angleDelta(first.pose, last.pose);
+  const rms = (values: readonly number[]): number => Math.sqrt(
+    values.reduce((sum, value) => sum + value * value / values.length, 0),
+  );
+  const contactedPoints = new Set<string>();
+  let candidateOwnedSledContactFrames = 0;
+  let candidateOwnedSledUpdateCount = 0;
+  for (const sample of response.samples) {
+    let contacted = false;
+    for (const contact of sample.sledContacts) {
+      for (const pointId of contact.pointIds) {
+        contactedPoints.add(pointId);
+        candidateOwnedSledUpdateCount++;
+        contacted = true;
+      }
+    }
+    if (contacted) candidateOwnedSledContactFrames++;
+  }
+  return {
+    collectiveSpeedDelta: Math.hypot(last.velocity.x, last.velocity.y) -
+      Math.hypot(first.velocity.x, first.velocity.y),
+    rmsPairDistanceChange: rms(last.pairDistances.map((distance, index) =>
+      distance - first.pairDistances[index]!
+    )),
+    rmsRelativeVelocityChange: rms(last.relativeVelocities.map((velocity, index) =>
+      Math.hypot(
+        velocity.x - first.relativeVelocities[index]!.x,
+        velocity.y - first.relativeVelocities[index]!.y,
+      )
+    )),
+    absPhaseSlipDeg: Math.abs((poseTurn - collectiveTurn) * 180 / Math.PI),
+    candidateOwnedSledContactFrames,
+    candidateOwnedSledUpdateCount,
+    candidateOwnedSledPointCoverage: contactedPoints.size,
+  };
+}
+
+export function responseSafeImpactTransition(
+  incumbent: CandidateContactResponseSummary,
+  candidate: CandidateContactResponseSummary,
+): boolean {
+  return candidate.collectiveSpeedDelta >= incumbent.collectiveSpeedDelta - .05 &&
+    candidate.rmsPairDistanceChange <= incumbent.rmsPairDistanceChange + .05 &&
+    candidate.rmsRelativeVelocityChange <= incumbent.rmsRelativeVelocityChange + .05 &&
+    candidate.absPhaseSlipDeg <= incumbent.absPhaseSlipDeg + 3;
+}
+
+/**
+ * A response-safe impact repair must also retain the native carrier's actual
+ * multi-contact work.  Counts are exact candidate-line collision updates over
+ * the same H..H+6 window as the state certificate; no geometry proxy or point
+ * identity is substituted for an engine-owned update.
+ */
+export function responseRetainsCandidateContact(
+  incumbent: CandidateContactResponseSummary,
+  candidate: CandidateContactResponseSummary,
+): boolean {
+  return candidate.candidateOwnedSledContactFrames >= incumbent.candidateOwnedSledContactFrames &&
+    candidate.candidateOwnedSledUpdateCount >= incumbent.candidateOwnedSledUpdateCount &&
+    candidate.candidateOwnedSledPointCoverage >= incumbent.candidateOwnedSledPointCoverage;
+}
+
+/**
+ * Preserve the incumbent polyline through its candidate-reference vertex, then
+ * move only its response-side vertices toward the repair's response profile.
+ * Both suffixes are parameterized by their own arclength and aligned at their
+ * respective reference-nearest vertices, so the capture anchor and every
+ * capture-side line remain byte-stable even when segment counts differ.
+ */
+function postContactRepairBridgeLines(
+  incumbent: Candidate,
+  repair: Candidate,
+  blend: number,
+  lineIdStart: number,
+): TrackLine[] | null {
+  if (
+    incumbent.ref === undefined || repair.ref === undefined ||
+    incumbent.lines.length === 0 || repair.lines.length === 0 ||
+    !(blend > 0 && blend < 1)
+  ) return null;
+  const vertices = (lines: readonly TrackLine[]): Array<{ x: number; y: number }> | null => {
+    const out = [{ x: lines[0]!.x1, y: lines[0]!.y1 }];
+    for (const line of lines) {
+      const previous = out[out.length - 1]!;
+      if (Math.hypot(previous.x - line.x1, previous.y - line.y1) > 1e-6) return null;
+      out.push({ x: line.x2, y: line.y2 });
+    }
+    return out;
+  };
+  const incumbentVertices = vertices(incumbent.lines);
+  const repairVertices = vertices(repair.lines);
+  if (incumbentVertices === null || repairVertices === null) return null;
+  const nearestVertex = (
+    points: readonly { x: number; y: number }[],
+    reference: { x: number; y: number },
+  ): number => points.reduce((best, point, index) =>
+    Math.hypot(point.x - reference.x, point.y - reference.y) <
+        Math.hypot(points[best]!.x - reference.x, points[best]!.y - reference.y)
+      ? index
+      : best, 0);
+  const incumbentAnchorIndex = nearestVertex(incumbentVertices, incumbent.ref);
+  const repairAnchorIndex = nearestVertex(repairVertices, repair.ref);
+  if (
+    incumbentAnchorIndex >= incumbentVertices.length - 1 ||
+    repairAnchorIndex >= repairVertices.length - 1
+  ) return null;
+  const cumulative = (
+    points: readonly { x: number; y: number }[],
+    start: number,
+  ): number[] => {
+    const out = [0];
+    for (let index = start + 1; index < points.length; index++) {
+      out.push(out[out.length - 1]! + Math.hypot(
+        points[index]!.x - points[index - 1]!.x,
+        points[index]!.y - points[index - 1]!.y,
+      ));
+    }
+    return out;
+  };
+  const incumbentArc = cumulative(incumbentVertices, incumbentAnchorIndex);
+  const repairArc = cumulative(repairVertices, repairAnchorIndex);
+  const incumbentLength = incumbentArc[incumbentArc.length - 1]!;
+  const repairLength = repairArc[repairArc.length - 1]!;
+  if (!(incumbentLength > 1e-6) || !(repairLength > 1e-6)) return null;
+  const repairPointAt = (fraction: number): { x: number; y: number } => {
+    const distance = fraction * repairLength;
+    let segment = 1;
+    while (segment < repairArc.length && repairArc[segment]! < distance) segment++;
+    const upper = Math.min(segment, repairArc.length - 1);
+    const lower = Math.max(0, upper - 1);
+    const span = repairArc[upper]! - repairArc[lower]!;
+    const t = span <= 1e-12 ? 0 : (distance - repairArc[lower]!) / span;
+    const left = repairVertices[repairAnchorIndex + lower]!;
+    const right = repairVertices[repairAnchorIndex + upper]!;
+    return { x: left.x + (right.x - left.x) * t, y: left.y + (right.y - left.y) * t };
+  };
+  const incumbentAnchor = incumbentVertices[incumbentAnchorIndex]!;
+  const repairAnchor = repairVertices[repairAnchorIndex]!;
+  const bridged = incumbentVertices.map((point, index) => {
+    if (index <= incumbentAnchorIndex) return point;
+    const fraction = incumbentArc[index - incumbentAnchorIndex]! / incumbentLength;
+    const repairPoint = repairPointAt(fraction);
+    const aligned = {
+      x: incumbentAnchor.x + repairPoint.x - repairAnchor.x,
+      y: incumbentAnchor.y + repairPoint.y - repairAnchor.y,
+    };
+    return {
+      x: point.x + (aligned.x - point.x) * blend,
+      y: point.y + (aligned.y - point.y) * blend,
+    };
+  });
+  return incumbent.lines.map((line, index) => ({
+    ...line,
+    id: lineIdStart + index,
+    x1: bridged[index]!.x,
+    y1: bridged[index]!.y,
+    x2: bridged[index + 1]!.x,
+    y2: bridged[index + 1]!.y,
+  }));
 }
 
 export type HandoffCapacityProbeRecord = {
@@ -2056,8 +2584,52 @@ function compileHandoffInternal(
         );
       }
       const arcStats = snapshotArcPlacementStats();
+      if (arcStats.impact_active_carrier_law !== undefined) {
+        arcStats.impact_active_carrier_final_lines = best.track.lines.reduce(
+          (count, line) => count + (line.type === 1 ? 1 : 0),
+          0,
+        );
+      }
+      if (arcStats.impact_carrier_ripple_law !== undefined) {
+        arcStats.impact_carrier_ripple_final_lines = best.track.lines.reduce(
+          (count, line) => count + (line.type === 1 ? 1 : 0),
+          0,
+        );
+      }
       const aimStats = snapshotAimStats();
       const detectorRunwayStats = snapshotDetectorRunwayStats();
+      recordContactTransitionFinalTrack(best.track.lines);
+      const contactTransitionStats = snapshotContactTransitionStats();
+      const impactResponseAdmissionStats = snapshotImpactResponseAdmissionStats();
+      if (impactResponseAdmissionStats !== null) {
+        impactResponseAdmissionStats.final_selected = bestRegisteredNode?.search.prefixFits.reduce(
+          (count, fit) => count +
+            (fit !== null && impactResponseAdmittedCandidates.has(fit as Candidate) ? 1 : 0),
+          0,
+        ) ?? 0;
+        if (impactResponseAdmissionMode() === "same-speed-active-tail-repair") {
+          impactResponseAdmissionStats.active_repair_final_lines = best.track.lines.reduce(
+            (count, line) => count + (line.type === 1 ? 1 : 0),
+            0,
+          );
+        }
+      }
+      const impactRepairInsuranceStats = snapshotImpactRepairInsuranceStats();
+      if (impactRepairInsuranceStats !== null) {
+        impactRepairInsuranceStats.final_selected = bestRegisteredNode?.search.prefixFits.reduce(
+          (count, fit) => count +
+            (fit !== null && impactRepairInsuredCandidates.has(fit as Candidate) ? 1 : 0),
+          0,
+        ) ?? 0;
+      }
+      const impactSurgicalRepairStats = snapshotImpactSurgicalRepairStats();
+      if (impactSurgicalRepairStats !== null) {
+        impactSurgicalRepairStats.final_selected = bestRegisteredNode?.search.prefixFits.reduce(
+          (count, fit) => count +
+            (fit !== null && impactSurgicalCandidates.has(fit as Candidate) ? 1 : 0),
+          0,
+        ) ?? 0;
+      }
       const kinematicSupportStats = snapshotKinematicSupportStats();
       const releaseExitStats = snapshotReleaseExitStats();
       const gapfitShortStats = snapshotGapfitShortStats();
@@ -2154,6 +2726,16 @@ function compileHandoffInternal(
           // (LR_AIM_ENUM=0) — ablation archives stay byte-identical.
           ...(aimStats !== null ? { aim: aimStats } : {}),
           ...(detectorRunwayStats !== null ? { contact_phase: detectorRunwayStats } : {}),
+          ...(contactTransitionStats !== null ? { contact_transition: contactTransitionStats } : {}),
+          ...(impactResponseAdmissionStats !== null
+            ? { impact_response_admission: impactResponseAdmissionStats }
+            : {}),
+          ...(impactRepairInsuranceStats !== null
+            ? { impact_repair_insurance: impactRepairInsuranceStats }
+            : {}),
+          ...(impactSurgicalRepairStats !== null
+            ? { impact_surgical_repair: impactSurgicalRepairStats }
+            : {}),
           ...(kinematicSupportStats !== null ? { kinematic_support: kinematicSupportStats } : {}),
           // Geometric-exit release-read funnel (core/candidate.ts): the
           // fallback-rate monitor. Absent under LR_RANK_QUALITY=off (no read
@@ -2194,6 +2776,13 @@ function compileHandoffInternal(
                 frames_spent: repairRecords.reduce((s, r) => s + r.framesSpent, 0),
                 gaps_touched: new Set(repairRecords.map((r) => r.worst)).size,
                 reconverged: repairRecords.filter((r) => !r.accepted && r.framesSpent > 0).length,
+                ...(refreshRepairCostToEnd
+                  ? {
+                    cost_profile_refreshes: repairCostProfileRefreshes,
+                    cost_profile_entries_changed: repairCostProfileEntriesChanged,
+                    cost_profile_newly_measured: repairCostProfileNewlyMeasured,
+                  }
+                  : {}),
                 ...(repair?.log ? { records: repairRecords } : {}),
               },
             }
@@ -2378,13 +2967,16 @@ function compileHandoffInternal(
     // the node cap is hit, or `keepGoing()` returns false. Both the main search and each repair
     // restart run on this — they differ only in their frontier stacks and stop predicate. Returns
     // early when a budget snapshot is captured (kind:"captured") so the caller's post-loop runs.
+    const objectiveRepairFrontier = repairFrontierOrder() === "objective";
     const runFrontier = (
       pass: HandoffNode[], fb: HandoffNode[], keepGoing: () => boolean,
       onProcessed?: () => void,
     ): void => {
       while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
         if (!keepGoing()) break;
-        const node = popNextFrontierNode(pass, fb);
+        const node = objectiveRepairFrontier && repairLaneActive
+          ? popBestObjectiveFrontierNode(pass, fb, gaps, ctx.durationFrames)
+          : popNextFrontierNode(pass, fb);
         if (handoffFrontierProbeHook !== null) {
           handoffFrontierProbeHook({
             simFrames: getSimFrames(),
@@ -2425,24 +3017,454 @@ function compileHandoffInternal(
     // The offsets are two counter reads per processed node (charged work and the
     // register's improvement count) — no evaluation, no simulation, no effect on
     // the frontier — so budget telemetry can record them without LR_REPAIR_LOG.
-    const trackImprovementOffsets = repair?.log === true || budgetTelemetryLevel !== "off";
-    const runFrontierFrom = (initial: HandoffNode, ceiling: number): number[] => {
+    const refreshRepairCostToEnd = repairRefreshCostToEndEnabled();
+    const trackImprovementOffsets = repair?.log === true || budgetTelemetryLevel !== "off" ||
+      refreshRepairCostToEnd;
+    let repairCostProfileRefreshes = 0;
+    let repairCostProfileEntriesChanged = 0;
+    let repairCostProfileNewlyMeasured = 0;
+    const runFrontierFrom = (
+      initial: HandoffNode,
+      ceiling: number,
+      stopAfterTerminalConsider?: number,
+    ): number[] => {
       const pass: HandoffNode[] = initial.skippedContacts === 0 ? [initial] : [];
       const fb: HandoffNode[] = initial.skippedContacts === 0 ? [] : [initial];
+      const keepGoing = (): boolean => getSimFrames() < ceiling &&
+        (stopAfterTerminalConsider === undefined || terminalConsiders < stopAfterTerminalConsider);
       if (!trackImprovementOffsets) {
-        runFrontier(pass, fb, () => getSimFrames() < ceiling);
+        runFrontier(pass, fb, keepGoing);
         return [];
       }
       const framesBefore = getSimFrames();
       let improvementsSeen = register.improvementCount;
       const improvementFrameOffsets: number[] = [];
-      runFrontier(pass, fb, () => getSimFrames() < ceiling, () => {
+      runFrontier(pass, fb, keepGoing, () => {
         while (improvementsSeen < register.improvementCount) {
           improvementFrameOffsets.push(getSimFrames() - framesBefore);
           improvementsSeen++;
         }
       });
       return improvementFrameOffsets;
+    };
+
+    /**
+     * Exact one-edge transplant into an already passing incumbent. Unlike an
+     * ordinary repair restart, every downstream line keeps its geometry; only
+     * line IDs are rebased to preserve uniqueness when the replacement has a
+     * different segment count. The full scorer/detector replay and register
+     * decide whether that literal suffix remains valid and improves quality.
+     */
+    const tryImpactSurgicalRepair = (
+      incumbent: HandoffNode,
+      root: SearchNode,
+      gapIndex: number,
+      seededCeiling?: number,
+    ): { attempted: boolean; accepted: boolean } => {
+      const mode = impactSurgicalRepairMode();
+      if (mode === null) return { attempted: false, accepted: false };
+      const jointCachedMode = mode === "joint-pair-cached-terminal";
+      const jointWindowMode = mode === "joint-pair-window-terminal";
+      const jointScoreMode = mode === "joint-pair-score-terminal" || jointWindowMode ||
+        jointCachedMode;
+      const reportGap = evaluateCached(incumbent).report.gaps.find((entry) =>
+        entry.gap_index === gapIndex
+      );
+      const repairGap = gaps[gapIndex];
+      const repairTargets = gapAxisTargets[gapIndex] ?? repairGap?.targets;
+      if (jointWindowMode && !jointPairRepairWindowEligible(repairGap, repairTargets)) {
+        return { attempted: false, accepted: false };
+      }
+      const impactReport = reportGap?.axes.impact;
+      if (!jointScoreMode) {
+        if (impactReport === undefined) return { attempted: false, accepted: false };
+        const largestError = Math.max(...Object.values(reportGap.axes).map((axis) => axis.error));
+        if (impactReport.error + 1e-12 < largestError) return { attempted: false, accepted: false };
+      }
+      impactSurgicalRepairTotals.eligible_gaps++;
+
+      let prefix = root;
+      for (let index = 0; index < gapIndex; index++) {
+        prefix = extendNodeCached(prefix, incumbent.search.prefixFits[index] ?? null);
+      }
+      const cache = prefix._candidatesCache;
+      if (cache === null || cache.seed !== incumbent.searchSeed) {
+        return { attempted: false, accepted: false };
+      }
+      impactSurgicalRepairTotals.cached_pools++;
+      const incumbentFit = incumbent.search.prefixFits[gapIndex] as Candidate | null | undefined;
+      const gap = repairGap;
+      const targets = repairTargets;
+      const targetImpact = targets?.impact;
+      const targetSpeed = targets?.speed;
+      const incumbentImpact = incumbentFit?.achieved.impact;
+      const incumbentSpeed = incumbentFit?.achieved.speed;
+      if (
+        mode === "joint-pair-restart" || mode === "joint-pair-quality-restart" ||
+        mode === "joint-pair-balanced-restart" || mode === "joint-pair-contrast-restart" ||
+        mode === "joint-pair-balanced-terminal" || mode === "joint-pair-score-terminal"
+        || mode === "joint-pair-window-terminal" || mode === "joint-pair-cached-terminal"
+      ) {
+        const nextGap = gaps[gapIndex + 1];
+        const returnGap = gaps[gapIndex + 2];
+        const incumbentNext = incumbent.search.prefixFits[gapIndex + 1] as Candidate | null | undefined;
+        const nextTargets = gapAxisTargets[gapIndex + 1] ?? nextGap?.targets;
+        if (
+          incumbentFit == null || incumbentNext == null || gap === undefined ||
+          nextGap === undefined || !gap.endsWithContact || !nextGap.endsWithContact ||
+          targets === undefined || nextTargets === undefined ||
+          !jointScoreMode && targetImpact === undefined ||
+          seededCeiling === undefined || !Number.isFinite(seededCeiling) ||
+          seededCeiling <= getSimFrames()
+        ) return { attempted: false, accepted: false };
+        const targetImpactContrast = targetImpact === undefined || nextTargets.impact === undefined
+          ? null
+          : Math.abs(targetImpact - nextTargets.impact);
+        if (
+          mode === "joint-pair-contrast-restart" &&
+          (targetImpactContrast === null ||
+            targetImpactContrast + 1e-12 < JOINT_PAIR_REPAIR_MIN_TARGET_CONTRAST)
+        ) return { attempted: false, accepted: false };
+        const incumbentPair = jointPairMetrics(
+          incumbentFit,
+          incumbentNext,
+          targets,
+          nextTargets,
+        );
+        if (incumbentPair.impactAbsError === null) {
+          return { attempted: false, accepted: false };
+        }
+        const framesBefore = getSimFrames();
+        let best: {
+          current: Candidate;
+          next: Candidate;
+          search: SearchNode;
+          metrics: JointPairMetrics;
+        } | null = null;
+        const currentCandidates = cache.candidates.slice(
+          0,
+          JOINT_PAIR_REPAIR_CURRENT_LIMIT,
+        );
+        for (const current of currentCandidates) {
+          if (getSimFrames() >= seededCeiling) break;
+          const child = extendNodeCached(prefix, current);
+          const cachedNext = child._candidatesCache;
+          if (
+            jointCachedMode &&
+            (cachedNext === null || cachedNext.seed !== incumbent.searchSeed)
+          ) continue;
+          if (jointCachedMode) impactSurgicalRepairTotals.joint_cached_next_pools++;
+          const nextCandidates = (jointCachedMode
+            ? cachedNext!.candidates
+            : getCandidatesSorted(
+              child,
+              gaps,
+              ctx,
+              incumbent.searchSeed,
+              JOINT_PAIR_REPAIR_NEXT_LIMIT,
+            )).slice(0, JOINT_PAIR_REPAIR_NEXT_LIMIT);
+          for (const next of nextCandidates) {
+            if (getSimFrames() >= seededCeiling) break;
+            const metrics = jointPairMetrics(current, next, targets, nextTargets);
+            if (
+              metrics.sse > incumbentPair.sse + 1e-12 ||
+              jointScoreMode &&
+                metrics.rms + JOINT_PAIR_REPAIR_MIN_RMS_GAIN >= incumbentPair.rms ||
+              (mode === "joint-pair-balanced-restart" || mode === "joint-pair-contrast-restart" ||
+                mode === "joint-pair-balanced-terminal" || mode === "joint-pair-window-terminal") &&
+                metrics.secondarySse > incumbentPair.secondarySse + 1e-12 ||
+              !jointScoreMode &&
+                (metrics.impactAbsError === null ||
+                  metrics.impactAbsError + JOINT_PAIR_REPAIR_MIN_IMPACT_GAIN >=
+                    incumbentPair.impactAbsError!)
+            ) continue;
+            const pairSearch = extendNodeCached(child, next);
+            const cachedReturn = pairSearch._candidatesCache;
+            const hasReturn = returnGap === undefined || !returnGap.endsWithContact ||
+              (jointCachedMode
+                ? cachedReturn !== null && cachedReturn.seed === incumbent.searchSeed &&
+                  cachedReturn.candidates.length > 0
+                : getCandidatesSorted(
+                  pairSearch,
+                  gaps,
+                  ctx,
+                  incumbent.searchSeed,
+                  JOINT_PAIR_REPAIR_RETURN_LIMIT,
+                ).length > 0);
+            if (!hasReturn) continue;
+            if (jointCachedMode) impactSurgicalRepairTotals.joint_cached_return_pools++;
+            if (
+              best === null ||
+              (mode !== "joint-pair-restart"
+                ? metrics.sse < best.metrics.sse ||
+                  metrics.sse === best.metrics.sse &&
+                    metrics.impactAbsError < best.metrics.impactAbsError!
+                : metrics.impactAbsError < best.metrics.impactAbsError! ||
+                  metrics.impactAbsError === best.metrics.impactAbsError &&
+                    metrics.sse < best.metrics.sse)
+            ) best = { current, next, search: pairSearch, metrics };
+          }
+        }
+        if (best === null) {
+          impactSurgicalRepairTotals.frames_spent += getSimFrames() - framesBefore;
+          return { attempted: false, accepted: false };
+        }
+        impactSurgicalRepairTotals.specialist_available++;
+        impactSurgicalRepairTotals.attempts++;
+        if (incumbentPair.impactAbsError !== null && best.metrics.impactAbsError !== null) {
+          impactSurgicalRepairTotals.local_impact_error_gain_sum +=
+            incumbentPair.impactAbsError - best.metrics.impactAbsError;
+        }
+        impactSurgicalRepairTotals.local_speed_error_delta_sum +=
+          best.metrics.speedAbsError - incumbentPair.speedAbsError;
+        impactSurgicalRepairTotals.local_pair_sse_gain_sum +=
+          incumbentPair.sse - best.metrics.sse;
+        impactSurgicalRepairTotals.local_secondary_sse_delta_sum +=
+          best.metrics.secondarySse - incumbentPair.secondarySse;
+        impactSurgicalRepairTotals.local_impact_target_contrast_sum +=
+          targetImpactContrast ?? 0;
+        const seededNode: HandoffNode = {
+          ...incumbent,
+          search: best.search,
+          searchSeed:
+            ((incumbent.searchSeed | 0) ^ Math.imul(gapIndex + 1, 0x85ebca6b)) |
+            0,
+          startExpanded: true,
+          deferExpansion: false,
+          rankTrace: [],
+          skippedContacts: 0,
+        };
+        const incumbentBefore = bestCompleteNode;
+        const terminalsBefore = terminalConsiders;
+        repairLaneActive = true;
+        setAimRepairLaneActive(true);
+        setImpactCarrierRippleRepairActive(true);
+        try {
+          runFrontierFrom(
+            seededNode,
+            seededCeiling,
+            mode === "joint-pair-balanced-terminal" || mode === "joint-pair-score-terminal" ||
+                mode === "joint-pair-window-terminal" || mode === "joint-pair-cached-terminal"
+              ? terminalsBefore + 1
+              : undefined,
+          );
+        } finally {
+          repairLaneActive = false;
+          setAimRepairLaneActive(false);
+          setImpactCarrierRippleRepairActive(false);
+        }
+        impactSurgicalRepairTotals.frames_spent += getSimFrames() - framesBefore;
+        if (terminalConsiders > terminalsBefore) {
+          impactSurgicalRepairTotals.contract_passed++;
+        }
+        if (bestCompleteNode !== incumbentBefore) {
+          impactSurgicalRepairTotals.accepted++;
+          impactSurgicalCandidates.add(best.current);
+          impactSurgicalCandidates.add(best.next);
+          return { attempted: true, accepted: true };
+        }
+        return { attempted: true, accepted: false };
+      }
+      if (
+        incumbentFit == null || gap === undefined || !gap.endsWithContact ||
+        targetImpact === undefined || targetSpeed === undefined ||
+        incumbentImpact === undefined || incumbentSpeed === undefined
+      ) return { attempted: false, accepted: false };
+      const incumbentImpactError = Math.abs(incumbentImpact - targetImpact);
+      const incumbentSpeedError = Math.abs(incumbentSpeed - targetSpeed);
+      const incumbentRelease = incumbentFit.ballisticLaunch?.state;
+      const releaseVelocityDelta = (candidate: Candidate): number => {
+        const release = candidate.ballisticLaunch?.state;
+        if (release === undefined || incumbentRelease === undefined) return Infinity;
+        return Math.hypot(release.vx - incumbentRelease.vx, release.vy - incumbentRelease.vy);
+      };
+      const specialist = cache.candidates
+        .slice(0, handoffCandidatePool())
+        .filter((candidate) => {
+          const impact = candidate.achieved.impact;
+          const speed = candidate.achieved.speed;
+          return candidate !== incumbentFit && impact !== undefined && speed !== undefined &&
+            (mode !== "release-transport" || Number.isFinite(releaseVelocityDelta(candidate))) &&
+            Math.abs(speed - targetSpeed) <= incumbentSpeedError + 1e-12 &&
+            Math.abs(impact - targetImpact) + 1e-12 < incumbentImpactError;
+        })
+        .sort((left, right) =>
+          (mode === "release-transport"
+            ? releaseVelocityDelta(left) - releaseVelocityDelta(right)
+            : 0) ||
+          Math.abs(left.achieved.impact! - targetImpact) -
+            Math.abs(right.achieved.impact! - targetImpact) ||
+          left.cost - right.cost
+        )[0];
+      if (specialist === undefined) return { attempted: false, accepted: false };
+      impactSurgicalRepairTotals.specialist_available++;
+      const framesBefore = getSimFrames();
+      impactSurgicalRepairTotals.attempts++;
+      if (mode === "seeded-suffix-restart") {
+        if (
+          seededCeiling === undefined || !Number.isFinite(seededCeiling) ||
+          seededCeiling <= framesBefore
+        ) return { attempted: true, accepted: false };
+        impactSurgicalRepairTotals.local_impact_error_gain_sum += incumbentImpactError -
+          Math.abs(specialist.achieved.impact! - targetImpact);
+        impactSurgicalRepairTotals.local_speed_error_delta_sum +=
+          Math.abs(specialist.achieved.speed! - targetSpeed) - incumbentSpeedError;
+        const seededSearch = extendNodeCached(prefix, specialist);
+        const seededNode: HandoffNode = {
+          ...incumbent,
+          search: seededSearch,
+          searchSeed: ((incumbent.searchSeed | 0) ^ Math.imul(gapIndex + 1, 0x85ebca6b)) | 0,
+          startExpanded: true,
+          deferExpansion: false,
+          rankTrace: [],
+          skippedContacts: 0,
+        };
+        const incumbentBefore = bestCompleteNode;
+        const terminalsBefore = terminalConsiders;
+        repairLaneActive = true;
+        setAimRepairLaneActive(true);
+        setImpactCarrierRippleRepairActive(true);
+        try {
+          runFrontierFrom(seededNode, seededCeiling);
+        } finally {
+          repairLaneActive = false;
+          setAimRepairLaneActive(false);
+          setImpactCarrierRippleRepairActive(false);
+        }
+        impactSurgicalRepairTotals.frames_spent += getSimFrames() - framesBefore;
+        if (terminalConsiders > terminalsBefore) impactSurgicalRepairTotals.contract_passed++;
+        if (bestCompleteNode !== incumbentBefore) {
+          impactSurgicalRepairTotals.accepted++;
+          impactSurgicalCandidates.add(specialist);
+          return { attempted: true, accepted: true };
+        }
+        return { attempted: true, accepted: false };
+      }
+      let replacement = specialist;
+      if (mode === "post-contact-bridge-quarter") {
+        const lines = postContactRepairBridgeLines(
+          incumbentFit,
+          specialist,
+          .25,
+          prefix.prefixNextLineId,
+        );
+        if (lines === null) {
+          impactSurgicalRepairTotals.frames_spent += getSimFrames() - framesBefore;
+          return { attempted: true, accepted: false };
+        }
+        impactSurgicalRepairTotals.bridge_constructed++;
+        const probe = getCandidateProbe(prefix.prefixEngine, gap, ctx);
+        const fit = tryCandidateLines(
+          prefix.prefixEngine,
+          gap,
+          lines,
+          prefix.prefixNextLineId,
+          ctx.allContactFrames,
+          axisLookaheadEndFrame(gap, ctx.allContactFrames),
+          gap.targets,
+          true,
+          "normal",
+          probe.preTargetSledTrace,
+          { allowRideOutPolish: false },
+        ) as Candidate | null;
+        const fitImpact = fit?.achieved.impact;
+        const fitSpeed = fit?.achieved.speed;
+        if (fit !== null) impactSurgicalRepairTotals.bridge_candidate_valid++;
+        if (
+          fit === null || fitImpact === undefined || fitSpeed === undefined ||
+          Math.abs(fitImpact - targetImpact) + .025 > incumbentImpactError + 1e-12 ||
+          Math.abs(fitSpeed - targetSpeed) > incumbentSpeedError + 1e-12
+        ) {
+          impactSurgicalRepairTotals.frames_spent += getSimFrames() - framesBefore;
+          return { attempted: true, accepted: false };
+        }
+        impactSurgicalRepairTotals.bridge_delivery_passed++;
+        fit.ref = incumbentFit.ref;
+        const incumbentResponse = summarizeCandidateContactResponse(
+          candidateOwnedContactResponse(prefix.prefixEngine, incumbentFit, gap, true),
+        );
+        const bridgeResponse = summarizeCandidateContactResponse(
+          candidateOwnedContactResponse(prefix.prefixEngine, fit, gap, true),
+        );
+        const statePassed = incumbentResponse !== null && bridgeResponse !== null &&
+          responseSafeImpactTransition(incumbentResponse, bridgeResponse);
+        const contactPassed = incumbentResponse !== null && bridgeResponse !== null &&
+          responseRetainsCandidateContact(incumbentResponse, bridgeResponse);
+        if (
+          incumbentResponse !== null && bridgeResponse !== null &&
+          bridgeResponse.collectiveSpeedDelta >= incumbentResponse.collectiveSpeedDelta - .05
+        ) impactSurgicalRepairTotals.bridge_speed_state_passed++;
+        if (
+          incumbentResponse !== null && bridgeResponse !== null &&
+          bridgeResponse.rmsPairDistanceChange <= incumbentResponse.rmsPairDistanceChange + .05
+        ) impactSurgicalRepairTotals.bridge_deformation_state_passed++;
+        if (
+          incumbentResponse !== null && bridgeResponse !== null &&
+          bridgeResponse.rmsRelativeVelocityChange <= incumbentResponse.rmsRelativeVelocityChange + .05
+        ) impactSurgicalRepairTotals.bridge_relative_velocity_state_passed++;
+        if (
+          incumbentResponse !== null && bridgeResponse !== null &&
+          bridgeResponse.absPhaseSlipDeg <= incumbentResponse.absPhaseSlipDeg + 3
+        ) impactSurgicalRepairTotals.bridge_phase_state_passed++;
+        if (statePassed) impactSurgicalRepairTotals.bridge_state_passed++;
+        if (contactPassed) impactSurgicalRepairTotals.bridge_contact_passed++;
+        if (!statePassed || !contactPassed) {
+          impactSurgicalRepairTotals.frames_spent += getSimFrames() - framesBefore;
+          return { attempted: true, accepted: false };
+        }
+        replacement = fit;
+      }
+      impactSurgicalRepairTotals.local_impact_error_gain_sum += incumbentImpactError -
+        Math.abs(replacement.achieved.impact! - targetImpact);
+      impactSurgicalRepairTotals.local_speed_error_delta_sum +=
+        Math.abs(replacement.achieved.speed! - targetSpeed) - incumbentSpeedError;
+      const specialistRelease = replacement.ballisticLaunch?.state;
+      const suffixDx = mode === "release-transport" && specialistRelease !== undefined &&
+          incumbentRelease !== undefined
+        ? specialistRelease.x - incumbentRelease.x
+        : 0;
+      const suffixDy = mode === "release-transport" && specialistRelease !== undefined &&
+          incumbentRelease !== undefined
+        ? specialistRelease.y - incumbentRelease.y
+        : 0;
+      if (mode === "release-transport") {
+        impactSurgicalRepairTotals.release_velocity_delta_sum += releaseVelocityDelta(specialist);
+        impactSurgicalRepairTotals.suffix_translation_px_sum += Math.hypot(suffixDx, suffixDy);
+      }
+
+      let variant = extendNodeCached(prefix, replacement);
+      for (let index = gapIndex + 1; index < gaps.length; index++) {
+        const fit = incumbent.search.prefixFits[index] as Candidate | null | undefined;
+        if (fit == null) {
+          variant = extendNodeCached(variant, null);
+          continue;
+        }
+        const rebased: Candidate = {
+          ...fit,
+          lines: fit.lines.map((line, lineIndex) => ({
+            ...line,
+            id: variant.prefixNextLineId + lineIndex,
+            x1: line.x1 + suffixDx,
+            y1: line.y1 + suffixDy,
+            x2: line.x2 + suffixDx,
+            y2: line.y2 + suffixDy,
+          })),
+        };
+        variant = extendNodeCached(variant, rebased);
+      }
+      const candidateNode: HandoffNode = {
+        ...incumbent,
+        search: variant,
+      };
+      const result = consider(candidateNode, "repair");
+      impactSurgicalRepairTotals.frames_spent += getSimFrames() - framesBefore;
+      if (result?.key.contract_passed === true) impactSurgicalRepairTotals.contract_passed++;
+      if (result?.event.improved === true) {
+        impactSurgicalRepairTotals.accepted++;
+        impactSurgicalCandidates.add(replacement);
+        return { attempted: true, accepted: true };
+      }
+      return { attempted: true, accepted: false };
     };
 
     // Aimed-repair post-pass (R2): the main search has produced a complete incumbent using
@@ -2542,6 +3564,20 @@ function compileHandoffInternal(
         const pickedWeakGapSse = gapAxisSse(
           incumbentEvaluation.report.gaps.find((g) => g.gap_index === kWorst),
         );
+
+        if (attempts < repair.maxAttempts && getSimFrames() < repairBudget) {
+          const surgical = tryImpactSurgicalRepair(
+            incumbent,
+            root,
+            kWorst,
+            Math.min(repairBudget, getSimFrames() + Math.ceil(estCostUpperOf(kWorst))),
+          );
+          if (surgical.attempted) attempts++;
+          if (surgical.accepted) {
+            exhausted.clear();
+            continue;
+          }
+        }
 
         // Observation-only causal context. A restart at kWorst cannot change the arrival inherited
         // from fit[kWorst-1], while a parent restart can. Keep these reads behind LR_REPAIR_LOG so
@@ -2686,11 +3722,15 @@ function compileHandoffInternal(
           // the head ramp's phase-weight study can be scoped away from
           // (`postCompletionPhaseWeight`). Inert in production.
           repairLaneActive = true;
+          setAimRepairLaneActive(true);
+          setImpactCarrierRippleRepairActive(true);
           let improvementFrameOffsets: number[];
           try {
             improvementFrameOffsets = runFrontierFrom(prefixNode, ceiling);
           } finally {
             repairLaneActive = false;
+            setAimRepairLaneActive(false);
+            setImpactCarrierRippleRepairActive(false);
           }
           const completed = terminalConsiders > terminalsBefore;
           // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
@@ -2698,6 +3738,36 @@ function compileHandoffInternal(
           // characterization but does NOT drive the exhaust/re-pick decision.
           const improved = bestCompleteNode !== incumbentBefore;
           const afterScore = bestCompleteNode ? evaluateCached(bestCompleteNode).key.full_score : beforeScore;
+          if (improved && refreshRepairCostToEnd && bestCompleteNode !== null) {
+            const acceptedFrame = framesBefore +
+              (improvementFrameOffsets[improvementFrameOffsets.length - 1] ??
+                (getSimFrames() - framesBefore));
+            const reaches: Array<number | undefined> = [];
+            let acceptedPath = root;
+            for (let gap = 0; gap <= gaps.length; gap++) {
+              reaches[gap] = firstReachOf(acceptedPath);
+              if (gap < gaps.length) {
+                acceptedPath = extendNodeCached(
+                  acceptedPath,
+                  bestCompleteNode.search.prefixFits[gap] ?? null,
+                );
+              }
+            }
+            const refreshed = refreshRepairCostToEndProfile(
+              costToEnd,
+              reaches,
+              framesBefore,
+              acceptedFrame,
+              k,
+            );
+            if (refreshed.changed > 0) {
+              costToEnd.splice(0, costToEnd.length, ...refreshed.profile);
+              incumbentCostToEnd = costToEnd;
+              repairCostProfileRefreshes++;
+              repairCostProfileEntriesChanged += refreshed.changed;
+              repairCostProfileNewlyMeasured += refreshed.newlyMeasured;
+            }
+          }
           const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
           budgetRecorder.endActive(
             getSimFrames(),
@@ -3285,6 +4355,25 @@ function popNextFrontierNode(
   fallbackStack: HandoffNode[],
 ): HandoffNode {
   return activeFrontier(passStack, fallbackStack).pop()!;
+}
+
+function popBestObjectiveFrontierNode(
+  passStack: HandoffNode[],
+  fallbackStack: HandoffNode[],
+  gaps: Gap[],
+  durationFrames: number,
+): HandoffNode {
+  const stack = activeFrontier(passStack, fallbackStack);
+  let bestIndex = stack.length - 1;
+  let bestValue = objectiveLeafValue(stack[bestIndex]!.search, gaps, durationFrames);
+  for (let index = bestIndex - 1; index >= 0; index--) {
+    const value = objectiveLeafValue(stack[index]!.search, gaps, durationFrames);
+    if (value > bestValue) {
+      bestIndex = index;
+      bestValue = value;
+    }
+  }
+  return stack.splice(bestIndex, 1)[0]!;
 }
 
 function frontierProbeNode(node: HandoffNode): HandoffFrontierProbeNode {
@@ -4132,6 +5221,348 @@ function admittedHandoffPool(
   return sorted.slice(0, poolSize).map((candidate, rank) => ({ candidate, rank }));
 }
 
+/**
+ * Give one locally better impact candidate access to the ordinary scorer only
+ * when its exact six-frame native response does not add speed, deformation,
+ * relative-motion, or phase debt against the quality-objective incumbent.
+ * The pool stays fixed-width; the experiment pays and records every response
+ * frame it asks the engine to simulate.
+ */
+function admitResponseSafeImpactCandidate(
+  node: SearchNode,
+  gap: Gap,
+  gaps: Gap[],
+  ctx: SpecContext,
+  sorted: Candidate[],
+  admitted: HandoffAdmittedCandidate[],
+  mode: ImpactResponseAdmissionMode | null,
+  hasCompletion: boolean,
+  inRepairLane: boolean,
+): HandoffAdmittedCandidate[] {
+  if (
+    mode === null || mode === "cached-contact-repair" || admitted.length === 0 ||
+    sorted.length <= admitted.length ||
+    (mode === "model-safe-08-post" && !hasCompletion) ||
+    ((mode === "exact-contact-all-repair" || mode === "model-exact-contact-repair" ||
+      mode === "same-speed-tail-repair" || mode === "same-speed-active-tail-repair") &&
+      !inRepairLane)
+  ) return admitted;
+  const targets = ctx.gapAxisTargets?.[gap.index] ?? gap.targets;
+  const impactTarget = targets.impact;
+  const incumbent = admitted[0]!.candidate;
+  const incumbentImpact = incumbent.achieved.impact;
+  if (impactTarget === undefined || incumbentImpact === undefined) return admitted;
+  impactResponseAdmissionTotals.eligible_pools++;
+  const incumbentQuality = scoreSettledIncomingQuality(targets, settledIncomingAxes(incumbent));
+  const incumbentError = Math.abs(incumbentImpact - impactTarget);
+  if (mode === "same-speed-tail-repair" || mode === "same-speed-active-tail-repair") {
+    const speedTarget = targets.speed;
+    const incumbentSpeed = incumbent.achieved.speed;
+    if (speedTarget === undefined || incumbentSpeed === undefined) return admitted;
+    const incumbentSpeedError = Math.abs(incumbentSpeed - speedTarget);
+    const admittedCandidates = new Set(admitted.map((entry) => entry.candidate));
+    const specialists = sorted.filter((candidate) => {
+      if (admittedCandidates.has(candidate)) return false;
+      const impact = candidate.achieved.impact;
+      const speed = candidate.achieved.speed;
+      return impact !== undefined && speed !== undefined &&
+        Math.abs(impact - impactTarget) + .025 < incumbentError &&
+        Math.abs(speed - speedTarget) <= incumbentSpeedError + 1e-12;
+    }).sort((left, right) =>
+      Math.abs(left.achieved.impact! - impactTarget) -
+        Math.abs(right.achieved.impact! - impactTarget) ||
+      left.cost - right.cost
+    );
+    impactResponseAdmissionTotals.prefiltered_candidates += specialists.length;
+    const specialist = specialists[0];
+    if (specialist === undefined) return admitted;
+    if (mode === "same-speed-active-tail-repair") {
+      if (specialist.ref === undefined) return admitted;
+      const activeLines = applyImpactWindowAccelerationAfterReference(
+        specialist.lines,
+        specialist.ref,
+        authoredSpeedToPx(specialist.achieved.speed ?? speedTarget),
+      );
+      const materialLines = activeLines.reduce(
+        (count, line) => count + (line.type === 1 ? 1 : 0),
+        0,
+      );
+      if (materialLines === 0) return admitted;
+      impactResponseAdmissionTotals.active_repair_material_lines += materialLines;
+      const before = getSimFrames();
+      const active = tryCandidateLines(
+        node.prefixEngine,
+        gap,
+        activeLines,
+        node.prefixNextLineId,
+        ctx.allContactFrames,
+        axisLookaheadEndFrame(gap, ctx.allContactFrames),
+        gap.targets,
+        true,
+        "normal",
+        getCandidateProbe(node.prefixEngine, gap, ctx).preTargetSledTrace,
+        { allowRideOutPolish: false },
+      ) as Candidate | null;
+      impactResponseAdmissionTotals.active_repair_probes++;
+      impactResponseAdmissionTotals.active_repair_probe_frames += getSimFrames() - before;
+      if (active === null) return admitted;
+      impactResponseAdmissionTotals.active_repair_viable++;
+      active.ref = { ...specialist.ref };
+      active.sampleAttempt = specialist.sampleAttempt;
+      const activeImpact = active.achieved.impact;
+      const activeSpeed = active.achieved.speed;
+      if (activeImpact === undefined || activeSpeed === undefined) return admitted;
+      const specialistImpactError = Math.abs(specialist.achieved.impact! - impactTarget);
+      const specialistSpeedError = Math.abs(specialist.achieved.speed! - speedTarget);
+      const activeImpactError = Math.abs(activeImpact - impactTarget);
+      const activeSpeedError = Math.abs(activeSpeed - speedTarget);
+      if (
+        activeImpactError > specialistImpactError + .01 ||
+        activeImpactError + .025 >= incumbentError ||
+        activeSpeedError >= specialistSpeedError - 1e-12 ||
+        activeSpeedError > incumbentSpeedError + 1e-12
+      ) return admitted;
+      impactResponseAdmissionTotals.active_repair_interaction_passed++;
+      impactResponseAdmissionTotals.safe_candidates++;
+      impactResponseAdmissionTotals.impact_error_gain_sum += incumbentError - activeImpactError;
+      impactResponseAdmissionTotals.settled_quality_gain_sum +=
+        scoreSettledIncomingQuality(targets, settledIncomingAxes(active)) - incumbentQuality;
+      impactResponseAdmissionTotals.inserted++;
+      impactResponseAdmittedCandidates.add(active);
+      return [...admitted.slice(0, -1), { candidate: active, rank: sorted.indexOf(specialist) }];
+    }
+    impactResponseAdmissionTotals.safe_candidates++;
+    impactResponseAdmissionTotals.impact_error_gain_sum += incumbentError -
+      Math.abs(specialist.achieved.impact! - impactTarget);
+    impactResponseAdmissionTotals.settled_quality_gain_sum +=
+      scoreSettledIncomingQuality(targets, settledIncomingAxes(specialist)) - incumbentQuality;
+    impactResponseAdmissionTotals.inserted++;
+    impactResponseAdmittedCandidates.add(specialist);
+    return [...admitted.slice(0, -1), { candidate: specialist, rank: sorted.indexOf(specialist) }];
+  }
+  const prefiltered = sorted.filter((candidate) => {
+    if (candidate === incumbent) return false;
+    const impact = candidate.achieved.impact;
+    return impact !== undefined &&
+      Math.abs(impact - impactTarget) + .025 < incumbentError &&
+      scoreSettledIncomingQuality(targets, settledIncomingAxes(candidate)) > incumbentQuality;
+  }).sort((left, right) =>
+    Math.abs(left.achieved.impact! - impactTarget) - Math.abs(right.achieved.impact! - impactTarget) ||
+    left.cost - right.cost
+  );
+  impactResponseAdmissionTotals.prefiltered_candidates += prefiltered.length;
+  if (prefiltered.length === 0) return admitted;
+
+  let exactCandidates = prefiltered;
+  if (mode === "model-exact-contact-repair") {
+    const admittedCandidates = new Set(admitted.map((entry) => entry.candidate));
+    let modelSurvivor: Candidate | null = null;
+    let survivorLogit = -Infinity;
+    for (const candidate of prefiltered) {
+      if (admittedCandidates.has(candidate)) continue;
+      impactResponseAdmissionTotals.model_candidates_scored++;
+      const logit = impactResponseCandidateLogit(
+        candidate,
+        incumbent,
+        sorted.indexOf(candidate),
+        gap,
+        gaps,
+        ctx,
+      );
+      if (logit > survivorLogit) {
+        modelSurvivor = candidate;
+        survivorLogit = logit;
+      }
+    }
+    if (modelSurvivor === null || survivorLogit < IMPACT_RESPONSE_MODEL_THRESHOLD_LOGIT) {
+      return admitted;
+    }
+    impactResponseAdmissionTotals.model_candidates_admitted++;
+    exactCandidates = [modelSurvivor];
+  }
+
+  if (mode === "model-safe-08-admit" || mode === "model-safe-08-post") {
+    const admittedCandidates = new Set(admitted.map((entry) => entry.candidate));
+    const modelCandidates = prefiltered.filter((candidate) => !admittedCandidates.has(candidate));
+    impactResponseAdmissionTotals.model_candidates_scored += modelCandidates.length;
+    let survivor: Candidate | null = null;
+    let survivorLogit = -Infinity;
+    for (const candidate of modelCandidates) {
+      const qualityRank = sorted.indexOf(candidate);
+      const logit = impactResponseCandidateLogit(
+        candidate,
+        incumbent,
+        qualityRank,
+        gap,
+        gaps,
+        ctx,
+      );
+      if (logit > survivorLogit) {
+        survivor = candidate;
+        survivorLogit = logit;
+      }
+    }
+    if (survivor === null || survivorLogit < IMPACT_RESPONSE_MODEL_THRESHOLD_LOGIT) {
+      return admitted;
+    }
+    impactResponseAdmissionTotals.safe_candidates++;
+    impactResponseAdmissionTotals.model_candidates_admitted++;
+    impactResponseAdmissionTotals.impact_error_gain_sum += incumbentError -
+      Math.abs(survivor.achieved.impact! - impactTarget);
+    impactResponseAdmissionTotals.settled_quality_gain_sum +=
+      scoreSettledIncomingQuality(targets, settledIncomingAxes(survivor)) - incumbentQuality;
+    impactResponseAdmittedCandidates.add(survivor);
+    const rank = sorted.indexOf(survivor);
+    impactResponseAdmissionTotals.inserted++;
+    return [...admitted.slice(0, -1), { candidate: survivor, rank }];
+  }
+
+  const probe = (candidate: Candidate): CandidateContactResponseSummary | null => {
+    const before = getSimFrames();
+    const summary = summarizeCandidateContactResponse(
+      candidateOwnedContactResponse(node.prefixEngine, candidate, gap, true),
+    );
+    impactResponseAdmissionTotals.response_probes++;
+    impactResponseAdmissionTotals.response_probe_frames += getSimFrames() - before;
+    return summary;
+  };
+  const incumbentResponse = probe(incumbent);
+  if (incumbentResponse === null) return admitted;
+  const limit = mode === "exact-safe-all" || mode === "exact-contact-all-repair"
+    ? exactCandidates.length
+    : Math.min(8, exactCandidates.length);
+  let survivor: Candidate | null = null;
+  for (let index = 0; index < limit; index++) {
+    const candidate = exactCandidates[index]!;
+    const response = probe(candidate);
+    const stateSafe = response !== null && responseSafeImpactTransition(incumbentResponse, response);
+    const contactSafe = response !== null &&
+      ((mode !== "exact-contact-all-repair" && mode !== "model-exact-contact-repair") ||
+        responseRetainsCandidateContact(incumbentResponse, response));
+    if (stateSafe && !contactSafe) impactResponseAdmissionTotals.contact_retention_rejects++;
+    if (stateSafe && contactSafe) {
+      survivor = candidate;
+      break;
+    }
+  }
+  if (survivor === null) return admitted;
+  impactResponseAdmissionTotals.safe_candidates++;
+  impactResponseAdmissionTotals.impact_error_gain_sum += incumbentError -
+    Math.abs(survivor.achieved.impact! - impactTarget);
+  impactResponseAdmissionTotals.settled_quality_gain_sum +=
+    scoreSettledIncomingQuality(targets, settledIncomingAxes(survivor)) - incumbentQuality;
+  impactResponseAdmittedCandidates.add(survivor);
+  const existing = admitted.find((entry) => entry.candidate === survivor);
+  if (existing !== undefined) {
+    impactResponseAdmissionTotals.already_admitted++;
+    return admitted;
+  }
+  const rank = sorted.indexOf(survivor);
+  impactResponseAdmissionTotals.inserted++;
+  return [...admitted.slice(0, -1), { candidate: survivor, rank }];
+}
+
+function impactResponseCandidateLogit(
+  candidate: Candidate,
+  incumbent: Candidate,
+  qualityRank: number,
+  gap: Gap,
+  gaps: Gap[],
+  ctx: SpecContext,
+): number {
+  const targets = ctx.gapAxisTargets?.[gap.index] ?? gap.targets;
+  const impactTarget = targets.impact!;
+  const incumbentError = Math.abs(incumbent.achieved.impact! - impactTarget);
+  const candidateError = Math.abs(candidate.achieved.impact! - impactTarget);
+  const incumbentAxisRms = candidateAxisRms(incumbent, targets);
+  const axisRms = candidateAxisRms(candidate, targets);
+  const segmentLengths = candidate.lines.map((line) =>
+    Math.hypot(line.x2 - line.x1, line.y2 - line.y1)
+  );
+  const segmentAngles = candidate.lines.map((line) =>
+    Math.atan2(line.y2 - line.y1, line.x2 - line.x1) * 180 / Math.PI
+  );
+  const lineLength = segmentLengths.reduce((sum, value) => sum + value, 0);
+  const totalTurnDeg = segmentAngles.slice(1).reduce((sum, angle, index) =>
+    sum + Math.abs(((angle - segmentAngles[index]! + 180) % 360 + 360) % 360 - 180), 0
+  );
+  const nextGap = nextContactGap(gap, gaps);
+  const projection = nextGap === null
+    ? null
+    : projectOutgoingScorerGap(candidate, nextGap, ctx.gapAxisTargets);
+  const readinessGap = nextGap === null ? null : successorScorerGapAfter(nextGap, gaps);
+  const readiness = projection === null || nextGap === null
+    ? null
+    : scoreNextArcReadiness(
+      projection.projection,
+      nextGap,
+      readinessGap,
+      ctx.gapAxisTargets,
+    );
+  const launch = candidate.ballisticLaunch;
+  const release = launch?.state;
+  const releaseElapsedFrames = launch === undefined ? null : launch.anchorFrame - gap.endFrame;
+  const releaseDisplacement = release === undefined || candidate.ref === undefined
+    ? null
+    : Math.hypot(release.x - candidate.ref.x, release.y - candidate.ref.y);
+  const arrivalGapFrames = projection?.projection.frameCount ?? null;
+  return impactResponseModelLogit([
+    impactTarget,
+    incumbentError,
+    incumbentAxisRms,
+    qualityRank,
+    candidateError,
+    axisRms,
+    scoreSettledIncomingQuality(targets, settledIncomingAxes(candidate)),
+    candidateQualityObjective(nodeEngineForModel(candidate), candidate, gap, gaps, ctx),
+    readiness?.readiness,
+    readiness?.catchability,
+    readiness?.speedFit,
+    readiness?.impactFeasibility,
+    lineLength,
+    candidate.lines.length,
+    segmentLengths.length === 0 ? null : lineLength / segmentLengths.length,
+    segmentLengths.length === 0 ? null : Math.min(...segmentLengths),
+    segmentLengths.length === 0 ? null : Math.max(...segmentLengths),
+    totalTurnDeg,
+    releaseElapsedFrames,
+    candidate.releaseGroundedFrames,
+    releaseDisplacement,
+    release === undefined ? null : Math.hypot(release.vx, release.vy),
+    release?.vx,
+    release?.vy,
+    launch?.groundedFrames,
+    projection?.projection.boundary.incoming.speed,
+    projection?.projection.boundary.incoming.comAngleDeg,
+    projection?.achieved.air,
+    arrivalGapFrames,
+    incumbentError - candidateError,
+    incumbentAxisRms - axisRms,
+    lineLength / Math.max(1, arrivalGapFrames ?? 1),
+    releaseDisplacement === null ? null : releaseDisplacement / Math.max(1, arrivalGapFrames ?? 1),
+  ]);
+}
+
+function candidateAxisRms(candidate: Candidate, targets: AxisValues): number {
+  const achieved = settledIncomingAxes(candidate);
+  const squared = AXES.flatMap((axis) => {
+    const target = targets[axis];
+    const value = achieved[axis];
+    return target === undefined || value === undefined || !Number.isFinite(value)
+      ? []
+      : [(value - target) ** 2];
+  });
+  return squared.length === 0
+    ? Infinity
+    : Math.sqrt(squared.reduce((sum, value) => sum + value, 0) / squared.length);
+}
+
+/** candidateQualityObjective ignores its engine argument; keep that dependency
+ * explicit here so the learned screen cannot accidentally acquire an exact read. */
+function nodeEngineForModel(_candidate: Candidate): null {
+  return null;
+}
+
 type RankedOptionsConfig = {
   nCand?: number;
   poolSize?: number;
@@ -4253,7 +5684,11 @@ function rankedOptionsAtDeadlinePressure(
     setAimBaseFitReuseAllowed(false);
   }
   const poolSize = config.poolSize ?? handoffCandidatePool();
-  const pool = admittedHandoffPool(sorted, poolSize);
+  let pool = admittedHandoffPool(sorted, poolSize);
+  pool = admitResponseSafeImpactCandidate(
+    node, gap, gaps, ctx, sorted, pool, impactResponseAdmissionMode(), telemetry.hasCompletion,
+    repairLaneActive,
+  );
   // Rollout-economics probe (measure-only): the search genuinely arrived here and
   // built its real pool — the realized ruler the rollout verdicts are scored
   // against. `?.()` short-circuits before the record literal, so an
@@ -4394,7 +5829,9 @@ function rankedOptionsAtDeadlinePressure(
     const readinessOutgoingGap = nextGap === null
       ? null
       : successorScorerGapAfter(nextGap, gaps);
-    const entrySpeed = getCandidateProbe(node.prefixEngine, gap, ctx).targetState.speed;
+    const candidateProbe = getCandidateProbe(node.prefixEngine, gap, ctx);
+    const entrySpeed = candidateProbe.targetState.speed;
+    const precontactHistory = candidateProbe.precontactHistory();
     const collisionWindows = new Map<number, HandoffPoolProbeCollisionWindow | null>();
     const contactGeometry = new Map<number, HandoffPoolProbeContactGeometry | null>();
     const contactResponse = new Map<number, HandoffPoolProbeContactResponse | null>();
@@ -4425,6 +5862,7 @@ function rankedOptionsAtDeadlinePressure(
     handoffPoolProbeHook({
       gapIndex: gap.index,
       entrySpeed,
+      precontactHistory,
       targets: currentTargets,
       nextTargets,
       candidates: sorted.map((candidate, qualityRank) => {
@@ -4544,6 +5982,30 @@ function rankedOptionsAtDeadlinePressure(
     openingBestOpportunity,
     allowForwardEval,
   };
+  const repairTransitionOptions = extraCandidateLane(
+    node,
+    gaps,
+    ctx,
+    seed,
+    telemetry,
+    extraScoring,
+    {
+      tag: "pool",
+      rankBase: extraRankBase,
+      generate: () => repairLaneActive
+        ? makeContactTransitionCandidates(
+          node.prefixEngine,
+          gap,
+          gaps,
+          ctx,
+          node.prefixNextLineId,
+          pool.map(({ candidate }) => candidate),
+          "repair",
+        )
+        : [],
+    },
+  );
+  for (const option of repairTransitionOptions) scored.push(option);
   const supportCount = supportTimeCoverageLaneEnabled()
     ? supportTimeCandidateCount(supportTimeCoverageDeficit(node, gap, gaps, ctx, pool))
     : 0;
@@ -4552,7 +6014,7 @@ function rankedOptionsAtDeadlinePressure(
   const supportOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "axisq",
     sourceAxis: "air",
-    rankBase: extraRankBase,
+    rankBase: extraRankBase + repairTransitionOptions.length,
     generate: () => supportCount > 0
       ? retainAirCoverageImprovements(
         [
@@ -4593,7 +6055,7 @@ function rankedOptionsAtDeadlinePressure(
   const reuseLimit = config.reuseLimit ?? reuseCandidateLimit(node, targetBudget, telemetry);
   const reuseOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "reuse",
-    rankBase: extraRankBase + admittedSupportOptions.length,
+    rankBase: extraRankBase + repairTransitionOptions.length + admittedSupportOptions.length,
     generate: () => reuseCatchCandidates(node, gaps, ctx, telemetry, reuseLimit),
     cache: {
       key: reuseLimit,
@@ -4607,7 +6069,7 @@ function rankedOptionsAtDeadlinePressure(
   for (const option of reuseOptions) scored.push(option);
   const brakeOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "brake",
-    rankBase: extraRankBase + admittedSupportOptions.length +
+    rankBase: extraRankBase + repairTransitionOptions.length + admittedSupportOptions.length +
       reuseOptions.length,
     generate: () => brakeCatchCandidates(node, gaps, ctx, seed, telemetry),
     cache: {
@@ -4682,13 +6144,48 @@ function rankedOptionsAtDeadlinePressure(
     a.rank - b.rank
   );
   const kinematic = eligible.filter((option) => isKinematicSupportCandidate(option.candidate));
-  const selected = kinematic.length === 0
+  let selected = kinematic.length === 0
     ? eligible.slice(0, HANDOFF_BRANCHING)
     : [
       ...eligible.filter((option) => !isKinematicSupportCandidate(option.candidate))
         .slice(0, HANDOFF_BRANCHING - 1),
       kinematic[0],
     ];
+  if (impactRepairInsuranceMode() !== null && repairLaneActive) {
+    impactRepairInsuranceTotals.eligible_pools++;
+    if (kinematic.length > 0) {
+      // The kinematic lane already owns one reserved branch. Do not compose
+      // two branch-replacement policies in the same repair pool.
+      impactRepairInsuranceTotals.suppressed_by_reserved_branch++;
+    } else {
+      selected = insureSameSpeedImpactRepairBranch(selected, eligible, gap, ctx);
+    }
+  }
+  const responseAdmissionMode = impactResponseAdmissionMode();
+  if (
+    responseAdmissionMode === "cached-contact-repair" && repairLaneActive &&
+    kinematic.length === 0
+  ) {
+    selected = reserveCachedResponseSafeRepairBranch(selected, eligible, gap, ctx);
+  }
+  const reserveResponseBranch = responseAdmissionMode === "exact-safe-8" ||
+    responseAdmissionMode === "exact-safe-all" ||
+    ((responseAdmissionMode === "exact-safe-8-repair" ||
+      responseAdmissionMode === "exact-contact-all-repair" ||
+      responseAdmissionMode === "model-exact-contact-repair") && repairLaneActive);
+  if (reserveResponseBranch && kinematic.length === 0) {
+    const responseSafe = eligible.find((option) =>
+      option.candidate !== null && impactResponseAdmittedCandidates.has(option.candidate)
+    );
+    if (responseSafe !== undefined) {
+      if (!selected.some((option) => option.candidate === responseSafe.candidate)) {
+        if (selected.length >= HANDOFF_BRANCHING) selected.pop();
+        selected.push(responseSafe);
+      }
+      impactResponseAdmissionTotals.branch_reserved++;
+    }
+  }
+  recordContactTransitionBranchSelection(selected.map((option) => option.candidate));
   if (handoffRankedOptionsProbeHook !== null) {
     handoffRankedOptionsProbeHook({
       gapIndex: node.gapIndex,
@@ -4698,6 +6195,178 @@ function rankedOptionsAtDeadlinePressure(
     });
   }
   return selected;
+}
+
+/**
+ * Give one existing repair branch to an impact specialist only when the normal
+ * forward ranker has already simulated both child engines beyond H+6 and the
+ * exact cached response preserves the incumbent's state and candidate-owned
+ * multi-contact work.  This mode cannot add a candidate, branch, or physics
+ * frame: it merely chooses which already-ranked option occupies branch three.
+ */
+function reserveCachedResponseSafeRepairBranch(
+  selected: RankedOption[],
+  eligible: RankedOption[],
+  gap: Gap,
+  ctx: SpecContext,
+): RankedOption[] {
+  const incumbent = selected[0];
+  if (incumbent?.candidate === null || incumbent?.candidate === undefined) return selected;
+  const targets = ctx.gapAxisTargets?.[gap.index] ?? gap.targets;
+  const impactTarget = targets.impact;
+  const speedTarget = targets.speed;
+  const incumbentImpact = incumbent.candidate.achieved.impact;
+  const incumbentSpeed = incumbent.candidate.achieved.speed;
+  if (
+    impactTarget === undefined || speedTarget === undefined ||
+    incumbentImpact === undefined || incumbentSpeed === undefined
+  ) return selected;
+  impactResponseAdmissionTotals.eligible_pools++;
+
+  const responseEnd = gap.endFrame + IMPACT_WINDOW;
+  const isCachedThroughResponse = (option: RankedOption): boolean => {
+    const engine = option.child.prefixEngine as { getLastFrameIndex?: () => unknown };
+    if (typeof engine?.getLastFrameIndex !== "function") return false;
+    const last = engine.getLastFrameIndex();
+    return typeof last === "number" && Number.isFinite(last) && last >= responseEnd;
+  };
+  if (!isCachedThroughResponse(incumbent)) return selected;
+
+  const incumbentError = Math.abs(incumbentImpact - impactTarget);
+  const incumbentSpeedError = Math.abs(incumbentSpeed - speedTarget);
+  const incumbentQuality = scoreSettledIncomingQuality(
+    targets,
+    settledIncomingAxes(incumbent.candidate),
+  );
+  const candidates = eligible.filter((option): option is RankedOption & { candidate: Candidate } => {
+    if (
+      option === incumbent || option.source !== "pool" || option.candidate === null ||
+      !isCachedThroughResponse(option)
+    ) return false;
+    const impact = option.candidate.achieved.impact;
+    const speed = option.candidate.achieved.speed;
+    return impact !== undefined && speed !== undefined &&
+      Math.abs(impact - impactTarget) + .025 < incumbentError &&
+      Math.abs(speed - speedTarget) <= incumbentSpeedError + 1e-12;
+  }).sort((left, right) =>
+    Math.abs(left.candidate.achieved.impact! - impactTarget) -
+      Math.abs(right.candidate.achieved.impact! - impactTarget) ||
+    left.score - right.score || left.rank - right.rank
+  );
+  impactResponseAdmissionTotals.prefiltered_candidates += candidates.length;
+  if (candidates.length === 0) return selected;
+
+  const probe = (option: RankedOption & { candidate: Candidate }): CandidateContactResponseSummary | null => {
+    const before = getSimFrames();
+    const summary = summarizeCandidateContactResponse(candidateOwnedContactResponseOnEngine(
+      option.child.prefixEngine,
+      option.candidate,
+      gap,
+      true,
+    ));
+    const frames = getSimFrames() - before;
+    impactResponseAdmissionTotals.response_probes++;
+    impactResponseAdmissionTotals.response_probe_frames += frames;
+    if (frames !== 0) {
+      throw new Error(
+        `cached-contact-repair simulated ${frames} unexpected frames at gap ${gap.index}`,
+      );
+    }
+    return summary;
+  };
+  const incumbentResponse = probe(incumbent as RankedOption & { candidate: Candidate });
+  if (incumbentResponse === null) return selected;
+
+  let survivor: (RankedOption & { candidate: Candidate }) | null = null;
+  for (const option of candidates) {
+    const response = probe(option);
+    const stateSafe = response !== null && responseSafeImpactTransition(incumbentResponse, response);
+    const contactSafe = response !== null && responseRetainsCandidateContact(incumbentResponse, response);
+    if (stateSafe && !contactSafe) impactResponseAdmissionTotals.contact_retention_rejects++;
+    if (stateSafe && contactSafe) {
+      survivor = option;
+      break;
+    }
+  }
+  if (survivor === null) return selected;
+
+  impactResponseAdmissionTotals.safe_candidates++;
+  impactResponseAdmissionTotals.impact_error_gain_sum += incumbentError -
+    Math.abs(survivor.candidate.achieved.impact! - impactTarget);
+  impactResponseAdmissionTotals.settled_quality_gain_sum +=
+    scoreSettledIncomingQuality(targets, settledIncomingAxes(survivor.candidate)) - incumbentQuality;
+  impactResponseAdmittedCandidates.add(survivor.candidate);
+  if (selected.some((option) => option.candidate === survivor!.candidate)) {
+    impactResponseAdmissionTotals.already_admitted++;
+    return selected;
+  }
+  const next = [...selected];
+  if (next.length >= HANDOFF_BRANCHING) next.pop();
+  next.push(survivor);
+  impactResponseAdmissionTotals.branch_reserved++;
+  return next;
+}
+
+/**
+ * Repair-only insurance from the exact current candidate pool. The ordinary
+ * forward winner remains branch zero. If another already-scored pool candidate
+ * is closer to the authored impact while paying no speed-error debt, give it
+ * the last existing branch slot. The full-track repair register remains the
+ * only acceptance authority, so this can expose a measured local repair
+ * without rewriting trunk ranking or expanding HANDOFF_BRANCHING.
+ */
+function insureSameSpeedImpactRepairBranch(
+  selected: RankedOption[],
+  eligible: RankedOption[],
+  gap: Gap,
+  ctx: SpecContext,
+): RankedOption[] {
+  const winner = eligible[0];
+  if (winner?.candidate === null || winner?.candidate === undefined) return selected;
+  const targets = ctx.gapAxisTargets?.[gap.index] ?? gap.targets;
+  const impactTarget = targets.impact;
+  const speedTarget = targets.speed;
+  const winnerImpact = winner.candidate.achieved.impact;
+  const winnerSpeed = winner.candidate.achieved.speed;
+  if (
+    impactTarget === undefined || speedTarget === undefined ||
+    winnerImpact === undefined || winnerSpeed === undefined
+  ) return selected;
+  const winnerImpactError = Math.abs(winnerImpact - impactTarget);
+  const winnerSpeedError = Math.abs(winnerSpeed - speedTarget);
+  const specialists = eligible.filter((option): option is RankedOption & { candidate: Candidate } => {
+    if (option.source !== "pool" || option.candidate === null) return false;
+    const impact = option.candidate.achieved.impact;
+    const speed = option.candidate.achieved.speed;
+    return impact !== undefined && speed !== undefined &&
+      Math.abs(speed - speedTarget) <= winnerSpeedError + 1e-12 &&
+      Math.abs(impact - impactTarget) + 1e-12 < winnerImpactError;
+  });
+  specialists.sort((left, right) =>
+    Math.abs(left.candidate.achieved.impact! - impactTarget) -
+      Math.abs(right.candidate.achieved.impact! - impactTarget) ||
+    left.score - right.score ||
+    left.rank - right.rank
+  );
+  const specialist = specialists[0];
+  if (specialist === undefined) return selected;
+  impactRepairInsuranceTotals.specialist_available++;
+  const specialistImpactError = Math.abs(specialist.candidate.achieved.impact! - impactTarget);
+  const specialistSpeedError = Math.abs(specialist.candidate.achieved.speed! - speedTarget);
+  impactRepairInsuranceTotals.impact_error_gain_sum += winnerImpactError - specialistImpactError;
+  impactRepairInsuranceTotals.speed_error_delta_sum += specialistSpeedError - winnerSpeedError;
+  if (selected.some((option) => option.candidate === specialist.candidate)) {
+    impactRepairInsuranceTotals.specialist_already_selected++;
+    return selected;
+  }
+  const next = [...selected];
+  const displaced = next.length >= HANDOFF_BRANCHING ? next.pop() : undefined;
+  next.push(specialist);
+  impactRepairInsuredCandidates.add(specialist.candidate);
+  impactRepairInsuranceTotals.specialist_inserted++;
+  impactRepairInsuranceTotals.displaced_score_delta_sum +=
+    specialist.score - (displaced?.score ?? specialist.score);
+  return next;
 }
 
 function summarizeRankedOptionForProbe(option: RankedOption): HandoffRankedOptionProbeEntry {
@@ -5218,6 +6887,58 @@ function gapAxisSse(gap: DriftReport["gaps"][number] | undefined): number | null
   let sse = 0;
   for (const v of Object.values(gap.axes)) sse += v.error * v.error;
   return sse;
+}
+
+type JointPairMetrics = {
+  sse: number;
+  secondarySse: number;
+  rms: number;
+  axisObservations: number;
+  impactAbsError: number | null;
+  speedAbsError: number;
+};
+
+function jointPairMetrics(
+  current: Candidate,
+  next: Candidate,
+  currentTargets: AxisValues,
+  nextTargets: AxisValues,
+): JointPairMetrics {
+  let sse = 0;
+  let secondarySse = 0;
+  let axisObservations = 0;
+  const impactErrors: number[] = [];
+  const speedErrors: number[] = [];
+  for (const [candidate, targets] of [
+    [current, currentTargets],
+    [next, nextTargets],
+  ] as const) {
+    for (const axis of AXES) {
+      const target = targets[axis];
+      const achieved = candidate.achieved[axis];
+      if (target === undefined || achieved === undefined || !Number.isFinite(achieved)) continue;
+      const error = Math.abs(achieved - target);
+      sse += error * error;
+      axisObservations++;
+      if (axis !== "impact") secondarySse += error * error;
+      if (axis === "impact") impactErrors.push(error);
+      if (axis === "speed") speedErrors.push(error);
+    }
+  }
+  return {
+    sse,
+    secondarySse,
+    rms: axisObservations === 0 ? Infinity : Math.sqrt(sse / axisObservations),
+    axisObservations,
+    impactAbsError: impactErrors.length === 0
+      ? null
+      : impactErrors.reduce((sum, value) => sum + value, 0) /
+        impactErrors.length,
+    speedAbsError: speedErrors.length === 0
+      ? 0
+      : speedErrors.reduce((sum, value) => sum + value, 0) /
+        speedErrors.length,
+  };
 }
 
 /**
@@ -6491,6 +8212,10 @@ const fwdEvalTotals = {
    *  so the pair reads directly against `fwd_rollout_no_candidate`. */
   fwd_rollout_redraws: 0,
   fwd_rollout_redraw_refuted: 0,
+  /** Study arm: the same one-extra-draw existence correction at hop 2+.
+   * Separate from the production hop-1 law so its footprint is auditable. */
+  fwd_rollout_later_redraws: 0,
+  fwd_rollout_later_redraw_refuted: 0,
   fwd_pools: 0,
   fwd_top1_agree: 0,
   fwd_rank_of_quality_top1_sum: 0,
@@ -7225,6 +8950,7 @@ function advanceToNextContact(search: SearchNode, gaps: Gap[]): SearchNode | nul
  * gaps (it re-draws at 7, not at 3 + dose).
  */
 const readStudyRolloutRedraw = compileScopedEnv("LR_STUDY_ROLLOUT_REDRAW");
+const readStudyRolloutLaterRedraw = compileScopedEnv("LR_STUDY_ROLLOUT_LATER_REDRAW");
 
 /**
  * Deadline pressure in force for re-draws inside the pool build being scored.
@@ -7314,6 +9040,47 @@ export function redrawFirstHopOnEmpty(
   return widened;
 }
 
+/** Study-only correction for an empty hop below the rollout root. Production's
+ * ordinary base is depth 1; the live high-impact arm is depth 2, so this prices
+ * the recorded `dead_hop2` residue without changing the promoted hop-1 dose. */
+function redrawLaterHopOnEmpty(
+  at: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  width: number,
+): Candidate[] {
+  const raw = readStudyRolloutLaterRedraw();
+  if (raw === undefined || raw === "" || raw === "0") return [];
+  if (raw !== "1" && raw !== "unpressured") {
+    throw new Error(
+      `LR_STUDY_ROLLOUT_LATER_REDRAW must be 0, 1, or unpressured (STUDY-ONLY), ` +
+        `got "${raw}"`,
+    );
+  }
+  // Compose with the promoted deadline law instead of inventing another
+  // pressure threshold: when hop 1 has already escalated above its base dose,
+  // the compile is spending its scarce margin there and hop 2 stays single-draw.
+  if (raw === "unpressured" && rolloutRedrawOnEmpty(rolloutRedrawPressure) !== 1) return [];
+  fwdEvalTotals.fwd_rollout_later_redraws++;
+  const savedAimSuppressed = isRolloutAimSuppressed();
+  setRolloutAimSuppressed(true);
+  let widened: Candidate[];
+  try {
+    widened = getCandidatesSorted(
+      at,
+      gaps,
+      ctx,
+      seed,
+      Math.min(width + 1, REDRAW_MAX_TOTAL_WIDTH),
+    );
+  } finally {
+    setRolloutAimSuppressed(savedAimSuppressed);
+  }
+  if (widened.length > 0) fwdEvalTotals.fwd_rollout_later_redraw_refuted++;
+  return widened;
+}
+
 /** greedy/best: best true partial-track score reachable from `search` within
  *  `depthLeft` contact gaps, branching `branch` (1 = greedy single rollout).
  *  `firstHop` marks the outermost call — the one whose empty expansion is the
@@ -7354,6 +9121,8 @@ function forwardRolloutScore(
   let cands = getCandidatesSorted(at, gaps, ctx, seed, branch);
   if (cands.length === 0 && firstHop) {
     cands = redrawFirstHopOnEmpty(at, gaps, ctx, seed, branch);
+  } else if (cands.length === 0) {
+    cands = redrawLaterHopOnEmpty(at, gaps, ctx, seed, branch);
   }
   if (cands.length === 0) {
     fwdEvalTotals.fwd_rollout_no_candidate++;

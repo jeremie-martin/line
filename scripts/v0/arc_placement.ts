@@ -38,6 +38,11 @@ import {
   MIN_LANDING_AIRBORNE_FRAMES,
 } from "../lib/detector.ts";
 import { registerCompileReset } from "./core/compile_lifecycle.ts";
+import { compileScopedEnv } from "./env_flags.ts";
+import type { PrecontactMulticontactHistoryReady } from "./trajectory/precontact_multicontact_history.ts";
+import { adaptiveCurveSegmentCount } from "./trajectory/curve_resolution.ts";
+import type { NativeCatchHistoryMode } from "./optimizer/sample.ts";
+import type { NativeCatchReferenceFrame } from "./trajectory/native_catch_history.ts";
 import { makeSolidLine } from "./arc.ts";
 import {
   planSupportGeometry,
@@ -263,6 +268,267 @@ const AMP_SPAN_FLOOR = 0;
  * lever is not the eleven that came before it.
  */
 const IMPACT_SEGMENT_REFINE = 2;
+export type ImpactSegmentLaw =
+  | "base-one"
+  | "high-ask"
+  | "high-ask-strong"
+  | "high-ask-dense-history"
+  | "high-ask-detector-history"
+  | "atlas-window";
+const readImpactSegmentLaw = compileScopedEnv("LR_IMPACT_SEGMENT_LAW");
+
+export type ImpactSegmentDistributionLaw =
+  | "window-dense"
+  | "window-dense-strong"
+  | "curve-equal-turn"
+  | "curve-equal-turn-low-air";
+const readImpactSegmentDistribution = compileScopedEnv("LR_IMPACT_SEGMENT_DISTRIBUTION");
+
+export type ImpactCurveJointExtensionLaw =
+  | "incoming-tangent"
+  | "outgoing-tangent"
+  | "both";
+const readImpactCurveJointExtension = compileScopedEnv("LR_IMPACT_CURVE_JOINT_EXTENSION");
+
+export type ImpactCarrierRippleLaw = "half" | "full" | "aligned-half" | "active-half";
+const readImpactCarrierRipple = compileScopedEnv("LR_IMPACT_CARRIER_RIPPLE");
+const readImpactCarrierRipplePhase = compileScopedEnv("LR_IMPACT_CARRIER_RIPPLE_PHASE");
+const readImpactSupportWindow = compileScopedEnv("LR_IMPACT_SUPPORT_WINDOW");
+const readNormalPostCurveResolution = compileScopedEnv("LR_NORMAL_POST_CURVE_RESOLUTION");
+let impactCarrierRippleRepairActive = false;
+
+export function setImpactCarrierRippleRepairActive(active: boolean): void {
+  impactCarrierRippleRepairActive = active;
+}
+
+export function impactCarrierRipplePhase(
+  environment?: Record<string, string | undefined>,
+): "all" | "repair" {
+  const value = environment === undefined
+    ? readImpactCarrierRipplePhase()
+    : environment.LR_IMPACT_CARRIER_RIPPLE_PHASE;
+  if (value === undefined || value === "" || value === "all") return "all";
+  if (value === "repair") return "repair";
+  throw new Error(`LR_IMPACT_CARRIER_RIPPLE_PHASE must be all or repair; got ${value}`);
+}
+
+export function impactCarrierRippleActive(
+  phase: "all" | "repair" = impactCarrierRipplePhase(),
+): boolean {
+  return phase === "all" || impactCarrierRippleRepairActive;
+}
+
+export function impactCarrierRippleLaw(
+  environment?: Record<string, string | undefined>,
+): ImpactCarrierRippleLaw | null {
+  const value = environment === undefined
+    ? readImpactCarrierRipple()
+    : environment.LR_IMPACT_CARRIER_RIPPLE;
+  if (value === undefined || value === "" || value === "off") return null;
+  if (value === "half" || value === "full" || value === "aligned-half" || value === "active-half") {
+    return value;
+  }
+  throw new Error(
+    `LR_IMPACT_CARRIER_RIPPLE must be off, half, full, aligned-half, or active-half; got ${value}`,
+  );
+}
+
+export function impactSegmentDistributionLaw(
+  environment?: Record<string, string | undefined>,
+): ImpactSegmentDistributionLaw | null {
+  const value = environment === undefined
+    ? readImpactSegmentDistribution()
+    : environment.LR_IMPACT_SEGMENT_DISTRIBUTION;
+  if (value === undefined || value === "" || value === "off") return null;
+  if (
+    value === "window-dense" || value === "window-dense-strong" ||
+    value === "curve-equal-turn" || value === "curve-equal-turn-low-air"
+  ) return value;
+  throw new Error(
+      `LR_IMPACT_SEGMENT_DISTRIBUTION must be off, window-dense, ` +
+      `window-dense-strong, curve-equal-turn, or curve-equal-turn-low-air; got ${value}`,
+  );
+}
+
+export function impactCurveJointExtensionLaw(
+  environment?: Record<string, string | undefined>,
+): ImpactCurveJointExtensionLaw | null {
+  const value = environment === undefined
+    ? readImpactCurveJointExtension()
+    : environment.LR_IMPACT_CURVE_JOINT_EXTENSION;
+  if (value === undefined || value === "") return "incoming-tangent";
+  if (value === "0" || value === "off") return null;
+  if (value === "incoming-tangent" || value === "outgoing-tangent" || value === "both") {
+    return value;
+  }
+  throw new Error(
+    `LR_IMPACT_CURVE_JOINT_EXTENSION must be off, incoming-tangent, ` +
+      `outgoing-tangent, or both; got ${value}`,
+  );
+}
+
+/**
+ * Make the engine's finite collision domain continuous across internal curve
+ * joints without adding a line, moving a vertex, or changing a tangent.  A
+ * right extension carries the incoming tangent past the joint; a left
+ * extension exposes the outgoing tangent before it.  Endpoints remain finite
+ * so the contact and release boundaries are unchanged. Incoming-tangent is the
+ * shipped law: its held-out N=6 screen improved every scored axis and every
+ * canonical group without a lost completion. `off` retains the exact control.
+ */
+export function applyImpactCurveJointExtensions(
+  lines: readonly TrackLine[],
+  law: ImpactCurveJointExtensionLaw | null,
+): TrackLine[] {
+  const out = lines.map((line) => ({ ...line }));
+  if (law === null || out.length < 2) return out;
+  for (let index = 0; index + 1 < out.length; index++) {
+    if (law === "incoming-tangent" || law === "both") {
+      out[index]!.rightExtended = true;
+    }
+    if (law === "outgoing-tangent" || law === "both") {
+      out[index + 1]!.leftExtended = true;
+    }
+  }
+  return out;
+}
+
+/**
+ * Keep equal-turn tessellation on the authored low-air regime where the
+ * incoming trajectory is flat enough for one large early chord turn to be a
+ * material collision discretization error. The 0.4 boundary is an authored
+ * regime boundary, not a source or benchmark identity.
+ */
+export function impactSegmentDistributionForTargets(
+  targets: AxisValues,
+  law: ImpactSegmentDistributionLaw | null = impactSegmentDistributionLaw(),
+): ImpactSegmentDistributionLaw | null {
+  if (law !== "curve-equal-turn-low-air") return law;
+  return targets.air !== undefined && targets.air < 0.4 ? "curve-equal-turn" : null;
+}
+
+export function impactSegmentLaw(
+  environment?: Record<string, string | undefined>,
+): ImpactSegmentLaw | null {
+  const value = environment === undefined
+    ? readImpactSegmentLaw()
+    : environment.LR_IMPACT_SEGMENT_LAW;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (
+    value === "base-one" || value === "high-ask" || value === "high-ask-strong" ||
+    value === "high-ask-dense-history" || value === "high-ask-detector-history" ||
+    value === "atlas-window"
+  ) return value;
+  throw new Error(
+    `LR_IMPACT_SEGMENT_LAW must be off, base-one, high-ask, high-ask-strong, ` +
+      `high-ask-dense-history, high-ask-detector-history, or atlas-window; got ${value}`,
+  );
+}
+
+export type NormalPostCurveResolutionLaw =
+  | "tolerance"
+  | "tolerance-additive"
+  | "tolerance-native-span";
+
+export function normalPostCurveResolutionLaw(
+  environment?: Record<string, string | undefined>,
+): NormalPostCurveResolutionLaw | null {
+  const value = environment === undefined
+    ? readNormalPostCurveResolution()
+    : environment.LR_NORMAL_POST_CURVE_RESOLUTION;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (
+    value === "tolerance" || value === "tolerance-additive" ||
+    value === "tolerance-native-span"
+  ) return value;
+  throw new Error(
+    `LR_NORMAL_POST_CURVE_RESOLUTION must be off, tolerance, tolerance-additive, ` +
+      `or tolerance-native-span; got ${value}`,
+  );
+}
+
+/**
+ * The generic resolution contract applies to the sampler's native curvature
+ * span. Stronger negative bias is the impact carrier itself: subdividing that
+ * physical front-load changed collision response rather than approximating the
+ * same ordinary curve in the exact paired-pool assay.
+ */
+export function normalPostCurveResolutionEligible(
+  curveBias: number,
+  law: NormalPostCurveResolutionLaw | null,
+): boolean {
+  if (law === null) return false;
+  return law !== "tolerance-native-span" ||
+    Math.abs(curveBias) <= CONTACT_CENTERED_POST_CURVE_BIAS_SPAN + 1e-12;
+}
+
+export type NativeCatchFrameMode = "reference-half" | "reference-full";
+const readNativeCatchFrameMode = compileScopedEnv("LR_NATIVE_CATCH_FRAME");
+
+export function nativeCatchFrameMode(
+  environment?: Record<string, string | undefined>,
+): NativeCatchFrameMode | null {
+  const value = environment === undefined
+    ? readNativeCatchFrameMode()
+    : environment.LR_NATIVE_CATCH_FRAME;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (value === "reference-half" || value === "reference-full") return value;
+  throw new Error(
+    `LR_NATIVE_CATCH_FRAME must be off, reference-half, or reference-full; got ${value}`,
+  );
+}
+
+/**
+ * Rotate the contact carrier toward the velocity of the sled point that is
+ * actually used as its anchor. The ordinary sampler uses rider CoM velocity;
+ * limiting the relative angle keeps articulated point motion from turning a
+ * momentary whip into an unbounded surface command.
+ */
+export function nativeCatchFrameShiftDeg(
+  targetState: ImpactFrameTargetState,
+  reference: NativeCatchReferenceFrame | null,
+  mode: NativeCatchFrameMode | null = nativeCatchFrameMode(),
+  pressure = 1,
+): number {
+  if (mode === null || reference === null || !(reference.speed > 0)) return 0;
+  let delta = reference.angleDeg - targetState.angleDeg;
+  while (delta <= -180) delta += 360;
+  while (delta > 180) delta -= 360;
+  const blend = mode === "reference-full" ? 1 : .5;
+  return clamp(delta, -25, 25) * blend * clamp(pressure, 0, 1);
+}
+
+export function impactSegmentRefinement(
+  targetImpact: number | undefined,
+  law: ImpactSegmentLaw | null = impactSegmentLaw(),
+  nextGapFrames: number | null = null,
+  history: PrecontactMulticontactHistoryReady | null = null,
+  currentGapFrames: number | null = null,
+): number {
+  const ask = clamp(targetImpact ?? 0, 0, 1);
+  if (law === null) return 1 + IMPACT_SEGMENT_REFINE * ask;
+  if (law === "base-one") return 1 + ask;
+  if (law === "atlas-window") {
+    const atlasWindow = currentGapFrames !== null && currentGapFrames >= 17 &&
+        currentGapFrames < 25
+      ? 1
+      : 0;
+    return 1 + (IMPACT_SEGMENT_REFINE + atlasWindow) * ask;
+  }
+  const highAskPressure = smoothstep((ask - .60) / .25);
+  const extra = law === "high-ask-dense-history" || law === "high-ask-detector-history"
+    ? 2 * (
+      nextGapFrames === null ? 0 : law === "high-ask-detector-history"
+        ? (nextGapFrames <= 12 ? 1 : 0)
+        : 1 - smoothstep((nextGapFrames - 18) / 10)
+    ) * (
+      history === null ? 0 : smoothstep(
+        (Math.abs(history.poseTurnDeg - history.collectiveTurnDeg) - 4) / 3,
+      )
+    )
+    : law === "high-ask-strong" ? 2 : 1;
+  return 1 + (IMPACT_SEGMENT_REFINE + extra * highAskPressure) * ask;
+}
 /**
  * Upper bound on the energy-targeted launch's downward velocity, as a fraction
  * of `g * N`. It is what BINDS on dense specs, and opening it changes nothing.
@@ -510,7 +776,16 @@ const STEEP_ARRIVAL_SPAN_FLOOR = 0.5;
  * shape this campaign has promoted twice and lost at N=48, so it is recorded
  * rather than shipped.
  */
-const IMPACT_SUPPORT_WINDOW = 0;
+export function impactSupportWindowStrength(
+  environment?: Record<string, string | undefined>,
+): 0 | 1 {
+  const value = environment === undefined
+    ? readImpactSupportWindow()
+    : environment.LR_IMPACT_SUPPORT_WINDOW;
+  if (value === undefined || value === "" || value === "0" || value === "off") return 0;
+  if (value === "1" || value === "full") return 1;
+  throw new Error(`LR_IMPACT_SUPPORT_WINDOW must be off or full; got ${value}`);
+}
 /**
  * Flight share at or above which the dive is applied in full; below it the pitch
  * is scaled down proportionally. `0` disables the gate exactly.
@@ -677,6 +952,388 @@ type SegmentCollisionRiskLines = number[];
 
 export type ArcPlacementStats = NonNullable<CompileStats["arc_placement"]>;
 export type ArcPlacementDirectFailureReason = "survival" | "landing" | "offbeat";
+export type ImpactCommandLaw = "inverse-baseline";
+export type ImpactCommandScope = "both" | "current" | "next";
+export type ImpactActiveCarrierLaw =
+  | "window-quarter"
+  | "window-accel-pressure"
+  | "window-accel-laminate-pressure"
+  | "window-accel-laminate-additive-pressure"
+  | "contact-segment-accel-pressure"
+  | "contact-segment-additive-pressure"
+  | "post-capture-accel-pressure";
+const readImpactActiveCarrierLaw = compileScopedEnv("LR_IMPACT_ACTIVE_CARRIER");
+
+/**
+ * Default-off active-material study opened only after the passive impact
+ * carrier search was exhausted.  The law reserves one quarter of normal
+ * attempts; all other candidates remain byte-identical solid controls.
+ */
+export function impactActiveCarrierLaw(
+  environment?: Record<string, string | undefined>,
+): ImpactActiveCarrierLaw | null {
+  const value = environment === undefined
+    ? readImpactActiveCarrierLaw()
+    : environment.LR_IMPACT_ACTIVE_CARRIER;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (
+    value === "window-quarter" || value === "window-accel-pressure" ||
+    value === "window-accel-laminate-pressure" ||
+    value === "window-accel-laminate-additive-pressure" ||
+    value === "contact-segment-accel-pressure" ||
+    value === "contact-segment-additive-pressure" ||
+    value === "post-capture-accel-pressure"
+  ) return value;
+  throw new Error(
+    `LR_IMPACT_ACTIVE_CARRIER must be off, window-quarter, window-accel-pressure, ` +
+      `window-accel-laminate-pressure, contact-segment-accel-pressure, ` +
+      `window-accel-laminate-additive-pressure, contact-segment-additive-pressure, or ` +
+      `post-capture-accel-pressure; got ${value}`,
+  );
+}
+
+/** Attempt zero and three quarters of the established pool stay exact controls. */
+export function impactActiveCarrierAttempt(
+  attempt: number,
+  law: ImpactActiveCarrierLaw | null,
+  accelPressure = 1,
+): boolean {
+  if (law === null || !Number.isSafeInteger(attempt) || attempt <= 0) return false;
+  if (law === "window-quarter") return ((attempt % 4) + 4) % 4 === 3;
+  const rate = 0.25 * clamp(accelPressure, 0, 1);
+  return lowDiscrepancyRoll(attempt, 29) < rate;
+}
+
+/**
+ * Preserve the physical segment and its active collision normal while changing
+ * only its Line Rider material to forward tangential acceleration.  Type 1
+ * accelerates opposite its stored tangent, hence the representation reversal.
+ */
+function forwardAccelerationLine(line: TrackLine): TrackLine {
+  return {
+    ...line,
+    type: 1,
+    x1: line.x2,
+    y1: line.y2,
+    x2: line.x1,
+    y2: line.y1,
+    flipped: !line.flipped,
+    leftExtended: line.rightExtended,
+    rightExtended: line.leftExtended,
+  };
+}
+
+/**
+ * Convert only segments whose contact-side endpoint begins inside the scored
+ * contacted window.  Whole segments are retained: splitting at the boundary
+ * would introduce a new collision vertex and confound material with geometry.
+ */
+export function applyImpactWindowAcceleration(
+  lines: readonly TrackLine[],
+  contactSpeedPx: number,
+): TrackLine[] {
+  const out = lines.map((line) => ({ ...line }));
+  if (!(contactSpeedPx > 0)) return out;
+  const windowPx = IMPACT_WINDOW * contactSpeedPx;
+  let distanceFromContact = 0;
+  for (let index = 0; index < out.length; index++) {
+    const line = out[index];
+    const segmentLength = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+    if (!(segmentLength > 1e-9)) continue;
+    if (distanceFromContact < windowPx - 1e-9 && line.type === 0) {
+      out[index] = forwardAccelerationLine(line);
+    }
+    distanceFromContact += segmentLength;
+  }
+  return out;
+}
+
+/**
+ * Preserve a complete sampled catch through the vertex nearest its predicted
+ * contact reference, then apply the ordinary active-window material law only
+ * to the response-side suffix. Geometry and line ids remain unchanged.
+ */
+export function applyImpactWindowAccelerationAfterReference(
+  lines: readonly TrackLine[],
+  reference: { x: number; y: number },
+  contactSpeedPx: number,
+): TrackLine[] {
+  if (lines.length === 0) return [];
+  const vertices = [{ x: lines[0]!.x1, y: lines[0]!.y1 }];
+  for (const line of lines) {
+    const previous = vertices[vertices.length - 1]!;
+    if (Math.hypot(previous.x - line.x1, previous.y - line.y1) > 1e-6) {
+      return lines.map((entry) => ({ ...entry }));
+    }
+    vertices.push({ x: line.x2, y: line.y2 });
+  }
+  let anchor = 0;
+  for (let index = 1; index < vertices.length; index++) {
+    if (
+      Math.hypot(vertices[index]!.x - reference.x, vertices[index]!.y - reference.y) <
+      Math.hypot(vertices[anchor]!.x - reference.x, vertices[anchor]!.y - reference.y)
+    ) anchor = index;
+  }
+  if (anchor >= lines.length) return lines.map((entry) => ({ ...entry }));
+  return [
+    ...lines.slice(0, anchor).map((line) => ({ ...line })),
+    ...applyImpactWindowAcceleration(lines.slice(anchor), contactSpeedPx),
+  ];
+}
+
+/**
+ * Two-layer engine-native force cell over the same physical impact window.
+ * The outer type-1 surface is the native segment. The inner surface is offset
+ * behind it by the engine's fixed 0.1px acceleration magnitude along the
+ * transported active normal. Descending line-id order presents the outer
+ * layer first, so exact replay may apply a second tangential impulse without
+ * changing the visible outer curve.
+ */
+export function applyImpactWindowAccelerationLaminate(
+  lines: readonly TrackLine[],
+  contactSpeedPx: number,
+): TrackLine[] {
+  if (!(contactSpeedPx > 0) || lines.length === 0) return lines.map((line) => ({ ...line }));
+  const out: TrackLine[] = [];
+  const windowPx = IMPACT_WINDOW * contactSpeedPx;
+  let distanceFromContact = 0;
+  let nextId = lines[0]!.id;
+  for (const source of lines) {
+    const segmentLength = Math.hypot(source.x2 - source.x1, source.y2 - source.y1);
+    const active = distanceFromContact < windowPx - 1e-9 && segmentLength > 1e-9 && source.type === 0;
+    if (!active) {
+      out.push({ ...source, id: nextId++ });
+      if (segmentLength > 1e-9) distanceFromContact += segmentLength;
+      continue;
+    }
+    const normal = trackLineActiveNormal(source);
+    const inner = {
+      ...source,
+      x1: source.x1 - normal.x * 0.1,
+      y1: source.y1 - normal.y * 0.1,
+      x2: source.x2 - normal.x * 0.1,
+      y2: source.y2 - normal.y * 0.1,
+    };
+    // Inner receives the lower id; lr-core visits the outer layer first.
+    out.push({ ...forwardAccelerationLine(inner), id: nextId++ });
+    out.push({ ...forwardAccelerationLine(source), id: nextId++ });
+    distanceFromContact += segmentLength;
+  }
+  return out;
+}
+
+function trackLineActiveNormal(line: TrackLine): { x: number; y: number } {
+  const dx = line.x2 - line.x1;
+  const dy = line.y2 - line.y1;
+  const length = Math.hypot(dx, dy);
+  if (!(length > 1e-9)) return { x: 0, y: 0 };
+  const sign = line.flipped ? -1 : 1;
+  return { x: -dy / length * sign, y: dx / length * sign };
+}
+
+/** A one-segment material impulse followed by the exact solid native carrier. */
+export function applyImpactContactSegmentAcceleration(
+  lines: readonly TrackLine[],
+): TrackLine[] {
+  const out = lines.map((line) => ({ ...line }));
+  const first = out.findIndex((line) =>
+    line.type === 0 && Math.hypot(line.x2 - line.x1, line.y2 - line.y1) > 1e-9
+  );
+  if (first >= 0) out[first] = forwardAccelerationLine(out[first]);
+  return out;
+}
+
+/**
+ * Leave the capture segment solid, then restore tangential speed over the rest
+ * of the scored contacted window. This separates turn acquisition from active
+ * recovery and leaves the late continuation solid.
+ */
+export function applyImpactPostCaptureAcceleration(
+  lines: readonly TrackLine[],
+  contactSpeedPx: number,
+): TrackLine[] {
+  const out = lines.map((line) => ({ ...line }));
+  if (!(contactSpeedPx > 0)) return out;
+  const windowPx = IMPACT_WINDOW * contactSpeedPx;
+  let distanceFromContact = 0;
+  let captured = false;
+  for (let index = 0; index < out.length; index++) {
+    const line = out[index];
+    const segmentLength = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+    if (!(segmentLength > 1e-9)) continue;
+    if (line.type === 0) {
+      if (captured && distanceFromContact < windowPx - 1e-9) {
+        out[index] = forwardAccelerationLine(line);
+      }
+      captured = true;
+    }
+    distanceFromContact += segmentLength;
+  }
+  return out;
+}
+
+/**
+ * Default-off calibration of the geometry generator's impact command.
+ *
+ * The current broad baseline fits achieved impact approximately as
+ * `-0.049 + 0.800 * authoredTarget`. Inverting that measured response gives a
+ * single global command law. It does not alter the authored target, scorer,
+ * ranker, or candidate gate; only the geometry inputs see the calibrated value.
+ */
+export function impactCommandLaw(
+  environment: Record<string, string | undefined> = process.env,
+): ImpactCommandLaw | null {
+  const value = environment.LR_IMPACT_COMMAND_LAW;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (value === "inverse-baseline") return value;
+  throw new Error(`LR_IMPACT_COMMAND_LAW must be off or inverse-baseline; got ${value}`);
+}
+
+/**
+ * Study-only interpolation between the authored command and the frozen inverse
+ * response command.  One exactly reproduces the original inverse-baseline arm;
+ * zero is exactly neutral even while the arm is enabled.  Keeping this separate
+ * from the law lets a paired dose bracket change magnitude without changing the
+ * response model being tested.
+ */
+export function impactCommandDose(
+  environment: Record<string, string | undefined> = process.env,
+): number {
+  const raw = environment.LR_IMPACT_COMMAND_DOSE;
+  if (raw === undefined || raw === "") return 1;
+  const dose = Number(raw);
+  if (!Number.isFinite(dose) || dose < -1 || dose > 1) {
+    throw new Error(`LR_IMPACT_COMMAND_DOSE must be in [-1, 1]; got ${raw}`);
+  }
+  return dose;
+}
+
+/** Separates the command's contact-steering and arrival-lookahead consumers. */
+export function impactCommandScope(
+  environment: Record<string, string | undefined> = process.env,
+): ImpactCommandScope {
+  const value = environment.LR_IMPACT_COMMAND_SCOPE;
+  if (value === undefined || value === "" || value === "both") return "both";
+  if (value === "current" || value === "next") return value;
+  throw new Error(`LR_IMPACT_COMMAND_SCOPE must be both, current, or next; got ${value}`);
+}
+
+export function impactCommandTarget(
+  authoredTarget: number,
+  environment: Record<string, string | undefined> = process.env,
+): number {
+  if (impactCommandLaw(environment) === null) return authoredTarget;
+  const dose = impactCommandDose(environment);
+  if (dose === 0) return authoredTarget;
+  const inverseTarget = clamp((authoredTarget + 0.049) / 0.800, 0, 1);
+  return clamp(lerp(authoredTarget, inverseTarget, dose), 0, 1);
+}
+
+export type AmplitudeLaunchLaw =
+  | "feasible-gate"
+  | "dense-ceiling-gate"
+  | "air-conflict-gate"
+  | "target-airtime"
+  | "suppress-all";
+const readAmplitudeLaunchLaw = compileScopedEnv("LR_AMPLITUDE_LAUNCH_LAW");
+
+/**
+ * Default-off amplitude launch experiments. The gate uses the exact full-air
+ * ballistic sagitta as a duration ceiling. The target-airtime law inverts the
+ * same relation to derive the airborne duration, ride-out length, and launch
+ * angle required by the authored height.
+ */
+export function amplitudeLaunchLaw(
+  environment?: Record<string, string | undefined>,
+): AmplitudeLaunchLaw | null {
+  const value = environment === undefined
+    ? readAmplitudeLaunchLaw()
+    : environment.LR_AMPLITUDE_LAUNCH_LAW;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (
+    value === "feasible-gate" || value === "dense-ceiling-gate" ||
+    value === "air-conflict-gate" ||
+    value === "target-airtime" || value === "suppress-all"
+  ) return value;
+  throw new Error(
+    `LR_AMPLITUDE_LAUNCH_LAW must be off, feasible-gate, dense-ceiling-gate, air-conflict-gate, target-airtime, or suppress-all; got ${value}`,
+  );
+}
+
+export type AmplitudeTargetArcPlan = {
+  fullAirCeiling: number;
+  airFrames: number;
+  launchAngleDeg: number;
+  postLength: number;
+};
+
+export function amplitudeTargetArcPlan(
+  authoredAmplitude: number,
+  nextGapFrames: number,
+  vx: number,
+): AmplitudeTargetArcPlan {
+  const amp = clamp(authoredAmplitude, 0, 1);
+  const gapFrames = Math.max(1, nextGapFrames);
+  const fullAirCeiling = Math.min(
+    1,
+    LAUNCH_GRAVITY_PX_PER_FRAME2 * gapFrames * gapFrames /
+      (8 * CALIB.AMPLITUDE_CAP),
+  );
+  const requiredAirFrames = Math.sqrt(
+    8 * CALIB.AMPLITUDE_CAP * amp / LAUNCH_GRAVITY_PX_PER_FRAME2,
+  );
+  const airFrames = clamp(requiredAirFrames, 1, gapFrames);
+  const vxArc = Math.max(1, vx);
+  const vyArc = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * airFrames;
+  return {
+    fullAirCeiling,
+    airFrames,
+    launchAngleDeg: (Math.atan2(vyArc, vxArc) * 180) / Math.PI,
+    postLength: Math.max(28, (gapFrames - airFrames) * vxArc),
+  };
+}
+
+export type AmplitudeImpactCouplingLaw = "exact-arrival";
+const readAmplitudeImpactCouplingLaw = compileScopedEnv(
+  "LR_AMPLITUDE_IMPACT_COUPLING",
+);
+
+/**
+ * Default-off joint amplitude/next-impact experiment.  The ordinary amplitude
+ * block chooses the ride/flight split (and therefore ballistic sagitta); this
+ * law changes only the linear tilt of that fixed-duration parabola so its
+ * arrival angle can serve the following impact ask.
+ */
+export function amplitudeImpactCouplingLaw(
+  environment?: Record<string, string | undefined>,
+): AmplitudeImpactCouplingLaw | null {
+  const value = environment === undefined
+    ? readAmplitudeImpactCouplingLaw()
+    : environment.LR_AMPLITUDE_IMPACT_COUPLING;
+  if (value === undefined || value === "" || value === "0" || value === "off") return null;
+  if (value === "exact-arrival") return value;
+  throw new Error(
+    `LR_AMPLITUDE_IMPACT_COUPLING must be off or exact-arrival; got ${value}`,
+  );
+}
+
+/**
+ * Invert a constant-gravity flight for its launch angle.  At fixed duration,
+ * changing this angle adds a linear term to the trajectory but leaves the
+ * height above its takeoff-to-landing chord exactly g*T^2/8.
+ */
+export function ballisticLaunchAngleForArrivalDeg(
+  speed: number,
+  flightFrames: number,
+  arrivalAngleDeg: number,
+): number | null {
+  const v = Math.max(1, speed);
+  const phi = (arrivalAngleDeg * Math.PI) / 180;
+  const gravityShare = LAUNCH_GRAVITY_PX_PER_FRAME2 * Math.max(0, flightFrames) *
+    Math.cos(phi) / v;
+  if (Math.abs(gravityShare) > 1) return null;
+  return (phi - Math.asin(gravityShare)) * 180 / Math.PI;
+}
 
 export type SupportGeometryProbeRecord = {
   gapIndex: number;
@@ -715,7 +1372,14 @@ export type PreTargetSledTrace = number[];
 
 export type ArcPlacementRuntimeMode = ArcPlacementMode;
 
-export type ArcPlacementGeometry = { kind: "lines"; lines: TrackLine[] };
+export type ArcPlacementGeometry = {
+  kind: "lines";
+  lines: TrackLine[];
+  /** Study-only exact material sibling; the ordinary solid geometry remains first. */
+  activeSiblingLines?: TrackLine[];
+  /** Study-only tolerance-refined sibling; the nominal geometry remains first. */
+  resolutionSiblingLines?: TrackLine[];
+};
 
 type PlacementRolls = {
   segmentLength: number;
@@ -747,8 +1411,63 @@ function makeArcPlacementCounter(): ArcPlacementCounter {
 }
 
 function makeArcPlacementStats(): ArcPlacementStats {
+  const activeCarrierLaw = impactActiveCarrierLaw();
+  const activeRipple = impactCarrierRippleLaw() === "active-half";
+  const supportWindow = impactSupportWindowStrength() === 1;
+  const atlasSegmentWindow = impactSegmentLaw() === "atlas-window";
+  const resolutionLaw = normalPostCurveResolutionLaw();
   return {
     mode: arcPlacementMode(),
+    impact_command_law: impactCommandLaw() ?? "off",
+    impact_command_adjusted: 0,
+    impact_command_target_sum: 0,
+    impact_command_value_sum: 0,
+    impact_next_command_adjusted: 0,
+    impact_next_target_sum: 0,
+    impact_next_value_sum: 0,
+    ...(supportWindow
+      ? {
+        impact_support_window_law: "full" as const,
+        impact_support_window_attempts: 0,
+        impact_support_window_extended: 0,
+        impact_support_window_added_px_sum: 0,
+      }
+      : {}),
+    ...(atlasSegmentWindow
+      ? {
+        impact_segment_atlas_window_law: "fixed" as const,
+        impact_segment_atlas_window_attempts: 0,
+        impact_segment_atlas_window_extra_segments: 0,
+      }
+      : {}),
+    ...(resolutionLaw === null
+      ? {}
+      : {
+        normal_post_curve_resolution_law: resolutionLaw,
+        normal_post_curve_resolution_attempts: 0,
+        normal_post_curve_resolution_refined: 0,
+        normal_post_curve_resolution_added_segments: 0,
+        ...(resolutionLaw === "tolerance-additive"
+          ? {
+            normal_post_curve_resolution_siblings_evaluated: 0,
+            normal_post_curve_resolution_siblings_admitted: 0,
+          }
+          : {}),
+      }),
+    ...(activeCarrierLaw === null
+      ? {}
+      : {
+        impact_active_carrier_law: activeCarrierLaw,
+        impact_active_carrier_attempts: 0,
+        impact_active_carrier_lines: 0,
+      }),
+    ...(activeRipple
+      ? {
+        impact_carrier_ripple_law: "active-half" as const,
+        impact_carrier_ripple_attempts: 0,
+        impact_carrier_ripple_lines: 0,
+      }
+      : {}),
     ...makeArcPlacementCounter(),
     by_sample_mode: Object.fromEntries(
       CANDIDATE_SAMPLE_MODES.map((mode) => [mode, makeArcPlacementCounter()]),
@@ -759,8 +1478,61 @@ function makeArcPlacementStats(): ArcPlacementStats {
 const arcPlacementStats: ArcPlacementStats = makeArcPlacementStats();
 
 export function resetArcPlacementStats(): void {
+  impactCarrierRippleRepairActive = false;
   const fresh = makeArcPlacementStats();
   arcPlacementStats.mode = fresh.mode;
+  delete arcPlacementStats.impact_active_carrier_law;
+  delete arcPlacementStats.impact_active_carrier_attempts;
+  delete arcPlacementStats.impact_active_carrier_lines;
+  delete arcPlacementStats.impact_active_carrier_final_lines;
+  delete arcPlacementStats.impact_carrier_ripple_law;
+  delete arcPlacementStats.impact_carrier_ripple_attempts;
+  delete arcPlacementStats.impact_carrier_ripple_lines;
+  delete arcPlacementStats.impact_carrier_ripple_final_lines;
+  delete arcPlacementStats.impact_support_window_law;
+  delete arcPlacementStats.impact_support_window_attempts;
+  delete arcPlacementStats.impact_support_window_extended;
+  delete arcPlacementStats.impact_support_window_added_px_sum;
+  delete arcPlacementStats.impact_segment_atlas_window_law;
+  delete arcPlacementStats.impact_segment_atlas_window_attempts;
+  delete arcPlacementStats.impact_segment_atlas_window_extra_segments;
+  delete arcPlacementStats.normal_post_curve_resolution_law;
+  delete arcPlacementStats.normal_post_curve_resolution_attempts;
+  delete arcPlacementStats.normal_post_curve_resolution_refined;
+  delete arcPlacementStats.normal_post_curve_resolution_added_segments;
+  delete arcPlacementStats.normal_post_curve_resolution_siblings_evaluated;
+  delete arcPlacementStats.normal_post_curve_resolution_siblings_admitted;
+  if (fresh.impact_support_window_law !== undefined) {
+    arcPlacementStats.impact_support_window_law = "full";
+    arcPlacementStats.impact_support_window_attempts = 0;
+    arcPlacementStats.impact_support_window_extended = 0;
+    arcPlacementStats.impact_support_window_added_px_sum = 0;
+  }
+  if (fresh.impact_segment_atlas_window_law !== undefined) {
+    arcPlacementStats.impact_segment_atlas_window_law = "fixed";
+    arcPlacementStats.impact_segment_atlas_window_attempts = 0;
+    arcPlacementStats.impact_segment_atlas_window_extra_segments = 0;
+  }
+  if (fresh.normal_post_curve_resolution_law !== undefined) {
+    arcPlacementStats.normal_post_curve_resolution_law = fresh.normal_post_curve_resolution_law;
+    arcPlacementStats.normal_post_curve_resolution_attempts = 0;
+    arcPlacementStats.normal_post_curve_resolution_refined = 0;
+    arcPlacementStats.normal_post_curve_resolution_added_segments = 0;
+    if (fresh.normal_post_curve_resolution_siblings_evaluated !== undefined) {
+      arcPlacementStats.normal_post_curve_resolution_siblings_evaluated = 0;
+      arcPlacementStats.normal_post_curve_resolution_siblings_admitted = 0;
+    }
+  }
+  if (fresh.impact_active_carrier_law !== undefined) {
+    arcPlacementStats.impact_active_carrier_law = fresh.impact_active_carrier_law;
+    arcPlacementStats.impact_active_carrier_attempts = 0;
+    arcPlacementStats.impact_active_carrier_lines = 0;
+  }
+  if (fresh.impact_carrier_ripple_law !== undefined) {
+    arcPlacementStats.impact_carrier_ripple_law = fresh.impact_carrier_ripple_law;
+    arcPlacementStats.impact_carrier_ripple_attempts = 0;
+    arcPlacementStats.impact_carrier_ripple_lines = 0;
+  }
   resetCounter(arcPlacementStats, fresh);
   for (const mode of CANDIDATE_SAMPLE_MODES) {
     resetCounter(arcPlacementStats.by_sample_mode[mode], fresh.by_sample_mode[mode]);
@@ -852,17 +1624,32 @@ export function sampleArcPlacementGeometry(
   mode: CandidateSampleMode = "normal",
   allContactFrames: readonly number[] = [],
   geometryModeOverride?: SupportGeometryMode,
+  nativeCatchHistory?: {
+    mode: NativeCatchHistoryMode | null;
+    history: PrecontactMulticontactHistoryReady | null;
+    frameMode?: NativeCatchFrameMode | null;
+    reference?: NativeCatchReferenceFrame | null;
+  },
 ): ArcPlacementGeometry {
   recordArcPlacementSample(mode);
   lastGeometryWasImpactTemplate = false;
   if (mode === "normal") {
-    return {
-      kind: "lines",
-      lines: sampleContactCenteredLines(
-        rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
-        geometryModeOverride ?? supportGeometryMode(),
-      ),
-    };
+    const commandScope = impactCommandLaw() === null ? null : impactCommandScope();
+    const commandTargets = commandScope === "next" ? targets : impactCommandTargets(targets, false);
+    const commandNextImpact = gap.nextImpact === undefined || commandScope === null ||
+        commandScope === "current"
+      ? undefined
+      : recordImpactCommand(gap.nextImpact, true);
+    const resolvedNextImpact = commandNextImpact ?? gap.nextImpact;
+    const commandGap = commandTargets === targets && resolvedNextImpact === gap.nextImpact
+      ? gap
+      : { ...gap, targets: commandTargets, nextImpact: resolvedNextImpact };
+    const sampled = sampleContactCenteredLines(
+      rng, targetState, commandTargets, commandGap, lineIdStart, allContactFrames, attempt,
+      geometryModeOverride ?? supportGeometryMode(),
+      nativeCatchHistory,
+    );
+    return { kind: "lines", ...sampled };
   }
   return {
     kind: "lines",
@@ -871,6 +1658,27 @@ export function sampleArcPlacementGeometry(
       mode,
     ),
   };
+}
+
+function impactCommandTargets(targets: AxisValues, next: boolean): AxisValues {
+  if (targets.impact === undefined) return targets;
+  const command = recordImpactCommand(targets.impact, next);
+  return command === targets.impact ? targets : { ...targets, impact: command };
+}
+
+function recordImpactCommand(authoredTarget: number, next: boolean): number {
+  const command = impactCommandTarget(authoredTarget);
+  if (impactCommandLaw() === null || command === authoredTarget) return command;
+  if (next) {
+    arcPlacementStats.impact_next_command_adjusted++;
+    arcPlacementStats.impact_next_target_sum += authoredTarget;
+    arcPlacementStats.impact_next_value_sum += command;
+  } else {
+    arcPlacementStats.impact_command_adjusted++;
+    arcPlacementStats.impact_command_target_sum += authoredTarget;
+    arcPlacementStats.impact_command_value_sum += command;
+  }
+  return command;
 }
 
 export function sampleArcParamsRngDraws(
@@ -1272,6 +2080,13 @@ export function setNormalPostCurveResolutionHook(hook: NormalPostCurveResolution
   normalPostCurveResolutionHook = hook;
 }
 
+/** Record the charged exact decision for one additive resolution sibling. */
+export function recordNormalPostCurveResolutionSibling(admitted: boolean): void {
+  if (arcPlacementStats.normal_post_curve_resolution_siblings_evaluated === undefined) return;
+  arcPlacementStats.normal_post_curve_resolution_siblings_evaluated++;
+  if (admitted) arcPlacementStats.normal_post_curve_resolution_siblings_admitted!++;
+}
+
 /** Shared speed/dense/short-gap pressure derivation for the contact-centered
  *  sampler. `sampleContactCenteredLines` and `guideContactCenteredRolls` both
  *  need the same block of derived pressures from the identical inputs, so it
@@ -1375,7 +2190,13 @@ function sampleContactCenteredLines(
   allContactFrames: readonly number[],
   attempt: number,
   geometryMode: ReturnType<typeof supportGeometryMode>,
-): TrackLine[] {
+  nativeCatchHistory?: {
+    mode: NativeCatchHistoryMode | null;
+    history: PrecontactMulticontactHistoryReady | null;
+    frameMode?: NativeCatchFrameMode | null;
+    reference?: NativeCatchReferenceFrame | null;
+  },
+): { lines: TrackLine[]; activeSiblingLines?: TrackLine[] } {
   const rawRolls: ContactCenteredRolls = {
     segmentLengthRoll: rng(),
     contactAngleRoll: rng(),
@@ -1410,8 +2231,16 @@ function sampleContactCenteredLines(
   const segmentLength = targets.grain !== undefined
     ? clamp(targets.grain * CALIB.LINE_LENGTH_CAP + (sampledRolls.segmentLengthRoll - 0.5) * 8, 4, 49)
     : clamp(16 + sampledRolls.segmentLengthRoll * 28, 4, 60);
+  const impactCurveP = impactCurvePressure(targetState, targets.impact);
+  const nativeFrameShiftDeg = nativeCatchFrameShiftDeg(
+    targetState,
+    nativeCatchHistory?.reference ?? null,
+    nativeCatchHistory?.frameMode ?? null,
+    impactCurveP,
+  );
   let contactAngleDeg = clamp(
     targetState.angleDeg
+      + nativeFrameShiftDeg
       - (2 + 5 * air)
       - 18 * brakePressure
       + 16 * accelPressure
@@ -1439,7 +2268,6 @@ function sampleContactCenteredLines(
   // a scoop so the descending entry meets a surface angled across its path (raises
   // tangentDelta); the front-loaded curvature below then sustains the rotation through
   // the redir window.
-  const impactCurveP = impactCurvePressure(targetState, targets.impact);
   if (impactCurveP > 0) {
     contactAngleDeg = clamp(
       contactAngleDeg - impactCurveP * IMPACT_CURVE_FLATTEN_DEG, -14, 65,
@@ -1686,14 +2514,37 @@ function sampleContactCenteredLines(
      * has touched, whose bias is -0.124. Roughly two thirds of authored
      * amplitude sits at or below the 0.30 onset and therefore receives nothing.
      */
-    const amplitudePressure = smoothstep((amp - AMP_ONSET) / 0.45);
+    const amplitudeLaw = amplitudeLaunchLaw();
+    const amplitudePlan = amplitudeTargetArcPlan(
+      amp,
+      nextGapFrames,
+      targetState.velocity.x,
+    );
+    const feasibilityGate = amplitudeLaw === "suppress-all" ||
+        (amplitudeLaw === "feasible-gate" && amp > amplitudePlan.fullAirCeiling) ||
+        (amplitudeLaw === "dense-ceiling-gate" &&
+          amplitudePlan.fullAirCeiling < 0.22 && amp > amplitudePlan.fullAirCeiling) ||
+        (amplitudeLaw === "air-conflict-gate" &&
+          amp > amplitudePlan.fullAirCeiling && (targets.air ?? 1) < 0.55)
+      ? 0
+      : 1;
+    const amplitudePressure = smoothstep((amp - AMP_ONSET) / 0.45) * feasibilityGate;
     const spanned = clamp(ccSpanBlends(attempt).launch, 0, 1);
     const blend = (AMP_SPAN_FLOOR + (1 - AMP_SPAN_FLOOR) * spanned) *
       amplitudePressure;
     // Shorten the grounded ride-out so the airborne arc fills more of the gap.
-    ({ postAngleDeg, postLength } = blendPostTowardPopArc(
-      postAngleDeg, postLength, nextGapFrames, targetState.velocity.x, blend, 1,
-    ));
+    if (amplitudeLaw === "target-airtime") {
+      postAngleDeg = clamp(
+        lerp(postAngleDeg, amplitudePlan.launchAngleDeg, blend),
+        ELEVATION_POST_ANGLE_MIN,
+        ELEVATION_POST_ANGLE_MAX,
+      );
+      postLength = lerp(postLength, amplitudePlan.postLength, blend);
+    } else {
+      ({ postAngleDeg, postLength } = blendPostTowardPopArc(
+        postAngleDeg, postLength, nextGapFrames, targetState.velocity.x, blend, 1,
+      ));
+    }
   }
 
   /*
@@ -1729,13 +2580,24 @@ function sampleContactCenteredLines(
    * `IMPACT_WINDOW * speed`, in proportion to what the contact actually asks
    * for. It never shortens the ride, and it trades against exactly one axis.
    */
-  if (IMPACT_SUPPORT_WINDOW > 0 && targets.impact !== undefined) {
+  const impactSupportWindow = impactSupportWindowStrength();
+  if (impactSupportWindow > 0 && targets.impact !== undefined) {
+    arcPlacementStats.impact_support_window_attempts =
+      (arcPlacementStats.impact_support_window_attempts ?? 0) + 1;
+    const previousPostLength = postLength;
     const ask = clamp(targets.impact, 0, 1);
     const windowPx = IMPACT_WINDOW * Math.max(1, targetState.speed);
     postLength = Math.max(
       postLength,
-      lerp(postLength, windowPx, clamp(IMPACT_SUPPORT_WINDOW * ask, 0, 1)),
+      lerp(postLength, windowPx, clamp(impactSupportWindow * ask, 0, 1)),
     );
+    const addedPostLength = postLength - previousPostLength;
+    if (addedPostLength > 1e-9) {
+      arcPlacementStats.impact_support_window_extended =
+        (arcPlacementStats.impact_support_window_extended ?? 0) + 1;
+      arcPlacementStats.impact_support_window_added_px_sum =
+        (arcPlacementStats.impact_support_window_added_px_sum ?? 0) + addedPostLength;
+    }
   }
 
   ({ postAngleDeg, postLength } = impactDeliveryAdjustment({
@@ -1795,13 +2657,36 @@ function sampleContactCenteredLines(
    * proportion to what the contact asks for delivers the same commanded turn
    * through more, smaller impulses.
    */
-  const segmentRefinement = 1 +
-    IMPACT_SEGMENT_REFINE * clamp(targets.impact ?? 0, 0, 1);
+  const segmentRefinement = impactSegmentRefinement(
+    targets.impact,
+    impactSegmentLaw(),
+    nextGapFrames,
+    nativeCatchHistory?.history ?? null,
+    gapFrames,
+  );
   const nominalPostSegments = clampInt(
     Math.round(postLength * segmentRefinement / segmentLength),
     2,
     16,
   );
+  if (
+    arcPlacementStats.impact_segment_atlas_window_law !== undefined &&
+    targets.impact !== undefined && gapFrames >= 17 && gapFrames < 25
+  ) {
+    const baselineSegments = clampInt(
+      Math.round(
+        postLength * (1 + IMPACT_SEGMENT_REFINE * clamp(targets.impact, 0, 1)) /
+          segmentLength,
+      ),
+      2,
+      16,
+    );
+    arcPlacementStats.impact_segment_atlas_window_attempts =
+      (arcPlacementStats.impact_segment_atlas_window_attempts ?? 0) + 1;
+    arcPlacementStats.impact_segment_atlas_window_extra_segments =
+      (arcPlacementStats.impact_segment_atlas_window_extra_segments ?? 0) +
+      Math.max(0, nominalPostSegments - baselineSegments);
+  }
   supportGeometryProbeHook?.({
     gapIndex: gap.index,
     attempt,
@@ -1831,10 +2716,17 @@ function sampleContactCenteredLines(
   // Front-load (negative bias) concentrates the contact→post rotation into the early
   // segments the rider hugs during the redir window, scaled by impact pressure;
   // the span is the exploration width around it.
-  const postCurveBias = impactCurveP <= 0 ? 0 : lerp(
+  const undampedPostCurveBias = impactCurveP <= 0 ? 0 : lerp(
     (lowDiscrepancyRoll(attempt, 8) - 0.5) * 2 * CONTACT_CENTERED_POST_CURVE_BIAS_SPAN,
     -IMPACT_CURVE_FRONTLOAD,
     impactCurveP,
+  );
+  const postCurveBias = dampNativeCatchCurveBias(
+    undampedPostCurveBias,
+    impactCurveP,
+    nativeCatchHistory?.history ?? null,
+    nativeCatchHistory?.mode ?? null,
+    nextGapFrames,
   );
 
   // The old lip/bevel path is gone (neutralized by the redir-impact migration). A
@@ -1893,10 +2785,11 @@ function sampleContactCenteredLines(
       impactTemplate.speed,
       impactTemplate.hold.pressure,
     );
-    return [...preLines, ...scoopLines, ...holdLines];
+    return { lines: [...preLines, ...scoopLines, ...holdLines] };
   }
 
-  const postSegments = resolveNormalPostCurveSegments({
+  const resolutionLaw = normalPostCurveResolutionLaw();
+  const resolvedPostSegments = resolveNormalPostCurveSegments({
     attempt,
     gapIndex: gap.index,
     postLengthPx: postLength,
@@ -1905,12 +2798,227 @@ function sampleContactCenteredLines(
     curveBias: postCurveBias,
     nominalSegments: nominalPostSegments,
   });
+  const postSegments = resolutionLaw === "tolerance-additive"
+    ? nominalPostSegments
+    : resolvedPostSegments;
 
-  const postLines = buildPostContactLines(
-    lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
-    postLength, postSegments, postCurveBias, contactAngleDeg,
+  let postLines = applyImpactCurveJointExtensions(
+    buildPostContactLines(
+      lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
+      postLength, postSegments, postCurveBias, contactAngleDeg,
+      targets.impact === undefined ? null : impactSegmentDistributionForTargets(targets),
+      targetState.speed,
+    ),
+    targets.impact === undefined ? null : impactCurveJointExtensionLaw(),
   );
-  return [...preLines, ...postLines];
+  let resolutionSiblingLines: TrackLine[] | undefined;
+  if (resolutionLaw === "tolerance-additive" && resolvedPostSegments > nominalPostSegments) {
+    const refinedPostLines = applyImpactCurveJointExtensions(
+      buildPostContactLines(
+        lineIdStart + preLines.length,
+        contactPoint,
+        contactAngleDeg,
+        postAngleDeg,
+        postLength,
+        resolvedPostSegments,
+        postCurveBias,
+        contactAngleDeg,
+        targets.impact === undefined ? null : impactSegmentDistributionForTargets(targets),
+        targetState.speed,
+      ),
+      targets.impact === undefined ? null : impactCurveJointExtensionLaw(),
+    );
+    resolutionSiblingLines = [
+      ...preLines.map((line) => ({ ...line })),
+      ...refinedPostLines,
+    ];
+  }
+  if (
+    targets.impact !== undefined &&
+    impactCarrierRippleActive()
+  ) {
+    postLines = applyImpactCarrierRipple(
+      postLines,
+      targets.impact,
+      targetState.speed,
+      attempt,
+      impactCarrierRippleLaw(),
+    );
+  }
+  const activeCarrierLaw = targets.impact === undefined
+    ? null
+    : impactActiveCarrierLaw();
+  if (resolutionSiblingLines !== undefined && (impactCarrierRippleLaw() !== null || activeCarrierLaw !== null)) {
+    throw new Error(
+      "tolerance-additive resolution cannot compose with impact ripple or active-carrier study arms",
+    );
+  }
+  let activeSiblingLines: TrackLine[] | undefined;
+  if (impactActiveCarrierAttempt(attempt, activeCarrierLaw, accelPressure)) {
+    const acceleratedPostLines = activeCarrierLaw === "contact-segment-accel-pressure" ||
+        activeCarrierLaw === "contact-segment-additive-pressure"
+      ? applyImpactContactSegmentAcceleration(postLines)
+      : activeCarrierLaw === "window-accel-laminate-pressure" ||
+          activeCarrierLaw === "window-accel-laminate-additive-pressure"
+      ? applyImpactWindowAccelerationLaminate(postLines, targetState.speed)
+      : activeCarrierLaw === "post-capture-accel-pressure"
+      ? applyImpactPostCaptureAcceleration(postLines, targetState.speed)
+      : applyImpactWindowAcceleration(postLines, targetState.speed);
+    if (
+      activeCarrierLaw === "contact-segment-additive-pressure" ||
+      activeCarrierLaw === "window-accel-laminate-additive-pressure"
+    ) {
+      activeSiblingLines = [
+        ...preLines.map((line) => ({ ...line })),
+        ...acceleratedPostLines,
+      ];
+    } else {
+      postLines = acceleratedPostLines;
+    }
+    if (arcPlacementStats.impact_active_carrier_attempts !== undefined) {
+      arcPlacementStats.impact_active_carrier_attempts++;
+      arcPlacementStats.impact_active_carrier_lines! += acceleratedPostLines.reduce(
+        (count, line) => count + (line.type === 1 ? 1 : 0),
+        0,
+      );
+    }
+  }
+  return {
+    lines: [...preLines, ...postLines],
+    ...(activeSiblingLines === undefined ? {} : { activeSiblingLines }),
+    ...(resolutionSiblingLines === undefined ? {} : { resolutionSiblingLines }),
+  };
+}
+
+/**
+ * Embed the measured five-frame low-frequency pulse in the admitted carrier
+ * itself.  The first and fifth boundary vertices remain exact and every later
+ * line is untouched, so unlike the auxiliary pulse there is no competing
+ * collision surface and unlike the old chicane the native continuation is not
+ * replaced.  Half the attempt coordinates remain exact production controls.
+ */
+export function applyImpactCarrierRipple(
+  lines: TrackLine[],
+  targetImpact: number,
+  contactSpeedPx: number,
+  attempt: number,
+  law: ImpactCarrierRippleLaw | null,
+): TrackLine[] {
+  const out = lines.map((line) => ({ ...line }));
+  if (
+    law === null || out.length < 6 || !(contactSpeedPx > 0) ||
+    !Number.isSafeInteger(attempt) || ((attempt % 4) + 4) % 4 < 2
+  ) return out;
+  const vertices = [{ x: out[0].x1, y: out[0].y1 }];
+  let firstFiveLength = 0;
+  for (let index = 0; index < out.length; index++) {
+    const line = out[index];
+    const previous = vertices[vertices.length - 1];
+    if (Math.hypot(line.x1 - previous.x, line.y1 - previous.y) > 1e-6) return out;
+    const segmentLength = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+    if (!(segmentLength > 1e-9)) return out;
+    if (index < 5) firstFiveLength += segmentLength;
+    vertices.push({ x: line.x2, y: line.y2 });
+  }
+  if (firstFiveLength > IMPACT_WINDOW * contactSpeedPx + 1e-9) return out;
+  const start = vertices[0];
+  const boundary = vertices[5];
+  const chordX = boundary.x - start.x;
+  const chordY = boundary.y - start.y;
+  const chordLength = Math.hypot(chordX, chordY);
+  if (!(chordLength > 1e-9)) return out;
+
+  const requestedTurnRad = impactToRawPx(clamp(targetImpact, 0, 1)) / contactSpeedPx;
+  const catchableTurnDeg = Math.min(
+    requestedTurnRad,
+    Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
+  ) * 180 / Math.PI;
+  const dose = law === "full" ? 1 : 0.5;
+  const oscillationDeg = Math.min(15, catchableTurnDeg * dose);
+  if (!(oscillationDeg > 1e-9)) return out;
+  const firstAngle = Math.atan2(
+    out[0].y2 - out[0].y1,
+    out[0].x2 - out[0].x1,
+  );
+  const fifthAngle = Math.atan2(
+    out[4].y2 - out[4].y1,
+    out[4].x2 - out[4].x1,
+  );
+  const signedNativeTurn = Math.atan2(
+    Math.sin(fifthAngle - firstAngle),
+    Math.cos(fifthAngle - firstAngle),
+  );
+  const orientation = law === "aligned-half"
+    ? signedNativeTurn >= 0 ? 1 : -1
+    : Math.floor(attempt / 2) % 2 === 0 ? 1 : -1;
+  const normalX = -chordY / chordLength;
+  const normalY = chordX / chordLength;
+  const meanSegmentLength = firstFiveLength / 5;
+  const displacement = orientation * meanSegmentLength *
+    Math.tan(oscillationDeg * Math.PI / 180);
+  const profile = [0, 1, 1, -1, -1, 0];
+  const adjusted = vertices.map((vertex, index) => {
+    if (index >= profile.length) return vertex;
+    return {
+      x: vertex.x + normalX * displacement * profile[index],
+      y: vertex.y + normalY * displacement * profile[index],
+    };
+  });
+  const rippled = out.map((line, index) => index < 5
+    ? {
+      ...line,
+      x1: adjusted[index].x,
+      y1: adjusted[index].y,
+      x2: adjusted[index + 1].x,
+      y2: adjusted[index + 1].y,
+    }
+    : line);
+  if (law !== "active-half") return rippled;
+  if (arcPlacementStats.impact_carrier_ripple_attempts !== undefined) {
+    arcPlacementStats.impact_carrier_ripple_attempts++;
+    arcPlacementStats.impact_carrier_ripple_lines! += 5;
+  }
+  return rippled.map((line, index) => index < 5 ? forwardAccelerationLine(line) : line);
+}
+
+/**
+ * Reduce early impulse concentration when the arriving articulated sled is
+ * already carrying a material six-frame pose/deformation transient. The total
+ * contact-to-launch turn is unchanged; only its distribution along the native
+ * curve moves back toward linear, so exact gates and forward selection remain
+ * the authority on whether the calmer response is useful.
+ */
+export function dampNativeCatchCurveBias(
+  curveBias: number,
+  impactPressure: number,
+  history: PrecontactMulticontactHistoryReady | null,
+  mode: NativeCatchHistoryMode | null,
+  nextGapFrames: number | null = null,
+): number {
+  if (mode === null || history === null || !(impactPressure > 0)) return curveBias;
+  // Two detector windows is the structural rapid-return boundary: at twelve
+  // frames, one landing can consume the six-frame airborne qualification and
+  // still leave only six frames to establish the next. This arm tests whether
+  // history damping belongs only to that phase-scarce native transition.
+  if (mode === "damp-detector" && (nextGapFrames === null || nextGapFrames > 12)) {
+    return curveBias;
+  }
+  const posePressure = smoothstep((Math.abs(history.poseTurnDeg) - 2) / 8);
+  const deformationPressure = smoothstep(
+    (history.rmsPairDistanceChangePx - .08) / .32,
+  );
+  const relativeMotionPressure = smoothstep(
+    (history.rmsRelativeVelocityChangePxPerFrame - .05) / .25,
+  );
+  const excitation = mode === "damp-coherent" || mode === "damp-detector"
+    ? posePressure * (
+      1 - smoothstep(
+        (Math.abs(history.poseTurnDeg - history.collectiveTurnDeg) - 3) / 4,
+      )
+    )
+    : Math.max(posePressure, deformationPressure, relativeMotionPressure);
+  const strength = mode === "damp" ? .5 : 1;
+  return curveBias * (1 - clamp(impactPressure * excitation * strength, 0, 1));
 }
 
 type ImpactTemplateDescriptor = {
@@ -2146,7 +3254,21 @@ function impactDeliveryAdjustment(params: {
       const flightGate = STEEP_ARRIVAL_FLIGHT_KNEE <= 0
         ? 1
         : clamp(flightShare / STEEP_ARRIVAL_FLIGHT_KNEE, 0, 1);
-      const delta = deltaMax * spanned * flightGate;
+      const coupledLaunchAngle = amplitudeImpactCouplingLaw() === "exact-arrival" &&
+          params.targets.amplitude !== undefined &&
+          params.targets.amplitude > AMP_ONSET
+        ? exactAmplitudeImpactLaunchAngleDeg(
+          params.targetState,
+          params.gap.nextImpact,
+          postAngleDeg,
+          postLength,
+          params.nextGapFrames,
+        )
+        : null;
+      const exactDelta = coupledLaunchAngle === null
+        ? deltaMax
+        : clamp(coupledLaunchAngle - postAngleDeg, 0, STEEP_ARRIVAL_DELTA_MAX_DEG);
+      const delta = exactDelta * spanned * flightGate;
       if (delta > 0.01) {
         postAngleDeg = Math.min(postAngleDeg + delta, ELEVATION_POST_ANGLE_MAX);
       }
@@ -2154,6 +3276,43 @@ function impactDeliveryAdjustment(params: {
   }
 
   return { postAngleDeg, postLength };
+}
+
+function exactAmplitudeImpactLaunchAngleDeg(
+  targetState: ImpactFrameTargetState,
+  nextAsk: number,
+  postAngleDeg: number,
+  postLength: number,
+  nextGapFrames: number,
+): number | null {
+  const v = Math.max(1, targetState.speed);
+  const rideFrames = clamp(postLength / v, 0, nextGapFrames - 1);
+  const flightFrames = nextGapFrames - rideFrames;
+  let launchAngleDeg = postAngleDeg;
+  for (let iteration = 0; iteration < 4; iteration++) {
+    const launchRad = launchAngleDeg * Math.PI / 180;
+    const vx = Math.max(1, v * Math.cos(launchRad));
+    const vyArr = v * Math.sin(launchRad) +
+      LAUNCH_GRAVITY_PX_PER_FRAME2 * flightFrames;
+    const arrivalSpeed = Math.max(1, Math.hypot(vx, vyArr));
+    const needRad = Math.min(
+      impactToRawPx(nextAsk) /
+        (STEEP_ARRIVAL_DELIVERY_EFFICIENCY * arrivalSpeed),
+      Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
+    );
+    const needDeg = Math.min(
+      needRad * 180 / Math.PI,
+      STEEP_ARRIVAL_ABS_CAP_DEG,
+    );
+    const solved = ballisticLaunchAngleForArrivalDeg(v, flightFrames, needDeg);
+    if (solved === null) return null;
+    launchAngleDeg = solved;
+  }
+  return clamp(
+    launchAngleDeg,
+    ELEVATION_POST_ANGLE_MIN,
+    ELEVATION_POST_ANGLE_MAX,
+  );
 }
 
 function steepArrivalDeltaMaxDeg(
@@ -2595,14 +3754,38 @@ function buildPostContactLines(
   segments: number,
   curveBias = 0,
   firstSegmentAngleDeg = startAngleDeg,
+  distribution: ImpactSegmentDistributionLaw | null = null,
+  contactSpeedPx = 0,
 ): TrackLine[] {
-  const segLen = length / segments;
+  const segmentLengths = postContactSegmentLengths(
+    length,
+    segments,
+    contactSpeedPx,
+    distribution,
+    curveBias,
+  );
+  const uniform = distribution === null;
+  const equalTurn = distribution === "curve-equal-turn";
+  const lastSegmentLength = segmentLengths.at(-1) ?? 0;
+  const angleDomainLength = Math.max(1e-9, length - lastSegmentLength);
   let x = contactPoint.x;
   let y = contactPoint.y;
+  let distance = 0;
   const lines = new Array<TrackLine>(segments);
   for (let i = 0; i < segments; i++) {
-    const t = segments === 1 ? 1 : i / (segments - 1);
-    const ft = curveBias === 0 ? t : applyArcCurveBias(t, curveBias);
+    const segLen = segmentLengths[i];
+    const t = segments === 1
+      ? 1
+      : uniform
+      ? i / (segments - 1)
+      : i === segments - 1
+      ? 1
+      : clamp(distance / angleDomainLength, 0, 1);
+    // The equal-turn law represents the SAME continuous angle-vs-distance
+    // field with non-uniform chord lengths. Its direction samples therefore
+    // advance uniformly in angle; applying the curve bias again here would
+    // double the front-load that the lengths already encode.
+    const ft = equalTurn || curveBias === 0 ? t : applyArcCurveBias(t, curveBias);
     const angleDeg = i === 0 ? firstSegmentAngleDeg : lerp(startAngleDeg, endAngleDeg, ft);
     const a = (angleDeg * Math.PI) / 180;
     const x2 = x + Math.cos(a) * segLen;
@@ -2610,18 +3793,108 @@ function buildPostContactLines(
     lines[i] = makeSolidLine(lineIdStart + i, x, y, x2, y2);
     x = x2;
     y = y2;
+    distance += segLen;
   }
   return lines;
 }
 
+/**
+ * Redistribute a fixed line/vertex budget toward the contacted impact window.
+ * The total length and segment count are invariant; only tessellation density
+ * changes.  At least two late segments remain so release/continuation is not
+ * collapsed into one long chord.  Returning equal lengths is the exact
+ * production behavior and is deliberately the default.
+ */
+export function postContactSegmentLengths(
+  length: number,
+  segments: number,
+  contactSpeedPx: number,
+  law: ImpactSegmentDistributionLaw | null,
+  curveBias = 0,
+): number[] {
+  if (!(length > 0) || !Number.isSafeInteger(segments) || segments < 1) return [];
+  const uniform = () => Array.from({ length: segments }, () => length / segments);
+  if (law === "curve-equal-turn") {
+    if (segments < 3 || !Number.isFinite(curveBias) || Math.abs(curveBias) <= 1e-12) {
+      return uniform();
+    }
+    // The ordinary curve samples f(s) at equal distance s, where f is the
+    // tangent-progress bias. Recover the distance locations s=f^-1(q) for
+    // equal tangent steps q, estimate their local spacing, then normalize the
+    // positive spacings back to the exact authored post length. This preserves
+    // the continuous front-loaded tangent field and the native line budget,
+    // while replacing its few large early vertex impulses with equal turns.
+    const locations = Array.from({ length: segments }, (_, index) =>
+      inverseArcCurveBias(index / (segments - 1), curveBias)
+    );
+    const weights = locations.map((location, index) => {
+      if (index === 0) return locations[1]! - location;
+      if (index === segments - 1) return location - locations[index - 1]!;
+      return (locations[index + 1]! - locations[index - 1]!) / 2;
+    });
+    const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+    if (!(totalWeight > 0) || weights.some((value) => !(value > 0) || !Number.isFinite(value))) {
+      return uniform();
+    }
+    return weights.map((value) => length * value / totalWeight);
+  }
+  if (law === null || segments < 4 || !(contactSpeedPx > 0)) return uniform();
+  const nominal = length / segments;
+  const windowLength = clamp(IMPACT_WINDOW * contactSpeedPx, nominal, length - 2 * nominal);
+  if (!(windowLength > nominal) || !(windowLength < length - nominal)) return uniform();
+  const proportional = Math.max(1, Math.ceil(segments * windowLength / length));
+  const density = law === "window-dense-strong" ? 2 : 1.5;
+  const windowSegments = clampInt(
+    Math.ceil(proportional * density),
+    proportional,
+    segments - 2,
+  );
+  const lateSegments = segments - windowSegments;
+  return [
+    ...Array.from({ length: windowSegments }, () => windowLength / windowSegments),
+    ...Array.from({ length: lateSegments }, () => (length - windowLength) / lateSegments),
+  ];
+}
+
+function inverseArcCurveBias(progress: number, bias: number): number {
+  const q = clamp(progress, 0, 1);
+  if (bias === 0) return q;
+  if (bias > 0) return Math.pow(q, 1 / (1 + bias));
+  return 1 - Math.pow(1 - q, 1 / (1 - bias));
+}
+
 function resolveNormalPostCurveSegments(input: NormalPostCurveResolutionInput): number {
   const hook = normalPostCurveResolutionHook;
-  if (hook === null) return input.nominalSegments;
-  const resolved = hook(Object.freeze({ ...input }));
+  const law = normalPostCurveResolutionLaw();
+  if (hook === null && law === null) return input.nominalSegments;
+  const resolved = hook === null
+    ? normalPostCurveResolutionEligible(input.curveBias, law)
+      ? Math.max(
+        input.nominalSegments,
+        adaptiveCurveSegmentCount(
+          input.postLengthPx,
+          input.endAngleDeg - input.startAngleDeg,
+          1 + Math.abs(input.curveBias),
+          { maxChordErrorPx: 2, maxTurnDegPerSegment: 5 },
+        ),
+      )
+      : input.nominalSegments
+    : hook(Object.freeze({ ...input }));
   if (!Number.isSafeInteger(resolved) || resolved < input.nominalSegments) {
     throw new Error(
       "normal post-curve resolution hook must return a safe integer no smaller than the nominal segment count",
     );
+  }
+  if (hook === null && law !== null) {
+    arcPlacementStats.normal_post_curve_resolution_attempts =
+      (arcPlacementStats.normal_post_curve_resolution_attempts ?? 0) + 1;
+    const added = resolved - input.nominalSegments;
+    if (added > 0) {
+      arcPlacementStats.normal_post_curve_resolution_refined =
+        (arcPlacementStats.normal_post_curve_resolution_refined ?? 0) + 1;
+      arcPlacementStats.normal_post_curve_resolution_added_segments =
+        (arcPlacementStats.normal_post_curve_resolution_added_segments ?? 0) + added;
+    }
   }
   return resolved;
 }

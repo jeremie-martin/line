@@ -45,6 +45,10 @@ import {
   makeDetectorRunwayCandidates,
   recordDetectorRunwayPoolRanks,
 } from "./contact_phase.ts";
+import {
+  makeContactTransitionCandidates,
+  recordContactTransitionPoolRanks,
+} from "./contact_transition.ts";
 import type { Gap } from "./types.ts";
 
 /** Default per-node candidate count. See file header. */
@@ -364,6 +368,7 @@ function sortWithLaneExtras(
       aimedExtras.push(...makeEnumAimedCandidates(
         node.prefixEngine, gap, gaps, ctx, sorted[b], node.prefixNextLineId,
         true,
+        b === 0,
       ));
     }
   }
@@ -380,7 +385,17 @@ function sortWithLaneExtras(
       [...sampleOrder, ...aimedExtras],
     )
     : [];
-  const laneExtras = [...aimedExtras, ...runwayExtras];
+  const contactTransitionExtras = nCand > 1 && !inRolloutContext
+    ? makeContactTransitionCandidates(
+      node.prefixEngine,
+      gap,
+      gaps,
+      ctx,
+      node.prefixNextLineId,
+      [...sampleOrder, ...aimedExtras, ...runwayExtras],
+    )
+    : [];
+  const laneExtras = [...aimedExtras, ...runwayExtras, ...contactTransitionExtras];
   if (laneExtras.length > 0) {
     // Re-sort the full pool (sampled + lane extras). With the quality sort on
     // the judge is the quality objective; with it off, cost, bit-identically.
@@ -401,6 +416,7 @@ function sortWithLaneExtras(
     recordPoolAirSpread(gap, gaps, sorted, ctx);
   }
   recordDetectorRunwayPoolRanks(runwayExtras, sorted);
+  recordContactTransitionPoolRanks(contactTransitionExtras, sorted);
   return sorted;
 }
 

@@ -747,6 +747,9 @@ export type CompileStats = {
      *  so the pair reads directly against `fwd_rollout_no_candidate`. */
     fwd_rollout_redraws: number;
     fwd_rollout_redraw_refuted: number;
+    /** Study-only hop-2+ redraw arm; zero in production archives. */
+    fwd_rollout_later_redraws: number;
+    fwd_rollout_later_redraw_refuted: number;
     fwd_pools: number;
     fwd_top1_agree: number;
     fwd_rank_of_quality_top1_sum: number;
@@ -836,6 +839,58 @@ export type CompileStats = {
   /** Target-state placement counters. Non-scoring diagnostics. */
   arc_placement?: {
     mode: ArcPlacementMode;
+    /** Default-off geometry command calibration; authored/scored targets stay unchanged. */
+    impact_command_law: "off" | "inverse-baseline";
+    impact_command_adjusted: number;
+    impact_command_target_sum: number;
+    impact_command_value_sum: number;
+    impact_next_command_adjusted: number;
+    impact_next_target_sum: number;
+    impact_next_value_sum: number;
+    /** Default-off native ride-out floor sized to the scorer impact window. */
+    impact_support_window_law?: "full";
+    /** Geometry attempts with an authored impact target while the law is active. */
+    impact_support_window_attempts?: number;
+    /** Eligible attempts whose post-contact support was actually lengthened. */
+    impact_support_window_extended?: number;
+    /** Aggregate added post-contact support length over extended attempts. */
+    impact_support_window_added_px_sum?: number;
+    /** Default-off extra post-contact subdivision in the frozen atlas band. */
+    impact_segment_atlas_window_law?: "fixed";
+    impact_segment_atlas_window_attempts?: number;
+    impact_segment_atlas_window_extra_segments?: number;
+    /** Default-off generic curve resolution from the trajectory geometry contract. */
+    normal_post_curve_resolution_law?:
+      | "tolerance"
+      | "tolerance-additive"
+      | "tolerance-native-span";
+    normal_post_curve_resolution_attempts?: number;
+    normal_post_curve_resolution_refined?: number;
+    normal_post_curve_resolution_added_segments?: number;
+    /** Refined siblings charged through the exact current-gap evaluator. */
+    normal_post_curve_resolution_siblings_evaluated?: number;
+    /** Exact no-axis-debt siblings admitted beside their nominal parent. */
+    normal_post_curve_resolution_siblings_admitted?: number;
+    /** Default-off active-material study. Omitted from ordinary compiles. */
+    impact_active_carrier_law?:
+      | "window-quarter"
+      | "window-accel-pressure"
+      | "window-accel-laminate-pressure"
+      | "window-accel-laminate-additive-pressure"
+      | "contact-segment-accel-pressure"
+      | "contact-segment-additive-pressure"
+      | "post-capture-accel-pressure";
+    /** Normal post-contact attempts placed in the reserved active-material lane. */
+    impact_active_carrier_attempts?: number;
+    /** Coincident post-contact segments converted to forward acceleration. */
+    impact_active_carrier_lines?: number;
+    /** Acceleration lines retained in the final best-so-far track. */
+    impact_active_carrier_final_lines?: number;
+    /** Fixed direct-retention geometry x material interaction study. */
+    impact_carrier_ripple_law?: "active-half";
+    impact_carrier_ripple_attempts?: number;
+    impact_carrier_ripple_lines?: number;
+    impact_carrier_ripple_final_lines?: number;
     sampled: number;
     preclear_rejected: number;
     direct_attempted: number;
@@ -849,6 +904,118 @@ export type CompileStats = {
     by_sample_mode: Record<CandidateSampleMode, ArcPlacementCounter>;
   };
 
+  /** Default-off passive capture–redirect–release proposal telemetry. */
+  contact_transition?: {
+    eligible_pools: number;
+    suppressed_by_chicane_room: number;
+    suppressed_by_existing_delivery: number;
+    offered: number;
+    constructed: number;
+    construction_failed: number;
+    exact_attempts: number;
+    exact_rejected: number;
+    contact_achieved: number;
+    delivery_not_improved: number;
+    staged_state_available: number;
+    staged_return_constructed: number;
+    staged_outbound_collision: number;
+    staged_return_collision: number;
+    staged_both_collisions: number;
+    staged_objective_defined: number;
+    staged_settled_quality_sum: number;
+    staged_projected_quality_sum: number;
+    staged_readiness_sum: number;
+    staged_catchability_sum: number;
+    staged_speed_fit_sum: number;
+    staged_air_fit_sum: number;
+    staged_impact_feasibility_sum: number;
+    staged_elevation_fit_sum: number;
+    staged_objective_sum: number;
+    staged_incumbent_objective_sum: number;
+    active_pulse_segments_constructed: number;
+    active_pulse_candidates_admitted: number;
+    active_pulse_final_lines: number;
+    release_observed: number;
+    airborne_release: number;
+    selected_for_branch: number;
+    selected_negative_orientation: number;
+    selected_positive_orientation: number;
+    pool_entries: number;
+    pool_rank0: number;
+    pool_top3: number;
+    pool_rank_sum: number;
+    pool_size_sum: number;
+    achieved_impact_sum: number;
+    target_impact_sum: number;
+  };
+
+  /** Default-off repair-only branch insurance for a same-speed impact specialist. */
+  impact_repair_insurance?: {
+    eligible_pools: number;
+    specialist_available: number;
+    specialist_already_selected: number;
+    specialist_inserted: number;
+    final_selected: number;
+    suppressed_by_reserved_branch: number;
+    impact_error_gain_sum: number;
+    speed_error_delta_sum: number;
+    displaced_score_delta_sum: number;
+  };
+
+  /** Default-off exact or learned screen for a locally better impact branch. */
+  impact_response_admission?: {
+    eligible_pools: number;
+    prefiltered_candidates: number;
+    response_probes: number;
+    response_probe_frames: number;
+    safe_candidates: number;
+    already_admitted: number;
+    inserted: number;
+    branch_reserved: number;
+    final_selected: number;
+    impact_error_gain_sum: number;
+    settled_quality_gain_sum: number;
+    model_candidates_scored: number;
+    model_candidates_admitted: number;
+    contact_retention_rejects: number;
+    active_repair_probes: number;
+    active_repair_probe_frames: number;
+    active_repair_viable: number;
+    active_repair_interaction_passed: number;
+    active_repair_material_lines: number;
+    active_repair_final_lines: number;
+  };
+
+  /** Default-off exact incumbent-suffix replay with one same-speed impact substitution. */
+  impact_surgical_repair?: {
+    eligible_gaps: number;
+    cached_pools: number;
+    specialist_available: number;
+    attempts: number;
+    bridge_constructed: number;
+    bridge_candidate_valid: number;
+    bridge_delivery_passed: number;
+    bridge_speed_state_passed: number;
+    bridge_deformation_state_passed: number;
+    bridge_relative_velocity_state_passed: number;
+    bridge_phase_state_passed: number;
+    bridge_state_passed: number;
+    bridge_contact_passed: number;
+    contract_passed: number;
+    accepted: number;
+    final_selected: number;
+    local_impact_error_gain_sum: number;
+    local_speed_error_delta_sum: number;
+    local_pair_sse_gain_sum: number;
+    local_secondary_sse_delta_sum: number;
+    local_impact_target_contrast_sum: number;
+    joint_cached_next_pools: number;
+    joint_cached_return_pools: number;
+    release_velocity_delta_sum: number;
+    suffix_translation_px_sum: number;
+    frames_spent: number;
+  };
+
   /** Track-repair post-pass diagnostics (only present when repair ran). Non-scoring. */
   repair?: {
     first_completion_frame: number;
@@ -857,6 +1024,10 @@ export type CompileStats = {
     frames_spent: number;
     gaps_touched: number;
     reconverged: number;
+    /** Study-only refreshes after an accepted restart replaces the incumbent suffix. */
+    cost_profile_refreshes?: number;
+    cost_profile_entries_changed?: number;
+    cost_profile_newly_measured?: number;
     /** Per-restart detail; present only under LR_REPAIR_LOG (heavy — gated to keep archives lean). */
     records?: Array<{
       round?: number;

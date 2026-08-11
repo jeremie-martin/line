@@ -59,7 +59,7 @@ and cost source. The payload replays both worst-eligible target ranking and
 deepest-affordable anchor choice. There is no controller-mode or failed-anchor
 state to infer from episode order.
 
-The production controller currently declares maximum parent depth `4` and
+The production controller currently declares maximum parent depth `6` and
 headroom fraction `0`. Diagnostic arms use `LR_REPAIR_MAX_PARENT_DEPTH` and
 `LR_REPAIR_HEADROOM_FRACTION`; they change those declared values directly. One
 iteration chooses one anchor and executes it once—there is no ancestor fallback

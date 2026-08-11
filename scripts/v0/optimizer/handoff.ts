@@ -7979,9 +7979,10 @@ function repairConfig(): RepairConfig {
     // "1M affords ~30-40 restarts" note it used to carry was a projection, not a measurement.)
     maxAttempts: num("LR_REPAIR_MAX_ATTEMPTS", 64, 1, 1000),
     // One independent decision chooses the deepest affordable parent up to
-    // this cap. Four recovers the high-value early suffixes visible in the
-    // retained controller without restoring its fallback walk or tried state.
-    maxParentDepth: num("LR_REPAIR_MAX_PARENT_DEPTH", 4, 0, 64),
+    // this cap. Six is the accepted scale operating point: it extends the
+    // high-value early suffixes while affordability still protects budgets
+    // that cannot fund them, without restoring a fallback walk or tried state.
+    maxParentDepth: num("LR_REPAIR_MAX_PARENT_DEPTH", 6, 0, 64),
     // The estimator's upper interval is already the local execution ceiling;
     // retain no second hidden reserve in target/anchor eligibility.
     headroomFraction: flt("LR_REPAIR_HEADROOM_FRACTION", 0, 0, 0.95),

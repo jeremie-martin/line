@@ -106,9 +106,23 @@ iteration cap is rejected and will not advance to N=8.
 
 ### Next bracket — maximum affordable parent depth
 
-The next bounded question follows the strongest retained signal rather than
-the rejected cap: parent depth four is both the current ceiling and the most
-frame-efficient observed depth, while 51.2% of foundation decisions hit that
-ceiling. Compare maximum depth six at N=4. Affordability remains the hard gate,
-so low-budget decisions that cannot fund a deeper suffix remain unchanged.
-This is one boundary-extension diagnostic, not an open-ended depth sweep.
+The bounded depth-six extension is accepted by the scale decision protocol at
+N=8. It stopped at the first decisive look; no optional N=16 sampling was used.
+
+- scale headline 571.1644 versus 570.6516, delta +0.5128;
+- 99.5397% directional probability versus the predeclared 99.1667% boundary;
+- 750k delta +0.3746;
+- identical validity, 495/512 in each arm, with no gains or losses; and
+- 47,944 repair decision, budget, lineage, diversity, and attribution checks
+  across 1,947 repair episodes, with zero violations.
+
+The score result is mechanically credible. Of 1,918 terminal alternatives,
+1,902 were globally distinct and only 16 were incumbent-identical; none of the
+identical alternatives was accepted and they consumed 0.026% of repair work.
+Depths five and six produced no incumbent-identical terminals. The first
+divergence occurred at the selected anchor in 95.0% of divergent terminals.
+
+Depth six is therefore the production default. This is an accepted scale
+operating point, whose authority is the across-budget scale comparison. The
+canonical 750k suite remains the authority for a literal canonical benchmark
+`ACCEPT` and is the next qualification step.

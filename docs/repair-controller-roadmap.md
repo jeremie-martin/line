@@ -126,7 +126,8 @@ For every iteration:
 The initial production candidate used fixed parent depth 1. The governed
 follow-up bracketed fixed depths 1–3 and headroom 0–20%; retained reference
 evidence then motivated a single deepest-affordable policy capped at depth 4.
-This is decision-time pricing, never an execution fallback walk.
+A bounded boundary extension subsequently accepted depth 6 at the N=8 scale
+look. This is decision-time pricing, never an execution fallback walk.
 
 Exit gate: no ancestor walk or cross-iteration failed-anchor state remains;
 tests prove recomputation after accepted and rejected alternatives.
@@ -177,4 +178,4 @@ authoritative for the new controller.
 | 2026-08-11 | Large scale evidence recovery | complete | All 1,024 cells recovered from the checkpoint after monolithic JSON exceeded V8's string limit. Checkpoint loading, archive/gzip output, and checksum verification are streaming; a checksummed compact projection supports bounded-memory comparisons |
 | 2026-08-11 | Behavioral foundation promotion | complete | Promoted the independent controller as the production architecture and next scale reference, without relabeling its inconclusive score result as `ACCEPT`; machine-readable record in `benchmark/v2/studies/repair-controller-foundation.json` |
 | 2026-08-11 | Three-iteration allocation bracket | rejected | N=4 scale -0.1986 (0.69% directional probability), 750k -0.0488, unchanged validity. It moved 15.81M repair frames into 13.00M additional resumed work, but the resume recovered only 1.93 of 51.51 removed internal-score points; no N=8 extension |
-| 2026-08-11 | Maximum parent-depth bracket | in progress | One N=4 boundary extension from 4 to 6: depth 4 is the most efficient observed depth and 51.2% of foundation decisions hit the current ceiling; affordability continues to protect smaller budgets |
+| 2026-08-11 | Maximum parent-depth bracket | accepted at N=8 | Scale +0.5128, 99.54% directional probability above the predeclared 99.17% boundary, 750k +0.3746, unchanged 495/512 validity. Across 1,947 repairs, 47,944 replayed checks passed; 1,902/1,918 terminal offers were globally distinct. Depth 6 becomes the production default; canonical 750k qualification follows separately |

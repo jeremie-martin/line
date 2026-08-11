@@ -881,7 +881,7 @@ describe("compile budget telemetry", () => {
       .toBe(repairs.length);
     expect(repairs.every((episode) =>
       episode.repair_decision!.parent_depth >= 0 &&
-        episode.repair_decision!.parent_depth <= 4
+        episode.repair_decision!.parent_depth <= 6
     )).toBe(true);
     expect(repairs.every((episode) => episode.repair_decision!.headroom_fraction === 0)).toBe(true);
     expect(repairs.every((episode) =>

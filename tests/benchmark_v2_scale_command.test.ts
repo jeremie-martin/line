@@ -13,6 +13,11 @@ describe("Benchmark V2 scale command contract", () => {
       "--jobs=8",
       "--budget-telemetry=trace",
       "--label=current",
+      "--extend-from=reference-8.json",
+    ])).not.toThrow();
+    expect(() => assertScaleArguments("baseline", [
+      "--seeds=16",
+      "--out=generated/reference.json",
       "--resume",
     ])).not.toThrow();
     expect(() => assertScaleArguments("baseline", ["--baseline=old.json"]))

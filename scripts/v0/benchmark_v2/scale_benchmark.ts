@@ -88,7 +88,7 @@ export function assertScaleArguments(
 ): void {
   const booleans = new Set(action === "compare" ? ["json"] : ["resume", "json"]);
   const values = new Set(action === "baseline"
-    ? ["seeds", "out", "jobs", "budget-telemetry", "label"]
+    ? ["seeds", "out", "jobs", "budget-telemetry", "label", "extend-from"]
     : action === "eval"
       ? [
         "baseline",
@@ -127,6 +127,12 @@ async function runScaleBaseline(argv: string[]): Promise<number> {
   const archivePath = siblingPath(manifestPath, ".archive.json");
   const snapshotPath = siblingPath(manifestPath, ".snapshot.json");
   const resuming = argv.includes("--resume");
+  const extensionBaselinePath = argument("extend-from") === undefined
+    ? null
+    : resolve(argument("extend-from")!);
+  if (resuming && extensionBaselinePath !== null) {
+    throw new Error(`scale baseline cannot combine --resume and --extend-from`);
+  }
   const checkpointPath = `${archivePath}.checkpoint.jsonl`;
   if (resuming && existsSync(checkpointPath) && !existsSync(snapshotPath)) {
     throw new Error(
@@ -134,12 +140,20 @@ async function runScaleBaseline(argv: string[]): Promise<number> {
         `its compiler provenance cannot be reconstructed safely`,
     );
   }
-  const snapshot = resuming && existsSync(snapshotPath)
-    ? readCompilerSnapshot(snapshotPath)
-    : createCompilerSnapshot(
-      `${basename(manifestPath, ".json")}-baseline`,
-      dirname(manifestPath),
-    );
+  const extensionBaseline = extensionBaselinePath === null
+    ? null
+    : readScaleBaseline(extensionBaselinePath);
+  const extension = extensionBaseline === null
+    ? null
+    : validateScaleBaselineExtension(extensionBaseline, profile, depth);
+  const snapshot = extensionBaseline !== null
+    ? extensionBaseline.compilerSnapshot
+    : resuming && existsSync(snapshotPath)
+      ? readCompilerSnapshot(snapshotPath)
+      : createCompilerSnapshot(
+        `${basename(manifestPath, ".json")}-baseline`,
+        dirname(manifestPath),
+      );
   if (!existsSync(snapshotPath)) writeJsonArtifact(snapshotPath, snapshot);
   const release = acquireRunLock(archivePath);
   let workspace: ReturnType<typeof createSnapshotWorkspace> | null = null;
@@ -153,9 +167,9 @@ async function runScaleBaseline(argv: string[]): Promise<number> {
         depth,
         jobs,
         telemetry,
-        argv.includes("--resume"),
+        resuming,
         archivePath,
-        null,
+        extension,
         null,
       ),
       archivePath,
@@ -202,6 +216,23 @@ async function runScaleBaseline(argv: string[]): Promise<number> {
     if (workspace !== null) disposeSnapshotWorkspace(workspace);
     release();
   }
+}
+
+function validateScaleBaselineExtension(
+  baseline: MultiBudgetBaseline,
+  profile: LoadedMultiBudgetProfile,
+  targetDepth: number,
+): { checkpointPath: string; seeds: number[] } {
+  assertBaselineProfile(baseline, profile);
+  const sourceDepth = baseline.scope.maximumSeeds;
+  if (sourceDepth >= targetDepth) {
+    throw new Error(`--extend-from must be a smaller declared scale look than --seeds=${targetDepth}`);
+  }
+  const checkpointPath = resolve(`${baseline.archive.path}.checkpoint.jsonl`);
+  if (!existsSync(checkpointPath)) {
+    throw new Error(`--extend-from requires its retained checkpoint ${checkpointPath}`);
+  }
+  return { checkpointPath, seeds: baseline.scope.seeds };
 }
 
 function readCompilerSnapshot(path: string): CompilerSnapshot {

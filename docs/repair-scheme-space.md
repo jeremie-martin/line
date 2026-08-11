@@ -165,6 +165,21 @@ register decision separately. The improvement-gated arm is therefore the first
 one that can directly answer whether useful local repairs are being generated
 and rejected, rather than inferring offer quality from adoption.
 
+At N=4, `target-improvement-first` improved the scale headline by 0.0407
+(85.78% directional probability) with unchanged validity and a +0.0285 result
+at 750k. It reordered 59 of 1,491 target pools. Relative to ordinary search,
+the terminal offer improved the selected target 5.43 percentage points more
+often and the completed repair episode improved the global register 0.56
+points more often. The 2.5M slice nevertheless lost 0.2352, so this is a
+continue result rather than promotion evidence; the governed N=8 extension is
+required.
+
+The first compact comparison incorrectly displayed every target-search counter
+as zero because scale analysis projections omitted all compile stats. The raw
+archive retained the counters, and `563cece` made their compact subset part of
+the projection contract with a regression test. Score, validity, and V6 repair
+episode metrics were unaffected by that reporting defect.
+
 ### 5. Protected one-step bridge
 
 Keep the global register and final output unchanged, but when a terminal offer

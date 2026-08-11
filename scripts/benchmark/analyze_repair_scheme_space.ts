@@ -41,6 +41,7 @@ const SCHEMES = [
   "max_suffix_opportunity",
   "suffix_opportunity_per_cost",
   "single_gap_opportunity_per_cost",
+  "max_local_window_opportunity",
 ] as const;
 
 /** Counterfactual repair decisions derivable from one V4/V5 decision payload.
@@ -91,6 +92,17 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
     b.target.sse / b.anchor.pointCost - a.target.sse / a.anchor.pointCost ||
     b.target.sse - a.target.sse || b.anchor.gap - a.anchor.gap
   )[0]!;
+  const localWindow = affordablePairs.map((pair) => ({
+    ...pair,
+    windowSse: targets.filter((target) =>
+      target.gap >= pair.anchor.gap && target.gap <= pair.target.gap
+    ).reduce((sum, target) => sum + target.sse, 0),
+  })).sort((a, b) =>
+    b.windowSse - a.windowSse ||
+    b.target.sse - a.target.sse ||
+    b.target.gap - b.anchor.gap - (a.target.gap - a.anchor.gap) ||
+    a.target.gap - b.target.gap
+  )[0]!;
   const currentAnchor = enriched.find((anchor) => anchor.gap === decision.anchor_gap_index);
   const currentTarget = targetByGap.get(decision.target_gap_index);
   if (currentAnchor === undefined || currentTarget === undefined) {
@@ -103,6 +115,10 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
     single_gap_opportunity_per_cost: choice(
       local.target,
       enriched.find((anchor) => anchor.gap === local.anchor.gap)!,
+    ),
+    max_local_window_opportunity: choice(
+      localWindow.target,
+      enriched.find((anchor) => anchor.gap === localWindow.anchor.gap)!,
     ),
   };
 }
@@ -173,6 +189,7 @@ async function analyze(checkpoint: string): Promise<any> {
       max_suffix_opportunity: "Affordable anchor whose mutable suffix contains the greatest total incumbent SSE; target is that suffix's worst gap. With non-negative SSE this is the earliest affordable reported anchor.",
       suffix_opportunity_per_cost: "Affordable anchor maximizing total mutable-suffix SSE per estimated point-cost frame; target is that suffix's worst gap.",
       single_gap_opportunity_per_cost: "Affordable target-anchor pair maximizing the selected gap's SSE per estimated point-cost frame.",
+      max_local_window_opportunity: "Affordable target-anchor pair maximizing summed incumbent SSE from anchor through target within the declared option radius.",
     },
     limits: [
       "Counterfactual choices are exact replays of recorded decision inputs, not simulated outcomes.",

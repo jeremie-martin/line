@@ -29,5 +29,6 @@ describe("repair scheme-space counterfactuals", () => {
     expect(choices.max_suffix_opportunity).toMatchObject({ targetGap: 2, anchorGap: 0 });
     expect(choices.suffix_opportunity_per_cost).toMatchObject({ targetGap: 2, anchorGap: 1 });
     expect(choices.single_gap_opportunity_per_cost).toMatchObject({ targetGap: 2, anchorGap: 2 });
+    expect(choices.max_local_window_opportunity).toMatchObject({ targetGap: 3, anchorGap: 0 });
   });
 });

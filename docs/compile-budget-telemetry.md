@@ -72,6 +72,12 @@ Both record the worst target in the selected suffix. Their
 option-generation radius. One iteration chooses one anchor and executes it
 once—there is no ancestor fallback chain or remembered tried-anchor state.
 
+The additional diagnostic law
+`LR_REPAIR_SELECTION_POLICY=max-local-window-opportunity` stays within the
+declared target×anchor option radius. It chooses the affordable pair maximizing
+summed incumbent SSE from its anchor through its target, then uses that anchor
+for the ordinary suffix rebuild.
+
 An execution interval accounts for wall-to-wall charged compiler work such as
 startup, initial search, frontier repair, resumed search, or
 finalization. Intervals form a contiguous partition of total charged work in a

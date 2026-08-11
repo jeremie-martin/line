@@ -188,7 +188,8 @@ export type BudgetRepairDecision = {
   selection_policy:
     | "worst_gap_deepest_affordable"
     | "suffix_opportunity_per_cost"
-    | "max_suffix_opportunity";
+    | "max_suffix_opportunity"
+    | "max_local_window_opportunity";
   parent_depth: number;
   affordable_target_gap_indices: number[];
   affordable_anchor_gap_indices: number[];
@@ -276,6 +277,30 @@ export function replayBudgetRepairSelection(
       target,
     };
   };
+  const localWindowChoice = () => {
+    const choices = affordableTargets.flatMap((target) =>
+      target.anchor_options.filter((anchor) => anchor.affordability === "affordable")
+        .map((anchor) => ({
+          target,
+          anchor,
+          anchorGapIndex: anchor.anchor_gap_index,
+          mutableSuffixSse: decision.considered_targets.filter((candidate) =>
+            candidate.target_gap_index >= anchor.anchor_gap_index
+          ).reduce((sum, candidate) => sum + candidate.target_gap_sse, 0),
+          windowSse: decision.considered_targets.filter((candidate) =>
+            candidate.target_gap_index >= anchor.anchor_gap_index &&
+            candidate.target_gap_index <= target.target_gap_index
+          ).reduce((sum, candidate) => sum + candidate.target_gap_sse, 0),
+        }))
+    ).sort((a, b) =>
+      b.windowSse - a.windowSse ||
+      b.target.target_gap_sse - a.target.target_gap_sse ||
+      b.anchor.parent_depth - a.anchor.parent_depth ||
+      a.target.target_gap_index - b.target.target_gap_index
+    )[0];
+    if (choices === undefined) throw new Error(`repair selection has no replayable local window`);
+    return choices;
+  };
   const choice = decision.selection_policy === "worst_gap_deepest_affordable"
     ? (() => {
       const target = [...affordableTargets].sort((a, b) =>
@@ -296,9 +321,11 @@ export function replayBudgetRepairSelection(
         b.mutableSuffixSse - a.mutableSuffixSse ||
         b.anchorGapIndex - a.anchorGapIndex
       )[0]
-      : affordableAnchorGapIndices.map(suffixChoice).sort((a, b) =>
-        b.mutableSuffixSse - a.mutableSuffixSse || a.anchorGapIndex - b.anchorGapIndex
-      )[0];
+      : decision.selection_policy === "max_suffix_opportunity"
+        ? affordableAnchorGapIndices.map(suffixChoice).sort((a, b) =>
+          b.mutableSuffixSse - a.mutableSuffixSse || a.anchorGapIndex - b.anchorGapIndex
+        )[0]
+        : localWindowChoice();
   if (
     choice === undefined ||
     choice.anchor.estimated_anchor_cost_frames === null ||
@@ -1427,6 +1454,7 @@ function validateTelemetryPayload(
           "worst_gap_deepest_affordable",
           "suffix_opportunity_per_cost",
           "max_suffix_opportunity",
+          "max_local_window_opportunity",
         ].includes(
           decision.selection_policy,
         ) ||

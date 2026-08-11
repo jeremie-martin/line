@@ -880,6 +880,32 @@ describe("repair target selection", () => {
     });
   });
 
+  test("selects the strongest affordable local error window within the option radius", () => {
+    const windowCandidates = Array.from({ length: 9 }, (_, gapIndex) => ({
+      gapIndex,
+      sse: gapIndex === 5 || gapIndex === 6 ? 10 : 0,
+    }));
+    expect(selectRepairRestart(
+      windowCandidates,
+      Array(9).fill(100),
+      Array(9).fill(100),
+      100,
+      0,
+      2,
+      "max_local_window_opportunity",
+    )).toEqual({
+      selectionPolicy: "max_local_window_opportunity",
+      targetGapIndex: 6,
+      anchorGapIndex: 4,
+      parentDepth: 2,
+      targetGapSse: 10,
+      mutableSuffixSse: 20,
+      usableBudgetFrames: 100,
+      affordableTargetGapIndices: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+      affordableAnchorGapIndices: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+    });
+  });
+
   test("updates an accepted incumbent with its own suffix cost observations", () => {
     expect(spliceRepairCostToEnd(
       [-1, -1, 300, 180, 0],

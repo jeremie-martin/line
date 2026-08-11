@@ -6417,7 +6417,8 @@ export type RepairTargetCandidate = { gapIndex: number; sse: number };
 export type RepairSelectionPolicy =
   | "worst_gap_deepest_affordable"
   | "suffix_opportunity_per_cost"
-  | "max_suffix_opportunity";
+  | "max_suffix_opportunity"
+  | "max_local_window_opportunity";
 export type AffordableRepairTarget = {
   targetGapIndex: number;
   anchorGapIndex: number;
@@ -6594,6 +6595,46 @@ export function selectRepairRestart(
       mutableSuffixSse: candidates
         .filter((candidate) => candidate.gapIndex >= selected.anchorGapIndex)
         .reduce((sum, candidate) => sum + candidate.sse, 0),
+    };
+  }
+  if (selectionPolicy === "max_local_window_opportunity") {
+    const choices = candidates.flatMap((target) =>
+      Array.from(
+        { length: Math.min(maximum, target.gapIndex) + 1 },
+        (_, parentDepth) => ({
+          parentDepth,
+          anchorGapIndex: target.gapIndex - parentDepth,
+        }),
+      ).filter(({ anchorGapIndex }) => affordableAnchorGapIndices.includes(anchorGapIndex))
+        .map(({ parentDepth, anchorGapIndex }) => ({
+          target,
+          anchorGapIndex,
+          parentDepth,
+          windowSse: candidates.filter((candidate) =>
+            candidate.gapIndex >= anchorGapIndex && candidate.gapIndex <= target.gapIndex
+          ).reduce((sum, candidate) => sum + candidate.sse, 0),
+        }))
+    );
+    choices.sort((a, b) =>
+      b.windowSse - a.windowSse ||
+      b.target.sse - a.target.sse ||
+      b.parentDepth - a.parentDepth ||
+      a.target.gapIndex - b.target.gapIndex
+    );
+    const selected = choices[0];
+    if (selected === undefined) return null;
+    return {
+      selectionPolicy,
+      targetGapIndex: selected.target.gapIndex,
+      anchorGapIndex: selected.anchorGapIndex,
+      parentDepth: selected.parentDepth,
+      targetGapSse: selected.target.sse,
+      mutableSuffixSse: candidates.filter((candidate) =>
+        candidate.gapIndex >= selected.anchorGapIndex
+      ).reduce((sum, candidate) => sum + candidate.sse, 0),
+      usableBudgetFrames,
+      affordableTargetGapIndices,
+      affordableAnchorGapIndices,
     };
   }
   const choices = affordableAnchorGapIndices.map((anchorGapIndex) => {
@@ -8098,7 +8139,9 @@ function repairConfig(): RepairConfig {
       ? "suffix_opportunity_per_cost"
       : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-suffix-opportunity"
         ? "max_suffix_opportunity"
-        : "worst_gap_deepest_affordable",
+        : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-local-window-opportunity"
+          ? "max_local_window_opportunity"
+          : "worst_gap_deepest_affordable",
   };
 }
 

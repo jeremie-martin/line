@@ -7,8 +7,9 @@
  * limits instead of being reconstructed from the final track.
  */
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { createReadStream, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { createInterface } from "node:readline";
 import { writeFileAtomicDurable } from "../v0/benchmark_v2/durable_fs.ts";
 import {
   BUDGET_TELEMETRY_SCHEMA,
@@ -58,6 +59,7 @@ export type RepairBehaviorGroup = {
   completionWithinEstimatedUpperRate: number | null;
   completionWithinAllocationRate: number | null;
   terminalGeometryIdentical: number;
+  acceptedTerminalGeometryIdentical: number;
   terminalGeometryIdenticalRate: number | null;
   terminalGeometryIdenticalSpentFrames: number;
   terminalGeometryIdenticalSpentShare: number | null;
@@ -90,6 +92,7 @@ export type RepairBehaviorSlice = {
   meanEstimatedUpperUtilization: number | null;
   completionWithinEstimatedUpperRate: number | null;
   terminalGeometryIdentical: number;
+  acceptedTerminalGeometryIdentical: number;
   terminalGeometryIdenticalRate: number | null;
   terminalGeometryIdenticalSpentFrames: number;
   terminalGeometryIdenticalSpentShare: number | null;
@@ -498,6 +501,9 @@ function summarizeGroup(rows: RunRow[]): RepairBehaviorGroup {
     terminalGeometryIdentical: directDivergence.filter(({ value }) =>
       value.terminal_geometry_identical
     ).length,
+    acceptedTerminalGeometryIdentical: directDivergence.filter(({ episode, value }) =>
+      value.terminal_geometry_identical && episode.outcome.accepted_alternative
+    ).length,
     terminalGeometryIdenticalRate: roundedRatio(
       directDivergence.filter(({ value }) => value.terminal_geometry_identical).length,
       directDivergence.length,
@@ -594,6 +600,9 @@ function summarizeSlice(entries: RepairEntry[]): RepairBehaviorSlice {
     ),
     terminalGeometryIdentical: divergence.filter(({ value }) =>
       value.terminal_geometry_identical
+    ).length,
+    acceptedTerminalGeometryIdentical: divergence.filter(({ episode, value }) =>
+      value.terminal_geometry_identical && episode.outcome.accepted_alternative
     ).length,
     terminalGeometryIdenticalRate: roundedRatio(
       divergence.filter(({ value }) => value.terminal_geometry_identical).length,
@@ -1124,7 +1133,7 @@ function markdown(artifact: any): string {
       lines.push(`| ${row.iterationIndex} | ${row.repairEpisodes} | ${number(row.meanParentDepth, 2)} | ${number(row.meanAnchorGap, 1)} | ${percentage(row.terminalReachedRate)} | ${percentage(row.acceptedPerTerminalRate)} | ${number(row.framesPerAcceptedAlternative, 0)} | ${number(row.internalFullScoreDeltaPerMillionRepairFrames, 2)} |`);
     }
     const o = summary.overall;
-    lines.push("", "Direct observations:", "", `- ${o.terminalReached}/${o.repairEpisodes} iterations reached a terminal; ${o.acceptedAlternatives} were adopted.`, `- Repair used ${percentage(o.repairSpentShare)} of charged work. Completion stayed within the selected anchor's estimated upper cost in ${percentage(o.completionWithinEstimatedUpperRate)} of completed iterations.`, `- ${o.terminalGeometryIdentical}/${o.terminalReached} terminal alternatives were geometry-identical to their incumbents, consuming ${o.terminalGeometryIdenticalSpentFrames.toLocaleString()} frames (${percentage(o.terminalGeometryIdenticalSpentShare)} of repair work); the first divergence occurred at the anchor in ${percentage(o.firstDivergenceAtAnchorRate)} of divergent terminals.`, `- Accepted alternatives improved the selected weak gap ${percentage(o.acceptedWeakGapImprovementRate)} of the time; ${o.acceptedWeakGapWorsened} accepted alternatives worsened it while improving the register globally.`, `- Aggregate selected-gap SSE improvement was ${number(o.weakGapSseImprovement, 4)}; internal full-score gain was ${number(o.internalFullScoreDelta, 2)} (${number(o.internalFullScoreDeltaPerMillionRepairFrames, 2)} per million repair frames).`, `- Full decision replay was available for ${o.replayableDecisionEpisodes}/${o.repairEpisodes} episodes and direct incumbent/offer hashes for ${o.directTrackIdentityEpisodes}/${o.repairEpisodes}.`, "");
+    lines.push("", "Direct observations:", "", `- ${o.terminalReached}/${o.repairEpisodes} iterations reached a terminal; ${o.acceptedAlternatives} were adopted.`, `- Repair used ${percentage(o.repairSpentShare)} of charged work. Completion stayed within the selected anchor's estimated upper cost in ${percentage(o.completionWithinEstimatedUpperRate)} of completed iterations.`, `- ${o.terminalGeometryIdentical}/${o.terminalReached} terminal alternatives were geometry-identical to their incumbents and ${o.acceptedTerminalGeometryIdentical} were accepted, consuming ${o.terminalGeometryIdenticalSpentFrames.toLocaleString()} frames (${percentage(o.terminalGeometryIdenticalSpentShare)} of repair work); the first divergence occurred at the anchor in ${percentage(o.firstDivergenceAtAnchorRate)} of divergent terminals.`, `- Accepted alternatives improved the selected weak gap ${percentage(o.acceptedWeakGapImprovementRate)} of the time; ${o.acceptedWeakGapWorsened} accepted alternatives worsened it while improving the register globally.`, `- Aggregate selected-gap SSE improvement was ${number(o.weakGapSseImprovement, 4)}; internal full-score gain was ${number(o.internalFullScoreDelta, 2)} (${number(o.internalFullScoreDeltaPerMillionRepairFrames, 2)} per million repair frames).`, `- Full decision replay was available for ${o.replayableDecisionEpisodes}/${o.repairEpisodes} episodes and direct incumbent/offer hashes for ${o.directTrackIdentityEpisodes}/${o.repairEpisodes}.`, "");
     const selection = summary.selection;
     const diversity = summary.terminalOfferDiversity;
     lines.push("Selection and direct diversity:", "", `- Full option replay was available for ${selection.replayableDecisionEpisodes}/${selection.decisionEpisodes} decisions. Among those, the maximum considered parent depth was ${selection.maximumConsideredParentDepth}; ${selection.selectedAtMaximumConsideredDepth} selected it and ${selection.deeperStructuralAnchorBlockedByAffordability} had a structurally available deeper anchor blocked by affordability.`, `- ${diversity.terminalOffersWithHash} terminal offers contained direct hashes: ${diversity.distinctTerminalOfferTracks} were globally distinct, ${diversity.repeatedTerminalOffersAgainstSameIncumbent} repeated against the same incumbent, and ${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchor} repeated against the same incumbent and anchor (${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchorSpentFrames.toLocaleString()} charged frames).`, "");
@@ -1162,9 +1171,7 @@ async function main(): Promise<void> {
     if (split <= 0) throw new Error(`invalid --arm=${value}; expected LABEL:ARCHIVE`);
     const label = value.slice(0, split);
     const path = resolve(value.slice(split + 1));
-    const bytes = readFileSync(path);
-    const archive = JSON.parse(bytes.toString()) as { schema?: string; runs?: RunRow[]; candidate?: unknown };
-    if (!Array.isArray(archive.runs)) throw new Error(`${path} has no runs array`);
+    const archive = await readRepairArm(path);
     const availableSeeds = [...new Set(archive.runs.map((row) => row.task.actualSeed))]
       .sort((a, b) => a - b);
     const selectedSeeds = new Set(seedCount === null
@@ -1177,7 +1184,7 @@ async function main(): Promise<void> {
     summaries.push({
       label,
       path,
-      sha256: sha256(bytes),
+      sha256: archive.sha256,
       archiveSchema: archive.schema ?? null,
       candidate: archive.candidate ?? null,
       selectedSeeds: [...selectedSeeds],
@@ -1222,6 +1229,54 @@ async function main(): Promise<void> {
     console.log(`${arm.label}: ${arm.summary.overall.repairEpisodes} repairs, ${violations} invariant violations`);
   }
   console.log(`wrote ${prefix}.{json,md}`);
+}
+
+export async function readRepairArm(path: string): Promise<{
+  schema?: string;
+  runs: RunRow[];
+  candidate?: unknown;
+  sha256: string;
+}> {
+  if (!path.endsWith(".jsonl")) {
+    const bytes = readFileSync(path);
+    const archive = JSON.parse(bytes.toString()) as {
+      schema?: string;
+      runs?: RunRow[];
+      candidate?: unknown;
+    };
+    if (!Array.isArray(archive.runs)) throw new Error(`${path} has no runs array`);
+    return { ...archive, runs: archive.runs, sha256: sha256(bytes) };
+  }
+  const hash = createHash("sha256");
+  const input = createReadStream(path, { encoding: "utf8" });
+  input.on("data", (chunk) => hash.update(chunk));
+  const lines = createInterface({ input, crlfDelay: Infinity });
+  const latestRuns = new Map<string, RunRow>();
+  let schema: string | undefined;
+  let headerSeen = false;
+  for await (const line of lines) {
+    if (line === "") continue;
+    const entry = JSON.parse(line);
+    if (!headerSeen) {
+      headerSeen = true;
+      schema = entry?.schema;
+      if (typeof schema !== "string" || !schema.includes("budget-scale-checkpoint")) {
+        throw new Error(`${path} is not a budget-scale checkpoint`);
+      }
+      continue;
+    }
+    if (entry?.type !== "result") continue;
+    const result = entry.result;
+    const row = {
+      task: result.task,
+      status: result.status,
+      budgetTelemetry: result.budgetTelemetry ?? null,
+    } as RunRow;
+    latestRuns.set(runKey(row), row);
+  }
+  if (!headerSeen) throw new Error(`${path} is empty`);
+  const runs = [...latestRuns.values()].filter((row) => row.status === "ok");
+  return { schema, runs, candidate: undefined, sha256: hash.digest("hex") };
 }
 
 if (process.argv[1]?.endsWith("analyze_repair_behavior.ts")) await main();

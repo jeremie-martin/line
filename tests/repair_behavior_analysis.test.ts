@@ -1,5 +1,10 @@
+import { createHash } from "node:crypto";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import {
+  readRepairArm,
   renderRepairBehaviorPlot,
   summarizeRepairBehavior,
 } from "../scripts/benchmark/analyze_repair_behavior.ts";
@@ -142,6 +147,7 @@ describe("repair behavior analysis", () => {
       terminalReached: 2,
       acceptedAlternatives: 1,
       terminalGeometryIdentical: 0,
+      acceptedTerminalGeometryIdentical: 0,
       weakGapSseImprovement: 0.2,
       internalFullScoreDelta: 2,
       replayableDecisionEpisodes: 2,
@@ -216,6 +222,30 @@ describe("repair behavior analysis", () => {
       expect(svg).toContain("fixture &amp; arm");
       expect(svg).not.toContain("NaN");
       expect(svg).not.toContain("Infinity");
+    }
+  });
+
+  test("streams complete scale checkpoints into the behavior audit", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "repair-behavior-checkpoint-"));
+    const path = join(directory, "scale.checkpoint.jsonl");
+    const contents = [
+      JSON.stringify({
+        schema: "line.benchmark-v2.budget-scale-checkpoint.v1",
+        planFingerprint: "fixture",
+      }),
+      JSON.stringify({ type: "result", result: { ...row(), status: "ok" } }),
+      "",
+    ].join("\n");
+    writeFileSync(path, contents);
+
+    try {
+      const arm = await readRepairArm(path);
+      expect(arm.schema).toBe("line.benchmark-v2.budget-scale-checkpoint.v1");
+      expect(arm.runs).toHaveLength(1);
+      expect(arm.runs[0]?.task).toEqual(row().task);
+      expect(arm.sha256).toBe(createHash("sha256").update(contents).digest("hex"));
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
     }
   });
 });

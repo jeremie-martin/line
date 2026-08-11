@@ -160,5 +160,5 @@ authoritative for the new controller.
 | 2026-08-11 | Remove obsolete surgical repair | complete | `43d0b94`; executable branch, stats surface, and live guidance removed; 125 focused tests pass |
 | 2026-08-11 | Telemetry V4/reporting | complete | `78cab6b`; clean-break schema and exact work/outcome/divergence semantics; 178 test files / 1,207 tests pass |
 | 2026-08-11 | Independent repair loop | complete | `ec7632c`; fixed parent depth 1, explicit 20% headroom, per-incumbent cost profiles, no ancestor/exhaustion state; 95 focused tests pass; live 500k probe reached 4/4 divergent terminals and accepted 1 |
-| 2026-08-11 | Diversity validation | pending | — |
-| 2026-08-11 | Governed evaluation | in progress | 16-seed V4 reference complete (1,024 cells, scale headline 571.1088); resume now freezes/reuses a provenance sidecar; 12-worker run stayed within memory limit |
+| 2026-08-11 | Diversity validation | complete | Four-seed depth-1 arm: 1,373 terminal alternatives, 1 geometry-identical, 496 accepted, 0 accepted-identical; mean 14.90 divergent suffix gaps. No exclusion/cursor intervention needed |
+| 2026-08-11 | Governed evaluation | in progress | 16-seed V4 reference complete (1,024 cells, scale headline 571.1088); depth-1 N=4 is -1.3140 (SE 0.1200), despite +33.4% terminal reach and +7.4% accepted alternatives, so parent-depth 2 is the next declared arm; resume freezes/reuses provenance; runs capped at 12 workers |

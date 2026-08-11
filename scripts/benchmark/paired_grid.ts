@@ -27,9 +27,12 @@
 import { resolve } from "node:path";
 import { readVerifiedArtifact } from "./study_lib.ts";
 import { BUDGET_TELEMETRY_SCHEMA } from "../v0/optimizer/budget_telemetry.ts";
+import { FROZEN_SCALE_STUDY_SCHEMA } from "../v0/benchmark_v2/scale_profile.ts";
 
 export const SCALE_STUDY_ARCHIVE_SCHEMA = "line.benchmark-v2.budget-scale-study.v2" as const;
-export const MULTI_BUDGET_ARCHIVE_SCHEMA = "line.benchmark-v2.budget-scale-study.v3" as const;
+export const LEGACY_MULTI_BUDGET_ARCHIVE_SCHEMA =
+  "line.benchmark-v2.budget-scale-study.v3" as const;
+export const MULTI_BUDGET_ARCHIVE_SCHEMA = FROZEN_SCALE_STUDY_SCHEMA;
 
 /** One (source, budget, seed) outcome under one arm. */
 export type GridCell = {
@@ -63,10 +66,11 @@ export function readGridArm(label: string, path: string): GridArm {
   const archive = JSON.parse(readVerifiedArtifact(absolute).bytes.toString("utf8"));
   if (
     archive?.schema !== SCALE_STUDY_ARCHIVE_SCHEMA &&
+    archive?.schema !== LEGACY_MULTI_BUDGET_ARCHIVE_SCHEMA &&
     archive?.schema !== MULTI_BUDGET_ARCHIVE_SCHEMA
   ) {
     throw new Error(
-      `${path}: not a ${SCALE_STUDY_ARCHIVE_SCHEMA} or ${MULTI_BUDGET_ARCHIVE_SCHEMA} archive`,
+      `${path}: unsupported paired-grid archive schema ${String(archive?.schema)}`,
     );
   }
   if (!Array.isArray(archive.runs)) throw new Error(`${path}: archive runs must be an array`);

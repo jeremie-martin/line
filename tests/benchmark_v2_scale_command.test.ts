@@ -33,6 +33,7 @@ describe("Benchmark V2 scale command contract", () => {
       "--resume",
       "--json",
       "--extend-from=candidate-4.json",
+      "--extend-snapshot=candidate-4-comparison.json",
       "--breadth-policy=high-budget-three-quarter",
     ])).not.toThrow();
     expect(() => assertScaleArguments("compare", [

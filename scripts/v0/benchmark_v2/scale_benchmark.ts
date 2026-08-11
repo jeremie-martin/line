@@ -98,6 +98,7 @@ export function assertScaleArguments(
         "jobs",
         "budget-telemetry",
         "extend-from",
+        "extend-snapshot",
         "breadth-policy",
       ]
       : ["baseline", "candidate", "artifact"]);
@@ -258,13 +259,24 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const extensionPath = argument("extend-from") === undefined
     ? null
     : resolve(argument("extend-from")!);
+  const extensionSnapshotPath = argument("extend-snapshot") === undefined
+    ? null
+    : resolve(argument("extend-snapshot")!);
+  if (extensionPath === null && extensionSnapshotPath !== null) {
+    throw new Error(`--extend-snapshot requires --extend-from`);
+  }
   const candidatePath = resolve(argument("out") ??
     `generated/benchmark-v2/scale/${timestamp()}-candidate.json`);
   if (extensionPath === candidatePath) {
     throw new Error(`--extend-from and --out must name different archives`);
   }
   const artifactPath = resolve(argument("artifact") ?? siblingPath(candidatePath, ".comparison.json"));
-  const snapshot = createCompilerSnapshot(`${basename(candidatePath, ".json")}-candidate`, dirname(candidatePath));
+  const snapshot = extensionPath === null
+    ? createCompilerSnapshot(`${basename(candidatePath, ".json")}-candidate`, dirname(candidatePath))
+    : readScaleExtensionSnapshot(
+      extensionPath,
+      extensionSnapshotPath ?? siblingPath(extensionPath, ".comparison.json"),
+    );
   const extension = extensionPath === null
     ? null
     : validateScaleExtension(
@@ -486,6 +498,35 @@ function validateScaleExtension(
     throw new Error(`--extend-from requires its retained checkpoint ${checkpointPath}`);
   }
   return { checkpointPath, seeds: arm.archive.seeds };
+}
+
+function readScaleExtensionSnapshot(
+  candidatePath: string,
+  comparisonPath: string,
+): CompilerSnapshot {
+  if (!existsSync(comparisonPath)) {
+    throw new Error(
+      `--extend-from requires its frozen compiler snapshot comparison ${comparisonPath}; ` +
+        `pass a nonstandard location with --extend-snapshot=FILE`,
+    );
+  }
+  const verified = readVerifiedArtifact(comparisonPath);
+  const comparison = JSON.parse(verified.bytes.toString("utf8"));
+  if (
+    comparison?.schema !== MULTI_BUDGET_COMPARISON_SCHEMA ||
+    resolve(comparison.candidate?.archivePath ?? "") !== resolve(candidatePath) ||
+    typeof comparison.candidate?.archiveSha256 !== "string" ||
+    comparison.candidate?.compilerSnapshot?.schema !== "line.benchmark-v2.compiler-snapshot.v1"
+  ) {
+    throw new Error(`${comparisonPath} does not describe the candidate being extended`);
+  }
+  const candidate = readVerifiedArtifact(resolve(candidatePath));
+  if (candidate.artifactSha256 !== comparison.candidate.archiveSha256) {
+    throw new Error(`${comparisonPath} candidate checksum does not match --extend-from`);
+  }
+  const snapshot = comparison.candidate.compilerSnapshot as CompilerSnapshot;
+  validateCompilerSnapshot(snapshot);
+  return snapshot;
 }
 
 function readScaleBaseline(path: string): MultiBudgetBaseline {

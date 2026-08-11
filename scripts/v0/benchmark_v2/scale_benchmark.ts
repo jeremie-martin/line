@@ -358,7 +358,7 @@ async function compareScaleArchives(
   snapshot: CompilerSnapshot | null,
 ): Promise<Record<string, unknown>> {
   const expectedSeeds = multiBudgetSeeds(profile.profile, depth);
-  const reference = readGridArm("reference", baseline.archive.path);
+  const reference = readGridArm("reference", scaleAnalysisPath(baseline.archive.path));
   const candidateReadPath = scaleAnalysisPath(candidatePath);
   const candidate = readGridArm("candidate", candidateReadPath);
   assertArchiveProfile(reference.archive, profile);

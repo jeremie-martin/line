@@ -174,6 +174,13 @@ describe("repair behavior analysis", () => {
       distinctTerminalOfferTracks: 2,
       repeatedTerminalOffersAgainstSameIncumbent: 0,
     });
+    expect(result.transitionOutcomes.afterRejectedDifferentDecision).toMatchObject({
+      repairEpisodes: 1,
+      terminalReached: 1,
+      acceptedAlternatives: 1,
+      internalFullScoreDelta: 2,
+    });
+    expect(result.transitionOutcomes.afterRejectedSameTargetAndAnchor.repairEpisodes).toBe(0);
   });
 
   test("reports sequence violations instead of silently summarizing them", () => {

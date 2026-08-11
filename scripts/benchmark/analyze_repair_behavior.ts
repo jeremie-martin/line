@@ -59,6 +59,8 @@ export type RepairBehaviorGroup = {
   completionWithinAllocationRate: number | null;
   terminalGeometryIdentical: number;
   terminalGeometryIdenticalRate: number | null;
+  terminalGeometryIdenticalSpentFrames: number;
+  terminalGeometryIdenticalSpentShare: number | null;
   firstDivergenceAtAnchorRate: number | null;
   meanDivergentSuffixGaps: number | null;
   weakGapSseImprovement: number | null;
@@ -89,6 +91,8 @@ export type RepairBehaviorSlice = {
   completionWithinEstimatedUpperRate: number | null;
   terminalGeometryIdentical: number;
   terminalGeometryIdenticalRate: number | null;
+  terminalGeometryIdenticalSpentFrames: number;
+  terminalGeometryIdenticalSpentShare: number | null;
   firstDivergenceAtAnchorRate: number | null;
   meanDivergentSuffixGaps: number | null;
   acceptedWeakGapImprovementRate: number | null;
@@ -112,6 +116,7 @@ export type RepairBehaviorSummary = {
   selection: ReturnType<typeof summarizeSelection>;
   terminalOfferDiversity: ReturnType<typeof summarizeTerminalOfferDiversity>;
   transitions: ReturnType<typeof summarizeTransitions>;
+  transitionOutcomes: ReturnType<typeof summarizeTransitionOutcomes>;
   adjacentBudgetAssociations: ReturnType<typeof summarizeAdjacentBudgets>;
   evidenceLimits: string[];
 };
@@ -196,6 +201,7 @@ export function summarizeRepairBehavior(rows: RunRow[]): RepairBehaviorSummary {
     selection: summarizeSelection(entries),
     terminalOfferDiversity: summarizeTerminalOfferDiversity(entries),
     transitions: summarizeTransitions(rows),
+    transitionOutcomes: summarizeTransitionOutcomes(rows),
     adjacentBudgetAssociations: summarizeAdjacentBudgets(rows),
     evidenceLimits,
   };
@@ -496,6 +502,15 @@ function summarizeGroup(rows: RunRow[]): RepairBehaviorGroup {
       directDivergence.filter(({ value }) => value.terminal_geometry_identical).length,
       directDivergence.length,
     ),
+    terminalGeometryIdenticalSpentFrames: sum(directDivergence
+      .filter(({ value }) => value.terminal_geometry_identical)
+      .map(({ episode }) => episode.outcome.spent_frames ?? 0)),
+    terminalGeometryIdenticalSpentShare: roundedRatio(
+      sum(directDivergence
+        .filter(({ value }) => value.terminal_geometry_identical)
+        .map(({ episode }) => episode.outcome.spent_frames ?? 0)),
+      spent,
+    ),
     firstDivergenceAtAnchorRate: roundedRatio(
       directDivergence.filter(({ episode, value }) =>
         value.first_divergent_gap_index === episode.anchor.gap_index
@@ -583,6 +598,15 @@ function summarizeSlice(entries: RepairEntry[]): RepairBehaviorSlice {
     terminalGeometryIdenticalRate: roundedRatio(
       divergence.filter(({ value }) => value.terminal_geometry_identical).length,
       divergence.length,
+    ),
+    terminalGeometryIdenticalSpentFrames: sum(divergence
+      .filter(({ value }) => value.terminal_geometry_identical)
+      .map(({ episode }) => episode.outcome.spent_frames ?? 0)),
+    terminalGeometryIdenticalSpentShare: roundedRatio(
+      sum(divergence
+        .filter(({ value }) => value.terminal_geometry_identical)
+        .map(({ episode }) => episode.outcome.spent_frames ?? 0)),
+      spent,
     ),
     firstDivergenceAtAnchorRate: roundedRatio(
       divergence.filter(({ episode, value }) =>
@@ -680,6 +704,7 @@ function summarizeTerminalOfferDiversity(entries: RepairEntry[]): {
   repeatedTerminalOffers: number;
   repeatedTerminalOffersAgainstSameIncumbent: number;
   repeatedTerminalOffersAgainstSameIncumbentAndAnchor: number;
+  repeatedTerminalOffersAgainstSameIncumbentAndAnchorSpentFrames: number;
 } {
   const all = new Set<string>();
   const byIncumbent = new Set<string>();
@@ -688,6 +713,7 @@ function summarizeTerminalOfferDiversity(entries: RepairEntry[]): {
   let repeatedTerminalOffers = 0;
   let repeatedTerminalOffersAgainstSameIncumbent = 0;
   let repeatedTerminalOffersAgainstSameIncumbentAndAnchor = 0;
+  let repeatedTerminalOffersAgainstSameIncumbentAndAnchorSpentFrames = 0;
   for (const { episode } of entries) {
     const offer = (episode.outcome as any).terminal_offer_track_hash;
     if (typeof offer !== "string") continue;
@@ -702,7 +728,11 @@ function summarizeTerminalOfferDiversity(entries: RepairEntry[]): {
     const anchorKey = `${incumbent}\0${episode.anchor.gap_index}\0${offer}`;
     if (all.has(offer)) repeatedTerminalOffers++;
     if (byIncumbent.has(incumbentKey)) repeatedTerminalOffersAgainstSameIncumbent++;
-    if (byIncumbentAnchor.has(anchorKey)) repeatedTerminalOffersAgainstSameIncumbentAndAnchor++;
+    if (byIncumbentAnchor.has(anchorKey)) {
+      repeatedTerminalOffersAgainstSameIncumbentAndAnchor++;
+      repeatedTerminalOffersAgainstSameIncumbentAndAnchorSpentFrames +=
+        episode.outcome.spent_frames ?? 0;
+    }
     all.add(offer);
     byIncumbent.add(incumbentKey);
     byIncumbentAnchor.add(anchorKey);
@@ -713,6 +743,7 @@ function summarizeTerminalOfferDiversity(entries: RepairEntry[]): {
     repeatedTerminalOffers,
     repeatedTerminalOffersAgainstSameIncumbent,
     repeatedTerminalOffersAgainstSameIncumbentAndAnchor,
+    repeatedTerminalOffersAgainstSameIncumbentAndAnchorSpentFrames,
   };
 }
 
@@ -795,6 +826,40 @@ function summarizeTransitions(rows: RunRow[]): {
     }
   }
   return result;
+}
+
+function summarizeTransitionOutcomes(rows: RunRow[]): {
+  afterRejectedSameTargetAndAnchor: RepairBehaviorSlice;
+  afterRejectedDifferentDecision: RepairBehaviorSlice;
+  afterAccepted: RepairBehaviorSlice;
+} {
+  const same: RepairEntry[] = [];
+  const different: RepairEntry[] = [];
+  const accepted: RepairEntry[] = [];
+  for (const run of rows) {
+    const episodes = repairEpisodes(run);
+    for (let index = 0; index + 1 < episodes.length; index++) {
+      const current = episodes[index]!;
+      const next = episodes[index + 1]!;
+      if (current.outcome.accepted_alternative) {
+        accepted.push({ run, episode: next });
+        continue;
+      }
+      const currentDecision = current.repair_decision!;
+      const nextDecision = next.repair_decision!;
+      if (currentDecision.target_gap_index === nextDecision.target_gap_index &&
+          currentDecision.anchor_gap_index === nextDecision.anchor_gap_index) {
+        same.push({ run, episode: next });
+      } else {
+        different.push({ run, episode: next });
+      }
+    }
+  }
+  return {
+    afterRejectedSameTargetAndAnchor: summarizeSlice(same),
+    afterRejectedDifferentDecision: summarizeSlice(different),
+    afterAccepted: summarizeSlice(accepted),
+  };
 }
 
 function summarizeAdjacentBudgets(rows: RunRow[]): {
@@ -959,12 +1024,16 @@ function markdown(artifact: any): string {
       lines.push(`| ${row.iterationIndex} | ${row.repairEpisodes} | ${number(row.meanParentDepth, 2)} | ${number(row.meanAnchorGap, 1)} | ${percentage(row.terminalReachedRate)} | ${percentage(row.acceptedPerTerminalRate)} | ${number(row.framesPerAcceptedAlternative, 0)} | ${number(row.internalFullScoreDeltaPerMillionRepairFrames, 2)} |`);
     }
     const o = summary.overall;
-    lines.push("", "Direct observations:", "", `- ${o.terminalReached}/${o.repairEpisodes} iterations reached a terminal; ${o.acceptedAlternatives} were adopted.`, `- Repair used ${percentage(o.repairSpentShare)} of charged work. Completion stayed within the selected anchor's estimated upper cost in ${percentage(o.completionWithinEstimatedUpperRate)} of completed iterations.`, `- ${o.terminalGeometryIdentical}/${o.terminalReached} terminal alternatives were geometry-identical to their incumbents; the first divergence occurred at the anchor in ${percentage(o.firstDivergenceAtAnchorRate)} of divergent terminals.`, `- Accepted alternatives improved the selected weak gap ${percentage(o.acceptedWeakGapImprovementRate)} of the time; ${o.acceptedWeakGapWorsened} accepted alternatives worsened it while improving the register globally.`, `- Aggregate selected-gap SSE improvement was ${number(o.weakGapSseImprovement, 4)}; internal full-score gain was ${number(o.internalFullScoreDelta, 2)} (${number(o.internalFullScoreDeltaPerMillionRepairFrames, 2)} per million repair frames).`, `- Full decision replay was available for ${o.replayableDecisionEpisodes}/${o.repairEpisodes} episodes and direct incumbent/offer hashes for ${o.directTrackIdentityEpisodes}/${o.repairEpisodes}.`, "");
+    lines.push("", "Direct observations:", "", `- ${o.terminalReached}/${o.repairEpisodes} iterations reached a terminal; ${o.acceptedAlternatives} were adopted.`, `- Repair used ${percentage(o.repairSpentShare)} of charged work. Completion stayed within the selected anchor's estimated upper cost in ${percentage(o.completionWithinEstimatedUpperRate)} of completed iterations.`, `- ${o.terminalGeometryIdentical}/${o.terminalReached} terminal alternatives were geometry-identical to their incumbents, consuming ${o.terminalGeometryIdenticalSpentFrames.toLocaleString()} frames (${percentage(o.terminalGeometryIdenticalSpentShare)} of repair work); the first divergence occurred at the anchor in ${percentage(o.firstDivergenceAtAnchorRate)} of divergent terminals.`, `- Accepted alternatives improved the selected weak gap ${percentage(o.acceptedWeakGapImprovementRate)} of the time; ${o.acceptedWeakGapWorsened} accepted alternatives worsened it while improving the register globally.`, `- Aggregate selected-gap SSE improvement was ${number(o.weakGapSseImprovement, 4)}; internal full-score gain was ${number(o.internalFullScoreDelta, 2)} (${number(o.internalFullScoreDeltaPerMillionRepairFrames, 2)} per million repair frames).`, `- Full decision replay was available for ${o.replayableDecisionEpisodes}/${o.repairEpisodes} episodes and direct incumbent/offer hashes for ${o.directTrackIdentityEpisodes}/${o.repairEpisodes}.`, "");
     const selection = summary.selection;
     const diversity = summary.terminalOfferDiversity;
-    lines.push("Selection and direct diversity:", "", `- Full option replay was available for ${selection.replayableDecisionEpisodes}/${selection.decisionEpisodes} decisions. Among those, the maximum considered parent depth was ${selection.maximumConsideredParentDepth}; ${selection.selectedAtMaximumConsideredDepth} selected it and ${selection.deeperStructuralAnchorBlockedByAffordability} had a structurally available deeper anchor blocked by affordability.`, `- ${diversity.terminalOffersWithHash} terminal offers contained direct hashes: ${diversity.distinctTerminalOfferTracks} were globally distinct, ${diversity.repeatedTerminalOffersAgainstSameIncumbent} repeated against the same incumbent, and ${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchor} repeated against the same incumbent and anchor.`, "");
+    lines.push("Selection and direct diversity:", "", `- Full option replay was available for ${selection.replayableDecisionEpisodes}/${selection.decisionEpisodes} decisions. Among those, the maximum considered parent depth was ${selection.maximumConsideredParentDepth}; ${selection.selectedAtMaximumConsideredDepth} selected it and ${selection.deeperStructuralAnchorBlockedByAffordability} had a structurally available deeper anchor blocked by affordability.`, `- ${diversity.terminalOffersWithHash} terminal offers contained direct hashes: ${diversity.distinctTerminalOfferTracks} were globally distinct, ${diversity.repeatedTerminalOffersAgainstSameIncumbent} repeated against the same incumbent, and ${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchor} repeated against the same incumbent and anchor (${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchorSpentFrames.toLocaleString()} charged frames).`, "");
     const t = summary.transitions;
     lines.push("Within-run transitions:", "", `- ${t.afterRejected} transitions followed a rejected terminal: the next anchor moved earlier/same/later ${t.afterRejectedAnchorEarlier}/${t.afterRejectedAnchorSame}/${t.afterRejectedAnchorLater} times. The same target was selected ${t.afterRejectedSameTarget} times and the exact same target+anchor ${t.afterRejectedSameTargetAndAnchor} times.`, `- The affordable set shrank after rejection ${t.afterRejectedAffordableSetShrank} times and stayed equal ${t.afterRejectedAffordableSetSame} times. Whenever the previous target remained affordable, it was retained ${t.afterRejectedTargetRetained}/${t.afterRejectedTargetStillAffordable} times. Adjacent rejected iterations repeated the exact terminal offer ${t.afterRejectedRepeatedTerminalOffer} times.`, `- ${t.afterAccepted} transitions followed acceptance: the independently recomputed anchor moved earlier/same/later ${t.afterAcceptedAnchorEarlier}/${t.afterAcceptedAnchorSame}/${t.afterAcceptedAnchorLater} times.`, "");
+    const transitionOutcomes = summary.transitionOutcomes;
+    const sameDecision = transitionOutcomes.afterRejectedSameTargetAndAnchor;
+    const differentDecision = transitionOutcomes.afterRejectedDifferentDecision;
+    lines.push("Outcome of the next iteration after rejection:", "", `- Retrying the independently recomputed same target+anchor: ${sameDecision.acceptedAlternatives}/${sameDecision.terminalReached} accepted, ${number(sameDecision.internalFullScoreDelta, 2)} internal-score gain, ${number(sameDecision.internalFullScoreDeltaPerMillionRepairFrames, 2)} gain per million frames.`, `- Moving to a different target or anchor: ${differentDecision.acceptedAlternatives}/${differentDecision.terminalReached} accepted, ${number(differentDecision.internalFullScoreDelta, 2)} internal-score gain, ${number(differentDecision.internalFullScoreDeltaPerMillionRepairFrames, 2)} gain per million frames.`, "");
     const b = summary.adjacentBudgetAssociations;
     lines.push("Adjacent-budget associations (not isolated repair causality):", "", `- ${b.comparablePairs} matched source×seed adjacent-budget pairs; mean changes were ${number(b.meanEpisodeCountDelta)} repair iterations and ${number(b.meanAcceptedCountDelta)} accepted alternatives.`, `- Among ${b.bothHaveRepair} pairs with repair at both budgets, the first anchor at the higher budget was earlier/same/later ${b.firstAnchorEarlierAtHigherBudget}/${b.firstAnchorSameAtHigherBudget}/${b.firstAnchorLaterAtHigherBudget} times.`, "");
   }

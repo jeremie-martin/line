@@ -1,0 +1,67 @@
+{
+  "schema": "line.benchmark-v2.repair-controller-foundation.v1",
+  "recorded_at": "2026-08-11T13:30:00.000Z",
+  "status": "promoted_behavioral_foundation",
+  "promotion_basis": "verified_behavior_and_architecture",
+  "canonical_benchmark_decision": "inconclusive",
+  "canonical_benchmark_accept": false,
+  "compiler": {
+    "compiler_source_fingerprint": "55a0d5724a8defa636f91cf760d5114cc7432a3cb34f264f8861c6ce1337ad10",
+    "candidate_fingerprint": "b6ee2fe7a09e1f8bea33c3b9ec500c26d328fc2dc4e7c3f13b28df9774a85cf5",
+    "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+  },
+  "scale_scope": {
+    "profile": "compact-budget-response-v1",
+    "profile_fingerprint": "4992ecfee06ed2cabdb99b148793841b3c7a7835e379eb7e01a60682d3c5ee5a",
+    "specifications": 8,
+    "budgets": 8,
+    "seeds": 16,
+    "paired_cells": 1024
+  },
+  "score_result": {
+    "reference_headline": 571.1088,
+    "foundation_headline": 571.1404,
+    "delta": 0.0316,
+    "directional_probability": 0.62943275,
+    "canonical_750k_delta": 0.2904,
+    "reference_valid": 989,
+    "foundation_valid": 989
+  },
+  "behavior_result": {
+    "repair_iterations": 3974,
+    "replayed_checks": 97976,
+    "violations": 0,
+    "terminal_offers": 3919,
+    "distinct_terminal_tracks": 3881,
+    "incumbent_identical_terminals": 48,
+    "accepted_incumbent_identical_terminals": 0,
+    "incumbent_identical_repair_work_share": 0.000377
+  },
+  "evidence": {
+    "full_archive": {
+      "path": "generated/benchmark-v2/scale/independent-repair-deepest-affordable-16.json",
+      "sha256": "ec238152d05d6765d8206b8bae6daef7a3091cfcc964ea8f247fe3844b3c0ad7"
+    },
+    "analysis_projection": {
+      "path": "generated/benchmark-v2/scale/independent-repair-deepest-affordable-16.analysis.json",
+      "sha256": "83d6eb62fd9a704c75dc91d944df4d73ac72fd560713ab35235805095058f929"
+    },
+    "checkpoint": {
+      "path": "generated/benchmark-v2/scale/independent-repair-deepest-affordable-16.json.checkpoint.jsonl",
+      "sha256": "9e264009ed5c26bf483dcd11c3660d235057a8ccd9412181a8253c2fb1f92227"
+    },
+    "comparison": {
+      "path": "generated/benchmark-v2/scale/independent-repair-deepest-affordable-16.comparison.json",
+      "sha256": "0cc83e8df691743a3f87cad50bdaebe341128f4df4628e14139492d794d81192"
+    },
+    "behavior_audit": {
+      "path": "generated/benchmark-v2/scale/independent-repair-deepest-affordable-behavior-n16.json",
+      "sha256": "cac7b2d7cdd6e35e659787b48623b323c2a602b0699b49098948645747e96458"
+    },
+    "compiler_snapshot": {
+      "path": "generated/benchmark-v2/scale/independent-repair-deepest-affordable-16-candidate-compiler-snapshot.tar.gz",
+      "sha256": "02e1d6e84c8a1234c073941359c6a9ea90a456784b33e5ed8ea6d1e5ebf8e686"
+    }
+  },
+  "interpretation": "Promoted as the production repair architecture and follow-up campaign reference. This record does not relabel the inconclusive score comparison as ACCEPT."
+}

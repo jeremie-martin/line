@@ -53,14 +53,17 @@ An episode is one bounded execution allocation. It owns one lane, parent,
 anchor, seed when applicable, ceiling, estimator state, work funnel, register
 state, and outcome. A repair episode also owns one complete `repair_decision`:
 iteration and incumbent revision, remaining and usable budget, explicit
-headroom, fixed parent depth, affordable target set, selected target and SSE,
-actual anchor, cost estimates, and cost source. There is no controller-mode or
-failed-anchor state to infer from episode order.
+headroom, every target×anchor option up to the declared parent cap, affordable
+target set, selected target and SSE, actual parent depth/anchor, cost estimates,
+and cost source. The payload replays both worst-eligible target ranking and
+deepest-affordable anchor choice. There is no controller-mode or failed-anchor
+state to infer from episode order.
 
-The production controller currently declares parent depth `1` and headroom
-fraction `0.2`. Diagnostic arms use `LR_REPAIR_PARENT_DEPTH` and
-`LR_REPAIR_HEADROOM_FRACTION`; they change those declared values directly and
-never activate an ancestor fallback chain.
+The production controller currently declares maximum parent depth `4` and
+headroom fraction `0`. Diagnostic arms use `LR_REPAIR_MAX_PARENT_DEPTH` and
+`LR_REPAIR_HEADROOM_FRACTION`; they change those declared values directly. One
+iteration chooses one anchor and executes it once—there is no ancestor fallback
+chain or remembered tried-anchor state.
 
 An execution interval accounts for wall-to-wall charged compiler work such as
 startup, initial search, frontier repair, resumed search, or

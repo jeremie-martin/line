@@ -2894,7 +2894,7 @@ function compileHandoffInternal(
     };
 
     // One self-contained repair iteration: recompute policy from the current
-    // incumbent and remaining hard budget, choose one fixed-parent anchor, and
+    // incumbent and remaining hard budget, choose one deepest-affordable anchor, and
     // stop after at most one terminal alternative. No failed-anchor or target
     // state survives into the next iteration.
     const runRepairPhase = (): void => {
@@ -2950,7 +2950,7 @@ function compileHandoffInternal(
           upperCostByAnchor,
           remaining,
           repair.headroomFraction,
-          repair.parentDepth,
+          repair.maxParentDepth,
         );
         if (target === null) break;
         const iterationIndex = attempts++;
@@ -2993,7 +2993,7 @@ function compileHandoffInternal(
           remaining_budget_frames: repairBudget - framesBefore,
           headroom_fraction: repair.headroomFraction,
           usable_budget_frames: target.usableBudgetFrames,
-          parent_depth: repair.parentDepth,
+          parent_depth: target.parentDepth,
           affordable_target_gap_indices: target.affordableTargetGapIndices,
           target_gap_index: kWorst,
           target_gap_sse: pickedWeakGapSse,
@@ -3003,7 +3003,7 @@ function compileHandoffInternal(
           anchor_cost_source: estCostSourceOf(k),
           considered_targets: repairTargetObservations(
             targetCandidates,
-            repair.parentDepth,
+            repair.maxParentDepth,
             target.usableBudgetFrames,
             estCostOf,
             estCostUpperOf,
@@ -6408,6 +6408,7 @@ export type RepairTargetCandidate = { gapIndex: number; sse: number };
 export type AffordableRepairTarget = {
   targetGapIndex: number;
   anchorGapIndex: number;
+  parentDepth: number;
   targetGapSse: number;
   usableBudgetFrames: number;
   affordableTargetGapIndices: number[];
@@ -6419,7 +6420,7 @@ function sha256Json(value: unknown): string {
 
 function repairTargetObservations(
   candidates: readonly RepairTargetCandidate[],
-  parentDepth: number,
+  maxParentDepth: number,
   usableBudgetFrames: number,
   pointCostOf: (anchorGapIndex: number) => number,
   upperCostOf: (anchorGapIndex: number) => number,
@@ -6427,37 +6428,33 @@ function repairTargetObservations(
     anchorGapIndex: number,
   ) => "measured_cost_to_end" | "per_gap_fallback",
 ): BudgetRepairTargetObservation[] {
-  return candidates.map((candidate) => {
-    const anchorGapIndex = candidate.gapIndex - parentDepth;
-    if (anchorGapIndex < 0) {
+  const maximum = Math.max(0, Math.floor(maxParentDepth));
+  return candidates.map((candidate) => ({
+    target_gap_index: candidate.gapIndex,
+    target_gap_sse: candidate.sse,
+    anchor_options: Array.from(
+      { length: Math.min(maximum, candidate.gapIndex) + 1 },
+      (_, index) => Math.min(maximum, candidate.gapIndex) - index,
+    ).map((parentDepth) => {
+      const anchorGapIndex = candidate.gapIndex - parentDepth;
+      const point = pointCostOf(anchorGapIndex);
+      const upper = upperCostOf(anchorGapIndex);
+      const source = sourceOf(anchorGapIndex);
+      const hasCost = Number.isFinite(point) && point > 0 && Number.isFinite(upper) && upper > 0;
       return {
-        target_gap_index: candidate.gapIndex,
-        target_gap_sse: candidate.sse,
+        parent_depth: parentDepth,
         anchor_gap_index: anchorGapIndex,
-        estimated_anchor_cost_frames: null,
-        estimated_anchor_cost_upper_frames: null,
-        anchor_cost_source: null,
-        affordability: "anchor_before_start",
+        estimated_anchor_cost_frames: hasCost ? point : null,
+        estimated_anchor_cost_upper_frames: hasCost ? upper : null,
+        anchor_cost_source: hasCost ? source : null,
+        affordability: !hasCost
+          ? "no_positive_cost_estimate" as const
+          : upper <= usableBudgetFrames
+            ? "affordable" as const
+            : "exceeds_usable_budget" as const,
       };
-    }
-    const point = pointCostOf(anchorGapIndex);
-    const upper = upperCostOf(anchorGapIndex);
-    const source = sourceOf(anchorGapIndex);
-    const hasCost = Number.isFinite(point) && point > 0 && Number.isFinite(upper) && upper > 0;
-    return {
-      target_gap_index: candidate.gapIndex,
-      target_gap_sse: candidate.sse,
-      anchor_gap_index: anchorGapIndex,
-      estimated_anchor_cost_frames: hasCost ? point : null,
-      estimated_anchor_cost_upper_frames: hasCost ? upper : null,
-      anchor_cost_source: hasCost ? source : null,
-      affordability: !hasCost
-        ? "no_positive_cost_estimate"
-        : upper <= usableBudgetFrames
-          ? "affordable"
-          : "exceeds_usable_budget",
-    };
-  });
+    }),
+  }));
 }
 
 /** Combine a newly observed repair suffix with the incumbent's measured prefix.
@@ -6481,26 +6478,34 @@ export function spliceRepairCostToEnd(
   return result;
 }
 
-/** One independent repair decision. A target has exactly one anchor under the
- * declared parent depth; headroom reserves a fraction of the remaining hard
- * budget instead of silently inflating an estimator observation. */
+/** One independent repair decision. Rank target weakness among targets with at
+ * least one affordable anchor, then choose that target's deepest affordable
+ * parent up to the declared maximum. No failed-anchor state or execution
+ * fallback participates in the decision. */
 export function selectAffordableRepairTarget(
   candidates: readonly RepairTargetCandidate[],
   upperCostByAnchor: readonly number[],
   remainingBudgetFrames: number,
   headroomFraction: number,
-  parentDepth: number,
+  maxParentDepth: number,
 ): AffordableRepairTarget | null {
   const remaining = Math.max(0, Math.floor(remainingBudgetFrames));
   const headroom = Math.max(0, Math.min(0.95, headroomFraction));
-  const depth = Math.max(0, Math.floor(parentDepth));
+  const maximum = Math.max(0, Math.floor(maxParentDepth));
   const usableBudgetFrames = Math.floor(remaining * (1 - headroom));
   const affordable = candidates
-    .map((candidate) => ({ ...candidate, anchorGapIndex: candidate.gapIndex - depth }))
-    .filter(({ anchorGapIndex }) => {
-      const upper = upperCostByAnchor[anchorGapIndex];
-      return anchorGapIndex >= 0 && Number.isFinite(upper) && upper! > 0 &&
-        upper! <= usableBudgetFrames;
+    .flatMap((candidate) => {
+      const affordableAnchor = Array.from(
+        { length: Math.min(maximum, candidate.gapIndex) + 1 },
+        (_, index) => Math.min(maximum, candidate.gapIndex) - index,
+      ).map((parentDepth) => ({
+        parentDepth,
+        anchorGapIndex: candidate.gapIndex - parentDepth,
+      })).find(({ anchorGapIndex }) => {
+        const upper = upperCostByAnchor[anchorGapIndex];
+        return Number.isFinite(upper) && upper! > 0 && upper! <= usableBudgetFrames;
+      });
+      return affordableAnchor === undefined ? [] : [{ ...candidate, ...affordableAnchor }];
     });
   if (affordable.length === 0) return null;
   affordable.sort((a, b) => b.sse - a.sse || a.gapIndex - b.gapIndex);
@@ -6508,6 +6513,7 @@ export function selectAffordableRepairTarget(
   return {
     targetGapIndex: selected.gapIndex,
     anchorGapIndex: selected.anchorGapIndex,
+    parentDepth: selected.parentDepth,
     targetGapSse: selected.sse,
     usableBudgetFrames,
     affordableTargetGapIndices: affordable
@@ -7933,7 +7939,7 @@ type RepairConfig = {
   minBudget: number;
   mainMargin: number;
   maxAttempts: number;
-  parentDepth: number;
+  maxParentDepth: number;
   headroomFraction: number;
 };
 /** Repair takes over at the first completion, not after a margin past it.
@@ -7944,9 +7950,9 @@ type RepairConfig = {
  *  and their profile predicates are gone with them. */
 const REPAIR_MAIN_MARGIN = 1.0;
 
-/** A single repair policy: fixed parent depth and an explicit reserve applied
- * to remaining hard budget. Environment overrides declare diagnostic arms;
- * they are not hidden fallback modes. */
+/** A single repair policy: worst affordable target, then its deepest affordable
+ * parent up to one declared cap. Environment overrides declare diagnostic arms;
+ * they are not hidden execution fallback modes. */
 function repairConfig(): RepairConfig {
   const num = (name: string, def: number, lo: number, hi: number): number => {
     const n = Number.parseInt(readEnv(name) ?? "", 10);
@@ -7972,11 +7978,13 @@ function repairConfig(): RepairConfig {
     // guard, not a tuned knob — do not re-sweep it as if it allocated anything. (The
     // "1M affords ~30-40 restarts" note it used to carry was a projection, not a measurement.)
     maxAttempts: num("LR_REPAIR_MAX_ATTEMPTS", 64, 1, 1000),
-    // Candidate 1 changes the transition inherited by the selected target.
-    parentDepth: num("LR_REPAIR_PARENT_DEPTH", 1, 0, 64),
-    // Preserve 20% of the remaining hard budget beyond the estimator's upper
-    // completion-cost interval. This is visible in every V4 decision.
-    headroomFraction: flt("LR_REPAIR_HEADROOM_FRACTION", 0.2, 0, 0.95),
+    // One independent decision chooses the deepest affordable parent up to
+    // this cap. Four recovers the high-value early suffixes visible in the
+    // retained controller without restoring its fallback walk or tried state.
+    maxParentDepth: num("LR_REPAIR_MAX_PARENT_DEPTH", 4, 0, 64),
+    // The estimator's upper interval is already the local execution ceiling;
+    // retain no second hidden reserve in target/anchor eligibility.
+    headroomFraction: flt("LR_REPAIR_HEADROOM_FRACTION", 0, 0, 0.95),
   };
 }
 

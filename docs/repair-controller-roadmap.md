@@ -26,7 +26,8 @@ work but never rewrites authored targets.
 - **repair iteration**: one anchor decision and at most one complete suffix;
 - **target gap**: incumbent gap selected for improvement;
 - **anchor gap**: prefix position from which the suffix is regenerated;
-- **parent depth**: fixed target-to-anchor distance for one declared policy;
+- **parent depth**: actual target-to-anchor distance for one iteration;
+- **maximum parent depth**: declared cap on the anchors one decision prices;
 - **repair headroom**: explicit multiplier applied to the estimator's upper
   completion-cost bound;
 - **terminal reached**: a complete alternative was evaluated; this says
@@ -113,16 +114,19 @@ For every iteration:
 
 1. Read the incumbent and remaining hard budget.
 2. Rebuild/update cost-to-end measurements when the incumbent changed.
-3. For fixed parent depth `d`, map each target `g` to anchor `g - d`.
-4. Require
+3. For every target `g`, price anchors `g - d` for `d = 0..maximumParentDepth`.
+4. Require an anchor to satisfy
    `estimatedUpperCompletionCost(anchor) <= floor(remaining × (1 - repairHeadroomFraction))`.
-5. Among eligible target gaps, select the largest axis-error SSE.
-6. Regenerate one suffix from its anchor and return after one terminal.
+5. Among targets with at least one eligible anchor, select the largest
+   axis-error SSE, then choose that target's deepest eligible anchor.
+6. Regenerate one suffix from that one anchor and return after one terminal.
 7. Offer it to the register, record the result, discard iteration-local policy
    state, and return to step 1 whether accepted or rejected.
 
-The first production candidate uses parent depth 1. Parent depth 2 and other
-headroom values are separate declared arms, never hidden fallbacks.
+The initial production candidate used fixed parent depth 1. The governed
+follow-up bracketed fixed depths 1–3 and headroom 0–20%; retained reference
+evidence then motivated a single deepest-affordable policy capped at depth 4.
+This is decision-time pricing, never an execution fallback walk.
 
 Exit gate: no ancestor walk or cross-iteration failed-anchor state remains;
 tests prove recomputation after accepted and rejected alternatives.
@@ -163,4 +167,6 @@ authoritative for the new controller.
 | 2026-08-11 | Diversity validation | complete | Four-seed depth-1 arm: 1,373 terminal alternatives, 1 geometry-identical, 496 accepted, 0 accepted-identical; mean 14.90 divergent suffix gaps. No exclusion/cursor intervention needed |
 | 2026-08-11 | Governed evaluation | in progress | 16-seed V4 reference complete (1,024 cells, scale headline 571.1088). N=4 scale deltas: depth 1 -1.3140, depth 2 -0.3622, depth 3 -0.4065; depth 2 is the current best arm. Resume freezes/reuses provenance; runs capped at 12 workers |
 | 2026-08-11 | Behavioral audit | complete on initial N=4 arms | Reproducible audit over 3,559 repair iterations: 68,619 direct invariant checks, zero violations. After rejection, affordable sets only shrank; all 660 still-affordable worst targets were retained. Depth 2 reached 1,126/1,138 terminals, produced no incumbent-identical terminal, and improved the selected gap on 391/451 accepted alternatives |
-| 2026-08-11 | Decision/identity evidence closure | complete | V4 now retains every considered target's weakness, fixed anchor, point/upper cost, source, and affordability plus incumbent/terminal-offer hashes. Payload validation replays the winning target and cross-checks direct geometry identity. A depth-2 500k probe replayed 6/6 decisions and chained accepted incumbent hashes exactly |
+| 2026-08-11 | Decision/identity evidence closure | complete | V4 retains every target's weakness and every priced target×anchor option, point/upper cost, source, and affordability plus incumbent/terminal-offer hashes. Payload validation replays the target/anchor choice and cross-checks direct geometry identity. A depth-2 500k probe replayed 6/6 decisions and chained accepted incumbent hashes exactly |
+| 2026-08-11 | Fixed-depth/headroom bracket | complete | N=8 deltas versus retained reference: depth-2 headroom 0% -0.5089, 10% -0.5972, 20% -0.8348. All controller audits pass; scalar headroom interpolation is exhausted |
+| 2026-08-11 | Reference depth attribution | complete | In 2,123 paired N=8 reference episodes, depth 4 supplied 1,826/2,411 internal-score gain; mean depth fell 3.68→2.90→1.93→1.27 over iterations 0–3 as budget shrank. Follow-up retains one independent execution but selects the deepest affordable parent up to 4 |

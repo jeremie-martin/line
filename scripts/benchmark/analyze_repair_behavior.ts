@@ -195,18 +195,28 @@ function auditRun(row: RunRow, audit: Audit): void {
     );
     const consideredTargets = (decision as any).considered_targets;
     if (Array.isArray(consideredTargets)) {
-      const replayed = [...consideredTargets]
-        .filter((candidate: any) => candidate.affordability === "affordable")
-        .sort((a: any, b: any) => b.target_gap_sse - a.target_gap_sse ||
-          a.target_gap_index - b.target_gap_index)[0];
+      const replayed = consideredTargets.flatMap((candidate: any) => {
+        const anchors = Array.isArray(candidate.anchor_options)
+          ? candidate.anchor_options
+            .filter((anchor: any) => anchor.affordability === "affordable")
+            .sort((a: any, b: any) => b.parent_depth - a.parent_depth)
+          : candidate.affordability === "affordable"
+            ? [candidate]
+            : [];
+        return anchors.length === 0 ? [] : [{ candidate, anchor: anchors[0] }];
+      }).sort((a: any, b: any) =>
+        b.candidate.target_gap_sse - a.candidate.target_gap_sse ||
+        a.candidate.target_gap_index - b.candidate.target_gap_index
+      )[0];
       audit.check(
         "worstAffordableTargetReplaysExactly",
         replayed !== undefined &&
-          replayed.target_gap_index === decision.target_gap_index &&
-          replayed.anchor_gap_index === decision.anchor_gap_index &&
-          close(replayed.target_gap_sse, decision.target_gap_sse) &&
-          close(replayed.estimated_anchor_cost_frames, decision.estimated_anchor_cost_frames) &&
-          close(replayed.estimated_anchor_cost_upper_frames,
+          replayed.candidate.target_gap_index === decision.target_gap_index &&
+          replayed.anchor.anchor_gap_index === decision.anchor_gap_index &&
+          close(replayed.candidate.target_gap_sse, decision.target_gap_sse) &&
+          close(replayed.anchor.estimated_anchor_cost_frames,
+            decision.estimated_anchor_cost_frames) &&
+          close(replayed.anchor.estimated_anchor_cost_upper_frames,
             decision.estimated_anchor_cost_upper_frames),
         label,
       );

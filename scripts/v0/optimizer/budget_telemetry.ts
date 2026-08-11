@@ -199,6 +199,11 @@ export type BudgetRepairDecision = {
 export type BudgetRepairTargetObservation = {
   target_gap_index: number;
   target_gap_sse: number;
+  anchor_options: BudgetRepairAnchorObservation[];
+};
+
+export type BudgetRepairAnchorObservation = {
+  parent_depth: number;
   anchor_gap_index: number;
   estimated_anchor_cost_frames: number | null;
   estimated_anchor_cost_upper_frames: number | null;
@@ -1127,7 +1132,10 @@ function cloneRepairDecision(decision: BudgetRepairDecision | null): BudgetRepai
     : {
       ...decision,
       affordable_target_gap_indices: [...decision.affordable_target_gap_indices],
-      considered_targets: decision.considered_targets.map((candidate) => ({ ...candidate })),
+      considered_targets: decision.considered_targets.map((candidate) => ({
+        ...candidate,
+        anchor_options: candidate.anchor_options.map((anchor) => ({ ...anchor })),
+      })),
     };
 }
 
@@ -1319,51 +1327,68 @@ function validateTelemetryPayload(
       }
       const observedGaps = new Set<number>();
       for (const candidate of decision.considered_targets) {
-        const hasCost = candidate.estimated_anchor_cost_frames !== null &&
-          candidate.estimated_anchor_cost_upper_frames !== null &&
-          candidate.anchor_cost_source !== null;
         if (
           !Number.isInteger(candidate.target_gap_index) || candidate.target_gap_index < 0 ||
           !(candidate.target_gap_sse >= 0) ||
-          !Number.isInteger(candidate.anchor_gap_index) ||
-          candidate.anchor_gap_index !== candidate.target_gap_index - decision.parent_depth ||
-          observedGaps.has(candidate.target_gap_index) ||
-          (candidate.anchor_gap_index < 0) !==
-            (candidate.affordability === "anchor_before_start") ||
-          (candidate.affordability === "anchor_before_start" && hasCost) ||
-          (candidate.affordability === "no_positive_cost_estimate" && hasCost) ||
-          (candidate.affordability === "affordable" &&
-            (!hasCost || candidate.estimated_anchor_cost_upper_frames! > decision.usable_budget_frames)) ||
-          (candidate.affordability === "exceeds_usable_budget" &&
-            (!hasCost || candidate.estimated_anchor_cost_upper_frames! <= decision.usable_budget_frames)) ||
-          (hasCost && (
-            !(candidate.estimated_anchor_cost_frames! > 0) ||
-            candidate.estimated_anchor_cost_upper_frames! < candidate.estimated_anchor_cost_frames!
-          ))
+          observedGaps.has(candidate.target_gap_index) || candidate.anchor_options.length === 0
         ) {
           throw new Error(`budget telemetry episode ${index} repair candidate is inconsistent`);
         }
         observedGaps.add(candidate.target_gap_index);
+        const observedDepths = new Set<number>();
+        for (const anchor of candidate.anchor_options) {
+          const hasCost = anchor.estimated_anchor_cost_frames !== null &&
+            anchor.estimated_anchor_cost_upper_frames !== null &&
+            anchor.anchor_cost_source !== null;
+          if (
+            !Number.isInteger(anchor.parent_depth) || anchor.parent_depth < 0 ||
+            observedDepths.has(anchor.parent_depth) ||
+            !Number.isInteger(anchor.anchor_gap_index) || anchor.anchor_gap_index < 0 ||
+            anchor.anchor_gap_index !== candidate.target_gap_index - anchor.parent_depth ||
+            anchor.affordability === "anchor_before_start" ||
+            (anchor.affordability === "no_positive_cost_estimate" && hasCost) ||
+            (anchor.affordability === "affordable" &&
+              (!hasCost || anchor.estimated_anchor_cost_upper_frames! > decision.usable_budget_frames)) ||
+            (anchor.affordability === "exceeds_usable_budget" &&
+              (!hasCost || anchor.estimated_anchor_cost_upper_frames! <= decision.usable_budget_frames)) ||
+            (hasCost && (
+              !(anchor.estimated_anchor_cost_frames! > 0) ||
+              anchor.estimated_anchor_cost_upper_frames! < anchor.estimated_anchor_cost_frames!
+            ))
+          ) {
+            throw new Error(`budget telemetry episode ${index} repair anchor option is inconsistent`);
+          }
+          observedDepths.add(anchor.parent_depth);
+        }
       }
       const observedAffordable = decision.considered_targets
-        .filter((candidate) => candidate.affordability === "affordable")
+        .filter((candidate) => candidate.anchor_options.some((anchor) =>
+          anchor.affordability === "affordable"
+        ))
         .map((candidate) => candidate.target_gap_index)
         .sort((a, b) => a - b);
       if (JSON.stringify(observedAffordable) !== JSON.stringify(decision.affordable_target_gap_indices)) {
         throw new Error(`budget telemetry episode ${index} affordable target accounting is open`);
       }
       const replayed = decision.considered_targets
-        .filter((candidate) => candidate.affordability === "affordable")
+        .filter((candidate) => candidate.anchor_options.some((anchor) =>
+          anchor.affordability === "affordable"
+        ))
         .sort((a, b) => b.target_gap_sse - a.target_gap_sse ||
           a.target_gap_index - b.target_gap_index)[0];
+      const replayedAnchor = replayed?.anchor_options
+        .filter((anchor) => anchor.affordability === "affordable")
+        .sort((a, b) => b.parent_depth - a.parent_depth)[0];
       if (
         replayed === undefined ||
+        replayedAnchor === undefined ||
         replayed.target_gap_index !== decision.target_gap_index ||
-        replayed.anchor_gap_index !== decision.anchor_gap_index ||
+        replayedAnchor.parent_depth !== decision.parent_depth ||
+        replayedAnchor.anchor_gap_index !== decision.anchor_gap_index ||
         replayed.target_gap_sse !== decision.target_gap_sse ||
-        replayed.estimated_anchor_cost_frames !== decision.estimated_anchor_cost_frames ||
-        replayed.estimated_anchor_cost_upper_frames !== decision.estimated_anchor_cost_upper_frames ||
-        replayed.anchor_cost_source !== decision.anchor_cost_source
+        replayedAnchor.estimated_anchor_cost_frames !== decision.estimated_anchor_cost_frames ||
+        replayedAnchor.estimated_anchor_cost_upper_frames !== decision.estimated_anchor_cost_upper_frames ||
+        replayedAnchor.anchor_cost_source !== decision.anchor_cost_source
       ) {
         throw new Error(`budget telemetry episode ${index} repair selection is not replayable`);
       }

@@ -772,7 +772,7 @@ describe("repair target selection", () => {
     { gapIndex: 3, sse: 10 },
   ];
 
-  test("applies headroom to the actual fixed-parent anchor before ranking weakness", () => {
+  test("ranks weakness among targets with an affordable anchor", () => {
     expect(selectAffordableRepairTarget(
       candidates,
       [60, 75, 81],
@@ -782,13 +782,14 @@ describe("repair target selection", () => {
     )).toEqual({
       targetGapIndex: 2,
       anchorGapIndex: 1,
+      parentDepth: 1,
       targetGapSse: 10,
       usableBudgetFrames: 80,
       affordableTargetGapIndices: [1, 2],
     });
   });
 
-  test("uses the declared parent depth with no nearer-anchor fallback", () => {
+  test("uses the deepest affordable parent up to the declared maximum", () => {
     expect(selectAffordableRepairTarget(
       candidates,
       [70, 90],
@@ -798,11 +799,32 @@ describe("repair target selection", () => {
     )).toEqual({
       targetGapIndex: 2,
       anchorGapIndex: 0,
+      parentDepth: 2,
       targetGapSse: 10,
       usableBudgetFrames: 80,
-      affordableTargetGapIndices: [2],
+      affordableTargetGapIndices: [1, 2],
     });
     expect(selectAffordableRepairTarget(candidates, [81], 100, 0.2, 2)).toBeNull();
+  });
+
+  test("selects the worst eligible target before choosing its deepest anchor", () => {
+    expect(selectAffordableRepairTarget(
+      [
+        { gapIndex: 2, sse: 5 },
+        { gapIndex: 4, sse: 20 },
+      ],
+      [90, 90, 60, 75, 79],
+      100,
+      0.2,
+      4,
+    )).toEqual({
+      targetGapIndex: 4,
+      anchorGapIndex: 2,
+      parentDepth: 2,
+      targetGapSse: 20,
+      usableBudgetFrames: 80,
+      affordableTargetGapIndices: [2, 4],
+    });
   });
 
   test("updates an accepted incumbent with its own suffix cost observations", () => {

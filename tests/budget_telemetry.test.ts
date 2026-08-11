@@ -60,11 +60,14 @@ const TEST_REPAIR_DECISION: BudgetRepairDecision = {
   considered_targets: [{
     target_gap_index: 2,
     target_gap_sse: 0.25,
-    anchor_gap_index: 1,
-    estimated_anchor_cost_frames: 200,
-    estimated_anchor_cost_upper_frames: 300,
-    anchor_cost_source: "measured_cost_to_end",
-    affordability: "affordable",
+    anchor_options: [{
+      parent_depth: 1,
+      anchor_gap_index: 1,
+      estimated_anchor_cost_frames: 200,
+      estimated_anchor_cost_upper_frames: 300,
+      anchor_cost_source: "measured_cost_to_end",
+      affordability: "affordable",
+    }],
   }],
 };
 
@@ -663,11 +666,14 @@ describe("compile budget telemetry", () => {
         considered_targets: [{
           target_gap_index: 3,
           target_gap_sse: 0.1,
-          anchor_gap_index: 2,
-          estimated_anchor_cost_frames: 20,
-          estimated_anchor_cost_upper_frames: 30,
-          anchor_cost_source: "measured_cost_to_end",
-          affordability: "affordable",
+          anchor_options: [{
+            parent_depth: 1,
+            anchor_gap_index: 2,
+            estimated_anchor_cost_frames: 20,
+            estimated_anchor_cost_upper_frames: 30,
+            anchor_cost_source: "measured_cost_to_end",
+            affordability: "affordable",
+          }],
         }],
       },
     });
@@ -847,7 +853,7 @@ describe("compile budget telemetry", () => {
     }
   });
 
-  test("recomputes an independent fixed-parent decision after accepted and rejected alternatives", async () => {
+  test("recomputes an independent deepest-affordable decision after accepted and rejected alternatives", async () => {
     const spec = await loadGoldenSpec("cold_start", "base");
     const options = {
       budget: 150_000,
@@ -873,11 +879,14 @@ describe("compile budget telemetry", () => {
       .toBe(true);
     expect(new Set(repairs.map((episode) => episode.repair_decision!.iteration_index)).size)
       .toBe(repairs.length);
-    expect(repairs.every((episode) => episode.repair_decision!.parent_depth === 1)).toBe(true);
-    expect(repairs.every((episode) => episode.repair_decision!.headroom_fraction === 0.2)).toBe(true);
+    expect(repairs.every((episode) =>
+      episode.repair_decision!.parent_depth >= 0 &&
+        episode.repair_decision!.parent_depth <= 4
+    )).toBe(true);
+    expect(repairs.every((episode) => episode.repair_decision!.headroom_fraction === 0)).toBe(true);
     expect(repairs.every((episode) =>
       episode.repair_decision!.anchor_gap_index ===
-        episode.repair_decision!.target_gap_index - 1
+        episode.repair_decision!.target_gap_index - episode.repair_decision!.parent_depth
     )).toBe(true);
     expect(repairs.every((episode) =>
       episode.repair_decision!.affordable_target_gap_indices.includes(
@@ -887,12 +896,20 @@ describe("compile budget telemetry", () => {
     for (const repair of repairs) {
       const decision = repair.repair_decision!;
       const replayed = decision.considered_targets
-        .filter((candidate) => candidate.affordability === "affordable")
+        .filter((candidate) => candidate.anchor_options.some((anchor) =>
+          anchor.affordability === "affordable"
+        ))
         .sort((a, b) => b.target_gap_sse - a.target_gap_sse ||
           a.target_gap_index - b.target_gap_index)[0];
+      const replayedAnchor = replayed.anchor_options
+        .filter((anchor) => anchor.affordability === "affordable")
+        .sort((a, b) => b.parent_depth - a.parent_depth)[0];
       expect(replayed).toMatchObject({
         target_gap_index: decision.target_gap_index,
         target_gap_sse: decision.target_gap_sse,
+      });
+      expect(replayedAnchor).toMatchObject({
+        parent_depth: decision.parent_depth,
         anchor_gap_index: decision.anchor_gap_index,
         estimated_anchor_cost_frames: decision.estimated_anchor_cost_frames,
         estimated_anchor_cost_upper_frames: decision.estimated_anchor_cost_upper_frames,

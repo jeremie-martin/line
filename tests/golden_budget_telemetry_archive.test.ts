@@ -198,11 +198,11 @@ describe("golden archive form of budget telemetry", () => {
       schema: "line.compile-budget-telemetry.v2",
       episodes: [],
       execution_intervals: [],
-    } as unknown as CompileBudgetTelemetry)).toThrow(/expected line\.compile-budget-telemetry\.v5/);
+    } as unknown as CompileBudgetTelemetry)).toThrow(/expected line\.compile-budget-telemetry\.v6/);
     expect(() => compactBudgetTelemetry({
       schema: BUDGET_TELEMETRY_SCHEMA,
       episodes: [],
-    } as unknown as CompileBudgetTelemetry)).toThrow(/requires complete V5/);
+    } as unknown as CompileBudgetTelemetry)).toThrow(/requires complete V6/);
   });
 
   test("is materially smaller than the payload it archives", () => {

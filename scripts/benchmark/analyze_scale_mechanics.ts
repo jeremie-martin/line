@@ -14,7 +14,7 @@ import {
   type CompileBudgetTelemetry,
 } from "../v0/optimizer/budget_telemetry.ts";
 
-export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v3" as const;
+export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v4" as const;
 
 type RunRow = {
   task: { sourceId: string; budget: number; actualSeed: number };
@@ -245,16 +245,23 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
     ),
     sumRepairEpisodes(row, (episode) => episode.outcome.spent_frames),
   )],
-  ["repairWeakGapSseImprovement", (row) => sumComparableRepairEpisodes(row, (episode) => {
-    const before = episode.repair_weak_gap_before?.sse;
-    const after = episode.outcome.repair_weak_gap_after?.sse;
-    return before === undefined || after === undefined ? null : before - after;
+  ["repairTerminalOfferTargetGapSseImprovement", (row) =>
+    sumComparableRepairEpisodes(row, (episode) => {
+      const before = episode.incumbent_target_gap_before?.sse;
+      const offer = episode.outcome.terminal_offer_target_gap?.sse;
+      return before === undefined || offer === undefined ? null : before - offer;
+    })],
+  ["repairIncumbentTargetGapSseImprovement", (row) =>
+    sumComparableRepairEpisodes(row, (episode) => {
+      const before = episode.incumbent_target_gap_before?.sse;
+      const after = episode.outcome.incumbent_target_gap_after?.sse;
+      return before === undefined || after === undefined ? null : before - after;
   })],
-  ["repairWeakGapImprovementRate", (row) => {
+  ["repairTerminalOfferTargetGapImprovementRate", (row) => {
     const comparable = repairEpisodes(row).flatMap((episode) => {
-      const before = episode.repair_weak_gap_before?.sse;
-      const after = episode.outcome.repair_weak_gap_after?.sse;
-      return before === undefined || after === undefined ? [] : [before - after];
+      const before = episode.incumbent_target_gap_before?.sse;
+      const offer = episode.outcome.terminal_offer_target_gap?.sse;
+      return before === undefined || offer === undefined ? [] : [before - offer];
     });
     return comparable.length === 0
       ? null

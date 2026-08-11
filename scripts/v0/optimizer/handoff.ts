@@ -3056,8 +3056,7 @@ function compileHandoffInternal(
           includeStartup: false,
           pathEstimateByGap: costToEnd,
           repairDecision,
-          incumbentWeakGapSse: pickedWeakGapSse,
-          repairWeakGapBefore: pickedWeakGapBefore,
+          incumbentTargetGapBefore: pickedWeakGapBefore,
           registerKeyAtStart: toBudgetRegisterKey(register.getBestKey()),
         });
         beginCandidateWork();
@@ -3093,6 +3092,13 @@ function compileHandoffInternal(
         const afterScore = bestCompleteNode === null
           ? beforeScore
           : evaluateCached(bestCompleteNode).key.full_score;
+        const terminalOfferTargetGap = !completed || lastTerminalNode === null
+          ? null
+          : repairGapState(
+            evaluateCached(lastTerminalNode).report.gaps.find((gapReport) =>
+              gapReport.gap_index === kWorst
+            ),
+          );
         const pickedWeakGapAfter = bestCompleteNode === null
           ? null
           : repairGapState(
@@ -3111,7 +3117,8 @@ function compileHandoffInternal(
           {
             internalFullScoreDelta: afterScore - beforeScore,
             registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()),
-            repairWeakGapAfter: pickedWeakGapAfter,
+            terminalOfferTargetGap,
+            incumbentTargetGapAfter: pickedWeakGapAfter,
             repairDivergence,
           },
         );

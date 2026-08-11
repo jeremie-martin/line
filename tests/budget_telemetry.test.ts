@@ -562,7 +562,8 @@ describe("compile budget telemetry", () => {
       final_register_improvement_offset_frames: 240,
       first_terminal_register_improvement_offset_frames: 240,
       internal_full_score_delta: null,
-      repair_weak_gap_after: null,
+      terminal_offer_target_gap: null,
+      incumbent_target_gap_after: null,
       repair_divergence: null,
       terminal_offer_track_hash: null,
       terminal_observation_censored: false,
@@ -812,7 +813,7 @@ describe("compile budget telemetry", () => {
     for (const episode of episodes) {
       if (episode.lane === "repair") continue;
       expect(episode.repair_decision).toBeNull();
-      expect(episode.incumbent_weak_gap_sse).toBeNull();
+      expect(episode.incumbent_target_gap_before).toBeNull();
     }
     let previousIteration = -1;
     for (const repair of repairs) {
@@ -821,7 +822,17 @@ describe("compile budget telemetry", () => {
       previousIteration = repair.repair_decision!.iteration_index;
       expect(repair.repair_decision!.parent_depth).toBeGreaterThanOrEqual(0);
       expect(repair.repair_decision!.anchor_gap_index).toBe(repair.anchor.gap_index);
-      expect(repair.incumbent_weak_gap_sse!).toBeGreaterThanOrEqual(0);
+      expect(repair.incumbent_target_gap_before?.sse ?? -1).toBeGreaterThanOrEqual(0);
+      expect(repair.outcome.incumbent_target_gap_after).not.toBeNull();
+      expect(repair.outcome.terminal_offer_target_gap === null)
+        .toBe(!repair.outcome.terminal_reached);
+      if (repair.outcome.accepted_alternative) {
+        expect(repair.outcome.terminal_offer_target_gap)
+          .toEqual(repair.outcome.incumbent_target_gap_after);
+      } else {
+        expect(repair.outcome.incumbent_target_gap_after)
+          .toEqual(repair.incumbent_target_gap_before);
+      }
       expect(["measured_cost_to_end", "per_gap_fallback", "repair_budget_remaining"])
         .toContain(repair.ceiling_source);
       // A repair always knows what it did to the incumbent's score; the

@@ -1213,8 +1213,7 @@ const ARCHIVED_EPISODE_FIELDS = [
   "frontier_has_fallback_lane",
   "anchor",
   "repair_decision",
-  "incumbent_weak_gap_sse",
-  "repair_weak_gap_before",
+  "incumbent_target_gap_before",
   "start_total_spent_frames",
   "ceiling_total_spent_frames",
   "ceiling_source",
@@ -1257,7 +1256,7 @@ export function compactBudgetTelemetry(telemetry: CompileBudgetTelemetry | null)
     );
   }
   if (!Array.isArray(telemetry.episodes) || !Array.isArray(telemetry.execution_intervals)) {
-    throw new Error(`compactBudgetTelemetry requires complete V5 episodes and execution intervals`);
+    throw new Error(`compactBudgetTelemetry requires complete V6 episodes and execution intervals`);
   }
   return {
     ...pickDefined(telemetry, ["schema", "level"] as const),

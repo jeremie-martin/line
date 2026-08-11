@@ -245,7 +245,7 @@ describe("describe_budget_telemetry", () => {
         iteration_index: 2,
         parent_depth: 3,
       },
-      incumbent_weak_gap_sse: 0.2473,
+      incumbent_target_gap_before: { gap_index: 3, sse: 0.2473, axes: {} },
     });
 
     const output = render(withRepair);
@@ -256,7 +256,7 @@ describe("describe_budget_telemetry", () => {
     expect(output).toContain("0.2473");
     // ... and none of the three is reported as a field the tool cannot read.
     expect(output).not.toContain("repair_decision");
-    expect(output).not.toContain("incumbent_weak_gap_sse");
+    expect(output).not.toContain("incumbent_target_gap_before");
   });
 
   /**
@@ -311,12 +311,12 @@ describe("describe_budget_telemetry", () => {
   });
 
   test("rejects historical and structurally incomplete payloads", () => {
-    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v5/);
+    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v6/);
     expect(() => render({
       schema: "line.compile-budget-telemetry.v2",
       episodes: [],
       execution_intervals: [],
-    })).toThrow(/expected line\.compile-budget-telemetry\.v5/);
+    })).toThrow(/expected line\.compile-budget-telemetry\.v6/);
     expect(() => render({
       schema: BUDGET_TELEMETRY_SCHEMA,
       episodes: [],

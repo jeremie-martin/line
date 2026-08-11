@@ -1,5 +1,5 @@
 /**
- * Audit the independent repair controller from retained Budget Telemetry V5.
+ * Audit the independent repair controller from retained Budget Telemetry V6.
  *
  * This is deliberately not a score comparison. It checks controller invariants,
  * measures within-incumbent transitions, and characterizes budget associations.
@@ -18,7 +18,7 @@ import {
   type CompileBudgetTelemetry,
 } from "../v0/optimizer/budget_telemetry.ts";
 
-export const REPAIR_BEHAVIOR_SCHEMA = "line.benchmark-v2.repair-behavior.v2" as const;
+export const REPAIR_BEHAVIOR_SCHEMA = "line.benchmark-v2.repair-behavior.v3" as const;
 
 type RunRow = {
   task: { sourceId: string; budget: number; actualSeed: number };
@@ -66,10 +66,12 @@ export type RepairBehaviorGroup = {
   terminalGeometryIdenticalSpentShare: number | null;
   firstDivergenceAtAnchorRate: number | null;
   meanDivergentSuffixGaps: number | null;
-  weakGapSseImprovement: number | null;
-  weakGapImprovementRate: number | null;
-  acceptedWeakGapImprovementRate: number | null;
-  acceptedWeakGapWorsened: number;
+  terminalOfferTargetGapSseImprovement: number | null;
+  terminalOfferTargetGapImprovementRate: number | null;
+  rejectedTerminalOfferTargetGapImproved: number;
+  incumbentTargetGapSseImprovement: number | null;
+  acceptedTerminalOfferTargetGapImprovementRate: number | null;
+  acceptedTerminalOfferTargetGapWorsened: number;
   internalFullScoreDelta: number;
   internalFullScoreDeltaPerMillionRepairFrames: number | null;
   replayableDecisionEpisodes: number;
@@ -99,8 +101,8 @@ export type RepairBehaviorSlice = {
   terminalGeometryIdenticalSpentShare: number | null;
   firstDivergenceAtAnchorRate: number | null;
   meanDivergentSuffixGaps: number | null;
-  acceptedWeakGapImprovementRate: number | null;
-  acceptedWeakGapWorsened: number;
+  acceptedTerminalOfferTargetGapImprovementRate: number | null;
+  acceptedTerminalOfferTargetGapWorsened: number;
   internalFullScoreDelta: number;
   internalFullScoreDeltaPerMillionRepairFrames: number | null;
 };
@@ -260,8 +262,7 @@ function auditRun(row: RunRow, audit: Audit): void {
     );
     audit.check(
       "selectedWeaknessFieldsAgree",
-      close(decision.target_gap_sse, episode.incumbent_weak_gap_sse) &&
-        close(decision.target_gap_sse, episode.repair_weak_gap_before?.sse),
+      close(decision.target_gap_sse, episode.incumbent_target_gap_before?.sse),
       label,
     );
     const consideredTargets = (decision as any).considered_targets;
@@ -302,17 +303,28 @@ function auditRun(row: RunRow, audit: Audit): void {
       label,
     );
     audit.check(
+      "terminalOfferTargetStateMatchesTerminalOutcome",
+      episode.outcome.terminal_reached === (episode.outcome.terminal_offer_target_gap !== null),
+      label,
+    );
+    audit.check(
       "acceptanceMatchesTerminalRegisterAdoption",
       episode.outcome.accepted_alternative ===
         (episode.work.terminal_register_improvements === 1),
       label,
     );
+    const startRegisterScore = episode.register_key_at_start?.internal_full_score;
+    const endRegisterScore = episode.register_key_at_end?.internal_full_score;
+    audit.check(
+      "repairRegisterKeysPresent",
+      startRegisterScore !== undefined && endRegisterScore !== undefined,
+      label,
+    );
     audit.check(
       "internalScoreDeltaMatchesRegisterKeys",
-      close(
+      startRegisterScore !== undefined && endRegisterScore !== undefined && close(
         episode.outcome.internal_full_score_delta,
-        episode.register_key_at_end.internal_full_score -
-          episode.register_key_at_start.internal_full_score,
+        endRegisterScore - startRegisterScore,
       ),
       label,
     );
@@ -352,8 +364,20 @@ function auditRun(row: RunRow, audit: Audit): void {
         label,
       );
       audit.check(
-        "rejectedAlternativeLeavesSelectedGapUnchanged",
-        close(episode.repair_weak_gap_before?.sse, episode.outcome.repair_weak_gap_after?.sse),
+        "rejectedAlternativeLeavesIncumbentTargetGapUnchanged",
+        close(
+          episode.incumbent_target_gap_before?.sse,
+          episode.outcome.incumbent_target_gap_after?.sse,
+        ),
+        label,
+      );
+    } else {
+      audit.check(
+        "acceptedTerminalOfferBecomesIncumbentTargetState",
+        sameJson(
+          episode.outcome.terminal_offer_target_gap,
+          episode.outcome.incumbent_target_gap_after,
+        ),
         label,
       );
     }
@@ -418,14 +442,19 @@ function summarizeGroup(rows: RunRow[]): RepairBehaviorGroup {
   const entries = rows.flatMap((run) => repairEpisodes(run).map((episode) => ({ run, episode })));
   const completed = entries.filter(({ episode }) => episode.outcome.terminal_reached);
   const accepted = completed.filter(({ episode }) => episode.outcome.accepted_alternative);
-  const comparableWeak = completed.flatMap(({ episode }) => {
-    const before = episode.repair_weak_gap_before?.sse;
-    const after = episode.outcome.repair_weak_gap_after?.sse;
-    return before === undefined || after === undefined ? [] : [before - after];
+  const offerTargetDeltas = completed.flatMap(({ episode }) => {
+    const before = episode.incumbent_target_gap_before?.sse;
+    const offer = episode.outcome.terminal_offer_target_gap?.sse;
+    return before === undefined || offer === undefined ? [] : [before - offer];
   });
-  const acceptedWeak = accepted.flatMap(({ episode }) => {
-    const before = episode.repair_weak_gap_before?.sse;
-    const after = episode.outcome.repair_weak_gap_after?.sse;
+  const acceptedOfferTargetDeltas = accepted.flatMap(({ episode }) => {
+    const before = episode.incumbent_target_gap_before?.sse;
+    const offer = episode.outcome.terminal_offer_target_gap?.sse;
+    return before === undefined || offer === undefined ? [] : [before - offer];
+  });
+  const incumbentTargetDeltas = entries.flatMap(({ episode }) => {
+    const before = episode.incumbent_target_gap_before?.sse;
+    const after = episode.outcome.incumbent_target_gap_after?.sse;
     return before === undefined || after === undefined ? [] : [before - after];
   });
   const spent = sum(entries.map(({ episode }) => episode.outcome.spent_frames ?? 0));
@@ -517,16 +546,28 @@ function summarizeGroup(rows: RunRow[]): RepairBehaviorGroup {
     meanDivergentSuffixGaps: roundedMean(directDivergence.map(({ value }) =>
       value.divergent_suffix_gap_count
     )),
-    weakGapSseImprovement: comparableWeak.length === 0 ? null : round(sum(comparableWeak)),
-    weakGapImprovementRate: roundedRatio(
-      comparableWeak.filter((value) => value > 0).length,
-      comparableWeak.length,
+    terminalOfferTargetGapSseImprovement: offerTargetDeltas.length === 0
+      ? null
+      : round(sum(offerTargetDeltas)),
+    terminalOfferTargetGapImprovementRate: roundedRatio(
+      offerTargetDeltas.filter((value) => value > 0).length,
+      offerTargetDeltas.length,
     ),
-    acceptedWeakGapImprovementRate: roundedRatio(
-      acceptedWeak.filter((value) => value > 0).length,
-      acceptedWeak.length,
+    rejectedTerminalOfferTargetGapImproved: completed.filter(({ episode }) => {
+      if (episode.outcome.accepted_alternative) return false;
+      const before = episode.incumbent_target_gap_before?.sse;
+      const offer = episode.outcome.terminal_offer_target_gap?.sse;
+      return before !== undefined && offer !== undefined && offer < before;
+    }).length,
+    incumbentTargetGapSseImprovement: incumbentTargetDeltas.length === 0
+      ? null
+      : round(sum(incumbentTargetDeltas)),
+    acceptedTerminalOfferTargetGapImprovementRate: roundedRatio(
+      acceptedOfferTargetDeltas.filter((value) => value > 0).length,
+      acceptedOfferTargetDeltas.length,
     ),
-    acceptedWeakGapWorsened: acceptedWeak.filter((value) => value < 0).length,
+    acceptedTerminalOfferTargetGapWorsened:
+      acceptedOfferTargetDeltas.filter((value) => value < 0).length,
     internalFullScoreDelta: round(internalDelta),
     internalFullScoreDeltaPerMillionRepairFrames:
       spent === 0 ? null : round(internalDelta * 1_000_000 / spent),
@@ -543,10 +584,10 @@ function summarizeGroup(rows: RunRow[]): RepairBehaviorGroup {
 function summarizeSlice(entries: RepairEntry[]): RepairBehaviorSlice {
   const completed = entries.filter(({ episode }) => episode.outcome.terminal_reached);
   const accepted = completed.filter(({ episode }) => episode.outcome.accepted_alternative);
-  const acceptedWeak = accepted.flatMap(({ episode }) => {
-    const before = episode.repair_weak_gap_before?.sse;
-    const after = episode.outcome.repair_weak_gap_after?.sse;
-    return before === undefined || after === undefined ? [] : [before - after];
+  const acceptedOfferTargetDeltas = accepted.flatMap(({ episode }) => {
+    const before = episode.incumbent_target_gap_before?.sse;
+    const offer = episode.outcome.terminal_offer_target_gap?.sse;
+    return before === undefined || offer === undefined ? [] : [before - offer];
   });
   const spent = sum(entries.map(({ episode }) => episode.outcome.spent_frames ?? 0));
   const actualToUpper = completed.flatMap(({ episode }) => {
@@ -617,11 +658,12 @@ function summarizeSlice(entries: RepairEntry[]): RepairBehaviorSlice {
     meanDivergentSuffixGaps: roundedMean(divergence.map(({ value }) =>
       value.divergent_suffix_gap_count
     )),
-    acceptedWeakGapImprovementRate: roundedRatio(
-      acceptedWeak.filter((value) => value > 0).length,
-      acceptedWeak.length,
+    acceptedTerminalOfferTargetGapImprovementRate: roundedRatio(
+      acceptedOfferTargetDeltas.filter((value) => value > 0).length,
+      acceptedOfferTargetDeltas.length,
     ),
-    acceptedWeakGapWorsened: acceptedWeak.filter((value) => value < 0).length,
+    acceptedTerminalOfferTargetGapWorsened:
+      acceptedOfferTargetDeltas.filter((value) => value < 0).length,
     internalFullScoreDelta: round(internalDelta),
     internalFullScoreDeltaPerMillionRepairFrames:
       spent === 0 ? null : round(internalDelta * 1_000_000 / spent),
@@ -1102,9 +1144,9 @@ function markdown(artifact: any): string {
   for (const arm of artifact.arms) {
     const summary = arm.summary as RepairBehaviorSummary;
     lines.push(`## ${arm.label}`, "", `Evidence: \`${arm.path}\` (SHA-256 \`${arm.sha256}\`), ${summary.cells} source×budget×seed cells.`, "", `Plots: [budget](${arm.plots.budget}), [iteration](${arm.plots.iteration}), [parent depth](${arm.plots["parent-depth"]}).`, "");
-    lines.push("| Budget | Repair runs | Episodes/run | Terminal rate | Accepted/terminal | Mean anchor | Mean suffix gaps | Actual/upper | Identical terminals | Weak-gap SSE Δ | Internal Δ/M frames |", "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
+    lines.push("| Budget | Repair runs | Episodes/run | Terminal rate | Accepted/terminal | Mean anchor | Mean suffix gaps | Actual/upper | Identical terminals | Offer target SSE Δ | Internal Δ/M frames |", "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
     for (const row of summary.perBudget) {
-      lines.push(`| ${Math.round(row.budget / 1000)}k | ${row.runsWithRepair}/${row.runs} | ${row.repairEpisodesPerRun.toFixed(2)} | ${percentage(row.terminalReachedRate)} | ${percentage(row.acceptedPerTerminalRate)} | ${number(row.meanAnchorGap, 1)} | ${number(row.meanDivergentSuffixGaps, 1)} | ${percentage(row.meanEstimatedUpperUtilization)} | ${row.terminalGeometryIdentical} | ${number(row.weakGapSseImprovement, 3)} | ${number(row.internalFullScoreDeltaPerMillionRepairFrames, 2)} |`);
+      lines.push(`| ${Math.round(row.budget / 1000)}k | ${row.runsWithRepair}/${row.runs} | ${row.repairEpisodesPerRun.toFixed(2)} | ${percentage(row.terminalReachedRate)} | ${percentage(row.acceptedPerTerminalRate)} | ${number(row.meanAnchorGap, 1)} | ${number(row.meanDivergentSuffixGaps, 1)} | ${percentage(row.meanEstimatedUpperUtilization)} | ${row.terminalGeometryIdentical} | ${number(row.terminalOfferTargetGapSseImprovement, 3)} | ${number(row.internalFullScoreDeltaPerMillionRepairFrames, 2)} |`);
     }
     lines.push("", "Outcomes by selected parent depth:", "", "| Depth | Episodes | Terminal rate | Accepted/terminal | Mean suffix gaps | Identical | First divergence at anchor | Frames/accepted | Internal Δ/M frames |", "|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
     for (const row of summary.perParentDepth) {
@@ -1115,7 +1157,7 @@ function markdown(artifact: any): string {
       lines.push(`| ${row.iterationIndex} | ${row.repairEpisodes} | ${number(row.meanParentDepth, 2)} | ${number(row.meanAnchorGap, 1)} | ${percentage(row.terminalReachedRate)} | ${percentage(row.acceptedPerTerminalRate)} | ${number(row.framesPerAcceptedAlternative, 0)} | ${number(row.internalFullScoreDeltaPerMillionRepairFrames, 2)} |`);
     }
     const o = summary.overall;
-    lines.push("", "Direct observations:", "", `- ${o.terminalReached}/${o.repairEpisodes} iterations reached a terminal; ${o.acceptedAlternatives} were adopted.`, `- Repair used ${percentage(o.repairSpentShare)} of charged work. Completion stayed within the selected anchor's estimated upper cost in ${percentage(o.completionWithinEstimatedUpperRate)} of completed iterations.`, `- ${o.terminalGeometryIdentical}/${o.terminalReached} terminal alternatives were geometry-identical to their incumbents and ${o.acceptedTerminalGeometryIdentical} were accepted, consuming ${o.terminalGeometryIdenticalSpentFrames.toLocaleString()} frames (${percentage(o.terminalGeometryIdenticalSpentShare)} of repair work); the first divergence occurred at the anchor in ${percentage(o.firstDivergenceAtAnchorRate)} of divergent terminals.`, `- Accepted alternatives improved the selected weak gap ${percentage(o.acceptedWeakGapImprovementRate)} of the time; ${o.acceptedWeakGapWorsened} accepted alternatives worsened it while improving the register globally.`, `- Aggregate selected-gap SSE improvement was ${number(o.weakGapSseImprovement, 4)}; internal full-score gain was ${number(o.internalFullScoreDelta, 2)} (${number(o.internalFullScoreDeltaPerMillionRepairFrames, 2)} per million repair frames).`, `- Full decision replay was available for ${o.replayableDecisionEpisodes}/${o.repairEpisodes} episodes and direct incumbent/offer hashes for ${o.directTrackIdentityEpisodes}/${o.repairEpisodes}.`, "");
+    lines.push("", "Direct observations:", "", `- ${o.terminalReached}/${o.repairEpisodes} iterations reached a terminal; ${o.acceptedAlternatives} were adopted.`, `- Repair used ${percentage(o.repairSpentShare)} of charged work. Completion stayed within the selected anchor's estimated upper cost in ${percentage(o.completionWithinEstimatedUpperRate)} of completed iterations.`, `- ${o.terminalGeometryIdentical}/${o.terminalReached} terminal alternatives were geometry-identical to their incumbents and ${o.acceptedTerminalGeometryIdentical} were accepted, consuming ${o.terminalGeometryIdenticalSpentFrames.toLocaleString()} frames (${percentage(o.terminalGeometryIdenticalSpentShare)} of repair work); the first divergence occurred at the anchor in ${percentage(o.firstDivergenceAtAnchorRate)} of divergent terminals.`, `- Terminal offers improved the selected target gap ${percentage(o.terminalOfferTargetGapImprovementRate)} of the time; ${o.rejectedTerminalOfferTargetGapImproved} locally improving offers were rejected by the global register.`, `- Accepted alternatives improved the selected target gap ${percentage(o.acceptedTerminalOfferTargetGapImprovementRate)} of the time; ${o.acceptedTerminalOfferTargetGapWorsened} accepted alternatives worsened it while improving the register globally.`, `- Aggregate offer target-gap SSE change was ${number(o.terminalOfferTargetGapSseImprovement, 4)}; adopted incumbent target-gap change was ${number(o.incumbentTargetGapSseImprovement, 4)}; internal full-score gain was ${number(o.internalFullScoreDelta, 2)} (${number(o.internalFullScoreDeltaPerMillionRepairFrames, 2)} per million repair frames).`, `- Full decision replay was available for ${o.replayableDecisionEpisodes}/${o.repairEpisodes} episodes and direct incumbent/offer hashes for ${o.directTrackIdentityEpisodes}/${o.repairEpisodes}.`, "");
     const selection = summary.selection;
     const diversity = summary.terminalOfferDiversity;
     lines.push("Selection and direct diversity:", "", `- Full option replay was available for ${selection.replayableDecisionEpisodes}/${selection.decisionEpisodes} decisions. Declared policies: ${Object.entries(selection.selectionPolicies).map(([policy, count]) => `${policy}=${count}`).join(", ")}. Mean affordable populations were ${number(selection.meanAffordableTargets, 2)} targets and ${number(selection.meanAffordableAnchors, 2)} anchors.`, `- The selected mutable suffix carried mean SSE ${number(selection.meanMutableSuffixSse, 4)} (${percentage(selection.meanTargetShareOfMutableSuffixSse)} in its explanatory target) and ${number(selection.meanMutableSuffixSsePerMillionEstimatedFrames, 2)} SSE per million estimated frames. ${selection.explanatoryDepthBeyondOptionRadius} explanatory target-to-anchor depths exceeded the option-generation radius; this is valid for anchor-first policies.`, `- ${diversity.terminalOffersWithHash} terminal offers contained direct hashes: ${diversity.distinctTerminalOfferTracks} were globally distinct, ${diversity.repeatedTerminalOffersAgainstSameIncumbent} repeated against the same incumbent, and ${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchor} repeated against the same incumbent and anchor (${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchorSpentFrames.toLocaleString()} charged frames).`, "");

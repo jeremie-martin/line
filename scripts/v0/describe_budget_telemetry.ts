@@ -176,8 +176,7 @@ const KNOWN_EPISODE = new Set([
   "frontier_has_fallback_lane",
   "anchor",
   "repair_decision",
-  "incumbent_weak_gap_sse",
-  "repair_weak_gap_before",
+  "incumbent_target_gap_before",
   "start_total_spent_frames",
   "ceiling_total_spent_frames",
   "ceiling_source",
@@ -446,7 +445,7 @@ const EPISODE_COLUMNS: EpisodeColumn[] = [
   // payload with no repair phase. `round` is the pick of a weak gap (one round
   // can spend several attempts walking the anchor upstream, so the attempt
   // ordinal is NOT the round index); `up` is that walk's distance; `weak sse`
-  // is the ranking's own key at the moment it ranked.
+  // is the target SSE from the decision made against this incumbent.
   {
     header: "iteration",
     align: "r",
@@ -463,7 +462,10 @@ const EPISODE_COLUMNS: EpisodeColumn[] = [
     header: "weak sse",
     align: "r",
     optional: true,
-    cell: (a) => (num(a.incumbent_weak_gap_sse) === null ? MISSING : ratio(a.incumbent_weak_gap_sse, 4)),
+    cell: (a) => {
+      const before = asRecord(a.incumbent_target_gap_before);
+      return before === null || num(before.sse) === null ? MISSING : ratio(before.sse, 4);
+    },
   },
   { header: "start", align: "r", cell: (a) => count(a.start_total_spent_frames) },
   { header: "ceiling", align: "r", cell: (a) => count(a.ceiling_total_spent_frames) },

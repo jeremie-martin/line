@@ -27,12 +27,12 @@ import {
 /**
  * Clean-break search-accounting schema.
  *
- * V5 makes the repair selection law explicit and records the affordable-anchor
- * population plus the selected mutable-suffix opportunity. Historical V4
- * archives remain immutable evidence for the original singular controller;
- * current readers fail closed instead of guessing a selection law.
+ * V6 separates the selected target's state on the incumbent before execution,
+ * on the terminal offer, and on the incumbent after the register decision.
+ * Historical V4/V5 archives remain immutable evidence; current readers fail
+ * closed instead of treating post-register incumbent state as offer quality.
  */
-export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v5" as const;
+export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v6" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
 export type BudgetEpisodeLane = "initial" | "snapshot" | "repair" | "resumed";
@@ -374,20 +374,8 @@ export type BudgetEpisodeTelemetry = {
   anchor: RemainingStructure;
   /** Complete, self-contained repair decision; null on non-repair lanes. */
   repair_decision: BudgetRepairDecision | null;
-  /**
-   * Σ axis-error² at the round's picked weak gap, in the incumbent report the
-   * pick was actually made against. Null on every non-repair kind, and null if
-   * that gap carried no reported axes.
-   *
-   * This is the ranking's own key at the moment it ranked. An archive records
-   * the drift report at the END of the repair phase, so any replay of the
-   * selection reads a weakness map that accepted repairs have already moved:
-   * exact on zero-accept compiles, ~40% decision-1 agreement everywhere else.
-   * This field is the fixed point of that comparison.
-   */
-  incumbent_weak_gap_sse: number | null;
-  /** Exact selected-gap state before this repair episode. */
-  repair_weak_gap_before: BudgetRepairGapState | null;
+  /** Exact selected target-gap state on the incumbent used for this decision. */
+  incumbent_target_gap_before: BudgetRepairGapState | null;
   /** Compile-global work counters; local budget is ceiling - start. */
   start_total_spent_frames: number;
   ceiling_total_spent_frames: number;
@@ -424,8 +412,10 @@ export type BudgetEpisodeTelemetry = {
     first_terminal_register_improvement_offset_frames: number | null;
     /** Optimizer-internal full score after this episode minus before it. */
     internal_full_score_delta: number | null;
-    /** Exact selected-gap state after this repair episode. */
-    repair_weak_gap_after: BudgetRepairGapState | null;
+    /** Exact selected target-gap state on the first terminal offer. */
+    terminal_offer_target_gap: BudgetRepairGapState | null;
+    /** Exact selected target-gap state on the best incumbent after registration. */
+    incumbent_target_gap_after: BudgetRepairGapState | null;
     /** Direct incumbent-vs-terminal arc-geometry comparison for repair. */
     repair_divergence: BudgetRepairDivergence | null;
     /** SHA-256 of JSON.stringify(the repair terminal offer's track). */
@@ -557,15 +547,15 @@ type StartEpisodeInput = {
   pathEstimateByGap?: readonly number[] | null;
   /** Repair-only causal context; see the fields of the same name on the record. */
   repairDecision?: BudgetRepairDecision | null;
-  incumbentWeakGapSse?: number | null;
-  repairWeakGapBefore?: BudgetRepairGapState | null;
+  incumbentTargetGapBefore?: BudgetRepairGapState | null;
   registerKeyAtStart?: BudgetInternalRegisterKey | null;
 };
 
 type EndEpisodeOutcome = {
   internalFullScoreDelta?: number | null;
   registerKeyAtEnd?: BudgetInternalRegisterKey | null;
-  repairWeakGapAfter?: BudgetRepairGapState | null;
+  terminalOfferTargetGap?: BudgetRepairGapState | null;
+  incumbentTargetGapAfter?: BudgetRepairGapState | null;
   repairDivergence?: BudgetRepairDivergence | null;
 };
 
@@ -642,8 +632,7 @@ export class CompileBudgetTelemetryRecorder {
       frontier_has_fallback_lane: input.frontierHasFallbackLane,
       anchor: remainingStructure(this.gaps, this.durationFrames, anchorGap),
       repair_decision: cloneRepairDecision(input.repairDecision ?? null),
-      incumbent_weak_gap_sse: finiteOrNull(input.incumbentWeakGapSse),
-      repair_weak_gap_before: input.repairWeakGapBefore ?? null,
+      incumbent_target_gap_before: input.incumbentTargetGapBefore ?? null,
       start_total_spent_frames: startTotal,
       ceiling_total_spent_frames: ceilingTotal,
       ceiling_source: input.ceilingSource ?? "hard_budget",
@@ -666,7 +655,8 @@ export class CompileBudgetTelemetryRecorder {
         final_register_improvement_offset_frames: null,
         first_terminal_register_improvement_offset_frames: null,
         internal_full_score_delta: null,
-        repair_weak_gap_after: null,
+        terminal_offer_target_gap: null,
+        incumbent_target_gap_after: null,
         repair_divergence: null,
         terminal_offer_track_hash: null,
         terminal_observation_censored: true,
@@ -839,7 +829,8 @@ export class CompileBudgetTelemetryRecorder {
     episode.outcome.stop_reason = stopReason;
     episode.outcome.end_total_spent_frames = totalSpent;
     episode.outcome.spent_frames = Math.max(0, totalSpent - episode.start_total_spent_frames);
-    episode.outcome.repair_weak_gap_after = outcome.repairWeakGapAfter ?? null;
+    episode.outcome.terminal_offer_target_gap = outcome.terminalOfferTargetGap ?? null;
+    episode.outcome.incumbent_target_gap_after = outcome.incumbentTargetGapAfter ?? null;
     episode.outcome.repair_divergence = cloneRepairDivergence(outcome.repairDivergence ?? null);
     episode.register_key_at_end = cloneRegisterKey(outcome.registerKeyAtEnd ?? null);
     episode.outcome.internal_full_score_delta = outcome.internalFullScoreDelta !== undefined
@@ -1125,10 +1116,9 @@ export class CompileBudgetTelemetryRecorder {
       frontier_has_fallback_lane: episode.frontier_has_fallback_lane,
       anchor: { ...episode.anchor },
       repair_decision: cloneRepairDecision(episode.repair_decision),
-      incumbent_weak_gap_sse: episode.incumbent_weak_gap_sse,
-      repair_weak_gap_before: episode.repair_weak_gap_before === null
+      incumbent_target_gap_before: episode.incumbent_target_gap_before === null
         ? null
-        : structuredClone(episode.repair_weak_gap_before),
+        : structuredClone(episode.incumbent_target_gap_before),
       start_total_spent_frames: episode.start_total_spent_frames,
       ceiling_total_spent_frames: episode.ceiling_total_spent_frames,
       ceiling_source: episode.ceiling_source,

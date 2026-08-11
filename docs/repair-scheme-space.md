@@ -154,14 +154,14 @@ and intervenes only when ordinary branch zero is not itself a repair. Its
 telemetry separates pools where ordinary branch zero improves the incumbent
 from those where an improving selected alternative exists.
 
-The causal question is narrow. In the accepted depth-six N=8 evidence, only
-39.4% of all terminal alternatives improve the selected gap, while 87.4% of
-accepted alternatives do. If target alignment is limiting repair, either arm
-should raise selected-gap improvement and accepted gain without changing first
-terminal work. If global forward ordering is load-bearing, the recorded
-forward-score debt will instead predict weaker terminals. The two arms separate
-whether useful target specialists already sit in the top three from whether
-the ordinary pool admission boundary is the limiting factor.
+The original V5 evidence did not measure the selected gap on rejected terminal
+offers. Its 39.4% statistic was post-register incumbent improvement divided by
+all terminals, not terminal-offer target improvement, so it cannot establish
+the previously stated alignment gap. V6 now records the incumbent target before
+execution, the terminal offer target, and the incumbent target after the
+register decision separately. The improvement-gated arm is therefore the first
+one that can directly answer whether useful local repairs are being generated
+and rejected, rather than inferring offer quality from adoption.
 
 ### 5. Adaptive value model
 
@@ -183,11 +183,13 @@ contract. This is a different repair family, not a small controller variant.
 
 ## Telemetry contract
 
-Budget Telemetry V5 records `selection_policy`, exact affordable target and
+Budget Telemetry V6 records `selection_policy`, exact affordable target and
 anchor populations, the chosen target/anchor, mutable-suffix SSE, and the cost
 interval/source. The recorder replays the named law from `considered_targets`
-and rejects a payload that does not reproduce its choice. The behavior analyzer
-uses the same replay function.
+and rejects a payload that does not reproduce its choice. It also keeps
+`incumbent_target_gap_before`, `terminal_offer_target_gap`, and
+`incumbent_target_gap_after` distinct. The behavior analyzer uses the same
+selection replay function and audits the target-state lineage.
 
 The initial categorical diagnostic arm is enabled by:
 
@@ -221,7 +223,7 @@ incumbent SSE map.
 ## Evaluation order
 
 1. Run paired N=4 across the scale profile's eight specifications and eight
-   budgets, using a fresh V5 reference from the same compiler snapshot family.
+   budgets, using a fresh V6 reference from the same compiler snapshot family.
 2. Audit zero telemetry replay violations, validity, terminal completion,
    acceptance, distinct alternatives, opportunity density, cost utilization,
    repair attempts, and score by budget/source.

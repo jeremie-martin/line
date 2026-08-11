@@ -150,6 +150,30 @@ describe("repair behavior analysis", () => {
       afterRejectedAnchorLater: 1,
       afterRejectedAffordableSetShrank: 1,
     });
+    expect(result.perParentDepth).toEqual([
+      expect.objectContaining({
+        parentDepth: 2,
+        repairEpisodes: 2,
+        acceptedAlternatives: 1,
+      }),
+    ]);
+    expect(result.perIteration.map(({ iterationIndex, repairEpisodes }) => ({
+      iterationIndex,
+      repairEpisodes,
+    }))).toEqual([
+      { iterationIndex: 0, repairEpisodes: 1 },
+      { iterationIndex: 1, repairEpisodes: 1 },
+    ]);
+    expect(result.selection).toMatchObject({
+      maximumConsideredParentDepth: 2,
+      selectedAtMaximumConsideredDepth: 2,
+      deeperStructuralAnchorBlockedByAffordability: 0,
+    });
+    expect(result.terminalOfferDiversity).toMatchObject({
+      terminalOffersWithHash: 2,
+      distinctTerminalOfferTracks: 2,
+      repeatedTerminalOffersAgainstSameIncumbent: 0,
+    });
   });
 
   test("reports sequence violations instead of silently summarizing them", () => {
@@ -161,5 +185,14 @@ describe("repair behavior analysis", () => {
     expect(result.invariantAudit.passed).toBe(false);
     expect(result.invariantAudit.checks.incumbentRevisionTracksAcceptance.violations).toBe(1);
     expect(result.invariantAudit.checks.freshSearchSeedPerIteration.violations).toBe(1);
+  });
+
+  test("audits terminal outcome attribution against terminal work", () => {
+    const corrupted = row();
+    corrupted.budgetTelemetry.episodes[0].outcome.terminal_reached = false;
+    const result = summarizeRepairBehavior([corrupted]);
+
+    expect(result.invariantAudit.passed).toBe(false);
+    expect(result.invariantAudit.checks.terminalOutcomeMatchesWork.violations).toBe(1);
   });
 });

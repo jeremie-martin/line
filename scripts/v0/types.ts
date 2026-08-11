@@ -997,13 +997,19 @@ export type CompileStats = {
 
   /** Study arm: branch ordering at the independently selected repair target. */
   repair_target_search?: {
-    policy: "target_top_three_first" | "target_eligible_first";
+    policy:
+      | "target_top_three_first"
+      | "target_improvement_first"
+      | "target_eligible_first";
     target_pools: number;
     eligible_options: number;
     ordinary_selected_options: number;
     already_first: number;
     reordered: number;
     promoted_from_outside_top_three: number;
+    ordinary_first_improves_incumbent: number;
+    ordinary_first_not_improving: number;
+    improving_alternative_available: number;
     ordinary_first_sse_sum: number;
     chosen_first_sse_sum: number;
     local_sse_gain_sum: number;

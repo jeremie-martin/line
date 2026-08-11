@@ -128,6 +128,9 @@ no candidate, simulation, branch, or tuning constant:
 
 - `target-top-three-first` reorders only the ordinary three selected branches
   at the chosen target gap by exact authored-axis SSE;
+- `target-improvement-first` preserves ordinary branch zero whenever it already
+  lowers the incumbent target SSE, and otherwise promotes the best ordinary
+  top-three branch that does lower it;
 - `target-eligible-first` may promote the minimum-SSE option from the already
   evaluated eligible pool, then retains the other ordinary branches at the
   unchanged width of three.
@@ -138,8 +141,18 @@ ranking at any other gap, or the global register. Compile statistics record the
 number of target pools, reorders, outside-top-three promotions, exact local SSE
 gain, and forward-score debt. The declared study controls are
 `LR_REPAIR_SUFFIX_SEARCH_POLICY=target-top-three-first` and
+`LR_REPAIR_SUFFIX_SEARCH_POLICY=target-improvement-first`, or
 `LR_REPAIR_SUFFIX_SEARCH_POLICY=target-eligible-first`; production remains
 `ordinary`.
+
+The first N=4 bracket found that `target-top-three-first` improved target-gap
+alignment but completed fewer suffixes at equal repair work, for a small scale
+gain (+0.0488). The eligible-pool arm lost (-0.4944) while incurring about 69×
+as much forward-score debt. The improvement-gated arm is the next causal test:
+it uses the incumbent's exact authored target SSE as a parameter-free boundary
+and intervenes only when ordinary branch zero is not itself a repair. Its
+telemetry separates pools where ordinary branch zero improves the incumbent
+from those where an improving selected alternative exists.
 
 The causal question is narrow. In the accepted depth-six N=8 evidence, only
 39.4% of all terminal alternatives improve the selected gap, while 87.4% of

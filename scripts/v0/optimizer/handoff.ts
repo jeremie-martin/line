@@ -450,6 +450,7 @@ type RankedOption = {
 export type RepairSuffixSearchPolicy =
   | "ordinary"
   | "target_top_three_first"
+  | "target_improvement_first"
   | "target_eligible_first";
 
 type RepairTargetSearchTotals = {
@@ -460,6 +461,9 @@ type RepairTargetSearchTotals = {
   alreadyFirst: number;
   reordered: number;
   promotedFromOutsideTopThree: number;
+  ordinaryFirstImprovesIncumbent: number;
+  ordinaryFirstNotImproving: number;
+  improvingAlternativeAvailable: number;
   ordinaryFirstSseSum: number;
   chosenFirstSseSum: number;
   localSseGainSum: number;
@@ -3064,6 +3068,7 @@ function compileHandoffInternal(
         };
         repairLaneActive = true;
         activeRepairTargetGapIndex = kWorst;
+        activeRepairTargetGapSse = pickedWeakGapSse;
         setAimRepairLaneActive(true);
         setImpactCarrierRippleRepairActive(true);
         try {
@@ -3071,6 +3076,7 @@ function compileHandoffInternal(
         } finally {
           repairLaneActive = false;
           activeRepairTargetGapIndex = null;
+          activeRepairTargetGapSse = null;
           setAimRepairLaneActive(false);
           setImpactCarrierRippleRepairActive(false);
           activeRepairProfile = null;
@@ -7768,6 +7774,7 @@ function postCompletionDeadlineScope(): PostCompletionDeadlineScope {
  */
 let repairLaneActive = false;
 let activeRepairTargetGapIndex: number | null = null;
+let activeRepairTargetGapSse: number | null = null;
 
 const readRepairSuffixSearchPolicy = compileScopedEnv("LR_REPAIR_SUFFIX_SEARCH_POLICY");
 let repairTargetSearchTotals: RepairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");
@@ -7775,6 +7782,7 @@ let repairTargetSearchTotals: RepairTargetSearchTotals = emptyRepairTargetSearch
 registerCompileReset(() => {
   repairLaneActive = false;
   activeRepairTargetGapIndex = null;
+  activeRepairTargetGapSse = null;
   repairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");
 });
 
@@ -7789,6 +7797,9 @@ function emptyRepairTargetSearchTotals(
     alreadyFirst: 0,
     reordered: 0,
     promotedFromOutsideTopThree: 0,
+    ordinaryFirstImprovesIncumbent: 0,
+    ordinaryFirstNotImproving: 0,
+    improvingAlternativeAvailable: 0,
     ordinaryFirstSseSum: 0,
     chosenFirstSseSum: 0,
     localSseGainSum: 0,
@@ -7800,38 +7811,74 @@ export function repairSuffixSearchPolicy(): RepairSuffixSearchPolicy {
   const raw = readRepairSuffixSearchPolicy();
   if (raw === undefined || raw === "" || raw === "ordinary") return "ordinary";
   if (raw === "target-top-three-first") return "target_top_three_first";
+  if (raw === "target-improvement-first") return "target_improvement_first";
   if (raw === "target-eligible-first") return "target_eligible_first";
   throw new Error(
-    `LR_REPAIR_SUFFIX_SEARCH_POLICY must be ordinary, target-top-three-first, or ` +
-      `target-eligible-first; got "${raw}"`,
+    `LR_REPAIR_SUFFIX_SEARCH_POLICY must be ordinary, target-top-three-first, ` +
+      `target-improvement-first, or target-eligible-first; got "${raw}"`,
   );
 }
 
 /**
  * Reorder one already-evaluated branch population at the selected repair target.
  * No candidate is generated and branch width is unchanged.  The conservative law
- * chooses among the ordinary top three; the broader law may promote one option
- * from the full eligible set and then retains the other ordinary branches.
+ * chooses among the ordinary top three; the improvement-gated law does so only
+ * when ordinary branch zero fails to improve the incumbent target and another
+ * selected branch does; the broader law may promote one option from the full
+ * eligible set and then retains the other ordinary branches.
  */
 export function prioritizeRepairTargetOptions<T>(
   selected: readonly T[],
   eligible: readonly T[],
   policy: RepairSuffixSearchPolicy,
   localSse: (option: T) => number | null,
-): { options: T[]; chosenSse: number | null; ordinaryFirstSse: number | null; promoted: boolean } {
+  incumbentSse: number | null = null,
+): {
+  options: T[];
+  chosenSse: number | null;
+  ordinaryFirstSse: number | null;
+  promoted: boolean;
+  ordinaryFirstImprovesIncumbent: boolean;
+  improvingAlternativeAvailable: boolean;
+} {
   const ordinary = [...selected];
   const ordinaryFirstSse = ordinary.length === 0 ? null : localSse(ordinary[0]!);
+  const ordinaryFirstImprovesIncumbent = incumbentSse !== null &&
+    Number.isFinite(incumbentSse) && ordinaryFirstSse !== null &&
+    Number.isFinite(ordinaryFirstSse) && ordinaryFirstSse < incumbentSse;
+  const improvementCandidates = incumbentSse === null || !Number.isFinite(incumbentSse)
+    ? []
+    : ordinary.flatMap((option, index) => {
+      const sse = localSse(option);
+      return sse !== null && Number.isFinite(sse) && sse < incumbentSse
+        ? [{ option, index, sse }]
+        : [];
+    });
+  const improvingAlternativeAvailable = improvementCandidates.some(({ index }) => index > 0);
+  const unchanged = () => ({
+    options: ordinary,
+    chosenSse: ordinaryFirstSse,
+    ordinaryFirstSse,
+    promoted: false,
+    ordinaryFirstImprovesIncumbent,
+    improvingAlternativeAvailable,
+  });
   if (policy === "ordinary" || ordinary.length === 0) {
-    return { options: ordinary, chosenSse: ordinaryFirstSse, ordinaryFirstSse, promoted: false };
+    return unchanged();
   }
-  const universe = policy === "target_top_three_first" ? ordinary : [...eligible];
-  const ranked = universe.flatMap((option, index) => {
-    const sse = localSse(option);
-    return sse === null || !Number.isFinite(sse) ? [] : [{ option, index, sse }];
-  }).sort((a, b) => a.sse - b.sse || a.index - b.index);
+  if (policy === "target_improvement_first" && ordinaryFirstImprovesIncumbent) {
+    return unchanged();
+  }
+  const ranked = (policy === "target_improvement_first"
+    ? improvementCandidates
+    : (policy === "target_top_three_first" ? ordinary : [...eligible]).flatMap((option, index) => {
+      const sse = localSse(option);
+      return sse === null || !Number.isFinite(sse) ? [] : [{ option, index, sse }];
+    }))
+    .sort((a, b) => a.sse - b.sse || a.index - b.index);
   const best = ranked[0];
   if (best === undefined) {
-    return { options: ordinary, chosenSse: ordinaryFirstSse, ordinaryFirstSse, promoted: false };
+    return unchanged();
   }
   const promoted = !ordinary.includes(best.option);
   return {
@@ -7840,6 +7887,8 @@ export function prioritizeRepairTargetOptions<T>(
     chosenSse: best.sse,
     ordinaryFirstSse,
     promoted,
+    ordinaryFirstImprovesIncumbent,
+    improvingAlternativeAvailable,
   };
 }
 
@@ -7872,10 +7921,19 @@ function applyRepairTargetSearchPolicy(
     eligible,
     policy,
     (option) => repairOptionGapSse(option, gap, ctx),
+    activeRepairTargetGapSse,
   );
   repairTargetSearchTotals.targetPools++;
   repairTargetSearchTotals.eligibleOptions += eligible.length;
   repairTargetSearchTotals.ordinarySelectedOptions += selected.length;
+  if (result.ordinaryFirstImprovesIncumbent) {
+    repairTargetSearchTotals.ordinaryFirstImprovesIncumbent++;
+  } else {
+    repairTargetSearchTotals.ordinaryFirstNotImproving++;
+  }
+  if (result.improvingAlternativeAvailable) {
+    repairTargetSearchTotals.improvingAlternativeAvailable++;
+  }
   if (result.ordinaryFirstSse !== null) {
     repairTargetSearchTotals.ordinaryFirstSseSum += result.ordinaryFirstSse;
   }
@@ -7909,6 +7967,9 @@ function snapshotRepairTargetSearchStats(): Pick<CompileStats, "repair_target_se
       already_first: totals.alreadyFirst,
       reordered: totals.reordered,
       promoted_from_outside_top_three: totals.promotedFromOutsideTopThree,
+      ordinary_first_improves_incumbent: totals.ordinaryFirstImprovesIncumbent,
+      ordinary_first_not_improving: totals.ordinaryFirstNotImproving,
+      improving_alternative_available: totals.improvingAlternativeAvailable,
       ordinary_first_sse_sum: totals.ordinaryFirstSseSum,
       chosen_first_sse_sum: totals.chosenFirstSseSum,
       local_sse_gain_sum: totals.localSseGainSum,

@@ -806,6 +806,59 @@ describe("repair target selection", () => {
     expect(result).toMatchObject({ ordinaryFirstSse: 5, chosenSse: 1, promoted: true });
   });
 
+  test("improvement-gated ordering changes branch zero only when it is not a repair", () => {
+    const a = { id: "a", sse: 5 };
+    const b = { id: "b", sse: 2 };
+    const c = { id: "c", sse: 4 };
+    const result = prioritizeRepairTargetOptions(
+      [a, b, c],
+      [a, b, c],
+      "target_improvement_first",
+      (option) => option.sse,
+      4,
+    );
+    expect(result.options).toEqual([b, a, c]);
+    expect(result).toMatchObject({
+      ordinaryFirstSse: 5,
+      chosenSse: 2,
+      promoted: false,
+      ordinaryFirstImprovesIncumbent: false,
+      improvingAlternativeAvailable: true,
+    });
+  });
+
+  test("improvement-gated ordering preserves an ordinary branch that already repairs", () => {
+    const a = { id: "a", sse: 5 };
+    const b = { id: "b", sse: 2 };
+    const c = { id: "c", sse: 4 };
+    const result = prioritizeRepairTargetOptions(
+      [a, b, c],
+      [a, b, c],
+      "target_improvement_first",
+      (option) => option.sse,
+      6,
+    );
+    expect(result.options).toEqual([a, b, c]);
+    expect(result).toMatchObject({
+      chosenSse: 5,
+      ordinaryFirstImprovesIncumbent: true,
+      improvingAlternativeAvailable: true,
+    });
+  });
+
+  test("improvement-gated ordering preserves ordinary order without a true repair", () => {
+    const selected = [{ sse: 5 }, { sse: 4 }, { sse: 6 }];
+    const result = prioritizeRepairTargetOptions(
+      selected,
+      selected,
+      "target_improvement_first",
+      (option) => option.sse,
+      4,
+    );
+    expect(result.options).toEqual(selected);
+    expect(result.improvingAlternativeAvailable).toBe(false);
+  });
+
   test("ordinary suffix ordering is byte-order preserving", () => {
     const selected = [{ sse: 5 }, { sse: 2 }, { sse: 1 }];
     expect(prioritizeRepairTargetOptions(
@@ -825,6 +878,9 @@ describe("repair target selection", () => {
       process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY = "target-top-three-first";
       beginEnvFlagEpoch();
       expect(repairSuffixSearchPolicy()).toBe("target_top_three_first");
+      process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY = "target-improvement-first";
+      beginEnvFlagEpoch();
+      expect(repairSuffixSearchPolicy()).toBe("target_improvement_first");
     } finally {
       if (previous === undefined) delete process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY;
       else process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY = previous;

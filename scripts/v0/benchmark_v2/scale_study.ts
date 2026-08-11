@@ -48,6 +48,7 @@ import {
   type LoadedMultiBudgetProfile,
   type ScaleScoredRun,
 } from "./scale_profile.ts";
+import { scaleAnalysisRun } from "./scale_analysis_projection.ts";
 
 type StudyTask = {
   sourceId: string;
@@ -309,7 +310,7 @@ async function main(): Promise<void> {
       fullArchiveSha256: fullArchive.rawSha256,
       omitted: [
         "raw drift report",
-        "compile stats",
+        "compile stats except repair target-search mechanics",
         "repair considered-target observations",
         "repair track-identity hashes",
         "budget-telemetry node events",
@@ -434,52 +435,6 @@ async function writeScaleReportStreaming(
     `${compressedSha256}  ${relative(compressedPath)}\n`,
   );
   return { rawSha256, compressedSha256 };
-}
-
-function scaleAnalysisRun(row: any): Record<string, unknown> {
-  const {
-    report: _report,
-    stats: _stats,
-    authoredContacts: _authoredContacts,
-    phaseResults: _phaseResults,
-    budgetTelemetry,
-    ...core
-  } = row;
-  return {
-    ...core,
-    budgetTelemetry: budgetTelemetry === null || budgetTelemetry === undefined
-      ? null
-      : (() => {
-        const { node_events: _nodeEvents, ...compactTelemetry } = budgetTelemetry;
-        return {
-          ...compactTelemetry,
-          episodes: budgetTelemetry.episodes.map((episode: any) => {
-            const decision = episode.repair_decision;
-            const outcome = episode.outcome;
-            return {
-              ...episode,
-              repair_decision: decision === null
-                ? null
-                : (() => {
-                  const {
-                    considered_targets: _consideredTargets,
-                    incumbent_track_hash: _incumbentTrackHash,
-                    ...compactDecision
-                  } = decision;
-                  return compactDecision;
-                })(),
-              outcome: (() => {
-                const {
-                  terminal_offer_track_hash: _terminalOfferTrackHash,
-                  ...compactOutcome
-                } = outcome;
-                return compactOutcome;
-              })(),
-            };
-          }),
-        };
-      })(),
-  };
 }
 
 function studyPlanFingerprint(input: {

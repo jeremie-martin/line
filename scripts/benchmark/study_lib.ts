@@ -28,6 +28,7 @@ export type StudyCell = { score: number; valid: boolean };
 export const SCALE_STUDY_SCHEMAS = [
   "line.benchmark-v2.budget-scale-study.v1",
   "line.benchmark-v2.budget-scale-study.v2",
+  "line.benchmark-v2.budget-scale-study.v3",
 ] as const;
 
 export function readVerifiedArtifact(path: string): VerifiedArtifact {

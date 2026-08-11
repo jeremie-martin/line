@@ -236,6 +236,22 @@ async function runCachedComparison(argv: string[]): Promise<number> {
     for (const [lookIndex, look] of looks.entries()) {
       const cacheBeforeLook = readBaselineCache(argument("baseline"));
       assertCacheCompatibleWithRequest(cacheBeforeLook, request);
+      if (sequential && argv.includes("--resume")) {
+        const restoredLook = readCompletedSequentialLook(
+          suffixedJsonPath(outPath, `.look-${look}`),
+          look,
+          requestSha256,
+        );
+        if (restoredLook !== null) {
+          if (restoredLook.action !== "continue") {
+            throw new Error(
+              `sequential look N=${look} is already terminal; use its published comparison artifact`,
+            );
+          }
+          completedLooks.push(restoredLook);
+          continue;
+        }
+      }
       if (cacheCoverage(cacheBeforeLook.cache) < look) {
         const pause = {
           schema: "line.benchmark-v2.eval-pause.v1",
@@ -426,6 +442,35 @@ async function runCachedComparison(argv: string[]): Promise<number> {
       releaseAttemptLock();
     }
   }
+}
+
+/**
+ * A resumed attempt shares one append-only checkpoint across every strict
+ * look.  Once N=16 has been reached that checkpoint necessarily contains rows
+ * outside the older N=8 round-progress reference, so replaying N=8 is both
+ * unnecessary and invalid.  Restore sealed continue decisions and begin with
+ * the first unpublished look instead.  The request hash binds every restored
+ * decision to this exact candidate, schedule, and artifact destination.
+ */
+export function readCompletedSequentialLook(
+  path: string,
+  expectedDepth: number,
+  requestSha256: string,
+): SequentialLookDecision | null {
+  if (!existsSync(path)) return null;
+  const parsed = JSON.parse(readFileSync(path, "utf8")) as {
+    schema?: string;
+    request?: { sha256?: string };
+    decision?: SequentialLookDecision;
+  };
+  if (
+    parsed.schema !== SEQUENTIAL_LOOK_ARTIFACT_SCHEMA ||
+    parsed.request?.sha256 !== requestSha256 ||
+    parsed.decision?.depth !== expectedDepth
+  ) {
+    throw new Error(`sequential look artifact does not match the resumed request: ${path}`);
+  }
+  return parsed.decision;
 }
 
 function writeRoundProgressReference(

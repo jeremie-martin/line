@@ -12,6 +12,13 @@ export const COMPILER_SOURCE_PATHS = [
   "scripts/v0/arc.ts",
   "scripts/v0/arc_placement.ts",
   "scripts/v0/score.ts",
+  // Runtime dependencies imported by compiler-bound modules.  Keeping these
+  // outside the identity made snapshots depend on ambient worktree files; an
+  // untracked native-catch module exposed the hole when the isolated replay
+  // could not start.
+  "scripts/v0/trajectory/native_catch_history.ts",
+  "scripts/v0/trajectory/precontact_multicontact_history.ts",
+  "scripts/v0/trajectory/curve_resolution.ts",
   "scripts/lib",
   "engine-rs",
   "package.json",

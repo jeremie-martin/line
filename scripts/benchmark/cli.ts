@@ -11,10 +11,14 @@ import { runStatusCommand } from "../v0/benchmark_v2/status.ts";
 import { runFamilyCommand } from "../v0/benchmark_v2/family.ts";
 import { runBaselineCacheCommand } from "../v0/benchmark_v2/baseline_cache_command.ts";
 import { runCampaignBootstrapCommand } from "../v0/benchmark_v2/campaign_bootstrap.ts";
+import {
+  assertScaleCommandArguments,
+  runScaleBenchmarkCommand,
+} from "../v0/benchmark_v2/scale_benchmark.ts";
 
 const COMMAND_ALIASES = new Set([
   "probe", "eval", "canonical", "baseline", "bootstrap", "rebaseline", "decide", "prepare", "explain",
-  "status", "family", "baseline-cache", "help", "--probe", "--help", "-h",
+  "status", "family", "baseline-cache", "scale", "help", "--probe", "--help", "-h",
 ]);
 const raw = process.argv.slice(2);
 const jsonOutput = raw.includes("--json");
@@ -36,7 +40,9 @@ async function main(rawArgs: string[]): Promise<void> {
   // status command.  Keep it after selecting the command so the cache parser
   // can see its verb.
   const args = rawArgs.filter((arg) =>
-    !COMMAND_ALIASES.has(arg) || (command === "baseline-cache" && arg === "status")
+    !COMMAND_ALIASES.has(arg) ||
+    (command === "baseline-cache" && arg === "status") ||
+    (command === "scale" && (arg === "baseline" || arg === "eval"))
   );
   const commandArgs = args.filter((arg) =>
     arg !== "--no-resource-stats" && !arg.startsWith("--resource-interval=")
@@ -57,6 +63,19 @@ async function main(rawArgs: string[]): Promise<void> {
         `audit ${prepared.auditFingerprint.slice(0, 16)}; listening review ${prepared.listeningReviewStatus}`,
       );
       process.exitCode = await monitored("baseline-cache", args, async () => runBaselineCacheCommand(commandArgs));
+    }
+  } else if (command === "scale") {
+    assertScaleCommandArguments(commandArgs);
+    const action = commandArgs.find((arg) => !arg.startsWith("--"));
+    if (action === "compare") {
+      process.exitCode = await runScaleBenchmarkCommand(commandArgs);
+    } else {
+      const prepared = await prepareBenchmarkV2({ requireSequentialCalibration: false });
+      console.log(
+        `Prepared ${prepared.developmentCases} development + ${prepared.qualificationCases} qualification cases; ` +
+        `audit ${prepared.auditFingerprint.slice(0, 16)}; listening review ${prepared.listeningReviewStatus}`,
+      );
+      process.exitCode = await monitored("scale", args, () => runScaleBenchmarkCommand(commandArgs));
     }
   } else if (command === "explain") {
     if (jsonOutput) {
@@ -212,11 +231,12 @@ async function monitored<T>(label: string, args: string[], run: () => Promise<T>
 
 function commandName(
   args: string[],
-): "eval" | "canonical" | "baseline" | "bootstrap" | "rebaseline" | "decide" | "prepare" | "explain" | "status" | "family" | "baseline-cache" | "help" {
+): "eval" | "canonical" | "baseline" | "bootstrap" | "rebaseline" | "decide" | "prepare" | "explain" | "status" | "family" | "baseline-cache" | "scale" | "help" {
   if (args.includes("full") || args.includes("--full")) {
     throw new Error(`the full alias was retired; the active campaign command is \`eval --seeds=48\``);
   }
   if (args.includes("help") || args.includes("--help") || args.includes("-h")) return "help";
+  if (args.includes("scale")) return "scale";
   if (args.includes("baseline-cache")) return "baseline-cache";
   if (args.includes("status")) return "status";
   if (args.includes("family")) return "family";
@@ -242,6 +262,10 @@ function printHelp(): void {
     `                                   Read-only campaign baseline/cache readiness and exact compute required\n` +
     `  npm run benchmark -- baseline-cache status|extend --seeds=LOOK\n` +
     `                                   Verify or append an N=8/16/32/48 active baseline prefix\n` +
+    `  npm run benchmark -- scale baseline --seeds=16 --out=BASELINE.json\n` +
+    `  npm run benchmark -- scale eval --baseline=BASELINE.json --seeds=8 [--out=RUN.json] [--artifact=COMPARISON.json]\n` +
+    `  npm run benchmark -- scale compare --baseline=BASELINE.json --candidate=RUN.json\n` +
+    `                                   Compact paired multi-budget profile; 4/8/16 looks; eval supports --extend-from and --breadth-policy\n` +
     `  npm run benchmark -- family capture NAME --variant=ID [--note=TEXT]\n` +
     `  npm run benchmark -- family run NAME [--seeds=6] [--jobs=N]\n` +
     `  npm run benchmark -- family select NAME --variant=ID [--reason=TEXT]\n` +

@@ -1,0 +1,144 @@
+import { describe, expect, test } from "vitest";
+import { pairedScaleMechanics } from "../scripts/benchmark/analyze_scale_mechanics.ts";
+import { BUDGET_TELEMETRY_SCHEMA } from "../scripts/v0/optimizer/budget_telemetry.ts";
+
+describe("paired scale mechanics", () => {
+  test("summarizes paired compiler work and complete repair outcomes by budget", () => {
+    const row = (budget: number, seed: number, candidate: boolean) => ({
+      task: { sourceId: "source", budget, actualSeed: seed },
+      trackHash: candidate ? `candidate-${budget}-${seed}` : `reference-${budget}-${seed}`,
+      score: { score: 500 + (candidate ? 2 : 0) },
+      budgetTelemetry: {
+        schema: BUDGET_TELEMETRY_SCHEMA,
+        compile: {
+          total_spent_frames: budget,
+          first_terminal_total_spent_frames: budget / 2,
+          final_output_lane: candidate ? "repair" : "initial",
+          work: work(candidate),
+        },
+        episodes: [{
+          episode_id: 0,
+          lane: "repair",
+          search_seed: seed,
+          anchor: { gap_index: candidate ? 4 : 3 },
+          allocated_frames: budget / 2,
+          start: {
+            estimated_remaining_work_frames: budget / 5,
+            estimate_lower_frames: 0,
+            estimate_upper_frames: budget / 2,
+            estimator_applicability: "calibrated",
+          },
+          work: work(candidate),
+          outcome: {
+            terminal_tracks_considered: candidate ? 8 : 5,
+            register_improved: candidate,
+            internal_full_score_delta: candidate ? 4 : 0,
+            spent_frames: budget / 3,
+            first_terminal_offset_frames: budget / 4,
+            terminal_observation_censored: false,
+            stop_reason: candidate ? "first_terminal_return" : "local_ceiling",
+          },
+        }],
+      } as any,
+    });
+    const reference = [row(100, 1, false), row(200, 1, false)];
+    const candidate = [row(100, 1, true), row(200, 1, true)];
+    const result = pairedScaleMechanics(reference, candidate);
+
+    expect(result.overall).toMatchObject({ cells: 2, changedTracks: 2, rawScoreDeltaMean: 2 });
+    expect(result.overall.metrics.requestedNormalProposalsPerRankedOptionCall).toMatchObject({
+      observations: 2,
+      referenceMean: 40,
+      candidateMean: 20,
+      delta: -20,
+      relativeDelta: -0.5,
+    });
+    expect(result.overall.metrics.repairEpisodesWithRegisterImprovement.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairRegisterImprovements.candidateMean).toBe(3);
+    expect(result.overall.metrics.repairFirstTerminalReturnEpisodes.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairMeanAnchorGap.delta).toBe(1);
+    expect(result.overall.metrics.repairCompletedEpisodeRate.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairTotalSpentFrames.candidateMean).toBe(50);
+    expect(result.overall.metrics.repairTerminalImprovementPerEvaluation).toMatchObject({
+      referenceMean: 0,
+      candidateMean: 0.25,
+    });
+    expect(result.overall.metrics.repairEpisodeImprovementRate.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairCompletionEstimateSignedErrorFrames.candidateMean).toBe(7.5);
+    expect(result.overall.metrics.repairCompletionEstimateIntervalCoverage.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairCompletionWithinAllocationRate.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairCalibratedEstimatorRate.candidateMean).toBe(1);
+    expect(result.overall.metrics.finalOutputFromRepair.delta).toBe(1);
+    expect(result.perBudget.map((entry) => entry.budget)).toEqual([100, 200]);
+  });
+
+  test("rejects candidates without a paired reference cell", () => {
+    const candidate = [{
+      task: { sourceId: "source", budget: 100, actualSeed: 1 },
+      budgetTelemetry: {
+        schema: BUDGET_TELEMETRY_SCHEMA,
+        compile: { work: work(false) },
+        episodes: [{
+          episode_id: 0,
+          lane: "initial",
+          work: work(false),
+          outcome: { terminal_tracks_considered: 5, register_improved: false },
+        }],
+      },
+    } as any];
+    expect(() => pairedScaleMechanics([], candidate)).toThrow(/reference is missing/);
+  });
+
+  test("rejects duplicate reference cells and old telemetry schemas", () => {
+    const base = {
+      task: { sourceId: "source", budget: 100, actualSeed: 1 },
+      budgetTelemetry: {
+        schema: BUDGET_TELEMETRY_SCHEMA,
+        compile: { work: work(false) },
+        episodes: [{
+          episode_id: 0,
+          lane: "initial",
+          work: work(false),
+          outcome: { terminal_tracks_considered: 5, register_improved: false },
+        }],
+      },
+    } as any;
+    expect(() => pairedScaleMechanics([base, structuredClone(base)], [structuredClone(base)]))
+      .toThrow(/reference contains duplicate cell/);
+    const old = structuredClone(base);
+    old.budgetTelemetry.schema = "line.compile-budget-telemetry.v2";
+    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v3/);
+
+    const corrupt = structuredClone(base);
+    corrupt.budgetTelemetry.compile.work.actual_candidate_samples++;
+    expect(() => pairedScaleMechanics([base], [corrupt])).toThrow(/candidate-mode accounting/);
+  });
+});
+
+function work(candidate: boolean) {
+  return {
+    pool_builds: 5,
+    requested_normal_proposals: candidate ? 100 : 200,
+    actual_candidate_samples: candidate ? 100 : 200,
+    viable_candidates: candidate ? 50 : 100,
+    candidate_samples_by_mode: { normal: candidate ? 100 : 200 },
+    by_evaluation_origin: {
+      frontier: { register_offers: candidate ? 10 : 7, terminal_node_evaluations: candidate ? 8 : 5, register_improvements: candidate ? 3 : 0, terminal_register_improvements: candidate ? 2 : 0 },
+      tail_completion: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
+      surgical_repair: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
+      polish: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
+    },
+    nodes_processed: candidate ? 14 : 12,
+    nodes_expanded: candidate ? 12 : 10,
+    children_enqueued: candidate ? 30 : 20,
+    register_offers: candidate ? 10 : 7,
+    partial_node_evaluations: 2,
+    terminal_node_evaluations: candidate ? 8 : 5,
+    first_time_terminal_node_evaluations: candidate ? 6 : 4,
+    revisited_terminal_node_evaluations: candidate ? 2 : 1,
+    distinct_terminal_tracks: candidate ? 6 : 4,
+    repeated_terminal_track_evaluations: candidate ? 2 : 1,
+    register_improvements: candidate ? 3 : 0,
+    terminal_register_improvements: candidate ? 2 : 0,
+  };
+}

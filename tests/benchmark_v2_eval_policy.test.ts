@@ -1,5 +1,13 @@
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { assertEvalArguments, evalResumeCommand, evalWorkerFailurePayload } from "../scripts/v0/benchmark_v2/eval.ts";
+import {
+  assertEvalArguments,
+  evalResumeCommand,
+  evalWorkerFailurePayload,
+  readCompletedSequentialLook,
+} from "../scripts/v0/benchmark_v2/eval.ts";
 
 describe("lean eval argument contract", () => {
   test("accepts the active default and explicit output controls", () => {
@@ -51,5 +59,20 @@ describe("lean eval argument contract", () => {
       "--out=/tmp/candidate.json --artifact=/tmp/custom-comparison.json " +
       "--baseline=benchmark/v2/campaign-baseline.json",
     );
+  });
+
+  test("resume restores a sealed continue look instead of replaying an older prefix", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "line-eval-look-")), "look-16.json");
+    const decision = { depth: 16, action: "continue" };
+    writeFileSync(path, JSON.stringify({
+      schema: "line.benchmark-v2.sequential-look-artifact.v1",
+      request: { sha256: "a".repeat(64) },
+      decision,
+    }));
+    expect(readCompletedSequentialLook(path, 16, "a".repeat(64))).toEqual(decision);
+    expect(() => readCompletedSequentialLook(path, 8, "a".repeat(64)))
+      .toThrow(/does not match/);
+    expect(() => readCompletedSequentialLook(path, 16, "b".repeat(64)))
+      .toThrow(/does not match/);
   });
 });

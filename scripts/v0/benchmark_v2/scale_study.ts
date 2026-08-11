@@ -7,6 +7,7 @@ import { gzipSync } from "node:zlib";
 import { applyJolt } from "../../produce/seed.ts";
 import { compilerWorkerTimeoutMs } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
+import type { RepairFrontierMode } from "../optimizer/handoff.ts";
 import type { CompileStats, DriftReport } from "../types.ts";
 import type {
   BudgetTelemetryLevel,
@@ -28,6 +29,15 @@ import {
 import { fingerprintFiles, loadSuiteManifest, suiteIdentity } from "./suite_model.ts";
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
 import { latestSuccessfulResults } from "./checkpoint_model.ts";
+import {
+  assertMultiBudgetExecutionScope,
+  loadMultiBudgetProfile,
+  multiBudgetSeeds,
+  resolveMultiBudgetSources,
+  summarizeScalePanel,
+  type LoadedMultiBudgetProfile,
+  type ScaleScoredRun,
+} from "./scale_profile.ts";
 
 type StudyTask = {
   sourceId: string;
@@ -37,6 +47,14 @@ type StudyTask = {
   joltMs: number;
   sourceManifestPath: string;
   budgetTelemetryLevel: BudgetTelemetryLevel;
+  searchPolicyBudget?: number;
+  repairBudget?: number;
+  resumePolicy?: "legacy" | "none" | "remainder-aware";
+  nCandExponent?: number;
+  nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
+  repairAllocationPolicy?: "legacy" | "response-aware";
+  repairFrontierMode?: RepairFrontierMode;
+  repairAdaptiveTriesPerAnchor?: number;
 };
 
 type StudyWorkerResult = {
@@ -63,10 +81,55 @@ async function main(): Promise<void> {
     return args.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
   };
   const hasFlag = (name: string): boolean => args.includes(`--${name}`);
-  const budgets = integerList(argument("budgets") ?? "100000,200000,250000,500000,600000,1000000", "budgets");
-  const seeds = integerList(argument("seeds") ?? "0", "seeds", true);
+  const scaleProfile = argument("scale-profile") === undefined
+    ? null
+    : loadMultiBudgetProfile(argument("scale-profile")!);
+  const budgets = integerList(
+    argument("budgets") ?? scaleProfile?.profile.budgets.map((budget) => budget.frames).join(",") ??
+      "100000,200000,250000,500000,600000,1000000",
+    "budgets",
+  );
+  const seeds = integerList(
+    argument("seeds") ?? (scaleProfile === null
+      ? "0"
+      : multiBudgetSeeds(scaleProfile.profile, scaleProfile.profile.seedSchedule.defaultSeeds).join(",")),
+    "seeds",
+    true,
+  );
+  if (scaleProfile !== null) assertMultiBudgetExecutionScope(scaleProfile.profile, budgets, seeds);
   const jobs = positiveInteger(argument("jobs") ?? String(Math.min(32, Math.max(1, availableParallelism() / 2))), "jobs");
   const budgetTelemetryLevel = telemetryLevel(argument("budget-telemetry") ?? "summary");
+  const searchPolicyBudget = optionalPositiveInteger(
+    argument("search-policy-budget"),
+    "search-policy-budget",
+  );
+  const repairBudget = optionalPositiveInteger(argument("repair-budget"), "repair-budget");
+  const resumePolicy = parseResumePolicy(argument("resume-policy"));
+  const nCandExponent = optionalFraction(argument("ncand-exponent"), "ncand-exponent");
+  const nCandPolicy = parseNCandPolicy(argument("ncand-policy"));
+  if (nCandExponent !== undefined && nCandPolicy !== undefined) {
+    throw new Error("--ncand-exponent and --ncand-policy are mutually exclusive");
+  }
+  const repairAllocationPolicy = parseRepairAllocationPolicy(argument("repair-allocation-policy"));
+  const repairFrontierMode = parseRepairFrontierMode(argument("repair-frontier-mode"));
+  const repairAdaptiveTriesPerAnchor = optionalBoundedInteger(
+    argument("repair-adaptive-tries-per-anchor"),
+    "repair-adaptive-tries-per-anchor",
+    1,
+    64,
+  );
+  if (repairAdaptiveTriesPerAnchor !== undefined &&
+      repairFrontierMode !== "one-terminal-adaptive") {
+    throw new Error(
+      "--repair-adaptive-tries-per-anchor requires --repair-frontier-mode=one-terminal-adaptive",
+    );
+  }
+  if (searchPolicyBudget !== undefined && budgets.some((budget) => searchPolicyBudget > budget)) {
+    throw new Error("--search-policy-budget may not exceed any requested execution budget");
+  }
+  if (repairBudget !== undefined && budgets.some((budget) => repairBudget > budget)) {
+    throw new Error("--repair-budget may not exceed any requested execution budget");
+  }
   const sourceManifestPath = resolve(argument("manifest") ?? "benchmark/v2/compat/source-manifest.json");
   const suiteManifestPath = resolve(argument("suite") ?? "benchmark/v2/compat/suite-manifest.json");
   const outputPath = resolve(argument("out") ?? "generated/benchmark-v2/studies/budget-scale.json");
@@ -74,8 +137,11 @@ async function main(): Promise<void> {
   const importCheckpointPath = argument("import-checkpoint") === undefined
     ? undefined
     : resolve(argument("import-checkpoint")!);
-  const sources = resolveSources(loadSourceManifest(sourceManifestPath));
-  const suite = loadSuiteManifest(suiteManifestPath, sources);
+  const allSources = resolveSources(loadSourceManifest(sourceManifestPath));
+  const suite = loadSuiteManifest(suiteManifestPath, allSources);
+  const sources = scaleProfile === null
+    ? allSources
+    : resolveMultiBudgetSources(scaleProfile.profile, allSources);
   const identity = suiteIdentity(suiteManifestPath, sourceManifestPath, sources);
   const contracts = new Map<string, ReturnType<typeof buildAxisContract>>();
   for (const source of sources) {
@@ -89,6 +155,14 @@ async function main(): Promise<void> {
     actualSeed,
     joltMs: suite.transform.jolt_ms,
     budgetTelemetryLevel,
+    searchPolicyBudget,
+    repairBudget,
+    resumePolicy,
+    nCandExponent,
+    nCandPolicy,
+    repairAllocationPolicy,
+    repairFrontierMode,
+    repairAdaptiveTriesPerAnchor,
     sourceManifestPath,
   }))));
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -106,6 +180,15 @@ async function main(): Promise<void> {
     seeds,
     joltMs: suite.transform.jolt_ms,
     budgetTelemetryLevel,
+    searchPolicyBudget,
+    repairBudget,
+    resumePolicy,
+    nCandExponent,
+    nCandPolicy,
+    repairAllocationPolicy,
+    repairFrontierMode,
+    repairAdaptiveTriesPerAnchor,
+    scaleProfileFingerprint: scaleProfile?.fingerprint,
     sources: sources.map((source) => ({ id: source.id, fingerprint: source.sourceFingerprint })),
   };
   const planFingerprint = studyPlanFingerprint(planInput);
@@ -127,7 +210,9 @@ async function main(): Promise<void> {
   );
   const restoredByKey = new Map(restored.map((result) => [taskKey(result.task), result]));
   const pending = tasks.filter((task) => !restoredByKey.has(taskKey(task)));
-  console.log(`Benchmark V2 paired budget-scale study`);
+  console.log(scaleProfile === null
+    ? `Benchmark V2 paired budget-scale study`
+    : `Benchmark V2 ${scaleProfile.profile.id} multi-budget benchmark`);
   console.log(
     `  ${tasks.length} compiles; budgets ${budgets.join(", ")}; seeds ${seeds.join(", ")}; ` +
     `${restored.length} restored`,
@@ -172,7 +257,14 @@ async function main(): Promise<void> {
       phaseResults: result.status === "ok" ? phases(source, result.report!) : [],
     };
   });
-  const summaries = budgets.map((budget) => summarizeDevelopmentBudget(
+  const scaleRuns = scored.map((row): ScaleScoredRun => ({
+    sourceId: row.task.sourceId,
+    budget: row.task.budget,
+    actualSeed: row.task.actualSeed,
+    score: row.score,
+  }));
+  const scalePanel = scaleProfile === null ? null : summarizeScalePanel(scaleRuns, scaleProfile.profile);
+  const summaries = scalePanel?.budgets ?? budgets.map((budget) => summarizeDevelopmentBudget(
     scored.filter((row) => row.task.budget === budget).map((row): ScoredDevelopmentRun => ({
       sourceId: row.task.sourceId,
       budget: row.task.budget,
@@ -184,9 +276,13 @@ async function main(): Promise<void> {
     suite,
   ));
   const report = {
-    schema: "line.benchmark-v2.budget-scale-study.v2",
+    schema: scaleProfile === null
+      ? "line.benchmark-v2.budget-scale-study.v2"
+      : "line.benchmark-v2.budget-scale-study.v3",
     generatedAt: new Date().toISOString(),
-    note: "Exploratory paired-seed study. Not a canonical headline or candidate decision.",
+    note: scaleProfile === null
+      ? "Exploratory paired-seed study. Not a canonical headline or candidate decision."
+      : "Frozen compact multi-budget benchmark execution. scaleHeadline is separate from the canonical V2 headline.",
     suiteFingerprint: identity.suiteFingerprint,
     sourceManifestFingerprint: identity.sourceManifestFingerprint,
     scoringProtocolFingerprint: identity.scoringProtocolFingerprint,
@@ -194,6 +290,9 @@ async function main(): Promise<void> {
       "scripts/v0/benchmark_v2/evaluator.ts",
       "scripts/v0/benchmark_v2/score_model.ts",
       "scripts/v0/score.ts",
+      ...(scaleProfile === null
+        ? []
+        : ["scripts/v0/benchmark_v2/scale_profile.ts", relative(scaleProfile.path)]),
     ]),
     transform: suite.transform,
     candidate,
@@ -201,6 +300,16 @@ async function main(): Promise<void> {
     budgets,
     seeds,
     budgetTelemetryLevel,
+    searchPolicyBudget,
+    repairBudget,
+    resumePolicy,
+    nCandExponent,
+    nCandPolicy,
+    repairAllocationPolicy,
+    repairFrontierMode,
+    repairAdaptiveTriesPerAnchor,
+    scaleProfile: scaleProfileReport(scaleProfile),
+    scaleHeadline: scalePanel?.scaleHeadline ?? null,
     summaries,
     runs: scored,
   };
@@ -264,13 +373,45 @@ function studyPlanFingerprint(input: {
   budgets: number[];
   seeds: number[];
   joltMs: number;
+  budgetTelemetryLevel: BudgetTelemetryLevel;
+  searchPolicyBudget?: number;
+  repairBudget?: number;
+  resumePolicy?: "legacy" | "none" | "remainder-aware";
+  nCandExponent?: number;
+  nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
+  repairAllocationPolicy?: "legacy" | "response-aware";
+  repairFrontierMode?: RepairFrontierMode;
+  repairAdaptiveTriesPerAnchor?: number;
+  scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
   return createHash("sha256").update(JSON.stringify(input)).digest("hex");
 }
 
+function scaleProfileReport(binding: LoadedMultiBudgetProfile | null): Record<string, unknown> | null {
+  if (binding === null) return null;
+  return {
+    path: relative(binding.path),
+    fingerprint: binding.fingerprint,
+    definition: binding.profile,
+  };
+}
+
 function taskKey(task: StudyTask): string {
-  return `${task.sourceId}\0${task.budget}\0${task.seedSlot}\0${task.actualSeed}`;
+  return [
+    task.sourceId,
+    task.budget,
+    task.seedSlot,
+    task.actualSeed,
+    task.searchPolicyBudget ?? "inherit",
+    task.repairBudget ?? "inherit",
+    task.resumePolicy ?? "legacy",
+    task.nCandExponent ?? "production",
+    task.nCandPolicy ?? "production",
+    task.repairAllocationPolicy ?? "legacy",
+    task.repairFrontierMode ?? "multi-terminal",
+    task.repairAdaptiveTriesPerAnchor ?? 1,
+  ].join("\0");
 }
 
 async function runPool(
@@ -336,6 +477,10 @@ async function workerMain(task: StudyTask): Promise<void> {
   const started = performance.now();
   let authoredContacts = 0;
   try {
+    if (task.nCandExponent === undefined) delete process.env.LR_STUDY_NCAND_EXPONENT;
+    else process.env.LR_STUDY_NCAND_EXPONENT = String(task.nCandExponent);
+    if (task.nCandPolicy === undefined) delete process.env.LR_STUDY_NCAND_POLICY;
+    else process.env.LR_STUDY_NCAND_POLICY = task.nCandPolicy;
     const sources = resolveSources(loadSourceManifest(task.sourceManifestPath));
     const source = sources.find((entry) => entry.id === task.sourceId);
     if (source === undefined) throw new Error(`${task.sourceId}: source unavailable`);
@@ -345,6 +490,12 @@ async function workerMain(task: StudyTask): Promise<void> {
     const { track, report, stats, budgetTelemetry } = compileHandoff(spec, task.actualSeed, {
       budget: task.budget,
       budgetTelemetry: task.budgetTelemetryLevel,
+      searchPolicyBudget: task.searchPolicyBudget,
+      repairBudget: task.repairBudget,
+      resumePolicy: task.resumePolicy,
+      repairAllocationPolicy: task.repairAllocationPolicy,
+      repairFrontierMode: task.repairFrontierMode,
+      repairAdaptiveTriesPerAnchor: task.repairAdaptiveTriesPerAnchor,
     });
     const trackHash = createHash("sha256").update(JSON.stringify(track)).digest("hex");
     parentPort!.postMessage({ task, status: "ok", elapsedMs: performance.now() - started, authoredContacts, report, stats, budgetTelemetry, trackHash } satisfies StudyWorkerResult);
@@ -411,6 +562,72 @@ function positiveInteger(text: string, name: string): number {
   const value = Number(text);
   if (!Number.isSafeInteger(value) || value < 1) throw new Error(`--${name} must be a positive integer`);
   return value;
+}
+
+function optionalPositiveInteger(text: string | undefined, name: string): number | undefined {
+  return text === undefined ? undefined : positiveInteger(text, name);
+}
+
+function optionalBoundedInteger(
+  text: string | undefined,
+  name: string,
+  minimum: number,
+  maximum: number,
+): number | undefined {
+  if (text === undefined) return undefined;
+  const value = Number(text);
+  if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
+    throw new Error(`--${name} must be an integer in [${minimum}, ${maximum}]`);
+  }
+  return value;
+}
+
+function optionalFraction(text: string | undefined, name: string): number | undefined {
+  if (text === undefined) return undefined;
+  const value = Number(text);
+  if (!Number.isFinite(value) || value <= 0 || value > 1) {
+    throw new Error(`--${name} must be a finite number in (0, 1]`);
+  }
+  return value;
+}
+
+function parseResumePolicy(
+  value: string | undefined,
+): "legacy" | "none" | "remainder-aware" | undefined {
+  if (value === undefined) return undefined;
+  if (value === "legacy" || value === "none" || value === "remainder-aware") return value;
+  throw new Error("--resume-policy must be legacy, none, or remainder-aware");
+}
+
+function parseNCandPolicy(
+  value: string | undefined,
+): "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216" | undefined {
+  if (value === undefined) return undefined;
+  if (
+    value === "high-budget-three-quarter" ||
+    value === "repair-high-budget-three-quarter" ||
+    value === "linear-cap-216"
+  ) return value;
+  throw new Error(
+    "--ncand-policy must be high-budget-three-quarter, " +
+      "repair-high-budget-three-quarter, or linear-cap-216",
+  );
+}
+
+function parseRepairAllocationPolicy(
+  value: string | undefined,
+): "legacy" | "response-aware" | undefined {
+  if (value === undefined) return undefined;
+  if (value === "legacy" || value === "response-aware") return value;
+  throw new Error("--repair-allocation-policy must be legacy or response-aware");
+}
+
+function parseRepairFrontierMode(value: string | undefined): RepairFrontierMode | undefined {
+  if (value === undefined) return undefined;
+  if (value === "multi-terminal" || value === "one-terminal-adaptive") return value;
+  throw new Error(
+    "--repair-frontier-mode must be multi-terminal or one-terminal-adaptive",
+  );
 }
 
 function relative(path: string): string {

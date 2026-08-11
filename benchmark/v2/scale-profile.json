@@ -1,0 +1,78 @@
+{
+  "schema": "line.benchmark-v2.multi-budget-profile.v1",
+  "id": "compact-budget-response-v1",
+  "status": "frozen",
+  "description": "Compact repeated-seed Benchmark V2 profile for paired compiler comparison across declared hard budgets.",
+  "sources": [
+    {
+      "id": "countercurrent",
+      "behavior": "regular musical exceptions and impact phrasing",
+      "weight": 0.125
+    },
+    {
+      "id": "offgrid_conversation",
+      "behavior": "irregular microtiming",
+      "weight": 0.125
+    },
+    {
+      "id": "rising_switch",
+      "behavior": "cadence transition",
+      "weight": 0.125
+    },
+    {
+      "id": "amplitude_tides",
+      "behavior": "spacious amplitude and impact",
+      "weight": 0.125
+    },
+    {
+      "id": "dense_dialogue",
+      "behavior": "sustained compact density",
+      "weight": 0.125
+    },
+    {
+      "id": "frontier_pickup_progression",
+      "behavior": "rapid-pickup capability",
+      "weight": 0.125
+    },
+    {
+      "id": "frontier_dense_recovery",
+      "behavior": "dense-recovery capability",
+      "weight": 0.125
+    },
+    {
+      "id": "frontier_low_air_endurance",
+      "behavior": "multi-second low-air capability",
+      "weight": 0.125
+    }
+  ],
+  "budgets": [
+    { "frames": 150000, "weight": 0.125 },
+    { "frames": 250000, "weight": 0.125 },
+    { "frames": 500000, "weight": 0.125 },
+    { "frames": 750000, "weight": 0.125 },
+    { "frames": 1000000, "weight": 0.125 },
+    { "frames": 1500000, "weight": 0.125 },
+    { "frames": 2500000, "weight": 0.125 },
+    { "frames": 4000000, "weight": 0.125 }
+  ],
+  "canonicalBudget": 750000,
+  "seedSchedule": {
+    "kind": "shared-contiguous",
+    "base": 14016,
+    "maximumSeeds": 16,
+    "defaultSeeds": 8,
+    "looks": [4, 8, 16]
+  },
+  "aggregation": {
+    "withinSourceBudget": "shifted-geometric-mean-over-seeds",
+    "acrossSources": "weighted-arithmetic-mean",
+    "acrossBudgets": "weighted-arithmetic-mean",
+    "uncertaintyBlock": "delete-one-complete-seed-curve"
+  },
+  "decision": {
+    "method": "symmetric-bonferroni-reference-t",
+    "directionalFamilyAlpha": 0.025,
+    "centralIntervalLevel": 0.95,
+    "authority": "scale-comparison-not-canonical-promotion"
+  }
+}

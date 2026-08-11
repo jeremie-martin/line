@@ -26,8 +26,10 @@
 
 import { resolve } from "node:path";
 import { readVerifiedArtifact } from "./study_lib.ts";
+import { BUDGET_TELEMETRY_SCHEMA } from "../v0/optimizer/budget_telemetry.ts";
 
 export const SCALE_STUDY_ARCHIVE_SCHEMA = "line.benchmark-v2.budget-scale-study.v2" as const;
+export const MULTI_BUDGET_ARCHIVE_SCHEMA = "line.benchmark-v2.budget-scale-study.v3" as const;
 
 /** One (source, budget, seed) outcome under one arm. */
 export type GridCell = {
@@ -59,22 +61,39 @@ export function gridCellKey(sourceId: string, budget: number, seed: number): str
 export function readGridArm(label: string, path: string): GridArm {
   const absolute = resolve(path);
   const archive = JSON.parse(readVerifiedArtifact(absolute).bytes.toString("utf8"));
-  if (archive?.schema !== SCALE_STUDY_ARCHIVE_SCHEMA) {
-    throw new Error(`${path}: not a ${SCALE_STUDY_ARCHIVE_SCHEMA} archive`);
+  if (
+    archive?.schema !== SCALE_STUDY_ARCHIVE_SCHEMA &&
+    archive?.schema !== MULTI_BUDGET_ARCHIVE_SCHEMA
+  ) {
+    throw new Error(
+      `${path}: not a ${SCALE_STUDY_ARCHIVE_SCHEMA} or ${MULTI_BUDGET_ARCHIVE_SCHEMA} archive`,
+    );
   }
+  if (!Array.isArray(archive.runs)) throw new Error(`${path}: archive runs must be an array`);
   const cells = new Map<string, GridCell>();
   for (const row of archive.runs) {
-    cells.set(gridCellKey(row.task.sourceId, row.task.budget, row.task.actualSeed), {
+    const key = gridCellKey(row.task.sourceId, row.task.budget, row.task.actualSeed);
+    if (cells.has(key)) {
+      throw new Error(
+        `${path}: duplicate grid cell source=${row.task.sourceId} ` +
+          `budget=${row.task.budget} seed=${row.task.actualSeed}`,
+      );
+    }
+    const firstTerminal = row.budgetTelemetry?.schema === BUDGET_TELEMETRY_SCHEMA
+      ? row.budgetTelemetry.compile?.first_terminal_total_spent_frames ?? null
+      : null;
+    cells.set(key, {
       sourceId: row.task.sourceId,
       budget: row.task.budget,
       seed: row.task.actualSeed,
       score: row.score.valid ? row.score.score : 0,
       valid: row.score.valid === true,
       trackHash: row.trackHash ?? null,
-      firstCompletionFrame: (row.stats ?? {}).first_completion_frame ?? null,
+      firstCompletionFrame: firstTerminal,
       status: row.status,
     });
   }
+  assertCompleteDeclaredGrid(path, archive, cells);
   const groups: GridArm["groups"] = new Map(archive.summaries.flatMap((summary: any) =>
     summary.groups.map((group: any) => [group.id, {
       score: group.score as number,
@@ -90,6 +109,45 @@ export function readGridArm(label: string, path: string): GridArm {
     }] as const)
   ));
   return { label, path: absolute, archive, cells, groups, sources };
+}
+
+function assertCompleteDeclaredGrid(
+  path: string,
+  archive: any,
+  cells: Map<string, GridCell>,
+): void {
+  const budgets = uniqueNumbers(path, "budgets", archive.budgets);
+  const seeds = uniqueNumbers(path, "seeds", archive.seeds);
+  const declaredSources = Array.isArray(archive.scaleProfile?.definition?.sources)
+    ? archive.scaleProfile.definition.sources.map((source: any) => source?.id)
+    : [...new Set([...cells.values()].map((cell) => cell.sourceId))];
+  if (declaredSources.some((source: unknown) => typeof source !== "string" || source.length === 0)) {
+    throw new Error(`${path}: declared scale sources are invalid`);
+  }
+  const sources = [...new Set(declaredSources as string[])];
+  if (sources.length !== declaredSources.length) throw new Error(`${path}: declared sources contain duplicates`);
+  const expected = sources.length * budgets.length * seeds.length;
+  if (cells.size !== expected) {
+    throw new Error(`${path}: grid has ${cells.size} cells; declared Cartesian scope requires ${expected}`);
+  }
+  for (const source of sources) {
+    for (const budget of budgets) {
+      for (const seed of seeds) {
+        if (!cells.has(gridCellKey(source, budget, seed))) {
+          throw new Error(`${path}: missing grid cell source=${source} budget=${budget} seed=${seed}`);
+        }
+      }
+    }
+  }
+}
+
+function uniqueNumbers(path: string, label: string, value: unknown): number[] {
+  if (!Array.isArray(value) || value.some((item) => !Number.isSafeInteger(item))) {
+    throw new Error(`${path}: ${label} must be an integer array`);
+  }
+  const result = value as number[];
+  if (new Set(result).size !== result.length) throw new Error(`${path}: ${label} contain duplicates`);
+  return result;
 }
 
 /**

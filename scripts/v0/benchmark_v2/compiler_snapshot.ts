@@ -43,6 +43,14 @@ export type SnapshotBenchmarkRun = {
   workerFailures: number;
 };
 
+export type SnapshotScaleRun = {
+  outputPath: string;
+  archiveSha256: string;
+  compressedArchiveSha256: string;
+  scaleHeadline: number;
+  workerFailures: number;
+};
+
 export function createCompilerSnapshot(label: string, archiveDir: string): CompilerSnapshot {
   const identity = compilerCandidateIdentity("wasm");
   if (identity.engineArtifactFingerprint === null || !existsSync(ENGINE_ARTIFACT)) {
@@ -158,6 +166,14 @@ export function createSnapshotWorkspace(snapshot: CompilerSnapshot): SnapshotWor
       cwd: process.cwd(),
       stdio: diagnosticStdio(),
     });
+    // The compact scale profile is benchmark policy rather than compiler input.
+    // Carry the current frozen profile beside the current runner even while it
+    // is being developed as an untracked file in the owning worktree.
+    const scaleProfile = resolve("benchmark/v2/scale-profile.json");
+    if (existsSync(scaleProfile)) {
+      mkdirSync(resolve(workspace, "benchmark/v2"), { recursive: true });
+      copyFileSync(scaleProfile, resolve(workspace, "benchmark/v2/scale-profile.json"));
+    }
     // The approved listening-review audio is validation evidence the runner
     // requires; it lives under the otherwise-excluded generated/ tree.
     if (existsSync("generated/benchmark-v2/listening-review")) {
@@ -222,11 +238,7 @@ export function runInWorkspace(
   outputPath: string,
 ): SnapshotBenchmarkRun {
   if (workspace.disposed) throw new Error(`snapshot workspace was already disposed`);
-  const environment = { ...process.env };
-  for (const name of Object.keys(environment)) {
-    if (name.startsWith("LR_")) delete environment[name];
-  }
-  Object.assign(environment, workspace.snapshot.compilerEnvironment, { LR_ENGINE: "wasm" });
+  const environment = snapshotEnvironment(workspace.snapshot);
   execFileSync(process.execPath, [
     "--import",
     "tsx",
@@ -279,6 +291,55 @@ export function runInWorkspace(
     qualificationMonitorScore: summary.qualificationMonitorScore,
     workerFailures: summary.workerFailures,
   };
+}
+
+/** Execute the compact scale runner against the same isolated compiler
+ * snapshot boundary used by canonical eval. The scale archive is already
+ * checksummed and retains its own raw reports, stats, and telemetry. */
+export function runScaleStudyInWorkspace(
+  workspace: SnapshotWorkspace,
+  args: string[],
+  outputPath: string,
+): SnapshotScaleRun {
+  if (workspace.disposed) throw new Error(`snapshot workspace was already disposed`);
+  const absoluteOutput = resolve(outputPath);
+  execFileSync(process.execPath, [
+    "--import",
+    "tsx",
+    "scripts/v0/benchmark_v2/scale_study.ts",
+    ...args.filter((arg) => !arg.startsWith("--out=")),
+    `--out=${absoluteOutput}`,
+  ], {
+    cwd: workspace.directory,
+    env: snapshotEnvironment(workspace.snapshot),
+    stdio: diagnosticStdio(),
+  });
+  if (!existsSync(absoluteOutput)) throw new Error(`scale runner did not publish ${absoluteOutput}`);
+  const bytes = readFileSync(absoluteOutput);
+  const archive = JSON.parse(bytes.toString("utf8"));
+  if (
+    archive?.schema !== "line.benchmark-v2.budget-scale-study.v3" ||
+    archive?.candidate?.candidateFingerprint !== workspace.snapshot.candidateFingerprint ||
+    !Number.isFinite(archive.scaleHeadline) || !Array.isArray(archive.runs)
+  ) throw new Error(`snapshot scale archive is incomplete or detached from its compiler snapshot`);
+  const compressedPath = `${absoluteOutput}.gz`;
+  if (!existsSync(compressedPath)) throw new Error(`scale runner did not publish ${compressedPath}`);
+  return {
+    outputPath: absoluteOutput,
+    archiveSha256: sha256(bytes),
+    compressedArchiveSha256: sha256(readFileSync(compressedPath)),
+    scaleHeadline: archive.scaleHeadline,
+    workerFailures: archive.runs.filter((run: { status?: string }) => run.status !== "ok").length,
+  };
+}
+
+function snapshotEnvironment(snapshot: CompilerSnapshot): NodeJS.ProcessEnv {
+  const environment = { ...process.env };
+  for (const name of Object.keys(environment)) {
+    if (name.startsWith("LR_")) delete environment[name];
+  }
+  Object.assign(environment, snapshot.compilerEnvironment, { LR_ENGINE: "wasm" });
+  return environment;
 }
 
 function diagnosticStdio(): "inherit" | ["inherit", NodeJS.WritableStream, NodeJS.WritableStream] {

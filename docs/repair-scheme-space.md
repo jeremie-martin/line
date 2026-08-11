@@ -167,12 +167,13 @@ and rejected, rather than inferring offer quality from adoption.
 
 At N=4, `target-improvement-first` improved the scale headline by 0.0407
 (85.78% directional probability) with unchanged validity and a +0.0285 result
-at 750k. It reordered 59 of 1,491 target pools. Relative to ordinary search,
-the terminal offer improved the selected target 5.43 percentage points more
-often and the completed repair episode improved the global register 0.56
-points more often. The 2.5M slice nevertheless lost 0.2352, so this is a
-continue result rather than promotion evidence; the governed N=8 extension is
-required.
+at 750k. N=8 reduced the estimate to +0.0182 (81.86%) and +0.0078 at
+750k, again with unchanged validity. Across the N=8 panel it reordered 120 of
+3,028 target pools. Relative to ordinary search, the terminal offer improved
+the selected target 5.37 percentage points more often and the completed repair
+episode improved the global register 0.29 points more often. The 2.5M slice
+remained negative at -0.0964, so this is a continue result rather than
+promotion evidence; the governed N=16 extension is required.
 
 The first compact comparison incorrectly displayed every target-search counter
 as zero because scale analysis projections omitted all compile stats. The raw

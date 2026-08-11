@@ -50,13 +50,20 @@ const ids = (arg("specs") ?? "countercurrent").split(",");
 const seeds = (arg("seeds") ?? "0").split(",").map(Number);
 const budget = Number(arg("budget") ?? "500000");
 const gapsToSwap = (arg("gaps") ?? "").split(",").filter(Boolean).map(Number);
+const mirrorTopImpact = Number(arg("mirror-top-impact") ?? "0");
 const candidateCount = Number(arg("candidates") ?? "8");
 const outPath = arg("out");
 
 if (!Number.isInteger(budget) || budget <= 0) throw new Error("--budget must be a positive integer");
 if (!Number.isInteger(candidateCount) || candidateCount <= 0) throw new Error("--candidates must be a positive integer");
-if (gapsToSwap.length === 0 || gapsToSwap.some((gap) => !Number.isInteger(gap) || gap < 0)) {
-  throw new Error("--gaps must contain one or more non-negative gap indices");
+if (gapsToSwap.some((gap) => !Number.isInteger(gap) || gap < 0)) {
+  throw new Error("--gaps must contain only non-negative gap indices");
+}
+if (!Number.isInteger(mirrorTopImpact) || mirrorTopImpact < 0) {
+  throw new Error("--mirror-top-impact must be a non-negative integer");
+}
+if (gapsToSwap.length === 0 && mirrorTopImpact === 0) {
+  throw new Error("provide --gaps or a positive --mirror-top-impact");
 }
 if (seeds.some((seed) => !Number.isSafeInteger(seed))) throw new Error("--seeds must be safe integers");
 
@@ -154,6 +161,84 @@ function scoreTerminal(node: SearchNode, setup: Setup) {
   return scoreDriftReport(report, { totalFrames: setup.durationFrames });
 }
 
+function topImpactResidualGaps(
+  node: HandoffNode,
+  setup: Setup,
+  count: number,
+): number[] {
+  return setup.gaps.flatMap((gap) => {
+    const target = gap.targets.impact;
+    const fit = node.search.prefixFits[gap.index];
+    const achieved = fit?.achieved.impact;
+    return target === undefined || achieved === undefined
+      ? []
+      : [{ gap: gap.index, residual: Math.abs(target - achieved) }];
+  }).sort((a, b) => b.residual - a.residual || a.gap - b.gap)
+    .slice(0, count)
+    .map((entry) => entry.gap);
+}
+
+function reflectLinesAboutAxis(
+  lines: readonly import("./types.ts").TrackLine[],
+  origin: { x: number; y: number },
+  axisAngleDeg: number,
+): import("./types.ts").TrackLine[] {
+  const twice = 2 * axisAngleDeg * Math.PI / 180;
+  const c = Math.cos(twice);
+  const s = Math.sin(twice);
+  const point = (x: number, y: number) => {
+    const dx = x - origin.x;
+    const dy = y - origin.y;
+    return {
+      x: origin.x + c * dx + s * dy,
+      y: origin.y + s * dx - c * dy,
+    };
+  };
+  return lines.map((line) => {
+    const p1 = point(line.x1, line.y1);
+    const p2 = point(line.x2, line.y2);
+    return {
+      ...line,
+      x1: p1.x,
+      y1: p1.y,
+      x2: p2.x,
+      y2: p2.y,
+      flipped: !line.flipped,
+    };
+  });
+}
+
+function mirroredIncumbentCandidate(
+  entry: SearchNode,
+  incumbent: GapFit,
+  gap: Gap,
+  setup: Setup,
+): Candidate | null {
+  const probe = getCandidateProbe(entry.prefixEngine, gap, setup.ctx);
+  const lookahead = axisLookaheadEndFrame(gap, setup.ctx.allContactFrames);
+  const lines = reflectLinesAboutAxis(
+    incumbent.lines,
+    { x: probe.targetState.sledX, y: probe.targetState.sledY },
+    probe.targetState.angleDeg,
+  );
+  const candidate = tryCandidateLines(
+    entry.prefixEngine,
+    gap,
+    lines,
+    entry.prefixNextLineId,
+    setup.ctx.allContactFrames,
+    lookahead,
+    gap.targets,
+    true,
+    undefined,
+    probe.preTargetSledTrace,
+  );
+  if (candidate !== null) {
+    candidate.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+  }
+  return candidate;
+}
+
 type CandidateOutcome = {
   rank: number;
   objective: number;
@@ -174,8 +259,15 @@ type Row = {
   lift: number;
   outcomes: CandidateOutcome[];
 };
+type UnavailableRow = {
+  spec: string;
+  seed: number;
+  gap: number;
+  reason: string;
+};
 
 const rows: Row[] = [];
+const unavailableRows: UnavailableRow[] = [];
 for (const id of ids) {
   for (const seed of seeds) {
     const started = Date.now();
@@ -198,7 +290,10 @@ for (const id of ids) {
       continue;
     }
     setForwardEvalContext(setup.spec, setup.targets);
-    for (const gapIndex of gapsToSwap) {
+    const selectedGaps = mirrorTopImpact > 0
+      ? topImpactResidualGaps(winner, setup, mirrorTopImpact)
+      : gapsToSwap;
+    for (const gapIndex of selectedGaps) {
       const gap = setup.gaps[gapIndex];
       if (gap === undefined || !gap.endsWithContact || winner.search.prefixFits[gapIndex] === null) {
         console.error(`  ${id}/s${seed}/g${gapIndex}: unavailable contact gap`);
@@ -208,10 +303,24 @@ for (const id of ids) {
       const replay = baselineTail === null ? null : scoreTerminal(baselineTail, setup);
       const baselineTailRebuilt = replay !== null && replay.contract_passed && Math.abs(replay.score - baselineScore) <= 1e-9;
       if (!baselineTailRebuilt) {
-        throw new Error(`${id}/s${seed}/g${gapIndex}: incumbent suffix replay diverged (baseline=${baselineScore}, replay=${replay?.score ?? "none"})`);
+        unavailableRows.push({
+          spec: id,
+          seed,
+          gap: gapIndex,
+          reason: `incumbent suffix replay diverged (baseline=${baselineScore}, replay=${replay?.score ?? "none"})`,
+        });
+        console.error(`  ${id}/s${seed}/g${gapIndex}: unavailable incumbent suffix replay`);
+        continue;
       }
       const entry = reconstructEntry(winner, setup.gaps, gapIndex);
-      const alternatives = getCandidatesSorted(entry, setup.gaps, setup.ctx, winner.searchSeed, candidateCount);
+      const alternatives = mirrorTopImpact > 0
+        ? [mirroredIncumbentCandidate(
+          entry,
+          winner.search.prefixFits[gapIndex]!,
+          gap,
+          setup,
+        )].filter((candidate): candidate is Candidate => candidate !== null)
+        : getCandidatesSorted(entry, setup.gaps, setup.ctx, winner.searchSeed, candidateCount);
       const outcomes: CandidateOutcome[] = [];
       let tailsRebuilt = 0;
       let validCompletions = 0;
@@ -254,7 +363,10 @@ const result = {
   budget,
   gaps: gapsToSwap,
   candidateCount,
-  semantics: "V2 literal authored impacts; exact full-track score; guided incumbent suffix replay required",
+  mirrorTopImpact,
+  semantics: mirrorTopImpact > 0
+    ? "top impact residuals selected before outcomes; mirrored incumbent catch; V2 literal authored impacts; exact full-track score; guided incumbent suffix replay required"
+    : "V2 literal authored impacts; exact full-track score; guided incumbent suffix replay required",
   summary: {
     rows: rows.length,
     improved: rows.filter((row) => row.lift > 1e-9).length,
@@ -264,6 +376,7 @@ const result = {
     tailsRebuilt: rows.reduce((sum, row) => sum + row.tailsRebuilt, 0),
   },
   rows,
+  unavailableRows,
 };
 console.log(JSON.stringify(result.summary, null, 2));
 if (outPath !== undefined) {

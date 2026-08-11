@@ -97,6 +97,19 @@ console.log(`valid            ${rows.filter((r) => r.score.valid).length}/${rows
 /** Score from a weighted axis rms, the evaluator's own map. */
 const scoreFromRms = (rms: number): number => 1000 * Math.exp(-rms / 0.25);
 
+const headlineWithAxisFactors = (factors: Readonly<Record<string, number>>): number =>
+  headline((row) => {
+    if (!row.score.valid) return row.score;
+    let sum = 0;
+    let weight = 0;
+    for (const [name, component] of Object.entries(row.components)) {
+      const rms = component.rmsError * (factors[name] ?? 1);
+      sum += component.weight * rms * rms;
+      weight += component.weight;
+    }
+    return { score: scoreFromRms(Math.sqrt(sum / weight)), valid: true };
+  });
+
 const key = (row: Row): string => `${row.sourceId}|${row.budget}`;
 const byCell = new Map<string, Row[]>();
 for (const row of rows) {
@@ -158,6 +171,78 @@ for (const axis of ["impact", "air", "speed", "amplitude"]) {
     );
   }
 }
+
+console.log(`\n== mixed-axis counterfactuals ==`);
+for (const factor of [0.75, 0.5, 0]) {
+  const lifted = headlineWithAxisFactors({
+    air: factor,
+    speed: factor,
+    amplitude: factor,
+  });
+  console.log(
+    `air+speed+amplitude rms x${factor.toFixed(2)}  ${lifted.toFixed(2)}  ` +
+      `(${lifted - base >= 0 ? "+" : ""}${(lifted - base).toFixed(2)})`,
+  );
+}
+for (const factor of [1, 0.98, 0.95, 0.9, 0.85, 0.8, 0.75]) {
+  const lifted = headlineWithAxisFactors({
+    impact: factor,
+    air: 0,
+    speed: 0,
+    amplitude: 0,
+  });
+  console.log(
+    `secondary perfect + impact rms x${factor.toFixed(2)}  ${lifted.toFixed(2)}  ` +
+      `(${lifted - base >= 0 ? "+" : ""}${(lifted - base).toFixed(2)})`,
+  );
+}
+for (const secondaryFactor of [0.75, 0.5, 0.25, 0]) {
+  let passingImpactFactor = 0;
+  let failingImpactFactor = 1;
+  for (let iteration = 0; iteration < 80; iteration++) {
+    const impactFactor = (passingImpactFactor + failingImpactFactor) / 2;
+    const lifted = headlineWithAxisFactors({
+      impact: impactFactor,
+      air: secondaryFactor,
+      speed: secondaryFactor,
+      amplitude: secondaryFactor,
+    });
+    if (lifted > 650) passingImpactFactor = impactFactor;
+    else failingImpactFactor = impactFactor;
+  }
+  const thresholdHeadline = headlineWithAxisFactors({
+    impact: passingImpactFactor,
+    air: secondaryFactor,
+    speed: secondaryFactor,
+    amplitude: secondaryFactor,
+  });
+  console.log(
+    `secondary rms x${secondaryFactor.toFixed(2)} needs impact rms x${passingImpactFactor.toFixed(6)}  ` +
+      `${thresholdHeadline.toFixed(4)} (>650 boundary)`,
+  );
+}
+let passingAllFactor = 0;
+let failingAllFactor = 1;
+for (let iteration = 0; iteration < 80; iteration++) {
+  const factor = (passingAllFactor + failingAllFactor) / 2;
+  const lifted = headlineWithAxisFactors({
+    impact: factor,
+    air: factor,
+    speed: factor,
+    amplitude: factor,
+  });
+  if (lifted > 650) passingAllFactor = factor;
+  else failingAllFactor = factor;
+}
+console.log(
+  `all four rms x${passingAllFactor.toFixed(6)}  ` +
+    `${headlineWithAxisFactors({
+      impact: passingAllFactor,
+      air: passingAllFactor,
+      speed: passingAllFactor,
+      amplitude: passingAllFactor,
+    }).toFixed(4)} (>650 boundary)`,
+);
 
 console.log(`\n== the worst cells, by how much they hold back their group ==`);
 const cellLoss = [...byCell.entries()].map(([cell, list]) => {

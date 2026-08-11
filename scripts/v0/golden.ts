@@ -43,6 +43,7 @@ import type {
   BudgetEstimateObservation,
   CompileBudgetTelemetry,
 } from "./optimizer/budget_telemetry.ts";
+import { BUDGET_TELEMETRY_SCHEMA } from "./optimizer/budget_telemetry.ts";
 import { LEGACY_IMPACT_AUTHORING_CONVERSION } from "./core/beats.ts";
 import {
   parseBudgetList,
@@ -1202,19 +1203,21 @@ const ARCHIVED_OBSERVATION_FIELDS = [
   "estimator_applicability",
 ] as const;
 
-/** Attempt fields kept in the ARCHIVE form: identity, anchor + repair context,
+/** Episode fields kept in the ARCHIVE form: identity, anchor + repair context,
  *  work counters, outcome. `start`/`end` are reduced; `observations` are
  *  dropped entirely. The three repair-context scalars stay in the archive
  *  because they exist precisely so studies stop pricing repairs by attempt
  *  ordinal (docs/repair-selection-study.md priced by ordinal for want of a
  *  round field — an error worth a full point of spurious yield); dropping
  *  them here would re-create that gap in the exact corpus those studies read. */
-const ARCHIVED_ATTEMPT_FIELDS = [
-  "attempt_id",
-  "kind",
-  "parent_attempt_id",
+const ARCHIVED_EPISODE_FIELDS = [
+  "episode_id",
+  "lane",
+  "mechanism",
+  "mechanism_detail",
+  "parent_episode_id",
   "search_seed",
-  "has_fallback",
+  "frontier_has_fallback_lane",
   "anchor",
   "repair_round_index",
   "anchor_upstream_offset",
@@ -1223,7 +1226,10 @@ const ARCHIVED_ATTEMPT_FIELDS = [
   "ceiling_total_spent_frames",
   "ceiling_source",
   "available_hard_budget_frames",
-  "local_budget_frames",
+  "allocated_frames",
+  "work",
+  "register_key_at_start",
+  "register_key_at_end",
   "outcome",
 ] as const;
 
@@ -1240,13 +1246,10 @@ function compactBudgetObservation(
 /**
  * Archive form of the compile-budget telemetry.
  *
- * The full payload costs 4.6 KB per attempt once nested and indented into
- * golden.json (measured: 57.8 KB per checkpoint on a mini_burst 150k probe,
- * 85% of that archive's bytes). The archive keeps the whole compile/model/
- * segment account (the part that answers "where did this budget go?") and each
- * attempt's identity, anchor, counters, and outcome, but reduces the start/end
- * estimates to the point, interval, applicability, and accounting terms —
- * 2.5 KB per attempt, 45% off.
+ * The full payload carries trace observations and node events that are too
+ * large for the default golden archive. The archive keeps the whole compile,
+ * model, execution-interval, exact work-funnel, register-lineage, and episode
+ * outcome account, while reducing start/end estimator observations.
  *
  * This is a LOSSY archive form, not a second schema: `archive_form` marks it so
  * a reader never mistakes a stripped observation for a missing one. The full
@@ -1255,15 +1258,22 @@ function compactBudgetObservation(
  */
 export function compactBudgetTelemetry(telemetry: CompileBudgetTelemetry | null): object | null {
   if (telemetry === null) return null;
-  const attempts = Array.isArray(telemetry.attempts) ? telemetry.attempts : [];
+  if (telemetry.schema !== BUDGET_TELEMETRY_SCHEMA) {
+    throw new Error(
+      `compactBudgetTelemetry expected ${BUDGET_TELEMETRY_SCHEMA}; got ${String(telemetry.schema)}`,
+    );
+  }
+  if (!Array.isArray(telemetry.episodes) || !Array.isArray(telemetry.execution_intervals)) {
+    throw new Error(`compactBudgetTelemetry requires complete V3 episodes and execution intervals`);
+  }
   return {
     ...pickDefined(telemetry, ["schema", "level"] as const),
     archive_form: "observations_reduced",
-    ...pickDefined(telemetry, ["model", "compile", "segments"] as const),
-    attempts: attempts.map((attempt) => ({
-      ...pickDefined(attempt, ARCHIVED_ATTEMPT_FIELDS),
-      start: compactBudgetObservation(attempt.start),
-      end: compactBudgetObservation(attempt.end),
+    ...pickDefined(telemetry, ["model", "compile", "execution_intervals"] as const),
+    episodes: telemetry.episodes.map((episode) => ({
+      ...pickDefined(episode, ARCHIVED_EPISODE_FIELDS),
+      start: compactBudgetObservation(episode.start),
+      end: compactBudgetObservation(episode.end),
     })),
   };
 }

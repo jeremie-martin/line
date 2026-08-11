@@ -24,7 +24,9 @@ npm run lab -- report <name> [--axis A] [--run R] canned analyses (see usage for
 | landings | per landing event | from `simulate` re-simulation: speed in/out over IMPACT_WINDOW, dspeed_px, vx/vy_in, redir_px/norm, air_frames; `contact_index` pairs landing→gap |
 | ingest_issues | per problem | every skipped/corrupt file; cleared each index pass |
 
-`budget_telemetry_json` follows `line.compile-budget-telemetry.v1`. Rows
+`budget_telemetry_json` follows `line.compile-budget-telemetry.v3`. New readers
+must reject historical telemetry schemas rather than translating their attempt
+semantics into V3 episode semantics. Rows
 indexed from golden.json archives written since 2026-08 carry the REDUCED
 archive form (`archive_form: "observations_reduced"`): `attempts[].observations`
 is dropped and `start`/`end` keep only point, interval, applicability and the

@@ -38,6 +38,7 @@ import { createReadStream, mkdirSync, readFileSync, writeFileSync } from "node:f
 import { createInterface } from "node:readline";
 import { dirname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
+import { BUDGET_TELEMETRY_SCHEMA } from "./optimizer/budget_telemetry.ts";
 
 const RECORDS_SCHEMA = "line.repair-selection-records.v1" as const;
 const REPORT_SCHEMA = "line.repair-selection-report.v1" as const;
@@ -206,6 +207,17 @@ async function extract(): Promise<void> {
     for await (const run of readRuns(path)) {
       const telemetry = run.budgetTelemetry;
       if (telemetry === null || telemetry === undefined) continue;
+      if (telemetry.schema !== BUDGET_TELEMETRY_SCHEMA) {
+        throw new Error(`${path}: expected ${BUDGET_TELEMETRY_SCHEMA}; got ${String(telemetry.schema)}`);
+      }
+      if (telemetry.episodes.some(
+        (episode: any) => episode.lane === "repair" && episode.mechanism !== "frontier",
+      )) {
+        throw new Error(
+          `${path}: repair-selection replay supports frontier repair episodes only; ` +
+            `surgical repair is a different mechanism`,
+        );
+      }
       levels[telemetry.level] = (levels[telemetry.level] ?? 0) + 1;
       const record = compileRecord(label, run, telemetry);
       if (record === null) continue;
@@ -315,10 +327,10 @@ function compileRecord(label: string, run: any, telemetry: any): CompileRecord |
   let totalGaps = 0;
   let restart = 0;
   let repairStart: number | null = null;
-  for (const attempt of telemetry.attempts ?? []) {
+  for (const attempt of telemetry.episodes) {
     const anchor = attempt.anchor ?? {};
     totalGaps = Math.max(totalGaps, (anchor.gap_index ?? 0) + (anchor.remaining_gaps ?? 0));
-    if (attempt.kind !== "repair") continue;
+    if (attempt.lane !== "repair" || attempt.mechanism !== "frontier") continue;
     const outcome = attempt.outcome ?? {};
     if (repairStart === null) repairStart = attempt.start_total_spent_frames;
     const observations: any[] = attempt.observations ?? [];
@@ -340,14 +352,12 @@ function compileRecord(label: string, run: any, telemetry: any): CompileRecord |
       anchorGap: anchor.gap_index ?? -1,
       start: attempt.start_total_spent_frames,
       ceiling: attempt.ceiling_total_spent_frames,
-      localBudget: attempt.local_budget_frames,
+      localBudget: attempt.allocated_frames,
       ceilingSource: attempt.ceiling_source,
       spent: outcome.spent_frames ?? 0,
-      accepted: typeof outcome.accepted_improvement === "boolean"
-        ? outcome.accepted_improvement
-        : null,
-      delta: numberOrNull(outcome.accepted_score_delta),
-      firstAcceptedOffset: numberOrNull(outcome.first_accepted_improvement_offset_frames),
+      accepted: outcome.register_improved,
+      delta: numberOrNull(outcome.internal_full_score_delta),
+      firstAcceptedOffset: numberOrNull(outcome.first_register_improvement_offset_frames),
       endGap: attempt.end?.high_water?.gap_index ?? -1,
     });
   }
@@ -362,7 +372,7 @@ function compileRecord(label: string, run: any, telemetry: any): CompileRecord |
     hardBudget: telemetry.compile?.hard_budget_frames ?? 0,
     totalSpent: telemetry.compile?.total_spent_frames ?? 0,
     totalGaps,
-    firstCompletionFrame: run.stats?.first_completion_frame ?? -1,
+    firstCompletionFrame: telemetry.compile.first_terminal_total_spent_frames ?? -1,
     deepestSeenGap: run.stats?.handoff_deepest_seen_gap ?? -1,
     repairStart,
     terminus: run.report?.terminus?.reason ?? null,
@@ -1037,8 +1047,8 @@ function protocolSection(out: string[], groups: Group[]): unknown {
     "  --json=generated/budget-telemetry/repair-selection/report.json",
     "```",
     "",
-    "Every archive is read for its `budgetTelemetry` attempts and its final drift",
-    "report. The attempt counts reproduce `docs/repair-roi-study.md` exactly, which is",
+    "Every archive is read for its V3 `budgetTelemetry.episodes` and final drift",
+    "report. The frontier-repair episode counts reproduce `docs/repair-roi-study.md` exactly, which is",
     "the reader's cross-check that the two studies see the same population. `cost floor`",
     "is the smallest local budget any restart in that archive was ever sized to — the",
     "empirical lower bound the per-frame policies need to be well defined (see",

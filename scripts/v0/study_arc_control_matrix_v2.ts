@@ -298,7 +298,10 @@ function runConfiguration(
   const context: ArcActuatorContext | undefined = arcKnobSequenceNeedsContactPoint(configuration.sequence)
     ? (() => {
       const target = getCandidateProbe(engine, gap, ctx).targetState;
-      return { contactPoint: { x: target.sledX, y: target.sledY } };
+      return {
+        contactPoint: { x: target.sledX, y: target.sledY },
+        contactSpeedPx: target.speed,
+      };
     })()
     : undefined;
   const stages: StageTrace[] = [];

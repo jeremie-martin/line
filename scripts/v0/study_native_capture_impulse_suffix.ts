@@ -8,6 +8,10 @@ import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import dense from "../../benchmark/v2/cases/normative/capability/frontier_dense_recovery.ts";
+import pickup from "../../benchmark/v2/cases/normative/capability/frontier_pickup_progression.ts";
+import believer from "../../benchmark/v2/cases/normative/development_music/believer_56_6s.ts";
+import regression from "../../benchmark/v2/cases/normative/regression/regression_transition_mosaic.ts";
+import river from "../../benchmark/v2/cases/normative/representative/river_reentry.ts";
 import denseDialogue from "../../benchmark/v2/cases/variants/representative/dense_dialogue_impact_contrast_10.ts";
 import { benchmarkPolicy } from "../../benchmark/v2/policy.ts";
 import { getRiderMetered } from "../lib/detector.ts";
@@ -24,29 +28,65 @@ import { realizeNativeCaptureImpulseSuffix } from "./trajectory/native_capture_i
 import { CALIB, secToFrame, type AxisValues, type Gap, type Spec, type TrackLine } from "./types.ts";
 
 const BUDGET = 500_000;
-const SEEDS = [56, 57] as const;
 const ZERO_FRICTION_POINTS = new Set(["TAIL", "NOSE", "STRING"]);
-const CASES = [
+const DENSE_CASES = [
   { id: "frontier_dense_recovery_240ms_figures", regime: "capability_dense", spec: dense },
   { id: "dense_dialogue_impact_contrast_10", regime: "representative_dense", spec: denseDialogue },
+] as const;
+const SPREAD_CASES = [
+  { id: "river_reentry", regime: "representative_regular", spec: river },
+  { id: "dense_dialogue_impact_contrast_10", regime: "representative_dense", spec: denseDialogue },
+  { id: "frontier_pickup_progression", regime: "capability_pickup", spec: pickup },
+  { id: "frontier_dense_recovery_240ms_figures", regime: "capability_dense", spec: dense },
+  { id: "regression_transition_mosaic", regime: "legacy_transition", spec: regression },
+  { id: "believer_56_6s", regime: "development_music", spec: believer },
 ] as const;
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
   process.stdout.write(
-    "Usage: study_native_capture_impulse_suffix.ts [--out=PATH]\n" +
+    "Usage: study_native_capture_impulse_suffix.ts [--panel=dense|spread] [--seeds=58,59] [--doses=0.25,0.5,0.75,1] [--out=PATH]\n" +
       "Runs frozen dense first-state raw normal pools with a post-native-capture impulse-latched suffix transport. Observation only.\n",
   );
   process.exit(0);
 }
 const outPath = argv.find((value) => value.startsWith("--out="))?.slice("--out=".length) ??
   "generated/studies/native-capture-impulse-suffix/v1/dense.json";
-const unknown = argv.filter((value) => !value.startsWith("--out="));
+const panel = argv.find((value) => value.startsWith("--panel="))?.slice("--panel=".length) ?? "dense";
+if (panel !== "dense" && panel !== "spread") throw new Error(`--panel must be dense or spread; got ${panel}`);
+const DOSES = [...new Set(
+  (argv.find((value) => value.startsWith("--doses="))?.slice("--doses=".length) ?? "1")
+    .split(",")
+    .map(Number),
+)].sort((left, right) => left - right);
+if (DOSES.length === 0 || DOSES.some((dose) => !Number.isFinite(dose) || !(dose > 0) || dose > 1)) {
+  throw new Error(`--doses must be a non-empty comma list in (0,1]; got ${DOSES.join(",")}`);
+}
+const unknown = argv.filter((value) =>
+  !value.startsWith("--out=") && !value.startsWith("--panel=") &&
+  !value.startsWith("--doses=") && !value.startsWith("--seeds=")
+);
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
+const CASES = panel === "dense" ? DENSE_CASES : SPREAD_CASES;
+const SEEDS = (argv.find((value) => value.startsWith("--seeds="))?.slice("--seeds=".length) ??
+    (panel === "dense" ? "56,57" : "58,59"))
+  .split(",")
+  .map(Number);
+if (SEEDS.length === 0 || SEEDS.some((seed) => !Number.isSafeInteger(seed))) {
+  throw new Error(`--seeds must be a non-empty comma list of safe integers; got ${SEEDS.join(",")}`);
+}
 
 type Setup = { gaps: Gap[]; ctx: SpecContext };
 type RawPool = { seed: number; count: number; candidates: Array<{ attempt: number; hash: string }> };
 type Metrics = { axisRms: number; objective: number | null; cost: number };
+type DoseTrial = {
+  dose: number;
+  transported: Metrics | null;
+  transportedTargetZeroFrictionUpdates: number | null;
+  targetTopologyPreserved: boolean | null;
+  evaluationFrames: number;
+  terminalDisplacementPx: number;
+};
 type Trial = {
   attempt: number;
   raw: Metrics;
@@ -60,6 +100,7 @@ type Trial = {
   evaluationFrames: number;
   impulse: { x: number; y: number } | null;
   terminalDisplacementPx: number | null;
+  doses: DoseTrial[];
 };
 type Row = {
   id: string;
@@ -117,6 +158,8 @@ const result = {
   schema: "line.study-native-capture-impulse-suffix.v1",
   purpose: "fixed dense-first exact raw-capture suffix transport; neither compiler source nor selector",
   frozenConfig: {
+    panel,
+    doses: DOSES,
     budget: BUDGET,
     seeds: [...SEEDS],
     joltMs: benchmarkPolicy.transform.joltMs,
@@ -164,36 +207,52 @@ function evaluateTransport(node: HandoffNode, gap: Gap, setup: Setup, raw: Candi
   if (transport.status !== "ready") {
     return unavailableTrial(raw, rawMetrics, transport.reason, rawTargetZeroFrictionUpdates, stateReadFrames);
   }
-  const beforeEvaluation = getSimFrames();
-  const fit = tryCandidateLines(
-    node.search.prefixEngine, gap, transport.lines, node.search.prefixNextLineId,
-    setup.ctx.allContactFrames, axisLookaheadEndFrame(gap, setup.ctx.allContactFrames),
-    setup.ctx.gapAxisTargets?.[gap.index] ?? gap.targets, true, "normal",
-    getCandidateProbe(node.search.prefixEngine, gap, setup.ctx).preTargetSledTrace,
-  ) as Candidate | null;
-  const evaluationFrames = getSimFrames() - beforeEvaluation;
-  const transportedTargetZeroFrictionUpdates = fit === null
-    ? null
-    : targetZeroFrictionUpdates(
-      node.search.prefixEngine.addLine(fit.lines.map(engineLineFromTrackLine)), gap.endFrame,
-      new Set(fit.lines.map((line) => line.id)), new Set<number>(),
-    );
-  const targetTopologyPreserved = transportedTargetZeroFrictionUpdates === null
-    ? null
-    : transportedTargetZeroFrictionUpdates === rawTargetZeroFrictionUpdates;
+  const fullTerminalDisplacementPx = Math.hypot(
+    transport.terminalDisplacement.x,
+    transport.terminalDisplacement.y,
+  );
+  const doses = DOSES.map((dose): DoseTrial => {
+    const lines = dose === 1 ? transport.lines : blendLines(raw.lines, transport.lines, dose);
+    const beforeEvaluation = getSimFrames();
+    const fit = tryCandidateLines(
+      node.search.prefixEngine, gap, lines, node.search.prefixNextLineId,
+      setup.ctx.allContactFrames, axisLookaheadEndFrame(gap, setup.ctx.allContactFrames),
+      setup.ctx.gapAxisTargets?.[gap.index] ?? gap.targets, true, "normal",
+      getCandidateProbe(node.search.prefixEngine, gap, setup.ctx).preTargetSledTrace,
+    ) as Candidate | null;
+    const evaluationFrames = getSimFrames() - beforeEvaluation;
+    const transportedTargetZeroFrictionUpdates = fit === null
+      ? null
+      : targetZeroFrictionUpdates(
+        node.search.prefixEngine.addLine(fit.lines.map(engineLineFromTrackLine)), gap.endFrame,
+        new Set(fit.lines.map((line) => line.id)), new Set<number>(),
+      );
+    return {
+      dose,
+      transported: fit === null ? null : metrics(node, gap, setup, fit),
+      transportedTargetZeroFrictionUpdates,
+      targetTopologyPreserved: transportedTargetZeroFrictionUpdates === null
+        ? null
+        : transportedTargetZeroFrictionUpdates === rawTargetZeroFrictionUpdates,
+      evaluationFrames,
+      terminalDisplacementPx: fullTerminalDisplacementPx * dose,
+    };
+  });
+  const primary = doses.find((trial) => trial.dose === 1) ?? doses[doses.length - 1]!;
   return {
     attempt: raw.sampleAttempt ?? -1,
     raw: rawMetrics,
     availability: null,
     lastTargetContactIndex: transport.lastTargetContactIndex,
     rawTargetZeroFrictionUpdates,
-    transported: fit === null ? null : metrics(node, gap, setup, fit),
-    transportedTargetZeroFrictionUpdates,
-    targetTopologyPreserved,
+    transported: primary.transported,
+    transportedTargetZeroFrictionUpdates: primary.transportedTargetZeroFrictionUpdates,
+    targetTopologyPreserved: primary.targetTopologyPreserved,
     stateReadFrames,
-    evaluationFrames,
+    evaluationFrames: doses.reduce((sum, trial) => sum + trial.evaluationFrames, 0),
     impulse: transport.impulse,
-    terminalDisplacementPx: Math.hypot(transport.terminalDisplacement.x, transport.terminalDisplacement.y),
+    terminalDisplacementPx: fullTerminalDisplacementPx,
+    doses,
   };
 }
 
@@ -202,6 +261,7 @@ function unavailableTrial(raw: Candidate, rawMetrics: Metrics, reason: string, r
     attempt: raw.sampleAttempt ?? -1, raw: rawMetrics, availability: reason, lastTargetContactIndex: null,
     rawTargetZeroFrictionUpdates: rawUpdates, transported: null, transportedTargetZeroFrictionUpdates: null,
     targetTopologyPreserved: null, stateReadFrames, evaluationFrames: 0, impulse: null, terminalDisplacementPx: null,
+    doses: [],
   };
 }
 
@@ -261,6 +321,43 @@ function summarizeTrials(trials: readonly Trial[]) {
     meanTerminalDisplacementPx: nullableMean(ready.map((trial) => trial.terminalDisplacementPx)),
     stateReadFrames: trials.reduce((sum, trial) => sum + trial.stateReadFrames, 0),
     evaluationFrames: trials.reduce((sum, trial) => sum + trial.evaluationFrames, 0),
+    byDose: Object.fromEntries(DOSES.map((dose) => [String(dose), summarizeDose(trials, dose)])),
+  };
+}
+
+function summarizeDose(trials: readonly Trial[], dose: number) {
+  const variants = trials.flatMap((trial) => {
+    const variant = trial.doses.find((candidate) => candidate.dose === dose);
+    return variant === undefined ? [] : [{ raw: trial.raw, variant }];
+  });
+  const preserved = variants.filter(({ variant }) =>
+    variant.targetTopologyPreserved === true && variant.transported !== null
+  );
+  const objectivePairs = preserved.filter(({ raw, variant }) =>
+    raw.objective !== null && variant.transported!.objective !== null
+  );
+  return {
+    fieldAvailable: variants.length,
+    topologyChanged: variants.filter(({ variant }) => variant.targetTopologyPreserved === false).length,
+    transportedViableWithRawTopology: preserved.length,
+    axisRmsImproved: preserved.filter(({ raw, variant }) =>
+      variant.transported!.axisRms < raw.axisRms
+    ).length,
+    objectiveImproved: objectivePairs.filter(({ raw, variant }) =>
+      variant.transported!.objective! > raw.objective!
+    ).length,
+    bothImproved: objectivePairs.filter(({ raw, variant }) =>
+      variant.transported!.axisRms < raw.axisRms &&
+      variant.transported!.objective! > raw.objective!
+    ).length,
+    meanAxisRmsImprovement: nullableMean(preserved.map(({ raw, variant }) =>
+      raw.axisRms - variant.transported!.axisRms
+    )),
+    meanObjectiveImprovement: nullableMean(objectivePairs.map(({ raw, variant }) =>
+      variant.transported!.objective! - raw.objective!
+    )),
+    bestAxisRms: minimum(preserved.map(({ variant }) => variant.transported!.axisRms)),
+    bestObjective: maximum(preserved.map(({ variant }) => variant.transported!.objective)),
   };
 }
 
@@ -272,8 +369,30 @@ function summarizeRows(rows: readonly Row[]) {
     fieldAvailable: rows.reduce((sum, row) => sum + row.summary.fieldAvailable, 0),
     topologyChanged: rows.reduce((sum, row) => sum + row.summary.topologyChanged, 0),
     transportedViableWithRawTopology: rows.reduce((sum, row) => sum + row.summary.transportedViableWithRawTopology, 0),
+    byDose: Object.fromEntries(DOSES.map((dose) => [
+      String(dose),
+      summarizeDose(rows.flatMap((row) => row.trials), dose),
+    ])),
     bySource: Object.fromEntries(CASES.map((definition) => [definition.id, rows.filter((row) => row.id === definition.id).map((row) => row.summary)])),
   };
+}
+
+function blendLines(
+  raw: readonly TrackLine[],
+  transported: readonly TrackLine[],
+  dose: number,
+): TrackLine[] {
+  if (raw.length !== transported.length) throw new Error("transport changed line count");
+  return raw.map((line, index) => {
+    const target = transported[index]!;
+    return {
+      ...line,
+      x1: line.x1 + (target.x1 - line.x1) * dose,
+      y1: line.y1 + (target.y1 - line.y1) * dose,
+      x2: line.x2 + (target.x2 - line.x2) * dose,
+      y2: line.y2 + (target.y2 - line.y2) * dose,
+    };
+  });
 }
 
 function snapshotRawPool(
@@ -346,7 +465,10 @@ function buildSetup(source: Spec, seed: number): Setup {
       current.nextImpact = next.targets.impact;
     }
   }
-  return { gaps, ctx: { allContactFrames, durationFrames: secToFrame(spec.duration), gapAxisTargets } };
+  return {
+    gaps,
+    ctx: { allContactFrames, durationFrames: secToFrame(spec.duration), gapAxisTargets, gaps },
+  };
 }
 
 function minimum(values: readonly number[]): number | null { return values.length === 0 ? null : round(Math.min(...values)); }

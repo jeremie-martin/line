@@ -5,21 +5,22 @@
  *
  * Companion to scripts/v0/analyze_budget_telemetry.ts: the analyzer aggregates
  * many compiles into error/coverage statistics, this prints one compile's story
- * — where the budget went, which attempts ran, and what the estimator believed
+ * — where the budget went, which episodes ran, and what the estimator believed
  * at each observation. Semantics of every field: docs/compile-budget-telemetry.md.
  *
  * When a sibling `<prefix>.stats.json` exists (scripts/v0/run.ts writes one next
  * to the sidecar) its compiler counters are shown too, so the recorder's
  * accounting can be eyeballed against the compiler's own numbers.
  *
- * The payload is a moving target: a parallel workstream adds fields. This tool
- * therefore renders only what it recognizes, tolerates missing fields, and lists
- * unrecognized key names at the end rather than failing on them.
+ * This renderer accepts the current schema only. Historical payloads must use
+ * their historical tooling; silently translating attempt semantics into V3
+ * episode semantics would produce false comparisons.
  */
 
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { BUDGET_TELEMETRY_SCHEMA } from "./optimizer/budget_telemetry.ts";
 
 // ─────────── Defensive readers (payloads are evolving; never throw) ───────────
 
@@ -136,12 +137,15 @@ const KNOWN_ROOT = new Set([
   "archive_form",
   "model",
   "compile",
-  "segments",
-  "attempts",
+  "execution_intervals",
+  "episodes",
+  "node_events",
 ]);
 const KNOWN_COMPILE = new Set([
   "hard_budget_frames",
   "policy_budget_frames",
+  "search_policy_budget_frames",
+  "repair_budget_frames",
   "total_spent_frames",
   "hard_remaining_frames",
   "hard_overrun_frames",
@@ -150,32 +154,43 @@ const KNOWN_COMPILE = new Set([
   "initial_structural_slack",
   "initial_structural_applicability",
   "first_terminal_total_spent_frames",
+  "first_improving_terminal_total_spent_frames",
+  "work",
+  "final_output_episode_id",
+  "final_output_lane",
+  "resume_admission",
 ]);
-const KNOWN_SEGMENT = new Set([
+const KNOWN_INTERVAL = new Set([
   "kind",
-  "attempt_id",
+  "episode_id",
   "start_total_spent_frames",
   "end_total_spent_frames",
   "spent_frames",
   "stop_reason",
 ]);
-const KNOWN_ATTEMPT = new Set([
-  "attempt_id",
-  "kind",
-  "parent_attempt_id",
+const KNOWN_EPISODE = new Set([
+  "episode_id",
+  "lane",
+  "mechanism",
+  "mechanism_detail",
+  "parent_episode_id",
   "search_seed",
-  "has_fallback",
+  "frontier_has_fallback_lane",
   "anchor",
   // Always present, null on every non-repair kind — so a repair-bearing payload
   // used to report three first-class documented fields as unrecognized.
   "repair_round_index",
   "anchor_upstream_offset",
   "incumbent_weak_gap_sse",
+  "repair_weak_gap_before",
   "start_total_spent_frames",
   "ceiling_total_spent_frames",
   "ceiling_source",
   "available_hard_budget_frames",
-  "local_budget_frames",
+  "allocated_frames",
+  "work",
+  "register_key_at_start",
+  "register_key_at_end",
   "start",
   "end",
   "observations",
@@ -186,9 +201,9 @@ const KNOWN_OBSERVATION = new Set([
   "total_spent_frames",
   "hard_remaining_frames",
   "hard_overrun_frames",
-  "attempt_spent_frames",
-  "attempt_remaining_frames",
-  "attempt_overrun_frames",
+  "episode_spent_frames",
+  "episode_remaining_frames",
+  "episode_overrun_frames",
   "high_water",
   "structural_startup_included",
   "estimator_applicability",
@@ -202,8 +217,8 @@ const KNOWN_OBSERVATION = new Set([
   "estimate_uncertainty_frames",
   "hard_completion_margin",
   "hard_completion_surplus_frames",
-  "attempt_completion_margin",
-  "attempt_completion_surplus_frames",
+  "episode_completion_margin",
+  "episode_completion_surplus_frames",
 ]);
 /**
  * Recognized on purpose and NOT given a column: every one of them is an exact
@@ -213,18 +228,18 @@ const KNOWN_OBSERVATION = new Set([
  * the tool used to make only the first one visible.
  *
  *   hard_overrun_frames                = max(0, total − hard budget)
- *   attempt_overrun_frames             = max(0, att sp − local budget)
+ *   episode_overrun_frames             = max(0, episode spend − allocation)
  *   estimate_uncertainty_frames        = (upper − lower) / 2
  *   hard_completion_surplus_frames     = hard rem − EST
- *   attempt_completion_surplus_frames  = att rem − EST
+ *   episode_completion_surplus_frames  = episode rem − EST
  *   structural_startup_included        = (the one-time intercept still due)
  */
 const RECOGNIZED_NOT_RENDERED = [
   "hard_overrun_frames",
-  "attempt_overrun_frames",
+  "episode_overrun_frames",
   "estimate_uncertainty_frames",
   "hard_completion_surplus_frames",
-  "attempt_completion_surplus_frames",
+  "episode_completion_surplus_frames",
   "structural_startup_included",
 ] as const;
 
@@ -292,8 +307,35 @@ function renderCompile(payload: Rec): string[] {
     scalar(compile.initial_structural_applicability) ?? scalar(compile.estimator_applicability),
   );
   push("first terminal at", scalar(compile.first_terminal_total_spent_frames));
+  push("first improving terminal at", scalar(compile.first_improving_terminal_total_spent_frames));
+  push("final output episode", scalar(compile.final_output_episode_id));
+  push("final output lane", scalar(compile.final_output_lane));
+  const work = asRecord(compile.work);
+  for (const [field, label] of WORK_FIELDS) {
+    const value = scalar(work?.[field]);
+    if (value !== null) push(label, value);
+  }
   return ["COMPILE", ...renderTable(["field", "value"], ["l", "r"], rows, "  ").slice(1)];
 }
+
+const WORK_FIELDS: readonly (readonly [field: string, label: string])[] = [
+  ["pool_builds", "ranked-option pool calls"],
+  ["requested_normal_proposals", "requested normal proposals"],
+  ["actual_candidate_samples", "actual candidate samples"],
+  ["viable_candidates", "viable candidates"],
+  ["nodes_processed", "nodes processed"],
+  ["nodes_expanded", "nodes expanded"],
+  ["children_enqueued", "children enqueued"],
+  ["register_offers", "register offers"],
+  ["partial_node_evaluations", "partial node evaluations"],
+  ["terminal_node_evaluations", "terminal node evaluations"],
+  ["first_time_terminal_node_evaluations", "first-time terminal nodes"],
+  ["revisited_terminal_node_evaluations", "revisited terminal nodes"],
+  ["distinct_terminal_tracks", "distinct terminal tracks"],
+  ["repeated_terminal_track_evaluations", "repeated terminal tracks"],
+  ["register_improvements", "register improvements"],
+  ["terminal_register_improvements", "terminal register improvements"],
+];
 
 /** `budget_slack` is relabelled on the way out: it is the V1 traversal-model
  *  DIFFICULTY coordinate (exactly linear in B, live policy), not the artifact
@@ -336,26 +378,26 @@ function renderStats(sidecarPath: string): string[] {
   return [`COMPILE STATS  ${statsPath}`, ...renderTable(["field", "value"], ["l", "r"], rows, "  ").slice(1)];
 }
 
-function renderSegments(payload: Rec, unknown: Set<string>): string[] {
-  const segments = asArray(payload.segments);
-  if (segments.length === 0) return ["SEGMENTS (0)"];
-  const rows = segments.map((entry, index) => {
-    const segment = asRecord(entry) ?? {};
-    collectUnknown(segment, KNOWN_SEGMENT, unknown);
+function renderIntervals(payload: Rec, unknown: Set<string>): string[] {
+  const intervals = asArray(payload.execution_intervals);
+  if (intervals.length === 0) return ["EXECUTION INTERVALS (0)"];
+  const rows = intervals.map((entry, index) => {
+    const interval = asRecord(entry) ?? {};
+    collectUnknown(interval, KNOWN_INTERVAL, unknown);
     return [
       String(index),
-      text(segment.kind),
-      num(segment.attempt_id) === null ? MISSING : count(segment.attempt_id),
-      count(segment.start_total_spent_frames),
-      count(segment.end_total_spent_frames),
-      count(segment.spent_frames),
-      text(segment.stop_reason),
+      text(interval.kind),
+      num(interval.episode_id) === null ? MISSING : count(interval.episode_id),
+      count(interval.start_total_spent_frames),
+      count(interval.end_total_spent_frames),
+      count(interval.spent_frames),
+      text(interval.stop_reason),
     ];
   });
   return [
-    `SEGMENTS (${segments.length})`,
+    `EXECUTION INTERVALS (${intervals.length})`,
     ...renderTable(
-      ["#", "kind", "att", "from", "to", "spent", "stop reason"],
+      ["#", "kind", "episode", "from", "to", "spent", "stop reason"],
       ["r", "l", "r", "r", "r", "r", "l"],
       rows,
       "  ",
@@ -363,35 +405,37 @@ function renderSegments(payload: Rec, unknown: Set<string>): string[] {
   ];
 }
 
-function attemptOutcomeLabel(outcome: Rec | null): string {
+function episodeOutcomeLabel(outcome: Rec | null): string {
   if (outcome === null) return MISSING;
-  const completed = bool(outcome.completed);
-  const censored = bool(outcome.censored);
-  if (completed === true) return "completed";
-  if (censored === true) return "censored";
-  if (completed === false) return "incomplete";
-  return MISSING;
+  if (bool(outcome.terminal_observation_censored) === true) return "no terminal";
+  return `${count(outcome.terminal_tracks_considered)} terminal`;
 }
 
 /**
- * Attempt columns. `optional` columns describe fields a recorder version may
- * not emit; they are dropped when no attempt in this compile carries them, so
- * an older payload does not render a column of nulls.
+ * Episode columns. Optional repair context disappears when the compile has no
+ * repair lane.
  */
-type AttemptColumn = {
+type EpisodeColumn = {
   header: string;
   align: Align;
   optional?: boolean;
-  cell: (attempt: Rec, anchor: Rec | null, outcome: Rec | null) => string;
+  cell: (episode: Rec, anchor: Rec | null, outcome: Rec | null) => string;
 };
 
-const ATTEMPT_COLUMNS: AttemptColumn[] = [
-  { header: "id", align: "r", cell: (a) => count(a.attempt_id) },
-  { header: "kind", align: "l", cell: (a) => text(a.kind) },
+const EPISODE_COLUMNS: EpisodeColumn[] = [
+  { header: "id", align: "r", cell: (e) => count(e.episode_id) },
+  { header: "lane", align: "l", cell: (e) => text(e.lane) },
+  { header: "mechanism", align: "l", cell: (e) => text(e.mechanism) },
+  {
+    header: "detail",
+    align: "l",
+    optional: true,
+    cell: (e) => text(e.mechanism_detail),
+  },
   {
     header: "parent",
     align: "r",
-    cell: (a) => (num(a.parent_attempt_id) === null ? MISSING : count(a.parent_attempt_id)),
+    cell: (e) => (num(e.parent_episode_id) === null ? MISSING : count(e.parent_episode_id)),
   },
   { header: "seed", align: "r", cell: (a) => count(a.search_seed) },
   {
@@ -431,9 +475,9 @@ const ATTEMPT_COLUMNS: AttemptColumn[] = [
     optional: true,
     cell: (a) => text(a.ceiling_source),
   },
-  { header: "local", align: "r", cell: (a) => count(a.local_budget_frames) },
+  { header: "allocated", align: "r", cell: (a) => count(a.allocated_frames) },
   { header: "spent", align: "r", cell: (_a, _anchor, o) => (o === null ? MISSING : count(o.spent_frames)) },
-  { header: "outcome", align: "l", cell: (_a, _anchor, o) => attemptOutcomeLabel(o) },
+  { header: "outcome", align: "l", cell: (_a, _anchor, o) => episodeOutcomeLabel(o) },
   { header: "stop reason", align: "l", cell: (_a, _anchor, o) => (o === null ? MISSING : text(o.stop_reason)) },
   {
     header: "1st term",
@@ -441,40 +485,47 @@ const ATTEMPT_COLUMNS: AttemptColumn[] = [
     cell: (_a, _anchor, o) => (o === null ? MISSING : count(o.first_terminal_offset_frames)),
   },
   {
-    header: "1st acc",
+    header: "1st improve",
     align: "r",
     optional: true,
-    cell: (_a, _anchor, o) => (o === null ? MISSING : count(o.first_accepted_improvement_offset_frames)),
+    cell: (_a, _anchor, o) => (o === null ? MISSING : count(o.first_register_improvement_offset_frames)),
   },
   {
-    header: "accepted",
+    header: "1st terminal improve",
+    align: "r",
+    optional: true,
+    cell: (_a, _anchor, o) =>
+      o === null ? MISSING : count(o.first_terminal_register_improvement_offset_frames),
+  },
+  {
+    header: "improved",
     align: "l",
     cell: (_a, _anchor, o) =>
-      o === null || bool(o.accepted_improvement) === null ? MISSING : flag(o.accepted_improvement),
+      o === null || bool(o.register_improved) === null ? MISSING : flag(o.register_improved),
   },
   {
-    header: "score delta",
+    header: "internal score delta",
     align: "r",
     optional: true,
-    cell: (_a, _anchor, o) => (o === null ? MISSING : ratio(o.accepted_score_delta, 3)),
+    cell: (_a, _anchor, o) => (o === null ? MISSING : ratio(o.internal_full_score_delta, 3)),
   },
 ];
 
-function renderAttempts(payload: Rec, unknown: Set<string>): string[] {
-  const attempts = asArray(payload.attempts);
-  if (attempts.length === 0) return ["ATTEMPTS (0)"];
-  const cells = attempts.map((entry) => {
-    const attempt = asRecord(entry) ?? {};
-    collectUnknown(attempt, KNOWN_ATTEMPT, unknown);
-    const anchor = asRecord(attempt.anchor);
-    const outcome = asRecord(attempt.outcome);
-    return ATTEMPT_COLUMNS.map((column) => column.cell(attempt, anchor, outcome));
+function renderEpisodes(payload: Rec, unknown: Set<string>): string[] {
+  const episodes = asArray(payload.episodes);
+  if (episodes.length === 0) return ["EPISODES (0)"];
+  const cells = episodes.map((entry) => {
+    const episode = asRecord(entry) ?? {};
+    collectUnknown(episode, KNOWN_EPISODE, unknown);
+    const anchor = asRecord(episode.anchor);
+    const outcome = asRecord(episode.outcome);
+    return EPISODE_COLUMNS.map((column) => column.cell(episode, anchor, outcome));
   });
-  const columns = ATTEMPT_COLUMNS.map((column, index) => ({ column, index })).filter(
+  const columns = EPISODE_COLUMNS.map((column, index) => ({ column, index })).filter(
     ({ column, index }) => !column.optional || cells.some((row) => row[index] !== MISSING),
   );
   return [
-    `ATTEMPTS (${attempts.length})`,
+    `EPISODES (${episodes.length})`,
     ...renderTable(
       columns.map(({ column }) => column.header),
       columns.map(({ column }) => column.align),
@@ -484,14 +535,80 @@ function renderAttempts(payload: Rec, unknown: Set<string>): string[] {
   ];
 }
 
+function renderEpisodeWork(payload: Rec): string[] {
+  const episodes = asArray(payload.episodes).flatMap((entry) => {
+    const episode = asRecord(entry);
+    return episode === null ? [] : [episode];
+  });
+  if (episodes.length === 0) return [];
+  const rows = episodes.map((episode) => {
+    const work = asRecord(episode.work) ?? {};
+    return [
+      count(episode.episode_id),
+      text(episode.lane),
+      count(work.pool_builds),
+      count(work.requested_normal_proposals),
+      count(work.actual_candidate_samples),
+      count(work.viable_candidates),
+      count(work.nodes_processed),
+      count(work.children_enqueued),
+      count(work.register_offers),
+      count(work.terminal_node_evaluations),
+      count(work.distinct_terminal_tracks),
+      count(work.repeated_terminal_track_evaluations),
+      count(work.register_improvements),
+      count(work.terminal_register_improvements),
+    ];
+  });
+  const originRows = episodes.flatMap((episode) => {
+    const work = asRecord(episode.work);
+    const origins = asRecord(work?.by_evaluation_origin);
+    if (origins === null) return [];
+    return Object.entries(origins).flatMap(([origin, raw]) => {
+      const value = asRecord(raw);
+      if (value === null) return [];
+      return [[
+        count(episode.episode_id),
+        text(episode.lane),
+        origin,
+        count(value.register_offers),
+        count(value.terminal_node_evaluations),
+        count(value.register_improvements),
+        count(value.terminal_register_improvements),
+      ]];
+    });
+  });
+  return [
+    "EPISODE WORK FUNNEL",
+    ...renderTable(
+      ["id", "lane", "pools", "requested", "sampled", "viable", "nodes", "children", "offers", "terminal", "tracks", "repeat", "improve", "term imp"],
+      ["r", "l", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r"],
+      rows,
+      "  ",
+    ),
+    ...(originRows.length === 0
+      ? []
+      : [
+        "",
+        "EVALUATION ORIGIN ATTRIBUTION",
+        ...renderTable(
+          ["id", "lane", "origin", "offers", "terminal", "improve", "term imp"],
+          ["r", "l", "l", "r", "r", "r", "r"],
+          originRows,
+          "  ",
+        ),
+      ]),
+  ];
+}
+
 /**
  * Trace payloads carry the full observation array; summary payloads keep only
- * the attempt's start and end. Walk whichever exists, and say which it was.
+ * the episode's start and end. Walk whichever exists, and say which it was.
  */
-function attemptObservations(attempt: Rec): { rows: unknown[]; source: string } {
-  const observations = asArray(attempt.observations);
+function episodeObservations(episode: Rec): { rows: unknown[]; source: string } {
+  const observations = asArray(episode.observations);
   if (observations.length > 0) return { rows: observations, source: "trace" };
-  const fallback = [attempt.start, attempt.end].filter((entry) => asRecord(entry) !== null);
+  const fallback = [episode.start, episode.end].filter((entry) => asRecord(entry) !== null);
   return { rows: fallback, source: "start/end only" };
 }
 
@@ -503,8 +620,8 @@ const WALK_HEADERS = [
   "event",
   "total",
   "hard rem",
-  "att sp",
-  "att rem",
+  "episode sp",
+  "episode rem",
   "hw",
   "prog",
   "S",
@@ -514,7 +631,7 @@ const WALK_HEADERS = [
   "lower",
   "upper",
   "hard mrg",
-  "att mrg",
+  "episode mrg",
   "app",
 ];
 const WALK_ALIGNS: Align[] = [
@@ -529,8 +646,8 @@ function walkRow(raw: unknown, unknown: Set<string>): string[] {
     text(observation.event),
     count(observation.total_spent_frames),
     count(observation.hard_remaining_frames),
-    count(observation.attempt_spent_frames),
-    count(observation.attempt_remaining_frames),
+    count(observation.episode_spent_frames),
+    count(observation.episode_remaining_frames),
     highWater === null ? MISSING : count(highWater.gap_index),
     ratio(observation.structural_progress_fraction, 3),
     count(observation.structural_work_prior_frames),
@@ -540,21 +657,21 @@ function walkRow(raw: unknown, unknown: Set<string>): string[] {
     count(observation.estimate_lower_frames),
     count(observation.estimate_upper_frames),
     ratio(observation.hard_completion_margin),
-    ratio(observation.attempt_completion_margin),
+    ratio(observation.episode_completion_margin),
     applicabilityCode(observation.estimator_applicability),
   ];
 }
 
 function renderWalk(payload: Rec, unknown: Set<string>): string[] {
-  const attempts = asArray(payload.attempts)
+  const episodes = asArray(payload.episodes)
     .map((entry) => asRecord(entry))
-    .filter((attempt): attempt is Rec => attempt !== null);
-  if (attempts.length === 0) return [];
-  const walks = attempts.map((attempt) => {
-    const { rows, source } = attemptObservations(attempt);
-    return { attempt, source, cells: rows.map((row) => walkRow(row, unknown)) };
+    .filter((episode): episode is Rec => episode !== null);
+  if (episodes.length === 0) return [];
+  const walks = episodes.map((episode) => {
+    const { rows, source } = episodeObservations(episode);
+    return { episode, source, cells: rows.map((row) => walkRow(row, unknown)) };
   });
-  // One width set for every attempt, so the columns line up down the page.
+  // One width set for every episode, so the columns line up down the page.
   const widths = columnWidths(WALK_HEADERS, walks.flatMap((walk) => walk.cells));
   const lines = [
     "OBSERVATION WALK   applicability: CAL calibrated · EXT extrapolated · UNV unvalidated kind",
@@ -562,12 +679,12 @@ function renderWalk(payload: Rec, unknown: Set<string>): string[] {
       RECOGNIZED_NOT_RENDERED.join(", ")
     }`,
   ];
-  for (const { attempt, source, cells } of walks) {
+  for (const { episode, source, cells } of walks) {
     lines.push(
       "",
-      `  attempt ${count(attempt.attempt_id)}  kind=${text(attempt.kind)}  ` +
-        `parent=${num(attempt.parent_attempt_id) === null ? MISSING : count(attempt.parent_attempt_id)}  ` +
-        `fallback=${flag(attempt.has_fallback)}  ` +
+      `  episode ${count(episode.episode_id)}  lane=${text(episode.lane)}  ` +
+        `parent=${num(episode.parent_episode_id) === null ? MISSING : count(episode.parent_episode_id)}  ` +
+        `fallback=${flag(episode.frontier_has_fallback_lane)}  ` +
         `observations=${cells.length} (${source})`,
     );
     if (cells.length === 0) continue;
@@ -590,10 +707,18 @@ function renderUnknown(scopes: Array<{ scope: string; keys: Set<string> }>): str
 function describe(path: string): string {
   const payload = asRecord(JSON.parse(readFileSync(path, "utf8")));
   if (payload === null) throw new Error(`${path} is not a budget-telemetry object`);
+  if (payload.schema !== BUDGET_TELEMETRY_SCHEMA) {
+    throw new Error(
+      `${path} has schema ${String(payload.schema)}; expected ${BUDGET_TELEMETRY_SCHEMA}`,
+    );
+  }
+  if (!Array.isArray(payload.episodes) || !Array.isArray(payload.execution_intervals)) {
+    throw new Error(`${path} is missing V3 episodes or execution intervals`);
+  }
   const rootUnknown = new Set<string>();
   const compileUnknown = new Set<string>();
-  const segmentUnknown = new Set<string>();
-  const attemptUnknown = new Set<string>();
+  const intervalUnknown = new Set<string>();
+  const episodeUnknown = new Set<string>();
   const observationUnknown = new Set<string>();
   collectUnknown(payload, KNOWN_ROOT, rootUnknown);
   collectUnknown(asRecord(payload.compile), KNOWN_COMPILE, compileUnknown);
@@ -602,14 +727,15 @@ function describe(path: string): string {
     renderHeader(path, payload),
     renderCompile(payload),
     renderStats(path),
-    renderSegments(payload, segmentUnknown),
-    renderAttempts(payload, attemptUnknown),
+    renderIntervals(payload, intervalUnknown),
+    renderEpisodes(payload, episodeUnknown),
+    renderEpisodeWork(payload),
     renderWalk(payload, observationUnknown),
     renderUnknown([
       { scope: "payload", keys: rootUnknown },
       { scope: "compile", keys: compileUnknown },
-      { scope: "segment", keys: segmentUnknown },
-      { scope: "attempt", keys: attemptUnknown },
+      { scope: "execution interval", keys: intervalUnknown },
+      { scope: "episode", keys: episodeUnknown },
       { scope: "observation", keys: observationUnknown },
     ]),
   ];

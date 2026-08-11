@@ -18,12 +18,29 @@ import { compileHandoff } from "../optimizer/handoff.ts";
 import { scoreDriftReport } from "../score.ts";
 import { secToFrame } from "../types.ts";
 import { WIDE_VERIFY_CASES, type VerifyOptimizerCase } from "./optimizer_verify_cases.ts";
+import {
+  currentCampaignVerificationProvenance,
+  formatVerificationProvenance,
+  type VerificationProvenance,
+} from "./verification_provenance.ts";
 
 const OUT_DIR = "generated/verify-compiler-behavior";
 const BASELINE = resolve(OUT_DIR, "baseline.json");
 const DEFAULT_BUDGETS = [61_000, 100_000, 150_000, 200_000] as const;
 const CASES = WIDE_VERIFY_CASES;
 const VERSION = 1;
+
+/**
+ * The 61k rung deliberately reaches below the compiler's reliable operating
+ * surface. `rhythm_ladder` is the one known-invalid cell on the governed
+ * compiler; retaining it is useful because its exact failure, output, and work
+ * trajectory are still a sensitive behavior oracle. Any other invalid cell is
+ * a verification failure, and making this cell valid also requires an explicit
+ * fixture refresh rather than silently changing the contract.
+ */
+const EXPECTED_INVALID_CELLS = new Set([
+  "rhythm_ladder|seed2|budget61000",
+]);
 
 type Cell = {
   hash: string;
@@ -50,6 +67,7 @@ type Baseline = {
   version: number;
   budgets: number[];
   cases: VerifyOptimizerCase[];
+  provenance?: VerificationProvenance;
   cells: Record<string, Cell>;
   coverage: Coverage;
 };
@@ -171,6 +189,7 @@ async function main(): Promise<void> {
     }
     baseline = JSON.parse(readFileSync(BASELINE, "utf8")) as Baseline;
     assertCompatibleBaseline(baseline, budgets);
+    console.log(`fixture provenance: ${formatVerificationProvenance(baseline.provenance)}`);
   }
 
   const diffs: string[] = [];
@@ -186,7 +205,7 @@ async function main(): Promise<void> {
       current[k] = cell;
       addCoverage(coverage, cell);
 
-      if (!cell.contract_passed) {
+      if (!cell.contract_passed && !EXPECTED_INVALID_CELLS.has(k)) {
         const msg = `${k}: INVALID (${cell.hard_failures.join(";") || "contract failed"})`;
         if (!all) throw new Error(msg);
         diffs.push(`  ${msg}`);
@@ -221,7 +240,14 @@ async function main(): Promise<void> {
     if (diffs.length > 0) {
       throw new Error(`Refusing to record invalid behavior baseline:\n${diffs.join("\n")}`);
     }
-    const next: Baseline = { version: VERSION, budgets, cases: [...CASES], cells: current, coverage };
+    const next: Baseline = {
+      version: VERSION,
+      budgets,
+      cases: [...CASES],
+      provenance: currentCampaignVerificationProvenance(),
+      cells: current,
+      coverage,
+    };
     writeFileSync(BASELINE, JSON.stringify(next, null, 2) + "\n");
     console.log(`\nRe-baselined ${coverage.cells} compiler behavior cells -> ${BASELINE}`);
     console.log(

@@ -273,7 +273,10 @@ function seedList(text: string, base: number): number[] {
 
 function parseEnv(text: string | undefined): Record<string, string> {
   if (text === undefined || text.length === 0) return {};
-  return Object.fromEntries(text.split(",").map((entry) => {
+  // Values may themselves contain commas (for example an ordered compiler
+  // knob sequence).  A comma starts the next assignment only when what
+  // follows has the shape of an environment-variable name plus `=`.
+  return Object.fromEntries(text.split(/,(?=[A-Za-z_][A-Za-z0-9_]*=)/).map((entry) => {
     const split = entry.indexOf("=");
     if (split <= 0) throw new Error(`--env entries must be KEY=VALUE: ${entry}`);
     return [entry.slice(0, split), entry.slice(split + 1)];

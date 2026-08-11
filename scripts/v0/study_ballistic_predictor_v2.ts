@@ -219,6 +219,12 @@ const REFERENCE_MODEL = REFERENCE_PREDICTOR.name;
  * return null between experiments.
  */
 function configuredAlternative(): Predictor | null {
+  if (argValue("alternative") === "closed-form-articulated-tau4") {
+    return {
+      name: "closed_form_articulated_tau4",
+      predict: predictClosedFormArticulatedTau4,
+    };
+  }
   return { name: "closed_form_system", predict: predictClosedFormSystem };
 }
 const ALTERNATIVE_PREDICTOR = configuredAlternative();
@@ -1347,6 +1353,87 @@ function predictClosedFormSystem(input: PredictorInput): BallisticState {
     vy,
     speed,
     comAngleDeg: speed > 0 ? Math.atan2(vy, svx) * 180 / Math.PI : null,
+    sledPoseDeg: pose === null ? null : pose.deg + n * omegaDegPerFrame,
+    sledPoseRateDegPerFrame: omegaDegPerFrame,
+    constraintState: { ...constraintState, frameOffset: 0 },
+  };
+}
+
+/*
+ * Fixed historical articulated completion of `closed_form_system`.
+ *
+ * The ten-point system centre remains the exact ballistic coordinate. The
+ * six-point body offset rotates at the instantaneous body-about-system angular
+ * rate, while its relative velocity rotates with it and loses confidence as
+ * exp(-n / 4). This is the one-anchor analogue of the previously adopted
+ * `assembly_damped_tau4` predictor. Position deliberately uses the rotated
+ * bounded offset, not an integral of the decaying velocity: the physical claim
+ * is that the body orbits the assembly rather than drifting away from it.
+ *
+ * Retained as an explicit negative control. On the frozen v8 corpus it worsens
+ * position error to 0.73/0.76 px from `closed_form_system`'s 0.56/0.58 px.
+ * Reproduce with `--alternative=closed-form-articulated-tau4`.
+ */
+function predictClosedFormArticulatedTau4(input: PredictorInput): BallisticState {
+  const constraintState = input.constraintState;
+  if (constraintState === null || constraintState === undefined) {
+    return predictClosedFormSystem(input);
+  }
+  const last = input.anchor;
+  const n = Math.max(0, Math.round(input.targetFrame - last.frame));
+  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
+  let sx = 0, sy = 0, svx = 0, svy = 0, count = 0;
+  for (const id of BALLISTIC_POINT_IDS) {
+    const point = constraintState.points[id];
+    if (point === undefined) continue;
+    sx += point.x; sy += point.y; svx += point.vx; svy += point.vy; count++;
+  }
+  if (count === 0) return predictClosedFormSystem(input);
+  sx /= count; sy /= count; svx /= count; svy /= count;
+
+  const offsetX = last.body.x - sx;
+  const offsetY = last.body.y - sy;
+  const relativeVx = last.body.vx - svx;
+  const relativeVy = last.body.vy - svy;
+  const radius2 = offsetX * offsetX + offsetY * offsetY;
+  const relativeOmega = radius2 > 1e-9
+    ? (offsetX * relativeVy - offsetY * relativeVx) / radius2
+    : 0;
+  const rotation = relativeOmega * n;
+  const cosine = Math.cos(rotation);
+  const sine = Math.sin(rotation);
+  const rotatedOffsetX = offsetX * cosine - offsetY * sine;
+  const rotatedOffsetY = offsetX * sine + offsetY * cosine;
+  const rotatedRelativeVx = relativeVx * cosine - relativeVy * sine;
+  const rotatedRelativeVy = relativeVx * sine + relativeVy * cosine;
+  const confidence = Math.exp(-n / 4);
+
+  const vx = svx + confidence * rotatedRelativeVx;
+  const vy = svy + n * g + confidence * rotatedRelativeVy;
+  const x = sx + n * svx + rotatedOffsetX;
+  const y = sy + n * svy + g * n * (n + 1) / 2 + rotatedOffsetY;
+  const speed = Math.hypot(vx, vy);
+  const pose = closedFormPose(constraintState);
+  let angularNumerator = 0;
+  let angularDenominator = 0;
+  for (const id of BALLISTIC_POINT_IDS) {
+    const point = constraintState.points[id];
+    if (point === undefined) continue;
+    const rx = point.x - sx;
+    const ry = point.y - sy;
+    angularNumerator += rx * (point.vy - svy) - ry * (point.vx - svx);
+    angularDenominator += rx * rx + ry * ry;
+  }
+  const omegaDegPerFrame = angularDenominator > 0
+    ? angularNumerator / angularDenominator * 180 / Math.PI
+    : 0;
+  return {
+    x,
+    y,
+    vx,
+    vy,
+    speed,
+    comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
     sledPoseDeg: pose === null ? null : pose.deg + n * omegaDegPerFrame,
     sledPoseRateDegPerFrame: omegaDegPerFrame,
     constraintState: { ...constraintState, frameOffset: 0 },

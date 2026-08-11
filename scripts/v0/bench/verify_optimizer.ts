@@ -31,6 +31,11 @@ import { resolve } from "node:path";
 import { loadGoldenSpec } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
 import { SMOKE_VERIFY_CASES, VERIFY_OPTIMIZER_BUDGET, WIDE_VERIFY_CASES } from "./optimizer_verify_cases.ts";
+import {
+  currentCampaignVerificationProvenance,
+  formatVerificationProvenance,
+  type VerificationProvenance,
+} from "./verification_provenance.ts";
 
 const OUT_DIR = "generated/verify-optimizer";
 const WIDE = process.argv.includes("--wide");
@@ -39,7 +44,12 @@ const CASES = WIDE ? WIDE_VERIFY_CASES : SMOKE_VERIFY_CASES;
 const BUDGET = VERIFY_OPTIMIZER_BUDGET;
 
 type Cell = { hash: string; lines: number; sim_frames: number };
-type Baseline = { budget: number; suite?: string; cases: Record<string, Cell> };
+type Baseline = {
+  budget: number;
+  suite?: string;
+  provenance?: VerificationProvenance;
+  cases: Record<string, Cell>;
+};
 
 function key(spec: string, seed: number): string {
   return `${spec}|seed${seed}`;
@@ -76,7 +86,12 @@ async function main(): Promise<void> {
   mkdirSync(OUT_DIR, { recursive: true });
 
   if (update) {
-    const baseline: Baseline = { budget: BUDGET, suite: WIDE ? "wide" : "smoke", cases: current };
+    const baseline: Baseline = {
+      budget: BUDGET,
+      suite: WIDE ? "wide" : "smoke",
+      provenance: currentCampaignVerificationProvenance(),
+      cases: current,
+    };
     writeFileSync(BASELINE, JSON.stringify(baseline, null, 2) + "\n");
     console.log(`\nRe-baselined ${CASES.length} cases → ${BASELINE}`);
     return;
@@ -92,6 +107,7 @@ async function main(): Promise<void> {
   }
 
   const baseline: Baseline = JSON.parse(readFileSync(BASELINE, "utf8"));
+  console.log(`  fixture provenance: ${formatVerificationProvenance(baseline.provenance)}`);
   const diffs: string[] = [];
   for (const [spec, seed] of CASES) {
     const k = key(spec, seed);

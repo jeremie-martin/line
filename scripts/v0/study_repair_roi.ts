@@ -8,14 +8,12 @@
  * buy, where does the marginal gain flatten, and are `maxAttempts` /
  * `mainMargin` / the per-restart ceiling sized for the measured curve.
  *
- * Input is any archive whose runs carry `budgetTelemetry` recorded at or after
- * 3e1ce0d (the commit that added `outcome.accepted_score_delta` and
- * `outcome.first_accepted_improvement_offset_frames`). Both the budget-scale
+ * Input is any archive whose runs carry the exact V3 `budgetTelemetry` schema.
+ * Both the budget-scale
  * panels (`line.benchmark-v2.budget-scale-study.v2`) and the benchmark eval
  * archives (`line.benchmark-v2.run-archive.v*`) share the run shape, so one
  * reader serves both; `.json` and `.json.gz` are both accepted. Archives whose
- * repair attempts predate the outcome fields are reported as
- * `outcome_fields: stale` and excluded from every ROI table.
+ * Historical V1/V2 attempt payloads are rejected rather than translated.
  *
  *   extract  compress archives into per-compile / per-attempt records
  *   report   render the ROI, acceptance, phase-allocation and hygiene tables
@@ -37,6 +35,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { scoreDriftReport } from "./score.ts";
+import { BUDGET_TELEMETRY_SCHEMA } from "./optimizer/budget_telemetry.ts";
 
 const RECORDS_SCHEMA = "line.repair-roi-records.v1" as const;
 const REPORT_SCHEMA = "line.repair-roi-report.v1" as const;
@@ -86,10 +85,6 @@ type CompileRecord = {
   survivalQuality: number | null;
   terminus: string | null;
   segments: Record<string, number>;
-  /** `compile_stats.repair`, the snapshot-at-capture aggregate. */
-  statsRestarts: number | null;
-  statsAccepts: number | null;
-  statsFramesSpent: number | null;
   attempts: AttemptRecord[];
 };
 
@@ -108,7 +103,9 @@ type ArchiveRecord = {
 const SEGMENT_KINDS = [
   "startup",
   "initial_search",
-  "repair_attempt",
+  "repair_surgical",
+  "repair_frontier",
+  "repair",
   "resumed_search",
   "finalization",
   "unattributed",
@@ -150,6 +147,17 @@ function extract(): void {
     for (const run of runs) {
       const telemetry = run.budgetTelemetry;
       if (telemetry === null || telemetry === undefined) continue;
+      if (telemetry.schema !== BUDGET_TELEMETRY_SCHEMA) {
+        throw new Error(`${path}: expected ${BUDGET_TELEMETRY_SCHEMA}; got ${String(telemetry.schema)}`);
+      }
+      if (telemetry.episodes.some(
+        (episode: any) => episode.lane === "repair" && episode.mechanism !== "frontier",
+      )) {
+        throw new Error(
+          `${path}: repair ROI currently models frontier repair episodes only; ` +
+            `surgical repair must be analyzed as a separate mechanism`,
+        );
+      }
       levels[telemetry.level] = (levels[telemetry.level] ?? 0) + 1;
       const record = compileRecord(label, run, telemetry);
       for (const attempt of record.attempts) {
@@ -175,8 +183,8 @@ function extract(): void {
           : "stale",
     });
     process.stderr.write(
-      `${label}: ${runs.length} runs, ${repairAttempts} repair attempts, ` +
-        `${repairWithDelta} with accepted_score_delta\n`,
+      `${label}: ${runs.length} runs, ${repairAttempts} repair episodes, ` +
+        `${repairWithDelta} with internal_full_score_delta\n`,
     );
   }
   writeJson(outPath, { schema: RECORDS_SCHEMA, archives, compiles });
@@ -186,34 +194,37 @@ function extract(): void {
 function compileRecord(label: string, run: any, telemetry: any): CompileRecord {
   const attempts: AttemptRecord[] = [];
   let restart = 0;
-  for (const attempt of telemetry.attempts ?? []) {
-    const outcome = attempt.outcome ?? {};
+  for (const attempt of telemetry.episodes) {
+    const outcome = attempt.outcome;
     attempts.push({
-      id: attempt.attempt_id,
-      kind: attempt.kind,
-      restart: attempt.kind === "repair" ? restart++ : -1,
+      id: attempt.episode_id,
+      kind: attempt.lane,
+      restart: attempt.lane === "repair" ? restart++ : -1,
       anchorGap: attempt.anchor?.gap_index ?? -1,
       anchorContacts: attempt.anchor?.remaining_contacts ?? -1,
       start: attempt.start_total_spent_frames,
       ceiling: attempt.ceiling_total_spent_frames,
-      localBudget: attempt.local_budget_frames,
+      localBudget: attempt.allocated_frames,
       ceilingSource: attempt.ceiling_source,
       spent: outcome.spent_frames ?? 0,
       stopReason: outcome.stop_reason ?? "unknown",
-      completed: outcome.completed === true,
-      censored: outcome.censored === true,
+      completed: outcome.terminal_tracks_considered > 0,
+      censored: outcome.terminal_observation_censored,
       firstTerminalOffset: numberOrNull(outcome.first_terminal_offset_frames),
-      accepted: typeof outcome.accepted_improvement === "boolean" ? outcome.accepted_improvement : null,
-      firstAcceptedOffset: numberOrNull(outcome.first_accepted_improvement_offset_frames),
-      delta: numberOrNull(outcome.accepted_score_delta),
+      accepted: outcome.register_improved,
+      firstAcceptedOffset: numberOrNull(outcome.first_register_improvement_offset_frames),
+      delta: numberOrNull(outcome.internal_full_score_delta),
     });
   }
   const segments: Record<string, number> = {};
   for (const kind of SEGMENT_KINDS) segments[kind] = 0;
-  for (const segment of telemetry.segments ?? []) {
+  for (const segment of telemetry.execution_intervals) {
     segments[segment.kind] = (segments[segment.kind] ?? 0) + segment.spent_frames;
+    if (segment.kind === "repair_surgical" || segment.kind === "repair_frontier") {
+      segments.repair += segment.spent_frames;
+    }
   }
-  const initial = (telemetry.attempts ?? []).find((attempt: any) => attempt.kind === "initial");
+  const initial = telemetry.episodes.find((episode: any) => episode.lane === "initial");
   const driftReport = run.report ?? null;
   // `full_score` needs the spec frame count only to grade a dying leaf. Every
   // compile that reaches the repair phase ends `endOfSpec`, so survival is 1
@@ -243,9 +254,6 @@ function compileRecord(label: string, run: any, telemetry: any): CompileRecord {
     survivalQuality: scored === null ? null : scored.survival_quality,
     terminus: driftReport?.terminus?.reason ?? null,
     segments,
-    statsRestarts: numberOrNull(run.stats?.repair?.restarts),
-    statsAccepts: numberOrNull(run.stats?.repair?.accepts),
-    statsFramesSpent: numberOrNull(run.stats?.repair?.frames_spent),
     attempts,
   };
 }
@@ -300,9 +308,9 @@ function report(): void {
   );
   out.push("");
   out.push(
-    "**Headline.** `accepted_score_delta` is a benchmark point — the compiler's `full_score` and",
-    "the benchmark's run score are the same number on 72% of compiles and agree to six decimals at",
-    "the median. In that unit the repair phase buys 5.8 points per compile at 750k for 348 kf, and",
+    "**Score domain.** `internal_full_score_delta` is the optimizer register's internal score",
+    "change. It is not Benchmark V2 headline score. In that diagnostic unit the archived repair",
+    "phase buys 5.8 internal points per compile at 750k for 348 kf, and",
     "it buys roughly the same 5-8 points at every budget from 150k to 2.25M while its frame cost",
     "multiplies by 34. Repair spend scales as `B^1.33`, repair yield as `B^0.11`, so repair ROI",
     "collapses as `B^-1.22`. Three quarters of the gain arrives in the first restart and 98% in the",
@@ -362,10 +370,10 @@ function protocolSection(archives: ArchiveRecord[], groups: Group[]): string[] {
     ];
   });
   return [
-    "One reader over two archive families; `.gz` accepted. A repair restart is one",
-    "`repair`-kind attempt in `budgetTelemetry.attempts`, indexed in recorded order",
+    "One reader over two archive families; `.gz` accepted. A repair execution is one",
+    "`repair`-lane episode in `budgetTelemetry.episodes`, indexed in recorded order",
     "(`restart 0` is the compile's first). `outcome_fields = fresh` means every repair",
-    "attempt in the archive carries `accepted_score_delta`; `stale` archives are dropped",
+    "episode carries `internal_full_score_delta`; historical schemas are rejected",
     "from every table below. `75k` sits below the 100k `LR_REPAIR_MIN_BUDGET` gate and runs no",
     "repair at all — it is the control that shows the gate holding, and it appears only in the",
     "phase-allocation, knob and overrun tables.",
@@ -414,11 +422,11 @@ function unitsSection(out: string[], compiles: CompileRecord[], groups: Group[])
     implied[group.label] = { n: rows.length, meanStart: mean(starts), negative };
   }
 
-  section(out, "Units: `accepted_score_delta` is a benchmark point", [
-    "`accepted_score_delta` is the incumbent's `full_score` after a restart minus before it",
+  section(out, "Units: internal register score, not Benchmark V2", [
+    "`internal_full_score_delta` is the incumbent's internal score after an episode minus before it",
     "(`register.ts`: `full_score = 1000 * axis_quality * drift_quality * missing_quality *",
-    "off_beat_quality * survival_quality`). That is not obviously the benchmark's unit, so the",
-    "study re-scores every archived `report` with `scoreDriftReport` and compares.",
+    "off_beat_quality * survival_quality`). It is explicitly a diagnostic score domain. The",
+    "study re-scores every archived `report` only to characterize association with Benchmark V2.",
     "",
     `Paired valid compiles: **${paired.length}**. Ratio internal \`full_score\` / benchmark run score:`,
     "",
@@ -445,7 +453,7 @@ function unitsSection(out: string[], compiles: CompileRecord[], groups: Group[])
     `The other factors are inert on this population: \`drift_quality < 1\` on ${nonUnitDrift}/${drift.length}`,
     "compiles, and every repair-bearing compile ends `endOfSpec` so `survival_quality = 1`.",
     "",
-    "**So one unit of `accepted_score_delta` is one point of that spec's benchmark run score**,",
+    "**One unit of `internal_full_score_delta` is not defined as one Benchmark V2 point.**",
     "and the headline is the mean of run scores. A mean repair gain of `X` per compile is `X`",
     "headline points *at that grid*, up to the per-spec axis-count reweighting above.",
     "",
@@ -541,7 +549,7 @@ function roiSection(out: string[], groups: Group[]): unknown {
 /** Per-compile repair aggregates used by the scaling law. */
 function groupMetrics(group: Group): Record<string, number> {
   const compiles = group.compiles;
-  const repairFrames = sum(compiles.map((c) => c.segments.repair_attempt ?? 0));
+  const repairFrames = sum(compiles.map((c) => c.segments.repair ?? 0));
   const gain = sum(compiles.map((c) => repairGain(c) ?? 0));
   const restarts = sum(compiles.map((c) => c.attempts.filter((a) => a.kind === "repair").length));
   const completing = compiles.filter((c) => c.firstTerminal !== null);
@@ -775,7 +783,7 @@ function acceptanceSection(out: string[], groups: Group[]): unknown {
     ]);
   }
   body.push(
-    "The register's own acceptance (`accepted_improvement`) and the subset that actually moved",
+    "The register's own improvement outcome (`register_improved`) and the subset that actually moved",
     "`full_score` upward. Repair restarts almost always reach a terminal, so completion carries no",
     "signal — acceptance is the scarce event.",
     "",
@@ -959,7 +967,7 @@ function overshootSection(out: string[], groups: Group[]): unknown {
     };
   }
   section(out, "Post-improvement overshoot", [
-    "For accepting restarts, `spent - first_accepted_improvement_offset` is the charged work that",
+    "For improving episodes, `spent - first_register_improvement_offset` is the charged work that",
     "happened **after** the register had already taken the improvement — the only spend a tighter",
     "per-restart ceiling could reclaim without losing the improvement. `reclaimable` expresses it",
     "as a share of *all* repair spend in the archive (accepting and not), which is the ceiling on",
@@ -1028,24 +1036,24 @@ function phaseSection(out: string[], groups: Group[]): unknown {
       totals[kind] = sum(compiles.map((c) => c.segments[kind] ?? 0));
     }
     const all = sum(Object.values(totals));
-    const post = totals.repair_attempt + totals.resumed_search;
+    const post = totals.repair + totals.resumed_search;
     rows.push([
       group.label,
       fmtBudget(group.budget),
       pct(totals.startup / all),
       pct(totals.initial_search / all),
-      pct(totals.repair_attempt / all),
+      pct(totals.repair / all),
       pct(totals.resumed_search / all),
       pct(post / all),
-      post === 0 ? "n/a" : pct(totals.repair_attempt / post),
+      post === 0 ? "n/a" : pct(totals.repair / post),
     ]);
     const resumed = compiles.flatMap((c) => c.attempts.filter((a) => a.kind === "resumed"));
     const gain = sum(compiles.map((c) => repairGain(c) ?? 0));
     attribution.push([
       group.label,
-      fmt(totals.repair_attempt / compiles.length / 1000, 1),
+      fmt(totals.repair / compiles.length / 1000, 1),
       fmt(gain / compiles.length, 3),
-      fmt(totals.repair_attempt === 0 ? 0 : (gain / totals.repair_attempt) * 1000, 4),
+      fmt(totals.repair === 0 ? 0 : (gain / totals.repair) * 1000, 4),
       String(resumed.length),
       fmt(totals.resumed_search / compiles.length / 1000, 1),
       "unrecorded",
@@ -1053,8 +1061,8 @@ function phaseSection(out: string[], groups: Group[]): unknown {
     json[group.label] = { segments: totals, postCompletionFrames: post, repairGain: gain };
   }
   section(out, "Phase allocation", [
-    "Shares of all charged frames, from `budgetTelemetry.segments` (accounting is closed — the",
-    "recorder emits an `unattributed` segment for any gap and there is none here).",
+    "Shares of all charged frames, from `budgetTelemetry.execution_intervals`. Closed V3",
+    "payloads form a contiguous partition of compile spend.",
     "",
     table(
       ["archive", "budget", "startup", "initial search", "repair", "resumed", "post-completion", "repair share of post"],
@@ -1063,13 +1071,9 @@ function phaseSection(out: string[], groups: Group[]): unknown {
     "",
     "### Attribution",
     "",
-    "Repair's side is priced. The resumed frontier's is not: `handoff.ts` ends the resumed attempt",
-    "with `budgetRecorder.endActive(resumeEnd, stopReason)` and no outcome object, so",
-    "`accepted_improvement`, `first_accepted_improvement_offset_frames` and `accepted_score_delta`",
-    "are all `null` for `resumed` attempts. Only `completed`, `first_terminal_offset_frames` and",
-    "`spent_frames` survive. **The repair-vs-resumed split therefore has a measured numerator on",
-    "one side only**, and every resumed improvement silently inflates the implied first-completion",
-    "score in the units table.",
+    "Both repair and resumed episodes carry exact register-improvement counts, timing, register",
+    "keys, and internal score deltas in V3. They remain internal diagnostics rather than headline",
+    "score attribution.",
     "",
     table(
       ["archive", "repair kf / compile", "repair pts / compile", "repair ROI (pts/kf)", "resumed attempts", "resumed kf / compile", "resumed pts"],
@@ -1089,8 +1093,8 @@ function stopSection(out: string[], groups: Group[]): unknown {
     const feasibility = withRepair.filter((c) => c.attempts.some((a) => a.kind === "resumed"));
     const capped = withRepair.filter((c) => c.attempts.filter((a) => a.kind === "repair").length >= 64);
     const zeroGain = withRepair.filter((c) => Math.abs(repairGain(c) ?? 0) < 1e-9);
-    const zeroGainFrames = sum(zeroGain.map((c) => c.segments.repair_attempt ?? 0));
-    const allRepairFrames = sum(withRepair.map((c) => c.segments.repair_attempt ?? 0));
+    const zeroGainFrames = sum(zeroGain.map((c) => c.segments.repair ?? 0));
+    const allRepairFrames = sum(withRepair.map((c) => c.segments.repair ?? 0));
     rows.push([
       group.label,
       String(withRepair.length),
@@ -1273,8 +1277,8 @@ function hypothesesSection(out: string[]): void {
     "",
     "Stopping every accepting restart the moment the register takes its improvement would reclaim",
     "7.6% of repair spend at 750k (26 kf/compile). Re-spent at the tail rate that is +0.26 points —",
-    "and that is the *upper* bound, because `first_accepted_improvement_offset_frames` records only",
-    "the **first** improvement while `accepted_score_delta` is measured at attempt end, so an",
+    "and that is the *upper* bound, because `first_register_improvement_offset_frames` records only",
+    "the **first** improvement while `internal_full_score_delta` is measured at episode end, so an",
     "unmeasured share of each delta arrives during the frames the truncation would delete. The",
     "beyond-ceiling slop is a further 12.2% of repair spend, but it exists because the ceiling is",
     "tested only at node boundaries, so collecting it means changing the granularity of the frontier",
@@ -1355,16 +1359,12 @@ function hygieneSection(out: string[], groups: Group[], compiles: CompileRecord[
   const overrunRows: string[][] = [];
   for (const group of groups) {
     const overruns = group.compiles.map((c) => c.hardOverrun).sort((a, b) => a - b);
-    const mismatch = group.compiles.filter(
-      (c) => c.statsRestarts !== null && c.statsRestarts !== c.attempts.filter((a) => a.kind === "repair").length,
-    ).length;
     overrunRows.push([
       group.label,
       fmt(mean(overruns) / 1000, 1),
       fmt(quantile(overruns, 0.5) / 1000, 1),
       fmt(quantile(overruns, 0.99) / 1000, 1),
       pct(mean(overruns) / Math.max(1, group.compiles[0]?.policyBudget ?? 1)),
-      `${mismatch}/${group.compiles.length}`,
     ]);
   }
   section(out, "Distribution hygiene", [
@@ -1391,22 +1391,19 @@ function hygieneSection(out: string[], groups: Group[], compiles: CompileRecord[
       rows,
     ),
     "",
-    "### Budget overrun and the `compile_stats.repair` mismatch",
+    "### Budget overrun and authoritative repair accounting",
     "",
-    "Two things worth knowing before anyone else reads these archives.",
+    "Two things worth knowing before reading these archives.",
     "",
     "**Every compile overruns its budget.** The hard budget is tested at node boundaries, so a",
     "750k compile spends 768k on the median. That is 2.4% of the budget arriving after the budget,",
     "and it is the same mechanism as the advisory per-restart ceiling — one level up.",
     "",
-    "**`compile_stats.repair` is not the repair ledger.** `snapshot()` fires the moment charged",
-    "work crosses the target budget, which is *inside* the last repair restart, before that",
-    "restart's `repairRecords.push`. So `stats.repair.restarts` undercounts by one on half the",
-    "compiles at 750k. `budgetTelemetry.attempts` is the complete record — `endActive` runs after",
-    "the restart finishes and the recorder snapshot is taken last. Use the telemetry, not the stat.",
+    "**V3 `budgetTelemetry.episodes` is the only repair ledger.** The stale",
+    "`compile_stats.repair` aggregate is no longer emitted.",
     "",
     table(
-      ["archive", "mean overrun (kf)", "median (kf)", "p99 (kf)", "mean / policy budget", "stats.repair.restarts != telemetry"],
+      ["archive", "mean overrun (kf)", "median (kf)", "p99 (kf)", "mean / policy budget"],
       overrunRows,
     ),
   ]);
@@ -1419,10 +1416,8 @@ function limitsSection(out: string[]): void {
     "   recorded, so `sum(delta) = full_score(end of repair) - full_score(first completion)` is a",
     "   code property, checked here only for plausibility (no negative implied start, every",
     "   non-accepting delta exactly 0, every accepting delta strictly positive).",
-    "2. **The resumed frontier is unpriced.** `resumed` attempts carry no",
-    "   `accepted_score_delta`, so one side of the repair-vs-resumed split has no numerator. The",
-    "   phase is small (about 1% of frames) and is structurally an overshoot, so the omission is",
-    "   bounded — but it is real, and it inflates the implied first-completion score.",
+    "2. **Internal score is not headline attribution.** Repair and resumed episodes now carry",
+    "   internal register deltas, but Benchmark V2 remains a final-output measurement.",
     "3. **The initial search is unpriced.** Nothing here says what a main-search frame buys, so no",
     "   statement in this study is a full reallocation argument; each one prices only the side it",
     "   can see.",

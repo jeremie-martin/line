@@ -70,6 +70,30 @@ if (!["off", "summary", "trace"].includes(rawBudgetTelemetry)) {
   process.exit(1);
 }
 const budgetTelemetryLevel = rawBudgetTelemetry as "off" | "summary" | "trace";
+const optionalBudgetArg = (name: string): number | undefined => {
+  const raw = arg(name);
+  if (raw === null) return undefined;
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value <= 0 || value > budgetUnits) {
+    console.error(`invalid --${name}=${raw} (expected a positive integer <= budget)`);
+    process.exit(1);
+  }
+  return value;
+};
+const searchPolicyBudget = optionalBudgetArg("search-policy-budget");
+const repairBudget = optionalBudgetArg("repair-budget");
+const rawResumePolicy = arg("resume-policy") ?? "legacy";
+if (!["legacy", "none", "remainder-aware"].includes(rawResumePolicy)) {
+  console.error(`invalid --resume-policy=${rawResumePolicy}`);
+  process.exit(1);
+}
+const resumePolicy = rawResumePolicy as "legacy" | "none" | "remainder-aware";
+const rawRepairAllocationPolicy = arg("repair-allocation-policy") ?? "legacy";
+if (!["legacy", "response-aware"].includes(rawRepairAllocationPolicy)) {
+  console.error(`invalid --repair-allocation-policy=${rawRepairAllocationPolicy}`);
+  process.exit(1);
+}
+const repairAllocationPolicy = rawRepairAllocationPolicy as "legacy" | "response-aware";
 
 const specName = basename(specPath).replace(/\.ts$/, "");
 const outPrefix = arg("out") ?? `generated/v0_${specName}`;
@@ -114,6 +138,10 @@ const t0 = Date.now();
 const { track, report, stats, budgetTelemetry } = COMPILERS[compiler](compiledSpec, seed, {
   budget: budgetUnits,
   budgetTelemetry: budgetTelemetryLevel,
+  searchPolicyBudget,
+  repairBudget,
+  resumePolicy,
+  repairAllocationPolicy,
 });
 const elapsedMs = Date.now() - t0;
 
@@ -143,6 +171,10 @@ if (stats !== null && stats !== undefined) {
     seed,
     budget: budgetUnits,
     budget_telemetry: budgetTelemetryLevel,
+    search_policy_budget: searchPolicyBudget ?? null,
+    repair_budget: repairBudget ?? null,
+    resume_policy: resumePolicy,
+    repair_allocation_policy: repairAllocationPolicy,
     elapsed_ms: elapsedMs,
     stats,
   }, null, 2));

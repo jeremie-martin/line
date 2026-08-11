@@ -3,7 +3,8 @@
  * the same raw proposals with either every one-way collision side inverted,
  * the final post-contact collision endpoint extended, or forward type-1
  * acceleration encoding over the same active collision surfaces, or a final
- * type-2 non-collidable release segment.
+ * type-2 non-collidable release segment.  The post-catch body-follower modes
+ * also permit a fixed passive/type-1 material contrast on identical geometry.
  *
  *   LR_ENGINE=wasm npx tsx scripts/v0/study_collision_side_normal_pool.ts \
  *     --terminal-end-extension --out=generated/studies/terminal-endpoint-normal-pool/v1/result.json
@@ -24,12 +25,12 @@ import { getCandidateProbe, sampleOneCandidate, type Candidate, type SpecContext
 import { axisLookaheadEndFrame, tryCandidateGeometry } from "./core/candidate.ts";
 import { effectiveAxes, engineLineFromTrackLine, sampleGapTargets, sliceTimeline } from "./core/substrate.ts";
 import { getSimFrames } from "./optimizer/sim_frames.ts";
-import { CALIB, secToFrame, type AxisValues, type Gap, type Spec } from "./types.ts";
+import { CALIB, secToFrame, type AxisValues, type Gap, type Spec, type TrackLine } from "./types.ts";
 import { postimpactEngineCollisionWitnessesForLineIds } from "./trajectory/postimpact_trace.ts";
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
-  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--contact-patch-release|--two-sided-rail|--body-fender|--postcatch-body-follower|--matched-sled-support-pair|--all-body-support-anchor|--surface-normal-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
+  process.stdout.write("Usage: study_collision_side_normal_pool.ts [--terminal-end-extension|--forward-acceleration|--terminal-scenery-release|--contact-patch-release|--two-sided-rail|--body-fender|--postcatch-body-follower|--active-postcatch-body-follower|--postcatch-peg-driver|--active-postcatch-peg-driver|--matched-sled-support-pair|--all-body-support-anchor|--surface-normal-body-support-anchor] [--case=ID ...] [--out=PATH]\n");
   process.exit(0);
 }
 const argument = (name: string): string | undefined =>
@@ -42,13 +43,16 @@ const contactPatchRelease = argv.includes("--contact-patch-release");
 const twoSidedRail = argv.includes("--two-sided-rail");
 const bodyFender = argv.includes("--body-fender");
 const postcatchBodyFollower = argv.includes("--postcatch-body-follower");
+const activePostcatchBodyFollower = argv.includes("--active-postcatch-body-follower");
+const postcatchPegDriver = argv.includes("--postcatch-peg-driver");
+const activePostcatchPegDriver = argv.includes("--active-postcatch-peg-driver");
 const matchedSledSupportPair = argv.includes("--matched-sled-support-pair");
 const allBodySupportAnchor = argv.includes("--all-body-support-anchor");
 const surfaceNormalBodySupportAnchor = argv.includes("--surface-normal-body-support-anchor");
 const requestedCaseIds = argv.filter((value) => value.startsWith("--case=")).map((value) => value.slice("--case=".length));
-const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--contact-patch-release" && value !== "--two-sided-rail" && value !== "--body-fender" && value !== "--postcatch-body-follower" && value !== "--matched-sled-support-pair" && value !== "--all-body-support-anchor" && value !== "--surface-normal-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
+const unknown = argv.filter((value) => value !== "--terminal-end-extension" && value !== "--forward-acceleration" && value !== "--terminal-scenery-release" && value !== "--contact-patch-release" && value !== "--two-sided-rail" && value !== "--body-fender" && value !== "--postcatch-body-follower" && value !== "--active-postcatch-body-follower" && value !== "--postcatch-peg-driver" && value !== "--active-postcatch-peg-driver" && value !== "--matched-sled-support-pair" && value !== "--all-body-support-anchor" && value !== "--surface-normal-body-support-anchor" && !value.startsWith("--out=") && !value.startsWith("--case="));
 if (unknown.length > 0) throw new Error(`unknown argument(s): ${unknown.join(", ")}`);
-if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, contactPatchRelease, twoSidedRail, bodyFender, postcatchBodyFollower, matchedSledSupportPair, allBodySupportAnchor, surfaceNormalBodySupportAnchor].filter(Boolean).length > 1) {
+if ([terminalEndExtension, forwardAcceleration, terminalSceneryRelease, contactPatchRelease, twoSidedRail, bodyFender, postcatchBodyFollower, activePostcatchBodyFollower, postcatchPegDriver, activePostcatchPegDriver, matchedSledSupportPair, allBodySupportAnchor, surfaceNormalBodySupportAnchor].filter(Boolean).length > 1) {
   throw new Error("normal-pool comparator modes are mutually exclusive");
 }
 
@@ -68,8 +72,12 @@ const COMPLETE_COLLISION_POINTS = [
 ] as const;
 const ARTICULATED_BODY_POINTS = ["BUTT", "SHOULDER", "RHAND", "LHAND", "LFOOT", "RFOOT"] as const;
 const BODY_POINT_SET = new Set<string>(ARTICULATED_BODY_POINTS);
+const HIGH_FRICTION_BODY_POINT_SET = new Set<string>(["BUTT", "SHOULDER"]);
+const LOW_FRICTION_HAND_POINT_SET = new Set<string>(["RHAND", "LHAND"]);
+const ZERO_FRICTION_FOOT_POINT_SET = new Set<string>(["LFOOT", "RFOOT"]);
 const SLED_COLLISION_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
 const SLED_POINT_SET = new Set<string>(SLED_COLLISION_POINTS);
+const MAX_FORCE_LENGTH_PX = 10;
 type BodyCollisionPoint = { name: string; x: number; y: number };
 type SurfaceNormalAnchorTelemetry = {
   geometries: number;
@@ -104,7 +112,25 @@ type PostcatchBodyFollowerTelemetry = {
   augmentedValid: number;
   followerCollisionAtNextFrame: number;
   bodyOnlyAtNextFrame: number;
+  highFrictionBodyAtNextFrame: number;
+  lowFrictionHandsAtNextFrame: number;
+  zeroFrictionFeetAtNextFrame: number;
+  activeFollower: boolean;
   meanFollowerLengthPx: number | null;
+};
+type PostcatchPegDriverTelemetry = {
+  geometries: number;
+  rawCurrentValid: number;
+  driverAvailable: number;
+  augmentedValid: number;
+  coherentDriverCandidates: number;
+  currentFrameIntrusions: number;
+  driverCollisionAtNextFrame: number;
+  pegCollisionAtNextFrame: number;
+  otherPointCollisionAtNextFrame: number;
+  activeDriver: boolean;
+  meanDriverLengthPx: number | null;
+  meanNormalBackoffPx: number | null;
 };
 type MatchedSledSupportPairTelemetry = {
   geometries: number;
@@ -150,6 +176,7 @@ type Row = {
   twoSidedRail: TwoSidedRailTelemetry | null;
   bodyFender: BodyFenderTelemetry | null;
   postcatchBodyFollower: PostcatchBodyFollowerTelemetry | null;
+  postcatchPegDriver: PostcatchPegDriverTelemetry | null;
   matchedSledSupportPair: MatchedSledSupportPairTelemetry | null;
   replayEquivalent: boolean | null;
   replayMessage: string | null;
@@ -213,8 +240,14 @@ const result = {
     ? "line.study-two-sided-rail-normal-pool.v1"
     : bodyFender
     ? "line.study-body-fender-normal-pool.v1"
+    : activePostcatchBodyFollower
+    ? "line.study-active-postcatch-body-follower-normal-pool.v1"
     : postcatchBodyFollower
     ? "line.study-postcatch-body-follower-normal-pool.v1"
+    : activePostcatchPegDriver
+    ? "line.study-active-postcatch-peg-driver-normal-pool.v1"
+    : postcatchPegDriver
+    ? "line.study-postcatch-peg-driver-normal-pool.v1"
     : forwardAcceleration
     ? "line.study-forward-tangential-acceleration-normal-pool.v1"
     : terminalEndExtension
@@ -232,8 +265,14 @@ const result = {
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; every ordinary one-way surface retains its current face and gains one coincident opposite-facing collision companion"
       : bodyFender
       ? "same PRNG coordinates, attempts, candidate count, gates, and scoring; a body-hull fender from the preceding exact frame is added before the unchanged ordinary sled catch"
+      : activePostcatchBodyFollower
+      ? "same PRNG coordinates and ordinary current gate; every admitted raw catch receives the same exact-state articulated-body follower as the passive control, emitted as forward type-1 material with identical geometry and active normal"
       : postcatchBodyFollower
       ? "same PRNG coordinates and ordinary current gate; every admitted raw catch receives one follower constructed from its own exact next-frame articulated-body state, then the complete line set is re-admitted"
+      : activePostcatchPegDriver
+      ? "same PRNG coordinates and ordinary current gate; every admitted raw catch receives one exact-state, PEG-centred post-catch driver, emitted as forward type-1 material with the passive control's geometry and active normal"
+      : postcatchPegDriver
+      ? "same PRNG coordinates and ordinary current gate; every admitted raw catch receives one exact-state, PEG-centred solid post-catch driver parallel to its native target-contact tangent"
       : allBodySupportAnchor
       ? "same PRNG coordinates, attempts, candidate count, exact gates, and scoring; only the gravity support anchor changes from the lowest sled collision point to the lowest point on the complete collision body"
       : terminalSceneryRelease
@@ -261,8 +300,14 @@ const result = {
       ? "for every unchanged raw solid line, emit one additional coincident line with a fresh id and only its flipped collision-side bit inverted; no geometry, endpoint, type, target, or line subset changes"
       : bodyFender
       ? "use the leading articulated-body hull point at the exact preceding frame, the raw candidate's target-adjacent tangent, and its ordinary sled-normal clearance to add one finite same-side fender spanning the body hull's tangent extent; the ordinary line set remains intact"
+      : activePostcatchBodyFollower
+      ? "admit the unchanged raw normal catch, read its exact articulated-body hull one frame after the target, append the passive control's identical same-side finite follower, then represent only that follower as forward type-1 material by endpoint reversal plus flipped/extension transport before ordinary re-admission"
       : postcatchBodyFollower
       ? "admit the unchanged raw normal catch, read its exact articulated-body hull one frame after the target, then append one same-side finite follower using the raw contact tangent and normal clearance; re-admit the full geometry at ordinary gates"
+      : activePostcatchPegDriver
+      ? "admit the unchanged raw normal catch, read the exact H+1 PEG/full-sled state, append the passive control's identical local driver, then represent only that driver as forward type-1 material by endpoint reversal plus flipped/extension transport before ordinary re-admission"
+      : postcatchPegDriver
+      ? "admit the unchanged raw normal catch, read the exact H+1 PEG/full-sled state, and append one solid driver parallel to the raw target-contact tangent; centre backoff is half the measured PEG normal advance capped at half collision reach, and span is the PEG nearest-neighbour sled distance"
       : allBodySupportAnchor
       ? "read all ten engine collision points at the target frame and replace only the sampled geometry's anchor with their maximum-y gravity support point; retain the ordinary COM velocity, raw draws, candidate gates, and scorer"
       : terminalSceneryRelease
@@ -330,8 +375,27 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
   const fender = bodyFender
     ? sampleBodyFender(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
     : null;
-  const follower = postcatchBodyFollower
-    ? samplePostcatchBodyFollower(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
+  const follower = postcatchBodyFollower || activePostcatchBodyFollower
+    ? samplePostcatchBodyFollower(
+      captured.node,
+      gap,
+      setup.ctx,
+      setup.gaps,
+      rawPool.count,
+      rngSeed,
+      activePostcatchBodyFollower,
+    )
+    : null;
+  const pegDriver = postcatchPegDriver || activePostcatchPegDriver
+    ? samplePostcatchPegDriver(
+      captured.node,
+      gap,
+      setup.ctx,
+      setup.gaps,
+      rawPool.count,
+      rngSeed,
+      activePostcatchPegDriver,
+    )
     : null;
   const supportPair = matchedSledSupportPair
     ? sampleMatchedSledSupportPair(captured.node, gap, setup.ctx, setup.gaps, rawPool.count, rngSeed)
@@ -350,6 +414,8 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
         ? fender.arm
       : follower !== null
         ? follower.arm
+      : pegDriver !== null
+        ? pegDriver.arm
       : supportPair !== null
         ? supportPair.arm
       : allBodySupportAnchor
@@ -371,6 +437,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
     twoSidedRail: twoSided?.telemetry ?? null,
     bodyFender: fender?.telemetry ?? null,
     postcatchBodyFollower: follower?.telemetry ?? null,
+    postcatchPegDriver: pegDriver?.telemetry ?? null,
     matchedSledSupportPair: supportPair?.telemetry ?? null,
     replayEquivalent: check.ok, replayMessage: check.message, production, alternative,
     deltas: {
@@ -386,7 +453,7 @@ function replay(caseId: string, regime: Regime, seed: number, captured: Captured
 function unavailable(caseId: string, regime: Regime, seed: number, checkpoint: Checkpoint, gapIndex: number, message: string): Row {
   return {
     caseId, regime, seed, checkpoint, gapIndex, candidateCount: null,
-    captureAvailable: false, allBodySupportAnchor: null, surfaceNormalBodySupportAnchor: null, contactPatchRelease: null, twoSidedRail: null, bodyFender: null, postcatchBodyFollower: null, matchedSledSupportPair: null, replayEquivalent: null, replayMessage: message,
+    captureAvailable: false, allBodySupportAnchor: null, surfaceNormalBodySupportAnchor: null, contactPatchRelease: null, twoSidedRail: null, bodyFender: null, postcatchBodyFollower: null, postcatchPegDriver: null, matchedSledSupportPair: null, replayEquivalent: null, replayMessage: message,
     production: null, alternative: null, deltas: null,
   };
 }
@@ -747,6 +814,7 @@ function samplePostcatchBodyFollower(
   gaps: Gap[],
   count: number,
   seed: number,
+  activeFollower: boolean,
 ): { arm: Arm; telemetry: PostcatchBodyFollowerTelemetry } {
   const rng = makeRng(seed);
   const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
@@ -757,25 +825,20 @@ function samplePostcatchBodyFollower(
   let followerAvailable = 0;
   let followerCollisionAtNextFrame = 0;
   let bodyOnlyAtNextFrame = 0;
+  let highFrictionBodyAtNextFrame = 0;
+  let lowFrictionHandsAtNextFrame = 0;
+  let zeroFrictionFeetAtNextFrame = 0;
   const followerLengths: number[] = [];
   for (let attempt = 0; attempt < count; attempt++) {
-    const rawGeometry = sampleArcPlacementGeometry(
-      rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap,
-      node.search.prefixNextLineId, "normal", ctx.allContactFrames,
-    );
     const beforeRaw = getSimFrames();
-    const raw = tryCandidateGeometry(
+    const raw = sampleOneCandidate(
       node.search.prefixEngine,
       gap,
-      rawGeometry,
+      rng,
+      ctx,
       node.search.prefixNextLineId,
-      ctx.allContactFrames,
-      axisMeasureEnd,
-      gap.targets,
-      true,
-      "normal",
-      probe.preTargetSledTrace,
-    ) as Candidate | null;
+      attempt,
+    );
     admissionFrames += getSimFrames() - beforeRaw;
     if (raw === null) continue;
     rawCurrentValid++;
@@ -786,7 +849,7 @@ function samplePostcatchBodyFollower(
     const follower = hull === null
       ? null
       : bodyFenderGeometry(
-        { ...rawGeometry, lines: raw.lines },
+        { lines: raw.lines },
         probe.targetState,
         hull,
         node.search.prefixNextLineId,
@@ -794,11 +857,12 @@ function samplePostcatchBodyFollower(
     if (follower === null) continue;
     followerAvailable++;
     followerLengths.push(follower.lengthPx);
+    const followerLine = activeFollower ? forwardAccelerationLine(follower.line) : follower.line;
     const beforeAugmented = getSimFrames();
     const augmented = tryCandidateGeometry(
       node.search.prefixEngine,
       gap,
-      { ...rawGeometry, lines: [...raw.lines, follower.line] },
+      { kind: "lines", lines: [...raw.lines, followerLine] },
       node.search.prefixNextLineId,
       ctx.allContactFrames,
       axisMeasureEnd,
@@ -814,13 +878,16 @@ function samplePostcatchBodyFollower(
     augmented.sampleAttempt = attempt;
     candidates.push(digest(augmented, node, gap, gaps, ctx, simFrames));
     const full = node.search.prefixEngine.addLine(augmented.lines.map(engineLineFromTrackLine));
-    const hits = postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame + 1, new Set([follower.line.id]));
+    const hits = postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame + 1, new Set([followerLine.id]));
     if (hits.length > 0) followerCollisionAtNextFrame++;
     const pointIds = new Set(hits.flatMap((hit) => hit.pointIds));
     if (
       [...pointIds].some((point) => BODY_POINT_SET.has(point)) &&
       ![...pointIds].some((point) => SLED_POINT_SET.has(point))
     ) bodyOnlyAtNextFrame++;
+    if ([...pointIds].some((point) => HIGH_FRICTION_BODY_POINT_SET.has(point))) highFrictionBodyAtNextFrame++;
+    if ([...pointIds].some((point) => LOW_FRICTION_HAND_POINT_SET.has(point))) lowFrictionHandsAtNextFrame++;
+    if ([...pointIds].some((point) => ZERO_FRICTION_FOOT_POINT_SET.has(point))) zeroFrictionFeetAtNextFrame++;
   }
   return {
     arm: summarizeArm(count, candidates, admissionFrames),
@@ -831,9 +898,229 @@ function samplePostcatchBodyFollower(
       augmentedValid: candidates.length,
       followerCollisionAtNextFrame,
       bodyOnlyAtNextFrame,
+      highFrictionBodyAtNextFrame,
+      lowFrictionHandsAtNextFrame,
+      zeroFrictionFeetAtNextFrame,
+      activeFollower,
       meanFollowerLengthPx: mean(followerLengths),
     },
   };
+}
+
+/**
+ * Preserve the admitted native catch and introduce one state-derived contact
+ * for the sled's otherwise-unused high-friction PEG on the following frame.
+ * The driver is parallel to the raw target-contact surface, so its solid and
+ * active forms differ only in material.  A candidate enters the component arm
+ * only when the driver is absent at H and actually owns PEG contact at H+1.
+ */
+function samplePostcatchPegDriver(
+  node: HandoffNode,
+  gap: Gap,
+  ctx: SpecContext,
+  gaps: Gap[],
+  count: number,
+  seed: number,
+  activeDriver: boolean,
+): { arm: Arm; telemetry: PostcatchPegDriverTelemetry } {
+  const rng = makeRng(seed);
+  const probe = getCandidateProbe(node.search.prefixEngine, gap, ctx);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const candidates: Digest[] = [];
+  let admissionFrames = 0;
+  let rawCurrentValid = 0;
+  let driverAvailable = 0;
+  let augmentedValid = 0;
+  let currentFrameIntrusions = 0;
+  let driverCollisionAtNextFrame = 0;
+  let pegCollisionAtNextFrame = 0;
+  let otherPointCollisionAtNextFrame = 0;
+  const driverLengths: number[] = [];
+  const normalBackoffs: number[] = [];
+
+  for (let attempt = 0; attempt < count; attempt++) {
+    const beforeRaw = getSimFrames();
+    const raw = sampleOneCandidate(
+      node.search.prefixEngine,
+      gap,
+      rng,
+      ctx,
+      node.search.prefixNextLineId,
+      attempt,
+    );
+    admissionFrames += getSimFrames() - beforeRaw;
+    if (raw === null) continue;
+    rawCurrentValid++;
+
+    const rawEngine = node.search.prefixEngine.addLine(raw.lines.map(engineLineFromTrackLine));
+    const atTarget = getRiderMetered(rawEngine, gap.endFrame);
+    const afterTarget = getRiderMetered(rawEngine, gap.endFrame + 1);
+    const driver = postcatchPegDriverLine(
+      raw.lines,
+      probe.targetState,
+      atTarget,
+      afterTarget,
+      node.search.prefixNextLineId + raw.lines.length,
+    );
+    if (driver === null) continue;
+    driverAvailable++;
+    driverLengths.push(driver.lengthPx);
+    normalBackoffs.push(driver.normalBackoffPx);
+    const driverLine = activeDriver ? forwardAccelerationLine(driver.line) : driver.line;
+
+    const beforeAugmented = getSimFrames();
+    const augmented = tryCandidateGeometry(
+      node.search.prefixEngine,
+      gap,
+      { kind: "lines", lines: [...raw.lines, driverLine] },
+      node.search.prefixNextLineId,
+      ctx.allContactFrames,
+      axisMeasureEnd,
+      gap.targets,
+      true,
+      "normal",
+      probe.preTargetSledTrace,
+    ) as Candidate | null;
+    const simFrames = getSimFrames() - beforeAugmented;
+    admissionFrames += simFrames;
+    if (augmented === null) continue;
+    augmentedValid++;
+    augmented.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+    augmented.sampleAttempt = attempt;
+
+    const full = node.search.prefixEngine.addLine(augmented.lines.map(engineLineFromTrackLine));
+    const driverIds = new Set([driverLine.id]);
+    const currentHits = postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame, driverIds);
+    const nextHits = postimpactEngineCollisionWitnessesForLineIds(full, gap.endFrame + 1, driverIds);
+    if (currentHits.length > 0) currentFrameIntrusions++;
+    if (nextHits.length > 0) driverCollisionAtNextFrame++;
+    const nextPoints = new Set(nextHits.flatMap((hit) => hit.pointIds));
+    if (nextPoints.has("PEG")) pegCollisionAtNextFrame++;
+    if ([...nextPoints].some((point) => point !== "PEG")) otherPointCollisionAtNextFrame++;
+    if (currentHits.length > 0 || !nextPoints.has("PEG")) continue;
+    candidates.push(digest(augmented, node, gap, gaps, ctx, simFrames));
+  }
+
+  return {
+    arm: summarizeArm(count, candidates, admissionFrames),
+    telemetry: {
+      geometries: count,
+      rawCurrentValid,
+      driverAvailable,
+      augmentedValid,
+      coherentDriverCandidates: candidates.length,
+      currentFrameIntrusions,
+      driverCollisionAtNextFrame,
+      pegCollisionAtNextFrame,
+      otherPointCollisionAtNextFrame,
+      activeDriver,
+      meanDriverLengthPx: mean(driverLengths),
+      meanNormalBackoffPx: mean(normalBackoffs),
+    },
+  };
+}
+
+type RiderPointRead = {
+  pos?: { x: number; y: number };
+  vel?: { x: number; y: number };
+  velocity?: { x: number; y: number };
+};
+
+function postcatchPegDriverLine(
+  rawLines: readonly TrackLine[],
+  targetState: ImpactFrameTargetState,
+  atTarget: { get(name: string): RiderPointRead | undefined },
+  afterTarget: { get(name: string): RiderPointRead | undefined },
+  lineId: number,
+): { line: TrackLine; lengthPx: number; normalBackoffPx: number } | null {
+  const pegAtTarget = readablePoint(atTarget.get("PEG"));
+  const pegAfter = readablePoint(afterTarget.get("PEG"));
+  if (pegAtTarget === null || pegAfter === null || pegAfter.velocity === null) return null;
+
+  const contact = targetAdjacentLine(rawLines, targetState);
+  if (contact === null) return null;
+  const dx = contact.x2 - contact.x1;
+  const dy = contact.y2 - contact.y1;
+  const length = Math.hypot(dx, dy);
+  if (!(length > 1e-9)) return null;
+  const tangent = { x: dx / length, y: dy / length };
+  const side = contact.flipped ? -1 : 1;
+  const normal = { x: -tangent.y * side, y: tangent.x * side };
+  const normalSpeed = pegAfter.velocity.x * normal.x + pegAfter.velocity.y * normal.y;
+  if (!(normalSpeed > 1e-9)) return null;
+
+  const neighbours = SLED_COLLISION_POINTS
+    .filter((name) => name !== "PEG")
+    .map((name) => readablePoint(afterTarget.get(name))?.position ?? null)
+    .filter((point): point is { x: number; y: number } => point !== null);
+  if (neighbours.length !== SLED_COLLISION_POINTS.length - 1) return null;
+  const nearestDistance = Math.min(...neighbours.map((point) =>
+    Math.hypot(point.x - pegAfter.position.x, point.y - pegAfter.position.y)
+  ));
+  if (!(nearestDistance > 1e-9) || !Number.isFinite(nearestDistance)) return null;
+
+  const measuredNormalAdvance = Math.max(
+    normalSpeed,
+    (pegAfter.position.x - pegAtTarget.position.x) * normal.x +
+      (pegAfter.position.y - pegAtTarget.position.y) * normal.y,
+  );
+  const normalBackoffPx = Math.min(
+    MAX_FORCE_LENGTH_PX / 2,
+    Math.max(0.25, measuredNormalAdvance / 2),
+  );
+  const centre = {
+    x: pegAfter.position.x - normal.x * normalBackoffPx,
+    y: pegAfter.position.y - normal.y * normalBackoffPx,
+  };
+  const half = nearestDistance / 2;
+  return {
+    line: {
+      id: lineId,
+      type: 0,
+      x1: centre.x - tangent.x * half,
+      y1: centre.y - tangent.y * half,
+      x2: centre.x + tangent.x * half,
+      y2: centre.y + tangent.y * half,
+      flipped: contact.flipped,
+      leftExtended: false,
+      rightExtended: false,
+    },
+    lengthPx: nearestDistance,
+    normalBackoffPx,
+  };
+}
+
+function readablePoint(
+  point: RiderPointRead | undefined,
+): { position: { x: number; y: number }; velocity: { x: number; y: number } | null } | null {
+  const position = point?.pos;
+  const velocity = point?.vel ?? point?.velocity;
+  if (
+    position === undefined || !Number.isFinite(position.x) || !Number.isFinite(position.y)
+  ) return null;
+  return {
+    position: { x: position.x, y: position.y },
+    velocity: velocity !== undefined && Number.isFinite(velocity.x) && Number.isFinite(velocity.y)
+      ? { x: velocity.x, y: velocity.y }
+      : null,
+  };
+}
+
+function targetAdjacentLine(
+  lines: readonly TrackLine[],
+  targetState: ImpactFrameTargetState,
+): TrackLine | null {
+  let selected: TrackLine | null = null;
+  let closest = Infinity;
+  for (const line of lines) {
+    if (!(Math.hypot(line.x2 - line.x1, line.y2 - line.y1) > 1e-9)) continue;
+    const distance = (line.x1 - targetState.sledX) ** 2 + (line.y1 - targetState.sledY) ** 2;
+    if (distance < closest) {
+      selected = line;
+      closest = distance;
+    }
+  }
+  return selected;
 }
 
 type ArticulatedBodyHull = {
@@ -877,12 +1164,12 @@ function articulatedBodyHullFromRider(
 }
 
 function bodyFenderGeometry(
-  geometry: ReturnType<typeof sampleArcPlacementGeometry>,
+  geometry: { lines: readonly TrackLine[] },
   targetState: ImpactFrameTargetState,
   body: ArticulatedBodyHull,
   lineIdStart: number,
-): { line: ReturnType<typeof sampleArcPlacementGeometry>["lines"][number]; lengthPx: number } | null {
-  let contact: ReturnType<typeof sampleArcPlacementGeometry>["lines"][number] | null = null;
+): { line: TrackLine; lengthPx: number } | null {
+  let contact: TrackLine | null = null;
   let closest = Infinity;
   for (const line of geometry.lines) {
     const distance = (line.x1 - targetState.sledX) ** 2 + (line.y1 - targetState.sledY) ** 2;
@@ -1548,7 +1835,14 @@ function buildSetup(userSpec: Spec, seed: number): Setup {
     const next = gaps[index + 1];
     if (current.endsWithContact && next.endsWithContact && next.targets.impact !== undefined) current.nextImpact = next.targets.impact;
   }
-  return { gaps, ctx: { allContactFrames, durationFrames: secToFrame(spec.duration), gapAxisTargets } };
+  // Production composes contact-owned impact/grain with outgoing motion axes
+  // through `ctx.gaps`.  Omitting the timeline silently replays `gap.targets`
+  // as the geometry bundle and breaks the generation-time raw-pool identity
+  // check after the ownership migration.
+  return {
+    gaps,
+    ctx: { allContactFrames, durationFrames: secToFrame(spec.duration), gapAxisTargets, gaps },
+  };
 }
 
 function geometryHash(candidate: Candidate): string {

@@ -1,66 +1,74 @@
 {
   "budget": 40000,
   "suite": "wide",
+  "provenance": {
+    "campaignBaselineLabel": "redraw-dose-law-750k",
+    "campaignHeadline": 596.9655,
+    "head": "b84e8f2ff24609c67e2f86b5c3fba596ed5ca35c",
+    "compilerSourceFingerprint": "e69db2a8c7447e074e6fe87ec773c6b06154fb264ff3424d4345f53a321b554f",
+    "candidateFingerprint": "815ed914758c30d5e9e2c52a9300614104e1280bf1e372ea6887a3e734fd5b0d",
+    "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
+  },
   "cases": {
     "tiny_dance|seed0": {
-      "hash": "d6420c5b4aa525a2",
-      "lines": 22,
-      "sim_frames": 40253
+      "hash": "d299c953dc7ffbf4",
+      "lines": 31,
+      "sim_frames": 40627
     },
     "mini_burst|seed0": {
-      "hash": "ad60ac0ba85ac9fb",
-      "lines": 34,
-      "sim_frames": 40619
+      "hash": "136f1d75c1a80208",
+      "lines": 44,
+      "sim_frames": 40044
     },
     "cold_start|seed1": {
-      "hash": "b55cb0a50c2c38f6",
-      "lines": 110,
-      "sim_frames": 40287
+      "hash": "f8de3caf6c17eb77",
+      "lines": 141,
+      "sim_frames": 40694
     },
     "syncopated_switchback|seed1": {
-      "hash": "60529ace6c17df83",
-      "lines": 114,
-      "sim_frames": 41084
+      "hash": "8b2591d13f11c58e",
+      "lines": 215,
+      "sim_frames": 40771
     },
     "rhythm_ladder|seed2": {
-      "hash": "d2ed297c41b9def3",
-      "lines": 159,
-      "sim_frames": 40889
+      "hash": "ae911707b152faad",
+      "lines": 172,
+      "sim_frames": 40027
     },
     "drums_signature|seed2": {
-      "hash": "6732d8457404d680",
-      "lines": 193,
-      "sim_frames": 40070
+      "hash": "49aafba11b23c212",
+      "lines": 415,
+      "sim_frames": 41955
     },
     "drums_dropout|seed3": {
-      "hash": "a0d4584b25169f1c",
-      "lines": 216,
-      "sim_frames": 45003
+      "hash": "913e12b857026031",
+      "lines": 484,
+      "sim_frames": 40179
     },
     "drums_swell|seed4": {
-      "hash": "c1b30f7f297447f6",
-      "lines": 169,
-      "sim_frames": 40228
+      "hash": "285b3751d4875a94",
+      "lines": 418,
+      "sim_frames": 40041
     },
     "opening_burst|seed1": {
-      "hash": "556acde15e510907",
-      "lines": 131,
-      "sim_frames": 41673
+      "hash": "8d39ca653ccd93bd",
+      "lines": 29,
+      "sim_frames": 40198
     },
     "climb_terrace|seed5": {
-      "hash": "40ff19d207c1a47f",
-      "lines": 103,
-      "sim_frames": 40152
+      "hash": "9caa23a590481723",
+      "lines": 178,
+      "sim_frames": 40271
     },
     "big_air_ramp|seed6": {
-      "hash": "8b620dc3d79c43c4",
-      "lines": 75,
-      "sim_frames": 41222
+      "hash": "a224f24949cd2d15",
+      "lines": 100,
+      "sim_frames": 40770
     },
     "skyline_push|seed7": {
-      "hash": "eb5ed138a2c1e527",
-      "lines": 104,
-      "sim_frames": 40293
+      "hash": "e636898acb00b88c",
+      "lines": 160,
+      "sim_frames": 40149
     }
   }
 }

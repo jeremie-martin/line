@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
+import {
+  compileHandoff,
+  setHandoffExpansionProbeHook,
+  type HandoffExpansionProbeRecord,
+} from "../scripts/v0/optimizer/handoff.ts";
 import {
   adaptiveEstimate,
   BUDGET_TELEMETRY_SCHEMA,
@@ -258,18 +262,19 @@ describe("budget estimator budget law", () => {
         policyBudgetFrames,
         model: TEST_MODEL,
       });
-      recorder.startAttempt({
-        kind: "initial",
+      recorder.startEpisode({
+        lane: "initial",
         searchSeed: 1,
-        hasFallback: false,
+        frontierHasFallbackLane: false,
         anchorGapIndex: 0,
         startTotalSpentFrames: 0,
         ceilingTotalSpentFrames: 2_000_000,
         includeStartup: true,
       });
-      recorder.observeActive(2, 10_000);
-      recorder.endActive(20_000, "compile_finished", null);
-      return recorder.snapshot(20_000, false)!.attempts[0];
+      recorder.observeActiveEpisode(2, 10_000);
+      recorder.endEpisode(20_000, "compile_finished");
+      recorder.recordSegment("initial_search", 0, 20_000, "compile_finished", 0);
+      return recorder.snapshot(20_000, false)!.episodes[0];
     };
     const scarce = record(150_000);
     const rich = record(1_500_000);
@@ -390,7 +395,7 @@ describe("compile budget telemetry", () => {
     expect(() => parseBudgetEstimatorModel({ ...model, schema: "wrong" })).toThrow(/schema/);
   });
 
-  test("records contiguous segments, attempt outcomes, and exact budget identities", () => {
+  test("records contiguous intervals, episode outcomes, and exact budget identities", () => {
     const recorder = new CompileBudgetTelemetryRecorder({
       level: "trace",
       gaps: GAPS,
@@ -399,23 +404,38 @@ describe("compile budget telemetry", () => {
       policyBudgetFrames: 800,
       model: TEST_MODEL,
     });
-    const attempt = recorder.startAttempt({
-      kind: "initial",
+    const episode = recorder.startEpisode({
+      lane: "initial",
       searchSeed: 42,
-      hasFallback: false,
+      frontierHasFallbackLane: false,
       anchorGapIndex: 0,
       startTotalSpentFrames: 0,
       ceilingTotalSpentFrames: 800,
       includeStartup: true,
     });
-    recorder.recordSegment("startup", 0, 20, "ready", attempt);
-    recorder.observeActive(1, 80);
-    recorder.observeActive(2, 160);
-    recorder.markTerminal(240, GAPS.length);
-    recorder.endActive(260, "compile_finished", true);
-    recorder.recordSegment("initial_search", 20, 260, "compile_finished", attempt);
+    recorder.recordSegment("startup", 0, 20, "ready", episode);
+    recorder.observeActiveEpisode(1, 80);
+    recorder.observeActiveEpisode(2, 160);
+    recorder.recordEvaluation({
+      totalSpentFrames: 240,
+      gapIndex: GAPS.length,
+      terminal: true,
+      origin: "frontier",
+      firstTimeSearchNode: true,
+      terminalTrackKey: "track-a",
+      registerImproved: true,
+    });
+    recorder.endEpisode(260, "compile_finished", {
+      registerKeyAtEnd: {
+        contract_passed: true,
+        axis_quality: 0.9,
+        internal_full_score: 900,
+        drift_quality: 0.8,
+      },
+    });
+    recorder.recordSegment("initial_search", 20, 260, "compile_finished", episode);
 
-    const telemetry = recorder.snapshot(260, false, 240);
+    const telemetry = recorder.snapshot(260, false, 240, 240);
     expect(telemetry?.schema).toBe(BUDGET_TELEMETRY_SCHEMA);
     expect(telemetry?.compile).toMatchObject({
       hard_budget_frames: 1_000,
@@ -437,21 +457,32 @@ describe("compile budget telemetry", () => {
     );
     // Payloads copy the artifact's own claim; they never assert calibration.
     expect(telemetry?.model.calibrated).toBe(BUDGET_ESTIMATOR_MODEL.calibrated);
-    expect(telemetry?.segments.map((segment) => segment.spent_frames)).toEqual([20, 240]);
-    const recordedAttempt = telemetry?.attempts[0];
-    expect(recordedAttempt?.ceiling_source).toBe("hard_budget");
-    expect(recordedAttempt?.outcome).toEqual({
+    expect(telemetry?.execution_intervals.map((interval) => interval.spent_frames)).toEqual([20, 240]);
+    const recordedEpisode = telemetry?.episodes[0];
+    expect(recordedEpisode?.ceiling_source).toBe("hard_budget");
+    expect(recordedEpisode?.work).toMatchObject({
+      register_offers: 1,
+      terminal_node_evaluations: 1,
+      first_time_terminal_node_evaluations: 1,
+      distinct_terminal_tracks: 1,
+      register_improvements: 1,
+      terminal_register_improvements: 1,
+    });
+    expect(recordedEpisode?.outcome).toEqual({
       stop_reason: "compile_finished",
       end_total_spent_frames: 260,
       spent_frames: 260,
-      completed: true,
+      terminal_tracks_considered: 1,
       first_terminal_offset_frames: 240,
-      accepted_improvement: true,
-      first_accepted_improvement_offset_frames: null,
-      accepted_score_delta: null,
-      censored: false,
+      register_improved: true,
+      first_register_improvement_offset_frames: 240,
+      final_register_improvement_offset_frames: 240,
+      first_terminal_register_improvement_offset_frames: 240,
+      internal_full_score_delta: null,
+      repair_weak_gap_after: null,
+      terminal_observation_censored: false,
     });
-    expect(recordedAttempt?.observations?.map((observation) => observation.event)).toEqual([
+    expect(recordedEpisode?.observations?.map((observation) => observation.event)).toEqual([
       "start",
       "high_water",
       "high_water",
@@ -469,10 +500,10 @@ describe("compile budget telemetry", () => {
       policyBudgetFrames: 800,
       model: TEST_MODEL,
     });
-    recorder.startAttempt({
-      kind: "repair",
+    recorder.startEpisode({
+      lane: "repair",
       searchSeed: 3,
-      hasFallback: true,
+      frontierHasFallbackLane: true,
       anchorGapIndex: 1,
       startTotalSpentFrames: 0,
       ceilingTotalSpentFrames: 500,
@@ -481,10 +512,11 @@ describe("compile budget telemetry", () => {
       // Gap 1 has no measured cost; gap 2 does.
       pathEstimateByGap: [0, 0, 250, 0, 0],
     });
-    recorder.observeActive(2, 100);
-    recorder.endActive(200, "frontier_exhausted", false);
-    const attempt = recorder.snapshot(200, false)?.attempts[0];
-    const [start, advanced] = attempt?.observations ?? [];
+    recorder.observeActiveEpisode(2, 100);
+    recorder.endEpisode(200, "frontier_exhausted");
+    recorder.recordSegment("repair_frontier", 0, 200, "frontier_exhausted", 0);
+    const episode = recorder.snapshot(200, false)?.episodes[0];
+    const [start, advanced] = episode?.observations ?? [];
 
     // The estimator's selector discards a non-positive path, so admitting one
     // here would label a structural estimate as path-backed.
@@ -501,10 +533,72 @@ describe("compile budget telemetry", () => {
     }));
     expect(advanced.estimator_applicability).not.toBe("unvalidated_attempt_kind");
     expect(start.estimator_applicability).toBe("unvalidated_attempt_kind");
-    expect(attempt?.ceiling_source).toBe("measured_cost_to_end");
+    expect(episode?.ceiling_source).toBe("measured_cost_to_end");
   });
 
-  test("keeps incomplete attempts explicitly censored", () => {
+  test("separates terminal node identity from terminal track geometry", () => {
+    const recorder = new CompileBudgetTelemetryRecorder({
+      level: "summary",
+      gaps: GAPS,
+      durationFrames: 100,
+      hardBudgetFrames: 1_000,
+      policyBudgetFrames: 1_000,
+      model: TEST_MODEL,
+    });
+    recorder.startEpisode({
+      lane: "initial",
+      searchSeed: 1,
+      frontierHasFallbackLane: false,
+      anchorGapIndex: 0,
+      startTotalSpentFrames: 0,
+      ceilingTotalSpentFrames: 1_000,
+      includeStartup: true,
+    });
+    recorder.recordEvaluation({
+      totalSpentFrames: 100,
+      gapIndex: GAPS.length,
+      terminal: true,
+      origin: "tail_completion",
+      firstTimeSearchNode: true,
+      terminalTrackKey: "same-geometry",
+      registerImproved: true,
+    });
+    recorder.recordEvaluation({
+      totalSpentFrames: 120,
+      gapIndex: GAPS.length,
+      terminal: true,
+      origin: "tail_completion",
+      firstTimeSearchNode: false,
+      terminalTrackKey: "same-geometry",
+      registerImproved: false,
+    });
+    recorder.endEpisode(120, "compile_finished", {
+      registerKeyAtEnd: {
+        contract_passed: true,
+        axis_quality: 0.8,
+        internal_full_score: 800,
+        drift_quality: 0.7,
+      },
+    });
+    recorder.recordSegment("initial_search", 0, 120, "compile_finished", 0);
+    const work = recorder.snapshot(120, false, 100, 100)!.compile.work;
+
+    expect(work).toMatchObject({
+      terminal_node_evaluations: 2,
+      first_time_terminal_node_evaluations: 1,
+      revisited_terminal_node_evaluations: 1,
+      distinct_terminal_tracks: 1,
+      repeated_terminal_track_evaluations: 1,
+    });
+    expect(work.by_evaluation_origin.tail_completion).toEqual({
+      register_offers: 2,
+      terminal_node_evaluations: 2,
+      register_improvements: 1,
+      terminal_register_improvements: 1,
+    });
+  });
+
+  test("keeps incomplete episodes explicitly censored", () => {
     const recorder = new CompileBudgetTelemetryRecorder({
       level: "summary",
       gaps: GAPS,
@@ -513,23 +607,23 @@ describe("compile budget telemetry", () => {
       policyBudgetFrames: 50,
       model: TEST_MODEL,
     });
-    recorder.startAttempt({
-      kind: "repair",
+    recorder.startEpisode({
+      lane: "repair",
       searchSeed: 7,
-      hasFallback: true,
+      frontierHasFallbackLane: true,
       anchorGapIndex: 2,
       startTotalSpentFrames: 10,
       ceilingTotalSpentFrames: 50,
       includeStartup: false,
     });
-    recorder.endActive(50, "local_ceiling", false);
-    recorder.recordSegment("unattributed", 0, 10, "pre-attempt");
-    recorder.recordSegment("repair_attempt", 10, 50, "local_ceiling", 0);
-    const attempt = recorder.snapshot(50, true)?.attempts[0];
-    expect(attempt?.outcome.completed).toBe(false);
-    expect(attempt?.outcome.censored).toBe(true);
-    expect(attempt?.observations).toBeUndefined();
-    expect(attempt?.end?.event).toBe("end");
+    recorder.endEpisode(50, "local_ceiling");
+    recorder.recordSegment("startup", 0, 10, "pre-episode");
+    recorder.recordSegment("repair_frontier", 10, 50, "local_ceiling", 0);
+    const episode = recorder.snapshot(50, true)?.episodes[0];
+    expect(episode?.outcome.terminal_tracks_considered).toBe(0);
+    expect(episode?.outcome.terminal_observation_censored).toBe(true);
+    expect(episode?.observations).toBeUndefined();
+    expect(episode?.end?.event).toBe("end");
   });
 
   test("is byte-behavior-neutral at off, summary, and trace levels", async () => {
@@ -551,7 +645,10 @@ describe("compile budget telemetry", () => {
     expect(traceAgain.budgetTelemetry).toEqual(trace.budgetTelemetry);
     expect(trace.budgetTelemetry?.compile.total_spent_frames).toBe(trace.stats.sim_frames);
     expect(
-      trace.budgetTelemetry?.segments.reduce((sum, segment) => sum + segment.spent_frames, 0),
+      trace.budgetTelemetry?.execution_intervals.reduce(
+        (sum, interval) => sum + interval.spent_frames,
+        0,
+      ),
     ).toBe(trace.stats.sim_frames);
   }, 120_000);
 
@@ -569,7 +666,7 @@ describe("compile budget telemetry", () => {
       expect(candidate.report).toEqual(off.report);
       expect(candidate.stats).toEqual(off.stats);
     }
-    expect(trace.budgetTelemetry?.attempts.some((attempt) => attempt.kind === "repair")).toBe(true);
+    expect(trace.budgetTelemetry?.episodes.some((episode) => episode.lane === "repair")).toBe(true);
   }, 180_000);
 
   test("attributes repair and resumed search at a repair-enabled budget", async () => {
@@ -580,9 +677,9 @@ describe("compile budget telemetry", () => {
       budgetTelemetry: "trace",
     });
     const telemetry = result.budgetTelemetry!;
-    const attempts = telemetry.attempts;
-    const repairs = attempts.filter((attempt) => attempt.kind === "repair");
-    const observations = attempts.flatMap((attempt) => attempt.observations ?? []);
+    const episodes = telemetry.episodes;
+    const repairs = episodes.filter((episode) => episode.lane === "repair");
+    const observations = episodes.flatMap((episode) => episode.observations ?? []);
 
     expect(repairs.length).toBeGreaterThan(0);
     expect(observations.some((observation) =>
@@ -600,11 +697,11 @@ describe("compile budget telemetry", () => {
     // upstream the walk had gone when this attempt ran, and the weakness key
     // the pick was made on. Without them an archive cannot tell a round from
     // an attempt ordinal, and cannot price the upstream walk at all.
-    for (const attempt of attempts) {
-      if (attempt.kind === "repair") continue;
-      expect(attempt.repair_round_index).toBeNull();
-      expect(attempt.anchor_upstream_offset).toBeNull();
-      expect(attempt.incumbent_weak_gap_sse).toBeNull();
+    for (const episode of episodes) {
+      if (episode.lane === "repair") continue;
+      expect(episode.repair_round_index).toBeNull();
+      expect(episode.anchor_upstream_offset).toBeNull();
+      expect(episode.incumbent_weak_gap_sse).toBeNull();
     }
     let previousRound = -1;
     for (const repair of repairs) {
@@ -622,55 +719,135 @@ describe("compile budget telemetry", () => {
         .toContain(repair.ceiling_source);
       // A repair always knows what it did to the incumbent's score; the
       // improvement offset exists exactly when the register took something.
-      expect(repair.outcome.accepted_score_delta).not.toBeNull();
-      const offset = repair.outcome.first_accepted_improvement_offset_frames;
-      if (repair.outcome.accepted_improvement === true) {
+      expect(repair.outcome.internal_full_score_delta).not.toBeNull();
+      const offset = repair.outcome.first_register_improvement_offset_frames;
+      if (repair.outcome.register_improved) {
         expect(offset).not.toBeNull();
         expect(offset!).toBeGreaterThanOrEqual(0);
         expect(offset!).toBeLessThanOrEqual(repair.outcome.spent_frames!);
       } else {
         expect(offset).toBeNull();
-        expect(repair.outcome.accepted_score_delta).toBe(0);
+        expect(repair.outcome.internal_full_score_delta).toBe(0);
       }
     }
 
     // The resumed frontier owns charged work and can hold a terminal, so it
     // must be an attempt and not only a segment.
-    const resumedSegments = telemetry.segments.filter((segment) => segment.kind === "resumed_search");
-    const resumed = attempts.filter((attempt) => attempt.kind === "resumed");
-    expect(resumed.length).toBe(resumedSegments.length);
-    for (const segment of resumedSegments) {
-      const attempt = attempts.find((candidate) => candidate.attempt_id === segment.attempt_id);
-      expect(attempt?.kind).toBe("resumed");
-      expect(attempt?.start_total_spent_frames).toBe(segment.start_total_spent_frames);
-      expect(attempt?.outcome.end_total_spent_frames).toBe(segment.end_total_spent_frames);
-      expect(attempt?.parent_attempt_id).toBe(attempts[0].attempt_id);
-      expect(attempt?.ceiling_total_spent_frames).toBe(telemetry.compile.hard_budget_frames);
-      const inside = attempt?.observations ?? [];
+    const resumedIntervals = telemetry.execution_intervals.filter((interval) =>
+      interval.kind === "resumed_search"
+    );
+    const resumed = episodes.filter((episode) => episode.lane === "resumed");
+    expect(resumed.length).toBe(resumedIntervals.length);
+    for (const interval of resumedIntervals) {
+      const episode = episodes.find((candidate) => candidate.episode_id === interval.episode_id);
+      expect(episode?.lane).toBe("resumed");
+      expect(episode?.start_total_spent_frames).toBe(interval.start_total_spent_frames);
+      expect(episode?.outcome.end_total_spent_frames).toBe(interval.end_total_spent_frames);
+      expect(episode?.parent_episode_id).toBe(episodes[0].episode_id);
+      expect(episode?.ceiling_total_spent_frames).toBe(telemetry.compile.hard_budget_frames);
+      const inside = episode?.observations ?? [];
       expect(inside.length).toBeGreaterThan(0);
       for (const observation of inside) {
-        expect(observation.total_spent_frames).toBeGreaterThanOrEqual(segment.start_total_spent_frames);
-        expect(observation.total_spent_frames).toBeLessThanOrEqual(segment.end_total_spent_frames);
+        expect(observation.total_spent_frames).toBeGreaterThanOrEqual(interval.start_total_spent_frames);
+        expect(observation.total_spent_frames).toBeLessThanOrEqual(interval.end_total_spent_frames);
       }
     }
 
     // The compiler's own first-terminal counter must agree with attribution.
-    const attributed = attempts
-      .filter((attempt) => attempt.outcome.first_terminal_offset_frames !== null)
-      .map((attempt) => attempt.start_total_spent_frames + attempt.outcome.first_terminal_offset_frames!);
+    const attributed = episodes
+      .filter((episode) => episode.outcome.first_terminal_offset_frames !== null)
+      .map((episode) =>
+        episode.start_total_spent_frames + episode.outcome.first_terminal_offset_frames!
+      );
     expect(telemetry.compile.first_terminal_total_spent_frames).toBe(Math.min(...attributed));
     expect(telemetry.compile.first_terminal_total_spent_frames)
       .toBe(result.stats.first_completion_frame);
 
     // Segments still partition all charged work exactly.
     let cursor = 0;
-    for (const segment of telemetry.segments) {
-      expect(segment.start_total_spent_frames).toBe(cursor);
-      expect(segment.spent_frames).toBe(segment.end_total_spent_frames - cursor);
-      cursor = segment.end_total_spent_frames;
+    for (const interval of telemetry.execution_intervals) {
+      expect(interval.start_total_spent_frames).toBe(cursor);
+      expect(interval.spent_frames).toBe(interval.end_total_spent_frames - cursor);
+      cursor = interval.end_total_spent_frames;
     }
     expect(cursor).toBe(telemetry.compile.total_spent_frames);
-    expect(telemetry.segments.some((segment) => segment.kind === "unattributed")).toBe(false);
+    expect(telemetry.execution_intervals.some((interval) => interval.kind === "unattributed"))
+      .toBe(false);
+  }, 180_000);
+
+  test("counts every actual ranked pool request at its authoritative boundary", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const builds: HandoffExpansionProbeRecord[] = [];
+    setHandoffExpansionProbeHook((record) => builds.push(record));
+    try {
+      const output = compileHandoff(spec, 0, {
+        budget: 20_000,
+        maxNodes: 12,
+        polish: false,
+        budgetTelemetry: "summary",
+      });
+      const work = output.budgetTelemetry!.compile.work;
+      expect(builds.length).toBeGreaterThan(0);
+      expect(work.pool_builds).toBe(builds.length);
+      expect(work.requested_normal_proposals).toBe(
+        builds.reduce((sum, build) => sum + build.nCand, 0),
+      );
+      expect(work.actual_candidate_samples).toBe(
+        Object.values(work.candidate_samples_by_mode).reduce((sum, count) => sum + count, 0),
+      );
+    } finally {
+      setHandoffExpansionProbeHook(null);
+    }
+  });
+
+  test("returns adaptive repair episodes after at most one terminal and re-enters the allocator", async () => {
+    const spec = await loadGoldenSpec("cold_start", "base");
+    const options = {
+      budget: 150_000,
+      polish: false,
+      budgetTelemetry: "trace" as const,
+      repairFrontierMode: "one-terminal-adaptive" as const,
+    };
+    const first = compileHandoff(spec, 0, options);
+    const second = compileHandoff(spec, 0, options);
+    expect(second.track).toEqual(first.track);
+    expect(second.report).toEqual(first.report);
+    expect(second.stats).toEqual(first.stats);
+    expect(second.budgetTelemetry).toEqual(first.budgetTelemetry);
+
+    const repairs = first.budgetTelemetry!.episodes.filter((episode) =>
+      episode.lane === "repair" && episode.mechanism === "frontier"
+    );
+    expect(repairs.length).toBeGreaterThan(1);
+    expect(repairs.every((episode) => episode.mechanism_detail === "one-terminal-adaptive"))
+      .toBe(true);
+    expect(repairs.every((episode) => episode.outcome.terminal_tracks_considered <= 1))
+      .toBe(true);
+    const completed = repairs.filter((episode) => episode.outcome.terminal_tracks_considered === 1);
+    expect(completed.length).toBeGreaterThan(0);
+    expect(completed.every((episode) => episode.outcome.stop_reason === "first_terminal_return"))
+      .toBe(true);
+    expect(new Set(repairs.map((episode) => episode.repair_round_index)).size)
+      .toBe(repairs.length);
+  }, 180_000);
+
+  test("keeps the production adaptive repair behavior identical when its mode is explicit", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const options = {
+      budget: 150_000,
+      polish: false,
+      budgetTelemetry: "summary" as const,
+    };
+    const implicit = compileHandoff(spec, 0, options);
+    const explicit = compileHandoff(spec, 0, {
+      ...options,
+      repairFrontierMode: "one-terminal-adaptive",
+    });
+    expect(explicit).toEqual(implicit);
+    expect(implicit.budgetTelemetry!.episodes
+      .filter((episode) => episode.lane === "repair" && episode.mechanism === "frontier")
+      .every((episode) => episode.mechanism_detail === "one-terminal-adaptive"))
+      .toBe(true);
   }, 180_000);
 
   test("sizes repairs from measured cost at gaps only the tail-completion pass built", async () => {
@@ -690,7 +867,7 @@ describe("compile budget telemetry", () => {
       polish: false,
       budgetTelemetry: "trace",
     });
-    const repairs = result.budgetTelemetry!.attempts.filter((attempt) => attempt.kind === "repair");
+    const repairs = result.budgetTelemetry!.episodes.filter((episode) => episode.lane === "repair");
     expect(repairs.length).toBeGreaterThan(0);
 
     for (const repair of repairs) {
@@ -726,8 +903,8 @@ describe("compile budget telemetry", () => {
       polish: false,
       budgetTelemetry: "trace",
     });
-    const sized = result.budgetTelemetry!.attempts.filter((attempt) =>
-      attempt.kind === "repair" && attempt.ceiling_source === "measured_cost_to_end"
+    const sized = result.budgetTelemetry!.episodes.filter((episode) =>
+      episode.lane === "repair" && episode.ceiling_source === "measured_cost_to_end"
     );
     expect(sized.length).toBeGreaterThan(0);
     for (const repair of sized) {
@@ -743,7 +920,7 @@ describe("compile budget telemetry", () => {
       // there is no pace term yet, and the artifact's base mode takes the path.
       expect(repair.start.estimated_remaining_work_frames).toBeCloseTo(point, 9);
       const upper = budgetEstimateInterval(point, { event: "start", pathAvailable: true }).upper;
-      expect(repair.local_budget_frames).toBe(Math.ceil(upper));
+      expect(repair.allocated_frames).toBe(Math.ceil(upper));
     }
   }, 180_000);
 
@@ -757,15 +934,15 @@ describe("compile budget telemetry", () => {
       polish: false,
       budgetTelemetry: "trace",
     });
-    const attempt = result.budgetTelemetry?.attempts[0];
+    const episode = result.budgetTelemetry?.episodes[0];
 
     expect(result.stats.sim_frames).toBeGreaterThan(10_000);
-    expect(attempt?.ceiling_total_spent_frames).toBe(hardBudget);
-    expect(attempt?.local_budget_frames).toBe(hardBudget);
-    expect(attempt?.end?.attempt_remaining_frames).toBe(
-      Math.max(0, hardBudget - (attempt.end?.total_spent_frames ?? 0)),
+    expect(episode?.ceiling_total_spent_frames).toBe(hardBudget);
+    expect(episode?.allocated_frames).toBe(hardBudget);
+    expect(episode?.end?.episode_remaining_frames).toBe(
+      Math.max(0, hardBudget - (episode.end?.total_spent_frames ?? 0)),
     );
-    expect(attempt?.end?.attempt_overrun_frames).toBe(0);
-    expect(attempt?.ceiling_source).toBe("hard_budget");
+    expect(episode?.end?.episode_overrun_frames).toBe(0);
+    expect(episode?.ceiling_source).toBe("hard_budget");
   }, 120_000);
 });

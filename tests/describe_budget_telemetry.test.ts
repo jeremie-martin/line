@@ -1,7 +1,6 @@
 /**
- * The renderer is a debugging surface for an evolving payload: its contract is
- * "show what you recognize, never crash, never invent". These tests pin that
- * contract, not the exact column layout.
+ * The renderer is a debugging surface for the current clean-break payload. It
+ * fails closed on historical or structurally incomplete schemas.
  */
 
 import { describe, expect, test } from "vitest";
@@ -9,6 +8,33 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describeBudgetTelemetry } from "../scripts/v0/describe_budget_telemetry.ts";
+import { BUDGET_TELEMETRY_SCHEMA } from "../scripts/v0/optimizer/budget_telemetry.ts";
+
+const WORK = {
+  pool_builds: 2,
+  requested_normal_proposals: 80,
+  actual_candidate_samples: 77,
+  viable_candidates: 30,
+  candidate_samples_by_mode: { normal: 77 },
+  by_evaluation_origin: {
+    frontier: { register_offers: 3, terminal_node_evaluations: 2, register_improvements: 2, terminal_register_improvements: 1 },
+    tail_completion: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
+    surgical_repair: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
+    polish: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
+  },
+  nodes_processed: 4,
+  nodes_expanded: 3,
+  children_enqueued: 8,
+  register_offers: 3,
+  partial_node_evaluations: 1,
+  terminal_node_evaluations: 2,
+  first_time_terminal_node_evaluations: 2,
+  revisited_terminal_node_evaluations: 0,
+  distinct_terminal_tracks: 2,
+  repeated_terminal_track_evaluations: 0,
+  register_improvements: 2,
+  terminal_register_improvements: 1,
+};
 
 function observation(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -16,9 +42,9 @@ function observation(overrides: Record<string, unknown> = {}): Record<string, un
     total_spent_frames: 0,
     hard_remaining_frames: 750_000,
     hard_overrun_frames: 0,
-    attempt_spent_frames: 0,
-    attempt_remaining_frames: 750_000,
-    attempt_overrun_frames: 0,
+    episode_spent_frames: 0,
+    episode_remaining_frames: 750_000,
+    episode_overrun_frames: 0,
     high_water: {
       gap_index: 0,
       anchor_frame: 0,
@@ -38,15 +64,15 @@ function observation(overrides: Record<string, unknown> = {}): Record<string, un
     estimate_uncertainty_frames: 15_230,
     hard_completion_margin: 14.23,
     hard_completion_surplus_frames: 697_287,
-    attempt_completion_margin: 14.23,
-    attempt_completion_surplus_frames: 697_287,
+    episode_completion_margin: 14.23,
+    episode_completion_surplus_frames: 697_287,
     ...overrides,
   };
 }
 
 function payload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    schema: "line.compile-budget-telemetry.v1",
+    schema: BUDGET_TELEMETRY_SCHEMA,
     level: "summary",
     model: {
       traversal_model: "traversal-test",
@@ -64,24 +90,27 @@ function payload(overrides: Record<string, unknown> = {}): Record<string, unknow
       budget_exhausted: true,
       initial_structural_work_prior_frames: 54_151,
       initial_structural_slack: 13.85,
+      work: WORK,
+      final_output_episode_id: 0,
+      final_output_lane: "initial",
     },
-    segments: [
+    execution_intervals: [
       {
         kind: "startup",
-        attempt_id: 0,
+        episode_id: 0,
         start_total_spent_frames: 0,
         end_total_spent_frames: 7_814,
         spent_frames: 7_814,
         stop_reason: "search_ready",
       },
     ],
-    attempts: [
+    episodes: [
       {
-        attempt_id: 0,
-        kind: "initial",
-        parent_attempt_id: null,
+        episode_id: 0,
+        lane: "initial",
+        parent_episode_id: null,
         search_seed: 0,
-        has_fallback: false,
+        frontier_has_fallback_lane: false,
         anchor: {
           gap_index: 0,
           anchor_frame: 0,
@@ -92,17 +121,21 @@ function payload(overrides: Record<string, unknown> = {}): Record<string, unknow
         start_total_spent_frames: 0,
         ceiling_total_spent_frames: 750_000,
         available_hard_budget_frames: 750_000,
-        local_budget_frames: 750_000,
+        allocated_frames: 750_000,
+        work: WORK,
         start: observation(),
         end: observation({ event: "end", total_spent_frames: 38_626 }),
         outcome: {
           stop_reason: "handoff_to_repair",
           end_total_spent_frames: 38_626,
           spent_frames: 38_626,
-          completed: true,
+          terminal_tracks_considered: 2,
           first_terminal_offset_frames: 38_626,
-          accepted_improvement: null,
-          censored: false,
+          register_improved: true,
+          first_register_improvement_offset_frames: 1_000,
+          first_terminal_register_improvement_offset_frames: 1_000,
+          internal_full_score_delta: null,
+          terminal_observation_censored: false,
         },
       },
     ],
@@ -126,17 +159,20 @@ function render(value: unknown, stats?: unknown): string {
 }
 
 describe("describe_budget_telemetry", () => {
-  test("renders the compile, segment, attempt and observation story", () => {
+  test("renders the compile, interval, episode, work, and observation story", () => {
     const output = render(payload());
 
-    expect(output).toContain("line.compile-budget-telemetry.v1");
+    expect(output).toContain(BUDGET_TELEMETRY_SCHEMA);
     expect(output).toContain("hard budget");
     expect(output).toContain("750,000");
     expect(output).toContain("hard overrun");
     expect(output).toContain("initial structural slack");
-    expect(output).toContain("SEGMENTS (1)");
+    expect(output).toContain("EXECUTION INTERVALS (1)");
     expect(output).toContain("search_ready");
-    expect(output).toContain("ATTEMPTS (1)");
+    expect(output).toContain("EPISODES (1)");
+    expect(output).toContain("EPISODE WORK FUNNEL");
+    expect(output).toContain("requested normal proposals");
+    expect(output).toContain("distinct terminal tracks");
     expect(output).toContain("handoff_to_repair");
     expect(output).toContain("OBSERVATION WALK");
     // Summary payloads have no observation array; the walk says what it walked.
@@ -144,8 +180,8 @@ describe("describe_budget_telemetry", () => {
   });
 
   test("walks every trace observation, not just start and end", () => {
-    const traced = payload({ level: "trace" }) as { attempts: Record<string, unknown>[] };
-    traced.attempts[0].observations = [
+    const traced = payload({ level: "trace" }) as { episodes: Record<string, unknown>[] };
+    traced.episodes[0].observations = [
       observation(),
       observation({ event: "high_water", total_spent_frames: 3_275 }),
       observation({ event: "spend", total_spent_frames: 5_698 }),
@@ -162,13 +198,13 @@ describe("describe_budget_telemetry", () => {
   test("renders fields a later recorder adds, and reports the ones it cannot", () => {
     const extended = payload() as {
       compile: Record<string, unknown>;
-      attempts: Record<string, unknown>[];
+      episodes: Record<string, unknown>[];
     };
     extended.compile.initial_structural_applicability = "extrapolated_policy_budget";
     extended.compile.first_terminal_total_spent_frames = 20_751;
-    extended.attempts[0].ceiling_source = "measured_cost_to_end";
-    extended.attempts[0].some_future_attempt_field = 7;
-    (extended.attempts[0].start as Record<string, unknown>).some_future_observation_field = 9;
+    extended.episodes[0].ceiling_source = "measured_cost_to_end";
+    extended.episodes[0].some_future_episode_field = 7;
+    (extended.episodes[0].start as Record<string, unknown>).some_future_observation_field = 9;
 
     const output = render(extended);
 
@@ -177,33 +213,32 @@ describe("describe_budget_telemetry", () => {
     expect(output).toContain("first terminal at");
     expect(output).toContain("measured_cost_to_end");
     expect(output).toContain("UNRENDERED FIELDS");
-    expect(output).toContain("some_future_attempt_field");
+    expect(output).toContain("some_future_episode_field");
     expect(output).toContain("some_future_observation_field");
   });
 
-  test("omits optional columns no attempt carries", () => {
-    // ceiling_source is not in the v1 payload: an old sidecar must not grow a
-    // column of nulls for it. The three repair fields are null on an initial
-    // attempt, so their columns must disappear on a repair-free payload too.
-    const output = render(payload());
-    expect(output).not.toContain("ceiling from");
+  test("omits optional repair columns no episode carries", () => {
+    const clean = payload() as { episodes: Record<string, unknown>[] };
+    clean.episodes[0].ceiling_source = "hard_budget";
+    const output = render(clean);
+    expect(output).toContain("ceiling from");
     expect(output).not.toContain("weak sse");
   });
 
   /**
-   * The three repair fields are ALWAYS present on a repair attempt and were
+   * The three repair fields are ALWAYS present on a repair episode and were
    * documented first-class, yet the tool reported all three as unrecognized on
    * every repair-bearing payload. Recognizing them is the fix; rendering them
-   * is what the columns are for (the attempt ordinal is not the round index,
+   * is what the columns are for (the episode ordinal is not the round index,
    * and the anchor alone cannot say whether it was chosen or walked to).
    */
   test("renders the repair round, upstream walk and weakness key", () => {
-    const withRepair = payload() as { attempts: Record<string, unknown>[] };
-    withRepair.attempts.push({
-      ...withRepair.attempts[0],
-      attempt_id: 1,
-      kind: "repair",
-      parent_attempt_id: 0,
+    const withRepair = payload() as { episodes: Record<string, unknown>[] };
+    withRepair.episodes.push({
+      ...withRepair.episodes[0],
+      episode_id: 1,
+      lane: "repair",
+      parent_episode_id: 0,
       repair_round_index: 2,
       anchor_upstream_offset: 3,
       incumbent_weak_gap_sse: 0.2473,
@@ -245,10 +280,10 @@ describe("describe_budget_telemetry", () => {
     for (
       const field of [
         "hard_overrun_frames",
-        "attempt_overrun_frames",
+        "episode_overrun_frames",
         "estimate_uncertainty_frames",
         "hard_completion_surplus_frames",
-        "attempt_completion_surplus_frames",
+        "episode_completion_surplus_frames",
         "structural_startup_included",
       ]
     ) {
@@ -271,20 +306,17 @@ describe("describe_budget_telemetry", () => {
     expect(output).not.toMatch(/^ +budget_slack +[\d.]/m);
   });
 
-  test("survives a payload missing, nulling or mistyping every field it reads", () => {
-    expect(() => render({})).not.toThrow();
-    expect(() => render({ compile: null, segments: null, attempts: null })).not.toThrow();
-    expect(() => render({ segments: [null, 7, "x"], attempts: [null, {}] })).not.toThrow();
-    expect(() =>
-      render({
-        compile: { hard_budget_frames: "lots" },
-        attempts: [{ attempt_id: {}, anchor: [], outcome: 5, start: "nope", observations: [{}] }],
-      })
-    ).not.toThrow();
-
-    const output = render({ attempts: [{ attempt_id: 0 }] });
-    expect(output).toContain("ATTEMPTS (1)");
-    expect(output).toContain("null");
+  test("rejects historical and structurally incomplete payloads", () => {
+    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v3/);
+    expect(() => render({
+      schema: "line.compile-budget-telemetry.v2",
+      episodes: [],
+      execution_intervals: [],
+    })).toThrow(/expected line\.compile-budget-telemetry\.v3/);
+    expect(() => render({
+      schema: BUDGET_TELEMETRY_SCHEMA,
+      episodes: [],
+    })).toThrow(/missing V3 episodes or execution intervals/);
   });
 
   test("rejects a file that is not a telemetry object", () => {

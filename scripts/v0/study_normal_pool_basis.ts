@@ -66,6 +66,29 @@ type RawPoolSnapshot = {
   count: number;
   candidates: Array<{ attempt: number; geometryHash: string }>;
 };
+type PoolCensusSnapshot = {
+  gapIndex: number;
+  requestedAttempts: number;
+  viableCandidates: number;
+  uniqueRepresentations: number;
+  duplicateCandidates: number;
+  duplicateGroups: number;
+  maxMultiplicity: number;
+};
+type CompileCensusRow = {
+  caseId: string;
+  regime: Regime;
+  seed: number;
+  pools: number;
+  poolsWithDuplicates: number;
+  requestedAttempts: number;
+  viableCandidates: number;
+  uniqueRepresentations: number;
+  duplicateCandidates: number;
+  duplicateGroups: number;
+  maxPoolDuplicates: number;
+  maxMultiplicity: number;
+};
 type CandidateDigest = {
   attempt: number;
   geometryHash: string;
@@ -109,6 +132,7 @@ const definitions = CASES.map((entry) => {
 });
 
 const rows: Row[] = [];
+const compilerPoolCensus: CompileCensusRow[] = [];
 for (const definition of definitions) {
   for (const seed of SEEDS) {
     const spec = applyJolt(definition.spec, benchmarkPolicy.transform.joltMs);
@@ -116,6 +140,7 @@ for (const definition of definitions) {
     const checkpointGaps = checkpointGapIndices(setup.gaps);
     const captured = new Map<number, Captured>();
     const rawSnapshots = new WeakMap<object, RawPoolSnapshot>();
+    const poolCensus = new Map<object, PoolCensusSnapshot>();
     setHandoffFrontierNodeProbeHook(({ selected }) => {
       if (selected.skippedContacts !== 0 || selected.search.gapIndex === setup.gaps.length) return;
       const checkpoint = checkpointGaps.get(selected.search.gapIndex);
@@ -129,6 +154,10 @@ for (const definition of definitions) {
       }
     });
     setNormalPoolSnapshotHook((record) => {
+      const censusPrior = poolCensus.get(record.node);
+      if (censusPrior === undefined || record.nCand >= censusPrior.requestedAttempts) {
+        poolCensus.set(record.node, censusSnapshot(record.gapIndex, record.nCand, record.sampleOrder));
+      }
       const prior = rawSnapshots.get(record.node);
       if (prior === undefined || prior.seed !== record.seed || record.nCand < prior.count) {
         rawSnapshots.set(record.node, {
@@ -158,6 +187,12 @@ for (const definition of definitions) {
       setHandoffFrontierNodeProbeHook(null);
       setNormalPoolSnapshotHook(null);
     }
+    compilerPoolCensus.push(summarizeCompilerPools(
+      definition.id,
+      definition.regime,
+      seed,
+      [...poolCensus.values()],
+    ));
 
     for (const [gapIndex, checkpoint] of checkpointGaps) {
       const capturedState = captured.get(gapIndex);
@@ -199,7 +234,11 @@ const result = {
     haltonBases: HALTON_BASES,
   },
   rows,
-  summary: summarize(rows),
+  compilerPoolCensus,
+  summary: {
+    ...summarize(rows),
+    duplicateCensus: summarizeDuplicateCensus(compilerPoolCensus),
+  },
 };
 const json = `${JSON.stringify(result, null, 2)}\n`;
 if (outPath === undefined) process.stdout.write(json);
@@ -403,7 +442,10 @@ function buildSetup(userSpec: Spec, seed: number): Setup {
       gaps[index].nextImpact = next.targets.impact;
     }
   }
-  return { gaps, ctx: { allContactFrames, durationFrames: secToFrame(spec.duration), gapAxisTargets } };
+  return {
+    gaps,
+    ctx: { allContactFrames, durationFrames: secToFrame(spec.duration), gapAxisTargets, gaps },
+  };
 }
 
 function makeScrambledHaltonRng(seed: number): () => number {
@@ -442,6 +484,83 @@ function geometryHash(candidate: Candidate): string {
   return createHash("sha256").update(JSON.stringify(candidate.lines.map((line) => [
     round(line.x1), round(line.y1), round(line.x2), round(line.y2),
   ]))).digest("hex");
+}
+
+function representationHash(candidate: Candidate): string {
+  return createHash("sha256").update(JSON.stringify(candidate.lines.map((line) => [
+    line.id,
+    line.type,
+    line.x1,
+    line.y1,
+    line.x2,
+    line.y2,
+    line.flipped,
+    line.leftExtended,
+    line.rightExtended,
+  ]))).digest("hex");
+}
+
+function censusSnapshot(
+  gapIndex: number,
+  requestedAttempts: number,
+  candidates: readonly Candidate[],
+): PoolCensusSnapshot {
+  const multiplicities = new Map<string, number>();
+  for (const candidate of candidates) {
+    const hash = representationHash(candidate);
+    multiplicities.set(hash, (multiplicities.get(hash) ?? 0) + 1);
+  }
+  const counts = [...multiplicities.values()];
+  return {
+    gapIndex,
+    requestedAttempts,
+    viableCandidates: candidates.length,
+    uniqueRepresentations: multiplicities.size,
+    duplicateCandidates: candidates.length - multiplicities.size,
+    duplicateGroups: counts.filter((count) => count > 1).length,
+    maxMultiplicity: counts.length === 0 ? 0 : Math.max(...counts),
+  };
+}
+
+function summarizeCompilerPools(
+  caseId: string,
+  regime: Regime,
+  seed: number,
+  pools: readonly PoolCensusSnapshot[],
+): CompileCensusRow {
+  return {
+    caseId,
+    regime,
+    seed,
+    pools: pools.length,
+    poolsWithDuplicates: pools.filter((pool) => pool.duplicateCandidates > 0).length,
+    requestedAttempts: sum(pools.map((pool) => pool.requestedAttempts)),
+    viableCandidates: sum(pools.map((pool) => pool.viableCandidates)),
+    uniqueRepresentations: sum(pools.map((pool) => pool.uniqueRepresentations)),
+    duplicateCandidates: sum(pools.map((pool) => pool.duplicateCandidates)),
+    duplicateGroups: sum(pools.map((pool) => pool.duplicateGroups)),
+    maxPoolDuplicates: pools.length === 0 ? 0 : Math.max(...pools.map((pool) => pool.duplicateCandidates)),
+    maxMultiplicity: pools.length === 0 ? 0 : Math.max(...pools.map((pool) => pool.maxMultiplicity)),
+  };
+}
+
+function summarizeDuplicateCensus(rows: readonly CompileCensusRow[]) {
+  const pools = sum(rows.map((row) => row.pools));
+  const viableCandidates = sum(rows.map((row) => row.viableCandidates));
+  const duplicateCandidates = sum(rows.map((row) => row.duplicateCandidates));
+  return {
+    compilerRuns: rows.length,
+    pools,
+    poolsWithDuplicates: sum(rows.map((row) => row.poolsWithDuplicates)),
+    requestedAttempts: sum(rows.map((row) => row.requestedAttempts)),
+    viableCandidates,
+    uniqueRepresentations: sum(rows.map((row) => row.uniqueRepresentations)),
+    duplicateCandidates,
+    duplicateGroups: sum(rows.map((row) => row.duplicateGroups)),
+    duplicateCandidateRate: viableCandidates === 0 ? null : round(duplicateCandidates / viableCandidates),
+    maxPoolDuplicates: rows.length === 0 ? 0 : Math.max(...rows.map((row) => row.maxPoolDuplicates)),
+    maxMultiplicity: rows.length === 0 ? 0 : Math.max(...rows.map((row) => row.maxMultiplicity)),
+  };
 }
 
 function summarize(rows: readonly Row[]) {
@@ -492,6 +611,10 @@ function maxOrNull(values: readonly number[]): number | null {
 
 function mean(values: readonly number[]): number | null {
   return values.length === 0 ? null : round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function sum(values: readonly number[]): number {
+  return values.reduce((total, value) => total + value, 0);
 }
 
 function nullableRound(value: number | null): number | null {

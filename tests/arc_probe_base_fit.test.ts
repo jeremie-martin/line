@@ -68,6 +68,7 @@ describe("joint arc base-fit projection", () => {
 
     const options = {
       includeElevation: nextGap.targets.elevation !== undefined,
+      includeAmplitude: true,
       targetEndsWithContact: nextGap.endsWithContact,
     };
     const compared = bases

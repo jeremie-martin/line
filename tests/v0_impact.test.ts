@@ -28,7 +28,40 @@ import {
   type Sim,
 } from "../scripts/v0/impact_support.ts";
 import { scoreDriftReport } from "../scripts/v0/score.ts";
-import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
+import {
+  applyImpactCarrierRipple,
+  applyImpactContactSegmentAcceleration,
+  applyImpactCurveJointExtensions,
+  applyImpactPostCaptureAcceleration,
+  applyImpactWindowAcceleration,
+  applyImpactWindowAccelerationAfterReference,
+  applyImpactWindowAccelerationLaminate,
+  impactActiveCarrierAttempt,
+  impactActiveCarrierLaw,
+  impactCarrierRippleActive,
+  impactCarrierRippleLaw,
+  impactCarrierRipplePhase,
+  impactCommandDose,
+  impactCommandLaw,
+  impactCommandScope,
+  impactCommandTarget,
+  impactCurveJointExtensionLaw,
+  impactSegmentDistributionForTargets,
+  impactSegmentDistributionLaw,
+  impactSegmentLaw,
+  impactSegmentRefinement,
+  normalPostCurveResolutionEligible,
+  normalPostCurveResolutionLaw,
+  postContactSegmentLengths,
+  setImpactCarrierRippleRepairActive,
+} from "../scripts/v0/arc_placement.ts";
+import {
+  compileHandoff,
+  impactResponseAdmissionMode,
+  responseRetainsCandidateContact,
+  responseSafeImpactTransition,
+} from "../scripts/v0/optimizer/handoff.ts";
+import { resolutionSiblingHasNoAxisDebt } from "../scripts/v0/optimizer/sample.ts";
 import {
   IMPACT,
   IMPACT_METRIC,
@@ -77,6 +110,554 @@ function line(id: number, x1: number, y1: number, x2: number, y2: number): Track
 }
 
 const measureImpact = AXIS_MEASURE.impact;
+
+describe("impact geometry command calibration", () => {
+  test("is exactly off by default and validates the experiment mode", () => {
+    expect(impactCommandLaw({})).toBeNull();
+    expect(impactCommandLaw({ LR_IMPACT_COMMAND_LAW: "off" })).toBeNull();
+    expect(impactCommandTarget(0.6, {})).toBe(0.6);
+    expect(impactCommandLaw({ LR_IMPACT_COMMAND_LAW: "inverse-baseline" }))
+      .toBe("inverse-baseline");
+    expect(() => impactCommandLaw({ LR_IMPACT_COMMAND_LAW: "per-case" })).toThrow();
+    expect(impactCommandDose({})).toBe(1);
+    expect(impactCommandDose({ LR_IMPACT_COMMAND_DOSE: "0.25" })).toBe(0.25);
+    expect(impactCommandDose({ LR_IMPACT_COMMAND_DOSE: "-0.10" })).toBe(-0.1);
+    expect(() => impactCommandDose({ LR_IMPACT_COMMAND_DOSE: "-1.01" })).toThrow();
+    expect(() => impactCommandDose({ LR_IMPACT_COMMAND_DOSE: "1.01" })).toThrow();
+    expect(() => impactCommandDose({ LR_IMPACT_COMMAND_DOSE: "quarter" })).toThrow();
+    expect(impactCommandScope({})).toBe("both");
+    expect(impactCommandScope({ LR_IMPACT_COMMAND_SCOPE: "current" })).toBe("current");
+    expect(impactCommandScope({ LR_IMPACT_COMMAND_SCOPE: "next" })).toBe("next");
+    expect(() => impactCommandScope({ LR_IMPACT_COMMAND_SCOPE: "local" })).toThrow();
+  });
+
+  test("inverts the frozen broad-baseline response and clamps physical bounds", () => {
+    const environment = { LR_IMPACT_COMMAND_LAW: "inverse-baseline" };
+    expect(impactCommandTarget(0.2, environment)).toBeCloseTo(0.31125, 12);
+    expect(impactCommandTarget(0.6, environment)).toBeCloseTo(0.81125, 12);
+    expect(impactCommandTarget(1, environment)).toBe(1);
+    expect(impactCommandTarget(-0.2, environment)).toBe(0);
+  });
+
+  test("interpolates partial doses while dose zero is exactly neutral", () => {
+    const quarter = {
+      LR_IMPACT_COMMAND_LAW: "inverse-baseline",
+      LR_IMPACT_COMMAND_DOSE: "0.25",
+    };
+    const offDose = {
+      LR_IMPACT_COMMAND_LAW: "inverse-baseline",
+      LR_IMPACT_COMMAND_DOSE: "0",
+    };
+    expect(impactCommandTarget(0.2, quarter)).toBeCloseTo(0.2278125, 12);
+    expect(impactCommandTarget(0.6, quarter)).toBeCloseTo(0.6528125, 12);
+    expect(impactCommandTarget(0.6, offDose)).toBe(0.6);
+    expect(impactCommandTarget(-0.2, offDose)).toBe(-0.2);
+    expect(impactCommandTarget(0.6, { LR_IMPACT_COMMAND_DOSE: "invalid" })).toBe(0.6);
+    expect(impactCommandTarget(0.6, {
+      LR_IMPACT_COMMAND_LAW: "inverse-baseline",
+      LR_IMPACT_COMMAND_DOSE: "-0.10",
+    })).toBeCloseTo(0.578875, 12);
+  });
+});
+
+describe("impact-window active carrier", () => {
+  test("is default-off, validates its law, and reserves one quarter after attempt zero", () => {
+    expect(impactActiveCarrierLaw({})).toBeNull();
+    expect(impactActiveCarrierLaw({ LR_IMPACT_ACTIVE_CARRIER: "off" })).toBeNull();
+    expect(impactActiveCarrierLaw({ LR_IMPACT_ACTIVE_CARRIER: "window-quarter" }))
+      .toBe("window-quarter");
+    expect(impactActiveCarrierLaw({ LR_IMPACT_ACTIVE_CARRIER: "window-accel-pressure" }))
+      .toBe("window-accel-pressure");
+    expect(impactActiveCarrierLaw({
+      LR_IMPACT_ACTIVE_CARRIER: "window-accel-laminate-pressure",
+    })).toBe("window-accel-laminate-pressure");
+    expect(impactActiveCarrierLaw({
+      LR_IMPACT_ACTIVE_CARRIER: "window-accel-laminate-additive-pressure",
+    })).toBe("window-accel-laminate-additive-pressure");
+    expect(impactActiveCarrierLaw({
+      LR_IMPACT_ACTIVE_CARRIER: "contact-segment-accel-pressure",
+    })).toBe("contact-segment-accel-pressure");
+    expect(impactActiveCarrierLaw({
+      LR_IMPACT_ACTIVE_CARRIER: "contact-segment-additive-pressure",
+    })).toBe("contact-segment-additive-pressure");
+    expect(impactActiveCarrierLaw({
+      LR_IMPACT_ACTIVE_CARRIER: "post-capture-accel-pressure",
+    })).toBe("post-capture-accel-pressure");
+    expect(() => impactActiveCarrierLaw({ LR_IMPACT_ACTIVE_CARRIER: "all" })).toThrow();
+    const law = impactActiveCarrierLaw({ LR_IMPACT_ACTIVE_CARRIER: "window-quarter" });
+    expect([0, 1, 2, 3, 4, 5, 6, 7].map((attempt) =>
+      impactActiveCarrierAttempt(attempt, law)))
+      .toEqual([false, false, false, true, false, false, false, true]);
+
+    const pressureLaw = impactActiveCarrierLaw({
+      LR_IMPACT_ACTIVE_CARRIER: "window-accel-pressure",
+    });
+    const full = Array.from({ length: 128 }, (_, index) =>
+      impactActiveCarrierAttempt(index, pressureLaw, 1));
+    const half = Array.from({ length: 128 }, (_, index) =>
+      impactActiveCarrierAttempt(index, pressureLaw, 0.5));
+    expect(full.filter(Boolean).length).toBeGreaterThanOrEqual(28);
+    expect(full.filter(Boolean).length).toBeLessThanOrEqual(36);
+    expect(half.every((active, index) => !active || full[index])).toBe(true);
+    expect(Array.from({ length: 16 }, (_, index) =>
+      impactActiveCarrierAttempt(index, pressureLaw, 0)).some(Boolean)).toBe(false);
+  });
+
+  test("changes only material inside the speed-scaled window and preserves geometry", () => {
+    const lines: TrackLine[] = [0, 1, 2, 3].map((index) => ({
+      id: index,
+      type: 0,
+      x1: index * 10,
+      y1: index,
+      x2: (index + 1) * 10,
+      y2: index + 1,
+      flipped: index === 1,
+      leftExtended: index === 1,
+      rightExtended: index === 2,
+    }));
+    const accelerated = applyImpactWindowAcceleration(lines, 4);
+    expect(accelerated.map((candidate) => candidate.type)).toEqual([1, 1, 1, 0]);
+    for (let index = 0; index < lines.length; index++) {
+      const original = lines[index];
+      const candidate = accelerated[index];
+      expect(candidate.id).toBe(original.id);
+      if (index < 3) {
+        expect(candidate).toMatchObject({
+          x1: original.x2,
+          y1: original.y2,
+          x2: original.x1,
+          y2: original.y1,
+          flipped: !original.flipped,
+          leftExtended: original.rightExtended,
+          rightExtended: original.leftExtended,
+        });
+      } else {
+        expect(candidate).toEqual(original);
+      }
+    }
+    expect(lines.every((candidate) => candidate.type === 0)).toBe(true);
+    expect(applyImpactWindowAcceleration(lines, 0)).toEqual(lines);
+
+    const contactSegment = applyImpactContactSegmentAcceleration(lines);
+    expect(contactSegment.map((candidate) => candidate.type)).toEqual([1, 0, 0, 0]);
+    expect(contactSegment[0]).toMatchObject({
+      x1: lines[0].x2,
+      y1: lines[0].y2,
+      x2: lines[0].x1,
+      y2: lines[0].y1,
+      flipped: !lines[0].flipped,
+    });
+    expect(contactSegment.slice(1)).toEqual(lines.slice(1));
+
+    const postCapture = applyImpactPostCaptureAcceleration(lines, 4);
+    expect(postCapture.map((candidate) => candidate.type)).toEqual([0, 1, 1, 0]);
+    expect(postCapture[0]).toEqual(lines[0]);
+    expect(postCapture[3]).toEqual(lines[3]);
+  });
+
+  test("preserves a complete catch prefix and accelerates only after its reference", () => {
+    const lines: TrackLine[] = [
+      { id: 40, type: 0, x1: -8, y1: 0, x2: 0, y2: 0, flipped: false },
+      { id: 41, type: 0, x1: 0, y1: 0, x2: 8, y2: 0, flipped: false },
+      { id: 42, type: 0, x1: 8, y1: 0, x2: 16, y2: 0, flipped: false },
+    ];
+    const accelerated = applyImpactWindowAccelerationAfterReference(
+      lines,
+      { x: .01, y: 0 },
+      2,
+    );
+    expect(accelerated[0]).toEqual(lines[0]);
+    expect(accelerated.slice(1).map((line) => line.type)).toEqual([1, 1]);
+    expect(accelerated.map((line) => line.id)).toEqual([40, 41, 42]);
+    expect(accelerated[1]).toMatchObject({ x1: 8, y1: 0, x2: 0, y2: 0, flipped: true });
+  });
+
+  test("builds a fixed two-layer active laminate behind the native surface", () => {
+    const source = [
+      line(10, 0, 0, 10, 0),
+      line(11, 10, 0, 20, 0),
+      line(12, 20, 0, 30, 0),
+    ].map((candidate) => ({
+      ...candidate,
+      type: 0 as const,
+      flipped: false,
+      leftExtended: false,
+      rightExtended: false,
+    }));
+    const laminate = applyImpactWindowAccelerationLaminate(source, 4);
+    expect(laminate).toHaveLength(6);
+    expect(laminate.map((candidate) => candidate.id)).toEqual([10, 11, 12, 13, 14, 15]);
+    for (let index = 0; index < 3; index++) {
+      const inner = laminate[index * 2]!;
+      const outer = laminate[index * 2 + 1]!;
+      expect(inner.type).toBe(1);
+      expect(outer.type).toBe(1);
+      expect(outer.id).toBeGreaterThan(inner.id);
+      expect(Math.abs(inner.y1 - outer.y1)).toBeCloseTo(0.1, 12);
+      expect(Math.abs(inner.y2 - outer.y2)).toBeCloseTo(0.1, 12);
+    }
+  });
+});
+
+describe("impact segment command calibration", () => {
+  test("is exactly off by default and validates the high-ask arms", () => {
+    expect(impactSegmentLaw({})).toBeNull();
+    expect(impactSegmentLaw({ LR_IMPACT_SEGMENT_LAW: "off" })).toBeNull();
+    expect(impactSegmentLaw({ LR_IMPACT_SEGMENT_LAW: "base-one" })).toBe("base-one");
+    expect(impactSegmentLaw({ LR_IMPACT_SEGMENT_LAW: "high-ask" })).toBe("high-ask");
+    expect(impactSegmentLaw({ LR_IMPACT_SEGMENT_LAW: "high-ask-strong" }))
+      .toBe("high-ask-strong");
+    expect(impactSegmentLaw({ LR_IMPACT_SEGMENT_LAW: "high-ask-dense-history" }))
+      .toBe("high-ask-dense-history");
+    expect(impactSegmentLaw({ LR_IMPACT_SEGMENT_LAW: "high-ask-detector-history" }))
+      .toBe("high-ask-detector-history");
+    expect(impactSegmentLaw({ LR_IMPACT_SEGMENT_LAW: "atlas-window" }))
+      .toBe("atlas-window");
+    expect(() => impactSegmentLaw({ LR_IMPACT_SEGMENT_LAW: "global" })).toThrow();
+  });
+
+  test("keeps tolerance-based post-curve resolution default-off", () => {
+    expect(normalPostCurveResolutionLaw({})).toBeNull();
+    expect(normalPostCurveResolutionLaw({ LR_NORMAL_POST_CURVE_RESOLUTION: "off" }))
+      .toBeNull();
+    expect(normalPostCurveResolutionLaw({ LR_NORMAL_POST_CURVE_RESOLUTION: "tolerance" }))
+      .toBe("tolerance");
+    expect(normalPostCurveResolutionLaw({
+      LR_NORMAL_POST_CURVE_RESOLUTION: "tolerance-additive",
+    })).toBe("tolerance-additive");
+    expect(normalPostCurveResolutionLaw({
+      LR_NORMAL_POST_CURVE_RESOLUTION: "tolerance-native-span",
+    })).toBe("tolerance-native-span");
+    expect(() => normalPostCurveResolutionLaw({
+      LR_NORMAL_POST_CURVE_RESOLUTION: "duration-bin",
+    })).toThrow();
+  });
+
+  test("native-span resolution leaves the impact-frontloaded carrier exact", () => {
+    expect(normalPostCurveResolutionEligible(0.6, "tolerance-native-span")).toBe(true);
+    expect(normalPostCurveResolutionEligible(-0.6, "tolerance-native-span")).toBe(true);
+    expect(normalPostCurveResolutionEligible(-0.600001, "tolerance-native-span")).toBe(false);
+    expect(normalPostCurveResolutionEligible(-1.6, "tolerance")).toBe(true);
+    expect(normalPostCurveResolutionEligible(0, null)).toBe(false);
+  });
+
+  test("additive resolution requires strict exact improvement without per-axis debt", () => {
+    const targets = { air: 0.5, impact: 0.7, speed: 0.4 };
+    const nominal = { achieved: { air: 0.6, impact: 0.5, speed: 0.3 } };
+    expect(resolutionSiblingHasNoAxisDebt(targets, nominal, {
+      achieved: { air: 0.58, impact: 0.55, speed: 0.32 },
+    })).toBe(true);
+    expect(resolutionSiblingHasNoAxisDebt(targets, nominal, {
+      achieved: { air: 0.61, impact: 0.55, speed: 0.32 },
+    })).toBe(false);
+    expect(resolutionSiblingHasNoAxisDebt(targets, nominal, nominal)).toBe(false);
+  });
+
+  test("window-density redistribution is default-off and preserves line budget", () => {
+    expect(impactSegmentDistributionLaw({})).toBeNull();
+    expect(impactSegmentDistributionLaw({ LR_IMPACT_SEGMENT_DISTRIBUTION: "off" }))
+      .toBeNull();
+    expect(impactSegmentDistributionLaw({ LR_IMPACT_SEGMENT_DISTRIBUTION: "window-dense" }))
+      .toBe("window-dense");
+    expect(impactSegmentDistributionLaw({ LR_IMPACT_SEGMENT_DISTRIBUTION: "window-dense-strong" }))
+      .toBe("window-dense-strong");
+    expect(impactSegmentDistributionLaw({ LR_IMPACT_SEGMENT_DISTRIBUTION: "curve-equal-turn" }))
+      .toBe("curve-equal-turn");
+    expect(impactSegmentDistributionLaw({
+      LR_IMPACT_SEGMENT_DISTRIBUTION: "curve-equal-turn-low-air",
+    })).toBe("curve-equal-turn-low-air");
+    expect(() => impactSegmentDistributionLaw({ LR_IMPACT_SEGMENT_DISTRIBUTION: "global" }))
+      .toThrow();
+
+    const base = postContactSegmentLengths(120, 10, 10, null);
+    const dense = postContactSegmentLengths(120, 10, 10, "window-dense");
+    const strong = postContactSegmentLengths(120, 10, 10, "window-dense-strong");
+    expect(base).toHaveLength(10);
+    expect(dense).toHaveLength(10);
+    expect(strong).toHaveLength(10);
+    expect(base.reduce((sum, value) => sum + value, 0)).toBeCloseTo(120, 12);
+    expect(dense.reduce((sum, value) => sum + value, 0)).toBeCloseTo(120, 12);
+    expect(strong.reduce((sum, value) => sum + value, 0)).toBeCloseTo(120, 12);
+    expect(dense[0]).toBeLessThan(base[0]);
+    expect(strong[0]).toBeLessThanOrEqual(dense[0]);
+    expect(dense.at(-1)).toBeGreaterThan(base.at(-1)!);
+  });
+
+  test("curve-joint extension defaults to incoming continuity and changes only internal domains", () => {
+    expect(impactCurveJointExtensionLaw({})).toBe("incoming-tangent");
+    expect(impactCurveJointExtensionLaw({ LR_IMPACT_CURVE_JOINT_EXTENSION: "off" }))
+      .toBeNull();
+    expect(impactCurveJointExtensionLaw({
+      LR_IMPACT_CURVE_JOINT_EXTENSION: "incoming-tangent",
+    })).toBe("incoming-tangent");
+    expect(impactCurveJointExtensionLaw({
+      LR_IMPACT_CURVE_JOINT_EXTENSION: "outgoing-tangent",
+    })).toBe("outgoing-tangent");
+    expect(impactCurveJointExtensionLaw({ LR_IMPACT_CURVE_JOINT_EXTENSION: "both" }))
+      .toBe("both");
+    expect(() => impactCurveJointExtensionLaw({
+      LR_IMPACT_CURVE_JOINT_EXTENSION: "case",
+    })).toThrow();
+
+    const source: TrackLine[] = [
+      { ...line(10, 0, 0, 10, 0), type: 0, flipped: false,
+        leftExtended: false, rightExtended: false },
+      { ...line(11, 10, 0, 20, 2), type: 0, flipped: false,
+        leftExtended: false, rightExtended: false },
+      { ...line(12, 20, 2, 30, 6), type: 0, flipped: false,
+        leftExtended: false, rightExtended: false },
+    ];
+    const incoming = applyImpactCurveJointExtensions(source, "incoming-tangent");
+    const outgoing = applyImpactCurveJointExtensions(source, "outgoing-tangent");
+    const both = applyImpactCurveJointExtensions(source, "both");
+    expect(incoming.map(({ leftExtended, rightExtended }) =>
+      [leftExtended, rightExtended])).toEqual([
+      [false, true], [false, true], [false, false],
+    ]);
+    expect(outgoing.map(({ leftExtended, rightExtended }) =>
+      [leftExtended, rightExtended])).toEqual([
+      [false, false], [true, false], [true, false],
+    ]);
+    expect(both.map(({ leftExtended, rightExtended }) =>
+      [leftExtended, rightExtended])).toEqual([
+      [false, true], [true, true], [true, false],
+    ]);
+    for (const candidate of [incoming, outgoing, both]) {
+      expect(candidate.map(({ leftExtended: _l, rightExtended: _r, ...rest }) => rest))
+        .toEqual(source.map(({ leftExtended: _l, rightExtended: _r, ...rest }) => rest));
+    }
+    expect(source.every((entry) => !entry.leftExtended && !entry.rightExtended)).toBe(true);
+  });
+
+  test("equal-turn low-air eligibility is source-blind and exact at its authored boundary", () => {
+    expect(impactSegmentDistributionForTargets(
+      { air: 0.39, impact: 0.7 },
+      "curve-equal-turn-low-air",
+    )).toBe("curve-equal-turn");
+    expect(impactSegmentDistributionForTargets(
+      { air: 0.4, impact: 0.7 },
+      "curve-equal-turn-low-air",
+    )).toBeNull();
+    expect(impactSegmentDistributionForTargets(
+      { impact: 0.7 },
+      "curve-equal-turn-low-air",
+    )).toBeNull();
+    expect(impactSegmentDistributionForTargets(
+      { air: 0.7, impact: 0.7 },
+      "curve-equal-turn",
+    )).toBe("curve-equal-turn");
+  });
+
+  test("equal-turn redistribution preserves a front-loaded curve with the native line budget", () => {
+    const base = postContactSegmentLengths(120, 10, 10, null, -1.6);
+    const equalTurn = postContactSegmentLengths(120, 10, 10, "curve-equal-turn", -1.6);
+    const unbiased = postContactSegmentLengths(120, 10, 10, "curve-equal-turn", 0);
+    expect(equalTurn).toHaveLength(base.length);
+    expect(equalTurn.every((value) => value > 0)).toBe(true);
+    expect(equalTurn.reduce((sum, value) => sum + value, 0)).toBeCloseTo(120, 12);
+    expect(equalTurn[0]).toBeLessThan(equalTurn.at(-1)!);
+    expect(unbiased).toEqual(base);
+
+  });
+
+  test("carrier ripple is default-off and preserves its native continuation boundary", () => {
+    expect(impactCarrierRippleLaw({})).toBeNull();
+    expect(impactCarrierRippleLaw({ LR_IMPACT_CARRIER_RIPPLE: "off" })).toBeNull();
+    expect(impactCarrierRippleLaw({ LR_IMPACT_CARRIER_RIPPLE: "half" })).toBe("half");
+    expect(impactCarrierRippleLaw({ LR_IMPACT_CARRIER_RIPPLE: "full" })).toBe("full");
+    expect(impactCarrierRippleLaw({ LR_IMPACT_CARRIER_RIPPLE: "aligned-half" }))
+      .toBe("aligned-half");
+    expect(impactCarrierRippleLaw({ LR_IMPACT_CARRIER_RIPPLE: "active-half" }))
+      .toBe("active-half");
+    expect(() => impactCarrierRippleLaw({ LR_IMPACT_CARRIER_RIPPLE: "case" })).toThrow();
+    expect(impactCarrierRipplePhase({})).toBe("all");
+    expect(impactCarrierRipplePhase({ LR_IMPACT_CARRIER_RIPPLE_PHASE: "repair" }))
+      .toBe("repair");
+    expect(() => impactCarrierRipplePhase({ LR_IMPACT_CARRIER_RIPPLE_PHASE: "post" }))
+      .toThrow();
+    setImpactCarrierRippleRepairActive(false);
+    expect(impactCarrierRippleActive("all")).toBe(true);
+    expect(impactCarrierRippleActive("repair")).toBe(false);
+    setImpactCarrierRippleRepairActive(true);
+    expect(impactCarrierRippleActive("repair")).toBe(true);
+    setImpactCarrierRippleRepairActive(false);
+
+    const carrier = Array.from({ length: 7 }, (_, index) =>
+      line(index + 1, index * 10, 0, (index + 1) * 10, 0)
+    );
+    expect(applyImpactCarrierRipple(carrier, .6, 10, 0, "half")).toEqual(carrier);
+    const rippled = applyImpactCarrierRipple(carrier, .6, 10, 2, "half");
+    expect(rippled[0].x1).toBe(0);
+    expect(rippled[0].y1).toBe(0);
+    expect(rippled[4].x2).toBe(50);
+    expect(rippled[4].y2).toBe(0);
+    expect(rippled.slice(5)).toEqual(carrier.slice(5));
+    expect(rippled[0].y2).not.toBeCloseTo(0);
+    for (let index = 1; index < rippled.length; index++) {
+      expect(rippled[index - 1].x2).toBeCloseTo(rippled[index].x1, 12);
+      expect(rippled[index - 1].y2).toBeCloseTo(rippled[index].y1, 12);
+    }
+    const active = applyImpactCarrierRipple(carrier, .6, 10, 2, "active-half");
+    expect(active.slice(0, 5).every((candidate) => candidate.type === 1)).toBe(true);
+    expect(active.slice(5)).toEqual(carrier.slice(5));
+    for (let index = 0; index < 5; index++) {
+      expect(active[index]).toMatchObject({
+        x1: rippled[index].x2,
+        y1: rippled[index].y2,
+        x2: rippled[index].x1,
+        y2: rippled[index].y1,
+        flipped: !rippled[index].flipped,
+      });
+    }
+  });
+
+  test("preserves low asks and brackets extra high-ask subdivision", () => {
+    expect(impactSegmentRefinement(.5, null)).toBe(2);
+    expect(impactSegmentRefinement(.5, "base-one")).toBe(1.5);
+    expect(impactSegmentRefinement(.5, "high-ask")).toBe(2);
+    expect(impactSegmentRefinement(.6, "high-ask-strong")).toBeCloseTo(2.2, 12);
+    expect(impactSegmentRefinement(.85, "high-ask")).toBeCloseTo(3.55, 12);
+    expect(impactSegmentRefinement(.85, "high-ask-strong")).toBeCloseTo(4.4, 12);
+    expect(impactSegmentRefinement(.5, "atlas-window", null, null, 16)).toBe(2);
+    expect(impactSegmentRefinement(.5, "atlas-window", null, null, 17)).toBe(2.5);
+    expect(impactSegmentRefinement(.5, "atlas-window", null, null, 24)).toBe(2.5);
+    expect(impactSegmentRefinement(.5, "atlas-window", null, null, 25)).toBe(2);
+    const incoherent = {
+      status: "ready" as const,
+      frameCount: 7,
+      collectiveTurnDeg: 2,
+      collectiveSpeedDeltaPxPerFrame: 0,
+      accelerationResidualFromGravityPxPerFrame2: 0,
+      poseTurnDeg: 12,
+      angularVelocityDeltaDegPerFrame: 0,
+      rmsPairDistanceChangePx: 0,
+      rmsRelativeVelocityChangePxPerFrame: 0,
+    };
+    expect(impactSegmentRefinement(
+      .85,
+      "high-ask-dense-history",
+      18,
+      incoherent,
+    )).toBeCloseTo(4.4, 12);
+    expect(impactSegmentRefinement(
+      .85,
+      "high-ask-dense-history",
+      28,
+      incoherent,
+    )).toBeCloseTo(2.7, 12);
+    expect(impactSegmentRefinement(
+      .85,
+      "high-ask-dense-history",
+      18,
+      { ...incoherent, poseTurnDeg: 3 },
+    )).toBeCloseTo(2.7, 12);
+    expect(impactSegmentRefinement(
+      .85,
+      "high-ask-detector-history",
+      12,
+      incoherent,
+    )).toBeCloseTo(4.4, 12);
+    expect(impactSegmentRefinement(
+      .85,
+      "high-ask-detector-history",
+      13,
+      incoherent,
+    )).toBeCloseTo(2.7, 12);
+  });
+});
+
+describe("impact native-response admission", () => {
+  test("is default-off and validates only the bounded exact screens", () => {
+    expect(impactResponseAdmissionMode({})).toBeNull();
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "off" })).toBeNull();
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "exact-safe-8" }))
+      .toBe("exact-safe-8");
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "exact-safe-all" }))
+      .toBe("exact-safe-all");
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "exact-safe-8-admit" }))
+      .toBe("exact-safe-8-admit");
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "exact-safe-8-repair" }))
+      .toBe("exact-safe-8-repair");
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "exact-contact-all-repair" }))
+      .toBe("exact-contact-all-repair");
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "model-exact-contact-repair" }))
+      .toBe("model-exact-contact-repair");
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "cached-contact-repair" }))
+      .toBe("cached-contact-repair");
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "same-speed-tail-repair" }))
+      .toBe("same-speed-tail-repair");
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "model-safe-08-admit" }))
+      .toBe("model-safe-08-admit");
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "model-safe-08-post" }))
+      .toBe("model-safe-08-post");
+    expect(() => impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "unsafe" }))
+      .toThrow();
+  });
+
+  test("requires every measured response debt to remain inside its tolerance", () => {
+    const incumbent = {
+      collectiveSpeedDelta: -.2,
+      rmsPairDistanceChange: .3,
+      rmsRelativeVelocityChange: .4,
+      absPhaseSlipDeg: 5,
+      candidateOwnedSledContactFrames: 5,
+      candidateOwnedSledUpdateCount: 20,
+      candidateOwnedSledPointCoverage: 2,
+    };
+    expect(responseSafeImpactTransition(incumbent, {
+      collectiveSpeedDelta: -.25,
+      rmsPairDistanceChange: .35,
+      rmsRelativeVelocityChange: .45,
+      absPhaseSlipDeg: 8,
+      candidateOwnedSledContactFrames: 5,
+      candidateOwnedSledUpdateCount: 20,
+      candidateOwnedSledPointCoverage: 2,
+    })).toBe(true);
+    expect(responseSafeImpactTransition(incumbent, {
+      collectiveSpeedDelta: -.251,
+      rmsPairDistanceChange: .3,
+      rmsRelativeVelocityChange: .4,
+      absPhaseSlipDeg: 5,
+      candidateOwnedSledContactFrames: 5,
+      candidateOwnedSledUpdateCount: 20,
+      candidateOwnedSledPointCoverage: 2,
+    })).toBe(false);
+    expect(responseSafeImpactTransition(incumbent, {
+      collectiveSpeedDelta: -.2,
+      rmsPairDistanceChange: .351,
+      rmsRelativeVelocityChange: .4,
+      absPhaseSlipDeg: 5,
+      candidateOwnedSledContactFrames: 5,
+      candidateOwnedSledUpdateCount: 20,
+      candidateOwnedSledPointCoverage: 2,
+    })).toBe(false);
+  });
+
+  test("retains contact frames, exact sled updates, and point coverage", () => {
+    const incumbent = {
+      collectiveSpeedDelta: -.2,
+      rmsPairDistanceChange: .3,
+      rmsRelativeVelocityChange: .4,
+      absPhaseSlipDeg: 5,
+      candidateOwnedSledContactFrames: 5,
+      candidateOwnedSledUpdateCount: 20,
+      candidateOwnedSledPointCoverage: 2,
+    };
+    expect(responseRetainsCandidateContact(incumbent, { ...incumbent })).toBe(true);
+    expect(responseRetainsCandidateContact(incumbent, {
+      ...incumbent,
+      candidateOwnedSledUpdateCount: 19,
+    })).toBe(false);
+    expect(responseRetainsCandidateContact(incumbent, {
+      ...incumbent,
+      candidateOwnedSledContactFrames: 4,
+    })).toBe(false);
+    expect(responseRetainsCandidateContact(incumbent, {
+      ...incumbent,
+      candidateOwnedSledPointCoverage: 1,
+    })).toBe(false);
+  });
+});
 
 describe("measureImpact (cArc = Σ v̄·|Δθ| impulse reduction)", () => {
   // targets.impact set: measureImpact is gated to gaps whose beat authored impact.

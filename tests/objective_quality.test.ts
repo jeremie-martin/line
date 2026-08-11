@@ -9,6 +9,7 @@ import type { GapFit, ResolvedStart } from "../scripts/v0/core/substrate.ts";
 import type { BallisticFitFields } from "../scripts/v0/core/ballistic_projection.ts";
 import {
   projectOutgoingScorerGap,
+  projectedOutgoingSurrogateQuality,
   scoreCandidateProposal,
   scoreNextArcReadiness,
   scoreSettledIncomingQuality,
@@ -313,6 +314,24 @@ describe("contact-indexed proposal objective", () => {
     expect(projectOutgoingScorerGap(fit, outgoing)).toBeNull();
   });
 
+  test("the outgoing surrogate scores amplitude when the response model provides it", () => {
+    const withoutAmplitude = projectedOutgoingSurrogateQuality(
+      { amplitude: 0.8 },
+      Number.NaN,
+      Number.NaN,
+      undefined,
+    );
+    const withAmplitude = projectedOutgoingSurrogateQuality(
+      { amplitude: 0.8 },
+      Number.NaN,
+      Number.NaN,
+      undefined,
+      0.2,
+    );
+    expect(withoutAmplitude).toBe(1);
+    expect(withAmplitude).toBeLessThan(withoutAmplitude!);
+  });
+
   test("proposal utility contains all three temporal layers exactly once", () => {
     const current = gap(0, 0, 20, { air: 0.5 });
     const next = gap(1, 20, 40, { speed: 0.5 });
@@ -537,7 +556,7 @@ describe("diagnostic frontier readiness", () => {
     };
     const key: LeafKey = { contract_passed: false, axis_quality: 0, full_score: 0 };
     const event = {
-      phase: "main" as const,
+      phase: "frontier" as const,
       simFrames: 0,
       fullDuration: false,
       outputDurationFrames: 1,

@@ -162,12 +162,15 @@ fit, next-contact feasibility, or a compiler improvement. The recorded
 terminal states also show that a straight carrier can exchange air time for
 terminal speed, so it is not a continuation law by itself.
 
-The preregistered fresh-cohort transfer protocol is now active as of
-2026-07-14 and is documented in
-`docs/long-carrier-replication-protocol.md`. Its V3 mechanical qualification
-must succeed before any one-shot efficacy cohort is declared. A separate
-capture/support/release formulation with an explicit release control remains
-future work; neither study is direct compiler integration.
+The preregistered fresh-cohort transfer protocol documented in
+`docs/long-carrier-replication-protocol.md` completed on 2026-08-09.  Its V3
+mechanical qualification found all 12 declared rows available, and its sealed
+one-shot verdict was `supported_local_duration_response`: all 74 complete
+primary rows had the declared monotone duration→air response.  Median terminal
+speed retention at the full carrier was only 0.086, so the result remains a
+bounded physical leaf rather than a continuation law or compiler integration.
+The separately tested capture/support/release program is already retired at
+the dense six-frame detector floor; the transfer result does not reopen it.
 
 ## Guardrails
 

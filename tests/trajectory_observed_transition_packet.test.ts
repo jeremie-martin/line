@@ -24,7 +24,7 @@ function node(fits: Array<GapFit | null>, options: { skipped?: number; gapIndex?
 
 function snapshot(value: HandoffNode): HandoffNodeSnapshot {
   return { node: value, key: {} as HandoffNodeSnapshot["key"], event: {
-    phase: "main", simFrames: 1, fullDuration: false, outputDurationFrames: 1,
+    phase: "frontier", simFrames: 1, fullDuration: false, outputDurationFrames: 1,
     improved: true, improvementCount: 1, consideredCount: 1,
   } };
 }

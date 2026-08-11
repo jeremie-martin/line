@@ -28,6 +28,7 @@ import {
 } from "./scale_decision.ts";
 import {
   assertMultiBudgetExecutionScope,
+  FROZEN_SCALE_STUDY_SCHEMA,
   loadMultiBudgetProfile,
   multiBudgetSeeds,
   type LoadedMultiBudgetProfile,
@@ -121,7 +122,22 @@ async function runScaleBaseline(argv: string[]): Promise<number> {
   const manifestPath = resolve(argument("out") ??
     `generated/benchmark-v2/scale/${timestamp()}-baseline.json`);
   const archivePath = siblingPath(manifestPath, ".archive.json");
-  const snapshot = createCompilerSnapshot(`${basename(manifestPath, ".json")}-baseline`, dirname(manifestPath));
+  const snapshotPath = siblingPath(manifestPath, ".snapshot.json");
+  const resuming = argv.includes("--resume");
+  const checkpointPath = `${archivePath}.checkpoint.jsonl`;
+  if (resuming && existsSync(checkpointPath) && !existsSync(snapshotPath)) {
+    throw new Error(
+      `scale baseline checkpoint ${relativeToCwd(checkpointPath)} has no frozen snapshot sidecar; ` +
+        `its compiler provenance cannot be reconstructed safely`,
+    );
+  }
+  const snapshot = resuming && existsSync(snapshotPath)
+    ? readCompilerSnapshot(snapshotPath)
+    : createCompilerSnapshot(
+      `${basename(manifestPath, ".json")}-baseline`,
+      dirname(manifestPath),
+    );
+  if (!existsSync(snapshotPath)) writeJsonArtifact(snapshotPath, snapshot);
   const release = acquireRunLock(archivePath);
   let workspace: ReturnType<typeof createSnapshotWorkspace> | null = null;
   try {
@@ -183,6 +199,12 @@ async function runScaleBaseline(argv: string[]): Promise<number> {
     if (workspace !== null) disposeSnapshotWorkspace(workspace);
     release();
   }
+}
+
+function readCompilerSnapshot(path: string): CompilerSnapshot {
+  const parsed = JSON.parse(readFileSync(path, "utf8")) as CompilerSnapshot;
+  validateCompilerSnapshot(parsed);
+  return parsed;
 }
 
 async function runScaleEval(argv: string[]): Promise<number> {
@@ -464,7 +486,7 @@ function assertBaselineProfile(
 
 function assertArchiveProfile(archive: any, profile: LoadedMultiBudgetProfile): void {
   if (
-    archive?.schema !== "line.benchmark-v2.budget-scale-study.v4" ||
+    archive?.schema !== FROZEN_SCALE_STUDY_SCHEMA ||
     archive.scaleProfile?.fingerprint !== profile.fingerprint ||
     archive.scaleProfile?.definition?.id !== profile.profile.id
   ) throw new Error(`scale archive does not match the current frozen multi-budget profile`);

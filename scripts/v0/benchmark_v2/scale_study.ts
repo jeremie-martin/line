@@ -30,6 +30,7 @@ import { compilerCandidateIdentity } from "./compiler_identity.ts";
 import { latestSuccessfulResults } from "./checkpoint_model.ts";
 import {
   assertMultiBudgetExecutionScope,
+  FROZEN_SCALE_STUDY_SCHEMA,
   loadMultiBudgetProfile,
   multiBudgetSeeds,
   resolveMultiBudgetSources,
@@ -254,7 +255,7 @@ async function main(): Promise<void> {
   const report = {
     schema: scaleProfile === null
       ? "line.benchmark-v2.budget-scale-study.v2"
-      : "line.benchmark-v2.budget-scale-study.v4",
+      : FROZEN_SCALE_STUDY_SCHEMA,
     generatedAt: new Date().toISOString(),
     note: scaleProfile === null
       ? "Exploratory paired-seed study. Not a canonical headline or candidate decision."

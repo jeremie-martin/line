@@ -15,6 +15,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { COMPILER_SOURCE_PATHS, compilerCandidateIdentity } from "./compiler_identity.ts";
+import { FROZEN_SCALE_STUDY_SCHEMA } from "./scale_profile.ts";
 
 const ENGINE_ARTIFACT = "engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm";
 export const SNAPSHOT_WORKSPACE_PREFIX = "line-v2-baseline-";
@@ -318,7 +319,7 @@ export function runScaleStudyInWorkspace(
   const bytes = readFileSync(absoluteOutput);
   const archive = JSON.parse(bytes.toString("utf8"));
   if (
-    archive?.schema !== "line.benchmark-v2.budget-scale-study.v3" ||
+    archive?.schema !== FROZEN_SCALE_STUDY_SCHEMA ||
     archive?.candidate?.candidateFingerprint !== workspace.snapshot.candidateFingerprint ||
     !Number.isFinite(archive.scaleHeadline) || !Array.isArray(archive.runs)
   ) throw new Error(`snapshot scale archive is incomplete or detached from its compiler snapshot`);

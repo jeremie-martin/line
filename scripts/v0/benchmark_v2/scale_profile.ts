@@ -6,6 +6,8 @@ import type { ResolvedSource } from "./model.ts";
 
 export const MULTI_BUDGET_PROFILE_SCHEMA =
   "line.benchmark-v2.multi-budget-profile.v1" as const;
+export const FROZEN_SCALE_STUDY_SCHEMA =
+  "line.benchmark-v2.budget-scale-study.v4" as const;
 
 export type MultiBudgetProfile = {
   schema: typeof MULTI_BUDGET_PROFILE_SCHEMA;

@@ -159,6 +159,6 @@ authoritative for the new controller.
 | 2026-08-11 | Remove competing controller modes | complete | `7f1aaa7`; one-terminal production path hardwired; 75 focused tests pass |
 | 2026-08-11 | Remove obsolete surgical repair | complete | `43d0b94`; executable branch, stats surface, and live guidance removed; 125 focused tests pass |
 | 2026-08-11 | Telemetry V4/reporting | complete | `78cab6b`; clean-break schema and exact work/outcome/divergence semantics; 178 test files / 1,207 tests pass |
-| 2026-08-11 | Independent repair loop | complete | Fixed parent depth 1, explicit 20% headroom, per-incumbent cost profiles, no ancestor/exhaustion state; 95 focused tests pass; live 500k probe reached 4/4 divergent terminals and accepted 1; commit pending |
+| 2026-08-11 | Independent repair loop | complete | `ec7632c`; fixed parent depth 1, explicit 20% headroom, per-incumbent cost profiles, no ancestor/exhaustion state; 95 focused tests pass; live 500k probe reached 4/4 divergent terminals and accepted 1 |
 | 2026-08-11 | Diversity validation | pending | — |
-| 2026-08-11 | Governed evaluation | pending | — |
+| 2026-08-11 | Governed evaluation | in progress | 16-seed V4 reference complete (1,024 cells, scale headline 571.1088); resume now freezes/reuses a provenance sidecar; 12-worker run stayed within memory limit |

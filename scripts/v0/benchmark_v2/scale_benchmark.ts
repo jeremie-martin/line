@@ -273,7 +273,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const artifactPath = resolve(argument("artifact") ?? siblingPath(candidatePath, ".comparison.json"));
   const snapshot = extensionPath === null
     ? createCompilerSnapshot(`${basename(candidatePath, ".json")}-candidate`, dirname(candidatePath))
-    : readScaleExtensionSnapshot(
+    : await readScaleExtensionSnapshot(
       extensionPath,
       extensionSnapshotPath ?? siblingPath(extensionPath, ".comparison.json"),
     );
@@ -480,7 +480,7 @@ function validateScaleExtension(
   snapshot: CompilerSnapshot,
   breadthPolicy: BreadthPolicy | null,
 ): { checkpointPath: string; seeds: number[] } {
-  const arm = readGridArm("candidate-prefix", path);
+  const arm = readGridArm("candidate-prefix", scaleAnalysisPath(path));
   assertArchiveProfile(arm.archive, profile);
   assertMultiBudgetExecutionScope(profile.profile, arm.archive.budgets, arm.archive.seeds);
   const sourceDepth = arm.archive.seeds.length;
@@ -500,10 +500,10 @@ function validateScaleExtension(
   return { checkpointPath, seeds: arm.archive.seeds };
 }
 
-function readScaleExtensionSnapshot(
+async function readScaleExtensionSnapshot(
   candidatePath: string,
   comparisonPath: string,
-): CompilerSnapshot {
+): Promise<CompilerSnapshot> {
   if (!existsSync(comparisonPath)) {
     throw new Error(
       `--extend-from requires its frozen compiler snapshot comparison ${comparisonPath}; ` +
@@ -520,8 +520,8 @@ function readScaleExtensionSnapshot(
   ) {
     throw new Error(`${comparisonPath} does not describe the candidate being extended`);
   }
-  const candidate = readVerifiedArtifact(resolve(candidatePath));
-  if (candidate.artifactSha256 !== comparison.candidate.archiveSha256) {
+  const candidateSha256 = await verifyArtifactChecksum(resolve(candidatePath));
+  if (candidateSha256 !== comparison.candidate.archiveSha256) {
     throw new Error(`${comparisonPath} candidate checksum does not match --extend-from`);
   }
   const snapshot = comparison.candidate.compilerSnapshot as CompilerSnapshot;

@@ -288,7 +288,12 @@ export type HandoffCandidateSourceCounter = Partial<Record<HandoffCandidateSourc
 
 /** Handoff evaluation origins. These are diagnostics only: they say which path
  *  offered an output to the best-so-far register. */
-export const HANDOFF_EVALUATION_PHASES = ["main", "tail", "suffix", "polish"] as const;
+export const HANDOFF_EVALUATION_PHASES = [
+  "frontier",
+  "tail_completion",
+  "surgical_repair",
+  "polish",
+] as const;
 export type HandoffEvaluationPhase = (typeof HANDOFF_EVALUATION_PHASES)[number];
 export type HandoffEvaluationPhaseCounter = Partial<Record<HandoffEvaluationPhase, number>>;
 export type HandoffContactCountCounter = Partial<Record<number, number>>;

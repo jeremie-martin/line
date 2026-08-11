@@ -23,19 +23,40 @@ import {
   type RemainingStructure,
 } from "./budget_estimator.ts";
 
-export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v2" as const;
+/**
+ * Clean-break search-accounting schema.
+ *
+ * V3 deliberately does not accept or emit aliases for V1/V2 names. Historical
+ * archives remain immutable evidence; new analysis must fail closed rather
+ * than silently mix their attempt/phase semantics with episode/lane semantics.
+ */
+export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v3" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
-export type BudgetAttemptKind = "initial" | "snapshot" | "repair" | "resumed";
+export type BudgetEpisodeLane = "initial" | "snapshot" | "repair" | "resumed";
+export type BudgetEpisodeMechanism = "frontier" | "surgical";
+export const BUDGET_EVALUATION_ORIGINS = [
+  "frontier",
+  "tail_completion",
+  "surgical_repair",
+  "polish",
+] as const;
+export type BudgetEvaluationOrigin = (typeof BUDGET_EVALUATION_ORIGINS)[number];
+export type BudgetEvaluationOriginWork = {
+  register_offers: number;
+  terminal_node_evaluations: number;
+  register_improvements: number;
+  terminal_register_improvements: number;
+};
 /**
  * How `ceiling_total_spent_frames` was sized. This makes the repair tautology
  * visible in data: a `measured_cost_to_end` ceiling is the estimator's own
  * upper interval bound over the same costToEnd profile the estimator uses as
- * its path base, so a path-backed repair's `attempt_completion_margin` at its
+ * its path base, so a path-backed repair's `episode_completion_margin` at its
  * own start is exactly the artifact's `start`/`withPath` upper ratio — the
  * sizing rule read back, not evidence about the estimator.
  */
-export type BudgetAttemptCeilingSource =
+export type BudgetCeilingSource =
   /** Compile hard budget: the initial and resumed frontiers may run to capture. */
   | "hard_budget"
   /** Upper interval bound over the incumbent's measured cost-to-end at the anchor. */
@@ -47,16 +68,20 @@ export type BudgetAttemptCeilingSource =
 export type BudgetSegmentKind =
   | "startup"
   | "initial_search"
-  | "repair_attempt"
+  | "repair_surgical"
+  | "repair_frontier"
   | "resumed_search"
   | "finalization"
   | "unattributed";
-export type BudgetAttemptStopReason =
+export type BudgetEpisodeStopReason =
   | "handoff_to_repair"
   | "budget_capture"
   | "local_ceiling"
   | "frontier_exhausted"
   | "first_completion_stop"
+  | "first_terminal_return"
+  | "operation_complete"
+  | "no_candidate"
   | "compile_finished";
 
 // `RemainingStructure` and its two producers moved to `budget_estimator.ts`:
@@ -72,11 +97,11 @@ export type BudgetEstimateObservation = {
   total_spent_frames: number;
   hard_remaining_frames: number;
   hard_overrun_frames: number;
-  /** Charged work since this attempt's start. */
-  attempt_spent_frames: number;
-  /** Work below this attempt's compile-global ceiling, clamped at zero. */
-  attempt_remaining_frames: number;
-  attempt_overrun_frames: number;
+  /** Charged work since this episode's start. */
+  episode_spent_frames: number;
+  /** Work below this episode's compile-global ceiling, clamped at zero. */
+  episode_remaining_frames: number;
+  episode_overrun_frames: number;
   high_water: RemainingStructure;
   /** True only while the initial one-time structural intercept is still due. */
   structural_startup_included: boolean;
@@ -101,9 +126,9 @@ export type BudgetEstimateObservation = {
   /** hard remaining / point estimate; null when the estimate is uncalibrated. */
   hard_completion_margin: number | null;
   hard_completion_surplus_frames: number;
-  /** attempt remaining / point estimate; null when the estimate is uncalibrated. */
-  attempt_completion_margin: number | null;
-  attempt_completion_surplus_frames: number;
+  /** Episode remaining / point estimate; null when the estimate is uncalibrated. */
+  episode_completion_margin: number | null;
+  episode_completion_surplus_frames: number;
 };
 
 export type BudgetRepairGapState = {
@@ -117,16 +142,53 @@ export type BudgetRepairGapState = {
   }>;
 };
 
-export type BudgetAttemptTelemetry = {
-  attempt_id: number;
-  kind: BudgetAttemptKind;
-  parent_attempt_id: number | null;
-  search_seed: number;
-  has_fallback: boolean;
+/** Register key domain used by the optimizer. This is never Benchmark V2 score. */
+export type BudgetInternalRegisterKey = {
+  contract_passed: boolean;
+  axis_quality: number;
+  internal_full_score: number;
+  drift_quality: number | null;
+};
+
+/**
+ * Exact work funnel for one execution episode.
+ *
+ * Requested proposals, actual samples, frontier branching, node identity, and
+ * track geometry are intentionally separate populations.
+ */
+export type BudgetEpisodeWork = {
+  pool_builds: number;
+  requested_normal_proposals: number;
+  actual_candidate_samples: number;
+  viable_candidates: number;
+  candidate_samples_by_mode: Record<string, number>;
+  by_evaluation_origin: Record<BudgetEvaluationOrigin, BudgetEvaluationOriginWork>;
+  nodes_processed: number;
+  nodes_expanded: number;
+  children_enqueued: number;
+  register_offers: number;
+  partial_node_evaluations: number;
+  terminal_node_evaluations: number;
+  first_time_terminal_node_evaluations: number;
+  revisited_terminal_node_evaluations: number;
+  distinct_terminal_tracks: number;
+  repeated_terminal_track_evaluations: number;
+  register_improvements: number;
+  terminal_register_improvements: number;
+};
+
+export type BudgetEpisodeTelemetry = {
+  episode_id: number;
+  lane: BudgetEpisodeLane;
+  mechanism: BudgetEpisodeMechanism;
+  mechanism_detail: string | null;
+  parent_episode_id: number | null;
+  search_seed: number | null;
+  frontier_has_fallback_lane: boolean;
   /**
-   * Immutable suffix where this attempt began.
+   * Immutable suffix where this episode began.
    *
-   * A `resumed` attempt continues the initial attempt's own frontier, so it
+   * A `resumed` episode continues the initial episode's own frontier, so it
    * reports that tree's root anchor. Its frontier is mixed-depth by
    * construction: anchor-relative quantities (structural progress, episode
    * pace, first-terminal offset) are approximate continuations of the initial
@@ -134,17 +196,17 @@ export type BudgetAttemptTelemetry = {
    */
   anchor: RemainingStructure;
   /**
-   * Which repair round produced this attempt; null on every other kind.
+   * Which repair round produced this episode; null on every other lane.
    *
-   * A round is one pick of a weak gap. It can spend several attempts walking
-   * the anchor upstream, so the attempt ordinal within a compile is NOT the
+   * A round is one pick of a weak gap. It can spend several episodes walking
+   * the anchor upstream, so the episode ordinal within a compile is NOT the
    * round index, and `docs/repair-selection-study.md` had to price by ordinal
    * for want of this field — an error worth a full point of spurious yield in
    * that study's own sensitivity check.
    */
   repair_round_index: number | null;
   /**
-   * Gaps between the round's picked weak gap and this attempt's anchor, i.e.
+   * Gaps between the round's picked weak gap and this episode's anchor, i.e.
    * `up` in `anchor = kWorst - up`. Null on every non-repair kind.
    *
    * With the round index it makes `maxUpstream` and `upstreamOrder` priceable:
@@ -163,54 +225,52 @@ export type BudgetAttemptTelemetry = {
    * This field is the fixed point of that comparison.
    */
   incumbent_weak_gap_sse: number | null;
-  /** Exact selected-gap state before this repair attempt. */
+  /** Exact selected-gap state before this repair episode. */
   repair_weak_gap_before: BudgetRepairGapState | null;
   /** Compile-global work counters; local budget is ceiling - start. */
   start_total_spent_frames: number;
   ceiling_total_spent_frames: number;
   /** How the ceiling above was sized. */
-  ceiling_source: BudgetAttemptCeilingSource;
+  ceiling_source: BudgetCeilingSource;
   available_hard_budget_frames: number;
-  local_budget_frames: number;
+  allocated_frames: number;
+  work: BudgetEpisodeWork;
+  register_key_at_start: BudgetInternalRegisterKey | null;
+  register_key_at_end: BudgetInternalRegisterKey | null;
   start: BudgetEstimateObservation;
   end: BudgetEstimateObservation | null;
   observations?: BudgetEstimateObservation[];
   outcome: {
-    stop_reason: BudgetAttemptStopReason | null;
+    stop_reason: BudgetEpisodeStopReason | null;
     end_total_spent_frames: number | null;
     spent_frames: number | null;
-    /** True iff this attempt considered at least one terminal traversal. */
-    completed: boolean;
-    /** Charged work from attempt start to its first terminal, not its end. */
+    /** Number of complete terminal tracks evaluated in this episode. */
+    terminal_tracks_considered: number;
+    /** Charged work from episode start to its first terminal, not its end. */
     first_terminal_offset_frames: number | null;
-    /** Whether a repair changed the best incumbent; null when not applicable. */
-    accepted_improvement: boolean | null;
+    /** Whether this episode changed the best-so-far register. */
+    register_improved: boolean;
     /**
-     * Charged work from attempt start to the first improvement the best-so-far
-     * register adopted during this attempt. That leaf need not be terminal and
-     * need not be the one that ended the attempt. Null when the attempt
-     * produced no register improvement, and on attempt kinds that do not
-     * measure it.
+     * Charged work from episode start to the first improvement the best-so-far
+     * register adopted during this episode. That leaf need not be terminal.
      */
-    first_accepted_improvement_offset_frames: number | null;
-    /** Charged work to the final register improvement observed in this attempt. */
-    final_accepted_improvement_offset_frames: number | null;
-    /** Number of register improvements observed during this attempt. */
-    register_improvement_count: number | null;
-    /** Number of terminal improvements observed during this attempt. */
-    terminal_improvement_count: number | null;
-    /** Incumbent full-score after this attempt minus before it; repair/resumed. */
-    accepted_score_delta: number | null;
-    /** Exact selected-gap state after this repair attempt. */
+    first_register_improvement_offset_frames: number | null;
+    /** Charged work to the final register improvement observed in this episode. */
+    final_register_improvement_offset_frames: number | null;
+    /** Charged work to the first terminal offer adopted by the register. */
+    first_terminal_register_improvement_offset_frames: number | null;
+    /** Optimizer-internal full score after this episode minus before it. */
+    internal_full_score_delta: number | null;
+    /** Exact selected-gap state after this repair episode. */
     repair_weak_gap_after: BudgetRepairGapState | null;
-    /** True when no terminal cost was observed; such attempts are not error samples. */
-    censored: boolean;
+    /** True when no terminal cost was observed; such episodes are not estimator error samples. */
+    terminal_observation_censored: boolean;
   };
 };
 
 export type BudgetExecutionSegment = {
   kind: BudgetSegmentKind;
-  attempt_id: number | null;
+  episode_id: number | null;
   start_total_spent_frames: number;
   end_total_spent_frames: number;
   spent_frames: number;
@@ -220,22 +280,24 @@ export type BudgetExecutionSegment = {
 /** Trace-only accounting for one atomic frontier node. A node is the smallest
  * unit the compiler currently lets finish once admitted. */
 export type BudgetAtomicNodeTelemetry = {
-  attempt_id: number;
-  attempt_kind: BudgetAttemptKind;
+  episode_id: number;
+  lane: BudgetEpisodeLane;
+  mechanism: BudgetEpisodeMechanism;
+  mechanism_detail: string | null;
   gap_index: number;
   remaining_contacts: number;
   start_total_spent_frames: number;
   hard_remaining_frames_at_start: number;
-  attempt_remaining_frames_at_start: number;
-  policy_candidate_count: number | null;
-  policy_branch_limit: number | null;
-  main_evaluation_frames: number;
+  episode_remaining_frames_at_start: number;
+  requested_normal_proposals: number | null;
+  child_limit: number | null;
+  frontier_evaluation_frames: number;
   tail_completion_frames: number;
   post_tail_work_frames: number;
   spent_frames: number;
-  result: "captured" | "deferred" | "expanded";
+  result: "captured" | "deferred" | "expanded" | "terminal_limit";
   register_improvements: number;
-  terminal_considers: number;
+  terminal_node_evaluations: number;
   tail_attempts: number;
   tail_terminal_evaluations: number;
   tail_duplicate_terminal_evaluations: number;
@@ -286,41 +348,48 @@ export type CompileBudgetTelemetry = {
     initial_structural_slack: number;
     /**
      * Whether the two fields above are inside the estimator's calibration
-     * domain. They are a structural, path-free estimate at the first attempt's
+     * domain. They are a structural, path-free estimate at the first episode's
      * anchor, so they are `extrapolated_policy_budget` at any policy budget the
-     * artifact was not fitted at. Null when no attempt was recorded.
+     * artifact was not fitted at. Null when no episode was recorded.
      */
     initial_structural_applicability: BudgetEstimatorApplicability | null;
     /**
-     * The compiler's own first-terminal work counter, independent of attempt
+     * The compiler's own first-terminal work counter, independent of episode
      * attribution. Null when no terminal traversal was considered.
      */
     first_terminal_total_spent_frames: number | null;
+    first_improving_terminal_total_spent_frames: number | null;
+    work: BudgetEpisodeWork;
+    final_output_episode_id: number | null;
+    final_output_lane: BudgetEpisodeLane | null;
     resume_admission?: BudgetResumeAdmissionTelemetry;
   };
-  segments: BudgetExecutionSegment[];
-  attempts: BudgetAttemptTelemetry[];
+  execution_intervals: BudgetExecutionSegment[];
+  episodes: BudgetEpisodeTelemetry[];
   /** Present only at trace level. */
-  atomic_nodes?: BudgetAtomicNodeTelemetry[];
+  node_events?: BudgetAtomicNodeTelemetry[];
 };
 
-type MutableAttempt = BudgetAttemptTelemetry & {
+type MutableEpisode = BudgetEpisodeTelemetry & {
   includeStartup: boolean;
   highWaterGap: number;
   nextSpendDecile: number;
   pathEstimateByGap: readonly number[] | null;
+  terminalTrackKeys: Set<string>;
 };
 
-type StartAttemptInput = {
-  kind: BudgetAttemptKind;
-  parentAttemptId?: number | null;
-  searchSeed: number;
-  hasFallback: boolean;
+type StartEpisodeInput = {
+  lane: BudgetEpisodeLane;
+  mechanism?: BudgetEpisodeMechanism;
+  mechanismDetail?: string | null;
+  parentEpisodeId?: number | null;
+  searchSeed: number | null;
+  frontierHasFallbackLane: boolean;
   anchorGapIndex: number;
   startTotalSpentFrames: number;
   ceilingTotalSpentFrames: number;
   /** Defaults to `hard_budget`: the caller ran to the compile's outer limit. */
-  ceilingSource?: BudgetAttemptCeilingSource;
+  ceilingSource?: BudgetCeilingSource;
   includeStartup: boolean;
   pathEstimateByGap?: readonly number[] | null;
   /** Repair-only causal context; see the fields of the same name on the record. */
@@ -328,21 +397,20 @@ type StartAttemptInput = {
   anchorUpstreamOffset?: number | null;
   incumbentWeakGapSse?: number | null;
   repairWeakGapBefore?: BudgetRepairGapState | null;
+  registerKeyAtStart?: BudgetInternalRegisterKey | null;
 };
 
-type EndAttemptOutcome = {
-  firstAcceptedImprovementOffsetFrames?: number | null;
-  finalAcceptedImprovementOffsetFrames?: number | null;
-  registerImprovementCount?: number | null;
-  terminalImprovementCount?: number | null;
-  acceptedScoreDelta?: number | null;
+type EndEpisodeOutcome = {
+  internalFullScoreDelta?: number | null;
+  registerKeyAtEnd?: BudgetInternalRegisterKey | null;
   repairWeakGapAfter?: BudgetRepairGapState | null;
 };
 
 type RecordAtomicNodeInput = Omit<
   BudgetAtomicNodeTelemetry,
-  "attempt_id" | "attempt_kind" | "hard_remaining_frames_at_start" |
-    "attempt_remaining_frames_at_start"
+  "episode_id" | "lane" | "mechanism" | "mechanism_detail" |
+    "hard_remaining_frames_at_start" |
+    "episode_remaining_frames_at_start"
 >;
 
 /** Runtime recorder. All methods are deterministic arithmetic over supplied values. */
@@ -365,11 +433,13 @@ export class CompileBudgetTelemetryRecorder {
    * budget law all remain the artifact's.
    */
   private readonly structuralScale: number;
-  private readonly attempts: MutableAttempt[] = [];
-  private readonly segments: BudgetExecutionSegment[] = [];
-  private readonly atomicNodes: BudgetAtomicNodeTelemetry[] = [];
+  private readonly episodes: MutableEpisode[] = [];
+  private readonly executionIntervals: BudgetExecutionSegment[] = [];
+  private readonly nodeEvents: BudgetAtomicNodeTelemetry[] = [];
+  private readonly compileTerminalTrackKeys = new Set<string>();
   private resumeAdmission: BudgetResumeAdmissionTelemetry | null = null;
-  private activeAttemptId: number | null = null;
+  private activeEpisodeId: number | null = null;
+  private finalOutputEpisodeId: number | null = null;
 
   constructor(input: {
     level: BudgetTelemetryLevel;
@@ -392,18 +462,23 @@ export class CompileBudgetTelemetryRecorder {
     this.structuralScale = budgetEstimatorStructuralScale(this.searchPolicyBudgetFrames);
   }
 
-  startAttempt(input: StartAttemptInput): number | null {
+  startEpisode(input: StartEpisodeInput): number | null {
     if (this.level === "off") return null;
-    const attemptId = this.attempts.length;
+    if (this.activeEpisodeId !== null) {
+      throw new Error(`budget telemetry cannot start an episode while another is active`);
+    }
+    const episodeId = this.episodes.length;
     const anchorGap = clampGapIndex(input.anchorGapIndex, this.gaps.length);
     const startTotal = nonNegativeInt(input.startTotalSpentFrames);
     const ceilingTotal = Math.max(startTotal, nonNegativeInt(input.ceilingTotalSpentFrames));
-    const mutable: MutableAttempt = {
-      attempt_id: attemptId,
-      kind: input.kind,
-      parent_attempt_id: input.parentAttemptId ?? null,
+    const mutable: MutableEpisode = {
+      episode_id: episodeId,
+      lane: input.lane,
+      mechanism: input.mechanism ?? "frontier",
+      mechanism_detail: input.mechanismDetail ?? null,
+      parent_episode_id: input.parentEpisodeId ?? null,
       search_seed: input.searchSeed,
-      has_fallback: input.hasFallback,
+      frontier_has_fallback_lane: input.frontierHasFallbackLane,
       anchor: remainingStructure(this.gaps, this.durationFrames, anchorGap),
       repair_round_index: finiteOrNull(input.repairRoundIndex),
       anchor_upstream_offset: finiteOrNull(input.anchorUpstreamOffset),
@@ -413,113 +488,194 @@ export class CompileBudgetTelemetryRecorder {
       ceiling_total_spent_frames: ceilingTotal,
       ceiling_source: input.ceilingSource ?? "hard_budget",
       available_hard_budget_frames: Math.max(0, this.hardBudgetFrames - startTotal),
-      local_budget_frames: ceilingTotal - startTotal,
+      allocated_frames: ceilingTotal - startTotal,
+      work: emptyEpisodeWork(),
+      register_key_at_start: cloneRegisterKey(input.registerKeyAtStart ?? null),
+      register_key_at_end: null,
       start: null as unknown as BudgetEstimateObservation,
       end: null,
       outcome: {
         stop_reason: null,
         end_total_spent_frames: null,
         spent_frames: null,
-        completed: false,
+        terminal_tracks_considered: 0,
         first_terminal_offset_frames: null,
-        accepted_improvement: null,
-        first_accepted_improvement_offset_frames: null,
-        final_accepted_improvement_offset_frames: null,
-        register_improvement_count: null,
-        terminal_improvement_count: null,
-        accepted_score_delta: null,
+        register_improved: false,
+        first_register_improvement_offset_frames: null,
+        final_register_improvement_offset_frames: null,
+        first_terminal_register_improvement_offset_frames: null,
+        internal_full_score_delta: null,
         repair_weak_gap_after: null,
-        censored: true,
+        terminal_observation_censored: true,
       },
       includeStartup: input.includeStartup,
       highWaterGap: anchorGap,
       nextSpendDecile: 1,
       pathEstimateByGap: input.pathEstimateByGap ?? null,
+      terminalTrackKeys: new Set<string>(),
       ...(this.level === "trace"
         ? { observations: [] as BudgetEstimateObservation[] }
         : {}),
     };
-    this.attempts.push(mutable);
-    this.activeAttemptId = attemptId;
+    this.episodes.push(mutable);
+    this.activeEpisodeId = episodeId;
     const observation = this.buildObservation(mutable, startTotal, anchorGap, "start");
     mutable.start = observation;
     mutable.observations?.push(observation);
-    return attemptId;
+    return episodeId;
   }
 
-  observeActive(gapIndex: number, totalSpentFrames: number): void {
-    const attempt = this.activeAttempt();
-    if (attempt === null) return;
+  observeActiveEpisode(gapIndex: number, totalSpentFrames: number): void {
+    const episode = this.activeEpisode();
+    if (episode === null) return;
     const totalSpent = nonNegativeInt(totalSpentFrames);
     const nextGap = clampGapIndex(gapIndex, this.gaps.length);
-    const advanced = nextGap > attempt.highWaterGap;
-    if (advanced) attempt.highWaterGap = nextGap;
+    const advanced = nextGap > episode.highWaterGap;
+    if (advanced) episode.highWaterGap = nextGap;
     if (this.level !== "trace") return;
-    const attemptSpent = Math.max(0, totalSpent - attempt.start_total_spent_frames);
-    const localBudget = attempt.local_budget_frames;
-    const crossedSpend = localBudget > 0 &&
-      attemptSpent * 10 >= localBudget * attempt.nextSpendDecile;
+    const episodeSpent = Math.max(0, totalSpent - episode.start_total_spent_frames);
+    const allocated = episode.allocated_frames;
+    const crossedSpend = allocated > 0 &&
+      episodeSpent * 10 >= allocated * episode.nextSpendDecile;
     if (!advanced && !crossedSpend) return;
     while (
-      localBudget > 0 &&
-      attempt.nextSpendDecile <= 10 &&
-      attemptSpent * 10 >= localBudget * attempt.nextSpendDecile
-    ) attempt.nextSpendDecile++;
+      allocated > 0 &&
+      episode.nextSpendDecile <= 10 &&
+      episodeSpent * 10 >= allocated * episode.nextSpendDecile
+    ) episode.nextSpendDecile++;
     this.pushObservation(
-      attempt,
-      this.buildObservation(attempt, totalSpent, attempt.highWaterGap, advanced ? "high_water" : "spend"),
+      episode,
+      this.buildObservation(episode, totalSpent, episode.highWaterGap, advanced ? "high_water" : "spend"),
     );
   }
 
-  markTerminal(totalSpentFrames: number, gapIndex: number): void {
-    const attempt = this.activeAttempt();
-    if (attempt === null || attempt.outcome.first_terminal_offset_frames !== null) return;
-    const totalSpent = nonNegativeInt(totalSpentFrames);
-    attempt.highWaterGap = Math.max(
-      attempt.highWaterGap,
-      clampGapIndex(gapIndex, this.gaps.length),
+  recordEvaluation(input: {
+    totalSpentFrames: number;
+    gapIndex: number;
+    terminal: boolean;
+    origin: BudgetEvaluationOrigin;
+    firstTimeSearchNode: boolean;
+    terminalTrackKey?: string | null;
+    registerImproved: boolean;
+  }): void {
+    const episode = this.activeEpisode();
+    if (episode === null) return;
+    const totalSpent = nonNegativeInt(input.totalSpentFrames);
+    episode.highWaterGap = Math.max(
+      episode.highWaterGap,
+      clampGapIndex(input.gapIndex, this.gaps.length),
     );
-    attempt.outcome.completed = true;
-    attempt.outcome.censored = false;
-    attempt.outcome.first_terminal_offset_frames = Math.max(
-      0,
-      totalSpent - attempt.start_total_spent_frames,
-    );
-    if (this.level === "trace") {
+    episode.work.register_offers++;
+    const origin = episode.work.by_evaluation_origin[input.origin];
+    origin.register_offers++;
+    if (input.terminal) {
+      episode.work.terminal_node_evaluations++;
+      origin.terminal_node_evaluations++;
+      if (input.firstTimeSearchNode) episode.work.first_time_terminal_node_evaluations++;
+      else episode.work.revisited_terminal_node_evaluations++;
+      episode.outcome.terminal_tracks_considered++;
+      episode.outcome.terminal_observation_censored = false;
+      if (episode.outcome.first_terminal_offset_frames === null) {
+        episode.outcome.first_terminal_offset_frames = Math.max(
+          0,
+          totalSpent - episode.start_total_spent_frames,
+        );
+      }
+      const trackKey = input.terminalTrackKey ?? null;
+      if (trackKey !== null) {
+        if (episode.terminalTrackKeys.has(trackKey)) {
+          episode.work.repeated_terminal_track_evaluations++;
+        } else {
+          episode.terminalTrackKeys.add(trackKey);
+          episode.work.distinct_terminal_tracks++;
+        }
+        this.compileTerminalTrackKeys.add(trackKey);
+      }
+    } else {
+      episode.work.partial_node_evaluations++;
+    }
+    if (input.registerImproved) {
+      episode.work.register_improvements++;
+      origin.register_improvements++;
+      if (input.terminal) episode.work.terminal_register_improvements++;
+      if (input.terminal) origin.terminal_register_improvements++;
+      episode.outcome.register_improved = true;
+      const offset = Math.max(0, totalSpent - episode.start_total_spent_frames);
+      if (episode.outcome.first_register_improvement_offset_frames === null) {
+        episode.outcome.first_register_improvement_offset_frames = offset;
+      }
+      episode.outcome.final_register_improvement_offset_frames = offset;
+      if (
+        input.terminal &&
+        episode.outcome.first_terminal_register_improvement_offset_frames === null
+      ) {
+        episode.outcome.first_terminal_register_improvement_offset_frames = offset;
+      }
+      this.finalOutputEpisodeId = episode.episode_id;
+    }
+    if (
+      input.terminal &&
+      episode.observations !== undefined &&
+      episode.observations.every((observation) => observation.event !== "terminal")
+    ) {
       this.pushObservation(
-        attempt,
-        this.buildObservation(attempt, totalSpent, attempt.highWaterGap, "terminal"),
+        episode,
+        this.buildObservation(episode, totalSpent, episode.highWaterGap, "terminal"),
       );
     }
   }
 
-  endActive(
+  recordNodeWork(input: {
+    poolBuilds: number;
+    requestedNormalProposals: number;
+    nodesExpanded: number;
+    childrenEnqueued: number;
+  }): void {
+    const episode = this.activeEpisode();
+    if (episode === null) return;
+    episode.work.nodes_processed++;
+    episode.work.pool_builds += nonNegativeInt(input.poolBuilds);
+    episode.work.requested_normal_proposals += nonNegativeInt(input.requestedNormalProposals);
+    episode.work.nodes_expanded += nonNegativeInt(input.nodesExpanded);
+    episode.work.children_enqueued += nonNegativeInt(input.childrenEnqueued);
+  }
+
+  setActiveCandidateWork(input: {
+    actualCandidateSamples: number;
+    viableCandidates: number;
+    candidateSamplesByMode: Record<string, number>;
+  }): void {
+    const episode = this.activeEpisode();
+    if (episode === null) return;
+    episode.work.actual_candidate_samples = nonNegativeInt(input.actualCandidateSamples);
+    episode.work.viable_candidates = nonNegativeInt(input.viableCandidates);
+    episode.work.candidate_samples_by_mode = Object.fromEntries(
+      Object.entries(input.candidateSamplesByMode)
+        .map(([mode, count]): [string, number] => [mode, nonNegativeInt(count)])
+        .filter(([, count]) => count > 0),
+    );
+  }
+
+  endEpisode(
     totalSpentFrames: number,
-    stopReason: BudgetAttemptStopReason,
-    acceptedImprovement: boolean | null = null,
-    outcome: EndAttemptOutcome = {},
+    stopReason: BudgetEpisodeStopReason,
+    outcome: EndEpisodeOutcome = {},
   ): void {
-    const attempt = this.activeAttempt();
-    if (attempt === null) return;
+    const episode = this.activeEpisode();
+    if (episode === null) return;
     const totalSpent = nonNegativeInt(totalSpentFrames);
-    const end = this.buildObservation(attempt, totalSpent, attempt.highWaterGap, "end");
-    attempt.end = end;
-    this.pushObservation(attempt, end);
-    attempt.outcome.stop_reason = stopReason;
-    attempt.outcome.end_total_spent_frames = totalSpent;
-    attempt.outcome.spent_frames = Math.max(0, totalSpent - attempt.start_total_spent_frames);
-    attempt.outcome.accepted_improvement = acceptedImprovement;
-    attempt.outcome.first_accepted_improvement_offset_frames =
-      finiteOrNull(outcome.firstAcceptedImprovementOffsetFrames);
-    attempt.outcome.final_accepted_improvement_offset_frames =
-      finiteOrNull(outcome.finalAcceptedImprovementOffsetFrames);
-    attempt.outcome.register_improvement_count =
-      finiteOrNull(outcome.registerImprovementCount);
-    attempt.outcome.terminal_improvement_count =
-      finiteOrNull(outcome.terminalImprovementCount);
-    attempt.outcome.accepted_score_delta = finiteOrNull(outcome.acceptedScoreDelta);
-    attempt.outcome.repair_weak_gap_after = outcome.repairWeakGapAfter ?? null;
-    this.activeAttemptId = null;
+    const end = this.buildObservation(episode, totalSpent, episode.highWaterGap, "end");
+    episode.end = end;
+    this.pushObservation(episode, end);
+    episode.outcome.stop_reason = stopReason;
+    episode.outcome.end_total_spent_frames = totalSpent;
+    episode.outcome.spent_frames = Math.max(0, totalSpent - episode.start_total_spent_frames);
+    episode.outcome.repair_weak_gap_after = outcome.repairWeakGapAfter ?? null;
+    episode.register_key_at_end = cloneRegisterKey(outcome.registerKeyAtEnd ?? null);
+    episode.outcome.internal_full_score_delta = outcome.internalFullScoreDelta !== undefined
+      ? finiteOrNull(outcome.internalFullScoreDelta)
+      : registerScoreDelta(episode.register_key_at_start, episode.register_key_at_end);
+    this.activeEpisodeId = null;
   }
 
   recordSegment(
@@ -527,14 +683,14 @@ export class CompileBudgetTelemetryRecorder {
     startTotalSpentFrames: number,
     endTotalSpentFrames: number,
     stopReason: string,
-    attemptId: number | null = null,
+    episodeId: number | null = null,
   ): void {
     if (this.level === "off") return;
     const start = nonNegativeInt(startTotalSpentFrames);
     const end = Math.max(start, nonNegativeInt(endTotalSpentFrames));
-    this.segments.push({
+    this.executionIntervals.push({
       kind,
-      attempt_id: attemptId,
+      episode_id: episodeId,
       start_total_spent_frames: start,
       end_total_spent_frames: end,
       spent_frames: end - start,
@@ -544,25 +700,27 @@ export class CompileBudgetTelemetryRecorder {
 
   recordAtomicNode(input: RecordAtomicNodeInput): void {
     if (this.level !== "trace") return;
-    const attempt = this.activeAttempt();
-    if (attempt === null) return;
+    const episode = this.activeEpisode();
+    if (episode === null) return;
     const start = nonNegativeInt(input.start_total_spent_frames);
-    this.atomicNodes.push({
+    this.nodeEvents.push({
       ...input,
-      attempt_id: attempt.attempt_id,
-      attempt_kind: attempt.kind,
+      episode_id: episode.episode_id,
+      lane: episode.lane,
+      mechanism: episode.mechanism,
+      mechanism_detail: episode.mechanism_detail,
       start_total_spent_frames: start,
       hard_remaining_frames_at_start: Math.max(0, this.hardBudgetFrames - start),
-      attempt_remaining_frames_at_start: Math.max(
+      episode_remaining_frames_at_start: Math.max(
         0,
-        attempt.ceiling_total_spent_frames - start,
+        episode.ceiling_total_spent_frames - start,
       ),
-      main_evaluation_frames: nonNegativeInt(input.main_evaluation_frames),
+      frontier_evaluation_frames: nonNegativeInt(input.frontier_evaluation_frames),
       tail_completion_frames: nonNegativeInt(input.tail_completion_frames),
       post_tail_work_frames: nonNegativeInt(input.post_tail_work_frames),
       spent_frames: nonNegativeInt(input.spent_frames),
       register_improvements: nonNegativeInt(input.register_improvements),
-      terminal_considers: nonNegativeInt(input.terminal_considers),
+      terminal_node_evaluations: nonNegativeInt(input.terminal_node_evaluations),
       tail_attempts: nonNegativeInt(input.tail_attempts),
       tail_terminal_evaluations: nonNegativeInt(input.tail_terminal_evaluations),
       tail_duplicate_terminal_evaluations: nonNegativeInt(
@@ -581,14 +739,24 @@ export class CompileBudgetTelemetryRecorder {
     totalSpentFrames: number,
     budgetExhausted: boolean,
     firstTerminalTotalSpentFrames: number | null = null,
+    firstImprovingTerminalTotalSpentFrames: number | null = null,
   ): CompileBudgetTelemetry | null {
     if (this.level === "off") return null;
     const totalSpent = nonNegativeInt(totalSpentFrames);
-    const attempts = this.attempts.map((attempt) => this.snapshotAttempt(attempt, totalSpent));
-    const segments = this.snapshotSegments(totalSpent);
-    const initial = attempts[0];
+    const episodes = this.episodes.map((episode) => this.snapshotEpisode(episode, totalSpent));
+    const executionIntervals = this.snapshotExecutionIntervals(totalSpent);
+    const initial = episodes[0];
     const initialStructural = initial?.start.structural_work_prior_frames ?? 0;
-    return {
+    const aggregateWork = sumEpisodeWork(episodes.map((episode) => episode.work));
+    aggregateWork.distinct_terminal_tracks = this.compileTerminalTrackKeys.size;
+    aggregateWork.repeated_terminal_track_evaluations = Math.max(
+      0,
+      aggregateWork.terminal_node_evaluations - aggregateWork.distinct_terminal_tracks,
+    );
+    const finalEpisode = this.finalOutputEpisodeId === null
+      ? null
+      : episodes[this.finalOutputEpisodeId] ?? null;
+    const payload: CompileBudgetTelemetry = {
       schema: BUDGET_TELEMETRY_SCHEMA,
       level: this.level,
       model: {
@@ -619,23 +787,32 @@ export class CompileBudgetTelemetryRecorder {
           : budgetEstimatorApplicability({
             pathAvailable: false,
             policyBudgetFrames: this.searchPolicyBudgetFrames,
-            attemptKind: initial.kind,
+            attemptKind: initial.lane,
           }),
         first_terminal_total_spent_frames: firstTerminalTotalSpentFrames === null
           ? null
           : nonNegativeInt(firstTerminalTotalSpentFrames),
+        first_improving_terminal_total_spent_frames:
+          firstImprovingTerminalTotalSpentFrames === null
+            ? null
+            : nonNegativeInt(firstImprovingTerminalTotalSpentFrames),
+        work: aggregateWork,
+        final_output_episode_id: finalEpisode?.episode_id ?? null,
+        final_output_lane: finalEpisode?.lane ?? null,
         ...(this.resumeAdmission === null
           ? {}
           : { resume_admission: { ...this.resumeAdmission } }),
       },
-      segments,
-      attempts,
-      ...(this.level === "trace" ? { atomic_nodes: this.atomicNodes.map((node) => ({ ...node })) } : {}),
+      execution_intervals: executionIntervals,
+      episodes,
+      ...(this.level === "trace" ? { node_events: this.nodeEvents.map((node) => ({ ...node })) } : {}),
     };
+    validateTelemetryPayload(payload, { allowUnattributedInterval: this.activeEpisodeId !== null });
+    return payload;
   }
 
-  private activeAttempt(): MutableAttempt | null {
-    return this.activeAttemptId === null ? null : this.attempts[this.activeAttemptId] ?? null;
+  private activeEpisode(): MutableEpisode | null {
+    return this.activeEpisodeId === null ? null : this.episodes[this.activeEpisodeId] ?? null;
   }
 
   /**
@@ -657,7 +834,7 @@ export class CompileBudgetTelemetryRecorder {
   }
 
   private buildObservation(
-    attempt: MutableAttempt,
+    episode: MutableEpisode,
     totalSpentFrames: number,
     highWaterGap: number,
     event: BudgetEstimateObservation["event"],
@@ -666,29 +843,29 @@ export class CompileBudgetTelemetryRecorder {
     const structure = remainingStructure(this.gaps, this.durationFrames, highWaterGap);
     const structural = this.structuralWorkAt(
       highWaterGap,
-      attempt.includeStartup && highWaterGap === attempt.anchor.gap_index,
+      episode.includeStartup && highWaterGap === episode.anchor.gap_index,
     );
     const startStructural = this.structuralWorkAt(
-      attempt.anchor.gap_index,
-      attempt.includeStartup,
+      episode.anchor.gap_index,
+      episode.includeStartup,
     );
     const progressedStructural = Math.max(0, startStructural - structural);
     const progressFraction = startStructural > 0
       ? clamp01(progressedStructural / startStructural)
       : 1;
-    const attemptSpent = Math.max(0, totalSpent - attempt.start_total_spent_frames);
-    const attemptRemaining = Math.max(0, attempt.ceiling_total_spent_frames - totalSpent);
-    const pathRaw = attempt.pathEstimateByGap?.[structure.gap_index];
+    const episodeSpent = Math.max(0, totalSpent - episode.start_total_spent_frames);
+    const episodeRemaining = Math.max(0, episode.ceiling_total_spent_frames - totalSpent);
+    const pathRaw = episode.pathEstimateByGap?.[structure.gap_index];
     // A zero cost-to-end is not a measurement of "no work left": the incumbent
     // profile writes zero whenever first completion did not post-date reaching
     // that node. The estimator's own selector treats non-positive paths as
     // absent, so admitting zero here would label a structural estimate
     // path-backed (and therefore `calibrated`) on no evidence.
     const pathEstimate = pathRaw !== undefined && pathRaw > 0 ? pathRaw : null;
-    // Project this attempt's observed work per unit of structural progress over
+    // Project this episode's observed work per unit of structural progress over
     // the structural suffix still left. It is null until high water advances.
     const paceEstimate = progressedStructural > 0
-      ? Math.max(0, attemptSpent * structural / progressedStructural)
+      ? Math.max(0, episodeSpent * structural / progressedStructural)
       : null;
     const estimated = estimateRemainingBudgetWork({
       structural,
@@ -700,7 +877,7 @@ export class CompileBudgetTelemetryRecorder {
     const applicability = budgetEstimatorApplicability({
       pathAvailable: pathEstimate !== null,
       policyBudgetFrames: this.searchPolicyBudgetFrames,
-      attemptKind: attempt.kind,
+      attemptKind: episode.lane,
     });
     // The interval stratum uses the same path predicate as the correction
     // factor: `pathEstimate` is already the positive-only value the selector
@@ -720,12 +897,12 @@ export class CompileBudgetTelemetryRecorder {
       total_spent_frames: totalSpent,
       hard_remaining_frames: hardRemaining,
       hard_overrun_frames: Math.max(0, totalSpent - this.hardBudgetFrames),
-      attempt_spent_frames: attemptSpent,
-      attempt_remaining_frames: attemptRemaining,
-      attempt_overrun_frames: Math.max(0, totalSpent - attempt.ceiling_total_spent_frames),
+      episode_spent_frames: episodeSpent,
+      episode_remaining_frames: episodeRemaining,
+      episode_overrun_frames: Math.max(0, totalSpent - episode.ceiling_total_spent_frames),
       high_water: structure,
-      structural_startup_included: attempt.includeStartup &&
-        highWaterGap === attempt.anchor.gap_index,
+      structural_startup_included: episode.includeStartup &&
+        highWaterGap === episode.anchor.gap_index,
       estimator_applicability: applicability,
       structural_progress_fraction: progressFraction,
       structural_work_prior_frames: structural,
@@ -739,83 +916,88 @@ export class CompileBudgetTelemetryRecorder {
         ? hardRemaining / estimated
         : null,
       hard_completion_surplus_frames: hardRemaining - estimated,
-      attempt_completion_margin: applicability === "calibrated" && estimated > 0
-        ? attemptRemaining / estimated
+      episode_completion_margin: applicability === "calibrated" && estimated > 0
+        ? episodeRemaining / estimated
         : null,
-      attempt_completion_surplus_frames: attemptRemaining - estimated,
+      episode_completion_surplus_frames: episodeRemaining - estimated,
     };
   }
 
-  private pushObservation(attempt: MutableAttempt, observation: BudgetEstimateObservation): void {
-    if (this.level !== "trace" || attempt.observations === undefined) return;
-    const previous = attempt.observations.at(-1);
+  private pushObservation(episode: MutableEpisode, observation: BudgetEstimateObservation): void {
+    if (this.level !== "trace" || episode.observations === undefined) return;
+    const previous = episode.observations.at(-1);
     if (
       previous?.event === observation.event &&
       previous.total_spent_frames === observation.total_spent_frames &&
       previous.high_water.gap_index === observation.high_water.gap_index
     ) return;
-    attempt.observations.push(observation);
+    episode.observations.push(observation);
   }
 
-  private snapshotAttempt(attempt: MutableAttempt, totalSpent: number): BudgetAttemptTelemetry {
-    const end = attempt.end ?? this.buildObservation(
-      attempt,
+  private snapshotEpisode(episode: MutableEpisode, totalSpent: number): BudgetEpisodeTelemetry {
+    const end = episode.end ?? this.buildObservation(
+      episode,
       totalSpent,
-      attempt.highWaterGap,
+      episode.highWaterGap,
       "end",
     );
-    const outcome = attempt.end === null
+    const outcome = episode.end === null
       ? {
-        ...attempt.outcome,
+        ...episode.outcome,
         stop_reason: "budget_capture" as const,
         end_total_spent_frames: totalSpent,
-        spent_frames: Math.max(0, totalSpent - attempt.start_total_spent_frames),
+        spent_frames: Math.max(0, totalSpent - episode.start_total_spent_frames),
       }
-      : { ...attempt.outcome };
+      : { ...episode.outcome };
     return {
-      attempt_id: attempt.attempt_id,
-      kind: attempt.kind,
-      parent_attempt_id: attempt.parent_attempt_id,
-      search_seed: attempt.search_seed,
-      has_fallback: attempt.has_fallback,
-      anchor: { ...attempt.anchor },
-      repair_round_index: attempt.repair_round_index,
-      anchor_upstream_offset: attempt.anchor_upstream_offset,
-      incumbent_weak_gap_sse: attempt.incumbent_weak_gap_sse,
-      repair_weak_gap_before: attempt.repair_weak_gap_before === null
+      episode_id: episode.episode_id,
+      lane: episode.lane,
+      mechanism: episode.mechanism,
+      mechanism_detail: episode.mechanism_detail,
+      parent_episode_id: episode.parent_episode_id,
+      search_seed: episode.search_seed,
+      frontier_has_fallback_lane: episode.frontier_has_fallback_lane,
+      anchor: { ...episode.anchor },
+      repair_round_index: episode.repair_round_index,
+      anchor_upstream_offset: episode.anchor_upstream_offset,
+      incumbent_weak_gap_sse: episode.incumbent_weak_gap_sse,
+      repair_weak_gap_before: episode.repair_weak_gap_before === null
         ? null
-        : structuredClone(attempt.repair_weak_gap_before),
-      start_total_spent_frames: attempt.start_total_spent_frames,
-      ceiling_total_spent_frames: attempt.ceiling_total_spent_frames,
-      ceiling_source: attempt.ceiling_source,
-      available_hard_budget_frames: attempt.available_hard_budget_frames,
-      local_budget_frames: attempt.local_budget_frames,
-      start: structuredClone(attempt.start),
+        : structuredClone(episode.repair_weak_gap_before),
+      start_total_spent_frames: episode.start_total_spent_frames,
+      ceiling_total_spent_frames: episode.ceiling_total_spent_frames,
+      ceiling_source: episode.ceiling_source,
+      available_hard_budget_frames: episode.available_hard_budget_frames,
+      allocated_frames: episode.allocated_frames,
+      work: structuredClone(episode.work),
+      register_key_at_start: cloneRegisterKey(episode.register_key_at_start),
+      register_key_at_end: cloneRegisterKey(episode.register_key_at_end),
+      start: structuredClone(episode.start),
       end: structuredClone(end),
-      ...(attempt.observations === undefined
+      ...(episode.observations === undefined
         ? {}
-        : { observations: structuredClone(attempt.observations) }),
+        : { observations: structuredClone(episode.observations) }),
       outcome,
     };
   }
 
-  private snapshotSegments(totalSpent: number): BudgetExecutionSegment[] {
-    const segments = this.segments.map((segment) => ({ ...segment }));
-    const coveredEnd = segments.reduce(
+  private snapshotExecutionIntervals(totalSpent: number): BudgetExecutionSegment[] {
+    const intervals = this.executionIntervals.map((interval) => ({ ...interval }));
+    const coveredEnd = intervals.reduce(
       (max, segment) => Math.max(max, segment.end_total_spent_frames),
       0,
     );
     if (coveredEnd < totalSpent) {
-      segments.push({
+      intervals.push({
         kind: "unattributed",
-        attempt_id: null,
+        episode_id: null,
         start_total_spent_frames: coveredEnd,
         end_total_spent_frames: totalSpent,
         spent_frames: totalSpent - coveredEnd,
         stop_reason: "snapshot_gap",
       });
     }
-    return segments;
+    return intervals;
   }
 }
 
@@ -835,6 +1017,404 @@ export function adaptiveEstimate(
   if (paceEstimate === null || !(paceEstimate > 0)) return base;
   const weight = clamp01(structuralProgressFraction);
   return Math.exp((1 - weight) * Math.log(base) + weight * Math.log(paceEstimate));
+}
+
+function emptyEpisodeWork(): BudgetEpisodeWork {
+  return {
+    pool_builds: 0,
+    requested_normal_proposals: 0,
+    actual_candidate_samples: 0,
+    viable_candidates: 0,
+    candidate_samples_by_mode: {},
+    by_evaluation_origin: Object.fromEntries(
+      BUDGET_EVALUATION_ORIGINS.map((origin) => [origin, emptyEvaluationOriginWork()]),
+    ) as Record<BudgetEvaluationOrigin, BudgetEvaluationOriginWork>,
+    nodes_processed: 0,
+    nodes_expanded: 0,
+    children_enqueued: 0,
+    register_offers: 0,
+    partial_node_evaluations: 0,
+    terminal_node_evaluations: 0,
+    first_time_terminal_node_evaluations: 0,
+    revisited_terminal_node_evaluations: 0,
+    distinct_terminal_tracks: 0,
+    repeated_terminal_track_evaluations: 0,
+    register_improvements: 0,
+    terminal_register_improvements: 0,
+  };
+}
+
+function sumEpisodeWork(items: readonly BudgetEpisodeWork[]): BudgetEpisodeWork {
+  const total = emptyEpisodeWork();
+  for (const item of items) {
+    for (const key of [
+      "pool_builds",
+      "requested_normal_proposals",
+      "actual_candidate_samples",
+      "viable_candidates",
+      "nodes_processed",
+      "nodes_expanded",
+      "children_enqueued",
+      "register_offers",
+      "partial_node_evaluations",
+      "terminal_node_evaluations",
+      "first_time_terminal_node_evaluations",
+      "revisited_terminal_node_evaluations",
+      "distinct_terminal_tracks",
+      "repeated_terminal_track_evaluations",
+      "register_improvements",
+      "terminal_register_improvements",
+    ] as const) total[key] += item[key];
+    for (const [mode, count] of Object.entries(item.candidate_samples_by_mode)) {
+      total.candidate_samples_by_mode[mode] =
+        (total.candidate_samples_by_mode[mode] ?? 0) + count;
+    }
+    for (const origin of BUDGET_EVALUATION_ORIGINS) {
+      const destination = total.by_evaluation_origin[origin];
+      const source = item.by_evaluation_origin[origin];
+      destination.register_offers += source.register_offers;
+      destination.terminal_node_evaluations += source.terminal_node_evaluations;
+      destination.register_improvements += source.register_improvements;
+      destination.terminal_register_improvements += source.terminal_register_improvements;
+    }
+  }
+  return total;
+}
+
+function emptyEvaluationOriginWork(): BudgetEvaluationOriginWork {
+  return {
+    register_offers: 0,
+    terminal_node_evaluations: 0,
+    register_improvements: 0,
+    terminal_register_improvements: 0,
+  };
+}
+
+function cloneRegisterKey(key: BudgetInternalRegisterKey | null): BudgetInternalRegisterKey | null {
+  return key === null ? null : { ...key };
+}
+
+function registerScoreDelta(
+  before: BudgetInternalRegisterKey | null,
+  after: BudgetInternalRegisterKey | null,
+): number | null {
+  if (before === null || after === null) return null;
+  return after.internal_full_score - before.internal_full_score;
+}
+
+function validateTelemetryPayload(
+  payload: CompileBudgetTelemetry,
+  options: { allowUnattributedInterval: boolean },
+): void {
+  const summedWork = sumEpisodeWork(payload.episodes.map((episode) => episode.work));
+  for (let index = 0; index < payload.episodes.length; index++) {
+    const episode = payload.episodes[index]!;
+    if (episode.episode_id !== index) {
+      throw new Error(`budget telemetry episode IDs must be contiguous and ordered`);
+    }
+    if (
+      episode.parent_episode_id !== null &&
+      (episode.parent_episode_id < 0 || episode.parent_episode_id >= episode.episode_id)
+    ) {
+      throw new Error(`budget telemetry episode ${index} has an invalid parent`);
+    }
+    const work = episode.work;
+    for (const key of [
+      "pool_builds",
+      "requested_normal_proposals",
+      "actual_candidate_samples",
+      "viable_candidates",
+      "nodes_processed",
+      "nodes_expanded",
+      "children_enqueued",
+      "register_offers",
+      "partial_node_evaluations",
+      "terminal_node_evaluations",
+      "first_time_terminal_node_evaluations",
+      "revisited_terminal_node_evaluations",
+      "distinct_terminal_tracks",
+      "repeated_terminal_track_evaluations",
+      "register_improvements",
+      "terminal_register_improvements",
+    ] as const) {
+      if (!Number.isInteger(work[key]) || work[key] < 0) {
+        throw new Error(`budget telemetry episode ${index} ${key} is not a non-negative integer`);
+      }
+    }
+    if (
+      work.register_offers !==
+        work.partial_node_evaluations + work.terminal_node_evaluations
+    ) {
+      throw new Error(`budget telemetry episode ${index} register-offer accounting is open`);
+    }
+    if (
+      work.terminal_node_evaluations !==
+        work.first_time_terminal_node_evaluations + work.revisited_terminal_node_evaluations
+    ) {
+      throw new Error(`budget telemetry episode ${index} terminal-node accounting is open`);
+    }
+    if (
+      work.terminal_node_evaluations !==
+        work.distinct_terminal_tracks + work.repeated_terminal_track_evaluations
+    ) {
+      throw new Error(`budget telemetry episode ${index} terminal-track accounting is open`);
+    }
+    if (work.register_improvements > work.register_offers) {
+      throw new Error(`budget telemetry episode ${index} has more improvements than offers`);
+    }
+    if (work.terminal_register_improvements > work.terminal_node_evaluations) {
+      throw new Error(`budget telemetry episode ${index} has too many terminal improvements`);
+    }
+    if (work.viable_candidates > work.actual_candidate_samples) {
+      throw new Error(`budget telemetry episode ${index} has more viable than sampled candidates`);
+    }
+    if (work.nodes_expanded > work.nodes_processed) {
+      throw new Error(`budget telemetry episode ${index} has more expanded than processed nodes`);
+    }
+    const attributedSamples = Object.values(work.candidate_samples_by_mode)
+      .reduce((sum, value) => sum + value, 0);
+    for (const [mode, count] of Object.entries(work.candidate_samples_by_mode)) {
+      if (!Number.isInteger(count) || count < 0) {
+        throw new Error(`budget telemetry episode ${index} candidate mode ${mode} is invalid`);
+      }
+    }
+    if (attributedSamples !== work.actual_candidate_samples) {
+      throw new Error(`budget telemetry episode ${index} candidate-mode accounting is open`);
+    }
+    const originTotals = BUDGET_EVALUATION_ORIGINS.reduce(
+      (total, origin) => {
+        const source = work.by_evaluation_origin[origin];
+        total.register_offers += source.register_offers;
+        total.terminal_node_evaluations += source.terminal_node_evaluations;
+        total.register_improvements += source.register_improvements;
+        total.terminal_register_improvements += source.terminal_register_improvements;
+        return total;
+      },
+      emptyEvaluationOriginWork(),
+    );
+    for (const key of [
+      "register_offers",
+      "terminal_node_evaluations",
+      "register_improvements",
+      "terminal_register_improvements",
+    ] as const) {
+      if (originTotals[key] !== work[key]) {
+        throw new Error(`budget telemetry episode ${index} evaluation-origin accounting is open`);
+      }
+    }
+    for (const origin of BUDGET_EVALUATION_ORIGINS) {
+      const value = work.by_evaluation_origin[origin];
+      for (const count of Object.values(value)) {
+        if (!Number.isInteger(count) || count < 0) {
+          throw new Error(`budget telemetry episode ${index} evaluation origin ${origin} is invalid`);
+        }
+      }
+      if (
+        value.register_improvements > value.register_offers ||
+        value.terminal_register_improvements > value.terminal_node_evaluations ||
+        value.terminal_register_improvements > value.register_improvements
+      ) {
+        throw new Error(
+          `budget telemetry episode ${index} evaluation origin ${origin} exceeds its population`,
+        );
+      }
+    }
+    if (episode.outcome.terminal_tracks_considered !== work.terminal_node_evaluations) {
+      throw new Error(`budget telemetry episode ${index} terminal outcome disagrees with work`);
+    }
+    if (episode.outcome.terminal_observation_censored !== (work.terminal_node_evaluations === 0)) {
+      throw new Error(`budget telemetry episode ${index} terminal censoring is inconsistent`);
+    }
+    if (
+      (episode.outcome.first_terminal_offset_frames === null) !==
+        (work.terminal_node_evaluations === 0)
+    ) {
+      throw new Error(`budget telemetry episode ${index} terminal timing is inconsistent`);
+    }
+    if (episode.outcome.register_improved !== (work.register_improvements > 0)) {
+      throw new Error(`budget telemetry episode ${index} register outcome disagrees with work`);
+    }
+    if (
+      (episode.outcome.first_register_improvement_offset_frames === null) !==
+        (work.register_improvements === 0) ||
+      (episode.outcome.final_register_improvement_offset_frames === null) !==
+        (work.register_improvements === 0)
+    ) {
+      throw new Error(`budget telemetry episode ${index} improvement timing is inconsistent`);
+    }
+    if (
+      (episode.outcome.first_terminal_register_improvement_offset_frames === null) !==
+        (work.terminal_register_improvements === 0)
+    ) {
+      throw new Error(`budget telemetry episode ${index} terminal-improvement timing is inconsistent`);
+    }
+    if (episode.mechanism === "surgical" && episode.lane !== "repair") {
+      throw new Error(`budget telemetry episode ${index} has surgical work outside repair`);
+    }
+    if (
+      episode.allocated_frames !==
+        episode.ceiling_total_spent_frames - episode.start_total_spent_frames ||
+      episode.available_hard_budget_frames !==
+        Math.max(0, payload.compile.hard_budget_frames - episode.start_total_spent_frames)
+    ) {
+      throw new Error(`budget telemetry episode ${index} allocation accounting is open`);
+    }
+    const spent = episode.outcome.spent_frames;
+    if (
+      spent !== null &&
+      spent !== (episode.outcome.end_total_spent_frames ?? 0) - episode.start_total_spent_frames
+    ) {
+      throw new Error(`budget telemetry episode ${index} spend does not close`);
+    }
+    if (spent !== null) {
+      const offsets = [
+        episode.outcome.first_terminal_offset_frames,
+        episode.outcome.first_register_improvement_offset_frames,
+        episode.outcome.final_register_improvement_offset_frames,
+        episode.outcome.first_terminal_register_improvement_offset_frames,
+      ].filter((value): value is number => value !== null);
+      if (offsets.some((value) => !Number.isInteger(value) || value < 0 || value > spent)) {
+        throw new Error(`budget telemetry episode ${index} timing lies outside episode spend`);
+      }
+    }
+  }
+  for (const key of [
+    "pool_builds",
+    "requested_normal_proposals",
+    "actual_candidate_samples",
+    "viable_candidates",
+    "nodes_processed",
+    "nodes_expanded",
+    "children_enqueued",
+    "register_offers",
+    "partial_node_evaluations",
+    "terminal_node_evaluations",
+    "first_time_terminal_node_evaluations",
+    "revisited_terminal_node_evaluations",
+    "register_improvements",
+    "terminal_register_improvements",
+  ] as const) {
+    if (payload.compile.work[key] !== summedWork[key]) {
+      throw new Error(`budget telemetry compile ${key} does not equal the episode sum`);
+    }
+  }
+  for (const mode of new Set([
+    ...Object.keys(payload.compile.work.candidate_samples_by_mode),
+    ...Object.keys(summedWork.candidate_samples_by_mode),
+  ])) {
+    if (
+      (payload.compile.work.candidate_samples_by_mode[mode] ?? 0) !==
+        (summedWork.candidate_samples_by_mode[mode] ?? 0)
+    ) {
+      throw new Error(`budget telemetry compile candidate-mode accounting is open`);
+    }
+  }
+  for (const origin of BUDGET_EVALUATION_ORIGINS) {
+    for (const key of [
+      "register_offers",
+      "terminal_node_evaluations",
+      "register_improvements",
+      "terminal_register_improvements",
+    ] as const) {
+      if (
+        payload.compile.work.by_evaluation_origin[origin][key] !==
+          summedWork.by_evaluation_origin[origin][key]
+      ) {
+        throw new Error(`budget telemetry compile evaluation-origin accounting is open`);
+      }
+    }
+  }
+  if (
+    payload.compile.work.terminal_node_evaluations !==
+      payload.compile.work.distinct_terminal_tracks +
+        payload.compile.work.repeated_terminal_track_evaluations
+  ) {
+    throw new Error(`budget telemetry compile terminal-track accounting is open`);
+  }
+  if (
+    payload.compile.final_output_episode_id !== null &&
+    payload.episodes[payload.compile.final_output_episode_id] === undefined
+  ) {
+    throw new Error(`budget telemetry final-output lineage is invalid`);
+  }
+  if (payload.compile.final_output_episode_id === null !== (payload.compile.final_output_lane === null)) {
+    throw new Error(`budget telemetry final-output lineage nullability is inconsistent`);
+  }
+  if (payload.compile.final_output_episode_id !== null) {
+    const episode = payload.episodes[payload.compile.final_output_episode_id]!;
+    if (episode.lane !== payload.compile.final_output_lane || !episode.outcome.register_improved) {
+      throw new Error(`budget telemetry final-output lineage does not name an improving episode`);
+    }
+  }
+  if (
+    payload.compile.hard_budget_frames + payload.compile.hard_overrun_frames !==
+      payload.compile.total_spent_frames + payload.compile.hard_remaining_frames
+  ) {
+    throw new Error(`budget telemetry compile hard-budget accounting is open`);
+  }
+  let cursor = 0;
+  for (const interval of payload.execution_intervals) {
+    if (interval.start_total_spent_frames !== cursor) {
+      throw new Error(`budget telemetry execution intervals are not contiguous`);
+    }
+    if (
+      interval.spent_frames !==
+        interval.end_total_spent_frames - interval.start_total_spent_frames
+    ) {
+      throw new Error(`budget telemetry execution-interval accounting is open`);
+    }
+    if (
+      interval.episode_id !== null &&
+      payload.episodes[interval.episode_id] === undefined
+    ) {
+      throw new Error(`budget telemetry execution interval references a missing episode`);
+    }
+    if (interval.kind === "unattributed" && !options.allowUnattributedInterval) {
+      throw new Error(`budget telemetry closed payload contains unattributed work`);
+    }
+    cursor = interval.end_total_spent_frames;
+  }
+  if (cursor !== payload.compile.total_spent_frames) {
+    throw new Error(`budget telemetry execution intervals do not cover compile spend`);
+  }
+  const terminalFrames = payload.episodes.flatMap((episode) => {
+    const offset = episode.outcome.first_terminal_offset_frames;
+    return offset === null ? [] : [episode.start_total_spent_frames + offset];
+  });
+  const attributedFirstTerminal = terminalFrames.length === 0 ? null : Math.min(...terminalFrames);
+  if (payload.compile.first_terminal_total_spent_frames !== attributedFirstTerminal) {
+    throw new Error(`budget telemetry first-terminal attribution is inconsistent`);
+  }
+  const improvingTerminalFrames = payload.episodes.flatMap((episode) => {
+    const offset = episode.outcome.first_terminal_register_improvement_offset_frames;
+    return offset === null ? [] : [episode.start_total_spent_frames + offset];
+  });
+  const attributedFirstImprovingTerminal = improvingTerminalFrames.length === 0
+    ? null
+    : Math.min(...improvingTerminalFrames);
+  if (
+    payload.compile.first_improving_terminal_total_spent_frames !==
+      attributedFirstImprovingTerminal
+  ) {
+    throw new Error(`budget telemetry first-improving-terminal attribution is inconsistent`);
+  }
+  for (const [index, node] of (payload.node_events ?? []).entries()) {
+    const episode = payload.episodes[node.episode_id];
+    if (
+      episode?.lane !== node.lane ||
+      episode.mechanism !== node.mechanism ||
+      episode.mechanism_detail !== node.mechanism_detail
+    ) {
+      throw new Error(`budget telemetry node event ${index} attribution is inconsistent`);
+    }
+    if (
+      node.spent_frames !==
+        node.frontier_evaluation_frames + node.tail_completion_frames +
+          node.post_tail_work_frames
+    ) {
+      throw new Error(`budget telemetry node event ${index} work accounting is open`);
+    }
+  }
 }
 
 function clampGapIndex(value: number, gapCount: number): number {

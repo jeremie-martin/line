@@ -163,6 +163,7 @@ import {
 } from "./budget_estimator.ts";
 import {
   CompileBudgetTelemetryRecorder,
+  type BudgetInternalRegisterKey,
   type BudgetRepairGapState,
   type BudgetTelemetryLevel,
 } from "./budget_telemetry.ts";
@@ -216,6 +217,7 @@ import type { PrecontactMulticontactHistoryReady } from "../trajectory/precontac
 import {
   getCandidateProbe,
   getCandidateSamples,
+  getCandidateSamplesByMode,
   getViableCandidates,
   sampleOneCandidate,
 } from "./sample.ts";
@@ -539,6 +541,12 @@ export type CompileHandoffOptions = {
    * globally accepted restart. Response-aware mode retires the selected gap
    * when that accepted path did not reduce its own axis SSE. */
   repairAllocationPolicy?: "legacy" | "response-aware";
+  /** Experimental frontier-repair execution unit. Production keeps traversing
+   * the bounded suffix frontier; the adaptive study returns after one complete
+   * alternative so the allocator can choose a fresh affordable anchor. */
+  repairFrontierMode?: RepairFrontierMode;
+  /** Adaptive-mode diversity budget per (selected weak gap, actual anchor). */
+  repairAdaptiveTriesPerAnchor?: number;
   /** Policy-neutral budget characterization. Summary is compact and default;
    * trace additionally retains high-water and spend-decile observations. */
   budgetTelemetry?: BudgetTelemetryLevel;
@@ -1478,6 +1486,9 @@ type HandoffTelemetry = {
   tailCompletionAttemptsByRemainingContacts: Record<number, number>;
   tailCompletionSuccessesByRemainingContacts: Record<number, number>;
   tailCompletionImprovementsByRemainingContacts: Record<number, number>;
+  /** Every actual rankedOptions build, including rescue and tail completion. */
+  candidatePoolRequests: NumericAccumulator;
+  /** Primary frontier policy only; retained for the legacy compile_stats summary. */
   policyNCand: NumericAccumulator;
   policyBranchLimit: NumericAccumulator;
   previews: number;
@@ -2184,6 +2195,22 @@ function compileHandoffInternal(
   if (!["legacy", "response-aware"].includes(repairAllocationPolicy)) {
     throw new Error(`compileHandoff: repairAllocationPolicy must be legacy|response-aware`);
   }
+  const selectedRepairFrontierMode = opts.repairFrontierMode ?? repairFrontierMode();
+  if (
+    selectedRepairFrontierMode !== "multi-terminal" &&
+    selectedRepairFrontierMode !== "one-terminal-adaptive"
+  ) {
+    throw new Error(
+      `compileHandoff: repairFrontierMode must be multi-terminal|one-terminal-adaptive`,
+    );
+  }
+  if (opts.repairAdaptiveTriesPerAnchor !== undefined &&
+      (!Number.isSafeInteger(opts.repairAdaptiveTriesPerAnchor) ||
+        opts.repairAdaptiveTriesPerAnchor < 1 || opts.repairAdaptiveTriesPerAnchor > 64)) {
+    throw new Error(
+      `compileHandoff: repairAdaptiveTriesPerAnchor must be an integer in [1, 64]`,
+    );
+  }
   setProposalUtilityPowers();
   setAimCompileBudgetFrames(searchPolicyBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
@@ -2318,10 +2345,10 @@ function compileHandoffInternal(
       anchorGapIndex: root.search.gapIndex,
       includeStartup: initialSnapshot === null,
     });
-    const initialBudgetAttemptId = budgetRecorder.startAttempt({
-      kind: initialSnapshot === null ? "initial" : "snapshot",
+    const initialBudgetEpisodeId = budgetRecorder.startEpisode({
+      lane: initialSnapshot === null ? "initial" : "snapshot",
       searchSeed,
-      hasFallback: false,
+      frontierHasFallbackLane: false,
       anchorGapIndex: root.search.gapIndex,
       startTotalSpentFrames: 0,
       // The initial frontier is legally allowed to run until the hard capture
@@ -2336,7 +2363,7 @@ function compileHandoffInternal(
       0,
       getSimFrames(),
       "search_ready",
-      initialBudgetAttemptId,
+      initialBudgetEpisodeId,
     );
     const passStack: HandoffNode[] = root.skippedContacts === 0 ? [root] : [];
     const fallbackStack: HandoffNode[] = root.skippedContacts === 0 ? [] : [root];
@@ -2364,6 +2391,7 @@ function compileHandoffInternal(
       tailCompletionAttemptsByRemainingContacts: {},
       tailCompletionSuccessesByRemainingContacts: {},
       tailCompletionImprovementsByRemainingContacts: {},
+      candidatePoolRequests: emptyNumericAccumulator(),
       policyNCand: emptyNumericAccumulator(),
       policyBranchLimit: emptyNumericAccumulator(),
       previews: 0,
@@ -2388,6 +2416,23 @@ function compileHandoffInternal(
       startRanksSeen: new Set<number>(),
       startRanksWithFits: new Set<number>(),
     };
+    let activeCandidateWorkBaseline: CandidateWorkSnapshot | null =
+      budgetTelemetryLevel === "off" ? null : emptyCandidateWorkSnapshot();
+    const refreshActiveCandidateWork = (): void => {
+      if (activeCandidateWorkBaseline === null) return;
+      budgetRecorder.setActiveCandidateWork(
+        candidateWorkSince(activeCandidateWorkBaseline, snapshotCandidateWork()),
+      );
+    };
+    const finishActiveCandidateWork = (): void => {
+      refreshActiveCandidateWork();
+      activeCandidateWorkBaseline = null;
+    };
+    const beginCandidateWork = (): void => {
+      activeCandidateWorkBaseline = budgetTelemetryLevel === "off"
+        ? null
+        : snapshotCandidateWork();
+    };
     const polishEnabled = opts.polish ?? false;
     const stopAfterFirstCompletion = opts.stopAfterFirstCompletion ?? false;
     let polishTried = 0;
@@ -2403,8 +2448,17 @@ function compileHandoffInternal(
     // the weakest gap of the complete incumbent (see runRepairPhase). `bestCompleteNode` is
     // the live incumbent HandoffNode (updated on every register improvement) so repair can
     // replay its fits to reconstruct any prefix node for free (extendNodeCached memoizes).
-    const repair = repairConfig();
+    const repair = repairConfig(
+      selectedRepairFrontierMode,
+      opts.repairAdaptiveTriesPerAnchor,
+    );
     const repairEnabled = repairBudgetLimit >= repair.minBudget && startOptions.length > 0;
+    if (repair.frontierMode === "one-terminal-adaptive" && impactSurgicalRepairMode() !== null) {
+      throw new Error(
+        `compileHandoff: one-terminal-adaptive frontier repair cannot be combined with ` +
+          `LR_IMPACT_SURGICAL_REPAIR; analyze the mechanisms separately`,
+      );
+    }
     let bestCompleteNode: HandoffNode | null = null;
     // `BestSoFarRegister` intentionally owns only the public output. Keep the
     // matching node solely so snapshot-time diagnostics can validate the exact
@@ -2413,10 +2467,10 @@ function compileHandoffInternal(
     let bestRegisteredNode: HandoffNode | null = null;
     let firstTerminalFrame = -1;
     let firstCompletionFrame = -1;
-    // Instrumentation scaffold (observe-only; never read by the search → byte-identical when off):
-    // when each node was first processed (its "budget timestamp") and a structured record of every
-    // repair restart, so the system can be characterized and budget-aware allocation built on
-    // MEASURED cost (vs the current crude perGap estimate). Surfaced in compile_stats.repair.
+    // Observation-only reach timestamps used by the incumbent cost-to-end
+    // estimator and detailed repair diagnostics. Authoritative execution and
+    // outcome accounting lives in budgetTelemetry V3 episodes; compile_stats
+    // is not a second repair ledger.
     const framesAtReach = new WeakMap<SearchNode, number>();
     // Second reach map for the OTHER producer of incumbent nodes. `framesAtReach`
     // above stamps only nodes the frontier processes, but the near-tail completion
@@ -2564,21 +2618,22 @@ function compileHandoffInternal(
       }
       if (canSkipPartialEvaluation(node, gaps, register)) return null;
       const evaluation = evaluateCached(node);
-      recordEvaluationTelemetry(
+      const firstTimeSearchNode = recordEvaluationTelemetry(
         telemetry,
         consideredSearchNodes,
         node.search,
         evaluation.fullDuration,
         phase,
       );
+      const output = buildNodeOutput(
+        node,
+        evaluation.report,
+        gaps,
+        evaluation.outputDurationFrames,
+        false,
+      );
       const improved = register.consider(
-        buildNodeOutput(
-          node,
-          evaluation.report,
-          gaps,
-          evaluation.outputDurationFrames,
-          false,
-        ),
+        output,
         evaluation.key,
       );
       if (improved) bestRegisteredNode = node;
@@ -2591,8 +2646,16 @@ function compileHandoffInternal(
         // Terminal search nodes may stop before the unscored tail gap. For
         // completion telemetry the remaining traversal work is nevertheless
         // zero once the terminal has been considered.
-        budgetRecorder.markTerminal(getSimFrames(), gaps.length);
       }
+      budgetRecorder.recordEvaluation({
+        totalSpentFrames: getSimFrames(),
+        gapIndex: terminal ? gaps.length : node.search.gapIndex,
+        terminal,
+        origin: phase,
+        firstTimeSearchNode,
+        terminalTrackKey: terminal ? JSON.stringify(output.track) : null,
+        registerImproved: improved,
+      });
       if (improved && terminal) {
         bestCompleteNode = node;
         if (firstCompletionFrame < 0) {
@@ -2687,11 +2750,15 @@ function compileHandoffInternal(
       return {
         ...best,
         budget,
-        budgetTelemetry: budgetRecorder.snapshot(
+        budgetTelemetry: (() => {
+          refreshActiveCandidateWork();
+          return budgetRecorder.snapshot(
           getSimFrames(),
           budgetExhausted,
           firstTerminalFrame >= 0 ? firstTerminalFrame : null,
-        ),
+          firstCompletionFrame >= 0 ? firstCompletionFrame : null,
+          );
+        })(),
         stats: {
           ...best.stats,
           candidates_sampled: getCandidateSamples(),
@@ -2805,30 +2872,6 @@ function compileHandoffInternal(
           ...(selectedTransitionStats === null
             ? {}
             : { ballistic_selected_transitions: selectedTransitionStats }),
-          // Repair characterization (only present when the repair post-pass ran → baseline
-          // golden.json unchanged, no snapshot churn). Aggregates are always cheap; the full
-          // per-restart records (up to maxAttempts each) are heavy archive bloat, so they ride
-          // behind LR_REPAIR_LOG — on only when you're actually debugging the repair phase.
-          ...(repairRecords.length > 0
-            ? {
-              repair: {
-                first_completion_frame: firstCompletionFrame,
-                restarts: repairRecords.length,
-                accepts: repairRecords.filter((r) => r.accepted).length,
-                frames_spent: repairRecords.reduce((s, r) => s + r.framesSpent, 0),
-                gaps_touched: new Set(repairRecords.map((r) => r.worst)).size,
-                reconverged: repairRecords.filter((r) => !r.accepted && r.framesSpent > 0).length,
-                ...(refreshRepairCostToEnd
-                  ? {
-                    cost_profile_refreshes: repairCostProfileRefreshes,
-                    cost_profile_entries_changed: repairCostProfileEntriesChanged,
-                    cost_profile_newly_measured: repairCostProfileNewlyMeasured,
-                  }
-                  : {}),
-                ...(repair?.log ? { records: repairRecords } : {}),
-              },
-            }
-            : {}),
         },
       };
     };
@@ -2853,17 +2896,22 @@ function compileHandoffInternal(
     // the returned children.
     type ProcessResult =
       | { kind: "captured" }
+      | { kind: "terminal_limit" }
       | { kind: "deferred" }
       | { kind: "expanded"; children: HandoffNode[] };
+    let activeTerminalConsiderLimit: number | null = null;
     let observedAtomicCostPerCandidateUpper = 0;
     const processNode = (node: HandoffNode): ProcessResult => {
       const atomicStart = getSimFrames();
       const registerImprovementsBefore = register.improvementCount;
       const terminalConsidersBefore = terminalConsiders;
       const tailAttemptsBefore = telemetry.tailCompletionAttempts;
-      const tailFullBefore = telemetry.fullEvaluationsByPhase.tail;
-      const tailDuplicateFullBefore = telemetry.duplicateFullEvaluationsByPhase.tail;
-      const tailImprovementsBefore = telemetry.improvementsByPhase.tail;
+      const tailFullBefore = telemetry.fullEvaluationsByPhase.tail_completion;
+      const tailDuplicateFullBefore = telemetry.duplicateFullEvaluationsByPhase.tail_completion;
+      const tailImprovementsBefore = telemetry.improvementsByPhase.tail_completion;
+      const poolBuildsBefore = telemetry.candidatePoolRequests.count;
+      const requestedProposalsBefore = telemetry.candidatePoolRequests.sum;
+      const nodesExpandedBefore = telemetry.nodesExpanded;
       let afterMain = atomicStart;
       let afterTail = atomicStart;
       let atomicPolicy: HandoffSearchPolicy | null = null;
@@ -2875,36 +2923,50 @@ function compileHandoffInternal(
             (end - atomicStart) / atomicPolicy.nCand,
           );
         }
+        budgetRecorder.recordNodeWork({
+          poolBuilds: telemetry.candidatePoolRequests.count - poolBuildsBefore,
+          requestedNormalProposals: telemetry.candidatePoolRequests.sum - requestedProposalsBefore,
+          nodesExpanded: telemetry.nodesExpanded - nodesExpandedBefore,
+          childrenEnqueued: result.kind === "expanded" ? result.children.length : 0,
+        });
         budgetRecorder.recordAtomicNode({
           gap_index: node.search.gapIndex,
           remaining_contacts: remainingContactCount(node.search, gaps),
           start_total_spent_frames: atomicStart,
-          policy_candidate_count: atomicPolicy?.nCand ?? null,
-          policy_branch_limit: atomicPolicy?.branchLimit ?? null,
-          main_evaluation_frames: afterMain - atomicStart,
+          requested_normal_proposals: atomicPolicy?.nCand ?? null,
+          child_limit: atomicPolicy?.branchLimit ?? null,
+          frontier_evaluation_frames: afterMain - atomicStart,
           tail_completion_frames: afterTail - afterMain,
           post_tail_work_frames: end - afterTail,
           spent_frames: end - atomicStart,
           result: result.kind,
           register_improvements: register.improvementCount - registerImprovementsBefore,
-          terminal_considers: terminalConsiders - terminalConsidersBefore,
+          terminal_node_evaluations: terminalConsiders - terminalConsidersBefore,
           tail_attempts: telemetry.tailCompletionAttempts - tailAttemptsBefore,
-          tail_terminal_evaluations: telemetry.fullEvaluationsByPhase.tail - tailFullBefore,
+          tail_terminal_evaluations:
+            telemetry.fullEvaluationsByPhase.tail_completion - tailFullBefore,
           tail_duplicate_terminal_evaluations:
-            telemetry.duplicateFullEvaluationsByPhase.tail - tailDuplicateFullBefore,
-          tail_improvements: telemetry.improvementsByPhase.tail - tailImprovementsBefore,
+            telemetry.duplicateFullEvaluationsByPhase.tail_completion - tailDuplicateFullBefore,
+          tail_improvements:
+            telemetry.improvementsByPhase.tail_completion - tailImprovementsBefore,
         });
         return result;
       };
-      budgetRecorder.observeActive(node.search.gapIndex, getSimFrames());
+      budgetRecorder.observeActiveEpisode(node.search.gapIndex, getSimFrames());
       // Only tracked when repair can consume it (>=150k); a no-op on the low-budget hot path.
       if (repairEnabled && !framesAtReach.has(node.search)) framesAtReach.set(node.search, getSimFrames());
       const nodeTerminal = isTerminalNode(node.search, gaps);
-      const mainResult = consider(node, "main");
+      const mainResult = consider(node, "frontier");
       afterMain = getSimFrames();
       afterTail = afterMain;
       if (captureFirstCompletion(nodeTerminal, mainResult)) {
         return finishAtomic({ kind: "captured" });
+      }
+      if (
+        activeTerminalConsiderLimit !== null &&
+        terminalConsiders >= activeTerminalConsiderLimit
+      ) {
+        return finishAtomic({ kind: "terminal_limit" });
       }
       const resolvePolicy = (search: SearchNode): HandoffSearchPolicy =>
         resolveHandoffSearchPolicy({
@@ -2955,7 +3017,7 @@ function compileHandoffInternal(
       );
       afterTail = getSimFrames();
       if (tailNode !== null) {
-        const result = consider(tailNode, "tail");
+        const result = consider(tailNode, "tail_completion");
         if (result?.event.improved) {
           telemetry.tailCompletionImprovements++;
           const remaining = remainingContactCount(node.search, gaps);
@@ -2966,6 +3028,12 @@ function compileHandoffInternal(
         }
         if (captureFirstCompletion(isTerminalNode(tailNode.search, gaps), result)) {
           return finishAtomic({ kind: "captured" });
+        }
+        if (
+          activeTerminalConsiderLimit !== null &&
+          terminalConsiders >= activeTerminalConsiderLimit
+        ) {
+          return finishAtomic({ kind: "terminal_limit" });
         }
       }
 
@@ -3002,25 +3070,37 @@ function compileHandoffInternal(
             skippedContacts: node.skippedContacts,
           };
           const evaluation = evaluateCached(polishNode);
-          recordEvaluationTelemetry(
+          const firstTimeSearchNode = recordEvaluationTelemetry(
             telemetry,
             consideredSearchNodes,
             polishNode.search,
             evaluation.fullDuration,
             "polish",
           );
+          const polishOutput = buildNodeOutput(
+            polishNode,
+            evaluation.report,
+            gaps,
+            evaluation.outputDurationFrames,
+            false,
+          );
           const improved = register.consider(
-            buildNodeOutput(
-              polishNode,
-              evaluation.report,
-              gaps,
-              evaluation.outputDurationFrames,
-              false,
-            ),
+            polishOutput,
             evaluation.key,
           );
+          terminalConsiders++;
+          if (!improved) terminalConsidersWithoutImprovement++;
           if (improved) bestRegisteredNode = polishNode;
           recordImprovementTelemetry(telemetry, "polish", improved);
+          budgetRecorder.recordEvaluation({
+            totalSpentFrames: getSimFrames(),
+            gapIndex: gaps.length,
+            terminal: true,
+            origin: "polish",
+            firstTimeSearchNode,
+            terminalTrackKey: JSON.stringify(polishOutput.track),
+            registerImproved: improved,
+          });
           const event: HandoffNodeEvent = {
             phase: "polish",
             simFrames: getSimFrames(),
@@ -3092,7 +3172,7 @@ function compileHandoffInternal(
         telemetry.frontierSelections++;
         const result = processNode(node);
         onProcessed?.();
-        if (result.kind === "captured") return;
+        if (result.kind === "captured" || result.kind === "terminal_limit") return;
         if (result.kind === "deferred") {
           enqueueDeferred({ ...node, deferExpansion: false }, pass, fb);
         } else {
@@ -3112,9 +3192,6 @@ function compileHandoffInternal(
     const refreshRepairCostToEnd = repairRefreshCostToEndEnabled();
     const trackImprovementOffsets = repair?.log === true || budgetTelemetryLevel !== "off" ||
       refreshRepairCostToEnd;
-    let repairCostProfileRefreshes = 0;
-    let repairCostProfileEntriesChanged = 0;
-    let repairCostProfileNewlyMeasured = 0;
     const runFrontierFrom = (
       initial: HandoffNode,
       ceiling: number,
@@ -3124,20 +3201,26 @@ function compileHandoffInternal(
       const fb: HandoffNode[] = initial.skippedContacts === 0 ? [] : [initial];
       const keepGoing = (): boolean => getSimFrames() < ceiling &&
         (stopAfterTerminalConsider === undefined || terminalConsiders < stopAfterTerminalConsider);
-      if (!trackImprovementOffsets) {
-        runFrontier(pass, fb, keepGoing);
-        return [];
-      }
-      const framesBefore = getSimFrames();
-      let improvementsSeen = register.improvementCount;
-      const improvementFrameOffsets: number[] = [];
-      runFrontier(pass, fb, keepGoing, () => {
-        while (improvementsSeen < register.improvementCount) {
-          improvementFrameOffsets.push(getSimFrames() - framesBefore);
-          improvementsSeen++;
+      const previousTerminalLimit = activeTerminalConsiderLimit;
+      activeTerminalConsiderLimit = stopAfterTerminalConsider ?? null;
+      try {
+        if (!trackImprovementOffsets) {
+          runFrontier(pass, fb, keepGoing);
+          return [];
         }
-      });
-      return improvementFrameOffsets;
+        const framesBefore = getSimFrames();
+        let improvementsSeen = register.improvementCount;
+        const improvementFrameOffsets: number[] = [];
+        runFrontier(pass, fb, keepGoing, () => {
+          while (improvementsSeen < register.improvementCount) {
+            improvementFrameOffsets.push(getSimFrames() - framesBefore);
+            improvementsSeen++;
+          }
+        });
+        return improvementFrameOffsets;
+      } finally {
+        activeTerminalConsiderLimit = previousTerminalLimit;
+      }
     };
 
     /**
@@ -3548,7 +3631,7 @@ function compileHandoffInternal(
         ...incumbent,
         search: variant,
       };
-      const result = consider(candidateNode, "repair");
+      const result = consider(candidateNode, "surgical_repair");
       impactSurgicalRepairTotals.frames_spent += getSimFrames() - framesBefore;
       if (result?.key.contract_passed === true) impactSurgicalRepairTotals.contract_passed++;
       if (result?.event.improved === true) {
@@ -3628,6 +3711,7 @@ function compileHandoffInternal(
       const estCostSourceOf = (k: number): "measured_cost_to_end" | "per_gap_fallback" =>
         measuredCostToEnd(k) === null ? "per_gap_fallback" : "measured_cost_to_end";
       const exhausted = new Set<number>();
+      const adaptiveAnchorAttempts = new Map<number, Map<number, number>>();
       let attempts = 0;
       let restartCounter = 0;
       let repairRound = 0;
@@ -3661,12 +3745,73 @@ function compileHandoffInternal(
         );
 
         if (attempts < repair.maxAttempts && getSimFrames() < repairBudget) {
-          const surgical = tryImpactSurgicalRepair(
-            incumbent,
-            root,
-            kWorst,
-            Math.min(repairBudget, getSimFrames() + Math.ceil(estCostUpperOf(kWorst))),
-          );
+          const surgicalMode = impactSurgicalRepairMode();
+          let surgical = { attempted: false, accepted: false };
+          if (surgicalMode !== null) {
+            const surgicalStart = getSimFrames();
+            const sizedSurgicalCeiling = surgicalStart + Math.ceil(estCostUpperOf(kWorst));
+            const surgicalCeiling = Math.min(repairBudget, sizedSurgicalCeiling);
+            const surgicalCeilingSource = sizedSurgicalCeiling >= repairBudget
+              ? "repair_budget_remaining"
+              : estCostSourceOf(kWorst);
+            const scoreBefore = evaluateCached(incumbent).key.full_score;
+            const surgicalEpisodeId = budgetRecorder.startEpisode({
+              lane: "repair",
+              mechanism: "surgical",
+              mechanismDetail: surgicalMode,
+              parentEpisodeId: initialBudgetEpisodeId,
+              searchSeed: null,
+              frontierHasFallbackLane: false,
+              anchorGapIndex: kWorst,
+              startTotalSpentFrames: surgicalStart,
+              ceilingTotalSpentFrames: surgicalCeiling,
+              ceilingSource: surgicalCeilingSource,
+              includeStartup: false,
+              pathEstimateByGap: costToEnd,
+              repairRoundIndex: round,
+              anchorUpstreamOffset: 0,
+              incumbentWeakGapSse: pickedWeakGapSse,
+              repairWeakGapBefore: pickedWeakGapBefore,
+              registerKeyAtStart: toBudgetRegisterKey(register.getBestKey()),
+            });
+            beginCandidateWork();
+            surgical = tryImpactSurgicalRepair(
+              incumbent,
+              root,
+              kWorst,
+              surgicalCeiling,
+            );
+            const surgicalEnd = getSimFrames();
+            const surgicalScoreAfter = register.getBestKey()?.full_score ?? scoreBefore;
+            const surgicalWeakGapAfter = bestCompleteNode === null
+              ? null
+              : repairGapState(
+                evaluateCached(bestCompleteNode).report.gaps.find((gap) =>
+                  gap.gap_index === kWorst
+                ),
+              );
+            finishActiveCandidateWork();
+            budgetRecorder.endEpisode(
+              surgicalEnd,
+              surgicalEnd >= surgicalCeiling
+                ? "local_ceiling"
+                : surgical.attempted
+                  ? "operation_complete"
+                  : "no_candidate",
+              {
+                internalFullScoreDelta: surgicalScoreAfter - scoreBefore,
+                registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()),
+                repairWeakGapAfter: surgicalWeakGapAfter,
+              },
+            );
+            budgetRecorder.recordSegment(
+              "repair_surgical",
+              surgicalStart,
+              surgicalEnd,
+              surgical.attempted ? "attempted" : "no_candidate",
+              surgicalEpisodeId,
+            );
+          }
           if (surgical.attempted) attempts++;
           if (surgical.accepted) {
             exhausted.clear();
@@ -3746,6 +3891,7 @@ function compileHandoffInternal(
         // fixed mix of searchSeed and a restart counter. R3 upstream walk (LR_REPAIR_MAX_UPSTREAM)
         // composes on top: if a restart re-converges anyway, escalate the anchor to the parent.
         let improvedAny = false;
+        let adaptiveRanEpisode = false;
         const upstreamOffsets = repair.upstreamOrder === "nearest-first"
           ? Array.from({ length: repair.maxUpstream + 1 }, (_, up) => up)
           : Array.from({ length: repair.maxUpstream + 1 }, (_, index) => repair.maxUpstream - index);
@@ -3753,6 +3899,11 @@ function compileHandoffInternal(
           const k = kWorst - up;
           if (attempts >= repair.maxAttempts || getSimFrames() >= repairBudget) break;
           if (k < 0) continue;
+          const adaptiveAttemptsForGap = adaptiveAnchorAttempts.get(kWorst);
+          if (
+            repair.frontierMode === "one-terminal-adaptive" &&
+            (adaptiveAttemptsForGap?.get(k) ?? 0) >= repair.adaptiveTriesPerAnchor
+          ) continue;
           const estCost = estCostOf(k);
           const estCostUpper = estCostUpperOf(k);
           if (estCostUpper > repairBudget - getSimFrames()) {
@@ -3789,8 +3940,6 @@ function compileHandoffInternal(
           const framesBefore = getSimFrames();
           const incumbentBefore = bestCompleteNode;
           const terminalsBefore = terminalConsiders;
-          const terminalNonImprovementsBefore = terminalConsidersWithoutImprovement;
-          const registerImprovementsBefore = register.improvementCount;
           // TAUTOLOGICALLY TRUE as recorded: the affordability gate at the top
           // of this loop tests the same `estCostUpper` against the same
           // remaining budget, and the prefix replay between the two reads is
@@ -3799,11 +3948,12 @@ function compileHandoffInternal(
           // schema stability (types.ts RepairRecord, study_difficulty_model.ts
           // reads it), but conditioning an analysis on it selects everything.
           const predictedFeasible = estCostUpper <= repairBudget - framesBefore;
-          const repairAttemptId = budgetRecorder.startAttempt({
-            kind: "repair",
-            parentAttemptId: initialBudgetAttemptId,
+          const repairEpisodeId = budgetRecorder.startEpisode({
+            lane: "repair",
+            mechanismDetail: repair.frontierMode,
+            parentEpisodeId: initialBudgetEpisodeId,
             searchSeed: restartSeed,
-            hasFallback: true,
+            frontierHasFallbackLane: true,
             anchorGapIndex: k,
             startTotalSpentFrames: framesBefore,
             ceilingTotalSpentFrames: ceiling,
@@ -3814,7 +3964,9 @@ function compileHandoffInternal(
             anchorUpstreamOffset: up,
             incumbentWeakGapSse: pickedWeakGapSse,
             repairWeakGapBefore: pickedWeakGapBefore,
+            registerKeyAtStart: toBudgetRegisterKey(register.getBestKey()),
           });
+          beginCandidateWork();
           // Mark the repair lane for the duration of the restart: every pool
           // build inside it is a repair-episode build, which is the population
           // the head ramp's phase-weight study can be scoped away from
@@ -3824,13 +3976,25 @@ function compileHandoffInternal(
           setImpactCarrierRippleRepairActive(true);
           let improvementFrameOffsets: number[];
           try {
-            improvementFrameOffsets = runFrontierFrom(prefixNode, ceiling);
+            improvementFrameOffsets = runFrontierFrom(
+              prefixNode,
+              ceiling,
+              repair.frontierMode === "one-terminal-adaptive"
+                ? terminalsBefore + 1
+                : undefined,
+            );
           } finally {
             repairLaneActive = false;
             setAimRepairLaneActive(false);
             setImpactCarrierRippleRepairActive(false);
           }
           const completed = terminalConsiders > terminalsBefore;
+          if (repair.frontierMode === "one-terminal-adaptive") {
+            const byAnchor = adaptiveAnchorAttempts.get(kWorst) ?? new Map<number, number>();
+            byAnchor.set(k, (byAnchor.get(k) ?? 0) + 1);
+            adaptiveAnchorAttempts.set(kWorst, byAnchor);
+            adaptiveRanEpisode = true;
+          }
           // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
           // comparator is axis_quality, not full_score — they can disagree). dScore is logged for
           // characterization but does NOT drive the exhaust/re-pick decision.
@@ -3866,38 +4030,34 @@ function compileHandoffInternal(
             if (refreshed.changed > 0) {
               costToEnd.splice(0, costToEnd.length, ...refreshed.profile);
               incumbentCostToEnd = costToEnd;
-              repairCostProfileRefreshes++;
-              repairCostProfileEntriesChanged += refreshed.changed;
-              repairCostProfileNewlyMeasured += refreshed.newlyMeasured;
             }
           }
           const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
-          budgetRecorder.endActive(
+          finishActiveCandidateWork();
+          budgetRecorder.endEpisode(
             getSimFrames(),
-            getSimFrames() >= ceiling ? "local_ceiling" : "frontier_exhausted",
-            improved,
+            repair.frontierMode === "one-terminal-adaptive" && completed
+              ? "first_terminal_return"
+              : getSimFrames() >= ceiling
+                ? "local_ceiling"
+                : "frontier_exhausted",
             {
               // Both reads are of values this restart already computed: the
               // scarce event a controller would need is WHEN the register first
               // took something, not that the restart eventually completed.
-              firstAcceptedImprovementOffsetFrames: improvementFrameOffsets[0] ?? null,
-              finalAcceptedImprovementOffsetFrames: improvementFrameOffsets.at(-1) ?? null,
-              registerImprovementCount: register.improvementCount - registerImprovementsBefore,
-              terminalImprovementCount:
-                (terminalConsiders - terminalsBefore) -
-                (terminalConsidersWithoutImprovement - terminalNonImprovementsBefore),
-              acceptedScoreDelta: afterScore - beforeScore,
+              internalFullScoreDelta: afterScore - beforeScore,
+              registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()),
               repairWeakGapAfter: pickedWeakGapAfter,
             },
           );
           budgetRecorder.recordSegment(
-            "repair_attempt",
+            "repair_frontier",
             framesBefore,
             getSimFrames(),
             completed ? "terminal_considered" : "no_terminal",
-            repairAttemptId,
+            repairEpisodeId,
           );
-          repairRecords.push({
+          if (repair.log) repairRecords.push({
             round,
             worst: kWorst, anchor: k, up, totalGaps: gaps.length,
             framesAtAnchor: firstReachOf(prefix) ?? -1,
@@ -3927,6 +4087,13 @@ function compileHandoffInternal(
           }
           if (improved) {
             improvedAny = true;
+            if (repair.frontierMode === "one-terminal-adaptive") {
+              // The incumbent and its weakness map changed. Re-open every gap
+              // and anchor so the next allocator decision is about the new
+              // track, not stale failures from the old one.
+              exhausted.clear();
+              adaptiveAnchorAttempts.clear();
+            }
             if (
               repairAllocationPolicy === "response-aware" &&
               pickedWeakGapBefore !== null &&
@@ -3941,6 +4108,11 @@ function compileHandoffInternal(
             }
             break;
           }
+          if (repair.frontierMode === "one-terminal-adaptive") break;
+        }
+        if (repair.frontierMode === "one-terminal-adaptive") {
+          if (!improvedAny && !adaptiveRanEpisode) exhausted.add(kWorst);
+          continue;
         }
         // Exhaust the gap only if no fresh-seed restart helped; a productive gap is re-picked
         // (with the next fresh seed) so budget concentrates where it pays.
@@ -3964,13 +4136,16 @@ function compileHandoffInternal(
         : frontierSize(passStack, fallbackStack) === 0
           ? "frontier_exhausted"
           : "compile_finished";
-    budgetRecorder.endActive(initialSearchEnd, initialStopReason);
+    finishActiveCandidateWork();
+    budgetRecorder.endEpisode(initialSearchEnd, initialStopReason, {
+      registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()),
+    });
     budgetRecorder.recordSegment(
       "initial_search",
       initialSearchStart,
       initialSearchEnd,
       initialStopReason,
-      initialBudgetAttemptId,
+      initialBudgetEpisodeId,
     );
 
     // Contained worst-gap suffix-rebuild post-pass on the reserved budget tail.
@@ -4018,70 +4193,53 @@ function compileHandoffInternal(
                 : "exceeds_remainder",
       });
       if (resumeAdmitted) {
-      const resumeIncumbentBefore = bestCompleteNode;
       const resumeScoreBefore = bestCompleteNode === null
         ? null
         : evaluateCached(bestCompleteNode).key.full_score;
-      const resumeTerminalsBefore = terminalConsiders;
-      const resumeTerminalNonImprovementsBefore = terminalConsidersWithoutImprovement;
-      const resumeRegisterImprovementsBefore = register.improvementCount;
-      let resumeImprovementsSeen = register.improvementCount;
-      const resumeImprovementOffsets: number[] = [];
       // This phase can be a large share of a compile's charged work and can hold
-      // its first terminal, so it needs an ACTIVE attempt, not only a segment:
-      // observeActive/markTerminal are no-ops without one. It continues the
-      // initial attempt's own frontier, hence the initial root anchor and the
-      // hard budget as its ceiling.
-      const resumedAttemptId = budgetRecorder.startAttempt({
-        kind: "resumed",
-        parentAttemptId: initialBudgetAttemptId,
+      // its first terminal, so it is a distinct episode. It continues the
+      // initial episode's frontier, hence the initial root anchor and hard
+      // budget as its ceiling.
+      const resumedEpisodeId = budgetRecorder.startEpisode({
+        lane: "resumed",
+        parentEpisodeId: initialBudgetEpisodeId,
         searchSeed,
-        hasFallback: false,
+        frontierHasFallbackLane: false,
         anchorGapIndex: root.search.gapIndex,
         startTotalSpentFrames: resumeStart,
         ceilingTotalSpentFrames: targetBudget,
         ceilingSource: "hard_budget",
         includeStartup: false,
+        registerKeyAtStart: toBudgetRegisterKey(register.getBestKey()),
       });
+      beginCandidateWork();
       if (resumePolicy === "remainder-aware") resumedSearchShapeBudget = resumeRemainder;
       try {
         runFrontier(
           passStack,
           fallbackStack,
           () => getSimFrames() < targetBudget,
-          () => {
-            while (resumeImprovementsSeen < register.improvementCount) {
-              resumeImprovementOffsets.push(getSimFrames() - resumeStart);
-              resumeImprovementsSeen++;
-            }
-          },
         );
       } finally {
         resumedSearchShapeBudget = null;
       }
       const resumeEnd = getSimFrames();
-      const resumeAccepted = bestCompleteNode !== resumeIncumbentBefore;
       const resumeScoreAfter = bestCompleteNode === null
         ? resumeScoreBefore
         : evaluateCached(bestCompleteNode).key.full_score;
-      budgetRecorder.endActive(
+      finishActiveCandidateWork();
+      budgetRecorder.endEpisode(
         resumeEnd,
         captured !== null
           ? (stopAfterFirstCompletion ? "first_completion_stop" : "budget_capture")
           : resumeEnd >= targetBudget
             ? "budget_capture"
             : "frontier_exhausted",
-        resumeAccepted,
         {
-          firstAcceptedImprovementOffsetFrames: resumeImprovementOffsets[0] ?? null,
-          finalAcceptedImprovementOffsetFrames: resumeImprovementOffsets.at(-1) ?? null,
-          registerImprovementCount: register.improvementCount - resumeRegisterImprovementsBefore,
-          terminalImprovementCount:
-            (terminalConsiders - resumeTerminalsBefore) -
-            (terminalConsidersWithoutImprovement - resumeTerminalNonImprovementsBefore),
-          acceptedScoreDelta: resumeScoreBefore === null || resumeScoreAfter === null
+          internalFullScoreDelta: resumeScoreBefore === null || resumeScoreAfter === null
             ? null
             : resumeScoreAfter - resumeScoreBefore,
+          registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()),
         },
       );
       budgetRecorder.recordSegment(
@@ -4089,7 +4247,7 @@ function compileHandoffInternal(
         resumeStart,
         resumeEnd,
         resumeEnd >= targetBudget ? "hard_budget" : "frontier_exhausted",
-        resumedAttemptId,
+        resumedEpisodeId,
       );
       }
     }
@@ -4107,6 +4265,7 @@ function compileHandoffInternal(
       captured.stats.sim_frames,
       captured.stats.budget_exhausted,
       firstTerminalFrame >= 0 ? firstTerminalFrame : null,
+      firstCompletionFrame >= 0 ? firstCompletionFrame : null,
     );
 
     return captured;
@@ -4853,7 +5012,7 @@ function recordEvaluationTelemetry(
   search: SearchNode,
   fullDuration: boolean,
   phase: HandoffNodeEventPhase,
-): void {
+): boolean {
   telemetry.evaluationsByPhase[phase]++;
   if (fullDuration) telemetry.fullEvaluations++;
   else telemetry.partialEvaluations++;
@@ -4866,9 +5025,70 @@ function recordEvaluationTelemetry(
       telemetry.duplicateFullEvaluations++;
       telemetry.duplicateFullEvaluationsByPhase[phase]++;
     }
-    return;
+    return false;
   }
   consideredSearchNodes.add(search);
+  return true;
+}
+
+type CandidateWorkSnapshot = {
+  actualCandidateSamples: number;
+  viableCandidates: number;
+  candidateSamplesByMode: Record<string, number>;
+};
+
+function emptyCandidateWorkSnapshot(): CandidateWorkSnapshot {
+  return {
+    actualCandidateSamples: 0,
+    viableCandidates: 0,
+    candidateSamplesByMode: {},
+  };
+}
+
+function snapshotCandidateWork(): CandidateWorkSnapshot {
+  return {
+    actualCandidateSamples: getCandidateSamples(),
+    viableCandidates: getViableCandidates(),
+    candidateSamplesByMode: getCandidateSamplesByMode(),
+  };
+}
+
+function candidateWorkSince(
+  before: CandidateWorkSnapshot,
+  after: CandidateWorkSnapshot,
+): CandidateWorkSnapshot {
+  const modes = new Set([
+    ...Object.keys(before.candidateSamplesByMode),
+    ...Object.keys(after.candidateSamplesByMode),
+  ]);
+  return {
+    actualCandidateSamples: Math.max(
+      0,
+      after.actualCandidateSamples - before.actualCandidateSamples,
+    ),
+    viableCandidates: Math.max(0, after.viableCandidates - before.viableCandidates),
+    candidateSamplesByMode: Object.fromEntries(
+      [...modes].map((mode) => [
+        mode,
+        Math.max(
+          0,
+          (after.candidateSamplesByMode[mode] ?? 0) -
+            (before.candidateSamplesByMode[mode] ?? 0),
+        ),
+      ]),
+    ),
+  };
+}
+
+function toBudgetRegisterKey(key: LeafKey | null): BudgetInternalRegisterKey | null {
+  return key === null
+    ? null
+    : {
+      contract_passed: key.contract_passed,
+      axis_quality: key.axis_quality,
+      internal_full_score: key.full_score,
+      drift_quality: key.drift_quality ?? null,
+    };
 }
 
 function recordImprovementTelemetry(
@@ -5825,6 +6045,10 @@ function rankedOptionsAtDeadlinePressure(
   config: RankedOptionsConfig,
 ): RankedOption[] {
   const requestedCandidates = config.nCand ?? HANDOFF_QUALITY_N_CAND;
+  // This is the authoritative proposal-request boundary. Unlike policyNCand,
+  // it includes base, rescue, and tail-completion builds and therefore closes
+  // against the pool/request funnel used by V3 telemetry.
+  recordNumeric(telemetry.candidatePoolRequests, requestedCandidates);
   const targetBudget = config.targetBudget ?? 0;
   const gap = gaps[node.gapIndex];
   const normalCandidates = requestedCandidates;
@@ -7357,12 +7581,12 @@ function snapshotNumericPolicyStats(
   } as Partial<CompileStats>;
 }
 
-export function handoffSampleCount(targetBudget?: number): number {
+export function handoffSampleCount(targetBudget?: number, repairLane = false): number {
   // LR_QUALITY_NCAND=<n> overrides the unified candidate breadth for controlled
   // spend-response studies and, later, model-driven budget allocation.
   const override = qualityNCandOverride();
   if (override !== null) return override;
-  return budgetAwareQualitySampleCount(targetBudget);
+  return budgetAwareQualitySampleCount(targetBudget, repairLane);
 }
 
 function qualityNCandOverride(): number | null {
@@ -7377,7 +7601,7 @@ function qualityHandoffSampleCount(
   sparseContactCadence: boolean,
   targetBudget: number | undefined,
 ): number {
-  const base = handoffSampleCount(targetBudget);
+  const base = handoffSampleCount(targetBudget, repairLaneActive);
   if (qualityNCandOverride() !== null) return base;
   return qualityBreadth(profile, sparseContactCadence, base);
 }
@@ -7464,7 +7688,7 @@ function qualityBreadth(
     : base;
 }
 
-function budgetAwareQualitySampleCount(targetBudget: number | undefined): number {
+function budgetAwareQualitySampleCount(targetBudget: number | undefined, repairLane = false): number {
   /*
    * ONE SCALE-FREE LAW, replacing five piecewise segments.
    *
@@ -7498,7 +7722,7 @@ function budgetAwareQualitySampleCount(targetBudget: number | undefined): number
   return Math.max(
     HANDOFF_QUALITY_N_CAND_FLOOR,
     Math.round(
-      studyNCandScale() * studyExponentBreadth(Math.max(0, targetBudget)),
+      studyNCandScale() * studyNCandBreadth(Math.max(0, targetBudget), repairLane),
     ),
   );
 }
@@ -7517,12 +7741,43 @@ const STUDY_NCAND_EXPONENT_ANCHOR_FRAMES = 750_000;
 const STUDY_NCAND_EXPONENT_ANCHOR_COUNT = HANDOFF_QUALITY_N_CAND_AT_REF *
   (STUDY_NCAND_EXPONENT_ANCHOR_FRAMES / HANDOFF_QUALITY_N_CAND_REF_FRAMES);
 const readStudyNCandExponent = compileScopedEnv("LR_STUDY_NCAND_EXPONENT");
+/** Study-only shapes for the multi-budget benchmark. Unlike the earlier global
+ * exponent bracket, all are exactly production through 750k. The hinged arm
+ * asks whether mature growth should become sublinear; the cap asks only whether
+ * the largest budgets should stop buying ever-wider per-gap batches; the
+ * repair-only arm isolates that same hinged shape to marked repair restarts. */
+const readStudyNCandPolicy = compileScopedEnv("LR_STUDY_NCAND_POLICY");
 
-function studyExponentBreadth(targetBudget: number): number {
+function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
+  const policy = readStudyNCandPolicy();
   const raw = readStudyNCandExponent();
+  if (policy !== undefined && policy !== "" && raw !== undefined && raw !== "") {
+    throw new Error(`LR_STUDY_NCAND_POLICY and LR_STUDY_NCAND_EXPONENT are mutually exclusive`);
+  }
+  const linear = HANDOFF_QUALITY_N_CAND_AT_REF *
+    (targetBudget / HANDOFF_QUALITY_N_CAND_REF_FRAMES);
+  if (policy === "high-budget-three-quarter") {
+    return targetBudget <= STUDY_NCAND_EXPONENT_ANCHOR_FRAMES
+      ? linear
+      : STUDY_NCAND_EXPONENT_ANCHOR_COUNT *
+        ((targetBudget / STUDY_NCAND_EXPONENT_ANCHOR_FRAMES) ** 0.75);
+  }
+  if (policy === "repair-high-budget-three-quarter") {
+    return !repairLane || targetBudget <= STUDY_NCAND_EXPONENT_ANCHOR_FRAMES
+      ? linear
+      : STUDY_NCAND_EXPONENT_ANCHOR_COUNT *
+        ((targetBudget / STUDY_NCAND_EXPONENT_ANCHOR_FRAMES) ** 0.75);
+  }
+  if (policy === "linear-cap-216") return Math.min(linear, 216);
+  if (policy !== undefined && policy !== "") {
+    throw new Error(
+      `LR_STUDY_NCAND_POLICY must be high-budget-three-quarter, ` +
+        `repair-high-budget-three-quarter, or linear-cap-216 ` +
+        `(STUDY-ONLY; never set it in production), got "${policy}"`,
+    );
+  }
   if (raw === undefined || raw === "") {
-    return HANDOFF_QUALITY_N_CAND_AT_REF *
-      (targetBudget / HANDOFF_QUALITY_N_CAND_REF_FRAMES);
+    return linear;
   }
   const exponent = Number.parseFloat(raw);
   if (!Number.isFinite(exponent) || exponent <= 0 || exponent > 1) {
@@ -8106,7 +8361,10 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //                              at a fixed budget (see studyNCandScale) — a probe of the
 //                              law's local optimum, never a production shape
 //   LR_STUDY_NCAND_EXPONENT    breadth-law curvature, anchored at 750k  (0, 1]
-//                              (1 = production; see studyExponentBreadth)
+//                              (1 = production; see studyNCandBreadth)
+//   LR_STUDY_NCAND_POLICY      predeclared high-budget breadth shapes:
+//                              high-budget-three-quarter|
+//                              repair-high-budget-three-quarter|linear-cap-216
 // Two more live one module over, in optimizer/deadline.ts, because that is where the
 // constants they re-bracket are derived; they reach this subsystem through the head ramp,
 // the aim throttle and the continuation filter:
@@ -8654,8 +8912,25 @@ type RepairConfig = {
   maxAttempts: number;
   maxUpstream: number;
   upstreamOrder: "nearest-first" | "oldest-first";
+  frontierMode: RepairFrontierMode;
+  adaptiveTriesPerAnchor: number;
   log: boolean;
 };
+export type RepairFrontierMode = "multi-terminal" | "one-terminal-adaptive";
+export const PRODUCTION_REPAIR_FRONTIER_MODE: RepairFrontierMode =
+  "one-terminal-adaptive";
+
+export function repairFrontierMode(
+  environment?: Record<string, string | undefined>,
+): RepairFrontierMode {
+  const value = environment?.LR_REPAIR_FRONTIER_MODE ??
+    (environment === undefined ? readEnv("LR_REPAIR_FRONTIER_MODE") : undefined) ??
+    PRODUCTION_REPAIR_FRONTIER_MODE;
+  if (value === "multi-terminal" || value === "one-terminal-adaptive") return value;
+  throw new Error(
+    `LR_REPAIR_FRONTIER_MODE must be multi-terminal|one-terminal-adaptive, got ${value}`,
+  );
+}
 /** Repair takes over at the first completion, not after a margin past it.
  *  Bracketed N=8 against `scarce-lean`: 1.0 +0.28 (SE 0.14), 1.1 shipped,
  *  1.25 -0.52 (SE 0.15). At 1.0 the five profile-band carve-outs that used to
@@ -8672,7 +8947,10 @@ const REPAIR_MAIN_MARGIN = 1.0;
  *  in `compileHandoffInternal`). The `profile` argument had been unused since
  *  the five main-margin carve-outs were deleted. Every field left is a constant
  *  or an env override. */
-function repairConfig(): RepairConfig {
+function repairConfig(
+  frontierModeOverride?: RepairFrontierMode,
+  adaptiveTriesPerAnchorOverride?: number,
+): RepairConfig {
   const num = (name: string, def: number, lo: number, hi: number): number => {
     const n = Number.parseInt(readEnv(name) ?? "", 10);
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
@@ -8711,6 +8989,9 @@ function repairConfig(): RepairConfig {
     // it can alter the weak gap's inherited arrival, while an expensive local
     // restart cannot. The environment override remains diagnostic-only.
     upstreamOrder,
+    frontierMode: frontierModeOverride ?? repairFrontierMode(),
+    adaptiveTriesPerAnchor: adaptiveTriesPerAnchorOverride ??
+      num("LR_REPAIR_ADAPTIVE_TRIES_PER_ANCHOR", 1, 1, 64),
     log: readEnv("LR_REPAIR_LOG") === "1",
   };
 }

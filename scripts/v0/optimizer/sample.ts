@@ -39,7 +39,12 @@ import {
 import { getRiderMetered } from "../../lib/detector.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { BallisticFitFields } from "../core/ballistic_projection.ts";
-import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
+import {
+  CANDIDATE_SAMPLE_MODES,
+  type AxisValues,
+  type CandidateSampleMode,
+  type Gap,
+} from "../types.ts";
 import type { SupportGeometryMode } from "../core/support_geometry.ts";
 import { arcProposalTargetsForGap } from "./arc_proposal.ts";
 import { compileScopedEnv } from "../env_flags.ts";
@@ -186,10 +191,12 @@ export type CandidateProbe = {
 
 let candidateSampleCount = 0;
 let viableCandidateCount = 0;
+let candidateSampleCountByMode = emptyCandidateSampleCountByMode();
 
 export function resetCandidateSamples(): void {
   candidateSampleCount = 0;
   viableCandidateCount = 0;
+  candidateSampleCountByMode = emptyCandidateSampleCountByMode();
 }
 registerCompileReset(resetCandidateSamples);
 
@@ -199,6 +206,22 @@ export function getCandidateSamples(): number {
 
 export function getViableCandidates(): number {
   return viableCandidateCount;
+}
+
+/** Exact evaluated-candidate population, including optional sibling geometry. */
+export function getCandidateSamplesByMode(): Record<CandidateSampleMode, number> {
+  return { ...candidateSampleCountByMode };
+}
+
+function emptyCandidateSampleCountByMode(): Record<CandidateSampleMode, number> {
+  return Object.fromEntries(
+    CANDIDATE_SAMPLE_MODES.map((mode) => [mode, 0]),
+  ) as Record<CandidateSampleMode, number>;
+}
+
+function recordCandidateSample(mode: CandidateSampleMode): void {
+  candidateSampleCount++;
+  candidateSampleCountByMode[mode]++;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -343,7 +366,7 @@ export function observeOneCandidate(
   /** Study identity only; it does not influence proposal generation. */
   proposalBatchId?: number,
 ): SampledCandidateObservation {
-  candidateSampleCount++;
+  recordCandidateSample(mode);
   const probe = getCandidateProbe(engine, gap, ctx);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   // Pass the real attempt index: on steep-catch gaps the geometry sampler
@@ -390,7 +413,7 @@ export function observeOneCandidate(
   }
   let activeSiblingFit: Candidate | null | undefined;
   if (geometry.activeSiblingLines !== undefined) {
-    candidateSampleCount++;
+    recordCandidateSample(mode);
     activeSiblingFit = tryCandidateGeometry(
       engine,
       gap,
@@ -412,7 +435,7 @@ export function observeOneCandidate(
   }
   let resolutionSiblingFit: Candidate | null | undefined;
   if (geometry.resolutionSiblingLines !== undefined && fit !== null) {
-    candidateSampleCount++;
+    recordCandidateSample(mode);
     const evaluated = tryCandidateGeometry(
       engine,
       gap,

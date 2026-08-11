@@ -806,7 +806,6 @@ describe("compile budget telemetry", () => {
       budget: 150_000,
       polish: false,
       budgetTelemetry: "trace" as const,
-      repairFrontierMode: "one-terminal-adaptive" as const,
     };
     const first = compileHandoff(spec, 0, options);
     const second = compileHandoff(spec, 0, options);
@@ -829,25 +828,6 @@ describe("compile budget telemetry", () => {
       .toBe(true);
     expect(new Set(repairs.map((episode) => episode.repair_round_index)).size)
       .toBe(repairs.length);
-  }, 180_000);
-
-  test("keeps the production adaptive repair behavior identical when its mode is explicit", async () => {
-    const spec = await loadGoldenSpec("tiny_dance", "base");
-    const options = {
-      budget: 150_000,
-      polish: false,
-      budgetTelemetry: "summary" as const,
-    };
-    const implicit = compileHandoff(spec, 0, options);
-    const explicit = compileHandoff(spec, 0, {
-      ...options,
-      repairFrontierMode: "one-terminal-adaptive",
-    });
-    expect(explicit).toEqual(implicit);
-    expect(implicit.budgetTelemetry!.episodes
-      .filter((episode) => episode.lane === "repair" && episode.mechanism === "frontier")
-      .every((episode) => episode.mechanism_detail === "one-terminal-adaptive"))
-      .toBe(true);
   }, 180_000);
 
   test("sizes repairs from measured cost at gaps only the tail-completion pass built", async () => {

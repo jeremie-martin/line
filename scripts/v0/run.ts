@@ -88,12 +88,6 @@ if (!["legacy", "none", "remainder-aware"].includes(rawResumePolicy)) {
   process.exit(1);
 }
 const resumePolicy = rawResumePolicy as "legacy" | "none" | "remainder-aware";
-const rawRepairAllocationPolicy = arg("repair-allocation-policy") ?? "legacy";
-if (!["legacy", "response-aware"].includes(rawRepairAllocationPolicy)) {
-  console.error(`invalid --repair-allocation-policy=${rawRepairAllocationPolicy}`);
-  process.exit(1);
-}
-const repairAllocationPolicy = rawRepairAllocationPolicy as "legacy" | "response-aware";
 
 const specName = basename(specPath).replace(/\.ts$/, "");
 const outPrefix = arg("out") ?? `generated/v0_${specName}`;
@@ -141,7 +135,6 @@ const { track, report, stats, budgetTelemetry } = COMPILERS[compiler](compiledSp
   searchPolicyBudget,
   repairBudget,
   resumePolicy,
-  repairAllocationPolicy,
 });
 const elapsedMs = Date.now() - t0;
 
@@ -174,7 +167,6 @@ if (stats !== null && stats !== undefined) {
     search_policy_budget: searchPolicyBudget ?? null,
     repair_budget: repairBudget ?? null,
     resume_policy: resumePolicy,
-    repair_allocation_policy: repairAllocationPolicy,
     elapsed_ms: elapsedMs,
     stats,
   }, null, 2));

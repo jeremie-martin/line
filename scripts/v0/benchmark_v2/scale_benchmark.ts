@@ -32,18 +32,12 @@ import {
   multiBudgetSeeds,
   type LoadedMultiBudgetProfile,
 } from "./scale_profile.ts";
-import {
-  PRODUCTION_REPAIR_FRONTIER_MODE,
-  type RepairFrontierMode,
-} from "../optimizer/handoff.ts";
-
-const SCALE_BASELINE_SCHEMA = "line.benchmark-v2.multi-budget-baseline.v2" as const;
+const SCALE_BASELINE_SCHEMA = "line.benchmark-v2.multi-budget-baseline.v3" as const;
 const DEFAULT_PROFILE = "benchmark/v2/scale-profile.json";
 export type BreadthPolicy =
   | "high-budget-three-quarter"
   | "repair-high-budget-three-quarter"
   | "linear-cap-216";
-export type ScaleRepairMode = RepairFrontierMode;
 
 export type MultiBudgetBaseline = {
   schema: typeof SCALE_BASELINE_SCHEMA;
@@ -61,8 +55,6 @@ export type MultiBudgetBaseline = {
     maximumSeeds: number;
   };
   compilerSnapshot: CompilerSnapshot;
-  repairFrontierMode: ScaleRepairMode;
-  repairAdaptiveTriesPerAnchor: number | null;
   archive: {
     path: string;
     sha256: string;
@@ -103,8 +95,6 @@ export function assertScaleArguments(
         "budget-telemetry",
         "extend-from",
         "breadth-policy",
-        "repair-mode",
-        "repair-tries-per-anchor",
       ]
       : ["baseline", "candidate", "artifact"]);
   for (const arg of argv) {
@@ -114,23 +104,9 @@ export function assertScaleArguments(
     if (equals === -1 && booleans.has(name)) continue;
     if (equals !== -1 && values.has(name) && arg.slice(equals + 1) !== "") {
       if (name === "breadth-policy") parseBreadthPolicy(arg.slice(equals + 1));
-      if (name === "repair-mode") parseScaleRepairMode(arg.slice(equals + 1));
-      if (name === "repair-tries-per-anchor") parseRepairTries(arg.slice(equals + 1));
       continue;
     }
     throw new Error(`scale ${action} does not accept ${arg}`);
-  }
-  if (action === "eval") {
-    const argument = argumentIn(argv);
-    const breadth = parseBreadthPolicy(argument("breadth-policy"));
-    const repairMode = parseScaleRepairMode(argument("repair-mode"));
-    const repairTries = parseRepairTries(argument("repair-tries-per-anchor"));
-    if (breadth !== null && repairMode !== null) {
-      throw new Error(`scale eval isolates one intervention; breadth-policy and repair-mode are mutually exclusive`);
-    }
-    if (repairTries !== null && repairMode !== "one-terminal-adaptive") {
-      throw new Error(`--repair-tries-per-anchor requires --repair-mode=one-terminal-adaptive`);
-    }
   }
 }
 
@@ -145,8 +121,6 @@ async function runScaleBaseline(argv: string[]): Promise<number> {
   const manifestPath = resolve(argument("out") ??
     `generated/benchmark-v2/scale/${timestamp()}-baseline.json`);
   const archivePath = siblingPath(manifestPath, ".archive.json");
-  const repairMode = PRODUCTION_REPAIR_FRONTIER_MODE;
-  const repairTriesPerAnchor = repairMode === "one-terminal-adaptive" ? 1 : null;
   const snapshot = createCompilerSnapshot(`${basename(manifestPath, ".json")}-baseline`, dirname(manifestPath));
   const release = acquireRunLock(archivePath);
   let workspace: ReturnType<typeof createSnapshotWorkspace> | null = null;
@@ -164,8 +138,6 @@ async function runScaleBaseline(argv: string[]): Promise<number> {
         archivePath,
         null,
         null,
-        repairMode,
-        repairTriesPerAnchor,
       ),
       archivePath,
     );
@@ -188,8 +160,6 @@ async function runScaleBaseline(argv: string[]): Promise<number> {
         maximumSeeds: depth,
       },
       compilerSnapshot: snapshot,
-      repairFrontierMode: repairMode,
-      repairAdaptiveTriesPerAnchor: repairTriesPerAnchor,
       archive: {
         path: relativeToCwd(run.outputPath),
         sha256: run.archiveSha256,
@@ -229,18 +199,6 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const jobs = parseJobs(argument("jobs"));
   const telemetry = parseTelemetry(argument("budget-telemetry"));
   const breadthPolicy = scaleBreadthPolicyArgument(argv);
-  const repairMode = scaleRepairModeArgument(argv);
-  const repairTriesPerAnchor = scaleRepairTriesArgument(argv) ??
-    (repairMode === "one-terminal-adaptive" ? 1 : null);
-  if (
-    repairMode !== null && repairMode === baseline.repairFrontierMode &&
-    repairTriesPerAnchor === baseline.repairAdaptiveTriesPerAnchor
-  ) {
-    throw new Error(
-      `declared repair intervention is identical to the baseline policy ` +
-        `${baseline.repairFrontierMode}`,
-    );
-  }
   const extensionPath = argument("extend-from") === undefined
     ? null
     : resolve(argument("extend-from")!);
@@ -259,8 +217,6 @@ async function runScaleEval(argv: string[]): Promise<number> {
       depth,
       snapshot,
       breadthPolicy,
-      repairMode,
-      repairTriesPerAnchor,
     );
   const release = acquireRunLock(candidatePath);
   let workspace: ReturnType<typeof createSnapshotWorkspace> | null = null;
@@ -278,8 +234,6 @@ async function runScaleEval(argv: string[]): Promise<number> {
         candidatePath,
         extension,
         breadthPolicy,
-        repairMode,
-        repairTriesPerAnchor,
       ),
       candidatePath,
     );
@@ -352,16 +306,6 @@ function compareScaleArchives(
         `the production reference has no breadth-policy override`,
     );
   }
-  if (candidate.archive.repairFrontierMode !== undefined) {
-    comparabilityNotes.push(
-      `declared study intervention: repair frontier mode ${candidate.archive.repairFrontierMode} ` +
-        `with ${candidate.archive.repairAdaptiveTriesPerAnchor ?? 1} try/tries per anchor; ` +
-        `the reference uses ${baseline.repairFrontierMode}` +
-        (baseline.repairAdaptiveTriesPerAnchor === null
-          ? ``
-          : ` with ${baseline.repairAdaptiveTriesPerAnchor} try/tries per anchor`),
-    );
-  }
   const paired = pairGridCells(candidate, referencePrefix);
   const result = pairedScaleComparison(paired.pairs, profile.profile, depth);
   const requestedDepthCharacterization = scaleDepthCharacterization(
@@ -401,8 +345,6 @@ function compareScaleArchives(
       archivePath: baseline.archive.path,
       archiveSha256: baselineBytes.artifactSha256,
       compilerSnapshot: baseline.compilerSnapshot,
-      repairFrontierMode: baseline.repairFrontierMode,
-      repairAdaptiveTriesPerAnchor: baseline.repairAdaptiveTriesPerAnchor,
     },
     candidate: {
       archivePath: relativeToCwd(candidatePath),
@@ -411,13 +353,7 @@ function compareScaleArchives(
       identity: candidate.archive.candidate,
       intervention: candidate.archive.nCandPolicy !== undefined
         ? { kind: "candidate-breadth-policy", policy: candidate.archive.nCandPolicy }
-        : candidate.archive.repairFrontierMode !== undefined
-          ? {
-            kind: "repair-frontier-mode",
-            mode: candidate.archive.repairFrontierMode,
-            triesPerAnchor: candidate.archive.repairAdaptiveTriesPerAnchor ?? 1,
-          }
-          : null,
+        : null,
     },
     comparabilityNotes,
     result,
@@ -429,11 +365,7 @@ function compareScaleArchives(
         `--seeds=${result.nextLook} --extend-from=${relativeToCwd(candidatePath)}` +
         (candidate.archive.nCandPolicy === undefined
           ? ""
-          : ` --breadth-policy=${candidate.archive.nCandPolicy}`) +
-        (candidate.archive.repairFrontierMode === undefined
-          ? ""
-          : ` --repair-mode=${candidate.archive.repairFrontierMode}` +
-            ` --repair-tries-per-anchor=${candidate.archive.repairAdaptiveTriesPerAnchor ?? 1}`),
+          : ` --breadth-policy=${candidate.archive.nCandPolicy}`),
   };
 }
 
@@ -447,8 +379,6 @@ function scaleRunnerArgs(
   outputPath: string,
   extension: { checkpointPath: string; seeds: number[] } | null = null,
   breadthPolicy: BreadthPolicy | null = null,
-  repairMode: ScaleRepairMode | null = null,
-  repairTriesPerAnchor: number | null = null,
 ): string[] {
   const profilePath = resolve(workspace, "benchmark/v2/scale-profile.json");
   return [
@@ -459,10 +389,6 @@ function scaleRunnerArgs(
     `--budget-telemetry=${telemetry}`,
     `--checkpoint=${resolve(`${outputPath}.checkpoint.jsonl`)}`,
     ...(breadthPolicy === null ? [] : [`--ncand-policy=${breadthPolicy}`]),
-    ...(repairMode === null ? [] : [`--repair-frontier-mode=${repairMode}`]),
-    ...(repairTriesPerAnchor === null
-      ? []
-      : [`--repair-adaptive-tries-per-anchor=${repairTriesPerAnchor}`]),
     ...(extension === null ? [] : [
       `--import-checkpoint=${extension.checkpointPath}`,
       `--import-budgets=${profile.profile.budgets.map((budget) => budget.frames).join(",")}`,
@@ -478,8 +404,6 @@ function validateScaleExtension(
   targetDepth: number,
   snapshot: CompilerSnapshot,
   breadthPolicy: BreadthPolicy | null,
-  repairMode: ScaleRepairMode | null,
-  repairTriesPerAnchor: number | null,
 ): { checkpointPath: string; seeds: number[] } {
   const arm = readGridArm("candidate-prefix", path);
   assertArchiveProfile(arm.archive, profile);
@@ -493,10 +417,6 @@ function validateScaleExtension(
   }
   if ((arm.archive.nCandPolicy ?? null) !== breadthPolicy) {
     throw new Error(`--extend-from used a different candidate breadth policy`);
-  }
-  if ((arm.archive.repairFrontierMode ?? null) !== repairMode ||
-      (arm.archive.repairAdaptiveTriesPerAnchor ?? null) !== repairTriesPerAnchor) {
-    throw new Error(`--extend-from used a different repair frontier intervention`);
   }
   const checkpointPath = resolve(`${path}.checkpoint.jsonl`);
   if (!existsSync(checkpointPath)) {
@@ -513,16 +433,6 @@ function readScaleBaseline(path: string): MultiBudgetBaseline {
     !Array.isArray(baseline.scope?.sources) || !Array.isArray(baseline.scope?.budgets) ||
     !Array.isArray(baseline.scope?.seeds) || !Number.isSafeInteger(baseline.scope?.maximumSeeds) ||
     typeof baseline.archive?.path !== "string" || typeof baseline.archive?.sha256 !== "string" ||
-    (baseline.repairFrontierMode !== "multi-terminal" &&
-      baseline.repairFrontierMode !== "one-terminal-adaptive") ||
-    (baseline.repairAdaptiveTriesPerAnchor !== null &&
-      (!Number.isSafeInteger(baseline.repairAdaptiveTriesPerAnchor) ||
-        baseline.repairAdaptiveTriesPerAnchor < 1 ||
-        baseline.repairAdaptiveTriesPerAnchor > 64)) ||
-    (baseline.repairFrontierMode === "multi-terminal" &&
-      baseline.repairAdaptiveTriesPerAnchor !== null) ||
-    (baseline.repairFrontierMode === "one-terminal-adaptive" &&
-      baseline.repairAdaptiveTriesPerAnchor === null) ||
     baseline.compilerSnapshot?.schema !== "line.benchmark-v2.compiler-snapshot.v1"
   ) throw new Error(`${path}: unsupported or incomplete multi-budget baseline`);
   validateCompilerSnapshot(baseline.compilerSnapshot);
@@ -533,10 +443,7 @@ function readScaleBaseline(path: string): MultiBudgetBaseline {
   const archiveValue = JSON.parse(archive.bytes.toString("utf8"));
   if (
     JSON.stringify(archiveValue.budgets) !== JSON.stringify(baseline.scope.budgets) ||
-    JSON.stringify(archiveValue.seeds) !== JSON.stringify(baseline.scope.seeds) ||
-    archiveValue.repairFrontierMode !== baseline.repairFrontierMode ||
-    (archiveValue.repairAdaptiveTriesPerAnchor ?? null) !==
-      baseline.repairAdaptiveTriesPerAnchor
+    JSON.stringify(archiveValue.seeds) !== JSON.stringify(baseline.scope.seeds)
   ) throw new Error(`${path}: baseline manifest and archive disagree on scope or repair policy`);
   return baseline;
 }
@@ -557,7 +464,7 @@ function assertBaselineProfile(
 
 function assertArchiveProfile(archive: any, profile: LoadedMultiBudgetProfile): void {
   if (
-    archive?.schema !== "line.benchmark-v2.budget-scale-study.v3" ||
+    archive?.schema !== "line.benchmark-v2.budget-scale-study.v4" ||
     archive.scaleProfile?.fingerprint !== profile.fingerprint ||
     archive.scaleProfile?.definition?.id !== profile.profile.id
   ) throw new Error(`scale archive does not match the current frozen multi-budget profile`);
@@ -611,29 +518,6 @@ function parseBreadthPolicy(raw: string | undefined): BreadthPolicy | null {
 
 export function scaleBreadthPolicyArgument(argv: string[]): BreadthPolicy | null {
   return parseBreadthPolicy(argumentIn(argv)("breadth-policy"));
-}
-
-function parseScaleRepairMode(raw: string | undefined): ScaleRepairMode | null {
-  if (raw === undefined) return null;
-  if (raw === "multi-terminal" || raw === "one-terminal-adaptive") return raw;
-  throw new Error(`--repair-mode must be multi-terminal or one-terminal-adaptive`);
-}
-
-function parseRepairTries(raw: string | undefined): number | null {
-  if (raw === undefined) return null;
-  const value = Number(raw);
-  if (!Number.isSafeInteger(value) || value < 1 || value > 64) {
-    throw new Error(`--repair-tries-per-anchor must be an integer in 1..64`);
-  }
-  return value;
-}
-
-export function scaleRepairModeArgument(argv: string[]): ScaleRepairMode | null {
-  return parseScaleRepairMode(argumentIn(argv)("repair-mode"));
-}
-
-export function scaleRepairTriesArgument(argv: string[]): number | null {
-  return parseRepairTries(argumentIn(argv)("repair-tries-per-anchor"));
 }
 
 function argumentIn(argv: string[]) {

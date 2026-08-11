@@ -3,8 +3,6 @@ import {
   assertScaleArguments,
   assertScaleCommandArguments,
   scaleBreadthPolicyArgument,
-  scaleRepairModeArgument,
-  scaleRepairTriesArgument,
 } from "../scripts/v0/benchmark_v2/scale_benchmark.ts";
 
 describe("Benchmark V2 scale command contract", () => {
@@ -44,24 +42,8 @@ describe("Benchmark V2 scale command contract", () => {
       .toThrow(/does not accept/);
     expect(() => assertScaleArguments("eval", ["--breadth-policy=unknown"]))
       .toThrow(/breadth-policy must be/);
-    expect(() => assertScaleArguments("eval", [
-      "--repair-mode=one-terminal-adaptive",
-      "--repair-tries-per-anchor=2",
-    ])).not.toThrow();
     expect(() => assertScaleArguments("eval", ["--repair-mode=multi-terminal"]))
-      .not.toThrow();
-    expect(() => assertScaleArguments("eval", [
-      "--repair-mode=multi-terminal",
-      "--repair-tries-per-anchor=2",
-    ])).toThrow(/requires --repair-mode/);
-    expect(() => assertScaleArguments("eval", ["--repair-mode=unknown"]))
-      .toThrow(/repair-mode must be/);
-    expect(() => assertScaleArguments("eval", ["--repair-tries-per-anchor=2"]))
-      .toThrow(/requires --repair-mode/);
-    expect(() => assertScaleArguments("eval", [
-      "--breadth-policy=linear-cap-216",
-      "--repair-mode=one-terminal-adaptive",
-    ])).toThrow(/mutually exclusive/);
+      .toThrow(/does not accept/);
   });
 
   test("validates the subcommand before the runner prepares benchmark inputs", () => {
@@ -81,15 +63,5 @@ describe("Benchmark V2 scale command contract", () => {
       .toBe("linear-cap-216");
     expect(scaleBreadthPolicyArgument(["--breadth-policy=repair-high-budget-three-quarter"]))
       .toBe("repair-high-budget-three-quarter");
-  });
-
-  test("resolves the adaptive repair intervention passed to scale eval", () => {
-    expect(scaleRepairModeArgument([])).toBeNull();
-    expect(scaleRepairModeArgument(["--repair-mode=one-terminal-adaptive"]))
-      .toBe("one-terminal-adaptive");
-    expect(scaleRepairModeArgument(["--repair-mode=multi-terminal"]))
-      .toBe("multi-terminal");
-    expect(scaleRepairTriesArgument([])).toBeNull();
-    expect(scaleRepairTriesArgument(["--repair-tries-per-anchor=3"])).toBe(3);
   });
 });

@@ -155,8 +155,9 @@ authoritative for the new controller.
 
 | Date | Milestone | Status | Evidence / commit |
 |---|---|---|---|
-| 2026-08-11 | Roadmap frozen | complete | This document; commit pending |
-| 2026-08-11 | Architectural cleanup | pending | — |
+| 2026-08-11 | Roadmap frozen | complete | `b3387db` |
+| 2026-08-11 | Remove competing controller modes | complete | One-terminal production path hardwired; 75 focused tests pass; commit pending |
+| 2026-08-11 | Remove obsolete surgical repair | pending | — |
 | 2026-08-11 | Telemetry V4/reporting | pending | — |
 | 2026-08-11 | Independent repair loop | pending | — |
 | 2026-08-11 | Diversity validation | pending | — |

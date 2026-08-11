@@ -260,13 +260,12 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
    * observable from a unit-level call, so this is a source pin, in the style of
    * the aim-lane throttle test below: the profile must be written in the branch
    * that stamps `firstCompletionFrame` — the phase flip — and the repair
-   * phase's own rebuild and its accepted-incumbent refresh must be the only
-   * other writers.
+   * phase's own rebuild must be the only other writer.
    */
   test("the cost-to-end profile is established at first adopted completion", () => {
     const source = readFileSync("scripts/v0/optimizer/handoff.ts", "utf8");
     const writes = [...source.matchAll(/\bincumbentCostToEnd = ([^;]*);/g)].map((m) => m[1]);
-    expect(writes).toEqual(["buildIncumbentCostToEnd()", "costToEnd", "costToEnd"]);
+    expect(writes).toEqual(["buildIncumbentCostToEnd()", "costToEnd"]);
     const stamp = source.indexOf("firstCompletionFrame = getSimFrames();");
     const build = source.indexOf("incumbentCostToEnd = buildIncumbentCostToEnd();");
     expect(stamp).toBeGreaterThan(0);
@@ -274,11 +273,6 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
     // Nothing closes between the two: same block, so the profile cannot come to
     // exist without the phase having flipped, or the flip happen without it.
     expect(source.slice(stamp, build)).not.toContain("}");
-    const acceptedRefresh = source.indexOf("if (improved && refreshRepairCostToEnd");
-    const refreshedWrite = source.indexOf("incumbentCostToEnd = costToEnd;", acceptedRefresh);
-    expect(acceptedRefresh).toBeGreaterThan(build);
-    expect(refreshedWrite).toBeGreaterThan(acceptedRefresh);
-    expect(source.slice(acceptedRefresh, refreshedWrite)).toContain("refreshed.changed > 0");
   });
 
   test("a terminal position has no deadline and an exhausted budget has no margin", () => {

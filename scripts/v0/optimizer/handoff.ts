@@ -245,52 +245,6 @@ export type ImpactResponseAdmissionMode =
   | "model-safe-08-admit"
   | "model-safe-08-post";
 const readImpactResponseAdmission = compileScopedEnv("LR_IMPACT_RESPONSE_ADMISSION");
-const readStudyRepairRefreshCostToEnd = compileScopedEnv(
-  "LR_STUDY_REPAIR_REFRESH_COST_TO_END",
-);
-
-export function repairRefreshCostToEndEnabled(
-  environment?: Record<string, string | undefined>,
-): boolean {
-  const value = environment === undefined
-    ? readStudyRepairRefreshCostToEnd()
-    : environment.LR_STUDY_REPAIR_REFRESH_COST_TO_END;
-  if (value === undefined || value === "" || value === "0" || value === "off") return false;
-  if (value === "1" || value === "on") return true;
-  throw new Error(`LR_STUDY_REPAIR_REFRESH_COST_TO_END must be 0 or 1; got ${value}`);
-}
-
-/**
- * Replace only the newly observed suffix of a repair cost-to-end profile.
- * Prefix nodes reached before this restart retain the main-search measurement;
- * nodes first reached during it are priced from their reach to the exact frame
- * at which the final incumbent of the restart was adopted.
- */
-export function refreshRepairCostToEndProfile(
-  previous: readonly number[],
-  incumbentReachFrames: readonly (number | undefined)[],
-  restartStartFrame: number,
-  acceptedFrame: number,
-  anchorGap: number,
-): { profile: number[]; changed: number; newlyMeasured: number } {
-  const profile = [...previous];
-  let changed = 0;
-  let newlyMeasured = 0;
-  for (let gap = Math.max(0, anchorGap); gap < incumbentReachFrames.length; gap++) {
-    const reach = incumbentReachFrames[gap];
-    if (
-      reach === undefined || !Number.isFinite(reach) ||
-      reach < restartStartFrame || reach > acceptedFrame
-    ) continue;
-    const next = Math.max(0, acceptedFrame - reach);
-    const before = profile[gap] ?? -1;
-    if (before === next) continue;
-    if (before <= 0 && next > 0) newlyMeasured++;
-    profile[gap] = next;
-    changed++;
-  }
-  return { profile, changed, newlyMeasured };
-}
 
 export function impactResponseAdmissionMode(
   environment?: Record<string, string | undefined>,
@@ -537,16 +491,6 @@ export type CompileHandoffOptions = {
   /** Diagnostic/research hook for the post-repair main frontier. Production
    *  defaults to the historical unconditional atomic resume. */
   resumePolicy?: "legacy" | "none" | "remainder-aware";
-  /** Diagnostic/research hook for choosing the next repair target after a
-   * globally accepted restart. Response-aware mode retires the selected gap
-   * when that accepted path did not reduce its own axis SSE. */
-  repairAllocationPolicy?: "legacy" | "response-aware";
-  /** Experimental frontier-repair execution unit. Production keeps traversing
-   * the bounded suffix frontier; the adaptive study returns after one complete
-   * alternative so the allocator can choose a fresh affordable anchor. */
-  repairFrontierMode?: RepairFrontierMode;
-  /** Adaptive-mode diversity budget per (selected weak gap, actual anchor). */
-  repairAdaptiveTriesPerAnchor?: number;
   /** Policy-neutral budget characterization. Summary is compact and default;
    * trace additionally retains high-water and spend-decile observations. */
   budgetTelemetry?: BudgetTelemetryLevel;
@@ -2191,26 +2135,6 @@ function compileHandoffInternal(
   if (!["legacy", "none", "remainder-aware"].includes(resumePolicy)) {
     throw new Error(`compileHandoff: resumePolicy must be legacy|none|remainder-aware`);
   }
-  const repairAllocationPolicy = opts.repairAllocationPolicy ?? "legacy";
-  if (!["legacy", "response-aware"].includes(repairAllocationPolicy)) {
-    throw new Error(`compileHandoff: repairAllocationPolicy must be legacy|response-aware`);
-  }
-  const selectedRepairFrontierMode = opts.repairFrontierMode ?? repairFrontierMode();
-  if (
-    selectedRepairFrontierMode !== "multi-terminal" &&
-    selectedRepairFrontierMode !== "one-terminal-adaptive"
-  ) {
-    throw new Error(
-      `compileHandoff: repairFrontierMode must be multi-terminal|one-terminal-adaptive`,
-    );
-  }
-  if (opts.repairAdaptiveTriesPerAnchor !== undefined &&
-      (!Number.isSafeInteger(opts.repairAdaptiveTriesPerAnchor) ||
-        opts.repairAdaptiveTriesPerAnchor < 1 || opts.repairAdaptiveTriesPerAnchor > 64)) {
-    throw new Error(
-      `compileHandoff: repairAdaptiveTriesPerAnchor must be an integer in [1, 64]`,
-    );
-  }
   setProposalUtilityPowers();
   setAimCompileBudgetFrames(searchPolicyBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
@@ -2448,14 +2372,11 @@ function compileHandoffInternal(
     // the weakest gap of the complete incumbent (see runRepairPhase). `bestCompleteNode` is
     // the live incumbent HandoffNode (updated on every register improvement) so repair can
     // replay its fits to reconstruct any prefix node for free (extendNodeCached memoizes).
-    const repair = repairConfig(
-      selectedRepairFrontierMode,
-      opts.repairAdaptiveTriesPerAnchor,
-    );
+    const repair = repairConfig();
     const repairEnabled = repairBudgetLimit >= repair.minBudget && startOptions.length > 0;
-    if (repair.frontierMode === "one-terminal-adaptive" && impactSurgicalRepairMode() !== null) {
+    if (impactSurgicalRepairMode() !== null) {
       throw new Error(
-        `compileHandoff: one-terminal-adaptive frontier repair cannot be combined with ` +
+        `compileHandoff: frontier repair cannot be combined with ` +
           `LR_IMPACT_SURGICAL_REPAIR; analyze the mechanisms separately`,
       );
     }
@@ -3189,9 +3110,7 @@ function compileHandoffInternal(
     // The offsets are two counter reads per processed node (charged work and the
     // register's improvement count) — no evaluation, no simulation, no effect on
     // the frontier — so budget telemetry can record them without LR_REPAIR_LOG.
-    const refreshRepairCostToEnd = repairRefreshCostToEndEnabled();
-    const trackImprovementOffsets = repair?.log === true || budgetTelemetryLevel !== "off" ||
-      refreshRepairCostToEnd;
+    const trackImprovementOffsets = repair?.log === true || budgetTelemetryLevel !== "off";
     const runFrontierFrom = (
       initial: HandoffNode,
       ceiling: number,
@@ -3900,10 +3819,7 @@ function compileHandoffInternal(
           if (attempts >= repair.maxAttempts || getSimFrames() >= repairBudget) break;
           if (k < 0) continue;
           const adaptiveAttemptsForGap = adaptiveAnchorAttempts.get(kWorst);
-          if (
-            repair.frontierMode === "one-terminal-adaptive" &&
-            (adaptiveAttemptsForGap?.get(k) ?? 0) >= repair.adaptiveTriesPerAnchor
-          ) continue;
+          if ((adaptiveAttemptsForGap?.get(k) ?? 0) >= 1) continue;
           const estCost = estCostOf(k);
           const estCostUpper = estCostUpperOf(k);
           if (estCostUpper > repairBudget - getSimFrames()) {
@@ -3950,7 +3866,7 @@ function compileHandoffInternal(
           const predictedFeasible = estCostUpper <= repairBudget - framesBefore;
           const repairEpisodeId = budgetRecorder.startEpisode({
             lane: "repair",
-            mechanismDetail: repair.frontierMode,
+          mechanismDetail: "one-terminal-adaptive",
             parentEpisodeId: initialBudgetEpisodeId,
             searchSeed: restartSeed,
             frontierHasFallbackLane: true,
@@ -3979,9 +3895,7 @@ function compileHandoffInternal(
             improvementFrameOffsets = runFrontierFrom(
               prefixNode,
               ceiling,
-              repair.frontierMode === "one-terminal-adaptive"
-                ? terminalsBefore + 1
-                : undefined,
+              terminalsBefore + 1,
             );
           } finally {
             repairLaneActive = false;
@@ -3989,12 +3903,10 @@ function compileHandoffInternal(
             setImpactCarrierRippleRepairActive(false);
           }
           const completed = terminalConsiders > terminalsBefore;
-          if (repair.frontierMode === "one-terminal-adaptive") {
-            const byAnchor = adaptiveAnchorAttempts.get(kWorst) ?? new Map<number, number>();
-            byAnchor.set(k, (byAnchor.get(k) ?? 0) + 1);
-            adaptiveAnchorAttempts.set(kWorst, byAnchor);
-            adaptiveRanEpisode = true;
-          }
+          const byAnchor = adaptiveAnchorAttempts.get(kWorst) ?? new Map<number, number>();
+          byAnchor.set(k, (byAnchor.get(k) ?? 0) + 1);
+          adaptiveAnchorAttempts.set(kWorst, byAnchor);
+          adaptiveRanEpisode = true;
           // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
           // comparator is axis_quality, not full_score — they can disagree). dScore is logged for
           // characterization but does NOT drive the exhaust/re-pick decision.
@@ -4005,38 +3917,11 @@ function compileHandoffInternal(
             : repairGapState(
               evaluateCached(bestCompleteNode).report.gaps.find((g) => g.gap_index === kWorst),
             );
-          if (improved && refreshRepairCostToEnd && bestCompleteNode !== null) {
-            const acceptedFrame = framesBefore +
-              (improvementFrameOffsets[improvementFrameOffsets.length - 1] ??
-                (getSimFrames() - framesBefore));
-            const reaches: Array<number | undefined> = [];
-            let acceptedPath = root;
-            for (let gap = 0; gap <= gaps.length; gap++) {
-              reaches[gap] = firstReachOf(acceptedPath);
-              if (gap < gaps.length) {
-                acceptedPath = extendNodeCached(
-                  acceptedPath,
-                  bestCompleteNode.search.prefixFits[gap] ?? null,
-                );
-              }
-            }
-            const refreshed = refreshRepairCostToEndProfile(
-              costToEnd,
-              reaches,
-              framesBefore,
-              acceptedFrame,
-              k,
-            );
-            if (refreshed.changed > 0) {
-              costToEnd.splice(0, costToEnd.length, ...refreshed.profile);
-              incumbentCostToEnd = costToEnd;
-            }
-          }
           const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
           finishActiveCandidateWork();
           budgetRecorder.endEpisode(
             getSimFrames(),
-            repair.frontierMode === "one-terminal-adaptive" && completed
+            completed
               ? "first_terminal_return"
               : getSimFrames() >= ceiling
                 ? "local_ceiling"
@@ -4087,36 +3972,16 @@ function compileHandoffInternal(
           }
           if (improved) {
             improvedAny = true;
-            if (repair.frontierMode === "one-terminal-adaptive") {
-              // The incumbent and its weakness map changed. Re-open every gap
-              // and anchor so the next allocator decision is about the new
-              // track, not stale failures from the old one.
-              exhausted.clear();
-              adaptiveAnchorAttempts.clear();
-            }
-            if (
-              repairAllocationPolicy === "response-aware" &&
-              pickedWeakGapBefore !== null &&
-              pickedWeakGapAfter !== null &&
-              pickedWeakGapAfter.sse >= pickedWeakGapBefore.sse - 1e-12
-            ) {
-              // The register found a globally better path, so keep it, but do
-              // not spend the next fresh seed on the same nominal target when
-              // that target itself failed to respond. This is allocation only:
-              // it never rejects or rewrites an accepted compiler result.
-              exhausted.add(kWorst);
-            }
+            // The incumbent and its weakness map changed. Re-open every gap
+            // and anchor so the next decision is about the new track, not
+            // stale failures from the old one.
+            exhausted.clear();
+            adaptiveAnchorAttempts.clear();
             break;
           }
-          if (repair.frontierMode === "one-terminal-adaptive") break;
+          break;
         }
-        if (repair.frontierMode === "one-terminal-adaptive") {
-          if (!improvedAny && !adaptiveRanEpisode) exhausted.add(kWorst);
-          continue;
-        }
-        // Exhaust the gap only if no fresh-seed restart helped; a productive gap is re-picked
-        // (with the next fresh seed) so budget concentrates where it pays.
-        if (!improvedAny) exhausted.add(kWorst);
+        if (!improvedAny && !adaptiveRanEpisode) exhausted.add(kWorst);
       }
     };
 
@@ -8912,25 +8777,8 @@ type RepairConfig = {
   maxAttempts: number;
   maxUpstream: number;
   upstreamOrder: "nearest-first" | "oldest-first";
-  frontierMode: RepairFrontierMode;
-  adaptiveTriesPerAnchor: number;
   log: boolean;
 };
-export type RepairFrontierMode = "multi-terminal" | "one-terminal-adaptive";
-export const PRODUCTION_REPAIR_FRONTIER_MODE: RepairFrontierMode =
-  "one-terminal-adaptive";
-
-export function repairFrontierMode(
-  environment?: Record<string, string | undefined>,
-): RepairFrontierMode {
-  const value = environment?.LR_REPAIR_FRONTIER_MODE ??
-    (environment === undefined ? readEnv("LR_REPAIR_FRONTIER_MODE") : undefined) ??
-    PRODUCTION_REPAIR_FRONTIER_MODE;
-  if (value === "multi-terminal" || value === "one-terminal-adaptive") return value;
-  throw new Error(
-    `LR_REPAIR_FRONTIER_MODE must be multi-terminal|one-terminal-adaptive, got ${value}`,
-  );
-}
 /** Repair takes over at the first completion, not after a margin past it.
  *  Bracketed N=8 against `scarce-lean`: 1.0 +0.28 (SE 0.14), 1.1 shipped,
  *  1.25 -0.52 (SE 0.15). At 1.0 the five profile-band carve-outs that used to
@@ -8947,10 +8795,7 @@ const REPAIR_MAIN_MARGIN = 1.0;
  *  in `compileHandoffInternal`). The `profile` argument had been unused since
  *  the five main-margin carve-outs were deleted. Every field left is a constant
  *  or an env override. */
-function repairConfig(
-  frontierModeOverride?: RepairFrontierMode,
-  adaptiveTriesPerAnchorOverride?: number,
-): RepairConfig {
+function repairConfig(): RepairConfig {
   const num = (name: string, def: number, lo: number, hi: number): number => {
     const n = Number.parseInt(readEnv(name) ?? "", 10);
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
@@ -8989,9 +8834,6 @@ function repairConfig(
     // it can alter the weak gap's inherited arrival, while an expensive local
     // restart cannot. The environment override remains diagnostic-only.
     upstreamOrder,
-    frontierMode: frontierModeOverride ?? repairFrontierMode(),
-    adaptiveTriesPerAnchor: adaptiveTriesPerAnchorOverride ??
-      num("LR_REPAIR_ADAPTIVE_TRIES_PER_ANCHOR", 1, 1, 64),
     log: readEnv("LR_REPAIR_LOG") === "1",
   };
 }

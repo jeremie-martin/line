@@ -11,9 +11,6 @@ import {
   impactSurgicalRepairMode,
   jointPairRepairWindowEligible,
   repairFrontierOrder,
-  repairFrontierMode,
-  refreshRepairCostToEndProfile,
-  repairRefreshCostToEndEnabled,
   repairRestartCeilingFrames,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
@@ -187,15 +184,6 @@ describe("handoff policy boundaries", () => {
     expect(repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "objective" }))
       .toBe("objective");
     expect(() => repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "depth" })).toThrow();
-  });
-
-  test("parses the frontier repair execution unit strictly", () => {
-    expect(repairFrontierMode({})).toBe("one-terminal-adaptive");
-    expect(repairFrontierMode({ LR_REPAIR_FRONTIER_MODE: "multi-terminal" }))
-      .toBe("multi-terminal");
-    expect(repairFrontierMode({ LR_REPAIR_FRONTIER_MODE: "one-terminal-adaptive" }))
-      .toBe("one-terminal-adaptive");
-    expect(() => repairFrontierMode({ LR_REPAIR_FRONTIER_MODE: "anytime" })).toThrow();
   });
 
   test("candidate pool has no contact-count regime cliff", () => {
@@ -785,41 +773,5 @@ describe("repair restart ceiling", () => {
     // it is priced identically under either artifact and needs no guard.
     expect(repairRestartCeilingFrames(null, 12_345, STRUCTURAL_BASE))
       .toBe(repairRestartCeilingFrames(null, 12_345));
-  });
-});
-
-describe("repair cost-to-end refresh", () => {
-  test("is default-off and validates the study switch", () => {
-    expect(repairRefreshCostToEndEnabled({})).toBe(false);
-    expect(repairRefreshCostToEndEnabled({ LR_STUDY_REPAIR_REFRESH_COST_TO_END: "1" }))
-      .toBe(true);
-    expect(() => repairRefreshCostToEndEnabled({
-      LR_STUDY_REPAIR_REFRESH_COST_TO_END: "sometimes",
-    })).toThrow();
-  });
-
-  test("refreshes only nodes first reached by the accepted restart", () => {
-    const refreshed = refreshRepairCostToEndProfile(
-      [90, 80, 70, 60, -1, -1],
-      [10, 20, 30, 110, 135, 150],
-      100,
-      160,
-      2,
-    );
-    expect(refreshed.profile).toEqual([90, 80, 70, 50, 25, 10]);
-    expect(refreshed.changed).toBe(3);
-    expect(refreshed.newlyMeasured).toBe(2);
-  });
-
-  test("ignores reaches after acceptance and preserves the prefix", () => {
-    const refreshed = refreshRepairCostToEndProfile(
-      [90, 80, 70, 60],
-      [110, 120, 170, undefined],
-      100,
-      160,
-      1,
-    );
-    expect(refreshed.profile).toEqual([90, 40, 70, 60]);
-    expect(refreshed.changed).toBe(1);
   });
 });

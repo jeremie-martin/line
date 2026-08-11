@@ -7,7 +7,6 @@ import { gzipSync } from "node:zlib";
 import { applyJolt } from "../../produce/seed.ts";
 import { compilerWorkerTimeoutMs } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
-import type { RepairFrontierMode } from "../optimizer/handoff.ts";
 import type { CompileStats, DriftReport } from "../types.ts";
 import type {
   BudgetTelemetryLevel,
@@ -52,9 +51,6 @@ type StudyTask = {
   resumePolicy?: "legacy" | "none" | "remainder-aware";
   nCandExponent?: number;
   nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
-  repairAllocationPolicy?: "legacy" | "response-aware";
-  repairFrontierMode?: RepairFrontierMode;
-  repairAdaptiveTriesPerAnchor?: number;
 };
 
 type StudyWorkerResult = {
@@ -110,20 +106,6 @@ async function main(): Promise<void> {
   if (nCandExponent !== undefined && nCandPolicy !== undefined) {
     throw new Error("--ncand-exponent and --ncand-policy are mutually exclusive");
   }
-  const repairAllocationPolicy = parseRepairAllocationPolicy(argument("repair-allocation-policy"));
-  const repairFrontierMode = parseRepairFrontierMode(argument("repair-frontier-mode"));
-  const repairAdaptiveTriesPerAnchor = optionalBoundedInteger(
-    argument("repair-adaptive-tries-per-anchor"),
-    "repair-adaptive-tries-per-anchor",
-    1,
-    64,
-  );
-  if (repairAdaptiveTriesPerAnchor !== undefined &&
-      repairFrontierMode !== "one-terminal-adaptive") {
-    throw new Error(
-      "--repair-adaptive-tries-per-anchor requires --repair-frontier-mode=one-terminal-adaptive",
-    );
-  }
   if (searchPolicyBudget !== undefined && budgets.some((budget) => searchPolicyBudget > budget)) {
     throw new Error("--search-policy-budget may not exceed any requested execution budget");
   }
@@ -160,9 +142,6 @@ async function main(): Promise<void> {
     resumePolicy,
     nCandExponent,
     nCandPolicy,
-    repairAllocationPolicy,
-    repairFrontierMode,
-    repairAdaptiveTriesPerAnchor,
     sourceManifestPath,
   }))));
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -185,9 +164,6 @@ async function main(): Promise<void> {
     resumePolicy,
     nCandExponent,
     nCandPolicy,
-    repairAllocationPolicy,
-    repairFrontierMode,
-    repairAdaptiveTriesPerAnchor,
     scaleProfileFingerprint: scaleProfile?.fingerprint,
     sources: sources.map((source) => ({ id: source.id, fingerprint: source.sourceFingerprint })),
   };
@@ -278,7 +254,7 @@ async function main(): Promise<void> {
   const report = {
     schema: scaleProfile === null
       ? "line.benchmark-v2.budget-scale-study.v2"
-      : "line.benchmark-v2.budget-scale-study.v3",
+      : "line.benchmark-v2.budget-scale-study.v4",
     generatedAt: new Date().toISOString(),
     note: scaleProfile === null
       ? "Exploratory paired-seed study. Not a canonical headline or candidate decision."
@@ -305,9 +281,6 @@ async function main(): Promise<void> {
     resumePolicy,
     nCandExponent,
     nCandPolicy,
-    repairAllocationPolicy,
-    repairFrontierMode,
-    repairAdaptiveTriesPerAnchor,
     scaleProfile: scaleProfileReport(scaleProfile),
     scaleHeadline: scalePanel?.scaleHeadline ?? null,
     summaries,
@@ -379,9 +352,6 @@ function studyPlanFingerprint(input: {
   resumePolicy?: "legacy" | "none" | "remainder-aware";
   nCandExponent?: number;
   nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
-  repairAllocationPolicy?: "legacy" | "response-aware";
-  repairFrontierMode?: RepairFrontierMode;
-  repairAdaptiveTriesPerAnchor?: number;
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
@@ -408,9 +378,6 @@ function taskKey(task: StudyTask): string {
     task.resumePolicy ?? "legacy",
     task.nCandExponent ?? "production",
     task.nCandPolicy ?? "production",
-    task.repairAllocationPolicy ?? "legacy",
-    task.repairFrontierMode ?? "multi-terminal",
-    task.repairAdaptiveTriesPerAnchor ?? 1,
   ].join("\0");
 }
 
@@ -493,9 +460,6 @@ async function workerMain(task: StudyTask): Promise<void> {
       searchPolicyBudget: task.searchPolicyBudget,
       repairBudget: task.repairBudget,
       resumePolicy: task.resumePolicy,
-      repairAllocationPolicy: task.repairAllocationPolicy,
-      repairFrontierMode: task.repairFrontierMode,
-      repairAdaptiveTriesPerAnchor: task.repairAdaptiveTriesPerAnchor,
     });
     const trackHash = createHash("sha256").update(JSON.stringify(track)).digest("hex");
     parentPort!.postMessage({ task, status: "ok", elapsedMs: performance.now() - started, authoredContacts, report, stats, budgetTelemetry, trackHash } satisfies StudyWorkerResult);
@@ -611,22 +575,6 @@ function parseNCandPolicy(
   throw new Error(
     "--ncand-policy must be high-budget-three-quarter, " +
       "repair-high-budget-three-quarter, or linear-cap-216",
-  );
-}
-
-function parseRepairAllocationPolicy(
-  value: string | undefined,
-): "legacy" | "response-aware" | undefined {
-  if (value === undefined) return undefined;
-  if (value === "legacy" || value === "response-aware") return value;
-  throw new Error("--repair-allocation-policy must be legacy or response-aware");
-}
-
-function parseRepairFrontierMode(value: string | undefined): RepairFrontierMode | undefined {
-  if (value === undefined) return undefined;
-  if (value === "multi-terminal" || value === "one-terminal-adaptive") return value;
-  throw new Error(
-    "--repair-frontier-mode must be multi-terminal or one-terminal-adaptive",
   );
 }
 

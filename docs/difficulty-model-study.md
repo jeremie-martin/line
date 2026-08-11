@@ -148,7 +148,7 @@ limitations rather than just count, duration, or median spacing.
 
 This section records the V3/four-ancestor evidence that calibrated the original
 cost interval. Its `compile_stats.repair` procedure is retired. Current repair
-analysis must use V4 episodes (for example
+analysis must use V5 episodes (for example
 `scripts/v0/study_v2_repair_diagnostics.ts`) so target, fixed parent, headroom,
 terminal reach, acceptance, and divergence retain their exact semantics.
 

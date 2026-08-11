@@ -1,5 +1,5 @@
 /**
- * Audit the independent repair controller from retained Budget Telemetry V4.
+ * Audit the independent repair controller from retained Budget Telemetry V5.
  *
  * This is deliberately not a score comparison. It checks controller invariants,
  * measures within-incumbent transitions, and characterizes budget associations.
@@ -13,6 +13,7 @@ import { createInterface } from "node:readline";
 import { writeFileAtomicDurable } from "../v0/benchmark_v2/durable_fs.ts";
 import {
   BUDGET_TELEMETRY_SCHEMA,
+  replayBudgetRepairSelection,
   type BudgetEpisodeTelemetry,
   type CompileBudgetTelemetry,
 } from "../v0/optimizer/budget_telemetry.ts";
@@ -265,42 +266,28 @@ function auditRun(row: RunRow, audit: Audit): void {
     );
     const consideredTargets = (decision as any).considered_targets;
     if (Array.isArray(consideredTargets)) {
-      const replayedAffordableTargets = consideredTargets.flatMap((candidate: any) => {
-        const anchors = Array.isArray(candidate.anchor_options)
-          ? candidate.anchor_options
-          : [candidate];
-        return anchors.some((anchor: any) => anchor.affordability === "affordable")
-          ? [candidate.target_gap_index]
-          : [];
-      }).sort((a: number, b: number) => a - b);
+      const replayed = replayBudgetRepairSelection(decision);
       audit.check(
         "affordableTargetSetReplaysExactly",
-        sameJson(replayedAffordableTargets, affordable),
+        sameJson(replayed.affordableTargetGapIndices, affordable),
         label,
       );
-      const replayed = consideredTargets.flatMap((candidate: any) => {
-        const anchors = Array.isArray(candidate.anchor_options)
-          ? candidate.anchor_options
-            .filter((anchor: any) => anchor.affordability === "affordable")
-            .sort((a: any, b: any) => b.parent_depth - a.parent_depth)
-          : candidate.affordability === "affordable"
-            ? [candidate]
-            : [];
-        return anchors.length === 0 ? [] : [{ candidate, anchor: anchors[0] }];
-      }).sort((a: any, b: any) =>
-        b.candidate.target_gap_sse - a.candidate.target_gap_sse ||
-        a.candidate.target_gap_index - b.candidate.target_gap_index
-      )[0];
       audit.check(
-        "worstAffordableTargetReplaysExactly",
-        replayed !== undefined &&
-          replayed.candidate.target_gap_index === decision.target_gap_index &&
-          replayed.anchor.anchor_gap_index === decision.anchor_gap_index &&
-          close(replayed.candidate.target_gap_sse, decision.target_gap_sse) &&
-          close(replayed.anchor.estimated_anchor_cost_frames,
-            decision.estimated_anchor_cost_frames) &&
-          close(replayed.anchor.estimated_anchor_cost_upper_frames,
-            decision.estimated_anchor_cost_upper_frames),
+        "affordableAnchorSetReplaysExactly",
+        sameJson(replayed.affordableAnchorGapIndices, decision.affordable_anchor_gap_indices),
+        label,
+      );
+      audit.check(
+        "declaredRepairSelectionReplaysExactly",
+        replayed.targetGapIndex === decision.target_gap_index &&
+          replayed.anchorGapIndex === decision.anchor_gap_index &&
+          replayed.parentDepth === decision.parent_depth &&
+          close(replayed.targetGapSse, decision.target_gap_sse) &&
+          close(replayed.mutableSuffixSse, decision.mutable_suffix_sse) &&
+          close(replayed.estimatedAnchorCostFrames, decision.estimated_anchor_cost_frames) &&
+          close(replayed.estimatedAnchorCostUpperFrames,
+            decision.estimated_anchor_cost_upper_frames) &&
+          replayed.anchorCostSource === decision.anchor_cost_source,
         label,
       );
     }
@@ -640,70 +627,61 @@ function summarizeSlice(entries: RepairEntry[]): RepairBehaviorSlice {
 function summarizeSelection(entries: RepairEntry[]): {
   decisionEpisodes: number;
   replayableDecisionEpisodes: number;
+  selectionPolicies: Record<string, number>;
   maximumConsideredParentDepth: number | null;
-  selectedAtMaximumConsideredDepth: number;
-  selectedAtMaximumConsideredDepthRate: number | null;
-  selectedAtDeepestStructurallyPossibleDepth: number;
-  selectedAtDeepestStructurallyPossibleDepthRate: number | null;
-  deeperStructuralAnchorBlockedByAffordability: number;
-  deeperOptionRejectionReasons: Record<string, number>;
+  explanatoryDepthBeyondOptionRadius: number;
+  meanAffordableTargets: number | null;
+  meanAffordableAnchors: number | null;
+  meanMutableSuffixSse: number | null;
+  meanTargetShareOfMutableSuffixSse: number | null;
+  meanMutableSuffixSsePerMillionEstimatedFrames: number | null;
 } {
   let maximumConsideredParentDepth: number | null = null;
   let replayableDecisionEpisodes = 0;
-  let selectedAtMaximumConsideredDepth = 0;
-  let selectedAtDeepestStructurallyPossibleDepth = 0;
-  let deeperStructuralAnchorBlockedByAffordability = 0;
-  const deeperOptionRejectionReasons: Record<string, number> = {};
+  let explanatoryDepthBeyondOptionRadius = 0;
+  const selectionPolicies: Record<string, number> = {};
+  const affordableTargets: number[] = [];
+  const affordableAnchors: number[] = [];
+  const suffixSse: number[] = [];
+  const targetShares: number[] = [];
+  const suffixDensities: number[] = [];
   for (const { episode } of entries) {
     const decision = episode.repair_decision!;
+    selectionPolicies[decision.selection_policy] =
+      (selectionPolicies[decision.selection_policy] ?? 0) + 1;
     const considered = (decision as any).considered_targets;
     if (!Array.isArray(considered)) continue;
-    const selected = considered.find((candidate: any) =>
-      candidate.target_gap_index === decision.target_gap_index
-    );
-    if (selected === undefined || !Array.isArray(selected.anchor_options)) continue;
     replayableDecisionEpisodes++;
-    const consideredMax = Math.max(...selected.anchor_options.map((option: any) =>
-      option.parent_depth
+    const consideredMax = Math.max(...considered.flatMap((candidate: any) =>
+      candidate.anchor_options.map((option: any) => option.parent_depth)
     ));
-    const structural = selected.anchor_options.filter((option: any) =>
-      option.affordability !== "anchor_before_start"
-    );
-    const structuralMax = Math.max(...structural.map((option: any) => option.parent_depth));
     maximumConsideredParentDepth = maximumConsideredParentDepth === null
       ? consideredMax
       : Math.max(maximumConsideredParentDepth, consideredMax);
-    if (decision.parent_depth === consideredMax) selectedAtMaximumConsideredDepth++;
-    if (decision.parent_depth === structuralMax) {
-      selectedAtDeepestStructurallyPossibleDepth++;
-    } else {
-      deeperStructuralAnchorBlockedByAffordability++;
-      for (const option of structural.filter((option: any) =>
-        option.parent_depth > decision.parent_depth
-      )) {
-        deeperOptionRejectionReasons[option.affordability] =
-          (deeperOptionRejectionReasons[option.affordability] ?? 0) + 1;
-      }
-    }
+    if (decision.parent_depth > consideredMax) explanatoryDepthBeyondOptionRadius++;
+    affordableTargets.push(decision.affordable_target_gap_indices.length);
+    affordableAnchors.push(decision.affordable_anchor_gap_indices.length);
+    suffixSse.push(decision.mutable_suffix_sse);
+    targetShares.push(decision.mutable_suffix_sse === 0
+      ? 0
+      : decision.target_gap_sse / decision.mutable_suffix_sse);
+    suffixDensities.push(
+      decision.mutable_suffix_sse * 1_000_000 / decision.estimated_anchor_cost_frames,
+    );
   }
   return {
     decisionEpisodes: entries.length,
     replayableDecisionEpisodes,
+    selectionPolicies: Object.fromEntries(
+      Object.entries(selectionPolicies).sort(([a], [b]) => a.localeCompare(b)),
+    ),
     maximumConsideredParentDepth,
-    selectedAtMaximumConsideredDepth,
-    selectedAtMaximumConsideredDepthRate: roundedRatio(
-      selectedAtMaximumConsideredDepth,
-      replayableDecisionEpisodes,
-    ),
-    selectedAtDeepestStructurallyPossibleDepth,
-    selectedAtDeepestStructurallyPossibleDepthRate: roundedRatio(
-      selectedAtDeepestStructurallyPossibleDepth,
-      replayableDecisionEpisodes,
-    ),
-    deeperStructuralAnchorBlockedByAffordability,
-    deeperOptionRejectionReasons: Object.fromEntries(
-      Object.entries(deeperOptionRejectionReasons).sort(([a], [b]) => a.localeCompare(b)),
-    ),
+    explanatoryDepthBeyondOptionRadius,
+    meanAffordableTargets: roundedMean(affordableTargets),
+    meanAffordableAnchors: roundedMean(affordableAnchors),
+    meanMutableSuffixSse: roundedMean(suffixSse),
+    meanTargetShareOfMutableSuffixSse: roundedMean(targetShares),
+    meanMutableSuffixSsePerMillionEstimatedFrames: roundedMean(suffixDensities),
   };
 }
 
@@ -1136,7 +1114,7 @@ function markdown(artifact: any): string {
     lines.push("", "Direct observations:", "", `- ${o.terminalReached}/${o.repairEpisodes} iterations reached a terminal; ${o.acceptedAlternatives} were adopted.`, `- Repair used ${percentage(o.repairSpentShare)} of charged work. Completion stayed within the selected anchor's estimated upper cost in ${percentage(o.completionWithinEstimatedUpperRate)} of completed iterations.`, `- ${o.terminalGeometryIdentical}/${o.terminalReached} terminal alternatives were geometry-identical to their incumbents and ${o.acceptedTerminalGeometryIdentical} were accepted, consuming ${o.terminalGeometryIdenticalSpentFrames.toLocaleString()} frames (${percentage(o.terminalGeometryIdenticalSpentShare)} of repair work); the first divergence occurred at the anchor in ${percentage(o.firstDivergenceAtAnchorRate)} of divergent terminals.`, `- Accepted alternatives improved the selected weak gap ${percentage(o.acceptedWeakGapImprovementRate)} of the time; ${o.acceptedWeakGapWorsened} accepted alternatives worsened it while improving the register globally.`, `- Aggregate selected-gap SSE improvement was ${number(o.weakGapSseImprovement, 4)}; internal full-score gain was ${number(o.internalFullScoreDelta, 2)} (${number(o.internalFullScoreDeltaPerMillionRepairFrames, 2)} per million repair frames).`, `- Full decision replay was available for ${o.replayableDecisionEpisodes}/${o.repairEpisodes} episodes and direct incumbent/offer hashes for ${o.directTrackIdentityEpisodes}/${o.repairEpisodes}.`, "");
     const selection = summary.selection;
     const diversity = summary.terminalOfferDiversity;
-    lines.push("Selection and direct diversity:", "", `- Full option replay was available for ${selection.replayableDecisionEpisodes}/${selection.decisionEpisodes} decisions. Among those, the maximum considered parent depth was ${selection.maximumConsideredParentDepth}; ${selection.selectedAtMaximumConsideredDepth} selected it and ${selection.deeperStructuralAnchorBlockedByAffordability} had a structurally available deeper anchor blocked by affordability.`, `- ${diversity.terminalOffersWithHash} terminal offers contained direct hashes: ${diversity.distinctTerminalOfferTracks} were globally distinct, ${diversity.repeatedTerminalOffersAgainstSameIncumbent} repeated against the same incumbent, and ${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchor} repeated against the same incumbent and anchor (${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchorSpentFrames.toLocaleString()} charged frames).`, "");
+    lines.push("Selection and direct diversity:", "", `- Full option replay was available for ${selection.replayableDecisionEpisodes}/${selection.decisionEpisodes} decisions. Declared policies: ${Object.entries(selection.selectionPolicies).map(([policy, count]) => `${policy}=${count}`).join(", ")}. Mean affordable populations were ${number(selection.meanAffordableTargets, 2)} targets and ${number(selection.meanAffordableAnchors, 2)} anchors.`, `- The selected mutable suffix carried mean SSE ${number(selection.meanMutableSuffixSse, 4)} (${percentage(selection.meanTargetShareOfMutableSuffixSse)} in its explanatory target) and ${number(selection.meanMutableSuffixSsePerMillionEstimatedFrames, 2)} SSE per million estimated frames. ${selection.explanatoryDepthBeyondOptionRadius} explanatory target-to-anchor depths exceeded the option-generation radius; this is valid for anchor-first policies.`, `- ${diversity.terminalOffersWithHash} terminal offers contained direct hashes: ${diversity.distinctTerminalOfferTracks} were globally distinct, ${diversity.repeatedTerminalOffersAgainstSameIncumbent} repeated against the same incumbent, and ${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchor} repeated against the same incumbent and anchor (${diversity.repeatedTerminalOffersAgainstSameIncumbentAndAnchorSpentFrames.toLocaleString()} charged frames).`, "");
     const t = summary.transitions;
     lines.push("Within-run transitions:", "", `- ${t.afterRejected} transitions followed a rejected terminal: the next anchor moved earlier/same/later ${t.afterRejectedAnchorEarlier}/${t.afterRejectedAnchorSame}/${t.afterRejectedAnchorLater} times. The same target was selected ${t.afterRejectedSameTarget} times and the exact same target+anchor ${t.afterRejectedSameTargetAndAnchor} times.`, `- The affordable set shrank after rejection ${t.afterRejectedAffordableSetShrank} times and stayed equal ${t.afterRejectedAffordableSetSame} times. Whenever the previous target remained affordable, it was retained ${t.afterRejectedTargetRetained}/${t.afterRejectedTargetStillAffordable} times. Adjacent rejected iterations repeated the exact terminal offer ${t.afterRejectedRepeatedTerminalOffer} times.`, `- ${t.afterAccepted} transitions followed acceptance: the independently recomputed anchor moved earlier/same/later ${t.afterAcceptedAnchorEarlier}/${t.afterAcceptedAnchorSame}/${t.afterAcceptedAnchorLater} times.`, "");
     const transitionOutcomes = summary.transitionOutcomes;

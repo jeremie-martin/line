@@ -1,6 +1,6 @@
 /**
  * HISTORICAL V3 REPRODUCTION ONLY. This preserves the old archive analysis;
- * it does not describe the singular deepest-affordable V4 controller.
+ * it does not describe the current policy-explicit V5 controller.
  *
  * Offline replay of repair-anchor SELECTION policies (Phase 2 of
  * `docs/budget-unification-plan.md`).

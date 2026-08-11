@@ -8,6 +8,7 @@ import {
   adaptiveEstimate,
   BUDGET_TELEMETRY_SCHEMA,
   CompileBudgetTelemetryRecorder,
+  replayBudgetRepairSelection,
   type BudgetRepairDecision,
 } from "../scripts/v0/optimizer/budget_telemetry.ts";
 import type { Gap } from "../scripts/v0/types.ts";
@@ -49,11 +50,14 @@ const TEST_REPAIR_DECISION: BudgetRepairDecision = {
   remaining_budget_frames: 500,
   headroom_fraction: 0.2,
   usable_budget_frames: 400,
+  selection_policy: "worst_gap_deepest_affordable",
   parent_depth: 1,
   affordable_target_gap_indices: [2],
+  affordable_anchor_gap_indices: [1],
   target_gap_index: 2,
   target_gap_sse: 0.25,
   anchor_gap_index: 1,
+  mutable_suffix_sse: 0.25,
   estimated_anchor_cost_frames: 200,
   estimated_anchor_cost_upper_frames: 300,
   anchor_cost_source: "measured_cost_to_end",
@@ -70,6 +74,45 @@ const TEST_REPAIR_DECISION: BudgetRepairDecision = {
     }],
   }],
 };
+
+test("replays an anchor-first suffix-density decision beyond the option radius", () => {
+  const costs = [100, 95, 90];
+  const sse = [10, 10, 15];
+  const decision: BudgetRepairDecision = {
+    ...TEST_REPAIR_DECISION,
+    remaining_budget_frames: 100,
+    headroom_fraction: 0,
+    usable_budget_frames: 100,
+    selection_policy: "suffix_opportunity_per_cost",
+    parent_depth: 2,
+    affordable_target_gap_indices: [0, 1, 2],
+    affordable_anchor_gap_indices: [0, 1, 2],
+    target_gap_index: 2,
+    target_gap_sse: 15,
+    anchor_gap_index: 0,
+    mutable_suffix_sse: 35,
+    estimated_anchor_cost_frames: 100,
+    estimated_anchor_cost_upper_frames: 100,
+    considered_targets: sse.map((targetSse, gap) => ({
+      target_gap_index: gap,
+      target_gap_sse: targetSse,
+      anchor_options: [{
+        parent_depth: 0,
+        anchor_gap_index: gap,
+        estimated_anchor_cost_frames: costs[gap]!,
+        estimated_anchor_cost_upper_frames: costs[gap]!,
+        anchor_cost_source: "measured_cost_to_end" as const,
+        affordability: "affordable" as const,
+      }],
+    })),
+  };
+  expect(replayBudgetRepairSelection(decision)).toMatchObject({
+    targetGapIndex: 2,
+    anchorGapIndex: 0,
+    parentDepth: 2,
+    mutableSuffixSse: 35,
+  });
+});
 
 /**
  * A schema-v1 artifact, whatever schema the checked-in one currently declares:
@@ -661,6 +704,8 @@ describe("compile budget telemetry", () => {
         target_gap_sse: 0.1,
         anchor_gap_index: 2,
         affordable_target_gap_indices: [3],
+        affordable_anchor_gap_indices: [2],
+        mutable_suffix_sse: 0.1,
         estimated_anchor_cost_frames: 20,
         estimated_anchor_cost_upper_frames: 30,
         considered_targets: [{

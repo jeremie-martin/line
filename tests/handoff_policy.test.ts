@@ -11,6 +11,7 @@ import {
   impactResponseAdmissionMode,
   repairRestartCeilingFrames,
   selectAffordableRepairTarget,
+  selectRepairRestart,
   spliceRepairCostToEnd,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
@@ -824,6 +825,32 @@ describe("repair target selection", () => {
       targetGapSse: 20,
       usableBudgetFrames: 80,
       affordableTargetGapIndices: [2, 4],
+    });
+  });
+
+  test("selects suffix opportunity per expected cost from the shared affordable anchor set", () => {
+    const densityCandidates = [0, 1, 2, 3, 4, 5].map((gapIndex) => ({
+      gapIndex,
+      sse: gapIndex === 5 ? 15 : 10,
+    }));
+    expect(selectRepairRestart(
+      densityCandidates,
+      [100, 95, 90, 85, 80, 75],
+      [100, 95, 90, 85, 80, 75],
+      100,
+      0,
+      1,
+      "suffix_opportunity_per_cost",
+    )).toEqual({
+      selectionPolicy: "suffix_opportunity_per_cost",
+      targetGapIndex: 5,
+      anchorGapIndex: 0,
+      parentDepth: 5,
+      targetGapSse: 15,
+      mutableSuffixSse: 65,
+      usableBudgetFrames: 100,
+      affordableTargetGapIndices: [0, 1, 2, 3, 4, 5],
+      affordableAnchorGapIndices: [0, 1, 2, 3, 4, 5],
     });
   });
 

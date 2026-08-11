@@ -45,7 +45,7 @@ const forceGc = (globalThis as typeof globalThis & { gc?: () => void }).gc;
 
 const result = () => ({
   schema: "line.study-v2-repair-diagnostics.v2",
-  note: "Observation only. Repair data comes exclusively from budget telemetry V4.",
+  note: "Observation only. Repair data comes exclusively from budget telemetry V5.",
   complete: rows.length === expectedRows,
   completed_rows: rows.length,
   expected_rows: expectedRows,

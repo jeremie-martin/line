@@ -2175,7 +2175,7 @@ function compileHandoffInternal(
     let firstCompletionFrame = -1;
     // Observation-only reach timestamps used by the incumbent cost-to-end
     // estimator and detailed repair diagnostics. Authoritative execution and
-    // outcome accounting lives in budgetTelemetry V4 episodes; compile_stats
+    // outcome accounting lives in budgetTelemetry V5 episodes; compile_stats
     // is not a second repair ledger.
     const framesAtReach = new WeakMap<SearchNode, number>();
     // Second reach map for the OTHER producer of incumbent nodes. `framesAtReach`
@@ -2934,6 +2934,10 @@ function compileHandoffInternal(
           measuredCostToEnd(gapIndex) === null
             ? "per_gap_fallback"
             : "measured_cost_to_end";
+        const pointCostByAnchor = Array.from(
+          { length: gaps.length + 1 },
+          (_, gapIndex) => estCostOf(gapIndex),
+        );
         const upperCostByAnchor = Array.from(
           { length: gaps.length + 1 },
           (_, gapIndex) => estCostUpperOf(gapIndex),
@@ -2945,12 +2949,14 @@ function compileHandoffInternal(
             gapIndex: gapReport.gap_index,
             sse: gapAxisSse(gapReport) ?? 0,
           }));
-        const target = selectAffordableRepairTarget(
+        const target = selectRepairRestart(
           targetCandidates,
+          pointCostByAnchor,
           upperCostByAnchor,
           remaining,
           repair.headroomFraction,
           repair.maxParentDepth,
+          repair.selectionPolicy,
         );
         if (target === null) break;
         const iterationIndex = attempts++;
@@ -2993,11 +2999,14 @@ function compileHandoffInternal(
           remaining_budget_frames: repairBudget - framesBefore,
           headroom_fraction: repair.headroomFraction,
           usable_budget_frames: target.usableBudgetFrames,
+          selection_policy: target.selectionPolicy,
           parent_depth: target.parentDepth,
           affordable_target_gap_indices: target.affordableTargetGapIndices,
+          affordable_anchor_gap_indices: target.affordableAnchorGapIndices,
           target_gap_index: kWorst,
           target_gap_sse: pickedWeakGapSse,
           anchor_gap_index: k,
+          mutable_suffix_sse: target.mutableSuffixSse,
           estimated_anchor_cost_frames: estCost,
           estimated_anchor_cost_upper_frames: estCostUpper,
           anchor_cost_source: estCostSourceOf(k),
@@ -6405,6 +6414,9 @@ export function repairRestartCeilingFrames(
 }
 
 export type RepairTargetCandidate = { gapIndex: number; sse: number };
+export type RepairSelectionPolicy =
+  | "worst_gap_deepest_affordable"
+  | "suffix_opportunity_per_cost";
 export type AffordableRepairTarget = {
   targetGapIndex: number;
   anchorGapIndex: number;
@@ -6412,6 +6424,11 @@ export type AffordableRepairTarget = {
   targetGapSse: number;
   usableBudgetFrames: number;
   affordableTargetGapIndices: number[];
+};
+export type RepairSelection = AffordableRepairTarget & {
+  selectionPolicy: RepairSelectionPolicy;
+  affordableAnchorGapIndices: number[];
+  mutableSuffixSse: number;
 };
 
 function sha256Json(value: unknown): string {
@@ -6519,6 +6536,93 @@ export function selectAffordableRepairTarget(
     affordableTargetGapIndices: affordable
       .map(({ gapIndex }) => gapIndex)
       .sort((a, b) => a - b),
+  };
+}
+
+/** Select one independently executable repair restart under a named law.
+ * Both laws share the same target/anchor option universe and hard affordability
+ * check. The opportunity-density law is anchor-first: its explanatory target
+ * is the worst reported gap in the selected anchor's entire mutable suffix, so
+ * `parentDepth` is descriptive and may exceed the option-generation radius. */
+export function selectRepairRestart(
+  candidates: readonly RepairTargetCandidate[],
+  pointCostByAnchor: readonly number[],
+  upperCostByAnchor: readonly number[],
+  remainingBudgetFrames: number,
+  headroomFraction: number,
+  maxParentDepth: number,
+  selectionPolicy: RepairSelectionPolicy,
+): RepairSelection | null {
+  const remaining = Math.max(0, Math.floor(remainingBudgetFrames));
+  const headroom = Math.max(0, Math.min(0.95, headroomFraction));
+  const usableBudgetFrames = Math.floor(remaining * (1 - headroom));
+  const maximum = Math.max(0, Math.floor(maxParentDepth));
+  const affordableTargetGapIndices = candidates.filter((candidate) =>
+    Array.from(
+      { length: Math.min(maximum, candidate.gapIndex) + 1 },
+      (_, parentDepth) => candidate.gapIndex - parentDepth,
+    ).some((anchorGapIndex) => {
+      const upper = upperCostByAnchor[anchorGapIndex];
+      return Number.isFinite(upper) && upper! > 0 && upper! <= usableBudgetFrames;
+    })
+  ).map((candidate) => candidate.gapIndex).sort((a, b) => a - b);
+  const affordableAnchorGapIndices = [...new Set(candidates.flatMap((candidate) =>
+    Array.from(
+      { length: Math.min(maximum, candidate.gapIndex) + 1 },
+      (_, parentDepth) => candidate.gapIndex - parentDepth,
+    ).filter((anchorGapIndex) => {
+      const point = pointCostByAnchor[anchorGapIndex];
+      const upper = upperCostByAnchor[anchorGapIndex];
+      return Number.isFinite(point) && point! > 0 &&
+        Number.isFinite(upper) && upper! > 0 && upper! <= usableBudgetFrames;
+    })
+  ))].sort((a, b) => a - b);
+  if (selectionPolicy === "worst_gap_deepest_affordable") {
+    const selected = selectAffordableRepairTarget(
+      candidates,
+      upperCostByAnchor,
+      remainingBudgetFrames,
+      headroomFraction,
+      maxParentDepth,
+    );
+    if (selected === null) return null;
+    return {
+      ...selected,
+      selectionPolicy,
+      affordableAnchorGapIndices,
+      mutableSuffixSse: candidates
+        .filter((candidate) => candidate.gapIndex >= selected.anchorGapIndex)
+        .reduce((sum, candidate) => sum + candidate.sse, 0),
+    };
+  }
+  const choices = affordableAnchorGapIndices.map((anchorGapIndex) => {
+    const suffix = candidates.filter((candidate) => candidate.gapIndex >= anchorGapIndex);
+    const target = [...suffix].sort((a, b) => b.sse - a.sse || a.gapIndex - b.gapIndex)[0]!;
+    const mutableSuffixSse = suffix.reduce((sum, candidate) => sum + candidate.sse, 0);
+    return {
+      target,
+      anchorGapIndex,
+      mutableSuffixSse,
+      pointCost: pointCostByAnchor[anchorGapIndex]!,
+    };
+  });
+  choices.sort((a, b) =>
+    b.mutableSuffixSse / b.pointCost - a.mutableSuffixSse / a.pointCost ||
+    b.mutableSuffixSse - a.mutableSuffixSse ||
+    b.anchorGapIndex - a.anchorGapIndex
+  );
+  const selected = choices[0];
+  if (selected === undefined) return null;
+  return {
+    selectionPolicy,
+    targetGapIndex: selected.target.gapIndex,
+    anchorGapIndex: selected.anchorGapIndex,
+    parentDepth: selected.target.gapIndex - selected.anchorGapIndex,
+    targetGapSse: selected.target.sse,
+    mutableSuffixSse: selected.mutableSuffixSse,
+    usableBudgetFrames,
+    affordableTargetGapIndices,
+    affordableAnchorGapIndices,
   };
 }
 
@@ -7941,6 +8045,7 @@ type RepairConfig = {
   maxAttempts: number;
   maxParentDepth: number;
   headroomFraction: number;
+  selectionPolicy: RepairSelectionPolicy;
 };
 /** Repair takes over at the first completion, not after a margin past it.
  *  Bracketed N=8 against `scarce-lean`: 1.0 +0.28 (SE 0.14), 1.1 shipped,
@@ -7986,6 +8091,9 @@ function repairConfig(): RepairConfig {
     // The estimator's upper interval is already the local execution ceiling;
     // retain no second hidden reserve in target/anchor eligibility.
     headroomFraction: flt("LR_REPAIR_HEADROOM_FRACTION", 0, 0, 0.95),
+    selectionPolicy: readEnv("LR_REPAIR_SELECTION_POLICY") === "suffix-opportunity-per-cost"
+      ? "suffix_opportunity_per_cost"
+      : "worst_gap_deepest_affordable",
   };
 }
 

@@ -1,6 +1,6 @@
 /**
  * HISTORICAL V3 REPRODUCTION ONLY. The live compiler no longer emits
- * `LR_REPAIR_LOG` chains or walks anchors upstream; current work uses V4.
+ * `LR_REPAIR_LOG` chains or walks anchors upstream; current work uses V5.
  *
  * Analyze archived LR_REPAIR_LOG records as restart chains. The study asks whether the
  * incumbent's inherited arrival state predicts when a weak gap must be repaired

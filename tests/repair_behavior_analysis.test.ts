@@ -43,11 +43,15 @@ function row() {
       remaining_budget_frames: remaining,
       headroom_fraction: 0.2,
       usable_budget_frames: Math.floor(remaining * 0.8),
+      selection_policy: "worst_gap_deepest_affordable",
       parent_depth: target - anchor,
       affordable_target_gap_indices: affordable,
+      affordable_anchor_gap_indices: affordable.map((gap: number) => gap - (target - anchor)),
       target_gap_index: target,
       target_gap_sse: before,
       anchor_gap_index: anchor,
+      mutable_suffix_sse: before +
+        affordable.filter((gap: number) => gap !== target).length * before / 2,
       estimated_anchor_cost_frames: Math.floor(remaining * 0.5),
       estimated_anchor_cost_upper_frames: Math.floor(remaining * 0.7),
       anchor_cost_source: "measured_cost_to_end",
@@ -175,8 +179,10 @@ describe("repair behavior analysis", () => {
     ]);
     expect(result.selection).toMatchObject({
       maximumConsideredParentDepth: 2,
-      selectedAtMaximumConsideredDepth: 2,
-      deeperStructuralAnchorBlockedByAffordability: 0,
+      selectionPolicies: { worst_gap_deepest_affordable: 2 },
+      explanatoryDepthBeyondOptionRadius: 0,
+      meanAffordableTargets: 1.5,
+      meanAffordableAnchors: 1.5,
     });
     expect(result.terminalOfferDiversity).toMatchObject({
       terminalOffersWithHash: 2,

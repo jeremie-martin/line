@@ -1,4 +1,4 @@
-# Compile budget telemetry V4
+# Compile budget telemetry V5
 
 ## Contract
 
@@ -10,10 +10,10 @@ compiler search work:
 - `trace`: the summary payload plus estimator observations and atomic node
   events.
 
-The schema is `line.compile-budget-telemetry.v4`. Readers accept that exact
-schema only. V1/V2 archives are historical evidence with different attempt and
-identity semantics; a reader must not rename their fields or fall back to
-`compile_stats`.
+The schema is `line.compile-budget-telemetry.v5`. Readers accept that exact
+schema only. V1–V4 archives are historical evidence with different attempt,
+identity, or repair-selection semantics; a reader must not rename their fields
+or fall back to `compile_stats`.
 
 Telemetry is observation-only. Changing `off`, `summary`, or `trace` must not
 change RNG state, physics work, search order, selected geometry, reports, or
@@ -53,17 +53,22 @@ An episode is one bounded execution allocation. It owns one lane, parent,
 anchor, seed when applicable, ceiling, estimator state, work funnel, register
 state, and outcome. A repair episode also owns one complete `repair_decision`:
 iteration and incumbent revision, remaining and usable budget, explicit
-headroom, every target×anchor option up to the declared parent cap, affordable
-target set, selected target and SSE, actual parent depth/anchor, cost estimates,
-and cost source. The payload replays both worst-eligible target ranking and
-deepest-affordable anchor choice. There is no controller-mode or failed-anchor
-state to infer from episode order.
+headroom, the named selection policy, every target×anchor option in the declared
+option universe, affordable target and anchor sets, selected target and SSE,
+actual parent depth/anchor, mutable-suffix SSE, cost estimates, and cost source.
+The payload replays the declared selection law exactly. There is no hidden
+controller mode or failed-anchor state to infer from episode order.
 
-The production controller currently declares maximum parent depth `6` and
-headroom fraction `0`. Diagnostic arms use `LR_REPAIR_MAX_PARENT_DEPTH` and
-`LR_REPAIR_HEADROOM_FRACTION`; they change those declared values directly. One
-iteration chooses one anchor and executes it once—there is no ancestor fallback
-chain or remembered tried-anchor state.
+The production selection policy is `worst_gap_deepest_affordable`: rank target
+weakness among targets with an affordable anchor, then use that target's deepest
+affordable parent up to maximum depth `6`. Headroom is `0`. Diagnostic arms use
+`LR_REPAIR_MAX_PARENT_DEPTH`, `LR_REPAIR_HEADROOM_FRACTION`, and the categorical
+`LR_REPAIR_SELECTION_POLICY=suffix-opportunity-per-cost`. The latter chooses the
+affordable anchor maximizing total incumbent SSE in its mutable suffix per
+estimated point-cost frame, then records the worst target in that suffix. Its
+`parent_depth` is descriptive target-to-anchor distance and can exceed the
+option-generation radius. One iteration chooses one anchor and executes it
+once—there is no ancestor fallback chain or remembered tried-anchor state.
 
 An execution interval accounts for wall-to-wall charged compiler work such as
 startup, initial search, frontier repair, resumed search, or
@@ -100,7 +105,7 @@ The following identity is enforced:
 actual candidate samples = sum(candidate samples by stream)
 ```
 
-No V4 field counts normal-prefix cache hits or misses. Consequently,
+No V5 field counts normal-prefix cache hits or misses. Consequently,
 `ranked_option_calls` must not be used to infer fresh sampler builds. Actual samples per
 ranked-option call can change because of prefix reuse, internal rollout calls,
 extra streams, retry behavior, and optional sibling evaluations. A future
@@ -116,7 +121,7 @@ than infer one from these populations.
 Candidate breadth does not determine node count arithmetically. Breadth affects
 pool work and ranking; child limits, viability, frontier order, failures,
 tail-completion behavior, and local ceilings determine how many nodes the
-remaining budget can process. V4 records both sides so this relationship is an
+remaining budget can process. V5 records both sides so this relationship is an
 empirical result rather than an assumption.
 
 ### Register and terminal work
@@ -149,7 +154,7 @@ register offers = partial evaluations + terminal evaluations
 Geometry identity is exact within the scope that owns the work record. The
 compile record detects repeats across the entire compile. An episode record
 detects repeats only inside that episode; summing episode-level distinct counts
-does not detect the same geometry appearing in two different episodes. V4 does
+does not detect the same geometry appearing in two different episodes. V5 does
 not separately attribute compile-global geometry repeats by lane, so reports
 must not call a sum of repair episodes “cross-repair duplicate tracks.”
 
@@ -269,7 +274,7 @@ overwrite duplicate cells.
 - `scripts/v0/analyze_budget_telemetry.ts`: strict multi-payload validation and
   descriptive aggregate analysis.
 - `scripts/benchmark/analyze_scale_mechanics.ts`: paired multi-budget mechanics
-  comparison using V4 only.
+  comparison using V5 only.
 
 For naming and architecture rationale, see
 [`compiler-telemetry-foundation.md`](compiler-telemetry-foundation.md).

@@ -1,5 +1,5 @@
 /**
- * Strict V4 compile-budget telemetry analyzer.
+ * Strict V5 compile-budget telemetry analyzer.
  *
  * Usage:
  *   npx tsx scripts/v0/analyze_budget_telemetry.ts FILE_OR_ARCHIVE [...]

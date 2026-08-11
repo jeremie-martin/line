@@ -13,7 +13,7 @@
  * accounting can be eyeballed against the compiler's own numbers.
  *
  * This renderer accepts the current schema only. Historical payloads must use
- * their historical tooling; silently translating attempt semantics into V4
+ * their historical tooling; silently translating old repair semantics into V5
  * episode semantics would produce false comparisons.
  */
 
@@ -718,7 +718,7 @@ function describe(path: string): string {
     );
   }
   if (!Array.isArray(payload.episodes) || !Array.isArray(payload.execution_intervals)) {
-    throw new Error(`${path} is missing V4 episodes or execution intervals`);
+    throw new Error(`${path} is missing V5 episodes or execution intervals`);
   }
   const rootUnknown = new Set<string>();
   const compileUnknown = new Set<string>();

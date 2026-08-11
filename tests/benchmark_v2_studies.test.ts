@@ -11,6 +11,7 @@ import { fingerprintFiles } from "../scripts/v0/benchmark_v2/suite_model.ts";
 import {
   assertKnobOnlyDelta,
   readVerifiedArtifact,
+  verifyArtifactChecksum,
   verifyScaleStudyArchive,
 } from "../scripts/benchmark/study_lib.ts";
 
@@ -163,6 +164,18 @@ describe("study_lib verification helpers", () => {
     writeFileSync(`${artifact}.sha256`, `${sha256(bytes)}  artifact.json.gz\n`);
     const verified = readVerifiedArtifact(artifact);
     expect(verified.rawSha256).toBe(sha256(Buffer.from(`{"hello":1}`)));
+  });
+
+  test("verifyArtifactChecksum validates large artifacts without returning their bytes", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "study-lib-stream-"));
+    const artifact = join(dir, "artifact.json");
+    const bytes = Buffer.from(`{"hello":"stream"}\n`);
+    writeFileSync(artifact, bytes);
+    writeFileSync(`${artifact}.sha256`, `${sha256(bytes)}  artifact.json\n`);
+
+    await expect(verifyArtifactChecksum(artifact)).resolves.toBe(sha256(bytes));
+    writeFileSync(artifact, Buffer.from(`{"hello":"changed"}\n`));
+    await expect(verifyArtifactChecksum(artifact)).rejects.toThrow(/checksum mismatch/);
   });
 
   test("assertKnobOnlyDelta accepts exactly one knob and rejects extras", () => {

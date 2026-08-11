@@ -9,7 +9,10 @@ import {
   readGridArm,
   type GridArm,
 } from "../../benchmark/paired_grid.ts";
-import { readVerifiedArtifact } from "../../benchmark/study_lib.ts";
+import {
+  readVerifiedArtifact,
+  verifyArtifactChecksum,
+} from "../../benchmark/study_lib.ts";
 import { pairedScaleMechanics } from "../../benchmark/analyze_scale_mechanics.ts";
 import {
   createCompilerSnapshot,
@@ -262,7 +265,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
     if (run.workerFailures > 0) {
       throw new Error(`${run.workerFailures} scale candidate worker failure(s); archive and checkpoint retained`);
     }
-    const artifact = compareScaleArchives(
+    const artifact = await compareScaleArchives(
       baseline,
       baselinePath,
       candidatePath,
@@ -287,9 +290,9 @@ async function runScaleCompare(argv: string[]): Promise<number> {
   const baseline = readScaleBaseline(baselinePath);
   const profile = loadMultiBudgetProfile(DEFAULT_PROFILE);
   assertBaselineProfile(baseline, profile);
-  const candidateArchive = readGridArm("candidate", candidatePath).archive;
+  const candidateArchive = readGridArm("candidate", scaleAnalysisPath(candidatePath)).archive;
   const depth = Array.isArray(candidateArchive.seeds) ? candidateArchive.seeds.length : 0;
-  const artifact = compareScaleArchives(
+  const artifact = await compareScaleArchives(
     baseline,
     baselinePath,
     candidatePath,
@@ -302,17 +305,18 @@ async function runScaleCompare(argv: string[]): Promise<number> {
   return 0;
 }
 
-function compareScaleArchives(
+async function compareScaleArchives(
   baseline: MultiBudgetBaseline,
   baselinePath: string,
   candidatePath: string,
   profile: LoadedMultiBudgetProfile,
   depth: number,
   snapshot: CompilerSnapshot | null,
-): Record<string, unknown> {
+): Promise<Record<string, unknown>> {
   const expectedSeeds = multiBudgetSeeds(profile.profile, depth);
   const reference = readGridArm("reference", baseline.archive.path);
-  const candidate = readGridArm("candidate", candidatePath);
+  const candidateReadPath = scaleAnalysisPath(candidatePath);
+  const candidate = readGridArm("candidate", candidateReadPath);
   assertArchiveProfile(reference.archive, profile);
   assertArchiveProfile(candidate.archive, profile);
   assertMultiBudgetExecutionScope(profile.profile, reference.archive.budgets, reference.archive.seeds);
@@ -342,8 +346,14 @@ function compareScaleArchives(
     )),
     candidate.archive.runs,
   );
-  const candidateBytes = readVerifiedArtifact(resolve(candidatePath));
-  const baselineBytes = readVerifiedArtifact(resolve(baseline.archive.path));
+  const candidateSha256 = await verifyArtifactChecksum(resolve(candidatePath));
+  if (candidateReadPath !== candidatePath) {
+    const projection = candidate.archive.analysisProjection;
+    if (projection?.schema !== "line.benchmark-v2.scale-analysis-projection.v1" ||
+        projection.fullArchiveSha256 !== candidateSha256) {
+      throw new Error(`candidate scale analysis projection does not match its full archive`);
+    }
+  }
   return {
     schema: MULTI_BUDGET_COMPARISON_SCHEMA,
     generatedAt: new Date().toISOString(),
@@ -365,12 +375,12 @@ function compareScaleArchives(
       manifestPath: relativeToCwd(baselinePath),
       label: baseline.label,
       archivePath: baseline.archive.path,
-      archiveSha256: baselineBytes.artifactSha256,
+      archiveSha256: baseline.archive.sha256,
       compilerSnapshot: baseline.compilerSnapshot,
     },
     candidate: {
       archivePath: relativeToCwd(candidatePath),
-      archiveSha256: candidateBytes.artifactSha256,
+      archiveSha256: candidateSha256,
       compilerSnapshot: snapshot,
       identity: candidate.archive.candidate,
       intervention: candidate.archive.nCandPolicy !== undefined
@@ -603,6 +613,11 @@ function writeJsonArtifact(path: string, value: unknown): void {
 
 function siblingPath(path: string, suffix: string): string {
   return path.endsWith(".json") ? `${path.slice(0, -5)}${suffix}` : `${path}${suffix}`;
+}
+
+function scaleAnalysisPath(path: string): string {
+  const projected = siblingPath(path, ".analysis.json");
+  return existsSync(projected) ? projected : path;
 }
 
 function timestamp(): string {

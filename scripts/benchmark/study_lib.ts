@@ -9,7 +9,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { COMPILER_IDENTITY_PROTOCOL } from "../../benchmark/v2/decision-policy.ts";
 import { scoreV2Report, type AxisContract } from "../v0/benchmark_v2/evaluator.ts";
@@ -36,19 +36,33 @@ export function readVerifiedArtifact(path: string): VerifiedArtifact {
   // Compile archives carry `<path>.sha256` sidecars; byte-stable study
   // artifacts carry `<stem>.provenance.json` sidecars whose artifactSha256
   // pins the same bytes. Either form is an acceptable checksum witness.
+  const expected = expectedArtifactSha256(path);
+  const artifact = readFileSync(path);
+  const artifactSha256 = sha256(artifact);
+  if (artifactSha256 !== expected) throw new Error(`${path}: artifact checksum mismatch`);
+  const bytes = path.endsWith(".gz") ? gunzipSync(artifact) : artifact;
+  return { path, bytes, artifactSha256, rawSha256: sha256(bytes) };
+}
+
+/** Verify a retained artifact without holding its bytes in memory. */
+export async function verifyArtifactChecksum(path: string): Promise<string> {
+  const expected = expectedArtifactSha256(path);
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(path)) hash.update(chunk);
+  const actual = hash.digest("hex");
+  if (actual !== expected) throw new Error(`${path}: artifact checksum mismatch`);
+  return actual;
+}
+
+function expectedArtifactSha256(path: string): string {
   const shaSidecar = `${path}.sha256`;
   const provenanceSidecar = `${path.replace(/\.json(\.gz)?$/, "")}.provenance.json`;
   if (!existsSync(path) || (!existsSync(shaSidecar) && !existsSync(provenanceSidecar))) {
     throw new Error(`${path}: retained artifact and checksum sidecar are required`);
   }
-  const artifact = readFileSync(path);
-  const artifactSha256 = sha256(artifact);
-  const expected = existsSync(shaSidecar)
+  return existsSync(shaSidecar)
     ? readFileSync(shaSidecar, "utf8").trim().split(/\s+/)[0]
     : JSON.parse(readFileSync(provenanceSidecar, "utf8")).artifactSha256;
-  if (artifactSha256 !== expected) throw new Error(`${path}: artifact checksum mismatch`);
-  const bytes = path.endsWith(".gz") ? gunzipSync(artifact) : artifact;
-  return { path, bytes, artifactSha256, rawSha256: sha256(bytes) };
 }
 
 export function verifyScaleStudyArchive(

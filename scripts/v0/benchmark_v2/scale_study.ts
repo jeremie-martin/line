@@ -1,9 +1,19 @@
 import { createHash } from "node:crypto";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { once } from "node:events";
+import {
+  appendFileSync,
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+} from "node:fs";
 import { arch, availableParallelism, platform } from "node:os";
 import { dirname, resolve } from "node:path";
+import { createInterface } from "node:readline";
+import { finished } from "node:stream/promises";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
-import { gzipSync } from "node:zlib";
+import { createGzip } from "node:zlib";
 import { applyJolt } from "../../produce/seed.ts";
 import { compilerWorkerTimeoutMs } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
@@ -170,7 +180,7 @@ async function main(): Promise<void> {
   };
   const planFingerprint = studyPlanFingerprint(planInput);
   mkdirSync(dirname(outputPath), { recursive: true });
-  const imported = importCheckpointPath === undefined ? [] : importCheckpoint(
+  const imported = importCheckpointPath === undefined ? [] : await importCheckpoint(
     importCheckpointPath,
     studyPlanFingerprint({
       ...planInput,
@@ -179,7 +189,7 @@ async function main(): Promise<void> {
     }),
     new Set(tasks.map(taskKey)),
   );
-  const restored = loadOrInitializeCheckpoint(
+  const restored = await loadOrInitializeCheckpoint(
     checkpointPath,
     planFingerprint,
     hasFlag("resume"),
@@ -287,12 +297,25 @@ async function main(): Promise<void> {
     summaries,
     runs: scored,
   };
-  const reportBytes = Buffer.from(`${JSON.stringify(report, null, 2)}\n`);
-  writeFileSync(outputPath, reportBytes);
-  const compressedBytes = gzipSync(reportBytes, { level: 9 });
-  writeFileSync(`${outputPath}.gz`, compressedBytes);
-  writeFileSync(`${outputPath}.sha256`, `${createHash("sha256").update(reportBytes).digest("hex")}  ${relative(outputPath)}\n`);
-  writeFileSync(`${outputPath}.gz.sha256`, `${createHash("sha256").update(compressedBytes).digest("hex")}  ${relative(`${outputPath}.gz`)}\n`);
+  const fullArchive = await writeScaleReportStreaming(outputPath, report);
+  const analysisPath = outputPath.endsWith(".json")
+    ? outputPath.slice(0, -".json".length) + ".analysis.json"
+    : `${outputPath}.analysis.json`;
+  await writeScaleReportStreaming(analysisPath, {
+    ...report,
+    analysisProjection: {
+      schema: "line.benchmark-v2.scale-analysis-projection.v1",
+      fullArchivePath: relative(outputPath),
+      fullArchiveSha256: fullArchive.rawSha256,
+      omitted: [
+        "raw drift report",
+        "compile stats",
+        "repair considered-target observations",
+        "repair track-identity hashes",
+      ],
+    },
+    runs: scored.map(scaleAnalysisRun),
+  });
   for (const summary of summaries) {
     const invalid = scored.filter((row) => row.task.budget === summary.budget && !row.score.valid)
       .map((row) => row.task.sourceId);
@@ -302,42 +325,157 @@ async function main(): Promise<void> {
   console.log(`  output ${relative(outputPath)}`);
 }
 
-function loadOrInitializeCheckpoint(
+async function loadOrInitializeCheckpoint(
   path: string,
   planFingerprint: string,
   resume: boolean,
   imported: StudyWorkerResult[],
-): StudyWorkerResult[] {
+): Promise<StudyWorkerResult[]> {
   mkdirSync(dirname(path), { recursive: true });
   if (!resume || !existsSync(path)) {
     writeFileSync(path, `${JSON.stringify({ schema: STUDY_CHECKPOINT_SCHEMA, planFingerprint })}\n`);
     for (const result of imported) appendFileSync(path, `${JSON.stringify({ type: "result", result })}\n`);
     return imported;
   }
-  const lines = readFileSync(path, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line));
-  if (lines[0]?.schema !== STUDY_CHECKPOINT_SCHEMA || lines[0].planFingerprint !== planFingerprint) {
-    throw new Error(`study checkpoint does not match the current catalog, compiler, budgets, and seeds`);
-  }
-  const results = lines.slice(1)
-    .filter((entry) => entry.type === "result")
-    .map((row) => row.result as StudyWorkerResult);
-  return latestSuccessfulResults(results, (result) => taskKey(result.task));
+  return loadCheckpointResults(path, planFingerprint);
 }
 
-function importCheckpoint(
+async function importCheckpoint(
   path: string,
   expectedPlanFingerprint: string,
   targetKeys: Set<string>,
-): StudyWorkerResult[] {
-  const lines = readFileSync(path, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line));
-  if (lines[0]?.schema !== STUDY_CHECKPOINT_SCHEMA || lines[0].planFingerprint !== expectedPlanFingerprint) {
-    throw new Error(`import checkpoint does not match the declared source plan and current suite/compiler`);
-  }
-  const imported = lines.slice(1)
-    .filter((row) => row.type === "result")
-    .map((row) => row.result as StudyWorkerResult)
+): Promise<StudyWorkerResult[]> {
+  const imported = (await loadCheckpointResults(path, expectedPlanFingerprint))
     .filter((result) => targetKeys.has(taskKey(result.task)));
-  return latestSuccessfulResults(imported, (result) => taskKey(result.task));
+  return imported;
+}
+
+async function loadCheckpointResults(
+  path: string,
+  expectedPlanFingerprint: string,
+): Promise<StudyWorkerResult[]> {
+  const results: StudyWorkerResult[] = [];
+  const lines = createInterface({
+    input: createReadStream(path, { encoding: "utf8" }),
+    crlfDelay: Infinity,
+  });
+  let headerSeen = false;
+  for await (const line of lines) {
+    if (line === "") continue;
+    const entry = JSON.parse(line);
+    if (!headerSeen) {
+      headerSeen = true;
+      if (entry?.schema !== STUDY_CHECKPOINT_SCHEMA ||
+          entry.planFingerprint !== expectedPlanFingerprint) {
+        throw new Error(`study checkpoint does not match the current catalog, compiler, budgets, and seeds`);
+      }
+      continue;
+    }
+    if (entry?.type === "result") results.push(entry.result as StudyWorkerResult);
+  }
+  if (!headerSeen) {
+    throw new Error(`study checkpoint does not match the current catalog, compiler, budgets, and seeds`);
+  }
+  return latestSuccessfulResults(results, (result) => taskKey(result.task));
+}
+
+/** Write the large run array incrementally. V8 strings have a ~512 MiB limit,
+ * so a telemetry-rich 16-seed scale archive cannot pass through one
+ * JSON.stringify(report) call even when the process has ample free memory. */
+async function writeScaleReportStreaming(
+  outputPath: string,
+  report: Record<string, unknown> & { runs: unknown[] },
+): Promise<{ rawSha256: string; compressedSha256: string }> {
+  const compressedPath = `${outputPath}.gz`;
+  const rawOutput = createWriteStream(outputPath, { flags: "w" });
+  const compressedOutput = createWriteStream(compressedPath, { flags: "w" });
+  const gzip = createGzip({ level: 9 });
+  const rawHash = createHash("sha256");
+  const compressedHash = createHash("sha256");
+  gzip.on("data", (chunk: Buffer) => compressedHash.update(chunk));
+  gzip.pipe(compressedOutput);
+  const write = async (text: string): Promise<void> => {
+    const bytes = Buffer.from(text);
+    rawHash.update(bytes);
+    if (!rawOutput.write(bytes)) await once(rawOutput, "drain");
+    if (!gzip.write(bytes)) await once(gzip, "drain");
+  };
+  try {
+    const { runs, ...metadata } = report;
+    const metadataJson = JSON.stringify(metadata, null, 2);
+    if (!metadataJson.endsWith("\n}")) throw new Error("scale report metadata is not an object");
+    await write(`${metadataJson.slice(0, -2)},\n  "runs": [\n`);
+    for (let index = 0; index < runs.length; index++) {
+      const row = JSON.stringify(runs[index], null, 2)
+        .split("\n")
+        .map((line) => `    ${line}`)
+        .join("\n");
+      await write(`${index === 0 ? "" : ",\n"}${row}`);
+    }
+    await write("\n  ]\n}\n");
+    rawOutput.end();
+    gzip.end();
+    await Promise.all([finished(rawOutput), finished(gzip), finished(compressedOutput)]);
+  } catch (error) {
+    rawOutput.destroy();
+    gzip.destroy();
+    compressedOutput.destroy();
+    throw error;
+  }
+  const rawSha256 = rawHash.digest("hex");
+  const compressedSha256 = compressedHash.digest("hex");
+  writeFileSync(
+    `${outputPath}.sha256`,
+    `${rawSha256}  ${relative(outputPath)}\n`,
+  );
+  writeFileSync(
+    `${compressedPath}.sha256`,
+    `${compressedSha256}  ${relative(compressedPath)}\n`,
+  );
+  return { rawSha256, compressedSha256 };
+}
+
+function scaleAnalysisRun(row: any): Record<string, unknown> {
+  const {
+    report: _report,
+    stats: _stats,
+    authoredContacts: _authoredContacts,
+    phaseResults: _phaseResults,
+    budgetTelemetry,
+    ...core
+  } = row;
+  return {
+    ...core,
+    budgetTelemetry: budgetTelemetry === null || budgetTelemetry === undefined
+      ? null
+      : {
+        ...budgetTelemetry,
+        episodes: budgetTelemetry.episodes.map((episode: any) => {
+          const decision = episode.repair_decision;
+          const outcome = episode.outcome;
+          return {
+            ...episode,
+            repair_decision: decision === null
+              ? null
+              : (() => {
+                const {
+                  considered_targets: _consideredTargets,
+                  incumbent_track_hash: _incumbentTrackHash,
+                  ...compactDecision
+                } = decision;
+                return compactDecision;
+              })(),
+            outcome: (() => {
+              const {
+                terminal_offer_track_hash: _terminalOfferTrackHash,
+                ...compactOutcome
+              } = outcome;
+              return compactOutcome;
+            })(),
+          };
+        }),
+      },
+  };
 }
 
 function studyPlanFingerprint(input: {

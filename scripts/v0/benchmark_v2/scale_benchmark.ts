@@ -12,6 +12,7 @@ import {
 import {
   readVerifiedArtifact,
   verifyArtifactChecksum,
+  verifyArtifactChecksumSync,
 } from "../../benchmark/study_lib.ts";
 import { pairedScaleMechanics } from "../../benchmark/analyze_scale_mechanics.ts";
 import {
@@ -540,12 +541,21 @@ function readScaleBaseline(path: string): MultiBudgetBaseline {
     baseline.compilerSnapshot?.schema !== "line.benchmark-v2.compiler-snapshot.v1"
   ) throw new Error(`${path}: unsupported or incomplete multi-budget baseline`);
   validateCompilerSnapshot(baseline.compilerSnapshot);
-  const archive = readVerifiedArtifact(resolve(baseline.archive.path));
-  if (archive.artifactSha256 !== baseline.archive.sha256) {
+  const archivePath = resolve(baseline.archive.path);
+  const archiveSha256 = verifyArtifactChecksumSync(archivePath);
+  if (archiveSha256 !== baseline.archive.sha256) {
     throw new Error(`${path}: baseline archive checksum does not match its manifest`);
   }
-  const archiveValue = JSON.parse(archive.bytes.toString("utf8"));
+  const projectionPath = scaleAnalysisPath(archivePath);
+  if (projectionPath === archivePath) {
+    throw new Error(`${path}: baseline archive requires its checksummed analysis projection`);
+  }
+  const projection = readVerifiedArtifact(projectionPath);
+  const archiveValue = JSON.parse(projection.bytes.toString("utf8"));
   if (
+    archiveValue.analysisProjection?.schema !==
+      "line.benchmark-v2.scale-analysis-projection.v1" ||
+    archiveValue.analysisProjection?.fullArchiveSha256 !== archiveSha256 ||
     JSON.stringify(archiveValue.budgets) !== JSON.stringify(baseline.scope.budgets) ||
     JSON.stringify(archiveValue.seeds) !== JSON.stringify(baseline.scope.seeds)
   ) throw new Error(`${path}: baseline manifest and archive disagree on scope or repair policy`);

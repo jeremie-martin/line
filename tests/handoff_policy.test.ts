@@ -9,7 +9,9 @@ import {
   hasStartFeasibilityLookahead,
   impactRepairInsuranceMode,
   impactResponseAdmissionMode,
+  prioritizeRepairTargetOptions,
   repairRestartCeilingFrames,
+  repairSuffixSearchPolicy,
   selectAffordableRepairTarget,
   selectRepairRestart,
   spliceRepairCostToEnd,
@@ -772,6 +774,63 @@ describe("repair target selection", () => {
     { gapIndex: 2, sse: 10 },
     { gapIndex: 3, sse: 10 },
   ];
+
+  test("target-aware suffix ordering can stay within the ordinary top three", () => {
+    const a = { id: "a", sse: 5 };
+    const b = { id: "b", sse: 2 };
+    const c = { id: "c", sse: 4 };
+    const outside = { id: "outside", sse: 1 };
+    const result = prioritizeRepairTargetOptions(
+      [a, b, c],
+      [a, b, c, outside],
+      "target_top_three_first",
+      (option) => option.sse,
+    );
+    expect(result.options).toEqual([b, a, c]);
+    expect(result).toMatchObject({ ordinaryFirstSse: 5, chosenSse: 2, promoted: false });
+  });
+
+  test("eligible target ordering promotes one evaluated local specialist without widening", () => {
+    const a = { id: "a", sse: 5 };
+    const b = { id: "b", sse: 2 };
+    const c = { id: "c", sse: 4 };
+    const outside = { id: "outside", sse: 1 };
+    const result = prioritizeRepairTargetOptions(
+      [a, b, c],
+      [a, b, c, outside],
+      "target_eligible_first",
+      (option) => option.sse,
+    );
+    expect(result.options).toEqual([outside, a, b]);
+    expect(result.options).toHaveLength(3);
+    expect(result).toMatchObject({ ordinaryFirstSse: 5, chosenSse: 1, promoted: true });
+  });
+
+  test("ordinary suffix ordering is byte-order preserving", () => {
+    const selected = [{ sse: 5 }, { sse: 2 }, { sse: 1 }];
+    expect(prioritizeRepairTargetOptions(
+      selected,
+      selected,
+      "ordinary",
+      (option) => option.sse,
+    ).options).toEqual(selected);
+  });
+
+  test("suffix search policy rejects undeclared study values", () => {
+    const previous = process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY;
+    try {
+      process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY = "mystery";
+      beginEnvFlagEpoch();
+      expect(() => repairSuffixSearchPolicy()).toThrow(/must be ordinary/);
+      process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY = "target-top-three-first";
+      beginEnvFlagEpoch();
+      expect(repairSuffixSearchPolicy()).toBe("target_top_three_first");
+    } finally {
+      if (previous === undefined) delete process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY;
+      else process.env.LR_REPAIR_SUFFIX_SEARCH_POLICY = previous;
+      beginEnvFlagEpoch();
+    }
+  });
 
   test("ranks weakness among targets with an affordable anchor", () => {
     expect(selectAffordableRepairTarget(

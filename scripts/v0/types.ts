@@ -995,6 +995,21 @@ export type CompileStats = {
     displaced_score_delta_sum: number;
   };
 
+  /** Study arm: branch ordering at the independently selected repair target. */
+  repair_target_search?: {
+    policy: "target_top_three_first" | "target_eligible_first";
+    target_pools: number;
+    eligible_options: number;
+    ordinary_selected_options: number;
+    already_first: number;
+    reordered: number;
+    promoted_from_outside_top_three: number;
+    ordinary_first_sse_sum: number;
+    chosen_first_sse_sum: number;
+    local_sse_gain_sum: number;
+    forward_score_debt_sum: number;
+  };
+
   /** Default-off exact or learned screen for a locally better impact branch. */
   impact_response_admission?: {
     eligible_pools: number;

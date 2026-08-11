@@ -447,6 +447,25 @@ type RankedOption = {
   forwardContinuation?: boolean;
 };
 
+export type RepairSuffixSearchPolicy =
+  | "ordinary"
+  | "target_top_three_first"
+  | "target_eligible_first";
+
+type RepairTargetSearchTotals = {
+  policy: RepairSuffixSearchPolicy;
+  targetPools: number;
+  eligibleOptions: number;
+  ordinarySelectedOptions: number;
+  alreadyFirst: number;
+  reordered: number;
+  promotedFromOutsideTopThree: number;
+  ordinaryFirstSseSum: number;
+  chosenFirstSseSum: number;
+  localSseGainSum: number;
+  forwardScoreDebtSum: number;
+};
+
 export type HandoffPoolProbeCandidate = {
   qualityRank: number;
   lineLength: number;
@@ -2163,6 +2182,7 @@ function compileHandoffInternal(
     // the live incumbent HandoffNode (updated on every register improvement) so repair can
     // replay its fits to reconstruct any prefix node for free (extendNodeCached memoizes).
     const repair = repairConfig();
+    repairTargetSearchTotals = emptyRepairTargetSearchTotals(repair.suffixSearchPolicy);
     const repairEnabled = repairBudgetLimit >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
     let incumbentRevision = 0;
@@ -2534,6 +2554,7 @@ function compileHandoffInternal(
           ...(impactRepairInsuranceStats !== null
             ? { impact_repair_insurance: impactRepairInsuranceStats }
             : {}),
+          ...snapshotRepairTargetSearchStats(),
           ...(kinematicSupportStats !== null ? { kinematic_support: kinematicSupportStats } : {}),
           // Geometric-exit release-read funnel (core/candidate.ts): the
           // fallback-rate monitor. Absent under LR_RANK_QUALITY=off (no read
@@ -3042,12 +3063,14 @@ function compileHandoffInternal(
           reachFrames: new WeakMap<SearchNode, number>(),
         };
         repairLaneActive = true;
+        activeRepairTargetGapIndex = kWorst;
         setAimRepairLaneActive(true);
         setImpactCarrierRippleRepairActive(true);
         try {
           runFrontierFrom(prefixNode, ceiling, terminalsBefore + 1);
         } finally {
           repairLaneActive = false;
+          activeRepairTargetGapIndex = null;
           setAimRepairLaneActive(false);
           setImpactCarrierRippleRepairActive(false);
           activeRepairProfile = null;
@@ -5535,6 +5558,7 @@ function rankedOptionsAtDeadlinePressure(
         .slice(0, HANDOFF_BRANCHING - 1),
       kinematic[0],
     ];
+  selected = applyRepairTargetSearchPolicy(selected, eligible, gap, ctx);
   if (impactRepairInsuranceMode() !== null && repairLaneActive) {
     impactRepairInsuranceTotals.eligible_pools++;
     if (kinematic.length > 0) {
@@ -7743,10 +7767,155 @@ function postCompletionDeadlineScope(): PostCompletionDeadlineScope {
  * the same run.
  */
 let repairLaneActive = false;
+let activeRepairTargetGapIndex: number | null = null;
+
+const readRepairSuffixSearchPolicy = compileScopedEnv("LR_REPAIR_SUFFIX_SEARCH_POLICY");
+let repairTargetSearchTotals: RepairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");
 
 registerCompileReset(() => {
   repairLaneActive = false;
+  activeRepairTargetGapIndex = null;
+  repairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");
 });
+
+function emptyRepairTargetSearchTotals(
+  policy: RepairSuffixSearchPolicy,
+): RepairTargetSearchTotals {
+  return {
+    policy,
+    targetPools: 0,
+    eligibleOptions: 0,
+    ordinarySelectedOptions: 0,
+    alreadyFirst: 0,
+    reordered: 0,
+    promotedFromOutsideTopThree: 0,
+    ordinaryFirstSseSum: 0,
+    chosenFirstSseSum: 0,
+    localSseGainSum: 0,
+    forwardScoreDebtSum: 0,
+  };
+}
+
+export function repairSuffixSearchPolicy(): RepairSuffixSearchPolicy {
+  const raw = readRepairSuffixSearchPolicy();
+  if (raw === undefined || raw === "" || raw === "ordinary") return "ordinary";
+  if (raw === "target-top-three-first") return "target_top_three_first";
+  if (raw === "target-eligible-first") return "target_eligible_first";
+  throw new Error(
+    `LR_REPAIR_SUFFIX_SEARCH_POLICY must be ordinary, target-top-three-first, or ` +
+      `target-eligible-first; got "${raw}"`,
+  );
+}
+
+/**
+ * Reorder one already-evaluated branch population at the selected repair target.
+ * No candidate is generated and branch width is unchanged.  The conservative law
+ * chooses among the ordinary top three; the broader law may promote one option
+ * from the full eligible set and then retains the other ordinary branches.
+ */
+export function prioritizeRepairTargetOptions<T>(
+  selected: readonly T[],
+  eligible: readonly T[],
+  policy: RepairSuffixSearchPolicy,
+  localSse: (option: T) => number | null,
+): { options: T[]; chosenSse: number | null; ordinaryFirstSse: number | null; promoted: boolean } {
+  const ordinary = [...selected];
+  const ordinaryFirstSse = ordinary.length === 0 ? null : localSse(ordinary[0]!);
+  if (policy === "ordinary" || ordinary.length === 0) {
+    return { options: ordinary, chosenSse: ordinaryFirstSse, ordinaryFirstSse, promoted: false };
+  }
+  const universe = policy === "target_top_three_first" ? ordinary : [...eligible];
+  const ranked = universe.flatMap((option, index) => {
+    const sse = localSse(option);
+    return sse === null || !Number.isFinite(sse) ? [] : [{ option, index, sse }];
+  }).sort((a, b) => a.sse - b.sse || a.index - b.index);
+  const best = ranked[0];
+  if (best === undefined) {
+    return { options: ordinary, chosenSse: ordinaryFirstSse, ordinaryFirstSse, promoted: false };
+  }
+  const promoted = !ordinary.includes(best.option);
+  return {
+    options: [best.option, ...ordinary.filter((option) => option !== best.option)]
+      .slice(0, ordinary.length),
+    chosenSse: best.sse,
+    ordinaryFirstSse,
+    promoted,
+  };
+}
+
+function repairOptionGapSse(
+  option: RankedOption,
+  gap: Gap,
+  ctx: SpecContext,
+): number | null {
+  if (option.candidate === null) return null;
+  const errors = axisErrorsForTargets(
+    ctx.gapAxisTargets?.[gap.index] ?? gap.targets,
+    settledIncomingAxes(option.candidate),
+  ).filter(Number.isFinite);
+  return errors.length === 0 ? null : errors.reduce((sum, error) => sum + error * error, 0);
+}
+
+function applyRepairTargetSearchPolicy(
+  selected: RankedOption[],
+  eligible: RankedOption[],
+  gap: Gap,
+  ctx: SpecContext,
+): RankedOption[] {
+  const policy = repairTargetSearchTotals.policy;
+  if (
+    policy === "ordinary" || !repairLaneActive ||
+    activeRepairTargetGapIndex === null || gap.index !== activeRepairTargetGapIndex
+  ) return selected;
+  const result = prioritizeRepairTargetOptions(
+    selected,
+    eligible,
+    policy,
+    (option) => repairOptionGapSse(option, gap, ctx),
+  );
+  repairTargetSearchTotals.targetPools++;
+  repairTargetSearchTotals.eligibleOptions += eligible.length;
+  repairTargetSearchTotals.ordinarySelectedOptions += selected.length;
+  if (result.ordinaryFirstSse !== null) {
+    repairTargetSearchTotals.ordinaryFirstSseSum += result.ordinaryFirstSse;
+  }
+  if (result.chosenSse !== null) {
+    repairTargetSearchTotals.chosenFirstSseSum += result.chosenSse;
+  }
+  const ordinaryFirst = selected[0];
+  const chosen = result.options[0];
+  if (ordinaryFirst === chosen) {
+    repairTargetSearchTotals.alreadyFirst++;
+  } else if (ordinaryFirst !== undefined && chosen !== undefined) {
+    repairTargetSearchTotals.reordered++;
+    if (result.promoted) repairTargetSearchTotals.promotedFromOutsideTopThree++;
+    if (result.ordinaryFirstSse !== null && result.chosenSse !== null) {
+      repairTargetSearchTotals.localSseGainSum += result.ordinaryFirstSse - result.chosenSse;
+    }
+    repairTargetSearchTotals.forwardScoreDebtSum += Math.max(0, chosen.score - ordinaryFirst.score);
+  }
+  return result.options;
+}
+
+function snapshotRepairTargetSearchStats(): Pick<CompileStats, "repair_target_search"> | Record<string, never> {
+  const totals = repairTargetSearchTotals;
+  if (totals.policy === "ordinary") return {};
+  return {
+    repair_target_search: {
+      policy: totals.policy,
+      target_pools: totals.targetPools,
+      eligible_options: totals.eligibleOptions,
+      ordinary_selected_options: totals.ordinarySelectedOptions,
+      already_first: totals.alreadyFirst,
+      reordered: totals.reordered,
+      promoted_from_outside_top_three: totals.promotedFromOutsideTopThree,
+      ordinary_first_sse_sum: totals.ordinaryFirstSseSum,
+      chosen_first_sse_sum: totals.chosenFirstSseSum,
+      local_sse_gain_sum: totals.localSseGainSum,
+      forward_score_debt_sum: totals.forwardScoreDebtSum,
+    },
+  };
+}
 
 /**
  * The head ramp's post-completion phase weight at THIS pool build.
@@ -8090,6 +8259,7 @@ type RepairConfig = {
   maxParentDepth: number;
   headroomFraction: number;
   selectionPolicy: RepairSelectionPolicy;
+  suffixSearchPolicy: RepairSuffixSearchPolicy;
 };
 /** Repair takes over at the first completion, not after a margin past it.
  *  Bracketed N=8 against `scarce-lean`: 1.0 +0.28 (SE 0.14), 1.1 shipped,
@@ -8142,6 +8312,7 @@ function repairConfig(): RepairConfig {
         : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-local-window-opportunity"
           ? "max_local_window_opportunity"
           : "worst_gap_deepest_affordable",
+    suffixSearchPolicy: repairSuffixSearchPolicy(),
   };
 }
 

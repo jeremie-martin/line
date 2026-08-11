@@ -123,6 +123,33 @@ Why later: current selection telemetry cannot predict this intervention. It
 changes search ordering, not only allocation, and requires new telemetry that
 separates target-local progress from eventual global adoption.
 
+The first executed bracket keeps every accepted controller invariant and adds
+no candidate, simulation, branch, or tuning constant:
+
+- `target-top-three-first` reorders only the ordinary three selected branches
+  at the chosen target gap by exact authored-axis SSE;
+- `target-eligible-first` may promote the minimum-SSE option from the already
+  evaluated eligible pool, then retains the other ordinary branches at the
+  unchanged width of three.
+
+Both laws act only once the repair traversal reaches its independently selected
+target. They do not alter the anchor, budget ceiling, proposal stream, ordinary
+ranking at any other gap, or the global register. Compile statistics record the
+number of target pools, reorders, outside-top-three promotions, exact local SSE
+gain, and forward-score debt. The declared study controls are
+`LR_REPAIR_SUFFIX_SEARCH_POLICY=target-top-three-first` and
+`LR_REPAIR_SUFFIX_SEARCH_POLICY=target-eligible-first`; production remains
+`ordinary`.
+
+The causal question is narrow. In the accepted depth-six N=8 evidence, only
+39.4% of all terminal alternatives improve the selected gap, while 87.4% of
+accepted alternatives do. If target alignment is limiting repair, either arm
+should raise selected-gap improvement and accepted gain without changing first
+terminal work. If global forward ordering is load-bearing, the recorded
+forward-score debt will instead predict weaker terminals. The two arms separate
+whether useful target specialists already sit in the top three from whether
+the ordinary pool admission boundary is the limiting factor.
+
 ### 5. Adaptive value model
 
 Estimate expected accepted gain or probability of completion from anchor,

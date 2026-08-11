@@ -56,6 +56,7 @@
  * falls back to the structural suffix.
  */
 
+import { createHash } from "node:crypto";
 import { getRiderMetered, K_BOUNCE_LANDING } from "../../lib/detector.ts";
 import { beginEnvFlagEpoch, compileScopedEnv } from "../env_flags.ts";
 import { makeRng } from "../../lib/rng.ts";
@@ -167,6 +168,7 @@ import {
   type BudgetRepairDecision,
   type BudgetRepairDivergence,
   type BudgetRepairGapState,
+  type BudgetRepairTargetObservation,
   type BudgetTelemetryLevel,
 } from "./budget_telemetry.ts";
 import {
@@ -2937,13 +2939,14 @@ function compileHandoffInternal(
           (_, gapIndex) => estCostUpperOf(gapIndex),
         );
         const incumbentEvaluation = evaluateCached(incumbent);
+        const targetCandidates = incumbentEvaluation.report.gaps
+          .filter((gapReport) => gaps[gapReport.gap_index]?.endsWithContact)
+          .map((gapReport) => ({
+            gapIndex: gapReport.gap_index,
+            sse: gapAxisSse(gapReport) ?? 0,
+          }));
         const target = selectAffordableRepairTarget(
-          incumbentEvaluation.report.gaps
-            .filter((gapReport) => gaps[gapReport.gap_index]?.endsWithContact)
-            .map((gapReport) => ({
-              gapIndex: gapReport.gap_index,
-              sse: gapAxisSse(gapReport) ?? 0,
-            })),
+          targetCandidates,
           upperCostByAnchor,
           remaining,
           repair.headroomFraction,
@@ -2986,6 +2989,7 @@ function compileHandoffInternal(
         const repairDecision: BudgetRepairDecision = {
           iteration_index: iterationIndex,
           incumbent_revision: incumbentRevision,
+          incumbent_track_hash: sha256Json(register.getBest()!.track),
           remaining_budget_frames: repairBudget - framesBefore,
           headroom_fraction: repair.headroomFraction,
           usable_budget_frames: target.usableBudgetFrames,
@@ -2997,6 +3001,14 @@ function compileHandoffInternal(
           estimated_anchor_cost_frames: estCost,
           estimated_anchor_cost_upper_frames: estCostUpper,
           anchor_cost_source: estCostSourceOf(k),
+          considered_targets: repairTargetObservations(
+            targetCandidates,
+            repair.parentDepth,
+            target.usableBudgetFrames,
+            estCostOf,
+            estCostUpperOf,
+            estCostSourceOf,
+          ),
         };
         const repairEpisodeId = budgetRecorder.startEpisode({
           lane: "repair",
@@ -6400,6 +6412,53 @@ export type AffordableRepairTarget = {
   usableBudgetFrames: number;
   affordableTargetGapIndices: number[];
 };
+
+function sha256Json(value: unknown): string {
+  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+}
+
+function repairTargetObservations(
+  candidates: readonly RepairTargetCandidate[],
+  parentDepth: number,
+  usableBudgetFrames: number,
+  pointCostOf: (anchorGapIndex: number) => number,
+  upperCostOf: (anchorGapIndex: number) => number,
+  sourceOf: (
+    anchorGapIndex: number,
+  ) => "measured_cost_to_end" | "per_gap_fallback",
+): BudgetRepairTargetObservation[] {
+  return candidates.map((candidate) => {
+    const anchorGapIndex = candidate.gapIndex - parentDepth;
+    if (anchorGapIndex < 0) {
+      return {
+        target_gap_index: candidate.gapIndex,
+        target_gap_sse: candidate.sse,
+        anchor_gap_index: anchorGapIndex,
+        estimated_anchor_cost_frames: null,
+        estimated_anchor_cost_upper_frames: null,
+        anchor_cost_source: null,
+        affordability: "anchor_before_start",
+      };
+    }
+    const point = pointCostOf(anchorGapIndex);
+    const upper = upperCostOf(anchorGapIndex);
+    const source = sourceOf(anchorGapIndex);
+    const hasCost = Number.isFinite(point) && point > 0 && Number.isFinite(upper) && upper > 0;
+    return {
+      target_gap_index: candidate.gapIndex,
+      target_gap_sse: candidate.sse,
+      anchor_gap_index: anchorGapIndex,
+      estimated_anchor_cost_frames: hasCost ? point : null,
+      estimated_anchor_cost_upper_frames: hasCost ? upper : null,
+      anchor_cost_source: hasCost ? source : null,
+      affordability: !hasCost
+        ? "no_positive_cost_estimate"
+        : upper <= usableBudgetFrames
+          ? "affordable"
+          : "exceeds_usable_budget",
+    };
+  });
+}
 
 /** Combine a newly observed repair suffix with the incumbent's measured prefix.
  * Prefix marginal work is preserved; suffix costs come only from the accepted

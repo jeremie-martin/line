@@ -7,6 +7,7 @@
  * enabling or disabling it does not change search order, RNG, or physics work.
  */
 
+import { createHash } from "node:crypto";
 import type { Gap } from "../types.ts";
 import type { TraversalBudgetModel } from "./budget_model.ts";
 import {
@@ -178,6 +179,8 @@ export type BudgetEpisodeWork = {
 export type BudgetRepairDecision = {
   iteration_index: number;
   incumbent_revision: number;
+  /** SHA-256 of JSON.stringify(incumbent.track) at this iteration's start. */
+  incumbent_track_hash: string;
   remaining_budget_frames: number;
   headroom_fraction: number;
   usable_budget_frames: number;
@@ -189,6 +192,22 @@ export type BudgetRepairDecision = {
   estimated_anchor_cost_frames: number;
   estimated_anchor_cost_upper_frames: number;
   anchor_cost_source: "measured_cost_to_end" | "per_gap_fallback";
+  /** Exact inputs needed to replay affordability and worst-eligible ranking. */
+  considered_targets: BudgetRepairTargetObservation[];
+};
+
+export type BudgetRepairTargetObservation = {
+  target_gap_index: number;
+  target_gap_sse: number;
+  anchor_gap_index: number;
+  estimated_anchor_cost_frames: number | null;
+  estimated_anchor_cost_upper_frames: number | null;
+  anchor_cost_source: "measured_cost_to_end" | "per_gap_fallback" | null;
+  affordability:
+    | "affordable"
+    | "anchor_before_start"
+    | "no_positive_cost_estimate"
+    | "exceeds_usable_budget";
 };
 
 export type BudgetRepairDivergence = {
@@ -271,6 +290,8 @@ export type BudgetEpisodeTelemetry = {
     repair_weak_gap_after: BudgetRepairGapState | null;
     /** Direct incumbent-vs-terminal arc-geometry comparison for repair. */
     repair_divergence: BudgetRepairDivergence | null;
+    /** SHA-256 of JSON.stringify(the repair terminal offer's track). */
+    terminal_offer_track_hash: string | null;
     /** True when no terminal cost was observed; such episodes are not estimator error samples. */
     terminal_observation_censored: boolean;
   };
@@ -509,6 +530,7 @@ export class CompileBudgetTelemetryRecorder {
         internal_full_score_delta: null,
         repair_weak_gap_after: null,
         repair_divergence: null,
+        terminal_offer_track_hash: null,
         terminal_observation_censored: true,
       },
       includeStartup: input.includeStartup,
@@ -593,6 +615,9 @@ export class CompileBudgetTelemetryRecorder {
           episode.work.distinct_terminal_tracks++;
         }
         this.compileTerminalTrackKeys.add(trackKey);
+        if (episode.lane === "repair") {
+          episode.outcome.terminal_offer_track_hash = sha256String(trackKey);
+        }
       }
     } else {
       episode.work.partial_node_evaluations++;
@@ -1099,7 +1124,15 @@ function cloneRegisterKey(key: BudgetInternalRegisterKey | null): BudgetInternal
 function cloneRepairDecision(decision: BudgetRepairDecision | null): BudgetRepairDecision | null {
   return decision === null
     ? null
-    : { ...decision, affordable_target_gap_indices: [...decision.affordable_target_gap_indices] };
+    : {
+      ...decision,
+      affordable_target_gap_indices: [...decision.affordable_target_gap_indices],
+      considered_targets: decision.considered_targets.map((candidate) => ({ ...candidate })),
+    };
+}
+
+function sha256String(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
 }
 
 function cloneRepairDivergence(
@@ -1262,6 +1295,7 @@ function validateTelemetryPayload(
       if (
         !Number.isInteger(decision.iteration_index) || decision.iteration_index < 0 ||
         !Number.isInteger(decision.incumbent_revision) || decision.incumbent_revision < 0 ||
+        !/^[a-f0-9]{64}$/.test(decision.incumbent_track_hash) ||
         !Number.isInteger(decision.remaining_budget_frames) || decision.remaining_budget_frames < 0 ||
         !(decision.headroom_fraction >= 0 && decision.headroom_fraction < 1) ||
         !Number.isInteger(decision.usable_budget_frames) || decision.usable_budget_frames < 0 ||
@@ -1282,6 +1316,56 @@ function validateTelemetryPayload(
         decision.estimated_anchor_cost_upper_frames > decision.usable_budget_frames
       ) {
         throw new Error(`budget telemetry episode ${index} repair decision is inconsistent`);
+      }
+      const observedGaps = new Set<number>();
+      for (const candidate of decision.considered_targets) {
+        const hasCost = candidate.estimated_anchor_cost_frames !== null &&
+          candidate.estimated_anchor_cost_upper_frames !== null &&
+          candidate.anchor_cost_source !== null;
+        if (
+          !Number.isInteger(candidate.target_gap_index) || candidate.target_gap_index < 0 ||
+          !(candidate.target_gap_sse >= 0) ||
+          !Number.isInteger(candidate.anchor_gap_index) ||
+          candidate.anchor_gap_index !== candidate.target_gap_index - decision.parent_depth ||
+          observedGaps.has(candidate.target_gap_index) ||
+          (candidate.anchor_gap_index < 0) !==
+            (candidate.affordability === "anchor_before_start") ||
+          (candidate.affordability === "anchor_before_start" && hasCost) ||
+          (candidate.affordability === "no_positive_cost_estimate" && hasCost) ||
+          (candidate.affordability === "affordable" &&
+            (!hasCost || candidate.estimated_anchor_cost_upper_frames! > decision.usable_budget_frames)) ||
+          (candidate.affordability === "exceeds_usable_budget" &&
+            (!hasCost || candidate.estimated_anchor_cost_upper_frames! <= decision.usable_budget_frames)) ||
+          (hasCost && (
+            !(candidate.estimated_anchor_cost_frames! > 0) ||
+            candidate.estimated_anchor_cost_upper_frames! < candidate.estimated_anchor_cost_frames!
+          ))
+        ) {
+          throw new Error(`budget telemetry episode ${index} repair candidate is inconsistent`);
+        }
+        observedGaps.add(candidate.target_gap_index);
+      }
+      const observedAffordable = decision.considered_targets
+        .filter((candidate) => candidate.affordability === "affordable")
+        .map((candidate) => candidate.target_gap_index)
+        .sort((a, b) => a - b);
+      if (JSON.stringify(observedAffordable) !== JSON.stringify(decision.affordable_target_gap_indices)) {
+        throw new Error(`budget telemetry episode ${index} affordable target accounting is open`);
+      }
+      const replayed = decision.considered_targets
+        .filter((candidate) => candidate.affordability === "affordable")
+        .sort((a, b) => b.target_gap_sse - a.target_gap_sse ||
+          a.target_gap_index - b.target_gap_index)[0];
+      if (
+        replayed === undefined ||
+        replayed.target_gap_index !== decision.target_gap_index ||
+        replayed.anchor_gap_index !== decision.anchor_gap_index ||
+        replayed.target_gap_sse !== decision.target_gap_sse ||
+        replayed.estimated_anchor_cost_frames !== decision.estimated_anchor_cost_frames ||
+        replayed.estimated_anchor_cost_upper_frames !== decision.estimated_anchor_cost_upper_frames ||
+        replayed.anchor_cost_source !== decision.anchor_cost_source
+      ) {
+        throw new Error(`budget telemetry episode ${index} repair selection is not replayable`);
       }
       if (work.terminal_node_evaluations > 1) {
         throw new Error(`budget telemetry episode ${index} repair evaluated more than one terminal`);
@@ -1316,6 +1400,20 @@ function validateTelemetryPayload(
       ) {
         throw new Error(`budget telemetry episode ${index} repair divergence is inconsistent`);
       }
+    }
+    if (episode.lane === "repair") {
+      const offerHash = episode.outcome.terminal_offer_track_hash;
+      if (
+        (offerHash === null) !== !episode.outcome.terminal_reached ||
+        (offerHash !== null && !/^[a-f0-9]{64}$/.test(offerHash)) ||
+        (episode.outcome.repair_divergence !== null && offerHash !== null &&
+          episode.outcome.repair_divergence.terminal_geometry_identical !==
+            (offerHash === episode.repair_decision!.incumbent_track_hash))
+      ) {
+        throw new Error(`budget telemetry episode ${index} repair track identity is inconsistent`);
+      }
+    } else if (episode.outcome.terminal_offer_track_hash !== null) {
+      throw new Error(`budget telemetry episode ${index} non-repair lane has a repair offer hash`);
     }
     if (
       (episode.outcome.first_register_improvement_offset_frames === null) !==

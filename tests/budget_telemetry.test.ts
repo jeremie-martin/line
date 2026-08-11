@@ -45,6 +45,7 @@ const TEST_MODEL = {
 const TEST_REPAIR_DECISION: BudgetRepairDecision = {
   iteration_index: 0,
   incumbent_revision: 0,
+  incumbent_track_hash: "a".repeat(64),
   remaining_budget_frames: 500,
   headroom_fraction: 0.2,
   usable_budget_frames: 400,
@@ -56,6 +57,15 @@ const TEST_REPAIR_DECISION: BudgetRepairDecision = {
   estimated_anchor_cost_frames: 200,
   estimated_anchor_cost_upper_frames: 300,
   anchor_cost_source: "measured_cost_to_end",
+  considered_targets: [{
+    target_gap_index: 2,
+    target_gap_sse: 0.25,
+    anchor_gap_index: 1,
+    estimated_anchor_cost_frames: 200,
+    estimated_anchor_cost_upper_frames: 300,
+    anchor_cost_source: "measured_cost_to_end",
+    affordability: "affordable",
+  }],
 };
 
 /**
@@ -499,6 +509,7 @@ describe("compile budget telemetry", () => {
       internal_full_score_delta: null,
       repair_weak_gap_after: null,
       repair_divergence: null,
+      terminal_offer_track_hash: null,
       terminal_observation_censored: false,
     });
     expect(recordedEpisode?.observations?.map((observation) => observation.event)).toEqual([
@@ -649,6 +660,15 @@ describe("compile budget telemetry", () => {
         affordable_target_gap_indices: [3],
         estimated_anchor_cost_frames: 20,
         estimated_anchor_cost_upper_frames: 30,
+        considered_targets: [{
+          target_gap_index: 3,
+          target_gap_sse: 0.1,
+          anchor_gap_index: 2,
+          estimated_anchor_cost_frames: 20,
+          estimated_anchor_cost_upper_frames: 30,
+          anchor_cost_source: "measured_cost_to_end",
+          affordability: "affordable",
+        }],
       },
     });
     recorder.endEpisode(50, "local_ceiling");
@@ -864,6 +884,27 @@ describe("compile budget telemetry", () => {
         episode.repair_decision!.target_gap_index,
       )
     )).toBe(true);
+    for (const repair of repairs) {
+      const decision = repair.repair_decision!;
+      const replayed = decision.considered_targets
+        .filter((candidate) => candidate.affordability === "affordable")
+        .sort((a, b) => b.target_gap_sse - a.target_gap_sse ||
+          a.target_gap_index - b.target_gap_index)[0];
+      expect(replayed).toMatchObject({
+        target_gap_index: decision.target_gap_index,
+        target_gap_sse: decision.target_gap_sse,
+        anchor_gap_index: decision.anchor_gap_index,
+        estimated_anchor_cost_frames: decision.estimated_anchor_cost_frames,
+        estimated_anchor_cost_upper_frames: decision.estimated_anchor_cost_upper_frames,
+        anchor_cost_source: decision.anchor_cost_source,
+      });
+      expect(decision.incumbent_track_hash).toMatch(/^[a-f0-9]{64}$/);
+      if (repair.outcome.terminal_reached) {
+        expect(repair.outcome.terminal_offer_track_hash).toMatch(/^[a-f0-9]{64}$/);
+      } else {
+        expect(repair.outcome.terminal_offer_track_hash).toBeNull();
+      }
+    }
     for (let index = 1; index < repairs.length; index++) {
       const previous = repairs[index - 1]!;
       const current = repairs[index]!;
@@ -872,6 +913,11 @@ describe("compile budget telemetry", () => {
       expect(current.repair_decision!.incumbent_revision).toBe(
         previous.repair_decision!.incumbent_revision +
           (previous.outcome.accepted_alternative ? 1 : 0),
+      );
+      expect(current.repair_decision!.incumbent_track_hash).toBe(
+        previous.outcome.accepted_alternative
+          ? previous.outcome.terminal_offer_track_hash
+          : previous.repair_decision!.incumbent_track_hash,
       );
     }
     expect(repairs.some((episode) => !episode.outcome.accepted_alternative)).toBe(true);

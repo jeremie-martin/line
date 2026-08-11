@@ -56,8 +56,8 @@ type GoldenCheckpoint = {
     search_nodes_expanded?: number;
     handoff_full_evaluations?: number;
     handoff_unique_full_evaluations?: number;
-    candidates_sampled?: number;
-    candidates_viable?: number;
+    actual_candidate_samples?: number;
+    viable_candidate_samples?: number;
     fwd_eval?: {
       fwd_eval_frames_charged?: number;
       start_eval_frames_charged?: number;

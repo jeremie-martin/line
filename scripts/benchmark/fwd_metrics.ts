@@ -167,7 +167,7 @@ function cellFromStats(
     simFrames: num(stats.sim_frames),
     nodesExpanded: num(stats.search_nodes_expanded),
     firstCompletionFrame: num(stats.first_completion_frame),
-    nCandMean: num(stats.handoff_policy_candidate_count_mean),
+    nCandMean: num(stats.handoff_requested_normal_proposals_per_ranked_option_call_mean),
     fwd: readFwdBlock(stats),
     deadline: readDeadlineBlock(stats),
   };
@@ -472,7 +472,7 @@ const NO_DISAGREE = "no disagreeing pools observed";
 const NO_FRAMES = "no simulated frames recorded";
 const NO_NODES = "no search_nodes_expanded recorded";
 const NO_COMPLETION = "no cell reached first completion (or no budget recorded)";
-const NO_NCAND = "no handoff_policy_candidate_count_mean recorded";
+const NO_NCAND = "no handoff_requested_normal_proposals_per_ranked_option_call_mean recorded";
 const NO_DEADLINE = "no deadline counters in these cells";
 const NO_PRE = "no pre-completion pool build read a finite margin";
 const NO_POST = "no post-completion pool build read a finite margin";

@@ -161,12 +161,12 @@ for (const specName of specNames) {
     const { records, dropped } = drainLandingWindowProbe();
     droppedTotal += dropped;
     accumulate(specName, seed, records);
-    const stats = checkpoint.stats as { candidates_sampled?: number; candidates_viable?: number };
-    sampledTotal += stats.candidates_sampled ?? 0;
-    viableTotal += stats.candidates_viable ?? 0;
+    const stats = checkpoint.stats as { actual_candidate_samples?: number; viable_candidate_samples?: number };
+    sampledTotal += stats.actual_candidate_samples ?? 0;
+    viableTotal += stats.viable_candidate_samples ?? 0;
     console.error(
       `  ${specName}/s${seed}: ${records.length} probed, ` +
-      `${stats.candidates_sampled ?? "?"} sampled / ${stats.candidates_viable ?? "?"} viable, ` +
+      `${stats.actual_candidate_samples ?? "?"} sampled / ${stats.viable_candidate_samples ?? "?"} viable, ` +
       `${((Date.now() - t0) / 1000).toFixed(1)}s`,
     );
   }

@@ -3,7 +3,7 @@ import { analyzeBudgetTelemetry } from "../scripts/v0/analyze_budget_telemetry.t
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 
-describe("V3 budget telemetry analysis", () => {
+describe("V4 budget telemetry analysis", () => {
   test("validates and reports the exact work populations from a real compile", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const output = compileHandoff(spec, 0, {

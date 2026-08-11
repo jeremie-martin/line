@@ -104,15 +104,15 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.predicted_first_completion_frames ?? 0).toBeGreaterThan(0);
     expect(a.stats.budget_slack ?? 0)
       .toBeCloseTo(budget / (a.stats.predicted_first_completion_frames ?? Infinity), 3);
-    expect(a.stats.handoff_policy_candidate_count_mean ?? 0).toBeGreaterThan(0);
+    expect(a.stats.handoff_requested_normal_proposals_per_ranked_option_call_mean ?? 0).toBeGreaterThan(0);
     expect(a.stats.handoff_policy_branch_limit_mean ?? 0).toBeGreaterThan(0);
     expect(a.stats.first_completion_frame).toBe(b.stats.first_completion_frame);
     expect(a.stats.first_completion_frame === null || (a.stats.first_completion_frame ?? 0) > 0).toBe(true);
-    expect(a.stats.candidates_sampled).toBeGreaterThan(0);
-    expect(a.stats.candidates_sampled).toBe(b.stats.candidates_sampled);
-    expect(a.stats.candidates_viable).toBeGreaterThan(0);
-    expect(a.stats.candidates_viable).toBeLessThanOrEqual(a.stats.candidates_sampled);
-    expect(a.stats.candidates_viable).toBe(b.stats.candidates_viable);
+    expect(a.stats.actual_candidate_samples).toBeGreaterThan(0);
+    expect(a.stats.actual_candidate_samples).toBe(b.stats.actual_candidate_samples);
+    expect(a.stats.viable_candidate_samples).toBeGreaterThan(0);
+    expect(a.stats.viable_candidate_samples).toBeLessThanOrEqual(a.stats.actual_candidate_samples);
+    expect(a.stats.viable_candidate_samples).toBe(b.stats.viable_candidate_samples);
     expect(a.stats.arc_placement?.sampled ?? 0).toBeGreaterThan(0);
     expect(a.stats.arc_placement?.by_sample_mode.normal.sampled ?? 0).toBeGreaterThan(0);
     expect(a.stats.arc_placement).toEqual(b.stats.arc_placement);

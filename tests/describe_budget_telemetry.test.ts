@@ -11,15 +11,14 @@ import { describeBudgetTelemetry } from "../scripts/v0/describe_budget_telemetry
 import { BUDGET_TELEMETRY_SCHEMA } from "../scripts/v0/optimizer/budget_telemetry.ts";
 
 const WORK = {
-  pool_builds: 2,
+  ranked_option_calls: 2,
   requested_normal_proposals: 80,
   actual_candidate_samples: 77,
   viable_candidates: 30,
-  candidate_samples_by_mode: { normal: 77 },
+  candidate_samples_by_stream: { normal: 77 },
   by_evaluation_origin: {
     frontier: { register_offers: 3, terminal_node_evaluations: 2, register_improvements: 2, terminal_register_improvements: 1 },
     tail_completion: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
-    surgical_repair: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
     polish: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
   },
   nodes_processed: 4,
@@ -111,6 +110,7 @@ function payload(overrides: Record<string, unknown> = {}): Record<string, unknow
         parent_episode_id: null,
         search_seed: 0,
         frontier_has_fallback_lane: false,
+        repair_decision: null,
         anchor: {
           gap_index: 0,
           anchor_frame: 0,
@@ -129,12 +129,14 @@ function payload(overrides: Record<string, unknown> = {}): Record<string, unknow
           stop_reason: "handoff_to_repair",
           end_total_spent_frames: 38_626,
           spent_frames: 38_626,
-          terminal_tracks_considered: 2,
+          terminal_reached: true,
           first_terminal_offset_frames: 38_626,
           register_improved: true,
+          accepted_alternative: false,
           first_register_improvement_offset_frames: 1_000,
           first_terminal_register_improvement_offset_frames: 1_000,
           internal_full_score_delta: null,
+          repair_divergence: null,
           terminal_observation_censored: false,
         },
       },
@@ -232,26 +234,28 @@ describe("describe_budget_telemetry", () => {
    * is what the columns are for (the episode ordinal is not the round index,
    * and the anchor alone cannot say whether it was chosen or walked to).
    */
-  test("renders the repair round, upstream walk and weakness key", () => {
+  test("renders the repair iteration, parent depth and weakness key", () => {
     const withRepair = payload() as { episodes: Record<string, unknown>[] };
     withRepair.episodes.push({
       ...withRepair.episodes[0],
       episode_id: 1,
       lane: "repair",
       parent_episode_id: 0,
-      repair_round_index: 2,
-      anchor_upstream_offset: 3,
+      repair_decision: {
+        iteration_index: 2,
+        parent_depth: 3,
+      },
       incumbent_weak_gap_sse: 0.2473,
     });
 
     const output = render(withRepair);
 
-    expect(output).toContain("round");
+    expect(output).toContain("iteration");
+    expect(output).toContain("parent depth");
     expect(output).toContain("weak sse");
     expect(output).toContain("0.2473");
     // ... and none of the three is reported as a field the tool cannot read.
-    expect(output).not.toContain("repair_round_index");
-    expect(output).not.toContain("anchor_upstream_offset");
+    expect(output).not.toContain("repair_decision");
     expect(output).not.toContain("incumbent_weak_gap_sse");
   });
 
@@ -307,16 +311,16 @@ describe("describe_budget_telemetry", () => {
   });
 
   test("rejects historical and structurally incomplete payloads", () => {
-    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v3/);
+    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v4/);
     expect(() => render({
       schema: "line.compile-budget-telemetry.v2",
       episodes: [],
       execution_intervals: [],
-    })).toThrow(/expected line\.compile-budget-telemetry\.v3/);
+    })).toThrow(/expected line\.compile-budget-telemetry\.v4/);
     expect(() => render({
       schema: BUDGET_TELEMETRY_SCHEMA,
       episodes: [],
-    })).toThrow(/missing V3 episodes or execution intervals/);
+    })).toThrow(/missing V4 episodes or execution intervals/);
   });
 
   test("rejects a file that is not a telemetry object", () => {

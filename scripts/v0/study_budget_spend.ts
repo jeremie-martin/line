@@ -58,8 +58,8 @@ type Row = {
   predicted_first_completion_frames: number | null;
   budget_slack: number | null;
   first_completion_frame: number | null;
-  candidates_sampled: number;
-  candidates_viable: number;
+  actual_candidate_samples: number;
+  viable_candidate_samples: number;
   handoff_full_evaluations: number;
   handoff_unique_full_evaluations: number;
   fwd_eval_frames_charged: number;
@@ -88,8 +88,8 @@ type Summary = {
   score_geomean: number;
   score_mean: number;
   sim_frames_mean: number;
-  candidates_sampled_mean: number;
-  candidates_viable_mean: number;
+  actual_candidate_samples_mean: number;
+  viable_candidate_samples_mean: number;
   first_completion_mean: number | null;
   predicted_first_completion_mean: number | null;
   budget_slack_mean: number | null;
@@ -105,7 +105,7 @@ type PairedDelta = {
   pairs: number;
   score_delta_mean: number;
   sim_frames_delta_mean: number;
-  candidates_sampled_delta_mean: number;
+  actual_candidate_samples_delta_mean: number;
   first_completion_delta_mean: number | null;
   repair_frames_delta_mean: number;
 };
@@ -213,8 +213,8 @@ try {
       predicted_first_completion_frames: stats.predicted_first_completion_frames ?? null,
       budget_slack: stats.budget_slack ?? null,
       first_completion_frame: stats.first_completion_frame ?? stats.repair?.first_completion_frame ?? null,
-      candidates_sampled: stats.candidates_sampled,
-      candidates_viable: stats.candidates_viable,
+      actual_candidate_samples: stats.actual_candidate_samples,
+      viable_candidate_samples: stats.viable_candidate_samples,
       handoff_full_evaluations: stats.handoff_full_evaluations ?? 0,
       handoff_unique_full_evaluations: stats.handoff_unique_full_evaluations ?? 0,
       fwd_eval_frames_charged: stats.fwd_eval?.fwd_eval_frames_charged ?? 0,
@@ -249,8 +249,8 @@ const knobFirstCompletionModel = fitKnobSpendModel(rows, knobConfig);
 const knobCandidateSampleModel = fitPairedKnobResponseModel(
   rows,
   knobConfig,
-  `candidates_sampled / baseline_${knobConfig.name}_candidates_sampled`,
-  (row) => row.candidates_sampled,
+  `actual_candidate_samples / baseline_${knobConfig.name}_actual_candidate_samples`,
+  (row) => row.actual_candidate_samples,
 );
 const output = {
   config: {
@@ -381,8 +381,8 @@ function summarizeGroups(groups: Map<string, Row[]>): Summary[] {
     score_geomean: round(shiftedGeometricMean(group.map((row) => row.score)), 3),
     score_mean: round(mean(group.map((row) => row.score)), 3),
     sim_frames_mean: round(mean(group.map((row) => row.sim_frames)), 1),
-    candidates_sampled_mean: round(mean(group.map((row) => row.candidates_sampled)), 1),
-    candidates_viable_mean: round(mean(group.map((row) => row.candidates_viable)), 1),
+    actual_candidate_samples_mean: round(mean(group.map((row) => row.actual_candidate_samples)), 1),
+    viable_candidate_samples_mean: round(mean(group.map((row) => row.viable_candidate_samples)), 1),
     first_completion_mean: meanNullable(group.map((row) => row.first_completion_frame)),
     predicted_first_completion_mean: meanNullable(group.map((row) => row.predicted_first_completion_frames)),
     budget_slack_mean: meanNullable(group.map((row) => row.budget_slack)),
@@ -410,7 +410,7 @@ function pairedDeltas(rows: readonly Row[], knob: KnobConfig): PairedDelta[] {
         return {
           score: row.score - baseline.score,
           sim: row.sim_frames - baseline.sim_frames,
-          candidates: row.candidates_sampled - baseline.candidates_sampled,
+          candidates: row.actual_candidate_samples - baseline.actual_candidate_samples,
           first: row.first_completion_frame !== null && baseline.first_completion_frame !== null
             ? row.first_completion_frame - baseline.first_completion_frame
             : null,
@@ -425,7 +425,7 @@ function pairedDeltas(rows: readonly Row[], knob: KnobConfig): PairedDelta[] {
       pairs: deltas.length,
       score_delta_mean: round(mean(deltas.map((delta) => delta.score)), 3),
       sim_frames_delta_mean: round(mean(deltas.map((delta) => delta.sim)), 1),
-      candidates_sampled_delta_mean: round(mean(deltas.map((delta) => delta.candidates)), 1),
+      actual_candidate_samples_delta_mean: round(mean(deltas.map((delta) => delta.candidates)), 1),
       first_completion_delta_mean: meanNullable(deltas.map((delta) => delta.first)),
       repair_frames_delta_mean: round(mean(deltas.map((delta) => delta.repair)), 1),
     };
@@ -607,7 +607,7 @@ function printSummary(
     console.log(
       `  ${knobConfig.label}=${summary.key.padStart(2)} n=${summary.n} valid=${summary.valid}/${summary.n} ` +
         `score_geo=${fmt(summary.score_geomean, 1)} score_mean=${fmt(summary.score_mean, 1)} ` +
-        `sim=${fmt(summary.sim_frames_mean, 0)} cand=${fmt(summary.candidates_sampled_mean, 0)} ` +
+        `sim=${fmt(summary.sim_frames_mean, 0)} cand=${fmt(summary.actual_candidate_samples_mean, 0)} ` +
         `first=${fmt(summary.first_completion_mean, 0)} slack=${fmt(summary.budget_slack_mean, 2)} ` +
         `fwd=${fmt(summary.fwd_eval_frames_mean, 0)} repair=${fmt(summary.repair_frames_mean, 0)}`,
     );
@@ -619,7 +619,7 @@ function printSummary(
         `  ${knobConfig.label}=${delta.knob_value} pairs=${delta.pairs} ` +
           `dScore=${fmt(delta.score_delta_mean, 2)} ` +
           `dSim=${fmt(delta.sim_frames_delta_mean, 0)} ` +
-          `dCand=${fmt(delta.candidates_sampled_delta_mean, 0)} ` +
+          `dCand=${fmt(delta.actual_candidate_samples_delta_mean, 0)} ` +
           `dFirst=${fmt(delta.first_completion_delta_mean, 0)} ` +
           `dRepair=${fmt(delta.repair_frames_delta_mean, 0)}`,
       );

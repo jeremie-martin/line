@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { beginEnvFlagEpoch } from "../scripts/v0/env_flags.ts";
 import {
   brakeCandidateCount,
+  compareRepairTerminalGeometry,
   handoffCandidatePool,
   handoffAxisOvershootPenalty,
   handoffSampleCount,
@@ -141,6 +142,45 @@ describe("handoff policy boundaries", () => {
     expect(repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "objective" }))
       .toBe("objective");
     expect(() => repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "depth" })).toThrow();
+  });
+
+  test("compares repair alternatives by arc geometry rather than object identity", () => {
+    const arc = (x2: number) => ({
+      lines: [{
+        id: 1,
+        type: 0,
+        x1: 0,
+        y1: 0,
+        x2,
+        y2: 1,
+        flipped: false,
+        leftExtended: false,
+        rightExtended: false,
+      }],
+    }) as any;
+    const identical = compareRepairTerminalGeometry(
+      [arc(1), arc(2), null],
+      [arc(1), arc(2), null],
+      1,
+    );
+    expect(identical).toEqual({
+      compared_gap_count: 3,
+      first_divergent_gap_index: null,
+      divergent_gap_count: 0,
+      divergent_suffix_gap_count: 0,
+      terminal_geometry_identical: true,
+    });
+    expect(compareRepairTerminalGeometry(
+      [arc(1), arc(2), arc(3)],
+      [arc(1), arc(20), arc(30)],
+      1,
+    )).toEqual({
+      compared_gap_count: 3,
+      first_divergent_gap_index: 1,
+      divergent_gap_count: 2,
+      divergent_suffix_gap_count: 2,
+      terminal_geometry_identical: false,
+    });
   });
 
   test("candidate pool has no contact-count regime cliff", () => {

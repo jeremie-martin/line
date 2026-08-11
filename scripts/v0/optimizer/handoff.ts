@@ -164,6 +164,8 @@ import {
 import {
   CompileBudgetTelemetryRecorder,
   type BudgetInternalRegisterKey,
+  type BudgetRepairDecision,
+  type BudgetRepairDivergence,
   type BudgetRepairGapState,
   type BudgetTelemetryLevel,
 } from "./budget_telemetry.ts";
@@ -2274,6 +2276,7 @@ function compileHandoffInternal(
     // Count of complete tracks ever considered (any phase). A repair restart's delta tells us whether
     // it REACHED the end at all (completed), separate from whether it beat the incumbent (accepted).
     let terminalConsiders = 0;
+    let lastTerminalNode: HandoffNode | null = null;
     // SUBSEQUENT-TERMINAL CHURN. (The "two-counters window" reading this block
     // was built to measure is FALSIFIED — 4,406/4,406 compiles across both
     // N=48 archives and every probe: `firstTerminalFrame` equals
@@ -2352,6 +2355,7 @@ function compileHandoffInternal(
       recordImprovementTelemetry(telemetry, phase, improved);
       const terminal = isTerminalNode(node.search, gaps);
       if (terminal) {
+        lastTerminalNode = node;
         terminalConsiders++;
         if (!improved) terminalConsidersWithoutImprovement++;
         if (firstTerminalFrame < 0) firstTerminalFrame = getSimFrames();
@@ -2465,8 +2469,8 @@ function compileHandoffInternal(
         })(),
         stats: {
           ...best.stats,
-          candidates_sampled: getCandidateSamples(),
-          candidates_viable: getViableCandidates(),
+          actual_candidate_samples: getCandidateSamples(),
+          viable_candidate_samples: getViableCandidates(),
           budget_exhausted: budgetExhausted,
           sim_frames: getSimFrames(),
           ballistic_micro_sim_frames: getMicroSimFrames(),
@@ -2474,7 +2478,7 @@ function compileHandoffInternal(
           traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
           predicted_first_completion_frames: predictedFirstCompletionFrames,
           budget_slack: budgetSlackTelemetry,
-          ...snapshotNumericPolicyStats("handoff_policy_candidate_count", telemetry.policyNCand),
+          ...snapshotNumericPolicyStats("handoff_requested_normal_proposals_per_ranked_option_call", telemetry.policyNCand),
           ...snapshotNumericPolicyStats("handoff_policy_branch_limit", telemetry.policyBranchLimit),
           first_completion_frame: firstTerminalFrame >= 0 ? firstTerminalFrame : null,
           leaves_considered: register.consideredCount,
@@ -2625,7 +2629,7 @@ function compileHandoffInternal(
           );
         }
         budgetRecorder.recordNodeWork({
-          poolBuilds: telemetry.candidatePoolRequests.count - poolBuildsBefore,
+          rankedOptionCalls: telemetry.candidatePoolRequests.count - poolBuildsBefore,
           requestedNormalProposals: telemetry.candidatePoolRequests.sum - requestedProposalsBefore,
           nodesExpanded: telemetry.nodesExpanded - nodesExpandedBefore,
           childrenEnqueued: result.kind === "expanded" ? result.children.length : 0,
@@ -3150,9 +3154,23 @@ function compileHandoffInternal(
           // schema stability (types.ts RepairRecord, study_difficulty_model.ts
           // reads it), but conditioning an analysis on it selects everything.
           const predictedFeasible = estCostUpper <= repairBudget - framesBefore;
+          const repairDecision: BudgetRepairDecision = {
+            iteration_index: round,
+            incumbent_revision: register.improvementCount,
+            remaining_budget_frames: repairBudget - framesBefore,
+            headroom_fraction: 0,
+            usable_budget_frames: repairBudget - framesBefore,
+            parent_depth: up,
+            affordable_target_gap_indices: [kWorst],
+            target_gap_index: kWorst,
+            target_gap_sse: pickedWeakGapSse ?? 0,
+            anchor_gap_index: k,
+            estimated_anchor_cost_frames: estCost,
+            estimated_anchor_cost_upper_frames: estCostUpper,
+            anchor_cost_source: estCostSourceOf(k),
+          };
           const repairEpisodeId = budgetRecorder.startEpisode({
             lane: "repair",
-          mechanismDetail: "one-terminal-adaptive",
             parentEpisodeId: initialBudgetEpisodeId,
             searchSeed: restartSeed,
             frontierHasFallbackLane: true,
@@ -3162,8 +3180,7 @@ function compileHandoffInternal(
             ceilingSource,
             includeStartup: false,
             pathEstimateByGap: costToEnd,
-            repairRoundIndex: round,
-            anchorUpstreamOffset: up,
+            repairDecision,
             incumbentWeakGapSse: pickedWeakGapSse,
             repairWeakGapBefore: pickedWeakGapBefore,
             registerKeyAtStart: toBudgetRegisterKey(register.getBestKey()),
@@ -3189,6 +3206,14 @@ function compileHandoffInternal(
             setImpactCarrierRippleRepairActive(false);
           }
           const completed = terminalConsiders > terminalsBefore;
+          const repairDivergence: BudgetRepairDivergence | null =
+            completed && lastTerminalNode !== null
+              ? compareRepairTerminalGeometry(
+                incumbent.search.prefixFits,
+                lastTerminalNode.search.prefixFits,
+                k,
+              )
+              : null;
           const byAnchor = adaptiveAnchorAttempts.get(kWorst) ?? new Map<number, number>();
           byAnchor.set(k, (byAnchor.get(k) ?? 0) + 1);
           adaptiveAnchorAttempts.set(kWorst, byAnchor);
@@ -3219,6 +3244,7 @@ function compileHandoffInternal(
               internalFullScoreDelta: afterScore - beforeScore,
               registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()),
               repairWeakGapAfter: pickedWeakGapAfter,
+              repairDivergence,
             },
           );
           budgetRecorder.recordSegment(
@@ -4185,14 +4211,14 @@ function recordEvaluationTelemetry(
 type CandidateWorkSnapshot = {
   actualCandidateSamples: number;
   viableCandidates: number;
-  candidateSamplesByMode: Record<string, number>;
+  candidateSamplesByStream: Record<string, number>;
 };
 
 function emptyCandidateWorkSnapshot(): CandidateWorkSnapshot {
   return {
     actualCandidateSamples: 0,
     viableCandidates: 0,
-    candidateSamplesByMode: {},
+    candidateSamplesByStream: {},
   };
 }
 
@@ -4200,7 +4226,7 @@ function snapshotCandidateWork(): CandidateWorkSnapshot {
   return {
     actualCandidateSamples: getCandidateSamples(),
     viableCandidates: getViableCandidates(),
-    candidateSamplesByMode: getCandidateSamplesByMode(),
+    candidateSamplesByStream: getCandidateSamplesByMode(),
   };
 }
 
@@ -4209,8 +4235,8 @@ function candidateWorkSince(
   after: CandidateWorkSnapshot,
 ): CandidateWorkSnapshot {
   const modes = new Set([
-    ...Object.keys(before.candidateSamplesByMode),
-    ...Object.keys(after.candidateSamplesByMode),
+    ...Object.keys(before.candidateSamplesByStream),
+    ...Object.keys(after.candidateSamplesByStream),
   ]);
   return {
     actualCandidateSamples: Math.max(
@@ -4218,13 +4244,13 @@ function candidateWorkSince(
       after.actualCandidateSamples - before.actualCandidateSamples,
     ),
     viableCandidates: Math.max(0, after.viableCandidates - before.viableCandidates),
-    candidateSamplesByMode: Object.fromEntries(
+    candidateSamplesByStream: Object.fromEntries(
       [...modes].map((mode) => [
         mode,
         Math.max(
           0,
-          (after.candidateSamplesByMode[mode] ?? 0) -
-            (before.candidateSamplesByMode[mode] ?? 0),
+          (after.candidateSamplesByStream[mode] ?? 0) -
+            (before.candidateSamplesByStream[mode] ?? 0),
         ),
       ]),
     ),
@@ -6484,6 +6510,48 @@ function repairGapState(
   return { gap_index: gap.gap_index, sse, axes };
 }
 
+/** Direct arc-geometry comparison; object identity and RNG seed are irrelevant. */
+export function compareRepairTerminalGeometry(
+  incumbent: readonly (Candidate | null)[],
+  alternative: readonly (Candidate | null)[],
+  anchorGapIndex: number,
+): BudgetRepairDivergence {
+  const count = Math.max(incumbent.length, alternative.length);
+  const anchor = Math.max(0, Math.floor(anchorGapIndex));
+  let firstDivergent: number | null = null;
+  let divergent = 0;
+  let divergentSuffix = 0;
+  for (let gap = 0; gap < count; gap++) {
+    if (candidateArcGeometryKey(incumbent[gap]) === candidateArcGeometryKey(alternative[gap])) {
+      continue;
+    }
+    if (firstDivergent === null) firstDivergent = gap;
+    divergent++;
+    if (gap >= anchor) divergentSuffix++;
+  }
+  return {
+    compared_gap_count: count,
+    first_divergent_gap_index: firstDivergent,
+    divergent_gap_count: divergent,
+    divergent_suffix_gap_count: divergentSuffix,
+    terminal_geometry_identical: divergent === 0,
+  };
+}
+
+function candidateArcGeometryKey(candidate: Candidate | null | undefined): string {
+  if (candidate == null) return "null";
+  return JSON.stringify(candidate.lines.map((line) => [
+    line.type,
+    line.x1,
+    line.y1,
+    line.x2,
+    line.y2,
+    line.flipped,
+    line.leftExtended,
+    line.rightExtended,
+  ]));
+}
+
 /**
  * What a restart from an anchor may cost at the top of the estimator's own
  * interval — the quantity repair actually decides on.
@@ -6669,7 +6737,7 @@ function recordHandoffPolicyTelemetry(
 }
 
 function snapshotNumericPolicyStats(
-  prefix: "handoff_policy_candidate_count" | "handoff_policy_branch_limit",
+  prefix: "handoff_requested_normal_proposals_per_ranked_option_call" | "handoff_policy_branch_limit",
   acc: NumericAccumulator,
 ): Partial<CompileStats> {
   if (acc.count === 0) return {};
@@ -7697,7 +7765,7 @@ export function postCompletionPhaseWeight(): number {
 //
 // Builds whose caller passed no margin at all (the non-policy lanes read
 // Infinity) are in `deadline_pool_builds` and in neither phase, so
-// `pool_builds - pre_builds - post_builds` is the unpaced remainder.
+// `ranked_option_calls - pre_builds - post_builds` is the unpaced remainder.
 const deadlineTotals = {
   deadline_pool_builds: 0,
   deadline_pre_builds: 0,
@@ -10235,8 +10303,8 @@ function buildNodeOutput(
     report,
     budgetTelemetry: null,
     stats: {
-      candidates_sampled: getCandidateSamples(),
-      candidates_viable: getViableCandidates(),
+      actual_candidate_samples: getCandidateSamples(),
+      viable_candidate_samples: getViableCandidates(),
       engine_rebuilds: getEngineRebuildCount(),
       gap_commits: fits.filter((fit) => fit !== null).length,
       gap_backtracks: 0,

@@ -157,8 +157,8 @@ authoritative for the new controller.
 |---|---|---|---|
 | 2026-08-11 | Roadmap frozen | complete | `b3387db` |
 | 2026-08-11 | Remove competing controller modes | complete | `7f1aaa7`; one-terminal production path hardwired; 75 focused tests pass |
-| 2026-08-11 | Remove obsolete surgical repair | complete | Executable branch, stats surface, and live guidance removed; 125 focused tests pass; commit pending |
-| 2026-08-11 | Telemetry V4/reporting | pending | — |
+| 2026-08-11 | Remove obsolete surgical repair | complete | `43d0b94`; executable branch, stats surface, and live guidance removed; 125 focused tests pass |
+| 2026-08-11 | Telemetry V4/reporting | complete | Clean-break schema and exact work/outcome/divergence semantics; 178 test files / 1,207 tests pass; commit pending |
 | 2026-08-11 | Independent repair loop | pending | — |
 | 2026-08-11 | Diversity validation | pending | — |
 | 2026-08-11 | Governed evaluation | pending | — |

@@ -43,21 +43,21 @@ export type ScaleMechanicsSummary = {
 };
 
 const METRICS: Array<[string, (row: RunRow) => number | null]> = [
-  ["rankedOptionPoolCalls", (row) => work(row).pool_builds],
+  ["rankedOptionPoolCalls", (row) => work(row).ranked_option_calls],
   ["requestedNormalProposals", (row) => work(row).requested_normal_proposals],
   ["requestedNormalProposalsPerRankedOptionCall", (row) => {
     const current = work(row);
-    return current.pool_builds === 0 ? null : current.requested_normal_proposals / current.pool_builds;
+    return current.ranked_option_calls === 0 ? null : current.requested_normal_proposals / current.ranked_option_calls;
   }],
   ["actualCandidateSamples", (row) => work(row).actual_candidate_samples],
   ["actualCandidateSamplesPerRankedOptionCall", (row) => ratio(
     work(row).actual_candidate_samples,
-    work(row).pool_builds,
+    work(row).ranked_option_calls,
   )],
-  ["normalCandidateSamples", (row) => work(row).candidate_samples_by_mode.normal ?? 0],
-  ["brakeCandidateSamples", (row) => work(row).candidate_samples_by_mode.brake ?? 0],
+  ["normalCandidateSamples", (row) => work(row).candidate_samples_by_stream.normal ?? 0],
+  ["brakeCandidateSamples", (row) => work(row).candidate_samples_by_stream.brake ?? 0],
   ["startupCatchCandidateSamples", (row) =>
-    work(row).candidate_samples_by_mode.startup_catch ?? 0],
+    work(row).candidate_samples_by_stream.startup_catch ?? 0],
   ["actualCandidateSamplesPerMillionFrames", (row) => perMillion(
     work(row).actual_candidate_samples,
     telemetry(row).compile.total_spent_frames,
@@ -92,15 +92,13 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
     work(row).by_evaluation_origin.tail_completion.register_improvements],
   ["tailCompletionTerminalRegisterImprovements", (row) =>
     work(row).by_evaluation_origin.tail_completion.terminal_register_improvements],
-  ["surgicalRepairRegisterOffers", (row) =>
-    work(row).by_evaluation_origin.surgical_repair.register_offers],
-  ["surgicalRepairRegisterImprovements", (row) =>
-    work(row).by_evaluation_origin.surgical_repair.register_improvements],
   ["repairEpisodes", (row) => repairEpisodes(row).length],
   ["repairEpisodesWithRegisterImprovement", (row) => repairEpisodes(row)
     .filter((episode) => episode.outcome.register_improved).length],
-  ["repairEpisodesWithTerminal", (row) => repairEpisodes(row)
-    .filter((episode) => episode.outcome.terminal_tracks_considered > 0).length],
+  ["repairTerminalReachedEpisodes", (row) => repairEpisodes(row)
+    .filter((episode) => episode.outcome.terminal_reached).length],
+  ["repairAcceptedAlternatives", (row) => repairEpisodes(row)
+    .filter((episode) => episode.outcome.accepted_alternative).length],
   ["repairCensoredEpisodes", (row) => repairEpisodes(row)
     .filter((episode) => episode.outcome.terminal_observation_censored).length],
   ["repairCensorRate", (row) => {
@@ -110,10 +108,10 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
       episodes.length,
     );
   }],
-  ["repairCompletedEpisodeRate", (row) => {
+  ["repairTerminalReachedRate", (row) => {
     const episodes = repairEpisodes(row);
     return ratio(
-      episodes.filter((episode) => episode.outcome.terminal_tracks_considered > 0).length,
+      episodes.filter((episode) => episode.outcome.terminal_reached).length,
       episodes.length,
     );
   }],
@@ -124,14 +122,19 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
     return episodes.length === 0
       ? null
       : episodes.reduce(
-        (sum, episode) => sum + episode.outcome.terminal_tracks_considered,
+        (sum, episode) => sum + episode.work.terminal_node_evaluations,
         0,
       ) / episodes.length;
   }],
   ["repairMeanAnchorGap", (row) => episodeMean(repairEpisodes(row), (episode) =>
     episode.anchor.gap_index)],
-  ["repairMeanAnchorUpstreamOffset", (row) => episodeMean(repairEpisodes(row), (episode) =>
-    episode.anchor_upstream_offset)],
+  ["repairMeanParentDepth", (row) => episodeMean(repairEpisodes(row), (episode) =>
+    episode.repair_decision?.parent_depth ?? null)],
+  ["repairIdenticalTerminalGeometry", (row) => repairEpisodes(row)
+    .filter((episode) => episode.outcome.repair_divergence?.terminal_geometry_identical === true)
+    .length],
+  ["repairMeanDivergentSuffixGaps", (row) => episodeMean(repairEpisodes(row), (episode) =>
+    episode.outcome.repair_divergence?.divergent_suffix_gap_count ?? null)],
   ["repairDistinctAnchorGaps", (row) => new Set(repairEpisodes(row)
     .map((episode) => episode.anchor.gap_index)).size],
   ["repairTotalAllocatedFrames", (row) => sumRepairEpisodes(row, (episode) =>
@@ -211,7 +214,7 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
       ? null
       : episodes.filter((episode) => episode.outcome.register_improved).length / episodes.length;
   }],
-  ["repairRankedOptionPoolCalls", (row) => sumRepairWork(row, "pool_builds")],
+  ["repairRankedOptionPoolCalls", (row) => sumRepairWork(row, "ranked_option_calls")],
   ["repairActualCandidateSamples", (row) => sumRepairWork(row, "actual_candidate_samples")],
   ["repairViableCandidates", (row) => sumRepairWork(row, "viable_candidates")],
   ["repairNodesProcessed", (row) => sumRepairWork(row, "nodes_processed")],
@@ -355,7 +358,7 @@ function telemetry(row: RunRow): CompileBudgetTelemetry {
   assertMechanicsWork(value.compile.work, `${runKey(row)}:compile`);
   for (const episode of value.episodes) {
     assertMechanicsWork(episode.work, `${runKey(row)}:episode=${episode.episode_id}`);
-    if (episode.outcome.terminal_tracks_considered !== episode.work.terminal_node_evaluations) {
+    if (episode.outcome.terminal_reached !== (episode.work.terminal_node_evaluations > 0)) {
       throw new Error(
         `scale mechanics row ${runKey(row)} episode ${episode.episode_id} has inconsistent terminal outcome`,
       );
@@ -365,6 +368,17 @@ function telemetry(row: RunRow): CompileBudgetTelemetry {
         `scale mechanics row ${runKey(row)} episode ${episode.episode_id} has inconsistent register outcome`,
       );
     }
+    if (episode.lane === "repair" && episode.repair_decision === null) {
+      throw new Error(
+        `scale mechanics row ${runKey(row)} episode ${episode.episode_id} has no repair decision`,
+      );
+    }
+    if (episode.lane === "repair" && episode.outcome.terminal_reached &&
+        episode.outcome.repair_divergence === null) {
+      throw new Error(
+        `scale mechanics row ${runKey(row)} episode ${episode.episode_id} has no divergence evidence`,
+      );
+    }
   }
   assertCompileEpisodeWorkCloses(value, runKey(row));
   return value;
@@ -372,7 +386,7 @@ function telemetry(row: RunRow): CompileBudgetTelemetry {
 
 function assertCompileEpisodeWorkCloses(value: CompileBudgetTelemetry, context: string): void {
   const fields = [
-    "pool_builds",
+    "ranked_option_calls",
     "requested_normal_proposals",
     "actual_candidate_samples",
     "viable_candidates",
@@ -394,15 +408,15 @@ function assertCompileEpisodeWorkCloses(value: CompileBudgetTelemetry, context: 
     }
   }
   const modes = new Set([
-    ...Object.keys(value.compile.work.candidate_samples_by_mode),
-    ...value.episodes.flatMap((episode) => Object.keys(episode.work.candidate_samples_by_mode)),
+    ...Object.keys(value.compile.work.candidate_samples_by_stream),
+    ...value.episodes.flatMap((episode) => Object.keys(episode.work.candidate_samples_by_stream)),
   ]);
   for (const mode of modes) {
     const total = value.episodes.reduce(
-      (sum, episode) => sum + (episode.work.candidate_samples_by_mode[mode] ?? 0),
+      (sum, episode) => sum + (episode.work.candidate_samples_by_stream[mode] ?? 0),
       0,
     );
-    if ((value.compile.work.candidate_samples_by_mode[mode] ?? 0) !== total) {
+    if ((value.compile.work.candidate_samples_by_stream[mode] ?? 0) !== total) {
       throw new Error(`scale mechanics ${context} compile candidate mode ${mode} does not equal episode sum`);
     }
   }
@@ -431,7 +445,7 @@ function assertMechanicsWork(
   work: CompileBudgetTelemetry["compile"]["work"],
   context: string,
 ): void {
-  const samples = Object.values(work.candidate_samples_by_mode)
+  const samples = Object.values(work.candidate_samples_by_stream)
     .reduce((sum, count) => sum + count, 0);
   if (samples !== work.actual_candidate_samples) {
     throw new Error(`scale mechanics ${context} has open candidate-mode accounting`);
@@ -516,7 +530,7 @@ function sumRepairWork(
   row: RunRow,
   name: Exclude<
     keyof BudgetEpisodeTelemetry["work"],
-    "candidate_samples_by_mode" | "by_evaluation_origin"
+    "candidate_samples_by_stream" | "by_evaluation_origin"
   >,
 ): number {
   return repairEpisodes(row).reduce((sum, episode) => sum + episode.work[name], 0);

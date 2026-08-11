@@ -1,5 +1,5 @@
 /**
- * Strict V3 compile-budget telemetry analyzer.
+ * Strict V4 compile-budget telemetry analyzer.
  *
  * Usage:
  *   npx tsx scripts/v0/analyze_budget_telemetry.ts FILE_OR_ARCHIVE [...]
@@ -21,7 +21,7 @@ import {
 } from "./optimizer/budget_telemetry.ts";
 
 export const BUDGET_TELEMETRY_ANALYSIS_SCHEMA =
-  "line.compile-budget-telemetry-analysis.v3" as const;
+  "line.compile-budget-telemetry-analysis.v4" as const;
 
 type Located = {
   source: string;
@@ -46,7 +46,11 @@ type LaneSummary = {
   spent_frames: Distribution;
   first_terminal_offset_frames: Distribution;
   terminal_observation_censored: number;
+  terminal_reached_episodes: number;
   episodes_with_register_improvement: number;
+  accepted_alternatives: number;
+  identical_repair_terminal_geometry: number;
+  divergent_repair_suffix_gaps: Distribution;
   internal_full_score_delta: Distribution;
   work: BudgetEpisodeWork;
   ratios: ReturnType<typeof workRatios>;
@@ -170,9 +174,21 @@ export function analyzeBudgetTelemetry(located: Located[]): BudgetTelemetryAnaly
         terminal_observation_censored: inLane.filter(({ episode }) =>
           episode.outcome.terminal_observation_censored
         ).length,
+        terminal_reached_episodes: inLane.filter(({ episode }) =>
+          episode.outcome.terminal_reached
+        ).length,
         episodes_with_register_improvement: inLane.filter(({ episode }) =>
           episode.outcome.register_improved
         ).length,
+        accepted_alternatives: inLane.filter(({ episode }) =>
+          episode.outcome.accepted_alternative
+        ).length,
+        identical_repair_terminal_geometry: inLane.filter(({ episode }) =>
+          episode.outcome.repair_divergence?.terminal_geometry_identical === true
+        ).length,
+        divergent_repair_suffix_gaps: distribution(inLane.flatMap(({ episode }) =>
+          nullable(episode.outcome.repair_divergence?.divergent_suffix_gap_count ?? null)
+        )),
         internal_full_score_delta: distribution(inLane.flatMap(({ episode }) =>
           nullable(episode.outcome.internal_full_score_delta)
         )),
@@ -228,11 +244,36 @@ function validateLocated(item: Located): string[] {
       errors.push(`${p}: spent-frame identity is open`);
     }
     validateWork(e.work, p, errors);
-    if (e.outcome.terminal_tracks_considered !== e.work.terminal_node_evaluations) {
-      errors.push(`${p}: outcome terminal count disagrees with work funnel`);
+    if (e.outcome.terminal_reached !== (e.work.terminal_node_evaluations > 0)) {
+      errors.push(`${p}: terminal-reached outcome disagrees with work funnel`);
     }
     if (e.outcome.register_improved !== (e.work.register_improvements > 0)) {
       errors.push(`${p}: register-improvement outcome disagrees with work funnel`);
+    }
+    if (e.outcome.accepted_alternative !==
+        (e.lane === "repair" && e.work.terminal_register_improvements > 0)) {
+      errors.push(`${p}: accepted-alternative outcome disagrees with work funnel`);
+    }
+    if ((e.repair_decision === null) !== (e.lane !== "repair")) {
+      errors.push(`${p}: repair-decision attribution is inconsistent`);
+    }
+    if (e.lane === "repair" && e.work.terminal_node_evaluations > 1) {
+      errors.push(`${p}: repair episode evaluated more than one terminal`);
+    }
+    if (e.lane === "repair" && e.outcome.terminal_reached &&
+        e.outcome.repair_divergence === null) {
+      errors.push(`${p}: repair terminal lacks divergence evidence`);
+    }
+    if (e.outcome.repair_divergence !== null) {
+      const divergence = e.outcome.repair_divergence;
+      if (
+        e.lane !== "repair" || !e.outcome.terminal_reached ||
+        divergence.divergent_suffix_gap_count > divergence.divergent_gap_count ||
+        divergence.divergent_gap_count > divergence.compared_gap_count ||
+        divergence.terminal_geometry_identical !== (divergence.divergent_gap_count === 0) ||
+        (divergence.first_divergent_gap_index === null) !==
+          (divergence.divergent_gap_count === 0)
+      ) errors.push(`${p}: repair-divergence account is inconsistent`);
     }
     if (e.outcome.terminal_observation_censored !== (e.work.terminal_node_evaluations === 0)) {
       errors.push(`${p}: terminal censoring disagrees with work funnel`);
@@ -280,11 +321,11 @@ function validateLocated(item: Located): string[] {
     errors.push(`${prefix}: compile terminal-track identity is open`);
   }
   for (const mode of new Set([
-    ...Object.keys(c.work.candidate_samples_by_mode),
-    ...Object.keys(summed.candidate_samples_by_mode),
+    ...Object.keys(c.work.candidate_samples_by_stream),
+    ...Object.keys(summed.candidate_samples_by_stream),
   ])) {
-    if ((c.work.candidate_samples_by_mode[mode] ?? 0) !==
-        (summed.candidate_samples_by_mode[mode] ?? 0)) {
+    if ((c.work.candidate_samples_by_stream[mode] ?? 0) !==
+        (summed.candidate_samples_by_stream[mode] ?? 0)) {
       errors.push(`${prefix}: compile candidate mode ${mode} does not equal episode sum`);
     }
   }
@@ -345,8 +386,7 @@ function validateLocated(item: Located): string[] {
   }
   for (const [index, node] of (t.node_events ?? []).entries()) {
     const episode = t.episodes[node.episode_id];
-    if (episode?.lane !== node.lane || episode.mechanism !== node.mechanism ||
-        episode.mechanism_detail !== node.mechanism_detail) {
+    if (episode?.lane !== node.lane) {
       errors.push(`${prefix}:node_event=${index}: episode attribution is invalid`);
     }
     if (node.spent_frames !== node.frontier_evaluation_frames + node.tail_completion_frames +
@@ -358,7 +398,7 @@ function validateLocated(item: Located): string[] {
 }
 
 function validateWork(work: BudgetEpisodeWork, prefix: string, errors: string[]): void {
-  const attributedSamples = Object.values(work.candidate_samples_by_mode)
+  const attributedSamples = Object.values(work.candidate_samples_by_stream)
     .reduce((sum, value) => sum + value, 0);
   if (attributedSamples !== work.actual_candidate_samples) {
     errors.push(`${prefix}: candidate-mode sample identity is open`);
@@ -385,7 +425,7 @@ function validateWork(work: BudgetEpisodeWork, prefix: string, errors: string[])
   if (work.nodes_expanded > work.nodes_processed) {
     errors.push(`${prefix}: expanded nodes exceed processed nodes`);
   }
-  for (const [mode, count] of Object.entries(work.candidate_samples_by_mode)) {
+  for (const [mode, count] of Object.entries(work.candidate_samples_by_stream)) {
     if (!Number.isInteger(count) || count < 0) {
       errors.push(`${prefix}: candidate mode ${mode} is not a non-negative integer`);
     }
@@ -429,7 +469,7 @@ function validateWork(work: BudgetEpisodeWork, prefix: string, errors: string[])
 }
 
 const NUMERIC_WORK_FIELDS = [
-  "pool_builds",
+  "ranked_option_calls",
   "requested_normal_proposals",
   "actual_candidate_samples",
   "viable_candidates",
@@ -445,15 +485,18 @@ const NUMERIC_WORK_FIELDS = [
   "repeated_terminal_track_evaluations",
   "register_improvements",
   "terminal_register_improvements",
-] as const satisfies readonly Exclude<keyof BudgetEpisodeWork, "candidate_samples_by_mode">[];
+] as const satisfies readonly Exclude<
+  keyof BudgetEpisodeWork,
+  "candidate_samples_by_stream" | "by_evaluation_origin"
+>[];
 
 function emptyWork(): BudgetEpisodeWork {
   return {
-    pool_builds: 0,
+    ranked_option_calls: 0,
     requested_normal_proposals: 0,
     actual_candidate_samples: 0,
   viable_candidates: 0,
-  candidate_samples_by_mode: {},
+  candidate_samples_by_stream: {},
   by_evaluation_origin: Object.fromEntries(BUDGET_EVALUATION_ORIGINS.map((origin) => [origin, {
     register_offers: 0,
     terminal_node_evaluations: 0,
@@ -479,9 +522,9 @@ function sumWork(items: readonly BudgetEpisodeWork[]): BudgetEpisodeWork {
   const result = emptyWork();
   for (const work of items) {
     for (const field of NUMERIC_WORK_FIELDS) result[field] += work[field];
-    for (const [mode, value] of Object.entries(work.candidate_samples_by_mode)) {
-      result.candidate_samples_by_mode[mode] =
-        (result.candidate_samples_by_mode[mode] ?? 0) + value;
+    for (const [mode, value] of Object.entries(work.candidate_samples_by_stream)) {
+      result.candidate_samples_by_stream[mode] =
+        (result.candidate_samples_by_stream[mode] ?? 0) + value;
     }
     for (const origin of BUDGET_EVALUATION_ORIGINS) {
       const destination = result.by_evaluation_origin[origin];
@@ -499,7 +542,7 @@ function workRatios(work: BudgetEpisodeWork) {
   return {
     requested_proposals_per_ranked_option_call: divide(
       work.requested_normal_proposals,
-      work.pool_builds,
+      work.ranked_option_calls,
     ),
     actual_samples_per_requested_proposal: divide(
       work.actual_candidate_samples,
@@ -590,7 +633,7 @@ function locatePayloads(source: string, value: unknown): Located[] {
 }
 
 function renderMarkdown(report: BudgetTelemetryAnalysis): string {
-  const candidateModes = Object.entries(report.work.candidate_samples_by_mode)
+  const candidateModes = Object.entries(report.work.candidate_samples_by_stream)
     .sort(([a], [b]) => a.localeCompare(b));
   const lines = [
     "# Compile budget telemetry analysis",
@@ -603,9 +646,9 @@ function renderMarkdown(report: BudgetTelemetryAnalysis): string {
     "|---|---:|",
     ...NUMERIC_WORK_FIELDS.map((field) => `| ${field} | ${report.work[field]} |`),
     "",
-    "### Candidate samples by mode",
+    "### Candidate samples by stream",
     "",
-    "| mode | actual evaluated geometries |",
+    "| stream | actual evaluated geometries |",
     "|---|---:|",
     ...candidateModes.map(([mode, value]) => `| ${mode} | ${value} |`),
     "",
@@ -629,12 +672,14 @@ function renderMarkdown(report: BudgetTelemetryAnalysis): string {
     "",
     "## Lanes",
     "",
-    "| lane | episodes | compiles | spent mean | terminal evals | distinct tracks | register improvements |",
-    "|---|---:|---:|---:|---:|---:|---:|",
+    "| lane | episodes | compiles | spent mean | terminal reached | terminal evals | distinct tracks | register improvements | accepted alternatives | identical repair terminals | mean divergent suffix gaps |",
+    "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ...Object.entries(report.by_lane).map(([lane, value]) =>
       `| ${lane} | ${value.episodes} | ${value.compiles} | ${fmt(value.spent_frames.mean)} | ` +
-      `${value.work.terminal_node_evaluations} | ${value.work.distinct_terminal_tracks} | ` +
-      `${value.work.register_improvements} |`
+      `${value.terminal_reached_episodes} | ${value.work.terminal_node_evaluations} | ` +
+      `${value.work.distinct_terminal_tracks} | ${value.work.register_improvements} | ` +
+      `${value.accepted_alternatives} | ${value.identical_repair_terminal_geometry} | ` +
+      `${fmt(value.divergent_repair_suffix_gaps.mean)} |`
     ),
     "",
     "## Budget domains",

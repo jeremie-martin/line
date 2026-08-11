@@ -1,4 +1,4 @@
-# Compile budget telemetry V3
+# Compile budget telemetry V4
 
 ## Contract
 
@@ -10,7 +10,7 @@ compiler search work:
 - `trace`: the summary payload plus estimator observations and atomic node
   events.
 
-The schema is `line.compile-budget-telemetry.v3`. Readers accept that exact
+The schema is `line.compile-budget-telemetry.v4`. Readers accept that exact
 schema only. V1/V2 archives are historical evidence with different attempt and
 identity semantics; a reader must not rename their fields or fall back to
 `compile_stats`.
@@ -40,7 +40,7 @@ The compile identity is exact:
 hard budget + hard overrun = total spent + hard remaining
 ```
 
-## Lane, mechanism, episode, and interval
+## Lane, episode, and interval
 
 A lane says which control-flow owner received the work:
 
@@ -49,20 +49,16 @@ A lane says which control-flow owner received the work:
 - `repair`: post-first-completion improvement work;
 - `resumed`: the original initial frontier after repair releases unused budget.
 
-A mechanism says how an episode performs its work:
-
-- `frontier`: bounded traversal of a frontier;
-- `surgical`: a targeted repair operation. `mechanism_detail` contains the
-  exact configured surgical mode.
-
-An episode is one bounded execution allocation. It owns one lane, mechanism,
-parent, anchor, seed when applicable, ceiling, estimator state, work funnel,
-register state, and outcome. `repair_round_index` groups the episodes launched
-by one weak-gap selection decision; `anchor_upstream_offset` distinguishes the
-selected gap from an upstream anchor actually searched.
+An episode is one bounded execution allocation. It owns one lane, parent,
+anchor, seed when applicable, ceiling, estimator state, work funnel, register
+state, and outcome. A repair episode also owns one complete `repair_decision`:
+iteration and incumbent revision, remaining and usable budget, explicit
+headroom, fixed parent depth, affordable target set, selected target and SSE,
+actual anchor, cost estimates, and cost source. There is no controller-mode or
+failed-anchor state to infer from episode order.
 
 An execution interval accounts for wall-to-wall charged compiler work such as
-startup, initial search, surgical repair, frontier repair, resumed search, or
+startup, initial search, frontier repair, resumed search, or
 finalization. Intervals form a contiguous partition of total charged work in a
 closed payload. They answer where frames went; episodes answer which search or
 repair allocation caused outcomes.
@@ -73,9 +69,9 @@ The work funnel deliberately keeps different populations separate.
 
 ### Proposal and candidate work
 
-- `pool_builds`: exact `rankedOptions` pool-construction calls, including
-  primary frontier, rescue, and tail-completion calls. This is a historical raw
-  field name, not a claim that the normal candidate prefix was freshly sampled:
+- `ranked_option_calls`: exact `rankedOptions` proposal/ranking calls, including
+  primary frontier, rescue, and tail-completion calls. It is not a claim that
+  the normal candidate prefix was freshly sampled:
   a call may reuse that memoized prefix while still ranking, rolling out, and
   running extra streams. Reports label it **ranked-option pool calls**.
 - `requested_normal_proposals`: sum of resolved normal-stream `nCand` requests.
@@ -84,20 +80,20 @@ The work funnel deliberately keeps different populations separate.
 - `actual_candidate_samples`: all candidate samples actually attempted across
   sample modes. It can differ from requested normal proposals because other
   streams and internal sampling mechanics also produce samples.
-- `candidate_samples_by_mode`: exact attribution of actual evaluated candidate
+- `candidate_samples_by_stream`: exact attribution of actual evaluated candidate
   geometries to `normal`, `brake`, `startup_catch`, and any future explicitly
-  named mode. Optional sibling geometries count in both the total and the mode
+  named stream. Optional sibling geometries count in both the total and the stream
   that evaluated them.
 - `viable_candidates`: actual samples that passed candidate viability.
 
 The following identity is enforced:
 
 ```text
-actual candidate samples = sum(candidate samples by mode)
+actual candidate samples = sum(candidate samples by stream)
 ```
 
-No V3 field counts normal-prefix cache hits or misses. Consequently,
-`pool_builds` must not be used to infer fresh sampler builds. Actual samples per
+No V4 field counts normal-prefix cache hits or misses. Consequently,
+`ranked_option_calls` must not be used to infer fresh sampler builds. Actual samples per
 ranked-option call can change because of prefix reuse, internal rollout calls,
 extra streams, retry behavior, and optional sibling evaluations. A future
 cache-efficiency study must add an authoritative cache-boundary counter rather
@@ -112,7 +108,7 @@ than infer one from these populations.
 Candidate breadth does not determine node count arithmetically. Breadth affects
 pool work and ranking; child limits, viability, frontier order, failures,
 tail-completion behavior, and local ceilings determine how many nodes the
-remaining budget can process. V3 records both sides so this relationship is an
+remaining budget can process. V4 records both sides so this relationship is an
 empirical result rather than an assumption.
 
 ### Register and terminal work
@@ -145,18 +141,16 @@ register offers = partial evaluations + terminal evaluations
 Geometry identity is exact within the scope that owns the work record. The
 compile record detects repeats across the entire compile. An episode record
 detects repeats only inside that episode; summing episode-level distinct counts
-does not detect the same geometry appearing in two different episodes. V3 does
+does not detect the same geometry appearing in two different episodes. V4 does
 not separately attribute compile-global geometry repeats by lane, so reports
 must not call a sum of repair episodes “cross-repair duplicate tracks.”
 
 ### Evaluation origin
 
-`by_evaluation_origin` attributes register offers, terminal evaluations, and
-improvements to:
+`by_evaluation_origin` attributes register offers, terminal evaluations, and improvements to:
 
 - `frontier`;
 - `tail_completion`;
-- `surgical_repair`;
 - `polish`.
 
 Origin is orthogonal to lane. For example, both initial and repair frontier
@@ -172,8 +166,11 @@ episodes can contain tail-completion evaluations. This prevents a phase called
 - `first_terminal_offset_frames`: episode-local work to its first terminal.
 - `terminal_observation_censored`: the episode ended without observing a
   terminal; it is not a measured completion-cost sample.
-- `terminal_tracks_considered`: exact terminal evaluation count for the
-  episode, not a Boolean completion flag.
+- `terminal_reached`: literal Boolean that at least one terminal node was
+  evaluated. The exact count remains `work.terminal_node_evaluations`.
+- `accepted_alternative`: repair-only Boolean that a terminal alternative was
+  adopted by the internal compiler register. It does not mean Benchmark V2
+  score improvement.
 - `first_register_improvement_offset_frames` and
   `final_register_improvement_offset_frames`: exact episode-local timing of
   register adoption.
@@ -182,17 +179,12 @@ episodes can contain tail-completion evaluations. This prevents a phase called
   of `first_improving_terminal_total_spent_frames`; it is not interchangeable
   with the first improvement, which may be a partial track.
 
-The production frontier repair mechanism may evaluate several complete
-suffixes inside one episode before its local ceiling. V3 therefore reports
-both repair episodes and terminal tracks. The opt-in one-terminal adaptive
-allocator uses the same schema, with one terminal-consider limit per episode
-and a fresh allocator decision afterward. Its frozen question and evaluation
-protocol are documented in
-`docs/one-terminal-adaptive-repair-experiment.md`.
-
-Calling a non-improving repair "reconverged" is not valid. V3 records what can
-be observed directly: mechanism, anchor, work, terminal counts, geometry
-identity, and register outcome.
+Production repair evaluates at most one complete alternative in an episode,
+then makes a new independent decision from the current incumbent and remaining
+budget. `repair_divergence` directly compares incumbent and alternative arc
+geometry: compared gaps, first divergent gap, divergent gaps overall and in the
+regenerated suffix, and exact terminal-geometry identity. A fresh seed is never
+used as a proxy for diversity.
 
 ## Register and score domains
 
@@ -255,8 +247,8 @@ The recorder and analyzer enforce:
 - contiguous execution intervals covering total spend;
 - first-terminal attribution equal to the earliest episode-local observation;
 - valid final-output lineage;
-- trace node events attributed to the exact episode, lane, mechanism, and
-  mechanism detail, with atomic frame components closing to node spend.
+- trace node events attributed to the exact episode and lane, with atomic frame
+  components closing to node spend.
 
 Benchmark pairing additionally requires unique, complete
 `(source, budget, seed)` cells in both arms. A map insertion must never silently
@@ -269,7 +261,7 @@ overwrite duplicate cells.
 - `scripts/v0/analyze_budget_telemetry.ts`: strict multi-payload validation and
   descriptive aggregate analysis.
 - `scripts/benchmark/analyze_scale_mechanics.ts`: paired multi-budget mechanics
-  comparison using V3 only.
+  comparison using V4 only.
 
 For naming and architecture rationale, see
 [`compiler-telemetry-foundation.md`](compiler-telemetry-foundation.md).

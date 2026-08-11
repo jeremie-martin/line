@@ -310,7 +310,7 @@ unified quality policy is used from the first contact expansion through repair
 restarts. The same script also fits a paired candidate-sample response:
 
 ```text
-candidates_sampled / baseline_candidates_sampled
+actual_candidate_samples / baseline_actual_candidate_samples
   ~= f(quality_ncand / baseline_quality_ncand - 1)
 ```
 

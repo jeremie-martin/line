@@ -43,7 +43,7 @@ type StudyRow = {
   predicted_first_completion_frames: number | null;
   budget_slack?: number | null;
   first_completion_frame: number | null;
-  candidates_sampled: number;
+  actual_candidate_samples: number;
   repair_frames_spent: number;
   fwd_eval_frames_charged?: number;
   sim_frames?: number;
@@ -829,7 +829,7 @@ function pairedSamples(rowsIn: Sample[]): PairSample[] {
   for (const row of rowsIn) {
     if (row.quality_ncand === baselineQ) continue;
     const base = baseline.get(pairKey(row));
-    if (base === undefined || base.first <= 0 || base.candidates_sampled <= 0) continue;
+    if (base === undefined || base.first <= 0 || base.actual_candidate_samples <= 0) continue;
     const qx = row.quality_ncand / baselineQ - 1;
     pairs.push({
       key: pairKey(row),
@@ -843,8 +843,8 @@ function pairedSamples(rowsIn: Sample[]): PairSample[] {
       score_delta: row.score - base.score,
       first_delta: row.first - base.first,
       first_ratio: row.first / base.first,
-      candidate_delta: row.candidates_sampled - base.candidates_sampled,
-      candidate_ratio: row.candidates_sampled / base.candidates_sampled,
+      candidate_delta: row.actual_candidate_samples - base.actual_candidate_samples,
+      candidate_ratio: row.actual_candidate_samples / base.actual_candidate_samples,
       repair_delta: row.repair_frames_spent - base.repair_frames_spent,
       fwd_delta: (row.fwd_eval_frames_charged ?? 0) - (base.fwd_eval_frames_charged ?? 0),
       score: row.score,
@@ -993,7 +993,7 @@ function qPreference(
           n: qGroup.length,
           score_mean: round(mean(qGroup.map((row) => row.score)), 3),
           first_mean: round(mean(qGroup.map((row) => row.first)), 1),
-          candidate_mean: round(mean(qGroup.map((row) => row.candidates_sampled)), 1),
+          candidate_mean: round(mean(qGroup.map((row) => row.actual_candidate_samples)), 1),
         }))
         .sort((a, b) => a.q - b.q);
       const baseline = qMeans.find((item) => item.q === baselineQ);
@@ -1014,7 +1014,7 @@ function qPreference(
         score_delta_vs_q32: round(mean(selected.map((item) => item.row.score - item.base.score)), 3),
         first_ratio_vs_q32: round(mean(selected.map((item) => item.row.first / item.base.first)), 4),
         candidate_ratio_vs_q32: round(mean(selected.map((item) =>
-          item.base.candidates_sampled > 0 ? item.row.candidates_sampled / item.base.candidates_sampled : 1
+          item.base.actual_candidate_samples > 0 ? item.row.actual_candidate_samples / item.base.actual_candidate_samples : 1
         )), 4),
         q_means: qMeans,
       };
@@ -1154,7 +1154,7 @@ function summarizePolicy(policy: string, selected: { row: Sample; base: Sample }
     score_delta_vs_q32: round(mean(selected.map((item) => item.row.score - item.base.score)), 3),
     first_ratio_vs_q32: round(mean(selected.map((item) => item.row.first / item.base.first)), 4),
     candidate_ratio_vs_q32: round(mean(selected.map((item) =>
-      item.base.candidates_sampled > 0 ? item.row.candidates_sampled / item.base.candidates_sampled : 1
+      item.base.actual_candidate_samples > 0 ? item.row.actual_candidate_samples / item.base.actual_candidate_samples : 1
     )), 4),
     selected_q_mean: round(mean(selected.map((item) => item.row.quality_ncand)), 2),
     selected_q_counts: qCounts,

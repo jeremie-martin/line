@@ -57,15 +57,15 @@ type AxisQualityCounter = {
 };
 
 type CompileStats = {
-  candidates_sampled?: number;
-  candidates_viable?: number;
+  actual_candidate_samples?: number;
+  viable_candidate_samples?: number;
   sim_frames?: number;
   traversal_budget_model?: string;
   predicted_first_completion_frames?: number;
   budget_slack?: number;
-  handoff_policy_candidate_count_min?: number;
-  handoff_policy_candidate_count_mean?: number;
-  handoff_policy_candidate_count_max?: number;
+  handoff_requested_normal_proposals_per_ranked_option_call_min?: number;
+  handoff_requested_normal_proposals_per_ranked_option_call_mean?: number;
+  handoff_requested_normal_proposals_per_ranked_option_call_max?: number;
   handoff_policy_branch_limit_min?: number;
   handoff_policy_branch_limit_mean?: number;
   handoff_policy_branch_limit_max?: number;
@@ -191,8 +191,8 @@ type GoldenCurveJson = {
 const TARGET_BANDS = ["<0.25", "0.25-0.5", "0.5-0.75", ">=0.75"] as const;
 const WORK_DELTA_STATS = [
   ["sim", "sim_frames"],
-  ["cand", "candidates_sampled"],
-  ["viable", "candidates_viable"],
+  ["cand", "actual_candidate_samples"],
+  ["viable", "viable_candidate_samples"],
 ] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats]>;
 const STREAM_YIELD_STATS = [
   ["polish", "polish_variants_adopted", "polish_variants_tried"],
@@ -301,8 +301,8 @@ function formatSelectedAxisQualitySources(stats: CompileStats): string {
 }
 
 function fmtCandidateStats(stats: CompileStats): string {
-  const sampled = stats.candidates_sampled;
-  const viable = stats.candidates_viable;
+  const sampled = stats.actual_candidate_samples;
+  const viable = stats.viable_candidate_samples;
   if (sampled === undefined) return "?";
   if (viable === undefined) return String(sampled);
   return `${sampled}/${viable}`;

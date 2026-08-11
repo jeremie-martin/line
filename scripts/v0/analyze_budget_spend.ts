@@ -37,7 +37,7 @@ type Row = {
   predicted_first_completion_frames: number | null;
   budget_slack: number | null;
   first_completion_frame: number | null;
-  candidates_sampled: number;
+  actual_candidate_samples: number;
   fwd_eval_frames_charged: number;
   repair_frames_spent: number;
 };
@@ -61,7 +61,7 @@ type DeltaSummary = {
   score_delta_mean: number;
   validity_delta_mean: number;
   sim_frames_delta_mean: number;
-  candidates_sampled_delta_mean: number;
+  actual_candidate_samples_delta_mean: number;
   first_completion_delta_mean: number | null;
   first_completion_ratio_mean: number | null;
   fwd_eval_frames_delta_mean: number;
@@ -184,7 +184,7 @@ function delta(row: Row, base: Row): Delta {
     score: row.score - base.score,
     valid: Number(row.contract_passed) - Number(base.contract_passed),
     sim: row.sim_frames - base.sim_frames,
-    candidates: row.candidates_sampled - base.candidates_sampled,
+    candidates: row.actual_candidate_samples - base.actual_candidate_samples,
     first: row.first_completion_frame !== null && base.first_completion_frame !== null
       ? row.first_completion_frame - base.first_completion_frame
       : null,
@@ -206,7 +206,7 @@ function summarizeDeltas(group: string, value: number, deltas: readonly Delta[])
     score_delta_mean: round(mean(deltas.map((item) => item.score)), 3),
     validity_delta_mean: round(mean(deltas.map((item) => item.valid)), 4),
     sim_frames_delta_mean: round(mean(deltas.map((item) => item.sim)), 1),
-    candidates_sampled_delta_mean: round(mean(deltas.map((item) => item.candidates)), 1),
+    actual_candidate_samples_delta_mean: round(mean(deltas.map((item) => item.candidates)), 1),
     first_completion_delta_mean: meanNullable(deltas.map((item) => item.first)),
     first_completion_ratio_mean: meanNullable(deltas.map((item) => item.firstRatio)),
     fwd_eval_frames_delta_mean: round(mean(deltas.map((item) => item.fwd)), 1),
@@ -336,7 +336,7 @@ function printSummary(result: typeof output): void {
     console.log(
       `  b=${item.group} v=${item.knob_value} pairs=${item.pairs} ` +
         `dScore=${fmt(item.score_delta_mean, 2)} dFirst=${fmt(item.first_completion_delta_mean, 0)} ` +
-        `ratio=${fmt(item.first_completion_ratio_mean, 3)} dCand=${fmt(item.candidates_sampled_delta_mean, 0)} ` +
+        `ratio=${fmt(item.first_completion_ratio_mean, 3)} dCand=${fmt(item.actual_candidate_samples_delta_mean, 0)} ` +
         `dRepair=${fmt(item.repair_frames_delta_mean, 0)}`,
     );
   }

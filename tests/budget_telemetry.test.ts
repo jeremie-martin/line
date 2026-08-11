@@ -8,6 +8,7 @@ import {
   adaptiveEstimate,
   BUDGET_TELEMETRY_SCHEMA,
   CompileBudgetTelemetryRecorder,
+  type BudgetRepairDecision,
 } from "../scripts/v0/optimizer/budget_telemetry.ts";
 import type { Gap } from "../scripts/v0/types.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
@@ -39,6 +40,22 @@ const TEST_MODEL = {
   interceptFrames: 100,
   contactFrames: 10,
   durationFrameScale: 2,
+};
+
+const TEST_REPAIR_DECISION: BudgetRepairDecision = {
+  iteration_index: 0,
+  incumbent_revision: 0,
+  remaining_budget_frames: 500,
+  headroom_fraction: 0.2,
+  usable_budget_frames: 400,
+  parent_depth: 1,
+  affordable_target_gap_indices: [2],
+  target_gap_index: 2,
+  target_gap_sse: 0.25,
+  anchor_gap_index: 1,
+  estimated_anchor_cost_frames: 200,
+  estimated_anchor_cost_upper_frames: 300,
+  anchor_cost_source: "measured_cost_to_end",
 };
 
 /**
@@ -472,14 +489,16 @@ describe("compile budget telemetry", () => {
       stop_reason: "compile_finished",
       end_total_spent_frames: 260,
       spent_frames: 260,
-      terminal_tracks_considered: 1,
+      terminal_reached: true,
       first_terminal_offset_frames: 240,
       register_improved: true,
+      accepted_alternative: false,
       first_register_improvement_offset_frames: 240,
       final_register_improvement_offset_frames: 240,
       first_terminal_register_improvement_offset_frames: 240,
       internal_full_score_delta: null,
       repair_weak_gap_after: null,
+      repair_divergence: null,
       terminal_observation_censored: false,
     });
     expect(recordedEpisode?.observations?.map((observation) => observation.event)).toEqual([
@@ -511,6 +530,11 @@ describe("compile budget telemetry", () => {
       includeStartup: false,
       // Gap 1 has no measured cost; gap 2 does.
       pathEstimateByGap: [0, 0, 250, 0, 0],
+      repairDecision: {
+        ...TEST_REPAIR_DECISION,
+        remaining_budget_frames: 800,
+        headroom_fraction: 0.5,
+      },
     });
     recorder.observeActiveEpisode(2, 100);
     recorder.endEpisode(200, "frontier_exhausted");
@@ -615,12 +639,23 @@ describe("compile budget telemetry", () => {
       startTotalSpentFrames: 10,
       ceilingTotalSpentFrames: 50,
       includeStartup: false,
+      repairDecision: {
+        ...TEST_REPAIR_DECISION,
+        remaining_budget_frames: 40,
+        usable_budget_frames: 32,
+        target_gap_index: 3,
+        target_gap_sse: 0.1,
+        anchor_gap_index: 2,
+        affordable_target_gap_indices: [3],
+        estimated_anchor_cost_frames: 20,
+        estimated_anchor_cost_upper_frames: 30,
+      },
     });
     recorder.endEpisode(50, "local_ceiling");
     recorder.recordSegment("startup", 0, 10, "pre-episode");
     recorder.recordSegment("repair_frontier", 10, 50, "local_ceiling", 0);
     const episode = recorder.snapshot(50, true)?.episodes[0];
-    expect(episode?.outcome.terminal_tracks_considered).toBe(0);
+    expect(episode?.outcome.terminal_reached).toBe(false);
     expect(episode?.outcome.terminal_observation_censored).toBe(true);
     expect(episode?.observations).toBeUndefined();
     expect(episode?.end?.event).toBe("end");
@@ -693,27 +728,19 @@ describe("compile budget telemetry", () => {
       expect(observation.estimator_applicability).not.toBe("unvalidated_attempt_kind");
     }
 
-    // Repair-only causal context: the round that picked the anchor, how far
-    // upstream the walk had gone when this attempt ran, and the weakness key
-    // the pick was made on. Without them an archive cannot tell a round from
-    // an attempt ordinal, and cannot price the upstream walk at all.
+    // Every repair carries its full self-contained decision; other lanes do not.
     for (const episode of episodes) {
       if (episode.lane === "repair") continue;
-      expect(episode.repair_round_index).toBeNull();
-      expect(episode.anchor_upstream_offset).toBeNull();
+      expect(episode.repair_decision).toBeNull();
       expect(episode.incumbent_weak_gap_sse).toBeNull();
     }
-    let previousRound = -1;
+    let previousIteration = -1;
     for (const repair of repairs) {
-      expect(repair.repair_round_index).not.toBeNull();
-      expect(repair.anchor_upstream_offset).not.toBeNull();
-      // Rounds are assigned in order and an attempt never precedes its round.
-      expect(repair.repair_round_index!).toBeGreaterThanOrEqual(previousRound);
-      previousRound = repair.repair_round_index!;
-      expect(repair.anchor_upstream_offset!).toBeGreaterThanOrEqual(0);
-      // `picked weak gap = anchor + up` must be a real gap of the spec.
-      expect(repair.anchor_upstream_offset!)
-        .toBeLessThanOrEqual(repair.anchor.remaining_gaps);
+      expect(repair.repair_decision).not.toBeNull();
+      expect(repair.repair_decision!.iteration_index).toBeGreaterThan(previousIteration);
+      previousIteration = repair.repair_decision!.iteration_index;
+      expect(repair.repair_decision!.parent_depth).toBeGreaterThanOrEqual(0);
+      expect(repair.repair_decision!.anchor_gap_index).toBe(repair.anchor.gap_index);
       expect(repair.incumbent_weak_gap_sse!).toBeGreaterThanOrEqual(0);
       expect(["measured_cost_to_end", "per_gap_fallback", "repair_budget_remaining"])
         .toContain(repair.ceiling_source);
@@ -788,12 +815,12 @@ describe("compile budget telemetry", () => {
       });
       const work = output.budgetTelemetry!.compile.work;
       expect(builds.length).toBeGreaterThan(0);
-      expect(work.pool_builds).toBe(builds.length);
+      expect(work.ranked_option_calls).toBe(builds.length);
       expect(work.requested_normal_proposals).toBe(
         builds.reduce((sum, build) => sum + build.nCand, 0),
       );
       expect(work.actual_candidate_samples).toBe(
-        Object.values(work.candidate_samples_by_mode).reduce((sum, count) => sum + count, 0),
+        Object.values(work.candidate_samples_by_stream).reduce((sum, count) => sum + count, 0),
       );
     } finally {
       setHandoffExpansionProbeHook(null);
@@ -815,19 +842,18 @@ describe("compile budget telemetry", () => {
     expect(second.budgetTelemetry).toEqual(first.budgetTelemetry);
 
     const repairs = first.budgetTelemetry!.episodes.filter((episode) =>
-      episode.lane === "repair" && episode.mechanism === "frontier"
+      episode.lane === "repair"
     );
     expect(repairs.length).toBeGreaterThan(1);
-    expect(repairs.every((episode) => episode.mechanism_detail === "one-terminal-adaptive"))
+    expect(repairs.every((episode) => episode.work.terminal_node_evaluations <= 1))
       .toBe(true);
-    expect(repairs.every((episode) => episode.outcome.terminal_tracks_considered <= 1))
-      .toBe(true);
-    const completed = repairs.filter((episode) => episode.outcome.terminal_tracks_considered === 1);
+    const completed = repairs.filter((episode) => episode.outcome.terminal_reached);
     expect(completed.length).toBeGreaterThan(0);
     expect(completed.every((episode) => episode.outcome.stop_reason === "first_terminal_return"))
       .toBe(true);
-    expect(new Set(repairs.map((episode) => episode.repair_round_index)).size)
+    expect(new Set(repairs.map((episode) => episode.repair_decision!.iteration_index)).size)
       .toBe(repairs.length);
+    expect(completed.every((episode) => episode.outcome.repair_divergence !== null)).toBe(true);
   }, 180_000);
 
   test("sizes repairs from measured cost at gaps only the tail-completion pass built", async () => {

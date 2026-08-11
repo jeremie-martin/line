@@ -58,7 +58,7 @@ function statsOf(overrides: Record<string, unknown> = {}): Record<string, unknow
     sim_frames: 100_000,
     search_nodes_expanded: 100,
     first_completion_frame: 50_000,
-    handoff_policy_candidate_count_mean: 27,
+    handoff_requested_normal_proposals_per_ranked_option_call_mean: 27,
     fwd_eval: fwdBlock(),
     deadline: deadlineBlock(),
     ...overrides,

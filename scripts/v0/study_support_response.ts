@@ -176,18 +176,18 @@ for (const mode of modes) {
         deepestGap: checkpoint.stats.handoff_deepest_seen_gap ?? null,
         firstCompletionFrame: checkpoint.stats.first_completion_frame ?? null,
         searchNodesExpanded: checkpoint.stats.search_nodes_expanded ?? null,
-        policyCandidateCount: {
-          min: checkpoint.stats.handoff_policy_candidate_count_min ?? null,
-          mean: checkpoint.stats.handoff_policy_candidate_count_mean ?? null,
-          max: checkpoint.stats.handoff_policy_candidate_count_max ?? null,
+        requestedNormalProposalsPerRankedOptionCall: {
+          min: checkpoint.stats.handoff_requested_normal_proposals_per_ranked_option_call_min ?? null,
+          mean: checkpoint.stats.handoff_requested_normal_proposals_per_ranked_option_call_mean ?? null,
+          max: checkpoint.stats.handoff_requested_normal_proposals_per_ranked_option_call_max ?? null,
         },
         contactPhase: (checkpoint.stats as typeof checkpoint.stats & {
           contact_phase?: DetectorRunwayStats;
         }).contact_phase ?? null,
         terminus: checkpoint.report.terminus,
         simFrames: checkpoint.stats.sim_frames,
-        candidatesSampled: checkpoint.stats.candidates_sampled,
-        candidatesViable: checkpoint.stats.candidates_viable,
+        actualCandidateSamples: checkpoint.stats.actual_candidate_samples,
+        viableCandidateSamples: checkpoint.stats.viable_candidate_samples,
         selectedTrace,
         airMatchedProposal: checkpoint.stats.aim?.study === undefined
           ? null

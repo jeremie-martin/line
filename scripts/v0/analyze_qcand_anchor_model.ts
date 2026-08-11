@@ -36,7 +36,7 @@ type StudyRow = {
   contract_passed: boolean;
   predicted_first_completion_frames: number | null;
   first_completion_frame: number | null;
-  candidates_sampled: number;
+  actual_candidate_samples: number;
   repair_frames_spent: number;
 };
 

@@ -49,15 +49,14 @@ const OBSERVATION = {
 };
 
 const WORK = {
-  pool_builds: 2,
+  ranked_option_calls: 2,
   requested_normal_proposals: 80,
   actual_candidate_samples: 77,
   viable_candidates: 30,
-  candidate_samples_by_mode: { normal: 77 },
+  candidate_samples_by_stream: { normal: 77 },
   by_evaluation_origin: {
     frontier: { register_offers: 3, terminal_node_evaluations: 2, register_improvements: 2, terminal_register_improvements: 1 },
     tail_completion: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
-    surgical_repair: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
     polish: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
   },
   nodes_processed: 4,
@@ -103,6 +102,7 @@ const PAYLOAD = {
     parent_episode_id: null,
     search_seed: 0,
     frontier_has_fallback_lane: false,
+    repair_decision: null,
     anchor: {
       gap_index: 0,
       anchor_frame: 0,
@@ -129,13 +129,15 @@ const PAYLOAD = {
       stop_reason: "budget_capture",
       end_total_spent_frames: 750,
       spent_frames: 750,
-      terminal_tracks_considered: 2,
+      terminal_reached: true,
       first_terminal_offset_frames: 400,
       register_improved: true,
+      accepted_alternative: false,
       first_register_improvement_offset_frames: 20,
       final_register_improvement_offset_frames: 400,
       first_terminal_register_improvement_offset_frames: 400,
       internal_full_score_delta: null,
+      repair_divergence: null,
       terminal_observation_censored: false,
     },
   }],
@@ -196,11 +198,11 @@ describe("golden archive form of budget telemetry", () => {
       schema: "line.compile-budget-telemetry.v2",
       episodes: [],
       execution_intervals: [],
-    } as unknown as CompileBudgetTelemetry)).toThrow(/expected line\.compile-budget-telemetry\.v3/);
+    } as unknown as CompileBudgetTelemetry)).toThrow(/expected line\.compile-budget-telemetry\.v4/);
     expect(() => compactBudgetTelemetry({
       schema: BUDGET_TELEMETRY_SCHEMA,
       episodes: [],
-    } as unknown as CompileBudgetTelemetry)).toThrow(/requires complete V3/);
+    } as unknown as CompileBudgetTelemetry)).toThrow(/requires complete V4/);
   });
 
   test("is materially smaller than the payload it archives", () => {

@@ -957,7 +957,7 @@ const output = {
   maximumPrecompletionLagVisits: precompletionLagVisits
     .sort((a, b) => b.lagContacts - a.lagContacts)
     .slice(0, 12),
-  candidatesSampled: checkpoint.stats.candidates_sampled,
+  actualCandidateSamples: checkpoint.stats.actual_candidate_samples,
   searchNodesExpanded: checkpoint.stats.search_nodes_expanded ?? null,
   forwardEval: checkpoint.stats.fwd_eval ?? null,
   contactPhase: checkpoint.stats.contact_phase ?? null,

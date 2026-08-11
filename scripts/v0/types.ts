@@ -291,7 +291,6 @@ export type HandoffCandidateSourceCounter = Partial<Record<HandoffCandidateSourc
 export const HANDOFF_EVALUATION_PHASES = [
   "frontier",
   "tail_completion",
-  "surgical_repair",
   "polish",
 ] as const;
 export type HandoffEvaluationPhase = (typeof HANDOFF_EVALUATION_PHASES)[number];
@@ -403,9 +402,9 @@ export type CompileStats = {
   // ─── Generic compile counters ───
   /** Per-gap candidate samples (placement sampler calls). The most
    *  fine-grained unit of "search work" in the optimizer. */
-  candidates_sampled: number;
+  actual_candidate_samples: number;
   /** Candidate samples that survived hard gates and returned a viable GapFit. */
-  candidates_viable: number;
+  viable_candidate_samples: number;
   /** Full engine rebuilds (rebuildEngine calls). Coarse but explicit
    *  physics-replay cost; mostly triggered by polish passes. */
   engine_rebuilds: number;
@@ -446,9 +445,9 @@ export type CompileStats = {
    *  normalizes raw budgets across short/easy vs long/dense specs. */
   budget_slack?: number;
   /** Requested per-node policy candidate count over contact-node expansions. */
-  handoff_policy_candidate_count_min?: number;
-  handoff_policy_candidate_count_mean?: number;
-  handoff_policy_candidate_count_max?: number;
+  handoff_requested_normal_proposals_per_ranked_option_call_min?: number;
+  handoff_requested_normal_proposals_per_ranked_option_call_mean?: number;
+  handoff_requested_normal_proposals_per_ranked_option_call_max?: number;
   /** Resolved branch limit over contact-node expansions. */
   handoff_policy_branch_limit_min?: number;
   handoff_policy_branch_limit_mean?: number;
@@ -785,7 +784,7 @@ export type CompileStats = {
     deadline_pool_builds: number;
     /** ... before first completion, where the ramp's consumers act. Builds whose
      *  caller passed no margin are in neither phase, so the unpaced remainder is
-     *  `pool_builds - pre_builds - post_builds`. */
+     *  `ranked_option_calls - pre_builds - post_builds`. */
     deadline_pre_builds: number;
     /** Pre-completion builds where the ramp engaged (`pressure > 0`, i.e.
      *  margin below DEADLINE_MARGIN_NO_PRESSURE) and where it saturated

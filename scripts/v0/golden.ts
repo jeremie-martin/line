@@ -1060,8 +1060,8 @@ function mergeBudgetResults(
 function compactStats(stats: CompileStats | null): object | null {
   if (stats === null) return null;
   return {
-    candidates_sampled: stats.candidates_sampled,
-    candidates_viable: stats.candidates_viable,
+    actual_candidate_samples: stats.actual_candidate_samples,
+    viable_candidate_samples: stats.viable_candidate_samples,
     // Enumerative-proposer funnel + prediction accuracy (optimizer/aim.ts).
     aim: stats.aim,
     handoff_aimed_selected: stats.handoff_aimed_selected,
@@ -1070,9 +1070,9 @@ function compactStats(stats: CompileStats | null): object | null {
     traversal_budget_model: stats.traversal_budget_model,
     predicted_first_completion_frames: stats.predicted_first_completion_frames,
     budget_slack: stats.budget_slack,
-    handoff_policy_candidate_count_min: stats.handoff_policy_candidate_count_min,
-    handoff_policy_candidate_count_mean: stats.handoff_policy_candidate_count_mean,
-    handoff_policy_candidate_count_max: stats.handoff_policy_candidate_count_max,
+    handoff_requested_normal_proposals_per_ranked_option_call_min: stats.handoff_requested_normal_proposals_per_ranked_option_call_min,
+    handoff_requested_normal_proposals_per_ranked_option_call_mean: stats.handoff_requested_normal_proposals_per_ranked_option_call_mean,
+    handoff_requested_normal_proposals_per_ranked_option_call_max: stats.handoff_requested_normal_proposals_per_ranked_option_call_max,
     handoff_policy_branch_limit_min: stats.handoff_policy_branch_limit_min,
     handoff_policy_branch_limit_mean: stats.handoff_policy_branch_limit_mean,
     handoff_policy_branch_limit_max: stats.handoff_policy_branch_limit_max,
@@ -1203,25 +1203,19 @@ const ARCHIVED_OBSERVATION_FIELDS = [
   "estimator_applicability",
 ] as const;
 
-/** Episode fields kept in the ARCHIVE form: identity, anchor + repair context,
- *  work counters, outcome. `start`/`end` are reduced; `observations` are
- *  dropped entirely. The three repair-context scalars stay in the archive
- *  because they exist precisely so studies stop pricing repairs by attempt
- *  ordinal (docs/repair-selection-study.md priced by ordinal for want of a
- *  round field — an error worth a full point of spurious yield); dropping
- *  them here would re-create that gap in the exact corpus those studies read. */
+/** Episode fields kept in the ARCHIVE form: identity, the complete repair
+ * decision, exact work counters, and outcome including direct divergence.
+ * `start`/`end` are reduced; trace observations are dropped. */
 const ARCHIVED_EPISODE_FIELDS = [
   "episode_id",
   "lane",
-  "mechanism",
-  "mechanism_detail",
   "parent_episode_id",
   "search_seed",
   "frontier_has_fallback_lane",
   "anchor",
-  "repair_round_index",
-  "anchor_upstream_offset",
+  "repair_decision",
   "incumbent_weak_gap_sse",
+  "repair_weak_gap_before",
   "start_total_spent_frames",
   "ceiling_total_spent_frames",
   "ceiling_source",
@@ -1264,7 +1258,7 @@ export function compactBudgetTelemetry(telemetry: CompileBudgetTelemetry | null)
     );
   }
   if (!Array.isArray(telemetry.episodes) || !Array.isArray(telemetry.execution_intervals)) {
-    throw new Error(`compactBudgetTelemetry requires complete V3 episodes and execution intervals`);
+    throw new Error(`compactBudgetTelemetry requires complete V4 episodes and execution intervals`);
   }
   return {
     ...pickDefined(telemetry, ["schema", "level"] as const),

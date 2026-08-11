@@ -13,7 +13,7 @@
  * accounting can be eyeballed against the compiler's own numbers.
  *
  * This renderer accepts the current schema only. Historical payloads must use
- * their historical tooling; silently translating attempt semantics into V3
+ * their historical tooling; silently translating attempt semantics into V4
  * episode semantics would produce false comparisons.
  */
 
@@ -171,16 +171,11 @@ const KNOWN_INTERVAL = new Set([
 const KNOWN_EPISODE = new Set([
   "episode_id",
   "lane",
-  "mechanism",
-  "mechanism_detail",
   "parent_episode_id",
   "search_seed",
   "frontier_has_fallback_lane",
   "anchor",
-  // Always present, null on every non-repair kind — so a repair-bearing payload
-  // used to report three first-class documented fields as unrecognized.
-  "repair_round_index",
-  "anchor_upstream_offset",
+  "repair_decision",
   "incumbent_weak_gap_sse",
   "repair_weak_gap_before",
   "start_total_spent_frames",
@@ -315,11 +310,19 @@ function renderCompile(payload: Rec): string[] {
     const value = scalar(work?.[field]);
     if (value !== null) push(label, value);
   }
+  const calls = num(work?.ranked_option_calls);
+  const requested = num(work?.requested_normal_proposals);
+  if (calls !== null && requested !== null) {
+    push(
+      "mean requested normal proposals per ranked-option call",
+      calls === 0 ? MISSING : ratio(requested / calls, 3),
+    );
+  }
   return ["COMPILE", ...renderTable(["field", "value"], ["l", "r"], rows, "  ").slice(1)];
 }
 
 const WORK_FIELDS: readonly (readonly [field: string, label: string])[] = [
-  ["pool_builds", "ranked-option pool calls"],
+  ["ranked_option_calls", "ranked-option pool calls"],
   ["requested_normal_proposals", "requested normal proposals"],
   ["actual_candidate_samples", "actual candidate samples"],
   ["viable_candidates", "viable candidates"],
@@ -407,8 +410,10 @@ function renderIntervals(payload: Rec, unknown: Set<string>): string[] {
 
 function episodeOutcomeLabel(outcome: Rec | null): string {
   if (outcome === null) return MISSING;
-  if (bool(outcome.terminal_observation_censored) === true) return "no terminal";
-  return `${count(outcome.terminal_tracks_considered)} terminal`;
+  if (bool(outcome.terminal_reached) !== true) return "no terminal";
+  return bool(outcome.accepted_alternative) === true
+    ? "terminal; alternative accepted"
+    : "terminal; alternative not accepted";
 }
 
 /**
@@ -425,13 +430,6 @@ type EpisodeColumn = {
 const EPISODE_COLUMNS: EpisodeColumn[] = [
   { header: "id", align: "r", cell: (e) => count(e.episode_id) },
   { header: "lane", align: "l", cell: (e) => text(e.lane) },
-  { header: "mechanism", align: "l", cell: (e) => text(e.mechanism) },
-  {
-    header: "detail",
-    align: "l",
-    optional: true,
-    cell: (e) => text(e.mechanism_detail),
-  },
   {
     header: "parent",
     align: "r",
@@ -450,16 +448,16 @@ const EPISODE_COLUMNS: EpisodeColumn[] = [
   // ordinal is NOT the round index); `up` is that walk's distance; `weak sse`
   // is the ranking's own key at the moment it ranked.
   {
-    header: "round",
+    header: "iteration",
     align: "r",
     optional: true,
-    cell: (a) => (num(a.repair_round_index) === null ? MISSING : count(a.repair_round_index)),
+    cell: (a) => count(asRecord(a.repair_decision)?.iteration_index),
   },
   {
-    header: "up",
+    header: "parent depth",
     align: "r",
     optional: true,
-    cell: (a) => (num(a.anchor_upstream_offset) === null ? MISSING : count(a.anchor_upstream_offset)),
+    cell: (a) => count(asRecord(a.repair_decision)?.parent_depth),
   },
   {
     header: "weak sse",
@@ -546,7 +544,14 @@ function renderEpisodeWork(payload: Rec): string[] {
     return [
       count(episode.episode_id),
       text(episode.lane),
-      count(work.pool_builds),
+      count(work.ranked_option_calls),
+      ratio(
+        num(work.ranked_option_calls) === 0
+          ? null
+          : (num(work.requested_normal_proposals) ?? 0) /
+            (num(work.ranked_option_calls) ?? 1),
+        2,
+      ),
       count(work.requested_normal_proposals),
       count(work.actual_candidate_samples),
       count(work.viable_candidates),
@@ -581,8 +586,8 @@ function renderEpisodeWork(payload: Rec): string[] {
   return [
     "EPISODE WORK FUNNEL",
     ...renderTable(
-      ["id", "lane", "pools", "requested", "sampled", "viable", "nodes", "children", "offers", "terminal", "tracks", "repeat", "improve", "term imp"],
-      ["r", "l", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r"],
+      ["id", "lane", "calls", "mean req", "requested", "sampled", "viable", "nodes", "children", "offers", "terminal", "tracks", "repeat", "improve", "term imp"],
+      ["r", "l", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r"],
       rows,
       "  ",
     ),
@@ -713,7 +718,7 @@ function describe(path: string): string {
     );
   }
   if (!Array.isArray(payload.episodes) || !Array.isArray(payload.execution_intervals)) {
-    throw new Error(`${path} is missing V3 episodes or execution intervals`);
+    throw new Error(`${path} is missing V4 episodes or execution intervals`);
   }
   const rootUnknown = new Set<string>();
   const compileUnknown = new Set<string>();

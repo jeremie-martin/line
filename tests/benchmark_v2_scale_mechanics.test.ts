@@ -21,6 +21,13 @@ describe("paired scale mechanics", () => {
           lane: "repair",
           search_seed: seed,
           anchor: { gap_index: candidate ? 4 : 3 },
+          repair_decision: {
+            iteration_index: 0,
+            incumbent_revision: 0,
+            parent_depth: 1,
+            target_gap_index: candidate ? 5 : 4,
+            anchor_gap_index: candidate ? 4 : 3,
+          },
           allocated_frames: budget / 2,
           start: {
             estimated_remaining_work_frames: budget / 5,
@@ -30,8 +37,16 @@ describe("paired scale mechanics", () => {
           },
           work: work(candidate),
           outcome: {
-            terminal_tracks_considered: candidate ? 8 : 5,
+            terminal_reached: true,
             register_improved: candidate,
+            accepted_alternative: candidate,
+            repair_divergence: {
+              compared_gap_count: 8,
+              first_divergent_gap_index: candidate ? 4 : null,
+              divergent_gap_count: candidate ? 2 : 0,
+              divergent_suffix_gap_count: candidate ? 2 : 0,
+              terminal_geometry_identical: !candidate,
+            },
             internal_full_score_delta: candidate ? 4 : 0,
             spent_frames: budget / 3,
             first_terminal_offset_frames: budget / 4,
@@ -54,14 +69,14 @@ describe("paired scale mechanics", () => {
       relativeDelta: -0.5,
     });
     expect(result.overall.metrics.repairEpisodesWithRegisterImprovement.candidateMean).toBe(1);
-    expect(result.overall.metrics.repairRegisterImprovements.candidateMean).toBe(3);
+    expect(result.overall.metrics.repairRegisterImprovements.candidateMean).toBe(2);
     expect(result.overall.metrics.repairFirstTerminalReturnEpisodes.candidateMean).toBe(1);
     expect(result.overall.metrics.repairMeanAnchorGap.delta).toBe(1);
-    expect(result.overall.metrics.repairCompletedEpisodeRate.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairTerminalReachedRate.candidateMean).toBe(1);
     expect(result.overall.metrics.repairTotalSpentFrames.candidateMean).toBe(50);
     expect(result.overall.metrics.repairTerminalImprovementPerEvaluation).toMatchObject({
       referenceMean: 0,
-      candidateMean: 0.25,
+      candidateMean: 1,
     });
     expect(result.overall.metrics.repairEpisodeImprovementRate.candidateMean).toBe(1);
     expect(result.overall.metrics.repairCompletionEstimateSignedErrorFrames.candidateMean).toBe(7.5);
@@ -82,7 +97,7 @@ describe("paired scale mechanics", () => {
           episode_id: 0,
           lane: "initial",
           work: work(false),
-          outcome: { terminal_tracks_considered: 5, register_improved: false },
+          outcome: { terminal_reached: true, register_improved: false },
         }],
       },
     } as any];
@@ -99,7 +114,7 @@ describe("paired scale mechanics", () => {
           episode_id: 0,
           lane: "initial",
           work: work(false),
-          outcome: { terminal_tracks_considered: 5, register_improved: false },
+          outcome: { terminal_reached: true, register_improved: false },
         }],
       },
     } as any;
@@ -107,7 +122,7 @@ describe("paired scale mechanics", () => {
       .toThrow(/reference contains duplicate cell/);
     const old = structuredClone(base);
     old.budgetTelemetry.schema = "line.compile-budget-telemetry.v2";
-    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v3/);
+    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v4/);
 
     const corrupt = structuredClone(base);
     corrupt.budgetTelemetry.compile.work.actual_candidate_samples++;
@@ -117,28 +132,27 @@ describe("paired scale mechanics", () => {
 
 function work(candidate: boolean) {
   return {
-    pool_builds: 5,
+    ranked_option_calls: 5,
     requested_normal_proposals: candidate ? 100 : 200,
     actual_candidate_samples: candidate ? 100 : 200,
     viable_candidates: candidate ? 50 : 100,
-    candidate_samples_by_mode: { normal: candidate ? 100 : 200 },
+    candidate_samples_by_stream: { normal: candidate ? 100 : 200 },
     by_evaluation_origin: {
-      frontier: { register_offers: candidate ? 10 : 7, terminal_node_evaluations: candidate ? 8 : 5, register_improvements: candidate ? 3 : 0, terminal_register_improvements: candidate ? 2 : 0 },
+      frontier: { register_offers: 3, terminal_node_evaluations: 1, register_improvements: candidate ? 2 : 0, terminal_register_improvements: candidate ? 1 : 0 },
       tail_completion: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
-      surgical_repair: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
       polish: { register_offers: 0, terminal_node_evaluations: 0, register_improvements: 0, terminal_register_improvements: 0 },
     },
     nodes_processed: candidate ? 14 : 12,
     nodes_expanded: candidate ? 12 : 10,
     children_enqueued: candidate ? 30 : 20,
-    register_offers: candidate ? 10 : 7,
+    register_offers: 3,
     partial_node_evaluations: 2,
-    terminal_node_evaluations: candidate ? 8 : 5,
-    first_time_terminal_node_evaluations: candidate ? 6 : 4,
-    revisited_terminal_node_evaluations: candidate ? 2 : 1,
-    distinct_terminal_tracks: candidate ? 6 : 4,
-    repeated_terminal_track_evaluations: candidate ? 2 : 1,
-    register_improvements: candidate ? 3 : 0,
-    terminal_register_improvements: candidate ? 2 : 0,
+    terminal_node_evaluations: 1,
+    first_time_terminal_node_evaluations: 1,
+    revisited_terminal_node_evaluations: 0,
+    distinct_terminal_tracks: 1,
+    repeated_terminal_track_evaluations: 0,
+    register_improvements: candidate ? 2 : 0,
+    terminal_register_improvements: candidate ? 1 : 0,
   };
 }

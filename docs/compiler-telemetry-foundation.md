@@ -7,23 +7,17 @@ telemetry payload. The payload is part of the experiment contract: names state
 exactly what was counted, score domains are explicit, work is attributable to
 the execution that caused it, and invalid or older schemas fail closed.
 
-This foundation is deliberately independent of the current repair allocator.
-It must describe both the existing bounded multi-terminal suffix traversal and
-a possible future allocator that returns after one terminal track and chooses a
-new affordable anchor.
+This foundation describes the singular repair controller without preserving
+runtime vocabulary for superseded controllers.
 
 ## Vocabulary
 
 - **lane**: the compiler control-flow owner of work: `initial`, `repair`,
   `resumed`, or `snapshot`.
-- **mechanism**: how an episode executes: `frontier` or `surgical`, with an
-  explicit mechanism detail where needed.
 - **episode**: one bounded execution allocation. A frontier repair episode has
-  one selected weak gap, one actual anchor, one search seed, and one ceiling;
-  a surgical episode may have no RNG seed.
-- **round**: one repair-policy decision selecting a weak gap. A round may launch
-  multiple episodes while walking upstream anchors.
-- **pool build**: one actual `rankedOptions` proposal/ranking operation,
+  one self-contained decision, one selected target gap, one fixed-parent
+  anchor, one search seed, one ceiling, and at most one terminal alternative.
+- **ranked-option call**: one actual `rankedOptions` proposal/ranking operation,
   including primary, rescue, and tail-completion builds.
 - **requested normal proposals**: the resolved `nCand` passed to the normal
   proposal stream. It is not a branch count and not the number of viable arcs.
@@ -52,7 +46,7 @@ The payload contains:
 
 1. compile budget/accounting and final-output lineage;
 2. episodes with lane, parent, anchor, repair decision context, seed, ceiling,
-   mechanism, estimator observations, work counters, and outcome;
+   estimator observations, work counters, and outcome;
 3. execution intervals whose charged frames close exactly to compile spend;
 4. trace-only node events, each attributed to an episode and lane.
 
@@ -69,7 +63,7 @@ second repair ledger or a fallback source for search-work metrics.
   finalization work; unattributed work is an error, not a silent bucket;
 - terminal evaluations equal first-time plus revisited terminal-node counts;
 - terminal evaluations equal distinct plus repeated terminal-track evaluations;
-- actual samples equal the sum of sample-mode attribution;
+- actual samples equal the sum of sample-stream attribution;
 - evaluation-origin attribution closes to episode offers, terminals, and
   improvements;
 - register improvements never exceed register offers;
@@ -96,7 +90,7 @@ ranked-option pool calls -> requested proposals -> actual samples -> viable cand
 ```
 
 Register work is also attributed independently by evaluation origin:
-`frontier`, `tail_completion`, `surgical_repair`, and `polish`. Origin is
+`frontier`, `tail_completion`, and `polish`. Origin is
 orthogonal to lane, so repair and resumed work cannot hide inside a phase named
 "main".
 
@@ -109,9 +103,8 @@ Final Benchmark V2 score remains the optimization outcome. Internal
 `axis_quality`, `drift_quality`, and `internal_full_score` are labeled
 diagnostics and are never reported as Benchmark V2 score changes.
 
-## Sequencing
+## Repair evidence
 
-Repair-policy changes are out of scope until this foundation is implemented and
-verified. The first repair experiment afterward should compare the current
-multi-terminal episode with a one-terminal episode that returns to the allocator
-for a fresh affordable anchor/alternative decision under the same hard budget.
+Every repair episode records its complete decision and a direct
+incumbent-versus-terminal geometry comparison. Terminal reached, terminal
+accepted by the internal register, and Benchmark V2 score are separate facts.

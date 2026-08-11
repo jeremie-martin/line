@@ -34,7 +34,7 @@ type StudyRow = {
   contract_passed: boolean;
   predicted_first_completion_frames: number | null;
   first_completion_frame: number | null;
-  candidates_sampled: number;
+  actual_candidate_samples: number;
   repair_frames_spent: number;
   fwd_eval_frames_charged?: number;
 };
@@ -385,12 +385,12 @@ function pairedResponse(rowsIn: Sample[], groupOf: (row: Sample) => string): Pai
   for (const row of rowsIn) {
     if (row.quality_ncand === baselineQ) continue;
     const base = baseline.get(pairKey(row));
-    if (base === undefined || base.first <= 0 || base.candidates_sampled <= 0) continue;
+    if (base === undefined || base.first <= 0 || base.actual_candidate_samples <= 0) continue;
     const key = `${groupOf(row)}|${row.quality_ncand}`;
     groups.set(key, [...(groups.get(key) ?? []), {
       score: row.score - base.score,
       firstRatio: row.first / base.first,
-      candidateRatio: row.candidates_sampled / base.candidates_sampled,
+      candidateRatio: row.actual_candidate_samples / base.actual_candidate_samples,
       repair: row.repair_frames_spent - base.repair_frames_spent,
     }]);
   }

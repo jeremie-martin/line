@@ -251,7 +251,7 @@ denominator once M0 has already said the change was good.
 ```
 nodes expanded:   search_nodes_expanded                (types.ts:470)
 first completion: first_completion_frame / budget      (types.ts:454)
-per-gap breadth:  handoff_policy_candidate_count_mean  (types.ts:445)
+per-gap breadth:  handoff_requested_normal_proposals_per_ranked_option_call_mean  (types.ts:445)
 ```
 
 `nCand` is the breadth law `27 · B/250k`, floor 8, **no ceiling**
@@ -332,7 +332,7 @@ is snapshotted at `handoff.ts:2060`.
 | field | meaning |
 |---|---|
 | `deadline_pool_builds` | every `rankedOptions` call that read the margin, all callers |
-| `deadline_pre_builds` / `deadline_post_builds` | split at first completion, the Phase-1a consumer boundary. Builds whose caller passed no margin (the non-policy lanes read `Infinity`) are in neither, so `pool_builds − pre − post` is the unpaced remainder |
+| `deadline_pre_builds` / `deadline_post_builds` | split at first completion, the Phase-1a consumer boundary. Builds whose caller passed no margin (the non-policy lanes read `Infinity`) are in neither, so `ranked_option_calls − pre − post` is the unpaced remainder |
 | `deadline_pre_pressured` / `deadline_pre_full_pressure` | pre-completion builds where the ramp engaged (`pressure > 0`) and where it saturated (`pressure ≥ 1`) |
 | `deadline_post_pressured` / `deadline_post_full_pressure` | the same two rates AFTER first completion — necessarily counterfactual, because the phase gate (`deadlineConsumersActive = !hasCompletion`) forces the live pressure to 0 there. Computed from the margin the build already read, through the same `deadlinePressure` anchors, so the pre and post rates are the same number measured in two phases. Added 2026-08-04: the post arm is 71% of all pool builds and had no frequency measurement at all, only a mean margin |
 | `deadline_{pre,post}_margin_sum` / `_min` | margin distribution per phase; mean is `sum / builds`, min is `null` until a finite margin is seen |

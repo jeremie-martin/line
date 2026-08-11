@@ -26,19 +26,17 @@ import {
 /**
  * Clean-break search-accounting schema.
  *
- * V3 deliberately does not accept or emit aliases for V1/V2 names. Historical
- * archives remain immutable evidence; new analysis must fail closed rather
- * than silently mix their attempt/phase semantics with episode/lane semantics.
+ * V4 is the clean break for the singular repair controller. Historical V3
+ * archives remain immutable evidence; current readers fail closed instead of
+ * translating their controller-mode and outcome semantics.
  */
-export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v3" as const;
+export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v4" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
 export type BudgetEpisodeLane = "initial" | "snapshot" | "repair" | "resumed";
-export type BudgetEpisodeMechanism = "frontier" | "surgical";
 export const BUDGET_EVALUATION_ORIGINS = [
   "frontier",
   "tail_completion",
-  "surgical_repair",
   "polish",
 ] as const;
 export type BudgetEvaluationOrigin = (typeof BUDGET_EVALUATION_ORIGINS)[number];
@@ -68,7 +66,6 @@ export type BudgetCeilingSource =
 export type BudgetSegmentKind =
   | "startup"
   | "initial_search"
-  | "repair_surgical"
   | "repair_frontier"
   | "resumed_search"
   | "finalization"
@@ -80,8 +77,6 @@ export type BudgetEpisodeStopReason =
   | "frontier_exhausted"
   | "first_completion_stop"
   | "first_terminal_return"
-  | "operation_complete"
-  | "no_candidate"
   | "compile_finished";
 
 // `RemainingStructure` and its two producers moved to `budget_estimator.ts`:
@@ -157,11 +152,14 @@ export type BudgetInternalRegisterKey = {
  * track geometry are intentionally separate populations.
  */
 export type BudgetEpisodeWork = {
-  pool_builds: number;
+  /** Calls that request and rank a normal proposal pool. */
+  ranked_option_calls: number;
+  /** Sum of requested normal proposals across those calls; divide, do not call this lane width. */
   requested_normal_proposals: number;
   actual_candidate_samples: number;
   viable_candidates: number;
-  candidate_samples_by_mode: Record<string, number>;
+  /** Exact geometry evaluations by compiler-owned sampling stream. Lane is the containing episode. */
+  candidate_samples_by_stream: Record<string, number>;
   by_evaluation_origin: Record<BudgetEvaluationOrigin, BudgetEvaluationOriginWork>;
   nodes_processed: number;
   nodes_expanded: number;
@@ -177,11 +175,33 @@ export type BudgetEpisodeWork = {
   terminal_register_improvements: number;
 };
 
+export type BudgetRepairDecision = {
+  iteration_index: number;
+  incumbent_revision: number;
+  remaining_budget_frames: number;
+  headroom_fraction: number;
+  usable_budget_frames: number;
+  parent_depth: number;
+  affordable_target_gap_indices: number[];
+  target_gap_index: number;
+  target_gap_sse: number;
+  anchor_gap_index: number;
+  estimated_anchor_cost_frames: number;
+  estimated_anchor_cost_upper_frames: number;
+  anchor_cost_source: "measured_cost_to_end" | "per_gap_fallback";
+};
+
+export type BudgetRepairDivergence = {
+  compared_gap_count: number;
+  first_divergent_gap_index: number | null;
+  divergent_gap_count: number;
+  divergent_suffix_gap_count: number;
+  terminal_geometry_identical: boolean;
+};
+
 export type BudgetEpisodeTelemetry = {
   episode_id: number;
   lane: BudgetEpisodeLane;
-  mechanism: BudgetEpisodeMechanism;
-  mechanism_detail: string | null;
   parent_episode_id: number | null;
   search_seed: number | null;
   frontier_has_fallback_lane: boolean;
@@ -195,24 +215,8 @@ export type BudgetEpisodeTelemetry = {
    * search, not fresh-start measurements.
    */
   anchor: RemainingStructure;
-  /**
-   * Which repair round produced this episode; null on every other lane.
-   *
-   * A round is one pick of a weak gap. It can spend several episodes walking
-   * the anchor upstream, so the episode ordinal within a compile is NOT the
-   * round index, and `docs/repair-selection-study.md` had to price by ordinal
-   * for want of this field — an error worth a full point of spurious yield in
-   * that study's own sensitivity check.
-   */
-  repair_round_index: number | null;
-  /**
-   * Gaps between the round's picked weak gap and this episode's anchor, i.e.
-   * `up` in `anchor = kWorst - up`. Null on every non-repair kind.
-   *
-   * With the round index it makes `maxUpstream` and `upstreamOrder` priceable:
-   * the anchor alone cannot say whether it was chosen or walked to.
-   */
-  anchor_upstream_offset: number | null;
+  /** Complete, self-contained repair decision; null on non-repair lanes. */
+  repair_decision: BudgetRepairDecision | null;
   /**
    * Σ axis-error² at the round's picked weak gap, in the incumbent report the
    * pick was actually made against. Null on every non-repair kind, and null if
@@ -244,12 +248,14 @@ export type BudgetEpisodeTelemetry = {
     stop_reason: BudgetEpisodeStopReason | null;
     end_total_spent_frames: number | null;
     spent_frames: number | null;
-    /** Number of complete terminal tracks evaluated in this episode. */
-    terminal_tracks_considered: number;
+    /** Literal event: at least one terminal node was evaluated. */
+    terminal_reached: boolean;
     /** Charged work from episode start to its first terminal, not its end. */
     first_terminal_offset_frames: number | null;
     /** Whether this episode changed the best-so-far register. */
     register_improved: boolean;
+    /** Repair-only: a terminal alternative was adopted by the internal register. */
+    accepted_alternative: boolean;
     /**
      * Charged work from episode start to the first improvement the best-so-far
      * register adopted during this episode. That leaf need not be terminal.
@@ -263,6 +269,8 @@ export type BudgetEpisodeTelemetry = {
     internal_full_score_delta: number | null;
     /** Exact selected-gap state after this repair episode. */
     repair_weak_gap_after: BudgetRepairGapState | null;
+    /** Direct incumbent-vs-terminal arc-geometry comparison for repair. */
+    repair_divergence: BudgetRepairDivergence | null;
     /** True when no terminal cost was observed; such episodes are not estimator error samples. */
     terminal_observation_censored: boolean;
   };
@@ -282,8 +290,6 @@ export type BudgetExecutionSegment = {
 export type BudgetAtomicNodeTelemetry = {
   episode_id: number;
   lane: BudgetEpisodeLane;
-  mechanism: BudgetEpisodeMechanism;
-  mechanism_detail: string | null;
   gap_index: number;
   remaining_contacts: number;
   start_total_spent_frames: number;
@@ -380,8 +386,6 @@ type MutableEpisode = BudgetEpisodeTelemetry & {
 
 type StartEpisodeInput = {
   lane: BudgetEpisodeLane;
-  mechanism?: BudgetEpisodeMechanism;
-  mechanismDetail?: string | null;
   parentEpisodeId?: number | null;
   searchSeed: number | null;
   frontierHasFallbackLane: boolean;
@@ -393,8 +397,7 @@ type StartEpisodeInput = {
   includeStartup: boolean;
   pathEstimateByGap?: readonly number[] | null;
   /** Repair-only causal context; see the fields of the same name on the record. */
-  repairRoundIndex?: number | null;
-  anchorUpstreamOffset?: number | null;
+  repairDecision?: BudgetRepairDecision | null;
   incumbentWeakGapSse?: number | null;
   repairWeakGapBefore?: BudgetRepairGapState | null;
   registerKeyAtStart?: BudgetInternalRegisterKey | null;
@@ -404,11 +407,12 @@ type EndEpisodeOutcome = {
   internalFullScoreDelta?: number | null;
   registerKeyAtEnd?: BudgetInternalRegisterKey | null;
   repairWeakGapAfter?: BudgetRepairGapState | null;
+  repairDivergence?: BudgetRepairDivergence | null;
 };
 
 type RecordAtomicNodeInput = Omit<
   BudgetAtomicNodeTelemetry,
-  "episode_id" | "lane" | "mechanism" | "mechanism_detail" |
+  "episode_id" | "lane" |
     "hard_remaining_frames_at_start" |
     "episode_remaining_frames_at_start"
 >;
@@ -474,14 +478,11 @@ export class CompileBudgetTelemetryRecorder {
     const mutable: MutableEpisode = {
       episode_id: episodeId,
       lane: input.lane,
-      mechanism: input.mechanism ?? "frontier",
-      mechanism_detail: input.mechanismDetail ?? null,
       parent_episode_id: input.parentEpisodeId ?? null,
       search_seed: input.searchSeed,
       frontier_has_fallback_lane: input.frontierHasFallbackLane,
       anchor: remainingStructure(this.gaps, this.durationFrames, anchorGap),
-      repair_round_index: finiteOrNull(input.repairRoundIndex),
-      anchor_upstream_offset: finiteOrNull(input.anchorUpstreamOffset),
+      repair_decision: cloneRepairDecision(input.repairDecision ?? null),
       incumbent_weak_gap_sse: finiteOrNull(input.incumbentWeakGapSse),
       repair_weak_gap_before: input.repairWeakGapBefore ?? null,
       start_total_spent_frames: startTotal,
@@ -498,14 +499,16 @@ export class CompileBudgetTelemetryRecorder {
         stop_reason: null,
         end_total_spent_frames: null,
         spent_frames: null,
-        terminal_tracks_considered: 0,
+        terminal_reached: false,
         first_terminal_offset_frames: null,
         register_improved: false,
+        accepted_alternative: false,
         first_register_improvement_offset_frames: null,
         final_register_improvement_offset_frames: null,
         first_terminal_register_improvement_offset_frames: null,
         internal_full_score_delta: null,
         repair_weak_gap_after: null,
+        repair_divergence: null,
         terminal_observation_censored: true,
       },
       includeStartup: input.includeStartup,
@@ -573,7 +576,7 @@ export class CompileBudgetTelemetryRecorder {
       origin.terminal_node_evaluations++;
       if (input.firstTimeSearchNode) episode.work.first_time_terminal_node_evaluations++;
       else episode.work.revisited_terminal_node_evaluations++;
-      episode.outcome.terminal_tracks_considered++;
+      episode.outcome.terminal_reached = true;
       episode.outcome.terminal_observation_censored = false;
       if (episode.outcome.first_terminal_offset_frames === null) {
         episode.outcome.first_terminal_offset_frames = Math.max(
@@ -599,6 +602,9 @@ export class CompileBudgetTelemetryRecorder {
       origin.register_improvements++;
       if (input.terminal) episode.work.terminal_register_improvements++;
       if (input.terminal) origin.terminal_register_improvements++;
+      if (input.terminal && episode.lane === "repair") {
+        episode.outcome.accepted_alternative = true;
+      }
       episode.outcome.register_improved = true;
       const offset = Math.max(0, totalSpent - episode.start_total_spent_frames);
       if (episode.outcome.first_register_improvement_offset_frames === null) {
@@ -626,7 +632,7 @@ export class CompileBudgetTelemetryRecorder {
   }
 
   recordNodeWork(input: {
-    poolBuilds: number;
+    rankedOptionCalls: number;
     requestedNormalProposals: number;
     nodesExpanded: number;
     childrenEnqueued: number;
@@ -634,7 +640,7 @@ export class CompileBudgetTelemetryRecorder {
     const episode = this.activeEpisode();
     if (episode === null) return;
     episode.work.nodes_processed++;
-    episode.work.pool_builds += nonNegativeInt(input.poolBuilds);
+    episode.work.ranked_option_calls += nonNegativeInt(input.rankedOptionCalls);
     episode.work.requested_normal_proposals += nonNegativeInt(input.requestedNormalProposals);
     episode.work.nodes_expanded += nonNegativeInt(input.nodesExpanded);
     episode.work.children_enqueued += nonNegativeInt(input.childrenEnqueued);
@@ -643,14 +649,14 @@ export class CompileBudgetTelemetryRecorder {
   setActiveCandidateWork(input: {
     actualCandidateSamples: number;
     viableCandidates: number;
-    candidateSamplesByMode: Record<string, number>;
+    candidateSamplesByStream: Record<string, number>;
   }): void {
     const episode = this.activeEpisode();
     if (episode === null) return;
     episode.work.actual_candidate_samples = nonNegativeInt(input.actualCandidateSamples);
     episode.work.viable_candidates = nonNegativeInt(input.viableCandidates);
-    episode.work.candidate_samples_by_mode = Object.fromEntries(
-      Object.entries(input.candidateSamplesByMode)
+    episode.work.candidate_samples_by_stream = Object.fromEntries(
+      Object.entries(input.candidateSamplesByStream)
         .map(([mode, count]): [string, number] => [mode, nonNegativeInt(count)])
         .filter(([, count]) => count > 0),
     );
@@ -671,6 +677,7 @@ export class CompileBudgetTelemetryRecorder {
     episode.outcome.end_total_spent_frames = totalSpent;
     episode.outcome.spent_frames = Math.max(0, totalSpent - episode.start_total_spent_frames);
     episode.outcome.repair_weak_gap_after = outcome.repairWeakGapAfter ?? null;
+    episode.outcome.repair_divergence = cloneRepairDivergence(outcome.repairDivergence ?? null);
     episode.register_key_at_end = cloneRegisterKey(outcome.registerKeyAtEnd ?? null);
     episode.outcome.internal_full_score_delta = outcome.internalFullScoreDelta !== undefined
       ? finiteOrNull(outcome.internalFullScoreDelta)
@@ -707,8 +714,6 @@ export class CompileBudgetTelemetryRecorder {
       ...input,
       episode_id: episode.episode_id,
       lane: episode.lane,
-      mechanism: episode.mechanism,
-      mechanism_detail: episode.mechanism_detail,
       start_total_spent_frames: start,
       hard_remaining_frames_at_start: Math.max(0, this.hardBudgetFrames - start),
       episode_remaining_frames_at_start: Math.max(
@@ -952,14 +957,11 @@ export class CompileBudgetTelemetryRecorder {
     return {
       episode_id: episode.episode_id,
       lane: episode.lane,
-      mechanism: episode.mechanism,
-      mechanism_detail: episode.mechanism_detail,
       parent_episode_id: episode.parent_episode_id,
       search_seed: episode.search_seed,
       frontier_has_fallback_lane: episode.frontier_has_fallback_lane,
       anchor: { ...episode.anchor },
-      repair_round_index: episode.repair_round_index,
-      anchor_upstream_offset: episode.anchor_upstream_offset,
+      repair_decision: cloneRepairDecision(episode.repair_decision),
       incumbent_weak_gap_sse: episode.incumbent_weak_gap_sse,
       repair_weak_gap_before: episode.repair_weak_gap_before === null
         ? null
@@ -1021,11 +1023,11 @@ export function adaptiveEstimate(
 
 function emptyEpisodeWork(): BudgetEpisodeWork {
   return {
-    pool_builds: 0,
+    ranked_option_calls: 0,
     requested_normal_proposals: 0,
     actual_candidate_samples: 0,
     viable_candidates: 0,
-    candidate_samples_by_mode: {},
+    candidate_samples_by_stream: {},
     by_evaluation_origin: Object.fromEntries(
       BUDGET_EVALUATION_ORIGINS.map((origin) => [origin, emptyEvaluationOriginWork()]),
     ) as Record<BudgetEvaluationOrigin, BudgetEvaluationOriginWork>,
@@ -1048,7 +1050,7 @@ function sumEpisodeWork(items: readonly BudgetEpisodeWork[]): BudgetEpisodeWork 
   const total = emptyEpisodeWork();
   for (const item of items) {
     for (const key of [
-      "pool_builds",
+      "ranked_option_calls",
       "requested_normal_proposals",
       "actual_candidate_samples",
       "viable_candidates",
@@ -1065,9 +1067,9 @@ function sumEpisodeWork(items: readonly BudgetEpisodeWork[]): BudgetEpisodeWork 
       "register_improvements",
       "terminal_register_improvements",
     ] as const) total[key] += item[key];
-    for (const [mode, count] of Object.entries(item.candidate_samples_by_mode)) {
-      total.candidate_samples_by_mode[mode] =
-        (total.candidate_samples_by_mode[mode] ?? 0) + count;
+    for (const [mode, count] of Object.entries(item.candidate_samples_by_stream)) {
+      total.candidate_samples_by_stream[mode] =
+        (total.candidate_samples_by_stream[mode] ?? 0) + count;
     }
     for (const origin of BUDGET_EVALUATION_ORIGINS) {
       const destination = total.by_evaluation_origin[origin];
@@ -1092,6 +1094,18 @@ function emptyEvaluationOriginWork(): BudgetEvaluationOriginWork {
 
 function cloneRegisterKey(key: BudgetInternalRegisterKey | null): BudgetInternalRegisterKey | null {
   return key === null ? null : { ...key };
+}
+
+function cloneRepairDecision(decision: BudgetRepairDecision | null): BudgetRepairDecision | null {
+  return decision === null
+    ? null
+    : { ...decision, affordable_target_gap_indices: [...decision.affordable_target_gap_indices] };
+}
+
+function cloneRepairDivergence(
+  divergence: BudgetRepairDivergence | null,
+): BudgetRepairDivergence | null {
+  return divergence === null ? null : { ...divergence };
 }
 
 function registerScoreDelta(
@@ -1120,7 +1134,7 @@ function validateTelemetryPayload(
     }
     const work = episode.work;
     for (const key of [
-      "pool_builds",
+      "ranked_option_calls",
       "requested_normal_proposals",
       "actual_candidate_samples",
       "viable_candidates",
@@ -1171,9 +1185,9 @@ function validateTelemetryPayload(
     if (work.nodes_expanded > work.nodes_processed) {
       throw new Error(`budget telemetry episode ${index} has more expanded than processed nodes`);
     }
-    const attributedSamples = Object.values(work.candidate_samples_by_mode)
+    const attributedSamples = Object.values(work.candidate_samples_by_stream)
       .reduce((sum, value) => sum + value, 0);
-    for (const [mode, count] of Object.entries(work.candidate_samples_by_mode)) {
+    for (const [mode, count] of Object.entries(work.candidate_samples_by_stream)) {
       if (!Number.isInteger(count) || count < 0) {
         throw new Error(`budget telemetry episode ${index} candidate mode ${mode} is invalid`);
       }
@@ -1219,7 +1233,7 @@ function validateTelemetryPayload(
         );
       }
     }
-    if (episode.outcome.terminal_tracks_considered !== work.terminal_node_evaluations) {
+    if (episode.outcome.terminal_reached !== (work.terminal_node_evaluations > 0)) {
       throw new Error(`budget telemetry episode ${index} terminal outcome disagrees with work`);
     }
     if (episode.outcome.terminal_observation_censored !== (work.terminal_node_evaluations === 0)) {
@@ -1235,6 +1249,75 @@ function validateTelemetryPayload(
       throw new Error(`budget telemetry episode ${index} register outcome disagrees with work`);
     }
     if (
+      episode.outcome.accepted_alternative !==
+        (episode.lane === "repair" && work.terminal_register_improvements > 0)
+    ) {
+      throw new Error(`budget telemetry episode ${index} alternative acceptance is inconsistent`);
+    }
+    if ((episode.repair_decision === null) !== (episode.lane !== "repair")) {
+      throw new Error(`budget telemetry episode ${index} repair-decision attribution is inconsistent`);
+    }
+    if (episode.repair_decision !== null) {
+      const decision = episode.repair_decision;
+      if (
+        !Number.isInteger(decision.iteration_index) || decision.iteration_index < 0 ||
+        !Number.isInteger(decision.incumbent_revision) || decision.incumbent_revision < 0 ||
+        !Number.isInteger(decision.remaining_budget_frames) || decision.remaining_budget_frames < 0 ||
+        !(decision.headroom_fraction >= 0 && decision.headroom_fraction < 1) ||
+        !Number.isInteger(decision.usable_budget_frames) || decision.usable_budget_frames < 0 ||
+        !Number.isInteger(decision.parent_depth) || decision.parent_depth < 0 ||
+        !Number.isInteger(decision.target_gap_index) || decision.target_gap_index < 0 ||
+        !Number.isInteger(decision.anchor_gap_index) || decision.anchor_gap_index < 0 ||
+        decision.anchor_gap_index !== decision.target_gap_index - decision.parent_depth ||
+        decision.anchor_gap_index !== episode.anchor.gap_index ||
+        decision.remaining_budget_frames !==
+          Math.max(0, payload.compile.repair_budget_frames - episode.start_total_spent_frames) ||
+        decision.usable_budget_frames !==
+          Math.floor(decision.remaining_budget_frames * (1 - decision.headroom_fraction)) ||
+        !decision.affordable_target_gap_indices.includes(decision.target_gap_index) ||
+        decision.affordable_target_gap_indices.some((gap) => !Number.isInteger(gap) || gap < 0) ||
+        !(decision.target_gap_sse >= 0) ||
+        !(decision.estimated_anchor_cost_frames >= 0) ||
+        !(decision.estimated_anchor_cost_upper_frames >= decision.estimated_anchor_cost_frames) ||
+        decision.estimated_anchor_cost_upper_frames > decision.usable_budget_frames
+      ) {
+        throw new Error(`budget telemetry episode ${index} repair decision is inconsistent`);
+      }
+      if (work.terminal_node_evaluations > 1) {
+        throw new Error(`budget telemetry episode ${index} repair evaluated more than one terminal`);
+      }
+    }
+    if (
+      episode.outcome.repair_divergence !== null &&
+      (episode.lane !== "repair" || !episode.outcome.terminal_reached)
+    ) {
+      throw new Error(`budget telemetry episode ${index} divergence has no repair terminal`);
+    }
+    if (episode.lane === "repair" && episode.outcome.terminal_reached &&
+        episode.outcome.repair_divergence === null) {
+      throw new Error(`budget telemetry episode ${index} repair terminal lacks divergence evidence`);
+    }
+    if (episode.outcome.repair_divergence !== null) {
+      const divergence = episode.outcome.repair_divergence;
+      if (
+        !Number.isInteger(divergence.compared_gap_count) || divergence.compared_gap_count < 0 ||
+        !Number.isInteger(divergence.divergent_gap_count) || divergence.divergent_gap_count < 0 ||
+        !Number.isInteger(divergence.divergent_suffix_gap_count) ||
+        divergence.divergent_suffix_gap_count < 0 ||
+        divergence.divergent_suffix_gap_count > divergence.divergent_gap_count ||
+        divergence.divergent_gap_count > divergence.compared_gap_count ||
+        divergence.terminal_geometry_identical !== (divergence.divergent_gap_count === 0) ||
+        (divergence.first_divergent_gap_index === null) !==
+          (divergence.divergent_gap_count === 0) ||
+        (divergence.first_divergent_gap_index !== null &&
+          (!Number.isInteger(divergence.first_divergent_gap_index) ||
+            divergence.first_divergent_gap_index < episode.anchor.gap_index ||
+            divergence.first_divergent_gap_index >= divergence.compared_gap_count))
+      ) {
+        throw new Error(`budget telemetry episode ${index} repair divergence is inconsistent`);
+      }
+    }
+    if (
       (episode.outcome.first_register_improvement_offset_frames === null) !==
         (work.register_improvements === 0) ||
       (episode.outcome.final_register_improvement_offset_frames === null) !==
@@ -1247,9 +1330,6 @@ function validateTelemetryPayload(
         (work.terminal_register_improvements === 0)
     ) {
       throw new Error(`budget telemetry episode ${index} terminal-improvement timing is inconsistent`);
-    }
-    if (episode.mechanism === "surgical" && episode.lane !== "repair") {
-      throw new Error(`budget telemetry episode ${index} has surgical work outside repair`);
     }
     if (
       episode.allocated_frames !==
@@ -1279,7 +1359,7 @@ function validateTelemetryPayload(
     }
   }
   for (const key of [
-    "pool_builds",
+    "ranked_option_calls",
     "requested_normal_proposals",
     "actual_candidate_samples",
     "viable_candidates",
@@ -1299,12 +1379,12 @@ function validateTelemetryPayload(
     }
   }
   for (const mode of new Set([
-    ...Object.keys(payload.compile.work.candidate_samples_by_mode),
-    ...Object.keys(summedWork.candidate_samples_by_mode),
+    ...Object.keys(payload.compile.work.candidate_samples_by_stream),
+    ...Object.keys(summedWork.candidate_samples_by_stream),
   ])) {
     if (
-      (payload.compile.work.candidate_samples_by_mode[mode] ?? 0) !==
-        (summedWork.candidate_samples_by_mode[mode] ?? 0)
+      (payload.compile.work.candidate_samples_by_stream[mode] ?? 0) !==
+        (summedWork.candidate_samples_by_stream[mode] ?? 0)
     ) {
       throw new Error(`budget telemetry compile candidate-mode accounting is open`);
     }
@@ -1400,11 +1480,7 @@ function validateTelemetryPayload(
   }
   for (const [index, node] of (payload.node_events ?? []).entries()) {
     const episode = payload.episodes[node.episode_id];
-    if (
-      episode?.lane !== node.lane ||
-      episode.mechanism !== node.mechanism ||
-      episode.mechanism_detail !== node.mechanism_detail
-    ) {
+    if (episode?.lane !== node.lane) {
       throw new Error(`budget telemetry node event ${index} attribution is inconsistent`);
     }
     if (

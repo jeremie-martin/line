@@ -57,7 +57,7 @@ type Row = {
   trackHash: string;
   accelerationLines: number;
   simFrames: number;
-  candidatesSampled: number;
+  actualCandidateSamples: number;
   selectedSources: Record<string, number>;
   selectedAxes: Record<string, number>;
   repair: unknown;
@@ -105,7 +105,7 @@ for (const specName of specs) {
       trackHash: createHash("sha256").update(JSON.stringify(checkpoint.track)).digest("hex"),
       accelerationLines: checkpoint.track.lines.filter((line) => line.type === 2).length,
       simFrames: checkpoint.stats.sim_frames,
-      candidatesSampled: checkpoint.stats.candidates_sampled,
+      actualCandidateSamples: checkpoint.stats.actual_candidate_samples,
       selectedSources: checkpoint.stats.handoff_selected_candidate_by_source ?? {},
       selectedAxes: checkpoint.stats.handoff_selected_axis_quality_by_axis ?? {},
       repair: checkpoint.stats.repair ?? null,

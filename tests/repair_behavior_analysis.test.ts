@@ -179,11 +179,13 @@ describe("repair behavior analysis", () => {
   test("reports sequence violations instead of silently summarizing them", () => {
     const corrupted = row();
     corrupted.budgetTelemetry.episodes[1].repair_decision.incumbent_revision = 2;
+    corrupted.budgetTelemetry.episodes[1].repair_decision.incumbent_track_hash = "d".repeat(64);
     corrupted.budgetTelemetry.episodes[1].search_seed = 10;
     const result = summarizeRepairBehavior([corrupted]);
 
     expect(result.invariantAudit.passed).toBe(false);
     expect(result.invariantAudit.checks.incumbentRevisionTracksAcceptance.violations).toBe(1);
+    expect(result.invariantAudit.checks.incumbentTrackHashFlowsIntoNextIteration.violations).toBe(1);
     expect(result.invariantAudit.checks.freshSearchSeedPerIteration.violations).toBe(1);
   });
 

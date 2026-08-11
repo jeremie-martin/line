@@ -256,6 +256,19 @@ function auditRun(row: RunRow, audit: Audit): void {
     );
     const consideredTargets = (decision as any).considered_targets;
     if (Array.isArray(consideredTargets)) {
+      const replayedAffordableTargets = consideredTargets.flatMap((candidate: any) => {
+        const anchors = Array.isArray(candidate.anchor_options)
+          ? candidate.anchor_options
+          : [candidate];
+        return anchors.some((anchor: any) => anchor.affordability === "affordable")
+          ? [candidate.target_gap_index]
+          : [];
+      }).sort((a: number, b: number) => a - b);
+      audit.check(
+        "affordableTargetSetReplaysExactly",
+        sameJson(replayedAffordableTargets, affordable),
+        label,
+      );
       const replayed = consideredTargets.flatMap((candidate: any) => {
         const anchors = Array.isArray(candidate.anchor_options)
           ? candidate.anchor_options
@@ -296,6 +309,21 @@ function auditRun(row: RunRow, audit: Audit): void {
       "acceptanceMatchesTerminalRegisterAdoption",
       episode.outcome.accepted_alternative ===
         (episode.work.terminal_register_improvements === 1),
+      label,
+    );
+    audit.check(
+      "internalScoreDeltaMatchesRegisterKeys",
+      close(
+        episode.outcome.internal_full_score_delta,
+        episode.register_key_at_end.internal_full_score -
+          episode.register_key_at_start.internal_full_score,
+      ),
+      label,
+    );
+    audit.check(
+      "registerKeyChangesExactlyOnAcceptance",
+      episode.outcome.accepted_alternative !==
+        sameJson(episode.register_key_at_start, episode.register_key_at_end),
       label,
     );
     audit.check(
@@ -357,6 +385,17 @@ function auditRun(row: RunRow, audit: Audit): void {
       sameJson(episode.register_key_at_end, next.register_key_at_start),
       label,
     );
+    const nextIncumbentHash = (nextDecision as any).incumbent_track_hash;
+    if (typeof incumbentHash === "string" &&
+        typeof nextIncumbentHash === "string") {
+      audit.check(
+        "incumbentTrackHashFlowsIntoNextIteration",
+        episode.outcome.accepted_alternative
+          ? typeof offerHash === "string" && nextIncumbentHash === offerHash
+          : nextIncumbentHash === incumbentHash,
+        label,
+      );
+    }
     if (!episode.outcome.accepted_alternative) {
       const nextAffordable = new Set(nextDecision.affordable_target_gap_indices);
       audit.check(

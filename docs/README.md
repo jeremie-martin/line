@@ -22,6 +22,8 @@ historical record, not live guidance.
 | [`compiler-improvement-campaign.md`](compiler-improvement-campaign.md) | LIVE | The append-only campaign log. Dated entries; the header names the accepted baseline. |
 | [`BALLISTIC_READINESS_DECISIONS.md`](BALLISTIC_READINESS_DECISIONS.md) | LIVE | Why the ballistic/readiness contract says what it says: settled decisions, evidence, and ten falsified hypotheses. |
 | [`benchmark-v2-baseline.md`](benchmark-v2-baseline.md) | LIVE | Generated summary of the currently accepted baseline. |
+| [`benchmark-v2-multi-budget.md`](benchmark-v2-multi-budget.md) | LIVE | Frozen compact multi-budget profile, paired scale decision, and execution workflow. |
+| [`compiler-telemetry-foundation.md`](compiler-telemetry-foundation.md) | LIVE | Strict compile telemetry semantics, identities, invariants, and trust boundary. |
 | [`benchmark-v2-audit.md`](benchmark-v2-audit.md) | LIVE | Suite audit and case provenance. |
 | [`REBASELINE.md`](REBASELINE.md) | LIVE | Accepted-attempt rebaseline and initial/suite-rollover bootstrap semantics. |
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
@@ -41,6 +43,10 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | Doc | Tag | What |
 |---|---|---|
 | [`../goal.md`](../goal.md) | LIVE | The active compiler-improvement goal and strict sequential promotion discipline. |
+| [`impact-delivery-650-campaign.md`](impact-delivery-650-campaign.md) | LIVE | Frozen-evaluator campaign contract for passive contact-transition geometry, the 620 checkpoint, and the >650 target. |
+| [`impact-delivery-650-baseline-atlas.md`](impact-delivery-650-baseline-atlas.md) | LIVE | Exact current-baseline impact loss slices and counterfactual ceilings used to aim the 650 campaign. |
+| [`shelter-budget-sweep-four-priority-implementation.md`](shelter-budget-sweep-four-priority-implementation.md) | LIVE | Evidence and implementation record for budget identity, breadth, repair, persistent gaps, and the accepted outgoing-amplitude response law. |
+| [`one-terminal-adaptive-repair-results.md`](one-terminal-adaptive-repair-results.md) | LIVE | Multi-budget and canonical evidence for the promoted repair allocator. |
 | [`impact-mission.md`](impact-mission.md) | LIVE | Current impact mission, ownership boundaries, and change discipline. |
 
 ## Reference

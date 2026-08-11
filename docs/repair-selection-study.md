@@ -1,5 +1,11 @@
 # Repair selection study
 
+> Historical result only. This report was generated from the retired
+> attempt-era telemetry and an era-pinned repair replay. It is evidence about
+> that compiler, not a current V3 mechanics report. Current inputs must use the
+> exact V3 schema and frontier repair episodes; surgical repair is a separate
+> mechanism.
+
 Phase 2's offline replay study from [`budget-unification-plan.md`](budget-unification-plan.md).
 `pickFeasibleWeakGap` (`handoff.ts:4725`) ranks repair anchors by raw axis-SSE under
 an affordability cap and calls itself "v1, a proxy for true upstream blame"; the
@@ -573,4 +579,3 @@ predicted yield by less than the bootstrap's own noise.
    observed; the archived anchor is `kWorst − up` with `up` unknown (ROI study H6).
 6. **The resumed frontier is unpriced.** Frames a policy declines to spend are
    credited at zero, not at the resumed frontier's unmeasured rate.
-

@@ -4,12 +4,11 @@ Target: accepted Benchmark V2 development headline above 650, then continue
 pushing the same broad compiler laws as far as the evidence supports.
 
 Current active campaign baseline:
-`readiness-contact-impulse-v3-750k`, headline **595.8997** at 750k/N=48,
-2112/2112 valid. Suite `7bd878d8aaea08a9`; scoring protocol
-`c71466608589ae757`; Golden evaluator `07cf88383150`. This is the
-scorer-aligned readiness refit promoted by explicit owner override after a
-positive but ordinary-inconclusive comparison. The old 250k/500k evidence
-remains intact and deferred; it was not recomputed. See
+`one-terminal-adaptive-repair-750k`, headline **602.1261** at 750k/N=8,
+352/352 valid. Suite `7bd878d8aaea08a9`; scoring protocol
+`c71466608589ae757`; Golden evaluator `07cf88383150`. The latest governed
+comparison was +0.4378 (SE 0.0862), accepted at the strict N=8 look. The old
+250k/500k evidence remains intact and deferred from the headline. See
 `docs/benchmark-v2-current-baseline-analysis.md` for current-ruler distribution
 and behavior analysis.
 
@@ -35,6 +34,81 @@ acceleration-line work.
 | `fitted-law-command` | 568.28 | N=24 +5.57 SE 1.45 [+1.62, +9.51], ACCEPT/promotable; two unfitted constants fitted |
 | `air-matched-breadth-law` | 572.67 | N=8 +4.39 SE 1.46, one-sided lower +0.39; all-base air matching plus linear aim refinement |
 | **`postcompletion-aim-center-reuse`** | **571.08** | **N=48 +0.0842 SE 0.0217, 95% CI [+0.0271,+0.1413]; exact center-row reuse after first completion** |
+| `redraw-on-empty-750k` | 595.97 | N=32 +0.7217 SE 0.2933, ACCEPT; sole ordinary August promotion |
+| `base-depth1-750k` | 596.41 | N=48 +0.4305 SE 0.3930, inconclusive; capability debt recorded |
+| `pace-term-removal-750k` | 596.67 | N=48 +0.2509 SE 0.2407, inconclusive simplification |
+| `redraw-dose-law-750k` | 596.97 | N=48 +0.2998 SE 0.1740, inconclusive-positive owner promotion |
+| `curve-joint-incoming-extension-750k` | 601.43 | N=8 +3.9879 SE 0.7867, ACCEPT; independent N=8 tail +5.3783 |
+| `outgoing-amplitude-response-750k` | 602.09 | N=32 +0.2086 SE 0.0597, 99.93% directional probability, ACCEPT |
+| **`one-terminal-adaptive-repair-750k`** | **602.13** | **N=8 +0.4378 SE 0.0862, 99.93% directional probability, ACCEPT; active baseline** |
+
+## 2026-08-11 — one-terminal adaptive repair promoted
+
+Strict V3 telemetry and the compact eight-source/eight-budget profile showed
+that multi-terminal frontier repair spent almost the same repair work inside a
+small number of long local episodes. Returning after one terminal reallocates
+that work across 62% more episodes and 59% more distinct anchor gaps, while
+reducing complete terminal evaluations by 82%. The governed compact decision
+preferred the candidate at N=8 (+0.4376); all eight budget aggregates remained
+positive through the 16-seed characterization.
+
+The canonical 44-source experiment then accepted at N=8: 601.6883 → 602.1261,
++0.4378, SE 0.0862, P(+) 99.93%, 352/352 valid in both arms, with every stratum
+positive. An environment-free rerun was byte-identical to the explicit study
+arm. The source default and campaign baseline were promoted; `multi-terminal`
+remains an explicit study reference. Full evidence is in
+`one-terminal-adaptive-repair-results.md`.
+
+## 2026-08-07 — 650 impact-delivery campaign opened
+
+The named search-side forward-evaluation veins are measured closed. Exact
+current-baseline counterfactual replay identifies the next causal prize instead:
+scaling impact error to 75% replays to **651.51** (+54.54); the 0.28–0.40 target
+band alone carries about +33 points and the feasible-delivery pool about +42.
+These are ceilings, not claimed compiler gains, and cross-axis prices remain
+part of every decision.
+
+The owner authorized one new passive contact-transition family while freezing
+the evaluator, targets, cases, budgets, qualification rules, and existing
+compiler semantics. The first mechanism is capture–redirect–release geometry,
+introduced as an additive ordinary-pool proposal rather than a replacement
+planner. The operational contract, fixed cohorts, safety vetoes, compute ledger,
+620 repricing checkpoint, and >650 completion gate are in
+`impact-delivery-650-campaign.md`. Blinded production review remains evidence to
+collect, but by explicit owner direction it cannot pause autonomous execution.
+
+### First impact-delivery tranche — retained negative, no formal look
+
+The default-off implementation now includes exact offered/constructed/rejected,
+contact/release, pool-rank, branch-selection, orientation, and delivered-impact
+telemetry. Focused geometry and handoff tests pass, and the default-off compiler
+continues to match the re-recorded current-baseline fixtures.
+
+Paired nine-source screens at 150k/750k closed the two declared monotone forms.
+Balanced capture fell from −23.21 scope points as a separate lane to −0.18 after
+ordinary-pool integration and an exact deficit gate, but its 750k causal counts
+were conclusive: 627 proposals, 100 exact admissions, 30 branch selections, and
+zero final selections. It can only charge search. An impact-loaded straight
+release made near-target local fits but was −4.74 at 750k, concentrated in the
+legacy transition source; the local impulse was purchased with next-contact
+continuation.
+
+Repricing under the contacted-frame ruler justified a zero-net chicane rather
+than another monotone amplitude. Standalone transfer was only 4.32/47.38 of the
+requested total; a conservative amplitude calibration raised it to 5.69/33.75
+and remained negative. Preserving an incumbent's exact catch was materially
+better and read +0.29 at 750k on seeds 704–705, including rapid pickup +12.96,
+but paid legacy transition −16.01. The physical 12-frame continuation gate
+removed that debt and every 750k score change, while its extra probes lost one
+150k completion. It is therefore retained default-off as falsification evidence,
+not promoted.
+
+Total charged campaign executions are 885. No held-out or governed N=48 budget
+was spent because no arm passed source spread, continuation, and scarce-budget
+admission. The active baseline remains `redraw-dose-law-750k` at 596.9655. The
+next in-scope topology must add an independently engaging return-side collision
+to the preserved native catch; one-sided passive surfaces cannot realize the
+zero-net return without losing contact.
 
 ## 2026-07-31 — promoted by explicit override: scorer-bound readiness refresh
 

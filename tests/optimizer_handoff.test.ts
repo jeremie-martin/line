@@ -58,7 +58,7 @@ async function firstCleanSnapshot(): Promise<HandoffNodeSnapshot> {
     polish: false,
     onNode: (node, key, event) => {
       if (snapshot !== null) return;
-      if (event.phase !== "main") return;
+      if (event.phase !== "frontier") return;
       if (!node.startExpanded || node.deferExpansion || node.skippedContacts !== 0) return;
       if (node.search.gapIndex <= 0) return;
       snapshot = snapshotHandoffNode(node, key, event);
@@ -489,8 +489,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(result.stats.handoff_start_rank).toBe(snapshot.node.startRank);
     expect(result.stats.handoff_search_seed).toBe(123);
     expect(result.track.lines.length).toBeGreaterThanOrEqual(prefixLineCount);
-    expect(result.budgetTelemetry?.attempts[0]?.kind).toBe("snapshot");
-    expect(result.budgetTelemetry?.attempts[0]?.start.estimator_applicability)
+    expect(result.budgetTelemetry?.episodes[0]?.lane).toBe("snapshot");
+    expect(result.budgetTelemetry?.episodes[0]?.start.estimator_applicability)
       .toBe("unvalidated_attempt_kind");
   }, 60_000);
 });

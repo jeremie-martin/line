@@ -1,15 +1,15 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "redraw-dose-law-750k",
-  "generated_at": "2026-08-04T11:39:13.626Z",
+  "label": "one-terminal-adaptive-repair-750k",
+  "generated_at": "2026-08-11T00:06:17.709Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
       750000
     ],
     "max_seeds": 48,
-    "promotion_seeds": 48,
+    "promotion_seeds": 8,
     "sequential_looks": [
       8,
       16,
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "e69db2a8c7447e074e6fe87ec773c6b06154fb264ff3424d4345f53a321b554f",
+  "compiler_source_fingerprint": "72d714452f7983cf252750e64eab6f1d4dfc0c7067724c0bc7ec6c3cbc58eaf2",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -100,9 +100,11 @@
     "scripts/v0/optimizer/budget_model.ts",
     "scripts/v0/optimizer/budget_telemetry.ts",
     "scripts/v0/optimizer/contact_phase.ts",
+    "scripts/v0/optimizer/contact_transition.ts",
     "scripts/v0/optimizer/deadline.ts",
     "scripts/v0/optimizer/handoff.ts",
     "scripts/v0/optimizer/impact_policy.ts",
+    "scripts/v0/optimizer/impact_response_model.ts",
     "scripts/v0/optimizer/kinematic_support.ts",
     "scripts/v0/optimizer/node.ts",
     "scripts/v0/optimizer/objective.ts",
@@ -120,39 +122,42 @@
     "scripts/v0/optimizer/solver.ts",
     "scripts/v0/optimizer/types.ts",
     "scripts/v0/score.ts",
+    "scripts/v0/trajectory/curve_resolution.ts",
+    "scripts/v0/trajectory/native_catch_history.ts",
+    "scripts/v0/trajectory/precontact_multicontact_history.ts",
     "scripts/v0/types.ts",
     "tsconfig.json"
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "815ed914758c30d5e9e2c52a9300614104e1280bf1e372ea6887a3e734fd5b0d",
+  "candidate_fingerprint": "2598e3af80a8ad2e6bf331c475d2ececc7442de2d3cdfcb0725f260989fe133e",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
-  "decision_protocol_fingerprint": "c64eb99cf5ae8743cb86d050d478fe75db536f99c552c3747991b40cdf85f312",
+  "decision_protocol_fingerprint": "456f6805f87908d22f62aae0c98d98088d121feba9f6a4acdbbc96e2ece68a9e",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
   "sequential_eval_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
   "sequential_eval_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/redraw-dose-law-750k-compiler-snapshot.tar.gz",
-    "archiveSha256": "55576aa921ca1991094354d30baf7ee4c0cddc1371ed4114d4014f80b8b1cabd",
-    "candidateFingerprint": "815ed914758c30d5e9e2c52a9300614104e1280bf1e372ea6887a3e734fd5b0d",
-    "compilerSourceFingerprint": "e69db2a8c7447e074e6fe87ec773c6b06154fb264ff3424d4345f53a321b554f",
+    "archive": "benchmark/v2/runs/one-terminal-adaptive-repair-750k-compiler-snapshot.tar.gz",
+    "archiveSha256": "2f6def0436f0ac62253c91f924b06b8d98b9914af61af1a9552389ea466a339b",
+    "candidateFingerprint": "2598e3af80a8ad2e6bf331c475d2ececc7442de2d3cdfcb0725f260989fe133e",
+    "compilerSourceFingerprint": "72d714452f7983cf252750e64eab6f1d4dfc0c7067724c0bc7ec6c3cbc58eaf2",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
-    "execution_policy_fingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
-    "implementation_fingerprint": "ec0f05d8fc1a30d07f7908fb2fe879c1c70c7fad89845771758a741b98097a43",
-    "archive_sha256": "ee8d739abac330a99cfc82c417d550a9912a680bf49947fe7748f2c3dc71d82d",
-    "compressed_archive": "benchmark/v2/runs/redraw-dose-law-750k-development-750k-N48.json.gz",
-    "compressed_archive_sha256": "f4210f871a37cfa9430290aa3bae19afd195521f40061384fa49d1248ac84c54",
-    "canonical_headline": 596.9655,
+    "execution_policy_fingerprint": "42918deee16f9ccd9b6d014146ccbd979a9e3feee2914d27bb78d99821bf1c28",
+    "implementation_fingerprint": "dc3b49c93577b87a6d981003c383dc3addd87d6c48c3b04a95abcb16535e375c",
+    "archive_sha256": "ef3229cdf8d1fa8d32761c15d9d60152ce494a8a04206f4304e8c8448696aaa3",
+    "compressed_archive": "benchmark/v2/runs/one-terminal-adaptive-repair-750k-development-750k-N8.json.gz",
+    "compressed_archive_sha256": "2f070bfabb8128571278220357dd94ad804396a270f515d477371d1874efc78a",
+    "canonical_headline": 602.1261,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
       "seedBase": 0,
-      "seedsPerBudget": 48,
+      "seedsPerBudget": 8,
       "byBudget": [
         {
           "budget": 750000,
@@ -164,47 +169,7 @@
             20,
             21,
             22,
-            23,
-            608,
-            609,
-            610,
-            611,
-            612,
-            613,
-            614,
-            615,
-            616,
-            617,
-            618,
-            619,
-            620,
-            621,
-            622,
-            623,
-            624,
-            625,
-            626,
-            627,
-            628,
-            629,
-            630,
-            631,
-            632,
-            633,
-            634,
-            635,
-            636,
-            637,
-            638,
-            639,
-            640,
-            641,
-            642,
-            643,
-            644,
-            645,
-            646,
-            647
+            23
           ]
         }
       ]
@@ -212,16 +177,16 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 596.9655,
-        "valid_runs": 2112,
-        "total_runs": 2112
+        "score": 602.1261,
+        "valid_runs": 352,
+        "total_runs": 352
       }
     ]
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "redraw-dose-law-750k",
-    "candidateFingerprint": "815ed914758c30d5e9e2c52a9300614104e1280bf1e372ea6887a3e734fd5b0d",
+    "baselineLabel": "one-terminal-adaptive-repair-750k",
+    "candidateFingerprint": "2598e3af80a8ad2e6bf331c475d2ececc7442de2d3cdfcb0725f260989fe133e",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -288,12 +253,12 @@
       {
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
-        "endSeedSlotExclusive": 48,
-        "archiveSha256": "ee8d739abac330a99cfc82c417d550a9912a680bf49947fe7748f2c3dc71d82d",
-        "compressedArchive": "benchmark/v2/runs/redraw-dose-law-750k-development-750k-N48.json.gz",
-        "compressedArchiveSha256": "f4210f871a37cfa9430290aa3bae19afd195521f40061384fa49d1248ac84c54",
-        "executionPolicyFingerprint": "597bf1eda5560f382fa917926b68965aa7889963543be54b5bb76eeffe4fd4f3",
-        "implementationFingerprint": "ec0f05d8fc1a30d07f7908fb2fe879c1c70c7fad89845771758a741b98097a43"
+        "endSeedSlotExclusive": 8,
+        "archiveSha256": "ef3229cdf8d1fa8d32761c15d9d60152ce494a8a04206f4304e8c8448696aaa3",
+        "compressedArchive": "benchmark/v2/runs/one-terminal-adaptive-repair-750k-development-750k-N8.json.gz",
+        "compressedArchiveSha256": "2f070bfabb8128571278220357dd94ad804396a270f515d477371d1874efc78a",
+        "executionPolicyFingerprint": "42918deee16f9ccd9b6d014146ccbd979a9e3feee2914d27bb78d99821bf1c28",
+        "implementationFingerprint": "dc3b49c93577b87a6d981003c383dc3addd87d6c48c3b04a95abcb16535e375c"
       }
     ]
   },
@@ -312,23 +277,21 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/redraw-dose-law-750k-comparison.json",
-    "artifact_sha256": "e74eba408054d1c128df369fba3f6a88e0f605236c085018de2e1bfbb6c13dc7",
-    "seeds": 48,
+    "artifact": "benchmark/v2/runs/one-terminal-adaptive-repair-750k-comparison.json",
+    "artifact_sha256": "1b4bef026f71043e61563867650496c7c2142123fdc114a3a2eae0ac87bf5bed",
+    "seeds": 8,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
-    "stopping_action": "inconclusive",
+    "stopping_action": "accept",
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/redraw-dose-law-750k-comparison-request.json",
-    "request_sha256": "4305cd120e941c36b7b63e942ba4bd124eaf08b0b26e742be5e95ca529861b88",
+    "request": "benchmark/v2/runs/one-terminal-adaptive-repair-750k-comparison-request.json",
+    "request_sha256": "0c03882675785c501bb6a9149c52360d0a6977b7b90c0dc30e2c063990261805",
     "budgets": [
       750000
     ],
-    "outcome": "inconclusive",
-    "delta": 0.2998,
-    "forced": true,
-    "force_reason": "inconclusive-positive +0.30 [-0.17,+0.77] P(+)=95.4%; scale-free law replacing flat redraw constant; representative +0.39 significant alone; 250k completion rescue REAL at 240 seeds (0.634, p<1e-5); validity 2112/2112 both arms"
+    "outcome": "accept",
+    "delta": 0.4378
   }
 }

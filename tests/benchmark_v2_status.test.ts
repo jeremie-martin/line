@@ -23,7 +23,7 @@ describe("Benchmark V2 status", () => {
       candidateCompiles: 352,
       maximumCandidateCompiles: 2_112,
     });
-    expect(status.baseline.headline).toBe(596.9655);
+    expect(status.baseline.headline).toBe(602.1261);
     expect(status.baseline.budgets).toEqual([750_000]);
     expect(status.baseline.targetHeadline).toBe(650);
     expect(status.cache.missingBaselineCompiles).toBe(0);
@@ -37,7 +37,7 @@ describe("Benchmark V2 status", () => {
     const text = renderBenchmarkStatus(status);
     expect(text).toContain("cached comparison N=8");
     expect(text).toContain("experiment maximum: N=48; 2112 candidate compiles");
-    expect(text).toContain("596.97; 750k");
+    expect(text).toContain("602.13; 750k");
     expect(text).toContain("campaign target: >650.00");
     expect(text).toContain(`nextCommand: ${status.nextCommand}`);
     expect(status.nextCommand).toMatch(/^npm run benchmark -- /);

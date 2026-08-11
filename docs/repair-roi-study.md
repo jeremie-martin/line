@@ -1,5 +1,10 @@
 # Repair ROI Study
 
+> Historical result only. This report was generated from the retired V2
+> attempt/segment schema. Its labels and aggregates are not part of the V3
+> telemetry contract and must not be used for current compiler decisions.
+> Re-extract the source runs with V3 telemetry and regenerate the report.
+
 Measured answer to the layer-4 question in [`budget-control-design.md`](budget-control-design.md):
 what a marginal repair frame buys, and whether the post-completion knobs are sized for it.
 Every number below is produced by `scripts/v0/study_repair_roi.ts` from archived

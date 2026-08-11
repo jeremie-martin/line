@@ -6,6 +6,14 @@ import {
   handoffAxisOvershootPenalty,
   handoffSampleCount,
   hasStartFeasibilityLookahead,
+  impactRepairInsuranceMode,
+  impactResponseAdmissionMode,
+  impactSurgicalRepairMode,
+  jointPairRepairWindowEligible,
+  repairFrontierOrder,
+  repairFrontierMode,
+  refreshRepairCostToEndProfile,
+  repairRefreshCostToEndEnabled,
   repairRestartCeilingFrames,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
@@ -30,6 +38,7 @@ import {
 } from "../scripts/v0/core/candidate.ts";
 import {
   arcPlacementMode,
+  impactSupportWindowStrength,
   recordArcPlacementDirectFailure,
   resetArcPlacementStats,
   sampleArcParamsRngDraws,
@@ -103,6 +112,92 @@ function totalSignedTurnDeg(lines: TrackLine[]): number {
 }
 
 describe("handoff policy boundaries", () => {
+  test("keeps the native impact-window support floor default-off", () => {
+    expect(impactSupportWindowStrength({})).toBe(0);
+    expect(impactSupportWindowStrength({ LR_IMPACT_SUPPORT_WINDOW: "off" })).toBe(0);
+    expect(impactSupportWindowStrength({ LR_IMPACT_SUPPORT_WINDOW: "full" })).toBe(1);
+    expect(() => impactSupportWindowStrength({ LR_IMPACT_SUPPORT_WINDOW: "half" })).toThrow();
+  });
+
+  test("keeps same-speed impact repair insurance default-off and validates its mode", () => {
+    expect(impactRepairInsuranceMode({})).toBeNull();
+    expect(impactRepairInsuranceMode({ LR_IMPACT_REPAIR_INSURANCE: "off" })).toBeNull();
+    expect(impactRepairInsuranceMode({ LR_IMPACT_REPAIR_INSURANCE: "1" })).toBe("same-speed");
+    expect(impactRepairInsuranceMode({ LR_IMPACT_REPAIR_INSURANCE: "same-speed" }))
+      .toBe("same-speed");
+    expect(() => impactRepairInsuranceMode({ LR_IMPACT_REPAIR_INSURANCE: "winner-take-all" }))
+      .toThrow();
+  });
+
+  test("keeps the active same-speed repair interaction default-off", () => {
+    expect(impactResponseAdmissionMode({})).toBeNull();
+    expect(impactResponseAdmissionMode({ LR_IMPACT_RESPONSE_ADMISSION: "off" })).toBeNull();
+    expect(impactResponseAdmissionMode({
+      LR_IMPACT_RESPONSE_ADMISSION: "same-speed-active-tail-repair",
+    })).toBe("same-speed-active-tail-repair");
+    expect(() => impactResponseAdmissionMode({
+      LR_IMPACT_RESPONSE_ADMISSION: "active-repair-dose-walk",
+    })).toThrow();
+  });
+
+  test("keeps exact impact suffix transplantation default-off and validates its mode", () => {
+    expect(impactSurgicalRepairMode({})).toBeNull();
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "off" })).toBeNull();
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "1" }))
+      .toBe("same-speed-suffix");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "same-speed-suffix" }))
+      .toBe("same-speed-suffix");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "release-transport" }))
+      .toBe("release-transport");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "post-contact-bridge-quarter" }))
+      .toBe("post-contact-bridge-quarter");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "seeded-suffix-restart" }))
+      .toBe("seeded-suffix-restart");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-restart" }))
+      .toBe("joint-pair-restart");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-quality-restart" }))
+      .toBe("joint-pair-quality-restart");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-balanced-restart" }))
+      .toBe("joint-pair-balanced-restart");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-contrast-restart" }))
+      .toBe("joint-pair-contrast-restart");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-balanced-terminal" }))
+      .toBe("joint-pair-balanced-terminal");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-score-terminal" }))
+      .toBe("joint-pair-score-terminal");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-window-terminal" }))
+      .toBe("joint-pair-window-terminal");
+    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-cached-terminal" }))
+      .toBe("joint-pair-cached-terminal");
+    expect(() => impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "search-again" }))
+      .toThrow();
+  });
+
+  test("joint-pair window gate matches the frozen impact-loss atlas bin", () => {
+    expect(jointPairRepairWindowEligible(gap(0, 0, 16), { impact: 0.7 })).toBe(false);
+    expect(jointPairRepairWindowEligible(gap(0, 0, 17), { impact: 0.7 })).toBe(true);
+    expect(jointPairRepairWindowEligible(gap(0, 0, 24), { impact: 0.2 })).toBe(true);
+    expect(jointPairRepairWindowEligible(gap(0, 0, 25), { impact: 0.7 })).toBe(false);
+    expect(jointPairRepairWindowEligible(gap(0, 0, 20), { speed: 0.7 })).toBe(false);
+  });
+
+  test("keeps repair objective-frontier ordering default-off", () => {
+    expect(repairFrontierOrder({})).toBeNull();
+    expect(repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "off" })).toBeNull();
+    expect(repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "objective" }))
+      .toBe("objective");
+    expect(() => repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "depth" })).toThrow();
+  });
+
+  test("parses the frontier repair execution unit strictly", () => {
+    expect(repairFrontierMode({})).toBe("one-terminal-adaptive");
+    expect(repairFrontierMode({ LR_REPAIR_FRONTIER_MODE: "multi-terminal" }))
+      .toBe("multi-terminal");
+    expect(repairFrontierMode({ LR_REPAIR_FRONTIER_MODE: "one-terminal-adaptive" }))
+      .toBe("one-terminal-adaptive");
+    expect(() => repairFrontierMode({ LR_REPAIR_FRONTIER_MODE: "anytime" })).toThrow();
+  });
+
   test("candidate pool has no contact-count regime cliff", () => {
     const formerCliffCounts = [29, 30, 31, 60, 61, 77];
     expect(formerCliffCounts.map(() => handoffCandidatePool())).toEqual([5, 5, 5, 5, 5, 5]);
@@ -174,6 +269,82 @@ describe("handoff policy boundaries", () => {
     } finally {
       if (previous === undefined) delete process.env.LR_STUDY_NCAND_SCALE;
       else process.env.LR_STUDY_NCAND_SCALE = previous;
+      beginEnvFlagEpoch();
+    }
+  });
+
+  test("LR_STUDY_NCAND_EXPONENT changes curvature without moving the 750k anchor", () => {
+    const previousExponent = process.env.LR_STUDY_NCAND_EXPONENT;
+    const previousScale = process.env.LR_STUDY_NCAND_SCALE;
+    const at = (exponent: string | undefined, budget: number) => {
+      delete process.env.LR_STUDY_NCAND_SCALE;
+      if (exponent === undefined) delete process.env.LR_STUDY_NCAND_EXPONENT;
+      else process.env.LR_STUDY_NCAND_EXPONENT = exponent;
+      beginEnvFlagEpoch();
+      return handoffSampleCount(budget);
+    };
+    try {
+      for (const exponent of [undefined, "0.25", "0.5", "0.75", "1"]) {
+        expect(at(exponent, 750_000)).toBe(81);
+      }
+      expect(at("0.25", 250_000)).toBe(62);
+      expect(at("0.5", 250_000)).toBe(47);
+      expect(at("0.75", 250_000)).toBe(36);
+      expect(at("1", 250_000)).toBe(27);
+      expect(at("0.25", 1_500_000)).toBe(96);
+      expect(at("0.5", 1_500_000)).toBe(115);
+      expect(at("0.75", 1_500_000)).toBe(136);
+      expect(at("1", 1_500_000)).toBe(162);
+      for (const bad of ["0", "-0.1", "1.01", "curve", "NaN", "1e400", " "]) {
+        expect(() => at(bad, 750_000))
+          .toThrow(/LR_STUDY_NCAND_EXPONENT must be a finite number in \(0, 1\]/);
+      }
+    } finally {
+      if (previousExponent === undefined) delete process.env.LR_STUDY_NCAND_EXPONENT;
+      else process.env.LR_STUDY_NCAND_EXPONENT = previousExponent;
+      if (previousScale === undefined) delete process.env.LR_STUDY_NCAND_SCALE;
+      else process.env.LR_STUDY_NCAND_SCALE = previousScale;
+      beginEnvFlagEpoch();
+    }
+  });
+
+  test("high-budget breadth policies leave the 750k-and-below law untouched", () => {
+    const previousPolicy = process.env.LR_STUDY_NCAND_POLICY;
+    const previousExponent = process.env.LR_STUDY_NCAND_EXPONENT;
+    const at = (policy: string | undefined, budget: number, repairLane = false) => {
+      delete process.env.LR_STUDY_NCAND_EXPONENT;
+      if (policy === undefined) delete process.env.LR_STUDY_NCAND_POLICY;
+      else process.env.LR_STUDY_NCAND_POLICY = policy;
+      beginEnvFlagEpoch();
+      return handoffSampleCount(budget, repairLane);
+    };
+    try {
+      for (const budget of [150_000, 250_000, 500_000, 750_000]) {
+        expect(at("high-budget-three-quarter", budget)).toBe(at(undefined, budget));
+        expect(at("linear-cap-216", budget)).toBe(at(undefined, budget));
+      }
+      expect(at("high-budget-three-quarter", 1_000_000)).toBe(101);
+      expect(at("high-budget-three-quarter", 1_500_000)).toBe(136);
+      expect(at("high-budget-three-quarter", 2_500_000)).toBe(200);
+      expect(at("high-budget-three-quarter", 4_000_000)).toBe(284);
+      expect(at("linear-cap-216", 1_000_000)).toBe(108);
+      expect(at("linear-cap-216", 1_500_000)).toBe(162);
+      expect(at("linear-cap-216", 2_500_000)).toBe(216);
+      expect(at("linear-cap-216", 4_000_000)).toBe(216);
+      expect(at("repair-high-budget-three-quarter", 4_000_000)).toBe(432);
+      expect(at("repair-high-budget-three-quarter", 4_000_000, true)).toBe(284);
+      expect(at("repair-high-budget-three-quarter", 750_000, true)).toBe(81);
+      expect(() => at("unknown", 1_000_000)).toThrow(/LR_STUDY_NCAND_POLICY must be/);
+
+      process.env.LR_STUDY_NCAND_POLICY = "linear-cap-216";
+      process.env.LR_STUDY_NCAND_EXPONENT = "0.75";
+      beginEnvFlagEpoch();
+      expect(() => handoffSampleCount(1_000_000)).toThrow(/mutually exclusive/);
+    } finally {
+      if (previousPolicy === undefined) delete process.env.LR_STUDY_NCAND_POLICY;
+      else process.env.LR_STUDY_NCAND_POLICY = previousPolicy;
+      if (previousExponent === undefined) delete process.env.LR_STUDY_NCAND_EXPONENT;
+      else process.env.LR_STUDY_NCAND_EXPONENT = previousExponent;
       beginEnvFlagEpoch();
     }
   });
@@ -614,5 +785,41 @@ describe("repair restart ceiling", () => {
     // it is priced identically under either artifact and needs no guard.
     expect(repairRestartCeilingFrames(null, 12_345, STRUCTURAL_BASE))
       .toBe(repairRestartCeilingFrames(null, 12_345));
+  });
+});
+
+describe("repair cost-to-end refresh", () => {
+  test("is default-off and validates the study switch", () => {
+    expect(repairRefreshCostToEndEnabled({})).toBe(false);
+    expect(repairRefreshCostToEndEnabled({ LR_STUDY_REPAIR_REFRESH_COST_TO_END: "1" }))
+      .toBe(true);
+    expect(() => repairRefreshCostToEndEnabled({
+      LR_STUDY_REPAIR_REFRESH_COST_TO_END: "sometimes",
+    })).toThrow();
+  });
+
+  test("refreshes only nodes first reached by the accepted restart", () => {
+    const refreshed = refreshRepairCostToEndProfile(
+      [90, 80, 70, 60, -1, -1],
+      [10, 20, 30, 110, 135, 150],
+      100,
+      160,
+      2,
+    );
+    expect(refreshed.profile).toEqual([90, 80, 70, 50, 25, 10]);
+    expect(refreshed.changed).toBe(3);
+    expect(refreshed.newlyMeasured).toBe(2);
+  });
+
+  test("ignores reaches after acceptance and preserves the prefix", () => {
+    const refreshed = refreshRepairCostToEndProfile(
+      [90, 80, 70, 60],
+      [110, 120, 170, undefined],
+      100,
+      160,
+      1,
+    );
+    expect(refreshed.profile).toEqual([90, 40, 70, 60]);
+    expect(refreshed.changed).toBe(1);
   });
 });

@@ -13,26 +13,33 @@ import { decisionProtocolFingerprint } from "../scripts/v0/benchmark_v2/decision
 import { readFileSync } from "node:fs";
 
 describe("canonical baseline cache fixed-N plans", () => {
-  it("uses the active scorer-bound 750k campaign archive with a four-look N=48 maximum", () => {
+  it("uses the accepted active prefix with a four-look N=48 maximum", () => {
     const cache = readBaselineCache();
     const reference = JSON.parse(readFileSync("benchmark/v2/campaign-baseline.json", "utf8"));
     expect(cache.campaignScope).toEqual({
       budgets: [750_000],
       maximumSeeds: 48,
-      promotionSeeds: 48,
+      promotionSeeds: 8,
       looks: [8, 16, 32, 48],
       targetHeadline: 650,
       sequentialPolicyFingerprint: reference.sequential_eval_policy_fingerprint,
       sequentialInferenceFingerprint: reference.sequential_eval_inference_fingerprint,
       sequentialCalibrationFingerprint: reference.sequential_eval_calibration_fingerprint,
     });
-    const plan = baselineCachePlan(cache, 48);
-    verifyBaselineCache(cache, 48);
+    const plan = baselineCachePlan(cache, 8);
+    verifyBaselineCache(cache, 8);
     expect(plan).toMatchObject({
-      requestedSeeds: 48,
-      coveredSeeds: 48,
+      requestedSeeds: 8,
+      coveredSeeds: 8,
       missingBaselineSeeds: 0,
       budgets: [750_000],
+      candidateCompiles: 352,
+    });
+    expect(baselineCachePlan(cache, 48)).toMatchObject({
+      requestedSeeds: 48,
+      coveredSeeds: 8,
+      missingBaselineSeeds: 40,
+      missingBaselineCompiles: 1_760,
       candidateCompiles: 2_112,
     });
     expect(reference.compiler_source_fingerprint).toBe(
@@ -42,11 +49,11 @@ describe("canonical baseline cache fixed-N plans", () => {
       reference.compiler_snapshot.candidateFingerprint,
     );
     expect(reference.decision_protocol_fingerprint).toBe(decisionProtocolFingerprint());
-    expect(baselineCacheHeadlineAtDepth(cache, 48)).toEqual({
-      seeds: 48,
-      headline: 596.9655,
-      validRuns: 2_112,
-      totalRuns: 2_112,
+    expect(baselineCacheHeadlineAtDepth(cache, 8)).toEqual({
+      seeds: 8,
+      headline: 602.1261,
+      validRuns: 352,
+      totalRuns: 352,
     });
   });
 

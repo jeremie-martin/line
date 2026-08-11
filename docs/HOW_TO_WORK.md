@@ -46,8 +46,8 @@ reference and successful checkpoint rows on resume, so it neither changes the
 checkpoint identity nor becomes promotion evidence. The checksummed
 `.round-progress-reference.json` binds the baseline rows used for the display.
 
-The current cache already covers N=48. A baseline promoted at N=8, N=16, or
-N=32 initially retains only that accepted prefix. If a later candidate reaches
+The current cache covers its accepted N=8 prefix. A baseline promoted at N=8,
+N=16, or N=32 initially retains only that accepted prefix. If a later candidate reaches
 a missing look, eval pauses without queuing candidate tail work and prints the
 exact `baseline-cache extend` plus `eval --resume` commands. Extension appends
 only the missing frozen-baseline rows.
@@ -204,7 +204,9 @@ deltas against the current campaign.
 - Do not tune case by case or against qualification monitors.
 - Keep compute-dependent mechanisms continuous across at least 150k and
   1M-3M; never key compiler behavior to 750k or benchmark budget identity.
-- Keep acceleration/kinematic-line work deferred.
+- Keep broad acceleration and kinematic planning deferred. The only active-line
+  exception is a mechanism explicitly opened and bounded by the current campaign
+  contract after its passive evidence is exhausted.
 - Preserve resumable outputs for long runs.
 - Keep raw/generated archives out of commits.
 - Treat old declarations, certification studies, and accounting files as

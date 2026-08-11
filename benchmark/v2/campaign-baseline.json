@@ -132,7 +132,7 @@
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
   "candidate_fingerprint": "2598e3af80a8ad2e6bf331c475d2ececc7442de2d3cdfcb0725f260989fe133e",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
-  "decision_protocol_fingerprint": "2d886ab06dbfcf996e502962043aaef2387329fdf2ef579a01442f5d9ac5371c",
+  "decision_protocol_fingerprint": "799f49d3f17bc1f545cefe1e5774b28b0ffe315a4ee58b4cfea17e38a6b58fd3",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
   "sequential_eval_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
   "sequential_eval_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",

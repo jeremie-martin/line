@@ -312,6 +312,7 @@ async function main(): Promise<void> {
         "compile stats",
         "repair considered-target observations",
         "repair track-identity hashes",
+        "budget-telemetry node events",
       ],
     },
     runs: scored.map(scaleAnalysisRun),
@@ -448,33 +449,36 @@ function scaleAnalysisRun(row: any): Record<string, unknown> {
     ...core,
     budgetTelemetry: budgetTelemetry === null || budgetTelemetry === undefined
       ? null
-      : {
-        ...budgetTelemetry,
-        episodes: budgetTelemetry.episodes.map((episode: any) => {
-          const decision = episode.repair_decision;
-          const outcome = episode.outcome;
-          return {
-            ...episode,
-            repair_decision: decision === null
-              ? null
-              : (() => {
+      : (() => {
+        const { node_events: _nodeEvents, ...compactTelemetry } = budgetTelemetry;
+        return {
+          ...compactTelemetry,
+          episodes: budgetTelemetry.episodes.map((episode: any) => {
+            const decision = episode.repair_decision;
+            const outcome = episode.outcome;
+            return {
+              ...episode,
+              repair_decision: decision === null
+                ? null
+                : (() => {
+                  const {
+                    considered_targets: _consideredTargets,
+                    incumbent_track_hash: _incumbentTrackHash,
+                    ...compactDecision
+                  } = decision;
+                  return compactDecision;
+                })(),
+              outcome: (() => {
                 const {
-                  considered_targets: _consideredTargets,
-                  incumbent_track_hash: _incumbentTrackHash,
-                  ...compactDecision
-                } = decision;
-                return compactDecision;
+                  terminal_offer_track_hash: _terminalOfferTrackHash,
+                  ...compactOutcome
+                } = outcome;
+                return compactOutcome;
               })(),
-            outcome: (() => {
-              const {
-                terminal_offer_track_hash: _terminalOfferTrackHash,
-                ...compactOutcome
-              } = outcome;
-              return compactOutcome;
-            })(),
-          };
-        }),
-      },
+            };
+          }),
+        };
+      })(),
   };
 }
 

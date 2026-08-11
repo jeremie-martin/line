@@ -9,7 +9,14 @@
  */
 
 import { createHash } from "node:crypto";
-import { createReadStream, existsSync, readFileSync } from "node:fs";
+import {
+  closeSync,
+  createReadStream,
+  existsSync,
+  openSync,
+  readFileSync,
+  readSync,
+} from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { COMPILER_IDENTITY_PROTOCOL } from "../../benchmark/v2/decision-policy.ts";
 import { scoreV2Report, type AxisContract } from "../v0/benchmark_v2/evaluator.ts";
@@ -49,6 +56,26 @@ export async function verifyArtifactChecksum(path: string): Promise<string> {
   const expected = expectedArtifactSha256(path);
   const hash = createHash("sha256");
   for await (const chunk of createReadStream(path)) hash.update(chunk);
+  const actual = hash.digest("hex");
+  if (actual !== expected) throw new Error(`${path}: artifact checksum mismatch`);
+  return actual;
+}
+
+/** Synchronous bounded-memory verification for wrappers around sync runners. */
+export function verifyArtifactChecksumSync(path: string): string {
+  const expected = expectedArtifactSha256(path);
+  const hash = createHash("sha256");
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  const descriptor = openSync(path, "r");
+  try {
+    for (;;) {
+      const count = readSync(descriptor, buffer, 0, buffer.length, null);
+      if (count === 0) break;
+      hash.update(buffer.subarray(0, count));
+    }
+  } finally {
+    closeSync(descriptor);
+  }
   const actual = hash.digest("hex");
   if (actual !== expected) throw new Error(`${path}: artifact checksum mismatch`);
   return actual;

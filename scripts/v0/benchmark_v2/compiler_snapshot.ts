@@ -16,6 +16,10 @@ import { tmpdir } from "node:os";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { COMPILER_SOURCE_PATHS, compilerCandidateIdentity } from "./compiler_identity.ts";
 import { FROZEN_SCALE_STUDY_SCHEMA } from "./scale_profile.ts";
+import {
+  readVerifiedArtifact,
+  verifyArtifactChecksumSync,
+} from "../../benchmark/study_lib.ts";
 
 const ENGINE_ARTIFACT = "engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm";
 export const SNAPSHOT_WORKSPACE_PREFIX = "line-v2-baseline-";
@@ -316,19 +320,26 @@ export function runScaleStudyInWorkspace(
     stdio: diagnosticStdio(),
   });
   if (!existsSync(absoluteOutput)) throw new Error(`scale runner did not publish ${absoluteOutput}`);
-  const bytes = readFileSync(absoluteOutput);
-  const archive = JSON.parse(bytes.toString("utf8"));
+  const analysisPath = absoluteOutput.endsWith(".json")
+    ? `${absoluteOutput.slice(0, -".json".length)}.analysis.json`
+    : `${absoluteOutput}.analysis.json`;
+  if (!existsSync(analysisPath)) throw new Error(`scale runner did not publish ${analysisPath}`);
+  const analysis = readVerifiedArtifact(analysisPath);
+  const archive = JSON.parse(analysis.bytes.toString("utf8"));
+  const archiveSha256 = verifyArtifactChecksumSync(absoluteOutput);
   if (
     archive?.schema !== FROZEN_SCALE_STUDY_SCHEMA ||
     archive?.candidate?.candidateFingerprint !== workspace.snapshot.candidateFingerprint ||
-    !Number.isFinite(archive.scaleHeadline) || !Array.isArray(archive.runs)
+    !Number.isFinite(archive.scaleHeadline) || !Array.isArray(archive.runs) ||
+    archive.analysisProjection?.schema !== "line.benchmark-v2.scale-analysis-projection.v1" ||
+    archive.analysisProjection.fullArchiveSha256 !== archiveSha256
   ) throw new Error(`snapshot scale archive is incomplete or detached from its compiler snapshot`);
   const compressedPath = `${absoluteOutput}.gz`;
   if (!existsSync(compressedPath)) throw new Error(`scale runner did not publish ${compressedPath}`);
   return {
     outputPath: absoluteOutput,
-    archiveSha256: sha256(bytes),
-    compressedArchiveSha256: sha256(readFileSync(compressedPath)),
+    archiveSha256,
+    compressedArchiveSha256: verifyArtifactChecksumSync(compressedPath),
     scaleHeadline: archive.scaleHeadline,
     workerFailures: archive.runs.filter((run: { status?: string }) => run.status !== "ok").length,
   };

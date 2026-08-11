@@ -12,6 +12,7 @@ import {
   assertKnobOnlyDelta,
   readVerifiedArtifact,
   verifyArtifactChecksum,
+  verifyArtifactChecksumSync,
   verifyScaleStudyArchive,
 } from "../scripts/benchmark/study_lib.ts";
 
@@ -174,8 +175,10 @@ describe("study_lib verification helpers", () => {
     writeFileSync(`${artifact}.sha256`, `${sha256(bytes)}  artifact.json\n`);
 
     await expect(verifyArtifactChecksum(artifact)).resolves.toBe(sha256(bytes));
+    expect(verifyArtifactChecksumSync(artifact)).toBe(sha256(bytes));
     writeFileSync(artifact, Buffer.from(`{"hello":"changed"}\n`));
     await expect(verifyArtifactChecksum(artifact)).rejects.toThrow(/checksum mismatch/);
+    expect(() => verifyArtifactChecksumSync(artifact)).toThrow(/checksum mismatch/);
   });
 
   test("assertKnobOnlyDelta accepts exactly one knob and rejects extras", () => {

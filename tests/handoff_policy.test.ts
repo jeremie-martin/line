@@ -707,9 +707,9 @@ describe("short deadline rescue policy", () => {
 
 /**
  * The repair restart ceiling — `estCostUpperOf`, the one live read of the
- * estimator artifact's CLAIM layer. It determines which fixed-parent anchors
- * are affordable and how many frames one iteration may spend, so a zero here
- * would make every target ineligible.
+ * estimator artifact's CLAIM layer. It determines which priced target×parent
+ * anchors are affordable and how many frames one iteration may spend, so a zero
+ * here would make every target ineligible.
  */
 describe("repair restart ceiling", () => {
   /** The calibrator's static fallback shape: legal, and it ignores the path. */

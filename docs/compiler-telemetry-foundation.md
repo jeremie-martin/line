@@ -14,9 +14,9 @@ runtime vocabulary for superseded controllers.
 
 - **lane**: the compiler control-flow owner of work: `initial`, `repair`,
   `resumed`, or `snapshot`.
-- **episode**: one bounded execution allocation. A frontier repair episode has
-  one self-contained decision, one selected target gap, one fixed-parent
-  anchor, one search seed, one ceiling, and at most one terminal alternative.
+- **episode**: one bounded execution allocation. A repair episode has one
+  self-contained decision, one selected target gap, one selected parent anchor,
+  one search seed, one ceiling, and at most one terminal alternative.
 - **ranked-option call**: one actual `rankedOptions` proposal/ranking operation,
   including primary, rescue, and tail-completion builds.
 - **requested normal proposals**: the resolved `nCand` passed to the normal

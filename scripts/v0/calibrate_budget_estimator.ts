@@ -196,9 +196,10 @@ if (paceScheduleArgument !== undefined && frozenPointModel === null) {
  * Freezing is what `--freeze-point-model` MEANS, so it is implied rather than
  * opt-in: the band is live compiler policy, not telemetry. `interval` resolves
  * `start.{withPath,withoutPath}.upperRatio`, which `estCostUpperOf`
- * (optimizer/handoff.ts) turns into every repair restart's frame ceiling and
- * fixed-parent affordability set. A run documented as a telemetry-only domain extension must not move
- * those by omitting a flag. Refitting is a promotion-class change and takes the
+ * (optimizer/handoff.ts) turns into every repair iteration's frame ceiling and
+ * target×parent affordability set. A run documented as a telemetry-only domain
+ * extension must not move those by omitting a flag. Refitting is a
+ * promotion-class change and takes the
  * 48-seed benchmark, not a calibration report.
  */
 const refitIntervals = args.includes("--refit-intervals");

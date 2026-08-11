@@ -1,5 +1,8 @@
 /**
- * Analyze LR_REPAIR_LOG records as restart chains. The study asks whether the
+ * HISTORICAL V3 REPRODUCTION ONLY. The live compiler no longer emits
+ * `LR_REPAIR_LOG` chains or walks anchors upstream; current work uses V4.
+ *
+ * Analyze archived LR_REPAIR_LOG records as restart chains. The study asks whether the
  * incumbent's inherited arrival state predicts when a weak gap must be repaired
  * from its parent rather than directly.
  *

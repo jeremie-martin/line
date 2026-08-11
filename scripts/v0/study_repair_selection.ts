@@ -1,4 +1,7 @@
 /**
+ * HISTORICAL V3 REPRODUCTION ONLY. This preserves the old archive analysis;
+ * it does not describe the singular fixed-parent V4 controller.
+ *
  * Offline replay of repair-anchor SELECTION policies (Phase 2 of
  * `docs/budget-unification-plan.md`).
  *

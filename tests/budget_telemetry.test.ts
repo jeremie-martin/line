@@ -827,7 +827,7 @@ describe("compile budget telemetry", () => {
     }
   });
 
-  test("returns adaptive repair episodes after at most one terminal and re-enters the allocator", async () => {
+  test("recomputes an independent fixed-parent decision after accepted and rejected alternatives", async () => {
     const spec = await loadGoldenSpec("cold_start", "base");
     const options = {
       budget: 150_000,
@@ -853,7 +853,35 @@ describe("compile budget telemetry", () => {
       .toBe(true);
     expect(new Set(repairs.map((episode) => episode.repair_decision!.iteration_index)).size)
       .toBe(repairs.length);
-    expect(completed.every((episode) => episode.outcome.repair_divergence !== null)).toBe(true);
+    expect(repairs.every((episode) => episode.repair_decision!.parent_depth === 1)).toBe(true);
+    expect(repairs.every((episode) => episode.repair_decision!.headroom_fraction === 0.2)).toBe(true);
+    expect(repairs.every((episode) =>
+      episode.repair_decision!.anchor_gap_index ===
+        episode.repair_decision!.target_gap_index - 1
+    )).toBe(true);
+    expect(repairs.every((episode) =>
+      episode.repair_decision!.affordable_target_gap_indices.includes(
+        episode.repair_decision!.target_gap_index,
+      )
+    )).toBe(true);
+    for (let index = 1; index < repairs.length; index++) {
+      const previous = repairs[index - 1]!;
+      const current = repairs[index]!;
+      expect(current.repair_decision!.remaining_budget_frames)
+        .toBeLessThan(previous.repair_decision!.remaining_budget_frames);
+      expect(current.repair_decision!.incumbent_revision).toBe(
+        previous.repair_decision!.incumbent_revision +
+          (previous.outcome.accepted_alternative ? 1 : 0),
+      );
+    }
+    expect(repairs.some((episode) => !episode.outcome.accepted_alternative)).toBe(true);
+    expect(repairs.some((episode) => episode.outcome.accepted_alternative)).toBe(true);
+    expect(new Set(repairs.map((episode) => episode.repair_decision!.target_gap_index)).size)
+      .toBeGreaterThan(1);
+    expect(completed.every((episode) =>
+      episode.outcome.repair_divergence !== null &&
+      episode.outcome.repair_divergence.divergent_suffix_gap_count > 0
+    )).toBe(true);
   }, 180_000);
 
   test("sizes repairs from measured cost at gaps only the tail-completion pass built", async () => {

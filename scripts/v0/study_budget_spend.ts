@@ -200,6 +200,9 @@ try {
       totalFrames: secToFrame(spec.duration),
     });
     const stats = checkpoint.stats;
+    const repairEpisodes = checkpoint.budgetTelemetry?.episodes.filter((episode) =>
+      episode.lane === "repair"
+    ) ?? [];
     rows.push({
       spec: run.specName,
       seed: run.seed,
@@ -212,15 +215,18 @@ try {
       budget_exhausted: stats.budget_exhausted,
       predicted_first_completion_frames: stats.predicted_first_completion_frames ?? null,
       budget_slack: stats.budget_slack ?? null,
-      first_completion_frame: stats.first_completion_frame ?? stats.repair?.first_completion_frame ?? null,
+      first_completion_frame: stats.first_completion_frame ?? null,
       actual_candidate_samples: stats.actual_candidate_samples,
       viable_candidate_samples: stats.viable_candidate_samples,
       handoff_full_evaluations: stats.handoff_full_evaluations ?? 0,
       handoff_unique_full_evaluations: stats.handoff_unique_full_evaluations ?? 0,
       fwd_eval_frames_charged: stats.fwd_eval?.fwd_eval_frames_charged ?? 0,
       fwd_eval_calls: stats.fwd_eval?.fwd_eval_calls ?? 0,
-      repair_frames_spent: stats.repair?.frames_spent ?? 0,
-      repair_restarts: stats.repair?.restarts ?? 0,
+      repair_frames_spent: repairEpisodes.reduce(
+        (sum, episode) => sum + (episode.outcome.spent_frames ?? 0),
+        0,
+      ),
+      repair_restarts: repairEpisodes.length,
       elapsed_ms: elapsedMs,
     });
     console.error(

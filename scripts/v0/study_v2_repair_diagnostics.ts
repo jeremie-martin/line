@@ -1,9 +1,8 @@
 /**
  * V2-native observation panel for the completion-triggered repair phase.
  *
- * This does not alter search or replay.  It records the repair decisions the
- * compiler already made so a later selector change can be justified by V2
- * evidence rather than by an old V1 archive.
+ * This does not alter search or replay. It records V4 repair decisions and
+ * outcomes so controller work is based on exact current semantics.
  */
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -24,7 +23,6 @@ if (argv.includes("--help")) {
     `  --seeds=n,...        Compiler seeds (default: 27,28,29)\n` +
     `  --budget=n           Per-compile budget (default: 500000)\n` +
     `  --out=path           Atomically checkpoint after every completed compile\n` +
-    `  --records            Capture per-restart causal detail without terminal spam\n` +
     `  --help               Show this help without compiling\n`);
   process.exit(0);
 }
@@ -35,10 +33,8 @@ const ids = (arg("specs") ?? "countercurrent,dense_dialogue,believer_56_6s,front
 const seeds = (arg("seeds") ?? "27,28,29").split(",").map(Number);
 const budget = Number(arg("budget") ?? "500000");
 const out = arg("out");
-const records = argv.includes("--records");
 if (!Number.isSafeInteger(budget) || budget <= 0) throw new Error("--budget must be a positive integer");
 if (seeds.some((seed) => !Number.isSafeInteger(seed))) throw new Error("--seeds must be safe integers");
-if (records) process.env.LR_REPAIR_LOG = "1";
 
 const cases = new Map(developmentCases.map((entry) => [entry.case.metadata.id, entry.case.spec] as const));
 for (const id of ids) if (!cases.has(id)) throw new Error(`unknown V2 development case ${id}`);
@@ -47,24 +43,9 @@ const rows: Array<Record<string, unknown>> = [];
 const expectedRows = ids.length * seeds.length;
 const forceGc = (globalThis as typeof globalThis & { gc?: () => void }).gc;
 
-function observeWithOptionalRepairLog<T>(run: () => T): T {
-  if (!records) return run();
-  const originalWrite = process.stderr.write;
-  process.stderr.write = ((chunk: string | Uint8Array, ...args: unknown[]) => {
-    const text = typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8");
-    if (text.startsWith("repair ")) return true;
-    return originalWrite.call(process.stderr, chunk, ...(args as []));
-  }) as typeof process.stderr.write;
-  try {
-    return run();
-  } finally {
-    process.stderr.write = originalWrite;
-  }
-}
-
 const result = () => ({
-  schema: "line.study-v2-repair-diagnostics.v1",
-  note: "Observation only. Set LR_REPAIR_LOG=1 to include per-restart causal context.",
+  schema: "line.study-v2-repair-diagnostics.v2",
+  note: "Observation only. Repair data comes exclusively from budget telemetry V4.",
   complete: rows.length === expectedRows,
   completed_rows: rows.length,
   expected_rows: expectedRows,
@@ -85,9 +66,11 @@ const checkpoint = () => {
 const observe = (id: string, seed: number): Record<string, unknown> => {
   const started = performance.now();
   const spec = applyJolt(cases.get(id)!, benchmarkPolicy.transform.joltMs);
-  const checkpoint = observeWithOptionalRepairLog(() => compileHandoff(spec, seed, { budget }));
+  const checkpoint = compileHandoff(spec, seed, { budget, budgetTelemetry: "summary" });
   const score = scoreDriftReport(checkpoint.report, { totalFrames: Math.round(spec.duration * FPS) });
-  const repair = checkpoint.stats.repair;
+  const repairEpisodes = checkpoint.budgetTelemetry?.episodes.filter((episode) =>
+    episode.lane === "repair"
+  ) ?? [];
   return {
     id,
     seed,
@@ -96,13 +79,21 @@ const observe = (id: string, seed: number): Record<string, unknown> => {
     elapsed_ms: Math.round(performance.now() - started),
     sim_frames: checkpoint.stats.sim_frames,
     first_completion_frame: checkpoint.stats.first_completion_frame ?? null,
-    repair: repair === undefined ? null : {
-      first_completion_frame: repair.first_completion_frame,
-      frames_spent: repair.frames_spent,
-      restarts: repair.restarts,
-      accepts: repair.accepts,
-      gaps_touched: repair.gaps_touched,
-      records: repair.records ?? null,
+    repair: {
+      frames_spent: repairEpisodes.reduce(
+        (sum, episode) => sum + (episode.outcome.spent_frames ?? 0),
+        0,
+      ),
+      iterations: repairEpisodes.length,
+      terminals_reached: repairEpisodes.filter((episode) => episode.outcome.terminal_reached).length,
+      accepted_alternatives: repairEpisodes.filter((episode) =>
+        episode.outcome.accepted_alternative
+      ).length,
+      episodes: repairEpisodes.map((episode) => ({
+        decision: episode.repair_decision,
+        work: episode.work,
+        outcome: episode.outcome,
+      })),
     },
   };
 };

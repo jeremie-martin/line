@@ -12,8 +12,8 @@
  *  - the CLAIM layer's `interval` is the repair restart ceiling:
  *    `handoff.ts` `repairRestartCeilingFrames` resolves
  *    `byEventAndPath.start.{withPath,withoutPath}.upperRatio`, and
- *    `pickFeasibleWeakGap` turns it into which gap a restart runs from, whether
- *    an upstream anchor is skipped, and how many frames the restart may spend.
+ *    `selectAffordableRepairTarget` turns it into the set of fixed-parent
+ *    anchors affordable under explicit headroom and one restart's ceiling.
  *
  * Only `applicability` and `metrics` are genuinely inert for policy: they
  * qualify what the telemetry recorder may CLAIM is calibrated and are read

@@ -348,17 +348,6 @@ function snapshotImpactRepairInsuranceStats(): ImpactRepairInsuranceStats | null
     : { ...impactRepairInsuranceTotals };
 }
 
-export type RepairFrontierOrder = "objective";
-
-export function repairFrontierOrder(
-  environment: Record<string, string | undefined> = process.env,
-): RepairFrontierOrder | null {
-  const value = environment.LR_REPAIR_FRONTIER_ORDER;
-  if (value === undefined || value === "" || value === "0" || value === "off") return null;
-  if (value === "objective") return value;
-  throw new Error(`LR_REPAIR_FRONTIER_ORDER must be off or objective; got ${value}`);
-}
-
 export type CompileHandoffOptions = {
   /** Simulated-frame budget for this run. One scalar budget = one independent full
    *  run from scratch; pass multiple budgets by calling N times (see
@@ -2174,6 +2163,7 @@ function compileHandoffInternal(
     const repair = repairConfig();
     const repairEnabled = repairBudgetLimit >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
+    let incumbentRevision = 0;
     // `BestSoFarRegister` intentionally owns only the public output. Keep the
     // matching node solely so snapshot-time diagnostics can validate the exact
     // selected transitions without re-running physics or instrumenting every
@@ -2183,7 +2173,7 @@ function compileHandoffInternal(
     let firstCompletionFrame = -1;
     // Observation-only reach timestamps used by the incumbent cost-to-end
     // estimator and detailed repair diagnostics. Authoritative execution and
-    // outcome accounting lives in budgetTelemetry V3 episodes; compile_stats
+    // outcome accounting lives in budgetTelemetry V4 episodes; compile_stats
     // is not a second repair ledger.
     const framesAtReach = new WeakMap<SearchNode, number>();
     // Second reach map for the OTHER producer of incumbent nodes. `framesAtReach`
@@ -2194,6 +2184,12 @@ function compileHandoffInternal(
     // Both maps answer the same question — the charged work at which that node
     // first existed on the search's path — so repair reads them as one profile.
     const framesAtReachTail = new WeakMap<SearchNode, number>();
+    type ActiveRepairProfile = {
+      anchorGapIndex: number;
+      baseCostToEnd: readonly number[];
+      reachFrames: WeakMap<SearchNode, number>;
+    };
+    let activeRepairProfile: ActiveRepairProfile | null = null;
     // Stamped at construction, inside the charged tail attempt that built the
     // node. Gated exactly like `framesAtReach`, so the low-budget hot path
     // stays free; the gate is the repair phase, never the telemetry level, so
@@ -2201,6 +2197,9 @@ function compileHandoffInternal(
     const stampTailReach = (search: SearchNode): void => {
       if (repairEnabled && !framesAtReachTail.has(search)) {
         framesAtReachTail.set(search, getSimFrames());
+      }
+      if (activeRepairProfile !== null && !activeRepairProfile.reachFrames.has(search)) {
+        activeRepairProfile.reachFrames.set(search, getSimFrames());
       }
     };
     // The charged-frame stamp at which a node FIRST existed, from either
@@ -2220,33 +2219,45 @@ function compileHandoffInternal(
         ? frontier
         : Math.min(frontier, tail);
     };
-    // MEASURED per-gap cost-to-end (Jérémie's "each arc associated with a budget"):
-    // from an incumbent's own path, costToEnd[k] = firstCompletionFrame −
-    // reach[node@k] = the frames the main search actually spent from first
-    // reaching gap k to completion, including intervening branch exploration.
-    // A reach timestamp is accepted from EITHER producer of incumbent nodes.
-    // Taking only the frontier's left every tail-suffix anchor — 161 of 307
-    // repair attempts on the panel, and every anchor of a tail-completing
-    // compile — sized by the coarse per-gap average instead, even though the
-    // measured profile predicted actual completion cost at those very anchors
-    // to 3.0% median APE.
-    //
-    // The walk is free of charged work: every node on the incumbent's path was
-    // already built by the search and `extendNodeCached` memoizes, so this
-    // replays identities rather than physics.
-    const buildIncumbentCostToEnd = (): number[] => {
+    // Every adopted terminal owns the cost-to-end profile that was observed
+    // while producing that exact path. An accepted repair reuses its prefix,
+    // so prefix costs splice the previous prefix marginal work onto the newly
+    // measured suffix cost. This avoids the old error of subtracting every
+    // later terminal from the compile-global first-reach clock.
+    const incumbentCostProfiles = new WeakMap<SearchNode, readonly number[]>();
+    const buildObservedCostToEnd = (
+      incumbent: HandoffNode,
+      terminalFrame: number,
+      repairProfile: ActiveRepairProfile | null,
+    ): number[] => {
+      const root = startOptions.find((option) => option.rank === incumbent.startRank)?.root;
+      if (root === undefined) return [];
       const costToEnd: number[] = [];
-      const inc0 = bestCompleteNode;
-      const root0 = inc0 ? startOptions.find((o) => o.rank === inc0.startRank)?.root : undefined;
-      if (inc0 && root0 && firstCompletionFrame > 0) {
-        let n = root0;
-        for (let k = 0; k <= gaps.length; k++) {
-          const reach = firstReachOf(n);
-          costToEnd[k] = reach !== undefined ? Math.max(0, firstCompletionFrame - reach) : -1;
-          if (k < gaps.length) n = extendNodeCached(n, inc0.search.prefixFits[k] ?? null);
+      let node = root;
+      for (let gapIndex = 0; gapIndex <= gaps.length; gapIndex++) {
+        const reach = repairProfile?.reachFrames.get(node) ??
+          (repairProfile === null ? firstReachOf(node) : undefined);
+        costToEnd[gapIndex] = reach !== undefined && reach <= terminalFrame
+          ? Math.max(0, terminalFrame - reach)
+          : -1;
+        if (gapIndex < gaps.length) {
+          node = extendNodeCached(node, incumbent.search.prefixFits[gapIndex] ?? null);
         }
       }
-      return costToEnd;
+      return repairProfile === null
+        ? costToEnd
+        : spliceRepairCostToEnd(
+          costToEnd,
+          repairProfile.baseCostToEnd,
+          repairProfile.anchorGapIndex,
+        );
+    };
+    const buildIncumbentCostToEnd = (): number[] => {
+      const incumbent = bestCompleteNode;
+      if (incumbent === null) return [];
+      const stored = incumbentCostProfiles.get(incumbent.search);
+      if (stored !== undefined) return [...stored];
+      return buildObservedCostToEnd(incumbent, getSimFrames(), null);
     };
     // The incumbent's MEASURED cost-to-end profile, published here so the
     // deadline margin can use it as its post-completion estimate: after first
@@ -2254,24 +2265,9 @@ function compileHandoffInternal(
     // more, while this profile is the measured work from gap k to the end on
     // the path the compile actually took.
     //
-    // It is established AT FIRST ADOPTED COMPLETION, not when the repair phase
-    // starts. Waiting for repair left the margin invalid over the whole
-    // pre-repair post-completion window — and over the whole of any compile
-    // below the repair minimum — because `marginAt` reads a null profile as
-    // "still racing to the end" and applies the episode-pace term, which
-    // post-completion divides COMPILE-GLOBAL spend by the node's OWN depth and
-    // collapses the margin on healthy nodes. The profile is what tells the
-    // margin the race is over, so it has to exist as soon as it is.
-    //
-    // Below the repair minimum both reach maps stay empty by design (the
-    // low-budget hot path pays nothing for them), so every entry is -1: a
-    // profile that carries no measurement anywhere. That is the correct answer
-    // there — no measured suffix, so the structural tail stands — and it still
-    // retires the pace term, which is what was wrong.
-    //
-    // The repair phase rebuilds it (`runRepairPhase`) because by then the main
-    // search may have adopted a better incumbent and repair sizes its ceilings
-    // from the profile of the incumbent it is about to attack.
+    // It is updated at every adopted terminal, including inside repair, so the
+    // next iteration and the post-completion deadline signal read the current
+    // incumbent rather than the first completion forever.
     let incumbentCostToEnd: readonly number[] | null = null;
     // Count of complete tracks ever considered (any phase). A repair restart's delta tells us whether
     // it REACHED the end at all (completed), separate from whether it beat the incumbent (accepted).
@@ -2291,24 +2287,6 @@ function compileHandoffInternal(
     // tail-completion re-walks: a repair-ROI number, 95.6% of terminal
     // considers at N=48 scale. See docs/forward-eval-metrics.md.
     let terminalConsidersWithoutImprovement = 0;
-    type RepairRecord = {
-      round: number;
-      worst: number; anchor: number; up: number; totalGaps: number;
-      framesAtAnchor: number; framesBefore: number; framesSpent: number;
-      estCost: number; estCostUpper: number; predictedFeasible: boolean; completed: boolean;
-      beforeScore: number; afterScore: number; accepted: boolean;
-      improvementFrameOffsets: number[];
-      inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
-      weakAxis: string | null;
-      weakAxisTarget: number | null; weakAxisAchieved: number | null;
-      weakAxisError: number | null; weakAxisCeiling: number | null; weakGapSse: number | null;
-      weakArrivalSpeed: number | null; weakArrivalAngle: number | null;
-      weakArrivalReadiness: number | null; weakArrivalCatchability: number | null;
-      weakArrivalSpeedFit: number | null; weakArrivalImpactFeasibility: number | null;
-      weakArrivalAirFit: number | null; weakArrivalElevationFit: number | null;
-    };
-    const repairRecords: RepairRecord[] = [];
-
     const evaluateCached = (node: HandoffNode): NodeEvaluation => {
       const cached = evaluationCache.get(node.search);
       if (cached !== undefined) return cached;
@@ -2374,13 +2352,17 @@ function compileHandoffInternal(
       });
       if (improved && terminal) {
         bestCompleteNode = node;
+        incumbentRevision++;
         if (firstCompletionFrame < 0) {
           firstCompletionFrame = getSimFrames();
-          // The margin's post-completion base, established at the instant the
-          // phase flips rather than when repair happens to start (see
-          // `buildIncumbentCostToEnd`). One walk per compile.
-          incumbentCostToEnd = buildIncumbentCostToEnd();
         }
+        const adoptedCostToEnd = buildObservedCostToEnd(
+          node,
+          getSimFrames(),
+          activeRepairProfile,
+        );
+        incumbentCostProfiles.set(node.search, adoptedCostToEnd);
+        incumbentCostToEnd = adoptedCostToEnd;
         telemetry.hasCompletion = true;
       }
       const event: HandoffNodeEvent = {
@@ -2660,6 +2642,9 @@ function compileHandoffInternal(
       budgetRecorder.observeActiveEpisode(node.search.gapIndex, getSimFrames());
       // Only tracked when repair can consume it (>=150k); a no-op on the low-budget hot path.
       if (repairEnabled && !framesAtReach.has(node.search)) framesAtReach.set(node.search, getSimFrames());
+      if (activeRepairProfile !== null && !activeRepairProfile.reachFrames.has(node.search)) {
+        activeRepairProfile.reachFrames.set(node.search, getSimFrames());
+      }
       const nodeTerminal = isTerminalNode(node.search, gaps);
       const mainResult = consider(node, "frontier");
       afterMain = getSimFrames();
@@ -2844,16 +2829,13 @@ function compileHandoffInternal(
     // the node cap is hit, or `keepGoing()` returns false. Both the main search and each repair
     // restart run on this — they differ only in their frontier stacks and stop predicate. Returns
     // early when a budget snapshot is captured (kind:"captured") so the caller's post-loop runs.
-    const objectiveRepairFrontier = repairFrontierOrder() === "objective";
     const runFrontier = (
       pass: HandoffNode[], fb: HandoffNode[], keepGoing: () => boolean,
       onProcessed?: () => void,
     ): void => {
       while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
         if (!keepGoing()) break;
-        const node = objectiveRepairFrontier && repairLaneActive
-          ? popBestObjectiveFrontierNode(pass, fb, gaps, ctx.durationFrames)
-          : popNextFrontierNode(pass, fb);
+        const node = popNextFrontierNode(pass, fb);
         if (handoffFrontierProbeHook !== null) {
           handoffFrontierProbeHook({
             simFrames: getSimFrames(),
@@ -2891,15 +2873,11 @@ function compileHandoffInternal(
     // register — all via processNode) seeded from one node, until `ceiling` sim-frames or the
     // frontier empties. Branches into the OTHER arcs at the restart gap, rebuilding the whole
     // tail with full power, not a greedy dive.
-    // The offsets are two counter reads per processed node (charged work and the
-    // register's improvement count) — no evaluation, no simulation, no effect on
-    // the frontier — so budget telemetry can record them without LR_REPAIR_LOG.
-    const trackImprovementOffsets = repair?.log === true || budgetTelemetryLevel !== "off";
     const runFrontierFrom = (
       initial: HandoffNode,
       ceiling: number,
       stopAfterTerminalConsider?: number,
-    ): number[] => {
+    ): void => {
       const pass: HandoffNode[] = initial.skippedContacts === 0 ? [initial] : [];
       const fb: HandoffNode[] = initial.skippedContacts === 0 ? [] : [initial];
       const keepGoing = (): boolean => getSimFrames() < ceiling &&
@@ -2907,98 +2885,23 @@ function compileHandoffInternal(
       const previousTerminalLimit = activeTerminalConsiderLimit;
       activeTerminalConsiderLimit = stopAfterTerminalConsider ?? null;
       try {
-        if (!trackImprovementOffsets) {
-          runFrontier(pass, fb, keepGoing);
-          return [];
-        }
-        const framesBefore = getSimFrames();
-        let improvementsSeen = register.improvementCount;
-        const improvementFrameOffsets: number[] = [];
-        runFrontier(pass, fb, keepGoing, () => {
-          while (improvementsSeen < register.improvementCount) {
-            improvementFrameOffsets.push(getSimFrames() - framesBefore);
-            improvementsSeen++;
-          }
-        });
-        return improvementFrameOffsets;
+        runFrontier(pass, fb, keepGoing);
       } finally {
         activeTerminalConsiderLimit = previousTerminalLimit;
       }
     };
 
-    // Aimed-repair post-pass (R2): the main search has produced a complete incumbent using
-    // only `firstCompletionFrame*mainMargin` frames; spend the rest here. Repeatedly: find the
-    // weakest AFFORDABLE contact gap of the incumbent, reconstruct the prefix before it (free —
-    // replay the incumbent's own fits, extendNodeCached memoizes), and RESTART the real
-    // frontier-DFS from there with a feasibility-sized ceiling. The register accepts a rebuilt
-    // track iff it beats the incumbent (complete-or-discard). Contained (its own budget, NOT a
-    // shared-frontier enqueue — the distinction from the removed interleaved repair). Honest
-    // (sims charged), deterministic per (spec,seed,budget). See docs/archive/TRACK_REPAIR_EXPERIMENTS.md.
+    // One self-contained repair iteration: recompute policy from the current
+    // incumbent and remaining hard budget, choose one fixed-parent anchor, and
+    // stop after at most one terminal alternative. No failed-anchor or target
+    // state survives into the next iteration.
     const runRepairPhase = (): void => {
-      if (repair === null) return;
       const repairBudget = repairBudgetLimit;
-      // Coarse fallback cost model: avg frames per contact-gap of the full search.
       const perGap = firstCompletionFrame > 0
         ? firstCompletionFrame / Math.max(1, telemetry.deepestSeenGap + 1)
         : 0;
-      // MEASURED per-gap cost-to-end (`buildIncumbentCostToEnd`, which owns the
-      // derivation). Replaces the dead-end-biased perGap estimate for
-      // feasibility/ceiling. Rebuilt HERE from the incumbent this phase is about
-      // to attack — the main search may have adopted a better complete track
-      // since the profile was first established at completion — and then held
-      // fixed for the whole phase (later repairs do not rewrite it). perGap is
-      // an average over the whole search including its dead ends, so it
-      // over-sizes exactly the late, cheap anchors that tail completion
-      // produces, and `pickFeasibleWeakGap` then rejects gaps the budget could
-      // in fact afford.
-      const costToEnd = buildIncumbentCostToEnd();
-      // One profile, three readers: repair sizes its ceilings from it, the
-      // deadline margin uses it as the post-completion remaining-work estimate,
-      // and the telemetry recorder takes it as the estimator's path base.
-      // Unmeasured anchors are -1 here, and all three apply the SAME predicate
-      // to decide what counts as a measurement — non-positive means "no
-      // measurement", fall back — so they cannot disagree about what is known.
-      incumbentCostToEnd = costToEnd;
-      /** THE COST FLOOR. A measured cost-to-end at k, or null.
-       *
-       * Zero is not a measurement of "no work left": the profile writes zero
-       * whenever first completion did not post-date reaching that node, and
-       * `costToEnd` genuinely tends to zero at the tail of the incumbent path
-       * (docs/repair-selection-study.md *Verdict*: any repair arithmetic over
-       * these numbers needs a floor, because that is where an unfloored one
-       * degenerates). Routing non-positive values to the fallback IS that floor
-       * — the estimate a restart is sized and priced from can never be zero —
-       * and it is the same predicate the recorder's path selector and the
-       * deadline margin apply to this one profile, so its three readers cannot
-       * disagree about what counts as measured. */
-      const measuredCostToEnd = (k: number): number | null => {
-        const m = costToEnd[k];
-        return m !== undefined && m > 0 ? m : null;
-      };
-      /** Point estimate of what re-completing from k costs: the measurement
-       *  where there is one, else the coarse per-gap average of the whole
-       *  search. Reported, not decided on — the decisions below read the
-       *  interval. */
-      const estCostOf = (k: number): number =>
-        measuredCostToEnd(k) ?? perGap * Math.max(1, gaps.length - k);
-      /** What a restart from k may cost at the top of the estimator's own
-       *  interval — the quantity repair actually decides on, and the artifact's
-       *  claim layer entering live search policy. The pricing itself is
-       *  `repairRestartCeilingFrames`, which owns the derivation. */
-      const estCostUpperOf = (k: number): number => repairRestartCeilingFrames(
-        measuredCostToEnd(k),
-        perGap * Math.max(1, gaps.length - k),
-      );
-      // Observation-only mirror of the branch the two functions above took.
-      // `per_gap_fallback` means the anchor has no positive measured cost —
-      // in neither reach map, or reached at or after first completion.
-      const estCostSourceOf = (k: number): "measured_cost_to_end" | "per_gap_fallback" =>
-        measuredCostToEnd(k) === null ? "per_gap_fallback" : "measured_cost_to_end";
-      const exhausted = new Set<number>();
-      const adaptiveAnchorAttempts = new Map<number, Map<number, number>>();
       let attempts = 0;
       let restartCounter = 0;
-      let repairRound = 0;
       while (
         attempts < repair.maxAttempts &&
         getSimFrames() < repairBudget &&
@@ -3009,291 +2912,169 @@ function compileHandoffInternal(
         const root = startOptions.find((o) => o.rank === incumbent.startRank)?.root;
         if (root === undefined) break;
         const remaining = repairBudget - getSimFrames();
+        const costToEnd = buildIncumbentCostToEnd();
+        incumbentCostToEnd = costToEnd;
+        const measuredCostToEnd = (gapIndex: number): number | null => {
+          const measured = costToEnd[gapIndex];
+          return measured !== undefined && measured > 0 ? measured : null;
+        };
+        const fallbackCostOf = (gapIndex: number): number =>
+          perGap * Math.max(1, gaps.length - gapIndex);
+        const estCostOf = (gapIndex: number): number =>
+          measuredCostToEnd(gapIndex) ?? fallbackCostOf(gapIndex);
+        const estCostUpperOf = (gapIndex: number): number => repairRestartCeilingFrames(
+          measuredCostToEnd(gapIndex),
+          fallbackCostOf(gapIndex),
+        );
+        const estCostSourceOf = (
+          gapIndex: number,
+        ): "measured_cost_to_end" | "per_gap_fallback" =>
+          measuredCostToEnd(gapIndex) === null
+            ? "per_gap_fallback"
+            : "measured_cost_to_end";
+        const upperCostByAnchor = Array.from(
+          { length: gaps.length + 1 },
+          (_, gapIndex) => estCostUpperOf(gapIndex),
+        );
         const incumbentEvaluation = evaluateCached(incumbent);
-        // Worst AFFORDABLE gap: largest axis-error² whose UPPER-bound cost to
-        // re-complete fits the remaining budget. Falls back to later/cheaper
-        // gaps when budget is tight.
-        const kWorst = pickFeasibleWeakGap(
-          incumbentEvaluation.report, gaps, exhausted, estCostUpperOf, remaining,
+        const target = selectAffordableRepairTarget(
+          incumbentEvaluation.report.gaps
+            .filter((gapReport) => gaps[gapReport.gap_index]?.endsWithContact)
+            .map((gapReport) => ({
+              gapIndex: gapReport.gap_index,
+              sse: gapAxisSse(gapReport) ?? 0,
+            })),
+          upperCostByAnchor,
+          remaining,
+          repair.headroomFraction,
+          repair.parentDepth,
         );
-        if (kWorst < 0) break;
-        const round = repairRound++;
-        // The ranking key for the gap the pick landed on, read off the
-        // incumbent report THIS round saw. Recorded so a later replay does not
-        // have to assume the final report was the one in front of the policy.
-        const pickedWeakGapSse = gapAxisSse(
-          incumbentEvaluation.report.gaps.find((g) => g.gap_index === kWorst),
-        );
+        if (target === null) break;
+        const iterationIndex = attempts++;
+        const kWorst = target.targetGapIndex;
+        const k = target.anchorGapIndex;
+        const pickedWeakGapSse = target.targetGapSse;
         const pickedWeakGapBefore = repairGapState(
           incumbentEvaluation.report.gaps.find((g) => g.gap_index === kWorst),
         );
-
-        // Observation-only causal context. A restart at kWorst cannot change the arrival inherited
-        // from fit[kWorst-1], while a parent restart can. Keep these reads behind LR_REPAIR_LOG so
-        // ordinary archives and production search pay no diagnostic work or schema cost.
-        const weakContext = repair.log
-          ? (() => {
-            const gapReport = incumbentEvaluation.report.gaps.find((g) => g.gap_index === kWorst);
-            const axisEntries = Object.entries(gapReport?.axes ?? {});
-            axisEntries.sort((a, b) => b[1].error * b[1].error - a[1].error * a[1].error);
-            const [weakAxis, weakValue] = axisEntries[0] ?? [null, null];
-            const inheritedFit = kWorst > 0 ? incumbent.search.prefixFits[kWorst - 1] : undefined;
-            const weakGap = gaps[kWorst];
-            const projection = inheritedFit != null && weakGap !== undefined
-              ? projectOutgoingScorerGap(
-                inheritedFit,
-                weakGap,
-                gapAxisTargets,
-              )
-              : null;
-            const readiness =
-              projection !== null &&
-                weakGap !== undefined &&
-                weakGap.endsWithContact
-              ? scoreNextArcReadiness(
-                projection.projection,
-                weakGap,
-                successorScorerGapAfter(weakGap, gaps),
-                gapAxisTargets,
-              )
-              : null;
-            return {
-              weakAxis,
-              weakAxisTarget: weakValue?.target ?? null,
-              weakAxisAchieved: weakValue?.achieved ?? null,
-              weakAxisError: weakValue?.error ?? null,
-              weakAxisCeiling: weakValue?.ceiling ?? null,
-              weakGapSse: pickedWeakGapSse,
-              weakArrivalSpeed:
-                projection?.projection.boundary.incoming.speed ?? null,
-              weakArrivalAngle:
-                projection?.projection.boundary.incoming.comAngleDeg ?? null,
-              weakArrivalReadiness: readiness?.readiness ?? null,
-              weakArrivalCatchability: readiness?.catchability ?? null,
-              weakArrivalSpeedFit: readiness?.speedFit ?? null,
-              weakArrivalImpactFeasibility: readiness?.impactFeasibility ?? null,
-              weakArrivalAirFit: readiness?.airFit ?? null,
-              weakArrivalElevationFit: readiness?.elevationFit ?? null,
-            };
-          })()
-          : {
-            weakAxis: null,
-            weakAxisTarget: null,
-            weakAxisAchieved: null,
-            weakAxisError: null,
-            weakAxisCeiling: null,
-            weakGapSse: null,
-            weakArrivalSpeed: null,
-            weakArrivalAngle: null,
-            weakArrivalReadiness: null,
-            weakArrivalCatchability: null,
-            weakArrivalSpeedFit: null,
-            weakArrivalImpactFeasibility: null,
-            weakArrivalAirFit: null,
-            weakArrivalElevationFit: null,
-          };
-
-        // R4 seed-perturbed restart: re-running the search from a gap with the SAME seed re-samples
-        // the SAME seeded candidates → re-converges to the same incumbent (wasted). A FRESH derived
-        // seed samples genuinely different arc geometry → real exploration (this is "try different
-        // arcs", via the proven search). Deterministic per (spec,seed,budget): the restart seed is a
-        // fixed mix of searchSeed and a restart counter. R3 upstream walk (LR_REPAIR_MAX_UPSTREAM)
-        // composes on top: if a restart re-converges anyway, escalate the anchor to the parent.
-        let improvedAny = false;
-        let adaptiveRanEpisode = false;
-        const upstreamOffsets = repair.upstreamOrder === "nearest-first"
-          ? Array.from({ length: repair.maxUpstream + 1 }, (_, up) => up)
-          : Array.from({ length: repair.maxUpstream + 1 }, (_, index) => repair.maxUpstream - index);
-        for (const up of upstreamOffsets) {
-          const k = kWorst - up;
-          if (attempts >= repair.maxAttempts || getSimFrames() >= repairBudget) break;
-          if (k < 0) continue;
-          const adaptiveAttemptsForGap = adaptiveAnchorAttempts.get(kWorst);
-          if ((adaptiveAttemptsForGap?.get(k) ?? 0) >= 1) continue;
-          const estCost = estCostOf(k);
-          const estCostUpper = estCostUpperOf(k);
-          if (estCostUpper > repairBudget - getSimFrames()) {
-            // Older anchors cost more, so nearest-first can stop here. Oldest-first
-            // must keep checking nearer anchors that may still fit the same budget.
-            if (repair.upstreamOrder === "nearest-first") break;
-            continue;
-          }
-          attempts++;
-          restartCounter++;
-          const restartSeed = ((incumbent.searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
-
-          let prefix = root;
-          for (let i = 0; i < k; i++) prefix = extendNodeCached(prefix, incumbent.search.prefixFits[i]);
-          const prefixNode: HandoffNode = {
-            search: prefix,
-            startState: incumbent.startState,
-            startLines: incumbent.startLines,
-            startRank: incumbent.startRank,
-            searchSeed: restartSeed,
-            startExpanded: true,
-            deferExpansion: false,
-            rankTrace: [],
-            skippedContacts: 0,
-          };
-          const sizedCeiling = getSimFrames() + Math.ceil(estCostUpper);
-          const ceiling = Math.min(repairBudget, sizedCeiling);
-          // Which of the two arguments of that Math.min won, and — when the
-          // sized one did — where its cost estimate came from.
-          const ceilingSource = sizedCeiling >= repairBudget
-            ? "repair_budget_remaining"
-            : estCostSourceOf(k);
-          const beforeScore = evaluateCached(incumbent).key.full_score;
-          const framesBefore = getSimFrames();
-          const incumbentBefore = bestCompleteNode;
-          const terminalsBefore = terminalConsiders;
-          // TAUTOLOGICALLY TRUE as recorded: the affordability gate at the top
-          // of this loop tests the same `estCostUpper` against the same
-          // remaining budget, and the prefix replay between the two reads is
-          // memoized (charges no frames). Every recorded restart therefore
-          // carries `predictedFeasible: true`; the field is kept for record
-          // schema stability (types.ts RepairRecord, study_difficulty_model.ts
-          // reads it), but conditioning an analysis on it selects everything.
-          const predictedFeasible = estCostUpper <= repairBudget - framesBefore;
-          const repairDecision: BudgetRepairDecision = {
-            iteration_index: round,
-            incumbent_revision: register.improvementCount,
-            remaining_budget_frames: repairBudget - framesBefore,
-            headroom_fraction: 0,
-            usable_budget_frames: repairBudget - framesBefore,
-            parent_depth: up,
-            affordable_target_gap_indices: [kWorst],
-            target_gap_index: kWorst,
-            target_gap_sse: pickedWeakGapSse ?? 0,
-            anchor_gap_index: k,
-            estimated_anchor_cost_frames: estCost,
-            estimated_anchor_cost_upper_frames: estCostUpper,
-            anchor_cost_source: estCostSourceOf(k),
-          };
-          const repairEpisodeId = budgetRecorder.startEpisode({
-            lane: "repair",
-            parentEpisodeId: initialBudgetEpisodeId,
-            searchSeed: restartSeed,
-            frontierHasFallbackLane: true,
-            anchorGapIndex: k,
-            startTotalSpentFrames: framesBefore,
-            ceilingTotalSpentFrames: ceiling,
-            ceilingSource,
-            includeStartup: false,
-            pathEstimateByGap: costToEnd,
-            repairDecision,
-            incumbentWeakGapSse: pickedWeakGapSse,
-            repairWeakGapBefore: pickedWeakGapBefore,
-            registerKeyAtStart: toBudgetRegisterKey(register.getBestKey()),
-          });
-          beginCandidateWork();
-          // Mark the repair lane for the duration of the restart: every pool
-          // build inside it is a repair-episode build, which is the population
-          // the head ramp's phase-weight study can be scoped away from
-          // (`postCompletionPhaseWeight`). Inert in production.
-          repairLaneActive = true;
-          setAimRepairLaneActive(true);
-          setImpactCarrierRippleRepairActive(true);
-          let improvementFrameOffsets: number[];
-          try {
-            improvementFrameOffsets = runFrontierFrom(
-              prefixNode,
-              ceiling,
-              terminalsBefore + 1,
-            );
-          } finally {
-            repairLaneActive = false;
-            setAimRepairLaneActive(false);
-            setImpactCarrierRippleRepairActive(false);
-          }
-          const completed = terminalConsiders > terminalsBefore;
-          const repairDivergence: BudgetRepairDivergence | null =
-            completed && lastTerminalNode !== null
-              ? compareRepairTerminalGeometry(
-                incumbent.search.prefixFits,
-                lastTerminalNode.search.prefixFits,
-                k,
-              )
-              : null;
-          const byAnchor = adaptiveAnchorAttempts.get(kWorst) ?? new Map<number, number>();
-          byAnchor.set(k, (byAnchor.get(k) ?? 0) + 1);
-          adaptiveAnchorAttempts.set(kWorst, byAnchor);
-          adaptiveRanEpisode = true;
-          // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
-          // comparator is axis_quality, not full_score — they can disagree). dScore is logged for
-          // characterization but does NOT drive the exhaust/re-pick decision.
-          const improved = bestCompleteNode !== incumbentBefore;
-          const afterScore = bestCompleteNode ? evaluateCached(bestCompleteNode).key.full_score : beforeScore;
-          const pickedWeakGapAfter = bestCompleteNode === null
-            ? null
-            : repairGapState(
-              evaluateCached(bestCompleteNode).report.gaps.find((g) => g.gap_index === kWorst),
-            );
-          const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
-          finishActiveCandidateWork();
-          budgetRecorder.endEpisode(
-            getSimFrames(),
-            completed
-              ? "first_terminal_return"
-              : getSimFrames() >= ceiling
-                ? "local_ceiling"
-                : "frontier_exhausted",
-            {
-              // Both reads are of values this restart already computed: the
-              // scarce event a controller would need is WHEN the register first
-              // took something, not that the restart eventually completed.
-              internalFullScoreDelta: afterScore - beforeScore,
-              registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()),
-              repairWeakGapAfter: pickedWeakGapAfter,
-              repairDivergence,
-            },
-          );
-          budgetRecorder.recordSegment(
-            "repair_frontier",
-            framesBefore,
-            getSimFrames(),
-            completed ? "terminal_considered" : "no_terminal",
-            repairEpisodeId,
-          );
-          if (repair.log) repairRecords.push({
-            round,
-            worst: kWorst, anchor: k, up, totalGaps: gaps.length,
-            framesAtAnchor: firstReachOf(prefix) ?? -1,
-            framesBefore, framesSpent: getSimFrames() - framesBefore,
-            estCost: Math.round(estCost), estCostUpper: Math.round(estCostUpper),
-            predictedFeasible, completed,
-            beforeScore, afterScore, accepted: improved,
-            improvementFrameOffsets,
-            inhSpeed: fit?.releaseSpeed ?? null,
-            inhVy: fit?.releaseVelocityY ?? null,
-            inhGrounded: fit?.releaseGroundedFrames ?? null,
-            ...weakContext,
-          });
-          if (repair.log) {
-            process.stderr.write(
-              `repair seed=${seed} budget=${targetBudget} searchPolicy=${searchPolicyBudget} ` +
-              `repairBudget=${repairBudgetLimit} ` +
-              `worst=${kWorst} anchor=${k} up=${up} ` +
-              `accepted=${improved ? "yes" : "no"} dScore=${(afterScore - beforeScore).toFixed(2)} ` +
-              `frames=${getSimFrames() - framesBefore} estCost=${Math.round(estCost)} ` +
-              `estCostUpper=${Math.round(estCostUpper)} ` +
-              `framesAtAnchor=${firstReachOf(prefix) ?? -1} ` +
-              `inhSpeed=${fit?.releaseSpeed?.toFixed(2) ?? "na"} ` +
-              `inhVy=${fit?.releaseVelocityY?.toFixed(2) ?? "na"} ` +
-              `inhGrounded=${fit?.releaseGroundedFrames ?? "na"}\n`,
-            );
-          }
-          if (improved) {
-            improvedAny = true;
-            // The incumbent and its weakness map changed. Re-open every gap
-            // and anchor so the next decision is about the new track, not
-            // stale failures from the old one.
-            exhausted.clear();
-            adaptiveAnchorAttempts.clear();
-            break;
-          }
-          break;
+        const estCost = estCostOf(k);
+        const estCostUpper = upperCostByAnchor[k]!;
+        restartCounter++;
+        const restartSeed = ((searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
+        let prefix = root;
+        for (let gapIndex = 0; gapIndex < k; gapIndex++) {
+          prefix = extendNodeCached(prefix, incumbent.search.prefixFits[gapIndex]);
         }
-        if (!improvedAny && !adaptiveRanEpisode) exhausted.add(kWorst);
+        const prefixNode: HandoffNode = {
+          search: prefix,
+          startState: incumbent.startState,
+          startLines: incumbent.startLines,
+          startRank: incumbent.startRank,
+          searchSeed: restartSeed,
+          startExpanded: true,
+          deferExpansion: false,
+          rankTrace: [],
+          skippedContacts: 0,
+        };
+        const framesBefore = getSimFrames();
+        const ceiling = Math.min(repairBudget, framesBefore + Math.ceil(estCostUpper));
+        const ceilingSource = ceiling >= repairBudget
+          ? "repair_budget_remaining"
+          : estCostSourceOf(k);
+        const beforeScore = incumbentEvaluation.key.full_score;
+        const terminalsBefore = terminalConsiders;
+        const repairDecision: BudgetRepairDecision = {
+          iteration_index: iterationIndex,
+          incumbent_revision: incumbentRevision,
+          remaining_budget_frames: repairBudget - framesBefore,
+          headroom_fraction: repair.headroomFraction,
+          usable_budget_frames: target.usableBudgetFrames,
+          parent_depth: repair.parentDepth,
+          affordable_target_gap_indices: target.affordableTargetGapIndices,
+          target_gap_index: kWorst,
+          target_gap_sse: pickedWeakGapSse,
+          anchor_gap_index: k,
+          estimated_anchor_cost_frames: estCost,
+          estimated_anchor_cost_upper_frames: estCostUpper,
+          anchor_cost_source: estCostSourceOf(k),
+        };
+        const repairEpisodeId = budgetRecorder.startEpisode({
+          lane: "repair",
+          parentEpisodeId: initialBudgetEpisodeId,
+          searchSeed: restartSeed,
+          frontierHasFallbackLane: true,
+          anchorGapIndex: k,
+          startTotalSpentFrames: framesBefore,
+          ceilingTotalSpentFrames: ceiling,
+          ceilingSource,
+          includeStartup: false,
+          pathEstimateByGap: costToEnd,
+          repairDecision,
+          incumbentWeakGapSse: pickedWeakGapSse,
+          repairWeakGapBefore: pickedWeakGapBefore,
+          registerKeyAtStart: toBudgetRegisterKey(register.getBestKey()),
+        });
+        beginCandidateWork();
+        activeRepairProfile = {
+          anchorGapIndex: k,
+          baseCostToEnd: costToEnd,
+          reachFrames: new WeakMap<SearchNode, number>(),
+        };
+        repairLaneActive = true;
+        setAimRepairLaneActive(true);
+        setImpactCarrierRippleRepairActive(true);
+        try {
+          runFrontierFrom(prefixNode, ceiling, terminalsBefore + 1);
+        } finally {
+          repairLaneActive = false;
+          setAimRepairLaneActive(false);
+          setImpactCarrierRippleRepairActive(false);
+          activeRepairProfile = null;
+        }
+        const completed = terminalConsiders > terminalsBefore;
+        const repairDivergence: BudgetRepairDivergence | null =
+          completed && lastTerminalNode !== null
+            ? compareRepairTerminalGeometry(
+              incumbent.search.prefixFits,
+              lastTerminalNode.search.prefixFits,
+              k,
+            )
+            : null;
+        const afterScore = bestCompleteNode === null
+          ? beforeScore
+          : evaluateCached(bestCompleteNode).key.full_score;
+        const pickedWeakGapAfter = bestCompleteNode === null
+          ? null
+          : repairGapState(
+            evaluateCached(bestCompleteNode).report.gaps.find((gapReport) =>
+              gapReport.gap_index === kWorst
+            ),
+          );
+        finishActiveCandidateWork();
+        budgetRecorder.endEpisode(
+          getSimFrames(),
+          completed
+            ? "first_terminal_return"
+            : getSimFrames() >= ceiling
+              ? "local_ceiling"
+              : "frontier_exhausted",
+          {
+            internalFullScoreDelta: afterScore - beforeScore,
+            registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()),
+            repairWeakGapAfter: pickedWeakGapAfter,
+            repairDivergence,
+          },
+        );
+        budgetRecorder.recordSegment(
+          "repair_frontier",
+          framesBefore,
+          getSimFrames(),
+          completed ? "terminal_considered" : "no_terminal",
+          repairEpisodeId,
+        );
+        // The next loop iteration deliberately ignores whether this alternative
+        // was accepted. It rereads bestCompleteNode, remaining budget, and that
+        // incumbent's profile from scratch.
       }
     };
 
@@ -3891,25 +3672,6 @@ function popNextFrontierNode(
   fallbackStack: HandoffNode[],
 ): HandoffNode {
   return activeFrontier(passStack, fallbackStack).pop()!;
-}
-
-function popBestObjectiveFrontierNode(
-  passStack: HandoffNode[],
-  fallbackStack: HandoffNode[],
-  gaps: Gap[],
-  durationFrames: number,
-): HandoffNode {
-  const stack = activeFrontier(passStack, fallbackStack);
-  let bestIndex = stack.length - 1;
-  let bestValue = objectiveLeafValue(stack[bestIndex]!.search, gaps, durationFrames);
-  for (let index = bestIndex - 1; index >= 0; index--) {
-    const value = objectiveLeafValue(stack[index]!.search, gaps, durationFrames);
-    if (value > bestValue) {
-      bestIndex = index;
-      bestValue = value;
-    }
-  }
-  return stack.splice(bestIndex, 1)[0]!;
 }
 
 function frontierProbeNode(node: HandoffNode): HandoffFrontierProbeNode {
@@ -6630,34 +6392,69 @@ export function repairRestartCeilingFrames(
   return upper > 0 ? upper : measured ?? perGapFallbackFrames;
 }
 
-/** Weakest AFFORDABLE contact gap to restart repair from. Weakness = Σ axis-error² (its
- *  share of the score's axis_error_rms; for a VALID track drift/missing are 0 by construction,
- *  so axis_quality is the only quality lever → axis-SSE is the faithful "most valuable to
- *  change" proxy — v1, a proxy for true upstream blame; see docs/archive/TRACK_REPAIR_EXPERIMENTS.md).
- *  FEASIBILITY: skip gaps whose cost to re-complete could exceed `remainingFrames` at the top
- *  of the estimator's own interval — restarting from a gap we can't finish wastes the slice.
- *  The caller supplies that upper bound (see `estCostUpperOf`), so this function holds no
- *  opinion about how cost uncertainty is priced. Iterating worst-first and returning the first
- *  feasible one naturally falls back to later/cheaper gaps when budget is tight. Skips
- *  `exhausted`; ties → lower index. Returns -1 if none feasible/left. */
-function pickFeasibleWeakGap(
-  report: DriftReport,
-  gaps: Gap[],
-  exhausted: Set<number>,
-  upperCostOf: (k: number) => number,
-  remainingFrames: number,
-): number {
-  const ranked: { gap: number; sse: number }[] = [];
-  for (const g of report.gaps) {
-    if (exhausted.has(g.gap_index)) continue;
-    if (!gaps[g.gap_index]?.endsWithContact) continue;
-    ranked.push({ gap: g.gap_index, sse: gapAxisSse(g) ?? 0 });
+export type RepairTargetCandidate = { gapIndex: number; sse: number };
+export type AffordableRepairTarget = {
+  targetGapIndex: number;
+  anchorGapIndex: number;
+  targetGapSse: number;
+  usableBudgetFrames: number;
+  affordableTargetGapIndices: number[];
+};
+
+/** Combine a newly observed repair suffix with the incumbent's measured prefix.
+ * Prefix marginal work is preserved; suffix costs come only from the accepted
+ * alternative's own episode. Unknown observations stay unknown. */
+export function spliceRepairCostToEnd(
+  observedAlternative: readonly number[],
+  incumbent: readonly number[],
+  anchorGapIndex: number,
+): number[] {
+  const result = [...observedAlternative];
+  const anchor = Math.max(0, Math.floor(anchorGapIndex));
+  const anchorCost = result[anchor] ?? -1;
+  const oldAnchorCost = incumbent[anchor] ?? -1;
+  for (let gapIndex = 0; gapIndex < anchor; gapIndex++) {
+    const oldCost = incumbent[gapIndex] ?? -1;
+    result[gapIndex] = anchorCost >= 0 && oldAnchorCost >= 0 && oldCost >= oldAnchorCost
+      ? anchorCost + oldCost - oldAnchorCost
+      : -1;
   }
-  ranked.sort((a, b) => b.sse - a.sse || a.gap - b.gap);
-  for (const r of ranked) {
-    if (upperCostOf(r.gap) <= remainingFrames) return r.gap;
-  }
-  return -1;
+  return result;
+}
+
+/** One independent repair decision. A target has exactly one anchor under the
+ * declared parent depth; headroom reserves a fraction of the remaining hard
+ * budget instead of silently inflating an estimator observation. */
+export function selectAffordableRepairTarget(
+  candidates: readonly RepairTargetCandidate[],
+  upperCostByAnchor: readonly number[],
+  remainingBudgetFrames: number,
+  headroomFraction: number,
+  parentDepth: number,
+): AffordableRepairTarget | null {
+  const remaining = Math.max(0, Math.floor(remainingBudgetFrames));
+  const headroom = Math.max(0, Math.min(0.95, headroomFraction));
+  const depth = Math.max(0, Math.floor(parentDepth));
+  const usableBudgetFrames = Math.floor(remaining * (1 - headroom));
+  const affordable = candidates
+    .map((candidate) => ({ ...candidate, anchorGapIndex: candidate.gapIndex - depth }))
+    .filter(({ anchorGapIndex }) => {
+      const upper = upperCostByAnchor[anchorGapIndex];
+      return anchorGapIndex >= 0 && Number.isFinite(upper) && upper! > 0 &&
+        upper! <= usableBudgetFrames;
+    });
+  if (affordable.length === 0) return null;
+  affordable.sort((a, b) => b.sse - a.sse || a.gapIndex - b.gapIndex);
+  const selected = affordable[0]!;
+  return {
+    targetGapIndex: selected.gapIndex,
+    anchorGapIndex: selected.anchorGapIndex,
+    targetGapSse: selected.sse,
+    usableBudgetFrames,
+    affordableTargetGapIndices: affordable
+      .map(({ gapIndex }) => gapIndex)
+      .sort((a, b) => a - b),
+  };
 }
 
 function resolveHandoffSearchPolicy({
@@ -8077,9 +7874,8 @@ type RepairConfig = {
   minBudget: number;
   mainMargin: number;
   maxAttempts: number;
-  maxUpstream: number;
-  upstreamOrder: "nearest-first" | "oldest-first";
-  log: boolean;
+  parentDepth: number;
+  headroomFraction: number;
 };
 /** Repair takes over at the first completion, not after a margin past it.
  *  Bracketed N=8 against `scarce-lean`: 1.0 +0.28 (SE 0.14), 1.1 shipped,
@@ -8089,14 +7885,9 @@ type RepairConfig = {
  *  and their profile predicates are gone with them. */
 const REPAIR_MAIN_MARGIN = 1.0;
 
-/** Repair configuration is now budget-blind and spec-blind: the restart-sizing
- *  headroom that used to be the last budget-shaped default here is gone
- *  entirely — `feasMargin` and its `LR_REPAIR_FEAS_MARGIN` override were a
- *  hand-swept multiplier on a cost estimate that now carries its own fitted
- *  interval, so the runtime asks `estCostUpperOf` instead (see the repair phase
- *  in `compileHandoffInternal`). The `profile` argument had been unused since
- *  the five main-margin carve-outs were deleted. Every field left is a constant
- *  or an env override. */
+/** A single repair policy: fixed parent depth and an explicit reserve applied
+ * to remaining hard budget. Environment overrides declare diagnostic arms;
+ * they are not hidden fallback modes. */
 function repairConfig(): RepairConfig {
   const num = (name: string, def: number, lo: number, hi: number): number => {
     const n = Number.parseInt(readEnv(name) ?? "", 10);
@@ -8106,12 +7897,6 @@ function repairConfig(): RepairConfig {
     const n = Number.parseFloat(readEnv(name) ?? "");
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
   };
-  const upstreamOrder = readEnv("LR_REPAIR_UPSTREAM_ORDER") ?? "oldest-first";
-  if (upstreamOrder !== "nearest-first" && upstreamOrder !== "oldest-first") {
-    throw new Error(
-      `LR_REPAIR_UPSTREAM_ORDER must be nearest-first|oldest-first, got ${upstreamOrder}`,
-    );
-  }
   return {
     // Gate: below this, completion is the hard part (DFS's job) and the carve starves it.
     // Lowered 150k→100k (2026-06-07): on the 30-spec board all specs already complete at
@@ -8128,15 +7913,11 @@ function repairConfig(): RepairConfig {
     // guard, not a tuned knob — do not re-sweep it as if it allocated anything. (The
     // "1M affords ~30-40 restarts" note it used to carry was a projection, not a measurement.)
     maxAttempts: num("LR_REPAIR_MAX_ATTEMPTS", 64, 1, 1000),
-    // Upstream blame: when a restart re-converges, walk the anchor up to N parents (each with a fresh
-    // seed, so it's genuinely different — not the same-seed re-run that R3 rejected). LR_REPAIR_MAX_UPSTREAM
-    // overrides.
-    maxUpstream: num("LR_REPAIR_MAX_UPSTREAM", 4, 0, 64),
-    // The older anchor receives first claim on the same charged repair budget:
-    // it can alter the weak gap's inherited arrival, while an expensive local
-    // restart cannot. The environment override remains diagnostic-only.
-    upstreamOrder,
-    log: readEnv("LR_REPAIR_LOG") === "1",
+    // Candidate 1 changes the transition inherited by the selected target.
+    parentDepth: num("LR_REPAIR_PARENT_DEPTH", 1, 0, 64),
+    // Preserve 20% of the remaining hard budget beyond the estimator's upper
+    // completion-cost interval. This is visible in every V4 decision.
+    headroomFraction: flt("LR_REPAIR_HEADROOM_FRACTION", 0.2, 0, 0.95),
   };
 }
 

@@ -57,6 +57,11 @@ headroom, fixed parent depth, affordable target set, selected target and SSE,
 actual anchor, cost estimates, and cost source. There is no controller-mode or
 failed-anchor state to infer from episode order.
 
+The production controller currently declares parent depth `1` and headroom
+fraction `0.2`. Diagnostic arms use `LR_REPAIR_PARENT_DEPTH` and
+`LR_REPAIR_HEADROOM_FRACTION`; they change those declared values directly and
+never activate an ancestor fallback chain.
+
 An execution interval accounts for wall-to-wall charged compiler work such as
 startup, initial search, frontier repair, resumed search, or
 finalization. Intervals form a contiguous partition of total charged work in a

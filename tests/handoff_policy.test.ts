@@ -9,8 +9,9 @@ import {
   hasStartFeasibilityLookahead,
   impactRepairInsuranceMode,
   impactResponseAdmissionMode,
-  repairFrontierOrder,
   repairRestartCeilingFrames,
+  selectAffordableRepairTarget,
+  spliceRepairCostToEnd,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
   shortGapRescueCandidateCount,
@@ -134,14 +135,6 @@ describe("handoff policy boundaries", () => {
     expect(() => impactResponseAdmissionMode({
       LR_IMPACT_RESPONSE_ADMISSION: "active-repair-dose-walk",
     })).toThrow();
-  });
-
-  test("keeps repair objective-frontier ordering default-off", () => {
-    expect(repairFrontierOrder({})).toBeNull();
-    expect(repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "off" })).toBeNull();
-    expect(repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "objective" }))
-      .toBe("objective");
-    expect(() => repairFrontierOrder({ LR_REPAIR_FRONTIER_ORDER: "depth" })).toThrow();
   });
 
   test("compares repair alternatives by arc geometry rather than object identity", () => {
@@ -714,10 +707,9 @@ describe("short deadline rescue policy", () => {
 
 /**
  * The repair restart ceiling — `estCostUpperOf`, the one live read of the
- * estimator artifact's CLAIM layer. It picks the gap a restart runs from
- * (`pickFeasibleWeakGap`), whether an upstream anchor is skipped, and how many
- * frames the restart may spend, so a zero here would burn the whole attempt
- * quota on restarts sized at nothing.
+ * estimator artifact's CLAIM layer. It determines which fixed-parent anchors
+ * are affordable and how many frames one iteration may spend, so a zero here
+ * would make every target ineligible.
  */
 describe("repair restart ceiling", () => {
   /** The calibrator's static fallback shape: legal, and it ignores the path. */
@@ -770,5 +762,56 @@ describe("repair restart ceiling", () => {
     // it is priced identically under either artifact and needs no guard.
     expect(repairRestartCeilingFrames(null, 12_345, STRUCTURAL_BASE))
       .toBe(repairRestartCeilingFrames(null, 12_345));
+  });
+});
+
+describe("repair target selection", () => {
+  const candidates = [
+    { gapIndex: 1, sse: 5 },
+    { gapIndex: 2, sse: 10 },
+    { gapIndex: 3, sse: 10 },
+  ];
+
+  test("applies headroom to the actual fixed-parent anchor before ranking weakness", () => {
+    expect(selectAffordableRepairTarget(
+      candidates,
+      [60, 75, 81],
+      100,
+      0.2,
+      1,
+    )).toEqual({
+      targetGapIndex: 2,
+      anchorGapIndex: 1,
+      targetGapSse: 10,
+      usableBudgetFrames: 80,
+      affordableTargetGapIndices: [1, 2],
+    });
+  });
+
+  test("uses the declared parent depth with no nearer-anchor fallback", () => {
+    expect(selectAffordableRepairTarget(
+      candidates,
+      [70, 90],
+      100,
+      0.2,
+      2,
+    )).toEqual({
+      targetGapIndex: 2,
+      anchorGapIndex: 0,
+      targetGapSse: 10,
+      usableBudgetFrames: 80,
+      affordableTargetGapIndices: [2],
+    });
+    expect(selectAffordableRepairTarget(candidates, [81], 100, 0.2, 2)).toBeNull();
+  });
+
+  test("updates an accepted incumbent with its own suffix cost observations", () => {
+    expect(spliceRepairCostToEnd(
+      [-1, -1, 300, 180, 0],
+      [1_000, 700, 400, 150, 0],
+      2,
+    )).toEqual([900, 600, 300, 180, 0]);
+    expect(spliceRepairCostToEnd([-1, -1, 300], [-1, 700, 400], 2))
+      .toEqual([-1, 600, 300]);
   });
 });

@@ -144,7 +144,13 @@ current static features do not explain final score well. That missing informatio
 is likely tied to axis feasibility, impact/air interaction, and geometry-family
 limitations rather than just count, duration, or median spacing.
 
-## Repair-Cost Probe
+## Historical Repair-Cost Probe
+
+This section records the V3/four-ancestor evidence that calibrated the original
+cost interval. Its `compile_stats.repair` procedure is retired. Current repair
+analysis must use V4 episodes (for example
+`scripts/v0/study_v2_repair_diagnostics.ts`) so target, fixed parent, headroom,
+terminal reach, acceptance, and divergence retain their exact semantics.
 
 The current repair phase already has a measured per-incumbent `costToEnd`:
 `firstCompletionFrame - framesAtReach[anchor]`. To compare that adaptive measure

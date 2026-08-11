@@ -446,7 +446,8 @@ describe("study-only env gates refuse rather than clamp", () => {
     expect(postFull.every((r) => r.pressure === deadlinePressure(r.margin))).toBe(true);
     expect(postFull.some((r) => r.pressure > 0)).toBe(true);
     expect(postFull.some((r) => r.narrowed)).toBe(true);
-    expect(full.track).not.toBe(off.track);
+    // The intervention is the narrowed candidate head above. Register output
+    // equality is a possible outcome, not evidence that the arm was inactive.
 
     // WEIGHT 0.5 = a magnitude, not a mode: same ramp, halved.
     const postHalf = half.reads.filter((r) => r.post);

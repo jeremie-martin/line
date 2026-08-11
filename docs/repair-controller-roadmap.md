@@ -115,7 +115,7 @@ For every iteration:
 2. Rebuild/update cost-to-end measurements when the incumbent changed.
 3. For fixed parent depth `d`, map each target `g` to anchor `g - d`.
 4. Require
-   `repairHeadroom × estimatedUpperCompletionCost(anchor) <= remaining`.
+   `estimatedUpperCompletionCost(anchor) <= floor(remaining × (1 - repairHeadroomFraction))`.
 5. Among eligible target gaps, select the largest axis-error SSE.
 6. Regenerate one suffix from its anchor and return after one terminal.
 7. Offer it to the register, record the result, discard iteration-local policy
@@ -158,7 +158,7 @@ authoritative for the new controller.
 | 2026-08-11 | Roadmap frozen | complete | `b3387db` |
 | 2026-08-11 | Remove competing controller modes | complete | `7f1aaa7`; one-terminal production path hardwired; 75 focused tests pass |
 | 2026-08-11 | Remove obsolete surgical repair | complete | `43d0b94`; executable branch, stats surface, and live guidance removed; 125 focused tests pass |
-| 2026-08-11 | Telemetry V4/reporting | complete | Clean-break schema and exact work/outcome/divergence semantics; 178 test files / 1,207 tests pass; commit pending |
-| 2026-08-11 | Independent repair loop | pending | — |
+| 2026-08-11 | Telemetry V4/reporting | complete | `78cab6b`; clean-break schema and exact work/outcome/divergence semantics; 178 test files / 1,207 tests pass |
+| 2026-08-11 | Independent repair loop | complete | Fixed parent depth 1, explicit 20% headroom, per-incumbent cost profiles, no ancestor/exhaustion state; 95 focused tests pass; live 500k probe reached 4/4 divergent terminals and accepted 1; commit pending |
 | 2026-08-11 | Diversity validation | pending | — |
 | 2026-08-11 | Governed evaluation | pending | — |

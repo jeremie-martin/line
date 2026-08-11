@@ -881,9 +881,8 @@ function firstCompletionFrame(spec: Spec, seed: number, targetBudget: number): {
         }
       },
     });
-    const fallback = checkpoint.stats.repair?.first_completion_frame;
     return {
-      frame: typeof fallback === "number" ? fallback : null,
+      frame: checkpoint.stats.first_completion_frame ?? null,
       phase: null,
       improved: null,
     };

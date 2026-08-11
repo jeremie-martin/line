@@ -1170,7 +1170,6 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_candidate_preview_first_survivors_max:
       stats.handoff_candidate_preview_first_survivors_max,
     arc_placement: stats.arc_placement,
-    repair: stats.repair,
     // Forward-eval cost + agreement instrument (optimizer/handoff.ts, measure-only).
     fwd_eval: stats.fwd_eval,
     // Deadline-signal engagement + the two-counters window (measure-only).

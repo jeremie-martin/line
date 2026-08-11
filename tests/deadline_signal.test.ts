@@ -258,21 +258,20 @@ describe("optimizer/deadline.ts — the one live deadline signal", () => {
   /**
    * The handoff side of the same contract. WHERE an assignment lives is not
    * observable from a unit-level call, so this is a source pin, in the style of
-   * the aim-lane throttle test below: the profile must be written in the branch
-   * that stamps `firstCompletionFrame` — the phase flip — and the repair
-   * phase's own rebuild must be the only other writer.
+   * the aim-lane throttle test below: the profile must be written in the
+   * adopted-terminal branch, including accepted repairs, and the repair
+   * decision's current-incumbent publication must be the only other writer.
    */
-  test("the cost-to-end profile is established at first adopted completion", () => {
+  test("the cost-to-end profile follows every adopted terminal incumbent", () => {
     const source = readFileSync("scripts/v0/optimizer/handoff.ts", "utf8");
     const writes = [...source.matchAll(/\bincumbentCostToEnd = ([^;]*);/g)].map((m) => m[1]);
-    expect(writes).toEqual(["buildIncumbentCostToEnd()", "costToEnd"]);
-    const stamp = source.indexOf("firstCompletionFrame = getSimFrames();");
-    const build = source.indexOf("incumbentCostToEnd = buildIncumbentCostToEnd();");
-    expect(stamp).toBeGreaterThan(0);
-    expect(build).toBeGreaterThan(stamp);
-    // Nothing closes between the two: same block, so the profile cannot come to
-    // exist without the phase having flipped, or the flip happen without it.
-    expect(source.slice(stamp, build)).not.toContain("}");
+    expect(writes).toEqual(["adoptedCostToEnd", "costToEnd"]);
+    const adoption = source.indexOf("if (improved && terminal) {");
+    const profile = source.indexOf("incumbentCostToEnd = adoptedCostToEnd;");
+    const adoptionEnd = source.indexOf("telemetry.hasCompletion = true;", adoption);
+    expect(adoption).toBeGreaterThan(0);
+    expect(profile).toBeGreaterThan(adoption);
+    expect(profile).toBeLessThan(adoptionEnd);
   });
 
   test("a terminal position has no deadline and an exhausted budget has no margin", () => {

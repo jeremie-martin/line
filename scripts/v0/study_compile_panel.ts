@@ -60,7 +60,6 @@ type Row = {
   actualCandidateSamples: number;
   selectedSources: Record<string, number>;
   selectedAxes: Record<string, number>;
-  repair: unknown;
   axes: Record<string, AxisResidual>;
 };
 
@@ -108,7 +107,6 @@ for (const specName of specs) {
       actualCandidateSamples: checkpoint.stats.actual_candidate_samples,
       selectedSources: checkpoint.stats.handoff_selected_candidate_by_source ?? {},
       selectedAxes: checkpoint.stats.handoff_selected_axis_quality_by_axis ?? {},
-      repair: checkpoint.stats.repair ?? null,
       axes,
     });
     console.error(

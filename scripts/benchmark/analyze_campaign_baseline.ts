@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { loadVerifiedArchive } from "../v0/benchmark_v2/decide.ts";
+import { loadVerifiedAnalysisArchive } from "../v0/benchmark_v2/analysis_archive.ts";
 import {
   summarizeDevelopmentBudget,
   type ScoredDevelopmentRun,
@@ -23,7 +23,7 @@ const baseline = JSON.parse(baselineBytes.toString("utf8"));
 const compressedPath = resolve(baseline.development?.compressed_archive ?? "");
 const rawPath = compressedPath.replace(/\.gz$/, "");
 const archivePath = existsSync(rawPath) ? rawPath : compressedPath;
-const verified = loadVerifiedArchive(archivePath, {
+const verified = await loadVerifiedAnalysisArchive(archivePath, {
   archive_sha256: baseline.development.archive_sha256,
   compressed_archive_sha256: baseline.development.compressed_archive_sha256,
 });
@@ -46,17 +46,6 @@ if (
 ) throw new Error(
   `active campaign baseline is not the exact scorer-bound 750k/N=${analysisContract.promotionSeeds} archive`,
 );
-
-const rawArchive = archive;
-if (archivePath === rawPath) {
-  const indexedRawArchive = JSON.parse(readFileSync(rawPath, "utf8"));
-  if (
-    indexedRawArchive.decisionIndexPayloadSha256 !== JSON.parse(
-      readFileSync(`${rawPath}.decision-index.json`, "utf8"),
-    ).payloadSha256 ||
-    indexedRawArchive.runs.length !== archive.runs.length
-  ) throw new Error(`raw archive is detached from its decision index`);
-}
 
 const sourceById = new Map(sources.map((source) => [source.id, source]));
 const suite = loadSuiteManifest("benchmark/v2/compat/suite-manifest.json", sources);
@@ -156,7 +145,7 @@ const correlations = correlationPairs.map(([left, right]) => ({
   ...correlate(metricByLabel.get(left)!, metricByLabel.get(right)!),
 }));
 
-const impactObservations = rawArchive.runs.flatMap((row: any) =>
+const impactObservations = archive.runs.flatMap((row: any) =>
   (row.report?.gaps ?? []).flatMap((gap: any) => {
     const impact = gap.axes?.impact;
     return impact === undefined ? [] : [{
@@ -231,7 +220,9 @@ const hierarchyStrata = summary.strata.map((entry: any) => ({
   targetGapContribution: round(entry.weight * (baseline.scope.target_headline - entry.score)),
   targetGapShare: round(entry.weight * (baseline.scope.target_headline - entry.score) / targetGap),
 }));
-const stratumWeight = new Map(summary.strata.map((entry: any) => [entry.id, entry.weight]));
+const stratumWeight = new Map<string, number>(
+  summary.strata.map((entry: any) => [entry.id, entry.weight]),
+);
 const hierarchyGroups = summary.groups.map((entry: any) => {
   const campaignWeight = stratumWeight.get(entry.stratum)! * entry.weight;
   const targetGapContribution = campaignWeight * (baseline.scope.target_headline - entry.score);

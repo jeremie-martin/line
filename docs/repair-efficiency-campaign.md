@@ -122,7 +122,16 @@ identical alternatives was accepted and they consumed 0.026% of repair work.
 Depths five and six produced no incumbent-identical terminals. The first
 divergence occurred at the selected anchor in 95.0% of divergent terminals.
 
-Depth six is therefore the production default. This is an accepted scale
-operating point, whose authority is the across-budget scale comparison. The
-canonical 750k suite remains the authority for a literal canonical benchmark
-`ACCEPT` and is the next qualification step.
+Depth six is therefore the production default. The separate canonical 750k
+qualification subsequently reached `ACCEPT` at its N=32 stopping look:
+
+- canonical headline 602.4958 to 602.9306, delta +0.4348;
+- 99.20% directional probability versus the 98.88% N=32 boundary;
+- one-sided lower bound +0.0164; and
+- identical validity, 1,408/1,408 in both arms.
+
+The accepted archive was promoted as campaign baseline
+`independent-repair-depth-six`. No N=48 rows were sampled after the N=32 accept
+boundary. The scale and canonical decisions, exact identities, behavior audit,
+and evidence hashes are bound in
+`benchmark/v2/studies/repair-depth-six-promotion.json`.

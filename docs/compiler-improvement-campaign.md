@@ -4,10 +4,10 @@ Target: accepted Benchmark V2 development headline above 650, then continue
 pushing the same broad compiler laws as far as the evidence supports.
 
 Current active campaign baseline:
-`one-terminal-adaptive-repair-750k`, headline **602.1261** at 750k/N=8,
-352/352 valid. Suite `7bd878d8aaea08a9`; scoring protocol
+`independent-repair-depth-six`, headline **602.9306** at 750k/N=32,
+1,408/1,408 valid. Suite `7bd878d8aaea08a9`; scoring protocol
 `c71466608589ae757`; Golden evaluator `07cf88383150`. The latest governed
-comparison was +0.4378 (SE 0.0862), accepted at the strict N=8 look. The old
+comparison was +0.4348 (SE 0.1706), accepted at the strict N=32 look. The old
 250k/500k evidence remains intact and deferred from the headline. See
 `docs/benchmark-v2-current-baseline-analysis.md` for current-ruler distribution
 and behavior analysis.
@@ -40,7 +40,24 @@ acceleration-line work.
 | `redraw-dose-law-750k` | 596.97 | N=48 +0.2998 SE 0.1740, inconclusive-positive owner promotion |
 | `curve-joint-incoming-extension-750k` | 601.43 | N=8 +3.9879 SE 0.7867, ACCEPT; independent N=8 tail +5.3783 |
 | `outgoing-amplitude-response-750k` | 602.09 | N=32 +0.2086 SE 0.0597, 99.93% directional probability, ACCEPT |
-| **`one-terminal-adaptive-repair-750k`** | **602.13** | **N=8 +0.4378 SE 0.0862, 99.93% directional probability, ACCEPT; active baseline** |
+| `one-terminal-adaptive-repair-750k` | 602.13 | N=8 +0.4378 SE 0.0862, 99.93% directional probability, ACCEPT |
+| **`independent-repair-depth-six`** | **602.93** | **N=32 +0.4348 SE 0.1706, 99.20% directional probability, one-sided lower +0.0164, ACCEPT; active baseline** |
+
+## 2026-08-11 — independent depth-six repair promoted
+
+The clean independent repair controller was first retained as a behavioral
+foundation after an inconclusive scale comparison. A bounded extension of its
+deepest-affordable anchor cap from four to six then accepted on the compact
+multi-budget benchmark at N=8: +0.5128, 99.54% directional probability,
+unchanged validity. Its 1,947 repair episodes passed 47,944 decision, budget,
+lineage, diversity, and attribution checks with zero violations.
+
+The exact production default accepted separately on the canonical 750k suite
+at N=32: 602.4958 → 602.9306, +0.4348, SE 0.1706, P(+) 99.20% above the
+98.88% boundary, 1,408/1,408 valid in both arms. The compiler and campaign
+baseline were promoted without optional N=48 sampling. Full evidence is bound
+by `benchmark/v2/studies/repair-depth-six-promotion.json` and the controller
+roadmap.
 
 ## 2026-08-11 — one-terminal adaptive repair promoted
 

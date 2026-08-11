@@ -1,0 +1,93 @@
+{
+  "schema": "line.benchmark-v2.repair-depth-six-promotion.v1",
+  "recorded_at": "2026-08-11T15:45:49.422Z",
+  "status": "accepted_and_promoted",
+  "production_policy": {
+    "repair_controller": "independent_deepest_affordable",
+    "previous_maximum_parent_depth": 4,
+    "maximum_parent_depth": 6,
+    "headroom_fraction": 0,
+    "maximum_attempts": 64
+  },
+  "scale_decision": {
+    "authority": "scale-comparison-not-canonical-promotion",
+    "profile": "compact-budget-response-v1",
+    "stopping_depth": 8,
+    "outcome": "prefer-candidate",
+    "reference_headline": 570.6516,
+    "candidate_headline": 571.1644,
+    "delta": 0.5128,
+    "directional_probability": 0.99539713,
+    "required_directional_probability": 0.99166667,
+    "canonical_750k_delta": 0.3746,
+    "reference_valid": 495,
+    "candidate_valid": 495,
+    "paired_cells": 512
+  },
+  "canonical_decision": {
+    "authority": "promotion",
+    "profile": "canonical",
+    "budget": 750000,
+    "stopping_depth": 32,
+    "outcome": "accept",
+    "promotable": true,
+    "reference_headline": 602.4958,
+    "candidate_headline": 602.9306,
+    "delta": 0.4348,
+    "standard_error": 0.1706,
+    "directional_probability": 0.99200747,
+    "required_directional_probability": 0.98884194,
+    "one_sided_lower_bound": 0.0164,
+    "reference_valid": 1408,
+    "candidate_valid": 1408,
+    "paired_cells": 1408
+  },
+  "behavior_result": {
+    "repair_iterations": 1947,
+    "replayed_checks": 47944,
+    "violations": 0,
+    "terminal_offers": 1918,
+    "accepted_offers": 865,
+    "globally_distinct_terminal_offers": 1902,
+    "incumbent_identical_terminal_offers": 16,
+    "accepted_incumbent_identical_terminal_offers": 0,
+    "first_divergence_at_selected_anchor_fraction": 0.95
+  },
+  "identity": {
+    "evaluated_scale_compiler_source_fingerprint": "55a0d5724a8defa636f91cf760d5114cc7432a3cb34f264f8861c6ce1337ad10",
+    "evaluated_scale_compiler_environment": {
+      "LR_REPAIR_MAX_PARENT_DEPTH": "6"
+    },
+    "promoted_compiler_source_fingerprint": "ba88c852bfb73b1846d387b4b7df97378353eef6a5b048ab875c4dd796e43b35",
+    "promoted_candidate_fingerprint": "c87125e9f9e9b330a89a96a0c5683e92d323dd14882dc2f262aba902ebf8d167",
+    "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+    "equivalence": "The scale arm set maximum parent depth to 6 through the declared diagnostic environment. Promotion changed only that default from 4 to 6; the canonical accepted snapshot has an empty compiler environment."
+  },
+  "evidence": {
+    "scale_archive": {
+      "path": "generated/benchmark-v2/scale/repair-max-parent-depth-6-8.json",
+      "sha256": "6b52de064e55df2cffc528fb77635933e6b667eaa259d3d37baf2c449070f999"
+    },
+    "scale_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-max-parent-depth-6-8.comparison.json",
+      "sha256": "4efa6a430255d0f04bc49cbbb46b314c261e32a9394f1e2f610fba0332320c00"
+    },
+    "behavior_audit": {
+      "path": "generated/benchmark-v2/scale/repair-max-parent-depth-6-8-behavior.json",
+      "sha256": "e9ac07bf55bc453be582700a2dbc775542acc747139ad56c15ccdf3534fa298b"
+    },
+    "canonical_comparison": {
+      "path": "benchmark/v2/runs/independent-repair-depth-six-comparison.json",
+      "sha256": "aae6ca9467d3643d880d4d3eb500620ca1e30957538990b4dd1836ec5ef5eda3"
+    },
+    "canonical_archive": {
+      "path": "benchmark/v2/runs/independent-repair-depth-six-development-750k-N32.json.gz",
+      "sha256": "a5418ac51b3a929b9841575cbb4f337253477c152619db9e96872c72bf61b583"
+    },
+    "canonical_compiler_snapshot": {
+      "path": "benchmark/v2/runs/independent-repair-depth-six-compiler-snapshot.tar.gz",
+      "sha256": "2a17a74b18fbd9efb7ffb12140395c25a4f280dc97ecb38860dd5ed354978eb8"
+    }
+  },
+  "interpretation": "Depth six is accepted both by the across-budget scale protocol and by the canonical 750k promotion protocol. It is the active campaign baseline; no N48 sampling was performed after the N32 accept boundary."
+}

@@ -19,7 +19,7 @@ describe("canonical baseline cache fixed-N plans", () => {
     expect(cache.campaignScope).toEqual({
       budgets: [750_000],
       maximumSeeds: 48,
-      promotionSeeds: 8,
+      promotionSeeds: reference.scope.promotion_seeds,
       looks: [8, 16, 32, 48],
       targetHeadline: 650,
       sequentialPolicyFingerprint: reference.sequential_eval_policy_fingerprint,
@@ -37,9 +37,9 @@ describe("canonical baseline cache fixed-N plans", () => {
     });
     expect(baselineCachePlan(cache, 48)).toMatchObject({
       requestedSeeds: 48,
-      coveredSeeds: 8,
-      missingBaselineSeeds: 40,
-      missingBaselineCompiles: 1_760,
+      coveredSeeds: 32,
+      missingBaselineSeeds: 16,
+      missingBaselineCompiles: 704,
       candidateCompiles: 2_112,
     });
     expect(reference.compiler_source_fingerprint).toBe(
@@ -51,7 +51,7 @@ describe("canonical baseline cache fixed-N plans", () => {
     expect(reference.decision_protocol_fingerprint).toBe(decisionProtocolFingerprint());
     expect(baselineCacheHeadlineAtDepth(cache, 8)).toEqual({
       seeds: 8,
-      headline: 602.1261,
+      headline: 602.8529,
       validRuns: 352,
       totalRuns: 352,
     });

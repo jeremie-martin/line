@@ -1,9 +1,9 @@
 # Impact Delivery 650 Campaign
 
 Status: **OPEN — post-promotion coupled transition search**.
-Active baseline: `one-terminal-adaptive-repair-750k`, **602.1261** at its
-governed 750k/N=8 acceptance look, 352/352 valid. Its immediate predecessor was
-`outgoing-amplitude-response-750k`; historical sections
+Active baseline: `independent-repair-depth-six`, **602.9306** at its governed
+750k/N=32 acceptance look, 1,408/1,408 valid. Its immediate predecessor was
+`one-terminal-adaptive-repair-750k`; historical sections
 retain the baseline that governed each experiment. Internal checkpoint:
 **620**. Completion target: accepted headline **>650**.
 

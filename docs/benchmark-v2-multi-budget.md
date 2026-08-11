@@ -186,16 +186,12 @@ such use is the candidate-breadth experiment documented in
 artifact and never enter the production baseline arm. This includes the later
 repair-only phase isolation policy described in that experiment record.
 
-The same runner also supported the explicitly experimental
-`--repair-mode=one-terminal-adaptive` arm. That arm changed only post-completion
-frontier repair and recorded the intervention in the archive. It was promoted
-after the retained compact and canonical evidence; the frozen reference arm
-explicitly records `multi-terminal`. New production baselines explicitly
-record `one-terminal-adaptive` with one try per anchor, and the evaluator can
-use `--repair-mode=multi-terminal` as the reverse reference intervention. A
-declared repair intervention identical to the baseline policy is rejected. Its mechanics question,
-tries-per-anchor arms, and staged comparison protocol are documented in
-`docs/one-terminal-adaptive-repair-experiment.md`.
+The same runner previously supported an explicitly experimental repair-mode
+arm. It was promoted after the retained compact and canonical evidence. On
+2026-08-11 both mode switches were removed: new scale archives describe the
+single production controller, while the immutable V3 archives retain the old
+mode attribution. Its mechanics question and staged protocol remain documented
+as historical evidence in `docs/one-terminal-adaptive-repair-experiment.md`.
 
 ## Relationship to other instruments
 

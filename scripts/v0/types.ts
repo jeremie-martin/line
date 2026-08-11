@@ -1020,36 +1020,6 @@ export type CompileStats = {
     active_repair_final_lines: number;
   };
 
-  /** Default-off exact incumbent-suffix replay with one same-speed impact substitution. */
-  impact_surgical_repair?: {
-    eligible_gaps: number;
-    cached_pools: number;
-    specialist_available: number;
-    attempts: number;
-    bridge_constructed: number;
-    bridge_candidate_valid: number;
-    bridge_delivery_passed: number;
-    bridge_speed_state_passed: number;
-    bridge_deformation_state_passed: number;
-    bridge_relative_velocity_state_passed: number;
-    bridge_phase_state_passed: number;
-    bridge_state_passed: number;
-    bridge_contact_passed: number;
-    contract_passed: number;
-    accepted: number;
-    final_selected: number;
-    local_impact_error_gain_sum: number;
-    local_speed_error_delta_sum: number;
-    local_pair_sse_gain_sum: number;
-    local_secondary_sse_delta_sum: number;
-    local_impact_target_contrast_sum: number;
-    joint_cached_next_pools: number;
-    joint_cached_return_pools: number;
-    release_velocity_delta_sum: number;
-    suffix_translation_px_sum: number;
-    frames_spent: number;
-  };
-
   /** Track-repair post-pass diagnostics (only present when repair ran). Non-scoring. */
   repair?: {
     first_completion_frame: number;
@@ -1058,10 +1028,6 @@ export type CompileStats = {
     frames_spent: number;
     gaps_touched: number;
     reconverged: number;
-    /** Study-only refreshes after an accepted restart replaces the incumbent suffix. */
-    cost_profile_refreshes?: number;
-    cost_profile_entries_changed?: number;
-    cost_profile_newly_measured?: number;
     /** Per-restart detail; present only under LR_REPAIR_LOG (heavy — gated to keep archives lean). */
     records?: Array<{
       round?: number;

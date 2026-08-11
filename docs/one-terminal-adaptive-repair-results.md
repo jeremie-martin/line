@@ -1,12 +1,17 @@
 # One-terminal adaptive repair: first results
 
+> **Frozen evidence.** On 2026-08-11 the superseded multi-terminal controller,
+> its study switch, and the dormant surgical-repair experiment were removed.
+> This document describes the evidence that selected the clean-break starting
+> point; it is not a current command reference.
+
 ## Status
 
 The one-terminal adaptive repair allocator was implemented behind an explicit
 study mode and selected by both the compact multi-budget campaign and the
 governed 44-source canonical 750k comparison. One terminal with one try per
-anchor is now the production source default; `multi-terminal` remains available
-as an explicit reference mode.
+anchor became the production source default. `multi-terminal` no longer exists
+as an executable reference mode; its immutable archives remain the reference.
 
 This experiment is about a compiler that knows its hard budget before it
 starts. It is not an anytime algorithm. The implementation and frozen protocol

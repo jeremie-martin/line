@@ -8,8 +8,6 @@ import {
   hasStartFeasibilityLookahead,
   impactRepairInsuranceMode,
   impactResponseAdmissionMode,
-  impactSurgicalRepairMode,
-  jointPairRepairWindowEligible,
   repairFrontierOrder,
   repairRestartCeilingFrames,
   shouldOfferBrakeCandidates,
@@ -135,47 +133,6 @@ describe("handoff policy boundaries", () => {
     expect(() => impactResponseAdmissionMode({
       LR_IMPACT_RESPONSE_ADMISSION: "active-repair-dose-walk",
     })).toThrow();
-  });
-
-  test("keeps exact impact suffix transplantation default-off and validates its mode", () => {
-    expect(impactSurgicalRepairMode({})).toBeNull();
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "off" })).toBeNull();
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "1" }))
-      .toBe("same-speed-suffix");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "same-speed-suffix" }))
-      .toBe("same-speed-suffix");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "release-transport" }))
-      .toBe("release-transport");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "post-contact-bridge-quarter" }))
-      .toBe("post-contact-bridge-quarter");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "seeded-suffix-restart" }))
-      .toBe("seeded-suffix-restart");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-restart" }))
-      .toBe("joint-pair-restart");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-quality-restart" }))
-      .toBe("joint-pair-quality-restart");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-balanced-restart" }))
-      .toBe("joint-pair-balanced-restart");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-contrast-restart" }))
-      .toBe("joint-pair-contrast-restart");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-balanced-terminal" }))
-      .toBe("joint-pair-balanced-terminal");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-score-terminal" }))
-      .toBe("joint-pair-score-terminal");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-window-terminal" }))
-      .toBe("joint-pair-window-terminal");
-    expect(impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "joint-pair-cached-terminal" }))
-      .toBe("joint-pair-cached-terminal");
-    expect(() => impactSurgicalRepairMode({ LR_IMPACT_SURGICAL_REPAIR: "search-again" }))
-      .toThrow();
-  });
-
-  test("joint-pair window gate matches the frozen impact-loss atlas bin", () => {
-    expect(jointPairRepairWindowEligible(gap(0, 0, 16), { impact: 0.7 })).toBe(false);
-    expect(jointPairRepairWindowEligible(gap(0, 0, 17), { impact: 0.7 })).toBe(true);
-    expect(jointPairRepairWindowEligible(gap(0, 0, 24), { impact: 0.2 })).toBe(true);
-    expect(jointPairRepairWindowEligible(gap(0, 0, 25), { impact: 0.7 })).toBe(false);
-    expect(jointPairRepairWindowEligible(gap(0, 0, 20), { speed: 0.7 })).toBe(false);
   });
 
   test("keeps repair objective-frontier ordering default-off", () => {

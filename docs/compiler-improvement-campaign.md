@@ -57,7 +57,10 @@ The canonical 44-source experiment then accepted at N=8: 601.6883 → 602.1261,
 positive. An environment-free rerun was byte-identical to the explicit study
 arm. The source default and campaign baseline were promoted; `multi-terminal`
 remains an explicit study reference. Full evidence is in
-`one-terminal-adaptive-repair-results.md`.
+`one-terminal-adaptive-repair-results.md`. On 2026-08-11 the old
+`multi-terminal` path, its runtime/benchmark switches, and the dormant surgical
+repair implementation were removed. Historical archives and experiment records
+remain immutable; new controller work follows `repair-controller-roadmap.md`.
 
 ## 2026-08-07 — 650 impact-delivery campaign opened
 

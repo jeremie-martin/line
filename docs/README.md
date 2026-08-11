@@ -46,7 +46,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`impact-delivery-650-campaign.md`](impact-delivery-650-campaign.md) | LIVE | Frozen-evaluator campaign contract for passive contact-transition geometry, the 620 checkpoint, and the >650 target. |
 | [`impact-delivery-650-baseline-atlas.md`](impact-delivery-650-baseline-atlas.md) | LIVE | Exact current-baseline impact loss slices and counterfactual ceilings used to aim the 650 campaign. |
 | [`shelter-budget-sweep-four-priority-implementation.md`](shelter-budget-sweep-four-priority-implementation.md) | LIVE | Evidence and implementation record for budget identity, breadth, repair, persistent gaps, and the accepted outgoing-amplitude response law. |
-| [`one-terminal-adaptive-repair-results.md`](one-terminal-adaptive-repair-results.md) | LIVE | Multi-budget and canonical evidence for the promoted repair allocator. |
+| [`one-terminal-adaptive-repair-results.md`](one-terminal-adaptive-repair-results.md) | ARCHIVE | Frozen evidence that selected the clean-break one-terminal starting point. |
 | [`impact-mission.md`](impact-mission.md) | LIVE | Current impact mission, ownership boundaries, and change discipline. |
 
 ## Reference

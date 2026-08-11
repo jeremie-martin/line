@@ -1,5 +1,10 @@
 # One-terminal adaptive repair experiment
 
+> **Historical experiment record.** The comparison modes described below were
+> removed on 2026-08-11 after the one-terminal result was promoted. The active
+> controller roadmap is `docs/repair-controller-roadmap.md`; these commands and
+> switches are retained here only to explain the frozen artifacts.
+
 ## Question
 
 The production repair frontier keeps searching one bounded suffix frontier and

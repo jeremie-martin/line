@@ -163,7 +163,22 @@ register decision separately. The improvement-gated arm is therefore the first
 one that can directly answer whether useful local repairs are being generated
 and rejected, rather than inferring offer quality from adoption.
 
-### 5. Adaptive value model
+### 5. Protected one-step bridge
+
+Keep the global register and final output unchanged, but when a terminal offer
+is globally rejected while directly improving its selected target, allow that
+offer to seed exactly one independently budgeted follow-up repair. The follow-up
+may enter the global register only by beating the true incumbent; the temporary
+working state never becomes output merely because it improved a local gap.
+
+Why conditional: this can cross a local/global tradeoff that strict
+incumbent-only repair cannot, but it spends work from a globally worse state and
+adds a second lineage that must be explicit. V6 now measures the prerequisite
+population directly through `terminal_offer_target_gap`. Do not implement the
+bridge unless a multi-budget reference shows a material number of rejected,
+locally improving offers with enough remaining budget for a follow-up suffix.
+
+### 6. Adaptive value model
 
 Estimate expected accepted gain or probability of completion from anchor,
 opportunity, cost, iteration, and source structure, then choose expected value
@@ -173,7 +188,7 @@ Why later: it is potentially powerful but easy to overfit. It should be trained
 only after multiple executed policies provide counterfactual coverage, with
 source/seed holdouts and explicit budget conditioning.
 
-### 6. Local splice/window repair
+### 7. Local splice/window repair
 
 Repair a bounded window and reconnect to an incumbent suffix.
 

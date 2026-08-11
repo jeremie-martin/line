@@ -399,7 +399,11 @@ function auditRun(row: RunRow, audit: Audit): void {
         nextDecision.affordable_target_gap_indices.every((gap) => affordable.includes(gap)),
         label,
       );
-      if (nextAffordable.has(decision.target_gap_index)) {
+      if (
+        decision.selection_policy === "worst_gap_deepest_affordable" &&
+        nextDecision.selection_policy === "worst_gap_deepest_affordable" &&
+        nextAffordable.has(decision.target_gap_index)
+      ) {
         audit.check(
           "sameWorstTargetRetainedWhileAffordableAfterRejection",
           nextDecision.target_gap_index === decision.target_gap_index,

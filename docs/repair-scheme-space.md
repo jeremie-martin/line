@@ -145,10 +145,12 @@ gain, and forward-score debt. The declared study controls are
 `LR_REPAIR_SUFFIX_SEARCH_POLICY=target-eligible-first`; production remains
 `ordinary`.
 
-The first N=4 bracket found that `target-top-three-first` improved target-gap
-alignment but completed fewer suffixes at equal repair work, for a small scale
-gain (+0.0488). The eligible-pool arm lost (-0.4944) while incurring about 69×
-as much forward-score debt. The improvement-gated arm is the next causal test:
+The full N=8 bracket found that `target-top-three-first` lost 0.1762 scale
+points (7.84% directional probability), despite a +0.1744 result at 750k and
+unchanged validity. It lost at six of eight budgets and will not extend to N=16.
+The eligible-pool N=4 arm lost 0.4944 while incurring about 69× as much
+forward-score debt. Both ungated arms are retired. The improvement-gated arm is
+the next causal test:
 it uses the incumbent's exact authored target SSE as a parameter-free boundary
 and intervenes only when ordinary branch zero is not itself a repair. Its
 telemetry separates pools where ordinary branch zero improves the incumbent

@@ -81,3 +81,34 @@ cross-iteration exclusion state:
 
 Every retained follow-up begins from the foundation record above and receives
 a new identity and paired scale artifact.
+
+## Progress
+
+### Three-iteration allocation bracket — rejected at N=4
+
+The complete 256-cell look prefers the unrestricted foundation:
+
+- scale delta -0.1986, with 0.69% directional probability of improvement;
+- 750k delta -0.0488;
+- identical validity, 246/256 in each arm; and
+- every one of 17,040 repair invariant/attribution checks passed.
+
+The mechanism moved work exactly as intended. Relative to the foundation it
+removed 289 repairs and 15.81M repair frames. Resumed-frontier work gained
+13.00M frames, 4,026 terminal offers, and 22 register improvements, but only
+1.93 internal-score points. The removed repair work contained 126 register
+improvements and 51.51 internal-score points. The net internal loss closely
+matches the paired headline loss.
+
+Conclusion: late repair is inefficient only relative to early repair; it is
+still substantially more valuable than the existing resumed frontier. A hard
+iteration cap is rejected and will not advance to N=8.
+
+### Next bracket — maximum affordable parent depth
+
+The next bounded question follows the strongest retained signal rather than
+the rejected cap: parent depth four is both the current ceiling and the most
+frame-efficient observed depth, while 51.2% of foundation decisions hit that
+ceiling. Compare maximum depth six at N=4. Affordability remains the hard gate,
+so low-budget decisions that cannot fund a deeper suffix remain unchanged.
+This is one boundary-extension diagnostic, not an open-ended depth sweep.

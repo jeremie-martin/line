@@ -8,6 +8,17 @@ describe("paired scale mechanics", () => {
       task: { sourceId: "source", budget, actualSeed: seed },
       trackHash: candidate ? `candidate-${budget}-${seed}` : `reference-${budget}-${seed}`,
       score: { score: 500 + (candidate ? 2 : 0) },
+      stats: candidate ? {
+        repair_target_search: {
+          target_pools: 4,
+          ordinary_first_improves_incumbent: 1,
+          ordinary_first_not_improving: 3,
+          improving_alternative_available: 2,
+          reordered: 2,
+          local_sse_gain_sum: 0.25,
+          forward_score_debt_sum: 0.5,
+        },
+      } : {},
       budgetTelemetry: {
         schema: BUDGET_TELEMETRY_SCHEMA,
         compile: {
@@ -83,6 +94,12 @@ describe("paired scale mechanics", () => {
     expect(result.overall.metrics.repairCompletionEstimateIntervalCoverage.candidateMean).toBe(1);
     expect(result.overall.metrics.repairCompletionWithinAllocationRate.candidateMean).toBe(1);
     expect(result.overall.metrics.repairCalibratedEstimatorRate.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairTargetSearchReorderRate).toMatchObject({
+      referenceMean: 0,
+      candidateMean: 0.5,
+    });
+    expect(result.overall.metrics.repairTargetSearchImprovingAlternativeRate.candidateMean).toBe(0.5);
+    expect(result.overall.metrics.repairTargetSearchLocalSseGain.candidateMean).toBe(0.25);
     expect(result.overall.metrics.finalOutputFromRepair.delta).toBe(1);
     expect(result.perBudget.map((entry) => entry.budget)).toEqual([100, 200]);
   });

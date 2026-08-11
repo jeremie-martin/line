@@ -267,6 +267,22 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
       ? null
       : comparable.filter((delta) => delta > 0).length / comparable.length;
   }],
+  ["repairTargetSearchPools", (row) => repairTargetSearchValue(row, "target_pools")],
+  ["repairTargetSearchOrdinaryFirstImprovesIncumbent", (row) =>
+    repairTargetSearchValue(row, "ordinary_first_improves_incumbent")],
+  ["repairTargetSearchOrdinaryFirstNotImproving", (row) =>
+    repairTargetSearchValue(row, "ordinary_first_not_improving")],
+  ["repairTargetSearchImprovingAlternativeAvailable", (row) =>
+    repairTargetSearchValue(row, "improving_alternative_available")],
+  ["repairTargetSearchReordered", (row) => repairTargetSearchValue(row, "reordered")],
+  ["repairTargetSearchReorderRate", (row) =>
+    repairTargetSearchRate(row, "reordered")],
+  ["repairTargetSearchImprovingAlternativeRate", (row) =>
+    repairTargetSearchRate(row, "improving_alternative_available")],
+  ["repairTargetSearchLocalSseGain", (row) =>
+    repairTargetSearchValue(row, "local_sse_gain_sum")],
+  ["repairTargetSearchForwardScoreDebt", (row) =>
+    repairTargetSearchValue(row, "forward_score_debt_sum")],
   ["finalOutputFromRepair", (row) => telemetry(row).compile.final_output_lane === "repair" ? 1 : 0],
 ];
 
@@ -531,6 +547,19 @@ function sumComparableRepairEpisodes(
     return value === null ? [] : [value];
   });
   return values.length === 0 ? null : values.reduce((sum, value) => sum + value, 0);
+}
+
+function repairTargetSearchValue(row: RunRow, field: string): number {
+  const value = row.stats?.repair_target_search?.[field];
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function repairTargetSearchRate(row: RunRow, numeratorField: string): number | null {
+  if (row.stats?.repair_target_search === undefined) return 0;
+  return ratio(
+    repairTargetSearchValue(row, numeratorField),
+    repairTargetSearchValue(row, "target_pools"),
+  );
 }
 
 function sumRepairWork(

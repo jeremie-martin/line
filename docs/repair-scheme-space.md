@@ -83,6 +83,11 @@ Why first: it directly addresses repair efficiency, makes substantial but
 two-sided decisions, and has the strongest pre-execution evidence without adding
 a learned model or new tuning parameter.
 
+Executed result: unfavorable at N=4. It changed the repair shape exactly as
+intended—episodes nearly doubled and distinct/accepted alternatives increased—
+but aggregate internal repair gain fell 20% and the scale headline fell 1.0746.
+The ratio over-rewarded cheap late suffixes.
+
 ### 2. Maximum suffix opportunity
 
 Choose the affordable anchor exposing the greatest total suffix SSE, then the
@@ -93,7 +98,23 @@ Why second: it is the cleanest expression of “spend the remaining budget on th
 largest mutable problem,” but it consumes more of the remaining budget per
 attempt and may reduce the number of completed alternatives.
 
-### 3. Target-aware suffix search
+Executed result: unfavorable at N=8. Repair episodes and accepted alternatives
+fell about 22%, mean spent frames per episode rose about 38%, and aggregate
+internal repair gain fell 12.7%. The scale headline fell 0.6033.
+
+### 3. Maximum local-window opportunity
+
+Within the accepted six-gap target×anchor option radius, choose the affordable
+pair maximizing summed incumbent SSE from anchor through target. This is a
+cluster objective: it avoids both total-suffix ratios and unbounded explanatory
+depth.
+
+Executed result: unfavorable at N=8. It produced almost the same number of
+accepted alternatives as reference (867 versus 865) but 16% more episodes,
+lower acceptance per terminal, and 16.7% less aggregate internal repair gain.
+The scale headline fell 0.8695.
+
+### 4. Target-aware suffix search
 
 Keep an accepted anchor law, but make the suffix DFS explicitly prioritize
 improvement of the selected target or suffix before global terminal acceptance.
@@ -102,7 +123,7 @@ Why later: current selection telemetry cannot predict this intervention. It
 changes search ordering, not only allocation, and requires new telemetry that
 separates target-local progress from eventual global adoption.
 
-### 4. Adaptive value model
+### 5. Adaptive value model
 
 Estimate expected accepted gain or probability of completion from anchor,
 opportunity, cost, iteration, and source structure, then choose expected value
@@ -112,7 +133,7 @@ Why later: it is potentially powerful but easy to overfit. It should be trained
 only after multiple executed policies provide counterfactual coverage, with
 source/seed holdouts and explicit budget conditioning.
 
-### 5. Local splice/window repair
+### 6. Local splice/window repair
 
 Repair a bounded window and reconnect to an incumbent suffix.
 
@@ -137,6 +158,26 @@ LR_REPAIR_SELECTION_POLICY=suffix-opportunity-per-cost
 The production default remains `worst_gap_deepest_affordable` until an arm passes
 the declared multi-budget and canonical promotion protocols.
 
+## Executed selector conclusion
+
+All three categorical selector arms preserved first-terminal work exactly,
+preserved paired validity exactly, and passed every V5 selection replay. Their
+N=8 or earlier stopping evidence is:
+
+| Policy | Look | Scale delta | P(candidate > reference) | 750k delta |
+|---|---:|---:|---:|---:|
+| suffix opportunity / cost | 4 | -1.0746 | 4.88% | -0.6825 |
+| maximum suffix opportunity | 8 | -0.6033 | 7.81% | -1.0258 |
+| maximum local-window opportunity | 8 | -0.8695 | 3.09% | -0.5726 |
+
+The accepted worst-gap/deepest-affordable controller remains production. The
+three failures bracket it usefully: cheap/local allocation creates more but
+weaker alternatives; broad/early allocation creates fewer alternatives without
+enough additional value; accumulated local error does not beat the worst-gap
+signal. The next experiment should change suffix-search ordering or diversity
+under the accepted selector, not invent another algebraic reduction of the same
+incumbent SSE map.
+
 ## Evaluation order
 
 1. Run paired N=4 across the scale profile's eight specifications and eight
@@ -150,4 +191,3 @@ the declared multi-budget and canonical promotion protocols.
 4. Run the canonical 750k promotion protocol only for a favorable scale arm.
 5. Regardless of score, retain the result as evidence about the scheme. Do not
    convert it into a parameter sweep or silently promote it.
-

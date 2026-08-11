@@ -1,0 +1,93 @@
+{
+  "schema": "line.benchmark-v2.repair-scheme-space-exploration.v1",
+  "recorded_at": "2026-08-11T23:10:00+02:00",
+  "status": "selector_space_characterized_no_promotion",
+  "production_policy": "worst_gap_deepest_affordable",
+  "reference": {
+    "look": 8,
+    "scale_headline": 571.1644,
+    "valid": 495,
+    "total": 512,
+    "repair_episodes": 1947,
+    "terminal_alternatives": 1918,
+    "accepted_alternatives": 865,
+    "internal_repair_gain": 2650.779788,
+    "internal_gain_per_million_repair_frames": 8.22529
+  },
+  "arms": [
+    {
+      "policy": "suffix_opportunity_per_cost",
+      "look": 4,
+      "scale_delta": -1.0746,
+      "directional_probability": 0.04878277,
+      "canonical_750k_delta": -0.6825,
+      "validity": { "reference": 246, "candidate": 246, "total": 256 },
+      "repair_episodes": 1936,
+      "terminal_alternatives": 1914,
+      "accepted_alternatives": 512,
+      "internal_repair_gain": 981.0,
+      "interpretation": "The ratio selected cheaper later anchors, nearly doubled completed alternatives, and raised accepted count, but alternative value fell enough to reduce aggregate repair gain and score."
+    },
+    {
+      "policy": "max_suffix_opportunity",
+      "look": 8,
+      "scale_delta": -0.6033,
+      "directional_probability": 0.07814899,
+      "canonical_750k_delta": -1.0258,
+      "validity": { "reference": 495, "candidate": 495, "total": 512 },
+      "repair_episodes": 1515,
+      "terminal_alternatives": 1479,
+      "accepted_alternatives": 670,
+      "internal_repair_gain": 2312.832836,
+      "interpretation": "The objective selected earlier larger suffixes, reducing episode and acceptance counts without enough gain per alternative."
+    },
+    {
+      "policy": "max_local_window_opportunity",
+      "look": 8,
+      "scale_delta": -0.8695,
+      "directional_probability": 0.03089551,
+      "canonical_750k_delta": -0.5726,
+      "validity": { "reference": 495, "candidate": 495, "total": 512 },
+      "repair_episodes": 2107,
+      "terminal_alternatives": 2073,
+      "accepted_alternatives": 867,
+      "internal_repair_gain": 2206.914623,
+      "interpretation": "The bounded cluster objective preserved accepted count but required more episodes and produced less aggregate value."
+    }
+  ],
+  "invariants": {
+    "first_terminal_work": "byte-identical within every paired arm",
+    "validity_changes": 0,
+    "selection_replay_violations": 0,
+    "conclusion": "The accepted worst-gap/deepest-affordable selector remains stronger than the three executed categorical alternatives."
+  },
+  "next_family": "Keep the accepted selector and study suffix-search ordering or explicit diversity; do not continue algebraic selector variants without a new causal hypothesis.",
+  "evidence": {
+    "reference_archive": {
+      "path": "generated/benchmark-v2/scale/repair-policy-v5-reference-8-baseline.archive.json",
+      "sha256": "68ad68359dd9f0fe4e5446e4ca4de70a5b3cd04718c72330933a6aa0e316ef13"
+    },
+    "offline_scheme_replay": {
+      "path": "generated/benchmark-v2/scale/repair-policy-v5-scheme-space-n8.json",
+      "sha256": "f452e148f397ee210c1fb2c80155c9cd186272a9df7a727b5e062ac01013e14c"
+    },
+    "suffix_density": {
+      "comparison": "generated/benchmark-v2/scale/repair-suffix-opportunity-per-cost-4.comparison.json",
+      "comparison_sha256": "32a1b3aaa657a5410a4f2cec389817fc0a228ecf9ab666be202839bae38d975e",
+      "behavior": "generated/benchmark-v2/scale/repair-suffix-opportunity-per-cost-4-behavior.json",
+      "behavior_sha256": "2370889cdc27d040ca43b07ec6388b0703bd415e4695a82e3bfef585ca3517a7"
+    },
+    "max_suffix": {
+      "comparison": "generated/benchmark-v2/scale/repair-max-suffix-opportunity-8.comparison.json",
+      "comparison_sha256": "7d1d580d407fe874b7d4dd3c247b83f429ef30840bef94bcb4baa7d39a01974b",
+      "behavior": "generated/benchmark-v2/scale/repair-max-suffix-opportunity-8-behavior.json",
+      "behavior_sha256": "1aa46e9ee35dc7610234cfdb58857f3b53d7ef3898c4b02dbb9bd766d6e70e79"
+    },
+    "local_window": {
+      "comparison": "generated/benchmark-v2/scale/repair-max-local-window-opportunity-8.comparison.json",
+      "comparison_sha256": "0c0d581c06fdcb7024bf5e88e437d6936419d30da723102fa48d6ad853678059",
+      "behavior": "generated/benchmark-v2/scale/repair-max-local-window-opportunity-8-behavior.json",
+      "behavior_sha256": "0e4bf4a6c63d963da36963e3566806534eea9412612ab9ac0f5ba9844661a7b3"
+    }
+  }
+}

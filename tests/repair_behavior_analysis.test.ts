@@ -1,5 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { summarizeRepairBehavior } from "../scripts/benchmark/analyze_repair_behavior.ts";
+import {
+  renderRepairBehaviorPlot,
+  summarizeRepairBehavior,
+} from "../scripts/benchmark/analyze_repair_behavior.ts";
 import { BUDGET_TELEMETRY_SCHEMA } from "../scripts/v0/optimizer/budget_telemetry.ts";
 
 function row() {
@@ -203,5 +206,16 @@ describe("repair behavior analysis", () => {
 
     expect(result.invariantAudit.passed).toBe(false);
     expect(result.invariantAudit.checks.terminalOutcomeMatchesWork.violations).toBe(1);
+  });
+
+  test("renders self-contained behavior plots without invalid coordinates", () => {
+    const summary = summarizeRepairBehavior([row()]);
+    for (const dimension of ["budget", "iteration", "parent-depth"] as const) {
+      const svg = renderRepairBehaviorPlot(summary, dimension, "fixture & arm");
+      expect(svg).toContain("<svg");
+      expect(svg).toContain("fixture &amp; arm");
+      expect(svg).not.toContain("NaN");
+      expect(svg).not.toContain("Infinity");
+    }
   });
 });

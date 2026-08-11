@@ -991,6 +991,106 @@ function number(value: number | null, digits = 2): string {
   return value === null ? "—" : value.toFixed(digits);
 }
 
+type RepairPlotDimension = "budget" | "iteration" | "parent-depth";
+
+export function renderRepairBehaviorPlot(
+  summary: RepairBehaviorSummary,
+  dimension: RepairPlotDimension,
+  label: string,
+): string {
+  const rows = dimension === "budget"
+    ? summary.perBudget
+    : dimension === "iteration"
+      ? summary.perIteration
+      : summary.perParentDepth;
+  const labels = rows.map((row: any) => dimension === "budget"
+    ? `${Math.round(row.budget / 1000)}k`
+    : String(dimension === "iteration" ? row.iterationIndex : row.parentDepth));
+  const panels = [
+    {
+      title: dimension === "budget" ? "Repair iterations per run" : "Repair iterations",
+      values: rows.map((row: any) => dimension === "budget"
+        ? row.repairEpisodesPerRun
+        : row.repairEpisodes),
+      digits: dimension === "budget" ? 2 : 0,
+    },
+    {
+      title: dimension === "parent-depth" ? "Accepted per reached terminal" : "Mean parent depth",
+      values: rows.map((row: any) => dimension === "parent-depth"
+        ? row.acceptedPerTerminalRate
+        : row.meanParentDepth),
+      digits: 2,
+    },
+    {
+      title: "Internal score gain per million repair frames",
+      values: rows.map((row: any) => row.internalFullScoreDeltaPerMillionRepairFrames),
+      digits: 2,
+    },
+  ];
+  const width = 1000;
+  const panelHeight = 210;
+  const height = 70 + panels.length * panelHeight;
+  const left = 76;
+  const right = 28;
+  const plotWidth = width - left - right;
+  const parts = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
+    `<rect width="100%" height="100%" fill="#ffffff"/>`,
+    `<text x="${left}" y="34" font-family="sans-serif" font-size="20" font-weight="700">${escapeXml(label)} — repair by ${escapeXml(dimension)}</text>`,
+  ];
+  for (let panelIndex = 0; panelIndex < panels.length; panelIndex++) {
+    const panel = panels[panelIndex]!;
+    const top = 62 + panelIndex * panelHeight;
+    const chartTop = top + 28;
+    const chartHeight = 120;
+    const finite = panel.values.filter((value: any): value is number =>
+      typeof value === "number" && Number.isFinite(value)
+    );
+    const max = Math.max(1e-9, ...finite) * 1.08;
+    parts.push(`<text x="${left}" y="${top + 17}" font-family="sans-serif" font-size="15" font-weight="600">${escapeXml(panel.title)}</text>`);
+    for (let tick = 0; tick <= 4; tick++) {
+      const fraction = tick / 4;
+      const y = chartTop + chartHeight * (1 - fraction);
+      const value = max * fraction;
+      parts.push(`<line x1="${left}" y1="${y}" x2="${width - right}" y2="${y}" stroke="#d9dee7" stroke-width="1"/>`);
+      parts.push(`<text x="${left - 8}" y="${y + 4}" text-anchor="end" font-family="sans-serif" font-size="11" fill="#596273">${value.toFixed(panel.digits)}</text>`);
+    }
+    const points = panel.values.flatMap((value: any, index: number) => {
+      if (typeof value !== "number" || !Number.isFinite(value)) return [];
+      const x = left + (labels.length <= 1 ? plotWidth / 2 : plotWidth * index / (labels.length - 1));
+      const y = chartTop + chartHeight * (1 - value / max);
+      return [{ x, y, value }];
+    });
+    if (points.length > 1) {
+      parts.push(`<polyline fill="none" stroke="#2563eb" stroke-width="2.5" points="${points.map(({ x, y }) => `${x},${y}`).join(" ")}"/>`);
+    }
+    for (const point of points) {
+      parts.push(`<circle cx="${point.x}" cy="${point.y}" r="4" fill="#2563eb"/>`);
+      parts.push(`<text x="${point.x}" y="${point.y - 8}" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1f2937">${point.value.toFixed(panel.digits)}</text>`);
+    }
+    for (let index = 0; index < labels.length; index++) {
+      const x = left + (labels.length <= 1 ? plotWidth / 2 : plotWidth * index / (labels.length - 1));
+      parts.push(`<text x="${x}" y="${chartTop + chartHeight + 19}" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#374151">${escapeXml(labels[index]!)}</text>`);
+    }
+  }
+  parts.push("</svg>");
+  return `${parts.join("\n")}\n`;
+}
+
+function escapeXml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&apos;",
+  })[character]!);
+}
+
+function slug(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 function markdown(artifact: any): string {
   const lines = [
     "# Independent repair behavior audit",
@@ -1010,7 +1110,7 @@ function markdown(artifact: any): string {
 
   for (const arm of artifact.arms) {
     const summary = arm.summary as RepairBehaviorSummary;
-    lines.push(`## ${arm.label}`, "", `Evidence: \`${arm.path}\` (SHA-256 \`${arm.sha256}\`), ${summary.cells} source×budget×seed cells.`, "");
+    lines.push(`## ${arm.label}`, "", `Evidence: \`${arm.path}\` (SHA-256 \`${arm.sha256}\`), ${summary.cells} source×budget×seed cells.`, "", `Plots: [budget](${arm.plots.budget}), [iteration](${arm.plots.iteration}), [parent depth](${arm.plots["parent-depth"]}).`, "");
     lines.push("| Budget | Repair runs | Episodes/run | Terminal rate | Accepted/terminal | Mean anchor | Mean suffix gaps | Actual/upper | Identical terminals | Weak-gap SSE Δ | Internal Δ/M frames |", "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
     for (const row of summary.perBudget) {
       lines.push(`| ${Math.round(row.budget / 1000)}k | ${row.runsWithRepair}/${row.runs} | ${row.repairEpisodesPerRun.toFixed(2)} | ${percentage(row.terminalReachedRate)} | ${percentage(row.acceptedPerTerminalRate)} | ${number(row.meanAnchorGap, 1)} | ${number(row.meanDivergentSuffixGaps, 1)} | ${percentage(row.meanEstimatedUpperUtilization)} | ${row.terminalGeometryIdentical} | ${number(row.weakGapSseImprovement, 3)} | ${number(row.internalFullScoreDeltaPerMillionRepairFrames, 2)} |`);
@@ -1089,19 +1189,33 @@ async function main(): Promise<void> {
   if (cellFingerprints.size !== 1) {
     throw new Error("selected arms do not contain the same source×budget×seed cells");
   }
+  const prefix = resolve(out);
+  const summariesWithPlots = summaries.map((arm) => {
+    const plotFiles: Record<RepairPlotDimension, string> = {
+      budget: `${prefix}.${slug(arm.label)}.budget.svg`,
+      iteration: `${prefix}.${slug(arm.label)}.iteration.svg`,
+      "parent-depth": `${prefix}.${slug(arm.label)}.parent-depth.svg`,
+    };
+    for (const dimension of Object.keys(plotFiles) as RepairPlotDimension[]) {
+      const bytes = Buffer.from(renderRepairBehaviorPlot(arm.summary, dimension, arm.label));
+      const path = plotFiles[dimension];
+      writeFileAtomicDurable(path, bytes);
+      writeFileAtomicDurable(`${path}.sha256`, `${sha256(bytes)}  ${path}\n`);
+    }
+    return { ...arm, plots: plotFiles };
+  });
   const artifact = {
     schema: REPAIR_BEHAVIOR_SCHEMA,
     generatedAt: new Date().toISOString(),
-    arms: summaries,
+    arms: summariesWithPlots,
   };
-  const prefix = resolve(out);
   const jsonBytes = Buffer.from(`${JSON.stringify(artifact, null, 2)}\n`);
   const markdownBytes = Buffer.from(markdown(artifact));
   writeFileAtomicDurable(`${prefix}.json`, jsonBytes);
   writeFileAtomicDurable(`${prefix}.json.sha256`, `${sha256(jsonBytes)}  ${prefix}.json\n`);
   writeFileAtomicDurable(`${prefix}.md`, markdownBytes);
   writeFileAtomicDurable(`${prefix}.md.sha256`, `${sha256(markdownBytes)}  ${prefix}.md\n`);
-  for (const arm of summaries) {
+  for (const arm of summariesWithPlots) {
     const audit = arm.summary.invariantAudit;
     const violations = (Object.values(audit.checks) as AuditCheck[])
       .reduce((n, check) => n + check.violations, 0);

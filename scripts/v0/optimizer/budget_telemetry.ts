@@ -185,7 +185,10 @@ export type BudgetRepairDecision = {
   remaining_budget_frames: number;
   headroom_fraction: number;
   usable_budget_frames: number;
-  selection_policy: "worst_gap_deepest_affordable" | "suffix_opportunity_per_cost";
+  selection_policy:
+    | "worst_gap_deepest_affordable"
+    | "suffix_opportunity_per_cost"
+    | "max_suffix_opportunity";
   parent_depth: number;
   affordable_target_gap_indices: number[];
   affordable_anchor_gap_indices: number[];
@@ -286,12 +289,16 @@ export function replayBudgetRepairSelection(
       }
       return { ...suffixChoice(anchor.anchor_gap_index), target, anchor };
     })()
-    : affordableAnchorGapIndices.map(suffixChoice).sort((a, b) =>
-      b.mutableSuffixSse / b.anchor.estimated_anchor_cost_frames! -
-        a.mutableSuffixSse / a.anchor.estimated_anchor_cost_frames! ||
-      b.mutableSuffixSse - a.mutableSuffixSse ||
-      b.anchorGapIndex - a.anchorGapIndex
-    )[0];
+    : decision.selection_policy === "suffix_opportunity_per_cost"
+      ? affordableAnchorGapIndices.map(suffixChoice).sort((a, b) =>
+        b.mutableSuffixSse / b.anchor.estimated_anchor_cost_frames! -
+          a.mutableSuffixSse / a.anchor.estimated_anchor_cost_frames! ||
+        b.mutableSuffixSse - a.mutableSuffixSse ||
+        b.anchorGapIndex - a.anchorGapIndex
+      )[0]
+      : affordableAnchorGapIndices.map(suffixChoice).sort((a, b) =>
+        b.mutableSuffixSse - a.mutableSuffixSse || a.anchorGapIndex - b.anchorGapIndex
+      )[0];
   if (
     choice === undefined ||
     choice.anchor.estimated_anchor_cost_frames === null ||
@@ -1416,7 +1423,11 @@ function validateTelemetryPayload(
           Math.max(0, payload.compile.repair_budget_frames - episode.start_total_spent_frames) ||
         decision.usable_budget_frames !==
           Math.floor(decision.remaining_budget_frames * (1 - decision.headroom_fraction)) ||
-        !["worst_gap_deepest_affordable", "suffix_opportunity_per_cost"].includes(
+        ![
+          "worst_gap_deepest_affordable",
+          "suffix_opportunity_per_cost",
+          "max_suffix_opportunity",
+        ].includes(
           decision.selection_policy,
         ) ||
         !decision.affordable_target_gap_indices.includes(decision.target_gap_index) ||

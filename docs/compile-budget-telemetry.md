@@ -63,9 +63,11 @@ The production selection policy is `worst_gap_deepest_affordable`: rank target
 weakness among targets with an affordable anchor, then use that target's deepest
 affordable parent up to maximum depth `6`. Headroom is `0`. Diagnostic arms use
 `LR_REPAIR_MAX_PARENT_DEPTH`, `LR_REPAIR_HEADROOM_FRACTION`, and the categorical
-`LR_REPAIR_SELECTION_POLICY=suffix-opportunity-per-cost`. The latter chooses the
+`LR_REPAIR_SELECTION_POLICY=suffix-opportunity-per-cost` or
+`LR_REPAIR_SELECTION_POLICY=max-suffix-opportunity`. The former chooses the
 affordable anchor maximizing total incumbent SSE in its mutable suffix per
-estimated point-cost frame, then records the worst target in that suffix. Its
+estimated point-cost frame; the latter maximizes that suffix SSE directly.
+Both record the worst target in the selected suffix. Their
 `parent_depth` is descriptive target-to-anchor distance and can exceed the
 option-generation radius. One iteration chooses one anchor and executes it
 once—there is no ancestor fallback chain or remembered tried-anchor state.

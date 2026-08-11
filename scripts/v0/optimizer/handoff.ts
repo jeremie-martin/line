@@ -6416,7 +6416,8 @@ export function repairRestartCeilingFrames(
 export type RepairTargetCandidate = { gapIndex: number; sse: number };
 export type RepairSelectionPolicy =
   | "worst_gap_deepest_affordable"
-  | "suffix_opportunity_per_cost";
+  | "suffix_opportunity_per_cost"
+  | "max_suffix_opportunity";
 export type AffordableRepairTarget = {
   targetGapIndex: number;
   anchorGapIndex: number;
@@ -6606,11 +6607,13 @@ export function selectRepairRestart(
       pointCost: pointCostByAnchor[anchorGapIndex]!,
     };
   });
-  choices.sort((a, b) =>
-    b.mutableSuffixSse / b.pointCost - a.mutableSuffixSse / a.pointCost ||
-    b.mutableSuffixSse - a.mutableSuffixSse ||
-    b.anchorGapIndex - a.anchorGapIndex
-  );
+  choices.sort(selectionPolicy === "suffix_opportunity_per_cost"
+    ? (a, b) =>
+      b.mutableSuffixSse / b.pointCost - a.mutableSuffixSse / a.pointCost ||
+      b.mutableSuffixSse - a.mutableSuffixSse ||
+      b.anchorGapIndex - a.anchorGapIndex
+    : (a, b) =>
+      b.mutableSuffixSse - a.mutableSuffixSse || a.anchorGapIndex - b.anchorGapIndex);
   const selected = choices[0];
   if (selected === undefined) return null;
   return {
@@ -8093,7 +8096,9 @@ function repairConfig(): RepairConfig {
     headroomFraction: flt("LR_REPAIR_HEADROOM_FRACTION", 0, 0, 0.95),
     selectionPolicy: readEnv("LR_REPAIR_SELECTION_POLICY") === "suffix-opportunity-per-cost"
       ? "suffix_opportunity_per_cost"
-      : "worst_gap_deepest_affordable",
+      : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-suffix-opportunity"
+        ? "max_suffix_opportunity"
+        : "worst_gap_deepest_affordable",
   };
 }
 

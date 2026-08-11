@@ -854,6 +854,32 @@ describe("repair target selection", () => {
     });
   });
 
+  test("selects maximum affordable suffix opportunity without a cost ratio", () => {
+    expect(selectRepairRestart(
+      [
+        { gapIndex: 0, sse: 10 },
+        { gapIndex: 1, sse: 10 },
+        { gapIndex: 2, sse: 15 },
+      ],
+      [100, 30, 10],
+      [100, 30, 10],
+      100,
+      0,
+      0,
+      "max_suffix_opportunity",
+    )).toEqual({
+      selectionPolicy: "max_suffix_opportunity",
+      targetGapIndex: 2,
+      anchorGapIndex: 0,
+      parentDepth: 2,
+      targetGapSse: 15,
+      mutableSuffixSse: 35,
+      usableBudgetFrames: 100,
+      affordableTargetGapIndices: [0, 1, 2],
+      affordableAnchorGapIndices: [0, 1, 2],
+    });
+  });
+
   test("updates an accepted incumbent with its own suffix cost observations", () => {
     expect(spliceRepairCostToEnd(
       [-1, -1, 300, 180, 0],

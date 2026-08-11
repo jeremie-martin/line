@@ -7,7 +7,7 @@
  * limits instead of being reconstructed from the final track.
  */
 import { createHash } from "node:crypto";
-import { createReadStream, readFileSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createInterface } from "node:readline";
 import { writeFileAtomicDurable } from "../v0/benchmark_v2/durable_fs.ts";
@@ -1161,7 +1161,7 @@ async function main(): Promise<void> {
     ));
     summaries.push({
       label,
-      path,
+      path: archive.evidencePath,
       sha256: archive.sha256,
       archiveSchema: archive.schema ?? null,
       candidate: archive.candidate ?? null,
@@ -1214,8 +1214,13 @@ export async function readRepairArm(path: string): Promise<{
   runs: RunRow[];
   candidate?: unknown;
   sha256: string;
+  evidencePath: string;
 }> {
   if (!path.endsWith(".jsonl")) {
+    const checkpointPath = path.endsWith(".gz")
+      ? `${path.slice(0, -3)}.checkpoint.jsonl`
+      : `${path}.checkpoint.jsonl`;
+    if (existsSync(checkpointPath)) return readRepairArm(checkpointPath);
     const bytes = readFileSync(path);
     const archive = JSON.parse(bytes.toString()) as {
       schema?: string;
@@ -1223,7 +1228,7 @@ export async function readRepairArm(path: string): Promise<{
       candidate?: unknown;
     };
     if (!Array.isArray(archive.runs)) throw new Error(`${path} has no runs array`);
-    return { ...archive, runs: archive.runs, sha256: sha256(bytes) };
+    return { ...archive, runs: archive.runs, sha256: sha256(bytes), evidencePath: path };
   }
   const hash = createHash("sha256");
   const input = createReadStream(path, { encoding: "utf8" });
@@ -1254,7 +1259,7 @@ export async function readRepairArm(path: string): Promise<{
   }
   if (!headerSeen) throw new Error(`${path} is empty`);
   const runs = [...latestRuns.values()].filter((row) => row.status === "ok");
-  return { schema, runs, candidate: undefined, sha256: hash.digest("hex") };
+  return { schema, runs, candidate: undefined, sha256: hash.digest("hex"), evidencePath: path };
 }
 
 if (process.argv[1]?.endsWith("analyze_repair_behavior.ts")) await main();

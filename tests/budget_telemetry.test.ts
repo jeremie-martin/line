@@ -112,6 +112,15 @@ test("replays an anchor-first suffix-density decision beyond the option radius",
     parentDepth: 2,
     mutableSuffixSse: 35,
   });
+  expect(replayBudgetRepairSelection({
+    ...decision,
+    selection_policy: "max_suffix_opportunity",
+  })).toMatchObject({
+    targetGapIndex: 2,
+    anchorGapIndex: 0,
+    parentDepth: 2,
+    mutableSuffixSse: 35,
+  });
 });
 
 /**

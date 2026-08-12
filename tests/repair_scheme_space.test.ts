@@ -16,6 +16,8 @@ describe("repair scheme-space counterfactuals", () => {
       })),
     });
     const choices = deriveRepairSchemeChoices({
+      remaining_budget_frames: 130,
+      usable_budget_frames: 130,
       target_gap_index: 2,
       anchor_gap_index: 1,
       considered_targets: [
@@ -30,5 +32,13 @@ describe("repair scheme-space counterfactuals", () => {
     expect(choices.suffix_opportunity_per_cost).toMatchObject({ targetGap: 2, anchorGap: 1 });
     expect(choices.single_gap_opportunity_per_cost).toMatchObject({ targetGap: 2, anchorGap: 2 });
     expect(choices.max_local_window_opportunity).toMatchObject({ targetGap: 3, anchorGap: 0 });
+    expect(choices.reserve_selected_depth_zero).toMatchObject({
+      targetGap: 2,
+      anchorGap: 1,
+    });
+    expect(choices.reserve_cheapest_current_repair).toMatchObject({
+      targetGap: 2,
+      anchorGap: 0,
+    });
   });
 });

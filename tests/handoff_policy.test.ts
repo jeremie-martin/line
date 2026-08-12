@@ -954,6 +954,48 @@ describe("repair target selection", () => {
     });
   });
 
+  test("reserves the cheapest current repair before choosing an earlier parent", () => {
+    expect(selectRepairRestart(
+      [
+        { gapIndex: 2, sse: 5 },
+        { gapIndex: 4, sse: 20 },
+      ],
+      [90, 75, 55, 25, 8],
+      [95, 80, 60, 30, 10],
+      100,
+      0,
+      4,
+      "worst_gap_reserve_cheapest_repair",
+    )).toEqual({
+      selectionPolicy: "worst_gap_reserve_cheapest_repair",
+      targetGapIndex: 4,
+      anchorGapIndex: 1,
+      parentDepth: 3,
+      targetGapSse: 20,
+      mutableSuffixSse: 25,
+      usableBudgetFrames: 100,
+      affordableTargetGapIndices: [2, 4],
+      affordableAnchorGapIndices: [0, 1, 2, 3, 4],
+    });
+  });
+
+  test("uses the latest affordable anchor for the final unreservable repair", () => {
+    expect(selectRepairRestart(
+      [{ gapIndex: 4, sse: 20 }],
+      [90, 89, 88, 87, 86],
+      [95, 94, 93, 92, 91],
+      100,
+      0,
+      4,
+      "worst_gap_reserve_cheapest_repair",
+    )).toMatchObject({
+      selectionPolicy: "worst_gap_reserve_cheapest_repair",
+      targetGapIndex: 4,
+      anchorGapIndex: 4,
+      parentDepth: 0,
+    });
+  });
+
   test("selects suffix opportunity per expected cost from the shared affordable anchor set", () => {
     const densityCandidates = [0, 1, 2, 3, 4, 5].map((gapIndex) => ({
       gapIndex,

@@ -480,8 +480,11 @@ function auditRun(row: RunRow, audit: Audit): void {
         label,
       );
       if (
-        decision.selection_policy === "worst_gap_deepest_affordable" &&
-        nextDecision.selection_policy === "worst_gap_deepest_affordable" &&
+        [
+          "worst_gap_deepest_affordable",
+          "worst_gap_reserve_cheapest_repair",
+        ].includes(decision.selection_policy) &&
+        decision.selection_policy === nextDecision.selection_policy &&
         nextAffordable.has(decision.target_gap_index)
       ) {
         audit.check(

@@ -230,7 +230,30 @@ Why later: it is potentially powerful but easy to overfit. It should be trained
 only after multiple executed policies provide counterfactual coverage, with
 source/seed holdouts and explicit budget conditioning.
 
-### 7. Local splice/window repair
+### 7. Reserve one currently affordable repair
+
+Keep the production worst-gap target. Before choosing its anchor, reserve the
+smallest estimator upper bound among all repair options that are affordable in
+the current decision. Choose the deepest anchor of the selected target whose
+upper bound plus that reserve fits the usable budget. If no pair fits, declare
+the current iteration the last repair and use the target's latest affordable
+anchor.
+
+Why this form: the breadth bracket proved that cheaper suffixes do produce more
+terminals, but their marginal quality can fall enough to erase the gain. This
+law does not reduce candidate quality or globally force local repairs. It only
+prevents the current decision from choosing an earlier parent merely because
+that one repair fits, when a slightly later anchor can preserve another
+independently recomputed attempt.
+
+The V9 N=16 offline replay changes 949/3,843 anchors (24.7%), always later,
+while keeping the target fixed. Mean parent depth moves 3.24→2.97 and mean
+upper-cost share of remaining budget moves 76.4%→73.1%. A stricter reserve of
+the selected target's depth-zero repair changes 53.4% and collapses mean depth
+to 1.12, so it is not the first executed arm. Counterfactual replay determines
+the intervention size only; it cannot predict the unexecuted suffix outcome.
+
+### 8. Local splice/window repair
 
 Repair a bounded window and reconnect to an incumbent suffix.
 
@@ -240,7 +263,7 @@ contract. This is a different repair family, not a small controller variant.
 
 ## Telemetry contract
 
-Budget Telemetry V8 records `selection_policy`, exact affordable target and
+Budget Telemetry V9 records `selection_policy`, exact affordable target and
 anchor populations, the chosen target/anchor, mutable-suffix SSE, and the cost
 interval/source. The recorder replays the named law from `considered_targets`
 and rejects a payload that does not reproduce its choice. It also keeps

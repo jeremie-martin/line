@@ -48,6 +48,7 @@ export type BreadthPolicy =
 export type RepairPolicy =
   | "protected-one-step-bridge"
   | "optimistic-axis-bound-bridge";
+export type RepairSelectionPolicy = "reserve-cheapest-repair";
 
 export type MultiBudgetBaseline = {
   schema: typeof SCALE_BASELINE_SCHEMA;
@@ -107,6 +108,7 @@ export function assertScaleArguments(
         "extend-snapshot",
         "breadth-policy",
         "repair-policy",
+        "repair-selection-policy",
       ]
       : ["baseline", "candidate", "artifact"]);
   for (const arg of argv) {
@@ -117,6 +119,9 @@ export function assertScaleArguments(
     if (equals !== -1 && values.has(name) && arg.slice(equals + 1) !== "") {
       if (name === "breadth-policy") parseBreadthPolicy(arg.slice(equals + 1));
       if (name === "repair-policy") parseRepairPolicy(arg.slice(equals + 1));
+      if (name === "repair-selection-policy") {
+        parseRepairSelectionPolicy(arg.slice(equals + 1));
+      }
       continue;
     }
     throw new Error(`scale ${action} does not accept ${arg}`);
@@ -265,6 +270,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const telemetry = parseTelemetry(argument("budget-telemetry"));
   const breadthPolicy = scaleBreadthPolicyArgument(argv);
   const repairPolicy = scaleRepairPolicyArgument(argv);
+  const repairSelectionPolicy = scaleRepairSelectionPolicyArgument(argv);
   const extensionPath = argument("extend-from") === undefined
     ? null
     : resolve(argument("extend-from")!);
@@ -295,6 +301,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
       snapshot,
       breadthPolicy,
       repairPolicy,
+      repairSelectionPolicy,
     );
   const release = acquireRunLock(candidatePath);
   let workspace: ReturnType<typeof createSnapshotWorkspace> | null = null;
@@ -313,6 +320,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
         extension,
         breadthPolicy,
         repairPolicy,
+        repairSelectionPolicy,
       ),
       candidatePath,
     );
@@ -395,6 +403,13 @@ async function compareScaleArchives(
         `the production reference has no repair-policy override`,
     );
   }
+  if (candidate.archive.repairSelectionPolicy !== undefined) {
+    comparabilityNotes.push(
+      `declared study intervention: candidate repair selection policy ` +
+        `${candidate.archive.repairSelectionPolicy}; the production reference has no ` +
+        `repair-selection-policy override`,
+    );
+  }
   const paired = pairGridCells(candidate, referencePrefix);
   const result = pairedScaleComparison(paired.pairs, profile.profile, depth);
   const requestedDepthCharacterization = scaleDepthCharacterization(
@@ -450,6 +465,11 @@ async function compareScaleArchives(
         ? { kind: "candidate-breadth-policy", policy: candidate.archive.nCandPolicy }
         : candidate.archive.repairPolicy !== undefined
           ? { kind: "candidate-repair-policy", policy: candidate.archive.repairPolicy }
+          : candidate.archive.repairSelectionPolicy !== undefined
+            ? {
+              kind: "candidate-repair-selection-policy",
+              policy: candidate.archive.repairSelectionPolicy,
+            }
         : null,
     },
     comparabilityNotes,
@@ -466,7 +486,10 @@ async function compareScaleArchives(
           : ` --breadth-policy=${candidate.archive.nCandPolicy}`) +
         (candidate.archive.repairPolicy === undefined
           ? ""
-          : ` --repair-policy=${candidate.archive.repairPolicy}`),
+          : ` --repair-policy=${candidate.archive.repairPolicy}`) +
+        (candidate.archive.repairSelectionPolicy === undefined
+          ? ""
+          : ` --repair-selection-policy=${candidate.archive.repairSelectionPolicy}`),
   };
 }
 
@@ -481,6 +504,7 @@ function scaleRunnerArgs(
   extension: { checkpointPath: string; seeds: number[] } | null = null,
   breadthPolicy: BreadthPolicy | null = null,
   repairPolicy: RepairPolicy | null = null,
+  repairSelectionPolicy: RepairSelectionPolicy | null = null,
 ): string[] {
   const profilePath = resolve(workspace, "benchmark/v2/scale-profile.json");
   return [
@@ -492,6 +516,9 @@ function scaleRunnerArgs(
     `--checkpoint=${resolve(`${outputPath}.checkpoint.jsonl`)}`,
     ...(breadthPolicy === null ? [] : [`--ncand-policy=${breadthPolicy}`]),
     ...(repairPolicy === null ? [] : [`--repair-policy=${repairPolicy}`]),
+    ...(repairSelectionPolicy === null
+      ? []
+      : [`--repair-selection-policy=${repairSelectionPolicy}`]),
     ...(extension === null ? [] : [
       `--import-checkpoint=${extension.checkpointPath}`,
       `--import-budgets=${profile.profile.budgets.map((budget) => budget.frames).join(",")}`,
@@ -508,6 +535,7 @@ function validateScaleExtension(
   snapshot: CompilerSnapshot,
   breadthPolicy: BreadthPolicy | null,
   repairPolicy: RepairPolicy | null,
+  repairSelectionPolicy: RepairSelectionPolicy | null,
 ): { checkpointPath: string; seeds: number[] } {
   const arm = readGridArm("candidate-prefix", scaleAnalysisPath(path));
   assertArchiveProfile(arm.archive, profile);
@@ -524,6 +552,9 @@ function validateScaleExtension(
   }
   if ((arm.archive.repairPolicy ?? null) !== repairPolicy) {
     throw new Error(`--extend-from used a different candidate repair policy`);
+  }
+  if ((arm.archive.repairSelectionPolicy ?? null) !== repairSelectionPolicy) {
+    throw new Error(`--extend-from used a different candidate repair selection policy`);
   }
   const checkpointPath = resolve(`${path}.checkpoint.jsonl`);
   if (!existsSync(checkpointPath)) {
@@ -678,6 +709,18 @@ function parseRepairPolicy(raw: string | undefined): RepairPolicy | null {
 
 export function scaleRepairPolicyArgument(argv: string[]): RepairPolicy | null {
   return parseRepairPolicy(argumentIn(argv)("repair-policy"));
+}
+
+function parseRepairSelectionPolicy(raw: string | undefined): RepairSelectionPolicy | null {
+  if (raw === undefined) return null;
+  if (raw === "reserve-cheapest-repair") return raw;
+  throw new Error(`--repair-selection-policy must be reserve-cheapest-repair`);
+}
+
+export function scaleRepairSelectionPolicyArgument(
+  argv: string[],
+): RepairSelectionPolicy | null {
+  return parseRepairSelectionPolicy(argumentIn(argv)("repair-selection-policy"));
 }
 
 function argumentIn(argv: string[]) {

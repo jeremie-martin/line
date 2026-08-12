@@ -106,6 +106,15 @@ declared target×anchor option radius. It chooses the affordable pair maximizing
 summed working-track SSE from its anchor through its target, then uses that anchor
 for the ordinary suffix rebuild.
 
+`LR_REPAIR_SELECTION_POLICY=reserve-cheapest-repair` keeps the production
+worst-gap target and changes only its anchor depth. It reserves the smallest
+upper-bound repair cost in the current affordable option set, then chooses the
+deepest target anchor for which both the current suffix and that reserve fit.
+If two estimated repairs cannot fit, the current iteration is explicitly the
+last repair and uses the target's latest affordable anchor. The reserve is
+recomputed from scratch after every terminal; it is not carried state or a
+failed-anchor fallback.
+
 An execution interval accounts for wall-to-wall charged compiler work such as
 startup, initial search, frontier repair, resumed search, or
 finalization. Intervals form a contiguous partition of total charged work in a

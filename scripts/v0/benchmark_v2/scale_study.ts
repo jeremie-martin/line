@@ -69,6 +69,7 @@ type StudyTask = {
     | "repair-seven-eighth"
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
+  repairSelectionPolicy?: "reserve-cheapest-repair";
 };
 
 type StudyWorkerResult = {
@@ -122,6 +123,7 @@ async function main(): Promise<void> {
   const nCandExponent = optionalFraction(argument("ncand-exponent"), "ncand-exponent");
   const nCandPolicy = parseNCandPolicy(argument("ncand-policy"));
   const repairPolicy = parseRepairPolicy(argument("repair-policy"));
+  const repairSelectionPolicy = parseRepairSelectionPolicy(argument("repair-selection-policy"));
   if (nCandExponent !== undefined && nCandPolicy !== undefined) {
     throw new Error("--ncand-exponent and --ncand-policy are mutually exclusive");
   }
@@ -162,6 +164,7 @@ async function main(): Promise<void> {
     nCandExponent,
     nCandPolicy,
     repairPolicy,
+    repairSelectionPolicy,
     sourceManifestPath,
   }))));
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -185,6 +188,7 @@ async function main(): Promise<void> {
     nCandExponent,
     nCandPolicy,
     repairPolicy,
+    repairSelectionPolicy,
     scaleProfileFingerprint: scaleProfile?.fingerprint,
     sources: sources.map((source) => ({ id: source.id, fingerprint: source.sourceFingerprint })),
   };
@@ -303,6 +307,7 @@ async function main(): Promise<void> {
     nCandExponent,
     nCandPolicy,
     repairPolicy,
+    repairSelectionPolicy,
     scaleProfile: scaleProfileReport(scaleProfile),
     scaleHeadline: scalePanel?.scaleHeadline ?? null,
     summaries,
@@ -466,6 +471,7 @@ function studyPlanFingerprint(input: {
     | "repair-seven-eighth"
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
+  repairSelectionPolicy?: "reserve-cheapest-repair";
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
@@ -493,6 +499,7 @@ function taskKey(task: StudyTask): string {
     task.nCandExponent ?? "production",
     task.nCandPolicy ?? "production",
     task.repairPolicy ?? "production",
+    task.repairSelectionPolicy ?? "production",
   ].join("\0");
 }
 
@@ -568,6 +575,8 @@ async function workerMain(task: StudyTask): Promise<void> {
         "optimistic-axis-bound-bridge"
       ? "optimistic-axis-bound"
       : "1";
+    if (task.repairSelectionPolicy === undefined) delete process.env.LR_REPAIR_SELECTION_POLICY;
+    else process.env.LR_REPAIR_SELECTION_POLICY = task.repairSelectionPolicy;
     const sources = resolveSources(loadSourceManifest(task.sourceManifestPath));
     const source = sources.find((entry) => entry.id === task.sourceId);
     if (source === undefined) throw new Error(`${task.sourceId}: source unavailable`);
@@ -717,6 +726,14 @@ function parseRepairPolicy(
   throw new Error(
     "--repair-policy must be protected-one-step-bridge or optimistic-axis-bound-bridge",
   );
+}
+
+function parseRepairSelectionPolicy(
+  value: string | undefined,
+): "reserve-cheapest-repair" | undefined {
+  if (value === undefined) return undefined;
+  if (value === "reserve-cheapest-repair") return value;
+  throw new Error("--repair-selection-policy must be reserve-cheapest-repair");
 }
 
 function relative(path: string): string {

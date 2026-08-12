@@ -42,9 +42,11 @@ const SCHEMES = [
   "suffix_opportunity_per_cost",
   "single_gap_opportunity_per_cost",
   "max_local_window_opportunity",
+  "reserve_selected_depth_zero",
+  "reserve_cheapest_current_repair",
 ] as const;
 
-/** Counterfactual repair decisions derivable from one V4/V5 decision payload.
+/** Counterfactual repair decisions derivable from one repair-decision payload.
  * This does not predict the terminal an unexecuted choice would produce. */
 export function deriveRepairSchemeChoices(decision: any): Record<string, RepairSchemeChoice> {
   const targets: Target[] = decision.considered_targets.map((target: any) => ({
@@ -108,6 +110,35 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
   if (currentAnchor === undefined || currentTarget === undefined) {
     throw new Error(`recorded repair choice is absent from its decision payload`);
   }
+  const currentTargetPairs = affordablePairs.filter((pair) =>
+    pair.target.gap === currentTarget.gap
+  );
+  const latestCurrentPair = [...currentTargetPairs].sort((a, b) =>
+    a.target.gap - a.anchor.gap - (b.target.gap - b.anchor.gap) ||
+    a.anchor.upperCost - b.anchor.upperCost
+  )[0];
+  if (latestCurrentPair === undefined) {
+    throw new Error(`recorded repair target has no affordable anchor`);
+  }
+  const usableBudget = Number.isFinite(decision.usable_budget_frames)
+    ? decision.usable_budget_frames
+    : decision.remaining_budget_frames * (1 - (decision.headroom_fraction ?? 0));
+  const chooseWithReserve = (reserveCost: number) =>
+    [...currentTargetPairs].filter((pair) =>
+      pair.anchor.upperCost + reserveCost <= usableBudget
+    ).sort((a, b) =>
+      b.target.gap - b.anchor.gap - (a.target.gap - a.anchor.gap) ||
+      a.anchor.upperCost - b.anchor.upperCost
+    )[0] ?? latestCurrentPair;
+  const selectedDepthZero = currentTargetPairs.find((pair) =>
+    pair.anchor.gap === currentTarget.gap
+  ) ?? latestCurrentPair;
+  const cheapestCurrentRepair = [...affordablePairs].sort((a, b) =>
+    a.anchor.upperCost - b.anchor.upperCost ||
+    b.anchor.gap - a.anchor.gap
+  )[0]!;
+  const reserveSelectedDepthZero = chooseWithReserve(selectedDepthZero.anchor.upperCost);
+  const reserveCheapestCurrentRepair = chooseWithReserve(cheapestCurrentRepair.anchor.upperCost);
   return {
     current: choice(currentTarget, currentAnchor),
     max_suffix_opportunity: choice(opportunity.worstTarget, opportunity),
@@ -119,6 +150,14 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
     max_local_window_opportunity: choice(
       localWindow.target,
       enriched.find((anchor) => anchor.gap === localWindow.anchor.gap)!,
+    ),
+    reserve_selected_depth_zero: choice(
+      reserveSelectedDepthZero.target,
+      enriched.find((anchor) => anchor.gap === reserveSelectedDepthZero.anchor.gap)!,
+    ),
+    reserve_cheapest_current_repair: choice(
+      reserveCheapestCurrentRepair.target,
+      enriched.find((anchor) => anchor.gap === reserveCheapestCurrentRepair.anchor.gap)!,
     ),
   };
 }
@@ -145,8 +184,8 @@ async function analyze(checkpoint: string): Promise<any> {
     const record = JSON.parse(line);
     if (
       record.type !== "result" ||
-      !["line.compile-budget-telemetry.v4", "line.compile-budget-telemetry.v5"].includes(
-        record.result?.budgetTelemetry?.schema,
+      !/^line\.compile-budget-telemetry\.v(?:4|5|6|7|8|9)$/.test(
+        record.result?.budgetTelemetry?.schema ?? "",
       )
     ) continue;
     const sourceId = record.result.task.sourceId;
@@ -171,7 +210,7 @@ async function analyze(checkpoint: string): Promise<any> {
       });
     }
   }
-  if (rows.length === 0) throw new Error(`${checkpoint}: no V4/V5 repair episodes`);
+  if (rows.length === 0) throw new Error(`${checkpoint}: no V4-V9 repair episodes`);
   const schemeSummaries = Object.fromEntries([
     ["current", summarizeChoices(rows, (row) => row.current)],
     ...SCHEMES.map((scheme) => [scheme, summarizeChoices(rows, (row) => row.schemes[scheme])]),
@@ -190,6 +229,8 @@ async function analyze(checkpoint: string): Promise<any> {
       suffix_opportunity_per_cost: "Affordable anchor maximizing total mutable-suffix SSE per estimated point-cost frame; target is that suffix's worst gap.",
       single_gap_opportunity_per_cost: "Affordable target-anchor pair maximizing the selected gap's SSE per estimated point-cost frame.",
       max_local_window_opportunity: "Affordable target-anchor pair maximizing summed incumbent SSE from anchor through target within the declared option radius.",
+      reserve_selected_depth_zero: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the current estimate for a depth-zero repair of that target; if two repairs do not fit, make one final depth-zero repair.",
+      reserve_cheapest_current_repair: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the cheapest currently affordable repair estimate; if two repairs do not fit, make one final depth-zero repair.",
     },
     limits: [
       "Counterfactual choices are exact replays of recorded decision inputs, not simulated outcomes.",

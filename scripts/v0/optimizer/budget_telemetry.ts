@@ -200,6 +200,7 @@ export type BudgetRepairDecision = {
   usable_budget_frames: number;
   selection_policy:
     | "worst_gap_deepest_affordable"
+    | "worst_gap_reserve_cheapest_repair"
     | "suffix_opportunity_per_cost"
     | "max_suffix_opportunity"
     | "max_local_window_opportunity";
@@ -314,19 +315,37 @@ export function replayBudgetRepairSelection(
     if (choices === undefined) throw new Error(`repair selection has no replayable local window`);
     return choices;
   };
+  const worstGapChoice = (reserveCheapestRepair: boolean) => {
+    const target = [...affordableTargets].sort((a, b) =>
+      b.target_gap_sse - a.target_gap_sse || a.target_gap_index - b.target_gap_index
+    )[0];
+    const targetAnchors = target?.anchor_options.filter((option) =>
+      option.affordability === "affordable"
+    ) ?? [];
+    const deepest = [...targetAnchors].sort((a, b) => b.parent_depth - a.parent_depth)[0];
+    if (target === undefined || deepest === undefined) {
+      throw new Error(`repair selection has no replayable worst-gap choice`);
+    }
+    if (!reserveCheapestRepair) {
+      return { ...suffixChoice(deepest.anchor_gap_index), target, anchor: deepest };
+    }
+    const reserveUpper = Math.min(...[...affordableAnchors.values()].map((anchor) =>
+      anchor.estimated_anchor_cost_upper_frames!
+    ));
+    const reserved = targetAnchors.filter((anchor) =>
+      anchor.estimated_anchor_cost_upper_frames! + reserveUpper <=
+        decision.usable_budget_frames
+    ).sort((a, b) => b.parent_depth - a.parent_depth)[0];
+    const finalRepair = [...targetAnchors].sort((a, b) =>
+      a.parent_depth - b.parent_depth
+    )[0]!;
+    const anchor = reserved ?? finalRepair;
+    return { ...suffixChoice(anchor.anchor_gap_index), target, anchor };
+  };
   const choice = decision.selection_policy === "worst_gap_deepest_affordable"
-    ? (() => {
-      const target = [...affordableTargets].sort((a, b) =>
-        b.target_gap_sse - a.target_gap_sse || a.target_gap_index - b.target_gap_index
-      )[0];
-      const anchor = target?.anchor_options.filter((option) =>
-        option.affordability === "affordable"
-      ).sort((a, b) => b.parent_depth - a.parent_depth)[0];
-      if (target === undefined || anchor === undefined) {
-        throw new Error(`repair selection has no replayable worst-gap choice`);
-      }
-      return { ...suffixChoice(anchor.anchor_gap_index), target, anchor };
-    })()
+    ? worstGapChoice(false)
+    : decision.selection_policy === "worst_gap_reserve_cheapest_repair"
+      ? worstGapChoice(true)
     : decision.selection_policy === "suffix_opportunity_per_cost"
       ? affordableAnchorGapIndices.map(suffixChoice).sort((a, b) =>
         b.mutableSuffixSse / b.anchor.estimated_anchor_cost_frames! -
@@ -1542,6 +1561,7 @@ function validateTelemetryPayload(
           Math.floor(decision.remaining_budget_frames * (1 - decision.headroom_fraction)) ||
         ![
           "worst_gap_deepest_affordable",
+          "worst_gap_reserve_cheapest_repair",
           "suffix_opportunity_per_cost",
           "max_suffix_opportunity",
           "max_local_window_opportunity",

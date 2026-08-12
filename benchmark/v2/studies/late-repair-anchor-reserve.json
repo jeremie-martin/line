@@ -1,0 +1,118 @@
+{
+  "schema": "line.benchmark-v2.late-repair-anchor-reserve.v1",
+  "recorded_at": "2026-08-13T01:02:00+02:00",
+  "status": "inconclusive_not_promoted",
+  "reference": {
+    "policy": "worst_gap_deepest_affordable",
+    "proposal_scorer": "distilled-aim-impact-feasibility",
+    "scale_headline": 579.8494
+  },
+  "candidate": {
+    "policy": "late-reserve-cheapest-else-deepest",
+    "proposal_scorer": "distilled-aim-impact-feasibility",
+    "semantics": "Use production selection for repair iterations zero and one. From iteration two onward, reserve the cheapest currently affordable further repair and choose the deepest parent whose upper cost plus that reserve fits; use production deepest-affordable when a second repair does not fit. Recompute from the current incumbent after every terminal."
+  },
+  "predeclared_basis": {
+    "current_scorer_all_repair_iteration_zero_one_internal_gain_delta": -67.107067,
+    "current_scorer_all_repair_iteration_two_plus_internal_gain_delta": 8.337113,
+    "evidence_limit": "The all-repair late rows inherited changed incumbents and supplied a phase hypothesis, not a causal estimate."
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "looks": {
+      "4": { "delta": 0.0495, "directional_probability": 0.94503095 },
+      "8": { "delta": -0.0087, "directional_probability": 0.39253885 },
+      "16": { "delta": 0.0099, "directional_probability": 0.70077978 }
+    },
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.8593,
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": 0.0314,
+    "per_budget_delta": {
+      "150000": -0.0088,
+      "250000": -0.0023,
+      "500000": 0.1018,
+      "750000": 0.0314,
+      "1000000": -0.0334,
+      "1500000": 0.0246,
+      "2500000": 0.0245,
+      "4000000": -0.0584
+    }
+  },
+  "isolation_audit": {
+    "invariant_violations": 0,
+    "first_terminal_frames_relative_delta": 0,
+    "iteration_zero_one_exact": true,
+    "reference_selection_policy_counts": {
+      "worst_gap_deepest_affordable": 3839
+    },
+    "candidate_selection_policy_counts": {
+      "worst_gap_deepest_affordable": 1925,
+      "worst_gap_reserve_cheapest_else_deepest": 2285
+    }
+  },
+  "late_phase_mechanics": {
+    "reference": {
+      "episodes": 1914,
+      "terminal_reached": 1898,
+      "accepted_alternatives": 775,
+      "spent_frames": 157909528,
+      "internal_full_score_delta": 412.484411
+    },
+    "candidate": {
+      "episodes": 2285,
+      "terminal_reached": 2273,
+      "accepted_alternatives": 921,
+      "spent_frames": 157826149,
+      "internal_full_score_delta": 417.443252
+    }
+  },
+  "overall_mechanics_relative_delta": {
+    "repair_episodes": 0.09664,
+    "repair_accepted_alternatives": 0.083572,
+    "repair_total_spent_frames": -0.000133,
+    "repair_mean_spent_frames": -0.080803,
+    "repair_mean_parent_depth": -0.118973,
+    "repair_mean_divergent_suffix_gaps": -0.081403,
+    "distinct_terminal_tracks": 0.062205,
+    "repair_internal_full_score_delta": 0.001001,
+    "repair_internal_full_score_delta_per_million_frames": -0.001876,
+    "repair_terminal_improvements_per_million_frames": 0.041247
+  },
+  "interpretation": "Protecting the first two high-return repairs removes the score loss of the all-repair reserve arm and makes later-anchor allocation approximately score-neutral. The controller successfully converts the same late repair budget into more terminal and accepted alternatives, but their marginal authored value is too small and inconsistent across budgets to promote. Do not tune this boundary or reserve and do not combine it with late breadth without a new causal hypothesis.",
+  "execution_note": "The N16 48-worker trace run reached 972/1024 durable results but accumulated excessive retained telemetry memory. It was interrupted cleanly and resumed from the checkpoint at 16 workers; no completed cell was discarded or recomputed.",
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/late-repair-anchor-reserve-4.comparison.json",
+      "sha256": "b6597e94fc674c7ab6ec890788f588d293acfa24305228d94073fd199d5b465c"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/late-repair-anchor-reserve-8.comparison.json",
+      "sha256": "d808655dcc9cec6bfc28b220020bc118c5fff21e313488716767db656a4ea700"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/late-repair-anchor-reserve-16.comparison.json",
+      "sha256": "a059e517a46c1890fae5ade2bd2f15fe256cd61acd72c0bfd4fc6e392310727d"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/late-repair-anchor-reserve-16.json.gz",
+      "sha256": "3391d382a31227d1234e4b733204e95bb93e9a4c1833c8b3a2c0e6cdc11d9d3f"
+    },
+    "n16_analysis": {
+      "path": "generated/benchmark-v2/scale/late-repair-anchor-reserve-16.analysis.json.gz",
+      "sha256": "190f16beb2c24ee39f2207d7751753ea1e63263701543133100c6767f60e0ff4"
+    },
+    "n16_behavior": {
+      "path": "generated/benchmark-v2/scale/late-repair-anchor-reserve-16.behavior.json",
+      "sha256": "14b442c00c4548fe2f3ea7a86c8427b9bea9ff844060dfdec6d987cebe0a31d4"
+    },
+    "n16_behavior_markdown": {
+      "path": "generated/benchmark-v2/scale/late-repair-anchor-reserve-16.behavior.md",
+      "sha256": "f5de11678d04e76075d034de776b68c65dda16d99aa87ee39cb33192657670f7"
+    }
+  }
+}

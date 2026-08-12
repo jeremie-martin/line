@@ -376,3 +376,29 @@ boundary follows the observed return break after iteration one and will not be
 tuned. The frozen 4/8/16 scale ladder decides whether to extend. Promotion
 requires unchanged validity, exact iteration-zero/one mechanics, a positive
 scale decision, and canonical confirmation.
+
+### Late-repair anchor reserve result — useful, not promoted at N=16
+
+The phase-isolated arm finished +0.0495 at N=4, -0.0087 at N=8, and
++0.0099 at N=16. Its final directional probability was 70.08%, the 750k
+delta was +0.0314, and validity remained exactly 997/1,024. Budget deltas
+were mixed: four positive and four negative, from -0.0584 at 4M to +0.1018
+at 500k. The frozen decision is inconclusive, so the arm is not promoted.
+
+The mechanism is implemented and isolated correctly. Iterations zero and one
+are exact in episode count, terminal count, spent frames, accepted alternatives,
+internal score gain, target, and anchor. At iteration two and later, the reserve
+law increased attempts from 1,914 to 2,285 and accepted alternatives from 775
+to 921 while holding late repair work effectively constant. Across the whole
+panel, mean repair cost fell 8.08%, parent depth fell 11.90%, distinct terminal
+tracks rose 6.22%, and accepted alternatives rose 8.36%. All decision and
+attribution invariants replayed with zero violations.
+
+Those extra alternatives added only 4.96 aggregate internal score points in
+the late phase, a 1.20% increase, and whole-run authored score remained too
+small to distinguish from noise. This closes the phase boundary and reserve
+amount without tuning or combination with the late-breadth arm. The evidence
+supports a general lesson: more short late repairs are real and cheap, but the
+remaining bottleneck is the marginal authored value of the alternatives they
+produce. Exact evidence and hashes are recorded in
+`benchmark/v2/studies/late-repair-anchor-reserve.json`.

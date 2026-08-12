@@ -96,5 +96,8 @@ describe("Benchmark V2 scale command contract", () => {
     expect(scaleRepairSelectionPolicyArgument([
       "--repair-selection-policy=reserve-cheapest-repair",
     ])).toBe("reserve-cheapest-repair");
+    expect(scaleRepairSelectionPolicyArgument([
+      "--repair-selection-policy=reserve-cheapest-else-deepest",
+    ])).toBe("reserve-cheapest-else-deepest");
   });
 });

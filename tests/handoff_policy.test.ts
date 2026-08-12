@@ -996,6 +996,23 @@ describe("repair target selection", () => {
     });
   });
 
+  test("spends the final unreservable repair from the ordinary deepest anchor", () => {
+    expect(selectRepairRestart(
+      [{ gapIndex: 4, sse: 20 }],
+      [90, 89, 88, 87, 86],
+      [95, 94, 93, 92, 91],
+      100,
+      0,
+      4,
+      "worst_gap_reserve_cheapest_else_deepest",
+    )).toMatchObject({
+      selectionPolicy: "worst_gap_reserve_cheapest_else_deepest",
+      targetGapIndex: 4,
+      anchorGapIndex: 0,
+      parentDepth: 4,
+    });
+  });
+
   test("selects suffix opportunity per expected cost from the shared affordable anchor set", () => {
     const densityCandidates = [0, 1, 2, 3, 4, 5].map((gapIndex) => ({
       gapIndex,

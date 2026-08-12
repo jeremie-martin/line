@@ -6646,6 +6646,7 @@ export type RepairTargetCandidate = { gapIndex: number; sse: number };
 export type RepairSelectionPolicy =
   | "worst_gap_deepest_affordable"
   | "worst_gap_reserve_cheapest_repair"
+  | "worst_gap_reserve_cheapest_else_deepest"
   | "suffix_opportunity_per_cost"
   | "max_suffix_opportunity"
   | "max_local_window_opportunity";
@@ -6811,7 +6812,8 @@ export function selectRepairRestart(
   ))].sort((a, b) => a - b);
   if (
     selectionPolicy === "worst_gap_deepest_affordable" ||
-    selectionPolicy === "worst_gap_reserve_cheapest_repair"
+    selectionPolicy === "worst_gap_reserve_cheapest_repair" ||
+    selectionPolicy === "worst_gap_reserve_cheapest_else_deepest"
   ) {
     const selected = selectAffordableRepairTarget(
       candidates,
@@ -6823,7 +6825,7 @@ export function selectRepairRestart(
     if (selected === null) return null;
     let anchorGapIndex = selected.anchorGapIndex;
     let parentDepth = selected.parentDepth;
-    if (selectionPolicy === "worst_gap_reserve_cheapest_repair") {
+    if (selectionPolicy !== "worst_gap_deepest_affordable") {
       const reserveUpper = affordableAnchorGapIndices.reduce(
         (minimum, gapIndex) => Math.min(minimum, upperCostByAnchor[gapIndex]!),
         Number.POSITIVE_INFINITY,
@@ -6843,11 +6845,13 @@ export function selectRepairRestart(
       const reserved = targetOptions.filter(({ anchorGapIndex: gapIndex }) =>
         upperCostByAnchor[gapIndex]! + reserveUpper <= usableBudgetFrames
       ).sort((a, b) => b.parentDepth - a.parentDepth)[0];
-      // If the current budget cannot fund two estimated repairs, spend the
-      // final iteration at the latest affordable anchor instead of consuming
-      // it merely because an earlier parent also fits.
+      // The corrected study spends an unreservable final iteration from the
+      // ordinary deepest anchor. The first arm's explicit latest-anchor rule
+      // remains separately named so its completed evidence stays replayable.
       const finalRepair = [...targetOptions].sort((a, b) =>
-        a.parentDepth - b.parentDepth
+        selectionPolicy === "worst_gap_reserve_cheapest_else_deepest"
+          ? b.parentDepth - a.parentDepth
+          : a.parentDepth - b.parentDepth
       )[0];
       const chosen = reserved ?? finalRepair;
       if (chosen === undefined) return null;
@@ -8635,6 +8639,8 @@ function repairConfig(): RepairConfig {
     headroomFraction: flt("LR_REPAIR_HEADROOM_FRACTION", 0, 0, 0.95),
     selectionPolicy: readEnv("LR_REPAIR_SELECTION_POLICY") === "reserve-cheapest-repair"
       ? "worst_gap_reserve_cheapest_repair"
+      : readEnv("LR_REPAIR_SELECTION_POLICY") === "reserve-cheapest-else-deepest"
+        ? "worst_gap_reserve_cheapest_else_deepest"
       : readEnv("LR_REPAIR_SELECTION_POLICY") === "suffix-opportunity-per-cost"
       ? "suffix_opportunity_per_cost"
       : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-suffix-opportunity"

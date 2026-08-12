@@ -246,12 +246,21 @@ prevents the current decision from choosing an earlier parent merely because
 that one repair fits, when a slightly later anchor can preserve another
 independently recomputed attempt.
 
-The V9 N=16 offline replay changes 949/3,843 anchors (24.7%), always later,
-while keeping the target fixed. Mean parent depth moves 3.24→2.97 and mean
-upper-cost share of remaining budget moves 76.4%→73.1%. A stricter reserve of
-the selected target's depth-zero repair changes 53.4% and collapses mean depth
-to 1.12, so it is not the first executed arm. Counterfactual replay determines
-the intervention size only; it cannot predict the unexecuted suffix outcome.
+The initial V9 N=16 offline replay changed 949/3,843 anchors (24.7%), always
+later, while keeping the target fixed. Its executed N=16 result was scale
+-0.0470 (23.22% directional probability), 750k +0.2239, and unchanged
+989/1,024 validity. It produced 11.7% more terminal alternatives and 9.7% more
+accepted alternatives, but internal repair gain fell 0.83%. The behavior audit
+then exposed that its “last repair” rule forced the latest anchor when no second
+repair could fit, creating a dynamic cascade of cheap late attempts.
+
+The corrected arm preserves the same cheapest-current-repair reserve only when
+two repairs fit. Otherwise it spends the final repair from the ordinary deepest
+affordable anchor. Offline it changes 928/3,843 reference decisions (24.1%),
+with mean depth 3.24→2.98 and upper-cost share 76.4%→73.2%. The stricter reserve
+of the selected target's depth-zero repair changes 53.4% and collapses mean
+depth to 1.12, so it remains retired. Counterfactual replay determines only the
+intervention size; it cannot predict the unexecuted suffix outcome.
 
 ### 8. Local splice/window repair
 

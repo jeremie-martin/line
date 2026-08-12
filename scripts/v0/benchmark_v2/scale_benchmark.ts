@@ -48,7 +48,9 @@ export type BreadthPolicy =
 export type RepairPolicy =
   | "protected-one-step-bridge"
   | "optimistic-axis-bound-bridge";
-export type RepairSelectionPolicy = "reserve-cheapest-repair";
+export type RepairSelectionPolicy =
+  | "reserve-cheapest-repair"
+  | "reserve-cheapest-else-deepest";
 
 export type MultiBudgetBaseline = {
   schema: typeof SCALE_BASELINE_SCHEMA;
@@ -713,8 +715,13 @@ export function scaleRepairPolicyArgument(argv: string[]): RepairPolicy | null {
 
 function parseRepairSelectionPolicy(raw: string | undefined): RepairSelectionPolicy | null {
   if (raw === undefined) return null;
-  if (raw === "reserve-cheapest-repair") return raw;
-  throw new Error(`--repair-selection-policy must be reserve-cheapest-repair`);
+  if (raw === "reserve-cheapest-repair" || raw === "reserve-cheapest-else-deepest") {
+    return raw;
+  }
+  throw new Error(
+    `--repair-selection-policy must be reserve-cheapest-repair or ` +
+      `reserve-cheapest-else-deepest`,
+  );
 }
 
 export function scaleRepairSelectionPolicyArgument(

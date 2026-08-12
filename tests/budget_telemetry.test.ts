@@ -166,6 +166,15 @@ test("replays a worst-gap decision that reserves the cheapest current repair", (
     parentDepth: 3,
     mutableSuffixSse: 25,
   });
+  expect(replayBudgetRepairSelection({
+    ...decision,
+    selection_policy: "worst_gap_reserve_cheapest_else_deepest",
+  })).toMatchObject({
+    targetGapIndex: 4,
+    anchorGapIndex: 1,
+    parentDepth: 3,
+    mutableSuffixSse: 25,
+  });
 });
 
 /**

@@ -44,6 +44,7 @@ const SCHEMES = [
   "max_local_window_opportunity",
   "reserve_selected_depth_zero",
   "reserve_cheapest_current_repair",
+  "reserve_cheapest_else_deepest",
 ] as const;
 
 /** Counterfactual repair decisions derivable from one repair-decision payload.
@@ -139,6 +140,12 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
   )[0]!;
   const reserveSelectedDepthZero = chooseWithReserve(selectedDepthZero.anchor.upperCost);
   const reserveCheapestCurrentRepair = chooseWithReserve(cheapestCurrentRepair.anchor.upperCost);
+  const reserveCheapestElseDeepest = [...currentTargetPairs].filter((pair) =>
+    pair.anchor.upperCost + cheapestCurrentRepair.anchor.upperCost <= usableBudget
+  ).sort((a, b) =>
+    b.target.gap - b.anchor.gap - (a.target.gap - a.anchor.gap) ||
+    a.anchor.upperCost - b.anchor.upperCost
+  )[0] ?? { target: currentTarget, anchor: currentAnchor };
   return {
     current: choice(currentTarget, currentAnchor),
     max_suffix_opportunity: choice(opportunity.worstTarget, opportunity),
@@ -158,6 +165,10 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
     reserve_cheapest_current_repair: choice(
       reserveCheapestCurrentRepair.target,
       enriched.find((anchor) => anchor.gap === reserveCheapestCurrentRepair.anchor.gap)!,
+    ),
+    reserve_cheapest_else_deepest: choice(
+      reserveCheapestElseDeepest.target,
+      enriched.find((anchor) => anchor.gap === reserveCheapestElseDeepest.anchor.gap)!,
     ),
   };
 }
@@ -231,6 +242,7 @@ async function analyze(checkpoint: string): Promise<any> {
       max_local_window_opportunity: "Affordable target-anchor pair maximizing summed incumbent SSE from anchor through target within the declared option radius.",
       reserve_selected_depth_zero: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the current estimate for a depth-zero repair of that target; if two repairs do not fit, make one final depth-zero repair.",
       reserve_cheapest_current_repair: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the cheapest currently affordable repair estimate; if two repairs do not fit, make one final depth-zero repair.",
+      reserve_cheapest_else_deepest: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the cheapest currently affordable repair estimate; if two repairs do not fit, spend the final repair from the ordinary deepest affordable anchor.",
     },
     limits: [
       "Counterfactual choices are exact replays of recorded decision inputs, not simulated outcomes.",

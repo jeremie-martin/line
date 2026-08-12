@@ -201,6 +201,7 @@ export type BudgetRepairDecision = {
   selection_policy:
     | "worst_gap_deepest_affordable"
     | "worst_gap_reserve_cheapest_repair"
+    | "worst_gap_reserve_cheapest_else_deepest"
     | "suffix_opportunity_per_cost"
     | "max_suffix_opportunity"
     | "max_local_window_opportunity";
@@ -315,7 +316,9 @@ export function replayBudgetRepairSelection(
     if (choices === undefined) throw new Error(`repair selection has no replayable local window`);
     return choices;
   };
-  const worstGapChoice = (reserveCheapestRepair: boolean) => {
+  const worstGapChoice = (
+    reserveMode: "none" | "latest_final" | "deepest_final",
+  ) => {
     const target = [...affordableTargets].sort((a, b) =>
       b.target_gap_sse - a.target_gap_sse || a.target_gap_index - b.target_gap_index
     )[0];
@@ -326,7 +329,7 @@ export function replayBudgetRepairSelection(
     if (target === undefined || deepest === undefined) {
       throw new Error(`repair selection has no replayable worst-gap choice`);
     }
-    if (!reserveCheapestRepair) {
+    if (reserveMode === "none") {
       return { ...suffixChoice(deepest.anchor_gap_index), target, anchor: deepest };
     }
     const reserveUpper = Math.min(...[...affordableAnchors.values()].map((anchor) =>
@@ -337,15 +340,19 @@ export function replayBudgetRepairSelection(
         decision.usable_budget_frames
     ).sort((a, b) => b.parent_depth - a.parent_depth)[0];
     const finalRepair = [...targetAnchors].sort((a, b) =>
-      a.parent_depth - b.parent_depth
+      reserveMode === "deepest_final"
+        ? b.parent_depth - a.parent_depth
+        : a.parent_depth - b.parent_depth
     )[0]!;
     const anchor = reserved ?? finalRepair;
     return { ...suffixChoice(anchor.anchor_gap_index), target, anchor };
   };
   const choice = decision.selection_policy === "worst_gap_deepest_affordable"
-    ? worstGapChoice(false)
+    ? worstGapChoice("none")
     : decision.selection_policy === "worst_gap_reserve_cheapest_repair"
-      ? worstGapChoice(true)
+      ? worstGapChoice("latest_final")
+      : decision.selection_policy === "worst_gap_reserve_cheapest_else_deepest"
+        ? worstGapChoice("deepest_final")
     : decision.selection_policy === "suffix_opportunity_per_cost"
       ? affordableAnchorGapIndices.map(suffixChoice).sort((a, b) =>
         b.mutableSuffixSse / b.anchor.estimated_anchor_cost_frames! -
@@ -1562,6 +1569,7 @@ function validateTelemetryPayload(
         ![
           "worst_gap_deepest_affordable",
           "worst_gap_reserve_cheapest_repair",
+          "worst_gap_reserve_cheapest_else_deepest",
           "suffix_opportunity_per_cost",
           "max_suffix_opportunity",
           "max_local_window_opportunity",

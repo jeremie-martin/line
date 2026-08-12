@@ -115,6 +115,12 @@ last repair and uses the target's latest affordable anchor. The reserve is
 recomputed from scratch after every terminal; it is not carried state or a
 failed-anchor fallback.
 
+The corrected diagnostic
+`LR_REPAIR_SELECTION_POLICY=reserve-cheapest-else-deepest` uses the same reserve
+law while two repairs fit. When they do not, it spends the final iteration from
+the production deepest affordable anchor. The two categorical names remain
+distinct because their completed archives have different semantics.
+
 An execution interval accounts for wall-to-wall charged compiler work such as
 startup, initial search, frontier repair, resumed search, or
 finalization. Intervals form a contiguous partition of total charged work in a

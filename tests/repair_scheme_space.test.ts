@@ -40,5 +40,9 @@ describe("repair scheme-space counterfactuals", () => {
       targetGap: 2,
       anchorGap: 0,
     });
+    expect(choices.reserve_cheapest_else_deepest).toMatchObject({
+      targetGap: 2,
+      anchorGap: 0,
+    });
   });
 });

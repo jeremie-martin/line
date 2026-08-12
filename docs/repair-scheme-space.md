@@ -257,10 +257,15 @@ repair could fit, creating a dynamic cascade of cheap late attempts.
 The corrected arm preserves the same cheapest-current-repair reserve only when
 two repairs fit. Otherwise it spends the final repair from the ordinary deepest
 affordable anchor. Offline it changes 928/3,843 reference decisions (24.1%),
-with mean depth 3.24→2.98 and upper-cost share 76.4%→73.2%. The stricter reserve
-of the selected target's depth-zero repair changes 53.4% and collapses mean
-depth to 1.12, so it remains retired. Counterfactual replay determines only the
-intervention size; it cannot predict the unexecuted suffix outcome.
+with mean depth 3.24→2.98 and upper-cost share 76.4%→73.2%. Executed N=16 was
+-0.0342 scale (28.47% directional probability), +0.2275 at 750k, and unchanged
+validity. Terminals rose 11.36% and accepted alternatives 9.25%, but internal
+repair gain fell 0.63%. Iterations 0–2 lost 51.79 aggregate internal-score
+points relative to production; all later iterations recovered only 13.29.
+Thus the reserve displaced high-value early suffix scope to buy lower-value
+late attempts. The stricter depth-zero reserve remains retired, and no
+iteration cutoff is inferred from this same panel. The scalar reserve family is
+closed.
 
 ### 8. Local splice/window repair
 

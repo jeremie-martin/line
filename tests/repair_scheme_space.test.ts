@@ -48,6 +48,14 @@ describe("repair scheme-space counterfactuals", () => {
       targetGap: 2,
       anchorGap: 1,
     });
+    expect(choices.worst_target_window_per_cost).toMatchObject({
+      targetGap: 2,
+      anchorGap: 1,
+    });
+    expect(choices.worst_target_runway_per_cost).toMatchObject({
+      targetGap: 2,
+      anchorGap: 1,
+    });
   });
 
   test("extends beyond depth six only when suffix opportunity density does not fall", () => {

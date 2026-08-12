@@ -46,6 +46,8 @@ const SCHEMES = [
   "reserve_cheapest_current_repair",
   "reserve_cheapest_else_deepest",
   "density_guarded_depth_eight",
+  "worst_target_window_per_cost",
+  "worst_target_runway_per_cost",
 ] as const;
 
 /** Counterfactual repair decisions derivable from one repair-decision payload.
@@ -160,6 +162,32 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
       currentSuffixDensity >= depthSixSuffixDensity
     ? { target: currentTarget, anchor: currentAnchor }
     : { target: currentTarget, anchor: depthSixAnchor };
+  const currentTargetWindow = currentTargetPairs.map((pair) => {
+    const anchor = enriched.find((candidate) => candidate.gap === pair.anchor.gap)!;
+    const parentDepth = currentTarget.gap - anchor.gap;
+    const windowSse = targets.filter((target) =>
+      target.gap >= anchor.gap && target.gap <= currentTarget.gap
+    ).reduce((sum, target) => sum + target.sse, 0);
+    return {
+      target: currentTarget,
+      anchor,
+      parentDepth,
+      windowSse,
+      // Each regenerated parent transition is one additional opportunity to
+      // change the inherited arrival at the selected target. Count that
+      // runway explicitly beside direct error in the exposed local window.
+      runwayOpportunity: windowSse + parentDepth * currentTarget.sse,
+    };
+  });
+  const worstTargetWindowPerCost = [...currentTargetWindow].sort((a, b) =>
+    b.windowSse / b.anchor.pointCost - a.windowSse / a.anchor.pointCost ||
+    b.windowSse - a.windowSse || b.parentDepth - a.parentDepth
+  )[0]!;
+  const worstTargetRunwayPerCost = [...currentTargetWindow].sort((a, b) =>
+    b.runwayOpportunity / b.anchor.pointCost -
+      a.runwayOpportunity / a.anchor.pointCost ||
+    b.runwayOpportunity - a.runwayOpportunity || b.parentDepth - a.parentDepth
+  )[0]!;
   return {
     current: choice(currentTarget, currentAnchor),
     max_suffix_opportunity: choice(opportunity.worstTarget, opportunity),
@@ -187,6 +215,14 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
     density_guarded_depth_eight: choice(
       densityGuardedDepthEight.target,
       densityGuardedDepthEight.anchor,
+    ),
+    worst_target_window_per_cost: choice(
+      worstTargetWindowPerCost.target,
+      worstTargetWindowPerCost.anchor,
+    ),
+    worst_target_runway_per_cost: choice(
+      worstTargetRunwayPerCost.target,
+      worstTargetRunwayPerCost.anchor,
     ),
   };
 }
@@ -262,6 +298,8 @@ async function analyze(checkpoint: string): Promise<any> {
       reserve_cheapest_current_repair: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the cheapest currently affordable repair estimate; if two repairs do not fit, make one final depth-zero repair.",
       reserve_cheapest_else_deepest: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the cheapest currently affordable repair estimate; if two repairs do not fit, spend the final repair from the ordinary deepest affordable anchor.",
       density_guarded_depth_eight: "Keep the current worst affordable target. Permit its deepest affordable anchor through depth eight only when its mutable-suffix SSE per point-cost frame is at least the density of the deepest affordable anchor capped at depth six; otherwise use the depth-six-capped anchor.",
+      worst_target_window_per_cost: "Keep the current worst affordable target. Choose the affordable anchor maximizing incumbent SSE from anchor through target per estimated point-cost frame.",
+      worst_target_runway_per_cost: "Keep the current worst affordable target. Choose the affordable anchor maximizing (local-window SSE + target SSE × parent depth) per estimated point-cost frame; the second term explicitly prices upstream arrival-shaping runway.",
     },
     limits: [
       "Counterfactual choices are exact replays of recorded decision inputs, not simulated outcomes.",
@@ -425,6 +463,8 @@ function render(report: any): string {
     "- Max-suffix opportunity is the original earliest-affordable-anchor idea expressed as an objective; non-negative SSE makes the two definitions equivalent.",
     "- Suffix opportunity per cost asks how much incumbent global axis loss is mutable per estimated frame, instead of treating one gap as the whole opportunity.",
     "- Single-gap opportunity per cost is a cheap-local-repair policy. Existing executed-depth evidence should be considered beside it because this replay cannot predict alternate terminals.",
+    "- Worst-target window per cost preserves the production worst gap, but chooses its parent from direct SSE in the anchor-to-target window per estimated frame.",
+    "- Worst-target runway per cost also counts each regenerated parent transition as one opportunity to change the selected gap's inherited arrival. It is the deliberately narrow alternative to always taking the earliest affordable parent.",
     "- A target-aware DFS cannot be evaluated from these decision records; it requires an explicit compiler arm and direct behavior telemetry.",
   ];
   return `${lines.join("\n")}\n`;

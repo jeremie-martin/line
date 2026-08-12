@@ -6645,6 +6645,7 @@ export function repairRestartCeilingFrames(
 export type RepairTargetCandidate = { gapIndex: number; sse: number };
 export type RepairSelectionPolicy =
   | "worst_gap_deepest_affordable"
+  | "worst_gap_runway_opportunity_per_cost"
   | "worst_gap_reserve_cheapest_repair"
   | "worst_gap_reserve_cheapest_else_deepest"
   | "suffix_opportunity_per_cost"
@@ -6812,6 +6813,7 @@ export function selectRepairRestart(
   ))].sort((a, b) => a - b);
   if (
     selectionPolicy === "worst_gap_deepest_affordable" ||
+    selectionPolicy === "worst_gap_runway_opportunity_per_cost" ||
     selectionPolicy === "worst_gap_reserve_cheapest_repair" ||
     selectionPolicy === "worst_gap_reserve_cheapest_else_deepest"
   ) {
@@ -6825,7 +6827,35 @@ export function selectRepairRestart(
     if (selected === null) return null;
     let anchorGapIndex = selected.anchorGapIndex;
     let parentDepth = selected.parentDepth;
-    if (selectionPolicy !== "worst_gap_deepest_affordable") {
+    if (selectionPolicy === "worst_gap_runway_opportunity_per_cost") {
+      const targetOptions = Array.from(
+        { length: Math.min(maximum, selected.targetGapIndex) + 1 },
+        (_, depth) => ({
+          parentDepth: depth,
+          anchorGapIndex: selected.targetGapIndex - depth,
+        }),
+      ).filter(({ anchorGapIndex: gapIndex }) =>
+        affordableAnchorGapIndices.includes(gapIndex)
+      ).map((option) => {
+        const windowSse = candidates.filter((candidate) =>
+          candidate.gapIndex >= option.anchorGapIndex &&
+          candidate.gapIndex <= selected.targetGapIndex
+        ).reduce((sum, candidate) => sum + candidate.sse, 0);
+        return {
+          ...option,
+          runwayOpportunity: windowSse + option.parentDepth * selected.targetGapSse,
+          pointCost: pointCostByAnchor[option.anchorGapIndex]!,
+        };
+      }).sort((a, b) =>
+        b.runwayOpportunity / b.pointCost - a.runwayOpportunity / a.pointCost ||
+        b.runwayOpportunity - a.runwayOpportunity ||
+        b.parentDepth - a.parentDepth
+      );
+      const chosen = targetOptions[0];
+      if (chosen === undefined) return null;
+      anchorGapIndex = chosen.anchorGapIndex;
+      parentDepth = chosen.parentDepth;
+    } else if (selectionPolicy !== "worst_gap_deepest_affordable") {
       const reserveUpper = affordableAnchorGapIndices.reduce(
         (minimum, gapIndex) => Math.min(minimum, upperCostByAnchor[gapIndex]!),
         Number.POSITIVE_INFINITY,
@@ -8641,13 +8671,15 @@ function repairConfig(): RepairConfig {
       ? "worst_gap_reserve_cheapest_repair"
       : readEnv("LR_REPAIR_SELECTION_POLICY") === "reserve-cheapest-else-deepest"
         ? "worst_gap_reserve_cheapest_else_deepest"
-      : readEnv("LR_REPAIR_SELECTION_POLICY") === "suffix-opportunity-per-cost"
-      ? "suffix_opportunity_per_cost"
-      : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-suffix-opportunity"
-        ? "max_suffix_opportunity"
-        : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-local-window-opportunity"
-          ? "max_local_window_opportunity"
-          : "worst_gap_deepest_affordable",
+        : readEnv("LR_REPAIR_SELECTION_POLICY") === "worst-target-runway-per-cost"
+          ? "worst_gap_runway_opportunity_per_cost"
+          : readEnv("LR_REPAIR_SELECTION_POLICY") === "suffix-opportunity-per-cost"
+            ? "suffix_opportunity_per_cost"
+            : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-suffix-opportunity"
+              ? "max_suffix_opportunity"
+              : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-local-window-opportunity"
+                ? "max_local_window_opportunity"
+                : "worst_gap_deepest_affordable",
     suffixSearchPolicy: repairSuffixSearchPolicy(),
     // Study-only protected bridge. It may spend one follow-up from a rejected
     // terminal that improved its selected target; it never changes the global

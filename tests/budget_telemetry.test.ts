@@ -177,6 +177,50 @@ test("replays a worst-gap decision that reserves the cheapest current repair", (
   });
 });
 
+test("replays a worst-gap runway-opportunity decision", () => {
+  const point = [100, 80, 60, 40, 10];
+  const observedTarget = (gap: number, sse: number) => ({
+    target_gap_index: gap,
+    target_gap_sse: sse,
+    anchor_options: Array.from({ length: gap + 1 }, (_, parentDepth) => {
+      const anchor = gap - parentDepth;
+      return {
+        parent_depth: parentDepth,
+        anchor_gap_index: anchor,
+        estimated_anchor_cost_frames: point[anchor]!,
+        estimated_anchor_cost_upper_frames: point[anchor]!,
+        anchor_cost_source: "measured_cost_to_end" as const,
+        affordability: "affordable" as const,
+      };
+    }),
+  });
+  const decision: BudgetRepairDecision = {
+    ...TEST_REPAIR_DECISION,
+    remaining_budget_frames: 100,
+    headroom_fraction: 0,
+    usable_budget_frames: 100,
+    selection_policy: "worst_gap_runway_opportunity_per_cost",
+    parent_depth: 0,
+    affordable_target_gap_indices: [0, 1, 2, 3, 4],
+    affordable_anchor_gap_indices: [0, 1, 2, 3, 4],
+    target_gap_index: 4,
+    target_gap_sse: 20,
+    anchor_gap_index: 4,
+    mutable_suffix_sse: 20,
+    estimated_anchor_cost_frames: 10,
+    estimated_anchor_cost_upper_frames: 10,
+    considered_targets: Array.from({ length: 5 }, (_, gap) =>
+      observedTarget(gap, gap === 4 ? 20 : 1)
+    ),
+  };
+  expect(replayBudgetRepairSelection(decision)).toMatchObject({
+    targetGapIndex: 4,
+    anchorGapIndex: 4,
+    parentDepth: 0,
+    mutableSuffixSse: 20,
+  });
+});
+
 /**
  * A schema-v1 artifact, whatever schema the checked-in one currently declares:
  * the shipped model with every v2 feature stripped back off.

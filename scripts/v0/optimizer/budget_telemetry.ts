@@ -1143,12 +1143,28 @@ export class CompileBudgetTelemetryRecorder {
       episode.highWaterGap,
       "end",
     );
+    // A hard-budget capture can freeze a repair while its frontier is open.
+    // `processNode` returns on a repair terminal before the capture check, so
+    // this state is necessarily a censored, no-terminal episode. The true
+    // global register and selected target are therefore unchanged; finalize
+    // those fields explicitly instead of emitting an ambiguous null state.
+    const capturedOpenRepair = episode.end === null &&
+      episode.lane === "repair" &&
+      !episode.outcome.terminal_reached;
     const outcome = episode.end === null
       ? {
         ...episode.outcome,
         stop_reason: "budget_capture" as const,
         end_total_spent_frames: totalSpent,
         spent_frames: Math.max(0, totalSpent - episode.start_total_spent_frames),
+        ...(capturedOpenRepair
+          ? {
+            incumbent_target_gap_after: episode.incumbent_target_gap_before === null
+              ? null
+              : structuredClone(episode.incumbent_target_gap_before),
+            internal_full_score_delta: 0,
+          }
+          : {}),
       }
       : { ...episode.outcome };
     return {
@@ -1172,7 +1188,9 @@ export class CompileBudgetTelemetryRecorder {
       allocated_frames: episode.allocated_frames,
       work: structuredClone(episode.work),
       register_key_at_start: cloneRegisterKey(episode.register_key_at_start),
-      register_key_at_end: cloneRegisterKey(episode.register_key_at_end),
+      register_key_at_end: cloneRegisterKey(
+        capturedOpenRepair ? episode.register_key_at_start : episode.register_key_at_end,
+      ),
       start: structuredClone(episode.start),
       end: structuredClone(end),
       ...(episode.observations === undefined

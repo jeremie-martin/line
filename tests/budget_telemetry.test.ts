@@ -753,6 +753,73 @@ describe("compile budget telemetry", () => {
     expect(episode?.end?.event).toBe("end");
   });
 
+  test("finalizes a hard-budget capture of an open repair without inventing an offer", () => {
+    const recorder = new CompileBudgetTelemetryRecorder({
+      level: "summary",
+      gaps: GAPS,
+      durationFrames: 100,
+      hardBudgetFrames: 50,
+      policyBudgetFrames: 50,
+      model: TEST_MODEL,
+    });
+    const target = { status: "measured", gap_index: 3, sse: 0.1, axes: {} } as const;
+    const registerKey = {
+      contract_passed: true,
+      axis_quality: 0.9,
+      internal_full_score: 900,
+      drift_quality: 0.8,
+    };
+    recorder.startEpisode({
+      lane: "repair",
+      parentEpisodeId: null,
+      searchSeed: 7,
+      frontierHasFallbackLane: true,
+      anchorGapIndex: 2,
+      startTotalSpentFrames: 10,
+      ceilingTotalSpentFrames: 50,
+      includeStartup: false,
+      repairDecision: {
+        ...TEST_REPAIR_DECISION,
+        remaining_budget_frames: 40,
+        usable_budget_frames: 32,
+        target_gap_index: 3,
+        target_gap_sse: 0.1,
+        anchor_gap_index: 2,
+        affordable_target_gap_indices: [3],
+        affordable_anchor_gap_indices: [2],
+        mutable_suffix_sse: 0.1,
+        estimated_anchor_cost_frames: 20,
+        estimated_anchor_cost_upper_frames: 30,
+        considered_targets: [{
+          target_gap_index: 3,
+          target_gap_sse: 0.1,
+          anchor_options: [{
+            parent_depth: 1,
+            anchor_gap_index: 2,
+            estimated_anchor_cost_frames: 20,
+            estimated_anchor_cost_upper_frames: 30,
+            anchor_cost_source: "measured_cost_to_end",
+            affordability: "affordable",
+          }],
+        }],
+      },
+      incumbentTargetGapBefore: target,
+      workingTargetGapBefore: target,
+      registerKeyAtStart: registerKey,
+    });
+
+    const episode = recorder.snapshot(50, true)!.episodes[0]!;
+    expect(episode.outcome).toMatchObject({
+      stop_reason: "budget_capture",
+      terminal_reached: false,
+      terminal_observation_censored: true,
+      terminal_offer_target_gap: null,
+      incumbent_target_gap_after: target,
+      internal_full_score_delta: 0,
+    });
+    expect(episode.register_key_at_end).toEqual(registerKey);
+  });
+
   test("is byte-behavior-neutral at off, summary, and trace levels", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const options = { budget: 20_000, maxNodes: 12, polish: false } as const;

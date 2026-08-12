@@ -1,7 +1,7 @@
 {
   "schema": "line.benchmark-v2.aim-topk-breadth-bracket.v1",
   "recorded_at": "2026-08-12T18:33:12+02:00",
-  "status": "global_inconclusive_not_promoted_repair_isolation_next",
+  "status": "complete_no_promotion",
   "reference": {
     "policy": "distilled-aim-impact-feasibility",
     "topk_exponent": 1,
@@ -57,6 +57,60 @@
     "actual_candidate_samples_relative_delta": 0.090627
   },
   "interpretation": "The causal mechanism is established: sublinear global aim breadth reaches the first terminal about 7.9% earlier and converts the released budget into about 5.7% more repair episodes. It does not improve repair efficiency, loses score at every changed budget at N=16, and loses one valid cell. The global law is not promotable. The already-declared repair-only arm keeps the first incumbent byte-identical and tests whether the same probe saving has value after removing this incumbent-quality confound.",
+  "repair_only_followup": {
+    "scope": "repair episodes only; initial and resumed search retain exponent 1",
+    "topk_exponent": 0.875,
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.8938,
+    "delta": 0.0444,
+    "directional_probability": 0.60066782,
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": -0.5118,
+    "per_budget_delta": {
+      "150000": 0,
+      "250000": 0,
+      "500000": 0.3427,
+      "750000": -0.5118,
+      "1000000": -0.1773,
+      "1500000": 0.5404,
+      "2500000": 0.3755,
+      "4000000": -0.2137
+    },
+    "mechanics": {
+      "first_terminal_frames_relative_delta": 0,
+      "repair_episodes_relative_delta": 0.075541,
+      "distinct_terminal_tracks_relative_delta": 0.04265,
+      "repair_accepted_alternatives_relative_delta": 0.006869,
+      "repair_spent_frames_relative_delta": 0.00037,
+      "repair_internal_full_score_delta_relative_delta": -0.002788,
+      "repair_internal_full_score_delta_per_million_frames_relative_delta": 0.001281,
+      "repair_terminal_improvements_per_million_frames_relative_delta": 0.005653
+    },
+    "interpretation": "Phase isolation removes the incumbent-quality loss exactly and converts the same repair budget into more attempts and terminal tracks. The extra attempts are lower-yield: accepted alternatives and gain per frame are almost unchanged. The aggregate score is neutral and the canonical-budget cell is negative, so the fixed repair-only exponent is not promoted or tuned further.",
+    "evidence": {
+      "n4_comparison": {
+        "path": "generated/benchmark-v2/scale/aim-topk-repair-exp-0875-4.comparison.json",
+        "sha256": "4af5fcac50638e37ae4f8096e5b12a7af2c096c695cec5be721cb7676f9df602"
+      },
+      "n8_comparison": {
+        "path": "generated/benchmark-v2/scale/aim-topk-repair-exp-0875-8.comparison.json",
+        "sha256": "41cadecb54bec760254c81475a89a887df8f872ad98cc68c58511f64b0d1d0dd"
+      },
+      "n16_comparison": {
+        "path": "generated/benchmark-v2/scale/aim-topk-repair-exp-0875-16.comparison.json",
+        "sha256": "e57e6d112175a11c44fa451ee0b6831e37042d4a31bb22b417fdf09a0689df7c"
+      },
+      "n16_archive": {
+        "path": "generated/benchmark-v2/scale/aim-topk-repair-exp-0875-16.json.gz",
+        "sha256": "68cc22d2bf5e9871e31386de5943d13c2cd68f64206dec58a8b735b8a765818d"
+      }
+    }
+  },
   "evidence": {
     "n4_comparison": {
       "path": "generated/benchmark-v2/scale/aim-topk-exp-0875-4.comparison.json",

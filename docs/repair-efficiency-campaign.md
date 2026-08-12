@@ -200,3 +200,17 @@ phase-isolation follow-up: retain exponent 1 for initial and resumed work and
 apply the same 0.875 exponent only during repair. The complete result and
 evidence hashes are recorded in
 `benchmark/v2/studies/aim-topk-breadth-bracket.json`.
+
+### Aim-base breadth repair-only result — neutral at N=16
+
+Phase isolation behaved exactly as intended: first-terminal frames were
+byte-identical, while the same repair spend produced 7.6% more repair episodes
+and 4.3% more distinct terminal tracks. Those additional attempts were lower
+yield. Accepted alternatives rose only 0.7%, internal repair gain fell 0.3%,
+and gain per million frames rose only 0.1%.
+
+The score result was +0.0444 overall with identical validity and -0.5118 at
+750k. That is useful causal evidence but not a promotion: neither the global
+nor repair-only fixed 0.875 exponent ships, and the bracket will not tune a
+nearby exponent. The bottleneck is now attempt selection/yield rather than the
+ability to manufacture more attempts.

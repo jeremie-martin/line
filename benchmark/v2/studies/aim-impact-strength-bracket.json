@@ -1,0 +1,68 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-strength-bracket.v1",
+  "recorded_at": "2026-08-12T17:10:00+02:00",
+  "status": "global_power_change_rejected",
+  "production_power": 1,
+  "invariants": {
+    "scope": "distilled next-impact factor inside fitted-grid ordering only",
+    "probe_count_change": 0,
+    "proposal_count_change": 0,
+    "ordinary_admission_set_change": false,
+    "explicit_power_one_track_equivalence": "verified"
+  },
+  "arms": [
+    {
+      "power": 0.75,
+      "stopping_depth": 4,
+      "reference_headline": 578.6057,
+      "candidate_headline": 584.1514,
+      "delta": 5.5457,
+      "directional_probability": 0.98785387,
+      "reference_valid": 247,
+      "candidate_valid": 250,
+      "gained_valid": 4,
+      "lost_valid": 1,
+      "canonical_750k_delta": -2.2947,
+      "interpretation": "Promising aggregate at the first look, but concentrated in low-budget validity and already negative at 750k and 1M. It was not the cleaner direction for extension."
+    },
+    {
+      "power": 1.25,
+      "stopping_depth": 8,
+      "reference_headline": 579.5092,
+      "candidate_headline": 574.6672,
+      "delta": -4.842,
+      "directional_probability": 0.19236981,
+      "reference_valid": 497,
+      "candidate_valid": 496,
+      "gained_valid": 4,
+      "lost_valid": 5,
+      "canonical_750k_delta": -1.0551,
+      "per_budget_delta": {
+        "150000": 2.7071,
+        "250000": -7.4325,
+        "500000": -29.446,
+        "750000": -1.0551,
+        "1000000": -0.9045,
+        "1500000": -2.2019,
+        "2500000": 1.0187,
+        "4000000": -1.422
+      }
+    }
+  ],
+  "interpretation": "The accepted distilled factor is useful, but a global exponent is too blunt. Both directions produced isolated low-budget rescues at N=4; the retained 1.25 direction reversed by N=8 through new validity losses and broad mature-budget regression. Keep production power 1. Do not infer a monotone budget law from the N=4 rescue cells.",
+  "next": "Revisit the separate mature aim-base breadth law under the promoted proposal scorer. It emits rapidly growing proposal volumes while selected aimed candidates per compile remain approximately flat, and its historical exponent evidence predates the distilled ranking improvement.",
+  "evidence": {
+    "power_075_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-power-075-4.comparison.json",
+      "sha256": "e4a51fe91387a1bac832de8ff90b382795e3d762ddc8f8d0d18504b70cf01c85"
+    },
+    "power_125_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-power-125-8.comparison.json",
+      "sha256": "8f457b199494735af997100e04e643de9d2a4d4b291fa57b91abe603c0348c6c"
+    },
+    "power_125_archive": {
+      "path": "generated/benchmark-v2/scale/aim-impact-power-125-8.json.gz",
+      "sha256": "21d69185fa0b58c2fa494897e078db75d69ad5babb2efa9026bcb64e1f90cf38"
+    }
+  }
+}

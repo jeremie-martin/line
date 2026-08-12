@@ -641,6 +641,16 @@ export type AimStudyStats = {
   enum_model_impact_state_missing: number;
   enum_model_impact_mean: number;
   enum_model_impact_spread_mean: number;
+  /** Where the full impact-aware top two lie in the ordinary objective order.
+   *  `within_K` counts grids whose BOTH selected proposals are in its top K;
+   *  this directly sizes a cheaper shortlist without guessing. */
+  enum_model_impact_selected_rank_observations: number;
+  enum_model_impact_selected_max_ordinary_rank_mean: number;
+  enum_model_impact_selected_within_4: number;
+  enum_model_impact_selected_within_8: number;
+  enum_model_impact_selected_within_16: number;
+  enum_model_impact_selected_within_32: number;
+  enum_model_impact_selected_within_64: number;
   /** Deferred additive rotate-knob split: rotate recruit rate, rotate-probe failures
    *  (lane falls back to pitch-only), and how rotated (dr≠0) proposals
    *  fare at the production gates vs emitted. */
@@ -755,6 +765,13 @@ const aimTotals = {
   enum_model_impact_scores: 0, enum_model_impact_grids: 0,
   enum_model_impact_top1_changed: 0, enum_model_impact_state_missing: 0,
   enumModelImpactSum: 0, enumModelImpactSpreadSum: 0,
+  enum_model_impact_selected_rank_observations: 0,
+  enumModelImpactSelectedMaxOrdinaryRankSum: 0,
+  enum_model_impact_selected_within_4: 0,
+  enum_model_impact_selected_within_8: 0,
+  enum_model_impact_selected_within_16: 0,
+  enum_model_impact_selected_within_32: 0,
+  enum_model_impact_selected_within_64: 0,
   enum_rot_probe_crash: 0, enum_rot_recruited: 0, enum_rot_emitted: 0,
   enum_rot_gate_fail: 0,
   // Selection-rank telemetry (recordLanePoolRank).
@@ -948,6 +965,25 @@ export function snapshotAimStats(): AimStats | null {
     enum_model_impact_spread_mean: aimTotals.enum_model_impact_grids > 0
       ? round3(aimTotals.enumModelImpactSpreadSum / aimTotals.enum_model_impact_grids)
       : 0,
+    enum_model_impact_selected_rank_observations:
+      aimTotals.enum_model_impact_selected_rank_observations,
+    enum_model_impact_selected_max_ordinary_rank_mean:
+      aimTotals.enum_model_impact_selected_rank_observations > 0
+        ? round3(
+          aimTotals.enumModelImpactSelectedMaxOrdinaryRankSum /
+            aimTotals.enum_model_impact_selected_rank_observations,
+        )
+        : 0,
+    enum_model_impact_selected_within_4:
+      aimTotals.enum_model_impact_selected_within_4,
+    enum_model_impact_selected_within_8:
+      aimTotals.enum_model_impact_selected_within_8,
+    enum_model_impact_selected_within_16:
+      aimTotals.enum_model_impact_selected_within_16,
+    enum_model_impact_selected_within_32:
+      aimTotals.enum_model_impact_selected_within_32,
+    enum_model_impact_selected_within_64:
+      aimTotals.enum_model_impact_selected_within_64,
     enum_rot_probe_crash: aimTotals.enum_rot_probe_crash,
     enum_rot_recruited: aimTotals.enum_rot_recruited,
     enum_rot_emitted: aimTotals.enum_rot_emitted,
@@ -1241,14 +1277,29 @@ function scoreConfiguredKnobGrid(
     aimTotals.enum_model_impact_grids++;
     const factors = scoredGrid.map((candidate) => candidate.modelImpactFeasibility);
     aimTotals.enumModelImpactSpreadSum += Math.max(...factors) - Math.min(...factors);
-    const ordinaryBest = out.slice()
-      .sort((a, b) => compareConfiguredKnobs(a, b, "ordinaryVal"))[0];
-    const activeBest = out.slice()
-      .sort((a, b) => compareConfiguredKnobs(a, b, "val"))[0];
+    const ordinaryOrder = out.slice()
+      .sort((a, b) => compareConfiguredKnobs(a, b, "ordinaryVal"));
+    const activeOrder = out.slice()
+      .sort((a, b) => compareConfiguredKnobs(a, b, "val"));
+    const ordinaryBest = ordinaryOrder[0];
+    const activeBest = activeOrder[0];
     if (
       ordinaryBest !== undefined && activeBest !== undefined &&
       ordinaryBest.values.some((value, index) => Math.abs(value - activeBest.values[index]) > 1e-9)
     ) aimTotals.enum_model_impact_top1_changed++;
+    const selected = activeOrder.slice(0, Math.min(2, activeOrder.length));
+    if (selected.length > 0) {
+      const maxOrdinaryRank = Math.max(
+        ...selected.map((candidate) => ordinaryOrder.indexOf(candidate) + 1),
+      );
+      aimTotals.enum_model_impact_selected_rank_observations++;
+      aimTotals.enumModelImpactSelectedMaxOrdinaryRankSum += maxOrdinaryRank;
+      for (const threshold of [4, 8, 16, 32, 64] as const) {
+        if (maxOrdinaryRank <= threshold) {
+          aimTotals[`enum_model_impact_selected_within_${threshold}`]++;
+        }
+      }
+    }
   }
   return out.sort((a, b) => compareConfiguredKnobs(a, b, "val"));
 }

@@ -655,6 +655,13 @@ export type CompileStats = {
       enum_model_impact_state_missing: number;
       enum_model_impact_mean: number;
       enum_model_impact_spread_mean: number;
+      enum_model_impact_selected_rank_observations: number;
+      enum_model_impact_selected_max_ordinary_rank_mean: number;
+      enum_model_impact_selected_within_4: number;
+      enum_model_impact_selected_within_8: number;
+      enum_model_impact_selected_within_16: number;
+      enum_model_impact_selected_within_32: number;
+      enum_model_impact_selected_within_64: number;
       /** R3 joint-model split: rotate recruit rate, rotate-probe failures
        *  and rotated-proposal gate outcomes. */
       enum_rot_probe_crash: number;

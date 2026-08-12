@@ -181,6 +181,18 @@ archive retained the counters, and `563cece` made their compact subset part of
 the projection contract with a regression test. Score, validity, and V6 repair
 episode metrics were unaffected by that reporting defect.
 
+The final N=16 look was effectively neutral: +0.0037 scale (62.19%
+directional probability), -0.0402 at 750k, and unchanged 989/1,024 validity.
+The policy reordered 244 of 5,904 target pools and continued to improve local
+target-offer quality, but that translated to only 5.48 aggregate additional
+internal-score points over 1,024 cells. The arm is retired rather than promoted.
+
+That audit also found nine terminal offers per arm whose selected target gap
+was absent from the drift report. V6 encoded those as null, colliding with “no
+terminal.” `5fd6df8` introduces V7's explicit `measured`/`missing` target
+observation; missing targets remain in improvement-rate denominators and count
+as failures. Fresh causal studies use V7 only.
+
 ### 5. Protected one-step bridge
 
 Keep the global register and final output unchanged, but when a terminal offer
@@ -191,7 +203,7 @@ working state never becomes output merely because it improved a local gap.
 
 Why conditional: this can cross a local/global tradeoff that strict
 incumbent-only repair cannot, but it spends work from a globally worse state and
-adds a second lineage that must be explicit. V6 now measures the prerequisite
+adds a second lineage that must be explicit. V7 measures the prerequisite
 population directly through `terminal_offer_target_gap`. Do not implement the
 bridge unless a multi-budget reference shows a material number of rejected,
 locally improving offers with enough remaining budget for a follow-up suffix.
@@ -216,7 +228,7 @@ contract. This is a different repair family, not a small controller variant.
 
 ## Telemetry contract
 
-Budget Telemetry V6 records `selection_policy`, exact affordable target and
+Budget Telemetry V7 records `selection_policy`, exact affordable target and
 anchor populations, the chosen target/anchor, mutable-suffix SSE, and the cost
 interval/source. The recorder replays the named law from `considered_targets`
 and rejects a payload that does not reproduce its choice. It also keeps
@@ -256,7 +268,7 @@ incumbent SSE map.
 ## Evaluation order
 
 1. Run paired N=4 across the scale profile's eight specifications and eight
-   budgets, using a fresh V6 reference from the same compiler snapshot family.
+   budgets, using a fresh V7 reference from the same compiler snapshot family.
 2. Audit zero telemetry replay violations, validity, terminal completion,
    acceptance, distinct alternatives, opportunity density, cost utilization,
    repair attempts, and score by budget/source.

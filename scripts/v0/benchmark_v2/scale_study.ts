@@ -63,6 +63,7 @@ type StudyTask = {
   resumePolicy?: "legacy" | "none" | "remainder-aware";
   nCandExponent?: number;
   nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
+  repairPolicy?: "protected-one-step-bridge";
 };
 
 type StudyWorkerResult = {
@@ -115,6 +116,7 @@ async function main(): Promise<void> {
   const resumePolicy = parseResumePolicy(argument("resume-policy"));
   const nCandExponent = optionalFraction(argument("ncand-exponent"), "ncand-exponent");
   const nCandPolicy = parseNCandPolicy(argument("ncand-policy"));
+  const repairPolicy = parseRepairPolicy(argument("repair-policy"));
   if (nCandExponent !== undefined && nCandPolicy !== undefined) {
     throw new Error("--ncand-exponent and --ncand-policy are mutually exclusive");
   }
@@ -154,6 +156,7 @@ async function main(): Promise<void> {
     resumePolicy,
     nCandExponent,
     nCandPolicy,
+    repairPolicy,
     sourceManifestPath,
   }))));
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -176,6 +179,7 @@ async function main(): Promise<void> {
     resumePolicy,
     nCandExponent,
     nCandPolicy,
+    repairPolicy,
     scaleProfileFingerprint: scaleProfile?.fingerprint,
     sources: sources.map((source) => ({ id: source.id, fingerprint: source.sourceFingerprint })),
   };
@@ -293,6 +297,7 @@ async function main(): Promise<void> {
     resumePolicy,
     nCandExponent,
     nCandPolicy,
+    repairPolicy,
     scaleProfile: scaleProfileReport(scaleProfile),
     scaleHeadline: scalePanel?.scaleHeadline ?? null,
     summaries,
@@ -450,6 +455,7 @@ function studyPlanFingerprint(input: {
   resumePolicy?: "legacy" | "none" | "remainder-aware";
   nCandExponent?: number;
   nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
+  repairPolicy?: "protected-one-step-bridge";
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
@@ -476,6 +482,7 @@ function taskKey(task: StudyTask): string {
     task.resumePolicy ?? "legacy",
     task.nCandExponent ?? "production",
     task.nCandPolicy ?? "production",
+    task.repairPolicy ?? "production",
   ].join("\0");
 }
 
@@ -546,6 +553,8 @@ async function workerMain(task: StudyTask): Promise<void> {
     else process.env.LR_STUDY_NCAND_EXPONENT = String(task.nCandExponent);
     if (task.nCandPolicy === undefined) delete process.env.LR_STUDY_NCAND_POLICY;
     else process.env.LR_STUDY_NCAND_POLICY = task.nCandPolicy;
+    if (task.repairPolicy === undefined) delete process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
+    else process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "1";
     const sources = resolveSources(loadSourceManifest(task.sourceManifestPath));
     const source = sources.find((entry) => entry.id === task.sourceId);
     if (source === undefined) throw new Error(`${task.sourceId}: source unavailable`);
@@ -674,6 +683,14 @@ function parseNCandPolicy(
     "--ncand-policy must be high-budget-three-quarter, " +
       "repair-high-budget-three-quarter, or linear-cap-216",
   );
+}
+
+function parseRepairPolicy(
+  value: string | undefined,
+): "protected-one-step-bridge" | undefined {
+  if (value === undefined) return undefined;
+  if (value === "protected-one-step-bridge") return value;
+  throw new Error("--repair-policy must be protected-one-step-bridge");
 }
 
 function relative(path: string): string {

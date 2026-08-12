@@ -3,6 +3,7 @@ import {
   assertScaleArguments,
   assertScaleCommandArguments,
   scaleBreadthPolicyArgument,
+  scaleRepairPolicyArgument,
 } from "../scripts/v0/benchmark_v2/scale_benchmark.ts";
 
 describe("Benchmark V2 scale command contract", () => {
@@ -35,6 +36,7 @@ describe("Benchmark V2 scale command contract", () => {
       "--extend-from=candidate-4.json",
       "--extend-snapshot=candidate-4-comparison.json",
       "--breadth-policy=high-budget-three-quarter",
+      "--repair-policy=protected-one-step-bridge",
     ])).not.toThrow();
     expect(() => assertScaleArguments("compare", [
       "--baseline=reference.json",
@@ -48,6 +50,8 @@ describe("Benchmark V2 scale command contract", () => {
       .toThrow(/does not accept/);
     expect(() => assertScaleArguments("eval", ["--breadth-policy=unknown"]))
       .toThrow(/breadth-policy must be/);
+    expect(() => assertScaleArguments("eval", ["--repair-policy=unknown"]))
+      .toThrow(/repair-policy must be/);
     expect(() => assertScaleArguments("eval", ["--repair-mode=multi-terminal"]))
       .toThrow(/does not accept/);
   });
@@ -69,5 +73,11 @@ describe("Benchmark V2 scale command contract", () => {
       .toBe("linear-cap-216");
     expect(scaleBreadthPolicyArgument(["--breadth-policy=repair-high-budget-three-quarter"]))
       .toBe("repair-high-budget-three-quarter");
+  });
+
+  test("resolves the candidate repair intervention passed to scale eval", () => {
+    expect(scaleRepairPolicyArgument([])).toBeNull();
+    expect(scaleRepairPolicyArgument(["--repair-policy=protected-one-step-bridge"]))
+      .toBe("protected-one-step-bridge");
   });
 });

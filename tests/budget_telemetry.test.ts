@@ -47,6 +47,8 @@ const TEST_REPAIR_DECISION: BudgetRepairDecision = {
   iteration_index: 0,
   incumbent_revision: 0,
   incumbent_track_hash: "a".repeat(64),
+  working_track_source: "global_incumbent",
+  working_track_hash: "a".repeat(64),
   remaining_budget_frames: 500,
   headroom_fraction: 0.2,
   usable_budget_frames: 400,
@@ -564,7 +566,8 @@ describe("compile budget telemetry", () => {
       internal_full_score_delta: null,
       terminal_offer_target_gap: null,
       incumbent_target_gap_after: null,
-      repair_divergence: null,
+      working_to_offer_divergence: null,
+      rejected_local_improvement_followup: "not_rejected_local_improvement",
       terminal_offer_track_hash: null,
       terminal_observation_censored: false,
     });
@@ -602,9 +605,13 @@ describe("compile budget telemetry", () => {
         remaining_budget_frames: 800,
         headroom_fraction: 0.5,
       },
+      incumbentTargetGapBefore: { status: "measured", gap_index: 2, sse: 0.25, axes: {} },
+      workingTargetGapBefore: { status: "measured", gap_index: 2, sse: 0.25, axes: {} },
     });
     recorder.observeActiveEpisode(2, 100);
-    recorder.endEpisode(200, "frontier_exhausted");
+    recorder.endEpisode(200, "frontier_exhausted", {
+      incumbentTargetGapAfter: { status: "measured", gap_index: 2, sse: 0.25, axes: {} },
+    });
     recorder.recordSegment("repair_frontier", 0, 200, "frontier_exhausted", 0);
     const episode = recorder.snapshot(200, false)?.episodes[0];
     const [start, advanced] = episode?.observations ?? [];
@@ -731,8 +738,12 @@ describe("compile budget telemetry", () => {
           }],
         }],
       },
+      incumbentTargetGapBefore: { status: "measured", gap_index: 3, sse: 0.1, axes: {} },
+      workingTargetGapBefore: { status: "measured", gap_index: 3, sse: 0.1, axes: {} },
     });
-    recorder.endEpisode(50, "local_ceiling");
+    recorder.endEpisode(50, "local_ceiling", {
+      incumbentTargetGapAfter: { status: "measured", gap_index: 3, sse: 0.1, axes: {} },
+    });
     recorder.recordSegment("startup", 0, 10, "pre-episode");
     recorder.recordSegment("repair_frontier", 10, 50, "local_ceiling", 0);
     const episode = recorder.snapshot(50, true)?.episodes[0];
@@ -814,6 +825,7 @@ describe("compile budget telemetry", () => {
       if (episode.lane === "repair") continue;
       expect(episode.repair_decision).toBeNull();
       expect(episode.incumbent_target_gap_before).toBeNull();
+      expect(episode.working_target_gap_before).toBeNull();
     }
     let previousIteration = -1;
     for (const repair of repairs) {
@@ -822,7 +834,11 @@ describe("compile budget telemetry", () => {
       previousIteration = repair.repair_decision!.iteration_index;
       expect(repair.repair_decision!.parent_depth).toBeGreaterThanOrEqual(0);
       expect(repair.repair_decision!.anchor_gap_index).toBe(repair.anchor.gap_index);
+      expect(repair.repair_decision!.working_track_source).toBe("global_incumbent");
+      expect(repair.repair_decision!.working_track_hash)
+        .toBe(repair.repair_decision!.incumbent_track_hash);
       expect(repair.incumbent_target_gap_before?.status).toBe("measured");
+      expect(repair.working_target_gap_before).toEqual(repair.incumbent_target_gap_before);
       const incumbentBefore = repair.incumbent_target_gap_before;
       expect(incumbentBefore?.status === "measured" ? incumbentBefore.sse : -1)
         .toBeGreaterThanOrEqual(0);
@@ -841,6 +857,7 @@ describe("compile budget telemetry", () => {
       // A repair always knows what it did to the incumbent's score; the
       // improvement offset exists exactly when the register took something.
       expect(repair.outcome.internal_full_score_delta).not.toBeNull();
+      expect(repair.outcome.rejected_local_improvement_followup).not.toBe("scheduled");
       const offset = repair.outcome.first_register_improvement_offset_frames;
       if (repair.outcome.register_improved) {
         expect(offset).not.toBeNull();
@@ -1010,9 +1027,50 @@ describe("compile budget telemetry", () => {
     expect(new Set(repairs.map((episode) => episode.repair_decision!.target_gap_index)).size)
       .toBeGreaterThan(1);
     expect(completed.every((episode) =>
-      episode.outcome.repair_divergence !== null &&
-      episode.outcome.repair_divergence.divergent_suffix_gap_count > 0
+      episode.outcome.working_to_offer_divergence !== null &&
+      episode.outcome.working_to_offer_divergence.divergent_suffix_gap_count > 0
     )).toBe(true);
+  }, 180_000);
+
+  test("protects a rejected local improvement for exactly one working-track follow-up", async () => {
+    const previous = process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
+    process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "1";
+    try {
+      const spec = await loadGoldenSpec("cold_start", "base");
+      const result = compileHandoff(spec, 0, {
+        budget: 150_000,
+        polish: false,
+        budgetTelemetry: "summary",
+      });
+      const repairs = result.budgetTelemetry!.episodes.filter((episode) =>
+        episode.lane === "repair"
+      );
+      const bridges = repairs.filter((episode) =>
+        episode.repair_decision!.working_track_source === "rejected_local_improvement"
+      );
+      expect(bridges.length).toBeGreaterThan(0);
+      for (const bridge of bridges) {
+        const parent = result.budgetTelemetry!.episodes[bridge.parent_episode_id!];
+        expect(parent?.lane).toBe("repair");
+        expect(parent?.outcome.accepted_alternative).toBe(false);
+        expect(parent?.outcome.rejected_local_improvement_followup).toBe("scheduled");
+        expect(bridge.repair_decision!.working_track_hash)
+          .toBe(parent?.outcome.terminal_offer_track_hash);
+        expect(bridge.repair_decision!.incumbent_track_hash)
+          .toBe(parent?.repair_decision?.incumbent_track_hash);
+        expect(bridge.outcome.rejected_local_improvement_followup).not.toBe("scheduled");
+      }
+      for (const repair of repairs) {
+        if (repair.outcome.rejected_local_improvement_followup !== "scheduled") continue;
+        const next = repairs[repair.repair_decision!.iteration_index + 1];
+        expect(next?.parent_episode_id).toBe(repair.episode_id);
+        expect(next?.repair_decision!.working_track_source)
+          .toBe("rejected_local_improvement");
+      }
+    } finally {
+      if (previous === undefined) delete process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
+      else process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = previous;
+    }
   }, 180_000);
 
   test("sizes repairs from measured cost at gaps only the tail-completion pass built", async () => {

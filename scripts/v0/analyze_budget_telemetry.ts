@@ -184,10 +184,10 @@ export function analyzeBudgetTelemetry(located: Located[]): BudgetTelemetryAnaly
           episode.outcome.accepted_alternative
         ).length,
         identical_repair_terminal_geometry: inLane.filter(({ episode }) =>
-          episode.outcome.repair_divergence?.terminal_geometry_identical === true
+          episode.outcome.working_to_offer_divergence?.terminal_geometry_identical === true
         ).length,
         divergent_repair_suffix_gaps: distribution(inLane.flatMap(({ episode }) =>
-          nullable(episode.outcome.repair_divergence?.divergent_suffix_gap_count ?? null)
+          nullable(episode.outcome.working_to_offer_divergence?.divergent_suffix_gap_count ?? null)
         )),
         internal_full_score_delta: distribution(inLane.flatMap(({ episode }) =>
           nullable(episode.outcome.internal_full_score_delta)
@@ -261,11 +261,11 @@ function validateLocated(item: Located): string[] {
       errors.push(`${p}: repair episode evaluated more than one terminal`);
     }
     if (e.lane === "repair" && e.outcome.terminal_reached &&
-        e.outcome.repair_divergence === null) {
+        e.outcome.working_to_offer_divergence === null) {
       errors.push(`${p}: repair terminal lacks divergence evidence`);
     }
-    if (e.outcome.repair_divergence !== null) {
-      const divergence = e.outcome.repair_divergence;
+    if (e.outcome.working_to_offer_divergence !== null) {
+      const divergence = e.outcome.working_to_offer_divergence;
       if (
         e.lane !== "repair" || !e.outcome.terminal_reached ||
         divergence.divergent_suffix_gap_count > divergence.divergent_gap_count ||

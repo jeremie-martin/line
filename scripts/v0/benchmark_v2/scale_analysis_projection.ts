@@ -35,6 +35,7 @@ export function scaleAnalysisRun(row: any): Record<string, unknown> {
                   const {
                     considered_targets: _consideredTargets,
                     incumbent_track_hash: _incumbentTrackHash,
+                    working_track_hash: _workingTrackHash,
                     ...compactDecision
                   } = decision;
                   return compactDecision;

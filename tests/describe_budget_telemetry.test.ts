@@ -136,7 +136,8 @@ function payload(overrides: Record<string, unknown> = {}): Record<string, unknow
           first_register_improvement_offset_frames: 1_000,
           first_terminal_register_improvement_offset_frames: 1_000,
           internal_full_score_delta: null,
-          repair_divergence: null,
+          working_to_offer_divergence: null,
+          rejected_local_improvement_followup: "not_rejected_local_improvement",
           terminal_observation_censored: false,
         },
       },
@@ -251,6 +252,12 @@ describe("describe_budget_telemetry", () => {
         sse: 0.2473,
         axes: {},
       },
+      working_target_gap_before: {
+        status: "measured",
+        gap_index: 3,
+        sse: 0.2473,
+        axes: {},
+      },
     });
 
     const output = render(withRepair);
@@ -262,6 +269,7 @@ describe("describe_budget_telemetry", () => {
     // ... and none of the three is reported as a field the tool cannot read.
     expect(output).not.toContain("repair_decision");
     expect(output).not.toContain("incumbent_target_gap_before");
+    expect(output).not.toContain("working_target_gap_before");
   });
 
   /**
@@ -316,12 +324,12 @@ describe("describe_budget_telemetry", () => {
   });
 
   test("rejects historical and structurally incomplete payloads", () => {
-    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v7/);
+    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v8/);
     expect(() => render({
       schema: "line.compile-budget-telemetry.v2",
       episodes: [],
       execution_intervals: [],
-    })).toThrow(/expected line\.compile-budget-telemetry\.v7/);
+    })).toThrow(/expected line\.compile-budget-telemetry\.v8/);
     expect(() => render({
       schema: BUDGET_TELEMETRY_SCHEMA,
       episodes: [],

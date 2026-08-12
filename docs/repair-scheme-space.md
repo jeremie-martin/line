@@ -191,7 +191,7 @@ That audit also found nine terminal offers per arm whose selected target gap
 was absent from the drift report. V6 encoded those as null, colliding with “no
 terminal.” `5fd6df8` introduces V7's explicit `measured`/`missing` target
 observation; missing targets remain in improvement-rate denominators and count
-as failures. Fresh causal studies use V7 only.
+as failures. Those target-search studies use V7; working-track studies use V8.
 
 ### 5. Protected one-step bridge
 
@@ -240,13 +240,16 @@ contract. This is a different repair family, not a small controller variant.
 
 ## Telemetry contract
 
-Budget Telemetry V7 records `selection_policy`, exact affordable target and
+Budget Telemetry V8 records `selection_policy`, exact affordable target and
 anchor populations, the chosen target/anchor, mutable-suffix SSE, and the cost
 interval/source. The recorder replays the named law from `considered_targets`
 and rejects a payload that does not reproduce its choice. It also keeps
-`incumbent_target_gap_before`, `terminal_offer_target_gap`, and
-`incumbent_target_gap_after` distinct. The behavior analyzer uses the same
-selection replay function and audits the target-state lineage.
+the global `incumbent_target_gap_before`, local `working_target_gap_before`,
+`terminal_offer_target_gap`, and global `incumbent_target_gap_after` distinct.
+It records working-track source/hash, one-step parent lineage, and exact
+rejected-local follow-up disposition. The behavior analyzer uses the same
+selection replay function and audits both global-register and working-track
+lineage.
 
 The initial categorical diagnostic arm is enabled by:
 
@@ -280,7 +283,7 @@ incumbent SSE map.
 ## Evaluation order
 
 1. Run paired N=4 across the scale profile's eight specifications and eight
-   budgets, using a fresh V7 reference from the same compiler snapshot family.
+   budgets, using a fresh V8 reference from the same compiler snapshot family.
 2. Audit zero telemetry replay violations, validity, terminal completion,
    acceptance, distinct alternatives, opportunity density, cost utilization,
    repair attempts, and score by budget/source.

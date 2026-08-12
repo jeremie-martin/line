@@ -1214,6 +1214,7 @@ const ARCHIVED_EPISODE_FIELDS = [
   "anchor",
   "repair_decision",
   "incumbent_target_gap_before",
+  "working_target_gap_before",
   "start_total_spent_frames",
   "ceiling_total_spent_frames",
   "ceiling_source",

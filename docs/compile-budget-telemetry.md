@@ -1,4 +1,4 @@
-# Compile budget telemetry V7
+# Compile budget telemetry V8
 
 ## Contract
 
@@ -10,10 +10,10 @@ compiler search work:
 - `trace`: the summary payload plus estimator observations and atomic node
   events.
 
-The schema is `line.compile-budget-telemetry.v7`. Readers accept that exact
-schema only. V1–V6 archives are historical evidence with different attempt,
-identity, repair-selection, or target-attribution semantics; a reader must not
-rename their fields or fall back to `compile_stats`.
+The schema is `line.compile-budget-telemetry.v8`. Readers accept that exact
+schema only. V1–V7 archives are historical evidence with different attempt,
+identity, repair-selection, target-attribution, or working-track semantics; a
+reader must not rename their fields or fall back to `compile_stats`.
 
 Telemetry is observation-only. Changing `off`, `summary`, or `trace` must not
 change RNG state, physics work, search order, selected geometry, reports, or
@@ -56,9 +56,15 @@ iteration and incumbent revision, remaining and usable budget, explicit
 headroom, the named selection policy, every target×anchor option in the declared
 option universe, affordable target and anchor sets, selected target and SSE,
 actual parent depth/anchor, mutable-suffix SSE, cost estimates, and cost source.
-The selected target has three distinct states: `incumbent_target_gap_before`,
-`terminal_offer_target_gap`, and `incumbent_target_gap_after`. The last is the
-post-register incumbent and must never be interpreted as the rejected offer.
+`incumbent_track_hash` always identifies the true global incumbent.
+`working_track_source` and `working_track_hash` identify the track from which
+this episode selects its target and reconstructs its prefix: normally the
+global incumbent, or, in the protected-bridge arm, one rejected local
+improvement. The selected target has four distinct states:
+`incumbent_target_gap_before`, `working_target_gap_before`,
+`terminal_offer_target_gap`, and `incumbent_target_gap_after`. The first and
+last describe the true global register; local repair effect is strictly the
+working-before to terminal-offer comparison.
 Each non-null target observation has an explicit `status`: `measured` carries
 axis state and SSE, while `missing` means that a terminal track lost the
 selected gap's ending contact. `terminal_offer_target_gap: null` means no
@@ -68,6 +74,11 @@ improved. Numeric SSE aggregates use only measured observations and report the
 missing population separately.
 The payload replays the declared selection law exactly. There is no hidden
 controller mode or failed-anchor state to infer from episode order.
+`rejected_local_improvement_followup` records whether a rejected local
+improvement was not eligible, had no affordable repair, was eligible with the
+study policy disabled, was blocked by the one-step/attempt guard, or scheduled.
+A scheduled episode is the next repair, names its parent episode, and may enter
+the global register only through the ordinary global comparison.
 
 The production selection policy is `worst_gap_deepest_affordable`: rank target
 weakness among targets with an affordable anchor, then use that target's deepest
@@ -75,7 +86,7 @@ affordable parent up to maximum depth `6`. Headroom is `0`. Diagnostic arms use
 `LR_REPAIR_MAX_PARENT_DEPTH`, `LR_REPAIR_HEADROOM_FRACTION`, and the categorical
 `LR_REPAIR_SELECTION_POLICY=suffix-opportunity-per-cost` or
 `LR_REPAIR_SELECTION_POLICY=max-suffix-opportunity`. The former chooses the
-affordable anchor maximizing total incumbent SSE in its mutable suffix per
+affordable anchor maximizing total working-track SSE in its mutable suffix per
 estimated point-cost frame; the latter maximizes that suffix SSE directly.
 Both record the worst target in the selected suffix. Their
 `parent_depth` is descriptive target-to-anchor distance and can exceed the
@@ -85,7 +96,7 @@ once—there is no ancestor fallback chain or remembered tried-anchor state.
 The additional diagnostic law
 `LR_REPAIR_SELECTION_POLICY=max-local-window-opportunity` stays within the
 declared target×anchor option radius. It chooses the affordable pair maximizing
-summed incumbent SSE from its anchor through its target, then uses that anchor
+summed working-track SSE from its anchor through its target, then uses that anchor
 for the ordinary suffix rebuild.
 
 An execution interval accounts for wall-to-wall charged compiler work such as
@@ -123,7 +134,7 @@ The following identity is enforced:
 actual candidate samples = sum(candidate samples by stream)
 ```
 
-No V7 field counts normal-prefix cache hits or misses. Consequently,
+No V8 field counts normal-prefix cache hits or misses. Consequently,
 `ranked_option_calls` must not be used to infer fresh sampler builds. Actual samples per
 ranked-option call can change because of prefix reuse, internal rollout calls,
 extra streams, retry behavior, and optional sibling evaluations. A future
@@ -139,7 +150,7 @@ than infer one from these populations.
 Candidate breadth does not determine node count arithmetically. Breadth affects
 pool work and ranking; child limits, viability, frontier order, failures,
 tail-completion behavior, and local ceilings determine how many nodes the
-remaining budget can process. V7 records both sides so this relationship is an
+remaining budget can process. V8 records both sides so this relationship is an
 empirical result rather than an assumption.
 
 ### Register and terminal work
@@ -172,7 +183,7 @@ register offers = partial evaluations + terminal evaluations
 Geometry identity is exact within the scope that owns the work record. The
 compile record detects repeats across the entire compile. An episode record
 detects repeats only inside that episode; summing episode-level distinct counts
-does not detect the same geometry appearing in two different episodes. V7 does
+does not detect the same geometry appearing in two different episodes. V8 does
 not separately attribute compile-global geometry repeats by lane, so reports
 must not call a sum of repair episodes “cross-repair duplicate tracks.”
 
@@ -211,11 +222,14 @@ episodes can contain tail-completion evaluations. This prevents a phase called
   with the first improvement, which may be a partial track.
 
 Production repair evaluates at most one complete alternative in an episode,
-then makes a new independent decision from the current incumbent and remaining
-budget. `repair_divergence` directly compares incumbent and alternative arc
-geometry: compared gaps, first divergent gap, divergent gaps overall and in the
-regenerated suffix, and exact terminal-geometry identity. A fresh seed is never
-used as a proxy for diversity.
+then makes a new independent decision from the global incumbent and remaining
+budget. The diagnostic `LR_REPAIR_REJECTED_LOCAL_BRIDGE=1` arm may consume one
+scheduled rejected local improvement as the next temporary working track;
+bridge offspring cannot schedule another bridge. `working_to_offer_divergence`
+directly compares working-track and alternative arc geometry: compared gaps,
+first divergent gap, divergent gaps overall and in the regenerated suffix, and
+exact terminal-geometry identity. A fresh seed is never used as a proxy for
+diversity.
 
 ## Register and score domains
 
@@ -292,7 +306,7 @@ overwrite duplicate cells.
 - `scripts/v0/analyze_budget_telemetry.ts`: strict multi-payload validation and
   descriptive aggregate analysis.
 - `scripts/benchmark/analyze_scale_mechanics.ts`: paired multi-budget mechanics
-  comparison using V7 only.
+  comparison using V8 only.
 
 For naming and architecture rationale, see
 [`compiler-telemetry-foundation.md`](compiler-telemetry-foundation.md).

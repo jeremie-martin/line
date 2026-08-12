@@ -164,6 +164,7 @@ import {
 } from "./budget_estimator.ts";
 import {
   CompileBudgetTelemetryRecorder,
+  type BudgetEpisodeTelemetry,
   type BudgetInternalRegisterKey,
   type BudgetRepairDecision,
   type BudgetRepairDivergence,
@@ -2278,12 +2279,10 @@ function compileHandoffInternal(
           repairProfile.anchorGapIndex,
         );
     };
-    const buildIncumbentCostToEnd = (): number[] => {
-      const incumbent = bestCompleteNode;
-      if (incumbent === null) return [];
-      const stored = incumbentCostProfiles.get(incumbent.search);
+    const buildTrackCostToEnd = (track: HandoffNode): number[] => {
+      const stored = incumbentCostProfiles.get(track.search);
       if (stored !== undefined) return [...stored];
-      return buildObservedCostToEnd(incumbent, getSimFrames(), null);
+      return buildObservedCostToEnd(track, getSimFrames(), null);
     };
     // The incumbent's MEASURED cost-to-end profile, published here so the
     // deadline margin can use it as its post-completion estimate: after first
@@ -2299,6 +2298,12 @@ function compileHandoffInternal(
     // it REACHED the end at all (completed), separate from whether it beat the incumbent (accepted).
     let terminalConsiders = 0;
     let lastTerminalNode: HandoffNode | null = null;
+    type PendingRejectedLocalBridge = {
+      node: HandoffNode;
+      costToEnd: readonly number[];
+      parentEpisodeId: number | null;
+    };
+    let pendingRejectedLocalBridge: PendingRejectedLocalBridge | null = null;
     // SUBSEQUENT-TERMINAL CHURN. (The "two-counters window" reading this block
     // was built to measure is FALSIFIED — 4,406/4,406 compiles across both
     // N=48 archives and every probe: `firstTerminalFrame` equals
@@ -2918,10 +2923,11 @@ function compileHandoffInternal(
       }
     };
 
-    // One self-contained repair iteration: recompute policy from the current
-    // incumbent and remaining hard budget, choose one deepest-affordable anchor, and
-    // stop after at most one terminal alternative. No failed-anchor or target
-    // state survives into the next iteration.
+    // One self-contained repair iteration normally recomputes policy from the
+    // current global incumbent. The protected-bridge study may instead consume
+    // exactly one pending rejected local improvement as its temporary working
+    // track. That track never enters the global register merely for improving a
+    // target, and bridge offspring cannot create another bridge.
     const runRepairPhase = (): void => {
       const repairBudget = repairBudgetLimit;
       const perGap = firstCompletionFrame > 0
@@ -2936,11 +2942,16 @@ function compileHandoffInternal(
         isTerminalNode(bestCompleteNode.search, gaps)
       ) {
         const incumbent = bestCompleteNode;
-        const root = startOptions.find((o) => o.rank === incumbent.startRank)?.root;
+        const bridgeInput = pendingRejectedLocalBridge;
+        pendingRejectedLocalBridge = null;
+        const workingTrack = bridgeInput?.node ?? incumbent;
+        const root = startOptions.find((o) => o.rank === workingTrack.startRank)?.root;
         if (root === undefined) break;
         const remaining = repairBudget - getSimFrames();
-        const costToEnd = buildIncumbentCostToEnd();
-        incumbentCostToEnd = costToEnd;
+        const costToEnd = bridgeInput === null
+          ? buildTrackCostToEnd(workingTrack)
+          : [...bridgeInput.costToEnd];
+        if (bridgeInput === null) incumbentCostToEnd = costToEnd;
         const measuredCostToEnd = (gapIndex: number): number | null => {
           const measured = costToEnd[gapIndex];
           return measured !== undefined && measured > 0 ? measured : null;
@@ -2968,7 +2979,8 @@ function compileHandoffInternal(
           (_, gapIndex) => estCostUpperOf(gapIndex),
         );
         const incumbentEvaluation = evaluateCached(incumbent);
-        const targetCandidates = incumbentEvaluation.report.gaps
+        const workingEvaluation = evaluateCached(workingTrack);
+        const targetCandidates = workingEvaluation.report.gaps
           .filter((gapReport) => gaps[gapReport.gap_index]?.endsWithContact)
           .map((gapReport) => ({
             gapIndex: gapReport.gap_index,
@@ -2988,7 +3000,11 @@ function compileHandoffInternal(
         const kWorst = target.targetGapIndex;
         const k = target.anchorGapIndex;
         const pickedWeakGapSse = target.targetGapSse;
-        const pickedWeakGapBefore = repairGapState(
+        const workingWeakGapBefore = repairGapState(
+          kWorst,
+          workingEvaluation.report.gaps.find((g) => g.gap_index === kWorst),
+        );
+        const incumbentWeakGapBefore = repairGapState(
           kWorst,
           incumbentEvaluation.report.gaps.find((g) => g.gap_index === kWorst),
         );
@@ -2998,13 +3014,13 @@ function compileHandoffInternal(
         const restartSeed = ((searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
         let prefix = root;
         for (let gapIndex = 0; gapIndex < k; gapIndex++) {
-          prefix = extendNodeCached(prefix, incumbent.search.prefixFits[gapIndex]);
+          prefix = extendNodeCached(prefix, workingTrack.search.prefixFits[gapIndex]);
         }
         const prefixNode: HandoffNode = {
           search: prefix,
-          startState: incumbent.startState,
-          startLines: incumbent.startLines,
-          startRank: incumbent.startRank,
+          startState: workingTrack.startState,
+          startLines: workingTrack.startLines,
+          startRank: workingTrack.startRank,
           searchSeed: restartSeed,
           startExpanded: true,
           deferExpansion: false,
@@ -3017,11 +3033,25 @@ function compileHandoffInternal(
           ? "repair_budget_remaining"
           : estCostSourceOf(k);
         const beforeScore = incumbentEvaluation.key.full_score;
+        const incumbentRevisionBefore = incumbentRevision;
         const terminalsBefore = terminalConsiders;
+        const workingTrackHash = sha256Json(
+          buildNodeOutput(
+            workingTrack,
+            workingEvaluation.report,
+            gaps,
+            workingEvaluation.outputDurationFrames,
+            false,
+          ).track,
+        );
         const repairDecision: BudgetRepairDecision = {
           iteration_index: iterationIndex,
           incumbent_revision: incumbentRevision,
           incumbent_track_hash: sha256Json(register.getBest()!.track),
+          working_track_source: bridgeInput === null
+            ? "global_incumbent"
+            : "rejected_local_improvement",
+          working_track_hash: workingTrackHash,
           remaining_budget_frames: repairBudget - framesBefore,
           headroom_fraction: repair.headroomFraction,
           usable_budget_frames: target.usableBudgetFrames,
@@ -3047,7 +3077,7 @@ function compileHandoffInternal(
         };
         const repairEpisodeId = budgetRecorder.startEpisode({
           lane: "repair",
-          parentEpisodeId: initialBudgetEpisodeId,
+          parentEpisodeId: bridgeInput?.parentEpisodeId ?? initialBudgetEpisodeId,
           searchSeed: restartSeed,
           frontierHasFallbackLane: true,
           anchorGapIndex: k,
@@ -3057,15 +3087,17 @@ function compileHandoffInternal(
           includeStartup: false,
           pathEstimateByGap: costToEnd,
           repairDecision,
-          incumbentTargetGapBefore: pickedWeakGapBefore,
+          incumbentTargetGapBefore: incumbentWeakGapBefore,
+          workingTargetGapBefore: workingWeakGapBefore,
           registerKeyAtStart: toBudgetRegisterKey(register.getBestKey()),
         });
         beginCandidateWork();
-        activeRepairProfile = {
+        const repairRunProfile: ActiveRepairProfile = {
           anchorGapIndex: k,
           baseCostToEnd: costToEnd,
           reachFrames: new WeakMap<SearchNode, number>(),
         };
+        activeRepairProfile = repairRunProfile;
         repairLaneActive = true;
         activeRepairTargetGapIndex = kWorst;
         activeRepairTargetGapSse = pickedWeakGapSse;
@@ -3082,14 +3114,17 @@ function compileHandoffInternal(
           activeRepairProfile = null;
         }
         const completed = terminalConsiders > terminalsBefore;
-        const repairDivergence: BudgetRepairDivergence | null =
+        const workingToOfferDivergence: BudgetRepairDivergence | null =
           completed && lastTerminalNode !== null
             ? compareRepairTerminalGeometry(
-              incumbent.search.prefixFits,
+              workingTrack.search.prefixFits,
               lastTerminalNode.search.prefixFits,
               k,
             )
             : null;
+        const terminalOfferCostToEnd = completed && lastTerminalNode !== null
+          ? buildObservedCostToEnd(lastTerminalNode, getSimFrames(), repairRunProfile)
+          : null;
         const afterScore = bestCompleteNode === null
           ? beforeScore
           : evaluateCached(bestCompleteNode).key.full_score;
@@ -3109,6 +3144,78 @@ function compileHandoffInternal(
               gapReport.gap_index === kWorst
             ),
           );
+        const acceptedAlternative = incumbentRevision > incumbentRevisionBefore;
+        let rejectedLocalImprovementFollowup:
+          BudgetEpisodeTelemetry["outcome"]["rejected_local_improvement_followup"] =
+            "not_rejected_local_improvement";
+        const workingTargetSse = workingWeakGapBefore.status === "measured"
+          ? workingWeakGapBefore.sse
+          : null;
+        const offerTargetSse = terminalOfferTargetGap?.status === "measured"
+          ? terminalOfferTargetGap.sse
+          : null;
+        if (
+          completed &&
+          !acceptedAlternative &&
+          lastTerminalNode !== null &&
+          terminalOfferCostToEnd !== null &&
+          workingTargetSse !== null &&
+          offerTargetSse !== null &&
+          offerTargetSse < workingTargetSse
+        ) {
+          if (bridgeInput !== null) {
+            rejectedLocalImprovementFollowup = "blocked_one_step_limit";
+          } else if (attempts >= repair.maxAttempts) {
+            rejectedLocalImprovementFollowup = "blocked_attempt_limit";
+          } else {
+            const followupRemaining = repairBudget - getSimFrames();
+            const followupMeasuredCost = (gapIndex: number): number | null => {
+              const measured = terminalOfferCostToEnd[gapIndex];
+              return measured !== undefined && measured > 0 ? measured : null;
+            };
+            const followupFallbackCost = (gapIndex: number): number =>
+              perGap * Math.max(1, gaps.length - gapIndex);
+            const followupPointCosts = Array.from(
+              { length: gaps.length + 1 },
+              (_, gapIndex) => followupMeasuredCost(gapIndex) ?? followupFallbackCost(gapIndex),
+            );
+            const followupUpperCosts = Array.from(
+              { length: gaps.length + 1 },
+              (_, gapIndex) => repairRestartCeilingFrames(
+                followupMeasuredCost(gapIndex),
+                followupFallbackCost(gapIndex),
+              ),
+            );
+            const followupEvaluation = evaluateCached(lastTerminalNode);
+            const followupTargets = followupEvaluation.report.gaps
+              .filter((gapReport) => gaps[gapReport.gap_index]?.endsWithContact)
+              .map((gapReport) => ({
+                gapIndex: gapReport.gap_index,
+                sse: gapAxisSse(gapReport) ?? 0,
+              }));
+            const followupSelection = selectRepairRestart(
+              followupTargets,
+              followupPointCosts,
+              followupUpperCosts,
+              followupRemaining,
+              repair.headroomFraction,
+              repair.maxParentDepth,
+              repair.selectionPolicy,
+            );
+            if (followupSelection === null) {
+              rejectedLocalImprovementFollowup = "no_affordable_repair";
+            } else if (!repair.rejectedLocalImprovementBridge) {
+              rejectedLocalImprovementFollowup = "eligible_policy_disabled";
+            } else {
+              rejectedLocalImprovementFollowup = "scheduled";
+              pendingRejectedLocalBridge = {
+                node: lastTerminalNode,
+                costToEnd: terminalOfferCostToEnd,
+                parentEpisodeId: repairEpisodeId,
+              };
+            }
+          }
+        }
         finishActiveCandidateWork();
         budgetRecorder.endEpisode(
           getSimFrames(),
@@ -3122,7 +3229,8 @@ function compileHandoffInternal(
             registerKeyAtEnd: toBudgetRegisterKey(register.getBestKey()),
             terminalOfferTargetGap,
             incumbentTargetGapAfter: pickedWeakGapAfter,
-            repairDivergence,
+            workingToOfferDivergence,
+            rejectedLocalImprovementFollowup,
           },
         );
         budgetRecorder.recordSegment(
@@ -3132,9 +3240,8 @@ function compileHandoffInternal(
           completed ? "terminal_considered" : "no_terminal",
           repairEpisodeId,
         );
-        // The next loop iteration deliberately ignores whether this alternative
-        // was accepted. It rereads bestCompleteNode, remaining budget, and that
-        // incumbent's profile from scratch.
+        // Ordinary iterations reread the global incumbent from scratch. A
+        // scheduled bridge is the sole exception and is consumed exactly once.
       }
     };
 
@@ -8337,6 +8444,7 @@ type RepairConfig = {
   headroomFraction: number;
   selectionPolicy: RepairSelectionPolicy;
   suffixSearchPolicy: RepairSuffixSearchPolicy;
+  rejectedLocalImprovementBridge: boolean;
 };
 /** Repair takes over at the first completion, not after a margin past it.
  *  Bracketed N=8 against `scarce-lean`: 1.0 +0.28 (SE 0.14), 1.1 shipped,
@@ -8390,6 +8498,10 @@ function repairConfig(): RepairConfig {
           ? "max_local_window_opportunity"
           : "worst_gap_deepest_affordable",
     suffixSearchPolicy: repairSuffixSearchPolicy(),
+    // Study-only protected bridge. It may spend one follow-up from a rejected
+    // terminal that improved its selected target; it never changes the global
+    // acceptance rule or promotes the working track by local quality alone.
+    rejectedLocalImprovementBridge: readEnv("LR_REPAIR_REJECTED_LOCAL_BRIDGE") === "1",
   };
 }
 

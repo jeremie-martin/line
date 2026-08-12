@@ -131,11 +131,32 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
     episode.anchor.gap_index)],
   ["repairMeanParentDepth", (row) => episodeMean(repairEpisodes(row), (episode) =>
     episode.repair_decision?.parent_depth ?? null)],
+  ["repairRejectedLocalBridgeEpisodes", (row) => repairEpisodes(row).filter((episode) =>
+    episode.repair_decision?.working_track_source === "rejected_local_improvement"
+  ).length],
+  ["repairRejectedLocalFollowupEligiblePolicyDisabled", (row) => repairEpisodes(row)
+    .filter((episode) =>
+      episode.outcome.rejected_local_improvement_followup === "eligible_policy_disabled"
+    ).length],
+  ["repairRejectedLocalFollowupNoAffordableRepair", (row) => repairEpisodes(row)
+    .filter((episode) =>
+      episode.outcome.rejected_local_improvement_followup === "no_affordable_repair"
+    ).length],
+  ["repairRejectedLocalFollowupScheduled", (row) => repairEpisodes(row)
+    .filter((episode) =>
+      episode.outcome.rejected_local_improvement_followup === "scheduled"
+    ).length],
+  ["repairRejectedLocalFollowupBlockedOneStep", (row) => repairEpisodes(row)
+    .filter((episode) =>
+      episode.outcome.rejected_local_improvement_followup === "blocked_one_step_limit"
+    ).length],
   ["repairIdenticalTerminalGeometry", (row) => repairEpisodes(row)
-    .filter((episode) => episode.outcome.repair_divergence?.terminal_geometry_identical === true)
+    .filter((episode) =>
+      episode.outcome.working_to_offer_divergence?.terminal_geometry_identical === true
+    )
     .length],
   ["repairMeanDivergentSuffixGaps", (row) => episodeMean(repairEpisodes(row), (episode) =>
-    episode.outcome.repair_divergence?.divergent_suffix_gap_count ?? null)],
+    episode.outcome.working_to_offer_divergence?.divergent_suffix_gap_count ?? null)],
   ["repairDistinctAnchorGaps", (row) => new Set(repairEpisodes(row)
     .map((episode) => episode.anchor.gap_index)).size],
   ["repairTotalAllocatedFrames", (row) => sumRepairEpisodes(row, (episode) =>
@@ -248,7 +269,7 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
   )],
   ["repairTerminalOfferTargetGapSseImprovement", (row) =>
     sumComparableRepairEpisodes(row, (episode) => {
-      const before = measuredGapSse(episode.incumbent_target_gap_before);
+      const before = measuredGapSse(episode.working_target_gap_before);
       const offer = measuredGapSse(episode.outcome.terminal_offer_target_gap);
       return before === null || offer === null ? null : before - offer;
     })],
@@ -271,7 +292,7 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
   }],
   ["repairTerminalOfferTargetGapImprovementRate", (row) => {
     const observations = repairEpisodes(row).flatMap((episode) => {
-      const before = measuredGapSse(episode.incumbent_target_gap_before);
+      const before = measuredGapSse(episode.working_target_gap_before);
       const offer = episode.outcome.terminal_offer_target_gap;
       return before === null || offer === null ? [] : [{ before, offer }];
     });
@@ -411,7 +432,7 @@ function telemetry(row: RunRow): CompileBudgetTelemetry {
       );
     }
     if (episode.lane === "repair" && episode.outcome.terminal_reached &&
-        episode.outcome.repair_divergence === null) {
+        episode.outcome.working_to_offer_divergence === null) {
       throw new Error(
         `scale mechanics row ${runKey(row)} episode ${episode.episode_id} has no divergence evidence`,
       );

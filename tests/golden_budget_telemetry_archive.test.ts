@@ -137,7 +137,8 @@ const PAYLOAD = {
       final_register_improvement_offset_frames: 400,
       first_terminal_register_improvement_offset_frames: 400,
       internal_full_score_delta: null,
-      repair_divergence: null,
+      working_to_offer_divergence: null,
+      rejected_local_improvement_followup: "not_rejected_local_improvement",
       terminal_observation_censored: false,
     },
   }],
@@ -198,7 +199,7 @@ describe("golden archive form of budget telemetry", () => {
       schema: "line.compile-budget-telemetry.v2",
       episodes: [],
       execution_intervals: [],
-    } as unknown as CompileBudgetTelemetry)).toThrow(/expected line\.compile-budget-telemetry\.v7/);
+    } as unknown as CompileBudgetTelemetry)).toThrow(/expected line\.compile-budget-telemetry\.v8/);
     expect(() => compactBudgetTelemetry({
       schema: BUDGET_TELEMETRY_SCHEMA,
       episodes: [],

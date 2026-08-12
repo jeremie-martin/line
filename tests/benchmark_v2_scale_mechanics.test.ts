@@ -35,11 +35,22 @@ describe("paired scale mechanics", () => {
           repair_decision: {
             iteration_index: 0,
             incumbent_revision: 0,
+            incumbent_track_hash: "a".repeat(64),
+            working_track_source: candidate
+              ? "rejected_local_improvement"
+              : "global_incumbent",
+            working_track_hash: candidate ? "b".repeat(64) : "a".repeat(64),
             parent_depth: 1,
             target_gap_index: candidate ? 5 : 4,
             anchor_gap_index: candidate ? 4 : 3,
           },
           incumbent_target_gap_before: {
+            status: "measured",
+            gap_index: candidate ? 5 : 4,
+            sse: 0.3,
+            axes: {},
+          },
+          working_target_gap_before: {
             status: "measured",
             gap_index: candidate ? 5 : 4,
             sse: 0.3,
@@ -69,7 +80,7 @@ describe("paired scale mechanics", () => {
               sse: candidate ? 0.1 : 0.3,
               axes: {},
             },
-            repair_divergence: {
+            working_to_offer_divergence: {
               compared_gap_count: 8,
               first_divergent_gap_index: candidate ? 4 : null,
               divergent_gap_count: candidate ? 2 : 0,
@@ -80,6 +91,9 @@ describe("paired scale mechanics", () => {
             spent_frames: budget / 3,
             first_terminal_offset_frames: budget / 4,
             terminal_observation_censored: false,
+            rejected_local_improvement_followup: candidate
+              ? "blocked_one_step_limit"
+              : "not_rejected_local_improvement",
             stop_reason: candidate ? "first_terminal_return" : "local_ceiling",
           },
         }],
@@ -101,6 +115,8 @@ describe("paired scale mechanics", () => {
     expect(result.overall.metrics.repairRegisterImprovements.candidateMean).toBe(2);
     expect(result.overall.metrics.repairFirstTerminalReturnEpisodes.candidateMean).toBe(1);
     expect(result.overall.metrics.repairMeanAnchorGap.delta).toBe(1);
+    expect(result.overall.metrics.repairRejectedLocalBridgeEpisodes.delta).toBe(1);
+    expect(result.overall.metrics.repairRejectedLocalFollowupBlockedOneStep.delta).toBe(1);
     expect(result.overall.metrics.repairTerminalReachedRate.candidateMean).toBe(1);
     expect(result.overall.metrics.repairTotalSpentFrames.candidateMean).toBe(50);
     expect(result.overall.metrics.repairTerminalImprovementPerEvaluation).toMatchObject({
@@ -163,7 +179,7 @@ describe("paired scale mechanics", () => {
       .toThrow(/reference contains duplicate cell/);
     const old = structuredClone(base);
     old.budgetTelemetry.schema = "line.compile-budget-telemetry.v2";
-    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v7/);
+    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v8/);
 
     const corrupt = structuredClone(base);
     corrupt.budgetTelemetry.compile.work.actual_candidate_samples++;

@@ -41,6 +41,8 @@ function row() {
       iteration_index: iteration,
       incumbent_revision: revision,
       incumbent_track_hash: "a".repeat(64),
+      working_track_source: "global_incumbent",
+      working_track_hash: "a".repeat(64),
       remaining_budget_frames: remaining,
       headroom_fraction: 0.2,
       usable_budget_frames: Math.floor(remaining * 0.8),
@@ -70,6 +72,7 @@ function row() {
       })),
     },
     incumbent_target_gap_before: { status: "measured", gap_index: target, sse: before, axes: {} },
+    working_target_gap_before: { status: "measured", gap_index: target, sse: before, axes: {} },
     start_total_spent_frames: start,
     allocated_frames: Math.floor(remaining * 0.7),
     register_key_at_start: key(scoreBefore),
@@ -87,7 +90,7 @@ function row() {
       internal_full_score_delta: scoreAfter - scoreBefore,
       terminal_offer_target_gap: { status: "measured", gap_index: target, sse: offer, axes: {} },
       incumbent_target_gap_after: { status: "measured", gap_index: target, sse: after, axes: {} },
-      repair_divergence: {
+      working_to_offer_divergence: {
         compared_gap_count: 10,
         first_divergent_gap_index: anchor,
         divergent_gap_count: 10 - anchor,
@@ -95,6 +98,7 @@ function row() {
         terminal_geometry_identical: false,
       },
       terminal_offer_track_hash: (accepted ? "b" : "c").repeat(64),
+      rejected_local_improvement_followup: "not_rejected_local_improvement",
     },
   });
   return {
@@ -192,7 +196,7 @@ describe("repair behavior analysis", () => {
     expect(result.terminalOfferDiversity).toMatchObject({
       terminalOffersWithHash: 2,
       distinctTerminalOfferTracks: 2,
-      repeatedTerminalOffersAgainstSameIncumbent: 0,
+      repeatedTerminalOffersAgainstSameWorkingTrack: 0,
     });
     expect(result.transitionOutcomes.afterRejectedDifferentDecision).toMatchObject({
       repairEpisodes: 1,
@@ -220,6 +224,30 @@ describe("repair behavior analysis", () => {
       terminalOfferTargetGapImprovementRate: 0.5,
       rejectedTerminalOfferTargetGapImproved: 0,
       acceptedTerminalOfferTargetGapMissing: 0,
+    });
+  });
+
+  test("audits and reports one-step rejected-local-improvement lineage", () => {
+    const input = row();
+    const [parent, bridge] = input.budgetTelemetry.episodes;
+    parent.outcome.rejected_local_improvement_followup = "scheduled";
+    bridge.parent_episode_id = parent.episode_id;
+    bridge.repair_decision.working_track_source = "rejected_local_improvement";
+    bridge.repair_decision.working_track_hash = parent.outcome.terminal_offer_track_hash;
+
+    const result = summarizeRepairBehavior([input]);
+
+    expect(result.invariantAudit.passed).toBe(true);
+    expect(result.overall.workingTrackBridgeEpisodes).toBe(1);
+    expect(result.overall.rejectedLocalImprovementFollowup).toMatchObject({ scheduled: 1 });
+    expect(result.transitions).toMatchObject({
+      afterRejected: 1,
+      afterRejectedLocalBridge: 1,
+      afterRejectedGlobalIncumbentFollowup: 0,
+    });
+    expect(result.transitionOutcomes.afterRejectedLocalBridge).toMatchObject({
+      repairEpisodes: 1,
+      acceptedAlternatives: 1,
     });
   });
 

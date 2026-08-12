@@ -17,7 +17,7 @@ describe("Benchmark V2 scale analysis projection", () => {
         unrelated_large_stats: { samples: [1, 2, 3] },
       },
       budgetTelemetry: {
-        schema: "line.compile-budget-telemetry.v7",
+        schema: "line.compile-budget-telemetry.v8",
         node_events: [{ large: true }],
         compile: { work: {} },
         episodes: [{
@@ -25,6 +25,7 @@ describe("Benchmark V2 scale analysis projection", () => {
             target_gap_index: 4,
             considered_targets: [{ large: true }],
             incumbent_track_hash: "incumbent",
+            working_track_hash: "working",
           },
           outcome: {
             terminal_reached: true,

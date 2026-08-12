@@ -177,6 +177,7 @@ const KNOWN_EPISODE = new Set([
   "anchor",
   "repair_decision",
   "incumbent_target_gap_before",
+  "working_target_gap_before",
   "start_total_spent_frames",
   "ceiling_total_spent_frames",
   "ceiling_source",
@@ -463,7 +464,7 @@ const EPISODE_COLUMNS: EpisodeColumn[] = [
     align: "r",
     optional: true,
     cell: (a) => {
-      const before = asRecord(a.incumbent_target_gap_before);
+      const before = asRecord(a.working_target_gap_before);
       return before === null || num(before.sse) === null ? MISSING : ratio(before.sse, 4);
     },
   },

@@ -52,6 +52,7 @@ export type RepairPolicy =
 export type RepairSelectionPolicy =
   | "reserve-cheapest-repair"
   | "reserve-cheapest-else-deepest"
+  | "late-reserve-cheapest-else-deepest"
   | "worst-target-runway-per-cost";
 
 export type MultiBudgetBaseline = {
@@ -823,13 +824,15 @@ function parseRepairSelectionPolicy(raw: string | undefined): RepairSelectionPol
   if (
     raw === "reserve-cheapest-repair" ||
     raw === "reserve-cheapest-else-deepest" ||
+    raw === "late-reserve-cheapest-else-deepest" ||
     raw === "worst-target-runway-per-cost"
   ) {
     return raw;
   }
   throw new Error(
-    `--repair-selection-policy must be reserve-cheapest-repair or ` +
-      `reserve-cheapest-else-deepest, or worst-target-runway-per-cost`,
+    `--repair-selection-policy must be reserve-cheapest-repair, ` +
+      `reserve-cheapest-else-deepest, late-reserve-cheapest-else-deepest, ` +
+      `or worst-target-runway-per-cost`,
   );
 }
 

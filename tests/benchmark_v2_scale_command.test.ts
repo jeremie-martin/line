@@ -144,6 +144,9 @@ describe("Benchmark V2 scale command contract", () => {
       "--repair-selection-policy=reserve-cheapest-else-deepest",
     ])).toBe("reserve-cheapest-else-deepest");
     expect(scaleRepairSelectionPolicyArgument([
+      "--repair-selection-policy=late-reserve-cheapest-else-deepest",
+    ])).toBe("late-reserve-cheapest-else-deepest");
+    expect(scaleRepairSelectionPolicyArgument([
       "--repair-selection-policy=worst-target-runway-per-cost",
     ])).toBe("worst-target-runway-per-cost");
   });

@@ -13,6 +13,7 @@ import {
   optimisticSuffixAxisQualityBound,
   prioritizeRepairTargetOptions,
   repairRestartCeilingFrames,
+  repairSelectionPolicyForIteration,
   repairSuffixSearchPolicy,
   selectAffordableRepairTarget,
   selectRepairRestart,
@@ -1017,6 +1018,16 @@ describe("repair target selection", () => {
       anchorGapIndex: 0,
       parentDepth: 4,
     });
+  });
+
+  test("isolates the late reserve law from the first two repair iterations", () => {
+    const ordinary = "worst_gap_deepest_affordable" as const;
+    const reserve = "worst_gap_reserve_cheapest_else_deepest" as const;
+    expect(repairSelectionPolicyForIteration(ordinary, reserve, 0)).toBe(ordinary);
+    expect(repairSelectionPolicyForIteration(ordinary, reserve, 1)).toBe(ordinary);
+    expect(repairSelectionPolicyForIteration(ordinary, reserve, 2)).toBe(reserve);
+    expect(repairSelectionPolicyForIteration(ordinary, reserve, 17)).toBe(reserve);
+    expect(repairSelectionPolicyForIteration(ordinary, null, 17)).toBe(ordinary);
   });
 
   test("prices worst-target arrival runway instead of blindly taking the deepest anchor", () => {

@@ -348,3 +348,31 @@ The result establishes that late-repair breadth can be reduced without harming
 the high-value early repairs; it also shows that manufacturing still more very
 late alternatives has sharply diminishing authored value. Exact evidence is in
 `benchmark/v2/studies/late-repair-breadth-isolation.json`.
+
+### Late-repair anchor reserve — declared
+
+The deferred question is whether a repair should restart earlier merely because
+the longer suffix is affordable. The current-scorer all-repair reserve audit
+provides a narrow phase hypothesis. Relative to production, its iterations zero
+and one lost 67.11 aggregate internal score points. Its iteration-two-and-later
+rows gained 8.34 points while replacing longer suffixes with more short repair
+attempts. Those later rows inherit changed incumbents and therefore are an
+association, not a causal result.
+
+This arm isolates that hypothesis. Repair iterations zero and one use the
+production `worst_gap_deepest_affordable` selection exactly. Beginning at
+iteration two, the unchanged worst affordable target uses the already-audited
+`worst_gap_reserve_cheapest_else_deepest` law: reserve the cheapest currently
+affordable further repair, choose the deepest parent whose upper cost plus that
+reserve fits, and use the production deepest parent only when no second repair
+fits. The incumbent, target, costs, and reserve are recomputed after every
+terminal. The effective underlying law is recorded in each V3 repair decision,
+so the phase boundary is directly auditable.
+
+Breadth, scorer, first-terminal search, repair budget, maximum parent depth,
+and acceptance remain fixed. In particular, the arm is not combined with the
+positive-but-inconclusive late 7/8 breadth result. The single inherited phase
+boundary follows the observed return break after iteration one and will not be
+tuned. The frozen 4/8/16 scale ladder decides whether to extend. Promotion
+requires unchanged validity, exact iteration-zero/one mechanics, a positive
+scale decision, and canonical confirmation.

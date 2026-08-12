@@ -73,6 +73,7 @@ type StudyTask = {
   repairSelectionPolicy?:
     | "reserve-cheapest-repair"
     | "reserve-cheapest-else-deepest"
+    | "late-reserve-cheapest-else-deepest"
     | "worst-target-runway-per-cost";
   aimImpactPower?: number;
   aimTopKExponent?: number;
@@ -517,6 +518,7 @@ function studyPlanFingerprint(input: {
   repairSelectionPolicy?:
     | "reserve-cheapest-repair"
     | "reserve-cheapest-else-deepest"
+    | "late-reserve-cheapest-else-deepest"
     | "worst-target-runway-per-cost";
   aimImpactPower?: number;
   aimTopKExponent?: number;
@@ -821,19 +823,22 @@ function parseRepairSelectionPolicy(
 ):
   | "reserve-cheapest-repair"
   | "reserve-cheapest-else-deepest"
+  | "late-reserve-cheapest-else-deepest"
   | "worst-target-runway-per-cost"
   | undefined {
   if (value === undefined) return undefined;
   if (
     value === "reserve-cheapest-repair" ||
     value === "reserve-cheapest-else-deepest" ||
+    value === "late-reserve-cheapest-else-deepest" ||
     value === "worst-target-runway-per-cost"
   ) {
     return value;
   }
   throw new Error(
-    "--repair-selection-policy must be reserve-cheapest-repair or " +
-      "reserve-cheapest-else-deepest, or worst-target-runway-per-cost",
+    "--repair-selection-policy must be reserve-cheapest-repair, " +
+      "reserve-cheapest-else-deepest, late-reserve-cheapest-else-deepest, " +
+      "or worst-target-runway-per-cost",
   );
 }
 

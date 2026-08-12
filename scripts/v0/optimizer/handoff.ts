@@ -2988,6 +2988,12 @@ function compileHandoffInternal(
             gapIndex: gapReport.gap_index,
             sse: gapAxisSse(gapReport) ?? 0,
           }));
+        const iterationIndex = attempts;
+        const selectionPolicy = repairSelectionPolicyForIteration(
+          repair.selectionPolicy,
+          repair.lateSelectionPolicy,
+          iterationIndex,
+        );
         const target = selectRepairRestart(
           targetCandidates,
           pointCostByAnchor,
@@ -2995,10 +3001,10 @@ function compileHandoffInternal(
           remaining,
           repair.headroomFraction,
           repair.maxParentDepth,
-          repair.selectionPolicy,
+          selectionPolicy,
         );
         if (target === null) break;
-        const iterationIndex = attempts++;
+        attempts++;
         const kWorst = target.targetGapIndex;
         const k = target.anchorGapIndex;
         const pickedWeakGapSse = target.targetGapSse;
@@ -3206,7 +3212,11 @@ function compileHandoffInternal(
               followupRemaining,
               repair.headroomFraction,
               repair.maxParentDepth,
-              repair.selectionPolicy,
+              repairSelectionPolicyForIteration(
+                repair.selectionPolicy,
+                repair.lateSelectionPolicy,
+                attempts,
+              ),
             );
             if (followupSelection === null) {
               rejectedLocalImprovementFollowup = "no_affordable_repair";
@@ -8633,6 +8643,7 @@ type RepairConfig = {
   maxParentDepth: number;
   headroomFraction: number;
   selectionPolicy: RepairSelectionPolicy;
+  lateSelectionPolicy: RepairSelectionPolicy | null;
   suffixSearchPolicy: RepairSuffixSearchPolicy;
   rejectedLocalImprovementBridge:
     | "disabled"
@@ -8647,6 +8658,19 @@ type RepairConfig = {
  *  and their profile predicates are gone with them. */
 const REPAIR_MAIN_MARGIN = 1.0;
 
+/** Resolve a declared phase-isolation study without obscuring the replayable
+ * selection law recorded for each repair decision. Production has no late
+ * override; the study preserves iterations zero and one exactly. */
+export function repairSelectionPolicyForIteration(
+  selectionPolicy: RepairSelectionPolicy,
+  lateSelectionPolicy: RepairSelectionPolicy | null,
+  iterationIndex: number,
+): RepairSelectionPolicy {
+  return lateSelectionPolicy !== null && iterationIndex >= 2
+    ? lateSelectionPolicy
+    : selectionPolicy;
+}
+
 /** A single repair policy: worst affordable target, then its deepest affordable
  * parent up to one declared cap. Environment overrides declare diagnostic arms;
  * they are not hidden execution fallback modes. */
@@ -8659,6 +8683,7 @@ function repairConfig(): RepairConfig {
     const n = Number.parseFloat(readEnv(name) ?? "");
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
   };
+  const repairSelectionPolicy = readEnv("LR_REPAIR_SELECTION_POLICY");
   return {
     // Gate: below this, completion is the hard part (DFS's job) and the carve starves it.
     // Lowered 150k→100k (2026-06-07): on the 30-spec board all specs already complete at
@@ -8683,19 +8708,25 @@ function repairConfig(): RepairConfig {
     // The estimator's upper interval is already the local execution ceiling;
     // retain no second hidden reserve in target/anchor eligibility.
     headroomFraction: flt("LR_REPAIR_HEADROOM_FRACTION", 0, 0, 0.95),
-    selectionPolicy: readEnv("LR_REPAIR_SELECTION_POLICY") === "reserve-cheapest-repair"
+    selectionPolicy: repairSelectionPolicy === "reserve-cheapest-repair"
       ? "worst_gap_reserve_cheapest_repair"
-      : readEnv("LR_REPAIR_SELECTION_POLICY") === "reserve-cheapest-else-deepest"
+      : repairSelectionPolicy === "reserve-cheapest-else-deepest"
         ? "worst_gap_reserve_cheapest_else_deepest"
-        : readEnv("LR_REPAIR_SELECTION_POLICY") === "worst-target-runway-per-cost"
+        : repairSelectionPolicy === "worst-target-runway-per-cost"
           ? "worst_gap_runway_opportunity_per_cost"
-          : readEnv("LR_REPAIR_SELECTION_POLICY") === "suffix-opportunity-per-cost"
+          : repairSelectionPolicy === "suffix-opportunity-per-cost"
             ? "suffix_opportunity_per_cost"
-            : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-suffix-opportunity"
+            : repairSelectionPolicy === "max-suffix-opportunity"
               ? "max_suffix_opportunity"
-              : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-local-window-opportunity"
+              : repairSelectionPolicy === "max-local-window-opportunity"
                 ? "max_local_window_opportunity"
                 : "worst_gap_deepest_affordable",
+    // Study-only phase isolation: retain production selection for the two
+    // high-return repairs, then reserve the cheapest further repair. The
+    // effective replayable law, not this wrapper name, is recorded per episode.
+    lateSelectionPolicy: repairSelectionPolicy === "late-reserve-cheapest-else-deepest"
+      ? "worst_gap_reserve_cheapest_else_deepest"
+      : null,
     suffixSearchPolicy: repairSuffixSearchPolicy(),
     // Study-only protected bridge. It may spend one follow-up from a rejected
     // terminal that improved its selected target; it never changes the global

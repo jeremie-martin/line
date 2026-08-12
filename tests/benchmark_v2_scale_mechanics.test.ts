@@ -94,6 +94,7 @@ describe("paired scale mechanics", () => {
             rejected_local_improvement_followup: candidate
               ? "blocked_one_step_limit"
               : "not_rejected_local_improvement",
+            rejected_local_improvement_bridge_assessment: null,
             stop_reason: candidate ? "first_terminal_return" : "local_ceiling",
           },
         }],
@@ -179,7 +180,7 @@ describe("paired scale mechanics", () => {
       .toThrow(/reference contains duplicate cell/);
     const old = structuredClone(base);
     old.budgetTelemetry.schema = "line.compile-budget-telemetry.v2";
-    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v8/);
+    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v9/);
 
     const corrupt = structuredClone(base);
     corrupt.budgetTelemetry.compile.work.actual_candidate_samples++;

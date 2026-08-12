@@ -9,6 +9,7 @@ import {
   hasStartFeasibilityLookahead,
   impactRepairInsuranceMode,
   impactResponseAdmissionMode,
+  optimisticSuffixAxisQualityBound,
   prioritizeRepairTargetOptions,
   repairRestartCeilingFrames,
   repairSuffixSearchPolicy,
@@ -1029,5 +1030,21 @@ describe("repair target selection", () => {
     )).toEqual([900, 600, 300, 180, 0]);
     expect(spliceRepairCostToEnd([-1, -1, 300], [-1, 700, 400], 2))
       .toEqual([-1, 600, 300]);
+  });
+
+  test("bounds suffix repair without rewriting authored prefix errors", () => {
+    const report = {
+      gaps: [
+        { gap_index: 0, axes: { air: { error: 0.3 } } },
+        { gap_index: 1, axes: { speed: { error: -0.2 } } },
+        { gap_index: 2, axes: { impact: { error: 0.1 } } },
+      ],
+    } as any;
+    const bound = optimisticSuffixAxisQualityBound(report, 1);
+    expect(bound.scoredAxisObservationCount).toBe(3);
+    expect(bound.totalAxisSse).toBeCloseTo(0.14, 12);
+    expect(bound.mutableSuffixAxisSse).toBeCloseTo(0.05, 12);
+    expect(bound.optimisticSuffixAxisQualityUpper)
+      .toBeCloseTo(Math.exp(-Math.sqrt(0.09 / 3) / 0.25), 12);
   });
 });

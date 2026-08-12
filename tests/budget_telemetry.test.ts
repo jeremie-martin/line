@@ -568,6 +568,7 @@ describe("compile budget telemetry", () => {
       incumbent_target_gap_after: null,
       working_to_offer_divergence: null,
       rejected_local_improvement_followup: "not_rejected_local_improvement",
+      rejected_local_improvement_bridge_assessment: null,
       terminal_offer_track_hash: null,
       terminal_observation_censored: false,
     });
@@ -1133,6 +1134,40 @@ describe("compile budget telemetry", () => {
         expect(next?.parent_episode_id).toBe(repair.episode_id);
         expect(next?.repair_decision!.working_track_source)
           .toBe("rejected_local_improvement");
+      }
+    } finally {
+      if (previous === undefined) delete process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
+      else process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = previous;
+    }
+  }, 180_000);
+
+  test("records and enforces the optimistic bridge quality bound", async () => {
+    const previous = process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
+    process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "optimistic-axis-bound";
+    try {
+      const spec = await loadGoldenSpec("cold_start", "base");
+      const result = compileHandoff(spec, 0, {
+        budget: 150_000,
+        polish: false,
+        budgetTelemetry: "summary",
+      });
+      const repairs = result.budgetTelemetry!.episodes.filter((episode) =>
+        episode.lane === "repair"
+      );
+      const assessed = repairs.filter((episode) =>
+        episode.outcome.rejected_local_improvement_bridge_assessment !== null
+      );
+      expect(assessed.length).toBeGreaterThan(0);
+      for (const episode of assessed) {
+        const assessment = episode.outcome.rejected_local_improvement_bridge_assessment!;
+        expect(assessment.policy).toBe("optimistic_axis_quality_bound");
+        expect(assessment.mutable_suffix_axis_sse)
+          .toBeLessThanOrEqual(assessment.total_axis_sse + 1e-9);
+        expect(episode.outcome.rejected_local_improvement_followup).toBe(
+          assessment.bound_can_beat_incumbent
+            ? "scheduled"
+            : "optimistic_bound_cannot_beat_incumbent",
+        );
       }
     } finally {
       if (previous === undefined) delete process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;

@@ -142,6 +142,15 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
     .filter((episode) =>
       episode.outcome.rejected_local_improvement_followup === "no_affordable_repair"
     ).length],
+  ["repairRejectedLocalFollowupOptimisticBoundRejected", (row) => repairEpisodes(row)
+    .filter((episode) =>
+      episode.outcome.rejected_local_improvement_followup ===
+        "optimistic_bound_cannot_beat_incumbent"
+    ).length],
+  ["repairRejectedLocalBridgeAssessments", (row) => repairEpisodes(row)
+    .filter((episode) =>
+      episode.outcome.rejected_local_improvement_bridge_assessment !== null
+    ).length],
   ["repairRejectedLocalFollowupScheduled", (row) => repairEpisodes(row)
     .filter((episode) =>
       episode.outcome.rejected_local_improvement_followup === "scheduled"

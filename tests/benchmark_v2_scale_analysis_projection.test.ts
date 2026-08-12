@@ -17,7 +17,7 @@ describe("Benchmark V2 scale analysis projection", () => {
         unrelated_large_stats: { samples: [1, 2, 3] },
       },
       budgetTelemetry: {
-        schema: "line.compile-budget-telemetry.v8",
+        schema: "line.compile-budget-telemetry.v9",
         node_events: [{ large: true }],
         compile: { work: {} },
         episodes: [{

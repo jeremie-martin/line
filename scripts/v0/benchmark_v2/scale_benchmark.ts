@@ -43,7 +43,9 @@ export type BreadthPolicy =
   | "high-budget-three-quarter"
   | "repair-high-budget-three-quarter"
   | "linear-cap-216";
-export type RepairPolicy = "protected-one-step-bridge";
+export type RepairPolicy =
+  | "protected-one-step-bridge"
+  | "optimistic-axis-bound-bridge";
 
 export type MultiBudgetBaseline = {
   schema: typeof SCALE_BASELINE_SCHEMA;
@@ -663,8 +665,10 @@ export function scaleBreadthPolicyArgument(argv: string[]): BreadthPolicy | null
 
 function parseRepairPolicy(raw: string | undefined): RepairPolicy | null {
   if (raw === undefined) return null;
-  if (raw === "protected-one-step-bridge") return raw;
-  throw new Error(`--repair-policy must be protected-one-step-bridge`);
+  if (raw === "protected-one-step-bridge" || raw === "optimistic-axis-bound-bridge") return raw;
+  throw new Error(
+    `--repair-policy must be protected-one-step-bridge or optimistic-axis-bound-bridge`,
+  );
 }
 
 export function scaleRepairPolicyArgument(argv: string[]): RepairPolicy | null {

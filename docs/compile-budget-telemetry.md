@@ -1,4 +1,4 @@
-# Compile budget telemetry V8
+# Compile budget telemetry V9
 
 ## Contract
 
@@ -10,8 +10,8 @@ compiler search work:
 - `trace`: the summary payload plus estimator observations and atomic node
   events.
 
-The schema is `line.compile-budget-telemetry.v8`. Readers accept that exact
-schema only. V1–V7 archives are historical evidence with different attempt,
+The schema is `line.compile-budget-telemetry.v9`. Readers accept that exact
+schema only. V1–V8 archives are historical evidence with different attempt,
 identity, repair-selection, target-attribution, or working-track semantics; a
 reader must not rename their fields or fall back to `compile_stats`.
 
@@ -76,9 +76,16 @@ The payload replays the declared selection law exactly. There is no hidden
 controller mode or failed-anchor state to infer from episode order.
 `rejected_local_improvement_followup` records whether a rejected local
 improvement was not eligible, had no affordable repair, was eligible with the
-study policy disabled, was blocked by the one-step/attempt guard, or scheduled.
+study policy disabled, failed the optimistic axis-quality bound, was blocked by
+the one-step/attempt guard, or scheduled.
 A scheduled episode is the next repair, names its parent episode, and may enter
 the global register only through the ordinary global comparison.
+The selective bridge arm also records
+`rejected_local_improvement_bridge_assessment`: incumbent and offer contract
+state and axis quality, scored-axis count, total and mutable-suffix SSE, the
+optimistic quality upper bound obtained by setting every mutable suffix error
+to zero, and the exact bound decision. This is a search-pruning bound; it does
+not cap or rewrite any authored target.
 
 The production selection policy is `worst_gap_deepest_affordable`: rank target
 weakness among targets with an affordable anchor, then use that target's deepest

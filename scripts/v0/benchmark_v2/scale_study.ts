@@ -63,7 +63,7 @@ type StudyTask = {
   resumePolicy?: "legacy" | "none" | "remainder-aware";
   nCandExponent?: number;
   nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
-  repairPolicy?: "protected-one-step-bridge";
+  repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
 };
 
 type StudyWorkerResult = {
@@ -455,7 +455,7 @@ function studyPlanFingerprint(input: {
   resumePolicy?: "legacy" | "none" | "remainder-aware";
   nCandExponent?: number;
   nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
-  repairPolicy?: "protected-one-step-bridge";
+  repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
@@ -554,7 +554,10 @@ async function workerMain(task: StudyTask): Promise<void> {
     if (task.nCandPolicy === undefined) delete process.env.LR_STUDY_NCAND_POLICY;
     else process.env.LR_STUDY_NCAND_POLICY = task.nCandPolicy;
     if (task.repairPolicy === undefined) delete process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
-    else process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "1";
+    else process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = task.repairPolicy ===
+        "optimistic-axis-bound-bridge"
+      ? "optimistic-axis-bound"
+      : "1";
     const sources = resolveSources(loadSourceManifest(task.sourceManifestPath));
     const source = sources.find((entry) => entry.id === task.sourceId);
     if (source === undefined) throw new Error(`${task.sourceId}: source unavailable`);
@@ -687,10 +690,14 @@ function parseNCandPolicy(
 
 function parseRepairPolicy(
   value: string | undefined,
-): "protected-one-step-bridge" | undefined {
+): "protected-one-step-bridge" | "optimistic-axis-bound-bridge" | undefined {
   if (value === undefined) return undefined;
-  if (value === "protected-one-step-bridge") return value;
-  throw new Error("--repair-policy must be protected-one-step-bridge");
+  if (value === "protected-one-step-bridge" || value === "optimistic-axis-bound-bridge") {
+    return value;
+  }
+  throw new Error(
+    "--repair-policy must be protected-one-step-bridge or optimistic-axis-bound-bridge",
+  );
 }
 
 function relative(path: string): string {

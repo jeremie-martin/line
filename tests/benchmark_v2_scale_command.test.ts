@@ -79,5 +79,7 @@ describe("Benchmark V2 scale command contract", () => {
     expect(scaleRepairPolicyArgument([])).toBeNull();
     expect(scaleRepairPolicyArgument(["--repair-policy=protected-one-step-bridge"]))
       .toBe("protected-one-step-bridge");
+    expect(scaleRepairPolicyArgument(["--repair-policy=optimistic-axis-bound-bridge"]))
+      .toBe("optimistic-axis-bound-bridge");
   });
 });

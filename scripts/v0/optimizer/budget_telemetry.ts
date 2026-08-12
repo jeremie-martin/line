@@ -9,6 +9,7 @@
 
 import { createHash } from "node:crypto";
 import type { Gap } from "../types.ts";
+import { AXIS_QUALITY_TOLERANCE } from "../score.ts";
 import type { TraversalBudgetModel } from "./budget_model.ts";
 import {
   BUDGET_ESTIMATOR_MODEL,
@@ -27,13 +28,15 @@ import {
 /**
  * Clean-break search-accounting schema.
  *
- * V8 keeps the global incumbent, temporary working track, and terminal offer
+ * V9 keeps the global incumbent, temporary working track, and terminal offer
  * as separate causal states. A rejected local improvement can therefore seed
  * one follow-up without being mislabeled as accepted or as the output
- * incumbent. It also records the exact follow-up disposition. Historical
- * V4–V7 archives remain immutable evidence; current readers fail closed.
+ * incumbent. It also records the exact follow-up disposition and the
+ * replayable optimistic axis-quality bound used by selective bridge policy.
+ * Historical V4–V8 archives remain immutable evidence; current readers fail
+ * closed.
  */
-export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v8" as const;
+export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v9" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
 export type BudgetEpisodeLane = "initial" | "snapshot" | "repair" | "resumed";
@@ -366,6 +369,19 @@ export type BudgetRepairDivergence = {
   terminal_geometry_identical: boolean;
 };
 
+export type BudgetRejectedLocalBridgeAssessment = {
+  policy: "optimistic_axis_quality_bound";
+  incumbent_contract_passed: boolean;
+  terminal_offer_contract_passed: boolean;
+  incumbent_axis_quality: number;
+  terminal_offer_axis_quality: number;
+  scored_axis_observation_count: number;
+  total_axis_sse: number;
+  mutable_suffix_axis_sse: number;
+  optimistic_suffix_axis_quality_upper: number;
+  bound_can_beat_incumbent: boolean;
+};
+
 export type BudgetEpisodeTelemetry = {
   episode_id: number;
   lane: BudgetEpisodeLane;
@@ -438,9 +454,12 @@ export type BudgetEpisodeTelemetry = {
       | "not_rejected_local_improvement"
       | "no_affordable_repair"
       | "eligible_policy_disabled"
+      | "optimistic_bound_cannot_beat_incumbent"
       | "blocked_one_step_limit"
       | "blocked_attempt_limit"
       | "scheduled";
+    /** Selective-bridge bound inputs and result; null when that policy was not evaluated. */
+    rejected_local_improvement_bridge_assessment: BudgetRejectedLocalBridgeAssessment | null;
     /** SHA-256 of JSON.stringify(the repair terminal offer's track). */
     terminal_offer_track_hash: string | null;
     /** True when no terminal cost was observed; such episodes are not estimator error samples. */
@@ -582,6 +601,7 @@ type EndEpisodeOutcome = {
   incumbentTargetGapAfter?: BudgetRepairGapState | null;
   workingToOfferDivergence?: BudgetRepairDivergence | null;
   rejectedLocalImprovementFollowup?: BudgetEpisodeTelemetry["outcome"]["rejected_local_improvement_followup"];
+  rejectedLocalImprovementBridgeAssessment?: BudgetRejectedLocalBridgeAssessment | null;
 };
 
 type RecordAtomicNodeInput = Omit<
@@ -691,6 +711,7 @@ export class CompileBudgetTelemetryRecorder {
         incumbent_target_gap_after: null,
         working_to_offer_divergence: null,
         rejected_local_improvement_followup: "not_rejected_local_improvement",
+        rejected_local_improvement_bridge_assessment: null,
         terminal_offer_track_hash: null,
         terminal_observation_censored: true,
       },
@@ -875,6 +896,11 @@ export class CompileBudgetTelemetryRecorder {
     );
     episode.outcome.rejected_local_improvement_followup =
       outcome.rejectedLocalImprovementFollowup ?? "not_rejected_local_improvement";
+    episode.outcome.rejected_local_improvement_bridge_assessment =
+      outcome.rejectedLocalImprovementBridgeAssessment === undefined ||
+          outcome.rejectedLocalImprovementBridgeAssessment === null
+        ? null
+        : structuredClone(outcome.rejectedLocalImprovementBridgeAssessment);
     episode.register_key_at_end = cloneRegisterKey(outcome.registerKeyAtEnd ?? null);
     episode.outcome.internal_full_score_delta = outcome.internalFullScoreDelta !== undefined
       ? finiteOrNull(outcome.internalFullScoreDelta)
@@ -1685,6 +1711,7 @@ function validateTelemetryPayload(
         "not_rejected_local_improvement",
         "no_affordable_repair",
         "eligible_policy_disabled",
+        "optimistic_bound_cannot_beat_incumbent",
         "blocked_one_step_limit",
         "blocked_attempt_limit",
         "scheduled",
@@ -1700,6 +1727,45 @@ function validateTelemetryPayload(
       ))
     ) {
       throw new Error(`budget telemetry episode ${index} rejected-offer follow-up is inconsistent`);
+    }
+    const bridgeAssessment = episode.outcome.rejected_local_improvement_bridge_assessment;
+    if (bridgeAssessment === undefined) {
+      throw new Error(`budget telemetry episode ${index} rejected-offer bridge assessment is missing`);
+    }
+    if (bridgeAssessment !== null) {
+      const finiteUnit = (value: number): boolean => Number.isFinite(value) && value >= 0 && value <= 1;
+      const expectedUpper = bridgeAssessment.scored_axis_observation_count === 0
+        ? 1
+        : Math.exp(-Math.sqrt(Math.max(
+          0,
+          bridgeAssessment.total_axis_sse - bridgeAssessment.mutable_suffix_axis_sse,
+        ) / bridgeAssessment.scored_axis_observation_count) / AXIS_QUALITY_TOLERANCE);
+      const expectedCanBeat = !(
+        bridgeAssessment.incumbent_contract_passed &&
+        bridgeAssessment.terminal_offer_contract_passed &&
+        expectedUpper < bridgeAssessment.incumbent_axis_quality
+      );
+      if (
+        bridgeAssessment.policy !== "optimistic_axis_quality_bound" ||
+        !finiteUnit(bridgeAssessment.incumbent_axis_quality) ||
+        !finiteUnit(bridgeAssessment.terminal_offer_axis_quality) ||
+        !Number.isSafeInteger(bridgeAssessment.scored_axis_observation_count) ||
+        bridgeAssessment.scored_axis_observation_count < 0 ||
+        !Number.isFinite(bridgeAssessment.total_axis_sse) ||
+        bridgeAssessment.total_axis_sse < 0 ||
+        !Number.isFinite(bridgeAssessment.mutable_suffix_axis_sse) ||
+        bridgeAssessment.mutable_suffix_axis_sse < 0 ||
+        bridgeAssessment.mutable_suffix_axis_sse > bridgeAssessment.total_axis_sse + 1e-9 ||
+        !finiteUnit(bridgeAssessment.optimistic_suffix_axis_quality_upper) ||
+        Math.abs(bridgeAssessment.optimistic_suffix_axis_quality_upper - expectedUpper) > 1e-9 ||
+        bridgeAssessment.bound_can_beat_incumbent !== expectedCanBeat ||
+        (expectedCanBeat && followup !== "scheduled") ||
+        (!expectedCanBeat && followup !== "optimistic_bound_cannot_beat_incumbent")
+      ) {
+        throw new Error(`budget telemetry episode ${index} rejected-offer bridge assessment is inconsistent`);
+      }
+    } else if (followup === "optimistic_bound_cannot_beat_incumbent") {
+      throw new Error(`budget telemetry episode ${index} rejected-offer bridge assessment is missing`);
     }
     if (episode.lane === "repair") {
       const before = episode.incumbent_target_gap_before!;

@@ -1,5 +1,5 @@
 /**
- * Audit the independent repair controller from retained Budget Telemetry V8.
+ * Audit the independent repair controller from retained Budget Telemetry V9.
  *
  * This is deliberately not a score comparison. It checks controller invariants,
  * measures global-incumbent and temporary-working-track lineage, and
@@ -20,7 +20,7 @@ import {
   type CompileBudgetTelemetry,
 } from "../v0/optimizer/budget_telemetry.ts";
 
-export const REPAIR_BEHAVIOR_SCHEMA = "line.benchmark-v2.repair-behavior.v5" as const;
+export const REPAIR_BEHAVIOR_SCHEMA = "line.benchmark-v2.repair-behavior.v6" as const;
 
 type RunRow = {
   task: { sourceId: string; budget: number; actualSeed: number };
@@ -367,6 +367,18 @@ function auditRun(row: RunRow, audit: Audit): void {
         episode.outcome.rejected_local_improvement_followup !== "scheduled",
       label,
     );
+    const bridgeAssessment = episode.outcome.rejected_local_improvement_bridge_assessment;
+    if (bridgeAssessment !== null) {
+      audit.check(
+        "optimisticBridgeBoundMatchesDisposition",
+        bridgeAssessment.policy === "optimistic_axis_quality_bound" &&
+          (bridgeAssessment.bound_can_beat_incumbent
+            ? episode.outcome.rejected_local_improvement_followup === "scheduled"
+            : episode.outcome.rejected_local_improvement_followup ===
+              "optimistic_bound_cannot_beat_incumbent"),
+        label,
+      );
+    }
     if (decision.working_track_source === "rejected_local_improvement") {
       const parent = episode.parent_episode_id === null
         ? undefined

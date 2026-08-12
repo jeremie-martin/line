@@ -93,6 +93,7 @@ import {
   authoredSpeedToPx,
   speedPxToAuthored,
   PREROLL,
+  REPORT_ONLY_AXIS_SET,
   frameToSec,
   secToFrame,
   type AxisName,
@@ -169,6 +170,7 @@ import {
   type BudgetRepairDecision,
   type BudgetRepairDivergence,
   type BudgetRepairGapState,
+  type BudgetRejectedLocalBridgeAssessment,
   type BudgetRepairTargetObservation,
   type BudgetTelemetryLevel,
 } from "./budget_telemetry.ts";
@@ -3148,6 +3150,8 @@ function compileHandoffInternal(
         let rejectedLocalImprovementFollowup:
           BudgetEpisodeTelemetry["outcome"]["rejected_local_improvement_followup"] =
             "not_rejected_local_improvement";
+        let rejectedLocalImprovementBridgeAssessment:
+          BudgetRejectedLocalBridgeAssessment | null = null;
         const workingTargetSse = workingWeakGapBefore.status === "measured"
           ? workingWeakGapBefore.sse
           : null;
@@ -3204,15 +3208,45 @@ function compileHandoffInternal(
             );
             if (followupSelection === null) {
               rejectedLocalImprovementFollowup = "no_affordable_repair";
-            } else if (!repair.rejectedLocalImprovementBridge) {
+            } else if (repair.rejectedLocalImprovementBridge === "disabled") {
               rejectedLocalImprovementFollowup = "eligible_policy_disabled";
             } else {
-              rejectedLocalImprovementFollowup = "scheduled";
-              pendingRejectedLocalBridge = {
-                node: lastTerminalNode,
-                costToEnd: terminalOfferCostToEnd,
-                parentEpisodeId: repairEpisodeId,
-              };
+              let boundCanBeatIncumbent = true;
+              if (repair.rejectedLocalImprovementBridge === "optimistic_axis_quality_bound") {
+                const bound = optimisticSuffixAxisQualityBound(
+                  followupEvaluation.report,
+                  followupSelection.anchorGapIndex,
+                );
+                boundCanBeatIncumbent = !(
+                  incumbentEvaluation.key.contract_passed &&
+                  followupEvaluation.key.contract_passed &&
+                  bound.optimisticSuffixAxisQualityUpper < incumbentEvaluation.key.axis_quality
+                );
+                rejectedLocalImprovementBridgeAssessment = {
+                  policy: "optimistic_axis_quality_bound",
+                  incumbent_contract_passed: incumbentEvaluation.key.contract_passed,
+                  terminal_offer_contract_passed: followupEvaluation.key.contract_passed,
+                  incumbent_axis_quality: incumbentEvaluation.key.axis_quality,
+                  terminal_offer_axis_quality: followupEvaluation.key.axis_quality,
+                  scored_axis_observation_count: bound.scoredAxisObservationCount,
+                  total_axis_sse: bound.totalAxisSse,
+                  mutable_suffix_axis_sse: bound.mutableSuffixAxisSse,
+                  optimistic_suffix_axis_quality_upper:
+                    bound.optimisticSuffixAxisQualityUpper,
+                  bound_can_beat_incumbent: boundCanBeatIncumbent,
+                };
+              }
+              if (!boundCanBeatIncumbent) {
+                rejectedLocalImprovementFollowup =
+                  "optimistic_bound_cannot_beat_incumbent";
+              } else {
+                rejectedLocalImprovementFollowup = "scheduled";
+                pendingRejectedLocalBridge = {
+                  node: lastTerminalNode,
+                  costToEnd: terminalOfferCostToEnd,
+                  parentEpisodeId: repairEpisodeId,
+                };
+              }
             }
           }
         }
@@ -3231,6 +3265,7 @@ function compileHandoffInternal(
             incumbentTargetGapAfter: pickedWeakGapAfter,
             workingToOfferDivergence,
             rejectedLocalImprovementFollowup,
+            rejectedLocalImprovementBridgeAssessment,
           },
         );
         budgetRecorder.recordSegment(
@@ -6420,6 +6455,47 @@ function gapAxisSse(gap: DriftReport["gaps"][number] | undefined): number | null
   return sse;
 }
 
+/**
+ * Optimistic register-quality bound for a suffix restart. It preserves every
+ * authored prefix error and sets every scored axis error the restart can change
+ * to zero. This is a pruning bound only: it never alters targets or scores.
+ */
+export function optimisticSuffixAxisQualityBound(
+  report: DriftReport,
+  anchorGapIndex: number,
+): {
+  scoredAxisObservationCount: number;
+  totalAxisSse: number;
+  mutableSuffixAxisSse: number;
+  optimisticSuffixAxisQualityUpper: number;
+} {
+  const anchor = Math.max(0, Math.floor(anchorGapIndex));
+  let scoredAxisObservationCount = 0;
+  let totalAxisSse = 0;
+  let mutableSuffixAxisSse = 0;
+  for (const gap of report.gaps) {
+    for (const [axis, observation] of Object.entries(gap.axes)) {
+      if (REPORT_ONLY_AXIS_SET.has(axis) || !Number.isFinite(observation.error)) continue;
+      const squaredError = observation.error * observation.error;
+      scoredAxisObservationCount++;
+      totalAxisSse += squaredError;
+      if (gap.gap_index >= anchor) mutableSuffixAxisSse += squaredError;
+    }
+  }
+  const immutablePrefixSse = Math.max(0, totalAxisSse - mutableSuffixAxisSse);
+  const optimisticSuffixAxisQualityUpper = scoredAxisObservationCount === 0
+    ? 1
+    : Math.exp(
+      -Math.sqrt(immutablePrefixSse / scoredAxisObservationCount) / AXIS_QUALITY_TOLERANCE,
+    );
+  return {
+    scoredAxisObservationCount,
+    totalAxisSse,
+    mutableSuffixAxisSse,
+    optimisticSuffixAxisQualityUpper,
+  };
+}
+
 function repairGapState(
   gapIndex: number,
   gap: DriftReport["gaps"][number] | undefined,
@@ -8444,7 +8520,10 @@ type RepairConfig = {
   headroomFraction: number;
   selectionPolicy: RepairSelectionPolicy;
   suffixSearchPolicy: RepairSuffixSearchPolicy;
-  rejectedLocalImprovementBridge: boolean;
+  rejectedLocalImprovementBridge:
+    | "disabled"
+    | "protected_one_step"
+    | "optimistic_axis_quality_bound";
 };
 /** Repair takes over at the first completion, not after a margin past it.
  *  Bracketed N=8 against `scarce-lean`: 1.0 +0.28 (SE 0.14), 1.1 shipped,
@@ -8501,7 +8580,12 @@ function repairConfig(): RepairConfig {
     // Study-only protected bridge. It may spend one follow-up from a rejected
     // terminal that improved its selected target; it never changes the global
     // acceptance rule or promotes the working track by local quality alone.
-    rejectedLocalImprovementBridge: readEnv("LR_REPAIR_REJECTED_LOCAL_BRIDGE") === "1",
+    rejectedLocalImprovementBridge:
+      readEnv("LR_REPAIR_REJECTED_LOCAL_BRIDGE") === "optimistic-axis-bound"
+        ? "optimistic_axis_quality_bound"
+        : readEnv("LR_REPAIR_REJECTED_LOCAL_BRIDGE") === "1"
+          ? "protected_one_step"
+          : "disabled",
   };
 }
 

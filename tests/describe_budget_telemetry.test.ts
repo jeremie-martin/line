@@ -138,6 +138,7 @@ function payload(overrides: Record<string, unknown> = {}): Record<string, unknow
           internal_full_score_delta: null,
           working_to_offer_divergence: null,
           rejected_local_improvement_followup: "not_rejected_local_improvement",
+          rejected_local_improvement_bridge_assessment: null,
           terminal_observation_censored: false,
         },
       },
@@ -324,12 +325,12 @@ describe("describe_budget_telemetry", () => {
   });
 
   test("rejects historical and structurally incomplete payloads", () => {
-    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v8/);
+    expect(() => render({})).toThrow(/expected line\.compile-budget-telemetry\.v9/);
     expect(() => render({
       schema: "line.compile-budget-telemetry.v2",
       episodes: [],
       execution_intervals: [],
-    })).toThrow(/expected line\.compile-budget-telemetry\.v8/);
+    })).toThrow(/expected line\.compile-budget-telemetry\.v9/);
     expect(() => render({
       schema: BUDGET_TELEMETRY_SCHEMA,
       episodes: [],

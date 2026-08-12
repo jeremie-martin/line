@@ -99,6 +99,7 @@ function row() {
       },
       terminal_offer_track_hash: (accepted ? "b" : "c").repeat(64),
       rejected_local_improvement_followup: "not_rejected_local_improvement",
+      rejected_local_improvement_bridge_assessment: null,
     },
   });
   return {

@@ -278,3 +278,27 @@ the declared scale decision, unchanged validity, and mechanics consistent with
 the intervention. There is no adjacent increment tuning: `+1` is the only
 declared arm. A successful scale result requires canonical confirmation before
 promotion; otherwise production remains unchanged.
+
+### First-repair aimed-breadth result — not promoted at N=16
+
+The arm was neutral and slightly negative at the final look: -0.0256 scale
+points, -0.0090 at 750k, and 38.28% directional probability, with identical
+validity in all 1,024 paired cells. Sixteen-seed budget deltas alternated sign;
+there is no coherent budget-response gain to promote.
+
+The direct controller audit had zero invariant violations and confirms that the
+mechanism ran as intended. First-terminal frames were byte-identical. Iteration
+zero spent 1.23% more repair frames, accepted 2.15% more alternatives, and
+produced 1.50% more internal score gain, but its gain per frame improved only
+0.27%. That small return displaced 1.82% of iteration-one episodes; iteration
+one's internal gain fell 6.17%. Across all repairs, accepted alternatives rose
+4.52% while aggregate internal gain fell 0.43% and gain per frame fell 0.43%.
+
+This closes the fixed first-repair `+1` arm without promotion or adjacent
+increment tuning. The result also sharpens the next allocation requirement:
+repair-register acceptance count is not a sufficient objective. A future
+scheme must predict marginal authored-score value well enough to decide where
+extra candidate work belongs, rather than assigning it solely from the average
+historical return of an iteration index. Exact score, mechanics, audit, and
+evidence hashes are recorded in
+`benchmark/v2/studies/aim-first-repair-investment.json`.

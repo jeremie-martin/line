@@ -1,0 +1,118 @@
+{
+  "schema": "line.benchmark-v2.aim-first-repair-investment.v1",
+  "recorded_at": "2026-08-12T23:00:00+02:00",
+  "status": "complete_no_promotion",
+  "reference": {
+    "policy": "distilled-aim-impact-feasibility",
+    "first_repair_extra_aim_bases": 0,
+    "scale_headline": 579.8494,
+    "canonical_headline": 605.8725
+  },
+  "candidate": {
+    "scope": "repair iteration zero only",
+    "first_repair_extra_aim_bases": 1,
+    "low_air_cap_preserved": 3,
+    "initial_search_unchanged": true,
+    "resumed_search_unchanged": true,
+    "later_repairs_unchanged": true
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.8238,
+    "delta": -0.0256,
+    "directional_probability": 0.38277268,
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": -0.009,
+    "per_budget_delta": {
+      "150000": -0.102,
+      "250000": -0.377,
+      "500000": 0.0871,
+      "750000": -0.009,
+      "1000000": 0.0072,
+      "1500000": -0.1008,
+      "2500000": 0.2595,
+      "4000000": 0.0303
+    }
+  },
+  "aggregate_mechanics": {
+    "first_terminal_frames_relative_delta": 0,
+    "post_first_terminal_frames_relative_delta": 0.000811,
+    "repair_episodes_relative_delta": -0.003907,
+    "repair_spent_frames_relative_delta": -0.000067,
+    "repair_accepted_alternatives_relative_delta": 0.04522,
+    "repair_internal_full_score_delta_relative_delta": -0.004343,
+    "repair_internal_full_score_delta_per_million_frames_relative_delta": -0.020237,
+    "repair_terminal_improvements_per_million_frames_relative_delta": -0.000589,
+    "distinct_terminal_tracks_relative_delta": 0.00118,
+    "repeated_terminal_track_evaluations_relative_delta": 0.008039
+  },
+  "iteration_audit": {
+    "invariant_violations": {
+      "reference": 0,
+      "candidate": 0
+    },
+    "iteration_zero": {
+      "reference_episodes": 989,
+      "candidate_episodes": 989,
+      "reference_accepted": 559,
+      "candidate_accepted": 571,
+      "spent_frames_relative_delta": 0.012323,
+      "accepted_alternatives_relative_delta": 0.021467,
+      "internal_full_score_delta_relative_delta": 0.015027,
+      "internal_gain_per_frame_relative_delta": 0.002671
+    },
+    "iteration_one": {
+      "reference_episodes": 936,
+      "candidate_episodes": 919,
+      "episodes_relative_delta": -0.018162,
+      "internal_full_score_delta_relative_delta": -0.06167,
+      "internal_gain_per_frame_relative_delta": -0.053177
+    },
+    "all_iterations": {
+      "reference_episodes": 3839,
+      "candidate_episodes": 3824,
+      "reference_accepted": 1747,
+      "candidate_accepted": 1826,
+      "episodes_relative_delta": -0.003907,
+      "accepted_alternatives_relative_delta": 0.04522,
+      "internal_full_score_delta_relative_delta": -0.004343,
+      "internal_gain_per_frame_relative_delta": -0.004276
+    }
+  },
+  "interpretation": "The intervention is phase-exact and increases first-repair work, acceptance, and aggregate gain, but the marginal gain is almost exactly proportional to its added cost. It displaces higher-value downstream work, raises acceptance count without raising authored score, and has no stable budget-response advantage. Production remains unchanged; no adjacent increment is licensed.",
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-first-repair-extra-base-4.comparison.json",
+      "sha256": "cdaf36efa26659162f467d742bba0d36eed080cac36d49b5b31d31c682391a94"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-first-repair-extra-base-8.comparison.json",
+      "sha256": "98709b60eb44cf07c520ea0e8dfd027225c05e9175d50e73b1d8eb4ad1196beb"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-first-repair-extra-base-16.comparison.json",
+      "sha256": "fb786f48754f0c9c7bac2cc9401066a5dfc7af7747d5b3015a65bca6c29b2e0a"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/aim-first-repair-extra-base-16.json.gz",
+      "sha256": "514dfa57a68ca34db4b7ea46880edc0780d61a3bfebb4390f019a69353b45c6a"
+    },
+    "n16_analysis_projection": {
+      "path": "generated/benchmark-v2/scale/aim-first-repair-extra-base-16.analysis.json.gz",
+      "sha256": "e973d45f9596e5bb9d3540cf8c3a511e4fd0c67870c8511764c37b262c766f27"
+    },
+    "iteration_audit": {
+      "path": "generated/benchmark-v2/scale/aim-first-repair-extra-base-16.repair-behavior.json",
+      "sha256": "67b542a6ace7bb75ee03472fb1eaaea726da1d43d5c9f3c5f4472d08c4073ac4"
+    },
+    "iteration_audit_report": {
+      "path": "generated/benchmark-v2/scale/aim-first-repair-extra-base-16.repair-behavior.md",
+      "sha256": "db6dc9b2500a1a041c5357f0c5076df54b284fa2f910c6de995c7858e37f0d4d"
+    }
+  }
+}

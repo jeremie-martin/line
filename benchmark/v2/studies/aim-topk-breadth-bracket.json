@@ -1,0 +1,78 @@
+{
+  "schema": "line.benchmark-v2.aim-topk-breadth-bracket.v1",
+  "recorded_at": "2026-08-12T18:33:12+02:00",
+  "status": "global_inconclusive_not_promoted_repair_isolation_next",
+  "reference": {
+    "policy": "distilled-aim-impact-feasibility",
+    "topk_exponent": 1,
+    "scale_headline": 579.8494
+  },
+  "candidate": {
+    "scope": "all aim pool builds",
+    "topk_exponent": 0.875,
+    "anchor_k_at_250k": 6,
+    "topk_by_budget": {
+      "150000": 4,
+      "250000": 6,
+      "500000": 11,
+      "750000": 16,
+      "1000000": 20,
+      "1500000": 29,
+      "2500000": 45,
+      "4000000": 68
+    }
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "reference_headline": 579.8494,
+    "candidate_headline": 577.1587,
+    "delta": -2.6907,
+    "directional_probability": 0.08775444,
+    "reference_valid": 997,
+    "candidate_valid": 996,
+    "gained_valid": 0,
+    "lost_valid": 1,
+    "per_budget_delta": {
+      "150000": 0,
+      "250000": 0,
+      "500000": -1.3065,
+      "750000": -1.5872,
+      "1000000": -0.1753,
+      "1500000": -0.1264,
+      "2500000": -0.14,
+      "4000000": -18.1897
+    }
+  },
+  "mechanics": {
+    "first_terminal_frames_relative_delta": -0.07856,
+    "post_first_terminal_frames_relative_delta": 0.08343,
+    "repair_spent_work_share_relative_delta": 0.070906,
+    "repair_episodes_relative_delta": 0.056786,
+    "distinct_terminal_tracks_relative_delta": 0.041133,
+    "repair_accepted_alternatives_relative_delta": 0.054951,
+    "repair_internal_full_score_delta_relative_delta": 0.05651,
+    "repair_internal_full_score_delta_per_million_frames_relative_delta": -0.007619,
+    "repair_terminal_improvements_per_million_frames_relative_delta": -0.004752,
+    "actual_candidate_samples_relative_delta": 0.090627
+  },
+  "interpretation": "The causal mechanism is established: sublinear global aim breadth reaches the first terminal about 7.9% earlier and converts the released budget into about 5.7% more repair episodes. It does not improve repair efficiency, loses score at every changed budget at N=16, and loses one valid cell. The global law is not promotable. The already-declared repair-only arm keeps the first incumbent byte-identical and tests whether the same probe saving has value after removing this incumbent-quality confound.",
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-topk-exp-0875-4.comparison.json",
+      "sha256": "0fd6906dc11d5d1d451b4c58128867a1d403a08d29a6866a958c9c471ee99e55"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-topk-exp-0875-8.comparison.json",
+      "sha256": "9e8cce642a50aae7af89283a968411cff4a849877fd79a07cffdd86f34171d32"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-topk-exp-0875-16.comparison.json",
+      "sha256": "9afebfd0433ed1bb349a7f7b62893846b1aa88c6e74cddaa6af612fb29062437"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/aim-topk-exp-0875-16.json.gz",
+      "sha256": "f9d37874e754deb27db9c07e42db0a92baccd4e926f1bec9b03419be3b3db8d4"
+    }
+  }
+}

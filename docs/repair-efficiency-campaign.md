@@ -185,3 +185,18 @@ negative scale result. The repair-only arm is not permission to tune another
 exponent: 0.875 is inherited unchanged from the global bracket. The subsequent
 anchor-allocation question is conditional on this result; a failed breadth arm
 does not reopen already-rejected cheap/later restart selectors.
+
+### Aim-base breadth global result — not promoted at N=16
+
+The global 0.875 exponent produced the expected budget transfer but not a score
+gain. At N=16 it reached the first terminal 7.9% earlier, increased post-first
+terminal work 8.3%, repair episodes 5.7%, distinct terminal tracks 4.1%, and
+accepted alternatives 5.5%. Repair gain per frame did not improve, however,
+and the score arm finished -2.6907 with one lost valid cell. Every changed
+budget was negative at the final look, including -1.5872 at 750k.
+
+This closes the global law without promotion and activates the single declared
+phase-isolation follow-up: retain exponent 1 for initial and resumed work and
+apply the same 0.875 exponent only during repair. The complete result and
+evidence hashes are recorded in
+`benchmark/v2/studies/aim-topk-breadth-bracket.json`.

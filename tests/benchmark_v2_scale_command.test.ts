@@ -4,6 +4,7 @@ import {
   assertScaleCommandArguments,
   scaleAimImpactPowerArgument,
   scaleAimTopKExponentArgument,
+  scaleAimTopKFirstRepairExtraArgument,
   scaleAimTopKScopeArgument,
   scaleBreadthPolicyArgument,
   scaleRepairPolicyArgument,
@@ -45,6 +46,7 @@ describe("Benchmark V2 scale command contract", () => {
       "--aim-impact-power=1.25",
       "--aim-topk-exponent=0.875",
       "--aim-topk-scope=repair",
+      "--aim-topk-first-repair-extra=1",
     ])).not.toThrow();
     expect(() => assertScaleArguments("compare", [
       "--baseline=reference.json",
@@ -70,6 +72,10 @@ describe("Benchmark V2 scale command contract", () => {
       .toThrow(/aim-topk-scope must be/);
     expect(() => assertScaleArguments("eval", ["--aim-topk-scope=repair"]))
       .toThrow(/requires --aim-topk-exponent/);
+    expect(() => assertScaleArguments("eval", ["--aim-topk-first-repair-extra=1.5"]))
+      .toThrow(/integer/);
+    expect(() => assertScaleArguments("eval", ["--aim-topk-first-repair-extra=9"]))
+      .toThrow(/integer/);
     expect(() => assertScaleArguments("eval", ["--repair-mode=multi-terminal"]))
       .toThrow(/does not accept/);
   });
@@ -88,6 +94,12 @@ describe("Benchmark V2 scale command contract", () => {
   test("resolves the aim top-K study scope passed to scale eval", () => {
     expect(scaleAimTopKScopeArgument([])).toBeNull();
     expect(scaleAimTopKScopeArgument(["--aim-topk-scope=repair"])).toBe("repair");
+  });
+
+  test("resolves the first-repair aim top-K increment passed to scale eval", () => {
+    expect(scaleAimTopKFirstRepairExtraArgument([])).toBeNull();
+    expect(scaleAimTopKFirstRepairExtraArgument(["--aim-topk-first-repair-extra=1"]))
+      .toBe(1);
   });
 
   test("validates the subcommand before the runner prepares benchmark inputs", () => {

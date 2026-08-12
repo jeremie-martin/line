@@ -255,3 +255,26 @@ were negative. This closes the stale-sweep licence and the generic
 later-anchor/more-attempt family without promotion or reserve tuning. The next
 repair family must improve the value of an attempt—suffix ordering or explicit
 diversity—rather than merely produce more attempts.
+
+### First-repair aimed-breadth investment — declared
+
+The V3 iteration accounting shows a steep repair-value gradient: iteration
+zero has historically returned 12.61 score points per million frames, versus
+5.52, 4.06, 3.61, and 2.09 for iterations one through four. The two preceding
+arms also show that saving work to manufacture additional late attempts does
+not raise score. This arm tests the inverse allocation: add one aimed proposal
+base only to repair iteration zero.
+
+The intervention is a flat `+1`, not another budget exponent. Initial and
+resumed work, generic candidate breadth, target and anchor selection, later
+repair iterations, and the accepted scorer remain unchanged. The mature
+low-air cap remains three, so the arm does not override that specialized
+policy. Repair iteration is passed directly by the handoff loop; it is not
+inferred from telemetry. The environment control defaults to zero and exists
+only to freeze this arm through the scale runner.
+
+The arm uses the frozen paired 4/8/16 multi-budget looks. Extension depends on
+the declared scale decision, unchanged validity, and mechanics consistent with
+the intervention. There is no adjacent increment tuning: `+1` is the only
+declared arm. A successful scale result requires canonical confirmation before
+promotion; otherwise production remains unchanged.

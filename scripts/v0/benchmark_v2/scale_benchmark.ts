@@ -115,6 +115,7 @@ export function assertScaleArguments(
         "aim-impact-power",
         "aim-topk-exponent",
         "aim-topk-scope",
+        "aim-topk-first-repair-extra",
       ]
       : ["baseline", "candidate", "artifact"]);
   for (const arg of argv) {
@@ -131,6 +132,9 @@ export function assertScaleArguments(
       if (name === "aim-impact-power") parseAimImpactPower(arg.slice(equals + 1));
       if (name === "aim-topk-exponent") parseAimTopKExponent(arg.slice(equals + 1));
       if (name === "aim-topk-scope") parseAimTopKScope(arg.slice(equals + 1));
+      if (name === "aim-topk-first-repair-extra") {
+        parseAimTopKFirstRepairExtra(arg.slice(equals + 1));
+      }
       continue;
     }
     throw new Error(`scale ${action} does not accept ${arg}`);
@@ -289,6 +293,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const aimImpactPower = scaleAimImpactPowerArgument(argv);
   const aimTopKExponent = scaleAimTopKExponentArgument(argv);
   const aimTopKScope = scaleAimTopKScopeArgument(argv);
+  const aimTopKFirstRepairExtra = scaleAimTopKFirstRepairExtraArgument(argv);
   if (aimTopKScope !== null && aimTopKExponent === null) {
     throw new Error(`--aim-topk-scope requires --aim-topk-exponent`);
   }
@@ -326,6 +331,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
       aimImpactPower,
       aimTopKExponent,
       aimTopKScope,
+      aimTopKFirstRepairExtra,
     );
   const release = acquireRunLock(candidatePath);
   let workspace: ReturnType<typeof createSnapshotWorkspace> | null = null;
@@ -348,6 +354,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
         aimImpactPower,
         aimTopKExponent,
         aimTopKScope,
+        aimTopKFirstRepairExtra,
       ),
       candidatePath,
     );
@@ -450,6 +457,12 @@ async function compareScaleArchives(
         `${candidate.archive.aimTopKScope ?? "all"} scope; the production reference uses 1`,
     );
   }
+  if (candidate.archive.aimTopKFirstRepairExtra !== undefined) {
+    comparabilityNotes.push(
+      `declared study intervention: ${candidate.archive.aimTopKFirstRepairExtra} additional ` +
+        `aim base(s) only in repair iteration zero; the production reference uses 0`,
+    );
+  }
   const paired = pairGridCells(candidate, referencePrefix);
   const result = pairedScaleComparison(paired.pairs, profile.profile, depth);
   const requestedDepthCharacterization = scaleDepthCharacterization(
@@ -518,6 +531,11 @@ async function compareScaleArchives(
                   exponent: candidate.archive.aimTopKExponent,
                   scope: candidate.archive.aimTopKScope ?? "all",
                 }
+                : candidate.archive.aimTopKFirstRepairExtra !== undefined
+                  ? {
+                    kind: "candidate-aim-topk-first-repair-extra",
+                    extra: candidate.archive.aimTopKFirstRepairExtra,
+                  }
                 : null,
     },
     comparabilityNotes,
@@ -546,7 +564,10 @@ async function compareScaleArchives(
           : ` --aim-topk-exponent=${candidate.archive.aimTopKExponent}`) +
         (candidate.archive.aimTopKScope === undefined
           ? ""
-          : ` --aim-topk-scope=${candidate.archive.aimTopKScope}`),
+          : ` --aim-topk-scope=${candidate.archive.aimTopKScope}`) +
+        (candidate.archive.aimTopKFirstRepairExtra === undefined
+          ? ""
+          : ` --aim-topk-first-repair-extra=${candidate.archive.aimTopKFirstRepairExtra}`),
   };
 }
 
@@ -565,6 +586,7 @@ function scaleRunnerArgs(
   aimImpactPower: number | null = null,
   aimTopKExponent: number | null = null,
   aimTopKScope: "repair" | null = null,
+  aimTopKFirstRepairExtra: number | null = null,
 ): string[] {
   const profilePath = resolve(workspace, "benchmark/v2/scale-profile.json");
   return [
@@ -582,6 +604,9 @@ function scaleRunnerArgs(
     ...(aimImpactPower === null ? [] : [`--aim-impact-power=${aimImpactPower}`]),
     ...(aimTopKExponent === null ? [] : [`--aim-topk-exponent=${aimTopKExponent}`]),
     ...(aimTopKScope === null ? [] : [`--aim-topk-scope=${aimTopKScope}`]),
+    ...(aimTopKFirstRepairExtra === null
+      ? []
+      : [`--aim-topk-first-repair-extra=${aimTopKFirstRepairExtra}`]),
     ...(extension === null ? [] : [
       `--import-checkpoint=${extension.checkpointPath}`,
       `--import-budgets=${profile.profile.budgets.map((budget) => budget.frames).join(",")}`,
@@ -602,6 +627,7 @@ function validateScaleExtension(
   aimImpactPower: number | null,
   aimTopKExponent: number | null,
   aimTopKScope: "repair" | null,
+  aimTopKFirstRepairExtra: number | null,
 ): { checkpointPath: string; seeds: number[] } {
   const arm = readGridArm("candidate-prefix", scaleAnalysisPath(path));
   assertArchiveProfile(arm.archive, profile);
@@ -630,6 +656,9 @@ function validateScaleExtension(
   }
   if ((arm.archive.aimTopKScope ?? null) !== aimTopKScope) {
     throw new Error(`--extend-from used a different candidate aim top-K scope`);
+  }
+  if ((arm.archive.aimTopKFirstRepairExtra ?? null) !== aimTopKFirstRepairExtra) {
+    throw new Error(`--extend-from used a different first-repair aim top-K increment`);
   }
   const checkpointPath = resolve(`${path}.checkpoint.jsonl`);
   if (!existsSync(checkpointPath)) {
@@ -841,6 +870,19 @@ function parseAimTopKScope(raw: string | undefined): "repair" | null {
 
 export function scaleAimTopKScopeArgument(argv: string[]): "repair" | null {
   return parseAimTopKScope(argumentIn(argv)("aim-topk-scope"));
+}
+
+function parseAimTopKFirstRepairExtra(raw: string | undefined): number | null {
+  if (raw === undefined) return null;
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < 0 || value > 8) {
+    throw new Error(`--aim-topk-first-repair-extra must be an integer in [0, 8]`);
+  }
+  return value;
+}
+
+export function scaleAimTopKFirstRepairExtraArgument(argv: string[]): number | null {
+  return parseAimTopKFirstRepairExtra(argumentIn(argv)("aim-topk-first-repair-extra"));
 }
 
 function argumentIn(argv: string[]) {

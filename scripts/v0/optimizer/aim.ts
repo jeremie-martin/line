@@ -215,9 +215,17 @@ const AIR_KNOB_MIN_MISMATCH = 0.10;
 const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
 
 let aimRepairLaneActive = false;
+let aimRepairIterationIndex: number | null = null;
 
-export function setAimRepairLaneActive(active: boolean): void {
+export function setAimRepairLaneActive(
+  active: boolean,
+  iterationIndex: number | null = null,
+): void {
+  if (active && (iterationIndex === null || !Number.isSafeInteger(iterationIndex) || iterationIndex < 0)) {
+    throw new Error(`active aim repair lane requires a non-negative iteration index`);
+  }
   aimRepairLaneActive = active;
+  aimRepairIterationIndex = active ? iterationIndex : null;
 }
 
 export function aimControlPhase(
@@ -614,6 +622,21 @@ export function aimTopKScaleScope(
   throw new Error(`invalid LR_AIM_TOPK_SCALE_SCOPE=${raw}`);
 }
 
+/** Study-only increment for the highest-yield repair iteration. The default is
+ *  deliberately inert; accepted production behavior remains source-baked. */
+export function aimTopKFirstRepairExtra(
+  environment: Record<string, string | undefined> =
+    (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {},
+): number {
+  const raw = environment.LR_AIM_TOPK_FIRST_REPAIR_EXTRA;
+  if (raw === undefined || raw === "") return 0;
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < 0 || value > 8) {
+    throw new Error(`LR_AIM_TOPK_FIRST_REPAIR_EXTRA must be an integer in [0, 8]; got ${raw}`);
+  }
+  return value;
+}
+
 let aimCompileBudgetFrames = 0;
 /** Set the compile target budget for the K>1 maturity gate. Called once per
  *  compile at compileHandoff entry, alongside the other budget setters. */
@@ -634,7 +657,7 @@ export function aimTopKBasesEffective(gap?: Gap, _gaps?: readonly Gap[], _ctx?: 
   const exponent = aimTopKScaleScope() === "repair" && !aimRepairLaneActive
     ? 1
     : aimTopKScaleExponent();
-  const baseK = highBudget
+  const policyBaseK = highBudget
     ? Math.max(
       AIM_TOPK_BASES,
       Math.round(AIM_TOPK_BASES_AT_REF *
@@ -644,6 +667,8 @@ export function aimTopKBasesEffective(gap?: Gap, _gaps?: readonly Gap[], _ctx?: 
         )),
     )
     : AIM_TOPK_BASES;
+  const baseK = policyBaseK +
+    (aimRepairLaneActive && aimRepairIterationIndex === 0 ? aimTopKFirstRepairExtra() : 0);
   if (gap?.targets.air !== undefined && gap.targets.air <= AIM_LOW_AIR_TOPK_AIR_MAX) {
     return Math.min(baseK, AIM_LOW_AIR_TOPK_MAX);
   }
@@ -933,6 +958,7 @@ function recordJointModelCoverage(
 
 export function resetAimStats(): void {
   aimRepairLaneActive = false;
+  aimRepairIterationIndex = null;
   for (const key of Object.keys(aimTotals) as (keyof typeof aimTotals)[]) {
     aimTotals[key] = 0;
   }

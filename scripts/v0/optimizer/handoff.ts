@@ -3103,7 +3103,7 @@ function compileHandoffInternal(
         repairLaneActive = true;
         activeRepairTargetGapIndex = kWorst;
         activeRepairTargetGapSse = pickedWeakGapSse;
-        setAimRepairLaneActive(true);
+        setAimRepairLaneActive(true, iterationIndex);
         setImpactCarrierRippleRepairActive(true);
         try {
           runFrontierFrom(prefixNode, ceiling, terminalsBefore + 1);

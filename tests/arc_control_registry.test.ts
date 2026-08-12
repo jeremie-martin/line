@@ -19,6 +19,7 @@ import {
   aimOutgoingAmplitudeEligible,
   aimTopKScaleExponent,
   aimTopKScaleScope,
+  aimTopKFirstRepairExtra,
   aimTopKBasesEffective,
   aimModelImpactPower,
   impactSpeedAirOutgoingParetoImproves,
@@ -146,7 +147,7 @@ describe("arc-control probe layouts", () => {
     setAimRepairLaneActive(false);
     expect(aimControlOverrideActive("all")).toBe(true);
     expect(aimControlOverrideActive("repair")).toBe(false);
-    setAimRepairLaneActive(true);
+    setAimRepairLaneActive(true, 0);
     expect(aimControlOverrideActive("repair")).toBe(true);
     setAimRepairLaneActive(false);
   });
@@ -170,7 +171,7 @@ describe("arc-control probe layouts", () => {
       setAimCompileBudgetFrames(4_000_000);
       setAimRepairLaneActive(false);
       expect(aimTopKBasesEffective()).toBe(96);
-      setAimRepairLaneActive(true);
+      setAimRepairLaneActive(true, 0);
       expect(aimTopKBasesEffective()).toBe(68);
     } finally {
       setAimRepairLaneActive(false);
@@ -179,6 +180,33 @@ describe("arc-control probe layouts", () => {
       else process.env.LR_AIM_TOPK_SCALE_EXPONENT = previousExponent;
       if (previousScope === undefined) delete process.env.LR_AIM_TOPK_SCALE_SCOPE;
       else process.env.LR_AIM_TOPK_SCALE_SCOPE = previousScope;
+    }
+  });
+
+  test("first-repair aim breadth increment is isolated and preserves the low-air cap", () => {
+    const previous = process.env.LR_AIM_TOPK_FIRST_REPAIR_EXTRA;
+    try {
+      expect(aimTopKFirstRepairExtra({})).toBe(0);
+      expect(aimTopKFirstRepairExtra({ LR_AIM_TOPK_FIRST_REPAIR_EXTRA: "1" })).toBe(1);
+      expect(() => aimTopKFirstRepairExtra({ LR_AIM_TOPK_FIRST_REPAIR_EXTRA: "1.5" }))
+        .toThrow();
+      expect(() => aimTopKFirstRepairExtra({ LR_AIM_TOPK_FIRST_REPAIR_EXTRA: "9" }))
+        .toThrow();
+      process.env.LR_AIM_TOPK_FIRST_REPAIR_EXTRA = "1";
+      setAimCompileBudgetFrames(750_000);
+      setAimRepairLaneActive(false);
+      expect(aimTopKBasesEffective()).toBe(18);
+      setAimRepairLaneActive(true, 0);
+      expect(aimTopKBasesEffective()).toBe(19);
+      setAimRepairLaneActive(true, 1);
+      expect(aimTopKBasesEffective()).toBe(18);
+      setAimRepairLaneActive(true, 0);
+      expect(aimTopKBasesEffective({ targets: { air: 0.3 } } as any)).toBe(3);
+    } finally {
+      setAimRepairLaneActive(false);
+      setAimCompileBudgetFrames(0);
+      if (previous === undefined) delete process.env.LR_AIM_TOPK_FIRST_REPAIR_EXTRA;
+      else process.env.LR_AIM_TOPK_FIRST_REPAIR_EXTRA = previous;
     }
   });
 

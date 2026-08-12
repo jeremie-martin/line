@@ -76,6 +76,7 @@ type StudyTask = {
   aimImpactPower?: number;
   aimTopKExponent?: number;
   aimTopKScope?: "repair";
+  aimTopKFirstRepairExtra?: number;
 };
 
 type StudyWorkerResult = {
@@ -146,6 +147,12 @@ async function main(): Promise<void> {
   if (aimTopKScope !== undefined && aimTopKExponent === undefined) {
     throw new Error("--aim-topk-scope requires --aim-topk-exponent");
   }
+  const aimTopKFirstRepairExtra = optionalBoundedInteger(
+    argument("aim-topk-first-repair-extra"),
+    "aim-topk-first-repair-extra",
+    0,
+    8,
+  );
   if (nCandExponent !== undefined && nCandPolicy !== undefined) {
     throw new Error("--ncand-exponent and --ncand-policy are mutually exclusive");
   }
@@ -190,6 +197,7 @@ async function main(): Promise<void> {
     aimImpactPower,
     aimTopKExponent,
     aimTopKScope,
+    aimTopKFirstRepairExtra,
     sourceManifestPath,
   }))));
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -217,6 +225,7 @@ async function main(): Promise<void> {
     aimImpactPower,
     aimTopKExponent,
     aimTopKScope,
+    aimTopKFirstRepairExtra,
     scaleProfileFingerprint: scaleProfile?.fingerprint,
     sources: sources.map((source) => ({ id: source.id, fingerprint: source.sourceFingerprint })),
   };
@@ -339,6 +348,7 @@ async function main(): Promise<void> {
     aimImpactPower,
     aimTopKExponent,
     aimTopKScope,
+    aimTopKFirstRepairExtra,
     scaleProfile: scaleProfileReport(scaleProfile),
     scaleHeadline: scalePanel?.scaleHeadline ?? null,
     summaries,
@@ -509,6 +519,7 @@ function studyPlanFingerprint(input: {
   aimImpactPower?: number;
   aimTopKExponent?: number;
   aimTopKScope?: "repair";
+  aimTopKFirstRepairExtra?: number;
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
@@ -540,6 +551,7 @@ function taskKey(task: StudyTask): string {
     task.aimImpactPower ?? "production",
     task.aimTopKExponent ?? "production",
     task.aimTopKScope ?? "all",
+    task.aimTopKFirstRepairExtra ?? "production",
   ].join("\0");
 }
 
@@ -623,6 +635,11 @@ async function workerMain(task: StudyTask): Promise<void> {
     else process.env.LR_AIM_TOPK_SCALE_EXPONENT = String(task.aimTopKExponent);
     if (task.aimTopKScope === undefined) delete process.env.LR_AIM_TOPK_SCALE_SCOPE;
     else process.env.LR_AIM_TOPK_SCALE_SCOPE = task.aimTopKScope;
+    if (task.aimTopKFirstRepairExtra === undefined) {
+      delete process.env.LR_AIM_TOPK_FIRST_REPAIR_EXTRA;
+    } else {
+      process.env.LR_AIM_TOPK_FIRST_REPAIR_EXTRA = String(task.aimTopKFirstRepairExtra);
+    }
     const sources = resolveSources(loadSourceManifest(task.sourceManifestPath));
     const source = sources.find((entry) => entry.id === task.sourceId);
     if (source === undefined) throw new Error(`${task.sourceId}: source unavailable`);

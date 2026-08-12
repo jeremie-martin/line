@@ -328,14 +328,22 @@ seven and eight delivered 4.30 and 9.83 internal points per million repair
 frames, versus 12.81 at depth six in the same arm. A larger fixed boundary is
 therefore closed.
 
-The next causal bracket is a parameter-free density guard on that boundary.
+The final causal bracket was a parameter-free density guard on that boundary.
 For the unchanged production worst target, it permits the deepest affordable
 anchor through depth eight only when its mutable-suffix SSE per estimated
 point-cost frame is no lower than the deepest affordable depth-six-capped
 anchor. Exact replay of the N=16 depth-eight decision inputs changes 587/3,704
-anchors (15.8%) and lowers mean selected depth from 4.12 to 3.82. This replay
-only establishes that the intervention is selective; it does not predict its
-terminal outcomes.
+anchors (15.8%) and lowered mean selected depth from 4.12 to 3.82. The executed
+N=16 arm was also unfavorable: 571.8682 to 571.7776 (-0.0906, 15.98%
+directional probability), -0.0449 at 750k, with unchanged 989/1,024 validity
+and zero replay or lineage violations. It spent the same repair work but
+completed 2.4% fewer terminals, accepted 4.5% fewer alternatives, and lost
+1.5% aggregate internal repair gain. Its measured selection density was
+higher, but it was not causally predictive enough to justify deeper work.
+
+Both fixed and density-guarded extensions are retired. Production remains the
+single depth-six controller; the failed study-only policy was removed from the
+compiler, telemetry surface, and scale CLI after recording the result.
 
 ## Evaluation order
 

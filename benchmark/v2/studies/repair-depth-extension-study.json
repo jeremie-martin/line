@@ -1,0 +1,92 @@
+{
+  "schema": "line.benchmark-v2.repair-depth-extension-study.v1",
+  "recorded_at": "2026-08-12T08:06:45.000Z",
+  "status": "inconclusive_retired_and_removed",
+  "reference": {
+    "policy": "worst_gap_deepest_affordable",
+    "maximum_parent_depth": 6,
+    "scale_headline": 571.8682,
+    "canonical_headline": 602.9306
+  },
+  "fixed_depth_eight": {
+    "head": "e4dbce43353436bbe1b0d71651146f5d7b6d7bb6",
+    "intervention": {
+      "environment": {
+        "LR_REPAIR_MAX_PARENT_DEPTH": "8"
+      }
+    },
+    "result": {
+      "look": 16,
+      "scale_headline": 571.6816,
+      "delta": -0.1866,
+      "directional_probability": 0.15370199,
+      "canonical_budget_delta": -0.3384,
+      "reference_valid": 989,
+      "candidate_valid": 989,
+      "paired_cells": 1024
+    },
+    "behavior": {
+      "repair_episodes": 3704,
+      "terminal_reached": 3651,
+      "accepted_alternatives": 1639,
+      "repair_spent_frames": 640443593,
+      "internal_full_score_delta": 5745.722464,
+      "invariant_violations": 0
+    },
+    "identity": {
+      "compiler_source_fingerprint": "d363ec5e0a74f5ea118415dda0d00ca3654fead8b4110463a62dd295dbe25bcb",
+      "candidate_fingerprint": "0fab16daab8e3cd09056ac7f96da91fdf14d4b6c319c98b5c604dfa9d9f1f2df",
+      "archive_sha256": "aedecf5e10188c6c8993bd1e3cb4eec6b44e4fa83b570c187ff6ec1e76c525a2",
+      "snapshot_sha256": "ac068f2efbc127703a3ecb3286177ca8bdb97f9b016be47d8fa70b7d605261df"
+    },
+    "evidence": {
+      "comparison": {
+        "path": "generated/benchmark-v2/scale/repair-max-parent-depth-8-16.comparison.json",
+        "sha256": "f4b88e64ceffbc87711b8bfb66f7d6b235e496445f49e3ded33382e10001e0a3"
+      },
+      "behavior": {
+        "path": "generated/benchmark-v2/scale/repair-max-parent-depth-8-16.behavior.json",
+        "sha256": "79fe008f2c266ff7172df92804497c8d8798a6882edd7d45dfa428a7ebecccf0"
+      }
+    }
+  },
+  "density_guarded_depth_eight": {
+    "head": "8a75f20d6bbb376473aec8409f67e756faf072de",
+    "intervention": "Keep the production worst target; use the deepest affordable anchor through depth eight only when its mutable-suffix SSE per estimated point-cost frame is no lower than the deepest affordable depth-six-capped anchor.",
+    "result": {
+      "look": 16,
+      "scale_headline": 571.7776,
+      "delta": -0.0906,
+      "directional_probability": 0.15976979,
+      "canonical_budget_delta": -0.0449,
+      "reference_valid": 989,
+      "candidate_valid": 989,
+      "paired_cells": 1024
+    },
+    "behavior": {
+      "repair_episodes": 3757,
+      "terminal_reached": 3694,
+      "accepted_alternatives": 1642,
+      "repair_spent_frames": 640455774,
+      "internal_full_score_delta": 5828.266467,
+      "invariant_violations": 0
+    },
+    "identity": {
+      "compiler_source_fingerprint": "0170d36de529cd868e79467d00440808cb7c22f59f8041d971966d608c3feb83",
+      "candidate_fingerprint": "bef4cf542d630fae7ef0cebd864db5a0a034c7933e4f706fd78be1ac54dcf33d",
+      "archive_sha256": "a241f1b0dee03ca30fdb44e246e4cfcc60111f17bf76db47ee05b2ad2f19760b",
+      "snapshot_sha256": "e42fc81610e0156a496369502a25687debd79d97decb71ddd596490ef4b501e5"
+    },
+    "evidence": {
+      "comparison": {
+        "path": "generated/benchmark-v2/scale/repair-density-guarded-depth-eight-16.comparison.json",
+        "sha256": "af656f4f1fc5d002bd55fd106e72ce7adc43e682a78607397a508e0cc0eea0ac"
+      },
+      "behavior": {
+        "path": "generated/benchmark-v2/scale/repair-density-guarded-depth-eight-16.behavior.json",
+        "sha256": "aee1fd3ccd540b297533a64f7c6a7f2056edb6bb680675ee308d35f36dc8bd1f"
+      }
+    }
+  },
+  "conclusion": "Depth six remains production. Fixed depth eight and a parameter-free opportunity-density guard both spent essentially the same repair work but reduced terminal and accepted-alternative throughput. The guarded arm raised the selected incumbent opportunity-density statistic without improving output, so that statistic is associative rather than a sufficient causal allocation rule. The failed named compiler/telemetry/scale intervention was removed after evidence capture."
+}

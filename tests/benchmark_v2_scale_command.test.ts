@@ -99,8 +99,5 @@ describe("Benchmark V2 scale command contract", () => {
     expect(scaleRepairSelectionPolicyArgument([
       "--repair-selection-policy=reserve-cheapest-else-deepest",
     ])).toBe("reserve-cheapest-else-deepest");
-    expect(scaleRepairSelectionPolicyArgument([
-      "--repair-selection-policy=density-guarded-depth-eight",
-    ])).toBe("density-guarded-depth-eight");
   });
 });

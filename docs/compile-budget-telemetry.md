@@ -121,14 +121,6 @@ law while two repairs fit. When they do not, it spends the final iteration from
 the production deepest affordable anchor. The two categorical names remain
 distinct because their completed archives have different semantics.
 
-`LR_REPAIR_SELECTION_POLICY=density-guarded-depth-eight` is a bounded extension
-of production depth six. It keeps the production worst-gap target, prices
-anchors through depth eight, and uses the deeper anchor only when its total
-mutable-suffix SSE per estimated point-cost frame is at least the density of
-the deepest affordable depth-six-capped anchor. Otherwise it executes that
-depth-six-capped anchor. The comparison is recomputed for every independent
-iteration and adds no learned threshold or carried state.
-
 An execution interval accounts for wall-to-wall charged compiler work such as
 startup, initial search, frontier repair, resumed search, or
 finalization. Intervals form a contiguous partition of total charged work in a

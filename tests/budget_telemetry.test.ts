@@ -177,52 +177,6 @@ test("replays a worst-gap decision that reserves the cheapest current repair", (
   });
 });
 
-test("replays a density-guarded depth-eight decision", () => {
-  const point = [1_000, 800, 100, 90, 80, 70, 60, 50, 40];
-  const sse = Array.from({ length: 9 }, (_, gap) =>
-    gap === 8 ? 10 : gap < 2 ? 0.5 : 0.01
-  );
-  const observedTarget = (gap: number) => ({
-    target_gap_index: gap,
-    target_gap_sse: sse[gap]!,
-    anchor_options: Array.from({ length: gap + 1 }, (_, parentDepth) => {
-      const anchor = gap - parentDepth;
-      return {
-        parent_depth: parentDepth,
-        anchor_gap_index: anchor,
-        estimated_anchor_cost_frames: point[anchor]!,
-        estimated_anchor_cost_upper_frames: point[anchor]!,
-        anchor_cost_source: "measured_cost_to_end" as const,
-        affordability: "affordable" as const,
-      };
-    }),
-  });
-  const mutableSuffixSse = sse.slice(2).reduce((sum, value) => sum + value, 0);
-  const decision: BudgetRepairDecision = {
-    ...TEST_REPAIR_DECISION,
-    remaining_budget_frames: 1_000,
-    headroom_fraction: 0,
-    usable_budget_frames: 1_000,
-    selection_policy: "worst_gap_density_guarded_depth_eight",
-    parent_depth: 6,
-    affordable_target_gap_indices: sse.map((_, gap) => gap),
-    affordable_anchor_gap_indices: sse.map((_, gap) => gap),
-    target_gap_index: 8,
-    target_gap_sse: 10,
-    anchor_gap_index: 2,
-    mutable_suffix_sse: mutableSuffixSse,
-    estimated_anchor_cost_frames: 100,
-    estimated_anchor_cost_upper_frames: 100,
-    considered_targets: sse.map((_, gap) => observedTarget(gap)),
-  };
-  expect(replayBudgetRepairSelection(decision)).toMatchObject({
-    targetGapIndex: 8,
-    anchorGapIndex: 2,
-    parentDepth: 6,
-    mutableSuffixSse,
-  });
-});
-
 /**
  * A schema-v1 artifact, whatever schema the checked-in one currently declares:
  * the shipped model with every v2 feature stripped back off.

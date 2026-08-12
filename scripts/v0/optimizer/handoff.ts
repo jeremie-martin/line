@@ -6647,7 +6647,6 @@ export type RepairSelectionPolicy =
   | "worst_gap_deepest_affordable"
   | "worst_gap_reserve_cheapest_repair"
   | "worst_gap_reserve_cheapest_else_deepest"
-  | "worst_gap_density_guarded_depth_eight"
   | "suffix_opportunity_per_cost"
   | "max_suffix_opportunity"
   | "max_local_window_opportunity";
@@ -6814,8 +6813,7 @@ export function selectRepairRestart(
   if (
     selectionPolicy === "worst_gap_deepest_affordable" ||
     selectionPolicy === "worst_gap_reserve_cheapest_repair" ||
-    selectionPolicy === "worst_gap_reserve_cheapest_else_deepest" ||
-    selectionPolicy === "worst_gap_density_guarded_depth_eight"
+    selectionPolicy === "worst_gap_reserve_cheapest_else_deepest"
   ) {
     const selected = selectAffordableRepairTarget(
       candidates,
@@ -6827,34 +6825,7 @@ export function selectRepairRestart(
     if (selected === null) return null;
     let anchorGapIndex = selected.anchorGapIndex;
     let parentDepth = selected.parentDepth;
-    if (selectionPolicy === "worst_gap_density_guarded_depth_eight" && parentDepth > 6) {
-      const depthSix = Array.from(
-        { length: Math.min(6, selected.targetGapIndex) + 1 },
-        (_, depth) => ({
-          parentDepth: depth,
-          anchorGapIndex: selected.targetGapIndex - depth,
-        }),
-      ).filter(({ anchorGapIndex: gapIndex }) => {
-        const point = pointCostByAnchor[gapIndex];
-        const upper = upperCostByAnchor[gapIndex];
-        return Number.isFinite(point) && point! > 0 &&
-          Number.isFinite(upper) && upper! > 0 && upper! <= usableBudgetFrames;
-      }).sort((a, b) => b.parentDepth - a.parentDepth)[0];
-      if (depthSix === undefined) return null;
-      const suffixSse = (gapIndex: number) => candidates
-        .filter((candidate) => candidate.gapIndex >= gapIndex)
-        .reduce((sum, candidate) => sum + candidate.sse, 0);
-      const deepDensity = suffixSse(anchorGapIndex) / pointCostByAnchor[anchorGapIndex]!;
-      const depthSixDensity = suffixSse(depthSix.anchorGapIndex) /
-        pointCostByAnchor[depthSix.anchorGapIndex]!;
-      if (deepDensity < depthSixDensity) {
-        anchorGapIndex = depthSix.anchorGapIndex;
-        parentDepth = depthSix.parentDepth;
-      }
-    } else if (
-      selectionPolicy === "worst_gap_reserve_cheapest_repair" ||
-      selectionPolicy === "worst_gap_reserve_cheapest_else_deepest"
-    ) {
+    if (selectionPolicy !== "worst_gap_deepest_affordable") {
       const reserveUpper = affordableAnchorGapIndices.reduce(
         (minimum, gapIndex) => Math.min(minimum, upperCostByAnchor[gapIndex]!),
         Number.POSITIVE_INFINITY,
@@ -8642,20 +8613,6 @@ function repairConfig(): RepairConfig {
     const n = Number.parseFloat(readEnv(name) ?? "");
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
   };
-  const rawSelectionPolicy = readEnv("LR_REPAIR_SELECTION_POLICY");
-  const selectionPolicy: RepairSelectionPolicy = rawSelectionPolicy === "reserve-cheapest-repair"
-    ? "worst_gap_reserve_cheapest_repair"
-    : rawSelectionPolicy === "reserve-cheapest-else-deepest"
-      ? "worst_gap_reserve_cheapest_else_deepest"
-      : rawSelectionPolicy === "density-guarded-depth-eight"
-        ? "worst_gap_density_guarded_depth_eight"
-        : rawSelectionPolicy === "suffix-opportunity-per-cost"
-          ? "suffix_opportunity_per_cost"
-          : rawSelectionPolicy === "max-suffix-opportunity"
-            ? "max_suffix_opportunity"
-            : rawSelectionPolicy === "max-local-window-opportunity"
-              ? "max_local_window_opportunity"
-              : "worst_gap_deepest_affordable";
   return {
     // Gate: below this, completion is the hard part (DFS's job) and the carve starves it.
     // Lowered 150k→100k (2026-06-07): on the 30-spec board all specs already complete at
@@ -8676,13 +8633,21 @@ function repairConfig(): RepairConfig {
     // this cap. Six is the accepted scale operating point: it extends the
     // high-value early suffixes while affordability still protects budgets
     // that cannot fund them, without restoring a fallback walk or tried state.
-    maxParentDepth: selectionPolicy === "worst_gap_density_guarded_depth_eight"
-      ? 8
-      : num("LR_REPAIR_MAX_PARENT_DEPTH", 6, 0, 64),
+    maxParentDepth: num("LR_REPAIR_MAX_PARENT_DEPTH", 6, 0, 64),
     // The estimator's upper interval is already the local execution ceiling;
     // retain no second hidden reserve in target/anchor eligibility.
     headroomFraction: flt("LR_REPAIR_HEADROOM_FRACTION", 0, 0, 0.95),
-    selectionPolicy,
+    selectionPolicy: readEnv("LR_REPAIR_SELECTION_POLICY") === "reserve-cheapest-repair"
+      ? "worst_gap_reserve_cheapest_repair"
+      : readEnv("LR_REPAIR_SELECTION_POLICY") === "reserve-cheapest-else-deepest"
+        ? "worst_gap_reserve_cheapest_else_deepest"
+      : readEnv("LR_REPAIR_SELECTION_POLICY") === "suffix-opportunity-per-cost"
+      ? "suffix_opportunity_per_cost"
+      : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-suffix-opportunity"
+        ? "max_suffix_opportunity"
+        : readEnv("LR_REPAIR_SELECTION_POLICY") === "max-local-window-opportunity"
+          ? "max_local_window_opportunity"
+          : "worst_gap_deepest_affordable",
     suffixSearchPolicy: repairSuffixSearchPolicy(),
     // Study-only protected bridge. It may spend one follow-up from a rejected
     // terminal that improved its selected target; it never changes the global

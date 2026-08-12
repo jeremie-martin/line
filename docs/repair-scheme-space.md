@@ -208,6 +208,18 @@ population directly through `terminal_offer_target_gap`. Do not implement the
 bridge unless a multi-budget reference shows a material number of rejected,
 locally improving offers with enough remaining budget for a follow-up suffix.
 
+The fresh four-seed V7 reference establishes the first half of that gate: 249
+of 963 terminal offers improved the selected target but were rejected by the
+global register, across all eight budgets. It also recorded 397 ordinary repair
+transitions after rejection. Those transitions prove that additional incumbent
+work was often affordable, but do not price a restart from the rejected offer;
+that offer needs its own cost-to-end profile and independently replayable
+selection. The bridge therefore proceeds only with a clean telemetry version
+that distinguishes the global incumbent, the temporary working track, and the
+terminal offer, and records whether a rejected local improvement actually has
+an affordable follow-up. No rejected offer may enter the output register on
+local quality alone, and bridge offspring cannot create another bridge.
+
 ### 6. Adaptive value model
 
 Estimate expected accepted gain or probability of completion from anchor,

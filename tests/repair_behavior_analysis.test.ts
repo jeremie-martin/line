@@ -69,7 +69,7 @@ function row() {
         }],
       })),
     },
-    incumbent_target_gap_before: { gap_index: target, sse: before, axes: {} },
+    incumbent_target_gap_before: { status: "measured", gap_index: target, sse: before, axes: {} },
     start_total_spent_frames: start,
     allocated_frames: Math.floor(remaining * 0.7),
     register_key_at_start: key(scoreBefore),
@@ -85,8 +85,8 @@ function row() {
       first_terminal_offset_frames: Math.floor(remaining * 0.6),
       terminal_observation_censored: false,
       internal_full_score_delta: scoreAfter - scoreBefore,
-      terminal_offer_target_gap: { gap_index: target, sse: offer, axes: {} },
-      incumbent_target_gap_after: { gap_index: target, sse: after, axes: {} },
+      terminal_offer_target_gap: { status: "measured", gap_index: target, sse: offer, axes: {} },
+      incumbent_target_gap_after: { status: "measured", gap_index: target, sse: after, axes: {} },
       repair_divergence: {
         compared_gap_count: 10,
         first_divergent_gap_index: anchor,
@@ -201,6 +201,26 @@ describe("repair behavior analysis", () => {
       internalFullScoreDelta: 2,
     });
     expect(result.transitionOutcomes.afterRejectedSameTargetAndAnchor.repairEpisodes).toBe(0);
+  });
+
+  test("counts a terminal that lost the selected target as missing, not comparable", () => {
+    const input = row();
+    const first = input.budgetTelemetry.episodes[0];
+    first.outcome.terminal_offer_target_gap = {
+      status: "missing",
+      gap_index: first.repair_decision.target_gap_index,
+    };
+
+    const result = summarizeRepairBehavior([input]);
+
+    expect(result.invariantAudit.passed).toBe(true);
+    expect(result.overall).toMatchObject({
+      terminalReached: 2,
+      terminalOfferTargetGapMissing: 1,
+      terminalOfferTargetGapImprovementRate: 0.5,
+      rejectedTerminalOfferTargetGapImproved: 0,
+      acceptedTerminalOfferTargetGapMissing: 0,
+    });
   });
 
   test("reports sequence violations instead of silently summarizing them", () => {

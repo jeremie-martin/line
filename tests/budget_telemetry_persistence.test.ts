@@ -19,7 +19,7 @@ describe("budget telemetry persistence", () => {
     const runDir = join(root, "telemetry-run");
     const databasePath = join(root, "lab.sqlite");
     const telemetry = {
-      schema: "line.compile-budget-telemetry.v6",
+      schema: "line.compile-budget-telemetry.v7",
       level: "summary",
       compile: { total_spent_frames: 123 },
     };

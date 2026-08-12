@@ -822,7 +822,10 @@ describe("compile budget telemetry", () => {
       previousIteration = repair.repair_decision!.iteration_index;
       expect(repair.repair_decision!.parent_depth).toBeGreaterThanOrEqual(0);
       expect(repair.repair_decision!.anchor_gap_index).toBe(repair.anchor.gap_index);
-      expect(repair.incumbent_target_gap_before?.sse ?? -1).toBeGreaterThanOrEqual(0);
+      expect(repair.incumbent_target_gap_before?.status).toBe("measured");
+      const incumbentBefore = repair.incumbent_target_gap_before;
+      expect(incumbentBefore?.status === "measured" ? incumbentBefore.sse : -1)
+        .toBeGreaterThanOrEqual(0);
       expect(repair.outcome.incumbent_target_gap_after).not.toBeNull();
       expect(repair.outcome.terminal_offer_target_gap === null)
         .toBe(!repair.outcome.terminal_reached);

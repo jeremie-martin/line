@@ -1256,7 +1256,7 @@ export function compactBudgetTelemetry(telemetry: CompileBudgetTelemetry | null)
     );
   }
   if (!Array.isArray(telemetry.episodes) || !Array.isArray(telemetry.execution_intervals)) {
-    throw new Error(`compactBudgetTelemetry requires complete V6 episodes and execution intervals`);
+    throw new Error(`compactBudgetTelemetry requires complete V7 episodes and execution intervals`);
   }
   return {
     ...pickDefined(telemetry, ["schema", "level"] as const),

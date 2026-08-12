@@ -12,9 +12,10 @@ import {
   BUDGET_TELEMETRY_SCHEMA,
   type BudgetEpisodeTelemetry,
   type CompileBudgetTelemetry,
+  type BudgetRepairGapState,
 } from "../v0/optimizer/budget_telemetry.ts";
 
-export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v4" as const;
+export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v5" as const;
 
 type RunRow = {
   task: { sourceId: string; budget: number; actualSeed: number };
@@ -247,25 +248,38 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
   )],
   ["repairTerminalOfferTargetGapSseImprovement", (row) =>
     sumComparableRepairEpisodes(row, (episode) => {
-      const before = episode.incumbent_target_gap_before?.sse;
-      const offer = episode.outcome.terminal_offer_target_gap?.sse;
-      return before === undefined || offer === undefined ? null : before - offer;
+      const before = measuredGapSse(episode.incumbent_target_gap_before);
+      const offer = measuredGapSse(episode.outcome.terminal_offer_target_gap);
+      return before === null || offer === null ? null : before - offer;
     })],
   ["repairIncumbentTargetGapSseImprovement", (row) =>
     sumComparableRepairEpisodes(row, (episode) => {
-      const before = episode.incumbent_target_gap_before?.sse;
-      const after = episode.outcome.incumbent_target_gap_after?.sse;
-      return before === undefined || after === undefined ? null : before - after;
+      const before = measuredGapSse(episode.incumbent_target_gap_before);
+      const after = measuredGapSse(episode.outcome.incumbent_target_gap_after);
+      return before === null || after === null ? null : before - after;
   })],
-  ["repairTerminalOfferTargetGapImprovementRate", (row) => {
-    const comparable = repairEpisodes(row).flatMap((episode) => {
-      const before = episode.incumbent_target_gap_before?.sse;
-      const offer = episode.outcome.terminal_offer_target_gap?.sse;
-      return before === undefined || offer === undefined ? [] : [before - offer];
-    });
-    return comparable.length === 0
+  ["repairTerminalOfferTargetGapMissing", (row) => repairEpisodes(row)
+    .filter((episode) => episode.outcome.terminal_offer_target_gap?.status === "missing").length],
+  ["repairTerminalOfferTargetGapMissingRate", (row) => {
+    const terminalOffers = repairEpisodes(row)
+      .map((episode) => episode.outcome.terminal_offer_target_gap)
+      .filter((observation) => observation !== null);
+    return terminalOffers.length === 0
       ? null
-      : comparable.filter((delta) => delta > 0).length / comparable.length;
+      : terminalOffers.filter((observation) => observation!.status === "missing").length /
+        terminalOffers.length;
+  }],
+  ["repairTerminalOfferTargetGapImprovementRate", (row) => {
+    const observations = repairEpisodes(row).flatMap((episode) => {
+      const before = measuredGapSse(episode.incumbent_target_gap_before);
+      const offer = episode.outcome.terminal_offer_target_gap;
+      return before === null || offer === null ? [] : [{ before, offer }];
+    });
+    return observations.length === 0
+      ? null
+      : observations.filter(({ before, offer }) =>
+        offer.status === "measured" && offer.sse < before
+      ).length / observations.length;
   }],
   ["repairTargetSearchPools", (row) => repairTargetSearchValue(row, "target_pools")],
   ["repairTargetSearchOrdinaryFirstImprovesIncumbent", (row) =>
@@ -536,6 +550,10 @@ function sumRepairEpisodes(
   read: (episode: BudgetEpisodeTelemetry) => number | null,
 ): number {
   return repairEpisodes(row).reduce((sum, episode) => sum + (read(episode) ?? 0), 0);
+}
+
+function measuredGapSse(observation: BudgetRepairGapState | null | undefined): number | null {
+  return observation?.status === "measured" ? observation.sse : null;
 }
 
 function sumComparableRepairEpisodes(

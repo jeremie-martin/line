@@ -2989,6 +2989,7 @@ function compileHandoffInternal(
         const k = target.anchorGapIndex;
         const pickedWeakGapSse = target.targetGapSse;
         const pickedWeakGapBefore = repairGapState(
+          kWorst,
           incumbentEvaluation.report.gaps.find((g) => g.gap_index === kWorst),
         );
         const estCost = estCostOf(k);
@@ -3095,6 +3096,7 @@ function compileHandoffInternal(
         const terminalOfferTargetGap = !completed || lastTerminalNode === null
           ? null
           : repairGapState(
+            kWorst,
             evaluateCached(lastTerminalNode).report.gaps.find((gapReport) =>
               gapReport.gap_index === kWorst
             ),
@@ -3102,6 +3104,7 @@ function compileHandoffInternal(
         const pickedWeakGapAfter = bestCompleteNode === null
           ? null
           : repairGapState(
+            kWorst,
             evaluateCached(bestCompleteNode).report.gaps.find((gapReport) =>
               gapReport.gap_index === kWorst
             ),
@@ -6311,10 +6314,16 @@ function gapAxisSse(gap: DriftReport["gaps"][number] | undefined): number | null
 }
 
 function repairGapState(
+  gapIndex: number,
   gap: DriftReport["gaps"][number] | undefined,
-): BudgetRepairGapState | null {
-  if (gap === undefined) return null;
-  const axes: BudgetRepairGapState["axes"] = {};
+): BudgetRepairGapState {
+  if (gap === undefined) return { status: "missing", gap_index: gapIndex };
+  const axes: Record<string, {
+    target: number;
+    achieved: number;
+    signed_error: number;
+    squared_error: number;
+  }> = {};
   let sse = 0;
   for (const [axis, value] of Object.entries(gap.axes)) {
     const signedError = value.achieved - value.target;
@@ -6327,7 +6336,7 @@ function repairGapState(
     };
     sse += squaredError;
   }
-  return { gap_index: gap.gap_index, sse, axes };
+  return { status: "measured", gap_index: gap.gap_index, sse, axes };
 }
 
 /** Direct arc-geometry comparison; object identity and RNG seed are irrelevant. */

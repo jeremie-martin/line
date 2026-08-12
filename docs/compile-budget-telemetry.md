@@ -1,4 +1,4 @@
-# Compile budget telemetry V6
+# Compile budget telemetry V7
 
 ## Contract
 
@@ -10,8 +10,8 @@ compiler search work:
 - `trace`: the summary payload plus estimator observations and atomic node
   events.
 
-The schema is `line.compile-budget-telemetry.v6`. Readers accept that exact
-schema only. V1–V5 archives are historical evidence with different attempt,
+The schema is `line.compile-budget-telemetry.v7`. Readers accept that exact
+schema only. V1–V6 archives are historical evidence with different attempt,
 identity, repair-selection, or target-attribution semantics; a reader must not
 rename their fields or fall back to `compile_stats`.
 
@@ -59,6 +59,13 @@ actual parent depth/anchor, mutable-suffix SSE, cost estimates, and cost source.
 The selected target has three distinct states: `incumbent_target_gap_before`,
 `terminal_offer_target_gap`, and `incumbent_target_gap_after`. The last is the
 post-register incumbent and must never be interpreted as the rejected offer.
+Each non-null target observation has an explicit `status`: `measured` carries
+axis state and SSE, while `missing` means that a terminal track lost the
+selected gap's ending contact. `terminal_offer_target_gap: null` means no
+terminal was reached; it never means a terminal with an unreported target.
+Missing targets remain in terminal-offer rate denominators and count as not
+improved. Numeric SSE aggregates use only measured observations and report the
+missing population separately.
 The payload replays the declared selection law exactly. There is no hidden
 controller mode or failed-anchor state to infer from episode order.
 
@@ -116,7 +123,7 @@ The following identity is enforced:
 actual candidate samples = sum(candidate samples by stream)
 ```
 
-No V6 field counts normal-prefix cache hits or misses. Consequently,
+No V7 field counts normal-prefix cache hits or misses. Consequently,
 `ranked_option_calls` must not be used to infer fresh sampler builds. Actual samples per
 ranked-option call can change because of prefix reuse, internal rollout calls,
 extra streams, retry behavior, and optional sibling evaluations. A future
@@ -132,7 +139,7 @@ than infer one from these populations.
 Candidate breadth does not determine node count arithmetically. Breadth affects
 pool work and ranking; child limits, viability, frontier order, failures,
 tail-completion behavior, and local ceilings determine how many nodes the
-remaining budget can process. V6 records both sides so this relationship is an
+remaining budget can process. V7 records both sides so this relationship is an
 empirical result rather than an assumption.
 
 ### Register and terminal work
@@ -165,7 +172,7 @@ register offers = partial evaluations + terminal evaluations
 Geometry identity is exact within the scope that owns the work record. The
 compile record detects repeats across the entire compile. An episode record
 detects repeats only inside that episode; summing episode-level distinct counts
-does not detect the same geometry appearing in two different episodes. V6 does
+does not detect the same geometry appearing in two different episodes. V7 does
 not separately attribute compile-global geometry repeats by lane, so reports
 must not call a sum of repair episodes “cross-repair duplicate tracks.”
 
@@ -285,7 +292,7 @@ overwrite duplicate cells.
 - `scripts/v0/analyze_budget_telemetry.ts`: strict multi-payload validation and
   descriptive aggregate analysis.
 - `scripts/benchmark/analyze_scale_mechanics.ts`: paired multi-budget mechanics
-  comparison using V6 only.
+  comparison using V7 only.
 
 For naming and architecture rationale, see
 [`compiler-telemetry-foundation.md`](compiler-telemetry-foundation.md).

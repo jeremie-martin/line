@@ -27,12 +27,13 @@ import {
 /**
  * Clean-break search-accounting schema.
  *
- * V6 separates the selected target's state on the incumbent before execution,
- * on the terminal offer, and on the incumbent after the register decision.
- * Historical V4/V5 archives remain immutable evidence; current readers fail
- * closed instead of treating post-register incumbent state as offer quality.
+ * V7 separates the selected target's state on the incumbent before execution,
+ * on the terminal offer, and on the incumbent after the register decision,
+ * and distinguishes a missing target contact from the absence of a terminal.
+ * Historical V4–V6 archives remain immutable evidence; current readers fail
+ * closed instead of silently dropping missing-target terminal offers.
  */
-export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v6" as const;
+export const BUDGET_TELEMETRY_SCHEMA = "line.compile-budget-telemetry.v7" as const;
 
 export type BudgetTelemetryLevel = "off" | "summary" | "trace";
 export type BudgetEpisodeLane = "initial" | "snapshot" | "repair" | "resumed";
@@ -129,6 +130,7 @@ export type BudgetEstimateObservation = {
 };
 
 export type BudgetRepairGapState = {
+  status: "measured";
   gap_index: number;
   sse: number;
   axes: Record<string, {
@@ -137,6 +139,10 @@ export type BudgetRepairGapState = {
     signed_error: number;
     squared_error: number;
   }>;
+} | {
+  /** The terminal track did not carry the selected target's ending contact. */
+  status: "missing";
+  gap_index: number;
 };
 
 /** Register key domain used by the optimizer. This is never Benchmark V2 score. */
@@ -374,7 +380,7 @@ export type BudgetEpisodeTelemetry = {
   anchor: RemainingStructure;
   /** Complete, self-contained repair decision; null on non-repair lanes. */
   repair_decision: BudgetRepairDecision | null;
-  /** Exact selected target-gap state on the incumbent used for this decision. */
+  /** Exact selected target-gap observation on the incumbent used for this decision. */
   incumbent_target_gap_before: BudgetRepairGapState | null;
   /** Compile-global work counters; local budget is ceiling - start. */
   start_total_spent_frames: number;
@@ -412,9 +418,12 @@ export type BudgetEpisodeTelemetry = {
     first_terminal_register_improvement_offset_frames: number | null;
     /** Optimizer-internal full score after this episode minus before it. */
     internal_full_score_delta: number | null;
-    /** Exact selected target-gap state on the first terminal offer. */
+    /**
+     * Selected target-gap observation on the first terminal offer. Null means
+     * no terminal; `status: "missing"` means a terminal lost that gap/contact.
+     */
     terminal_offer_target_gap: BudgetRepairGapState | null;
-    /** Exact selected target-gap state on the best incumbent after registration. */
+    /** Selected target-gap observation on the best incumbent after registration. */
     incumbent_target_gap_after: BudgetRepairGapState | null;
     /** Direct incumbent-vs-terminal arc-geometry comparison for repair. */
     repair_divergence: BudgetRepairDivergence | null;

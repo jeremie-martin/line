@@ -39,6 +39,12 @@ describe("paired scale mechanics", () => {
             target_gap_index: candidate ? 5 : 4,
             anchor_gap_index: candidate ? 4 : 3,
           },
+          incumbent_target_gap_before: {
+            status: "measured",
+            gap_index: candidate ? 5 : 4,
+            sse: 0.3,
+            axes: {},
+          },
           allocated_frames: budget / 2,
           start: {
             estimated_remaining_work_frames: budget / 5,
@@ -51,6 +57,18 @@ describe("paired scale mechanics", () => {
             terminal_reached: true,
             register_improved: candidate,
             accepted_alternative: candidate,
+            terminal_offer_target_gap: {
+              status: "measured",
+              gap_index: candidate ? 5 : 4,
+              sse: candidate ? 0.1 : 0.3,
+              axes: {},
+            },
+            incumbent_target_gap_after: {
+              status: "measured",
+              gap_index: candidate ? 5 : 4,
+              sse: candidate ? 0.1 : 0.3,
+              axes: {},
+            },
             repair_divergence: {
               compared_gap_count: 8,
               first_divergent_gap_index: candidate ? 4 : null,
@@ -100,6 +118,12 @@ describe("paired scale mechanics", () => {
     });
     expect(result.overall.metrics.repairTargetSearchImprovingAlternativeRate.candidateMean).toBe(0.5);
     expect(result.overall.metrics.repairTargetSearchLocalSseGain.candidateMean).toBe(0.25);
+    expect(result.overall.metrics.repairTerminalOfferTargetGapImprovementRate).toMatchObject({
+      referenceMean: 0,
+      candidateMean: 1,
+      delta: 1,
+    });
+    expect(result.overall.metrics.repairTerminalOfferTargetGapMissingRate.candidateMean).toBe(0);
     expect(result.overall.metrics.finalOutputFromRepair.delta).toBe(1);
     expect(result.perBudget.map((entry) => entry.budget)).toEqual([100, 200]);
   });
@@ -139,7 +163,7 @@ describe("paired scale mechanics", () => {
       .toThrow(/reference contains duplicate cell/);
     const old = structuredClone(base);
     old.budgetTelemetry.schema = "line.compile-budget-telemetry.v2";
-    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v6/);
+    expect(() => pairedScaleMechanics([base], [old])).toThrow(/expected line\.compile-budget-telemetry\.v7/);
 
     const corrupt = structuredClone(base);
     corrupt.budgetTelemetry.compile.work.actual_candidate_samples++;

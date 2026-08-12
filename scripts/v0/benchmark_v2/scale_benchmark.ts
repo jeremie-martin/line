@@ -43,6 +43,7 @@ export type BreadthPolicy =
   | "high-budget-three-quarter"
   | "repair-high-budget-three-quarter"
   | "repair-three-quarter"
+  | "repair-seven-eighth"
   | "linear-cap-216";
 export type RepairPolicy =
   | "protected-one-step-bridge"
@@ -653,11 +654,13 @@ function parseBreadthPolicy(raw: string | undefined): BreadthPolicy | null {
     raw === "high-budget-three-quarter" ||
     raw === "repair-high-budget-three-quarter" ||
     raw === "repair-three-quarter" ||
+    raw === "repair-seven-eighth" ||
     raw === "linear-cap-216"
   ) return raw;
   throw new Error(
     `--breadth-policy must be high-budget-three-quarter, ` +
-      `repair-high-budget-three-quarter, repair-three-quarter, or linear-cap-216`,
+      `repair-high-budget-three-quarter, repair-three-quarter, repair-seven-eighth, ` +
+      `or linear-cap-216`,
   );
 }
 

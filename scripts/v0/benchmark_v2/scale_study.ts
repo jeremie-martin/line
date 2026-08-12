@@ -66,6 +66,7 @@ type StudyTask = {
     | "high-budget-three-quarter"
     | "repair-high-budget-three-quarter"
     | "repair-three-quarter"
+    | "repair-seven-eighth"
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
 };
@@ -462,6 +463,7 @@ function studyPlanFingerprint(input: {
     | "high-budget-three-quarter"
     | "repair-high-budget-three-quarter"
     | "repair-three-quarter"
+    | "repair-seven-eighth"
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
   scaleProfileFingerprint?: string;
@@ -687,6 +689,7 @@ function parseNCandPolicy(
   | "high-budget-three-quarter"
   | "repair-high-budget-three-quarter"
   | "repair-three-quarter"
+  | "repair-seven-eighth"
   | "linear-cap-216"
   | undefined {
   if (value === undefined) return undefined;
@@ -694,11 +697,13 @@ function parseNCandPolicy(
     value === "high-budget-three-quarter" ||
     value === "repair-high-budget-three-quarter" ||
     value === "repair-three-quarter" ||
+    value === "repair-seven-eighth" ||
     value === "linear-cap-216"
   ) return value;
   throw new Error(
     "--ncand-policy must be high-budget-three-quarter, " +
-      "repair-high-budget-three-quarter, repair-three-quarter, or linear-cap-216",
+      "repair-high-budget-three-quarter, repair-three-quarter, repair-seven-eighth, " +
+      "or linear-cap-216",
   );
 }
 

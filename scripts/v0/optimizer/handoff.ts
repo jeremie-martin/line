@@ -7164,8 +7164,13 @@ const readStudyNCandPolicy = compileScopedEnv("LR_STUDY_NCAND_POLICY");
  * absolute LR_QUALITY_NCAND override bypasses this helper above. */
 export function applyStudyRepairBreadth(nCand: number, repairLane: boolean): number {
   const policy = readStudyNCandPolicy();
-  if (policy !== "repair-three-quarter" || !repairLane) return nCand;
-  return Math.max(HANDOFF_QUALITY_N_CAND_FLOOR, Math.round(nCand * 0.75));
+  if (!repairLane) return nCand;
+  const ratio = policy === "repair-three-quarter"
+    ? 3 / 4
+    : policy === "repair-seven-eighth"
+      ? 7 / 8
+      : 1;
+  return Math.max(HANDOFF_QUALITY_N_CAND_FLOOR, Math.round(nCand * ratio));
 }
 
 function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
@@ -7190,12 +7195,13 @@ function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
   }
   // Applied after target-profile floors by applyStudyRepairBreadth(). Keeping
   // the base law unchanged here also keeps the initial-search lane exact.
-  if (policy === "repair-three-quarter") return linear;
+  if (policy === "repair-three-quarter" || policy === "repair-seven-eighth") return linear;
   if (policy === "linear-cap-216") return Math.min(linear, 216);
   if (policy !== undefined && policy !== "") {
     throw new Error(
       `LR_STUDY_NCAND_POLICY must be high-budget-three-quarter, ` +
-        `repair-high-budget-three-quarter, repair-three-quarter, or linear-cap-216 ` +
+        `repair-high-budget-three-quarter, repair-three-quarter, repair-seven-eighth, ` +
+        `or linear-cap-216 ` +
         `(STUDY-ONLY; never set it in production), got "${policy}"`,
     );
   }
@@ -7788,7 +7794,8 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //   LR_STUDY_NCAND_POLICY      predeclared high-budget breadth shapes:
 //                              high-budget-three-quarter|
 //                              repair-high-budget-three-quarter|
-//                              repair-three-quarter|linear-cap-216
+//                              repair-three-quarter|repair-seven-eighth|
+//                              linear-cap-216
 // Two more live one module over, in optimizer/deadline.ts, because that is where the
 // constants they re-bracket are derived; they reach this subsystem through the head ramp,
 // the aim throttle and the continuation filter:

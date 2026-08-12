@@ -187,6 +187,25 @@ function aimModelImpactFeasibilityEnabled(): boolean {
   return aimModelImpactPolicy() !== "off";
 }
 
+/** Study calibration for the distilled factor's log-weight inside the fixed
+ * proposal ranking. One is the production policy and preserves the exact
+ * multiplication path. This is intentionally aim-specific: the global
+ * readiness power also changes ordinary pool ranking and would confound the
+ * question being measured here. */
+export function aimModelImpactPower(
+  environment: Record<string, string | undefined> =
+    (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env ?? {},
+): number {
+  const raw = environment.LR_AIM_MODEL_IMPACT_POWER;
+  if (raw === undefined || raw === "") return 1;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0.25 || value > 4) {
+    throw new Error(`LR_AIM_MODEL_IMPACT_POWER must be in [0.25, 4]; got ${raw}`);
+  }
+  return value;
+}
+
 /** Below this |predicted base air − effective ask| the air-matched variant is
  *  not worth a candidate evaluation (blast-radius gate: inert where the base
  *  already lands near the ask). Probe-tuned: 0.18 priced out most emissions
@@ -1242,12 +1261,16 @@ function scoreConfiguredKnobs(
     readinessOutgoingGap,
     gapAxisTargets,
   );
+  const impactPower = aimModelImpactPower();
+  const weightedImpactFeasibility = impactPower === 1
+    ? modelImpactFeasibility
+    : Math.max(0, Math.min(1, modelImpactFeasibility)) ** impactPower;
   return {
     values: [...values],
     val: proposalUtility(
       readout.currentQuality,
       projectedOutgoingQuality,
-      { readiness: modelImpactFeasibility },
+      { readiness: weightedImpactFeasibility },
     ),
     ordinaryVal,
     modelImpactFeasibility,

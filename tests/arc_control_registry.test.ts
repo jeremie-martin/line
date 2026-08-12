@@ -18,6 +18,7 @@ import {
   aimControlPhase,
   aimOutgoingAmplitudeEligible,
   aimTopKScaleExponent,
+  aimModelImpactPower,
   impactSpeedAirOutgoingParetoImproves,
   impactSpeedParetoImproves,
   setAimRepairLaneActive,
@@ -152,6 +153,14 @@ describe("arc-control probe layouts", () => {
     expect(aimTopKScaleExponent({ LR_AIM_TOPK_SCALE_EXPONENT: "0.75" })).toBe(0.75);
     expect(() => aimTopKScaleExponent({ LR_AIM_TOPK_SCALE_EXPONENT: "0" })).toThrow();
     expect(() => aimTopKScaleExponent({ LR_AIM_TOPK_SCALE_EXPONENT: "2.1" })).toThrow();
+  });
+
+  test("validates the aim-specific model impact power", () => {
+    expect(aimModelImpactPower({})).toBe(1);
+    expect(aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "0.75" })).toBe(0.75);
+    expect(aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "1.25" })).toBe(1.25);
+    expect(() => aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "0.1" })).toThrow();
+    expect(() => aimModelImpactPower({ LR_AIM_MODEL_IMPACT_POWER: "4.1" })).toThrow();
   });
 
   test("outgoing amplitude study modes separate authored onset and budget maturity", () => {

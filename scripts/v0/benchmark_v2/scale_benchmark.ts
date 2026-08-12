@@ -112,6 +112,7 @@ export function assertScaleArguments(
         "breadth-policy",
         "repair-policy",
         "repair-selection-policy",
+        "aim-impact-power",
       ]
       : ["baseline", "candidate", "artifact"]);
   for (const arg of argv) {
@@ -125,6 +126,7 @@ export function assertScaleArguments(
       if (name === "repair-selection-policy") {
         parseRepairSelectionPolicy(arg.slice(equals + 1));
       }
+      if (name === "aim-impact-power") parseAimImpactPower(arg.slice(equals + 1));
       continue;
     }
     throw new Error(`scale ${action} does not accept ${arg}`);
@@ -274,6 +276,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const breadthPolicy = scaleBreadthPolicyArgument(argv);
   const repairPolicy = scaleRepairPolicyArgument(argv);
   const repairSelectionPolicy = scaleRepairSelectionPolicyArgument(argv);
+  const aimImpactPower = scaleAimImpactPowerArgument(argv);
   const extensionPath = argument("extend-from") === undefined
     ? null
     : resolve(argument("extend-from")!);
@@ -305,6 +308,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
       breadthPolicy,
       repairPolicy,
       repairSelectionPolicy,
+      aimImpactPower,
     );
   const release = acquireRunLock(candidatePath);
   let workspace: ReturnType<typeof createSnapshotWorkspace> | null = null;
@@ -324,6 +328,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
         breadthPolicy,
         repairPolicy,
         repairSelectionPolicy,
+        aimImpactPower,
       ),
       candidatePath,
     );
@@ -413,6 +418,12 @@ async function compareScaleArchives(
         `repair-selection-policy override`,
     );
   }
+  if (candidate.archive.aimImpactPower !== undefined) {
+    comparabilityNotes.push(
+      `declared study intervention: candidate aim impact power ` +
+        `${candidate.archive.aimImpactPower}; the production reference uses 1`,
+    );
+  }
   const paired = pairGridCells(candidate, referencePrefix);
   const result = pairedScaleComparison(paired.pairs, profile.profile, depth);
   const requestedDepthCharacterization = scaleDepthCharacterization(
@@ -473,7 +484,9 @@ async function compareScaleArchives(
               kind: "candidate-repair-selection-policy",
               policy: candidate.archive.repairSelectionPolicy,
             }
-        : null,
+            : candidate.archive.aimImpactPower !== undefined
+              ? { kind: "candidate-aim-impact-power", power: candidate.archive.aimImpactPower }
+              : null,
     },
     comparabilityNotes,
     result,
@@ -492,7 +505,10 @@ async function compareScaleArchives(
           : ` --repair-policy=${candidate.archive.repairPolicy}`) +
         (candidate.archive.repairSelectionPolicy === undefined
           ? ""
-          : ` --repair-selection-policy=${candidate.archive.repairSelectionPolicy}`),
+          : ` --repair-selection-policy=${candidate.archive.repairSelectionPolicy}`) +
+        (candidate.archive.aimImpactPower === undefined
+          ? ""
+          : ` --aim-impact-power=${candidate.archive.aimImpactPower}`),
   };
 }
 
@@ -508,6 +524,7 @@ function scaleRunnerArgs(
   breadthPolicy: BreadthPolicy | null = null,
   repairPolicy: RepairPolicy | null = null,
   repairSelectionPolicy: RepairSelectionPolicy | null = null,
+  aimImpactPower: number | null = null,
 ): string[] {
   const profilePath = resolve(workspace, "benchmark/v2/scale-profile.json");
   return [
@@ -522,6 +539,7 @@ function scaleRunnerArgs(
     ...(repairSelectionPolicy === null
       ? []
       : [`--repair-selection-policy=${repairSelectionPolicy}`]),
+    ...(aimImpactPower === null ? [] : [`--aim-impact-power=${aimImpactPower}`]),
     ...(extension === null ? [] : [
       `--import-checkpoint=${extension.checkpointPath}`,
       `--import-budgets=${profile.profile.budgets.map((budget) => budget.frames).join(",")}`,
@@ -539,6 +557,7 @@ function validateScaleExtension(
   breadthPolicy: BreadthPolicy | null,
   repairPolicy: RepairPolicy | null,
   repairSelectionPolicy: RepairSelectionPolicy | null,
+  aimImpactPower: number | null,
 ): { checkpointPath: string; seeds: number[] } {
   const arm = readGridArm("candidate-prefix", scaleAnalysisPath(path));
   assertArchiveProfile(arm.archive, profile);
@@ -558,6 +577,9 @@ function validateScaleExtension(
   }
   if ((arm.archive.repairSelectionPolicy ?? null) !== repairSelectionPolicy) {
     throw new Error(`--extend-from used a different candidate repair selection policy`);
+  }
+  if ((arm.archive.aimImpactPower ?? null) !== aimImpactPower) {
+    throw new Error(`--extend-from used a different candidate aim impact power`);
   }
   const checkpointPath = resolve(`${path}.checkpoint.jsonl`);
   if (!existsSync(checkpointPath)) {
@@ -733,6 +755,19 @@ export function scaleRepairSelectionPolicyArgument(
   argv: string[],
 ): RepairSelectionPolicy | null {
   return parseRepairSelectionPolicy(argumentIn(argv)("repair-selection-policy"));
+}
+
+function parseAimImpactPower(raw: string | undefined): number | null {
+  if (raw === undefined) return null;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0.25 || value > 4) {
+    throw new Error(`--aim-impact-power must be in [0.25, 4]`);
+  }
+  return value;
+}
+
+export function scaleAimImpactPowerArgument(argv: string[]): number | null {
+  return parseAimImpactPower(argumentIn(argv)("aim-impact-power"));
 }
 
 function argumentIn(argv: string[]) {

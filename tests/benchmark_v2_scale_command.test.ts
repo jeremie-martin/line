@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   assertScaleArguments,
   assertScaleCommandArguments,
+  scaleAimImpactPowerArgument,
   scaleBreadthPolicyArgument,
   scaleRepairPolicyArgument,
   scaleRepairSelectionPolicyArgument,
@@ -39,6 +40,7 @@ describe("Benchmark V2 scale command contract", () => {
       "--breadth-policy=high-budget-three-quarter",
       "--repair-policy=protected-one-step-bridge",
       "--repair-selection-policy=reserve-cheapest-repair",
+      "--aim-impact-power=1.25",
     ])).not.toThrow();
     expect(() => assertScaleArguments("compare", [
       "--baseline=reference.json",
@@ -56,8 +58,16 @@ describe("Benchmark V2 scale command contract", () => {
       .toThrow(/repair-policy must be/);
     expect(() => assertScaleArguments("eval", ["--repair-selection-policy=unknown"]))
       .toThrow(/repair-selection-policy must be/);
+    expect(() => assertScaleArguments("eval", ["--aim-impact-power=0.1"]))
+      .toThrow(/aim-impact-power must be/);
     expect(() => assertScaleArguments("eval", ["--repair-mode=multi-terminal"]))
       .toThrow(/does not accept/);
+  });
+
+  test("resolves the aim impact strength passed to scale eval", () => {
+    expect(scaleAimImpactPowerArgument([])).toBeNull();
+    expect(scaleAimImpactPowerArgument(["--aim-impact-power=0.75"])).toBe(0.75);
+    expect(scaleAimImpactPowerArgument(["--aim-impact-power=1.25"])).toBe(1.25);
   });
 
   test("validates the subcommand before the runner prepares benchmark inputs", () => {

@@ -73,6 +73,7 @@ type StudyTask = {
     | "reserve-cheapest-repair"
     | "reserve-cheapest-else-deepest"
     | "worst-target-runway-per-cost";
+  aimImpactPower?: number;
 };
 
 type StudyWorkerResult = {
@@ -127,6 +128,12 @@ async function main(): Promise<void> {
   const nCandPolicy = parseNCandPolicy(argument("ncand-policy"));
   const repairPolicy = parseRepairPolicy(argument("repair-policy"));
   const repairSelectionPolicy = parseRepairSelectionPolicy(argument("repair-selection-policy"));
+  const aimImpactPower = optionalBoundedNumber(
+    argument("aim-impact-power"),
+    "aim-impact-power",
+    0.25,
+    4,
+  );
   if (nCandExponent !== undefined && nCandPolicy !== undefined) {
     throw new Error("--ncand-exponent and --ncand-policy are mutually exclusive");
   }
@@ -168,6 +175,7 @@ async function main(): Promise<void> {
     nCandPolicy,
     repairPolicy,
     repairSelectionPolicy,
+    aimImpactPower,
     sourceManifestPath,
   }))));
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -192,6 +200,7 @@ async function main(): Promise<void> {
     nCandPolicy,
     repairPolicy,
     repairSelectionPolicy,
+    aimImpactPower,
     scaleProfileFingerprint: scaleProfile?.fingerprint,
     sources: sources.map((source) => ({ id: source.id, fingerprint: source.sourceFingerprint })),
   };
@@ -311,6 +320,7 @@ async function main(): Promise<void> {
     nCandPolicy,
     repairPolicy,
     repairSelectionPolicy,
+    aimImpactPower,
     scaleProfile: scaleProfileReport(scaleProfile),
     scaleHeadline: scalePanel?.scaleHeadline ?? null,
     summaries,
@@ -478,6 +488,7 @@ function studyPlanFingerprint(input: {
     | "reserve-cheapest-repair"
     | "reserve-cheapest-else-deepest"
     | "worst-target-runway-per-cost";
+  aimImpactPower?: number;
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
@@ -506,6 +517,7 @@ function taskKey(task: StudyTask): string {
     task.nCandPolicy ?? "production",
     task.repairPolicy ?? "production",
     task.repairSelectionPolicy ?? "production",
+    task.aimImpactPower ?? "production",
   ].join("\0");
 }
 
@@ -583,6 +595,8 @@ async function workerMain(task: StudyTask): Promise<void> {
       : "1";
     if (task.repairSelectionPolicy === undefined) delete process.env.LR_REPAIR_SELECTION_POLICY;
     else process.env.LR_REPAIR_SELECTION_POLICY = task.repairSelectionPolicy;
+    if (task.aimImpactPower === undefined) delete process.env.LR_AIM_MODEL_IMPACT_POWER;
+    else process.env.LR_AIM_MODEL_IMPACT_POWER = String(task.aimImpactPower);
     const sources = resolveSources(loadSourceManifest(task.sourceManifestPath));
     const source = sources.find((entry) => entry.id === task.sourceId);
     if (source === undefined) throw new Error(`${task.sourceId}: source unavailable`);
@@ -686,6 +700,20 @@ function optionalFraction(text: string | undefined, name: string): number | unde
   const value = Number(text);
   if (!Number.isFinite(value) || value <= 0 || value > 1) {
     throw new Error(`--${name} must be a finite number in (0, 1]`);
+  }
+  return value;
+}
+
+function optionalBoundedNumber(
+  text: string | undefined,
+  name: string,
+  minimum: number,
+  maximum: number,
+): number | undefined {
+  if (text === undefined) return undefined;
+  const value = Number(text);
+  if (!Number.isFinite(value) || value < minimum || value > maximum) {
+    throw new Error(`--${name} must be a finite number in [${minimum}, ${maximum}]`);
   }
   return value;
 }

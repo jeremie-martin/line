@@ -1,0 +1,109 @@
+{
+  "schema": "line.benchmark-v2.late-repair-breadth-isolation.v1",
+  "recorded_at": "2026-08-13T00:00:00+02:00",
+  "status": "complete_no_promotion",
+  "reference": {
+    "policy": "distilled-aim-impact-feasibility",
+    "scale_headline": 579.8494,
+    "canonical_headline": 605.8725
+  },
+  "candidate": {
+    "policy": "late-repair-seven-eighth",
+    "breadth_ratio": 0.875,
+    "first_affected_repair_iteration": 2,
+    "initial_and_resumed_search_unchanged": true,
+    "repair_iterations_zero_and_one_unchanged": true
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "look_deltas": {
+      "4": 0.093,
+      "8": 0.0457,
+      "16": 0.0158
+    },
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.8652,
+    "delta": 0.0158,
+    "directional_probability": 0.73154939,
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": 0.0321,
+    "per_budget_delta": {
+      "150000": -0.01,
+      "250000": -0.0083,
+      "500000": 0.0594,
+      "750000": 0.0321,
+      "1000000": -0.0032,
+      "1500000": 0.0442,
+      "2500000": -0.0653,
+      "4000000": 0.0779
+    }
+  },
+  "mechanics": {
+    "first_terminal_frames_relative_delta": 0,
+    "repair_candidate_samples_relative_delta": -0.012742,
+    "repair_episodes_relative_delta": 0.044803,
+    "repair_terminal_reached_relative_delta": 0.045765,
+    "distinct_terminal_tracks_relative_delta": 0.031018,
+    "repair_accepted_alternatives_relative_delta": 0.02862,
+    "repair_spent_frames_relative_delta": 0.000037,
+    "repair_internal_full_score_delta_relative_delta": 0.003032,
+    "repair_internal_full_score_delta_per_million_frames_relative_delta": 0.001519,
+    "repair_terminal_improvements_per_million_frames_relative_delta": 0.016301
+  },
+  "iteration_audit": {
+    "invariant_violations": {
+      "reference": 0,
+      "candidate": 0
+    },
+    "iterations_zero_and_one_exact": true,
+    "iteration_two": {
+      "reference_episodes": 853,
+      "candidate_episodes": 853,
+      "spent_frames_relative_delta": -0.047838,
+      "internal_full_score_delta_relative_delta": 0.007583
+    },
+    "all_iterations": {
+      "reference_episodes": 3839,
+      "candidate_episodes": 4011,
+      "reference_accepted": 1747,
+      "candidate_accepted": 1797,
+      "reference_internal_gain": 4953.500061,
+      "candidate_internal_gain": 4968.51724
+    }
+  },
+  "interpretation": "Preserving full breadth for the two high-return repairs removes the quality loss of repair-wide narrowing. Reducing breadth only from iteration two buys additional late terminals and a small real repair-efficiency gain, but the resulting authored-score gain is too small and uncertain to promote. The inherited ratio and declared threshold are closed without tuning.",
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/late-repair-seven-eighth-4.comparison.json",
+      "sha256": "61a42803c1b70076da23c82c23258a4b06796ef713911a15f847b2720027441f"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/late-repair-seven-eighth-8.comparison.json",
+      "sha256": "041018822181f280f77cb0103b58d88711aa4d308e6cc5d03295a55ec261c957"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/late-repair-seven-eighth-16.comparison.json",
+      "sha256": "d09234e300c46adc05a4c95894ccd6764a4709111b0305ac15da858481d4d685"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/late-repair-seven-eighth-16.json.gz",
+      "sha256": "5157af8d27849adac7c6d4a6920576d7d3610631a5a6020c66148c78f99b7cd7"
+    },
+    "n16_analysis_projection": {
+      "path": "generated/benchmark-v2/scale/late-repair-seven-eighth-16.analysis.json.gz",
+      "sha256": "3ecb4ee1768436d8167bfe150c974d88fba3a053dcba8a1b53467dd82808b431"
+    },
+    "iteration_audit": {
+      "path": "generated/benchmark-v2/scale/late-repair-seven-eighth-16.behavior.json",
+      "sha256": "af5d8b9a70b321d6847b8908e56564d5c1533dc02678e95f27f5a2618a6a6b1d"
+    },
+    "iteration_audit_report": {
+      "path": "generated/benchmark-v2/scale/late-repair-seven-eighth-16.behavior.md",
+      "sha256": "c325ed1b62800745825c1d415e565b7d13a0373b9692b9513af0e790fd12b265"
+    }
+  }
+}

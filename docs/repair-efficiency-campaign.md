@@ -324,3 +324,27 @@ It asks whether cheaper low-return repairs create useful additional attempts
 without paying the early-repair quality loss. The ratio and threshold will not
 be tuned around the result. Promotion still requires the scale decision,
 unchanged validity, the declared phase invariants, and canonical confirmation.
+
+### Late-repair generic breadth result — useful, not promoted at N=16
+
+The phase isolation stayed slightly positive at all three looks (+0.0930,
++0.0457, +0.0158), but the final 73.15% directional probability did not meet
+the frozen promotion rule. The 750k delta was +0.0321 and validity remained
+exactly 997/1,024. Budget deltas were mixed, from -0.0653 at 2.5M to +0.0779
+at 4M, so the arm does not establish a broad authored-score improvement.
+
+The mechanism is nevertheless real and correctly isolated. Iterations zero
+and one were exact in episode count, terminal count, spent frames, accepts,
+and internal gain. From iteration two onward, repair candidate samples fell
+1.27%; the same total repair spend produced 4.48% more episodes, 4.58% more
+reached terminals, 3.10% more distinct terminal tracks, and 2.86% more accepted
+alternatives. Aggregate internal repair gain rose 0.30%, while terminal
+improvements per million frames rose 1.63%. The controller audit reported zero
+invariant violations in both arms.
+
+This is substantially cleaner than repair-wide narrowing, but the authored
+gain is too small to promote and the declared ratio/threshold will not be tuned.
+The result establishes that late-repair breadth can be reduced without harming
+the high-value early repairs; it also shows that manufacturing still more very
+late alternatives has sharply diminishing authored value. Exact evidence is in
+`benchmark/v2/studies/late-repair-breadth-isolation.json`.

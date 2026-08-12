@@ -1,0 +1,68 @@
+{
+  "schema": "line.benchmark-v2.current-scorer-repair-reserve-revalidation.v1",
+  "recorded_at": "2026-08-12T21:14:06+02:00",
+  "status": "inconclusive_not_promoted",
+  "reference": {
+    "policy": "worst_gap_deepest_affordable",
+    "proposal_scorer": "distilled-aim-impact-feasibility",
+    "scale_headline": 579.8494
+  },
+  "candidate": {
+    "policy": "worst_gap_reserve_cheapest_else_deepest",
+    "proposal_scorer": "distilled-aim-impact-feasibility",
+    "semantics": "For the unchanged worst affordable target, reserve the cheapest currently affordable further repair, choose the deepest parent whose own upper cost plus that reserve fits, and use the production deepest parent when only one repair fits. Recompute from the current incumbent after every terminal."
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.7776,
+    "delta": -0.0718,
+    "directional_probability": 0.09738259,
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": -0.2907,
+    "per_budget_delta": {
+      "150000": -0.0752,
+      "250000": -0.0774,
+      "500000": -0.0397,
+      "750000": -0.2907,
+      "1000000": 0.0614,
+      "1500000": -0.0878,
+      "2500000": 0.0132,
+      "4000000": -0.0779
+    }
+  },
+  "mechanics": {
+    "first_terminal_frames_relative_delta": 0,
+    "repair_mean_parent_depth_relative_delta": -0.195478,
+    "repair_mean_spent_frames_relative_delta": -0.102753,
+    "repair_episodes_relative_delta": 0.137275,
+    "distinct_terminal_tracks_relative_delta": 0.086817,
+    "repair_accepted_alternatives_relative_delta": 0.127647,
+    "repair_internal_full_score_delta_relative_delta": -0.011864,
+    "repair_internal_full_score_delta_per_million_frames_relative_delta": -0.034549,
+    "repair_terminal_improvements_per_million_frames_relative_delta": 0.139579
+  },
+  "interpretation": "The current scorer does not rescue the reserve allocator. It robustly converts long repairs into more terminal and accepted alternatives, but the alternatives are smaller and reduce total authored-score gain. This closes the stale-sweep licence and the generic later-anchor/more-attempt family. Keep the production deepest-affordable anchor; move to within-attempt suffix search quality or explicit diversity.",
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-repair-reserve-current-4.comparison.json",
+      "sha256": "488cbc6cab0fd8eee29434becfc790b134f1c84992e9ddf1790173ba8c90ac61"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-repair-reserve-current-8.comparison.json",
+      "sha256": "380763e85fd06c12b7b23b1179469e7acc80093dbb477cfc84bacc94630abc38"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-repair-reserve-current-16.comparison.json",
+      "sha256": "e50feefdbb5ac458f659a60cc79be53e07f7047d296e057f080fb6b0ffdc8be1"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/aim-impact-repair-reserve-current-16.json.gz",
+      "sha256": "5487632bf152ff3e5ba2eee511603388579b139b342a31505f8e13fa0eb9afa5"
+    }
+  }
+}

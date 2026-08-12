@@ -240,3 +240,18 @@ alternatives valuable. First-terminal work, validity, breadth, target choice,
 and the accepted proposal scorer remain fixed. A promotion still requires the
 scale decision and then the canonical protocol; a neutral result closes this
 stale-sweep licence without tuning the reserve.
+
+### Post-breadth anchor allocation result — not promoted at N=16
+
+The current scorer did not make the reserve allocator valuable. First-terminal
+work remained exact and validity stayed 997/1,024 in both arms. The allocator
+reduced mean parent depth 19.5% and mean attempt cost 10.3%, which produced
+13.7% more repair episodes, 8.7% more distinct terminal tracks, and 12.8% more
+accepted alternatives. Yet aggregate repair gain fell 1.2% and gain per
+million repair frames fell 3.5%.
+
+The score result was -0.0718 overall and -0.2907 at 750k. Six of eight budgets
+were negative. This closes the stale-sweep licence and the generic
+later-anchor/more-attempt family without promotion or reserve tuning. The next
+repair family must improve the value of an attempt—suffix ordering or explicit
+diversity—rather than merely produce more attempts.

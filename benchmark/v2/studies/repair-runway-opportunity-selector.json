@@ -1,0 +1,73 @@
+{
+  "schema": "line.benchmark-v2.repair-runway-opportunity-selector.v1",
+  "recorded_at": "2026-08-12T16:25:00+02:00",
+  "status": "rejected_at_n8",
+  "production_policy": "worst_gap_deepest_affordable",
+  "candidate_policy": "worst_gap_runway_opportunity_per_cost",
+  "hypothesis": "For the unchanged worst target, count direct SSE between an anchor and target plus one target-SSE arrival-shaping opportunity per regenerated parent transition, then select the affordable anchor with the most opportunity per estimated frame.",
+  "offline_filter": {
+    "reference_repair_episodes": 3839,
+    "changed_anchor_decisions": 139,
+    "changed_fraction": 0.0362,
+    "direction": "all changed decisions selected a later, cheaper anchor",
+    "reference_mean_parent_depth": 3.32,
+    "candidate_mean_parent_depth": 3.26,
+    "reference_mean_point_cost_share_of_remaining": 0.659,
+    "candidate_mean_point_cost_share_of_remaining": 0.646
+  },
+  "scale_decision": {
+    "profile": "compact-budget-response-v1",
+    "stopping_depth": 8,
+    "outcome": "do_not_retain",
+    "reference_headline": 579.5092,
+    "candidate_headline": 579.5054,
+    "delta": -0.0038,
+    "directional_probability": 0.2797,
+    "canonical_750k_delta": -0.0197,
+    "reference_valid": 497,
+    "candidate_valid": 497,
+    "paired_cells": 512,
+    "gained_valid": 0,
+    "lost_valid": 0
+  },
+  "mechanics": {
+    "changed_tracks": 51,
+    "first_terminal_frames_delta": 0,
+    "mean_parent_depth_relative_delta": -0.043343,
+    "mean_repair_spent_frames_relative_delta": -0.025809,
+    "repair_episode_relative_delta": 0.046162,
+    "terminal_reached_episode_relative_delta": 0.042342,
+    "accepted_alternative_relative_delta": 0.025612,
+    "aggregate_internal_repair_gain_relative_delta": -0.001233,
+    "invariant_violations": 0,
+    "per_budget_raw_score_delta": {
+      "150000": -0.027644,
+      "250000": -0.006206,
+      "500000": 0.00492,
+      "750000": -0.019767,
+      "1000000": -0.011592,
+      "1500000": -0.011591,
+      "2500000": -0.000658,
+      "4000000": 0.04307
+    }
+  },
+  "interpretation": "The candidate did exactly what it was designed to do: it bought more independent terminal repair attempts by selecting later anchors. Those extra attempts did not replace the value of the regenerated parent transitions. Repeated N=4 and N=8 headline deltas were pinned near zero, seven of eight N=8 budgets were neutral-to-negative, and aggregate internal repair gain fell slightly. Do not promote or tune this algebraic selector; retain the production deepest-affordable anchor and move to a new causal mechanism.",
+  "evidence": {
+    "candidate_archive": {
+      "path": "generated/benchmark-v2/scale/aim-impact-repair-runway-value-8.json.gz",
+      "sha256": "64a71dc6d8940a0fccb8e69f2ef40a2df543d1bad39daa93a40c19f196f3c118"
+    },
+    "comparison": {
+      "path": "generated/benchmark-v2/scale/aim-impact-repair-runway-value-8.comparison.json",
+      "sha256": "f8a95222b2a0503cb2fa521256011ec321c82e6fd46bb90ffb23d049d57c6cc8"
+    },
+    "mechanics": {
+      "path": "generated/benchmark-v2/scale/aim-impact-repair-runway-value-8.mechanics.json",
+      "sha256": "5cf4f70d683283e4a71a41e41775d918dfe2172b1baba30c626c8a8d16fc4744"
+    },
+    "behavior": {
+      "path": "generated/benchmark-v2/scale/aim-impact-repair-runway-value-8.behavior.json",
+      "sha256": "93aed66f378207a629bca37bce313a06d62f6a08286c4744acf0a9ef6e70fde6"
+    }
+  }
+}

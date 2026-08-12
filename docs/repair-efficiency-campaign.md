@@ -135,3 +135,31 @@ The accepted archive was promoted as campaign baseline
 boundary. The scale and canonical decisions, exact identities, behavior audit,
 and evidence hashes are bound in
 `benchmark/v2/studies/repair-depth-six-promotion.json`.
+
+### Value-aware anchor runway — rejected at N=8
+
+After promotion of the distilled aim-impact controller and a fresh breadth
+revisit, the campaign tested whether repair should always restart as early as
+affordability permits. The candidate retained the same worst gap, but priced
+each affordable parent by direct anchor-to-target SSE plus one target-arrival
+opportunity per regenerated parent transition, divided by estimated frames.
+Offline replay deliberately selected a sparse arm: only 139/3,839 historical
+decisions changed, all toward later anchors.
+
+The live mechanism behaved exactly as intended but did not improve authored
+impact:
+
+- N=8 scale headline 579.5054 versus 579.5092, delta -0.0038;
+- identical validity, 497/512 in each arm;
+- first-terminal frames exactly unchanged;
+- mean repair depth -4.3% and mean attempt cost -2.6%;
+- repair episodes +4.6% and accepted alternatives +2.6%; but
+- aggregate internal repair gain -0.12%.
+
+Seven of eight budget deltas were neutral-to-negative. The 4M cell mean was
+positive by only +0.043 points, too small and isolated to retain. The result
+answers the causal question: cheaper later restarts buy more terminals, but the
+lost parent runway is worth approximately the saved work. The production
+deepest-affordable selector remains unchanged. Exact decision semantics,
+score, mechanics, invariants, and evidence hashes are recorded in
+`benchmark/v2/studies/repair-runway-opportunity-selector.json`.

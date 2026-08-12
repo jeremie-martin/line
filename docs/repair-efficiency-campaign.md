@@ -214,3 +214,29 @@ The score result was +0.0444 overall with identical validity and -0.5118 at
 nor repair-only fixed 0.875 exponent ships, and the bracket will not tune a
 nearby exponent. The bottleneck is now attempt selection/yield rather than the
 ability to manufacture more attempts.
+
+### Post-breadth anchor allocation — declared revalidation
+
+The breadth bracket proves that manufacturing more repair attempts is not
+enough by itself. The next arm therefore revisits the already-implemented
+`reserve-cheapest-else-deepest` allocator under the accepted distilled
+proposal scorer. This is a stale-evidence revalidation, not a new algebraic
+selector: its previous N=16 evidence predates the scorer that now ranks every
+repair pool.
+
+For the unchanged worst affordable target, the allocator reserves the minimum
+upper-bound cost of one further currently affordable repair. It then chooses
+the deepest parent whose own upper-bound cost plus that reserve fits. If no
+second repair can fit, it uses the production deepest-affordable parent for the
+last iteration. The reserve and anchor are recomputed independently from the
+current best track after every terminal. There is no carried tried-anchor state
+or fallback chain.
+
+The previous arm reduced parent depth 17.1%, reduced mean attempt cost 8.9%,
+increased episodes 11.2%, and increased accepted alternatives 9.2%, while
+finishing score-neutral (-0.0342 overall, +0.2275 at 750k). The new 4/8/16
+paired scale look asks whether the distilled scorer makes those extra accepted
+alternatives valuable. First-terminal work, validity, breadth, target choice,
+and the accepted proposal scorer remain fixed. A promotion still requires the
+scale decision and then the canonical protocol; a neutral result closes this
+stale-sweep licence without tuning the reserve.

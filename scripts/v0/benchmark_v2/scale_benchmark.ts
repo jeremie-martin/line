@@ -322,6 +322,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
       profile,
       depth,
       snapshot,
+      artifactPath,
     );
     writeJsonArtifact(artifactPath, artifact);
     emitComparison(argv, artifactPath, artifact);
@@ -349,6 +350,7 @@ async function runScaleCompare(argv: string[]): Promise<number> {
     profile,
     depth,
     null,
+    null,
   );
   writeJsonArtifact(artifactPath, artifact);
   emitComparison(argv, artifactPath, artifact);
@@ -362,6 +364,7 @@ async function compareScaleArchives(
   profile: LoadedMultiBudgetProfile,
   depth: number,
   snapshot: CompilerSnapshot | null,
+  extensionSnapshotPath: string | null,
 ): Promise<Record<string, unknown>> {
   const expectedSeeds = multiBudgetSeeds(profile.profile, depth);
   const reference = readGridArm("reference", scaleAnalysisPath(baseline.archive.path));
@@ -449,10 +452,11 @@ async function compareScaleArchives(
     result,
     requestedDepthCharacterization,
     mechanics,
-    nextCommand: result.nextLook === null
+    nextCommand: result.nextLook === null || snapshot === null || extensionSnapshotPath === null
       ? null
       : `npm run benchmark -- scale eval --baseline=${relativeToCwd(baselinePath)} ` +
-        `--seeds=${result.nextLook} --extend-from=${relativeToCwd(candidatePath)}` +
+        `--seeds=${result.nextLook} --extend-from=${relativeToCwd(candidatePath)} ` +
+        `--extend-snapshot=${relativeToCwd(extensionSnapshotPath)}` +
         (candidate.archive.nCandPolicy === undefined
           ? ""
           : ` --breadth-policy=${candidate.archive.nCandPolicy}`) +

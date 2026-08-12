@@ -459,6 +459,7 @@ function auditRun(row: RunRow, audit: Audit): void {
       );
     }
     if (!episode.outcome.accepted_alternative &&
+        decision.working_track_source === "global_incumbent" &&
         nextDecision.working_track_source === "global_incumbent") {
       const nextAffordable = new Set(nextDecision.affordable_target_gap_indices);
       audit.check(
@@ -848,6 +849,8 @@ function summarizeTransitions(rows: RunRow[]): {
   afterAccepted: number;
   afterRejected: number;
   afterRejectedGlobalIncumbentFollowup: number;
+  afterRejectedIncumbentRetry: number;
+  afterRejectedBridgeReturnToIncumbent: number;
   afterRejectedLocalBridge: number;
   afterAcceptedAnchorEarlier: number;
   afterAcceptedAnchorSame: number;
@@ -868,6 +871,8 @@ function summarizeTransitions(rows: RunRow[]): {
     afterAccepted: 0,
     afterRejected: 0,
     afterRejectedGlobalIncumbentFollowup: 0,
+    afterRejectedIncumbentRetry: 0,
+    afterRejectedBridgeReturnToIncumbent: 0,
     afterRejectedLocalBridge: 0,
     afterAcceptedAnchorEarlier: 0,
     afterAcceptedAnchorSame: 0,
@@ -897,7 +902,14 @@ function summarizeTransitions(rows: RunRow[]): {
         result.afterRejectedLocalBridge++;
         continue;
       }
-      if (!accepted) result.afterRejectedGlobalIncumbentFollowup++;
+      if (!accepted) {
+        result.afterRejectedGlobalIncumbentFollowup++;
+        if (current.repair_decision!.working_track_source === "rejected_local_improvement") {
+          result.afterRejectedBridgeReturnToIncumbent++;
+          continue;
+        }
+        result.afterRejectedIncumbentRetry++;
+      }
       const movement = next.anchor.gap_index < current.anchor.gap_index
         ? "AnchorEarlier"
         : next.anchor.gap_index === current.anchor.gap_index
@@ -938,12 +950,14 @@ function summarizeTransitionOutcomes(rows: RunRow[]): {
   afterRejectedSameTargetAndAnchor: RepairBehaviorSlice;
   afterRejectedDifferentDecision: RepairBehaviorSlice;
   afterRejectedLocalBridge: RepairBehaviorSlice;
+  afterRejectedBridgeReturnToIncumbent: RepairBehaviorSlice;
   afterAccepted: RepairBehaviorSlice;
 } {
   const same: RepairEntry[] = [];
   const different: RepairEntry[] = [];
   const accepted: RepairEntry[] = [];
   const bridge: RepairEntry[] = [];
+  const bridgeReturn: RepairEntry[] = [];
   for (const run of rows) {
     const episodes = repairEpisodes(run);
     for (let index = 0; index + 1 < episodes.length; index++) {
@@ -955,6 +969,10 @@ function summarizeTransitionOutcomes(rows: RunRow[]): {
       }
       if (next.repair_decision!.working_track_source === "rejected_local_improvement") {
         bridge.push({ run, episode: next });
+        continue;
+      }
+      if (current.repair_decision!.working_track_source === "rejected_local_improvement") {
+        bridgeReturn.push({ run, episode: next });
         continue;
       }
       const currentDecision = current.repair_decision!;
@@ -971,6 +989,7 @@ function summarizeTransitionOutcomes(rows: RunRow[]): {
     afterRejectedSameTargetAndAnchor: summarizeSlice(same),
     afterRejectedDifferentDecision: summarizeSlice(different),
     afterRejectedLocalBridge: summarizeSlice(bridge),
+    afterRejectedBridgeReturnToIncumbent: summarizeSlice(bridgeReturn),
     afterAccepted: summarizeSlice(accepted),
   };
 }
@@ -1252,12 +1271,13 @@ function markdown(artifact: any): string {
     const diversity = summary.terminalOfferDiversity;
     lines.push("Selection and direct diversity:", "", `- Full option replay was available for ${selection.replayableDecisionEpisodes}/${selection.decisionEpisodes} decisions. Declared policies: ${Object.entries(selection.selectionPolicies).map(([policy, count]) => `${policy}=${count}`).join(", ")}. Mean affordable populations were ${number(selection.meanAffordableTargets, 2)} targets and ${number(selection.meanAffordableAnchors, 2)} anchors.`, `- The selected mutable suffix carried mean SSE ${number(selection.meanMutableSuffixSse, 4)} (${percentage(selection.meanTargetShareOfMutableSuffixSse)} in its explanatory target) and ${number(selection.meanMutableSuffixSsePerMillionEstimatedFrames, 2)} SSE per million estimated frames. ${selection.explanatoryDepthBeyondOptionRadius} explanatory target-to-anchor depths exceeded the option-generation radius; this is valid for anchor-first policies.`, `- ${diversity.terminalOffersWithHash} terminal offers contained direct hashes: ${diversity.distinctTerminalOfferTracks} were globally distinct, ${diversity.repeatedTerminalOffersAgainstSameWorkingTrack} repeated against the same working track, and ${diversity.repeatedTerminalOffersAgainstSameWorkingTrackAndAnchor} repeated against the same working track and anchor (${diversity.repeatedTerminalOffersAgainstSameWorkingTrackAndAnchorSpentFrames.toLocaleString()} charged frames).`, "");
     const t = summary.transitions;
-    lines.push("Within-run transitions:", "", `- ${t.afterRejected} transitions followed a rejected terminal: ${t.afterRejectedLocalBridge} used that rejected offer as a one-step working track and ${t.afterRejectedGlobalIncumbentFollowup} returned to the global incumbent. Among global-incumbent follow-ups, the next anchor moved earlier/same/later ${t.afterRejectedAnchorEarlier}/${t.afterRejectedAnchorSame}/${t.afterRejectedAnchorLater} times.`, `- Among global-incumbent follow-ups, the same target was selected ${t.afterRejectedSameTarget} times and the exact same target+anchor ${t.afterRejectedSameTargetAndAnchor} times. The affordable set shrank ${t.afterRejectedAffordableSetShrank} times and stayed equal ${t.afterRejectedAffordableSetSame} times; whenever the previous target remained affordable, it was retained ${t.afterRejectedTargetRetained}/${t.afterRejectedTargetStillAffordable} times.`, `- ${t.afterAccepted} transitions followed acceptance: the independently recomputed anchor moved earlier/same/later ${t.afterAcceptedAnchorEarlier}/${t.afterAcceptedAnchorSame}/${t.afterAcceptedAnchorLater} times.`, "");
+    lines.push("Within-run transitions:", "", `- ${t.afterRejected} transitions followed a rejected terminal: ${t.afterRejectedLocalBridge} used that rejected offer as a one-step working track and ${t.afterRejectedGlobalIncumbentFollowup} next used the global incumbent (${t.afterRejectedIncumbentRetry} ordinary incumbent retries; ${t.afterRejectedBridgeReturnToIncumbent} returns after a bridge).`, `- Across comparable ordinary incumbent retries, the next anchor moved earlier/same/later ${t.afterRejectedAnchorEarlier}/${t.afterRejectedAnchorSame}/${t.afterRejectedAnchorLater} times. The same target was selected ${t.afterRejectedSameTarget} times and the exact same target+anchor ${t.afterRejectedSameTargetAndAnchor} times.`, `- Across those retries, the affordable set shrank ${t.afterRejectedAffordableSetShrank} times and stayed equal ${t.afterRejectedAffordableSetSame} times; whenever the previous target remained affordable, it was retained ${t.afterRejectedTargetRetained}/${t.afterRejectedTargetStillAffordable} times.`, `- ${t.afterAccepted} transitions followed acceptance: the independently recomputed anchor moved earlier/same/later ${t.afterAcceptedAnchorEarlier}/${t.afterAcceptedAnchorSame}/${t.afterAcceptedAnchorLater} times.`, "");
     const transitionOutcomes = summary.transitionOutcomes;
     const sameDecision = transitionOutcomes.afterRejectedSameTargetAndAnchor;
     const differentDecision = transitionOutcomes.afterRejectedDifferentDecision;
     const bridgeDecision = transitionOutcomes.afterRejectedLocalBridge;
-    lines.push("Outcome of the next iteration after rejection:", "", `- Retrying the global incumbent at the independently recomputed same target+anchor: ${sameDecision.acceptedAlternatives}/${sameDecision.terminalReached} accepted, ${number(sameDecision.internalFullScoreDelta, 2)} internal-score gain, ${number(sameDecision.internalFullScoreDeltaPerMillionRepairFrames, 2)} gain per million frames.`, `- Returning to the global incumbent at a different target or anchor: ${differentDecision.acceptedAlternatives}/${differentDecision.terminalReached} accepted, ${number(differentDecision.internalFullScoreDelta, 2)} internal-score gain, ${number(differentDecision.internalFullScoreDeltaPerMillionRepairFrames, 2)} gain per million frames.`, `- Following the rejected local improvement as a protected working track: ${bridgeDecision.acceptedAlternatives}/${bridgeDecision.terminalReached} accepted globally, ${number(bridgeDecision.internalFullScoreDelta, 2)} internal-score gain, ${number(bridgeDecision.internalFullScoreDeltaPerMillionRepairFrames, 2)} gain per million frames.`, "");
+    const bridgeReturn = transitionOutcomes.afterRejectedBridgeReturnToIncumbent;
+    lines.push("Outcome of the next iteration after rejection:", "", `- Retrying the unchanged global incumbent at the independently recomputed same target+anchor: ${sameDecision.acceptedAlternatives}/${sameDecision.terminalReached} accepted, ${number(sameDecision.internalFullScoreDelta, 2)} internal-score gain, ${number(sameDecision.internalFullScoreDeltaPerMillionRepairFrames, 2)} gain per million frames.`, `- Retrying the unchanged global incumbent at a different target or anchor: ${differentDecision.acceptedAlternatives}/${differentDecision.terminalReached} accepted, ${number(differentDecision.internalFullScoreDelta, 2)} internal-score gain, ${number(differentDecision.internalFullScoreDeltaPerMillionRepairFrames, 2)} gain per million frames.`, `- Following the rejected local improvement as a protected working track: ${bridgeDecision.acceptedAlternatives}/${bridgeDecision.terminalReached} accepted globally, ${number(bridgeDecision.internalFullScoreDelta, 2)} internal-score gain, ${number(bridgeDecision.internalFullScoreDeltaPerMillionRepairFrames, 2)} gain per million frames.`, `- Returning to the global incumbent after a rejected bridge: ${bridgeReturn.acceptedAlternatives}/${bridgeReturn.terminalReached} accepted, ${number(bridgeReturn.internalFullScoreDelta, 2)} internal-score gain, ${number(bridgeReturn.internalFullScoreDeltaPerMillionRepairFrames, 2)} gain per million frames.`, "");
     const b = summary.adjacentBudgetAssociations;
     lines.push("Adjacent-budget associations (not isolated repair causality):", "", `- ${b.comparablePairs} matched source×seed adjacent-budget pairs; mean changes were ${number(b.meanEpisodeCountDelta)} repair iterations and ${number(b.meanAcceptedCountDelta)} accepted alternatives.`, `- Among ${b.bothHaveRepair} pairs with repair at both budgets, the first anchor at the higher budget was earlier/same/later ${b.firstAnchorEarlierAtHigherBudget}/${b.firstAnchorSameAtHigherBudget}/${b.firstAnchorLaterAtHigherBudget} times.`, "");
   }

@@ -169,6 +169,8 @@ describe("repair behavior analysis", () => {
     expect(result.transitions).toMatchObject({
       total: 1,
       afterRejected: 1,
+      afterRejectedIncumbentRetry: 1,
+      afterRejectedBridgeReturnToIncumbent: 0,
       afterRejectedAnchorLater: 1,
       afterRejectedAffordableSetShrank: 1,
     });
@@ -244,6 +246,8 @@ describe("repair behavior analysis", () => {
       afterRejected: 1,
       afterRejectedLocalBridge: 1,
       afterRejectedGlobalIncumbentFollowup: 0,
+      afterRejectedIncumbentRetry: 0,
+      afterRejectedBridgeReturnToIncumbent: 0,
     });
     expect(result.transitionOutcomes.afterRejectedLocalBridge).toMatchObject({
       repairEpisodes: 1,

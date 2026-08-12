@@ -3101,6 +3101,7 @@ function compileHandoffInternal(
         };
         activeRepairProfile = repairRunProfile;
         repairLaneActive = true;
+        activeRepairIterationIndex = iterationIndex;
         activeRepairTargetGapIndex = kWorst;
         activeRepairTargetGapSse = pickedWeakGapSse;
         setAimRepairLaneActive(true, iterationIndex);
@@ -3109,6 +3110,7 @@ function compileHandoffInternal(
           runFrontierFrom(prefixNode, ceiling, terminalsBefore + 1);
         } finally {
           repairLaneActive = false;
+          activeRepairIterationIndex = null;
           activeRepairTargetGapIndex = null;
           activeRepairTargetGapSse = null;
           setAimRepairLaneActive(false);
@@ -7085,6 +7087,7 @@ function qualityHandoffSampleCount(
   return applyStudyRepairBreadth(
     qualityBreadth(profile, sparseContactCadence, base),
     repairLaneActive,
+    activeRepairIterationIndex,
   );
 }
 
@@ -7235,13 +7238,20 @@ const readStudyNCandPolicy = compileScopedEnv("LR_STUDY_NCAND_POLICY");
  * must reduce the pool the repair lane actually requests, not merely lower a
  * pre-floor base that broad low-budget profiles immediately raise again. The
  * absolute LR_QUALITY_NCAND override bypasses this helper above. */
-export function applyStudyRepairBreadth(nCand: number, repairLane: boolean): number {
+export function applyStudyRepairBreadth(
+  nCand: number,
+  repairLane: boolean,
+  repairIterationIndex: number | null = null,
+): number {
   const policy = readStudyNCandPolicy();
   if (!repairLane) return nCand;
   const ratio = policy === "repair-three-quarter"
     ? 3 / 4
     : policy === "repair-seven-eighth"
       ? 7 / 8
+      : policy === "late-repair-seven-eighth" &&
+          repairIterationIndex !== null && repairIterationIndex >= 2
+        ? 7 / 8
       : 1;
   return Math.max(HANDOFF_QUALITY_N_CAND_FLOOR, Math.round(nCand * ratio));
 }
@@ -7268,12 +7278,16 @@ function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
   }
   // Applied after target-profile floors by applyStudyRepairBreadth(). Keeping
   // the base law unchanged here also keeps the initial-search lane exact.
-  if (policy === "repair-three-quarter" || policy === "repair-seven-eighth") return linear;
+  if (
+    policy === "repair-three-quarter" || policy === "repair-seven-eighth" ||
+    policy === "late-repair-seven-eighth"
+  ) return linear;
   if (policy === "linear-cap-216") return Math.min(linear, 216);
   if (policy !== undefined && policy !== "") {
     throw new Error(
       `LR_STUDY_NCAND_POLICY must be high-budget-three-quarter, ` +
         `repair-high-budget-three-quarter, repair-three-quarter, repair-seven-eighth, ` +
+        `late-repair-seven-eighth, ` +
         `or linear-cap-216 ` +
         `(STUDY-ONLY; never set it in production), got "${policy}"`,
     );
@@ -8070,6 +8084,7 @@ function postCompletionDeadlineScope(): PostCompletionDeadlineScope {
  * the same run.
  */
 let repairLaneActive = false;
+let activeRepairIterationIndex: number | null = null;
 let activeRepairTargetGapIndex: number | null = null;
 let activeRepairTargetGapSse: number | null = null;
 
@@ -8078,6 +8093,7 @@ let repairTargetSearchTotals: RepairTargetSearchTotals = emptyRepairTargetSearch
 
 registerCompileReset(() => {
   repairLaneActive = false;
+  activeRepairIterationIndex = null;
   activeRepairTargetGapIndex = null;
   activeRepairTargetGapSse = null;
   repairTargetSearchTotals = emptyRepairTargetSearchTotals("ordinary");

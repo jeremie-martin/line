@@ -302,3 +302,25 @@ extra candidate work belongs, rather than assigning it solely from the average
 historical return of an iteration index. Exact score, mechanics, audit, and
 evidence hashes are recorded in
 `benchmark/v2/studies/aim-first-repair-investment.json`.
+
+### Late-repair generic breadth isolation — declared
+
+The repair-wide 7/8 generic breadth arm manufactured 206 additional repair
+episodes but lost 98.93 aggregate internal score points. Its retained iteration
+audit locates the damage: iteration zero lost 151.36 points and iteration one
+lost 83.73, while their reference returns were 11.97 and 6.34 points per
+million frames. The return then drops sharply to 2.84, 2.09, and 2.82 for
+iterations two through four.
+
+This single phase-isolation arm inherits the already-tested 7/8 ratio but
+applies it only at repair iteration two and later. Initial and resumed search,
+repair iterations zero and one, breadth floors, target and anchor selection,
+aim breadth, and scoring remain unchanged. Iteration index is passed directly
+from the repair loop and reset with the compile; it is not reconstructed from
+telemetry. Therefore work through the end of iteration one must be exact.
+
+The arm uses the frozen paired 4/8/16 multi-budget looks and V3 iteration audit.
+It asks whether cheaper low-return repairs create useful additional attempts
+without paying the early-repair quality loss. The ratio and threshold will not
+be tuned around the result. Promotion still requires the scale decision,
+unchanged validity, the declared phase invariants, and canonical confirmation.

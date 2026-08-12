@@ -62,7 +62,11 @@ type StudyTask = {
   repairBudget?: number;
   resumePolicy?: "legacy" | "none" | "remainder-aware";
   nCandExponent?: number;
-  nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
+  nCandPolicy?:
+    | "high-budget-three-quarter"
+    | "repair-high-budget-three-quarter"
+    | "repair-three-quarter"
+    | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
 };
 
@@ -454,7 +458,11 @@ function studyPlanFingerprint(input: {
   repairBudget?: number;
   resumePolicy?: "legacy" | "none" | "remainder-aware";
   nCandExponent?: number;
-  nCandPolicy?: "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216";
+  nCandPolicy?:
+    | "high-budget-three-quarter"
+    | "repair-high-budget-three-quarter"
+    | "repair-three-quarter"
+    | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
@@ -675,16 +683,22 @@ function parseResumePolicy(
 
 function parseNCandPolicy(
   value: string | undefined,
-): "high-budget-three-quarter" | "repair-high-budget-three-quarter" | "linear-cap-216" | undefined {
+):
+  | "high-budget-three-quarter"
+  | "repair-high-budget-three-quarter"
+  | "repair-three-quarter"
+  | "linear-cap-216"
+  | undefined {
   if (value === undefined) return undefined;
   if (
     value === "high-budget-three-quarter" ||
     value === "repair-high-budget-three-quarter" ||
+    value === "repair-three-quarter" ||
     value === "linear-cap-216"
   ) return value;
   throw new Error(
     "--ncand-policy must be high-budget-three-quarter, " +
-      "repair-high-budget-three-quarter, or linear-cap-216",
+      "repair-high-budget-three-quarter, repair-three-quarter, or linear-cap-216",
   );
 }
 

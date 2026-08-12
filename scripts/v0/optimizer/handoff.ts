@@ -7009,7 +7009,10 @@ function qualityHandoffSampleCount(
 ): number {
   const base = handoffSampleCount(targetBudget, repairLaneActive);
   if (qualityNCandOverride() !== null) return base;
-  return qualityBreadth(profile, sparseContactCadence, base);
+  return applyStudyRepairBreadth(
+    qualityBreadth(profile, sparseContactCadence, base),
+    repairLaneActive,
+  );
 }
 
 type QualityBreadthRule = {
@@ -7154,6 +7157,17 @@ const readStudyNCandExponent = compileScopedEnv("LR_STUDY_NCAND_EXPONENT");
  * repair-only arm isolates that same hinged shape to marked repair restarts. */
 const readStudyNCandPolicy = compileScopedEnv("LR_STUDY_NCAND_POLICY");
 
+/** Apply a declared repair-only breadth intervention after the ordinary
+ * target-profile floors. This placement is intentional: a three-quarter arm
+ * must reduce the pool the repair lane actually requests, not merely lower a
+ * pre-floor base that broad low-budget profiles immediately raise again. The
+ * absolute LR_QUALITY_NCAND override bypasses this helper above. */
+export function applyStudyRepairBreadth(nCand: number, repairLane: boolean): number {
+  const policy = readStudyNCandPolicy();
+  if (policy !== "repair-three-quarter" || !repairLane) return nCand;
+  return Math.max(HANDOFF_QUALITY_N_CAND_FLOOR, Math.round(nCand * 0.75));
+}
+
 function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
   const policy = readStudyNCandPolicy();
   const raw = readStudyNCandExponent();
@@ -7174,11 +7188,14 @@ function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
       : STUDY_NCAND_EXPONENT_ANCHOR_COUNT *
         ((targetBudget / STUDY_NCAND_EXPONENT_ANCHOR_FRAMES) ** 0.75);
   }
+  // Applied after target-profile floors by applyStudyRepairBreadth(). Keeping
+  // the base law unchanged here also keeps the initial-search lane exact.
+  if (policy === "repair-three-quarter") return linear;
   if (policy === "linear-cap-216") return Math.min(linear, 216);
   if (policy !== undefined && policy !== "") {
     throw new Error(
       `LR_STUDY_NCAND_POLICY must be high-budget-three-quarter, ` +
-        `repair-high-budget-three-quarter, or linear-cap-216 ` +
+        `repair-high-budget-three-quarter, repair-three-quarter, or linear-cap-216 ` +
         `(STUDY-ONLY; never set it in production), got "${policy}"`,
     );
   }
@@ -7770,7 +7787,8 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //                              (1 = production; see studyNCandBreadth)
 //   LR_STUDY_NCAND_POLICY      predeclared high-budget breadth shapes:
 //                              high-budget-three-quarter|
-//                              repair-high-budget-three-quarter|linear-cap-216
+//                              repair-high-budget-three-quarter|
+//                              repair-three-quarter|linear-cap-216
 // Two more live one module over, in optimizer/deadline.ts, because that is where the
 // constants they re-bracket are derived; they reach this subsystem through the head ramp,
 // the aim throttle and the continuation filter:

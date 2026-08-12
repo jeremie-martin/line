@@ -6,6 +6,7 @@ import {
   handoffCandidatePool,
   handoffAxisOvershootPenalty,
   handoffSampleCount,
+  applyStudyRepairBreadth,
   hasStartFeasibilityLookahead,
   impactRepairInsuranceMode,
   impactResponseAdmissionMode,
@@ -316,6 +317,12 @@ describe("handoff policy boundaries", () => {
       expect(at("repair-high-budget-three-quarter", 4_000_000)).toBe(432);
       expect(at("repair-high-budget-three-quarter", 4_000_000, true)).toBe(284);
       expect(at("repair-high-budget-three-quarter", 750_000, true)).toBe(81);
+      expect(at("repair-three-quarter", 4_000_000)).toBe(432);
+      expect(at("repair-three-quarter", 4_000_000, true)).toBe(432);
+      expect(applyStudyRepairBreadth(432, false)).toBe(432);
+      expect(applyStudyRepairBreadth(432, true)).toBe(324);
+      expect(applyStudyRepairBreadth(32, true)).toBe(24);
+      expect(applyStudyRepairBreadth(8, true)).toBe(8);
       expect(() => at("unknown", 1_000_000)).toThrow(/LR_STUDY_NCAND_POLICY must be/);
 
       process.env.LR_STUDY_NCAND_POLICY = "linear-cap-216";

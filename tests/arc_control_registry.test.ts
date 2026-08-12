@@ -18,10 +18,13 @@ import {
   aimControlPhase,
   aimOutgoingAmplitudeEligible,
   aimTopKScaleExponent,
+  aimTopKScaleScope,
+  aimTopKBasesEffective,
   aimModelImpactPower,
   impactSpeedAirOutgoingParetoImproves,
   impactSpeedParetoImproves,
   setAimRepairLaneActive,
+  setAimCompileBudgetFrames,
 } from "../scripts/v0/optimizer/aim.ts";
 
 function line(id: number, x1: number, y1: number, x2: number, y2: number): TrackLine {
@@ -153,6 +156,30 @@ describe("arc-control probe layouts", () => {
     expect(aimTopKScaleExponent({ LR_AIM_TOPK_SCALE_EXPONENT: "0.75" })).toBe(0.75);
     expect(() => aimTopKScaleExponent({ LR_AIM_TOPK_SCALE_EXPONENT: "0" })).toThrow();
     expect(() => aimTopKScaleExponent({ LR_AIM_TOPK_SCALE_EXPONENT: "2.1" })).toThrow();
+    expect(aimTopKScaleScope({})).toBe("all");
+    expect(aimTopKScaleScope({ LR_AIM_TOPK_SCALE_SCOPE: "repair" })).toBe("repair");
+    expect(() => aimTopKScaleScope({ LR_AIM_TOPK_SCALE_SCOPE: "resumed" })).toThrow();
+  });
+
+  test("repair-scoped aim breadth leaves ordinary pools linear", () => {
+    const previousExponent = process.env.LR_AIM_TOPK_SCALE_EXPONENT;
+    const previousScope = process.env.LR_AIM_TOPK_SCALE_SCOPE;
+    try {
+      process.env.LR_AIM_TOPK_SCALE_EXPONENT = "0.875";
+      process.env.LR_AIM_TOPK_SCALE_SCOPE = "repair";
+      setAimCompileBudgetFrames(4_000_000);
+      setAimRepairLaneActive(false);
+      expect(aimTopKBasesEffective()).toBe(96);
+      setAimRepairLaneActive(true);
+      expect(aimTopKBasesEffective()).toBe(68);
+    } finally {
+      setAimRepairLaneActive(false);
+      setAimCompileBudgetFrames(0);
+      if (previousExponent === undefined) delete process.env.LR_AIM_TOPK_SCALE_EXPONENT;
+      else process.env.LR_AIM_TOPK_SCALE_EXPONENT = previousExponent;
+      if (previousScope === undefined) delete process.env.LR_AIM_TOPK_SCALE_SCOPE;
+      else process.env.LR_AIM_TOPK_SCALE_SCOPE = previousScope;
+    }
   });
 
   test("validates the aim-specific model impact power", () => {

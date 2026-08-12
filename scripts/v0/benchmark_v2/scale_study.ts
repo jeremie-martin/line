@@ -75,6 +75,7 @@ type StudyTask = {
     | "worst-target-runway-per-cost";
   aimImpactPower?: number;
   aimTopKExponent?: number;
+  aimTopKScope?: "repair";
 };
 
 type StudyWorkerResult = {
@@ -141,6 +142,10 @@ async function main(): Promise<void> {
     0.25,
     2,
   );
+  const aimTopKScope = parseAimTopKScope(argument("aim-topk-scope"));
+  if (aimTopKScope !== undefined && aimTopKExponent === undefined) {
+    throw new Error("--aim-topk-scope requires --aim-topk-exponent");
+  }
   if (nCandExponent !== undefined && nCandPolicy !== undefined) {
     throw new Error("--ncand-exponent and --ncand-policy are mutually exclusive");
   }
@@ -184,6 +189,7 @@ async function main(): Promise<void> {
     repairSelectionPolicy,
     aimImpactPower,
     aimTopKExponent,
+    aimTopKScope,
     sourceManifestPath,
   }))));
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -210,6 +216,7 @@ async function main(): Promise<void> {
     repairSelectionPolicy,
     aimImpactPower,
     aimTopKExponent,
+    aimTopKScope,
     scaleProfileFingerprint: scaleProfile?.fingerprint,
     sources: sources.map((source) => ({ id: source.id, fingerprint: source.sourceFingerprint })),
   };
@@ -331,6 +338,7 @@ async function main(): Promise<void> {
     repairSelectionPolicy,
     aimImpactPower,
     aimTopKExponent,
+    aimTopKScope,
     scaleProfile: scaleProfileReport(scaleProfile),
     scaleHeadline: scalePanel?.scaleHeadline ?? null,
     summaries,
@@ -500,6 +508,7 @@ function studyPlanFingerprint(input: {
     | "worst-target-runway-per-cost";
   aimImpactPower?: number;
   aimTopKExponent?: number;
+  aimTopKScope?: "repair";
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
@@ -530,6 +539,7 @@ function taskKey(task: StudyTask): string {
     task.repairSelectionPolicy ?? "production",
     task.aimImpactPower ?? "production",
     task.aimTopKExponent ?? "production",
+    task.aimTopKScope ?? "all",
   ].join("\0");
 }
 
@@ -611,6 +621,8 @@ async function workerMain(task: StudyTask): Promise<void> {
     else process.env.LR_AIM_MODEL_IMPACT_POWER = String(task.aimImpactPower);
     if (task.aimTopKExponent === undefined) delete process.env.LR_AIM_TOPK_SCALE_EXPONENT;
     else process.env.LR_AIM_TOPK_SCALE_EXPONENT = String(task.aimTopKExponent);
+    if (task.aimTopKScope === undefined) delete process.env.LR_AIM_TOPK_SCALE_SCOPE;
+    else process.env.LR_AIM_TOPK_SCALE_SCOPE = task.aimTopKScope;
     const sources = resolveSources(loadSourceManifest(task.sourceManifestPath));
     const source = sources.find((entry) => entry.id === task.sourceId);
     if (source === undefined) throw new Error(`${task.sourceId}: source unavailable`);
@@ -730,6 +742,12 @@ function optionalBoundedNumber(
     throw new Error(`--${name} must be a finite number in [${minimum}, ${maximum}]`);
   }
   return value;
+}
+
+function parseAimTopKScope(value: string | undefined): "repair" | undefined {
+  if (value === undefined) return undefined;
+  if (value === "repair") return value;
+  throw new Error("--aim-topk-scope must be repair");
 }
 
 function parseResumePolicy(

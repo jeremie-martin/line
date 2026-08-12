@@ -114,6 +114,7 @@ export function assertScaleArguments(
         "repair-selection-policy",
         "aim-impact-power",
         "aim-topk-exponent",
+        "aim-topk-scope",
       ]
       : ["baseline", "candidate", "artifact"]);
   for (const arg of argv) {
@@ -129,9 +130,16 @@ export function assertScaleArguments(
       }
       if (name === "aim-impact-power") parseAimImpactPower(arg.slice(equals + 1));
       if (name === "aim-topk-exponent") parseAimTopKExponent(arg.slice(equals + 1));
+      if (name === "aim-topk-scope") parseAimTopKScope(arg.slice(equals + 1));
       continue;
     }
     throw new Error(`scale ${action} does not accept ${arg}`);
+  }
+  if (
+    action === "eval" && argumentIn(argv)("aim-topk-scope") !== undefined &&
+    argumentIn(argv)("aim-topk-exponent") === undefined
+  ) {
+    throw new Error(`--aim-topk-scope requires --aim-topk-exponent`);
   }
 }
 
@@ -280,6 +288,10 @@ async function runScaleEval(argv: string[]): Promise<number> {
   const repairSelectionPolicy = scaleRepairSelectionPolicyArgument(argv);
   const aimImpactPower = scaleAimImpactPowerArgument(argv);
   const aimTopKExponent = scaleAimTopKExponentArgument(argv);
+  const aimTopKScope = scaleAimTopKScopeArgument(argv);
+  if (aimTopKScope !== null && aimTopKExponent === null) {
+    throw new Error(`--aim-topk-scope requires --aim-topk-exponent`);
+  }
   const extensionPath = argument("extend-from") === undefined
     ? null
     : resolve(argument("extend-from")!);
@@ -313,6 +325,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
       repairSelectionPolicy,
       aimImpactPower,
       aimTopKExponent,
+      aimTopKScope,
     );
   const release = acquireRunLock(candidatePath);
   let workspace: ReturnType<typeof createSnapshotWorkspace> | null = null;
@@ -334,6 +347,7 @@ async function runScaleEval(argv: string[]): Promise<number> {
         repairSelectionPolicy,
         aimImpactPower,
         aimTopKExponent,
+        aimTopKScope,
       ),
       candidatePath,
     );
@@ -432,7 +446,8 @@ async function compareScaleArchives(
   if (candidate.archive.aimTopKExponent !== undefined) {
     comparabilityNotes.push(
       `declared study intervention: candidate aim top-K exponent ` +
-        `${candidate.archive.aimTopKExponent}; the production reference uses 1`,
+        `${candidate.archive.aimTopKExponent} in ` +
+        `${candidate.archive.aimTopKScope ?? "all"} scope; the production reference uses 1`,
     );
   }
   const paired = pairGridCells(candidate, referencePrefix);
@@ -498,7 +513,11 @@ async function compareScaleArchives(
             : candidate.archive.aimImpactPower !== undefined
               ? { kind: "candidate-aim-impact-power", power: candidate.archive.aimImpactPower }
               : candidate.archive.aimTopKExponent !== undefined
-                ? { kind: "candidate-aim-topk-exponent", exponent: candidate.archive.aimTopKExponent }
+                ? {
+                  kind: "candidate-aim-topk-exponent",
+                  exponent: candidate.archive.aimTopKExponent,
+                  scope: candidate.archive.aimTopKScope ?? "all",
+                }
                 : null,
     },
     comparabilityNotes,
@@ -524,7 +543,10 @@ async function compareScaleArchives(
           : ` --aim-impact-power=${candidate.archive.aimImpactPower}`) +
         (candidate.archive.aimTopKExponent === undefined
           ? ""
-          : ` --aim-topk-exponent=${candidate.archive.aimTopKExponent}`),
+          : ` --aim-topk-exponent=${candidate.archive.aimTopKExponent}`) +
+        (candidate.archive.aimTopKScope === undefined
+          ? ""
+          : ` --aim-topk-scope=${candidate.archive.aimTopKScope}`),
   };
 }
 
@@ -542,6 +564,7 @@ function scaleRunnerArgs(
   repairSelectionPolicy: RepairSelectionPolicy | null = null,
   aimImpactPower: number | null = null,
   aimTopKExponent: number | null = null,
+  aimTopKScope: "repair" | null = null,
 ): string[] {
   const profilePath = resolve(workspace, "benchmark/v2/scale-profile.json");
   return [
@@ -558,6 +581,7 @@ function scaleRunnerArgs(
       : [`--repair-selection-policy=${repairSelectionPolicy}`]),
     ...(aimImpactPower === null ? [] : [`--aim-impact-power=${aimImpactPower}`]),
     ...(aimTopKExponent === null ? [] : [`--aim-topk-exponent=${aimTopKExponent}`]),
+    ...(aimTopKScope === null ? [] : [`--aim-topk-scope=${aimTopKScope}`]),
     ...(extension === null ? [] : [
       `--import-checkpoint=${extension.checkpointPath}`,
       `--import-budgets=${profile.profile.budgets.map((budget) => budget.frames).join(",")}`,
@@ -577,6 +601,7 @@ function validateScaleExtension(
   repairSelectionPolicy: RepairSelectionPolicy | null,
   aimImpactPower: number | null,
   aimTopKExponent: number | null,
+  aimTopKScope: "repair" | null,
 ): { checkpointPath: string; seeds: number[] } {
   const arm = readGridArm("candidate-prefix", scaleAnalysisPath(path));
   assertArchiveProfile(arm.archive, profile);
@@ -602,6 +627,9 @@ function validateScaleExtension(
   }
   if ((arm.archive.aimTopKExponent ?? null) !== aimTopKExponent) {
     throw new Error(`--extend-from used a different candidate aim top-K exponent`);
+  }
+  if ((arm.archive.aimTopKScope ?? null) !== aimTopKScope) {
+    throw new Error(`--extend-from used a different candidate aim top-K scope`);
   }
   const checkpointPath = resolve(`${path}.checkpoint.jsonl`);
   if (!existsSync(checkpointPath)) {
@@ -803,6 +831,16 @@ function parseAimTopKExponent(raw: string | undefined): number | null {
 
 export function scaleAimTopKExponentArgument(argv: string[]): number | null {
   return parseAimTopKExponent(argumentIn(argv)("aim-topk-exponent"));
+}
+
+function parseAimTopKScope(raw: string | undefined): "repair" | null {
+  if (raw === undefined) return null;
+  if (raw === "repair") return raw;
+  throw new Error(`--aim-topk-scope must be repair`);
+}
+
+export function scaleAimTopKScopeArgument(argv: string[]): "repair" | null {
+  return parseAimTopKScope(argumentIn(argv)("aim-topk-scope"));
 }
 
 function argumentIn(argv: string[]) {

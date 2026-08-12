@@ -163,3 +163,25 @@ lost parent runway is worth approximately the saved work. The production
 deepest-affordable selector remains unchanged. Exact decision semantics,
 score, mechanics, invariants, and evidence hashes are recorded in
 `benchmark/v2/studies/repair-runway-opportunity-selector.json`.
+
+### Aim-base breadth phase isolation — declared
+
+The promoted distilled proposer reopened the mature aim-base breadth question.
+The first arm changes the exponent globally from 1 to 0.875 while retaining the
+K=6 anchor at 250k. It is a mechanism experiment, not a candidate-count fit:
+the arm measures whether fewer expensive local refinements reach the first
+terminal earlier and convert the saved work into useful independent repairs.
+
+If the global arm loses while exhibiting that mechanism, one and only one
+phase-isolation follow-up is declared. It applies the same 0.875 law only while
+`repairLaneActive` is true. Initial search and the ordinary resumed frontier
+remain exactly exponent 1, so first-terminal work and the first incumbent must
+be byte-identical. The repair arm asks whether probe savings themselves are
+useful after removing the global arm's incumbent-quality confound.
+
+Both arms use the frozen 4/8/16 multi-budget looks, paired source-budget-seed
+cells, unchanged validity, and V3 repair mechanics. No canonical run follows a
+negative scale result. The repair-only arm is not permission to tune another
+exponent: 0.875 is inherited unchanged from the global bracket. The subsequent
+anchor-allocation question is conditional on this result; a failed breadth arm
+does not reopen already-rejected cheap/later restart selectors.

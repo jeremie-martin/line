@@ -600,6 +600,20 @@ export function aimTopKScaleExponent(
   return value;
 }
 
+/** Study scope for the mature aim-base exponent. `all` is the production and
+ * historical-study behavior. `repair` keeps initial and resumed pools on the
+ * production exponent and changes only independently marked repair restarts. */
+export function aimTopKScaleScope(
+  environment: Record<string, string | undefined> =
+    (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env ?? {},
+): "all" | "repair" {
+  const raw = environment.LR_AIM_TOPK_SCALE_SCOPE;
+  if (raw === undefined || raw === "" || raw === "all") return "all";
+  if (raw === "repair") return "repair";
+  throw new Error(`invalid LR_AIM_TOPK_SCALE_SCOPE=${raw}`);
+}
+
 let aimCompileBudgetFrames = 0;
 /** Set the compile target budget for the K>1 maturity gate. Called once per
  *  compile at compileHandoff entry, alongside the other budget setters. */
@@ -617,13 +631,16 @@ export function aimTopKBasesEffective(gap?: Gap, _gaps?: readonly Gap[], _ctx?: 
   // (canonical: K=6 at 250k/375k/500k = +0.5/+1.6/+0.8) but starves 125k (-18.9), so
   // gate the rise on the compile budget.
   const highBudget = aimCompileBudgetFrames >= AIM_TOPK_HIGH_BUDGET_FRAMES;
+  const exponent = aimTopKScaleScope() === "repair" && !aimRepairLaneActive
+    ? 1
+    : aimTopKScaleExponent();
   const baseK = highBudget
     ? Math.max(
       AIM_TOPK_BASES,
       Math.round(AIM_TOPK_BASES_AT_REF *
         Math.pow(
           aimCompileBudgetFrames / AIM_TOPK_BASES_REF_FRAMES,
-          aimTopKScaleExponent(),
+          exponent,
         )),
     )
     : AIM_TOPK_BASES;

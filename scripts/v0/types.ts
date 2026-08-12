@@ -649,6 +649,12 @@ export type CompileStats = {
       enum_projection_pairs: number;
       enum_projection_err_mean: number;
       enum_objective_gain_mean: number;
+      enum_model_impact_scores: number;
+      enum_model_impact_grids: number;
+      enum_model_impact_top1_changed: number;
+      enum_model_impact_state_missing: number;
+      enum_model_impact_mean: number;
+      enum_model_impact_spread_mean: number;
       /** R3 joint-model split: rotate recruit rate, rotate-probe failures
        *  and rotated-proposal gate outcomes. */
       enum_rot_probe_crash: number;

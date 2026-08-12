@@ -203,6 +203,18 @@ export function scoreReadinessWithArtifact(
   };
 }
 
+/** Score only the impact component when a controller needs that one factor.
+ * This preserves the canonical artifact, feature transform, and component
+ * semantics without paying to infer unrelated readiness components. */
+export function scoreImpactFeasibilityWithArtifact(
+  input: NextArcReadinessInput,
+  artifact: ReadinessModelArtifact,
+): number {
+  assertCompatibleReadinessArtifactOnce(artifact);
+  if (input.incomingGap.scorerTargets.impact === undefined) return 1;
+  return infer(artifact, "impactFeasibility", readinessFeatureVector(input));
+}
+
 export function assertCompatibleReadinessArtifact(
   artifact: ReadinessModelArtifact,
   compatibility: ReadinessArtifactCompatibility = {},

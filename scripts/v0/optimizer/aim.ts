@@ -56,6 +56,7 @@
  */
 
 import { getPhysicsFrameCount, K_BOUNCE_LANDING } from "../../lib/detector.ts";
+import { compileScopedEnv } from "../env_flags.ts";
 import {
   axisLookaheadEndFrame,
   POOL_MODE,
@@ -117,7 +118,18 @@ import {
   scoreProjectedOutgoingSurrogate,
   scorerGapFrameCount,
 } from "./objective.ts";
-import { successorScorerGapAfter } from "./arc_proposal.ts";
+import {
+  PRODUCTION_ARC_PROPOSAL_POLICY_ID,
+  successorScorerGapAfter,
+} from "./arc_proposal.ts";
+import {
+  readinessScorerGapContext,
+} from "./readiness_features.ts";
+import { scoreImpactFeasibility } from "./readiness.ts";
+import type {
+  BallisticState,
+  IncomingKinematics,
+} from "../core/ballistic_projection.ts";
 import {
   AIR_DELIVERABILITY_DEADBAND,
   airDeliverabilityAsk,
@@ -143,6 +155,16 @@ import type { Gap } from "../types.ts";
 export function aimEnumEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_ENUM !== "0";
+}
+
+const aimModelImpactFeasibilityEnv = compileScopedEnv(
+  "LR_AIM_MODEL_IMPACT_FEASIBILITY",
+);
+
+/** Study-only fixed-count controller arm. It changes which fitted knob vectors
+ * are proposed, but neither the probe grid nor the proposal count. */
+function aimModelImpactFeasibilityEnabled(): boolean {
+  return aimModelImpactFeasibilityEnv() === "1";
 }
 
 /** Below this |predicted base air − effective ask| the air-matched variant is
@@ -608,6 +630,17 @@ export type AimStudyStats = {
   enum_projection_err_mean: number;
   /** Mean surrogate-objective gain over δ=0, over emitted. */
   enum_objective_gain_mean: number;
+  /** Study arm `LR_AIM_MODEL_IMPACT_FEASIBILITY=1`: modeled knob-grid
+   *  evaluations whose next-contact impact feasibility was inferred, grids
+   *  where that extra factor changed the best improving knob vector, missing
+   *  modeled arrivals, and the inferred factor's level/spread. The arm does
+   *  not add probes or emitted proposals. */
+  enum_model_impact_scores: number;
+  enum_model_impact_grids: number;
+  enum_model_impact_top1_changed: number;
+  enum_model_impact_state_missing: number;
+  enum_model_impact_mean: number;
+  enum_model_impact_spread_mean: number;
   /** Deferred additive rotate-knob split: rotate recruit rate, rotate-probe failures
    *  (lane falls back to pitch-only), and how rotated (dr≠0) proposals
    *  fare at the production gates vs emitted. */
@@ -719,6 +752,9 @@ const aimTotals = {
   enum_probe_crash: 0, enum_on_target: 0, enum_gate_fail: 0, enum_emitted: 0,
   enum_model_unscoreable: 0, enum_next_before_exit: 0,
   enumProjectionErrSum: 0, enumObjectiveGainSum: 0, enumAchieved: 0,
+  enum_model_impact_scores: 0, enum_model_impact_grids: 0,
+  enum_model_impact_top1_changed: 0, enum_model_impact_state_missing: 0,
+  enumModelImpactSum: 0, enumModelImpactSpreadSum: 0,
   enum_rot_probe_crash: 0, enum_rot_recruited: 0, enum_rot_emitted: 0,
   enum_rot_gate_fail: 0,
   // Selection-rank telemetry (recordLanePoolRank).
@@ -902,6 +938,16 @@ export function snapshotAimStats(): AimStats | null {
       ? round3(aimTotals.enumProjectionErrSum / aimTotals.enumAchieved) : 0,
     enum_objective_gain_mean: aimTotals.enum_emitted > 0
       ? round3(aimTotals.enumObjectiveGainSum / aimTotals.enum_emitted) : 0,
+    enum_model_impact_scores: aimTotals.enum_model_impact_scores,
+    enum_model_impact_grids: aimTotals.enum_model_impact_grids,
+    enum_model_impact_top1_changed: aimTotals.enum_model_impact_top1_changed,
+    enum_model_impact_state_missing: aimTotals.enum_model_impact_state_missing,
+    enum_model_impact_mean: aimTotals.enum_model_impact_scores > 0
+      ? round3(aimTotals.enumModelImpactSum / aimTotals.enum_model_impact_scores)
+      : 0,
+    enum_model_impact_spread_mean: aimTotals.enum_model_impact_grids > 0
+      ? round3(aimTotals.enumModelImpactSpreadSum / aimTotals.enum_model_impact_grids)
+      : 0,
     enum_rot_probe_crash: aimTotals.enum_rot_probe_crash,
     enum_rot_recruited: aimTotals.enum_rot_recruited,
     enum_rot_emitted: aimTotals.enum_rot_emitted,
@@ -1012,8 +1058,10 @@ export function makeEnumAimedCandidates(
     return [];
   }
   const control = aimControl();
+  const readinessOutgoingGap = successorScorerGapAfter(nextGap, gaps);
   const primary = makeConfiguredAimedCandidates(
-    engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase, control,
+    engine, gap, nextGap, readinessOutgoingGap, ctx, base, lineIdStart,
+    airKnobBase, control,
   );
   const repairAux = repairAuxBase ? aimRepairAuxControl() : null;
   if (repairAux === null) return primary;
@@ -1023,7 +1071,8 @@ export function makeEnumAimedCandidates(
   return [
     ...primary,
     ...makeConfiguredAimedCandidates(
-      engine, gap, nextGap, ctx, base, lineIdStart, false, repairAux.control,
+      engine, gap, nextGap, readinessOutgoingGap, ctx, base, lineIdStart,
+      false, repairAux.control,
       repairAux.admission,
     ),
   ];
@@ -1033,6 +1082,8 @@ export function makeEnumAimedCandidates(
 type ConfiguredScoredKnobs = Readonly<{
   values: number[];
   val: number;
+  ordinaryVal: number;
+  modelImpactFeasibility: number;
   projectedOutgoingQuality: number;
   currentQuality: number;
 }>;
@@ -1043,6 +1094,59 @@ function zeroKnobValues(dimensions: number): number[] {
   return Array.from({ length: dimensions }, () => 0);
 }
 
+/** The fitted response model owns next-contact velocity/pose, but not absolute
+ * position or articulated point state. Readiness marks articulation missing;
+ * the zero positions below are therefore deliberately non-semantic and cannot
+ * enter its feature vector. */
+function modeledImpactFeasibility(
+  state: IncomingKinematics | null,
+  incomingGap: Gap,
+  outgoingGap: Gap | null,
+  gapAxisTargets?: readonly AxisValues[],
+): number {
+  if (
+    !aimModelImpactFeasibilityEnabled() ||
+    (gapAxisTargets?.[incomingGap.index] ?? incomingGap.targets).impact === undefined
+  ) return 1;
+  if (state === null) {
+    aimTotals.enum_model_impact_state_missing++;
+    return 1;
+  }
+  const projectedContact: BallisticState = {
+    x: 0,
+    y: 0,
+    vx: state.vx,
+    vy: state.vy,
+    speed: state.speed,
+    comAngleDeg: state.comAngleDeg,
+    sledPoseDeg: state.sledPoseDeg,
+    sledPoseRateDegPerFrame: state.sledPoseRateDegPerFrame,
+  };
+  const incomingTargets = gapAxisTargets?.[incomingGap.index] ?? incomingGap.targets;
+  const outgoingTargets = outgoingGap === null
+    ? undefined
+    : gapAxisTargets?.[outgoingGap.index] ?? outgoingGap.targets;
+  const impactFeasibility = scoreImpactFeasibility({
+    incomingBoundary: {
+      targetFrame: incomingGap.endFrame,
+      preContactFrame: incomingGap.endFrame - 1,
+      preContact: projectedContact,
+      incomingVelocityFrame: incomingGap.endFrame,
+      incoming: state,
+      projectedContactFrame: incomingGap.endFrame,
+      projectedContact,
+    },
+    incomingGap: readinessScorerGapContext(incomingGap, incomingTargets),
+    outgoingGap: outgoingGap === null
+      ? null
+      : readinessScorerGapContext(outgoingGap, outgoingTargets),
+    generatorPolicyId: PRODUCTION_ARC_PROPOSAL_POLICY_ID,
+  });
+  aimTotals.enum_model_impact_scores++;
+  aimTotals.enumModelImpactSum += impactFeasibility;
+  return impactFeasibility;
+}
+
 function scoreConfiguredKnobs(
   model: ArcVectorResponseModel,
   values: readonly number[],
@@ -1050,6 +1154,8 @@ function scoreConfiguredKnobs(
   currentScoreAxes: JointArcCurrentScoreAxes,
   nextTargets: AxisValues,
   nextGap: Gap,
+  readinessOutgoingGap: Gap | null,
+  gapAxisTargets?: readonly AxisValues[],
 ): ConfiguredScoreResult {
   const readout = predictArcVectorScoreReadout(model, values, currentTargets, currentScoreAxes);
   if (!Number.isFinite(readout.currentQuality)) {
@@ -1064,13 +1170,26 @@ function scoreConfiguredKnobs(
     nextTargets,
   );
   if (projectedOutgoingQuality === null) return "model_unscoreable";
+  const ordinaryVal = proposalUtility(
+    readout.currentQuality,
+    projectedOutgoingQuality,
+    { readiness: 1 },
+  );
+  const modelImpactFeasibility = modeledImpactFeasibility(
+    readout.state,
+    nextGap,
+    readinessOutgoingGap,
+    gapAxisTargets,
+  );
   return {
     values: [...values],
     val: proposalUtility(
       readout.currentQuality,
       projectedOutgoingQuality,
-      { readiness: 1 },
+      { readiness: modelImpactFeasibility },
     ),
+    ordinaryVal,
+    modelImpactFeasibility,
     projectedOutgoingQuality,
     currentQuality: readout.currentQuality,
   };
@@ -1085,14 +1204,26 @@ function scoreConfiguredKnobGrid(
   currentScoreAxes: JointArcCurrentScoreAxes,
   nextTargets: AxisValues,
   nextGap: Gap,
+  readinessOutgoingGap: Gap | null,
+  gapAxisTargets?: readonly AxisValues[],
 ): ConfiguredScoredKnobs[] {
   const valuesByAxis = sequence.map((knob) => arcControlProposalValues(knob, proposalRangeScale));
   const out: ConfiguredScoredKnobs[] = [];
+  const scoredGrid: ConfiguredScoredKnobs[] = [];
   const visit = (values: number[], index: number): void => {
     if (index === sequence.length) {
       if (values.every((value) => Math.abs(value) < 1e-9)) return;
-      const scored = scoreConfiguredKnobs(model, values, currentTargets, currentScoreAxes, nextTargets, nextGap);
-      if (typeof scored !== "string" && scored.val > baseScore.val + 1e-4) out.push(scored);
+      const scored = scoreConfiguredKnobs(
+        model, values, currentTargets, currentScoreAxes, nextTargets, nextGap,
+        readinessOutgoingGap, gapAxisTargets,
+      );
+      if (typeof scored !== "string") {
+        scoredGrid.push(scored);
+        // Preserve the production admission set and exact-evaluation count.
+        // The study arm may only reorder knob vectors that the ordinary
+        // two-layer proposer already considers improving.
+        if (scored.ordinaryVal > baseScore.ordinaryVal + 1e-4) out.push(scored);
+      }
       return;
     }
     for (const value of valuesByAxis[index]) {
@@ -1102,8 +1233,33 @@ function scoreConfiguredKnobGrid(
     }
   };
   visit([], 0);
-  return out.sort((a, b) =>
-    b.val - a.val ||
+  if (
+    aimModelImpactFeasibilityEnabled() &&
+    nextTargets.impact !== undefined &&
+    scoredGrid.length > 0
+  ) {
+    aimTotals.enum_model_impact_grids++;
+    const factors = scoredGrid.map((candidate) => candidate.modelImpactFeasibility);
+    aimTotals.enumModelImpactSpreadSum += Math.max(...factors) - Math.min(...factors);
+    const ordinaryBest = out.slice()
+      .sort((a, b) => compareConfiguredKnobs(a, b, "ordinaryVal"))[0];
+    const activeBest = out.slice()
+      .sort((a, b) => compareConfiguredKnobs(a, b, "val"))[0];
+    if (
+      ordinaryBest !== undefined && activeBest !== undefined &&
+      ordinaryBest.values.some((value, index) => Math.abs(value - activeBest.values[index]) > 1e-9)
+    ) aimTotals.enum_model_impact_top1_changed++;
+  }
+  return out.sort((a, b) => compareConfiguredKnobs(a, b, "val"));
+}
+
+function compareConfiguredKnobs(
+  a: ConfiguredScoredKnobs,
+  b: ConfiguredScoredKnobs,
+  key: "val" | "ordinaryVal",
+): number {
+  return (
+    b[key] - a[key] ||
     b.currentQuality - a.currentQuality ||
     a.values.reduce((sum, value) => sum + Math.abs(value), 0) -
       b.values.reduce((sum, value) => sum + Math.abs(value), 0)
@@ -1147,6 +1303,7 @@ function makeConfiguredAimedCandidates(
   engine: any,
   gap: Gap,
   nextGap: Gap,
+  readinessOutgoingGap: Gap | null,
   ctx: SpecContext,
   base: Candidate,
   lineIdStart: number,
@@ -1236,6 +1393,8 @@ function makeConfiguredAimedCandidates(
         currentScoreAxes,
         nextTargets,
         nextGap,
+        readinessOutgoingGap,
+        ctx.gapAxisTargets,
       ));
       if (stage === 0) {
         baseOutputs = predictArcVectorOutputs(model, [0]);
@@ -1250,6 +1409,8 @@ function makeConfiguredAimedCandidates(
         currentScoreAxes,
         nextTargets,
         nextGap,
+        readinessOutgoingGap,
+        ctx.gapAxisTargets,
       );
       const remaining = zeroKnobValues(sequence.length - stage - 1);
       offered.push(...candidates.map((candidate) => ({
@@ -1296,6 +1457,8 @@ function makeConfiguredAimedCandidates(
       currentScoreAxes,
       nextTargets,
       nextGap,
+      readinessOutgoingGap,
+      ctx.gapAxisTargets,
     ));
     if (baseScore !== null) {
       offered = scoreConfiguredKnobGrid(
@@ -1307,6 +1470,8 @@ function makeConfiguredAimedCandidates(
         currentScoreAxes,
         nextTargets,
         nextGap,
+        readinessOutgoingGap,
+        ctx.gapAxisTargets,
       );
     }
   }

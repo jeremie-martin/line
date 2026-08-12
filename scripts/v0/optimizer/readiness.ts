@@ -24,6 +24,7 @@ import {
   READINESS_CONTEXT_BOOTSTRAP_TARGET_SEMANTICS_IDS,
   type ReadinessScore,
   type ReadinessStudyAblation,
+  scoreImpactFeasibilityWithArtifact,
   scoreReadinessWithArtifact,
 } from "./readiness_scoring.ts";
 
@@ -80,6 +81,14 @@ export function scoreReadiness(
       }
       : undefined,
   );
+}
+
+/** Canonical learned impact-feasibility component without inferring the other
+ * readiness factors. */
+export function scoreImpactFeasibility(
+  input: NextArcReadinessInput,
+): number {
+  return scoreImpactFeasibilityWithArtifact(input, READINESS_MODEL);
 }
 
 /** Install the explicit context-selector artifact for a governed corpus

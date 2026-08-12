@@ -162,3 +162,13 @@ JSONL checkpoint retained all cells. The scale writer and checkpoint reader now
 stream records, the comparison consumes a checksummed compact analysis
 projection, and full-archive verification hashes bytes incrementally. This is
 an evidence-tooling correction, not a compiler-policy change.
+
+Trace workers also no longer retain completed result objects while later cells
+are running. Each result is durably appended to the checkpoint, only its task
+key remains live, and the complete rows are reloaded after all workers exit for
+scoring and streaming finalization. A resumed target checkpoint does not reload
+its already-imported source prefix. This removes the memory growth observed at
+972/1,024 cells in the late-repair anchor-reserve study while preserving the
+checkpoint and archive formats. A 44-cell fresh/resume runner smoke test
+reproduced the same score and validity summary and passed both raw and gzip
+checksum verification.

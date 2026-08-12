@@ -37,7 +37,6 @@ import {
 } from "./model.ts";
 import { fingerprintFiles, loadSuiteManifest, suiteIdentity } from "./suite_model.ts";
 import { compilerCandidateIdentity } from "./compiler_identity.ts";
-import { latestSuccessfulResults } from "./checkpoint_model.ts";
 import {
   assertMultiBudgetExecutionScope,
   FROZEN_SCALE_STUDY_SCHEMA,
@@ -168,6 +167,7 @@ async function main(): Promise<void> {
   const suiteManifestPath = resolve(argument("suite") ?? "benchmark/v2/compat/suite-manifest.json");
   const outputPath = resolve(argument("out") ?? "generated/benchmark-v2/studies/budget-scale.json");
   const checkpointPath = resolve(argument("checkpoint") ?? `${outputPath}.checkpoint.jsonl`);
+  const resume = hasFlag("resume");
   const importCheckpointPath = argument("import-checkpoint") === undefined
     ? undefined
     : resolve(argument("import-checkpoint")!);
@@ -233,43 +233,60 @@ async function main(): Promise<void> {
   };
   const planFingerprint = studyPlanFingerprint(planInput);
   mkdirSync(dirname(outputPath), { recursive: true });
-  const imported = importCheckpointPath === undefined ? [] : await importCheckpoint(
-    importCheckpointPath,
-    studyPlanFingerprint({
-      ...planInput,
-      budgets: integerList(argument("import-budgets") ?? "", "import-budgets"),
-      seeds: integerList(argument("import-seeds") ?? seeds.join(","), "import-seeds", true),
-    }),
-    new Set(tasks.map(taskKey)),
-  );
+  // A resumed target checkpoint already contains its imported prefix. Loading
+  // the source checkpoint again would briefly retain both expanded copies.
+  const imported = importCheckpointPath === undefined || (resume && existsSync(checkpointPath))
+    ? []
+    : await importCheckpoint(
+      importCheckpointPath,
+      studyPlanFingerprint({
+        ...planInput,
+        budgets: integerList(argument("import-budgets") ?? "", "import-budgets"),
+        seeds: integerList(argument("import-seeds") ?? seeds.join(","), "import-seeds", true),
+      }),
+      new Set(tasks.map(taskKey)),
+    );
   const restored = await loadOrInitializeCheckpoint(
     checkpointPath,
     planFingerprint,
-    hasFlag("resume"),
+    resume,
     imported,
   );
-  const restoredByKey = new Map(restored.map((result) => [taskKey(result.task), result]));
-  const pending = tasks.filter((task) => !restoredByKey.has(taskKey(task)));
+  const restoredKeys = new Set(restored.map((result) => taskKey(result.task)));
+  const restoredCount = restoredKeys.size;
+  const pending = tasks.filter((task) => !restoredKeys.has(taskKey(task)));
+  // Checkpoint rows can contain very large trace telemetry. They are already
+  // durable and only their keys are needed while workers are live. Releasing
+  // imported/restored objects here prevents completed evidence from competing
+  // with the active worker pool for memory. Full rows are reloaded after every
+  // worker exits for scoring and streaming archive finalization.
+  imported.length = 0;
+  restored.length = 0;
   console.log(scaleProfile === null
     ? `Benchmark V2 paired budget-scale study`
     : `Benchmark V2 ${scaleProfile.profile.id} multi-budget benchmark`);
   console.log(
     `  ${tasks.length} compiles; budgets ${budgets.join(", ")}; seeds ${seeds.join(", ")}; ` +
-    `${restored.length} restored`,
+    `${restoredCount} restored`,
   );
   const started = performance.now();
-  let completed = restored.length;
-  const fresh = await runPool(pending, jobs, (result) => {
+  let completed = restoredCount;
+  await runPool(pending, jobs, (result) => {
     appendFileSync(checkpointPath, `${JSON.stringify({ type: "result", result })}\n`);
     completed++;
     if (completed === tasks.length || completed % Math.max(1, sources.length) === 0) {
       const elapsed = (performance.now() - started) / 1000;
-      const rate = (completed - restored.length) / Math.max(0.001, elapsed);
+      const rate = (completed - restoredCount) / Math.max(0.001, elapsed);
       console.log(`  ${completed}/${tasks.length}; ${(100 * completed / tasks.length).toFixed(0)}%; ${rate.toFixed(2)} runs/s`);
     }
   });
-  const resultsByKey = new Map([...restored, ...fresh].map((result) => [taskKey(result.task), result]));
-  const workerResults = tasks.map((task) => resultsByKey.get(taskKey(task))!);
+  const completedResults = await loadCheckpointResults(checkpointPath, planFingerprint, false);
+  const resultsByKey = new Map(completedResults.map((result) => [taskKey(result.task), result]));
+  const workerResults = tasks.map((task) => {
+    const result = resultsByKey.get(taskKey(task));
+    if (result === undefined) throw new Error(`completed checkpoint is missing ${taskKey(task)}`);
+    return result;
+  });
   const sourceById = new Map(sources.map((source) => [source.id, source]));
   const scored = workerResults.map((result) => {
     const source = sourceById.get(result.task.sourceId)!;
@@ -413,8 +430,9 @@ async function importCheckpoint(
 async function loadCheckpointResults(
   path: string,
   expectedPlanFingerprint: string,
+  successfulOnly = true,
 ): Promise<StudyWorkerResult[]> {
-  const results: StudyWorkerResult[] = [];
+  const latest = new Map<string, StudyWorkerResult>();
   const lines = createInterface({
     input: createReadStream(path, { encoding: "utf8" }),
     crlfDelay: Infinity,
@@ -431,12 +449,16 @@ async function loadCheckpointResults(
       }
       continue;
     }
-    if (entry?.type === "result") results.push(entry.result as StudyWorkerResult);
+    if (entry?.type === "result") {
+      const result = entry.result as StudyWorkerResult;
+      latest.set(taskKey(result.task), result);
+    }
   }
   if (!headerSeen) {
     throw new Error(`study checkpoint does not match the current catalog, compiler, budgets, and seeds`);
   }
-  return latestSuccessfulResults(results, (result) => taskKey(result.task));
+  const results = [...latest.values()];
+  return successfulOnly ? results.filter((result) => result.status === "ok") : results;
 }
 
 /** Write the large run array incrementally. V8 strings have a ~512 MiB limit,
@@ -563,20 +585,17 @@ async function runPool(
   tasks: StudyTask[],
   jobs: number,
   onResult: (result: StudyWorkerResult) => void,
-): Promise<StudyWorkerResult[]> {
-  const results = new Array<StudyWorkerResult>(tasks.length);
+): Promise<void> {
   let next = 0;
   const run = async (): Promise<void> => {
     for (;;) {
       const index = next++;
       if (index >= tasks.length) return;
       const result = await runTask(tasks[index]);
-      results[index] = result;
       onResult(result);
     }
   };
   await Promise.all(Array.from({ length: Math.min(jobs, tasks.length) }, run));
-  return results;
 }
 
 function runTask(task: StudyTask): Promise<StudyWorkerResult> {

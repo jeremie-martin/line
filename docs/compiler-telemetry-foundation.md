@@ -34,6 +34,12 @@ runtime vocabulary for superseded controllers.
   evaluated in the stated scope.
 - **register improvement**: adoption under the compiler register comparator.
   Internal comparator keys and Benchmark V2 scores are different score domains.
+- **aim pool entry**: one aim-lane proposal placed in an exact ranked pool,
+  counted once per pool build. Rank-zero/top-three rates describe proposal
+  competitiveness at that boundary.
+- **final-track aimed fit**: one committed fit in the returned track whose
+  source is the aim lane. It is bounded by output track length and is not a
+  count or rate of all proposals selected during search.
 
 ## Authoritative payload
 
@@ -52,6 +58,12 @@ The payload contains:
 
 `compile_stats` may retain non-overlapping output diagnostics, but it is not a
 second repair ledger or a fallback source for search-work metrics.
+
+Compact scale-analysis artifacts retain only the aim counters needed to price
+its work and yield: refined/skipped bases, joint-probe rows and charged frames,
+primary candidates admitted after exact evaluation, exact-pool entry/rank
+counters, and final-track aimed fits. Bulky model-study diagnostics remain only
+in the full archive.
 
 ## Required invariants
 

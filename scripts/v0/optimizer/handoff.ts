@@ -10886,8 +10886,10 @@ function buildNodeOutput(
       handoff_selected_candidate_nonzero_ranks:
         candidateRanks.filter((rank) => rank > 0).length,
       handoff_selected_candidate_by_source: { ...sourceCounts },
-      // How many committed fits in THIS output came from the proposer
-      // (selection-level win rate; `aim.enum_emitted` is the pool-level rate).
+      // How many committed fits in THIS returned output came from the proposer.
+      // This is final-track composition, not a search-level selection rate;
+      // `aim.aimed_*` records exact-pool placement and `aim.enum_emitted` the
+      // primary admitted-candidate count.
       handoff_aimed_selected: fits.filter((fit) => fit !== null && fit.aimed === true).length,
       ...(repairAuxCertificates.length === 0
         ? {}

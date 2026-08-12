@@ -348,7 +348,7 @@ async function main(): Promise<void> {
       fullArchiveSha256: fullArchive.rawSha256,
       omitted: [
         "raw drift report",
-        "compile stats except repair target-search mechanics",
+        "compile stats except repair target-search and compact aim mechanics",
         "repair considered-target observations",
         "repair track-identity hashes",
         "budget-telemetry node events",

@@ -8,17 +8,32 @@ describe("paired scale mechanics", () => {
       task: { sourceId: "source", budget, actualSeed: seed },
       trackHash: candidate ? `candidate-${budget}-${seed}` : `reference-${budget}-${seed}`,
       score: { score: 500 + (candidate ? 2 : 0) },
-      stats: candidate ? {
-        repair_target_search: {
-          target_pools: 4,
-          ordinary_first_improves_incumbent: 1,
-          ordinary_first_not_improving: 3,
-          improving_alternative_available: 2,
-          reordered: 2,
-          local_sse_gain_sum: 0.25,
-          forward_score_debt_sum: 0.5,
+      stats: {
+        aim: {
+          enum_lane_bases: candidate ? 8 : 10,
+          enum_lane_base_skips: candidate ? 2 : 4,
+          joint_probe_rows: candidate ? 40 : 50,
+          joint_probe_frames_charged: candidate ? 600 : 1000,
+          enum_emitted: candidate ? 12 : 10,
+          aimed_pool_entries: candidate ? 10 : 20,
+          aimed_rank0: 2,
+          aimed_top3: candidate ? 6 : 8,
+          aimed_rank_sum: candidate ? 30 : 80,
+          aimed_pool_size_sum: candidate ? 300 : 800,
         },
-      } : {},
+        handoff_aimed_selected: candidate ? 5 : 4,
+        ...(candidate ? {
+          repair_target_search: {
+            target_pools: 4,
+            ordinary_first_improves_incumbent: 1,
+            ordinary_first_not_improving: 3,
+            improving_alternative_available: 2,
+            reordered: 2,
+            local_sse_gain_sum: 0.25,
+            forward_score_debt_sum: 0.5,
+          },
+        } : {}),
+      },
       budgetTelemetry: {
         schema: BUDGET_TELEMETRY_SCHEMA,
         compile: {
@@ -113,6 +128,37 @@ describe("paired scale mechanics", () => {
       relativeDelta: -0.5,
     });
     expect(result.overall.metrics.repairEpisodesWithRegisterImprovement.candidateMean).toBe(1);
+    expect(result.overall.metrics.aimRefinedBases).toMatchObject({
+      observations: 2,
+      referenceMean: 10,
+      candidateMean: 8,
+      delta: -2,
+    });
+    expect(result.overall.metrics.aimProbeFramesPerRefinedBase).toMatchObject({
+      referenceMean: 100,
+      candidateMean: 75,
+    });
+    expect(result.overall.metrics.aimPrimaryCandidatesAdmittedPerRefinedBase).toMatchObject({
+      referenceMean: 1,
+      candidateMean: 1.5,
+    });
+    expect(result.overall.metrics.aimPoolRankZeroRate).toMatchObject({
+      referenceMean: 0.1,
+      candidateMean: 0.2,
+    });
+    expect(result.overall.metrics.aimPoolTopThreeRate).toMatchObject({
+      referenceMean: 0.4,
+      candidateMean: 0.6,
+    });
+    expect(result.overall.metrics.aimMeanPoolRank).toMatchObject({
+      referenceMean: 4,
+      candidateMean: 3,
+    });
+    expect(result.overall.metrics.aimMeanPoolSize).toMatchObject({
+      referenceMean: 40,
+      candidateMean: 30,
+    });
+    expect(result.overall.metrics.finalTrackAimedFits.delta).toBe(1);
     expect(result.overall.metrics.repairRegisterImprovements.candidateMean).toBe(2);
     expect(result.overall.metrics.repairFirstTerminalReturnEpisodes.candidateMean).toBe(1);
     expect(result.overall.metrics.repairMeanAnchorGap.delta).toBe(1);

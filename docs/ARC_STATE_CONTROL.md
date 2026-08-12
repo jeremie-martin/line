@@ -462,12 +462,14 @@ proposer funnel (considered→emitted), readiness prediction accuracy, the
 rotate split (`enum_rot_*`), and the **pool-rank instrument** (`aimed_*`:
 `pool_entries`, `rank0`, `top3`, `rank_sum`, `pool_size_sum`) — where
 proposals land in their cost-sorted pools, feeding the budget-shift
-question (§7). The short-probe path also reports `joint_probe_rows`,
+question (§7). `handoff_aimed_selected` is not that selection funnel: it is
+the number of aimed fits in the final returned track and is therefore bounded
+by track length. The short-probe path also reports `joint_probe_rows`,
 `joint_probe_clean_suffix`, `joint_probe_horizon_mean`,
 `joint_probe_suffix_mean`, `joint_probe_full_horizon_mean`, and
 `joint_probe_saved_frames_mean`, so canonical archives show where probes
-stopped and the estimated per-row frame savings. Commit-level:
-`handoff_aimed_selected`.
+stopped and the estimated per-row frame savings. Final-output composition is
+reported separately as `handoff_aimed_selected`.
 
 ## 4. Validated facts (snapshot, as of 2026-06-11)
 
@@ -607,8 +609,9 @@ acceptance.
 1. **Selection (the C-share) + the budget-shift question.** Deep candidates
    exist and lose forward-eval — and rollout visibility is not the answer
    (§6). The pool-rank instrument (§3) measures where proposals land in
-   their pools; commits via `handoff_aimed_selected`. If proposals dominate
-   commits, budget should shift from sampling toward the proposer (fewer
+   their pools; `handoff_aimed_selected` separately measures their share of the
+   final returned track. If aim proposals dominate exact pool ranks and final
+   output fits, budget should shift from sampling toward the proposer (fewer
    samples, more proposals) — R4, gated by the attempt-0 scar.
 2. **Sled pose at landing.** Sensor plumbed and free; record pose at
    landing and test whether it predicts conversion residue if impact
@@ -619,7 +622,7 @@ acceptance.
    low prediction loss and cheaper observation are not enough by themselves.
    The next model iteration must report both model accuracy and production
    economics: probe cost, gate-fail rate, emitted candidate count, pool rank,
-   commit rate, and budget-by-budget score. Production should move beyond the
+final-output composition, and budget-by-budget score. Production should move beyond the
    accepted additive baseline only when that whole package wins.
 
    Working prompt for the next model iteration: improve the local

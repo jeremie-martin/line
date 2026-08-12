@@ -644,6 +644,12 @@ export type CompileStats = {
     joint_probe_frames_charged: number;
     enum_lane_bases: number;
     enum_lane_base_skips: number;
+    /** Exact-pool placement of aim-lane proposals, once per pool build. */
+    aimed_pool_entries: number;
+    aimed_rank0: number;
+    aimed_top3: number;
+    aimed_rank_sum: number;
+    aimed_pool_size_sum: number;
     /** Study-only telemetry; emitted only with LR_AIM_STUDY_STATS=1. */
     study?: {
       enum_projection_pairs: number;
@@ -669,14 +675,6 @@ export type CompileStats = {
       enum_rot_recruited: number;
       enum_rot_emitted: number;
       enum_rot_gate_fail: number;
-      /** Selection-rank telemetry: proposals' position in the cost-sorted
-       *  pool they entered, per pool build. rank0 = pool best; top3 = rank<3.
-       *  Counts/sums (the lab derives means). */
-      aimed_pool_entries: number;
-      aimed_rank0: number;
-      aimed_top3: number;
-      aimed_rank_sum: number;
-      aimed_pool_size_sum: number;
       /** Joint short-probe telemetry: stop/suffix/full-horizon frame means and
        *  estimated saved frames per probe row. A "clean suffix" is one whose
        *  observed suffixFrame..horizonFrame window stays fully airborne. */
@@ -836,7 +834,7 @@ export type CompileStats = {
     deadline_first_terminal_frame: number | null;
     deadline_first_improving_terminal_frame: number | null;
   };
-  /** Committed fits in this output produced by the proposer. */
+  /** Aim-proposer fits in the final returned track; not all search selections. */
   handoff_aimed_selected?: number;
   /**
    * Study-only final-path join for repair auxiliary fits.  `emission` contains

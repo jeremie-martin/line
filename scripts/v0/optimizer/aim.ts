@@ -698,17 +698,6 @@ export type AimStudyStats = {
   enum_rot_recruited: number;
   enum_rot_emitted: number;
   enum_rot_gate_fail: number;
-  /** Selection-rank telemetry: where a lane proposal landed in the
-   *  cost-sorted pool it was emitted into (rank 0 = pool best), recorded
-   *  once per pool BUILD (node.ts sortWithLaneExtras). Counts/sums only —
-   *  the lab derives means. The instrument for "are proposed candidates
-   *  winning selection → should budget shift from sampling toward the
-   *  proposer?"; handoff_aimed_selected is the commit-level answer. */
-  aimed_pool_entries: number;
-  aimed_rank0: number;
-  aimed_top3: number;
-  aimed_rank_sum: number;
-  aimed_pool_size_sum: number;
   /** Joint short-probe telemetry. Means are frame numbers/counts over production
    *  `joint_probe_rows`; estimated saved frames are relative to the former full
    *  next-gap observation horizon. A clean suffix stays airborne from suffixFrame
@@ -794,6 +783,14 @@ export type AimStats = {
    *  because the pool was short or already refined. */
   enum_lane_bases: number;
   enum_lane_base_skips: number;
+  /** Where every lane proposal landed in the exact pool it entered, recorded
+   *  once per pool build (rank 0 = pool best). These are pool-yield counters;
+   *  `handoff_aimed_selected` instead counts aimed fits in the final output. */
+  aimed_pool_entries: number;
+  aimed_rank0: number;
+  aimed_top3: number;
+  aimed_rank_sum: number;
+  aimed_pool_size_sum: number;
   study?: AimStudyStats;
 };
 
@@ -987,6 +984,11 @@ export function snapshotAimStats(): AimStats | null {
     joint_probe_frames_charged: aimTotals.joint_probe_frames_charged,
     enum_lane_bases: aimTotals.enum_lane_bases,
     enum_lane_base_skips: aimTotals.enum_lane_base_skips,
+    aimed_pool_entries: aimTotals.aimed_pool_entries,
+    aimed_rank0: aimTotals.aimed_rank0,
+    aimed_top3: aimTotals.aimed_top3,
+    aimed_rank_sum: aimTotals.aimed_rank_sum,
+    aimed_pool_size_sum: aimTotals.aimed_pool_size_sum,
   };
   if (!aimStudyStatsEnabled()) return stats;
   stats.study = {
@@ -1029,11 +1031,6 @@ export function snapshotAimStats(): AimStats | null {
     enum_rot_recruited: aimTotals.enum_rot_recruited,
     enum_rot_emitted: aimTotals.enum_rot_emitted,
     enum_rot_gate_fail: aimTotals.enum_rot_gate_fail,
-    aimed_pool_entries: aimTotals.aimed_pool_entries,
-    aimed_rank0: aimTotals.aimed_rank0,
-    aimed_top3: aimTotals.aimed_top3,
-    aimed_rank_sum: aimTotals.aimed_rank_sum,
-    aimed_pool_size_sum: aimTotals.aimed_pool_size_sum,
     joint_probe_clean_suffix: aimTotals.joint_probe_clean_suffix,
     joint_probe_horizon_mean: aimTotals.joint_probe_rows > 0
       ? round3(aimTotals.jointProbeHorizonSum / aimTotals.joint_probe_rows) : 0,

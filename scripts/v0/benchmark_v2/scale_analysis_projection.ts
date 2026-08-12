@@ -1,7 +1,8 @@
 /**
  * Keep the scale decision archive small without discarding mechanics that the
  * scale comparison promises to report. Raw compile stats remain in the full
- * archive; repair_target_search is the deliberately retained compact subset.
+ * archive. Repair target-search and the small aim-work/yield funnel are the
+ * deliberately retained compact subsets.
  */
 export function scaleAnalysisRun(row: any): Record<string, unknown> {
   const {
@@ -13,11 +14,20 @@ export function scaleAnalysisRun(row: any): Record<string, unknown> {
     ...core
   } = row;
   const repairTargetSearch = stats?.repair_target_search;
+  const aim = compactAimStats(stats?.aim);
+  const finalTrackAimedFits = finite(stats?.handoff_aimed_selected);
+  const compactStats = {
+    ...(repairTargetSearch === undefined
+      ? {}
+      : { repair_target_search: { ...repairTargetSearch } }),
+    ...(aim === null ? {} : { aim }),
+    ...(finalTrackAimedFits === null
+      ? {}
+      : { handoff_aimed_selected: finalTrackAimedFits }),
+  };
   return {
     ...core,
-    stats: repairTargetSearch === undefined
-      ? null
-      : { repair_target_search: { ...repairTargetSearch } },
+    stats: Object.keys(compactStats).length === 0 ? null : compactStats,
     budgetTelemetry: budgetTelemetry === null || budgetTelemetry === undefined
       ? null
       : (() => {
@@ -52,4 +62,31 @@ export function scaleAnalysisRun(row: any): Record<string, unknown> {
         };
       })(),
   };
+}
+
+const AIM_COMPACT_FIELDS = [
+  "enum_lane_bases",
+  "enum_lane_base_skips",
+  "joint_probe_rows",
+  "joint_probe_frames_charged",
+  "enum_emitted",
+  "aimed_pool_entries",
+  "aimed_rank0",
+  "aimed_top3",
+  "aimed_rank_sum",
+  "aimed_pool_size_sum",
+] as const;
+
+function compactAimStats(value: unknown): Record<string, number> | null {
+  if (value === null || typeof value !== "object") return null;
+  const source = value as Record<string, unknown>;
+  const entries = AIM_COMPACT_FIELDS.flatMap((field) => {
+    const value = finite(source[field]);
+    return value === null ? [] : [[field, value] as const];
+  });
+  return entries.length === 0 ? null : Object.fromEntries(entries);
+}
+
+function finite(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }

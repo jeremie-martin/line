@@ -258,8 +258,9 @@ Six A/B arms vs baseline 611.7 (`LR_AIM_JOINT_PROBE_DESIGN` × `LR_AIM_MODEL_SPA
 
 Aim-off ablation (`LR_AIM_ENUM=0`): **REJECT Δ−7.8** CI[−14.2, −0.5]
 (−9.8 / −7.0 / −7.2 at 100k/200k/300k, P≥99%). Funnel: aimed proposals land at
-mean pool rank 2.5, 22% at rank 0, and ~60% of committed selections
-(`handoff_aimed_selected`).
+mean pool rank 2.5, 22% at rank 0, and ~60% of final-track fits
+(`handoff_aimed_selected`, which counts aimed fits in the final returned track,
+not all aim-lane selections made during search).
 
 Truth study (`study_prediction_truth.ts`): error is **reduction-dominated, not
 fit-dominated** — next.speed 0.079 px/f total vs 0.070 reduction floor; comAngle

@@ -15,7 +15,7 @@ import {
   type BudgetRepairGapState,
 } from "../v0/optimizer/budget_telemetry.ts";
 
-export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v5" as const;
+export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v6" as const;
 
 type RunRow = {
   task: { sourceId: string; budget: number; actualSeed: number };
@@ -63,6 +63,31 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
     work(row).actual_candidate_samples,
     telemetry(row).compile.total_spent_frames,
   )],
+  ["aimRefinedBases", (row) => aimStat(row, "enum_lane_bases")],
+  ["aimRefinedBaseSkips", (row) => aimStat(row, "enum_lane_base_skips")],
+  ["aimJointProbeRows", (row) => aimStat(row, "joint_probe_rows")],
+  ["aimJointProbeFramesCharged", (row) => aimStat(row, "joint_probe_frames_charged")],
+  ["aimProbeFramesPerRefinedBase", (row) => aimRatio(
+    row,
+    "joint_probe_frames_charged",
+    "enum_lane_bases",
+  )],
+  ["aimPrimaryCandidatesAdmitted", (row) => aimStat(row, "enum_emitted")],
+  ["aimPrimaryCandidatesAdmittedPerRefinedBase", (row) => aimRatio(
+    row,
+    "enum_emitted",
+    "enum_lane_bases",
+  )],
+  ["aimPoolEntries", (row) => aimStat(row, "aimed_pool_entries")],
+  ["aimPoolRankZeroRate", (row) => aimRatio(row, "aimed_rank0", "aimed_pool_entries")],
+  ["aimPoolTopThreeRate", (row) => aimRatio(row, "aimed_top3", "aimed_pool_entries")],
+  ["aimMeanPoolRank", (row) => aimRatio(row, "aimed_rank_sum", "aimed_pool_entries")],
+  ["aimMeanPoolSize", (row) => aimRatio(
+    row,
+    "aimed_pool_size_sum",
+    "aimed_pool_entries",
+  )],
+  ["finalTrackAimedFits", (row) => finite(row.stats?.handoff_aimed_selected)],
   ["viableCandidates", (row) => work(row).viable_candidates],
   ["viableCandidateRate", (row) => ratio(
     work(row).viable_candidates,
@@ -608,6 +633,16 @@ function repairTargetSearchRate(row: RunRow, numeratorField: string): number | n
     repairTargetSearchValue(row, numeratorField),
     repairTargetSearchValue(row, "target_pools"),
   );
+}
+
+function aimStat(row: RunRow, field: string): number | null {
+  return finite(row.stats?.aim?.[field]);
+}
+
+function aimRatio(row: RunRow, numeratorField: string, denominatorField: string): number | null {
+  const numerator = aimStat(row, numeratorField);
+  const denominator = aimStat(row, denominatorField);
+  return numerator === null || denominator === null ? null : ratio(numerator, denominator);
 }
 
 function sumRepairWork(

@@ -1,0 +1,49 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-repair-breadth-revisit.v1",
+  "recorded_at": "2026-08-12T14:55:00.000Z",
+  "status": "inconclusive_not_promoted",
+  "reference": {
+    "policy": "distilled-aim-impact-feasibility",
+    "scale_manifest": "generated/benchmark-v2/scale/aim-impact-distilled-reference-16-baseline.json",
+    "scale_headline": 579.8494
+  },
+  "candidate": {
+    "policy": "repair-seven-eighth",
+    "scope": "repair lane only after ordinary target-profile floors",
+    "initial_and_resumed_breadth_changed": false,
+    "repair_breadth_ratio": 0.875
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.7672,
+    "delta": -0.0822,
+    "directional_probability": 0.2491,
+    "canonical_750k_delta": 0.2565,
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "paired_cells": 1024
+  },
+  "mechanics": {
+    "first_terminal_frames_relative_delta": 0,
+    "requested_normal_proposals_per_call_relative_delta": -0.050056,
+    "actual_candidate_samples_relative_delta": -0.022165,
+    "reference_repair_episodes": 3839,
+    "candidate_repair_episodes": 4045,
+    "reference_terminal_reached": 3802,
+    "candidate_terminal_reached": 4009,
+    "reference_accepted_alternatives": 1747,
+    "candidate_accepted_alternatives": 1777,
+    "reference_internal_repair_gain": 4953.500061,
+    "candidate_internal_repair_gain": 4854.565956,
+    "reference_invariant_violations": 0,
+    "candidate_invariant_violations": 0
+  },
+  "evidence": {
+    "comparison": "generated/benchmark-v2/scale/aim-impact-repair-seven-eighth-16.comparison.json",
+    "mechanics": "generated/benchmark-v2/scale/aim-impact-repair-seven-eighth-16.mechanics.json",
+    "behavior": "generated/benchmark-v2/scale/aim-impact-repair-seven-eighth-16.behavior.json"
+  },
+  "interpretation": "The improved fixed-count proposal scorer did not make global scalar repair narrowing efficient. Saved sampling work produced more terminal and accepted alternatives, but lower marginal quality reduced aggregate repair gain and the multi-budget headline."
+}

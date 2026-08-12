@@ -145,9 +145,10 @@ import type { Gap } from "../types.ts";
 /** The enumerative proposer — the aiming lane.
  *  Fit scorer-facing outputs from shared probes, enumerate the configured
  *  knob space inside the model, score each variation by settled incoming
- *  quality × projected outgoing quality, and propose the top candidates
- *  through the unchanged exact evaluator. Full next-arc readiness enters only
- *  after that exact evaluation, in canonical pool ranking. This lane subsumed every
+ *  quality × projected outgoing quality × distilled next-contact impact
+ *  feasibility, and propose the top candidates through the unchanged exact
+ *  evaluator. Full next-arc readiness enters only after that exact evaluation,
+ *  in canonical pool ranking. This lane subsumed every
  *  hand-tuned predecessor:
  *  V3 speed-aim + V4 angle-aim triggers (ACCEPT Δ+3.3 → 600.71), the
  *  elevation climb-defer (removed at parity Δ−0.1 → 600.57), and the V4
@@ -164,17 +165,19 @@ const aimModelImpactFeasibilityEnv = compileScopedEnv(
   "LR_AIM_MODEL_IMPACT_FEASIBILITY",
 );
 
-/** Study-only fixed-count controller arm. It changes which fitted knob vectors
- * are proposed, but neither the probe grid nor the proposal count. */
+/** Production fixed-count controller. The distilled model changes which fitted
+ * knob vectors are proposed, but neither the probe grid nor proposal count.
+ * `off` and the much heavier full readiness forest remain explicit diagnostic
+ * ablations. */
 type AimModelImpactPolicy = "off" | "full" | "distilled";
 
 function aimModelImpactPolicy(): AimModelImpactPolicy {
   const value = aimModelImpactFeasibilityEnv();
-  if (value === undefined || value === "" || value === "0" || value === "off") {
-    return "off";
+  if (value === undefined || value === "" || value === "distilled") {
+    return "distilled";
   }
+  if (value === "0" || value === "off") return "off";
   if (value === "1" || value === "full") return "full";
-  if (value === "distilled") return "distilled";
   throw new Error(
     `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, or distilled; got ${value}`,
   );
@@ -648,8 +651,8 @@ export type AimStudyStats = {
   /** Mean surrogate-objective gain over δ=0, over emitted. */
   enum_objective_gain_mean: number;
   model_impact_policy: AimModelImpactPolicy;
-  /** Study arm `LR_AIM_MODEL_IMPACT_FEASIBILITY=1`: modeled knob-grid
-   *  evaluations whose next-contact impact feasibility was inferred, grids
+  /** Production distilled controller (or full-model diagnostic): modeled
+   *  knob-grid evaluations whose next-contact impact feasibility was inferred, grids
    *  where that extra factor changed the best improving knob vector, missing
    *  modeled arrivals, and the inferred factor's level/spread. The arm does
    *  not add probes or emitted proposals. */

@@ -67,6 +67,14 @@ export type ReadinessArtifactCompatibility = {
   /** Offline evaluation may score a disabled component without multiplying it
    * into the shipped readiness product. Production leaves this false. */
   inferDisabledComponents?: boolean;
+  /** Specialized consumers may load a component-only artifact. Production
+   *  readiness leaves this unset and still requires the complete product. */
+  requiredComponents?: readonly (
+    | "catchability"
+    | "impactFeasibility"
+    | "speedFit"
+    | "airFit"
+  )[];
 };
 
 function readinessAirFitEnabled(): boolean {
@@ -95,6 +103,7 @@ const KNOWN_FEATURE_NAMES: ReadonlySet<string> = new Set(READINESS_FEATURE_NAMES
  * time, since only success is recorded.
  */
 const validatedArtifacts = new WeakSet<ReadinessModelArtifact>();
+const validatedImpactOnlyArtifacts = new WeakSet<ReadinessModelArtifact>();
 
 function assertCompatibleReadinessArtifactOnce(
   artifact: ReadinessModelArtifact,
@@ -210,7 +219,12 @@ export function scoreImpactFeasibilityWithArtifact(
   input: NextArcReadinessInput,
   artifact: ReadinessModelArtifact,
 ): number {
-  assertCompatibleReadinessArtifactOnce(artifact);
+  if (!validatedImpactOnlyArtifacts.has(artifact)) {
+    assertCompatibleReadinessArtifact(artifact, {
+      requiredComponents: ["impactFeasibility"],
+    });
+    validatedImpactOnlyArtifacts.add(artifact);
+  }
   if (input.incomingGap.scorerTargets.impact === undefined) return 1;
   return infer(artifact, "impactFeasibility", readinessFeatureVector(input));
 }
@@ -282,7 +296,7 @@ export function assertCompatibleReadinessArtifact(
     }
   }
   for (
-    const component of [
+    const component of compatibility.requiredComponents ?? [
       "catchability",
       "impactFeasibility",
       "speedFit",

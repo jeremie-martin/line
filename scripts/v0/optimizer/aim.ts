@@ -125,7 +125,10 @@ import {
 import {
   readinessScorerGapContext,
 } from "./readiness_features.ts";
-import { scoreImpactFeasibility } from "./readiness.ts";
+import {
+  scoreDistilledAimImpactFeasibility,
+  scoreImpactFeasibility,
+} from "./readiness.ts";
 import type {
   BallisticState,
   IncomingKinematics,
@@ -163,8 +166,22 @@ const aimModelImpactFeasibilityEnv = compileScopedEnv(
 
 /** Study-only fixed-count controller arm. It changes which fitted knob vectors
  * are proposed, but neither the probe grid nor the proposal count. */
+type AimModelImpactPolicy = "off" | "full" | "distilled";
+
+function aimModelImpactPolicy(): AimModelImpactPolicy {
+  const value = aimModelImpactFeasibilityEnv();
+  if (value === undefined || value === "" || value === "0" || value === "off") {
+    return "off";
+  }
+  if (value === "1" || value === "full") return "full";
+  if (value === "distilled") return "distilled";
+  throw new Error(
+    `LR_AIM_MODEL_IMPACT_FEASIBILITY must be off, full, or distilled; got ${value}`,
+  );
+}
+
 function aimModelImpactFeasibilityEnabled(): boolean {
-  return aimModelImpactFeasibilityEnv() === "1";
+  return aimModelImpactPolicy() !== "off";
 }
 
 /** Below this |predicted base air − effective ask| the air-matched variant is
@@ -630,6 +647,7 @@ export type AimStudyStats = {
   enum_projection_err_mean: number;
   /** Mean surrogate-objective gain over δ=0, over emitted. */
   enum_objective_gain_mean: number;
+  model_impact_policy: AimModelImpactPolicy;
   /** Study arm `LR_AIM_MODEL_IMPACT_FEASIBILITY=1`: modeled knob-grid
    *  evaluations whose next-contact impact feasibility was inferred, grids
    *  where that extra factor changed the best improving knob vector, missing
@@ -955,6 +973,7 @@ export function snapshotAimStats(): AimStats | null {
       ? round3(aimTotals.enumProjectionErrSum / aimTotals.enumAchieved) : 0,
     enum_objective_gain_mean: aimTotals.enum_emitted > 0
       ? round3(aimTotals.enumObjectiveGainSum / aimTotals.enum_emitted) : 0,
+    model_impact_policy: aimModelImpactPolicy(),
     enum_model_impact_scores: aimTotals.enum_model_impact_scores,
     enum_model_impact_grids: aimTotals.enum_model_impact_grids,
     enum_model_impact_top1_changed: aimTotals.enum_model_impact_top1_changed,
@@ -1162,7 +1181,7 @@ function modeledImpactFeasibility(
   const outgoingTargets = outgoingGap === null
     ? undefined
     : gapAxisTargets?.[outgoingGap.index] ?? outgoingGap.targets;
-  const impactFeasibility = scoreImpactFeasibility({
+  const input = {
     incomingBoundary: {
       targetFrame: incomingGap.endFrame,
       preContactFrame: incomingGap.endFrame - 1,
@@ -1177,7 +1196,10 @@ function modeledImpactFeasibility(
       ? null
       : readinessScorerGapContext(outgoingGap, outgoingTargets),
     generatorPolicyId: PRODUCTION_ARC_PROPOSAL_POLICY_ID,
-  });
+  };
+  const impactFeasibility = aimModelImpactPolicy() === "distilled"
+    ? scoreDistilledAimImpactFeasibility(input)
+    : scoreImpactFeasibility(input);
   aimTotals.enum_model_impact_scores++;
   aimTotals.enumModelImpactSum += impactFeasibility;
   return impactFeasibility;

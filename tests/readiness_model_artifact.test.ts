@@ -12,6 +12,9 @@ import {
 import runtimeModel from "../scripts/v0/optimizer/readiness_model.json" with {
   type: "json",
 };
+import aimImpactModel from "../scripts/v0/optimizer/aim_impact_model.json" with {
+  type: "json",
+};
 import parityFixture from "./fixtures/readiness_model_parity.json" with {
   type: "json",
 };
@@ -36,6 +39,20 @@ function artifact(
 }
 
 describe("readiness model artifact inference", () => {
+  test("accepts the governed aim artifact only for its declared impact-only consumer", () => {
+    const parsed = parseReadinessModelArtifact(aimImpactModel);
+    expect(() => assertCompatibleReadinessArtifact(parsed)).toThrow(
+      /missing catchability/,
+    );
+    expect(() =>
+      assertCompatibleReadinessArtifact(parsed, {
+        requiredComponents: ["impactFeasibility"],
+      })
+    ).not.toThrow();
+    expect(aimImpactModel.distillation.exportParityMaxAbsoluteError).toBe(0);
+    expect(aimImpactModel.components.impactFeasibility.trees).toHaveLength(32);
+  });
+
   test("previous scorer semantics are legal only for context collection", () => {
     expect(runtimeModel.targetSemanticsId).toBe(
       READINESS_TARGET_SEMANTICS_ID,

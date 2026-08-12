@@ -14,6 +14,7 @@
  */
 
 import modelJson from "./readiness_model.json" with { type: "json" };
+import aimImpactModelJson from "./aim_impact_model.json" with { type: "json" };
 import type { NextArcReadinessInput } from "./readiness_features.ts";
 import {
   parseReadinessModelArtifact,
@@ -56,6 +57,7 @@ const READINESS_CONTEXT_BOOTSTRAP = (() => {
 })();
 
 let READINESS_MODEL = parseReadinessModelArtifact(modelJson);
+const AIM_IMPACT_MODEL = parseReadinessModelArtifact(aimImpactModelJson);
 if (
   READINESS_MODEL.trainingCorpus.schema === "bootstrap-untrained" &&
   (globalThis as {
@@ -89,6 +91,14 @@ export function scoreImpactFeasibility(
   input: NextArcReadinessInput,
 ): number {
   return scoreImpactFeasibilityWithArtifact(input, READINESS_MODEL);
+}
+
+/** Aim-specific cost surrogate distilled from the shipped impact component
+ * under its explicit missing-articulation input contract. */
+export function scoreDistilledAimImpactFeasibility(
+  input: NextArcReadinessInput,
+): number {
+  return scoreImpactFeasibilityWithArtifact(input, AIM_IMPACT_MODEL);
 }
 
 /** Install the explicit context-selector artifact for a governed corpus

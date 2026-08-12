@@ -74,6 +74,7 @@ type StudyTask = {
     | "reserve-cheapest-else-deepest"
     | "worst-target-runway-per-cost";
   aimImpactPower?: number;
+  aimTopKExponent?: number;
 };
 
 type StudyWorkerResult = {
@@ -134,6 +135,12 @@ async function main(): Promise<void> {
     0.25,
     4,
   );
+  const aimTopKExponent = optionalBoundedNumber(
+    argument("aim-topk-exponent"),
+    "aim-topk-exponent",
+    0.25,
+    2,
+  );
   if (nCandExponent !== undefined && nCandPolicy !== undefined) {
     throw new Error("--ncand-exponent and --ncand-policy are mutually exclusive");
   }
@@ -176,6 +183,7 @@ async function main(): Promise<void> {
     repairPolicy,
     repairSelectionPolicy,
     aimImpactPower,
+    aimTopKExponent,
     sourceManifestPath,
   }))));
   const engine = process.env.LR_ENGINE ?? "typescript";
@@ -201,6 +209,7 @@ async function main(): Promise<void> {
     repairPolicy,
     repairSelectionPolicy,
     aimImpactPower,
+    aimTopKExponent,
     scaleProfileFingerprint: scaleProfile?.fingerprint,
     sources: sources.map((source) => ({ id: source.id, fingerprint: source.sourceFingerprint })),
   };
@@ -321,6 +330,7 @@ async function main(): Promise<void> {
     repairPolicy,
     repairSelectionPolicy,
     aimImpactPower,
+    aimTopKExponent,
     scaleProfile: scaleProfileReport(scaleProfile),
     scaleHeadline: scalePanel?.scaleHeadline ?? null,
     summaries,
@@ -489,6 +499,7 @@ function studyPlanFingerprint(input: {
     | "reserve-cheapest-else-deepest"
     | "worst-target-runway-per-cost";
   aimImpactPower?: number;
+  aimTopKExponent?: number;
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
@@ -518,6 +529,7 @@ function taskKey(task: StudyTask): string {
     task.repairPolicy ?? "production",
     task.repairSelectionPolicy ?? "production",
     task.aimImpactPower ?? "production",
+    task.aimTopKExponent ?? "production",
   ].join("\0");
 }
 
@@ -597,6 +609,8 @@ async function workerMain(task: StudyTask): Promise<void> {
     else process.env.LR_REPAIR_SELECTION_POLICY = task.repairSelectionPolicy;
     if (task.aimImpactPower === undefined) delete process.env.LR_AIM_MODEL_IMPACT_POWER;
     else process.env.LR_AIM_MODEL_IMPACT_POWER = String(task.aimImpactPower);
+    if (task.aimTopKExponent === undefined) delete process.env.LR_AIM_TOPK_SCALE_EXPONENT;
+    else process.env.LR_AIM_TOPK_SCALE_EXPONENT = String(task.aimTopKExponent);
     const sources = resolveSources(loadSourceManifest(task.sourceManifestPath));
     const source = sources.find((entry) => entry.id === task.sourceId);
     if (source === undefined) throw new Error(`${task.sourceId}: source unavailable`);

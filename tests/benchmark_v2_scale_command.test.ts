@@ -3,6 +3,7 @@ import {
   assertScaleArguments,
   assertScaleCommandArguments,
   scaleAimImpactPowerArgument,
+  scaleAimTopKExponentArgument,
   scaleBreadthPolicyArgument,
   scaleRepairPolicyArgument,
   scaleRepairSelectionPolicyArgument,
@@ -41,6 +42,7 @@ describe("Benchmark V2 scale command contract", () => {
       "--repair-policy=protected-one-step-bridge",
       "--repair-selection-policy=reserve-cheapest-repair",
       "--aim-impact-power=1.25",
+      "--aim-topk-exponent=0.875",
     ])).not.toThrow();
     expect(() => assertScaleArguments("compare", [
       "--baseline=reference.json",
@@ -60,6 +62,8 @@ describe("Benchmark V2 scale command contract", () => {
       .toThrow(/repair-selection-policy must be/);
     expect(() => assertScaleArguments("eval", ["--aim-impact-power=0.1"]))
       .toThrow(/aim-impact-power must be/);
+    expect(() => assertScaleArguments("eval", ["--aim-topk-exponent=2.1"]))
+      .toThrow(/aim-topk-exponent must be/);
     expect(() => assertScaleArguments("eval", ["--repair-mode=multi-terminal"]))
       .toThrow(/does not accept/);
   });
@@ -68,6 +72,11 @@ describe("Benchmark V2 scale command contract", () => {
     expect(scaleAimImpactPowerArgument([])).toBeNull();
     expect(scaleAimImpactPowerArgument(["--aim-impact-power=0.75"])).toBe(0.75);
     expect(scaleAimImpactPowerArgument(["--aim-impact-power=1.25"])).toBe(1.25);
+  });
+
+  test("resolves the aim top-K exponent passed to scale eval", () => {
+    expect(scaleAimTopKExponentArgument([])).toBeNull();
+    expect(scaleAimTopKExponentArgument(["--aim-topk-exponent=0.875"])).toBe(0.875);
   });
 
   test("validates the subcommand before the runner prepares benchmark inputs", () => {

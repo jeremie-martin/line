@@ -1,0 +1,75 @@
+{
+  "schema": "line.benchmark-v2.aim-impact-feasibility-promotion.v1",
+  "recorded_at": "2026-08-12T11:14:53.612Z",
+  "status": "accepted_and_promoted",
+  "production_policy": {
+    "proposal_count_change": 0,
+    "probe_count_change": 0,
+    "ordinary_admission_set_change": false,
+    "ranking_factor": "distilled_next_contact_impact_feasibility",
+    "diagnostic_ablations": ["off", "full"]
+  },
+  "distillation": {
+    "teacher": "readiness_model.impactFeasibility",
+    "teacher_trees": 200,
+    "selected_model": "hist_32",
+    "validation_contexts": 40826,
+    "mse": 0.0025364457160270367,
+    "mae": 0.03894196588692346,
+    "bias": 0.0006814861431433008,
+    "correlation": 0.9709362515720915,
+    "export_parity_max_absolute_error": 0
+  },
+  "scale_decision": {
+    "authority": "scale-comparison-not-canonical-promotion",
+    "profile": "compact-budget-response-v1",
+    "stopping_depth": 8,
+    "outcome": "prefer-candidate",
+    "reference_headline": 571.1644,
+    "candidate_headline": 579.5092,
+    "delta": 8.3448,
+    "directional_probability": 0.99585844,
+    "required_directional_probability": 0.99166667,
+    "canonical_750k_delta": 4.3324,
+    "reference_valid": 495,
+    "candidate_valid": 497,
+    "paired_cells": 512,
+    "gained_valid": 7,
+    "lost_valid": 5
+  },
+  "canonical_decision": {
+    "authority": "promotion",
+    "profile": "canonical",
+    "budget": 750000,
+    "stopping_depth": 16,
+    "outcome": "accept",
+    "promotable": true,
+    "reference_headline": 602.5518,
+    "candidate_headline": 605.8725,
+    "delta": 3.3207,
+    "standard_error": 0.6878,
+    "directional_probability": 0.9998893,
+    "required_directional_probability": 0.99802766,
+    "central_interval": [1.294, 5.3474],
+    "one_sided_lower_bound": 1.5307,
+    "reference_valid": 704,
+    "candidate_valid": 704,
+    "paired_cells": 704
+  },
+  "identity": {
+    "promoted_compiler_source_fingerprint": "9e1cddb6ad6e942e6dcf9d6007baee30a534ea8dd338f1590fe5dc44c1285c45",
+    "promoted_candidate_fingerprint": "6ff604b940c7a59209560c5b2fc1fe9b6dc4f2dc824ad969a7a89dd82d393f77",
+    "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+    "compiler_environment": {},
+    "equivalence": "The selected scale arm enabled the distilled model through the declared diagnostic environment. Promotion changed only the default to distilled; a live Shelter 150k smoke test proved the default and explicit-distilled track hashes identical before canonical evaluation."
+  },
+  "evidence": {
+    "distillation_study": "generated/analysis/aim-impact-distillation-study.json",
+    "scale_archive": "generated/benchmark-v2/scale/aim-model-impact-distilled-8.json",
+    "scale_comparison": "generated/benchmark-v2/scale/aim-model-impact-distilled-8.comparison.json",
+    "canonical_comparison": "benchmark/v2/runs/distilled-aim-impact-feasibility-comparison.json",
+    "canonical_archive": "benchmark/v2/runs/distilled-aim-impact-feasibility-development-750k-N16.json.gz",
+    "canonical_compiler_snapshot": "benchmark/v2/runs/distilled-aim-impact-feasibility-compiler-snapshot.tar.gz"
+  },
+  "interpretation": "The fixed-count proposal-quality omission was causal across budgets and canonical sources. Production now uses the compact distilled impact factor; the exact 200-tree teacher remains diagnostic because it is much more expensive."
+}

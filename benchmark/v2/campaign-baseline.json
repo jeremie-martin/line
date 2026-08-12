@@ -1,15 +1,15 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "independent-repair-depth-six",
-  "generated_at": "2026-08-11T15:45:49.422Z",
+  "label": "distilled-aim-impact-feasibility",
+  "generated_at": "2026-08-12T11:14:53.612Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
       750000
     ],
     "max_seeds": 48,
-    "promotion_seeds": 32,
+    "promotion_seeds": 16,
     "sequential_looks": [
       8,
       16,
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "ba88c852bfb73b1846d387b4b7df97378353eef6a5b048ab875c4dd796e43b35",
+  "compiler_source_fingerprint": "9e1cddb6ad6e942e6dcf9d6007baee30a534ea8dd338f1590fe5dc44c1285c45",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -88,6 +88,7 @@
     "scripts/v0/core/trace.ts",
     "scripts/v0/optimizer/README.md",
     "scripts/v0/optimizer/aim.ts",
+    "scripts/v0/optimizer/aim_impact_model.json",
     "scripts/v0/optimizer/air_policy.ts",
     "scripts/v0/optimizer/arc_actuator.ts",
     "scripts/v0/optimizer/arc_control.ts",
@@ -130,7 +131,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "c87125e9f9e9b330a89a96a0c5683e92d323dd14882dc2f262aba902ebf8d167",
+  "candidate_fingerprint": "6ff604b940c7a59209560c5b2fc1fe9b6dc4f2dc824ad969a7a89dd82d393f77",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "799f49d3f17bc1f545cefe1e5774b28b0ffe315a4ee58b4cfea17e38a6b58fd3",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -139,25 +140,25 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/independent-repair-depth-six-compiler-snapshot.tar.gz",
-    "archiveSha256": "2a17a74b18fbd9efb7ffb12140395c25a4f280dc97ecb38860dd5ed354978eb8",
-    "candidateFingerprint": "c87125e9f9e9b330a89a96a0c5683e92d323dd14882dc2f262aba902ebf8d167",
-    "compilerSourceFingerprint": "ba88c852bfb73b1846d387b4b7df97378353eef6a5b048ab875c4dd796e43b35",
+    "archive": "benchmark/v2/runs/distilled-aim-impact-feasibility-compiler-snapshot.tar.gz",
+    "archiveSha256": "e44d32e12987c3eba77745faafa84a9c897061ba13e057f2cee748b323886b0c",
+    "candidateFingerprint": "6ff604b940c7a59209560c5b2fc1fe9b6dc4f2dc824ad969a7a89dd82d393f77",
+    "compilerSourceFingerprint": "9e1cddb6ad6e942e6dcf9d6007baee30a534ea8dd338f1590fe5dc44c1285c45",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
-    "execution_policy_fingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
+    "execution_policy_fingerprint": "759acc99001f960bc7581ff628f0de8616aa646516643c9fc77e79d04a0553ad",
     "implementation_fingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4",
-    "archive_sha256": "179834f7d707491d51b3073ad3336f3f38bf440958043c3c709ef977b973aa8a",
-    "compressed_archive": "benchmark/v2/runs/independent-repair-depth-six-development-750k-N32.json.gz",
-    "compressed_archive_sha256": "a5418ac51b3a929b9841575cbb4f337253477c152619db9e96872c72bf61b583",
-    "canonical_headline": 602.9306,
+    "archive_sha256": "869f9612ad28e7cf1b6d0f68561668fc4842e43cd93f37800c1e30c929c8dedb",
+    "compressed_archive": "benchmark/v2/runs/distilled-aim-impact-feasibility-development-750k-N16.json.gz",
+    "compressed_archive_sha256": "7a72aa6ed48bed3d5faac1587c979273bf55d9de44f9491014a620ea8b285230",
+    "canonical_headline": 605.8725,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
       "seedBase": 0,
-      "seedsPerBudget": 32,
+      "seedsPerBudget": 16,
       "byBudget": [
         {
           "budget": 750000,
@@ -177,23 +178,7 @@
             612,
             613,
             614,
-            615,
-            616,
-            617,
-            618,
-            619,
-            620,
-            621,
-            622,
-            623,
-            624,
-            625,
-            626,
-            627,
-            628,
-            629,
-            630,
-            631
+            615
           ]
         }
       ]
@@ -201,16 +186,16 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 602.9306,
-        "valid_runs": 1408,
-        "total_runs": 1408
+        "score": 605.8725,
+        "valid_runs": 704,
+        "total_runs": 704
       }
     ]
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "independent-repair-depth-six",
-    "candidateFingerprint": "c87125e9f9e9b330a89a96a0c5683e92d323dd14882dc2f262aba902ebf8d167",
+    "baselineLabel": "distilled-aim-impact-feasibility",
+    "candidateFingerprint": "6ff604b940c7a59209560c5b2fc1fe9b6dc4f2dc824ad969a7a89dd82d393f77",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -277,11 +262,11 @@
       {
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
-        "endSeedSlotExclusive": 32,
-        "archiveSha256": "179834f7d707491d51b3073ad3336f3f38bf440958043c3c709ef977b973aa8a",
-        "compressedArchive": "benchmark/v2/runs/independent-repair-depth-six-development-750k-N32.json.gz",
-        "compressedArchiveSha256": "a5418ac51b3a929b9841575cbb4f337253477c152619db9e96872c72bf61b583",
-        "executionPolicyFingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
+        "endSeedSlotExclusive": 16,
+        "archiveSha256": "869f9612ad28e7cf1b6d0f68561668fc4842e43cd93f37800c1e30c929c8dedb",
+        "compressedArchive": "benchmark/v2/runs/distilled-aim-impact-feasibility-development-750k-N16.json.gz",
+        "compressedArchiveSha256": "7a72aa6ed48bed3d5faac1587c979273bf55d9de44f9491014a620ea8b285230",
+        "executionPolicyFingerprint": "759acc99001f960bc7581ff628f0de8616aa646516643c9fc77e79d04a0553ad",
         "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
       }
     ]
@@ -301,21 +286,21 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/independent-repair-depth-six-comparison.json",
-    "artifact_sha256": "aae6ca9467d3643d880d4d3eb500620ca1e30957538990b4dd1836ec5ef5eda3",
-    "seeds": 32,
+    "artifact": "benchmark/v2/runs/distilled-aim-impact-feasibility-comparison.json",
+    "artifact_sha256": "06edb05308432c9d620bdfddd80233aa38018d422d9f0dc68acc1148a5e2b840",
+    "seeds": 16,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
     "stopping_action": "accept",
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/independent-repair-depth-six-comparison-request.json",
-    "request_sha256": "b36ca5fac208272692b38d1087e93f8abf6d22b39352e4e99ad8539f1de25df0",
+    "request": "benchmark/v2/runs/distilled-aim-impact-feasibility-comparison-request.json",
+    "request_sha256": "95c42a6b301b0117ef69dd390721cbf65e0918d931e507a667ede40776762395",
     "budgets": [
       750000
     ],
     "outcome": "accept",
-    "delta": 0.4348
+    "delta": 3.3207
   }
 }

@@ -1013,6 +1013,41 @@ describe("repair target selection", () => {
     });
   });
 
+  test("extends past depth six only when mutable suffix density does not fall", () => {
+    const densityCandidates = Array.from({ length: 9 }, (_, gapIndex) => ({
+      gapIndex,
+      sse: gapIndex === 8 ? 10 : gapIndex < 2 ? 0.5 : 0.01,
+    }));
+    const point = [1_000, 800, 100, 90, 80, 70, 60, 50, 40];
+    expect(selectRepairRestart(
+      densityCandidates,
+      point,
+      point,
+      1_000,
+      0,
+      8,
+      "worst_gap_density_guarded_depth_eight",
+    )).toMatchObject({
+      selectionPolicy: "worst_gap_density_guarded_depth_eight",
+      targetGapIndex: 8,
+      anchorGapIndex: 2,
+      parentDepth: 6,
+    });
+    expect(selectRepairRestart(
+      densityCandidates,
+      [100, 800, 1_000, 900, 800, 700, 600, 500, 400],
+      [100, 800, 1_000, 900, 800, 700, 600, 500, 400],
+      1_000,
+      0,
+      8,
+      "worst_gap_density_guarded_depth_eight",
+    )).toMatchObject({
+      targetGapIndex: 8,
+      anchorGapIndex: 0,
+      parentDepth: 8,
+    });
+  });
+
   test("selects suffix opportunity per expected cost from the shared affordable anchor set", () => {
     const densityCandidates = [0, 1, 2, 3, 4, 5].map((gapIndex) => ({
       gapIndex,

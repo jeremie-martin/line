@@ -69,7 +69,10 @@ type StudyTask = {
     | "repair-seven-eighth"
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
-  repairSelectionPolicy?: "reserve-cheapest-repair" | "reserve-cheapest-else-deepest";
+  repairSelectionPolicy?:
+    | "reserve-cheapest-repair"
+    | "reserve-cheapest-else-deepest"
+    | "density-guarded-depth-eight";
 };
 
 type StudyWorkerResult = {
@@ -471,7 +474,10 @@ function studyPlanFingerprint(input: {
     | "repair-seven-eighth"
     | "linear-cap-216";
   repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
-  repairSelectionPolicy?: "reserve-cheapest-repair" | "reserve-cheapest-else-deepest";
+  repairSelectionPolicy?:
+    | "reserve-cheapest-repair"
+    | "reserve-cheapest-else-deepest"
+    | "density-guarded-depth-eight";
   scaleProfileFingerprint?: string;
   sources: Array<{ id: string; fingerprint: string }>;
 }): string {
@@ -730,14 +736,22 @@ function parseRepairPolicy(
 
 function parseRepairSelectionPolicy(
   value: string | undefined,
-): "reserve-cheapest-repair" | "reserve-cheapest-else-deepest" | undefined {
+):
+  | "reserve-cheapest-repair"
+  | "reserve-cheapest-else-deepest"
+  | "density-guarded-depth-eight"
+  | undefined {
   if (value === undefined) return undefined;
-  if (value === "reserve-cheapest-repair" || value === "reserve-cheapest-else-deepest") {
+  if (
+    value === "reserve-cheapest-repair" ||
+    value === "reserve-cheapest-else-deepest" ||
+    value === "density-guarded-depth-eight"
+  ) {
     return value;
   }
   throw new Error(
-    "--repair-selection-policy must be reserve-cheapest-repair or " +
-      "reserve-cheapest-else-deepest",
+    "--repair-selection-policy must be reserve-cheapest-repair, " +
+      "reserve-cheapest-else-deepest, or density-guarded-depth-eight",
   );
 }
 

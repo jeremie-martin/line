@@ -44,5 +44,39 @@ describe("repair scheme-space counterfactuals", () => {
       targetGap: 2,
       anchorGap: 0,
     });
+    expect(choices.density_guarded_depth_eight).toMatchObject({
+      targetGap: 2,
+      anchorGap: 1,
+    });
+  });
+
+  test("extends beyond depth six only when suffix opportunity density does not fall", () => {
+    const decision = (depthEightCost: number) => ({
+      remaining_budget_frames: 1_000,
+      usable_budget_frames: 1_000,
+      target_gap_index: 8,
+      anchor_gap_index: 0,
+      considered_targets: Array.from({ length: 9 }, (_, gap) => ({
+        target_gap_index: gap,
+        target_gap_sse: gap < 2 ? 0.5 : 0.01,
+        anchor_options: Array.from({ length: gap + 1 }, (__, parentDepth) => ({
+          parent_depth: parentDepth,
+          anchor_gap_index: gap - parentDepth,
+          estimated_anchor_cost_frames: gap - parentDepth === 0
+            ? depthEightCost
+            : 100 + 10 * (8 - (gap - parentDepth)),
+          estimated_anchor_cost_upper_frames: gap - parentDepth === 0
+            ? depthEightCost
+            : 100 + 10 * (8 - (gap - parentDepth)),
+          anchor_cost_source: "measured_cost_to_end",
+          affordability: "affordable",
+        })),
+      })),
+    });
+
+    expect(deriveRepairSchemeChoices(decision(10_000)).density_guarded_depth_eight)
+      .toMatchObject({ targetGap: 8, anchorGap: 2, parentDepth: 6 });
+    expect(deriveRepairSchemeChoices(decision(120)).density_guarded_depth_eight)
+      .toMatchObject({ targetGap: 8, anchorGap: 0, parentDepth: 8 });
   });
 });

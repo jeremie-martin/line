@@ -45,6 +45,7 @@ const SCHEMES = [
   "reserve_selected_depth_zero",
   "reserve_cheapest_current_repair",
   "reserve_cheapest_else_deepest",
+  "density_guarded_depth_eight",
 ] as const;
 
 /** Counterfactual repair decisions derivable from one repair-decision payload.
@@ -146,6 +147,19 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
     b.target.gap - b.anchor.gap - (a.target.gap - a.anchor.gap) ||
     a.anchor.upperCost - b.anchor.upperCost
   )[0] ?? { target: currentTarget, anchor: currentAnchor };
+  const depthSixPair = [...currentTargetPairs].filter((pair) =>
+    pair.target.gap - pair.anchor.gap <= 6
+  ).sort((a, b) =>
+    b.target.gap - b.anchor.gap - (a.target.gap - a.anchor.gap) ||
+    a.anchor.upperCost - b.anchor.upperCost
+  )[0] ?? { target: currentTarget, anchor: currentAnchor };
+  const currentSuffixDensity = currentAnchor.suffixSse / currentAnchor.pointCost;
+  const depthSixAnchor = enriched.find((anchor) => anchor.gap === depthSixPair.anchor.gap)!;
+  const depthSixSuffixDensity = depthSixAnchor.suffixSse / depthSixAnchor.pointCost;
+  const densityGuardedDepthEight = currentTarget.gap - currentAnchor.gap <= 6 ||
+      currentSuffixDensity >= depthSixSuffixDensity
+    ? { target: currentTarget, anchor: currentAnchor }
+    : { target: currentTarget, anchor: depthSixAnchor };
   return {
     current: choice(currentTarget, currentAnchor),
     max_suffix_opportunity: choice(opportunity.worstTarget, opportunity),
@@ -169,6 +183,10 @@ export function deriveRepairSchemeChoices(decision: any): Record<string, RepairS
     reserve_cheapest_else_deepest: choice(
       reserveCheapestElseDeepest.target,
       enriched.find((anchor) => anchor.gap === reserveCheapestElseDeepest.anchor.gap)!,
+    ),
+    density_guarded_depth_eight: choice(
+      densityGuardedDepthEight.target,
+      densityGuardedDepthEight.anchor,
     ),
   };
 }
@@ -243,6 +261,7 @@ async function analyze(checkpoint: string): Promise<any> {
       reserve_selected_depth_zero: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the current estimate for a depth-zero repair of that target; if two repairs do not fit, make one final depth-zero repair.",
       reserve_cheapest_current_repair: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the cheapest currently affordable repair estimate; if two repairs do not fit, make one final depth-zero repair.",
       reserve_cheapest_else_deepest: "Keep the current worst affordable target. Choose its deepest anchor whose upper cost also leaves the cheapest currently affordable repair estimate; if two repairs do not fit, spend the final repair from the ordinary deepest affordable anchor.",
+      density_guarded_depth_eight: "Keep the current worst affordable target. Permit its deepest affordable anchor through depth eight only when its mutable-suffix SSE per point-cost frame is at least the density of the deepest affordable anchor capped at depth six; otherwise use the depth-six-capped anchor.",
     },
     limits: [
       "Counterfactual choices are exact replays of recorded decision inputs, not simulated outcomes.",

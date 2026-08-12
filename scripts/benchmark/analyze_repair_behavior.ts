@@ -484,6 +484,7 @@ function auditRun(row: RunRow, audit: Audit): void {
           "worst_gap_deepest_affordable",
           "worst_gap_reserve_cheapest_repair",
           "worst_gap_reserve_cheapest_else_deepest",
+          "worst_gap_density_guarded_depth_eight",
         ].includes(decision.selection_policy) &&
         decision.selection_policy === nextDecision.selection_policy &&
         nextAffordable.has(decision.target_gap_index)

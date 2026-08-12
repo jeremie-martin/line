@@ -202,6 +202,7 @@ export type BudgetRepairDecision = {
     | "worst_gap_deepest_affordable"
     | "worst_gap_reserve_cheapest_repair"
     | "worst_gap_reserve_cheapest_else_deepest"
+    | "worst_gap_density_guarded_depth_eight"
     | "suffix_opportunity_per_cost"
     | "max_suffix_opportunity"
     | "max_local_window_opportunity";
@@ -347,12 +348,30 @@ export function replayBudgetRepairSelection(
     const anchor = reserved ?? finalRepair;
     return { ...suffixChoice(anchor.anchor_gap_index), target, anchor };
   };
+  const densityGuardedDepthEightChoice = () => {
+    const deepest = worstGapChoice("none");
+    if (deepest.anchor.parent_depth <= 6) return deepest;
+    const depthSix = [...deepest.target.anchor_options].filter((anchor) =>
+      anchor.affordability === "affordable" && anchor.parent_depth <= 6
+    ).sort((a, b) => b.parent_depth - a.parent_depth)[0];
+    if (depthSix === undefined) {
+      throw new Error(`repair selection has no replayable depth-six anchor`);
+    }
+    const capped = { ...suffixChoice(depthSix.anchor_gap_index), target: deepest.target, anchor: depthSix };
+    const deepDensity = deepest.mutableSuffixSse /
+      deepest.anchor.estimated_anchor_cost_frames!;
+    const cappedDensity = capped.mutableSuffixSse /
+      capped.anchor.estimated_anchor_cost_frames!;
+    return deepDensity >= cappedDensity ? deepest : capped;
+  };
   const choice = decision.selection_policy === "worst_gap_deepest_affordable"
     ? worstGapChoice("none")
     : decision.selection_policy === "worst_gap_reserve_cheapest_repair"
       ? worstGapChoice("latest_final")
       : decision.selection_policy === "worst_gap_reserve_cheapest_else_deepest"
         ? worstGapChoice("deepest_final")
+        : decision.selection_policy === "worst_gap_density_guarded_depth_eight"
+          ? densityGuardedDepthEightChoice()
     : decision.selection_policy === "suffix_opportunity_per_cost"
       ? affordableAnchorGapIndices.map(suffixChoice).sort((a, b) =>
         b.mutableSuffixSse / b.anchor.estimated_anchor_cost_frames! -
@@ -1570,6 +1589,7 @@ function validateTelemetryPayload(
           "worst_gap_deepest_affordable",
           "worst_gap_reserve_cheapest_repair",
           "worst_gap_reserve_cheapest_else_deepest",
+          "worst_gap_density_guarded_depth_eight",
           "suffix_opportunity_per_cost",
           "max_suffix_opportunity",
           "max_local_window_opportunity",

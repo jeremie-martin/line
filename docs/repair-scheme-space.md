@@ -317,6 +317,26 @@ signal. The next experiment should change suffix-search ordering or diversity
 under the accepted selector, not invent another algebraic reduction of the same
 incumbent SSE map.
 
+## Bounded depth extension
+
+A direct maximum-depth extension from six to eight was unfavorable at the full
+N=16 scale look: 571.8682 to 571.6816 (-0.1866, 15.37% directional
+probability), with -0.3384 at 750k and unchanged 989/1,024 validity. Repair work
+was effectively fixed, but the arm completed 3.6% fewer terminals, accepted
+4.7% fewer alternatives, and lost 2.9% aggregate internal repair gain. Depths
+seven and eight delivered 4.30 and 9.83 internal points per million repair
+frames, versus 12.81 at depth six in the same arm. A larger fixed boundary is
+therefore closed.
+
+The next causal bracket is a parameter-free density guard on that boundary.
+For the unchanged production worst target, it permits the deepest affordable
+anchor through depth eight only when its mutable-suffix SSE per estimated
+point-cost frame is no lower than the deepest affordable depth-six-capped
+anchor. Exact replay of the N=16 depth-eight decision inputs changes 587/3,704
+anchors (15.8%) and lowers mean selected depth from 4.12 to 3.82. This replay
+only establishes that the intervention is selective; it does not predict its
+terminal outcomes.
+
 ## Evaluation order
 
 1. Run paired N=4 across the scale profile's eight specifications and eight

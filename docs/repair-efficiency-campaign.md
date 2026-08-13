@@ -624,3 +624,41 @@ remains `worst_gap_deepest_affordable`; the next family must improve the value
 of the suffix generated from that anchor rather than manufacture still more
 short alternatives. Exact evidence and hashes are in
 `benchmark/v2/studies/worst-target-window-per-cost-anchor.json`.
+
+### Stable-planning descendant breadth — declared
+
+There is no separate global-score-gradient target to test. On a completed
+valid track, `axis_quality = exp(-sqrt(total_axis_sse / axis_count) / 0.25)`;
+the observation set is fixed, so ranking gaps by their axis SSE is exactly the
+same as ranking their optimistic marginal contribution to the authored axis
+score. The scale panel's terminal tracks also have unit drift, missing,
+off-beat, and survival factors. A differently named global-gradient selector
+would therefore replay the production target order rather than test a new
+mechanism.
+
+The remaining candidate-breadth confound is real and occurs after the first
+repair. `repair-descendants-three-quarter` selected the same first target and
+anchor as production. Once a narrower accepted suffix supplied a cheaper
+measured path, however, mean parent depth moved from 4.22 to 4.62 on iteration
+one, 2.81 to 3.11 on iteration two, and 1.36 to 1.86 on iteration three. The
+arm consequently spent part of its saving on longer subsequent suffixes rather
+than on additional comparable repair attempts.
+
+The single `repair-descendants-three-quarter-stable-planning` arm keeps the
+previous arm's exact spatial breadth rule: production width in initial and
+resumed search, production width at every selected repair anchor, and 3/4
+width only at strict repair descendants. Its only additional rule is that
+repair affordability and the local upper ceiling continue to use the measured
+cost-to-end profile of the initial full-breadth terminal. Real simulation work
+is still charged, observed, and used for budget remaining and estimator
+diagnostics; nothing is refunded or synthetically rescaled. Target ranking,
+depth-six option set, restart seeds, DFS, register acceptance, and authored
+targets remain unchanged.
+
+This is an isolation experiment, not a new estimator proposal. The frozen
+4/8/16 scale ladder applies. Required evidence is exact first-terminal work and
+first-repair target/anchor identity; exact anchor/descendant breadth scope;
+later parent depth and ceiling utilization; actual repair frames, terminal and
+accepted alternatives, internal gain per frame, final-output lineage,
+validity, and per-budget authored score. The result closes this exact feedback
+separation without ratio or cost-profile tuning.

@@ -63,7 +63,7 @@ export type BudgetEvaluationOriginWork = {
 export type BudgetCeilingSource =
   /** Compile hard budget: the initial and resumed frontiers may run to capture. */
   | "hard_budget"
-  /** Upper interval bound over the incumbent's measured cost-to-end at the anchor. */
+  /** Upper interval bound over a measured terminal-path cost-to-end at the anchor. */
   | "measured_cost_to_end"
   /** No positive measured cost at the anchor; the coarse per-gap average was used instead. */
   | "per_gap_fallback"

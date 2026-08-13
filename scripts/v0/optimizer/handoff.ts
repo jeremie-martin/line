@@ -2937,6 +2937,15 @@ function compileHandoffInternal(
       const perGap = firstCompletionFrame > 0
         ? firstCompletionFrame / Math.max(1, telemetry.deepestSeenGap + 1)
         : 0;
+      // The stable-planning breadth arm isolates two effects that the ordinary
+      // adaptive profile intentionally couples. Its first repair sees the same
+      // full-breadth incumbent profile as production; later repairs continue to
+      // use that measured profile for affordability while their real, narrower
+      // descendant work is still charged and observed normally. This is a study
+      // control, not a synthetic refund: its local ceiling is transparently
+      // derived from the same retained planning profile and the hard budget is
+      // unchanged.
+      let initialRepairPlanningCostToEnd: readonly number[] | null = null;
       let attempts = 0;
       let restartCounter = 0;
       while (
@@ -2952,10 +2961,16 @@ function compileHandoffInternal(
         const root = startOptions.find((o) => o.rank === workingTrack.startRank)?.root;
         if (root === undefined) break;
         const remaining = repairBudget - getSimFrames();
-        const costToEnd = bridgeInput === null
+        const observedCostToEnd = bridgeInput === null
           ? buildTrackCostToEnd(workingTrack)
           : [...bridgeInput.costToEnd];
-        if (bridgeInput === null) incumbentCostToEnd = costToEnd;
+        if (bridgeInput === null) incumbentCostToEnd = observedCostToEnd;
+        if (initialRepairPlanningCostToEnd === null) {
+          initialRepairPlanningCostToEnd = [...observedCostToEnd];
+        }
+        const costToEnd = studyRepairPlanningCostPolicy() === "initial_terminal"
+          ? [...initialRepairPlanningCostToEnd]
+          : observedCostToEnd;
         const measuredCostToEnd = (gapIndex: number): number | null => {
           const measured = costToEnd[gapIndex];
           return measured !== undefined && measured > 0 ? measured : null;
@@ -3104,7 +3119,9 @@ function compileHandoffInternal(
         beginCandidateWork();
         const repairRunProfile: ActiveRepairProfile = {
           anchorGapIndex: k,
-          baseCostToEnd: costToEnd,
+          // Splice newly observed work into the incumbent's real observed
+          // profile. The stable planning profile above affects decisions only.
+          baseCostToEnd: observedCostToEnd,
           reachFrames: new WeakMap<SearchNode, number>(),
         };
         activeRepairProfile = repairRunProfile;
@@ -7283,7 +7300,10 @@ export function applyStudyRepairBreadth(
       : policy === "late-repair-seven-eighth" &&
           repairIterationIndex !== null && repairIterationIndex >= 2
         ? 7 / 8
-      : policy === "repair-descendants-three-quarter" && !repairAnchorBuild
+      : (
+          policy === "repair-descendants-three-quarter" ||
+          policy === "repair-descendants-three-quarter-stable-planning"
+        ) && !repairAnchorBuild
         ? 3 / 4
       : 1;
   return Math.max(HANDOFF_QUALITY_N_CAND_FLOOR, Math.round(nCand * ratio));
@@ -7314,7 +7334,8 @@ function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
   if (
     policy === "repair-three-quarter" || policy === "repair-seven-eighth" ||
     policy === "late-repair-seven-eighth" ||
-    policy === "repair-descendants-three-quarter"
+    policy === "repair-descendants-three-quarter" ||
+    policy === "repair-descendants-three-quarter-stable-planning"
   ) return linear;
   if (policy === "linear-cap-216") return Math.min(linear, 216);
   if (policy !== undefined && policy !== "") {
@@ -7322,6 +7343,7 @@ function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
       `LR_STUDY_NCAND_POLICY must be high-budget-three-quarter, ` +
         `repair-high-budget-three-quarter, repair-three-quarter, repair-seven-eighth, ` +
         `late-repair-seven-eighth, repair-descendants-three-quarter, ` +
+        `repair-descendants-three-quarter-stable-planning, ` +
         `or linear-cap-216 ` +
         `(STUDY-ONLY; never set it in production), got "${policy}"`,
     );
@@ -7338,6 +7360,21 @@ function studyNCandBreadth(targetBudget: number, repairLane: boolean): number {
   }
   return STUDY_NCAND_EXPONENT_ANCHOR_COUNT *
     ((targetBudget / STUDY_NCAND_EXPONENT_ANCHOR_FRAMES) ** exponent);
+}
+
+export type StudyRepairPlanningCostPolicy = "current_incumbent" | "initial_terminal";
+
+/**
+ * Study-only affordability-profile isolation for descendant breadth. The
+ * initial terminal is produced outside the repair lane at production breadth,
+ * so retaining that measured profile prevents cheaper repair descendants from
+ * silently changing the next anchor decision. Real charged work is never
+ * rescaled or refunded.
+ */
+export function studyRepairPlanningCostPolicy(): StudyRepairPlanningCostPolicy {
+  return readStudyNCandPolicy() === "repair-descendants-three-quarter-stable-planning"
+    ? "initial_terminal"
+    : "current_incumbent";
 }
 
 /**
@@ -7917,6 +7954,7 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //                              repair-high-budget-three-quarter|
 //                              repair-three-quarter|repair-seven-eighth|
 //                              late-repair-seven-eighth|repair-descendants-three-quarter|
+//                              repair-descendants-three-quarter-stable-planning|
 //                              linear-cap-216
 // Two more live one module over, in optimizer/deadline.ts, because that is where the
 // constants they re-bracket are derived; they reach this subsystem through the head ramp,

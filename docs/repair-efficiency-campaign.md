@@ -843,3 +843,28 @@ study artifact were removed after evaluation; the offline exporter retains
 `--selected=hist_16` so the frozen evidence remains reproducible without
 adding a dead production branch. Full decisions, mechanics, and hashes are in
 `benchmark/v2/studies/aim-impact-regularization-boundary.json`.
+
+### Balanced fixed-count aim proposals — declared
+
+The regularization boundary changed millions of impact-aware grid ranks but
+saved essentially no candidate work, and its worse exact-pool placement tracked
+the authored-score loss. The production controller still spends both of its
+fixed proposal slots from one scalar impact-aware order. Fresh N=16 telemetry
+shows that its selected pair can lie deep in the ordinary current/outgoing
+order: in a representative compile, both active choices were within the first
+four ordinary choices in only 109 of 184 scored grids, while the mean maximum
+ordinary rank was 38.
+
+The next arm changes no breadth. It retains two proposals, the same probe grid,
+the same distilled impact model, the same ordinary admission set, and the same
+exact evaluator. One priority is the impact-aware top choice and the other is
+the ordinary current/outgoing top choice; when the objectives agree, or their
+vectors fail the existing distinctness rule, the unchanged impact-aware order
+fills the remaining slot. This asks whether the two signals are complementary
+at fixed cost rather than tuning another exponent or model size.
+
+The frozen 4/8/16 scale ladder applies. Required evidence includes candidate
+samples, probe work, impact-driven top-choice changes, exact aimed-pool rank,
+final aimed selection, first-terminal work, repair behavior, validity, and
+per-budget authored score. A non-favorable result closes this fixed-count
+two-signal allocation without trying weighted slot schedules.

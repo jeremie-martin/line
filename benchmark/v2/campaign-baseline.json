@@ -1,15 +1,15 @@
 {
   "schema": "line.benchmark-v2.campaign-baseline.v2",
   "status": "active-campaign-baseline",
-  "label": "distilled-aim-impact-feasibility",
-  "generated_at": "2026-08-12T11:14:53.612Z",
+  "label": "last-chance-repair-breadth",
+  "generated_at": "2026-08-13T10:33:44.659Z",
   "scope": {
     "profile": "canonical",
     "budgets": [
       750000
     ],
     "max_seeds": 48,
-    "promotion_seeds": 16,
+    "promotion_seeds": 32,
     "sequential_looks": [
       8,
       16,
@@ -32,7 +32,7 @@
   "listening_review_status": "approved",
   "engine": "wasm",
   "compiler_identity_protocol": "line.compiler-source-identity.v2",
-  "compiler_source_fingerprint": "9e1cddb6ad6e942e6dcf9d6007baee30a534ea8dd338f1590fe5dc44c1285c45",
+  "compiler_source_fingerprint": "b4e190693e32162325d076a0c6ec4897ba123454e76c708e3c98935cf8826c31",
   "compiler_source_files": [
     "engine-rs/.gitignore",
     "engine-rs/Cargo.lock",
@@ -131,7 +131,7 @@
   ],
   "compiler_environment": {},
   "engine_artifact_fingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
-  "candidate_fingerprint": "6ff604b940c7a59209560c5b2fc1fe9b6dc4f2dc824ad969a7a89dd82d393f77",
+  "candidate_fingerprint": "406549bb45124919682fdeaf7bb8a3442d40f7dbd0bc93f08cf8d8d62d9359d2",
   "decision_inference_fingerprint": "56b577326b380cfda55c88aa26dbdbfd3df13b9715b792ad9708585683be485f",
   "decision_protocol_fingerprint": "799f49d3f17bc1f545cefe1e5774b28b0ffe315a4ee58b4cfea17e38a6b58fd3",
   "decision_calibration_fingerprint": "b41edd06a6ef3c17254529982404b0aa6a4856350638ad66c847be845f9504d1",
@@ -140,25 +140,25 @@
   "sequential_eval_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
   "compiler_snapshot": {
     "schema": "line.benchmark-v2.compiler-snapshot.v1",
-    "archive": "benchmark/v2/runs/distilled-aim-impact-feasibility-compiler-snapshot.tar.gz",
-    "archiveSha256": "e44d32e12987c3eba77745faafa84a9c897061ba13e057f2cee748b323886b0c",
-    "candidateFingerprint": "6ff604b940c7a59209560c5b2fc1fe9b6dc4f2dc824ad969a7a89dd82d393f77",
-    "compilerSourceFingerprint": "9e1cddb6ad6e942e6dcf9d6007baee30a534ea8dd338f1590fe5dc44c1285c45",
+    "archive": "benchmark/v2/runs/last-chance-repair-breadth-compiler-snapshot.tar.gz",
+    "archiveSha256": "caf7b7d88af671b4ab8a9a7d35804c8e7d3db8a6a4852b3166ccb0e65e0b9d61",
+    "candidateFingerprint": "406549bb45124919682fdeaf7bb8a3442d40f7dbd0bc93f08cf8d8d62d9359d2",
+    "compilerSourceFingerprint": "b4e190693e32162325d076a0c6ec4897ba123454e76c708e3c98935cf8826c31",
     "compilerEnvironment": {},
     "engineArtifactFingerprint": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6"
   },
   "development": {
-    "execution_policy_fingerprint": "759acc99001f960bc7581ff628f0de8616aa646516643c9fc77e79d04a0553ad",
+    "execution_policy_fingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
     "implementation_fingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4",
-    "archive_sha256": "869f9612ad28e7cf1b6d0f68561668fc4842e43cd93f37800c1e30c929c8dedb",
-    "compressed_archive": "benchmark/v2/runs/distilled-aim-impact-feasibility-development-750k-N16.json.gz",
-    "compressed_archive_sha256": "7a72aa6ed48bed3d5faac1587c979273bf55d9de44f9491014a620ea8b285230",
-    "canonical_headline": 605.8725,
+    "archive_sha256": "7253fde07bb321cd8869d7117b824340b57242805a8f813cbfdf0e95a3f3c40d",
+    "compressed_archive": "benchmark/v2/runs/last-chance-repair-breadth-development-750k-N32.json.gz",
+    "compressed_archive_sha256": "beadcc6de2aadfca703d6bb8f661ad9b10000dd9019b40a7b14430ccb619ee9f",
+    "canonical_headline": 605.9793,
     "seed_schedule": {
       "kind": "profile_budget_disjoint_contiguous",
       "profile": "canonical",
       "seedBase": 0,
-      "seedsPerBudget": 16,
+      "seedsPerBudget": 32,
       "byBudget": [
         {
           "budget": 750000,
@@ -178,7 +178,23 @@
             612,
             613,
             614,
-            615
+            615,
+            616,
+            617,
+            618,
+            619,
+            620,
+            621,
+            622,
+            623,
+            624,
+            625,
+            626,
+            627,
+            628,
+            629,
+            630,
+            631
           ]
         }
       ]
@@ -186,16 +202,16 @@
     "budgets": [
       {
         "budget": 750000,
-        "score": 605.8725,
-        "valid_runs": 704,
-        "total_runs": 704
+        "score": 605.9793,
+        "valid_runs": 1408,
+        "total_runs": 1408
       }
     ]
   },
   "canonical_cache": {
     "schema": "line.benchmark-v2.canonical-baseline-cache.v1",
-    "baselineLabel": "distilled-aim-impact-feasibility",
-    "candidateFingerprint": "6ff604b940c7a59209560c5b2fc1fe9b6dc4f2dc824ad969a7a89dd82d393f77",
+    "baselineLabel": "last-chance-repair-breadth",
+    "candidateFingerprint": "406549bb45124919682fdeaf7bb8a3442d40f7dbd0bc93f08cf8d8d62d9359d2",
     "suiteFingerprint": "7bd878d8aaea08a92c112bf1e1f5869b1583aebb84593e6f268f7ec2576d7849",
     "ladder": {
       "schema": "line.benchmark-v2.canonical-seed-ladder.v1",
@@ -262,11 +278,11 @@
       {
         "schema": "line.benchmark-v2.canonical-baseline-cache-shard.v1",
         "firstSeedSlot": 0,
-        "endSeedSlotExclusive": 16,
-        "archiveSha256": "869f9612ad28e7cf1b6d0f68561668fc4842e43cd93f37800c1e30c929c8dedb",
-        "compressedArchive": "benchmark/v2/runs/distilled-aim-impact-feasibility-development-750k-N16.json.gz",
-        "compressedArchiveSha256": "7a72aa6ed48bed3d5faac1587c979273bf55d9de44f9491014a620ea8b285230",
-        "executionPolicyFingerprint": "759acc99001f960bc7581ff628f0de8616aa646516643c9fc77e79d04a0553ad",
+        "endSeedSlotExclusive": 32,
+        "archiveSha256": "7253fde07bb321cd8869d7117b824340b57242805a8f813cbfdf0e95a3f3c40d",
+        "compressedArchive": "benchmark/v2/runs/last-chance-repair-breadth-development-750k-N32.json.gz",
+        "compressedArchiveSha256": "beadcc6de2aadfca703d6bb8f661ad9b10000dd9019b40a7b14430ccb619ee9f",
+        "executionPolicyFingerprint": "80f27f29546fa33e6c2565eebd62d0a25a57c1867934f60b4fd469e1cb71362a",
         "implementationFingerprint": "66a157aa0e9a04cc72411a1ca2a04a800da55ffa5a0226620df8c959ce831df4"
       }
     ]
@@ -286,21 +302,21 @@
     "qualification": "deferred with the frozen 250k/500k ladder; this campaign promotion changes only 750k development evidence"
   },
   "promoted_comparison": {
-    "artifact": "benchmark/v2/runs/distilled-aim-impact-feasibility-comparison.json",
-    "artifact_sha256": "06edb05308432c9d620bdfddd80233aa38018d422d9f0dc68acc1148a5e2b840",
-    "seeds": 16,
+    "artifact": "benchmark/v2/runs/last-chance-repair-breadth-comparison.json",
+    "artifact_sha256": "e13499cf132563f6a6e4a3d583d731b9a63e17e38d3344bff68d56ae8372cb7c",
+    "seeds": 32,
     "maximum_seeds": 48,
     "experiment": "sequential-improvement",
     "stopping_action": "accept",
     "sequential_policy_fingerprint": "274e69af34fc893c3a568d9c027621b7ef7cc4873b8348825c8a60c508891322",
     "sequential_inference_fingerprint": "2c01c002cdca5f48e2644fb6604285bc0a1e5044cd01d2d9e07500477ae204d8",
     "sequential_calibration_fingerprint": "4e0b9568bd474405c465640d3957b714a879ed77852c065e966f590985070d9d",
-    "request": "benchmark/v2/runs/distilled-aim-impact-feasibility-comparison-request.json",
-    "request_sha256": "95c42a6b301b0117ef69dd390721cbf65e0918d931e507a667ede40776762395",
+    "request": "benchmark/v2/runs/last-chance-repair-breadth-comparison-request.json",
+    "request_sha256": "a78c6bbb7df2f3a2a441a7d24a67acacb44352869d2cb0aaab54420d079459b3",
     "budgets": [
       750000
     ],
     "outcome": "accept",
-    "delta": 3.3207
+    "delta": 0.0028
   }
 }

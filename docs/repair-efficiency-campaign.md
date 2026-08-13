@@ -756,3 +756,42 @@ evidence. The next family must improve the value of candidate evaluation or
 suffix choice without discarding the breadth that produces valuable completed
 alternatives. Exact decisions, behavior, spatial audit, and evidence hashes are
 in `benchmark/v2/studies/post-target-repair-breadth.json`.
+
+### Last-chance repair breadth — accepted and promoted
+
+The closed breadth studies all replaced an affordable full-width suffix and
+lost value. They did not test the dominated residue after the full-width
+selector returns no affordable repair. At that point production leaves repair
+and resumes the old frontier. In the frozen reference, resumed work at 750k
+spent 15,101 mean frames per compile but produced only 8 terminal register
+improvements across 128 runs.
+
+The candidate retained every ordinary repair at full production breadth. Only
+after no full-width repair fit, it priced one final suffix at 90% of the
+measured upper cost and ran it at the inherited 3/4 breadth. The 90% price is a
+conservative policy assumption relative to the previously measured 11.65%
+mean episode-cost saving; it is not a fitted estimator. Repair stops after this
+suffix so its different-width cost profile cannot influence another decision.
+Initial search, targets, register acceptance, and explicit historical breadth
+studies remain unchanged.
+
+The N=8 scale look preferred the candidate: 579.5092 to 579.5099, delta
++0.0007, 99.50% directional probability against a 99.17% boundary, central
+95% interval [+0.0002, +0.0012], and unchanged 497/512 validity. All eight
+budget point estimates were nonnegative. The mechanism audit replayed 1,928
+ordinary repair episodes with zero mismatches and zero invariant violations.
+It added 58 last-chance suffixes; all reached a terminal, 28 were accepted, and
+they used 336,846 frames for 0.2774 aggregate internal-score gain.
+
+Canonical qualification accepted at N=32: 605.9765 to 605.9793, delta
++0.0028, SE 0.0008, 99.93% directional probability against the 98.88%
+boundary, 99% central interval [+0.0006, +0.0050], one-sided 99% lower bound
++0.0008, and unchanged 1,408/1,408 validity. No canonical case had a negative
+point estimate; 30 had a positive one and 14 were exact at report precision.
+
+This is a real but intentionally tiny improvement. It validates a useful
+principle: preserve full candidate breadth whenever it fits, and narrow only
+to convert otherwise-low-yield residue into a complete alternative. It does
+not materially close the headline target gap. The new campaign baseline is
+`last-chance-repair-breadth`; full evidence and hashes are recorded in
+`benchmark/v2/studies/last-chance-repair-breadth-promotion.json`.

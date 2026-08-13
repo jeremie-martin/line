@@ -1,0 +1,132 @@
+{
+  "schema": "line.benchmark-v2.last-chance-repair-breadth-promotion.v1",
+  "recorded_at": "2026-08-13T12:35:00+02:00",
+  "status": "accepted_and_promoted",
+  "reference": {
+    "policy": "distilled-aim-impact-feasibility",
+    "scale_headline_n8": 579.5092,
+    "canonical_headline_n32": 605.9765
+  },
+  "candidate": {
+    "policy": "last-chance-repair-breadth",
+    "semantics": "Run every ordinarily affordable repair at full production breadth. Only after the full-width selector returns no affordable repair, price one final suffix at 90% of the measured full-width upper cost and execute it at three-quarter candidate breadth. Stop repair after that suffix so its different-width cost profile cannot price another iteration.",
+    "candidate_breadth_ratio": 0.75,
+    "conservative_cost_ratio": 0.9,
+    "ordinary_repairs_unchanged": true,
+    "maximum_added_repairs_per_compile": 1,
+    "initial_search_unchanged": true,
+    "authored_targets_and_register_unchanged": true
+  },
+  "basis": {
+    "direct_observation": "In the frozen 16-seed scale reference, resumed search at 750k spent 15,101 mean frames per compile but produced only 8 terminal register improvements and 6.22 aggregate internal-score points across 128 runs.",
+    "association": "Every fixed-ratio repair-width arm lost value when it narrowed an already-affordable suffix, including the post-target-only boundary.",
+    "hypothesis": "A narrower suffix can be useful only in the residual where full breadth is unaffordable and production would otherwise leave repair for lower-yield resumed work.",
+    "pricing_limit": "The 90% cost ratio is not a fitted cost model. It is a conservative policy price relative to the measured 11.65% mean episode-cost reduction in the completed repair-wide three-quarter arm."
+  },
+  "scale_decision": {
+    "stopping_depth": 8,
+    "outcome": "prefer-candidate",
+    "looks": {
+      "4": {
+        "delta": 0.0007,
+        "directional_probability": 0.87199634
+      },
+      "8": {
+        "delta": 0.0007,
+        "directional_probability": 0.99500348,
+        "required_directional_probability": 0.99166667,
+        "central_95_interval": [0.0002, 0.0012]
+      }
+    },
+    "reference_headline": 579.5092,
+    "candidate_headline": 579.5099,
+    "reference_valid": 497,
+    "candidate_valid": 497,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": 0.0003,
+    "per_budget_delta": {
+      "150000": 0,
+      "250000": 0.0001,
+      "500000": 0.0015,
+      "750000": 0.0003,
+      "1000000": 0.0016,
+      "1500000": 0.0004,
+      "2500000": 0.0004,
+      "4000000": 0.001
+    }
+  },
+  "mechanism_audit_n8": {
+    "invariant_violations": {
+      "reference": 0,
+      "candidate": 0
+    },
+    "ordinary_repair_episodes": 1928,
+    "ordinary_episode_exact_mismatches": 0,
+    "added_last_chance_episodes": 58,
+    "added_terminal_reached": 58,
+    "added_accepted_alternatives": 28,
+    "added_spent_frames": 336846,
+    "added_internal_full_score_delta": 0.2774222149577099,
+    "added_internal_gain_per_million_frames": 0.8235876779231753,
+    "changed_tracks": 28,
+    "interpretation": "The intervention is fully isolated. It does not cheapen or reorder any repair production could already afford; it converts a small amount of residual work into complete, often accepted suffixes. Their marginal gain density is low, so the expected authored-score effect is genuinely small."
+  },
+  "canonical_decision": {
+    "stopping_depth": 32,
+    "outcome": "accept",
+    "reference_headline": 605.9765,
+    "candidate_headline": 605.9793,
+    "delta": 0.0028,
+    "standard_error": 0.0008,
+    "directional_probability": 0.99928348,
+    "required_directional_probability": 0.98884194,
+    "central_99_interval": [0.0006, 0.005],
+    "one_sided_99_lower_bound": 0.0008,
+    "reference_valid": 1408,
+    "candidate_valid": 1408,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "negative_case_point_estimates": 0,
+    "positive_case_point_estimates": 30
+  },
+  "interpretation": "A fixed-width reduction is harmful when it replaces an affordable full-width repair, but useful as a strictly dominated-residue fallback. The gain is only 0.0028 canonical headline points and does not materially close the campaign target gap; promotion is justified by the predeclared statistical decision, exact isolation, unchanged validity, and nonnegative point estimate in every canonical case—not by effect size.",
+  "implementation": {
+    "study_commit": "54aad18",
+    "promotion_commit": "b64c853"
+  },
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-last-chance-three-quarter-4.comparison.json",
+      "sha256": "7fb593421a1b06d42b1024717e761caf6e300885814f473291bbff365d6db298"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-last-chance-three-quarter-8.comparison.json",
+      "sha256": "866bc81ff8edf1c7c16605444fe08f08085e99864fa5fe128f242bb314ff8ad6"
+    },
+    "n8_archive": {
+      "path": "generated/benchmark-v2/scale/repair-last-chance-three-quarter-8.json.gz",
+      "sha256": "eaf668b749b018a27ce0fb92c5a1281cf1b25a5eba79034bb27a0f1fa75c000e"
+    },
+    "n8_behavior": {
+      "path": "generated/benchmark-v2/scale/repair-last-chance-three-quarter-8.behavior.json",
+      "sha256": "b7c9039b3d12784344d81c85d15abf736230b65c53cf56d78f778a7915f325e8"
+    },
+    "n8_behavior_report": {
+      "path": "generated/benchmark-v2/scale/repair-last-chance-three-quarter-8.behavior.md",
+      "sha256": "37bdc16ecadba484bcda1bda7dc2946fd5a3ddd2b03240c9cbc99145b1f84789"
+    },
+    "canonical_comparison": {
+      "path": "benchmark/v2/runs/last-chance-repair-breadth-comparison.json",
+      "sha256": "e13499cf132563f6a6e4a3d583d731b9a63e17e38d3344bff68d56ae8372cb7c"
+    },
+    "canonical_archive": {
+      "path": "benchmark/v2/runs/last-chance-repair-breadth-development-750k-N32.json.gz",
+      "sha256": "beadcc6de2aadfca703d6bb8f661ad9b10000dd9019b40a7b14430ccb619ee9f"
+    },
+    "compiler_snapshot": {
+      "path": "benchmark/v2/runs/last-chance-repair-breadth-compiler-snapshot.tar.gz",
+      "sha256": "caf7b7d88af671b4ab8a9a7d35804c8e7d3db8a6a4852b3166ccb0e65e0b9d61"
+    }
+  }
+}

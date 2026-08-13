@@ -172,3 +172,14 @@ its already-imported source prefix. This removes the memory growth observed at
 checkpoint and archive formats. A 44-cell fresh/resume runner smoke test
 reproduced the same score and validity summary and passed both raw and gzip
 checksum verification.
+
+A second, independent memory pressure source was active-worker
+oversubscription: 48 simultaneous 4M-frame trace workers reached roughly 60
+GiB resident memory even after completed traces stopped accumulating. The
+runner now treats `--jobs` as a worker-slot ceiling. Off/summary workers and
+trace workers through 1.5M frames consume one slot; larger trace workers
+consume one slot per 1.5M frames, rounded up. Thus `--jobs=48` still runs up to
+48 ordinary or 1.5M-frame workers, while 2.5M, 4M, and 11.6M trace workers run
+at most 24, 16, and 6 at once. The runner prints every non-unit slot weight.
+This scheduling safeguard does not alter compiler policy, evidence identity,
+or the requested cells.

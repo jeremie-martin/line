@@ -48,6 +48,7 @@ import {
   type ScaleScoredRun,
 } from "./scale_profile.ts";
 import { scaleAnalysisRun } from "./scale_analysis_projection.ts";
+import { runWeightedPool, scaleWorkerSlotWeight } from "./weighted_pool.ts";
 
 type StudyTask = {
   sourceId: string;
@@ -275,17 +276,42 @@ async function main(): Promise<void> {
     `  ${tasks.length} compiles; budgets ${budgets.join(", ")}; seeds ${seeds.join(", ")}; ` +
     `${restoredCount} restored`,
   );
+  const weightedBudgets = [...new Map(
+    pending.map((task) => [
+      `${task.budget}:${task.budgetTelemetryLevel}`,
+      {
+        budget: task.budget,
+        telemetry: task.budgetTelemetryLevel,
+        weight: scaleWorkerSlotWeight(task.budget, task.budgetTelemetryLevel),
+      },
+    ]),
+  ).values()]
+    .filter(({ weight }) => weight > 1)
+    .sort((left, right) => left.budget - right.budget);
+  if (weightedBudgets.length > 0) {
+    console.log(
+      `  worker slots: ${jobs} maximum; ` +
+      weightedBudgets.map(({ budget, telemetry, weight }) =>
+        `${budget}/${telemetry}=${weight}`).join(", "),
+    );
+  }
   const started = performance.now();
   let completed = restoredCount;
-  await runPool(pending, jobs, (result) => {
-    appendFileSync(checkpointPath, `${JSON.stringify({ type: "result", result })}\n`);
-    completed++;
-    if (completed === tasks.length || completed % Math.max(1, sources.length) === 0) {
-      const elapsed = (performance.now() - started) / 1000;
-      const rate = (completed - restoredCount) / Math.max(0.001, elapsed);
-      console.log(`  ${completed}/${tasks.length}; ${(100 * completed / tasks.length).toFixed(0)}%; ${rate.toFixed(2)} runs/s`);
-    }
-  });
+  await runWeightedPool(
+    pending,
+    jobs,
+    (task) => scaleWorkerSlotWeight(task.budget, task.budgetTelemetryLevel),
+    async (task) => {
+      const result = await runTask(task);
+      appendFileSync(checkpointPath, `${JSON.stringify({ type: "result", result })}\n`);
+      completed++;
+      if (completed === tasks.length || completed % Math.max(1, sources.length) === 0) {
+        const elapsed = (performance.now() - started) / 1000;
+        const rate = (completed - restoredCount) / Math.max(0.001, elapsed);
+        console.log(`  ${completed}/${tasks.length}; ${(100 * completed / tasks.length).toFixed(0)}%; ${rate.toFixed(2)} runs/s`);
+      }
+    },
+  );
   const completedResults = await loadCheckpointResults(checkpointPath, planFingerprint, false);
   const resultsByKey = new Map(completedResults.map((result) => [taskKey(result.task), result]));
   const workerResults = tasks.map((task) => {
@@ -588,23 +614,6 @@ function taskKey(task: StudyTask): string {
     task.aimTopKScope ?? "all",
     task.aimTopKFirstRepairExtra ?? "production",
   ].join("\0");
-}
-
-async function runPool(
-  tasks: StudyTask[],
-  jobs: number,
-  onResult: (result: StudyWorkerResult) => void,
-): Promise<void> {
-  let next = 0;
-  const run = async (): Promise<void> => {
-    for (;;) {
-      const index = next++;
-      if (index >= tasks.length) return;
-      const result = await runTask(tasks[index]);
-      onResult(result);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(jobs, tasks.length) }, run));
 }
 
 function runTask(task: StudyTask): Promise<StudyWorkerResult> {

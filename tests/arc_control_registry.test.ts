@@ -25,7 +25,6 @@ import {
   aimModelImpactPower,
   impactSpeedAirOutgoingParetoImproves,
   impactSpeedParetoImproves,
-  selectQuarterDiverseAimBaseIndices,
   setAimRepairLaneActive,
   setAimCompileBudgetFrames,
 } from "../scripts/v0/optimizer/aim.ts";
@@ -228,17 +227,6 @@ describe("arc-control probe layouts", () => {
       .toBe(false);
     expect(aimImpactTopChoiceIsResolved("validated-mae-top1", true, 0.0401, 0.04))
       .toBe(true);
-  });
-
-  test("reserves one quarter of aim bases for the next quality band's diverse states", () => {
-    const features = [0, 0.01, 0.02, 0.03, 0.1, 0.2, 0.4, 1]
-      .map((value) => [value]);
-    expect(selectQuarterDiverseAimBaseIndices(features, 4)).toEqual([0, 1, 2, 7]);
-    // Low K remains production-exact; no slot is large enough to reserve.
-    expect(selectQuarterDiverseAimBaseIndices(features, 3)).toEqual([0, 1, 2]);
-    // With no comparable state feature, stable quality rank is the fallback.
-    expect(selectQuarterDiverseAimBaseIndices(features.map(() => [null]), 4))
-      .toEqual([0, 1, 2, 3]);
   });
 
   test("outgoing amplitude study modes separate authored onset and budget maturity", () => {

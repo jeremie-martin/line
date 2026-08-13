@@ -32,7 +32,6 @@ import {
   makeEnumAimedCandidates,
   rankQualityEnabled,
   recordLaneBaseSkip,
-  selectAimRefinementBases,
   recordLanePoolRank,
   recordPoolAirSpread,
   recordRankQualityPool,
@@ -378,11 +377,11 @@ function sortWithLaneExtras(
     // compile against its deadline keeps only a share of those bases
     // (aimLaneBases) rather than losing the lane.
     const kEff = aimLaneBases(aimTopKBasesEffective(gap, gaps, ctx));
-    const bases = selectAimRefinementBases(sorted, kEff, gap, gaps, ctx);
+    const bases = Math.min(kEff, sorted.length);
     for (let b = 0; b < kEff; b++) {
-      if (b >= bases.length) { recordLaneBaseSkip(); continue; }
+      if (b >= bases) { recordLaneBaseSkip(); continue; }
       aimedExtras.push(...makeEnumAimedCandidates(
-        node.prefixEngine, gap, gaps, ctx, bases[b], node.prefixNextLineId,
+        node.prefixEngine, gap, gaps, ctx, sorted[b], node.prefixNextLineId,
         true,
         b === 0,
       ));

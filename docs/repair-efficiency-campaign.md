@@ -1049,3 +1049,35 @@ exact-pool placement, candidate samples, first-terminal work, repair attempts
 and gain, validity, and per-budget authored score. Only if it improves proposal
 yield may it be composed later with the already measured 7/8 repair prefix;
 the arm itself does not claim that random breadth is removable.
+
+### Fixed-cost diverse aim bases — not promoted
+
+The attractive early signal did not reproduce. Scale moved +1.1401 at N=4 and
++0.8570 at N=8, then -0.3431 at N=16. Final directional probability was
+32.65%, the central 95% interval was [-1.9377, +1.2515], and validity moved
+997/1,024 to 996/1,024 (two gained, three lost). Seven of eight budgets above
+the 150k scarcity edge were non-positive: 750k was -1.4701, while the lone
+material positive slice was 150k at +3.6726.
+
+The intervention was active and correctly fixed-cost. Across 1,024 cells it
+reserved 1,226,140 diversity slots, and 86.25% selected a base outside the
+production top K (mean zero-based quality rank 91.14). Yet admitted aimed
+candidates fell 1.03%, their exact-pool top-three rate fell 1.24%, and mean
+exact-pool rank worsened 4.84%. Probe row count fell 0.77% only because the
+changed search visited fewer eligible pools; charged probe frames rose 0.60%.
+Final tracks contained 0.51% more aimed fits, but first-terminal work rose
+0.30% and distinct terminal tracks fell 0.77%.
+
+The repair audit found zero invariant violations in both arms. Candidate repair
+episodes fell 0.81% and accepted alternatives rose 0.50%; aggregate internal
+repair gain rose 5.84% and gain per million repair frames rose 13.25%. Those are
+downstream associations after both initial and repair paths changed, not an
+isolated causal improvement, and they did not translate into authored score or
+validity.
+
+Production therefore retains the singular top-K quality prefix. The selector,
+activation counters, and test were removed; the three affected production files
+are byte-identical to the pre-study parent. Do not compose this state-distance
+selector with reduced random breadth or tune its reserved fraction. Full
+decisions and evidence hashes are in
+`benchmark/v2/studies/fixed-cost-diverse-aim-bases.json`.

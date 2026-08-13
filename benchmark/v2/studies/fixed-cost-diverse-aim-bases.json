@@ -1,0 +1,121 @@
+{
+  "schema": "line.benchmark-v2.fixed-cost-diverse-aim-bases.v1",
+  "recorded_at": "2026-08-13T19:08:41+02:00",
+  "status": "complete_no_promotion",
+  "reference": {
+    "policy": "last-chance-repair-breadth",
+    "scale_headline_n16": 579.85,
+    "canonical_headline": 605.9793
+  },
+  "candidate": {
+    "policy": "quarter-diverse-aim-bases",
+    "semantics": "Keep the strongest ceil(3K/4) quality-ranked aim bases, then fill the unchanged remaining base slots from the first 2K ranks by greedily maximizing minimum distance over exact current-axis outcomes and the existing uncharged outgoing-axis projection.",
+    "unchanged": [
+      "raw candidate breadth",
+      "aim base count",
+      "probe grid and model",
+      "proposal count and exact evaluation",
+      "branching and DFS",
+      "repair target and anchor selection",
+      "register acceptance",
+      "authored targets"
+    ],
+    "low_k_exact": "K <= 3 retains the production quality prefix exactly",
+    "evaluated_commit": "146cedd7b1caf363b5889fd5d506efb5d0272a47"
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "looks": {
+      "4": {
+        "delta": 1.1401,
+        "directional_probability": 0.7736087
+      },
+      "8": {
+        "delta": 0.857,
+        "directional_probability": 0.77795284
+      },
+      "16": {
+        "delta": -0.3431,
+        "standard_error": 0.7481,
+        "directional_probability": 0.32653795,
+        "central_95_interval": [-1.9377, 1.2515]
+      }
+    },
+    "reference_headline": 579.85,
+    "candidate_headline": 579.5069,
+    "reference_valid": 997,
+    "candidate_valid": 996,
+    "gained_valid": 2,
+    "lost_valid": 3,
+    "canonical_750k_delta": -1.4701,
+    "per_budget_delta": {
+      "150000": 3.6726,
+      "250000": -1.9971,
+      "500000": -0.8422,
+      "750000": -1.4701,
+      "1000000": 0.0427,
+      "1500000": -1.0589,
+      "2500000": -0.1477,
+      "4000000": -0.944
+    }
+  },
+  "activation_n16": {
+    "reserved_diversity_slots": 1226140,
+    "selected_outside_production_top_k": 1057531,
+    "outside_top_k_fraction": 0.862488,
+    "mean_selected_diversity_rank_zero_based": 91.1405
+  },
+  "mechanics_n16": {
+    "actual_candidate_samples_relative_delta": -0.005775,
+    "aim_refined_bases_relative_delta": -0.007694,
+    "aim_probe_rows_relative_delta": -0.007694,
+    "aim_probe_frames_relative_delta": 0.006017,
+    "aim_admitted_candidates_relative_delta": -0.010287,
+    "aim_exact_pool_top_three_rate_relative_delta": -0.01239,
+    "aim_mean_exact_pool_rank_relative_delta": 0.048421,
+    "final_track_aimed_fits_relative_delta": 0.005101,
+    "first_terminal_frames_relative_delta": 0.003024,
+    "repair_episodes_relative_delta": -0.008112,
+    "distinct_terminal_tracks_relative_delta": -0.007734,
+    "repair_accepted_alternatives_relative_delta": 0.005017,
+    "repair_internal_full_score_delta_relative_delta": 0.058412,
+    "repair_internal_full_score_delta_per_million_frames_relative_delta": 0.132544,
+    "repair_invariant_violations": {
+      "reference": 0,
+      "candidate": 0
+    }
+  },
+  "interpretation": "The arm was active and fixed-count, but geometric state distance is not a better base-selection objective than the production quality rank. Early positive looks did not reproduce. The replacement bases produced fewer admitted proposals, worse exact-pool placement, a slower first terminal, fewer distinct terminal tracks, a negative seven-of-eight budget pattern above 150k, and one net validity loss. Higher internal repair gain is an association after the changed initial and repair paths; it did not translate into authored score. Do not compose this selector with reduced random breadth and do not tune the reserved fraction.",
+  "production": {
+    "decision": "restore the singular production top-K quality prefix",
+    "source_equivalence": "After closure, optimizer/aim.ts, optimizer/node.ts, and arc_control_registry.test.ts are byte-identical to parent commit 1716247."
+  },
+  "next_family": "Do not remove random-prefix work on the strength of state-space diversity. A future nCand intervention needs a direct redundancy or marginal-value certificate tied to the production quality objective, or must improve the proposal generator before shortening the independent random tail. A future later-anchor repair arm must use a causal redundancy/failure trigger and protect the first high-value repair; fixed depth, reserve, cost-density, and headroom variants are already closed.",
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-diverse-bases-4.comparison.json",
+      "sha256": "58b71dd06e1f238313823749b967ea2f1b8f6fa81e64ce98629d3afb5d8d5a4b"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-diverse-bases-8.comparison.json",
+      "sha256": "60885912bdfb979197bc1f3f381b94577f476d0e231e1c14229eaf434dbba7ae"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/aim-diverse-bases-16.comparison.json",
+      "sha256": "1541a4860c594ff7fb2d1b6537b0d8369ebc9c65454bc5abd6acda4a07d5f3b2"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/aim-diverse-bases-16.json.gz",
+      "sha256": "51bc02cfc31d3d40c8115f99697fe2bf4d7287e0c6fdd491a487262cf299a702"
+    },
+    "n16_behavior": {
+      "path": "generated/benchmark-v2/scale/aim-diverse-bases-16.behavior.json",
+      "sha256": "7347ad903658ba3d983225c781e35ab4803f10918f6f1e47bc0717fb64f73acc"
+    },
+    "n16_behavior_report": {
+      "path": "generated/benchmark-v2/scale/aim-diverse-bases-16.behavior.md",
+      "sha256": "569eb745982feb5982f596ba21b5a99f8014b2b84871e42f875a28362a075228"
+    }
+  }
+}

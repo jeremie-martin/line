@@ -319,12 +319,24 @@ function aimProbeLayout(): ArcProbeLayoutId {
   return requested as ArcProbeLayoutId;
 }
 
-function aimProposalCount(): number {
+/** Study default: repair pools spend one of the candidates released by the
+ * inherited 7/8 sample-breadth arm on a third distinct model proposal. Initial
+ * and resumed search retain the production count of two. An explicit
+ * LR_AIM_PROPOSAL_COUNT remains a full diagnostic override. */
+export function aimProposalCountForPhase(
+  environment: Record<string, string | undefined> =
+    (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env ?? {},
+  repairActive = aimRepairLaneActive,
+): number {
   const requested = aimControlOverrideActive()
-    ? (globalThis as { process?: { env?: Record<string, string | undefined> } })
-      .process?.env?.LR_AIM_PROPOSAL_COUNT
+    ? environment.LR_AIM_PROPOSAL_COUNT
     : undefined;
-  if (requested === undefined || requested === "") return ARC_CONTROL_DEFAULT.proposalCount;
+  if (requested === undefined || requested === "") {
+    return repairActive
+      ? ARC_CONTROL_DEFAULT.proposalCount + 1
+      : ARC_CONTROL_DEFAULT.proposalCount;
+  }
   const value = Number(requested);
   if (!Number.isSafeInteger(value) || value < 1) {
     throw new Error(`invalid LR_AIM_PROPOSAL_COUNT=${requested}`);
@@ -413,7 +425,7 @@ function aimControl(): AimControl {
     probeLayout: aimProbeLayout(),
     probeRangeScale: aimPositiveRangeScale("LR_AIM_PROBE_RANGE_SCALE", ARC_CONTROL_DEFAULT.probeRangeScale),
     proposalRangeScale: aimPositiveRangeScale("LR_AIM_PROPOSAL_RANGE_SCALE", ARC_CONTROL_DEFAULT.proposalRangeScale),
-    proposalCount: aimProposalCount(),
+    proposalCount: aimProposalCountForPhase(),
   };
 }
 

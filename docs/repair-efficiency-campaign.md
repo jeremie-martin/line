@@ -887,3 +887,30 @@ a broad 256-cell deterministic panel. Extending identical work to N=8 would
 add no useful evidence, so the study branch was removed and production keeps
 the singular impact-ranked implementation. The retained comparison is
 `generated/benchmark-v2/scale/aim-impact-balanced-slots-4.comparison.json`.
+
+### Repair sampling-to-proposal reallocation — declared
+
+The current distilled scorer changes which model proposals are valuable, but
+does not change the closed breadth fact: the inherited repair-wide 7/8 arm
+saved 919.7 sampled candidates per compile and created 5.37% more repair
+episodes at N=16, while losing 0.0822 scale points because aggregate repair
+value fell. The separate emitted-proposal evidence predates both the distilled
+impact objective and the independent repair mechanism. Its documented open
+boundary is a third proposal when budget economics move.
+
+This arm composes those two already-bounded axes rather than tuning either.
+Initial and resumed search retain full production sample breadth and two model
+proposals, so first-terminal work must be byte-identical. Every ordinary repair
+pool uses the inherited 7/8 sample width and allows one third geometrically
+distinct proposal from the unchanged impact-aware order. Probe count, aim-base
+breadth, knob grid, model, proposal admission, exact evaluation, target/anchor
+selection, suffix DFS, register acceptance, last-chance fallback, and authored
+targets remain unchanged.
+
+The question is whether model-directed breadth can replace part of random
+repair breadth while retaining the extra terminal opportunities. This is not
+licensed to adjust 7/8, proposal count three, or their phase. The frozen 4/8/16
+scale ladder decides it. Evidence must separate initial and repair samples,
+aim emissions and exact pool rank, first-terminal identity, repair episodes,
+terminal and accepted alternatives, repair gain and gain per frame, final aim
+lineage, validity, and per-budget authored score.

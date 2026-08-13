@@ -1387,6 +1387,8 @@ describe("compile budget telemetry", () => {
         const parent = repairs[index - 1]!;
         expect(parent.outcome.terminal_reached).toBe(true);
         expect(parent.outcome.accepted_alternative).toBe(false);
+        expect(parent.repair_decision!.selection_policy)
+          .not.toBe("worst_gap_repeated_rejection_step_later");
         expect(episode.repair_decision!.incumbent_revision)
           .toBe(parent.repair_decision!.incumbent_revision);
         expect(episode.repair_decision!.target_gap_index)

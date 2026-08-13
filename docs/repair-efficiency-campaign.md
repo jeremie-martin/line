@@ -1096,7 +1096,8 @@ The candidate still begins every iteration from the best global incumbent and
 recomputes the ordinary worst-gap/deepest-affordable decision. Only when that
 decision exactly repeats the immediately preceding rejected terminal's target
 and anchor on the unchanged incumbent does it restart one gap later. It cannot
-compound across consecutive adjusted attempts, does not change candidate
+compound across consecutive adjusted attempts—the adjusted attempt clears the
+one-step trigger regardless of its outcome—does not change candidate
 breadth, targets, acceptance, seeds, budgets, or the production first repair,
 and falls back to the ordinary choice if no strictly later affordable anchor
 exists.

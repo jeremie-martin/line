@@ -3349,7 +3349,11 @@ function compileHandoffInternal(
           completed ? "terminal_considered" : "no_terminal",
           repairEpisodeId,
         );
-        previousRejectedRepairDecision = bridgeInput === null && completed && !acceptedAlternative
+        previousRejectedRepairDecision =
+            bridgeInput === null &&
+            completed &&
+            !acceptedAlternative &&
+            target.selectionPolicy !== "worst_gap_repeated_rejection_step_later"
           ? {
             incumbentRevision: incumbentRevisionBefore,
             targetGapIndex: kWorst,

@@ -17,6 +17,7 @@ clip as production inference.
 from __future__ import annotations
 
 import argparse
+from hashlib import sha256
 import json
 from pathlib import Path
 from typing import Any
@@ -83,6 +84,7 @@ def main() -> None:
     truth = truth[finite]
     sources = sources[finite]
     artifact = json.loads(args.incumbent.read_text())
+    incumbent_sha256 = sha256(args.incumbent.read_bytes()).hexdigest()
     projection = [metadata["featureNames"].index(name) for name in artifact["featureNames"]]
     X = X[:, projection]
     incumbent_component = artifact["components"]["impactFeasibility"]
@@ -127,6 +129,7 @@ def main() -> None:
         "contract": {
             "dataset": str(args.dataset),
             "incumbent": str(args.incumbent),
+            "incumbentSha256": incumbent_sha256,
             "target": "realized-impact-fit-minus-incumbent-raw-prediction",
             "articulation": "missing",
             "incumbentTrees": len(incumbent_component["trees"]),
@@ -170,6 +173,7 @@ def main() -> None:
         "schema": "line.aim-impact-residual-training.v1",
         "dataset": str(args.dataset),
         "incumbent": str(args.incumbent),
+        "incumbentSha256": incumbent_sha256,
         "target": "realized-impact-fit-minus-incumbent-raw-prediction",
         "articulation": "missing",
         "correctionTrees": args.iterations,

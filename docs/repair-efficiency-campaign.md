@@ -1108,3 +1108,25 @@ episode is the exact rejected decision that causally authorizes it. Behavior
 analysis reports activation and its terminal, acceptance, spend, divergence,
 and gain density separately. The arm receives the frozen 4/8/16 multi-budget
 ladder; it is not a reopening of global later-anchor tuning.
+
+### Repeated-rejection step-later repair — not promoted
+
+The bounded trigger was real and causal, but the N=16 counterfactual was
+negative: scale moved 579.8500→579.7958 (-0.0542; 7.43% directional
+probability), while 750k moved +0.0680 and validity remained 997/1,024 in both
+arms. Six of eight source-aggregated budget slices were non-positive, including
+4M at -0.3650.
+
+All 209 activations reached a terminal, all causal lineage checks passed, no
+terminal repeated incumbent geometry, and 91.87% first diverged at the adjusted
+anchor. Nevertheless, essentially unchanged repair spend bought only 14 more
+terminals overall; accepted alternatives fell by 8 and aggregate internal
+repair gain fell 1.10%. The premise was therefore wrong in the important way:
+an identical target+anchor decision is not a duplicate suffix search, and
+moving later sacrifices useful mutable scope without enough cost reduction.
+
+The study-only compiler and scale-CLI switch were removed. The exact telemetry
+enum, replay validation, report attribution, and checksummed study record remain
+so archived runs retain their meaning. Do not tune the step or combine it with
+scalar breadth reduction. Evidence and hashes are in
+`benchmark/v2/studies/repeated-rejection-step-later.json`.

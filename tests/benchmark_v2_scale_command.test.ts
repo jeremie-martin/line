@@ -172,8 +172,6 @@ describe("Benchmark V2 scale command contract", () => {
       .toBe("protected-one-step-bridge");
     expect(scaleRepairPolicyArgument(["--repair-policy=optimistic-axis-bound-bridge"]))
       .toBe("optimistic-axis-bound-bridge");
-    expect(scaleRepairPolicyArgument(["--repair-policy=repeated-rejection-step-later"]))
-      .toBe("repeated-rejection-step-later");
   });
 
   test("resolves the candidate repair-selection intervention passed to scale eval", () => {

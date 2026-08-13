@@ -18,7 +18,6 @@ import {
   selectLastChanceRepairRestart,
   selectAffordableRepairTarget,
   selectRepairRestart,
-  selectRepeatedRejectionStepLater,
   spliceRepairCostToEnd,
   studyRepairPlanningCostPolicy,
   shouldOfferBrakeCandidates,
@@ -962,41 +961,6 @@ describe("repair target selection", () => {
     expect(selectAffordableRepairTarget(candidates, [81], 100, 0.2, 2)).toBeNull();
   });
 
-  test("moves exactly one affordable gap later after an exact rejected-decision repeat", () => {
-    const retryCandidates = Array.from({ length: 5 }, (_, gapIndex) => ({
-      gapIndex,
-      sse: gapIndex === 4 ? 20 : 1,
-    }));
-    const point = [90, 70, 50, 30, 10];
-    const upper = [95, 75, 55, 35, 15];
-    const ordinary = selectRepairRestart(
-      retryCandidates,
-      point,
-      upper,
-      100,
-      0,
-      4,
-      "worst_gap_deepest_affordable",
-    )!;
-    expect(selectRepeatedRejectionStepLater(
-      ordinary,
-      retryCandidates,
-      point,
-      upper,
-    )).toEqual({
-      ...ordinary,
-      selectionPolicy: "worst_gap_repeated_rejection_step_later",
-      anchorGapIndex: 1,
-      parentDepth: 3,
-      mutableSuffixSse: 23,
-    });
-    expect(selectRepeatedRejectionStepLater(
-      { ...ordinary, anchorGapIndex: 4, parentDepth: 0 },
-      retryCandidates,
-      point,
-      upper,
-    )).toBeNull();
-  });
 
   test("admits a conservatively priced last-chance repair only after full width fails", () => {
     const targets = [

@@ -1364,47 +1364,6 @@ describe("compile budget telemetry", () => {
     }
   }, 180_000);
 
-  test("steps one gap later only after an exact repeated rejected repair decision", async () => {
-    const previous = process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER;
-    process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER = "1";
-    try {
-      const spec = await loadGoldenSpec("cold_start", "base");
-      const result = compileHandoff(spec, 0, {
-        budget: 150_000,
-        polish: false,
-        budgetTelemetry: "summary",
-      });
-      const repairs = result.budgetTelemetry!.episodes.filter((episode) =>
-        episode.lane === "repair"
-      );
-      const activated = repairs.filter((episode) =>
-        episode.repair_decision!.selection_policy ===
-          "worst_gap_repeated_rejection_step_later"
-      );
-      expect(activated.length).toBeGreaterThan(0);
-      for (const episode of activated) {
-        const index = repairs.indexOf(episode);
-        const parent = repairs[index - 1]!;
-        expect(parent.outcome.terminal_reached).toBe(true);
-        expect(parent.outcome.accepted_alternative).toBe(false);
-        expect(parent.repair_decision!.selection_policy)
-          .not.toBe("worst_gap_repeated_rejection_step_later");
-        expect(episode.repair_decision!.incumbent_revision)
-          .toBe(parent.repair_decision!.incumbent_revision);
-        expect(episode.repair_decision!.target_gap_index)
-          .toBe(parent.repair_decision!.target_gap_index);
-        expect(episode.repair_decision!.anchor_gap_index)
-          .toBe(parent.repair_decision!.anchor_gap_index + 1);
-      }
-    } finally {
-      if (previous === undefined) {
-        delete process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER;
-      } else {
-        process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER = previous;
-      }
-    }
-  }, 180_000);
-
   test("records and enforces the optimistic bridge quality bound", async () => {
     const previous = process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
     process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "optimistic-axis-bound";

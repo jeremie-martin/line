@@ -72,10 +72,7 @@ type StudyTask = {
     | "repair-descendants-three-quarter-stable-planning"
     | "repair-post-target-three-quarter"
     | "linear-cap-216";
-  repairPolicy?:
-    | "protected-one-step-bridge"
-    | "optimistic-axis-bound-bridge"
-    | "repeated-rejection-step-later";
+  repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
   repairSelectionPolicy?:
     | "three-quarter-last-chance"
     | "reserve-cheapest-repair"
@@ -587,10 +584,7 @@ function studyPlanFingerprint(input: {
     | "repair-descendants-three-quarter-stable-planning"
     | "repair-post-target-three-quarter"
     | "linear-cap-216";
-  repairPolicy?:
-    | "protected-one-step-bridge"
-    | "optimistic-axis-bound-bridge"
-    | "repeated-rejection-step-later";
+  repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
   repairSelectionPolicy?:
     | "three-quarter-last-chance"
     | "reserve-cheapest-repair"
@@ -688,13 +682,10 @@ async function workerMain(task: StudyTask): Promise<void> {
     if (task.nCandPolicy === undefined) delete process.env.LR_STUDY_NCAND_POLICY;
     else process.env.LR_STUDY_NCAND_POLICY = task.nCandPolicy;
     delete process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
-    delete process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER;
     if (task.repairPolicy === "optimistic-axis-bound-bridge") {
       process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "optimistic-axis-bound";
     } else if (task.repairPolicy === "protected-one-step-bridge") {
       process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "1";
-    } else if (task.repairPolicy === "repeated-rejection-step-later") {
-      process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER = "1";
     }
     if (task.repairSelectionPolicy === undefined) delete process.env.LR_REPAIR_SELECTION_POLICY;
     else process.env.LR_REPAIR_SELECTION_POLICY = task.repairSelectionPolicy;
@@ -903,19 +894,16 @@ function parseRepairPolicy(
 ):
   | "protected-one-step-bridge"
   | "optimistic-axis-bound-bridge"
-  | "repeated-rejection-step-later"
   | undefined {
   if (value === undefined) return undefined;
   if (
     value === "protected-one-step-bridge" ||
-    value === "optimistic-axis-bound-bridge" ||
-    value === "repeated-rejection-step-later"
+    value === "optimistic-axis-bound-bridge"
   ) {
     return value;
   }
   throw new Error(
-    "--repair-policy must be protected-one-step-bridge, optimistic-axis-bound-bridge, " +
-      "or repeated-rejection-step-later",
+    "--repair-policy must be protected-one-step-bridge or optimistic-axis-bound-bridge",
   );
 }
 

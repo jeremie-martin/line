@@ -51,8 +51,7 @@ export type BreadthPolicy =
   | "linear-cap-216";
 export type RepairPolicy =
   | "protected-one-step-bridge"
-  | "optimistic-axis-bound-bridge"
-  | "repeated-rejection-step-later";
+  | "optimistic-axis-bound-bridge";
 export type RepairSelectionPolicy =
   | "three-quarter-last-chance"
   | "reserve-cheapest-repair"
@@ -911,12 +910,10 @@ function parseRepairPolicy(raw: string | undefined): RepairPolicy | null {
   if (raw === undefined) return null;
   if (
     raw === "protected-one-step-bridge" ||
-    raw === "optimistic-axis-bound-bridge" ||
-    raw === "repeated-rejection-step-later"
+    raw === "optimistic-axis-bound-bridge"
   ) return raw;
   throw new Error(
-    `--repair-policy must be protected-one-step-bridge, optimistic-axis-bound-bridge, ` +
-      `or repeated-rejection-step-later`,
+    `--repair-policy must be protected-one-step-bridge or optimistic-axis-bound-bridge`,
   );
 }
 

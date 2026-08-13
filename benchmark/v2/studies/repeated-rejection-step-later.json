@@ -1,0 +1,94 @@
+{
+  "schema": "line.benchmark-v2.repeated-rejection-step-later-study.v1",
+  "recorded_at": "2026-08-13T19:33:01.856Z",
+  "status": "inconclusive_not_promoted_removed",
+  "reference": {
+    "policy": "independent-repair-depth-six",
+    "manifest": "generated/benchmark-v2/scale/last-chance-repair-aim-stats-reference-16-baseline.json",
+    "archive": "generated/benchmark-v2/scale/last-chance-repair-aim-stats-reference-16-baseline.archive.json",
+    "scale_headline": 579.85,
+    "valid_cells": 997,
+    "total_cells": 1024,
+    "compiler_source_fingerprint": "f1e619c5dfbc917df76136b927a4ecc9173e27ff022eda1d3df20e94defe6824",
+    "candidate_fingerprint": "cc69acabcad46545a54ed25d254e7bd01bd53ba58733ec1655636b87e01d602d",
+    "archive_sha256": "6a019056c999be6fa752e61f418a601d2e48ecb8a993ac106a6753b9bbacf455",
+    "snapshot_sha256": "8070fa3e6ac081eb8ec1493eabfc40079faf5642bcef22153a60087efc9564d5"
+  },
+  "candidate": {
+    "head": "291f7b8246f1dec3717617ba90246b62c4694bdf",
+    "intervention": "After an immediately rejected repair, independently recompute the production decision from the unchanged incumbent. If it repeats the same target and anchor, move exactly one affordable gap later. The adjusted attempt clears the trigger and cannot chain.",
+    "look": 16,
+    "scale_headline": 579.7958,
+    "delta": -0.0542,
+    "standard_error": 0.0356,
+    "directional_probability": 0.07434582,
+    "central_interval_95": [
+      -0.13,
+      0.0216
+    ],
+    "canonical_budget_delta": 0.068,
+    "valid_cells": 997,
+    "total_cells": 1024,
+    "validity_gained": 0,
+    "validity_lost": 0,
+    "compiler_source_fingerprint": "5977af6dfcd31e75af30ecad43623bae11995592d0a5a6b33958e84c3e6fff84",
+    "candidate_fingerprint": "2f46801195a73f538baa8ee16d3d7904b415c630bfa3561bf25fec57f7e13f5e",
+    "archive_sha256": "001f2ae91757929fdbe942ea05192ed2c45395b8a3ff471f60add52cdf63ad87",
+    "archive_gzip_sha256": "525b0cb9f15192798827c1ff904727a020342026af72239c1764f02805c544f8",
+    "snapshot_sha256": "ba0a4b12ce70b5fbe3e81b27ea5a45ce08c156535fdeffe8fe44a449664f30f3"
+  },
+  "per_budget_delta": {
+    "150000": 0.0042,
+    "250000": 0.0032,
+    "500000": -0.0147,
+    "750000": 0.068,
+    "1000000": -0.0763,
+    "1500000": -0.0344,
+    "2500000": -0.0184,
+    "4000000": -0.365
+  },
+  "behavior": {
+    "reference": {
+      "repair_episodes": 3945,
+      "terminal_reached": 3908,
+      "accepted_alternatives": 1794,
+      "repair_spent_frames": 625691916,
+      "internal_full_score_delta": 4954.117471,
+      "internal_full_score_delta_per_million_repair_frames": 7.917822
+    },
+    "candidate": {
+      "repair_episodes": 3960,
+      "terminal_reached": 3922,
+      "accepted_alternatives": 1786,
+      "repair_spent_frames": 625714233,
+      "internal_full_score_delta": 4899.629041,
+      "internal_full_score_delta_per_million_repair_frames": 7.830458
+    },
+    "activation": {
+      "episodes": 209,
+      "terminal_reached": 209,
+      "accepted_alternatives": 79,
+      "spent_frames": 66995000,
+      "internal_full_score_delta_per_million_repair_frames": 2.913,
+      "terminal_geometry_identical": 0,
+      "first_divergence_at_anchor_rate": 0.9187,
+      "causal_checks": 209,
+      "causal_violations": 0
+    }
+  },
+  "evidence": {
+    "comparison": {
+      "path": "generated/benchmark-v2/scale/repair-repeated-rejection-step-later-v2-16.comparison.json",
+      "sha256": "cc30e9ced98ecc86415801bec7423f1ef580f836ec34e9caf68e36c700d07cf1"
+    },
+    "behavior_json": {
+      "path": "generated/benchmark-v2/scale/repair-repeated-rejection-step-later-v2-16.behavior.json",
+      "sha256": "77b04ae097b4bee328f5452d7d184b69c449bc7b4ee84e6ebb488ce25b61d0ea"
+    },
+    "behavior_report": {
+      "path": "generated/benchmark-v2/scale/repair-repeated-rejection-step-later-v2-16.behavior.md",
+      "sha256": "7908817f0696516875575bfef83dde5a1095e230b95ded79999fbee33cd16f22"
+    }
+  },
+  "conclusion": "The intervention is causal and correctly implemented, but it does not improve the multi-budget objective. It buys only 14 additional terminal alternatives at essentially unchanged repair spend, accepts 8 fewer alternatives, and loses 1.10% aggregate internal repair gain. A repeated target and anchor does not imply duplicate geometry: all 209 adjusted attempts reached distinct terminals. Moving later removes useful mutable scope and increases low-yield throughput. Do not promote, tune the step size, or compose this arm with breadth reduction. The executable compiler and scale-CLI intervention were removed; replay and reporting semantics remain so the historical evidence stays verifiable."
+}

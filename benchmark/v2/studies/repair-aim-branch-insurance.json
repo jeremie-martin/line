@@ -1,0 +1,104 @@
+{
+  "schema": "line.benchmark-v2.repair-aim-branch-insurance.v1",
+  "recorded_at": "2026-08-13T23:35:00+02:00",
+  "status": "inconclusive_not_promoted",
+  "reference": {
+    "policy": "last-chance-repair-breadth",
+    "scale_headline_n16": 579.85,
+    "canonical_headline": 605.9793
+  },
+  "candidate": {
+    "policy": "best-quality-aimed-repair-branch",
+    "semantics": "Only in ordinary full-width independent repair pools without another reserved branch, preserve the finite-forward-score aimed candidate with the lowest exact shared quality-objective rank. If absent from the ordinary top three, replace branch three while retaining branches one and two in production order.",
+    "candidate_samples_added": 0,
+    "aim_probes_added": 0,
+    "forward_evaluations_added": 0,
+    "branch_slots_added": 0,
+    "initial_search_changed": false,
+    "authored_targets_and_register_changed": false
+  },
+  "scale_decision": {
+    "profile": "compact-budget-response-v1",
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "reference_headline": 579.85,
+    "candidate_headline": 579.9288,
+    "delta": 0.0788,
+    "standard_error": 0.0449,
+    "directional_probability": 0.95017294,
+    "required_directional_probability": 0.99166667,
+    "central_95_interval": [-0.0169, 0.1745],
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "changed_tracks": 97,
+    "canonical_750k_delta": 0.1457,
+    "per_budget_delta": {
+      "150000": 0,
+      "250000": 0.0504,
+      "500000": 0.105,
+      "750000": 0.1457,
+      "1000000": 0.1848,
+      "1500000": 0.0264,
+      "2500000": 0.1713,
+      "4000000": -0.0533
+    },
+    "per_source_delta": {
+      "countercurrent": 0,
+      "offgrid_conversation": 0.0047,
+      "rising_switch": 0,
+      "amplitude_tides": -0.0191,
+      "dense_dialogue": -0.0014,
+      "frontier_pickup_progression": 0.599,
+      "frontier_dense_recovery": 0.0515,
+      "frontier_low_air_endurance": -0.0041
+    }
+  },
+  "mechanism_audit_n16": {
+    "first_terminal_frame_delta": 0,
+    "eligible_full_width_repair_pools": 88770,
+    "pools_with_aimed_candidate": 78447,
+    "aimed_candidate_already_selected": 53051,
+    "aimed_candidate_inserted": 25396,
+    "inserted_candidate_final_fits": 106,
+    "mean_aimed_exact_quality_rank": 0.347462,
+    "mean_aimed_forward_rank": 1.749306,
+    "actual_candidate_samples_relative_delta": -0.001332,
+    "aim_probe_frames_relative_delta": 0.000358,
+    "repair_spent_frames_relative_delta": -0.000701,
+    "repair_episodes_relative_delta": 0.012674,
+    "repair_terminal_episodes_relative_delta": 0.015609,
+    "repair_accepted_alternatives_relative_delta": 0.015608,
+    "repair_internal_gain_relative_delta": 0.017376,
+    "repair_gain_per_million_frames_relative_delta": 0.013076
+  },
+  "interpretation": "The mechanism activated exactly and improved repair throughput, acceptance, and internal gain at effectively fixed spend. The authored-score estimate remained below its governed acceptance boundary and its gain was narrowly concentrated: frontier_pickup_progression contributed 0.599 source points while most sources were inert. The arm is not promoted and does not proceed to a canonical run. It supports improving the aimed proposal/ranking information itself, not unconditional repair branch reservation.",
+  "implementation": {
+    "study_commit": "5e4be72",
+    "closure_commit": null
+  },
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-aim-branch-best-quality-4.comparison.json",
+      "sha256": "f07661b2cd95496ab16795cc515e8f21560b486aa9560badb3a0e645dfca04cd"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-aim-branch-best-quality-8.comparison.json",
+      "sha256": "aa179843006c651b5a8088a7c677f47b027f20e288eb820e3fe0a43ec5bfa97d"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-aim-branch-best-quality-16.comparison.json",
+      "sha256": "5a7611e1b982b42bb70bb887cc76b3fbd278864199102dc1f18dbc97967095be"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/repair-aim-branch-best-quality-16.json.gz",
+      "sha256": "d7fc00aa3e94c5940abb2a2d726d3d6e7b14a6f44664e4cf16c339b49990b4d5"
+    },
+    "n16_analysis_projection": {
+      "path": "generated/benchmark-v2/scale/repair-aim-branch-best-quality-16.analysis.json",
+      "sha256": "98bcf17b1bd5871e5111d21dd754bb1aef521913e78d4dae0bbd5d1fac950fd9"
+    }
+  },
+  "future_evaluation_policy": "Do not run another multi-budget sweep unless the user explicitly requests it. Subsequent proposer improvements use the full canonical V2 benchmark at 750k as the primary decision tool, with focused diagnostics as needed."
+}

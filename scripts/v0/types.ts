@@ -1031,23 +1031,6 @@ export type CompileStats = {
     forward_score_debt_sum: number;
   };
 
-  /** Study arm: fixed-width insurance for the exact-quality-best aimed
-   *  candidate in ordinary full-width repair pools. */
-  repair_aim_branch?: {
-    policy: "best-quality";
-    repair_pool_builds: number;
-    reduced_width_pools: number;
-    kinematic_reserved_pools: number;
-    eligible_full_width_pools: number;
-    pools_with_aimed_candidate: number;
-    aimed_candidate_already_selected: number;
-    aimed_candidate_inserted: number;
-    inserted_candidate_final_fits: number;
-    aimed_quality_rank_sum: number;
-    aimed_forward_rank_sum: number;
-    displaced_forward_score_debt_sum: number;
-  };
-
   /** Default-off exact or learned screen for a locally better impact branch. */
   impact_response_admission?: {
     eligible_pools: number;

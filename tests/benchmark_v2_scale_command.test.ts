@@ -8,7 +8,6 @@ import {
   scaleAimTopKFirstRepairExtraArgument,
   scaleAimTopKScopeArgument,
   scaleBreadthPolicyArgument,
-  scaleRepairAimBranchPolicyArgument,
   scaleRepairPolicyArgument,
   scaleRepairSelectionPolicyArgument,
   scaleRepairSuffixSearchPolicyArgument,
@@ -202,12 +201,5 @@ describe("Benchmark V2 scale command contract", () => {
     expect(scaleRepairSuffixSearchPolicyArgument([
       "--repair-suffix-search-policy=target-improvement-first",
     ])).toBe("target-improvement-first");
-  });
-
-  test("resolves the repair aimed-branch intervention passed to scale eval", () => {
-    expect(scaleRepairAimBranchPolicyArgument([])).toBeNull();
-    expect(scaleRepairAimBranchPolicyArgument([
-      "--repair-aim-branch-policy=best-quality",
-    ])).toBe("best-quality");
   });
 });

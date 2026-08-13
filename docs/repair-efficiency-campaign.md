@@ -1131,26 +1131,32 @@ so archived runs retain their meaning. Do not tune the step or combine it with
 scalar breadth reduction. Evidence and hashes are in
 `benchmark/v2/studies/repeated-rejection-step-later.json`.
 
-### Fixed-cost aimed repair branch insurance — declared
+### Fixed-cost aimed repair branch insurance — not promoted
 
-The promoted distilled proposer is the last large causal scoring improvement,
-but an aimed candidate that reaches the exact shared quality-ranked pool can
-still be discarded when the later forward-search rank selects three ordinary
-branches. The next arm tests whether this is unused information rather than a
-need for more candidates.
+The arm tested whether the promoted proposer was doing useful exact work that
+the later forward rank discarded. In ordinary full-width repair pools, it kept
+the first two production branches and used branch three for the finite aimed
+candidate with the best original exact quality rank. It added no candidates,
+probes, forward evaluations, branch slots, or acceptance authority.
 
-Only inside an independent full-width repair pool, the candidate preserves the
-finite-forward-score aimed option with the best original exact quality rank. If
-it is not already in the three selected branches, it replaces branch three;
-branches one and two retain production order. Pools using the last-chance
-reduced width or a kinematic reserved branch are untouched. No candidates,
-probes, forward evaluations, branches, repair episodes, budget, acceptance
-rule, authored target, or score definition are added.
+The mechanism worked as designed. At N=16, first-terminal work was exactly
+unchanged, repair spend moved -0.07%, and 25,396 aimed candidates were inserted
+across 1,024 cells. Repair terminals rose 1.56%, accepted alternatives 1.56%,
+and aggregate internal repair gain 1.74%. Scale moved 579.8500→579.9288
+(+0.0788, 95.02% directional probability), the 750k slice moved +0.1457,
+and validity stayed 997/1,024.
 
-The compact archive records repair pools, exclusions, aimed availability,
-already-selected and inserted candidates, exact-quality and forward ranks,
-displaced forward-score debt, and inserted fits surviving in the returned
-track. Decision evidence must also show unchanged first-terminal work and
-candidate/probe counts except for downstream path changes. The arm receives
-the frozen 4/8/16 multi-budget ladder; canonical evaluation is warranted only
-after a broadly favorable governed result.
+The result missed its governed 99.17% directional boundary and its central 95%
+interval includes zero [-0.0169, +0.1745]. It was also narrow:
+`frontier_pickup_progression` contributed +0.5990 source points while most
+sources were inert. The arm is not promoted and does not receive a canonical
+run. Its executable compiler, telemetry, mechanics, and scale-CLI surface were
+removed; the checksummed record is
+`benchmark/v2/studies/repair-aim-branch-insurance.json`.
+
+The positive causal lesson is retained: the exact aimed candidate carries
+information that forward ranking can miss. The next campaign improves the
+promoted proposal/model information itself instead of reserving a branch
+unconditionally. Per user direction, the full canonical V2 benchmark at 750k
+is now the primary decision tool. No further multi-budget sweep runs unless
+the user explicitly requests one.

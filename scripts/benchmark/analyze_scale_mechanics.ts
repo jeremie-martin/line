@@ -15,7 +15,7 @@ import {
   type BudgetRepairGapState,
 } from "../v0/optimizer/budget_telemetry.ts";
 
-export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v6" as const;
+export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v7" as const;
 
 type RunRow = {
   task: { sourceId: string; budget: number; actualSeed: number };
@@ -191,8 +191,28 @@ const METRICS: Array<[string, (row: RunRow) => number | null]> = [
     .length],
   ["repairMeanDivergentSuffixGaps", (row) => episodeMean(repairEpisodes(row), (episode) =>
     episode.outcome.working_to_offer_divergence?.divergent_suffix_gap_count ?? null)],
+  ["repairFirstDivergenceAtAnchorRate", (row) => {
+    const divergent = repairEpisodes(row).filter((episode) =>
+      episode.outcome.working_to_offer_divergence?.first_divergent_gap_index !== null &&
+      episode.outcome.working_to_offer_divergence?.first_divergent_gap_index !== undefined
+    );
+    return ratio(
+      divergent.filter((episode) =>
+        episode.outcome.working_to_offer_divergence!.first_divergent_gap_index ===
+          episode.anchor.gap_index
+      ).length,
+      divergent.length,
+    );
+  }],
   ["repairDistinctAnchorGaps", (row) => new Set(repairEpisodes(row)
     .map((episode) => episode.anchor.gap_index)).size],
+  ["repairAnchorAtomicPoolBuilds", (row) => repairAtomicPoolBuilds(row, "anchor").length],
+  ["repairDescendantAtomicPoolBuilds", (row) =>
+    repairAtomicPoolBuilds(row, "descendant").length],
+  ["repairMeanAnchorAtomicRequestedNormalProposals", (row) =>
+    eventMean(repairAtomicPoolBuilds(row, "anchor"))],
+  ["repairMeanDescendantAtomicRequestedNormalProposals", (row) =>
+    eventMean(repairAtomicPoolBuilds(row, "descendant"))],
   ["repairTotalAllocatedFrames", (row) => sumRepairEpisodes(row, (episode) =>
     episode.allocated_frames)],
   ["repairTotalSpentFrames", (row) => sumRepairEpisodes(row, (episode) =>
@@ -581,6 +601,34 @@ function completedRepairEpisodes(row: RunRow): BudgetEpisodeTelemetry[] {
   return repairEpisodes(row).filter((episode) =>
     episode.outcome.first_terminal_offset_frames !== null
   );
+}
+
+/** Trace-only node-policy requests split at the repair decision's selected
+ * anchor. This is deliberately not named candidate samples: an atomic node's
+ * requested width is a policy request, while actual sampling (including rescue
+ * streams) remains in the episode work ledger. */
+function repairAtomicPoolBuilds(
+  row: RunRow,
+  location: "anchor" | "descendant",
+): Array<{ requested_normal_proposals: number }> {
+  const anchorByEpisode = new Map(
+    repairEpisodes(row).map((episode) => [episode.episode_id, episode.anchor.gap_index]),
+  );
+  return (telemetry(row).node_events ?? []).flatMap((event) => {
+    if (event.lane !== "repair" || event.requested_normal_proposals === null) return [];
+    const anchor = anchorByEpisode.get(event.episode_id);
+    if (anchor === undefined) return [];
+    const matches = location === "anchor"
+      ? event.gap_index === anchor
+      : event.gap_index > anchor;
+    return matches ? [{ requested_normal_proposals: event.requested_normal_proposals }] : [];
+  });
+}
+
+function eventMean(events: Array<{ requested_normal_proposals: number }>): number | null {
+  return events.length === 0
+    ? null
+    : mean(events.map((event) => event.requested_normal_proposals));
 }
 
 /** Positive means the start estimate underpredicted charged work to completion. */

@@ -97,10 +97,10 @@ describe("paired scale mechanics", () => {
             },
             working_to_offer_divergence: {
               compared_gap_count: 8,
-              first_divergent_gap_index: candidate ? 4 : null,
-              divergent_gap_count: candidate ? 2 : 0,
-              divergent_suffix_gap_count: candidate ? 2 : 0,
-              terminal_geometry_identical: !candidate,
+              first_divergent_gap_index: 4,
+              divergent_gap_count: candidate ? 2 : 1,
+              divergent_suffix_gap_count: candidate ? 2 : 1,
+              terminal_geometry_identical: false,
             },
             internal_full_score_delta: candidate ? 4 : 0,
             spent_frames: budget / 3,
@@ -112,6 +112,17 @@ describe("paired scale mechanics", () => {
             rejected_local_improvement_bridge_assessment: null,
             stop_reason: candidate ? "first_terminal_return" : "local_ceiling",
           },
+        }],
+        node_events: [{
+          episode_id: 0,
+          lane: "repair",
+          gap_index: candidate ? 4 : 3,
+          requested_normal_proposals: candidate ? 80 : 81,
+        }, {
+          episode_id: 0,
+          lane: "repair",
+          gap_index: candidate ? 5 : 4,
+          requested_normal_proposals: candidate ? 60 : 81,
         }],
       } as any,
     });
@@ -162,6 +173,16 @@ describe("paired scale mechanics", () => {
     expect(result.overall.metrics.repairRegisterImprovements.candidateMean).toBe(2);
     expect(result.overall.metrics.repairFirstTerminalReturnEpisodes.candidateMean).toBe(1);
     expect(result.overall.metrics.repairMeanAnchorGap.delta).toBe(1);
+    expect(result.overall.metrics.repairFirstDivergenceAtAnchorRate).toMatchObject({
+      referenceMean: 0,
+      candidateMean: 1,
+    });
+    expect(result.overall.metrics.repairAnchorAtomicPoolBuilds.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairDescendantAtomicPoolBuilds.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairMeanAnchorAtomicRequestedNormalProposals)
+      .toMatchObject({ referenceMean: 81, candidateMean: 80 });
+    expect(result.overall.metrics.repairMeanDescendantAtomicRequestedNormalProposals)
+      .toMatchObject({ referenceMean: 81, candidateMean: 60 });
     expect(result.overall.metrics.repairRejectedLocalBridgeEpisodes.delta).toBe(1);
     expect(result.overall.metrics.repairRejectedLocalFollowupBlockedOneStep.delta).toBe(1);
     expect(result.overall.metrics.repairTerminalReachedRate.candidateMean).toBe(1);

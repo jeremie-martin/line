@@ -15,7 +15,7 @@ import {
   type BudgetRepairGapState,
 } from "../v0/optimizer/budget_telemetry.ts";
 
-export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v8" as const;
+export const SCALE_MECHANICS_SCHEMA = "line.benchmark-v2.scale-mechanics.v9" as const;
 
 type RunRow = {
   task: { sourceId: string; budget: number; actualSeed: number };
@@ -43,26 +43,49 @@ export type ScaleMechanicsSummary = {
   metrics: Record<string, MechanicsMetric>;
 };
 
+const REPAIR_NODE_POLICY_LOCATIONS = [
+  "anchor",
+  "beforeTargetDescendant",
+  "target",
+  "postTarget",
+  "descendant",
+] as const;
+type RepairNodePolicyLocation = typeof REPAIR_NODE_POLICY_LOCATIONS[number];
+
+type RepairNodePolicyLocationAudit = {
+  summaryRows: number;
+  rowsWithPoolBuilds: number;
+  poolBuilds: number;
+  requestedWidths: number[];
+  nonconstantWidthRows: number;
+};
+
+type RepairNodePolicyWidthRelationAudit = {
+  eligibleRows: number;
+  compliantRows: number;
+  violationRows: number;
+};
+
 export type RepairNodePolicyAudit = {
   rows: number;
   traceRows: number;
+  phasedTraceRows: number;
   rowsWithoutTraceSummary: number;
   repairEpisodes: number;
-  anchorPoolBuilds: number;
-  descendantPoolBuilds: number;
   anchorEpisodeClosureViolations: number;
-  nonconstantAnchorWidthRows: number;
-  nonconstantDescendantWidthRows: number;
   descendantWithoutAnchorRows: number;
-  threeQuarterEligibleRows: number;
-  threeQuarterCompliantRows: number;
+  locations: Record<RepairNodePolicyLocation, RepairNodePolicyLocationAudit>;
+  widthRelations: {
+    descendantToAnchorThreeQuarter: RepairNodePolicyWidthRelationAudit;
+    beforeTargetMatchesAnchor: RepairNodePolicyWidthRelationAudit;
+    targetMatchesAnchor: RepairNodePolicyWidthRelationAudit;
+    postTargetToAnchorThreeQuarter: RepairNodePolicyWidthRelationAudit;
+  };
   byBudget: Array<{
     budget: number;
     traceRows: number;
-    anchorWidths: number[];
-    descendantWidths: number[];
-    anchorPoolBuilds: number;
-    descendantPoolBuilds: number;
+    phasedTraceRows: number;
+    locations: Record<RepairNodePolicyLocation, RepairNodePolicyLocationAudit>;
   }>;
 };
 
@@ -648,9 +671,16 @@ type RepairAtomicPoolSummary = {
 
 function repairAtomicPoolSummary(
   row: RunRow,
-  location: "anchor" | "descendant",
+  location: RepairNodePolicyLocation,
 ): RepairAtomicPoolSummary | null {
-  const compact = (telemetry(row) as any).repair_node_policy?.[location];
+  const compactKey: Record<RepairNodePolicyLocation, string> = {
+    anchor: "anchor",
+    beforeTargetDescendant: "before_target_descendant",
+    target: "target",
+    postTarget: "post_target",
+    descendant: "descendant",
+  };
+  const compact = (telemetry(row) as any).repair_node_policy?.[compactKey[location]];
   if (
     compact !== null && typeof compact === "object" &&
     Number.isSafeInteger(compact.pool_builds) && compact.pool_builds >= 0 &&
@@ -665,8 +695,11 @@ function repairAtomicPoolSummary(
     };
   }
   if (!Array.isArray(telemetry(row).node_events)) return null;
-  const anchorByEpisode = new Map(
-    repairEpisodes(row).map((episode) => [episode.episode_id, episode.anchor.gap_index]),
+  const decisionByEpisode = new Map(
+    repairEpisodes(row).map((episode) => [episode.episode_id, {
+      anchorGapIndex: episode.anchor.gap_index,
+      targetGapIndex: episode.repair_decision?.target_gap_index,
+    }]),
   );
   let poolBuilds = 0;
   let requestedNormalProposals = 0;
@@ -674,11 +707,18 @@ function repairAtomicPoolSummary(
   let requestedMax: number | null = null;
   for (const event of telemetry(row).node_events ?? []) {
     if (event.lane !== "repair" || event.requested_normal_proposals === null) continue;
-    const anchor = anchorByEpisode.get(event.episode_id);
-    if (anchor === undefined) continue;
+    const decision = decisionByEpisode.get(event.episode_id);
+    if (decision === undefined || !Number.isSafeInteger(decision.targetGapIndex)) continue;
+    const { anchorGapIndex, targetGapIndex } = decision;
     const matches = location === "anchor"
-      ? event.gap_index === anchor
-      : event.gap_index > anchor;
+      ? event.gap_index === anchorGapIndex
+      : location === "beforeTargetDescendant"
+        ? event.gap_index > anchorGapIndex && event.gap_index < targetGapIndex!
+        : location === "target"
+          ? event.gap_index === targetGapIndex && event.gap_index > anchorGapIndex
+          : location === "postTarget"
+            ? event.gap_index > targetGapIndex!
+            : event.gap_index > anchorGapIndex;
     if (!matches) continue;
     poolBuilds++;
     requestedNormalProposals += event.requested_normal_proposals;
@@ -702,62 +742,105 @@ function meanRequestedNormalProposals(
 
 function auditRepairNodePolicy(rows: RunRow[]): RepairNodePolicyAudit {
   const audited = rows.flatMap((row) => {
-    const anchor = repairAtomicPoolSummary(row, "anchor");
-    const descendant = repairAtomicPoolSummary(row, "descendant");
-    return anchor === null || descendant === null ? [] : [{ row, anchor, descendant }];
+    const locations = Object.fromEntries(REPAIR_NODE_POLICY_LOCATIONS.map((location) => [
+      location,
+      repairAtomicPoolSummary(row, location),
+    ])) as Record<RepairNodePolicyLocation, RepairAtomicPoolSummary | null>;
+    return locations.anchor === null || locations.descendant === null
+      ? []
+      : [{ row, locations }];
   });
+  const phased = audited.filter(({ locations }) =>
+    REPAIR_NODE_POLICY_LOCATIONS.every((location) => locations[location] !== null)
+  );
   const budgets = [...new Set(rows.map((row) => row.task.budget))].sort((a, b) => a - b);
-  const widths = (
-    values: Array<{ requestedMin: number | null; requestedMax: number | null }>,
-  ): number[] => [...new Set(values.flatMap((value) =>
-    value.requestedMin !== null && value.requestedMin === value.requestedMax
-      ? [value.requestedMin]
-      : []
-  ))].sort((a, b) => a - b);
-  const bucket = (selected: typeof audited) => ({
-    traceRows: selected.length,
-    anchorWidths: widths(selected.map(({ anchor }) => anchor)),
-    descendantWidths: widths(selected.map(({ descendant }) => descendant)),
-    anchorPoolBuilds: selected.reduce((sum, { anchor }) => sum + anchor.poolBuilds, 0),
-    descendantPoolBuilds: selected.reduce(
-      (sum, { descendant }) => sum + descendant.poolBuilds,
-      0,
+  const locationAudit = (
+    selected: typeof audited,
+    location: RepairNodePolicyLocation,
+  ): RepairNodePolicyLocationAudit => {
+    const summaries = selected.flatMap(({ locations }) => {
+      const summary = locations[location];
+      return summary === null ? [] : [summary];
+    });
+    return {
+      summaryRows: summaries.length,
+      rowsWithPoolBuilds: summaries.filter((summary) => summary.poolBuilds > 0).length,
+      poolBuilds: summaries.reduce((sum, summary) => sum + summary.poolBuilds, 0),
+      requestedWidths: [...new Set(summaries.flatMap((summary) =>
+        summary.requestedMin !== null && summary.requestedMin === summary.requestedMax
+          ? [summary.requestedMin]
+          : []
+      ))].sort((a, b) => a - b),
+      nonconstantWidthRows: summaries.filter((summary) =>
+        summary.poolBuilds > 0 && summary.requestedMin !== summary.requestedMax
+      ).length,
+    };
+  };
+  const locationAudits = (selected: typeof audited) => Object.fromEntries(
+    REPAIR_NODE_POLICY_LOCATIONS.map((location) => [location, locationAudit(selected, location)]),
+  ) as Record<RepairNodePolicyLocation, RepairNodePolicyLocationAudit>;
+  const widthRelation = (
+    selected: typeof audited,
+    location: RepairNodePolicyLocation,
+    expected: (anchorWidth: number) => number,
+  ): RepairNodePolicyWidthRelationAudit => {
+    const eligible = selected.flatMap(({ locations }) => {
+      const anchor = locations.anchor;
+      const compared = locations[location];
+      return anchor !== null && compared !== null &&
+          anchor.poolBuilds > 0 && compared.poolBuilds > 0 &&
+          anchor.requestedMin !== null && anchor.requestedMin === anchor.requestedMax &&
+          compared.requestedMin !== null && compared.requestedMin === compared.requestedMax
+        ? [{ anchor, compared }]
+        : [];
+    });
+    const compliantRows = eligible.filter(({ anchor, compared }) =>
+      compared.requestedMin === expected(anchor.requestedMin!)
+    ).length;
+    return {
+      eligibleRows: eligible.length,
+      compliantRows,
+      violationRows: eligible.length - compliantRows,
+    };
+  };
+  const widthRelations = (selected: typeof audited) => ({
+    descendantToAnchorThreeQuarter: widthRelation(
+      selected,
+      "descendant",
+      (width) => Math.max(8, Math.round(width * 3 / 4)),
+    ),
+    beforeTargetMatchesAnchor: widthRelation(selected, "beforeTargetDescendant", (width) => width),
+    targetMatchesAnchor: widthRelation(selected, "target", (width) => width),
+    postTargetToAnchorThreeQuarter: widthRelation(
+      selected,
+      "postTarget",
+      (width) => Math.max(8, Math.round(width * 3 / 4)),
     ),
   });
-  const eligible = audited.filter(({ anchor, descendant }) =>
-    anchor.poolBuilds > 0 && descendant.poolBuilds > 0 &&
-    anchor.requestedMin !== null && anchor.requestedMin === anchor.requestedMax &&
-    descendant.requestedMin !== null && descendant.requestedMin === descendant.requestedMax
-  );
   return {
     rows: rows.length,
     traceRows: audited.length,
+    phasedTraceRows: phased.length,
     rowsWithoutTraceSummary: rows.length - audited.length,
     repairEpisodes: audited.reduce((sum, { row }) => sum + repairEpisodes(row).length, 0),
-    anchorPoolBuilds: audited.reduce((sum, { anchor }) => sum + anchor.poolBuilds, 0),
-    descendantPoolBuilds: audited.reduce(
-      (sum, { descendant }) => sum + descendant.poolBuilds,
-      0,
-    ),
-    anchorEpisodeClosureViolations: audited.filter(({ row, anchor }) =>
-      repairEpisodes(row).length !== anchor.poolBuilds
+    anchorEpisodeClosureViolations: audited.filter(({ row, locations }) =>
+      repairEpisodes(row).length !== locations.anchor!.poolBuilds
     ).length,
-    nonconstantAnchorWidthRows: audited.filter(({ anchor }) =>
-      anchor.poolBuilds > 0 && anchor.requestedMin !== anchor.requestedMax
+    descendantWithoutAnchorRows: audited.filter(({ locations }) =>
+      locations.descendant!.poolBuilds > 0 && locations.anchor!.poolBuilds === 0
     ).length,
-    nonconstantDescendantWidthRows: audited.filter(({ descendant }) =>
-      descendant.poolBuilds > 0 && descendant.requestedMin !== descendant.requestedMax
-    ).length,
-    descendantWithoutAnchorRows: audited.filter(({ anchor, descendant }) =>
-      descendant.poolBuilds > 0 && anchor.poolBuilds === 0
-    ).length,
-    threeQuarterEligibleRows: eligible.length,
-    threeQuarterCompliantRows: eligible.filter(({ anchor, descendant }) =>
-      descendant.requestedMin === Math.max(8, Math.round(anchor.requestedMin! * 3 / 4))
-    ).length,
+    locations: locationAudits(audited),
+    widthRelations: widthRelations(audited),
     byBudget: budgets.map((budget) => {
       const selected = audited.filter(({ row }) => row.task.budget === budget);
-      return { budget, ...bucket(selected) };
+      return {
+        budget,
+        traceRows: selected.length,
+        phasedTraceRows: selected.filter(({ locations }) =>
+          REPAIR_NODE_POLICY_LOCATIONS.every((location) => locations[location] !== null)
+        ).length,
+        locations: locationAudits(selected),
+      };
     }),
   };
 }

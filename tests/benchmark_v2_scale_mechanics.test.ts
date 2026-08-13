@@ -122,6 +122,11 @@ describe("paired scale mechanics", () => {
           episode_id: 0,
           lane: "repair",
           gap_index: candidate ? 5 : 4,
+          requested_normal_proposals: candidate ? 80 : 81,
+        }, {
+          episode_id: 0,
+          lane: "repair",
+          gap_index: candidate ? 6 : 5,
           requested_normal_proposals: candidate ? 60 : 81,
         }],
       } as any,
@@ -178,25 +183,43 @@ describe("paired scale mechanics", () => {
       candidateMean: 1,
     });
     expect(result.overall.metrics.repairAnchorAtomicPoolBuilds.candidateMean).toBe(1);
-    expect(result.overall.metrics.repairDescendantAtomicPoolBuilds.candidateMean).toBe(1);
+    expect(result.overall.metrics.repairDescendantAtomicPoolBuilds.candidateMean).toBe(2);
     expect(result.overall.metrics.repairMeanAnchorAtomicRequestedNormalProposals)
       .toMatchObject({ referenceMean: 81, candidateMean: 80 });
     expect(result.overall.metrics.repairMeanDescendantAtomicRequestedNormalProposals)
-      .toMatchObject({ referenceMean: 81, candidateMean: 60 });
+      .toMatchObject({ referenceMean: 81, candidateMean: 70 });
     expect(result.repairNodePolicy.candidate).toMatchObject({
       rows: 2,
       traceRows: 2,
+      phasedTraceRows: 2,
       repairEpisodes: 2,
-      anchorPoolBuilds: 2,
-      descendantPoolBuilds: 2,
       anchorEpisodeClosureViolations: 0,
-      nonconstantAnchorWidthRows: 0,
-      nonconstantDescendantWidthRows: 0,
       descendantWithoutAnchorRows: 0,
-      threeQuarterEligibleRows: 2,
-      threeQuarterCompliantRows: 2,
+      locations: {
+        anchor: { poolBuilds: 2, nonconstantWidthRows: 0 },
+        beforeTargetDescendant: { poolBuilds: 0 },
+        target: { poolBuilds: 2, nonconstantWidthRows: 0 },
+        postTarget: { poolBuilds: 2, nonconstantWidthRows: 0 },
+        descendant: { poolBuilds: 4, nonconstantWidthRows: 2 },
+      },
+      widthRelations: {
+        descendantToAnchorThreeQuarter: { eligibleRows: 0, compliantRows: 0 },
+        targetMatchesAnchor: { eligibleRows: 2, compliantRows: 2, violationRows: 0 },
+        postTargetToAnchorThreeQuarter: {
+          eligibleRows: 2,
+          compliantRows: 2,
+          violationRows: 0,
+        },
+      },
     });
-    expect(result.repairNodePolicy.reference.threeQuarterCompliantRows).toBe(0);
+    expect(result.repairNodePolicy.reference.widthRelations).toMatchObject({
+      targetMatchesAnchor: { eligibleRows: 2, compliantRows: 2, violationRows: 0 },
+      postTargetToAnchorThreeQuarter: {
+        eligibleRows: 2,
+        compliantRows: 0,
+        violationRows: 2,
+      },
+    });
     expect(result.overall.metrics.repairRejectedLocalBridgeEpisodes.delta).toBe(1);
     expect(result.overall.metrics.repairRejectedLocalFollowupBlockedOneStep.delta).toBe(1);
     expect(result.overall.metrics.repairTerminalReachedRate.candidateMean).toBe(1);

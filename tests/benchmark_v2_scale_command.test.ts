@@ -11,9 +11,24 @@ import {
   scaleRepairPolicyArgument,
   scaleRepairSelectionPolicyArgument,
   scaleRepairSuffixSearchPolicyArgument,
+  reusableScaleComparisonSnapshot,
 } from "../scripts/v0/benchmark_v2/scale_benchmark.ts";
 
 describe("Benchmark V2 scale command contract", () => {
+  test("preserves a frozen candidate snapshot across analysis-only compare", () => {
+    const snapshot = { schema: "line.benchmark-v2.compiler-snapshot.v1", archive: "frozen.tgz" };
+    const prior = {
+      schema: "line.benchmark-v2.multi-budget-comparison.v2",
+      candidate: { archivePath: "candidate.json", compilerSnapshot: snapshot },
+    };
+    expect(reusableScaleComparisonSnapshot(prior, "candidate.json")).toBe(snapshot);
+    expect(reusableScaleComparisonSnapshot(prior, "other.json")).toBeNull();
+    expect(reusableScaleComparisonSnapshot({ ...prior, candidate: {
+      ...prior.candidate,
+      compilerSnapshot: null,
+    } }, "candidate.json")).toBeNull();
+  });
+
   test("accepts only the baseline execution surface", () => {
     expect(() => assertScaleArguments("baseline", [
       "--seeds=16",

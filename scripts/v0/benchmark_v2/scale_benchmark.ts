@@ -408,18 +408,46 @@ async function runScaleCompare(argv: string[]): Promise<number> {
   assertBaselineProfile(baseline, profile);
   const candidateArchive = readGridArm("candidate", scaleAnalysisPath(candidatePath)).archive;
   const depth = Array.isArray(candidateArchive.seeds) ? candidateArchive.seeds.length : 0;
+  const preservedSnapshot = preservedComparisonSnapshot(artifactPath, candidatePath);
   const artifact = await compareScaleArchives(
     baseline,
     baselinePath,
     candidatePath,
     profile,
     depth,
-    null,
+    preservedSnapshot,
     null,
   );
   writeJsonArtifact(artifactPath, artifact);
   emitComparison(argv, artifactPath, artifact);
   return 0;
+}
+
+/** Analysis-only compare must not erase the frozen compiler snapshot written
+ * by eval: that snapshot is the authority used by the next 4 -> 8 -> 16
+ * checkpoint extension. */
+function preservedComparisonSnapshot(
+  artifactPath: string,
+  candidatePath: string,
+): CompilerSnapshot | null {
+  if (!existsSync(artifactPath) || !existsSync(`${artifactPath}.sha256`)) return null;
+  const prior = JSON.parse(readVerifiedArtifact(artifactPath).bytes.toString("utf8"));
+  const snapshot = reusableScaleComparisonSnapshot(prior, candidatePath);
+  if (snapshot === null) return null;
+  validateCompilerSnapshot(snapshot);
+  return snapshot;
+}
+
+export function reusableScaleComparisonSnapshot(
+  prior: any,
+  candidatePath: string,
+): CompilerSnapshot | null {
+  if (
+    prior?.schema !== MULTI_BUDGET_COMPARISON_SCHEMA ||
+    resolve(prior?.candidate?.archivePath ?? "") !== resolve(candidatePath) ||
+    prior?.candidate?.compilerSnapshot?.schema !== "line.benchmark-v2.compiler-snapshot.v1"
+  ) return null;
+  return prior.candidate.compilerSnapshot as CompilerSnapshot;
 }
 
 async function compareScaleArchives(

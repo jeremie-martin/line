@@ -532,3 +532,36 @@ also report terminal-returning episodes, anchor divergence, accepted
 alternatives, internal repair gain per frame, final-output lineage, validity,
 and per-budget authored score. A favorable scale decision still requires
 canonical confirmation before promotion.
+
+### Anchor-protected repair candidate breadth — useful, not promoted
+
+The governed ladder finished positive at every look (+0.1294 at N=4, +0.0401
+at N=8, and +0.0483 at N=16), but the final directional probability was only
+60.55%. The 750k slice was +0.2229 and validity remained exactly 997/1,024.
+Budget effects were mixed, from -0.6597 at 250k to +0.7282 at 2.5M, so the
+small positive aggregate is not sufficient for promotion or canonical work.
+
+The spatial mechanism was exact. All 1,024 candidate rows carried traces;
+4,153 repair episodes had 4,153 full-width anchor pools and 63,616 narrowed
+descendant pools. Every one of 906 eligible rows used the exact 3/4 descendant
+width, with no closure, scope, or nonconstant-width violation. First-terminal
+work was byte-identical. Repair samples fell 10.77%, mean episode cost fell
+8.60%, and the same total repair spend produced 8.18% more episodes and 7.42%
+more terminal returns.
+
+Protecting only the anchor did not preserve enough early-repair value. Repair
+iteration zero selected the same target and anchor in the two arms, yet
+accepted alternatives fell from 559 to 520 and internal gain fell from
+3,357.50 to 3,260.38 when the descendants narrowed. Across all iterations,
+accepted alternatives rose only 1.14%, internal repair gain fell 0.78%, and
+gain per repair frame fell 4.54%. The extra late terminals recovered count,
+not value.
+
+The arm is therefore useful mechanism evidence but is not promoted. The 3/4
+ratio and protected-anchor boundary are closed without adjacent tuning. One
+follow-up remains distinct: an accepted narrowed suffix feeds its cheaper
+observed cost back into future affordability, and mean parent depth rose 3.84%
+as a result. That feedback must be isolated before interpreting breadth purely
+as an attempt-throughput intervention. Exact decisions, audits, and evidence
+hashes are recorded in
+`benchmark/v2/studies/anchor-protected-repair-breadth.json`.

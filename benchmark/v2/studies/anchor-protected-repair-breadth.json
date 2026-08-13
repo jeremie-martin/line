@@ -1,0 +1,129 @@
+{
+  "schema": "line.benchmark-v2.anchor-protected-repair-breadth.v1",
+  "recorded_at": "2026-08-13T06:25:30+02:00",
+  "status": "complete_no_promotion",
+  "reference": {
+    "policy": "distilled-aim-impact-feasibility",
+    "repair_breadth_policy": "production",
+    "scale_headline": 579.8494,
+    "canonical_headline": 605.8725
+  },
+  "candidate": {
+    "policy": "repair-descendants-three-quarter",
+    "descendant_breadth_ratio": 0.75,
+    "selected_anchor_uses_production_breadth": true,
+    "strict_descendants_use_reduced_breadth": true,
+    "initial_and_resumed_search_unchanged": true
+  },
+  "scale_decision": {
+    "stopping_depth": 16,
+    "outcome": "inconclusive",
+    "look_deltas": {
+      "4": 0.1294,
+      "8": 0.0401,
+      "16": 0.0483
+    },
+    "reference_headline": 579.8494,
+    "candidate_headline": 579.8977,
+    "delta": 0.0483,
+    "directional_probability": 0.60549316,
+    "reference_valid": 997,
+    "candidate_valid": 997,
+    "gained_valid": 0,
+    "lost_valid": 0,
+    "canonical_750k_delta": 0.2229,
+    "per_budget_delta": {
+      "150000": -0.1363,
+      "250000": -0.6597,
+      "500000": 0.358,
+      "750000": 0.2229,
+      "1000000": -0.119,
+      "1500000": -0.2092,
+      "2500000": 0.7282,
+      "4000000": 0.2015
+    }
+  },
+  "mechanics": {
+    "first_terminal_frames_relative_delta": 0,
+    "repair_candidate_samples_relative_delta": -0.10766,
+    "repair_episodes_relative_delta": 0.081792,
+    "repair_terminal_reached_relative_delta": 0.074171,
+    "repair_accepted_alternatives_relative_delta": 0.011448,
+    "repair_total_spent_frames_relative_delta": 0.000347,
+    "repair_mean_spent_frames_relative_delta": -0.086032,
+    "repair_mean_parent_depth_relative_delta": 0.038439,
+    "repair_mean_anchor_gap_relative_delta": -0.003598,
+    "repair_internal_full_score_delta_relative_delta": -0.007754,
+    "repair_internal_full_score_delta_per_million_frames_relative_delta": -0.045397,
+    "repair_terminal_improvements_per_million_frames_relative_delta": 0.040709,
+    "final_output_from_repair_relative_delta": -0.003505
+  },
+  "position_audit": {
+    "candidate_trace_rows": 1024,
+    "candidate_repair_episodes": 4153,
+    "anchor_pool_builds": 4153,
+    "descendant_pool_builds": 63616,
+    "eligible_rows": 906,
+    "exact_three_quarter_compliant_rows": 906,
+    "anchor_episode_closure_violations": 0,
+    "nonconstant_anchor_width_rows": 0,
+    "nonconstant_descendant_width_rows": 0,
+    "descendant_without_anchor_rows": 0
+  },
+  "behavior_audit": {
+    "reference_repairs": 3839,
+    "candidate_repairs": 4153,
+    "reference_invariant_violations": 0,
+    "candidate_invariant_violations": 0,
+    "reference_internal_gain": 4953.500061,
+    "candidate_internal_gain": 4915.089441,
+    "first_repair": {
+      "reference_episodes": 989,
+      "candidate_episodes": 989,
+      "reference_mean_parent_depth": 5.244692,
+      "candidate_mean_parent_depth": 5.244692,
+      "reference_accepted": 559,
+      "candidate_accepted": 520,
+      "reference_internal_gain": 3357.500846,
+      "candidate_internal_gain": 3260.38406
+    }
+  },
+  "interpretation": "Protecting the alternative-defining anchor fixes the scope error in repair-wide narrowing: the arm saves 10.77% of repair candidate samples and converts the same total repair spend into 8.18% more independent episodes and 7.42% more terminal returns. It does not preserve enough suffix quality. Even at the identical first-repair target and anchor, narrower descendants reduce accepted alternatives and internal gain; extra later repairs recover terminal count but not aggregate value. The positive authored-score estimate is small, uncertain, and mixed across budgets, so the arm is not promoted and the inherited ratio is closed without tuning.",
+  "followup": "Separate cheaper descendant execution from its feedback into future affordability. Reduced observed suffix costs currently make earlier anchors affordable on later repairs, increasing mean parent depth. Quantify and isolate that feedback before considering any combined breadth-and-anchor policy.",
+  "compiler_snapshot": {
+    "archive": "generated/benchmark-v2/scale/repair-descendants-three-quarter-4-candidate-compiler-snapshot.tar.gz",
+    "sha256": "4a6ddf6e6d51de3ec85951120db3ff8db5cf536c434371044821620916688319",
+    "candidate_fingerprint": "abfc546ca1b8f47e7b6e33f02820162abb48268e3731885fc372525fe4ca3da5",
+    "compiler_source_fingerprint": "a5da24022015935ddae763eec7daf7a1c6b6c373e0bd1191fe30479c8ef2441d"
+  },
+  "evidence": {
+    "n4_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-three-quarter-4.comparison.json",
+      "sha256": "f3f000a544b063db7fcf93c3fb4342507fcfa9076263f4befa12da5fe7c2bbf0"
+    },
+    "n8_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-three-quarter-8.comparison.json",
+      "sha256": "035689b8c5ca480b67fa30e55b27dd53e913e3a9b4f64fedcbfed68398105521"
+    },
+    "n16_comparison": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-three-quarter-16.comparison.json",
+      "sha256": "6f25129bdf6c29fd5433ded5d8a64ca1464af4ea51cf85eee94d1f2fd91d006b"
+    },
+    "n16_archive": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-three-quarter-16.json.gz",
+      "sha256": "9765d5cc911077648ec9c83d7589f4245d146b12b12a750f3e32f8474478edc1"
+    },
+    "n16_analysis_projection": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-three-quarter-16.analysis.json.gz",
+      "sha256": "b074bd7d831fe45ceae29620ff161fdd885f9488c1029060de22246baa8980e4"
+    },
+    "behavior_audit": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-three-quarter-16.behavior.json",
+      "sha256": "35d1146841edb4aec167fe3a574e65b0537eeca47c2c7266e6fed1361af36403"
+    },
+    "behavior_report": {
+      "path": "generated/benchmark-v2/scale/repair-descendants-three-quarter-16.behavior.md",
+      "sha256": "560a894d7fee7a93ddbb49dce6e876cadba2426385bb48f89502f2aa72a4e8ea"
+    }
+  }
+}

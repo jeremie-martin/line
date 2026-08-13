@@ -1,0 +1,49 @@
+{
+  "schema": "line.benchmark-v2.candidate-breadth-saturation-observation.v1",
+  "recorded_at": "2026-08-13T16:08:00.000Z",
+  "status": "rejected_before_live_arm",
+  "prospective_rule": {
+    "population": "real production breadth-law pools",
+    "checkpoints": [
+      0.5,
+      0.75,
+      1
+    ],
+    "stop_condition": "raw quality top-five unchanged from half to three-quarter breadth",
+    "action": "skip final quarter of random attempts",
+    "compiler_behavior_changed": false
+  },
+  "smoke_observations": [
+    {
+      "source": "countercurrent",
+      "seed": 14016,
+      "budget": 250000,
+      "pools": 149,
+      "stop_eligible_pools": 27,
+      "saved_attempt_share": 0.0453020134,
+      "oracle_top_one_preservation_rate": 0.8518518519,
+      "oracle_top_three_preservation_rate": 0.5925925926,
+      "oracle_top_five_preservation_rate": 0.4074074074
+    },
+    {
+      "source": "countercurrent",
+      "seed": 14016,
+      "budget": 4000000,
+      "pools": 206,
+      "stop_eligible_pools": 33,
+      "saved_attempt_share": 0.0400485437,
+      "oracle_top_one_preservation_rate": 0.8484848485,
+      "oracle_top_three_preservation_rate": 0.4545454545,
+      "oracle_top_five_preservation_rate": 0.1515151515
+    }
+  ],
+  "interpretation": "The post-guidance attempt stream supplies independent random opportunities. Stability over an earlier interval does not predict exhaustion of the unseen tail. The candidate would save little work while frequently changing the full-width usable head, so it was rejected before spending a governed multi-budget run.",
+  "next": "Improve information per evaluated proposal or diversify the fixed-cost aimed base selection before reconsidering a reduction in random prefix breadth.",
+  "evidence": {
+    "script": "scripts/v0/study_candidate_breadth_saturation.ts",
+    "250k_observation": "generated/benchmark-v2/scale/candidate-breadth-saturation-smoke.json",
+    "250k_observation_sha256": "6088509b374ef89d883ead488e0ccd4e00e363b18e12e5e53abed63a47ae1ea6",
+    "4m_observation": "generated/benchmark-v2/scale/candidate-breadth-saturation-smoke-4m.json",
+    "4m_observation_sha256": "abc84738b8242e555a357ab09a369df83263d83ad940188eeff18c4bc03f1fe5"
+  }
+}

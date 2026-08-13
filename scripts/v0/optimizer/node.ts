@@ -182,6 +182,12 @@ export type NormalPoolSnapshotRecord = {
   gapIndex: number;
   nCand: number;
   sampleOrder: readonly Candidate[];
+  /** Observation-only scoring context. Exposing the exact live objects lets
+   * prefix studies replay the production quality order without rebuilding or
+   * mutating the search. */
+  gap: Gap;
+  gaps: readonly Gap[];
+  ctx: SpecContext;
 };
 type NormalPoolSnapshotHook = (record: NormalPoolSnapshotRecord) => void;
 let normalPoolSnapshotHook: NormalPoolSnapshotHook | null = null;
@@ -297,7 +303,16 @@ export function getCandidatesSorted(
       node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
       seed,
     );
-  normalPoolSnapshotHook?.({ node, seed, gapIndex: gap.index, nCand, sampleOrder });
+  normalPoolSnapshotHook?.({
+    node,
+    seed,
+    gapIndex: gap.index,
+    nCand,
+    sampleOrder,
+    gap,
+    gaps,
+    ctx,
+  });
   const sorted = sortWithLaneExtras(node, gaps, ctx, gap, nCand, sampleOrder);
   node._candidatesCache = { seed, nCand, sampleOrder, candidates: sorted };
   if (deadlineCacheAssertEnabled) {

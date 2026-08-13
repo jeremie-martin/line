@@ -992,3 +992,34 @@ compiler snapshot and N=16 evidence were archived. This closes generic extra
 proposal count and random-sample-to-proposal reallocation; the next proposal
 family must improve the ranking target or information content of the existing
 fixed slots rather than add another fitted-grid choice.
+
+### Online candidate-breadth saturation — rejected before a live arm
+
+The fixed-ratio studies prove that late random samples carry value, but leave a
+seemingly attractive adaptive question: can a pool stop early when its useful
+head has stabilized? An observation-only replay tested the simplest causal
+version. For every real production pool it ranked the raw sample prefix at
+one-half, three-quarter, and full requested breadth. The prospective controller
+would skip the final quarter only when the quality top five was unchanged from
+half to three-quarter breadth.
+
+The rule is not safe. On `countercurrent` seed 14016 it saved only 4.53% of
+requested attempts at 250k and 4.00% at 4M. Among the pools it would stop, the
+full-width raw top five was preserved only 40.74% at 250k and 15.15% at 4M.
+Even the top three was preserved only 59.26% and 45.45%, respectively. Repair
+showed the same failure as initial search.
+
+This is not an invitation to tune a longer no-change window. After the sampler's
+short guided prefix, attempts are independent random opportunities. For an
+i.i.d. stream, the chance that an eventual top-five member lies in the unseen
+final quarter is intrinsically high; recent head stability is not evidence that
+the distribution is exhausted. A sequential plateau rule would therefore hide
+a fixed-ratio reduction behind a noisy online trigger and repeat the closed
+quality loss.
+
+No live compiler arm was created. The retained observation harness
+`scripts/v0/study_candidate_breadth_saturation.ts` can audit future sampler
+changes, and its hook is behavior-free when not installed. The next breadth
+mechanism must make each evaluated proposal more informative—through proposal
+or base selection—before reducing the random prefix. It must not infer
+saturation from absence of recent record changes.

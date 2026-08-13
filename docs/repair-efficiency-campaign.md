@@ -1023,3 +1023,29 @@ changes, and its hook is behavior-free when not installed. The next breadth
 mechanism must make each evaluated proposal more informative—through proposal
 or base selection—before reducing the random prefix. It must not infer
 saturation from absence of recent record changes.
+
+### Fixed-cost diverse aim bases — declared
+
+The saturation audit shows why random breadth cannot be removed first. The
+next arm instead changes the information extracted from the unchanged full
+sample prefix. Production spends its fixed aim budget refining only the first K
+quality-ranked candidates. Those bases can represent nearby states, while the
+local response model cannot cross from one sampled geometry family into
+another.
+
+The candidate retains the strongest `ceil(3K/4)` bases exactly. It fills the
+remaining slots greedily from the rest of the first 2K quality ranks,
+maximizing minimum distance from already selected bases over exact current-axis
+outcomes and the existing uncharged outgoing-axis projection. Missing features
+fall back to quality order. K<=3 is byte-identical, which preserves the low-air
+cap; rank zero, total bases, probes, proposal count, exact evaluations, raw
+nCand, branching, DFS, repair, register acceptance, and authored targets are
+unchanged.
+
+This is a fixed-cost proposal-information test, not a diversity weight or
+candidate-count sweep. It receives the frozen 4/8/16 multi-budget ladder.
+Required evidence includes refined bases and probe work, aimed emissions and
+exact-pool placement, candidate samples, first-terminal work, repair attempts
+and gain, validity, and per-budget authored score. Only if it improves proposal
+yield may it be composed later with the already measured 7/8 repair prefix;
+the arm itself does not claim that random breadth is removable.

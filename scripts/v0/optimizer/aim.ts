@@ -713,6 +713,109 @@ export function recordLaneBaseSkip(): void {
   aimTotals.enum_lane_base_skips++;
 }
 
+/**
+ * Study arm: retain the strongest three quarters of quality-ranked aim bases,
+ * then spend the unchanged remaining base slots on the most state-diverse
+ * candidates in the next equally-sized quality band. The first base and total
+ * refinement count stay exact. Missing feature data falls back to rank order.
+ */
+export function selectQuarterDiverseAimBaseIndices(
+  features: readonly (readonly (number | null)[])[],
+  requested: number,
+): number[] {
+  const count = Math.min(Math.max(0, requested | 0), features.length);
+  if (count <= 1) return Array.from({ length: count }, (_, index) => index);
+  const retained = Math.max(1, Math.ceil(count * 3 / 4));
+  if (retained >= count) return Array.from({ length: count }, (_, index) => index);
+  const limit = Math.min(features.length, count * 2);
+  const chosen = Array.from({ length: retained }, (_, index) => index);
+  const available = Array.from(
+    { length: limit - retained },
+    (_, index) => retained + index,
+  );
+  while (chosen.length < count && available.length > 0) {
+    let bestAt = 0;
+    let bestDistance = -1;
+    for (let at = 0; at < available.length; at++) {
+      const candidateIndex = available[at]!;
+      let minDistance = Infinity;
+      for (const priorIndex of chosen) {
+        minDistance = Math.min(
+          minDistance,
+          sharedFeatureDistance(features[candidateIndex]!, features[priorIndex]!),
+        );
+      }
+      if (minDistance > bestDistance + 1e-12) {
+        bestAt = at;
+        bestDistance = minDistance;
+      }
+    }
+    chosen.push(available.splice(bestAt, 1)[0]!);
+  }
+  return chosen;
+}
+
+function sharedFeatureDistance(
+  left: readonly (number | null)[],
+  right: readonly (number | null)[],
+): number {
+  let sum = 0;
+  let count = 0;
+  for (let index = 0; index < Math.min(left.length, right.length); index++) {
+    const a = left[index];
+    const b = right[index];
+    if (a === null || b === null || !Number.isFinite(a) || !Number.isFinite(b)) continue;
+    sum += (a - b) ** 2;
+    count++;
+  }
+  return count === 0 ? 0 : sum / count;
+}
+
+/** Exact measured current axes plus the existing uncharged outgoing
+ * projection. Every feature is normalized to its authored [0, max] range. */
+function aimBaseDiversityFeatures(
+  candidate: Candidate,
+  gap: Gap,
+  gaps: readonly Gap[],
+  ctx: SpecContext,
+): (number | null)[] {
+  const currentTargets = objectiveTargetsForGap(gap, ctx);
+  const nextGap = nextContactGap(gap, gaps);
+  const outgoing = nextGap === null
+    ? null
+    : projectOutgoingScorerGap(candidate, nextGap, ctx.gapAxisTargets);
+  const nextTargets = nextGap === null ? {} : objectiveTargetsForGap(nextGap, ctx);
+  return [
+    ...AXES.map((axis) => currentTargets[axis] === undefined
+      ? null
+      : candidate.achieved[axis] ?? null),
+    ...AXES.map((axis) => nextTargets[axis] === undefined
+      ? null
+      : outgoing?.achieved[axis] ?? null),
+  ];
+}
+
+export function selectAimRefinementBases(
+  sorted: readonly Candidate[],
+  requested: number,
+  gap: Gap,
+  gaps: readonly Gap[],
+  ctx: SpecContext,
+): Candidate[] {
+  const limit = Math.min(sorted.length, Math.max(0, requested | 0) * 2);
+  const features = sorted.slice(0, limit).map((candidate) =>
+    aimBaseDiversityFeatures(candidate, gap, gaps, ctx)
+  );
+  const indices = selectQuarterDiverseAimBaseIndices(features, requested);
+  const count = Math.min(sorted.length, Math.max(0, requested | 0));
+  const retained = Math.max(1, Math.ceil(count * 3 / 4));
+  const diverse = indices.slice(retained);
+  aimTotals.diverse_base_slots += diverse.length;
+  aimTotals.diverse_base_outside_topk += diverse.filter((index) => index >= count).length;
+  aimTotals.diverseBaseRankSum += diverse.reduce((sum, index) => sum + index, 0);
+  return indices.map((index) => sorted[index]!);
+}
+
 /** Quality-objective pool ranking (LR_RANK_QUALITY): make the shared objective
  *  — settled incoming quality × projected outgoing quality × next-arc
  *  readiness — the
@@ -855,6 +958,11 @@ export type AimStats = {
    *  because the pool was short or already refined. */
   enum_lane_bases: number;
   enum_lane_base_skips: number;
+  /** Fixed-cost diverse-base study activation. Rank is zero-based in the
+   * production quality order; outside-top-K is the actual exploration count. */
+  diverse_base_slots: number;
+  diverse_base_outside_topk: number;
+  diverse_base_rank_sum: number;
   /** Where every lane proposal landed in the exact pool it entered, recorded
    *  once per pool build (rank 0 = pool best). These are pool-yield counters;
    *  `handoff_aimed_selected` instead counts aimed fits in the final output. */
@@ -897,6 +1005,7 @@ const aimTotals = {
   joint_probe_frames_charged: 0,
   // Top-K base refinement.
   enum_lane_bases: 0, enum_lane_base_skips: 0,
+  diverse_base_slots: 0, diverse_base_outside_topk: 0, diverseBaseRankSum: 0,
   // Fit/objective degradation telemetry (recordJointModelCoverage).
   joint_fit_degraded_outputs: 0,
   enum_current_axes_targeted: 0, enum_current_axes_modeled: 0,
@@ -1059,6 +1168,9 @@ export function snapshotAimStats(): AimStats | null {
     joint_probe_frames_charged: aimTotals.joint_probe_frames_charged,
     enum_lane_bases: aimTotals.enum_lane_bases,
     enum_lane_base_skips: aimTotals.enum_lane_base_skips,
+    diverse_base_slots: aimTotals.diverse_base_slots,
+    diverse_base_outside_topk: aimTotals.diverse_base_outside_topk,
+    diverse_base_rank_sum: aimTotals.diverseBaseRankSum,
     aimed_pool_entries: aimTotals.aimed_pool_entries,
     aimed_rank0: aimTotals.aimed_rank0,
     aimed_top3: aimTotals.aimed_top3,

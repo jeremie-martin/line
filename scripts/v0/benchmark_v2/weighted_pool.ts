@@ -1,11 +1,14 @@
-/** One trace worker slot represents up to 1.5M simulated frames. This keeps
- * `--jobs` as a maximum while preventing simultaneous high-budget traces from
- * oversubscribing memory. Summary/off runs retain ordinary one-worker slots. */
+/** One telemetry worker slot represents up to 1.5M simulated frames. This
+ * keeps `--jobs` as a maximum while preventing simultaneous high-budget
+ * compiles from oversubscribing memory. Both summary and trace retain the
+ * repair-decision episode graph and have comparable live worker heaps; trace
+ * mainly enlarges the durable artifact. Telemetry-off diagnostics retain
+ * ordinary one-worker slots. */
 export function scaleWorkerSlotWeight(
   budget: number,
   telemetry: "off" | "summary" | "trace",
 ): number {
-  if (telemetry !== "trace") return 1;
+  if (telemetry === "off") return 1;
   return Math.max(1, Math.ceil(budget / 1_500_000));
 }
 

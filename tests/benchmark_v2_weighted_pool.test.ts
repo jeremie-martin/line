@@ -7,7 +7,10 @@ import {
 describe("benchmark V2 weighted worker pool", () => {
   test("scales only trace work with execution budget", () => {
     expect(scaleWorkerSlotWeight(4_000_000, "off")).toBe(1);
-    expect(scaleWorkerSlotWeight(4_000_000, "summary")).toBe(1);
+    expect(scaleWorkerSlotWeight(150_000, "summary")).toBe(1);
+    expect(scaleWorkerSlotWeight(1_500_000, "summary")).toBe(1);
+    expect(scaleWorkerSlotWeight(2_500_000, "summary")).toBe(2);
+    expect(scaleWorkerSlotWeight(4_000_000, "summary")).toBe(3);
     expect(scaleWorkerSlotWeight(150_000, "trace")).toBe(1);
     expect(scaleWorkerSlotWeight(1_500_000, "trace")).toBe(1);
     expect(scaleWorkerSlotWeight(2_500_000, "trace")).toBe(2);

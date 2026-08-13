@@ -45,6 +45,12 @@ def arguments() -> argparse.Namespace:
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--out", type=Path)
     parser.add_argument("--artifact-out", type=Path)
+    parser.add_argument(
+        "--selected",
+        choices=("hist_16", "hist_32"),
+        default="hist_32",
+        help="histogram surrogate to serialize (default: hist_32)",
+    )
     return parser.parse_args()
 
 
@@ -188,7 +194,7 @@ def main() -> None:
         fitted[name] = candidate
         predicted = np.clip(candidate.predict(test_X), 0.0, 1.0)
         results[name] = metrics(test_y, predicted)
-    selected = "hist_32"
+    selected = args.selected
     serialized_selected = serialize_histogram(fitted[selected])
     selected_prediction = np.clip(fitted[selected].predict(test_X), 0.0, 1.0)
     serialized_prediction = predict_histogram(serialized_selected, test_X)

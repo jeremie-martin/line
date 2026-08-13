@@ -15,6 +15,7 @@
 
 import modelJson from "./readiness_model.json" with { type: "json" };
 import aimImpactModelJson from "./aim_impact_model.json" with { type: "json" };
+import aimImpactHist16ModelJson from "./aim_impact_hist16_model.json" with { type: "json" };
 import type { NextArcReadinessInput } from "./readiness_features.ts";
 import {
   parseReadinessModelArtifact,
@@ -58,6 +59,9 @@ const READINESS_CONTEXT_BOOTSTRAP = (() => {
 
 let READINESS_MODEL = parseReadinessModelArtifact(modelJson);
 const AIM_IMPACT_MODEL = parseReadinessModelArtifact(aimImpactModelJson);
+const AIM_IMPACT_HIST16_MODEL = parseReadinessModelArtifact(
+  aimImpactHist16ModelJson,
+);
 const AIM_IMPACT_DISTILLED_VALIDATION_MAE = (() => {
   const value = (aimImpactModelJson as {
     distillation?: { validation?: { mae?: unknown } };
@@ -108,6 +112,14 @@ export function scoreDistilledAimImpactFeasibility(
   input: NextArcReadinessInput,
 ): number {
   return scoreImpactFeasibilityWithArtifact(input, AIM_IMPACT_MODEL);
+}
+
+/** Study boundary: the predeclared 16-tree surrogate from the same frozen
+ * corpus and missing-articulation contract as the production 32-tree model. */
+export function scoreDistilledAimImpactFeasibilityHist16(
+  input: NextArcReadinessInput,
+): number {
+  return scoreImpactFeasibilityWithArtifact(input, AIM_IMPACT_HIST16_MODEL);
 }
 
 /** Held-out absolute-error resolution of the shipped distilled impact model.

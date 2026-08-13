@@ -15,6 +15,10 @@ import runtimeModel from "../scripts/v0/optimizer/readiness_model.json" with {
 import aimImpactModel from "../scripts/v0/optimizer/aim_impact_model.json" with {
   type: "json",
 };
+import aimImpactHist16Model from
+  "../scripts/v0/optimizer/aim_impact_hist16_model.json" with {
+    type: "json",
+  };
 import parityFixture from "./fixtures/readiness_model_parity.json" with {
   type: "json",
 };
@@ -286,6 +290,15 @@ describe("readiness model artifact inference", () => {
   });
 
   test("matches the pinned Python exporter on the real selected models", () => {
+    const hist16 = parseReadinessModelArtifact(aimImpactHist16Model);
+    expect(aimImpactHist16Model.distillation.selected).toBe("hist_16");
+    expect(hist16.components.impactFeasibility.family).toBe(
+      "hist_gradient_boosting_regressor",
+    );
+    if (hist16.components.impactFeasibility.family ===
+      "hist_gradient_boosting_regressor") {
+      expect(hist16.components.impactFeasibility.trees).toHaveLength(16);
+    }
     const parsed = parseReadinessModelArtifact(runtimeModel);
     expect(parityFixture.featureNames).toEqual(parsed.featureNames);
     for (

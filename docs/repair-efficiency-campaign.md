@@ -795,3 +795,27 @@ to convert otherwise-low-yield residue into a complete alternative. It does
 not materially close the headline target gap. The new campaign baseline is
 `last-chance-repair-breadth`; full evidence and hashes are recorded in
 `benchmark/v2/studies/last-chance-repair-breadth-promotion.json`.
+
+### Regularized distilled-impact boundary — declared
+
+Proposal selection remains the only recent compiler seam with a large score
+effect. Against the old frozen scale reference, the exact 200-tree impact
+teacher gained 4.3747 points at N=8, while the 32-tree missing-articulation
+distillation gained 8.3448. This directly shows that teacher fidelity is not
+the compiler objective: the compact model's regularization is part of its
+useful policy.
+
+The single follow-up is the pre-existing `hist_16` boundary from the same
+frozen offline distillation study. It uses the identical corpus, feature
+transform, missing-articulation contract, target, learning rate, leaf count,
+minimum leaf population, and L2 penalty as production `hist_32`; only boosting
+iterations change from 32 to 16. Held-out teacher imitation is deliberately
+worse (MAE 0.06503 versus 0.03894), so this is a causal regularization test,
+not a claim that the surrogate is more accurate.
+
+Probe geometry, ordinary admission, emitted proposal count, exact candidate
+evaluation, generic candidate breadth, DFS, repair selection, last-chance
+repair, register acceptance, and authored targets remain unchanged. The
+artifact has exact Python/TypeScript export parity. The frozen 4/8/16
+multi-budget ladder decides the arm; a non-favorable result closes this
+boundary without trying 8, 24, or other tree counts.

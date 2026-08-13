@@ -75,6 +75,7 @@ type StudyTask = {
     | "reserve-cheapest-repair"
     | "reserve-cheapest-else-deepest"
     | "late-reserve-cheapest-else-deepest"
+    | "worst-target-window-per-cost"
     | "worst-target-runway-per-cost";
   repairSuffixSearchPolicy?: "target-improvement-first";
   aimImpactPower?: number;
@@ -894,6 +895,7 @@ function parseRepairSelectionPolicy(
   | "reserve-cheapest-repair"
   | "reserve-cheapest-else-deepest"
   | "late-reserve-cheapest-else-deepest"
+  | "worst-target-window-per-cost"
   | "worst-target-runway-per-cost"
   | undefined {
   if (value === undefined) return undefined;
@@ -901,6 +903,7 @@ function parseRepairSelectionPolicy(
     value === "reserve-cheapest-repair" ||
     value === "reserve-cheapest-else-deepest" ||
     value === "late-reserve-cheapest-else-deepest" ||
+    value === "worst-target-window-per-cost" ||
     value === "worst-target-runway-per-cost"
   ) {
     return value;
@@ -908,7 +911,7 @@ function parseRepairSelectionPolicy(
   throw new Error(
     "--repair-selection-policy must be reserve-cheapest-repair, " +
       "reserve-cheapest-else-deepest, late-reserve-cheapest-else-deepest, " +
-      "or worst-target-runway-per-cost",
+      "worst-target-window-per-cost, or worst-target-runway-per-cost",
   );
 }
 

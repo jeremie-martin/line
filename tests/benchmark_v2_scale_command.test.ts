@@ -180,6 +180,9 @@ describe("Benchmark V2 scale command contract", () => {
       "--repair-selection-policy=late-reserve-cheapest-else-deepest",
     ])).toBe("late-reserve-cheapest-else-deepest");
     expect(scaleRepairSelectionPolicyArgument([
+      "--repair-selection-policy=worst-target-window-per-cost",
+    ])).toBe("worst-target-window-per-cost");
+    expect(scaleRepairSelectionPolicyArgument([
       "--repair-selection-policy=worst-target-runway-per-cost",
     ])).toBe("worst-target-runway-per-cost");
   });

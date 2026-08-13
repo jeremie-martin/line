@@ -1072,6 +1072,42 @@ describe("repair target selection", () => {
     });
   });
 
+  test("prices the direct worst-target window per cost without synthetic runway", () => {
+    const candidates = Array.from({ length: 5 }, (_, gapIndex) => ({
+      gapIndex,
+      sse: gapIndex === 4 ? 20 : 1,
+    }));
+    expect(selectRepairRestart(
+      candidates,
+      [100, 80, 60, 40, 10],
+      [100, 80, 60, 40, 10],
+      100,
+      0,
+      4,
+      "worst_gap_window_opportunity_per_cost",
+    )).toMatchObject({
+      selectionPolicy: "worst_gap_window_opportunity_per_cost",
+      targetGapIndex: 4,
+      anchorGapIndex: 4,
+      parentDepth: 0,
+      mutableSuffixSse: 20,
+    });
+    expect(selectRepairRestart(
+      candidates,
+      [20, 20, 20, 20, 20],
+      [20, 20, 20, 20, 20],
+      100,
+      0,
+      4,
+      "worst_gap_window_opportunity_per_cost",
+    )).toMatchObject({
+      targetGapIndex: 4,
+      anchorGapIndex: 0,
+      parentDepth: 4,
+      mutableSuffixSse: 24,
+    });
+  });
+
   test("selects suffix opportunity per expected cost from the shared affordable anchor set", () => {
     const densityCandidates = [0, 1, 2, 3, 4, 5].map((gapIndex) => ({
       gapIndex,

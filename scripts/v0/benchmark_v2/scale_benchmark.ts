@@ -54,6 +54,7 @@ export type RepairSelectionPolicy =
   | "reserve-cheapest-repair"
   | "reserve-cheapest-else-deepest"
   | "late-reserve-cheapest-else-deepest"
+  | "worst-target-window-per-cost"
   | "worst-target-runway-per-cost";
 export type RepairSuffixSearchPolicy = "target-improvement-first";
 export type AimImpactResolutionPolicy = "validated-mae-top1";
@@ -917,6 +918,7 @@ function parseRepairSelectionPolicy(raw: string | undefined): RepairSelectionPol
     raw === "reserve-cheapest-repair" ||
     raw === "reserve-cheapest-else-deepest" ||
     raw === "late-reserve-cheapest-else-deepest" ||
+    raw === "worst-target-window-per-cost" ||
     raw === "worst-target-runway-per-cost"
   ) {
     return raw;
@@ -924,7 +926,7 @@ function parseRepairSelectionPolicy(raw: string | undefined): RepairSelectionPol
   throw new Error(
     `--repair-selection-policy must be reserve-cheapest-repair, ` +
       `reserve-cheapest-else-deepest, late-reserve-cheapest-else-deepest, ` +
-      `or worst-target-runway-per-cost`,
+      `worst-target-window-per-cost, or worst-target-runway-per-cost`,
   );
 }
 

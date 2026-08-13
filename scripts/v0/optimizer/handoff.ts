@@ -6663,6 +6663,7 @@ export function repairRestartCeilingFrames(
 export type RepairTargetCandidate = { gapIndex: number; sse: number };
 export type RepairSelectionPolicy =
   | "worst_gap_deepest_affordable"
+  | "worst_gap_window_opportunity_per_cost"
   | "worst_gap_runway_opportunity_per_cost"
   | "worst_gap_reserve_cheapest_repair"
   | "worst_gap_reserve_cheapest_else_deepest"
@@ -6831,6 +6832,7 @@ export function selectRepairRestart(
   ))].sort((a, b) => a - b);
   if (
     selectionPolicy === "worst_gap_deepest_affordable" ||
+    selectionPolicy === "worst_gap_window_opportunity_per_cost" ||
     selectionPolicy === "worst_gap_runway_opportunity_per_cost" ||
     selectionPolicy === "worst_gap_reserve_cheapest_repair" ||
     selectionPolicy === "worst_gap_reserve_cheapest_else_deepest"
@@ -6845,7 +6847,10 @@ export function selectRepairRestart(
     if (selected === null) return null;
     let anchorGapIndex = selected.anchorGapIndex;
     let parentDepth = selected.parentDepth;
-    if (selectionPolicy === "worst_gap_runway_opportunity_per_cost") {
+    if (
+      selectionPolicy === "worst_gap_window_opportunity_per_cost" ||
+      selectionPolicy === "worst_gap_runway_opportunity_per_cost"
+    ) {
       const targetOptions = Array.from(
         { length: Math.min(maximum, selected.targetGapIndex) + 1 },
         (_, depth) => ({
@@ -6861,12 +6866,14 @@ export function selectRepairRestart(
         ).reduce((sum, candidate) => sum + candidate.sse, 0);
         return {
           ...option,
-          runwayOpportunity: windowSse + option.parentDepth * selected.targetGapSse,
+          opportunity: selectionPolicy === "worst_gap_runway_opportunity_per_cost"
+            ? windowSse + option.parentDepth * selected.targetGapSse
+            : windowSse,
           pointCost: pointCostByAnchor[option.anchorGapIndex]!,
         };
       }).sort((a, b) =>
-        b.runwayOpportunity / b.pointCost - a.runwayOpportunity / a.pointCost ||
-        b.runwayOpportunity - a.runwayOpportunity ||
+        b.opportunity / b.pointCost - a.opportunity / a.pointCost ||
+        b.opportunity - a.opportunity ||
         b.parentDepth - a.parentDepth
       );
       const chosen = targetOptions[0];
@@ -8734,13 +8741,15 @@ function repairConfig(): RepairConfig {
         ? "worst_gap_reserve_cheapest_else_deepest"
         : repairSelectionPolicy === "worst-target-runway-per-cost"
           ? "worst_gap_runway_opportunity_per_cost"
-          : repairSelectionPolicy === "suffix-opportunity-per-cost"
-            ? "suffix_opportunity_per_cost"
-            : repairSelectionPolicy === "max-suffix-opportunity"
-              ? "max_suffix_opportunity"
-              : repairSelectionPolicy === "max-local-window-opportunity"
-                ? "max_local_window_opportunity"
-                : "worst_gap_deepest_affordable",
+          : repairSelectionPolicy === "worst-target-window-per-cost"
+            ? "worst_gap_window_opportunity_per_cost"
+            : repairSelectionPolicy === "suffix-opportunity-per-cost"
+              ? "suffix_opportunity_per_cost"
+              : repairSelectionPolicy === "max-suffix-opportunity"
+                ? "max_suffix_opportunity"
+                : repairSelectionPolicy === "max-local-window-opportunity"
+                  ? "max_local_window_opportunity"
+                  : "worst_gap_deepest_affordable",
     // Study-only phase isolation: retain production selection for the two
     // high-return repairs, then reserve the cheapest further repair. The
     // effective replayable law, not this wrapper name, is recorded per episode.

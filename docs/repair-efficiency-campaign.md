@@ -565,3 +565,37 @@ as a result. That feedback must be isolated before interpreting breadth purely
 as an attempt-throughput intervention. Exact decisions, audits, and evidence
 hashes are recorded in
 `benchmark/v2/studies/anchor-protected-repair-breadth.json`.
+
+### Worst-target window-per-cost anchor — declared
+
+The closed breadth arm confirms that cheaper suffix execution can be converted
+into both more repairs and earlier anchors. It also confirms that attempt count
+alone is not the objective. The next arm isolates the deferred question of
+whether repair should restart earlier merely because that longer suffix fits.
+
+The `worst-target-window-per-cost` policy retains production target selection:
+choose the largest authored axis-error SSE among gaps having an affordable
+anchor. It retains the same estimator upper bound, zero added headroom,
+depth-six cap, and one-terminal execution. Only the parent choice changes. For
+that same target, each affordable anchor is assigned the sum of authored
+axis-error SSE from the anchor through the target, divided by the anchor's
+estimated point cost. The highest density wins; ties prefer larger absolute
+opportunity and then greater parent depth. This uses direct incumbent error
+only. Unlike the retired runway policy, it adds no synthetic opportunity per
+parent transition; unlike the retired local-window policy, it never changes
+the target gap.
+
+Offline replay supplies scope, not causal evidence. The policy would move
+1,100/3,839 production decisions later. The executed current-policy episodes
+in that subset had 51.28% acceptance per terminal and 10.24 internal-score
+points per million repair frames, versus 43.80% and 7.17 where the anchor would
+stay. This association is strong enough for one live test but cannot predict
+the alternative suffix produced by a later anchor.
+
+The arm has no fitted threshold, reserve, exponent, or adjacent variant. It is
+evaluated alone against production breadth through the frozen 4/8/16 scale
+ladder. Required evidence is exact first-terminal work and validity; replayed
+target, anchor, affordability, and cost-density decisions; repair spend,
+terminal and acceptance yield; internal gain; final-output lineage; and
+per-budget authored score. Only an accepted scale result can proceed to the
+canonical 750k qualification.

@@ -200,6 +200,7 @@ export type BudgetRepairDecision = {
   usable_budget_frames: number;
   selection_policy:
     | "worst_gap_deepest_affordable"
+    | "worst_gap_window_opportunity_per_cost"
     | "worst_gap_runway_opportunity_per_cost"
     | "worst_gap_reserve_cheapest_repair"
     | "worst_gap_reserve_cheapest_else_deepest"
@@ -348,7 +349,7 @@ export function replayBudgetRepairSelection(
     const anchor = reserved ?? finalRepair;
     return { ...suffixChoice(anchor.anchor_gap_index), target, anchor };
   };
-  const worstGapRunwayChoice = () => {
+  const worstGapOpportunityChoice = (includeRunway: boolean) => {
     const target = [...affordableTargets].sort((a, b) =>
       b.target_gap_sse - a.target_gap_sse || a.target_gap_index - b.target_gap_index
     )[0];
@@ -364,12 +365,14 @@ export function replayBudgetRepairSelection(
       ).reduce((sum, candidate) => sum + candidate.target_gap_sse, 0);
       return {
         anchor,
-        runwayOpportunity: windowSse + anchor.parent_depth * target.target_gap_sse,
+        opportunity: includeRunway
+          ? windowSse + anchor.parent_depth * target.target_gap_sse
+          : windowSse,
       };
     }).sort((a, b) =>
-      b.runwayOpportunity / b.anchor.estimated_anchor_cost_frames! -
-        a.runwayOpportunity / a.anchor.estimated_anchor_cost_frames! ||
-      b.runwayOpportunity - a.runwayOpportunity ||
+      b.opportunity / b.anchor.estimated_anchor_cost_frames! -
+        a.opportunity / a.anchor.estimated_anchor_cost_frames! ||
+      b.opportunity - a.opportunity ||
       b.anchor.parent_depth - a.anchor.parent_depth
     );
     const selected = choices[0];
@@ -384,8 +387,10 @@ export function replayBudgetRepairSelection(
   };
   const choice = decision.selection_policy === "worst_gap_deepest_affordable"
     ? worstGapChoice("none")
-    : decision.selection_policy === "worst_gap_runway_opportunity_per_cost"
-      ? worstGapRunwayChoice()
+    : decision.selection_policy === "worst_gap_window_opportunity_per_cost"
+      ? worstGapOpportunityChoice(false)
+      : decision.selection_policy === "worst_gap_runway_opportunity_per_cost"
+        ? worstGapOpportunityChoice(true)
       : decision.selection_policy === "worst_gap_reserve_cheapest_repair"
         ? worstGapChoice("latest_final")
         : decision.selection_policy === "worst_gap_reserve_cheapest_else_deepest"
@@ -1605,6 +1610,7 @@ function validateTelemetryPayload(
           Math.floor(decision.remaining_budget_frames * (1 - decision.headroom_fraction)) ||
         ![
           "worst_gap_deepest_affordable",
+          "worst_gap_window_opportunity_per_cost",
           "worst_gap_runway_opportunity_per_cost",
           "worst_gap_reserve_cheapest_repair",
           "worst_gap_reserve_cheapest_else_deepest",

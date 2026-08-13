@@ -177,6 +177,48 @@ test("replays a worst-gap decision that reserves the cheapest current repair", (
   });
 });
 
+test("replays the explicit one-gap-later repeated-rejection decision", () => {
+  const point = [90, 70, 50, 30, 10];
+  const upper = [95, 75, 55, 35, 15];
+  const decision: BudgetRepairDecision = {
+    ...TEST_REPAIR_DECISION,
+    remaining_budget_frames: 100,
+    headroom_fraction: 0,
+    usable_budget_frames: 100,
+    selection_policy: "worst_gap_repeated_rejection_step_later",
+    parent_depth: 3,
+    affordable_target_gap_indices: [0, 1, 2, 3, 4],
+    affordable_anchor_gap_indices: [0, 1, 2, 3, 4],
+    target_gap_index: 4,
+    target_gap_sse: 20,
+    anchor_gap_index: 1,
+    mutable_suffix_sse: 23,
+    estimated_anchor_cost_frames: 70,
+    estimated_anchor_cost_upper_frames: 75,
+    considered_targets: Array.from({ length: 5 }, (_, gap) => ({
+      target_gap_index: gap,
+      target_gap_sse: gap === 4 ? 20 : 1,
+      anchor_options: Array.from({ length: gap + 1 }, (_, parentDepth) => {
+        const anchor = gap - parentDepth;
+        return {
+          parent_depth: parentDepth,
+          anchor_gap_index: anchor,
+          estimated_anchor_cost_frames: point[anchor]!,
+          estimated_anchor_cost_upper_frames: upper[anchor]!,
+          anchor_cost_source: "measured_cost_to_end" as const,
+          affordability: "affordable" as const,
+        };
+      }),
+    })),
+  };
+  expect(replayBudgetRepairSelection(decision)).toMatchObject({
+    targetGapIndex: 4,
+    anchorGapIndex: 1,
+    parentDepth: 3,
+    mutableSuffixSse: 23,
+  });
+});
+
 test("replays a worst-gap runway-opportunity decision", () => {
   const point = [100, 80, 60, 40, 10];
   const observedTarget = (gap: number, sse: number) => ({
@@ -1319,6 +1361,45 @@ describe("compile budget telemetry", () => {
     } finally {
       if (previous === undefined) delete process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
       else process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = previous;
+    }
+  }, 180_000);
+
+  test("steps one gap later only after an exact repeated rejected repair decision", async () => {
+    const previous = process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER;
+    process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER = "1";
+    try {
+      const spec = await loadGoldenSpec("cold_start", "base");
+      const result = compileHandoff(spec, 0, {
+        budget: 150_000,
+        polish: false,
+        budgetTelemetry: "summary",
+      });
+      const repairs = result.budgetTelemetry!.episodes.filter((episode) =>
+        episode.lane === "repair"
+      );
+      const activated = repairs.filter((episode) =>
+        episode.repair_decision!.selection_policy ===
+          "worst_gap_repeated_rejection_step_later"
+      );
+      expect(activated.length).toBeGreaterThan(0);
+      for (const episode of activated) {
+        const index = repairs.indexOf(episode);
+        const parent = repairs[index - 1]!;
+        expect(parent.outcome.terminal_reached).toBe(true);
+        expect(parent.outcome.accepted_alternative).toBe(false);
+        expect(episode.repair_decision!.incumbent_revision)
+          .toBe(parent.repair_decision!.incumbent_revision);
+        expect(episode.repair_decision!.target_gap_index)
+          .toBe(parent.repair_decision!.target_gap_index);
+        expect(episode.repair_decision!.anchor_gap_index)
+          .toBe(parent.repair_decision!.anchor_gap_index + 1);
+      }
+    } finally {
+      if (previous === undefined) {
+        delete process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER;
+      } else {
+        process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER = previous;
+      }
     }
   }, 180_000);
 

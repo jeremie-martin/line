@@ -201,6 +201,7 @@ export type BudgetRepairDecision = {
   selection_policy:
     | "worst_gap_deepest_affordable"
     | "worst_gap_three_quarter_last_chance"
+    | "worst_gap_repeated_rejection_step_later"
     | "worst_gap_window_opportunity_per_cost"
     | "worst_gap_runway_opportunity_per_cost"
     | "worst_gap_reserve_cheapest_repair"
@@ -386,9 +387,26 @@ export function replayBudgetRepairSelection(
       anchor: selected.anchor,
     };
   };
+  const repeatedRejectionStepLaterChoice = () => {
+    const ordinary = worstGapChoice("none");
+    const anchor = ordinary.target.anchor_options.find((option) =>
+      option.affordability === "affordable" &&
+      option.anchor_gap_index === ordinary.anchorGapIndex + 1
+    );
+    if (anchor === undefined) {
+      throw new Error(`repair repeated-rejection selection has no replayable later anchor`);
+    }
+    return {
+      ...suffixChoice(anchor.anchor_gap_index),
+      target: ordinary.target,
+      anchor,
+    };
+  };
   const choice = decision.selection_policy === "worst_gap_deepest_affordable" ||
       decision.selection_policy === "worst_gap_three_quarter_last_chance"
     ? worstGapChoice("none")
+    : decision.selection_policy === "worst_gap_repeated_rejection_step_later"
+      ? repeatedRejectionStepLaterChoice()
     : decision.selection_policy === "worst_gap_window_opportunity_per_cost"
       ? worstGapOpportunityChoice(false)
       : decision.selection_policy === "worst_gap_runway_opportunity_per_cost"
@@ -1613,6 +1631,7 @@ function validateTelemetryPayload(
         ![
           "worst_gap_deepest_affordable",
           "worst_gap_three_quarter_last_chance",
+          "worst_gap_repeated_rejection_step_later",
           "worst_gap_window_opportunity_per_cost",
           "worst_gap_runway_opportunity_per_cost",
           "worst_gap_reserve_cheapest_repair",
@@ -1728,6 +1747,26 @@ function validateTelemetryPayload(
           parent.outcome.rejected_local_improvement_followup !== "scheduled"
         ) {
           throw new Error(`budget telemetry episode ${index} rejected-offer lineage is inconsistent`);
+        }
+      }
+      if (decision.selection_policy === "worst_gap_repeated_rejection_step_later") {
+        const previous = payload.episodes[index - 1];
+        const previousDecision = previous?.repair_decision;
+        if (
+          previous?.lane !== "repair" ||
+          previousDecision === null || previousDecision === undefined ||
+          !previous.outcome.terminal_reached ||
+          previous.outcome.accepted_alternative ||
+          previousDecision.working_track_source !== "global_incumbent" ||
+          decision.working_track_source !== "global_incumbent" ||
+          previousDecision.incumbent_revision !== decision.incumbent_revision ||
+          previousDecision.target_gap_index !== decision.target_gap_index ||
+          previousDecision.anchor_gap_index + 1 !== decision.anchor_gap_index ||
+          previousDecision.selection_policy === "worst_gap_repeated_rejection_step_later"
+        ) {
+          throw new Error(
+            `budget telemetry episode ${index} repeated-rejection step-later lineage is inconsistent`,
+          );
         }
       }
     } else if (

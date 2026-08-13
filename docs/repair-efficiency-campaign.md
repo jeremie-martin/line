@@ -1081,3 +1081,29 @@ are byte-identical to the pre-study parent. Do not compose this state-distance
 selector with reduced random breadth or tune its reserved fraction. Full
 decisions and evidence hashes are in
 `benchmark/v2/studies/fixed-cost-diverse-aim-bases.json`.
+
+### Repeated-rejection step-later repair — declared
+
+The production N=16 behavior audit gives a narrower restart-timing signal than
+the rejected global later-anchor and reserve families. After a rejected repair,
+332 next iterations independently recomputed the exact same target and anchor.
+They consumed 80.55M charged frames and returned 3.66 internal-score points per
+million frames, versus 4.44 for next iterations whose decision changed. This is
+an association, not a counterfactual result, but it identifies a bounded causal
+trigger without source, budget, or iteration gates.
+
+The candidate still begins every iteration from the best global incumbent and
+recomputes the ordinary worst-gap/deepest-affordable decision. Only when that
+decision exactly repeats the immediately preceding rejected terminal's target
+and anchor on the unchanged incumbent does it restart one gap later. It cannot
+compound across consecutive adjusted attempts, does not change candidate
+breadth, targets, acceptance, seeds, budgets, or the production first repair,
+and falls back to the ordinary choice if no strictly later affordable anchor
+exists.
+
+The telemetry declares `worst_gap_repeated_rejection_step_later`, replays its
+choice from the complete option table, and fails validation unless the prior
+episode is the exact rejected decision that causally authorizes it. Behavior
+analysis reports activation and its terminal, acceptance, spend, divergence,
+and gain density separately. The arm receives the frozen 4/8/16 multi-budget
+ladder; it is not a reopening of global later-anchor tuning.

@@ -2948,6 +2948,11 @@ function compileHandoffInternal(
       let initialRepairPlanningCostToEnd: readonly number[] | null = null;
       let attempts = 0;
       let restartCounter = 0;
+      let previousRejectedRepairDecision: {
+        incumbentRevision: number;
+        targetGapIndex: number;
+        anchorGapIndex: number;
+      } | null = null;
       while (
         attempts < repair.maxAttempts &&
         getSimFrames() < repairBudget &&
@@ -3033,6 +3038,21 @@ function compileHandoffInternal(
           if (target !== null) repairBreadthRatio = REPAIR_LAST_CHANCE_BREADTH_RATIO;
         }
         if (target === null) break;
+        if (
+          repair.repeatedRejectionStepLater &&
+          bridgeInput === null &&
+          repairBreadthRatio === 1 &&
+          previousRejectedRepairDecision?.incumbentRevision === incumbentRevision &&
+          previousRejectedRepairDecision.targetGapIndex === target.targetGapIndex &&
+          previousRejectedRepairDecision.anchorGapIndex === target.anchorGapIndex
+        ) {
+          target = selectRepeatedRejectionStepLater(
+            target,
+            targetCandidates,
+            pointCostByAnchor,
+            upperCostByAnchor,
+          ) ?? target;
+        }
         attempts++;
         const kWorst = target.targetGapIndex;
         const k = target.anchorGapIndex;
@@ -3329,6 +3349,13 @@ function compileHandoffInternal(
           completed ? "terminal_considered" : "no_terminal",
           repairEpisodeId,
         );
+        previousRejectedRepairDecision = bridgeInput === null && completed && !acceptedAlternative
+          ? {
+            incumbentRevision: incumbentRevisionBefore,
+            targetGapIndex: kWorst,
+            anchorGapIndex: k,
+          }
+          : null;
         // A narrow suffix is deliberately the final repair iteration. Its
         // measured cost profile belongs to a different breadth and must not be
         // reused to price a subsequent full-width decision.
@@ -6706,6 +6733,7 @@ export type RepairTargetCandidate = { gapIndex: number; sse: number };
 export type RepairSelectionPolicy =
   | "worst_gap_deepest_affordable"
   | "worst_gap_three_quarter_last_chance"
+  | "worst_gap_repeated_rejection_step_later"
   | "worst_gap_window_opportunity_per_cost"
   | "worst_gap_runway_opportunity_per_cost"
   | "worst_gap_reserve_cheapest_repair"
@@ -6726,6 +6754,42 @@ export type RepairSelection = AffordableRepairTarget & {
   affordableAnchorGapIndices: number[];
   mutableSuffixSse: number;
 };
+
+/**
+ * Isolated retry intervention: retain the independently recomputed worst target,
+ * but move its restart anchor exactly one gap later. The caller is responsible
+ * for proving that the ordinary choice exactly repeats the immediately rejected
+ * target and anchor on an unchanged incumbent. Returning null leaves the
+ * ordinary choice untouched when there is no strictly later affordable option.
+ */
+export function selectRepeatedRejectionStepLater(
+  ordinary: RepairSelection,
+  candidates: readonly RepairTargetCandidate[],
+  pointCostByAnchor: readonly number[],
+  upperCostByAnchor: readonly number[],
+): RepairSelection | null {
+  if (
+    ordinary.selectionPolicy !== "worst_gap_deepest_affordable" ||
+    ordinary.parentDepth <= 0
+  ) return null;
+  const anchorGapIndex = ordinary.anchorGapIndex + 1;
+  const point = pointCostByAnchor[anchorGapIndex];
+  const upper = upperCostByAnchor[anchorGapIndex];
+  if (
+    !Number.isFinite(point) || point! <= 0 ||
+    !Number.isFinite(upper) || upper! <= 0 ||
+    upper! > ordinary.usableBudgetFrames
+  ) return null;
+  return {
+    ...ordinary,
+    selectionPolicy: "worst_gap_repeated_rejection_step_later",
+    anchorGapIndex,
+    parentDepth: ordinary.parentDepth - 1,
+    mutableSuffixSse: candidates
+      .filter((candidate) => candidate.gapIndex >= anchorGapIndex)
+      .reduce((sum, candidate) => sum + candidate.sse, 0),
+  };
+}
 
 /**
  * Study-only last-chance repair pricing.
@@ -8792,6 +8856,8 @@ type RepairConfig = {
   /** One narrower suffix after ordinary full-width affordability is exhausted. */
   lastChanceThreeQuarter: boolean;
   suffixSearchPolicy: RepairSuffixSearchPolicy;
+  /** Move one gap later only when the ordinary decision repeats an immediate rejection. */
+  repeatedRejectionStepLater: boolean;
   rejectedLocalImprovementBridge:
     | "disabled"
     | "protected_one_step"
@@ -8884,6 +8950,8 @@ function repairConfig(): RepairConfig {
       (repairSelectionPolicy === undefined &&
         (readEnv("LR_STUDY_NCAND_POLICY") ?? "") === ""),
     suffixSearchPolicy: repairSuffixSearchPolicy(),
+    repeatedRejectionStepLater:
+      readEnv("LR_REPAIR_REPEATED_REJECTION_STEP_LATER") === "1",
     // Study-only protected bridge. It may spend one follow-up from a rejected
     // terminal that improved its selected target; it never changes the global
     // acceptance rule or promotes the working track by local quality alone.

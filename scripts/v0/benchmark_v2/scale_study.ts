@@ -72,7 +72,10 @@ type StudyTask = {
     | "repair-descendants-three-quarter-stable-planning"
     | "repair-post-target-three-quarter"
     | "linear-cap-216";
-  repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
+  repairPolicy?:
+    | "protected-one-step-bridge"
+    | "optimistic-axis-bound-bridge"
+    | "repeated-rejection-step-later";
   repairSelectionPolicy?:
     | "three-quarter-last-chance"
     | "reserve-cheapest-repair"
@@ -584,7 +587,10 @@ function studyPlanFingerprint(input: {
     | "repair-descendants-three-quarter-stable-planning"
     | "repair-post-target-three-quarter"
     | "linear-cap-216";
-  repairPolicy?: "protected-one-step-bridge" | "optimistic-axis-bound-bridge";
+  repairPolicy?:
+    | "protected-one-step-bridge"
+    | "optimistic-axis-bound-bridge"
+    | "repeated-rejection-step-later";
   repairSelectionPolicy?:
     | "three-quarter-last-chance"
     | "reserve-cheapest-repair"
@@ -681,11 +687,15 @@ async function workerMain(task: StudyTask): Promise<void> {
     else process.env.LR_STUDY_NCAND_EXPONENT = String(task.nCandExponent);
     if (task.nCandPolicy === undefined) delete process.env.LR_STUDY_NCAND_POLICY;
     else process.env.LR_STUDY_NCAND_POLICY = task.nCandPolicy;
-    if (task.repairPolicy === undefined) delete process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
-    else process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = task.repairPolicy ===
-        "optimistic-axis-bound-bridge"
-      ? "optimistic-axis-bound"
-      : "1";
+    delete process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE;
+    delete process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER;
+    if (task.repairPolicy === "optimistic-axis-bound-bridge") {
+      process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "optimistic-axis-bound";
+    } else if (task.repairPolicy === "protected-one-step-bridge") {
+      process.env.LR_REPAIR_REJECTED_LOCAL_BRIDGE = "1";
+    } else if (task.repairPolicy === "repeated-rejection-step-later") {
+      process.env.LR_REPAIR_REPEATED_REJECTION_STEP_LATER = "1";
+    }
     if (task.repairSelectionPolicy === undefined) delete process.env.LR_REPAIR_SELECTION_POLICY;
     else process.env.LR_REPAIR_SELECTION_POLICY = task.repairSelectionPolicy;
     if (task.repairSuffixSearchPolicy === undefined) {
@@ -890,13 +900,22 @@ function parseNCandPolicy(
 
 function parseRepairPolicy(
   value: string | undefined,
-): "protected-one-step-bridge" | "optimistic-axis-bound-bridge" | undefined {
+):
+  | "protected-one-step-bridge"
+  | "optimistic-axis-bound-bridge"
+  | "repeated-rejection-step-later"
+  | undefined {
   if (value === undefined) return undefined;
-  if (value === "protected-one-step-bridge" || value === "optimistic-axis-bound-bridge") {
+  if (
+    value === "protected-one-step-bridge" ||
+    value === "optimistic-axis-bound-bridge" ||
+    value === "repeated-rejection-step-later"
+  ) {
     return value;
   }
   throw new Error(
-    "--repair-policy must be protected-one-step-bridge or optimistic-axis-bound-bridge",
+    "--repair-policy must be protected-one-step-bridge, optimistic-axis-bound-bridge, " +
+      "or repeated-rejection-step-later",
   );
 }
 
